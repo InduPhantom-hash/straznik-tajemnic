@@ -1,0 +1,43 @@
+# NOTICE - Strażnik Tajemnic AI
+
+## Projekt fanowski, nieoficjalny
+
+Strażnik Tajemnic AI to **nieoficjalny, fanowski silnik** AI Mistrza Gry
+do prowadzenia sesji RPG w klimacie lovecraftowskim. Projekt nie jest powiązany,
+sponsorowany ani wspierany przez Chaosium Inc. ani przez Black Monk Games.
+
+## To repozytorium NIE zawiera treści chronionych
+
+- Repozytorium dostarcza **wyłącznie kod silnika** (na licencji MIT, patrz `LICENSE`).
+- **Nie zawiera** żadnych podręczników, scenariuszy ani innych materiałów Chaosium /
+  Black Monk. Nie są one dołączane ani rozprowadzane w żadnej formie.
+- Aby grać, **wnosisz własny, legalnie nabyty egzemplarz** podręcznika (darmowy
+  starter albo pełne wydanie). Wgrywasz swój plik PDF lokalnie - trafia on wyłącznie
+  na Twój dysk i nigdy nie jest udostępniany dalej.
+
+## Znaki towarowe
+
+*Call of Cthulhu*, *Zew Cthulhu* oraz *Chaosium* to znaki towarowe Chaosium Inc.
+Wszelkie odniesienia do nich w tym projekcie mają charakter wyłącznie opisowy
+(wskazanie kompatybilności - *nominative use*) i nie stanowią roszczenia do tych
+znaków.
+
+## Domena publiczna (Lovecraft)
+
+Twórczość H.P. Lovecrafta (zm. 1937) jest w domenie publicznej w Polsce i UE
+(70 lat po śmierci autora). Elementy mitologii Cthulhu *w postaci, w jakiej opisał
+je Lovecraft* (Cthulhu, Necronomicon, Wielcy Przedwieczni, Arkham, Uniwersytet
+Miskatonic, R'lyeh i in.) są wolne. Niniejszy projekt może korzystać z tych
+public-domain źródeł; nie korzysta z chronionych tłumaczeń bez weryfikacji.
+
+## Skąd wziąć podręcznik
+
+Aplikacja prowadzi przez ten krok przy pierwszym uruchomieniu i linkuje do
+legalnych źródeł:
+
+- **Za darmo:** darmowe startery Black Monk (PL), Quick-Start Rules Chaosium (EN).
+- **Pełne wydania (płatne):** Black Monk (blackmonk.pl), DriveThruRPG, ProRPG.
+
+---
+
+*Ten dokument nie jest poradą prawną.*

@@ -1,0 +1,1 @@
+export { TTSSettings } from './tts';

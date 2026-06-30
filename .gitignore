@@ -1,0 +1,133 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+backups/
+.playtest-results/
+
+# sensitive config
+mcp.json
+google-cloud-key.json
+skills-lock.json
+
+# large files
+lovecraft-corpus/
+public/uploads/*.pdf
+
+# tresc chroniona prawem - surowe konwersje podrecznika CoC (NIGDY do repo)
+*coc7*.txt
+
+# debug output
+output*.txt
+stdout*.txt
+stderr.txt
+final_test.txt
+src/api-debug.log
+src/cost-log.jsonl
+src/telemetry.jsonl
+src/telemetry.jsonl.bak*
+
+# IDE/editor
+.cursor/
+.vscode/
+.claude/
+.agent/
+.agents/
+
+# local notes & design (out-of-repo, kept locally)
+notes/
+design/
+
+# surowe wyjścia subagentów desk-research (intermediate; finalne raporty są commitowane)
+research/**/_subagent-outputs/
+
+# test artifacts
+.playtest-results/
+playwright-report/
+test-results/
+
+# AIOS lokalne notatki projektu (per-developer)
+aktywne.md
+
+# security audit reports (zawieraja mape luk - traktuj jako wewnetrzny dokument)
+security/audit-*.md
+
+# Codex CLI artefakty (alternatywny CLI obok Claude Code, per-developer)
+.codex/
+AGENTS.md
+
+# CoC 7e extracted text artifacts (copyrighted Chaosium + Black Monk - never commit)
+data/coc-rag/
+
+# understand-anything knowledge graph + lekki derivat dla AI nawigacji (build artifact, per-developer)
+# Regeneruje sie przez /understand-anything:understand (1.2 MB JSON + 168 KB markdown).
+.understand-anything/
+CODE_MAP.md
+
+# Wersja lokalna: save'y gry + obrazy save'ow (prywatne dane gry, nie commitowac)
+/data/saves/
+/data/sessions/
+/data/results/
+/public/game-saves/
+# Realne handouty (mapy/dokumenty z legalnych materiałów DriveThruRPG) - duże,
+# objęte prawem autorskim, regenerowalne skryptem scripts/extract-handouts.mjs
+/public/handouts/
+/data/gm-instructions/
+# RAG lokalny: wektory podrecznika/przygod/sesji (user wgrywa swoj PDF, nie commitowac)
+/data/rag/
+# Licznik kosztow per-konto (lokalny plik na dysku, Lista 2.A1) - dane runtime
+/data/usage/
+# Cache auto-fetch cennika Gemini (IND-273 T5b) - runtime, TTL 24h
+/data/pricing/
+
+# Desktop launcher: runtime (PID serwera, profil okna Chrome) + generowane ikony.
+# Wersjonujemy tylko zrodla w desktop/*.sh + README.
+/.desktop/
+desktop/icon.icns
+desktop/icon.png
+desktop/icon-reset.icns
+desktop/icon-reset.png
+desktop/*.iconset
+
+# Katalog przygod: pelna lista platnych/prywatnych przygod (tresc chroniona) + plik
+# generowany. NIE commitowac - publiczne buildy dostaja pusty adventures-catalog.public.ts.
+/src/lib/adventures-catalog.private.ts
+/src/lib/adventures-catalog.generated.ts

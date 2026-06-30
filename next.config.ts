@@ -1,0 +1,92 @@
+import type { NextConfig } from 'next';
+import bundleAnalyzer from '@next/bundle-analyzer';
+// @sentry/nextjs jest required dependency w package.json — usunięcie wymaga rollbacku do .mjs z dynamic import (try/catch wokół ESM static import jest niemożliwe)
+import { withSentryConfig } from '@sentry/nextjs';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+const nextConfig: NextConfig = {
+  // Zwiększ limit body size dla Server Actions (może pomóc z API routes)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
+  },
+  serverExternalPackages: ['pdf-parse'],
+  async headers() {
+    return [
+      {
+        // Nagłówki bezpieczeństwa dla wszystkich stron
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+      {
+        // CORS dla API routes
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+          {
+            key: 'Access-Control-Max-Age',
+            value: '86400',
+          },
+        ],
+      },
+    ];
+  },
+};
+
+// Buduj końcowy config — Sentry owijamy warunkowo żeby nie blokować gdy DSN nie ustawiony
+const finalConfig = withBundleAnalyzer(nextConfig);
+
+const config: NextConfig = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(finalConfig, {
+      // Wycisz logi Sentry podczas buildu
+      silent: !process.env.CI,
+      // Upload source maps wyłącznie gdy mamy token (produkcja). Bez tokenu Sentry pomija upload silently.
+      sourcemaps: {
+        disable: !process.env.SENTRY_AUTH_TOKEN,
+      },
+      org: process.env.SENTRY_ORG || '',
+      project: process.env.SENTRY_PROJECT || 'zew-cthulhu',
+      // Automatyczny routing błędów przez Sentry tunnel (omija ad-blockery)
+      tunnelRoute: '/monitoring-tunnel',
+      // Nie dodawaj Sentry do wszystkich route'ów automatycznie (robimy to ręcznie)
+      autoInstrumentServerFunctions: false,
+    })
+  : finalConfig;
+
+export default config;

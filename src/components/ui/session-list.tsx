@@ -1,0 +1,191 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Button } from './button';
+
+interface Session {
+  sessionId: string;
+  sessionData: {
+    sessionName: string;
+    description: string;
+    character: { id: string; name: string; occupation: string } | null;
+    messages: Array<{ role: string; content: string }>;
+    adventureText: string;
+    timestamp: string;
+  };
+}
+
+interface SessionListProps {
+  onLoadSession: (sessionId: string) => void;
+  onDeleteSession: (sessionId: string) => void;
+  onClose: () => void;
+}
+
+export function SessionList({
+  onLoadSession,
+  onDeleteSession,
+  onClose,
+}: SessionListProps) {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  const loadSessions = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/session');
+      if (response.ok) {
+        const { sessions } = await response.json();
+        setSessions(sessions || []);
+      } else {
+        setError('Błąd podczas pobierania listy sesji');
+      }
+    } catch {
+      setError('Błąd połączenia z serwerem');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadSession = async (sessionId: string) => {
+    await onLoadSession(sessionId);
+    onClose();
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (
+      window.confirm(
+        'Czy na pewno chcesz usunąć tę sesję? Tej operacji nie można cofnąć.'
+      )
+    ) {
+      await onDeleteSession(sessionId);
+      await loadSessions(); // Odśwież listę
+    }
+  };
+
+  const formatDate = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString('pl-PL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        </div>
+        <p className="text-muted-foreground text-lg">
+          Ładowanie listy sesji...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-red-500/20 to-red-600/20 rounded-full flex items-center justify-center">
+          <span className="text-2xl">❌</span>
+        </div>
+        <p className="text-red-400 text-lg mb-4">{error}</p>
+        <Button
+          onClick={loadSessions}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700"
+        >
+          Spróbuj ponownie
+        </Button>
+      </div>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-gray-500/20 to-gray-600/20 rounded-full flex items-center justify-center">
+          <span className="text-2xl">📂</span>
+        </div>
+        <p className="text-muted-foreground text-lg">Brak zapisanych sesji</p>
+        <p className="text-muted-foreground text-sm mt-2">
+          Stwórz pierwszą sesję, aby rozpocząć grę
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-xl p-6 w-[90vw] max-w-[1440px] max-h-[80vh] overflow-y-auto text-foreground">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-center flex-1">
+            📚 Lista Sesji
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 bg-muted hover:bg-muted rounded-lg transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {sessions.map((session) => (
+            <div
+              key={session.sessionId}
+              className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:bg-black/40 transition-all duration-300"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <h4 className="text-xl font-bold text-foreground mb-2">
+                    {session.sessionData.sessionName || 'Bez nazwy'}
+                  </h4>
+                  {session.sessionData.description && (
+                    <p className="text-foreground text-sm mb-2">
+                      {session.sessionData.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>
+                      👤 {session.sessionData.character?.name || 'Brak postaci'}
+                    </span>
+                    <span>
+                      💬 {session.sessionData.messages?.length || 0} wiadomości
+                    </span>
+                    <span>
+                      📖 {session.sessionData.adventureText?.length || 0} znaków
+                    </span>
+                    <span>🕐 {formatDate(session.sessionData.timestamp)}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <Button
+                    onClick={() => handleLoadSession(session.sessionId)}
+                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-foreground font-medium rounded-lg transition-all duration-300 hover:scale-105"
+                  >
+                    📂 Wczytaj
+                  </Button>
+                  <Button
+                    onClick={() => handleDeleteSession(session.sessionId)}
+                    className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-foreground font-medium rounded-lg transition-all duration-300 hover:scale-105"
+                  >
+                    🗑️ Usuń
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,9 @@
+# gitleaks ignore list — IND-37 sec audit cleanup (2026-05-06)
+#
+# Format: <commit-hash>:<file>:<rule-id>:<line>
+#
+# FP: jest.fn().mockImplementation w mock dla GoogleGenAI w teście
+# (TypeScript class+method signature, NIE klucz API). Linia:
+#   GoogleGenAI: jest.fn().mockImplementation(() => ({
+# Detector entropy 3.68 z random-looking string ale brak realnego sekretu.
+2770520ffa4420da6eb17b8a142af818f7d934cc:src/lib/__tests__/gemini-cache-service.test.ts:generic-api-key:24

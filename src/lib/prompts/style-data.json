@@ -1,0 +1,804 @@
+{
+  "vocabulary": {
+    "horror": {
+      "english": [
+        "eldritch",
+        "blasphemous",
+        "nameless",
+        "unnamable",
+        "accursed",
+        "abhorrent",
+        "hideous",
+        "loathsome",
+        "monstrous",
+        "grotesque",
+        "ghastly",
+        "macabre",
+        "noisome",
+        "noxious",
+        "pestilential",
+        "charnel",
+        "sepulchral",
+        "cadaverous",
+        "daemoniac",
+        "hellish",
+        "infernal",
+        "unholy",
+        "profane",
+        "abominable",
+        "execrable",
+        "unspeakable",
+        "unutterable",
+        "ineffable",
+        "foetor",
+        "miasma",
+        "putrescence",
+        "decay",
+        "corruption",
+        "degeneration"
+      ],
+      "polish": [
+        "niesamowity",
+        "bluźnierczy",
+        "bezimienny",
+        "niewypowiedziany",
+        "przeklęty",
+        "odrażający",
+        "ohydny",
+        "obrzydliwy",
+        "potworny",
+        "groteskowy",
+        "upiorny",
+        "makabryczny",
+        "cuchnący",
+        "jadowity",
+        "zarazy",
+        "trupi",
+        "grobowy",
+        "trupiego",
+        "demoniczny",
+        "piekielny",
+        "szatański",
+        "nieświęty",
+        "profaniczny",
+        "wstrętny",
+        "niewymowny",
+        "niepojęty",
+        "nieopisany",
+        "fetor",
+        "miazmat",
+        "zgnilizna",
+        "rozkład",
+        "zepsucie",
+        "degeneracja"
+      ]
+    },
+    "architecture": {
+      "english": [
+        "cyclopean",
+        "titanic",
+        "monolithic",
+        "megolithic",
+        "colossal",
+        "vast",
+        "immense",
+        "measureless",
+        "boundless",
+        "illimitable",
+        "fathomless",
+        "labyrinthine",
+        "tortuous",
+        "serpentine",
+        "convoluted",
+        "non-Euclidean",
+        "gambrel-roofed",
+        "gabled",
+        "turreted",
+        "columned",
+        "pillared",
+        "crumbling",
+        "moldering",
+        "decayed",
+        "decrepit",
+        "dilapidated",
+        "ruinous",
+        "sagging",
+        "leaning",
+        "tottering",
+        "time-worn",
+        "eon-weighted"
+      ],
+      "polish": [
+        "cyklopowy",
+        "tytaniczny",
+        "monolityczny",
+        "megalityczny",
+        "kolosalny",
+        "rozległy",
+        "ogromny",
+        "niezmierzony",
+        "bezkresny",
+        "bezgraniczny",
+        "bezdenny",
+        "labiryntowy",
+        "kręty",
+        "wężowaty",
+        "zawiły",
+        "nieeuklidesowy",
+        "z mansardowym dachem",
+        "szczytowy",
+        "basztowy",
+        "kolumnowy",
+        "filarowy",
+        "walący się",
+        "butwiejący",
+        "zbutwiały",
+        "zdezelowany",
+        "zniszczony",
+        "ruinowy",
+        "zapadający się",
+        "przechylony",
+        "chwiejny",
+        "naznaczony czasem",
+        "eon-ciężki"
+      ]
+    },
+    "cosmic": {
+      "english": [
+        "cosmic",
+        "stellar",
+        "interstellar",
+        "galactic",
+        "extragalactic",
+        "primordial",
+        "primal",
+        "antediluvian",
+        "prehuman",
+        "prehistoric",
+        "eon-old",
+        "age-old",
+        "immemorial",
+        "timeless",
+        "eternal",
+        "sempiternal",
+        "abyss",
+        "void",
+        "gulf",
+        "chasm",
+        "infinitude",
+        "vastness",
+        "ultimate",
+        "absolute",
+        "fundamental",
+        "essential",
+        "preternatural"
+      ],
+      "polish": [
+        "kosmiczny",
+        "gwiezdny",
+        "międzygwiezdny",
+        "galaktyczny",
+        "pozagalaktyczny",
+        "pierwotny",
+        "prymitywny",
+        "przedpotopowy",
+        "przedludzki",
+        "prehistoryczny",
+        "starożytny",
+        "odwieczny",
+        "zamierzchły",
+        "bezczasowy",
+        "wieczny",
+        "ponadczasowy",
+        "otchłań",
+        "pustka",
+        "przepaść",
+        "rozpadlina",
+        "nieskończoność",
+        "bezmiar",
+        "ostateczny",
+        "absolutny",
+        "fundamentalny",
+        "esencjonalny",
+        "nadprzyrodzony"
+      ]
+    },
+    "physical": {
+      "english": [
+        "squamous",
+        "rugose",
+        "membranous",
+        "gelatinous",
+        "viscous",
+        "ropy",
+        "slimy",
+        "oozing",
+        "dripping",
+        "festering",
+        "suppurating",
+        "gangrenous",
+        "phosphorescent",
+        "luminescent",
+        "iridescent",
+        "opalescent",
+        "nacreous",
+        "tenebrous",
+        "crepuscular",
+        "Stygian",
+        "Cimmerian",
+        "abysmal",
+        "pallid",
+        "sallow",
+        "livid",
+        "ashen",
+        "cadaverous",
+        "spectral"
+      ],
+      "polish": [
+        "łuskowaty",
+        "pomarszczony",
+        "błoniaty",
+        "galaretowaty",
+        "lepki",
+        "mazisty",
+        "śluzowaty",
+        "sączący",
+        "kapiący",
+        "ropiejący",
+        "jątrzący",
+        "gangrenowy",
+        "fosforyzujący",
+        "luminescencyjny",
+        "opalizujący",
+        "perłowy",
+        "maciczny",
+        "mroczny",
+        "zmierzchowy",
+        "styksowy",
+        "cymeryjski",
+        "bezdennie mroczny",
+        "trupio blady",
+        "ziemisty",
+        "siny",
+        "popielaty",
+        "trupi",
+        "widmowy"
+      ]
+    },
+    "sounds": {
+      "english": [
+        "gibbering",
+        "ululating",
+        "piping",
+        "wailing",
+        "keening",
+        "caterwauling",
+        "susurrous",
+        "sibilant",
+        "stridulant",
+        "cacophonous",
+        "discordant",
+        "muffled",
+        "hollow",
+        "sepulchral",
+        "funeral",
+        "eldritch",
+        "droning",
+        "monotonous",
+        "hypnotic",
+        "maddening",
+        "nerve-wracking"
+      ],
+      "polish": [
+        "bełkoczący",
+        "wyjący",
+        "piszczący",
+        "lamentujący",
+        "zawodzący",
+        "miauczący",
+        "szeleszczący",
+        "syczący",
+        "skrzypiący",
+        "kakofoniczny",
+        "dysonansowy",
+        "stłumiony",
+        "pusty",
+        "grobowy",
+        "pogrzebowy",
+        "niesamowity",
+        "jednostajny",
+        "monotonny",
+        "hipnotyczny",
+        "szaleńczy",
+        "rozszarpujący nerwy"
+      ]
+    },
+    "mental": {
+      "english": [
+        "frenzied",
+        "delirious",
+        "maddened",
+        "deranged",
+        "unhinged",
+        "crazed",
+        "gibbering",
+        "raving",
+        "hysterical",
+        "apoplectic",
+        "cataleptic",
+        "stupefied",
+        "entranced",
+        "mesmerized",
+        "hypnotized",
+        "spellbound",
+        "terror-stricken",
+        "panic-struck",
+        "horror-frozen",
+        "aghast",
+        "petrified"
+      ],
+      "polish": [
+        "szalony",
+        "majaczący",
+        "oszalały",
+        "obłąkany",
+        "niepoczytalny",
+        "obłędny",
+        "bełkoczący",
+        "bredzący",
+        "histeryczny",
+        "apoplektyczny",
+        "kataleptyczny",
+        "oszołomiony",
+        "zahipnotyzowany",
+        "zaczarowany",
+        "urzeczony",
+        "zniewolony",
+        "przerażony",
+        "spanikowany",
+        "sparaliżowany z przerażenia",
+        "wstrząśnięty",
+        "skamiety"
+      ]
+    }
+  },
+  "narrativePatterns": {
+    "foreshadowing": {
+      "english": [
+        "I am forced to speak of things which I would rather leave untouched...",
+        "What I am about to relate will seem incredible to those who have not witnessed such things...",
+        "Looking back, I realize that the warning signs were there from the beginning...",
+        "Had I known then what horrors awaited, I would never have...",
+        "It is with great reluctance that I set down these facts, knowing how they will be received...",
+        "The events I must now describe have left me a broken and haunted man..."
+      ],
+      "polish": [
+        "Jestem zmuszony mówić o rzeczach, które wolałbym pozostawić w cieniu...",
+        "To, co teraz opowiem, wyda się niewiarygodne tym, którzy nie byli świadkami takich rzeczy...",
+        "Patrząc wstecz, zdaję sobie sprawę, że znaki ostrzegawcze były widoczne od samego początku...",
+        "Gdybym wiedział wówczas, jakie koszmary na mnie czekały, nigdy bym nie...",
+        "Z wielką niechęcią spisuję te fakty, wiedząc jak zostaną przyjęte...",
+        "Wydarzenia, które muszę teraz opisać, uczyniły ze mnie złamanego i nawiedzanego człowieka..."
+      ]
+    },
+    "ineffability": {
+      "english": [
+        "No words in any human language can adequately convey...",
+        "What I witnessed defied all attempts at rational description...",
+        "The thing before me was something for which the term \"horror\" seems woefully inadequate...",
+        "I can find no words to express the nature of that which confronted me...",
+        "To call it merely frightening would be to miss the essential quality of cosmic wrongness...",
+        "Language itself seemed to crumble in the face of such alien unreality..."
+      ],
+      "polish": [
+        "Żadne słowa w żadnym ludzkim języku nie są w stanie odpowiednio oddać...",
+        "To, czego byłem świadkiem, wymykało się wszelkim próbom racjonalnego opisu...",
+        "Rzecz przede mną była czymś, dla czego słowo \"groza\" wydaje się żałośnie nieadekwatne...",
+        "Nie potrafię znaleźć słów, by wyrazić naturę tego, co mnie spotkało...",
+        "Nazwać to jedynie przerażającym, oznaczałoby przegapić istotną jakość kosmicznej nieprawości...",
+        "Sam język zdawał się kruszyć w obliczu tak obcej nierealności..."
+      ]
+    },
+    "retrospective": {
+      "english": [
+        "Now, after many years, I can finally bring myself to...",
+        "It has taken me decades to recover enough to set down these memories...",
+        "Only now, with the wisdom of hindsight, do I understand the true nature of...",
+        "The passage of time has done little to dim the horror of those events...",
+        "Even now, the mere recollection sends cold shivers through my frame..."
+      ],
+      "polish": [
+        "Teraz, po wielu latach, mogę wreszcie zdobyć się na...",
+        "Minęły dziesięciolecia, zanim doszedłem do siebie na tyle, by spisać te wspomnienia...",
+        "Dopiero teraz, z mądrością wstecznego spojrzenia, rozumiem prawdziwą naturę...",
+        "Upływ czasu niewiele uczynił, by złagodzić grozę tamtych wydarzeń...",
+        "Nawet teraz samo wspomnienie przeszywa moje ciało zimnym dreszczem..."
+      ]
+    },
+    "gradualRevelation": {
+      "english": [
+        "At first, I noticed nothing amiss, but gradually a sense of wrongness crept over me...",
+        "The full horror of the situation dawned upon me by slow, terrible degrees...",
+        "Piece by piece, the dreadful truth assembled itself in my mind...",
+        "What had seemed merely odd now revealed its true and terrible significance...",
+        "Layer by layer, the facade of normalcy peeled away to reveal..."
+      ],
+      "polish": [
+        "Początkowo nie zauważyłem nic niepokojącego, ale stopniowo ogarnęło mnie poczucie nieprawości...",
+        "Pełna groza sytuacji dotarła do mnie powoli, straszliwymi etapami...",
+        "Fragment po fragmencie, przeraająca prawda układała się w moim umyśle...",
+        "To, co wydawało się jedynie dziwne, ujawniło teraz swoje prawdziwe i straszliwe znaczenie...",
+        "Warstwa po warstwie, fasada normalności opadała, by odsłonić..."
+      ]
+    }
+  },
+  "narrativeTechniques": {
+    "delayedRevelation": {
+      "description": "Never reveal the horror immediately. Build through hints, suggestions, and partial glimpses.",
+      "stages": [
+        "1. Subtle wrongness - something is slightly off but undefined",
+        "2. Growing unease - the wrongness becomes more apparent",
+        "3. First glimpse - a partial, unclear view of the horror",
+        "4. Full realization - the complete nature is understood (but perhaps not described)"
+      ],
+      "example": "First describe only shadows and sounds. Then shapes. Then partial features. The full horror should be implied rather than stated."
+    },
+    "anomalyOverMonster": {
+      "description": "Build horror from small wrong details, not from showing the creature. Players assemble the dread from fragments themselves.",
+      "techniques": [
+        "Point at things that do not fit: too little blood, an angel statue's finger turned upside-down, a crypt suspiciously too clean, human bite-marks on a victim",
+        "Let players draw the terrifying conclusion - never state it outright",
+        "Prefer dread over horror: end the scene on the threshold, before the confrontation (the unexplored tunnel, the fleeing figure, the door left ajar)"
+      ],
+      "example": "Do not show the ghoul. Show the grave dug from the inside, the pickaxe left behind, the smell of wet fur - and stop."
+    },
+    "horrorByEffect": {
+      "description": "Show the horror through its effect on observers rather than direct description.",
+      "techniques": [
+        "Describe physical reactions: trembling, pallor, cold sweat, racing heart",
+        "Show mental effects: inability to focus, intrusive thoughts, nightmares",
+        "Use comparisons: \"Never in my years of medical practice had I seen such...\"",
+        "Reference lasting damage: \"My hair turned white that night\""
+      ],
+      "keyPhrases": {
+        "english": [
+          "My knees nearly gave way beneath me...",
+          "A cold perspiration broke out upon my brow...",
+          "I felt the blood drain from my face...",
+          "My heart seemed to stop in my chest...",
+          "A terrible trembling seized my entire frame..."
+        ],
+        "polish": [
+          "Nogi niemal się pode mną ugięły...",
+          "Zimny pot wystąpił mi na czoło...",
+          "Poczułem, jak krew odpływa mi z twarzy...",
+          "Serce zdawało się zatrzymać w mojej piersi...",
+          "Straszliwe drżenie opanowało całe moje ciało..."
+        ]
+      }
+    },
+    "sensoryHierarchy": {
+      "description": "Lovecraft typically engages senses in a specific order to build dread.",
+      "order": [
+        "1. SMELL - First hint of wrongness (decay, must, chemical, otherworldly odor)",
+        "2. SOUND - Strange noises that cannot be fully identified",
+        "3. TOUCH - Temperature changes, texture sensations, physical pressure",
+        "4. TASTE - Metallic tang, ozone, copper on the tongue: a reliable marker that something otherworldly is near, often before it is seen",
+        "5. SIGHT - The final, most impactful revelation (often partial or unclear)"
+      ],
+      "exampleSmells": [
+        "foetor",
+        "miasma",
+        "charnel stench",
+        "chemical sharpness",
+        "otherworldly musk"
+      ],
+      "exampleTastes": [
+        "metallic tang",
+        "ozone",
+        "copper",
+        "like licking a battery",
+        "bitter chemical aftertaste"
+      ],
+      "exampleSounds": [
+        "piping",
+        "chittering",
+        "eldritch ululation",
+        "muffled chanting",
+        "distant drums"
+      ]
+    },
+    "cosmicPerspective": {
+      "description": "Emphasize the vastness of time, space, and the insignificance of humanity.",
+      "techniques": [
+        "Reference geological or cosmic time scales",
+        "Contrast human civilization with elder races",
+        "Suggest that human concepts of good/evil are meaningless",
+        "Imply that attention from cosmic entities is worse than their indifference"
+      ],
+      "keyPhrases": {
+        "english": [
+          "In the face of such cosmic antiquity, all human history seemed but an eyeblink...",
+          "We are but ephemeral motes in an uncaring universe...",
+          "What we call evil is merely the indifference of forces beyond our comprehension...",
+          "Mankind clings to its comforting illusions of significance..."
+        ],
+        "polish": [
+          "W obliczu takiej kosmicznej starożytności, cała ludzka historia zdała się jedynie mgnieniem oka...",
+          "Jesteśmy jedynie efemerycznymi pyłkami w obojętnym wszechświecie...",
+          "To, co nazywamy złem, jest jedynie obojętnością sił poza naszym pojmowaniem...",
+          "Ludzkość kurczowo trzyma się pocieszających iluzji o własnym znaczeniu..."
+        ]
+      }
+    }
+  },
+  "locationArchetypes": {
+    "decayedTown": {
+      "elements": [
+        "Crumbling Georgian or Colonial architecture",
+        "Empty, sagging buildings with boarded windows",
+        "Overgrown streets and untended gardens",
+        "A pervasive smell of salt, decay, or mustiness",
+        "Silent, furtive inhabitants who avoid strangers",
+        "Ancient church or meeting house in disrepair",
+        "A harbor or waterfront past its prosperous days"
+      ],
+      "atmosphere": "Emphasize silence broken by wind, creaking signs, distant water. Colors are muted grays, greens, and browns. The town seems to exist in perpetual twilight or overcast.",
+      "examples": ["Innsmouth", "Kingsport", "Arkham outskirts"]
+    },
+    "hauntedWoods": {
+      "elements": [
+        "Ancient, twisted trees with gnarled limbs",
+        "Unnaturally dense undergrowth",
+        "Strange clearings with disturbed earth",
+        "Standing stones or ruined foundations",
+        "Unnatural silence - no birds, no insects",
+        "Paths that seem to shift or disappear",
+        "Areas where compass needles spin wildly"
+      ],
+      "atmosphere": "Canopy blocks most light. Air is heavy, moist, oppressive. Sound seems muffled. There is always a sense of being watched.",
+      "examples": ["Woods near Arkham", "Dark forests behind decayed estates"]
+    },
+    "undergroundCrypt": {
+      "elements": [
+        "Worn stone steps descending into darkness",
+        "Walls of cyclopean masonry or natural rock",
+        "Ancient inscriptions in unknown languages",
+        "Chambers of non-Euclidean geometry",
+        "Phosphorescent fungi or strange luminescence",
+        "Underground streams or pools of dark water",
+        "Altars or ritual spaces with disturbing relics"
+      ],
+      "atmosphere": "Complete darkness requiring artificial light. Cold, damp air carrying strange odors. Echoes that seem to come from impossible directions.",
+      "examples": [
+        "Catacombs beneath churches",
+        "Sea-caves",
+        "Ancient temple complexes"
+      ]
+    },
+    "alienLandscape": {
+      "elements": [
+        "Sky of wrong color or containing wrong stars",
+        "Architecture following alien geometric principles",
+        "Vegetation utterly unlike Earth species",
+        "Light that seems to come from no source",
+        "Surfaces of impossible texture or material",
+        "Sounds that no earthly creature could produce"
+      ],
+      "atmosphere": "All senses report wrongness. Normal physics may not apply. Time may flow differently.",
+      "examples": ["Dreamlands", "Other planets", "Dimensional interstices"]
+    }
+  },
+  "characterArchetypes": {
+    "degenerateVillager": {
+      "physicalTraits": [
+        "Narrow, sloping foreheads",
+        "Wide, staring eyes with unusual quality",
+        "Coarse, thick skin with strange texture",
+        "Stooped or shambling gait",
+        "Thick necks and peculiar proportions",
+        "Features suggesting non-human ancestry"
+      ],
+      "behavioralTraits": [
+        "Furtive, avoiding eye contact",
+        "Speaking in dialect or broken speech",
+        "Hostility toward outsiders",
+        "Strange rituals or customs",
+        "Unnatural affinity for sea or specific locations"
+      ]
+    },
+    "madScholar": {
+      "physicalTraits": [
+        "Pallid, unhealthy complexion",
+        "Deep-set eyes with fevered gleam",
+        "Thin, almost skeletal frame",
+        "Prematurely aged appearance",
+        "Nervous habits and tics",
+        "Neglected personal appearance"
+      ],
+      "behavioralTraits": [
+        "Obsessive focus on obscure knowledge",
+        "Cryptic warnings to others",
+        "Fear of revealing certain truths",
+        "Interrupted by fits of terror",
+        "References to forbidden texts"
+      ]
+    },
+    "cosmicEntity": {
+      "physicalTraits": [
+        "Form that shifts and changes",
+        "Dimensions that seem wrong or impossible",
+        "Materials unknown to earthly science",
+        "Features that mix organic and geometric",
+        "Size that defies accurate measurement",
+        "Colors that have no name"
+      ],
+      "behavioralTraits": [
+        "Indifference to human presence",
+        "Actions following alien logic",
+        "Communication that damages human minds",
+        "Existence that violates natural law"
+      ]
+    },
+    "cultist": {
+      "physicalTraits": [
+        "Robes or distinctive ritual garments",
+        "Ritual scarification or tattoos",
+        "Unhealthy pallor or unusual coloration",
+        "Eyes showing fanatical devotion",
+        "Signs of prolonged exposure to the unnatural"
+      ],
+      "behavioralTraits": [
+        "Chanting in unknown languages",
+        "Absolute devotion to cosmic powers",
+        "Willingness to sacrifice others or self",
+        "Knowledge of forbidden rites",
+        "Contempt for normal human concerns"
+      ]
+    }
+  },
+  "ritualElements": {
+    "physicalComponents": {
+      "texts": [
+        "Necronomicon",
+        "Book of Eibon",
+        "Pnakotic Manuscripts",
+        "De Vermis Mysteriis",
+        "Cultes des Goules"
+      ],
+      "objects": [
+        "Stone altars",
+        "Carved idols",
+        "Silver daggers",
+        "Braziers for incense",
+        "Bowls for offerings",
+        "Strange metallic artifacts"
+      ],
+      "locations": [
+        "Stone circles",
+        "Underground chambers",
+        "Hilltop clearings",
+        "Deserted beaches",
+        "Ancient ruins"
+      ]
+    },
+    "actions": [
+      "Chanting in pre-human languages",
+      "Rhythmic dancing in specific patterns",
+      "Offerings of blood or other substances",
+      "Drawing of geometric patterns",
+      "Astronomical alignments and timing",
+      "Use of drugs or altered states"
+    ],
+    "sounds": [
+      "Monotonous chanting in bass voices",
+      "Shrill piping of flutes",
+      "Beating of drums in irregular rhythms",
+      "Ululating cries",
+      "Sounds of bells or gongs",
+      "Words in languages that hurt to hear"
+    ],
+    "timing": [
+      "Specific astronomical alignments",
+      "Solstices and equinoxes",
+      "New or full moons",
+      "Ancient calendar dates (Walpurgisnacht, Hallowmass)",
+      "Times when \"the stars are right\""
+    ]
+  },
+  "forbiddenKnowledge": {
+    "texts": {
+      "necronomicon": {
+        "author": "Abdul Alhazred, the Mad Arab",
+        "origin": "8th century Damascus",
+        "content": "Contains rites to summon the Great Old Ones, history of the elder races, astronomical-mystical formulae",
+        "danger": "Reading it leads to madness; possessing it attracts unwanted attention"
+      },
+      "bookOfEibon": {
+        "author": "Eibon of Hyperborea",
+        "origin": "Pre-human Hyperborean civilization",
+        "content": "Sorcery of Tsathoggua, formulae of the left-hand path",
+        "danger": "Unknown to most, considered a myth"
+      },
+      "pnakoticManuscripts": {
+        "author": "Unknown, possibly Great Race of Yith",
+        "origin": "Transcribed from mental projections across time",
+        "content": "History of Earth before humanity, secrets of time travel",
+        "danger": "Fragmentary and difficult to interpret"
+      }
+    },
+    "entities": {
+      "greatOldOnes": [
+        "Cthulhu",
+        "Yog-Sothoth",
+        "Nyarlathotep",
+        "Shub-Niggurath",
+        "Hastur",
+        "Azathoth"
+      ],
+      "elderRaces": [
+        "Great Race of Yith",
+        "Elder Things",
+        "Mi-Go",
+        "Deep Ones",
+        "Serpent People"
+      ],
+      "servants": [
+        "Shoggoths",
+        "Star-Spawn",
+        "Dark Young",
+        "Nightgaunts",
+        "Dimensional Shamblers"
+      ]
+    },
+    "places": {
+      "earthly": [
+        "R'lyeh",
+        "Kadath",
+        "Leng",
+        "Hyperborea",
+        "Mu",
+        "Lemuria",
+        "Irem of the Pillars",
+        "Zimbabwe",
+        "Innsmouth"
+      ],
+      "otherworldly": [
+        "Yuggoth",
+        "Dreamlands",
+        "Dimension of the Old Ones",
+        "The Void between stars"
+      ]
+    }
+  },
+  "gmStyleChecklist": {
+    "atmosphere": [
+      "☐ Open scenes with environmental/sensory details before action",
+      "☐ Use weather and lighting to establish mood (fog, storms, twilight)",
+      "☐ Include at least one unusual or unsettling sensory detail per scene",
+      "☐ Reference the passage of time in ways that create unease",
+      "☐ Describe silence and absence as actively oppressive"
+    ],
+    "horror": [
+      "☐ Build horror gradually - never reveal everything at once",
+      "☐ Describe effects on witnesses before describing the cause",
+      "☐ Leave some things deliberately undefined or impossible to describe",
+      "☐ Use physical symptoms of fear (cold sweat, trembling, pallor)",
+      "☐ Suggest that what is seen is only a fraction of what exists"
+    ],
+    "language": [
+      "☐ Use archaic or elevated vocabulary sparingly but consistently",
+      "☐ Employ complex sentence structures for important revelations",
+      "☐ Include sensory verbs specific to each sense type",
+      "☐ Use negation to describe (\"not quite\", \"almost but not\", \"like X but wrong\")",
+      "☐ Reference scholarly or antiquarian knowledge when appropriate"
+    ],
+    "cosmic": [
+      "☐ Occasionally remind players of cosmic scale and human insignificance",
+      "☐ Suggest ancient histories predating humanity",
+      "☐ Imply that current events connect to vast, incomprehensible patterns",
+      "☐ Present danger as indifference rather than malice",
+      "☐ Question the reliability of perception and sanity"
+    ]
+  }
+}
