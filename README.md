@@ -10,7 +10,24 @@ Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Cała 
 toczy się **lokalnie u Ciebie** - wklejasz własny klucz Gemini, wgrywasz **swój**
 podręcznik, save'y lądują na dysku. Bez logowania, bez chmury, bez telemetrii.
 
+<a href="https://youtu.be/k3NioUBRIes">
+  <img src="https://img.youtube.com/vi/k3NioUBRIes/maxresdefault.jpg" alt="Strażnik Tajemnic AI - wideo wprowadzające" width="640">
+</a>
+
+▶️ [Obejrzyj wideo wprowadzające na YouTube](https://youtu.be/k3NioUBRIes)
+
 </div>
+
+---
+
+## 👥 Dla kogo
+
+Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem - kalendarze się nie spinają, ludzie się rozjeżdżają, a ochota na granie zostaje. **Strażnik Tajemnic** sprawia, że nie musisz na nikogo czekać - bierze rolę Mistrza Gry na siebie, żebyś dalej przeżywał mroczne przygody w świecie Lovecrafta na własnej kanapie.
+
+- **Solo** - zagraj sam, kiedy tylko masz chwilę. AI prowadzi narrację i pamięta NPC, wątki oraz konsekwencje przez całą kampanię, więc historia trzyma się kupy.
+- **We dwoje (Hot Seat)** - jeden laptop, wspólny wieczór z grozą: każde z Was ma własną postać i kolor, a AI zwraca się do graczy po imieniu. Bez kompletowania całej drużyny.
+- **MG początkujący** - ucz się prowadzić CoC 7e grając: AI pilnuje zasad i narracji, Ty podejmujesz decyzje.
+- **MG doświadczony** - miej współ-narratora: sceny w stylu Lovecrafta, lektor NPC i rzuty liczone przez aplikację, a Ty trzymasz stery.
 
 ---
 
