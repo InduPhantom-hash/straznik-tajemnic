@@ -17,6 +17,17 @@ Wyrenderowane z `Strażnik Tajemnic design system` (Claude Design), natywna rozd
 
 Branding: „Strażnik Tajemnic" + Oko Horusa 𓂀, ciemna baza + złoto art-deco + emerald.
 
+## Zrzuty ekranu z gry (`screenshots/`)
+
+Rzeczywiste zrzuty z aplikacji (1920×1080), używane w sekcji „📸 Zrzuty ekranu" README - oddzielone od grafik promocyjnych powyżej:
+
+| Plik                             | Ekran                          |
+| -------------------------------- | ------------------------------ |
+| `screenshots/01-menu-glowne.png` | Menu główne                    |
+| `screenshots/02-test-umiejetnosci.png` | Test umiejętności (Tacka) |
+| `screenshots/03-scena-arkham.png` | Scena wygenerowana przez AI   |
+| `screenshots/04-karta-postaci.png` | Karta badacza                |
+
 ### Regeneracja
 
 Źródło: `Grafiki Promocyjne.dc.html` (6 kart `.dc-card`). Render przez headless Chrome

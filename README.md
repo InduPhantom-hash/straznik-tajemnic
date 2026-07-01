@@ -56,6 +56,19 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 - **Lokalny RAG** - apka zna zasady z **Twojego** wgranego podręcznika (anty-halucynacja).
 - **Zegar kampanii, dziennik, zapis/wczytanie** na dysk.
 
+## 📸 Zrzuty ekranu
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Menu główne"><br><sub><b>Menu główne</b> - wybór trybu, przygody i postaci.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/02-test-umiejetnosci.png" alt="Test umiejętności"><br><sub><b>Test umiejętności</b> - Tacka liczy rzut k100 wg progów CoC 7e.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/screenshots/03-scena-arkham.png" alt="Scena wygenerowana przez AI"><br><sub><b>Scena z AI</b> - ilustracja i narracja Mistrza Gry w stylu Lovecrafta.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/04-karta-postaci.png" alt="Karta badacza"><br><sub><b>Karta badacza</b> - charakterystyki, umiejętności i stan postaci.</sub></td>
+  </tr>
+</table>
+
 ## 🚀 Szybki start
 
 > Najprościej: [pobierz gotową paczkę ZIP](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest) i uruchom dwuklikiem. Poniżej instrukcja dla uruchomienia ze źródeł (deweloperskiego).
