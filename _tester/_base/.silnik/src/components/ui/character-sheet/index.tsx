@@ -128,7 +128,7 @@ export function CharacterSheet({
         className="print:block print:h-auto print:max-h-none print:w-auto print:overflow-visible print:rounded-none"
       >
         {/* Nagłówek z przyciskami */}
-        <DialogHeader className="flex flex-row items-center justify-between print:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between print:hidden pr-12">
           <DialogTitle className="font-display uppercase tracking-[0.16em] text-brass text-base">
             📜 Karta Postaci
           </DialogTitle>

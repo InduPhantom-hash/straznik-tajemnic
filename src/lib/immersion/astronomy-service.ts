@@ -14,7 +14,7 @@ export interface DaylightResult {
 export function calculateMoonPhase(year: number, month: number, day: number): { phase: string; illumination: number } {
   let r = year % 19;
   if (r < 0) r += 19;
-  let epact = (11 * r + 11) % 30; // Simple epact approximation
+  const epact = (11 * r + 11) % 30; // Simple epact approximation
 
   // Correction for month
   const monthCorrections = [0, 2, 0, 2, 2, 4, 5, 6, 7, 8, 9, 10];

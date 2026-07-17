@@ -727,6 +727,7 @@ export default function Home() {
         onSessionZero={() => openSessionZeroRef.current?.()}
         hasAdventure={!!adventureContext}
         adventureTitle={adventureContext?.title}
+        adventureDescription={adventureContext?.description}
         region={adventureContext?.location}
         currentLocation={chat.currentLocation}
         onCreateCharacter={handleCreateCharacterForDuet}

@@ -50,6 +50,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   hasRules = false,
   hasAdventure = false,
   adventureTitle,
+  adventureDescription,
   region,
   currentLocation,
   hasSessionZero = false,
@@ -79,7 +80,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
     // Bilans kości: premie dodatnie, kary ujemne (zgodnie z SkillTestCard).
     const bonusDice = test.modifiers.reduce(
       (balance, mod) =>
-        balance + (mod.type === 'bonus' ? mod.count : -mod.count),
+         balance + (mod.type === 'bonus' ? mod.count : -mod.count),
       0
     );
     setDiceTest({
@@ -109,6 +110,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         title={adventureTitle}
         region={region}
         currentLocation={currentLocation}
+        adventureDescription={adventureDescription}
       />
       {/* Chat Messages */}
       <ScrollArea className="flex-1 p-4">

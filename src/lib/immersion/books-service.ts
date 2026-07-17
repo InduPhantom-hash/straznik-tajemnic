@@ -43,7 +43,7 @@ export async function fetchHistoricalBooks(
       const json = await res.json();
       if (json.docs && json.docs.length > 0) {
         const books: HistoricalBookItem[] = json.docs
-          .map((doc: any) => {
+          .map((doc: { title: string; first_publish_year?: number; publish_year?: number[]; author_name?: string[]; key?: string; subject?: string[] }) => {
             const firstPublishYear = doc.first_publish_year || (doc.publish_year ? Math.min(...doc.publish_year) : 9999);
             const author = doc.author_name ? doc.author_name.join(', ') : 'Unknown Author';
             return {

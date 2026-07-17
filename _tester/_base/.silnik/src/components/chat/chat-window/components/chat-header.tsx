@@ -26,12 +26,15 @@ interface ChatHeaderProps {
   region?: string;
   /** IND-267: konkretne MIEJSCE bohatera (z najnowszego [LOKACJA:]); część po "·". */
   currentLocation?: string;
+  /** Opis przygody zawierający m.in. klimat i pogodę. */
+  adventureDescription?: string;
 }
 
 export function ChatHeader({
   title,
   region,
   currentLocation,
+  adventureDescription,
 }: ChatHeaderProps) {
   const place = currentLocation?.trim();
   const regionLabel = region?.trim();
@@ -42,6 +45,17 @@ export function ChatHeader({
     regionLabel && place && place !== regionLabel
       ? `${regionLabel} · ${place}`
       : regionLabel || place || '';
+
+  // Parsuj pogodę z opisu przygody
+  let weatherInfo = '';
+  if (adventureDescription) {
+    const weatherMatch = adventureDescription.match(/\[KLIMAT\s*&\s*POGODA\]:\s*([^]*?)(?=\n\n|\[|$)/i);
+    if (weatherMatch && weatherMatch[1]) {
+      weatherInfo = weatherMatch[1].trim();
+      // Czyścimy dopisek o danych historycznych dla lepszej immersji w UI
+      weatherInfo = weatherInfo.replace(/\s*\(dane historyczne dla dnia.*?\)/i, '');
+    }
+  }
 
   return (
     <div className="relative h-16 flex items-center justify-between px-6 bg-card border-b border-brass/30">
@@ -83,7 +97,7 @@ export function ChatHeader({
         />
 
         {/* Campaign Clock - Integrated into main window header */}
-        <CampaignClock compact className="hidden sm:flex shrink-0" />
+        <CampaignClock compact className="hidden sm:flex shrink-0" weatherInfo={weatherInfo} />
       </div>
     </div>
   );

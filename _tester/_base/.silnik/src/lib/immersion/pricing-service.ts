@@ -63,12 +63,17 @@ export async function convertUSD(
         if (Array.isArray(seriesData)) {
           // Find the annual average or closest month's index
           const findCPI = (year: number) => {
-            const matches = seriesData.filter((d: any) => d.year === year.toString());
+            interface CPIDataPoint {
+              year: string;
+              period: string;
+              value: string;
+            }
+            const matches = (seriesData as CPIDataPoint[]).filter((d: CPIDataPoint) => d.year === year.toString());
             if (matches.length > 0) {
               // Try to find Annual average (M13) or average the available months
-              const m13 = matches.find((d: any) => d.period === 'M13');
+              const m13 = matches.find((d: CPIDataPoint) => d.period === 'M13');
               if (m13) return parseFloat(m13.value);
-              const sum = matches.reduce((acc: number, cur: any) => acc + parseFloat(cur.value), 0);
+              const sum = matches.reduce((acc: number, cur: CPIDataPoint) => acc + parseFloat(cur.value), 0);
               return sum / matches.length;
             }
             return null;

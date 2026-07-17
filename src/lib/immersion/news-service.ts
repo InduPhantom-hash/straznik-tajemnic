@@ -50,7 +50,7 @@ export async function fetchHistoricalNews(
       if (res.ok) {
         const json = await res.json();
         if (json.items && json.items.length > 0) {
-          const news: HistoricalNewsItem[] = json.items.map((item: any) => {
+          const news: HistoricalNewsItem[] = json.items.map((item: { title?: string; ocr_eng?: string; id?: string }) => {
             // Clean up title/state
             const rawTitle = item.title || 'United States Newspaper';
             const cleanSnippet = item.ocr_eng
