@@ -1,0 +1,8 @@
+docs(readme): dodaj sekcję zrzutów ekranu z gry
+
+4 zrzuty 1920x1080 (menu, test umiejętności, scena AI, karta postaci)
+w docs/assets/screenshots/ + galeria 2x2 w README.
+
+Co user widzi: README pokazuje realne screeny rozgrywki, nie tylko grafiki promo.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>

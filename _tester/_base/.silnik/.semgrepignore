@@ -1,0 +1,11 @@
+# semgrep ignore list — IND-37 sec audit cleanup (2026-05-06)
+#
+# CLI scripts używane lokalnie przez devs (NIE wystawione jako endpoints):
+# - backup.mjs:  hardcoded BACKUP_DIR/DATA_DIR/SRC_DIR + entry.name z fs.readdirSync.
+#                Defense-in-depth path traversal guard dla `restoreBackup(backupName)`
+#                z process.argv[3] dodany w lin 217-221 (path.relative + isAbsolute check).
+# - qa-diagnose.mjs: filesystem enumeration via readdirSync recursive, no user input.
+#
+# Wykluczamy z skanu, bo mass per-line nosemgrep w 25 wystąpieniach = security teatre.
+backup.mjs
+qa-diagnose.mjs

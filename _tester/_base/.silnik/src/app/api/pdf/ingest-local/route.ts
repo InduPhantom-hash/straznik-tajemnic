@@ -1,0 +1,147 @@
+/**
+ * API endpoint: PDF (FormData) → tekst → LOKALNY indeks zasad
+ * Fala 2 - kreator pierwszego uruchomienia ("Strażnik Tajemnic", produkt B).
+ *
+ * Samodzielny, BEZ chmury (zero GCS). Gracz wgrywa własny podręcznik:
+ * parse w pamięci → chunk → embedding (Gemini) → zapis do data/rag/rules.*
+ * przez localVectorStore (`getWritableDataDir()` / `RAG_DATA_DIR`).
+ *
+ * Różni się od /api/upload-pdf (GCS-first) i /api/pdf/index-to-pinecone
+ * (round-trip przez textUrl/GCS): tu plik leci od razu do pamięci serwera
+ * i nigdy nie dotyka chmury - jedyne wyjście to embeddingi do Gemini.
+ *
+ * POST FormData { file: PDF, type?: 'rules'|'adventure' (domyślnie rules), fileName? }
+ *   → { success, indexed, failed, totalChunks, namespace, durationMs }
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { pdfIndexingService } from '@/lib/vector-db/pdf-indexing-service';
+import { embeddingService } from '@/lib/embedding-service';
+import { pdfParserService } from '@/lib/pdf-parser-service';
+
+export const maxDuration = 300; // 5 min - duże podręczniki (setki stron)
+export const runtime = 'nodejs';
+
+const MAX_PDF_BYTES = 500 * 1024 * 1024; // 500 MB (spójnie z /api/upload-pdf)
+const MIN_TEXT_LENGTH = 100;
+
+export async function POST(request: NextRequest) {
+  const start = Date.now();
+  try {
+    // Klucz Gemini: BYOK (nagłówek z localStorage gracza) lub env fallback.
+    // Wzorzec 1:1 z index-to-pinecone:67 - wymagany do liczenia embeddingów.
+    const geminiApiKey =
+      request.headers.get('X-Gemini-Api-Key') || process.env.GEMINI_API_KEY;
+
+    if (!geminiApiKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Brak klucza API Gemini (wymagany do generowania embeddingów)',
+        },
+        { status: 401 }
+      );
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('file');
+
+    if (!(file instanceof File)) {
+      return NextResponse.json(
+        { success: false, error: 'Brak pliku PDF (pole formularza "file")' },
+        { status: 400 }
+      );
+    }
+    if (file.type !== 'application/pdf') {
+      return NextResponse.json(
+        { success: false, error: 'Tylko pliki PDF są dozwolone' },
+        { status: 400 }
+      );
+    }
+    if (file.size > MAX_PDF_BYTES) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Plik jest za duży. Maksymalny rozmiar to 500MB',
+        },
+        { status: 400 }
+      );
+    }
+
+    const rawType = formData.get('type');
+    const type: 'rules' | 'adventure' =
+      rawType === 'adventure' ? 'adventure' : 'rules';
+    const fileName =
+      (typeof formData.get('fileName') === 'string'
+        ? (formData.get('fileName') as string)
+        : '') ||
+      file.name ||
+      `${type}-document`;
+
+    // Parse PDF w pamięci (pdf-parse na buforze - GCS-free).
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    let pdfText: string;
+    try {
+      const parsed = await pdfParserService.parsePDFBuffer(buffer);
+      pdfText = parsed.text;
+      console.log(
+        `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
+      );
+    } catch (parseError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Błąd parsowania PDF: ${
+            parseError instanceof Error ? parseError.message : 'Nieznany błąd'
+          }`,
+        },
+        { status: 422 }
+      );
+    }
+
+    if (!pdfText || pdfText.length < MIN_TEXT_LENGTH) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Tekst za krótki do indeksowania (${
+            pdfText?.length ?? 0
+          } znaków, minimum ${MIN_TEXT_LENGTH}). PDF może być skanem bez warstwy tekstowej (OCR).`,
+        },
+        { status: 422 }
+      );
+    }
+
+    // Embedding service na kluczu gracza; indeksowanie idzie do data/rag/ (lokalnie).
+    embeddingService.initialize(geminiApiKey);
+
+    const result = await pdfIndexingService.indexPdf({
+      text: pdfText,
+      type,
+      fileName,
+      // rules → clearBefore=true (re-upload tej samej książki idempotentny);
+      // adventure → false (nowa przygoda dodawana, nie niszczy poprzednich).
+      clearBefore: type === 'rules',
+    });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { ...result, error: result.error || 'Indeksowanie nie powiodło się' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('❌ ingest-local API error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Nieznany błąd',
+        durationMs: Date.now() - start,
+      },
+      { status: 500 }
+    );
+  }
+}

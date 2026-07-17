@@ -136,7 +136,9 @@ export async function POST(request: NextRequest) {
     // nadprzyrodzone wnosi TREŚĆ promptu MG (gdy scena tego wymaga), nie blanket-suffix.
     let enhancedPrompt = prompt;
     if (style === 'horror') {
-      enhancedPrompt = `${prompt}, 1920s period-accurate, realistic, cinematic film-grain, moody natural lighting, film noir`;
+      enhancedPrompt = `${prompt}, 1920s period-accurate, realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed`;
+    } else if (style === 'portrait') {
+      enhancedPrompt = `${prompt}, 1920s period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression`;
     }
 
     // IND-232: gemini-2.5-flash-image bywa flaky - czasem zwraca sam TEKST zamiast

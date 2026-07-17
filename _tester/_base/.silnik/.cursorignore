@@ -1,0 +1,25 @@
+# Cursor ignore file
+# Ignore most files but allow .env.local for AI features
+
+# Ignore node_modules
+node_modules/
+
+# Ignore build outputs
+.next/
+out/
+dist/
+
+# Ignore logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore other env files but allow .env.local
+.env
+.env.development
+.env.production
+.env.test
+
+# Allow .env.local for AI features
+!.env.local

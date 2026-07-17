@@ -1,0 +1,507 @@
+/* Fonty (Cinzel, Cinzel Decorative, Cormorant Garamond, Special Elite) ladowane przez
+   <link> w src/app/layout.tsx - @import url() do Google Fonts jest wycinany przez
+   Tailwind/PostCSS przy buildzie. NIE przywracac tu @import. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark Art Déco 1920s - ciepła, mroczna baza + emerald (marka) + mosiądz/złoto (akcent déco) */
+    --background: 220 16% 5%;          /* #0a0c0f near-black */
+    --foreground: 42 33% 89%;          /* #ebe8dc ciepła biel */
+    --card: 34 20% 7%;                 /* #16130f ciepły panel */
+    --card-foreground: 42 33% 89%;
+    --primary: 174 84% 32%;            /* #0d9488 emerald - marka */
+    --primary-foreground: 170 70% 6%;  /* #04110f near-black emerald */
+    --secondary: 42 33% 89%;
+    --secondary-foreground: 220 16% 5%;
+    --border: 42 28% 22%;              /* ramka brass-tinted */
+    --input: 33 22% 10%;               /* #1f1a14 pole */
+    --ring: 174 84% 38%;
+    --radius: 0.5rem;
+    --muted: 33 18% 11%;
+    --muted-foreground: 40 18% 64%;    /* #b3a892 tekst wyciszony */
+    --accent: 33 18% 11%;
+    --accent-foreground: 42 33% 89%;
+    --destructive: 3 61% 44%;          /* #b3322c bordowa czerwień */
+    --destructive-foreground: 42 33% 92%;
+    /* NOWE - akcent déco */
+    --brass: 45 68% 47%;               /* #c9a227 mosiądz/złoto */
+    --gold: 43 89% 38%;                /* #b8860b złoto ciemne */
+    --sidebar: 30 18% 6%;
+    --sidebar-foreground: 42 33% 89%;
+    --sidebar-accent: 33 18% 11%;
+    --sidebar-accent-foreground: 42 33% 89%;
+    --sidebar-border: 42 26% 18%;
+    --popover: 34 20% 7%;
+    --popover-foreground: 42 33% 89%;
+  }
+
+  .dark {
+    --background: 220 16% 5%;
+    --foreground: 42 33% 89%;
+    --card: 34 20% 7%;
+    --card-foreground: 42 33% 89%;
+    --primary: 174 84% 32%;
+    --primary-foreground: 170 70% 6%;
+    --secondary: 42 33% 89%;
+    --secondary-foreground: 220 16% 5%;
+    --border: 42 28% 22%;
+    --input: 33 22% 10%;
+    --ring: 174 84% 38%;
+    --muted: 33 18% 11%;
+    --muted-foreground: 40 18% 64%;
+    --accent: 33 18% 11%;
+    --accent-foreground: 42 33% 89%;
+    --destructive: 3 61% 44%;
+    --destructive-foreground: 42 33% 92%;
+    --brass: 45 68% 47%;
+    --gold: 43 89% 38%;
+    --sidebar: 30 18% 6%;
+    --sidebar-foreground: 42 33% 89%;
+    --sidebar-accent: 33 18% 11%;
+    --sidebar-accent-foreground: 42 33% 89%;
+    --sidebar-border: 42 26% 18%;
+    --popover: 34 20% 7%;
+    --popover-foreground: 42 33% 89%;
+  }
+
+  .light {
+    --background: 35 33% 96%;
+    --foreground: 20 14% 4%;
+    --card: 35 33% 94%;
+    --card-foreground: 20 14% 4%;
+    --primary: 158 82% 25%;
+    --primary-foreground: 35 33% 98%;
+    --secondary: 20 14% 20%;
+    --secondary-foreground: 35 33% 98%;
+    --border: 35 20% 85%;
+    --input: 35 20% 80%;
+    --ring: 158 82% 30%;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Cormorant Garamond", serif;
+    background-color: hsl(var(--background));
+    /* ciepły déco-blask u góry + winieta w rogach (zamiast zimnej tekstury) */
+    background-image:
+      radial-gradient(125% 80% at 50% -8%, hsl(34 35% 11% / 0.55) 0%, transparent 60%),
+      radial-gradient(100% 100% at 50% 50%, transparent 58%, hsl(220 30% 2% / 0.6) 100%);
+    background-attachment: fixed;
+  }
+
+  /* Improved typography hierarchy - nagłówki w déco-foncie Cinzel */
+  h1 {
+    @apply text-4xl lg:text-5xl font-bold tracking-tight;
+    font-family: "Cinzel", serif;
+    letter-spacing: 0.08em;
+  }
+
+  h2 {
+    @apply text-2xl lg:text-3xl font-semibold tracking-tight;
+    font-family: "Cinzel", serif;
+    letter-spacing: 0.06em;
+  }
+
+  h3 {
+    @apply text-xl lg:text-2xl font-medium tracking-tight;
+    font-family: "Cinzel", serif;
+    letter-spacing: 0.04em;
+  }
+  
+  /* Better spacing for components */
+  .space-y-8 > * + * {
+    margin-top: 2rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  /* Improved button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium;
+  }
+  
+  .btn-secondary {
+    @apply bg-muted text-muted-foreground hover:bg-muted/80 transition-colors;
+  }
+  
+  /* Better card styles */
+  .card {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+  }
+  
+  /* Improved input styles */
+  .input {
+    @apply bg-input border border-border rounded-lg px-4 py-3 text-foreground placeholder-foreground/50 focus:border-primary focus:outline-none transition-colors;
+  }
+  
+  /* Special Elite font */
+  .font-special-elite {
+    font-family: 'Special Elite', monospace;
+  }
+  
+  /* Better text wrapping for chat messages */
+  .chat-message {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  /* Custom slider styles for better visibility */
+  .slider-thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+    cursor: pointer;
+    border: 3px solid hsl(var(--background));
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+  }
+  
+  .slider-thumb::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+  }
+  
+  .slider-thumb::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+    cursor: pointer;
+    border: 3px solid hsl(var(--background));
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+  }
+  
+  .slider-thumb::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  /* Ukryj elementy interfejsu */
+  .no-print,
+  button:not(.print-visible),
+  .fixed.inset-0.bg-black\/50,
+  .backdrop-blur-sm,
+  nav,
+  header,
+  footer,
+  .sidebar {
+    display: none !important;
+  }
+  
+  /* Reset tła i kolorów dla druku */
+  body {
+    background: white !important;
+    background-image: none !important;
+    color: black !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Kontener karty postaci - pełna szerokość */
+  .character-sheet-print,
+  .character-sheet-print * {
+    background: white !important;
+    color: black !important;
+    border-color: #333 !important;
+  }
+  
+  /* Layout A4 */
+  .character-sheet-print {
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 10mm !important;
+    box-shadow: none !important;
+  }
+  
+  /* Grid dla druku */
+  .print-grid-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 5mm !important;
+  }
+  
+  /* Sekcje karty */
+  .print-section {
+    border: 1px solid #333 !important;
+    padding: 3mm !important;
+    margin-bottom: 3mm !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Tekst w druku */
+  .text-white,
+  .text-gray-200,
+  .text-gray-300,
+  .text-gray-400,
+  .text-purple-300,
+  .text-purple-400,
+  .text-blue-400,
+  .text-green-400,
+  .text-yellow-400,
+  .text-orange-400,
+  .text-red-400 {
+    color: black !important;
+  }
+  
+  /* Tła */
+  .bg-black\/40,
+  .bg-black\/20,
+  .bg-black\/30,
+  .bg-gray-900,
+  .bg-muted {
+    background: white !important;
+  }
+  
+  /* Ukryj overflow scrollbar */
+  .overflow-y-auto {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  
+  /* Ukryj paski postępu w formie gradientów */
+  .bg-gradient-to-r {
+    background: #ddd !important;
+  }
+  
+  /* Nagłówek */
+  h2, h3, h4 {
+    font-weight: bold !important;
+    margin-bottom: 3mm !important;
+    border-bottom: 1px solid #333 !important;
+    padding-bottom: 2mm !important;
+  }
+  
+  /* Tabele umiejętności */
+  .print-skills {
+    column-count: 2 !important;
+    column-gap: 5mm !important;
+  }
+  
+  .print-skills > div {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Nie dziel sekcji między stronami */
+  .page-break-avoid {
+    page-break-inside: avoid !important;
+  }
+  
+  /* Start na nowej stronie */
+  .page-break-before {
+    page-break-before: always !important;
+  }
+}
+
+/* ===== WELCOME SCREEN ANIMATIONS ===== */
+
+/* Migocząca świeca */
+@keyframes flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  25% { opacity: 0.9; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+  75% { opacity: 0.85; transform: scale(0.99); }
+}
+
+.animate-flicker {
+  animation: flicker 3s ease-in-out infinite;
+}
+
+/* Poświata świecy */
+.candle-glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(
+    circle at center,
+    hsl(var(--primary) / 0.15) 0%,
+    hsl(var(--primary) / 0.05) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  animation: glow-pulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Animowana mgła */
+.fog-layer {
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="f"><feGaussianBlur stdDeviation="2"/></filter></defs><circle filter="url(%23f)" cx="20" cy="50" r="15" fill="%23ffffff" fill-opacity="0.03"/><circle filter="url(%23f)" cx="60" cy="30" r="20" fill="%23ffffff" fill-opacity="0.02"/><circle filter="url(%23f)" cx="80" cy="70" r="18" fill="%23ffffff" fill-opacity="0.025"/></svg>');
+  background-size: 50% 100%;
+  opacity: 0.5;
+}
+
+.fog-layer-1 {
+  animation: fog-drift 60s linear infinite;
+}
+
+.fog-layer-2 {
+  animation: fog-drift 45s linear infinite reverse;
+  opacity: 0.3;
+}
+
+@keyframes fog-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ===== DARK ART DÉCO - FONTY POMOCNICZE ===== */
+.font-display {
+  font-family: "Cinzel", serif;
+}
+.font-display-decorative {
+  font-family: "Cinzel Decorative", serif;
+}
+
+/* ===== DARK ART DÉCO - ORNAMENTY ===== */
+
+/* Separator déco: dwie zbieżne złote linie z przerwą na romb (użyj jako <div class="deco-separator">) */
+.deco-separator {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.deco-separator::before,
+.deco-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+}
+.deco-separator::before {
+  background: linear-gradient(90deg, transparent, hsl(var(--brass) / 0.6));
+}
+.deco-separator::after {
+  background: linear-gradient(90deg, hsl(var(--brass) / 0.6), transparent);
+}
+
+/* Narożniki déco: złote kątowniki w rogach panelu (przekątne TL + BR) */
+.deco-corners {
+  /* Pozycję ustala element-host: modal = .fixed (Tailwind), panele/karty = relative.
+     NIE ustawiać tu position - reguła jest unlayered i nadpisywałaby Tailwind .fixed
+     (@layer utilities), przez co modale size="screen" traciły fixed i spadały na dół. */
+}
+.deco-corners::before,
+.deco-corners::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  border-color: hsl(var(--brass));
+}
+.deco-corners::before {
+  top: 8px;
+  left: 8px;
+  border-top: 1.5px solid;
+  border-left: 1.5px solid;
+}
+.deco-corners::after {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 1.5px solid;
+  border-right: 1.5px solid;
+}
+
+/* Sunburst / wachlarz déco - promienisty gradient (tło dekoracyjne) */
+.deco-sunburst {
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 120%,
+    hsl(var(--brass) / 0.14) 0deg 1.6deg,
+    transparent 1.6deg 6deg
+  );
+}
+
+/* ===== DARK ART DÉCO - ANIMACJE ===== */
+@keyframes candleFlicker {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  25% { opacity: 0.92; filter: brightness(1.08); }
+  45% { opacity: 0.85; filter: brightness(0.9); }
+  70% { opacity: 0.97; filter: brightness(1.05); }
+}
+@keyframes emeraldPulse {
+  0%, 100% { box-shadow: 0 0 0 1px hsl(var(--primary) / 0.45), 0 0 14px hsl(var(--primary) / 0.25); }
+  50% { box-shadow: 0 0 0 1px hsl(var(--primary) / 0.7), 0 0 28px hsl(var(--primary) / 0.5); }
+}
+@keyframes glyphPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+}
+.animate-candle-flicker { animation: candleFlicker 4s ease-in-out infinite; }
+.animate-emerald-pulse { animation: emeraldPulse 3.5s ease-in-out infinite; }
+.animate-glyph-pulse { animation: glyphPulse 5s ease-in-out infinite; }
+
+/* ===== DARK ART DÉCO - EKRAN POWITALNY (warstwy tła z makiety) ===== */
+
+/* Mgła emerald dryfująca przy dole (karta 02/05/06 makiety) */
+@keyframes mistDrift {
+  0%   { transform: translateX(-4%) translateY(0);    opacity: 0.5; }
+  50%  { transform: translateX(4%)  translateY(-2%);  opacity: 0.8; }
+  100% { transform: translateX(-4%) translateY(0);    opacity: 0.5; }
+}
+.deco-mist {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 46%;
+  background: radial-gradient(
+    60% 100% at 50% 100%,
+    hsl(var(--primary) / 0.12),
+    transparent 70%
+  );
+  animation: mistDrift 14s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Sunburst kotwiczony u dołu - subtelne złote promienie (tło powitalnego) */
+.deco-sunburst-bottom {
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 96%,
+    hsl(var(--brass) / 0.05) 0deg 1.4deg,
+    transparent 1.4deg 6deg
+  );
+}
+
+/* Płomień świecy (CSS, zastępuje emoji) - teardrop + poświata gold/emerald */
+.deco-candle {
+  width: 14px;
+  height: 22px;
+  margin: 0 auto;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(
+    50% 60% at 50% 70%,
+    #ffe9a8,
+    hsl(var(--brass)) 55%,
+    hsl(var(--brass) / 0) 100%
+  );
+  box-shadow:
+    0 0 26px 10px hsl(var(--brass) / 0.5),
+    0 0 60px 24px hsl(var(--primary) / 0.18);
+}

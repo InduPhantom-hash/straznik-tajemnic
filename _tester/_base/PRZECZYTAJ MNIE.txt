@@ -1,0 +1,46 @@
+=========================================================
+   STRAŻNIK TAJEMNIC AI - paczka do gry
+=========================================================
+
+Wirtualny Mistrz Gry do Zewu Cthulhu (7. edycja), prowadzony
+przez sztuczną inteligencję. Projekt fanowski, nieoficjalny.
+
+
+CO TRZEBA MIEĆ (raz):
+  1. Node.js - pobierz wersję LTS z https://nodejs.org i zainstaluj
+     (klikasz dalej-dalej).
+  2. Google Chrome - https://www.google.com/chrome (jeśli nie masz).
+  3. Własny klucz Google Gemini - załóż za darmo:
+     https://aistudio.google.com/apikey (Get API key -> Create API key).
+
+
+JAK URUCHOMIĆ:
+  - Mac:      dwuklik "Uruchom gre (Mac).command"
+              (jeśli Mac blokuje: prawym przyciskiem -> Otwórz -> Otwórz)
+  - Windows:  dwuklik "Uruchom gre (Windows).bat"
+              (wersja eksperymentalna - gdyby nie ruszyła, daj znać)
+
+  PIERWSZE URUCHOMIENIE BUDUJE GRĘ - POTRWA KILKA MINUT.
+  Okno pokazuje postęp ([1/3], [2/3], [3/3]). NIE ZAMYKAJ GO.
+  Kolejne uruchomienia są już szybkie.
+
+  Gra otworzy się sama w osobnym oknie.
+
+
+W GRZE (kreator pierwszego uruchomienia przeprowadzi Cię przez to):
+  1. Wklej swój klucz Google Gemini. Klucz zostaje wyłącznie u Ciebie,
+     w przeglądarce - nikt inny go nie widzi.
+
+  2. Wgraj swój podręcznik: w kroku z podręcznikiem wskaż plik PDF
+     (darmowy starter albo pełne wydanie - apka linkuje do źródeł).
+     Gra go przetworzy lokalnie - chwilę to trwa - i wtedy grasz.
+
+  3. Stwórz badacza i ruszaj w mrok.
+
+
+COŚ NIE DZIAŁA?
+  Wideo wprowadzające: https://youtu.be/k3NioUBRIes
+
+  Folder ".silnik" obok - to wnętrze aplikacji. Nie musisz tam zaglądać.
+
+  Kończysz grę? Po prostu zamknij okno gry.
