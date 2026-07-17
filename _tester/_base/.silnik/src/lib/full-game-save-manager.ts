@@ -5,6 +5,7 @@ import {
   NPC,
   Location,
   MessageIllustration,
+  HotSeatConfig,
 } from './types';
 
 // Lokalnie zdefiniowany interfejs Message
@@ -63,6 +64,8 @@ export interface FullGameSave {
   // === Postacie ===
   characters: Character[];
   activeCharacterId?: string;
+  /** Jawne przypisania dwóch graczy do postaci; brak w starszych save'ach. */
+  hotSeatConfig?: HotSeatConfig;
 
   // === Kampanie ===
   campaigns: Campaign[];
@@ -140,6 +143,7 @@ export class FullGameSaveManager {
     gameSettings: { aiSettings: AISettings };
     characters: Character[];
     activeCharacterId?: string;
+    hotSeatConfig?: HotSeatConfig;
     campaigns: Campaign[];
     activeCampaignId?: string;
     npcs: NPC[];
@@ -181,6 +185,7 @@ export class FullGameSaveManager {
       // Postacie
       characters: data.characters,
       activeCharacterId: data.activeCharacterId,
+      hotSeatConfig: data.hotSeatConfig,
 
       // Kampanie
       campaigns: data.campaigns,
@@ -360,6 +365,7 @@ export class FullGameSaveManager {
         },
         characters: legacy.characters || [],
         activeCharacterId: legacy.activeCharacterId,
+        hotSeatConfig: legacy.hotSeatConfig,
         campaigns: [],
         npcs: [],
         locations: [],

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Message, Character, Campaign } from '@/lib/types';
+import type { Message, Character, Campaign, HotSeatConfig } from '@/lib/types';
 import type { FullGameSave } from '@/lib/full-game-save-manager';
 import type { PdfMemory } from './usePdfMemory';
 import type { ActiveGameState } from '@/lib/types';
@@ -46,6 +46,10 @@ interface UseFullSaveOptions {
   setActiveGameState: React.Dispatch<React.SetStateAction<ActiveGameState>>;
   setAiSettings: React.Dispatch<React.SetStateAction<AISettings | null>>;
   stopCurrentAudio: () => void;
+  restoreHotSeatConfig?: (
+    config: HotSeatConfig | undefined,
+    characters: Character[]
+  ) => boolean;
 }
 
 export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
@@ -58,6 +62,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
     setActiveGameState,
     setAiSettings,
     stopCurrentAudio,
+    restoreHotSeatConfig,
   } = options;
 
   const [showFullSaveModal, setShowFullSaveModal] = useState(false);
@@ -113,6 +118,10 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         // hydracja przy następnym renderze (page.tsx hydrateCharacterImages).
         persistCharacters(save.characters);
 
+        // Stare save'y bez tego pola pozostają zgodne i nie uruchamiają
+        // automatycznego zgadywania przypisania postaci.
+        restoreHotSeatConfig?.(save.hotSeatConfig, save.characters);
+
         // Wczytaj kampanie
         setCampaigns(save.campaigns);
         safeSetItem('campaigns', JSON.stringify(save.campaigns));
@@ -153,6 +162,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       setPdfMemory,
       setActiveGameState,
       setAiSettings,
+      restoreHotSeatConfig,
     ]
   );
 

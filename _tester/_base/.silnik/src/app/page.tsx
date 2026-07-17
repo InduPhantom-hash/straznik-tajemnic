@@ -176,6 +176,7 @@ export default function Home() {
     setActiveGameState: charMgmt.setActiveGameState,
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
+    restoreHotSeatConfig: hotSeat.restoreConfig,
   });
 
   // UI STATE
@@ -706,6 +707,9 @@ export default function Home() {
                       aiSettings: aiSettings || loadAISettings(),
                       characters: charMgmt.characters,
                       activeCharacterId: charMgmt.activeCharacter?.id,
+                      hotSeatConfig: hotSeat.config.enabled
+                        ? hotSeat.config
+                        : undefined,
                       campaigns: campaigns,
                       activeCampaignId: charMgmt.activeGameState.campaign?.id,
                       npcs: [],

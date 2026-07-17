@@ -70,10 +70,12 @@ test.describe('Feature #02: Game Start & Onboarding (regresja smoke)', () => {
     // minimum WELCOME_QUOTE atmosphere line (renderowany od razu) lub
     // tytuł utworu (quote.work).
     //
-    // Sprawdzamy presence "H.P. Lovecraft" string (renderowany w cytacie footer
-    // niezależnie od typewriter timing) jako proxy że WelcomeScreen się
-    // wymontował.
-    expect(html).toContain('H.P. Lovecraft');
+    // Zimny start publicznej paczki może najpierw pokazać obowiązkowy kreator
+    // klucza/podręcznika. Po jego ukończeniu renderuje się właściwy WelcomeScreen.
+    // Oba stany są prawidłowym, niecrashującym początkiem aplikacji.
+    expect(
+      html.includes('Pierwsze uruchomienie') || html.includes('H.P. Lovecraft')
+    ).toBe(true);
   });
 
   test('2. IND-146 DROPPED regression guard — `usePersistentState` plik usunięty w sesji 75 (~82 lin orphan hook)', async ({

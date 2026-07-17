@@ -15,7 +15,7 @@ import FullGameSaveManager, {
   FullGameSave,
 } from '@/lib/full-game-save-manager';
 import { AISettings } from '@/lib/ai-settings';
-import { Character, Campaign, NPC, Location } from '@/lib/types';
+import { Character, Campaign, NPC, Location, HotSeatConfig } from '@/lib/types';
 import type { Message as LibMessage } from '@/lib/types';
 import type { PdfMemory } from '@/hooks/usePdfMemory';
 import {
@@ -102,6 +102,7 @@ interface FullGameSaveModalProps {
     aiSettings: AISettings;
     characters: Character[];
     activeCharacterId?: string;
+    hotSeatConfig?: HotSeatConfig;
     campaigns: Campaign[];
     activeCampaignId?: string;
     npcs: NPC[];
@@ -277,6 +278,7 @@ export function FullGameSaveModal({
           .map((c) => sanitizeCharacterForApi(c))
           .filter((c): c is Character => c !== null),
         activeCharacterId: currentData.activeCharacterId,
+        hotSeatConfig: currentData.hotSeatConfig,
         campaigns: currentData.campaigns,
         activeCampaignId: currentData.activeCampaignId,
         npcs: currentData.npcs.map((n) => sanitizeNpcForApi(n)),

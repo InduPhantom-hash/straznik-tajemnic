@@ -195,7 +195,7 @@ export function useHotSeat(characters: Character[]) {
     console.log('🎮 Hot Seat mode disabled');
   }, []);
 
-  // Faza 2: powiązanie postaci z graczami po `playerName` (z fallbackiem po kolejności).
+  // Faza 2: powiązanie postaci z graczami wyłącznie po jawnym `playerName`.
   // Zwraca `true` gdy WSZYSCY gracze mają niepusty characterId wskazujący istniejącą,
   // RÓŻNĄ postać - inaczej `false` (sygnał dla guardu startu duetu w Fazie 4).
   const bindCharactersByPlayerName = useCallback(
@@ -205,30 +205,9 @@ export function useHotSeat(characters: Character[]) {
         return false;
       }
 
-      // Krok 1: dopasuj po playerName (postać ostemplowana imieniem gracza).
-      const next = prev.players.map((p) => {
+      const bound = prev.players.map((p) => {
         const byName = chars.find((c) => c.playerName === p.name);
         return byName ? { ...p, characterId: byName.id } : p;
-      });
-
-      // Krok 2 (belt-and-suspenders): gracze nadal bez WAŻNEGO characterId
-      // dostają po kolei pierwszą jeszcze nieprzypisaną istniejącą postać.
-      const usedIds = new Set(
-        next
-          .map((p) => p.characterId)
-          .filter((id) => id && chars.some((c) => c.id === id))
-      );
-      const available = chars.filter((c) => !usedIds.has(c.id));
-      let availIdx = 0;
-      const bound = next.map((p) => {
-        const hasValid =
-          p.characterId && chars.some((c) => c.id === p.characterId);
-        if (!hasValid && availIdx < available.length) {
-          const pick = available[availIdx++];
-          usedIds.add(pick.id);
-          return { ...p, characterId: pick.id };
-        }
-        return p;
       });
 
       // Persist tylko gdy faktycznie coś się zmieniło (ref-equality no-op).
@@ -248,6 +227,52 @@ export function useHotSeat(characters: Character[]) {
       const allValid = ids.every((id) => id && chars.some((c) => c.id === id));
       const allDistinct = new Set(ids).size === ids.length;
       return allValid && allDistinct;
+    },
+    []
+  );
+
+  /** Odtwarza kompletne, jawne przypisania z pełnego save'u gry. */
+  const restoreConfig = useCallback(
+    (savedConfig: HotSeatConfig | undefined, chars: Character[]): boolean => {
+      const rejectRestore = () => {
+        const disabled: HotSeatConfig = {
+          enabled: false,
+          players: [],
+          activePlayerIndex: 0,
+          allowInterruptions: true,
+          showPlayerIndicator: true,
+        };
+        configRef.current = disabled;
+        setConfig(disabled);
+        localStorage.removeItem('hotSeatConfig');
+        return false;
+      };
+
+      if (!savedConfig?.enabled || savedConfig.players.length !== 2) {
+        return rejectRestore();
+      }
+
+      const ids = savedConfig.players.map((player) => player.characterId);
+      const allValid = ids.every(
+        (id) => id && chars.some((character) => character.id === id)
+      );
+      const allDistinct = new Set(ids).size === ids.length;
+      if (!allValid || !allDistinct) return rejectRestore();
+
+      const activePlayerIndex = savedConfig.activePlayerIndex === 1 ? 1 : 0;
+      const restored: HotSeatConfig = {
+        ...savedConfig,
+        activePlayerIndex,
+        players: savedConfig.players.map((player, index) => ({
+          ...player,
+          isActive: index === activePlayerIndex,
+        })),
+      };
+
+      configRef.current = restored;
+      setConfig(restored);
+      localStorage.setItem('hotSeatConfig', JSON.stringify(restored));
+      return true;
     },
     []
   );
@@ -284,6 +309,7 @@ export function useHotSeat(characters: Character[]) {
     switchPlayer,
     disableHotSeat,
     bindCharactersByPlayerName,
+    restoreConfig,
   };
 }
 
