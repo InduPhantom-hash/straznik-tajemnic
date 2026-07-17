@@ -238,6 +238,8 @@ export function isSkillMarked(skill: SkillValue | undefined): boolean {
 
 export interface Character {
   id: string;
+  /** Identyfikator wzorca, jeśli postać powstała z gotowego badacza. */
+  sourcePresetId?: string;
   name: string;
   // Cechy podstawowe (według CoC7)
   str: number; // Siła

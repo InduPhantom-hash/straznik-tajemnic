@@ -14,6 +14,6 @@
 ## Fazy
 
 1. Jawne przypisanie postaci w duecie - zakończone, testy PASS 4/4
-2. Katalog gotowych badaczy - w toku
-3. Karty przygód i górny pasek - oczekuje
+2. Katalog gotowych badaczy - zakończone, testy PASS 7/7, 26 portretów WebP
+3. Karty przygód i górny pasek - w toku
 4. Test integracyjny i paczka - oczekuje

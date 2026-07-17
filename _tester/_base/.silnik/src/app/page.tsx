@@ -271,35 +271,54 @@ export default function Home() {
   );
 
   const [showPredefinedSelector, setShowPredefinedSelector] = useState(false);
+  const [predefinedTargetPlayer, setPredefinedTargetPlayer] = useState<
+    string | undefined
+  >();
 
   const handleSelectPredefinedCharacter = useCallback(
     (character: Character) => {
-      const stamped = {
+      const targetPlayer =
+        predefinedTargetPlayer ||
+        localStorage.getItem('hotSeatCreatingPlayerName') ||
+        undefined;
+      const stamped: Character = {
         ...character,
-        id: `${character.id}_${Date.now()}`, // zrób unikalne ID per instancja postaci
+        id: `${character.id}_${Date.now()}`,
+        sourcePresetId: character.id,
+        playerName: targetPlayer || character.playerName,
       };
 
-      // Obsługa Hot Seat
-      const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
       if (targetPlayer) {
-        stamped.playerName = targetPlayer;
         localStorage.removeItem('hotSeatCreatingPlayerName');
       }
 
-      const existingCharacters = [...charMgmt.characters];
+      const existingCharacters = charMgmt.characters.map((existing) =>
+        targetPlayer && existing.playerName === targetPlayer
+          ? { ...existing, playerName: '' }
+          : existing
+      );
       existingCharacters.push(stamped);
 
-      // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
       charMgmt.setCharacters(existingCharacters);
       charMgmt.setActiveCharacter(stamped);
-
-      // Persystencja
       persistCharacters(existingCharacters);
 
       setShowPredefinedSelector(false);
+      setPredefinedTargetPlayer(undefined);
     },
-    [charMgmt]
+    [charMgmt, predefinedTargetPlayer]
   );
+
+  const unavailablePresetIds = hotSeat.config.enabled
+    ? charMgmt.characters
+        .filter(
+          (character) =>
+            character.playerName &&
+            character.playerName !== predefinedTargetPlayer
+        )
+        .map((character) => character.sourcePresetId)
+        .filter((id): id is string => !!id)
+    : [];
 
   // Faza 4 + C2: guard startu duetu. TWARDY wymóg - każdy gracz musi mieć
   // WŁASNĄ, jawnie przypisaną postać (po imieniu gracza), i muszą to być 2
@@ -804,6 +823,7 @@ export default function Home() {
         onCreateCharacter={handleCreateCharacterForDuet}
         onPickPredefinedCharacter={(playerName) => {
           stampDuetTargetPlayer(playerName);
+          setPredefinedTargetPlayer(playerName);
           setShowPredefinedSelector(true);
         }}
         onPickCharacter={handlePickCharacterForDuet}
@@ -835,9 +855,15 @@ export default function Home() {
       {showPredefinedSelector && (
         <PredefinedCharactersSelector
           isOpen={showPredefinedSelector}
-          onClose={() => setShowPredefinedSelector(false)}
+          onClose={() => {
+            setShowPredefinedSelector(false);
+            setPredefinedTargetPlayer(undefined);
+            localStorage.removeItem('hotSeatCreatingPlayerName');
+          }}
           onSelectCharacter={handleSelectPredefinedCharacter}
           currentEra={adventureContext?.era || 'classic'}
+          targetPlayerName={predefinedTargetPlayer}
+          unavailablePresetIds={unavailablePresetIds}
         />
       )}
     </ChatLayout>

@@ -32,10 +32,13 @@ describe('OnboardingButtons - duet', () => {
       />
     );
 
-    expect(screen.getByText('Aga')).toBeInTheDocument();
-    expect(screen.getByText('Jakub')).toBeInTheDocument();
+    expect(screen.getByText('Aga')).toBeTruthy();
+    expect(screen.getByText('Jakub')).toBeTruthy();
     expect(screen.getAllByText('Brak przypisanej postaci')).toHaveLength(2);
-    expect(screen.getByRole('button', { name: /Rozpocznij/i })).toBeDisabled();
+    expect(
+      (screen.getByRole('button', { name: /Rozpocznij/i }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
   });
 
   it('przekazuje jawne imię gracza do każdej ścieżki wyboru', () => {
@@ -86,8 +89,11 @@ describe('OnboardingButtons - duet', () => {
       />
     );
 
-    expect(screen.getByText('Margaret Sullivan')).toBeInTheDocument();
-    expect(screen.getByAltText('Margaret Sullivan')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Rozpocznij/i })).toBeEnabled();
+    expect(screen.getByText('Margaret Sullivan')).toBeTruthy();
+    expect(screen.getByAltText('Margaret Sullivan')).toBeTruthy();
+    expect(
+      (screen.getByRole('button', { name: /Rozpocznij/i }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
   });
 });
