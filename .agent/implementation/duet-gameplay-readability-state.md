@@ -91,6 +91,14 @@
 
 ## Plan po review `dev-5`
 
-- [ ] W4: dodać test integracyjny dwóch adresowanych rzutów w duecie. Test ma przejść przez `ChatWindow` i `RollTestModal`, potwierdzić wydanie Szczęścia, wpisy do właściwych kart, oznaczenie rozwoju oraz dokładnie jedno żądanie do MG po drugim rzucie.
-- [ ] W5: dodać test mutacji wspólnego Dziennika Przygody. Test ma objąć dodanie, edycję i usunięcie wpisu, jednakowy zapis u obu uczestników oraz brak zmian na trzeciej karcie spoza przygody.
+- [x] W4: dodano test integracyjny dwóch adresowanych rzutów przez `ChatWindow` i `RollTestModal`; potwierdza Szczęście, właściwe dzienniki, oznaczenie rozwoju i dokładnie jedno żądanie do MG po drugim rzucie.
+- [x] W5: dodano test mutacji wspólnego Dziennika Przygody; obejmuje dodanie, edycję i usunięcie wpisu, jednakowy zapis uczestników oraz brak zmian na trzeciej karcie spoza przygody.
 - [ ] Następna sesja: ręczny test zmian przez użytkownika przed dalszym scalaniem lub publikacją.
+
+## Checkpoint testów W4 i W5
+
+- Testy graniczne W4/W5: PASS, 2 zestawy / 3 testy.
+- Pełny Jest po dodaniu testów: PASS, 18 zestawów / 41 testów.
+- TypeScript, ESLint zmienionych testów, Prettier i `git diff --check`: PASS.
+- Implementacja testów nie wymagała zmian w kodzie produkcyjnym.
+- Poprawki po review: asercje finalnych wyników 60/30, ciągłości `id` wpisu oraz wywołania i sprzątania `window.confirm` - zakończone.

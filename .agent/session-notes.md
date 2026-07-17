@@ -137,3 +137,25 @@ Branch: codex/duet-catalog-integration
 - Linear jest nieaktualny i nie może być źródłem prawdy dla dalszej pracy. Nie wykonano żadnych zmian w Linear; tracker wymaga osobnego odświeżenia od zera.
 - Produkt będzie obsługiwał wyłącznie grę solo i w duecie. Tryb 3-4 graczy nie wchodzi do zakresu.
 - Następna sesja zaczyna się od ręcznego testu zmian przez użytkownika. Branch pozostaje niescalony z `main`.
+
+---
+
+## Podsumowanie sesji: 2026-07-17 (testy W4 i W5)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Dodano integracyjny test dwóch adresowanych rzutów duetu przez `ChatWindow` i `RollTestModal`.
+- Potwierdzono właściwe przypisanie Szczęścia, dzienników, rozwoju oraz jedno zbiorcze żądanie do MG.
+- Dodano test dodawania, edycji i usuwania wpisów wspólnego Dziennika Przygody.
+- Potwierdzono synchronizację dwóch uczestników i izolację trzeciej postaci.
+- Naprawiono wszystkie trzy uwagi z code review: finalne wyniki 60/30, ciągłość `id` wpisu oraz kontrolę i sprzątanie `window.confirm`.
+- Zweryfikowano pełny Jest 41/41, TypeScript, ESLint, Prettier i `git diff --check`.
+
+### Co otwarte (do następnej sesji)
+- Ręczny test zmian przez użytkownika przed scaleniem lub publikacją.
+- Branch pozostaje niescalony z `main`.
+
+### Decyzje podjęte
+- Testy używają rzeczywistych komponentów oraz produkcyjnych helperów.
+- Kod produkcyjny nie wymagał zmian.
+- W4 i W5 są ukończone.
