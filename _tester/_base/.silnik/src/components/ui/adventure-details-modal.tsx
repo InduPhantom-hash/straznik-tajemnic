@@ -116,7 +116,6 @@ export function AdventureDetailsModal({
           {adventure.estimatedSessions && (
             <span>📅 Przewidywane na {adventure.estimatedSessions} sesji</span>
           )}
-          <span>🎭 {adventure.playerCount} graczy</span>
         </div>
 
         {/* Zajawka (bez spoilerów) */}

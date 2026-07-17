@@ -49,16 +49,21 @@ export function ChatHeader({
   // Parsuj pogodę z opisu przygody
   let weatherInfo = '';
   if (adventureDescription) {
-    const weatherMatch = adventureDescription.match(/\[KLIMAT\s*&\s*POGODA\]:\s*([^]*?)(?=\n\n|\[|$)/i);
+    const weatherMatch = adventureDescription.match(
+      /\[KLIMAT\s*&\s*POGODA\]:\s*([^]*?)(?=\n\n|\[|$)/i
+    );
     if (weatherMatch && weatherMatch[1]) {
       weatherInfo = weatherMatch[1].trim();
       // Czyścimy dopisek o danych historycznych dla lepszej immersji w UI
-      weatherInfo = weatherInfo.replace(/\s*\(dane historyczne dla dnia.*?\)/i, '');
+      weatherInfo = weatherInfo.replace(
+        /\s*\(dane historyczne dla dnia.*?\)/i,
+        ''
+      );
     }
   }
 
   return (
-    <div className="relative h-16 flex items-center justify-between px-6 bg-card border-b border-brass/30">
+    <div className="relative grid h-16 grid-cols-[minmax(10rem,0.8fr)_minmax(0,1.6fr)_auto] items-center gap-4 border-b border-brass/30 bg-card px-6">
       {/* déco: złota linia akcentu pod nagłówkiem */}
       <div
         aria-hidden="true"
@@ -77,19 +82,23 @@ export function ChatHeader({
         </span>
       </div>
 
-      <div className="flex items-center gap-4 shrink-0 ml-4">
-        {/* IND-267: pineska bieżącej lokacji bohatera. #5: zawsze widoczna
-            (wcześniej hidden md:flex chowało ją na wąskim oknie launchera). */}
+      {/* IND-267: elastyczny środkowy obszar wykorzystuje całą wolną szerokość.
+          Truncate działa dopiero wtedy, gdy rzeczywiście zabraknie miejsca. */}
+      <div className="min-w-0 justify-self-end">
         {location && (
           <span
-            className="flex items-center gap-1 max-w-[10rem] sm:max-w-[16rem] truncate text-sm text-brass/90 font-special-elite"
+            className="flex min-w-0 items-center gap-1 font-special-elite text-sm text-brass/90"
             title={location}
           >
-            <span aria-hidden="true">📍</span>
+            <span aria-hidden="true" className="shrink-0">
+              📍
+            </span>
             <span className="truncate">{location}</span>
           </span>
         )}
+      </div>
 
+      <div className="flex shrink-0 items-center gap-4">
         {/* déco: brass-dzielnik */}
         <span
           aria-hidden="true"
@@ -97,7 +106,11 @@ export function ChatHeader({
         />
 
         {/* Campaign Clock - Integrated into main window header */}
-        <CampaignClock compact className="hidden sm:flex shrink-0" weatherInfo={weatherInfo} />
+        <CampaignClock
+          compact
+          className="hidden sm:flex shrink-0"
+          weatherInfo={weatherInfo}
+        />
       </div>
     </div>
   );

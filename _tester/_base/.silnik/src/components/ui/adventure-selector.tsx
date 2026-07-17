@@ -208,6 +208,19 @@ export function AdventureSelector({
               >
                 {toneStyle.icon} {toneStyle.label}
               </span>
+              {isSelected && (
+                <span
+                  aria-label="Wybrana przygoda"
+                  className="flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)]"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="-rotate-45 text-sm text-[#04110f]"
+                  >
+                    ✓
+                  </span>
+                </span>
+              )}
             </div>
           </div>
 
@@ -229,7 +242,6 @@ export function AdventureSelector({
 
           {/* Footer */}
           <div className="flex items-center justify-between font-special-elite text-[14px] uppercase tracking-[0.08em] text-muted-foreground">
-            <span>🎭 {adventure.playerCount} graczy</span>
             <span>⏱️ {adventure.estimatedSessions} sesji</span>
             <span className={diffStyle.color}>
               {diffStyle.icon} {diffStyle.label}
@@ -245,13 +257,6 @@ export function AdventureSelector({
               </span>
             </div>
           )}
-
-          {/* Selected indicator */}
-          {isSelected && (
-            <div className="absolute right-2 top-2 flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)]">
-              <span className="-rotate-45 text-sm text-[#04110f]">✓</span>
-            </div>
-          )}
         </button>
 
         {/* Dolne przyciski akcji (poza główną kartą) */}
@@ -264,7 +269,7 @@ export function AdventureSelector({
             <Info className="h-4 w-4" />
             Więcej szczegółów
           </button>
-          
+
           {isCustom && onDeleteAdventure && (
             <button
               type="button"
@@ -389,7 +394,7 @@ export function AdventureSelector({
                       {/* Rogi deco */}
                       <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
                       <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/50" />
-                      
+
                       <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
                         <span className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -400,14 +405,15 @@ export function AdventureSelector({
 
                       {/* Klimatyczny pasek postępu (mosiądz i złoto) */}
                       <div className="w-full h-3 border border-brass/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
-                        <div 
+                        <div
                           className="h-full bg-gradient-to-r from-brass via-gold to-brass rounded-full shadow-[0_0_8px_rgba(217,119,6,0.5)] transition-all duration-500 ease-out"
                           style={{ width: `${uploadProgress}%` }}
                         />
                       </div>
 
                       <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
-                        {loadingStatus || 'AI analizuje przygodę i automatycznie uzupełnia dane...'}
+                        {loadingStatus ||
+                          'AI analizuje przygodę i automatycznie uzupełnia dane...'}
                       </p>
                     </div>
                   )}
