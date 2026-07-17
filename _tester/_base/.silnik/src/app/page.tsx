@@ -528,6 +528,37 @@ export default function Home() {
     saveAISettings(withVoiceEnabled(aiSettings ?? loadAISettings(), enabled));
   };
 
+  const handleColdStart = useCallback(async () => {
+    const confirmed = window.confirm(
+      'Zimny start aplikacji usunie bieżącą sesję, postacie, ustawienia i zapisane gry. Automatyczna kopia zapisów zostanie zachowana, podobnie jak baza wiedzy (zasady, przygody i Mity). Czy kontynuować?'
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch('/api/desktop/cold-start', {
+        method: 'POST',
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        window.alert(
+          result.message ??
+            'Pełny zimny start jest dostępny tylko w aplikacji uruchomionej przez launcher.'
+        );
+        return;
+      }
+
+      toast({
+        title: 'Uruchamiam zimny start',
+        description: 'Aplikacja zamknie się i za chwilę otworzy ponownie.',
+      });
+    } catch {
+      window.alert(
+        'Nie udało się przekazać polecenia do launchera. Uruchom aplikację ponownie i spróbuj jeszcze raz.'
+      );
+    }
+  }, []);
+
   // "Nowa przygoda": pełny reset scenariusza → powrót do ekranu głównego (kreatora).
   // Czyści czat + wybraną przygodę + Sesję Zero, ale ZACHOWUJE postacie (roster) i
   // zasady (pdf_memory). Kontynuacja sesji z sejwu jest niezależna (handleLoadFullSave).
@@ -795,6 +826,7 @@ export default function Home() {
         hasSessionZero={sessionZeroCompleted}
         hasStartedGame={hasStartedGame}
         onOpenApiKeys={() => setShowApiKeysModal(true)}
+        onColdStart={handleColdStart}
         hotSeatConfig={hotSeat.config}
       />
       {showPredefinedSelector && (

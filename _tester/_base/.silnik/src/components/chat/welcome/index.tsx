@@ -106,6 +106,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   onChoosePlayMode,
   onLoadSave,
   onOpenApiKeys,
+  onColdStart,
   hasRules = false,
   hasAdventure = false,
   adventureTitle,
@@ -237,9 +238,13 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           isDuet={isDuet}
         />
 
-        {/* dolne linki (wczytaj / klucze) */}
+        {/* dolne linki (wczytaj / klucze / zimny start) */}
         <div className="mt-3">
-          <BottomLinks onLoadSave={onLoadSave} onOpenApiKeys={onOpenApiKeys} />
+          <BottomLinks
+            onLoadSave={onLoadSave}
+            onOpenApiKeys={onOpenApiKeys}
+            onColdStart={onColdStart}
+          />
         </div>
       </div>
 

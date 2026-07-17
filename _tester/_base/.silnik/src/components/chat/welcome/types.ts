@@ -16,6 +16,7 @@ export interface WelcomeScreenProps {
   onChoosePlayMode?: () => void;
   onLoadSave?: () => void;
   onOpenApiKeys?: () => void;
+  onColdStart?: () => void;
   hasRules?: boolean;
   hasAdventure?: boolean;
   adventureTitle?: string;

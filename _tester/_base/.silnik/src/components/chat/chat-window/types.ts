@@ -48,6 +48,7 @@ export interface ChatWindowProps {
   onChoosePlayMode?: () => void;
   onLoadSave?: () => void;
   onOpenApiKeys?: () => void;
+  onColdStart?: () => void;
   hasRules?: boolean;
   hasAdventure?: boolean;
   adventureTitle?: string;

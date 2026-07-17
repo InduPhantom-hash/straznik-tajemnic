@@ -6,7 +6,7 @@
 #           czat/postacie/ustawienia), licznik kosztow, pamiec NPC RAG (npcs + world-state).
 # ZOSTAWIA: baze wiedzy RAG (rules/adventures/mythos ~400 MB), .env.local, build (.next), .app.
 #
-# WAZNE: KROK 0 ubija dzialajaca gre (serwer 4040 + okno Chrome) PRZED czyszczeniem -
+# WAZNE: KROK 0 ubija dzialajaca gre (serwer launchera + okno Chrome) PRZED czyszczeniem -
 # inaczej Chrome trzyma localStorage w pamieci i odtwarza profil po rm (bug "reset nie czysci").
 #
 # APP_DIR: env ZEW_APP_DIR (od reset-launcher) > placeholder build-app.sh > fallback $0.
@@ -35,13 +35,14 @@ cd "$APP_DIR" || exit 1
 
 TS="$(date +%Y%m%d-%H%M%S)"
 PROFILE_DIR="$APP_DIR/.desktop/chrome-profile"
+APP_PORT="${ZEW_APP_PORT:-4040}"
 
 log "=== START  APP_DIR=$APP_DIR  \$0=$0  CWD=$(pwd) ==="
 
 # --- KROK 0: ubij dzialajaca gre PRZED czyszczeniem (sedno fixu) ---
-SRV_PIDS="$(lsof -ti :4040 2>/dev/null || true)"
+SRV_PIDS="$(lsof -ti :$APP_PORT 2>/dev/null || true)"
 if [ -n "$SRV_PIDS" ]; then
-  log "KROK 0: serwer 4040 dziala (PID: $(echo "$SRV_PIDS" | tr '\n' ' ')) - zatrzymuje"
+  log "KROK 0: serwer $APP_PORT dziala (PID: $(echo "$SRV_PIDS" | tr '\n' ' ')) - zatrzymuje"
   echo "$SRV_PIDS" | xargs kill 2>/dev/null || true
 fi
 if pgrep -f "user-data-dir=$PROFILE_DIR" >/dev/null 2>&1; then
@@ -50,14 +51,14 @@ if pgrep -f "user-data-dir=$PROFILE_DIR" >/dev/null 2>&1; then
 fi
 # Czekaj az Chrome/serwer zwolnia pliki i pamiec (max ~10s).
 for _ in $(seq 1 20); do
-  if pgrep -f "user-data-dir=$PROFILE_DIR" >/dev/null 2>&1 || lsof -ti :4040 >/dev/null 2>&1; then
+  if pgrep -f "user-data-dir=$PROFILE_DIR" >/dev/null 2>&1 || lsof -ti :$APP_PORT >/dev/null 2>&1; then
     sleep 0.5
   else
     break
   fi
 done
 # Dobij port gdyby wisial.
-lsof -ti :4040 2>/dev/null | xargs kill -9 2>/dev/null || true
+lsof -ti :$APP_PORT 2>/dev/null | xargs kill -9 2>/dev/null || true
 log "KROK 0: gra zatrzymana (serwer + okno)"
 
 # --- 1. Auto-backup save'ow (tylko gdy cos jest) ---

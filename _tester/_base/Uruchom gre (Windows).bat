@@ -11,6 +11,10 @@ set URL=http://localhost:%PORT%
 set PROFILE=%CD%\.desktop\chrome-profile
 set NODE_OPTIONS=--max-old-space-size=4096
 
+REM Chrome nie ma pytac o zapisywanie hasel w profilu launchera.
+if not exist "%PROFILE%\Default" mkdir "%PROFILE%\Default"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p = Join-Path '%PROFILE%' 'Default\Preferences'; if (Test-Path $p) { $j = Get-Content -Raw $p | ConvertFrom-Json } else { $j = [pscustomobject]@{} }; $j | Add-Member -NotePropertyName credentials_enable_service -NotePropertyValue $false -Force; if ($null -eq $j.profile) { $j | Add-Member -NotePropertyName profile -NotePropertyValue ([pscustomobject]@{}) -Force }; $j.profile | Add-Member -NotePropertyName password_manager_enabled -NotePropertyValue $false -Force; $j | ConvertTo-Json -Depth 20 | Set-Content -Encoding UTF8 $p"
+
 where node >nul 2>nul
 if errorlevel 1 (
   echo Najpierw zainstaluj Node.js ^(wersja LTS^) z https://nodejs.org, potem uruchom ponownie.

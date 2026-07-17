@@ -3,7 +3,7 @@
   "version": "4.0.0-local",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev --webpack",
     "build": "next build",
     "start": "NODE_OPTIONS='--max-old-space-size=4096' next start",
     "cold-start": "bash desktop/cold-start.sh",
