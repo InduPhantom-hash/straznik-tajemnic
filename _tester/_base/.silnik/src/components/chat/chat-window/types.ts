@@ -40,6 +40,7 @@ export interface ChatWindowProps {
   onSelectAdventure?: () => void;
   onSessionZero?: () => void;
   onCreateCharacter?: () => void;
+  onPickPredefinedCharacter?: () => void; // NOWE: gotowa postać z biblioteki
   /** C1 (Hot Seat): otwiera katalog dotychczasowych postaci ("Wybierz z katalogu"). */
   onPickCharacter?: () => void;
   onStartGame?: () => void;

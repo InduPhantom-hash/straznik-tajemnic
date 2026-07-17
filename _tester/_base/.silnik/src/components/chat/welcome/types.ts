@@ -8,6 +8,7 @@ export interface WelcomeScreenProps {
   onSelectAdventure: () => void;
   onSessionZero?: () => void;
   onCreateCharacter: () => void;
+  onPickPredefinedCharacter?: () => void; // NOWE: callback dla postaci gotowych
   /** C1 (Hot Seat): otwiera katalog dotychczasowych postaci do wyboru. */
   onPickCharacter?: () => void;
   onStartGame: () => void;

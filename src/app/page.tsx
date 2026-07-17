@@ -99,6 +99,16 @@ const FirstRunWizard = dynamic(
   }
 );
 
+const PredefinedCharactersSelector = dynamic(
+  () =>
+    import('@/components/ui/predefined-characters-selector').then((mod) => ({
+      default: mod.PredefinedCharactersSelector,
+    })),
+  {
+    ssr: false,
+  }
+);
+
 /**
  * Główny komponent strony
  * Zrefaktoryzowany z użyciem dedykowanych hooków i layoutu
@@ -258,6 +268,35 @@ export default function Home() {
     stampDuetTargetPlayer();
     charMgmt.handleCharacterManage();
   }, [stampDuetTargetPlayer, charMgmt]);
+
+  const [showPredefinedSelector, setShowPredefinedSelector] = useState(false);
+
+  const handleSelectPredefinedCharacter = useCallback((character: Character) => {
+    const stamped = {
+      ...character,
+      id: `${character.id}_${Date.now()}` // zrób unikalne ID per instancja postaci
+    };
+    
+    // Obsługa Hot Seat
+    const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
+    if (targetPlayer) {
+      stamped.playerName = targetPlayer;
+      localStorage.removeItem('hotSeatCreatingPlayerName');
+    }
+
+    const existingCharacters = [...charMgmt.characters];
+    existingCharacters.push(stamped);
+    
+    // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
+    charMgmt.setCharacters(existingCharacters);
+    charMgmt.setActiveCharacter(stamped);
+    
+    // Persystencja
+    const { persistCharacters } = require('@/lib/character-cloud-sync');
+    persistCharacters(existingCharacters);
+    
+    setShowPredefinedSelector(false);
+  }, [charMgmt]);
 
   // Faza 4 + C2: guard startu duetu. TWARDY wymóg - każdy gracz musi mieć
   // WŁASNĄ, jawnie przypisaną postać (po imieniu gracza), i muszą to być 2
@@ -731,6 +770,10 @@ export default function Home() {
         region={adventureContext?.location}
         currentLocation={chat.currentLocation}
         onCreateCharacter={handleCreateCharacterForDuet}
+        onPickPredefinedCharacter={() => {
+          stampDuetTargetPlayer();
+          setShowPredefinedSelector(true);
+        }}
         onPickCharacter={handlePickCharacterForDuet}
         onSummarizeScene={handleSummarizeScene}
         isSummarizingScene={isSummarizingScene}
@@ -756,6 +799,14 @@ export default function Home() {
         onOpenApiKeys={() => setShowApiKeysModal(true)}
         hotSeatConfig={hotSeat.config}
       />
+      {showPredefinedSelector && (
+        <PredefinedCharactersSelector
+          isOpen={showPredefinedSelector}
+          onClose={() => setShowPredefinedSelector(false)}
+          onSelectCharacter={handleSelectPredefinedCharacter}
+          currentEra={adventureContext?.era || 'classic'}
+        />
+      )}
     </ChatLayout>
   );
 }

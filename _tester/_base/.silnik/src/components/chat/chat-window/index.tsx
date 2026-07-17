@@ -47,6 +47,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onChoosePlayMode,
   onLoadSave,
   onOpenApiKeys,
+  onPickPredefinedCharacter, // NOWE: gotowa postać
   hasRules = false,
   hasAdventure = false,
   adventureTitle,
@@ -122,6 +123,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               onSelectAdventure={onSelectAdventure || (() => {})}
               onSessionZero={onSessionZero}
               onCreateCharacter={onCreateCharacter || (() => {})}
+              onPickPredefinedCharacter={onPickPredefinedCharacter}
               onPickCharacter={onPickCharacter}
               onStartGame={onStartGame || (() => {})}
               onChoosePlayMode={onChoosePlayMode}

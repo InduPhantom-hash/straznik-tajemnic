@@ -26,6 +26,7 @@ interface OnboardingButtonsProps {
   onSelectAdventure: () => void;
   onSessionZero?: () => void;
   onCreateCharacter: () => void;
+  onPickPredefinedCharacter?: () => void; // NOWE: wywołanie selektora postaci predefiniowanych
   /**
    * C1 (Hot Seat): otwiera katalog dotychczasowych postaci ("Wybierz z katalogu").
    * Krok renderuje się tylko gdy podany ORAZ istnieją zapisane postacie.
@@ -84,6 +85,7 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
   onSelectAdventure,
   onSessionZero,
   onCreateCharacter,
+  onPickPredefinedCharacter,
   onPickCharacter,
   onStartGame,
   onChoosePlayMode,
@@ -167,6 +169,15 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
         state={characterState}
         onClick={onCreateCharacter}
       />
+
+      {onPickPredefinedCharacter && (
+        <StepButton
+          num=""
+          label="lub wybierz gotową postać"
+          state={hasCharacter ? 'done' : characterState}
+          onClick={onPickPredefinedCharacter}
+        />
+      )}
 
       {showPickCharacter && (
         <StepButton

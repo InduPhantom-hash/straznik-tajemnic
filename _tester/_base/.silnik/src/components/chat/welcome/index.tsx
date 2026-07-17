@@ -100,6 +100,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   onSelectAdventure,
   onSessionZero,
   onCreateCharacter,
+  onPickPredefinedCharacter,
   onPickCharacter,
   onStartGame,
   onChoosePlayMode,
@@ -224,6 +225,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           onSelectAdventure={onSelectAdventure}
           onSessionZero={onSessionZero}
           onCreateCharacter={onCreateCharacter}
+          onPickPredefinedCharacter={onPickPredefinedCharacter}
           onPickCharacter={onPickCharacter}
           onStartGame={onStartGame}
           onChoosePlayMode={onChoosePlayMode}
