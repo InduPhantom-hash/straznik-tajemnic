@@ -48,6 +48,8 @@ interface AdventureSelectorProps {
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
   isUploading?: boolean;
+  uploadProgress?: number;
+  loadingStatus?: string;
 }
 
 export function AdventureSelector({
@@ -58,6 +60,8 @@ export function AdventureSelector({
   onUploadAdventure,
   onDeleteAdventure,
   isUploading = false,
+  uploadProgress = 0,
+  loadingStatus = '',
 }: AdventureSelectorProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
@@ -355,7 +359,7 @@ export function AdventureSelector({
                 </div>
               )}
 
-              {/* Przycisk wgrania nowej przygody (ukryty w becie) */}
+              {/* Przycisk wgrania nowej przygody z klimatycznym mosiężnym paskiem postępu */}
               {ALLOW_CUSTOM_ADVENTURES && onUploadAdventure && (
                 <div className="mb-4">
                   <input
@@ -365,29 +369,44 @@ export function AdventureSelector({
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    variant="outline"
-                    className="w-full border-2 border-dashed border-primary/45 py-6 font-display font-semibold uppercase tracking-[0.16em] text-primary hover:bg-primary/10"
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Wgrywanie i analizowanie...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-5 w-5" />
-                        Wgraj przygodę (PDF)
-                      </>
-                    )}
-                  </Button>
-                  {isUploading ? (
-                    <p className="mt-2 text-center font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-                      AI analizuje przygodę i automatycznie uzupełnia dane...
-                    </p>
+                  {!isUploading ? (
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      variant="outline"
+                      className="w-full border-2 border-dashed border-primary/45 py-6 font-display font-semibold uppercase tracking-[0.16em] text-primary hover:bg-primary/10"
+                    >
+                      <Upload className="mr-2 h-5 w-5" />
+                      Wgraj przygodę (PDF)
+                    </Button>
                   ) : (
+                    <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
+                      {/* Rogi deco */}
+                      <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
+                      <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/50" />
+                      
+                      <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          Przetwarzanie księgi tajemnic...
+                        </span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+
+                      {/* Klimatyczny pasek postępu (mosiądz i złoto) */}
+                      <div className="w-full h-3 border border-brass/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
+                        <div 
+                          className="h-full bg-gradient-to-r from-brass via-gold to-brass rounded-full shadow-[0_0_8px_rgba(217,119,6,0.5)] transition-all duration-500 ease-out"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+
+                      <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+                        {loadingStatus || 'AI analizuje przygodę i automatycznie uzupełnia dane...'}
+                      </p>
+                    </div>
+                  )}
+                  {!isUploading && (
                     <p className="mt-2 text-center font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
                       np. darmowy starter pobrany z Black Monk
                     </p>

@@ -78,6 +78,8 @@ interface CthulhuSidebarProps {
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
   isUploadingAdventure?: boolean;
+  uploadProgressAdventure?: number;
+  loadingStatusAdventure?: string;
   // C3: przełącznik graczy Hot Seat osadzony w sidebarze (zamiast pływającego paska)
   hotSeatConfig?: HotSeatConfig;
   onSwitchPlayer?: (playerIndex: number) => void;
@@ -117,6 +119,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   onUploadAdventure,
   onDeleteAdventure,
   isUploadingAdventure,
+  uploadProgressAdventure = 0,
+  loadingStatusAdventure = '',
   hotSeatConfig,
   onSwitchPlayer,
   onDisableHotSeat,
@@ -655,6 +659,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         onUploadAdventure={onUploadAdventure}
         onDeleteAdventure={onDeleteAdventure}
         isUploading={isUploadingAdventure}
+        uploadProgress={uploadProgressAdventure}
+        loadingStatus={loadingStatusAdventure}
       />
       <HandoutGenerator
         open={showHandoutGenerator}

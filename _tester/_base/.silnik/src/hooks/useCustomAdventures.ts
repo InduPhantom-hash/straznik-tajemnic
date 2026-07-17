@@ -23,6 +23,8 @@ export interface UseCustomAdventuresReturn {
   customAdventures: CustomAdventure[];
   activeAdventureId: string | null;
   isLoading: boolean;
+  uploadProgress: number; // Postęp 0-100
+  loadingStatus: string; // Opis aktualnego etapu
   uploadError: string | null;
   uploadAdventure: (file: File) => Promise<CustomAdventure | null>;
   deleteAdventure: (id: string) => Promise<void>;
@@ -40,6 +42,8 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     null
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [loadingStatus, setLoadingStatus] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // IND-130: Async load - IndexedDB primary, localStorage fallback + migration
@@ -70,6 +74,8 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     async (file: File): Promise<CustomAdventure | null> => {
       setIsLoading(true);
       setUploadError(null);
+      setUploadProgress(10);
+      setLoadingStatus('Wczytywanie pliku PDF i przesyłanie do pamięci podręcznej...');
 
       try {
         console.log(`📤 Uploading adventure PDF: ${file.name}`);
@@ -107,6 +113,9 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           );
         }
 
+        setUploadProgress(40);
+        setLoadingStatus('Przetwarzanie dokumentu i przygotowywanie struktury tekstu...');
+
         const parseResult = await parseResponse.json();
         if (!parseResult.success || !parseResult.geminiFileUri) {
           throw new Error(
@@ -118,6 +127,9 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           `✅ PDF wgrany do Gemini File API:`,
           parseResult.geminiFileUri
         );
+
+        setUploadProgress(60);
+        setLoadingStatus('Gemini analizuje klimat, postacie i lokacje scenariusza...');
 
         // Krok 3: Analiza przez Gemini AI (metadane przygody). Nagłówek BYOK.
         console.log(`🔍 Analyzing adventure with Gemini AI...`);
@@ -142,6 +154,9 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
               'Brak klucza Gemini - wklej swój klucz Google AI Studio w ustawieniach.'
           );
         }
+
+        setUploadProgress(90);
+        setLoadingStatus('Pobieranie historycznej pogody (Open-Meteo) i map (OpenHistoricalMap)...');
 
         let analyzeResult;
         // IND-134 (sesja 148): typed jako Partial<AdventureContext> + pageStart.
@@ -269,6 +284,8 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           alert(`✅ Wczytano przygodę: "${newAdventures[0].title}"`);
         }
 
+        setUploadProgress(100);
+        setLoadingStatus('Zakończono wczytywanie przygody.');
         return newAdventures[0]; // Zwracamy pierwszą przygodę dla kompatybilności
       } catch (error) {
         console.error('❌ Adventure upload error:', error);
@@ -278,6 +295,8 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         return null;
       } finally {
         setIsLoading(false);
+        setUploadProgress(0);
+        setLoadingStatus('');
       }
     },
     [customAdventures, activeAdventureId, saveToStorage]
@@ -372,6 +391,8 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     customAdventures,
     activeAdventureId,
     isLoading,
+    uploadProgress,
+    loadingStatus,
     uploadError,
     uploadAdventure,
     deleteAdventure,
