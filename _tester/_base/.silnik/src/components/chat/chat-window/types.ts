@@ -39,10 +39,10 @@ export interface ChatWindowProps {
   onUploadRules?: () => void;
   onSelectAdventure?: () => void;
   onSessionZero?: () => void;
-  onCreateCharacter?: () => void;
-  onPickPredefinedCharacter?: () => void; // NOWE: gotowa postać z biblioteki
+  onCreateCharacter?: (playerName?: string) => void;
+  onPickPredefinedCharacter?: (playerName?: string) => void;
   /** C1 (Hot Seat): otwiera katalog dotychczasowych postaci ("Wybierz z katalogu"). */
-  onPickCharacter?: () => void;
+  onPickCharacter?: (playerName?: string) => void;
   onStartGame?: () => void;
   /** #7: otwiera setup Hot Seat (Solo / 2 osoby) z onboardingu. */
   onChoosePlayMode?: () => void;

@@ -243,60 +243,63 @@ export default function Home() {
     aiSettings,
   });
 
-  // Faza 2 + C2: gdy duet aktywny, stwórz/wybierz postać zapamiętuje (kanał
-  // localStorage) dla którego gracza ją przypisujemy. Dzięki temu /characters/new
-  // (tworzenie) oraz /characters (wybór z katalogu) ostemplują `playerName`,
-  // a guard C2 może wymagać jawnego przypisania 2 RÓŻNYCH postaci po imieniu.
-  // Solo: zachowanie bez zmian (zero setItem).
-  const stampDuetTargetPlayer = useCallback(() => {
-    if (hotSeat.config.enabled && hotSeat.config.players.length >= 2) {
-      const nextUnbound = hotSeat.config.players.find(
-        (p) =>
-          !charMgmt.characters.some((c) => c.playerName === p.name) &&
-          !p.characterId
-      );
-      const target = nextUnbound?.name ?? hotSeat.config.players[0]?.name;
-      if (target) localStorage.setItem('hotSeatCreatingPlayerName', target);
-    }
-  }, [hotSeat.config, charMgmt.characters]);
+  // W duecie gracz docelowy jest zawsze przekazywany przez jego własne miejsce
+  // na ekranie startowym. localStorage przenosi tę jawną decyzję przez routing.
+  const stampDuetTargetPlayer = useCallback(
+    (playerName?: string) => {
+      if (hotSeat.config.enabled && playerName) {
+        localStorage.setItem('hotSeatCreatingPlayerName', playerName);
+      }
+    },
+    [hotSeat.config.enabled]
+  );
 
-  const handleCreateCharacterForDuet = useCallback(() => {
-    stampDuetTargetPlayer();
-    charMgmt.handleCharacterCreate();
-  }, [stampDuetTargetPlayer, charMgmt]);
+  const handleCreateCharacterForDuet = useCallback(
+    (playerName?: string) => {
+      stampDuetTargetPlayer(playerName);
+      charMgmt.handleCharacterCreate();
+    },
+    [stampDuetTargetPlayer, charMgmt]
+  );
 
-  const handlePickCharacterForDuet = useCallback(() => {
-    stampDuetTargetPlayer();
-    charMgmt.handleCharacterManage();
-  }, [stampDuetTargetPlayer, charMgmt]);
+  const handlePickCharacterForDuet = useCallback(
+    (playerName?: string) => {
+      stampDuetTargetPlayer(playerName);
+      charMgmt.handleCharacterManage();
+    },
+    [stampDuetTargetPlayer, charMgmt]
+  );
 
   const [showPredefinedSelector, setShowPredefinedSelector] = useState(false);
 
-  const handleSelectPredefinedCharacter = useCallback((character: Character) => {
-    const stamped = {
-      ...character,
-      id: `${character.id}_${Date.now()}` // zrób unikalne ID per instancja postaci
-    };
-    
-    // Obsługa Hot Seat
-    const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
-    if (targetPlayer) {
-      stamped.playerName = targetPlayer;
-      localStorage.removeItem('hotSeatCreatingPlayerName');
-    }
+  const handleSelectPredefinedCharacter = useCallback(
+    (character: Character) => {
+      const stamped = {
+        ...character,
+        id: `${character.id}_${Date.now()}`, // zrób unikalne ID per instancja postaci
+      };
 
-    const existingCharacters = [...charMgmt.characters];
-    existingCharacters.push(stamped);
-    
-    // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
-    charMgmt.setCharacters(existingCharacters);
-    charMgmt.setActiveCharacter(stamped);
-    
-    // Persystencja
-    persistCharacters(existingCharacters);
-    
-    setShowPredefinedSelector(false);
-  }, [charMgmt]);
+      // Obsługa Hot Seat
+      const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
+      if (targetPlayer) {
+        stamped.playerName = targetPlayer;
+        localStorage.removeItem('hotSeatCreatingPlayerName');
+      }
+
+      const existingCharacters = [...charMgmt.characters];
+      existingCharacters.push(stamped);
+
+      // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
+      charMgmt.setCharacters(existingCharacters);
+      charMgmt.setActiveCharacter(stamped);
+
+      // Persystencja
+      persistCharacters(existingCharacters);
+
+      setShowPredefinedSelector(false);
+    },
+    [charMgmt]
+  );
 
   // Faza 4 + C2: guard startu duetu. TWARDY wymóg - każdy gracz musi mieć
   // WŁASNĄ, jawnie przypisaną postać (po imieniu gracza), i muszą to być 2
@@ -799,8 +802,8 @@ export default function Home() {
         region={adventureContext?.location}
         currentLocation={chat.currentLocation}
         onCreateCharacter={handleCreateCharacterForDuet}
-        onPickPredefinedCharacter={() => {
-          stampDuetTargetPlayer();
+        onPickPredefinedCharacter={(playerName) => {
+          stampDuetTargetPlayer(playerName);
           setShowPredefinedSelector(true);
         }}
         onPickCharacter={handlePickCharacterForDuet}

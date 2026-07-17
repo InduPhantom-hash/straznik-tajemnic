@@ -82,7 +82,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
     // Bilans kości: premie dodatnie, kary ujemne (zgodnie z SkillTestCard).
     const bonusDice = test.modifiers.reduce(
       (balance, mod) =>
-         balance + (mod.type === 'bonus' ? mod.count : -mod.count),
+        balance + (mod.type === 'bonus' ? mod.count : -mod.count),
       0
     );
     setDiceTest({
@@ -100,6 +100,32 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   // Portret gracza dla awatarów wiadomości - dociągany z IndexedDB gdy portraitUrl
   // pusty (wyścig hydratacji). Liczony RAZ tu, nie per-wiadomość. Patrz #2b.
   const playerPortraitUrl = useResolvedPortrait(activeCharacter);
+
+  const duetCharacterSlots = hotSeatConfig?.enabled
+    ? hotSeatConfig.players.map((player) => {
+        const character = characters.find(
+          (candidate) =>
+            candidate.id === player.characterId ||
+            candidate.playerName === player.name
+        );
+        return {
+          playerId: player.id,
+          playerName: player.name,
+          character: character
+            ? {
+                id: character.id,
+                name: character.name,
+                occupation: character.occupation,
+                portraitUrl: character.portraitUrl,
+              }
+            : undefined,
+        };
+      })
+    : [];
+  const duetReady =
+    duetCharacterSlots.length === 2 &&
+    duetCharacterSlots.every((slot) => slot.character) &&
+    new Set(duetCharacterSlots.map((slot) => slot.character?.id)).size === 2;
 
   // Auto-scroll do dołu czatu
   useEffect(() => {
@@ -135,9 +161,12 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               hasAdventure={hasAdventure}
               adventureTitle={adventureTitle}
               hasSessionZero={hasSessionZero}
-              hasCharacter={!!activeCharacter}
+              hasCharacter={
+                hotSeatConfig?.enabled ? duetReady : !!activeCharacter
+              }
               hasSavedCharacters={characters.length > 0}
               isDuet={!!hotSeatConfig?.enabled}
+              duetCharacterSlots={duetCharacterSlots}
             />
           ) : (
             messages.map((message) => (

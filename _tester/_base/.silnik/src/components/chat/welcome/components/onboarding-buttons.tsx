@@ -10,6 +10,7 @@
  */
 
 import type { FC } from 'react';
+import type { DuetCharacterSlot } from '../types';
 
 /**
  * Beta (tryb testerów): krok "Wgraj zasady" ukryty. Zasady CoC 7e są już
@@ -25,13 +26,13 @@ interface OnboardingButtonsProps {
   onUploadRules: () => void;
   onSelectAdventure: () => void;
   onSessionZero?: () => void;
-  onCreateCharacter: () => void;
-  onPickPredefinedCharacter?: () => void; // NOWE: wywołanie selektora postaci predefiniowanych
+  onCreateCharacter: (playerName?: string) => void;
+  onPickPredefinedCharacter?: (playerName?: string) => void;
   /**
    * C1 (Hot Seat): otwiera katalog dotychczasowych postaci ("Wybierz z katalogu").
    * Krok renderuje się tylko gdy podany ORAZ istnieją zapisane postacie.
    */
-  onPickCharacter?: () => void;
+  onPickCharacter?: (playerName?: string) => void;
   onStartGame: () => void;
   /** #7: otwiera setup Hot Seat (Solo / 2 osoby). Krok renderuje się tylko gdy podany. */
   onChoosePlayMode?: () => void;
@@ -43,6 +44,7 @@ interface OnboardingButtonsProps {
   hasSavedCharacters?: boolean;
   /** #7: czy aktywny tryb duetu (Hot Seat 2 graczy). */
   isDuet?: boolean;
+  duetCharacterSlots?: DuetCharacterSlot[];
 }
 
 type StepState = 'primary' | 'todo' | 'done' | 'locked';
@@ -95,6 +97,7 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
   hasCharacter,
   hasSavedCharacters = false,
   isDuet = false,
+  duetCharacterSlots = [],
 }) => {
   // C1: krok "Wybierz postać" pokazujemy tylko gdy jest co wybierać.
   const showPickCharacter = !!onPickCharacter && hasSavedCharacters;
@@ -163,29 +166,107 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
         />
       )}
 
-      <StepButton
-        num={characterNum}
-        label="Stwórz nową postać"
-        state={characterState}
-        onClick={onCreateCharacter}
-      />
+      {isDuet ? (
+        <div className="space-y-3" aria-label="Postacie graczy">
+          <div className="font-display text-xs uppercase tracking-[0.18em] text-brass">
+            {characterNum} Przypisz postacie graczom
+          </div>
+          {duetCharacterSlots.map((slot) => (
+            <div
+              key={slot.playerId}
+              className={`border p-3 text-left ${
+                slot.character
+                  ? 'border-primary/55 bg-primary/[0.06]'
+                  : 'border-brass/35 bg-brass/[0.03]'
+              }`}
+            >
+              <div className="mb-2 flex items-center gap-3">
+                <div className="h-12 w-10 shrink-0 overflow-hidden border border-brass/30 bg-black/30">
+                  {slot.character?.portraitUrl ? (
+                    <img
+                      src={slot.character.portraitUrl}
+                      alt={slot.character.name}
+                      className="h-full w-full object-cover grayscale"
+                    />
+                  ) : (
+                    <span className="flex h-full items-center justify-center text-lg text-brass/50">
+                      ?
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-special-elite text-xs uppercase tracking-[0.12em] text-primary">
+                    {slot.playerName}
+                  </div>
+                  <div className="truncate font-display text-sm font-semibold text-foreground">
+                    {slot.character?.name || 'Brak przypisanej postaci'}
+                  </div>
+                  {slot.character && (
+                    <div className="truncate font-serif text-xs text-muted-foreground">
+                      {slot.character.occupation}
+                    </div>
+                  )}
+                </div>
+                {slot.character && <span className="text-primary">✓</span>}
+              </div>
+              <div className="mb-1 font-special-elite text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                {slot.character ? 'Zmień postać' : 'Wybierz postać'}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onCreateCharacter(slot.playerName)}
+                  className="border border-brass/35 px-2 py-1.5 font-special-elite text-[10px] uppercase text-brass hover:bg-brass/10"
+                >
+                  Stwórz
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPickPredefinedCharacter?.(slot.playerName)}
+                  disabled={!onPickPredefinedCharacter}
+                  className="border border-brass/35 px-2 py-1.5 font-special-elite text-[10px] uppercase text-brass hover:bg-brass/10 disabled:opacity-40"
+                >
+                  Gotowa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPickCharacter?.(slot.playerName)}
+                  disabled={!showPickCharacter}
+                  className="border border-brass/35 px-2 py-1.5 font-special-elite text-[10px] uppercase text-brass hover:bg-brass/10 disabled:opacity-40"
+                >
+                  Katalog
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          <StepButton
+            num={characterNum}
+            label="Stwórz nową postać"
+            state={characterState}
+            onClick={() => onCreateCharacter()}
+          />
 
-      {onPickPredefinedCharacter && (
-        <StepButton
-          num=""
-          label="lub wybierz gotową postać"
-          state={hasCharacter ? 'done' : characterState}
-          onClick={onPickPredefinedCharacter}
-        />
-      )}
+          {onPickPredefinedCharacter && (
+            <StepButton
+              num=""
+              label="lub wybierz gotową postać"
+              state={hasCharacter ? 'done' : characterState}
+              onClick={() => onPickPredefinedCharacter()}
+            />
+          )}
 
-      {showPickCharacter && (
-        <StepButton
-          num=""
-          label="lub wybierz z katalogu"
-          state={hasCharacter ? 'done' : 'todo'}
-          onClick={onPickCharacter!}
-        />
+          {showPickCharacter && (
+            <StepButton
+              num=""
+              label="lub wybierz z katalogu"
+              state={hasCharacter ? 'done' : 'todo'}
+              onClick={() => onPickCharacter?.()}
+            />
+          )}
+        </>
       )}
 
       <StepButton
