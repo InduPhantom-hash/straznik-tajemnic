@@ -18,10 +18,11 @@
 import type { SkillTestData, SkillTestModifier } from '@/lib/parsers/types';
 import { Button } from '../../../ui/button';
 import { Badge } from '../../../ui/badge';
-import { Dices } from 'lucide-react';
+import { Check, Dices } from 'lucide-react';
 
 interface SkillTestCardProps extends SkillTestData {
   onRoll?: (testData: SkillTestData) => void;
+  completed?: boolean;
 }
 
 // === HELPERS ===
@@ -93,7 +94,11 @@ export function SkillTestCard({
   difficulty,
   modifiers,
   justification,
+  characterName,
+  characterId,
+  groupId,
   onRoll,
+  completed = false,
 }: SkillTestCardProps) {
   const threshold = calculateThreshold(skillValue, difficulty);
   const diceBalance = calculateDiceBalance(modifiers);
@@ -102,7 +107,17 @@ export function SkillTestCard({
 
   const handleRollClick = () => {
     if (onRoll) {
-      onRoll({ id, skillName, skillValue, difficulty, modifiers, justification });
+      onRoll({
+        id,
+        skillName,
+        skillValue,
+        difficulty,
+        modifiers,
+        justification,
+        characterName,
+        characterId,
+        groupId,
+      });
     }
   };
 
@@ -115,6 +130,9 @@ export function SkillTestCard({
           <span className="font-bold text-white uppercase tracking-wide">
             {skillName}
           </span>
+          {characterName && (
+            <span className="text-xs text-pink-300">@{characterName}</span>
+          )}
         </div>
         <Badge className={difficultyBadge.className}>{difficultyBadge.label}</Badge>
       </div>
@@ -189,10 +207,20 @@ export function SkillTestCard({
         <div className="px-4 py-3 flex justify-center">
           <Button
             onClick={handleRollClick}
+            disabled={completed}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6"
           >
-            <Dices className="w-4 h-4 mr-2" />
-            Rzuć kością
+            {completed ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Wynik zapisany
+              </>
+            ) : (
+              <>
+                <Dices className="w-4 h-4 mr-2" />
+                Rzuć kością
+              </>
+            )}
           </Button>
         </div>
       )}

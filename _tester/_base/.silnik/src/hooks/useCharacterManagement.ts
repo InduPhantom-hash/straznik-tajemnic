@@ -86,7 +86,17 @@ export function useCharacterManagement(): UseCharacterManagementReturn {
         char.id === updatedCharacter.id ? updatedCharacter : char
       );
       setCharacters(updatedCharacters);
-      setActiveCharacter(updatedCharacter);
+      // Aktualizacja oglądanej postaci w modalu nie może przejąć aktywnej tury.
+      setActiveCharacter((current) =>
+        current?.id === updatedCharacter.id ? updatedCharacter : current
+      );
+      setActiveGameState((current) => ({
+        ...current,
+        currentCharacter:
+          current.currentCharacter?.id === updatedCharacter.id
+            ? updatedCharacter
+            : current.currentCharacter,
+      }));
       persistCharacters(updatedCharacters);
     },
     [characters]

@@ -9,7 +9,7 @@
  * Textarea onKeyDown: Enter (bez shift) wysyła wiadomość + reset newMessage.
  */
 
-import { Send, BookOpen, Loader2, Users } from 'lucide-react';
+import { Send, BookOpen, Loader2, Users, Check } from 'lucide-react';
 import { Button } from '../../../ui/button';
 import { Textarea } from '../../../ui/textarea';
 
@@ -35,6 +35,9 @@ interface MessageInputProps {
   playersAwaitingDeclaration?: { id: string; name: string }[];
   /** Dokłada deklarację aktualnego gracza (Enter w duecie). */
   onAddDeclaration?: (text: string) => void;
+  onPassDeclaration?: () => void;
+  currentPlayerName?: string;
+  isTurnReady?: boolean;
   /** Składa bufor w turę i wysyła do MG ("Wyślij turę"). */
   onSendTurn?: () => void;
   isLoading?: boolean;
@@ -51,6 +54,9 @@ export function MessageInput({
   pendingDeclarations = [],
   playersAwaitingDeclaration = [],
   onAddDeclaration,
+  onPassDeclaration,
+  currentPlayerName,
+  isTurnReady = false,
   onSendTurn,
   isLoading = false,
 }: MessageInputProps) {
@@ -69,7 +75,7 @@ export function MessageInput({
   };
 
   return (
-    <div className="relative p-4 bg-card border-t border-brass/30">
+    <div className="relative px-4 py-3 bg-card border-t border-brass/30">
       {/* déco: złota linia akcentu nad paskiem wpisywania */}
       <div
         aria-hidden="true"
@@ -77,42 +83,47 @@ export function MessageInput({
       />
 
       {/* C4 (duet): zebrane deklaracje + kto jeszcze nie zadeklarował */}
-      {duetActive &&
-        (pendingDeclarations.length > 0 ||
-          playersAwaitingDeclaration.length > 0) && (
-          <div className="max-w-4xl mx-auto mb-3 rounded-lg border border-brass/30 bg-card/60 px-3 py-2 text-xs space-y-1">
-            <div className="flex items-center gap-2 font-special-elite uppercase tracking-[0.16em] text-brass/90">
-              <Users className="w-3.5 h-3.5" />
-              Deklaracje tury
-            </div>
-            {pendingDeclarations.map((d) => (
-              <div key={d.playerId} className="text-foreground">
-                <span className="text-primary font-medium">
-                  {d.playerName}
-                  {d.characterName ? ` (@${d.characterName})` : ''}:
-                </span>{' '}
-                <span className="text-muted-foreground">{d.text}</span>
-              </div>
-            ))}
-            {playersAwaitingDeclaration.length > 0 && (
-              <div className="text-muted-foreground italic">
-                Czeka na:{' '}
-                {playersAwaitingDeclaration.map((p) => p.name).join(', ')}
-              </div>
-            )}
+      {duetActive && (
+        <div className="max-w-4xl mx-auto mb-2 flex flex-wrap items-center gap-2 text-xs">
+          <div className="flex items-center gap-1.5 font-special-elite uppercase tracking-[0.14em] text-brass/90 mr-1">
+            <Users className="w-3.5 h-3.5" />
+            Tura
           </div>
-        )}
+          {pendingDeclarations.map((declaration) => (
+            <div
+              key={declaration.playerId}
+              className="max-w-[260px] inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/25 px-2.5 py-1 text-emerald-100"
+              title={declaration.text}
+            >
+              <Check className="w-3 h-3 text-emerald-400" />
+              <span className="font-medium">{declaration.playerName}</span>
+              <span className="truncate text-emerald-100/65">
+                {declaration.text}
+              </span>
+            </div>
+          ))}
+          {playersAwaitingDeclaration.map((player) => (
+            <div
+              key={player.id}
+              className="inline-flex items-center rounded-full border border-brass/25 bg-black/15 px-2.5 py-1 text-muted-foreground"
+            >
+              Czeka: {player.name}
+            </div>
+          ))}
+        </div>
+      )}
 
-      <div className="flex gap-2 max-w-4xl mx-auto">
+      <div className="flex items-end gap-2 max-w-4xl mx-auto">
         <Textarea
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder={
             duetActive
-              ? 'Wpisz deklarację gracza i naciśnij Enter (potem "Wyślij turę")...'
+              ? `${currentPlayerName ? `${currentPlayerName}: ` : ''}wpisz deklarację i naciśnij Enter...`
               : 'Wpisz wiadomość do Mistrza Gry...'
           }
-          className="min-h-[60px] resize-none font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow"
+          rows={2}
+          className="min-h-[52px] max-h-[112px] resize-y font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -120,11 +131,11 @@ export function MessageInput({
             }
           }}
         />
-        <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 pb-0.5">
           <Button
             onClick={submitInput}
             disabled={!newMessage.trim()}
-            className="px-4"
+            className="h-[52px] px-4"
             title={duetActive ? 'Dodaj deklarację gracza' : 'Wyślij wiadomość'}
           >
             <Send className="w-4 h-4" />
@@ -132,14 +143,25 @@ export function MessageInput({
 
           {/* C4 (duet): wyślij zebrane deklaracje jako jedną turę do MG */}
           {duetActive && onSendTurn && (
-            <Button
-              onClick={onSendTurn}
-              disabled={pendingDeclarations.length === 0 || isLoading}
-              className="px-4 whitespace-nowrap"
-              title="Złóż deklaracje w jedną turę i wyślij do Mistrza Gry"
-            >
-              Wyślij turę
-            </Button>
+            <>
+              <Button
+                onClick={onPassDeclaration}
+                disabled={!onPassDeclaration || isLoading}
+                variant="outline"
+                className="h-[52px] px-3 whitespace-nowrap"
+                title={`Zapisz deklarację "Pasuję"${currentPlayerName ? ` dla ${currentPlayerName}` : ''}`}
+              >
+                Pasuję
+              </Button>
+              <Button
+                onClick={onSendTurn}
+                disabled={!isTurnReady || isLoading}
+                className="h-[52px] px-4 whitespace-nowrap"
+                title="Złóż obie deklaracje w jedną turę i wyślij do Mistrza Gry"
+              >
+                Wyślij turę
+              </Button>
+            </>
           )}
 
           {/* Przycisk podsumowania sceny */}
@@ -148,7 +170,7 @@ export function MessageInput({
               onClick={onSummarizeScene}
               disabled={isSummarizingScene}
               variant="outline"
-              className="px-4 border-brass/50 text-brass hover:bg-brass/10"
+              className="h-[52px] px-3 border-brass/50 text-brass hover:bg-brass/10"
               title="Podsumuj ostatnią scenę do dziennika"
             >
               {isSummarizingScene ? (

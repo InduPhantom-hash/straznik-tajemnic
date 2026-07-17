@@ -19,6 +19,10 @@ import type { ChatWindowProps } from './types';
 import type { SkillTestData } from '@/lib/parsers/types';
 import { usePlayerColors } from './hooks/use-player-colors';
 import { useResolvedPortrait } from '@/hooks/useResolvedPortrait';
+import {
+  collectTestGroupResult,
+  type CollectedTestResult,
+} from '@/lib/hot-seat/test-groups';
 import { ChatHeader } from './components/chat-header';
 import { LoadingIndicator } from './components/loading-indicator';
 import { MessageCard } from './components/message-card';
@@ -65,6 +69,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   pendingDeclarations,
   playersAwaitingDeclaration,
   onAddDeclaration,
+  onPassDeclaration,
+  currentPlayerName,
+  isTurnReady,
   onSendTurn,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -76,22 +83,68 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   // D1: tacka testu sterowana WYŁĄCZNIE tagiem [TEST:] - "Rzuć" otwiera mały modal
   // RollTestModal (podsumowanie → animacja → wynik do czatu + dziennika).
   // Trudność (½/⅕) i bilans kości premii/kary egzekwuje silnik dice-utils.
-  const [diceTest, setDiceTest] = useState<RollTestData | null>(null);
+  const [activeSkillTest, setActiveSkillTest] =
+    useState<SkillTestData | null>(null);
+  const [completedTestIds, setCompletedTestIds] = useState<Set<string>>(
+    () => new Set()
+  );
+  const groupResultsRef = useRef(new Map<string, CollectedTestResult[]>());
+
+  const diceTest: RollTestData | null = activeSkillTest
+    ? {
+        testId: activeSkillTest.id,
+        groupId: activeSkillTest.groupId,
+        characterId: activeSkillTest.characterId,
+        skill: activeSkillTest.skillName,
+        value: activeSkillTest.skillValue,
+        difficulty: activeSkillTest.difficulty,
+        bonusDice: activeSkillTest.modifiers.reduce(
+          (balance, mod) =>
+            balance + (mod.type === 'bonus' ? mod.count : -mod.count),
+          0
+        ),
+        justification: activeSkillTest.justification,
+      }
+    : null;
 
   const handleRollTest = (test: SkillTestData) => {
-    // Bilans kości: premie dodatnie, kary ujemne (zgodnie z SkillTestCard).
-    const bonusDice = test.modifiers.reduce(
-      (balance, mod) =>
-        balance + (mod.type === 'bonus' ? mod.count : -mod.count),
-      0
+    setActiveSkillTest(test);
+  };
+
+  const handleRollResult = (chatMessage: string, systemContext: string) => {
+    if (!activeSkillTest) return;
+    const result: CollectedTestResult = {
+      testId: activeSkillTest.id,
+      chatMessage,
+      systemContext,
+    };
+    setCompletedTestIds((current) =>
+      new Set([...current, activeSkillTest.id])
     );
-    setDiceTest({
-      skill: test.skillName,
-      value: test.skillValue,
-      difficulty: test.difficulty,
-      bonusDice,
-      justification: test.justification,
-    });
+
+    if (!activeSkillTest.groupId) {
+      handleSendMessage(chatMessage);
+      return;
+    }
+
+    const groupTests = messages
+      .flatMap((message) => message.skillTests ?? [])
+      .filter((test) => test.groupId === activeSkillTest.groupId);
+    const currentResults =
+      groupResultsRef.current.get(activeSkillTest.groupId) ?? [];
+    const progress = collectTestGroupResult(
+      groupTests as SkillTestData[],
+      currentResults,
+      result
+    );
+    groupResultsRef.current.set(activeSkillTest.groupId, progress.results);
+
+    // Pierwszy wynik zostaje wyłącznie lokalnie. Drugiego nie ścigamy osobnym
+    // requestem - dopiero komplet trafia do MG jako jedna wiadomość.
+    if (progress.complete && progress.combinedMessage) {
+      groupResultsRef.current.delete(activeSkillTest.groupId);
+      handleSendMessage(progress.combinedMessage);
+    }
   };
 
   // Mapa kolorów graczy dla Hot Seat (imię postaci -> kolor)
@@ -181,6 +234,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                 isAudioPaused={isAudioPaused}
                 stopCurrentAudio={stopCurrentAudio}
                 playerColors={playerColors}
+                completedTestIds={completedTestIds}
                 onImageClick={(imgUrl, allImages) => {
                   setLightboxImages(allImages);
                   setLightboxImage(imgUrl);
@@ -209,6 +263,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           pendingDeclarations={pendingDeclarations}
           playersAwaitingDeclaration={playersAwaitingDeclaration}
           onAddDeclaration={onAddDeclaration}
+          onPassDeclaration={onPassDeclaration}
+          currentPlayerName={currentPlayerName}
+          isTurnReady={isTurnReady}
           onSendTurn={onSendTurn}
           isLoading={isLoading}
         />
@@ -225,15 +282,17 @@ export const ChatWindow: FC<ChatWindowProps> = ({
       <RollTestModal
         open={!!diceTest}
         onOpenChange={(open) => {
-          if (!open) setDiceTest(null);
+          if (!open) setActiveSkillTest(null);
         }}
         test={diceTest}
-        activeCharacter={activeCharacter ?? undefined}
-        onRollSendToChat={
-          handleSendMessage
-            ? (message) => handleSendMessage(message)
-            : undefined
+        activeCharacter={
+          characters.find(
+            (character) => character.id === activeSkillTest?.characterId
+          ) ??
+          activeCharacter ??
+          undefined
         }
+        onRollSendToChat={handleRollResult}
         onJournalRoll={onJournalRoll}
         onSpendLuck={onSpendLuck}
       />

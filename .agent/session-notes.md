@@ -82,3 +82,25 @@ Branch: feature/redesigned-journal
 ### Decyzje podjęte
 - Publiczny launcher zachowuje port 4050 i fizyczną aplikację na pulpicie, bez tworzenia dowiązań symbolicznych.
 - Limit transportowy Next.js i limit endpointu PDF wynoszą 500 MB.
+
+---
+
+## Podsumowanie sesji: 2026-07-17 (duet - etap 1)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Ograniczono skład rozpoczętej sesji do dwóch badaczy przypisanych graczom w konfiguracji Hot Seat.
+- Naprawiono synchronizację aktywnego gracza, deklaracji i postaci oglądanej w karcie oraz ekwipunku.
+- Dodano kompletną turę dwuosobową: dwie deklaracje, opcję `Pasuję` i jedno wspólne wywołanie MG.
+- Dodano adresowane, grupowe testy obojga badaczy oraz właściwe przypisanie rzutów, Szczęścia, dziennika rzutu i rozwoju.
+- Zweryfikowano testy fazy 1 (17/17), TypeScript i ESLint bez błędów.
+
+### Co otwarte (do następnej sesji)
+- Etap 2: zgodna biografia, większy ekwipunek z lokalnymi obrazami oraz wspólny Dziennik Przygody.
+- Po etapie 2: pełny playtest Hot Seat, produkcyjny build i nowa paczka testowa.
+
+### Decyzje podjęte
+- Skład rozpoczętej sesji pochodzi wyłącznie z `HotSeatConfig.players[].characterId`.
+- Pierwszy wynik wspólnej grupy testów zostaje lokalnie, a komplet trafia do MG w jednej wiadomości.
+- Istniejąca paczka ZIP nie wchodzi do commitu.
+- Branch pozostaje niescalony do czasu ukończenia etapu 2 i końcowej weryfikacji.

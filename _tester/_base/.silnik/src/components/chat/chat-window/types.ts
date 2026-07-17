@@ -31,9 +31,13 @@ export interface ChatWindowProps {
   activeCharacter: Character | null;
   characters?: Character[];
   /** D1: zapisuje rzut Tacki ([TEST:]) do dziennika postaci (most appendRollToJournal). */
-  onJournalRoll?: (roll: DiceRoll, justification?: string) => void;
+  onJournalRoll?: (
+    roll: DiceRoll,
+    justification?: string,
+    characterId?: string
+  ) => void;
   /** D1: odejmuje wydane pkt Szczęścia z karty postaci (CoC 7e Faza 5B). */
-  onSpendLuck?: (amount: number) => void;
+  onSpendLuck?: (amount: number, characterId?: string) => void;
 
   // Onboarding callbacks + state flags
   onUploadRules?: () => void;
@@ -81,5 +85,8 @@ export interface ChatWindowProps {
   }[];
   playersAwaitingDeclaration?: { id: string; name: string }[];
   onAddDeclaration?: (text: string) => void;
+  onPassDeclaration?: () => void;
+  currentPlayerName?: string;
+  isTurnReady?: boolean;
   onSendTurn?: () => void;
 }

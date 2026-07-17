@@ -84,6 +84,12 @@ export interface SkillTestData {
   difficulty: 'zwykly' | 'trudny' | 'ekstremalny';
   modifiers: SkillTestModifier[];
   justification: string;
+  /** Adresat testu w duecie, zapisany w tagu jako `@Imię:`. */
+  characterName?: string;
+  /** Rozwiązane po stronie klienta ID postaci. */
+  characterId?: string;
+  /** Wspólna grupa testów z jednej odpowiedzi MG. */
+  groupId?: string;
 }
 
 export interface TimeUpdate {

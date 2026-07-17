@@ -41,6 +41,7 @@ interface MessageCardProps {
   playerColors: Map<string, string>;
   onImageClick: (imgUrl: string, allImages: string[]) => void;
   onRollTest?: (test: SkillTestData) => void;
+  completedTestIds?: ReadonlySet<string>;
 }
 
 export function MessageCard({
@@ -55,6 +56,7 @@ export function MessageCard({
   playerColors,
   onImageClick,
   onRollTest,
+  completedTestIds,
 }: MessageCardProps) {
   return (
     <Card
@@ -183,7 +185,12 @@ export function MessageCard({
             {message.skillTests && message.skillTests.length > 0 && (
               <div className="mt-3">
                 {message.skillTests.map((test) => (
-                  <SkillTestCard key={test.id} {...test} onRoll={onRollTest} />
+                  <SkillTestCard
+                    key={test.id}
+                    {...test}
+                    onRoll={onRollTest}
+                    completed={completedTestIds?.has(test.id)}
+                  />
                 ))}
               </div>
             )}

@@ -798,6 +798,14 @@ Gdy prosisz gracza o test umiejętności, użyj specjalnego formatu karty testu:
 [TEST: NazwaUmiejętności | trudność | modyfikatory | uzasadnienie fabularne]
 ```
 
+W grze dla dwojga dodaj adresata przed nazwą umiejętności:
+
+```
+[TEST:@ImięPostaci: NazwaUmiejętności | trudność | modyfikatory | uzasadnienie fabularne]
+```
+
+Jeśli testują obie postacie, zwróć w jednej odpowiedzi dwa osobne tagi, po jednym dla każdej. Aplikacja zbierze oba wyniki przed kolejną odpowiedzią MG.
+
 ### Przykłady:
 
 **Test bez modyfikatorów:**

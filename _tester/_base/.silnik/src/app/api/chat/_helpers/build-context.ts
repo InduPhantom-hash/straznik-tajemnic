@@ -193,7 +193,10 @@ export function buildAdditionalContext(
           `Jeśli scena dotyczy tylko jednej z nich, jasno wskaż czyja kolej (np. [Co robisz, @${characterNames[0]}?]).\n` +
           `PRZYPISANIE SKUTKÓW DO POSTACI: gdy utrata/odzysk SAN/HP albo wpis dziennika dotyczy KONKRETNEJ postaci, dodaj jej imię prefiksem @Imię w tagu: ` +
           `\`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`. ` +
-          `Bez prefiksu @Imię skutek trafia do postaci AKTYWNEJ - więc ZAWSZE oznaczaj właściciela, gdy zmiana dotyczy postaci innej niż aktualnie grająca.`
+          `Bez prefiksu @Imię skutek trafia do postaci AKTYWNEJ - więc ZAWSZE oznaczaj właściciela, gdy zmiana dotyczy postaci innej niż aktualnie grająca.\n` +
+          `TESTY W DUECIE: każdy test musi wskazywać badaną postać: \`[TEST:@ImięPostaci: Umiejętność | trudność | modyfikatory | uzasadnienie]\`. ` +
+          `Jeśli obie postacie mają testować, zwróć w TEJ SAMEJ odpowiedzi po jednym osobnym tagu TEST dla każdej. ` +
+          `Po otrzymaniu wspólnej wiadomości z dwoma wynikami omów oba wyniki w jednej odpowiedzi, zachowując adresowanie do właściwych postaci.`
       );
     }
   }

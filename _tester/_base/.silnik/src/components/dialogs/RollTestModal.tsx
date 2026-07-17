@@ -27,6 +27,9 @@ import { RollTestResult } from './roll-test-result';
  * Dane testu z tagu [TEST:] przekazane do modalu (z SkillTestCard po kliknięciu "Rzuć").
  */
 export interface RollTestData {
+  testId: string;
+  groupId?: string;
+  characterId?: string;
   skill: string;
   value: number;
   difficulty: 'zwykly' | 'trudny' | 'ekstremalny';
@@ -44,9 +47,13 @@ interface RollTestModalProps {
   /** Wysyła wynik rzutu do czatu (istniejąca ścieżka handleSendMessage). */
   onRollSendToChat?: (message: string, systemContext: string) => void;
   /** Zapisuje rzut do dziennika postaci (most appendRollToJournal w page.tsx). */
-  onJournalRoll?: (roll: DiceRoll, justification?: string) => void;
+  onJournalRoll?: (
+    roll: DiceRoll,
+    justification?: string,
+    characterId?: string
+  ) => void;
   /** Odejmuje wydane pkt Szczęścia z karty postaci (CoC 7e Faza 5B). */
-  onSpendLuck?: (amount: number) => void;
+  onSpendLuck?: (amount: number, characterId?: string) => void;
 }
 
 const ANIM_TICK_MS = 60;
@@ -77,7 +84,12 @@ export const RollTestModal: FC<RollTestModalProps> = ({
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const { availableLuck, setAvailableLuck, luckNeeded, spendLuck } =
-    useLuckSpend(activeCharacter?.luck ?? 0, roll, setRoll, onSpendLuck);
+    useLuckSpend(
+      activeCharacter?.luck ?? 0,
+      roll,
+      setRoll,
+      (amount) => onSpendLuck?.(amount, test?.characterId)
+    );
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((t) => clearTimeout(t));
@@ -153,7 +165,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
         formatRollForAI(roll, activeCharacter?.name)
       );
     }
-    onJournalRoll?.(roll, test.justification);
+    onJournalRoll?.(roll, test.justification, test.characterId);
     onOpenChange(false);
   };
 

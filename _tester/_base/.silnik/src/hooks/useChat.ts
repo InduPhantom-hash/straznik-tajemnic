@@ -34,6 +34,7 @@ import {
 import { resolveImageLevel } from '@/lib/prompts/image-instructions';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
+import { resolveCharacterByName } from '@/lib/character/match-by-name';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { persistentMediaCache } from '@/lib/persistent-media-cache';
 
@@ -108,20 +109,31 @@ function isPersistedMessage(raw: unknown): raw is {
  * Wcześniej resolver szukał tylko w `character.skills`, więc SAN i cechy zawsze były 0%.
  * Snapshot w momencie żądania (Hot Seat: wartość należy do gracza aktywnego przy teście).
  */
-function resolveSkillTestValues(
+export function resolveSkillTestValues(
   tests: SkillTestData[],
-  character: Character | null
+  character: Character | null,
+  characters: Character[] = []
 ): SkillTestData[] {
   if (!character) return tests;
-  return tests.map((test) => ({
-    ...test,
-    // Degradacja: karta postaci → bazowa tabela CoC 7e (BASE_SKILLS) → stała.
-    // NIGDY 0% (próg ≤0 = absurdalny test gwarantowanej porażki).
-    skillValue:
-      resolveTestValue(test.skillName, character) ??
-      resolveSkillBaseValue(test.skillName) ??
-      UNKNOWN_SKILL_BASE,
-  }));
+  const roster = characters.length > 0 ? characters : [character];
+  return tests.map((test) => {
+    const target = resolveCharacterByName(
+      roster,
+      test.characterName,
+      character
+    );
+    return {
+      ...test,
+      characterId: target.id,
+      characterName: target.name,
+      // Degradacja: karta postaci → bazowa tabela CoC 7e (BASE_SKILLS) → stała.
+      // NIGDY 0% (próg ≤0 = absurdalny test gwarantowanej porażki).
+      skillValue:
+        resolveTestValue(test.skillName, target) ??
+        resolveSkillBaseValue(test.skillName) ??
+        UNKNOWN_SKILL_BASE,
+    };
+  });
 }
 
 /**
@@ -172,6 +184,18 @@ export interface PendingDeclaration {
   /** Imię postaci gracza (gdy przypisana) - do adresowania `@ImięPostaci`. */
   characterName?: string;
   text: string;
+}
+
+export function isTurnReady(
+  declarations: PendingDeclaration[],
+  players: HotSeatPlayer[]
+): boolean {
+  return (
+    players.length >= 2 &&
+    players.every((player) =>
+      declarations.some((declaration) => declaration.playerId === player.id)
+    )
+  );
 }
 
 /**
@@ -226,6 +250,12 @@ export interface UseChatReturn {
   playersAwaitingDeclaration: { id: string; name: string }[];
   /** Dokłada deklarację AKTUALNEGO gracza do bufora (Enter w duecie). */
   addDeclaration: (text: string) => void;
+  /** Zapisuje jawną deklarację braku działania dla aktualnego gracza. */
+  passDeclaration: () => void;
+  /** Gracz, którego deklarację aktualnie wpisujemy. */
+  currentPlayerName?: string;
+  /** Komplet deklaracji wymagany do wysłania tury. */
+  isTurnReady: boolean;
   /** Czyści bufor deklaracji bieżącej tury. */
   clearDeclarations: () => void;
   /** Składa bufor w jedną wiadomość i wysyła do MG (przycisk "Wyślij turę"). */
@@ -253,6 +283,8 @@ interface UseChatOptions {
   // serwerowy HOT SEAT FIX (build-context.ts) wstrzyknął listę obu postaci
   // do promptu AI (AI rozpoznaje i adresuje obu graczy, nie tylko aktywnego).
   hotSeatConfig?: HotSeatConfig | null;
+  /** Po zapisaniu deklaracji przełącza UI na kolejnego oczekującego gracza. */
+  onSwitchHotSeatPlayer?: (playerIndex: number) => void;
 }
 
 export function useChat(options: UseChatOptions): UseChatReturn {
@@ -267,6 +299,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     generateVoiceForMessage,
     onSkillResults,
     adventureContext,
+    hotSeatConfig,
+    onSwitchHotSeatPlayer,
   } = options;
 
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -535,7 +569,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             // jeszcze nie wskazuje istniejącej postaci → characterName undefined (JSON
             // je pomija) → blok duetu w build-context się nie wstrzykuje (poprawnie).
             hotSeatConfig: resolveHotSeatCharacterNames(
-              options.hotSeatConfig,
+              hotSeatConfig,
               characters
             ),
           }),
@@ -611,7 +645,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             ) {
               const resolvedTests = resolveSkillTestValues(
                 metadata.skillTests as unknown as SkillTestData[],
-                activeCharacter
+                activeCharacter,
+                characters
               );
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -794,6 +829,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       generateImages,
       lastImageTime,
       onSkillResults,
+      hotSeatConfig,
     ]
   );
 
@@ -801,14 +837,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   // Tryb dla dwojga = Hot Seat z 2+ graczami. Tylko wtedy buforujemy; solo
   // wysyła natychmiast (Enter w MessageInput → handleSendMessage bez zmian).
   const isDuet =
-    !!options.hotSeatConfig?.enabled &&
-    (options.hotSeatConfig?.players?.length ?? 0) >= 2;
+    !!hotSeatConfig?.enabled && (hotSeatConfig?.players?.length ?? 0) >= 2;
 
   // Aktualny gracz (czyja kolej deklarować) = aktywny indeks Hot Seat.
   const currentPlayer = isDuet
-    ? (options.hotSeatConfig!.players[
-        options.hotSeatConfig!.activePlayerIndex
-      ] ?? null)
+    ? (hotSeatConfig!.players[hotSeatConfig!.activePlayerIndex] ?? null)
     : null;
 
   // Dokłada/aktualizuje deklarację AKTUALNEGO gracza (Enter w duecie). Re-wpis
@@ -820,23 +853,41 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       const characterName = characters.find(
         (c) => c.id === currentPlayer.characterId
       )?.name;
-      setPendingDeclarations((prev) => {
-        const withoutCurrent = prev.filter(
-          (d) => d.playerId !== currentPlayer.id
-        );
-        return [
-          ...withoutCurrent,
-          {
-            playerId: currentPlayer.id,
-            playerName: currentPlayer.name,
-            characterName,
-            text: trimmed,
-          },
-        ];
-      });
+      const nextDeclarations = [
+        ...pendingDeclarations.filter((d) => d.playerId !== currentPlayer.id),
+        {
+          playerId: currentPlayer.id,
+          playerName: currentPlayer.name,
+          characterName,
+          text: trimmed,
+        },
+      ];
+      setPendingDeclarations(nextDeclarations);
+
+      const players = hotSeatConfig?.players ?? [];
+      const nextPlayerIndex = players.findIndex(
+        (player) =>
+          player.id !== currentPlayer.id &&
+          !nextDeclarations.some(
+            (declaration) => declaration.playerId === player.id
+          )
+      );
+      if (nextPlayerIndex >= 0) {
+        onSwitchHotSeatPlayer?.(nextPlayerIndex);
+      }
     },
-    [currentPlayer, characters]
+    [
+      currentPlayer,
+      characters,
+      pendingDeclarations,
+      hotSeatConfig,
+      onSwitchHotSeatPlayer,
+    ]
   );
+
+  const passDeclaration = useCallback(() => {
+    addDeclaration('Pasuję.');
+  }, [addDeclaration]);
 
   const clearDeclarations = useCallback(() => {
     setPendingDeclarations([]);
@@ -846,11 +897,16 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   // handleSendMessage (zachowuje sanitizer/cap obrazów/resolveSkillTestValues/
   // addToQueue - bufor NIE dotyka ścieżki wysyłki). Zerowanie po starcie.
   const sendTurn = useCallback(() => {
-    if (pendingDeclarations.length === 0) return;
+    const players = hotSeatConfig?.players ?? [];
+    if (!isTurnReady(pendingDeclarations, players)) return;
     const composed = composeTurnFromDeclarations(pendingDeclarations);
     setPendingDeclarations([]);
     void handleSendMessage(composed);
-  }, [pendingDeclarations, handleSendMessage]);
+  }, [
+    pendingDeclarations,
+    handleSendMessage,
+    hotSeatConfig?.players,
+  ]);
 
   // Gracze, którzy jeszcze nie zadeklarowali w tej turze (podpowiedź w UI).
   const playersAwaitingDeclaration = isDuet
@@ -860,18 +916,25 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         )
         .map((p) => ({ id: p.id, name: p.name }))
     : [];
+  const turnReady = isDuet
+    ? isTurnReady(
+        pendingDeclarations,
+        hotSeatConfig?.players ?? []
+      )
+    : false;
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         if (newMessage.trim()) {
-          handleSendMessage(newMessage.trim());
+          if (isDuet) addDeclaration(newMessage.trim());
+          else handleSendMessage(newMessage.trim());
           setNewMessage('');
         }
       }
     },
-    [newMessage, handleSendMessage]
+    [newMessage, handleSendMessage, isDuet, addDeclaration]
   );
 
   return {
@@ -889,6 +952,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     pendingDeclarations,
     playersAwaitingDeclaration,
     addDeclaration,
+    passDeclaration,
+    currentPlayerName: currentPlayer?.name,
+    isTurnReady: turnReady,
     clearDeclarations,
     sendTurn,
   };

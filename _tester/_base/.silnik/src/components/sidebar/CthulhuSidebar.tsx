@@ -130,6 +130,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   const [showHandoutGenerator, setShowHandoutGenerator] = useState(false);
   const [showAdventureSelector, setShowAdventureSelector] = useState(false);
   const [showNewAdventureConfirm, setShowNewAdventureConfirm] = useState(false);
+  const [inspectedCharacterId, setInspectedCharacterId] = useState<string>();
   const [adventureContext, setAdventureContext] =
     useState<AdventureContext | null>(null);
 
@@ -140,6 +141,15 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   // (wyścig hydratacji po starcie/wczytaniu gry, IND-262). Wspólna logika z
   // awatarami wiadomości w czacie - patrz useResolvedPortrait (#2b).
   const portraitSrc = useResolvedPortrait(activeCharacter);
+  const inspectedCharacter =
+    characters?.find((character) => character.id === inspectedCharacterId) ??
+    activeCharacter;
+
+  // Zmiana tury synchronizuje domyślny widok tylko przy zamkniętych modalach.
+  // Otwarta karta/ekwipunek może niezależnie oglądać drugiego badacza.
+  useEffect(() => {
+    if (!openDialog) setInspectedCharacterId(activeCharacter?.id);
+  }, [activeCharacter?.id, openDialog]);
 
   // Śledzenie nowych pozycji
   useEffect(() => {
@@ -294,7 +304,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     <div
                       role="button"
                       tabIndex={0}
-                      onClick={() => setOpenDialog('characterSheet')}
+                      onClick={() => {
+                        setInspectedCharacterId(activeCharacter.id);
+                        setOpenDialog('characterSheet');
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
@@ -383,7 +396,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       key={item.id}
                       variant="ghost"
                       className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
-                      onClick={() => setOpenDialog(item.id)}
+                      onClick={() => {
+                        setInspectedCharacterId(activeCharacter?.id);
+                        setOpenDialog(item.id);
+                      }}
                     >
                       <IconComponent className="w-4 h-4 mr-3 text-brass" />
                       {item.label}
@@ -564,10 +580,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
       <CharacterSheet
         open={openDialog === 'characterSheet'}
         onOpenChange={(open) => !open && setOpenDialog(null)}
-        character={activeCharacter}
+        character={inspectedCharacter}
         onCharacterUpdate={onUpdateCharacter}
         characters={characters}
-        onCharacterChange={onCharacterSwitch}
+        onCharacterChange={(character) =>
+          setInspectedCharacterId(character.id)
+        }
       />
 
       {openDialog === 'journal' && activeCharacter && onUpdateCharacter && (
@@ -619,12 +637,14 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         <EquipmentModal
           open={openDialog === 'equipment'}
           onOpenChange={(open) => !open && setOpenDialog(null)}
-          character={activeCharacter}
+          character={inspectedCharacter ?? activeCharacter}
           onCharacterUpdate={onUpdateCharacter}
           era={adventureContext?.yearRange?.split('-')[0] || '1920s'}
           adventureTheme={adventureContext?.title}
           characters={characters}
-          onCharacterChange={onCharacterSwitch}
+          onCharacterChange={(character) =>
+            setInspectedCharacterId(character.id)
+          }
         />
       )}
       <SessionZeroModal

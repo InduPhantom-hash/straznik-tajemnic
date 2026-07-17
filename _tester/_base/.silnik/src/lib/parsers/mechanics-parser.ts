@@ -70,7 +70,12 @@ export function extractSkillTests(text: string): SkillTestData[] {
 
     let match;
     while ((match = testPattern.exec(text)) !== null) {
-        const skillName = match[1].trim();
+        const rawSkill = match[1].trim();
+        // Duet: [TEST:@Margaret Sullivan: Spostrzegawczość | ...]
+        // Stary format bez adresata pozostaje bez zmian.
+        const addressed = rawSkill.match(/^@([^:]+):\s*(.+)$/);
+        const characterName = addressed?.[1].trim();
+        const skillName = (addressed?.[2] ?? rawSkill).trim();
         const difficultyRaw = match[2].trim().toLowerCase();
         const modifiersRaw = match[3]?.trim() || '';
         const justification = match[4].trim();
@@ -107,7 +112,17 @@ export function extractSkillTests(text: string): SkillTestData[] {
             skillValue: 0, // Będzie uzupełnione przez komponent z karty postaci
             difficulty,
             modifiers,
-            justification
+            justification,
+            characterName
+        });
+    }
+
+    // Wszystkie testy z jednej odpowiedzi MG tworzą grupę. Klient wyśle wyniki
+    // dopiero po jej skompletowaniu. Pojedynczy test zachowuje dotychczasowy flow.
+    if (tests.length > 1) {
+        const groupId = crypto.randomUUID();
+        tests.forEach((test) => {
+            test.groupId = groupId;
         });
     }
 

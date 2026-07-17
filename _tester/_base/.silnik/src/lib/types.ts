@@ -612,6 +612,9 @@ export interface SkillTestData {
   difficulty: 'zwykly' | 'trudny' | 'ekstremalny';
   modifiers: SkillTestModifier[];
   justification: string; // fabularny opis sytuacji
+  characterName?: string; // adresat testu w duecie
+  characterId?: string; // ID rozwiązane z rosteru sesji
+  groupId?: string; // testy z jednej odpowiedzi MG
 }
 
 // Aktywny test oczekujący na wynik gracza

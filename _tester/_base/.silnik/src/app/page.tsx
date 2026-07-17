@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Campaign, AdventureContext, Message, Character } from '@/lib/types';
 import {
@@ -35,7 +35,12 @@ import { useHealthCheck } from '@/hooks/useHealthCheck';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
+import { markSkillForImprovement } from '@/lib/skill-migration';
 import { toast } from '@/components/ui/use-toast';
+import {
+  findPlayerIndexForCharacter,
+  getSessionCharacters,
+} from '@/lib/hot-seat/session-party';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -160,8 +165,14 @@ export default function Home() {
     addToQueue: tts.addToQueue,
     adventureContext,
     aiSettings,
-    onSkillResults: skillMarking.processSkillResults,
+    // W duecie oznaczenie wynika z faktycznego rzutu konkretnej postaci
+    // (onJournalRoll poniżej), a nie z późniejszego tagu MG przypisanego do
+    // globalnie aktywnego badacza.
+    onSkillResults: hotSeat.config.enabled
+      ? undefined
+      : skillMarking.processSkillResults,
     hotSeatConfig: hotSeat.config,
+    onSwitchHotSeatPlayer: hotSeat.switchPlayer,
   });
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -375,6 +386,37 @@ export default function Home() {
       }
     },
     [hotSeat, charMgmt]
+  );
+
+  // W rozpoczętej sesji duetowej widoki gry dostają wyłącznie dwie postacie
+  // jawnie przypisane w HotSeatConfig. Lokalny katalog pozostaje nietknięty.
+  const sessionCharacters = useMemo(() => {
+    return getSessionCharacters(
+      charMgmt.characters,
+      hotSeat.config,
+      hasStartedGame
+    );
+  }, [
+    hasStartedGame,
+    hotSeat.config,
+    charMgmt.characters,
+  ]);
+
+  const handleSessionCharacterSwitch = useCallback(
+    (character: Character) => {
+      if (hasStartedGame && hotSeat.config.enabled) {
+        const playerIndex = findPlayerIndexForCharacter(
+          hotSeat.config,
+          character.id
+        );
+        if (playerIndex >= 0) {
+          handleSwitchPlayer(playerIndex);
+          return;
+        }
+      }
+      charMgmt.handleCharacterSwitch(character);
+    },
+    [hasStartedGame, hotSeat.config, handleSwitchPlayer, charMgmt]
   );
 
   // === EFFECTS ===
@@ -628,8 +670,8 @@ export default function Home() {
         <CthulhuSidebar
           hideSidebarPanel={!hasStartedGame}
           activeCharacter={charMgmt.activeCharacter || undefined}
-          characters={charMgmt.characters}
-          onCharacterSwitch={charMgmt.handleCharacterSwitch}
+          characters={sessionCharacters}
+          onCharacterSwitch={handleSessionCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
           onUpdateCharacter={charMgmt.handleUpdateCharacter}
@@ -801,15 +843,28 @@ export default function Home() {
         isAudioPaused={tts.isAudioPaused}
         isTTSEnabled={tts.isTTSEnabled}
         activeCharacter={charMgmt.activeCharacter}
-        characters={charMgmt.characters}
-        onJournalRoll={(roll, justification) => {
-          const c = charMgmt.activeCharacter;
+        characters={hasStartedGame ? sessionCharacters : charMgmt.characters}
+        onJournalRoll={(roll, justification, characterId) => {
+          const c =
+            charMgmt.characters.find(
+              (character) => character.id === characterId
+            ) ?? charMgmt.activeCharacter;
           if (!c) return;
-          const updated = appendRollToJournal(c, roll, justification);
+          let updated = appendRollToJournal(c, roll, justification);
+          if (
+            roll.passedRequirement &&
+            !roll.luckSpent &&
+            roll.skillName
+          ) {
+            updated = markSkillForImprovement(updated, roll.skillName);
+          }
           if (updated !== c) charMgmt.handleUpdateCharacter(updated);
         }}
-        onSpendLuck={(amount) => {
-          const c = charMgmt.activeCharacter;
+        onSpendLuck={(amount, characterId) => {
+          const c =
+            charMgmt.characters.find(
+              (character) => character.id === characterId
+            ) ?? charMgmt.activeCharacter;
           if (!c) return;
           charMgmt.handleUpdateCharacter({
             ...c,
@@ -838,6 +893,9 @@ export default function Home() {
         pendingDeclarations={chat.pendingDeclarations}
         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}
         onAddDeclaration={chat.addDeclaration}
+        onPassDeclaration={chat.passDeclaration}
+        currentPlayerName={chat.currentPlayerName}
+        isTurnReady={chat.isTurnReady}
         onSendTurn={chat.sendTurn}
         onStartGame={
           firstRun.canPlay
