@@ -8,8 +8,10 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  // Zwiększ limit body size dla Server Actions (może pomóc z API routes)
+  // PDF-y przygód są wysyłane jako multipart/form-data do Route Handlera.
+  // Domyślny limit proxy Next.js (10 MB) ucinał większe startery przed endpointem.
   experimental: {
+    proxyClientMaxBodySize: '500mb',
     serverActions: {
       bodySizeLimit: '100mb',
     },

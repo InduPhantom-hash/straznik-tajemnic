@@ -12,14 +12,14 @@ Lekki launcher, który zamienia lokalny serwer Next.js w aplikację uruchamianą
    3. gdy zamkniesz okno gry -> serwer jest ubijany (serwer "na żądanie")
 ```
 
-- **Port 4040** - osobny od Zew-App-4.0 (3000), więc oba mogą stać obok siebie.
+- **Port 4050** - osobny od prywatnej aplikacji (4040), więc obie mogą działać obok siebie.
 - **Serwer na żądanie** - nic nie chodzi w tle, gdy nie grasz.
 - **Logi**: `~/Library/Logs/straznik-tajemnic.log`.
 
 ## Instalacja / przebudowa
 
 ```bash
-bash desktop/build-app.sh            # zbuduj + zainstaluj do ~/Applications + alias na biurku
+bash desktop/build-app.sh            # zbuduj + zainstaluj do ~/Applications + kopia na biurku
 bash desktop/build-app.sh --rebuild  # to samo, ale wymuś świeży production build
 ```
 
@@ -27,7 +27,7 @@ Po zmianie kodu, która ma trafić do wersji "Graj", uruchom `build-app.sh --reb
 
 ## Uruchamianie
 
-- Dwuklik ikony na biurku (`~/Desktop/Straznik Tajemnic`) lub w `~/Applications`.
+- Dwuklik ikony na biurku (`~/Desktop/Straznik Tajemnic AI.app`) lub w `~/Applications`.
 - Albo z terminala: `open ~/Applications/"Straznik Tajemnic.app"`.
 - Chcesz w Docku na stałe? Przeciągnij ikonę z `~/Applications` na Dock.
 
@@ -50,7 +50,7 @@ Narracja / RAG / TTS potrzebują ważnego `GEMINI_API_KEY` w `.env.local` (serwe
 | Plik           | Rola                                                                        |
 | -------------- | --------------------------------------------------------------------------- |
 | `launcher.sh`  | serce: zapewnia serwer → otwiera okno → pilnuje zamknięcia → ubija serwer   |
-| `build-app.sh` | generator `.app` + instalacja do `~/Applications` + alias na biurku         |
+| `build-app.sh` | generator `.app` + instalacja do `~/Applications` + kopia na biurku         |
 | `make-icon.sh` | ikona `.icns` (ciemne tło + emerald macka), Chrome headless + sips/iconutil |
 | `README.md`    | ten plik                                                                    |
 

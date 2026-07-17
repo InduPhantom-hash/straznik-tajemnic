@@ -61,3 +61,24 @@ Branch: feature/redesigned-journal
 
 ### Decyzje podjęte
 - Wycofano logikę strzałów chmurowych z Dziennika Sesji, opierając go wyłącznie o lokalną persystencję postaci (zapis do localStorage/offline).
+
+---
+
+## Podsumowanie sesji: 2026-07-17 (launcher i duże PDF-y)
+Branch: feature/redesigned-journal
+
+### Co zrobiono
+- Naprawiono niespójności typów nowego Dziennika Sesji i kontekstu przygody, które blokowały produkcyjny build.
+- Przywrócono działanie aplikacji `Straznik Tajemnic AI.app` z portem 4050 i zweryfikowano odpowiedź HTTP 200.
+- Zastąpiono dowiązanie na pulpicie fizyczną kopią aplikacji oraz zaktualizowano skrypty i dokumentację launchera.
+- Zwiększono limit przesyłania PDF-ów przygód z domyślnych 10 MB do 500 MB.
+- Zweryfikowano formularze dla `ZC_Starter-Maski.pdf` (11,18 MB) i `ZC_Starter-MityWojny.pdf` (38,77 MB).
+- Potwierdzono pełne przetworzenie `ZC_Starter-MityWojny.pdf`: 44 strony, analiza Gemini, przygoda `Noc Zagłady`.
+
+### Co otwarte (do następnej sesji)
+- Pełny playtest Hot Seat z dwoma graczami pozostaje do wykonania.
+- Wcześniejsza lokalna zmiana `_tester/_base/.silnik/package.json` (`next dev --webpack`) pozostaje poza tym commitem.
+
+### Decyzje podjęte
+- Publiczny launcher zachowuje port 4050 i fizyczną aplikację na pulpicie, bez tworzenia dowiązań symbolicznych.
+- Limit transportowy Next.js i limit endpointu PDF wynoszą 500 MB.

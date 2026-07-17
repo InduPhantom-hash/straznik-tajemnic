@@ -1,7 +1,7 @@
 #!/bin/zsh
 #
 # Sklada aplikacje "Straznik Tajemnic AI.app" (lekki launcher, wersja PUBLICZNA)
-# i instaluje do ~/Applications + alias na biurku. Uruchom po kazdej zmianie kodu
+# i instaluje do ~/Applications + fizyczna kopia na biurku. Uruchom po kazdej zmianie kodu
 # ktora ma trafic do wersji "Graj".
 #
 # Uzycie: bash desktop/build-app.sh [--rebuild]
@@ -14,7 +14,7 @@ DESKTOP_DIR="$APP_DIR/desktop"
 APP_NAME="Straznik Tajemnic AI"
 APPS_DIR="$HOME/Applications"
 APP_BUNDLE="$APPS_DIR/$APP_NAME.app"
-DESK_LINK="$HOME/Desktop/$APP_NAME"
+DESK_APP="$HOME/Desktop/$APP_NAME.app"
 
 # Wykryj katalog node (zaszyty w launcherze, bo .app nie dziedziczy PATH).
 NODE_BIN_DIR="$(dirname "$(command -v node)")"
@@ -68,13 +68,14 @@ fi
 # Odswiez cache ikon Findera dla tego bundla
 touch "$APP_BUNDLE"
 
-echo "[4/5] Alias na biurku..."
-ln -sfn "$APP_BUNDLE" "$DESK_LINK"
+echo "[4/5] Kopia aplikacji na biurku..."
+rm -rf "$DESK_APP"
+ditto "$APP_BUNDLE" "$DESK_APP"
 
 echo "[5/5] Gotowe."
 echo ""
 echo "  Aplikacja : $APP_BUNDLE"
-echo "  Na biurku : $DESK_LINK"
+echo "  Na biurku : $DESK_APP"
 echo "  Node      : $NODE_BIN_DIR"
 echo ""
 echo "  Uruchom: dwuklik ikony na biurku  albo  open \"$APP_BUNDLE\""

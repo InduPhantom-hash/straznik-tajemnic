@@ -660,6 +660,7 @@ export interface AdventureContext {
   isCustom?: boolean;
 
   // Metadata
+  era?: 'classic' | 'gaslight' | 'modern' | 'custom';
   eraLabel?: string;
   yearRange?: string;
   location?: string;
