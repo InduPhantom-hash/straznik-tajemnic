@@ -371,10 +371,10 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
           </span>
           {content && (
             <span
-              className={`text-xs px-1.5 py-0.5 rounded ${isExpanded ? 'bg-red-500/20 text-red-400' : 'bg-muted text-muted-foreground'}`}
+              className={`inline-flex items-center gap-1.5 text-xs px-1.5 py-0.5 rounded ${isExpanded ? 'bg-red-500/20 text-red-400' : 'bg-muted text-muted-foreground'}`}
             >
-              {isPlaying ? '▶️' : '⏸️'}{' '}
-              {content.type === 'playlist' ? 'Playlista' : 'Film'}
+              <span className="flex items-center justify-center leading-none">{isPlaying ? '▶️' : '⏸️'}</span>
+              <span>{content.type === 'playlist' ? 'Playlista' : 'Film'}</span>
             </span>
           )}
         </div>

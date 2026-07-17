@@ -232,7 +232,11 @@ export function ImageLightbox({
           zamyka (stopPropagation na kontenerze) - zoom/pan na touch nie zamyka
           modala przypadkiem. Ramka déco: narożniki brass + raster + winieta. */}
       <div
-        className="relative max-w-[90vw] max-h-[90vh] overflow-auto flex items-center justify-center border border-brass/60 bg-gradient-to-br from-[#16130f] to-[#0a0c0f] shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_30px_rgba(13,148,136,0.1)]"
+        className="relative max-w-[90vw] max-h-[90vh] overflow-auto flex items-center justify-center border border-brass/60 bg-gradient-to-br from-[#16130f] to-[#0a0c0f] shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_30px_rgba(13,148,136,0.1)] scrollbar-none"
+        style={{
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Raster + winieta nad obrazem (pointer-events-none, nie blokuje zoom) */}

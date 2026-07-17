@@ -325,25 +325,25 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       <div className="grid grid-cols-2 gap-1.5 mt-3 text-xs">
                         <Badge
                           variant="outline"
-                          className="w-full justify-center bg-destructive/15 text-destructive border-destructive/40"
+                          className="w-full inline-flex items-center justify-center text-center bg-destructive/15 text-destructive border-destructive/40 py-1"
                         >
                           PŻ: {activeCharacter.hp}/{derived.maxHp}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="w-full justify-center bg-brass/15 text-brass border-brass/40"
+                          className="w-full inline-flex items-center justify-center text-center bg-brass/15 text-brass border-brass/40 py-1"
                         >
                           PR: {activeCharacter.san}/{derived.maxSan}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="w-full justify-center bg-primary/15 text-primary border-primary/40"
+                          className="w-full inline-flex items-center justify-center text-center bg-primary/15 text-primary border-primary/40 py-1"
                         >
                           PM: {activeCharacter.mp}/{derived.maxMp}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="w-full justify-center bg-gold/10 text-gold border-gold/40"
+                          className="w-full inline-flex items-center justify-center text-center bg-gold/10 text-gold border-gold/40 py-1"
                         >
                           SZC: {activeCharacter.luck}
                         </Badge>
