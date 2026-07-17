@@ -16,7 +16,8 @@ import type { ReactNode } from 'react';
 
 export function renderNarrativeWithImages(
   content: string,
-  key: number
+  key: number,
+  onImageClick?: (imgUrl: string, allImages: string[]) => void
 ): ReactNode {
   // Regex do wykrywania obrazów Markdown: ![alt text](url)
   const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -82,12 +83,19 @@ export function renderNarrativeWithImages(
           // IND-216: format pocztówkowy ~16:9 - wypełnia szerokość okna czatu,
           // object-cover kadruje do proporcji (nie za wysoki) niezależnie od
           // proporcji generacji. Obrazy scen generowane natywnie 16:9 (useChat/useGameStart).
-          className="rounded-lg shadow-lg w-full aspect-[16/9] object-cover border border-zinc-700"
+          className={`rounded-lg shadow-lg w-full aspect-[16/9] object-cover border border-zinc-700 ${
+            onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
+          }`}
           style={{
             filter: 'sepia(0.1) saturate(1.1)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
           }}
           loading={isBase64 ? 'eager' : 'lazy'}
+          onClick={
+            onImageClick
+              ? () => onImageClick(imageUrl, [imageUrl])
+              : undefined
+          }
           onError={(e) => {
             console.warn('Image failed to load:', altText);
             (e.target as HTMLImageElement).style.display = 'none';

@@ -12,11 +12,12 @@ import { renderSection } from './render-sections';
 
 export function formatNarrative(
   content: string,
-  playerColors?: Map<string, string>
+  playerColors?: Map<string, string>,
+  onImageClick?: (imgUrl: string, allImages: string[]) => void
 ): ReactNode[] {
   const cleanContent = cleanupContent(content);
   const sections = parseIntoSections(cleanContent);
   return sections.map((section, index) =>
-    renderSection(section, index, playerColors)
+    renderSection(section, index, playerColors, onImageClick)
   );
 }

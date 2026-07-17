@@ -17,7 +17,8 @@ import { renderNarrativeWithImages } from './render-narrative-with-images';
 export function renderSection(
   section: Section,
   key: number,
-  playerColors?: Map<string, string>
+  playerColors?: Map<string, string>,
+  onImageClick?: (imgUrl: string, allImages: string[]) => void
 ): ReactNode {
   switch (section.type) {
     case 'dialogue':
@@ -74,6 +75,6 @@ export function renderSection(
 
     case 'narrative':
     default:
-      return renderNarrativeWithImages(section.content, key);
+      return renderNarrativeWithImages(section.content, key, onImageClick);
   }
 }

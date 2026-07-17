@@ -40,32 +40,31 @@ export function useCharacterManagement(): UseCharacterManagementReturn {
 
   const handleCharacterSwitch = useCallback(
     (character: Character) => {
-      // Oznacz poprzednią postać jako nieaktywną
-      if (activeCharacter) {
-        const updatedCharacters = characters.map((char) =>
-          char.id === activeCharacter.id
-            ? { ...char, isActive: false, lastUsed: new Date() }
-            : char
-        );
-        setCharacters(updatedCharacters);
-        persistCharacters(updatedCharacters);
-      }
+      const now = new Date();
+      
+      // Wyznaczamy nową listę postaci w jednym przejściu map
+      const updatedCharacters = characters.map((char) => {
+        if (char.id === character.id) {
+          return { ...char, isActive: true, lastUsed: now };
+        }
+        if (activeCharacter && char.id === activeCharacter.id) {
+          return { ...char, isActive: false, lastUsed: now };
+        }
+        return char;
+      });
 
-      // Ustaw nową aktywną postać
-      const updatedCharacter = {
+      // Wyznaczamy konkretną wybraną postać (bierzemy ze zaktualizowanej listy)
+      const targetCharacter = updatedCharacters.find((c) => c.id === character.id) || {
         ...character,
         isActive: true,
-        lastUsed: new Date(),
+        lastUsed: now,
       };
-      const updatedCharacters = characters.map((char) =>
-        char.id === character.id ? updatedCharacter : char
-      );
 
       setCharacters(updatedCharacters);
-      setActiveCharacter(updatedCharacter);
+      setActiveCharacter(targetCharacter);
       setActiveGameState((prev) => ({
         ...prev,
-        currentCharacter: updatedCharacter,
+        currentCharacter: targetCharacter,
       }));
 
       persistCharacters(updatedCharacters);

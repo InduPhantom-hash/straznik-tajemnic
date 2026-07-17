@@ -208,20 +208,6 @@ export function AdventureSelector({
               >
                 {toneStyle.icon} {toneStyle.label}
               </span>
-              {isCustom && onDeleteAdventure && (
-                <button
-                  onClick={(e) => handleDelete(adventure.id, e)}
-                  disabled={isDeleting}
-                  className="rounded p-1 text-destructive transition-colors hover:bg-destructive/20 hover:text-red-300"
-                  title="Usuń przygodę"
-                >
-                  {isDeleting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </button>
-              )}
             </div>
           </div>
 
@@ -268,15 +254,34 @@ export function AdventureSelector({
           )}
         </button>
 
-        {/* Więcej szczegółów - osobny przycisk (poza kartą-buttonem) */}
-        <button
-          type="button"
-          onClick={() => setDetailsAdventure(adventure)}
-          className="flex items-center gap-1 self-start px-1 py-0.5 font-special-elite text-[14px] uppercase tracking-[0.1em] text-primary hover:text-brass"
-        >
-          <Info className="h-4 w-4" />
-          Więcej szczegółów
-        </button>
+        {/* Dolne przyciski akcji (poza główną kartą) */}
+        <div className="flex items-center justify-between mt-1.5 w-full">
+          <button
+            type="button"
+            onClick={() => setDetailsAdventure(adventure)}
+            className="flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.1em] text-primary hover:text-brass transition-colors"
+          >
+            <Info className="h-4 w-4" />
+            Więcej szczegółów
+          </button>
+          
+          {isCustom && onDeleteAdventure && (
+            <button
+              type="button"
+              onClick={(e) => handleDelete(adventure.id, e)}
+              disabled={isDeleting}
+              className="flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.1em] text-destructive hover:text-red-300 transition-colors p-1"
+              title="Usuń przygodę"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              <span>Usuń</span>
+            </button>
+          )}
+        </div>
       </div>
     );
   };

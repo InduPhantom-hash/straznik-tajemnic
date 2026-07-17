@@ -142,6 +142,7 @@ export function MessageCard({
                 content={message.content}
                 className="text-[18px] leading-relaxed font-special-elite"
                 playerColors={playerColors}
+                onImageClick={onImageClick}
               />
             ) : (
               <p className="text-[18px] leading-relaxed font-special-elite break-words overflow-wrap-anywhere whitespace-pre-wrap chat-message">
@@ -151,17 +152,23 @@ export function MessageCard({
 
             {/* Wygenerowane obrazy */}
             {message.generatedImages && message.generatedImages.length > 0 && (
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="mt-3 space-y-4">
                 {message.generatedImages.map((imgUrl, idx) => (
                   <div
                     key={idx}
-                    className="relative deco-corners rounded-lg overflow-hidden border border-brass/30 bg-card"
+                    className="relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg"
+                    style={{
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                    }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imgUrl}
                       alt={`Ilustracja ${idx + 1}`}
-                      className="w-full h-auto object-cover max-h-64 cursor-pointer hover:opacity-90 transition-opacity"
+                      className="w-full aspect-[16/9] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      style={{
+                        filter: 'sepia(0.1) saturate(1.1)',
+                      }}
                       loading="lazy"
                       onClick={() =>
                         onImageClick(imgUrl, message.generatedImages || [])

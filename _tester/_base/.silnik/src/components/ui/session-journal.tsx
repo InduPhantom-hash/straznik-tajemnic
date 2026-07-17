@@ -1,83 +1,43 @@
 'use client';
 
+import type { FormEvent } from 'react';
 import { useState, useMemo, useCallback } from 'react';
 import { Button } from './button';
+import { Textarea } from './textarea';
+import { cn } from '@/lib/utils';
+import {
+  Search,
+  Plus,
+  Trash2,
+  Edit3,
+  X,
+  BookOpen,
+  CheckCircle2,
+  Circle,
+  Download
+} from 'lucide-react';
 import { Character, JournalEntry, JournalEventType } from '@/lib/types';
-import { cleanMarkdown } from '@/lib/utils';
 
-// ============================================================================
-// STAŁE
-// ============================================================================
+// Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
+export type JournalEntryType = 'quest' | 'journal' | 'encyclopedia_character' | 'note';
 
-const EVENT_TYPES: Record<
-  JournalEventType,
-  { icon: string; label: string; color: string; borderColor: string }
-> = {
-  combat: {
-    icon: '⚔️',
-    label: 'Walka',
-    color: 'bg-red-500',
-    borderColor: '#ef4444',
-  },
-  discovery: {
-    icon: '🔍',
-    label: 'Odkrycie',
-    color: 'bg-yellow-500',
-    borderColor: '#eab308',
-  },
-  npc: {
-    icon: '👤',
-    label: 'NPC',
-    color: 'bg-blue-500',
-    borderColor: '#3b82f6',
-  },
-  sanity: {
-    icon: '🧠',
-    label: 'Poczytalność',
-    color: 'bg-purple-500',
-    borderColor: '#a855f7',
-  },
-  clue: {
-    icon: '📜',
-    label: 'Trop',
-    color: 'bg-green-500',
-    borderColor: '#22c55e',
-  },
-  location: {
-    icon: '📍',
-    label: 'Lokacja',
-    color: 'bg-orange-500',
-    borderColor: '#f97316',
-  },
-  ritual: {
-    icon: '🕯️',
-    label: 'Rytuał',
-    color: 'bg-pink-500',
-    borderColor: '#ec4899',
-  },
-  death: {
-    icon: '💀',
-    label: 'Śmierć',
-    color: 'bg-gray-500',
-    borderColor: '#6b7280',
-  },
-  bookmark: {
-    icon: '⭐',
-    label: 'Zakładka',
-    color: 'bg-emerald-500',
-    borderColor: '#10b981',
-  },
-  note: {
-    icon: '📝',
-    label: 'Notatka',
-    color: 'bg-cyan-500',
-    borderColor: '#06b6d4',
-  },
-};
+export interface QuestObjective {
+  id: string;
+  description: string;
+  completed: boolean;
+  dateCompleted?: string;
+  gameDay?: number;
+  gameHour?: number;
+}
 
-// ============================================================================
-// TYPY
-// ============================================================================
+// Rozszerzenie typu JournalEntry na potrzeby nowego systemu misji i zakładek
+export interface ExtendedJournalEntry extends Omit<JournalEntry, 'type'> {
+  type: JournalEntryType | JournalEventType;
+  questStatus?: 'active' | 'completed' | 'failed';
+  objectives?: QuestObjective[];
+  gameDay?: number;
+  gameHour?: number;
+}
 
 interface SessionJournalProps {
   character: Character;
@@ -86,9 +46,30 @@ interface SessionJournalProps {
   currentInGameDate?: string;
 }
 
-// ============================================================================
-// GŁÓWNY KOMPONENT
-// ============================================================================
+const categories = [
+  'Wydarzenia',
+  'Odkrycia',
+  'Spotkania',
+  'Walka',
+  'Badania',
+  'Sny',
+  'Wizje',
+  'Notatki',
+  'Inne',
+];
+
+const defaultTags = [
+  'Cthulhu',
+  'Kult',
+  'Koszmary',
+  'Badania',
+  'Walka',
+  'Tajemnice',
+  'NPC',
+  'Lokalizacje',
+  'Artefakty',
+  'Zaklęcia',
+];
 
 export function SessionJournal({
   character,
@@ -96,691 +77,1200 @@ export function SessionJournal({
   onClose,
   currentInGameDate,
 }: SessionJournalProps) {
-  const [filterType, setFilterType] = useState<JournalEventType | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<JournalEntryType>('quest');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
-  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
+  const [encyclopediaSubTab, setEncyclopediaSubTab] = useState<'location' | 'character' | 'item'>('character');
 
-  // Formularz nowej notatki
-  const [newNote, setNewNote] = useState({
-    title: '',
-    content: '',
-    type: 'note' as JournalEventType,
-    tags: '',
-    inGameDate: currentInGameDate || '',
-  });
+  // Pobranie wpisów z postaci i rzutowanie na rozszerzony typ
+  const entries = useMemo(() => {
+    const rawEntries = (character.journal || []) as unknown[];
+    return rawEntries.map((entry) => ({
+      ...entry,
+      type: entry.type || 'journal', // Domyślnie starsze wpisy stają się częścią kroniki
+    })) as ExtendedJournalEntry[];
+  }, [character.journal]);
 
-  // Domyślne testowe wpisy, gdy dziennik jest pusty
-  const defaultTestEntries: JournalEntry[] = [
-    {
-      id: 'test_1',
-      timestamp: new Date('2025-09-17T14:30:00'),
-      inGameDate: '17 września 1925',
-      type: 'npc',
-      title: 'Pierwsze spotkanie z profesorem Armitage',
-      content:
-        'Profesor Armitage wydawał się bardzo zaniepokojony. Mówił o dziwnych wydarzeniach w bibliotece Miskatonic. Wspomniał o zaginionych książkach i dziwnych dźwiękach dochodzących z piwnic. Jego ręce drżały, gdy pokazywał mi pożółkłe strony z dziennikiem Wilbura Whateleya.',
-      tags: ['Arkham', 'Biblioteka', 'Profesor Armitage'],
-      isBookmarked: true,
-    },
-    {
-      id: 'test_2',
-      timestamp: new Date('2025-09-16T21:15:00'),
-      inGameDate: '16 września 1925',
-      type: 'discovery',
-      title: 'Odkrycie w piwnicach biblioteki',
-      content:
-        'W piwnicach znaleźliśmy dziwne symbole na ścianach. Wyglądały na bardzo stare, prawdopodobnie z czasów założenia uniwersytetu. Rozpoznałem niektóre z nich jako pochodzące z kultów starożytnych.',
-      tags: ['Piwnice', 'Symbole', 'Kulty'],
-      isBookmarked: false,
-    },
-    {
-      id: 'test_3',
-      timestamp: new Date('2025-09-15T23:45:00'),
-      inGameDate: '15 września 1925',
-      type: 'location',
-      title: 'Nocna wizyta w Innsmouth',
-      content:
-        'Nigdy nie zapomnę tego, co zobaczyłem na nadbrzeżu. Postacie przemykające między magazynami, ich dziwny, kołyszący chód. Zapach słonej wody i czegoś... gnijącego. Mieszkańcy patrzyli na mnie z wrogością, a ich oczy... Boże, te oczy były zbyt duże, zbyt rybiej formy.',
-      tags: ['Innsmouth', 'Nadbrzeże', 'Dziwni mieszkańcy'],
-      isBookmarked: true,
-    },
-    {
-      id: 'test_4',
-      timestamp: new Date('2025-09-14T10:00:00'),
-      inGameDate: '14 września 1925',
-      type: 'clue',
-      title: 'List od doktora Morgana',
-      content:
-        'Otrzymałem niepokojący list od dr. Morgana z sanatorium Arkham. Pisze o pacjencie, który mówi w nieznanym języku i rysuje na ścianach te same symbole, które widzieliśmy w piwnicach. Pacjent twierdzi, że "Oni nadchodzą ze gwiazd" i że "bramy zostaną otwarte". Muszę go odwiedzić.',
-      tags: ['Sanatorium Arkham', 'Dr. Morgan', 'Przepowiednia'],
-      isBookmarked: false,
-    },
-    {
-      id: 'test_5',
-      timestamp: new Date('2025-09-13T19:30:00'),
-      inGameDate: '13 września 1925',
-      type: 'ritual',
-      title: 'Starożytny rytuał pod Bolton',
-      content:
-        'Podążając za wskazówkami z dziennika Whateleya, dotarliśmy do kamiennego kręgu na wzgórzach koło Bolton. Znaki na kamieniach pulsowały słabym, zielonkawym światłem kiedy zbliżył się zmierzch. Jeden z nas zemdlał i mówił przez sen w języku, którego nikt nie rozpoznał.',
-      tags: ['Bolton', 'Kamienny krąg', 'Rytuał', 'Whateley'],
-      isBookmarked: true,
-    },
-    {
-      id: 'test_6',
-      timestamp: new Date('2025-09-12T15:00:00'),
-      inGameDate: '12 września 1925',
-      type: 'discovery',
-      title: 'Tajemnica zegara w ratuszu',
-      content:
-        'Miejscowi mówią, że stary zegar w wieży ratusza zatrzymał się dokładnie o 3:33 w nocy, kiedy zaginął burmistrz Harrington. Od tamtej pory nikt nie ośmiela się go naprawić. Słyszałem dziwne dźwięki dobiegające z wieży - jakby ktoś chodził tam w środku nocy.',
-      tags: ['Ratusz', 'Zegar', 'Burmistrz Harrington', 'Zaginięcie'],
-      isBookmarked: false,
-    },
-    {
-      id: 'test_7',
-      timestamp: new Date('2025-09-11T11:20:00'),
-      inGameDate: '11 września 1925',
-      type: 'npc',
-      title: 'Przesłuchanie Josepha Curwena',
-      content:
-        'Joseph Curwen, antykwariusz z Salem, zgodził się odpowiedzieć na nasze pytania. Jego sklep pełen był zakurzonych tomów i dziwnych artefaktów. Kiedy zapytałem o Necronomicon, pobladł i kazał mi natychmiast wyjść. Zanim zamknął drzwi, szepnął: "Niektóra wiedza kosztuje więcej niż rozum."',
-      tags: ['Salem', 'Antykwariat', 'Joseph Curwen', 'Necronomicon'],
-      isBookmarked: false,
-    },
-    {
-      id: 'test_8',
-      timestamp: new Date('2025-09-10T03:00:00'),
-      inGameDate: '10 września 1925',
-      type: 'sanity',
-      title: "Sen o R'lyeh",
-      content:
-        'Trzecią noc z rzędu śniłem o zatopionej metropolii. Cyklopowe mury z ciemnego kamienia, niemożliwe kąty architektury, które bolały moje oczy. Na końcu zawsze widzę TO - coś ogromnego, co czeka w ciemności morskich głębin. Budzę się z krzykiem.',
-      tags: ['Koszmary', "R'lyeh", 'Cthulhu', 'Wizje'],
-      isBookmarked: true,
-      metadata: { sanChange: -2 },
-    },
-  ];
-
-  // Wpisy dziennika - używaj bezpośrednio z postaci (bez testowych danych)
-  const entries = character.journal || [];
-
-  // ============================================================================
-  // FILTROWANIE
-  // ============================================================================
-
-  const filteredEntries = useMemo(() => {
-    let result = [...entries];
-
-    // Filtr typu
-    if (filterType !== 'all') {
-      result = result.filter((e) => e.type === filterType);
-    }
-
-    // Filtr zakładek
-    if (showBookmarksOnly) {
-      result = result.filter((e) => e.isBookmarked);
-    }
-
-    // Wyszukiwanie
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.title.toLowerCase().includes(query) ||
-          e.content.toLowerCase().includes(query) ||
-          e.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
-    }
-
-    // Sortowanie od najnowszych
-    result.sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-    return result;
-  }, [entries, filterType, showBookmarksOnly, searchQuery]);
-
-  // Grupowanie po dacie in-game
-  const groupedByDate = useMemo(() => {
-    const groups = new Map<string, JournalEntry[]>();
-
-    filteredEntries.forEach((entry) => {
-      const dateKey =
-        entry.inGameDate ||
-        new Date(entry.timestamp).toLocaleDateString('pl-PL');
-      const existing = groups.get(dateKey) || [];
-      groups.set(dateKey, [...existing, entry]);
+  const updateCharacterJournal = useCallback((newEntries: ExtendedJournalEntry[]) => {
+    onUpdateCharacter({
+      ...character,
+      journal: newEntries as unknown as JournalEntry[],
     });
+  }, [character, onUpdateCharacter]);
 
-    return groups;
-  }, [filteredEntries]);
-
-  // ============================================================================
-  // AKCJE
-  // ============================================================================
-
-  const addEntry = useCallback(
-    (entry: Omit<JournalEntry, 'id' | 'timestamp'>) => {
-      const newEntry: JournalEntry = {
-        ...entry,
-        id: `journal_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-        timestamp: new Date(),
-      };
-
-      const updatedCharacter: Character = {
-        ...character,
-        journal: [...(character.journal || []), newEntry],
-      };
-
-      onUpdateCharacter(updatedCharacter);
-    },
-    [character, onUpdateCharacter]
-  );
-
-  const toggleBookmark = useCallback(
-    (entryId: string) => {
-      const updatedJournal = (character.journal || []).map((entry) =>
-        entry.id === entryId
-          ? { ...entry, isBookmarked: !entry.isBookmarked }
-          : entry
-      );
-
-      onUpdateCharacter({ ...character, journal: updatedJournal });
-    },
-    [character, onUpdateCharacter]
-  );
-
-  const deleteEntry = useCallback(
-    (entryId: string) => {
-      if (!confirm('Czy na pewno chcesz usunąć ten wpis?')) return;
-
-      const updatedJournal = (character.journal || []).filter(
-        (entry) => entry.id !== entryId
-      );
-      onUpdateCharacter({ ...character, journal: updatedJournal });
-    },
-    [character, onUpdateCharacter]
-  );
-
-  const handleAddNote = () => {
-    if (!newNote.title.trim()) return;
-
-    addEntry({
-      type: newNote.type,
-      title: newNote.title.trim(),
-      content: newNote.content.trim(),
-      tags: newNote.tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter((t) => t),
-      isBookmarked: false,
-      inGameDate: newNote.inGameDate || undefined,
-    });
-
-    setNewNote({
-      title: '',
-      content: '',
-      type: 'note',
-      tags: '',
-      inGameDate: currentInGameDate || '',
-    });
-    setIsAddingNote(false);
+  const addEntry = (entry: Omit<ExtendedJournalEntry, 'id' | 'timestamp'>) => {
+    const newEntry: ExtendedJournalEntry = {
+      ...entry,
+      id: `journal_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      timestamp: new Date(),
+      inGameDate: entry.inGameDate || currentInGameDate,
+    };
+    const updatedEntries = [newEntry, ...entries];
+    updateCharacterJournal(updatedEntries);
+    setShowAddForm(false);
   };
 
-  // ============================================================================
-  // EKSPORT
-  // ============================================================================
+  const updateEntry = (updatedEntry: ExtendedJournalEntry) => {
+    const updatedEntries = entries.map((entry) =>
+      entry.id === updatedEntry.id ? updatedEntry : entry
+    );
+    updateCharacterJournal(updatedEntries);
+    setEditingEntry(null);
+  };
 
+  const deleteEntry = (id: string) => {
+    if (!confirm('Czy na pewno chcesz usunąć ten wpis z księgi przygód?')) return;
+    const updatedEntries = entries.filter((entry) => entry.id !== id);
+    updateCharacterJournal(updatedEntries);
+    if (selectedQuestId === id) {
+      setSelectedQuestId(null);
+    }
+  };
+
+  // Filtrowanie wpisów według wyszukiwania i typu
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry) => {
+      // Dopasowanie do zakładki
+      if (activeTab === 'quest' && entry.type !== 'quest') return false;
+      if (activeTab === 'journal' && entry.type !== 'journal') return false;
+      if (activeTab === 'note' && entry.type !== 'note') return false;
+      if (activeTab === 'encyclopedia_character') {
+        if (
+          entry.type !== 'encyclopedia_character' &&
+          entry.type !== 'encyclopedia_location' &&
+          entry.type !== 'encyclopedia_item'
+        ) {
+          return false;
+        }
+        // Sprawdzamy podzakładkę encyklopedii
+        if (encyclopediaSubTab === 'character' && entry.type !== 'encyclopedia_character') return false;
+        if (encyclopediaSubTab === 'location' && entry.type !== 'encyclopedia_location') return false;
+        if (encyclopediaSubTab === 'item' && entry.type !== 'encyclopedia_item') return false;
+      }
+
+      // Dopasowanie do wyszukiwania
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        entry.title.toLowerCase().includes(query) ||
+        entry.content.toLowerCase().includes(query) ||
+        (entry.tags && entry.tags.some((tag) => tag.toLowerCase().includes(query)))
+      );
+    });
+  }, [entries, activeTab, encyclopediaSubTab, searchQuery]);
+
+  const activeQuests = useMemo(() => filteredEntries.filter(e => e.questStatus === 'active' || !e.questStatus), [filteredEntries]);
+  const completedQuests = useMemo(() => filteredEntries.filter(e => e.questStatus === 'completed'), [filteredEntries]);
+  const failedQuests = useMemo(() => filteredEntries.filter(e => e.questStatus === 'failed'), [filteredEntries]);
+
+  const selectedQuest = useMemo(() => {
+    return filteredEntries.find(e => e.id === selectedQuestId) || filteredEntries[0];
+  }, [filteredEntries, selectedQuestId]);
+
+  // Eksport Dziennika do pliku Markdown (Pure Helper / Local Download)
   const exportToMarkdown = useCallback(() => {
-    let md = `# 📖 Dziennik Sesji: ${character.name}\n\n`;
+    let md = `# 📖 Dziennik Przygody: ${character.name}\n\n`;
     md += `*Eksport: ${new Date().toLocaleString('pl-PL')}*\n\n---\n\n`;
 
-    const dates = Array.from(groupedByDate.keys());
-    dates.forEach((date) => {
-      md += `## ${date}\n\n`;
-      const dayEntries = groupedByDate.get(date) || [];
-
-      dayEntries.forEach((entry) => {
-        const DEFAULT_TYPE_INFO = {
-          icon: '📝',
-          label: 'Notatka',
-          color: 'bg-zinc-500',
-          borderColor: '#71717a',
-        };
-        const typeInfo = EVENT_TYPES[entry.type] || DEFAULT_TYPE_INFO;
-        md += `### ${typeInfo.icon} ${entry.title}${entry.isBookmarked ? ' ⭐' : ''}\n\n`;
-        if (entry.content) md += `${entry.content}\n\n`;
-        if (entry.tags.length > 0) md += `*Tagi: ${entry.tags.join(', ')}*\n\n`;
+    const quests = entries.filter((e) => e.type === 'quest');
+    if (quests.length > 0) {
+      md += `## ⚔️ Misje i Zadania\n\n`;
+      quests.forEach((q) => {
+        const status = q.questStatus === 'completed' ? '🟢 UKOŃCZONE' : q.questStatus === 'failed' ? '🔴 NIEUDANE' : '🟡 AKTYWNE';
+        md += `### ${q.title} [${status}]\n`;
+        if (q.inGameDate) md += `*Czas w grze: ${q.inGameDate} (Dzień ${q.gameDay || 1}, godz. ${q.gameHour || 12})*\n\n`;
+        md += `${q.content}\n\n`;
+        if (q.objectives && q.objectives.length > 0) {
+          md += `**Cele:**\n`;
+          q.objectives.forEach((obj) => {
+            md += `- [${obj.completed ? 'x' : ' '}] ${obj.description}${obj.completed && obj.dateCompleted ? ` (Ukończono: ${obj.dateCompleted})` : ''}\n`;
+          });
+          md += `\n`;
+        }
         md += `---\n\n`;
       });
-    });
+    }
 
-    // Pobierz plik
-    const blob = new Blob([md], { type: 'text/markdown' });
+    const journalEntries = entries.filter((e) => e.type === 'journal');
+    if (journalEntries.length > 0) {
+      md += `## 📔 Kronika Wydarzeń\n\n`;
+      journalEntries.forEach((e) => {
+        md += `### ${e.title}\n`;
+        md += `*Data: ${e.inGameDate || new Date(e.timestamp).toLocaleDateString('pl-PL')}*\n\n`;
+        md += `${e.content}\n\n`;
+        if (e.tags && e.tags.length > 0) {
+          md += `*Tagi: ${e.tags.map(t => `#${t}`).join(', ')}*\n\n`;
+        }
+        md += `---\n\n`;
+      });
+    }
+
+    const encProps = entries.filter((e) => ['encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type));
+    if (encProps.length > 0) {
+      md += `## 📚 Encyklopedia Wiedzy\n\n`;
+      encProps.forEach((e) => {
+        const typeLabel = e.type === 'encyclopedia_character' ? 'Postać' : e.type === 'encyclopedia_location' ? 'Lokacja' : 'Przedmiot';
+        md += `### ${e.title} [${typeLabel}]\n\n`;
+        md += `${e.content}\n\n`;
+        md += `---\n\n`;
+      });
+    }
+
+    const notes = entries.filter((e) => e.type === 'note');
+    if (notes.length > 0) {
+      md += `## 📝 Notatki i Teorie\n\n`;
+      notes.forEach((e) => {
+        md += `### ${e.title}\n`;
+        md += `*Zapisano: ${new Date(e.timestamp).toLocaleDateString('pl-PL')}*\n\n`;
+        md += `${e.content}\n\n`;
+        md += `---\n\n`;
+      });
+    }
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dziennik_${character.name.replace(/\s+/g, '_')}_${Date.now()}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [character.name, groupedByDate]);
-
-  // ============================================================================
-  // RENDER
-  // ============================================================================
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `dziennik_sesji_${character.name.replace(/\s+/g, '_').toLowerCase()}.md`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [character.name, entries]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="deco-corners relative bg-gradient-to-br from-[#1a1610] to-[#100d09] border border-brass/40 shadow-deco rounded-lg w-[90vw] max-w-[1440px] max-h-[92vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="bg-muted p-4 border-b border-border">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-display uppercase tracking-wide text-foreground flex items-center gap-2">
-              📖 Dziennik Sesji
-              <span className="text-sm font-normal normal-case tracking-normal text-muted-foreground">
-                ({character.name})
-              </span>
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      {/* RPG-styled Container */}
+      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl shadow-2xl w-[95vw] max-w-[1500px] h-[90vh] flex flex-col overflow-hidden text-[#e2d4c9]">
+        
+        {/* Nagłówek i Główne Zakładki */}
+        <div className="bg-[#2a1b12] border-b-2 border-[#3a2518] px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <BookOpen className="h-7 w-7 text-[#bfa15f]" />
+            <h2 className="text-2xl font-serif font-bold tracking-wider text-[#f4ebd0] drop-shadow-md">
+              DZIENNIK SESJI ({character.name.toUpperCase()})
             </h2>
-            <div className="flex gap-2">
-              <Button
-                onClick={exportToMarkdown}
-                variant="outline"
-                className="text-sm"
-              >
-                📥 Eksport MD
-              </Button>
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                ✕
-              </Button>
-            </div>
           </div>
 
-          {/* Filtry */}
-          <div className="flex flex-wrap gap-3 items-center">
-            <select
-              value={filterType}
-              onChange={(e) =>
-                setFilterType(e.target.value as JournalEventType | 'all')
-              }
-              className="px-3 py-1.5 bg-muted border border-border rounded-lg text-foreground text-sm"
+          {/* Zakładki na górze */}
+          <div className="flex bg-[#120b07] p-1 rounded-lg border border-[#3a2518]">
+            <button
+              onClick={() => { setActiveTab('quest'); setSelectedQuestId(null); }}
+              className={cn(
+                "px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all",
+                activeTab === 'quest' 
+                  ? "bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30" 
+                  : "text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]"
+              )}
             >
-              <option value="all">Wszystkie typy</option>
-              {(Object.keys(EVENT_TYPES) as JournalEventType[]).map((type) => (
-                <option key={type} value={type}>
-                  {EVENT_TYPES[type].icon} {EVENT_TYPES[type].label}
-                </option>
-              ))}
-            </select>
+              Misje
+            </button>
+            <button
+              onClick={() => setActiveTab('journal')}
+              className={cn(
+                "px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all",
+                activeTab === 'journal' 
+                  ? "bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30" 
+                  : "text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]"
+              )}
+            >
+              Kronika
+            </button>
+            <button
+              onClick={() => setActiveTab('encyclopedia_character')}
+              className={cn(
+                "px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all",
+                activeTab === 'encyclopedia_character' 
+                  ? "bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30" 
+                  : "text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]"
+              )}
+            >
+              Encyklopedia
+            </button>
+            <button
+              onClick={() => setActiveTab('note')}
+              className={cn(
+                "px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all",
+                activeTab === 'note' 
+                  ? "bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30" 
+                  : "text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]"
+              )}
+            >
+              Notatki
+            </button>
+          </div>
 
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                checked={showBookmarksOnly}
-                onChange={(e) => setShowBookmarksOnly(e.target.checked)}
-                className="rounded"
-              />
-              ⭐ Tylko zakładki
-            </label>
-
-            <input
-              type="text"
-              placeholder="🔍 Szukaj..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 min-w-[150px] px-3 py-1.5 bg-muted border border-border rounded-lg text-foreground text-sm"
-            />
-
+          {/* Narzędzia i Przyciski */}
+          <div className="flex gap-2 items-center">
             <Button
-              onClick={() => setIsAddingNote(true)}
-              className="bg-primary hover:bg-primary/90 text-sm"
+              onClick={() => setShowAddForm(true)}
+              className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
             >
-              + Dodaj notatkę
+              <Plus className="h-4 w-4 mr-1" /> Dodaj notatkę
             </Button>
+            <Button
+              onClick={exportToMarkdown}
+              className="bg-[#2c4021] hover:bg-[#39532b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
+            >
+              <Download className="h-4 w-4 mr-1" /> Eksport MD
+            </Button>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="ml-3 p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-[#f4ebd0] transition-colors"
+                title="Zamknij dziennik"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Formularz nowej notatki */}
-        {isAddingNote && (
-          <div className="bg-muted/40 p-4 border-b border-brass/30">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-muted-foreground mb-1">
-                  Tytuł
-                </label>
-                <input
-                  type="text"
-                  value={newNote.title}
-                  onChange={(e) =>
-                    setNewNote((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded text-foreground"
-                  placeholder="Tytuł wpisu"
-                />
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="block text-xs text-muted-foreground mb-1">
-                    Typ
-                  </label>
-                  <select
-                    value={newNote.type}
-                    onChange={(e) =>
-                      setNewNote((prev) => ({
-                        ...prev,
-                        type: e.target.value as JournalEventType,
-                      }))
-                    }
-                    className="w-full px-3 py-2 bg-muted border border-border rounded text-foreground"
-                  >
-                    {(Object.keys(EVENT_TYPES) as JournalEventType[]).map(
-                      (type) => (
-                        <option key={type} value={type}>
-                          {EVENT_TYPES[type].icon} {EVENT_TYPES[type].label}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-muted-foreground mb-1">
-                    Data w grze
-                  </label>
-                  <input
-                    type="text"
-                    value={newNote.inGameDate}
-                    onChange={(e) =>
-                      setNewNote((prev) => ({
-                        ...prev,
-                        inGameDate: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 bg-muted border border-border rounded text-foreground"
-                    placeholder="np. 11 grudnia 1925"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <label className="block text-xs text-muted-foreground mb-1">
-                Treść
-              </label>
-              <textarea
-                value={newNote.content}
-                onChange={(e) =>
-                  setNewNote((prev) => ({ ...prev, content: e.target.value }))
-                }
-                className="w-full px-3 py-2 bg-muted border border-border rounded text-foreground h-20"
-                placeholder="Opis wydarzenia..."
-              />
-            </div>
-            <div className="mt-3">
-              <label className="block text-xs text-muted-foreground mb-1">
-                Tagi (rozdzielone przecinkami)
-              </label>
-              <input
-                type="text"
-                value={newNote.tags}
-                onChange={(e) =>
-                  setNewNote((prev) => ({ ...prev, tags: e.target.value }))
-                }
-                className="w-full px-3 py-2 bg-muted border border-border rounded text-foreground"
-                placeholder="arkham, biblioteka, wskazówka"
-              />
-            </div>
-            <div className="flex gap-2 mt-3">
-              <Button
-                onClick={handleAddNote}
-                className="bg-primary hover:bg-primary/90"
-              >
-                ✓ Zapisz
-              </Button>
-              <Button onClick={() => setIsAddingNote(false)} variant="outline">
-                Anuluj
-              </Button>
-            </div>
+        {/* Wyszukiwarka */}
+        <div className="bg-[#18100b] border-b border-[#3a2518] px-6 py-2 flex items-center justify-between">
+          <div className="flex items-center bg-[#0d0906] rounded-md px-3 py-1.5 w-full max-w-md border border-[#3a2518]">
+            <Search className="h-4 w-4 text-[#8a7667] mr-2" />
+            <input
+              type="text"
+              placeholder="Wyszukaj frazę..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent text-sm w-full outline-none text-[#e2d4c9] placeholder-[#5a4d43]"
+            />
           </div>
-        )}
+          <span className="text-xs text-[#8a7667] italic font-serif">
+            Lokalna baza badacza: {character.name}
+          </span>
+        </div>
 
-        {/* Lista wpisów */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {filteredEntries.length === 0 ? (
-            <div className="text-center text-muted-foreground py-12">
-              <div className="text-4xl mb-2">📖</div>
-              <p>Dziennik jest pusty</p>
-              <p className="text-sm mt-1">
-                Dodaj pierwszą notatkę lub rozpocznij przygodę
-              </p>
-            </div>
-          ) : (
-            Array.from(groupedByDate.entries()).map(([date, dayEntries]) => (
-              <div key={date} className="mb-8">
-                {/* Nagłówek dnia */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-px flex-1 bg-muted" />
-                  <span className="text-primary font-bold text-base">
-                    {date}
-                  </span>
-                  <div className="h-px flex-1 bg-muted" />
+        {/* Zawartość zakładek */}
+        <div className="flex-1 flex overflow-hidden bg-[#e8dcce] text-[#2c1810]">
+          
+          {/* 1. SEKCJA MISJI */}
+          {activeTab === 'quest' && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Lewa kolumna: Lista misji */}
+              <div className="w-1/3 border-r-2 border-[#d9cbb9] overflow-y-auto bg-[#decab4] p-4 space-y-4">
+                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#6b4c35] border-b border-[#c8b7a4] pb-1">
+                  Aktywne przygody ({activeQuests.length})
+                </div>
+                <div className="space-y-1.5">
+                  {activeQuests.map((quest) => (
+                    <button
+                      key={quest.id}
+                      onClick={() => setSelectedQuestId(quest.id)}
+                      className={cn(
+                        "w-full text-left p-3 rounded-md transition-all font-serif border",
+                        (selectedQuestId === quest.id || (!selectedQuestId && selectedQuest?.id === quest.id))
+                          ? "bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] shadow-md"
+                          : "bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]"
+                      )}
+                    >
+                      <div className="font-bold text-base">{quest.title}</div>
+                      <div className="text-xs mt-1 line-clamp-1 opacity-80">{quest.content}</div>
+                    </button>
+                  ))}
+                  {activeQuests.length === 0 && (
+                    <div className="text-sm text-center py-6 text-[#7c695b] italic">Brak aktywnych misji</div>
+                  )}
                 </div>
 
-                {/* Wpisy dnia */}
-                {dayEntries.map((entry) => {
-                  // Fallback dla niezdefiniowanych typów
-                  const DEFAULT_TYPE_INFO = {
-                    icon: '📝',
-                    label: 'Notatka',
-                    color: 'bg-zinc-500',
-                    borderColor: '#71717a',
-                  };
-                  const typeInfo = EVENT_TYPES[entry.type] || DEFAULT_TYPE_INFO;
-                  return (
-                    <div
-                      key={entry.id}
-                      className="bg-muted/60 rounded-lg p-4 mb-3 border-l-4 hover:bg-muted transition-colors"
-                      style={{ borderLeftColor: typeInfo.borderColor }}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{typeInfo.icon}</span>
-                          <span className="font-medium text-foreground text-base">
-                            {entry.title}
-                          </span>
-                          {entry.isBookmarked && (
-                            <span className="text-primary">⭐</span>
+                {completedQuests.length > 0 && (
+                  <>
+                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#496538] border-b border-[#c8b7a4] pt-4 pb-1">
+                      Ukończone przygody ({completedQuests.length})
+                    </div>
+                    <div className="space-y-1.5">
+                      {completedQuests.map((quest) => (
+                        <button
+                          key={quest.id}
+                          onClick={() => setSelectedQuestId(quest.id)}
+                          className={cn(
+                            "w-full text-left p-3 rounded-md transition-all font-serif border opacity-80",
+                            selectedQuestId === quest.id
+                              ? "bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] shadow-md"
+                              : "bg-[#d5e2cd] hover:bg-[#c3d1b8] border-transparent text-[#2b4c19]"
                           )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {/* Real timestamp */}
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(entry.timestamp).toLocaleTimeString(
-                              'pl-PL',
-                              { hour: '2-digit', minute: '2-digit' }
-                            )}
-                          </span>
-                          {/* In-game date if different from grouping header */}
-                          {entry.inGameDate && (
-                            <span
-                              className="text-xs text-amber-400/70 ml-1"
-                              title="Data w grze"
-                            >
-                              📅 {entry.inGameDate}
-                            </span>
+                        >
+                          <div className="font-bold text-base">{quest.title}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {failedQuests.length > 0 && (
+                  <>
+                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#8b3d3d] border-b border-[#c8b7a4] pt-4 pb-1">
+                      Nieudane przygody ({failedQuests.length})
+                    </div>
+                    <div className="space-y-1.5">
+                      {failedQuests.map((quest) => (
+                        <button
+                          key={quest.id}
+                          onClick={() => setSelectedQuestId(quest.id)}
+                          className={cn(
+                            "w-full text-left p-3 rounded-md transition-all font-serif border opacity-80",
+                            selectedQuestId === quest.id
+                              ? "bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] shadow-md"
+                              : "bg-[#ebd3d3] hover:bg-[#dfc1c1] border-transparent text-[#6e2929]"
                           )}
-                          <Button
-                            onClick={() => toggleBookmark(entry.id)}
-                            variant="ghost"
-                            className="p-1 h-auto text-muted-foreground hover:text-primary"
-                          >
-                            {entry.isBookmarked ? '⭐' : '☆'}
-                          </Button>
-                          <Button
-                            onClick={() => deleteEntry(entry.id)}
-                            variant="ghost"
-                            className="p-1 h-auto text-muted-foreground hover:text-red-400"
-                          >
-                            🗑️
-                          </Button>
+                        >
+                          <div className="font-bold text-base">{quest.title}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Prawa kolumna: Szczegóły wybranej misji */}
+              <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6] flex flex-col justify-between">
+                {selectedQuest ? (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start border-b-2 border-[#bfa15f]/30 pb-3">
+                      <div>
+                        <h3 className="text-2xl font-serif font-bold text-[#4a2e1b]">
+                          {selectedQuest.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={cn(
+                            "text-xs px-2 py-0.5 rounded font-serif font-semibold border",
+                            selectedQuest.questStatus === 'completed' ? "bg-[#d5e2cd] border-[#496538] text-[#2b4c19]" :
+                            selectedQuest.questStatus === 'failed' ? "bg-[#ebd3d3] border-[#8b3d3d] text-[#6e2929]" :
+                            "bg-[#ebdcb9] border-[#bfa15f] text-[#6b4c35]"
+                          )}>
+                            {selectedQuest.questStatus === 'completed' ? 'Ukończona' :
+                             selectedQuest.questStatus === 'failed' ? 'Nieudana' : 'Aktywna'}
+                          </span>
+                          <span className="text-xs text-[#7c695b]">
+                            Wpis z dnia: {selectedQuest.inGameDate || new Date(selectedQuest.timestamp).toLocaleDateString('pl-PL')}
+                          </span>
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setEditingEntry(selectedQuest)}
+                          variant="outline"
+                          size="sm"
+                          className="border-[#bfa15f] hover:bg-[#ebdcb9] text-[#2c1810]"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          onClick={() => deleteEntry(selectedQuest.id)}
+                          variant="outline"
+                          size="sm"
+                          className="border-[#942c2c] hover:bg-[#ebd3d3] text-[#942c2c]"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
 
-                      {entry.content && (
-                        <p className="text-foreground text-base mt-2 leading-relaxed">
-                          {cleanMarkdown(entry.content)}
-                        </p>
-                      )}
+                    {/* Opis misji */}
+                    <div className="text-base leading-relaxed text-[#2c1810] whitespace-pre-wrap font-serif italic bg-[#f0e8dc] p-4 rounded-md border border-[#e2d4c9]">
+                      {selectedQuest.content}
+                    </div>
 
-                      {/* Metadata */}
-                      {entry.metadata && (
-                        <div className="flex gap-3 mt-2 text-xs">
-                          {entry.metadata.hpChange && (
-                            <span
-                              className={
-                                entry.metadata.hpChange > 0
-                                  ? 'text-green-400'
-                                  : 'text-red-400'
-                              }
+                    {/* Cele misji */}
+                    <div className="space-y-3">
+                      <h4 className="font-serif font-bold text-lg text-[#4a2e1b] border-b border-[#ebdcb9] pb-1">
+                        Postępy i Cele zadania
+                      </h4>
+                      <div className="space-y-3">
+                        {selectedQuest.objectives && selectedQuest.objectives.length > 0 ? (
+                          selectedQuest.objectives.map((obj) => (
+                            <div
+                              key={obj.id}
+                              className={cn(
+                                "p-3 rounded border flex items-start gap-3 transition-colors",
+                                obj.completed
+                                  ? "bg-[#e8efd8] border-[#c0d4a1] text-[#2b4c19]"
+                                  : "bg-[#faf8f5] border-[#ebdcb9] text-[#4a3c31]"
+                              )}
                             >
-                              HP: {entry.metadata.hpChange > 0 ? '+' : ''}
-                              {entry.metadata.hpChange}
-                            </span>
-                          )}
-                          {entry.metadata.sanChange && (
-                            <span
-                              className={
-                                entry.metadata.sanChange > 0
-                                  ? 'text-green-400'
-                                  : 'text-purple-400'
-                              }
+                              <button
+                                onClick={() => {
+                                  const updatedObjectives = selectedQuest.objectives?.map(o =>
+                                    o.id === obj.id ? { ...o, completed: !o.completed, dateCompleted: !o.completed ? new Date().toLocaleDateString('pl-PL') : undefined } : o
+                                  );
+                                  updateEntry({ ...selectedQuest, objectives: updatedObjectives });
+                                }}
+                                className="mt-0.5 focus:outline-none"
+                              >
+                                {obj.completed ? (
+                                  <CheckCircle2 className="h-5 w-5 text-[#496538] fill-[#e8efd8]" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-[#8a7667]" />
+                                )}
+                              </button>
+                              <div className="flex-1">
+                                <div className={cn("text-base font-serif", obj.completed && "line-through text-[#7c695b]")}>
+                                  {obj.description}
+                                </div>
+                                <div className="text-xs text-[#7c695b] mt-1 flex gap-2">
+                                  {obj.gameDay && <span>Dzień {obj.gameDay}</span>}
+                                  {obj.gameHour && <span>godzina {obj.gameHour}</span>}
+                                  {obj.completed && obj.dateCompleted && (
+                                    <span className="text-[#496538]">Ukończono: {obj.dateCompleted}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-[#7c695b] italic">Brak celów szczegółowych. Możesz je dodać edytując misję.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-[#7c695b] italic font-serif">
+                    Wybierz misję z listy po lewej stronie lub dodaj nową
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 2. SEKCJA KRONIKI */}
+          {activeTab === 'journal' && (
+            <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6] space-y-6">
+              <div className="max-w-4xl mx-auto space-y-4">
+                <div className="flex justify-between items-center border-b border-[#ebdcb9] pb-2">
+                  <h3 className="text-xl font-serif font-bold text-[#4a2e1b]">Chronologia Wydarzeń</h3>
+                  <span className="text-sm text-[#7c695b]">{filteredEntries.length} wpisów</span>
+                </div>
+                
+                <div className="relative border-l-2 border-[#bfa15f]/40 pl-6 ml-4 space-y-6">
+                  {filteredEntries.map((entry) => (
+                    <div key={entry.id} className="relative">
+                      {/* Oś czasu */}
+                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#f5efe6] rounded-full h-4 w-4"></span>
+                      
+                      <div className="bg-[#decab4]/30 border border-[#ebdcb9] rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-lg font-serif font-bold text-[#4a2e1b] flex items-center gap-2">
+                              {entry.title}
+                              {entry.isAutoGenerated && (
+                                <span className="text-[10px] bg-[#273a4b] text-[#f4ebd0] border border-[#bfa15f]/30 px-1.5 py-0.5 rounded uppercase font-sans">
+                                  Auto
+                                </span>
+                              )}
+                            </h4>
+                            <div className="text-xs text-[#7c695b] mt-0.5 flex gap-3">
+                              <span>📅 {entry.inGameDate || new Date(entry.timestamp).toLocaleDateString('pl-PL')}</span>
+                              {entry.gameDay && <span>⏳ Dzień {entry.gameDay}</span>}
+                              {entry.category && <span>📁 Kategoria: {entry.category}</span>}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="p-1 text-[#4a2e1b] hover:bg-[#ebdcb9] rounded transition-colors"
                             >
-                              SAN: {entry.metadata.sanChange > 0 ? '+' : ''}
-                              {entry.metadata.sanChange}
-                            </span>
-                          )}
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteEntry(entry.id)}
+                              className="p-1 text-[#942c2c] hover:bg-[#ebd3d3] rounded transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
-                      )}
+                        
+                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#2c1810]">
+                          {entry.content}
+                        </p>
+                        
+                        {entry.tags && entry.tags.length > 0 && (
+                          <div className="flex gap-1 mt-2.5 flex-wrap">
+                            {entry.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="text-[11px] bg-[#decab4] text-[#4a2e1b] px-2 py-0.5 rounded border border-[#d9cbb9]"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
 
-                      {/* Tagi */}
-                      {entry.tags && entry.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {entry.tags.map((tag, idx) => (
-                            <span
-                              key={idx}
-                              onClick={() => setSearchQuery(tag)}
-                              className="px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 rounded-full text-xs cursor-pointer hover:bg-primary/30 transition-colors"
+                  {filteredEntries.length === 0 && (
+                    <div className="text-center py-12 text-[#7c695b] italic font-serif">
+                      Kronika jest pusta. Wpisy z przygód pojawią się tutaj chronologicznie.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. SEKCJA ENCYKLOPEDII */}
+          {activeTab === 'encyclopedia_character' && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Podzakładki encyklopedii */}
+              <div className="w-1/4 border-r border-[#d9cbb9] bg-[#decab4] p-4 flex flex-col gap-2">
+                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#6b4c35] border-b border-[#c8b7a4] pb-2 mb-2">
+                  Kategorie wiedzy
+                </div>
+                <button
+                  onClick={() => setEncyclopediaSubTab('character')}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 rounded font-serif transition-colors border",
+                    encyclopediaSubTab === 'character'
+                      ? "bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] font-semibold"
+                      : "bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]"
+                  )}
+                >
+                  Postaci & Byt
+                </button>
+                <button
+                  onClick={() => setEncyclopediaSubTab('location')}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 rounded font-serif transition-colors border",
+                    encyclopediaSubTab === 'location'
+                      ? "bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] font-semibold"
+                      : "bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]"
+                  )}
+                >
+                  Lokacje & Miejsca
+                </button>
+                <button
+                  onClick={() => setEncyclopediaSubTab('item')}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 rounded font-serif transition-colors border",
+                    encyclopediaSubTab === 'item'
+                      ? "bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] font-semibold"
+                      : "bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]"
+                  )}
+                >
+                  Przedmioty & Artefakty
+                </button>
+              </div>
+
+              {/* Grid wpisów */}
+              <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="bg-[#faf8f5] border border-[#ebdcb9] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start border-b border-[#ebdcb9] pb-2">
+                          <h4 className="text-lg font-serif font-bold text-[#4a2e1b]">
+                            {entry.title}
+                          </h4>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="p-1 text-[#4a2e1b] hover:bg-[#ebdcb9] rounded transition-colors"
                             >
-                              {tag}
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteEntry(entry.id)}
+                              className="p-1 text-[#942c2c] hover:bg-[#ebd3d3] rounded transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm font-serif leading-relaxed text-[#2c1810] whitespace-pre-wrap">
+                          {entry.content}
+                        </p>
+                      </div>
+                      
+                      {entry.tags && entry.tags.length > 0 && (
+                        <div className="flex gap-1 mt-3 flex-wrap border-t border-[#f0e8dc] pt-2">
+                          {entry.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] bg-[#decab4]/50 text-[#4a2e1b] px-1.5 py-0.5 rounded border border-[#d9cbb9]/40"
+                            >
+                              #{tag}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            ))
-          )}
-        </div>
+                  ))}
 
-        {/* Footer */}
-        <div className="bg-muted/40 p-3 border-t border-brass/30 text-center text-sm text-muted-foreground">
-          {entries.length}{' '}
-          {entries.length === 1
-            ? 'wpis'
-            : entries.length >= 2 && entries.length <= 4
-              ? 'wpisy'
-              : 'wpisów'}{' '}
-          w dzienniku
+                  {filteredEntries.length === 0 && (
+                    <div className="col-span-full text-center py-16 text-[#7c695b] italic font-serif">
+                      Brak wpisów w tej kategorii encyklopedii.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4. SEKCJA NOTATEK */}
+          {activeTab === 'note' && (
+            <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6]">
+              <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                {filteredEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="bg-[#fffdfa] border border-[#e5d4c0] shadow-sm rounded-lg p-5 flex flex-col justify-between min-h-[220px]"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start border-b border-[#ebdcb9] pb-2 mb-3">
+                        <h4 className="font-serif font-bold text-lg text-[#4a2e1b]">
+                          {entry.title}
+                        </h4>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => setEditingEntry(entry)}
+                            className="p-1 text-[#4a2e1b] hover:bg-[#ebdcb9] rounded transition-colors"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteEntry(entry.id)}
+                            className="p-1 text-[#942c2c] hover:bg-[#ebd3d3] rounded transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm font-serif leading-relaxed text-[#3c2a1a] whitespace-pre-wrap line-clamp-6">
+                        {entry.content}
+                      </p>
+                    </div>
+                    
+                    <div className="text-[11px] text-[#7c695b] border-t border-[#f0e8dc] pt-2 mt-4 flex justify-between items-center">
+                      <span>📅 {entry.inGameDate || new Date(entry.timestamp).toLocaleDateString('pl-PL')}</span>
+                      {entry.tags && entry.tags.length > 0 && (
+                        <span className="truncate max-w-[120px] text-right">
+                          #{entry.tags[0]}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {filteredEntries.length === 0 && (
+                  <div className="col-span-full text-center py-16 text-[#7c695b] italic font-serif">
+                    Brak własnych zapisków. Dodaj nową notatkę.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
+
+      {/* Formularze dialogowe */}
+      {showAddForm && (
+        <AddEntryForm
+          onAdd={addEntry}
+          onCancel={() => setShowAddForm(false)}
+          categories={categories}
+          defaultTags={defaultTags}
+          initialType={activeTab}
+        />
+      )}
+
+      {editingEntry && (
+        <EditEntryForm
+          entry={editingEntry}
+          onUpdate={updateEntry}
+          onCancel={() => setEditingEntry(null)}
+          categories={categories}
+          defaultTags={defaultTags}
+        />
+      )}
     </div>
   );
 }
 
 // ============================================================================
-// FUNKCJE POMOCNICZE DO AUTOMATYCZNEGO LOGOWANIA
+// FORMULARZE POMOCNICZE
 // ============================================================================
 
-/**
- * Dodaje automatyczny wpis do dziennika postaci
- */
-export function addJournalEntry(
-  character: Character,
-  entry: Omit<JournalEntry, 'id' | 'timestamp'>
-): Character {
-  const newEntry: JournalEntry = {
-    ...entry,
-    id: `journal_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-    timestamp: new Date(),
-  };
-
-  return {
-    ...character,
-    journal: [...(character.journal || []), newEntry],
-  };
+interface AddEntryFormProps {
+  onAdd: (entry: Omit<ExtendedJournalEntry, 'id' | 'timestamp'>) => void;
+  onCancel: () => void;
+  categories: string[];
+  defaultTags: string[];
+  initialType: JournalEntryType;
 }
 
-/**
- * Wykrywa typ wydarzenia na podstawie tekstu AI
- */
-export function detectEventType(text: string): JournalEventType | null {
-  const lower = text.toLowerCase();
+function AddEntryForm({
+  onAdd,
+  onCancel,
+  categories,
+  defaultTags,
+  initialType,
+}: AddEntryFormProps) {
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    category: categories[0],
+    tags: [] as string[],
+    isAutoGenerated: false,
+    type: (initialType === 'encyclopedia_character' ? 'encyclopedia_character' : initialType) as JournalEntryType,
+    gameDay: 1,
+    gameHour: 12,
+    questStatus: 'active' as const,
+    objectives: [] as QuestObjective[],
+  });
+  const [newTag, setNewTag] = useState('');
+  const [newObjective, setNewObjective] = useState('');
 
-  if (
-    lower.includes('atak') ||
-    lower.includes('walka') ||
-    lower.includes('obrażeni')
-  )
-    return 'combat';
-  if (
-    lower.includes('znalaz') ||
-    lower.includes('odkry') ||
-    lower.includes('zauważ')
-  )
-    return 'discovery';
-  if (
-    lower.includes('przedstawia') ||
-    lower.includes('poznaje') ||
-    lower.match(/spotyka.*?[A-Z]/)
-  )
-    return 'npc';
-  if (
-    lower.includes('poczytaln') ||
-    lower.includes('strach') ||
-    lower.includes('szok')
-  )
-    return 'sanity';
-  if (
-    lower.includes('wskazówk') ||
-    lower.includes('trop') ||
-    lower.includes('dowód') ||
-    lower.includes('list')
-  )
-    return 'clue';
-  if (
-    lower.includes('przybywa') ||
-    lower.includes('wchodzi') ||
-    lower.includes('dociera')
-  )
-    return 'location';
-  if (
-    lower.includes('rytuał') ||
-    lower.includes('zaklęci') ||
-    lower.includes('magi')
-  )
-    return 'ritual';
-  if (
-    lower.includes('umiera') ||
-    lower.includes('śmierć') ||
-    lower.includes('ginie')
-  )
-    return 'death';
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (formData.title.trim() && formData.content.trim()) {
+      onAdd(formData);
+    }
+  };
 
-  return null;
+  const addTag = (tag: string) => {
+    if (tag.trim() && !formData.tags.includes(tag.trim())) {
+      setFormData({ ...formData, tags: [...formData.tags, tag.trim()] });
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+    });
+  };
+
+  const addObjective = () => {
+    if (newObjective.trim()) {
+      const obj: QuestObjective = {
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
+        description: newObjective.trim(),
+        completed: false,
+        gameDay: formData.gameDay,
+        gameHour: formData.gameHour
+      };
+      setFormData({ ...formData, objectives: [...formData.objectives, obj] });
+      setNewObjective('');
+    }
+  };
+
+  const removeObjective = (id: string) => {
+    setFormData({
+      ...formData,
+      objectives: formData.objectives.filter((o) => o.id !== id),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
+      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-[#e2d4c9] font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
+          <h3 className="text-xl font-bold text-[#f4ebd0]">Dodaj nowy wpis do księgi przygód</h3>
+          <button onClick={onCancel} className="text-[#a29182] hover:text-[#f4ebd0]"><X className="h-5 w-5" /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Typ wpisu</label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as JournalEntryType })}
+              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+            >
+              <option value="quest">Misja (Quest)</option>
+              <option value="journal">Wpis do Dziennika (Kronika)</option>
+              <option value="encyclopedia_character">Encyklopedia - Postać / Byt</option>
+              <option value="encyclopedia_location">Encyklopedia - Lokacja</option>
+              <option value="encyclopedia_item">Encyklopedia - Przedmiot</option>
+              <option value="note">Własna notatka / Teoria</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Dzień kampanii</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.gameDay}
+                onChange={(e) => setFormData({ ...formData, gameDay: parseInt(e.target.value) || 1 })}
+                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Godzina</label>
+              <input
+                type="number"
+                min="0"
+                max="23"
+                value={formData.gameHour}
+                onChange={(e) => setFormData({ ...formData, gameHour: parseInt(e.target.value) || 0 })}
+                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {formData.type === 'quest' && (
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Status misji</label>
+              <select
+                value={formData.questStatus}
+                onChange={(e) => setFormData({ ...formData, questStatus: e.target.value as 'active' | 'completed' | 'failed' })}
+                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              >
+                <option value="active">Aktywna</option>
+                <option value="completed">Ukończona</option>
+                <option value="failed">Nieudana</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Tytuł wpisu</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none placeholder-[#5a4d43]"
+              placeholder="np. Śledztwo w Domu Corbitów"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Treść / Opis</label>
+            <Textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className="min-h-32 bg-[#0d0906] text-[#e2d4c9] border-[#3a2518] focus-visible:ring-[#bfa15f] placeholder-[#5a4d43]"
+              placeholder="Zapisz szczegóły przygody lub informacje o postaci/przedmiocie..."
+              required
+            />
+          </div>
+
+          {formData.type === 'quest' && (
+            <div className="border border-[#3a2518] p-4 rounded-md bg-[#0d0906]/40 space-y-3">
+              <label className="block text-sm font-serif font-bold text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+                Cele zadania
+              </label>
+              <div className="space-y-2">
+                {formData.objectives.map((obj, i) => (
+                  <div key={obj.id} className="flex justify-between items-center bg-[#0d0906] p-2 rounded border border-[#3a2518] text-sm">
+                    <span className="truncate">{i + 1}. {obj.description}</span>
+                    <button type="button" onClick={() => removeObjective(obj.id)} className="text-[#942c2c] hover:text-red-400">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newObjective}
+                  onChange={(e) => setNewObjective(e.target.value)}
+                  placeholder="Nowy cel misji..."
+                  className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-sm text-[#e2d4c9] outline-none focus:border-[#bfa15f]"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addObjective())}
+                />
+                <Button type="button" onClick={addObjective} className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]">
+                  Dodaj cel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Tagi</label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {formData.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#5c3e21]/60 text-[#f4ebd0] border border-[#bfa15f]/25"
+                >
+                  #{tag}
+                  <button type="button" onClick={() => removeTag(tag)} className="ml-1 text-[#a29182] hover:text-red-400">×</button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none placeholder-[#5a4d43]"
+                placeholder="Dodaj własny tag..."
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newTag))}
+              />
+              <Button type="button" onClick={() => addTag(newTag)} className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]">
+                +
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {defaultTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => addTag(tag)}
+                  className="px-2 py-0.5 text-xs bg-[#0d0906] hover:bg-[#1a110a] text-[#8a7667] rounded border border-[#3a2518]"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-3 border-t border-[#3a2518]">
+            <Button
+              type="submit"
+              className="flex-1 py-3 bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40"
+              disabled={!formData.title.trim() || !formData.content.trim()}
+            >
+              Zapisz wpis
+            </Button>
+            <Button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
+            >
+              Anuluj
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface EditEntryFormProps {
+  entry: ExtendedJournalEntry;
+  onUpdate: (entry: ExtendedJournalEntry) => void;
+  onCancel: () => void;
+}
+
+function EditEntryForm({
+  entry,
+  onUpdate,
+  onCancel,
+}: EditEntryFormProps) {
+  const [formData, setFormData] = useState(entry);
+  const [newTag, setNewTag] = useState('');
+  const [newObjective, setNewObjective] = useState('');
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (formData.title.trim() && formData.content.trim()) {
+      onUpdate(formData);
+    }
+  };
+
+  const addTag = (tag: string) => {
+    if (tag.trim() && !formData.tags.includes(tag.trim())) {
+      setFormData({ ...formData, tags: [...formData.tags, tag.trim()] });
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+    });
+  };
+
+  const addObjective = () => {
+    if (newObjective.trim()) {
+      const obj: QuestObjective = {
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
+        description: newObjective.trim(),
+        completed: false,
+        gameDay: formData.gameDay,
+        gameHour: formData.gameHour
+      };
+      setFormData({ ...formData, objectives: [...(formData.objectives || []), obj] });
+      setNewObjective('');
+    }
+  };
+
+  const removeObjective = (id: string) => {
+    setFormData({
+      ...formData,
+      objectives: (formData.objectives || []).filter((o) => o.id !== id),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
+      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-[#e2d4c9] font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
+          <h3 className="text-xl font-bold text-[#f4ebd0]">Edytuj wpis w księdze przygód</h3>
+          <button onClick={onCancel} className="text-[#a29182] hover:text-[#f4ebd0]"><X className="h-5 w-5" /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Typ wpisu</label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as JournalEntryType })}
+              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+            >
+              <option value="quest">Misja (Quest)</option>
+              <option value="journal">Wpis do Dziennika (Kronika)</option>
+              <option value="encyclopedia_character">Encyklopedia - Postać / Byt</option>
+              <option value="encyclopedia_location">Encyklopedia - Lokacja</option>
+              <option value="encyclopedia_item">Encyklopedia - Przedmiot</option>
+              <option value="note">Własna notatka / Teoria</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Dzień kampanii</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.gameDay || 1}
+                onChange={(e) => setFormData({ ...formData, gameDay: parseInt(e.target.value) || 1 })}
+                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Godzina</label>
+              <input
+                type="number"
+                min="0"
+                max="23"
+                value={formData.gameHour || 0}
+                onChange={(e) => setFormData({ ...formData, gameHour: parseInt(e.target.value) || 0 })}
+                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {formData.type === 'quest' && (
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Status misji</label>
+              <select
+                value={formData.questStatus || 'active'}
+                onChange={(e) => setFormData({ ...formData, questStatus: e.target.value as 'active' | 'completed' | 'failed' })}
+                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              >
+                <option value="active">Aktywna</option>
+                <option value="completed">Ukończona</option>
+                <option value="failed">Nieudana</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Tytuł wpisu</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Treść / Opis</label>
+            <Textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className="min-h-32 bg-[#0d0906] text-[#e2d4c9] border-[#3a2518] focus-visible:ring-[#bfa15f]"
+              required
+            />
+          </div>
+
+          {formData.type === 'quest' && (
+            <div className="border border-[#3a2518] p-4 rounded-md bg-[#0d0906]/40 space-y-3">
+              <label className="block text-sm font-serif font-bold text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+                Cele zadania
+              </label>
+              <div className="space-y-2">
+                {(formData.objectives || []).map((obj, i) => (
+                  <div key={obj.id} className="flex justify-between items-center bg-[#0d0906] p-2 rounded border border-[#3a2518] text-sm">
+                    <span className="truncate">{i + 1}. {obj.description}</span>
+                    <button type="button" onClick={() => removeObjective(obj.id)} className="text-[#942c2c] hover:text-red-400">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newObjective}
+                  onChange={(e) => setNewObjective(e.target.value)}
+                  placeholder="Nowy cel misji..."
+                  className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-sm text-[#e2d4c9] outline-none"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addObjective())}
+                />
+                <Button type="button" onClick={addObjective} className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]">
+                  Dodaj
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">Tagi</label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {formData.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#5c3e21]/60 text-[#f4ebd0] border border-[#bfa15f]/25"
+                >
+                  #{tag}
+                  <button type="button" onClick={() => removeTag(tag)} className="ml-1 text-[#a29182] hover:text-red-400">×</button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                placeholder="Dodaj własny tag..."
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newTag))}
+              />
+              <Button type="button" onClick={() => addTag(newTag)} className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]">
+                +
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-3 border-t border-[#3a2518]">
+            <Button
+              type="submit"
+              className="flex-1 py-3 bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40"
+              disabled={!formData.title.trim() || !formData.content.trim()}
+            >
+              Zapisz zmiany
+            </Button>
+            <Button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
+            >
+              Anuluj
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

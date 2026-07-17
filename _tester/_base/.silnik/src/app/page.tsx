@@ -13,6 +13,7 @@ import type { AISettings } from '@/lib/ai-settings/types';
 import { settingsEmitter } from '@/lib/settings-event-emitter';
 import { appendRollToJournal } from '@/lib/journal/build-roll-entry';
 import { useFirstRun } from '@/hooks/useFirstRun';
+import { persistCharacters } from '@/lib/character-cloud-sync';
 import { CthulhuSidebar } from '@/components/sidebar/CthulhuSidebar';
 import { APIUsageCounter } from '@/components/ui/api-usage-counter';
 import { useHotSeat } from '@/components/ui/player-switcher';
@@ -93,6 +94,16 @@ const FirstRunWizard = dynamic(
   () =>
     import('@/components/onboarding/FirstRunWizard').then((mod) => ({
       default: mod.FirstRunWizard,
+    })),
+  {
+    ssr: false,
+  }
+);
+
+const PredefinedCharactersSelector = dynamic(
+  () =>
+    import('@/components/ui/predefined-characters-selector').then((mod) => ({
+      default: mod.PredefinedCharactersSelector,
     })),
   {
     ssr: false,
@@ -258,6 +269,34 @@ export default function Home() {
     stampDuetTargetPlayer();
     charMgmt.handleCharacterManage();
   }, [stampDuetTargetPlayer, charMgmt]);
+
+  const [showPredefinedSelector, setShowPredefinedSelector] = useState(false);
+
+  const handleSelectPredefinedCharacter = useCallback((character: Character) => {
+    const stamped = {
+      ...character,
+      id: `${character.id}_${Date.now()}` // zrób unikalne ID per instancja postaci
+    };
+    
+    // Obsługa Hot Seat
+    const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
+    if (targetPlayer) {
+      stamped.playerName = targetPlayer;
+      localStorage.removeItem('hotSeatCreatingPlayerName');
+    }
+
+    const existingCharacters = [...charMgmt.characters];
+    existingCharacters.push(stamped);
+    
+    // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
+    charMgmt.setCharacters(existingCharacters);
+    charMgmt.setActiveCharacter(stamped);
+    
+    // Persystencja
+    persistCharacters(existingCharacters);
+    
+    setShowPredefinedSelector(false);
+  }, [charMgmt]);
 
   // Faza 4 + C2: guard startu duetu. TWARDY wymóg - każdy gracz musi mieć
   // WŁASNĄ, jawnie przypisaną postać (po imieniu gracza), i muszą to być 2
@@ -729,6 +768,10 @@ export default function Home() {
         region={adventureContext?.location}
         currentLocation={chat.currentLocation}
         onCreateCharacter={handleCreateCharacterForDuet}
+        onPickPredefinedCharacter={() => {
+          stampDuetTargetPlayer();
+          setShowPredefinedSelector(true);
+        }}
         onPickCharacter={handlePickCharacterForDuet}
         onSummarizeScene={handleSummarizeScene}
         isSummarizingScene={isSummarizingScene}
@@ -754,6 +797,14 @@ export default function Home() {
         onOpenApiKeys={() => setShowApiKeysModal(true)}
         hotSeatConfig={hotSeat.config}
       />
+      {showPredefinedSelector && (
+        <PredefinedCharactersSelector
+          isOpen={showPredefinedSelector}
+          onClose={() => setShowPredefinedSelector(false)}
+          onSelectCharacter={handleSelectPredefinedCharacter}
+          currentEra={adventureContext?.era || 'classic'}
+        />
+      )}
     </ChatLayout>
   );
 }
