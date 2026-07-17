@@ -84,11 +84,8 @@ export const RollTestModal: FC<RollTestModalProps> = ({
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const { availableLuck, setAvailableLuck, luckNeeded, spendLuck } =
-    useLuckSpend(
-      activeCharacter?.luck ?? 0,
-      roll,
-      setRoll,
-      (amount) => onSpendLuck?.(amount, test?.characterId)
+    useLuckSpend(activeCharacter?.luck ?? 0, roll, setRoll, (amount) =>
+      onSpendLuck?.(amount, test?.characterId)
     );
 
   const clearTimers = useCallback(() => {
@@ -110,7 +107,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
     }
     return clearTimers;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, test, activeCharacter?.id, clearTimers, setAvailableLuck]);
+  }, [open, test?.testId, activeCharacter?.id, clearTimers, setAvailableLuck]);
 
   if (!test) return null;
 

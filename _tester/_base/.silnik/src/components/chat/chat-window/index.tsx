@@ -10,7 +10,7 @@
  */
 
 import type { FC } from 'react';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { ScrollArea } from '../../ui/scroll-area';
 import { ImageLightbox } from '../../ui/image-lightbox';
 import { RollTestModal, type RollTestData } from '../../dialogs/RollTestModal';
@@ -83,29 +83,34 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   // D1: tacka testu sterowana WYŁĄCZNIE tagiem [TEST:] - "Rzuć" otwiera mały modal
   // RollTestModal (podsumowanie → animacja → wynik do czatu + dziennika).
   // Trudność (½/⅕) i bilans kości premii/kary egzekwuje silnik dice-utils.
-  const [activeSkillTest, setActiveSkillTest] =
-    useState<SkillTestData | null>(null);
+  const [activeSkillTest, setActiveSkillTest] = useState<SkillTestData | null>(
+    null
+  );
   const [completedTestIds, setCompletedTestIds] = useState<Set<string>>(
     () => new Set()
   );
   const groupResultsRef = useRef(new Map<string, CollectedTestResult[]>());
 
-  const diceTest: RollTestData | null = activeSkillTest
-    ? {
-        testId: activeSkillTest.id,
-        groupId: activeSkillTest.groupId,
-        characterId: activeSkillTest.characterId,
-        skill: activeSkillTest.skillName,
-        value: activeSkillTest.skillValue,
-        difficulty: activeSkillTest.difficulty,
-        bonusDice: activeSkillTest.modifiers.reduce(
-          (balance, mod) =>
-            balance + (mod.type === 'bonus' ? mod.count : -mod.count),
-          0
-        ),
-        justification: activeSkillTest.justification,
-      }
-    : null;
+  const diceTest: RollTestData | null = useMemo(
+    () =>
+      activeSkillTest
+        ? {
+            testId: activeSkillTest.id,
+            groupId: activeSkillTest.groupId,
+            characterId: activeSkillTest.characterId,
+            skill: activeSkillTest.skillName,
+            value: activeSkillTest.skillValue,
+            difficulty: activeSkillTest.difficulty,
+            bonusDice: activeSkillTest.modifiers.reduce(
+              (balance, mod) =>
+                balance + (mod.type === 'bonus' ? mod.count : -mod.count),
+              0
+            ),
+            justification: activeSkillTest.justification,
+          }
+        : null,
+    [activeSkillTest]
+  );
 
   const handleRollTest = (test: SkillTestData) => {
     setActiveSkillTest(test);
@@ -118,9 +123,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
       chatMessage,
       systemContext,
     };
-    setCompletedTestIds((current) =>
-      new Set([...current, activeSkillTest.id])
-    );
+    setCompletedTestIds((current) => new Set([...current, activeSkillTest.id]));
 
     if (!activeSkillTest.groupId) {
       handleSendMessage(chatMessage);

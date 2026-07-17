@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Settings,
   User,
@@ -35,9 +35,15 @@ import { AdventureSelector } from '../ui/adventure-selector';
 import { EquipmentModal } from '../ui/equipment-modal';
 import { NewAdventureModal } from '../ui/new-adventure-modal';
 import { PlayerSwitcher } from '../ui/player-switcher';
-import { Character, ActiveGameState, HotSeatConfig } from '@/lib/types';
+import {
+  Character,
+  ActiveGameState,
+  HotSeatConfig,
+  JournalEntry,
+} from '@/lib/types';
 import { AdventureContext, CustomAdventure } from '@/lib/adventures-data';
 import { useResolvedPortrait } from '@/hooks/useResolvedPortrait';
+import { mergeAdventureJournalEntries } from '@/lib/journal/shared-adventure-journal';
 
 interface CthulhuSidebarProps {
   activeCharacter?: Character;
@@ -46,6 +52,7 @@ interface CthulhuSidebarProps {
   onCharacterCreate?: () => void;
   onCharacterManage?: () => void;
   onUpdateCharacter?: (character: Character) => void; // Dla dziennika
+  onUpdateSharedJournal?: (journal: JournalEntry[]) => void;
   handleSendMessage?: (message: string) => void;
   activeGameState?: ActiveGameState | null;
   voiceFeatureAvailable?: boolean;
@@ -93,6 +100,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   onCharacterCreate,
   onCharacterManage,
   onUpdateCharacter,
+  onUpdateSharedJournal,
   activeGameState,
   voiceFeatureAvailable,
   voiceEnabled,
@@ -144,6 +152,38 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   const inspectedCharacter =
     characters?.find((character) => character.id === inspectedCharacterId) ??
     activeCharacter;
+  const sharedJournalEnabled =
+    Boolean(hotSeatConfig?.enabled) && (characters?.length ?? 0) >= 2;
+  const sharedJournal = useMemo(
+    () =>
+      sharedJournalEnabled
+        ? mergeAdventureJournalEntries(
+            characters ?? [],
+            hotSeatConfig?.adventureJournalId
+          )
+        : undefined,
+    [characters, hotSeatConfig?.adventureJournalId, sharedJournalEnabled]
+  );
+  const participantNames = useMemo(
+    () =>
+      sharedJournalEnabled
+        ? (characters ?? []).map(
+            (character) => character.playerName || character.name
+          )
+        : [],
+    [characters, sharedJournalEnabled]
+  );
+  const journalEntryCount = sharedJournalEnabled
+    ? (sharedJournal?.length ?? 0)
+    : (activeCharacter?.journal?.length ?? 0);
+  const journalStorageKey = sharedJournalEnabled
+    ? `unseen_journal_${(characters ?? [])
+        .map((character) => character.id)
+        .sort()
+        .join('_')}`
+    : activeCharacter
+      ? `unseen_${activeCharacter.id}`
+      : null;
 
   // Zmiana tury synchronizuje domyślny widok tylko przy zamkniętych modalach.
   // Otwarta karta/ekwipunek może niezależnie oglądać drugiego badacza.
@@ -153,38 +193,33 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
 
   // Śledzenie nowych pozycji
   useEffect(() => {
-    if (!activeCharacter) return;
+    if (!journalStorageKey) return;
 
-    const storageKey = `unseen_${activeCharacter.id}`;
-    const stored = localStorage.getItem(storageKey);
+    const stored = localStorage.getItem(journalStorageKey);
     const unseenData = stored ? JSON.parse(stored) : { journalSeen: 0 };
 
-    const journalCount = activeCharacter.journal?.length || 0;
-
     // Oblicz ile nowych pozycji od ostatniego widzenia
-    const newJournal = Math.max(0, journalCount - unseenData.journalSeen);
+    const newJournal = Math.max(0, journalEntryCount - unseenData.journalSeen);
 
     setUnseenJournalCount(newJournal);
-  }, [activeCharacter, activeCharacter?.journal?.length]);
+  }, [journalEntryCount, journalStorageKey]);
 
   // Resetuj licznik po otwarciu modala
   useEffect(() => {
-    if (!activeCharacter) return;
-    const storageKey = `unseen_${activeCharacter.id}`;
+    if (!journalStorageKey) return;
 
     if (openDialog === 'journal') {
-      const journalCount = activeCharacter.journal?.length || 0;
-      const stored = localStorage.getItem(storageKey);
+      const stored = localStorage.getItem(journalStorageKey);
       const unseenData = stored
         ? JSON.parse(stored)
         : { journalSeen: 0, inventorySeen: 0 };
       localStorage.setItem(
-        storageKey,
-        JSON.stringify({ ...unseenData, journalSeen: journalCount })
+        journalStorageKey,
+        JSON.stringify({ ...unseenData, journalSeen: journalEntryCount })
       );
       setUnseenJournalCount(0);
     }
-  }, [openDialog, activeCharacter]);
+  }, [journalEntryCount, journalStorageKey, openDialog]);
 
   // Rejestracja funkcji otwierającej Sesję Zero dla zewnętrznych komponentów
   useEffect(() => {
@@ -583,15 +618,18 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         character={inspectedCharacter}
         onCharacterUpdate={onUpdateCharacter}
         characters={characters}
-        onCharacterChange={(character) =>
-          setInspectedCharacterId(character.id)
-        }
+        onCharacterChange={(character) => setInspectedCharacterId(character.id)}
       />
 
       {openDialog === 'journal' && activeCharacter && onUpdateCharacter && (
         <SessionJournal
           character={activeCharacter}
           onUpdateCharacter={onUpdateCharacter}
+          sharedJournal={sharedJournal}
+          onUpdateSharedJournal={
+            sharedJournalEnabled ? onUpdateSharedJournal : undefined
+          }
+          participantNames={participantNames}
           onClose={() => setOpenDialog(null)}
         />
       )}

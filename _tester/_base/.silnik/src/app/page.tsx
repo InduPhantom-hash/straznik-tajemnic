@@ -2,7 +2,13 @@
 
 import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { Campaign, AdventureContext, Message, Character } from '@/lib/types';
+import {
+  Campaign,
+  AdventureContext,
+  Message,
+  Character,
+  JournalEntry,
+} from '@/lib/types';
 import {
   loadAISettings,
   saveAISettings,
@@ -41,6 +47,10 @@ import {
   findPlayerIndexForCharacter,
   getSessionCharacters,
 } from '@/lib/hot-seat/session-party';
+import {
+  scopeAdventureJournalEntries,
+  synchronizeAdventureJournal,
+} from '@/lib/journal/shared-adventure-journal';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -188,6 +198,7 @@ export default function Home() {
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
     restoreHotSeatConfig: hotSeat.restoreConfig,
+    clearDeclarations: chat.clearDeclarations,
   });
 
   // UI STATE
@@ -396,11 +407,9 @@ export default function Home() {
       hotSeat.config,
       hasStartedGame
     );
-  }, [
-    hasStartedGame,
-    hotSeat.config,
-    charMgmt.characters,
-  ]);
+  }, [hasStartedGame, hotSeat.config, charMgmt.characters]);
+  const allCharacters = charMgmt.characters;
+  const handleCharactersChange = charMgmt.handleCharactersChange;
 
   const handleSessionCharacterSwitch = useCallback(
     (character: Character) => {
@@ -418,6 +427,55 @@ export default function Home() {
     },
     [hasStartedGame, hotSeat.config, handleSwitchPlayer, charMgmt]
   );
+
+  const handleUpdateAdventureJournal = useCallback(
+    (journal: JournalEntry[]) => {
+      const participantIds = sessionCharacters.map((character) => character.id);
+      const updatedCharacters = synchronizeAdventureJournal(
+        allCharacters,
+        participantIds,
+        journal,
+        hotSeat.config.adventureJournalId
+      );
+      handleCharactersChange(updatedCharacters);
+    },
+    [
+      allCharacters,
+      handleCharactersChange,
+      hotSeat.config.adventureJournalId,
+      sessionCharacters,
+    ]
+  );
+
+  // Starsze dzienniki nie miały identyfikatora przebiegu. Przypisujemy je raz
+  // po rozpoczęciu sesji, a późniejsze przygody widzą już tylko własne wpisy.
+  useEffect(() => {
+    const adventureJournalId = hotSeat.config.adventureJournalId;
+    if (
+      !hasStartedGame ||
+      !hotSeat.config.enabled ||
+      !adventureJournalId ||
+      sessionCharacters.length < 2
+    ) {
+      return;
+    }
+    const participantIds = sessionCharacters.map((character) => character.id);
+    const scopedCharacters = scopeAdventureJournalEntries(
+      allCharacters,
+      participantIds,
+      adventureJournalId
+    );
+    if (scopedCharacters !== allCharacters) {
+      handleCharactersChange(scopedCharacters);
+    }
+  }, [
+    allCharacters,
+    handleCharactersChange,
+    hasStartedGame,
+    hotSeat.config.adventureJournalId,
+    hotSeat.config.enabled,
+    sessionCharacters,
+  ]);
 
   // === EFFECTS ===
   // IND-150: split 52-lin useEffect (7 odpowiedzialności) na 4 useEffects per SRP.
@@ -628,6 +686,18 @@ export default function Home() {
   // Czyści czat + wybraną przygodę + Sesję Zero, ale ZACHOWUJE postacie (roster) i
   // zasady (pdf_memory). Kontynuacja sesji z sejwu jest niezależna (handleLoadFullSave).
   const handleNewAdventure = () => {
+    const adventureJournalId = hotSeat.config.adventureJournalId;
+    if (adventureJournalId) {
+      const scopedCharacters = scopeAdventureJournalEntries(
+        charMgmt.characters,
+        sessionCharacters.map((character) => character.id),
+        adventureJournalId
+      );
+      if (scopedCharacters !== charMgmt.characters) {
+        charMgmt.handleCharactersChange(scopedCharacters);
+      }
+    }
+    chat.clearDeclarations();
     chat.setMessages([]);
     localStorage.removeItem('chat-messages');
     tts.stopCurrentAudio();
@@ -647,6 +717,7 @@ export default function Home() {
     localStorage.setItem('session_zero_completed', 'false');
     setAdventureContext(null);
     localStorage.removeItem('adventure_context');
+    localStorage.removeItem('adventure_journal_id');
     // #7: tryb gry (Solo / duet) jest per-przygoda - nowa przygoda wraca do Solo.
     hotSeat.disableHotSeat();
   };
@@ -675,6 +746,7 @@ export default function Home() {
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
           onUpdateCharacter={charMgmt.handleUpdateCharacter}
+          onUpdateSharedJournal={handleUpdateAdventureJournal}
           handleSendMessage={chat.handleSendMessage}
           activeGameState={charMgmt.activeGameState}
           voiceFeatureAvailable={voiceFeatureAvailable}
@@ -851,11 +923,7 @@ export default function Home() {
             ) ?? charMgmt.activeCharacter;
           if (!c) return;
           let updated = appendRollToJournal(c, roll, justification);
-          if (
-            roll.passedRequirement &&
-            !roll.luckSpent &&
-            roll.skillName
-          ) {
+          if (roll.passedRequirement && !roll.luckSpent && roll.skillName) {
             updated = markSkillForImprovement(updated, roll.skillName);
           }
           if (updated !== c) charMgmt.handleUpdateCharacter(updated);

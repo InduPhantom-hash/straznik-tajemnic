@@ -104,3 +104,31 @@ Branch: codex/duet-catalog-integration
 - Pierwszy wynik wspólnej grupy testów zostaje lokalnie, a komplet trafia do MG w jednej wiadomości.
 - Istniejąca paczka ZIP nie wchodzi do commitu.
 - Branch pozostaje niescalony do czasu ukończenia etapu 2 i końcowej weryfikacji.
+
+---
+
+## Podsumowanie sesji: 2026-07-17 (duet - etapy 2 i 3)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Ukończono etapy 2 i 3 obsługi duetu.
+- Zweryfikowano biografie wszystkich 26 gotowych badaczy.
+- Rozbudowano ich wyposażenie do minimum 6 przedmiotów z lokalnymi grafikami SVG.
+- Dodano wspólny Dziennik Przygody z deduplikacją, synchronizacją i izolacją wpisów między przygodami.
+- Naprawiono reset wyniku rzutu po wydaniu Szczęścia.
+- Dodano czyszczenie niedokończonych deklaracji przy nowej przygodzie, zmianie duetu i wczytaniu zapisu.
+- Przeprowadzono review i usunięto wszystkie problemy krytyczne oraz wymagane ostrzeżenia.
+- Zweryfikowano 39/39 testów, TypeScript, build 61 stron i playtest Chromium 1/1.
+- Przebudowano paczkę testową. SHA-256: `617afc8086fe5bafdf122f1e9c12204058e225cfc2be7742d8b48013b9e32d1d`.
+
+### Co otwarte
+- W4: integracyjny test dwóch adresowanych rzutów, Szczęścia i jednego żądania do MG.
+- W5: test dodawania, edycji i usuwania wpisów wspólnego dziennika.
+- Opcjonalnie później: mocniejsze E2E ładowania SVG i bezpośredni test przycisku `Pasuję`.
+
+### Decyzje podjęte
+- Skład sesji pochodzi wyłącznie z jawnych przypisań Hot Seat.
+- Wspólna tura trafia do MG dopiero po komplecie deklaracji lub rzutów.
+- Dziennik należy do konkretnego przebiegu przygody, ale zachowuje historię na kartach postaci.
+- Lokalny ekwipunek presetów nie korzysta z API.
+- W4 i W5 pozostają w planie następnej sesji.

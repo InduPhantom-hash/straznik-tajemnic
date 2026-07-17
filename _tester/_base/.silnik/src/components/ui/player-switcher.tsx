@@ -5,6 +5,22 @@ import { Button } from './button';
 import { HotSeatConfig, HotSeatPlayer } from '@/lib/types';
 import { Character } from '@/lib/types';
 
+const ADVENTURE_JOURNAL_ID_KEY = 'adventure_journal_id';
+
+function createAdventureJournalId(): string {
+  return `adventure_journal_${Date.now()}_${Math.random()
+    .toString(36)
+    .slice(2, 11)}`;
+}
+
+function getOrCreateAdventureJournalId(): string {
+  const existing = localStorage.getItem(ADVENTURE_JOURNAL_ID_KEY);
+  if (existing) return existing;
+  const created = createAdventureJournalId();
+  localStorage.setItem(ADVENTURE_JOURNAL_ID_KEY, created);
+  return created;
+}
+
 interface PlayerSwitcherProps {
   config: HotSeatConfig;
   characters: Character[];
@@ -118,6 +134,7 @@ export function useHotSeat(characters: Character[]) {
   // Inicjalizacja Hot Seat z 2 graczami (binding postaci to osobna faza - characterId pusty)
   const initHotSeat = useCallback(
     (player1Name: string, player2Name: string) => {
+      const adventureJournalId = getOrCreateAdventureJournalId();
       const players: HotSeatPlayer[] = [
         {
           id: `player_1_${Date.now()}`,
@@ -137,25 +154,19 @@ export function useHotSeat(characters: Character[]) {
         },
       ];
 
-      setConfig({
+      const nextConfig: HotSeatConfig = {
         enabled: true,
+        adventureJournalId,
         players,
         activePlayerIndex: 0,
         allowInterruptions: true,
         showPlayerIndicator: true,
-      });
+      };
+
+      setConfig(nextConfig);
 
       // Zapisz do localStorage
-      localStorage.setItem(
-        'hotSeatConfig',
-        JSON.stringify({
-          enabled: true,
-          players,
-          activePlayerIndex: 0,
-          allowInterruptions: true,
-          showPlayerIndicator: true,
-        })
-      );
+      localStorage.setItem('hotSeatConfig', JSON.stringify(nextConfig));
 
       console.log('🎮 Hot Seat mode enabled with 2 players');
     },
@@ -245,6 +256,7 @@ export function useHotSeat(characters: Character[]) {
         configRef.current = disabled;
         setConfig(disabled);
         localStorage.removeItem('hotSeatConfig');
+        localStorage.removeItem(ADVENTURE_JOURNAL_ID_KEY);
         return false;
       };
 
@@ -260,8 +272,11 @@ export function useHotSeat(characters: Character[]) {
       if (!allValid || !allDistinct) return rejectRestore();
 
       const activePlayerIndex = savedConfig.activePlayerIndex === 1 ? 1 : 0;
+      const adventureJournalId =
+        savedConfig.adventureJournalId ?? createAdventureJournalId();
       const restored: HotSeatConfig = {
         ...savedConfig,
+        adventureJournalId,
         activePlayerIndex,
         players: savedConfig.players.map((player, index) => ({
           ...player,
@@ -272,6 +287,7 @@ export function useHotSeat(characters: Character[]) {
       configRef.current = restored;
       setConfig(restored);
       localStorage.setItem('hotSeatConfig', JSON.stringify(restored));
+      localStorage.setItem(ADVENTURE_JOURNAL_ID_KEY, adventureJournalId);
       return true;
     },
     []
@@ -284,7 +300,14 @@ export function useHotSeat(characters: Character[]) {
       try {
         const parsed = JSON.parse(saved);
         if (parsed.enabled && parsed.players?.length >= 2) {
-          setConfig(parsed);
+          const restored: HotSeatConfig = {
+            ...parsed,
+            adventureJournalId:
+              parsed.adventureJournalId ?? getOrCreateAdventureJournalId(),
+          };
+          configRef.current = restored;
+          setConfig(restored);
+          localStorage.setItem('hotSeatConfig', JSON.stringify(restored));
           console.log('🎮 Restored Hot Seat config from localStorage');
         }
       } catch (e) {

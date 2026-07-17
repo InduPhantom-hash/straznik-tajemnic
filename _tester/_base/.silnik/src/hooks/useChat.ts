@@ -839,6 +839,18 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const isDuet =
     !!hotSeatConfig?.enabled && (hotSeatConfig?.players?.length ?? 0) >= 2;
 
+  const declarationSessionKey = hotSeatConfig?.enabled
+    ? `${hotSeatConfig.adventureJournalId ?? 'legacy'}:${hotSeatConfig.players
+        .map((player) => player.id)
+        .join('|')}`
+    : 'solo';
+
+  // Deklaracje należą wyłącznie do bieżącego składu i przebiegu przygody.
+  // Zmiana save'u, pary albo wyłączenie Hot Seat usuwa niedokończoną turę.
+  useEffect(() => {
+    setPendingDeclarations([]);
+  }, [declarationSessionKey]);
+
   // Aktualny gracz (czyja kolej deklarować) = aktywny indeks Hot Seat.
   const currentPlayer = isDuet
     ? (hotSeatConfig!.players[hotSeatConfig!.activePlayerIndex] ?? null)
@@ -902,11 +914,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     const composed = composeTurnFromDeclarations(pendingDeclarations);
     setPendingDeclarations([]);
     void handleSendMessage(composed);
-  }, [
-    pendingDeclarations,
-    handleSendMessage,
-    hotSeatConfig?.players,
-  ]);
+  }, [pendingDeclarations, handleSendMessage, hotSeatConfig?.players]);
 
   // Gracze, którzy jeszcze nie zadeklarowali w tej turze (podpowiedź w UI).
   const playersAwaitingDeclaration = isDuet
@@ -917,10 +925,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         .map((p) => ({ id: p.id, name: p.name }))
     : [];
   const turnReady = isDuet
-    ? isTurnReady(
-        pendingDeclarations,
-        hotSeatConfig?.players ?? []
-      )
+    ? isTurnReady(pendingDeclarations, hotSeatConfig?.players ?? [])
     : false;
 
   const handleKeyPress = useCallback(

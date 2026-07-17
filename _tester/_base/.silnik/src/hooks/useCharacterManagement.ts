@@ -41,7 +41,7 @@ export function useCharacterManagement(): UseCharacterManagementReturn {
   const handleCharacterSwitch = useCallback(
     (character: Character) => {
       const now = new Date();
-      
+
       // Wyznaczamy nową listę postaci w jednym przejściu map
       const updatedCharacters = characters.map((char) => {
         if (char.id === character.id) {
@@ -54,7 +54,9 @@ export function useCharacterManagement(): UseCharacterManagementReturn {
       });
 
       // Wyznaczamy konkretną wybraną postać (bierzemy ze zaktualizowanej listy)
-      const targetCharacter = updatedCharacters.find((c) => c.id === character.id) || {
+      const targetCharacter = updatedCharacters.find(
+        (c) => c.id === character.id
+      ) || {
         ...character,
         isActive: true,
         lastUsed: now,
@@ -105,17 +107,19 @@ export function useCharacterManagement(): UseCharacterManagementReturn {
   const handleCharactersChange = useCallback(
     (newCharacters: Character[]) => {
       setCharacters(newCharacters);
-      // Sprawdź czy aktywna postać nadal istnieje
-      if (
-        activeCharacter &&
-        !newCharacters.find((char) => char.id === activeCharacter.id)
-      ) {
-        setActiveCharacter(null);
-        setActiveGameState((prev) => ({
-          ...prev,
-          currentCharacter: null,
-        }));
-      }
+      const updatedActive = activeCharacter
+        ? (newCharacters.find((char) => char.id === activeCharacter.id) ?? null)
+        : null;
+      setActiveCharacter(updatedActive);
+      setActiveGameState((prev) => ({
+        ...prev,
+        currentCharacter: prev.currentCharacter
+          ? (newCharacters.find(
+              (character) => character.id === prev.currentCharacter?.id
+            ) ?? null)
+          : null,
+      }));
+      persistCharacters(newCharacters);
     },
     [activeCharacter]
   );

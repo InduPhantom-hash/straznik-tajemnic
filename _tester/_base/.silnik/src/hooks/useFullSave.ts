@@ -50,6 +50,7 @@ interface UseFullSaveOptions {
     config: HotSeatConfig | undefined,
     characters: Character[]
   ) => boolean;
+  clearDeclarations?: () => void;
 }
 
 export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
@@ -63,6 +64,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
     setAiSettings,
     stopCurrentAudio,
     restoreHotSeatConfig,
+    clearDeclarations,
   } = options;
 
   const [showFullSaveModal, setShowFullSaveModal] = useState(false);
@@ -72,6 +74,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
   const handleLoadFullSave = useCallback(
     (save: FullGameSave) => {
       try {
+        clearDeclarations?.();
         // Wczytaj wiadomości
         const loadedMessages: Message[] = save.messages.map((msg, idx) => ({
           id: `loaded_${idx}`,
@@ -163,6 +166,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       setActiveGameState,
       setAiSettings,
       restoreHotSeatConfig,
+      clearDeclarations,
     ]
   );
 
@@ -172,6 +176,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         'Czy na pewno chcesz rozpocząć nową grę? Wszystkie niezapisane dane zostaną utracone.'
       )
     ) {
+      clearDeclarations?.();
       // Wyczyść wiadomości
       setMessages([]);
 
@@ -202,7 +207,13 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       };
       setMessages([welcomeMessage]);
     }
-  }, [setMessages, setPdfMemory, setActiveGameState, stopCurrentAudio]);
+  }, [
+    clearDeclarations,
+    setMessages,
+    setPdfMemory,
+    setActiveGameState,
+    stopCurrentAudio,
+  ]);
 
   return {
     showFullSaveModal,

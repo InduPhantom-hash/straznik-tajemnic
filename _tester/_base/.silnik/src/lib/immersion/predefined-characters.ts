@@ -1,4 +1,5 @@
 import { Character } from '@/lib/types';
+import { buildPredefinedEquipment } from './predefined-equipment';
 
 export type PredefinedCharacterEra = 'gaslight' | 'classic' | 'modern';
 export type PredefinedCharacterArchetype =
@@ -14,7 +15,7 @@ export interface PredefinedCharacter extends Character {
 }
 
 // Baza 24 predefiniowanych postaci zbalansowanych pod mechanikę CoC 7e (3 ery x 4 archetypy x 2 płcie = 24 postacie)
-export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
+const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
   // ERA: LATA 90. XIX WIEKU (1890s / Gaslight) - 8 POSTACI
   // ==========================================================================
@@ -1766,6 +1767,12 @@ export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     ],
   },
 ];
+
+export const PREDEFINED_CHARACTERS: PredefinedCharacter[] =
+  BASE_PREDEFINED_CHARACTERS.map((character) => ({
+    ...character,
+    equipment: buildPredefinedEquipment(character),
+  }));
 
 export function getPredefinedCharactersByEra(
   era: string
