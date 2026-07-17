@@ -83,6 +83,7 @@ export function ReplicateSettings({
           </label>
           <input
             type="password"
+            autoComplete="new-password"
             value={settings.replicateApiKey || ''}
             onChange={(e) =>
               setSettings({ ...settings, replicateApiKey: e.target.value })

@@ -73,6 +73,7 @@ export function HeaderSection({
           </label>
           <input
             type="password"
+            autoComplete="new-password"
             value={settings.geminiApiKey || ''}
             onChange={(e) =>
               setSettings({ ...settings, geminiApiKey: e.target.value })

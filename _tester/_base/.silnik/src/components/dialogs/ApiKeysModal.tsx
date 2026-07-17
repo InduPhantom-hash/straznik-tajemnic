@@ -187,6 +187,7 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
                 <Input
                   id={config.key}
                   type={showKeys[config.key] ? 'text' : 'password'}
+                  autoComplete="new-password"
                   value={keys[config.key] || ''}
                   onChange={(e) => handleChange(config.key, e.target.value)}
                   placeholder={`Wprowadź ${config.label}...`}

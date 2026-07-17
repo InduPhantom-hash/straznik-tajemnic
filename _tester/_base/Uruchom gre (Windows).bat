@@ -64,7 +64,7 @@ if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set "CHROME=
 if exist "%LocalAppData%\Google\Chrome\Application\chrome.exe" set "CHROME=%LocalAppData%\Google\Chrome\Application\chrome.exe"
 
 if defined CHROME (
-  start "" "!CHROME!" --app=%URL% --user-data-dir="%PROFILE%" --no-first-run --no-default-browser-check
+  start "" "!CHROME!" --app=%URL% --start-fullscreen --user-data-dir="%PROFILE%" --no-first-run --no-default-browser-check
 ) else (
   start "" %URL%
 )

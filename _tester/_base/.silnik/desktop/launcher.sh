@@ -48,6 +48,19 @@ mkdir -p "$RUNTIME_DIR" "$PROFILE_DIR"
 cd "$APP_DIR" || { echo "$(date) BLAD: brak katalogu $APP_DIR" >>"$LOG"; exit 1; }
 rm -f "$COLD_START_FLAG"
 
+# Chrome nie ma pytać o zapisywanie haseł w profilu launchera.
+CHROME_PREFS="$PROFILE_DIR/Default/Preferences"
+node -e '
+const fs = require("fs");
+const path = process.argv[1];
+let prefs = {};
+try { prefs = JSON.parse(fs.readFileSync(path, "utf8")); } catch (_) {}
+prefs.credentials_enable_service = false;
+prefs.profile = { ...(prefs.profile || {}), password_manager_enabled: false };
+fs.mkdirSync(require("path").dirname(path), { recursive: true });
+fs.writeFileSync(path, JSON.stringify(prefs));
+' "$CHROME_PREFS"
+
 echo "=== $(date) launcher start (port $PORT) ===" >>"$LOG"
 
 # --- 1. Zapewnij serwer ---
@@ -85,6 +98,7 @@ fi
 if [ -x "$CHROME" ]; then
   open -na "Google Chrome" --args \
     --app="$URL" \
+    --start-fullscreen \
     --user-data-dir="$PROFILE_DIR" \
     --no-first-run --no-default-browser-check >>"$LOG" 2>&1
 else

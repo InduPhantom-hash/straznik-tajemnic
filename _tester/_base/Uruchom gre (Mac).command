@@ -65,7 +65,7 @@ for _ in $(seq 1 200); do curl -sf "$URL" >/dev/null 2>&1 && break; sleep 0.3; d
 
 osascript -e 'display notification "Gra gotowa - otwieram okno." with title "Mój Strażnik Tajemnic"' >/dev/null 2>&1
 if [ -x "$CHROME" ]; then
-  open -na "Google Chrome" --args --app="$URL" --user-data-dir="$PROFILE" --no-first-run --no-default-browser-check
+  open -na "Google Chrome" --args --app="$URL" --start-fullscreen --user-data-dir="$PROFILE" --no-first-run --no-default-browser-check
 else
   echo "(Brak Google Chrome - otwieram w domyślnej przeglądarce.)"
   open "$URL"

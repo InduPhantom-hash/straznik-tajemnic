@@ -73,6 +73,7 @@ export function StepGeminiKey({ onNext }: StepGeminiKeyProps) {
       <div className="relative">
         <Input
           type={show ? 'text' : 'password'}
+          autoComplete="new-password"
           value={apiKey}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Wklej klucz Google Gemini..."
