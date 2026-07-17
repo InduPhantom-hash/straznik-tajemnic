@@ -132,3 +132,8 @@ Branch: codex/duet-catalog-integration
 - Dziennik należy do konkretnego przebiegu przygody, ale zachowuje historię na kartach postaci.
 - Lokalny ekwipunek presetów nie korzysta z API.
 - W4 i W5 pozostają w planie następnej sesji.
+
+### Doprecyzowanie przy zamknięciu
+- Linear jest nieaktualny i nie może być źródłem prawdy dla dalszej pracy. Nie wykonano żadnych zmian w Linear; tracker wymaga osobnego odświeżenia od zera.
+- Produkt będzie obsługiwał wyłącznie grę solo i w duecie. Tryb 3-4 graczy nie wchodzi do zakresu.
+- Następna sesja zaczyna się od ręcznego testu zmian przez użytkownika. Branch pozostaje niescalony z `main`.

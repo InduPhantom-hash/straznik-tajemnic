@@ -87,8 +87,10 @@
 - W duecie odpowiedź MG powstaje dopiero po dwóch deklaracjach albo komplecie wymaganych rzutów.
 - Dziennik jest wspólny dla przygody, a stare wpisy postaci będą scalane bez duplikatów.
 - Gotowe postacie korzystają z lokalnych obrazów wyposażenia bez API.
+- Docelowy zakres produktu to gra solo lub w duecie. Tryb 3-4 graczy nie będzie rozwijany.
 
 ## Plan po review `dev-5`
 
 - [ ] W4: dodać test integracyjny dwóch adresowanych rzutów w duecie. Test ma przejść przez `ChatWindow` i `RollTestModal`, potwierdzić wydanie Szczęścia, wpisy do właściwych kart, oznaczenie rozwoju oraz dokładnie jedno żądanie do MG po drugim rzucie.
 - [ ] W5: dodać test mutacji wspólnego Dziennika Przygody. Test ma objąć dodanie, edycję i usunięcie wpisu, jednakowy zapis u obu uczestników oraz brak zmian na trzeciej karcie spoza przygody.
+- [ ] Następna sesja: ręczny test zmian przez użytkownika przed dalszym scalaniem lub publikacją.
