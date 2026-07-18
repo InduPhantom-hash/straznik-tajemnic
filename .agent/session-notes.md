@@ -43,3 +43,22 @@ Branch: main
 
 ### Decyzje podjęte
 - Zastosowano pozycjonowanie `items-start` na flex-overlay modalu w celu umożliwienia prawidłowego przewijania elementów o wysokości większej niż wysokość ekranu (viewport).
+
+## Podsumowanie sesji: 2026-07-18 (Sesja 4)
+Branch: feature/duet-starting-prompt
+
+### Co zrobiono
+- **Miniatury ekwipunku (Faza 1)**: Zamieniono generyczny placeholder `◆` na ikony kategorii Lucide (`Sword`, `Shield`, `Wrench`, `FileText`, `Sparkles`, `User`, `HeartPulse`, `Flame`, `Package`) w `equipment-modal.tsx` i `sheet-equipment.tsx`. Nowy styl: `bg-gradient-to-br from-[#1c1712] to-[#0f0b07]`, `border-brass/30`, `shadow-md`, `text-brass/70`. W modalu ekwipunku hover odsłania nakładkę "Generuj".
+- **Widok szczegółowy (Faza 3)**: W `equipment-detail-dialog.tsx` zmieniono proporcje obrazu na `aspect-square`, tryb na `object-cover`, dodano wewnętrzną ramkę art deco (`border-brass/25`) i zwiększono max-h do 380px.
+- **Naprawa testów (Faza 4)**: Poprawiono 3 czerwone testy:
+  - `predefined-characters.test.ts`: asercja długości rosteru 26 → 30.
+  - `sheet-biography.test.tsx`: fixture na minimalny obiekt testowy trafiający w fallback "Tło Postaci".
+  - `onboarding-buttons.test.tsx`: etykieta "Gotowa" → "Wybierz".
+- **Wynik**: 18/18 suites, 41/41 tests passed.
+
+### Co otwarte
+- Brak - plan inventory-ui-plan.md w pełni zrealizowany.
+
+### Decyzje podjęte
+- Ikony kategorii jako komponent `CategoryIcon` (switch po category string) - reużywalna funkcja w obu plikach.
+- W sheet-equipment.tsx placeholder jest czysto prezentacyjny (bez generowania) - dlatego brak nakładki hover "Generuj" (to robi modal/hook).

@@ -51,7 +51,7 @@ describe('OnboardingButtons - duet', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Stwórz' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Gotowa' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Wybierz' }));
     fireEvent.click(screen.getByRole('button', { name: 'Katalog' }));
 
     expect(baseProps.onCreateCharacter).toHaveBeenCalledWith('Aga');

@@ -18,6 +18,41 @@ import {
   inferWeaponSkill,
   isMeleeWeapon,
 } from '@/lib/combat/weapon-context';
+import {
+  Package,
+  Sword,
+  Shield,
+  Wrench,
+  FileText,
+  Sparkles,
+  User,
+  HeartPulse,
+  Flame,
+} from 'lucide-react';
+
+/** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
+function CategoryIcon({ category, className }: { category: string; className?: string }) {
+  switch (category) {
+    case 'weapon':
+      return <Sword className={className} />;
+    case 'armor':
+      return <Shield className={className} />;
+    case 'tool':
+      return <Wrench className={className} />;
+    case 'document':
+      return <FileText className={className} />;
+    case 'artifact':
+      return <Sparkles className={className} />;
+    case 'personal':
+      return <User className={className} />;
+    case 'medical':
+      return <HeartPulse className={className} />;
+    case 'occult':
+      return <Flame className={className} />;
+    default:
+      return <Package className={className} />;
+  }
+}
 
 export interface SheetEquipmentProps {
   character: Character;
@@ -32,7 +67,7 @@ export interface SheetEquipmentProps {
  */
 function ItemThumbnail({ item }: { item: EquipmentItem }) {
   return (
-    <div className="flex-none w-20 h-20 border border-brass/35 bg-gradient-to-br from-[#1a140f] to-[#0d0a07] overflow-hidden flex items-center justify-center relative shadow-inner rounded-sm transition-colors hover:border-brass/60">
+    <div className="flex-none w-20 h-20 border border-brass/30 bg-gradient-to-br from-[#1c1712] to-[#0f0b07] overflow-hidden flex items-center justify-center relative shadow-md rounded-sm transition-colors hover:border-brass/50">
       {item.imageUrl && !item.imageUrl.endsWith('.svg') ? (
         <img
           src={item.imageUrl}
@@ -40,8 +75,8 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="flex items-center justify-center w-full h-full">
-          <span className="text-brass/25 text-lg animate-pulse">◆</span>
+        <div className="flex items-center justify-center w-full h-full text-brass/70">
+          <CategoryIcon category={item.category} className="w-6 h-6" />
         </div>
       )}
     </div>

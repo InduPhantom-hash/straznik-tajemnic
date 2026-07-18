@@ -8,7 +8,7 @@ import {
 } from './dialog';
 import { Button } from './button';
 import { Input } from './input';
-import { Package, Search, Loader2 } from 'lucide-react';
+import { Package, Search, Loader2, Sword, Shield, Wrench, FileText, Sparkles, User, HeartPulse, Flame } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
@@ -409,6 +409,30 @@ interface ItemCardProps {
 
 
 
+/** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
+function CategoryIcon({ category, className }: { category: string; className?: string }) {
+  switch (category) {
+    case 'weapon':
+      return <Sword className={className} />;
+    case 'armor':
+      return <Shield className={className} />;
+    case 'tool':
+      return <Wrench className={className} />;
+    case 'document':
+      return <FileText className={className} />;
+    case 'artifact':
+      return <Sparkles className={className} />;
+    case 'personal':
+      return <User className={className} />;
+    case 'medical':
+      return <HeartPulse className={className} />;
+    case 'occult':
+      return <Flame className={className} />;
+    default:
+      return <Package className={className} />;
+  }
+}
+
 /** Mała ikona miniatury obrazu (generowanie / podgląd) - wspólna dla broni i wyposażenia. */
 function ItemThumbnail({
   item,
@@ -422,10 +446,11 @@ function ItemThumbnail({
   size: 'sm' | 'md';
 }) {
   const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
+  const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
 
   return (
     <div
-      className={`flex-none ${box} border border-brass/35 bg-gradient-to-br from-[#1a140f] to-[#0d0a07] overflow-hidden flex items-center justify-center relative shadow-inner group`}
+      className={`flex-none ${box} border border-brass/30 bg-gradient-to-br from-[#1c1712] to-[#0f0b07] overflow-hidden flex items-center justify-center relative shadow-md group rounded-sm`}
     >
       {item.imageUrl ? (
         <>
@@ -465,14 +490,19 @@ function ItemThumbnail({
           }}
           disabled={generatingImage === item.id}
           title="Wygeneruj ilustrację przedmiotu"
-          className="w-full h-full p-0 text-brass/45 hover:text-brass flex items-center justify-center"
+          className="w-full h-full p-0 flex items-center justify-center"
         >
           {generatingImage === item.id ? (
             <Loader2 className="w-7 h-7 animate-spin text-brass" />
           ) : (
-            <div className="flex flex-col items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-              <span className="text-brass/30 text-xl">◆</span>
-              <span className="text-[8px] text-brass/30 uppercase tracking-widest font-special-elite">Generuj</span>
+            <div className="relative w-full h-full flex items-center justify-center">
+              <div className="text-brass/70 transition-opacity group-hover:opacity-0 flex items-center justify-center w-full h-full">
+                <CategoryIcon category={item.category} className={iconSize} />
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                <span className="text-brass/70 text-sm">◆</span>
+                <span className="text-[8px] text-brass/70 uppercase tracking-widest font-special-elite">Generuj</span>
+              </div>
             </div>
           )}
         </Button>

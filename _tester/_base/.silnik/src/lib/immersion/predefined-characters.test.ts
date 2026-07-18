@@ -4,7 +4,7 @@ import { PREDEFINED_CHARACTERS } from './predefined-characters';
 
 describe('PREDEFINED_CHARACTERS', () => {
   it('zapewnia każdemu badaczowi pełną biografię i rozbudowany ekwipunek', () => {
-    expect(PREDEFINED_CHARACTERS).toHaveLength(26);
+    expect(PREDEFINED_CHARACTERS).toHaveLength(30);
 
     PREDEFINED_CHARACTERS.forEach((character) => {
       expect(character.background.trim().length).toBeGreaterThan(40);

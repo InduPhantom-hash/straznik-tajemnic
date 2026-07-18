@@ -77,14 +77,15 @@ export function EquipmentDetailDialog({ item, onClose }: EquipmentDetailDialogPr
           </Button>
         </div>
         {item.imageUrl && (
-          <div className="relative w-full aspect-[4/3] max-h-[40vh] border-2 border-brass/40 bg-black/60 mb-5 overflow-hidden shadow-2xl rounded-sm">
+          <div className="relative w-full aspect-square max-h-[380px] border-2 border-brass/40 bg-[#0d0a07] mb-5 overflow-hidden shadow-2xl rounded-none">
             {/* eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) z generatora */}
             <img
               src={item.imageUrl}
               alt={item.name}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 pointer-events-none border border-black/40" />
+            <div className="absolute inset-2 pointer-events-none border border-brass/25" />
+            <div className="absolute inset-0 pointer-events-none border border-black/80" />
           </div>
         )}
         {item.description && (
