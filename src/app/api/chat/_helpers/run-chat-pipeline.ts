@@ -73,6 +73,7 @@ export async function runChatPipeline({
   const {
     message,
     character,
+    characters = [],
     messages,
     pdfMemory,
     npcs,
@@ -86,6 +87,7 @@ export async function runChatPipeline({
   } = body as {
     message: string;
     character?: Character | null;
+    characters?: Character[];
     messages?: Message[];
     pdfMemory?: PdfMemoryAttachments | null;
     npcs?: NpcContextEntry[];
@@ -245,6 +247,8 @@ export async function runChatPipeline({
     playerWeaponsSection: buildPlayerWeaponContext(character ?? null),
     // Lista umiejętności postaci → AI wzywa testy nazwami z karty (eliminuje Tackę 0%)
     playerSkillsSection: buildPlayerSkillsSection(character ?? null),
+    isGameStart,
+    characters,
   });
 
   // === PDF STRATEGY (OPT-01) === - IND-183 micro 4/5

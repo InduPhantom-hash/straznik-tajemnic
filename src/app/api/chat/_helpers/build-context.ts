@@ -84,6 +84,8 @@ export interface BuildAdditionalContextOpts {
   sessionRecapSection?: string | null;
   skipContext?: boolean;
   gameContextPrompt?: string;
+  isGameStart?: boolean;
+  characters?: Character[];
   npcs?: NpcContextEntry[];
   currentLocation?: string;
   hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
@@ -110,6 +112,8 @@ export function buildAdditionalContext(
     playerCharacterName,
     playerWeaponsSection,
     playerSkillsSection,
+    isGameStart,
+    characters,
   } = opts;
 
   const additionalContext: string[] = [timePromptSection];
@@ -184,17 +188,36 @@ export function buildAdditionalContext(
       const endingMarkers = characterNames
         .map((n) => `[Co robisz, @${n}?]`)
         .join(' oraz ');
-      additionalContext.push(
-        `\n## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT)\n` +
-          `W grze uczestniczą postacie: ${characterNames.join(', ')}\n` +
-          `Sceny wspólne (świat, wydarzenia, scena dla obu) opisuj BEZ tagu - są dla wszystkich.\n` +
-          `Kwestie i akcje kierowane do JEDNEJ postaci poprzedzaj tagiem @ImięPostaci: (np. @${characterNames[0]}: ...).\n` +
-          `ZAKOŃCZENIE TURY w duecie: zamiast jednego [Co robisz?] zakończ pytaniem do KAŻDEJ postaci osobno: ${endingMarkers}. ` +
-          `Jeśli scena dotyczy tylko jednej z nich, jasno wskaż czyja kolej (np. [Co robisz, @${characterNames[0]}?]).\n` +
-          `PRZYPISANIE SKUTKÓW DO POSTACI: gdy utrata/odzysk SAN/HP albo wpis dziennika dotyczy KONKRETNEJ postaci, dodaj jej imię prefiksem @Imię w tagu: ` +
-          `\`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`. ` +
-          `Bez prefiksu @Imię skutek trafia do postaci AKTYWNEJ - więc ZAWSZE oznaczaj właściciela, gdy zmiana dotyczy postaci innej niż aktualnie grająca.`
-      );
+      
+      let duetContext = `\n## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT)\n` +
+        `W grze uczestniczą postacie: ${characterNames.join(', ')}\n` +
+        `Sceny wspólne (świat, wydarzenia, scena dla obu) opisuj BEZ tagu - są dla wszystkich.\n` +
+        `Kwestie i akcje kierowane do JEDNEJ postaci poprzedzaj tagiem @ImięPostaci: (np. @${characterNames[0]}: ...).\n` +
+        `ZAKOŃCZENIE TURY w duecie: zamiast jednego [Co robisz?] zakończ pytaniem do KAŻDEJ postaci osobno: ${endingMarkers}. ` +
+        `Jeśli scena dotyczy tylko jednej z nich, jasno wskaż czyja kolej (np. [Co robisz, @${characterNames[0]}?]).\n` +
+        `PRZYPISANIE SKUTKÓW DO POSTACI: gdy utrata/odzysk SAN/HP albo wpis dziennika dotyczy KONKRETNEJ postaci, dodaj jej imię prefiksem @Imię w tagu: ` +
+        `\`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`. ` +
+        `Bez prefiksu @Imię skutek trafia do postaci AKTYWNEJ - więc ZAWSZE oznaczaj właściciela, gdy zmiana dotyczy postaci innej niż aktualnie grająca.\n`;
+
+      if (isGameStart && characters && characters.length >= 2) {
+        duetContext += `\n### WPROWADZENIE DLA DUETU (ROZPOCZĘCIE GRY)\n` +
+          `Otwierasz grę dla dwójki graczy. Twoja pierwsza tura musi nakreślić wspólny początek z myślą o obu postaciach:\n` +
+          `1. Opisz, jak postacie się tam znalazły, dlaczego podróżują/działają razem, co je łączy i jak doszło do ich spotkania.\n` +
+          `2. Zwróć się bezpośrednio do obu postaci jednocześnie, nawiązując do ich unikalnego tła i historii z kart postaci.\n\n` +
+          `Dane bohaterów do zarysowania relacji i spotkania:\n`;
+        
+        characters.forEach((char) => {
+          duetContext += `- **${char.name}** (${char.occupation}): ${char.background || ''}\n` +
+            `  * Koncept: ${char.characterConcept || ''}\n` +
+            `  * Osobowość i Cechy: ${(char.traits || []).join(', ')}. ${char.personality || ''}\n` +
+            `  * Kluczowa osoba: ${char.significantPerson || ''}\n` +
+            `  * Ważne miejsce: ${char.meaningfulLocation || ''}\n` +
+            `  * Cenne posiadanie: ${char.treasuredPossession || ''}\n` +
+            `  * Historia: ${char.backstory || ''}\n`;
+        });
+      }
+
+      additionalContext.push(duetContext);
     }
   }
 
