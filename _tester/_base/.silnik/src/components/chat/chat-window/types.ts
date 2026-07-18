@@ -89,4 +89,5 @@ export interface ChatWindowProps {
   currentPlayerName?: string;
   isTurnReady?: boolean;
   onSendTurn?: () => void;
+  onOpenCharacterSheet?: (character: Character) => void;
 }

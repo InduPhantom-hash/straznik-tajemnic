@@ -115,6 +115,8 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   hasSavedCharacters = false,
   isDuet = false,
   duetCharacterSlots = [],
+  onOpenCharacterSheet,
+  characters = [],
 }) => {
   const [quote] = useState(
     () => WELCOME_QUOTES[Math.floor(Math.random() * WELCOME_QUOTES.length)]
@@ -238,6 +240,8 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           hasSavedCharacters={hasSavedCharacters}
           isDuet={isDuet}
           duetCharacterSlots={duetCharacterSlots}
+          onOpenCharacterSheet={onOpenCharacterSheet}
+          characters={characters}
         />
 
         {/* dolne linki (wczytaj / klucze / zimny start) */}

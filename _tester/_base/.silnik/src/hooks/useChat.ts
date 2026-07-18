@@ -556,6 +556,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             // Sanityzuj też postać: portret + miniatury ekwipunku to base64 (~MB),
             // które bez tego podbijają payload > 10 MB → 500 (regresja B2 28.06).
             character: sanitizeCharacterForApi(activeCharacter),
+            characters: (characters || []).map((c) => sanitizeCharacterForApi(c) as Character),
             adventureContext,
             gameTime: timeManager.getTime(),
             // IND-267: bieżąca lokacja (z poprzedniej tury) → build-context.ts wstrzykuje

@@ -77,7 +77,8 @@ const DialogContent = forwardRef<
       ) : (
         children
       )}
-      <DialogPrimitive.Close className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-brass/30 bg-card/85 text-muted-foreground opacity-95 shadow-sm ring-offset-background backdrop-blur-sm transition-all hover:border-brass/60 hover:text-brass hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+
+      <DialogPrimitive.Close className="absolute right-4 top-4 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-brass/35 bg-[#120f0c] text-muted-foreground opacity-95 shadow-lg ring-offset-background backdrop-blur-sm transition-all hover:border-brass/70 hover:text-brass hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
         <X className="h-5 w-5" />
         <span className="sr-only">Zamknij</span>
       </DialogPrimitive.Close>

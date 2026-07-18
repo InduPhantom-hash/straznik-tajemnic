@@ -73,6 +73,7 @@ export async function runChatPipeline({
   const {
     message,
     character,
+    characters = [],
     messages,
     pdfMemory,
     npcs,
@@ -86,6 +87,7 @@ export async function runChatPipeline({
   } = body as {
     message: string;
     character?: Character | null;
+    characters?: Character[];
     messages?: Message[];
     pdfMemory?: PdfMemoryAttachments | null;
     npcs?: NpcContextEntry[];

@@ -159,3 +159,21 @@ Branch: codex/duet-catalog-integration
 - Testy używają rzeczywistych komponentów oraz produkcyjnych helperów.
 - Kod produkcyjny nie wymagał zmian.
 - W4 i W5 są ukończone.
+
+---
+
+## Podsumowanie sesji: 2026-07-18
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Usunięto żółtą ramkę oraz narożniki ze skryptu generowania ikony `make-icon.sh` (w katalogu głównym oraz w katalogu silnika).
+- Wyśrodkowano w pionie symbol Oka Horusa (`𓂀`) za pomocą `transform: translateY(-4cqmin)` w szablonie HTML ikony.
+- Wygenerowano na nowo pliki PNG i ICNS (wersje standardowa i reset).
+- Zaktualizowano wszystkie kopie ikon w `public/app-icon.png`, `_tester/_base/.silnik/public/app-icon.png` oraz w folderach deweloperskich.
+- Przebudowano aplikację `Straznik Tajemnic AI.app` na biurku, aby zastosować nową ikonę w systemie macOS.
+
+### Co otwarte (do następnej sesji)
+- Dalsza integracja katalogu Duet (zgodnie z bieżącym watkiem gałęzi `codex/duet-catalog-integration`).
+
+### Decyzje podjęte
+- Usunięcie ozdobnej żółtej ramki z obu wariantów ikony (standardowej oraz reset/czerwonej).

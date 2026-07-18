@@ -21,6 +21,7 @@ import { appendRollToJournal } from '@/lib/journal/build-roll-entry';
 import { useFirstRun } from '@/hooks/useFirstRun';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { CthulhuSidebar } from '@/components/sidebar/CthulhuSidebar';
+import { CharacterSheet } from '@/components/ui/character-sheet';
 import { APIUsageCounter } from '@/components/ui/api-usage-counter';
 import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
@@ -158,6 +159,7 @@ export default function Home() {
     charMgmt.handleUpdateCharacter
   );
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
+  const [sheetCharacter, setSheetCharacter] = useState<Character | null>(null);
 
   // IND-246: Hot Seat przed useChat - useChat wysyła hotSeat.config do /api/chat.
   const hotSeat = useHotSeat(charMgmt.characters);
@@ -795,6 +797,8 @@ export default function Home() {
           onUploadAdventure={customAdventures.uploadAdventure}
           onDeleteAdventure={customAdventures.deleteAdventure}
           isUploadingAdventure={customAdventures.isLoading}
+          uploadProgressAdventure={customAdventures.uploadProgress}
+          loadingStatusAdventure={customAdventures.loadingStatus}
           hotSeatConfig={hotSeat.config}
           onSwitchPlayer={handleSwitchPlayer}
           onDisableHotSeat={hotSeat.disableHotSeat}
@@ -875,6 +879,8 @@ export default function Home() {
               onClose={() => setShowDevelopmentModal(false)}
               character={charMgmt.activeCharacter}
               onCharacterUpdate={charMgmt.handleUpdateCharacter}
+              characters={charMgmt.characters}
+              onActiveCharacterChange={charMgmt.handleSelectCharacter}
             />
           )}
 
@@ -886,6 +892,20 @@ export default function Home() {
             onStartHotSeat={hotSeat.initHotSeat}
             onChooseSolo={handleChooseSolo}
           />
+
+          {sheetCharacter && (
+            <CharacterSheet
+              open={!!sheetCharacter}
+              onOpenChange={(open) => !open && setSheetCharacter(null)}
+              character={sheetCharacter}
+              onCharacterUpdate={charMgmt.handleUpdateCharacter}
+              characters={charMgmt.characters}
+              onCharacterChange={(char) => {
+                charMgmt.handleCharacterSwitch(char);
+                setSheetCharacter(char);
+              }}
+            />
+          )}
 
           {/* C3: przełącznik graczy przeniesiony do CthulhuSidebar (osadzony
               między panelem postaci a przyciskami akcji). */}
@@ -954,6 +974,7 @@ export default function Home() {
           setShowPredefinedSelector(true);
         }}
         onPickCharacter={handlePickCharacterForDuet}
+        onOpenCharacterSheet={setSheetCharacter}
         onSummarizeScene={handleSummarizeScene}
         isSummarizingScene={isSummarizingScene}
         isLoading={chat.isLoading}

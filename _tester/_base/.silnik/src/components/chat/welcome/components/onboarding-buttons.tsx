@@ -11,6 +11,7 @@
 
 import type { FC } from 'react';
 import type { DuetCharacterSlot } from '../types';
+import type { Character } from '@/lib/types';
 
 /**
  * Beta (tryb testerów): krok "Wgraj zasady" ukryty. Zasady CoC 7e są już
@@ -45,6 +46,8 @@ interface OnboardingButtonsProps {
   /** #7: czy aktywny tryb duetu (Hot Seat 2 graczy). */
   isDuet?: boolean;
   duetCharacterSlots?: DuetCharacterSlot[];
+  onOpenCharacterSheet?: (character: Character) => void;
+  characters?: Character[];
 }
 
 type StepState = 'primary' | 'todo' | 'done' | 'locked';
@@ -98,6 +101,8 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
   hasSavedCharacters = false,
   isDuet = false,
   duetCharacterSlots = [],
+  onOpenCharacterSheet,
+  characters = [],
 }) => {
   // C1: krok "Wybierz postać" pokazujemy tylko gdy jest co wybierać.
   const showPickCharacter = !!onPickCharacter && hasSavedCharacters;
@@ -131,7 +136,7 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
       : 'todo';
 
   return (
-    <div className="flex flex-col gap-3 w-[min(340px,90vw)] z-20">
+    <div className="flex flex-col gap-3 w-[min(560px,90vw)] z-20">
       {SHOW_UPLOAD_RULES && (
         <StepButton
           num={rulesNum}
@@ -176,9 +181,17 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
               key={slot.playerId}
               className={`border p-3 text-left ${
                 slot.character
-                  ? 'border-primary/55 bg-primary/[0.06]'
+                  ? 'border-primary/55 bg-primary/[0.06] cursor-pointer hover:bg-primary/[0.12] transition-colors'
                   : 'border-brass/35 bg-brass/[0.03]'
               }`}
+              onClick={() => {
+                if (slot.character && onOpenCharacterSheet) {
+                  const fullChar = characters.find((c) => c.id === slot.character?.id);
+                  if (fullChar) {
+                    onOpenCharacterSheet(fullChar);
+                  }
+                }
+              }}
             >
               <div className="mb-2 flex items-center gap-3">
                 <div className="h-12 w-10 shrink-0 overflow-hidden border border-brass/30 bg-black/30">
@@ -212,7 +225,7 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
               <div className="mb-1 font-special-elite text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                 {slot.character ? 'Zmień postać' : 'Wybierz postać'}
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
                   onClick={() => onCreateCharacter(slot.playerName)}
@@ -226,7 +239,7 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
                   disabled={!onPickPredefinedCharacter}
                   className="border border-brass/35 px-2 py-1.5 font-special-elite text-[10px] uppercase text-brass hover:bg-brass/10 disabled:opacity-40"
                 >
-                  Gotowa
+                  Wybierz
                 </button>
                 <button
                   type="button"

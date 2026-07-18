@@ -73,6 +73,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   currentPlayerName,
   isTurnReady,
   onSendTurn,
+  onOpenCharacterSheet,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -223,6 +224,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               hasSavedCharacters={characters.length > 0}
               isDuet={!!hotSeatConfig?.enabled}
               duetCharacterSlots={duetCharacterSlots}
+              onOpenCharacterSheet={onOpenCharacterSheet}
+              characters={characters}
             />
           ) : (
             messages.map((message) => (

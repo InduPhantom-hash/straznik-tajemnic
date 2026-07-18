@@ -45,21 +45,15 @@ cat >"$WORK/icon.html" <<'HTML'
   .rays{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(201,162,39,.17) 0deg 1.6deg, transparent 1.6deg 9deg);}
   .bloom{position:absolute;inset:0;background:radial-gradient(30% 30% at 50% 50%, rgba(__GLOW_RGB__,.5), transparent 70%);}
   .vignette{position:absolute;inset:0;box-shadow:inset 0 0 20cqmin 7cqmin rgba(0,0,0,.72);}
-  .frame{position:absolute;inset:7%;border:1cqmin solid rgba(201,162,39,.45);}
-  .c{position:absolute;width:9%;height:9%;}
   .eye{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     font-family:'Noto Sans Egyptian Hieroglyphs',serif;font-size:48cqmin;line-height:1;color:__EYE_COLOR__;
-    text-shadow:0 0 7cqmin rgba(__GLOW_RGB__,.9), 0 0 18cqmin rgba(__GLOW_RGB__,.45);}
+    text-shadow:0 0 7cqmin rgba(__GLOW_RGB__,.9), 0 0 18cqmin rgba(__GLOW_RGB__,.45);
+    transform:translateY(-4cqmin);}
 </style></head>
 <body><div class="tile">
   <div class="rays"></div>
   <div class="bloom"></div>
   <div class="vignette"></div>
-  <div class="frame"></div>
-  <div class="c" style="left:7%;top:7%;border-top:1.6cqmin solid #c9a227;border-left:1.6cqmin solid #c9a227;"></div>
-  <div class="c" style="right:7%;top:7%;border-top:1.6cqmin solid #c9a227;border-right:1.6cqmin solid #c9a227;"></div>
-  <div class="c" style="left:7%;bottom:7%;border-bottom:1.6cqmin solid #c9a227;border-left:1.6cqmin solid #c9a227;"></div>
-  <div class="c" style="right:7%;bottom:7%;border-bottom:1.6cqmin solid #c9a227;border-right:1.6cqmin solid #c9a227;"></div>
   <div class="eye">&#77952;</div>
 </div></body></html>
 HTML

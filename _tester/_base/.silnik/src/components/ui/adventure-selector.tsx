@@ -79,13 +79,16 @@ export function AdventureSelector({
   const [customYearRange, setCustomYearRange] = useState('1920-1930');
   const [customDescription, setCustomDescription] = useState('');
 
-  const handleSelect = (adventure: AdventureContext) => {
-    if (adventure.isCustom && !adventure.pdfUrl) {
+  const handleSelect = (adventure: AdventureContext, openDetails = true) => {
+    if (adventure.id === 'custom-new') {
       // Własna przygoda bez PDF - pokaż formularz
       setShowCustomForm(true);
       setSelectedId(adventure.id);
     } else {
       setSelectedId(adventure.id);
+      if (openDetails) {
+        setDetailsAdventure(adventure);
+      }
     }
   };
 
@@ -615,7 +618,7 @@ export function AdventureSelector({
         adventure={detailsAdventure}
         open={!!detailsAdventure}
         onClose={() => setDetailsAdventure(null)}
-        onChoose={(adventure) => handleSelect(adventure)}
+        onChoose={(adventure) => handleSelect(adventure, false)}
       />
     </>
   );

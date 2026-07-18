@@ -440,13 +440,13 @@ export function SessionJournal({
         </div>
 
         {/* Zawartość zakładek */}
-        <div className="flex-1 flex overflow-hidden bg-[#e8dcce] text-[#2c1810]">
+        <div className="flex-1 flex overflow-hidden bg-[#18120c] text-[#e2d4c9]">
           {/* 1. SEKCJA MISJI */}
           {activeTab === 'quest' && (
             <div className="flex-1 flex overflow-hidden">
               {/* Lewa kolumna: Lista misji */}
-              <div className="w-1/3 border-r-2 border-[#d9cbb9] overflow-y-auto bg-[#decab4] p-4 space-y-4">
-                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#6b4c35] border-b border-[#c8b7a4] pb-1">
+              <div className="w-1/3 border-r-2 border-[#3a2518] overflow-y-auto bg-[#120905] p-4 space-y-4">
+                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#bfa15f] border-b border-[#3a2518] pb-1">
                   Aktywne przygody ({activeQuests.length})
                 </div>
                 <div className="space-y-1.5">
@@ -458,8 +458,8 @@ export function SessionJournal({
                         'w-full text-left p-3 rounded-md transition-all font-serif border',
                         selectedQuestId === quest.id ||
                           (!selectedQuestId && selectedQuest?.id === quest.id)
-                          ? 'bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                          : 'bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]'
+                          ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
+                          : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
                       )}
                     >
                       <div className="font-bold text-base">{quest.title}</div>
@@ -469,7 +469,7 @@ export function SessionJournal({
                     </button>
                   ))}
                   {activeQuests.length === 0 && (
-                    <div className="text-sm text-center py-6 text-[#7c695b] italic">
+                    <div className="text-sm text-center py-6 text-[#8a7667] italic">
                       Brak aktywnych misji
                     </div>
                   )}
@@ -477,7 +477,7 @@ export function SessionJournal({
 
                 {completedQuests.length > 0 && (
                   <>
-                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#496538] border-b border-[#c8b7a4] pt-4 pb-1">
+                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#73a15c] border-b border-[#3a2518] pt-4 pb-1">
                       Ukończone przygody ({completedQuests.length})
                     </div>
                     <div className="space-y-1.5">
@@ -488,8 +488,8 @@ export function SessionJournal({
                           className={cn(
                             'w-full text-left p-3 rounded-md transition-all font-serif border opacity-80',
                             selectedQuestId === quest.id
-                              ? 'bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                              : 'bg-[#d5e2cd] hover:bg-[#c3d1b8] border-transparent text-[#2b4c19]'
+                              ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
+                              : 'bg-[#142310] hover:bg-[#1d3318] border-transparent text-[#a3d18e]'
                           )}
                         >
                           <div className="font-bold text-base">
@@ -503,7 +503,7 @@ export function SessionJournal({
 
                 {failedQuests.length > 0 && (
                   <>
-                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#8b3d3d] border-b border-[#c8b7a4] pt-4 pb-1">
+                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#a84d4d] border-b border-[#3a2518] pt-4 pb-1">
                       Nieudane przygody ({failedQuests.length})
                     </div>
                     <div className="space-y-1.5">
@@ -514,8 +514,8 @@ export function SessionJournal({
                           className={cn(
                             'w-full text-left p-3 rounded-md transition-all font-serif border opacity-80',
                             selectedQuestId === quest.id
-                              ? 'bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                              : 'bg-[#ebd3d3] hover:bg-[#dfc1c1] border-transparent text-[#6e2929]'
+                              ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
+                              : 'bg-[#2b1010] hover:bg-[#3d1818] border-transparent text-[#e3a8a8]'
                           )}
                         >
                           <div className="font-bold text-base">
@@ -529,12 +529,12 @@ export function SessionJournal({
               </div>
 
               {/* Prawa kolumna: Szczegóły wybranej misji */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6] flex flex-col justify-between">
+              <div className="flex-1 overflow-y-auto p-6 bg-[#18120c] flex flex-col justify-between">
                 {selectedQuest ? (
                   <div className="space-y-6">
-                    <div className="flex justify-between items-start border-b-2 border-[#bfa15f]/30 pb-3">
+                    <div className="flex justify-between items-start border-b-2 border-[#3a2518] pb-3">
                       <div>
-                        <h3 className="text-2xl font-serif font-bold text-[#4a2e1b]">
+                        <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
                           {selectedQuest.title}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
@@ -542,10 +542,10 @@ export function SessionJournal({
                             className={cn(
                               'text-xs px-2 py-0.5 rounded font-serif font-semibold border',
                               selectedQuest.questStatus === 'completed'
-                                ? 'bg-[#d5e2cd] border-[#496538] text-[#2b4c19]'
+                                ? 'bg-[#142310] border-[#73a15c] text-[#a3d18e]'
                                 : selectedQuest.questStatus === 'failed'
-                                  ? 'bg-[#ebd3d3] border-[#8b3d3d] text-[#6e2929]'
-                                  : 'bg-[#ebdcb9] border-[#bfa15f] text-[#6b4c35]'
+                                  ? 'bg-[#2b1010] border-[#a84d4d] text-[#e3a8a8]'
+                                  : 'bg-[#2a1b12] border-[#bfa15f] text-[#f4ebd0]'
                             )}
                           >
                             {selectedQuest.questStatus === 'completed'
@@ -554,7 +554,7 @@ export function SessionJournal({
                                 ? 'Nieudana'
                                 : 'Aktywna'}
                           </span>
-                          <span className="text-xs text-[#7c695b]">
+                          <span className="text-xs text-[#8a7667]">
                             Wpis z dnia:{' '}
                             {selectedQuest.inGameDate ||
                               new Date(
@@ -568,7 +568,7 @@ export function SessionJournal({
                           onClick={() => setEditingEntry(selectedQuest)}
                           variant="outline"
                           size="sm"
-                          className="border-[#bfa15f] hover:bg-[#ebdcb9] text-[#2c1810]"
+                          className="border-[#bfa15f] hover:bg-[#2a1b12] text-[#f4ebd0] bg-transparent"
                         >
                           <Edit3 className="h-4 w-4" />
                         </Button>
@@ -576,7 +576,7 @@ export function SessionJournal({
                           onClick={() => deleteEntry(selectedQuest.id)}
                           variant="outline"
                           size="sm"
-                          className="border-[#942c2c] hover:bg-[#ebd3d3] text-[#942c2c]"
+                          className="border-[#942c2c] hover:bg-[#2b1010] text-[#ff6b6b] bg-transparent"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -584,13 +584,13 @@ export function SessionJournal({
                     </div>
 
                     {/* Opis misji */}
-                    <div className="text-base leading-relaxed text-[#2c1810] whitespace-pre-wrap font-serif italic bg-[#f0e8dc] p-4 rounded-md border border-[#e2d4c9]">
+                    <div className="text-base leading-relaxed text-[#e2d4c9] whitespace-pre-wrap font-serif italic bg-[#120905] p-4 rounded-md border border-[#3a2518]">
                       {selectedQuest.content}
                     </div>
 
                     {/* Cele misji */}
                     <div className="space-y-3">
-                      <h4 className="font-serif font-bold text-lg text-[#4a2e1b] border-b border-[#ebdcb9] pb-1">
+                      <h4 className="font-serif font-bold text-lg text-[#f4ebd0] border-b border-[#3a2518] pb-1">
                         Postępy i Cele zadania
                       </h4>
                       <div className="space-y-3">
@@ -602,8 +602,8 @@ export function SessionJournal({
                               className={cn(
                                 'p-3 rounded border flex items-start gap-3 transition-colors',
                                 obj.completed
-                                  ? 'bg-[#e8efd8] border-[#c0d4a1] text-[#2b4c19]'
-                                  : 'bg-[#faf8f5] border-[#ebdcb9] text-[#4a3c31]'
+                                  ? 'bg-[#142310] border-[#2c4c19] text-[#a3d18e]'
+                                  : 'bg-[#120905] border-[#3a2518] text-[#e2d4c9]'
                               )}
                             >
                               <button
@@ -630,7 +630,7 @@ export function SessionJournal({
                                 className="mt-0.5 focus:outline-none"
                               >
                                 {obj.completed ? (
-                                  <CheckCircle2 className="h-5 w-5 text-[#496538] fill-[#e8efd8]" />
+                                  <CheckCircle2 className="h-5 w-5 text-[#73a15c] fill-[#142310]" />
                                 ) : (
                                   <Circle className="h-5 w-5 text-[#8a7667]" />
                                 )}
@@ -640,12 +640,12 @@ export function SessionJournal({
                                   className={cn(
                                     'text-base font-serif',
                                     obj.completed &&
-                                      'line-through text-[#7c695b]'
+                                      'line-through text-[#8a7667]'
                                   )}
                                 >
                                   {obj.description}
                                 </div>
-                                <div className="text-xs text-[#7c695b] mt-1 flex gap-2">
+                                <div className="text-xs text-[#8a7667] mt-1 flex gap-2">
                                   {obj.gameDay && (
                                     <span>Dzień {obj.gameDay}</span>
                                   )}
@@ -653,7 +653,7 @@ export function SessionJournal({
                                     <span>godzina {obj.gameHour}</span>
                                   )}
                                   {obj.completed && obj.dateCompleted && (
-                                    <span className="text-[#496538]">
+                                    <span className="text-[#73a15c]">
                                       Ukończono: {obj.dateCompleted}
                                     </span>
                                   )}
@@ -662,7 +662,7 @@ export function SessionJournal({
                             </div>
                           ))
                         ) : (
-                          <div className="text-sm text-[#7c695b] italic">
+                          <div className="text-sm text-[#8a7667] italic">
                             Brak celów szczegółowych. Możesz je dodać edytując
                             misję.
                           </div>
@@ -671,7 +671,7 @@ export function SessionJournal({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center text-[#7c695b] italic font-serif">
+                  <div className="flex-1 flex items-center justify-center text-[#8a7667] italic font-serif">
                     Wybierz misję z listy po lewej stronie lub dodaj nową
                   </div>
                 )}
@@ -681,13 +681,13 @@ export function SessionJournal({
 
           {/* 2. SEKCJA KRONIKI */}
           {activeTab === 'journal' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6] space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 bg-[#18120c] space-y-6">
               <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex justify-between items-center border-b border-[#ebdcb9] pb-2">
-                  <h3 className="text-xl font-serif font-bold text-[#4a2e1b]">
+                <div className="flex justify-between items-center border-b border-[#3a2518] pb-2">
+                  <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
                     Chronologia Wydarzeń
                   </h3>
-                  <span className="text-sm text-[#7c695b]">
+                  <span className="text-sm text-[#8a7667]">
                     {filteredEntries.length} wpisów
                   </span>
                 </div>
@@ -696,12 +696,12 @@ export function SessionJournal({
                   {filteredEntries.map((entry) => (
                     <div key={entry.id} className="relative">
                       {/* Oś czasu */}
-                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#f5efe6] rounded-full h-4 w-4"></span>
+                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#18120c] rounded-full h-4 w-4"></span>
 
-                      <div className="bg-[#decab4]/30 border border-[#ebdcb9] rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-[#120905] border border-[#3a2518] rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="text-lg font-serif font-bold text-[#4a2e1b] flex items-center gap-2">
+                            <h4 className="text-lg font-serif font-bold text-[#f4ebd0] flex items-center gap-2">
                               {entry.title}
                               {entry.isAutoGenerated && (
                                 <span className="text-[10px] bg-[#273a4b] text-[#f4ebd0] border border-[#bfa15f]/30 px-1.5 py-0.5 rounded uppercase font-sans">
@@ -709,7 +709,7 @@ export function SessionJournal({
                                 </span>
                               )}
                             </h4>
-                            <div className="text-xs text-[#7c695b] mt-0.5 flex gap-3">
+                            <div className="text-xs text-[#8a7667] mt-0.5 flex gap-3">
                               <span>
                                 📅{' '}
                                 {entry.inGameDate ||
@@ -729,20 +729,20 @@ export function SessionJournal({
                           <div className="flex gap-1">
                             <button
                               onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#4a2e1b] hover:bg-[#ebdcb9] rounded transition-colors"
+                              className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
                             >
                               <Edit3 className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#942c2c] hover:bg-[#ebd3d3] rounded transition-colors"
+                              className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
 
-                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#2c1810]">
+                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#e2d4c9]">
                           {entry.content}
                         </p>
 
@@ -751,7 +751,7 @@ export function SessionJournal({
                             {entry.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="text-[11px] bg-[#decab4] text-[#4a2e1b] px-2 py-0.5 rounded border border-[#d9cbb9]"
+                                className="text-[11px] bg-[#3a2518] text-[#f4ebd0] px-2 py-0.5 rounded border border-[#bfa15f]/30"
                               >
                                 #{tag}
                               </span>
@@ -763,7 +763,7 @@ export function SessionJournal({
                   ))}
 
                   {filteredEntries.length === 0 && (
-                    <div className="text-center py-12 text-[#7c695b] italic font-serif">
+                    <div className="text-center py-12 text-[#8a7667] italic font-serif">
                       Kronika jest pusta. Wpisy z przygód pojawią się tutaj
                       chronologicznie.
                     </div>
@@ -777,8 +777,8 @@ export function SessionJournal({
           {activeTab === 'encyclopedia_character' && (
             <div className="flex-1 flex overflow-hidden">
               {/* Podzakładki encyklopedii */}
-              <div className="w-1/4 border-r border-[#d9cbb9] bg-[#decab4] p-4 flex flex-col gap-2">
-                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#6b4c35] border-b border-[#c8b7a4] pb-2 mb-2">
+              <div className="w-1/4 border-r border-[#3a2518] bg-[#120905] p-4 flex flex-col gap-2">
+                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#bfa15f] border-b border-[#3a2518] pb-2 mb-2">
                   Kategorie wiedzy
                 </div>
                 <button
@@ -786,8 +786,8 @@ export function SessionJournal({
                   className={cn(
                     'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
                     encyclopediaSubTab === 'character'
-                      ? 'bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]'
+                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
+                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
                   )}
                 >
                   Postaci & Byt
@@ -797,8 +797,8 @@ export function SessionJournal({
                   className={cn(
                     'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
                     encyclopediaSubTab === 'location'
-                      ? 'bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]'
+                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
+                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
                   )}
                 >
                   Lokacje & Miejsca
@@ -808,8 +808,8 @@ export function SessionJournal({
                   className={cn(
                     'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
                     encyclopediaSubTab === 'item'
-                      ? 'bg-[#2a1b12] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#e5d4c0] hover:bg-[#d8c4ad] border-transparent text-[#3c2a1a]'
+                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
+                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
                   )}
                 >
                   Przedmioty & Artefakty
@@ -817,44 +817,44 @@ export function SessionJournal({
               </div>
 
               {/* Grid wpisów */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6]">
+              <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="bg-[#faf8f5] border border-[#ebdcb9] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
+                      className="bg-[#120905] border border-[#3a2518] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
                     >
                       <div className="space-y-2">
-                        <div className="flex justify-between items-start border-b border-[#ebdcb9] pb-2">
-                          <h4 className="text-lg font-serif font-bold text-[#4a2e1b]">
+                        <div className="flex justify-between items-start border-b border-[#3a2518] pb-2">
+                          <h4 className="text-lg font-serif font-bold text-[#f4ebd0]">
                             {entry.title}
                           </h4>
                           <div className="flex gap-1">
                             <button
                               onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#4a2e1b] hover:bg-[#ebdcb9] rounded transition-colors"
+                              className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
                             >
                               <Edit3 className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#942c2c] hover:bg-[#ebd3d3] rounded transition-colors"
+                              className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
-                        <p className="text-sm font-serif leading-relaxed text-[#2c1810] whitespace-pre-wrap">
+                        <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap">
                           {entry.content}
                         </p>
                       </div>
 
                       {entry.tags && entry.tags.length > 0 && (
-                        <div className="flex gap-1 mt-3 flex-wrap border-t border-[#f0e8dc] pt-2">
+                        <div className="flex gap-1 mt-3 flex-wrap border-t border-[#3a2518] pt-2">
                           {entry.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="text-[10px] bg-[#decab4]/50 text-[#4a2e1b] px-1.5 py-0.5 rounded border border-[#d9cbb9]/40"
+                              className="text-[10px] bg-[#3a2518]/50 text-[#f4ebd0] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
                             >
                               #{tag}
                             </span>
@@ -865,7 +865,7 @@ export function SessionJournal({
                   ))}
 
                   {filteredEntries.length === 0 && (
-                    <div className="col-span-full text-center py-16 text-[#7c695b] italic font-serif">
+                    <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
                       Brak wpisów w tej kategorii encyklopedii.
                     </div>
                   )}
@@ -876,39 +876,39 @@ export function SessionJournal({
 
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-[#f5efe6]">
+            <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
               <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-[#fffdfa] border border-[#e5d4c0] shadow-sm rounded-lg p-5 flex flex-col justify-between min-h-[220px]"
+                    className="bg-[#120905] border border-[#3a2518] shadow-sm rounded-lg p-5 flex flex-col justify-between min-h-[220px]"
                   >
                     <div>
-                      <div className="flex justify-between items-start border-b border-[#ebdcb9] pb-2 mb-3">
-                        <h4 className="font-serif font-bold text-lg text-[#4a2e1b]">
+                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2 mb-3">
+                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0]">
                           {entry.title}
                         </h4>
                         <div className="flex gap-1">
                           <button
                             onClick={() => setEditingEntry(entry)}
-                            className="p-1 text-[#4a2e1b] hover:bg-[#ebdcb9] rounded transition-colors"
+                            className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => deleteEntry(entry.id)}
-                            className="p-1 text-[#942c2c] hover:bg-[#ebd3d3] rounded transition-colors"
+                            className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm font-serif leading-relaxed text-[#3c2a1a] whitespace-pre-wrap line-clamp-6">
+                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap line-clamp-6">
                         {entry.content}
                       </p>
                     </div>
 
-                    <div className="text-[11px] text-[#7c695b] border-t border-[#f0e8dc] pt-2 mt-4 flex justify-between items-center">
+                    <div className="text-[11px] text-[#8a7667] border-t border-[#3a2518] pt-2 mt-4 flex justify-between items-center">
                       <span>
                         📅{' '}
                         {entry.inGameDate ||
@@ -924,7 +924,7 @@ export function SessionJournal({
                 ))}
 
                 {filteredEntries.length === 0 && (
-                  <div className="col-span-full text-center py-16 text-[#7c695b] italic font-serif">
+                  <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
                     Brak własnych zapisków. Dodaj nową notatkę.
                   </div>
                 )}

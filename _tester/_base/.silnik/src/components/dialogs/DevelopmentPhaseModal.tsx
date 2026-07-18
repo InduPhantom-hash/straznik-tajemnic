@@ -33,6 +33,8 @@ interface DevelopmentPhaseModalProps {
   onClose: () => void;
   character: Character;
   onCharacterUpdate: (char: Character) => void;
+  characters?: Character[];
+  onActiveCharacterChange?: (char: Character) => void;
 }
 
 /** Separator déco - gradient-linie + obrócony romb. */
@@ -64,6 +66,8 @@ export function DevelopmentPhaseModal({
   onClose,
   character,
   onCharacterUpdate,
+  characters = [],
+  onActiveCharacterChange,
 }: DevelopmentPhaseModalProps) {
   const [skillResults, setSkillResults] = useState<DevelopmentRollResult[]>([]);
   const [luckResult, setLuckResult] = useState<EDURollResult | null>(null);
@@ -77,7 +81,7 @@ export function DevelopmentPhaseModal({
   // Pobierz oznaczone umiejętności
   const markedSkills = getMarkedSkills(character);
 
-  // Reset state when modal opens
+  // Reset state when modal opens or active character changes
   useEffect(() => {
     if (isOpen) {
       setSkillResults([]);
@@ -87,7 +91,7 @@ export function DevelopmentPhaseModal({
       setPhase('ready');
       setCurrentIndex(0);
     }
-  }, [isOpen]);
+  }, [isOpen, character.id]);
 
   /**
    * Przeprowadza pełną fazę rozwoju
@@ -296,6 +300,35 @@ export function DevelopmentPhaseModal({
           <DialogDescription className="font-serif italic text-base text-muted-foreground">
             Rozwijaj umiejętności zgodnie z zasadami CoC 7e
           </DialogDescription>
+
+          {/* Przełącznik postaci w duecie / multiplayer */}
+          {characters.length > 1 && onActiveCharacterChange && (
+            <div className="mt-3 flex justify-center">
+              <select
+                aria-label="Wybierz postać, której fazę rozwoju przeprowadzasz"
+                value={character.id || ''}
+                onChange={(e) => {
+                  const selected = characters.find(
+                    (c) => c.id === e.target.value
+                  );
+                  if (selected) {
+                    onActiveCharacterChange(selected);
+                  }
+                }}
+                disabled={phase !== 'ready' && phase !== 'done'}
+                className="appearance-none bg-card border border-brass/40 rounded-none px-4 py-2 pr-10 text-sm text-foreground cursor-pointer hover:border-brass/70 transition-colors focus:outline-none focus:ring-1 focus:ring-brass/50 font-special-elite"
+              >
+                {characters.map((char) => {
+                  const skillsCount = getMarkedSkills(char).length;
+                  return (
+                    <option key={char.id} value={char.id}>
+                      {char.name} ({skillsCount} {skillsCount === 1 ? 'oznaczona' : 'oznaczonych'})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
         </DialogHeader>
 
         {phase === 'ready' && (

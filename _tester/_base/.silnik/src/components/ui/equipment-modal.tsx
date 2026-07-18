@@ -159,6 +159,8 @@ export function EquipmentModal({
     [era, adventureTheme, updateItem]
   );
 
+  const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'finances'>('weapon');
+
   // Ekonomia CoC 7e (RAW): zamożność z Credit Rating, NIE suma $ per-przedmiot.
   const finances = deriveFinances(character);
 
@@ -174,7 +176,7 @@ export function EquipmentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         size="screen"
-        className="bg-gradient-to-b from-[#14110c] to-background border-brass/30"
+        className="bg-gradient-to-b from-[#14110c] to-background border-brass/30 flex flex-col"
       >
         <DialogHeader className="flex-none flex flex-row items-center justify-between gap-3">
           <DialogTitle className="font-display uppercase tracking-[0.1em] text-foreground flex items-center gap-3">
@@ -220,42 +222,75 @@ export function EquipmentModal({
           <div className="flex-1 h-px bg-gradient-to-r from-gold/40 to-transparent" />
         </div>
 
-        {/* Pasek wyszukiwania i filtrów */}
-        <div className="flex-none flex gap-2 mb-5">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brass/60" />
-            <Input
-              placeholder="Szukaj przedmiotów..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 font-special-elite"
-            />
+        {/* Pasek zakładek i wyszukiwania */}
+        <div className="flex-none flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-brass/25 pb-4">
+          <div className="flex bg-[#120b07] p-1 border border-brass/35 rounded-none">
+            <button
+              onClick={() => setActiveTab('weapon')}
+              className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
+                activeTab === 'weapon'
+                  ? 'bg-primary text-[#04110f]'
+                  : 'text-brass/70 hover:text-brass'
+              }`}
+            >
+              ⚔️ Broń ({weaponItems.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('gear')}
+              className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
+                activeTab === 'gear'
+                  ? 'bg-primary text-[#04110f]'
+                  : 'text-brass/70 hover:text-brass'
+              }`}
+            >
+              🎒 Wyposażenie ({gearItems.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('finances')}
+              className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
+                activeTab === 'finances'
+                  ? 'bg-primary text-[#04110f]'
+                  : 'text-brass/70 hover:text-brass'
+              }`}
+            >
+              💵 Finanse
+            </button>
           </div>
-          <select
-            value={filterCategory}
-            onChange={(e) =>
-              setFilterCategory(e.target.value as EquipmentCategory | 'all')
-            }
-            className="bg-card border border-brass/30 rounded-md px-3 py-2 text-sm font-special-elite text-foreground"
-          >
-            <option value="all">Wszystkie</option>
-            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
+
+          {activeTab !== 'finances' && (
+            <div className="flex gap-2">
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brass/60" />
+                <Input
+                  placeholder="Szukaj przedmiotów..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 font-special-elite"
+                />
+              </div>
+              <select
+                value={filterCategory}
+                onChange={(e) =>
+                  setFilterCategory(e.target.value as EquipmentCategory | 'all')
+                }
+                className="bg-card border border-brass/30 rounded-none px-3 py-2 text-sm font-special-elite text-foreground"
+              >
+                <option value="all">Wszystkie</option>
+                {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Układ kolumnowy: broń | wyposażenie | finanse (wg makiety 21) */}
-        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col lg:flex-row gap-6">
-          {/* === KOLUMNA: BROŃ === */}
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="font-display uppercase tracking-[0.2em] text-brass text-xs font-semibold mb-3 flex items-center gap-2">
-              <Sword className="w-3.5 h-3.5" />
-              Broń
-            </div>
-            <div className="flex flex-col gap-2.5">
+        {/* Zawartość zakładek */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {/* === KARTA: BROŃ === */}
+          {activeTab === 'weapon' && (
+            <div className="flex flex-col gap-2.5 max-w-4xl mx-auto">
               {weaponItems.map((item) => (
                 <WeaponCard
                   key={item.id}
@@ -266,111 +301,106 @@ export function EquipmentModal({
                 />
               ))}
               {weaponItems.length === 0 && (
-                <div className="border border-dashed border-brass/20 bg-[#1f1a14]/25 p-3 text-center font-serif italic text-sm text-muted-foreground/70">
+                <div className="border border-dashed border-brass/20 bg-[#1f1a14]/25 p-6 text-center font-serif italic text-base text-muted-foreground/70">
                   Broń przydzielana wg zasad / poprzednich postaci - nie
                   dodajesz jej ręcznie.
                 </div>
               )}
             </div>
-          </div>
+          )}
 
-          {/* === KOLUMNA: WYPOSAŻENIE === */}
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="font-display uppercase tracking-[0.2em] text-brass text-xs font-semibold mb-3 flex items-center gap-2">
-              <Wrench className="w-3.5 h-3.5" />
-              Wyposażenie
+          {/* === KARTA: WYPOSAŻENIE === */}
+          {activeTab === 'gear' && (
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {gearItems.map((item) => (
+                  <GearCard
+                    key={item.id}
+                    item={item}
+                    generatingImage={generatingImage}
+                    onGenerateImage={generateImage}
+                    onOpenDetail={setSelectedItem}
+                  />
+                ))}
+              </div>
+
+              {gearItems.length === 0 && (
+                <div className="text-center py-16 text-muted-foreground border border-brass/20 bg-card mt-2">
+                  <Package className="w-12 h-12 mx-auto mb-4 text-brass/30" />
+                  <p className="font-serif italic text-base">
+                    Brak przedmiotów w ekwipunku
+                  </p>
+                  <p className="mt-2 font-serif italic text-sm text-muted-foreground/70">
+                    Wyposażenie przydzielane jest wg zawodu i wydarzeń w grze.
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-              {gearItems.map((item) => (
-                <GearCard
-                  key={item.id}
-                  item={item}
-                  generatingImage={generatingImage}
-                  onGenerateImage={generateImage}
-                  onOpenDetail={setSelectedItem}
-                />
-              ))}
-            </div>
+          )}
 
-            {filteredEquipment.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground border border-brass/20 bg-card mt-2">
-                <Package className="w-12 h-12 mx-auto mb-4 text-brass/30" />
-                <p className="font-serif italic text-base">
-                  Brak przedmiotów w ekwipunku
-                </p>
-                <p className="mt-2 font-serif italic text-sm text-muted-foreground/70">
-                  Wyposażenie przydzielane jest wg zawodu i wydarzeń w grze.
-                </p>
+          {/* === KARTA: FINANSE === */}
+          {activeTab === 'finances' && (
+            <div className="max-w-md mx-auto space-y-6">
+              {/* Poziom życia */}
+              <div className="relative border border-brass/40 bg-gradient-to-br from-[#1a1610] to-[#100d09] p-6 text-center">
+                <span className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border-t-[1.5px] border-l-[1.5px] border-brass" />
+                <span className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 border-b-[1.5px] border-r-[1.5px] border-brass" />
+                <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Poziom życia
+                </div>
+                <div className="font-display font-bold text-3xl text-foreground tracking-[0.08em] my-2">
+                  {finances.tierLabel}
+                </div>
+                <div className="font-special-elite text-sm tracking-[0.08em] text-primary">
+                  wydatki dzienne ≤ {formatUsd(finances.spendingLevel)}
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* === KOLUMNA: FINANSE === */}
-          <div className="w-full lg:w-[300px] lg:flex-none flex flex-col">
-            <div className="font-display uppercase tracking-[0.2em] text-brass text-xs font-semibold mb-3 flex items-center gap-2">
-              <span className="text-sm leading-none">$</span>
-              Finanse
-            </div>
+              {/* Pozycje finansowe */}
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
+                  <span className="font-serif text-base text-muted-foreground">
+                    Zamożność
+                  </span>
+                  <span className="font-display text-xl text-brass">
+                    {finances.creditRating}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
+                  <span className="font-serif text-base text-muted-foreground">
+                    Gotówka
+                  </span>
+                  <span className="font-display text-xl text-foreground">
+                    {formatUsd(finances.cash)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
+                  <span className="font-serif text-base text-muted-foreground">
+                    Majątek
+                  </span>
+                  <span className="font-display text-xl text-foreground">
+                    {finances.assetsDescription || formatUsd(finances.assets)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
+                  <span className="font-serif text-base text-muted-foreground">
+                    Liczba przedmiotów
+                  </span>
+                  <span className="font-display text-xl text-foreground">
+                    {equipment.length}
+                  </span>
+                </div>
+              </div>
 
-            {/* Karta Poziom życia (Zamożność) z narożnikami déco */}
-            <div className="relative border border-brass/40 bg-gradient-to-br from-[#1a1610] to-[#100d09] p-5 text-center">
-              <span className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border-t-[1.5px] border-l-[1.5px] border-brass" />
-              <span className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 border-b-[1.5px] border-r-[1.5px] border-brass" />
-              <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                Poziom życia
-              </div>
-              <div className="font-display font-bold text-2xl text-foreground tracking-[0.08em] my-1.5">
-                {finances.tierLabel}
-              </div>
-              <div className="font-special-elite text-sm tracking-[0.08em] text-primary">
-                wydatki dzienne ≤ {formatUsd(finances.spendingLevel)}
-              </div>
-            </div>
-
-            {/* Pozycje finansowe */}
-            <div className="mt-3 flex flex-col gap-2.5">
-              <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3">
-                <span className="font-serif text-base text-muted-foreground">
-                  Zamożność
-                </span>
-                <span className="font-display text-lg text-brass">
-                  {finances.creditRating}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3">
-                <span className="font-serif text-base text-muted-foreground">
-                  Gotówka
-                </span>
-                <span className="font-display text-lg text-foreground">
-                  {formatUsd(finances.cash)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3">
-                <span className="font-serif text-base text-muted-foreground">
-                  Majątek
-                </span>
-                <span className="font-display text-lg text-foreground">
-                  {finances.assetsDescription || formatUsd(finances.assets)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3">
-                <span className="font-serif text-base text-muted-foreground">
-                  Przedmiotów
-                </span>
-                <span className="font-display text-lg text-foreground">
-                  {equipment.length}
-                </span>
-              </div>
-            </div>
-
-            {/* Flavor déco */}
-            <div className="mt-3 border-l-2 border-brass/50 bg-brass/5 px-3.5 py-2.5">
-              <div className="font-serif italic text-sm text-muted-foreground leading-snug">
-                Poziom życia określa, na co badacza stać bez dodatkowych testów
-                Zamożności.
+              {/* Flavor déco */}
+              <div className="border-l-2 border-brass/50 bg-brass/5 px-4 py-3">
+                <div className="font-serif italic text-sm text-muted-foreground leading-snug">
+                  Poziom życia określa, na co badacza stać bez dodatkowych testów
+                  Zamożności. Majątek obejmuje nieruchomości, udziały i inne dobra trwałe.
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Modal detalu przedmiotu (read-only) - klik w kafelek: duży obraz,
