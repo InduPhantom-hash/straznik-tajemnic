@@ -137,24 +137,26 @@ export function CharacterSheet({
             Cechy, umiejętności, stan i biografia badacza.
           </DialogDescription>
           <div className="flex items-center gap-2">
-            {/* Character selector dropdown */}
+            {/* Character selector tabs */}
             {characters.length > 1 && onCharacterChange && (
-              <select
-                value={character?.id || ''}
-                onChange={(e) => {
-                  const selected = characters.find(
-                    (c) => c.id === e.target.value
+              <div className="flex items-center gap-1 border border-brass/35 bg-[#120f0c] p-0.5 font-special-elite">
+                {characters.map((char) => {
+                  const isActive = char.id === character.id;
+                  return (
+                    <button
+                      key={char.id}
+                      onClick={() => onCharacterChange(char)}
+                      className={`px-3 py-1.5 text-xs uppercase tracking-wider transition-all duration-200 ${
+                        isActive
+                          ? 'bg-brass/20 text-foreground border border-brass/45'
+                          : 'text-muted-foreground/60 hover:text-brass hover:bg-brass/5'
+                      }`}
+                    >
+                      {char.name}
+                    </button>
                   );
-                  if (selected) onCharacterChange(selected);
-                }}
-                className="appearance-none bg-card border border-brass/40 rounded-none px-3 py-1.5 pr-8 text-sm text-foreground cursor-pointer hover:border-brass/70 transition-colors focus:outline-none focus:ring-1 focus:ring-brass/50 font-special-elite"
-              >
-                {characters.map((char) => (
-                  <option key={char.id} value={char.id}>
-                    {char.name}
-                  </option>
-                ))}
-              </select>
+                })}
+              </div>
             )}
             <Button variant="outline" size="sm" onClick={handleExportMarkdown}>
               <Download className="h-4 w-4 mr-2" />
