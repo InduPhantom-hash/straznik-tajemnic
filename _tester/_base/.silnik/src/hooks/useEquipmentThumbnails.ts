@@ -81,10 +81,12 @@ export function useEquipmentThumbnails({
       const character = activeCharacter;
       if (!character) return;
 
-      const equipment = character.equipment ?? [];
-      // Cache-aware: pomijamy itemy które JUŻ mają miniaturę (imageUrl).
-      const pending = equipment
-        .filter((item) => !item.imageUrl)
+      // Cache-aware: pomijamy itemy które JUŻ mają wygenerowaną miniaturę (piktogramy SVG ignorujemy, by wygenerować prawdziwy obrazek).
+      const pending = (character.equipment ?? [])
+        .filter((item) => {
+          if (!item.imageUrl) return true;
+          return item.imageUrl.endsWith('.svg') || item.imageUrl.includes('/predefined/');
+        })
         .slice(0, MAX_THUMBNAILS);
       if (pending.length === 0) return;
 

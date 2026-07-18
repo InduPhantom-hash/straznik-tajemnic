@@ -259,6 +259,23 @@ Branch: codex/duet-catalog-integration
 - Dalsze testy w grze, diagnostyka i naprawa błędów zgłoszonych przez użytkownika.
 
 ### Decyzje podjęte
-- Zachowanie czystego tekstu w ekwipunku bez piktogramów i ikon.
+- Wykorzystanie ozdobnej żółtej ramki z obu wariantów ikony (standardowej oraz reset/czerwonej).
 - Wprowadzenie zmian bezpośrednio do źródeł Next.js silnika oraz w `src/`.
 
+
+---
+
+## Podsumowanie sesji: 2026-07-18 (Weryfikacja danych pogody)
+Branch: master
+
+### Co zrobiono
+- Wykonano pełną analizę przepływu danych historycznej pogody w aplikacji.
+- Potwierdzono, że API historyczne Nominatim + Open-Meteo poprawnie pobiera i dołącza tag `[KLIMAT & POGODA]` do opisu przygody.
+- Potwierdzono, że komponenty `ChatHeader` i `CampaignClock` prawidłowo dekodują te informacje i dynamicznie dostosowują ikony pogodowe w nagłówku czatu.
+- Zweryfikowano poprawność kompilacji Next.js oraz wykonano testy jednostkowe `chat-header.test.tsx`, które zakończyły się sukcesem.
+
+### Co otwarte (do następnej sesji)
+- Brak.
+
+### Decyzje podjęte
+- Uznano, że integracja z API historycznym pogody jest kompletna i poprawnie zaimplementowana w silniku gry.

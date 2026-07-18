@@ -21,6 +21,7 @@ import {
 
 export interface SheetEquipmentProps {
   character: Character;
+  onItemClick?: (item: EquipmentItem) => void;
 }
 
 /**
@@ -32,7 +33,7 @@ export interface SheetEquipmentProps {
 function ItemThumbnail({ item }: { item: EquipmentItem }) {
   return (
     <div className="flex-none w-20 h-20 border border-brass/35 bg-gradient-to-br from-[#1a140f] to-[#0d0a07] overflow-hidden flex items-center justify-center relative shadow-inner rounded-sm transition-colors hover:border-brass/60">
-      {item.imageUrl ? (
+      {item.imageUrl && !item.imageUrl.endsWith('.svg') ? (
         <img
           src={item.imageUrl}
           alt={item.name}
@@ -51,7 +52,7 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
  * Renderuje ekwipunek postaci: broń z pełną statystyką bojową + resztę jako kafle.
  * Zwraca null gdy postać nie ma ekwipunku (sekcja znika z karty).
  */
-export function SheetEquipment({ character }: SheetEquipmentProps) {
+export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) {
   const equipment = character.equipment ?? [];
   if (equipment.length === 0) return null;
 
@@ -85,7 +86,8 @@ export function SheetEquipment({ character }: SheetEquipmentProps) {
               return (
                 <div
                   key={w.id}
-                  className="border border-[#b3322c]/35 bg-[#181410] p-4 rounded-sm flex flex-col justify-between hover:border-[#b3322c]/60 transition-all duration-200"
+                  onClick={() => onItemClick?.(w)}
+                  className="cursor-pointer border border-[#b3322c]/35 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm flex flex-col justify-between hover:border-[#b3322c]/60 transition-all duration-200"
                 >
                   <div className="flex justify-between items-start gap-3 mb-2.5">
                     <span className="flex items-center gap-3 min-w-0">
@@ -127,7 +129,8 @@ export function SheetEquipment({ character }: SheetEquipmentProps) {
             {gear.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-4 border border-brass/25 bg-[#181410] p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
+                onClick={() => onItemClick?.(item)}
+                className="cursor-pointer flex items-center gap-4 border border-brass/25 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
               >
                 <ItemThumbnail item={item} />
                 <div className="flex-1 min-w-0">

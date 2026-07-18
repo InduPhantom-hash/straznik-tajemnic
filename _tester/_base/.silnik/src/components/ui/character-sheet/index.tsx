@@ -33,6 +33,8 @@ import {
 import { Button } from '../button';
 import { Download } from 'lucide-react';
 import { type CharacterSheetProps } from './types';
+import { EquipmentItem } from '@/lib/types';
+import { EquipmentDetailDialog } from '../equipment-detail-dialog';
 import { exportCharacterToMarkdown } from './utils/export-markdown';
 import { deriveStats } from './utils/derive-stats';
 import { useInlineEdit } from './hooks/use-inline-edit';
