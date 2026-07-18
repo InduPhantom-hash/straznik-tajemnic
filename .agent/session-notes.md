@@ -29,3 +29,17 @@ Branch: codex/duet-catalog-integration
 
 ### Decyzje podjęte
 - Postanowiono zachować `hotSeatConfig` jako prop w `CthulhuSidebar` z uwagi na logikę wspólnego dziennika gry (`sharedJournal`), która zależy od tego stanu.
+
+## Podsumowanie sesji: 2026-07-18 (Sesja 3)
+Branch: main
+
+### Co zrobiono
+- **Uzupełnienie biografii**: Naprawiono uszkodzenie danych postaci w pliku [predefined-characters.ts](file:///Volumes/Karta/Developer/straznik-tajemnic/src/lib/immersion/predefined-characters.ts) (naprawa brakujących klamer domykających i sekcji postaci Dr Maya Patel) oraz zsynchronizowano te zmiany z runtime `.silnik`.
+- **Naprawa przewijania karty postaci**: Poprawiono klasy w obu plikach `predefined-characters-selector.tsx` na `items-start justify-center` z marginesem wewnętrznym, eliminując błąd ucinania góry modalu.
+- **Kompilacja i Build**: Zweryfikowano poprawność kompilacji TypeScript oraz przeprowadzono pełny build projektu Next.js z sukcesem.
+
+### Co otwarte (do następnej sesji)
+- Dalsze manualne testy z poziomu aplikacji.
+
+### Decyzje podjęte
+- Zastosowano pozycjonowanie `items-start` na flex-overlay modalu w celu umożliwienia prawidłowego przewijania elementów o wysokości większej niż wysokość ekranu (viewport).
