@@ -282,9 +282,29 @@ export function useGameStart({
     // gaslight->1890) PRZED openingiem. Świeży start nadpisuje stary czas z
     // localStorage; reload zapisanej gry tu nie trafia (osobna ścieżka).
     timeManager.resetForAdventure(adventureContext);
-
     setMessages([]); // Wyczyść czat przed startem przygody
     generateIntroImage(); // Równolegle z generowaniem tekstu
+
+    // Wymuś oczyszczenie starych, wadliwych miniatur przy starcie nowej gry
+    if (activeCharacter) {
+      const resetEquipment = (activeCharacter.equipment ?? []).map((item) => ({
+        ...item,
+        imageUrl: undefined,
+        imagePrompt: undefined,
+      }));
+      const updatedCharacter = { ...activeCharacter, equipment: resetEquipment };
+      
+      // Zaktualizuj stan lokalny i chmurę
+      setCharacters((prevList) => {
+        const updatedList = prevList.map((c) =>
+          c.id === activeCharacter.id ? updatedCharacter : c
+        );
+        persistCharacters(updatedList);
+        return updatedList;
+      });
+      setActiveCharacter(updatedCharacter);
+    }
+
     // IND-271: miniatury ekwipunku w tle (fire-and-forget, nie blokuje startu).
     generateThumbnailsInBackground();
 

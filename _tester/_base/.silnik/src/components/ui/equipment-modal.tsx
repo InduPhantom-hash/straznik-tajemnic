@@ -108,6 +108,7 @@ export function EquipmentModal({
             prompt,
             style: item.category === 'artifact' ? 'horror' : 'vintage',
             aspectRatio: '1:1',
+            seed: `${character?.id || ''}-${item.id}`,
           }),
         });
 

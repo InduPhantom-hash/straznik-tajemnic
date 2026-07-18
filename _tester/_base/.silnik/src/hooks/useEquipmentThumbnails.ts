@@ -54,6 +54,7 @@ async function generateOneThumbnail(
         prompt,
         style: item.category === 'artifact' ? 'horror' : 'vintage',
         aspectRatio: '1:1',
+        seed: `${character?.id || ''}-${item.id}`,
       }),
     });
     if (!response.ok) return null;
