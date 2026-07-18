@@ -1,7 +1,4 @@
-'use client';
-
-import type { ReactNode } from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, ReactNode } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -47,7 +44,7 @@ interface EquipmentModalProps {
   onCharacterUpdate: (character: Character) => void;
   era?: string;
   adventureTheme?: string;
-  /** B2: pełen roster - włącza przełącznik postaci (czyj ekwipunek) w duecie. */
+  /** B2: pełem roster - włącza przełącznik postaci (czyj ekwipunek) w duecie. */
   characters?: Character[];
   /** B2: zmiana aktywnej postaci (reuse onCharacterSwitch z page) - panel pokazuje ekwipunek wybranego. */
   onCharacterChange?: (character: Character) => void;
@@ -109,7 +106,7 @@ export function EquipmentModal({
   const updateItem = useCallback(
     (updatedItem: EquipmentItem) => {
       const updated = equipment.map((item) =>
-        item.id === updatedItem.id ? updatedItem : item
+          item.id === updatedItem.id ? updatedItem : item
       );
       onCharacterUpdate({ ...character, equipment: updated });
     },
@@ -159,6 +156,23 @@ export function EquipmentModal({
     [era, adventureTheme, updateItem]
   );
 
+  // Sekwencyjne generowanie brakujących obrazów w tle z opóźnieniem
+  useEffect(() => {
+    if (!open) return;
+
+    const firstMissing = filteredEquipment.find(
+      (item) => !item.imageUrl && generatingImage !== item.id
+    );
+
+    if (firstMissing && !generatingImage) {
+      // Opóźnienie 200ms w celu rozbicia jednoczesnych requestów i ochrony API Gemini
+      const timer = setTimeout(() => {
+        generateImage(firstMissing);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [open, filteredEquipment, generatingImage, generateImage]);
+
   const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'finances'>('weapon');
 
   // Ekonomia CoC 7e (RAW): zamożność z Credit Rating, NIE suma $ per-przedmiot.
@@ -178,7 +192,7 @@ export function EquipmentModal({
         size="screen"
         className="bg-gradient-to-b from-[#14110c] to-background border-brass/30 flex flex-col"
       >
-        <DialogHeader className="flex-none flex flex-row items-center justify-between gap-3">
+        <DialogHeader className="flex-none flex flex-row items-center justify-between gap-3 pr-12">
           <DialogTitle className="font-display uppercase tracking-[0.1em] text-foreground flex items-center gap-3">
             <Package className="w-5 h-5 text-brass" />
             <span>
@@ -193,25 +207,26 @@ export function EquipmentModal({
             Lista przedmiotów i broni postaci {character.name} oraz status
             majątkowy (Poziom Zamożności) wg zasad Call of Cthulhu 7e.
           </DialogDescription>
-          {/* B2: przełącznik postaci - w duecie pokazuje czyj to ekwipunek */}
+          {/* B2: przełącznik postaci - w duecie pokazuje czyj to ekwipunek jako zakładki */}
           {characters.length > 1 && onCharacterChange && (
-            <select
-              aria-label="Wybierz postać, której ekwipunek oglądasz"
-              value={character.id || ''}
-              onChange={(e) => {
-                const selected = characters.find(
-                  (c) => c.id === e.target.value
+            <div className="flex items-center gap-1 border border-brass/35 bg-[#120f0c] p-0.5 font-special-elite mr-2">
+              {characters.map((char) => {
+                const isActive = char.id === character.id;
+                return (
+                  <button
+                    key={char.id}
+                    onClick={() => onCharacterChange(char)}
+                    className={`px-3 py-1.5 text-xs uppercase tracking-wider transition-all duration-200 ${
+                      isActive
+                        ? 'bg-brass/20 text-foreground border border-brass/45'
+                        : 'text-muted-foreground/60 hover:text-brass hover:bg-brass/5'
+                    }`}
+                  >
+                    {char.name}
+                  </button>
                 );
-                if (selected) onCharacterChange(selected);
-              }}
-              className="flex-none appearance-none bg-card border border-brass/40 rounded-none px-3 py-1.5 pr-8 text-sm text-foreground cursor-pointer hover:border-brass/70 transition-colors focus:outline-none focus:ring-1 focus:ring-brass/50 font-special-elite"
-            >
-              {characters.map((char) => (
-                <option key={char.id} value={char.id}>
-                  {char.name}
-                </option>
-              ))}
-            </select>
+              })}
+            </div>
           )}
         </DialogHeader>
 
@@ -312,7 +327,7 @@ export function EquipmentModal({
           {/* === KARTA: WYPOSAŻENIE === */}
           {activeTab === 'gear' && (
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {gearItems.map((item) => (
                   <GearCard
                     key={item.id}
@@ -429,12 +444,15 @@ export function EquipmentModal({
                 </Button>
               </div>
               {selectedItem.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) z generatora; next/image nie wspiera
-                <img
-                  src={selectedItem.imageUrl}
-                  alt={selectedItem.name}
-                  className="w-full max-h-72 object-contain border border-brass/20 bg-black/30 mb-4"
-                />
+                <div className="relative w-full aspect-square border-2 border-brass/40 bg-black/60 mb-5 overflow-hidden shadow-2xl rounded-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) z generatora */}
+                  <img
+                    src={selectedItem.imageUrl}
+                    alt={selectedItem.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 pointer-events-none border border-black/40" />
+                </div>
               )}
               {selectedItem.description && (
                 <p className="font-serif italic text-base text-muted-foreground leading-relaxed mb-4">
@@ -524,17 +542,40 @@ function ItemThumbnail({
   onGenerateImage: (item: EquipmentItem) => void;
   size: 'sm' | 'md';
 }) {
-  const box = size === 'md' ? 'w-12 h-12' : 'w-9 h-9';
+  const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
+
   return (
     <div
-      className={`flex-none ${box} border border-brass/20 bg-black/30 overflow-hidden flex items-center justify-center`}
+      className={`flex-none ${box} border border-brass/35 bg-gradient-to-br from-[#1a140f] to-[#0d0a07] overflow-hidden flex items-center justify-center relative shadow-inner group`}
     >
       {item.imageUrl ? (
-        <img
-          src={item.imageUrl}
-          alt={item.name}
-          className="w-full h-full object-cover"
-        />
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateImage(item);
+              }}
+              disabled={generatingImage === item.id}
+              title="Wygeneruj nową ilustrację AI przedmiotu"
+              className="w-full h-full p-0 text-brass hover:text-[#ffd79e] hover:bg-brass/10 transition-colors flex items-center justify-center"
+            >
+              {generatingImage === item.id ? (
+                <Loader2 className="w-5 h-5 animate-spin text-brass" />
+              ) : (
+                <Sparkles className="w-5 h-5 text-brass" />
+              )}
+            </Button>
+          </div>
+        </>
       ) : (
         <Button
           variant="ghost"
@@ -545,13 +586,11 @@ function ItemThumbnail({
           }}
           disabled={generatingImage === item.id}
           title="Wygeneruj ilustrację przedmiotu"
-          className="w-full h-full p-0 text-brass/45 hover:text-brass"
+          className="w-full h-full p-0 text-brass/45 hover:text-brass flex items-center justify-center"
         >
           {generatingImage === item.id ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-7 h-7 animate-spin text-brass" />
           ) : (
-            // Déco-placeholder per kategoria (ikona broni/narzędzia/dokumentu...);
-            // klik generuje ilustrację, auto-gen w tle uzupełnia miniatury.
             CATEGORY_ICONS[item.category]
           )}
         </Button>
@@ -635,7 +674,7 @@ function GearCard({
   return (
     <div
       onClick={() => onOpenDetail(item)}
-      className="group flex items-center gap-3 border border-brass/20 bg-[#16130f] p-3 hover:border-brass/45 transition-colors cursor-pointer"
+      className="group flex items-center gap-4 border border-brass/25 bg-[#16130f] p-3.5 hover:border-brass/50 hover:bg-[#1f1a14] transition-all duration-200 cursor-pointer shadow-sm"
     >
       <ItemThumbnail
         item={item}
@@ -644,13 +683,13 @@ function GearCard({
         size="sm"
       />
       <div className="flex-1 min-w-0">
-        <div className="font-serif text-lg text-foreground truncate flex items-center gap-1.5">
-          <span className="text-brass/70 flex-none">
+        <div className="font-serif text-lg text-foreground truncate flex items-center gap-2">
+          <span className="text-brass/80 flex-none scale-90">
             {CATEGORY_ICONS[item.category]}
           </span>
           {item.name}
         </div>
-        <div className="mt-0.5 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground truncate">
+        <div className="mt-1 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground whitespace-normal break-words leading-relaxed line-clamp-2">
           {item.description ||
             CONDITION_LABELS[item.condition || 'used'] ||
             CATEGORY_LABELS[item.category]}

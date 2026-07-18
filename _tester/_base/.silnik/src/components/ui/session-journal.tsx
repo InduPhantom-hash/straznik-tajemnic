@@ -165,6 +165,69 @@ export function SessionJournal({
     }
   };
 
+  const journalSeenKey = isShared
+    ? `unseen_journal_detail_${participantNames.sort().join('_')}`
+    : character
+      ? `unseen_detail_${character.id}`
+      : null;
+
+  const unseenCounts = useMemo(() => {
+    if (!journalSeenKey) return { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
+    const stored = localStorage.getItem(journalSeenKey);
+    const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
+    
+    // Liczymy wpisy każdego typu
+    const questCount = entries.filter(e => e.type === 'quest').length;
+    const journalCount = entries.filter(e => e.type === 'journal').length;
+    const encyclopediaCount = entries.filter(e => 
+      ['encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
+    ).length;
+    const noteCount = entries.filter(e => e.type === 'note').length;
+
+    return {
+      quest: Math.max(0, questCount - (seenData.quest || 0)),
+      journal: Math.max(0, journalCount - (seenData.journal || 0)),
+      encyclopedia: Math.max(0, encyclopediaCount - (seenData.encyclopedia || 0)),
+      note: Math.max(0, noteCount - (seenData.note || 0)),
+    };
+  }, [entries, journalSeenKey]);
+
+  // Resetowanie powiadomień dla danej zakładki po jej aktywacji
+  const markTabAsSeen = useCallback((tab: JournalEntryType) => {
+    if (!journalSeenKey) return;
+    const stored = localStorage.getItem(journalSeenKey);
+    const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
+    
+    const questCount = entries.filter(e => e.type === 'quest').length;
+    const journalCount = entries.filter(e => e.type === 'journal').length;
+    const encyclopediaCount = entries.filter(e => 
+      ['encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
+    ).length;
+    const noteCount = entries.filter(e => e.type === 'note').length;
+
+    if (tab === 'quest') seenData.quest = questCount;
+    else if (tab === 'journal') seenData.journal = journalCount;
+    else if (tab === 'encyclopedia_character' || tab === 'encyclopedia_location' || tab === 'encyclopedia_item') {
+      seenData.encyclopedia = encyclopediaCount;
+    }
+    else if (tab === 'note') seenData.note = noteCount;
+
+    localStorage.setItem(journalSeenKey, JSON.stringify(seenData));
+  }, [entries, journalSeenKey]);
+
+  // Uruchomienie resetu dla domyślnej zakładki przy otwarciu
+  useState(() => {
+    markTabAsSeen(activeTab);
+  });
+
+  const handleTabChange = (tab: JournalEntryType) => {
+    setActiveTab(tab);
+    markTabAsSeen(tab);
+    if (tab === 'quest') {
+      setSelectedQuestId(null);
+    }
+  };
+
   // Filtrowanie wpisów według wyszukiwania i typu
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
@@ -180,6 +243,7 @@ export function SessionJournal({
         ) {
           return false;
         }
+
         // Sprawdzamy podzakładkę encyklopedii
         if (
           encyclopediaSubTab === 'character' &&
@@ -348,51 +412,68 @@ export function SessionJournal({
           {/* Zakładki na górze */}
           <div className="flex bg-[#120b07] p-1 rounded-lg border border-[#3a2518]">
             <button
-              onClick={() => {
-                setActiveTab('quest');
-                setSelectedQuestId(null);
-              }}
+              onClick={() => handleTabChange('quest')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all',
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'quest'
                   ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
                   : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
               )}
             >
               Misje
+              {unseenCounts.quest > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unseenCounts.quest}
+                </span>
+              )}
             </button>
             <button
-              onClick={() => setActiveTab('journal')}
+              onClick={() => handleTabChange('journal')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all',
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'journal'
                   ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
                   : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
               )}
             >
               Kronika
+              {unseenCounts.journal > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unseenCounts.journal}
+                </span>
+              )}
             </button>
             <button
-              onClick={() => setActiveTab('encyclopedia_character')}
+              onClick={() => handleTabChange('encyclopedia_character')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all',
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'encyclopedia_character'
                   ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
                   : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
               )}
             >
               Encyklopedia
+              {unseenCounts.encyclopedia > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unseenCounts.encyclopedia}
+                </span>
+              )}
             </button>
             <button
-              onClick={() => setActiveTab('note')}
+              onClick={() => handleTabChange('note')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all',
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'note'
                   ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
                   : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
               )}
             >
               Notatki
+              {unseenCounts.note > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {unseenCounts.note}
+                </span>
+              )}
             </button>
           </div>
 
@@ -423,8 +504,8 @@ export function SessionJournal({
         </div>
 
         {/* Wyszukiwarka */}
-        <div className="bg-[#18100b] border-b border-[#3a2518] px-6 py-2 flex items-center justify-between">
-          <div className="flex items-center bg-[#0d0906] rounded-md px-3 py-1.5 w-full max-w-md border border-[#3a2518]">
+        <div className="bg-[#18100b] border-b border-[#3a2518] px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center bg-[#0d0906] rounded-md px-3 py-1.5 w-full sm:max-w-md border border-[#3a2518]">
             <Search className="h-4 w-4 text-[#8a7667] mr-2" />
             <input
               type="text"
@@ -434,9 +515,14 @@ export function SessionJournal({
               className="bg-transparent text-sm w-full outline-none text-[#e2d4c9] placeholder-[#5a4d43]"
             />
           </div>
-          <span className="text-xs text-[#8a7667] italic font-serif">
-            Lokalna baza badacza: {character.name}
-          </span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#2a1b12] border border-[#bfa15f]/30 rounded-md shadow-sm">
+            <span className="text-[11px] font-serif uppercase tracking-wider text-[#bfa15f] font-semibold">
+              Baza Badacza:
+            </span>
+            <span className="text-xs font-special-elite text-[#f4ebd0]">
+              {character.name}
+            </span>
+          </div>
         </div>
 
         {/* Zawartość zakładek */}

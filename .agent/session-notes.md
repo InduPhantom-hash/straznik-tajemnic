@@ -192,3 +192,19 @@ Branch: codex/duet-catalog-integration
 
 ### Decyzje podjęte
 - Ujednolicenie obu wersji komponentu `PredefinedCharactersSelector` (testowej i produkcyjnej) poprzez pełne zsynchronizowanie kodu w celu uniknięcia driftu.
+
+---
+
+## Podsumowanie sesji: 2026-07-18 (sekwencyjne generowanie obrazów)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Rozwiązano problem z blokowaniem API (błędy 429/500) przy automatycznym generowaniu miniatur poprzez usunięcie równoległych zapytań z `ItemThumbnail` i zaimplementowanie sekwencyjnego kolejkowania opartego o `useEffect` w komponencie `EquipmentModal`.
+- Poprawiono placeholder w read-only karcie postaci (`sheet-equipment.tsx`) z kręcącego się w nieskończoność loadera na ikony kategorii z `CATEGORY_ICONS`.
+- Skompilowano produkcyjny build Next.js i przebudowano launcher desktopowy komendą `bash desktop/build-app.sh --rebuild` (z BypassSandbox), dzięki czemu nowa wersja trafiła na biurko użytkownika.
+
+### Co otwarte (do następnej sesji)
+- Sprawdzenie w grze, czy miniatury generują się kolejno bez błędów.
+
+### Decyzje podjęte
+- Auto-generowanie obrazów za pomocą Gemini Image w tle musi być kolejkowane i przetwarzane sekwencyjnie z opóźnieniem w celu ochrony przed limitami współbieżności API.

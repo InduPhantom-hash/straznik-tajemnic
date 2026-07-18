@@ -53,6 +53,8 @@ import {
   synchronizeAdventureJournal,
 } from '@/lib/journal/shared-adventure-journal';
 
+import { useEquipmentThumbnails } from '@/hooks/useEquipmentThumbnails';
+
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
   () =>
@@ -163,6 +165,13 @@ export default function Home() {
 
   // IND-246: Hot Seat przed useChat - useChat wysyła hotSeat.config do /api/chat.
   const hotSeat = useHotSeat(charMgmt.characters);
+
+  const { generateThumbnailsInBackground } = useEquipmentThumbnails({
+    activeCharacter: charMgmt.activeCharacter,
+    adventureContext,
+    setActiveCharacter: charMgmt.setActiveCharacter,
+    setCharacters: charMgmt.setCharacters,
+  });
 
   const chat = useChat({
     pdfMemory: pdf.pdfMemory,
@@ -546,6 +555,13 @@ export default function Home() {
     charMgmt.activeCharacter,
     charMgmt.setActiveCharacter,
   ]);
+
+  // Automatyczne generowanie grafik dla przedmiotów w tle przy zmianie postaci
+  useEffect(() => {
+    if (charMgmt.activeCharacter) {
+      generateThumbnailsInBackground();
+    }
+  }, [charMgmt.activeCharacter, generateThumbnailsInBackground]);
 
   // 2. Load localStorage data (chat / characters / campaigns / pdf)
   useEffect(() => {

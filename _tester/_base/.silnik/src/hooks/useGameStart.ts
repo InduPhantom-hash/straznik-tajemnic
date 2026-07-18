@@ -303,6 +303,7 @@ export function useGameStart({
           adventureContext: adventureContext,
           isGameStart: true,
           aiSettings: aiSettings,
+          gameTime: timeManager.getTime(),
         }),
       });
 
