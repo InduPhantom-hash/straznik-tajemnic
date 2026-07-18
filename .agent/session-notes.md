@@ -241,3 +241,24 @@ Branch: codex/duet-catalog-integration
 ### Decyzje podjęte
 - Uznano, że podgląd gotowych badaczy powinien w pełni imitować kartę postaci z gry w celach spójności UX.
 
+
+---
+
+## Podsumowanie sesji: 2026-07-18 (Mystycy, portrety i poprawa błędów selektora)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- **Dodanie 4 nowych postaci Mistyków** (Silas Thorne i Vivienne Moreau dla epoki Gaslight; Nathaniel Ward i Iris Blackwell dla epoki Classic) z kompletnymi arkuszami CoC 7e, ekwipunkiem i nowymi klimatycznymi portretami. Baza postaci wzrosła do 30.
+- **Wdrożenie brakujących portretów** (wszystkie 30 postaci) do katalogu publicznego `public/portraits/predefined/` (zarówno w projekcie głównym, jak i silniku).
+- **Naprawienie krytycznego błędu składniowego TSX** w `predefined-characters-selector.tsx` (przywrócenie brakującego kontenera warunkowego i IIFE otwierających modal szczegółów badacza).
+- **Usunięcie piktogramów ekwipunku** (rombów `◆`) z kafelków przedmiotów w selektorze postaci (obecnie czysty tekst z nazwą i kategorią).
+- **Stworzenie delegującego package.json** w korzeniu projektu w celu ułatwienia procesu budowania Next.js/Turbopack.
+- **Przebudowanie aplikacji lokalnej** z obejściem piaskownicy w celu uniknięcia błędów postcss/Turbopack, zakończone powodzeniem i dostarczeniem instalacji na Biurko.
+
+### Co otwarte (do następnej sesji)
+- Dalsze testy w grze, diagnostyka i naprawa błędów zgłoszonych przez użytkownika.
+
+### Decyzje podjęte
+- Zachowanie czystego tekstu w ekwipunku bez piktogramów i ikon.
+- Wprowadzenie zmian bezpośrednio do źródeł Next.js silnika oraz w `src/`.
+

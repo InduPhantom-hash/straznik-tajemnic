@@ -298,7 +298,11 @@ export function PredefinedCharactersSelector({
           </div>
         </div>
       </div>
-
+      {viewingCharacter && (() => {
+        const isUnavailable = unavailablePresetIds.includes(viewingCharacter.id);
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 overflow-y-auto">
+            <div className="deco-corners relative w-full max-w-5xl bg-[#120f0c] border border-brass/50 p-6 md:p-8 my-8">
               <div className="flex justify-between items-start mb-4 border-b border-brass/20 pb-3">
                 <div>
                   <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">
@@ -599,17 +603,13 @@ export function PredefinedCharactersSelector({
                             key={item.id}
                             className="flex items-center gap-4 border border-brass/25 bg-[#181410] p-4 rounded-sm"
                           >
-                            <div className="flex-none w-16 h-16 border border-brass/35 bg-gradient-to-br from-[#1a140f] to-[#0d0a07] overflow-hidden flex items-center justify-center relative rounded-sm">
-                              {item.imageUrl ? (
-                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-brass/25 text-lg">◆</span>
-                              )}
-                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-start gap-2">
                                 <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
                                   {item.name}
+                                </span>
+                                <span className="font-special-elite text-[11px] uppercase tracking-[0.1em] text-brass/50 flex-none">
+                                  {item.category}
                                 </span>
                               </div>
                               {item.description && (

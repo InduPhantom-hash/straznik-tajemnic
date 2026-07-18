@@ -1,0 +1,20 @@
+# Zależności i buildy
+node_modules/
+.next/
+dist/
+out/
+build/
+
+# Specyficzne dla launchera na biurku
+.desktop/
+*.log
+
+# Pliki środowiskowe
+.env
+.env.local
+.env.production
+.env.development
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
