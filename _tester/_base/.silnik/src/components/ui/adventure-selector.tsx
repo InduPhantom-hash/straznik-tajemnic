@@ -80,7 +80,7 @@ export function AdventureSelector({
   const [customDescription, setCustomDescription] = useState('');
 
   const handleSelect = (adventure: AdventureContext, openDetails = true) => {
-    if (adventure.id === 'custom-new') {
+    if (adventure.id === 'custom') {
       // Własna przygoda bez PDF - pokaż formularz
       setShowCustomForm(true);
       setSelectedId(adventure.id);
@@ -374,7 +374,7 @@ export function AdventureSelector({
 
               {/* Przycisk wgrania nowej przygody z klimatycznym mosiężnym paskiem postępu */}
               {ALLOW_CUSTOM_ADVENTURES && onUploadAdventure && (
-                <div className="mb-4">
+                <div className="mt-6 mb-4">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -400,16 +400,16 @@ export function AdventureSelector({
 
                       <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
                         <span className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
                           Przetwarzanie księgi tajemnic...
                         </span>
                         <span>{uploadProgress}%</span>
                       </div>
 
-                      {/* Klimatyczny pasek postępu (mosiądz i złoto) */}
-                      <div className="w-full h-3 border border-brass/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
+                      {/* Klimatyczny pasek postępu (szmaragdowy/zielony z blaskiem) */}
+                      <div className="w-full h-3 border border-primary/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
                         <div
-                          className="h-full bg-gradient-to-r from-brass via-gold to-brass rounded-full shadow-[0_0_8px_rgba(217,119,6,0.5)] transition-all duration-500 ease-out"
+                          className="h-full bg-primary rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.6)] transition-all duration-500 ease-out"
                           style={{ width: `${uploadProgress}%` }}
                         />
                       </div>
@@ -443,7 +443,7 @@ export function AdventureSelector({
                   {/* Własna przygoda bez PDF */}
                   {ALLOW_CUSTOM_ADVENTURES && (
                     <button
-                      onClick={() => handleSelect(CUSTOM_ADVENTURE_TEMPLATE)}
+                      onClick={() => handleSelect(CUSTOM_ADVENTURE_TEMPLATE, false)}
                       className={`p-4 text-left transition-all duration-300 ${
                         selectedId === 'custom'
                           ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
