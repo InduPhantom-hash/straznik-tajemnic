@@ -62,3 +62,19 @@ Branch: feature/duet-starting-prompt
 ### Decyzje podjęte
 - Ikony kategorii jako komponent `CategoryIcon` (switch po category string) - reużywalna funkcja w obu plikach.
 - W sheet-equipment.tsx placeholder jest czysto prezentacyjny (bez generowania) - dlatego brak nakładki hover "Generuj" (to robi modal/hook).
+
+## Podsumowanie sesji: 2026-07-18 (Sesja 5)
+Branch: feature/duet-starting-prompt
+
+### Co zrobiono
+- Zdiagnozowano i naprawiono desynchronizację między wersją testową a produkcyjną komponentu predefined-characters-selector.tsx.
+- Dodano do produkcji: import EquipmentDetailDialog i EquipmentItem, stan selectedItem, klikalne przedmioty ekwipunku z hover efektem i płynną animacją.
+- Pliki _tester/_base/.silnik/ i src/ są teraz w 100% identyczne (diff = pusty).
+- Zamknięto plan full-character-sheet-preview - zapisano state.md.
+
+### Co otwarte (do następnej sesji)
+- przelacznik-hot-seat-brief.md - jest brief, brak planu i implementacji.
+- Testy manualne aplikacji (otwarte od sesji 3).
+
+### Decyzje podjęte
+- Plan full-character-sheet-preview był de facto już zrealizowany w poprzednich sesjach - brakował tylko sync jednego importu i state file.
