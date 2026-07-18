@@ -880,7 +880,7 @@ export default function Home() {
               character={charMgmt.activeCharacter}
               onCharacterUpdate={charMgmt.handleUpdateCharacter}
               characters={charMgmt.characters}
-              onActiveCharacterChange={charMgmt.handleSelectCharacter}
+              onActiveCharacterChange={charMgmt.handleCharacterSwitch}
             />
           )}
 

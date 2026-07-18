@@ -19,6 +19,18 @@ interface PredefinedCharactersSelectorProps {
   unavailablePresetIds?: string[];
 }
 
+const CHARACTERISTIC_LABELS: Record<string, string> = {
+  str: 'Siła (SIŁ)',
+  con: 'Kondycja (KON)',
+  siz: 'Budowa (BUD)',
+  dex: 'Zręczność (ZRĘ)',
+  app: 'Wygląd (WYG)',
+  int: 'Inteligencja (INT)',
+  pow: 'Moc (MOC)',
+  edu: 'Wykształcenie (WYK)',
+  luck: 'Szczęście (SZC)',
+};
+
 const ARCHETYPE_LABELS: Array<{
   value: 'all' | PredefinedCharacterArchetype;
   label: string;
@@ -270,7 +282,7 @@ export function PredefinedCharactersSelector({
             onClick={() => setViewingCharacter(null)}
           >
             <div
-              className="deco-corners relative w-full max-w-2xl bg-[#16130f] border border-brass/45 shadow-[0_0_50px_rgba(201,162,39,0.25)] p-6"
+              className="deco-corners relative w-full max-w-4xl bg-[#16130f] border border-brass/45 shadow-[0_0_50px_rgba(201,162,39,0.25)] p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Narożniki Deco */}
@@ -296,33 +308,38 @@ export function PredefinedCharactersSelector({
                 </button>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div className="flex-[0_0_150px] w-full sm:w-36 aspect-[3/4] border border-brass/35 overflow-hidden">
-                  <img
-                    src={viewingCharacter.portraitUrl}
-                    alt={viewingCharacter.name}
-                    className="w-full h-full object-cover grayscale"
-                  />
-                </div>
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Kolumna Lewa: Portret + Info Podstawowe + Biografia */}
                 <div className="flex-1 space-y-4">
-                  <div>
-                    <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em]">
-                      Zawód i wiek
-                    </span>
-                    <span className="font-serif text-base text-foreground">
-                      {viewingCharacter.occupation} · lat {viewingCharacter.age}
-                    </span>
-                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-[0_0_120px] w-30 aspect-[3/4] border border-brass/35 overflow-hidden">
+                      <img
+                        src={viewingCharacter.portraitUrl}
+                        alt={viewingCharacter.name}
+                        className="w-full h-full object-cover grayscale"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em]">
+                          Zawód i wiek
+                        </span>
+                        <span className="font-serif text-base text-foreground">
+                          {viewingCharacter.occupation} - lat {viewingCharacter.age}
+                        </span>
+                      </div>
 
-                  <div>
-                    <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em]">
-                      Statystyki życiowe
-                    </span>
-                    <div className="flex gap-4 font-special-elite text-sm text-foreground mt-1">
-                      <span>PŻ: <strong>{viewingCharacter.hp}</strong></span>
-                      <span>PR: <strong>{viewingCharacter.san}</strong></span>
-                      <span>PM: <strong>{viewingCharacter.mp}</strong></span>
-                      <span>SZC: <strong>{viewingCharacter.luck}</strong></span>
+                      <div>
+                        <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em]">
+                          Statystyki życiowe
+                        </span>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 font-special-elite text-sm text-foreground mt-1">
+                          <span>PŻ: <strong>{viewingCharacter.hp}</strong></span>
+                          <span>PR: <strong>{viewingCharacter.san}</strong></span>
+                          <span>PM: <strong>{viewingCharacter.mp}</strong></span>
+                          <span>SZC: <strong>{viewingCharacter.luck}</strong></span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -365,6 +382,65 @@ export function PredefinedCharactersSelector({
                       {isUnavailable ? 'Przypisana' : 'Wybierz tę postać'}
                     </button>
                   </div>
+                </div>
+
+                {/* Kolumna Prawa: Cechy + Umiejętności + Ekwipunek */}
+                <div className="flex-1 space-y-4 border-t md:border-t-0 md:border-l border-brass/15 pt-4 md:pt-0 md:pl-6">
+                  {/* Cechy */}
+                  <div>
+                    <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em] mb-2">
+                      Cechy badacza
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {Object.entries(CHARACTERISTIC_LABELS).map(([key, label]) => {
+                        const val = (viewingCharacter as any)[key] || 50;
+                        return (
+                          <div key={key} className="border border-brass/15 bg-[#120f0c] p-2 text-center">
+                            <div className="text-[10px] font-special-elite text-muted-foreground uppercase">{label}</div>
+                            <div className="font-display font-bold text-lg text-brass mt-0.5">{val}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Umiejętności */}
+                  {viewingCharacter.skills && Object.keys(viewingCharacter.skills).length > 0 && (
+                    <div>
+                      <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em] mb-2">
+                        Umiejętności
+                      </span>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 border border-brass/15 bg-[#120f0c] p-3 max-h-[160px] overflow-y-auto">
+                        {Object.entries(viewingCharacter.skills)
+                          .sort(([a], [b]) => a.localeCompare(b, 'pl'))
+                          .map(([skill, val]) => (
+                            <div key={skill} className="flex justify-between items-baseline text-xs font-serif">
+                              <span className="text-foreground truncate mr-2">{skill}</span>
+                              <span className="font-special-elite text-brass flex-none">{val as number}%</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ekwipunek */}
+                  {viewingCharacter.equipment && viewingCharacter.equipment.length > 0 && (
+                    <div>
+                      <span className="block font-special-elite text-xs text-brass uppercase tracking-[0.1em] mb-2">
+                        Ekwipunek
+                      </span>
+                      <div className="space-y-1.5 border border-brass/15 bg-[#120f0c] p-3 max-h-[120px] overflow-y-auto">
+                        {viewingCharacter.equipment.map((item) => (
+                          <div key={item.id} className="text-xs font-serif">
+                            <strong className="text-foreground">{item.name}</strong>
+                            {item.description && (
+                              <span className="text-muted-foreground"> - {item.description}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

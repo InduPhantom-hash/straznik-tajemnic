@@ -177,3 +177,18 @@ Branch: codex/duet-catalog-integration
 
 ### Decyzje podjęte
 - Usunięcie ozdobnej żółtej ramki z obu wariantów ikony (standardowej oraz reset/czerwonej).
+
+---
+
+## Podsumowanie sesji: 2026-07-18 (pełny podgląd postaci)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Rozbudowano modal szczegółów predefiniowanych postaci o pełną kartę badacza zawierającą cechy podstawowe (STR, DEX itp. przetłumaczone na język polski), umiejętności oraz ekwipunek.
+- Zsynchronizowano te zmiany w obu wersjach selektora (testowej `_tester/_base/.silnik` oraz produkcyjnej `src`).
+
+### Co otwarte (do następnej sesji)
+- Dalsze testy w grze i weryfikacja UI/UX na różnych ekranach.
+
+### Decyzje podjęte
+- Ujednolicenie obu wersji komponentu `PredefinedCharactersSelector` (testowej i produkcyjnej) poprzez pełne zsynchronizowanie kodu w celu uniknięcia driftu.
