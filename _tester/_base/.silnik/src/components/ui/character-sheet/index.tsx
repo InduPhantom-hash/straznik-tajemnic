@@ -82,9 +82,29 @@ export function CharacterSheet({
   // na głównej, która ma własny fallback). Hydratujemy KOPIĘ do wyświetlenia z
   // IndexedDB - inlineEdit/eksport zostają na oryginalnym `character`.
   const [displayCharacter, setDisplayCharacter] = useState(character);
+  const characterId = character?.id;
+
+  // 1) Sync danych character -> displayCharacter przy każdej zmianie propa
+  //    (edycja HP, SAN itp.). Portret zostaje z poprzedniej hydratacji.
   useEffect(() => {
-    setDisplayCharacter(character);
-    if (!character?.id) return;
+    setDisplayCharacter((prev) => {
+      if (!character) return character;
+      // Zachowaj portret/ekwipunek z hydratacji jeśli character ich nie ma
+      return {
+        ...character,
+        portraitUrl: character.portraitUrl || prev?.portraitUrl,
+        equipment: character.equipment?.map((item, i) => ({
+          ...item,
+          imageUrl: item.imageUrl || prev?.equipment?.[i]?.imageUrl,
+        })) ?? character.equipment,
+      };
+    });
+  }, [character]);
+
+  // 2) Hydratacja obrazów z IndexedDB - tylko przy zmianie postaci (ID).
+  //    Oddzielny efekt, żeby nie odpalać IO przy każdej edycji HP/SAN.
+  useEffect(() => {
+    if (!characterId || !character) return;
     let cancelled = false;
     hydrateCharacterImages([character]).then((arr) => {
       if (!cancelled && arr[0]) setDisplayCharacter(arr[0]);
@@ -92,7 +112,8 @@ export function CharacterSheet({
     return () => {
       cancelled = true;
     };
-  }, [character]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [characterId]);
 
   // FEATURE:#5 - Eksport karty postaci do Markdown
   // FEATURE:#10 - Przełączanie postaci (character selector dropdown)
@@ -191,7 +212,7 @@ export function CharacterSheet({
             {/* === KOLUMNA LEWA === */}
             <div className="space-y-6">
               {/* SEKCJA 1: PORTRET + INFO PODSTAWOWE */}
-              <SheetHeader character={display} />
+              <SheetHeader key={display.id} character={display} />
 
               {/* PASKI STANU PŻ / PR / PM (inline edit) */}
               <StatBars

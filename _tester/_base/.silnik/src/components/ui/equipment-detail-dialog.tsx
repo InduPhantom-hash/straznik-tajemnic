@@ -49,12 +49,12 @@ export function EquipmentDetailDialog({ item, onClose }: EquipmentDetailDialogPr
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[100] flex justify-center bg-black/75 backdrop-blur-sm py-6 md:py-8 px-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="deco-corners flex flex-col bg-[#16130f] border border-brass/40 w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 relative"
+        className="deco-corners flex flex-col bg-[#16130f] border border-brass/40 w-full max-w-lg h-fit p-6 relative"
       >
         {/* Narożniki Deco */}
         <span className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/60 pointer-events-none" />
@@ -77,12 +77,12 @@ export function EquipmentDetailDialog({ item, onClose }: EquipmentDetailDialogPr
           </Button>
         </div>
         {item.imageUrl && (
-          <div className="relative w-full aspect-square border-2 border-brass/40 bg-black/60 mb-5 overflow-hidden shadow-2xl rounded-sm">
+          <div className="relative w-full aspect-[4/3] max-h-[40vh] border-2 border-brass/40 bg-black/60 mb-5 overflow-hidden shadow-2xl rounded-sm">
             {/* eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) z generatora */}
             <img
               src={item.imageUrl}
               alt={item.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
             <div className="absolute inset-0 pointer-events-none border border-black/40" />
           </div>

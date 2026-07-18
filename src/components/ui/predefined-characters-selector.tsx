@@ -301,8 +301,8 @@ export function PredefinedCharactersSelector({
       {viewingCharacter && (() => {
         const isUnavailable = unavailablePresetIds.includes(viewingCharacter.id);
         return (
-          <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/90 backdrop-blur-md p-4 overflow-y-auto">
-            <div className="deco-corners relative w-full max-w-5xl bg-[#120f0c] border border-brass/50 p-6 md:p-8 my-auto md:my-8">
+          <div className="fixed inset-0 z-[60] flex justify-center bg-black/90 backdrop-blur-md py-6 md:py-8 px-4 overflow-y-auto">
+            <div className="deco-corners relative w-full max-w-5xl h-fit bg-[#120f0c] border border-brass/50 p-6 md:p-8">
               <div className="flex justify-between items-start mb-4 border-b border-brass/20 pb-3">
                 <div>
                   <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">

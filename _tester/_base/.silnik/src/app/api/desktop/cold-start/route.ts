@@ -33,7 +33,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const runtimeDirectory = path.join(process.cwd(), '.desktop');
+    // Serwer uruchamia się w podkatalogu _tester/_base/.silnik, a launcher nasłuchuje w głównym repozytorium.
+    // Cofamy się o 3 poziomy w górę, aby zapisać flagę w głównym katalogu `.desktop` projektu.
+    const projectRoot = path.resolve(process.cwd(), '../../..');
+    const runtimeDirectory = path.join(projectRoot, '.desktop');
     await mkdir(runtimeDirectory, { recursive: true });
     await writeFile(
       path.join(runtimeDirectory, 'cold-start-requested'),
