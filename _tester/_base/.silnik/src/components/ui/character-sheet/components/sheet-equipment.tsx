@@ -11,36 +11,13 @@
  * resolveTestValue. RAW: brak wagi; broń biała dolicza DB postaci.
  */
 
-import type { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
+import type { Character, EquipmentItem } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import {
   isWeapon,
   inferWeaponSkill,
   isMeleeWeapon,
 } from '@/lib/combat/weapon-context';
-import {
-  Sword,
-  Shield,
-  Wrench,
-  FileText,
-  Sparkles,
-  User,
-  Heart,
-  Flame,
-  Loader2,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
-
-const CATEGORY_ICONS: Record<EquipmentCategory, ReactNode> = {
-  weapon: <Sword className="w-5 h-5 text-brass" />,
-  armor: <Shield className="w-5 h-5 text-brass" />,
-  tool: <Wrench className="w-5 h-5 text-brass" />,
-  document: <FileText className="w-5 h-5 text-brass" />,
-  artifact: <Sparkles className="w-5 h-5 text-brass" />,
-  personal: <User className="w-5 h-5 text-brass" />,
-  medical: <Heart className="w-5 h-5 text-brass" />,
-  occult: <Flame className="w-5 h-5 text-brass" />,
-};
 
 export interface SheetEquipmentProps {
   character: Character;
@@ -62,8 +39,8 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="flex items-center justify-center w-full h-full text-brass/60">
-          {CATEGORY_ICONS[item.category] || <span className="text-brass/40 text-sm">✦</span>}
+        <div className="flex items-center justify-center w-full h-full">
+          <span className="text-brass/25 text-lg animate-pulse">◆</span>
         </div>
       )}
     </div>

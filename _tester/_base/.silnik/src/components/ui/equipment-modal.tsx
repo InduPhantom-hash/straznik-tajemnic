@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, ReactNode } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,19 +8,7 @@ import {
 } from './dialog';
 import { Button } from './button';
 import { Input } from './input';
-import {
-  Package,
-  Search,
-  Loader2,
-  Sword,
-  Shield,
-  Wrench,
-  FileText,
-  Sparkles,
-  User,
-  Heart,
-  Flame,
-} from 'lucide-react';
+import { Package, Search, Loader2 } from 'lucide-react';
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
 import { buildEquipmentImagePrompt } from '@/lib/equipment-prompt-builder';
@@ -51,17 +39,7 @@ interface EquipmentModalProps {
   onCharacterChange?: (character: Character) => void;
 }
 
-// Ikony dla kategorii
-const CATEGORY_ICONS: Record<EquipmentCategory, ReactNode> = {
-  weapon: <Sword className="w-4 h-4" />,
-  armor: <Shield className="w-4 h-4" />,
-  tool: <Wrench className="w-4 h-4" />,
-  document: <FileText className="w-4 h-4" />,
-  artifact: <Sparkles className="w-4 h-4" />,
-  personal: <User className="w-4 h-4" />,
-  medical: <Heart className="w-4 h-4" />,
-  occult: <Flame className="w-4 h-4" />,
-};
+
 
 // Etykiety stanu przedmiotu (déco: zwięzłe statusy w stylu special-elite)
 const CONDITION_LABELS: Record<string, string> = {
@@ -157,22 +135,9 @@ export function EquipmentModal({
     [era, adventureTheme, updateItem]
   );
 
-  // Sekwencyjne generowanie brakujących obrazów w tle z opóźnieniem
-  useEffect(() => {
-    if (!open) return;
-
-    const firstMissing = filteredEquipment.find(
-      (item) => !item.imageUrl && generatingImage !== item.id
-    );
-
-    if (firstMissing && !generatingImage) {
-      // Opóźnienie 200ms w celu rozbicia jednoczesnych requestów i ochrony API Gemini
-      const timer = setTimeout(() => {
-        generateImage(firstMissing);
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [open, filteredEquipment, generatingImage, generateImage]);
+  // Auto-generacja miniatur obsługiwana wyłącznie przez useEquipmentThumbnails
+  // (fire-and-forget po starcie gry w useGameStart). Drugi useEffect w modalu
+  // powodował wyścig stanów (closure vs. functional update) i kasowanie imageUrl.
 
   const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'finances'>('weapon');
 
@@ -572,7 +537,7 @@ function ItemThumbnail({
               {generatingImage === item.id ? (
                 <Loader2 className="w-5 h-5 animate-spin text-brass" />
               ) : (
-                <Sparkles className="w-5 h-5 text-brass" />
+                <span className="text-brass text-xs font-special-elite uppercase tracking-wider">Nowy</span>
               )}
             </Button>
           </div>
@@ -592,7 +557,10 @@ function ItemThumbnail({
           {generatingImage === item.id ? (
             <Loader2 className="w-7 h-7 animate-spin text-brass" />
           ) : (
-            CATEGORY_ICONS[item.category]
+            <div className="flex flex-col items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+              <span className="text-brass/30 text-xl">◆</span>
+              <span className="text-[8px] text-brass/30 uppercase tracking-widest font-special-elite">Generuj</span>
+            </div>
           )}
         </Button>
       )}
@@ -684,10 +652,7 @@ function GearCard({
         size="sm"
       />
       <div className="flex-1 min-w-0">
-        <div className="font-serif text-lg text-foreground truncate flex items-center gap-2">
-          <span className="text-brass/80 flex-none scale-90">
-            {CATEGORY_ICONS[item.category]}
-          </span>
+        <div className="font-serif text-lg text-foreground truncate">
           {item.name}
         </div>
         <div className="mt-1 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground whitespace-normal break-words leading-relaxed line-clamp-2">
