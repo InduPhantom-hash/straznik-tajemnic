@@ -42,10 +42,11 @@ function resolveEra(adventureContext: AdventureContext | null): string {
 async function generateOneThumbnail(
   item: EquipmentItem,
   era: string,
-  adventureTheme?: string
+  adventureTheme?: string,
+  character?: Character | null
 ): Promise<string | null> {
   try {
-    const prompt = buildEquipmentImagePrompt(item, era, adventureTheme);
+    const prompt = buildEquipmentImagePrompt(item, era, adventureTheme, character);
     const response = await fetchWithApiKeys('/api/imagen', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -91,7 +92,7 @@ export function useEquipmentThumbnails({
 
       // Sekwencyjnie - jedna miniatura na raz (zamiast N równoległych requestów).
       for (const item of pending) {
-        const imageUrl = await generateOneThumbnail(item, era, adventureTheme);
+        const imageUrl = await generateOneThumbnail(item, era, adventureTheme, character);
         if (!imageUrl) continue;
 
         // Aktualizuj tę konkretną postać + jej przedmiot, zachowując resztę

@@ -98,7 +98,7 @@ export function EquipmentModal({
       setGeneratingImage(item.id);
 
       try {
-        const prompt = buildEquipmentImagePrompt(item, era, adventureTheme);
+        const prompt = buildEquipmentImagePrompt(item, era, adventureTheme, character);
 
         // Zew-App-Local: obrazy przez orkiestrator /api/imagen (tylko Gemini, jeden klucz).
         const response = await fetchWithApiKeys('/api/imagen', {

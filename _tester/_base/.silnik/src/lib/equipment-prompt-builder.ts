@@ -3,7 +3,7 @@
  * Rozwiązuje problem niespójnych miniatur - wzbogaca prompty o kontekst ery, stylu, specyfikę przedmiotu
  */
 
-import { EquipmentItem, EquipmentCategory } from './types';
+import { EquipmentItem, EquipmentCategory, Character } from './types';
 
 // === MODYFIKATORY ERY ===
 
@@ -67,38 +67,49 @@ const LOVECRAFT_AESTHETIC =
 export function buildEquipmentImagePrompt(
   item: EquipmentItem,
   era: string = '1920s',
-  adventureTheme?: string
+  adventureTheme?: string,
+  character?: Character | null
 ): string {
   const parts: string[] = [];
 
-  // 1. Nazwa przedmiotu z kontekstem
+  // 1. Nazwa przedmiotu z kontekstem ery
   parts.push(`Vintage ${era} ${item.name}`);
 
-  // 2. Opis jeśli dostępny
+  // 2. Kontekst personalizacji dokumentów i przedmiotów osobistych
+  if (character && (item.category === 'document' || item.category === 'personal')) {
+    const isMale = character.gender === 'male';
+    const faceContext = item.name.toLowerCase().includes('dowód') || item.name.toLowerCase().includes('legitymacja') || item.name.toLowerCase().includes('dokument') || item.name.toLowerCase().includes('bilet')
+      ? `containing a vintage black and white photo of a ${character.age}-year-old ${isMale ? 'man' : 'woman'} matching the name "${character.name}"`
+      : '';
+    
+    parts.push(`This is a personal ${item.category} belonging to ${character.name} (occupation: ${character.occupation || 'Investigator'}, age: ${character.age}). Any visible text, signature or photo must clearly represent a ${character.age}-year-old ${isMale ? 'male' : 'female'} and the name "${character.name}". ${faceContext}`);
+  }
+
+  // 3. Opis jeśli dostępny
   if (item.description) {
     parts.push(item.description);
   }
 
-  // 3. Styl kategorii
+  // 4. Styl kategorii
   const categoryStyle =
     CATEGORY_STYLES[item.category] || CATEGORY_STYLES.personal;
   parts.push(categoryStyle);
 
-  // 4. Materiały typowe dla kategorii
+  // 5. Materiały typowe dla kategorii
   const materials =
     CATEGORY_MATERIALS[item.category] || CATEGORY_MATERIALS.personal;
   parts.push(materials);
 
-  // 5. Modyfikator ery
+  // 6. Modyfikator ery
   const eraModifier = ERA_MODIFIERS[era] || ERA_MODIFIERS['1920s'];
   parts.push(eraModifier);
 
-  // 6. Temat przygody jeśli podany
+  // 7. Temat przygody jeśli podany
   if (adventureTheme) {
     parts.push(`${adventureTheme} theme, regional styling`);
   }
 
-  // 7. Stan przedmiotu
+  // 8. Stan przedmiotu
   if (item.condition) {
     const conditionDesc: Record<string, string> = {
       new: 'pristine condition, polished',
@@ -109,11 +120,11 @@ export function buildEquipmentImagePrompt(
     parts.push(conditionDesc[item.condition] || conditionDesc.used);
   }
 
-  // 8. Estetyka Lovecrafta
+  // 9. Estetyka Lovecrafta
   parts.push(LOVECRAFT_AESTHETIC);
 
-  // 9. Parametry techniczne
-  parts.push('high quality, 4K, detailed textures, studio lighting');
+  // 10. Parametry techniczne i unikanie karykatur/deformacji
+  parts.push('high quality, 4K, detailed textures, studio lighting, clear text layout, no distorted text, realistic human features, accurate facial anatomy, historical accuracy');
 
   return parts.join(', ');
 }
