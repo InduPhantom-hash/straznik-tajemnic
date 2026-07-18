@@ -34,7 +34,7 @@ import { HandoutGenerator } from '../ui/handout-generator';
 import { AdventureSelector } from '../ui/adventure-selector';
 import { EquipmentModal } from '../ui/equipment-modal';
 import { NewAdventureModal } from '../ui/new-adventure-modal';
-import { PlayerSwitcher } from '../ui/player-switcher';
+
 import {
   Character,
   ActiveGameState,
@@ -87,10 +87,8 @@ interface CthulhuSidebarProps {
   isUploadingAdventure?: boolean;
   uploadProgressAdventure?: number;
   loadingStatusAdventure?: string;
-  // C3: przełącznik graczy Hot Seat osadzony w sidebarze (zamiast pływającego paska)
+  // Hot Seat config - potrzebny dla wspólnego dziennika (sharedJournal)
   hotSeatConfig?: HotSeatConfig;
-  onSwitchPlayer?: (playerIndex: number) => void;
-  onDisableHotSeat?: () => void;
 }
 
 export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
@@ -130,8 +128,6 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   uploadProgressAdventure = 0,
   loadingStatusAdventure = '',
   hotSeatConfig,
-  onSwitchPlayer,
-  onDisableHotSeat,
 }) => {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
@@ -404,20 +400,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   );
                 })()}
 
-              {/* C3: przełącznik graczy Hot Seat - osadzony MIĘDZY panelem
-                  postaci a przyciskami akcji (zamiast pływającego paska u góry). */}
-              {hotSeatConfig &&
-                onSwitchPlayer &&
-                onDisableHotSeat &&
-                characters && (
-                  <PlayerSwitcher
-                    embedded
-                    config={hotSeatConfig}
-                    characters={characters}
-                    onSwitchPlayer={onSwitchPlayer}
-                    onDisableHotSeat={onDisableHotSeat}
-                  />
-                )}
+
 
               {/* Action Buttons - zielone ikony */}
               <div className="space-y-1">

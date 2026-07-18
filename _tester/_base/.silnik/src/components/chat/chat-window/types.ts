@@ -66,6 +66,10 @@ export interface ChatWindowProps {
 
   // Hot Seat
   hotSeatConfig?: HotSeatConfig;
+  /** Przełącza aktywnego gracza Hot Seat (index w tablicy players). */
+  onSwitchPlayer?: (playerIndex: number) => void;
+  /** Wyłącza tryb Hot Seat. */
+  onDisableHotSeat?: () => void;
 
   // Dziennik - podsumowanie sceny
   onSummarizeScene?: () => Promise<void>;

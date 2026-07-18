@@ -816,8 +816,6 @@ export default function Home() {
           uploadProgressAdventure={customAdventures.uploadProgress}
           loadingStatusAdventure={customAdventures.loadingStatus}
           hotSeatConfig={hotSeat.config}
-          onSwitchPlayer={handleSwitchPlayer}
-          onDisableHotSeat={hotSeat.disableHotSeat}
         />
       }
       modals={
@@ -1018,6 +1016,8 @@ export default function Home() {
         onOpenApiKeys={() => setShowApiKeysModal(true)}
         onColdStart={handleColdStart}
         hotSeatConfig={hotSeat.config}
+        onSwitchPlayer={handleSwitchPlayer}
+        onDisableHotSeat={hotSeat.disableHotSeat}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector

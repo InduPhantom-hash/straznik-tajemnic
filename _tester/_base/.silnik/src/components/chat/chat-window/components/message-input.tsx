@@ -41,6 +41,13 @@ interface MessageInputProps {
   /** Składa bufor w turę i wysyła do MG ("Wyślij turę"). */
   onSendTurn?: () => void;
   isLoading?: boolean;
+  // === Przełącznik graczy (przeniesiony z sidebaru) ===
+  /** Przełącza aktywnego gracza Hot Seat (index w tablicy players). */
+  onSwitchPlayer?: (playerIndex: number) => void;
+  /** Wyłącza tryb Hot Seat. */
+  onDisableHotSeat?: () => void;
+  /** Mapowanie id gracza na index - potrzebne bo plakietki operują na id, a handleSwitchPlayer na index. */
+  hotSeatPlayers?: { id: string; name: string; index: number }[];
 }
 
 export function MessageInput({
@@ -59,6 +66,9 @@ export function MessageInput({
   isTurnReady = false,
   onSendTurn,
   isLoading = false,
+  onSwitchPlayer,
+  onDisableHotSeat,
+  hotSeatPlayers,
 }: MessageInputProps) {
   // C4: w duecie Enter/klik DOKŁADA deklarację (nie wysyła); solo bez zmian.
   const duetActive = isDuet && !!onAddDeclaration;
@@ -102,14 +112,31 @@ export function MessageInput({
               </span>
             </div>
           ))}
-          {playersAwaitingDeclaration.map((player) => (
-            <div
-              key={player.id}
-              className="inline-flex items-center rounded-full border border-brass/25 bg-black/15 px-2.5 py-1 text-muted-foreground"
+          {playersAwaitingDeclaration.map((player) => {
+            const hsPlayer = hotSeatPlayers?.find(hp => hp.id === player.id);
+            return (
+              <button
+                key={player.id}
+                type="button"
+                onClick={() => hsPlayer != null && onSwitchPlayer?.(hsPlayer.index)}
+                className="inline-flex items-center rounded-full border border-brass/25 bg-black/15 px-2.5 py-1 text-muted-foreground hover:border-brass/50 hover:bg-brass/10 hover:text-foreground transition-colors cursor-pointer"
+                title={`Przełącz na ${player.name}`}
+              >
+                Czeka: {player.name}
+              </button>
+            );
+          })}
+          {/* Przycisk zamknięcia trybu Hot Seat */}
+          {onDisableHotSeat && (
+            <button
+              type="button"
+              onClick={onDisableHotSeat}
+              className="ml-auto h-5 w-5 flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              title="Wyłącz tryb Hot Seat"
             >
-              Czeka: {player.name}
-            </div>
-          ))}
+              ✕
+            </button>
+          )}
         </div>
       )}
 

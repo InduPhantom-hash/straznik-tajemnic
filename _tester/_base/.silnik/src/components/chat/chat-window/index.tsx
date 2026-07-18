@@ -62,6 +62,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   hasSessionZero = false,
   hasStartedGame = false,
   hotSeatConfig,
+  onSwitchPlayer,
+  onDisableHotSeat,
   onSummarizeScene,
   isSummarizingScene = false,
   isLoading = false,
@@ -274,6 +276,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           isTurnReady={isTurnReady}
           onSendTurn={onSendTurn}
           isLoading={isLoading}
+          onSwitchPlayer={onSwitchPlayer}
+          onDisableHotSeat={onDisableHotSeat}
+          hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({ id: p.id, name: p.name, index: i }))}
         />
       )}
       {/* Image Lightbox */}
