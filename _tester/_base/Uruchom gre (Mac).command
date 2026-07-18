@@ -51,15 +51,9 @@ else
   echo "[1/3] Zależności gotowe - pomijam."
 fi
 
-if [ ! -f .next/BUILD_ID ]; then
-  echo ""; echo "[2/3] Buduję aplikację (jednorazowo, kilka minut)..."; echo ""
-  npm run build || { echo ""; echo "Błąd budowania."; read -r _; exit 1; }
-else
-  echo "[2/3] Aplikacja zbudowana - pomijam."
-fi
-
-echo ""; echo "[3/3] Uruchamiam grę..."
-STRAZNIK_DESKTOP_COLD_START=1 ZEW_APP_PORT=$PORT PORT=$PORT nohup npm start >"$ENGINE/.desktop/server.log" 2>&1 &
+# W trybie deweloperskim i testowym używamy webpack dev server (obejście problemu Turbopack z PostCSS)
+echo "[2/2] Uruchamiam grę (next dev)..."
+STRAZNIK_DESKTOP_COLD_START=1 ZEW_APP_PORT=$PORT PORT=$PORT nohup npm run dev >"$ENGINE/.desktop/server.log" 2>&1 &
 SRV=$!; echo $SRV >"$ENGINE/.desktop/server.pid"
 for _ in $(seq 1 200); do curl -sf "$URL" >/dev/null 2>&1 && break; sleep 0.3; done
 

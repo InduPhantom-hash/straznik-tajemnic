@@ -38,19 +38,10 @@ if not exist node_modules (
   echo [1/3] Zaleznosci gotowe - pomijam.
 )
 
-if not exist ".next\BUILD_ID" (
-  echo.
-  echo [2/3] Buduje aplikacje ^(jednorazowo, kilka minut^)...
-  echo.
-  call npm run build
-  if errorlevel 1 ( echo Blad budowania. & pause & exit /b 1 )
-) else (
-  echo [2/3] Aplikacja zbudowana - pomijam.
-)
-
+REM W trybie deweloperskim i testowym używamy webpack dev server (obejście problemu Turbopack z PostCSS)
 echo.
-echo [3/3] Uruchamiam gre...
-start "straznik-server" /min cmd /c "set NODE_OPTIONS=--max-old-space-size=4096 && set PORT=%PORT% && npx next start"
+echo [2/2] Uruchamiam gre ^(next dev^)...
+start "straznik-server" /min cmd /c "set NODE_OPTIONS=--max-old-space-size=4096 && set PORT=%PORT% && npm run dev"
 
 echo Czekam az gra wstanie...
 :waitloop
