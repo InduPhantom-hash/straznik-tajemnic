@@ -3,6 +3,7 @@
 
 import { Character } from './types';
 import { EnhancedCharacterTemplate } from './enhanced-character-templates';
+import { fetchWithApiKeys } from '@/lib/api-keys-service';
 
 interface PortraitConfig {
   character: Character;
@@ -168,7 +169,7 @@ export async function generatePortraitVariants(
     const prompt = generatePortraitPrompt(variantConfig);
 
     try {
-      const response = await fetch('/api/imagen', {
+      const response = await fetchWithApiKeys('/api/imagen', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,7 +267,7 @@ export async function generateQuickPortrait(
   const prompt = generatePortraitPrompt(config);
 
   try {
-    const response = await fetch('/api/imagen', {
+    const response = await fetchWithApiKeys('/api/imagen', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

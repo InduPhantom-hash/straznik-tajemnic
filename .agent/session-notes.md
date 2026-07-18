@@ -208,3 +208,19 @@ Branch: codex/duet-catalog-integration
 
 ### Decyzje podjęte
 - Auto-generowanie obrazów za pomocą Gemini Image w tle musi być kolejkowane i przetwarzane sekwencyjnie z opóźnieniem w celu ochrony przed limitami współbieżności API.
+
+---
+
+## Podsumowanie sesji: 2026-07-18 (autoryzacja w żądaniach /api/imagen)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Zastąpiono standardowy `fetch` wywołaniem `fetchWithApiKeys` w żądaniach `/api/imagen`. Odblokowuje to generowanie ilustracji i portretów przy użyciu klucza podanego przez użytkownika.
+- Zmodyfikowano pliki: `equipment-modal.tsx`, `use-media-cache.ts`, `character-portrait-generator.ts`.
+- Wykonano pełną weryfikację testową (17/18 pass, brak błędów TypeScript).
+
+### Co otwarte
+- brak (zadanie w pełni zamknięte).
+
+### Decyzje podjęte
+- Użycie wbudowanego mechanizmu `fetchWithApiKeys` do automatycznego pobierania klucza z localStorage gracza.

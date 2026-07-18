@@ -24,6 +24,7 @@ import {
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
 import { buildEquipmentImagePrompt } from '@/lib/equipment-prompt-builder';
+import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import { deriveFinances } from '@/lib/economy/credit-rating';
 import {
   inferWeaponSkill,
@@ -122,7 +123,7 @@ export function EquipmentModal({
         const prompt = buildEquipmentImagePrompt(item, era, adventureTheme);
 
         // Zew-App-Local: obrazy przez orkiestrator /api/imagen (tylko Gemini, jeden klucz).
-        const response = await fetch('/api/imagen', {
+        const response = await fetchWithApiKeys('/api/imagen', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

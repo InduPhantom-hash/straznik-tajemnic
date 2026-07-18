@@ -12,6 +12,7 @@ import {
   CacheStats,
   MediaMetadata,
 } from '../lib/persistent-media-cache';
+import { fetchWithApiKeys } from '@/lib/api-keys-service';
 
 interface UseMediaCacheResult {
   // Stats
@@ -278,7 +279,7 @@ export async function generateImageWithCache(options: {
     `🎨 Generating new image for ${type}/${id} via /api/imagen (Gemini)`
   );
 
-  const response = await fetch('/api/imagen', {
+  const response = await fetchWithApiKeys('/api/imagen', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, style }),
