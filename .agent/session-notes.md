@@ -224,3 +224,20 @@ Branch: codex/duet-catalog-integration
 
 ### Decyzje podjęte
 - Użycie wbudowanego mechanizmu `fetchWithApiKeys` do automatycznego pobierania klucza z localStorage gracza.
+
+---
+
+## Podsumowanie sesji: 2026-07-18 (predefiniowani mistycy i pełna karta badacza)
+Branch: codex/duet-catalog-integration
+
+### Co zrobiono
+- Dodano brakujące postacie o archetypie **Mistyk** (Victor Crowley oraz Seraphina Marsh) do bazy predefiniowanych postaci (`predefined-characters.ts`), synchronizując plik z wersją silnika gry.
+- Zastąpiono uproszczony podgląd postaci w selektorze (`PredefinedCharactersSelector`) pełną, stylizowaną kartą postaci. Teraz podgląd predefiniowanej postaci wyświetla dokładnie te same elementy, co w trakcie gry (portret, paski stanów, parametry cech ze skrótami i ułamkami, statystyki walki, listę umiejętności, podział na broń i wyposażenie z ich opisami oraz pełną biografię).
+- Zweryfikowano typy w projekcie za pomocą polecenia `npx tsc --noEmit` bez błędów.
+
+### Co otwarte (do następnej sesji)
+- Brak (sesja zamyka ten etap).
+
+### Decyzje podjęte
+- Uznano, że podgląd gotowych badaczy powinien w pełni imitować kartę postaci z gry w celach spójności UX.
+
