@@ -9,6 +9,8 @@ import {
 } from '@/lib/immersion/predefined-characters';
 import { Button } from './button';
 import { X, Search } from 'lucide-react';
+import { EquipmentDetailDialog } from './equipment-detail-dialog';
+import { EquipmentItem } from '@/lib/types';
 
 interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
@@ -95,6 +97,7 @@ export function PredefinedCharactersSelector({
   const [searchQuery, setSearchQuery] = useState('');
 
   const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
+  const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
   if (!isOpen) return null;
 
@@ -601,7 +604,8 @@ export function PredefinedCharactersSelector({
                         {viewingCharacter.equipment.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-center gap-4 border border-brass/25 bg-[#181410] p-4 rounded-sm"
+                            onClick={() => setSelectedItem(item)}
+                            className="cursor-pointer flex items-center gap-4 border border-brass/25 hover:border-brass/45 bg-[#181410] p-4 rounded-sm transition-all duration-200"
                           >
                             <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-start gap-2">
@@ -713,6 +717,12 @@ export function PredefinedCharactersSelector({
           </div>
         );
       })()}
+      {selectedItem && (
+        <EquipmentDetailDialog
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </>
   );
 }

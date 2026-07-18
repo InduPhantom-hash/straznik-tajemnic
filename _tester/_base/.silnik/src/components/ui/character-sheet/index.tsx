@@ -75,6 +75,8 @@ export function CharacterSheet({
 }: CharacterSheetProps) {
   const inlineEdit = useInlineEdit(character, onCharacterUpdate);
 
+  const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
+
   // Portret + miniatury ekwipunku są offloadowane do IndexedDB (IND-262/271),
   // więc `character.portraitUrl` / `item.imageUrl` bywają puste (widoczne tylko
   // na głównej, która ma własny fallback). Hydratujemy KOPIĘ do wyświetlenia z
@@ -218,13 +220,20 @@ export function CharacterSheet({
               <SheetSkills character={display} />
 
               {/* SEKCJA 7: EKWIPUNEK (broń z pełną statystyką + wyposażenie) */}
-              <SheetEquipment character={display} />
+              <SheetEquipment character={display} onItemClick={setSelectedItem} />
 
               {/* SEKCJA 8: BIOGRAFIA */}
               <SheetBiography character={display} />
             </div>
           </div>
         </div>
+
+        {selectedItem && (
+          <EquipmentDetailDialog
+            item={selectedItem}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
 
         {/* Print styles */}
         <style jsx global>{`
