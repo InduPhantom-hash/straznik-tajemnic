@@ -193,3 +193,21 @@ Branch: main
 - Nowa dyrektywa nie będzie zawierać drugiego limitu słów.
 - Nie zmieniamy jeszcze `activeGameState` ani nie wdrażamy walki/pościgów.
 - Zastane pliki dokumentacyjne pozostają w drzewie roboczym.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 12)
+Branch: feature/faza-5-biografie-i-ui
+
+### Co zrobiono
+- Zmiana etykiety w UI z `Koncept Postaci` na `Biografia Postaci` w `sheet-biography.tsx`.
+- Uzupełnienie biografii 30 predefiniowanych badaczy w `predefined-characters.ts` o pełne, 6-8 zdaniowe opisy fabularne.
+- Dodanie tooltipów `title` do uciętych nazw przygód w nagłówku czatu oraz selektorze (`chat-header.tsx`, `adventure-selector.tsx`).
+- Wdrożenie sieciowego limitu czasu (timeout 8s) z `AbortController` i precyzyjną obsługą błędów w panelu diagnostycznym Zdrowia Strażnika (`health-status-panel.tsx`).
+- Przebudowa interfejsu Lightboxa dla ekranów mobilnych (`image-lightbox.tsx`): przeniesienie paska narzędzi na dół, zmniejszenie strzałek i podniesienie licznika zdjęć.
+- Weryfikacja: pełne testy Jest (73/73 testy) – PASS.
+
+### Co otwarte (do następnej sesji)
+- Pozostałe fazy planu naprawczo-wdrożeniowego (Fazy 0-4 oraz Faza 6).
+
+### Decyzje podjęte
+- Użycie timeoutu 8s na zapytania diagnostyczne w Ustawieniach, aby zapobiec blokowaniu UI przy braku internetu.
+- Umieszczenie mobilnych kontrolek lightboxa w dolnej strefie ekranu (pod palcem) dla wygody użytkownika.

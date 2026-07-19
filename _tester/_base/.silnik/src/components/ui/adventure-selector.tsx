@@ -202,7 +202,10 @@ export function AdventureSelector({
 
           {/* Header */}
           <div className="mb-2 flex items-start justify-between gap-2">
-            <h3 className="pr-2 font-display text-lg font-semibold leading-tight tracking-[0.06em] text-foreground">
+            <h3 
+              className="pr-2 font-display text-lg font-semibold leading-tight tracking-[0.06em] text-foreground"
+              title={adventure.title}
+            >
               {adventure.title}
             </h3>
             <div className="flex shrink-0 items-center gap-2">

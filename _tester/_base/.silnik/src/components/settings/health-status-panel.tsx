@@ -48,22 +48,47 @@ const PRICING_SOURCE_LABELS: Record<PricingRefreshResponse['source'], string> =
  * i jakie modele są żywe. Czyta `GET /api/health/gemini` (T2) z nagłówkiem BYOK
  * (route ma env-fallback gdy brak). Auto-sprawdza na mount + przycisk „Sprawdź teraz".
  */
+/** Pomocnicza funkcja wykonująca fetch z limitem czasowym (timeout). */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = 8000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
   const [health, setHealth] = useState<GeminiHealth | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingRefreshResponse | null>(null);
   const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
 
   const runCheck = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/health/gemini', {
+      const res = await fetchWithTimeout('/api/health/gemini', {
         headers: getApiKeyHeaders(),
       });
       const data = (await res.json()) as GeminiHealth;
       setHealth(data);
-    } catch {
-      // Błąd sieci po stronie klienta - nie wywracaj UI, pokaż brak danych.
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Przekroczono limit czasu połączenia (8s)');
+      } else {
+        setError('Błąd połączenia sieciowego');
+      }
       setHealth(null);
     } finally {
       setLoading(false);
@@ -74,14 +99,20 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
   // przycisk „Odśwież cennik" woła z `force=true` (Tier A LLM-extraction).
   const refreshPricing = useCallback(async (force = false) => {
     setPricingLoading(true);
+    setPricingError(null);
     try {
-      const res = await fetch(
+      const res = await fetchWithTimeout(
         `/api/pricing/refresh${force ? '?force=true' : ''}`,
         { headers: getApiKeyHeaders() }
       );
       const data = (await res.json()) as PricingRefreshResponse;
       setPricing(data);
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setPricingError('Przekroczono limit czasu (8s)');
+      } else {
+        setPricingError('Błąd połączenia sieciowego');
+      }
       setPricing(null);
     } finally {
       setPricingLoading(false);
@@ -129,6 +160,10 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
         {loading ? (
           <div className="font-display text-sm text-muted-foreground">
             Sprawdzam…
+          </div>
+        ) : error ? (
+          <div className="font-display text-sm font-semibold text-red-400">
+            ⚠️ {error}
           </div>
         ) : status ? (
           <div
@@ -200,6 +235,8 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
           <div className="font-display text-sm text-foreground">
             {pricingLoading ? (
               'Odświeżam…'
+            ) : pricingError ? (
+              <span className="text-red-400 font-semibold">⚠️ {pricingError}</span>
             ) : pricing ? (
               <>
                 {PRICING_SOURCE_LABELS[pricing.source]} ·{' '}
