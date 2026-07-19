@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { EquipmentItem, EquipmentCategory } from '@/lib/types';
+import { EquipmentItem } from '@/lib/types';
 import {
   OCCUPATION_EQUIPMENT,
   findEquipmentByName,
@@ -18,6 +18,7 @@ import {
 } from '@/lib/combat/weapon-context';
 import { stripAITags } from '@/lib/parsers/text-cleaner';
 import { DEFAULT_GEMINI_MODEL_LITE } from '@/lib/ai-providers/constants';
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,11 +42,12 @@ export async function POST(request: NextRequest) {
 
     // Twórz przedmioty z predefiniowanej listy
     const equipment: EquipmentItem[] = [];
+    const visualEra = resolveEraVisualProfile(era);
 
     for (const itemName of predefinedItems) {
       const template = findEquipmentByName(itemName);
       if (template) {
-        equipment.push(createEquipmentItem(template, 'starting'));
+        equipment.push(createEquipmentItem(template, 'starting', visualEra));
       } else {
         // Brak szablonu (np. polska nazwa "Rewolwer .38" nie pasuje do bazy
         // anglojęzycznej). Jeśli nazwa wygląda na broń, nadaj kategorię 'weapon'
@@ -81,7 +83,9 @@ export async function POST(request: NextRequest) {
         if (!equipment.some((e) => e.name === itemName)) {
           const template = findEquipmentByName(itemName);
           if (template) {
-            equipment.push(createEquipmentItem(template, 'starting'));
+            equipment.push(
+              createEquipmentItem(template, 'starting', visualEra)
+            );
           }
         }
       }

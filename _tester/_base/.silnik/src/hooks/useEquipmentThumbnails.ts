@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { Character, EquipmentItem, AdventureContext } from '@/lib/types';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import {
@@ -30,6 +30,7 @@ const MAX_THUMBNAILS = 12;
 interface UseEquipmentThumbnailsProps {
   activeCharacter: Character | null;
   adventureContext: AdventureContext | null;
+  imageGenerationEnabled: boolean;
   setActiveCharacter: React.Dispatch<React.SetStateAction<Character | null>>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
 }
@@ -43,38 +44,52 @@ function resolveEra(adventureContext: AdventureContext | null): string {
  * Generuje miniaturę pojedynczego przedmiotu przez /api/imagen (Gemini, jeden klucz).
  * Zwraca data URL obrazu lub null gdy generacja zawiodła (cicho - tło).
  */
+interface GeneratedEquipmentImage {
+  imageUrl: string;
+  imagePrompt: string;
+}
+
 async function generateOneThumbnail(
   item: EquipmentItem,
   era: string,
   adventureTheme?: string,
   character?: Character | null
-): Promise<string | null> {
+): Promise<GeneratedEquipmentImage | null> {
   try {
-    const prompt = buildEquipmentImagePrompt(item, era, adventureTheme, character);
+    const prompt = buildEquipmentImagePrompt(
+      item,
+      era,
+      adventureTheme,
+      character
+    );
     const usePortraitReference = Boolean(
       character?.portraitUrl && isCharacterBoundEquipment(item)
     );
     const response = await fetchWithApiKeys(
       usePortraitReference ? '/api/flux-kontext' : '/api/imagen',
       {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt,
-        style: usePortraitReference
-          ? 'realistic'
-          : item.category === 'artifact'
-            ? 'horror'
-            : 'vintage',
-        aspectRatio: '1:1',
-        seed: `${character?.id || ''}-${item.id}`,
-        ...(usePortraitReference ? { inputImageUrl: character!.portraitUrl } : {}),
-      }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          style: usePortraitReference
+            ? 'realistic'
+            : item.category === 'artifact'
+              ? 'horror'
+              : 'vintage',
+          aspectRatio: '1:1',
+          seed: `${character?.id || ''}-${item.id}`,
+          ...(usePortraitReference
+            ? { inputImageUrl: character!.portraitUrl }
+            : {}),
+        }),
       }
     );
     if (!response.ok) return null;
     const data = await response.json();
-    return typeof data.imageUrl === 'string' ? data.imageUrl : null;
+    return typeof data.imageUrl === 'string'
+      ? { imageUrl: data.imageUrl, imagePrompt: prompt }
+      : null;
   } catch {
     // Tło - błąd pojedynczej miniatury nie przerywa kolejki ani gry.
     return null;
@@ -88,61 +103,105 @@ async function generateOneThumbnail(
 export function useEquipmentThumbnails({
   activeCharacter,
   adventureContext,
+  imageGenerationEnabled,
   setActiveCharacter,
   setCharacters,
 }: UseEquipmentThumbnailsProps) {
-  const generateThumbnailsInBackground =
-    useCallback(async (): Promise<void> => {
-      const character = activeCharacter;
+  const imageGenerationEnabledRef = useRef(imageGenerationEnabled);
+  const activeCharacterIdRef = useRef(activeCharacter?.id);
+  const runningCharacterIdsRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    imageGenerationEnabledRef.current = imageGenerationEnabled;
+  }, [imageGenerationEnabled]);
+
+  useEffect(() => {
+    activeCharacterIdRef.current = activeCharacter?.id;
+  }, [activeCharacter?.id]);
+
+  const generateThumbnailsInBackground = useCallback(
+    async (characterOverride?: Character): Promise<void> => {
+      if (!imageGenerationEnabledRef.current) return;
+      const character = characterOverride ?? activeCharacter;
       if (!character) return;
+      if (runningCharacterIdsRef.current.has(character.id)) return;
 
-      // Cache-aware: pomijamy itemy które JUŻ mają wygenerowaną miniaturę (piktogramy SVG ignorujemy, by wygenerować prawdziwy obrazek).
-      const pending = (character.equipment ?? [])
-        .filter((item) => {
-          if (isCatalogEquipment(item)) return false;
-          if (!item.imageUrl) return true;
-          return item.imageUrl.endsWith('.svg') || item.imageUrl.includes('/predefined/');
-        })
-        .slice(0, MAX_THUMBNAILS);
-      if (pending.length === 0) return;
+      runningCharacterIdsRef.current.add(character.id);
 
-      const era = resolveEra(adventureContext);
-      const adventureTheme = adventureContext?.title;
+      try {
+        // Cache-aware: pomijamy itemy które JUŻ mają wygenerowaną miniaturę (piktogramy SVG ignorujemy, by wygenerować prawdziwy obrazek).
+        const pending = (character.equipment ?? [])
+          .filter((item) => {
+            if (isCatalogEquipment(item)) return false;
+            if (!item.imageUrl) return true;
+            return (
+              item.imageUrl.endsWith('.svg') ||
+              item.imageUrl.includes('/predefined/')
+            );
+          })
+          .slice(0, MAX_THUMBNAILS);
+        if (pending.length === 0) return;
 
-      // Sekwencyjnie - jedna miniatura na raz (zamiast N równoległych requestów).
-      for (const item of pending) {
-        const imageUrl = await generateOneThumbnail(item, era, adventureTheme, character);
-        if (!imageUrl) continue;
+        const era = resolveEra(adventureContext);
+        const adventureTheme = adventureContext?.title;
 
-        // Aktualizuj tę konkretną postać + jej przedmiot, zachowując resztę
-        // edycji gracza (functional update na najświeższym stanie listy postaci).
-        setCharacters((prevList) => {
-          const updatedList = prevList.map((c) => {
-            if (c.id !== character.id) return c;
+        // Sekwencyjnie - jedna miniatura na raz (zamiast N równoległych requestów).
+        for (const item of pending) {
+          if (
+            !imageGenerationEnabledRef.current ||
+            activeCharacterIdRef.current !== character.id
+          ) {
+            break;
+          }
+
+          const generated = await generateOneThumbnail(
+            item,
+            era,
+            adventureTheme,
+            character
+          );
+          if (!generated) continue;
+
+          const generatedFields = {
+            imageUrl: generated.imageUrl,
+            imagePrompt: generated.imagePrompt,
+            visualSource: 'generated' as const,
+          };
+
+          // Aktualizuj tę konkretną postać + jej przedmiot, zachowując resztę
+          // edycji gracza (functional update na najświeższym stanie listy postaci).
+          setCharacters((prevList) => {
+            const updatedList = prevList.map((c) => {
+              if (c.id !== character.id) return c;
+              return {
+                ...c,
+                equipment: (c.equipment ?? []).map((it) =>
+                  it.id === item.id ? { ...it, ...generatedFields } : it
+                ),
+              };
+            });
+            if (typeof window !== 'undefined') {
+              persistCharacters(updatedList);
+            }
+            return updatedList;
+          });
+
+          setActiveCharacter((prev) => {
+            if (!prev || prev.id !== character.id) return prev;
             return {
-              ...c,
-              equipment: (c.equipment ?? []).map((it) =>
-                it.id === item.id ? { ...it, imageUrl } : it
+              ...prev,
+              equipment: (prev.equipment ?? []).map((it) =>
+                it.id === item.id ? { ...it, ...generatedFields } : it
               ),
             };
           });
-          if (typeof window !== 'undefined') {
-            persistCharacters(updatedList);
-          }
-          return updatedList;
-        });
-
-        setActiveCharacter((prev) => {
-          if (!prev || prev.id !== character.id) return prev;
-          return {
-            ...prev,
-            equipment: (prev.equipment ?? []).map((it) =>
-              it.id === item.id ? { ...it, imageUrl } : it
-            ),
-          };
-        });
+        }
+      } finally {
+        runningCharacterIdsRef.current.delete(character.id);
       }
-    }, [activeCharacter, adventureContext, setActiveCharacter, setCharacters]);
+    },
+    [activeCharacter, adventureContext, setActiveCharacter, setCharacters]
+  );
 
   return { generateThumbnailsInBackground };
 }

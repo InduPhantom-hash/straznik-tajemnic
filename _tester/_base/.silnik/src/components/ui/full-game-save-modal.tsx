@@ -15,7 +15,14 @@ import FullGameSaveManager, {
   FullGameSave,
 } from '@/lib/full-game-save-manager';
 import { AISettings } from '@/lib/ai-settings';
-import { Character, Campaign, NPC, Location, HotSeatConfig } from '@/lib/types';
+import {
+  Character,
+  Campaign,
+  NPC,
+  Location,
+  HotSeatConfig,
+  EquipmentVisualEra,
+} from '@/lib/types';
 import type { Message as LibMessage } from '@/lib/types';
 import type { PdfMemory } from '@/hooks/usePdfMemory';
 import {
@@ -100,6 +107,7 @@ interface FullGameSaveModalProps {
   currentData?: {
     messages: Message[];
     aiSettings: AISettings;
+    equipmentVisualEra?: EquipmentVisualEra;
     characters: Character[];
     activeCharacterId?: string;
     hotSeatConfig?: HotSeatConfig;
@@ -271,6 +279,7 @@ export function FullGameSaveModal({
             ? currentData.aiSettings
             : ({} as AISettings),
         },
+        equipmentVisualEra: currentData.equipmentVisualEra,
         // Bezpiecznik limitu body 10 MB: miniatury ekwipunku / portrety to base64
         // (~MB każdy) w żywym stanie - bez tego payload zapisu rośnie > 10 MB → HTTP 500.
         // Obrazy wracają po wczytaniu (hydracja z IndexedDB + regeneracja miniatur).

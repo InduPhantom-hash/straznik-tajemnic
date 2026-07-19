@@ -17,6 +17,7 @@ import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 import { sanitizeCharacterForApi } from '@/lib/chat-history-sanitizer';
+import { isCatalogEquipment } from '@/lib/equipment-catalog';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -101,6 +102,7 @@ export function useGameStart({
   const { generateThumbnailsInBackground } = useEquipmentThumbnails({
     activeCharacter,
     adventureContext,
+    imageGenerationEnabled: aiSettings?.imageGenerationEnabled ?? false,
     setActiveCharacter,
     setCharacters,
   });
@@ -287,15 +289,20 @@ export function useGameStart({
 
     // Wyczyść wyłącznie obrazy generowane dla egzemplarzy fabularnych. Katalogowe
     // assety są lokalne i muszą przetrwać start bez kosztu ani żądania do API.
+    let thumbnailCharacter = activeCharacter;
     if (activeCharacter) {
       const resetEquipment = (activeCharacter.equipment ?? []).map((item) => ({
         ...item,
-        ...(item.visualSource === 'catalog'
+        ...(isCatalogEquipment(item)
           ? {}
           : { imageUrl: undefined, imagePrompt: undefined }),
       }));
-      const updatedCharacter = { ...activeCharacter, equipment: resetEquipment };
-      
+      const updatedCharacter = {
+        ...activeCharacter,
+        equipment: resetEquipment,
+      };
+      thumbnailCharacter = updatedCharacter;
+
       // Zaktualizuj stan lokalny i chmurę
       setCharacters((prevList) => {
         const updatedList = prevList.map((c) =>
@@ -308,7 +315,7 @@ export function useGameStart({
     }
 
     // IND-271: miniatury ekwipunku w tle (fire-and-forget, nie blokuje startu).
-    generateThumbnailsInBackground();
+    generateThumbnailsInBackground(thumbnailCharacter ?? undefined);
 
     try {
       // Zadanie 6: retry na chwilowy blip sieci przy starcie gry (1-2 próby).

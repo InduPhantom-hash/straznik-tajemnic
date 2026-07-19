@@ -1,4 +1,8 @@
-import type { EquipmentCategory, EquipmentItem } from '@/lib/types';
+import type {
+  EquipmentCategory,
+  EquipmentItem,
+  EquipmentVisualEra,
+} from '@/lib/types';
 import {
   applyCatalogTemplate,
   CATEGORY_FALLBACK_ASSETS,
@@ -21,7 +25,16 @@ interface PresetEquipmentContext {
 
 type EquipmentSeed = Omit<EquipmentItem, 'id' | 'imageUrl'>;
 
-const CATEGORY_IMAGES: Record<EquipmentCategory, string> = CATEGORY_FALLBACK_ASSETS;
+const CATEGORY_IMAGES: Record<EquipmentCategory, string> =
+  CATEGORY_FALLBACK_ASSETS;
+
+const PRESET_VISUAL_ERAS: Record<PresetEra, EquipmentVisualEra> = {
+  gaslight: '1890s',
+  classic: '1920s',
+  noir: '1940s',
+  prl: 'prl-1970s',
+  modern: 'modern',
+};
 
 const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
   gaslight: [
@@ -188,14 +201,28 @@ function slugify(value: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-function withLocalImage(item: EquipmentItem): EquipmentItem {
-  return applyCatalogTemplate({
-    ...item,
-    source: item.source ?? 'starting',
-    condition: item.condition ?? 'used',
-    imageUrl: item.imageUrl ?? CATEGORY_IMAGES[item.category],
+function withLocalImage(
+  item: EquipmentItem,
+  era: EquipmentVisualEra
+): EquipmentItem {
+  const hasCategoryFallback = Object.values(CATEGORY_IMAGES).includes(
+    item.imageUrl ?? ''
+  );
+  const catalogItem = applyCatalogTemplate(
+    {
+      ...item,
+      source: item.source ?? 'starting',
+      condition: item.condition ?? 'used',
+      imageUrl: hasCategoryFallback ? undefined : item.imageUrl,
+    },
+    era
+  );
+
+  return {
+    ...catalogItem,
+    imageUrl: catalogItem.imageUrl ?? CATEGORY_IMAGES[catalogItem.category],
     visualSource: 'catalog',
-  });
+  };
 }
 
 /**
@@ -206,7 +233,10 @@ function withLocalImage(item: EquipmentItem): EquipmentItem {
 export function buildPredefinedEquipment(
   preset: PresetEquipmentContext
 ): EquipmentItem[] {
-  const result = (preset.equipment ?? []).map(withLocalImage);
+  const visualEra = PRESET_VISUAL_ERAS[preset.era];
+  const result = (preset.equipment ?? []).map((item) =>
+    withLocalImage(item, visualEra)
+  );
   const names = new Set(result.map((item) => normalizeName(item.name)));
 
   [...ERA_KITS[preset.era], ...ARCHETYPE_KITS[preset.archetype]].forEach(
@@ -215,10 +245,13 @@ export function buildPredefinedEquipment(
       if (names.has(normalized)) return;
       names.add(normalized);
       result.push(
-        withLocalImage({
-          ...seed,
-          id: `eq_${slugify(preset.id)}_${slugify(seed.name)}`,
-        })
+        withLocalImage(
+          {
+            ...seed,
+            id: `eq_${slugify(preset.id)}_${slugify(seed.name)}`,
+          },
+          visualEra
+        )
       );
     }
   );
@@ -228,12 +261,15 @@ export function buildPredefinedEquipment(
   // dublować przedmiot i pozostawiać gotową postać z uboższym zestawem.
   if (result.length < 6) {
     result.push(
-      withLocalImage({
-        id: `eq_${slugify(preset.id)}_mapnik-terenowy`,
-        name: 'Mapnik terenowy',
-        category: 'document',
-        description: 'Składany mapnik na notatki, bilety i szkice trasy.',
-      })
+      withLocalImage(
+        {
+          id: `eq_${slugify(preset.id)}_mapnik-terenowy`,
+          name: 'Mapnik terenowy',
+          category: 'document',
+          description: 'Składany mapnik na notatki, bilety i szkice trasy.',
+        },
+        visualEra
+      )
     );
   }
 

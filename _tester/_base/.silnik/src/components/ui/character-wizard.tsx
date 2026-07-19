@@ -24,6 +24,7 @@ import { STAT_FULL_NAMES } from '@/components/ui/character-sheet/types';
 import { buildRecommendedSkills } from '@/lib/character/normalize-skill-name';
 import { distributeRecommendedSkillPoints } from '@/lib/character/distribute-skill-points';
 import { toast } from '@/components/ui/use-toast';
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import {
   type CharacterStats,
   type DerivedStats,
@@ -1415,7 +1416,13 @@ WAŻNE:
       itemNames.forEach((itemName) => {
         const template = findEquipmentByName(itemName);
         if (template) {
-          equipmentItems.push(createEquipmentItem(template, 'starting'));
+          equipmentItems.push(
+            createEquipmentItem(
+              template,
+              'starting',
+              resolveEraVisualProfile(adventureContext?.yearRange)
+            )
+          );
         } else {
           // Stwórz podstawowy przedmiot jeśli nie ma w bazie
           const category: EquipmentCategory = categorizeItem(

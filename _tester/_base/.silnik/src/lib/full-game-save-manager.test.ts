@@ -43,4 +43,24 @@ describe('FullGameSaveManager duet persistence', () => {
 
     expect(save.hotSeatConfig).toEqual(hotSeatConfig);
   });
+
+  it('keeps the equipment visual era required for catalog migration', () => {
+    const save = FullGameSaveManager.createFullSave({
+      name: 'PRL',
+      userId: 'local',
+      messages: [],
+      gameSettings: { aiSettings: {} as AISettings },
+      equipmentVisualEra: 'prl-1970s',
+      characters: [],
+      campaigns: [],
+      npcs: [],
+      locations: [],
+    });
+
+    const restored = FullGameSaveManager.decompressSave(
+      FullGameSaveManager.compressSave(save)
+    );
+
+    expect(restored?.equipmentVisualEra).toBe('prl-1970s');
+  });
 });

@@ -8,6 +8,7 @@ import {
   applyCatalogTemplate,
   findEquipmentTemplate,
 } from './equipment-catalog';
+import type { EquipmentVisualEra } from './types';
 
 // === BROŃ ===
 
@@ -556,21 +557,25 @@ export function findEquipmentByName(
  */
 export function createEquipmentItem(
   template: Partial<EquipmentItem>,
-  source: 'starting' | 'acquired' | 'found' = 'starting'
+  source: 'starting' | 'acquired' | 'found' = 'starting',
+  era: EquipmentVisualEra = '1920s'
 ): EquipmentItem {
-  return applyCatalogTemplate({
-    id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-    templateId: template.templateId,
-    name: template.name || 'Unknown Item',
-    category: template.category || 'personal',
-    description: template.description,
-    modifiers: template.modifiers,
-    weight: template.weight,
-    value: template.value,
-    condition: 'used',
-    source,
-    obtainedAt: new Date(),
-  });
+  return applyCatalogTemplate(
+    {
+      id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      templateId: template.templateId,
+      name: template.name || 'Unknown Item',
+      category: template.category || 'personal',
+      description: template.description,
+      modifiers: template.modifiers,
+      weight: template.weight,
+      value: template.value,
+      condition: 'used',
+      source,
+      obtainedAt: new Date(),
+    },
+    era
+  );
 }
 
 // Faza 4 (ekonomia RAW): CoC 7e nie ma systemu wagi/udźwigu - waga przedmiotów NIE jest

@@ -148,3 +148,26 @@ Branch: main
 ### Decyzje podjęte
 - `id` pozostaje identyfikatorem konkretnego egzemplarza przedmiotu - nie wolno zastępować go `templateId`, ponieważ służy również jako klucz IndexedDB dla obrazów.
 - Przedmioty katalogowe mają korzystać z lokalnych assetów bez generowania AI; obrazy generowane zostają dla egzemplarzy fabularnych i wyjątkowych.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 10)
+Branch: main
+
+### Co zrobiono
+- Domknięto Fazę 1 katalogu ekwipunku: lokalne assety katalogowe nie uruchamiają generatora AI, a toggle `Obrazy` zatrzymuje automatyczną kolejkę także w trakcie działania.
+- Usunięto nakładające się kolejki i ryzyko podwójnych kosztów API; jedynym właścicielem startu kolejki jest `useGameStart`.
+- Dodano właściwe assety zależne od epoki oraz trwałość profilu epoki w pełnym save/load.
+- Naprawiono walidację `templateId` i zapis metadanych obrazów przedmiotów fabularnych.
+- Dodano testy endpointu, modalu, kolejki, migracji i assetów epoki.
+- Weryfikacja: pełny Jest 25 zestawów / 66 testów, TypeScript i produkcyjny build 61 stron - PASS.
+
+### Co otwarte (do następnej sesji)
+- Manualny test aplikacji.
+- Fazy 2-4: czytalne dokumenty, kontrolowane przedmioty fabularne i osobny projekt UX Dziennika.
+- Ustalenie legalnego źródła przed rozszerzeniem zawartości katalogu.
+- ZIP wydania pozostaje bez przebudowy.
+
+### Decyzje podjęte
+- `id` identyfikuje egzemplarz przedmiotu, a `templateId` wzorzec katalogowy.
+- Znaleziska fabularne pozostają generowane, nawet jeśli ich nazwa pasuje do katalogu.
+- Katalogowe WebP mają pierwszeństwo przed ogólnymi SVG kategorii; SVG pozostaje fallbackiem.
+- Trzy zastane pliki roadmapy mechanik pozostają poza zakresem commitu.

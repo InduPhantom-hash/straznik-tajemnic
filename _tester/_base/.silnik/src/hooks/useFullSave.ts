@@ -8,6 +8,7 @@ import type { ActiveGameState } from '@/lib/types';
 import type { AISettings } from '@/lib/ai-settings/types';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { migrateEquipmentCatalog } from '@/lib/equipment-catalog';
+import type { EquipmentVisualEra } from '@/lib/types';
 
 /**
  * Hook do zarządzania zapisem i wczytywaniem gry
@@ -39,6 +40,7 @@ export interface UseFullSaveReturn {
 }
 
 interface UseFullSaveOptions {
+  equipmentVisualEra: EquipmentVisualEra;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
   setActiveCharacter: React.Dispatch<React.SetStateAction<Character | null>>;
@@ -66,6 +68,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
     stopCurrentAudio,
     restoreHotSeatConfig,
     clearDeclarations,
+    equipmentVisualEra,
   } = options;
 
   const [showFullSaveModal, setShowFullSaveModal] = useState(false);
@@ -107,9 +110,13 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         }
 
         // Wczytaj postacie
+        const saveEquipmentEra = save.equipmentVisualEra ?? equipmentVisualEra;
         const migratedCharacters = save.characters.map((character) => ({
           ...character,
-          equipment: migrateEquipmentCatalog(character.equipment),
+          equipment: migrateEquipmentCatalog(
+            character.equipment,
+            saveEquipmentEra
+          ),
         }));
         setCharacters(migratedCharacters);
         if (save.activeCharacterId) {
@@ -172,6 +179,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       setAiSettings,
       restoreHotSeatConfig,
       clearDeclarations,
+      equipmentVisualEra,
     ]
   );
 

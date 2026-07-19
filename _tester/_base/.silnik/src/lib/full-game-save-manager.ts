@@ -6,6 +6,7 @@ import {
   Location,
   MessageIllustration,
   HotSeatConfig,
+  EquipmentVisualEra,
 } from './types';
 
 // Lokalnie zdefiniowany interfejs Message
@@ -60,6 +61,8 @@ export interface FullGameSave {
   gameSettings: {
     aiSettings: AISettings;
   };
+  /** Profil assetów katalogowych potrzebny do poprawnej migracji starego ekwipunku. */
+  equipmentVisualEra?: EquipmentVisualEra;
 
   // === Postacie ===
   characters: Character[];
@@ -141,6 +144,7 @@ export class FullGameSaveManager {
     images?: FullGameSave['images'];
     descriptions?: FullGameSave['descriptions'];
     gameSettings: { aiSettings: AISettings };
+    equipmentVisualEra?: EquipmentVisualEra;
     characters: Character[];
     activeCharacterId?: string;
     hotSeatConfig?: HotSeatConfig;
@@ -181,6 +185,7 @@ export class FullGameSaveManager {
 
       // Ustawienia
       gameSettings: data.gameSettings,
+      equipmentVisualEra: data.equipmentVisualEra,
 
       // Postacie
       characters: data.characters,

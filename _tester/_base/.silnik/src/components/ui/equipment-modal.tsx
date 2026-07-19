@@ -8,7 +8,19 @@ import {
 } from './dialog';
 import { Button } from './button';
 import { Input } from './input';
-import { Package, Search, Loader2, Sword, Shield, Wrench, FileText, Sparkles, User, HeartPulse, Flame } from 'lucide-react';
+import {
+  Package,
+  Search,
+  Loader2,
+  Sword,
+  Shield,
+  Wrench,
+  FileText,
+  Sparkles,
+  User,
+  HeartPulse,
+  Flame,
+} from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
@@ -24,6 +36,7 @@ import {
   isWeapon,
 } from '@/lib/combat/weapon-context';
 import { getEraImageFilter } from '@/lib/era-visual-style';
+import { isCatalogEquipment } from '@/lib/equipment-catalog';
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
 function formatUsd(amount: number): string {
@@ -43,8 +56,6 @@ interface EquipmentModalProps {
   /** B2: zmiana aktywnej postaci (reuse onCharacterSwitch z page) - panel pokazuje ekwipunek wybranego. */
   onCharacterChange?: (character: Character) => void;
 }
-
-
 
 // Etykiety stanu przedmiotu (déco: zwięzłe statusy w stylu special-elite)
 const CONDITION_LABELS: Record<string, string> = {
@@ -90,7 +101,7 @@ export function EquipmentModal({
   const updateItem = useCallback(
     (updatedItem: EquipmentItem) => {
       const updated = equipment.map((item) =>
-          item.id === updatedItem.id ? updatedItem : item
+        item.id === updatedItem.id ? updatedItem : item
       );
       onCharacterUpdate({ ...character, equipment: updated });
     },
@@ -100,10 +111,16 @@ export function EquipmentModal({
   // Generuj obraz dla przedmiotu
   const generateImage = useCallback(
     async (item: EquipmentItem) => {
+      if (isCatalogEquipment(item)) return;
       setGeneratingImage(item.id);
 
       try {
-        const prompt = buildEquipmentImagePrompt(item, era, adventureTheme, character);
+        const prompt = buildEquipmentImagePrompt(
+          item,
+          era,
+          adventureTheme,
+          character
+        );
 
         // Zew-App-Local: obrazy przez orkiestrator /api/imagen (tylko Gemini, jeden klucz).
         const usePortraitReference = Boolean(
@@ -112,21 +129,21 @@ export function EquipmentModal({
         const response = await fetchWithApiKeys(
           usePortraitReference ? '/api/flux-kontext' : '/api/imagen',
           {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt,
-            style: usePortraitReference
-              ? 'realistic'
-              : item.category === 'artifact'
-                ? 'horror'
-                : 'vintage',
-            aspectRatio: '1:1',
-            seed: `${character?.id || ''}-${item.id}`,
-            ...(usePortraitReference
-              ? { inputImageUrl: character!.portraitUrl }
-              : {}),
-          }),
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt,
+              style: usePortraitReference
+                ? 'realistic'
+                : item.category === 'artifact'
+                  ? 'horror'
+                  : 'vintage',
+              aspectRatio: '1:1',
+              seed: `${character?.id || ''}-${item.id}`,
+              ...(usePortraitReference
+                ? { inputImageUrl: character!.portraitUrl }
+                : {}),
+            }),
           }
         );
 
@@ -142,6 +159,7 @@ export function EquipmentModal({
           ...item,
           imageUrl: data.imageUrl,
           imagePrompt: prompt,
+          visualSource: 'generated',
         };
         updateItem(updatedItem);
       } catch (error) {
@@ -158,7 +176,9 @@ export function EquipmentModal({
   // (fire-and-forget po starcie gry w useGameStart). Drugi useEffect w modalu
   // powodował wyścig stanów (closure vs. functional update) i kasowanie imageUrl.
 
-  const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'finances'>('weapon');
+  const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'finances'>(
+    'weapon'
+  );
 
   // Ekonomia CoC 7e (RAW): zamożność z Credit Rating, NIE suma $ per-przedmiot.
   const finances = deriveFinances(character);
@@ -397,24 +417,25 @@ export function EquipmentModal({
               {/* Flavor déco */}
               <div className="border-l-2 border-brass/50 bg-brass/5 px-4 py-3">
                 <div className="font-serif italic text-sm text-muted-foreground leading-snug">
-                  Poziom życia określa, na co badacza stać bez dodatkowych testów
-                  Zamożności. Majątek obejmuje nieruchomości, udziały i inne dobra trwałe.
+                  Poziom życia określa, na co badacza stać bez dodatkowych
+                  testów Zamożności. Majątek obejmuje nieruchomości, udziały i
+                  inne dobra trwałe.
                 </div>
               </div>
             </div>
           )}
         </div>
 
-      {selectedItem && (
-        <EquipmentDetailDialog
-          item={selectedItem}
-          era={era}
-          onClose={() => setSelectedItem(null)}
-        />
-      )}
-    </DialogContent>
-  </Dialog>
-);
+        {selectedItem && (
+          <EquipmentDetailDialog
+            item={selectedItem}
+            era={era}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // === KAFEL BRONI (déco) ===
@@ -428,10 +449,14 @@ interface ItemCardProps {
   era: string;
 }
 
-
-
 /** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
-function CategoryIcon({ category, className }: { category: string; className?: string }) {
+function CategoryIcon({
+  category,
+  className,
+}: {
+  category: string;
+  className?: string;
+}) {
   switch (category) {
     case 'weapon':
       return <Sword className={className} />;
@@ -470,6 +495,7 @@ function ItemThumbnail({
 }) {
   const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
   const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
+  const canGenerate = !isCatalogEquipment(item);
 
   return (
     <div
@@ -484,27 +510,31 @@ function ItemThumbnail({
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             style={{ filter: getEraImageFilter(era) }}
           />
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onGenerateImage(item);
-              }}
-              disabled={generatingImage === item.id}
-              title="Wygeneruj nową ilustrację AI przedmiotu"
-              className="w-full h-full p-0 text-brass hover:text-[#ffd79e] hover:bg-brass/10 transition-colors flex items-center justify-center"
-            >
-              {generatingImage === item.id ? (
-                <Loader2 className="w-5 h-5 animate-spin text-brass" />
-              ) : (
-                <span className="text-brass text-xs font-special-elite uppercase tracking-wider">Nowy</span>
-              )}
-            </Button>
-          </div>
+          {canGenerate && (
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGenerateImage(item);
+                }}
+                disabled={generatingImage === item.id}
+                title="Wygeneruj nową ilustrację AI przedmiotu"
+                className="w-full h-full p-0 text-brass hover:text-[#ffd79e] hover:bg-brass/10 transition-colors flex items-center justify-center"
+              >
+                {generatingImage === item.id ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-brass" />
+                ) : (
+                  <span className="text-brass text-xs font-special-elite uppercase tracking-wider">
+                    Nowy
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
         </>
-      ) : (
+      ) : canGenerate ? (
         <Button
           variant="ghost"
           size="sm"
@@ -525,11 +555,15 @@ function ItemThumbnail({
               </div>
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                 <span className="text-brass/70 text-sm">◆</span>
-                <span className="text-[8px] text-brass/70 uppercase tracking-widest font-special-elite">Generuj</span>
+                <span className="text-[8px] text-brass/70 uppercase tracking-widest font-special-elite">
+                  Generuj
+                </span>
               </div>
             </div>
           )}
         </Button>
+      ) : (
+        <CategoryIcon category={item.category} className={iconSize} />
       )}
     </div>
   );
