@@ -56,7 +56,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   hasRules = false,
   hasAdventure = false,
   adventureTitle,
-  adventureDescription,
   region,
   currentLocation,
   hasSessionZero = false,
@@ -197,7 +196,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         title={adventureTitle}
         region={region}
         currentLocation={currentLocation}
-        adventureDescription={adventureDescription}
       />
       {/* Chat Messages */}
       <ScrollArea className="flex-1 p-4">
@@ -278,7 +276,11 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           isLoading={isLoading}
           onSwitchPlayer={onSwitchPlayer}
           onDisableHotSeat={onDisableHotSeat}
-          hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({ id: p.id, name: p.name, index: i }))}
+          hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({
+            id: p.id,
+            name: p.name,
+            index: i,
+          }))}
         />
       )}
       {/* Image Lightbox */}

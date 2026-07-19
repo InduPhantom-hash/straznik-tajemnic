@@ -45,6 +45,7 @@ import {
 import { AdventureContext, CustomAdventure } from '@/lib/adventures-data';
 import { useResolvedPortrait } from '@/hooks/useResolvedPortrait';
 import { mergeAdventureJournalEntries } from '@/lib/journal/shared-adventure-journal';
+import type { AISettings } from '@/lib/ai-settings';
 
 interface CthulhuSidebarProps {
   activeCharacter?: Character;
@@ -405,8 +406,6 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   );
                 })()}
 
-
-
               {/* Action Buttons - zielone ikony */}
               <div className="space-y-1">
                 {playerTools.map((item) => {
@@ -575,7 +574,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   onClick={() => {
                     const updated = {
                       ...aiSettings,
-                      imageGenerationEnabled: !aiSettings.imageGenerationEnabled,
+                      imageGenerationEnabled:
+                        !aiSettings.imageGenerationEnabled,
                     };
                     onUpdateAISettings(updated);
                     // Zapisz trwale

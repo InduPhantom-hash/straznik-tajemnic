@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { timeManager } from '@/lib/time-manager';
 import { GameTime, MoonPhase } from '@/lib/types';
-import { Moon, Sun, Clock, Calendar, Cloud, CloudRain, Snowflake } from 'lucide-react';
+import { Moon, Sun, Clock, Calendar } from 'lucide-react';
 
 // ============================================================================
 // MOON PHASE ICONS
@@ -38,13 +38,11 @@ const MOON_PHASE_NAMES: Record<MoonPhase, string> = {
 interface CampaignClockProps {
   className?: string;
   compact?: boolean;
-  weatherInfo?: string;
 }
 
 export function CampaignClock({
   className = '',
   compact = false,
-  weatherInfo = '',
 }: CampaignClockProps) {
   const [time, setTime] = useState<GameTime>(timeManager.getTime());
   const [moonPhase, setMoonPhase] = useState<MoonPhase>(
@@ -72,72 +70,30 @@ export function CampaignClock({
   const formattedTime = timeManager.formatTime();
 
   if (compact) {
-    let weatherIcon = <Cloud className="w-3.5 h-3.5 text-zinc-400" />;
-    let weatherLabel = '';
-
-    if (weatherInfo) {
-      const tempMatch = weatherInfo.match(/(-?\d+°C)/);
-      const stateMatch = weatherInfo.match(/stan:\s*([^,(]+)/);
-      
-      const temp = tempMatch ? tempMatch[1] : '';
-      const state = stateMatch ? stateMatch[1].trim() : '';
-      
-      if (temp || state) {
-        weatherLabel = [temp, state].filter(Boolean).join(' · ');
-      } else {
-        weatherLabel = weatherInfo.replace(/\(dane historyczne dla dnia.*?\)/i, '').trim();
-      }
-
-      const lowerState = state.toLowerCase();
-      if (lowerState.includes('deszcz') || lowerState.includes('opad') || lowerState.includes('deszczowo')) {
-        weatherIcon = <CloudRain className="w-3.5 h-3.5 text-blue-400" />;
-      } else if (lowerState.includes('śnieg') || lowerState.includes('mróz') || lowerState.includes('zimn')) {
-        weatherIcon = <Snowflake className="w-3.5 h-3.5 text-sky-300" />;
-      } else if (lowerState.includes('ciepł') || lowerState.includes('sucho') || lowerState.includes('słon')) {
-        weatherIcon = <Sun className="w-3.5 h-3.5 text-amber-400" />;
-      } else {
-        weatherIcon = <Cloud className="w-3.5 h-3.5 text-emerald-400/80" />;
-      }
-    }
-
     return (
-      <div className={`flex items-center gap-3 ${className}`}>
-        {/* Czas */}
-        <div className="flex items-center gap-1.5 bg-zinc-950/60 backdrop-blur-md border border-emerald-900/30 rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+      <div
+        className={`flex items-center gap-3 bg-zinc-950/60 backdrop-blur-md border border-emerald-900/30 rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(16,185,129,0.1)] ${className}`}
+      >
+        <div className="flex items-center gap-1.5 border-r border-zinc-800 pr-3">
           <Clock className="w-3.5 h-3.5 text-emerald-500/80" />
           <span className="text-sm font-mono font-bold text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">
             {formattedTime}
           </span>
         </div>
 
-        {/* Data */}
-        <div className="flex items-center gap-1.5 bg-zinc-950/60 backdrop-blur-md border border-emerald-900/30 rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+        <div className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-zinc-500" />
           <span className="text-xs text-zinc-300 tracking-tight uppercase">
             {formattedDate}
           </span>
         </div>
 
-        {/* Pogoda */}
-        {weatherLabel && (
-          <div className="flex items-center gap-1.5 bg-zinc-950/60 backdrop-blur-md border border-emerald-900/30 rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-            {weatherIcon}
-            <span className="text-xs text-zinc-300 tracking-tight font-special-elite whitespace-nowrap">
-              {weatherLabel}
-            </span>
-          </div>
-        )}
-
-        {/* Księżyc z nazwą fazy */}
-        <div className="flex items-center gap-1.5 bg-zinc-950/60 backdrop-blur-md border border-emerald-900/30 rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+        <div className="flex items-center ml-1 pl-3 border-l border-zinc-800">
           <span
             className="text-lg filter drop-shadow-[0_0_3px_rgba(255,255,255,0.3)] cursor-help"
             title={MOON_PHASE_NAMES[moonPhase]}
           >
             {MOON_PHASE_EMOJI[moonPhase]}
-          </span>
-          <span className="text-xs text-zinc-400 font-medium font-special-elite whitespace-nowrap">
-            {MOON_PHASE_NAMES[moonPhase]}
           </span>
         </div>
       </div>
@@ -191,16 +147,6 @@ export function CampaignClock({
           {formattedDate}
         </span>
       </div>
-
-      {/* Pogoda */}
-      {weatherInfo && (
-        <div className="flex items-center justify-center gap-2 text-zinc-300 bg-zinc-900/30 rounded-lg py-2 mb-4 border border-zinc-800/30 relative z-10 px-3 text-center">
-          <Cloud className="w-4 h-4 text-emerald-500/80 shrink-0" />
-          <span className="text-xs font-special-elite font-medium leading-tight">
-            {weatherInfo}
-          </span>
-        </div>
-      )}
 
       {/* Moon Phase & Stats Footer */}
       <div className="grid grid-cols-2 gap-2 relative z-10">

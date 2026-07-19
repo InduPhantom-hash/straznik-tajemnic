@@ -93,3 +93,19 @@ Branch: main
 
 ### Decyzje podjęte
 - Reaktywne wyciszenie w `useTTS.ts` gwarantuje, że jakakolwiek zmiana flag w aplikacji natychmiast ubija aktywne audio, co zapobiega zjawisku doczytywania trwającego akapitu po wyciszeniu lektora.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 7)
+Branch: main
+
+### Co zrobiono
+- Uproszczono zegar kampanii: usunięto pogodę z widoku i powiązany przepływ danych.
+- Naprawiono trzy błędy TypeScript: nieaktualny prop zegara, brakujący typ ustawień AI oraz kolejność reaktywnego wyciszania lektora.
+- Weryfikacja: TypeScript bez błędów, pełne testy 41/41.
+
+### Co otwarte (do następnej sesji)
+- Manualny test aplikacji w przeglądarce.
+- Integracja predefiniowanego katalogu ekwipunku CoC 7e.
+
+### Decyzje podjęte
+- Pogoda przestaje być parsowana i przekazywana tylko po to, by wyświetlić ją w zegarze.
+- Funkcja zatrzymująca lektora jest deklarowana przed efektem, który ją wywołuje.

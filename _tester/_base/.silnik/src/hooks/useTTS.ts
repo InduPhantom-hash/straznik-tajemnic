@@ -234,13 +234,6 @@ export function useTTS(): UseTTSReturn {
     return () => console.log('🔊 TTS: Hook UNMOUNTED');
   }, []);
 
-  // Reaktywne wyciszenie przy wyłączeniu lektora w runtime
-  useEffect(() => {
-    if (!voiceEnabled || !isTTSEnabled) {
-      stopCurrentAudio();
-    }
-  }, [voiceEnabled, isTTSEnabled, stopCurrentAudio]);
-
   const stopCurrentAudio = useCallback(() => {
     console.log('🔊 TTS: STOP called. Resetting state.');
     if (currentAudio) {
@@ -271,6 +264,13 @@ export function useTTS(): UseTTSReturn {
     setIsAudioPaused(false);
     setQueueStatus({ queueLength: 0, totalCharacters: 0, processing: false });
   }, [currentAudio]);
+
+  // Reaktywne wyciszenie przy wyłączeniu lektora w runtime
+  useEffect(() => {
+    if (!voiceEnabled || !isTTSEnabled) {
+      stopCurrentAudio();
+    }
+  }, [voiceEnabled, isTTSEnabled, stopCurrentAudio]);
 
   const toggleAudioPause = useCallback(() => {
     if (currentAudio) {
