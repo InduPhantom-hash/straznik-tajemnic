@@ -130,3 +130,21 @@ Branch: main
 ### Decyzje podjęte
 - Pogoda przestaje być parsowana i przekazywana tylko po to, by wyświetlić ją w zegarze.
 - Funkcja zatrzymująca lektora jest deklarowana przed efektem, który ją wywołuje.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 9)
+Branch: main
+
+### Co zrobiono
+- Zdiagnozowano brak toggle `Obrazy: Wł/Wył` w działającej aplikacji: uruchamiany był nieaktualny produkcyjny build, starszy niż kod sidebara.
+- Przebudowano aplikację produkcyjną i uruchomiono launcher `.app` na porcie 4050.
+- Zapisano research katalogu ekwipunku: `.agent/research/equipment-catalog-2026-07-19.md`.
+- Potwierdzono, że lokalne SVG ekwipunku są obecnie traktowane jak brak miniatury; hook automatycznych miniaturek może przez to wywoływać generator obrazów mimo toggle `Obrazy`.
+
+### Co otwarte (do następnej sesji)
+- Zaplanować i wdrożyć rozróżnienie lokalnych assetów katalogowych od obrazów AI wraz z testami respektowania `imageGenerationEnabled`.
+- Zaprojektować `templateId` dla szablonu katalogowego oraz tolerancyjną migrację starych `EquipmentItem` i zapisów.
+- Przed rozszerzaniem zawartości katalogu ustalić dokładny, legalnie dostępny materiał źródłowy zapisany wcześniej jako `The Walk Toolu`.
+
+### Decyzje podjęte
+- `id` pozostaje identyfikatorem konkretnego egzemplarza przedmiotu - nie wolno zastępować go `templateId`, ponieważ służy również jako klucz IndexedDB dla obrazów.
+- Przedmioty katalogowe mają korzystać z lokalnych assetów bez generowania AI; obrazy generowane zostają dla egzemplarzy fabularnych i wyjątkowych.
