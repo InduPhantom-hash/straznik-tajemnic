@@ -17,6 +17,7 @@ import { Card, CardContent } from '../../../ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar';
 import { NarrativeFormatter } from '../../NarrativeFormatter';
 import { SkillTestCard } from './skill-test-card';
+import { AcquiredItemCard } from './acquired-item-card';
 import { cleanMarkdown } from '@/lib/utils';
 import type { Character, Message } from '@/lib/types';
 import type { SkillTestData } from '@/lib/parsers/types';
@@ -42,6 +43,8 @@ interface MessageCardProps {
   onImageClick: (imgUrl: string, allImages: string[]) => void;
   onRollTest?: (test: SkillTestData) => void;
   completedTestIds?: ReadonlySet<string>;
+  onConfirmAcquiredItem?: (messageId: string, proposalId: string) => void;
+  onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
 }
 
 export function MessageCard({
@@ -57,6 +60,8 @@ export function MessageCard({
   onImageClick,
   onRollTest,
   completedTestIds,
+  onConfirmAcquiredItem,
+  onDismissAcquiredItem,
 }: MessageCardProps) {
   return (
     <Card
@@ -190,6 +195,23 @@ export function MessageCard({
                     {...test}
                     onRoll={onRollTest}
                     completed={completedTestIds?.has(test.id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {message.acquiredItems && message.acquiredItems.length > 0 && (
+              <div>
+                {message.acquiredItems.map((proposal) => (
+                  <AcquiredItemCard
+                    key={proposal.id}
+                    proposal={proposal}
+                    onConfirm={() =>
+                      void onConfirmAcquiredItem?.(message.id, proposal.id)
+                    }
+                    onDismiss={() =>
+                      onDismissAcquiredItem?.(message.id, proposal.id)
+                    }
                   />
                 ))}
               </div>

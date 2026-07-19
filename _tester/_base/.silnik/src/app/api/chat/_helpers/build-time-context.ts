@@ -42,7 +42,15 @@ export interface BuildTimeContextResult {
 export function buildTimeContext(
   opts: BuildTimeContextOpts
 ): BuildTimeContextResult {
-  const gameEra: GameEra = (opts.adventureContext?.era as GameEra) || '1920s';
+  const eraMap: Record<string, GameEra> = {
+      gaslight: '1890s',
+      classic: '1920s',
+      noir: '1940s',
+      prl: 'prl-1970s',
+      modern: 'modern',
+    };
+  const gameEra: GameEra =
+    eraMap[opts.adventureContext?.era ?? 'classic'] ?? '1920s';
   const timeContext = timeManager.formatForPrompt();
   const eraRules = getEraPromptInjection(gameEra);
 

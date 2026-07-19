@@ -46,7 +46,7 @@ export interface AdventureHandout {
 export interface AdventureContext {
   id: string;
   title: string;
-  era: 'classic' | 'gaslight' | 'modern' | 'custom';
+  era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   eraLabel: string;
   yearRange: string;
   location: string;
@@ -313,7 +313,7 @@ SUGEROWANE ZAWODY: ${adventure.suggestedOccupations.join(', ') || 'dowolne pasuj
  * Filtruje zawody według ery przygody
  */
 export function filterOccupationsByEra(
-  era: 'classic' | 'gaslight' | 'modern' | 'custom'
+  era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom'
 ): string[] {
   // Zawody niedostępne w różnych erach
   const MODERN_ONLY = ['hacker'];
@@ -323,6 +323,9 @@ export function filterOccupationsByEra(
     return EXCLUDE_IN_GASLIGHT;
   }
   if (era === 'classic') {
+    return MODERN_ONLY;
+  }
+  if (era === 'noir' || era === 'prl') {
     return MODERN_ONLY;
   }
   return []; // modern - wszystko dostępne

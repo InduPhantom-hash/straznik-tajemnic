@@ -25,7 +25,13 @@ export interface GameTime {
 }
 
 /** Epoka gry - wpływa na dostępne środki transportu i komunikacji */
-export type GameEra = '1890s' | '1920s' | '1940s' | 'modern' | 'future';
+export type GameEra =
+  | '1890s'
+  | '1920s'
+  | '1940s'
+  | 'prl-1970s'
+  | 'modern'
+  | 'future';
 
 /** Ustawienia epoki - definiują realia technologiczne świata */
 export interface EraSettings {
@@ -100,6 +106,17 @@ export interface MessageIllustration {
   timestamp: Date;
 }
 
+/** Propozycja ekwipunku wykryta w narracji, zanim gracz potwierdzi jej zabranie. */
+export interface AcquiredItemProposal {
+  id: string;
+  name: string;
+  description: string;
+  /** Postać wskazana przez MG w tagu; brak = aktualnie aktywny badacz. */
+  recipientName?: string;
+  visualTreatment: EquipmentVisualTreatment;
+  status: 'pending' | 'accepted' | 'dismissed';
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -113,6 +130,7 @@ export interface Message {
   // hydrują generatedImages z cache → obrazy "wracają na miejsce".
   generatedImageCacheIds?: string[];
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
+  acquiredItems?: AcquiredItemProposal[];
 }
 
 // Typy wydarzeń dziennika sesji
@@ -163,6 +181,35 @@ export type EquipmentCategory =
   | 'medical' // Medyczne (apteczka, morfina)
   | 'occult'; // Okultystyczne (świece, kreda, kadzidło)
 
+/** Profil wizualny, według którego wybieramy lokalny render katalogowy. */
+export type EquipmentVisualEra =
+  | '1890s'
+  | '1920s'
+  | '1940s'
+  | 'prl-1970s'
+  | 'modern';
+
+/** Pochodzenie grafiki przypisanej do konkretnego egzemplarza przedmiotu. */
+export type EquipmentVisualSource = 'catalog' | 'generated';
+
+/** Zwykły przedmiot nie może dostać estetyki Mythos tylko przez klimat sesji. */
+export type EquipmentVisualTreatment = 'mundane' | 'supernatural';
+
+/**
+ * Niezmienny wzorzec katalogowy. `EquipmentItem.id` dalej identyfikuje fizyczny
+ * egzemplarz należący do postaci, a `id` szablonu opisuje jego typ i assety.
+ */
+export interface EquipmentTemplate {
+  id: string;
+  name: string;
+  aliases: string[];
+  category: EquipmentCategory;
+  description?: string;
+  visualTreatment: EquipmentVisualTreatment;
+  availableIn: EquipmentVisualEra[];
+  assetPaths?: Partial<Record<EquipmentVisualEra | 'shared', string>>;
+}
+
 export interface EquipmentModifiers {
   skill?: string; // Umiejętność na którą wpływa (np. "First Aid")
   bonus?: number; // Bonus do testu (np. +20)
@@ -174,6 +221,8 @@ export interface EquipmentModifiers {
 
 export interface EquipmentItem {
   id: string;
+  /** Stabilny identyfikator wzorca katalogowego, jeśli ten egzemplarz go ma. */
+  templateId?: string;
   name: string;
   category: EquipmentCategory;
   description?: string;
@@ -191,6 +240,8 @@ export interface EquipmentItem {
   // Obraz (kontekstowy prompt builder)
   imageUrl?: string;
   imagePrompt?: string; // Zachowany wzbogacony prompt do regeneracji
+  visualSource?: EquipmentVisualSource;
+  visualTreatment?: EquipmentVisualTreatment;
 }
 
 // === SYSTEM ROZWOJU POSTACI (CoC 7e) ===
@@ -668,7 +719,7 @@ export interface AdventureContext {
   isCustom?: boolean;
 
   // Metadata
-  era?: 'classic' | 'gaslight' | 'modern' | 'custom';
+  era?: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   eraLabel?: string;
   yearRange?: string;
   location?: string;

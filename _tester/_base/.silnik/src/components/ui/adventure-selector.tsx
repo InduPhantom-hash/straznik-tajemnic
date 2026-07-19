@@ -74,7 +74,7 @@ export function AdventureSelector({
   const [customTitle, setCustomTitle] = useState('');
   const [customLocation, setCustomLocation] = useState('');
   const [customEra, setCustomEra] = useState<
-    'classic' | 'gaslight' | 'modern' | 'custom'
+    'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom'
   >('classic');
   const [customYearRange, setCustomYearRange] = useState('1920-1930');
   const [customDescription, setCustomDescription] = useState('');
@@ -556,6 +556,8 @@ export function AdventureSelector({
                   >
                     <option value="classic">Klasyczne lata 20.</option>
                     <option value="gaslight">Era wiktoriańska</option>
+                    <option value="noir">Lata 40.</option>
+                    <option value="prl">PRL - lata 70.</option>
                     <option value="modern">Współczesność</option>
                     <option value="custom">Inna</option>
                   </select>

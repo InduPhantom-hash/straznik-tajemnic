@@ -30,6 +30,7 @@ export function getCompactGMProtocolPrompt(): string {
 - \`[NPC: Imię: opis]\` - nowy/kluczowy NPC
 - \`[LOKACJA: Nazwa: atmosfera]\` - w PIERWSZEJ turze (miejsce startu) ORAZ przy każdej zmianie miejsca; zapala pineskę 📍 w nagłówku. W Nazwie podawaj KONKRETNE miejsce (magazyn, biblioteka, pokój hotelowy), bez powtarzania regionu/miasta przygody - region pokazywany jest osobno.
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
+- \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać. Użyj \`nadprzyrodzony\` wyłącznie dla jawnie anormalnego przedmiotu.
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę na Kości). Trudność = ocena jakościowa, progu liczbowego NIE podajesz (liczy aplikacja). NIGDY nie wzywaj testu samą prozą ("rzuć d100") - proza nie tworzy Tacki. Ale ZAWSZE poprzedź tag \`[TEST:]\` min. 1 zdaniem opisu sceny - nie otwieraj tury samym gołym tagiem.
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata (lub \`+N\` odzysk) Poczytalności / Życia. Aplikacja odejmuje od karty postaci automatycznie (tag niewidoczny dla gracza). Używaj PO nieudanym teście Poczytalności i przy obrażeniach w walce. Liczbę bierz z \`[RAG_CONTEXT]\`/podręcznika - jeśli jej nie znasz, NIE zgaduj: napisz prozą i poproś o sprawdzenie.
@@ -132,6 +133,19 @@ Format: \`[PRZEDMIOT: Nazwa: Opis i potencjalne znaczenie]\`
 
 Przykład:
 - \`[PRZEDMIOT: Dziennik dr. Westona: Skórzany notes z ostatnimi stronami wyrwanymi, pismo coraz bardziej chaotyczne.]\`
+
+#### 6-BIS. ZDOBYTY PRZEDMIOT (wyłącznie po faktycznym zabraniu)
+\`[PRZEDMIOT]\` opisuje lub indeksuje istotną rzecz i **nigdy sam nie zmienia ekwipunku**.
+Gdy badacz rzeczywiście bierze przedmiot, emituj dodatkowo dokładnie jeden tag:
+
+Format: \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | krótki opis fizyczny | zwykly]\`
+
+- \`@Imię\` jest opcjonalne w solo, ale obowiązkowe w duecie, gdy odbiorca nie jest oczywisty.
+- Nie emituj tagu dla rzeczy tylko zauważonych, obejrzanych lub pozostawionych na miejscu.
+- Domyślnie zawsze używaj \`zwykly\`: horror sceny nie czyni zwykłego klucza, listu ani broni nadprzyrodzonymi.
+- \`nadprzyrodzony\` stosuj wyłącznie, gdy anomalna natura przedmiotu jest już jawnie potwierdzona przez narrację lub dane scenariusza.
+
+Przykład: \`[ZDOBYTY_PRZEDMIOT: @Eleonora | Mosiężny klucz | Ciężki klucz z numerem magazynu, bez żadnych niezwykłych właściwości. | zwykly]\`
 
 #### 7. DZIENNIK (Wpisy do dziennika gracza)
 Format: \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\`

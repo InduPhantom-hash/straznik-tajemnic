@@ -123,6 +123,10 @@ export function deriveStartYear(
       return 1890;
     case 'classic':
       return 1925;
+    case 'noir':
+      return 1946;
+    case 'prl':
+      return 1974;
     default:
       return 1925;
   }

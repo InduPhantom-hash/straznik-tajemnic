@@ -3,7 +3,11 @@
  * Używane przez AI do generowania ekwipunku startowego
  */
 
-import { EquipmentItem, EquipmentCategory } from './types';
+import { EquipmentItem } from './types';
+import {
+  applyCatalogTemplate,
+  findEquipmentTemplate,
+} from './equipment-catalog';
 
 // === BROŃ ===
 
@@ -529,9 +533,22 @@ export const ALL_EQUIPMENT: Partial<EquipmentItem>[] = [
 export function findEquipmentByName(
   name: string
 ): Partial<EquipmentItem> | undefined {
-  return ALL_EQUIPMENT.find(
+  const localMatch = ALL_EQUIPMENT.find(
     (item) => item.name?.toLowerCase() === name.toLowerCase()
   );
+  if (localMatch) return localMatch;
+
+  const template = findEquipmentTemplate(name);
+  return template
+    ? {
+        name: template.name,
+        category: template.category,
+        description: template.description,
+        templateId: template.id,
+        visualSource: 'catalog',
+        visualTreatment: template.visualTreatment,
+      }
+    : undefined;
 }
 
 /**
@@ -541,8 +558,9 @@ export function createEquipmentItem(
   template: Partial<EquipmentItem>,
   source: 'starting' | 'acquired' | 'found' = 'starting'
 ): EquipmentItem {
-  return {
+  return applyCatalogTemplate({
     id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+    templateId: template.templateId,
     name: template.name || 'Unknown Item',
     category: template.category || 'personal',
     description: template.description,
@@ -552,7 +570,7 @@ export function createEquipmentItem(
     condition: 'used',
     source,
     obtainedAt: new Date(),
-  };
+  });
 }
 
 // Faza 4 (ekonomia RAW): CoC 7e nie ma systemu wagi/udźwigu - waga przedmiotów NIE jest

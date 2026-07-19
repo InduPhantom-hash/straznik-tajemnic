@@ -1,8 +1,12 @@
 import { useCallback } from 'react';
 import type { Character, EquipmentItem, AdventureContext } from '@/lib/types';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
-import { buildEquipmentImagePrompt } from '@/lib/equipment-prompt-builder';
+import {
+  buildEquipmentImagePrompt,
+  isCharacterBoundEquipment,
+} from '@/lib/equipment-prompt-builder';
 import { persistCharacters } from '@/lib/character-cloud-sync';
+import { isCatalogEquipment } from '@/lib/equipment-catalog';
 
 /**
  * IND-271: auto-generacja miniatur ekwipunku w tle przy starcie gry.
@@ -47,16 +51,27 @@ async function generateOneThumbnail(
 ): Promise<string | null> {
   try {
     const prompt = buildEquipmentImagePrompt(item, era, adventureTheme, character);
-    const response = await fetchWithApiKeys('/api/imagen', {
+    const usePortraitReference = Boolean(
+      character?.portraitUrl && isCharacterBoundEquipment(item)
+    );
+    const response = await fetchWithApiKeys(
+      usePortraitReference ? '/api/flux-kontext' : '/api/imagen',
+      {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        style: item.category === 'artifact' ? 'horror' : 'vintage',
+        style: usePortraitReference
+          ? 'realistic'
+          : item.category === 'artifact'
+            ? 'horror'
+            : 'vintage',
         aspectRatio: '1:1',
         seed: `${character?.id || ''}-${item.id}`,
+        ...(usePortraitReference ? { inputImageUrl: character!.portraitUrl } : {}),
       }),
-    });
+      }
+    );
     if (!response.ok) return null;
     const data = await response.json();
     return typeof data.imageUrl === 'string' ? data.imageUrl : null;
@@ -84,6 +99,7 @@ export function useEquipmentThumbnails({
       // Cache-aware: pomijamy itemy które JUŻ mają wygenerowaną miniaturę (piktogramy SVG ignorujemy, by wygenerować prawdziwy obrazek).
       const pending = (character.equipment ?? [])
         .filter((item) => {
+          if (isCatalogEquipment(item)) return false;
           if (!item.imageUrl) return true;
           return item.imageUrl.endsWith('.svg') || item.imageUrl.includes('/predefined/');
         })

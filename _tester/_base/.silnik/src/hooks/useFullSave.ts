@@ -7,6 +7,7 @@ import type { PdfMemory } from './usePdfMemory';
 import type { ActiveGameState } from '@/lib/types';
 import type { AISettings } from '@/lib/ai-settings/types';
 import { persistCharacters } from '@/lib/character-cloud-sync';
+import { migrateEquipmentCatalog } from '@/lib/equipment-catalog';
 
 /**
  * Hook do zarządzania zapisem i wczytywaniem gry
@@ -106,9 +107,13 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         }
 
         // Wczytaj postacie
-        setCharacters(save.characters);
+        const migratedCharacters = save.characters.map((character) => ({
+          ...character,
+          equipment: migrateEquipmentCatalog(character.equipment),
+        }));
+        setCharacters(migratedCharacters);
         if (save.activeCharacterId) {
-          const activeChar = save.characters.find(
+          const activeChar = migratedCharacters.find(
             (c) => c.id === save.activeCharacterId
           );
           if (activeChar) {
@@ -119,11 +124,11 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         // localStorage przekraczało quota i wywalało CAŁE wczytywanie. Przez
         // `persistCharacters`: obrazy wycinane do IndexedDB, roster lekki,
         // hydracja przy następnym renderze (page.tsx hydrateCharacterImages).
-        persistCharacters(save.characters);
+        persistCharacters(migratedCharacters);
 
         // Stare save'y bez tego pola pozostają zgodne i nie uruchamiają
         // automatycznego zgadywania przypisania postaci.
-        restoreHotSeatConfig?.(save.hotSeatConfig, save.characters);
+        restoreHotSeatConfig?.(save.hotSeatConfig, migratedCharacters);
 
         // Wczytaj kampanie
         setCampaigns(save.campaigns);

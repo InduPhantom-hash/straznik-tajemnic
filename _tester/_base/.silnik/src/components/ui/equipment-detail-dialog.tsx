@@ -3,10 +3,12 @@
 import { Button } from './button';
 import { EquipmentItem } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
+import { getEraImageFilter } from '@/lib/era-visual-style';
 
 interface EquipmentDetailDialogProps {
   item: EquipmentItem | null;
   onClose: () => void;
+  era?: string;
 }
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
@@ -44,7 +46,11 @@ export function getItemMechanics(
   return rows;
 }
 
-export function EquipmentDetailDialog({ item, onClose }: EquipmentDetailDialogProps) {
+export function EquipmentDetailDialog({
+  item,
+  onClose,
+  era,
+}: EquipmentDetailDialogProps) {
   if (!item) return null;
 
   return (
@@ -83,6 +89,7 @@ export function EquipmentDetailDialog({ item, onClose }: EquipmentDetailDialogPr
               src={item.imageUrl}
               alt={item.name}
               className="w-full h-full object-cover"
+              style={{ filter: getEraImageFilter(era) }}
             />
             <div className="absolute inset-2 pointer-events-none border border-brass/25" />
             <div className="absolute inset-0 pointer-events-none border border-black/80" />

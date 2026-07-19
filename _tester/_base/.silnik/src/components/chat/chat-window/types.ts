@@ -93,4 +93,7 @@ export interface ChatWindowProps {
   isTurnReady?: boolean;
   onSendTurn?: () => void;
   onOpenCharacterSheet?: (character: Character) => void;
+  /** Potwierdza lub odrzuca kartę [ZDOBYTY_PRZEDMIOT] w narracji MG. */
+  onConfirmAcquiredItem?: (messageId: string, proposalId: string) => void;
+  onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
 }

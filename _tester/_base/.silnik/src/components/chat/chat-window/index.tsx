@@ -75,6 +75,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   isTurnReady,
   onSendTurn,
   onOpenCharacterSheet,
+  onConfirmAcquiredItem,
+  onDismissAcquiredItem,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -246,6 +248,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   setLightboxImage(imgUrl);
                 }}
                 onRollTest={handleRollTest}
+                onConfirmAcquiredItem={onConfirmAcquiredItem}
+                onDismissAcquiredItem={onDismissAcquiredItem}
               />
             ))
           )}

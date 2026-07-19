@@ -52,6 +52,7 @@ export function cleanupContent(content: string): string {
     .replace(/\[NPC:[^\]]*\]/gi, '')
     .replace(/\[LOKACJA:[^\]]*\]/gi, '')
     .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
+    .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
     .replace(/\[WALKA:[^\]]*\]/gi, '')
     .replace(/\[SANITY:[^\]]*\]/gi, '')
     // [HP: ±N: powód] - utrata/odzysk życia (aplikowane do karty, niewidoczne

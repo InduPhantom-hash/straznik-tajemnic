@@ -285,12 +285,14 @@ export function useGameStart({
     setMessages([]); // Wyczyść czat przed startem przygody
     generateIntroImage(); // Równolegle z generowaniem tekstu
 
-    // Wymuś oczyszczenie starych, wadliwych miniatur przy starcie nowej gry
+    // Wyczyść wyłącznie obrazy generowane dla egzemplarzy fabularnych. Katalogowe
+    // assety są lokalne i muszą przetrwać start bez kosztu ani żądania do API.
     if (activeCharacter) {
       const resetEquipment = (activeCharacter.equipment ?? []).map((item) => ({
         ...item,
-        imageUrl: undefined,
-        imagePrompt: undefined,
+        ...(item.visualSource === 'catalog'
+          ? {}
+          : { imageUrl: undefined, imagePrompt: undefined }),
       }));
       const updatedCharacter = { ...activeCharacter, equipment: resetEquipment };
       

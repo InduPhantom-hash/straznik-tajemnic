@@ -246,7 +246,7 @@ export interface AISettings {
 
   // === SESSION ZERO (Game Calibration) ===
   sessionZero?: {
-    era: 'classic' | 'gaslight' | 'modern' | 'custom';
+    era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
     eraCustom?: string;
     tone: 'purist' | 'pulp' | 'noir' | 'neutral';
     difficulty: 'easy' | 'normal' | 'hard' | 'deadly';

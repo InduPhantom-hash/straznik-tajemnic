@@ -12,7 +12,10 @@ import { Package, Search, Loader2, Sword, Shield, Wrench, FileText, Sparkles, Us
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
-import { buildEquipmentImagePrompt } from '@/lib/equipment-prompt-builder';
+import {
+  buildEquipmentImagePrompt,
+  isCharacterBoundEquipment,
+} from '@/lib/equipment-prompt-builder';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import { deriveFinances } from '@/lib/economy/credit-rating';
 import {
@@ -20,6 +23,7 @@ import {
   inferWeaponDamage,
   isWeapon,
 } from '@/lib/combat/weapon-context';
+import { getEraImageFilter } from '@/lib/era-visual-style';
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
 function formatUsd(amount: number): string {
@@ -102,16 +106,29 @@ export function EquipmentModal({
         const prompt = buildEquipmentImagePrompt(item, era, adventureTheme, character);
 
         // Zew-App-Local: obrazy przez orkiestrator /api/imagen (tylko Gemini, jeden klucz).
-        const response = await fetchWithApiKeys('/api/imagen', {
+        const usePortraitReference = Boolean(
+          character?.portraitUrl && isCharacterBoundEquipment(item)
+        );
+        const response = await fetchWithApiKeys(
+          usePortraitReference ? '/api/flux-kontext' : '/api/imagen',
+          {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             prompt,
-            style: item.category === 'artifact' ? 'horror' : 'vintage',
+            style: usePortraitReference
+              ? 'realistic'
+              : item.category === 'artifact'
+                ? 'horror'
+                : 'vintage',
             aspectRatio: '1:1',
             seed: `${character?.id || ''}-${item.id}`,
+            ...(usePortraitReference
+              ? { inputImageUrl: character!.portraitUrl }
+              : {}),
           }),
-        });
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -281,6 +298,7 @@ export function EquipmentModal({
                   generatingImage={generatingImage}
                   onGenerateImage={generateImage}
                   onOpenDetail={setSelectedItem}
+                  era={era}
                 />
               ))}
               {weaponItems.length === 0 && (
@@ -303,6 +321,7 @@ export function EquipmentModal({
                     generatingImage={generatingImage}
                     onGenerateImage={generateImage}
                     onOpenDetail={setSelectedItem}
+                    era={era}
                   />
                 ))}
               </div>
@@ -389,6 +408,7 @@ export function EquipmentModal({
       {selectedItem && (
         <EquipmentDetailDialog
           item={selectedItem}
+          era={era}
           onClose={() => setSelectedItem(null)}
         />
       )}
@@ -405,6 +425,7 @@ interface ItemCardProps {
   onGenerateImage: (item: EquipmentItem) => void;
   /** Klik w kafelek otwiera modal detalu (obraz + pełny opis + mechanika). */
   onOpenDetail: (item: EquipmentItem) => void;
+  era: string;
 }
 
 
@@ -439,11 +460,13 @@ function ItemThumbnail({
   generatingImage,
   onGenerateImage,
   size,
+  era,
 }: {
   item: EquipmentItem;
   generatingImage: string | null;
   onGenerateImage: (item: EquipmentItem) => void;
   size: 'sm' | 'md';
+  era: string;
 }) {
   const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
   const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
@@ -459,6 +482,7 @@ function ItemThumbnail({
             src={item.imageUrl}
             alt={item.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            style={{ filter: getEraImageFilter(era) }}
           />
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Button
@@ -517,6 +541,7 @@ function WeaponCard({
   generatingImage,
   onGenerateImage,
   onOpenDetail,
+  era,
 }: ItemCardProps) {
   return (
     <div
@@ -530,6 +555,7 @@ function WeaponCard({
             generatingImage={generatingImage}
             onGenerateImage={onGenerateImage}
             size="md"
+            era={era}
           />
           <span className="font-serif text-lg text-foreground truncate">
             {item.name}
@@ -582,6 +608,7 @@ function GearCard({
   generatingImage,
   onGenerateImage,
   onOpenDetail,
+  era,
 }: ItemCardProps) {
   return (
     <div
@@ -593,6 +620,7 @@ function GearCard({
         generatingImage={generatingImage}
         onGenerateImage={onGenerateImage}
         size="sm"
+        era={era}
       />
       <div className="flex-1 min-w-0">
         <div className="font-serif text-lg text-foreground truncate">

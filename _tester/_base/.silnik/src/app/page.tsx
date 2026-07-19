@@ -54,6 +54,7 @@ import {
 } from '@/lib/journal/shared-adventure-journal';
 
 import { useEquipmentThumbnails } from '@/hooks/useEquipmentThumbnails';
+import { migrateEquipmentCatalog } from '@/lib/equipment-catalog';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -587,7 +588,10 @@ export default function Home() {
     const savedChars = localStorage.getItem('characters');
     if (savedChars) {
       try {
-        const chars = JSON.parse(savedChars) as Character[];
+        const chars = (JSON.parse(savedChars) as Character[]).map((character) => ({
+          ...character,
+          equipment: migrateEquipmentCatalog(character.equipment),
+        }));
         charMgmt.setCharacters(chars);
         if (chars.length > 0) charMgmt.setActiveCharacter(chars[0]);
         // IND-262: portret + miniatury ekwipunku żyją w IndexedDB (wycięte z
@@ -1003,6 +1007,8 @@ export default function Home() {
         currentPlayerName={chat.currentPlayerName}
         isTurnReady={chat.isTurnReady}
         onSendTurn={chat.sendTurn}
+        onConfirmAcquiredItem={chat.confirmAcquiredItem}
+        onDismissAcquiredItem={chat.dismissAcquiredItem}
         onStartGame={
           firstRun.canPlay
             ? handleStartGameGuarded

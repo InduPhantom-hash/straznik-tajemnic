@@ -74,6 +74,26 @@ export const ERA_PRESETS: Record<GameEra, EraSettings> = {
 - Broń: M1 Garand, Thompson, Luger P08.`,
     },
 
+    'prl-1970s': {
+        id: 'prl-1970s',
+        name: 'PRL - lata siedemdziesiąte',
+        description: 'Polska w latach 60.-80.: kolej, autobusy PKS, telefon stacjonarny i codzienność państwa socjalistycznego.',
+        transport: {
+            flight: { available: 'rare', risk: 'medium', avgSpeedKmh: 600 },
+            train: { available: 'common', risk: 'low', avgSpeedKmh: 75 },
+            ship: { available: 'rare', risk: 'medium', avgSpeedKmh: 35 },
+            car: { available: 'common', risk: 'medium', avgSpeedKmh: 65 },
+            horse: { available: 'rare', risk: 'low', avgSpeedKmh: 15 },
+        },
+        communication: 'hours',
+        worldRules: `**Zasady Świata (PRL - lata 70.):**
+- Komunikacja: telefon stacjonarny, list, telegram, radio i prasa; brak telefonów komórkowych oraz internetu.
+- Podróże: kolej i PKS są podstawą, prywatny samochód jest cenny i nie zawsze niezawodny.
+- Dostęp do towarów jest ograniczony; nie zakładaj, że specjalistyczny sprzęt da się kupić od ręki.
+- Instytucje państwowe, milicja i zakłady pracy mają realny wpływ na śledztwo; prywatność jest ograniczona.
+- Broń palna jest reglamentowana, a jej użycie szybko zwraca uwagę władz.`,
+    },
+
     'modern': {
         id: 'modern',
         name: 'Współczesność',

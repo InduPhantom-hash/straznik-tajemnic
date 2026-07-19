@@ -11,12 +11,13 @@ import { Button } from './button';
 import { X, Search } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { EquipmentItem } from '@/lib/types';
+import { getEraImageFilter } from '@/lib/era-visual-style';
 
 interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCharacter: (character: Character) => void;
-  currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom';
+  currentEra?: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   targetPlayerName?: string;
   unavailablePresetIds?: string[];
 }
@@ -74,6 +75,8 @@ const ARCHETYPE_LABELS: Array<{
 const ERA_LABELS: Array<{ value: PredefinedCharacterEra; label: string }> = [
   { value: 'gaslight', label: 'Lata 1890' },
   { value: 'classic', label: 'Lata 20.' },
+  { value: 'noir', label: 'Lata 40.' },
+  { value: 'prl', label: 'PRL - lata 70.' },
   { value: 'modern', label: 'Współczesność' },
 ];
 
@@ -256,7 +259,8 @@ export function PredefinedCharactersSelector({
                         <img
                           src={char.portraitUrl}
                           alt={char.name}
-                          className="w-full h-full object-cover grayscale opacity-90"
+                          className="w-full h-full object-cover opacity-90"
+                          style={{ filter: getEraImageFilter(char.era) }}
                         />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -348,7 +352,8 @@ export function PredefinedCharactersSelector({
                       <img
                         src={viewingCharacter.portraitUrl}
                         alt={viewingCharacter.name}
-                        className="relative w-full h-full object-cover grayscale"
+                        className="relative w-full h-full object-cover"
+                        style={{ filter: getEraImageFilter(selectedEra ?? undefined) }}
                       />
                     ) : (
                       <div className="relative text-center font-special-elite text-muted-foreground/60 text-[14px] tracking-[0.14em]">
@@ -720,6 +725,7 @@ export function PredefinedCharactersSelector({
       {selectedItem && (
         <EquipmentDetailDialog
           item={selectedItem}
+          era={selectedEra ?? undefined}
           onClose={() => setSelectedItem(null)}
         />
       )}

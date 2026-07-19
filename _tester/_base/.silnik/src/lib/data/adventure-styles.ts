@@ -68,6 +68,20 @@ export const ERA_STYLES: Record<string, AdventureStyleEntry> = {
     description:
       'Epoka wiktoriańska (XIX w.) - gazowe latarnie, spirytyzm i gotycka groza.',
   },
+  noir: {
+    label: 'Lata 40.',
+    color: 'text-stone-300',
+    icon: '📻',
+    description:
+      'Lata czterdzieste - wojna, odbudowa, radio i śledztwa w cieniu wielkiej historii.',
+  },
+  prl: {
+    label: 'PRL - lata 70.',
+    color: 'text-red-300',
+    icon: '🏭',
+    description:
+      'Polska lat siedemdziesiątych - kolejki, państwowe instytucje, analogowa technika i nieufność.',
+  },
   modern: {
     label: 'Współczesność',
     color: 'text-cyan-400',

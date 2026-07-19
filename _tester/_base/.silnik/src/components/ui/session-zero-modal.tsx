@@ -16,7 +16,7 @@ import { saveAISettings, loadAISettings, AISettings } from '@/lib/ai-settings';
 import { AdventureContext } from '@/lib/adventures-data';
 
 interface SessionZeroSettings {
-  era: 'classic' | 'gaslight' | 'modern' | 'custom';
+  era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   eraCustom?: string;
   tone: 'purist' | 'pulp' | 'noir' | 'neutral';
   narrativeMode: 'full_rpg' | 'story_priority' | 'pure_narrative';

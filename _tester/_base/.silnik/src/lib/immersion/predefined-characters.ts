@@ -1,7 +1,12 @@
 import { Character } from '@/lib/types';
 import { buildPredefinedEquipment } from './predefined-equipment';
 
-export type PredefinedCharacterEra = 'gaslight' | 'classic' | 'modern';
+export type PredefinedCharacterEra =
+  | 'gaslight'
+  | 'classic'
+  | 'noir'
+  | 'prl'
+  | 'modern';
 export type PredefinedCharacterArchetype =
   | 'investigator'
   | 'scholar'
@@ -2330,8 +2335,116 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
   },
 ];
 
-export const PREDEFINED_CHARACTERS: PredefinedCharacter[] =
-  BASE_PREDEFINED_CHARACTERS.map((character) => ({
+type ExtensionPresetSpec = {
+  era: 'noir' | 'prl';
+  archetype: PredefinedCharacterArchetype;
+  name: string;
+  occupation: string;
+  age: number;
+  gender: 'male' | 'female';
+  birthplace: string;
+  residence: string;
+  concept: string;
+  background: string;
+  equipment: Array<{ name: string; category: 'weapon' | 'tool' | 'document' | 'personal' | 'medical' | 'occult'; description?: string }>;
+};
+
+const EXTENSION_PRESET_SPECS: ExtensionPresetSpec[] = [
+  { era: 'noir', archetype: 'investigator', name: 'Janina Różycka', occupation: 'Dziennikarka radiowa', age: 34, gender: 'female', birthplace: 'Warszawa, Polska', residence: 'Łódź, Polska', concept: 'Reporterka, która nie ufa oficjalnym komunikatom.', background: 'W 1946 roku relacjonuje odbudowę kraju dla lokalnej rozgłośni. Zniknięcie technika dźwięku prowadzi ją od wypalonych kamienic do spraw, których nikt nie chce nagłaśniać.', equipment: [{ name: 'Aparat fotograficzny', category: 'tool' }, { name: 'Notatnik reporterski', category: 'document' }] },
+  { era: 'noir', archetype: 'investigator', name: 'Marek Dąbrowski', occupation: 'Były policjant', age: 41, gender: 'male', birthplace: 'Lwów, Polska', residence: 'Kraków, Polska', concept: 'Doświadczony śledczy szukający zaginionych ludzi.', background: 'Po wojnie nie potrafi wrócić do zwyczajnego życia. Przyjmuje sprawy rodzin, których bliscy zniknęli na trasach kolejowych i w miastach pełnych uchodźców.', equipment: [{ name: 'Rewolwer .38', category: 'weapon' }, { name: 'Lornetka polowa', category: 'tool' }] },
+  { era: 'noir', archetype: 'scholar', name: 'Helena Woyciechowska', occupation: 'Konserwatorka zabytków', age: 38, gender: 'female', birthplace: 'Poznań, Polska', residence: 'Wrocław, Polska', concept: 'Specjalistka od ratowania sztuki z ruin.', background: 'Zabezpiecza zbiory z opuszczonych pałaców i kościołów Dolnego Śląska. W skrzyniach z odzyskanymi obrazami odnalazła serię dokumentów, które nie powinny przetrwać wojny.', equipment: [{ name: 'Lupa terenowa', category: 'tool' }, { name: 'Dokumenty podróżne', category: 'document' }] },
+  { era: 'noir', archetype: 'scholar', name: 'Tadeusz Krawiec', occupation: 'Lekarz psychiatra', age: 47, gender: 'male', birthplace: 'Lublin, Polska', residence: 'Warszawa, Polska', concept: 'Lekarz badający wojenną traumę bez łatwych odpowiedzi.', background: 'W szpitalu słyszy od pacjentów powtarzające się sny o tym samym miejscu. Traktuje je jako objaw traumy, dopóki nie odnajduje ich na jednej, dokładnej mapie.', equipment: [{ name: 'Torba medyczna', category: 'medical' }, { name: 'Notes badawczy', category: 'document' }] },
+  { era: 'noir', archetype: 'action', name: 'Zofia Mierzejewska', occupation: 'Kurierka i przewodniczka', age: 29, gender: 'female', birthplace: 'Wilno, Polska', residence: 'Gdańsk, Polska', concept: 'Nieustępliwa przewodniczka znająca drogi poza mapą.', background: 'Przenosiła ludzi i wiadomości przez granice, a teraz zna szlaki, których nie ma w rozkładach jazdy. Jeden z dawnych kontaktów prosi ją o ostatnią, bardzo dziwną przysługę.', equipment: [{ name: 'Mocna lina', category: 'tool' }, { name: 'Nóż myśliwski', category: 'weapon' }] },
+  { era: 'noir', archetype: 'action', name: 'Antoni Lis', occupation: 'Mechanik kolejowy', age: 36, gender: 'male', birthplace: 'Radom, Polska', residence: 'Katowice, Polska', concept: 'Praktyk, który czyta maszyny i ludzi po śladach.', background: 'Utrzymuje przy życiu lokomotywy z części zbieranych po całej Europie. Na bocznicy odkrył wagon, którego nie ma w żadnej ewidencji, ale który wraca co kilka tygodni.', equipment: [{ name: 'Zestaw narzędzi mechanicznych', category: 'tool' }, { name: 'Latarka elektryczna', category: 'tool' }] },
+  { era: 'noir', archetype: 'healer', name: 'Irena Bielska', occupation: 'Pielęgniarka', age: 32, gender: 'female', birthplace: 'Kielce, Polska', residence: 'Szczecin, Polska', concept: 'Pielęgniarka, która nie odwraca wzroku od cierpienia.', background: 'Po latach pracy w prowizorycznych szpitalach pomaga przesiedleńcom w porcie. Pacjenci z jednej kamienicy mają identyczne, niewytłumaczalne blizny.', equipment: [{ name: 'Apteczka pierwszej pomocy', category: 'medical' }, { name: 'Bandaże i gaza', category: 'medical' }] },
+  { era: 'noir', archetype: 'healer', name: 'Wiktor Leśniewski', occupation: 'Weterynarz', age: 44, gender: 'male', birthplace: 'Toruń, Polska', residence: 'Bydgoszcz, Polska', concept: 'Weterynarz zauważający to, co zwierzęta wyczuwają pierwsze.', background: 'Prowadzi skromną praktykę i pomaga gospodarzom po wojennej zawierusze. Zwierzęta z jednej wsi przestają pić wodę ze studni, choć badania nie wykazują niczego zwykłego.', equipment: [{ name: 'Torba medyczna', category: 'medical' }, { name: 'Lornetka polowa', category: 'tool' }] },
+  { era: 'noir', archetype: 'mystic', name: 'Maria Karska', occupation: 'Etnografka', age: 40, gender: 'female', birthplace: 'Przemyśl, Polska', residence: 'Warszawa, Polska', concept: 'Badaczka obrzędów, która zachowuje naukowy dystans.', background: 'Zapisuje pieśni i obyczaje społeczności przesiedlonych po wojnie. Jedna melodia wraca w relacjach ludzi, którzy nigdy nie mogli się spotkać.', equipment: [{ name: 'Świece rytualne', category: 'occult' }, { name: 'Notes badawczy', category: 'document' }] },
+  { era: 'noir', archetype: 'mystic', name: 'Roman Kłos', occupation: 'Antykwariusz', age: 53, gender: 'male', birthplace: 'Łódź, Polska', residence: 'Kraków, Polska', concept: 'Antykwariusz ratujący książki przed zapomnieniem.', background: 'Kupuje rozproszone księgozbiory i zna historię każdej pieczęci. Pewien wolumin trafia do niego po raz trzeci, choć poprzednio spłonął na jego oczach.', equipment: [{ name: 'Lupa terenowa', category: 'tool' }, { name: 'Kreda rytualna', category: 'occult' }] },
+  { era: 'prl', archetype: 'investigator', name: 'Ewa Nowak', occupation: 'Fotoreporterka', age: 31, gender: 'female', birthplace: 'Gdańsk, Polska', residence: 'Warszawa, Polska', concept: 'Fotoreporterka widząca szczegóły poza kadrem oficjalnych zdjęć.', background: 'Pracuje dla tygodnika ilustrowanego i uczy się, które zdjęcia nigdy nie przechodzą przez redakcję. Na negatywach z prowincji widzi postać, której nikt na miejscu nie pamięta.', equipment: [{ name: 'Aparat fotograficzny', category: 'tool' }, { name: 'Koperty na dowody', category: 'document' }] },
+  { era: 'prl', archetype: 'investigator', name: 'Piotr Wolski', occupation: 'Inspektor BHP', age: 39, gender: 'male', birthplace: 'Łódź, Polska', residence: 'Katowice, Polska', concept: 'Inspektor, który zna każdy skrót w zakładzie pracy.', background: 'Wypadki w hucie zwykle da się wyjaśnić zaniedbaniem, lecz ostatnie trzy nie pasują do żadnej instalacji. Dyrekcja chce ciszy, a robotnicy opowiadają o głosie z kanałów.', equipment: [{ name: 'Latarka elektryczna', category: 'tool' }, { name: 'Notes badawczy', category: 'document' }] },
+  { era: 'prl', archetype: 'scholar', name: 'Alicja Rudzka', occupation: 'Archiwistka', age: 35, gender: 'female', birthplace: 'Lublin, Polska', residence: 'Warszawa, Polska', concept: 'Archiwistka rozumiejąca, że braki w kartotekach są również śladem.', background: 'Kataloguje dokumenty w państwowym archiwum i zna wagę brakującej kartki. Seria zaginionych teczek prowadzi do jednego powiatu i do nazwiska, które nigdy nie występuje w dokumentach.', equipment: [{ name: 'Dokumenty i bilety', category: 'document' }, { name: 'Lupa terenowa', category: 'tool' }] },
+  { era: 'prl', archetype: 'scholar', name: 'Jerzy Kossak', occupation: 'Geolog', age: 45, gender: 'male', birthplace: 'Kraków, Polska', residence: 'Wrocław, Polska', concept: 'Geolog sceptyczny wobec legend, lecz wierny pomiarom.', background: 'Bada osuwisko w Sudetach dla instytutu geologicznego. W próbkach znajduje strukturę, której nie potrafi przypisać żadnemu znanemu minerałowi.', equipment: [{ name: 'Kompas kieszonkowy', category: 'tool' }, { name: 'Mapa', category: 'document' }] },
+  { era: 'prl', archetype: 'action', name: 'Danuta Kwiecień', occupation: 'Maszynistka PKP', age: 37, gender: 'female', birthplace: 'Poznań, Polska', residence: 'Wrocław, Polska', concept: 'Kolejarka, która ufa rozkładom tylko wtedy, gdy je sama widzi.', background: 'Od lat prowadzi składy przez Dolny Śląsk i zna każdy tunel. Nocny pociąg mija sygnałownię, której nie ma na trasie od przedwojnia.', equipment: [{ name: 'Latarka elektryczna', category: 'tool' }, { name: 'Mocna lina', category: 'tool' }] },
+  { era: 'prl', archetype: 'action', name: 'Krzysztof Boruta', occupation: 'Ratownik górniczy', age: 33, gender: 'male', birthplace: 'Rybnik, Polska', residence: 'Bytom, Polska', concept: 'Ratownik przyzwyczajony do podejmowania decyzji pod ziemią.', background: 'Po akcji ratunkowej w zamkniętym wyrobisku nie może zapomnieć rytmu uderzeń dochodzących zza zawału. Kierownictwo kopalni uznaje go za przemęczonego.', equipment: [{ name: 'Kieszonkowa apteczka', category: 'medical' }, { name: 'Zestaw narzędzi mechanicznych', category: 'tool' }] },
+  { era: 'prl', archetype: 'healer', name: 'Magdalena Koper', occupation: 'Lekarka rejonowa', age: 42, gender: 'female', birthplace: 'Białystok, Polska', residence: 'Olsztyn, Polska', concept: 'Lekarka dostrzegająca wzór w pozornie zwykłych objawach.', background: 'Do jej przychodni trafiają mieszkańcy kilku wsi z tym samym koszmarem i bezsennością. Nie znajduje przyczyny medycznej, ale zauważa, że wszyscy pili wodę z jednego źródła.', equipment: [{ name: 'Torba medyczna', category: 'medical' }, { name: 'Bandaże i gaza', category: 'medical' }] },
+  { era: 'prl', archetype: 'healer', name: 'Andrzej Sokołowski', occupation: 'Ratownik medyczny', age: 28, gender: 'male', birthplace: 'Szczecin, Polska', residence: 'Szczecin, Polska', concept: 'Ratownik, który zachowuje spokój, gdy inni się cofają.', background: 'Pracuje w pogotowiu i zna nocne miasto lepiej niż własne mieszkanie. Coraz częściej odbiera wezwania pod ten sam nieistniejący adres.', equipment: [{ name: 'Apteczka pierwszej pomocy', category: 'medical' }, { name: 'Latarka elektryczna', category: 'tool' }] },
+  { era: 'prl', archetype: 'mystic', name: 'Krystyna Mroczek', occupation: 'Bibliotekarka', age: 48, gender: 'female', birthplace: 'Kalisz, Polska', residence: 'Łódź, Polska', concept: 'Bibliotekarka prowadząca ciche śledztwa między półkami.', background: 'Prowadzi dział regionalny i wie, które książki znikają najczęściej. Czytelnicy zaczynają zwracać stare wydania z identycznym, nieznanym znakiem odciśniętym na marginesie.', equipment: [{ name: 'Notes badawczy', category: 'document' }, { name: 'Świece rytualne', category: 'occult' }] },
+  { era: 'prl', archetype: 'mystic', name: 'Stanisław Wilczek', occupation: 'Lutnik', age: 51, gender: 'male', birthplace: 'Zakopane, Polska', residence: 'Kraków, Polska', concept: 'Rzemieślnik słyszący fałsz, którego inni nie zauważają.', background: 'Naprawia instrumenty w małej pracowni na Kazimierzu. Skrzypce przyniesione po zmarłym muzyku wydają jeden dodatkowy ton, którego nie potrafi uciszyć.', equipment: [{ name: 'Kreda rytualna', category: 'occult' }, { name: 'Nóż myśliwski', category: 'weapon' }] },
+];
+
+function slugifyPresetName(value: string): string {
+  return value
+    .replace(/[łŁ]/g, 'l')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-');
+}
+
+function makeExtensionPreset(spec: ExtensionPresetSpec): PredefinedCharacter {
+  const id = `pref_${slugifyPresetName(spec.name)}_${spec.era}`;
+  const skillByArchetype: Record<PredefinedCharacterArchetype, Record<string, number>> = {
+    investigator: { Spostrzegawczość: 65, Psychologia: 55, Perswazja: 50, Nasłuchiwanie: 50, Unik: 35 },
+    scholar: { 'Korzystanie z Bibliotek': 65, Historia: 55, Nauka: 55, Spostrzegawczość: 50, Unik: 30 },
+    action: { 'Walka Wręcz': 55, 'Broń Palna (Krótka)': 45, Wspinaczka: 50, Spostrzegawczość: 50, Unik: 45 },
+    healer: { 'Pierwsza Pomoc': 65, Medycyna: 55, Psychologia: 50, Nasłuchiwanie: 45, Unik: 35 },
+    mystic: { Okultyzm: 60, Psychologia: 55, Historia: 50, 'Korzystanie z Bibliotek': 55, Unik: 30 },
+  };
+  return {
+    id,
+    era: spec.era,
+    archetype: spec.archetype,
+    name: spec.name,
+    occupation: spec.occupation,
+    age: spec.age,
+    gender: spec.gender,
+    portraitUrl: `/portraits/predefined/${slugifyPresetName(spec.name)}.webp`,
+    str: spec.archetype === 'action' ? 65 : 50,
+    dex: spec.archetype === 'action' ? 60 : 55,
+    con: spec.archetype === 'action' ? 60 : 55,
+    app: 50,
+    pow: spec.archetype === 'mystic' ? 75 : 60,
+    edu: spec.archetype === 'scholar' || spec.archetype === 'healer' ? 75 : 65,
+    siz: 55,
+    int: 70,
+    luck: 55,
+    hp: 11,
+    maxHp: 11,
+    san: 60,
+    maxSan: 99,
+    mp: spec.archetype === 'mystic' ? 15 : 12,
+    maxMp: spec.archetype === 'mystic' ? 15 : 12,
+    background: spec.background,
+    birthplace: spec.birthplace,
+    residence: spec.residence,
+    characterConcept: spec.concept,
+    ideology: 'Fakty trzeba sprawdzać osobiście, nawet jeśli odpowiedź okazuje się niewygodna.',
+    significantPerson: 'Zaufana osoba, która zbyt dobrze zna tę sprawę.',
+    meaningfulLocation: 'Miejsce pracy, w którym codzienność styka się z tajemnicą.',
+    treasuredPossession: 'Niewielka pamiątka rodzinna, zawsze noszona przy sobie.',
+    traits: ['Dociekliwy', 'Odporny', 'Praktyczny'],
+    description: `${spec.occupation} z wyraźnym śladem zawodowego doświadczenia w spojrzeniu i ubiorze.`,
+    backstory: spec.background,
+    playerName: '',
+    isActive: false,
+    lastUsed: new Date(),
+    notes: `Gotowy badacz: ${spec.concept}`,
+    experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 0 },
+    developmentHistory: [],
+    skills: skillByArchetype[spec.archetype],
+    equipment: spec.equipment.map((item, index) => ({
+      id: `eq_${id}_${index}`,
+      ...item,
+    })),
+  };
+}
+
+const EXTENDED_PREDEFINED_CHARACTERS = EXTENSION_PRESET_SPECS.map(makeExtensionPreset);
+
+export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
+  ...BASE_PREDEFINED_CHARACTERS,
+  ...EXTENDED_PREDEFINED_CHARACTERS,
+].map((character) => ({
     ...character,
     equipment: buildPredefinedEquipment(character),
   }));
@@ -2339,7 +2452,13 @@ export const PREDEFINED_CHARACTERS: PredefinedCharacter[] =
 export function getPredefinedCharactersByEra(
   era: string
 ): PredefinedCharacter[] {
-  if (era === 'gaslight' || era === 'classic' || era === 'modern') {
+  if (
+    era === 'gaslight' ||
+    era === 'classic' ||
+    era === 'noir' ||
+    era === 'prl' ||
+    era === 'modern'
+  ) {
     return PREDEFINED_CHARACTERS.filter((character) => character.era === era);
   }
   return [];

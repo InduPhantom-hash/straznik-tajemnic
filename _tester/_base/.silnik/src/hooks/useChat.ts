@@ -37,6 +37,15 @@ import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
 import { resolveCharacterByName } from '@/lib/character/match-by-name';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { persistentMediaCache } from '@/lib/persistent-media-cache';
+import { createEquipmentItem } from '@/lib/equipment-data';
+import {
+  createAcquiredEquipmentSeed,
+  extractAcquiredItemProposals,
+} from '@/lib/acquired-equipment';
+import {
+  buildEquipmentImagePrompt,
+  isCharacterBoundEquipment,
+} from '@/lib/equipment-prompt-builder';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 
@@ -260,6 +269,19 @@ export interface UseChatReturn {
   clearDeclarations: () => void;
   /** Składa bufor w jedną wiadomość i wysyła do MG (przycisk "Wyślij turę"). */
   sendTurn: () => void;
+  confirmAcquiredItem: (messageId: string, proposalId: string) => Promise<void>;
+  dismissAcquiredItem: (messageId: string, proposalId: string) => void;
+}
+
+function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
+  const year = context?.yearRange ?? '';
+  if (/^(?:194[0-9])/.test(year) || context?.eraLabel?.includes('40'))
+    return '1940s';
+  if (/^(?:196|197|198)/.test(year) || /prl/i.test(context?.eraLabel ?? ''))
+    return 'prl-1970s';
+  if (context?.era === 'gaslight') return '1890s';
+  if (context?.era === 'modern') return 'modern';
+  return '1920s';
 }
 
 interface UseChatOptions {
@@ -770,6 +792,22 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           }
         }
 
+        // [PRZEDMIOT] pozostaje encyklopedią. Tylko osobny, świadomy tag tworzy
+        // kartę "Dodaj do ekwipunku" - nigdy nie zgadujemy z zwykłej prozy MG.
+        const acquiredItems = extractAcquiredItemProposals(
+          fullText,
+          assistantMessageId
+        );
+        if (acquiredItems.length > 0) {
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantMessageId
+                ? { ...message, acquiredItems }
+                : message
+            )
+          );
+        }
+
         // IND-267: śledzenie lokacji. Najnowszy [LOKACJA:] z narracji MG zasila pineskę 📍
         // w headerze (currentLocation) i jest odsyłany do promptu w kolejnej turze
         // (currentLocationRef). Wpis dziennika typu `location` powstaje już w
@@ -943,6 +981,137 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     [newMessage, handleSendMessage, isDuet, addDeclaration]
   );
 
+  const dismissAcquiredItem = useCallback(
+    (messageId: string, proposalId: string) => {
+      setMessages((prev) =>
+        prev.map((message) => {
+          if (message.id !== messageId) return message;
+          return {
+            ...message,
+            acquiredItems: message.acquiredItems?.map((proposal) =>
+              proposal.id === proposalId && proposal.status === 'pending'
+                ? { ...proposal, status: 'dismissed' }
+                : proposal
+            ),
+          };
+        })
+      );
+    },
+    []
+  );
+
+  const confirmAcquiredItem = useCallback(
+    async (messageId: string, proposalId: string) => {
+      const message = messages.find((candidate) => candidate.id === messageId);
+      const proposal = message?.acquiredItems?.find(
+        (candidate) => candidate.id === proposalId
+      );
+      if (!proposal || proposal.status !== 'pending' || !activeCharacter) return;
+
+      // Stan karty najpierw - podwójny klik nie może dodać dwóch egzemplarzy.
+      setMessages((prev) =>
+        prev.map((candidate) =>
+          candidate.id === messageId
+            ? {
+                ...candidate,
+                acquiredItems: candidate.acquiredItems?.map((item) =>
+                  item.id === proposalId ? { ...item, status: 'accepted' } : item
+                ),
+              }
+            : candidate
+        )
+      );
+
+      const recipient = resolveCharacterByName(
+        characters,
+        proposal.recipientName,
+        activeCharacter
+      );
+      const item = {
+        ...createEquipmentItem(createAcquiredEquipmentSeed(proposal), 'acquired'),
+        // Znalezisko z sesji jest unikalnym egzemplarzem, nawet jeżeli jego nazwa
+        // odpowiada katalogowi. Katalog pozostaje zarezerwowany dla stałej bazy.
+        visualSource: 'generated' as const,
+        visualTreatment: proposal.visualTreatment,
+        imageUrl: undefined,
+      };
+      const afterAdd = characters.map((character) =>
+        character.id === recipient.id
+          ? { ...character, equipment: [...(character.equipment ?? []), item] }
+          : character
+      );
+      setCharacters(afterAdd);
+      const nextActive =
+        afterAdd.find((character) => character.id === activeCharacter.id) ??
+        activeCharacter;
+      setActiveCharacter(nextActive);
+      if (typeof window !== 'undefined') persistCharacters(afterAdd);
+
+      // Obraz nie blokuje kliknięcia ani gry. Nieudana generacja zostawia ważny
+      // egzemplarz bez renderu - można go później wygenerować z modalu ekwipunku.
+      try {
+        const prompt = buildEquipmentImagePrompt(
+          item,
+          resolveEquipmentVisualEra(adventureContext),
+          undefined,
+          recipient
+        );
+        const usePortraitReference = Boolean(
+          recipient.portraitUrl && isCharacterBoundEquipment(item)
+        );
+        const response = await fetchWithRetry(
+          usePortraitReference ? '/api/flux-kontext' : '/api/imagen',
+          {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt,
+            style:
+              proposal.visualTreatment === 'supernatural' ? 'horror' : 'realistic',
+            aspectRatio: '1:1',
+            seed: `${recipient.id}-${item.id}`,
+            ...(usePortraitReference
+              ? { inputImageUrl: recipient.portraitUrl }
+              : {}),
+          }),
+          }
+        );
+        if (!response.ok) return;
+        const data = (await response.json()) as { imageUrl?: string };
+        if (!data.imageUrl) return;
+
+        const afterImage = afterAdd.map((character) =>
+          character.id !== recipient.id
+            ? character
+            : {
+                ...character,
+                equipment: (character.equipment ?? []).map((candidate) =>
+                  candidate.id === item.id
+                    ? { ...candidate, imageUrl: data.imageUrl, imagePrompt: prompt }
+                    : candidate
+                ),
+              }
+        );
+        setCharacters(afterImage);
+        setActiveCharacter(
+          afterImage.find((character) => character.id === activeCharacter.id) ??
+            activeCharacter
+        );
+        if (typeof window !== 'undefined') persistCharacters(afterImage);
+      } catch (error) {
+        console.warn('Nie udało się wygenerować renderu zdobytego przedmiotu:', error);
+      }
+    },
+    [
+      activeCharacter,
+      adventureContext,
+      characters,
+      messages,
+      setActiveCharacter,
+      setCharacters,
+    ]
+  );
+
   return {
     messages,
     setMessages,
@@ -963,5 +1132,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     isTurnReady: turnReady,
     clearDeclarations,
     sendTurn,
+    confirmAcquiredItem,
+    dismissAcquiredItem,
   };
 }

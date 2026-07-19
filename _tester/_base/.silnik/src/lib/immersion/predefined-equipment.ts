@@ -1,6 +1,10 @@
 import type { EquipmentCategory, EquipmentItem } from '@/lib/types';
+import {
+  applyCatalogTemplate,
+  CATEGORY_FALLBACK_ASSETS,
+} from '@/lib/equipment-catalog';
 
-export type PresetEra = 'gaslight' | 'classic' | 'modern';
+export type PresetEra = 'gaslight' | 'classic' | 'noir' | 'prl' | 'modern';
 export type PresetArchetype =
   | 'investigator'
   | 'scholar'
@@ -17,16 +21,7 @@ interface PresetEquipmentContext {
 
 type EquipmentSeed = Omit<EquipmentItem, 'id' | 'imageUrl'>;
 
-const CATEGORY_IMAGES: Record<EquipmentCategory, string> = {
-  weapon: '/equipment/predefined/weapon.svg',
-  armor: '/equipment/predefined/armor.svg',
-  tool: '/equipment/predefined/tool.svg',
-  document: '/equipment/predefined/document.svg',
-  artifact: '/equipment/predefined/artifact.svg',
-  personal: '/equipment/predefined/personal.svg',
-  medical: '/equipment/predefined/medical.svg',
-  occult: '/equipment/predefined/occult.svg',
-};
+const CATEGORY_IMAGES: Record<EquipmentCategory, string> = CATEGORY_FALLBACK_ASSETS;
 
 const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
   gaslight: [
@@ -61,6 +56,40 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
       name: 'Dokumenty i bilety',
       category: 'document',
       description: 'Dowód tożsamości, wizytówki i bilety kolejowe.',
+    },
+  ],
+  noir: [
+    {
+      name: 'Latarka elektryczna',
+      category: 'tool',
+      description: 'Metalowa latarka z zapasową płaską baterią.',
+    },
+    {
+      name: 'Dokumenty służbowe',
+      category: 'document',
+      description: 'Legitymacja, bilety i notatki podróżne.',
+    },
+    {
+      name: 'Kieszonkowa apteczka',
+      category: 'medical',
+      description: 'Opatrunki i środek odkażający w płóciennym etui.',
+    },
+  ],
+  prl: [
+    {
+      name: 'Latarka elektryczna',
+      category: 'tool',
+      description: 'Prosta metalowa latarka z ciężką baterią.',
+    },
+    {
+      name: 'Notes badawczy',
+      category: 'document',
+      description: 'Kratkowany notes, ołówek i zapas kartek.',
+    },
+    {
+      name: 'Kieszonkowa apteczka',
+      category: 'medical',
+      description: 'Bandaże, plaster i podstawowe środki opatrunkowe.',
     },
   ],
   modern: [
@@ -160,12 +189,13 @@ function slugify(value: string): string {
 }
 
 function withLocalImage(item: EquipmentItem): EquipmentItem {
-  return {
+  return applyCatalogTemplate({
     ...item,
     source: item.source ?? 'starting',
     condition: item.condition ?? 'used',
     imageUrl: item.imageUrl ?? CATEGORY_IMAGES[item.category],
-  };
+    visualSource: 'catalog',
+  });
 }
 
 /**
@@ -192,6 +222,20 @@ export function buildPredefinedEquipment(
       );
     }
   );
+
+  // Niektóre osobiste elementy celowo pokrywają się z zestawem epoki (np.
+  // latarka kolejarza). Dajemy wtedy neutralny, użyteczny dodatek zamiast
+  // dublować przedmiot i pozostawiać gotową postać z uboższym zestawem.
+  if (result.length < 6) {
+    result.push(
+      withLocalImage({
+        id: `eq_${slugify(preset.id)}_mapnik-terenowy`,
+        name: 'Mapnik terenowy',
+        category: 'document',
+        description: 'Składany mapnik na notatki, bilety i szkice trasy.',
+      })
+    );
+  }
 
   return result;
 }

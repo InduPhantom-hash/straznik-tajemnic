@@ -44,6 +44,7 @@ import {
 } from '@/lib/types';
 import { AdventureContext, CustomAdventure } from '@/lib/adventures-data';
 import { useResolvedPortrait } from '@/hooks/useResolvedPortrait';
+import { getEraImageFilter } from '@/lib/era-visual-style';
 import { mergeAdventureJournalEntries } from '@/lib/journal/shared-adventure-journal';
 import type { AISettings } from '@/lib/ai-settings';
 
@@ -361,6 +362,11 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                             src={portraitSrc}
                             alt={activeCharacter.name}
                             className="w-16 h-16 rounded-lg object-cover border border-brass/40"
+                            style={{
+                              filter: getEraImageFilter(
+                                adventureContext?.yearRange?.split('-')[0]
+                              ),
+                            }}
                           />
                         ) : (
                           <div className="w-16 h-16 rounded-lg bg-input flex items-center justify-center text-2xl border border-brass/40">
