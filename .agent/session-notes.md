@@ -171,3 +171,25 @@ Branch: main
 - Znaleziska fabularne pozostają generowane, nawet jeśli ich nazwa pasuje do katalogu.
 - Katalogowe WebP mają pierwszeństwo przed ogólnymi SVG kategorii; SVG pozostaje fallbackiem.
 - Trzy zastane pliki roadmapy mechanik pozostają poza zakresem commitu.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 11)
+Branch: main
+
+### Co zrobiono
+- Zakończono Fazę 1 Etapu 1 mechaniki tempa.
+- Dodano wspólny typ `SessionZeroSettings` oraz wersjonowany kontrakt `SessionMechanicsSettingsV1`.
+- Dodano normalizację starych i błędnych ustawień oraz głęboki merge `sessionZero` po stronie `/api/chat`.
+- Dodano 7 testów migracji i normalizacji.
+- Weryfikacja: 25/25 zestawów i 66/66 testów bazowych, 2/2 zestawy i 7/7 testów Fazy 1, TypeScript, ESLint oraz `git diff --check` - PASS.
+
+### Co otwarte (do następnej sesji)
+- Faza 2: UI Sesji Zero i przełącznik opt-in.
+- Faza 3: dyrektywa struktury sceny w promptcie.
+- Faza 4: pełna regresja, save/load i build.
+- Brak commita, pusha i aktualizacji Linear.
+
+### Decyzje podjęte
+- `pure_narrative` zawsze blokuje mechanikę.
+- Nowa dyrektywa nie będzie zawierać drugiego limitu słów.
+- Nie zmieniamy jeszcze `activeGameState` ani nie wdrażamy walki/pościgów.
+- Zastane pliki dokumentacyjne pozostają w drzewie roboczym.

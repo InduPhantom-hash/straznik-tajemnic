@@ -1,18 +1,15 @@
-/**
- * Local shape mirroring AISettings.sessionZero (inline w types.ts:262).
- * NIE exportujemy z types.ts żeby nie rozszerzać scope IND-158 (cleanup type
- * exports = osobny ticket follow-up jeśli warto).
- */
-interface SessionZeroShape {
-  era: string;
-  tone: string;
-  difficulty: string;
-  narrativeMode: string;
-  lines?: string[];
-  veils?: string[];
-  safetyWord?: string;
-  completed: boolean;
-}
+import type { SessionZeroSettings } from '../ai-settings/types';
+
+type SessionZeroPromptSettings = Pick<
+  SessionZeroSettings,
+  | 'tone'
+  | 'difficulty'
+  | 'narrativeMode'
+  | 'lines'
+  | 'veils'
+  | 'safetyWord'
+  | 'completed'
+>;
 
 export const TONE_INSTRUCTIONS: Record<string, string> = {
   purist: `
@@ -122,7 +119,7 @@ ZASADY:
  * Zwraca pusty string gdy sessionZero nie istnieje lub completed=false.
  */
 export function buildSessionZeroInstructions(
-  sessionZero: SessionZeroShape | undefined
+  sessionZero: SessionZeroPromptSettings | undefined
 ): string {
   if (!sessionZero?.completed) return '';
 

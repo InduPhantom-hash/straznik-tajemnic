@@ -1,6 +1,117 @@
 // IND-275 T1: union ID modeli Gemini scentralizowany w model-registry.
 import type { GeminiModelId } from '../model-registry';
 
+export type SessionZeroEra =
+  | 'classic'
+  | 'gaslight'
+  | 'noir'
+  | 'prl'
+  | 'modern'
+  | 'custom';
+
+export type SessionZeroTone = 'purist' | 'pulp' | 'noir' | 'neutral';
+export type SessionZeroDifficulty = 'easy' | 'normal' | 'hard' | 'deadly';
+export type SessionNarrativeMode =
+  | 'full_rpg'
+  | 'story_priority'
+  | 'pure_narrative';
+export type MechanicsPacing = 'narrative' | 'standard' | 'detailed';
+
+export interface SessionMechanicsSettingsV1 {
+  schemaVersion: 1;
+  enabled: boolean;
+  pacing: MechanicsPacing;
+  combatDetail: MechanicsPacing;
+  chaseDetail: MechanicsPacing;
+}
+
+export interface SessionZeroSettings {
+  era: SessionZeroEra;
+  eraCustom?: string;
+  tone: SessionZeroTone;
+  difficulty: SessionZeroDifficulty;
+  narrativeMode: SessionNarrativeMode;
+  lines: string[];
+  veils: string[];
+  safetyWord: string;
+  playerName: string;
+  completed: boolean;
+  mechanics?: SessionMechanicsSettingsV1;
+}
+
+const MECHANICS_PACING_VALUES: readonly MechanicsPacing[] = [
+  'narrative',
+  'standard',
+  'detailed',
+];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isMechanicsPacing(value: unknown): value is MechanicsPacing {
+  return (
+    typeof value === 'string' &&
+    MECHANICS_PACING_VALUES.includes(value as MechanicsPacing)
+  );
+}
+
+export function createDefaultSessionMechanicsSettings(): SessionMechanicsSettingsV1 {
+  return {
+    schemaVersion: 1,
+    enabled: false,
+    pacing: 'standard',
+    combatDetail: 'standard',
+    chaseDetail: 'standard',
+  };
+}
+
+/**
+ * Akceptuje wyłącznie wersjonowany kontrakt Etapu 1. Niepoprawne lub stare
+ * dane zachowują dotychczasowe zachowanie czatu, a Czysta Narracja ma zawsze
+ * pierwszeństwo przed eksperymentalną mechaniką.
+ */
+export function normalizeSessionMechanicsSettings(
+  value: unknown,
+  narrativeMode?: SessionNarrativeMode
+): SessionMechanicsSettingsV1 | undefined {
+  if (narrativeMode === 'pure_narrative' || !isRecord(value)) return undefined;
+
+  if (
+    value.schemaVersion !== 1 ||
+    typeof value.enabled !== 'boolean' ||
+    !isMechanicsPacing(value.pacing) ||
+    !isMechanicsPacing(value.combatDetail) ||
+    !isMechanicsPacing(value.chaseDetail)
+  ) {
+    return undefined;
+  }
+
+  return {
+    schemaVersion: 1,
+    enabled: value.enabled,
+    pacing: value.pacing,
+    combatDetail: value.combatDetail,
+    chaseDetail: value.chaseDetail,
+  };
+}
+
+/**
+ * Zachowuje istniejące dane Sesji Zero, ale usuwa niepoprawny kontrakt
+ * mechaniki zanim ustawienia trafią do UI albo promptu.
+ */
+export function normalizeSessionZeroSettings(
+  value: unknown
+): SessionZeroSettings | undefined {
+  if (!isRecord(value)) return undefined;
+
+  const narrativeMode = value.narrativeMode as SessionNarrativeMode | undefined;
+  return {
+    ...value,
+    mechanics: normalizeSessionMechanicsSettings(value.mechanics, narrativeMode),
+  } as SessionZeroSettings;
+}
+
 export interface AISettings {
   // === PINECONE (etap 2a) ===
   pineconeEnabled?: boolean;
@@ -245,16 +356,5 @@ export interface AISettings {
   qualityPreset: 'low' | 'mid' | 'high' | 'ultra' | 'custom';
 
   // === SESSION ZERO (Game Calibration) ===
-  sessionZero?: {
-    era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
-    eraCustom?: string;
-    tone: 'purist' | 'pulp' | 'noir' | 'neutral';
-    difficulty: 'easy' | 'normal' | 'hard' | 'deadly';
-    narrativeMode: 'full_rpg' | 'story_priority' | 'pure_narrative';
-    lines: string[]; // Tematy zakazane
-    veils: string[]; // Tematy do "fade to black"
-    safetyWord: string;
-    playerName: string;
-    completed: boolean;
-  };
+  sessionZero?: SessionZeroSettings;
 }

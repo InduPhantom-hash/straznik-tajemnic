@@ -12,21 +12,13 @@ import { Button } from './button';
 import { Label } from './label';
 import { Input } from './input';
 import { HelpIcon } from './tooltip';
-import { saveAISettings, loadAISettings, AISettings } from '@/lib/ai-settings';
+import {
+  saveAISettings,
+  loadAISettings,
+  AISettings,
+  type SessionZeroSettings,
+} from '@/lib/ai-settings';
 import { AdventureContext } from '@/lib/adventures-data';
-
-interface SessionZeroSettings {
-  era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
-  eraCustom?: string;
-  tone: 'purist' | 'pulp' | 'noir' | 'neutral';
-  narrativeMode: 'full_rpg' | 'story_priority' | 'pure_narrative';
-  difficulty: 'easy' | 'normal' | 'hard' | 'deadly';
-  lines: string[]; // Tematy absolutnie zakazane
-  veils: string[]; // Tematy do "fade to black"
-  safetyWord: string;
-  playerName: string;
-  completed: boolean;
-}
 
 interface SessionZeroModalProps {
   open: boolean;

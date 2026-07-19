@@ -1,4 +1,7 @@
-import { AISettings } from './types';
+import {
+  AISettings,
+  normalizeSessionZeroSettings,
+} from './types';
 import { defaultAISettings } from './defaults';
 
 // Funkcje pomocnicze
@@ -124,6 +127,7 @@ export const loadAISettings = (): AISettings => {
             ...defaultAISettings.gmTools,
             ...parsedSettings.gmTools,
           },
+          sessionZero: normalizeSessionZeroSettings(parsedSettings.sessionZero),
           customCommands:
             parsedSettings.customCommands || defaultAISettings.customCommands,
         };
