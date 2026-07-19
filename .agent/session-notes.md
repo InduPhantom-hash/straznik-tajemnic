@@ -1,5 +1,26 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-19 (Sesja 8)
+Branch: main
+
+### Co zrobiono
+- Przemodelowano roadmapę prac wokół katalogu ekwipunku, czytalnych dokumentów i późniejszej przebudowy dziennika.
+- Zapisano plan i brief: `ekwipunek-katalog-dokumenty-dziennik-plan.md` oraz `ekwipunek-katalog-dokumenty-dziennik-brief.md`.
+- Zweryfikowano, że szybki toggle `Obrazy: Wł/Wył` jest już w kodzie, ale użytkownik nie widzi go w działającej aplikacji.
+- Zweryfikowano, że Hot Seat nie powinien być ustawieniem kosztowym i wymaga osobnego sprawdzenia widoku/runtime.
+- Zweryfikowano, że poprawa ikony jest już obecna w skrypcie; temat pozostaje zamknięty do czasu nowej obserwacji wizualnej.
+
+### Co otwarte (do następnej sesji)
+- Najpierw znaleźć, dlaczego działająca aplikacja nadal pokazuje Hot Seat zamiast toggle `Obrazy: Wł/Wył`.
+- Uruchomić właściwą powierzchnię aplikacji i sprawdzić, czy problemem jest nieaktualny build, źródło `_tester/_base/.silnik/` albo ścieżka renderowania ustawień.
+- Dopiero po naprawie widoczności toggle przejść do researchu katalogu ekwipunku.
+
+### Decyzje podjęte
+- Kolejność: szybkie poprawki UX -> lokalny katalog ekwipunku -> czytalne przedmioty fabularne -> dziennik.
+- Nie generować ponownie powtarzalnych przedmiotów startowych; docelowo mają być lokalnymi lekkimi assetami.
+- Dokumenty i listy mają mieć osobną treść generowaną kontekstowo i akcję `Przeczytaj`.
+- Dziennik nie będzie przebudowywany w ramach ekwipunku, tylko jako późniejszy osobny etap.
+
 ## Podsumowanie sesji: 2026-07-18
 Branch: codex/duet-catalog-integration
 
