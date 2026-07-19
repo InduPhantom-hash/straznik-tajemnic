@@ -22,10 +22,10 @@ NODE_BIN_DIR="$(dirname "$(command -v node)")"
 cd "$APP_DIR"
 
 echo "[1/5] Production build..."
-if [ "${1:-}" = "--rebuild" ] || [ ! -f .next/BUILD_ID ]; then
+if [ "${1:-}" = "--rebuild" ] || [ ! -f _tester/_base/.silnik/.next/BUILD_ID ]; then
   npm run build
 else
-  echo "  build istnieje (.next/BUILD_ID) - pomijam. Wymus: bash desktop/build-app.sh --rebuild"
+  echo "  build istnieje (_tester/_base/.silnik/.next/BUILD_ID) - pomijam. Wymus: bash desktop/build-app.sh --rebuild"
 fi
 
 echo "[2/5] Ikona..."

@@ -76,5 +76,20 @@ Branch: feature/duet-starting-prompt
 - przelacznik-hot-seat-brief.md - jest brief, brak planu i implementacji.
 - Testy manualne aplikacji (otwarte od sesji 3).
 
-### Decyzje podjęte
 - Plan full-character-sheet-preview był de facto już zrealizowany w poprzednich sesjach - brakował tylko sync jednego importu i state file.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 6)
+Branch: main
+
+### Co zrobiono
+- **Porządki w Sidebarze**: Wyśrodkowano logo gry i napisy w nagłówku sidebaru. Usunięto przycisk Hot Seat z sidebaru (ustawienie to jest wybierane na starcie przygody).
+- **Toggle Obrazków**: Dodano szybki przełącznik generowania ilustracji scen bezpośrednio w panelu Ustawień sidebaru, co ułatwia zarządzanie kosztami API.
+- **Naprawa Mute Lektora**: Zintegrowano natychmiastowe zatrzymywanie odtwarzanego dźwięku (`tts.stopCurrentAudio()`) w momencie wyłączenia lektora w sidebarze, wraz z reaktywnym useEffect w hooku `useTTS.ts`.
+- **Weryfikacja**: Pomyślnie uruchomiono i zaliczono pełny pakiet testów jednostkowych i integracyjnych (41/41 testów passed).
+
+### Co otwarte (do następnej sesji)
+- Manualne testy w przeglądarce.
+- Integracja predefiniowanego katalogu ekwipunku CoC 7e.
+
+### Decyzje podjęte
+- Reaktywne wyciszenie w `useTTS.ts` gwarantuje, że jakakolwiek zmiana flag w aplikacji natychmiast ubija aktywne audio, co zapobiega zjawisku doczytywania trwającego akapitu po wyciszeniu lektora.

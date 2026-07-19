@@ -13,8 +13,9 @@ import {
   FolderOpen,
   Package,
   RotateCcw,
+  Image as ImageIcon,
 } from 'lucide-react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -89,6 +90,8 @@ interface CthulhuSidebarProps {
   loadingStatusAdventure?: string;
   // Hot Seat config - potrzebny dla wspólnego dziennika (sharedJournal)
   hotSeatConfig?: HotSeatConfig;
+  aiSettings?: AISettings;
+  onUpdateAISettings?: (settings: AISettings) => void;
 }
 
 export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
@@ -128,6 +131,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   uploadProgressAdventure = 0,
   loadingStatusAdventure = '',
   hotSeatConfig,
+  aiSettings,
+  onUpdateAISettings,
 }) => {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
@@ -265,9 +270,9 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brass/40 to-transparent"
           />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3 w-full">
             {/* Ikona aplikacji - Oko Horusa (ta sama grafika co launcher/icon.png) */}
-            <Image
+            <NextImage
               src="/app-icon.png"
               alt="Strażnik Tajemnic"
               width={32}
@@ -275,7 +280,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               className="w-8 h-8 rounded-md border border-brass/40 shadow-inner"
               priority
             />
-            <div className="flex-1">
+            <div className="text-left">
               <div className="text-[14px] text-brass/80 font-special-elite tracking-[0.22em] uppercase">
                 Zew Cthulhu 7ed
               </div>
@@ -562,16 +567,28 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   Lektor: {isTTSEnabled ? 'Wł' : 'Wył'}
                 </Button>
               )}
-              {/* IND-264: Hot Seat (2 graczy) - przeniesiony tu z sekcji Zarządzanie Grą */}
-              {onOpenHotSeat && (
+              {/* Szybki toggle generowania obrazów w czacie (oszczędność kosztów) */}
+              {aiSettings && onUpdateAISettings && (
                 <Button
                   variant="ghost"
                   className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  onClick={onOpenHotSeat}
-                  title="Tryb 2 graczy na jednym laptopie (Hot Seat)"
+                  onClick={() => {
+                    const updated = {
+                      ...aiSettings,
+                      imageGenerationEnabled: !aiSettings.imageGenerationEnabled,
+                    };
+                    onUpdateAISettings(updated);
+                    // Zapisz trwale
+                    import('@/lib/ai-settings').then(({ saveAISettings }) => {
+                      saveAISettings(updated);
+                    });
+                  }}
+                  title="Włącz/wyłącz generowanie ilustracji w czacie (oszczędność kosztów)"
                 >
-                  <Users className="w-4 h-4 mr-3 text-green-400" />
-                  Hot Seat (2 graczy)
+                  <ImageIcon
+                    className={`w-4 h-4 mr-3 ${aiSettings.imageGenerationEnabled ? 'text-green-400' : 'text-muted-foreground'}`}
+                  />
+                  Obrazy: {aiSettings.imageGenerationEnabled ? 'Wł' : 'Wył'}
                 </Button>
               )}
             </CardContent>

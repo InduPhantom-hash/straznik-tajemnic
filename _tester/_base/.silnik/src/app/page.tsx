@@ -667,6 +667,9 @@ export default function Home() {
   // (3. useEffect) ustawia runtime flagi TTS. Niezależny od presetu, sticky.
   const handleToggleNarrator = (enabled: boolean) => {
     saveAISettings(withVoiceEnabled(aiSettings ?? loadAISettings(), enabled));
+    if (!enabled) {
+      tts.stopCurrentAudio();
+    }
   };
 
   const handleColdStart = useCallback(async () => {
@@ -808,7 +811,6 @@ export default function Home() {
           registerOpenAdventureSelector={(fn) => {
             openAdventureSelectorRef.current = fn;
           }}
-          onAdventureSelect={setAdventureContext}
           customAdventures={customAdventures.customAdventures}
           onUploadAdventure={customAdventures.uploadAdventure}
           onDeleteAdventure={customAdventures.deleteAdventure}
@@ -816,6 +818,8 @@ export default function Home() {
           uploadProgressAdventure={customAdventures.uploadProgress}
           loadingStatusAdventure={customAdventures.loadingStatus}
           hotSeatConfig={hotSeat.config}
+          aiSettings={aiSettings ?? undefined}
+          onUpdateAISettings={setAiSettings}
         />
       }
       modals={

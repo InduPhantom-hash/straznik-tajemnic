@@ -77,7 +77,7 @@ fi
 
 STARTED_SERVER=0
 if ! curl -sf "$URL" >/dev/null 2>&1; then
-  if [ ! -f .next/BUILD_ID ]; then
+  if [ ! -f _tester/_base/.silnik/.next/BUILD_ID ]; then
     echo "$(date) brak buildu - buduje (to potrwa)..." >>"$LOG"
     PORT=$PORT npm run build >>"$LOG" 2>&1
   fi

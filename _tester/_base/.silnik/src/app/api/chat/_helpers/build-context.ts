@@ -209,7 +209,7 @@ export function buildAdditionalContext(
         characters.forEach((char) => {
           duetContext += `- **${char.name}** (${char.occupation}): ${char.background || ''}\n` +
             `  * Koncept: ${char.characterConcept || ''}\n` +
-            `  * Osobowość i Cechy: ${(char.traits || []).join(', ')}. ${char.personality || ''}\n` +
+            `  * Cechy: ${(char.traits || []).join(', ')}\n` +
             `  * Kluczowa osoba: ${char.significantPerson || ''}\n` +
             `  * Ważne miejsce: ${char.meaningfulLocation || ''}\n` +
             `  * Cenne posiadanie: ${char.treasuredPossession || ''}\n` +

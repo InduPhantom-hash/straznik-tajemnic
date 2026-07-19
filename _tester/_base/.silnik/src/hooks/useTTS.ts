@@ -234,6 +234,13 @@ export function useTTS(): UseTTSReturn {
     return () => console.log('🔊 TTS: Hook UNMOUNTED');
   }, []);
 
+  // Reaktywne wyciszenie przy wyłączeniu lektora w runtime
+  useEffect(() => {
+    if (!voiceEnabled || !isTTSEnabled) {
+      stopCurrentAudio();
+    }
+  }, [voiceEnabled, isTTSEnabled, stopCurrentAudio]);
+
   const stopCurrentAudio = useCallback(() => {
     console.log('🔊 TTS: STOP called. Resetting state.');
     if (currentAudio) {
