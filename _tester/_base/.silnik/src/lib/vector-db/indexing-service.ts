@@ -1,5 +1,5 @@
 /**
- * Indexing Service - most między embedding-service a Pinecone
+ * Indexing Service - most między embedding-service a lokalnym magazynem wektorów
  * Etap 2b roadmapy v4.0
  *
  * Odpowiada za:
@@ -18,10 +18,10 @@ import * as Sentry from '@sentry/nextjs';
 import { MemoryIndexEntry, MemoryIndex } from '../types';
 import { embeddingService, getEmbeddingDimensions } from '../embedding-service';
 import {
-  PINECONE_NAMESPACES,
+  LOCAL_RAG_NAMESPACES,
   type UpsertVector,
   type VectorMetadata,
-} from './pinecone-client';
+} from './vector-types';
 import { localVectorStore } from './local-vector-store';
 
 // ============================================================================
@@ -68,7 +68,7 @@ export async function indexChunk(
   sessionId: string
 ): Promise<boolean> {
   if (!localVectorStore.initialized) {
-    console.log('⚠️ Pinecone not initialized, skipping indexing');
+    console.log('⚠️ Lokalny RAG nie jest gotowy, pomijam indeksowanie');
     return false;
   }
 
@@ -82,12 +82,12 @@ export async function indexChunk(
 
   try {
     const vector = entryToVector(entry, sessionId);
-    const namespace = PINECONE_NAMESPACES.session(sessionId);
+    const namespace = LOCAL_RAG_NAMESPACES.session(sessionId);
     await localVectorStore.upsert(namespace, [vector]);
-    console.log(`🌲 Indexed chunk ${entry.chunkId} to Pinecone`);
+    console.log(`💾 Indexed chunk ${entry.chunkId} in local RAG`);
     return true;
   } catch (error) {
-    console.error('❌ Failed to index chunk to Pinecone:', error);
+    console.error('❌ Failed to index chunk in local RAG:', error);
     Sentry.captureException(error, {
       tags: { service: 'indexing-service', operation: 'indexChunk' },
       extra: { sessionId, chunkId: entry.chunkId },
@@ -110,7 +110,7 @@ export async function indexMemoryIndex(
   failed: number;
 }> {
   if (!localVectorStore.initialized) {
-    console.warn('⚠️ Pinecone not initialized, skipping bulk indexing');
+    console.warn('⚠️ Lokalny RAG nie jest gotowy, pomijam indeksowanie');
     return { indexed: 0, failed: 0 };
   }
 
@@ -119,7 +119,7 @@ export async function indexMemoryIndex(
   }
 
   const expectedDim = getEmbeddingDimensions();
-  const namespace = PINECONE_NAMESPACES.session(sessionId);
+  const namespace = LOCAL_RAG_NAMESPACES.session(sessionId);
   const vectors = index.entries
     .filter((e) => e.embedding && e.embedding.length === expectedDim)
     .map((e) => entryToVector(e, sessionId));
@@ -127,7 +127,7 @@ export async function indexMemoryIndex(
   try {
     await localVectorStore.upsert(namespace, vectors);
     console.log(
-      `🌲 Bulk indexed ${vectors.length} chunks to Pinecone for session ${sessionId}`
+      `💾 Bulk indexed ${vectors.length} chunks in local RAG for session ${sessionId}`
     );
     return {
       indexed: vectors.length,
@@ -168,7 +168,7 @@ export async function indexTexts(
   onProgress?: (current: number, total: number) => void
 ): Promise<{ indexed: number; failed: number }> {
   if (!localVectorStore.initialized) {
-    console.warn('⚠️ Pinecone not initialized, skipping batch text indexing');
+    console.warn('⚠️ Lokalny RAG nie jest gotowy, pomijam indeksowanie');
     return { indexed: 0, failed: 0 };
   }
 
@@ -229,9 +229,9 @@ export async function indexTexts(
 export async function deleteSession(sessionId: string): Promise<void> {
   if (!localVectorStore.initialized) return;
 
-  const namespace = PINECONE_NAMESPACES.session(sessionId);
+  const namespace = LOCAL_RAG_NAMESPACES.session(sessionId);
   await localVectorStore.deleteNamespace(namespace);
-  console.log(`🌲 Deleted Pinecone namespace for session ${sessionId}`);
+  console.log(`💾 Deleted local RAG namespace for session ${sessionId}`);
 }
 
 // ============================================================================

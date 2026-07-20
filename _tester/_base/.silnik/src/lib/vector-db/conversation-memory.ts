@@ -97,7 +97,7 @@ function reportSaveFailure(
 function captureDlq(
   sessionId: string,
   error: string,
-  stage: 'embedding_generation' | 'pinecone_upsert' | 'exception',
+  stage: 'embedding_generation' | 'local_upsert' | 'exception',
   responseLength: number
 ): void {
   try {
@@ -231,7 +231,7 @@ class ConversationMemoryService {
         return { success: false, error: err };
       }
 
-      // IND-75: Pinecone upsert z retry (transient network/client errors)
+      // Lokalny zapis z retry, aby przejściowy błąd dysku nie gubił tury.
       const indexed = await retryWithBackoff(
         () => indexingService.indexChunk(entry, turn.sessionId),
         (result) => result === true
@@ -245,9 +245,9 @@ class ConversationMemoryService {
       }
 
       const indexErr =
-        'indexChunk returned false after retries (Pinecone not initialized?)';
+        'indexChunk returned false after retries (local RAG unavailable)';
       reportSaveFailure(turn.sessionId, indexErr, 'index_failed');
-      captureDlq(turn.sessionId, indexErr, 'pinecone_upsert', responseLength);
+      captureDlq(turn.sessionId, indexErr, 'local_upsert', responseLength);
       return { success: false, error: indexErr };
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);

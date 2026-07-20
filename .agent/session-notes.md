@@ -307,3 +307,29 @@ Branch: `main`
 
 - Pinecone nie jest częścią docelowej architektury.
 - Aktualizacja zmienia kod aplikacji, ale nie może naruszać save'ów, lokalnego RAG-u, pamięci sesji, ustawień, postaci ani assetów.
+
+## Podsumowanie sesji: 2026-07-20
+
+Branch: `feature/immersion-context-injection`
+
+### Co zrobiono
+
+- Odłączono główną ścieżkę lokalnego RAG od nazewnictwa i typów Pinecone.
+- Dodano `src/lib/vector-db/vector-types.ts` jako neutralne źródło typów i namespace'ów lokalnego indeksu.
+- Zaktualizowano wyszukiwanie semantyczne, indeksowanie PDF i pamięć rozmowy do lokalnego RAG.
+- Zaktualizowano mapę powiązań/Zewdrzewko w `docs/MAPA-POWIAZAN.md`.
+- Uruchomiono 79 testów jednostkowych - wszystkie przeszły.
+- Przeszedł TypeScript, ESLint i produkcyjny build.
+- Przebudowano fizyczne kopie aplikacji w `/Users/phantom/Applications` i na biurku.
+
+### Co otwarte
+
+- Stare endpointy Pinecone/GCS nadal istnieją jako warstwa zgodności.
+- Następny pakiet: stabilny `adventureId` i izolacja danych dwóch przygód.
+- Nie wykonano pushu ani scalania.
+- Nie uruchamiano aplikacji po buildzie; port 4050 pozostawał nieaktywny.
+
+### Decyzje
+
+- Lokalny RAG jest źródłem prawdy dla głównej ścieżki czatu.
+- Commit: `refactor(rag): decouple local vector store from Pinecone`.

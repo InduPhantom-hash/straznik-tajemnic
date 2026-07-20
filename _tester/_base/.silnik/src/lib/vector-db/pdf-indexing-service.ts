@@ -13,7 +13,7 @@
  */
 
 import { indexingService } from './indexing-service';
-import { PINECONE_NAMESPACES } from './pinecone-client';
+import { LOCAL_RAG_NAMESPACES } from './vector-types';
 import { localVectorStore } from './local-vector-store';
 import { bm25Index } from './bm25-index';
 
@@ -338,8 +338,8 @@ class PdfIndexingService {
 
     const namespace =
       request.type === 'rules'
-        ? PINECONE_NAMESPACES.RULES
-        : PINECONE_NAMESPACES.ADVENTURES;
+        ? LOCAL_RAG_NAMESPACES.RULES
+        : LOCAL_RAG_NAMESPACES.ADVENTURES;
 
     try {
       // Krok 1: Chunking
@@ -498,8 +498,8 @@ class PdfIndexingService {
 
     const namespace =
       type === 'rules'
-        ? PINECONE_NAMESPACES.RULES
-        : PINECONE_NAMESPACES.ADVENTURES;
+        ? LOCAL_RAG_NAMESPACES.RULES
+        : LOCAL_RAG_NAMESPACES.ADVENTURES;
 
     try {
       const stats = await localVectorStore.getStats();

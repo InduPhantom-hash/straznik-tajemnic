@@ -23,7 +23,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { VectorMetadata } from './pinecone-client';
+import type { VectorMetadata } from './vector-types';
 
 /** Magiczne bajty nagłówka (wersja formatu). */
 const MAGIC = 'ZRG1';

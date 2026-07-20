@@ -12,7 +12,7 @@
  */
 
 import { embeddingService, cosineSimilarity } from '../embedding-service';
-import { PINECONE_NAMESPACES, type QueryResult } from './pinecone-client';
+import { LOCAL_RAG_NAMESPACES, type QueryResult } from './vector-types';
 import { localVectorStore } from './local-vector-store';
 import { bm25Index } from './bm25-index';
 
@@ -24,7 +24,7 @@ import { bm25Index } from './bm25-index';
 export interface RetrievalResult {
   id: string;
   score: number;
-  source: 'pinecone' | 'bm25' | 'local' | 'hybrid';
+  source: 'semantic' | 'bm25' | 'local' | 'hybrid';
   namespace: string;
   contentType: string;
   summary: string;
@@ -62,8 +62,8 @@ export interface RetrievalResponse {
   promptSection: string;
   /** Surowe wyniki (do debugowania / logowania) */
   results: RetrievalResult[];
-  /** Źródło: pinecone, local, hybrid, albo mixed */
-  source: 'pinecone' | 'local' | 'hybrid' | 'mixed' | 'none';
+  /** Źródło: semantic, local, hybrid albo mixed */
+  source: 'semantic' | 'local' | 'hybrid' | 'mixed' | 'none';
   /** Czas retrieval w ms */
   durationMs: number;
 }
@@ -133,12 +133,12 @@ const KEYWORD_WEIGHT = 1 - SEMANTIC_WEIGHT;
  * BM25 mocno podbija ich trafność w hybrydzie RRF obok wyszukiwania semantycznego.
  */
 const BM25_NAMESPACES: Set<string> = new Set([
-  PINECONE_NAMESPACES.RULES,
-  PINECONE_NAMESPACES.ADVENTURES,
-  PINECONE_NAMESPACES.MYTHOS,
+  LOCAL_RAG_NAMESPACES.RULES,
+  LOCAL_RAG_NAMESPACES.ADVENTURES,
+  LOCAL_RAG_NAMESPACES.MYTHOS,
   // npcs: nazwiska postaci historycznych ("Piłsudski", "Ćwikliński") to
   // twarde keyword matche - BM25 podbija ich trafność obok semantycznego.
-  PINECONE_NAMESPACES.NPCS,
+  LOCAL_RAG_NAMESPACES.NPCS,
 ]);
 
 /** Mapowanie contentType → emoji + etykieta PL do promptu */
@@ -198,11 +198,10 @@ class RetrievalService {
     let results: RetrievalResult[] = [];
     let source: RetrievalResponse['source'] = 'none';
 
-    // Strategia 1: semantic search (lokalny vector store; etykieta źródła 'pinecone'
-    // do renamu w Fazie 5 - funkcjonalnie cosine po data/rag/{namespace}.json).
+    // Strategia 1: semantic search w lokalnym magazynie wektorów.
     let semanticResults: RetrievalResult[] = [];
     if (localVectorStore.initialized) {
-      semanticResults = await this.searchPinecone(
+      semanticResults = await this.searchSemantic(
         queryEmbedding,
         namespaces,
         topKPerNamespace,
@@ -230,10 +229,10 @@ class RetrievalService {
       );
     } else if (semanticResults.length > 0) {
       results = semanticResults;
-      source = 'pinecone';
+      source = 'semantic';
     } else if (keywordResults.length > 0) {
       results = keywordResults;
-      source = 'pinecone'; // BM25 jest backup, ale nadal z Pinecone data
+      source = 'semantic';
     }
 
     // Strategia 4: Fallback na lokalny indeks
@@ -262,7 +261,7 @@ class RetrievalService {
     if (adventureSource) {
       results = results.filter(
         (r) =>
-          r.namespace !== PINECONE_NAMESPACES.ADVENTURES ||
+          r.namespace !== LOCAL_RAG_NAMESPACES.ADVENTURES ||
           this.extractSourceTag(r.tags) === adventureSource
       );
     }
@@ -282,10 +281,10 @@ class RetrievalService {
   }
 
   // ==========================================================================
-  // PRIVATE - PINECONE SEARCH
+  // PRIVATE - LOCAL SEMANTIC SEARCH
   // ==========================================================================
 
-  private async searchPinecone(
+  private async searchSemantic(
     queryEmbedding: number[],
     namespaces: string[],
     topKPerNamespace: number,
@@ -301,10 +300,10 @@ class RetrievalService {
               queryEmbedding,
               topKPerNamespace
             );
-            return results.map((r) => this.pineconeToResult(r, ns));
+            return results.map((r) => this.localVectorToResult(r, ns));
           } catch (err) {
             console.warn(
-              `⚠️ Pinecone query failed for namespace "${ns}":`,
+              `⚠️ Local RAG query failed for namespace "${ns}":`,
               err
             );
             return [];
@@ -314,12 +313,12 @@ class RetrievalService {
 
       return namespaceResults.flat().filter((r) => r.score >= minScore);
     } catch (error) {
-      console.error('❌ Pinecone multi-namespace search failed:', error);
+      console.error('❌ Local RAG multi-namespace search failed:', error);
       return [];
     }
   }
 
-  private pineconeToResult(
+  private localVectorToResult(
     qr: QueryResult,
     namespace: string
   ): RetrievalResult {
@@ -333,7 +332,7 @@ class RetrievalService {
     return {
       id: qr.id,
       score: qr.score,
-      source: 'pinecone',
+      source: 'semantic',
       namespace,
       contentType: qr.metadata.contentType || 'session',
       summary: qr.metadata.summary || '',
@@ -400,7 +399,7 @@ class RetrievalService {
       rrfScores.set(result.id, (rrfScores.get(result.id) || 0) + rrfScore);
 
       if (!resultMap.has(result.id)) {
-        resultMap.set(result.id, { ...result, source: 'pinecone' });
+        resultMap.set(result.id, { ...result, source: 'semantic' });
       }
     }
 
@@ -476,15 +475,15 @@ class RetrievalService {
    */
   private getDefaultNamespaces(sessionId?: string): string[] {
     const ns: string[] = [
-      PINECONE_NAMESPACES.RULES,
-      PINECONE_NAMESPACES.ADVENTURES,
-      PINECONE_NAMESPACES.NPCS,
-      PINECONE_NAMESPACES.WORLD_STATE,
-      PINECONE_NAMESPACES.MYTHOS,
+      LOCAL_RAG_NAMESPACES.RULES,
+      LOCAL_RAG_NAMESPACES.ADVENTURES,
+      LOCAL_RAG_NAMESPACES.NPCS,
+      LOCAL_RAG_NAMESPACES.WORLD_STATE,
+      LOCAL_RAG_NAMESPACES.MYTHOS,
     ];
 
     if (sessionId) {
-      ns.push(PINECONE_NAMESPACES.session(sessionId));
+      ns.push(LOCAL_RAG_NAMESPACES.session(sessionId));
     }
 
     return ns;

@@ -49,7 +49,7 @@ export interface RunRAGAndSummaryOpts {
 export interface RagMeta {
   /** Ilość hits zwróconych z retrieval (po RRF merge + filter minScore) */
   hits: number;
-  /** Źródło retrieval: 'hybrid' | 'pinecone' | 'local' | 'mixed' | 'none' */
+  /** Źródło retrieval: 'hybrid' | 'semantic' | 'local' | 'mixed' | 'none' */
   source: string;
   /** Czas retrieval w ms (subset całego durationMs requestu) */
   durationMs: number;

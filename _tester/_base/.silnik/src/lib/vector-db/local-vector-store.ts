@@ -1,7 +1,7 @@
 /**
  * LocalVectorStore - lokalny magazyn wektorów na dysku (Zew-App-Local)
  *
- * Drop-in zamiennik pineconeClient: ta sama sygnatura publiczna
+ * Lokalny magazyn z prostą sygnaturą
  * (upsert / query / queryMultiNamespace / deleteByIds / deleteNamespace / getStats).
  * Zero zależności sieciowych - cały RAG działa na jednym kluczu Gemini (embeddingi)
  * + plikach lokalnych.
@@ -23,11 +23,7 @@ import {
   countBinaryNamespace,
   deleteBinaryNamespace,
 } from './binary-format';
-import type {
-  UpsertVector,
-  QueryResult,
-  VectorMetadata,
-} from './pinecone-client';
+import type { UpsertVector, QueryResult, VectorMetadata } from './vector-types';
 
 /**
  * Rekord trzymany w cache. `text` = pełny tekst chunka (dla BM25 rebuild).

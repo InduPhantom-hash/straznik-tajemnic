@@ -19,7 +19,7 @@ graph TD
     subgraph Logika_Backend_API["Logika Backend & API (src/app/api & src/lib)"]
         BUILD_CTX["src/app/api/chat/_helpers/build-context.ts"]
         CHAT_PIPE["src/app/api/chat/_helpers/run-chat-pipeline.ts"]
-        RAG_STORE["src/lib/vector-db/local-vector-store.ts"]
+        RAG_STORE["src/lib/vector-db/local-vector-store.ts<br/>vector-types.ts"]
         DICE_CALC["src/lib/dice-utils.ts<br/>skill-test-resolver.ts"]
         TTS_API["src/app/api/tts/gemini/route.ts"]
         IMAGEN_API["src/app/api/imagen/route.ts"]
@@ -38,7 +38,7 @@ graph TD
     PROMPT -->|Tagowanie SAN, HP, Wynik| CHAT_PIPE
     PROMPT -->|Zasady rzutów RAW| DICE_CALC
     PROMPT -->|Tagi głosu [whispers]| TTS_API
-    ARCH -->|Implementacja Float32 RAG| RAG_STORE
+    ARCH -->|Implementacja Float32 RAG bez chmury| RAG_STORE
     UGUIDE -->|Tacka na Kości CoC 7e| DICE_TRAY
     UGUIDE -->|Karta badacza| SHEET
     ROADMAP -->|Przycisk Koniec Sesji| SIDEBAR
@@ -54,9 +54,10 @@ graph TD
 | Dokument / Instrukcja (`.md`) | Obszar funkcjonalny | Powiązane pliki źródłowe (`src/`) |
 | :--- | :--- | :--- |
 | **`public/default-gm-prompt.md`**<br/>*(Master Prompt Mistrza Gry)* | • Kontekst i ton Lovecrafta<br/>• Sesja Zero i kalibracja<br/>• Tagi `[SANITY:]`, `[HP:]`, `[WYNIK:]`<br/>• Procedura `[KONIEC_SESJI]`<br/>• Tagi Audio TTS (np. `[whispers]`) | • `src/app/api/chat/_helpers/build-context.ts`<br/>• `src/app/api/chat/_helpers/run-chat-pipeline.ts`<br/>• `src/lib/prompts/lovecraft-style-guide.ts`<br/>• `src/hooks/useTTS.ts`<br/>• `src/components/chat/message-input.tsx` |
-| **`docs/ARCHITECTURE.md`**<br/>*(Dokumentacja Architektury)* | • Monolit Next.js 14 App Router<br/>• Lokalny RAG Float32 (`Float32Array`)<br/>• Storage (`localStorage` + dysk)<br/>• Bezpieczne aktualizacje kodu bez naruszania danych<br/>• Presety jakości (LOW / MID / HIGH / ULTRA) | • `src/lib/vector-db/local-vector-store.ts`<br/>• `src/app/api/pdf/ingest-local/route.ts`<br/>• `src/lib/ai-settings/`<br/>• `src/app/api/chat/route.ts`<br/>• `desktop/launcher.sh`<br/>• `desktop/build-app.sh` |
+| **`docs/ARCHITECTURE.md`**<br/>*(Dokumentacja Architektury)* | • Monolit Next.js 14 App Router<br/>• Lokalny RAG Float32 (`Float32Array`), bez Pinecone<br/>• Storage (`localStorage` + dysk)<br/>• Bezpieczne aktualizacje kodu bez naruszania danych<br/>• Presety jakości (LOW / MID / HIGH / ULTRA) | • `src/lib/vector-db/local-vector-store.ts`<br/>• `src/lib/vector-db/vector-types.ts`<br/>• `src/app/api/pdf/ingest-local/route.ts`<br/>• `src/lib/ai-settings/`<br/>• `src/app/api/chat/route.ts`<br/>• `desktop/launcher.sh`<br/>• `desktop/build-app.sh` |
 | **`docs/USER_GUIDE.md`**<br/>*(Przewodnik Gracza)* | • Kreator badacza (charakterystyki, zawód)<br/>• Tacka na Kości (k100, progi, Push Roll, Szczęście)<br/>• Tryb Hot Seat (1-2 graczy)<br/>• Zapis i wczytanie sesji | • `src/components/character-sheet/`<br/>• `src/components/dice/dice-tray.tsx`<br/>• `src/lib/dice-utils.ts`<br/>• `src/components/chat/hot-seat-banner.tsx` |
 | **`docs/ROADMAP-MECHANIKI-AI.md`**<br/>*(Roadmapa rozwoju)* | - Lokalny RAG jako zrodlo prawdy<br/>- Domkniecie "Koniec Sesji"<br/>- Lokalny pipeline przygody<br/>- Immersja i assety<br/>- Adventure Creator i Quick Start<br/>- i18n PL/EN | - `src/lib/pacing-controller.ts`<br/>- `src/components/sidebar/CthulhuSidebar.tsx`<br/>- `src/components/chat/chat-window/components/message-input.tsx`<br/>- `src/lib/vector-db/local-vector-store.ts`<br/>- `src/lib/adventures-data.ts`<br/>- `src/app/api/chat/_helpers/build-immersion-context.ts`<br/>- `src/lib/immersion/astronomy-service.ts`<br/>- `src/lib/immersion/news-service.ts`<br/>- `src/lib/immersion/pricing-service.ts` |
+| **`docs/ROADMAP-MECHANIKI-AI.md`**<br/>*(Roadmapa rozwoju)* | - Lokalny RAG jako zrodlo prawdy<br/>- Domkniecie "Koniec Sesji"<br/>- Lokalny pipeline przygody<br/>- Immersja i assety<br/>- Adventure Creator i Quick Start<br/>- i18n PL/EN | - `src/lib/pacing-controller.ts`<br/>- `src/components/sidebar/CthulhuSidebar.tsx`<br/>- `src/components/chat/chat-window/components/message-input.tsx`<br/>- `src/lib/vector-db/local-vector-store.ts`<br/>- `src/lib/vector-db/vector-types.ts`<br/>- `src/lib/adventures-data.ts`<br/>- `src/app/api/chat/_helpers/build-immersion-context.ts`<br/>- `src/lib/immersion/astronomy-service.ts`<br/>- `src/lib/immersion/news-service.ts`<br/>- `src/lib/immersion/pricing-service.ts` |
 | **`docs/TESTING.md`**<br/>*(Standardy testowania)* | • Testy jednostkowe Jest (`__tests__/`)<br/>• Kontrola typów TypeScript (`npx tsc`)<br/>• Git Hooks (Husky pre-commit / pre-push) | • `jest.config.js`<br/>• `package.json`<br/>• `.husky/pre-commit`<br/>• `.husky/pre-push` |
 | **`SETUP.md`**<br/>*(Instrukcja setupu)* | • Wprowadzanie klucza Gemini API<br/>• Ingestion własnego PDF<br/>• Launcher `.app` na macOS | • `src/components/onboarding/`<br/>• `src/hooks/useFirstRun.ts`<br/>• `desktop/build-app.sh` |
 | **`SECURITY.md`**<br/>*(Polityka bezpieczeństwa)* | • Przechowywanie kluczy API<br/>• Brak chmury i brak telemetrii PII<br/>• Przepływ danych w 100% lokalny | • `src/app/api/chat/route.ts`<br/>• `.env.example`<br/>• `src/lib/telemetry.ts` |
