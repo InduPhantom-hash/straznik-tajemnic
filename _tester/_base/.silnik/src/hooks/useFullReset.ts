@@ -83,7 +83,6 @@ export function useFullReset(): UseFullResetReturn {
         { url: '/api/journal', name: 'Journal' },
         { url: '/api/session', name: 'Sessions' },
         { url: '/api/npc/list', name: 'NPCs' },
-        { url: '/api/pinecone/clear', name: 'Pinecone Vector DB' },
         // Licznik zużycia per-konto (lokalny plik na dysku) - audyt cleanup.
         { url: '/api/user/usage', name: 'Account Usage' },
       ];

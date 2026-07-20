@@ -175,7 +175,7 @@ Branch: main
 - Weryfikacja: TypeScript bez błędów, pełne testy 41/41.
 
 ### Co otwarte (do następnej sesji)
-- Manualny test aplikacji w przeglądarce.
+- Manualny test aplikacji in przeglądarce.
 - Integracja predefiniowanego katalogu ekwipunku CoC 7e.
 
 ### Decyzje podjęte
@@ -300,6 +300,7 @@ Branch: feature/lovecraft-narrative-enhancements
 
 ### Decyzje podjęte
 - Wykorzystanie wbudowanego w interfejs parametru SAN postaci do bezpośredniego wpływania na ton i zniekształcenia opisu świata przez model LLM.
+
 ## Podsumowanie sesji: 2026-07-20
 
 Branch: `main`
@@ -348,6 +349,7 @@ Branch: `feature/immersion-context-injection`
 
 - Lokalny RAG jest źródłem prawdy dla głównej ścieżki czatu.
 - Commit: `refactor(rag): decouple local vector store from Pinecone`.
+
 # Podsumowanie sesji: 2026-07-20 - zamknięcie po review Etapu 2A
 Branch: `feature/immersion-context-injection`
 
@@ -357,7 +359,7 @@ Branch: `feature/immersion-context-injection`
 - Dodano walidację parsera, deterministyczny chunking, atomową podmianę namespace i kontrakt endpointu lokalnego RAG.
 - Dodano 23 testy regresyjne.
 - Weryfikacja: pełny Jest 102/102, TypeScript PASS, lint bez błędów, build produkcyjny 61 stron.
-- Przeprowadzono code review przez trzy niezależne subagenty.
+- Przeprowadzono code review przez three niezależne subagenty.
 
 ## Co otwarte do następnej sesji
 - Review zablokował merge.
@@ -373,3 +375,19 @@ Branch: `feature/immersion-context-injection`
 - Etap 2A nie jest jeszcze gotowy do scalania mimo przechodzących testów i buildu.
 - W nowej sesji kontynuować od findings z `/dev-5-review`, bez ponownego wdrażania Etapu 2A od zera.
 - Niezależne pliki dotyczące lokalnego STT i rozszerzeń roadmapy pozostają poza zakresem.
+
+## Podsumowanie sesji: 2026-07-20 (Naprawa findings z review RAG/PDF)
+Branch: `feature/immersion-context-injection-fixes`
+
+### Co zrobiono
+- **GCS-free & Ujednolicony lokalny upload**: Całkowicie wyeliminowano chmurowy GCS i podwójny upload pliku PDF. Zastąpienie wywołań `/api/upload-pdf` i `/api/pdf/parse` lokalnym `/api/pdf/parse-local` oraz przesyłanie sparsowanego tekstu jako JSON do `/api/pdf/ingest-local` (lekki obiekt JSON o strukturze `{ text, type, fileName, clearBefore }`).
+- **Zapobieganie kolizjom nazw**: Wdrożono pseudolosowy suffix do ID przygód w `useCustomAdventures.ts` oraz zabezpieczono operacje zapisu i usuwania przed wyścigami stanu Reacta (pobieranie najświeższego stanu ze storage bezpośrednio przed modyfikacją).
+- **Kolejkowanie zapisu (Mutex)**: Zaimplementowano asynchroniczną kolejkową zapisu (`writeQueue` i `enqueueWrite`) w `LocalVectorStore` (`local-vector-store.ts`), co chroni pliki JSON i binarne przed uszkodzeniem przy równoległych żądaniach zapisu.
+- **Bezpieczny singleton embeddingów**: Wprowadzono bezpieczną propagację klucza API (`apiKey`) przez cały pipeline lokalnego indeksowania w `embedding-service.ts`, `indexing-service.ts` i `pdf-indexing-service.ts`, eliminując wyścigi różnych kluczy API.
+- **Weryfikacja**: Dodano testy jednostkowe do `usePdfMemory.test.ts` i pomyślnie zaliczono cały pakiet testów (105/105 PASS). TypeScript kompiluje się bez błędów, linter przeszedł czysto, a build Next.js zakończył się sukcesem.
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie manualnych testów działania wczytywania PDF-ów i przygód w przeglądarce pod kątem nowo wdrożonych poprawek.
+
+### Decyzje podjęte
+- Wyeliminowano poleganie na chmurowych plikach/urlach PDF (Rules/Adventure) – cała logika opiera się wyłącznie o lokalny RAG Float32 i Gemini File API (gdzie pliki żyją tymczasowo w chmurze Gemini bez obciążania storage GCS).

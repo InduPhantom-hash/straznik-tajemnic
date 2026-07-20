@@ -77,7 +77,7 @@ Zależności: istniejący save system i stabilny kontrakt promptu MG.
 - [ ] Rozszerzyć analizę PDF o NPC, lokacje, przedmioty, mapy i handouty w JSON.
 - [ ] Zapisywać metadane i assety przygody lokalnie razem z save'em.
 - [ ] Zbudować lokalny fallback dla danych świata oraz cache ostatnich wyników.
-- [ ] Usunąć z aktywnego runtime'u nieużywane wywołania Pinecone i cloud storage po osobnym audycie.
+- [x] Usunąć z aktywnego runtime'u nieużywane wywołania Pinecone i cloud storage po osobnym audycie.
 
 ### Nieprogramistyczne
 
