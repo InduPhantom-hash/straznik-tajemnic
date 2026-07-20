@@ -1,5 +1,25 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-20 (Sesja 14)
+Branch: main
+
+### Co zrobiono
+- **Audyt dokumentacji**: Zweryfikowano wszystkie pliki `.md` i zaktualizowano `SECURITY.md` (zastąpienie wzmianek o chmurowym Pinecone w pełni lokalnym RAG Float32).
+- **Synchronizacja promptu**: Zsynchronizowano plik `default-gm-prompt.md` silnika testowego z wersją produkcyjną (czysty `diff -u`).
+- **Utworzenie Mapy Powiązań**: Dodano dokument [MAPA-POWIAZAN.md](file:///Volumes/Karta/Developer/straznik-tajemnic/docs/MAPA-POWIAZAN.md) łączący instrukcje z kodem TypeScript (`src/`) oraz linki w `README.md` i `docs/ARCHITECTURE.md`.
+- **Aktualizacja README i wersji**: Podniesiono wersję do `v0.9.1-beta` w [README.md](file:///Volumes/Karta/Developer/straznik-tajemnic/README.md), dodano sekcję `Change Log` na dole, zintegrowano angielskie tłumaczenie pod sekcją polską w tym samym pliku i usunięto redundantny plik `README.en.md`.
+- **Roadmapa i18n**: Dodano *Etap 5: Internacjonalizacja (i18n) i Lokalizacja PL/EN* do [docs/ROADMAP-MECHANIKI-AI.md](file:///Volumes/Karta/Developer/straznik-tajemnic/docs/ROADMAP-MECHANIKI-AI.md).
+- **Czyszczenie Git**: Utworzono i scalono PR #1 do `main` na GitHubie, a także usunięto wszystkie stare, nieaktywne, zmergowane gałęzie lokalnie i na serwerze origin.
+
+### Co otwarte (do następnej sesji)
+- Pełna implementacja mechaniki Końca Sesji w kodzie aplikacji Next.js zgodnie z `ROADMAP-MECHANIKI-AI.md` (Etap 2).
+- Integracja i oprogramowanie pipeline'u setupowania przygód z paczek PDF/MP3 (Etap 3).
+- Implementacja lokalizacji (Etap 5).
+
+### Decyzje podjęte
+- Wersje językowe opisu projektu na GitHubie (polski i angielski) będą utrzymywane w jednym wspólnym pliku `README.md` z dwujęzycznym tytułem u góry w celu ułatwienia nawigacji.
+- Stare gałęzie deweloperskie po scaleniu do `main` są natychmiast usuwane z dysku i origin, by zachować pełny porządek.
+
 ## Podsumowanie sesji: 2026-07-19 (Sesja 8)
 Branch: main
 
