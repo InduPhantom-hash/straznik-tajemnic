@@ -64,10 +64,14 @@ graph TD
 
 ## 🛠️ Procedura Aktualizacji Mapy (Zewdrzewko Update)
 
-W przypadku wprowadzania zmian w dowolnym pliku z powyższej tabeli:
-1. **Zmiana w instrukcji / prompcie (`.md`)**: Zawsze sprawdzić odpowiadający plik źródłowy w `src/` i zaktualizować go w tym samym kroku.
-2. **Synchronizacja promptu testowego**: Po modyfikacji `public/default-gm-prompt.md` należy zawsze upewnić się, że plik `_tester/_base/.silnik/public/default-gm-prompt.md` jest w 100% identyczny (weryfikacja poleceniem `diff -u`).
-3. **Weryfikacja integracyjna**: Po każdej zmianie w instrukcjach lub mapie należy uruchomić kontrole typów:
+W przypadku wywołania procedury aktualizacji mapy powiązań (Zewdrzewko Update) lub modyfikacji dowolnego dokumentu systemowego:
+1. **Przegląd całościowy (Audyt cykliczny)**: Należy przejrzeć po kolei wszystkie dokumenty Markdown wymienione w tabeli zależności i upewnić się, że informacje w nich zawarte są w 100% spójne z obecnym stanem faktycznym w kodzie (np. brak odniesień do nieużywanych API, starych baz danych jak chmurowe Pinecone itp.).
+2. **Weryfikacja zmian w kodzie**: Jeżeli modyfikowana jest instrukcja / prompt (`.md`), należy przeanalizować odpowiadający plik źródłowy w `src/` (zgodnie z tabelą powiązań) i nanieść stosowne korekty deweloperskie w tym samym kroku.
+3. **Synchronizacja promptu testowego**: Po modyfikacji `public/default-gm-prompt.md` należy bezwzględnie zsynchronizować plik `_tester/_base/.silnik/public/default-gm-prompt.md`, aby były identyczne, i sprawdzić to poleceniem:
+   ```bash
+   diff -u public/default-gm-prompt.md _tester/_base/.silnik/public/default-gm-prompt.md
+   ```
+4. **Weryfikacja integracyjna**: Po zakończeniu aktualizacji należy uruchomić testy i kontrole typów:
    ```bash
    npx tsc --noEmit
    npm test
