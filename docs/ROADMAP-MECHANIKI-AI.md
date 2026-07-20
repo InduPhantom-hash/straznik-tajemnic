@@ -26,3 +26,12 @@ Rejestr zadań i planowanych etapów rozwoju mechanik AI w silniku gry `straznik
 - [ ] Skrypt wyodrębniania NPC i Lokacji (Entity Extraction) do plików JSON powiązanych z sesją.
 - [ ] Wzbogacanie świata (integracja z Daylight API, Prices API, Historical News API i Encyklopedią Zwyczajów).
 - [ ] Wyświetlanie gotowych map (z zapisem w ekwipunku) oraz odtwarzacza plików .mp3 (z zapisem w Dzienniku Dowodów).
+
+## Etap 4: Framework Tworzenia Przygód i Presety (Planowane)
+- [ ] **Modułowa generacja scenariuszy**: Wdrożenie Adventure Creator Engine tworzącego nieliniowe grafy przygód (JSON/Markdown) na podstawie 3-4 luźnych punktów od gracza.
+- [ ] **Encyklopedia Epok i Światów**:
+  - Implementacja rejestru presetów historycznych (realiów, zwyczajów i technologii).
+  - Wdrożenie bazy wiedzy dla nowej ery: lat 90. i dwutysięcznych (początki internetu, brak powszechnego GPS, klimat teorii spiskowych).
+- [ ] **Gotowe przygody Quick-Start**:
+  - Wdrożenie przycisku "Szybki Start" umożliwiającego natychmiastowe uruchomienie gotowej przygody z pre-generowanym, w pełni opisanym bohaterem o dopasowanych statystykach (np. scenariusz „Oczy z Klisz” o o. Klimuszce z wyborem tożsamości Weronika/Wiktor Korycki).
+
