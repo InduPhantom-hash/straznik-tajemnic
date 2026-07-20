@@ -211,3 +211,26 @@ Branch: feature/faza-5-biografie-i-ui
 ### Decyzje podjęte
 - Użycie timeoutu 8s na zapytania diagnostyczne w Ustawieniach, aby zapobiec blokowaniu UI przy braku internetu.
 - Umieszczenie mobilnych kontrolek lightboxa w dolnej strefie ekranu (pod palcem) dla wygody użytkownika.
+
+## Podsumowanie sesji: 2026-07-20 (Sesja 13)
+Branch: feature/faza-5-biografie-i-ui
+
+### Co zrobiono
+- Wyeliminowano paragrafowy system zamkniętych wyborów w default-gm-prompt.md, dając pełną swobodę graczowi.
+- Zaimplementowano walkę w stylu Pulp Cthulhu (podwojone HP, wydawanie Szczęścia, filmowość) w default-gm-prompt.md.
+- Wprowadzono bezwzględny wymóg generowania ilustracji dla snów, koszmarów i magii wraz z obsługą geometrii nieeuklidesowej.
+- Wdrożono Home Rule na spowolniony rozwój bohaterów (Slow-Burn Development: limit 3 umiejętności, wzrost o +1d4/1d6).
+- Dostosowano recap oraz cliffhangery do systemu Save/Load i dodano obsługę systemowej komendy [KONIEC_SESJI] z procedurą wygaszania.
+- Utworzono mapę zależności instrukcji w Mapa-Instrukcji.md oraz procedurę Zewdrzewko update.
+- Zaprojektowano pipeline setupowania i bogacenia przygód w Setupowanie-Przygody.md z bezpiecznym paskiem postępu.
+- Założono plik ROADMAP-MECHANIKI-AI.md z zaplanowanymi etapami rozwoju (Koniec Sesji, Ingestion).
+- Przeprowadzono pomyślną weryfikację testów (73/73 PASS) i kompilacji TS.
+
+### Co otwarte (do następnej sesji)
+- Pełna implementacja mechaniki Końca Sesji w kodzie aplikacji Next.js zgodnie z ROADMAP-MECHANIKI-AI.md (Etap 2).
+- Zintegrowanie i oprogramowanie pipeline'u setupowania przygód z paczek PDF/MP3 (Etap 3).
+
+### Decyzje podjęte
+- Zastąpiono sztywne progi procentowe (narracja/mechanika) elastycznym dopasowaniem do trybu rozgrywki.
+- Uznano priorytet wgranej przygody nad domyślnym katalogiem lokacji startowych.
+- Zastąpiono generowanie na żywo materiałów dodatkowych wyświetlaniem gotowych plików z paczki przygody.

@@ -89,6 +89,7 @@ export interface BuildAdditionalContextOpts {
   npcs?: NpcContextEntry[];
   currentLocation?: string;
   hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
+  tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
 }
 
 export function buildAdditionalContext(
@@ -140,6 +141,31 @@ export function buildAdditionalContext(
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.
   if (playerSkillsSection) {
     additionalContext.push(playerSkillsSection);
+  }
+
+  // Wstrzykiwanie Ustawy Przygody na podstawie tonu (dynamiczne pacingi z debaty)
+  const sessionTone = opts.tone || 'purist';
+  if (sessionTone === 'noir') {
+    additionalContext.push(
+      `\n## USTAWA O PRZYGODZIE NOIR\n` +
+      `1. Prowadź grę w stylu Noir (powolne tempo, slow-burn, mrok, nieufność NPC, beznadzieja).\n` +
+      `2. Zasoby są skrajnie ograniczone (amunicja jest rzadka, brak oczywistych środków obrony przed nadnaturalnym).\n` +
+      `3. Reakcje na mity Cthulhu są zawsze traumatyczne. Nacisk na wyparcie, paranoję i stany lękowe.`
+    );
+  } else if (sessionTone === 'pulp') {
+    additionalContext.push(
+      `\n## USTAWA O PRZYGODZIE PULP CTHULHU\n` +
+      `1. Prowadź grę w stylu Pulp/Wild Science (dynamiczna akcja, pościgi, szalona nauka, anomalie czasowe).\n` +
+      `2. Badacze mają większą sprawczość i odporność. Pozwalaj na widowiskowe akcje, rany goją się szybciej.\n` +
+      `3. Zakończenie sceny/finał musi mieć filmowy rozmach i dynamikę.`
+    );
+  } else if (sessionTone === 'purist') {
+    additionalContext.push(
+      `\n## USTAWA O PRZYGODZIE KLASYCZNEJ (LOVECRAFTIAN)\n` +
+      `1. Prowadź grę w klasycznym stylu Lovecrafta (powolne popadanie w szaleństwo, badanie starych rodów i ksiąg).\n` +
+      `2. Równowaga walki: używanie broni epoki (rewolwer, strzelba), ale istoty mitów stanowią śmiertelne niebezpieczeństwo.\n` +
+      `3. Finał kończy się najczęściej zniszeczeniem dowodów i desperacką ucieczką w celu ratowania własnych zmysłów.`
+    );
   }
 
   // OPT-26: gmProtocol skip gdy cache aktywny - jest już w cachedContent.contents
