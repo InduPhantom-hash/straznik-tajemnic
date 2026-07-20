@@ -55,16 +55,16 @@ Zależności: stabilny układ katalogów danych, wersjonowanie schematów i dzia
 
 ### Programistyczne
 
-- [ ] Obsłużyć komendę `[KONIEC_SESJI]` jako osobny stan aplikacji, a nie zwykłą wiadomość gracza.
-- [ ] Dodać protokół odpowiedzi `[KONIEC_SESJI:POTWIERDZENIE]`.
-- [ ] Ograniczyć wygaszanie do 1-2 tur i zablokować przypadkowe dalsze wysyłanie wiadomości.
-- [ ] Po potwierdzeniu wykonać pełny autosave i pokazać stan „sesja bezpiecznie zamknięta”.
-- [ ] Dodać testy jednostkowe i E2E dla solo, Hot Seat, błędu API i przerwanego streamu.
+- [x] Obsłużyć komendę `[KONIEC_SESJI]` jako osobny stan aplikacji, a nie zwykłą wiadomość gracza.
+- [x] Dodać protokół odpowiedzi `[KONIEC_SESJI:POTWIERDZENIE]`.
+- [x] Ograniczyć wygaszanie do 1-2 tur i zablokować przypadkowe dalsze wysyłanie wiadomości.
+- [x] Po potwierdzeniu wykonać pełny autosave i pokazać stan „sesja bezpiecznie zamknięta”.
+- [x] Dodać testy jednostkowe i E2E dla solo, Hot Seat, błędu API i przerwanego streamu.
 
 ### Nieprogramistyczne
 
-- [ ] Ustalić, co dokładnie oznacza „koniec sesji”: cliffhanger, streszczenie, wskazówki do wznowienia.
-- [ ] Ustalić komunikaty UX i zachowanie przy niedostępnym Google AI.
+- [x] Ustalić, co dokładnie oznacza „koniec sesji”: cliffhanger, streszczenie, wskazówki do wznowienia.
+- [x] Ustalić komunikaty UX i zachowanie przy niedostępnym Google AI.
 
 Zależności: istniejący save system i stabilny kontrakt promptu MG.
 
