@@ -81,6 +81,7 @@ export const NARRATIVE_MODE_INSTRUCTIONS: Record<string, string> = {
 - Pokazuj zmiany PŻ, PR, PM
 - Informuj o przelicznikach trudności (Normalny/Trudny/Ekstremalny)
 - Gra z pełnymi mechanikami i losowością
+- **Cinematic Combat & Hidden Initiative**: Walka i akcja odbywają się w sposób płynny, bez jawnego toru inicjatywy/tur szachowych. Inicjatywę obliczaj w tle (używając DEX/Speed postaci i logicznego kontekstu przestrzenno-sytuacyjnego w [MYŚLI_MG]). W razie potrzeby przerywaj akcje badaczy atakami szybszych wrogów, wymagając rzutów obronnych/reakcji (Unik, Walka Wręcz, DEX).
 - WZYWAJ TESTY OSZCZĘDNIE: tylko gdy akcja ma realną stawkę i niepewny wynik. Rutynowe, łatwe lub bezpieczne czynności rozstrzygaj narracyjnie BEZ rzutu. Płynność opowieści jest ważniejsza niż liczba rzutów (poziom trudności może to modyfikować - na trudnym/morderczym testów jest więcej).`,
 
   story_priority: `
@@ -93,6 +94,7 @@ ZASADY:
 - NIE opisuj poziomów trudności ani progów - po prostu opowiadaj historię
 - Wyniki testów ujawniaj przez FABUŁĘ, nie przez mechanikę ("zauważasz dziwny cień" zamiast "Test Spostrzegawczości - Sukces")
 - Wewnętrznie używaj umiejętności postaci do decyzji, ale nie ujawniaj tego graczowi
+- **Cinematic Combat & Hidden Initiative**: Akcja i walka są w 100% fabularne. Zręczność i Szybkość wpływają na kolejność działań potajemnie w [MYŚLI_MG]. Opisuj dynamiczne, logiczne przerwania akcji przez szybszych wrogów oraz ich skutki czysto fabularnie.
 - Zachowaj element niepewności - gracz nie wie, kiedy "rzut" się odbywa
 - Skup się na atmosferze, dialogach i wyborach narracyjnych
 - Podawaj wybory w formie paragrafowej gdy to stosowne (np. "Możesz zbadać drzwi lub sprawdzić okno")
@@ -106,7 +108,8 @@ ZASADY:
 - ŻADNYCH testów umiejętności, rzutów kości, progów trudności
 - ŻADNYCH zmian PŻ/PR/PM - ignoruj statystyki postaci
 - ŻADNYCH tagów mechanicznych ([WYNIK:], [TEST:], etc.)
-- Wyniki zależą WYŁĄCZNIE od wyborów gracza i logiki narracyjnej
+- **Cinematic Combat**: Walka i akcja są czystą, interaktywną prozą. Wszelkie inicjatywy, przerwania i skutki wynikają w 100% z logiki opowieści oraz wyborów gracza.
+- Wyniki zależą WYŁĄCVNIE od wyborów gracza i logiki narracyjnej
 - Traktuj to jak interaktywną powieść - nie jak grę z regułami
 - Oferuj graczowi jasne wybory w kluczowych momentach
 - Napięcie buduj przez atmosferę i fabułę, nie ryzyko mechaniczne

@@ -1,5 +1,20 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-20 (Wdrożenie walki fabularnej i ukrytej inicjatywy)
+Branch: main
+
+### Co zrobiono
+- **Master Prompt:** Przepisano zasady walki w `public/default-gm-prompt.md` pod kątem Cinematic Combat i ukrytej, automatycznej inicjatywy opartej na logike sytuacji przestrzennej i statystykach badacza.
+- **Sesja Zero:** Zaktualizowano `session-zero-instructions.ts` w celu wstrzykiwania reguł kinowej walki i ukrytej inicjatywy dla trybów narracyjnych (`full_rpg`, `story_priority`, `pure_narrative`).
+- **Aktualizacja Roadmapy:** Zaktualizowano priorytety prac w `docs/ROADMAP-MECHANIKI-AI.md` (1. Izolacja przygód, 2. Tablica Badacza, 3. System aktualizacji, 4. STT i i18n Nice to have).
+- **Synchronizacja i Weryfikacja:** Zsynchronizowano prompt z katalogiem testowym, pomyślnie zaliczono 111 testów Jest i produkcyjny build (61/61 stron).
+
+### Co otwarte (do następnej sesji)
+- Faza 1 z Etapu 2 (Roadmapa): Implementacja stabilnego identyfikatora przygody (`adventureId`) oraz izolacja namespace w lokalnym RAG.
+
+### Decyzje podjęte
+- Rezygnacja z wprowadzania skomplikowanych suwaków i przełączników mechaniki tempa w UI w celu zachowania prostoty i płynności gry (storytelling over power gaming).
+
 ## Podsumowanie sesji: 2026-07-20 (Dokończenie Etapu 2A)
 Branch: `feature/immersion-context-injection`
 

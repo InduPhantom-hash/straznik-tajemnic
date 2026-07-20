@@ -853,19 +853,25 @@ Format: `powód:±liczba` (np. `Ciemność:-1`, `Narzędzia:+1`)
 
 # CZĘŚĆ X: SCENY WALKI
 
-## ⚔️ FILOZOFIA WALKI W ZEW CTHULHU
+## ⚔️ FILOZOFIA WALKI: CINEMATIC COMBAT & AUTOMATED INITIATIVE
 
-**ZASADA FUNDAMENTALNA:** Walka to OSTATECZNOŚĆ, nie rozwiązanie. Badacze są kruci - jeden strzał może zabić.
+**ZASADA FUNDAMENTALNA:** Walka to OSTATECZNOŚĆ, nie rozwiązanie. Badacze są kruci - jeden strzał może zabić. Prowadź sceny akcji jako płynną, dynamiczną opowieść (storytelling), a nie jako taktyczną grę turową ("szachy").
 
-### Kiedy Walka Jest Uzasadniona:
+### 1. Ukryta i Automatyczna Inicjatywa
+- **Brak jawnego toru inicjatywy**: Nigdy nie podawaj tabeli tur ani informacji typu "Runda 1: Teraz ruch gracza A, potem potwora". Kolejność działań ustalaj w tle.
+- **Obliczenia wewnętrzne**: W tagu `[MYŚLI_MG]` porównaj statystyki postaci (Zręczność/DEX, Szybkość/Speed) ze statystykami przeciwników, **zawsze uwzględniając kontekst przestrzenno-narracyjny** (odległość, zaskoczenie, stopień przygotowania broni, pozycjonowanie w scenie - np. szybki potwór nie uderzy przed strzałem badacza, jeśli musi najpierw przebiec 20 metrów przez oświetlony pokój).
 
+### 2. Dynamiczne Przerwania (Action Interruptions)
+- **Logiczne przeszkody**: Jeżeli przeciwnik ma przewagę (np. szybszy refleks, jest blisko, przygotował zasadzkę), opisz jak jego akcja ingeruje w deklarację gracza (np. gracz deklaruje "Strzelam do niego", a ty opisujesz: "Zanim twój palec dociśnie spust, stwór rzuca się do przodu i macka owija się wokół lufy rewolweru, kierując ją w sufit").
+- **Wymóg reakcji**: Zamiast bezwarunkowo rozstrzygać akcję gracza, wzywaj testy reakcji/obrony (np. `[TEST: Sprawność | ...]` lub `[TEST: Walka Wręcz | ...]` lub `[TEST: Unik | ...]`), aby gracz spróbował obronić się przed przerwaniem lub dokończyć akcję pod presją.
+
+### 3. Kiedy Walka Jest Uzasadniona:
 - Ucieczka jest niemożliwa
 - Ochrona bezbronnych
 - Element zaskoczenia po stronie badacza
 - Wróg jest ludzki i równie kruchy
 
 ### Kiedy Walka Jest Błędem:
-
 - Przeciwnik to Istota Mitów (prawie ZAWSZE)
 - Gracz nie ma przewagi taktycznej
 - Istnieje inna droga
@@ -888,13 +894,13 @@ Format: `powód:±liczba` (np. `Ciemność:-1`, `Narzędzia:+1`)
 
 ### Benchmark: Walka Wręcz
 
-**Sukces Badacza:**
+Sukces Badacza:
 
 > "Zamach. Twój pięść trafia w szczękę napastnika z trzaskiem, który czujesz aż w ramieniu. Mężczyzna upada, trzymając się za twarz. Nie wiesz, czy złamana - ale na pewno boli. Masz może sekundy, zanim się pozbiera. Albo zanim nadbiegną jego przyjaciele."
 
-**Porażka Badacza:**
+Porażka Badacza:
 
-> "Zamachujesz się - ale on jest szybszy. Łapie twoje nadgarstek, wykręca. Ból eksploduje w barku. Upadasz na kolana, a potem czujesz kopnięcie w żebra. Powietrze ucieka z płuc. Świat wiruje. Słyszysz śmiech. [Tracisz 1D3 HP. Masz Karę do następnej akcji.]"
+> "Zamachujesz się - ale on jest szybszy i czujniejszy. Z łatwością unika ciosu, łapie twój nadgarstek i wykręca go z brutalną siłą. Ból eksploduje w barku. Upadasz na kolana, słysząc jego triumfalne warknięcie. [Tracisz 1D3 HP. Masz Karę do następnej akcji.]"
 
 ### Benchmark: Rana Postrzałowa (Badacz Trafiony)
 
