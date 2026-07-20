@@ -90,6 +90,8 @@ export interface BuildAdditionalContextOpts {
   currentLocation?: string;
   hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
   tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
+  /** Sekcja danych immersyjnych (astronomia, gazety, ceny epoki) - wstrzykiwana gdy dostępna. */
+  immersionSection?: string;
 }
 
 export function buildAdditionalContext(
@@ -183,6 +185,9 @@ export function buildAdditionalContext(
   // Realne handouty przygody (DriveThruRPG) - MG dostaje markdown obrazów do wstawienia.
   if (handoutsSection) additionalContext.push(handoutsSection);
 
+  // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen) - wzbogacają narrację.
+  if (opts.immersionSection) additionalContext.push(opts.immersionSection);
+
   // OPT-23: game context injection (gameContextPrompt LUB NPC fallback)
   if (!skipContext && gameContextPrompt) {
     additionalContext.push(gameContextPrompt);
@@ -235,7 +240,7 @@ export function buildAdditionalContext(
         characters.forEach((char) => {
           duetContext += `- **${char.name}** (${char.occupation}): ${char.background || ''}\n` +
             `  * Koncept: ${char.characterConcept || ''}\n` +
-            `  * Cechy: ${(char.traits || []).join(', ')}\n` +
+            `  * Osobowość i Cechy: ${(char.traits || []).join(', ')}. ${((char as unknown) as Record<string, unknown>).personality || ''}\n` +
             `  * Kluczowa osoba: ${char.significantPerson || ''}\n` +
             `  * Ważne miejsce: ${char.meaningfulLocation || ''}\n` +
             `  * Cenne posiadanie: ${char.treasuredPossession || ''}\n` +

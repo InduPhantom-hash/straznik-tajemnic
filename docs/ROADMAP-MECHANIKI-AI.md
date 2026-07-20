@@ -93,9 +93,9 @@ Zależności: decyzja o lokalnym RAG jako jedynym docelowym magazynie; nie zale�
 
 - [ ] Wyświetlanie map z lokalnym zapisem w ekwipunku.
 - [ ] Odtwarzacz MP3/audio z lokalnym zapisem w Dzienniku Dowodów.
-- [ ] Włączanie danych Daylight, Prices i Historical News do kontekstu MG tylko wtedy, gdy są dostępne.
-- [ ] Dodać oznaczenie źródła danych i daty pobrania.
-- [ ] Dodać cache i tryb „brak danych zewnętrznych”.
+- [x] Wlaczanie danych Daylight, Prices i Historical News do kontekstu MG tylko wtedy, gdy sa dostepne.
+- [x] Dodac oznaczenie zrodla danych i daty pobrania.
+- [x] Dodac cache i tryb "brak danych zewnetrznych".
 
 ### Nieprogramistyczne
 

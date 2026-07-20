@@ -32,6 +32,7 @@ import { buildPlayerWeaponContext } from '@/lib/combat/weapon-context';
 import { resolveUserId, scopeSessionId } from '@/lib/auth-user';
 import * as Sentry from '@sentry/nextjs';
 import { isModelNotFoundError } from './model-fallback';
+import { fetchImmersionContext } from './build-immersion-context';
 
 /**
  * Rozwiązuje klucz Gemini dla requestu.
@@ -176,23 +177,22 @@ export async function runChatPipeline({
     adventureContext,
   });
 
+  // Wyciagnij date gry z time-managera (YYYY-MM-DD) dla immersji.
+  // Import dynamiczny - time-manager to singleton z side effects (localStorage),
+  // bezpieczny w kontekscie serverowym Next.js (uzywa tego juz buildTimeContext).
+  const { timeManager } = await import('@/lib/time-manager');
+  const gameTime = timeManager.getTime();
+  const gameDate = `${gameTime.year}-${String(gameTime.month + 1).padStart(2, '0')}-${String(gameTime.day).padStart(2, '0')}`;
+
   // === OPT-21: CONTEXT-AWARE GM PROTOCOL ===
   const messageCount = messages?.length || 0;
   const gmProtocol = getContextAwareGMProtocol(messageCount);
 
-  // === R3 (latencja): dwie niezależne gałęzie sieciowe RÓWNOLEGLE ===
-  // Cache promptu (OPT-26) NIE zależy od sessionId; łańcuch userId→sessionId→RAG
-  // (OPT-09) NIE zależy od cache. Wcześniej szły sekwencyjnie (cache + RAG); teraz
-  // Promise.all → koszt = wolniejsza z dwóch zamiast sumy obu (~50-200ms zysku).
-  //   - OPT-26: GEMINI CONTEXT CACHING (IND-13) - IND-183 micro 3/5
-  //   - OPT-09 + MID-SESSION SUMMARY - IND-71 micro 2/3
-  //   - IND-168 Faza 3: izolacja per-konto. Magazyny kluczowane sessionId (Pinecone
-  //     sessions/{id}, cache podsumowań, director state) scope'owane userId z Clerk
-  //     → sessions/{userId}/{sessionId}. Dev (Clerk off): ragUserId='' → płaski sessionId.
-  //   - IND-206 BYOK: ten sam klucz usera (z nagłówka) także dla podsumowań -
-  //     conversation-summarizer dostaje go jako parametr, więc summary >80 msg
-  //     obciąża klucz testera bez osobnego odczytu nagłówka.
-  const [resolvedCachedContent, ragResult] = await Promise.all([
+  // === R3 (latencja): trzy niezalezne galezi sieciowe ROWNOLEGLE ===
+  // Cache promptu (OPT-26) NIE zalezy od sessionId; lancuch userId->sessionId->RAG
+  // (OPT-09) NIE zalezy od cache. Immersja (Etap 3) NIE zalezy od zadnego z powyzszych.
+  // Promise.all -> koszt = najwolniejsza z trzech zamiast sumy.
+  const [resolvedCachedContent, ragResult, immersionSection] = await Promise.all([
     resolveGeminiCache({
       enableCache: aiSettings.geminiSettings.enableCache,
       cacheTTL: aiSettings.geminiSettings.cacheTTL,
@@ -211,11 +211,16 @@ export async function runChatPipeline({
         sessionId,
         apiKey,
         geminiKey: apiKey,
-        // Zawęża RAG 'adventures' do książki aktywnej przygody (DriveThruRPG).
+        // Zaweża RAG 'adventures' do ksiazki aktywnej przygody (DriveThruRPG).
         adventureSource: adventureContext?.sourceBookId,
       });
       return { ragUserId, sessionId, ragSection, summarySection, ragMeta };
     })(),
+    // Etap 3: dane immersyjne (astronomia, gazety, ceny epoki) - rownolegle z cache i RAG.
+    fetchImmersionContext({
+      gameDate,
+      gameEra: adventureContext?.era || '1920s',
+    }),
   ]);
   const { ragUserId, sessionId, ragSection, summarySection, ragMeta } =
     ragResult;
@@ -244,13 +249,15 @@ export async function runChatPipeline({
     npcs,
     currentLocation,
     hotSeatConfig,
-    // IND-223: oznacz postać gracza jako sterowaną przez człowieka
+    // IND-223: oznacz postac gracza jako sterowana przez czlowieka
     playerCharacterName: character?.name,
     tone: activeTone as 'purist' | 'pulp' | 'noir' | 'neutral',
-    // Uzbrojenie postaci → AI prowadzi walkę narracyjnie znając broń + umiejętność + obrażenia
+    // Uzbrojenie postaci -> AI prowadzi walke narracyjnie znajac bron + umiejetnosc + obrazenia
     playerWeaponsSection: buildPlayerWeaponContext(character ?? null),
-    // Lista umiejętności postaci → AI wzywa testy nazwami z karty (eliminuje Tackę 0%)
+    // Lista umiejetnosci postaci -> AI wzywa testy nazwami z karty (eliminuje Tacke 0%)
     playerSkillsSection: buildPlayerSkillsSection(character ?? null),
+    // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
+    immersionSection,
     isGameStart,
     characters,
   });
