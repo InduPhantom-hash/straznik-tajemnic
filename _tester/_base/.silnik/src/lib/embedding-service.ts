@@ -158,9 +158,11 @@ class EmbeddingService {
    */
   async generateEmbedding(
     text: string,
-    taskType?: EmbeddingTaskType
+    taskType?: EmbeddingTaskType,
+    apiKey?: string
   ): Promise<number[] | null> {
-    const ai = getGeminiClient(this.apiKey);
+    const key = apiKey || this.apiKey || undefined;
+    const ai = getGeminiClient(key);
     if (!ai) {
       console.error('❌ EmbeddingService not initialized');
       return null;
@@ -207,9 +209,11 @@ class EmbeddingService {
    */
   async generateBatchEmbeddings(
     texts: string[],
-    taskType?: EmbeddingTaskType
+    taskType?: EmbeddingTaskType,
+    apiKey?: string
   ): Promise<(number[] | null)[]> {
-    const ai = getGeminiClient(this.apiKey);
+    const key = apiKey || this.apiKey || undefined;
+    const ai = getGeminiClient(key);
     if (!ai) {
       console.error('❌ EmbeddingService not initialized');
       return texts.map(() => null);
@@ -246,7 +250,7 @@ class EmbeddingService {
       // Fallback: sekwencyjne generowanie
       const results: (number[] | null)[] = [];
       for (const text of texts) {
-        results.push(await this.generateEmbedding(text, taskType));
+        results.push(await this.generateEmbedding(text, taskType, key));
       }
       return results;
     }

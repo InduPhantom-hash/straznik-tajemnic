@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import type { Message, Character, Campaign, HotSeatConfig } from '@/lib/types';
 import type { FullGameSave } from '@/lib/full-game-save-manager';
-import type { PdfMemory } from './usePdfMemory';
+import { normalizePdfMemory, type PdfMemory } from './usePdfMemory';
 import type { ActiveGameState } from '@/lib/types';
 import type { AISettings } from '@/lib/ai-settings/types';
 import { persistCharacters } from '@/lib/character-cloud-sync';
@@ -143,8 +143,9 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
 
         // Wczytaj PDF Memory
         if (save.pdfMemory) {
-          setPdfMemory(save.pdfMemory);
-          safeSetItem('pdf_memory', JSON.stringify(save.pdfMemory));
+          const migratedPdfMemory = normalizePdfMemory(save.pdfMemory);
+          setPdfMemory(migratedPdfMemory);
+          safeSetItem('pdf_memory', JSON.stringify(migratedPdfMemory));
         }
 
         // Aktualizuj activeGameState

@@ -4,12 +4,12 @@
  * Odpowiada za:
  * - Chunking tekstu PDF na semantyczne segmenty z overlapem
  * - Batch generowanie embeddingów per chunk
- * - Upsert do Pinecone namespace "rules" lub "adventures"
+ * - Zapis do lokalnego namespace "rules" lub "adventures"
  * - Budowanie BM25 index dla hybrid search (etap 3c)
  * - Śledzenie postępu (progress callback)
  * - Czyszczenie starego indeksu przed re-indeksowaniem
  *
- * Pipeline: GCS text → chunk → embed → Pinecone upsert + BM25 index
+ * Pipeline: tekst PDF → chunk → embed → lokalny store + BM25 index
  */
 
 import { indexingService } from './indexing-service';
@@ -43,6 +43,8 @@ export interface PdfIndexingRequest {
   fileName: string;
   /** Czy wyczyścić namespace przed indeksowaniem (domyślnie: true) */
   clearBefore?: boolean;
+  /** Klucz API Gemini (opcjonalny, zapobiega wyścigom singletonu) */
+  apiKey?: string;
 }
 
 export interface PdfIndexingProgress {
@@ -147,6 +149,10 @@ export function chunkText(
         endOffset: end,
       });
     }
+
+    // Ostatni chunk już dochodzi do końca dokumentu. Nie cofaj offsetu o overlap,
+    // bo utworzyłoby to drugi, zdublowany fragment końcowy.
+    if (end >= text.length) break;
 
     // Przesuń offset z overlapem
     offset = end - CHUNK_OVERLAP;
@@ -310,7 +316,7 @@ function extractChunkTags(text: string, type: 'rules' | 'adventure'): string[] {
 
 class PdfIndexingService {
   /**
-   * Indeksuje tekst PDF do Pinecone.
+   * Indeksuje tekst PDF do lokalnego RAG.
    *
    * Pipeline:
    * 1. Chunk tekstu → PdfChunk[]
@@ -332,7 +338,7 @@ class PdfIndexingService {
         totalChunks: 0,
         namespace: '',
         durationMs: Date.now() - start,
-        error: 'Pinecone not initialized',
+        error: 'Lokalny RAG nie jest gotowy',
       };
     }
 
@@ -369,10 +375,8 @@ class PdfIndexingService {
         `📄 PDF chunked: ${chunks.length} chunks from "${request.fileName}"`
       );
 
-      // Krok 2: Wyczyść stary indeks (opcjonalnie)
-      // IND-66 C7: default false (less destructive). Caller MUSI explicit `clearBefore: true`
-      // dla re-upload tej samej książki (rules namespace). Adventures path NIE czyści
-      // (każda nowa przygoda dodawana do namespace, NIE niszczy poprzednich).
+      // clearBefore jest realizowane atomowo dopiero po wygenerowaniu wszystkich
+      // embeddingów. Dzięki temu błąd API nie kasuje działającego indeksu zasad.
       if (request.clearBefore === true) {
         onProgress?.({
           stage: 'embedding',
@@ -381,10 +385,6 @@ class PdfIndexingService {
           percent: 10,
           message: `Czyszczenie starego indeksu (${namespace})...`,
         });
-
-        await localVectorStore.deleteNamespace(namespace);
-        bm25Index.clearNamespace(namespace);
-        console.log(`🌲 Cleared namespace "${namespace}" before re-indexing`);
       }
 
       // Krok 3: Embedding + upsert via indexTexts()
@@ -424,18 +424,40 @@ class PdfIndexingService {
             percent,
             message: `Indeksowanie fragmentu ${current}/${total}...`,
           });
-        }
+        },
+        { replaceNamespace: request.clearBefore === true, apiKey: request.apiKey }
       );
 
+      if (result.indexed === 0) {
+        return {
+          success: false,
+          indexed: 0,
+          failed: result.failed,
+          totalChunks: chunks.length,
+          namespace,
+          durationMs: Date.now() - start,
+          error:
+            result.failed > 0
+              ? 'Nie udało się wygenerować kompletnego indeksu. Poprzedni indeks pozostał bez zmian.'
+              : 'Nie zapisano żadnego fragmentu',
+        };
+      }
+
       // Krok 4 (etap 3c): Buduj BM25 index dla hybrid search
-      const bm25Docs = items.map((item) => ({
-        id: item.id,
-        text: item.text,
-        namespace,
-        contentType: item.metadata.contentType,
-        summary: item.metadata.summary,
-        tags: item.metadata.tags,
-      }));
+      if (request.clearBefore === true) {
+        bm25Index.clearNamespace(namespace);
+      }
+      const indexedIds = new Set(result.indexedIds);
+      const bm25Docs = items
+        .filter((item) => indexedIds.has(item.id))
+        .map((item) => ({
+          id: item.id,
+          text: item.text,
+          namespace,
+          contentType: item.metadata.contentType,
+          summary: item.metadata.summary,
+          tags: item.metadata.tags,
+        }));
       bm25Index.addDocuments(bm25Docs);
       console.log(
         `🔍 BM25 index populated: ${bm25Docs.length} docs in "${namespace}" (total: ${bm25Index.size})`
@@ -454,7 +476,7 @@ class PdfIndexingService {
       );
 
       return {
-        success: result.indexed > 0,
+        success: true,
         indexed: result.indexed,
         failed: result.failed,
         totalChunks: chunks.length,

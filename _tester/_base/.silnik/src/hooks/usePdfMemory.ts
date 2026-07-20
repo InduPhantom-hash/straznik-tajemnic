@@ -9,8 +9,8 @@ import { loadAISettings } from '@/lib/ai-settings';
  * Hook do zarządzania uploadem i pamięcią PDF
  * Wyodrębniony z page.tsx dla zgodności z GEMINI.md (max 200 linii/plik)
  *
- * v4.0 (etap 3b): Po uploadzie automatycznie indeksuje tekst PDF
- * do Pinecone (namespace "rules" / "adventures") dla RAG retrieval.
+ * Po uploadzie automatycznie indeksuje PDF do lokalnego RAG
+ * (namespace "rules" / "adventures").
  */
 
 export interface PdfMemory {
@@ -19,16 +19,69 @@ export interface PdfMemory {
   rulesGeminiFileUri?: string;
   rulesTextGeminiFileUri?: string; // URI pliku tekstowego (wyekstraktowany)
   rulesFileName?: string;
-  rulesIndexedToPinecone?: boolean; // Czy zaindeksowano do Pinecone
+  rulesIndexedLocally?: boolean;
   rulesIndexedChunks?: number; // Ile chunków zaindeksowano
   adventureUrl?: string;
   adventureTextUrl?: string;
   adventureGeminiFileUri?: string;
   adventureTextGeminiFileUri?: string; // URI pliku tekstowego (wyekstraktowany)
   adventureFileName?: string;
-  adventureIndexedToPinecone?: boolean;
+  adventureIndexedLocally?: boolean;
   adventureIndexedChunks?: number;
   lastUpdated?: string;
+  /** @deprecated Odczyt wyłącznie dla kompatybilności starszych save'ów. */
+  rulesIndexedToPinecone?: boolean;
+  /** @deprecated Odczyt wyłącznie dla kompatybilności starszych save'ów. */
+  adventureIndexedToPinecone?: boolean;
+}
+
+export interface LocalPdfIndexingResult {
+  success: boolean;
+  indexed: number;
+  failed: number;
+  totalChunks: number;
+  namespace: string;
+  durationMs: number;
+  error?: string;
+}
+
+export function normalizePdfMemory(
+  value: PdfMemory | null | undefined
+): PdfMemory {
+  const memory = value ?? {};
+  return {
+    ...memory,
+    rulesIndexedLocally:
+      memory.rulesIndexedLocally ?? memory.rulesIndexedToPinecone ?? false,
+    adventureIndexedLocally:
+      memory.adventureIndexedLocally ??
+      memory.adventureIndexedToPinecone ??
+      false,
+  };
+}
+
+export async function indexPdfLocally(
+  file: File,
+  type: 'rules' | 'adventure',
+  fileName: string = file.name
+): Promise<LocalPdfIndexingResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', type);
+  formData.append('fileName', fileName);
+
+  const response = await fetch('/api/pdf/ingest-local', {
+    method: 'POST',
+    headers: getApiKeyHeaders(),
+    body: formData,
+  });
+  const result = (await response
+    .json()
+    .catch(() => ({}))) as Partial<LocalPdfIndexingResult>;
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || `HTTP ${response.status}`);
+  }
+  return result as LocalPdfIndexingResult;
 }
 
 export interface UsePdfMemoryReturn {
@@ -43,7 +96,6 @@ export interface UsePdfMemoryReturn {
     e: React.ChangeEvent<HTMLInputElement>,
     type: 'rules' | 'adventure'
   ) => void;
-  triggerPineconeIndexing: (type: 'rules' | 'adventure') => Promise<void>;
 }
 
 interface UsePdfMemoryOptions {
@@ -59,107 +111,6 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [indexingProgress, setIndexingProgress] = useState(0);
 
-  /**
-   * Indeksuje tekst PDF do Pinecone (fire-and-forget z wiadomością statusu).
-   * Wywoływane automatycznie po uploadzie lub ręcznie z UI.
-   */
-  const triggerPineconeIndexing = useCallback(
-    async (type: 'rules' | 'adventure') => {
-      const textUrl =
-        type === 'rules' ? pdfMemory.rulesTextUrl : pdfMemory.adventureTextUrl;
-      const fileName =
-        type === 'rules'
-          ? pdfMemory.rulesFileName
-          : pdfMemory.adventureFileName;
-
-      if (!textUrl) {
-        console.warn(`⚠️ No textUrl for ${type}, skipping Pinecone indexing`);
-        return;
-      }
-
-      setIsIndexing(true);
-      setIndexingProgress(5);
-
-      try {
-        console.log(`🌲 Starting Pinecone indexing for ${type}: ${fileName}`);
-
-        const response = await fetch('/api/pdf/index-to-pinecone', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getApiKeyHeaders(),
-          },
-          body: JSON.stringify({
-            textUrl,
-            type,
-            fileName: fileName || type,
-            // IND-66 C7: rules → clearBefore=true (re-upload książki idempotent),
-            // adventure → false (nowa przygoda dodawana, NIE niszczy poprzednich).
-            clearBefore: type === 'rules',
-          }),
-        });
-
-        setIndexingProgress(50);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-        setIndexingProgress(95);
-
-        if (result.success) {
-          // Aktualizuj pamięć PDF ze stanem indeksowania
-          const indexedKey =
-            type === 'rules'
-              ? 'rulesIndexedToPinecone'
-              : 'adventureIndexedToPinecone';
-          const chunksKey =
-            type === 'rules' ? 'rulesIndexedChunks' : 'adventureIndexedChunks';
-
-          setPdfMemory((prev) => {
-            const updated = {
-              ...prev,
-              [indexedKey]: true,
-              [chunksKey]: result.indexed,
-            };
-            localStorage.setItem('pdf_memory', JSON.stringify(updated));
-            return updated;
-          });
-
-          const indexMessage: Message = {
-            id: `pinecone-${Date.now()}`,
-            role: 'assistant',
-            content: `📚 ${type === 'rules' ? 'Zasady' : 'Przygoda'} "${fileName}" dodane do lokalnej pamięci zasad.\n\n📊 ${result.indexed}/${result.totalChunks} fragmentów (${result.durationMs}ms).`,
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, indexMessage]);
-
-          console.log(
-            `✅ Pinecone indexing complete: ${result.indexed}/${result.totalChunks} chunks`
-          );
-        } else {
-          throw new Error(result.error || 'Indexing failed');
-        }
-      } catch (error) {
-        console.warn(`⚠️ Pinecone indexing failed (non-blocking):`, error);
-
-        const errorMsg: Message = {
-          id: `pinecone-err-${Date.now()}`,
-          role: 'assistant',
-          content: `⚠️ Dodawanie do lokalnej pamięci zasad nie powiodło się: ${error instanceof Error ? error.message : 'Nieznany błąd'}\n\nDokument jest dostępny przez Gemini Files API. Możesz spróbować ponownie później z ustawień.`,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, errorMsg]);
-      } finally {
-        setIsIndexing(false);
-        setTimeout(() => setIndexingProgress(0), 500);
-      }
-    },
-    [pdfMemory, setMessages]
-  );
-
   const handlePdfUpload = useCallback(
     async (file: File, type: 'rules' | 'adventure') => {
       setIsUploading(true);
@@ -170,56 +121,20 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
           `📤 Starting PDF upload for ${type}: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`
         );
 
-        // Krok 1: Upload pliku
-        console.log(`📤 Step 1: Uploading file via /api/upload-pdf...`);
+        // Krok 1: Upload pliku i lokalne parsowanie
+        console.log(`📤 Step 1: Parsing and uploading PDF locally (GCS-free)...`);
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('fileName', file.name);
 
-        const uploadResponse = await fetch('/api/upload-pdf', {
+        const parseResponse = await fetch('/api/pdf/parse-local', {
           method: 'POST',
+          headers: getApiKeyHeaders(),
           body: formData,
         });
 
-        if (!uploadResponse.ok) {
-          let errorMessage = 'Błąd podczas uploadu pliku';
-          try {
-            const errorData = await uploadResponse.json();
-            errorMessage = errorData.error || errorData.details || errorMessage;
-          } catch {
-            errorMessage = `Błąd HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
-          }
-          throw new Error(errorMessage);
-        }
-
-        const uploadResult = await uploadResponse.json();
-        if (!uploadResult.success) {
-          throw new Error(uploadResult.error || 'Błąd podczas uploadu');
-        }
-
-        console.log(
-          `✅ File uploaded to ${uploadResult.storage}:`,
-          uploadResult.url
-        );
-        setUploadProgress(40); // Upload complete
-
-        const gcsFileName = uploadResult.url.startsWith('gs://')
-          ? uploadResult.url.replace('gs://zew-voice-gemini-bucket/', '')
-          : `pdfs/${type}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-
-        // Krok 2: Parsowanie
-        console.log(`📥 Step 2: Parsing PDF...`);
-        const parseResponse = await fetch('/api/pdf/parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: gcsFileName,
-            type: type,
-            originalFileName: file.name,
-          }),
-        });
-
         if (!parseResponse.ok) {
-          let errorMessage = 'Błąd podczas parsowania PDF';
+          let errorMessage = 'Błąd podczas uploadu i parsowania pliku';
           try {
             const errorData = await parseResponse.json();
             errorMessage = errorData.error || errorData.details || errorMessage;
@@ -238,64 +153,24 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
         }
 
         console.log(`✅ PDF uploaded and parsed:`, uploadData);
-        setUploadProgress(70); // Parse complete
-
-        // Krok 3: Ekstrakcja tekstu dla lepszych modeli (gemini-2.5/3.x)
-        let textGeminiFileUri: string | undefined;
-        if (uploadData.geminiFileUri) {
-          console.log(`📝 Step 3: Extracting text for better models...`);
-          try {
-            const extractResponse = await fetch('/api/pdf/extract-text', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                pdfFileUri: uploadData.geminiFileUri,
-                fileName: file.name,
-                type: type,
-                // IND-66 C4: respect qualityPreset - ULTRA → Gemini 3.1 Pro
-                // dla lepszej precyzji ekstrakcji zasad CoC i przygód.
-                qualityPreset: loadAISettings().qualityPreset,
-              }),
-            });
-
-            if (extractResponse.ok) {
-              const extractData = await extractResponse.json();
-              if (extractData.success && extractData.textFileUri) {
-                textGeminiFileUri = extractData.textFileUri;
-                console.log(
-                  `✅ Text extracted: ${extractData.extractedLength} chars → ${textGeminiFileUri}`
-                );
-              }
-            } else {
-              console.warn(
-                `⚠️ Text extraction failed, will use PDF for all models`
-              );
-            }
-          } catch (extractError) {
-            console.warn(
-              `⚠️ Text extraction error (non-critical):`,
-              extractError
-            );
-          }
-        }
-        setUploadProgress(90);
+        setUploadProgress(80); // Parse complete
 
         // Aktualizuj pamięć PDF
         const newMemory: PdfMemory = {
           ...pdfMemory,
           ...(type === 'rules'
             ? {
-                rulesUrl: uploadData.pdfUrl,
-                rulesTextUrl: uploadData.textUrl,
+                rulesUrl: '', // GCS-free
+                rulesTextUrl: '',
                 rulesGeminiFileUri: uploadData.geminiFileUri,
-                rulesTextGeminiFileUri: textGeminiFileUri,
+                rulesTextGeminiFileUri: undefined,
                 rulesFileName: uploadData.fileName,
               }
             : {
-                adventureUrl: uploadData.pdfUrl,
-                adventureTextUrl: uploadData.textUrl,
+                adventureUrl: '', // GCS-free
+                adventureTextUrl: '',
                 adventureGeminiFileUri: uploadData.geminiFileUri,
-                adventureTextGeminiFileUri: textGeminiFileUri,
+                adventureTextGeminiFileUri: undefined,
                 adventureFileName: uploadData.fileName,
               }),
           lastUpdated: new Date().toISOString(),
@@ -310,10 +185,10 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type,
-            url: uploadData.pdfUrl,
-            textUrl: uploadData.textUrl,
+            url: '',
+            textUrl: '',
             geminiFileUri: uploadData.geminiFileUri,
-            textGeminiFileUri: textGeminiFileUri,
+            textGeminiFileUri: undefined,
             filename: uploadData.fileName,
           }),
         });
@@ -322,81 +197,79 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
         const systemMessage: Message = {
           id: `system-${Date.now()}`,
           role: 'assistant',
-          content: `📚 ${type === 'rules' ? 'Zasady gry' : 'Przygoda'} "${uploadData.fileName}" zostały wczytane.\n\n📊 Sparsowano ${uploadData.parsedData.pages} stron (${Math.round(uploadData.parsedData.textLength / 1000)}k znaków).${textGeminiFileUri ? '\n✅ Tekst wyekstraktowany dla lepszych modeli AI.' : ''}\n📚 Dodawanie do lokalnej pamięci zasad w toku...`,
+          content: `📚 ${type === 'rules' ? 'Zasady gry' : 'Przygoda'} "${uploadData.fileName}" zostały wczytane.\n\n📊 Sparsowano ${uploadData.parsedData.pages} stron (${Math.round(uploadData.parsedData.textLength / 1000)}k znaków).\n📚 Dodawanie do lokalnej pamięci zasad w toku...`,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, systemMessage]);
         setUploadProgress(100); // Done
 
-        // Krok 4 (etap 3b): Auto-indeksuj do Pinecone (fire-and-forget).
-        // IND-62: zamiast setTimeout(100ms) który był race condition (memory leak
-        // przy unmount + setState on unmounted warning), używamy async IIFE.
-        // Bezpieczne bo używa lokalnych zmiennych z closure (textUrlForIndexing,
-        // uploadData.fileName) - NIE czeka na pdfMemory state update.
-        const textUrlForIndexing = uploadData.textUrl;
-        if (textUrlForIndexing) {
+        // Krok 2: Auto-indeksuj sparsowany tekst do lokalnego RAG (fire-and-forget).
+        // Bezpieczne, bo używa sparsowanego tekstu z closure.
+        if (uploadData.parsedData?.text) {
           void (async () => {
             try {
               setIsIndexing(true);
               setIndexingProgress(5);
 
-              const indexResponse = await fetch('/api/pdf/index-to-pinecone', {
+              // Wysyłamy lekki JSON zamiast FormData całego pliku!
+              const response = await fetch('/api/pdf/ingest-local', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   ...getApiKeyHeaders(),
                 },
                 body: JSON.stringify({
-                  textUrl: textUrlForIndexing,
+                  text: uploadData.parsedData.text,
                   type,
-                  fileName: uploadData.fileName || type,
-                  // IND-66 C7: rules → clearBefore=true (re-upload książki idempotent),
-                  // adventure → false (nowa przygoda dodawana do namespace).
+                  fileName: uploadData.fileName,
                   clearBefore: type === 'rules',
                 }),
               });
 
-              setIndexingProgress(50);
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+              }
 
-              if (indexResponse.ok) {
-                const indexResult = await indexResponse.json();
-                setIndexingProgress(95);
+              const indexResult = await response.json();
+              setIndexingProgress(95);
 
-                if (indexResult.success) {
-                  const indexedKey =
-                    type === 'rules'
-                      ? 'rulesIndexedToPinecone'
-                      : 'adventureIndexedToPinecone';
-                  const chunksKey =
-                    type === 'rules'
-                      ? 'rulesIndexedChunks'
-                      : 'adventureIndexedChunks';
+              if (indexResult.success) {
+                const indexedKey =
+                  type === 'rules'
+                    ? 'rulesIndexedLocally'
+                    : 'adventureIndexedLocally';
+                const chunksKey =
+                  type === 'rules'
+                    ? 'rulesIndexedChunks'
+                    : 'adventureIndexedChunks';
 
-                  setPdfMemory((prev) => {
-                    const updated = {
-                      ...prev,
-                      [indexedKey]: true,
-                      [chunksKey]: indexResult.indexed,
-                    };
-                    localStorage.setItem('pdf_memory', JSON.stringify(updated));
-                    return updated;
-                  });
-
-                  const idxMsg: Message = {
-                    id: `pinecone-${Date.now()}`,
-                    role: 'assistant',
-                    content: `📚 Dodano do lokalnej pamięci zasad: ${indexResult.indexed}/${indexResult.totalChunks} fragmentów (${indexResult.durationMs}ms).`,
-                    timestamp: new Date(),
+                setPdfMemory((prev) => {
+                  const updated = {
+                    ...prev,
+                    [indexedKey]: true,
+                    [chunksKey]: indexResult.indexed,
                   };
-                  setMessages((prev) => [...prev, idxMsg]);
-                }
-              } else {
-                console.warn(
-                  '⚠️ Auto-indexing to Pinecone failed (non-blocking)'
-                );
+                  localStorage.setItem('pdf_memory', JSON.stringify(updated));
+                  return updated;
+                });
+
+                const idxMsg: Message = {
+                  id: `local-rag-${Date.now()}`,
+                  role: 'assistant',
+                  content: `📚 ${type === 'rules' ? 'Zasady' : 'Przygoda'} dodane do lokalnej pamięci: ${indexResult.indexed}/${indexResult.totalChunks} fragmentów (${indexResult.durationMs}ms).`,
+                  timestamp: new Date(),
+                };
+                setMessages((prev) => [...prev, idxMsg]);
               }
             } catch (e) {
-              console.warn('⚠️ Auto-indexing error (non-blocking):', e);
+              console.warn('⚠️ Local PDF indexing error (non-blocking):', e);
+              const errorMsg: Message = {
+                id: `local-rag-error-${Date.now()}`,
+                role: 'assistant',
+                content: `⚠️ Nie udało się dodać ${type === 'rules' ? 'zasad' : 'przygody'} do lokalnej pamięci: ${e instanceof Error ? e.message : 'Nieznany błąd'}. Plik pozostaje wczytany i możesz spróbować ponownie później.`,
+                timestamp: new Date(),
+              };
+              setMessages((prev) => [...prev, errorMsg]);
             } finally {
               setIsIndexing(false);
               setTimeout(() => setIndexingProgress(0), 500);
@@ -445,6 +318,5 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
     indexingProgress,
     handlePdfUpload,
     handleFileChange,
-    triggerPineconeIndexing,
   };
 }

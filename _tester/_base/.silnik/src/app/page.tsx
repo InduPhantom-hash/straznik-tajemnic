@@ -30,7 +30,7 @@ import { CutscenePlayer } from '@/components/ui/cutscene-player';
 
 // === HOOKI ===
 import { useTTS } from '@/hooks/useTTS';
-import { usePdfMemory } from '@/hooks/usePdfMemory';
+import { normalizePdfMemory, usePdfMemory } from '@/hooks/usePdfMemory';
 import { useCharacterManagement } from '@/hooks/useCharacterManagement';
 import { useFullSave } from '@/hooks/useFullSave';
 import { useChat } from '@/hooks/useChat';
@@ -613,7 +613,7 @@ export default function Home() {
     const savedPdf = localStorage.getItem('pdf_memory');
     if (savedPdf) {
       try {
-        pdf.setPdfMemory(JSON.parse(savedPdf));
+        pdf.setPdfMemory(normalizePdfMemory(JSON.parse(savedPdf)));
       } catch (e) {
         console.error('Error loading pdf_memory:', e);
       }

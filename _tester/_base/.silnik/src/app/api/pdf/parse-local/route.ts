@@ -80,9 +80,11 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     let parsedText = '';
+    let pageCount = 0;
     try {
       const parsed = await pdfParserService.parsePDFBuffer(buffer);
       parsedText = parsed.text;
+      pageCount = parsed.pages;
       console.log(
         `📄 PDF przygody sparsowany lokalnie: ${parsed.pages} stron, ${parsedText.length} znaków ("${displayFileName}")`
       );
@@ -164,6 +166,11 @@ export async function POST(request: NextRequest) {
       // fileData.mimeType - hardcoded text/plain dla PDF = mismatch → Gemini 500.
       geminiMimeType,
       fileName: displayFileName,
+      parsedData: {
+        pages: pageCount,
+        textLength: parsedText.length,
+        text: parsedText,
+      },
     });
   } catch (error) {
     console.error('❌ parse-local API error:', error);

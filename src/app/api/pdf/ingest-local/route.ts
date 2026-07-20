@@ -43,62 +43,75 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const formData = await request.formData();
-    const file = formData.get('file');
+    let pdfText = '';
+    let fileName = '';
+    let type: 'rules' | 'adventure' = 'rules';
+    let clearBefore = false;
 
-    if (!(file instanceof File)) {
-      return NextResponse.json(
-        { success: false, error: 'Brak pliku PDF (pole formularza "file")' },
-        { status: 400 }
-      );
-    }
-    if (file.type !== 'application/pdf') {
-      return NextResponse.json(
-        { success: false, error: 'Tylko pliki PDF są dozwolone' },
-        { status: 400 }
-      );
-    }
-    if (file.size > MAX_PDF_BYTES) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Plik jest za duży. Maksymalny rozmiar to 500MB',
-        },
-        { status: 400 }
-      );
-    }
+    const contentType = request.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      pdfText = body.text;
+      type = body.type === 'adventure' ? 'adventure' : 'rules';
+      fileName = body.fileName || `${type}-document`;
+      clearBefore = body.clearBefore === true;
+    } else {
+      const formData = await request.formData();
+      const file = formData.get('file');
 
-    const rawType = formData.get('type');
-    const type: 'rules' | 'adventure' =
-      rawType === 'adventure' ? 'adventure' : 'rules';
-    const fileName =
-      (typeof formData.get('fileName') === 'string'
-        ? (formData.get('fileName') as string)
-        : '') ||
-      file.name ||
-      `${type}-document`;
+      if (!(file instanceof File)) {
+        return NextResponse.json(
+          { success: false, error: 'Brak pliku PDF (pole formularza "file")' },
+          { status: 400 }
+        );
+      }
+      if (file.type !== 'application/pdf') {
+        return NextResponse.json(
+          { success: false, error: 'Tylko pliki PDF są dozwolone' },
+          { status: 400 }
+        );
+      }
+      if (file.size > MAX_PDF_BYTES) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Plik jest za duży. Maksymalny rozmiar to 500MB',
+          },
+          { status: 400 }
+        );
+      }
 
-    // Parse PDF w pamięci (pdf-parse na buforze - GCS-free).
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+      const rawType = formData.get('type');
+      type = rawType === 'adventure' ? 'adventure' : 'rules';
+      fileName =
+        (typeof formData.get('fileName') === 'string'
+          ? (formData.get('fileName') as string)
+          : '') ||
+        file.name ||
+        `${type}-document`;
+      clearBefore = type === 'rules';
 
-    let pdfText: string;
-    try {
-      const parsed = await pdfParserService.parsePDFBuffer(buffer);
-      pdfText = parsed.text;
-      console.log(
-        `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
-      );
-    } catch (parseError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Błąd parsowania PDF: ${
-            parseError instanceof Error ? parseError.message : 'Nieznany błąd'
-          }`,
-        },
-        { status: 422 }
-      );
+      // Parse PDF w pamięci (pdf-parse na buforze - GCS-free).
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      try {
+        const parsed = await pdfParserService.parsePDFBuffer(buffer);
+        pdfText = parsed.text;
+        console.log(
+          `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
+        );
+      } catch (parseError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Błąd parsowania PDF: ${
+              parseError instanceof Error ? parseError.message : 'Nieznany błąd'
+            }`,
+          },
+          { status: 422 }
+        );
+      }
     }
 
     if (!pdfText || pdfText.length < MIN_TEXT_LENGTH) {
@@ -120,9 +133,8 @@ export async function POST(request: NextRequest) {
       text: pdfText,
       type,
       fileName,
-      // rules → clearBefore=true (re-upload tej samej książki idempotentny);
-      // adventure → false (nowa przygoda dodawana, nie niszczy poprzednich).
-      clearBefore: type === 'rules',
+      clearBefore,
+      apiKey: geminiApiKey,
     });
 
     if (!result.success) {

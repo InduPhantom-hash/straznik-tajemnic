@@ -165,11 +165,12 @@ export async function indexTexts(
     };
   }>,
   namespace: string,
-  onProgress?: (current: number, total: number) => void
-): Promise<{ indexed: number; failed: number }> {
+  onProgress?: (current: number, total: number) => void,
+  options: { replaceNamespace?: boolean; apiKey?: string } = {}
+): Promise<{ indexed: number; failed: number; indexedIds: string[] }> {
   if (!localVectorStore.initialized) {
     console.warn('⚠️ Lokalny RAG nie jest gotowy, pomijam indeksowanie');
-    return { indexed: 0, failed: 0 };
+    return { indexed: 0, failed: 0, indexedIds: [] };
   }
 
   const vectors: UpsertVector[] = [];
@@ -179,7 +180,8 @@ export async function indexTexts(
     const item = items[i];
     const embedding = await embeddingService.generateEmbedding(
       item.text,
-      'RETRIEVAL_DOCUMENT'
+      'RETRIEVAL_DOCUMENT',
+      options.apiKey
     );
 
     if (embedding) {
@@ -204,9 +206,19 @@ export async function indexTexts(
     onProgress?.(i + 1, items.length);
   }
 
+  // Re-indeks zasad jest transakcyjny: przy choć jednym błędzie embeddingu nie
+  // zastępujemy poprzedniego, działającego namespace częściowym wynikiem.
+  if (options.replaceNamespace && failed > 0) {
+    return { indexed: 0, failed: items.length, indexedIds: [] };
+  }
+
   if (vectors.length > 0) {
     try {
-      await localVectorStore.upsert(namespace, vectors);
+      if (options.replaceNamespace) {
+        await localVectorStore.replaceNamespace(namespace, vectors);
+      } else {
+        await localVectorStore.upsert(namespace, vectors);
+      }
       console.log(
         `🌲 Batch indexed ${vectors.length} texts to namespace "${namespace}"`
       );
@@ -216,11 +228,15 @@ export async function indexTexts(
         tags: { service: 'indexing-service', operation: 'indexTexts' },
         extra: { namespace, itemCount: items.length },
       });
-      return { indexed: 0, failed: items.length };
+      return { indexed: 0, failed: items.length, indexedIds: [] };
     }
   }
 
-  return { indexed: vectors.length, failed };
+  return {
+    indexed: vectors.length,
+    failed,
+    indexedIds: vectors.map((vector) => vector.id),
+  };
 }
 
 /**

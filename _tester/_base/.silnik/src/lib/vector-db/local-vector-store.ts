@@ -50,6 +50,22 @@ function namespaceToFile(namespace: string): string {
 
 class LocalVectorStore {
   private cache = new Map<string, StoredVector[]>();
+  private writeQueue: Promise<void> = Promise.resolve();
+
+  /**
+   * Kolejkuje zadanie modyfikujące stan (zapis/usuwanie) w celu uniknięcia wyścigów I/O.
+   */
+  private async enqueueWrite(task: () => Promise<void> | void): Promise<void> {
+    const nextTask = this.writeQueue.then(async () => {
+      try {
+        await task();
+      } catch (e) {
+        console.error('❌ LocalVectorStore write error:', e);
+      }
+    });
+    this.writeQueue = nextTask;
+    return nextTask;
+  }
 
   /** Lokalny store nie wymaga klucza ani połączenia - zawsze gotowy. */
   get initialized(): boolean {
@@ -125,18 +141,41 @@ class LocalVectorStore {
   async upsert(namespace: string, vectors: UpsertVector[]): Promise<void> {
     if (vectors.length === 0) return;
 
-    const byId = new Map(this.load(namespace).map((v) => [v.id, v]));
-    for (const v of vectors) {
-      byId.set(v.id, {
-        id: v.id,
-        values: v.values,
-        metadata: v.metadata,
-        text: v.text,
-      });
-    }
-    const merged = Array.from(byId.values());
-    this.cache.set(namespace, merged);
-    this.persist(namespace, merged);
+    return this.enqueueWrite(() => {
+      const byId = new Map(this.load(namespace).map((v) => [v.id, v]));
+      for (const v of vectors) {
+        byId.set(v.id, {
+          id: v.id,
+          values: v.values,
+          metadata: v.metadata,
+          text: v.text,
+        });
+      }
+      const merged = Array.from(byId.values());
+      this.cache.set(namespace, merged);
+      this.persist(namespace, merged);
+    });
+  }
+
+  /**
+   * Atomowo zastępuje cały namespace gotowym zestawem wektorów. Poprzedni plik
+   * pozostaje dostępny aż do udanego zapisu pliku tymczasowego i rename.
+   */
+  async replaceNamespace(
+    namespace: string,
+    vectors: UpsertVector[]
+  ): Promise<void> {
+    if (vectors.length === 0) return;
+    return this.enqueueWrite(() => {
+      const replacement: StoredVector[] = vectors.map((vector) => ({
+        id: vector.id,
+        values: vector.values,
+        metadata: vector.metadata,
+        text: vector.text,
+      }));
+      this.persist(namespace, replacement);
+      this.cache.set(namespace, replacement);
+    });
   }
 
   /** Wyszukiwanie semantyczne: cosine po wszystkich wektorach namespace, topK. */
@@ -181,23 +220,27 @@ class LocalVectorStore {
   /** Usunięcie wektorów po ID. */
   async deleteByIds(namespace: string, ids: string[]): Promise<void> {
     if (ids.length === 0) return;
-    const set = new Set(ids);
-    const remaining = this.load(namespace).filter((v) => !set.has(v.id));
-    this.cache.set(namespace, remaining);
-    this.persist(namespace, remaining);
+    return this.enqueueWrite(() => {
+      const set = new Set(ids);
+      const remaining = this.load(namespace).filter((v) => !set.has(v.id));
+      this.cache.set(namespace, remaining);
+      this.persist(namespace, remaining);
+    });
   }
 
   /** Usunięcie całego namespace (cache + plik JSON + pliki binarne). */
   async deleteNamespace(namespace: string): Promise<void> {
-    this.cache.set(namespace, []);
-    try {
-      const file = namespaceToFile(namespace);
-      if (fs.existsSync(file)) fs.unlinkSync(file);
-    } catch (e) {
-      console.warn(`⚠️ LocalVectorStore: delete failed for "${namespace}":`, e);
-    }
-    // Usuń też format binarny (inaczej loader czytałby skasowany namespace z .bin).
-    deleteBinaryNamespace(dataDir(), namespace);
+    return this.enqueueWrite(() => {
+      this.cache.set(namespace, []);
+      try {
+        const file = namespaceToFile(namespace);
+        if (fs.existsSync(file)) fs.unlinkSync(file);
+      } catch (e) {
+        console.warn(`⚠️ LocalVectorStore: delete failed for "${namespace}":`, e);
+      }
+      // Usuń też format binarny (inaczej loader czytałby skasowany namespace z .bin).
+      deleteBinaryNamespace(dataDir(), namespace);
+    });
   }
 
   /** Statystyki: liczba wektorów per namespace (skan plików data/rag). */

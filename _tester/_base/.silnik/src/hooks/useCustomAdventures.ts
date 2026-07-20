@@ -59,15 +59,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     })();
   }, []);
 
-  // IND-130: Zapis fire-and-forget - IndexedDB + localStorage defense-in-depth
-  const saveToStorage = useCallback(
-    (adventures: CustomAdventure[], activeId: string | null) => {
-      void saveCustomAdventures({ adventures, activeId }).catch((error) => {
-        console.warn('saveCustomAdventures failed', error);
-      });
-    },
-    []
-  );
+
 
   // Upload nowej przygody
   const uploadAdventure = useCallback(
@@ -217,7 +209,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         // Tworzenie CustomAdventure dla KAŻDEJ wykrytej przygody
         const newAdventures: CustomAdventure[] = adventuresData.map(
           (adventureData, index) => ({
-            id: `custom-${Date.now()}-${index}`,
+            id: `custom-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`,
             title:
               adventureData?.title ||
               `${file.name.replace('.pdf', '')} - Przygoda ${index + 1}`,
@@ -266,10 +258,16 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           })
         );
 
-        // Dodaj wszystkie przygody do listy
-        const updatedAdventures = [...customAdventures, ...newAdventures];
+        // Aby uniknąć wyścigów (race condition) przy równoległych uploadach:
+        // dociągamy najświeższy stan bezpośrednio przed zapisem.
+        const freshState = await loadCustomAdventures();
+        const updatedAdventures = [...freshState.adventures, ...newAdventures];
+
         setCustomAdventures(updatedAdventures);
-        saveToStorage(updatedAdventures, activeAdventureId);
+        await saveCustomAdventures({
+          adventures: updatedAdventures,
+          activeId: freshState.activeId || activeAdventureId,
+        });
 
         console.log(
           `📚 Added ${newAdventures.length} adventure(s): ${newAdventures.map((a) => `"${a.title}"`).join(', ')}`
@@ -299,7 +297,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         setLoadingStatus('');
       }
     },
-    [customAdventures, activeAdventureId, saveToStorage]
+    [customAdventures, activeAdventureId]
   );
 
   // Usuwanie przygody
@@ -332,14 +330,19 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           }
         }
 
-        // Usuń z listy
-        const updatedAdventures = customAdventures.filter((a) => a.id !== id);
+        // Dociągamy najświeższy stan przy usuwaniu, by uniknąć wyścigów.
+        const freshState = await loadCustomAdventures();
+        const updatedAdventures = freshState.adventures.filter((a) => a.id !== id);
+
         setCustomAdventures(updatedAdventures);
 
         // Jeśli usunięto aktywną przygodę, wyczyść
-        const newActiveId = activeAdventureId === id ? null : activeAdventureId;
+        const newActiveId = freshState.activeId === id ? null : freshState.activeId;
         setActiveAdventureId(newActiveId);
-        saveToStorage(updatedAdventures, newActiveId);
+        await saveCustomAdventures({
+          adventures: updatedAdventures,
+          activeId: newActiveId,
+        });
 
         console.log(`✅ Adventure deleted: "${adventure.title}"`);
       } catch (error) {
@@ -348,16 +351,18 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         setIsLoading(false);
       }
     },
-    [customAdventures, activeAdventureId, saveToStorage]
+    [customAdventures, activeAdventureId]
   );
 
   // Ustaw aktywną przygodę
   const setActiveAdventure = useCallback(
     (id: string | null) => {
       setActiveAdventureId(id);
-      saveToStorage(customAdventures, id);
+      void saveCustomAdventures({ adventures: customAdventures, activeId: id }).catch((error) => {
+        console.warn('saveCustomAdventures failed', error);
+      });
     },
-    [customAdventures, saveToStorage]
+    [customAdventures]
   );
 
   // Pobierz aktywną przygodę
@@ -381,10 +386,12 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
       if (!parsed) return false;
       setCustomAdventures(parsed.adventures);
       setActiveAdventureId(parsed.activeId);
-      saveToStorage(parsed.adventures, parsed.activeId);
+      void saveCustomAdventures(parsed).catch((error) => {
+        console.warn('saveCustomAdventures failed', error);
+      });
       return true;
     },
-    [saveToStorage]
+    []
   );
 
   return {
