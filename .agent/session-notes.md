@@ -234,3 +234,19 @@ Branch: feature/faza-5-biografie-i-ui
 - Zastąpiono sztywne progi procentowe (narracja/mechanika) elastycznym dopasowaniem do trybu rozgrywki.
 - Uznano priorytet wgranej przygody nad domyślnym katalogiem lokacji startowych.
 - Zastąpiono generowanie na żywo materiałów dodatkowych wyświetlaniem gotowych plików z paczki przygody.
+
+## Podsumowanie sesji: 2026-07-20 (Sesja 14)
+Branch: feature/lovecraft-narrative-enhancements
+
+### Co zrobiono
+- Zaimplementowano 3 nowe filary stylu w `lovecraft-style-guide.ts` (Korelacja Wiedzy, Anomalie Geometryczno-Przestrzenne, Retrospektywne Ziarna Grozy).
+- Rozbudowano ukryty monolog `[MYŚLI_MG]` w `gm-protocol.ts` o parametry `RETRO_ZIARNO` oraz `KORELACJA`.
+- Zaktualizowano domyślny podręcznik narracji `default-gm-prompt.md` o Lovecraftowską syntezę faktów oraz Kaskadowy Filtr Percepcji zależny od SAN.
+- Przeprowadzono pomyślną weryfikację produkcyjną (npm run build) i testy jednostkowe.
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie rozgrywki testowej bezpośrednio w UI w celu oceny nowej plastyki i dynamiki narracji.
+
+### Decyzje podjęte
+- Wykorzystanie wbudowanego w interfejs parametru SAN postaci do bezpośredniego wpływania na ton i zniekształcenia opisu świata przez model LLM.
+
