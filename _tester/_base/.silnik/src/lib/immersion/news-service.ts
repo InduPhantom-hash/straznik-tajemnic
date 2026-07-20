@@ -35,6 +35,13 @@ export const FALLBACK_HEADLINES: HistoricalNewsItem[] = [
 export async function fetchHistoricalNews(
   dateStr: string // Format: YYYY-MM-DD
 ): Promise<{ news: HistoricalNewsItem[]; isFallback: boolean }> {
+  if (process.env.IMMERSION_OFFLINE === '1') {
+    return {
+      news: [FALLBACK_HEADLINES[Math.floor(Math.random() * FALLBACK_HEADLINES.length)]],
+      isFallback: true
+    };
+  }
+
   // Chronicling America has no API key required.
   // Format target date for API: MM/DD/YYYY
   try {

@@ -73,10 +73,13 @@ export async function getDaylightAndMoon(
   let sunset = '18:00:00';
   let dayLength = '12:00:00';
 
-  try {
-    const response = await fetch(
-      `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=${dateStr}&formatted=0`
-    );
+  if (process.env.IMMERSION_OFFLINE === '1') {
+    // Skip external API fetch in offline mode
+  } else {
+    try {
+      const response = await fetch(
+        `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=${dateStr}&formatted=0`
+      );
 
     if (response.ok) {
       const json = await response.json();
@@ -98,8 +101,9 @@ export async function getDaylightAndMoon(
         isFallback = false;
       }
     }
-  } catch (e) {
-    console.warn('Sunrise-Sunset API request failed, using standard daylight approximation:', e);
+    } catch (e) {
+      console.warn('Sunrise-Sunset API request failed, using standard daylight approximation:', e);
+    }
   }
 
   const parts = dateStr.split('-');

@@ -44,7 +44,7 @@ export async function convertUSD(
   let targetCPI = STATIC_CPI_TABLE[targetYear];
 
   // Try to query BLS API if we have a key and years are in valid range
-  if (apiKey && originalYear >= 1913 && targetYear <= 2026) {
+  if (process.env.IMMERSION_OFFLINE !== '1' && apiKey && originalYear >= 1913 && targetYear <= 2026) {
     try {
       const response = await fetch('https://api.bls.gov/publicAPI/v2/timeseries/data/', {
         method: 'POST',
