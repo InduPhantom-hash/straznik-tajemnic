@@ -128,14 +128,15 @@ cosine) · Jest + Playwright.
 
 ## 📚 Dokumentacja
 
-| Dokument                                         | Dla kogo                                         |
-| ------------------------------------------------ | ------------------------------------------------ |
-| [`SETUP.md`](./SETUP.md)                         | Instalacja i pierwsze uruchomienie krok po kroku |
-| [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md)     | Gracz - jak prowadzić sesję                      |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Deweloper - jak to działa pod spodem             |
-| [`docs/TESTING.md`](./docs/TESTING.md)           | Deweloper - testy                                |
-| [`CONTRIBUTING.md`](./CONTRIBUTING.md)           | Jak współtworzyć                                 |
-| [`NOTICE`](./NOTICE)                             | Status prawny, znaki towarowe, treść             |
+| Dokument                                          | Dla kogo                                         |
+| ------------------------------------------------- | ------------------------------------------------ |
+| [`SETUP.md`](./SETUP.md)                          | Instalacja i pierwsze uruchomienie krok po kroku |
+| [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md)      | Gracz - jak prowadzić sesję                      |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)  | Deweloper - jak to działa pod spodem             |
+| [`docs/MAPA-POWIAZAN.md`](./docs/MAPA-POWIAZAN.md) | Deweloper - mapa powiązań instrukcji z kodem     |
+| [`docs/TESTING.md`](./docs/TESTING.md)            | Deweloper - testy                                |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md)            | Jak współtworzyć                                 |
+| [`NOTICE`](./NOTICE)                              | Status prawny, znaki towarowe, treść             |
 
 ## 📄 Licencja
 

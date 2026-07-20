@@ -36,6 +36,7 @@ To celowo aplikacja jednoinstancyjna - stąd dopuszczalne singletony modułowe i
 | Lokalny magazyn wektorowy       | `src/lib/vector-db/local-vector-store.ts`                 |
 | Prompty MG / styl Lovecrafta    | `src/lib/prompts/`, `src/lib/lovecraft-style-guide.ts`    |
 | Mechanika kości / testów        | `src/lib/dice-utils.ts`, `skill-test-resolver.ts`         |
+| Mapa powiązań instrukcja ↔ kod  | [`docs/MAPA-POWIAZAN.md`](./MAPA-POWIAZAN.md)             |
 
 ## Warstwa AI
 

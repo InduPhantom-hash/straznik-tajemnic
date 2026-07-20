@@ -1,4 +1,4 @@
-# 🔐 Security Policy - Zew-App v4.0
+# 🔐 Security Policy - Strażnik Tajemnic AI v4.0
 
 ---
 
@@ -6,7 +6,7 @@
 
 ### Przechowywanie
 
-- ✅ Klucze w `.env.local` (nie commitowane)
+- ✅ Klucze w `.env.local` (nie commitowane) lub podawane z poziomu UI w przeglądarce
 - ✅ `.gitignore` zawiera `.env*`
 - ✅ Service Account JSON (`google-cloud-key.json`) w `.gitignore`
 - ❌ Nigdy nie hardcoduj kluczy w kodzie
@@ -14,11 +14,10 @@
 
 ### Minimalne uprawnienia
 
-Service Account powinien mieć tylko:
+Service Account / Klucz API powinien posiadać minimalny niezbędny zakres:
 
-- `Storage Admin` (dla GCS)
-- `Cloud Text-to-Speech API User`
-- `Vertex AI User` (dla Imagen 3 fallback Tier 2)
+- Gemini API Key (czat, embeddingi, TTS, obrazy)
+- Opcjonalne providery (Vertex AI / Replicate / Google Cloud TTS) tylko w przypadku korzystania z dedykowanych presety
 
 ---
 
@@ -26,18 +25,17 @@ Service Account powinien mieć tylko:
 
 ### Dane użytkownika
 
-- Sesje przechowywane w localStorage (klient) + namespace `sessions/{id}` w Pinecone
-- Opcjonalny backup do Google Cloud Storage (signed URLs)
-- Single-instance architecture (1 browser = 1 grupa do 4 graczy Hot Seat)
-- Brak auth w v4.0 (Clerk planowany w IND-168 dla beta deploy)
-- PostHog telemetry zbiera tylko nie-PII eventy (`chat_message_sent`, `ai_request_completed` z namespaces ale BEZ sessionId)
+- Sesje i stan gry przechowywane w `localStorage` (klient) oraz zapisywane na dysku (`data/saves/`)
+- Lokalny indeks RAG zasad przechowywany binarnie na dysku (`data/rag/*.bin` w formacie Float32)
+- Single-instance architecture (1 browser = 1 gra = 1-2 graczy Hot Seat)
+- Brak bazy w chmurze, braku wymogu logowania i zewnętrznej autentykacji
+- PostHog telemetry zbiera tylko nie-PII eventy (`chat_message_sent`, `ai_request_completed` bez sessionId)
 - Sentry breadcrumbs nie zawierają kluczy ani treści wiadomości
 
 ### Transmisja
 
-- ✅ HTTPS dla produkcji
-- ✅ Signed URLs dla prywatnych plików w GCS
-- ✅ CORS skonfigurowany dla dozwolonych domen
+- ✅ HTTPS dla zapytań do Gemini API
+- ✅ Cały stan sesji i indeks wektorowy RAG pozostaje lokalnie u użytkownika
 
 ---
 
@@ -54,11 +52,9 @@ Jeśli znalazłeś lukę bezpieczeństwa:
 
 ## ✅ Security Checklist
 
-- [ ] Klucze API w `.env.local`
+- [ ] Klucze API w `.env.local` lub wpisane w interfejsie
 - [ ] `.gitignore` zawiera `.env*` i `*.json` (klucze)
-- [ ] Service Account z minimalnymi uprawnieniami
-- [ ] HTTPS w produkcji
-- [ ] CORS skonfigurowany poprawnie
+- [ ] Brak wrażliwych danych w logach i analityce
 - [ ] Regularne aktualizacje zależności
 
 ---
@@ -78,4 +74,5 @@ npm update
 
 ---
 
-_Wersja: 4.0.0 · Ostatnia aktualizacja: 2026-05-23_
+_Wersja: 4.0.0 · Ostatnia aktualizacja: 2026-07-20_
+
