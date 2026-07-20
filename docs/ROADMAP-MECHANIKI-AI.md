@@ -95,12 +95,13 @@ Zależności: decyzja o lokalnym RAG jako jedynym docelowym magazynie; nie zale�
 - [ ] Powiązać Tablicę Badacza z ekstrakcją encji z przygody i wpisami generowanymi podczas sesji; każda krawędź i element muszą zachowywać źródło, czas odkrycia oraz status (potwierdzone / hipoteza / obalone).
 - [ ] Zapisywać stan Tablicy Badacza w save'ach i synchronizować go w Dzienniku Przygody trybu Hot Seat, bez traktowania narracji AI jako jedynego źródła prawdy.
 - [ ] Wyświetlanie map z lokalnym zapisem w ekwipunku.
-- [ ] Odtwarzacz MP3/audio z lokalnym zapisem w Dzienniku Dowodów.
 - [x] Wlaczanie danych Daylight, Prices i Historical News do kontekstu MG tylko wtedy, gdy sa dostepne.
 - [x] Dodac oznaczenie zrodla danych i daty pobrania.
 - [x] Dodac cache i tryb "brak danych zewnetrznych".
+- [x] Wdrożyć obsługę "Przeczytaj" dla przedmiotów fabularnych (listów, dokumentów) z generowaniem diegetycznej treści przez AI i zapisem w save postaci.
 
 ### Nieprogramistyczne
+
 
 - [ ] Przygotować mapy, nagrania i handouty bez naruszania praw autorskich.
 - [ ] Zdefiniować, które dane świata są potrzebne do konkretnej epoki i scenariusza.
