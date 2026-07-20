@@ -41,7 +41,7 @@ export function useFirstRun(): FirstRunState {
   const checkRules = useCallback(async () => {
     try {
       // GET zwraca statystyki lokalnego namespace 'rules' (recordCount).
-      const res = await fetch('/api/pdf/index-to-pinecone?type=rules');
+      const res = await fetch('/api/pdf/ingest-local?type=rules');
       if (!res.ok) {
         setRulesCount(0);
         return;

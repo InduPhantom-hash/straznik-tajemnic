@@ -1,5 +1,20 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-20 (Dokończenie Etapu 2A)
+Branch: `feature/immersion-context-injection`
+
+### Co zrobiono
+- Zastąpiono chmurowe wywołanie `/api/pdf/index-to-pinecone` w `useFirstRun.ts` lokalnym endpointem `/api/pdf/ingest-local`.
+- Wdrożono metodę `GET` w `/api/pdf/ingest-local/route.ts` zwracającą statystyki indeksu zasad i przygody offline.
+- Dodano testy jednostkowe metody GET do `route.test.ts`.
+- Pomyślnie zweryfikowano wszystkie 104 testy Jest i kompilację TypeScript.
+
+### Co otwarte (do następnej sesji)
+- Faza 2 i 3 z plans/etap-2a-lokalny-pipeline-pdf-plan.md: eliminacja potencjalnych wyścigów w `usePdfMemory.ts` i wdrożenie bezpiecznej kolejki embeddingów.
+
+### Decyzje podjęte
+- Wyeliminowanie starego odpytywania o Pinecone na rzecz ujednoliconego GET `/api/pdf/ingest-local`.
+
 ## Podsumowanie sesji: 2026-07-20
 Branch: `feature/session-end-flow`
 
@@ -333,3 +348,28 @@ Branch: `feature/immersion-context-injection`
 
 - Lokalny RAG jest źródłem prawdy dla głównej ścieżki czatu.
 - Commit: `refactor(rag): decouple local vector store from Pinecone`.
+# Podsumowanie sesji: 2026-07-20 - zamknięcie po review Etapu 2A
+Branch: `feature/immersion-context-injection`
+
+## Co zrobiono
+- Wdrożono Etap 2A lokalnego pipeline'u PDF.
+- Dodano migrację pól `*IndexedToPinecone` do `*IndexedLocally`.
+- Dodano walidację parsera, deterministyczny chunking, atomową podmianę namespace i kontrakt endpointu lokalnego RAG.
+- Dodano 23 testy regresyjne.
+- Weryfikacja: pełny Jest 102/102, TypeScript PASS, lint bez błędów, build produkcyjny 61 stron.
+- Przeprowadzono code review przez trzy niezależne subagenty.
+
+## Co otwarte do następnej sesji
+- Review zablokował merge.
+- Naprawić aktywny caller `/api/pdf/index-to-pinecone` w `useFirstRun`.
+- Rozstrzygnąć i naprawić GCS-first oraz podwójny upload PDF.
+- Naprawić kolizje ID przygodach o tej samej nazwie.
+- Zabezpieczyć wyścigi równoległych uploadów oraz współdzielony singleton embeddingów.
+- Domknąć bezpieczeństwo cache/zapisu JSON-BIN i limity zasobów dla dużych PDF-ów.
+- Uzupełnić testy pełnego hooka, migracji save'ów i awarii zapisu.
+- Nie wykonywać jeszcze commita, pusha ani merge'a.
+
+## Decyzje podjęte
+- Etap 2A nie jest jeszcze gotowy do scalania mimo przechodzących testów i buildu.
+- W nowej sesji kontynuować od findings z `/dev-5-review`, bez ponownego wdrażania Etapu 2A od zera.
+- Niezależne pliki dotyczące lokalnego STT i rozszerzeń roadmapy pozostają poza zakresem.
