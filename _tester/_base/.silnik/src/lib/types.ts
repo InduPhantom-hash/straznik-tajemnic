@@ -247,6 +247,10 @@ export interface EquipmentItem {
   audioUrl?: string; // Opcjonalny URL nagrania audio / pliku .mp3
   mapUrl?: string; // Opcjonalny URL pliku z mapą
   isMap?: boolean; // Czy przedmiot jest mapą
+  // Czytelne przedmioty fabularne
+  isReadable?: boolean; // Czy przedmiot posiada tekst do przeczytania (np. list, pamietnik)
+  readableContent?: string; // Wygenerowana lub predefiniowana tresc diegetyczna dokumentu
+  readableContentStatus?: 'none' | 'generating' | 'ready' | 'error'; // Status asynchronicznego generowania
 }
 
 // === SYSTEM ROZWOJU POSTACI (CoC 7e) ===

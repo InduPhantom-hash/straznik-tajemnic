@@ -253,8 +253,21 @@ export function CharacterSheet({
           <EquipmentDetailDialog
             item={selectedItem}
             onClose={() => setSelectedItem(null)}
+            onUpdateItem={(updatedItem) => {
+              setSelectedItem(updatedItem);
+              if (onCharacterUpdate && character) {
+                const updatedEquipment = character.equipment?.map((eq) =>
+                  eq.id === updatedItem.id ? updatedItem : eq
+                ) ?? [];
+                onCharacterUpdate({
+                  ...character,
+                  equipment: updatedEquipment,
+                });
+              }
+            }}
           />
         )}
+
 
         {/* Print styles */}
         <style jsx global>{`

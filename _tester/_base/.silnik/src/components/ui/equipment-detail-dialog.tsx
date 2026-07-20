@@ -1,14 +1,16 @@
-'use client';
-
+import { useState } from 'react';
 import { Button } from './button';
 import { EquipmentItem } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
 import { getEraImageFilter } from '@/lib/era-visual-style';
+import { Loader2 } from 'lucide-react';
+import { getApiKeyHeaders } from '@/lib/api-keys-service';
 
 interface EquipmentDetailDialogProps {
   item: EquipmentItem | null;
   onClose: () => void;
   era?: string;
+  onUpdateItem?: (updatedItem: EquipmentItem) => void;
 }
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
@@ -50,8 +52,73 @@ export function EquipmentDetailDialog({
   item,
   onClose,
   era,
+  onUpdateItem,
 }: EquipmentDetailDialogProps) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   if (!item) return null;
+
+  const isDocument = item.category === 'document' || item.category === 'artifact' || item.category === 'occult' || item.isReadable;
+
+  const handleReadItem = async () => {
+    if (!onUpdateItem) return;
+    setIsGenerating(true);
+    setErrorMsg(null);
+
+    try {
+      // Pobieramy dane z localStorage tak jak w page.tsx
+      const characterSaved = localStorage.getItem('characters');
+      const activeCharId = localStorage.getItem('active_character_id');
+      let activeChar = null;
+      if (characterSaved) {
+        const chars = JSON.parse(characterSaved);
+        activeChar = chars.find((c: any) => c.id === activeCharId) || chars[0];
+      }
+
+      const advSaved = localStorage.getItem('adventure_context');
+      const adventureContext = advSaved ? JSON.parse(advSaved) : null;
+
+      const chatSaved = localStorage.getItem('chat-messages');
+      const recentHistory = chatSaved ? JSON.parse(chatSaved) : [];
+
+      const res = await fetch('/api/equipment/read-item', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getApiKeyHeaders(),
+        },
+        body: JSON.stringify({
+          item,
+          character: activeChar,
+          adventureContext,
+          gameTime: activeChar?.time,
+          currentLocation: undefined,
+          recentHistory,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Nie udało się wczytać treści przedmiotu');
+      }
+
+      const data = await res.json();
+      if (data.success && data.content) {
+        onUpdateItem({
+          ...item,
+          readableContent: data.content,
+          readableContentStatus: 'ready',
+          isReadable: true,
+        });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || 'Wystąpił błąd podczas czytania.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div
@@ -122,6 +189,52 @@ export function EquipmentDetailDialog({
             {item.description}
           </p>
         )}
+
+        {/* Sekcja czytania dokumentu */}
+        {isDocument && (
+          <div className="mb-4 pt-2 border-t border-brass/20">
+            {item.readableContent ? (
+              <div className="relative bg-[#ebdfc6] text-[#2c1d11] p-5 shadow-inner border border-[#d3c29e] rounded-sm font-serif text-sm leading-relaxed max-h-72 overflow-y-auto">
+                <span className="absolute top-2 right-2 text-xs font-special-elite text-[#5c4a37] uppercase tracking-wider opacity-60">
+                  📄 Treść
+                </span>
+                <p className="whitespace-pre-line italic pr-4 select-text">
+                  {item.readableContent}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {errorMsg && (
+                  <div className="text-xs text-red-400 font-special-elite mb-1">
+                    ⚠️ {errorMsg}
+                  </div>
+                )}
+                {onUpdateItem ? (
+                  <Button
+                    onClick={handleReadItem}
+                    disabled={isGenerating}
+                    variant="outline"
+                    className="w-full justify-center bg-brass/10 border-brass/30 hover:bg-brass/20 text-brass uppercase font-special-elite tracking-wider text-xs"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                        Badanie dokumentu...
+                      </>
+                    ) : (
+                      '📖 Przeczytaj dokument'
+                    )}
+                  </Button>
+                ) : (
+                  <p className="text-xs italic text-muted-foreground/60">
+                    Ten dokument można przeczytać na karcie postaci.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {getItemMechanics(item).length > 0 && (
           <div className="border-t border-brass/20 pt-3 space-y-1.5">
             <div className="font-display uppercase tracking-[0.16em] text-brass text-xs mb-2">
@@ -141,7 +254,7 @@ export function EquipmentDetailDialog({
           </div>
         )}
         {getItemMechanics(item).length === 0 &&
-          !item.description && (
+          !item.description && !isDocument && (
             <p className="font-serif italic text-sm text-muted-foreground/70">
               Przedmiot fabularny - bez dodatkowej mechaniki.
             </p>
@@ -150,3 +263,4 @@ export function EquipmentDetailDialog({
     </div>
   );
 }
+

@@ -431,8 +431,13 @@ export function EquipmentModal({
             item={selectedItem}
             era={era}
             onClose={() => setSelectedItem(null)}
+            onUpdateItem={(updatedItem) => {
+              setSelectedItem(updatedItem);
+              updateItem(updatedItem);
+            }}
           />
         )}
+
       </DialogContent>
     </Dialog>
   );
