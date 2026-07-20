@@ -2,9 +2,11 @@
 
 <img src="docs/assets/06-banner-1500x500.png" alt="Strażnik Tajemnic AI" width="820">
 
-# 𓂀 Strażnik Tajemnic AI
+# 𓂀 Strażnik Tajemnic AI (v0.9.1-beta)
 
 **Nieoficjalny, fanowski Mistrz Gry AI do sesji RPG w klimacie lovecraftowskim.**
+
+**[🇺🇸 English version of README is available here (README.en.md)](./README.en.md)**
 
 Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Cała gra
 toczy się **lokalnie u Ciebie** - wklejasz własny klucz Gemini, wgrywasz **swój**
@@ -137,6 +139,16 @@ cosine) · Jest + Playwright.
 | [`docs/TESTING.md`](./docs/TESTING.md)            | Deweloper - testy                                |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md)            | Jak współtworzyć                                 |
 | [`NOTICE`](./NOTICE)                              | Status prawny, znaki towarowe, treść             |
+
+## 📝 Change Log (Historia zmian)
+
+### [v0.9.1-beta] - 2026-07-20
+- **Ulepszona atmosfera Lovecrafta**: Wdrożenie Konstytucji Narracji, głębszych opisów sensorycznych (metaliczny posmak na języku przed anomalią) oraz geometrii nieeuklidesowej w scenach z Mitów.
+- **Biografie badaczy**: Uzupełnienie rostera o 30 pełnych, 6-8 zdaniowych opisów predefiniowanych postaci.
+- **Koniec Sesji**: Obsługa systemowej komendy `[KONIEC_SESJI]` w czacie z płynnym wygaszaniem wątków do cliffhangera przed autozapisem.
+- **Uporządkowanie kodu**: Dodanie mapy powiązań dokumentacji i instrukcji systemowych z plikami źródłowymi TypeScript (`docs/MAPA-POWIAZAN.md`).
+- **Szybki toggle obrazów**: Łatwiejsze zarządzanie kosztami API dzięki wyłącznikowi generowania ilustracji bezpośrednio w sidebarze.
+- **Poprawki mobilne i UX**: Lepsze skalowanie modali postaci na małych ekranach, dolny pasek nawigacyjny w lightboxie i naprawa timeoutów sieciowych panelu diagnostycznego.
 
 ## 📄 Licencja
 

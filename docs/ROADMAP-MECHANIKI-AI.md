@@ -35,3 +35,10 @@ Rejestr zadań i planowanych etapów rozwoju mechanik AI w silniku gry `straznik
 - [ ] **Gotowe przygody Quick-Start**:
   - Wdrożenie przycisku "Szybki Start" umożliwiającego natychmiastowe uruchomienie gotowej przygody z pre-generowanym, w pełni opisanym bohaterem o dopasowanych statystykach (np. scenariusz „Oczy z Klisz” o o. Klimuszce z wyborem tożsamości Weronika/Wiktor Korycki).
 
+## Etap 5: Internacjonalizacja (i18n) i Lokalizacja PL/EN (Planowane)
+- [ ] **Przełącznik języka w interfejsie**: Wdrożenie obsługi wielu języków (i18n) dla interfejsu (Next.js / react-i18next).
+- [ ] **Lokalizacja interfejsu**: Przetłumaczenie kart badacza, tacki na kości, sidebaru, dziennika i menu na język angielski.
+- [ ] **Angielski Master Prompt**: Przygotowanie oraz integracja anglojęzycznej wersji instrukcji systemowych Mistrza Gry (`default-gm-prompt.en.md`).
+- [ ] **Wsparcie dla anglojęzycznych podręczników**: Dostosowanie mechanizmu lokalnego RAG do wyszukiwania zasad z oryginalnego podręcznika *Call of Cthulhu Quick-Start Rules* w wersji angielskiej.
+
+
