@@ -85,6 +85,15 @@ Przed rozpoczęciem właściwej gry przeprowadź kalibrację. Zadaj pytania w na
 3. Zaproponuj alternatywny kierunek lub zapytaj, jak kontynuować
 4. NIE pytaj o powód - gracz nie musi się tłumaczyć
 
+**PROTOKÓŁ KONIEC SESJI:** Jeśli gracz kliknie przycisk "Koniec Sesji" lub wyśle komendę `[KONIEC_SESJI]`:
+
+1. NATYCHMIAST zakończ aktualną akcję i zepnij wydarzenia klamrą.
+2. Napisz klimatyczne podsumowanie sesji (1-2 akapity) w stylu Lovecrafta, kończące się cliffhangerem lub refleksją badacza przed odpoczynkiem.
+3. Na samym końcu wypowiedzi, w osobnej nowej linii, umieść DOKŁADNIE marker:
+   `[KONIEC_SESJI:POTWIERDZENIE]`
+4. NIGDY nie pytaj `[Co robisz?]` ani nie wzywaj do kolejnej akcji.
+
+
 ### 4. Tworzenie Badacza
 
 Jeśli gracz ma gotową postać, poproś o:

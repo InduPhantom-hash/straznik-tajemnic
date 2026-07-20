@@ -660,6 +660,16 @@ export default function Home() {
     }
   }, [chat.messages]);
 
+  // Automatyczne powiadomienie i persystencja po zamknięciu sesji
+  useEffect(() => {
+    if (chat.isSessionEnded) {
+      toast({
+        title: '🔒 Sesja została zamknięta',
+        description: 'Stan gry został bezpiecznie utrwalony.',
+      });
+    }
+  }, [chat.isSessionEnded]);
+
   // IND-258: przełącznik „Narracja bez lektora" w sidebarze. Pisze trwałe
   // voiceSettings.enabled przez saveAISettings → settingsEmitter → subskrypcja
   // (3. useEffect) ustawia runtime flagi TTS. Niezależny od presetu, sticky.
@@ -818,6 +828,7 @@ export default function Home() {
           hotSeatConfig={hotSeat.config}
           aiSettings={aiSettings ?? undefined}
           onUpdateAISettings={setAiSettings}
+          isSessionEnded={chat.isSessionEnded}
         />
       }
       modals={
@@ -1024,6 +1035,7 @@ export default function Home() {
         hotSeatConfig={hotSeat.config}
         onSwitchPlayer={handleSwitchPlayer}
         onDisableHotSeat={hotSeat.disableHotSeat}
+        isSessionEnded={chat.isSessionEnded}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector

@@ -48,6 +48,7 @@ interface MessageInputProps {
   onDisableHotSeat?: () => void;
   /** Mapowanie id gracza na index - potrzebne bo plakietki operują na id, a handleSwitchPlayer na index. */
   hotSeatPlayers?: { id: string; name: string; index: number }[];
+  isSessionEnded?: boolean;
 }
 
 export function MessageInput({
@@ -69,11 +70,13 @@ export function MessageInput({
   onSwitchPlayer,
   onDisableHotSeat,
   hotSeatPlayers,
+  isSessionEnded = false,
 }: MessageInputProps) {
   // C4: w duecie Enter/klik DOKŁADA deklarację (nie wysyła); solo bez zmian.
   const duetActive = isDuet && !!onAddDeclaration;
 
   const submitInput = () => {
+    if (isSessionEnded) return;
     const text = newMessage.trim();
     if (!text) return;
     if (duetActive) {
@@ -92,8 +95,18 @@ export function MessageInput({
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/40 to-transparent"
       />
 
+      {/* Komunikat o zamkniętej sesji */}
+      {isSessionEnded && (
+        <div className="max-w-4xl mx-auto mb-3 px-4 py-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-amber-200 text-xs font-special-elite flex items-center justify-between shadow-inner">
+          <span className="flex items-center gap-2">
+            <span>🔒</span> Sesja została bezpiecznie zamknięta. Zapis gry wykonany automatycznie.
+          </span>
+          <span className="text-amber-400/80 text-[11px]">Koniec Sesji</span>
+        </div>
+      )}
+
       {/* C4 (duet): zebrane deklaracje + kto jeszcze nie zadeklarował */}
-      {duetActive && (
+      {duetActive && !isSessionEnded && (
         <div className="max-w-4xl mx-auto mb-2 flex flex-wrap items-center gap-2 text-xs">
           <div className="flex items-center gap-1.5 font-special-elite uppercase tracking-[0.14em] text-brass/90 mr-1">
             <Users className="w-3.5 h-3.5" />
@@ -144,13 +157,16 @@ export function MessageInput({
         <Textarea
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          disabled={isSessionEnded || isLoading}
           placeholder={
-            duetActive
-              ? `${currentPlayerName ? `${currentPlayerName}: ` : ''}wpisz deklarację i naciśnij Enter...`
-              : 'Wpisz wiadomość do Mistrza Gry...'
+            isSessionEnded
+              ? '🔒 Sesja została zakończona. Wczytaj sesję lub rozpocznij nową przygodę.'
+              : duetActive
+                ? `${currentPlayerName ? `${currentPlayerName}: ` : ''}wpisz deklarację i naciśnij Enter...`
+                : 'Wpisz wiadomość do Mistrza Gry...'
           }
           rows={2}
-          className="min-h-[52px] max-h-[112px] resize-y font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow"
+          className="min-h-[52px] max-h-[112px] resize-y font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -161,7 +177,7 @@ export function MessageInput({
         <div className="flex items-center gap-2 pb-0.5">
           <Button
             onClick={submitInput}
-            disabled={!newMessage.trim()}
+            disabled={isSessionEnded || !newMessage.trim() || isLoading}
             className="h-[52px] px-4"
             title={duetActive ? 'Dodaj deklarację gracza' : 'Wyślij wiadomość'}
           >
@@ -169,11 +185,11 @@ export function MessageInput({
           </Button>
 
           {/* C4 (duet): wyślij zebrane deklaracje jako jedną turę do MG */}
-          {duetActive && onSendTurn && (
+          {duetActive && onSendTurn && !isSessionEnded && (
             <>
               <Button
                 onClick={onPassDeclaration}
-                disabled={!onPassDeclaration || isLoading}
+                disabled={!onPassDeclaration || isLoading || isSessionEnded}
                 variant="outline"
                 className="h-[52px] px-3 whitespace-nowrap"
                 title={`Zapisz deklarację "Pasuję"${currentPlayerName ? ` dla ${currentPlayerName}` : ''}`}
@@ -182,7 +198,7 @@ export function MessageInput({
               </Button>
               <Button
                 onClick={onSendTurn}
-                disabled={!isTurnReady || isLoading}
+                disabled={!isTurnReady || isLoading || isSessionEnded}
                 className="h-[52px] px-4 whitespace-nowrap"
                 title="Złóż obie deklaracje w jedną turę i wyślij do Mistrza Gry"
               >
@@ -192,10 +208,10 @@ export function MessageInput({
           )}
 
           {/* Przycisk podsumowania sceny */}
-          {onSummarizeScene && messagesCount >= 3 && (
+          {onSummarizeScene && messagesCount >= 3 && !isSessionEnded && (
             <Button
               onClick={onSummarizeScene}
-              disabled={isSummarizingScene}
+              disabled={isSummarizingScene || isLoading}
               variant="outline"
               className="h-[52px] px-3 border-brass/50 text-brass hover:bg-brass/10"
               title="Podsumuj ostatnią scenę do dziennika"

@@ -95,6 +95,7 @@ interface CthulhuSidebarProps {
   hotSeatConfig?: HotSeatConfig;
   aiSettings?: AISettings;
   onUpdateAISettings?: (settings: AISettings) => void;
+  isSessionEnded?: boolean;
 }
 
 export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
@@ -137,6 +138,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   hotSeatConfig,
   aiSettings,
   onUpdateAISettings,
+  isSessionEnded = false,
 }) => {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
@@ -466,19 +468,31 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
 
               {/* Create New Character / Koniec Sesji */}
               {activeCharacter ? (
-                <Button
-                  onClick={() => {
-                    if (handleSendMessage) {
-                      handleSendMessage('[KONIEC_SESJI]');
-                    }
-                  }}
-                  variant="outline"
-                  className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
-                  title="Wyślij sygnał końca sesji do Strażnika Tajemnic"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Koniec Sesji
-                </Button>
+                isSessionEnded ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full border-zinc-700 text-zinc-400 bg-zinc-900/50 opacity-70 cursor-not-allowed font-special-elite"
+                    title="Sesja została bezpiecznie zamknięta"
+                  >
+                    <LogOut className="w-4 h-4 mr-2 text-zinc-500" />
+                    Sesja Zamknięta 🔒
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      if (handleSendMessage) {
+                        handleSendMessage('[KONIEC_SESJI]');
+                      }
+                    }}
+                    variant="outline"
+                    className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-special-elite"
+                    title="Wyślij sygnał końca sesji do Strażnika Tajemnic"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Koniec Sesji
+                  </Button>
+                )
               ) : (
                 <Button
                   onClick={onCharacterCreate}

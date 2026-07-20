@@ -77,6 +77,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onOpenCharacterSheet,
   onConfirmAcquiredItem,
   onDismissAcquiredItem,
+  isSessionEnded,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -285,6 +286,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             name: p.name,
             index: i,
           }))}
+          isSessionEnded={isSessionEnded}
         />
       )}
       {/* Image Lightbox */}

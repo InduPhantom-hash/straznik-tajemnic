@@ -255,6 +255,12 @@ export async function runChatPipeline({
     characters,
   });
 
+  if (message.includes('[KONIEC_SESJI]')) {
+    additionalContext.push(
+      '[INSTRUKCJA SPECJALNA - KONIEC SESJI]: Gracz zgłosił zakończenie sesji. Zakończ fabułę klimatycznym, zwięzłym podsumowaniem (1-2 akapity) w stylu Lovecrafta z cliffhangerem lub refleksją badacza. Na samym końcu wypowiedzi, w osobnej linii, wypisz DOKŁADNIE: [KONIEC_SESJI:POTWIERDZENIE]. Nie dodawaj pytania "Co robisz?".'
+    );
+  }
+
   // === PDF STRATEGY (OPT-01) === - IND-183 micro 4/5
   const { fileAttachments } = buildPdfStrategy({
     pdfMemory,

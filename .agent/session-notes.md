@@ -1,5 +1,21 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-20
+Branch: `feature/session-end-flow`
+
+### Co zrobiono
+- Dodano PROTOKÓŁ KONIEC SESJI do Master Promptu.
+- Zaktualizowano backend (run-chat-pipeline.ts) o wstrzykiwanie instrukcji końca sesji.
+- Zaktualizowano hook useChat.ts o detekcję tokenu [KONIEC_SESJI:POTWIERDZENIE] i flagę isSessionEnded.
+- Zaktualizowano UI (sidebar, input, page) o wyłączenie czatu, baner informacyjny i automatyczny zapis.
+- Pomyślnie wykonano wszystkie testy (73/73).
+
+### Co otwarte (do następnej sesji)
+- Wybór kolejnego etapu z roadmapy (np. Etap 2 - lokalny pipeline przygody i czyszczenie wywołań Pinecone).
+
+### Decyzje podjęte
+- Użycie deterministycznego tokena technicznego [KONIEC_SESJI:POTWIERDZENIE] w celu wykrycia końca sesji przez klienta.
+
 ## Podsumowanie sesji: 2026-07-20 (Sesja 14)
 Branch: main
 

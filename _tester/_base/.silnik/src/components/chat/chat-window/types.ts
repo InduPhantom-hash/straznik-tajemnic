@@ -96,4 +96,5 @@ export interface ChatWindowProps {
   /** Potwierdza lub odrzuca kartę [ZDOBYTY_PRZEDMIOT] w narracji MG. */
   onConfirmAcquiredItem?: (messageId: string, proposalId: string) => void;
   onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
+  isSessionEnded?: boolean;
 }

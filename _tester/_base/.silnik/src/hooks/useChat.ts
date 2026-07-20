@@ -271,6 +271,8 @@ export interface UseChatReturn {
   sendTurn: () => void;
   confirmAcquiredItem: (messageId: string, proposalId: string) => Promise<void>;
   dismissAcquiredItem: (messageId: string, proposalId: string) => void;
+  /** Stan informujący o zakończeniu sesji gier po tagu [KONIEC_SESJI:POTWIERDZENIE] */
+  isSessionEnded: boolean;
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
@@ -361,7 +363,14 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   });
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSessionEnded, setIsSessionEnded] = useState(false);
   const [lastImageTime, setLastImageTime] = useState(0);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setIsSessionEnded(false);
+    }
+  }, [messages.length]);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
   const [pendingDeclarations, setPendingDeclarations] = useState<
     PendingDeclaration[]
@@ -610,14 +619,19 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         let streamedFullText = '';
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
-            streamedFullText = text;
+            let cleanText = text;
+            if (text.includes('[KONIEC_SESJI:POTWIERDZENIE]')) {
+              cleanText = text.replace('[KONIEC_SESJI:POTWIERDZENIE]', '').trimEnd();
+              setIsSessionEnded(true);
+            }
+            streamedFullText = cleanText;
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === assistantMessageId ? { ...msg, content: text } : msg
+                msg.id === assistantMessageId ? { ...msg, content: cleanText } : msg
               )
             );
             if (voiceEnabled && isTTSEnabled) {
-              options.addToQueue(text, assistantMessageId);
+              options.addToQueue(cleanText, assistantMessageId);
             }
           },
           onMetadata: (metadata) => {
@@ -1134,5 +1148,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     sendTurn,
     confirmAcquiredItem,
     dismissAcquiredItem,
+    isSessionEnded,
   };
 }
