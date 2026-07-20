@@ -98,6 +98,7 @@ export async function runChatPipeline({
       era?: string;
       sourceBookId?: string;
       handouts?: AdventureHandout[];
+      tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
     } | null;
     isGameStart?: boolean;
     aiSettings?: { sessionId?: string } & Record<string, unknown>;
@@ -225,6 +226,8 @@ export async function runChatPipeline({
     ? buildSessionRecapInstruction()
     : null;
 
+  const activeTone = aiSettings.sessionZero?.tone || adventureContext?.tone || 'purist';
+
   const additionalContext = buildAdditionalContext({
     timePromptSection,
     gmProtocol,
@@ -243,6 +246,7 @@ export async function runChatPipeline({
     hotSeatConfig,
     // IND-223: oznacz postać gracza jako sterowaną przez człowieka
     playerCharacterName: character?.name,
+    tone: activeTone as 'purist' | 'pulp' | 'noir' | 'neutral',
     // Uzbrojenie postaci → AI prowadzi walkę narracyjnie znając broń + umiejętność + obrażenia
     playerWeaponsSection: buildPlayerWeaponContext(character ?? null),
     // Lista umiejętności postaci → AI wzywa testy nazwami z karty (eliminuje Tackę 0%)

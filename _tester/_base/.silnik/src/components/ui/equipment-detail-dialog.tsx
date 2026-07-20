@@ -82,7 +82,21 @@ export function EquipmentDetailDialog({
             ✕
           </Button>
         </div>
-        {item.imageUrl && (
+        {(item.mapUrl || (item.imageUrl && item.isMap)) && (
+          <div className="relative w-full aspect-video border-2 border-brass/50 bg-[#070604] mb-5 overflow-hidden shadow-2xl rounded-none">
+            <img
+              src={item.mapUrl || item.imageUrl}
+              alt={`Mapa: ${item.name}`}
+              className="w-full h-full object-contain p-2"
+              style={{ filter: getEraImageFilter(era) }}
+            />
+            <div className="absolute top-2 left-2 bg-brass/90 text-black text-[10px] font-bold font-special-elite uppercase px-2 py-0.5 shadow">
+              🗺️ Mapa / Plan
+            </div>
+            <div className="absolute inset-1 pointer-events-none border border-brass/25" />
+          </div>
+        )}
+        {item.imageUrl && !item.mapUrl && !item.isMap && (
           <div className="relative w-full aspect-square max-h-[380px] border-2 border-brass/40 bg-[#0d0a07] mb-5 overflow-hidden shadow-2xl rounded-none">
             {/* eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) z generatora */}
             <img
@@ -93,6 +107,14 @@ export function EquipmentDetailDialog({
             />
             <div className="absolute inset-2 pointer-events-none border border-brass/25" />
             <div className="absolute inset-0 pointer-events-none border border-black/80" />
+          </div>
+        )}
+        {item.audioUrl && (
+          <div className="mb-4 p-3 bg-[#0d0a07] border border-brass/30 rounded">
+            <div className="text-xs font-special-elite text-brass uppercase mb-1.5 flex items-center gap-1.5">
+              <span>🔊</span> Nagranie / Taśma Audio
+            </div>
+            <audio controls src={item.audioUrl} className="w-full h-8 outline-none" />
           </div>
         )}
         {item.description && (

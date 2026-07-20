@@ -30,6 +30,8 @@ export type GameEra =
   | '1920s'
   | '1940s'
   | 'prl-1970s'
+  | '1990s'
+  | '2000s'
   | 'modern'
   | 'future';
 
@@ -237,11 +239,14 @@ export interface EquipmentItem {
   source?: 'starting' | 'acquired' | 'found';
   obtainedAt?: Date;
 
-  // Obraz (kontekstowy prompt builder)
+  // Obraz i Multimedia
   imageUrl?: string;
   imagePrompt?: string; // Zachowany wzbogacony prompt do regeneracji
   visualSource?: EquipmentVisualSource;
   visualTreatment?: EquipmentVisualTreatment;
+  audioUrl?: string; // Opcjonalny URL nagrania audio / pliku .mp3
+  mapUrl?: string; // Opcjonalny URL pliku z mapą
+  isMap?: boolean; // Czy przedmiot jest mapą
 }
 
 // === SYSTEM ROZWOJU POSTACI (CoC 7e) ===

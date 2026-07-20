@@ -58,7 +58,10 @@ export function ChatHeader({
         >
           𓂀
         </span>
-        <span className="text-foreground tracking-wide truncate">
+        <span 
+          className="text-foreground tracking-wide truncate"
+          title={title?.trim() || DEFAULT_TITLE}
+        >
           {title?.trim() || DEFAULT_TITLE}
         </span>
       </div>

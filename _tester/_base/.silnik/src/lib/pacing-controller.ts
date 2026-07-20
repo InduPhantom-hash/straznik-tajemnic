@@ -85,7 +85,9 @@ export function getPacingDirective(context: GameContext): string {
   if (context.isStuck) {
     return (
       base +
-      `\n**TEMPO - WAR-ROOM:** Gracze grzęzną w planowaniu bez ruchu. Wprowadź zewnętrzny bodziec (BN, telefon, zdarzenie, upływ czasu, tykający zegar), który zmusza do działania - nie czekaj na idealny plan.`
+      `\n**TEMPO - WAR-ROOM (Uchwała III):** Gracze grzęzną w planowaniu bez ruchu. Wprowadź zewnętrzny bodziec. Zależnie od stopnia impasu sformułuj go jako:\n` +
+      `- **Silny bodziec**: Bezpośrednie zagrożenie powiązane z motywacją/więzią postaci. Wskaż w tagu: [BODZIEC:SILNY:postać:motywacja]. Rozlicz to w tle jako naturalny wybór fabularny z kosztem straty opanowania (SAN/Stabilność) w przypadku próby uniknięcia konwencji.\n` +
+      `- **Słaby bodziec**: Drobne zdarzenie, tajemniczy dźwięk, przeczucie. Wskaż w tagu: [BODZIEC:SŁABY:postać:opis].`
     );
   }
 

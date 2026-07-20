@@ -14,6 +14,7 @@ import {
   Package,
   RotateCcw,
   Image as ImageIcon,
+  LogOut,
 } from 'lucide-react';
 import NextImage from 'next/image';
 import { Button } from '../ui/button';
@@ -104,6 +105,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   onCharacterManage,
   onUpdateCharacter,
   onUpdateSharedJournal,
+  handleSendMessage,
   activeGameState,
   voiceFeatureAvailable,
   voiceEnabled,
@@ -462,15 +464,31 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 )}
               </div>
 
-              {/* Create New Character */}
-              <Button
-                onClick={onCharacterCreate}
-                variant="outline"
-                className="w-full border-primary/50 text-primary hover:bg-primary/10"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Stwórz nową postać
-              </Button>
+              {/* Create New Character / Koniec Sesji */}
+              {activeCharacter ? (
+                <Button
+                  onClick={() => {
+                    if (handleSendMessage) {
+                      handleSendMessage('[KONIEC_SESJI]');
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                  title="Wyślij sygnał końca sesji do Strażnika Tajemnic"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Koniec Sesji
+                </Button>
+              ) : (
+                <Button
+                  onClick={onCharacterCreate}
+                  variant="outline"
+                  className="w-full border-primary/50 text-primary hover:bg-primary/10"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Stwórz nową postać
+                </Button>
+              )}
             </CardContent>
           </Card>
 

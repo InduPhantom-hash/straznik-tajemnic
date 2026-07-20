@@ -153,8 +153,8 @@ export function ImageLightbox({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-[#050608]/[0.92] backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Toolbar - déco złoty outline */}
-      <div className="absolute top-5 right-6 flex items-center gap-2 z-10 font-special-elite">
+      {/* Toolbar - pozycjonowany na dole dla ekranów mobilnych w bezpiecznej strefie, u góry na desktopie */}
+      <div className="absolute top-5 right-6 max-sm:top-auto max-sm:bottom-5 max-sm:right-5 max-sm:left-5 max-sm:justify-center flex items-center gap-1.5 sm:gap-2 z-10 font-special-elite max-sm:bg-[#0a0c0f]/90 max-sm:p-2 max-sm:border max-sm:border-brass/30">
         {/* Zoom controls */}
         <button
           onClick={(e) => {
@@ -202,7 +202,7 @@ export function ImageLightbox({
         </button>
       </div>
 
-      {/* Navigation arrows - déco prostokątne ramki */}
+      {/* Navigation arrows - dostosowane marginesy i rozmiary na małych ekranach */}
       {hasMultiple && (
         <>
           <button
@@ -210,7 +210,7 @@ export function ImageLightbox({
               e.stopPropagation();
               goPrev();
             }}
-            className="absolute left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-16 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors z-10"
+            className="absolute left-8 max-sm:left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-16 max-sm:w-10 max-sm:h-14 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors z-10"
             title="Poprzedni (←)"
           >
             <ChevronLeft className="w-8 h-8" />
@@ -220,7 +220,7 @@ export function ImageLightbox({
               e.stopPropagation();
               goNext();
             }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-16 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors z-10"
+            className="absolute right-8 max-sm:right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-16 max-sm:w-10 max-sm:h-14 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors z-10"
             title="Następny (→)"
           >
             <ChevronRight className="w-8 h-8" />
@@ -274,9 +274,9 @@ export function ImageLightbox({
         />
       </div>
 
-      {/* Image counter - déco styl */}
+      {/* Image counter - przesunięty wyżej na mobile, by nie nachodzić na toolbar */}
       {hasMultiple && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 border border-brass/35 bg-[#0a0c0f]/80 px-4 py-2 text-brass text-sm font-special-elite tracking-[0.18em]">
+        <div className="absolute bottom-6 max-sm:bottom-20 left-1/2 -translate-x-1/2 border border-brass/35 bg-[#0a0c0f]/80 px-4 py-2 text-brass text-sm font-special-elite tracking-[0.18em]">
           {currentIndex + 1} / {images.length}
         </div>
       )}

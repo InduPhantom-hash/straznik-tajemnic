@@ -193,3 +193,60 @@ Branch: main
 - Nowa dyrektywa nie będzie zawierać drugiego limitu słów.
 - Nie zmieniamy jeszcze `activeGameState` ani nie wdrażamy walki/pościgów.
 - Zastane pliki dokumentacyjne pozostają w drzewie roboczym.
+
+## Podsumowanie sesji: 2026-07-19 (Sesja 12)
+Branch: feature/faza-5-biografie-i-ui
+
+### Co zrobiono
+- Zmiana etykiety w UI z `Koncept Postaci` na `Biografia Postaci` w `sheet-biography.tsx`.
+- Uzupełnienie biografii 30 predefiniowanych badaczy w `predefined-characters.ts` o pełne, 6-8 zdaniowe opisy fabularne.
+- Dodanie tooltipów `title` do uciętych nazw przygód w nagłówku czatu oraz selektorze (`chat-header.tsx`, `adventure-selector.tsx`).
+- Wdrożenie sieciowego limitu czasu (timeout 8s) z `AbortController` i precyzyjną obsługą błędów w panelu diagnostycznym Zdrowia Strażnika (`health-status-panel.tsx`).
+- Przebudowa interfejsu Lightboxa dla ekranów mobilnych (`image-lightbox.tsx`): przeniesienie paska narzędzi na dół, zmniejszenie strzałek i podniesienie licznika zdjęć.
+- Weryfikacja: pełne testy Jest (73/73 testy) – PASS.
+
+### Co otwarte (do następnej sesji)
+- Pozostałe fazy planu naprawczo-wdrożeniowego (Fazy 0-4 oraz Faza 6).
+
+### Decyzje podjęte
+- Użycie timeoutu 8s na zapytania diagnostyczne w Ustawieniach, aby zapobiec blokowaniu UI przy braku internetu.
+- Umieszczenie mobilnych kontrolek lightboxa w dolnej strefie ekranu (pod palcem) dla wygody użytkownika.
+
+## Podsumowanie sesji: 2026-07-20 (Sesja 13)
+Branch: feature/faza-5-biografie-i-ui
+
+### Co zrobiono
+- Wyeliminowano paragrafowy system zamkniętych wyborów w default-gm-prompt.md, dając pełną swobodę graczowi.
+- Zaimplementowano walkę w stylu Pulp Cthulhu (podwojone HP, wydawanie Szczęścia, filmowość) w default-gm-prompt.md.
+- Wprowadzono bezwzględny wymóg generowania ilustracji dla snów, koszmarów i magii wraz z obsługą geometrii nieeuklidesowej.
+- Wdrożono Home Rule na spowolniony rozwój bohaterów (Slow-Burn Development: limit 3 umiejętności, wzrost o +1d4/1d6).
+- Dostosowano recap oraz cliffhangery do systemu Save/Load i dodano obsługę systemowej komendy [KONIEC_SESJI] z procedurą wygaszania.
+- Utworzono mapę zależności instrukcji w Mapa-Instrukcji.md oraz procedurę Zewdrzewko update.
+- Zaprojektowano pipeline setupowania i bogacenia przygód w Setupowanie-Przygody.md z bezpiecznym paskiem postępu.
+- Założono plik ROADMAP-MECHANIKI-AI.md z zaplanowanymi etapami rozwoju (Koniec Sesji, Ingestion).
+- Przeprowadzono pomyślną weryfikację testów (73/73 PASS) i kompilacji TS.
+
+### Co otwarte (do następnej sesji)
+- Pełna implementacja mechaniki Końca Sesji w kodzie aplikacji Next.js zgodnie z ROADMAP-MECHANIKI-AI.md (Etap 2).
+- Zintegrowanie i oprogramowanie pipeline'u setupowania przygód z paczek PDF/MP3 (Etap 3).
+
+### Decyzje podjęte
+- Zastąpiono sztywne progi procentowe (narracja/mechanika) elastycznym dopasowaniem do trybu rozgrywki.
+- Uznano priorytet wgranej przygody nad domyślnym katalogiem lokacji startowych.
+- Zastąpiono generowanie na żywo materiałów dodatkowych wyświetlaniem gotowych plików z paczki przygody.
+
+## Podsumowanie sesji: 2026-07-20 (Sesja 14)
+Branch: feature/lovecraft-narrative-enhancements
+
+### Co zrobiono
+- Zaimplementowano 3 nowe filary stylu w `lovecraft-style-guide.ts` (Korelacja Wiedzy, Anomalie Geometryczno-Przestrzenne, Retrospektywne Ziarna Grozy).
+- Rozbudowano ukryty monolog `[MYŚLI_MG]` w `gm-protocol.ts` o parametry `RETRO_ZIARNO` oraz `KORELACJA`.
+- Zaktualizowano domyślny podręcznik narracji `default-gm-prompt.md` o Lovecraftowską syntezę faktów oraz Kaskadowy Filtr Percepcji zależny od SAN.
+- Przeprowadzono pomyślną weryfikację produkcyjną (npm run build) i testy jednostkowe.
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie rozgrywki testowej bezpośrednio w UI w celu oceny nowej plastyki i dynamiki narracji.
+
+### Decyzje podjęte
+- Wykorzystanie wbudowanego w interfejs parametru SAN postaci do bezpośredniego wpływania na ton i zniekształcenia opisu świata przez model LLM.
+

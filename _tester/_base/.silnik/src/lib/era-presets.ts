@@ -94,6 +94,42 @@ export const ERA_PRESETS: Record<GameEra, EraSettings> = {
 - Broń palna jest reglamentowana, a jej użycie szybko zwraca uwagę władz.`,
     },
 
+    '1990s': {
+        id: '1990s',
+        name: 'Lata 90. & Teorie Spiskowe',
+        description: 'Kasetowy chłód, kasety VHS, walkmany, telefony z klapką i klimat Z Archiwum X. Początki sieci, dyskietki i miejskie legendy.',
+        transport: {
+            flight: { available: 'common', risk: 'low', avgSpeedKmh: 800 },
+            train: { available: 'common', risk: 'low', avgSpeedKmh: 110 },
+            ship: { available: 'rare', risk: 'low', avgSpeedKmh: 40 },
+            car: { available: 'common', risk: 'low', avgSpeedKmh: 90 },
+            horse: { available: 'none', risk: 'low', avgSpeedKmh: 10 },
+        },
+        communication: 'hours',
+        worldRules: `**Zasady Świata (1990s):**
+- Brak powszechnych smartfonów. Pierwsze modemy dial-up, poczta głosowa, pagery.
+- Szukanie dowodów na kasetach VHS i w archiwach miejskich.
+- Klimat globalnych spisków rządowych i zjawisk paranormalnych.`,
+    },
+
+    '2000s': {
+        id: '2000s',
+        name: 'Przełom Tysiąclecia (Lata 2000)',
+        description: 'Początki ogólnodostępnego internetu, fora dyskusyjne IRC, brak powszechnego GPS i klimaty niepokoju Milenijnego.',
+        transport: {
+            flight: { available: 'common', risk: 'low', avgSpeedKmh: 850 },
+            train: { available: 'common', risk: 'low', avgSpeedKmh: 130 },
+            ship: { available: 'rare', risk: 'low', avgSpeedKmh: 40 },
+            car: { available: 'common', risk: 'low', avgSpeedKmh: 100 },
+            horse: { available: 'none', risk: 'low', avgSpeedKmh: 10 },
+        },
+        communication: 'instant',
+        worldRules: `**Zasady Świata (2000s):**
+- Wczesny internet (HTML1, fora internetowe, IRC).
+- Telefony komórkowe z aparatami VGA.
+- Mapy papierowe (drukowane atlasy samochodowe) z uwagi na brak powszechnego GPS w telefonach.`,
+    },
+
     'modern': {
         id: 'modern',
         name: 'Współczesność',

@@ -68,7 +68,7 @@ export function SheetBiography({ character }: SheetBiographyProps) {
         {character.characterConcept && (
           <div className="border border-primary/30 bg-[#0e1413] p-4">
             <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-1.5">
-              🎭 Koncept Postaci
+              🎭 Biografia Postaci
             </span>
             <p className="font-serif text-foreground text-base leading-relaxed">
               {character.characterConcept}
