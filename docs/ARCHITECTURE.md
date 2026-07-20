@@ -48,18 +48,46 @@ Wszystko opiera się o **rodzinę Gemini API** (jeden klucz):
 - **Lektor** - Gemini TTS (`/api/tts/gemini`); opcjonalnie Google Cloud TTS.
 - **Obrazy** - `gemini-2.5-flash-image` (`/api/imagen`); opcjonalnie Vertex Imagen 4 / Replicate Flux.
 
-## RAG (lokalny)
+## RAG (lokalny - docelowa architektura)
 
 Zasady z wgranego przez gracza PDF trafiają do **lokalnego indeksu** (`data/rag/`):
 
 - PDF → tekst → chunki → embeddingi Gemini → zapis jako binarne `Float32` (`*.bin` +
   `*.meta.json`) dla małego zużycia RAM i szybkiego ładowania.
-- Wyszukiwanie: cosine similarity w `local-vector-store.ts` (drop-in zamiennik dawnego
-  klienta Pinecone - sieć nie jest potrzebna).
+- Wyszukiwanie: cosine similarity w `local-vector-store.ts` oraz lokalny BM25, bez zewnętrznej bazy wektorowej.
 - Namespace'y: `rules` (zasady), `adventures` (przygody), `mythos` (lore PD).
 - **Anty-halucynacja**: gdy brak trafień, AI jawnie przyznaje brak zamiast zmyślać zasadę.
 
-> Stałe `PINECONE_*` w kodzie są reliktem - w runtime RAG jest w pełni lokalny.
+> Pinecone nie jest elementem docelowej architektury. Pozostałe importy, typy, ustawienia i usługi o tej nazwie są reliktem wcześniejszej wersji i powinny zostać usunięte po audycie zależności.
+
+## Granica sieci
+
+Aplikacja może wykonywać połączenia wychodzące wyłącznie do jawnie skonfigurowanych usług:
+
+- Google AI - czat MG, embeddingi, obrazy i opcjonalnie TTS;
+- API danych świata - Daylight, Prices i Historical News, zawsze z timeoutem, cache'em i fallbackiem;
+- opcjonalne usługi dodatkowe tylko wtedy, gdy użytkownik świadomie je włączy.
+
+Nie używamy zewnętrznej bazy stanu gry, zewnętrznego indeksu RAG ani logowania jako warunku działania. Save'y, dziennik, assety, postacie i indeks RAG pozostają na dysku użytkownika.
+
+## Aktualizacje aplikacji
+
+System aktualizacji jest osobną ścieżką sieciową i korzysta z repozytorium wydań, docelowo GitHub Releases. Sprawdza jedynie manifest wersji i pobiera artefakt aplikacji po świadomej akcji użytkownika.
+
+Aktualizowany jest kod, nie dane. Dane użytkownika muszą znajdować się poza katalogiem wersji aplikacji albo być automatycznie przenoszone podczas migracji. Dotyczy to `data/saves/`, `data/rag/`, profilu launchera Chrome, `localStorage`, IndexedDB, ustawień, postaci i dziennika.
+
+Bezpieczny przepływ aktualizacji:
+
+1. sprawdzenie manifestu z timeoutem;
+2. komunikat o nowej wersji;
+3. pobranie do katalogu tymczasowego po kliknięciu;
+4. weryfikacja checksumy i platformy;
+5. backup danych użytkownika;
+6. atomowa podmiana katalogu wersji przez launcher;
+7. migracja danych i test startowy;
+8. rollback, jeśli nowa wersja nie uruchomi się poprawnie.
+
+Sprawdzenie dostępności nowej wersji nie może blokować uruchomienia gry ani rozgrywki offline.
 
 ## Mechanika (deterministyczna)
 

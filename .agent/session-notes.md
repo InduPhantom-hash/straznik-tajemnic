@@ -269,4 +269,25 @@ Branch: feature/lovecraft-narrative-enhancements
 
 ### Decyzje podjęte
 - Wykorzystanie wbudowanego w interfejs parametru SAN postaci do bezpośredniego wpływania na ton i zniekształcenia opisu świata przez model LLM.
+## Podsumowanie sesji: 2026-07-20
 
+Branch: `main`
+
+### Co zrobiono
+
+- Przebudowano roadmapę pod lokalną aplikację bez Pinecone.
+- Dodano rozdział prac programistycznych i nieprogramistycznych oraz zależności etapów.
+- Dodano Etap 0: bezpieczny system aktualizacji aplikacji z GitHub Releases, checksumami, backupem, migracjami i rollbackiem.
+- Zaktualizowano `docs/ARCHITECTURE.md` o granicę sieci i ochronę danych użytkownika podczas aktualizacji.
+- Zaktualizowano `docs/MAPA-POWIAZAN.md` o zależności systemu aktualizacji.
+
+### Co otwarte
+
+- Implementacja systemu aktualizacji nie została rozpoczęta.
+- Stare moduły Pinecone/GCS w kodzie wymagają osobnego audytu i usunięcia.
+- Nie wykonano pushu ani scalania.
+
+### Decyzje
+
+- Pinecone nie jest częścią docelowej architektury.
+- Aktualizacja zmienia kod aplikacji, ale nie może naruszać save'ów, lokalnego RAG-u, pamięci sesji, ustawień, postaci ani assetów.
