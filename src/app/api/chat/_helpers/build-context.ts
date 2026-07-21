@@ -150,23 +150,24 @@ export function buildAdditionalContext(
   if (sessionTone === 'noir') {
     additionalContext.push(
       `\n## USTAWA O PRZYGODZIE NOIR\n` +
-      `1. Prowadź grę w stylu Noir (powolne tempo, slow-burn, mrok, nieufność NPC, beznadzieja).\n` +
-      `2. Zasoby są skrajnie ograniczone (amunicja jest rzadka, brak oczywistych środków obrony przed nadnaturalnym).\n` +
-      `3. Reakcje na mity Cthulhu są zawsze traumatyczne. Nacisk na wyparcie, paranoję i stany lękowe.`
+      `1. Prowadź grę w stylu Noir (powolne tempo, slow-burn, mrok, beznadzieja). NPC prezentują oficjalną Maskę, ale kierują się Ukrytym Celem/Strachem (są nieufni, podejrzliwi).\n` +
+      `2. Zasoby są skrajnie ograniczone (rzadka amunicja, brak gotowych środków obrony).\n` +
+      `3. CIĘCIA MONTAŻOWE: Teleportuj postać do nowej lokacji natychmiast po jej zadeklarowaniu. Jeśli jednak gracz wprost chce zrobić coś w drodze (np. czytać, przepytać kierowcę), rozegraj to jako mikro-scenę w podróży przed przeniesieniem.\n` +
+      `4. SZALEŃSTWO: Przy stracie Poczytalności narzucaj traumę, fobie i luki w pamięci bezpośrednio w opisie zachowania badacza (jako wyjątek od sprawczości). Nigdy nie pisz o punktach ani mechanice w narracji.`
     );
   } else if (sessionTone === 'pulp') {
     additionalContext.push(
       `\n## USTAWA O PRZYGODZIE PULP CTHULHU\n` +
-      `1. Prowadź grę w stylu Pulp/Wild Science (dynamiczna akcja, pościgi, szalona nauka, anomalie czasowe).\n` +
-      `2. Badacze mają większą sprawczość i odporność. Pozwalaj na widowiskowe akcje, rany goją się szybciej.\n` +
-      `3. Zakończenie sceny/finał musi mieć filmowy rozmach i dynamikę.`
+      `1. Prowadź grę w stylu Pulp/Wild Science (dynamiczna akcja, pościgi, anomalie). Badacze są twardsi i rany goją się szybciej.\n` +
+      `2. CIĘCIA MONTAŻOWE: Pomijaj zbędne przejścia i od razu wrzucaj badaczy w centrum akcji nowej lokacji, chyba że gracz zadeklarował konkretną czynność w trakcie drogi.\n` +
+      `3. SZALEŃSTWO: Utrata poczytalności wywołuje widowiskowy, filmowy szał lub nagłe popadnięcie w nietypową fobię opisaną sensorycznie. Brak mechanicznego języka w narracji.`
     );
   } else if (sessionTone === 'purist') {
     additionalContext.push(
       `\n## USTAWA O PRZYGODZIE KLASYCZNEJ (LOVECRAFTIAN)\n` +
-      `1. Prowadź grę w klasycznym stylu Lovecrafta (powolne popadanie w szaleństwo, badanie starych rodów i ksiąg).\n` +
-      `2. Równowaga walki: używanie broni epoki (rewolwer, strzelba), ale istoty mitów stanowią śmiertelne niebezpieczeństwo.\n` +
-      `3. Finał kończy się najczęściej zniszeczeniem dowodów i desperacką ucieczką w celu ratowania własnych zmysłów.`
+      `1. Prowadź grę w klasycznym stylu Lovecrafta (powolne popadanie w szaleństwo, badanie starych ksiąg i rodów). NPC skrywają swoje prawdziwe oblicze pod Maską.\n` +
+      `2. CIĘCIA MONTAŻOWE: Domyślnie teleportuj badacza do nowej lokacji. Jeśli gracz wprost opisał chęć zrobienia czegoś w podróży (np. lektura, obserwacja), rozegraj to przed cięciem.\n` +
+      `3. SZALEŃSTWO: Narzucaj traumę i czasową amnezję bezpośrednio w opisie badacza po porażce SAN. Zakaz używania pojęć mechanicznych (punktów, testów) w prozie opisu.`
     );
   }
 

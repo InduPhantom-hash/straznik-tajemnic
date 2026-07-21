@@ -84,9 +84,12 @@ Zależności: istniejący save system i stabilny kontrakt promptu MG.
 - [ ] Zapisywać metadane i assety przygody lokalnie razem z save'em.
 - [ ] Zbudować lokalny fallback dla danych świata oraz cache ostatnich wyników.
 - [x] Usunąć z aktywnego runtime'u nieużywane wywołania Pinecone i cloud storage po osobnym audycie.
+- [x] Zintegrować w silniku reguły cięć montażowych i obsługę aktywnej podróży gracza.
+- [x] Zintegrować w silniku nowy model narracji szaleństwa i traumy (sensoryczny opis bez mechanicznego języka).
 
 ### Nieprogramistyczne
 
+- [x] Zdefiniować zasady Konstytucji, Ustaw (Noir/Pulp/Klasyczna) i Uchwał operacyjnych.
 - [ ] Zdefiniować schemat danych przygody, NPC, lokacji i handoutów.
 - [ ] Ustalić, które źródła historyczne są dozwolone i wystarczająco wiarygodne.
 - [ ] Określić zakres Encyklopedii Zwyczajów i presetów epok.
@@ -105,6 +108,8 @@ Zależności: decyzja o lokalnym RAG jako jedynym docelowym magazynie; nie zale�
 - [x] Dodac oznaczenie zrodla danych i daty pobrania.
 - [x] Dodac cache i tryb "brak danych zewnetrznych".
 - [x] Wdrożyć obsługę "Przeczytaj" dla przedmiotów fabularnych (listów, dokumentów) z generowaniem diegetycznej treści przez AI i zapisem w save postaci.
+- [x] Zintegrować wielowarstwowy profil NPC (Maska/Ukryty cel) w generowaniu kontekstu.
+
 
 ### Nieprogramistyczne
 
