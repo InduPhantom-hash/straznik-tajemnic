@@ -18,6 +18,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { pdfIndexingService } from '@/lib/vector-db/pdf-indexing-service';
 import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
+import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
+import fs from 'fs';
+import path from 'path';
 
 export const maxDuration = 300; // 5 min - duże podręczniki (setki stron)
 export const runtime = 'nodejs';
@@ -144,7 +147,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(result);
+    // Jeśli typ to 'adventure', wykonaj rozszerzoną ekstrakcję struktur przez Gemini 3.6 Flash
+    let extractedAdventure = null;
+    if (type === 'adventure') {
+      try {
+        console.log('🤖 Rozpoczynanie ekstrakcji ustrukturyzowanej przygody przez Gemini 3.6 Flash...');
+        extractedAdventure = await extractAdventureEntities(pdfText, fileName, geminiApiKey);
+        
+        // Zapisz wyekstrahowaną strukturę lokalnie w data/adventures/
+        const dataDir = path.join(process.cwd(), 'data', 'adventures');
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        const filePath = path.join(dataDir, `${extractedAdventure.adventureId}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(extractedAdventure, null, 2), 'utf-8');
+        console.log(`💾 Zapisano ustrukturyzowane dane przygody: ${filePath}`);
+      } catch (extError) {
+        console.warn('⚠️ Ekstrakcja przygody przez Gemini 3.6 Flash nie powiodła się, kontynuowanie samego RAG:', extError);
+      }
+    }
+
+    return NextResponse.json({
+      ...result,
+      extractedAdventure,
+    });
   } catch (error) {
     console.error('❌ ingest-local API error:', error);
     return NextResponse.json(

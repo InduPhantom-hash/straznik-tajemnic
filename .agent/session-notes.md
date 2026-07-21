@@ -1,6 +1,21 @@
 # Session Notes
 
-## Podsumowanie sesji: 2026-07-21 (Optymalizacja uploadu PDF i obsługa Gemini File API)
+## Podsumowanie sesji: 2026-07-21 (Ekstrakcja Przygody PDF z Gemini 3.6 Flash & Baseline Gemini 3.6 Flash)
+Branch: main
+
+### Co zrobiono
+- **Ekstrakcja Przygody z PDF (Gemini 3.6 Flash):** Zbudowano dwuetapowy pipeline wspierany dzisiejszym modelem `gemini-3.6-flash` (`src/lib/pdf/adventure-extractor.ts`).
+- **Zapewnienie czystej struktury JSON:** Wyekstrahowane dane zawierają precyzyjne mapowanie NPC (z maską i ukrytym celem), lokacji (z atmosferą i keyClues) oraz rekwizytów (z treścią dokumentów `readContent`).
+- **Lokalny zapis przygody:** Wyekstrahowany JSON jest automatycznie zapisywany w `data/adventures/{adventureId}.json` po zasileniu lokalnego RAG w `/api/pdf/ingest-local`.
+- **Baseline Gemini 3.6 Flash:** Zaktualizowano domyślny model i presety kosztowe w `model-registry.ts` na `gemini-3.6-flash`.
+- **Weryfikacja:** Pomyślnie wykonano kompilację produkcyjną `npm run build` (61/61 stron). Zaktualizowano `state.md` oraz roadmapę.
+
+### Co otwarte (do następnej sesji)
+- Etap 3 (Tablica Badacza): Wykorzystanie plików `data/adventures/{adventureId}.json` do automatycznego zasilania grafu dowodów, poszlak i relacji.
+
+### Decyzje podjęte
+- Użycie Gemini 3.6 Flash jako domyślnego modelu dla całej aplikacji oraz silnika strukturyzacji z uwagi na premierę API (21.07.2026), 17% mniejsze zużycie tokenów i wysoką precyzję JSON schema.
+
 Branch: main
 
 ### Co zrobiono

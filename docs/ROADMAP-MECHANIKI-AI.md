@@ -3,7 +3,8 @@
 Roadmapa opisuje docelową wersję aplikacji lokalnej. Aplikacja działa na komputerze użytkownika, przechowuje stan gry i indeks wiedzy lokalnie, a z siecią łączy się tylko przez jawnie wybrane integracje.
 
 ## Priorytet prac (Zatwierdzony 2026-07-20)
-- **Priorytet 1 (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG.
+- **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` (wariant Low/Flash) oraz zaktualizowanie szacunków kosztów gry.
+- **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG.
 - **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza.
 - **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji.
 - **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz tłumaczenie interfejsu (Nice to have).

@@ -11,7 +11,7 @@ export const defaultAISettings: AISettings = {
   geminiEnabled: false,
   geminiApiKey: undefined,
   geminiSettings: {
-    model: 'gemini-2.5-flash', // Demo 2026-06-23: domyślnie HIGH. Playtest ULTRA vs HIGH pokazał flash 2-3x szybszy (TTFB 8s vs 20s, lektor 31s vs 60s) przy zachowanej jakości narracji + regułach. Etykieta qualityPreset='high' niżej.
+    model: 'gemini-3.6-flash', // Domyślny szybki i powtarzalny model dla aplikacji (LOW/MID preset baseline)
     // === Sampling (HIGH) ===
     temperature: 0.8,
     topP: 0.9,

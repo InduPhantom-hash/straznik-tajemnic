@@ -25,6 +25,9 @@
  * Bare warianty (bez '-preview') = świadome fallbacki IND-222, NIE usuwać.
  */
 export type GeminiModelId =
+  | 'gemini-3.6-flash'
+  | 'gemini-3.6-flash-preview'
+  | 'gemini-3.6-flash-lite'
   | 'gemini-3.1-pro-preview'
   | 'gemini-3.1-pro' // legacy (IND-222 fallback; bare = 404, ale wybieralny/wymuszony)
   | 'gemini-3-flash-preview'
@@ -45,10 +48,10 @@ export type GeminiModelId =
 // ============================================================================
 
 /** Domyślny model chat dla wszystkich endpointów AI (fallback IND-222). */
-export const DEFAULT_CHAT_MODEL = 'gemini-2.5-flash' as const;
+export const DEFAULT_CHAT_MODEL = 'gemini-3.6-flash' as const;
 
 /** Wariant Lite dla low-cost endpointów (equipment/scene summary). */
-export const DEFAULT_CHAT_MODEL_LITE = 'gemini-2.5-flash' as const;
+export const DEFAULT_CHAT_MODEL_LITE = 'gemini-3.6-flash' as const;
 
 // ============================================================================
 // PRESETY (mirror QUALITY_PRESETS z definitions.ts - drift-guard pilnuje)
@@ -68,8 +71,8 @@ export interface PresetModelInfo {
  * Drift-guard test (model-registry.test.ts) wymusza równość z QUALITY_PRESETS.
  */
 export const PRESET_MODELS: Record<PresetKey, PresetModelInfo> = {
-  low: { chatModel: 'gemini-3-flash-preview', ttsVoice: null },
-  mid: { chatModel: 'gemini-3-flash-preview', ttsVoice: 'Charon' },
+  low: { chatModel: 'gemini-3.6-flash', ttsVoice: null },
+  mid: { chatModel: 'gemini-3.6-flash', ttsVoice: 'Charon' },
   high: { chatModel: 'gemini-2.5-flash', ttsVoice: 'Charon' },
   ultra: { chatModel: 'gemini-3.1-pro-preview', ttsVoice: 'Gacrux' },
 };
@@ -92,6 +95,8 @@ export const EMBEDDING_DIM_V2 = 3072;
 
 /** Modele wspierające context caching (OPT-26). */
 export const CACHEABLE_MODELS: ReadonlySet<string> = new Set([
+  'gemini-3.6-flash',
+  'gemini-3.6-flash-preview',
   'gemini-2.0-flash',
   'gemini-2.5-flash',
   'gemini-2.5-pro',
@@ -124,6 +129,8 @@ const DEFAULT_CONTEXT_LIMIT = 1048576;
 
 /** Limity okna kontekstowego per model (tokeny wejścia). */
 export const MODEL_CONTEXT_LIMITS: Record<string, number> = {
+  'gemini-3.6-flash': DEFAULT_CONTEXT_LIMIT,
+  'gemini-3.6-flash-preview': DEFAULT_CONTEXT_LIMIT,
   'gemini-2.0-flash': DEFAULT_CONTEXT_LIMIT,
   'gemini-2.5-flash': DEFAULT_CONTEXT_LIMIT,
   'gemini-3-flash-preview': DEFAULT_CONTEXT_LIMIT,
@@ -146,7 +153,8 @@ export function getContextLimit(modelId: string): number {
  */
 export const GEMINI_PRICING: Record<string, { input: number; output: number }> =
   {
-    // IND-222: poprawne nazwy API ('-preview'); bare zostawione (fallback 'default' i tak pokrywa)
+    'gemini-3.6-flash': { input: 0.15, output: 0.60 },
+    'gemini-3.6-flash-preview': { input: 0.15, output: 0.60 },
     'gemini-3.1-pro-preview': { input: 2.0, output: 12.0 },
     'gemini-3-flash-preview': { input: 0.5, output: 3.0 },
     'gemini-3.1-pro': { input: 2.0, output: 12.0 }, // legacy
@@ -154,5 +162,5 @@ export const GEMINI_PRICING: Record<string, { input: number; output: number }> =
     'gemini-2.5-pro': { input: 3.5, output: 10.5 },
     'gemini-2.5-flash': { input: 0.075, output: 0.3 },
     'gemini-2.0-flash': { input: 0.075, output: 0.3 },
-    default: { input: 0.5, output: 1.5 },
+    default: { input: 0.15, output: 0.60 },
   };

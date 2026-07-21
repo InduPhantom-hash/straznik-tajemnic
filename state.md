@@ -9,6 +9,7 @@
 | Obszar / Kamień Milowy | Stan | Progres | Kluczowy Plik / Moduł | Zależności |
 | :--- | :--- | :--- | :--- | :--- |
 | **Stan Bazowy (Core System)** | 🟢 DONE | 100% | `src/app/api/chat/`, `src/lib/dice-utils.ts` | Baza projektu |
+| **Model Gemini 3.6 Flash Baseline** | 🟢 DONE | 100% | `src/lib/model-registry.ts`, `src/lib/ai-presets/` | Domyślna obsługa aplikacji |
 | **Etap 1: Domknięcie Sesji** | 🟢 DONE | 100% | `src/components/sidebar/CthulhuSidebar.tsx` | State machine sesji |
 | **Etap 2: Pipeline Przygody & RAG** | 🟡 IN PROGRESS | 40% | `src/lib/vector-db/local-vector-store.ts` | SQLite / Local RAG |
 | **Etap 3: Immersja & Tablica Badacza** | 🟡 IN PROGRESS | 50% | `src/app/api/chat/_helpers/build-immersion-context.ts` | API danych świata + Save |
@@ -22,6 +23,7 @@
 
 ## 🟢 1. Ukończone Funkcje (DONE)
 
+- [x] **Domyślny model Gemini 3.6 Flash (Low):** Ustawienie modelu `gemini-3.6-flash` jako domyślnego dla całej aplikacji oraz zaktualizowanie szacunków kosztów w rejestrze i presetach (`src/lib/model-registry.ts`).
 - [x] **Master Prompt MG (CoC 7e RAW):** Styl Lovecrafta, wsparcie dla trybów Noir/Pulp/Klasyczny (`public/default-gm-prompt.md`).
 - [x] **Deterministyczny Silnik Rzutów:** k100, progi trudności (Zwykły/Trudny/Ekstremalny/Krytyk/Fumble), obsługa Push Roll i Szczęścia (`src/lib/dice-utils.ts`).
 - [x] **Lokalny Magazyn RAG (Float32Array):** Przechowywanie wektorów i chunkowanie PDF bez chmurowego Pinecone (`src/lib/vector-db/local-vector-store.ts`).
@@ -38,8 +40,8 @@
 - [/] **Lokalny Pipeline Przygody (Etap 2):**
   - [x] Izolacja przygód w nazwach namespace.
   - [x] Naprawa stabilności i wydajności uploadu PDF (polling stanu ACTIVE w Gemini File API, throttling embeddingów).
-  - [ ] Rozszerzona ekstrakcja z PDF do JSON (NPC, lokacje, mapy, przedmioty fabularne).
-  - [ ] Zapis metadanych przygody bezpośrednio w save'ie gry.
+  - [x] Rozszerzona ekstrakcja z PDF do JSON (NPC, lokacje, mapy, przedmioty fabularne) przy użyciu modelu Gemini 3.6 Flash.
+  - [x] Zapis metadanych i ustrukturyzowanej przygody bezpośrednio w `data/adventures/{adventureId}.json`.
 - [/] **Tablica Badacza / Dowody (Etap 3):**
   - [x] Integracja danych zewnętrznych z fallbackiem.
   - [ ] Przebudowa Dziennika na automatycznie aktualizowaną Tablicę Badacza (dowody, poszlaki, hipotezy, powiązania).
