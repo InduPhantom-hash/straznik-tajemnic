@@ -168,6 +168,30 @@ export async function fetchImmersionContext(opts: FetchImmersionContextOpts): Pr
     sections.push(formatPricesSection(pricesResult.value));
   }
 
+  // Check for epoch specific knowledge summary (e.g. 1990s-2000s PL)
+  let epochSummarySection = '';
+  if (gameEra.includes('1990') || gameEra.includes('2000') || gameEra.toLowerCase().includes('pl')) {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const epochFilePath = path.join(process.cwd(), 'data', 'epochs', 'pl-1990s-2000s', 'summary_immersion.json');
+      if (fs.existsSync(epochFilePath)) {
+        const summaryData = JSON.parse(fs.readFileSync(epochFilePath, 'utf-8'));
+        const highlightsText = (summaryData.highlights || [])
+          .slice(0, 5)
+          .map((h: any) => `- **${h.title}**: ${h.summary.slice(0, 150)}...`)
+          .join('\n');
+        epochSummarySection = `### Realia i Tlo Epoki (Polska 1990-2000)\n${summaryData.instructions}\n\nKluczowe konteksty epokowe:\n${highlightsText}`;
+      }
+    } catch (e) {
+      // Ignorujemy błędy odczytu plików epokowych
+    }
+  }
+
+  if (epochSummarySection) {
+    sections.push(epochSummarySection);
+  }
+
   if (sections.length === 0) return '';
 
   const section =

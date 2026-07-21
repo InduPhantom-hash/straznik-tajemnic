@@ -165,12 +165,34 @@ export async function uploadNativePDFToGemini(
     });
 
     const fileUri = uploadResult.uri;
+    const fileNameInGemini = uploadResult.name;
 
-    if (!fileUri) {
-      throw new Error('No fileUri in Gemini API response for native PDF');
+    if (!fileUri || !fileNameInGemini) {
+      throw new Error('No fileUri/name in Gemini API response for native PDF');
     }
 
-    console.log(`✅ Native PDF uploaded to Gemini: ${fileUri}`);
+    // Oczekuj aż plik przejdzie ze stanu PROCESSING na ACTIVE
+    let fileState = uploadResult.state;
+    let pollCount = 0;
+    const maxPolls = 30; // Max 30 sekund (30 * 1s)
+
+    while (fileState === 'PROCESSING' && pollCount < maxPolls) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      pollCount++;
+      try {
+        const getResult = await client.files.get({ name: fileNameInGemini });
+        fileState = getResult.state;
+        console.log(`⏳ Waiting for PDF processing in Gemini (${displayName}): state=${fileState} [${pollCount}/${maxPolls}]`);
+      } catch (pollError) {
+        console.warn('⚠️ Polling Gemini file state error:', pollError);
+      }
+    }
+
+    if (fileState === 'FAILED') {
+      throw new Error('Przetwarzanie PDF w Gemini File API nie powiodło się (stan FAILED).');
+    }
+
+    console.log(`✅ Native PDF uploaded to Gemini: ${fileUri} (state: ${fileState || 'ACTIVE'})`);
 
     // Cache
     fileCache.set(displayName, {

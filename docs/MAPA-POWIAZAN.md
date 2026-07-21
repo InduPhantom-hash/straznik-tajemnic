@@ -9,6 +9,7 @@ Dokument ten pełni rolę **Single Source of Truth (SSOT)** dla architektury zal
 ```mermaid
 graph TD
     subgraph Instrukcje_Systemowe["Instrukcje & Prompty (.md)"]
+        STATE["state.md<br/>(Master Tracker Projektu)"]
         PROMPT["public/default-gm-prompt.md<br/>(Master Prompt MG CoC 7e)"]
         ARCH["docs/ARCHITECTURE.md<br/>(Architektura Systemu)"]
         UGUIDE["docs/USER_GUIDE.md<br/>(Przewodnik Gracza)"]
@@ -53,6 +54,7 @@ graph TD
 
 | Dokument / Instrukcja (`.md`) | Obszar funkcjonalny | Powiązane pliki źródłowe (`src/`) |
 | :--- | :--- | :--- |
+| **`state.md`**<br/>*(Single Source of Truth / Tracker Projektu)* | • Tablica statusów zadań Linear-style<br/>• Stan Etapów 0-6 i Etapu 3.5 (Encyklopedia)<br/>• Mapa powiązań modułów i RAG assets | • `docs/ROADMAP-MECHANIKI-AI.md`<br/>• `docs/ARCHITECTURE.md`<br/>• Wszystkie pliki `src/` wymienione w trackerze |
 | **`public/default-gm-prompt.md`**<br/>*(Master Prompt Mistrza Gry)* | • Kontekst i ton Lovecrafta<br/>• Sesja Zero i kalibracja<br/>• Tagi `[SANITY:]`, `[HP:]`, `[WYNIK:]`<br/>• Procedura `[KONIEC_SESJI]`<br/>• Tagi Audio TTS (np. `[whispers]`) | • `src/app/api/chat/_helpers/build-context.ts`<br/>• `src/app/api/chat/_helpers/run-chat-pipeline.ts`<br/>• `src/lib/prompts/lovecraft-style-guide.ts`<br/>• `src/hooks/useTTS.ts`<br/>• `src/components/chat/message-input.tsx` |
 | **`docs/ARCHITECTURE.md`**<br/>*(Dokumentacja Architektury)* | • Monolit Next.js 14 App Router<br/>• Lokalny RAG Float32 (`Float32Array`), bez Pinecone i chmury<br/>• Storage (`localStorage` + dysk)<br/>• Bezpieczne aktualizacje kodu bez naruszania danych<br/>• Presety jakości (LOW / MID / HIGH / ULTRA) | • `src/lib/vector-db/local-vector-store.ts`<br/>• `src/lib/vector-db/vector-types.ts`<br/>• `src/app/api/pdf/ingest-local/route.ts`<br/>• `src/lib/ai-settings/`<br/>• `src/app/api/chat/route.ts`<br/>• `desktop/launcher.sh`<br/>• `desktop/build-app.sh` |
 | **`docs/USER_GUIDE.md`**<br/>*(Przewodnik Gracza)* | • Kreator badacza (charakterystyki, zawód)<br/>• Tacka na Kości (k100, progi, Push Roll, Szczęście)<br/>• Tryb Hot Seat (1-2 graczy)<br/>• Zapis i wczytanie sesji | • `src/components/character-sheet/`<br/>• `src/components/dice/dice-tray.tsx`<br/>• `src/lib/dice-utils.ts`<br/>• `src/components/chat/hot-seat-banner.tsx` |

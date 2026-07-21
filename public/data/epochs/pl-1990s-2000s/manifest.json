@@ -1,0 +1,90 @@
+{
+  "id": "pl-1990s-2000s",
+  "name": "Polska (lata 1990–2000)",
+  "period": "1990-2005",
+  "country": "PL",
+  "categories": [
+    {
+      "id": "01_prawo_i_wymiar_sprawiedliwosci",
+      "title": "Prawo I Wymiar Sprawiedliwosci",
+      "fileCount": 2
+    },
+    {
+      "id": "02_zwyczaje_obyczaje_i_etykieta",
+      "title": "Zwyczaje Obyczaje I Etykieta",
+      "fileCount": 2
+    },
+    {
+      "id": "03_relacje_spoleczne_i_klasowosc",
+      "title": "Relacje Spoleczne I Klasowosc",
+      "fileCount": 2
+    },
+    {
+      "id": "04_panstwo_instytucje_i_obywatel",
+      "title": "Panstwo Instytucje I Obywatel",
+      "fileCount": 3
+    },
+    {
+      "id": "05_pozycja_i_prawa_kobiet",
+      "title": "Pozycja I Prawa Kobiet",
+      "fileCount": 3
+    },
+    {
+      "id": "06_grupy_zawodowe_i_prestiz",
+      "title": "Grupy Zawodowe I Prestiz",
+      "fileCount": 3
+    },
+    {
+      "id": "07_mniejszosci_rasizm_i_ksenofobia",
+      "title": "Mniejszosci Rasizm I Ksenofobia",
+      "fileCount": 3
+    },
+    {
+      "id": "08_medycyna_zdrowie_psychiczne_i_trauma",
+      "title": "Medycyna Zdrowie Psychiczne I Trauma",
+      "fileCount": 3
+    },
+    {
+      "id": "09_technologia_transport_i_komunikacja",
+      "title": "Technologia Transport I Komunikacja",
+      "fileCount": 3
+    },
+    {
+      "id": "10_przestepczosc_podziemie_i_korupcja",
+      "title": "Przestepczosc Podziemie I Korupcja",
+      "fileCount": 3
+    },
+    {
+      "id": "11_religia_sekty_i_teorie_spiskowe",
+      "title": "Religia Sekty I Teorie Spiskowe",
+      "fileCount": 3
+    },
+    {
+      "id": "12_prasa_media_i_obieg_informacji",
+      "title": "Prasa Media I Obieg Informacji",
+      "fileCount": 3
+    },
+    {
+      "id": "13_gospodarka_ceny_i_koszty_zycia",
+      "title": "Gospodarka Ceny I Koszty Zycia",
+      "fileCount": 3
+    },
+    {
+      "id": "14_architektura_przestrzen_i_infrastruktura",
+      "title": "Architektura Przestrzen I Infrastruktura",
+      "fileCount": 3
+    },
+    {
+      "id": "15_nauka_biblioteki_i_dostep_do_wiedzy",
+      "title": "Nauka Biblioteki I Dostep Do Wiedzy",
+      "fileCount": 3
+    },
+    {
+      "id": "16_wojsko_sluzby_i_dostep_do_broni",
+      "title": "Wojsko Sluzby I Dostep Do Broni",
+      "fileCount": 3
+    }
+  ],
+  "updatedAt": "2026-07-21T17:25:30.384Z",
+  "totalArticles": 29
+}

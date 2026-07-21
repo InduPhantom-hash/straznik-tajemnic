@@ -203,6 +203,11 @@ export async function indexTexts(
       failed++;
     }
 
+    // Co 5 chunków dajemy krótką pauzę 50ms, aby uniknąć przeciążenia API/rate-limit
+    if (i > 0 && i % 5 === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
     onProgress?.(i + 1, items.length);
   }
 
