@@ -174,6 +174,10 @@ export interface JournalEntry {
     skillUsed?: string; // Użyta umiejętność
     rollResult?: number; // Wynik rzutu
   };
+  /** Powiązane identyfikatory innych wpisów z dziennika (relacje na Tablicy Dowodów) */
+  linkedEntryIds?: string[];
+  /** Status weryfikacji hipotezy lub dowodu */
+  hypothesisStatus?: 'unverified' | 'confirmed' | 'disproven';
 }
 
 // === SYSTEM EKWIPUNKU (CoC 7e) ===

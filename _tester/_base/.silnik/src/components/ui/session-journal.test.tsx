@@ -178,4 +178,20 @@ describe('SessionJournal', () => {
     expect(latestCharacters[2]).toBe(outside);
     expect(latestCharacters[2].journal).toEqual([outsideEntry]);
   });
+
+  it('przełącza i wyświetla zakładkę Tablica Powiązań (Evidence Graph)', () => {
+    render(
+      <SessionJournal
+        character={PREDEFINED_CHARACTERS[0]}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    const graphTabButton = screen.getByRole('button', { name: 'Tablica Powiązań' });
+    expect(graphTabButton).toBeTruthy();
+    fireEvent.click(graphTabButton);
+
+    expect(screen.getByText('Tablica Dowodów jest pusta')).toBeTruthy();
+  });
 });

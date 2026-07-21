@@ -470,3 +470,21 @@ Branch: main
 
 ### Decyzje podjęte
 - Użycie lekkiego asystenta RAG wewnątrz modalu pomocy bez zanieczyszczania głównego czatu narracyjnego sesji RPG.
+
+## Podsumowanie sesji: 2026-07-21 (Etap 3: Tablica Dowodów Badacza & Graf Powiązań)
+Branch: main
+
+### Co zrobiono
+- **Model Tablicy Dowodów**: Rozszerzono `JournalEntry` w `types.ts` o pola powiązań relacyjnych (`linkedEntryIds`) i statusy weryfikacji hipotez (`hypothesisStatus`).
+- **Komponent `EvidenceGraphView`**: Wdrożono detektywistyczny widok Canvas/SVG z układem okręgowym, pineskami i czerwonymi nitkami łączącymi poszlaki, postaci, lokacje i artefakty.
+- **Nawigacja i UX w Dzienniku**: Dodano zakładkę "Tablica Powiązań" w `SessionJournal`, wydzielono typ `JournalTab`, zaktualizowano formularz `AddEntryForm`, kaskadowe czyszczenie sierot przy usuwaniu oraz wsparcie dla nieprzeczytanych wpisów i eksportu Markdown.
+- **Weryfikacja**: Przeszło 117/117 testów jednostkowych (37/37 plików testowych) oraz kompilacja TypeScript.
+
+### Co otwarte (do następnej sesji)
+- Możliwość automatycznego generowania powiązań między wpisami przez MG (prompt AI / tagi w odpowiedziach czatu).
+- Dalszy rozwój Etapu 0 (zabezpieczony system autoupdate aplikacji z GitHub Releases).
+
+### Decyzje podjęte
+- Wydzielono typ zakładek UI (`JournalTab`) od typu wpisu (`JournalEntryType`), uniemożliwiając ignorowanie wpisów przez filtry.
+- Nitki połączeń renderowane są z unikalnymi parami w Set, chroniąc krawędzie jednokierunkowe.
+

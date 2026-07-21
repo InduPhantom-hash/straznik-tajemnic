@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from './button';
 import { Textarea } from './textarea';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,18 @@ import {
   Download,
 } from 'lucide-react';
 import { Character, JournalEntry, JournalEventType } from '@/lib/types';
+
+// Typ zakładek widoku UI w Dzienniku
+export type JournalTab =
+  | 'quest'
+  | 'journal'
+  | 'encyclopedia_location'
+  | 'encyclopedia_character'
+  | 'encyclopedia_item'
+  | 'note'
+  | 'evidence_graph';
+
+import { EvidenceGraphView } from './journal/evidence-graph-view';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
@@ -95,7 +107,7 @@ export function SessionJournal({
   onUpdateSharedJournal,
   participantNames = [],
 }: SessionJournalProps) {
-  const [activeTab, setActiveTab] = useState<JournalEntryType>('quest');
+  const [activeTab, setActiveTab] = useState<JournalTab>('quest');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(
     null
@@ -158,7 +170,15 @@ export function SessionJournal({
   const deleteEntry = (id: string) => {
     if (!confirm('Czy na pewno chcesz usunąć ten wpis z księgi przygód?'))
       return;
-    const updatedEntries = entries.filter((entry) => entry.id !== id);
+    const updatedEntries = entries
+      .filter((entry) => entry.id !== id)
+      .map((entry) => {
+        if (!entry.linkedEntryIds?.includes(id)) return entry;
+        return {
+          ...entry,
+          linkedEntryIds: entry.linkedEntryIds.filter((linkId) => linkId !== id),
+        };
+      });
     updateCharacterJournal(updatedEntries);
     if (selectedQuestId === id) {
       setSelectedQuestId(null);
@@ -193,7 +213,7 @@ export function SessionJournal({
   }, [entries, journalSeenKey]);
 
   // Resetowanie powiadomień dla danej zakładki po jej aktywacji
-  const markTabAsSeen = useCallback((tab: JournalEntryType) => {
+  const markTabAsSeen = useCallback((tab: JournalTab) => {
     if (!journalSeenKey) return;
     const stored = localStorage.getItem(journalSeenKey);
     const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
@@ -215,12 +235,12 @@ export function SessionJournal({
     localStorage.setItem(journalSeenKey, JSON.stringify(seenData));
   }, [entries, journalSeenKey]);
 
-  // Uruchomienie resetu dla domyślnej zakładki przy otwarciu
-  useState(() => {
+  // Uruchomienie resetu dla domyślnej zakładki przy otwarciu/zmianie
+  useEffect(() => {
     markTabAsSeen(activeTab);
-  });
+  }, [activeTab, markTabAsSeen]);
 
-  const handleTabChange = (tab: JournalEntryType) => {
+  const handleTabChange = (tab: JournalTab) => {
     setActiveTab(tab);
     markTabAsSeen(tab);
     if (tab === 'quest') {
@@ -475,6 +495,17 @@ export function SessionJournal({
                 </span>
               )}
             </button>
+            <button
+              onClick={() => handleTabChange('evidence_graph')}
+              className={cn(
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                activeTab === 'evidence_graph'
+                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
+                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+              )}
+            >
+              Tablica Powiązań
+            </button>
           </div>
 
           {/* Narzędzia i Przyciski */}
@@ -527,6 +558,13 @@ export function SessionJournal({
 
         {/* Zawartość zakładek */}
         <div className="flex-1 flex overflow-hidden bg-[#18120c] text-[#e2d4c9]">
+          {/* TABLICA POWIĄZAŃ */}
+          {activeTab === 'evidence_graph' && (
+            <div className="flex-1 p-4 overflow-y-auto">
+              <EvidenceGraphView entries={entries} />
+            </div>
+          )}
+
           {/* 1. SEKCJA MISJI */}
           {activeTab === 'quest' && (
             <div className="flex-1 flex overflow-hidden">
@@ -1030,7 +1068,7 @@ export function SessionJournal({
           onCancel={() => setShowAddForm(false)}
           categories={categories}
           defaultTags={defaultTags}
-          initialType={activeTab}
+          initialType={activeTab === 'evidence_graph' ? 'note' : activeTab}
         />
       )}
 
@@ -1077,6 +1115,7 @@ function AddEntryForm({
     gameHour: 12,
     questStatus: 'active' as 'active' | 'completed' | 'failed',
     objectives: [] as QuestObjective[],
+    hypothesisStatus: 'unverified' as 'unverified' | 'confirmed' | 'disproven',
   });
   const [newTag, setNewTag] = useState('');
   const [newObjective, setNewObjective] = useState('');
@@ -1230,6 +1269,29 @@ function AddEntryForm({
               </select>
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              Status hipotezy / weryfikacji
+            </label>
+            <select
+              value={formData.hypothesisStatus || 'unverified'}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  hypothesisStatus: e.target.value as
+                    | 'unverified'
+                    | 'confirmed'
+                    | 'disproven',
+                })
+              }
+              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+            >
+              <option value="unverified">W trakcie weryfikacji (Hipoteza)</option>
+              <option value="confirmed">Potwierdzony fakt</option>
+              <option value="disproven">Obalony trop</option>
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
