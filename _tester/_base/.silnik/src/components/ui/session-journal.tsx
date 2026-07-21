@@ -555,8 +555,11 @@ export function SessionJournal({
                     </button>
                   ))}
                   {activeQuests.length === 0 && (
-                    <div className="text-sm text-center py-6 text-[#8a7667] italic">
-                      Brak aktywnych misji
+                    <div className="text-sm text-center py-6 px-3 text-[#8a7667] italic space-y-2 border border-dashed border-[#3a2518] rounded-md my-2">
+                      <p>Brak aktywnych misji w dzienniku.</p>
+                      <p className="text-xs text-[#a89078] not-italic">
+                        Misje pojawią się automatycznie w trakcie narracji MG lub gdy dodasz własną notatkę z zakładki Notatki.
+                      </p>
                     </div>
                   )}
                 </div>

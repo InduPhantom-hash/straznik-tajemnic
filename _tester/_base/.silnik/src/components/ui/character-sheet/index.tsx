@@ -101,10 +101,9 @@ export function CharacterSheet({
     });
   }, [character]);
 
-  // 2) Hydratacja obrazów z IndexedDB - tylko przy zmianie postaci (ID).
-  //    Oddzielny efekt, żeby nie odpalać IO przy każdej edycji HP/SAN.
+  // 2) Hydratacja obrazów z IndexedDB - przy zmianie postaci (ID) lub przy otwarciu dialogu (open).
   useEffect(() => {
-    if (!characterId || !character) return;
+    if (!characterId || !character || !open) return;
     let cancelled = false;
     hydrateCharacterImages([character]).then((arr) => {
       if (!cancelled && arr[0]) setDisplayCharacter(arr[0]);
@@ -113,7 +112,7 @@ export function CharacterSheet({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characterId]);
+  }, [characterId, open]);
 
   // FEATURE:#5 - Eksport karty postaci do Markdown
   // FEATURE:#10 - Przełączanie postaci (character selector dropdown)

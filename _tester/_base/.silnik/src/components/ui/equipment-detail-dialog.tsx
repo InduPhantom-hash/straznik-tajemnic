@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from './button';
 import { EquipmentItem } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
+import { generateItemLore, generateVisualDescription } from '@/lib/character/item-helpers';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { Loader2 } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
@@ -255,9 +256,17 @@ export function EquipmentDetailDialog({
         )}
         {getItemMechanics(item).length === 0 &&
           !item.description && !isDocument && (
-            <p className="font-serif italic text-sm text-muted-foreground/70">
-              Przedmiot fabularny - bez dodatkowej mechaniki.
-            </p>
+            <div className="space-y-2 border-t border-brass/20 pt-3">
+              <div className="font-display uppercase tracking-[0.16em] text-brass text-xs">
+                Opis przedmiotu
+              </div>
+              <p className="font-serif italic text-sm text-foreground/90 leading-relaxed">
+                {generateItemLore(item.name)}
+              </p>
+              <p className="font-special-elite text-xs text-muted-foreground/80">
+                Wygląd: {generateVisualDescription(item.name)}
+              </p>
+            </div>
           )}
       </div>
     </div>

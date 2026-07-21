@@ -103,13 +103,14 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
     try {
       const res = await fetchWithTimeout(
         `/api/pricing/refresh${force ? '?force=true' : ''}`,
-        { headers: getApiKeyHeaders() }
+        { headers: getApiKeyHeaders() },
+        25000 // Tier A pobiera HTML i wywołuje LLM (Gemini Flash)
       );
       const data = (await res.json()) as PricingRefreshResponse;
       setPricing(data);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setPricingError('Przekroczono limit czasu (8s)');
+        setPricingError('Przekroczono limit czasu (25s)');
       } else {
         setPricingError('Błąd połączenia sieciowego');
       }
