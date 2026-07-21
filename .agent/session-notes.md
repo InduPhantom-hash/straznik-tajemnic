@@ -1,6 +1,21 @@
 # Session Notes
 
-## Podsumowanie sesji: 2026-07-20 (Wdrożenie walki fabularnej i ukrytej inicjatywy)
+## Podsumowanie sesji: 2026-07-21 (Optymalizacja uploadu PDF i obsługa Gemini File API)
+Branch: main
+
+### Co zrobiono
+- **Zdiagnozowano i naprawiono zawieszanie/przerywanie uploadu PDF** na etapie Zasad i Przygód (problem zgłoszony na pliku 8 MB starter).
+- **Gemini File API (Polling)**: Wdrożono pętlę pollingującą stan `ACTIVE` dla przesłanych plików PDF w `uploadNativePDFToGemini` w `_tester/_base/.silnik/src/lib/gemini-file-service.ts`.
+- **Throttling Embeddingów**: Dodano bezpieczne opóźnienie (50ms co 5 chunków) w pętli `indexTexts` w `_tester/_base/.silnik/src/lib/vector-db/indexing-service.ts`, wyeliminowawszy przekraczanie rate-limitów HTTP API przy indeksowaniu lokalnym.
+- **Weryfikacja**: Pomyślnie przebudowano całą aplikację za pomocą `npm run build` (61/61 stron wygenerowano poprawnie). Zaktualizowano `issues.md` oraz `state.md`.
+
+### Co otwarte (do następnej sesji)
+- Kontynuacja Etapu 2 (Lokalny Pipeline Przygody): Rozszerzona ekstrakcja z PDF do JSON (NPC, lokacje, mapy, przedmioty fabularne).
+
+### Decyzje podjęte
+- Polling stanu pliku w Gemini jest niezbędny przed zwróceniem fileUri do gracza, aby uniknąć błędów przy zapytaniach próbujących odwoływać się do pliku w stanie `PROCESSING`.
+
+
 Branch: main
 
 ### Co zrobiono
