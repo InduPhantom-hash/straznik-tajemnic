@@ -510,6 +510,19 @@ export function SessionJournal({
               <Plus className="h-4 w-4 mr-1" /> Dodaj notatkę
             </Button>
             <Button
+              onClick={() => {
+                import('@/lib/test-journal-data').then(({ MOCK_JOURNAL_ENTRIES, MOCK_BOARD_NODES, MOCK_BOARD_RELATIONS }) => {
+                  updateCharacterJournal([...MOCK_JOURNAL_ENTRIES, ...entries]);
+                  setBoardNodes(MOCK_BOARD_NODES);
+                  setBoardRelations(MOCK_BOARD_RELATIONS);
+                });
+              }}
+              className="bg-[#3a2518] hover:bg-[#503422] text-[#bfa15f] border border-[#bfa15f]/40 font-serif text-xs"
+              title="Wypełnij dziennik przykładowymi wpisami testowymi"
+            >
+              🧪 Wypełnij testowo
+            </Button>
+            <Button
               onClick={exportToMarkdown}
               className="bg-[#2c4021] hover:bg-[#39532b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
             >
@@ -999,47 +1012,56 @@ export function SessionJournal({
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
             <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
-              <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-[#120905] border border-[#3a2518] shadow-sm rounded-lg p-5 flex flex-col justify-between min-h-[220px]"
+                    className="bg-[#120905] border border-[#3a2518] hover:border-[#bfa15f]/50 transition-all shadow-md rounded-lg p-5 flex flex-col justify-between min-h-[220px] group"
                   >
                     <div>
-                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2 mb-3">
-                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0]">
+                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2.5 mb-3">
+                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0] group-hover:text-[#bfa15f] transition-colors leading-snug">
                           {entry.title}
                         </h4>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5 flex-none ml-2">
                           <button
                             onClick={() => setEditingEntry(entry)}
-                            className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
+                            className="p-1 text-[#a29182] hover:text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
+                            title="Edytuj notatkę"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => deleteEntry(entry.id)}
-                            className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
+                            className="p-1 text-[#ff6b6b]/70 hover:text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
+                            title="Usuń notatkę"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap line-clamp-6">
+                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9]/90 whitespace-pre-wrap">
                         {entry.content}
                       </p>
                     </div>
 
-                    <div className="text-[11px] text-[#8a7667] border-t border-[#3a2518] pt-2 mt-4 flex justify-between items-center">
+                    <div className="text-xs text-[#8a7667] border-t border-[#3a2518]/70 pt-2.5 mt-4 flex justify-between items-center font-special-elite">
                       <span>
                         📅{' '}
                         {entry.inGameDate ||
                           new Date(entry.timestamp).toLocaleDateString('pl-PL')}
                       </span>
                       {entry.tags && entry.tags.length > 0 && (
-                        <span className="truncate max-w-[120px] text-right">
-                          #{entry.tags[0]}
-                        </span>
+                        <div className="flex gap-1 flex-wrap justify-end">
+                          {entry.tags.slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] bg-[#3a2518]/60 text-[#bfa15f] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
