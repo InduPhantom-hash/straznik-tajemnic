@@ -264,7 +264,7 @@ export async function runChatPipeline({
 
   if (message.includes('[KONIEC_SESJI]')) {
     additionalContext.push(
-      '[INSTRUKCJA SPECJALNA - KONIEC SESJI]: Gracz zgłosił zakończenie sesji. Zakończ fabułę klimatycznym, zwięzłym podsumowaniem (1-2 akapity) w stylu Lovecrafta z cliffhangerem lub refleksją badacza. Na samym końcu wypowiedzi, w osobnej linii, wypisz DOKŁADNIE: [KONIEC_SESJI:POTWIERDZENIE]. Nie dodawaj pytania "Co robisz?".'
+      '[INSTRUKCJA SPECJALNA - KONIEC SESJI]: Gracz zgłosił zakończenie sesji. Zakończ fabułę NAGLE. Utnij akcję w piku emocjonalnym (cliffhanger). Stwórz niepokojące, mroczne pytanie dramaturgiczne zawieszone w próżni (np. "Czy zdołasz otworzyć te drzwi, zanim..." lub "W ułamku sekundy światło gaśnie..."). Na samym końcu wypowiedzi, w osobnej linii, wypisz DOKŁADNIE: [KONIEC_SESJI:POTWIERDZENIE]. Nie dodawaj pytania "Co robisz?".'
     );
   }
 

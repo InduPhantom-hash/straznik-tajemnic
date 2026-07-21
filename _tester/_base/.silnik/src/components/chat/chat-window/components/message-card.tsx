@@ -145,12 +145,22 @@ export function MessageCard({
             </div>
             {/* Formatowanie wiadomości - różne dla MG vs gracza */}
             {message.role === 'assistant' ? (
-              <NarrativeFormatter
-                content={message.content}
-                className="text-[18px] leading-relaxed font-special-elite"
-                playerColors={playerColors}
-                onImageClick={onImageClick}
-              />
+              <>
+                <NarrativeFormatter
+                  content={message.content}
+                  className="text-[18px] leading-relaxed font-special-elite"
+                  playerColors={playerColors}
+                  onImageClick={onImageClick}
+                />
+                {message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') && (
+                  <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
+                    <p className="font-semibold text-red-400 mb-1">𓂀 KRONIKA ZAPISANA 𓂀</p>
+                    <p className="italic">
+                      "Mrok nie śpi, a cienie Arkham wydłużają się w nieskończoność. Dziękujemy za wspólną sesję..."
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="text-[18px] leading-relaxed font-special-elite break-words overflow-wrap-anywhere whitespace-pre-wrap chat-message">
                 {cleanMarkdown(message.content)}

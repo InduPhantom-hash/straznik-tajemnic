@@ -133,6 +133,11 @@ export interface Message {
   generatedImageCacheIds?: string[];
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
   acquiredItems?: AcquiredItemProposal[];
+  cliffhanger?: {
+    question: string;
+    type: 'dramatic_question' | 'external_event' | 'dilemma';
+    options?: string[];
+  };
 }
 
 // Typy wydarzeń dziennika sesji
@@ -743,4 +748,25 @@ export interface AdventureContext {
   // Files
   geminiFileUri?: string;
   fileUrl?: string;
+
+  // Dynamic Setup & Conflicts (Bunkry Nieliniowości z poradników)
+  conflicts?: AdventureConflict[];
+  setupAsymmetry?: {
+    rumors: string[];         // Lista sprzecznych plotek rozdawanych postaciom
+    characterHooks: Array<{ characterId: string; personalHook: string }>;
+  };
 }
+
+export interface ConflictFaction {
+  id: string;
+  name: string;
+  description: string;
+  goal: string;         // Czego pożąda w konflikcie
+  motivation: string;   // Dlaczego (motywacja)
+}
+
+export interface AdventureConflict {
+  factions: ConflictFaction[]; // Min. 2 sprzeczne strony
+  resource: string;            // Wspólny punkt zderzenia (np. las, przedmiot, wiedza)
+}
+

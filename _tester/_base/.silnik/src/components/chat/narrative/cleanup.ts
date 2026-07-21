@@ -65,6 +65,7 @@ export function cleanupContent(content: string): string {
     .replace(/\[DZIENNIK:[^\]]*\][\s\S]*?\[\/DZIENNIK\]/gi, '')
     .replace(/\[DZIENNIK:[^\]]*\]/gi, '')
     .replace(/\[\/DZIENNIK\]/gi, '')
+    .replace(/\[KONIEC_SESJI:POTWIERDZENIE\]/gi, '')
     // IND-224: warianty BEZ nawiasów lub niedomknięte (Flash gubi `[`/`]`) - strip
     // całej linii nagłówka tagu protokołu. Bez tego przeciekają do czatu, a linia
     // "DZIENNIK:..." myli parser (brana za handout newspaper → fałszywy "WYCINEK
