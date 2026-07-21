@@ -16,10 +16,13 @@ import {
   Circle,
   Download,
 } from 'lucide-react';
-import { Character, JournalEntry, JournalEventType } from '@/lib/types';
+import { InvestigatorBoard } from './investigator-board';
+import { EvidenceNode, EvidenceRelation } from '@/types/investigator-board';
+import { convertEntriesToBoardNodes } from '@/lib/journal-storage';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
+  | 'board'
   | 'quest'
   | 'journal'
   | 'encyclopedia_location'
@@ -95,7 +98,7 @@ export function SessionJournal({
   onUpdateSharedJournal,
   participantNames = [],
 }: SessionJournalProps) {
-  const [activeTab, setActiveTab] = useState<JournalEntryType>('quest');
+  const [activeTab, setActiveTab] = useState<JournalEntryType>('board');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(
     null
@@ -105,6 +108,15 @@ export function SessionJournal({
   const [encyclopediaSubTab, setEncyclopediaSubTab] = useState<
     'location' | 'character' | 'item'
   >('character');
+
+  // Stan Tablicy Badacza
+  const initialNodes = useMemo(() => {
+    const rawEntries = (sharedJournal ?? character.journal ?? []) as unknown as JournalEntry[];
+    return convertEntriesToBoardNodes(rawEntries);
+  }, [character.journal, sharedJournal]);
+
+  const [boardNodes, setBoardNodes] = useState<EvidenceNode[]>(initialNodes);
+  const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>([]);
 
   const isShared = sharedJournal !== undefined;
 
@@ -167,12 +179,10 @@ export function SessionJournal({
 
   // Śledzenie nieprzeczytanych wpisów w konkretnych zakładkach
   const journalSeenKey = isShared
-    ? `unseen_journal_detail_${participantNames.sort().join('_')}`
-    : activeCharacter
-      ? `unseen_detail_${activeCharacter.id}`
-      : character
-        ? `unseen_detail_${character.id}`
-        : null;
+    ? `unseen_journal_detail_${[...participantNames].sort().join('_')}`
+    : character
+      ? `unseen_detail_${character.id}`
+      : null;
 
   const unseenCounts = useMemo(() => {
     if (!journalSeenKey) return { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
@@ -415,6 +425,17 @@ export function SessionJournal({
           {/* Zakładki na górze */}
           <div className="flex bg-[#120b07] p-1 rounded-lg border border-[#3a2518]">
             <button
+              onClick={() => handleTabChange('board')}
+              className={cn(
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                activeTab === 'board'
+                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
+                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+              )}
+            >
+              📌 Tablica Badacza
+            </button>
+            <button
               onClick={() => handleTabChange('quest')}
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
@@ -530,6 +551,18 @@ export function SessionJournal({
 
         {/* Zawartość zakładek */}
         <div className="flex-1 flex overflow-hidden bg-[#18120c] text-[#e2d4c9]">
+          {/* 0. SEKCJA TABLICY BADACZA */}
+          {activeTab === 'board' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <InvestigatorBoard
+                nodes={boardNodes}
+                relations={boardRelations}
+                onUpdateNodes={setBoardNodes}
+                onUpdateRelations={setBoardRelations}
+              />
+            </div>
+          )}
+
           {/* 1. SEKCJA MISJI */}
           {activeTab === 'quest' && (
             <div className="flex-1 flex overflow-hidden">

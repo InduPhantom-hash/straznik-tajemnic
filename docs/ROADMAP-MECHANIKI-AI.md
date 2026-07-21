@@ -101,9 +101,9 @@ Zależności: decyzja o lokalnym RAG jako jedynym docelowym magazynie; nie zale�
 
 ### Programistyczne
 
-- [ ] Przebudować Dziennik Śledztwa w automatycznie aktualizowaną Tablicę Badacza: dowody, poszlaki, podejrzani, lokacje i powiązania między nimi, z możliwością ręcznego dodawania, edycji i oznaczania niepewności.
-- [ ] Powiązać Tablicę Badacza z ekstrakcją encji z przygody i wpisami generowanymi podczas sesji; każda krawędź i element muszą zachowywać źródło, czas odkrycia oraz status (potwierdzone / hipoteza / obalone).
-- [ ] Zapisywać stan Tablicy Badacza w save'ach i synchronizować go w Dzienniku Przygody trybu Hot Seat, bez traktowania narracji AI jako jedynego źródła prawdy.
+- [x] Przebudować Dziennik Śledztwa w automatycznie aktualizowaną Tablicę Badacza: dowody, poszlaki, podejrzani, lokacje i powiązania między nimi, z możliwością ręcznego dodawania, edycji i oznaczania niepewności.
+- [x] Powiązać Tablicę Badacza z ekstrakcją encji z przygody i wpisami generowanymi podczas sesji; każda krawędź i element muszą zachowywać źródło, czas odkrycia oraz status (potwierdzone / hipoteza / obalone).
+- [x] Zapisywać stan Tablicy Badacza w save'ach i synchronizować go w Dzienniku Przygody trybu Hot Seat, bez traktowania narracji AI jako jedynego źródła prawdy.
 - [ ] Wyświetlanie map z lokalnym zapisem w ekwipunku.
 - [x] Wlaczanie danych Daylight, Prices i Historical News do kontekstu MG tylko wtedy, gdy sa dostepne.
 - [x] Dodac oznaczenie zrodla danych i daty pobrania.

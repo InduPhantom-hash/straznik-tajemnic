@@ -1,6 +1,23 @@
 # Session Notes
 
-## Podsumowanie sesji: 2026-07-21 (Ekstrakcja Przygody PDF z Gemini 3.6 Flash & Baseline Gemini 3.6 Flash)
+## Podsumowanie sesji: 2026-07-21 (Etap 3: Wdrożenie Tablicy Badacza / Investigator Evidence Board)
+Branch: main
+
+### Co zrobiono
+- **Typy i Model danych Tablicy Badacza:** Stworzono `src/types/investigator-board.ts` określający strukturę węzłów (`EvidenceNode`), krawędzi (`EvidenceRelation`) oraz statusów pewności faktów (`confirmed`, `hypothesis`, `refuted`).
+- **Lokalne Storage & API Dziennika:** Utworzono helper `src/lib/journal-storage.ts` zapewniający bezpieczny zapis JSON w `data/journals/` bez Path Traversal oraz automatyczną konwersję notatek `JournalEntry`. Przebudowano `/api/journal/route.ts` na czysty zapis plikowy, całkowicie eliminując powiązania z `GoogleCloudStorage`.
+- **Wizualna Tablica Badacza:** Zbudowano komponent `InvestigatorBoard.tsx` (stylizowany w klimacie korkowej tablicy ze szpilkami, kartami dowodów w 5 typach oraz czerwonymi sznurkami śledczymi w SVG).
+- **Zintegrowanie z Dziennikiem (`SessionJournal.tsx`):** Osadzono Tablicę Badacza jako pierwszą, domyślną zakładkę ("📌 Tablica Badacza"). Naprawiono odwołanie do `activeCharacter`.
+- **Testy i Weryfikacja:** Dodano testy jednostkowe `investigator-board.test.tsx` (116/116 Jest PASS), kompilację TypeScript oraz produkcyjny build Next.js (`npm run build` - 61/61 wygenerowanych stron).
+- **Aktualizacja Trackerów:** Zaktualizowano `docs/ROADMAP-MECHANIKI-AI.md` oraz `_pamiec/aktualny.md`.
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie manualnych testów w przeglądarce pod kątem naciągania połączeń między dowodami na tablicy.
+- Dalsze rozszerzenia Etapu 3 (podgląd map z ekwipunku).
+
+### Decyzje podjęte
+- Wyeliminowanie GCS na rzecz lokalnego zapisu plikowego w `data/journals/`.
+- Domyślne otwieranie Dziennika na zakładce Tablicy Badacza dla maksymalnej immersji detektywistycznej.
 Branch: main
 
 ### Co zrobiono
