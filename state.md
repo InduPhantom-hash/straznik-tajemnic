@@ -1,6 +1,6 @@
 # 🎯 State & Feature Tracker: Strażnik Tajemnic AI
 
-> **Aktualny status projektu:** Etap 1 Ukończony | Etap 2 (Pipeline przygody) & Etap 3 (Immersja) w trakcie | Rekomendowany najbliższy krok: **Etap 3.5 (Pomoc & Encyklopedia / RAG)**
+> **Aktualny status projektu:** Etap 1 Ukończony | Etap 3.5 (HelpModal & Encyklopedia) Ukończony | Etap 2 (Pipeline przygody) & Etap 3 (Immersja) w trakcie | Rekomendowany najbliższy krok: **Etap 3 (Automatyczna Tablica Badacza)**
 
 ---
 

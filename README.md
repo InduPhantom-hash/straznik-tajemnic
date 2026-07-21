@@ -101,9 +101,9 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 
 | Preset      | Model czatu      | Lektor         | Obrazy          |
 | ----------- | ---------------- | -------------- | --------------- |
-| **LOW**     | Gemini Flash     | brak           | Gemini          |
-| **MID**     | Gemini Flash     | Google TTS     | Gemini          |
-| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS     | Gemini / Vertex |
+| **LOW**     | Gemini 3.6 Flash | brak           | Gemini          |
+| **MID**     | Gemini 3.6 Flash | Gemini TTS     | Gemini          |
+| **HIGH** ⭐ | Gemini 3.6 Flash / 2.5 | Gemini TTS | Gemini / Vertex |
 | **ULTRA**   | Gemini Pro       | Gemini Pro TTS | Gemini / Vertex |
 
 ## 🔧 Technologie

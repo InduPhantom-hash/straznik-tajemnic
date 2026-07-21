@@ -436,3 +436,20 @@ Branch: `feature/immersion-context-injection-fixes`
 
 ### Decyzje podjęte
 - Wyeliminowano poleganie na chmurowych plikach/urlach PDF (Rules/Adventure) – cała logika opiera się wyłącznie o lokalny RAG Float32 i Gemini File API (gdzie pliki żyją tymczasowo w chmurze Gemini bez obciążania storage GCS).
+
+## Podsumowanie sesji: 2026-07-21 (Etap 3.5: Encyklopedia Gracza & HelpModal RAG)
+Branch: main
+
+### Co zrobiono
+- **Rozbudowano Modal Pomocy (`HelpModal.tsx`):** Dodano stylizację w klimacie Lovecrafta, 5 pełnoprawnych zakładek, lazy-loading oraz obsługę zamykania klawiszem `Esc`.
+- **Wdrożono `BestiaryRulesTab.tsx`:** Przejrzysty moduł ze skrótem zasad CoC 7e (k100, SAN) oraz zintegrowany Bestiariusz Mitów z opcją wyszukiwania stworów.
+- **Wdrożono `HelpAssistantTab.tsx`:** Interaktywną pytajkę AI (RAG Assistant) odpowiadającą na pytania o mechanikę i lore w izolowanym modale.
+- **Napisano testy jednostkowe (`HelpModal.test.tsx`):** 5 nowych testów (łączny pakiet: 116 PASS).
+- **Zintegrowano w silniku aplikacji:** Osadzono `HelpModal` w `_tester/_base/.silnik/src/app/page.tsx` oraz zweryfikowano pełny build produkcyjny (61/61 wygenerowanych stron).
+- **Zaktualizowano tracker projektu (`state.md`):** Oznaczono Etap 3.5 na 100% DONE.
+
+### Co otwarte (do następnej sesji)
+- **Etap 3:** Przebudowa Dziennika na automatycznie aktualizowaną Tablicę Badacza (dowody, poszlaki, hipotezy i relacje) zasilaną danymi z `data/adventures/{adventureId}.json`.
+
+### Decyzje podjęte
+- Użycie lekkiego asystenta RAG wewnątrz modalu pomocy bez zanieczyszczania głównego czatu narracyjnego sesji RPG.

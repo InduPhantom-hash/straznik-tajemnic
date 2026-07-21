@@ -108,6 +108,16 @@ const ApiKeysModal = dynamic(
   }
 );
 
+const HelpModal = dynamic(
+  () =>
+    import('@/components/help-modal/HelpModal').then((mod) => ({
+      default: mod.HelpModal,
+    })),
+  {
+    ssr: false,
+  }
+);
+
 // Fala 2 - kreator pierwszego uruchomienia (klucz Gemini → podręcznik → indeks lokalny)
 const FirstRunWizard = dynamic(
   () =>
@@ -212,6 +222,7 @@ export default function Home() {
   const [activeGMTool, setActiveGMTool] = useState<string | null>(null);
   const [showHotSeatSetup, setShowHotSeatSetup] = useState(false);
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   // Fala 2: kreator pierwszego uruchomienia (klucz Gemini → podręcznik → indeks lokalny)
   const [showFirstRunWizard, setShowFirstRunWizard] = useState(false);
   // "Nowa przygoda" z opcją zapisu: gdy true, po udanym zapisie resetujemy do kreatora
@@ -1051,6 +1062,10 @@ export default function Home() {
           unavailablePresetIds={unavailablePresetIds}
         />
       )}
+      <HelpModal
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+      />
     </ChatLayout>
   );
 }

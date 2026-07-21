@@ -42,7 +42,7 @@ To celowo aplikacja jednoinstancyjna - stąd dopuszczalne singletony modułowe i
 
 Wszystko opiera się o **rodzinę Gemini API** (jeden klucz):
 
-- **Czat** (Mistrz Gry) - model wg presetu (Flash / Pro), przez provider
+- **Czat** (Mistrz Gry) - domyślnie `gemini-3.6-flash` (lub wg presetu Flash / Pro), przez provider
   `src/lib/ai-providers/gemini-provider.ts`, streaming SSE.
 - **Embeddingi** - `gemini-embedding-001` (3072 dim) do RAG.
 - **Lektor** - Gemini TTS (`/api/tts/gemini`); opcjonalnie Google Cloud TTS.
