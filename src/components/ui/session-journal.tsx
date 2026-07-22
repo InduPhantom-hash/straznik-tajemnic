@@ -410,9 +410,7 @@ export function SessionJournal({
             <BookOpen className="h-7 w-7 text-[#bfa15f]" />
             <div>
               <h2 className="text-2xl font-serif font-bold tracking-wider text-[#f4ebd0] drop-shadow-md">
-                {isShared
-                  ? 'DZIENNIK PRZYGODY'
-                  : `DZIENNIK SESJI (${character.name.toUpperCase()})`}
+                DZIENNIK SESJI
               </h2>
               {isShared && participantNames.length > 0 && (
                 <p className="text-xs font-special-elite tracking-wider text-[#bfa15f]">
@@ -551,14 +549,6 @@ export function SessionJournal({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-sm w-full outline-none text-[#e2d4c9] placeholder-[#5a4d43]"
             />
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#2a1b12] border border-[#bfa15f]/30 rounded-md shadow-sm">
-            <span className="text-[11px] font-serif uppercase tracking-wider text-[#bfa15f] font-semibold">
-              Baza Badacza:
-            </span>
-            <span className="text-xs font-special-elite text-[#f4ebd0]">
-              {character.name}
-            </span>
           </div>
         </div>
 

@@ -506,4 +506,22 @@ Branch: main
 - Tag stanu przedmiotu nie powinien przesłaniać opisu – opis jest zawsze priorytetem w UI.
 - Dodanie przycisku ładującego gotowe mocki w Dzienniku ułatwia szybkie testowanie i prezentację widoków.
 
+## Podsumowanie sesji: 2026-07-22 (Etap 3: Dynamiczny i Klimatyczny Wskaźnik Pogody)
+Branch: main
+
+### Co zrobiono
+- **System Pogody (Klimat > Fakty)**: Wdrożenie 2-poziomowego systemu pogody, w którym decyzje AI Mistrza Gry (`[POGODA:]`) oraz klimat scenariusza mają priorytet nad surowymi danymi archiwów pogody.
+- **Aktualizacja stanu (`timeManager`)**: Dodanie pola `currentWeather`, obsługi w `localStorage` oraz metod `getWeather()` i `setWeather()`.
+- **Wyłapywanie Tagu (`cleanup.ts`)**: Tag `[POGODA: ...]` w narracji MG zrzuca nową pogodę do silnika i znika z tekstu wiadomości oraz TTS.
+- **Pasek Statusu (`CampaignClock`)**: Prezentacja ikony pogody z tooltipem i dopasowaniem zjawisk (deszcz, śnieg, burza, mgła, słońce).
+- **LLM & Imagen**: Wstrzyknięcie aktualnej pogody do `buildTimeContext` oraz uwzględnienie pogody w instrukcji spójności ilustracji scen (`image-instructions.ts`).
+- **Testy i Weryfikacja**: Dodanie pakietu testów `time-manager.test.ts`. Przejście wszystkich 38/38 zestawów testowych (121/121 testów).
+
+### Co otwarte (do następnej sesji)
+- Wybór kolejnego elementu z roadmapy (np. dyktowanie głosu STT lub rozbudowa wycięć narracyjnych).
+
+### Decyzje podjęte
+- Klimat i wola narracyjna Mistrza Gry zawsze stają ponad surowymi danymi historycznymi API.
+
+
 

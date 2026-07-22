@@ -13,7 +13,7 @@ describe('SessionJournal', () => {
     jest.restoreAllMocks();
   });
 
-  it('oznacza scalony dziennik jako wspólny Dziennik Przygody', () => {
+  it('oznacza scalony dziennik jako wspólny Dziennik Sesji', () => {
     render(
       <SessionJournal
         character={PREDEFINED_CHARACTERS[0]}
@@ -25,7 +25,7 @@ describe('SessionJournal', () => {
       />
     );
 
-    expect(screen.getByText('DZIENNIK PRZYGODY')).toBeTruthy();
+    expect(screen.getByText('DZIENNIK SESJI')).toBeTruthy();
     expect(screen.getByText('Wspólny dla: Aga i Jakub')).toBeTruthy();
   });
 
