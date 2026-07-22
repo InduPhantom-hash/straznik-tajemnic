@@ -602,4 +602,7 @@ Branch: main
 ### Decyzje podjęte
 - Gracz zawsze musi posiadać zwalidowany klucz Gemini API oraz wczytany podręcznik PDF (lub indeks zasad).
 - Quick Setup automatycznie tworzy i zapisuje postać oraz przygodę bez przechodzenia przez długie menu tworzenia.
+- Wymuszanie onboardingu (`onboarding_completed` w localStorage): Przy Zimnym Starcie (`/zew-zimny` / `desktop/cold-start.sh`) wyczyszczenie `localStorage` automatycznie otwiera okno Onboardingu `FirstRunWizard`.
+- Dodano nowego skilla systemowego `zew-zimny` do wykonywania pełnego resetu środowiska gry.
+
 
