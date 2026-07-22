@@ -1,5 +1,22 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-22 (Fix Promptów Otwarcia dla Dwóch Graczy)
+Branch: main
+
+### Co zrobiono
+- **Fix payloadu startowego**: Dołączono `hotSeatConfig` oraz `characters` w żądaniu `POST /api/chat` podczas startu gry w `useGameStart.ts`.
+- **Znoszenie sprzeczności promptów**: Wyłączono domyślną sekcję `POSTAĆ GRACZA (STERUJE CZŁOWIEK)` w `build-context.ts` podczas gry w trybie Hot Seat z 2+ postaciami, eliminując sprzeczność instrukcji jednoosobowych z drużynowymi.
+- **Generator setupu**: Rozszerzono `setup/route.ts` o generowanie obiektu `duetCohesion` (`sharedRelationship`, `sharedIncitingIncident`).
+- **Dokumentacja i RAG**: Zaktualizowano `docs/MAPA-POWIAZAN.md`, sprawdzono brak różnic w `default-gm-prompt.md`, wykonano kompilację i testy.
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie manualnego testu sesji dla dwóch graczy w nowej wersji desktopowej.
+
+### Decyzje podjęte
+- Postacie w trybie Hot Seat są dopasowywane po `characterId` oraz jako fallback po `playerName`, by wyeliminować opóźnienie przed pierwszym re-renderem stanu w React.
+
+---
+
 ## Podsumowanie sesji: 2026-07-22 (Przywrócenie Przełącznika Obrazów i Poprawki Czatu)
 Branch: main
 

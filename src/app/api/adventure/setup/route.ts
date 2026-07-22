@@ -86,11 +86,15 @@ Przekształć tę przygodę w nieliniową strukturę konfliktu (Bunkier) i wygen
         "characterId": "ID postaci (przepisz z wejścia dla kogo to jest)",
         "personalHook": "Indywidualny sekret lub osobisty powód zaangażowania w śledztwo, powiązany z tłem postaci i przygody"
       }
-    ]
+    ],
+    "duetCohesion": {
+      "sharedRelationship": "Wspólny mianownik / relacja spajająca badaczy (dlaczego pracują/podróżują razem)",
+      "sharedIncitingIncident": "Wydarzenie otwierające, które sprowadziło ich oboje w to konkretne miejsce i czas"
+    }
   }
 }
 
-Wygeneruj 1-2 główne konflikty oraz asymetryczne haczyki dla każdego z przesłanych badaczy. Odpowiedz wyłącznie czystym kodem JSON.`;
+Wygeneruj 1-2 główne konflikty, asymetryczne haczyki oraz spójność dla drużyny (duetCohesion). Odpowiedz wyłącznie czystym kodem JSON.`;
 
     const genAI = getGenAI(apiKey);
 

@@ -119,7 +119,7 @@ export function useGameStart({
     const allPlayerCharacters = isHotSeat
       ? hotSeatConfig.players
           .map((p: HotSeatPlayer) =>
-            characters.find((c) => c.id === p.characterId)
+            characters.find((c) => c.id === p.characterId || c.playerName === p.name)
           )
           .filter((c): c is Character => !!c)
       : activeCharacter
@@ -160,27 +160,40 @@ export function useGameStart({
     // dla kogoś, kto nie zna Lovecrafta ani CoC - świat + miejsce + czas, potem hook.
     // Działa wyłącznie na tę jedną turę (wiadomość użytkownika nadpisuje protokół MG);
     // kolejne tury wracają do zwięzłej długości narzuconej przez gm-protocol.
-    prompt +=
-      'To jest TURA WPROWADZAJĄCA do gry. WYJĄTEK: wyłącznie dla tej jednej, pierwszej tury ' +
-      'zignoruj limit "max 2 akapity" z protokołu MG - napisz pełniejsze, klimatyczne ' +
-      'wprowadzenie (3-5 akapitów). Kolejne tury wracają do normalnej, zwięzłej długości.\n\n' +
-      'Pisz dla kogoś, kto NIE zna Lovecrafta ani zasad CoC 7e - po prostu chce zagrać. ' +
-      'Wprowadzaj go w świat POWOLI i naturalnie, bez żargonu i bez wykładu, w drugiej osobie ' +
-      '("Widzisz...", "Czujesz..."). Zachowaj kolejność:\n' +
-      '1. Nakreśl świat i realia: gdzie i KIEDY jesteśmy (era, miejsce akcji, pora) - tak, by ' +
-      'osoba z zewnątrz od razu poczuła klimat epoki.\n' +
-      '2. Gdzie konkretnie znajduje się postać gracza i DLACZEGO akurat tam się znalazła.\n' +
-      '3. Zawiąż fabułę: KONIECZNIE wykorzystaj HOOK przygody jako konkretny punkt zaczepienia ' +
-      'i powód do działania - nie poprzestawaj na opisie tła.\n' +
-      '4. Zasiej delikatnie atmosferę Mitów Cthulhu (niepokój, groza pod powierzchnią). Jeśli w ' +
-      '[RAG_CONTEXT] jest pasujące lore Mitów lub punkty zaczepienia autora przygody, wpleć je ' +
-      'subtelnie - atmosfera ponad ekspozycję, BEZ wysypu nazw własnych i bez spoilerów.\n\n' +
-      'NIE graj za postać gracza (steruje nią człowiek). NIE powtarzaj ani nie duplikuj sceny. ' +
-      'Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera] - ' +
-      'zapali pineskę lokacji w nagłówku. Dodaj też wpis otwierający do dziennika: ' +
-      '[DZIENNIK:notatka:Początek śledztwa]1-2 zdania: gdzie jestem i co mnie tu sprowadza.[/DZIENNIK] ' +
-      'Oba znaczniki są niewidoczne w narracji - UI je przechwytuje. ' +
-      'Zakończ otwartym pytaniem [Co robisz?] w OSOBNEJ linii.\n';
+    if (allPlayerCharacters.length > 1) {
+      prompt +=
+        'To jest TURA WPROWADZAJĄCA do gry DLA DWÓCH LUB WIĘCEJ GRACZY (Hot Seat). WYJĄTEK: wyłącznie dla tej pierwszej tury ' +
+        'zignoruj limit "max 2 akapity" - napisz pełniejszy, klimatyczny wstęp (3-5 akapitów). Kolejne tury wracają do zwięzłej długości.\n\n' +
+        'WPROWADZENIE DLA DRUŻYNY - OBOWIĄZKOWE ZASADY:\n' +
+        '1. NARRACJA I FORMA: Zwracaj się do OBUM POSTACI naraz w liczbie mnogiej ("Widzicie...", "Wkraczacie...", "Czujecie...") lub jasno rozdzielaj ujęcia między nie (@Imię1, widzisz... podczas gdy @Imię2, dostrzegasz...).\n' +
+        '2. RELACJA I POWÓD: Wyjaśnij, skąd postacie się znają, jaka relacja je łączy (partnerzy w śledztwie, przyjaciele, zbieg okoliczności) i DLACZEGO znalazły się w tym miejscu i czasie RAZEM.\n' +
+        '3. HAK FABULARNY: Wykorzystaj HOOK przygody oraz unikalne cechy z kart obu bohaterów jako wspólny motyw i powód do działania.\n' +
+        '4. ZAKOŃCZENIE TURY: Zakończ turę dwoma pytaniami skierowanymi do każdej postaci osobno na końcu, np.: [Co robisz, @' +
+        allPlayerCharacters[0].name +
+        '?] oraz [Co robisz, @' +
+        (allPlayerCharacters[1]?.name || 'Gracz 2') +
+        '?].\n\n' +
+        'NIE graj za postacie graczy. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
+        'Dodaj wpis otwierający do dziennika: [DZIENNIK:notatka:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
+    } else {
+      prompt +=
+        'To jest TURA WPROWADZAJĄCA do gry. WYJĄTEK: wyłącznie dla tej jednej, pierwszej tury ' +
+        'zignoruj limit "max 2 akapity" z protokołu MG - napisz pełniejsze, klimatyczne ' +
+        'wprowadzenie (3-5 akapitów). Kolejne tury wracają do normalnej, zwięzłej długości.\n\n' +
+        'Pisz dla kogoś, kto NIE zna Lovecrafta ani zasad CoC 7e - po prostu chce zagrać. ' +
+        'Wprowadzaj go w świat POWOLI i naturalnie, bez żargonu i bez wykładu, w drugiej osobie ' +
+        '("Widzisz...", "Czujesz..."). Zachowaj kolejność:\n' +
+        '1. Nakreśl świat i realia: gdzie i KIEDY jesteśmy (era, miejsce akcji, pora) - tak, by ' +
+        'osoba z zewnątrz od razu poczuła klimat epoki.\n' +
+        '2. Gdzie konkretnie znajduje się postać gracza i DLACZEGO akurat tam się znalazła.\n' +
+        '3. Zawiąż fabułę: KONIECZNIE wykorzystaj HOOK przygody jako konkretny punkt zaczepienia ' +
+        'i powód do działania - nie poprzestawaj na opisie tła.\n' +
+        '4. Zasiej delikatnie atmosferę Mitów Cthulhu (niepokój, groza pod powierzchnią).\n\n' +
+        'NIE graj za postać gracza. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
+        'Dodaj też wpis otwierający do dziennika: ' +
+        '[DZIENNIK:notatka:Początek śledztwa]1-2 zdania: gdzie jestem i co mnie tu sprowadza.[/DZIENNIK] ' +
+        'Zakończ otwartym pytaniem [Co robisz?] w OSOBNEJ linii.\n';
+    }
     return prompt;
   }, [activeCharacter, characters, hotSeatConfig, adventureContext]);
 
@@ -321,6 +334,22 @@ export function useGameStart({
     generateThumbnailsInBackground(thumbnailCharacter ?? undefined);
 
     try {
+      const resolvedHotSeat = hotSeatConfig?.enabled
+        ? {
+            ...hotSeatConfig,
+            players: (hotSeatConfig.players || []).map((player) => {
+              const matchedChar = characters.find(
+                (c) => c.id === player.characterId || c.playerName === player.name
+              );
+              return {
+                ...player,
+                characterId: matchedChar?.id || player.characterId,
+                characterName: matchedChar?.name,
+              };
+            }),
+          }
+        : hotSeatConfig;
+
       // Zadanie 6: retry na chwilowy blip sieci przy starcie gry (1-2 próby).
       const response = await fetchWithRetry('/api/chat', {
         method: 'POST',
@@ -332,6 +361,8 @@ export function useGameStart({
           // Sanityzuj postać (portret + miniatury ekwipunku = base64 ~MB) by nie
           // przekroczyć limitu payloadu /api/chat (regresja B2 28.06).
           character: sanitizeCharacterForApi(activeCharacter),
+          characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
+          hotSeatConfig: resolvedHotSeat,
           adventureContext: adventureContext,
           isGameStart: true,
           aiSettings: aiSettings,

@@ -129,7 +129,10 @@ export function buildAdditionalContext(
   // IND-223: jawne oznaczenie postaci gracza (steruje człowiek). Wstrzykiwane
   // ZAWSZE (nie cache'owane jak gmProtocol), by AI dostawało konkretne imię i
   // twardy zakaz grania za gracza nawet po przejściu na compact protokół.
-  if (playerCharacterName) {
+  // IND-223: jawne oznaczenie postaci gracza w trybie SOLO. W trybie Hot Seat z 2+ postaciami
+  // ta sekcja jest zastępowana dedykowanym blokiem ## TRYB GRY DLA DWÓCH OSÓB.
+  const isHotSeatActive = hotSeatConfig?.enabled && (hotSeatConfig?.players?.length ?? 0) >= 2;
+  if (playerCharacterName && !isHotSeatActive) {
     additionalContext.push(
       `\n## POSTAĆ GRACZA (STERUJE CZŁOWIEK)\nPostać gracza: **${playerCharacterName}**. To człowiek podejmuje jej decyzje, pisze jej kwestie i wykonuje jej akcje. NIGDY nie generuj wypowiedzi, myśli ani działań postaci ${playerCharacterName} - opisz świat i reakcje NPC, a potem zatrzymaj się na [Co robisz?] i czekaj na input gracza.`
     );
@@ -221,21 +224,20 @@ export function buildAdditionalContext(
         .map((n) => `[Co robisz, @${n}?]`)
         .join(' oraz ');
       
-      let duetContext = `\n## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT)\n` +
-        `W grze uczestniczą postacie: ${characterNames.join(', ')}\n` +
-        `Sceny wspólne (świat, wydarzenia, scena dla obu) opisuj BEZ tagu - są dla wszystkich.\n` +
-        `Kwestie i akcje kierowane do JEDNEJ postaci poprzedzaj tagiem @ImięPostaci: (np. @${characterNames[0]}: ...).\n` +
-        `ZAKOŃCZENIE TURY w duecie: zamiast jednego [Co robisz?] zakończ pytaniem do KAŻDEJ postaci osobno: ${endingMarkers}. ` +
-        `Jeśli scena dotyczy tylko jednej z nich, jasno wskaż czyja kolej (np. [Co robisz, @${characterNames[0]}?]).\n` +
-        `PRZYPISANIE SKUTKÓW DO POSTACI: gdy utrata/odzysk SAN/HP albo wpis dziennika dotyczy KONKRETNEJ postaci, dodaj jej imię prefiksem @Imię w tagu: ` +
-        `\`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`. ` +
-        `Bez prefiksu @Imię skutek trafia do postaci AKTYWNEJ - więc ZAWSZE oznaczaj właściciela, gdy zmiana dotyczy postaci innej niż aktualnie grająca.\n`;
+      let duetContext = `\n## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT / DRUŻYNA)\n` +
+        `KRYTYCZNE NADPISANIE ROLI: Ta gra NIE jest jednoosobowa. W grze uczestniczy ZESPÓŁ badaczy: ${characterNames.join(', ')}.\n` +
+        `1. FORMA NARRACJI: Opisuj świat i sceny w liczbie mnogiej ("Widzicie...", "Stajecie przed...", "Wchodzicie...") lub w ujęciach adresowanych ("@${characterNames[0]}..., podczas gdy @${characterNames[1]}..."). NIGDY nie zwracaj się do nich jak do pojedynczej osoby w 2. osobie l.poj.\n` +
+        `2. RELACJA I WSPÓLNY CEL: Prowadź grę z uwzględnieniem faktu, że bohaterowie współpracują. Podkreślaj ich interakcje, relacje oraz to, co sprowadziło ich razem w dany punkt czasu i przestrzeni.\n` +
+        `3. ADRESOWANIE I AKCJE: Sceny wspólne opisuj dla obu postaci. Kwestie i akcje kierowane do JEDNEJ postaci poprzedzaj tagiem @ImięPostaci: (np. @${characterNames[0]}: ...).\n` +
+        `4. ZAKOŃCZENIE TURY: Zamiast jednego [Co robisz?] ZAWSZE kończ pytaniem do KAŻDEJ postaci osobno: ${endingMarkers}.\n` +
+        `5. PRZYPISANIE SKUTKÓW: Przy zmianach SAN/HP/dziennika dodawaj prefiks @Imię: \`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`.\n`;
 
       if (isGameStart && characters && characters.length >= 2) {
         duetContext += `\n### WPROWADZENIE DLA DUETU (ROZPOCZĘCIE GRY)\n` +
           `Otwierasz grę dla dwójki graczy. Twoja pierwsza tura musi nakreślić wspólny początek z myślą o obu postaciach:\n` +
-          `1. Opisz, jak postacie się tam znalazły, dlaczego podróżują/działają razem, co je łączy i jak doszło do ich spotkania.\n` +
-          `2. Zwróć się bezpośrednio do obu postaci jednocześnie, nawiązując do ich unikalnego tła i historii z kart postaci.\n\n` +
+          `1. OPISZ RELACJĘ I SPOTKANIE: Opisz jak postacie się tam znalazły, dlaczego podróżują/działają razem, co je łączy i dlaczego są w tym miejscu i czasie w tym samym momencie.\n` +
+          `2. DRUŻYNOWY HAK: Zwiąż hook przygody ze wspólnym celem obu postaci, odwołując się do ich tła z kart.\n` +
+          `3. FORMA: Zwróć się bezpośrednio do obu postaci jednocześnie w liczbie mnogiej.\n\n` +
           `Dane bohaterów do zarysowania relacji i spotkania:\n`;
         
         characters.forEach((char) => {
