@@ -587,3 +587,19 @@ Branch: main
 
 ### Co otwarte
 - Dokończenie Etapu 3.5 z roadmapy (Encyklopedia & HelpModal).
+
+## Podsumowanie sesji: 2026-07-22 (Etap 0.5 Onboarding)
+Branch: main
+
+### Co zrobiono
+- **Wdrożenie Etapu 0.5: Onboarding & Quick Setup Flow**:
+  - Walidacja klucza Gemini API w `StepGeminiKey`.
+  - Wdrożenie 4. kroku `StepWelcomeGM.tsx` z narracyjnym wstępem Wirtualnego MG.
+  - Wybór trybu Quick Setup z automatycznym ładowaniem predefiniowanych polskich scenariuszy i postaci.
+  - Zaktualizowanie instrukcji powiązań `docs/MAPA-POWIAZAN.md` (`/zew-update`).
+  - Przebudowa produkcyjna `.app` na biurku (`bash desktop/build-app.sh --rebuild`).
+
+### Decyzje podjęte
+- Gracz zawsze musi posiadać zwalidowany klucz Gemini API oraz wczytany podręcznik PDF (lub indeks zasad).
+- Quick Setup automatycznie tworzy i zapisuje postać oraz przygodę bez przechodzenia przez długie menu tworzenia.
+
