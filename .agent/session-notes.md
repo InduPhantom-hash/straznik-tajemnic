@@ -1,6 +1,22 @@
 # Session Notes
 
-## Podsumowanie sesji: 2026-07-21 (Etap 3: Wdrożenie Tablicy Badacza / Investigator Evidence Board)
+## Podsumowanie sesji: 2026-07-22 (Etap 3: Persystencja Tablicy Badacza)
+Branch: main
+
+### Co zrobiono
+- **Persystencja danych Tablicy Badacza:** Zmapowano i rozszerzono modele `Character` (w `src/lib/types.ts`) oraz `FullGameSave` (w `src/lib/full-game-save-manager.ts`) o strukturę `investigatorBoard?: InvestigatorBoardState`.
+- **Automatyczny Zapis i Odtwarzanie:** Zmodyfikowano `SessionJournal.tsx`, aby węzły (poszlaki/hipotezy) oraz połączenia sznurkami (`EvidenceRelation[]`) odtwarzały się automatycznie z obiektu postaci i zapisywały przy każdej interakcji gracza.
+- **Aktualizacja Stanu i Dokumentacji (Zewdrzewko Update):** Zaktualizowano [state.md](file:///Volumes/Karta/Developer/straznik-tajemnic/state.md) (oznaczono Etap 3 jako 100% DONE oraz dodano specyfikację Etapu 0.5: Onboarding & Quick Setup Flow). Zsynchronizowano [docs/MAPA-POWIAZAN.md](file:///Volumes/Karta/Developer/straznik-tajemnic/docs/MAPA-POWIAZAN.md).
+- **Testy i Spójność Środowiska:** Przeprowadzono 100% synchronizację z katalogiem `_tester/_base/.silnik/`. Pomyślnie zaliczono 38 test suite'ów (121 testów jednostkowych PASS) oraz kompilację produkcyjną (`npm run build`).
+
+### Co otwarte (do następnej sesji)
+- Realizacja **Etapu 0.5 (Onboarding & Quick Setup Flow)**: Wybór języka (PL/EN), monity o klucz API Gemini przy pierwszym uruchomieniu oraz ekran powitalny Mistrza Gry z wyborem Quick Setup / Manual Setup.
+
+### Decyzje podjęte
+- Zachowanie pełnej wstecznej kompatybilności zapisów sesji (opcjonalność pola `investigatorBoard` z fallbackiem do automatycznej transformacji notatek).
+- Trwałe przetrzymywanie połączeń SVG i statusów faktów wewnątrz save'ów gry.
+
+---
 Branch: main
 
 ### Co zrobiono

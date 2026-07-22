@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from './button';
 import { Textarea } from './textarea';
 import { cn } from '@/lib/utils';
@@ -16,22 +16,13 @@ import {
   Circle,
   Download,
 } from 'lucide-react';
-import { Character, JournalEntry, JournalEventType } from '@/lib/types';
-
-// Typ zakładek widoku UI w Dzienniku
-export type JournalTab =
-  | 'quest'
-  | 'journal'
-  | 'encyclopedia_location'
-  | 'encyclopedia_character'
-  | 'encyclopedia_item'
-  | 'note'
-  | 'evidence_graph';
-
-import { EvidenceGraphView } from './journal/evidence-graph-view';
+import { InvestigatorBoard } from './investigator-board';
+import { EvidenceNode, EvidenceRelation } from '@/types/investigator-board';
+import { convertEntriesToBoardNodes } from '@/lib/journal-storage';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
+  | 'board'
   | 'quest'
   | 'journal'
   | 'encyclopedia_location'
@@ -107,7 +98,7 @@ export function SessionJournal({
   onUpdateSharedJournal,
   participantNames = [],
 }: SessionJournalProps) {
-  const [activeTab, setActiveTab] = useState<JournalTab>('quest');
+  const [activeTab, setActiveTab] = useState<JournalEntryType>('board');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(
     null
@@ -117,6 +108,56 @@ export function SessionJournal({
   const [encyclopediaSubTab, setEncyclopediaSubTab] = useState<
     'location' | 'character' | 'item'
   >('character');
+
+  // Stan Tablicy Badacza z automatycznym odtworzeniem z postaci / sharedJournal
+  const savedBoardState = character.investigatorBoard;
+
+  const initialNodes = useMemo(() => {
+    if (savedBoardState?.nodes && savedBoardState.nodes.length > 0) {
+      return savedBoardState.nodes;
+    }
+    const rawEntries = (sharedJournal ?? character.journal ?? []) as unknown as JournalEntry[];
+    return convertEntriesToBoardNodes(rawEntries);
+  }, [character.journal, sharedJournal, savedBoardState]);
+
+  const [boardNodes, setBoardNodes] = useState<EvidenceNode[]>(initialNodes);
+  const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>(
+    savedBoardState?.relations || []
+  );
+
+  // Funkcja pomocnicza zapisująca zaktualizowaną tablicę badacza do postaci
+  const syncInvestigatorBoard = useCallback(
+    (nodes: EvidenceNode[], relations: EvidenceRelation[]) => {
+      const updatedBoardState: InvestigatorBoardState = {
+        characterId: character.id,
+        nodes,
+        relations,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      onUpdateCharacter({
+        ...character,
+        investigatorBoard: updatedBoardState,
+      });
+    },
+    [character, onUpdateCharacter]
+  );
+
+  const handleUpdateNodes = useCallback(
+    (nodes: EvidenceNode[]) => {
+      setBoardNodes(nodes);
+      syncInvestigatorBoard(nodes, boardRelations);
+    },
+    [boardRelations, syncInvestigatorBoard]
+  );
+
+  const handleUpdateRelations = useCallback(
+    (relations: EvidenceRelation[]) => {
+      setBoardRelations(relations);
+      syncInvestigatorBoard(boardNodes, relations);
+    },
+    [boardNodes, syncInvestigatorBoard]
+  );
 
   const isShared = sharedJournal !== undefined;
 
@@ -170,23 +211,16 @@ export function SessionJournal({
   const deleteEntry = (id: string) => {
     if (!confirm('Czy na pewno chcesz usunąć ten wpis z księgi przygód?'))
       return;
-    const updatedEntries = entries
-      .filter((entry) => entry.id !== id)
-      .map((entry) => {
-        if (!entry.linkedEntryIds?.includes(id)) return entry;
-        return {
-          ...entry,
-          linkedEntryIds: entry.linkedEntryIds.filter((linkId) => linkId !== id),
-        };
-      });
+    const updatedEntries = entries.filter((entry) => entry.id !== id);
     updateCharacterJournal(updatedEntries);
     if (selectedQuestId === id) {
       setSelectedQuestId(null);
     }
   };
 
+  // Śledzenie nieprzeczytanych wpisów w konkretnych zakładkach
   const journalSeenKey = isShared
-    ? `unseen_journal_detail_${participantNames.sort().join('_')}`
+    ? `unseen_journal_detail_${[...participantNames].sort().join('_')}`
     : character
       ? `unseen_detail_${character.id}`
       : null;
@@ -213,7 +247,7 @@ export function SessionJournal({
   }, [entries, journalSeenKey]);
 
   // Resetowanie powiadomień dla danej zakładki po jej aktywacji
-  const markTabAsSeen = useCallback((tab: JournalTab) => {
+  const markTabAsSeen = useCallback((tab: JournalEntryType) => {
     if (!journalSeenKey) return;
     const stored = localStorage.getItem(journalSeenKey);
     const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
@@ -235,12 +269,12 @@ export function SessionJournal({
     localStorage.setItem(journalSeenKey, JSON.stringify(seenData));
   }, [entries, journalSeenKey]);
 
-  // Uruchomienie resetu dla domyślnej zakładki przy otwarciu/zmianie
-  useEffect(() => {
+  // Uruchomienie resetu dla domyślnej zakładki przy otwarciu
+  useState(() => {
     markTabAsSeen(activeTab);
-  }, [activeTab, markTabAsSeen]);
+  });
 
-  const handleTabChange = (tab: JournalTab) => {
+  const handleTabChange = (tab: JournalEntryType) => {
     setActiveTab(tab);
     markTabAsSeen(tab);
     if (tab === 'quest') {
@@ -430,6 +464,17 @@ export function SessionJournal({
           {/* Zakładki na górze */}
           <div className="flex bg-[#120b07] p-1 rounded-lg border border-[#3a2518]">
             <button
+              onClick={() => handleTabChange('board')}
+              className={cn(
+                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                activeTab === 'board'
+                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
+                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+              )}
+            >
+              📌 Tablica Badacza
+            </button>
+            <button
               onClick={() => handleTabChange('quest')}
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
@@ -493,17 +538,6 @@ export function SessionJournal({
                 </span>
               )}
             </button>
-            <button
-              onClick={() => handleTabChange('evidence_graph')}
-              className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
-                activeTab === 'evidence_graph'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
-              )}
-            >
-              Tablica Powiązań
-            </button>
           </div>
 
           {/* Narzędzia i Przyciski */}
@@ -513,6 +547,19 @@ export function SessionJournal({
               className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
             >
               <Plus className="h-4 w-4 mr-1" /> Dodaj notatkę
+            </Button>
+            <Button
+              onClick={() => {
+                import('@/lib/test-journal-data').then(({ MOCK_JOURNAL_ENTRIES, MOCK_BOARD_NODES, MOCK_BOARD_RELATIONS }) => {
+                  updateCharacterJournal([...MOCK_JOURNAL_ENTRIES, ...entries]);
+                  setBoardNodes(MOCK_BOARD_NODES);
+                  setBoardRelations(MOCK_BOARD_RELATIONS);
+                });
+              }}
+              className="bg-[#3a2518] hover:bg-[#503422] text-[#bfa15f] border border-[#bfa15f]/40 font-serif text-xs"
+              title="Wypełnij dziennik przykładowymi wpisami testowymi"
+            >
+              🧪 Wypełnij testowo
             </Button>
             <Button
               onClick={exportToMarkdown}
@@ -548,10 +595,15 @@ export function SessionJournal({
 
         {/* Zawartość zakładek */}
         <div className="flex-1 flex overflow-hidden bg-[#18120c] text-[#e2d4c9]">
-          {/* TABLICA POWIĄZAŃ */}
-          {activeTab === 'evidence_graph' && (
-            <div className="flex-1 p-4 overflow-y-auto">
-              <EvidenceGraphView entries={entries} />
+          {/* 0. SEKCJA TABLICY BADACZA */}
+          {activeTab === 'board' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <InvestigatorBoard
+                nodes={boardNodes}
+                relations={boardRelations}
+                onUpdateNodes={handleUpdateNodes}
+                onUpdateRelations={handleUpdateRelations}
+              />
             </div>
           )}
 
@@ -583,11 +635,8 @@ export function SessionJournal({
                     </button>
                   ))}
                   {activeQuests.length === 0 && (
-                    <div className="text-sm text-center py-6 px-3 text-[#8a7667] italic space-y-2 border border-dashed border-[#3a2518] rounded-md my-2">
-                      <p>Brak aktywnych misji w dzienniku.</p>
-                      <p className="text-xs text-[#a89078] not-italic">
-                        Misje pojawią się automatycznie w trakcie narracji MG lub gdy dodasz własną notatkę z zakładki Notatki.
-                      </p>
+                    <div className="text-sm text-center py-6 text-[#8a7667] italic">
+                      Brak aktywnych misji
                     </div>
                   )}
                 </div>
@@ -994,47 +1043,56 @@ export function SessionJournal({
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
             <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
-              <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-[#120905] border border-[#3a2518] shadow-sm rounded-lg p-5 flex flex-col justify-between min-h-[220px]"
+                    className="bg-[#120905] border border-[#3a2518] hover:border-[#bfa15f]/50 transition-all shadow-md rounded-lg p-5 flex flex-col justify-between min-h-[220px] group"
                   >
                     <div>
-                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2 mb-3">
-                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0]">
+                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2.5 mb-3">
+                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0] group-hover:text-[#bfa15f] transition-colors leading-snug">
                           {entry.title}
                         </h4>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5 flex-none ml-2">
                           <button
                             onClick={() => setEditingEntry(entry)}
-                            className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
+                            className="p-1 text-[#a29182] hover:text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
+                            title="Edytuj notatkę"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => deleteEntry(entry.id)}
-                            className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
+                            className="p-1 text-[#ff6b6b]/70 hover:text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
+                            title="Usuń notatkę"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap line-clamp-6">
+                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9]/90 whitespace-pre-wrap">
                         {entry.content}
                       </p>
                     </div>
 
-                    <div className="text-[11px] text-[#8a7667] border-t border-[#3a2518] pt-2 mt-4 flex justify-between items-center">
+                    <div className="text-xs text-[#8a7667] border-t border-[#3a2518]/70 pt-2.5 mt-4 flex justify-between items-center font-special-elite">
                       <span>
                         📅{' '}
                         {entry.inGameDate ||
                           new Date(entry.timestamp).toLocaleDateString('pl-PL')}
                       </span>
                       {entry.tags && entry.tags.length > 0 && (
-                        <span className="truncate max-w-[120px] text-right">
-                          #{entry.tags[0]}
-                        </span>
+                        <div className="flex gap-1 flex-wrap justify-end">
+                          {entry.tags.slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] bg-[#3a2518]/60 text-[#bfa15f] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1058,7 +1116,7 @@ export function SessionJournal({
           onCancel={() => setShowAddForm(false)}
           categories={categories}
           defaultTags={defaultTags}
-          initialType={activeTab === 'evidence_graph' ? 'note' : activeTab}
+          initialType={activeTab}
         />
       )}
 
@@ -1105,7 +1163,6 @@ function AddEntryForm({
     gameHour: 12,
     questStatus: 'active' as 'active' | 'completed' | 'failed',
     objectives: [] as QuestObjective[],
-    hypothesisStatus: 'unverified' as 'unverified' | 'confirmed' | 'disproven',
   });
   const [newTag, setNewTag] = useState('');
   const [newObjective, setNewObjective] = useState('');
@@ -1259,29 +1316,6 @@ function AddEntryForm({
               </select>
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
-              Status hipotezy / weryfikacji
-            </label>
-            <select
-              value={formData.hypothesisStatus || 'unverified'}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  hypothesisStatus: e.target.value as
-                    | 'unverified'
-                    | 'confirmed'
-                    | 'disproven',
-                })
-              }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
-            >
-              <option value="unverified">W trakcie weryfikacji (Hipoteza)</option>
-              <option value="confirmed">Potwierdzony fakt</option>
-              <option value="disproven">Obalony trop</option>
-            </select>
-          </div>
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">

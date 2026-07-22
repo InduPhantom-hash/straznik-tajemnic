@@ -12,8 +12,9 @@
 | **Model Gemini 3.6 Flash Baseline** | 🟢 DONE | 100% | `src/lib/model-registry.ts`, `src/lib/ai-presets/` | Domyślna obsługa aplikacji |
 | **Etap 1: Domknięcie Sesji** | 🟢 DONE | 100% | `src/components/sidebar/CthulhuSidebar.tsx` | State machine sesji |
 | **Etap 2: Pipeline Przygody & RAG** | 🟡 IN PROGRESS | 40% | `src/lib/vector-db/local-vector-store.ts` | SQLite / Local RAG |
-| **Etap 3: Immersja & Tablica Badacza** | 🟡 IN PROGRESS | 50% | `src/app/api/chat/_helpers/build-immersion-context.ts` | API danych świata + Save |
+| **Etap 3: Immersja & Tablica Badacza** | 🟢 DONE | 100% | `src/app/api/chat/_helpers/build-immersion-context.ts` | API danych świata + Save |
 | **Etap 3.5: Encyklopedia & Pomoc (RAG)** | 🟢 DONE | 100% | `src/components/help-modal/`, `data/epochs/pl-1990s-2000s/` | Local RAG (`mythos`, `epoch_pl_90s`) |
+| **Etap 0.5: Onboarding & Quick Setup Flow** | 🔵 TODO | 0% | `src/components/onboarding/` | i18n / Gemini Key / Presety |
 | **Etap 0: Bezpieczny System Aktualizacji** | 🔵 TODO | 0% | `desktop/launcher.sh`, `desktop/build-app.sh` | Electron / Mac Launcher |
 | **Etap 4: Adventure Creator & Graf** | 🔵 TODO | 0% | `src/lib/adventures-data.ts` | Graf stanu scen |
 | **Etap 5: Wsparcie Multilang PL/EN** | 🔵 TODO | 0% | `src/lib/i18n/` | Słowniki UI & Master Prompt |
@@ -42,10 +43,10 @@
   - [x] Naprawa stabilności i wydajności uploadu PDF (polling stanu ACTIVE w Gemini File API, throttling embeddingów).
   - [x] Rozszerzona ekstrakcja z PDF do JSON (NPC, lokacje, mapy, przedmioty fabularne) przy użyciu modelu Gemini 3.6 Flash.
   - [x] Zapis metadanych i ustrukturyzowanej przygody bezpośrednio w `data/adventures/{adventureId}.json`.
-- [/] **Tablica Badacza / Dowody (Etap 3):**
+- [x] **Tablica Badacza / Dowody (Etap 3):**
   - [x] Integracja danych zewnętrznych z fallbackiem.
-  - [ ] Przebudowa Dziennika na automatycznie aktualizowaną Tablicę Badacza (dowody, poszlaki, hipotezy, powiązania).
-  - [ ] Zapis grafu dowodów w save'ach (w tym dla trybu Hot Seat).
+  - [x] Przebudowa Dziennika na automatycznie aktualizowaną Tablicę Badacza (dowody, poszlaki, hipotezy, powiązania).
+  - [x] Zapis grafu dowodów w save'ach (w tym dla trybu Hot Seat).
 
 ---
 
@@ -65,6 +66,15 @@
 - [x] **Encyklopedia Gracza & Komponent UI:** Wdrożenie zakładki Wiki w modalu pomocy (`HelpModal.tsx`, `EpochWikiTab.tsx`).
 - [ ] **Postaci Historyczne:** Wierne dane biograficzne z opcjonalnymi warstwami nadprzyrodzonymi dla przygód.
 - [ ] **Izolacja Prawna (Two-Tier RAG):** Wbudowany RAG (Public Domain + syntezy) vs Prywatny RAG Gracza (wgrane pliki PDF z prawem do cytowania stron w ramach dozwolonego użytku).
+
+### 📌 Etap 0.5 - Wprowadzenie Gracza (Onboarding & Quick Setup Flow)
+> **Cel:** Uporządkowany proces pierwszego uruchomienia gry: Wybór języka -> Klucz Gemini -> Ekran powitalny MG -> Quick Setup / Custom.
+
+- [ ] **Wybór Języka (PL / EN):** Ekran inicjalny wyboru wersji językowej (zależny od Etapu 5 i18n).
+- [ ] **Weryfikacja / Wprowadzenie Klucza API Gemini:** Monit o klucz API pojawiający się przy braku zapisanej konfiguracji z natychmiastową walidacją.
+- [ ] **Wirtualny Mistrz Gry – Okno Powitalne:** Narracyjne wprowadzenie w klimacie Lovecrafta oraz wybór trybu startu:
+  - ⚡ **Quick Setup:** Wybór z listy predefiniowanych przygód z gotowymi postaciami (męskie / żeńskie).
+  - 🛠️ **Manual Setup:** Przejście do głównego menu ze szczegółowym tworzeniem postaci i scenariusza.
 
 ### 📌 Etap 0 - Bezpieczny System Aktualizacji
 - [ ] Integracja wydań z GitHub Releases (manifest, checksum, auto-update).

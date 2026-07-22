@@ -109,14 +109,55 @@ export function SessionJournal({
     'location' | 'character' | 'item'
   >('character');
 
-  // Stan Tablicy Badacza
+  // Stan Tablicy Badacza z automatycznym odtworzeniem z postaci / sharedJournal
+  const savedBoardState = character.investigatorBoard;
+
   const initialNodes = useMemo(() => {
+    if (savedBoardState?.nodes && savedBoardState.nodes.length > 0) {
+      return savedBoardState.nodes;
+    }
     const rawEntries = (sharedJournal ?? character.journal ?? []) as unknown as JournalEntry[];
     return convertEntriesToBoardNodes(rawEntries);
-  }, [character.journal, sharedJournal]);
+  }, [character.journal, sharedJournal, savedBoardState]);
 
   const [boardNodes, setBoardNodes] = useState<EvidenceNode[]>(initialNodes);
-  const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>([]);
+  const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>(
+    savedBoardState?.relations || []
+  );
+
+  // Funkcja pomocnicza zapisująca zaktualizowaną tablicę badacza do postaci
+  const syncInvestigatorBoard = useCallback(
+    (nodes: EvidenceNode[], relations: EvidenceRelation[]) => {
+      const updatedBoardState: InvestigatorBoardState = {
+        characterId: character.id,
+        nodes,
+        relations,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      onUpdateCharacter({
+        ...character,
+        investigatorBoard: updatedBoardState,
+      });
+    },
+    [character, onUpdateCharacter]
+  );
+
+  const handleUpdateNodes = useCallback(
+    (nodes: EvidenceNode[]) => {
+      setBoardNodes(nodes);
+      syncInvestigatorBoard(nodes, boardRelations);
+    },
+    [boardRelations, syncInvestigatorBoard]
+  );
+
+  const handleUpdateRelations = useCallback(
+    (relations: EvidenceRelation[]) => {
+      setBoardRelations(relations);
+      syncInvestigatorBoard(boardNodes, relations);
+    },
+    [boardNodes, syncInvestigatorBoard]
+  );
 
   const isShared = sharedJournal !== undefined;
 
@@ -560,8 +601,8 @@ export function SessionJournal({
               <InvestigatorBoard
                 nodes={boardNodes}
                 relations={boardRelations}
-                onUpdateNodes={setBoardNodes}
-                onUpdateRelations={setBoardRelations}
+                onUpdateNodes={handleUpdateNodes}
+                onUpdateRelations={handleUpdateRelations}
               />
             </div>
           )}
