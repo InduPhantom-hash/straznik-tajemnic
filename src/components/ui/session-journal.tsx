@@ -727,9 +727,9 @@ export function SessionJournal({
                           <span className="text-xs text-[#8a7667]">
                             Wpis z dnia:{' '}
                             {selectedQuest.inGameDate ||
-                              new Date(
-                                selectedQuest.timestamp
-                              ).toLocaleDateString('pl-PL')}
+                              (selectedQuest.timestamp
+                                ? new Date(selectedQuest.timestamp).toLocaleDateString('pl-PL')
+                                : '')}
                           </span>
                         </div>
                       </div>
