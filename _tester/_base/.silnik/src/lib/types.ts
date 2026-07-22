@@ -159,6 +159,7 @@ export type JournalEventType =
 export interface JournalEntry {
   id: string;
   timestamp: Date; // Rzeczywisty czas
+  date?: string; // Opcjonalna strunowa data (ISO / formatted) dla kompatybilności
   updatedAt?: Date; // Ostatnia ręczna zmiana wpisu
   adventureJournalId?: string; // Konkretny przebieg przygody, nie sam scenariusz
   inGameDate?: string; // Data w grze (np. "11 grudnia 1925, 14:32")
