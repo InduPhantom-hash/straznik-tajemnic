@@ -186,17 +186,20 @@ export function useEquipmentThumbnails({
             return updatedList;
           });
 
-          setActiveCharacter((prev) => {
-            if (!prev || prev.id !== character.id) return prev;
-            return {
-              ...prev,
-              equipment: (prev.equipment ?? []).map((it) =>
-                it.id === item.id ? { ...it, ...generatedFields } : it
-              ),
-            };
-          });
-        }
-      } finally {
+            setActiveCharacter((prev) => {
+              if (!prev || prev.id !== character.id) return prev;
+              return {
+                ...prev,
+                equipment: (prev.equipment ?? []).map((it) =>
+                  it.id === item.id ? { ...it, ...generatedFields } : it
+                ),
+              };
+            });
+
+            // Throttling 500ms, zapobieganie błędom HTTP 429 Too Many Requests
+            await new Promise((res) => setTimeout(res, 500));
+          }
+        } finally {
         runningCharacterIdsRef.current.delete(character.id);
       }
     },

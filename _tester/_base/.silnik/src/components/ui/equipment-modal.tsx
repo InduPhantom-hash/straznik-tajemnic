@@ -500,18 +500,23 @@ function ItemThumbnail({
 }) {
   const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
   const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
+
+  const isSvgFallback = Boolean(
+    item.imageUrl && item.imageUrl.includes('/equipment/predefined/')
+  );
   const isDedicatedCatalogAsset = Boolean(
     item.imageUrl &&
       item.imageUrl.includes('/equipment/catalog/') &&
       item.imageUrl.endsWith('.webp')
   );
+  const hasRealImage = Boolean(item.imageUrl && !isSvgFallback);
   const canGenerate = !isDedicatedCatalogAsset;
 
   return (
     <div
-      className={`flex-none ${box} border border-brass/30 bg-gradient-to-br from-[#1c1712] to-[#0f0b07] overflow-hidden flex items-center justify-center relative shadow-md group rounded-sm`}
+      className={`flex-none ${box} border border-brass/35 bg-gradient-to-br from-[#1c1712] via-[#140f0a] to-[#0b0805] overflow-hidden flex items-center justify-center relative shadow-md group rounded-sm`}
     >
-      {item.imageUrl ? (
+      {hasRealImage ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -553,19 +558,18 @@ function ItemThumbnail({
             onGenerateImage(item);
           }}
           disabled={generatingImage === item.id}
-          title="Wygeneruj ilustrację przedmiotu"
+          title="Wygeneruj ilustrację AI przedmiotu"
           className="w-full h-full p-0 flex items-center justify-center"
         >
           {generatingImage === item.id ? (
             <Loader2 className="w-7 h-7 animate-spin text-brass" />
           ) : (
-            <div className="relative w-full h-full flex items-center justify-center">
-              <div className="text-brass/70 transition-opacity group-hover:opacity-0 flex items-center justify-center w-full h-full">
+            <div className="relative w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-b from-brass/5 to-transparent">
+              <div className="text-brass/80 transition-transform duration-200 group-hover:scale-110 flex items-center justify-center">
                 <CategoryIcon category={item.category} className={iconSize} />
               </div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                <span className="text-brass/70 text-sm">◆</span>
-                <span className="text-[8px] text-brass/70 uppercase tracking-widest font-special-elite">
+              <div className="flex flex-col items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
+                <span className="text-[9px] text-brass uppercase tracking-widest font-special-elite">
                   Generuj
                 </span>
               </div>

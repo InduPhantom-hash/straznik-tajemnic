@@ -16,6 +16,8 @@ describe('equipment catalog', () => {
       'light.flashlight'
     );
     expect(findEquipmentTemplate('Mocna lina')?.id).toBe('tool.rope');
+    expect(findEquipmentTemplate('Stara latarka kieszonkowa')?.id).toBe('light.flashlight');
+    expect(findEquipmentTemplate('Zardzewiałe wytrychy')?.id).toBe('tool.lockpicks');
   });
 
   it('wybiera wariant epoki tylko tam, gdzie istnieje, a wspólny asset poza nią', () => {

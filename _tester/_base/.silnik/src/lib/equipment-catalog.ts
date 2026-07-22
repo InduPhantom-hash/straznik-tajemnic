@@ -373,12 +373,25 @@ export function findEquipmentTemplate(
 ): EquipmentTemplate | undefined {
   if (!nameOrId) return undefined;
   const needle = normalize(nameOrId);
-  return EQUIPMENT_CATALOG.find(
+
+  // 1. Ścisłe dopasowanie po ID, nazwie lub aliasie
+  const exact = EQUIPMENT_CATALOG.find(
     (template) =>
       template.id === nameOrId ||
       normalize(template.name) === needle ||
       template.aliases.some((alias) => normalize(alias) === needle)
   );
+  if (exact) return exact;
+
+  // 2. Elastyczne dopasowanie zawierania (fuzzy substring matching dla polskich nazw)
+  return EQUIPMENT_CATALOG.find((template) => {
+    const normName = normalize(template.name);
+    if (needle.includes(normName) || normName.includes(needle)) return true;
+    return template.aliases.some((alias) => {
+      const normAlias = normalize(alias);
+      return normAlias.length >= 3 && (needle.includes(normAlias) || normAlias.includes(needle));
+    });
+  });
 }
 
 export function resolveCatalogAsset(

@@ -64,19 +64,45 @@ export function inferAcquiredItemCategory(
   return 'personal';
 }
 
+import { inferWeaponDamage, inferWeaponSkill, isWeapon } from '@/lib/combat/weapon-context';
+
 export function createAcquiredEquipmentSeed(
   proposal: AcquiredItemProposal
 ): Partial<EquipmentItem> {
   const template = findEquipmentTemplate(proposal.name);
+  const category = template ? template.category : inferAcquiredItemCategory(proposal);
+  
+  const dummyItem: EquipmentItem = {
+    id: proposal.id || 'seed',
+    name: proposal.name,
+    category,
+    description: proposal.description,
+  };
+
+  const looksWeapon = category === 'weapon' || isWeapon(dummyItem);
+  const weaponInfo = looksWeapon ? inferWeaponDamage(dummyItem) : undefined;
+  const damageStr = typeof weaponInfo === 'string' ? weaponInfo : weaponInfo?.damage;
+  const rangeStr = typeof weaponInfo === 'object' ? weaponInfo?.range : undefined;
+  const skill = looksWeapon ? inferWeaponSkill(dummyItem) : undefined;
+
   return {
     ...(template
       ? {
           templateId: template.id,
           category: template.category,
         }
-      : { category: inferAcquiredItemCategory(proposal) }),
+      : { category: looksWeapon ? 'weapon' : category }),
     name: proposal.name,
     description: proposal.description,
     visualTreatment: proposal.visualTreatment,
+    ...(damageStr || skill || rangeStr
+      ? {
+          modifiers: {
+            ...(damageStr ? { damage: damageStr } : {}),
+            ...(rangeStr ? { range: rangeStr } : {}),
+            ...(skill ? { skill } : {}),
+          },
+        }
+      : {}),
   };
 }
