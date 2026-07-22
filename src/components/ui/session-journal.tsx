@@ -883,9 +883,9 @@ export function SessionJournal({
                               <span>
                                 📅{' '}
                                 {entry.inGameDate ||
-                                  new Date(entry.timestamp).toLocaleDateString(
-                                    'pl-PL'
-                                  )}
+                                  (entry.timestamp
+                                    ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
+                                    : '')}
                               </span>
                               {entry.gameDay && (
                                 <span>⏳ Dzień {entry.gameDay}</span>
@@ -1084,7 +1084,9 @@ export function SessionJournal({
                       <span>
                         📅{' '}
                         {entry.inGameDate ||
-                          new Date(entry.timestamp).toLocaleDateString('pl-PL')}
+                          (entry.timestamp
+                            ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
+                            : '')}
                       </span>
                       {entry.tags && entry.tags.length > 0 && (
                         <div className="flex gap-1 flex-wrap justify-end">
