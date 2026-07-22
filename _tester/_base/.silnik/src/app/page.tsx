@@ -734,11 +734,24 @@ export default function Home() {
             open={showFirstRunWizard}
             gated={!firstRun.canPlay}
             onCompleted={async () => {
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('onboarding_completed', 'true');
+              }
               await firstRun.refresh();
               setShowFirstRunWizard(false);
             }}
-            onQuickStart={handleQuickStartOnboarding}
-            onClose={() => setShowFirstRunWizard(false)}
+            onQuickStart={(advId, charId) => {
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('onboarding_completed', 'true');
+              }
+              handleQuickStartOnboarding(advId, charId);
+            }}
+            onClose={() => {
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('onboarding_completed', 'true');
+              }
+              setShowFirstRunWizard(false);
+            }}
           />
 
           {/* IND-230: Faza Rozwoju CoC - rzuty na poprawę oznaczonych umiejętności */}

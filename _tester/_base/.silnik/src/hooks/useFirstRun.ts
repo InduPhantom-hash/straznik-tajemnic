@@ -37,6 +37,7 @@ export function useFirstRun(): FirstRunState {
   const [loading, setLoading] = useState(true);
   const [hasKey, setHasKey] = useState(false);
   const [rulesCount, setRulesCount] = useState<number>(0);
+  const [completedOnboarding, setCompletedOnboarding] = useState<boolean>(false);
 
   const checkRules = useCallback(async () => {
     try {
@@ -57,6 +58,9 @@ export function useFirstRun(): FirstRunState {
 
   const refresh = useCallback(async () => {
     setHasKey(hasRequiredKeys());
+    if (typeof window !== 'undefined') {
+      setCompletedOnboarding(localStorage.getItem('onboarding_completed') === 'true');
+    }
     await checkRules();
   }, [checkRules]);
 
@@ -64,6 +68,9 @@ export function useFirstRun(): FirstRunState {
     let active = true;
     (async () => {
       setHasKey(hasRequiredKeys());
+      if (typeof window !== 'undefined') {
+        setCompletedOnboarding(localStorage.getItem('onboarding_completed') === 'true');
+      }
       await checkRules();
       if (active) setLoading(false);
     })();
@@ -80,7 +87,8 @@ export function useFirstRun(): FirstRunState {
   const keyOk = localMode || hasKey;
   const rulesOk = rulesCount > 0;
   const canPlay = keyOk && rulesOk;
-  const needsWizard = !loading && !canPlay;
+  // Pokazuj wizard gdy brak klucza/zasad LUB gdy gracz nie przeszedł jeszcze onboardingu
+  const needsWizard = !loading && (!completedOnboarding || !canPlay);
 
   return { loading, needsWizard, canPlay, rulesCount, refresh };
 }

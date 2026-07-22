@@ -146,6 +146,19 @@ Cel: Zbudowanie wbudowanego Centrum Pomocy i Encyklopedii (wzmocnionej RAG-iem) 
 
 Zależności: lokalny RAG, podział namespace'ów `mythos`, `rules` i `epoche_knowledge`, brak zależności od chmury.
 
+## Etap 0.5 - Wprowadzenie Gracza (Onboarding & Quick Setup Flow)
+
+Cel: Zapewnienie ustrukturyzowanego procesu pierwszego uruchomienia gry przy zimnym starcie:
+1. **Wybór Języka**: Ekran inicjalny wyboru wersji językowej (PL / EN).
+2. **Klucz API & Weryfikacja Zasad**: Walidacja klucza Google Gemini API oraz sprawozdanie ze stanu wgranego podręcznika PDF / zasad.
+3. **Wybór Trybu Startu**:
+   - **3.1 Szybka Przygoda (Quick Setup)**:
+     - Wybór liczby graczy (Solo / Duet / Hot Seat).
+     - Wyświetlenie dostępnych przygotowanych polskich przygód z zwięzłymi opisami.
+     - Wybór przypisanej do wybranego scenariusza dedykowanej postaci Badacza (odpowiedniej dla danej epoki i fabuły).
+   - **3.2 Manualny Setup**:
+     - Przejście do pełnego menu głównego (Tryb Gry, Wybierz Przygodę, Sesja Zero, Stwórz nową postać / Wybierz gotową postać, Rozpocznij).
+
 
 
 ## Etap 4 - tworzenie przygód i Quick Start

@@ -72,13 +72,13 @@
 - [ ] **Izolacja Prawna (Two-Tier RAG):** Wbudowany RAG (Public Domain + syntezy) vs Prywatny RAG Gracza (wgrane pliki PDF z prawem do cytowania stron w ramach dozwolonego użytku).
 
 ### 📌 Etap 0.5 - Wprowadzenie Gracza (Onboarding & Quick Setup Flow)
-> **Cel:** Uporządkowany proces pierwszego uruchomienia gry: Wybór języka -> Klucz Gemini -> Ekran powitalny MG -> Quick Setup / Custom.
+> **Cel:** Uporządkowany proces pierwszego uruchomienia gry przy Zimnym Starcie.
 
-- [ ] **Wybór Języka (PL / EN):** Ekran inicjalny wyboru wersji językowej (zależny od Etapu 5 i18n).
-- [ ] **Weryfikacja / Wprowadzenie Klucza API Gemini:** Monit o klucz API pojawiający się przy braku zapisanej konfiguracji z natychmiastową walidacją.
-- [ ] **Wirtualny Mistrz Gry – Okno Powitalne:** Narracyjne wprowadzenie w klimacie Lovecrafta oraz wybór trybu startu:
-  - ⚡ **Quick Setup:** Wybór z listy predefiniowanych przygód z gotowymi postaciami (męskie / żeńskie).
-  - 🛠️ **Manual Setup:** Przejście do głównego menu ze szczegółowym tworzeniem postaci i scenariusza.
+- [ ] **Krok 1: Wybór Języka (PL / EN):** Ekran inicjalny wyboru wersji językowej.
+- [ ] **Krok 2: Weryfikacja / Klucz API Gemini & Zasady:** Walidacja klucza API oraz stan wgranego podręcznika.
+- [ ] **Krok 3: Wybór Trybu Startu:**
+  - ⚡ **3.1 Quick Setup (Szybka Przygoda):** Wybór liczby graczy (Solo / Duet / Hot Seat) + zwięzłe opisy przygotowanych przygód z przypisanymi do nich dedykowanymi postaciami Badaczy.
+  - 🛠️ **3.2 Manual Setup (Manualny Setup):** Wejście do obecnego menu głównego (Tryb Gry, Wybierz Przygodę, Sesja Zero, Stwórz/Wybierz postać, Rozpocznij).
 
 ### 📌 Etap 0 - Bezpieczny System Aktualizacji
 - [ ] Integracja wydań z GitHub Releases (manifest, checksum, auto-update).
