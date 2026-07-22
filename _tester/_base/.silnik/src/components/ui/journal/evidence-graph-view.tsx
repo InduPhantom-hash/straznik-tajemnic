@@ -211,7 +211,7 @@ export function EvidenceGraphView({ entries, onSelectEntry }: EvidenceGraphViewP
                   Powiązane dowody ({activeEntry.linkedEntryIds.length}):
                 </span>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {activeEntry.linkedEntryIds.map((linkId) => {
+                  {activeEntry.linkedEntryIds.map((linkId: string) => {
                     const linkedNode = nodeMap.get(linkId);
                     if (!linkedNode) return null;
                     return (
