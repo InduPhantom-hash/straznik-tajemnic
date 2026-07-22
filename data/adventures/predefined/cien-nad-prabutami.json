@@ -1,0 +1,60 @@
+{
+  "id": "cien-nad-prabutami",
+  "title": "Cień nad Prabutami: Widzenie Ojca Klimuszki",
+  "era": "prl-1970s",
+  "setting": "Polska Ludowa, Zima 1973/1974 (Warszawa - Elbląg - Prabuty)",
+  "startingLocation": "Główny Gmach Państwowego Studia RTV, Warszawa, ul. Woronicza",
+  "summary": "Badacze zostają zaangażowani przez redaktorkę Helenę Krawczyk z programu 'Sygnały Nieznanego' po Międzynarodowym Kongresie Psychotronicznym w Pradze. Ich zadaniem jest naukowa weryfikacja niezwykłych fenomenów ojca Klimuszki – franciszkanina z Elbląga, który odnajduje zaginionych na podstawie samych fotografii. Śledztwo szybko uderza w tajne operacje Służby Bezpieczeństwa oraz ujawnia przerażającą prawdę o traumie z 1941 roku i czwartym wymiarze czasu.",
+  "clues": [
+    {
+      "id": "clue-photo-prabuty",
+      "name": "Zdjęcie z klinowym pismem",
+      "description": "Czarno-biała fotografia zaginionego z 1947 r. Z tyłu widnieje niewyraźny adnotat ojca Klimuszki ze wskazaniem miejsca pochówku. Pod lupą tło zdjęcia zdaje się minimalnie falować."
+    },
+    {
+      "id": "clue-amber-ashes",
+      "name": "Popiół ze Skrzyni Skarbów",
+      "description": "Próbka spalonej żywicy z transportu z 1945 r. Wbrew logice, popiół wydziela zapach ozonu i ma właściwości lekko luminescencyjne."
+    },
+    {
+      "id": "clue-sb-file-klin",
+      "name": "Tajna Teczka MSW 'Kryptonim KLIN'",
+      "description": "Dokumentacja Służby Bezpieczeństwa dotycząca obserwacji zakonnika w Prabutach i Elblągu oraz prób wykorzystania jego widzenia w wywiadzie."
+    },
+    {
+      "id": "clue-herbal-recipe-152",
+      "name": "Rękopis Mieszanki Ziołowej Nr 152",
+      "description": "Niepublikowana receptura ojca Klimuszki zawierająca rzadkie odmiany ziół tłumiących percepcję strachu i odbiór szumów astralnych."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-warszawa-redakcja",
+      "title": "Redakcja 'Sygnałów Nieznanego'",
+      "description": "Zimny, socrealistyczny gabinet redaktorki Heleny Krawczyk. Wokół kłęby dymu z papierosów 'Sport' i worki listów od telewidzów.",
+      "npcs": ["Helena Krawczyk", "dr Jarosław Skrzyński"],
+      "availableClues": ["clue-photo-prabuty"]
+    },
+    {
+      "id": "node-elblag-klasztor",
+      "title": "Klasztor św. Pawła w Elblągu",
+      "description": "Skromna cela ojca Klimuszki pachnąca suszonymi ziołami, miętą i starym papierem. Za oknem mroźny wiatr od Zalewu Wiślanego.",
+      "npcs": ["Ojciec Andrzej Czesław Klimuszko"],
+      "availableClues": ["clue-herbal-recipe-152"]
+    },
+    {
+      "id": "node-prabuty-wykopaliska",
+      "title": "Stara Plebania i Cmentarz w Prabutach",
+      "description": "Miejscowość, w której Klimuszko po wojnie odnajdywał ukryte w ziemi rzadkie starodruki i srebra. Lokalni mieszkańcy wciąż wspomną o tajemniczych błyskach światła.",
+      "npcs": ["Tadeusz Polak"],
+      "availableClues": ["clue-amber-ashes"]
+    },
+    {
+      "id": "node-msw-warszawa",
+      "title": "Gabinet Generała Majewskiego (MSW)",
+      "description": "Ciemne meble, godło państwowe na ścianie i cichy szum aparatów telefonicznych. Miejsce, gdzie decyduje się los operacji psychotronicznych.",
+      "npcs": ["Generał Edward Majewski"],
+      "availableClues": ["clue-sb-file-klin"]
+    }
+  ]
+}

@@ -16,6 +16,7 @@ interface SummarizeRequest {
   messages: Message[];
   characterName?: string;
   adventureTitle?: string;
+  participantCount?: number;
 }
 
 // IND-269: surowy kształt JSON zwracany przez model (NIE jest to JournalEntry).
@@ -49,7 +50,7 @@ function mapSceneType(raw: unknown): JournalEventType {
 // ani nie pokazywał alarmującego "Nieznana scena" na żywym demo.
 const FALLBACK_TITLE = 'Zapisek z sesji';
 const FALLBACK_CONTENT =
-  'Kontynuowałeś przygodę - szczegóły nie zostały podsumowane.';
+  'Kontynuowano przygodę - szczegóły nie zostały podsumowane.';
 
 // IND-269: złóż treść wpisu z 3 pól modelu. JournalEntry.content jest renderowany
 // (session-journal.tsx) - bez tego wpis ma sam tytuł. cleanMarkdown czyści formatowanie.
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: SummarizeRequest = await request.json();
-    const { messages, characterName, adventureTitle } = body;
+    const { messages, characterName, adventureTitle, participantCount = 1 } = body;
 
     if (!messages || messages.length < 2) {
       return NextResponse.json(
@@ -132,26 +133,33 @@ export async function POST(request: NextRequest) {
       .map((m) => `${m.role === 'assistant' ? 'MG' : 'Gracz'}: ${m.content}`)
       .join('\n\n');
 
+    const isPlural = participantCount > 1;
+    const grammarRule = isPlural
+      ? "Używaj drugiej osoby liczby MNOGIEJ (np. 'Odkryliście...', 'Zbadaliście...', 'Napotkaliście...'), ponieważ w sesji bierze udział drużyna badaczy."
+      : "Używaj drugiej osoby liczby POJEDYNCZEJ (np. 'Odkryłeś...', 'Zbadałeś...').";
+
     const prompt = `Jesteś analitykiem sesji RPG. Przeanalizuj poniższy fragment rozgrywki i wygeneruj wpis do dziennika sesji.
 
 KONTEKST:
-- Postać gracza: ${characterName || 'Nieznany badacz'}
+- Postać / Drużyna: ${characterName || 'Nieznany badacz'}
 - Przygoda: ${adventureTitle || 'Nieznana przygoda'}
+- Liczba graczy: ${participantCount}
 
-FRAGMENT ROZGRYWKI:
+FRAGMETY ROZGRYWKI:
 ${conversationText}
 
 ZADANIE:
-Wygeneruj wpis do dziennika sesji w formacie JSON:
+Wygeneruj wpis do dziennika sesji w formacie JSON.
+ZASADA GRAMATYKI: ${grammarRule}
 
 {
   "title": "Krótki tytuł sceny (3-5 słów)",
   "type": "discovery" | "combat" | "dialogue" | "investigation" | "horror" | "travel",
-  "summary": "Zwięzłe podsumowanie co się wydarzyło (2-3 zdania w drugiej osobie, np. 'Odkryłeś...')",
+  "summary": "Zwięzłe podsumowanie co się wydarzyło (2-3 zdania)",
   "location": "Nazwa miejsca gdzie rozgrywa się scena",
   "npcs": ["Lista imion NPC biorących udział"],
   "significance": "Dlaczego ta scena jest ważna dla fabuły (1 zdanie)",
-  "playerActions": "Co gracz zrobił/zdecydował (1-2 zdania)"
+  "playerActions": "Co gracz/drużyna zrobiła (1-2 zdania)"
 }
 
 Odpowiedz TYLKO poprawnym JSON-em, bez żadnego dodatkowego tekstu.`;

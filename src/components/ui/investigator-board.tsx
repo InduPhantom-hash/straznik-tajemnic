@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   EvidenceNode,
   EvidenceRelation,
@@ -9,7 +9,7 @@ import {
 } from '@/types/investigator-board';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
-import { Plus, Pin, Link2, Trash2, CheckCircle, HelpCircle, XCircle } from 'lucide-react';
+import { Plus, Pin, Link2, Trash2, CheckCircle, HelpCircle, XCircle, Image as ImageIcon } from 'lucide-react';
 
 interface InvestigatorBoardProps {
   nodes: EvidenceNode[];
@@ -32,6 +32,9 @@ const statusIcons: Record<EvidenceNodeStatus, React.ReactNode> = {
   refuted: <span title="Obalone"><XCircle className="h-4 w-4 text-[#a84d4d]" /></span>,
 };
 
+const CARD_WIDTH = 260;
+const CARD_HEIGHT = 180;
+
 export function InvestigatorBoard({
   nodes,
   relations,
@@ -43,6 +46,11 @@ export function InvestigatorBoard({
   const [filterStatus, setFilterStatus] = useState<EvidenceNodeStatus | 'all'>('all');
   const [filterType, setFilterType] = useState<EvidenceNodeType | 'all'>('all');
 
+  // Drag & Drop State
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const boardCanvasRef = useRef<HTMLDivElement>(null);
+
   // Filtrowanie węzłów
   const filteredNodes = useMemo(() => {
     return nodes.filter((n) => {
@@ -52,7 +60,7 @@ export function InvestigatorBoard({
     });
   }, [nodes, filterStatus, filterType]);
 
-  // Węzły do kalkulacji sznurków SVG
+  // Mapa węzłów do kalkulacji połączeń SVG
   const nodeMap = useMemo(() => {
     const map = new Map<string, EvidenceNode>();
     nodes.forEach((n) => map.set(n.id, n));
@@ -71,16 +79,21 @@ export function InvestigatorBoard({
     if (selectedNodeId === nodeId) setSelectedNodeId(null);
   };
 
+  const handleDeleteRelation = (relId: string) => {
+    onUpdateRelations(relations.filter((r) => r.id !== relId));
+  };
+
   const handleStartConnection = (nodeId: string) => {
     if (connectingFromId === null) {
       setConnectingFromId(nodeId);
     } else if (connectingFromId !== nodeId) {
-      // Stwórz połączenie
+      const label = prompt('Etykieta powiązania (np. "Widziany w", "Właściciel"):', 'Powiązany z') || 'Powiązany z';
       const newRelation: EvidenceRelation = {
         id: `rel_${Date.now()}`,
         fromNodeId: connectingFromId,
         toNodeId: nodeId,
-        label: 'Powiązany z',
+        label,
+        color: '#a83232',
       };
       onUpdateRelations([...relations, newRelation]);
       setConnectingFromId(null);
@@ -93,6 +106,14 @@ export function InvestigatorBoard({
     const title = prompt('Tytuł dowodu / poszlaki:');
     if (!title) return;
     const description = prompt('Opis:') || '';
+    const imageUrl = prompt('URL obrazka / ilustracji (opcjonalnie):') || undefined;
+
+    const canvasRect = boardCanvasRef.current?.getBoundingClientRect();
+    const scrollLeft = boardCanvasRef.current?.scrollLeft || 0;
+    const scrollTop = boardCanvasRef.current?.scrollTop || 0;
+
+    const posX = scrollLeft + 40 + (nodes.length % 4) * 280;
+    const posY = scrollTop + 40 + Math.floor(nodes.length / 4) * 200;
 
     const newNode: EvidenceNode = {
       id: `node_${Date.now()}`,
@@ -100,11 +121,51 @@ export function InvestigatorBoard({
       description,
       type: 'clue',
       status: 'hypothesis',
-      position: { x: 100 + (nodes.length % 3) * 280, y: 100 + Math.floor(nodes.length / 3) * 200 },
+      position: { x: posX, y: posY },
+      imageUrl,
       createdAt: new Date().toISOString(),
     };
 
     onUpdateNodes([...nodes, newNode]);
+  };
+
+  // Drag Handlers
+  const handlePointerDownNode = (e: React.PointerEvent, node: EvidenceNode) => {
+    e.stopPropagation();
+    setSelectedNodeId(node.id);
+
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+
+    const rect = target.getBoundingClientRect();
+    dragOffsetRef.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+    setDraggingNodeId(node.id);
+  };
+
+  const handlePointerMoveNode = (e: React.PointerEvent) => {
+    if (!draggingNodeId || !boardCanvasRef.current) return;
+
+    const canvasRect = boardCanvasRef.current.getBoundingClientRect();
+    const newX = Math.max(10, e.clientX - canvasRect.left + boardCanvasRef.current.scrollLeft - dragOffsetRef.current.x);
+    const newY = Math.max(10, e.clientY - canvasRect.top + boardCanvasRef.current.scrollTop - dragOffsetRef.current.y);
+
+    const updated = nodes.map((n) => (n.id === draggingNodeId ? { ...n, position: { x: newX, y: newY } } : n));
+    onUpdateNodes(updated);
+  };
+
+  const handlePointerUpNode = (e: React.PointerEvent) => {
+    if (draggingNodeId) {
+      const target = e.currentTarget as HTMLElement;
+      try {
+        target.releasePointerCapture(e.pointerId);
+      } catch (err) {
+        // Safe catch
+      }
+      setDraggingNodeId(null);
+    }
   };
 
   return (
@@ -115,6 +176,9 @@ export function InvestigatorBoard({
           <Pin className="h-5 w-5 text-[#bfa15f]" />
           <span className="font-serif font-bold text-lg text-[#f4ebd0]">TABLICA BADACZA</span>
           <span className="text-xs text-[#8a7667] ml-2">({filteredNodes.length} dowodów)</span>
+          <span className="text-[11px] text-[#bfa15f]/70 italic ml-2 hidden md:inline">
+            Przeciągaj karty chwytając za nagłówek
+          </span>
         </div>
 
         {/* Filtry */}
@@ -149,9 +213,12 @@ export function InvestigatorBoard({
         {/* Akcje */}
         <div className="flex items-center gap-2">
           {connectingFromId && (
-            <span className="text-xs bg-[#942c2c] text-white px-2 py-1 rounded animate-pulse">
-              Kliknij drugi element, by połączyć sznurkiem...
-            </span>
+            <button
+              onClick={() => setConnectingFromId(null)}
+              className="text-xs bg-[#942c2c] text-white px-2 py-1 rounded animate-pulse cursor-pointer"
+            >
+              Anuluj łączenie sznurkiem
+            </button>
           )}
           <Button
             onClick={handleAddNode}
@@ -163,8 +230,11 @@ export function InvestigatorBoard({
         </div>
       </div>
 
-      {/* Płótno Korkowe (Board Canvas) */}
-      <div className="flex-1 relative overflow-auto bg-[#180f0a] bg-[radial-gradient(#2a1b12_1px,transparent_1px)] [background-size:16px_16px] p-8 min-h-[600px]">
+      {/* Płótno Korkowe (Board Canvas z Swobodnym Pozycjonowaniem) */}
+      <div
+        ref={boardCanvasRef}
+        className="flex-1 relative overflow-auto bg-[#180f0a] bg-[radial-gradient(#2a1b12_1px,transparent_1px)] [background-size:16px_16px] p-8 min-h-[650px] min-w-[1200px]"
+      >
         {/* Warstwa SVG dla czerwonych sznurków śledczych */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
           {relations.map((rel) => {
@@ -172,70 +242,99 @@ export function InvestigatorBoard({
             const to = nodeMap.get(rel.toNodeId);
             if (!from || !to) return null;
 
-            const x1 = from.position.x + 120;
-            const y1 = from.position.y + 20;
-            const x2 = to.position.x + 120;
-            const y2 = to.position.y + 20;
+            // Obliczanie środków kart dla sznurka SVG
+            const x1 = (from.position?.x ?? 50) + CARD_WIDTH / 2;
+            const y1 = (from.position?.y ?? 50) + CARD_HEIGHT / 2;
+            const x2 = (to.position?.x ?? 300) + CARD_WIDTH / 2;
+            const y2 = (to.position?.y ?? 50) + CARD_HEIGHT / 2;
+
+            const strokeColor = rel.color || '#a83232';
 
             return (
-              <g key={rel.id}>
-                {/* Linia czerwonego sznurka */}
+              <g key={rel.id} className="group pointer-events-auto">
                 <line
                   x1={x1}
                   y1={y1}
                   x2={x2}
                   y2={y2}
-                  stroke="#a83232"
-                  strokeWidth="2.5"
+                  stroke={strokeColor}
+                  strokeWidth="3"
                   strokeDasharray={rel.status === 'doubtful' ? '4,4' : undefined}
-                  className="drop-shadow-md"
+                  className="drop-shadow-md cursor-pointer hover:stroke-yellow-400 transition-colors"
+                  onClick={() => {
+                    if (confirm(`Usuń sznurek "${rel.label}"?`)) {
+                      handleDeleteRelation(rel.id);
+                    }
+                  }}
                 />
-                {/* Etykieta sznurka */}
                 {rel.label && (
-                  <text
-                    x={(x1 + x2) / 2}
-                    y={(y1 + y2) / 2 - 5}
-                    fill="#f4ebd0"
-                    fontSize="10"
-                    fontFamily="serif"
-                    textAnchor="middle"
-                    className="bg-black/60 px-1 rounded"
-                  >
-                    {rel.label}
-                  </text>
+                  <g transform={`translate(${(x1 + x2) / 2}, ${(y1 + y2) / 2 - 8})`}>
+                    <rect
+                      x="-45"
+                      y="-10"
+                      width="90"
+                      height="16"
+                      rx="3"
+                      fill="#0f0905"
+                      stroke="#3a2518"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x="0"
+                      y="1"
+                      fill="#f4ebd0"
+                      fontSize="10"
+                      fontFamily="serif"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                    >
+                      {rel.label}
+                    </text>
+                  </g>
                 )}
               </g>
             );
           })}
         </svg>
 
-        {/* Karty Węzłów na Korku */}
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Karty Węzłów na Korku z Pozycjonowaniem Absolutnym */}
+        <div className="relative z-10 w-full h-full min-h-[600px]">
           {filteredNodes.map((node) => {
             const typeInfo = nodeTypeLabels[node.type] || nodeTypeLabels.clue;
             const isSelected = selectedNodeId === node.id;
             const isConnecting = connectingFromId === node.id;
+            const posX = node.position?.x ?? 50;
+            const posY = node.position?.y ?? 50;
 
             return (
               <div
                 key={node.id}
+                style={{
+                  position: 'absolute',
+                  left: `${posX}px`,
+                  top: `${posY}px`,
+                  width: `${CARD_WIDTH}px`,
+                }}
+                onPointerDown={(e) => handlePointerDownNode(e, node)}
+                onPointerMove={handlePointerMoveNode}
+                onPointerUp={handlePointerUpNode}
                 onClick={() => setSelectedNodeId(node.id)}
                 className={cn(
-                  'relative rounded-lg p-4 shadow-xl border-2 transition-all cursor-pointer font-serif flex flex-col justify-between',
+                  'rounded-lg p-3 shadow-2xl border-2 transition-shadow cursor-grab active:cursor-grabbing font-serif flex flex-col justify-between select-none bg-[#1a110a]',
                   typeInfo.color,
-                  isSelected && 'ring-2 ring-[#bfa15f] shadow-2xl scale-[1.02]',
+                  isSelected && 'ring-2 ring-[#bfa15f] shadow-amber-900/30 scale-[1.01]',
                   isConnecting && 'border-red-500 animate-pulse'
                 )}
               >
-                {/* Kołek / Czerwona Szpilka */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 border-2 border-amber-200 shadow-md flex items-center justify-center">
+                {/* Czerwona Szpilka Detektywistyczna */}
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 border-2 border-amber-200 shadow-md flex items-center justify-center pointer-events-none">
                   <div className="w-1 h-1 bg-white rounded-full"></div>
                 </div>
 
                 {/* Nagłówek Karty */}
                 <div>
-                  <div className="flex justify-between items-center border-b border-[#3a2518] pb-2 mb-2">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#bfa15f]">
+                  <div className="flex justify-between items-center border-b border-[#3a2518] pb-1.5 mb-2">
+                    <span className="text-[9px] uppercase font-bold tracking-widest text-[#bfa15f]">
                       {typeInfo.label}
                     </span>
                     <div className="flex items-center gap-1">
@@ -251,27 +350,53 @@ export function InvestigatorBoard({
                               : 'confirmed';
                           handleStatusChange(node.id, nextStatus);
                         }}
-                        className="text-[10px] text-[#8a7667] hover:text-[#f4ebd0] underline ml-1"
+                        className="text-[9px] text-[#8a7667] hover:text-[#f4ebd0] underline ml-1"
                       >
                         zmień
                       </button>
                     </div>
                   </div>
 
+                  {/* Ilustracja Klocka / Dowodu */}
+                  {node.imageUrl && (
+                    <div className="mb-2 overflow-hidden rounded border border-[#3a2518] h-24 bg-black/40">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={node.imageUrl}
+                        alt={node.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
                   {/* Tytuł i Treść */}
-                  <h4 className="font-bold text-base text-[#f4ebd0] mb-2">{node.title}</h4>
-                  <p className="text-xs text-[#e2d4c9]/90 italic leading-relaxed line-clamp-4">
+                  <h4 className="font-bold text-sm text-[#f4ebd0] mb-1 leading-snug">{node.title}</h4>
+                  <p className="text-[11px] text-[#e2d4c9]/90 italic leading-relaxed line-clamp-3">
                     {node.description}
                   </p>
                 </div>
 
                 {/* Stopka Karty i Narzędzia */}
-                <div className="mt-4 pt-2 border-t border-[#3a2518] flex items-center justify-between text-xs">
-                  <span className="text-[10px] text-[#8a7667]">
+                <div className="mt-3 pt-1.5 border-t border-[#3a2518] flex items-center justify-between text-xs">
+                  <span className="text-[9px] text-[#8a7667]">
                     {node.foundInLocation ? `📍 ${node.foundInLocation}` : ''}
                   </span>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = prompt('URL ilustracji:', node.imageUrl || '');
+                        if (url !== null) {
+                          const updated = nodes.map((n) => (n.id === node.id ? { ...n, imageUrl: url } : n));
+                          onUpdateNodes(updated);
+                        }
+                      }}
+                      className="p-1 text-[#bfa15f] hover:bg-[#3a2518] rounded transition-colors"
+                      title="Dodaj/Zmień obrazek"
+                    >
+                      <ImageIcon className="h-3.5 w-3.5" />
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -283,7 +408,7 @@ export function InvestigatorBoard({
                       )}
                       title="Połącz sznurkiem"
                     >
-                      <Link2 className="h-4 w-4" />
+                      <Link2 className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={(e) => {
@@ -293,7 +418,7 @@ export function InvestigatorBoard({
                       className="p-1 text-[#a84d4d] hover:bg-[#3a2518] rounded transition-colors"
                       title="Usuń z tablicy"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
@@ -302,8 +427,8 @@ export function InvestigatorBoard({
           })}
 
           {filteredNodes.length === 0 && (
-            <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
-              Tablica Badacza jest pusta. Użyj przycisku &quot;Przypnij wpis&quot; lub kontynuuj śledztwo w grze.
+            <div className="text-center py-20 text-[#8a7667] italic font-serif">
+              Tablica Badacza jest pusta. Użyj przycisku &quot;Przypnij wpis&quot; aby rozpocząć układanie dowodów.
             </div>
           )}
         </div>
