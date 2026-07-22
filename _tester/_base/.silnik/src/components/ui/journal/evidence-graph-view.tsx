@@ -73,7 +73,7 @@ export function EvidenceGraphView({ entries, onSelectEntry }: EvidenceGraphViewP
 
     nodes.forEach((node) => {
       if (node.entry.linkedEntryIds && node.entry.linkedEntryIds.length > 0) {
-        node.entry.linkedEntryIds.forEach((targetId) => {
+        node.entry.linkedEntryIds.forEach((targetId: string) => {
           const targetNode = nodeMap.get(targetId);
           if (targetNode) {
             const pairKey = [node.id, targetId].sort().join('___');
