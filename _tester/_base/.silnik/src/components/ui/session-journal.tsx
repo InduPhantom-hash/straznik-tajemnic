@@ -386,7 +386,8 @@ export function SessionJournal({
       md += `## 📔 Kronika Wydarzeń\n\n`;
       journalEntries.forEach((e) => {
         md += `### ${e.title}\n`;
-        md += `*Data: ${e.inGameDate || new Date(e.timestamp).toLocaleDateString('pl-PL')}*\n\n`;
+        const formattedDate = e.inGameDate || (e.timestamp ? new Date(e.timestamp).toLocaleDateString('pl-PL') : '');
+        md += `*Data: ${formattedDate}*\n\n`;
         md += `${e.content}\n\n`;
         if (e.tags && e.tags.length > 0) {
           md += `*Tagi: ${e.tags.map((t) => `#${t}`).join(', ')}*\n\n`;
