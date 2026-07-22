@@ -235,6 +235,15 @@ export interface EquipmentModifiers {
   sanLoss?: string; // Strata SAN przy czytaniu (np. "1d4/1d8")
 }
 
+export type DocumentSubType =
+  | 'press_pass' // Legitymacja prasowa
+  | 'id_card' // Dowód tożsamości / legitymacja służbowa
+  | 'evidence_envelope' // Koperta / teczka na dowody policyjne
+  | 'letter' // List osobisty / telegram
+  | 'newspaper' // Artykuł / wycinek z prasowy
+  | 'official_document' // Oficjalne pismo rządowe / urzędowe
+  | 'journal_page'; // Pamiętnik / notatka ręczna
+
 export interface EquipmentItem {
   id: string;
   /** Stabilny identyfikator wzorca katalogowego, jeśli ten egzemplarz go ma. */
@@ -265,6 +274,7 @@ export interface EquipmentItem {
   isReadable?: boolean; // Czy przedmiot posiada tekst do przeczytania (np. list, pamietnik)
   readableContent?: string; // Wygenerowana lub predefiniowana tresc diegetyczna dokumentu
   readableContentStatus?: 'none' | 'generating' | 'ready' | 'error'; // Status asynchronicznego generowania
+  documentType?: DocumentSubType; // Dedykowany podtyp rekwizytu diegetycznego
 }
 
 // === SYSTEM ROZWOJU POSTACI (CoC 7e) ===
