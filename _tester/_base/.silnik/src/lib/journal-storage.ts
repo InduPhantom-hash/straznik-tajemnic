@@ -47,11 +47,11 @@ export function loadJournalLocally(userId: string, journalId: string): Record<st
  */
 export function convertEntriesToBoardNodes(entries: JournalEntry[]): EvidenceNode[] {
   return entries.map((entry, idx) => {
-    let nodeType: EvidenceNode['type'] = 'clue';
-    if (entry.type === 'encyclopedia_character' || entry.category === 'Spotkania') nodeType = 'suspect';
-    else if (entry.type === 'encyclopedia_location' || entry.category === 'Odkrycia') nodeType = 'location';
-    else if (entry.type === 'encyclopedia_item' || entry.category === 'Artefakty') nodeType = 'artifact';
-    else if (entry.type === 'quest') nodeType = 'evidence';
+    const typeStr = (entry.type || '') as string;
+    if (typeStr === 'encyclopedia_character' || entry.category === 'Spotkania') nodeType = 'suspect';
+    else if (typeStr === 'encyclopedia_location' || entry.category === 'Odkrycia') nodeType = 'location';
+    else if (typeStr === 'encyclopedia_item' || entry.category === 'Artefakty') nodeType = 'artifact';
+    else if (typeStr === 'quest') nodeType = 'evidence';
 
     const col = idx % 4;
     const row = Math.floor(idx / 4);
