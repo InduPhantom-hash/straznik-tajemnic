@@ -27,9 +27,9 @@ const nodeTypeLabels: Record<EvidenceNodeType, { label: string; color: string }>
 };
 
 const statusIcons: Record<EvidenceNodeStatus, React.ReactNode> = {
-  confirmed: <CheckCircle className="h-4 w-4 text-[#73a15c]" title="Potwierdzone" />,
-  hypothesis: <HelpCircle className="h-4 w-4 text-[#bfa15f]" title="Hipoteza" />,
-  refuted: <XCircle className="h-4 w-4 text-[#a84d4d]" title="Obalone" />,
+  confirmed: <span title="Potwierdzone"><CheckCircle className="h-4 w-4 text-[#73a15c]" /></span>,
+  hypothesis: <span title="Hipoteza"><HelpCircle className="h-4 w-4 text-[#bfa15f]" /></span>,
+  refuted: <span title="Obalone"><XCircle className="h-4 w-4 text-[#a84d4d]" /></span>,
 };
 
 export function InvestigatorBoard({
