@@ -293,7 +293,9 @@ export function useGameStart({
     if (activeCharacter) {
       const resetEquipment = (activeCharacter.equipment ?? []).map((item) => ({
         ...item,
-        ...(isCatalogEquipment(item)
+        ...(item.imageUrl &&
+        item.imageUrl.includes('/equipment/catalog/') &&
+        item.imageUrl.endsWith('.webp')
           ? {}
           : { imageUrl: undefined, imagePrompt: undefined }),
       }));

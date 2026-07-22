@@ -220,8 +220,8 @@ function withLocalImage(
 
   return {
     ...catalogItem,
-    imageUrl: catalogItem.imageUrl ?? CATEGORY_IMAGES[catalogItem.category],
-    visualSource: 'catalog',
+    imageUrl: catalogItem.imageUrl,
+    visualSource: catalogItem.imageUrl ? 'catalog' : 'generated',
   };
 }
 

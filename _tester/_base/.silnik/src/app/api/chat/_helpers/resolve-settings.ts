@@ -12,16 +12,12 @@
  * Pure function: brak side effects, brak async. Nie mutuje argumentów (immutable spread).
  */
 
-import {
-  normalizeSessionZeroSettings,
-  type AISettings,
-  type SessionZeroSettings,
-} from '@/lib/ai-settings/types';
+import type { AISettings } from '@/lib/ai-settings/types';
 
 // Partial w typie clientAISettings nie wystarczy bo geminiSettings jest required w AISettings.
 // Klient może wysłać tylko podzbiór pól, więc zagłębione obiekty też muszą być Partial.
 export type ClientAISettingsPatch = Partial<
-  Omit<AISettings, 'geminiSettings' | 'gameMasterNarration' | 'sessionZero'>
+  Omit<AISettings, 'geminiSettings' | 'gameMasterNarration'>
 > & {
   geminiSettings?: Partial<AISettings['geminiSettings']>;
   gameMasterNarration?: Partial<
@@ -29,7 +25,6 @@ export type ClientAISettingsPatch = Partial<
   > & {
     behavior?: Partial<AISettings['gameMasterNarration']['behavior']>;
   };
-  sessionZero?: Partial<SessionZeroSettings>;
   // sessionId nie jest częścią AISettings ale klient wysyła go w tym samym obiekcie.
   sessionId?: string;
 };
@@ -38,13 +33,6 @@ export function resolveSettings(
   baseSettings: AISettings,
   clientAISettings: ClientAISettingsPatch | undefined
 ): AISettings {
-  const mergedSessionZero = clientAISettings?.sessionZero
-    ? {
-        ...baseSettings.sessionZero,
-        ...clientAISettings.sessionZero,
-      }
-    : baseSettings.sessionZero;
-
   return {
     ...baseSettings,
     ...clientAISettings,
@@ -60,6 +48,5 @@ export function resolveSettings(
         ...(clientAISettings?.gameMasterNarration?.behavior || {}),
       },
     },
-    sessionZero: normalizeSessionZeroSettings(mergedSessionZero),
   };
 }

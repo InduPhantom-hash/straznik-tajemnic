@@ -93,6 +93,8 @@ interface CthulhuSidebarProps {
   loadingStatusAdventure?: string;
   // Hot Seat config - potrzebny dla wspólnego dziennika (sharedJournal)
   hotSeatConfig?: HotSeatConfig;
+  onSwitchPlayer?: (playerIndexOrId: any) => void;
+  onDisableHotSeat?: () => void;
   aiSettings?: AISettings;
   onUpdateAISettings?: (settings: AISettings) => void;
   isSessionEnded?: boolean;
@@ -422,7 +424,11 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   const IconComponent = item.icon;
                   // Pobierz liczbę nowych pozycji dla badge
                   const badgeCount =
-                    item.id === 'journal' ? unseenJournalCount : 0;
+                    item.id === 'journal'
+                      ? unseenJournalCount
+                      : item.id === 'equipment' && activeCharacter?.equipment
+                      ? activeCharacter.equipment.length
+                      : 0;
                   return (
                     <Button
                       key={item.id}
@@ -435,9 +441,9 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     >
                       <IconComponent className="w-4 h-4 mr-3 text-brass" />
                       {item.label}
-                      {/* Badge z liczbą nowych pozycji */}
+                      {/* Badge z liczbą nowych pozycji lub liczby ekwipunku */}
                       {badgeCount > 0 && (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                        <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 ${item.id === 'equipment' ? 'bg-brass/20 text-brass border border-brass/40' : 'bg-red-500 text-white'}`}>
                           {badgeCount > 99 ? '99+' : badgeCount}
                         </span>
                       )}

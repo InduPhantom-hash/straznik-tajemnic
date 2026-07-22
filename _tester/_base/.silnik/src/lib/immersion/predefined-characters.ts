@@ -1,12 +1,7 @@
 import { Character } from '@/lib/types';
 import { buildPredefinedEquipment } from './predefined-equipment';
 
-export type PredefinedCharacterEra =
-  | 'gaslight'
-  | 'classic'
-  | 'noir'
-  | 'prl'
-  | 'modern';
+export type PredefinedCharacterEra = 'gaslight' | 'classic' | 'modern' | 'noir' | 'prl';
 export type PredefinedCharacterArchetype =
   | 'investigator'
   | 'scholar'
@@ -54,7 +49,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Urodzony w Londynie reporter piszący dla "The Pall Mall Gazette". Zawsze z notesem w dłoni, bada tajemnice mglistych uliczek East Endu. Wierzy, że prawda jest silniejsza od jakiegokolwiek przesądu.',
     birthplace: 'Londyn, Anglia',
     residence: 'Londyn, dzielnica Chelsea',
-    characterConcept: 'Arthur Pendleton urodził się w zamożnej rodzinie kupieckiej w Londynie, lecz szybko porzucił bezpieczną drogę kariery na rzecz niebezpiecznego dziennikarstwa śledczego. Podczas pracy w dzielnicach nędzy East Endu był świadkiem brutalnych rytuałów, które zniszczyły jego wiarę w racjonalny porządek świata. Jego nadrzędną motywacją jest ujawnianie prawdy ukrytej za zasłoną cenzury i społecznego milczenia. Utrzymuje bliski kontakt z redaktorem naczelnym gazety, który niejednokrotnie ratował go przed więzieniem. Jego największą słabością jest chorobliwy sceptycyzm, przez który często ignoruje namacalne ostrzeżenia o niebezpieczeństwie. Obecnie bada serię zagadkowych morderstw wokół doków, w które zamieszani są wpływowi arystokraci.',
+    characterConcept: 'Dociekliwy reporter tropiący to, o czym inni boją się pisać.',
     ideology: 'Prawda i fakty są jedyną bronią przeciwko ciemnocie i zabobonom.',
     significantPerson: 'Redaktor naczelny Pall Mall Gazette, który wielokrotnie ratował go przed procesami o zniesławienie.',
     meaningfulLocation: 'Ciasna redakcja pełna dymu tytoniowego i zapachu zecerki.',
@@ -129,7 +124,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Jedna z nielicznych kobiet prowadzących własną agencję śledczą w wiktoriańskim Londynie. Oficjalnie zajmuje się sprawami rodzinnymi, nieoficjalnie tropi podejrzane stowarzyszenia.',
     birthplace: 'Bristol, Anglia',
     residence: 'Londyn, Soho',
-    characterConcept: 'Beatrice Vance pochodzi ze starego, szkockiego rodu szlacheckiego, którego chwała dawno już przeminęła w oparach rodowych klątw. W wieku dwudziestu lat przeżyła tajemniczy pożar rodzinnej posiadłości, w którym straciła młodszego brata i od tamtej pory słyszy dziwne głosy. Pragnie za wszelką cenę udowodnić istnienie życia pośmiertnego i odnaleźć duszę zmarłego brata. Jej jedyną zaufaną powierniczką jest stara niania, która nauczyła ją podstaw spirytyzmu. Słabością Beatrice jest krucha psychika i skłonność do popadania w głęboką melancholię. Aktualnie przybyła do Londynu na zaproszenie znanego medium, podejrzewając, że zbliża się przełom w jej śledztwie.',
+    characterConcept: 'Niezależna śledcza działająca w cieniu patriarchalnego społeczeństwa.',
     ideology: 'Każdy sekret, nieważne jak głęboko zakopany, ostatecznie wychodzi na jaw.',
     significantPerson: 'Jej zaginiony brat, którego poszukiwania pchnęły ją do otwarcia agencji.',
     meaningfulLocation: 'Jej małe biuro w Soho, z którego widać zatłoczoną ulicę.',
@@ -208,7 +203,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Wykładowca historii starożytnej na Uniwersytecie Oxfordzkim. Spędził dekady badając zapomniane cywilizacje Mezopotamii. Szanowany badacz, który wierzy, że przeszłość kryje klucze do zrozumienia każdego koszmaru.',
     birthplace: 'Oxford, Anglia',
     residence: 'Oxford',
-    characterConcept: 'Archibald Blackwood dorastał w przemysłowym Manchesterze, pracując od najmłodszych lat w zakładach metalurgicznych. W trakcie buntu robotników w 1888 roku stracił bliskiego przyjaciela i sam ledwo uniknął śmierci, co ukształtowało jego twardy charakter. Motywuje go chęć ochrony słabszych oraz walka z niesprawiedliwością społeczną. Utrzymuje chłodne, lecz lojalne relacje z dawnym dowódcą z wojska, który uczył go dyscypliny. Słabością Archibalda jest niekontrolowany gniew oraz bezgraniczne zaufanie do własnej siły fizycznej. Obecnie pracuje jako prywatny ochroniarz zamożnego kolekcjonera i bada kradzieże dziwnych, starożytnych artefaktów.',
+    characterConcept: 'Klasyczny naukowiec szukający racjonalnych wyjaśnień w starożytnych pismach.',
     ideology: 'Wiedza zgromadzona przez przodków chroni nas przed szaleństwem teraźniejszości.',
     significantPerson: 'Jego dawny profesor i mentor, który zmarł w tajemniczych okolicznościach po powrocie z Egiptu.',
     meaningfulLocation: 'Ciche, zakurzone biblioteki Oxfordu.',
@@ -286,7 +281,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Właścicielka małego antykwariatu w Londynie. Specjalizuje się w średniowiecznych manuskryptach oraz rzadkich dziełach okultystycznych. Posiada niezwykły zmysł do wykrywania fałszerstw.',
     birthplace: 'Bath, Anglia',
     residence: 'Londyn, Kensington',
-    characterConcept: 'Cordelia Ashford urodziła się i wychowała w spokojnym Oksfordzie jako córka szanowanego profesora historii. Jej życie zmieniło się diametralnie, gdy odnalazła w gabinecie zmarłego ojca zaszyfrowany manuskrypt opisujący zakazane rytuały. Od tej pory jej motywacją jest dokończenie dzieła ojca i rozszyfrowanie tajemniczych ksiąg. Ceni sobie relację z kustoszem biblioteki uniwersyteckiej, który udostępnia jej tajne zbiory archiwalne. Jej słabością jest obsesyjne dążenie do wiedzy, które często przysłania jej instynkt samozachowawczy. Obecnie przebywa w Londynie, poszukując rzadkiego wydania łacińskiego traktatu o demonologii.',
+    characterConcept: 'Konserwatorka ksiąg o niezwykłej intuicji do zakazanej wiedzy.',
     ideology: 'Księgi nie kłamią; to ludzie interpretują je w zły sposób.',
     significantPerson: 'Jej stały klient, ekscentryczny lord, który zleca jej poszukiwania najdziwniejszych tomów.',
     meaningfulLocation: 'Cichy tył jej antykwariatu, pachnący starym papierem i woskiem pszczelim.',
@@ -365,7 +360,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Kapitan piechoty w stanie spoczynku. Służył w Indiach i Afganistanie. Doskonały strzelec, wyznawca wojskowej dyscypliny, stawiający czoła niebezpieczeństwom z zimną krwią.',
     birthplace: 'York, Anglia',
     residence: 'Londyn',
-    characterConcept: 'Ronald Shaw spędził dzieciństwo w mglistych dokach Bostonu, zanim zaciągnął się na statki handlowe pływające na Daleki Wschód. Podczas jednej z wypraw jego załoga zaginęła w tajemniczych okolicznościach u wybrzeży wysp Pacyfiku, a on jako jedyny ocalał z głęboką traumą. Napędza go obsesyjna chęć dowiedzenia się, co naprawdę spotkało jego towarzyszy tamtej nocy. Jedyną osobą, z którą potrafi rozmawiać o przeszłości, jest emerytowany lekarz okrętowy. Słabością Ronalda jest uzależnienie od laudanum, którym próbuje uciszyć powracające koszmary. Obecnie wynajmuje pokój w Londynie i poszukuje informacji o tajemniczej korporacji handlowej.',
+    characterConcept: 'Zdyscyplinowany oficer zmagający się z demonami przeszłości.',
     ideology: 'Honor i lojalność wobec towarzyszy broni stoją ponad wszystkim.',
     significantPerson: 'Jego dawny ordynans, który zginął, osłaniając go w przełęczy Khyber.',
     meaningfulLocation: 'Klub oficerski, w którym szuka ciszy.',
@@ -442,7 +437,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Córka arystokraty, która odrzuciła salonowe życie na rzecz ekspedycji do Afryki i Ameryki Południowej. Znakomita sportsmenka, wspinacz i badaczka terenowa.',
     birthplace: 'Surrey, Anglia',
     residence: 'Londyn / W podróży',
-    characterConcept: 'Alexandra Croft urodziła się w zamożnej rodzinie dyplomatów w Wiedniu, dzięki czemu odebrała wszechstronne wykształcenie i poznała wiele kultur. Podczas podróży do Egiptu w 1891 roku weszła do niezbadanej dotąd grobowcowej komnaty, gdzie doświadczyła wizji, która zmieniła jej postrzeganie czasu. Pragnie odkryć sekrety zapomnianych cywilizacji i udowodnić ich wpływ na współczesny świat. Utrzymuje bliskie kontakty z członkami Towarzystwa Geograficznego, choć wielu uważa ją za ekscentryczkę. Jej słabością jest duma i trudność w przyznaniu się do błędu w obliczu faktów. Obecnie organizuje wyprawę mającą na celu zbadanie nowo odkrytych ruin w Walii.',
+    characterConcept: 'Arystokratka poszukująca przygód w najdzikszych zakątkach świata.',
     ideology: 'Życie nabiera smaku tylko wtedy, gdy igramy z niebezpieczeństwem.',
     significantPerson: 'Jej ojciec, lord Croft, który finansuje jej eskapady mimo sprzeciwu reszty rodziny.',
     meaningfulLocation: 'Szczyty Andów lub gęsta dżungla Kongo.',
@@ -517,7 +512,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Uznany londyński patolog i toksykolog. Często konsultuje nietypowe przypadki zgonów dla Scotland Yardu. Posiada chłodny umysł i głęboką wiedzę o chemii.',
     birthplace: 'Edynburg, Szkocja',
     residence: 'Londyn, Marylebone',
-    characterConcept: 'Alistair Sterling wywodzi się z lekarskiej rodziny o długich tradycjach chirurgicznych w Edynburgu. Podczas epidemii cholery w 1889 roku nie zdołał uratować swojej narzeczonej, co pchnęło go do poszukiwania metod leczenia wykraczających poza konwencjonalną medycynę. Jego motywacją jest pokonanie samej śmierci i ratowanie ludzkiego życia za wszelką cenę. Pozostaje w stałym kontakcie ze swoim dawnym profesorem, który podziela jego nieortodoksyjne teorie naukowe. Słabością Alistaira jest skrajne wycieńczenie pracą i brak dbałości o własne zdrowie fizyczne. Obecnie prowadzi prywatną klinikę w Londynie, potajemnie badając regenerację tkanek.',
+    characterConcept: 'Analityczny patolog badający granice życia i śmierci.',
     ideology: 'Ludzkie ciało to maszyna; każda śmierć ma swoją fizyczną i logiczną przyczynę.',
     significantPerson: 'Inspektor Scotland Yardu, który regularnie zleca mu sekcje zwłok z niewyjaśnionych spraw.',
     meaningfulLocation: 'Chłodne, oświetlone gazowymi lampami prosektorium.',
@@ -593,7 +588,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Doświadczona pielęgniarka pracująca w londyńskich szpitalach ubogich. Poświęciła życie niesieniu pomocy chorym. Cechuje ją bezgraniczna cierpliwość oraz stalowe nerwy.',
     birthplace: 'Norfolk, Anglia',
     residence: 'Londyn, East End',
-    characterConcept: 'Edith Cavell dorastała w cichej parafii w Norfolk jako córka wikariusza, poświęcając czas pomocy chorym. W 1892 roku podczas pracy w szpitalu zetknęła się z pacjentem, którego rany nie przypominały niczego, co opisywały podręczniki medyczne. Jej motywacją jest niesienie ulgi w cierpieniu oraz odkrywanie prawdy o nieznanych chorobach trawiących ludzkość. Łączy ją głęboka więź z młodszą siostrą, dla której chce być oparciem. Jej słabością jest bezgraniczne zaufanie do ludzi, co często czyni ją podatną na manipulację. Obecnie pracuje w londyńskim szpitalu dla ubogich, starając się zidentyfikować źródło nowej, nietypowej gorączki.',
+    characterConcept: 'Oddana pielęgniarka o niezłomnej woli walki o ludzkie życie.',
     ideology: 'Pomoc należy się każdemu człowiekowi, niezależnie od jego statusu czy występków.',
     significantPerson: 'Jej matka, która zaszczepiła w niej wiarę w powołanie.',
     meaningfulLocation: 'Ciasny, duszny szpital polowy lub hospicjum.',
@@ -674,7 +669,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Były detektyw bostońskiej policji, który odszedł ze służby po odkryciu korupcji na najwyższych szczeblach. Teraz prowadzi jednoosobowe biuro śledcze, przyjmując sprawy, którymi nikt inny nie chce się zająć.',
     birthplace: 'Boston, USA',
     residence: 'Boston, North End',
-    characterConcept: 'Tommy O\'Brien wychował się na twardych ulicach nowojorskiego Bronxu w rodzinie irlandzkich imigrantów. Podczas Wielkiej Wojny służył w piechocie w Europie, gdzie widział rzeczy, które na zawsze odebrały mu spokój ducha. Pragnie chronić swoją młodszą siostrę przed nędzą i bezwzględnym światem przestępczym. Posiada lojalnego przyjaciela z czasów okopów, który obecnie pracuje w policji i przymyka oko na jego drobne sprawki. Słabością Tommy\'ego jest skłonność do hazardu oraz nawracające ataki paniki wywołane głośnymi dźwiękami. Obecnie pracuje jako prywatny detektyw w Arkham, szukając zaginionego studenta uniwersytetu.',
+    characterConcept: 'Prywatny detektyw w stylu noir, trzymający się twardych zasad.',
     ideology: 'Prawo rzadko oznacza sprawiedliwość, ale ktoś musi stać po stronie słabszych.',
     significantPerson: 'Jego dawny partner z policji, jedyny gliniarz w Bostonie, któremu wciąż ufa.',
     meaningfulLocation: 'Biuro z zakurzonymi żaluzjami, pachnące tanią kawą i bourbonem.',
@@ -756,7 +751,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Reporterka śledcza pisząca dla „Arkham Advertiser”. Specjalizuje się w tropieniu powiązań lokalnych polityków z przestępczym podziemiem. Dociekliwa i nieustraszona, wierzy w uzdrawiającą moc prawdy.',
     birthplace: 'Arkham, USA',
     residence: 'Arkham, French Hill',
-    characterConcept: 'Margaret Sullivan dorastała w Bostonie, studiując literaturę klasyczną na Uniwersytecie Bostońskim. Podczas stażu w bibliotece natknęła się na korespondencję rodową opisującą niewyjaśnione zniknięcia mieszkańców miasteczka Innsmouth. Jej motywacją jest naukowe wyjaśnienie tajemnic Nowej Anglii i oczyszczenie imienia swojej rodziny. Współpracuje blisko z profesorem antropologii, który dostarcza jej rzadkich materiałów badawczych. Jej słabością jest słaba kondycja fizyczna oraz lęk przed ciemnością i zamkniętymi przestrzeniami. Obecnie bada archiwa uniwersyteckie w poszukiwaniu śladów osadnictwa wokół rzeki Miskatonic.',
+    characterConcept: 'Dociekliwa i odważna dziennikarka śledcza.',
     ideology: 'Wolna prasa to jedyna zapora przed tyranią i złem.',
     significantPerson: 'Jej brat, redaktor naczelny, który drukuje jej ryzykowne artykuły.',
     meaningfulLocation: 'Głośna zecernia gazety z zapachami ołowiu i papieru.',
@@ -836,7 +831,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Ceniony profesor geologii na Uniwersytecie Miskatonic w Arkham. Weteran wypraw badawczych, w tym ekspedycji na Alaskę. Rzeczowy naukowiec, przyzwyczajony do analizy faktów i przetrwania w dziczy.',
     birthplace: 'Providence, USA',
     residence: 'Arkham, dzielnica uniwersytecka',
-    characterConcept: 'William Dyer urodził się w Chicago i wcześnie poświęcił się karierze akademickiej w dziedzinie geologii na Uniwersytecie Miskatonic. Podczas wyprawy badawczej w góry Vermontu odkrył przedziwne formacje skalne noszące ślady sztucznej obróbki z okresu prekambru. Motywuje go chęć poszerzenia ludzkiej wiedzy i ochrony nauki przed dogmatyczną ignorancją. Utrzymuje bliskie relacje z rektorem uniwersytetu, który wspiera finansowo jego badania terenowe. Słabością Williama jest skrajny racjonalizm, który utrudnia mu akceptację zjawisk nadprzyrodzonych. Obecnie analizuje próbki minerałów przyniesione przez lokalnego rolnika z okolic Dunwich.',
+    characterConcept: 'Doświadczony geolog o wybitnym intelekcie i zamiłowaniu do natury.',
     ideology: 'Ziemia opowiada historię dłuższą i bardziej niezwykłą niż cała ludzkość.',
     significantPerson: 'Profesor Danforth, z którym dzielił trudy wypraw arktycznych.',
     meaningfulLocation: 'Uniwersyteckie laboratorium geologiczne pełne rzadkich okazów.',
@@ -907,7 +902,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Starsza archiwistka w bibliotece Uniwersytetu Miskatonic. Posiada klucze do działu ksiąg zakazanych i rzadkich manuskryptów. Cicha i spostrzegawcza, wie dokładnie, gdzie szukać zapomnianej wiedzy.',
     birthplace: 'Ipswich, USA',
     residence: 'Arkham, Northside',
-    characterConcept: 'Dorothy Updike pochodzi z szanowanej i wpływowej rodziny prawniczej z Providence. W 1921 roku jej narzeczony zaginął bez wieści podczas podróży biznesowej do Egiptu, co zrujnowało jej plany życiowe. Pragnie odnaleźć ukochanego lub poznać prawdę o jego losie, bez względu na konsekwencje dla własnej reputacji. Jej jedynym sprzymierzeńcem jest starszy brat, który pomaga jej finansować prywatne śledztwa. Słabością Dorothy jest naiwna wiara w to, że status społeczny ochroni ją przed fizycznym niebezpieczeństwem. Obecnie przebywa w Arkham, gdzie natrafiła na ślad listów wysyłanych z tamtejszego sanatorium.',
+    characterConcept: 'Dyskretna archiwistka posiadająca dostęp do najmroczniejszych sekretów historii.',
     ideology: 'Niektóre prawdy są tak potężne, że powinny pozostać ukryte w cieniu bibliotek.',
     significantPerson: 'Jej schorowany ojciec, dawny profesor filologii klasycznej, który przekazał jej pasję do ksiąg.',
     meaningfulLocation: 'Mroczny, chłodny dział starodruków w Bibliotece Orne.',
@@ -984,7 +979,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Weteran I Wojny Światowej, który walczył we Francji. Po powrocie do kraju nie potrafił odnaleźć się w cywilnym życiu. Pracuje jako ochroniarz oraz instruktor strzelectwa, wciąż prześladowany przez wspomnienia z frontu.',
     birthplace: 'Chicago, USA',
     residence: 'Arkham, Downtown',
-    characterConcept: 'Gerald Grant dorastał na farmie w Oklahomie, zanim uciekł do Chicago i zaciągnął się do policji. Podczas nalotu na nielegalną gorzelnię w 1924 roku odkrył ołtarz poświęcony nieznanemu bóstwu, wokół którego leżały zmasakrowane ciała gangsterów. Chce oczyścić miasto z bezwzględnych kultów i mafii niszczących ludzkie życie. Utrzymuje kontakt z informatorem z półświatka, który dostarcza mu cennych przecieków o działalności sekt. Jego słabością jest skłonność do sięgania po alkohol w trudnych chwilach i cynizm wobec ludzkich intencji. Obecnie prowadzi prywatne śledztwo w sprawie rytualnych porwań w Arkham.',
+    characterConcept: 'Weteran wojenny szukający ukojenia i celu w obronie innych.',
     ideology: 'Tylko siła i dyscyplina zapobiegają kompletnemu chaosowi.',
     significantPerson: 'Młodsza siostra, dla której stara się zachować resztki normalności.',
     meaningfulLocation: 'Zimna, zamglona strzelnica na obrzeżach miasta.',
@@ -1056,7 +1051,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Jedna z pierwszych kobiet-pilotów w Nowej Anglii. Prowadzi firmę wykonującą loty pocztowe i transportowe. Kocha adrenalinę i otwarte przestrzenie. Nigdy nie odmawia podjęcia ryzykownego zlecenia.',
     birthplace: 'Gloucester, USA',
     residence: 'Arkham / Lotnisko',
-    characterConcept: 'Agnes Mason urodziła się w Nowym Jorku i szybko zyskała sławę jako utalentowana malarka awangardowa. W 1923 roku podczas malowania pejzażu w okolicach Salem doświadczyła stanu transu i stworzyła obraz przedstawiający nieludzką architekturę. Jej motywacją jest przelanie na płótno wizji, które nawiedzają ją w snach, oraz zrozumienie ich pochodzenia. Łączy ją trudna, lecz intensywna relacja z marszandem, który sprzedaje jej dzieła bogatym okultystom. Słabością Agnes jest lunatykowanie oraz podatność na hipnozę i stany lękowe. Obecnie szuka natchnienia w mglistych dolinach wokół rzeki Miskatonic.',
+    characterConcept: 'Niezależna pionierka lotnictwa o wielkiej odwadze.',
     ideology: 'Z góry świat wydaje się prosty i czysty; na ziemi wszystko jest skomplikowane.',
     significantPerson: 'Jej mechanik pokładowy, wierny stary wyjadacz, z którym naprawia samolot.',
     meaningfulLocation: 'Otwarty kokpit jej dwupłatowca wysoko w chmurach.',
@@ -1135,7 +1130,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Uznany chirurg ogólny pracujący w szpitalu w Arkham. W czasie wojny służył w szpitalach polowych, gdzie nauczył się operować pod presją czasu i pod ostrzałem. Zawsze opanowany i profesjonalny.',
     birthplace: 'Philadelphia, USA',
     residence: 'Arkham, French Hill',
-    characterConcept: 'Henry Whitman wywodzi się z ubogiej rodziny robotniczej z Bostonu i dzięki stypendium ukończył studia archeologiczne. Podczas wykopalisk w Arizonie w 1898 roku odnalazł glinianą tabliczkę, której inskrypcje wywołały u niego niewyjaśnioną gorączkę i amnezję. Pragnie odzyskać utracone wspomnienia oraz zbadać tajemnicze znaleziska z przeszłości. Ceni sobie przyjaźń z kustoszem muzeum w Arkham, który pozwala mu pracować w archiwum po godzinach. Słabością Henry\'ego jest nagła, niewyjaśniona utrata przytomności w momentach silnego stresu. Obecnie analizuje starożytne pisma znalezione przy ciele topielca.',
+    characterConcept: 'Opanowany chirurg ratujący życie w najtrudniejszych warunkach.',
     ideology: 'Zadaniem lekarza jest walka ze śmiercią, bez względu na okoliczności.',
     significantPerson: 'Ordynator szpitala w Arkham, który ufa jego nerwom w trudnych przypadkach.',
     meaningfulLocation: 'Sterylna, choć duszna sala operacyjna.',
@@ -1214,7 +1209,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Psychiatra pracująca w azylu Arkham Sanitarium. Bada przypadki ciężkich psychoz i nietypowych urojeń. Interesuje się nowatorskimi metodami psychoanalizy, starając się zrozumieć najgłębsze zakamarki ludzkiego umysłu.',
     birthplace: 'Boston, USA',
     residence: 'Arkham, French Hill',
-    characterConcept: 'Evelyn Sterling dorastała w luksusie na nowojorskim Long Island jako córka magnata stalowego. W wieku osiemnastu lat uciekła z domu z wędrownym teatrem, chcąc uciec przed nudnym i zaplanowanym życiem wyższych sfer. Motywuje ją pragnienie wolności, adrenaliny oraz chęć przeżycia prawdziwej przygody, o której mogłaby napisać książkę. Utrzymuje serdeczne relacje ze swoją matką, która potajemnie przesyła jej pieniądze na podróże. Jej słabością jest brak ostrożności i lekceważenie autorytetów, co często sprowadza na nią kłopoty. Obecnie podróżuje po Nowej Anglii w poszukiwaniu lokalnych legend i folkloru.',
+    characterConcept: 'Psychoanalityczka zgłębiająca sekrety ludzkiego umysłu i obłędu.',
     ideology: 'Szaleństwo nie jest chaosem; to tylko inny język, który musimy nauczyć się rozumieć.',
     significantPerson: 'Jej były pacjent, który przed ucieczką z azylu narysował na ścianie skomplikowane mapy gwiezdne.',
     meaningfulLocation: 'Cichy, wyciszony gabinet terapeutyczny w Arkham Sanitarium.',
@@ -1298,7 +1293,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Niezależny dziennikarz i twórca popularnego podcastu o niewyjaśnionych zagadkach i zjawiskach paranormalnych. Bardzo aktywny w sieci, dociera do informacji ukrywanych przez urzędników.',
     birthplace: 'Nowy Jork, USA',
     residence: 'Boston, Back Bay',
-    characterConcept: 'David Miller wychował się na przedmieściach Seattle, a po studiach zajął się inżynierią oprogramowania i cyberbezpieczeństwem. Podczas analizy kodu złośliwego oprogramowania w 2024 roku natrafił na algorytmy generujące fraktale, które powodowały epilepsję i halucynacje u testerów. Jego motywacją jest powstrzymanie rozprzestrzeniania się cyfrowego zagrożenia zagrażającego ludzkiemu umysłowi. Współpracuje z tajemniczym hakerem z darknetu, który dostarcza mu zaszyfrowanych dysków. Słabością Davida jest bezsenność oraz głębokie uzależnienie od kofeiny i napojów energetycznych. Obecnie bada serwerownię w Arkham, gdzie wykryto nietypowy transfer danych.',
+    characterConcept: 'Nowoczesny podcaster śledczy szukający prawdy o zjawiskach nadprzyrodzonych.',
     ideology: 'Internet pozwala nam obejść cenzurę i dotrzeć do prawdy, którą inni chcą ukryć.',
     significantPerson: 'Jego wierny słuchacz i patron, który podsyła mu najciekawsze i najbardziej niebezpieczne tematy.',
     meaningfulLocation: 'Dźwiękoszczelny domowy kącik studyjny z mikrofonami.',
@@ -1375,7 +1370,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Była analityczka agencji wywiadowczej, obecnie pracująca na własny rachunek jako prywatny detektyw. Specjalizuje się w cyber-bezpieczeństwie oraz tropieniu zaginionych ludzi.',
     birthplace: 'Washington D.C., USA',
     residence: 'Boston, South End',
-    characterConcept: 'Chloe Vance urodziła się w Bostonie jako córka znanego profesora archeologii. Po nagłej śmierci ojca w 2025 roku odziedziczyła jego prywatną bibliotekę i odnalazła dokumenty dotyczące ekspedycji na Antarktydę. Pragnie dokończyć dzieło ojca i oczyścić jego imię z zarzutów o naukowe oszustwo. Wspiera ją dawny asystent ojca, który obecnie wykłada na Uniwersytecie Miskatonic. Jej słabością jest brak doświadczenia w terenie oraz lęk przed ekstremalnym zimnem. Obecnie przygotowuje się do wyprawy w góry, starając się zrekonstruować trasę ostatniej podróży ojca.',
+    characterConcept: 'Analityczna detektyw łącząca biały wywiad (OSINT) z działaniem w terenie.',
     ideology: 'Cyfrowy ślad nigdy nie kłamie; każdy zostawia po sobie jakieś okruszki danych.',
     significantPerson: 'Jej dawny mentor z agencji wywiadowczej, który ostrzega ją przed niebezpiecznymi zapytaniami sieciowymi.',
     meaningfulLocation: 'Ciemny pokój rozświetlony blaskiem kilku monitorów.',
@@ -1450,7 +1445,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Profesor archeologii cyfrowej na Uniwersytecie Harvarda. Łączy wykopaliska terenowe z modelowaniem 3D i fotogrametrią. Odkrył kilka niewyjaśnionych dotąd ruin w Ameryce Południowej.',
     birthplace: 'Boston, USA',
     residence: 'Cambridge, USA',
-    characterConcept: 'Eric Carter spędził dzieciństwo w Chicago w cieniu surowego wychowania ojca, byłego wojskowego. Służył jako ratownik medyczny podczas misji zagranicznych, co dało mu odporność na stres i brutalność. Motywuje go chęć niesienia pomocy ofiarom wypadków oraz pragnienie odkupienia win z przeszłości. Utrzymuje bliskie stosunki z byłą partnerką z zespołu ratowniczego, która pracuje obecnie w szpitalu psychiatrycznym. Słabością Erica jest syndrom wypalenia zawodowego oraz powracające wspomnienia z pola bitwy. Obecnie pracuje w pogotowiu w Arkham i bada serię zagadkowych omdleń u nastolatków.',
+    characterConcept: 'Nowoczesny naukowiec badający przeszłość za pomocą skanowania laserowego LiDAR.',
     ideology: 'Ziemia i dawne ruiny kryją prawdę o pochodzeniu ludzkości, której nie ma w podręcznikach.',
     significantPerson: 'Jego student i asystent terenowy, który wspiera go przy skomplikowanym sprzęcie.',
     meaningfulLocation: 'Zapomniane, porośnięte mchem ruiny w sercu peruwiańskich Andów.',
@@ -1521,7 +1516,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Światowej sławy lingwistka i kryptolog pracująca na MIT. Specjalizuje się w deszyfrowaniu wymarłych języków oraz nieznanych kodów starożytności. Współpracowała z rządami przy łamaniu trudnych szyfrów.',
     birthplace: 'Petersburg, Rosja',
     residence: 'Boston, USA',
-    characterConcept: 'Elena Rostova dorastała w Petersburgu w rodzinie wybitnych naukowców i po emigracji do USA podjęła pracę jako dziennikarka śledcza. W 2023 roku opublikowała głośny artykuł o nielegalnych eksperymentach genetycznych, po czym cudem uniknęła zamachu na swoje życie. Chce obnażyć prawdę o korporacjach medycznych i ich eksperymentach na ludziach. Ceni sobie lojalność młodego informatyka, który pomaga jej chronić tożsamość w sieci. Jej słabością jest paranoja i ciągłe poczucie bycia śledzoną przez nieznanych sprawców. Obecnie bada powiązania lokalnego koncernu farmaceutycznego z zagadkową sektą religijną.',
+    characterConcept: 'Genialna kryptolog i lingwistka potrafiąca złamać każdy kod.',
     ideology: 'Język to klucz do ludzkiego myślenia; bez względu na to, jak stary czy obcy jest zapis, da się go odczytać.',
     significantPerson: 'Jej brat, który pracuje w dziale bezpieczeństwa sieciowego i pomaga jej przy analizach cyfrowych.',
     meaningfulLocation: 'Jej gabinet akademicki na MIT, zastawiony tablicami pokrytymi wzorami i symbolami.',
@@ -1599,7 +1594,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Były komandos sił specjalnych, obecnie pracujący jako prywatny doradca do spraw bezpieczeństwa w strefach wysokiego ryzyka. Niezwykle opanowany pod ostrzałem.',
     birthplace: 'San Diego, USA',
     residence: 'Dallas / W podróży',
-    characterConcept: 'Marcus Vance spędził dzieciństwo w Bostonie w cieniu bogatej i surowej tradycji swojej rodziny. Jako emerytowany kapitan policji ma ogromne doświadczenie w pracy z brutalnymi przestępcami, ale jego karierę złamało śledztwo z 2022 roku. Podczas przeszukania domu podejrzanego odkrył rytualne insygnia i zmasakrowane ciała, których pochodzenia nie potrafił wyjaśnić. Pragnie dopaść sprawców tamtego mordu i zamknąć sprawę, która zrujnowała mu życie osobiste. Łączy go szorstka przyjaźń z patologiem sądowym, który potajemnie udostępnia mu raporty z autopsji. Słabością Marcusa jest postępujący artretyzm oraz skłonność do nadużywania środków przeciwbólowych.',
+    characterConcept: 'Profesjonalny najemnik i komandos o wybitnych zmysłach taktycznych.',
     ideology: 'Na polu bitwy nie ma miejsca na wahanie; liczy się tylko wykonanie zadania i przeżycie.',
     significantPerson: 'Dawny dowódca, który nauczył go wszystkiego o przetrwaniu.',
     meaningfulLocation: 'Piaszczyste poligony lub duszne strefy konfliktów.',
@@ -1677,7 +1672,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Fotoreporterka wojenna i wspinaczka ekstremalna. Relacjonowała konflikty na całym świecie. Posiada niezwykły zmysł orientacji w terenie i kocha ryzyko.',
     birthplace: 'Denver, USA',
     residence: 'Seattle, USA',
-    characterConcept: 'Jessica Cross urodziła się w Nowym Jorku i od lat z powodzeniem zajmuje się doradztwem finansowym dla najbogatszych klientów. Jej życie zmieniło się w 2025 roku, gdy jeden z jej kluczowych inwestorów popełnił samobójstwo, zapisując jej w spadku udziały w opuszczonej kopalni złota. Pragnie odkryć tajemnicę stojącą za śmiercią klienta oraz dowiedzieć się, co skrywa odziedziczony teren. Utrzymuje poprawne, biznesowe relacje z wpływowym prokuratorem z Nowego Jorku. Jej słabością jest materializm oraz lęk przed utratą statusu społecznego i bankructwem. Obecnie bada historię finansową firmy wydobywczej w Arkham.',
+    characterConcept: 'Odważna fotografka wojenna i sportsmenka uwielbiająca adrenalinę.',
     ideology: 'Zdjęcie mówi więcej niż tysiąc słów; moim celem jest pokazanie prawdziwego oblicza świata.',
     significantPerson: 'Jej brat, alpinista, z którym zdobywała najtrudniejsze szczyty.',
     meaningfulLocation: 'Góry Skaliste lub zniszczone przez wojnę ulice miast Bliskiego Wschodu.',
@@ -1755,7 +1750,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Lekarz medycyny ratunkowej pracujący w szpitalu urazowym w Chicago. Doświadczony w ratowaniu życia w skrajnych warunkach i pod ogromną presją czasu. Zawsze opanowany.',
     birthplace: 'Chicago, USA',
     residence: 'Chicago, USA',
-    characterConcept: 'Christian Cole spędził młodość w Bostonie i po studiach teologicznych został wyświęcony na duchownego w parafii episkopalnej. W 2024 roku podczas spowiedzi umierającego usłyszał o istnieniu zakazanej biblioteki ukrytej pod posadzką starego kościoła. Motywuje go chęć ochrony wiernych przed duchowym potępieniem oraz badanie herezji zagrażających wierze. Wspiera go starszy diakon, z którym wspólnie analizuje starożytne teksty religijne. Słabością Christiana jest kryzys wiary oraz skłonność do powątpiewania w słuszność własnych decyzji. Obecnie prowadzi badania historyczne w najstarszych parafiach Nowej Anglii.',
+    characterConcept: 'Lekarz urazowy potrafiący zachować absolutny spokój w obliczu tragedii.',
     ideology: 'Życie ludzkie to najwyższa wartość; każda sekunda opóźnienia to strata.',
     significantPerson: 'Jego mentor, wybitny chirurg polowy z czasów jego rezydentury.',
     meaningfulLocation: 'Przepełniony i głośny Szpitalny Oddział Ratunkowy (SOR) w piątkową noc.',
@@ -1832,7 +1827,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Psycholog kliniczna i neurobiolog zajmująca się badaniem głębokiej traumy i zaburzeń percepcji. Prowadzi badania nad wpływem silnego szoku na mózg człowieka.',
     birthplace: 'Londyn, Anglia',
     residence: 'Boston, USA',
-    characterConcept: 'Maya Patel urodziła się w Londynie w rodzinie dyplomatów i zyskała uznanie jako autorka popularnych filmów dokumentalnych o zaginionych kulturach. Podczas kręcenia materiału w Andach w 2023 roku natrafiła na opuszczone miasto, którego układ architektoniczny przeczył prawom fizyki. Pragnie udokumentować istnienie nieznanych cywilizacji i przedstawić je światu. Posiada oddanego operatora kamer, który towarzyszy jej w każdej, nawet najgroźniejszej podróży. Jej słabością jest klaustrofobia oraz brak wiary w istnienie sił nadprzyrodzonych, co tłumaczy racjonalnie. Obecnie kręci dokument o tajemniczych zjawiskach wokół rzeki Miskatonic.',
+    characterConcept: 'Neurolog i psychoterapeutka badająca granice percepcji i stany traumatyczne.',
     ideology: 'Nauka potrafi uzdrowić nawet najbardziej okaleczony umysł, o ile zrozumiemy źródło jego lęku.',
     significantPerson: 'Jej brat, naukowiec pracujący w laboratorium biochemicznym, który wspiera ją w badaniach.',
     meaningfulLocation: 'Cichy, jasny gabinet z wygodną leżanką terapeutyczną.',
@@ -1915,7 +1910,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Dawny profesor filozofii, ktory po serii niepokojacych odkryc w bibliotece Uniwersytetu Londynskiego poswiecil zycie badaniu granic miedzy swiatem widzialnym a tym, co kryje sie poza zaslona. Jego gabinet pelny jest starozytnych zwojow i osobliwych artefaktow.',
     birthplace: 'Londyn, Anglia',
     residence: 'Londyn, Bloomsbury',
-    characterConcept: 'Silas Thorne spędził wczesne lata na farmie w Yorkshire, po czym zaciągnął się do armii i służył w Indiach. Podczas jednej z bitew w 1885 roku został ranny i spędził noc w opuszczonej świątyni, gdzie doświadczył przerażających wizji i zyskał blizny. Motywuje go chęć zapomnienia o wojennych okropnościach oraz ochrona rodziny przed nędzą. Utrzymuje kontakt z dawnym przyjacielem z regimentu, który obecnie handluje bronią w Londynie. Słabością Silasa jest nagła agresja w sytuacjach zagrożenia oraz lęk przed nagłymi błyskami światła. Obecnie pracuje jako stróż w muzeum, potajemnie badając orientalne artefakty.',
+    characterConcept: 'Dawny filozof, który porzucił akademicki racjonalizm na rzecz badania magii i okultyzmu.',
     ideology: 'Nasz świat to tylko cienka zasłona skrywająca potężniejsze, mroczne siły.',
     significantPerson: 'Dawny wuj, ekscentryczny badacz kabały, który zapisał mu swoją bibliotekę.',
     meaningfulLocation: 'Ciemny gabinet zastawiony szafami pełnymi dziwnych zwojów i słojów.',
@@ -1989,7 +1984,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Popularna medium na londynskich salonach. Wielu uwaza ja za szarlatanke, lecz niektore z jej seansow spirytystycznych przyniosly informacje, ktorych nie mogla poznac w zaden racjonalny sposob. Sama nie jest pewna natury swojego daru.',
     birthplace: 'Paryż, Francja',
     residence: 'Londyn',
-    characterConcept: 'Vivienne Moreau urodziła się w Paryżu jako córka śpiewaczki operowej i po debiucie na scenie zdobyła uznanie w całej Europie. W 1891 roku podczas występu w Londynie otrzymała tajemniczy list z pogróżkami napisany w języku, którego nie znała, podpisanym dziwnym symbolem. Pragnie zidentyfikować prześladowcę i dowiedzieć się, co oznacza tajemniczy znak z listu. Ceni sobie przyjaźń ze swoim impresario, który chroni ją przed natrętnymi wielbicielami. Jej słabością jest histeria oraz wysokie wymagania wobec otoczenia. Obecnie wynajmuje apartament w Londynie i unika publicznych wystąpień, badając historię okultyzmu.',
+    characterConcept: 'Towarzyskie medium o autentycznym, choć przerażającym darze kontaktu z zaświatami.',
     ideology: 'Granica między życiem a śmiercią jest niezwykle płynna.',
     significantPerson: 'Duch małej dziewczynki, który nawiedza ją od dzieciństwa i ostrzega przed niebezpieczeństwem.',
     meaningfulLocation: 'Czerwony pokój seansów oświetlony blaskiem świec.',
@@ -2065,7 +2060,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Wlasciciel antykwariatu w Arkham specjalizujacego sie w rzadkich tomach i okultystycznych pamietkach. Lata kontaktu z zakazanymi tekstami daly mu wiedze, ktora wielu uznaloby za niebezpieczna. Utrzymuje kontakty z Uniwersytetem Miskatonic.',
     birthplace: 'Providence, USA',
     residence: 'Arkham, French Hill',
-    characterConcept: 'Nathaniel Ward wychował się w Providence i ukończył studia medyczne ze specjalizacją w psychiatrii na Uniwersytecie Harvarda. Podczas pracy w sanatorium w Arkham w 1924 roku zaczął badać pacjenta, który twierdził, że jego umysł został podmieniony przez istotę z gwiazd. Chce zrozumieć mechanizmy ludzkiego szaleństwa i udowodnić, że niektóre psychozy mają podłoże organiczne. Współpracuje z ordynatorem szpitala psychiatrycznego, który pozwala mu na prowadzenie niestandardowych terapii. Słabością Nathaniela jest chroniczne zmęczenie i skłonność do ignorowania własnych granic psychicznych. Obecnie bada serię nietypowych przypadków schizofrenii w mieście.',
+    characterConcept: 'Antykwariusz i badacz okultyzmu skrywający niebezpieczną wiedzę.',
     ideology: 'To, co nazywamy mitami, to wspomnienia o siłach, które rządziły Ziemią przed nami.',
     significantPerson: 'Profesor Armitage z Uniwersytetu Miskatonic, z którym konsultuje najcięższe przypadki.',
     meaningfulLocation: 'Ciemne zaplecze antykwariatu oświetlone lampą naftową.',
@@ -2139,7 +2134,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Mloda kobieta z cyganskim rodowodem, prowadzaca salon wrozbiarski w dzielnicy portowej. Ma niezwykla zdolnosc wyczuwania emocji i niebezpieczenstwa. Jej babka przekazala jej starozytne runy i wiedzę o tym, co kryje sie w ciemnosciach.',
     birthplace: 'Salem, USA',
     residence: 'Arkham, Dzielnica Portowa',
-    characterConcept: 'Iris Blackwell dorastała w Bostonie jako córka szanowanego profesora archeologii i od dzieciństwa towarzyszyła mu w ekspedycjach. W 1925 roku jej ojciec zmarł nagle po powrocie z wykopalisk w Iraku, zostawiając jej tajemniczą, glinianą urnę pokrytą klinowymi znakami. Pragnie przetłumaczyć inskrypcje i dowiedzieć się, co ojciec przywiózł ze swojej ostatniej podróży. Wspiera ją kustosz działu starożytnego w bostońskim muzeum. Jej słabością jest astma oraz lęk przed owadami i pajęczakami. Obecnie przebywa w Arkham, gdzie poszukuje specjalisty od starożytnych języków Bliskiego Wschodu.',
+    characterConcept: 'Młoda jasnowidzka o cygańskich korzeniach i wielkim szczęściu.',
     ideology: 'Los rozmawia z nami przez symbole; trzeba tylko umieć go słuchać.',
     significantPerson: 'Jej babka, która nauczyła ją odczytywania znaczeń z run i snów.',
     meaningfulLocation: 'Mały, kolorowy namiot lub naczepa wozu wędrownego.',
@@ -2215,7 +2210,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Prywatny badacz zjawisk paranormalnych. Autor kilku książek o nawiedzonych miejscach. Choć sceptyczny wobec tanich sztuczek spirytystycznych, wielokrotnie natknął się na zjawiska, których nauka nie potrafi wyjaśnić.',
     birthplace: 'Nowy Orlean, USA',
     residence: 'Boston, USA',
-    characterConcept: 'Victor Crowley dorastał w robotniczym Detroit i po latach pracy w policji został detektywem wydziału zabójstw w Arkham. W 2025 roku prowadził sprawę seryjnego mordercy, który wycinał swoim ofiarom dziwne symbole na skórze i uciekł z miejsca zbrodni w nieludzki sposób. Chce dopaść zbiegłego mordercę i udowodnić, że nikt nie stoi ponad prawem. Utrzymuje kontakt z emerytowanym sędzią, który pomaga mu zdobywać nakazy przeszukania w nietypowych sprawach. Słabością Victora jest bezwzględność w dążeniu do celu oraz skłonność do nadużywania siły. Obecnie bada kolejne, podobne zabójstwo na obrzeżach miasta.',
+    characterConcept: 'Sceptyczny badacz zjawisk paranormalnych o potężnej sile woli.',
     ideology: 'Większość to oszustwa, ale to, co pozostaje po odrzuceniu kłamstw, jest prawdziwe i przerażające.',
     significantPerson: 'Jego zmarła żona, której obietnica kontaktu z zaświatów pchnęła go do tych badań.',
     meaningfulLocation: 'Opuszczone, rzekomo nawiedzone wille o bogatej historii.',
@@ -2288,7 +2283,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Malarka mieszkająca w klimatycznej dzielnicy bohemy. Twierdzi, że jej surrealistyczne obrazy są inspirowane snami oraz szeptami z innego wymiaru. Posiada niezwykle czułą intuicję i wrażliwość na atmosferę miejsc.',
     birthplace: 'Innsmouth, USA',
     residence: 'Boston, North End',
-    characterConcept: 'Seraphina Marsh wychowała się w małym, rybackim miasteczku Innsmouth w rodzinie o dziwnych, fizycznych rysach twarzy. W 2024 roku po ucieczce do Bostonu zaczęła studiować historię sztuki i odkryła, że jej przodkowie byli powiązani z dawnym kultem rybaków. Pragnie odkryć prawdę o pochodzeniu swojej rodziny i uwolnić się od dziedzictwa, które uważa za klątwę. Łączy ją trudna więź z wujem, który jako jedyny z rodziny pozostał w Innsmouth i wysyła jej ostrzegawcze listy. Jej słabością jest lęk przed głęboką wodą oraz postępujące problemy skórne. Obecnie bada archiwa w Arkham.',
+    characterConcept: 'Wrażliwa artystka malująca obrazy inspirowane szeptami z koszmarów.',
     ideology: 'Sztuka to jedyny sposób, by ludzki umysł mógł wyrazić prawdy zbyt straszne dla języka.',
     significantPerson: 'Jej marszand, który sprzedaje jej dzieła, choć sam boi się na nie patrzeć.',
     meaningfulLocation: 'Jasne atelier pełne płócien, pachnące terpentyną i farbami.',
@@ -2335,116 +2330,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
   },
 ];
 
-type ExtensionPresetSpec = {
-  era: 'noir' | 'prl';
-  archetype: PredefinedCharacterArchetype;
-  name: string;
-  occupation: string;
-  age: number;
-  gender: 'male' | 'female';
-  birthplace: string;
-  residence: string;
-  concept: string;
-  background: string;
-  equipment: Array<{ name: string; category: 'weapon' | 'tool' | 'document' | 'personal' | 'medical' | 'occult'; description?: string }>;
-};
-
-const EXTENSION_PRESET_SPECS: ExtensionPresetSpec[] = [
-  { era: 'noir', archetype: 'investigator', name: 'Janina Różycka', occupation: 'Dziennikarka radiowa', age: 34, gender: 'female', birthplace: 'Warszawa, Polska', residence: 'Łódź, Polska', concept: 'Reporterka, która nie ufa oficjalnym komunikatom.', background: 'W 1946 roku relacjonuje odbudowę kraju dla lokalnej rozgłośni. Zniknięcie technika dźwięku prowadzi ją od wypalonych kamienic do spraw, których nikt nie chce nagłaśniać.', equipment: [{ name: 'Aparat fotograficzny', category: 'tool' }, { name: 'Notatnik reporterski', category: 'document' }] },
-  { era: 'noir', archetype: 'investigator', name: 'Marek Dąbrowski', occupation: 'Były policjant', age: 41, gender: 'male', birthplace: 'Lwów, Polska', residence: 'Kraków, Polska', concept: 'Doświadczony śledczy szukający zaginionych ludzi.', background: 'Po wojnie nie potrafi wrócić do zwyczajnego życia. Przyjmuje sprawy rodzin, których bliscy zniknęli na trasach kolejowych i w miastach pełnych uchodźców.', equipment: [{ name: 'Rewolwer .38', category: 'weapon' }, { name: 'Lornetka polowa', category: 'tool' }] },
-  { era: 'noir', archetype: 'scholar', name: 'Helena Woyciechowska', occupation: 'Konserwatorka zabytków', age: 38, gender: 'female', birthplace: 'Poznań, Polska', residence: 'Wrocław, Polska', concept: 'Specjalistka od ratowania sztuki z ruin.', background: 'Zabezpiecza zbiory z opuszczonych pałaców i kościołów Dolnego Śląska. W skrzyniach z odzyskanymi obrazami odnalazła serię dokumentów, które nie powinny przetrwać wojny.', equipment: [{ name: 'Lupa terenowa', category: 'tool' }, { name: 'Dokumenty podróżne', category: 'document' }] },
-  { era: 'noir', archetype: 'scholar', name: 'Tadeusz Krawiec', occupation: 'Lekarz psychiatra', age: 47, gender: 'male', birthplace: 'Lublin, Polska', residence: 'Warszawa, Polska', concept: 'Lekarz badający wojenną traumę bez łatwych odpowiedzi.', background: 'W szpitalu słyszy od pacjentów powtarzające się sny o tym samym miejscu. Traktuje je jako objaw traumy, dopóki nie odnajduje ich na jednej, dokładnej mapie.', equipment: [{ name: 'Torba medyczna', category: 'medical' }, { name: 'Notes badawczy', category: 'document' }] },
-  { era: 'noir', archetype: 'action', name: 'Zofia Mierzejewska', occupation: 'Kurierka i przewodniczka', age: 29, gender: 'female', birthplace: 'Wilno, Polska', residence: 'Gdańsk, Polska', concept: 'Nieustępliwa przewodniczka znająca drogi poza mapą.', background: 'Przenosiła ludzi i wiadomości przez granice, a teraz zna szlaki, których nie ma w rozkładach jazdy. Jeden z dawnych kontaktów prosi ją o ostatnią, bardzo dziwną przysługę.', equipment: [{ name: 'Mocna lina', category: 'tool' }, { name: 'Nóż myśliwski', category: 'weapon' }] },
-  { era: 'noir', archetype: 'action', name: 'Antoni Lis', occupation: 'Mechanik kolejowy', age: 36, gender: 'male', birthplace: 'Radom, Polska', residence: 'Katowice, Polska', concept: 'Praktyk, który czyta maszyny i ludzi po śladach.', background: 'Utrzymuje przy życiu lokomotywy z części zbieranych po całej Europie. Na bocznicy odkrył wagon, którego nie ma w żadnej ewidencji, ale który wraca co kilka tygodni.', equipment: [{ name: 'Zestaw narzędzi mechanicznych', category: 'tool' }, { name: 'Latarka elektryczna', category: 'tool' }] },
-  { era: 'noir', archetype: 'healer', name: 'Irena Bielska', occupation: 'Pielęgniarka', age: 32, gender: 'female', birthplace: 'Kielce, Polska', residence: 'Szczecin, Polska', concept: 'Pielęgniarka, która nie odwraca wzroku od cierpienia.', background: 'Po latach pracy w prowizorycznych szpitalach pomaga przesiedleńcom w porcie. Pacjenci z jednej kamienicy mają identyczne, niewytłumaczalne blizny.', equipment: [{ name: 'Apteczka pierwszej pomocy', category: 'medical' }, { name: 'Bandaże i gaza', category: 'medical' }] },
-  { era: 'noir', archetype: 'healer', name: 'Wiktor Leśniewski', occupation: 'Weterynarz', age: 44, gender: 'male', birthplace: 'Toruń, Polska', residence: 'Bydgoszcz, Polska', concept: 'Weterynarz zauważający to, co zwierzęta wyczuwają pierwsze.', background: 'Prowadzi skromną praktykę i pomaga gospodarzom po wojennej zawierusze. Zwierzęta z jednej wsi przestają pić wodę ze studni, choć badania nie wykazują niczego zwykłego.', equipment: [{ name: 'Torba medyczna', category: 'medical' }, { name: 'Lornetka polowa', category: 'tool' }] },
-  { era: 'noir', archetype: 'mystic', name: 'Maria Karska', occupation: 'Etnografka', age: 40, gender: 'female', birthplace: 'Przemyśl, Polska', residence: 'Warszawa, Polska', concept: 'Badaczka obrzędów, która zachowuje naukowy dystans.', background: 'Zapisuje pieśni i obyczaje społeczności przesiedlonych po wojnie. Jedna melodia wraca w relacjach ludzi, którzy nigdy nie mogli się spotkać.', equipment: [{ name: 'Świece rytualne', category: 'occult' }, { name: 'Notes badawczy', category: 'document' }] },
-  { era: 'noir', archetype: 'mystic', name: 'Roman Kłos', occupation: 'Antykwariusz', age: 53, gender: 'male', birthplace: 'Łódź, Polska', residence: 'Kraków, Polska', concept: 'Antykwariusz ratujący książki przed zapomnieniem.', background: 'Kupuje rozproszone księgozbiory i zna historię każdej pieczęci. Pewien wolumin trafia do niego po raz trzeci, choć poprzednio spłonął na jego oczach.', equipment: [{ name: 'Lupa terenowa', category: 'tool' }, { name: 'Kreda rytualna', category: 'occult' }] },
-  { era: 'prl', archetype: 'investigator', name: 'Ewa Nowak', occupation: 'Fotoreporterka', age: 31, gender: 'female', birthplace: 'Gdańsk, Polska', residence: 'Warszawa, Polska', concept: 'Fotoreporterka widząca szczegóły poza kadrem oficjalnych zdjęć.', background: 'Pracuje dla tygodnika ilustrowanego i uczy się, które zdjęcia nigdy nie przechodzą przez redakcję. Na negatywach z prowincji widzi postać, której nikt na miejscu nie pamięta.', equipment: [{ name: 'Aparat fotograficzny', category: 'tool' }, { name: 'Koperty na dowody', category: 'document' }] },
-  { era: 'prl', archetype: 'investigator', name: 'Piotr Wolski', occupation: 'Inspektor BHP', age: 39, gender: 'male', birthplace: 'Łódź, Polska', residence: 'Katowice, Polska', concept: 'Inspektor, który zna każdy skrót w zakładzie pracy.', background: 'Wypadki w hucie zwykle da się wyjaśnić zaniedbaniem, lecz ostatnie trzy nie pasują do żadnej instalacji. Dyrekcja chce ciszy, a robotnicy opowiadają o głosie z kanałów.', equipment: [{ name: 'Latarka elektryczna', category: 'tool' }, { name: 'Notes badawczy', category: 'document' }] },
-  { era: 'prl', archetype: 'scholar', name: 'Alicja Rudzka', occupation: 'Archiwistka', age: 35, gender: 'female', birthplace: 'Lublin, Polska', residence: 'Warszawa, Polska', concept: 'Archiwistka rozumiejąca, że braki w kartotekach są również śladem.', background: 'Kataloguje dokumenty w państwowym archiwum i zna wagę brakującej kartki. Seria zaginionych teczek prowadzi do jednego powiatu i do nazwiska, które nigdy nie występuje w dokumentach.', equipment: [{ name: 'Dokumenty i bilety', category: 'document' }, { name: 'Lupa terenowa', category: 'tool' }] },
-  { era: 'prl', archetype: 'scholar', name: 'Jerzy Kossak', occupation: 'Geolog', age: 45, gender: 'male', birthplace: 'Kraków, Polska', residence: 'Wrocław, Polska', concept: 'Geolog sceptyczny wobec legend, lecz wierny pomiarom.', background: 'Bada osuwisko w Sudetach dla instytutu geologicznego. W próbkach znajduje strukturę, której nie potrafi przypisać żadnemu znanemu minerałowi.', equipment: [{ name: 'Kompas kieszonkowy', category: 'tool' }, { name: 'Mapa', category: 'document' }] },
-  { era: 'prl', archetype: 'action', name: 'Danuta Kwiecień', occupation: 'Maszynistka PKP', age: 37, gender: 'female', birthplace: 'Poznań, Polska', residence: 'Wrocław, Polska', concept: 'Kolejarka, która ufa rozkładom tylko wtedy, gdy je sama widzi.', background: 'Od lat prowadzi składy przez Dolny Śląsk i zna każdy tunel. Nocny pociąg mija sygnałownię, której nie ma na trasie od przedwojnia.', equipment: [{ name: 'Latarka elektryczna', category: 'tool' }, { name: 'Mocna lina', category: 'tool' }] },
-  { era: 'prl', archetype: 'action', name: 'Krzysztof Boruta', occupation: 'Ratownik górniczy', age: 33, gender: 'male', birthplace: 'Rybnik, Polska', residence: 'Bytom, Polska', concept: 'Ratownik przyzwyczajony do podejmowania decyzji pod ziemią.', background: 'Po akcji ratunkowej w zamkniętym wyrobisku nie może zapomnieć rytmu uderzeń dochodzących zza zawału. Kierownictwo kopalni uznaje go za przemęczonego.', equipment: [{ name: 'Kieszonkowa apteczka', category: 'medical' }, { name: 'Zestaw narzędzi mechanicznych', category: 'tool' }] },
-  { era: 'prl', archetype: 'healer', name: 'Magdalena Koper', occupation: 'Lekarka rejonowa', age: 42, gender: 'female', birthplace: 'Białystok, Polska', residence: 'Olsztyn, Polska', concept: 'Lekarka dostrzegająca wzór w pozornie zwykłych objawach.', background: 'Do jej przychodni trafiają mieszkańcy kilku wsi z tym samym koszmarem i bezsennością. Nie znajduje przyczyny medycznej, ale zauważa, że wszyscy pili wodę z jednego źródła.', equipment: [{ name: 'Torba medyczna', category: 'medical' }, { name: 'Bandaże i gaza', category: 'medical' }] },
-  { era: 'prl', archetype: 'healer', name: 'Andrzej Sokołowski', occupation: 'Ratownik medyczny', age: 28, gender: 'male', birthplace: 'Szczecin, Polska', residence: 'Szczecin, Polska', concept: 'Ratownik, który zachowuje spokój, gdy inni się cofają.', background: 'Pracuje w pogotowiu i zna nocne miasto lepiej niż własne mieszkanie. Coraz częściej odbiera wezwania pod ten sam nieistniejący adres.', equipment: [{ name: 'Apteczka pierwszej pomocy', category: 'medical' }, { name: 'Latarka elektryczna', category: 'tool' }] },
-  { era: 'prl', archetype: 'mystic', name: 'Krystyna Mroczek', occupation: 'Bibliotekarka', age: 48, gender: 'female', birthplace: 'Kalisz, Polska', residence: 'Łódź, Polska', concept: 'Bibliotekarka prowadząca ciche śledztwa między półkami.', background: 'Prowadzi dział regionalny i wie, które książki znikają najczęściej. Czytelnicy zaczynają zwracać stare wydania z identycznym, nieznanym znakiem odciśniętym na marginesie.', equipment: [{ name: 'Notes badawczy', category: 'document' }, { name: 'Świece rytualne', category: 'occult' }] },
-  { era: 'prl', archetype: 'mystic', name: 'Stanisław Wilczek', occupation: 'Lutnik', age: 51, gender: 'male', birthplace: 'Zakopane, Polska', residence: 'Kraków, Polska', concept: 'Rzemieślnik słyszący fałsz, którego inni nie zauważają.', background: 'Naprawia instrumenty w małej pracowni na Kazimierzu. Skrzypce przyniesione po zmarłym muzyku wydają jeden dodatkowy ton, którego nie potrafi uciszyć.', equipment: [{ name: 'Kreda rytualna', category: 'occult' }, { name: 'Nóż myśliwski', category: 'weapon' }] },
-];
-
-function slugifyPresetName(value: string): string {
-  return value
-    .replace(/[łŁ]/g, 'l')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-');
-}
-
-function makeExtensionPreset(spec: ExtensionPresetSpec): PredefinedCharacter {
-  const id = `pref_${slugifyPresetName(spec.name)}_${spec.era}`;
-  const skillByArchetype: Record<PredefinedCharacterArchetype, Record<string, number>> = {
-    investigator: { Spostrzegawczość: 65, Psychologia: 55, Perswazja: 50, Nasłuchiwanie: 50, Unik: 35 },
-    scholar: { 'Korzystanie z Bibliotek': 65, Historia: 55, Nauka: 55, Spostrzegawczość: 50, Unik: 30 },
-    action: { 'Walka Wręcz': 55, 'Broń Palna (Krótka)': 45, Wspinaczka: 50, Spostrzegawczość: 50, Unik: 45 },
-    healer: { 'Pierwsza Pomoc': 65, Medycyna: 55, Psychologia: 50, Nasłuchiwanie: 45, Unik: 35 },
-    mystic: { Okultyzm: 60, Psychologia: 55, Historia: 50, 'Korzystanie z Bibliotek': 55, Unik: 30 },
-  };
-  return {
-    id,
-    era: spec.era,
-    archetype: spec.archetype,
-    name: spec.name,
-    occupation: spec.occupation,
-    age: spec.age,
-    gender: spec.gender,
-    portraitUrl: `/portraits/predefined/${slugifyPresetName(spec.name)}.webp`,
-    str: spec.archetype === 'action' ? 65 : 50,
-    dex: spec.archetype === 'action' ? 60 : 55,
-    con: spec.archetype === 'action' ? 60 : 55,
-    app: 50,
-    pow: spec.archetype === 'mystic' ? 75 : 60,
-    edu: spec.archetype === 'scholar' || spec.archetype === 'healer' ? 75 : 65,
-    siz: 55,
-    int: 70,
-    luck: 55,
-    hp: 11,
-    maxHp: 11,
-    san: 60,
-    maxSan: 99,
-    mp: spec.archetype === 'mystic' ? 15 : 12,
-    maxMp: spec.archetype === 'mystic' ? 15 : 12,
-    background: spec.background,
-    birthplace: spec.birthplace,
-    residence: spec.residence,
-    characterConcept: spec.concept,
-    ideology: 'Fakty trzeba sprawdzać osobiście, nawet jeśli odpowiedź okazuje się niewygodna.',
-    significantPerson: 'Zaufana osoba, która zbyt dobrze zna tę sprawę.',
-    meaningfulLocation: 'Miejsce pracy, w którym codzienność styka się z tajemnicą.',
-    treasuredPossession: 'Niewielka pamiątka rodzinna, zawsze noszona przy sobie.',
-    traits: ['Dociekliwy', 'Odporny', 'Praktyczny'],
-    description: `${spec.occupation} z wyraźnym śladem zawodowego doświadczenia w spojrzeniu i ubiorze.`,
-    backstory: spec.background,
-    playerName: '',
-    isActive: false,
-    lastUsed: new Date(),
-    notes: `Gotowy badacz: ${spec.concept}`,
-    experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 0 },
-    developmentHistory: [],
-    skills: skillByArchetype[spec.archetype],
-    equipment: spec.equipment.map((item, index) => ({
-      id: `eq_${id}_${index}`,
-      ...item,
-    })),
-  };
-}
-
-const EXTENDED_PREDEFINED_CHARACTERS = EXTENSION_PRESET_SPECS.map(makeExtensionPreset);
-
-export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
-  ...BASE_PREDEFINED_CHARACTERS,
-  ...EXTENDED_PREDEFINED_CHARACTERS,
-].map((character) => ({
+export const PREDEFINED_CHARACTERS: PredefinedCharacter[] =
+  BASE_PREDEFINED_CHARACTERS.map((character) => ({
     ...character,
     equipment: buildPredefinedEquipment(character),
   }));
@@ -2452,13 +2339,7 @@ export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
 export function getPredefinedCharactersByEra(
   era: string
 ): PredefinedCharacter[] {
-  if (
-    era === 'gaslight' ||
-    era === 'classic' ||
-    era === 'noir' ||
-    era === 'prl' ||
-    era === 'modern'
-  ) {
+  if (era === 'gaslight' || era === 'classic' || era === 'modern') {
     return PREDEFINED_CHARACTERS.filter((character) => character.era === era);
   }
   return [];

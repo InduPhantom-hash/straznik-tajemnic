@@ -22,6 +22,7 @@ export interface EvidenceNode {
   type: EvidenceNodeType;
   status: EvidenceNodeStatus;
   position: EvidencePosition;
+  imageUrl?: string;
   foundInLocation?: string;
   discoveredAtDate?: string;
   sourceNpc?: string;
@@ -36,6 +37,7 @@ export interface EvidenceRelation {
   toNodeId: string;
   label: string; // Opis połączenia, np. "Ostatnio widziany w", "Podejrzany o"
   status?: 'strong' | 'weak' | 'doubtful';
+  color?: string; // np. "#a83232" (czerwony) lub "#bfa15f" (złoty)
 }
 
 export interface InvestigatorBoardState {
@@ -45,3 +47,4 @@ export interface InvestigatorBoardState {
   relations: EvidenceRelation[];
   lastUpdated: string;
 }
+

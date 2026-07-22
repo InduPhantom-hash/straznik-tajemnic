@@ -912,6 +912,18 @@ export function SessionJournal({
                           </div>
                         </div>
 
+                        {entry.imageUrl && (
+                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                            <img
+                              src={entry.imageUrl}
+                              alt={entry.title}
+                              className="w-full h-44 object-cover rounded"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
                         <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#e2d4c9]">
                           {entry.content}
                         </p>
@@ -1014,6 +1026,19 @@ export function SessionJournal({
                             </button>
                           </div>
                         </div>
+
+                        {entry.imageUrl && (
+                          <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                            <img
+                              src={entry.imageUrl}
+                              alt={entry.title}
+                              className="w-full h-36 object-cover rounded"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
                         <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap">
                           {entry.content}
                         </p>
@@ -1075,6 +1100,18 @@ export function SessionJournal({
                           </button>
                         </div>
                       </div>
+                      {entry.imageUrl && (
+                        <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                          <img
+                            src={entry.imageUrl}
+                            alt={entry.title}
+                            className="w-full h-36 object-cover rounded"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
                       <p className="text-sm font-serif leading-relaxed text-[#e2d4c9]/90 whitespace-pre-wrap">
                         {entry.content}
                       </p>

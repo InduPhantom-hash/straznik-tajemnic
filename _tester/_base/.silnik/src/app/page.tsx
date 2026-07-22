@@ -1,14 +1,8 @@
 'use client';
 
-import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import {
-  Campaign,
-  AdventureContext,
-  Message,
-  Character,
-  JournalEntry,
-} from '@/lib/types';
+import { Campaign, AdventureContext, Message, Character } from '@/lib/types';
 import {
   loadAISettings,
   saveAISettings,
@@ -19,9 +13,7 @@ import type { AISettings } from '@/lib/ai-settings/types';
 import { settingsEmitter } from '@/lib/settings-event-emitter';
 import { appendRollToJournal } from '@/lib/journal/build-roll-entry';
 import { useFirstRun } from '@/hooks/useFirstRun';
-import { persistCharacters } from '@/lib/character-cloud-sync';
 import { CthulhuSidebar } from '@/components/sidebar/CthulhuSidebar';
-import { CharacterSheet } from '@/components/ui/character-sheet';
 import { APIUsageCounter } from '@/components/ui/api-usage-counter';
 import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
@@ -30,7 +22,7 @@ import { CutscenePlayer } from '@/components/ui/cutscene-player';
 
 // === HOOKI ===
 import { useTTS } from '@/hooks/useTTS';
-import { normalizePdfMemory, usePdfMemory } from '@/hooks/usePdfMemory';
+import { usePdfMemory } from '@/hooks/usePdfMemory';
 import { useCharacterManagement } from '@/hooks/useCharacterManagement';
 import { useFullSave } from '@/hooks/useFullSave';
 import { useChat } from '@/hooks/useChat';
@@ -42,19 +34,7 @@ import { useHealthCheck } from '@/hooks/useHealthCheck';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
-import { markSkillForImprovement } from '@/lib/skill-migration';
 import { toast } from '@/components/ui/use-toast';
-import {
-  findPlayerIndexForCharacter,
-  getSessionCharacters,
-} from '@/lib/hot-seat/session-party';
-import {
-  scopeAdventureJournalEntries,
-  synchronizeAdventureJournal,
-} from '@/lib/journal/shared-adventure-journal';
-
-import { migrateEquipmentCatalog } from '@/lib/equipment-catalog';
-import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -102,16 +82,6 @@ const ApiKeysModal = dynamic(
   () =>
     import('@/components/dialogs/ApiKeysModal').then((mod) => ({
       default: mod.ApiKeysModal,
-    })),
-  {
-    ssr: false,
-  }
-);
-
-const HelpModal = dynamic(
-  () =>
-    import('@/components/help-modal/HelpModal').then((mod) => ({
-      default: mod.HelpModal,
     })),
   {
     ssr: false,
@@ -172,7 +142,6 @@ export default function Home() {
     charMgmt.handleUpdateCharacter
   );
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
-  const [sheetCharacter, setSheetCharacter] = useState<Character | null>(null);
 
   // IND-246: Hot Seat przed useChat - useChat wysyła hotSeat.config do /api/chat.
   const hotSeat = useHotSeat(charMgmt.characters);
@@ -190,21 +159,14 @@ export default function Home() {
     addToQueue: tts.addToQueue,
     adventureContext,
     aiSettings,
-    // W duecie oznaczenie wynika z faktycznego rzutu konkretnej postaci
-    // (onJournalRoll poniżej), a nie z późniejszego tagu MG przypisanego do
-    // globalnie aktywnego badacza.
-    onSkillResults: hotSeat.config.enabled
-      ? undefined
-      : skillMarking.processSkillResults,
+    onSkillResults: skillMarking.processSkillResults,
     hotSeatConfig: hotSeat.config,
-    onSwitchHotSeatPlayer: hotSeat.switchPlayer,
   });
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [voiceFeatureAvailable, setVoiceFeatureAvailable] = useState(false);
 
   const save = useFullSave({
-    equipmentVisualEra: resolveEraVisualProfile(adventureContext?.yearRange),
     setMessages: chat.setMessages,
     setCharacters: charMgmt.setCharacters,
     setActiveCharacter: charMgmt.setActiveCharacter,
@@ -213,8 +175,6 @@ export default function Home() {
     setActiveGameState: charMgmt.setActiveGameState,
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
-    restoreHotSeatConfig: hotSeat.restoreConfig,
-    clearDeclarations: chat.clearDeclarations,
   });
 
   // UI STATE
@@ -222,7 +182,6 @@ export default function Home() {
   const [activeGMTool, setActiveGMTool] = useState<string | null>(null);
   const [showHotSeatSetup, setShowHotSeatSetup] = useState(false);
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
-  const [showHelpModal, setShowHelpModal] = useState(false);
   // Fala 2: kreator pierwszego uruchomienia (klucz Gemini → podręcznik → indeks lokalny)
   const [showFirstRunWizard, setShowFirstRunWizard] = useState(false);
   // "Nowa przygoda" z opcją zapisu: gdy true, po udanym zapisie resetujemy do kreatora
@@ -283,82 +242,61 @@ export default function Home() {
     aiSettings,
   });
 
-  // W duecie gracz docelowy jest zawsze przekazywany przez jego własne miejsce
-  // na ekranie startowym. localStorage przenosi tę jawną decyzję przez routing.
-  const stampDuetTargetPlayer = useCallback(
-    (playerName?: string) => {
-      if (hotSeat.config.enabled && playerName) {
-        localStorage.setItem('hotSeatCreatingPlayerName', playerName);
-      }
-    },
-    [hotSeat.config.enabled]
-  );
+  // Faza 2 + C2: gdy duet aktywny, stwórz/wybierz postać zapamiętuje (kanał
+  // localStorage) dla którego gracza ją przypisujemy. Dzięki temu /characters/new
+  // (tworzenie) oraz /characters (wybór z katalogu) ostemplują `playerName`,
+  // a guard C2 może wymagać jawnego przypisania 2 RÓŻNYCH postaci po imieniu.
+  // Solo: zachowanie bez zmian (zero setItem).
+  const stampDuetTargetPlayer = useCallback(() => {
+    if (hotSeat.config.enabled && hotSeat.config.players.length >= 2) {
+      const nextUnbound = hotSeat.config.players.find(
+        (p) =>
+          !charMgmt.characters.some((c) => c.playerName === p.name) &&
+          !p.characterId
+      );
+      const target = nextUnbound?.name ?? hotSeat.config.players[0]?.name;
+      if (target) localStorage.setItem('hotSeatCreatingPlayerName', target);
+    }
+  }, [hotSeat.config, charMgmt.characters]);
 
-  const handleCreateCharacterForDuet = useCallback(
-    (playerName?: string) => {
-      stampDuetTargetPlayer(playerName);
-      charMgmt.handleCharacterCreate();
-    },
-    [stampDuetTargetPlayer, charMgmt]
-  );
+  const handleCreateCharacterForDuet = useCallback(() => {
+    stampDuetTargetPlayer();
+    charMgmt.handleCharacterCreate();
+  }, [stampDuetTargetPlayer, charMgmt]);
 
-  const handlePickCharacterForDuet = useCallback(
-    (playerName?: string) => {
-      stampDuetTargetPlayer(playerName);
-      charMgmt.handleCharacterManage();
-    },
-    [stampDuetTargetPlayer, charMgmt]
-  );
+  const handlePickCharacterForDuet = useCallback(() => {
+    stampDuetTargetPlayer();
+    charMgmt.handleCharacterManage();
+  }, [stampDuetTargetPlayer, charMgmt]);
 
   const [showPredefinedSelector, setShowPredefinedSelector] = useState(false);
-  const [predefinedTargetPlayer, setPredefinedTargetPlayer] = useState<
-    string | undefined
-  >();
 
-  const handleSelectPredefinedCharacter = useCallback(
-    (character: Character) => {
-      const targetPlayer =
-        predefinedTargetPlayer ||
-        localStorage.getItem('hotSeatCreatingPlayerName') ||
-        undefined;
-      const stamped: Character = {
-        ...character,
-        id: `${character.id}_${Date.now()}`,
-        sourcePresetId: character.id,
-        playerName: targetPlayer || character.playerName,
-      };
+  const handleSelectPredefinedCharacter = useCallback((character: Character) => {
+    const stamped = {
+      ...character,
+      id: `${character.id}_${Date.now()}` // zrób unikalne ID per instancja postaci
+    };
+    
+    // Obsługa Hot Seat
+    const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
+    if (targetPlayer) {
+      stamped.playerName = targetPlayer;
+      localStorage.removeItem('hotSeatCreatingPlayerName');
+    }
 
-      if (targetPlayer) {
-        localStorage.removeItem('hotSeatCreatingPlayerName');
-      }
-
-      const existingCharacters = charMgmt.characters.map((existing) =>
-        targetPlayer && existing.playerName === targetPlayer
-          ? { ...existing, playerName: '' }
-          : existing
-      );
-      existingCharacters.push(stamped);
-
-      charMgmt.setCharacters(existingCharacters);
-      charMgmt.setActiveCharacter(stamped);
-      persistCharacters(existingCharacters);
-
-      setShowPredefinedSelector(false);
-      setPredefinedTargetPlayer(undefined);
-    },
-    [charMgmt, predefinedTargetPlayer]
-  );
-
-  const unavailablePresetIds = hotSeat.config.enabled
-    ? charMgmt.characters
-        .filter(
-          (character) =>
-            character.playerName &&
-            character.playerName !== predefinedTargetPlayer
-        )
-        .map((character) => character.sourcePresetId)
-        .filter((id): id is string => !!id)
-    : [];
+    const existingCharacters = [...charMgmt.characters];
+    existingCharacters.push(stamped);
+    
+    // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
+    charMgmt.setCharacters(existingCharacters);
+    charMgmt.setActiveCharacter(stamped);
+    
+    // Persystencja
+    const { persistCharacters } = require('@/lib/character-cloud-sync');
+    persistCharacters(existingCharacters);
+    
+    setShowPredefinedSelector(false);
+  }, [charMgmt]);
 
   // Faza 4 + C2: guard startu duetu. TWARDY wymóg - każdy gracz musi mieć
   // WŁASNĄ, jawnie przypisaną postać (po imieniu gracza), i muszą to być 2
@@ -415,84 +353,6 @@ export default function Home() {
     },
     [hotSeat, charMgmt]
   );
-
-  // W rozpoczętej sesji duetowej widoki gry dostają wyłącznie dwie postacie
-  // jawnie przypisane w HotSeatConfig. Lokalny katalog pozostaje nietknięty.
-  const sessionCharacters = useMemo(() => {
-    return getSessionCharacters(
-      charMgmt.characters,
-      hotSeat.config,
-      hasStartedGame
-    );
-  }, [hasStartedGame, hotSeat.config, charMgmt.characters]);
-  const allCharacters = charMgmt.characters;
-  const handleCharactersChange = charMgmt.handleCharactersChange;
-
-  const handleSessionCharacterSwitch = useCallback(
-    (character: Character) => {
-      if (hasStartedGame && hotSeat.config.enabled) {
-        const playerIndex = findPlayerIndexForCharacter(
-          hotSeat.config,
-          character.id
-        );
-        if (playerIndex >= 0) {
-          handleSwitchPlayer(playerIndex);
-          return;
-        }
-      }
-      charMgmt.handleCharacterSwitch(character);
-    },
-    [hasStartedGame, hotSeat.config, handleSwitchPlayer, charMgmt]
-  );
-
-  const handleUpdateAdventureJournal = useCallback(
-    (journal: JournalEntry[]) => {
-      const participantIds = sessionCharacters.map((character) => character.id);
-      const updatedCharacters = synchronizeAdventureJournal(
-        allCharacters,
-        participantIds,
-        journal,
-        hotSeat.config.adventureJournalId
-      );
-      handleCharactersChange(updatedCharacters);
-    },
-    [
-      allCharacters,
-      handleCharactersChange,
-      hotSeat.config.adventureJournalId,
-      sessionCharacters,
-    ]
-  );
-
-  // Starsze dzienniki nie miały identyfikatora przebiegu. Przypisujemy je raz
-  // po rozpoczęciu sesji, a późniejsze przygody widzą już tylko własne wpisy.
-  useEffect(() => {
-    const adventureJournalId = hotSeat.config.adventureJournalId;
-    if (
-      !hasStartedGame ||
-      !hotSeat.config.enabled ||
-      !adventureJournalId ||
-      sessionCharacters.length < 2
-    ) {
-      return;
-    }
-    const participantIds = sessionCharacters.map((character) => character.id);
-    const scopedCharacters = scopeAdventureJournalEntries(
-      allCharacters,
-      participantIds,
-      adventureJournalId
-    );
-    if (scopedCharacters !== allCharacters) {
-      handleCharactersChange(scopedCharacters);
-    }
-  }, [
-    allCharacters,
-    handleCharactersChange,
-    hasStartedGame,
-    hotSeat.config.adventureJournalId,
-    hotSeat.config.enabled,
-    sessionCharacters,
-  ]);
 
   // === EFFECTS ===
   // IND-150: split 52-lin useEffect (7 odpowiedzialności) na 4 useEffects per SRP.
@@ -586,17 +446,7 @@ export default function Home() {
     const savedChars = localStorage.getItem('characters');
     if (savedChars) {
       try {
-        const chars = (JSON.parse(savedChars) as Character[]).map(
-          (character) => ({
-            ...character,
-            equipment: migrateEquipmentCatalog(
-              character.equipment,
-              resolveEraVisualProfile(
-                localStorage.getItem('adventure_context')?.match(/\d{4}/)?.[0]
-              )
-            ),
-          })
-        );
+        const chars = JSON.parse(savedChars) as Character[];
         charMgmt.setCharacters(chars);
         if (chars.length > 0) charMgmt.setActiveCharacter(chars[0]);
         // IND-262: portret + miniatury ekwipunku żyją w IndexedDB (wycięte z
@@ -624,7 +474,7 @@ export default function Home() {
     const savedPdf = localStorage.getItem('pdf_memory');
     if (savedPdf) {
       try {
-        pdf.setPdfMemory(normalizePdfMemory(JSON.parse(savedPdf)));
+        pdf.setPdfMemory(JSON.parse(savedPdf));
       } catch (e) {
         console.error('Error loading pdf_memory:', e);
       }
@@ -671,73 +521,17 @@ export default function Home() {
     }
   }, [chat.messages]);
 
-  // Automatyczne powiadomienie i persystencja po zamknięciu sesji
-  useEffect(() => {
-    if (chat.isSessionEnded) {
-      toast({
-        title: '🔒 Sesja została zamknięta',
-        description: 'Stan gry został bezpiecznie utrwalony.',
-      });
-    }
-  }, [chat.isSessionEnded]);
-
   // IND-258: przełącznik „Narracja bez lektora" w sidebarze. Pisze trwałe
   // voiceSettings.enabled przez saveAISettings → settingsEmitter → subskrypcja
   // (3. useEffect) ustawia runtime flagi TTS. Niezależny od presetu, sticky.
   const handleToggleNarrator = (enabled: boolean) => {
     saveAISettings(withVoiceEnabled(aiSettings ?? loadAISettings(), enabled));
-    if (!enabled) {
-      tts.stopCurrentAudio();
-    }
   };
-
-  const handleColdStart = useCallback(async () => {
-    const confirmed = window.confirm(
-      'Zimny start aplikacji usunie bieżącą sesję, postacie, ustawienia i zapisane gry. Automatyczna kopia zapisów zostanie zachowana, podobnie jak baza wiedzy (zasady, przygody i Mity). Czy kontynuować?'
-    );
-    if (!confirmed) return;
-
-    try {
-      const response = await fetch('/api/desktop/cold-start', {
-        method: 'POST',
-      });
-      const result = (await response.json()) as { message?: string };
-
-      if (!response.ok) {
-        window.alert(
-          result.message ??
-            'Pełny zimny start jest dostępny tylko w aplikacji uruchomionej przez launcher.'
-        );
-        return;
-      }
-
-      toast({
-        title: 'Uruchamiam zimny start',
-        description: 'Aplikacja zamknie się i za chwilę otworzy ponownie.',
-      });
-    } catch {
-      window.alert(
-        'Nie udało się przekazać polecenia do launchera. Uruchom aplikację ponownie i spróbuj jeszcze raz.'
-      );
-    }
-  }, []);
 
   // "Nowa przygoda": pełny reset scenariusza → powrót do ekranu głównego (kreatora).
   // Czyści czat + wybraną przygodę + Sesję Zero, ale ZACHOWUJE postacie (roster) i
   // zasady (pdf_memory). Kontynuacja sesji z sejwu jest niezależna (handleLoadFullSave).
   const handleNewAdventure = () => {
-    const adventureJournalId = hotSeat.config.adventureJournalId;
-    if (adventureJournalId) {
-      const scopedCharacters = scopeAdventureJournalEntries(
-        charMgmt.characters,
-        sessionCharacters.map((character) => character.id),
-        adventureJournalId
-      );
-      if (scopedCharacters !== charMgmt.characters) {
-        charMgmt.handleCharactersChange(scopedCharacters);
-      }
-    }
-    chat.clearDeclarations();
     chat.setMessages([]);
     localStorage.removeItem('chat-messages');
     tts.stopCurrentAudio();
@@ -757,7 +551,6 @@ export default function Home() {
     localStorage.setItem('session_zero_completed', 'false');
     setAdventureContext(null);
     localStorage.removeItem('adventure_context');
-    localStorage.removeItem('adventure_journal_id');
     // #7: tryb gry (Solo / duet) jest per-przygoda - nowa przygoda wraca do Solo.
     hotSeat.disableHotSeat();
   };
@@ -781,12 +574,11 @@ export default function Home() {
         <CthulhuSidebar
           hideSidebarPanel={!hasStartedGame}
           activeCharacter={charMgmt.activeCharacter || undefined}
-          characters={sessionCharacters}
-          onCharacterSwitch={handleSessionCharacterSwitch}
+          characters={charMgmt.characters}
+          onCharacterSwitch={charMgmt.handleCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
           onUpdateCharacter={charMgmt.handleUpdateCharacter}
-          onUpdateSharedJournal={handleUpdateAdventureJournal}
           handleSendMessage={chat.handleSendMessage}
           activeGameState={charMgmt.activeGameState}
           voiceFeatureAvailable={voiceFeatureAvailable}
@@ -830,6 +622,7 @@ export default function Home() {
           registerOpenAdventureSelector={(fn) => {
             openAdventureSelectorRef.current = fn;
           }}
+          onAdventureSelect={setAdventureContext}
           customAdventures={customAdventures.customAdventures}
           onUploadAdventure={customAdventures.uploadAdventure}
           onDeleteAdventure={customAdventures.deleteAdventure}
@@ -837,9 +630,8 @@ export default function Home() {
           uploadProgressAdventure={customAdventures.uploadProgress}
           loadingStatusAdventure={customAdventures.loadingStatus}
           hotSeatConfig={hotSeat.config}
-          aiSettings={aiSettings ?? undefined}
-          onUpdateAISettings={setAiSettings}
-          isSessionEnded={chat.isSessionEnded}
+          onSwitchPlayer={handleSwitchPlayer}
+          onDisableHotSeat={hotSeat.disableHotSeat}
         />
       }
       modals={
@@ -861,14 +653,8 @@ export default function Home() {
                   ? {
                       messages: chat.messages,
                       aiSettings: aiSettings || loadAISettings(),
-                      equipmentVisualEra: resolveEraVisualProfile(
-                        adventureContext?.yearRange
-                      ),
                       characters: charMgmt.characters,
                       activeCharacterId: charMgmt.activeCharacter?.id,
-                      hotSeatConfig: hotSeat.config.enabled
-                        ? hotSeat.config
-                        : undefined,
                       campaigns: campaigns,
                       activeCampaignId: charMgmt.activeGameState.campaign?.id,
                       npcs: [],
@@ -920,8 +706,6 @@ export default function Home() {
               onClose={() => setShowDevelopmentModal(false)}
               character={charMgmt.activeCharacter}
               onCharacterUpdate={charMgmt.handleUpdateCharacter}
-              characters={charMgmt.characters}
-              onActiveCharacterChange={charMgmt.handleCharacterSwitch}
             />
           )}
 
@@ -933,20 +717,6 @@ export default function Home() {
             onStartHotSeat={hotSeat.initHotSeat}
             onChooseSolo={handleChooseSolo}
           />
-
-          {sheetCharacter && (
-            <CharacterSheet
-              open={!!sheetCharacter}
-              onOpenChange={(open) => !open && setSheetCharacter(null)}
-              character={sheetCharacter}
-              onCharacterUpdate={charMgmt.handleUpdateCharacter}
-              characters={charMgmt.characters}
-              onCharacterChange={(char) => {
-                charMgmt.handleCharacterSwitch(char);
-                setSheetCharacter(char);
-              }}
-            />
-          )}
 
           {/* C3: przełącznik graczy przeniesiony do CthulhuSidebar (osadzony
               między panelem postaci a przyciskami akcji). */}
@@ -976,24 +746,15 @@ export default function Home() {
         isAudioPaused={tts.isAudioPaused}
         isTTSEnabled={tts.isTTSEnabled}
         activeCharacter={charMgmt.activeCharacter}
-        characters={hasStartedGame ? sessionCharacters : charMgmt.characters}
-        onJournalRoll={(roll, justification, characterId) => {
-          const c =
-            charMgmt.characters.find(
-              (character) => character.id === characterId
-            ) ?? charMgmt.activeCharacter;
+        characters={charMgmt.characters}
+        onJournalRoll={(roll, justification) => {
+          const c = charMgmt.activeCharacter;
           if (!c) return;
-          let updated = appendRollToJournal(c, roll, justification);
-          if (roll.passedRequirement && !roll.luckSpent && roll.skillName) {
-            updated = markSkillForImprovement(updated, roll.skillName);
-          }
+          const updated = appendRollToJournal(c, roll, justification);
           if (updated !== c) charMgmt.handleUpdateCharacter(updated);
         }}
-        onSpendLuck={(amount, characterId) => {
-          const c =
-            charMgmt.characters.find(
-              (character) => character.id === characterId
-            ) ?? charMgmt.activeCharacter;
+        onSpendLuck={(amount) => {
+          const c = charMgmt.activeCharacter;
           if (!c) return;
           charMgmt.handleUpdateCharacter({
             ...c,
@@ -1005,16 +766,15 @@ export default function Home() {
         onSessionZero={() => openSessionZeroRef.current?.()}
         hasAdventure={!!adventureContext}
         adventureTitle={adventureContext?.title}
+        adventureDescription={adventureContext?.description}
         region={adventureContext?.location}
         currentLocation={chat.currentLocation}
         onCreateCharacter={handleCreateCharacterForDuet}
-        onPickPredefinedCharacter={(playerName) => {
-          stampDuetTargetPlayer(playerName);
-          setPredefinedTargetPlayer(playerName);
+        onPickPredefinedCharacter={() => {
+          stampDuetTargetPlayer();
           setShowPredefinedSelector(true);
         }}
         onPickCharacter={handlePickCharacterForDuet}
-        onOpenCharacterSheet={setSheetCharacter}
         onSummarizeScene={handleSummarizeScene}
         isSummarizingScene={isSummarizingScene}
         isLoading={chat.isLoading}
@@ -1022,12 +782,7 @@ export default function Home() {
         pendingDeclarations={chat.pendingDeclarations}
         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}
         onAddDeclaration={chat.addDeclaration}
-        onPassDeclaration={chat.passDeclaration}
-        currentPlayerName={chat.currentPlayerName}
-        isTurnReady={chat.isTurnReady}
         onSendTurn={chat.sendTurn}
-        onConfirmAcquiredItem={chat.confirmAcquiredItem}
-        onDismissAcquiredItem={chat.dismissAcquiredItem}
         onStartGame={
           firstRun.canPlay
             ? handleStartGameGuarded
@@ -1042,30 +797,16 @@ export default function Home() {
         hasSessionZero={sessionZeroCompleted}
         hasStartedGame={hasStartedGame}
         onOpenApiKeys={() => setShowApiKeysModal(true)}
-        onColdStart={handleColdStart}
         hotSeatConfig={hotSeat.config}
-        onSwitchPlayer={handleSwitchPlayer}
-        onDisableHotSeat={hotSeat.disableHotSeat}
-        isSessionEnded={chat.isSessionEnded}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector
           isOpen={showPredefinedSelector}
-          onClose={() => {
-            setShowPredefinedSelector(false);
-            setPredefinedTargetPlayer(undefined);
-            localStorage.removeItem('hotSeatCreatingPlayerName');
-          }}
+          onClose={() => setShowPredefinedSelector(false)}
           onSelectCharacter={handleSelectPredefinedCharacter}
           currentEra={adventureContext?.era || 'classic'}
-          targetPlayerName={predefinedTargetPlayer}
-          unavailablePresetIds={unavailablePresetIds}
         />
       )}
-      <HelpModal
-        isOpen={showHelpModal}
-        onClose={() => setShowHelpModal(false)}
-      />
     </ChatLayout>
   );
 }

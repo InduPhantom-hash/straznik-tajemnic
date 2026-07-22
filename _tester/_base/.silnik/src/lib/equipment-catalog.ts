@@ -126,6 +126,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
       'Toolkit (Mechanical)',
       'Zestaw narzędzi (mechaniczny)',
       'Skrzynka z narzędziami',
+      'Klucz francuski',
     ],
     category: 'tool',
     visualTreatment: 'mundane',
@@ -225,7 +226,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'document.map',
     name: 'Mapa',
-    aliases: ['Map'],
+    aliases: ['Map', 'Mapy lotnicze regionu', 'Mapa regionu'],
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -385,11 +386,7 @@ export function resolveCatalogAsset(
   era: EquipmentVisualEra
 ): string | undefined {
   if (!template) return undefined;
-  return (
-    template.assetPaths?.[era] ??
-    template.assetPaths?.shared ??
-    CATEGORY_FALLBACK_ASSETS[template.category]
-  );
+  return template.assetPaths?.[era] ?? template.assetPaths?.shared;
 }
 
 /** Oznacza istniejący przedmiot jako katalogowy, nie zmieniając jego ID egzemplarza. */

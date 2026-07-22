@@ -11,13 +11,12 @@ import { Button } from './button';
 import { X, Search } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { EquipmentItem } from '@/lib/types';
-import { getEraImageFilter } from '@/lib/era-visual-style';
 
 interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCharacter: (character: Character) => void;
-  currentEra?: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
+  currentEra?: 'classic' | 'gaslight' | 'modern' | 'noir' | 'prl' | 'custom';
   targetPlayerName?: string;
   unavailablePresetIds?: string[];
 }
@@ -75,8 +74,6 @@ const ARCHETYPE_LABELS: Array<{
 const ERA_LABELS: Array<{ value: PredefinedCharacterEra; label: string }> = [
   { value: 'gaslight', label: 'Lata 1890' },
   { value: 'classic', label: 'Lata 20.' },
-  { value: 'noir', label: 'Lata 40.' },
-  { value: 'prl', label: 'PRL - lata 70.' },
   { value: 'modern', label: 'Współczesność' },
 ];
 
@@ -259,8 +256,7 @@ export function PredefinedCharactersSelector({
                         <img
                           src={char.portraitUrl}
                           alt={char.name}
-                          className="w-full h-full object-cover opacity-90"
-                          style={{ filter: getEraImageFilter(char.era) }}
+                          className="w-full h-full object-cover grayscale opacity-90"
                         />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -352,8 +348,7 @@ export function PredefinedCharactersSelector({
                       <img
                         src={viewingCharacter.portraitUrl}
                         alt={viewingCharacter.name}
-                        className="relative w-full h-full object-cover"
-                        style={{ filter: getEraImageFilter(selectedEra ?? undefined) }}
+                        className="relative w-full h-full object-cover grayscale"
                       />
                     ) : (
                       <div className="relative text-center font-special-elite text-muted-foreground/60 text-[14px] tracking-[0.14em]">
@@ -458,12 +453,45 @@ export function PredefinedCharactersSelector({
                     </div>
                   </div>
 
+                  {/* KAFELKI EKWIPUNKU W LEWEJ KOLUMNIE (czerwone ramki) */}
+                  {viewingCharacter.equipment && viewingCharacter.equipment.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-brass/15">
+                      <div className="flex justify-between items-center font-special-elite text-[11px] uppercase tracking-[0.14em] text-brass">
+                        <span>Osobisty Ekwipunek</span>
+                        <span className="text-muted-foreground/60">{viewingCharacter.equipment.length} szt.</span>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {viewingCharacter.equipment.map((item) => (
+                          <div
+                            key={item.id}
+                            onClick={() => setSelectedItem(item)}
+                            className="p-2.5 bg-[#16130f] border border-brass/25 hover:border-brass/50 transition-colors cursor-pointer rounded-sm"
+                          >
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="font-serif text-sm font-semibold text-foreground truncate">
+                                {item.name}
+                              </span>
+                              <span className="font-special-elite text-[9px] uppercase tracking-wider text-brass/70 bg-brass/10 border border-brass/25 px-1 py-0.5 rounded flex-none">
+                                {item.condition === 'new' ? 'NOWY' : 'UŻYWANY'}
+                              </span>
+                            </div>
+                            {item.description && (
+                              <p className="font-serif text-[11px] text-muted-foreground/80 italic truncate mt-0.5">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {viewingCharacter.notes && (
-                    <div className="border border-brass/20 bg-[#16130f] p-4">
-                      <span className="font-special-elite text-xs text-brass uppercase tracking-[0.1em] block mb-2">
+                    <div className="border border-brass/20 bg-[#16130f] p-3">
+                      <span className="font-special-elite text-xs text-brass uppercase tracking-[0.1em] block mb-1">
                         Notatki MG / Wskazówki
                       </span>
-                      <p className="font-serif text-sm text-brass/90 italic leading-relaxed whitespace-pre-line">
+                      <p className="font-serif text-xs text-brass/90 italic leading-relaxed whitespace-pre-line">
                         {viewingCharacter.notes}
                       </p>
                     </div>
@@ -499,7 +527,7 @@ export function PredefinedCharactersSelector({
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {Object.entries(CHARACTERISTIC_LABELS).map(([key, label]) => {
-                        const val = (viewingCharacter as any)[key] || 50;
+                        const val = (viewingCharacter[key as keyof Character] as number) || 50;
                         const half = Math.floor(val / 2);
                         const fifth = Math.floor(val / 5);
                         return (
@@ -610,22 +638,37 @@ export function PredefinedCharactersSelector({
                           <div
                             key={item.id}
                             onClick={() => setSelectedItem(item)}
-                            className="cursor-pointer flex items-center gap-4 border border-brass/25 hover:border-brass/45 bg-[#181410] p-4 rounded-sm transition-all duration-200"
+                            className="cursor-pointer flex items-start gap-3 border border-brass/25 hover:border-brass/45 bg-[#181410] p-3 rounded-sm transition-all duration-200"
                           >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start gap-2">
-                                <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
-                                  {item.name}
-                                </span>
-                                <span className="font-special-elite text-[11px] uppercase tracking-[0.1em] text-brass/50 flex-none">
-                                  {item.category}
-                                </span>
-                              </div>
-                              {item.description && (
-                                <div className="font-special-elite text-sm text-muted-foreground/80 tracking-[0.04em] mt-1.5 line-clamp-2 leading-relaxed">
-                                  {item.description}
+                            <div className="w-14 h-14 flex-none bg-[#0e0c0a] border border-brass/30 rounded flex items-center justify-center overflow-hidden">
+                              {item.imageUrl ? (
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback do ikony przy błędzie ładownia
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="text-brass/60 font-special-elite text-xs uppercase">
+                                  {item.category ? item.category.slice(0, 3) : 'ITEM'}
                                 </div>
                               )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start gap-2">
+                                <span className="font-serif text-base text-foreground font-medium truncate leading-tight">
+                                  {item.name}
+                                </span>
+                                <span className="font-special-elite text-[10px] uppercase tracking-[0.08em] text-brass/70 border border-brass/30 px-1.5 py-0.5 rounded flex-none bg-brass/10">
+                                  {item.condition === 'new' ? 'NOWY' : item.condition === 'damaged' ? 'USZKODZONY' : item.condition === 'broken' ? 'ZEPSUTY' : 'UŻYWANY'}
+                                </span>
+                              </div>
+                              <div className="font-serif text-xs text-muted-foreground/90 tracking-[0.02em] mt-1 line-clamp-2 leading-relaxed italic">
+                                {item.description || `Kategoria: ${item.category}`}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -725,7 +768,6 @@ export function PredefinedCharactersSelector({
       {selectedItem && (
         <EquipmentDetailDialog
           item={selectedItem}
-          era={selectedEra ?? undefined}
           onClose={() => setSelectedItem(null)}
         />
       )}

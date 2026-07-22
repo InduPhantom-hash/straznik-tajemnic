@@ -15,25 +15,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { recordImageCost } from '@/lib/cost-event-emitter';
 
 const FLUX_KONTEXT_COST = 0.04; // USD per image
 const POLL_MAX_ATTEMPTS = 60; // 60 sekund timeout
 const POLL_INTERVAL_MS = 1000;
-
-async function resolveInputImage(inputImageUrl: string): Promise<string> {
-  if (!inputImageUrl.startsWith('/portraits/predefined/')) return inputImageUrl;
-
-  if (inputImageUrl.includes('..') || !inputImageUrl.endsWith('.webp')) {
-    throw new Error('Invalid local portrait path');
-  }
-
-  const filePath = join(process.cwd(), 'public', inputImageUrl);
-  const image = await readFile(filePath);
-  return `data:image/webp;base64,${image.toString('base64')}`;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,8 +49,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const resolvedInputImageUrl = await resolveInputImage(inputImageUrl);
-
     // Buduj enhanced prompt (style-aware)
     let enhancedPrompt = prompt;
     if (style === 'horror') {
@@ -87,7 +71,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           input: {
             prompt: enhancedPrompt,
-            input_image: resolvedInputImageUrl,
+            input_image: inputImageUrl,
           },
         }),
       }

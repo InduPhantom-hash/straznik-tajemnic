@@ -269,8 +269,132 @@ export async function POST(request: NextRequest) {
       breakdown: validateBreakdown(data.breakdown),
     });
 
-    const validatedAdventures = rawAdventures.map(
-      (adv: AdventureRaw, index: number) => validateAdventure(adv, index)
+    // Funkcje pomocnicze do integracji z zewnętrznymi API (pogoda, geokodowanie i historyczna mapa)
+    const fetchCoords = async (location: string, country: string): Promise<{ lat: number; lon: number } | null> => {
+      try {
+        const query = encodeURIComponent(`${location}, ${country}`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+          headers: { 'User-Agent': 'StraznikTajemnicAI/1.0' }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        }
+      } catch (e) {
+        console.warn('⚠️ Nominatim geocoding failed:', e);
+      }
+      return null;
+    };
+
+    const fetchHistoricalWeather = async (lat: number, lon: number, yearRange: string): Promise<string | null> => {
+      try {
+        // Wyciągnij pierwszy rok z zakresu lub domyślny 1925
+        const yearMatch = yearRange.match(/\b(18\d\d|19\d\d|20\d\d)\b/);
+        const year = yearMatch ? yearMatch[1] : '1925';
+        const date = `${year}-05-12`; // Domyślny, klimatyczny dzień wiosenny
+
+        const res = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,rain,snowfall,weather_code`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        
+        if (data.hourly && data.hourly.temperature_2m) {
+          const temps = data.hourly.temperature_2m;
+          const avgTemp = Math.round(temps.reduce((sum: number, t: number) => sum + t, 0) / temps.length);
+          const hasRain = data.hourly.rain?.some((r: number) => r > 0);
+          const hasSnow = data.hourly.snowfall?.some((s: number) => s > 0);
+          
+          let desc = 'Umiarkowana pogoda';
+          if (hasRain) desc = 'Deszczowo';
+          else if (hasSnow) desc = 'Śnieżnie i mroźnie';
+          else if (avgTemp > 22) desc = 'Ciepło i sucho';
+          else if (avgTemp < 5) desc = 'Zimno i mgliście';
+
+          return `Średnia temperatura: ${avgTemp}°C, stan: ${desc} (dane historyczne dla dnia ${date})`;
+        }
+      } catch (e) {
+        console.warn('⚠️ Open-Meteo weather fetch failed:', e);
+      }
+      return null;
+    };
+
+    const fetchHistoricalPOI = async (lat: number, lon: number, yearRange: string): Promise<Array<{ name: string; description: string }>> => {
+      try {
+        const yearMatch = yearRange.match(/\b(18\d\d|19\d\d|20\d\d)\b/);
+        const year = yearMatch ? parseInt(yearMatch[1]) : 1925;
+
+        // Zapytanie Overpass API dla OpenHistoricalMap o POI w promieniu 1000m
+        const query = `
+          [out:json][timeout:15];
+          (
+            nwr["amenity"](around:1000,${lat},${lon});
+            nwr["historical"](around:1000,${lat},${lon});
+            nwr["building"~"church|hotel|townhall|station"](around:1000,${lat},${lon});
+          );
+          out center;
+        `;
+        const res = await fetch('https://overpass-api.openhistoricalmap.org/api/interpreter', {
+          method: 'POST',
+          body: query
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        
+        if (data.elements) {
+          const pois: Array<{ name: string; description: string }> = [];
+          for (const el of data.elements) {
+            const tags = el.tags || {};
+            const name = tags.name || tags.operator || tags.amenity || tags.building || 'Historyczne miejsce';
+            
+            // Filtrujemy po dacie istnienia jeśli tagi start_date/end_date są obecne
+            if (tags.start_date) {
+              const start = parseInt(tags.start_date);
+              if (!isNaN(start) && start > year) continue; // Jeszcze nie wybudowano
+            }
+            if (tags.end_date) {
+              const end = parseInt(tags.end_date);
+              if (!isNaN(end) && end < year) continue; // Już zburzono
+            }
+
+            const typeDesc = tags.amenity || tags.building || tags.historical || 'obiekt';
+            pois.push({
+              name,
+              description: `Historyczny ${typeDesc} zidentyfikowany w bazie OpenHistoricalMap.`
+            });
+
+            if (pois.length >= 5) break; // Limitujemy do 5 najciekawszych
+          }
+          return pois;
+        }
+      } catch (e) {
+        console.warn('⚠️ OpenHistoricalMap POI fetch failed:', e);
+      }
+      return [];
+    };
+
+    const validatedAdventures = await Promise.all(
+      rawAdventures.map(async (adv: AdventureRaw, index: number) => {
+        const validated = validateAdventure(adv, index);
+        
+        // Dociągnij dane geograficzno-pogodowe
+        const coords = await fetchCoords(validated.location, validated.country);
+        if (coords) {
+          const weatherPromise = fetchHistoricalWeather(coords.lat, coords.lon, validated.yearRange);
+          const poiPromise = fetchHistoricalPOI(coords.lat, coords.lon, validated.yearRange);
+          const [weather, pois] = await Promise.all([weatherPromise, poiPromise]);
+
+          if (weather) {
+            validated.description = `${validated.description}\n\n[KLIMAT & POGODA]: ${weather}`;
+          }
+          if (pois && pois.length > 0) {
+            validated.breakdown.locations = [
+              ...validated.breakdown.locations,
+              ...pois.map(p => ({ name: p.name, description: p.description }))
+            ].slice(0, 8); // Utrzymujemy limit 8 lokacji
+          }
+        }
+        return validated;
+      })
     );
 
     console.log(

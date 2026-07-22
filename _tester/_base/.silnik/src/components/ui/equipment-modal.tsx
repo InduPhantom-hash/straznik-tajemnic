@@ -500,7 +500,12 @@ function ItemThumbnail({
 }) {
   const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
   const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
-  const canGenerate = !isCatalogEquipment(item);
+  const isDedicatedCatalogAsset = Boolean(
+    item.imageUrl &&
+      item.imageUrl.includes('/equipment/catalog/') &&
+      item.imageUrl.endsWith('.webp')
+  );
+  const canGenerate = !isDedicatedCatalogAsset;
 
   return (
     <div

@@ -40,7 +40,7 @@ export interface UseFullSaveReturn {
 }
 
 interface UseFullSaveOptions {
-  equipmentVisualEra: EquipmentVisualEra;
+  equipmentVisualEra?: EquipmentVisualEra;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
   setActiveCharacter: React.Dispatch<React.SetStateAction<Character | null>>;

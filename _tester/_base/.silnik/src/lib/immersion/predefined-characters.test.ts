@@ -58,9 +58,10 @@ describe('PREDEFINED_CHARACTERS', () => {
     });
   });
 
-  it('używa wyłącznie istniejących lokalnych miniatur ekwipunku', () => {
+  it('używa wyłącznie istniejących lokalnych miniatur ekwipunku dla przedmiotów katalogowych', () => {
     PREDEFINED_CHARACTERS.forEach((character) => {
       character.equipment?.forEach((item) => {
+        if (!item.imageUrl) return; // Przedmioty do wygenerowania AI w tle na starcie gry
         expect(item.imageUrl).toMatch(
           /^\/equipment\/(?:catalog\/.+\.webp|predefined\/[a-z]+\.svg)$/
         );

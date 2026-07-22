@@ -24,9 +24,7 @@ describe('equipment catalog', () => {
     expect(resolveCatalogAsset(flashlight, '1920s')).toBe(
       '/equipment/catalog/flashlight-1920s.webp'
     );
-    expect(resolveCatalogAsset(flashlight, '1940s')).toBe(
-      '/equipment/predefined/tool.svg'
-    );
+    expect(resolveCatalogAsset(flashlight, '1940s')).toBeUndefined();
     expect(resolveCatalogAsset(rope, 'prl-1970s')).toBe(
       '/equipment/catalog/rope-shared.webp'
     );

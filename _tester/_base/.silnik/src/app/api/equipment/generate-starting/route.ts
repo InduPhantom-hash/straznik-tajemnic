@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { EquipmentItem } from '@/lib/types';
+import { EquipmentItem, EquipmentCategory } from '@/lib/types';
 import {
   OCCUPATION_EQUIPMENT,
   findEquipmentByName,
@@ -18,7 +18,6 @@ import {
 } from '@/lib/combat/weapon-context';
 import { stripAITags } from '@/lib/parsers/text-cleaner';
 import { DEFAULT_GEMINI_MODEL_LITE } from '@/lib/ai-providers/constants';
-import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,7 +41,8 @@ export async function POST(request: NextRequest) {
 
     // Twórz przedmioty z predefiniowanej listy
     const equipment: EquipmentItem[] = [];
-    const visualEra = resolveEraVisualProfile(era);
+
+    const visualEra = era.startsWith('194') ? '1940s' : era.startsWith('18') ? '1890s' : '1920s';
 
     for (const itemName of predefinedItems) {
       const template = findEquipmentByName(itemName);
@@ -83,9 +83,7 @@ export async function POST(request: NextRequest) {
         if (!equipment.some((e) => e.name === itemName)) {
           const template = findEquipmentByName(itemName);
           if (template) {
-            equipment.push(
-              createEquipmentItem(template, 'starting', visualEra)
-            );
+            equipment.push(createEquipmentItem(template, 'starting'));
           }
         }
       }

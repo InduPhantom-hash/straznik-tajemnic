@@ -129,14 +129,14 @@ export function useEquipmentThumbnails({
       runningCharacterIdsRef.current.add(character.id);
 
       try {
-        // Cache-aware: pomijamy itemy które JUŻ mają wygenerowaną miniaturę (piktogramy SVG ignorujemy, by wygenerować prawdziwy obrazek).
+        // Cache-aware: pomijamy itemy które JUŻ mają dedykowaną grafikę katalogową WebP lub wygenerowany obrazek AI.
         const pending = (character.equipment ?? [])
           .filter((item) => {
-            if (isCatalogEquipment(item)) return false;
             if (!item.imageUrl) return true;
             return (
               item.imageUrl.endsWith('.svg') ||
-              item.imageUrl.includes('/predefined/')
+              item.imageUrl.includes('/predefined/') ||
+              item.imageUrl.includes('/equipment/predefined/')
             );
           })
           .slice(0, MAX_THUMBNAILS);

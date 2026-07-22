@@ -18,68 +18,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { pdfIndexingService } from '@/lib/vector-db/pdf-indexing-service';
 import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
+import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
+import fs from 'fs';
+import path from 'path';
 
 export const maxDuration = 300; // 5 min - duże podręczniki (setki stron)
 export const runtime = 'nodejs';
 
-/**
- * GET: Statystyki lokalnego namespace'u
- * ?type=rules lub ?type=adventure
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') as 'rules' | 'adventure';
-
-    if (!type || (type !== 'rules' && type !== 'adventure')) {
-      return NextResponse.json(
-        { error: 'Podaj ?type=rules lub ?type=adventure' },
-        { status: 400 }
-      );
-    }
-
-    const stats = await pdfIndexingService.getNamespaceStats(type);
-
-    return NextResponse.json({
-      success: true,
-      ...stats,
-      initialized: true,
-    });
-  } catch (error) {
-    console.error('❌ PDF local ingest stats error:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Nieznany błąd',
-      },
-      { status: 500 }
-    );
-  }
-}
-
 const MAX_PDF_BYTES = 500 * 1024 * 1024; // 500 MB (spójnie z /api/upload-pdf)
 const MIN_TEXT_LENGTH = 100;
-
-function indexingError(
-  error: string,
-  status: number,
-  start: number,
-  namespace = ''
-) {
-  return NextResponse.json(
-    {
-      success: false,
-      indexed: 0,
-      failed: 0,
-      totalChunks: 0,
-      namespace,
-      durationMs: Date.now() - start,
-      error,
-    },
-    { status }
-  );
-}
 
 export async function POST(request: NextRequest) {
   const start = Date.now();
@@ -90,10 +37,12 @@ export async function POST(request: NextRequest) {
       request.headers.get('X-Gemini-Api-Key') || process.env.GEMINI_API_KEY;
 
     if (!geminiApiKey) {
-      return indexingError(
-        'Brak klucza API Gemini (wymagany do generowania embeddingów)',
-        401,
-        start
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Brak klucza API Gemini (wymagany do generowania embeddingów)',
+        },
+        { status: 401 }
       );
     }
 
@@ -114,20 +63,24 @@ export async function POST(request: NextRequest) {
       const file = formData.get('file');
 
       if (!(file instanceof File)) {
-        return indexingError(
-          'Brak pliku PDF (pole formularza "file")',
-          400,
-          start
+        return NextResponse.json(
+          { success: false, error: 'Brak pliku PDF (pole formularza "file")' },
+          { status: 400 }
         );
       }
       if (file.type !== 'application/pdf') {
-        return indexingError('Tylko pliki PDF są dozwolone', 400, start);
+        return NextResponse.json(
+          { success: false, error: 'Tylko pliki PDF są dozwolone' },
+          { status: 400 }
+        );
       }
       if (file.size > MAX_PDF_BYTES) {
-        return indexingError(
-          'Plik jest za duży. Maksymalny rozmiar to 500MB',
-          400,
-          start
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Plik jest za duży. Maksymalny rozmiar to 500MB',
+          },
+          { status: 400 }
         );
       }
 
@@ -152,25 +105,27 @@ export async function POST(request: NextRequest) {
           `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
         );
       } catch (parseError) {
-        return indexingError(
-          `Błąd parsowania PDF: ${
-            parseError instanceof Error ? parseError.message : 'Nieznany błąd'
-          }`,
-          422,
-          start,
-          type === 'rules' ? 'rules' : 'adventures'
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Błąd parsowania PDF: ${
+              parseError instanceof Error ? parseError.message : 'Nieznany błąd'
+            }`,
+          },
+          { status: 422 }
         );
       }
     }
 
     if (!pdfText || pdfText.length < MIN_TEXT_LENGTH) {
-      return indexingError(
-        `Tekst za krótki do indeksowania (${
-          pdfText?.length ?? 0
-        } znaków, minimum ${MIN_TEXT_LENGTH}). PDF może być skanem bez warstwy tekstowej (OCR).`,
-        422,
-        start,
-        type === 'rules' ? 'rules' : 'adventures'
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Tekst za krótki do indeksowania (${
+            pdfText?.length ?? 0
+          } znaków, minimum ${MIN_TEXT_LENGTH}). PDF może być skanem bez warstwy tekstowej (OCR).`,
+        },
+        { status: 422 }
       );
     }
 
@@ -192,13 +147,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(result);
+    // Jeśli typ to 'adventure', wykonaj rozszerzoną ekstrakcję struktur przez Gemini 3.6 Flash
+    let extractedAdventure = null;
+    if (type === 'adventure') {
+      try {
+        console.log('🤖 Rozpoczynanie ekstrakcji ustrukturyzowanej przygody przez Gemini 3.6 Flash...');
+        extractedAdventure = await extractAdventureEntities(pdfText, fileName, geminiApiKey);
+        
+        // Zapisz wyekstrahowaną strukturę lokalnie w data/adventures/
+        const dataDir = path.join(process.cwd(), 'data', 'adventures');
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        const filePath = path.join(dataDir, `${extractedAdventure.adventureId}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(extractedAdventure, null, 2), 'utf-8');
+        console.log(`💾 Zapisano ustrukturyzowane dane przygody: ${filePath}`);
+      } catch (extError) {
+        console.warn('⚠️ Ekstrakcja przygody przez Gemini 3.6 Flash nie powiodła się, kontynuowanie samego RAG:', extError);
+      }
+    }
+
+    return NextResponse.json({
+      ...result,
+      extractedAdventure,
+    });
   } catch (error) {
     console.error('❌ ingest-local API error:', error);
-    return indexingError(
-      error instanceof Error ? error.message : 'Nieznany błąd',
-      500,
-      start
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Nieznany błąd',
+        durationMs: Date.now() - start,
+      },
+      { status: 500 }
     );
   }
 }

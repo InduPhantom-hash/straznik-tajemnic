@@ -56,6 +56,7 @@ export interface ChatWindowProps {
   hasRules?: boolean;
   hasAdventure?: boolean;
   adventureTitle?: string;
+  adventureDescription?: string;
   /** 3H: region przygody (`adventureContext.location`) - lewa część pineski "region · miejsce". */
   region?: string;
   /** IND-267: bieżące MIEJSCE bohatera (pineska 📍 w headerze obok tytułu/zegara). */

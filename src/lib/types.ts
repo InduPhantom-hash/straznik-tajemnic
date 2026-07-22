@@ -181,6 +181,8 @@ export interface JournalEntry {
   linkedEntryIds?: string[];
   /** Status weryfikacji hipotezy lub dowodu */
   hypothesisStatus?: 'unverified' | 'confirmed' | 'disproven';
+  /** Opcjonalny adres URL obrazka / ilustracji wpisu */
+  imageUrl?: string;
 }
 
 // === SYSTEM EKWIPUNKU (CoC 7e) ===

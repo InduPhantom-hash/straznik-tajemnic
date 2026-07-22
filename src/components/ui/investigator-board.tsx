@@ -129,10 +129,23 @@ export function InvestigatorBoard({
     onUpdateNodes([...nodes, newNode]);
   };
 
-  // Drag Handlers
+  // Drag Handlers - używamy stanu lokalnego podczas przeciągania
+  const [localNodes, setLocalNodes] = useState<EvidenceNode[]>(nodes);
+
+  // Synchronizacja lokalnych węzłów po zmianie z zewnątrz
+  React.useEffect(() => {
+    setLocalNodes(nodes);
+  }, [nodes]);
+
   const handlePointerDownNode = (e: React.PointerEvent, node: EvidenceNode) => {
     e.stopPropagation();
     setSelectedNodeId(node.id);
+
+    // Jeśli aktywne jest łączenie sznurkiem i kliknięto inną kartę -> utwórz połączenie
+    if (connectingFromId && connectingFromId !== node.id) {
+      handleStartConnection(node.id);
+      return;
+    }
 
     const target = e.currentTarget as HTMLElement;
     target.setPointerCapture(e.pointerId);
@@ -152,8 +165,8 @@ export function InvestigatorBoard({
     const newX = Math.max(10, e.clientX - canvasRect.left + boardCanvasRef.current.scrollLeft - dragOffsetRef.current.x);
     const newY = Math.max(10, e.clientY - canvasRect.top + boardCanvasRef.current.scrollTop - dragOffsetRef.current.y);
 
-    const updated = nodes.map((n) => (n.id === draggingNodeId ? { ...n, position: { x: newX, y: newY } } : n));
-    onUpdateNodes(updated);
+    // Zmieniaj wyłącznie stan lokalny (zero zbędnych re-renderów całej aplikacji!)
+    setLocalNodes((prev) => prev.map((n) => (n.id === draggingNodeId ? { ...n, position: { x: newX, y: newY } } : n)));
   };
 
   const handlePointerUpNode = (e: React.PointerEvent) => {
@@ -165,6 +178,8 @@ export function InvestigatorBoard({
         // Safe catch
       }
       setDraggingNodeId(null);
+      // Zapisujemy pozycję w stanie rodzica / karcie postaci dopiero na koniec przeciągania
+      onUpdateNodes(localNodes);
     }
   };
 
@@ -299,7 +314,7 @@ export function InvestigatorBoard({
 
         {/* Karty Węzłów na Korku z Pozycjonowaniem Absolutnym */}
         <div className="relative z-10 w-full h-full min-h-[600px]">
-          {filteredNodes.map((node) => {
+          {localNodes.map((node) => {
             const typeInfo = nodeTypeLabels[node.type] || nodeTypeLabels.clue;
             const isSelected = selectedNodeId === node.id;
             const isConnecting = connectingFromId === node.id;
@@ -365,6 +380,9 @@ export function InvestigatorBoard({
                         src={node.imageUrl}
                         alt={node.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
                       />
                     </div>
                   )}

@@ -1,5 +1,20 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-22 (Naprawa Ilustracji Przedmiotów Ekwipunku)
+Branch: main
+
+### Co zrobiono
+- Wyeliminowano utykanie ekwipunku ze statycznymi zastępcami SVG.
+- Zmapowano dedykowane grafiki WebP z katalogu dla nazw/aliasów z presetów postaci (`Klucz francuski`, `Mapy lotnicze regionu`).
+- Przeprowadzono poprawkę w `useEquipmentThumbnails.ts`: unikalne przedmioty nieposiadające grafik z katalogu WebP automatycznie zlecają wygenerowanie ilustracji AI w tle przez Gemini Imagen API po rozpoczęciu gry.
+- Odblokowano manualny przycisk "Generuj" w `equipment-modal.tsx` dla przedmiotów bez dedykowanej grafiki katalogowej WebP.
+- Pomyślnie zweryfikowano pakiet testów jednostkowych ekwipunku (`26/26 PASSED`).
+
+### Decyzje podjęte
+- Surowa reguła UI: brak docelowych zastępczych ikonek SVG w ekwipunku – każdy przedmiot musi mieć asset WebP lub dynamicznie wygenerowaną ilustrację AI.
+
+---
+
 ## Podsumowanie sesji: 2026-07-22 (Etap 3: Persystencja Tablicy Badacza)
 Branch: main
 
