@@ -88,6 +88,35 @@ export function StepUploadRulebook({
     }
   };
 
+  const handleBypass = async () => {
+    setStage('working');
+    try {
+      // Stwórz wygenerowane mockowe rules gdy gracz klika Pomijam
+      const res = await fetch('/api/pdf/ingest-local', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getApiKeyHeaders(),
+        },
+        body: JSON.stringify({
+          text: 'Podręcznik Zasad Zew Cthulhu 7e. Zasadą główną gry jest rzut kością K100 (d100) przeciwko wartości umiejętności lub cechy postaci. Rzut równy lub niższy od wartości oznacza sukces. Rzut 01 to Ekstremalny Sukces (Krytyczny), a 100 to Pech (Fumble). Obłęd i Walka kierują się dedykowanymi tabelami i testami Poczytalności (SAN).',
+          type: 'rules',
+          fileName: 'domyslny_starter.pdf',
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.success) {
+        onUploaded();
+      } else {
+        setStage('error');
+        setError(data.error || 'Nie udało się zainicjalizować starterowych zasad');
+      }
+    } catch (err) {
+      setStage('error');
+      setError(err instanceof Error ? err.message : 'Błąd połączenia');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
@@ -121,7 +150,7 @@ export function StepUploadRulebook({
             <div className="flex items-center gap-2 text-sm text-foreground">
               <Loader2 className="w-4 h-4 animate-spin text-brass" />
               <FileText className="w-4 h-4 text-muted-foreground" />
-              <span className="truncate">{fileName}</span>
+              <span className="truncate">{fileName || 'Inicjalizacja...'}</span>
             </div>
             <Progress value={progress} />
             <p className="text-xs text-muted-foreground">
@@ -159,7 +188,7 @@ export function StepUploadRulebook({
         </Card>
       )}
 
-      <div className="flex justify-between pt-2">
+      <div className="flex justify-between items-center pt-2">
         <Button
           variant="outline"
           onClick={onBack}
@@ -167,14 +196,25 @@ export function StepUploadRulebook({
         >
           Wstecz
         </Button>
-        <Button
-          className="bg-primary hover:bg-primary/90"
-          onClick={onUploaded}
-          disabled={stage !== 'done'}
-        >
-          <Check className="w-4 h-4 mr-2" />
-          Gotowe, graj
-        </Button>
+        <div className="flex gap-2">
+          {stage === 'idle' && (
+            <Button
+              variant="ghost"
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={handleBypass}
+            >
+              Użyj skróconych zasad (Starter)
+            </Button>
+          )}
+          <Button
+            className="bg-primary hover:bg-primary/90"
+            onClick={onUploaded}
+            disabled={stage !== 'done'}
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Gotowe, graj
+          </Button>
+        </div>
       </div>
     </div>
   );

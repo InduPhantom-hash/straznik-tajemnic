@@ -98,7 +98,14 @@ export function renderNarrativeWithImages(
           }
           onError={(e) => {
             console.warn('Image failed to load:', altText);
-            (e.target as HTMLImageElement).style.display = 'none';
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            if (target.parentElement) {
+              const fallback = document.createElement('div');
+              fallback.className = 'p-3 text-xs text-amber-400/80 bg-amber-950/30 border border-amber-800/40 rounded-lg flex items-center gap-2';
+              fallback.innerText = '⚠️ Nie udało się załadować ilustracji sceny.';
+              target.parentElement.appendChild(fallback);
+            }
           }}
         />
       </div>

@@ -1,0 +1,60 @@
+{
+  "id": "tajemnica-pendnika-lagiewki",
+  "title": "Tajemnica Pędnika: Genialny Wynalazca z Kowar",
+  "era": "1990s",
+  "setting": "Polska, Przełom Lat 90. (Kowary - Karkonosze - Warszawa)",
+  "startingLocation": "Warsztat i Pracownia Lucjana Łągiewki, Kowary, Dolny Śląsk",
+  "summary": "Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki – konstruktora-samouka z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas zderzeń. Kiedy wynalazca tworzy 'Pędnik' – silnik łamiący znane prawa fizyki i działający bez przyczepności w próżni i wodzie – w jego kowarskim warsztacie pojawiają się tajni agenci Agencji Ochrony Rządu. Odkrycie Łągiewki to nie prosty patent, lecz próba oswojenia kinetycznej technologii Mi-Go z Gór Szaleństwa.",
+  "clues": [
+    {
+      "id": "clue-kinetic-absorber-model",
+      "name": "Model Wirnika Kinetycznego",
+      "description": "Miniaturowy pochłaniacz wirnikowy. Uderzający w niego ciężar nie rozbija postawionego obok szklanego kieliszka – cała energia zostaje odgięta w inny wymiar kinetyczny."
+    },
+    {
+      "id": "clue-broken-brakes-log",
+      "name": "Zapis Prób Stadionowych z 1989 r.",
+      "description": "Nagranie z uderzenia Fiata 126p bez płynu hamulcowego w betonowy mur. Kierowca bez pasów wychodzi z auta bez zadrapania, ale zegary samochodowe po kolizji chodzą wstecz."
+    },
+    {
+      "id": "clue-aor-classified-file",
+      "name": "Poufny Raport AOR (Agencji Ochrony Rządu)",
+      "description": "Notatka ze spotkania tajnych służb z wynalazcą. Urzędnicy nakazują natychmiastowe wstrzymanie prac nad Pędnikiem i zakazują publikacji pod rygorem utajnienia."
+    },
+    {
+      "id": "clue-mi-go-cylinder-notes",
+      "name": "Szkice Przekładni Kosmicznej",
+      "description": "Ręczne rysunki Łągiewki przedstawiające układ stożkowych zębatek i wirników, dziwnie przypominające cylindry i urządzenia opisywane w relacjach z Gór Szaleństwa."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-kowary-workshop",
+      "title": "Pracownia Wynalazcy w Kowarach",
+      "description": "Cichy dom z przylegającym warsztatem u stóp Karkonoszy. Pełno tu modeli, tokarek, kieliszków testowych oraz zapachu oleju maszynowego i ozonu.",
+      "npcs": ["Lucjan Łągiewka"],
+      "availableClues": ["clue-kinetic-absorber-model", "clue-mi-go-cylinder-notes"]
+    },
+    {
+      "id": "node-stadium-kowary",
+      "title": "Miejski Stadion w Kowarach",
+      "description": "Opustoszała płyta stadionu z betonowym murem noszącym ślady wielu uderzeń testowych pojazdów bez pasów i hamulców.",
+      "npcs": ["Marek Nowak (Kierowca Testowy)"],
+      "availableClues": ["clue-broken-brakes-log"]
+    },
+    {
+      "id": "node-wroclaw-physicist",
+      "title": "Gabinet Inżyniera w Instytucie (Wrocław)",
+      "description": "Zagracony książkami gabinet prof. Henryka Adamskiego, który jako jedyny naukowiec potrafi matematycznie opisać anomalię przenoszenia pędu Łągiewki.",
+      "npcs": ["prof. Henryk Adamski"],
+      "availableClues": ["clue-mi-go-cylinder-notes"]
+    },
+    {
+      "id": "node-warszawa-aor-office",
+      "title": "Tajna Placówka AOR (Warszawa)",
+      "description": "Nieoznakowany biurowiec przy ul. Rakowieckiej, gdzie agenci służb specjalnych analizują rysunki Pędnika pod kątem zastosowań w napędach orbitalnych i bezwładnościowych.",
+      "npcs": ["Agenci Agencji Ochrony Rządu"],
+      "availableClues": ["clue-aor-classified-file"]
+    }
+  ]
+}

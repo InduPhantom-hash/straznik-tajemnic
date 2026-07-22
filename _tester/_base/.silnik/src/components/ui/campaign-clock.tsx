@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { timeManager } from '@/lib/time-manager';
 import { GameTime, MoonPhase } from '@/lib/types';
-import { Moon, Sun, Clock, Calendar } from 'lucide-react';
+import { Moon, Sun, Clock, Calendar, CloudFog } from 'lucide-react';
 
 // ============================================================================
 // MOON PHASE ICONS
@@ -102,14 +102,11 @@ export function CampaignClock({
         </div>
 
         <div className="flex items-center gap-2 ml-1 pl-3 border-l border-zinc-800">
-          <span
-            className="text-lg filter drop-shadow-[0_0_3px_rgba(255,255,255,0.3)] cursor-help"
-            title={`Pogoda: ${weather}`}
-          >
-            {getWeatherEmoji(weather)}
+          <span title={`Pogoda: ${weather}`}>
+            <CloudFog className="w-4 h-4 text-zinc-400 cursor-help" />
           </span>
           <span
-            className="text-lg filter drop-shadow-[0_0_3px_rgba(255,255,255,0.3)] cursor-help"
+            className="text-base leading-none cursor-help select-none"
             title={MOON_PHASE_NAMES[moonPhase]}
           >
             {MOON_PHASE_EMOJI[moonPhase]}

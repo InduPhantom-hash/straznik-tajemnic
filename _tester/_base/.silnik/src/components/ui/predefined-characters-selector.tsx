@@ -453,35 +453,54 @@ export function PredefinedCharactersSelector({
                     </div>
                   </div>
 
-                  {/* KAFELKI EKWIPUNKU W LEWEJ KOLUMNIE (czerwone ramki) */}
+                  {/* EKWIPUNKS I WYPOSAŻENIE W LEWEJ KOLUMNIE */}
                   {viewingCharacter.equipment && viewingCharacter.equipment.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-brass/15">
-                      <div className="flex justify-between items-center font-special-elite text-[11px] uppercase tracking-[0.14em] text-brass">
-                        <span>Osobisty Ekwipunek</span>
+                    <div className="space-y-3 pt-3 border-t border-brass/20">
+                      <div className="flex justify-between items-center font-special-elite text-[12px] uppercase tracking-[0.16em] text-brass">
+                        <span>🎒 EKWIPUNKEK & WYPOSAŻENIE</span>
                         <span className="text-muted-foreground/60">{viewingCharacter.equipment.length} szt.</span>
                       </div>
-                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        {viewingCharacter.equipment.map((item) => (
-                          <div
-                            key={item.id}
-                            onClick={() => setSelectedItem(item)}
-                            className="p-2.5 bg-[#16130f] border border-brass/25 hover:border-brass/50 transition-colors cursor-pointer rounded-sm"
-                          >
-                            <div className="flex justify-between items-center gap-2">
-                              <span className="font-serif text-sm font-semibold text-foreground truncate">
-                                {item.name}
-                              </span>
-                              <span className="font-special-elite text-[9px] uppercase tracking-wider text-brass/70 bg-brass/10 border border-brass/25 px-1 py-0.5 rounded flex-none">
-                                {item.condition === 'new' ? 'NOWY' : 'UŻYWANY'}
-                              </span>
+                      <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                        {viewingCharacter.equipment.map((item) => {
+                          const categoryIcon = item.category
+                            ? `/equipment/predefined/${item.category}.svg`
+                            : '/equipment/predefined/personal.svg';
+                          const imgSrc = item.imageUrl || categoryIcon;
+
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={() => setSelectedItem(item)}
+                              className="cursor-pointer flex items-start gap-3 border border-brass/25 hover:border-brass/50 bg-[#16130f] p-3 rounded-sm transition-all duration-200"
+                            >
+                              <div className="w-12 h-12 flex-none bg-[#0e0c0a] border border-brass/30 rounded flex items-center justify-center overflow-hidden p-1">
+                                <img
+                                  src={imgSrc}
+                                  alt={item.name}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '/equipment/predefined/personal.svg';
+                                  }}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start gap-2">
+                                  <span className="font-serif text-sm font-semibold text-foreground truncate leading-tight">
+                                    {item.name}
+                                  </span>
+                                  <span className="font-special-elite text-[9px] uppercase tracking-wider text-brass/70 bg-brass/10 border border-brass/25 px-1 py-0.5 rounded flex-none">
+                                    {item.condition === 'new' ? 'NOWY' : item.condition === 'damaged' ? 'USZKODZONY' : item.condition === 'broken' ? 'ZEPSUTY' : 'UŻYWANY'}
+                                  </span>
+                                </div>
+                                {item.description && (
+                                  <p className="font-serif text-[11px] text-muted-foreground/80 italic line-clamp-2 mt-0.5 leading-snug">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            {item.description && (
-                              <p className="font-serif text-[11px] text-muted-foreground/80 italic truncate mt-0.5">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -623,55 +642,6 @@ export function PredefinedCharactersSelector({
                               </div>
                             );
                           })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Ekwipunek */}
-                  {viewingCharacter.equipment && viewingCharacter.equipment.length > 0 && (
-                    <div>
-                      <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-                        Ekwipunek
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {viewingCharacter.equipment.map((item) => (
-                          <div
-                            key={item.id}
-                            onClick={() => setSelectedItem(item)}
-                            className="cursor-pointer flex items-start gap-3 border border-brass/25 hover:border-brass/45 bg-[#181410] p-3 rounded-sm transition-all duration-200"
-                          >
-                            <div className="w-14 h-14 flex-none bg-[#0e0c0a] border border-brass/30 rounded flex items-center justify-center overflow-hidden">
-                              {item.imageUrl ? (
-                                <img
-                                  src={item.imageUrl}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    // Fallback do ikony przy błędzie ładownia
-                                    (e.target as HTMLElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className="text-brass/60 font-special-elite text-xs uppercase">
-                                  {item.category ? item.category.slice(0, 3) : 'ITEM'}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start gap-2">
-                                <span className="font-serif text-base text-foreground font-medium truncate leading-tight">
-                                  {item.name}
-                                </span>
-                                <span className="font-special-elite text-[10px] uppercase tracking-[0.08em] text-brass/70 border border-brass/30 px-1.5 py-0.5 rounded flex-none bg-brass/10">
-                                  {item.condition === 'new' ? 'NOWY' : item.condition === 'damaged' ? 'USZKODZONY' : item.condition === 'broken' ? 'ZEPSUTY' : 'UŻYWANY'}
-                                </span>
-                              </div>
-                              <div className="font-serif text-xs text-muted-foreground/90 tracking-[0.02em] mt-1 line-clamp-2 leading-relaxed italic">
-                                {item.description || `Kategoria: ${item.category}`}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   )}

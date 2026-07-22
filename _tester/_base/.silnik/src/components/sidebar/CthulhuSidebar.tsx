@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Image as ImageIcon,
   LogOut,
+  Flame,
 } from 'lucide-react';
 import NextImage from 'next/image';
 import { Button } from '../ui/button';
@@ -93,7 +94,7 @@ interface CthulhuSidebarProps {
   loadingStatusAdventure?: string;
   // Hot Seat config - potrzebny dla wspólnego dziennika (sharedJournal)
   hotSeatConfig?: HotSeatConfig;
-  onSwitchPlayer?: (playerIndexOrId: any) => void;
+  onSwitchPlayer?: (index: number) => void;
   onDisableHotSeat?: () => void;
   aiSettings?: AISettings;
   onUpdateAISettings?: (settings: AISettings) => void;
@@ -635,6 +636,22 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   Obrazy: {aiSettings.imageGenerationEnabled ? 'Wł' : 'Wył'}
                 </Button>
               )}
+              {/* Przycisk Zimny Start - czyszczenie danych podręcznych i restart do stanu początkowego */}
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-red-400 hover:bg-red-950/30 hover:text-red-300"
+                onClick={() => {
+                  if (confirm('Czy na pewno chcesz wykonać Zimny Start? Usunie to lokalne dane podręczne i zresetuje sesję.')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.reload();
+                  }
+                }}
+                title="Wyczyść całą pamięć podręczną przeglądarki i uruchom czystą sesję"
+              >
+                <Flame className="w-4 h-4 mr-3 text-red-500" />
+                Zimny Start
+              </Button>
             </CardContent>
           </Card>
         </div>

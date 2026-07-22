@@ -576,3 +576,14 @@ Branch: main
 
 
 
+
+## Podsumowanie sesji: 2026-07-22
+Branch: main
+
+### Co zrobiono
+- Naprawa czatu przy starcie gry: dodanie walidacji `response.ok` po `/api/chat` w `useGameStart.ts`.
+- Usuwanie osieroconego pustego dymka w `catch` przy awarii sieci / API.
+- Dodanie `onError` handler dla wygenerowanych obrazów w `MessageCard.tsx`.
+
+### Co otwarte
+- Dokończenie Etapu 3.5 z roadmapy (Encyklopedia & HelpModal).

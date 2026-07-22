@@ -276,6 +276,18 @@ class LocalVectorStore {
     return { totalRecordCount: total, namespaces };
   }
 
+  /** Zwraca liczbę wektorów dla konkretnego namespace. */
+  getNamespaceCount(namespace: string): number {
+    try {
+      const dir = dataDir();
+      const binCount = countBinaryNamespace(dir, namespace);
+      if (binCount !== null) return binCount;
+      return this.load(namespace).length;
+    } catch {
+      return 0;
+    }
+  }
+
   /** Reset cache w pamięci (TESTY / po re-indeksie). NIE kasuje plików. */
   clearCache(): void {
     this.cache.clear();

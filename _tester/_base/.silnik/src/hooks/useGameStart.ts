@@ -237,7 +237,7 @@ export function useGameStart({
           id: `gm-intro-image-error-${crypto.randomUUID()}`,
           role: 'assistant',
           content:
-            '⚠️ Nie udało się wygenerować obrazu intro. Sprawdź klucze API w Settings (image provider: Replicate / Vertex AI / Gemini).',
+            '⚠️ Nie udało się wygenerować obrazu intro. Sprawdź klucz Gemini API Key w Ustawieniach.',
           timestamp: new Date(),
         },
       ]);
@@ -339,6 +339,17 @@ export function useGameStart({
         }),
       });
 
+      // Walidacja HTTP przed strumieniowaniem SSE. Bez tego serwer zwracający
+      // JSON z błędem (np. 401 BYOK_KEY_MISSING) jest cicho ignorowany przez
+      // parseSSEStream - żaden wiersz nie zaczyna się od "data: ", parser
+      // kończy z fullText="" i blok catch się nie wykonuje, zostawiając
+      // osieroconą pustą wiadomość asystenta na ekranie.
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        const serverMsg = (errorBody as Record<string, string>)?.error || response.statusText;
+        throw new Error(`Chat API ${response.status}: ${serverMsg}`);
+      }
+
       // Dodaj pustą wiadomość asystenta do strumieniowania
       setMessages((prev) => [
         ...prev,
@@ -430,18 +441,25 @@ export function useGameStart({
       console.error('Game start intro failed:', error);
       // Zadanie 6: po wyczerpaniu retry pokaż graczowi co się stało zamiast pustego
       // ekranu - blip sieci dostaje wskazówkę "spróbuj ponownie", inny błąd ogólny.
+      // Usuwamy osierocony pusty placeholder assistantMessageId (jeśli istnieje
+      // i nie zdążył otrzymać treści) i ZASTĘPUJEMY go komunikatem błędu,
+      // zamiast doklejać drugi dymek obok pustego.
       const friendly = isNetworkBlip(error)
         ? '⚠️ Chwilowy problem z połączeniem przy starcie gry - kliknij „Rozpocznij" jeszcze raz.'
         : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `gm-intro-error-${crypto.randomUUID()}`,
-          role: 'assistant',
-          content: friendly,
-          timestamp: new Date(),
-        },
-      ]);
+      const errorMsg: Message = {
+        id: `gm-intro-error-${crypto.randomUUID()}`,
+        role: 'assistant',
+        content: friendly,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => {
+        // Usuń osierocony pusty dymek (content puste = nigdy nie dostał tekstu)
+        const cleaned = prev.filter(
+          (msg) => !(msg.id === assistantMessageId && !msg.content)
+        );
+        return [...cleaned, errorMsg];
+      });
     } finally {
       isStartingRef.current = false;
     }

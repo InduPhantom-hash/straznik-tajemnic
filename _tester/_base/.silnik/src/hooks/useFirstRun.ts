@@ -32,7 +32,7 @@ export interface FirstRunState {
 }
 
 export function useFirstRun(): FirstRunState {
-  const localMode = process.env.NEXT_PUBLIC_LOCAL_MODE === 'true';
+  const localMode = true;
 
   const [loading, setLoading] = useState(true);
   const [hasKey, setHasKey] = useState(false);

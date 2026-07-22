@@ -42,12 +42,10 @@ export async function POST(request: NextRequest) {
     // Twórz przedmioty z predefiniowanej listy
     const equipment: EquipmentItem[] = [];
 
-    const visualEra = era.startsWith('194') ? '1940s' : era.startsWith('18') ? '1890s' : '1920s';
-
     for (const itemName of predefinedItems) {
       const template = findEquipmentByName(itemName);
       if (template) {
-        equipment.push(createEquipmentItem(template, 'starting', visualEra));
+        equipment.push(createEquipmentItem(template, 'starting'));
       } else {
         // Brak szablonu (np. polska nazwa "Rewolwer .38" nie pasuje do bazy
         // anglojęzycznej). Jeśli nazwa wygląda na broń, nadaj kategorię 'weapon'

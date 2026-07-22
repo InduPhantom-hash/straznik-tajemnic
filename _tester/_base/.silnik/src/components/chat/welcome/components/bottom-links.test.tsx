@@ -8,7 +8,7 @@ describe('BottomLinks', () => {
     render(<BottomLinks onColdStart={onColdStart} />);
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Zimny start aplikacji' })
+      screen.getByRole('button', { name: 'Zimny start' })
     );
     expect(onColdStart).toHaveBeenCalledTimes(1);
   });

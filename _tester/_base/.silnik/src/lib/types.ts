@@ -183,6 +183,10 @@ export interface JournalEntry {
   hypothesisStatus?: 'unverified' | 'confirmed' | 'disproven';
   /** Opcjonalny adres URL obrazka / ilustracji wpisu */
   imageUrl?: string;
+  /** Prompt użyty do wygenerowania obrazu */
+  imagePrompt?: string;
+  /** Status asynchronicznego generowania ilustracji */
+  imageStatus?: 'pending' | 'ready' | 'failed';
 }
 
 // === SYSTEM EKWIPUNKU (CoC 7e) ===

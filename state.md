@@ -43,7 +43,10 @@
   - [x] Naprawa stabilności i wydajności uploadu PDF (polling stanu ACTIVE w Gemini File API, throttling embeddingów).
   - [x] Rozszerzona ekstrakcja z PDF do JSON (NPC, lokacje, mapy, przedmioty fabularne) przy użyciu modelu Gemini 3.6 Flash.
   - [x] Zapis metadanych i ustrukturyzowanej przygody bezpośrednio w `data/adventures/{adventureId}.json`.
-  - [x] Stworzenie predefiniowanego scenariusza nieliniowego: `Cień nad Prabutami: Widzenie Ojca Klimuszki` (`data/adventures/predefined/cien-nad-prabutami.json`).
+  - [x] Stworzenie predefiniowanych scenariuszy nieliniowych (`data/adventures/predefined/`):
+    - `Cień nad Prabutami: Widzenie Ojca Klimuszki` (`cien-nad-prabutami.json`).
+    - `Tajemnica Pędnika: Genialny Wynalazca z Kowar` (`tajemnica-pendnika-lagiewki.json`).
+    - `Tajemnica Dzieci z Traszyna: Klucz i Odwrócony Krzyż` (`tajemnica-dzieci-z-traszyna.json`).
 - [x] **Tablica Badacza / Dowody (Etap 3):**
   - [x] Integracja danych zewnętrznych z fallbackiem.
   - [x] Przebudowa Dziennika na automatycznie aktualizowaną Tablicę Badacza (dowody, poszlaki, hipotezy, powiązania).

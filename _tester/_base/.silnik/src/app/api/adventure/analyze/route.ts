@@ -318,7 +318,11 @@ export async function POST(request: NextRequest) {
       return null;
     };
 
-    const fetchHistoricalPOI = async (lat: number, lon: number, yearRange: string): Promise<Array<{ name: string; description: string }>> => {
+    const fetchHistoricalPOI = async (
+      lat: number,
+      lon: number,
+      yearRange: string
+    ): Promise<Array<{ name: string; description: string }>> => {
       try {
         const yearMatch = yearRange.match(/\b(18\d\d|19\d\d|20\d\d)\b/);
         const year = yearMatch ? parseInt(yearMatch[1]) : 1925;

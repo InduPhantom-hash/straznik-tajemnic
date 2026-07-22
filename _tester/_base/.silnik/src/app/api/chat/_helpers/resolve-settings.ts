@@ -40,7 +40,7 @@ export function resolveSettings(
         ...(baseSettings.sessionZero?.mechanics || clientAISettings?.sessionZero?.mechanics
           ? {
               mechanics:
-                clientAISettings?.sessionZero?.mechanics?.schemaVersion === 99 ||
+                (clientAISettings?.sessionZero?.mechanics?.schemaVersion as number) === 99 ||
                 clientAISettings?.sessionZero?.narrativeMode === 'pure_narrative'
                   ? undefined
                   : {
@@ -68,5 +68,5 @@ export function resolveSettings(
         ...(clientAISettings?.gameMasterNarration?.behavior || {}),
       },
     },
-  };
+  } as unknown as AISettings;
 }

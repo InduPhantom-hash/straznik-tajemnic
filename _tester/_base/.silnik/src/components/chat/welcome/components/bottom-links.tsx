@@ -39,7 +39,7 @@ export const BottomLinks: FC<BottomLinksProps> = ({
       )}
       {onColdStart && (
         <button onClick={onColdStart} className={GHOST_BTN}>
-          Zimny start aplikacji
+          Zimny start
         </button>
       )}
     </div>

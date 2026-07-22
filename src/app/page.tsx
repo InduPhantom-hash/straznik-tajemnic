@@ -575,6 +575,8 @@ export default function Home() {
           hideSidebarPanel={!hasStartedGame}
           activeCharacter={charMgmt.activeCharacter || undefined}
           characters={charMgmt.characters}
+          aiSettings={aiSettings}
+          onUpdateAISettings={setAiSettings}
           onCharacterSwitch={charMgmt.handleCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}

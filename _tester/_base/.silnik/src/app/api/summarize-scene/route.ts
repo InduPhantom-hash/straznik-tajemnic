@@ -28,6 +28,7 @@ interface RawSceneSummary {
   npcs?: unknown;
   significance?: unknown;
   playerActions?: unknown;
+  imagePrompt?: unknown;
 }
 
 // IND-269: typy z promptu modelu → JournalEventType (typy dziennika z @/lib/types).
@@ -80,6 +81,10 @@ function toJournalEntry(raw: RawSceneSummary): JournalEntry {
   if (location) metadata.locationName = location;
   if (npcs.length) metadata.npcName = npcs.join(', ');
 
+  const imagePromptStr = typeof raw.imagePrompt === 'string' && raw.imagePrompt.trim() 
+    ? raw.imagePrompt.trim() 
+    : (typeof raw.title === 'string' ? raw.title.trim() : FALLBACK_TITLE);
+
   return {
     id: `journal_${Date.now()}`,
     timestamp: new Date(), // NextResponse serializuje do ISO; renderer owija new Date()
@@ -90,6 +95,8 @@ function toJournalEntry(raw: RawSceneSummary): JournalEntry {
     tags: [],
     isBookmarked: false,
     metadata,
+    imagePrompt: imagePromptStr,
+    imageStatus: 'pending',
   };
 }
 
@@ -159,7 +166,8 @@ ZASADA GRAMATYKI: ${grammarRule}
   "location": "Nazwa miejsca gdzie rozgrywa się scena",
   "npcs": ["Lista imion NPC biorących udział"],
   "significance": "Dlaczego ta scena jest ważna dla fabuły (1 zdanie)",
-  "playerActions": "Co gracz/drużyna zrobiła (1-2 zdania)"
+  "playerActions": "Co gracz/drużyna zrobiła (1-2 zdania)",
+  "imagePrompt": "Krótki opis kluczowego momentu lub postaci/miejsca w języku angielskim (do wygenerowania ilustracji z lat 20.)"
 }
 
 Odpowiedz TYLKO poprawnym JSON-em, bez żadnego dodatkowego tekstu.`;

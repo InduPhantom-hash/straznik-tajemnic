@@ -1,0 +1,53 @@
+{
+  "id": "tajemnica-dzieci-z-traszyna",
+  "title": "Tajemnica Dzieci z Traszyna: Klucz i Odwrócony Krzyż",
+  "era": "1990s",
+  "setting": "Polska, Jesień 1999 r. (Wieś Traszyn k. Lublina / Południowa Lubelszczyzna)",
+  "startingLocation": "Gospodarstwo Rodziny Dąbrowskich, Wieś Traszyn",
+  "summary": "Badacze zostają wezwani przez lokalnego parapsychologa i bioenergoterapeutę Tomasza Nowickiego do odciętej od świata wsi Traszyn. W 1983 roku troje dzieci przeprowadziło w starej stodole seans z książką i kluczem. Po 16 latach nieznany byt powraca, wywołując nocne paraliże, manifestacje zjaw i zjawisko suchego odwróconego krzyża na deskach stodoły po uderzeniu pioruna. Badacze muszą ustalić, czy przywołano ducha dyktatora, czy wybudzono uśpiony byt krain podziemi (Noth-Yiddith / Ethereal Poltergeist).",
+  "clues": [
+    {
+      "id": "clue-key-book-apparatus",
+      "name": "Książka spięta z mosiężnym kluczem",
+      "description": "Modlitewnik i ciężki mosiężny klucz z oprawą z gumek. Ślady otarć na brzegach stron wskazują, że urządzenie kręciło się samodzielnie z dużą prędkością."
+    },
+    {
+      "id": "clue-dry-cross-barn",
+      "name": "Wypalony Ślad na Ścianie Stodoły",
+      "description": "Fotografia ściany stodoły po uderzeniu pioruna z 1983 r. Mimo ulewnego deszczu drewno w kształcie olbrzymiego odwróconego krzyża pozostało całkowicie suche i gorące w dotyku."
+    },
+    {
+      "id": "clue-paralysis-log",
+      "name": "Notatki z Nocnych Paraliży (Adam Dąbrowski)",
+      "description": "Zapiski najstarszego z rodzeństwa opisujące powtarzające się o 1:00 w nocy wizje lodowatego oddechu przy uszku, uczucie nieważkości i zjawę przybierającą rysy twarzy dziecka."
+    },
+    {
+      "id": "clue-exorcist-notes",
+      "name": "Dziennik Egzorcysty Tomasza Nowickiego",
+      "description": "Opis dwóch węzłów ujemnej energii w gospodarstwie oraz ostrzeżenie przed próbnym seansem odwoławczym o północy, który spowodował eksplozję żarówek."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-traszyn-house",
+      "title": "Dom Rodziny Dąbrowskich",
+      "description": "Stary, murowany dom w Traszynie. Od nocnych wydarzeń panuje tu obezwładniająca psychoza strachu, słychać samoistne stukanie w ściany, a meble i kołdry przesuwają się bez niczyjego udziału.",
+      "npcs": ["Adam Dąbrowski", "Teresa Dąbrowska (Matka)", "Katarzyna Dąbrowska (Siostra)"],
+      "availableClues": ["clue-paralysis-log", "clue-key-book-apparatus"]
+    },
+    {
+      "id": "node-traszyn-barn",
+      "title": "Stara Stodoła w Traszynie",
+      "description": "Drewniana stodoła na skraju gospodarstwa, 50 metrów od domu. Miejsce seansu z 1983 r. Ściana stodoły nosi ślady uderzenia pioruna, a wewnątrz wyczuwa się zapach siarki i spadki temperatury.",
+      "npcs": ["Krzysztof Dąbrowski (Brat)"],
+      "availableClues": ["clue-dry-cross-barn"]
+    },
+    {
+      "id": "node-exorcist-shrine",
+      "title": "Kancelaria i Pracownia Tomasza Nowickiego (Lublin)",
+      "description": "Gabinet lubelskiego egzorcysty-ezoteryka wypełniony wahadełkami, radiestezyjnymi wykresami i relikwiarzami. Nowicki wierzy, że jedynym ratunkiem jest seans powtórzony w tym samym miejscu o 00:00.",
+      "npcs": ["Tomasz Nowicki (Egzorcysta)"],
+      "availableClues": ["clue-exorcist-notes"]
+    }
+  ]
+}

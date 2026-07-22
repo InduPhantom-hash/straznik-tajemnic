@@ -912,7 +912,12 @@ export function SessionJournal({
                           </div>
                         </div>
 
-                        {entry.imageUrl && (
+                        {entry.imageStatus === 'pending' ? (
+                          <div className="mt-3 my-2 h-44 rounded border border-[#bfa15f]/30 bg-[#0d0906] p-4 flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
+                            <div className="w-6 h-6 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-xs font-serif italic">Malowanie ilustracji...</span>
+                          </div>
+                        ) : entry.imageUrl ? (
                           <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
                             <img
                               src={entry.imageUrl}
@@ -923,7 +928,7 @@ export function SessionJournal({
                               }}
                             />
                           </div>
-                        )}
+                        ) : null}
                         <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#e2d4c9]">
                           {entry.content}
                         </p>
@@ -1027,7 +1032,12 @@ export function SessionJournal({
                           </div>
                         </div>
 
-                        {entry.imageUrl && (
+                        {entry.imageStatus === 'pending' ? (
+                          <div className="my-2 h-36 rounded border border-[#bfa15f]/30 bg-[#0d0906] p-4 flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
+                            <div className="w-5 h-5 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-xs font-serif italic">Malowanie...</span>
+                          </div>
+                        ) : entry.imageUrl ? (
                           <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
                             <img
                               src={entry.imageUrl}
@@ -1038,7 +1048,7 @@ export function SessionJournal({
                               }}
                             />
                           </div>
-                        )}
+                        ) : null}
                         <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap">
                           {entry.content}
                         </p>
@@ -1100,7 +1110,12 @@ export function SessionJournal({
                           </button>
                         </div>
                       </div>
-                      {entry.imageUrl && (
+                      {entry.imageStatus === 'pending' ? (
+                        <div className="my-2 h-36 rounded border border-[#bfa15f]/30 bg-[#0d0906] p-4 flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
+                          <div className="w-5 h-5 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-xs font-serif italic">Malowanie...</span>
+                        </div>
+                      ) : entry.imageUrl ? (
                         <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
                           <img
                             src={entry.imageUrl}
@@ -1111,7 +1126,7 @@ export function SessionJournal({
                             }}
                           />
                         </div>
-                      )}
+                      ) : null}
                       <p className="text-sm font-serif leading-relaxed text-[#e2d4c9]/90 whitespace-pre-wrap">
                         {entry.content}
                       </p>

@@ -183,3 +183,26 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// GET /api/pdf/ingest-local?type=rules|adventure
+// Zwraca statystyki lokalnego magazynu wektorów dla hooka useFirstRun
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'rules';
+    const { localVectorStore } = await import('@/lib/vector-db/local-vector-store');
+    const recordCount = localVectorStore.getNamespaceCount(type);
+
+    return NextResponse.json({
+      success: true,
+      type,
+      recordCount,
+    });
+  } catch (error) {
+    console.error('Błąd GET ingest-local:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch rules count', recordCount: 0 },
+      { status: 500 }
+    );
+  }
+}

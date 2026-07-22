@@ -190,6 +190,17 @@ export function MessageCard({
                       onClick={() =>
                         onImageClick(imgUrl, message.generatedImages || [])
                       }
+                      onError={(e) => {
+                        console.warn('Generated image failed to load:', imgUrl);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        if (target.parentElement) {
+                          const fallback = document.createElement('div');
+                          fallback.className = 'p-3 text-xs text-amber-400/80 bg-amber-950/30 border border-amber-800/40 rounded-lg flex items-center gap-2';
+                          fallback.innerText = '⚠️ Nie udało się załadować ilustracji sceny.';
+                          target.parentElement.appendChild(fallback);
+                        }
+                      }}
                     />
                   </div>
                 ))}
