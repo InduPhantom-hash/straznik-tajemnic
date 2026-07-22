@@ -162,33 +162,26 @@ export function useGameStart({
     // kolejne tury wracają do zwięzłej długości narzuconej przez gm-protocol.
     if (allPlayerCharacters.length > 1) {
       prompt +=
-        'To jest TURA WPROWADZAJĄCA do gry DLA DWÓCH LUB WIĘCEJ GRACZY (Hot Seat). WYJĄTEK: wyłącznie dla tej pierwszej tury ' +
-        'zignoruj limit "max 2 akapity" - napisz pełniejszy, klimatyczny wstęp (3-5 akapitów). Kolejne tury wracają do zwięzłej długości.\n\n' +
-        'WPROWADZENIE DLA DRUŻYNY - OBOWIĄZKOWE ZASADY:\n' +
-        '1. NARRACJA I FORMA: Zwracaj się do OBUM POSTACI naraz w liczbie mnogiej ("Widzicie...", "Wkraczacie...", "Czujecie...") lub jasno rozdzielaj ujęcia między nie (@Imię1, widzisz... podczas gdy @Imię2, dostrzegasz...).\n' +
-        '2. RELACJA I POWÓD: Wyjaśnij, skąd postacie się znają, jaka relacja je łączy (partnerzy w śledztwie, przyjaciele, zbieg okoliczności) i DLACZEGO znalazły się w tym miejscu i czasie RAZEM.\n' +
-        '3. HAK FABULARNY: Wykorzystaj HOOK przygody oraz unikalne cechy z kart obu bohaterów jako wspólny motyw i powód do działania.\n' +
-        '4. ZAKOŃCZENIE TURY: Zakończ turę dwoma pytaniami skierowanymi do każdej postaci osobno na końcu, np.: [Co robisz, @' +
+        'To jest TURA WPROWADZAJĄCA do gry DLA DRUŻYNY (Hot Seat mode).\n\n' +
+        'WPROWADZENIE DLA DRUŻYNY - ORGANICZNY START FABUŁY:\n' +
+        '1. NARRACJA I FORMA: Zwracaj się do postaci naraz w liczbie mnogiej ("Widzicie...", "Wkraczacie...") lub płynnie rozdzielaj ujęcia między bohaterów.\n' +
+        '2. ORGANICZNA SCENA OTWARCIA: NIE RZUCAJ graczy od razu w gwałtowny quest ani bezpośrednie zagrożenie. Rozpocznij w naturalnej, zwyczajnej sytuacji obyczajowej (np. wspólna kolacja w restauracji, rozmowa w gabinecie, podróż pociągiem, luźna pogawędka z NPC-em).\n' +
+        '3. EKSPAZYCJA PRZEZ DIALOG: Pozwól graczom zorientować się w miejscu, czasie i klimacie epoki. Pozwól im poznać świat i relacje poprzez rozmowę z obecnym NPC-em lub między sobą. Dopiero po wymianie zdań i wybadaniu otoczenia zasiej pierwszy delikatny sygnał niepokoju i wprowadź hak fabularny (HOOK przygody).\n' +
+        '4. ZAKOŃCZENIE TURY: Zakończ otwartym pytaniem skierowanym do bohaterów na końcu (np. [Co robisz, @' +
         allPlayerCharacters[0].name +
         '?] oraz [Co robisz, @' +
         (allPlayerCharacters[1]?.name || 'Gracz 2') +
-        '?].\n\n' +
+        '?]).\n\n' +
         'NIE graj za postacie graczy. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj wpis otwierający do dziennika: [DZIENNIK:notatka:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
     } else {
       prompt +=
-        'To jest TURA WPROWADZAJĄCA do gry. WYJĄTEK: wyłącznie dla tej jednej, pierwszej tury ' +
-        'zignoruj limit "max 2 akapity" z protokołu MG - napisz pełniejsze, klimatyczne ' +
-        'wprowadzenie (3-5 akapitów). Kolejne tury wracają do normalnej, zwięzłej długości.\n\n' +
-        'Pisz dla kogoś, kto NIE zna Lovecrafta ani zasad CoC 7e - po prostu chce zagrać. ' +
-        'Wprowadzaj go w świat POWOLI i naturalnie, bez żargonu i bez wykładu, w drugiej osobie ' +
-        '("Widzisz...", "Czujesz..."). Zachowaj kolejność:\n' +
-        '1. Nakreśl świat i realia: gdzie i KIEDY jesteśmy (era, miejsce akcji, pora) - tak, by ' +
-        'osoba z zewnątrz od razu poczuła klimat epoki.\n' +
-        '2. Gdzie konkretnie znajduje się postać gracza i DLACZEGO akurat tam się znalazła.\n' +
-        '3. Zawiąż fabułę: KONIECZNIE wykorzystaj HOOK przygody jako konkretny punkt zaczepienia ' +
-        'i powód do działania - nie poprzestawaj na opisie tła.\n' +
-        '4. Zasiej delikatnie atmosferę Mitów Cthulhu (niepokój, groza pod powierzchnią).\n\n' +
+        'To jest TURA WPROWADZAJĄCA do gry.\n\n' +
+        'ORGANICZNE WPROWADZENIE W ŚWIAT - INSTRUKCJE:\n' +
+        '1. SCENA OTWARCIA: NIE RZUCAJ gracza od razu na głęboką wodę i NIE wrzucaj questa bezpośrednio w pierwszej linii. Rozpocznij od naturalnej, osadzonej w realiach sytuacji (np. postać pije poranną kawę, rozmawia o codziennych sprawach z znajomym NPC-em, przegląda prasę lub jedz kolację).\n' +
+        '2. POZNAWANIE ŚWIATA PRZEZ DIALOG: Buduj klimat epoki i lokacji naturalnie. Użyj rozmowy z obecnym NPC-em lub klimatycznego opisu otoczenia, by gracz mógł najpierw wyczuć gdzie jest i kim jest jego postać.\n' +
+        '3. STOPNIOWE ZAWIĄZANIE AKCJI: Dopiero po zbudowaniu nastroju i wstępnej interakcji zasiej pierwszy niepokój pod powierzchnią codzienności i wpleć HOOK przygody jako punkt zaczepienia do działania.\n' +
+        '4. STYL: Pisz w drugiej osobie ("Widzisz...", "Czujesz..."), buduj atmosferę slow-burn horroru bez epatowania tanimi potworami.\n\n' +
         'NIE graj za postać gracza. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj też wpis otwierający do dziennika: ' +
         '[DZIENNIK:notatka:Początek śledztwa]1-2 zdania: gdzie jestem i co mnie tu sprowadza.[/DZIENNIK] ' +

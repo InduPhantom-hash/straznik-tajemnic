@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { prompt, style = 'horror', seed } = body;
+    const { prompt, style = 'horror', seed, era } = body;
 
     // Walidacja promptu
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3) {
@@ -134,11 +134,13 @@ export async function POST(request: NextRequest) {
     // film/noir) zamiast doklejania na sztywno "cosmic horror, Lovecraftian, eerie" -
     // to nadpisywało realistyczny prompt MG i wszystko wychodziło w mackach. Grozę i
     // nadprzyrodzone wnosi TREŚĆ promptu MG (gdy scena tego wymaga), nie blanket-suffix.
+    // Rozszerz prompt z uwzględnieniem wybranej epoki (Gaslight, 1920s, Modern itp.).
     let enhancedPrompt = prompt;
+    const eraKeyword = era ? `${era} period-accurate, ` : '';
     if (style === 'horror') {
-      enhancedPrompt = `${prompt}, 1920s period-accurate, realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed`;
+      enhancedPrompt = `${prompt}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed`;
     } else if (style === 'portrait') {
-      enhancedPrompt = `${prompt}, 1920s period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression`;
+      enhancedPrompt = `${prompt}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression`;
     }
 
     // IND-232: gemini-2.5-flash-image bywa flaky - czasem zwraca sam TEKST zamiast

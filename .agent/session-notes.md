@@ -622,4 +622,31 @@ Branch: main
 - Wymuszanie onboardingu (`onboarding_completed` w localStorage): Przy Zimnym Starcie (`/zew-zimny` / `desktop/cold-start.sh`) wyczyszczenie `localStorage` automatycznie otwiera okno Onboardingu `FirstRunWizard`.
 - Dodano nowego skilla systemowego `zew-zimny` do wykonywania pełnego resetu środowiska gry.
 
+---
+
+## Podsumowanie sesji: 2026-07-22 (Przebudowa Promptów Graficznych, Otwarć Przygód i TTS)
+Branch: main
+
+### Co zrobiono
+- **Ilustracje i Prompty Graficzne (`image-instructions.ts`, `imagen/route.ts`)**:
+  - Wdrożono zasadę slow-burn realism dopasowaną do wybranej epoki (Gaslight 1890s, Klasyka 1920s, Współczesność 2020s, custom).
+  - Wyeliminowano rutynowe macki, potwory i gargulce na rzecz cieni, architektury i nastroju. Potwory widoczne wyłącznie w snach, wizjach szaleństwa i bezpośrednich starciach.
+  - Wstrzyknięto profil fizyczny Badacza gracza z karty postaci jako referencję wizualną dla promptów obrazów scenicznych.
+- **Organiczne Otwarcia i Pacing RPG (`useGameStart.ts`, `gm-protocol.ts`, `default-gm-prompt.md`)**:
+  - Przebudowano wstępy przygód (solo oraz Hot Seat): brak wrzucania questa w pierwszej linii. Gra rozpoczyna się od zwyczajnej sytuacji obyczajowej (np. wspólny posiłek, rozmowa przy kawie, podróż), a klimat i świat poznawane są organicznie z dialogów z NPC.
+  - Usunięto sztywny kaganiec 2 akapitów. Wdrożono elastyczny pacing wzorowany na prozie Lovecrafta i prowadzeniu sesji CoC 7e.
+- **Strumieniowanie TTS i Głosy NPC (`text-cleaner.ts`, `useTTS.ts`, `npc-voice-mapping.ts`)**:
+  - Zachowano wbudowane w tekst tagi emocji audio Gemini TTS (`[whispers]`, `[trembling]`, `[sighs]` itp.) w `cleanResponseText`.
+  - Zapewniono trwałe przypisanie i zapamiętywanie głosów NPC (`gm_npcs`), tworząc efekt słuchowiska radiowego.
+- **Procedura /zew-update**: Zaktualizowano i zsynchronizowano `docs/MAPA-POWIAZAN.md` oraz `default-gm-prompt.md`.
+- **Procedura /zew-zimny**: Wykonano zimny start (`desktop/cold-start.sh`) oraz przebudowę czystej aplikacji produkcyjnej `Straznik Tajemnic AI.app`.
+
+### Co otwarte (do następnej sesji)
+- Playtest otwarć przygód i odsłuch lektora TTS w czysto zbudowanej aplikacji produkcyjnej.
+
+### Decyzje podjęte
+- Klimat i realizm wybranej epoki przygody budowany jest w pierwszej kolejności przez opisy architektoniczno-atmosferyczne, a nie przez macki czy nienaturalny szum wizualny.
+- Postać gracza dostaje stały opis fizyczny przekazywany do AI w promptach ilustracji, by zachować spójność wyglądu w każdej scenie.
+
+
 

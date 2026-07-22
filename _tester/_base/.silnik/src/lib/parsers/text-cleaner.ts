@@ -56,8 +56,8 @@ export function cleanResponseText(text: string): string {
       .replace(/\[SANITY:[^\]]*\]/gi, '')
       .replace(/\[DZIENNIK:[^\]]*\]/gi, '')
       .replace(/\[\/DZIENNIK\]/gi, '')
-      // Catch-all: dowolny [TAG...], odporny na 1 poziom zagnieżdżenia [...]
-      .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')
+      // Catch-all: dowolny [TAG...], z wyjątkiem oficjalnych tagów audio Gemini TTS ([whispers], [trembling] itp.)
+      .replace(/\[(?!(?:whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow)\])[^\]]*\]/gi, '')
       // Markdown removal
       .replace(/\*\*/g, '')
       .replace(/\*([^*]+?)\*/g, '$1')

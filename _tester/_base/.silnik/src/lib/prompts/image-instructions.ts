@@ -57,16 +57,17 @@ export function buildImageInstructions(settings: AISettings): string {
   const formatBlock = `
 ### JAK GENEROWAĆ:
 Użyj tagu w tekście odpowiedzi: [ILUSTRACJA: szczegółowy opis w języku ANGIELSKIM]
-Przykład: [ILUSTRACJA: dimly lit 1920s private study, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
+Przykład: [ILUSTRACJA: dimly lit private study in the chosen era, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
 
-ZASADY SPÓJNOŚCI WIZUALNEJ (VISUAL CONSISTENCY):
-1. POSTACIE (NPC): Gdy ilustrujesz scenę z udziałem aktywnego NPC (z listy ## AKTYWNE POSTACIE (NPC)), musisz utrzymać jego tożsamość wizualną. ZAWSZE uwzględniaj w opisie ilustracji jego dokładne cechy fizyczne (wiek, płeć, kolor i styl włosów, ubiór, znaki szczególne) podane w jego profilu. NIGDY nie podawaj samego imienia.
-2. LOKACJE (LOCATIONS): Gdy generujesz kolejny obraz tej samej lokacji (np. pokoju, domu, ulicy), utrzymaj te same elementy architektoniczne (np. kształt okien, styl tapety, stałe meble jak kominek, zegar czy pianino). Zmiany mogą dotyczyć tylko oświetlenia, kąta kamery lub drobnych interakcji (np. przewrócone krzesło).
-3. POGODA I ATMOSFERA (WEATHER): Uwzględniaj w opisie aktualne warunki atmosferyczne (np. deszczowe mokre bruki, gęstą mgłę, burzowe niebo, zamieć) podane w sekcji **Aktualna Pogoda & Warunki**, aby obraz zachował pełną spójność z narracją.
-4. PRZEDMIOTY (ITEMS): Znalezione artefakty, klucze, księgi czy dowody muszą wyglądać tak samo przy każdym zbliżeniu. Opisuj je za pomocą tych samych cech fizycznych (np. "iron key with a skull-shaped bow", "leather-bound journal with brass clasps").
-5. POTWORY I ISTOTY (MONSTERS & BEASTS): Kiedy na ilustracji pojawia się istota Mythos, trzymaj się raz określonej anatomii (faktura skóry, liczba oczu/kończyn, sposób poruszania się, kolorystyka).
+ZASADY SPÓJNOŚCI WIZUALNEJ I REALIZMU (VISUAL CONSISTENCY & REALISM):
+1. BADACZ GRACZA (PLAYER CHARACTER): Gdy ilustrujesz scenę z udziałem Badacza, ZAWSZE uwzględniaj w opisie jego dokładny profil fizyczny (wiek, płeć, fryzurę, ubiór, znaki szczególne, okulary) z karty postaci / portretu referencyjnego, aby postać wyglądała spójnie na wszystkich ilustracjach.
+2. POSTACIE (NPC): Gdy ilustrujesz scenę z udziałem NPC (z listy ## AKTYWNE POSTACIE (NPC)), uwzględniaj jego dokładne cechy fizyczne podane w jego profilu. NIGDY nie podawaj samego imienia.
+3. LOKACJE (LOCATIONS): Gdy generujesz kolejny obraz tej samej lokacji, utrzymaj te same elementy architektoniczne (np. kształt okien, styl tapety, stałe meble jak kominek, zegar czy pianino). Zmiany mogą dotyczyć oświetlenia, kąta kamery lub drobnych interakcji.
+4. POGODA I ATMOSFERA (WEATHER): Uwzględniaj w opisie aktualne warunki atmosferyczne podane w sekcji **Aktualna Pogoda & Warunki**.
+5. STYL I REALIZM EPOKI (SLOW BURN): Ilustracje muszą być DOMYŚLNIE REALISTYCZNE i spójne z wybraną epoką przygody (Gaslight / Klasyczne lata 20. / Współczesność / Custom). Buduj grozę cieniem, oświetleniem, fakturami i architekturą. ABSOLUTNY ZAKAZ rutynowego wstawiania macek, gargulców i potworów w zwykłych scenach. Elementy nadprzyrodzone / mityczne wprowadzaj TYLKO w momentach snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos.
+6. PRZEDMIOTY I POTWORY: Artefakty oraz ujawnione potwory opisuj wg raz ustalonej anatomii i wyglądu.
 
-ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • era lat 20. XX wieku (absolutny zakaz anachronizmów) • styl DOMYŚLNIE realistyczny: świat rzeczywisty lat 20. (fotografia z epoki, film-grain, naturalne światło, noir). Elementy Mythos / macki / nadprzyrodzone wprowadzaj do opisu TYLKO na mocne momenty grozy - NIE rutynowo. Gracz może też jawnie poprosić komendą [obraz]/[ilustracja].`;
+ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • zgodność z epoką przygody • styl DOMYŚLNIE realistyczny (fotografia z epoki, film-grain, naturalne światło, noir). Gracz może też jawnie poprosić komendą [obraz]/[ilustracja].`;
 
   if (tier === 'minimal') {
     return `
