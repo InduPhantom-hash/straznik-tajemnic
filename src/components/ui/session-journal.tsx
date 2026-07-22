@@ -423,7 +423,8 @@ export function SessionJournal({
       md += `## 📝 Notatki i Teorie\n\n`;
       notes.forEach((e) => {
         md += `### ${e.title}\n`;
-        md += `*Zapisano: ${new Date(e.timestamp).toLocaleDateString('pl-PL')}*\n\n`;
+        const formattedNoteDate = e.timestamp ? new Date(e.timestamp).toLocaleDateString('pl-PL') : '';
+        md += `*Zapisano: ${formattedNoteDate}*\n\n`;
         md += `${e.content}\n\n`;
         md += `---\n\n`;
       });
