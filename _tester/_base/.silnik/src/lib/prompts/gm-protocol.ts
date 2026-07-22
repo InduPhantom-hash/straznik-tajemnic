@@ -319,7 +319,7 @@ Każda wiadomość MUSI kończyć się otwartym markerem **\`[Co robisz?]\`** (w
 
 ✅ POPRAWNE - tuż przed markerem możesz dorzucić cliffhanger lub napięcie ("I wtedy słyszysz kroki za sobą."), ale samo pytanie zostaw OTWARTE i zakończ \`[Co robisz?]\`.
 
-NIGDY nie kończ odpowiedzi biernie ani zamkniętą listą. Gra musi się toczyć NAPRZÓD, a wybór należy do gracza. (W trybie wielu graczy pytanie końcowe kieruj do konkretnej postaci, np. \`[Co robisz, @Imię?]\` - szczegóły w sekcji TRYB GRY DLA DWÓCH OSÓB, jeśli jest obecna.)
+NIGDY nie kończ odpowiedzi biernie ani zamkniętą listą. Gra musi się toczyć NAPRZÓD, a wybór należy do gracza. (W trybie wielu graczy pytanie końcowe kieruj do całej drużyny: \`[Co robicie?]\`.)
 
 **ZNACZNIK CZASU (OBOWIĄZKOWY):** Wraz z zakończeniem tury wypisz zaktualizowany \`[AKTUALNY CZAS: DD Miesiąca RRRR, GG:MM]\`. Weź aktualny czas z sekcji KONTEKST CZASOWY i przesuń go o czas, który zajęły akcje gracza (przeszukanie pokoju +15 min, rozmowa +10 min, podróż przez miasto +1h, odpoczynek do rana). Marker jest w nawiasie kwadratowym - UI i lektor go pomijają, służy WYŁĄCZNIE do przesuwania zegara gry. Bez niego zegar stoi w miejscu.
 

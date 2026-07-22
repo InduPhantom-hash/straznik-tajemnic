@@ -220,16 +220,12 @@ export function buildAdditionalContext(
       .map((p) => p.characterName || 'Nieznany')
       .filter((n) => n !== 'Nieznany');
     if (characterNames.length >= 2) {
-      const endingMarkers = characterNames
-        .map((n) => `[Co robisz, @${n}?]`)
-        .join(' oraz ');
-      
       let duetContext = `\n## TRYB GRY DLA DWÓCH OSÓB (HOT SEAT / DRUŻYNA)\n` +
         `KRYTYCZNE NADPISANIE ROLI: Ta gra NIE jest jednoosobowa. W grze uczestniczy ZESPÓŁ badaczy: ${characterNames.join(', ')}.\n` +
         `1. FORMA NARRACJI: Opisuj świat i sceny w liczbie mnogiej ("Widzicie...", "Stajecie przed...", "Wchodzicie...") lub w ujęciach adresowanych ("@${characterNames[0]}..., podczas gdy @${characterNames[1]}..."). NIGDY nie zwracaj się do nich jak do pojedynczej osoby w 2. osobie l.poj.\n` +
-        `2. RELACJA I WSPÓLNY CEL: Prowadź grę z uwzględnieniem faktu, że bohaterowie współpracują. Podkreślaj ich interakcje, relacje oraz to, co sprowadziło ich razem w dany punkt czasu i przestrzeni.\n` +
+        `2. RELACJA I WSPÓLNY CEL: Prowadź grę z uwzględnieniem faktu, że bohaterowie współpracują. Podkreślaj ich wspólne wyzwania oraz to, co sprowadziło ich razem w dany punkt czasu i przestrzeni. NIGDY nie zmuszaj graczy do dyskusji między sobą na czacie.\n` +
         `3. ADRESOWANIE I AKCJE: Sceny wspólne opisuj dla obu postaci. Kwestie i akcje kierowane do JEDNEJ postaci poprzedzaj tagiem @ImięPostaci: (np. @${characterNames[0]}: ...).\n` +
-        `4. ZAKOŃCZENIE TURY: Zamiast jednego [Co robisz?] ZAWSZE kończ pytaniem do KAŻDEJ postaci osobno: ${endingMarkers}.\n` +
+        `4. ZAKOŃCZENIE TURY: Zamiast pytania do każdej postaci z osobna ZAWSZE kończ prostym pytaniem skierowanym do drużyny: [Co robicie?].\n` +
         `5. PRZYPISANIE SKUTKÓW: Przy zmianach SAN/HP/dziennika dodawaj prefiks @Imię: \`[SANITY:@${characterNames[0]}: -1d4: powód]\`, \`[HP:@${characterNames[1]}: -1d6: powód]\`, \`[DZIENNIK:@${characterNames[0]}:trop:tytuł]treść[/DZIENNIK]\`.\n`;
 
       if (isGameStart && characters && characters.length >= 2) {

@@ -166,21 +166,17 @@ export function useGameStart({
         'WPROWADZENIE DLA DRUŻYNY - ORGANICZNY START FABUŁY:\n' +
         '1. NARRACJA I FORMA: Zwracaj się do postaci naraz w liczbie mnogiej ("Widzicie...", "Wkraczacie...") lub płynnie rozdzielaj ujęcia między bohaterów.\n' +
         '2. ORGANICZNA SCENA OTWARCIA: NIE RZUCAJ graczy od razu w gwałtowny quest ani bezpośrednie zagrożenie. Rozpocznij w naturalnej, zwyczajnej sytuacji obyczajowej (np. wspólna kolacja w restauracji, rozmowa w gabinecie, podróż pociągiem, luźna pogawędka z NPC-em).\n' +
-        '3. EKSPAZYCJA PRZEZ DIALOG: Pozwól graczom zorientować się w miejscu, czasie i klimacie epoki. Pozwól im poznać świat i relacje poprzez rozmowę z obecnym NPC-em lub między sobą. Dopiero po wymianie zdań i wybadaniu otoczenia zasiej pierwszy delikatny sygnał niepokoju i wprowadź hak fabularny (HOOK przygody).\n' +
-        '4. ZAKOŃCZENIE TURY: Zakończ otwartym pytaniem skierowanym do bohaterów na końcu (np. [Co robisz, @' +
-        allPlayerCharacters[0].name +
-        '?] oraz [Co robisz, @' +
-        (allPlayerCharacters[1]?.name || 'Gracz 2') +
-        '?]).\n\n' +
+        '3. EKSPOZYCJA I KLIMAT: Pozwól graczom zorientować się w miejscu, czasie i klimacie epoki. Pozwól im poznać świat poprzez opis otoczenia lub interakcję z NPC-em (NIGDY nie zmuszaj graczy do dyskusji między sobą na czacie). Dopiero po przedstawieniu otoczenia zasiej pierwszy delikatny sygnał niepokoju i wprowadź hak fabularny (HOOK przygody).\n' +
+        '4. ZAKOŃCZENIE TURY: Zakończ turę otwartym pytaniem do drużyny: [Co robicie?]\n\n' +
         'NIE graj za postacie graczy. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj wpis otwierający do dziennika: [DZIENNIK:notatka:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
     } else {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry.\n\n' +
         'ORGANICZNE WPROWADZENIE W ŚWIAT - INSTRUKCJE:\n' +
-        '1. SCENA OTWARCIA: NIE RZUCAJ gracza od razu na głęboką wodę i NIE wrzucaj questa bezpośrednio w pierwszej linii. Rozpocznij od naturalnej, osadzonej w realiach sytuacji (np. postać pije poranną kawę, rozmawia o codziennych sprawach z znajomym NPC-em, przegląda prasę lub jedz kolację).\n' +
-        '2. POZNAWANIE ŚWIATA PRZEZ DIALOG: Buduj klimat epoki i lokacji naturalnie. Użyj rozmowy z obecnym NPC-em lub klimatycznego opisu otoczenia, by gracz mógł najpierw wyczuć gdzie jest i kim jest jego postać.\n' +
-        '3. STOPNIOWE ZAWIĄZANIE AKCJI: Dopiero po zbudowaniu nastroju i wstępnej interakcji zasiej pierwszy niepokój pod powierzchnią codzienności i wpleć HOOK przygody jako punkt zaczepienia do działania.\n' +
+        '1. SCENA OTWARCIA: NIE RZUCAJ gracza od razu na głęboką wodę i NIE wrzucaj questa bezpośrednio w pierwszej linii. Rozpocznij od naturalnej, osadzonej w realiach sytuacji (np. postać pije poranną kawę, rozmawia o codziennych sprawach z znajomym NPC-em, przegląda prasę lub je kolację).\n' +
+        '2. POZNAWANIE ŚWIATA: Buduj klimat epoki i lokacji naturalnie. Użyj rozmowy z obecnym NPC-em lub klimatycznego opisu otoczenia, by gracz mógł najpierw wyczuć gdzie jest i kim jest jego postać.\n' +
+        '3. STOPNIOWE ZAWIĄZANIE AKCJI: Dopiero po zbudowaniu nastroju i wstępnej sytuacji zasiej pierwszy niepokój pod powierzchnią codzienności i wpleć HOOK przygody jako punkt zaczepienia do działania.\n' +
         '4. STYL: Pisz w drugiej osobie ("Widzisz...", "Czujesz..."), buduj atmosferę slow-burn horroru bez epatowania tanimi potworami.\n\n' +
         'NIE graj za postać gracza. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj też wpis otwierający do dziennika: ' +

@@ -837,7 +837,10 @@ export default function Home() {
         pendingDeclarations={chat.pendingDeclarations}
         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}
         onAddDeclaration={chat.addDeclaration}
+        onPassDeclaration={chat.passDeclaration}
         onSendTurn={chat.sendTurn}
+        onSwitchPlayer={hotSeat.switchPlayer}
+        onDisableHotSeat={hotSeat.disableHotSeat}
         onStartGame={
           firstRun.canPlay
             ? handleStartGameGuarded
