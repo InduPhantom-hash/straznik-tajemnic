@@ -9,7 +9,7 @@ export function convertEntriesToBoardNodes(entries: JournalEntry[]): EvidenceNod
   return entries.map((entry, idx) => {
     let nodeType: EvidenceNode['type'] = 'clue';
     const typeStr = (entry.type || '') as string;
-    const catStr = ((entry as Record<string, unknown>).category || '') as string;
+    const catStr = ((entry as unknown as Record<string, unknown>).category || '') as string;
     if (typeStr === 'encyclopedia_character' || catStr === 'Spotkania') nodeType = 'suspect';
     else if (typeStr === 'encyclopedia_location' || catStr === 'Odkrycia') nodeType = 'location';
     else if (typeStr === 'encyclopedia_item' || catStr === 'Artefakty') nodeType = 'artifact';
