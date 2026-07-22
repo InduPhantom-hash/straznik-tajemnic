@@ -117,9 +117,9 @@ export const QUALITY_PRESETS = {
       ttsEnabled: true,
       ttsProvider: 'gemini' as const,
       ttsVoice: 'Charon',
-      // Sesja 147 Faza 3: HIGH = jeden głos narratora (dobry lektor Pro/Flash auto-route).
-      // Multi-voice "słuchowisko radiowe" dostępne TYLKO w preset ULTRA.
-      narratorOnly: true,
+      // Sesja 147 Faza 3: HIGH = multi-voice NPC, głosy per marker dialogów.
+      // 2026-07-22: rozszerzone z ULTRA-only na HIGH+ULTRA (parsowanie `Imię: „dialog”`).
+      narratorOnly: false,
       volume: 85,
       speed: 0.9,
       speakingRate: 0.9,

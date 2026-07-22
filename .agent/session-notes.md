@@ -665,5 +665,25 @@ Branch: main
 - Klimat i realizm wybranej epoki przygody budowany jest w pierwszej kolejności przez opisy architektoniczno-atmosferyczne, a nie przez macki czy nienaturalny szum wizualny.
 - Postać gracza dostaje stały opis fizyczny przekazywany do AI w promptach ilustracji, by zachować spójność wyglądu w każdej scenie.
 
+---
+
+## Podsumowanie sesji: 2026-07-22 (Naprawa obrazów (mitologia Cthulhu) i głosów NPC)
+Branch: 588a26a (na gałęzi feat/...)
+
+### Co zrobiono
+- **Faza 1 (głosy):** multi-voice rozszerzone z ULTRA na HIGH+ULTRA, regex markera akceptuje `Imię: dialog` (bez `@`), usunięty blok kontynuacji głosu NPC wyciekający na narrację, fallback dopasowania po pierwszym tokenie imienia
+- **Faza 2 (obrazy):** 4 hardcoded prompty z "Call of Cthulhu style" → epokowy realizm (intro, portret postaci, portret NPC, mapa lokacji)
+- **Faza 3 (filtr mitów):** `sanitizePrompt()` w `/api/imagen` wycina słowa mitologii, `| mythos` znacznik w tagu ILUSTRACJA pomija filtr, `isMythos` propagowany przez cały pipeline (media-parser → useChat → api)
+- **Fixy z review:** regex zawężony do wielkich liter (anty-false-match `1920s:`), martwe `„”` w regexie usunięte, `lastNpcNameRef` (dead code) wyczyszczony
+
+### Co otwarte (do następnej sesji)
+- Unit testy dla nowego kodu (regex TTS, sanitizePrompt, extractImages `| mythos`)
+- `isMythos` z body POST może być pominięte na serwerze (przy kolejnej iteracji: validation że tylko LLM może ustawić flagę)
+
+### Decyzje podjęte
+- Multi-voice na HIGH: akceptacja wyższej latencji per-zdanie TTS za osobne głosy NPC
+- Filtr mitów z wyjątkiem dla scen oznaczonych `| mythos` zamiast blanketowego realizmu
+- Usunięcie bloku kontynuacji (else if lastNpcNameRef) zamiast próby detekcji narracji vs dialogu
+
 
 

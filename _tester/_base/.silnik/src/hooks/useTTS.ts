@@ -5,9 +5,9 @@ import type { Message } from '@/lib/types';
 import { loadAISettings } from '@/lib/ai-settings';
 
 // M6 sesja 146: import DialogueLine + generateMultiVoice DROPPED per D3 (drop multi-voice).
-// Sesja 147 Faza 2: multi-voice WRACA wyłącznie dla preset=ultra (słuchowisko
-// radiowe). MID/HIGH wciąż jednym głosem narratora. Marker `@Imię:` parsowany
-// linia po linii z text.
+// Sesja 147 Faza 2: multi-voice WRACA dla preset=ultra (słuchowisko radiowe).
+// 2026-07-22: rozszerzone na HIGH (multi-voice NPC + parser `Imię: „dialog”`
+// obok legacy `@Imię:`). MID/LOW wciąż jednym głosem narratora.
 import { loadNpcVoiceMap } from '@/lib/npc-voice-mapping';
 
 interface QueueItem {
@@ -198,10 +198,6 @@ export function useTTS(): UseTTSReturn {
   const rawProcessedPosRef = useRef(0); // IND-193: ostatnia długość raw (early-return skip)
   const processedSentenceCountRef = useRef(0); // IND-193: liczba zakolejkowanych pełnych zdań
   const processingIndexRef = useRef(0); // Indeks aktualnie przetwarzanego zdania w ramach wiadomości
-  // Faza 2 sesji 147: pamiętamy ostatnio aktywnego mówcę NPC dla ULTRA preset.
-  // Marker `@Imię:` w jednym zdaniu propaguje voiceId na kolejne zdania bez markera,
-  // aż do następnego markera lub messageId reset.
-  const lastNpcNameRef = useRef<string | null>(null);
   // IND-193 guard: pojedyncze flush per messageId. generateVoiceForMessage woła
   // addToQueue(content, id, true) na koniec każdej odpowiedzi - bez tej flagi
   // dwukrotne wywołanie zduplikowałoby resztkę bez terminatora (warunek flush
@@ -216,7 +212,7 @@ export function useTTS(): UseTTSReturn {
   // demo 2026-06-22: ULTRA scala kolejne zdania o tym SAMYM voiceId w jeden segment TTS
   // (jeden spójny głos zamiast resetu prozodii per zdanie - objaw "lektor brzmi jak 3 osoby").
   // Run trzymany MIĘDZY wywołaniami addToQueue (streaming), zamykany przy zmianie mówcy lub
-  // flush. Reset przy ID-change/stop (jak lastNpcNameRef), by nie przeciekał między wiadomościami.
+  // flush. Reset przy ID-change, by nie przeciekał między wiadomościami.
   const openRunRef = useRef<{
     voiceId: string | undefined;
     texts: string[];
@@ -430,7 +426,6 @@ export function useTTS(): UseTTSReturn {
         processedSentenceCountRef.current = 0;
         processingIndexRef.current = 0;
         playbackIndexRef.current = 0;
-        lastNpcNameRef.current = null;
         flushedRef.current = false;
         openRunRef.current = null; // demo 2026-06-22: nowy run scalania od zera dla nowej wiadomości
         earlySpokenCharsRef.current = 0; // E1: nowy kursor wczesnego startu dla nowej wiadomości
@@ -465,20 +460,20 @@ export function useTTS(): UseTTSReturn {
         .replace(/\[[^\]]*$/, '')
         .replace(/\{[^}]*$/, '');
 
-      // IND-211: kolejkujemy w JEDNOSTKACH. Non-ULTRA (LOW/MID/HIGH) → cały AKAPIT
-      // jednym wywołaniem TTS - model widzi pełny kontekst akapitu, więc prozodia jest
-      // spójna (koniec "dwóch głosów na zmianę" z poprzedniego cięcia per-zdanie, gdzie
-      // 1 tura = ~16 izolowanych generacji bez wspólnego kontekstu). ULTRA (słuchowisko)
-      // zostaje per-zdanie, bo marker @Imię: rozdziela mówców - batch akapitu zlałby ich
-      // w jeden głos. Preset jest stały w obrębie wiadomości, więc processedSentenceCountRef
-      // liczy spójnie (zdania dla ULTRA / akapity dla reszty); reset przy ID-change.
+      // IND-211: kolejkujemy w JEDNOSTKACH. MID/LOW → cały AKAPIT jednym wywołaniem
+      // TTS - model widzi pełny kontekst akapitu, więc prozodia jest spójna.
+      // HIGH i ULTRA → per-zdanie z parserem mówców (multi-voice NPC). Marker
+      // `Imię: „dialog”` i legacy `@Imię:` rozdziela mówców. Preset jest stały w
+      // obrębie wiadomości, więc processedSentenceCountRef liczy spójnie.
       const settingsForQueue = loadAISettings();
-      const isUltra = settingsForQueue.qualityPreset === 'ultra';
+      const isUltraOrHigh =
+        settingsForQueue.qualityPreset === 'ultra' ||
+        settingsForQueue.qualityPreset === 'high';
 
       const pendingItems: QueueItem[] = [];
 
-      if (isUltra) {
-        // --- ULTRA: per-zdanie + multi-voice marker @Imię: (bez zmian IND-211) ---
+      if (isUltraOrHigh) {
+        // --- HIGH/ULTRA: per-zdanie + multi-voice marker @Imię: / Imię: „dialog” ---
         const sentences: string[] = [];
         let lastEnd = 0;
         const sentenceRegex = /[^.!?\n]+[.!?\n]+/g;
@@ -532,25 +527,33 @@ export function useTTS(): UseTTSReturn {
         };
 
         for (const sentence of newSentences) {
-          // Marker `@Imię Nazwisko: dialog` na początku zdania.
-          // trimStart() bo sentence regex może zwrócić zdanie z wiodącą spacją
-          // (np. ". @Imię:" → drugie zdanie zaczyna się od spacji).
+          // Marker: legacy `@Imię: dialog` lub `Imię: „dialog”` (gm-protocol).
+          // trimStart() bo sentence regex może zwrócić zdanie z wiodącą spacją.
+          // cleanResponseText kasuje „” przed regexem - cytaty tu nie są potrzebne.
+          // Wymagamy wielkiej litery na początku imienia (anty-false-match: 1920s:, próg: itp).
           const markerMatch = sentence
             .trimStart()
-            .match(/^@([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):\s*([\s\S]*)$/);
+            .match(
+              /^(@)?([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):\s*([\s\S]*?)$/
+            );
           let voiceId: string | undefined;
           let textForQueue = sentence;
 
           if (markerMatch) {
-            const npcName = markerMatch[1].trim();
-            lastNpcNameRef.current = npcName;
+            const npcName = markerMatch[2].trim();
             voiceId = npcVoiceMap.get(npcName.toLowerCase());
-            // Usuwamy marker z tekstu - TTS nie powinien czytać "@Armitage:"
-            textForQueue = markerMatch[2].trim() || sentence;
-          } else if (lastNpcNameRef.current) {
-            // Kontynuacja poprzedniego mówcy NPC (np. drugie zdanie monologu).
-            voiceId = npcVoiceMap.get(lastNpcNameRef.current.toLowerCase());
+            if (!voiceId) {
+              const firstName = npcName.split(/\s+/)[0];
+              for (const [key, val] of npcVoiceMap) {
+                if (key.startsWith(firstName.toLowerCase())) {
+                  voiceId = val;
+                  break;
+                }
+              }
+            }
+            textForQueue = markerMatch[3].trim() || sentence;
           }
+          // Bez kontynuacji - każde zdanie dialogu ma własny marker per gm-protocol.
 
           // Zmiana mówcy zamyka bieżący run; ten sam voiceId (w tym narrator=undefined)
           // dokleja się do otwartego runu = jedno wywołanie TTS.
@@ -568,7 +571,7 @@ export function useTTS(): UseTTSReturn {
           closeRun();
         }
       } else {
-        // --- Non-ULTRA: batch po AKAPICIE (IND-211, spójna prozodia narratora) ---
+        // --- MID/LOW: batch po AKAPICIE (spójna prozodia narratora, jeden głos) ---
         // Akapit jest "kompletny" gdy NIE jest ostatni (po nim w streamie pojawił się
         // już `\n\n`) albo przy flush (koniec wiadomości). Ostatni akapit czeka na
         // kolejny `\n\n` lub flush, więc trafia do TTS w całości = jeden spójny głos.

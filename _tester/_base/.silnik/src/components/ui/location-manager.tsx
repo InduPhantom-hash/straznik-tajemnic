@@ -108,7 +108,7 @@ export function LocationManager({
   const handleGenerateMap = async (location: Location, forceRegenerate: boolean = false) => {
     setIsGeneratingMap(true);
     try {
-      const prompt = `Map or layout of ${location.name}, ${location.type}, ${location.description}, Call of Cthulhu style, detailed, atmospheric`;
+      const prompt = `Map or layout of ${location.name}, ${location.type}, ${location.description}, 1920s period-accurate, realistic layout, detailed, atmospheric`;
       
       // Use persistent cache - will check IndexedDB first
       const result = await generateImageWithCache({

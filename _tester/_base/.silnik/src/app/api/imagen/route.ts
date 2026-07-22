@@ -19,6 +19,32 @@ const imageCache = new Map<
 >();
 const CACHE_DURATION = 60 * 60 * 1000; // 1 godzina
 
+// 2026-07-22: filtr słów mitologii Cthulhu w promptach obrazów.
+// Wyjątek: sceny oznaczone jako mythos przez LLM (| mythos w tagu ILUSTRACJA)
+// lub przez klienta (isMythos: true w body POST).
+const MYTHOS_KEYWORDS = [
+  '\\bcthulhu\\b', '\\blovecraft\\b', '\\btentacles?\\b', '\\beldritch\\b',
+  '\\bcosmic horror\\b', '\\bmonster\\b', '\\bcreature\\b', '\\bmythos\\b',
+  '\\bnecronomicon\\b', '\\bgargoyle\\b', '\\bsupernatural\\b', '\\boccult\\b',
+  '\\britual\\b', '\\bcult\\b', '\\bhorror\\b', '\\bgrotesque\\b',
+  '\\beldritch horror\\b', '\\bforbidden knowledge\\b',
+  '\\babomination\\b', '\\bunspeakable\\b', '\\botherworldly\\b',
+  '\\blovecraftian\\b',
+];
+
+const NEGATIVE_SUFFIX =
+  ', strictly realistic, no monsters, no tentacles, no supernatural creatures, no cosmic horror elements, no occult symbols';
+
+function sanitizePrompt(prompt: string): string {
+  let cleaned = prompt;
+  for (const kw of MYTHOS_KEYWORDS) {
+    cleaned = cleaned.replace(new RegExp(kw, 'gi'), '');
+  }
+  cleaned = cleaned.replace(/\s{2,}/g, ' ').replace(/,\s*,/g, ',').trim();
+  if (cleaned.endsWith(',')) cleaned = cleaned.slice(0, -1).trim();
+  return cleaned + NEGATIVE_SUFFIX;
+}
+
 export async function POST(request: NextRequest) {
   // IND-257: telemetria obrazów - logApiEvent fire-and-forget przy każdym wyjściu
   // generacji (sukces z costUsd, błędy ze statusem). Wcześniej /api/imagen w ogóle
@@ -48,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { prompt, style = 'horror', seed, era } = body;
+    const { prompt, style = 'horror', seed, era, isMythos = false } = body;
 
     // Walidacja promptu
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3) {
@@ -135,12 +161,15 @@ export async function POST(request: NextRequest) {
     // to nadpisywało realistyczny prompt MG i wszystko wychodziło w mackach. Grozę i
     // nadprzyrodzone wnosi TREŚĆ promptu MG (gdy scena tego wymaga), nie blanket-suffix.
     // Rozszerz prompt z uwzględnieniem wybranej epoki (Gaslight, 1920s, Modern itp.).
-    let enhancedPrompt = prompt;
+    // 2026-07-22: filtr mitów dla zwykłych scen (isMythos=false).
+    // Sceny oznaczone przez LLM jako | mythos pomijają filtrowanie.
+    const basePrompt = isMythos ? prompt : sanitizePrompt(prompt);
+    let enhancedPrompt = basePrompt;
     const eraKeyword = era ? `${era} period-accurate, ` : '';
     if (style === 'horror') {
-      enhancedPrompt = `${prompt}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed`;
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed`;
     } else if (style === 'portrait') {
-      enhancedPrompt = `${prompt}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression`;
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression`;
     }
 
     // IND-232: gemini-2.5-flash-image bywa flaky - czasem zwraca sam TEKST zamiast

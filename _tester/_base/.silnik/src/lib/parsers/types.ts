@@ -35,6 +35,7 @@ export interface ImageRequest {
   prompt: string;
   style?: 'horror' | 'vintage' | 'realistic' | 'artistic';
   priority?: 'high' | 'normal';
+  isMythos?: boolean;
 }
 
 export interface SFXRequest {

@@ -57,7 +57,9 @@ export function buildImageInstructions(settings: AISettings): string {
   const formatBlock = `
 ### JAK GENEROWAĆ:
 Użyj tagu w tekście odpowiedzi: [ILUSTRACJA: szczegółowy opis w języku ANGIELSKIM]
-Przykład: [ILUSTRACJA: dimly lit private study in the chosen era, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
+Dla scen snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos dodaj flagę | mythos:
+[ILUSTRACJA: deep one rising from the dark ocean under stormy sky, bioluminescent glow, grotesque fish-like features, 1920s coastal town harbor | mythos]
+Przykład zwykłej sceny: [ILUSTRACJA: dimly lit private study in the chosen era, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
 
 ZASADY SPÓJNOŚCI WIZUALNEJ I REALIZMU (VISUAL CONSISTENCY & REALISM):
 1. BADACZ GRACZA (PLAYER CHARACTER): Gdy ilustrujesz scenę z udziałem Badacza, ZAWSZE uwzględniaj w opisie jego dokładny profil fizyczny (wiek, płeć, fryzurę, ubiór, znaki szczególne, okulary) z karty postaci / portretu referencyjnego, aby postać wyglądała spójnie na wszystkich ilustracjach.

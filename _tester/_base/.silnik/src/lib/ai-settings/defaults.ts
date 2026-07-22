@@ -58,7 +58,7 @@ export const defaultAISettings: AISettings = {
   voiceSettings: {
     enabled: true,
     provider: 'gemini', // M3 sesja 146: default Gemini (drop OpenAI per D2)
-    narratorOnly: true, // HIGH: jeden głos narratora (multi-voice tylko ULTRA, sesja 147 Faza 3)
+    narratorOnly: true, // MID/LOW: jeden głos narratora (HIGH/ULTRA = multi-voice NPC od 2026-07-22)
     volume: 85,
     speed: 0.9, // Preset HIGH
     voiceId: 'Charon', // HIGH: męski głęboki narrator pod Lovecraft (IND-212), auto-route Pro/Flash w useTTS

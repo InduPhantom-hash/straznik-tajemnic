@@ -180,6 +180,7 @@ function resolveHotSeatCharacterNames(
 export interface ImageToGenerate {
   prompt: string;
   style?: 'horror' | 'vintage' | 'realistic' | 'artistic';
+  isMythos?: boolean;
 }
 
 /**
@@ -471,6 +472,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             body: JSON.stringify({
               prompt: img.prompt,
               style: img.style || 'horror',
+              isMythos: img.isMythos || false,
               // IND-216: sceny czatu w formacie pocztówkowym 16:9 (orchestrator
               // forwarduje ...body do Vertex/Replicate). Render i tak kadruje object-cover.
               aspectRatio: '16:9',

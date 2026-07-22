@@ -204,7 +204,7 @@ export function useGameStart({
     try {
       const locationContext =
         adventureContext?.location || 'mysterious New England town';
-      const imagePrompt = `Atmospheric establishing shot, ${locationContext}, Call of Cthulhu style, moody lighting, vintage horror, cinematic.`;
+      const imagePrompt = `Atmospheric establishing shot, ${locationContext}, 1920s period-accurate, realistic, cinematic, moody natural lighting.`;
       const response = await fetchWithRetry('/api/imagen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

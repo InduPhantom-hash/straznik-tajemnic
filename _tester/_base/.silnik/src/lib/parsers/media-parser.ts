@@ -9,10 +9,18 @@ export function extractImages(text: string): ImageRequest[] {
     const tagPattern = /\[(?:ILUSTRACJA|OBRAZ|GRAFIKA|RYSUNEK|ZDJĘCIE|SCENA|PORTRET|WIZUALIZACJA|IMAGE|PICTURE|ILLUSTRATION|SHOW|VISUALIZE|SCENE|PORTRAIT):\s*([^\]]+)\]/gi;
     let match;
     while ((match = tagPattern.exec(text)) !== null) {
+        let prompt = match[1].trim();
+        let isMythos = false;
+        const mythosSuffix = /\s*\|\s*mythos\s*$/i;
+        if (mythosSuffix.test(prompt)) {
+            isMythos = true;
+            prompt = prompt.replace(mythosSuffix, '').trim();
+        }
         images.push({
-            prompt: match[1].trim(),
+            prompt,
             style: 'horror', // domyślny styl CoC
             priority: 'normal',
+            isMythos,
         });
     }
 

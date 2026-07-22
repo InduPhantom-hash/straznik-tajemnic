@@ -887,7 +887,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
       ? `${adventureContext.yearRange}, ${adventureContext.eraLabel} era`
       : '1920s';
 
-    const prompt = `Portrait of a ${age} year old ${gender || 'person'}, ${occupation}, ${description || 'mysterious appearance'}, ${eraStyle} Call of Cthulhu style, dramatic lighting, vintage photograph aesthetic`;
+    const prompt = `Portrait of a ${age} year old ${gender || 'person'}, ${occupation}, ${description || 'mysterious appearance'}, ${eraStyle} period-accurate portrait, realistic, dramatic lighting, vintage photograph aesthetic`;
 
     // A5: gdy portret JUŻ istnieje, to "Generuj ponownie" - dołączamy losowy
     // seed, by ominąć cache /api/imagen (klucz = md5(prompt+style+seed)).

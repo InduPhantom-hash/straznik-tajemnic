@@ -165,7 +165,7 @@ export function NPCManager({
   ) => {
     setIsGeneratingPortrait(true);
     try {
-      const prompt = `Portrait of ${npc.name}, ${npc.occupation}, ${npc.appearance || npc.description}, Call of Cthulhu style, 1920s, detailed, atmospheric`;
+      const prompt = `Portrait of ${npc.name}, ${npc.occupation}, ${npc.appearance || npc.description}, 1920s period-accurate, realistic, detailed, atmospheric`;
 
       // M9 sesja 146 (D4): globalny toggle z Settings - gdy true + NPC ma
       // portretUrl, używamy Flux Kontext Pro (character consistency).
