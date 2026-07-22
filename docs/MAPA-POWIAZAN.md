@@ -63,6 +63,7 @@ graph TD
 | **`docs/TESTING.md`**<br/>*(Standardy testowania)* | • Testy jednostkowe Jest (`__tests__/`)<br/>• Kontrola typów TypeScript (`npx tsc`)<br/>• Git Hooks (Husky pre-commit / pre-push) | • `jest.config.js`<br/>• `package.json`<br/>• `.husky/pre-commit`<br/>• `.husky/pre-push` |
 | **`SETUP.md`**<br/>*(Instrukcja setupu)* | • Wprowadzanie klucza Gemini API<br/>• Ingestion własnego PDF<br/>• Launcher `.app` na macOS | • `src/components/onboarding/`<br/>• `src/hooks/useFirstRun.ts`<br/>• `desktop/build-app.sh` |
 | **`SECURITY.md`**<br/>*(Polityka bezpieczeństwa)* | • Przechowywanie kluczy API<br/>• Brak chmury i brak telemetrii PII<br/>• Przepływ danych w 100% lokalny | • `src/app/api/chat/route.ts`<br/>• `.env.example`<br/>• `src/lib/telemetry.ts` |
+| **`.agent/plans/weather-status-plan.md`**<br/>*(Plan pogody i otoczenia)* | • Dynamiczna pogoda i wskaźnik UI<br/>• Priorytet klimatu i woli MG (`[POGODA:]`) nad danymi z API<br/>• Spójność z generatorem obrazów i kontekstem LLM | • `src/lib/time-manager.ts`<br/>• `src/components/chat/narrative/cleanup.ts`<br/>• `src/components/ui/campaign-clock.tsx`<br/>• `src/app/api/chat/_helpers/build-time-context.ts`<br/>• `src/lib/prompts/image-instructions.ts` |
 | **`.agent/plans/ekwipunek-*.md`**<br/>*(Plany ekwipunku i assetów)* | • Lokalny katalog CoC 7e<br/>• Wyłączanie generowania AI dla assetów<br/>• Dedykowane ikony epoki | • `src/lib/equipment/equipment-catalog.ts`<br/>• `src/components/equipment/`<br/>• `src/hooks/useImageGenerationQueue.ts` |
 
 ---
