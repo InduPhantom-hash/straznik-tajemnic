@@ -46,11 +46,12 @@ export function loadJournalLocally(userId: string, journalId: string): Record<st
  * Konwertuje tradycyjne wpisy Dziennika (JournalEntry) na początkowe węzły Tablicy Badacza
  */
 export function convertEntriesToBoardNodes(entries: JournalEntry[]): EvidenceNode[] {
-  return entries.map((entry, idx) => {
+    let nodeType: EvidenceNode['type'] = 'clue';
     const typeStr = (entry.type || '') as string;
-    if (typeStr === 'encyclopedia_character' || entry.category === 'Spotkania') nodeType = 'suspect';
-    else if (typeStr === 'encyclopedia_location' || entry.category === 'Odkrycia') nodeType = 'location';
-    else if (typeStr === 'encyclopedia_item' || entry.category === 'Artefakty') nodeType = 'artifact';
+    const catStr = ((entry as Record<string, unknown>).category || '') as string;
+    if (typeStr === 'encyclopedia_character' || catStr === 'Spotkania') nodeType = 'suspect';
+    else if (typeStr === 'encyclopedia_location' || catStr === 'Odkrycia') nodeType = 'location';
+    else if (typeStr === 'encyclopedia_item' || catStr === 'Artefakty') nodeType = 'artifact';
     else if (typeStr === 'quest') nodeType = 'evidence';
 
     const col = idx % 4;
