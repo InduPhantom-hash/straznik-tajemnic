@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { InvestigatorBoard } from './investigator-board';
 import { EvidenceNode, EvidenceRelation } from '@/types/investigator-board';
-import { convertEntriesToBoardNodes } from '@/lib/journal-storage';
+import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
