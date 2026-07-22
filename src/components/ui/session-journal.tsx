@@ -17,7 +17,7 @@ import {
   Download,
 } from 'lucide-react';
 import { InvestigatorBoard } from './investigator-board';
-import { EvidenceNode, EvidenceRelation } from '@/types/investigator-board';
+import { EvidenceNode, EvidenceRelation, InvestigatorBoardState } from '@/types/investigator-board';
 import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
 import type { JournalEntry, JournalEventType, Character } from '@/lib/types';
 
