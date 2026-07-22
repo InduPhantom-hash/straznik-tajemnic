@@ -45,6 +45,7 @@ export function CampaignClock({
   compact = false,
 }: CampaignClockProps) {
   const [time, setTime] = useState<GameTime>(timeManager.getTime());
+  const [weather, setWeather] = useState<string>(timeManager.getWeather());
   const [moonPhase, setMoonPhase] = useState<MoonPhase>(
     timeManager.getMoonPhase()
   );
@@ -54,9 +55,10 @@ export function CampaignClock({
   );
 
   useEffect(() => {
-    // Subskrybuj zmiany czasu
+    // Subskrybuj zmiany czasu i pogody
     const unsubscribe = timeManager.subscribe((newTime) => {
       setTime(newTime);
+      setWeather(timeManager.getWeather());
       setMoonPhase(timeManager.getMoonPhase());
       setIsNight(timeManager.isNight());
       setDayOfWeek(timeManager.getDayOfWeek());
@@ -68,6 +70,17 @@ export function CampaignClock({
   // Formatowanie
   const formattedDate = timeManager.formatDate();
   const formattedTime = timeManager.formatTime();
+
+  // Dobór symbolu ikony dla pogody
+  const getWeatherEmoji = (text: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes('burz') || lower.includes('piorun') || lower.includes('nawałnic')) return '🌩️';
+    if (lower.includes('deszcz') || lower.includes('ulew') || lower.includes('mżawk') || lower.includes('opad')) return '🌧️';
+    if (lower.includes('śnieg') || lower.includes('zamieć') || lower.includes('mróz') || lower.includes('szron')) return '❄️';
+    if (lower.includes('mgła') || lower.includes('mgieł') || lower.includes('chmur') || lower.includes('mrocz') || lower.includes('ponur')) return '🌫️';
+    if (lower.includes('słońc') || lower.includes('słonecz') || lower.includes('pogodn') || lower.includes('jasn') || lower.includes('upał')) return '☀️';
+    return '🌫️';
+  };
 
   if (compact) {
     return (
@@ -88,7 +101,13 @@ export function CampaignClock({
           </span>
         </div>
 
-        <div className="flex items-center ml-1 pl-3 border-l border-zinc-800">
+        <div className="flex items-center gap-2 ml-1 pl-3 border-l border-zinc-800">
+          <span
+            className="text-lg filter drop-shadow-[0_0_3px_rgba(255,255,255,0.3)] cursor-help"
+            title={`Pogoda: ${weather}`}
+          >
+            {getWeatherEmoji(weather)}
+          </span>
           <span
             className="text-lg filter drop-shadow-[0_0_3px_rgba(255,255,255,0.3)] cursor-help"
             title={MOON_PHASE_NAMES[moonPhase]}

@@ -1,35 +1,53 @@
-# Plan: Wprowadzenie informacji o pogodzie na górny pasek statusu
+# Plan: Dynamiczny i Klimatyczny Wskaźnik Pogody (Klimat > Fakty)
 
-Data: 2026-07-18
-Złożoność: Prosta
+Data: 2026-07-22  
+Złożoność: Średnia  
 
 ### Problem
-Użytkownik chce, aby na górnym pasku statusu (gdzie znajduje się data, godzina oraz faza księżyca) pojawiała się również informacja o pogodzie. API do pogody już istnieje i wstrzykuje informacje o klimacie i pogodzie do opisu przygody, jednak pasek statusu w aktywnej aplikacji nie renderuje tej informacji.
+Na górnym pasku statusu aplikacji brak wskaźnika pogody, a pobieranie czystych, słonecznych danych pogodowych z historycznego API Open-Meteo może niszczyć klimat horroru lovecraftowskiego, jeśli przygoda lub Mistrz Gry wymagają deszczowej / mrocznej atmosfery.
 
 ### Rozwiązanie
-Z analizy kodu wynika, że w katalogu `_tester/_base/.silnik/src/components/ui/campaign-clock.tsx` komponent `CampaignClock` posiada już obsługę właściwości `weatherInfo` i potrafi ją poprawnie formatować wraz z ikonami (deszcz, śnieg, słońce, chmura). 
-Również w `_tester/_base/.silnik/src/components/chat/chat-window/components/chat-header.tsx` parser poprawnie wyciąga pogodę z `adventureDescription` za pomocą regexa `\[KLIMAT\s*&\s*POGODA\]:\s*([^]*?)(?=\n\n|\[|$)` i przekazuje ją do `CampaignClock`.
+Wdrożenie 2-poziomowej hierarchii prawdy o pogodzie (Klimat > Fakty):
+1. **Wola Mistrza Gry (LLM Tag):** MG w toku narracji może dynamicznie zmieniać pogodę przez tag `[POGODA: opis]`, co natychmiast aktualizuje stan i czyści tag z czatu.
+2. **Opis / Preset Przygody:** Parser przygody w `analyze/route.ts` lub dane przygody dostarczają domyślny klimat/pogodę dla scenariusza.
+3. **Pasek Statusu UI:** `CampaignClock` oraz `ChatHeader` renderują czytelną ikonę z tooltipem pogodowym pobieraną ze stanu `timeManager`.
 
-Musimy upewnić się, że:
-1. `adventureDescription` jest poprawnie przekazywany do `ChatHeader` w głównym oknie czatu.
-2. Pogoda pobrana przez API historyczne `/api/adventure/analyze` i zapisana w `adventureContext.description` jest poprawnie przekazywana z `page.tsx` przez `ChatWindow` do `ChatHeader`.
+---
 
 ### Pliki do modyfikacji
+
 | plik | zmiana | ryzyko |
 |------|--------|--------|
-| `_tester/_base/.silnik/src/components/chat/chat-window/index.tsx` | Upewnienie się, że `adventureDescription` jest przekazywany do `ChatHeader` (w nowej strukturze po splicie). | Niskie |
-| `_tester/_base/.silnik/src/components/chat/chat-window/components/chat-header.tsx` | Sprawdzenie regexa i ewentualne poprawki dopasowania tagu pogodowego z analizatora przygody. | Niskie |
+| `_tester/_base/.silnik/src/lib/time-manager.ts` | Dodanie pola/metod `weather` i `setWeather` z subskrypcją zdarzeń do `timeManager`. | Niskie |
+| `_tester/_base/.silnik/src/components/chat/narrative/cleanup.ts` | Wyłapywanie i wycinanie tagu `[POGODA: ...]` z narracji MG przed wysłaniem do czatu / TTS. | Niskie |
+| `_tester/_base/.silnik/src/components/ui/campaign-clock.tsx` | Subskrypcja stanu pogody i renderowanie ikony z tooltipem pogodowym. | Niskie |
+| `_tester/_base/.silnik/src/app/api/chat/_helpers/build-time-context.ts` | Przekazywanie aktualnej pogody do `buildTimeContext` w prompcie LLM. | Niskie |
+| `_tester/_base/.silnik/src/lib/prompts/image-instructions.ts` | Wstrzykiwanie aktualnego stanu pogody do dyrektywy generowania ilustracji sceny. | Niskie |
+
+---
 
 ### Fazy implementacji
 
-**Faza 1: Weryfikacja przepływu danych**
-- [ ] Sprawdzenie przekazywania propa `adventureDescription` w `src/components/chat/chat-window/index.tsx` (oraz w silniku bazowym `_tester/_base/.silnik`).
-- [ ] Zweryfikowanie czy regex poprawnie parsuje format dodawany w `/api/adventure/analyze` (`[KLIMAT & POGODA]: Średnia temperatura...`).
-- Weryfikacja: Kod kompiluje się bez błędów.
+**Faza 1: Rozszerzenie stanu pogody w `timeManager` & `cleanup`**
+- [ ] Dodanie typu i metod zarządzania pogodą w `src/lib/time-manager.ts`.
+- [ ] Dodanie regexa wyłapującego `[POGODA: ...]` w `src/components/chat/narrative/cleanup.ts` oraz aktualizującego stan w `timeManager`.
+- Weryfikacja: `npm test` dla parsowania tagów systemowych.
+
+**Faza 2: Prezentacja pogody na pasku statusu (UI)**
+- [ ] Modyfikacja `CampaignClock.tsx` w celu wyświetlania ikony pogody i tooltipa ze stanem.
+- [ ] Integracja przekazywania domyślnej pogody z analizatora przygody w `ChatHeader`.
+- Weryfikacja: Przegląd UI oraz testy jednostkowe `campaign-clock.test.tsx`.
+
+**Faza 3: Spięcie z promptem LLM oraz generacją ilustracji**
+- [ ] Wstrzyknięcie aktualnej pogody do `buildTimeContext`.
+- [ ] Uwzględnienie słów kluczowych pogody w promptach graficznych (`image-instructions.ts`).
+- Weryfikacja: `npm test` weryfikujący poprawność wstrzykiwania kontekstu.
+
+---
 
 ### Weryfikacja końcowa
-- `npm run build` w silniku w celu upewnienia się, że typy i komponenty Next.js budują się prawidłowo.
-- Uruchomienie testów: `npm test` w celu weryfikacji testów jednostkowych `chat-header.test.tsx`.
+- `npm test` — weryfikacja wszystkich testów jednostkowych Jest.
+- `npx tsc --noEmit` — sprawdzanie spójności typów TypeScript.
 
 ### Co może się zepsuć
-- Niepoprawne parsowanie regexem jeśli format opisu uległ zmianie (ryzyko: niskie - regex obsłuży standardowe tagi).
+- Wyciek tagu `[POGODA:]` do tekstu czytanego przez TTS (Ryzyko: Niskie — zostanie zabezpieczone w `cleanupContent`).

@@ -62,8 +62,9 @@ Przykład: [ILUSTRACJA: dimly lit 1920s private study, mahogany desk with scatte
 ZASADY SPÓJNOŚCI WIZUALNEJ (VISUAL CONSISTENCY):
 1. POSTACIE (NPC): Gdy ilustrujesz scenę z udziałem aktywnego NPC (z listy ## AKTYWNE POSTACIE (NPC)), musisz utrzymać jego tożsamość wizualną. ZAWSZE uwzględniaj w opisie ilustracji jego dokładne cechy fizyczne (wiek, płeć, kolor i styl włosów, ubiór, znaki szczególne) podane w jego profilu. NIGDY nie podawaj samego imienia.
 2. LOKACJE (LOCATIONS): Gdy generujesz kolejny obraz tej samej lokacji (np. pokoju, domu, ulicy), utrzymaj te same elementy architektoniczne (np. kształt okien, styl tapety, stałe meble jak kominek, zegar czy pianino). Zmiany mogą dotyczyć tylko oświetlenia, kąta kamery lub drobnych interakcji (np. przewrócone krzesło).
-3. PRZEDMIOTY (ITEMS): Znalezione artefakty, klucze, księgi czy dowody muszą wyglądać tak samo przy każdym zbliżeniu. Opisuj je za pomocą tych samych cech fizycznych (np. "iron key with a skull-shaped bow", "leather-bound journal with brass clasps").
-4. POTWORY I ISTOTY (MONSTERS & BEASTS): Kiedy na ilustracji pojawia się istota Mythos, trzymaj się raz określonej anatomii (faktura skóry, liczba oczu/kończyn, sposób poruszania się, kolorystyka).
+3. POGODA I ATMOSFERA (WEATHER): Uwzględniaj w opisie aktualne warunki atmosferyczne (np. deszczowe mokre bruki, gęstą mgłę, burzowe niebo, zamieć) podane w sekcji **Aktualna Pogoda & Warunki**, aby obraz zachował pełną spójność z narracją.
+4. PRZEDMIOTY (ITEMS): Znalezione artefakty, klucze, księgi czy dowody muszą wyglądać tak samo przy każdym zbliżeniu. Opisuj je za pomocą tych samych cech fizycznych (np. "iron key with a skull-shaped bow", "leather-bound journal with brass clasps").
+5. POTWORY I ISTOTY (MONSTERS & BEASTS): Kiedy na ilustracji pojawia się istota Mythos, trzymaj się raz określonej anatomii (faktura skóry, liczba oczu/kończyn, sposób poruszania się, kolorystyka).
 
 ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • era lat 20. XX wieku (absolutny zakaz anachronizmów) • styl DOMYŚLNIE realistyczny: świat rzeczywisty lat 20. (fotografia z epoki, film-grain, naturalne światło, noir). Elementy Mythos / macki / nadprzyrodzone wprowadzaj do opisu TYLKO na mocne momenty grozy - NIE rutynowo. Gracz może też jawnie poprosić komendą [obraz]/[ilustracja].`;
 

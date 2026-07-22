@@ -61,6 +61,18 @@ export function cleanupContent(content: string): string {
     // clock-debt: znacznik czasu [AKTUALNY CZAS: ...] przesuwa zegar gry
     // (parsowany przez extractTimeUpdate), ale nie pokazujemy go w czacie
     .replace(/\[AKTUALNY CZAS:[^\]]*\]/gi, '')
+    // Pogoda - znacznik [POGODA: ...] aktualizuje pogodę w czasie rzeczywistym
+    .replace(new RegExp(`\\[POGODA:${NESTED_TAG_BODY}\\]`, 'gi'), (fullMatch) => {
+      const match = fullMatch.match(/\[POGODA:\s*([^\]]+)\]/i);
+      if (typeof window !== 'undefined' && match && match[1]) {
+        try {
+          // Synchroniczny dostęp do wyemitowanej pogody
+          const { timeManager } = require('@/lib/time-manager');
+          timeManager.setWeather(match[1]);
+        } catch {}
+      }
+      return '';
+    })
     // Dziennik - wieloliniowy tag [DZIENNIK:typ:tytuł]treść[/DZIENNIK]
     .replace(/\[DZIENNIK:[^\]]*\][\s\S]*?\[\/DZIENNIK\]/gi, '')
     .replace(/\[DZIENNIK:[^\]]*\]/gi, '')

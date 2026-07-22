@@ -54,6 +54,7 @@ export function buildTimeContext(
   const timeContext = timeManager.formatForPrompt();
   const eraRules = getEraPromptInjection(gameEra);
 
+  const weather = timeManager.getWeather();
   const atmosphere = getAtmosphereDirective(
     timeManager.getTime().hour,
     timeManager.getMoonPhase()
@@ -65,12 +66,14 @@ ${timeContext}
 
 ${eraRules}
 
+**Aktualna Pogoda & Warunki:** ${weather}
 **Atmosfera:** ${atmosphere}
 
 **INSTRUKCJA DLA MG:**
 - Opisując akcje, oceń ile czasu zajmują (np. "Badanie biblioteki zajęło ci 3 godziny")
 - **OBOWIĄZKOWO** zakończ każdą turę zaktualizowanym znacznikiem czasu w formacie \`[AKTUALNY CZAS: DD Miesiąca RRRR, GG:MM]\` - weź aktualny czas powyżej i przesuń go o czas, który zajęły akcje gracza (przeszukanie pokoju +15 min, rozmowa +10 min, podróż przez miasto +1h, odpoczynek do rana). Marker jest w nawiasie kwadratowym - niewidoczny dla gracza i lektora, służy wyłącznie do przesuwania zegara gry.
-- Uwzględniaj powyższą atmosferę w opisach (światło, dźwięki, nastrój)
+- Jeśli chcesz zaktualizować pogodę w toku narracji, wstaw na końcu odpowiedni znacznik \`[POGODA: opis pogody]\`.
+- Uwzględniaj powyższą pogodę oraz atmosferę w opisach (światło, dźwięki, nastrój)
 - Nawiązuj do realiów epoki (np. dostępność technologii)
 `;
 

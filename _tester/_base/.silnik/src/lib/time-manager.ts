@@ -13,6 +13,7 @@ import { GameTime, MoonPhase } from './types';
 // ============================================================================
 
 const STORAGE_KEY = 'coc7_game_time';
+const WEATHER_STORAGE_KEY = 'coc7_game_weather';
 const MONTHS_PL = [
   'Stycznia',
   'Lutego',
@@ -138,10 +139,31 @@ export function deriveStartYear(
 
 class TimeManager {
   private currentTime: GameTime;
+  private currentWeather: string = 'Lekka mgła, rześkie powietrze';
   private listeners: Array<(time: GameTime) => void> = [];
 
   constructor() {
     this.currentTime = this.loadFromStorage() || this.createDefaultTime();
+    this.currentWeather = this.loadWeatherFromStorage() || 'Lekka mgła, rześkie powietrze';
+  }
+
+  private loadWeatherFromStorage(): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem(WEATHER_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  private saveWeatherToStorage(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(WEATHER_STORAGE_KEY, this.currentWeather);
+      this.notifyListeners();
+    } catch (error) {
+      console.error('❌ Error saving Weather:', error);
+    }
   }
 
   // --- Inicjalizacja ---
@@ -252,7 +274,9 @@ class TimeManager {
    */
   reset(): GameTime {
     this.currentTime = this.createDefaultTime();
+    this.currentWeather = 'Lekka mgła, rześkie powietrze';
     this.saveToStorage();
+    this.saveWeatherToStorage();
     return this.currentTime;
   }
 
@@ -272,7 +296,9 @@ class TimeManager {
       hour: 10,
       minute: 0,
     };
+    this.currentWeather = 'Lekka mgła, rześkie powietrze';
     this.saveToStorage();
+    this.saveWeatherToStorage();
     return this.currentTime;
   }
 
@@ -280,6 +306,16 @@ class TimeManager {
 
   getTime(): GameTime {
     return { ...this.currentTime };
+  }
+
+  getWeather(): string {
+    return this.currentWeather;
+  }
+
+  setWeather(weather: string): void {
+    if (!weather || weather.trim() === '') return;
+    this.currentWeather = weather.trim();
+    this.saveWeatherToStorage();
   }
 
   getMoonPhase(): MoonPhase {
