@@ -46,6 +46,7 @@ export function loadJournalLocally(userId: string, journalId: string): Record<st
  * Konwertuje tradycyjne wpisy Dziennika (JournalEntry) na początkowe węzły Tablicy Badacza
  */
 export function convertEntriesToBoardNodes(entries: JournalEntry[]): EvidenceNode[] {
+  return entries.map((entry, idx) => {
     let nodeType: EvidenceNode['type'] = 'clue';
     const typeStr = (entry.type || '') as string;
     const catStr = ((entry as Record<string, unknown>).category || '') as string;
