@@ -28,8 +28,9 @@ import {
   DEFAULT_GEMINI_VOICE,
   isValidGeminiVoice,
 } from '@/lib/gemini-voices';
+import { DEFAULT_TTS_MODEL } from '@/lib/model-registry';
 
-const DEFAULT_MODEL = 'gemini-2.5-flash-preview-tts';
+const DEFAULT_MODEL = DEFAULT_TTS_MODEL;
 const DEFAULT_LANGUAGE_CODE = 'pl-PL';
 const PCM_SAMPLE_RATE = 24000;
 const PCM_CHANNELS = 1;

@@ -1,5 +1,22 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-22 (Unifikacja Endpointów Google Gemini API & Model Registry)
+Branch: main
+
+### Co zrobiono
+- **Rejestr Modeli (SSOT)**: Scentralizowano wszystkie modele i cenniki w `model-registry.ts` (`DEFAULT_IMAGE_MODEL = 'imagen-3.0-generate-002'`, `DEFAULT_TTS_MODEL = 'gemini-2.5-flash-preview-tts'`).
+- **Migracja SDK**: Wyeliminowano zdeprecjonowane SDK `@google/generative-ai` w `adventure-extractor.ts`, przepisując go na `@google/genai` z obsługą JSON Schema (`Type`) i `DEFAULT_CHAT_MODEL`.
+- **Czyszczenie Endpointów**: Przepięto `/api/imagen`, `/api/tts/gemini`, `/api/ai/gemini` oraz `useTTS.ts` pod rejestr modeli. Zastąpiono wycofany model `gemini-2.0-flash` w `/api/chat-test` aktywnymi modelami (`gemini-3.6-flash`, `gemini-2.5-flash`).
+- **Bezpieczeństwo i Sanitizacja**: Wdrożono defensywny `try-catch`, walidację pól ustrukturyzowanych oraz sanitizację znaków w `adventureId` (`/[^a-zA-Z0-9_-]/g`), eliminując podatność Path Traversal.
+- **Weryfikacja & Zewdrzewko Update**: Zaktualizowano `docs/MAPA-POWIAZAN.md`, wykonano kompilację produkcyjną `npm run build` (61/61 stron wygenerowano, 0 błędów TS) oraz zaliczono 38/38 suite'ów testowych Jest.
+
+### Decyzje podjęte
+- Zachowano zasadę `IND-222 (Zero usuwania ID)` – żaden ze starych identyfikatorów nie został wycięty z typów głównych czatu.
+- Wydzielono typy pomocnicze `GeminiImageModelId` i `GeminiTtsModelId` osobono od modeli czatu, aby zapobiec wyciekowi modeli obrazowych i TTS do dropdownu w interfejsie użytkownika.
+
+---
+
+
 ## Podsumowanie sesji: 2026-07-22 (Fix Promptów Otwarcia dla Dwóch Graczy)
 Branch: main
 

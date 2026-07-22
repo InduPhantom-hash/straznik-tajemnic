@@ -52,8 +52,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Użyj stabilnego modelu do testu połączenia
-      const testModels = ['gemini-2.0-flash', 'gemini-2.5-flash'];
+      // Użyj aktywnego modelu z rejestru do testu połączenia
+      const testModels = ['gemini-3.6-flash', 'gemini-2.5-flash'];
       let lastError: Error | null = null;
 
       for (const modelName of testModels) {

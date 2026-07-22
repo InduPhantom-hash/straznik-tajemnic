@@ -144,6 +144,19 @@ export function getContextLimit(modelId: string): number {
 }
 
 // ============================================================================
+// MODELE GRAFICZNE I TTS
+// ============================================================================
+
+export type GeminiImageModelId = 'imagen-3.0-generate-002' | 'gemini-2.5-flash-image';
+export type GeminiTtsModelId = 'gemini-2.5-flash-preview-tts';
+
+/** Domyślny model do generowania obrazów (Imagen 3). */
+export const DEFAULT_IMAGE_MODEL: GeminiImageModelId = 'imagen-3.0-generate-002';
+
+/** Domyślny model lektora (TTS). */
+export const DEFAULT_TTS_MODEL: GeminiTtsModelId = 'gemini-2.5-flash-preview-tts';
+
+// ============================================================================
 // CENNIK GEMINI (z ai-cost-tracker.ts - per 1M tokenów USD)
 // ============================================================================
 
@@ -162,5 +175,9 @@ export const GEMINI_PRICING: Record<string, { input: number; output: number }> =
     'gemini-2.5-pro': { input: 3.5, output: 10.5 },
     'gemini-2.5-flash': { input: 0.075, output: 0.3 },
     'gemini-2.0-flash': { input: 0.075, output: 0.3 },
+    'imagen-3.0-generate-002': { input: 0.0, output: 30.0 }, // rozliczenie obrazów USD
+    'gemini-2.5-flash-image': { input: 0.075, output: 0.3 },
+    'gemini-2.5-flash-preview-tts': { input: 0.50, output: 1.50 },
     default: { input: 0.15, output: 0.60 },
   };
+

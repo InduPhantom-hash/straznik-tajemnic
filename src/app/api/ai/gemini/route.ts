@@ -64,11 +64,11 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(generatedImage);
     } catch (imagenError) {
-      console.log('Gemini Imagen failed, trying fallback to Gemini 2.5 Pro...');
+      console.log(`Gemini Imagen failed, trying fallback to ${DEFAULT_GEMINI_MODEL}...`);
 
-      // Fallback do Gemini 2.5 Pro
+      // Fallback do głównego modelu chatu
       const fallbackResult = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
+        model: DEFAULT_GEMINI_MODEL,
         contents: `Generate an image description: ${prompt}. Style: ${style || 'realistic'}. Quality: ${quality || 'medium'}. Aspect ratio: ${aspectRatio || '1:1'}.`,
       });
 

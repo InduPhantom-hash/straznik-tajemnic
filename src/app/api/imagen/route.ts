@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import { resolveUserId } from '@/lib/auth-user';
 import { recordUserUsage } from '@/lib/user-usage';
 import { generateTraceId, startTimer, logApiEvent } from '@/lib/telemetry';
+import { DEFAULT_IMAGE_MODEL } from '@/lib/model-registry';
 
 // Cache dla wygenerowanych obrazów
 const imageCache = new Map<
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       traceId,
       endpoint: '/api/imagen',
       provider: 'gemini',
-      model: 'gemini-2.5-flash-image',
+      model: DEFAULT_IMAGE_MODEL,
       status,
       durationMs: timer.elapsed(),
       result,
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
             available: hasGemini,
             priority: 1,
             env: { GEMINI_API_KEY: hasGemini ? 'set' : 'missing' },
-            model: 'gemini-2.5-flash-image',
+            model: DEFAULT_IMAGE_MODEL,
             hint: !hasGemini
               ? 'Set GEMINI_API_KEY in .env.local (klucz z Google AI Studio)'
               : undefined,
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🎨 Generuję obraz przez Gemini...');
-    const model = 'gemini-2.5-flash-image';
+    const model = DEFAULT_IMAGE_MODEL;
 
     // Rozszerz prompt. 2026-06-28: domyślnie REALIZM epoki (świat rzeczywisty lat 20.,
     // film/noir) zamiast doklejania na sztywno "cosmic horror, Lovecraftian, eerie" -
@@ -289,8 +290,8 @@ export async function GET() {
         available: hasGemini,
         priority: 1,
         quality: '⭐⭐⭐',
-        cost: '$0.02/image (Gemini Flash Image)',
-        model: 'gemini-2.5-flash-image',
+        cost: '$0.02/image (Gemini Image)',
+        model: DEFAULT_IMAGE_MODEL,
       },
     },
   });
