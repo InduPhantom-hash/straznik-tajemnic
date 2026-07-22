@@ -14,7 +14,7 @@
 | **Etap 2: Pipeline Przygody & RAG** | 🟡 IN PROGRESS | 40% | `src/lib/vector-db/local-vector-store.ts` | SQLite / Local RAG |
 | **Etap 3: Immersja & Tablica Badacza** | 🟢 DONE | 100% | `src/app/api/chat/_helpers/build-immersion-context.ts` | API danych świata + Save |
 | **Etap 3.5: Encyklopedia & Pomoc (RAG)** | 🟢 DONE | 100% | `src/components/help-modal/`, `data/epochs/pl-1990s-2000s/` | Local RAG (`mythos`, `epoch_pl_90s`) |
-| **Etap 0.5: Onboarding & Quick Setup Flow** | 🔵 TODO | 0% | `src/components/onboarding/` | i18n / Gemini Key / Presety |
+| **Etap 0.5: Onboarding & Quick Setup Flow** | 🟢 DONE | 100% | `src/components/onboarding/` | Klucz Gemini / PDF / Quick Setup |
 | **Etap 0: Bezpieczny System Aktualizacji** | 🔵 TODO | 0% | `desktop/launcher.sh`, `desktop/build-app.sh` | Electron / Mac Launcher |
 | **Etap 4: Adventure Creator & Graf** | 🔵 TODO | 0% | `src/lib/adventures-data.ts` | Graf stanu scen |
 | **Etap 5: Wsparcie Multilang PL/EN** | 🔵 TODO | 0% | `src/lib/i18n/` | Słowniki UI & Master Prompt |

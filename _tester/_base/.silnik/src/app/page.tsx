@@ -36,6 +36,8 @@ import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
 import { toast } from '@/components/ui/use-toast';
+import { BUILT_IN_ADVENTURES } from '@/lib/adventures-data';
+import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -375,6 +377,39 @@ export default function Home() {
 
   // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
   // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
+  const handleQuickStartOnboarding = useCallback(
+    (adventureId: string, characterId: string) => {
+      // 1. Ustaw przygodę
+      const adv = BUILT_IN_ADVENTURES.find((a) => a.id === adventureId);
+      if (adv) {
+        setAdventureContext(adv);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('adventure_context', JSON.stringify(adv));
+        }
+      }
+
+      // 2. Ustaw postać z presetów
+      const preset = PREDEFINED_CHARACTERS.find((c) => c.id === characterId);
+      if (preset) {
+        const stamped: Character = {
+          ...preset,
+          id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        };
+        const updatedList = [...charMgmt.characters, stamped];
+        charMgmt.setCharacters(updatedList);
+        charMgmt.setActiveCharacter(stamped);
+        try {
+          const { persistCharacters } = require('@/lib/character-cloud-sync');
+          persistCharacters(updatedList);
+        } catch {
+          // fallback lokalny
+        }
+      }
+      setShowFirstRunWizard(false);
+    },
+    [charMgmt]
+  );
+
   // nakłada overlay i licznik kosztów liczy świeższymi stawkami. Błąd = cisza (bundled).
   useEffect(() => {
     fetch('/api/pricing/refresh', { headers: getApiKeyHeaders() }).catch(
@@ -702,6 +737,7 @@ export default function Home() {
               await firstRun.refresh();
               setShowFirstRunWizard(false);
             }}
+            onQuickStart={handleQuickStartOnboarding}
             onClose={() => setShowFirstRunWizard(false)}
           />
 

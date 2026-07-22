@@ -11,6 +11,7 @@ import {
 import { StepGeminiKey } from './steps/step-gemini-key';
 import { StepContentSources } from './steps/step-content-sources';
 import { StepUploadRulebook } from './steps/step-upload-rulebook';
+import { StepWelcomeGM } from './steps/step-welcome-gm';
 import { hasRequiredKeys } from '@/lib/api-keys-service';
 import { ScrollText } from 'lucide-react';
 
@@ -20,27 +21,31 @@ interface FirstRunWizardProps {
   gated: boolean;
   /** Po pomyślnym wgraniu podręcznika (page robi refresh + odblokowanie). */
   onCompleted: () => void;
+  /** Szybki start z wybraną przygodą i postacią. */
+  onQuickStart?: (adventureId: string, characterId: string) => void;
   /** Zamknięcie (dozwolone tylko gdy !gated). */
   onClose: () => void;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 const STEPS: { n: Step; label: string }[] = [
   { n: 1, label: 'Klucz' },
   { n: 2, label: 'Podręcznik' },
   { n: 3, label: 'Wgraj' },
+  { n: 4, label: 'Start' },
 ];
 
 /**
  * Fala 2 - kreator pierwszego uruchomienia ("Strażnik Tajemnic", produkt B).
- * 3 kroki: klucz Gemini → skąd wziąć podręcznik → wgraj PDF (indeks lokalny).
+ * 4 kroki: klucz Gemini → skąd wziąć podręcznik → wgraj PDF → powitanie MG i start.
  * RAG jest lokalny - PDF gracza ląduje jako data/rag/rules.*, bez chmury.
  */
 export function FirstRunWizard({
   open,
   gated,
   onCompleted,
+  onQuickStart,
   onClose,
 }: FirstRunWizardProps) {
   const localMode = process.env.NEXT_PUBLIC_LOCAL_MODE === 'true';
@@ -53,28 +58,34 @@ export function FirstRunWizard({
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      if (gated) return; // mandatory gate - ignoruj próby zamknięcia
+      if (gated && step < 4) return; // mandatory gate - ignoruj próby zamknięcia przed zakończeniem
       onClose();
     }
+  };
+
+  const handleUploadedRulebook = () => {
+    onCompleted();
+    setStep(4);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         size="wide"
-        className="bg-gradient-to-b from-card to-background border border-brass/40 shadow-[0_0_30px_rgba(0,0,0,0.55)] deco-corners"
-        onEscapeKeyDown={(e) => gated && e.preventDefault()}
-        onPointerDownOutside={(e) => gated && e.preventDefault()}
-        onInteractOutside={(e) => gated && e.preventDefault()}
+        className="bg-gradient-to-b from-card to-background border border-brass/40 shadow-[0_0_30px_rgba(0,0,0,0.55)] deco-corners max-w-2xl"
+        onEscapeKeyDown={(e) => gated && step < 4 && e.preventDefault()}
+        onPointerDownOutside={(e) => gated && step < 4 && e.preventDefault()}
+        onInteractOutside={(e) => gated && step < 4 && e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-display uppercase tracking-[0.12em] text-foreground text-xl">
             <ScrollText className="w-6 h-6 text-brass" />
-            Pierwsze uruchomienie
+            {step === 4 ? 'Witaj w grze' : 'Pierwsze uruchomienie'}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Trzy kroki do pierwszej sesji: klucz Google, skąd wziąć podręcznik i
-            wgranie własnego PDF. Twój podręcznik zostaje na Twoim dysku.
+            {step === 4
+              ? 'Wybierz tryb rozpoczęcia nowej przygody z Wirtualnym Mistrzem Gry.'
+              : 'Wprowadzenie: klucz Google, źródło zasad i wgranie własnego pliku PDF na Twój dysk.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +129,18 @@ export function FirstRunWizard({
           {step === 3 && (
             <StepUploadRulebook
               onBack={() => setStep(2)}
-              onUploaded={onCompleted}
+              onUploaded={handleUploadedRulebook}
+            />
+          )}
+          {step === 4 && (
+            <StepWelcomeGM
+              onQuickStart={(advId, gender) => {
+                if (onQuickStart) onQuickStart(advId, gender);
+                onClose();
+              }}
+              onManualStart={() => {
+                onClose();
+              }}
             />
           )}
         </div>
