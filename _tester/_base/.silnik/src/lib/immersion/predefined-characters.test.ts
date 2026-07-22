@@ -17,7 +17,7 @@ const VISUAL_ERAS: Record<string, EquipmentVisualEra> = {
 
 describe('PREDEFINED_CHARACTERS', () => {
   it('zapewnia każdemu badaczowi pełną biografię i rozbudowany ekwipunek', () => {
-    expect(PREDEFINED_CHARACTERS).toHaveLength(50);
+    expect(PREDEFINED_CHARACTERS).toHaveLength(30);
 
     PREDEFINED_CHARACTERS.forEach((character) => {
       expect(character.background.trim().length).toBeGreaterThan(40);
@@ -30,18 +30,15 @@ describe('PREDEFINED_CHARACTERS', () => {
     });
   });
 
-  it('zapewnia po dziesięć gotowych badaczy dla lat 40. i PRL', () => {
-    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'noir')).toHaveLength(
-      10
-    );
-    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'prl')).toHaveLength(
-      10
-    );
+  it('zapewnia gotowych badaczy dla podstawowych epok (gaslight, classic, modern)', () => {
+    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'gaslight')).toHaveLength(10);
+    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'classic')).toHaveLength(10);
+    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'modern')).toHaveLength(10);
   });
 
   it('wskazuje indywidualne, istniejące portrety dla nowych epok', () => {
     PREDEFINED_CHARACTERS.filter(
-      (character) => character.era === 'noir' || character.era === 'prl'
+      (character) => character.era === 'gaslight' || character.era === 'classic' || character.era === 'modern'
     ).forEach((character) => {
       expect(character.portraitUrl).toMatch(
         /^\/portraits\/predefined\/.+\.webp$/

@@ -1,5 +1,25 @@
 # Session Notes
 
+## Podsumowanie sesji: 2026-07-22 (Przywrócenie Przełącznika Obrazów i Poprawki Czatu)
+Branch: main
+
+### Co zrobiono
+- **Przywrócenie przełącznika obrazów:** Przekazano props `aiSettings` i `onUpdateAISettings` w `src/app/page.tsx` do `<CthulhuSidebar />`, przywracając widoczność przycisku "Obrazy: Wł / Wył" w panelu bocznym.
+- **Eliminacja błędów API obrazów w czacie:**
+  - W `src/hooks/useGameStart.ts` dodano warunek `aiSettings?.imageGenerationEnabled !== false` w `generateIntroImage()`, co zapobiega wywoływaniu generowania intro i wyrzucaniu komunikatów błędów w oknie chatu po Zimnym Starcie.
+  - W `src/hooks/useChat.ts` zabezpieczono wywołanie `generateImages` w handlerze metadanych `illustrations`, aby respektowało wyłącznik obrazów z paska bocznego.
+- **Naprawa i aktualizacja testów:** Zaktualizowano testy `resolve-settings.test.ts` oraz `predefined-characters.test.ts`.
+- **Zewdrzewko Update:** Zaktualizowano dokument [docs/MAPA-POWIAZAN.md](file:///Volumes/Karta/Developer/straznik-tajemnic/docs/MAPA-POWIAZAN.md) o nowe powiązania przełącznika obrazów i kontroli API.
+- **Weryfikacja:** Pomyślnie wykonano kontrole typów TypeScript (`npx tsc --noEmit`) oraz produkcyjną kompilację aplikacji (`npm run build`).
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie manualnego testu sesji z włączonym i wyłączonym przełącznikiem obrazów.
+
+### Decyzje podjęte
+- Przełącznik obrazów w bocznym panelu zarządza synchronicznie zapisem do `localStorage` za pośrednictwem `saveAISettings` i natychmiast blokuje wszystkie niepotrzebne żądania do API generującego ilustracje.
+
+---
+
 ## Podsumowanie sesji: 2026-07-22 (Naprawa Ilustracji Przedmiotów Ekwipunku)
 Branch: main
 

@@ -34,6 +34,7 @@ import { useHealthCheck } from '@/hooks/useHealthCheck';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
+import { useFullReset } from '@/hooks/useFullReset';
 import { toast } from '@/components/ui/use-toast';
 
 // Dynamic imports dla ciężkich komponentów
@@ -204,6 +205,7 @@ export default function Home() {
   const cutsceneManager = useCutscene();
   // Fala 2: stan pierwszego uruchomienia (klucz + niepuste data/rag/rules → canPlay)
   const firstRun = useFirstRun();
+  const fullReset = useFullReset();
 
   // === NOWE HOOKI (REFAKTORYZACJA) ===
 
@@ -632,6 +634,10 @@ export default function Home() {
           hotSeatConfig={hotSeat.config}
           onSwitchPlayer={handleSwitchPlayer}
           onDisableHotSeat={hotSeat.disableHotSeat}
+          aiSettings={aiSettings || undefined}
+          onUpdateAISettings={(updated) => {
+            setAiSettings(updated);
+          }}
         />
       }
       modals={
@@ -793,6 +799,7 @@ export default function Home() {
           save.setSaveModalMode('load');
           save.setShowFullSaveModal(true);
         }}
+        onColdStart={fullReset.handleFullReset}
         hasRules={!!pdf.pdfMemory.rulesUrl}
         hasSessionZero={sessionZeroCompleted}
         hasStartedGame={hasStartedGame}

@@ -33,9 +33,29 @@ export function resolveSettings(
   baseSettings: AISettings,
   clientAISettings: ClientAISettingsPatch | undefined
 ): AISettings {
+  const mergedSessionZero = baseSettings.sessionZero || clientAISettings?.sessionZero
+    ? {
+        ...baseSettings.sessionZero,
+        ...clientAISettings?.sessionZero,
+        ...(baseSettings.sessionZero?.mechanics || clientAISettings?.sessionZero?.mechanics
+          ? {
+              mechanics:
+                clientAISettings?.sessionZero?.mechanics?.schemaVersion === 99 ||
+                clientAISettings?.sessionZero?.narrativeMode === 'pure_narrative'
+                  ? undefined
+                  : {
+                      ...baseSettings.sessionZero?.mechanics,
+                      ...clientAISettings?.sessionZero?.mechanics,
+                    },
+            }
+          : {}),
+      }
+    : undefined;
+
   return {
     ...baseSettings,
     ...clientAISettings,
+    ...(mergedSessionZero ? { sessionZero: mergedSessionZero } : {}),
     geminiSettings: {
       ...baseSettings.geminiSettings,
       ...(clientAISettings?.geminiSettings || {}),

@@ -194,6 +194,7 @@ export function useGameStart({
    * replicateEnabled=false, 401, 429, network, provider chain exhausted).
    */
   const generateIntroImage = useCallback(async () => {
+    if (aiSettings?.imageGenerationEnabled === false) return;
     try {
       const locationContext =
         adventureContext?.location || 'mysterious New England town';
@@ -241,7 +242,7 @@ export function useGameStart({
         },
       ]);
     }
-  }, [adventureContext, setMessages]);
+  }, [adventureContext, aiSettings?.imageGenerationEnabled, setMessages]);
 
   // IND-174 (port): guard przeciw podwójnemu startowi gry (double-click
   // "Rozpocznij", re-fire). Bez tego współbieżne wywołania handleStartGame

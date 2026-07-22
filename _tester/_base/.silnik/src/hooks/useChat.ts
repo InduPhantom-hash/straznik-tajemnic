@@ -704,7 +704,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               );
             }
 
-            if (metadata.illustrations && metadata.illustrations.length > 0) {
+            if (
+              options.aiSettings?.imageGenerationEnabled !== false &&
+              metadata.illustrations &&
+              metadata.illustrations.length > 0
+            ) {
               const now = Date.now();
               // IND-259: throttle zależny od trybu narracji + suwaka częstotliwości
               // (ten sam poziom co prompt). Mniej narracji = krótsza przerwa.

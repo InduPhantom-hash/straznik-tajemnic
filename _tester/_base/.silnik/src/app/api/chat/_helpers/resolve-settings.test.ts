@@ -1,5 +1,5 @@
 import { defaultAISettings } from '@/lib/ai-settings/defaults';
-import type { AISettings } from '@/lib/ai-settings/types';
+import type { AISettings, SessionZeroSettings } from '@/lib/ai-settings/types';
 import { resolveSettings, type ClientAISettingsPatch } from './resolve-settings';
 
 const sessionZero = {
@@ -33,7 +33,7 @@ function createBaseSettings(): AISettings {
 describe('resolveSettings Session Zero merge', () => {
   it('deep merges a partial Session Zero patch without losing mechanics', () => {
     const result = resolveSettings(createBaseSettings(), {
-      sessionZero: { playerName: 'Bartek' },
+      sessionZero: { playerName: 'Bartek' } as unknown as SessionZeroSettings,
     });
 
     expect(result.sessionZero).toEqual({
@@ -63,7 +63,7 @@ describe('resolveSettings Session Zero merge', () => {
 
   it('keeps pure narrative free of mechanics after a partial client patch', () => {
     const result = resolveSettings(createBaseSettings(), {
-      sessionZero: { narrativeMode: 'pure_narrative' },
+      sessionZero: { narrativeMode: 'pure_narrative' } as unknown as SessionZeroSettings,
     });
 
     expect(result.sessionZero).toMatchObject({
