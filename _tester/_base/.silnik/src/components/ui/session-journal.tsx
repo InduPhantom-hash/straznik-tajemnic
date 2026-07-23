@@ -16,8 +16,9 @@ import {
   Circle,
   Download,
 } from 'lucide-react';
-import { InvestigatorBoard } from './investigator-board';
-import { EvidenceNode, EvidenceRelation, InvestigatorBoardState } from '@/types/investigator-board';
+import { CorkboardInvestigationBoard } from './journal/corkboard-investigation-board';
+import { InspectionLightboxModal } from '../dialogs/inspection-lightbox-modal';
+import { EvidenceNode, EvidenceRelation, InvestigatorBoardState, BoardViewport } from '@/types/investigator-board';
 import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
 import type { JournalEntry, JournalEventType, Character } from '@/lib/types';
 
@@ -126,6 +127,10 @@ export function SessionJournal({
   const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>(
     savedBoardState?.relations || []
   );
+  const [boardViewport, setBoardViewport] = useState<BoardViewport>(
+    savedBoardState?.viewport || { zoom: 1, panX: 0, panY: 0 }
+  );
+  const [inspectedNode, setInspectedNode] = useState<EvidenceNode | null>(null);
 
   // Funkcja pomocnicza zapisująca zaktualizowaną tablicę badacza do postaci
   const syncInvestigatorBoard = useCallback(
@@ -602,13 +607,44 @@ export function SessionJournal({
           {/* 0. SEKCJA TABLICY BADACZA */}
           {activeTab === 'board' && (
             <div className="flex-1 flex flex-col overflow-hidden">
-              <InvestigatorBoard
+              <CorkboardInvestigationBoard
                 nodes={boardNodes}
                 relations={boardRelations}
                 onUpdateNodes={handleUpdateNodes}
                 onUpdateRelations={handleUpdateRelations}
+                viewport={boardViewport}
+                onUpdateViewport={(v) => {
+                  setBoardViewport(v);
+                  syncInvestigatorBoard(boardNodes, boardRelations);
+                }}
+                journalEntries={entries.map((e) => ({
+                  id: e.id,
+                  title: e.title,
+                  content: e.content,
+                  type: e.type,
+                  imageUrl: (e as unknown as Record<string, string>).imageUrl,
+                }))}
+                onInspectNode={(node) => setInspectedNode(node)}
               />
             </div>
+          )}
+
+          {/* Inspection Lightbox Modal */}
+          {inspectedNode && (
+            <InspectionLightboxModal
+              node={inspectedNode}
+              onClose={() => setInspectedNode(null)}
+              onUpdateNode={(updatedNode) => {
+                const updatedNodes = boardNodes.map((n) => n.id === updatedNode.id ? updatedNode : n);
+                handleUpdateNodes(updatedNodes);
+                setInspectedNode(updatedNode);
+              }}
+              onDeleteNode={(nodeId) => {
+                handleUpdateNodes(boardNodes.filter((n) => n.id !== nodeId));
+                handleUpdateRelations(boardRelations.filter((r) => r.fromNodeId !== nodeId && r.toNodeId !== nodeId));
+                setInspectedNode(null);
+              }}
+            />
           )}
 
           {/* 1. SEKCJA MISJI */}

@@ -24,6 +24,7 @@ const nodeTypeLabels: Record<EvidenceNodeType, { label: string; color: string }>
   suspect: { label: 'POSTAĆ / PODEJRZANY', color: 'border-[#a84d4d] bg-[#241010]' },
   location: { label: 'LOKACJA', color: 'border-[#5c8a47] bg-[#12210e]' },
   artifact: { label: 'ARTEFAKT MITÓW', color: 'border-[#8e4a96] bg-[#1e1024]' },
+  player_note: { label: 'NOTATKA GRACZA', color: 'border-[#6b7280] bg-[#1a1a1e]' },
 };
 
 const statusIcons: Record<EvidenceNodeStatus, React.ReactNode> = {

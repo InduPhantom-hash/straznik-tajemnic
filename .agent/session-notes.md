@@ -74,7 +74,6 @@ Branch: main
 ### Decyzje podjęte
 - Osadzenie Fazy Rozwoju CoC 7e bezpośrednio w oknie czatu jako interaktywna karta inline pod finałową wiadomością MG zamiast przesłaniania ekranu modalem.
 
-
 ## Podsumowanie sesji: 2026-07-23 (CHA-01)
 Branch: main
 
@@ -128,4 +127,21 @@ Branch: main
 ### Decyzje podjęte
 - Zachowano próg 25 znaków na pauzie interpunkcyjnej dla pierwszego segmentu zdania, co gwarantuje natychmiastową reakcję bez ryzykownych skoków liczby zapytań API do Gemini.
 
+## Podsumowanie sesji: 2026-07-23 (EPIC-01 Tablica Badacza od zera)
+Branch: main
 
+### Co zrobiono
+- **[EPIC-01] Przebudowa Dziennika & Tablicy Badacza od zera (Punkt 7 z `bug.md`)**:
+  - Wykonano pełen cykl od `/dev-1-research` do `/dev-6-end` dla ostatniego punktu 7 z pliku `bug.md`.
+  - **Nowy komponent `CorkboardInvestigationBoard`**: Stworzono trwałe płótno korkowe o oknach 2400x1600px z kartami o losowych rotacjach (`rotation` -4..4 deg), 3D pineskami z gradientem i cieniem oraz natywnym pozycjonowaniem przez PointerEvents (`setPointerCapture`) zapewniającym 60 FPS.
+  - **Sznurki Beziera SVG**: Zaimplementowano zakrzywione czerwone sznurki Beziera SVG ze zwisem grawitacyjnym (`sag = Math.min(80, Math.max(20, distance * 0.15))`), podwójną warstwą z cieniem oraz edycją etykiet w modalu UI.
+  - **Szuflada Poszlak (Evidence Drawer)**: Boczny wysuwany panel z zakładkami Kronika / Ekwipunek i filtrem wyszukiwania pozwalający przypinać dowolne notatki, poszlaki i przedmioty na tablicę.
+  - **Inspection Lightbox Modal**: Zbudowano pełnoekranowy lightbox z mosiężną ramką Art Déco do badania szczegółów poszlak, zoomowania skanów grafik, edycji obserwacji badacza i zmiany statusu hipotezy (*Potwierdzona / Hipoteza / Obalona*).
+  - **Utrwalanie stanu & Czyszczenie**: Zapewniono pełny zapis stanu `investigatorBoard` w kasecie postaci `Character` oraz save'ach gry (`FullGameSave`). Usunięto przestarzały, bezstanowy wykres `evidence-graph-view.tsx`.
+  - **Weryfikacja**: `npx tsc --noEmit` PASS (0 błędów w kodzie EPIC-01), Jest PASS (9/9 testów passed w `session-journal.test.tsx` oraz `shared-adventure-journal.test.ts`).
+
+### Co otwarte
+- Wszystkie punkty z pliku `bug.md` (od UI-01 do EPIC-01) zostały w 100% rozwiązane i przetestowane.
+
+### Decyzje podjęte
+- Użyto wyłącznie natywnych mechanizmów React 19 + SVG Overlay bez wprowadzania zewnętrznych bibliotek (React Flow/Konva), zapewniając zero dodatkowych zależności i idealny klimat Lovecraftowski.
