@@ -69,24 +69,23 @@ export function MessageCard({
     >
       <CardContent className="py-3 overflow-hidden">
         <div className="flex items-start gap-3">
-          <Avatar className="w-8 h-8 mt-1">
+          <Avatar className="w-12 h-16 rounded-sm border border-brass/40 shadow-md shrink-0 mt-0.5">
             {message.role === 'assistant' ? (
               /* MG - ikona kostki K10 */
-              <AvatarFallback className="bg-primary/15 text-primary border border-primary/50">
-                <Dices className="w-4 h-4" />
+              <AvatarFallback className="bg-primary/15 text-primary border border-primary/50 rounded-none w-full h-full">
+                <Dices className="w-5 h-5" />
               </AvatarFallback>
             ) : (
-              /* Gracz - portret postaci lub inicjały. Portret z useResolvedPortrait
-                 (fallback IndexedDB), bo activeCharacter.portraitUrl bywa pusty po
-                 offloadzie - inaczej awatar przy wiadomościach zostawał na 👤. */
+              /* Gracz - portret postaci retro prostokątny. */
               <>
                 {(playerPortraitUrl ?? activeCharacter?.portraitUrl) && (
                   <AvatarImage
                     src={playerPortraitUrl ?? activeCharacter?.portraitUrl}
                     alt={activeCharacter?.name || 'Portret gracza'}
+                    className="object-cover rounded-none w-full h-full"
                   />
                 )}
-                <AvatarFallback className="text-xs">
+                <AvatarFallback className="text-xs rounded-none">
                   {getAuthorInitials(message, activeCharacter)}
                 </AvatarFallback>
               </>

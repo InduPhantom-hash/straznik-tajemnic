@@ -43,7 +43,6 @@ import { StatBars } from './components/stat-bars';
 import { SheetVitals } from './components/sheet-vitals';
 import { SheetSkills } from './components/sheet-skills';
 import { SheetRelations } from './components/sheet-relations';
-import { SheetEquipment } from './components/sheet-equipment';
 import { SheetBiography } from './components/sheet-biography';
 
 /** Separator déco - gradient-linie + obrócone romby (wzorzec _KONWENCJE). */
@@ -182,7 +181,7 @@ export function CharacterSheet({
                 })}
               </div>
             )}
-            <Button variant="outline" size="sm" onClick={handleExportMarkdown}>
+            <Button variant="outline" size="sm" onClick={handleExportMarkdown} className="-mt-1">
               <Download className="h-4 w-4 mr-2" />
               Eksport MD
             </Button>
@@ -238,9 +237,6 @@ export function CharacterSheet({
 
               {/* SEKCJA 5: UMIEJĘTNOŚCI */}
               <SheetSkills character={display} />
-
-              {/* SEKCJA 7: EKWIPUNEK (broń z pełną statystyką + wyposażenie) */}
-              <SheetEquipment character={display} onItemClick={setSelectedItem} />
 
               {/* SEKCJA 8: BIOGRAFIA */}
               <SheetBiography character={display} />

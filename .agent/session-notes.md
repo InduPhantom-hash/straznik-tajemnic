@@ -25,3 +25,17 @@ Branch: main
 
 ### Decyzje podjęte
 - Powiązanie legitymacji prasowych/dowodów z `character.portraitUrl` i fallbackiem na sylwetkę z epoki.
+
+## Podsumowanie sesji: 2026-07-23
+Branch: main
+
+### Co zrobiono
+- [UI-01] Header Bar UI & Jawna Pogoda: Miejsce · Region (Kawiarnia Dormand’s · Boston) oraz słowna pogoda/księżyc w CampaignClock.
+- [UI-02] Przycisk Eksport MD: przesunięto w górę w CharacterSheet (-mt-1).
+- [UI-03] Dublowany Ekwipunek: usunięto SheetEquipment z Karty Postaci.
+- [UI-04] Retro Portrety: zmiana awatara czatu z kółka na prostokątną ramkę retro.
+- [UI-05] Full-Screen Inspector: przebudowa EquipmentDetailDialog na nakładkę z createPortal.
+- [UI-06] Odznaka NEW: usunięto cyfrę 8, dodano dynamiczną odznakę NEW dla ekwipunku.
+
+### Co otwarte
+- Pozostałe punkty z bug.md (TTS, Faza Rozwoju, Grafik ekwipunku).

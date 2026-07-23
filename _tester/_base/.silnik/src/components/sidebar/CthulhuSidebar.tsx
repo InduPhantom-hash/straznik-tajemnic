@@ -152,8 +152,11 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   const [adventureContext, setAdventureContext] =
     useState<AdventureContext | null>(null);
 
-  // System notyfikacji - nowe pozycje w dzienniku
+  // System notyfikacji - nowe pozycje w dzienniku i ekwipunku
   const [unseenJournalCount, setUnseenJournalCount] = useState(0);
+  const [seenEquipmentCount, setSeenEquipmentCount] = useState<number>(
+    () => activeCharacter?.equipment?.length ?? 0
+  );
 
   // Portret do panelu postaci - dociągany z IndexedDB gdy portraitUrl pusty
   // (wyścig hydratacji po starcie/wczytaniu gry, IND-262). Wspólna logika z
@@ -423,29 +426,33 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               <div className="space-y-1">
                 {playerTools.map((item) => {
                   const IconComponent = item.icon;
-                  // Pobierz liczbę nowych pozycji dla badge
-                  const badgeCount =
-                    item.id === 'journal'
-                      ? unseenJournalCount
-                      : item.id === 'equipment' && activeCharacter?.equipment
-                      ? activeCharacter.equipment.length
-                      : 0;
+                  const currentEquipmentLength = activeCharacter?.equipment?.length ?? 0;
+                  const isEquipment = item.id === 'equipment';
+                  const isJournal = item.id === 'journal';
+                  
                   return (
                     <Button
                       key={item.id}
                       variant="ghost"
                       className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
                       onClick={() => {
+                        if (isEquipment) {
+                          setSeenEquipmentCount(currentEquipmentLength);
+                        }
                         setInspectedCharacterId(activeCharacter?.id);
                         setOpenDialog(item.id);
                       }}
                     >
                       <IconComponent className="w-4 h-4 mr-3 text-brass" />
                       {item.label}
-                      {/* Badge z liczbą nowych pozycji lub liczby ekwipunku */}
-                      {badgeCount > 0 && (
-                        <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 ${item.id === 'equipment' ? 'bg-brass/20 text-brass border border-brass/40' : 'bg-red-500 text-white'}`}>
-                          {badgeCount > 99 ? '99+' : badgeCount}
+                      {isEquipment && currentEquipmentLength > seenEquipmentCount && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase rounded bg-emerald-500 text-black px-1.5 py-0.5 animate-pulse shadow">
+                          NEW
+                        </span>
+                      )}
+                      {isJournal && unseenJournalCount > 0 && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-red-500 text-white">
+                          {unseenJournalCount > 99 ? '99+' : unseenJournalCount}
                         </span>
                       )}
                     </Button>

@@ -40,8 +40,8 @@ export function ChatHeader({
   // zasiał currentLocation regionem (do 1. [LOKACJA:]) lub gdy AI powtórzy region.
   const location =
     regionLabel && place && place !== regionLabel
-      ? `${regionLabel} · ${place}`
-      : regionLabel || place || '';
+      ? `${place} · ${regionLabel}`
+      : place || regionLabel || '';
 
   return (
     <div className="relative grid h-16 grid-cols-[minmax(10rem,0.8fr)_minmax(0,1.6fr)_auto] items-center gap-4 border-b border-brass/30 bg-card px-6">

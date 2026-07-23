@@ -10,7 +10,7 @@ jest.mock('../../../ui/campaign-clock', () => ({
 describe('ChatHeader', () => {
   it('shows the complete region and current place without an artificial width limit', () => {
     const location =
-      'Region Huancayo/Huancavelica (La Mejorada, Yauli) · Inkaskie grobowce pod stacją kolejową';
+      'Inkaskie grobowce pod stacją kolejową · Region Huancayo/Huancavelica (La Mejorada, Yauli)';
 
     render(
       <ChatHeader

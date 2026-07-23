@@ -9,6 +9,8 @@ import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { DiegeticDocumentViewer } from './diegetic-document-viewer';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 
+import { createPortal } from 'react-dom';
+
 interface EquipmentDetailDialogProps {
   item: EquipmentItem | null;
   onClose: () => void;
@@ -60,6 +62,16 @@ export function EquipmentDetailDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeCharacter, setActiveCharacter] = useState<Character | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     try {
@@ -75,7 +87,7 @@ export function EquipmentDetailDialog({
     }
   }, []);
 
-  if (!item) return null;
+  if (!item || !mounted) return null;
 
   const isDocument = item.category === 'document' || item.category === 'artifact' || item.category === 'occult' || item.isReadable;
 
@@ -85,7 +97,6 @@ export function EquipmentDetailDialog({
     setErrorMsg(null);
 
     try {
-      // Pobieramy dane z localStorage tak jak w page.tsx
       const characterSaved = localStorage.getItem('characters');
       const activeCharId = localStorage.getItem('active_character_id');
       let activeChar: Character | null = null;
@@ -138,20 +149,20 @@ export function EquipmentDetailDialog({
     }
   };
 
-  return (
+  const dialogContent = (
     <div
-      className="fixed inset-0 z-[100] flex justify-center bg-black/75 backdrop-blur-sm py-6 md:py-8 px-4 overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-8 overflow-y-auto"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="deco-corners flex flex-col bg-[#16130f] border border-brass/40 w-full max-w-lg h-fit p-6 relative"
+        className="deco-corners flex flex-col bg-[#120e0a] border-2 border-brass/60 w-full max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl"
       >
         {/* Narożniki Deco */}
-        <span className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/60 pointer-events-none" />
-        <span className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-brass/60 pointer-events-none" />
-        <span className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-brass/60 pointer-events-none" />
-        <span className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/60 pointer-events-none" />
+        <span className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-brass/80 pointer-events-none" />
+        <span className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-brass/80 pointer-events-none" />
+        <span className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-brass/80 pointer-events-none" />
+        <span className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-brass/80 pointer-events-none" />
 
         <div className="flex items-start justify-between gap-3 mb-4">
           <h3 className="font-serif text-2xl text-foreground">
@@ -281,5 +292,9 @@ export function EquipmentDetailDialog({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(dialogContent, document.body)
+    : null;
 }
 
