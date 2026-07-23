@@ -20,7 +20,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
   // ERA: LATA 90. XIX WIEKU (1890s / Gaslight) - 8 POSTACI
   // ==========================================================================
 
-  // --- ARCHETYP: ŚLEDÇZY (Investigator) ---
+  // --- ARCHETYP: ŚLEDĆZY (Investigator) ---
   {
     id: 'pref_arthur_pendleton_1890s',
     era: 'gaslight',
@@ -640,7 +640,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
   // ERA: LATA 20. XX WIEKU (1920s / Classic) - 8 POSTACI
   // ==========================================================================
 
-  // --- ARCHETYP: ŚLEDÇZY (Investigator) ---
+  // --- ARCHETYP: ŚLEDĆZY (Investigator) ---
   {
     id: 'pref_tommy_obrien_1920s',
     era: 'classic',
@@ -1209,11 +1209,14 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       'Lekarka psychiatra z Arkham Sanitarium. Specjalizuje się w przypadkach katatonii, fobii zbiorowych i halucynacji. Wykorzystuje psychoanalizę do poszukiwania ukrytych motywów lęku.',
     birthplace: 'Boston, USA',
     residence: 'Arkham, French Hill',
+    characterConcept: 'Psychoanalityczka zgłębiająca sekrety ludzkiego umysłu i granice obłędu.',
+    ideology: 'Szaleństwo nie jest chaosem; to tylko nieznana matryca mowy, którą musimy naukowo odszyfrować.',
+    significantPerson: 'Zbiegły pacjent Robert Jackson, którego rysunki geometrii gwiezdnej stanowią klucz do jej badań nad omamami.',
     meaningfulLocation: 'Cichy, wyciszony gabinet terapeutyczny w Arkham Sanitarium.',
-    treasuredPossession: 'Notes z zapiskami snów pacjentów.',
+    treasuredPossession: 'Notes w skórzanej oprawie z zapiskami snów i majaczeń pacjentów.',
     traits: ['Cierpliwa', 'Uważna', 'Wnikliwa'],
     description: 'Spokojna kobieta o badawczym spojrzeniu i chłodnym głosie. Zawsze ma przy sobie notes i ołówek do spisywania reakcji rozmówców.',
-    backstory: 'Evelyn Sterling bada przypadki nagłych załamań nerwowych u mieszkańców Arkham. Odkryła, że wielu pacjentów bez kontaktu ze sobą powtarza te same słowa w nieznanym języku (F\'thagn) i rysuje tę samą geometryczną figurę.',
+    backstory: 'Evelyn Sterling bada przypadki nagłych załamań nerwowych u mieszkańców Arkham. Odkryła, że wielu pacjentów bez kontaktu ze sobą powtarza te same słowa w nieznanym języku akadyjskim oraz rysuje tę samą figurę geometryczną na ścianach izolatek.\n\n[Kluczowa więź: Notes z zapiskami snów pacjentów - zbiór unikalnych przesłanek o nawracających koszmarach.]',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -1261,7 +1264,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
   // ERA: WSPÓŁCZESNOŚĆ (Modern) - 8 POSTACI
   // ==========================================================================
 
-  // --- ARCHETYP: ŚLEDÇZY (Investigator) ---
+  // --- ARCHETYP: ŚLEDĆZY (Investigator) ---
   {
     id: 'pref_david_miller_modern',
     era: 'modern',
@@ -1378,6 +1381,66 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
+    notes: 'Mistrzyni hakowania, dyskrecji oraz walki wręcz obronnej.',
+    experience: {
+      totalXP: 0,
+      availableXP: 0,
+      earnedThisSession: 0,
+      maxEarnedThisSession: 0,
+    },
+    developmentHistory: [],
+    skills: {
+      Komputery: 70,
+      Skradanie: 65,
+      Spostrzegawczość: 60,
+      'Broń Palna (Krótka)': 55,
+      Psychologia: 55,
+      'Walka Wręcz': 50,
+      Ślusarstwo: 45,
+      Unik: 35,
+    },
+    equipment: [
+      {
+        id: 'eq_chloe_glock',
+        name: 'Pistolet Glock 19',
+        category: 'weapon',
+        description: 'Niezawodny pistolet 9mm.',
+        modifiers: { damage: '1d10', range: '15 yards' },
+      },
+      {
+        id: 'eq_chloe_laptop',
+        name: 'Zabezpieczony Ultrabook',
+        category: 'tool',
+      },
+      { id: 'eq_chloe_kit', name: 'Zestaw cyber-śledczy', category: 'tool' },
+    ],
+  },
+
+  // --- ARCHETYP: UCZONY (Scholar) ---
+  {
+    id: 'pref_eric_carter_modern',
+    era: 'modern',
+    archetype: 'scholar',
+    name: 'Prof. Eric Carter',
+    occupation: 'Archeolog',
+    age: 48,
+    gender: 'male',
+    portraitUrl: '/portraits/predefined/eric-carter.webp',
+    str: 55,
+    dex: 55,
+    con: 60,
+    app: 50,
+    pow: 65,
+    edu: 80,
+    siz: 60,
+    int: 75,
+    luck: 55,
+    hp: 12,
+    maxHp: 12,
+    san: 65,
+    maxSan: 99,
+    mp: 13,
+    maxMp: 13,
     background:
       'Profesor archeologii cyfrowej na Uniwersytecie Harvarda. Łączy archeologię terenową z fotogrametrią 3D i skanowaniem laserowym LiDAR. Zasłynął odkryciem nieznanych dotąd ruin sakralnych w górskich rejonach Ameryki Południowej.',
     birthplace: 'Boston, USA',
@@ -1761,12 +1824,17 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     mp: 15,
     maxMp: 15,
     background:
-    significantPerson: 'Jej brat, naukowiec pracujący w laboratorium biochemicznym, który wspiera ją w badaniach.',
-    meaningfulLocation: 'Cichy, jasny gabinet z wygodną leżanką terapeutyczną.',
-    treasuredPossession: 'Tablet zawierający unikalne bazy danych o snach pacjentów.',
+      'Neurobiolożka i psychoterapeutka kliniczna w Bostonie. Prowadzi badania nad mechanizmami obronnymi mózgu u pacjentów dotkniętych głębokim wstrząsem psychicznym i zaburzeniami percepcji.',
+    birthplace: 'Londyn, Anglia',
+    residence: 'Boston, USA',
+    characterConcept: 'Wybitna terapeutka zgłębiająca traumę i nieznane zakamarki ludzkiego umysłu.',
+    ideology: 'Zrozumienie struktury lęku pozwala uzdrowić nawet najbardziej okaleczoną psychikę.',
+    significantPerson: 'Dr Vikram Patel, brat i biochemik, pomagający jej przy syntezie leków wyciszających stany urojeniowe.',
+    meaningfulLocation: 'Cichy gabinet terapeutyczny w Bostonie z oświetleniem punktowym i wygodną sofą.',
+    treasuredPossession: 'Zabezpieczony biometrycznie tablet z zaszyfrowanym rejestrem anomalii neurogennych u pacjentów.',
     traits: ['Wnikliwa', 'Empatyczna', 'Opanowana'],
-    description: 'Kobieta o łagodnych rysach twarzy, ciemnych, spiętych włosach i spokojnym, kojącym głosie.',
-    backstory: 'Dr Patel badała ofiary masowej paniki w metrze. Odkryła u wszystkich badanych pacjentów niemal identyczne anomalie w obszarze płata skroniowego oraz powtarzające się koszmary przedstawiające geometryczne miasto o nienaturalnej architekturze.',
+    description: 'Kobieta o spokojnym, głębokim głosie i spiętych czarnych włosach. Jej spojrzenie budzi poczucie bezpieczeństwa i zaufania.',
+    backstory: 'Dr Patel prowadziła psychoterapię świadków incydentu w bostońskim metrze. Analiza fal mózgowych pacjentów wykazała identyczne wyładowania bioelektryczne powiązane z nawracającymi wizjami morskiego miasteczka.\n\n[Kluczowa więź: Brat Dr Vikram Patel - bliski sojusznik w naukowej pracy nad lekami.]',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -1939,8 +2007,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
       Okultyzm: 60,
       Perswazja: 65,
       Psychologia: 60,
-      Spostrzegawczosc: 55,
-      Nasluchiwanie: 60,
+      Spostrzegawczość: 55,
+      Nasłuchiwanie: 60,
       'Urok Osobisty': 55,
       'Korzystanie z Bibliotek': 40,
       Historia: 35,

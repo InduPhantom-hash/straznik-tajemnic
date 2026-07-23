@@ -75,3 +75,21 @@ Branch: main
 - Osadzenie Fazy Rozwoju CoC 7e bezpośrednio w oknie czatu jako interaktywna karta inline pod finałową wiadomością MG zamiast przesłaniania ekranu modalem.
 
 
+## Podsumowanie sesji: 2026-07-23 (CHA-01)
+Branch: main
+
+### Co zrobiono
+- **[CHA-01] Rozbudowa Biografie Predefiniowanych Postaci (Punkt 4 z `bug.md`)**:
+  - Wykonano pełny cykl `/dev-1` do `/dev-6` dla zadania rozbudowy biografii predefiniowanych postaci.
+  - Przepisano opisy tła, wyglądu, ideologii, ważnych osób, znaczących miejsc i cennego przedmiotu dla wszystkich 30 postaci predefiniowanych we wszystkich 3 epokach (Gaslight 1890s, Classic 1920s, Modern).
+  - Każda postać otrzymała bogaty, wieloakapitowy biogram w klimacie CoC 7e z wyraźnie wydzieloną adnotacją `\n\n[Kluczowa więź: <Nazwa/Opis> - <uzasadnienie>]`.
+  - Wyeliminowano literówki w przymiotnikach (`Prezyzyzyjny` $\rightarrow$ `Precyzyjny`) oraz nagłówkach sekcji (`ŚLEDÇZY` $\rightarrow$ `ŚLEDĆZY`).
+  - Ujednolicono klucze umiejętności u postaci (np. `Spostrzegawczość`, `Nasłuchiwanie`).
+  - Dokonano zsynchronizowania zmian do pliku produkcyjnego (`src/lib/immersion/predefined-characters.ts`) oraz lustrzanego pliku silnika (`_tester/_base/.silnik/src/lib/immersion/predefined-characters.ts`).
+  - Testy: `npm test -- predefined-characters.test.ts` w `_tester/_base/.silnik` $\rightarrow$ **PASS (4/4 testów passed)**.
+
+### Co otwarte
+- Punkty z `bug.md`: [TTS-01] do [TTS-04] Lektor & synteza audio, [LNG-01]/[LNG-02] Prompty systemowe metryczne i polszczyzna.
+
+### Decyzje podjęte
+- Zachowano pełną zgodność z istniejącym API `PredefinedCharacter` i unikatowymi portretami/lokalną ikonografią bez modyfikacji identyfikatorów postaci ani statystyk mechanicznych.
