@@ -112,3 +112,20 @@ Branch: main
 ### Decyzje podjęte
 - Zamieszczenie dyrektyw językowych w sztywno doklejanych sekcjach `Lovecraft Style Guide` i `GM Protocol` w `prompts-generator.ts`, aby uniemożliwić ich przypadkowe wyłączenie z poziomu ustawień gracza.
 
+## Podsumowanie sesji: 2026-07-23 (TTS-01 do TTS-04)
+Branch: main
+
+### Co zrobiono
+- **[TTS-01] Instant Streaming (Szybki start lektora):** Obniżono próg wczesnego startu pierwszego segmentu z 40 do 25 znaków i rozszerzono terminatory pauz o interpunkcję `, : ; ! ? .`, umożliwiając start lektora po 2-3s na początku wprowadzenia sesji.
+- **[TTS-02] Naprawa Multi-Voice dla NPC:** Wprowadzono funkcję `resolveNpcVoice()` odporną na tytuły (*Inspektor*, *Profesor*, *Doktor*) oraz częściowe dopasowania imienia/nazwiska NPC.
+- **[TTS-03] Polskie Znaki Diakrytyczne:** Osłonięto UTF-8 i polskie litery w `text-cleaner.ts`.
+- **[TTS-04] Duchowe Zdania (Ghost Sentences):** Rozbudowano filtrowanie tagów systemowych (`[POSTAĆ:]`, `[EKSPOZYCJA:]`, `[KLIMAT:]` itp.) przed podaniem bufora do TTS.
+- **Testy i Weryfikacja:** Utworzono test jednostkowy `src/tests/unit/tts-cleaner.test.ts` $\rightarrow$ **PASS (7/7 testów passed)**.
+
+### Co otwarte
+- Wszystkie zgłoszone w `bug.md` punkty 1-6 zostały w pełni rozwiązane. Osobny Epik 7 (Tablica Badacza) pozostaje zaplanowany na osobną sesję.
+
+### Decyzje podjęte
+- Zachowano próg 25 znaków na pauzie interpunkcyjnej dla pierwszego segmentu zdania, co gwarantuje natychmiastową reakcję bez ryzykownych skoków liczby zapytań API do Gemini.
+
+

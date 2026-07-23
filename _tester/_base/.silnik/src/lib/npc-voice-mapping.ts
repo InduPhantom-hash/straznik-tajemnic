@@ -308,3 +308,49 @@ export function loadNpcVoiceMap(): Map<string, string> {
 
   return map;
 }
+
+/**
+ * Wyszukuje głos NPC z mapy na podstawie nazwy mówcy (z uwzględnieniem tytułów, częściowych nazw i dopasowania imienia/nazwiska).
+ */
+export function resolveNpcVoice(
+  speakerName: string,
+  npcVoiceMap: Map<string, string>
+): string | undefined {
+  if (!speakerName || npcVoiceMap.size === 0) return undefined;
+
+  const rawLower = speakerName.trim().toLowerCase();
+  const directMatch = npcVoiceMap.get(rawLower);
+  if (directMatch) return directMatch;
+
+  const cleanName = rawLower.replace(
+    /^(doktor|dr|profesor|prof|inspektor|insp|kapitan|kap|pan|pani|panna|ojciec|brat|siostra|sierżant|detektyw)\.?\s+/i,
+    ''
+  );
+
+  if (cleanName && npcVoiceMap.has(cleanName)) {
+    return npcVoiceMap.get(cleanName);
+  }
+
+  const words = (cleanName || rawLower)
+    .split(/\s+/)
+    .filter((w) => w.length >= 3);
+
+  for (const [key, voiceId] of npcVoiceMap) {
+    const keyClean = key.replace(
+      /^(doktor|dr|profesor|prof|inspektor|insp|kapitan|kap|pan|pani|panna|ojciec|brat|siostra|sierżant|detektyw)\.?\s+/i,
+      ''
+    );
+    for (const word of words) {
+      if (
+        keyClean === word ||
+        keyClean.startsWith(word) ||
+        keyClean.endsWith(word) ||
+        keyClean.includes(word)
+      ) {
+        return voiceId;
+      }
+    }
+  }
+
+  return undefined;
+}

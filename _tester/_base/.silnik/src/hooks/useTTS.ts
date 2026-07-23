@@ -8,7 +8,7 @@ import { loadAISettings } from '@/lib/ai-settings';
 // Sesja 147 Faza 2: multi-voice WRACA dla preset=ultra (słuchowisko radiowe).
 // 2026-07-22: rozszerzone na HIGH (multi-voice NPC + parser `Imię: „dialog”`
 // obok legacy `@Imię:`). MID/LOW wciąż jednym głosem narratora.
-import { loadNpcVoiceMap } from '@/lib/npc-voice-mapping';
+import { loadNpcVoiceMap, resolveNpcVoice } from '@/lib/npc-voice-mapping';
 
 interface QueueItem {
   text: string;
@@ -85,7 +85,7 @@ const TRANSIENT_RETRY_WAIT_MS = 400; // backoff dla 500/503/network
  * szybko; reszta akapitu dociąga normalnym batchem (spójna prozodia dalej).
  * Próg ~jedno krótkie zdanie - chroni przed mikro-blipem audio ("Wchodzisz.").
  */
-const EARLY_FIRST_SEGMENT_MIN_CHARS = 40;
+const EARLY_FIRST_SEGMENT_MIN_CHARS = 25;
 
 /**
  * IND-191: fetch TTS z ponowieniem. Zwraca `audioUrl` albo `null` (segment niemy -
@@ -541,16 +541,7 @@ export function useTTS(): UseTTSReturn {
 
           if (markerMatch) {
             const npcName = markerMatch[2].trim();
-            voiceId = npcVoiceMap.get(npcName.toLowerCase());
-            if (!voiceId) {
-              const firstName = npcName.split(/\s+/)[0];
-              for (const [key, val] of npcVoiceMap) {
-                if (key.startsWith(firstName.toLowerCase())) {
-                  voiceId = val;
-                  break;
-                }
-              }
-            }
+            voiceId = resolveNpcVoice(npcName, npcVoiceMap);
             textForQueue = markerMatch[3].trim() || sentence;
           }
           // Bez kontynuacji - każde zdanie dialogu ma własny marker per gm-protocol.
@@ -593,8 +584,8 @@ export function useTTS(): UseTTSReturn {
           processedSentenceCountRef.current === 0
         ) {
           const firstPara = paragraphs[0];
-          // Koniec ostatniego pełnego zdania pierwszego akapitu (terminator . ! ?).
-          const sentenceEndRegex = /[.!?](?=\s|$)/g;
+          // Koniec ostatniego pełnego zdania lub klauzuli pierwszego akapitu (terminator . ! ? , : ;).
+          const sentenceEndRegex = /[.!?,:;](?=\s|$)/g;
           let lastSentenceEnd = 0;
           let m;
           while ((m = sentenceEndRegex.exec(firstPara)) !== null) {

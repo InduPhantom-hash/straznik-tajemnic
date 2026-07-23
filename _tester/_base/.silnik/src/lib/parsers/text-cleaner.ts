@@ -49,6 +49,7 @@ export function cleanResponseText(text: string): string {
       .replace(new RegExp(`\\[NASTRÓJ:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(new RegExp(`\\[CEL_NARRACYJNY:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(/\[NPC:[^\]]*\]/gi, '')
+      .replace(/\[POSTAĆ:[^\]]*\]/gi, '')
       .replace(/\[LOKACJA:[^\]]*\]/gi, '')
       .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
@@ -56,6 +57,8 @@ export function cleanResponseText(text: string): string {
       .replace(/\[SANITY:[^\]]*\]/gi, '')
       .replace(/\[DZIENNIK:[^\]]*\]/gi, '')
       .replace(/\[\/DZIENNIK\]/gi, '')
+      .replace(/\[EKSPOZYCJA:[^\]]*\]/gi, '')
+      .replace(/\[KLIMAT:[^\]]*\]/gi, '')
       // Catch-all: dowolny [TAG...], z wyjątkiem oficjalnych tagów audio Gemini TTS ([whispers], [trembling] itp.)
       .replace(/\[(?!(?:whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow)\])[^\]]*\]/gi, '')
       // Markdown removal
