@@ -93,3 +93,22 @@ Branch: main
 
 ### Decyzje podjęte
 - Zachowano pełną zgodność z istniejącym API `PredefinedCharacter` i unikatowymi portretami/lokalną ikonografią bez modyfikacji identyfikatorów postaci ani statystyk mechanicznych.
+
+## Podsumowanie sesji: 2026-07-23 (LNG-01 & LNG-02)
+Branch: main
+
+### Co zrobiono
+- **[LNG-01] Obowiązkowy System Metryczny & [LNG-02] Zero Ponglish & Poprawna Polszczyzna (Punkt 6 z `bug.md`)**:
+  - Wykonano pełny cykl od `/dev-1-research` do `/dev-6-end` dla punktu 6 w `bug.md`.
+  - `_tester/_base/.silnik/src/lib/lovecraft-style-guide.ts`: Dodano sekcję 12 (`[LNG-01] OBOWIĄZKOWY SYSTEM METRYCZNY`) oraz sekcję 13 (`[LNG-02] ZERO PONGLISH & POPRAWNA POLSZCZYZNA`) nakazujące bezwzględne przeliczanie stóp, mil i funtów na metry, km i kg oraz zakazujące angielskich wtrąceń i kalk gramatycznych.
+  - `_tester/_base/.silnik/src/lib/prompts/gm-protocol.ts`: Dodano sekcję `A-BIS` w instrukcjach narracji tekstowej z przypomnieniem wymogów metrycznych i poprawności językowej.
+  - Ochrona TTS: Obie dyrektywy wyłączają angielskie tagi syntezatora mowy TTS w nawiasach kwadratowych `[...]` (np. `[whispers]`, `[trembling]`), gwarantując poprawne działanie głosów Gemini.
+  - `_tester/_base/.silnik/src/lib/ai-settings/prompts-generator.test.ts` [NEW]: Utworzono test jednostkowy Jest sprawdzający, czy wygenerowany system prompt oraz protokół GM zawierają dyrektywy `LNG-01` i `LNG-02`.
+  - Weryfikacja: `npm test -- prompts-generator.test.ts` $\rightarrow$ **PASS (3/3 testów passed)**.
+
+### Co otwarte
+- Punkty z `bug.md`: [TTS-01] do [TTS-04] Lektor & synteza audio.
+
+### Decyzje podjęte
+- Zamieszczenie dyrektyw językowych w sztywno doklejanych sekcjach `Lovecraft Style Guide` i `GM Protocol` w `prompts-generator.ts`, aby uniemożliwić ich przypadkowe wyłączenie z poziomu ustawień gracza.
+
