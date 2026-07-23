@@ -16,7 +16,9 @@ import {
   Image as ImageIcon,
   LogOut,
   Flame,
+  Hourglass,
 } from 'lucide-react';
+import type { SessionEndStatus } from '@/hooks/useChat';
 import NextImage from 'next/image';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -99,6 +101,7 @@ interface CthulhuSidebarProps {
   aiSettings?: AISettings;
   onUpdateAISettings?: (settings: AISettings) => void;
   isSessionEnded?: boolean;
+  sessionEndStatus?: SessionEndStatus;
 }
 
 export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
@@ -142,6 +145,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   aiSettings,
   onUpdateAISettings,
   isSessionEnded = false,
+  sessionEndStatus = 'idle',
 }) => {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
@@ -482,7 +486,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
 
               {/* Create New Character / Koniec Sesji */}
               {activeCharacter ? (
-                isSessionEnded ? (
+                isSessionEnded || sessionEndStatus === 'ended' ? (
                   <Button
                     disabled
                     variant="outline"
@@ -491,6 +495,16 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   >
                     <LogOut className="w-4 h-4 mr-2 text-zinc-500" />
                     Sesja Zamknięta 🔒
+                  </Button>
+                ) : sessionEndStatus === 'awaiting_player_closure' ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full border-amber-500/60 text-amber-300 bg-amber-950/20 font-special-elite animate-pulse cursor-wait"
+                    title="Trwa domykanie sesji. Wpisz swoją finałową akcję w czacie."
+                  >
+                    <Hourglass className="w-4 h-4 mr-2 animate-spin text-amber-400" />
+                    Oczekiwanie na słowo gracza...
                   </Button>
                 ) : (
                   <Button

@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar';
 import { NarrativeFormatter } from '../../NarrativeFormatter';
 import { SkillTestCard } from './skill-test-card';
 import { AcquiredItemCard } from './acquired-item-card';
+import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
 import type { Character, Message } from '@/lib/types';
 import type { SkillTestData } from '@/lib/parsers/types';
@@ -45,6 +46,9 @@ interface MessageCardProps {
   completedTestIds?: ReadonlySet<string>;
   onConfirmAcquiredItem?: (messageId: string, proposalId: string) => void;
   onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
+  isSessionEnded?: boolean;
+  isLastMessage?: boolean;
+  onCharacterUpdate?: (char: Character) => void;
 }
 
 export function MessageCard({
@@ -62,6 +66,9 @@ export function MessageCard({
   completedTestIds,
   onConfirmAcquiredItem,
   onDismissAcquiredItem,
+  isSessionEnded = false,
+  isLastMessage = false,
+  onCharacterUpdate,
 }: MessageCardProps) {
   return (
     <Card
@@ -151,13 +158,22 @@ export function MessageCard({
                   playerColors={playerColors}
                   onImageClick={onImageClick}
                 />
-                {message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') && (
-                  <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
-                    <p className="font-semibold text-red-400 mb-1">𓂀 KRONIKA ZAPISANA 𓂀</p>
-                    <p className="italic">
-                      "Mrok nie śpi, a cienie Arkham wydłużają się w nieskończoność. Dziękujemy za wspólną sesję..."
-                    </p>
-                  </div>
+                {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
+                  <>
+                    <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
+                      <p className="font-semibold text-red-400 mb-1">𓂀 KRONIKA ZAPISANA 𓂀</p>
+                      <p className="italic">
+                        "Mrok nie śpi, a cienie Arkham wydłużają się w nieskończoność. Dziękujemy za wspólną sesję..."
+                      </p>
+                    </div>
+
+                    {activeCharacter && onCharacterUpdate && (
+                      <DevelopmentPhaseCard
+                        character={activeCharacter}
+                        onCharacterUpdate={onCharacterUpdate}
+                      />
+                    )}
+                  </>
                 )}
               </>
             ) : (

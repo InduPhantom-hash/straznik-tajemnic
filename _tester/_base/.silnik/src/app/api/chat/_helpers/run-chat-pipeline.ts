@@ -262,9 +262,13 @@ export async function runChatPipeline({
     characters,
   });
 
-  if (message.includes('[KONIEC_SESJI]')) {
+  if (message.includes('[KONIEC_SESJI:FINAL]') || message.includes('[KONIEC_SESJI_FINAL]')) {
     additionalContext.push(
-      '[INSTRUKCJA SPECJALNA - KONIEC SESJI]: Gracz zgłosił zakończenie sesji. Zakończ fabułę NAGLE. Utnij akcję w piku emocjonalnym (cliffhanger). Stwórz niepokojące, mroczne pytanie dramaturgiczne zawieszone w próżni (np. "Czy zdołasz otworzyć te drzwi, zanim..." lub "W ułamku sekundy światło gaśnie..."). Na samym końcu wypowiedzi, w osobnej linii, wypisz DOKŁADNIE: [KONIEC_SESJI:POTWIERDZENIE]. Nie dodawaj pytania "Co robisz?".'
+      '[INSTRUKCJA SPECJALNA - KONIEC SESJI (KROK 2 - FINAŁ)]: To jest ostatnia tura gracza w tej sesji. Uwzględnij jego finałową akcję, napisz klimatyczny epilog / monolog podsumowujący sesję w stylu Lovecrafta, zakończony niepokojącym cliffhangerem lub refleksją badacza. Na samym końcu wypowiedzi, w osobnej linii, wypisz DOKŁADNIE: [KONIEC_SESJI:POTWIERDZENIE]. NIE dodawaj pytania "Co robisz?".'
+    );
+  } else if (message.includes('[KONIEC_SESJI]')) {
+    additionalContext.push(
+      '[INSTRUKCJA SPECJALNA - KONIEC SESJI (KROK 1 - DOMKNIĘCIE SCENY)]: Gracz zgłosił chęć zakończenia sesji. Zmierzaj do domknięcia bieżącej sceny i postaw gracza przed ostatnią, finałową decyzją lub gestem w tej sesji. Zakończ wypowiedź otwartym pytaniem [Co robisz?]. ABSOLUTNIE NIE wypisuj tagu [KONIEC_SESJI:POTWIERDZENIE].'
     );
   }
 

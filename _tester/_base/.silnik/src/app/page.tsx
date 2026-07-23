@@ -673,6 +673,8 @@ export default function Home() {
           onUpdateAISettings={(updated) => {
             setAiSettings(updated);
           }}
+          isSessionEnded={chat.isSessionEnded}
+          sessionEndStatus={chat.sessionEndStatus}
         />
       }
       modals={
@@ -857,6 +859,9 @@ export default function Home() {
         hasStartedGame={hasStartedGame}
         onOpenApiKeys={() => setShowApiKeysModal(true)}
         hotSeatConfig={hotSeat.config}
+        isSessionEnded={chat.isSessionEnded}
+        sessionEndStatus={chat.sessionEndStatus}
+        onCharacterUpdate={charMgmt.handleUpdateCharacter}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector

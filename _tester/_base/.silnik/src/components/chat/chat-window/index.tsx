@@ -78,6 +78,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onConfirmAcquiredItem,
   onDismissAcquiredItem,
   isSessionEnded,
+  sessionEndStatus,
+  onCharacterUpdate,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -231,7 +233,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               characters={characters}
             />
           ) : (
-            messages.map((message) => (
+            messages.map((message, index) => (
               <MessageCard
                 key={message.id}
                 message={message}
@@ -251,6 +253,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                 onRollTest={handleRollTest}
                 onConfirmAcquiredItem={onConfirmAcquiredItem}
                 onDismissAcquiredItem={onDismissAcquiredItem}
+                isSessionEnded={isSessionEnded}
+                isLastMessage={index === messages.length - 1}
+                onCharacterUpdate={onCharacterUpdate}
               />
             ))
           )}
@@ -287,6 +292,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             index: i,
           }))}
           isSessionEnded={isSessionEnded}
+          sessionEndStatus={sessionEndStatus}
         />
       )}
       {/* Image Lightbox */}

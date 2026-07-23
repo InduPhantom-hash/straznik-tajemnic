@@ -56,3 +56,22 @@ Branch: main
 ### Decyzje podjęte
 - Wykorzystano istniejącą infrastrukturę `visualSource` do oznaczania fallbacku zamiast wprowadzania dodatkowych zoptymalizowanych flag stanu.
 
+## Podsumowanie sesji: 2026-07-23 (LOG-01)
+Branch: main
+
+### Co zrobiono
+- **[LOG-01] Dwuetapowy Przepływ "Koniec Sesji" & Faza Rozwoju CoC 7e**:
+  - Wykonano pełen cykl od `/dev-1-research` do `/dev-6-end` dla punktu 3 z `bug.md`.
+  - Backend (`run-chat-pipeline.ts` & `default-gm-prompt.md`): Dwuetapowy protokół – Krok 1 (`[KONIEC_SESJI]`) domyka scenę pytaniem `[Co robisz?]` bez tagu potwierdzenia. Krok 2 (`[KONIEC_SESJI:FINAL]`) po finałowym słowie gracza generuje Lovecraftowski monolog z cliffhangerem i dopisuje `[KONIEC_SESJI:POTWIERDZENIE]`.
+  - Frontend State (`useChat.ts` & `page.tsx`): Wprowadzono typ i stan `sessionEndStatus` (`'idle' | 'awaiting_player_closure' | 'ended'`) z przekazaniem do `CthulhuSidebar` oraz `ChatWindow`.
+  - Sidebar & Input (`CthulhuSidebar.tsx` & `MessageInput.tsx`): Przycisk przejść (Koniec Sesji ➔ Oczekiwanie na słowo gracza... ➔ Sesja Zamknięta 🔒) z dedykowanym placeholderem w inpucie.
+  - Development Phase Inline (`DevelopmentPhaseCard.tsx` & `MessageCard.tsx`): Zbudowano komponent inline Fazy Rozwoju CoC 7e (rzuty +1K10% na oznaczone `[✓]`, bonus SAN +2K6 za 90%+, odzysk Szczęścia 1K10, Samopomoc oraz podziękowanie/zapis) osadzony pod banerem Kroniki po zamykającej wiadomości MG.
+  - Testy: Napisano `cleanup.test.ts` oraz `useChat.session-end.test.ts`. `npx tsc --noEmit` PASS (0 błędów), Jest PASS (5/5).
+
+### Co otwarte
+- Punkty w `bug.md`: [CHA-01] Rozbudowa biografii postaci, [TTS-01] do [TTS-04] Lektor & synteza audio, [LNG-01]/[LNG-02] Prompty systemowe metryczny/polszczyzna.
+
+### Decyzje podjęte
+- Osadzenie Fazy Rozwoju CoC 7e bezpośrednio w oknie czatu jako interaktywna karta inline pod finałową wiadomością MG zamiast przesłaniania ekranu modalem.
+
+

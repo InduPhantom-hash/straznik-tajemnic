@@ -237,6 +237,8 @@ export interface PdfMemory {
   lastUpdated?: string;
 }
 
+export type SessionEndStatus = 'idle' | 'awaiting_player_closure' | 'ended';
+
 export interface UseChatReturn {
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
@@ -274,6 +276,8 @@ export interface UseChatReturn {
   dismissAcquiredItem: (messageId: string, proposalId: string) => void;
   /** Stan informujący o zakończeniu sesji gier po tagu [KONIEC_SESJI:POTWIERDZENIE] */
   isSessionEnded: boolean;
+  /** Dwuetapowy stan końca sesji (idle | awaiting_player_closure | ended) */
+  sessionEndStatus: SessionEndStatus;
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
@@ -365,11 +369,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSessionEnded, setIsSessionEnded] = useState(false);
+  const [sessionEndStatus, setSessionEndStatus] = useState<SessionEndStatus>('idle');
   const [lastImageTime, setLastImageTime] = useState(0);
 
   useEffect(() => {
     if (messages.length === 0) {
       setIsSessionEnded(false);
+      setSessionEndStatus('idle');
     }
   }, [messages.length]);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
@@ -539,6 +545,15 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // jedyną linią obrony.
       if (isLoading) return;
 
+      if (message.includes('[KONIEC_SESJI]')) {
+        setSessionEndStatus('awaiting_player_closure');
+      }
+
+      let outgoingApiMessage = message;
+      if (sessionEndStatus === 'awaiting_player_closure' && !message.includes('[KONIEC_SESJI]')) {
+        outgoingApiMessage = `${message}\n[KONIEC_SESJI:FINAL]`;
+      }
+
       const currentGameTime = timeManager.getTime();
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -570,38 +585,24 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         role: 'assistant',
         content: '',
         timestamp: new Date(),
-        gameTime: currentGameTime, // Początkowo ten sam czas, przy streamingu można by to zaktualizować (choć aktualnie Cthulhu-AI nie zarządza czasem wewnątrz streama w ten sposób)
+        gameTime: currentGameTime,
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
       try {
-        // Zadanie 6: retry na chwilowy blip sieci (1-2 próby, krótki backoff).
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message,
-            // Demo-blocker fix (re-playtest 2026-06-24): strip base64 data: URL
-            // obrazów z historii. Bez tego intro obraz (~2.4 MB w content) podbijał
-            // input /api/chat ponad limit 1M tokenów → 500 od tury 2.
+            message: outgoingApiMessage,
             messages: sanitizeHistoryForApi([...messages, userMessage]),
             pdfMemory,
-            // Sanityzuj też postać: portret + miniatury ekwipunku to base64 (~MB),
-            // które bez tego podbijają payload > 10 MB → 500 (regresja B2 28.06).
             character: sanitizeCharacterForApi(activeCharacter),
             characters: (characters || []).map((c) => sanitizeCharacterForApi(c) as Character),
             adventureContext,
             gameTime: timeManager.getTime(),
-            // IND-267: bieżąca lokacja (z poprzedniej tury) → build-context.ts wstrzykuje
-            // ją do promptu, by MG był spójny co do miejsca, w którym jest bohater.
             currentLocation: currentLocationRef.current,
             aiSettings: options.aiSettings,
-            // Faza 3 Hot Seat: wzbogać każdego gracza o characterName (lookup
-            // characterId → character.name). build-context.ts czyta `characterName`,
-            // a HotSeatPlayer w configu ma tylko `characterId` - bez tego mapowania
-            // adresowanie @ImięPostaci w duecie nigdy by nie ruszyło. Gdy characterId
-            // jeszcze nie wskazuje istniejącej postaci → characterName undefined (JSON
-            // je pomija) → blok duetu w build-context się nie wstrzykuje (poprawnie).
             hotSeatConfig: resolveHotSeatCharacterNames(
               hotSeatConfig,
               characters
@@ -611,19 +612,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
         if (!response.ok) throw new Error('Błąd połączenia');
 
-        // Użyj uniwersalnego parsera SSE.
-        // IND-256: `streamedFullText` akumuluje pełny tekst z onText, by onMetadata
-        // mógł go użyć BEZ czytania zewnętrznego `fullText`. `const fullText` jest
-        // przypisywany dopiero po ZAKOŃCZENIU parseSSEStream, a onMetadata jest
-        // wywoływane WEWNĄTRZ parsera (przed przypisaniem) → czytanie `fullText`
-        // w onMetadata rzucało TDZ ReferenceError, cicho połykany przez try/catch
-        // parsera, co przerywało onMetadata przed gałęzią generowania obrazów scen.
         let streamedFullText = '';
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
             let cleanText = text;
             if (text.includes('[KONIEC_SESJI:POTWIERDZENIE]')) {
               cleanText = text.replace('[KONIEC_SESJI:POTWIERDZENIE]', '').trimEnd();
+              setSessionEndStatus('ended');
               setIsSessionEnded(true);
             }
             streamedFullText = cleanText;
@@ -889,6 +884,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       lastImageTime,
       onSkillResults,
       hotSeatConfig,
+      sessionEndStatus,
     ]
   );
 
@@ -1155,5 +1151,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     confirmAcquiredItem,
     dismissAcquiredItem,
     isSessionEnded,
+    sessionEndStatus,
   };
 }

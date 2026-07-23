@@ -49,6 +49,7 @@ interface MessageInputProps {
   /** Mapowanie id gracza na index - potrzebne bo plakietki operują na id, a handleSwitchPlayer na index. */
   hotSeatPlayers?: { id: string; name: string; index: number }[];
   isSessionEnded?: boolean;
+  sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
 }
 
 export function MessageInput({
@@ -71,12 +72,13 @@ export function MessageInput({
   onDisableHotSeat,
   hotSeatPlayers,
   isSessionEnded = false,
+  sessionEndStatus = 'idle',
 }: MessageInputProps) {
   // C4: w duecie Enter/klik DOKŁADA deklarację (nie wysyła); solo bez zmian.
   const duetActive = isDuet && !!onAddDeclaration;
 
   const submitInput = () => {
-    if (isSessionEnded) return;
+    if (isSessionEnded || sessionEndStatus === 'ended') return;
     const text = newMessage.trim();
     if (!text) return;
     if (duetActive) {
@@ -96,17 +98,17 @@ export function MessageInput({
       />
 
       {/* Komunikat o zamkniętej sesji */}
-      {isSessionEnded && (
+      {(isSessionEnded || sessionEndStatus === 'ended') && (
         <div className="max-w-4xl mx-auto mb-3 px-4 py-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-amber-200 text-xs font-special-elite flex items-center justify-between shadow-inner">
           <span className="flex items-center gap-2">
-            <span>🔒</span> Sesja została bezpiecznie zamknięta. Zapis gry wykonany automatycznie.
+            <span className="text-base">🔒</span>
+            Sesja została bezpiecznie zamknięta. Postać i historia są zapisane.
           </span>
-          <span className="text-amber-400/80 text-[11px]">Koniec Sesji</span>
         </div>
       )}
 
       {/* C4 (duet): zebrane deklaracje + kto jeszcze nie zadeklarował */}
-      {duetActive && !isSessionEnded && (
+      {duetActive && !isSessionEnded && sessionEndStatus !== 'ended' && (
         <div className="max-w-4xl mx-auto mb-2 flex flex-wrap items-center gap-2 text-xs">
           <div className="flex items-center gap-1.5 font-special-elite uppercase tracking-[0.14em] text-brass/90 mr-1">
             <Users className="w-3.5 h-3.5" />

@@ -98,4 +98,6 @@ export interface ChatWindowProps {
   onConfirmAcquiredItem?: (messageId: string, proposalId: string) => void;
   onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
   isSessionEnded?: boolean;
+  sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
+  onCharacterUpdate?: (char: Character) => void;
 }
