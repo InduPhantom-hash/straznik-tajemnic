@@ -5,13 +5,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { EquipmentItem, EquipmentCategory } from '@/lib/types';
+import { EquipmentItem, EquipmentCategory, EquipmentVisualEra } from '@/lib/types';
 import {
   OCCUPATION_EQUIPMENT,
   findEquipmentByName,
   createEquipmentItem,
   withEquipmentDefaults,
 } from '@/lib/equipment-data';
+import {
+  migrateEquipmentCatalog,
+  CATEGORY_FALLBACK_ASSETS,
+} from '@/lib/equipment-catalog';
 import {
   looksLikeWeapon,
   inferWeaponDamage,
@@ -149,7 +153,20 @@ ${equipment.map((e) => e.name).join('\n')}`;
 
     // Faza 4 (ekonomia RAW): uzupełnij brakujące value (cena referencyjna); wagi nie
     // dopisujemy - zamożność postaci opisuje Credit Rating (lib/economy), nie suma $.
-    const finalEquipment = withEquipmentDefaults(equipment);
+    const processedEquipment = withEquipmentDefaults(equipment);
+    const finalEquipment = (migrateEquipmentCatalog(processedEquipment, era as EquipmentVisualEra) || processedEquipment).map((item) => {
+      if (!item.imageUrl) {
+        const catSvg = CATEGORY_FALLBACK_ASSETS[item.category as EquipmentCategory];
+        if (catSvg) {
+          return {
+            ...item,
+            imageUrl: catSvg,
+            visualSource: 'catalog' as const,
+          };
+        }
+      }
+      return item;
+    });
 
     console.log(
       `✅ Generated ${finalEquipment.length} starting items for ${occupation}`

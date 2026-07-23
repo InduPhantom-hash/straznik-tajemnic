@@ -160,7 +160,36 @@ export function useEquipmentThumbnails({
             adventureTheme,
             character
           );
-          if (!generated) continue;
+          if (!generated) {
+            const fallbackFields = {
+              visualSource: 'fallback' as const,
+            };
+            setCharacters((prevList) => {
+              const updatedList = prevList.map((c) => {
+                if (c.id !== character.id) return c;
+                return {
+                  ...c,
+                  equipment: (c.equipment ?? []).map((it) =>
+                    it.id === item.id ? { ...it, ...fallbackFields } : it
+                  ),
+                };
+              });
+              if (typeof window !== 'undefined') {
+                persistCharacters(updatedList);
+              }
+              return updatedList;
+            });
+            setActiveCharacter((prev) => {
+              if (!prev || prev.id !== character.id) return prev;
+              return {
+                ...prev,
+                equipment: (prev.equipment ?? []).map((it) =>
+                  it.id === item.id ? { ...it, ...fallbackFields } : it
+                ),
+              };
+            });
+            continue;
+          }
 
           const generatedFields = {
             imageUrl: generated.imageUrl,

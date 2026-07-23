@@ -39,3 +39,20 @@ Branch: main
 
 ### Co otwarte
 - Pozostałe punkty z bug.md (TTS, Faza Rozwoju, Grafik ekwipunku).
+
+## Podsumowanie sesji: 2026-07-23 (IMG-01)
+Branch: main
+
+### Co zrobiono
+- Wykonano pełen proces `/dev-1` do `/dev-5` dla punktu 2 w `bug.md` (`[IMG-01] Brakujące Grafiki Przedmiotów / Pętla Generowania`).
+- `_tester/_base/.silnik/src/hooks/useEquipmentThumbnails.ts`: Wyeliminowano pętlę nieudanych zapytań HTTP po błędzie generowania obrazów AI w tle. Dodano natychmiastowe oznaczanie `visualSource: 'fallback'`.
+- `_tester/_base/.silnik/src/lib/equipment-catalog.ts`: Uzupełniono szablony i aliasy polskich nazw przedmiotów startowych (np. *Koperty na dowody*, *Zniszczona odznaka*, *Pistolet sygnalizacyjny* itd.).
+- `src/app/api/equipment/generate-starting/route.ts`: Zintegrowano automatyczne mapowanie grafik statycznych z katalogu `.webp` i ikonek `.svg` przy tworzeniu ekwipunku postaci.
+- `_tester/_base/.silnik/src/lib/types.ts`: Rozszerzono typ `EquipmentVisualSource` o opcję `'fallback'`.
+
+### Co otwarte
+- Pozostałe punkty z bug.md (np. punkt 3 [LOG-01] Dwuetapowy Przepływ "Koniec Sesji" lub punkt 4 [CHA-01]).
+
+### Decyzje podjęte
+- Wykorzystano istniejącą infrastrukturę `visualSource` do oznaczania fallbacku zamiast wprowadzania dodatkowych zoptymalizowanych flag stanu.
+

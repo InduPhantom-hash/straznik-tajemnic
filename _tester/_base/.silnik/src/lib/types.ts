@@ -210,7 +210,7 @@ export type EquipmentVisualEra =
   | 'modern';
 
 /** Pochodzenie grafiki przypisanej do konkretnego egzemplarza przedmiotu. */
-export type EquipmentVisualSource = 'catalog' | 'generated';
+export type EquipmentVisualSource = 'catalog' | 'generated' | 'fallback';
 
 /** Zwykły przedmiot nie może dostać estetyki Mythos tylko przez klimat sesji. */
 export type EquipmentVisualTreatment = 'mundane' | 'supernatural';
