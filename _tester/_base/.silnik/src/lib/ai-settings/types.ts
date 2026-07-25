@@ -185,17 +185,30 @@ export interface AISettings {
   };
 
   // Ustawienia głosu (M3 sesja 146: drop 'elevenlabs' + 'openai' z union per D2)
+  // 2026-07-25: elevenlabs RESTORED dla słuchowiska radiowego (multilingual_v2 + turbo_v2_5)
   voiceSettings: {
     enabled: boolean;
-    provider?: 'google' | 'gemini';
+    provider?: 'google' | 'gemini' | 'elevenlabs';
     narratorOnly: boolean; // Tylko narracje główne
     volume: number; // 0-100
     speed: number; // 0.5-2.0
-    voiceId?: string; // ID głosu z Google TTS
+    voiceId?: string; // ID głosu z Google TTS / Gemini prebuilt
     speakingRate: number; // 0.25-4.0
     pitchControl: number; // -20.0 do +20.0
     style?: string; // Styl mówienia (np. cheerful, sad)
+    // === ElevenLabs-specific (opcjonalne, aktywne gdy provider === 'elevenlabs') ===
+    elevenLabsModelKey?: 'multilingual_v2' | 'turbo_v2_5';
+    elevenLabsVoiceSettings?: {
+      stability?: number; // 0.0-1.0 (niższe = bardziej emocjonalny)
+      similarity_boost?: number; // 0.0-1.0 (wyższe = bliżej oryginału)
+      style?: number; // 0.0-1.0 (ekspresja aktorska)
+      use_speaker_boost?: boolean;
+    };
   };
+
+  // === ELEVENLABS API KEY (BYOK) ===
+  // 2026-07-25: przywrócone dla presetów HIGH/ULTRA (słuchowisko radiowe)
+  elevenLabsApiKey?: string;
 
   // === IMAGE GENERATION (Vertex / Replicate / Gemini) ===
   // IND-91: rename legacy `replicateEnabled` → `imageGenerationEnabled`

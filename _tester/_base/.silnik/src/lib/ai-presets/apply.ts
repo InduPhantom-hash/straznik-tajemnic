@@ -49,6 +49,7 @@ export function applyPreset(
 
     // Voice/TTS - IND-34: + volume/speed/speakingRate/pitchControl (HIGH only, ternary `in s`)
     // IND-165: + provider (HIGH preset migration na 'gemini')
+    // 2026-07-25: + elevenLabsModelKey (HIGH/ULTRA = 'elevenlabs' provider)
     voiceSettings: {
       ...currentSettings.voiceSettings,
       enabled: s.ttsEnabled,
@@ -68,10 +69,12 @@ export function applyPreset(
         'pitchControl' in s
           ? s.pitchControl
           : currentSettings.voiceSettings.pitchControl,
+      // ElevenLabs-specific (opcjonalne, undefined dla presetów bez EL)
+      elevenLabsModelKey:
+        'elevenLabsModelKey' in s
+          ? s.elevenLabsModelKey
+          : currentSettings.voiceSettings.elevenLabsModelKey,
     },
-
-    // M2 sesja 146: elevenLabsSettings merge DROPPED (provider odchodzi per D2).
-    // Migration legacy localStorage → storage.ts M3.
 
     imageGenerationEnabled: s.imagesEnabled,
     // Replicate - IND-34: + style/autoGenerate*/maxImagesPerMessage (HIGH only)

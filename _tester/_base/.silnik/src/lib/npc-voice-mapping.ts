@@ -20,6 +20,26 @@ import {
   type GeminiVoiceRole,
 } from './gemini-voices';
 
+/**
+ * Rozszerzony interfejs konfiguracji głosu NPC (2026-07-25).
+ *
+ * Pozwala na sztywne przypisanie głosu ElevenLabs z parametrami aktorskimi
+ * do konkretnych postaci NPC (efekt słuchowiska radiowego).
+ *
+ * Gdy `provider` nie jest ustawiony, domyślnie stosowany jest Gemini TTS.
+ */
+export interface ElevenLabsNpcVoiceConfig {
+  provider: 'elevenlabs';
+  voiceId: string; // ElevenLabs voice_id (zależny od konta użytkownika)
+  modelKey?: 'multilingual_v2' | 'turbo_v2_5';
+  settings?: {
+    stability?: number; // 0.0-1.0 (niższe = bardziej emocjonalny)
+    similarity_boost?: number; // 0.0-1.0 (wyższe = bliżej oryginału)
+    style?: number; // 0.0-1.0 (ekspresja aktorska)
+    use_speaker_boost?: boolean;
+  };
+}
+
 // PL keywords (occupation/description/personality) wskazujące gender
 const MALE_KEYWORDS = [
   'mężczyzna',

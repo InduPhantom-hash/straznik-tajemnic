@@ -67,8 +67,9 @@ export interface PresetModelInfo {
 }
 
 /**
- * Mapa preset → model + głos. Wartości 1:1 z ai-presets/definitions.ts.
+ * Mapa preset -> model + głos. Wartości 1:1 z ai-presets/definitions.ts.
  * Drift-guard test (model-registry.test.ts) wymusza równość z QUALITY_PRESETS.
+ * 2026-07-25: ttsVoice = fallback voice (Gemini), ttsProvider dodany.
  */
 export const PRESET_MODELS: Record<PresetKey, PresetModelInfo> = {
   low: { chatModel: 'gemini-3.6-flash', ttsVoice: null },

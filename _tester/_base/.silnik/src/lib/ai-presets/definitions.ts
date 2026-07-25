@@ -16,7 +16,7 @@ export const QUALITY_PRESETS = {
   low: {
     name: 'LOW COST',
     description:
-      'Gemini 3.6 Flash + obrazy Gemini, bez lektora - najtańszy (~$0.05-0.10/sesja)',
+      'Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)',
     settings: {
       // Gemini settings - Gemini 3.6 Flash!
       model: 'gemini-3.6-flash' as const, // Ultra-szybki i tani
@@ -34,13 +34,12 @@ export const QUALITY_PRESETS = {
       },
       enableCache: true,
       cacheTTL: 60 * 60 * 1000, // 1h
-      // TTS settings - lektor wyłączony; provider 'gemini' (fork Zew Home ma tylko
-      // jeden klucz Gemini, ścieżka /api/tts/gemini). Spójność z resztą presetów.
+      // TTS settings - lektor wyłączony
       ttsEnabled: false,
       ttsProvider: 'gemini' as const,
       ttsVoice: null,
-      // Image settings - M2 sesja 146: Imagen 4 Fast Tier 1 (~$0.02/obraz, lepszy text rendering vs Flux)
-      imagesEnabled: true,
+      // Image settings - 2026-07-25: pure text, obrazy wyłączone
+      imagesEnabled: false,
       imageProvider: 'vertex' as const,
       imageQuality: 'medium' as const,
       // Narration style
@@ -93,7 +92,7 @@ export const QUALITY_PRESETS = {
   high: {
     name: 'HIGH COST',
     description:
-      'Gemini 2.5 Flash + lektor (Pro/Flash) + obrazy Gemini - zalecany (~$3/sesja)',
+      'Gemini 2.5 Flash + lektor ElevenLabs (hybryda) + obrazy Vertex - słuchowisko (~$3-6/sesja)',
     settings: {
       // === GEMINI SETTINGS ===
       model: 'gemini-2.5-flash' as const, // Stabilny balans (lub gemini-3-flash)
@@ -113,12 +112,14 @@ export const QUALITY_PRESETS = {
       enableCache: true,
       cacheTTL: 60 * 60 * 1000, // 1h
 
-      // === GEMINI TTS (IND-212: Charon - męski głęboki narrator pod Lovecraft, był 'Kore' żeński; auto-route Pro/Flash w useTTS) ===
+      // === ELEVENLABS TTS HYBRYDA (2026-07-25) ===
+      // Main NPC: eleven_multilingual_v2 (pełne emocje aktorskie PL)
+      // Background NPC: eleven_turbo_v2_5 (szybki, 4x tańszy)
+      // Fallback: Gemini TTS Charon (gdy brak klucza ElevenLabs)
       ttsEnabled: true,
-      ttsProvider: 'gemini' as const,
-      ttsVoice: 'Charon',
-      // Sesja 147 Faza 3: HIGH = multi-voice NPC, głosy per marker dialogów.
-      // 2026-07-22: rozszerzone z ULTRA-only na HIGH+ULTRA (parsowanie `Imię: „dialog”`).
+      ttsProvider: 'elevenlabs' as const,
+      ttsVoice: 'Charon', // Gemini fallback voice
+      elevenLabsModelKey: 'multilingual_v2' as const,
       narratorOnly: false,
       volume: 85,
       speed: 0.9,
@@ -152,10 +153,10 @@ export const QUALITY_PRESETS = {
   ultra: {
     name: 'ULTRA',
     description:
-      'Gemini 3.1 Pro + lektor Pro + obrazy Gemini - najwyższa jakość (~$7/sesja)',
+      'Gemini 3.1 Pro + lektor ElevenLabs Pro (pełne słuchowisko radiowe) + obrazy Vertex (~$8-12/sesja)',
     settings: {
       // Gemini settings - maksymalna jakość
-      model: 'gemini-3.1-pro-preview' as const, // IND-222: poprawna nazwa API ('gemini-3.1-pro' = 404 NOT_FOUND), zweryfikowane ListModels + generateContent 200
+      model: 'gemini-3.1-pro-preview' as const, // IND-222: poprawna nazwa API
       temperature: 0.9,
       topP: 0.95,
       topK: 60,
@@ -170,15 +171,14 @@ export const QUALITY_PRESETS = {
       },
       enableCache: true,
       cacheTTL: 2 * 60 * 60 * 1000, // 2h
-      // === GEMINI TTS (demo 2026-06-22: Gacrux - "Mature", głębszy męski narrator
-      //     dla CoC 7e Lovecraft. M9 sesja 146 było Sadaltager (płytszy); A/B z Algenib możliwy.
-      //     Długie monologi → 2.5 Pro w useTTS auto-route)
-      //     Sesja 147 Faza 3: narratorOnly=false = multi-voice słuchowisko radiowe.
-      //     useTTS parsuje @NPCName: markery i wybiera voiceId per NPC z store. ===
+      // === ELEVENLABS TTS FULL PRO (2026-07-25) ===
+      // Wszyscy NPC na eleven_multilingual_v2 z pełnym podbiciem emocji aktorskich.
+      // Fallback: Gemini TTS Gacrux (gdy brak klucza ElevenLabs)
       ttsEnabled: true,
-      ttsProvider: 'gemini' as const,
-      ttsVoice: 'Gacrux', // Mature, głębszy męski narrator (demo 2026-06-22, A/B z Sadaltager/Algenib)
-      narratorOnly: false, // multi-voice ULTRA (jedyny preset ze słuchowiskiem)
+      ttsProvider: 'elevenlabs' as const,
+      ttsVoice: 'Gacrux', // Gemini fallback voice (Mature, głęboki narrator)
+      elevenLabsModelKey: 'multilingual_v2' as const,
+      narratorOnly: false, // pełne słuchowisko radiowe
       // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
       imagesEnabled: true,
       imageProvider: 'vertex' as const,

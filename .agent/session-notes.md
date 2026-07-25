@@ -143,5 +143,31 @@ Branch: main
 ### Co otwarte
 - Wszystkie punkty z pliku `bug.md` (od UI-01 do EPIC-01) zostały w 100% rozwiązane i przetestowane.
 
+
 ### Decyzje podjęte
 - Użyto wyłącznie natywnych mechanizmów React 19 + SVG Overlay bez wprowadzania zewnętrznych bibliotek (React Flow/Konva), zapewniając zero dodatkowych zależności i idealny klimat Lovecraftowski.
+
+## Podsumowanie sesji: 2026-07-25
+Branch: main
+
+### Co zrobiono
+- **ElevenLabs TTS Integration (BYOK)**: Utworzono endpoint `/api/tts/elevenlabs/route.ts` w silniku, zarejestrowano w unified TTS routerze i rozszerzono mapowanie głosów NPC o `ElevenLabsNpcVoiceConfig`.
+- **Przebudowa Presetów Jakości**:
+  - LOW: Pure text (bez lektora, bez obrazów, ultra-tani)
+  - MID: Standard (Gemini TTS Charon)
+  - HIGH: Hybrydowe słuchowisko ElevenLabs (`multilingual_v2` + `turbo_v2_5`)
+  - ULTRA: Pełne słuchowisko ElevenLabs Pro (`multilingual_v2` dla wszystkich mówców)
+- **Fallback TTS**: W `useTTS.ts` dodano przezroczyste przełączanie na Gemini TTS (`Charon`/`Gacrux`) przy braku klucza ElevenLabs w `localStorage` gracza oraz zabezpieczenie przed przesyłaniem nazw głosów Gemini do ElevenLabs API.
+- **Chrome AI Nano (Client-side RAG Reranker)**: Utworzono typy `window-ai.d.ts` oraz kliencki re-ranker `chrome-ai-reranker.ts` wykorzystujący Gemini Nano w Chrome 127+ do bezgłośnego odsiewania szumu tokenowego z RAG.
+- **Drift-guard Test**: Stworzono `model-registry.test.ts` weryfikujący spójność `PRESET_MODELS` i `QUALITY_PRESETS` (PASS).
+- **Zew-update & Zew-zimny**: Zaktualizowano `docs/MAPA-POWIAZAN.md` oraz wykonano pełny reset stanu profilu testowego (`desktop/cold-start.sh`).
+
+### Decyzje podjęte
+- Re-ranker Chrome AI działa w 100% po stronie klienta (privacy-first, zero modyfikacji serwerowego RAG).
+- Dla presetów HIGH/ULTRA domyślnym providerem jest ElevenLabs z automatycznym fallbackiem przy braku klucza.
+
+### Statystyki
+- Zmienione/nowe pliki: 12
+- TypeScript: PASS (0 błędów)
+- Testy: 138 PASS (w tym nowy drift-guard test)
+

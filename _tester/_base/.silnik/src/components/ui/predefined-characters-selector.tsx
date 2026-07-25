@@ -92,7 +92,7 @@ export function PredefinedCharactersSelector({
     'all' | PredefinedCharacterArchetype
   >('all');
   const [selectedEra, setSelectedEra] = useState<PredefinedCharacterEra | null>(
-    currentEra === 'custom' ? null : currentEra
+    currentEra === 'gaslight' || currentEra === 'classic' || currentEra === 'modern' ? currentEra : null
   );
   const [searchQuery, setSearchQuery] = useState('');
 

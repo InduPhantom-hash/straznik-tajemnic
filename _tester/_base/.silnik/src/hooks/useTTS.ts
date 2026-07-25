@@ -306,20 +306,43 @@ export function useTTS(): UseTTSReturn {
           const effectiveVoice =
             overrideVoiceId || currentSettings.voiceSettings?.voiceId || 'Kore';
 
-          // Zew-App-Local: jeden klucz Gemini - cały TTS przez /api/tts/gemini
-          // (Google Cloud TTS wycięty, to osobny klucz). IND-196: model wg ROLI mówcy -
-          // overrideVoiceId (ULTRA multi-voice NPC) → Flash, narrator MG → Flash
-          // (demo HIGH 2026-06-23, był Pro - szybszy lektor). Oba Flash = zero przeskoków.
-          const geminiModel = overrideVoiceId
-            ? TTS_MODEL_NPC
-            : TTS_MODEL_NARRATOR;
-          // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
-          audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
-            text,
-            voice: effectiveVoice,
-            model: geminiModel,
-            languageCode: 'pl-PL',
-          });
+          // Zew-App-Local: wybór providera TTS na podstawie ustawień presetu.
+          // 2026-07-25: obsługa ElevenLabs z fallbackiem na Gemini TTS przy braku klucza.
+          const ttsProvider = currentSettings.voiceSettings?.provider || 'gemini';
+          const hasElevenLabsKey = !!(
+            currentSettings.elevenLabsApiKey ||
+            (typeof window !== 'undefined' && localStorage.getItem('elevenLabsApiKey'))
+          );
+
+          if (ttsProvider === 'elevenlabs' && hasElevenLabsKey) {
+            // ElevenLabs: użyj voice_id z override'u NPC lub właściwego głosu ElevenLabs (nie nazwy Gemini TTS!)
+            const elVoiceId =
+              overrideVoiceId ||
+              (currentSettings.voiceSettings?.voiceId &&
+              !['Charon', 'Gacrux', 'Kore', 'Puck', 'Fenrir', 'Aoede'].includes(currentSettings.voiceSettings.voiceId)
+                ? currentSettings.voiceSettings.voiceId
+                : '21m00Tcm4TlvDq8ikWAM'); // Domyślny głos ElevenLabs (Rachel) jeśli ustawiony był głos Gemini
+
+            const elModelKey = currentSettings.voiceSettings?.elevenLabsModelKey || 'multilingual_v2';
+            audioUrl = await fetchTtsWithRetry('/api/tts/elevenlabs', {
+              text,
+              voice_id: elVoiceId,
+              model: elModelKey,
+              voice_settings: currentSettings.voiceSettings?.elevenLabsVoiceSettings,
+            });
+          } else {
+            // Gemini TTS (domyślny lub fallback z braku klucza ElevenLabs)
+            const geminiModel = overrideVoiceId
+              ? TTS_MODEL_NPC
+              : TTS_MODEL_NARRATOR;
+            // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
+            audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
+              text,
+              voice: effectiveVoice,
+              model: geminiModel,
+              languageCode: 'pl-PL',
+            });
+          }
 
           if (audioUrl) {
             const audio = new Audio(audioUrl);

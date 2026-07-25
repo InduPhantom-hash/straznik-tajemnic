@@ -2,12 +2,13 @@
  * OPT-19: Unified TTS Router
  *
  * Pojedynczy endpoint z parametrem `provider` zamiast osobnych endpointów.
- * Istniejące endpointy (/api/tts/google, /api/tts/gemini) nadal działają
- * dla backward compatibility - ten router jest preferowaną ścieżką.
+ * Istniejące endpointy (/api/tts/google, /api/tts/gemini, /api/tts/elevenlabs)
+ * nadal działają dla backward compatibility - ten router jest preferowaną ścieżką.
  *
- * Usage: POST /api/tts { provider: 'google' | 'gemini', ...params }
+ * Usage: POST /api/tts { provider: 'google' | 'gemini' | 'elevenlabs', ...params }
  *
  * M5+M6 sesja 146: openai + elevenlabs DROPPED per D2.
+ * 2026-07-25: elevenlabs RESTORED (multilingual_v2 + turbo_v2_5) dla słuchowiska radiowego.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         {
-          error: 'Missing "provider" parameter. Use: google, gemini',
+          error: 'Missing "provider" parameter. Use: google, gemini, elevenlabs',
         },
         { status: 400 }
       );
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     const providerRoutes: Record<string, string> = {
       google: '/api/tts/google',
       gemini: '/api/tts/gemini',
+      elevenlabs: '/api/tts/elevenlabs',
     };
 
     const targetPath = providerRoutes[provider.toLowerCase()];
@@ -51,6 +53,9 @@ export async function POST(request: NextRequest) {
         // Forward API key headers if present
         ...(request.headers.get('X-Gemini-Api-Key')
           ? { 'X-Gemini-Api-Key': request.headers.get('X-Gemini-Api-Key')! }
+          : {}),
+        ...(request.headers.get('X-ElevenLabs-Api-Key')
+          ? { 'X-ElevenLabs-Api-Key': request.headers.get('X-ElevenLabs-Api-Key')! }
           : {}),
       },
       body: JSON.stringify(params),
@@ -80,6 +85,7 @@ export async function GET(request: NextRequest) {
   const providerRoutes: Record<string, string> = {
     google: '/api/tts/google',
     gemini: '/api/tts/gemini',
+    elevenlabs: '/api/tts/elevenlabs',
   };
 
   const targetPath = providerRoutes[provider.toLowerCase()];
