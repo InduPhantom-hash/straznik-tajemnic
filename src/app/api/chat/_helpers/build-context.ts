@@ -148,6 +148,22 @@ export function buildAdditionalContext(
     additionalContext.push(playerSkillsSection);
   }
 
+  // Wstrzyknięcie Zasad Inżynierii Narracji, MICE FILO, Psychologicznego Światotwórstwa oraz Budżetu Mikrosceny RPG
+  additionalContext.push(
+    `\n## INŻYNIERIA NARRACJI I BUDŻET ODPOWIEDZI (MIKROSCENA RPG)\n` +
+    `1. BUDŻET WYPOWIEDZI (ZAKAZ ŚCIAN TEKSTU): Każda odpowiedź Mistrza Gry musi być zwięzłą mikrosceną RPG o długości 150–300 słów. Odpowiedź składa się z: (a) 1 zdania zakotwiczenia sensorycznego, (b) 1 akapitu reakcji świata/NPC, (c) 1 akapitu wyniku testu lub poszlaki, (d) 1 jasnego pytania reżyserskiego ("Co robisz?").\n` +
+    `2. KONTROLA ENTROPII I MICE FILO: Zachowuj ścisłą regułę zagnieżdżania wątków FILO (First-In, Last-Out). Nie otwieraj więcej niż 3 równoległych tajemnic bez ich wcześniejszego domknięcia.\n` +
+    `3. 3-POZIOMOWE DAWKOWANIE POSZLAK (CoC 7e):\n` +
+    `   - Sukces Zwykły: Podaj Poszlakę Główną (surowy fakt, śledztwo idzie dalej).\n` +
+    `   - Trudny Sukces: Podaj Kontekst Ekspercki (filtr wykluczający 1 fałszywy trop / Red Herring).\n` +
+    `   - Ekstremalny / Krytyk (01): Podaj Hipotezę Ekspercką na poziomie karty postaci (błysk genialnej dedukcji).\n` +
+    `   - Porażka / Forsowanie (Push Roll): Podaj fakt z kosztem (utrata SAN / czas na zegarze) i udostępnij opcję sforsowania rzutu.\n` +
+    `4. PSYCHOLOGICZNE ŚWIATOTWÓRSTWO (COGNITIVE WORLDBUILDING):\n` +
+    `   - 3-Krokowe Zakotwiczenie Barthesa: Połącz hiperrealistyczny detal somatosensoryczny (faktura metalu, zapach ozonu, odchylenie temperatury) z odczuciem fizycznym postaci, a następnie osadź w nim anomalię.\n` +
+    `   - Spatial Foreshadowing: Koduj anatomię potwora/anomalii w geometrii budynków, kątach ulic i topografii terenu od pierwszych scen.\n` +
+    `   - 4 Fazy Załamania Percepcji: Prowadź percepcję postaci od racjonalizacji (błąd konfirmacji), przez dysonans i zawód narzędzi pomiarowych, po załamanie ramy poznawczej przy teście SAN.`
+  );
+
   // Wstrzykiwanie Ustawy Przygody na podstawie tonu (dynamiczne pacingi z debaty)
   const sessionTone = opts.tone || 'purist';
   if (sessionTone === 'noir') {
