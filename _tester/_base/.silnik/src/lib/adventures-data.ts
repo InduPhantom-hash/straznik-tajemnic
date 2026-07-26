@@ -374,6 +374,8 @@ export const CUSTOM_ADVENTURE_TEMPLATE: AdventureContext = {
 
 export function getAdventureById(id: string): AdventureContext | undefined {
   if (id === 'custom') return CUSTOM_ADVENTURE_TEMPLATE;
+  const strefa11 = STREFA_11_ADVENTURES.find((a) => a.id === id);
+  if (strefa11) return strefa11;
   return BUILT_IN_ADVENTURES.find((a) => a.id === id);
 }
 

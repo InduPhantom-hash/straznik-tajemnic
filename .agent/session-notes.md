@@ -195,6 +195,22 @@ Branch: main
 ### Co otwarte (do następnej sesji)
 - Przeprowadzenie pełnego przeglądu interfejsu wyboru postaci pod kątem wyświetlania nowych rozwiniętych tekstów biografii.
 
-### Decyzje podjęte
-- Zachowano sztywną strukturę pól CoC 7e, nasycając wyłącznie warstwę narracyjno-neurologiczną bez modyfikacji bilansu mechanicznego postaci.
+
+## Podsumowanie sesji: 2026-07-26 (Encyklopedia Aplikacji & Przewodnik Gracza)
+Branch: main
+
+### Co zrobiono
+- **Wdrożenie Encyklopedii Aplikacji & Przewodnika Gracza**:
+  - `src/lib/data/app-help-data.ts`: utworzono ustrukturyzowane opisy interfejsu (Karta Badacza, Dziennik & Tablica Poszlak, Rzuty & Tacka), mechaniki CoC 7E wirtualnego MG oraz poradnika klimatycznego gracza RPG z protipami do rozmawiania z czatem.
+  - `src/components/ui/app-help-modal.tsx`: zbudowano responsywny modal z 3 zakładkami i klimatyczną oprawą Art Déco / Cthulhu Dark.
+  - [CthulhuSidebar.tsx](file:///Volumes/Karta/Developer/straznik-tajemnic/src/components/sidebar/CthulhuSidebar.tsx): dodano przycisk "Pomoc & Przewodnik" w sekcji Ustawienia i zamontowano modal.
+- **Weryfikacja**:
+  - Pomyślnie przeszły testy budowania Next.js & TypeScript (`npm run build`).
+  - Git: commit `db5c4b0` zrealizowany i zpushowany na `origin/main`.
+
+### Podjęte decyzje
+- Zaplanowanie i separacja treści encyklopedii w osobnym module danych `app-help-data.ts`.
+- Wykluczenie nieaktualnego generatora rekwizytów (handoutów) z treści pomocy.
+- Całkowite odizolowanie komponentu UI modalu, zapewniające brak wpływu na bieg i stan rozgrywki.
+
 

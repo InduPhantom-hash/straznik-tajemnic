@@ -13,6 +13,7 @@ import { Button } from './button';
 import { HelpIcon } from './tooltip';
 import {
   BUILT_IN_ADVENTURES,
+  STREFA_11_ADVENTURES,
   CUSTOM_ADVENTURE_TEMPLATE,
   AdventureContext,
   CustomAdventure,
@@ -105,8 +106,9 @@ export function AdventureSelector({
       };
       onSelect(customAdventure);
     } else if (selectedId) {
-      // Sprawdź w wbudowanych
-      const builtIn = BUILT_IN_ADVENTURES.find((a) => a.id === selectedId);
+      // Sprawdź w wbudowanych lub Strefa 11
+      const builtIn = BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
+        STREFA_11_ADVENTURES.find((a) => a.id === selectedId);
       if (builtIn) {
         onSelect(builtIn);
       } else {
@@ -163,6 +165,7 @@ export function AdventureSelector({
 
   const selectedAdventure = selectedId
     ? BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
+      STREFA_11_ADVENTURES.find((a) => a.id === selectedId) ||
       customAdventures.find((a) => a.id === selectedId)
     : null;
 
@@ -466,6 +469,15 @@ export function AdventureSelector({
                     <span>·</span>
                     <a href="https://player.pl" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Player.pl (TVN) ↗</a>
                   </div>
+                </div>
+
+                <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                  📺 Wybierz scenariusz Strefy 11
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {STREFA_11_ADVENTURES.map((adventure) => (
+                    <AdventureCard key={adventure.id} adventure={adventure} />
+                  ))}
                 </div>
 
                 <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
