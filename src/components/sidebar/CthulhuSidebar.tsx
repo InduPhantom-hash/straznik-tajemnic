@@ -16,6 +16,7 @@ import {
   Image as ImageIcon,
   LogOut,
   Flame,
+  HelpCircle,
 } from 'lucide-react';
 import NextImage from 'next/image';
 import { Button } from '../ui/button';
@@ -27,6 +28,7 @@ import { CharacterDialog } from '../dialogs/CharacterDialog';
 import { CharacterSheet } from '../ui/character-sheet';
 import { deriveStats } from '../ui/character-sheet/utils/derive-stats';
 import { SessionJournal } from '../ui/session-journal';
+import { AppHelpModal } from '../ui/app-help-modal';
 
 import { GMToolsPanel } from '../ui/gm-tools-panel';
 import {
@@ -145,6 +147,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
 }) => {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [showHandoutGenerator, setShowHandoutGenerator] = useState(false);
   const [showAdventureSelector, setShowAdventureSelector] = useState(false);
   const [showNewAdventureConfirm, setShowNewAdventureConfirm] = useState(false);
@@ -596,6 +599,14 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             <CardContent className="space-y-2">
               <Button
                 variant="ghost"
+                className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-amber-300 font-serif"
+                onClick={() => setShowHelpModal(true)}
+              >
+                <HelpCircle className="w-4 h-4 mr-3 text-amber-400 animate-pulse" />
+                Pomoc & Przewodnik
+              </Button>
+              <Button
+                variant="ghost"
                 className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 onClick={() => setOpenDialog('settings')}
               >
@@ -800,6 +811,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         onClose={() => setShowNewAdventureConfirm(false)}
         onSaveFirst={() => onSaveAndNewAdventure?.()}
         onSkipSave={() => onNewAdventure?.()}
+      />
+      <AppHelpModal
+        open={showHelpModal}
+        onOpenChange={setShowHelpModal}
       />
     </>
   );
