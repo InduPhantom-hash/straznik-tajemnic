@@ -183,3 +183,18 @@ Branch: main
 
 ### Decyzje podjęte
 - Wykorzystano lokalny strumień parsowania XML, eliminując jakiekolwiek zewnętrzne zanieczyszczenia i zapewniając płynność działania aplikacji.
+## Podsumowanie sesji: 2026-07-26
+Branch: main
+
+### Co zrobiono
+- **Przebudowa historii 46 postaci predefiniowanych** w `src/lib/immersion/predefined-characters.ts`:
+  - Wdrożono konstrukcję Maska vs Ukryty Strach/Cel oraz nawyki somatosensoryczne i unikalny ton głosu/socjolekt dla każdej z 30 postaci er historycznych (Gaslight 1890s, Classic 1920s, Modern) i 16 postaci z autorskich scenariuszy Strefa 11 (PRL 1970s, Kowary 1990s, Traszyn 1999, Głogów 2001).
+  - Zachowano 100% nienaruszalności statystyk mechanicznych CoC 7e, umiejętności oraz wyliczeń pochodnych (HP, SAN, MP, STR-LUCK).
+  - Przeprowadzono audyt z subagentami i uruchomiono testy jednostkowe (`npm test -- predefined-characters.test.ts` - 4/4 PASS, `npx tsc --noEmit` - clean).
+
+### Co otwarte (do następnej sesji)
+- Przeprowadzenie pełnego przeglądu interfejsu wyboru postaci pod kątem wyświetlania nowych rozwiniętych tekstów biografii.
+
+### Decyzje podjęte
+- Zachowano sztywną strukturę pól CoC 7e, nasycając wyłącznie warstwę narracyjno-neurologiczną bez modyfikacji bilansu mechanicznego postaci.
+
