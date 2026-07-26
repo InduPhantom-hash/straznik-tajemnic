@@ -1,0 +1,46 @@
+{
+  "id": "lovecraft-mythos",
+  "name": "Mity Cthulhu & Świat Lovecrafta",
+  "period": "Mitologia Kosmiczna",
+  "country": "Global / Universe",
+  "categories": [
+    {
+      "id": "great_old_ones",
+      "title": "Wielcy Przedwieczni i Bóstwa",
+      "fileCount": 2245
+    },
+    {
+      "id": "grimoires",
+      "title": "Księgi i Arkanum",
+      "fileCount": 1965
+    },
+    {
+      "id": "creatures",
+      "title": "Stwory i Istoty",
+      "fileCount": 1627
+    },
+    {
+      "id": "characters",
+      "title": "Postacie i Badacze",
+      "fileCount": 921
+    },
+    {
+      "id": "stories",
+      "title": "Opowiadania i Mitologia",
+      "fileCount": 130
+    },
+    {
+      "id": "locations",
+      "title": "Mroczne Lokacje",
+      "fileCount": 120
+    },
+    {
+      "id": "general_mythos",
+      "title": "general_mythos",
+      "fileCount": 16
+    }
+  ],
+  "updatedAt": "2026-07-26T15:02:36.515Z",
+  "totalArticles": 7024,
+  "licenseNotice": "Treść haseł udostępniana na licencji Creative Commons Attribution-ShareAlike (CC-BY-SA 3.0/4.0). Źródło: The H.P. Lovecraft Wiki na Fandom.com. Twórczość H.P. Lovecrafta w Domenie Publicznej."
+}

@@ -171,3 +171,15 @@ Branch: main
 - TypeScript: PASS (0 błędów)
 - Testy: 138 PASS (w tym nowy drift-guard test)
 
+
+## Podsumowanie sesji: 2026-07-26
+Branch: main
+
+### Co zrobiono
+- **Ingest bazy MediaWiki XML Fandom Lovecraft Wiki**: Utworzono skrypt `scripts/ingest-lovecraft-wiki.mjs` zamieniający zrzut XML (`wiki-lovecraft_pages_current.xml.7z`) na bazę danych 7 024 czystych haseł Mitów Cthulhu (`data/epochs/lovecraft-mythos/dictionary_wiki.json`).
+- **Aktualizacja UI Encyklopedii (`EpochWikiTab.tsx`)**: Dodano przełącznik baz wiedzy (Polska 1990-2000 vs Mity Cthulhu), widoczne plakietki prawne `CC-BY-SA 3.0` oraz `Domena Publiczna`, a także ramkę informującą o autorstwie społeczności Fandom.
+- **Aktualizacja Zapisów Prawnych (`NOTICE`)**: Dopisano dedykowaną sekcję regulującą licencję Creative Commons (CC-BY-SA 3.0/4.0) dla treści encyklopedycznych z Fandom Wiki.
+- **Weryfikacja produkcyjna**: Przeszedł build produkcyjny Next.js (`npm run build` -> PASS).
+
+### Decyzje podjęte
+- Wykorzystano lokalny strumień parsowania XML, eliminując jakiekolwiek zewnętrzne zanieczyszczenia i zapewniając płynność działania aplikacji.
