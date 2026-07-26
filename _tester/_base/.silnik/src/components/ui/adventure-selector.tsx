@@ -254,6 +254,24 @@ export function AdventureSelector({
             </span>
           </div>
 
+          {/* External Links dla scenariuszy Strefa 11 */}
+          {adventure.externalLinks && adventure.externalLinks.length > 0 && (
+            <div className="mt-3 pt-2 border-t border-brass/15 flex flex-wrap gap-2 text-[12px] font-special-elite" onClick={(e) => e.stopPropagation()}>
+              <span className="text-brass/70 font-semibold">📺 Oficjalne źródła:</span>
+              {adventure.externalLinks.map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-brass underline flex items-center gap-1 transition-colors"
+                >
+                  {link.label} ↗
+                </a>
+              ))}
+            </div>
+          )}
+
           {/* PDF Badge for custom adventures */}
           {isCustom && customAdv.fileName && (
             <div className="mt-2 flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.08em] text-primary">
@@ -431,8 +449,25 @@ export function AdventureSelector({
                 </div>
               )}
 
-              {/* Wbudowane przygody */}
+              {/* Wbudowane autorskie scenariusze inspirowane Strefą 11 */}
               <div>
+                <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
+                  <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
+                    <span>📺</span> Autorskie Scenariusze (Inspirowane programem "Strefa 11" / "Nie do wiary" - TVN)
+                  </div>
+                  <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
+                    Polskie scenariusze przygód RPG osadzone w realiach PRL i lat 90./2000. Każda przygoda posiada gotowe zbalansowane postacie Badaczy.
+                  </p>
+                  <div className="flex flex-wrap gap-3 mt-2 text-xs font-special-elite text-brass/80">
+                    <span>🔗 Dowiedz się więcej:</span>
+                    <a href="https://pl.wikipedia.org/wiki/Nie_do_wiary" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wikipedia ↗</a>
+                    <span>·</span>
+                    <a href="https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Filmweb ↗</a>
+                    <span>·</span>
+                    <a href="https://player.pl" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Player.pl (TVN) ↗</a>
+                  </div>
+                </div>
+
                 <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
                   🎲 Wybierz scenariusz
                 </h3>

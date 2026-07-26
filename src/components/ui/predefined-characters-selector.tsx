@@ -74,6 +74,9 @@ const ARCHETYPE_LABELS: Array<{
 const ERA_LABELS: Array<{ value: PredefinedCharacterEra; label: string }> = [
   { value: 'gaslight', label: 'Lata 1890' },
   { value: 'classic', label: 'Lata 20.' },
+  { value: 'prl-1970s', label: 'PRL lata 70.' },
+  { value: '1990s', label: 'Lata 90.' },
+  { value: '2000s', label: 'Lata 2000 (Y2K)' },
   { value: 'modern', label: 'Współczesność' },
 ];
 
@@ -92,7 +95,14 @@ export function PredefinedCharactersSelector({
     'all' | PredefinedCharacterArchetype
   >('all');
   const [selectedEra, setSelectedEra] = useState<PredefinedCharacterEra | null>(
-    currentEra === 'gaslight' || currentEra === 'classic' || currentEra === 'modern' ? currentEra : null
+    currentEra === 'gaslight' ||
+      currentEra === 'classic' ||
+      currentEra === 'modern' ||
+      currentEra === 'prl-1970s' ||
+      currentEra === '1990s' ||
+      currentEra === '2000s'
+      ? (currentEra as PredefinedCharacterEra)
+      : null
   );
   const [searchQuery, setSearchQuery] = useState('');
 

@@ -1,0 +1,53 @@
+{
+  "id": "przybysz-z-matriksa-glogow",
+  "title": "Przybysz z Matriksa: Przepowiednie i Zjawisko z Głogowa",
+  "era": "2000s",
+  "setting": "Polska, Przełom Tysiącleci / Jesień 2001 r. (Głogów - Legnica - Wrocław)",
+  "startingLocation": "Redakcja Telewizji Lokalnej w Głogowie / Osiedle Kopernika",
+  "summary": "Badacze trafiają do Głogowa po serii niewytłumaczalnych zjawisk rejestrowanych na kasetach VHS przez lokalnego radioamatora i pasjonata elektroniki. Świadkowie zgłaszają nocne błyski światła, chwilowe zaniki pamięci oraz odbiór audycji telewizyjnych z przyszłości. Sprawa komplikuje się, gdy agenci tajnych służb próbują przejąć taśmy VHS z nagraniami, a śledztwo prowadzi do opuszczonych podziemi powojskowych i starożytnego bytu manipulującego liniami czasowymi (Noth-Yiddith / Chrono-Entity). Scenariusz bezpośrednio nawiązuje do słynnego odcinka magazynu 'Nie do wiary / Strefa 11'.",
+  "clues": [
+    {
+      "id": "clue-vhs-tape-glogow",
+      "name": "Taśma VHS z Nagraniem Sygnału 14.11",
+      "description": "Kaseta VHS z nagranym zakłóceniem sygnału telewizyjnego z nocy 14 listopada. W tle szumu widoczna jest twarz postaci z 2012 roku oraz zarys cyklopowej wieży."
+    },
+    {
+      "id": "clue-clock-anomaly",
+      "name": "Zegarek Elektroniczny ze Wstecznym Odliczaniem",
+      "description": "Zegarek Casio znaleziony w miejscu incydentu. Odmierza czas wstecz, a co 11 minut wydaje dźwięk o częstotliwości wywołującej nudności i zawroty głowy."
+    },
+    {
+      "id": "clue-military-bunker-map",
+      "name": "Plan Podziemi pod Twierdzą Głogów",
+      "description": "Niemiecka mapa sztabowa z nadrukiem Wojska Polskiego z lat 60. Oznaczono na niej zalany sektor 'X-11', w którym odnotowano silne anomalie magnetyczne."
+    },
+    {
+      "id": "clue-newspaper-clipping-2001",
+      "name": "Wycinek z Gazety 'Głos Głogowski'",
+      "description": "Artykuł o masowym gaśnięciu latarni ulicznych i awarii sieci energetycznej w całej dzielnicy podczas uderzenia 'suchy piorun'."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-glogow-tv-studio",
+      "title": "Redakcja Telewizji Lokalnej i Studio VHS",
+      "description": "Ciasne studio pełne magnetowidów Panasonic, taśm SVHS, monitorów CRT i zapachu nagrzanego plastiku. Miejsce, gdzie zanalizowano pierwsze nagranie sygnału.",
+      "npcs": ["Joanna Majewska (Dziennikarka)", "Piotr Kamiński (Inżynier)"],
+      "availableClues": ["clue-vhs-tape-glogow", "clue-newspaper-clipping-2001"]
+    },
+    {
+      "id": "node-kopernik-apartment",
+      "title": "Mieszkanie Świadka na Osiedlu Kopernika",
+      "description": "Typowe mieszkanie w wielkiej płycie z lat 80./90. W salonie wciąż czuć zapach ozonu, a sprzęty AGD włączają się bez podłączenia do prądu.",
+      "npcs": ["Kamil Pawlak (Detektyw)"],
+      "availableClues": ["clue-clock-anomaly"]
+    },
+    {
+      "id": "node-glogow-fortress-bunker",
+      "title": "Opuszczony Bunkier pod Twierdzą Głogów",
+      "description": "Ciemne, wilgotne korytarze podziemne pod starą twierdzą. Ściany pokrywa dziwny szron w stopniu wyższym niż temperatura otoczenia, a powietrze drży od poddźwięków.",
+      "npcs": ["Dominika Szymańska (Programistka)"],
+      "availableClues": ["clue-military-bunker-map"]
+    }
+  ]
+}

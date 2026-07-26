@@ -81,9 +81,126 @@ export interface AdventureContext {
   recommendedForBeginners?: boolean;
   /** Strona startu scenariusza w książce źródłowej (informacyjnie). */
   pageStart?: number | null;
-  /** Realne handouty (mapy/dokumenty) dostępne MG do pokazania w grze. */
-  handouts?: AdventureHandout[];
+  /** Opcjonalne zewnętrzne linki do mediów / źródeł (np. Wikipedia, Filmweb, Player.pl). */
+  externalLinks?: Array<{ label: string; url: string }>;
+  /** Czy scenariusz jest częścią autorskiej serii Strefa 11 */
+  isStrefa11?: boolean;
 }
+
+// ============================================================================
+// AUTORSKIE PRZYGODY INSPROWANE PROGRAMEM STREFA 11 (TVN / NIE DO WIARY)
+// ============================================================================
+
+export const STREFA_11_ADVENTURES: AdventureContext[] = [
+  {
+    id: 'cien-nad-prabutami',
+    title: 'Cień nad Prabutami: Widzenie Ojca Klimuszki',
+    era: 'prl',
+    eraLabel: 'PRL - lata 70.',
+    yearRange: '1973-1974',
+    location: 'Warszawa - Elbląg - Prabuty',
+    country: 'Polska',
+    tone: 'noir',
+    themes: ['Jasnowidzenie', 'Służba Bezpieczeństwa', 'Trauma wojenna', 'Cztery wymiary'],
+    suggestedOccupations: ['Dziennikarz', 'Parapsycholog', 'Egzorcysta', 'Milicjant'],
+    suggestedArchetypes: ['investigator', 'scholar', 'mystic', 'action'],
+    hook: 'Weryfikacja феноmenów ojca Klimuszki doprowadza badaczy do tajnych teczek SB i anomalii wymiarowej w Prabutach.',
+    description: 'Badacze zostają zaangażowani przez redaktorkę Helenę Krawczyk z programu "Sygnały Nieznanego" po Międzynarodowym Kongresie Psychotronicznym w Pradze. Ich zadaniem jest weryfikacja niezwykłych fenomenów ojca Klimuszki – franciszkanina z Elbląga.',
+    estimatedSessions: '1-2',
+    playerCount: '1-4',
+    difficulty: 'easy',
+    source: 'Strefa 11 / Nie do wiary',
+    sourceCategory: 'oneshot',
+    recommendedForBeginners: true,
+    isStrefa11: true,
+    externalLinks: [
+      { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
+    ],
+  },
+  {
+    id: 'tajemnica-pendnika-lagiewki',
+    title: 'Tajemnica Pędnika: Genialny Wynalazca z Kowar',
+    era: 'custom',
+    eraLabel: 'Lata 90.',
+    yearRange: '1995-1999',
+    location: 'Kowary - Karkonosze',
+    country: 'Polska',
+    tone: 'pulp',
+    themes: ['Genialny wynalazek', 'Pochłaniacz kinetyczny', 'Tajne służby AOR', 'Technologia Mi-Go'],
+    suggestedOccupations: ['Inżynier', 'Dziennikarz Śledczy', 'Kierowca Testowy', 'Fizyk'],
+    suggestedArchetypes: ['scholar', 'investigator', 'action'],
+    hook: 'Zderzak Łągiewki eliminuje przeciążenia zderzeń, lecz jego Pędnik łamie prawa fizyki, czerpiąc z technologii Mi-Go z Gór Szaleństwa.',
+    description: 'Badacze trafiają na ślad odkryć Lucjana Łągiewki z Kowar, którego zderzaki kinetyczne eliminują przeciążenia. Kiedy tworzy silnik bezwładnościowy działający w próżni, w warsztacie zjawiają się agenci AOR.',
+    estimatedSessions: '2-3',
+    playerCount: '1-4',
+    difficulty: 'normal',
+    source: 'Strefa 11 / Nie do wiary',
+    sourceCategory: 'oneshot',
+    recommendedForBeginners: true,
+    isStrefa11: true,
+    externalLinks: [
+      { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
+    ],
+  },
+  {
+    id: 'tajemnica-dzieci-z-traszyna',
+    title: 'Tajemnica Dzieci z Traszyna: Klucz i Odwrócony Krzyż',
+    era: 'custom',
+    eraLabel: 'Lata 90. (Y2K)',
+    yearRange: '1983-1999',
+    location: 'Traszyn k. Lublina',
+    country: 'Polska',
+    tone: 'purist',
+    themes: ['Seans z książką i kluczem', 'Nocne paraliże', 'Poltergeist', 'Egzorcyzmy'],
+    suggestedOccupations: ['Psycholog', 'Etnograf', 'Radiesteta / Bioenergoterapeuta', 'Leśnik'],
+    suggestedArchetypes: ['mystic', 'healer', 'investigator'],
+    hook: 'W 1983 roku troje dzieci w stodole wywołało ducha. Po 16 latach byt powraca z uderzeniem pioruna i wypalonym odwróconym krzyżem.',
+    description: 'Badacze zostają wezwani przez egzorcystę i bioenergoterapeutę Tomasza Nowickiego do Traszyna. Po 16 latach od młodzieńczego seansu z książką i kluczem byt powraca, wywołując nocne paraliże.',
+    estimatedSessions: '2',
+    playerCount: '1-4',
+    difficulty: 'normal',
+    source: 'Strefa 11 / Nie do wiary',
+    sourceCategory: 'oneshot',
+    recommendedForBeginners: false,
+    isStrefa11: true,
+    externalLinks: [
+      { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
+    ],
+  },
+  {
+    id: 'przybysz-z-matriksa-glogow',
+    title: 'Przybysz z Matriksa: Przepowiednie i Zjawisko z Głogowa',
+    era: 'modern',
+    eraLabel: 'Przełom Tysiącleci',
+    yearRange: '2001',
+    location: 'Głogów - Legnica',
+    country: 'Polska',
+    tone: 'noir',
+    themes: ['Sygnał z VHS', 'Anomalia czasowa', 'Audycje z przyszłości', 'Podziemia twierdzy'],
+    suggestedOccupations: ['Programistka Y2K', 'Dziennikarka TV', 'Radioamator', 'Detektyw'],
+    suggestedArchetypes: ['scholar', 'investigator', 'action', 'mystic'],
+    hook: 'Nagrania VHS radioamatora wykazują audycje z przyszłości i zakłócenia sygnału z nocy 14 listopada. Byt z podziemi manipuluje czasem.',
+    description: 'Badacze trafiają do Głogowa po serii zjawisk rejestrowanych na kasetach VHS. Świadkowie zgłaszają nocne błyski, zaniki pamięci i audycje z przyszłości, a śledztwo prowadzi do podziemi Twierdzy Głogów.',
+    estimatedSessions: '2-3',
+    playerCount: '1-4',
+    difficulty: 'hard',
+    source: 'Strefa 11 / Nie do wiary',
+    sourceCategory: 'oneshot',
+    recommendedForBeginners: false,
+    isStrefa11: true,
+    externalLinks: [
+      { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
+    ],
+  },
+];
 
 // Własna przygoda wgrana z PDF
 export interface CustomAdventure extends AdventureContext {
