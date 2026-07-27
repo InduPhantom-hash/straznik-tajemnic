@@ -213,4 +213,26 @@ Branch: main
 - Wykluczenie nieaktualnego generatora rekwizytów (handoutów) z treści pomocy.
 - Całkowite odizolowanie komponentu UI modalu, zapewniające brak wpływu na bieg i stan rozgrywki.
 
+## Podsumowanie sesji: 2026-07-27 (Dynamic Pacing Narracji)
+Branch: main
 
+### Co zrobiono
+- **Kontekstowy Pacing Narracji (Opcja A)**:
+  - Usunięto sztywne progi liczbowe (np. 150-250 słów) z `pacing-controller.ts`.
+  - Wdrożono szerokie, dynamiczne progi tempa odpowiedzi:
+    - `social` (dialog / wymiana zdań): **do 30–70 słów (1–3 zdania)** – zwięzłe odpowiedzi bez sztucznego lania wody.
+    - `exploration` / `investigation`: **do 60–150 słów**.
+    - `dream` / `ritual`: **150–300 słów**.
+  - Dodano dyrektywę zwięzłości zakazującą rozciągania narracji tłem na siłę przy prostych pytaniach lub dialogu.
+- **Aktualizacja Instrukcji i Promptów**:
+  - `gm-protocol.ts`: doprecyzowano sekcję `D. TEMPO NARRACJI I ELASTYCZNOŚĆ DŁUGOŚCI`.
+  - `default-gm-prompt.md` (zarówno w `public/` jak i w `_tester/_base/.silnik/public/`): zaktualizowano punkt `7. DŁUGOŚĆ I DYNAMIKA (PACING)`.
+- **Aktualizacja Paczki Wydaniowej i Build**:
+  - `build-tester-pack.sh`: poprawnie zbudowano zaktualizowaną paczkę zip (`Straznik-Tajemnic-AI-0.9.0-beta-Win-Mac-2026-07-17.zip` - 37 MB).
+  - Build produkcyjny Next.js (`npm run build`): **PASS** (66/66 stron prerenderowanych bez błędów).
+
+### Co otwarte
+- Kod i silnik są w pełni gotowe do rozgrywek solo oraz duet.
+
+### Decyzje podjęte
+- Odpowiedzi AI mają elastyczną długość uzależnioną od charakteru akcji (zwięzłe dialogi, bogatsze wprowadzające opisy otwarcia scen).

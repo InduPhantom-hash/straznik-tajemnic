@@ -16,38 +16,38 @@ interface PacingConfig {
 const PACING_MAP: Record<GameContext['mode'], PacingConfig> = {
   combat: {
     tempo: 'fast',
-    wordRange: [50, 80],
-    directive: 'TEMPO WALKI: 50-80 słów. Krótkie, urwane zdania. Czysta akcja.',
+    wordRange: [30, 70],
+    directive: 'TEMPO WALKI: do 30-70 słów. Krótkie, urwane zdania. Czysta akcja.',
   },
   chase: {
     tempo: 'fast',
-    wordRange: [50, 80],
-    directive: 'TEMPO POŚCIGU: 50-80 słów. Dynamika, oddech, napięcie.',
+    wordRange: [30, 70],
+    directive: 'TEMPO POŚCIGU: do 30-70 słów. Dynamika, oddech, napięcie.',
   },
   exploration: {
     tempo: 'normal',
-    wordRange: [150, 250],
-    directive: '150-250 słów. Równowaga opisu i interakcji.',
+    wordRange: [60, 150],
+    directive: 'do 60-150 słów. Zwięzłość opisowa i otwarcie na akcję gracza.',
   },
   investigation: {
     tempo: 'normal',
-    wordRange: [150, 250],
-    directive: '150-250 słów. Wskazówki wplecione w atmosferę.',
+    wordRange: [60, 150],
+    directive: 'do 60-150 słów. Wskazówki wplecione w atmosferę, bez zbędnych wypełniaczy.',
   },
   social: {
     tempo: 'normal',
-    wordRange: [120, 200],
-    directive: '120-200 słów. Dialog i mowa ciała dominują.',
+    wordRange: [30, 70],
+    directive: 'do 30-70 słów (1-3 zdania). Szybka wymiana zdań i dialog z NPC. Nie rozciągaj wypowiedzi tłem.',
   },
   dream: {
     tempo: 'slow',
-    wordRange: [250, 400],
-    directive: '250-400 słów. Bogaty, oniryczny, wielozmysłowy opis.',
+    wordRange: [150, 300],
+    directive: '150-300 słów. Bogaty, oniryczny, wielozmysłowy opis.',
   },
   ritual: {
     tempo: 'slow',
-    wordRange: [250, 400],
-    directive: '250-400 słów. Ceremonialna, narastająca narracja.',
+    wordRange: [150, 300],
+    directive: '150-300 słów. Ceremonialna, narastająca narracja.',
   },
 };
 
@@ -79,7 +79,7 @@ export function getPacingDirective(context: GameContext): string {
       ? config.directive
       : config.directive.replace(/\d+-\d+ słów/, `${min}-${max} słów`);
 
-  const base = `**Długość odpowiedzi:** ${rangeStr}`;
+  const base = `**Długość odpowiedzi:** ${rangeStr}\n**ZASADA ELASTYCZNOŚCI:** Dostosuj długość do akcji gracza. Przy prostych pytaniach lub dialogu odpowiadaj zwięźle (1-3 zdania). Nie rozciągaj wypowiedzi sztucznym opisem tła na siłę. Wyjątkiem są otwarcia nowych lokacji lub kluczowe zwroty akcji.`;
 
   // War-room: gracze planują w kółko bez ruchu - MG ma wprowadzić bodziec wymuszający akcję.
   if (context.isStuck) {

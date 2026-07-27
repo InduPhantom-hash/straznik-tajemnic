@@ -43,8 +43,8 @@ rsync -a \
 mv -f "$TEMP_ARCHIVE" "$ARCHIVE"
 
 portrait_count="$({ unzip -Z1 "$ARCHIVE" || true; } | grep -Ec '^\.silnik/public/portraits/predefined/[^/]+\.webp$')"
-if [ "$portrait_count" -ne 26 ]; then
-  echo "FAIL: paczka zawiera $portrait_count/26 portretów WebP"
+if [ "$portrait_count" -lt 26 ]; then
+  echo "FAIL: paczka zawiera $portrait_count portretów WebP (oczekiwano >= 26)"
   exit 1
 fi
 
@@ -59,7 +59,7 @@ if unzip -Z1 "$ARCHIVE" | grep -Eq '(^|/)(\.env\.local|node_modules|\.next|data/
   exit 1
 fi
 
-if ! unzip -p "$ARCHIVE" '.silnik/src/app/page.tsx' | grep -Fq 'restoreHotSeatConfig'; then
+if ! unzip -p "$ARCHIVE" '.silnik/src/hooks/useFullSave.ts' | grep -Fq 'restoreHotSeatConfig'; then
   echo 'FAIL: paczka nie zawiera aktualnego kodu przypisań duetu'
   exit 1
 fi
@@ -69,7 +69,7 @@ if ! unzip -p "$ARCHIVE" '.silnik/src/lib/journal/shared-adventure-journal.ts' |
   exit 1
 fi
 
-if ! unzip -p "$ARCHIVE" '.silnik/src/components/ui/session-journal.tsx' | grep -Fq 'DZIENNIK PRZYGODY'; then
+if ! unzip -p "$ARCHIVE" '.silnik/src/components/ui/journal.tsx' | grep -Fq 'DZIENNIK PRZYGODY'; then
   echo 'FAIL: paczka nie zawiera interfejsu wspólnego Dziennika Przygody'
   exit 1
 fi

@@ -505,3 +505,35 @@
     0 0 26px 10px hsl(var(--brass) / 0.5),
     0 0 60px 24px hsl(var(--primary) / 0.18);
 }
+
+/* ===== CUSTOM SCROLLBAR - DARK ART DÉCO ===== */
+@layer utilities {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--brass) / 0.4) hsl(var(--background));
+  }
+
+  /* WebKit (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0c0f;
+    border-left: 1px solid rgba(201, 162, 39, 0.15);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8a6f12, #c9a227);
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(201, 162, 39, 0.3);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #e6bd35;
+    box-shadow: 0 0 10px rgba(201, 162, 39, 0.6);
+  }
+}
+
