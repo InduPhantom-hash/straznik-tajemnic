@@ -1,5 +1,5 @@
 import { InvestigatorBoardState, EvidenceNode } from '@/types/investigator-board';
-import { JournalEntry } from '@/lib/types';
+import { ExtendedJournalEntry } from '@/lib/types';
 
 /**
  * Konwertuje i scala wpisy Dziennika (JournalEntry) z istniejącymi węzłami Tablicy Badacza.
@@ -7,7 +7,7 @@ import { JournalEntry } from '@/lib/types';
  * odkrycia kaskadowo, zamiast resetowania siatki.
  */
 export function convertEntriesToBoardNodes(
-  entries: JournalEntry[],
+  entries: ExtendedJournalEntry[],
   existingNodes: EvidenceNode[] = []
 ): EvidenceNode[] {
   const nodeMap = new Map<string, EvidenceNode>();
@@ -23,9 +23,12 @@ export function convertEntriesToBoardNodes(
     // Jeśli węzeł już jest na tablicy, nie ruszaj go (szanuj pozycję ułożoną przez Gracza)
     if (nodeMap.has(nodeId)) return;
 
+    const typeStr = entry.type || '';
+    
+    if (typeStr === 'journal' || typeStr === 'note') return;
+
     let nodeType: EvidenceNode['type'] = 'clue';
-    const typeStr = (entry.type || '') as string;
-    const catStr = ((entry as unknown as Record<string, unknown>).category || '') as string;
+    const catStr = entry.category || '';
     
     if (typeStr === 'encyclopedia_character' || catStr === 'Spotkania') nodeType = 'suspect';
     else if (typeStr === 'encyclopedia_location' || catStr === 'Odkrycia') nodeType = 'location';
