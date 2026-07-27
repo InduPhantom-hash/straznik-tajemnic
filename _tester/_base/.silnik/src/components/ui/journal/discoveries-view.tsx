@@ -63,21 +63,21 @@ const CATEGORIES: {
     key: 'places',
     label: 'Miejsca',
     Icon: MapPin,
-    types: ['encyclopedia_location'],
+    types: ['encyclopedia_location', 'location'],
     emptyText: 'Nie odkryto jeszcze żadnych lokacji.',
   },
   {
     key: 'characters',
     label: 'Postacie',
     Icon: Users,
-    types: ['encyclopedia_character'],
+    types: ['encyclopedia_character', 'npc'],
     emptyText: 'Nie spotkano jeszcze żadnych postaci.',
   },
   {
     key: 'items',
     label: 'Przedmioty',
     Icon: Sword,
-    types: ['encyclopedia_item'],
+    types: ['encyclopedia_item', 'item', 'discovery'],
     emptyText: 'Nie znaleziono jeszcze żadnych przedmiotów.',
   },
   {
@@ -118,8 +118,8 @@ export function DiscoveriesView({
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (e) =>
-          e.title.toLowerCase().includes(q) ||
-          e.content.toLowerCase().includes(q) ||
+          e.title?.toLowerCase().includes(q) ||
+          e.content?.toLowerCase().includes(q) ||
           e.tags?.some((t) => t.toLowerCase().includes(q))
       );
     }
@@ -221,134 +221,159 @@ export function DiscoveriesView({
         </div>
       </div>
 
-      {/* === PRAWY PANEL: Podgląd wybranego elementu === */}
-      <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c]">
+      {/* === PRAWY PANEL: Podgląd wybranego elementu (AKTA ŚLEDCZE) === */}
+      <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#120c08] relative">
         {selectedEntry ? (
-          <div className="max-w-3xl mx-auto space-y-5">
-            {/* Nagłówek */}
-            <div className="flex justify-between items-start border-b-2 border-[#3a2518] pb-3">
-              <div>
-                <div className="font-special-elite text-[10px] uppercase tracking-[0.25em] text-[#bfa15f]/70 mb-1">
-                  {categoryConfig.label}
+          <div className="max-w-2xl mx-auto">
+            {/* Teczka / Akta */}
+            <div className="bg-[#e4d8c6] text-[#2c241b] rounded shadow-[2px_4px_16px_rgba(0,0,0,0.6)] relative p-8 md:p-10 border border-[#d1c2ab] before:absolute before:inset-0 before:bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] before:opacity-30 before:pointer-events-none">
+              
+              {/* Pieczątka */}
+              {selectedEntry.type !== 'quest' && (
+                <div className="absolute top-6 right-8 border-4 border-[#8a1c1c] text-[#8a1c1c] opacity-60 font-special-elite text-xl px-2 py-1 transform rotate-[15deg] uppercase pointer-events-none">
+                  POUFNE
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-[#f4ebd0] leading-tight">
-                  {selectedEntry.title}
-                </h3>
-                {selectedEntry.inGameDate && (
-                  <div className="text-xs text-[#8a7667] mt-1 font-special-elite">
-                    Odkryto: {selectedEntry.inGameDate}
-                  </div>
-                )}
-                {selectedEntry.questStatus && (
-                  <span className={cn(
-                    'inline-block mt-2 text-xs px-2 py-0.5 rounded font-serif font-semibold border',
-                    QUEST_STATUS_STYLE[selectedEntry.questStatus]?.bg,
-                    QUEST_STATUS_STYLE[selectedEntry.questStatus]?.border,
-                    QUEST_STATUS_STYLE[selectedEntry.questStatus]?.text,
-                  )}>
-                    {QUEST_STATUS_STYLE[selectedEntry.questStatus]?.label}
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-1.5">
-                {onPinToBoard && (
-                  <button
-                    onClick={() => onPinToBoard(selectedEntry)}
-                    className="p-2 text-[#bfa15f] hover:bg-[#3a2518] rounded-md transition-colors border border-transparent hover:border-[#bfa15f]/30"
-                    title="Przypnij do Tablicy Badacza"
-                  >
-                    <Pin className="h-4 w-4" />
-                  </button>
-                )}
-                <button
-                  onClick={() => onEditEntry(selectedEntry)}
-                  className="p-2 text-[#f4ebd0] hover:bg-[#3a2518] rounded-md transition-colors"
-                  title="Edytuj"
-                >
-                  <Edit3 className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => onDeleteEntry(selectedEntry.id)}
-                  className="p-2 text-[#ff6b6b] hover:bg-[#2b1010] rounded-md transition-colors"
-                  title="Usuń"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+              )}
 
-            {/* Ilustracja */}
-            {selectedEntry.imageStatus === 'pending' ? (
-              <div className="h-48 rounded-lg border border-[#bfa15f]/30 bg-[#0d0906] flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
-                <div className="w-6 h-6 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-serif italic">Malowanie ilustracji...</span>
-              </div>
-            ) : selectedEntry.imageUrl ? (
-              <div className="rounded-lg overflow-hidden border border-[#bfa15f]/30 bg-[#0d0906] p-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={selectedEntry.imageUrl}
-                  alt={selectedEntry.title}
-                  className="w-full max-h-64 object-cover rounded"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-              </div>
-            ) : null}
+              {/* Header Akt */}
+              <div className="border-b-2 border-[#2c241b]/30 pb-4 mb-6 relative">
+                <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-[#2c241b]/60 mb-2">
+                  Dossier :: {categoryConfig.label}
+                </div>
+                
+                <div className="flex justify-between items-start gap-4">
+                  <h3 className="text-3xl font-special-elite font-bold text-[#1a140f] leading-tight flex-1">
+                    {selectedEntry.title}
+                  </h3>
 
-            {/* Treść */}
-            <div className="text-base leading-relaxed text-[#e2d4c9] whitespace-pre-wrap font-serif italic bg-[#120905] p-5 rounded-lg border border-[#3a2518]">
-              {selectedEntry.content}
-            </div>
-
-            {/* Cele misji (tylko dla quest) */}
-            {selectedEntry.objectives && selectedEntry.objectives.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-serif font-bold text-lg text-[#f4ebd0] border-b border-[#3a2518] pb-1">
-                  Cele zadania
-                </h4>
-                <div className="space-y-2">
-                  {selectedEntry.objectives.map((obj) => (
-                    <div
-                      key={obj.id}
-                      className={cn(
-                        'p-3 rounded border flex items-start gap-3',
-                        obj.completed
-                          ? 'bg-[#142310] border-[#2c4c19] text-[#a3d18e]'
-                          : 'bg-[#120905] border-[#3a2518] text-[#e2d4c9]'
-                      )}
+                  {/* Przyciski narzędzi */}
+                  <div className="flex gap-1.5 opacity-60 hover:opacity-100 transition-opacity shrink-0">
+                    {onPinToBoard && (
+                      <button
+                        onClick={() => onPinToBoard(selectedEntry)}
+                        className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
+                        title="Przypnij do Tablicy Badacza"
+                      >
+                        <Pin className="h-5 w-5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onEditEntry(selectedEntry)}
+                      className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
+                      title="Edytuj"
                     >
-                      {obj.completed ? (
-                        <Eye className="h-4 w-4 mt-0.5 text-[#73a15c] flex-shrink-0" />
-                      ) : (
-                        <Target className="h-4 w-4 mt-0.5 text-[#8a7667] flex-shrink-0" />
-                      )}
-                      <div>
-                        <div className={cn('text-sm font-serif', obj.completed && 'line-through text-[#8a7667]')}>
-                          {obj.description}
-                        </div>
-                        {obj.completed && obj.dateCompleted && (
-                          <span className="text-[10px] text-[#73a15c]">Ukończono: {obj.dateCompleted}</span>
-                        )}
-                      </div>
+                      <Edit3 className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteEntry(selectedEntry.id)}
+                      className="p-1.5 text-[#8a1c1c] hover:bg-[#8a1c1c]/10 rounded transition-colors"
+                      title="Usuń"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-4 mt-3">
+                  {selectedEntry.inGameDate && (
+                    <div className="text-xs text-[#2c241b]/70 font-special-elite font-bold">
+                      DATA ZAPISU: {selectedEntry.inGameDate}
                     </div>
+                  )}
+                  {selectedEntry.questStatus && (
+                    <div className="text-xs font-special-elite font-bold flex items-center gap-1.5">
+                      STATUS:
+                      <span className={cn(
+                        'px-1.5 py-0.5 rounded border uppercase',
+                        selectedEntry.questStatus === 'active' ? 'bg-[#2c241b]/10 border-[#2c241b]/40 text-[#2c241b]' :
+                        selectedEntry.questStatus === 'completed' ? 'bg-[#73a15c]/20 border-[#73a15c] text-[#335620]' :
+                        'bg-[#8a1c1c]/20 border-[#8a1c1c] text-[#6e1313]'
+                      )}>
+                        {QUEST_STATUS_STYLE[selectedEntry.questStatus]?.label}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Zdjęcie (Spinacz / Polaroids) */}
+              {selectedEntry.imageStatus === 'pending' ? (
+                <div className="float-right w-1/2 ml-6 mb-4 h-48 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
+                  <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs font-special-elite italic">Wywyoływanie zdjęcia...</span>
+                </div>
+              ) : selectedEntry.imageUrl ? (
+                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
+                  <div className="bg-[#fcfbf9] p-2 pb-8 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={selectedEntry.imageUrl}
+                      alt={selectedEntry.title}
+                      className="w-full h-auto object-cover border border-[#e0e0e0] mix-blend-multiply sepia-[0.2]"
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                    <div className="absolute bottom-2 left-0 right-0 text-center font-special-elite text-[10px] text-black/60 italic">
+                      Załącznik A
+                    </div>
+                  </div>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
+                    📎
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Treść Akt (Maszyna do pisania) */}
+              <div className="text-base leading-relaxed text-[#1a140f] whitespace-pre-wrap font-special-elite">
+                {selectedEntry.content}
+              </div>
+
+              {/* Cele zadania dla questów */}
+              {selectedEntry.objectives && selectedEntry.objectives.length > 0 && (
+                <div className="mt-8 pt-6 border-t-2 border-[#2c241b]/20 clear-both">
+                  <h4 className="font-special-elite font-bold text-lg text-[#1a140f] mb-4">
+                    WYTYCZNE ZADANIA
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedEntry.objectives.map((obj) => (
+                      <div
+                        key={obj.id}
+                        className={cn(
+                          'p-3 flex items-start gap-3 relative',
+                          obj.completed ? 'text-[#1a140f]/50' : 'text-[#1a140f]'
+                        )}
+                      >
+                        {/* Box do odfajkowania maszynowy */}
+                        <div className="mt-0.5 font-special-elite text-lg font-bold w-6">
+                          {obj.completed ? '[x]' : '[ ]'}
+                        </div>
+                        <div>
+                          <div className={cn('text-sm font-special-elite', obj.completed && 'line-through')}>
+                            {obj.description}
+                          </div>
+                          {obj.completed && obj.dateCompleted && (
+                            <span className="text-[10px] font-bold text-[#1a140f]/60 mt-1 block">ZREALIZOWANO: {obj.dateCompleted}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tagi Maszynowe */}
+              {selectedEntry.tags && selectedEntry.tags.length > 0 && (
+                <div className="flex gap-2 flex-wrap mt-8 pt-4 border-t border-[#2c241b]/10 clear-both">
+                  {selectedEntry.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[11px] font-special-elite text-[#1a140f]/80 uppercase tracking-wider"
+                    >
+                      #{tag}
+                    </span>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Tagi */}
-            {selectedEntry.tags && selectedEntry.tags.length > 0 && (
-              <div className="flex gap-1.5 flex-wrap border-t border-[#3a2518] pt-3">
-                {selectedEntry.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] bg-[#3a2518]/50 text-[#f4ebd0] px-2 py-0.5 rounded border border-[#bfa15f]/20"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-[#8a7667] italic font-serif h-full min-h-[300px]">

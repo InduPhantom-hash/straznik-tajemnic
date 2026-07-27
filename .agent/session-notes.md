@@ -1,3 +1,19 @@
+## Podsumowanie sesji: 2026-07-27 (Noc)
+Branch: main
+
+### Co zrobiono
+- **Przebudowa Dziennika (Odkrycia):** Refaktor `discoveries-view.tsx` na klimatyczne "Akta Śledcze" (jasny twardy papier, czcionka imitująca maszynę do pisania Special Elite, pieczątka poufne, polaroidy dopinane spinaczem).
+- **Auto-Loot na czacie:** Uproszczenie `acquired-item-card.tsx` dla trybu Solo (dyskretny tekst ładowania w tle) i Hot Seat (skondensowany miniformularz przypisania).
+- **Naprawa typów encyklopedii:** Rozszerzono filtry `CATEGORIES` w Dzienniku o powiązanie nowszych (encyclopedia_item) jak i starych kluczy wpisów.
+- **Dodanie testów (TDD follow-up):** Dodano plik `discoveries-view.test.tsx` pokrywający nowe interakcje w Dzienniku, testy przechodzą pomyślnie. Zabezpieczono wyszukiwarkę optional-chainingiem.
+- Utworzono dokumentację fazy Research i Planów we właściwych lokalizacjach `.agent/`.
+
+### Co otwarte (do następnej sesji)
+- Skonfigurować z backendem przesyłanie parametru `characterId` w trybie Hot Seat z miniformularza `acquired-item-card.tsx` (obecnie pozostawiono odpowiednie `TODO` na karcie wyższej - `message-card.tsx`).
+
+### Decyzje podjęte
+- Wybrana opcja Auto-Lootu zakłada istnienie mechaniki wyboru postaci tylko w Hot Seat / Duet, z całkowicie przezroczystym automatyzmem dla gracza solowego, niezaśmiecającym UI.
+
 # Session Notes
 
 ## Podsumowanie sesji: 2026-07-27 (Wieczór)
