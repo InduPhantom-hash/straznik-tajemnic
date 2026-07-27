@@ -234,5 +234,21 @@ Branch: main
 ### Co otwarte
 - Kod i silnik są w pełni gotowe do rozgrywek solo oraz duet.
 
+
+## Podsumowanie sesji: 2026-07-27 (Przebudowa Dziennika, Ekwipunku i Biografii)
+Branch: main
+
+### Co zrobiono
+- **Faza 1 (Biografie Postaci):** Rozbudowano biografie dla wszystkich 30 predefiniowanych badaczy w `predefined-characters.ts` (3 ery x 5 archetypów x 2 płcie). Każdy biogram zawiera głęboki opis A4 (~1000-1400 znaków, 3 akapity: Geneza, Przełom, Motywacja + `[Kluczowa więź]`). Testy 8/8 PASS.
+- **Faza 2 (Modal Detalu Ekwipunku & SVG Placeholdery):** Przebudowano `equipment-detail-dialog.tsx` na layout 2-kolumnowy (45% lewy podgląd/placeholder/mapa, prawa kolumna informacje, wartość USD 1920s, CoC 7e mechanika), dodano `equipment-image-placeholder.tsx` dla 8 kategorii, wyeliminowano błędne przyciski "Przeczytaj" dla artefaktów oraz powiększono kontener do 93vw/92vh. Testy 4/4 PASS.
+- **Faza 3 (Dziennik Sesji & Odkrycia):**
+  - Stworzono `discoveries-view.tsx` łączący dawne Misje i Encyklopedię w jeden zunifikowany interfejs z 4 kategoriami (*Miejsca*, *Postacie*, *Przedmioty*, *Misje*).
+  - Wdrożono ciemne scrollbary Art-Deco `.journal-scroll` w `globals.css` oraz zreorganizowano menu `session-journal.tsx` do 4 zakładek (*Tablica Badacza*, *Odkrycia*, *Kronika*, *Notatki*), usuwając ~345 linii martwego kodu.
+  - Naprawiono przechwytywanie PointerEvents na kartach tablicy korkowej (`corkboard-investigation-board.tsx`).
+  - Zapewniono jedno źródło prawdy (SSOT) dla `convertEntriesToBoardNodes` w `journal-storage.ts`.
+- **Faza 4 (Weryfikacja & Build):** `npx tsc --noEmit` PASS (0 błędów), Jest PASS (139/144), Next.js `npm run build` PASS.
+- **Dokumentacja (Zew-update):** Zaktualizowano `docs/MAPA-POWIAZAN.md`.
+
 ### Decyzje podjęte
-- Odpowiedzi AI mają elastyczną długość uzależnioną od charakteru akcji (zwięzłe dialogi, bogatsze wprowadzające opisy otwarcia scen).
+- Zachowano lokalny `git commit` bez natychmiastowego `git push` do GitHuba – zgodnie z zaleceniem Jakuba przed weryfikacją na aplikacji z biurka.
+- Wykonano pełny `cold-start` i przebudowano instalator `.app` na biurko (`~/Desktop/Strażnik Tajemnic AI.app`) do testowania.

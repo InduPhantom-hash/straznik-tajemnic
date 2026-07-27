@@ -195,7 +195,7 @@ export function EquipmentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         size="screen"
-        className="bg-gradient-to-b from-[#14110c] to-background border-brass/30 flex flex-col"
+        className="bg-gradient-to-b from-[#14110c] to-background border-brass/30 flex flex-col !w-[93vw] !max-h-[92vh]"
       >
         <DialogHeader className="flex-none flex flex-row items-center justify-between gap-3 pr-12">
           <DialogTitle className="font-display uppercase tracking-[0.1em] text-foreground flex items-center gap-3">

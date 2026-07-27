@@ -505,3 +505,23 @@
     0 0 26px 10px hsl(var(--brass) / 0.5),
     0 0 60px 24px hsl(var(--primary) / 0.18);
 }
+
+/* ─── Ciemne scrollbary Art-Deco (Dziennik Sesji, modale) ─── */
+.journal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3a2518 transparent;
+}
+.journal-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.journal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.journal-scroll::-webkit-scrollbar-thumb {
+  background: #3a2518;
+  border-radius: 3px;
+}
+.journal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #5c3e21;
+}

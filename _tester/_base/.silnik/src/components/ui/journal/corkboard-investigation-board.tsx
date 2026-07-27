@@ -594,6 +594,7 @@ export function CorkboardInvestigationBoard({
                             <StatusIcon className={cn('h-4 w-4', statusInfo.color)} />
                           </span>
                           <button
+                            onPointerDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
                               e.stopPropagation();
                               const nextStatus: EvidenceNodeStatus =
@@ -613,6 +614,7 @@ export function CorkboardInvestigationBoard({
                       {node.imageUrl && (
                         <div
                           className="mb-2 overflow-hidden rounded border border-[#3a2518] h-24 bg-black/40 cursor-pointer hover:opacity-90 transition-opacity"
+                          onPointerDown={(e) => e.stopPropagation()}
                           onClick={(e) => {
                             e.stopPropagation();
                             onInspectNode?.(node);
@@ -644,6 +646,7 @@ export function CorkboardInvestigationBoard({
                           {/* Podglad (Inspect) */}
                           {onInspectNode && (
                             <button
+                              onPointerDown={(e) => e.stopPropagation()}
                               onClick={(e) => { e.stopPropagation(); onInspectNode(node); }}
                               className="p-1 text-[#bfa15f] hover:bg-[#3a2518] rounded transition-colors"
                               title="Zbadaj dowod"
@@ -653,6 +656,7 @@ export function CorkboardInvestigationBoard({
                           )}
                           {/* Polacz sznurkiem */}
                           <button
+                            onPointerDown={(e) => e.stopPropagation()}
                             onClick={(e) => { e.stopPropagation(); handleStartConnection(node.id); }}
                             className={cn(
                               'p-1 rounded hover:bg-[#3a2518] transition-colors',
@@ -664,6 +668,7 @@ export function CorkboardInvestigationBoard({
                           </button>
                           {/* Usun */}
                           <button
+                            onPointerDown={(e) => e.stopPropagation()}
                             onClick={(e) => { e.stopPropagation(); handleDeleteNode(node.id); }}
                             className="p-1 text-[#a84d4d] hover:bg-[#3a2518] rounded transition-colors"
                             title="Usun z tablicy"

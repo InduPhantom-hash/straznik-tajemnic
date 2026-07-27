@@ -17,6 +17,7 @@ import {
   Download,
 } from 'lucide-react';
 import { CorkboardInvestigationBoard } from './journal/corkboard-investigation-board';
+import { DiscoveriesView } from './journal/discoveries-view';
 import { InspectionLightboxModal } from '../dialogs/inspection-lightbox-modal';
 import { EvidenceNode, EvidenceRelation, InvestigatorBoardState, BoardViewport } from '@/types/investigator-board';
 import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
@@ -119,9 +120,9 @@ export function SessionJournal({
     if (savedBoardState?.nodes && savedBoardState.nodes.length > 0) {
       return savedBoardState.nodes;
     }
-    const rawEntries = (sharedJournal ?? character.journal ?? []) as unknown as JournalEntry[];
-    return convertEntriesToBoardNodes(rawEntries);
-  }, [character.journal, sharedJournal, savedBoardState]);
+    // Domyślnie pusta tablica - gracz sam przypina poszlaki ze Szuflady.
+    return [];
+  }, [savedBoardState]);
 
   const [boardNodes, setBoardNodes] = useState<EvidenceNode[]>(initialNodes);
   const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>(
@@ -484,18 +485,18 @@ export function SessionJournal({
               📌 Tablica Badacza
             </button>
             <button
-              onClick={() => handleTabChange('quest')}
+              onClick={() => handleTabChange('encyclopedia_character')}
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
-                activeTab === 'quest'
+                (activeTab === 'encyclopedia_character' || activeTab === 'encyclopedia_location' || activeTab === 'encyclopedia_item' || activeTab === 'quest')
                   ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
                   : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
               )}
             >
-              Misje
-              {unseenCounts.quest > 0 && (
+              🔍 Odkrycia
+              {(unseenCounts.encyclopedia + unseenCounts.quest) > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unseenCounts.quest}
+                  {unseenCounts.encyclopedia + unseenCounts.quest}
                 </span>
               )}
             </button>
@@ -512,22 +513,6 @@ export function SessionJournal({
               {unseenCounts.journal > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                   {unseenCounts.journal}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => handleTabChange('encyclopedia_character')}
-              className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
-                activeTab === 'encyclopedia_character'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
-              )}
-            >
-              Encyklopedia
-              {unseenCounts.encyclopedia > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unseenCounts.encyclopedia}
                 </span>
               )}
             </button>
@@ -624,6 +609,12 @@ export function SessionJournal({
                   type: e.type,
                   imageUrl: (e as unknown as Record<string, string>).imageUrl,
                 }))}
+                equipmentItems={(character.equipment ?? []).map((e) => ({
+                  id: e.id,
+                  name: e.name,
+                  description: e.description || '',
+                  imageUrl: e.imageUrl,
+                }))}
                 onInspectNode={(node) => setInspectedNode(node)}
               />
             </div>
@@ -647,247 +638,21 @@ export function SessionJournal({
             />
           )}
 
-          {/* 1. SEKCJA MISJI */}
-          {activeTab === 'quest' && (
-            <div className="flex-1 flex overflow-hidden">
-              {/* Lewa kolumna: Lista misji */}
-              <div className="w-1/3 border-r-2 border-[#3a2518] overflow-y-auto bg-[#120905] p-4 space-y-4">
-                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#bfa15f] border-b border-[#3a2518] pb-1">
-                  Aktywne przygody ({activeQuests.length})
-                </div>
-                <div className="space-y-1.5">
-                  {activeQuests.map((quest) => (
-                    <button
-                      key={quest.id}
-                      onClick={() => setSelectedQuestId(quest.id)}
-                      className={cn(
-                        'w-full text-left p-3 rounded-md transition-all font-serif border',
-                        selectedQuestId === quest.id ||
-                          (!selectedQuestId && selectedQuest?.id === quest.id)
-                          ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                          : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                      )}
-                    >
-                      <div className="font-bold text-base">{quest.title}</div>
-                      <div className="text-xs mt-1 line-clamp-1 opacity-80">
-                        {quest.content}
-                      </div>
-                    </button>
-                  ))}
-                  {activeQuests.length === 0 && (
-                    <div className="text-sm text-center py-6 text-[#8a7667] italic">
-                      Brak aktywnych misji
-                    </div>
-                  )}
-                </div>
-
-                {completedQuests.length > 0 && (
-                  <>
-                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#73a15c] border-b border-[#3a2518] pt-4 pb-1">
-                      Ukończone przygody ({completedQuests.length})
-                    </div>
-                    <div className="space-y-1.5">
-                      {completedQuests.map((quest) => (
-                        <button
-                          key={quest.id}
-                          onClick={() => setSelectedQuestId(quest.id)}
-                          className={cn(
-                            'w-full text-left p-3 rounded-md transition-all font-serif border opacity-80',
-                            selectedQuestId === quest.id
-                              ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                              : 'bg-[#142310] hover:bg-[#1d3318] border-transparent text-[#a3d18e]'
-                          )}
-                        >
-                          <div className="font-bold text-base">
-                            {quest.title}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {failedQuests.length > 0 && (
-                  <>
-                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#a84d4d] border-b border-[#3a2518] pt-4 pb-1">
-                      Nieudane przygody ({failedQuests.length})
-                    </div>
-                    <div className="space-y-1.5">
-                      {failedQuests.map((quest) => (
-                        <button
-                          key={quest.id}
-                          onClick={() => setSelectedQuestId(quest.id)}
-                          className={cn(
-                            'w-full text-left p-3 rounded-md transition-all font-serif border opacity-80',
-                            selectedQuestId === quest.id
-                              ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                              : 'bg-[#2b1010] hover:bg-[#3d1818] border-transparent text-[#e3a8a8]'
-                          )}
-                        >
-                          <div className="font-bold text-base">
-                            {quest.title}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Prawa kolumna: Szczegóły wybranej misji */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#18120c] flex flex-col justify-between">
-                {selectedQuest ? (
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-start border-b-2 border-[#3a2518] pb-3">
-                      <div>
-                        <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
-                          {selectedQuest.title}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span
-                            className={cn(
-                              'text-xs px-2 py-0.5 rounded font-serif font-semibold border',
-                              selectedQuest.questStatus === 'completed'
-                                ? 'bg-[#142310] border-[#73a15c] text-[#a3d18e]'
-                                : selectedQuest.questStatus === 'failed'
-                                  ? 'bg-[#2b1010] border-[#a84d4d] text-[#e3a8a8]'
-                                  : 'bg-[#2a1b12] border-[#bfa15f] text-[#f4ebd0]'
-                            )}
-                          >
-                            {selectedQuest.questStatus === 'completed'
-                              ? 'Ukończona'
-                              : selectedQuest.questStatus === 'failed'
-                                ? 'Nieudana'
-                                : 'Aktywna'}
-                          </span>
-                          <span className="text-xs text-[#8a7667]">
-                            Wpis z dnia:{' '}
-                            {selectedQuest.inGameDate ||
-                              (selectedQuest.timestamp
-                                ? new Date(selectedQuest.timestamp).toLocaleDateString('pl-PL')
-                                : '')}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => setEditingEntry(selectedQuest)}
-                          variant="outline"
-                          size="sm"
-                          className="border-[#bfa15f] hover:bg-[#2a1b12] text-[#f4ebd0] bg-transparent"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          onClick={() => deleteEntry(selectedQuest.id)}
-                          variant="outline"
-                          size="sm"
-                          className="border-[#942c2c] hover:bg-[#2b1010] text-[#ff6b6b] bg-transparent"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Opis misji */}
-                    <div className="text-base leading-relaxed text-[#e2d4c9] whitespace-pre-wrap font-serif italic bg-[#120905] p-4 rounded-md border border-[#3a2518]">
-                      {selectedQuest.content}
-                    </div>
-
-                    {/* Cele misji */}
-                    <div className="space-y-3">
-                      <h4 className="font-serif font-bold text-lg text-[#f4ebd0] border-b border-[#3a2518] pb-1">
-                        Postępy i Cele zadania
-                      </h4>
-                      <div className="space-y-3">
-                        {selectedQuest.objectives &&
-                        selectedQuest.objectives.length > 0 ? (
-                          selectedQuest.objectives.map((obj) => (
-                            <div
-                              key={obj.id}
-                              className={cn(
-                                'p-3 rounded border flex items-start gap-3 transition-colors',
-                                obj.completed
-                                  ? 'bg-[#142310] border-[#2c4c19] text-[#a3d18e]'
-                                  : 'bg-[#120905] border-[#3a2518] text-[#e2d4c9]'
-                              )}
-                            >
-                              <button
-                                onClick={() => {
-                                  const updatedObjectives =
-                                    selectedQuest.objectives?.map((o) =>
-                                      o.id === obj.id
-                                        ? {
-                                            ...o,
-                                            completed: !o.completed,
-                                            dateCompleted: !o.completed
-                                              ? new Date().toLocaleDateString(
-                                                  'pl-PL'
-                                                )
-                                              : undefined,
-                                          }
-                                        : o
-                                    );
-                                  updateEntry({
-                                    ...selectedQuest,
-                                    objectives: updatedObjectives,
-                                  });
-                                }}
-                                className="mt-0.5 focus:outline-none"
-                              >
-                                {obj.completed ? (
-                                  <CheckCircle2 className="h-5 w-5 text-[#73a15c] fill-[#142310]" />
-                                ) : (
-                                  <Circle className="h-5 w-5 text-[#8a7667]" />
-                                )}
-                              </button>
-                              <div className="flex-1">
-                                <div
-                                  className={cn(
-                                    'text-base font-serif',
-                                    obj.completed &&
-                                      'line-through text-[#8a7667]'
-                                  )}
-                                >
-                                  {obj.description}
-                                </div>
-                                <div className="text-xs text-[#8a7667] mt-1 flex gap-2">
-                                  {obj.gameDay && (
-                                    <span>Dzień {obj.gameDay}</span>
-                                  )}
-                                  {obj.gameHour && (
-                                    <span>godzina {obj.gameHour}</span>
-                                  )}
-                                  {obj.completed && obj.dateCompleted && (
-                                    <span className="text-[#73a15c]">
-                                      Ukończono: {obj.dateCompleted}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-sm text-[#8a7667] italic">
-                            Brak celów szczegółowych. Możesz je dodać edytując
-                            misję.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-[#8a7667] italic font-serif">
-                    Wybierz misję z listy po lewej stronie lub dodaj nową
-                  </div>
-                )}
-              </div>
-            </div>
+          {/* 1. SEKCJA ODKRYĆ (dawne Misje + Encyklopedia) */}
+          {(activeTab === 'quest' || activeTab === 'encyclopedia_character' || activeTab === 'encyclopedia_location' || activeTab === 'encyclopedia_item') && (
+            <DiscoveriesView
+              entries={(entries as unknown as Array<{ id: string; title: string; content: string; type: string; tags?: string[]; imageUrl?: string; imageStatus?: string; inGameDate?: string; timestamp?: number; questStatus?: 'active' | 'completed' | 'failed'; objectives?: Array<{ id: string; description: string; completed?: boolean; dateCompleted?: string }> }>).filter(
+                (e) => ['quest', 'encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
+              )}
+              onEditEntry={(entry) => setEditingEntry(entry as unknown as ExtendedJournalEntry)}
+              onDeleteEntry={deleteEntry}
+              searchQuery={searchQuery}
+            />
           )}
 
           {/* 2. SEKCJA KRONIKI */}
           {activeTab === 'journal' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-[#18120c] space-y-6">
+            <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c] space-y-6">
               <div className="max-w-4xl mx-auto space-y-4">
                 <div className="flex justify-between items-center border-b border-[#3a2518] pb-2">
                   <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
@@ -996,128 +761,9 @@ export function SessionJournal({
             </div>
           )}
 
-          {/* 3. SEKCJA ENCYKLOPEDII */}
-          {activeTab === 'encyclopedia_character' && (
-            <div className="flex-1 flex overflow-hidden">
-              {/* Podzakładki encyklopedii */}
-              <div className="w-1/4 border-r border-[#3a2518] bg-[#120905] p-4 flex flex-col gap-2">
-                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#bfa15f] border-b border-[#3a2518] pb-2 mb-2">
-                  Kategorie wiedzy
-                </div>
-                <button
-                  onClick={() => setEncyclopediaSubTab('character')}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
-                    encyclopediaSubTab === 'character'
-                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                  )}
-                >
-                  Postaci & Byt
-                </button>
-                <button
-                  onClick={() => setEncyclopediaSubTab('location')}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
-                    encyclopediaSubTab === 'location'
-                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                  )}
-                >
-                  Lokacje & Miejsca
-                </button>
-                <button
-                  onClick={() => setEncyclopediaSubTab('item')}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
-                    encyclopediaSubTab === 'item'
-                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                  )}
-                >
-                  Przedmioty & Artefakty
-                </button>
-              </div>
-
-              {/* Grid wpisów */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="bg-[#120905] border border-[#3a2518] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-start border-b border-[#3a2518] pb-2">
-                          <h4 className="text-lg font-serif font-bold text-[#f4ebd0]">
-                            {entry.title}
-                          </h4>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {entry.imageStatus === 'pending' ? (
-                          <div className="my-2 h-36 rounded border border-[#bfa15f]/30 bg-[#0d0906] p-4 flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
-                            <div className="w-5 h-5 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs font-serif italic">Malowanie...</span>
-                          </div>
-                        ) : entry.imageUrl ? (
-                          <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
-                            <img
-                              src={entry.imageUrl}
-                              alt={entry.title}
-                              className="w-full h-36 object-cover rounded"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        ) : null}
-                        <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap">
-                          {entry.content}
-                        </p>
-                      </div>
-
-                      {entry.tags && entry.tags.length > 0 && (
-                        <div className="flex gap-1 mt-3 flex-wrap border-t border-[#3a2518] pt-2">
-                          {entry.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-[10px] bg-[#3a2518]/50 text-[#f4ebd0] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {filteredEntries.length === 0 && (
-                    <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
-                      Brak wpisów w tej kategorii encyklopedii.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
+            <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c]">
               <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredEntries.map((entry) => (
                   <div
@@ -1305,7 +951,7 @@ function AddEntryForm({
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-[#e2d4c9] font-serif shadow-2xl">
+      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-[#e2d4c9] font-serif shadow-2xl">
         <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
           <h3 className="text-xl font-bold text-[#f4ebd0]">
             Dodaj nowy wpis do księgi przygód
@@ -1622,7 +1268,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-[#e2d4c9] font-serif shadow-2xl">
+      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-[#e2d4c9] font-serif shadow-2xl">
         <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
           <h3 className="text-xl font-bold text-[#f4ebd0]">
             Edytuj wpis w księdze przygód
