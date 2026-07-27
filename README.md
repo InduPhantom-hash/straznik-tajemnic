@@ -2,20 +2,20 @@
 
 <img src="docs/assets/06-banner-1500x500.png" alt="Strażnik Tajemnic AI / Keeper of Arcane Lore AI" width="820">
 
-# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.1-beta)
+# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.2-beta)
 
 **Nieoficjalny, fanowski Mistrz Gry AI do sesji RPG w klimacie lovecraftowskim.**  
 *An unofficial, fan-made AI Game Master for RPG sessions in the Lovecraftian setting.*
 
 ---
 
-[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v091-beta) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v091-beta)
+[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v092-beta) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v092-beta)
 
 </div>
 
 ---
 
-# 🇵🇱 Strażnik Tajemnic AI (v0.9.1-beta)
+# 🇵🇱 Strażnik Tajemnic AI (v0.9.2-beta)
 
 Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Cała gra toczy się **lokalnie u Ciebie** - wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, save'y lądują na dysku. Bez logowania, bez chmury, bez telemetrii.
 
@@ -42,27 +42,38 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 > **Projekt fanowski, nieoficjalny.** Nie jest powiązany z Chaosium Inc. ani Black Monk.
 > Aplikacja to **sam silnik** - nie zawiera żadnego podręcznika. Grasz na **własnym, legalnie nabytym** egzemplarzu. _Call of Cthulhu_ / _Zew Cthulhu_ to znaki towarowe Chaosium Inc. Szczegóły: [`NOTICE`](./NOTICE).
 
-## ✨ Co potrafi
+## ✨ Co potrafi & Architektura Anty-Halucynacyjna
 
-- **AI Mistrz Gry** - prowadzi narrację w stylu Lovecrafta, reaguje na decyzje graczy.
-- **Kreator postaci** - badacz CoC 7e (charakterystyki, umiejętności, zawód, portret).
-- **Mechaniki CoC 7e** - rzuty k100, testy umiejętności, Push Roll, poczytalność (SAN), Szczęście, Faza Rozwoju - liczone przez aplikację (deterministycznie), AI opisuje skutek.
+- **Gwarancja Zasad & Deterministyczna Mechanika (Bez Halucynacji AI):**
+  - **Lokalny RAG Podręcznika:** Aplikacja automatycznie przeszukuje **Twojego** wgranego PDF-a i podaje dokładny kontekst reguł do zapytania LLM. AI nie wymyśla zasad ani statystyk z głowy.
+  - **Kodowane Rzuty k100:** AI **nie rzuca kośćmi w czacie**. Rzuty na umiejętności, kalkulacje progów (Zwykły, Trudny, Ekstremalny, Krytyczny, Pech), testy Poczytalności (SAN) i Poczytalności Chwilowej oraz Faza Rozwoju są wyliczane w 100% kodem aplikacji. AI otrzymuje twardy wynik i opisuje wyłącznie jego fabularne konsekwencje.
+  - **Kontrola Stanu Świata:** Filtry kontynuacji narracyjnej pilnują faktów z przygody, lokacji, zdrowia badaczy oraz statusu NPC.
+- **AI Mistrz Gry** - prowadzi narrację w stylu Lovecrafta z wykorzystaniem inżynierii opisu sensorycznego (geometria nieeuklidesowa, anomalie klimatyczne, odczucia fizyczne).
+- **Sesja Zero & Linie i Zasłony** - wbudowany kreator granic narracyjnych pozwalający wykluczyć niechciane motywy ze stołu.
+- **Kreator i Presety Badaczy** - gotowe postacie z uzupełnionymi biografiami i kluczowymi więziami lub tworzenie od zera.
 - **Hot Seat** - 1-2 graczy przy jednym laptopie, każdy ma swoją postać i kolor.
-- **Lektor (TTS)** - głos Mistrza Gry czyta narrację.
-- **Ilustracje scen** - obrazy generowane w trakcie sesji.
-- **Lokalny RAG** - apka zna zasady z **Twojego** wgranego podręcznika (anty-halucynacja).
-- **Zegar kampanii, dziennik, zapis/wczytanie** na dysk.
+- **Lektor (TTS)** - głos Mistrza Gry czyta narrację z natychmiastowym streamingiem.
+- **Ilustracje scen** - obrazy generowane na żywo w trakcie sesji.
+- **Pomoc w Sidebarze & Asystent RAG** - natychmiastowe wyjaśnienie zasad gry w oknie bocznym podczas trwania przygody.
+
+> [!WARNING]
+> **Uwaga dotycząca wersji v0.9.2-beta:**
+> Moduł Dziennika Badacza (Tablica Dowodów) oraz katalog Ekwipunku są obecnie w fazie intensywnej przebudowy i szlifowania logiki powiązań. Mogą występować okresowe niestabilności – na ten moment **zalecamy prowadzenie notatek i spisywanie kluczowych poszlak ręcznie** (na kartce lub w zewnętrznym notatniku).
 
 ## 📸 Zrzuty ekranu
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Menu główne"><br><sub><b>Menu główne</b> - wybór trybu, przygody i postaci.</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/02-test-umiejetnosci.png" alt="Test umiejętności"><br><sub><b>Test umiejętności</b> - Tacka liczy rzut k100 wg progów CoC 7e.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Menu główne"><br><sub><b>Menu główne</b> - stylizowany wybór trybu Solo, przygody, Sesji Zero i postaci.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/02-pierwsze-uruchomienie.png" alt="Pierwsze uruchomienie"><br><sub><b>Setup</b> - wklejanie klucza Gemini oraz podpinanie własnego podręcznika PDF.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/03-scena-arkham.png" alt="Scena wygenerowana przez AI"><br><sub><b>Scena z AI</b> - ilustracja i narracja Mistrza Gry w stylu Lovecrafta.</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/04-karta-postaci.png" alt="Karta badacza"><br><sub><b>Karta badacza</b> - charakterystyki, umiejętności i stan postaci.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/03-sesja-zero-linie-zaslony.png" alt="Sesja Zero"><br><sub><b>Sesja Zero</b> - kalibracja granic narracyjnych (Linie i Zasłony).</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/04-scena-i-narracja-lovecrafta.png" alt="Ekran gry z AI"><br><sub><b>Ekran gry</b> - ilustracja, narracja Mistrza Gry oraz prawy panel kontrolny.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/screenshots/05-karta-postaci.png" alt="Karta badacza"><br><sub><b>Karta badacza</b> - charakterystyki CoC 7e, umiejętności i biografia.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/06-ekwipunek-i-finanse.png" alt="Ekwipunek i finanse"><br><sub><b>Ekwipunek</b> - przedmioty fabularne, ikony oraz finanse postaci.</sub></td>
   </tr>
 </table>
 
@@ -106,6 +117,12 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 | **HIGH** ⭐ | Gemini 3.6 Flash / 2.5 | Gemini TTS | Gemini / Vertex |
 | **ULTRA**   | Gemini Pro       | Gemini Pro TTS | Gemini / Vertex |
 
+## 🗺️ Roadmapa (Plany rozwojowe)
+
+- [ ] **Pełna angielska wersja językowa (EN):** Wdrożenie kompleksowej lokalizacji interfejsu oraz systemowych promptów narracyjnych do prowadzenia sesji w języku angielskim.
+- [ ] **Wsparcie dla alternatywnych dostawców AI (Multi-LLM / BYOK):** Rozszerzenie silnika poza Gemini API o obsługę Anthropic Claude, OpenAI (GPT-4o) oraz lokalnych modeli uruchamianych przez Ollama / Groq.
+- [ ] **Stabilizacja Tablicy Badacza & Ekwipunku:** Pełne dopracowanie automatycznego grafu powiązań poszlak i interaktywnego zarządzania przedmiotami.
+
 ## 🔧 Technologie
 
 Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/ui · Google Gemini API · lokalny RAG (Float32 binarny, cosine) · Jest + Playwright.
@@ -124,6 +141,14 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 
 ## 📝 Change Log (Historia zmian)
 
+### [v0.9.2-beta] - 2026-07-27
+- **Inżynieria Narracji i Anty-Halucynacja:** Wdrożenie Lovecraftowskich filtrów stanu świata, 3-stopniowych poszlak, ziaren retrospekcji oraz ścisłego pilnowania zasad dzięki lokalnemu RAG i kodowanym rzutom k100.
+- **Odświeżony Interfejs Startowy:** Nowy ekran Menu Głównego, usprawnienia nawigacji oraz wbudowany wyznacznik granic narracyjnych Sesji Zero (Linie i Zasłony).
+- **Autorskie Scenariusze Strefy 11:** 4 wbudowane autorskie scenariusze i 16 predefiniowanych postaci z uzupełnionymi biografiami i więziami.
+- **Asystent RAG w Sidebarze:** Nowy modal pomocy, encyklopedia zasad oraz asystent odpowiadający na pytania o reguły gry w trakcie sesji.
+- **Ulepszony Lektor (TTS) & Audio:** Instant streaming narracji, głosy NPC oraz integracja ElevenLabs (BYOK).
+- **Dynamiczna Pogoda:** Integracja historycznych warunków pogodowych z zasadą "Klimat > Fakty".
+
 ### [v0.9.1-beta] - 2026-07-20
 - **Ulepszona atmosfera Lovecrafta**: Wdrożenie Konstytucji Narracji, głębszych opisów sensorycznych (metaliczny posmak na języku przed anomalią) oraz geometrii nieeuklidesowej w scenach z Mitów.
 - **Biografie badaczy**: Uzupełnienie rostera o 30 pełnych, 6-8 zdaniowych opisów predefiniowanych postaci.
@@ -138,7 +163,7 @@ Kod: **MIT** (patrz [`LICENSE`](./LICENSE)). Licencja obejmuje wyłącznie silni
 
 ---
 
-# 🇺🇸 Keeper of Arcane Lore AI (v0.9.1-beta)
+# 🇺🇸 Keeper of Arcane Lore AI (v0.9.2-beta)
 
 Run your _Call of Cthulhu 7e_ sessions solo or with a friend on a single laptop (Hot Seat). The entire game runs **locally on your machine** - you insert your own Gemini API key, upload **your own** guidebook, and saves are stored on your disk. No registration, no cloud databases, no telemetry.
 
@@ -159,16 +184,40 @@ There comes a stage in life where gathering a full table for an RPG session is a
 > **Fan project, unofficial.** Not affiliated with Chaosium Inc. or Black Monk.
 > The application is **only the engine** - it does not contain any books. You play using your **own, legally acquired** copy. _Call of Cthulhu_ is a trademark of Chaosium Inc. Details: [`NOTICE`](./NOTICE).
 
-## ✨ Features
+## ✨ Features & Anti-Hallucination Architecture
 
-- **AI Game Master** - leads the narrative in Lovecraft's style, reacting dynamically to players' choices.
-- **Character Creator** - CoC 7e investigator creator (characteristics, occupation, skill points allocation, background, portrait).
-- **CoC 7e Mechanics** - d100 rolls, skill tests, Push Rolls, Sanity (SAN), Luck, Development Phase - calculated deterministically by the app, AI describes the outcome.
+- **Rules Guarantee & Deterministic Mechanics (No AI Hallucinations):**
+  - **Local Rulebook RAG:** The application automatically searches **your** uploaded PDF and injects exact rule context into the LLM prompt. The AI does not fabricate rules or stats.
+  - **Hardcoded d100 Rolls:** The AI **never rolls dice in chat**. Skill checks, threshold calculations (Regular, Hard, Extreme, Critical, Fumble), Sanity (SAN) tests, and Development Phase are 100% computed in application code. The AI receives hard results and focuses solely on narrative outcomes.
+  - **World State Control:** Narrative continuity filters prevent plot holes, lost facts, or forgotten investigator health states.
+- **AI Game Master** - leads the narrative in Lovecraft's style with sensory descriptions (non-Euclidean geometry, atmospheric shifts).
+- **Session Zero & Lines/Veils** - safety tool to calibrate story boundaries at the table.
+- **Investigator Creator & Presets** - pre-made characters with rich backstories or custom investigator builder.
 - **Hot Seat** - 1-2 players sharing one screen, each with a unique investigator and color theme.
-- **Voice (TTS)** - the AI Game Master reads the narrative out loud.
-- **Scene Illustrations** - images generated in real-time as the adventure progresses.
-- **Local RAG** - the app knows the rules directly from **your** uploaded PDF guidebook (eliminating hallucinations).
-- **Campaign Clock & Journal** - in-game time tracking and automated logs/clues saving.
+- **Voice (TTS)** - instant streaming narrative readout.
+- **Scene Illustrations** - real-time AI image generation.
+- **In-Game Help & RAG Assistant** - instant rule explanations right in the sidebar during play.
+
+> [!WARNING]
+> **Note regarding version v0.9.2-beta:**
+> The Investigator Journal (Evidence Board) and Equipment system are currently undergoing major refactoring. Minor instabilities may occur – **we currently recommend keeping track of clues and items manually on paper or in a separate notebook**.
+
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Main menu"><br><sub><b>Main menu</b> - styled selection of Solo mode, custom scenarios, Session Zero and characters.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/02-pierwsze-uruchomienie.png" alt="First run setup"><br><sub><b>Setup</b> - Gemini API key setup and rulebook PDF upload.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/screenshots/03-sesja-zero-linie-zaslony.png" alt="Session Zero"><br><sub><b>Session Zero</b> - safety boundaries calibration (Lines & Veils).</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/04-scena-i-narracja-lovecrafta.png" alt="Gameplay screen"><br><sub><b>Gameplay screen</b> - scene illustration, GM narrative and control sidebar.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/screenshots/05-karta-postaci.png" alt="Investigator sheet"><br><sub><b>Investigator sheet</b> - CoC 7e stats, skills and biography.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/06-ekwipunek-i-finanse.png" alt="Equipment and finances"><br><sub><b>Equipment</b> - plot items, custom icons and character finances.</sub></td>
+  </tr>
+</table>
 
 ## 🚀 Quick Start
 
@@ -210,6 +259,12 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 | **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS | Gemini / Vertex |
 | **ULTRA** | Gemini Pro | Gemini Pro TTS | Gemini / Vertex |
 
+## 🗺️ Development Roadmap
+
+- [ ] **Full English Language Support (EN):** Complete localization of UI and system narrative prompts to allow full sessions in English.
+- [ ] **Multi-LLM / BYOK Support:** Expand engine beyond Gemini API to support Anthropic Claude, OpenAI (GPT-4o), and local models via Ollama / Groq.
+- [ ] **Investigator Journal & Inventory Polish:** Finalize evidence graph relations and refine plot item management.
+
 ## 🔧 Technologies
 
 Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/ui · Google Gemini API · Local vector DB (Float32 binary, cosine similarity) · Jest + Playwright.
@@ -225,6 +280,14 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 
 ## 📝 Change Log
 
+### [v0.9.2-beta] - 2026-07-27
+- **Narrative Engineering & Anti-Hallucination:** Integrated Lovecraftian world-state filters, 3-tier clues, memory seeds, and local rulebook RAG with deterministic d100 engine.
+- **Refreshed Main Menu:** New main menu layout, navigation polish, and built-in Session Zero safety setup (Lines & Veils).
+- **Zone 11 Custom Scenarios:** 4 built-in custom adventures and 16 preset investigators with rich backstories.
+- **Sidebar RAG Assistant:** Added help modal, rules encyclopedia, and live rules assistant in the sidebar.
+- **Enhanced Voice (TTS) & Audio:** Instant streaming narration, NPC voices, and ElevenLabs (BYOK) integration.
+- **Dynamic Weather:** Integrated historical weather conditions with "Climate > Facts" priority.
+
 ### [v0.9.1-beta] - 2026-07-20
 - **Lovecraftian Atmosphere Enhancements**: Integrated Narrative Constitution, sensory cues (e.g., metallic taste before anomalies), and non-Euclidean geometry in Mythos scenes.
 - **Investigator Biographies**: Added 30 complete, 6-8 sentence descriptions for predefined characters.
@@ -233,7 +296,7 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 - **Fast Image Toggle**: Easily manage API costs with the illustration switch in the settings panel.
 - **Mobile and UX fixes**: Responsive modals for smaller screens, bottom toolbar layout in Lightbox, and diagnostic status panel connection timeouts.
 
-## 📄 License
+## 📄 Licencja
 
 Code: **MIT** (see [`LICENSE`](./LICENSE)).
 
