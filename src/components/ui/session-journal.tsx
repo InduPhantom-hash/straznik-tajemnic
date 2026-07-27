@@ -412,17 +412,17 @@ export function SessionJournal({
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4">
       {/* RPG-styled Container */}
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl shadow-2xl w-[95vw] max-w-[1500px] h-[90vh] flex flex-col overflow-hidden text-[#e2d4c9]">
+      <div className="bg-gray-950/95 backdrop-blur-md border-4 border-amber-900/60 rounded-xl shadow-2xl w-[95vw] max-w-[1500px] h-[90vh] flex flex-col overflow-hidden text-gray-300">
         {/* Nagłówek i Główne Zakładki */}
-        <div className="bg-[#2a1b12] border-b-2 border-[#3a2518] px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-gray-900/80 border-b-2 border-amber-900/60 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-7 w-7 text-[#bfa15f]" />
+            <BookOpen className="h-7 w-7 text-amber-500" />
             <div>
-              <h2 className="text-2xl font-serif font-bold tracking-wider text-[#f4ebd0] drop-shadow-md">
+              <h2 className="text-2xl font-serif font-bold tracking-wider text-amber-400 drop-shadow-md">
                 DZIENNIK SESJI
               </h2>
               {isShared && participantNames.length > 0 && (
-                <p className="text-xs font-special-elite tracking-wider text-[#bfa15f]">
+                <p className="text-xs font-special-elite tracking-wider text-amber-500">
                   Wspólny dla: {participantNames.join(' i ')}
                 </p>
               )}
@@ -430,14 +430,14 @@ export function SessionJournal({
           </div>
 
           {/* Zakładki na górze */}
-          <div className="flex bg-[#120b07] p-1 rounded-lg border border-[#3a2518]">
+          <div className="flex bg-[#120b07] p-1 rounded-lg border border-amber-900/60">
             <button
               onClick={() => handleTabChange('board')}
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'board'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
+                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
               )}
             >
               📌 Tablica Badacza
@@ -447,8 +447,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'quest'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
+                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
               )}
             >
               Misje
@@ -463,8 +463,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'journal'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
+                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
               )}
             >
               Kronika
@@ -479,8 +479,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'encyclopedia_character'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
+                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
               )}
             >
               Encyklopedia
@@ -495,8 +495,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
                 activeTab === 'note'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
+                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
               )}
             >
               Notatki
@@ -512,7 +512,7 @@ export function SessionJournal({
           <div className="flex gap-2 items-center">
             <Button
               onClick={() => setShowAddForm(true)}
-              className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
+              className="bg-amber-900/60 hover:bg-amber-800/60 text-amber-400 border border-amber-500/50/40 font-serif"
             >
               <Plus className="h-4 w-4 mr-1" /> Dodaj notatkę
             </Button>
@@ -524,21 +524,21 @@ export function SessionJournal({
                   setBoardRelations(MOCK_BOARD_RELATIONS);
                 });
               }}
-              className="bg-[#3a2518] hover:bg-[#503422] text-[#bfa15f] border border-[#bfa15f]/40 font-serif text-xs"
+              className="bg-amber-900/40 hover:bg-amber-800/50 text-amber-500 border border-amber-500/50/40 font-serif text-xs"
               title="Wypełnij dziennik przykładowymi wpisami testowymi"
             >
               🧪 Wypełnij testowo
             </Button>
             <Button
               onClick={exportToMarkdown}
-              className="bg-[#2c4021] hover:bg-[#39532b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
+              className="bg-[#2c4021] hover:bg-[#39532b] text-amber-400 border border-amber-500/50/40 font-serif"
             >
               <Download className="h-4 w-4 mr-1" /> Eksport MD
             </Button>
             {onClose && (
               <button
                 onClick={onClose}
-                className="ml-3 p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-[#f4ebd0] transition-colors"
+                className="ml-3 p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-amber-400 transition-colors"
                 title="Zamknij dziennik"
               >
                 <X className="h-5 w-5" />
@@ -548,21 +548,21 @@ export function SessionJournal({
         </div>
 
         {/* Wyszukiwarka */}
-        <div className="bg-[#18100b] border-b border-[#3a2518] px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center bg-[#0d0906] rounded-md px-3 py-1.5 w-full sm:max-w-md border border-[#3a2518]">
-            <Search className="h-4 w-4 text-[#8a7667] mr-2" />
+        <div className="bg-[#18100b] border-b border-amber-900/60 px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center bg-gray-950/80 rounded-md px-3 py-1.5 w-full sm:max-w-md border border-amber-900/60">
+            <Search className="h-4 w-4 text-gray-400 mr-2" />
             <input
               type="text"
               placeholder="Wyszukaj frazę..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm w-full outline-none text-[#e2d4c9] placeholder-[#5a4d43]"
+              className="bg-transparent text-sm w-full outline-none text-gray-300 placeholder-gray-600"
             />
           </div>
         </div>
 
         {/* Zawartość zakładek */}
-        <div className="flex-1 flex overflow-hidden bg-[#18120c] text-[#e2d4c9]">
+        <div className="flex-1 flex overflow-hidden bg-gray-950/50 text-gray-300">
           {/* 0. SEKCJA TABLICY BADACZA */}
           {activeTab === 'board' && (
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -575,12 +575,206 @@ export function SessionJournal({
             </div>
           )}
 
-          {/* 1. SEKCJA MISJI */}
-          {activeTab === 'quest' && (
+          {/* 2. SEKCJA KRONIKI */}
+          {activeTab === 'journal' && (
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-950/50 space-y-6">
+              <div className="max-w-4xl mx-auto space-y-4">
+                <div className="flex justify-between items-center border-b border-amber-900/60 pb-2">
+                  <h3 className="text-xl font-serif font-bold text-amber-400">
+                    Chronologia Wydarzeń
+                  </h3>
+                  <span className="text-sm text-gray-400">
+                    {filteredEntries.length} wpisów
+                  </span>
+                </div>
+
+                <div className="relative border-l-2 border-amber-500/50/40 pl-6 ml-4 space-y-6">
+                  {filteredEntries.map((entry) => (
+                    <div key={entry.id} className="relative">
+                      {/* Oś czasu */}
+                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#18120c] rounded-full h-4 w-4"></span>
+
+                      <div className="bg-gray-900/40 border border-amber-900/60 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-lg font-serif font-bold text-amber-400 flex items-center gap-2">
+                              {entry.title}
+                              {entry.isAutoGenerated && (
+                                <span className="text-[10px] bg-[#273a4b] text-amber-400 border border-amber-500/50/30 px-1.5 py-0.5 rounded uppercase font-sans">
+                                  Auto
+                                </span>
+                              )}
+                            </h4>
+                            <div className="text-xs text-gray-400 mt-0.5 flex gap-3">
+                              <span>
+                                📅{' '}
+                                {entry.inGameDate ||
+                                  (entry.timestamp
+                                    ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
+                                    : '')}
+                              </span>
+                              {entry.gameDay && (
+                                <span>⏳ Dzień {entry.gameDay}</span>
+                              )}
+                              {entry.category && (
+                                <span>📁 Kategoria: {entry.category}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="p-1 text-amber-400 hover:bg-amber-900/40 rounded transition-colors"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteEntry(entry.id)}
+                              className="p-1 text-red-400 hover:bg-red-950/40 rounded transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {entry.imageUrl && (
+                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-amber-500/50/30 bg-gray-950/80 p-1">
+                            <img
+                              src={entry.imageUrl}
+                              alt={entry.title}
+                              className="w-full h-44 object-cover rounded"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-gray-300">
+                          {entry.content}
+                        </p>
+
+                        {entry.tags && entry.tags.length > 0 && (
+                          <div className="flex gap-1 mt-2.5 flex-wrap">
+                            {entry.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="text-[11px] bg-amber-900/40 text-amber-400 px-2 py-0.5 rounded border border-amber-500/50/30"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {filteredEntries.length === 0 && (
+                    <div className="text-center py-12 text-gray-400 italic font-serif">
+                      Kronika jest pusta. Wpisy z przygód pojawią się tutaj
+                      chronologicznie.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. SEKCJA ENCYKLOPEDII */}
+          {activeTab === 'encyclopedia_character' && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Podzakładki encyklopedii */}
+              <div className="w-1/4 border-r border-amber-900/60 bg-gray-900/40 p-4 flex flex-col gap-2">
+                <div className="font-serif font-bold text-xs uppercase tracking-wider text-amber-500 border-b border-amber-900/60 pb-2 mb-2">
+                  Kategorie wiedzy
+                </div>
+                                <button
+                  onClick={() => handleEncyclopediaSubTabChange('location')}
+                  className={cn(
+                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border flex justify-between items-center',
+                    encyclopediaSubTab === 'location'
+                      ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 font-semibold'
+                      : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-gray-300'
+                  )}
+                >
+                  <span>Miejsca</span>
+                  {unseenCounts.location > 0 && <span className="w-2 h-2 bg-red-500 rounded-full"></span>}
+                </button>
+                <button
+                  onClick={() => handleEncyclopediaSubTabChange('character')}
+                  className={cn(
+                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border flex justify-between items-center',
+                    encyclopediaSubTab === 'character'
+                      ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 font-semibold'
+                      : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-gray-300'
+                  )}
+                >
+                  <span>Postacie</span>
+                  {unseenCounts.character > 0 && <span className="w-2 h-2 bg-red-500 rounded-full"></span>}
+                </button>
+                <button
+                  onClick={() => handleEncyclopediaSubTabChange('item')}
+                  className={cn(
+                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border flex justify-between items-center',
+                    encyclopediaSubTab === 'item'
+                      ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 font-semibold'
+                      : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-gray-300'
+                  )}
+                >
+                  <span>Przedmioty</span>
+                  {unseenCounts.item > 0 && <span className="w-2 h-2 bg-red-500 rounded-full"></span>}
+                </button>
+                <button
+                  onClick={() => handleEncyclopediaSubTabChange('quest')}
+                  className={cn(
+                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border flex justify-between items-center',
+                    encyclopediaSubTab === 'quest'
+                      ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 font-semibold'
+                      : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-gray-300'
+                  )}
+                >
+                  <span>Misje</span>
+                  {unseenCounts.quest > 0 && <span className="w-2 h-2 bg-red-500 rounded-full"></span>}
+                </button>
+              </div>
+
+              {/* Grid wpisów */}
+              <div className="flex-1 overflow-y-auto p-6 bg-gray-950/50">
+                {encyclopediaSubTab !== 'quest' && (
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="bg-gray-900/40 border border-amber-900/60 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start border-b border-amber-900/60 pb-2">
+                          <h4 className="text-lg font-serif font-bold text-amber-400">
+                            {entry.title}
+                          </h4>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="p-1 text-amber-400 hover:bg-amber-900/40 rounded transition-colors"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteEntry(entry.id)}
+                              className="p-1 text-red-400 hover:bg-red-950/40 rounded transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+)}
+{/* PODZAKŁADKA MISJI W ODKRYCIACH */}
+          {encyclopediaSubTab === 'quest' && (
             <div className="flex-1 flex overflow-hidden">
               {/* Lewa kolumna: Lista misji */}
-              <div className="w-1/3 border-r-2 border-[#3a2518] overflow-y-auto bg-[#120905] p-4 space-y-4">
-                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#bfa15f] border-b border-[#3a2518] pb-1">
+              <div className="w-1/3 border-r-2 border-amber-900/60 overflow-y-auto bg-gray-900/40 p-4 space-y-4">
+                <div className="font-serif font-bold text-xs uppercase tracking-wider text-amber-500 border-b border-amber-900/60 pb-1">
                   Aktywne przygody ({activeQuests.length})
                 </div>
                 <div className="space-y-1.5">
@@ -592,8 +786,8 @@ export function SessionJournal({
                         'w-full text-left p-3 rounded-md transition-all font-serif border',
                         selectedQuestId === quest.id ||
                           (!selectedQuestId && selectedQuest?.id === quest.id)
-                          ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                          : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
+                          ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 shadow-md'
+                          : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-gray-300'
                       )}
                     >
                       <div className="font-bold text-base">{quest.title}</div>
@@ -603,7 +797,7 @@ export function SessionJournal({
                     </button>
                   ))}
                   {activeQuests.length === 0 && (
-                    <div className="text-sm text-center py-6 text-[#8a7667] italic">
+                    <div className="text-sm text-center py-6 text-gray-400 italic">
                       Brak aktywnych misji
                     </div>
                   )}
@@ -611,7 +805,7 @@ export function SessionJournal({
 
                 {completedQuests.length > 0 && (
                   <>
-                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#73a15c] border-b border-[#3a2518] pt-4 pb-1">
+                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#73a15c] border-b border-amber-900/60 pt-4 pb-1">
                       Ukończone przygody ({completedQuests.length})
                     </div>
                     <div className="space-y-1.5">
@@ -622,7 +816,7 @@ export function SessionJournal({
                           className={cn(
                             'w-full text-left p-3 rounded-md transition-all font-serif border opacity-80',
                             selectedQuestId === quest.id
-                              ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
+                              ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 shadow-md'
                               : 'bg-[#142310] hover:bg-[#1d3318] border-transparent text-[#a3d18e]'
                           )}
                         >
@@ -637,7 +831,7 @@ export function SessionJournal({
 
                 {failedQuests.length > 0 && (
                   <>
-                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#a84d4d] border-b border-[#3a2518] pt-4 pb-1">
+                    <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#a84d4d] border-b border-amber-900/60 pt-4 pb-1">
                       Nieudane przygody ({failedQuests.length})
                     </div>
                     <div className="space-y-1.5">
@@ -648,8 +842,8 @@ export function SessionJournal({
                           className={cn(
                             'w-full text-left p-3 rounded-md transition-all font-serif border opacity-80',
                             selectedQuestId === quest.id
-                              ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
-                              : 'bg-[#2b1010] hover:bg-[#3d1818] border-transparent text-[#e3a8a8]'
+                              ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 shadow-md'
+                              : 'bg-red-950/40 hover:bg-[#3d1818] border-transparent text-[#e3a8a8]'
                           )}
                         >
                           <div className="font-bold text-base">
@@ -663,12 +857,12 @@ export function SessionJournal({
               </div>
 
               {/* Prawa kolumna: Szczegóły wybranej misji */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#18120c] flex flex-col justify-between">
+              <div className="flex-1 overflow-y-auto p-6 bg-gray-950/50 flex flex-col justify-between">
                 {selectedQuest ? (
                   <div className="space-y-6">
-                    <div className="flex justify-between items-start border-b-2 border-[#3a2518] pb-3">
+                    <div className="flex justify-between items-start border-b-2 border-amber-900/60 pb-3">
                       <div>
-                        <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
+                        <h3 className="text-xl font-serif font-bold text-amber-400">
                           {selectedQuest.title}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
@@ -678,8 +872,8 @@ export function SessionJournal({
                               selectedQuest.questStatus === 'completed'
                                 ? 'bg-[#142310] border-[#73a15c] text-[#a3d18e]'
                                 : selectedQuest.questStatus === 'failed'
-                                  ? 'bg-[#2b1010] border-[#a84d4d] text-[#e3a8a8]'
-                                  : 'bg-[#2a1b12] border-[#bfa15f] text-[#f4ebd0]'
+                                  ? 'bg-red-950/40 border-[#a84d4d] text-[#e3a8a8]'
+                                  : 'bg-gray-900/80 border-amber-500/50 text-amber-400'
                             )}
                           >
                             {selectedQuest.questStatus === 'completed'
@@ -688,7 +882,7 @@ export function SessionJournal({
                                 ? 'Nieudana'
                                 : 'Aktywna'}
                           </span>
-                          <span className="text-xs text-[#8a7667]">
+                          <span className="text-xs text-gray-400">
                             Wpis z dnia:{' '}
                             {selectedQuest.inGameDate ||
                               (selectedQuest.timestamp
@@ -702,7 +896,7 @@ export function SessionJournal({
                           onClick={() => setEditingEntry(selectedQuest)}
                           variant="outline"
                           size="sm"
-                          className="border-[#bfa15f] hover:bg-[#2a1b12] text-[#f4ebd0] bg-transparent"
+                          className="border-amber-500/50 hover:bg-gray-900/80 text-amber-400 bg-transparent"
                         >
                           <Edit3 className="h-4 w-4" />
                         </Button>
@@ -710,7 +904,7 @@ export function SessionJournal({
                           onClick={() => deleteEntry(selectedQuest.id)}
                           variant="outline"
                           size="sm"
-                          className="border-[#942c2c] hover:bg-[#2b1010] text-[#ff6b6b] bg-transparent"
+                          className="border-[#942c2c] hover:bg-red-950/40 text-red-400 bg-transparent"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -718,13 +912,13 @@ export function SessionJournal({
                     </div>
 
                     {/* Opis misji */}
-                    <div className="text-base leading-relaxed text-[#e2d4c9] whitespace-pre-wrap font-serif italic bg-[#120905] p-4 rounded-md border border-[#3a2518]">
+                    <div className="text-base leading-relaxed text-gray-300 whitespace-pre-wrap font-serif italic bg-gray-900/40 p-4 rounded-md border border-amber-900/60">
                       {selectedQuest.content}
                     </div>
 
                     {/* Cele misji */}
                     <div className="space-y-3">
-                      <h4 className="font-serif font-bold text-lg text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+                      <h4 className="font-serif font-bold text-lg text-amber-400 border-b border-amber-900/60 pb-1">
                         Postępy i Cele zadania
                       </h4>
                       <div className="space-y-3">
@@ -737,7 +931,7 @@ export function SessionJournal({
                                 'p-3 rounded border flex items-start gap-3 transition-colors',
                                 obj.completed
                                   ? 'bg-[#142310] border-[#2c4c19] text-[#a3d18e]'
-                                  : 'bg-[#120905] border-[#3a2518] text-[#e2d4c9]'
+                                  : 'bg-gray-900/40 border-amber-900/60 text-gray-300'
                               )}
                             >
                               <button
@@ -766,7 +960,7 @@ export function SessionJournal({
                                 {obj.completed ? (
                                   <CheckCircle2 className="h-5 w-5 text-[#73a15c] fill-[#142310]" />
                                 ) : (
-                                  <Circle className="h-5 w-5 text-[#8a7667]" />
+                                  <Circle className="h-5 w-5 text-gray-400" />
                                 )}
                               </button>
                               <div className="flex-1">
@@ -774,12 +968,12 @@ export function SessionJournal({
                                   className={cn(
                                     'text-base font-serif',
                                     obj.completed &&
-                                      'line-through text-[#8a7667]'
+                                      'line-through text-gray-400'
                                   )}
                                 >
                                   {obj.description}
                                 </div>
-                                <div className="text-xs text-[#8a7667] mt-1 flex gap-2">
+                                <div className="text-xs text-gray-400 mt-1 flex gap-2">
                                   {obj.gameDay && (
                                     <span>Dzień {obj.gameDay}</span>
                                   )}
@@ -796,7 +990,7 @@ export function SessionJournal({
                             </div>
                           ))
                         ) : (
-                          <div className="text-sm text-[#8a7667] italic">
+                          <div className="text-sm text-gray-400 italic">
                             Brak celów szczegółowych. Możesz je dodać edytując
                             misję.
                           </div>
@@ -805,7 +999,7 @@ export function SessionJournal({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center text-[#8a7667] italic font-serif">
+                  <div className="flex-1 flex items-center justify-center text-gray-400 italic font-serif">
                     Wybierz misję z listy po lewej stronie lub dodaj nową
                   </div>
                 )}
@@ -814,185 +1008,9 @@ export function SessionJournal({
           )}
 
           {/* 2. SEKCJA KRONIKI */}
-          {activeTab === 'journal' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-[#18120c] space-y-6">
-              <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex justify-between items-center border-b border-[#3a2518] pb-2">
-                  <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
-                    Chronologia Wydarzeń
-                  </h3>
-                  <span className="text-sm text-[#8a7667]">
-                    {filteredEntries.length} wpisów
-                  </span>
-                </div>
-
-                <div className="relative border-l-2 border-[#bfa15f]/40 pl-6 ml-4 space-y-6">
-                  {filteredEntries.map((entry) => (
-                    <div key={entry.id} className="relative">
-                      {/* Oś czasu */}
-                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#18120c] rounded-full h-4 w-4"></span>
-
-                      <div className="bg-[#120905] border border-[#3a2518] rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="text-lg font-serif font-bold text-[#f4ebd0] flex items-center gap-2">
-                              {entry.title}
-                              {entry.isAutoGenerated && (
-                                <span className="text-[10px] bg-[#273a4b] text-[#f4ebd0] border border-[#bfa15f]/30 px-1.5 py-0.5 rounded uppercase font-sans">
-                                  Auto
-                                </span>
-                              )}
-                            </h4>
-                            <div className="text-xs text-[#8a7667] mt-0.5 flex gap-3">
-                              <span>
-                                📅{' '}
-                                {entry.inGameDate ||
-                                  (entry.timestamp
-                                    ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
-                                    : '')}
-                              </span>
-                              {entry.gameDay && (
-                                <span>⏳ Dzień {entry.gameDay}</span>
-                              )}
-                              {entry.category && (
-                                <span>📁 Kategoria: {entry.category}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
 
                         {entry.imageUrl && (
-                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
-                            <img
-                              src={entry.imageUrl}
-                              alt={entry.title}
-                              className="w-full h-44 object-cover rounded"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        )}
-                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#e2d4c9]">
-                          {entry.content}
-                        </p>
-
-                        {entry.tags && entry.tags.length > 0 && (
-                          <div className="flex gap-1 mt-2.5 flex-wrap">
-                            {entry.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[11px] bg-[#3a2518] text-[#f4ebd0] px-2 py-0.5 rounded border border-[#bfa15f]/30"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {filteredEntries.length === 0 && (
-                    <div className="text-center py-12 text-[#8a7667] italic font-serif">
-                      Kronika jest pusta. Wpisy z przygód pojawią się tutaj
-                      chronologicznie.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 3. SEKCJA ENCYKLOPEDII */}
-          {activeTab === 'encyclopedia_character' && (
-            <div className="flex-1 flex overflow-hidden">
-              {/* Podzakładki encyklopedii */}
-              <div className="w-1/4 border-r border-[#3a2518] bg-[#120905] p-4 flex flex-col gap-2">
-                <div className="font-serif font-bold text-xs uppercase tracking-wider text-[#bfa15f] border-b border-[#3a2518] pb-2 mb-2">
-                  Kategorie wiedzy
-                </div>
-                <button
-                  onClick={() => setEncyclopediaSubTab('character')}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
-                    encyclopediaSubTab === 'character'
-                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                  )}
-                >
-                  Postaci & Byt
-                </button>
-                <button
-                  onClick={() => setEncyclopediaSubTab('location')}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
-                    encyclopediaSubTab === 'location'
-                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                  )}
-                >
-                  Lokacje & Miejsca
-                </button>
-                <button
-                  onClick={() => setEncyclopediaSubTab('item')}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border',
-                    encyclopediaSubTab === 'item'
-                      ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] font-semibold'
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
-                  )}
-                >
-                  Przedmioty & Artefakty
-                </button>
-              </div>
-
-              {/* Grid wpisów */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="bg-[#120905] border border-[#3a2518] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-start border-b border-[#3a2518] pb-2">
-                          <h4 className="text-lg font-serif font-bold text-[#f4ebd0]">
-                            {entry.title}
-                          </h4>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {entry.imageUrl && (
-                          <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                          <div className="my-2 max-h-40 overflow-hidden rounded border border-amber-500/50/30 bg-gray-950/80 p-1">
                             <img
                               src={entry.imageUrl}
                               alt={entry.title}
@@ -1003,17 +1021,17 @@ export function SessionJournal({
                             />
                           </div>
                         )}
-                        <p className="text-sm font-serif leading-relaxed text-[#e2d4c9] whitespace-pre-wrap">
+                        <p className="text-sm font-serif leading-relaxed text-gray-300 whitespace-pre-wrap">
                           {entry.content}
                         </p>
                       </div>
 
                       {entry.tags && entry.tags.length > 0 && (
-                        <div className="flex gap-1 mt-3 flex-wrap border-t border-[#3a2518] pt-2">
+                        <div className="flex gap-1 mt-3 flex-wrap border-t border-amber-900/60 pt-2">
                           {entry.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="text-[10px] bg-[#3a2518]/50 text-[#f4ebd0] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
+                              className="text-[10px] bg-amber-900/40/50 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/50/20"
                             >
                               #{tag}
                             </span>
@@ -1024,7 +1042,7 @@ export function SessionJournal({
                   ))}
 
                   {filteredEntries.length === 0 && (
-                    <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
+                    <div className="col-span-full text-center py-16 text-gray-400 italic font-serif">
                       Brak wpisów w tej kategorii encyklopedii.
                     </div>
                   )}
@@ -1035,29 +1053,29 @@ export function SessionJournal({
 
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
-            <div className="flex-1 overflow-y-auto p-6 bg-[#18120c]">
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-950/50">
               <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-[#120905] border border-[#3a2518] hover:border-[#bfa15f]/50 transition-all shadow-md rounded-lg p-5 flex flex-col justify-between min-h-[220px] group"
+                    className="bg-gray-900/40 border border-amber-900/60 hover:border-amber-500/50/50 transition-all shadow-md rounded-lg p-5 flex flex-col justify-between min-h-[220px] group"
                   >
                     <div>
-                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2.5 mb-3">
-                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0] group-hover:text-[#bfa15f] transition-colors leading-snug">
+                      <div className="flex justify-between items-start border-b border-amber-900/60 pb-2.5 mb-3">
+                        <h4 className="font-serif font-bold text-lg text-amber-400 group-hover:text-amber-500 transition-colors leading-snug">
                           {entry.title}
                         </h4>
                         <div className="flex gap-1.5 flex-none ml-2">
                           <button
                             onClick={() => setEditingEntry(entry)}
-                            className="p-1 text-[#a29182] hover:text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
+                            className="p-1 text-gray-400 hover:text-amber-400 hover:bg-amber-900/40 rounded transition-colors"
                             title="Edytuj notatkę"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => deleteEntry(entry.id)}
-                            className="p-1 text-[#ff6b6b]/70 hover:text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
+                            className="p-1 text-red-400/70 hover:text-red-400 hover:bg-red-950/40 rounded transition-colors"
                             title="Usuń notatkę"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1065,7 +1083,7 @@ export function SessionJournal({
                         </div>
                       </div>
                       {entry.imageUrl && (
-                        <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                        <div className="my-2 max-h-40 overflow-hidden rounded border border-amber-500/50/30 bg-gray-950/80 p-1">
                           <img
                             src={entry.imageUrl}
                             alt={entry.title}
@@ -1076,12 +1094,12 @@ export function SessionJournal({
                           />
                         </div>
                       )}
-                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9]/90 whitespace-pre-wrap">
+                      <p className="text-sm font-serif leading-relaxed text-gray-300/90 whitespace-pre-wrap">
                         {entry.content}
                       </p>
                     </div>
 
-                    <div className="text-xs text-[#8a7667] border-t border-[#3a2518]/70 pt-2.5 mt-4 flex justify-between items-center font-special-elite">
+                    <div className="text-xs text-gray-400 border-t border-amber-900/60/70 pt-2.5 mt-4 flex justify-between items-center font-special-elite">
                       <span>
                         📅{' '}
                         {entry.inGameDate ||
@@ -1094,7 +1112,7 @@ export function SessionJournal({
                           {entry.tags.slice(0, 2).map((tag) => (
                             <span
                               key={tag}
-                              className="text-[10px] bg-[#3a2518]/60 text-[#bfa15f] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
+                              className="text-[10px] bg-amber-900/40/60 text-amber-500 px-1.5 py-0.5 rounded border border-amber-500/50/20"
                             >
                               #{tag}
                             </span>
@@ -1106,7 +1124,7 @@ export function SessionJournal({
                 ))}
 
                 {filteredEntries.length === 0 && (
-                  <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
+                  <div className="col-span-full text-center py-16 text-gray-400 italic font-serif">
                     Brak własnych zapisków. Dodaj nową notatkę.
                   </div>
                 )}
@@ -1218,14 +1236,14 @@ function AddEntryForm({
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-[#e2d4c9] font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
-          <h3 className="text-xl font-bold text-[#f4ebd0]">
+      <div className="bg-gray-950/95 backdrop-blur-md border-4 border-amber-900/60 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-gray-300 font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-amber-900/60 pb-3 mb-5">
+          <h3 className="text-xl font-bold text-amber-400">
             Dodaj nowy wpis do księgi przygód
           </h3>
           <button
             onClick={onCancel}
-            className="text-[#a29182] hover:text-[#f4ebd0]"
+            className="text-gray-400 hover:text-amber-400"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1233,7 +1251,7 @@ function AddEntryForm({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Typ wpisu
             </label>
             <select
@@ -1244,7 +1262,7 @@ function AddEntryForm({
                   type: e.target.value as JournalEntryType,
                 })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
             >
               <option value="quest">Misja (Quest)</option>
               <option value="journal">Wpis do Dziennika (Kronika)</option>
@@ -1263,7 +1281,7 @@ function AddEntryForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-amber-400">
                 Dzień kampanii
               </label>
               <input
@@ -1276,11 +1294,11 @@ function AddEntryForm({
                     gameDay: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-amber-400">
                 Godzina
               </label>
               <input
@@ -1294,14 +1312,14 @@ function AddEntryForm({
                     gameHour: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               />
             </div>
           </div>
 
           {formData.type === 'quest' && (
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-amber-400">
                 Status misji
               </label>
               <select
@@ -1315,7 +1333,7 @@ function AddEntryForm({
                       | 'failed',
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               >
                 <option value="active">Aktywna</option>
                 <option value="completed">Ukończona</option>
@@ -1325,7 +1343,7 @@ function AddEntryForm({
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Tytuł wpisu
             </label>
             <input
@@ -1334,14 +1352,14 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none placeholder-[#5a4d43]"
+              className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none placeholder-gray-600"
               placeholder="np. Śledztwo w Domu Corbitów"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Treść / Opis
             </label>
             <Textarea
@@ -1349,22 +1367,22 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              className="min-h-32 bg-[#0d0906] text-[#e2d4c9] border-[#3a2518] focus-visible:ring-[#bfa15f] placeholder-[#5a4d43]"
+              className="min-h-32 bg-gray-950/80 text-gray-300 border-amber-900/60 focus-visible:ring-[#bfa15f] placeholder-gray-600"
               placeholder="Zapisz szczegóły przygody lub informacje o postaci/przedmiocie..."
               required
             />
           </div>
 
           {formData.type === 'quest' && (
-            <div className="border border-[#3a2518] p-4 rounded-md bg-[#0d0906]/40 space-y-3">
-              <label className="block text-sm font-serif font-bold text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+            <div className="border border-amber-900/60 p-4 rounded-md bg-gray-950/80/40 space-y-3">
+              <label className="block text-sm font-serif font-bold text-amber-400 border-b border-amber-900/60 pb-1">
                 Cele zadania
               </label>
               <div className="space-y-2">
                 {formData.objectives.map((obj, i) => (
                   <div
                     key={obj.id}
-                    className="flex justify-between items-center bg-[#0d0906] p-2 rounded border border-[#3a2518] text-sm"
+                    className="flex justify-between items-center bg-gray-950/80 p-2 rounded border border-amber-900/60 text-sm"
                   >
                     <span className="truncate">
                       {i + 1}. {obj.description}
@@ -1385,7 +1403,7 @@ function AddEntryForm({
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   placeholder="Nowy cel misji..."
-                  className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-sm text-[#e2d4c9] outline-none focus:border-[#bfa15f]"
+                  className="flex-1 p-2 bg-gray-950/80 border border-amber-900/60 rounded-md text-sm text-gray-300 outline-none focus:border-amber-500/50"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
                   }
@@ -1393,7 +1411,7 @@ function AddEntryForm({
                 <Button
                   type="button"
                   onClick={addObjective}
-                  className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                  className="bg-amber-900/40 hover:bg-amber-800/50 text-amber-400"
                 >
                   Dodaj cel
                 </Button>
@@ -1402,20 +1420,20 @@ function AddEntryForm({
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Tagi
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {formData.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#5c3e21]/60 text-[#f4ebd0] border border-[#bfa15f]/25"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-amber-900/60/60 text-amber-400 border border-amber-500/50/25"
                 >
                   #{tag}
                   <button
                     type="button"
                     onClick={() => removeTag(tag)}
-                    className="ml-1 text-[#a29182] hover:text-red-400"
+                    className="ml-1 text-gray-400 hover:text-red-400"
                   >
                     ×
                   </button>
@@ -1427,7 +1445,7 @@ function AddEntryForm({
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none placeholder-[#5a4d43]"
+                className="flex-1 p-2 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none placeholder-gray-600"
                 placeholder="Dodaj własny tag..."
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
@@ -1436,7 +1454,7 @@ function AddEntryForm({
               <Button
                 type="button"
                 onClick={() => addTag(newTag)}
-                className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                className="bg-amber-900/40 hover:bg-amber-800/50 text-amber-400"
               >
                 +
               </Button>
@@ -1447,7 +1465,7 @@ function AddEntryForm({
                   key={tag}
                   type="button"
                   onClick={() => addTag(tag)}
-                  className="px-2 py-0.5 text-xs bg-[#0d0906] hover:bg-[#1a110a] text-[#8a7667] rounded border border-[#3a2518]"
+                  className="px-2 py-0.5 text-xs bg-gray-950/80 hover:bg-[#1a110a] text-gray-400 rounded border border-amber-900/60"
                 >
                   {tag}
                 </button>
@@ -1455,10 +1473,10 @@ function AddEntryForm({
             </div>
           </div>
 
-          <div className="flex gap-3 pt-3 border-t border-[#3a2518]">
+          <div className="flex gap-3 pt-3 border-t border-amber-900/60">
             <Button
               type="submit"
-              className="flex-1 py-3 bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40"
+              className="flex-1 py-3 bg-amber-900/60 hover:bg-amber-800/60 text-amber-400 border border-amber-500/50/40"
               disabled={!formData.title.trim() || !formData.content.trim()}
             >
               Zapisz wpis
@@ -1466,7 +1484,7 @@ function AddEntryForm({
             <Button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
+              className="flex-1 py-3 bg-gray-800/80 hover:bg-gray-700/80 text-gray-400"
             >
               Anuluj
             </Button>
@@ -1535,14 +1553,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-[#e2d4c9] font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
-          <h3 className="text-xl font-bold text-[#f4ebd0]">
+      <div className="bg-gray-950/95 backdrop-blur-md border-4 border-amber-900/60 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto text-gray-300 font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-amber-900/60 pb-3 mb-5">
+          <h3 className="text-xl font-bold text-amber-400">
             Edytuj wpis w księdze przygód
           </h3>
           <button
             onClick={onCancel}
-            className="text-[#a29182] hover:text-[#f4ebd0]"
+            className="text-gray-400 hover:text-amber-400"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1550,7 +1568,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Typ wpisu
             </label>
             <select
@@ -1561,7 +1579,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   type: e.target.value as JournalEntryType,
                 })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
             >
               <option value="quest">Misja (Quest)</option>
               <option value="journal">Wpis do Dziennika (Kronika)</option>
@@ -1580,7 +1598,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-amber-400">
                 Dzień kampanii
               </label>
               <input
@@ -1593,11 +1611,11 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     gameDay: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-amber-400">
                 Godzina
               </label>
               <input
@@ -1611,14 +1629,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     gameHour: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               />
             </div>
           </div>
 
           {formData.type === 'quest' && (
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-amber-400">
                 Status misji
               </label>
               <select
@@ -1632,7 +1650,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                       | 'failed',
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               >
                 <option value="active">Aktywna</option>
                 <option value="completed">Ukończona</option>
@@ -1642,7 +1660,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Tytuł wpisu
             </label>
             <input
@@ -1651,13 +1669,13 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              className="w-full p-2.5 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Treść / Opis
             </label>
             <Textarea
@@ -1665,21 +1683,21 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              className="min-h-32 bg-[#0d0906] text-[#e2d4c9] border-[#3a2518] focus-visible:ring-[#bfa15f]"
+              className="min-h-32 bg-gray-950/80 text-gray-300 border-amber-900/60 focus-visible:ring-[#bfa15f]"
               required
             />
           </div>
 
           {formData.type === 'quest' && (
-            <div className="border border-[#3a2518] p-4 rounded-md bg-[#0d0906]/40 space-y-3">
-              <label className="block text-sm font-serif font-bold text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+            <div className="border border-amber-900/60 p-4 rounded-md bg-gray-950/80/40 space-y-3">
+              <label className="block text-sm font-serif font-bold text-amber-400 border-b border-amber-900/60 pb-1">
                 Cele zadania
               </label>
               <div className="space-y-2">
                 {(formData.objectives || []).map((obj, i) => (
                   <div
                     key={obj.id}
-                    className="flex justify-between items-center bg-[#0d0906] p-2 rounded border border-[#3a2518] text-sm"
+                    className="flex justify-between items-center bg-gray-950/80 p-2 rounded border border-amber-900/60 text-sm"
                   >
                     <span className="truncate">
                       {i + 1}. {obj.description}
@@ -1700,7 +1718,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   placeholder="Nowy cel misji..."
-                  className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-sm text-[#e2d4c9] outline-none"
+                  className="flex-1 p-2 bg-gray-950/80 border border-amber-900/60 rounded-md text-sm text-gray-300 outline-none"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
                   }
@@ -1708,7 +1726,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 <Button
                   type="button"
                   onClick={addObjective}
-                  className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                  className="bg-amber-900/40 hover:bg-amber-800/50 text-amber-400"
                 >
                   Dodaj
                 </Button>
@@ -1717,20 +1735,20 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-amber-400">
               Tagi
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {formData.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#5c3e21]/60 text-[#f4ebd0] border border-[#bfa15f]/25"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-amber-900/60/60 text-amber-400 border border-amber-500/50/25"
                 >
                   #{tag}
                   <button
                     type="button"
                     onClick={() => removeTag(tag)}
-                    className="ml-1 text-[#a29182] hover:text-red-400"
+                    className="ml-1 text-gray-400 hover:text-red-400"
                   >
                     ×
                   </button>
@@ -1742,7 +1760,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="flex-1 p-2 bg-gray-950/80 border border-amber-900/60 rounded-md text-gray-300 focus:border-amber-500/50 focus:outline-none"
                 placeholder="Dodaj własny tag..."
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
@@ -1751,17 +1769,17 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               <Button
                 type="button"
                 onClick={() => addTag(newTag)}
-                className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                className="bg-amber-900/40 hover:bg-amber-800/50 text-amber-400"
               >
                 +
               </Button>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-3 border-t border-[#3a2518]">
+          <div className="flex gap-3 pt-3 border-t border-amber-900/60">
             <Button
               type="submit"
-              className="flex-1 py-3 bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40"
+              className="flex-1 py-3 bg-amber-900/60 hover:bg-amber-800/60 text-amber-400 border border-amber-500/50/40"
               disabled={!formData.title.trim() || !formData.content.trim()}
             >
               Zapisz zmiany
@@ -1769,7 +1787,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
             <Button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
+              className="flex-1 py-3 bg-gray-800/80 hover:bg-gray-700/80 text-gray-400"
             >
               Anuluj
             </Button>
