@@ -156,13 +156,13 @@ export function EquipmentDetailDialog({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="deco-corners flex flex-col bg-[#120e0a] border-2 border-brass/60 w-full max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl"
+        className="deco-corners flex flex-col bg-gray-950/95 backdrop-blur-md border-4 border-amber-900/60 w-[90vw] max-w-[1200px] h-[85vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl"
       >
         {/* Narożniki Deco */}
-        <span className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-brass/80 pointer-events-none" />
-        <span className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-brass/80 pointer-events-none" />
-        <span className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-brass/80 pointer-events-none" />
-        <span className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-brass/80 pointer-events-none" />
+        <span className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-900/80 pointer-events-none" />
+        <span className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-amber-900/80 pointer-events-none" />
+        <span className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-amber-900/80 pointer-events-none" />
+        <span className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-amber-900/80 pointer-events-none" />
 
         <div className="flex items-start justify-between gap-3 mb-4">
           <h3 className="font-serif text-2xl text-foreground">
@@ -223,7 +223,9 @@ export function EquipmentDetailDialog({
         {isDocument && (
           <div className="mb-4 pt-2 border-t border-brass/20">
             {item.readableContent ? (
-              <DiegeticDocumentViewer item={item} character={activeCharacter} />
+              <div className="w-full max-w-4xl mx-auto drop-shadow-2xl">
+                <DiegeticDocumentViewer item={item} character={activeCharacter} />
+              </div>
             ) : (
               <div className="flex flex-col gap-2">
                 {errorMsg && (

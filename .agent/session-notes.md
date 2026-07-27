@@ -70,3 +70,15 @@ Branch: main
 
 ### Decyzje podjęte
 - Zachowano układ Tablicy Badacza jako swobodny layout oparty o Drag&Drop gracza zamiast sztywnej siatki wymuszanej algorytmicznie. Zabezpieczono stary kod.
+## Podsumowanie sesji: 2026-07-27
+Branch: main
+
+### Co zrobiono
+- **equipment-detail-dialog.tsx**: Rozszerzono modal do formatu szerokoekranowego (90vw) z immersyjnym tłem (rozmycie + mosiężne ramki).
+- Zintegrowano `DiegeticDocumentViewer` poprzez nałożenie `max-w-4xl` wewnątrz powiększonego dialogu ekwipunku w celu bezpiecznego utrzymywania layoutów dokumentów.
+- **predefined-characters-selector.tsx**: Zmodyfikowano kafelki Ekwipunku gracza (mroczne gradienty na najechanie kursorem, mosiężne retro cieniowanie).
+
+### Co otwarte (do następnej sesji)
+- Globalny refactor generycznego fallbacku dla brakujących obrazków (obecnie radzi sobie z tym inline `onError`).
+
+
