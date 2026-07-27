@@ -1,3 +1,19 @@
+## Podsumowanie sesji: 2026-07-27 (Noc II)
+Branch: main
+
+### Co zrobiono
+- **Przesyłanie `characterId` w Hot Seat:** Naprawiono błąd gubienia identyfikatora postaci wybranej z listy rozwijanej podczas podnoszenia przedmiotu na czacie.
+- **Aktualizacja sygnatur typów:** Rozszerzono `ChatWindowProps` i `MessageCardProps` o opcjonalny parametr `characterId?: string` w `onConfirmAcquiredItem`.
+- **Prop-drilling i domknięcie TODO:** Przekazano `characterId` w `message-card.tsx` z `AcquiredItemCard` wyżej w hierarchii aż do gotowego hooka `useChat.ts`.
+- **Weryfikacja:** Wykonano udaną kompilację produkcyjną `npm run build` (TypeScript PASS).
+
+### Co otwarte (do następnej sesji)
+- Dalsze wsparcie / stabilizacja Tablicy Badacza & Ekwipunku według Roadmapy v0.9.3.
+- Rozważenie implementacji wersji angielskiej EN / Multi-LLM BYOK.
+
+### Decyzje podjęte
+- Zachowano pełną wsteczną kompatybilność dzięki opcjonalnemu charakterowi parametru `characterId?: string`.
+
 ## Podsumowanie sesji: 2026-07-27 (Noc)
 Branch: main
 

@@ -44,7 +44,7 @@ interface MessageCardProps {
   onImageClick: (imgUrl: string, allImages: string[]) => void;
   onRollTest?: (test: SkillTestData) => void;
   completedTestIds?: ReadonlySet<string>;
-  onConfirmAcquiredItem?: (messageId: string, proposalId: string) => void;
+  onConfirmAcquiredItem?: (messageId: string, proposalId: string, characterId?: string) => void;
   onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
   isSessionEnded?: boolean;
   isLastMessage?: boolean;
@@ -247,7 +247,7 @@ export function MessageCard({
                     key={proposal.id}
                     proposal={proposal}
                     onConfirm={(characterId?: string) =>
-                      void onConfirmAcquiredItem?.(message.id, proposal.id) // TODO: Potrzeba obsłużyć characterId w nadrzędnym komponencie
+                      void onConfirmAcquiredItem?.(message.id, proposal.id, characterId)
                     }
                     onDismiss={() =>
                       onDismissAcquiredItem?.(message.id, proposal.id)
