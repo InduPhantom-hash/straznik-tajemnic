@@ -1,22 +1,37 @@
+import { useEffect, useState } from 'react';
 import { Check, PackagePlus, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { AcquiredItemProposal } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { AcquiredItemProposal, Character } from '@/lib/types';
 
 interface AcquiredItemCardProps {
   proposal: AcquiredItemProposal;
-  onConfirm: () => void;
+  onConfirm: (characterId?: string) => void;
   onDismiss: () => void;
+  isDuet?: boolean;
+  characters?: Character[];
 }
 
-/** Jawne potwierdzenie zdobycia - narracja nie zmienia ekwipunku samoczynnie. */
+/** 
+ * Karty zdobyczy.
+ * W trybie Solo (isDuet = false): automatycznie odbiera i ukrywa się na "Accepted".
+ * W trybie Hot Seat (isDuet = true): wyświetla wybór postaci.
+ */
 export function AcquiredItemCard({
   proposal,
   onConfirm,
   onDismiss,
+  isDuet = false,
+  characters = [],
 }: AcquiredItemCardProps) {
-  const recipient = proposal.recipientName
-    ? `dla: ${proposal.recipientName}`
-    : 'dla aktywnej postaci';
+  const [selectedCharId, setSelectedCharId] = useState<string>('');
+
+  // Auto-loot logic dla trybu Solo
+  useEffect(() => {
+    if (!isDuet && proposal.status === 'pending') {
+      onConfirm();
+    }
+  }, [isDuet, proposal.status, onConfirm]);
 
   if (proposal.status === 'accepted') {
     return (
@@ -35,6 +50,17 @@ export function AcquiredItemCard({
     );
   }
 
+  // W trybie Solo po prostu renderujemy stan ładowania, zanim hook auto-lootu zadziała
+  if (!isDuet) {
+    return (
+      <div className="mt-3 flex items-center gap-2 rounded-md border border-brass/40 bg-[#18130d] px-3 py-2 text-sm text-brass">
+        <PackagePlus className="h-4 w-4 animate-pulse" />
+        <span>Dodawanie przedmiotu do ekwipunku...</span>
+      </div>
+    );
+  }
+
+  // W trybie Hot Seat pokazujemy pełen UI wyboru postaci
   return (
     <section className="mt-3 rounded-md border border-brass/40 bg-[#18130d] p-3 shadow-inner">
       <div className="flex gap-2">
@@ -45,21 +71,45 @@ export function AcquiredItemCard({
           </p>
           <p className="font-medium text-foreground">{proposal.name}</p>
           <p className="mt-1 text-sm text-muted-foreground">{proposal.description}</p>
-          <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
-            {recipient}
-          </p>
+          
           {proposal.visualTreatment === 'supernatural' && (
             <p className="mt-1 flex items-center gap-1 text-xs text-violet-200">
               <Sparkles className="h-3.5 w-3.5" /> Jawnie nadprzyrodzony render
             </p>
           )}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" onClick={onConfirm}>
-              <PackagePlus className="mr-1.5 h-3.5 w-3.5" /> Dodaj do ekwipunku
-            </Button>
-            <Button size="sm" variant="ghost" onClick={onDismiss}>
-              <X className="mr-1.5 h-3.5 w-3.5" /> Nie teraz
-            </Button>
+
+          <div className="mt-4 space-y-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-muted-foreground uppercase tracking-wide">
+                Kto wziął ten przedmiot?
+              </label>
+              <Select value={selectedCharId} onValueChange={setSelectedCharId}>
+                <SelectTrigger className="w-full h-8 text-sm bg-black/40 border-brass/30 text-white">
+                  <SelectValue placeholder="Wybierz postać..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {characters.map((char) => (
+                    <SelectItem key={char.id} value={char.id}>
+                      {char.name} ({char.occupation})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                size="sm" 
+                onClick={() => onConfirm(selectedCharId)}
+                disabled={!selectedCharId}
+                className="bg-brass text-black hover:bg-brass/90"
+              >
+                <PackagePlus className="mr-1.5 h-3.5 w-3.5" /> Dodaj do ekwipunku
+              </Button>
+              <Button size="sm" variant="ghost" onClick={onDismiss}>
+                <X className="mr-1.5 h-3.5 w-3.5" /> Odrzuć
+              </Button>
+            </div>
           </div>
         </div>
       </div>

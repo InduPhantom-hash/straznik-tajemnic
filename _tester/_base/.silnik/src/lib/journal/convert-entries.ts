@@ -1,19 +1,15 @@
 import { EvidenceNode, EvidenceNodeType, PinType } from '@/types/investigator-board';
 import { JournalEntry } from '@/lib/types';
 
+import { getMappedBoardType } from '@/lib/journal/entity-mapping';
+
 /**
  * Mapuje typ wpisu Dziennika na typ wezla Tablicy Badacza.
  */
 function mapEntryTypeToNodeType(entry: JournalEntry): EvidenceNodeType {
   const typeStr = (entry.type || '') as string;
   const catStr = ((entry as unknown as Record<string, unknown>).category || '') as string;
-
-  if (typeStr === 'encyclopedia_character' || catStr === 'Spotkania') return 'suspect';
-  if (typeStr === 'encyclopedia_location' || catStr === 'Odkrycia') return 'location';
-  if (typeStr === 'encyclopedia_item' || catStr === 'Artefakty') return 'artifact';
-  if (typeStr === 'quest') return 'evidence';
-  if (typeStr === 'note') return 'player_note';
-  return 'clue';
+  return getMappedBoardType(typeStr, catStr);
 }
 
 /**
@@ -46,7 +42,9 @@ function randomRotation(): number {
  * Uzywany jako fallback gdy gracz nie ma jeszcze zapisanego stanu tablicy.
  */
 export function convertEntriesToBoardNodes(entries: JournalEntry[]): EvidenceNode[] {
-  return entries.map((entry, idx) => {
+  const validEntries = entries.filter(e => e.type !== 'journal' && e.type !== 'note');
+
+  return validEntries.map((entry, idx) => {
     const nodeType = mapEntryTypeToNodeType(entry);
     const pinType = mapNodeTypeToPinType(nodeType);
 

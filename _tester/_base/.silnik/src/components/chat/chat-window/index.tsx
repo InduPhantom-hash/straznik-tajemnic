@@ -256,6 +256,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                 isSessionEnded={isSessionEnded}
                 isLastMessage={index === messages.length - 1}
                 onCharacterUpdate={onCharacterUpdate}
+                isDuet={isDuet}
+                characters={characters}
               />
             ))
           )}

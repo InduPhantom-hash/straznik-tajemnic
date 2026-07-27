@@ -49,6 +49,8 @@ interface MessageCardProps {
   isSessionEnded?: boolean;
   isLastMessage?: boolean;
   onCharacterUpdate?: (char: Character) => void;
+  isDuet?: boolean;
+  characters?: Character[];
 }
 
 export function MessageCard({
@@ -69,6 +71,8 @@ export function MessageCard({
   isSessionEnded = false,
   isLastMessage = false,
   onCharacterUpdate,
+  isDuet = false,
+  characters = [],
 }: MessageCardProps) {
   return (
     <Card
@@ -242,12 +246,14 @@ export function MessageCard({
                   <AcquiredItemCard
                     key={proposal.id}
                     proposal={proposal}
-                    onConfirm={() =>
-                      void onConfirmAcquiredItem?.(message.id, proposal.id)
+                    onConfirm={(characterId?: string) =>
+                      void onConfirmAcquiredItem?.(message.id, proposal.id) // TODO: Potrzeba obsłużyć characterId w nadrzędnym komponencie
                     }
                     onDismiss={() =>
                       onDismissAcquiredItem?.(message.id, proposal.id)
                     }
+                    isDuet={isDuet}
+                    characters={characters}
                   />
                 ))}
               </div>

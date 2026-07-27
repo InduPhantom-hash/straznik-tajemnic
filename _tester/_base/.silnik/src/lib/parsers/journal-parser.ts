@@ -49,6 +49,15 @@ export function extractJournalTags(text: string): JournalTagEntry[] {
       notatka: 'note',
       note: 'note',
       info: 'note',
+      misja: 'quest',
+      quest: 'quest',
+      zadanie: 'quest',
+      kronika: 'journal',
+      dziennik: 'journal',
+      wydarzenie: 'journal',
+      przedmiot: 'item',
+      item: 'item',
+      rzecz: 'item'
     };
 
     const type = typeMap[typeStr] || 'note';

@@ -861,6 +861,8 @@ export default function Home() {
         hotSeatConfig={hotSeat.config}
         isSessionEnded={chat.isSessionEnded}
         sessionEndStatus={chat.sessionEndStatus}
+        onConfirmAcquiredItem={chat.confirmAcquiredItem}
+        onDismissAcquiredItem={chat.dismissAcquiredItem}
         onCharacterUpdate={charMgmt.handleUpdateCharacter}
       />
       {showPredefinedSelector && (

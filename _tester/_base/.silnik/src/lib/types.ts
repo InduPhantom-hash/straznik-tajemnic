@@ -153,7 +153,10 @@ export type JournalEventType =
   | 'ritual' // 🕯️ Rytuał
   | 'death' // 💀 Śmierć
   | 'bookmark' // ⭐ Zakładka
-  | 'note'; // 📝 Notatka
+  | 'note' // 📝 Notatka
+  | 'quest' // ⚔️ Misja
+  | 'journal' // 📖 Kronika
+  | 'item'; // 📦 Przedmiot
 
 // Wpis dziennika sesji
 export interface JournalEntry {

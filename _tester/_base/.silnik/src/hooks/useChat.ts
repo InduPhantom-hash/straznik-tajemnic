@@ -272,7 +272,7 @@ export interface UseChatReturn {
   clearDeclarations: () => void;
   /** Składa bufor w jedną wiadomość i wysyła do MG (przycisk "Wyślij turę"). */
   sendTurn: () => void;
-  confirmAcquiredItem: (messageId: string, proposalId: string) => Promise<void>;
+  confirmAcquiredItem: (messageId: string, proposalId: string, characterId?: string) => Promise<void>;
   dismissAcquiredItem: (messageId: string, proposalId: string) => void;
   /** Stan informujący o zakończeniu sesji gier po tagu [KONIEC_SESJI:POTWIERDZENIE] */
   isSessionEnded: boolean;
@@ -1017,7 +1017,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   );
 
   const confirmAcquiredItem = useCallback(
-    async (messageId: string, proposalId: string) => {
+    async (messageId: string, proposalId: string, characterId?: string) => {
       const message = messages.find((candidate) => candidate.id === messageId);
       const proposal = message?.acquiredItems?.find(
         (candidate) => candidate.id === proposalId
@@ -1038,11 +1038,17 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         )
       );
 
-      const recipient = resolveCharacterByName(
-        characters,
-        proposal.recipientName,
-        activeCharacter
-      );
+      let recipient = activeCharacter;
+      if (characterId) {
+        const explicitTarget = characters.find(c => c.id === characterId);
+        if (explicitTarget) recipient = explicitTarget;
+      } else {
+        recipient = resolveCharacterByName(
+          characters,
+          proposal.recipientName,
+          activeCharacter
+        );
+      }
       const item = {
         ...createEquipmentItem(createAcquiredEquipmentSeed(proposal), 'acquired'),
         // Znalezisko z sesji jest unikalnym egzemplarzem, nawet jeżeli jego nazwa
@@ -1051,9 +1057,24 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         visualTreatment: proposal.visualTreatment,
         imageUrl: undefined,
       };
+      
+      const journalEntry = {
+        id: `journal-${item.id}`,
+        timestamp: new Date(),
+        type: 'item',
+        title: item.name,
+        content: item.description || 'Brak opisu przedmiotu.',
+        tags: [],
+        isBookmarked: false,
+      };
+
       const afterAdd = characters.map((character) =>
         character.id === recipient.id
-          ? { ...character, equipment: [...(character.equipment ?? []), item] }
+          ? { 
+              ...character, 
+              equipment: [...(character.equipment ?? []), item],
+              journal: [...(character.journal ?? []), journalEntry as any]
+            }
           : character
       );
       setCharacters(afterAdd);

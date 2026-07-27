@@ -62,7 +62,10 @@ export interface JournalTagEntry {
     | 'ritual'
     | 'death'
     | 'bookmark'
-    | 'note';
+    | 'note'
+    | 'quest'
+    | 'journal'
+    | 'item';
   title: string;
   content: string;
   inGameDate?: string;

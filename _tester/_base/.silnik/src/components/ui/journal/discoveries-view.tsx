@@ -188,12 +188,12 @@ export function DiscoveriesView({
                 key={entry.id}
                 onClick={() => setSelectedEntryId(entry.id)}
                 className={cn(
-                  'w-full text-left p-3 rounded-md transition-all font-serif border',
+                  'w-full text-left p-3 rounded-md transition-all font-serif border-l-4 border-y border-r',
                   isSelected
-                    ? 'bg-[#3a2518] text-[#f4ebd0] border-[#bfa15f] shadow-md'
+                    ? 'bg-[#2a1b12] text-[#f4ebd0] border-l-[#bfa15f] border-y-[#3a2518] border-r-[#3a2518] shadow-md translate-x-1'
                     : questStyle
-                      ? `${questStyle.bg} hover:brightness-110 border-transparent ${questStyle.text}`
-                      : 'bg-[#1c120c] hover:bg-[#2a1b12] border-transparent text-[#e2d4c9]'
+                      ? `${questStyle.bg} hover:brightness-110 border-l-${questStyle.border.split('-')[1]} border-y-transparent border-r-transparent ${questStyle.text}`
+                      : 'bg-[#18120c] hover:bg-[#21160f] border-l-[#3a2518] border-y-transparent border-r-transparent text-[#e2d4c9]'
                 )}
               >
                 <div className="font-bold text-sm leading-snug">{entry.title}</div>

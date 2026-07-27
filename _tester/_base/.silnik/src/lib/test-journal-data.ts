@@ -94,43 +94,39 @@ export const MOCK_JOURNAL_ENTRIES: ExtendedJournalEntry[] = [
   // 3. ENCYKLOPEDIA (Characters, Locations, Items)
   {
     id: 'test_encyclo_1',
-    type: 'encyclopedia_character',
+    type: 'npc',
     title: 'Profesor Henry Armitage',
     content:
-      'Kustosz i dyrektor biblioteki Uniwersytetu Miskatonic. Człowiek o wybitnej wiedzy historycznej i otwartym umyśle na zjawiska wykraczające poza racjonalny świat. Pomógł w przetłumaczeniu fragmentów starych manuskryptów.',
-    category: 'Spotkania',
-    inGameDate: '19 Lipca 1926',
-    tags: ['NPC', 'Uniwersytet', 'Sprzymierzeniec'],
+      'Kustosz i dyrektor biblioteki Uniwersytetu Miskatonic. Człowiek o wybitnej wiedzy fizycznej i znajomości zakazanych ksiąg. Twierdzi, że Wilbur Whateley próbował wypożyczyć lub skopiować fragmenty z oryginalnego wyciągu z Necronomiconu.',
+    category: 'Odkrycia',
+    tags: ['NPC', 'Miskatonic', 'Armitage', 'Necronomicon'],
   },
   {
     id: 'test_encyclo_2',
-    type: 'encyclopedia_character',
-    title: 'Walter Corbitt',
+    type: 'npc',
+    title: 'Inspector John Legrasse',
     content:
-      'Zmarły w latach 60. XIX wieku właściciel posiadłości przy Harrison Street. Posądzany o uprawianie czarnej magii i kontakty z sektami. Zgodnie z aktami miejskimi zaimpregnował zwłoki i zakopał je pod własnym domem.',
-    category: 'Spotkania',
-    inGameDate: '21 Lipca 1926',
-    tags: ['Kult', 'Corbitt', 'Podejrzany'],
+      'Śledczy z Nowego Orleanu, który prowadził sprawę mrocznego kultu w bagnach Luizjany. Posiadał małą statuetkę wykonaną z nieznanego zielono-czarnego kamienia.',
+    category: 'Odkrycia',
+    tags: ['NPC', 'Policja', 'Kult', 'Nowy Orlean'],
   },
   {
     id: 'test_encyclo_3',
-    type: 'encyclopedia_location',
-    title: 'Posiadłość Corbitta',
+    type: 'location',
+    title: 'Biblioteka Uniwersytetu Miskatonic',
     content:
-      'Trzypiętrowy, niszczejący budynek ze spadzistym dachem z ciemnego łupka przy Harrison Street w Bostonie. Wewnątrz panuje niepokojący chłód, a wózki dziecięce i meble samoistnie przesuwają się po podłodze.',
+      'Stary, kamienny budynek w sercu Arkham. Miejsce przechowywania rzadkich i niebezpiecznych wolumenów, w tym chronionego w specjalnym sejfie Necronomiconu.',
     category: 'Odkrycia',
-    inGameDate: '21 Lipca 1926',
-    tags: ['Lokalizacje', 'Boston', 'Nawiedzony Dom'],
+    tags: ['Lokalizacje', 'Arkham', 'Miskatonic', 'Biblioteka'],
   },
   {
     id: 'test_encyclo_4',
-    type: 'encyclopedia_item',
-    title: 'Srebrny Klucz z Runicznym Grawerem',
+    type: 'item',
+    title: 'Srebrny Klucz z Providence',
     content:
-      'Tajemniczy, ciężki klucz wykonany ze stopu srebra i mosiądzu. Pokryty cyklopowymi glifami nieprzypominającymi żadnego znanego alfabetu. Wyemitowuje delikatne ciepło po przyłożeniu do skroni.',
-    category: 'Artefakty',
-    inGameDate: '20 Lipca 1926',
-    tags: ['Artefakty', 'Magia', 'Klucz'],
+      'Kunsztownie wykonany klucz pokryty arabeskami i nieznanymi symbolem astrologicznymi. Prawdopodobnie powiązany ze Srebrną Brama Krainy Snów.',
+    category: 'Odkrycia',
+    tags: ['Artefakty', 'Krainy Snów', 'Srebrny Klucz'],
   },
 
   // 4. NOTATKI (Notes)

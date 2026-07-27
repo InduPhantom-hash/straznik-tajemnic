@@ -28,9 +28,9 @@ export type JournalEntryType =
   | 'board'
   | 'quest'
   | 'journal'
-  | 'encyclopedia_location'
-  | 'encyclopedia_character'
-  | 'encyclopedia_item'
+  | 'location'
+  | 'npc'
+  | 'item'
   | 'note';
 
 export interface QuestObjective {
@@ -242,7 +242,7 @@ export function SessionJournal({
     const questCount = entries.filter(e => e.type === 'quest').length;
     const journalCount = entries.filter(e => e.type === 'journal').length;
     const encyclopediaCount = entries.filter(e => 
-      ['encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
+      ['npc', 'location', 'item'].includes(e.type)
     ).length;
     const noteCount = entries.filter(e => e.type === 'note').length;
 
@@ -263,13 +263,13 @@ export function SessionJournal({
     const questCount = entries.filter(e => e.type === 'quest').length;
     const journalCount = entries.filter(e => e.type === 'journal').length;
     const encyclopediaCount = entries.filter(e => 
-      ['encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
+      ['npc', 'location', 'item'].includes(e.type)
     ).length;
     const noteCount = entries.filter(e => e.type === 'note').length;
 
     if (tab === 'quest') seenData.quest = questCount;
     else if (tab === 'journal') seenData.journal = journalCount;
-    else if (tab === 'encyclopedia_character' || tab === 'encyclopedia_location' || tab === 'encyclopedia_item') {
+    else if (tab === 'npc' || tab === 'location' || tab === 'item') {
       seenData.encyclopedia = encyclopediaCount;
     }
     else if (tab === 'note') seenData.note = noteCount;
@@ -297,11 +297,11 @@ export function SessionJournal({
       if (activeTab === 'quest' && entry.type !== 'quest') return false;
       if (activeTab === 'journal' && entry.type !== 'journal') return false;
       if (activeTab === 'note' && entry.type !== 'note') return false;
-      if (activeTab === 'encyclopedia_character') {
+      if (activeTab === 'npc') {
         if (
-          entry.type !== 'encyclopedia_character' &&
-          entry.type !== 'encyclopedia_location' &&
-          entry.type !== 'encyclopedia_item'
+          entry.type !== 'npc' &&
+          entry.type !== 'location' &&
+          entry.type !== 'item'
         ) {
           return false;
         }
@@ -309,15 +309,15 @@ export function SessionJournal({
         // Sprawdzamy podzakładkę encyklopedii
         if (
           encyclopediaSubTab === 'character' &&
-          entry.type !== 'encyclopedia_character'
+          entry.type !== 'npc'
         )
           return false;
         if (
           encyclopediaSubTab === 'location' &&
-          entry.type !== 'encyclopedia_location'
+          entry.type !== 'location'
         )
           return false;
-        if (encyclopediaSubTab === 'item' && entry.type !== 'encyclopedia_item')
+        if (encyclopediaSubTab === 'item' && entry.type !== 'item')
           return false;
       }
 
@@ -404,18 +404,18 @@ export function SessionJournal({
 
     const encProps = entries.filter((e) =>
       [
-        'encyclopedia_character',
-        'encyclopedia_location',
-        'encyclopedia_item',
+        'npc',
+        'location',
+        'item',
       ].includes(e.type)
     );
     if (encProps.length > 0) {
       md += `## 📚 Encyklopedia Wiedzy\n\n`;
       encProps.forEach((e) => {
         const typeLabel =
-          e.type === 'encyclopedia_character'
+          e.type === 'npc'
             ? 'Postać'
-            : e.type === 'encyclopedia_location'
+            : e.type === 'location'
               ? 'Lokacja'
               : 'Przedmiot';
         md += `### ${e.title} [${typeLabel}]\n\n`;
@@ -454,13 +454,13 @@ export function SessionJournal({
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4">
       {/* RPG-styled Container */}
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl shadow-2xl w-[95vw] max-w-[1500px] h-[90vh] flex flex-col overflow-hidden text-[#e2d4c9]">
+      <div className="bg-gradient-to-b from-[#14110c] to-background border-4 border-brass/30 rounded-xl shadow-2xl w-[85vw] max-w-[85vw] h-[85vh] flex flex-col overflow-hidden text-[#e2d4c9]">
         {/* Nagłówek i Główne Zakładki */}
-        <div className="bg-[#2a1b12] border-b-2 border-[#3a2518] px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-[#120f0c] border-b-2 border-brass/35 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <BookOpen className="h-7 w-7 text-[#bfa15f]" />
             <div>
-              <h2 className="text-2xl font-serif font-bold tracking-wider text-[#f4ebd0] drop-shadow-md">
+              <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-brass drop-shadow-md">
                 DZIENNIK SESJI
               </h2>
               {isShared && participantNames.length > 0 && (
@@ -471,26 +471,26 @@ export function SessionJournal({
             </div>
           </div>
 
-          {/* Zakładki na górze */}
-          <div className="flex bg-[#120b07] p-1 rounded-lg border border-[#3a2518]">
+          {/* Zakładki na górze - Styl Akt / Segregatora */}
+          <div className="flex gap-1 self-end translate-y-[2px] mt-2 md:mt-0">
             <button
               onClick={() => handleTabChange('board')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 activeTab === 'board'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
               )}
             >
               📌 Tablica Badacza
             </button>
             <button
-              onClick={() => handleTabChange('encyclopedia_character')}
+              onClick={() => handleTabChange('npc')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
-                (activeTab === 'encyclopedia_character' || activeTab === 'encyclopedia_location' || activeTab === 'encyclopedia_item' || activeTab === 'quest')
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
+                (activeTab === 'npc' || activeTab === 'location' || activeTab === 'item' || activeTab === 'quest')
+                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
               )}
             >
               🔍 Odkrycia
@@ -503,10 +503,10 @@ export function SessionJournal({
             <button
               onClick={() => handleTabChange('journal')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 activeTab === 'journal'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
               )}
             >
               Kronika
@@ -519,10 +519,10 @@ export function SessionJournal({
             <button
               onClick={() => handleTabChange('note')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 activeTab === 'note'
-                  ? 'bg-[#3a2518] text-[#f4ebd0] shadow-inner border border-[#bfa15f]/30'
-                  : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a]'
+                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
               )}
             >
               Notatki
@@ -587,11 +587,10 @@ export function SessionJournal({
           </div>
         </div>
 
-        {/* Zawartość zakładek */}
-        <div className="flex-1 flex overflow-hidden bg-[#18120c] text-[#e2d4c9]">
+        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#1a1610] to-[#100d09] text-[#e2d4c9] journal-scroll">
           {/* 0. SEKCJA TABLICY BADACZA */}
           {activeTab === 'board' && (
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden journal-scroll">
               <CorkboardInvestigationBoard
                 nodes={boardNodes}
                 relations={boardRelations}
@@ -639,10 +638,10 @@ export function SessionJournal({
           )}
 
           {/* 1. SEKCJA ODKRYĆ (dawne Misje + Encyklopedia) */}
-          {(activeTab === 'quest' || activeTab === 'encyclopedia_character' || activeTab === 'encyclopedia_location' || activeTab === 'encyclopedia_item') && (
+          {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
             <DiscoveriesView
               entries={(entries as unknown as Array<{ id: string; title: string; content: string; type: string; tags?: string[]; imageUrl?: string; imageStatus?: string; inGameDate?: string; timestamp?: number; questStatus?: 'active' | 'completed' | 'failed'; objectives?: Array<{ id: string; description: string; completed?: boolean; dateCompleted?: string }> }>).filter(
-                (e) => ['quest', 'encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
+                (e) => ['quest', 'npc', 'location', 'item'].includes(e.type)
               )}
               onEditEntry={(entry) => setEditingEntry(entry as unknown as ExtendedJournalEntry)}
               onDeleteEntry={deleteEntry}
@@ -768,72 +767,83 @@ export function SessionJournal({
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-[#120905] border border-[#3a2518] hover:border-[#bfa15f]/50 transition-all shadow-md rounded-lg p-5 flex flex-col justify-between min-h-[220px] group"
+                    className="bg-[#f0e6d2] border-[8px] border-[#f0e6d2] border-b-[24px] hover:scale-[1.02] hover:-rotate-1 transition-transform shadow-xl rounded-sm p-0 flex flex-col justify-between min-h-[220px] group relative text-[#2a1b12]"
+                    style={{ transform: `rotate(${Math.random() * 4 - 2}deg)` }}
                   >
-                    <div>
-                      <div className="flex justify-between items-start border-b border-[#3a2518] pb-2.5 mb-3">
-                        <h4 className="font-serif font-bold text-lg text-[#f4ebd0] group-hover:text-[#bfa15f] transition-colors leading-snug">
-                          {entry.title}
-                        </h4>
-                        <div className="flex gap-1.5 flex-none ml-2">
-                          <button
-                            onClick={() => setEditingEntry(entry)}
-                            className="p-1 text-[#a29182] hover:text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
-                            title="Edytuj notatkę"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteEntry(entry.id)}
-                            className="p-1 text-[#ff6b6b]/70 hover:text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
-                            title="Usuń notatkę"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
+                    {/* Przypinka */}
+                    <div className="absolute -top-[16px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#8a1c1c] shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.5),2px_2px_4px_rgba(0,0,0,0.4)] z-10 border border-[#4a0c0c]">
+                      <div className="absolute top-[2px] left-[2px] w-1.5 h-1.5 rounded-full bg-white/40"></div>
+                    </div>
+                    
+                    <div className="h-full flex flex-col">
                       {entry.imageStatus === 'pending' ? (
-                        <div className="my-2 h-36 rounded border border-[#bfa15f]/30 bg-[#0d0906] p-4 flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
-                          <div className="w-5 h-5 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin"></div>
-                          <span className="text-xs font-serif italic">Malowanie...</span>
+                        <div className="h-40 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner mb-3">
+                          <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-xs font-serif italic">Wywyoływanie...</span>
                         </div>
                       ) : entry.imageUrl ? (
-                        <div className="my-2 max-h-40 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                        <div className="h-40 overflow-hidden bg-[#111] mb-3 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
                           <img
                             src={entry.imageUrl}
                             alt={entry.title}
-                            className="w-full h-36 object-cover rounded"
+                            className="w-full h-full object-cover mix-blend-multiply sepia-[0.3]"
                             onError={(e) => {
                               (e.target as HTMLElement).style.display = 'none';
                             }}
                           />
                         </div>
-                      ) : null}
-                      <p className="text-sm font-serif leading-relaxed text-[#e2d4c9]/90 whitespace-pre-wrap">
-                        {entry.content}
-                      </p>
-                    </div>
-
-                    <div className="text-xs text-[#8a7667] border-t border-[#3a2518]/70 pt-2.5 mt-4 flex justify-between items-center font-special-elite">
-                      <span>
-                        📅{' '}
-                        {entry.inGameDate ||
-                          (entry.timestamp
-                            ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
-                            : '')}
-                      </span>
-                      {entry.tags && entry.tags.length > 0 && (
-                        <div className="flex gap-1 flex-wrap justify-end">
-                          {entry.tags.slice(0, 2).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-[10px] bg-[#3a2518]/60 text-[#bfa15f] px-1.5 py-0.5 rounded border border-[#bfa15f]/20"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
+                      ) : (
+                        <div className="h-4 bg-[#e6d9c3] mb-3 shadow-inner opacity-50"></div>
                       )}
+                      
+                      <div className="px-2 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start pb-1 mb-2">
+                          <h4 className="font-serif font-bold text-lg text-[#2a1b12] leading-snug underline decoration-1 underline-offset-4 decoration-[#8a7667]/40">
+                            {entry.title}
+                          </h4>
+                          <div className="flex gap-1 flex-none ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
+                              title="Edytuj notatkę"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteEntry(entry.id)}
+                              className="p-1 text-[#8a1c1c]/70 hover:text-[#8a1c1c] hover:bg-[#ffcccc] rounded transition-colors"
+                              title="Usuń notatkę"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm font-serif italic leading-relaxed text-[#4a3525] whitespace-pre-wrap flex-1 pb-2">
+                          {entry.content}
+                        </p>
+
+                        <div className="text-[10px] text-[#5c4a3d]/80 pt-2 flex justify-between items-end font-special-elite absolute bottom-[-18px] left-2 right-2">
+                          <span>
+                            {entry.inGameDate ||
+                              (entry.timestamp
+                                ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
+                                : '')}
+                          </span>
+                          {entry.tags && entry.tags.length > 0 && (
+                            <div className="flex gap-1 flex-wrap justify-end">
+                              {entry.tags.slice(0, 2).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="text-[9px] uppercase tracking-wider"
+                                >
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -896,9 +906,9 @@ function AddEntryForm({
     category: categories[0],
     tags: [] as string[],
     isAutoGenerated: false,
-    type: (initialType === 'encyclopedia_character'
-      ? 'encyclopedia_character'
-      : initialType) as JournalEntryType,
+    type: (['quest', 'journal', 'npc', 'location', 'item', 'note'].includes(initialType)
+      ? initialType
+      : 'note') as JournalEntryType,
     gameDay: 1,
     gameHour: 12,
     questStatus: 'active' as 'active' | 'completed' | 'failed',
@@ -981,13 +991,13 @@ function AddEntryForm({
             >
               <option value="quest">Misja (Quest)</option>
               <option value="journal">Wpis do Dziennika (Kronika)</option>
-              <option value="encyclopedia_character">
+              <option value="npc">
                 Encyklopedia - Postać / Byt
               </option>
-              <option value="encyclopedia_location">
+              <option value="location">
                 Encyklopedia - Lokacja
               </option>
-              <option value="encyclopedia_item">
+              <option value="item">
                 Encyklopedia - Przedmiot
               </option>
               <option value="note">Własna notatka / Teoria</option>
@@ -1298,13 +1308,13 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
             >
               <option value="quest">Misja (Quest)</option>
               <option value="journal">Wpis do Dziennika (Kronika)</option>
-              <option value="encyclopedia_character">
+              <option value="npc">
                 Encyklopedia - Postać / Byt
               </option>
-              <option value="encyclopedia_location">
+              <option value="location">
                 Encyklopedia - Lokacja
               </option>
-              <option value="encyclopedia_item">
+              <option value="item">
                 Encyklopedia - Przedmiot
               </option>
               <option value="note">Własna notatka / Teoria</option>

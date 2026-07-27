@@ -18,6 +18,9 @@ export function formatJournalSection(journal: JournalEntry[]): string {
     death: '💀',
     bookmark: '⭐',
     note: '📝',
+    quest: '⚔️',
+    journal: '📖',
+    item: '📦',
   };
 
   // Sortuj chronologicznie
