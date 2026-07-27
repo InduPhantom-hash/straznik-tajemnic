@@ -115,11 +115,10 @@ export function SessionJournal({
   const savedBoardState = character.investigatorBoard;
 
   const initialNodes = useMemo(() => {
-    if (savedBoardState?.nodes && savedBoardState.nodes.length > 0) {
-      return savedBoardState.nodes;
-    }
     const rawEntries = (sharedJournal ?? character.journal ?? []) as unknown as JournalEntry[];
-    return convertEntriesToBoardNodes(rawEntries);
+    const existingNodes = savedBoardState?.nodes || [];
+    // Zachowujemy stare karty ułożone przez Gracza i domergowujemy nowe z dziennika
+    return convertEntriesToBoardNodes(rawEntries, existingNodes);
   }, [character.journal, sharedJournal, savedBoardState]);
 
   const [boardNodes, setBoardNodes] = useState<EvidenceNode[]>(initialNodes);
