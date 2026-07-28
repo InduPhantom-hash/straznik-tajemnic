@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; }
+@keyframes candleFlicker { 0%,100% { opacity:1; filter:brightness(1); } 25% { opacity:.92; filter:brightness(1.08);} 45% { opacity:.85; filter:brightness(.9);} 70% { opacity:.97; filter:brightness(1.05);} }
+@keyframes mistDrift { 0% { transform:translateX(-4%);opacity:.5;} 50% { transform:translateX(4%) translateY(-2%);opacity:.85;} 100% { transform:translateX(-4%);opacity:.5;} }
+@keyframes emeraldPulse { 0%,100% { box-shadow:0 0 0 1px rgba(13,148,136,.45), 0 0 18px rgba(13,148,136,.3);} 50% { box-shadow:0 0 0 1px rgba(13,148,136,.7), 0 0 36px rgba(13,148,136,.55);} }
+@keyframes eyeGlow { 0%,100% { text-shadow:0 0 30px rgba(13,148,136,.5), 0 0 70px rgba(13,148,136,.25);} 50% { text-shadow:0 0 46px rgba(13,148,136,.85), 0 0 110px rgba(13,148,136,.45);} }
+</style>
+</helmet>
+
+<!-- ===================== 1 · STORY / REELS / TIKTOK · 1080×1920 ===================== -->
+<div style="position:absolute; left:60px; top:60px; width:1080px;">
+  <div data-drags-parent="1" style="font-family:'Special Elite',monospace; color:#8a8472; font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:16px;">01 · Story / Reels / TikTok — 1080 × 1920 (9:16)</div>
+  <div style="position:relative; width:1080px; height:1920px; overflow:hidden; background:radial-gradient(80% 55% at 50% 32%, #1c1812 0%, #0c0d0a 56%, #060708 100%); box-shadow:0 30px 90px rgba(0,0,0,.6);">
+    <!-- sunburst -->
+    <div style="position:absolute; left:0; right:0; top:0; height:62%; background:repeating-conic-gradient(from 0deg at 50% 18%, rgba(201,162,39,.07) 0deg 1.5deg, transparent 1.5deg 6deg);"></div>
+    <!-- mgła -->
+    <div style="position:absolute; left:-10%; right:-10%; bottom:0; height:42%; background:radial-gradient(60% 100% at 50% 100%, rgba(13,148,136,.14), transparent 70%); animation:mistDrift 15s ease-in-out infinite;"></div>
+    <!-- winieta -->
+    <div style="position:absolute; inset:0; box-shadow:inset 0 0 280px 90px rgba(0,0,0,.85);"></div>
+    <!-- ramka déco -->
+    <div style="position:absolute; inset:34px; border:1px solid rgba(201,162,39,.4);"></div>
+    <span style="position:absolute;top:42px;left:42px;width:60px;height:60px;border-top:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;top:42px;right:42px;width:60px;height:60px;border-top:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:42px;left:42px;width:60px;height:60px;border-bottom:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:42px;right:42px;width:60px;height:60px;border-bottom:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+
+    <div style="position:absolute; inset:0; padding:130px 90px 110px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+      <div style="font-family:'Special Elite',monospace; font-size:20px; color:#0d9488; letter-spacing:.46em; text-transform:uppercase;">Anno Domini MCMXXIV</div>
+
+      <!-- emblemat oka -->
+      <div style="position:relative; margin:64px 0 40px; width:300px; height:300px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; border:1px solid rgba(201,162,39,.5); transform:rotate(45deg);"></div>
+        <div style="position:absolute; inset:38px; border:1px solid rgba(201,162,39,.3); transform:rotate(45deg);"></div>
+        <div style="font-family:'Special Elite',monospace; font-size:150px; color:#0d9488; animation:eyeGlow 4s ease-in-out infinite; line-height:1;">𓂀</div>
+      </div>
+
+      <div style="font-family:'Special Elite',monospace; font-size:22px; color:#c9a227; letter-spacing:.4em; text-transform:uppercase; margin-bottom:14px;">Wirtualny Mistrz Gry</div>
+      <h1 style="margin:0; font-family:'Cinzel Decorative',serif; font-weight:900; font-size:108px; line-height:.96; letter-spacing:.06em; color:#ebe8dc; text-transform:uppercase; text-shadow:0 0 50px rgba(201,162,39,.2);">Strażnik<br>Tajemnic</h1>
+
+      <div style="display:flex; align-items:center; gap:18px; margin:46px 0; width:78%;">
+        <div style="flex:1; height:2px; background:linear-gradient(90deg,transparent,#c9a227);"></div>
+        <div style="width:12px;height:12px;background:#c9a227;transform:rotate(45deg);"></div>
+        <div style="flex:1; height:2px; background:linear-gradient(90deg,#c9a227,transparent);"></div>
+      </div>
+
+      <p style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:42px; line-height:1.35; color:#d8d3c3; margin:0 0 56px; max-width:80%;">Zawsze gotów.<br>Zawsze w mroku.</p>
+
+      <div style="display:flex; flex-direction:column; gap:22px; align-items:flex-start; margin-bottom:auto;">
+        <div style="display:flex; align-items:center; gap:18px;"><div style="width:9px;height:9px;background:#0d9488;transform:rotate(45deg);flex:0 0 9px;"></div><span style="font-family:'Cormorant Garamond',serif; font-size:32px; color:#ebe8dc;">Sztuczna inteligencja prowadzi sesję</span></div>
+        <div style="display:flex; align-items:center; gap:18px;"><div style="width:9px;height:9px;background:#0d9488;transform:rotate(45deg);flex:0 0 9px;"></div><span style="font-family:'Cormorant Garamond',serif; font-size:32px; color:#ebe8dc;">Pełna mechanika Zewu Cthulhu 7. edycji</span></div>
+        <div style="display:flex; align-items:center; gap:18px;"><div style="width:9px;height:9px;background:#0d9488;transform:rotate(45deg);flex:0 0 9px;"></div><span style="font-family:'Cormorant Garamond',serif; font-size:32px; color:#ebe8dc;">Narracja, ilustracje i głosy NPC</span></div>
+      </div>
+
+      <div style="font-family:'Cinzel',serif; font-weight:600; text-transform:uppercase; letter-spacing:.2em; font-size:32px; color:#04110f; background:#0d9488; padding:26px 64px; box-shadow:0 0 30px rgba(13,148,136,.4); animation:emeraldPulse 3s ease-in-out infinite;">Pobierz i zagraj</div>
+      <div style="font-family:'Special Elite',monospace; font-size:18px; color:#8a8472; letter-spacing:.24em; text-transform:uppercase; margin-top:24px;">Aplikacja na komputery</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 2 · POST PORTRET · 1080×1350 ===================== -->
+<div style="position:absolute; left:1260px; top:60px; width:1080px;">
+  <div data-drags-parent="1" style="font-family:'Special Elite',monospace; color:#8a8472; font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:16px;">02 · Post portret — 1080 × 1350 (4:5)</div>
+  <div style="position:relative; width:1080px; height:1350px; overflow:hidden; background:radial-gradient(82% 56% at 50% 30%, #1c1812 0%, #0c0d0a 56%, #060708 100%); box-shadow:0 30px 90px rgba(0,0,0,.6);">
+    <div style="position:absolute; left:0; right:0; top:0; height:58%; background:repeating-conic-gradient(from 0deg at 50% 16%, rgba(201,162,39,.06) 0deg 1.5deg, transparent 1.5deg 6deg);"></div>
+    <div style="position:absolute; left:-10%; right:-10%; bottom:0; height:42%; background:radial-gradient(60% 100% at 50% 100%, rgba(13,148,136,.13), transparent 70%); animation:mistDrift 15s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; box-shadow:inset 0 0 240px 80px rgba(0,0,0,.85);"></div>
+    <span style="position:absolute;top:40px;left:40px;width:54px;height:54px;border-top:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;top:40px;right:40px;width:54px;height:54px;border-top:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:40px;left:40px;width:54px;height:54px;border-bottom:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:40px;right:40px;width:54px;height:54px;border-bottom:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+
+    <div style="position:absolute; inset:0; padding:96px 84px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+      <div style="font-family:'Special Elite',monospace; font-size:18px; color:#0d9488; letter-spacing:.44em; text-transform:uppercase;">Anno Domini MCMXXIV</div>
+
+      <div style="position:relative; margin:40px 0 32px; width:210px; height:210px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; border:1px solid rgba(201,162,39,.5); transform:rotate(45deg);"></div>
+        <div style="position:absolute; inset:28px; border:1px solid rgba(201,162,39,.3); transform:rotate(45deg);"></div>
+        <div style="font-family:'Special Elite',monospace; font-size:104px; color:#0d9488; animation:eyeGlow 4s ease-in-out infinite; line-height:1;">𓂀</div>
+      </div>
+
+      <div style="font-family:'Special Elite',monospace; font-size:19px; color:#c9a227; letter-spacing:.38em; text-transform:uppercase; margin-bottom:12px;">Wirtualny Mistrz Gry</div>
+      <h1 style="margin:0; font-family:'Cinzel Decorative',serif; font-weight:900; font-size:92px; line-height:.96; letter-spacing:.06em; color:#ebe8dc; text-transform:uppercase; text-shadow:0 0 50px rgba(201,162,39,.2);">Strażnik<br>Tajemnic</h1>
+
+      <div style="display:flex; align-items:center; gap:16px; margin:36px 0; width:70%;">
+        <div style="flex:1; height:2px; background:linear-gradient(90deg,transparent,#c9a227);"></div>
+        <div style="width:11px;height:11px;background:#c9a227;transform:rotate(45deg);"></div>
+        <div style="flex:1; height:2px; background:linear-gradient(90deg,#c9a227,transparent);"></div>
+      </div>
+
+      <p style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:40px; line-height:1.3; color:#d8d3c3; margin:0 0 auto; max-width:82%;">Otwórz drzwi, których nie powinieneś otwierać.</p>
+
+      <div style="font-family:'Cinzel',serif; font-weight:600; text-transform:uppercase; letter-spacing:.2em; font-size:30px; color:#04110f; background:#0d9488; padding:24px 60px; box-shadow:0 0 30px rgba(13,148,136,.4); animation:emeraldPulse 3s ease-in-out infinite;">Pobierz i zagraj</div>
+      <div style="font-family:'Special Elite',monospace; font-size:17px; color:#8a8472; letter-spacing:.22em; text-transform:uppercase; margin-top:22px;">Zew Cthulhu 7. ed. · solo lub we dwoje</div>
+    </div>
+  </div>
+</div>
+<!-- ===================== 3 · KWADRAT · 1080×1080 ===================== -->
+<div style="position:absolute; left:2460px; top:60px; width:1080px;">
+  <div data-drags-parent="1" style="font-family:'Special Elite',monospace; color:#8a8472; font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:16px;">03 · Kwadrat — 1080 × 1080 (1:1)</div>
+  <div style="position:relative; width:1080px; height:1080px; overflow:hidden; background:radial-gradient(85% 60% at 50% 34%, #1c1812 0%, #0c0d0a 56%, #060708 100%); box-shadow:0 30px 90px rgba(0,0,0,.6);">
+    <div style="position:absolute; left:0; right:0; top:0; height:64%; background:repeating-conic-gradient(from 0deg at 50% 20%, rgba(201,162,39,.06) 0deg 1.5deg, transparent 1.5deg 6deg);"></div>
+    <div style="position:absolute; left:-10%; right:-10%; bottom:0; height:44%; background:radial-gradient(60% 100% at 50% 100%, rgba(13,148,136,.13), transparent 70%); animation:mistDrift 15s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; box-shadow:inset 0 0 220px 70px rgba(0,0,0,.85);"></div>
+    <span style="position:absolute;top:38px;left:38px;width:50px;height:50px;border-top:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;top:38px;right:38px;width:50px;height:50px;border-top:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:38px;left:38px;width:50px;height:50px;border-bottom:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:38px;right:38px;width:50px;height:50px;border-bottom:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+
+    <div style="position:absolute; inset:0; padding:80px; display:flex; flex-direction:column; align-items:center; text-align:center; justify-content:center;">
+      <div style="position:relative; margin-bottom:30px; width:188px; height:188px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; border:1px solid rgba(201,162,39,.5); transform:rotate(45deg);"></div>
+        <div style="position:absolute; inset:26px; border:1px solid rgba(201,162,39,.3); transform:rotate(45deg);"></div>
+        <div style="font-family:'Special Elite',monospace; font-size:94px; color:#0d9488; animation:eyeGlow 4s ease-in-out infinite; line-height:1;">𓂀</div>
+      </div>
+      <div style="font-family:'Special Elite',monospace; font-size:18px; color:#c9a227; letter-spacing:.4em; text-transform:uppercase; margin-bottom:14px;">Wirtualny Mistrz Gry</div>
+      <h1 style="margin:0; font-family:'Cinzel Decorative',serif; font-weight:900; font-size:96px; line-height:.96; letter-spacing:.06em; color:#ebe8dc; text-transform:uppercase; text-shadow:0 0 50px rgba(201,162,39,.2);">Strażnik<br>Tajemnic</h1>
+
+      <div style="display:flex; align-items:center; gap:16px; margin:34px 0; width:64%;">
+        <div style="flex:1; height:2px; background:linear-gradient(90deg,transparent,#c9a227);"></div>
+        <div style="width:11px;height:11px;background:#c9a227;transform:rotate(45deg);"></div>
+        <div style="flex:1; height:2px; background:linear-gradient(90deg,#c9a227,transparent);"></div>
+      </div>
+
+      <p style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:38px; line-height:1.3; color:#d8d3c3; margin:0 0 44px; max-width:84%;">Zawsze gotów. Zawsze w mroku.</p>
+
+      <div style="font-family:'Cinzel',serif; font-weight:600; text-transform:uppercase; letter-spacing:.2em; font-size:28px; color:#04110f; background:#0d9488; padding:22px 56px; box-shadow:0 0 28px rgba(13,148,136,.4); animation:emeraldPulse 3s ease-in-out infinite;">Pobierz i zagraj</div>
+    </div>
+  </div>
+</div>
+<!-- ===================== 4 · OG / LINK PREVIEW · 1200×630 ===================== -->
+<div style="position:absolute; left:3660px; top:60px; width:1200px;">
+  <div data-drags-parent="1" style="font-family:'Special Elite',monospace; color:#8a8472; font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:16px;">04 · Link preview / OG image — 1200 × 630</div>
+  <div style="position:relative; width:1200px; height:630px; overflow:hidden; background:radial-gradient(70% 90% at 28% 50%, #1c1812 0%, #0c0d0a 58%, #060708 100%); box-shadow:0 30px 90px rgba(0,0,0,.6);">
+    <div style="position:absolute; left:0; top:0; bottom:0; width:54%; background:repeating-conic-gradient(from 0deg at 26% 50%, rgba(201,162,39,.06) 0deg 1.5deg, transparent 1.5deg 6deg);"></div>
+    <div style="position:absolute; left:-6%; bottom:-10%; width:60%; height:80%; background:radial-gradient(60% 100% at 30% 70%, rgba(13,148,136,.14), transparent 70%); animation:mistDrift 15s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; box-shadow:inset 0 0 180px 60px rgba(0,0,0,.85);"></div>
+    <div style="position:absolute; inset:26px; border:1px solid rgba(201,162,39,.35);"></div>
+    <span style="position:absolute;top:34px;left:34px;width:44px;height:44px;border-top:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:34px;right:34px;width:44px;height:44px;border-bottom:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+
+    <div style="position:absolute; inset:0; padding:70px 80px; display:flex; align-items:center; gap:56px;">
+      <div style="position:relative; width:230px; height:230px; flex:0 0 230px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; border:1px solid rgba(201,162,39,.5); transform:rotate(45deg);"></div>
+        <div style="position:absolute; inset:30px; border:1px solid rgba(201,162,39,.3); transform:rotate(45deg);"></div>
+        <div style="font-family:'Special Elite',monospace; font-size:118px; color:#0d9488; animation:eyeGlow 4s ease-in-out infinite; line-height:1;">𓂀</div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-family:'Special Elite',monospace; font-size:16px; color:#c9a227; letter-spacing:.36em; text-transform:uppercase; margin-bottom:10px;">Wirtualny Mistrz Gry · Zew Cthulhu</div>
+        <h1 style="margin:0; font-family:'Cinzel Decorative',serif; font-weight:900; font-size:80px; line-height:.96; letter-spacing:.05em; color:#ebe8dc; text-transform:uppercase; text-shadow:0 0 40px rgba(201,162,39,.2);">Strażnik<br>Tajemnic</h1>
+        <div style="display:flex; align-items:center; gap:14px; margin:24px 0;">
+          <div style="width:80px; height:2px; background:linear-gradient(90deg,#c9a227,transparent);"></div>
+          <div style="width:9px;height:9px;background:#c9a227;transform:rotate(45deg);"></div>
+        </div>
+        <p style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:34px; line-height:1.25; color:#d8d3c3; margin:0 0 28px;">Zawsze gotów. Zawsze w mroku.</p>
+        <div style="display:inline-block; font-family:'Cinzel',serif; font-weight:600; text-transform:uppercase; letter-spacing:.18em; font-size:22px; color:#04110f; background:#0d9488; padding:16px 40px; box-shadow:0 0 24px rgba(13,148,136,.35);">Pobierz i zagraj</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ===================== 5 · MINIATURA YOUTUBE · 1280×720 ===================== -->
+<div style="position:absolute; left:3660px; top:820px; width:1280px;">
+  <div data-drags-parent="1" style="font-family:'Special Elite',monospace; color:#8a8472; font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:16px;">05 · Miniatura YouTube — 1280 × 720 (16:9)</div>
+  <div style="position:relative; width:1280px; height:720px; overflow:hidden; background:radial-gradient(75% 100% at 72% 46%, #221c14 0%, #0c0d0a 56%, #060708 100%); box-shadow:0 30px 90px rgba(0,0,0,.6);">
+    <div style="position:absolute; right:0; top:0; bottom:0; width:58%; background:repeating-conic-gradient(from 0deg at 72% 46%, rgba(201,162,39,.08) 0deg 1.4deg, transparent 1.4deg 6deg);"></div>
+    <div style="position:absolute; left:-8%; bottom:-12%; width:70%; height:80%; background:radial-gradient(60% 100% at 30% 80%, rgba(13,148,136,.16), transparent 70%); animation:mistDrift 15s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; box-shadow:inset 0 0 190px 60px rgba(0,0,0,.85);"></div>
+    <span style="position:absolute;top:30px;left:30px;width:50px;height:50px;border-top:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:30px;left:30px;width:50px;height:50px;border-bottom:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+
+    <!-- emblemat duży po prawej -->
+    <div style="position:absolute; right:70px; top:50%; transform:translateY(-50%); width:340px; height:340px; display:flex; align-items:center; justify-content:center;">
+      <div style="position:absolute; inset:0; border:1px solid rgba(201,162,39,.45); transform:rotate(45deg);"></div>
+      <div style="position:absolute; inset:44px; border:1px solid rgba(201,162,39,.28); transform:rotate(45deg);"></div>
+      <div style="font-family:'Special Elite',monospace; font-size:200px; color:#0d9488; animation:eyeGlow 4s ease-in-out infinite; line-height:1;">𓂀</div>
+    </div>
+
+    <div style="position:absolute; left:80px; top:0; bottom:0; width:62%; display:flex; flex-direction:column; justify-content:center;">
+      <div style="font-family:'Special Elite',monospace; font-size:20px; color:#c9a227; letter-spacing:.34em; text-transform:uppercase; margin-bottom:14px;">Wirtualny Mistrz Gry</div>
+      <h1 style="margin:0; font-family:'Cinzel Decorative',serif; font-weight:900; font-size:104px; line-height:.9; letter-spacing:.04em; color:#ebe8dc; text-transform:uppercase; text-shadow:0 0 50px rgba(201,162,39,.25), 0 6px 18px rgba(0,0,0,.6);">Strażnik<br>Tajemnic</h1>
+      <div style="display:inline-flex; align-self:flex-start; align-items:center; gap:14px; margin-top:30px; border:2px solid #0d9488; background:rgba(13,148,136,.12); padding:14px 26px; box-shadow:0 0 26px rgba(13,148,136,.3);">
+        <span style="color:#0d9488; font-size:24px;">⬢</span>
+        <span style="font-family:'Cinzel',serif; font-weight:600; font-size:28px; color:#ebe8dc; letter-spacing:.08em; text-transform:uppercase;">AI prowadzi twoją sesję</span>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ===================== 6 · BANER POZIOMY · 1500×500 ===================== -->
+<div style="position:absolute; left:3660px; top:1660px; width:1500px;">
+  <div data-drags-parent="1" style="font-family:'Special Elite',monospace; color:#8a8472; font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:16px;">06 · Baner poziomy / nagłówek profilu — 1500 × 500</div>
+  <div style="position:relative; width:1500px; height:500px; overflow:hidden; background:radial-gradient(60% 130% at 50% 50%, #1c1812 0%, #0c0d0a 60%, #060708 100%); box-shadow:0 30px 90px rgba(0,0,0,.6);">
+    <div style="position:absolute; inset:0; background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(201,162,39,.05) 0deg 1.2deg, transparent 1.2deg 5deg);"></div>
+    <div style="position:absolute; left:-6%; right:-6%; bottom:-30%; height:90%; background:radial-gradient(50% 100% at 50% 80%, rgba(13,148,136,.12), transparent 70%); animation:mistDrift 16s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; box-shadow:inset 0 0 170px 60px rgba(0,0,0,.85);"></div>
+    <div style="position:absolute; inset:22px; border:1px solid rgba(201,162,39,.32);"></div>
+    <span style="position:absolute;top:30px;left:30px;width:44px;height:44px;border-top:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;top:30px;right:30px;width:44px;height:44px;border-top:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:30px;left:30px;width:44px;height:44px;border-bottom:3px solid #c9a227;border-left:3px solid #c9a227;"></span>
+    <span style="position:absolute;bottom:30px;right:30px;width:44px;height:44px;border-bottom:3px solid #c9a227;border-right:3px solid #c9a227;"></span>
+
+    <div style="position:absolute; inset:0; padding:0 90px; display:flex; align-items:center; gap:44px;">
+      <!-- emblemat -->
+      <div style="position:relative; width:200px; height:200px; flex:0 0 200px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; border:1px solid rgba(201,162,39,.5); transform:rotate(45deg);"></div>
+        <div style="position:absolute; inset:26px; border:1px solid rgba(201,162,39,.3); transform:rotate(45deg);"></div>
+        <div style="font-family:'Special Elite',monospace; font-size:110px; color:#0d9488; animation:eyeGlow 4s ease-in-out infinite; line-height:1;">𓂀</div>
+      </div>
+      <!-- tytuł -->
+      <div style="flex:1;">
+        <div style="font-family:'Special Elite',monospace; font-size:16px; color:#c9a227; letter-spacing:.34em; text-transform:uppercase; margin-bottom:8px;">Wirtualny Mistrz Gry · MCMXXIV</div>
+        <h1 style="margin:0; font-family:'Cinzel Decorative',serif; font-weight:900; font-size:78px; line-height:.92; letter-spacing:.05em; color:#ebe8dc; text-transform:uppercase; text-shadow:0 0 40px rgba(201,162,39,.2);">Strażnik Tajemnic</h1>
+        <p style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:30px; line-height:1.2; color:#b3a892; margin:14px 0 0;">Zawsze gotów. Zawsze w mroku.</p>
+      </div>
+      <!-- CTA -->
+      <div style="flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:14px;">
+        <div style="font-family:'Cinzel',serif; font-weight:600; text-transform:uppercase; letter-spacing:.18em; font-size:24px; color:#04110f; background:#0d9488; padding:18px 40px; box-shadow:0 0 26px rgba(13,148,136,.4); animation:emeraldPulse 3s ease-in-out infinite;">Pobierz i zagraj</div>
+        <div style="font-family:'Special Elite',monospace; font-size:14px; color:#8a8472; letter-spacing:.2em; text-transform:uppercase;">Zew Cthulhu · 7. edycja</div>
+      </div>
+    </div>
+  </div>
+</div></x-dc>
+</body>
+</html>

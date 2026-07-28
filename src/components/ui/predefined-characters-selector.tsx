@@ -761,10 +761,23 @@ export function PredefinedCharactersSelector({
           </div>
         );
       })()}
-      {selectedItem && (
+      {selectedItem && viewingCharacter && (
         <EquipmentDetailDialog
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
+          onUpdateItem={console.log} // By aktywować przycisk "Przeczytaj dokument"
+          onNext={() => {
+            if (!viewingCharacter.equipment) return;
+            const index = viewingCharacter.equipment.findIndex(i => i.id === selectedItem.id);
+            if (index < viewingCharacter.equipment.length - 1) setSelectedItem(viewingCharacter.equipment[index + 1]);
+            else setSelectedItem(viewingCharacter.equipment[0]);
+          }}
+          onPrevious={() => {
+            if (!viewingCharacter.equipment) return;
+            const index = viewingCharacter.equipment.findIndex(i => i.id === selectedItem.id);
+            if (index > 0) setSelectedItem(viewingCharacter.equipment[index - 1]);
+            else setSelectedItem(viewingCharacter.equipment[viewingCharacter.equipment.length - 1]);
+          }}
         />
       )}
     </>

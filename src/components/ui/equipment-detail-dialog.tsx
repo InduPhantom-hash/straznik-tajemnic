@@ -16,6 +16,8 @@ interface EquipmentDetailDialogProps {
   onClose: () => void;
   era?: string;
   onUpdateItem?: (updatedItem: EquipmentItem) => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
@@ -58,6 +60,8 @@ export function EquipmentDetailDialog({
   onClose,
   era,
   onUpdateItem,
+  onNext,
+  onPrevious,
 }: EquipmentDetailDialogProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -152,12 +156,29 @@ export function EquipmentDetailDialog({
   const dialogContent = (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-8 overflow-y-auto"
-      onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
         className="deco-corners flex flex-col bg-gray-950/95 backdrop-blur-md border-4 border-amber-900/60 w-[90vw] max-w-[1200px] h-[85vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl"
       >
+        {/* Dekoracyjne przyciski strzałek (Poprzedni/Następny) pozycjonowane poza modalem dla desktopów, lub na krawędziach wewnętrznych dla mniejszych ekranów */}
+        {onPrevious && (
+          <button
+            onClick={onPrevious}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-50 p-2 md:-left-16 md:bg-transparent bg-black/60 rounded-r border border-l-0 border-brass/50 text-brass hover:text-amber-300 hover:scale-110 transition-all shadow-[0_0_15px_rgba(201,162,39,0.3)] backdrop-blur-md"
+            aria-label="Poprzedni przedmiot"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-50 p-2 md:-right-16 md:bg-transparent bg-black/60 rounded-l border border-r-0 border-brass/50 text-brass hover:text-amber-300 hover:scale-110 transition-all shadow-[0_0_15px_rgba(201,162,39,0.3)] backdrop-blur-md"
+            aria-label="Następny przedmiot"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        )}
         {/* Narożniki Deco */}
         <span className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-900/80 pointer-events-none" />
         <span className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-amber-900/80 pointer-events-none" />

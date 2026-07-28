@@ -2102,9 +2102,9 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     equipment: [
       {
         id: 'eq_nath_tome',
-        name: 'Lacinski zwoj z XIV wieku',
-        category: 'occult',
-        description: 'Fragment traktatu o istotach z zaswiatow.',
+        name: 'Łaciński zwój z XIV wieku',
+        category: 'document',
+        description: 'Czytanie wymaga testu z języka łacińskiego.',
       },
       {
         id: 'eq_nath_loupe',
@@ -2112,7 +2112,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
         category: 'tool',
         description: 'Do odczytywania drobnych inskrypcji.',
       },
-      { id: 'eq_nath_journal', name: 'Dziennik badan', category: 'document' },
+      { id: 'eq_nath_journal', name: 'Dziennik badań', category: 'document' },
     ],
   },
   {

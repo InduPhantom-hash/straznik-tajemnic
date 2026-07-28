@@ -507,7 +507,7 @@
 }
 
 /* ===== CUSTOM SCROLLBAR - DARK ART DÉCO ===== */
-@layer utilities {
+@layer base {
   /* Firefox */
   * {
     scrollbar-width: thin;

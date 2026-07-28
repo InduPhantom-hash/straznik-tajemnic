@@ -193,22 +193,26 @@ export function SessionJournal({
 
   const unseenCounts = useMemo(() => {
     if (!journalSeenKey) return { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
-    const stored = localStorage.getItem(journalSeenKey);
-    const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
-    
-    // Liczymy wpisy każdego typu
     const questCount = entries.filter(e => e.type === 'quest').length;
     const journalCount = entries.filter(e => e.type === 'journal').length;
     const encyclopediaCount = entries.filter(e => 
       ['encyclopedia_character', 'encyclopedia_location', 'encyclopedia_item'].includes(e.type)
     ).length;
     const noteCount = entries.filter(e => e.type === 'note').length;
+    
+    const stored = localStorage.getItem(journalSeenKey);
+    // Jeśli brak danych w LocalStorage (pierwsze wejście po załadowaniu przygody/Zimnym Starcie), oznaczamy wszystko jako przeczytane by nie spamować czerwonymi cyferkami.
+    const seenData = stored ? JSON.parse(stored) : { quest: questCount, journal: journalCount, encyclopedia: encyclopediaCount, note: noteCount };
+    if (!stored) localStorage.setItem(journalSeenKey, JSON.stringify(seenData));
 
     return {
       quest: Math.max(0, questCount - (seenData.quest || 0)),
       journal: Math.max(0, journalCount - (seenData.journal || 0)),
       encyclopedia: Math.max(0, encyclopediaCount - (seenData.encyclopedia || 0)),
       note: Math.max(0, noteCount - (seenData.note || 0)),
+      location: 0, // upraszczamy podkategorie
+      character: 0,
+      item: 0
     };
   }, [entries, journalSeenKey]);
 
@@ -410,20 +414,27 @@ export function SessionJournal({
   }, [character.name, entries, isShared, participantNames]);
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      {/* RPG-styled Container */}
-      <div className="bg-gray-950/95 backdrop-blur-md border-4 border-amber-900/60 rounded-xl shadow-2xl w-[95vw] max-w-[1500px] h-[90vh] flex flex-col overflow-hidden text-gray-300">
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      {/* RPG-styled Container wg Design Systemu (ostre krawędzie, border-brass) */}
+      <div className="deco-corners relative bg-[#0c0a07] border border-[#c9a227]/25 shadow-[0_0_50px_rgba(201,162,39,0.15)] w-[95vw] max-w-[1500px] h-[90vh] flex flex-col text-[#ebe8dc]">
+        {/* Narożniki Deco */}
+        <span className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#c9a227]/60 pointer-events-none z-10" />
+        <span className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#c9a227]/60 pointer-events-none z-10" />
+        <span className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#c9a227]/60 pointer-events-none z-10" />
+        <span className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#c9a227]/60 pointer-events-none z-10" />
+
         {/* Nagłówek i Główne Zakładki */}
-        <div className="bg-gray-900/80 border-b-2 border-amber-900/60 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-[#16130f] border-b border-[#c9a227]/25 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 relative z-20">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-7 w-7 text-amber-500" />
+            <BookOpen className="h-7 w-7 text-[#c9a227]" />
             <div>
-              <h2 className="text-2xl font-serif font-bold tracking-wider text-amber-400 drop-shadow-md">
+              <div className="font-special-elite text-[10px] uppercase tracking-[0.32em] text-[#0d9488]">Przegląd akt</div>
+              <h2 className="text-[26px] font-display font-bold uppercase tracking-[0.1em] text-[#ebe8dc] mt-1.5 leading-none">
                 DZIENNIK SESJI
               </h2>
               {isShared && participantNames.length > 0 && (
-                <p className="text-xs font-special-elite tracking-wider text-amber-500">
-                  Wspólny dla: {participantNames.join(' i ')}
+                <p className="text-[11px] font-special-elite tracking-[0.1em] text-[#c9a227] mt-2">
+                  WSPÓLNY DLA: {participantNames.join(' i ')}
                 </p>
               )}
             </div>
@@ -433,76 +444,68 @@ export function SessionJournal({
           <div className="flex bg-[#120b07] p-1 rounded-lg border border-amber-900/60">
             <button
               onClick={() => handleTabChange('board')}
-              className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
-                activeTab === 'board'
-                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
-              )}
-            >
-              📌 Tablica Badacza
-            </button>
+          <div className="flex bg-[#0c0a07] border border-[#c9a227]/25 p-1">
             <button
               onClick={() => handleTabChange('quest')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                'px-5 py-2.5 text-[11px] font-special-elite uppercase tracking-[0.15em] transition-all relative flex items-center gap-2 font-bold',
                 activeTab === 'quest'
-                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
+                  ? 'bg-transparent text-[#c9a227] border border-[#c9a227]/40 shadow-[inset_0_0_15px_rgba(201,162,39,0.15)]'
+                  : 'text-[#8a8472] hover:text-[#b3a892] border border-transparent hover:border-[#c9a227]/20'
               )}
             >
               Misje
               {unseenCounts.quest > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unseenCounts.quest}
+                <span className="bg-[#d9685f]/10 border border-[#d9685f]/40 text-[#d9685f] text-[10px] rounded-none px-2 py-0.5 ml-1">
+                  {unseenCounts.quest} Nowych
                 </span>
               )}
             </button>
             <button
               onClick={() => handleTabChange('journal')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                'px-5 py-2.5 text-[11px] font-special-elite uppercase tracking-[0.15em] transition-all relative flex items-center gap-2 font-bold',
                 activeTab === 'journal'
-                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
+                  ? 'bg-transparent text-[#c9a227] border border-[#c9a227]/40 shadow-[inset_0_0_15px_rgba(201,162,39,0.15)]'
+                  : 'text-[#8a8472] hover:text-[#b3a892] border border-transparent hover:border-[#c9a227]/20'
               )}
             >
               Kronika
               {unseenCounts.journal > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unseenCounts.journal}
+                <span className="bg-[#d9685f]/10 border border-[#d9685f]/40 text-[#d9685f] text-[10px] rounded-none px-2 py-0.5 ml-1">
+                  {unseenCounts.journal} Nowych
                 </span>
               )}
             </button>
             <button
-              onClick={() => handleTabChange('encyclopedia_character')}
+              onClick={() => handleTabChange('encyclopedia')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
-                activeTab === 'encyclopedia_character'
-                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
+                'px-5 py-2.5 text-[11px] font-special-elite uppercase tracking-[0.15em] transition-all relative flex items-center gap-2 font-bold',
+                activeTab === 'encyclopedia'
+                  ? 'bg-transparent text-[#c9a227] border border-[#c9a227]/40 shadow-[inset_0_0_15px_rgba(201,162,39,0.15)]'
+                  : 'text-[#8a8472] hover:text-[#b3a892] border border-transparent hover:border-[#c9a227]/20'
               )}
             >
               Encyklopedia
               {unseenCounts.encyclopedia > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unseenCounts.encyclopedia}
+                <span className="bg-[#d9685f]/10 border border-[#d9685f]/40 text-[#d9685f] text-[10px] rounded-none px-2 py-0.5 ml-1">
+                  {unseenCounts.encyclopedia} Nowe
                 </span>
               )}
             </button>
             <button
               onClick={() => handleTabChange('note')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-semibold rounded-md transition-all relative flex items-center gap-2',
+                'px-5 py-2.5 text-[11px] font-special-elite uppercase tracking-[0.15em] transition-all relative flex items-center gap-2 font-bold',
                 activeTab === 'note'
-                  ? 'bg-amber-900/40 text-amber-400 shadow-inner border border-amber-500/50/30'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-[#1a110a]'
+                  ? 'bg-transparent text-[#c9a227] border border-[#c9a227]/40 shadow-[inset_0_0_15px_rgba(201,162,39,0.15)]'
+                  : 'text-[#8a8472] hover:text-[#b3a892] border border-transparent hover:border-[#c9a227]/20'
               )}
             >
               Notatki
               {unseenCounts.note > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {unseenCounts.note}
+                <span className="bg-[#d9685f]/10 border border-[#d9685f]/40 text-[#d9685f] text-[10px] rounded-none px-2 py-0.5 ml-1">
+                  {unseenCounts.note} Nowych
                 </span>
               )}
             </button>
@@ -556,13 +559,13 @@ export function SessionJournal({
               placeholder="Wyszukaj frazę..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm w-full outline-none text-gray-300 placeholder-gray-600"
+              className="bg-transparent text-sm w-full outline-none text-[#ebe8dc] placeholder-gray-600"
             />
           </div>
         </div>
 
         {/* Zawartość zakładek */}
-        <div className="flex-1 flex overflow-hidden bg-gray-950/50 text-gray-300">
+        <div className="flex-1 flex overflow-hidden bg-gray-950/50 text-[#ebe8dc]">
           {/* 0. SEKCJA TABLICY BADACZA */}
           {activeTab === 'board' && (
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -594,7 +597,7 @@ export function SessionJournal({
                       {/* Oś czasu */}
                       <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#18120c] rounded-full h-4 w-4"></span>
 
-                      <div className="bg-gray-900/40 border border-amber-900/60 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-[#100d09] border border-[#c9a227]/20 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
                           <div>
                             <h4 className="text-lg font-serif font-bold text-amber-400 flex items-center gap-2">
@@ -650,7 +653,7 @@ export function SessionJournal({
                             />
                           </div>
                         )}
-                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-gray-300">
+                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#ebe8dc]">
                           {entry.content}
                         </p>
 
@@ -689,13 +692,13 @@ export function SessionJournal({
                 <div className="font-serif font-bold text-xs uppercase tracking-wider text-amber-500 border-b border-amber-900/60 pb-2 mb-2">
                   Kategorie wiedzy
                 </div>
-                                <button
+                <button
                   onClick={() => handleEncyclopediaSubTabChange('location')}
                   className={cn(
                     'w-full text-left px-4 py-2.5 rounded font-serif transition-colors border flex justify-between items-center',
                     encyclopediaSubTab === 'location'
                       ? 'bg-amber-900/40 text-amber-400 border-amber-500/50 font-semibold'
-                      : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-gray-300'
+                      : 'bg-gray-950/95 backdrop-blur-md hover:bg-gray-900/80 border-transparent text-[#ebe8dc]'
                   )}
                 >
                   <span>Miejsca</span>
