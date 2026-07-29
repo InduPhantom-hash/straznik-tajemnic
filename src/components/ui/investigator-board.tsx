@@ -390,7 +390,8 @@ export function InvestigatorBoard({
                         alt={node.title}
                         className="w-full h-full object-cover grayscale opacity-90"
                         onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
+                          e.currentTarget.onerror = null;
+                          (e.target as HTMLImageElement).src = '/equipment/predefined/document.svg';
                         }}
                       />
                     </div>

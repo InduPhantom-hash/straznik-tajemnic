@@ -109,3 +109,17 @@ Branch: main
 ### Decyzje podjęte
 - Zmiany zatwierdzono semantycznie.
 
+## Podsumowanie sesji: 2026-07-29 (Sekcja 2)
+Branch: main
+
+### Co zrobiono
+- **Odzyskanie Ekwipunku:** Zintegrowano wyrzucone pliki `.ts` oraz `.test.ts` odpowiadające za Ekwipunek z archiwum testera bezpośrednio do głównej struktury `src/lib/`.
+- **Ekonomia i Finanse:** Wdrożono nowy plik `credit-rating.ts` wprowadzający system majętności (Biedny/Zamożny itp.) uniezależniając w ten sposób kod UI od starych, twardych deklaracji ról postaci. Podpięto pod `equipment-modal.tsx`.
+- **UI Fallbacki:** Zlikwidowano usterki pętli przy renderowaniu pustych obrazów na Tablicy Badacza oraz w Dzienniku Sesji, zamieniając twarde ucinanie (display=none) na bezpieczne załadowanie ikon SVG. Zabezpieczono komponenty przed Infinite Loop.
+
+### Co otwarte (do następnej sesji)
+- Implementacja systemu generowania dokumentów fabularnych (część 3 z Intake).
+- Rozbudowa testów dla logiki Ekwipunku pod root environment.
+
+### Decyzje podjęte
+- Pomyślnie użyto systemu testowego `convert-entries.test.ts` do weryfikacji izolacji logiki Dziennika z Ekwipunkiem. Odstąpiono od modyfikacji plików CI/CD w ramach tej sesji.

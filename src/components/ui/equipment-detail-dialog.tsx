@@ -221,6 +221,10 @@ export function EquipmentDetailDialog({
               alt={item.name}
               className="w-full h-full object-cover"
               style={{ filter: getEraImageFilter(era) }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                (e.target as HTMLImageElement).src = `/equipment/predefined/${item.category || 'personal'}.svg`;
+              }}
             />
             <div className="absolute inset-2 pointer-events-none border border-brass/25" />
             <div className="absolute inset-0 pointer-events-none border border-black/80" />

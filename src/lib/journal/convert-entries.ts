@@ -25,7 +25,7 @@ export function convertEntriesToBoardNodes(
 
     const typeStr = entry.type || '';
     
-    if (typeStr === 'journal' || typeStr === 'note') return;
+    if (typeStr === 'journal' || typeStr === 'note' || typeStr === 'item') return;
 
     let nodeType: EvidenceNode['type'] = 'clue';
     const catStr = entry.category || '';

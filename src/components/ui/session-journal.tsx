@@ -648,7 +648,8 @@ export function SessionJournal({
                               alt={entry.title}
                               className="w-full h-44 object-cover rounded"
                               onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
+                                e.currentTarget.onerror = null;
+                                (e.target as HTMLImageElement).src = '/equipment/predefined/document.svg';
                               }}
                             />
                           </div>
@@ -1019,7 +1020,8 @@ export function SessionJournal({
                               alt={entry.title}
                               className="w-full h-36 object-cover rounded"
                               onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
+                                e.currentTarget.onerror = null;
+                                (e.target as HTMLImageElement).src = '/equipment/predefined/document.svg';
                               }}
                             />
                           </div>
@@ -1092,7 +1094,8 @@ export function SessionJournal({
                             alt={entry.title}
                             className="w-full h-36 object-cover rounded"
                             onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
+                              e.currentTarget.onerror = null;
+                              (e.target as HTMLImageElement).src = '/equipment/predefined/document.svg';
                             }}
                           />
                         </div>
