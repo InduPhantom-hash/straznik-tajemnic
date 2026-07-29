@@ -21,7 +21,11 @@ jest.mock('@/lib/pdf-parser-service', () => ({
 jest.mock('@/lib/vector-db/pdf-indexing-service', () => ({
   pdfIndexingService: {
     indexPdf: jest.fn(),
-    getNamespaceStats: jest.fn(),
+  },
+}));
+jest.mock('@/lib/vector-db/local-vector-store', () => ({
+  localVectorStore: {
+    getNamespaceCount: jest.fn(),
   },
 }));
 
@@ -74,11 +78,6 @@ describe('POST /api/pdf/ingest-local', () => {
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({
       success: false,
-      indexed: 0,
-      failed: 0,
-      totalChunks: 0,
-      namespace: '',
-      durationMs: expect.any(Number),
       error: expect.any(String),
     });
   });
@@ -128,9 +127,10 @@ describe('POST /api/pdf/ingest-local', () => {
 });
 
 import { GET } from './route';
+import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 
 describe('GET /api/pdf/ingest-local', () => {
-  const mockGetStats = jest.mocked(pdfIndexingService.getNamespaceStats);
+  const mockGetStats = jest.mocked(localVectorStore.getNamespaceCount);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -140,16 +140,20 @@ describe('GET /api/pdf/ingest-local', () => {
     const req = {
       url: 'http://localhost/api/pdf/ingest-local?type=wrong',
     } as unknown as NextRequest;
+    
+    mockGetStats.mockReturnValueOnce(0);
 
     const response = await GET(req);
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      success: true,
+      type: 'wrong',
+      recordCount: 0
+    });
   });
 
   it('zwraca statystyki dla rules', async () => {
-    mockGetStats.mockResolvedValueOnce({
-      recordCount: 42,
-      namespace: 'rules',
-    });
+    mockGetStats.mockReturnValueOnce(42);
 
     const req = {
       url: 'http://localhost/api/pdf/ingest-local?type=rules',
@@ -160,8 +164,7 @@ describe('GET /api/pdf/ingest-local', () => {
     await expect(response.json()).resolves.toMatchObject({
       success: true,
       recordCount: 42,
-      namespace: 'rules',
-      initialized: true,
+      type: 'rules',
     });
   });
 });

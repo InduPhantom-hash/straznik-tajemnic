@@ -17,6 +17,7 @@ import {
   inferWeaponDamage,
 } from '@/lib/combat/weapon-context';
 import { stripAITags } from '@/lib/parsers/text-cleaner';
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import { DEFAULT_GEMINI_MODEL_LITE } from '@/lib/ai-providers/constants';
 
 export async function POST(request: NextRequest) {
@@ -41,11 +42,12 @@ export async function POST(request: NextRequest) {
 
     // Twórz przedmioty z predefiniowanej listy
     const equipment: EquipmentItem[] = [];
+    const targetEra = resolveEraVisualProfile(era) as '1920s' | '1940s' | 'modern';
 
     for (const itemName of predefinedItems) {
       const template = findEquipmentByName(itemName);
       if (template) {
-        equipment.push(createEquipmentItem(template, 'starting'));
+        equipment.push(createEquipmentItem(template, 'starting', targetEra));
       } else {
         // Brak szablonu (np. polska nazwa "Rewolwer .38" nie pasuje do bazy
         // anglojęzycznej). Jeśli nazwa wygląda na broń, nadaj kategorię 'weapon'
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
         if (!equipment.some((e) => e.name === itemName)) {
           const template = findEquipmentByName(itemName);
           if (template) {
-            equipment.push(createEquipmentItem(template, 'starting'));
+            equipment.push(createEquipmentItem(template, 'starting', targetEra));
           }
         }
       }

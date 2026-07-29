@@ -52,14 +52,19 @@ export function InvestigatorBoard({
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const boardCanvasRef = useRef<HTMLDivElement>(null);
 
+  const [localNodes, setLocalNodes] = useState<EvidenceNode[]>(nodes);
+  React.useEffect(() => {
+    setLocalNodes(nodes);
+  }, [nodes]);
+
   // Filtrowanie węzłów
   const filteredNodes = useMemo(() => {
-    return nodes.filter((n) => {
+    return localNodes.filter((n) => {
       if (filterStatus !== 'all' && n.status !== filterStatus) return false;
       if (filterType !== 'all' && n.type !== filterType) return false;
       return true;
     });
-  }, [nodes, filterStatus, filterType]);
+  }, [localNodes, filterStatus, filterType]);
 
   // Mapa węzłów do kalkulacji połączeń SVG
   const nodeMap = useMemo(() => {
@@ -131,13 +136,6 @@ export function InvestigatorBoard({
   };
 
   // Drag Handlers - używamy stanu lokalnego podczas przeciągania
-  const [localNodes, setLocalNodes] = useState<EvidenceNode[]>(nodes);
-
-  // Synchronizacja lokalnych węzłów po zmianie z zewnątrz
-  React.useEffect(() => {
-    setLocalNodes(nodes);
-  }, [nodes]);
-
   const handlePointerDownNode = (e: React.PointerEvent, node: EvidenceNode) => {
     e.stopPropagation();
     setSelectedNodeId(node.id);
@@ -315,7 +313,7 @@ export function InvestigatorBoard({
 
         {/* Karty Węzłów na Korku z Pozycjonowaniem Absolutnym */}
         <div className="relative z-10 w-full h-full min-h-[600px]">
-          {localNodes.map((node) => {
+          {filteredNodes.map((node) => {
             const typeInfo = nodeTypeLabels[node.type] || nodeTypeLabels.clue;
             const isSelected = selectedNodeId === node.id;
             const isConnecting = connectingFromId === node.id;

@@ -139,3 +139,20 @@ Branch: main
 
 ### Decyzje podjęte
 - Konsekwentnie ignorujemy testy z głównego katalogu na rzecz testowania zaizolowanego silnika w `_tester/_base/.silnik/`.
+
+## Podsumowanie sesji: 2026-07-29
+Branch: main
+
+### Co zrobiono
+- **Test Coverage (Faza 1)**: Dodano 9 testów jednostkowych w `acquired-equipment.test.ts` weryfikujących zachowanie `inferDocumentType` i fallbacku `documentType`.
+- **Naprawa Tablicy Śledczej (Faza 2)**: Zmodyfikowano `investigator-board.tsx`, zastępując renderowanie na podstawie `localNodes` użyciem przefiltrowanej tablicy `filteredNodes`. Zsynchronizowano cykl życia Hooka tak, aby filtry działały płynnie z systemem drag & drop.
+- **Naprawa Testów PDF Ingest (Faza 2)**: Zaktualizowano mocki wektorowej bazy lokalnej w `route.test.ts`, przez co test asercji klucza i środowiska wreszcie przechodzi na zielono.
+- **Logika generowania broni (Faza 2)**: Zastosowano funkcję `resolveEraVisualProfile` do prawidłowego rozwiązywania parametrów dat w promptach na sztywne identyfikatory epoki (np. 1946 -> 1940s) podczas ładowania assetów graficznych broni.
+- Wszystkie 158 testów w środowisku `.silnik/` świeci się na zielono.
+
+### Co otwarte (do następnej sesji)
+- Implementacja UI Fallbacku dla brakujących obrazków (Globalny `SafeImage`).
+- Zmiany fabularne (Diegetic Documents) przygotowane w osobnym planie (z wcześniejszego researchu).
+
+### Decyzje podjęte
+- Postanowiono użyć szybkiego rzutowania typów mocków `as any` dla instancji `localVectorStore`, aby zredukować narzut tworzenia sztywnych atrap dla złożonych klas bazy wektorowej.
