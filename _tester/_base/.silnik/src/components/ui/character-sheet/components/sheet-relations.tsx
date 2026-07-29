@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 /**
  * CharacterSheet - SheetRelations komponent (re-skin Dark Art Déco, makieta 04).
  *
@@ -76,8 +77,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
                     className={`w-9 h-9 flex-none border ${monoBorder} flex items-center justify-center overflow-hidden`}
                   >
                     {person.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <SafeImage
                         src={person.avatarUrl}
                         alt={person.name}
                         className="w-full h-full object-cover"

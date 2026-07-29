@@ -156,3 +156,18 @@ Branch: main
 
 ### Decyzje podjęte
 - Postanowiono użyć szybkiego rzutowania typów mocków `as any` dla instancji `localVectorStore`, aby zredukować narzut tworzenia sztywnych atrap dla złożonych klas bazy wektorowej.
+
+## Podsumowanie sesji: 2026-07-29
+Branch: main
+
+**Co zrobiono:**
+- Wdrożenie komponentu `SafeImage` z dyskretnym fallbackiem sepia-Lucide.
+- Oczyszczenie 25 komponentów UI i zastąpienie zagnieżdżonych struktur `img` bezpiecznym wrapperem.
+- Zaktualizowanie backlogu w `state.md` (odłożono logikę parserów dokumentów i design biletów).
+
+**Co otwarte (do następnej sesji):**
+- Synchronizacja logiki `documentType` (parserów).
+- Przebudowa układu CSS dla biletów i notatnika w `DiegeticDocumentViewer`.
+
+**Decyzje podjęte:**
+- Celowe pominięcie upiększania layoutu biletów (vibe-coding focus) na rzecz szybkiej izolacji krytycznego błędu "infinite loop" z obrazkami.

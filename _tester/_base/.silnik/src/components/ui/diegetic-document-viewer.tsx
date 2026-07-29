@@ -1,3 +1,4 @@
+import { SafeImage } from '@/components/ui/safe-image';
 import FC, { FC as ReactFC } from 'react';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferDocumentType } from '@/lib/acquired-equipment';
@@ -43,7 +44,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-7 bg-zinc-400 rounded-full border-2 border-zinc-600 z-20"></div>
             <div className="w-24 h-28 bg-[#c2b397] border-4 border-white overflow-hidden flex items-center justify-center sepia-[0.3]">
               {character?.portraitUrl ? (
-                <img
+                <SafeImage
                   src={character.portraitUrl}
                   alt={character.name}
                   className="w-full h-full object-cover grayscale contrast-125"

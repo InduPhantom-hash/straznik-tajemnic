@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 /**
  * NarrativeFormatter renderNarrativeWithImages - IND-144 micro 6/8 (extract z NarrativeFormatter.tsx)
  *
@@ -76,8 +77,7 @@ export function renderNarrativeWithImages(
     // osobnego ticketu. Single `<img>` z fallback display:none on error wystarczy.
     parts.push(
       <div key={`${key}-img-${partIndex}`} className="my-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <SafeImage
           src={imageUrl}
           alt={altText}
           // IND-216: format pocztówkowy ~16:9 - wypełnia szerokość okna czatu,

@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent, FC } from 'react';
 import { useEffect, useState } from 'react';
 import { Settings, User, BookOpen, Dices, Package, FileText, Users } from 'lucide-react';
@@ -143,7 +144,7 @@ export const DeskTools: FC<DeskToolsProps> = ({
                   <div className="relative transform -rotate-2 shadow-md">
                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-8 bg-zinc-400 rounded-full border-2 border-zinc-500 z-10"></div>
                      {activeCharacter.portraitUrl ? (
-                         <img src={activeCharacter.portraitUrl} className="w-20 h-20 object-cover border-4 border-white sepia-[0.3]" alt="Badacz" />
+                         <SafeImage src={activeCharacter.portraitUrl} className="w-20 h-20 object-cover border-4 border-white sepia-[0.3]" alt="Badacz" />
                      ) : (
                          <div className="w-20 h-20 bg-[#d7ccb9] border-4 border-white flex items-center justify-center text-3xl text-[#5c4a35]">?</div>
                      )}

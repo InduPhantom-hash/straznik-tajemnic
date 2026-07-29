@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import type { FormEvent } from 'react';
 import { useState, useMemo, useCallback } from 'react';
 import { Button } from './button';
@@ -719,7 +720,7 @@ export function SessionJournal({
                           </div>
                         ) : entry.imageUrl ? (
                           <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
-                            <img
+                            <SafeImage
                               src={entry.imageUrl}
                               alt={entry.title}
                               className="w-full h-44 object-cover rounded"
@@ -783,7 +784,7 @@ export function SessionJournal({
                         </div>
                       ) : entry.imageUrl ? (
                         <div className="h-40 overflow-hidden bg-[#111] mb-3 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
-                          <img
+                          <SafeImage
                             src={entry.imageUrl}
                             alt={entry.title}
                             className="w-full h-full object-cover mix-blend-multiply sepia-[0.3]"

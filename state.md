@@ -71,6 +71,10 @@
 - [ ] **Postaci Historyczne:** Wierne dane biograficzne z opcjonalnymi warstwami nadprzyrodzonymi dla przygód.
 - [ ] **Izolacja Prawna (Two-Tier RAG):** Wbudowany RAG (Public Domain + syntezy) vs Prywatny RAG Gracza (wgrane pliki PDF z prawem do cytowania stron w ramach dozwolonego użytku).
 
+### 📌 Etap 3.6 - Stabilizacja Immersji (Zaległości z przeglądu planu)
+- [ ] **Synchronizacja Parsera Dokumentów:** Przeniesienie logiki przypisywania `documentType` z silnika testowego (`_tester`) do głównej aplikacji (`src/lib/acquired-equipment.ts`).
+- [ ] **Nowe Widoki Diegetyczne:** Stworzenie dedykowanych układów CSS w `DiegeticDocumentViewer` dla notatnika (`journal_page`) i biletu (`ticket`) z poprawką w `types.ts`.
+
 ### 📌 Etap 0.5 - Wprowadzenie Gracza (Onboarding & Quick Setup Flow)
 > **Cel:** Uporządkowany proces pierwszego uruchomienia gry przy Zimnym Starcie.
 

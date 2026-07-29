@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 /**
  * OnboardingButtons - kroki onboardingu w stylu Dark Art Déco (makieta karta 02/05).
  * Pionowy stos przycisków Cinzel: ② Wybierz przygodę → ③ Sesja Zero (opcjonalnie) →
@@ -196,7 +197,7 @@ export const OnboardingButtons: FC<OnboardingButtonsProps> = ({
               <div className="mb-2 flex items-center gap-3">
                 <div className="h-12 w-10 shrink-0 overflow-hidden border border-brass/30 bg-black/30">
                   {slot.character?.portraitUrl ? (
-                    <img
+                    <SafeImage
                       src={slot.character.portraitUrl}
                       alt={slot.character.name}
                       className="h-full w-full object-cover grayscale"

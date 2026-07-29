@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -305,8 +306,7 @@ export function DiscoveriesView({
               ) : selectedEntry.imageUrl ? (
                 <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
                   <div className="bg-[#fcfbf9] p-2 pb-8 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <SafeImage
                       src={selectedEntry.imageUrl}
                       alt={selectedEntry.title}
                       className="w-full h-auto object-cover border border-[#e0e0e0] mix-blend-multiply sepia-[0.2]"

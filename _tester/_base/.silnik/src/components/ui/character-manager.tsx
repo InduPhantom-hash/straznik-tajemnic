@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent } from 'react';
 import { useState, useEffect } from 'react';
 import { Button } from './button';
@@ -381,7 +382,7 @@ export function CharacterManager({
                   style={thumbStyle}
                 >
                   {character.portraitUrl ? (
-                    <img
+                    <SafeImage
                       src={character.portraitUrl}
                       alt={character.name}
                       className="w-full h-full object-cover"

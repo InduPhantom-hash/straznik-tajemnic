@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useCallback } from 'react';
 import { EvidenceNode, EvidenceNodeStatus } from '@/types/investigator-board';
 import { Button } from '../ui/button';
@@ -111,8 +112,7 @@ export function InspectionLightboxModal({
             {node.imageUrl ? (
               <>
                 <div className="flex-1 flex items-center justify-center overflow-auto w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <SafeImage
                     src={node.imageUrl}
                     alt={node.title}
                     className="max-w-full max-h-full object-contain rounded shadow-lg transition-transform duration-200"

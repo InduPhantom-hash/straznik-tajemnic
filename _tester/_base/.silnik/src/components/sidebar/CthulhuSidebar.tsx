@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import type { FC } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -372,7 +373,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         {portraitSrc ? (
-                          <img
+                          <SafeImage
                             src={portraitSrc}
                             alt={activeCharacter.name}
                             className="w-16 h-16 rounded-lg object-cover border border-brass/40"

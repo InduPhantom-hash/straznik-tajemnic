@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 /**
  * CharacterSheet - SheetEquipment komponent (re-skin Dark Art Déco, makieta 04).
  *
@@ -69,7 +70,7 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
   return (
     <div className="flex-none w-20 h-20 border border-brass/30 bg-gradient-to-br from-[#1c1712] to-[#0f0b07] overflow-hidden flex items-center justify-center relative shadow-md rounded-sm transition-colors hover:border-brass/50">
       {item.imageUrl && !item.imageUrl.endsWith('.svg') ? (
-        <img
+        <SafeImage
           src={item.imageUrl}
           alt={item.name}
           className="w-full h-full object-cover"

@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent } from 'react';
 import { useState, useEffect } from 'react';
 import {
@@ -621,8 +622,7 @@ export function FullGameSaveModal({
                         {/* Miniatura sceny (makieta 15) */}
                         <div className="flex-none w-24 h-16 border border-brass/30 bg-[#0a0c0f] overflow-hidden flex items-center justify-center">
                           {save.thumbnail ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <SafeImage
                               src={save.thumbnail}
                               alt="Miniatura sceny"
                               className="w-full h-full object-cover"

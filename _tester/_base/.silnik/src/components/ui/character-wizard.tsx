@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { Fragment, useState, useCallback, type ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
@@ -2794,7 +2795,7 @@ WAŻNE:
                 title="Kliknij, aby powiększyć portret"
                 className="relative w-24 h-24 border border-brass/50 overflow-hidden cursor-zoom-in group p-0"
               >
-                <img
+                <SafeImage
                   src={state.portraitUrl}
                   alt="Portret"
                   className="w-full h-full object-cover"

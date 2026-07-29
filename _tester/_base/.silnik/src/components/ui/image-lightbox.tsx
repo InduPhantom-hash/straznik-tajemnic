@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -261,8 +262,7 @@ export function ImageLightbox({
             transform: scale(zoom) + obsługi data: URL (AI base64). next/image
             (fill/fixed) łamie zoom UX i nie wspiera data URL bez custom loadera
             (analog IND-172 data URL → raw img). */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <SafeImage
           src={currentSrc}
           alt={alt}
           className="max-w-none transition-transform duration-200"

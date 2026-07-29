@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import {
   EvidenceNode,
@@ -620,8 +621,7 @@ export function CorkboardInvestigationBoard({
                             onInspectNode?.(node);
                           }}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <SafeImage
                             src={node.imageUrl}
                             alt={node.title}
                             className="w-full h-full object-cover"

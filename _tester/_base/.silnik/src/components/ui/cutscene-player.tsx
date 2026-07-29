@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Pause, Play, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 import { CutsceneState } from '@/lib/types';
@@ -243,7 +244,7 @@ export function CutscenePlayer({
             <span className="pointer-events-none absolute top-2 right-2 z-10 w-5 h-5 border-t-2 border-r-2 border-brass" />
             <span className="pointer-events-none absolute bottom-2 left-2 z-10 w-5 h-5 border-b-2 border-l-2 border-brass" />
             <span className="pointer-events-none absolute bottom-2 right-2 z-10 w-5 h-5 border-b-2 border-r-2 border-brass" />
-            <img
+            <SafeImage
               src={currentSegment.imageUrl}
               alt="Scene"
               className="shadow-2xl shadow-black/50 max-h-[40vh] object-contain"

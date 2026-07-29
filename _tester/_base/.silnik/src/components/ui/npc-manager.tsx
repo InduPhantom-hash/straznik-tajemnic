@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect } from 'react';
 import { Button } from './button';
 import { Card } from './card';
@@ -363,7 +364,7 @@ export function NPCManager({
                           }}
                         >
                           {npc.portraitUrl ? (
-                            <img
+                            <SafeImage
                               src={npc.portraitUrl}
                               alt={npc.name}
                               className="w-full h-full object-cover"
@@ -488,7 +489,7 @@ export function NPCManager({
                     {/* Portret (pełny, gdy istnieje) z rastrem winiety */}
                     {npc.portraitUrl && (
                       <div className="relative aspect-square overflow-hidden border border-brass/30 group">
-                        <img
+                        <SafeImage
                           src={npc.portraitUrl}
                           alt={npc.name}
                           className="w-full h-full object-cover"

@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect } from 'react';
 import { Button } from './button';
 import { Card } from './card';
@@ -292,7 +293,7 @@ export function LocationManager({
                     {/* Mapa */}
                     {location.mapUrl && (
                       <div className="relative aspect-video rounded-lg overflow-hidden bg-muted group">
-                        <img src={location.mapUrl} alt={location.name} className="w-full h-full object-cover" />
+                        <SafeImage src={location.mapUrl} alt={location.name} className="w-full h-full object-cover" />
                         {/* Regenerate button overlay */}
                         <button
                           onClick={() => handleGenerateMap(location, true)}

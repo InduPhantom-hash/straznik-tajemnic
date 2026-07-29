@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 /**
  * CharacterSheet - SheetHeader komponent (re-skin Dark Art Déco, makieta 04).
  *
@@ -71,8 +72,7 @@ export function SheetHeader({ character }: SheetHeaderProps) {
         <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-4 h-4 border-b border-r border-brass" />
 
         {character.portraitUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <SafeImage
             src={character.portraitUrl}
             alt={character.name}
             className="relative w-full h-full object-cover"

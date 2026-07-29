@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 /**
  * @file MessageCard - 1 wiadomość czatu z Avatar + TTS controls + Body + Images (IND-144 Wariant C, sesja 131).
  *
@@ -197,8 +198,7 @@ export function MessageCard({
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <SafeImage
                       src={imgUrl}
                       alt={`Ilustracja ${idx + 1}`}
                       className="w-full aspect-[16/9] object-cover cursor-pointer hover:opacity-90 transition-opacity"

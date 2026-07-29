@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { useState } from 'react';
 import { Character } from '@/lib/types';
 import {
@@ -253,7 +254,7 @@ export function PredefinedCharactersSelector({
                       className="flex gap-4 p-4 border border-brass/20 bg-[#120f0c] hover:border-brass/50 transition-all duration-200 cursor-pointer"
                     >
                       <div className="flex-[0_0_80px] w-20 h-24 border border-brass/35 overflow-hidden">
-                        <img
+                        <SafeImage
                           src={char.portraitUrl}
                           alt={char.name}
                           className="w-full h-full object-cover grayscale opacity-90"
@@ -345,7 +346,7 @@ export function PredefinedCharactersSelector({
                     <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-4 h-4 border-b border-r border-brass" />
 
                     {viewingCharacter.portraitUrl ? (
-                      <img
+                      <SafeImage
                         src={viewingCharacter.portraitUrl}
                         alt={viewingCharacter.name}
                         className="relative w-full h-full object-cover grayscale"
@@ -474,7 +475,7 @@ export function PredefinedCharactersSelector({
                               className="cursor-pointer flex items-start gap-3 border border-brass/25 hover:border-brass/50 bg-[#16130f] p-3 rounded-sm transition-all duration-200"
                             >
                               <div className="w-12 h-12 flex-none bg-[#0e0c0a] border border-brass/30 rounded flex items-center justify-center overflow-hidden p-1">
-                                <img
+                                <SafeImage
                                   src={imgSrc}
                                   alt={item.name}
                                   className="w-full h-full object-contain"

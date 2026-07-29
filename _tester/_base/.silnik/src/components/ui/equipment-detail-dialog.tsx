@@ -1,3 +1,4 @@
+import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect } from 'react';
 import { Button } from './button';
 import { EquipmentItem, Character } from '@/lib/types';
@@ -200,8 +201,7 @@ export function EquipmentDetailDialog({
             {hasMap ? (
               /* Mapa - pełna kolumna */
               <div className="relative w-full h-full min-h-[280px] md:min-h-0 flex items-center justify-center p-4">
-                {/* eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) lub ścieżka lokalna */}
-                <img
+                <SafeImage
                   src={item.mapUrl || item.imageUrl}
                   alt={`Mapa: ${item.name}`}
                   className="max-w-full max-h-full object-contain"
@@ -214,8 +214,7 @@ export function EquipmentDetailDialog({
             ) : hasImage ? (
               /* Obraz wygenerowany AI */
               <div className="relative w-full h-full min-h-[280px] md:min-h-0">
-                {/* eslint-disable-next-line @next/next/no-img-element -- data: URL (base64) z generatora */}
-                <img
+                <SafeImage
                   src={item.imageUrl}
                   alt={item.name}
                   className="w-full h-full object-cover"

@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from './button';
 
@@ -271,7 +272,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                             <p className="text-xs text-amber-300/70 mt-0.5 line-clamp-2">{event.description}</p>
                           )}
                           {(event as any).imageUrl && (
-                            <img 
+                            <SafeImage 
                               src={(event as any).imageUrl} 
                               alt={event.title}
                               className="mt-2 w-24 h-16 object-cover rounded border border-amber-500/30 cursor-pointer hover:opacity-80"

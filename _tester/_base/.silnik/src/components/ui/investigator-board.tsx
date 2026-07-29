@@ -1,5 +1,6 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useMemo, useRef } from 'react';
 import {
   EvidenceNode,
@@ -374,8 +375,7 @@ export function InvestigatorBoard({
                   {/* Ilustracja Klocka / Dowodu */}
                   {node.imageUrl && (
                     <div className="mb-2 overflow-hidden rounded border border-[#3a2518] h-24 bg-black/40">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <SafeImage
                         src={node.imageUrl}
                         alt={node.title}
                         className="w-full h-full object-cover"
