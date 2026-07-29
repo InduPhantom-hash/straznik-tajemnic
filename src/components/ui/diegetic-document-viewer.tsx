@@ -183,7 +183,51 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
     );
   }
 
-  // === 5. DEFAULT / LIST OSOBISTY / PAMIĘTNIK ===
+  // === 5. BILET / WEJŚCIÓWKA ===
+  if (docType === 'ticket') {
+    return (
+      <div className="relative my-3 flex bg-[#d4c5b0] text-[#241a12] shadow-xl rounded-sm font-sans select-text border border-[#a39474]">
+        {/* Główna część biletu */}
+        <div className="flex-1 p-5 border-r-2 border-dashed border-[#8c7a5e]">
+          <div className="text-[10px] font-special-elite uppercase tracking-widest text-[#6e5840] mb-1">
+            Bilet Wstępu / Wejściówka
+          </div>
+          <h4 className="font-extrabold text-xl uppercase tracking-tighter text-[#3d2f21] mb-3">
+            ADMIT ONE
+          </h4>
+          <div className="font-serif italic text-sm text-[#2b1f15] whitespace-pre-line">
+            {content}
+          </div>
+        </div>
+        {/* Odrywany kupon */}
+        <div className="w-16 flex-none bg-[#cfbc9f] flex items-center justify-center">
+          <div className="transform -rotate-90 text-[10px] font-special-elite uppercase tracking-[0.3em] text-[#5c4a35] whitespace-nowrap">
+            NRO. 0491
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === 6. STRONA Z DZIENNIKA / NOTATNIK ===
+  if (docType === 'journal_page') {
+    return (
+      <div className="relative my-3 p-6 text-[#1c1611] shadow-md border border-[#c9b897] rounded-sm font-serif select-text overflow-hidden" 
+           style={{ 
+             backgroundColor: '#dfcfb3',
+             backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #9fb6c2 28px)'
+           }}>
+        {/* Taśma klejąca na górze */}
+        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-20 h-6 bg-white/40 border border-white/20 transform -rotate-2 shadow-sm backdrop-blur-sm" />
+        
+        <div className="mt-4 text-base md:text-lg leading-[28px] italic whitespace-pre-line px-2 font-medium opacity-90">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  // === 7. DEFAULT / LIST OSOBISTY ===
   return (
     <div className="relative my-3 p-6 bg-[#ebdfc6] text-[#2c1d11] shadow-inner border border-[#d3c29e] rounded-sm font-serif text-sm md:text-base leading-relaxed select-text">
       {/* Znaczek pocztowy w rogu dla listów */}

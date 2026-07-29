@@ -1,3 +1,16 @@
+## Podsumowanie sesji: 2026-07-29 (Sekcja 3.6 Immersja UI)
+Branch: main
+
+### Co zrobiono
+- **Dokumenty Diegetyczne (Etap 3.6):** Wdrożono szczegółowy układ CSS i Tailwind dla znalezionych w trakcie gry biletów (`ticket`) oraz wyrwanych kartek notatnika (`journal_page`) w komponencie `diegetic-document-viewer.tsx`.
+- Potwierdzono, że logika parserów `acquired-equipment.ts` po obu stronach repozytorium (Główne vs `_tester`) działa poprawnie.
+
+### Co otwarte (do następnej sesji)
+- Zgodnie z wcześniejszymi notatkami w `state.md` czeka nas dalsza stabilizacja immersji (Etap 3.6) – m.in. wsparcie dla awatarów NPC na czacie czy Przebudowa Predefiniowanych Badaczy.
+
+### Decyzje podjęte
+- Odseparowano logikę wizualną w osobnych blokach `if`, utrzymując stary, domyślny fallback "Listu Osobistego", tak aby dawne zapisy stanu gry z niesprecyzowanym do końca `documentType` nie zostały ucięte przez wybredny interfejs.
+
 ## Podsumowanie sesji: 2026-07-27 (Noc II)
 Branch: main
 
