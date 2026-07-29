@@ -179,8 +179,10 @@ function resolveHotSeatCharacterNames(
 
 export interface ImageToGenerate {
   prompt: string;
-  style?: 'horror' | 'vintage' | 'realistic' | 'artistic';
+  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait';
   isMythos?: boolean;
+  type?: 'portrait' | 'scene';
+  aspectRatio?: string;
 }
 
 /**
@@ -470,6 +472,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const generateImages = useCallback(
     async (illustrations: ImageToGenerate[], messageId: string) => {
       const generatedUrls: string[] = [];
+      const generatedTypes: ('portrait' | 'scene')[] = [];
       for (const img of illustrations) {
         try {
           const response = await fetchWithRetry('/api/imagen', {
@@ -481,7 +484,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               isMythos: img.isMythos || false,
               // IND-216: sceny czatu w formacie pocztówkowym 16:9 (orchestrator
               // forwarduje ...body do Vertex/Replicate). Render i tak kadruje object-cover.
-              aspectRatio: '16:9',
+              aspectRatio: img.aspectRatio || '16:9',
               preferredProvider:
                 options.aiSettings?.replicateSettings?.imageProvider || 'auto',
             }),
@@ -489,6 +492,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           const result = await response.json();
           if (result.imageUrl) {
             generatedUrls.push(result.imageUrl);
+            generatedTypes.push(img.type || 'scene');
             // IND-272: koszt obrazu liczy server-side `recordUserUsage` w /api/imagen
             // (jedno źródło prawdy). Client-side `recordImageCost` (cost_tracking_stats)
             // był niepełnym duplikatem - usunięty.
@@ -522,6 +526,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               generatedImages: [
                 ...(msg.generatedImages || []),
                 ...generatedUrls,
+              ],
+              generatedImageTypes: [
+                ...(msg.generatedImageTypes || []),
+                ...generatedTypes,
               ],
               generatedImageCacheIds: [
                 ...(msg.generatedImageCacheIds || []),

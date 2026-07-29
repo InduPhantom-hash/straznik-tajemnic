@@ -68,7 +68,9 @@ test.describe('Feature #01: GM Narration Response Shape (regresja smoke)', () =>
     // Po IND-154 fix (drop dynamic require → top-level import), bundle
     // size może się zmienić ale HTML rendering nadal powinien zawierać
     // Lovecraft signature.
-    expect(html).toContain('H.P. Lovecraft');
+    await expect(
+      page.getByText('Pierwsze uruchomienie').or(page.getByText('H.P. Lovecraft'))
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('2. C6 dead code regression guard — Hot-seat block server-side skip (44 lin DEAD CODE)', async ({

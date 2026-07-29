@@ -231,3 +231,20 @@ Branch: main
 
 ### Decyzje podjęte
 - **API Obrazów**: Odkryto, że `/api/imagen` i natywne API Gemini 2.5 Flash obsługuje pole `aspectRatio`. Dzięki temu rezygnujemy ze skomplikowanego kadrowania CSS, przerzucając to na LLM i API. Zdefiniowano twarde "Boundaries" dla Fazy 3.
+
+## Podsumowanie sesji: 2026-07-29
+Branch: main
+
+### Co zrobiono
+- **Etap 0.3 (Multimedia)**: Rozszerzono media-parser i message-card o detekcję oraz renderowanie tagów obrazków inline [IMG]...[/IMG]. Dostosowano instrukcje promptów.
+- **Etap 0.5 (Szybka Przygoda)**: Zaimplementowano QuickSetupModal w WelcomeScreen, pozwalając na szybki start gry w trybie Solo lub Duet (Hot Seat) z automatycznym przypisaniem pre-definiowanych postaci.
+- **UI/UX**: Stworzono mroczny ekran ładowania HardLoadingScreen (z pulsującą świeczką), który maskuje proces buforowania TTS przy starcie nowej gry. Dolne, techniczne linki w menu przeniesiono pod ikonę opcji (zębatki).
+- **Testy E2E**: Zoptymalizowano feature-1-gm-narration.spec.ts i feature-2-game-start.spec.ts, redukując flakiness asercji tekstowych.
+
+### Co otwarte (do następnej sesji)
+- Realizacja kolejnych, większych kroków ze state.md (Etap 1: Inwentarz i zasady gry w RAG).
+
+### Decyzje podjęte
+- Mechanika "Hot Seat" w szybkiej przygodzie została połączona "na twardo" (z pominięciem wizarda przypisywania imion) używając hotSeat.restoreConfig, by zapewnić bezawaryjne zestawienie 2 graczy i postaci od ręki.
+- Opcje deweloperskie (Zimny Start, Zapis/Odczyt) ukryto z widoku domyślnego dla czystszego onboardingu.
+

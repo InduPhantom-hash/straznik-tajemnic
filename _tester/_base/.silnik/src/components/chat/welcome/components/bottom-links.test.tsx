@@ -7,6 +7,9 @@ describe('BottomLinks', () => {
 
     render(<BottomLinks onColdStart={onColdStart} />);
 
+    // Rozwiń menu
+    fireEvent.click(screen.getByRole('button', { name: 'Opcje zaawansowane' }));
+    
     fireEvent.click(
       screen.getByRole('button', { name: 'Zimny start' })
     );

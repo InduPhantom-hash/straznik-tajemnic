@@ -84,7 +84,7 @@ test.describe('Feature #02: Game Start & Onboarding (regresja smoke)', () => {
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test('2. IND-146 DROPPED regression guard — `usePersistentState` plik usunięty w sesji 75 (~82 lin orphan hook)', async () => {
+  test('2. IND-146 DROPPED regression guard — `usePersistentState` plik usunięty w sesji 75 (~82 lin orphan hook)', async ({ page }) => {
     // zawierać "usePersistentState" jako import w aktywnej stronie.
 
     const html = await page.content();

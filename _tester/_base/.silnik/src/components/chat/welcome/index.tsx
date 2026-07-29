@@ -103,6 +103,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   onPickPredefinedCharacter,
   onPickCharacter,
   onStartGame,
+  onQuickStart,
   onChoosePlayMode,
   onLoadSave,
   onOpenApiKeys,
@@ -213,7 +214,10 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
 
         {/* Krok 3 - Nowe karty trybów startu */}
         <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-6 w-[min(900px,90vw)] justify-center items-center z-20 mt-2">
-          <StartModeCards />
+          <StartModeCards 
+            onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
+            onManualStart={() => onChoosePlayMode?.()} 
+          />
         </div>
 
         {/* dolne linki (wczytaj / klucze / zimny start) */}

@@ -19,6 +19,7 @@ import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
 import { ChatLayout } from '@/components/chat/ChatLayout';
 import { CutscenePlayer } from '@/components/ui/cutscene-player';
+import { HardLoadingScreen } from '@/components/ui/hard-loading-screen';
 
 // === HOOKI ===
 import { useTTS } from '@/hooks/useTTS';
@@ -378,7 +379,7 @@ export default function Home() {
   }, [runHealthCheck]);
 
   const handleQuickStartOnboarding = useCallback(
-    (adventureId: string, characterId: string) => {
+    (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat') => {
       // 1. Ustaw przygodę
       const adv = BUILT_IN_ADVENTURES.find((a) => a.id === adventureId);
       if (adv) {
@@ -395,9 +396,38 @@ export default function Home() {
           ...preset,
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
         };
+        if (mode === 'hot-seat') {
+          stamped.playerName = 'Gracz 1';
+        }
         const updatedList = [...charMgmt.characters, stamped];
-        charMgmt.setCharacters(updatedList);
-        charMgmt.setActiveCharacter(stamped);
+
+        if (mode === 'hot-seat') {
+          // dobierz drugą postać (płci przeciwnej do wybranej)
+          const preset2 = PREDEFINED_CHARACTERS.find((c) => c.gender !== preset.gender) || PREDEFINED_CHARACTERS[1];
+          const stamped2: Character = {
+            ...preset2,
+            id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
+            playerName: 'Gracz 2',
+          };
+          updatedList.push(stamped2);
+          charMgmt.setCharacters(updatedList);
+          charMgmt.setActiveCharacter(stamped);
+          
+          hotSeat.restoreConfig({
+            enabled: true,
+            players: [
+              { id: `p1_${Date.now()}`, name: 'Gracz 1', color: '#4ade80', characterId: stamped.id, isActive: true, turnCount: 0 },
+              { id: `p2_${Date.now()}`, name: 'Gracz 2', color: '#f472b6', characterId: stamped2.id, isActive: false, turnCount: 0 },
+            ],
+            activePlayerIndex: 0,
+            allowInterruptions: true,
+            showPlayerIndicator: true,
+          }, updatedList);
+        } else {
+          charMgmt.setCharacters(updatedList);
+          charMgmt.setActiveCharacter(stamped);
+        }
+
         try {
           const cloudSync = require('@/lib/character-cloud-sync') as { persistCharacters: (chars: Character[]) => void };
           cloudSync.persistCharacters(updatedList);
@@ -406,8 +436,13 @@ export default function Home() {
         }
       }
       setShowFirstRunWizard(false);
+      
+      // Jeżeli jesteśmy na ekranie głównym (WelcomeScreen), automatycznie odpal grę
+      if (!firstRun.loading && !firstRun.needsWizard) {
+        handleStartGameGuarded();
+      }
     },
-    [charMgmt]
+    [charMgmt, hotSeat, firstRun, handleStartGameGuarded]
   );
 
   // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
@@ -791,6 +826,8 @@ export default function Home() {
               onClose={cutsceneManager.skipCutscene}
             />
           )}
+
+          <HardLoadingScreen isVisible={tts.isInitialBuffering} />
         </>
       }
     >

@@ -7,10 +7,11 @@
  * Tylko re-skin - handlery i warunkowość bez zmian.
  */
 
-import type { FC } from 'react';
+import { FC, useState } from 'react';
+import { Settings } from 'lucide-react';
 
 const GHOST_BTN =
-  'flex-1 font-display font-semibold uppercase tracking-[0.14em] text-xs py-3 px-4 text-muted-foreground bg-transparent border border-brass/30 hover:border-brass/60 hover:text-brass transition-colors cursor-pointer';
+  'flex-1 font-display font-semibold uppercase tracking-[0.14em] text-[10px] py-2 px-3 text-muted-foreground/60 bg-transparent border border-brass/20 hover:border-brass/60 hover:text-brass transition-colors cursor-pointer';
 
 interface BottomLinksProps {
   onLoadSave?: () => void;
@@ -23,24 +24,38 @@ export const BottomLinks: FC<BottomLinksProps> = ({
   onOpenApiKeys,
   onColdStart,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   if (!onLoadSave && !onOpenApiKeys && !onColdStart) return null;
 
   return (
-    <div className="flex flex-wrap justify-center gap-3 w-[min(560px,90vw)] z-20">
-      {onLoadSave && (
-        <button onClick={onLoadSave} className={GHOST_BTN}>
-          Wczytaj zapis
-        </button>
-      )}
-      {onOpenApiKeys && (
-        <button onClick={onOpenApiKeys} className={GHOST_BTN}>
-          Klucze API
-        </button>
-      )}
-      {onColdStart && (
-        <button onClick={onColdStart} className={GHOST_BTN}>
-          Zimny start
-        </button>
+    <div className="flex flex-col items-center gap-3 z-20 mt-4">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 text-muted-foreground/40 hover:text-brass/80 transition-colors rounded-full hover:bg-brass/10"
+        title="Opcje zaawansowane"
+      >
+        <Settings className="w-5 h-5" />
+      </button>
+
+      {isOpen && (
+        <div className="flex flex-wrap justify-center gap-2 w-[min(500px,90vw)] animate-in fade-in-50 slide-in-from-top-2 duration-200">
+          {onLoadSave && (
+            <button onClick={onLoadSave} className={GHOST_BTN}>
+              Wczytaj zapis
+            </button>
+          )}
+          {onOpenApiKeys && (
+            <button onClick={onOpenApiKeys} className={GHOST_BTN}>
+              Klucze API
+            </button>
+          )}
+          {onColdStart && (
+            <button onClick={onColdStart} className={GHOST_BTN}>
+              Zimny start
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

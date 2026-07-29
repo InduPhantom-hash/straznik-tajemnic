@@ -189,19 +189,25 @@ export function MessageCard({
 
             {/* Wygenerowane obrazy */}
             {message.generatedImages && message.generatedImages.length > 0 && (
-              <div className="mt-3 space-y-4">
-                {message.generatedImages.map((imgUrl, idx) => (
+              <div className="mt-4 flex flex-wrap gap-4 items-start">
+                {message.generatedImages.map((imgUrl, idx) => {
+                  const isPortrait = message.generatedImageTypes?.[idx] === 'portrait';
+                  return (
                   <div
                     key={idx}
-                    className="relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg"
+                    className={`relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg ${
+                      isPortrait ? 'w-48 sm:w-56 flex-shrink-0' : 'w-full'
+                    }`}
                     style={{
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                     }}
                   >
                     <SafeImage
                       src={imgUrl}
-                      alt={`Ilustracja ${idx + 1}`}
-                      className="w-full aspect-[16/9] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      alt={isPortrait ? `Portret ${idx + 1}` : `Scena ${idx + 1}`}
+                      className={`w-full object-cover cursor-pointer hover:opacity-90 transition-opacity ${
+                        isPortrait ? 'aspect-[3/4]' : 'aspect-[16/9]'
+                      }`}
                       style={{
                         filter: 'sepia(0.1) saturate(1.1)',
                       }}
@@ -222,7 +228,7 @@ export function MessageCard({
                       }}
                     />
                   </div>
-                ))}
+                )})}
               </div>
             )}
 

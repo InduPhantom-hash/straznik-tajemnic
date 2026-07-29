@@ -129,6 +129,7 @@ export interface Message {
   gameTime?: GameTime; // Czas w grze w momencie wysłania wiadomości
   illustrations?: MessageIllustration[];
   generatedImages?: string[]; // URL-e wygenerowanych obrazów (base64 w sesji; stripowane z localStorage przez sanitizer)
+  generatedImageTypes?: ('portrait' | 'scene')[]; // Typy wygenerowanych obrazów (odpowiada indeksom w generatedImages)
   // IND-262: klucze obrazów w IndexedDB (persistentMediaCache, store chat-images).
   // Lekkie - przeżywają localStorage (sanitizer wycina tylko base64). Po reloadzie
   // hydrują generatedImages z cache → obrazy "wracają na miejsce".

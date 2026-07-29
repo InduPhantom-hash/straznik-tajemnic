@@ -20,10 +20,12 @@ export interface WelcomeScreenProps {
   onSessionZero?: () => void;
   onCreateCharacter: (playerName?: string) => void;
   onPickPredefinedCharacter?: (playerName?: string) => void;
-  /** C1 (Hot Seat): otwiera katalog dotychczasowych postaci do wyboru. */
+  /** Otwiera katalog dotychczasowych postaci do wyboru. */
   onPickCharacter?: (playerName?: string) => void;
   onStartGame: () => void;
-  /** #7: otwiera setup Hot Seat (Solo / 2 osoby) z onboardingu. */
+  /** Nowy handler do szybkiego startu (Etap 0.5) */
+  onQuickStart?: (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat') => void;
+  /** Otwiera setup Hot Seat (Solo / 2 osoby) z onboardingu. */
   onChoosePlayMode?: () => void;
   onLoadSave?: () => void;
   onOpenApiKeys?: () => void;

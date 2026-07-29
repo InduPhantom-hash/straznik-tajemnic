@@ -1,22 +1,20 @@
-import type { FC } from 'react';
+import { FC, useState } from 'react';
 import { Zap, Settings } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { QuickSetupModal } from '@/components/ui/quick-setup-modal';
 
-export const StartModeCards: FC = () => {
-  const { toast } = useToast();
+interface StartModeCardsProps {
+  onQuickStart: (adventureId: string, characterId: string, mode: 'solo' | 'hot-seat') => void;
+  onManualStart: () => void;
+}
 
-  const handleNotImplemented = () => {
-    toast({
-      title: 'W budowie...',
-      description: 'Ten tryb nie jest jeszcze w pełni zaimplementowany.',
-      variant: 'default',
-    });
-  };
+export const StartModeCards: FC<StartModeCardsProps> = ({ onQuickStart, onManualStart }) => {
+  const [quickSetupOpen, setQuickSetupOpen] = useState(false);
 
   return (
     <>
       <button
-        onClick={handleNotImplemented}
+        onClick={() => setQuickSetupOpen(true)}
         className="deco-corners relative flex-1 flex flex-col items-center justify-center p-6 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_22px_rgba(13,148,136,0.08)] z-20 hover:brightness-125 transition-all group text-left w-full cursor-pointer min-h-[140px]"
       >
         <div className="flex items-center gap-4 w-full mb-2">
@@ -31,7 +29,7 @@ export const StartModeCards: FC = () => {
       </button>
 
       <button
-        onClick={handleNotImplemented}
+        onClick={onManualStart}
         className="deco-corners relative flex-1 flex flex-col items-center justify-center p-6 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_22px_rgba(13,148,136,0.08)] z-20 hover:brightness-125 transition-all group text-left w-full cursor-pointer min-h-[140px]"
       >
         <div className="flex items-center gap-4 w-full mb-2">
@@ -44,6 +42,14 @@ export const StartModeCards: FC = () => {
           Wybierz własną przygodę i dobierz skład drużyny.
         </p>
       </button>
+
+      {quickSetupOpen && (
+        <QuickSetupModal
+          open={quickSetupOpen}
+          onOpenChange={setQuickSetupOpen}
+          onQuickStart={onQuickStart}
+        />
+      )}
     </>
   );
 };

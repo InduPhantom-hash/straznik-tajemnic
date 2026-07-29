@@ -16,11 +16,19 @@ export function extractImages(text: string): ImageRequest[] {
             isMythos = true;
             prompt = prompt.replace(mythosSuffix, '').trim();
         }
+        
+        const rawTag = match[0].toUpperCase();
+        const isPortrait = rawTag.includes('PORTRET') || rawTag.includes('PORTRAIT');
+        const imgType = isPortrait ? 'portrait' : 'scene';
+        const aspectRatio = isPortrait ? '3:4' : '16:9';
+
         images.push({
             prompt,
-            style: 'horror', // domyślny styl CoC
+            style: isPortrait ? 'portrait' : 'horror', // portrety mogą używać stylu 'portrait', sceny 'horror'
             priority: 'normal',
             isMythos,
+            type: imgType,
+            aspectRatio,
         });
     }
 

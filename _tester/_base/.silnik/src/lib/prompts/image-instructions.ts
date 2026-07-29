@@ -56,11 +56,16 @@ export function buildImageInstructions(settings: AISettings): string {
   // Wspólny blok formatu (jak emitować tag).
   const formatBlock = `
 ### JAK GENEROWAĆ:
-Użyj tagu w tekście odpowiedzi: [ILUSTRACJA: szczegółowy opis w języku ANGIELSKIM]
-Dla scen snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos dodaj flagę | mythos:
-[ILUSTRACJA: deep one rising from the dark ocean under stormy sky, bioluminescent glow, grotesque fish-like features, 1920s coastal town harbor | mythos]
-Przykład zwykłej sceny: [ILUSTRACJA: dimly lit private study in the chosen era, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
+Użyj odpowiednich tagów w tekście odpowiedzi:
+- Dla ilustracji lokacji, wydarzeń i krajobrazów używaj: [SCENA: szczegółowy opis w języku ANGIELSKIM]
+- Dla portretów ważnych postaci (NPC/Badaczy) używaj: [PORTRET: szczegółowy opis w języku ANGIELSKIM]
 
+Dla scen snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos dodaj flagę | mythos:
+[SCENA: deep one rising from the dark ocean under stormy sky, bioluminescent glow, grotesque fish-like features, 1920s coastal town harbor | mythos]
+
+Przykłady użycia: 
+[SCENA: dimly lit private study in the chosen era, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
+[PORTRET: weary 1920s private investigator, wrinkled face, trench coat, dim lighting, realistic period photograph]
 ZASADY SPÓJNOŚCI WIZUALNEJ I REALIZMU (VISUAL CONSISTENCY & REALISM):
 1. BADACZ GRACZA (PLAYER CHARACTER): Gdy ilustrujesz scenę z udziałem Badacza, ZAWSZE uwzględniaj w opisie jego dokładny profil fizyczny (wiek, płeć, fryzurę, ubiór, znaki szczególne, okulary) z karty postaci / portretu referencyjnego, aby postać wyglądała spójnie na wszystkich ilustracjach.
 2. POSTACIE (NPC): Gdy ilustrujesz scenę z udziałem NPC (z listy ## AKTYWNE POSTACIE (NPC)), uwzględniaj jego dokładne cechy fizyczne podane w jego profilu. NIGDY nie podawaj samego imienia.
@@ -69,7 +74,7 @@ ZASADY SPÓJNOŚCI WIZUALNEJ I REALIZMU (VISUAL CONSISTENCY & REALISM):
 5. STYL I REALIZM EPOKI (SLOW BURN): Ilustracje muszą być DOMYŚLNIE REALISTYCZNE i spójne z wybraną epoką przygody (Gaslight / Klasyczne lata 20. / Współczesność / Custom). Buduj grozę cieniem, oświetleniem, fakturami i architekturą. ABSOLUTNY ZAKAZ rutynowego wstawiania macek, gargulców i potworów w zwykłych scenach. Elementy nadprzyrodzone / mityczne wprowadzaj TYLKO w momentach snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos.
 6. PRZEDMIOTY I POTWORY: Artefakty oraz ujawnione potwory opisuj wg raz ustalonej anatomii i wyglądu.
 
-ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • zgodność z epoką przygody • styl DOMYŚLNIE realistyczny (fotografia z epoki, film-grain, naturalne światło, noir). Gracz może też jawnie poprosić komendą [obraz]/[ilustracja].`;
+ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • zgodność z epoką przygody • styl DOMYŚLNIE realistyczny (fotografia z epoki, film-grain, naturalne światło, noir). Gracz może też jawnie poprosić komendą [obraz] / [scena] / [portret].`;
 
   if (tier === 'minimal') {
     return `

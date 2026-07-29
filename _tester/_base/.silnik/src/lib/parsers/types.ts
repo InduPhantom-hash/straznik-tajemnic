@@ -33,9 +33,11 @@ export interface DialogueLine {
 
 export interface ImageRequest {
   prompt: string;
-  style?: 'horror' | 'vintage' | 'realistic' | 'artistic';
+  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait';
   priority?: 'high' | 'normal';
   isMythos?: boolean;
+  type?: 'portrait' | 'scene';
+  aspectRatio?: '16:9' | '3:4' | '1:1';
 }
 
 export interface SFXRequest {
