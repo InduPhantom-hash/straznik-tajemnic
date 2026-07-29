@@ -29,5 +29,6 @@ export const LOCAL_RAG_NAMESPACES = {
   NPCS: 'npcs',
   WORLD_STATE: 'world-state',
   MYTHOS: 'mythos',
+  CUSTOM: 'custom',
   session: (id: string) => `sessions/${id}`,
 } as const;

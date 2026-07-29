@@ -185,7 +185,9 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         }
 
         // Jeśli brak danych - użyj fallback
+        let isFallback = false;
         if (adventuresData.length === 0) {
+          isFallback = true;
           adventuresData = [
             {
               title: file.name.replace('.pdf', '').replace(/_/g, ' '),
@@ -202,6 +204,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
               estimatedSessions: '2-3',
               playerCount: '1-4',
               difficulty: 'normal',
+              graph: { npcs: [], locations: [], clues: [], connections: [] },
             },
           ];
         }
@@ -247,14 +250,12 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
             geminiFileUri: parseResult.geminiFileUri,
             fileName: file.name,
             uploadedAt: new Date().toISOString(),
-            isAnalyzed: !!adventureData,
-            analysisError: adventureData
-              ? undefined
-              : 'Analiza nie powiodła się, użyto danych domyślnych',
+            isAnalyzed: !isFallback,
+            analysisError: isFallback ? 'Analiza nie powiodła się, użyto danych domyślnych' : undefined,
             pageStart: adventureData?.pageStart || null,
             // Rozkład na czynniki pierwsze (postacie/miejsca/zdarzenia/przedmioty/
             // stwory) - kontekst dla MG/AI. Zapisywany razem z przygodą (IndexedDB).
-            breakdown: adventureData?.breakdown,
+            graph: adventureData?.graph || { npcs: [], locations: [], clues: [], connections: [] },
           })
         );
 
@@ -268,6 +269,27 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           adventures: updatedAdventures,
           activeId: freshState.activeId || activeAdventureId,
         });
+
+        // [Dodano z Code Review]: Uruchomienie tła dla Pre-bufferingu i RAG
+        // Wykonujemy w tle, nie blokujemy UI
+        if (!isFallback && newAdventures.length > 0) {
+          console.log('🤖 Rozpoczynam tło: RAG indexing i TTS pre-buffering...');
+          newAdventures.forEach(adv => {
+            // RAG Indexing Background Call (uruchamiane w tle)
+            fetch('/api/adventure/index', {
+              method: 'POST',
+              body: JSON.stringify({ adventureId: adv.id, graph: adv.graph })
+            }).catch(e => console.warn('RAG indexing background failed', e));
+
+            // TTS Pre-buffer dla hooka/sceny wprowadzającej
+            if (adv.hook) {
+              fetch('/api/tts', {
+                method: 'POST',
+                body: JSON.stringify({ text: adv.hook, voice: 'narrator' })
+              }).catch(e => console.warn('TTS pre-buffering failed', e));
+            }
+          });
+        }
 
         console.log(
           `📚 Added ${newAdventures.length} adventure(s): ${newAdventures.map((a) => `"${a.title}"`).join(', ')}`

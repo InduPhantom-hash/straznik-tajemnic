@@ -82,3 +82,16 @@ Branch: main
 - Globalny refactor generycznego fallbacku dla brakujących obrazków (obecnie radzi sobie z tym inline `onError`).
 
 
+
+## Podsumowanie sesji: 2026-07-29 13:02
+Branch: main
+
+### Co zrobiono
+- Zaktualizowano i ustrukturyzowano żądania API Gemini (responseMimeType: 'application/json').
+- Silne typowanie węzłów i zabezpieczenie parsera PDF (route.ts, AdventureGraph).
+- Aktualizacje w fallbackach dla własnych przygód oraz we wstrzykiwaniu do bazy wektorowej (useCustomAdventures.ts, retrieval-service.ts, vector-types.ts).
+- Dodano brakujące interfejsy dla zdarzeń dziennika oraz obrazów w starszych modułach.
+
+### Co otwarte (do następnej sesji)
+- Usunięcie wielu nagromadzonych błędów, zgłoszonych przez Użytkownika. Nowa sesja intake'owa przedstawi problemy i przydzieli tickety.
+

@@ -4,29 +4,13 @@
  */
 
 import { ADVENTURE_CATALOG } from './adventures-catalog.generated';
+import type { AdventureGraph } from './types';
 
 // ============================================================================
 // TYPY
 // ============================================================================
 
-/** Pojedynczy element rozkładu przygody (nazwa + zwięzły opis). */
-export interface AdventureBreakdownEntry {
-  name: string;
-  description: string;
-}
 
-/**
- * Rozkład scenariusza na czynniki pierwsze - wynik analizy AI (PEŁNY, może być
- * spoilerowy). Służy MG/AI jako kontekst sesji (kto/gdzie/co), NIE jest pokazywany
- * graczowi jako zajawka - od tego są bezspoilerowe `hook`/`description`.
- */
-export interface AdventureBreakdown {
-  characters: AdventureBreakdownEntry[]; // NPC i postacie scenariusza
-  locations: AdventureBreakdownEntry[]; // miejsca akcji
-  events: AdventureBreakdownEntry[]; // kluczowe zdarzenia/sceny
-  items: AdventureBreakdownEntry[]; // przedmioty, handouty, wskazówki
-  creatures: AdventureBreakdownEntry[]; // stwory i byty Mitów
-}
 
 /**
  * Realny handout przygody (mapa/dokument z legalnie posiadanych materiałów
@@ -63,7 +47,7 @@ export interface AdventureContext {
   isCustom?: boolean;
   pdfUrl?: string;
   customDescription?: string; // Opis założeń przygody od użytkownika (dla AI)
-  breakdown?: AdventureBreakdown; // Rozkład na czynniki pierwsze (analiza AI)
+  graph?: AdventureGraph; // Zintegrowana mapa myśli (analiza AI)
   // --- Źródło pochodzenia (katalog z metką zbioru) ---
   /** Nazwa zbioru źródłowego do wyświetlenia (np. nazwa antologii lub podręcznika). */
   source?: string;

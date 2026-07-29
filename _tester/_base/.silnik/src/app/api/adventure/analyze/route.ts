@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import type {
-  AdventureBreakdown,
-  AdventureBreakdownEntry,
-} from '@/lib/adventures-data';
+  AdventureGraph,
+  AdventureNPC,
+  AdventureLocation,
+  AdventureClue,
+  GraphConnection
+} from '@/lib/types';
 
 /**
  * API do analizy PDF przygody przez Gemini AI
@@ -32,10 +35,10 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy, bez tekstu 
       "location": "Główna lokalizacja (miasto, region)",
       "country": "Kraj",
       "era": "classic|gaslight|modern",
-      "eraLabel": "Czytelna nazwa ery (np. 'Klasyczne lata 20.', 'Era wiktoriańska', 'Współczesność')",
+      "eraLabel": "Czytelna nazwa ery (np. 'Klasyczne lata 20.')",
       "yearRange": "Zakres lat (np. '1923-1925')",
-      "hook": "BEZSPOILEROWE wprowadzenie 2-3 zdania - zajawka klimatu przyciągająca gracza, BEZ zdradzania rozwiązania, sprawcy ani zwrotów akcji",
-      "description": "BEZSPOILEROWY opis 3-4 zdania - sytuacja wyjściowa i ton, BEZ zakończenia i tajemnic",
+      "hook": "BEZSPOILEROWE wprowadzenie 2-3 zdania - zajawka klimatu przyciągająca gracza, BEZ zdradzania rozwiązania",
+      "description": "BEZSPOILEROWY opis 3-4 zdania - sytuacja wyjściowa i ton, BEZ zakończenia",
       "tone": "purist|pulp|noir",
       "themes": ["motyw1", "motyw2", "motyw3"],
       "suggestedOccupations": ["zawód1", "zawód2", "zawód3"],
@@ -43,12 +46,19 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy, bez tekstu 
       "estimatedSessions": "2-3",
       "difficulty": "easy|normal|hard",
       "pageStart": numer_strony_lub_null,
-      "breakdown": {
-        "characters": [{ "name": "imię NPC", "description": "rola i krótki opis (PEŁNY, dla MG)" }],
-        "locations": [{ "name": "nazwa miejsca", "description": "czym jest, co tam się dzieje" }],
-        "events": [{ "name": "nazwa sceny/zdarzenia", "description": "co się wydarza, w jakiej kolejności" }],
-        "items": [{ "name": "przedmiot/wskazówka/handout", "description": "do czego służy, gdzie jest" }],
-        "creatures": [{ "name": "stwór/byt Mitów", "description": "natura, zagrożenie, statystyki jeśli są" }]
+      "graph": {
+        "npcs": [
+          { "id": "npc-1", "name": "Imię postaci", "description": "Rola", "secret": "Mroczny sekret", "statsSummary": "Statystyki z podręcznika" }
+        ],
+        "locations": [
+          { "id": "loc-1", "name": "Nazwa lokacji", "description": "Opis fabularny", "atmosphere": "Sensoryczny opis atmosfery" }
+        ],
+        "clues": [
+          { "id": "clue-1", "name": "Nazwa poszlaki", "description": "Gdzie prowadzi", "isRedHerring": false }
+        ],
+        "connections": [
+          { "fromId": "npc-1", "toId": "loc-1", "description": "Przebywa tutaj wieczorami" }
+        ]
       }
     }
   ]
@@ -57,11 +67,9 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy, bez tekstu 
 WAŻNE:
 - Jeśli znajdziesz wiele przygód, KAŻDA musi mieć OSOBNY obiekt w tablicy "adventures"
 - "title" to oficjalny tytuł przygody z PDF, NIE nazwa pliku
-- era "classic" = lata 1920-1930, "gaslight" = era wiktoriańska (1880-1910), "modern" = współczesność (2000+)
 - NIGDY nie łącz kilku tytułów w jeden string!
-- "breakdown" rozłóż scenariusz na czynniki pierwsze (postacie, miejsca, zdarzenia, przedmioty, stwory) - to PEŁNY materiał dla Mistrza Gry, MOŻE zawierać spoilery (sprawca, zwroty akcji, zakończenie). Wypełnij każdą listę faktami z PDF; gdy czegoś brak, zostaw pustą tablicę [].
-- W "breakdown" bądź konkretny i wierny treści PDF - nie zmyślaj. Maksymalnie ~8 najważniejszych pozycji na listę.
-- ROZRÓŻNIENIE: "hook"/"description" są DLA GRACZA i muszą być BEZSPOILEROWE; "breakdown" jest DLA MG i może być pełny.`;
+- "graph" to ZINTEGROWANA MAPA MYŚLI (Siatka Zależności). Musisz wyekstrahować wszystkie istotne postacie (NPC), lokacje i poszlaki.
+- Bądź niezwykle skrupulatny. "graph" to baza wiedzy dla Mistrza Gry i MOŻE zawierać spoilery (sprawca, zwroty akcji). Pamiętaj by każdemu elementowi nadać unikalne "id" (np. "npc-1", "loc-3") i użyć ich w "connections", żeby zmapować relacje (kto wie co, co jest gdzie).`;
 
 interface AdventureRaw {
   title?: string;
@@ -79,37 +87,91 @@ interface AdventureRaw {
   estimatedSessions?: string;
   difficulty?: string;
   pageStart?: number | null;
-  breakdown?: Partial<AdventureBreakdown>;
+  graph?: Partial<AdventureGraph>;
 }
 
-/**
- * Sanityzuje listę rozkładu z odpowiedzi AI - odrzuca śmieci, wymusza kształt
- * { name, description }, ucina do limitu. Gemini bywa kreatywny ze schematem.
- */
-const sanitizeBreakdownList = (raw: unknown): AdventureBreakdownEntry[] => {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .filter(
-      (e): e is { name?: unknown; description?: unknown } =>
-        typeof e === 'object' && e !== null
-    )
-    .map((e) => ({
-      name: typeof e.name === 'string' ? e.name : '',
-      description: typeof e.description === 'string' ? e.description : '',
-    }))
-    .filter((e) => e.name.trim().length > 0)
-    .slice(0, 8);
-};
+const validateGraph = (raw: unknown): AdventureGraph | null => {
+  if (!raw || typeof raw !== 'object') return null;
+  const rawObj = raw as Record<string, unknown>;
 
-const validateBreakdown = (
-  raw: Partial<AdventureBreakdown> | undefined
-): AdventureBreakdown => ({
-  characters: sanitizeBreakdownList(raw?.characters),
-  locations: sanitizeBreakdownList(raw?.locations),
-  events: sanitizeBreakdownList(raw?.events),
-  items: sanitizeBreakdownList(raw?.items),
-  creatures: sanitizeBreakdownList(raw?.creatures),
-});
+  const npcs: AdventureNPC[] = Array.isArray(rawObj?.npcs)
+    ? rawObj.npcs
+        .filter((e: unknown) => {
+          if (!e || typeof e !== 'object') return false;
+          const obj = e as Record<string, unknown>;
+          return Boolean(obj.id && obj.name);
+        })
+        .map((e: unknown) => {
+          const obj = e as Record<string, unknown>;
+          return {
+            id: String(obj.id),
+            name: String(obj.name),
+            description: String(obj.description || ''),
+            secret: obj.secret ? String(obj.secret) : undefined,
+            statsSummary: obj.statsSummary ? String(obj.statsSummary) : undefined,
+          };
+        })
+    : [];
+
+  const locations: AdventureLocation[] = Array.isArray(rawObj?.locations)
+    ? rawObj.locations
+        .filter((e: unknown) => {
+          if (!e || typeof e !== 'object') return false;
+          const obj = e as Record<string, unknown>;
+          return Boolean(obj.id && obj.name);
+        })
+        .map((e: unknown) => {
+          const obj = e as Record<string, unknown>;
+          return {
+            id: String(obj.id),
+            name: String(obj.name),
+            description: String(obj.description || ''),
+            atmosphere: obj.atmosphere ? String(obj.atmosphere) : undefined,
+          };
+        })
+    : [];
+
+  const clues: AdventureClue[] = Array.isArray(rawObj?.clues)
+    ? rawObj.clues
+        .filter((e: unknown) => {
+          if (!e || typeof e !== 'object') return false;
+          const obj = e as Record<string, unknown>;
+          return Boolean(obj.id && obj.name);
+        })
+        .map((e: unknown) => {
+          const obj = e as Record<string, unknown>;
+          return {
+            id: String(obj.id),
+            name: String(obj.name),
+            description: String(obj.description || ''),
+            isRedHerring: Boolean(obj.isRedHerring),
+          };
+        })
+    : [];
+
+  const connections: GraphConnection[] = Array.isArray(rawObj?.connections)
+    ? rawObj.connections
+        .filter((e: unknown) => {
+          if (!e || typeof e !== 'object') return false;
+          const obj = e as Record<string, unknown>;
+          return Boolean(obj.fromId && obj.toId);
+        })
+        .map((e: unknown) => {
+          const obj = e as Record<string, unknown>;
+          return {
+            fromId: String(obj.fromId),
+            toId: String(obj.toId),
+            description: String(obj.description || ''),
+          };
+        })
+    : [];
+
+  if (npcs.length === 0 && locations.length === 0 && clues.length === 0) {
+    return null;
+  }
+
+  return { npcs, locations, clues, connections };
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -155,7 +217,10 @@ export async function POST(request: NextRequest) {
 
     // Wywołanie Gemini z plikiem tekstowym (sparsowany PDF)
     const result = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
+      model: 'gemini-3.1-pro-preview', // IND-Dev-4: używamy najpotężniejszego modelu dla grafu
+      config: {
+        responseMimeType: 'application/json', // Zrzucenie na API gwarancji struktury
+      },
       contents: [
         {
           role: 'user',
@@ -175,19 +240,9 @@ export async function POST(request: NextRequest) {
     // Parsowanie JSON z odpowiedzi
     let adventureData;
     try {
-      // Usuń ewentualne markdown backticks i whitespace
-      let cleanJson = responseText
-        .replace(/```json\n?/gi, '')
-        .replace(/```\n?/gi, '')
-        .trim();
-
-      // Znajdź początek i koniec JSON
-      const jsonStart = cleanJson.indexOf('{');
-      const jsonEnd = cleanJson.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
-      }
-
+      // Skoro użyto responseMimeType: 'application/json', nie ma potrzeby walczyć z markdown.
+      // Ewentualnie dla pewności usuniemy backticki gdyby model w starszej wersji to zignorował.
+      const cleanJson = responseText.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
       adventureData = JSON.parse(cleanJson);
 
       // Log parsed data for debugging
@@ -203,28 +258,11 @@ export async function POST(request: NextRequest) {
       console.error('❌ Failed to parse Gemini response as JSON:', parseError);
       console.log('Raw response:', responseText);
 
-      // Fallback - spróbuj wyciągnąć dane z tekstu
-      adventureData = {
-        multipleAdventures: false,
-        adventures: [
-          {
-            title: fileName.replace('.pdf', '').replace(/_/g, ' '),
-            location: 'Nieznana lokalizacja',
-            country: 'Nieznany',
-            era: 'classic' as const,
-            eraLabel: 'Klasyczne lata 20.',
-            yearRange: '1920-1930',
-            hook: 'Przygoda wymaga analizy...',
-            description: responseText.substring(0, 200),
-            tone: 'purist' as const,
-            themes: ['tajemnica', 'horror'],
-            suggestedOccupations: ['detektyw', 'dziennikarz', 'profesor'],
-            playerCount: '1-4',
-            estimatedSessions: '2-3',
-            difficulty: 'normal' as const,
-          },
-        ],
-      };
+      // Zamiast cichego fallbacku, zwracamy błąd 500, aby UI mogło to prawidłowo obsłużyć.
+      return NextResponse.json(
+        { success: false, error: 'Analiza API zwróciła niepoprawny format danych (JSON error).' },
+        { status: 500 }
+      );
     }
 
     // Obsługa nowego formatu z wieloma przygodami
@@ -266,7 +304,7 @@ export async function POST(request: NextRequest) {
           ? data.difficulty
           : 'normal',
       pageStart: data.pageStart || null,
-      breakdown: validateBreakdown(data.breakdown),
+      graph: validateGraph(data.graph),
     });
 
     // Funkcje pomocnicze do integracji z zewnętrznymi API (pogoda, geokodowanie i historyczna mapa)
@@ -276,10 +314,15 @@ export async function POST(request: NextRequest) {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
           headers: { 'User-Agent': 'StraznikTajemnicAI/1.0' }
         });
-        if (!res.ok) return null;
+        if (!res.ok) {
+          console.warn(`⚠️ Nominatim returned ${res.status}`);
+          return null;
+        }
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        } else {
+          console.warn(`⚠️ Nominatim found no location for: ${location}, ${country}`);
         }
       } catch (e) {
         console.warn('⚠️ Nominatim geocoding failed:', e);
@@ -318,11 +361,7 @@ export async function POST(request: NextRequest) {
       return null;
     };
 
-    const fetchHistoricalPOI = async (
-      lat: number,
-      lon: number,
-      yearRange: string
-    ): Promise<Array<{ name: string; description: string }>> => {
+    const fetchHistoricalPOI = async (lat: number, lon: number, yearRange: string): Promise<Array<{ name: string; description: string }>> => {
       try {
         const yearMatch = yearRange.match(/\b(18\d\d|19\d\d|20\d\d)\b/);
         const year = yearMatch ? parseInt(yearMatch[1]) : 1925;
@@ -376,30 +415,44 @@ export async function POST(request: NextRequest) {
       return [];
     };
 
-    const validatedAdventures = await Promise.all(
-      rawAdventures.map(async (adv: AdventureRaw, index: number) => {
-        const validated = validateAdventure(adv, index);
-        
-        // Dociągnij dane geograficzno-pogodowe
-        const coords = await fetchCoords(validated.location, validated.country);
-        if (coords) {
-          const weatherPromise = fetchHistoricalWeather(coords.lat, coords.lon, validated.yearRange);
-          const poiPromise = fetchHistoricalPOI(coords.lat, coords.lon, validated.yearRange);
-          const [weather, pois] = await Promise.all([weatherPromise, poiPromise]);
+    const validatedAdventures = [];
+    for (let index = 0; index < rawAdventures.length; index++) {
+      const adv = rawAdventures[index];
+      const validated = validateAdventure(adv, index);
+      
+      // Jeśli validateGraph zwrócił null, uzupełniamy pustą strukturą, żeby nie wywaliło frontu
+      if (!validated.graph) {
+        validated.graph = { npcs: [], locations: [], clues: [], connections: [] };
+      }
+      
+      // Dociągnij dane geograficzno-pogodowe
+      const coords = await fetchCoords(validated.location, validated.country);
+      if (coords) {
+        const weatherPromise = fetchHistoricalWeather(coords.lat, coords.lon, validated.yearRange);
+        const poiPromise = fetchHistoricalPOI(coords.lat, coords.lon, validated.yearRange);
+        const [weather, pois] = await Promise.all([weatherPromise, poiPromise]);
 
-          if (weather) {
-            validated.description = `${validated.description}\n\n[KLIMAT & POGODA]: ${weather}`;
-          }
-          if (pois && pois.length > 0) {
-            validated.breakdown.locations = [
-              ...validated.breakdown.locations,
-              ...pois.map(p => ({ name: p.name, description: p.description }))
-            ].slice(0, 8); // Utrzymujemy limit 8 lokacji
-          }
+        if (weather) {
+          validated.description = `${validated.description}\n\n[KLIMAT & POGODA]: ${weather}`;
         }
-        return validated;
-      })
-    );
+        if (pois && pois.length > 0) {
+          validated.graph.locations = [
+            ...(validated.graph.locations || []),
+            ...pois.map((p, idx) => ({ 
+              id: `historical-poi-${idx}`, 
+              name: p.name, 
+              description: p.description 
+            }))
+          ]; 
+        }
+      }
+      validatedAdventures.push(validated);
+
+      // Sekwencyjne odstępy dla API
+      if (index < rawAdventures.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
 
     console.log(
       `📚 Analyzed ${validatedAdventures.length} adventures${multipleAdventures ? ' (multiple in PDF)' : ''}`

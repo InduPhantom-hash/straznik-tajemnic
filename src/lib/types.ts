@@ -808,6 +808,9 @@ export interface AdventureContext {
     rumors: string[];         // Lista sprzecznych plotek rozdawanych postaciom
     characterHooks: Array<{ characterId: string; personalHook: string }>;
   };
+
+  // Zintegrowana mapa myśli, wygenerowana z PDF przez Gemini 3.1 Pro (Preview)
+  graph?: AdventureGraph;
 }
 
 export interface ConflictFaction {
@@ -822,4 +825,42 @@ export interface AdventureConflict {
   factions: ConflictFaction[]; // Min. 2 sprzeczne strony
   resource: string;            // Wspólny punkt zderzenia (np. las, przedmiot, wiedza)
 }
+
+// === GRAPH (ADVENTURE PREP ENGINE) ===
+
+export interface GraphConnection {
+  fromId: string;
+  toId: string;
+  description: string;
+}
+
+export interface AdventureNPC {
+  id: string;
+  name: string;
+  description: string;
+  secret?: string;       // Mroczny sekret, jeśli istnieje
+  statsSummary?: string; // Ekstrakcja statystyk z podręcznika
+}
+
+export interface AdventureLocation {
+  id: string;
+  name: string;
+  description: string;
+  atmosphere?: string;   // Sensoryczny opis
+}
+
+export interface AdventureClue {
+  id: string;
+  name: string;
+  description: string;
+  isRedHerring?: boolean;
+}
+
+export interface AdventureGraph {
+  npcs: AdventureNPC[];
+  locations: AdventureLocation[];
+  clues: AdventureClue[];
+  connections: GraphConnection[];
+}
+
 

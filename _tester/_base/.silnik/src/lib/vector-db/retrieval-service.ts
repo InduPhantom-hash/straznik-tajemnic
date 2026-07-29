@@ -139,6 +139,7 @@ const BM25_NAMESPACES: Set<string> = new Set([
   // npcs: nazwiska postaci historycznych ("Piłsudski", "Ćwikliński") to
   // twarde keyword matche - BM25 podbija ich trafność obok semantycznego.
   LOCAL_RAG_NAMESPACES.NPCS,
+  LOCAL_RAG_NAMESPACES.CUSTOM,
 ]);
 
 /** Mapowanie contentType → emoji + etykieta PL do promptu */
@@ -480,6 +481,7 @@ class RetrievalService {
       LOCAL_RAG_NAMESPACES.NPCS,
       LOCAL_RAG_NAMESPACES.WORLD_STATE,
       LOCAL_RAG_NAMESPACES.MYTHOS,
+      LOCAL_RAG_NAMESPACES.CUSTOM,
     ];
 
     if (sessionId) {
