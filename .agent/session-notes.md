@@ -171,3 +171,17 @@ Branch: main
 
 **Decyzje podjęte:**
 - Celowe pominięcie upiększania layoutu biletów (vibe-coding focus) na rzecz szybkiej izolacji krytycznego błędu "infinite loop" z obrazkami.
+
+## Podsumowanie sesji: 2026-07-29 (Diegetic Documents UI)
+Branch: main
+
+### Co zrobiono
+- **Rozszerzenie logiki parsera:** Wprowadzono typ "ticket" do DocumentSubType oraz dodano regex wyłapujący "bilety", "wejściówki" i "karnety" w acquired-equipment.ts. Dodano również asercje do testów.
+- **Wizualizacje biletów i notatników:** Wdrożono w diegetic-document-viewer.tsx style Tailwind odpowiadające za wyświetlenie biletu (podzielony układ poziomy, charakterystyczny layout z grubą czcionką numeryczną) oraz z wyśrodkowanej kartki notatnika (liniatura, zagięty rożek/taśma).
+- **Testy pomyślne:** 159/159 testów świeci się na zielono.
+
+### Co otwarte (do następnej sesji)
+- Implementacja etapu 0.5 (Onboarding & Quick Setup Flow).
+
+### Decyzje podjęte
+- Wybrano flat design wspierany wyłącznie wbudowanym Tailwindem (bez zaciągania assetów z zewnątrz). Zaakceptowano surowe testowanie w Spec Quality Gate przed kodowaniem UI.

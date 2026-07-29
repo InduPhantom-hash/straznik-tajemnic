@@ -184,7 +184,53 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
     );
   }
 
-  // === 5. DEFAULT / LIST OSOBISTY / PAMIĘTNIK ===
+  // === 5. NOTATNIK / PAMIĘTNIK ===
+  if (docType === 'journal_page') {
+    return (
+      <div className="relative my-3 p-6 bg-[#f4ebd8] text-[#2c1d11] shadow-md border border-[#d3c29e] rounded-sm font-serif select-text overflow-hidden">
+        {/* Kawałek pożółkłej taśmy na górze */}
+        <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-24 h-8 bg-[#e6d5b8]/50 backdrop-blur-sm border border-[#c5b599]/40 rotate-[2deg] shadow-sm z-10"></div>
+        
+        {/* Liniatura tła */}
+        <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #607d8b 28px)' }}></div>
+        
+        <div className="relative z-0 mt-2">
+          <span className="block text-[10px] font-special-elite text-[#8c7356] uppercase tracking-wider mb-3 opacity-90 border-b border-[#a8987d]/40 pb-1">
+            Wyrwana strona z notatnika
+          </span>
+          <div className="whitespace-pre-line italic text-[#24170d] leading-[28px] pr-2 text-base">
+            {content}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === 6. BILET / PRZEPUSTKA ===
+  if (docType === 'ticket') {
+    return (
+      <div className="relative my-3 mx-auto max-w-sm flex shadow-xl drop-shadow-md filter select-text">
+        <div className="flex-1 bg-[#e8cd9c] p-4 border-r-2 border-dashed border-[#8c6b45]/60 rounded-l-md relative">
+           <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#735e47] mb-1">
+             Admit One • Transferable
+           </div>
+           <h4 className="font-extrabold text-xl uppercase tracking-tighter text-[#2a2016] leading-tight mt-1">
+             {item.name}
+           </h4>
+           <div className="text-sm font-serif italic text-[#3d2f21] whitespace-pre-line mt-3 border-t border-[#8c6b45]/30 pt-2">
+             {content}
+           </div>
+        </div>
+        <div className="w-16 bg-[#e8cd9c] rounded-r-md flex flex-col items-center justify-center p-2">
+           <div className="transform rotate-90 text-xs font-special-elite font-bold tracking-widest text-[#8c2318] whitespace-nowrap">
+             {item.id.slice(-5).toUpperCase()}
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === 7. DEFAULT / LIST OSOBISTY ===
   return (
     <div className="relative my-3 p-6 bg-[#ebdfc6] text-[#2c1d11] shadow-inner border border-[#d3c29e] rounded-sm font-serif text-sm md:text-base leading-relaxed select-text">
       {/* Znaczek pocztowy w rogu dla listów */}

@@ -1,12 +1,10 @@
-# Stan Wyjściowy Implementacji: System Renderowania Diegetycznych Rekwizytów
+# Stan implementacji: Diegetic Documents - Bilety i Notatniki (UI)
+Rozpoczęto: 2026-07-29
 
-Data: 2026-07-22  
+**Wyjściowy test kompilacji:** Zakończony sukcesem (159/159 PASS).
+**Ukończone fazy:** Faza 1 (Typy i Parser), Faza 2 (UI Frontend).
+**W toku:** Zakończono implementację.
 
-### Stan początkowy
-- TypeScript check (`npx tsc --noEmit`): **PASS** (0 błędów)
-- Testy Jest (`equipment-detail-dialog.test.tsx`): **PASS** (4/4 testy zaliczone)
-
-### Zamierzone Fazy:
-1. **Faza 1: Typowanie i Inferencja Sub-typów** (`src/lib/types.ts`, `src/lib/acquired-equipment.ts`)
-2. **Faza 2: Dedykowany Komponent `DiegeticDocumentViewer.tsx`** (`src/components/ui/diegetic-document-viewer.tsx`)
-3. **Faza 3: Integracja w `EquipmentDetailDialog`** (`src/components/ui/equipment-detail-dialog.tsx`)
+**Zależności / Context:**
+- Nowe widoki (ticket i journal_page) korzystają z wbudowanych czcionek zgodnie z założeniami Spec Quality Gate.
+- Wdrożono fallback dla starych układów, nowości operują we właściwym kontekście JSX.

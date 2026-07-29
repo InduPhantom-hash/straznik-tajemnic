@@ -280,6 +280,7 @@ export type DocumentSubType =
   | 'letter' // List osobisty / telegram
   | 'newspaper' // Artykuł / wycinek z prasowy
   | 'official_document' // Oficjalne pismo rządowe / urzędowe
+  | 'ticket' // Bilet pasażerski, przepustka z biletomatu
   | 'journal_page'; // Pamiętnik / notatka ręczna
 
 export interface EquipmentItem {

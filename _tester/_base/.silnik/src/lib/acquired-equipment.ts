@@ -54,6 +54,7 @@ export function inferDocumentType(item: { name: string; description?: string }):
   if (/kopert|akta|dowodów|policyj|śledcz|zeznan|raport polic/.test(text)) return 'evidence_envelope';
   if (/gazet|kurier|artykuł|nagłówek|wycinek/.test(text)) return 'newspaper';
   if (/pismo|dekret|oficjaln|rządow|sądow|zaświadczen|nakaz/.test(text)) return 'official_document';
+  if (/bilet|karnet|wejściówk|boarding pass/.test(text)) return 'ticket';
   if (/pamiętnik|dziennik|notatnik|zapiski|szkic/.test(text)) return 'journal_page';
   if (/list|telegram|korespondencj|wiadomość|kartka/.test(text)) return 'letter';
   

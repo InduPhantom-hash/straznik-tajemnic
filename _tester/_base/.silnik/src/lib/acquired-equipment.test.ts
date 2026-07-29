@@ -72,6 +72,11 @@ describe('inferDocumentType', () => {
     expect(inferDocumentType({ name: 'Nakaz aresztowania' })).toBe('official_document');
   });
 
+  it('rozpoznaje bilet', () => {
+    expect(inferDocumentType({ name: 'Bilet do Arkham' })).toBe('ticket');
+    expect(inferDocumentType({ name: 'Wejściówka do teatru', description: 'Stary bilet.' })).toBe('ticket');
+  });
+
   it('rozpoznaje stronę z dziennika / notatki', () => {
     expect(inferDocumentType({ name: 'Dziennik badacza' })).toBe('journal_page');
     expect(inferDocumentType({ name: 'Stary notatnik' })).toBe('journal_page');
