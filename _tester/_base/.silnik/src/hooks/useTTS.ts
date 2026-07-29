@@ -27,6 +27,7 @@ export interface TTSState {
     totalCharacters: number;
     processing: boolean;
   };
+  isInitialBuffering: boolean;
 }
 
 export interface UseTTSReturn extends TTSState {
@@ -41,6 +42,7 @@ export interface UseTTSReturn extends TTSState {
   stopCurrentAudio: () => void;
   toggleAudioPause: () => void;
   addToQueue: (text: string, messageId?: string, flush?: boolean) => void;
+  startInitialBuffering: () => void;
 }
 
 /**
@@ -174,6 +176,7 @@ export function useTTS(): UseTTSReturn {
   );
   const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [isAudioPaused, setIsAudioPaused] = useState(false);
+  const [isInitialBuffering, setIsInitialBuffering] = useState(false);
   const [queueStatus, setQueueStatus] = useState({
     queueLength: 0,
     totalCharacters: 0,
@@ -224,6 +227,7 @@ export function useTTS(): UseTTSReturn {
   // pętla akapitów docina już wypowiedzianą część (slice o tę liczbę). Reset przy
   // ID-change/stop (jak openRunRef), by nie przeciekał między wiadomościami.
   const earlySpokenCharsRef = useRef(0);
+  const bufferTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     console.log('🔊 TTS: Hook MOUNTED');
@@ -257,7 +261,12 @@ export function useTTS(): UseTTSReturn {
     openRunRef.current = null; // demo 2026-06-22: nie przenoś niedokończonego runu narratora między wiadomościami
     earlySpokenCharsRef.current = 0; // E1: świeży kursor wczesnego startu dla nowej wiadomości
     completedMessageIdsRef.current.clear(); // IND-200
+    if (bufferTimeoutRef.current) {
+      clearTimeout(bufferTimeoutRef.current);
+      bufferTimeoutRef.current = null;
+    }
     setIsAudioPaused(false);
+    setIsInitialBuffering(false);
     setQueueStatus({ queueLength: 0, totalCharacters: 0, processing: false });
   }, [currentAudio]);
 
@@ -349,6 +358,8 @@ export function useTTS(): UseTTSReturn {
             audio.volume = (currentSettings.voiceSettings?.volume || 75) / 100;
             preloadedAudioRef.current.set(index, audio);
             console.log(`✅ TTS Worker: Ready segment ${index}`);
+            setIsInitialBuffering(false);
+            if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
 
             // Spróbuj odtworzyć (jeśli to pierwszy segment lub poprzednie się skończyły)
             playFromBuffer();
@@ -360,10 +371,14 @@ export function useTTS(): UseTTSReturn {
               `🔇 TTS Worker: segment ${index} nieudany (null) - tombstone, player pomija`
             );
             preloadedAudioRef.current.set(index, null);
+            setIsInitialBuffering(false);
+            if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
             playFromBuffer();
           }
         } catch (e) {
           console.error(`❌ TTS Worker: Failed segment ${index}`, e);
+          setIsInitialBuffering(false);
+          if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
         }
       }
     } finally {
@@ -683,6 +698,23 @@ export function useTTS(): UseTTSReturn {
     ]
   );
 
+  const startInitialBuffering = useCallback(() => {
+    if (!voiceEnabled || !isTTSEnabled) {
+      setIsInitialBuffering(false);
+      return;
+    }
+    setIsInitialBuffering(true);
+    // Timeout bezpieczeństwa na wypadek absolutnej awarii API lub wycieku pętli powtórzeń (cap na retryDelay)
+    bufferTimeoutRef.current = setTimeout(() => {
+      setIsInitialBuffering((prev) => {
+        if (prev) {
+          console.warn('🔇 TTS: Timeout buforowania. Zrzucam Hard-loading screen.');
+        }
+        return false;
+      });
+    }, 6000);
+  }, [voiceEnabled, isTTSEnabled]);
+
   const generateVoiceForMessage = useCallback(
     async (message: Message) => {
       if (!voiceEnabled || !isTTSEnabled || message.role !== 'assistant')
@@ -711,5 +743,7 @@ export function useTTS(): UseTTSReturn {
     stopCurrentAudio,
     toggleAudioPause,
     addToQueue,
+    isInitialBuffering,
+    startInitialBuffering,
   };
 }

@@ -77,6 +77,7 @@ export interface ChatWindowProps {
 
   // Loading
   isLoading?: boolean;
+  isInitialBuffering?: boolean;
 
   // === C4 (duet): bufor deklaracji + wysyłka tury ===
   /** Czy tryb dla dwojga (Hot Seat 2 graczy) - Enter dokłada deklarację zamiast wysyłać. */

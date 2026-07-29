@@ -27,6 +27,7 @@ import { ChatHeader } from './components/chat-header';
 import { LoadingIndicator } from './components/loading-indicator';
 import { MessageCard } from './components/message-card';
 import { MessageInput } from './components/message-input';
+import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
 
 export const ChatWindow: FC<ChatWindowProps> = ({
   messages,
@@ -66,6 +67,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onSummarizeScene,
   isSummarizingScene = false,
   isLoading = false,
+  isInitialBuffering = false,
   isDuet = false,
   pendingDeclarations,
   playersAwaitingDeclaration,
@@ -196,7 +198,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   }, [messages]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
+    <div className="relative flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
+      <TTSHardLoadingScreen isBuffering={isInitialBuffering} />
       <ChatHeader
         title={adventureTitle}
         region={region}

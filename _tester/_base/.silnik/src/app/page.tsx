@@ -242,6 +242,7 @@ export default function Home() {
       isTTSEnabled: tts.isTTSEnabled,
       generateVoiceForMessage: tts.generateVoiceForMessage,
       addToQueue: tts.addToQueue,
+      startInitialBuffering: tts.startInitialBuffering,
     },
     aiSettings,
   });
@@ -835,6 +836,7 @@ export default function Home() {
         onSummarizeScene={handleSummarizeScene}
         isSummarizingScene={isSummarizingScene}
         isLoading={chat.isLoading}
+        isInitialBuffering={tts.isInitialBuffering}
         isDuet={chat.isDuet}
         pendingDeclarations={chat.pendingDeclarations}
         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}

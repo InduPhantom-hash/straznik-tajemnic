@@ -1,0 +1,169 @@
+diff --git a/_tester/_base/.silnik/src/app/page.tsx b/_tester/_base/.silnik/src/app/page.tsx
+index db74b63..b47a771 100644
+--- a/_tester/_base/.silnik/src/app/page.tsx
++++ b/_tester/_base/.silnik/src/app/page.tsx
+@@ -242,6 +242,7 @@ export default function Home() {
+       isTTSEnabled: tts.isTTSEnabled,
+       generateVoiceForMessage: tts.generateVoiceForMessage,
+       addToQueue: tts.addToQueue,
++      startInitialBuffering: tts.startInitialBuffering,
+     },
+     aiSettings,
+   });
+@@ -835,6 +836,7 @@ export default function Home() {
+         onSummarizeScene={handleSummarizeScene}
+         isSummarizingScene={isSummarizingScene}
+         isLoading={chat.isLoading}
++        isInitialBuffering={tts.isInitialBuffering}
+         isDuet={chat.isDuet}
+         pendingDeclarations={chat.pendingDeclarations}
+         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}
+diff --git a/_tester/_base/.silnik/src/components/chat/chat-window/index.tsx b/_tester/_base/.silnik/src/components/chat/chat-window/index.tsx
+index 1964966..7ae1ee0 100644
+--- a/_tester/_base/.silnik/src/components/chat/chat-window/index.tsx
++++ b/_tester/_base/.silnik/src/components/chat/chat-window/index.tsx
+@@ -27,6 +27,7 @@ import { ChatHeader } from './components/chat-header';
+ import { LoadingIndicator } from './components/loading-indicator';
+ import { MessageCard } from './components/message-card';
+ import { MessageInput } from './components/message-input';
++import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
+ 
+ export const ChatWindow: FC<ChatWindowProps> = ({
+   messages,
+@@ -66,6 +67,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
+   onSummarizeScene,
+   isSummarizingScene = false,
+   isLoading = false,
++  isInitialBuffering = false,
+   isDuet = false,
+   pendingDeclarations,
+   playersAwaitingDeclaration,
+@@ -196,7 +198,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
+   }, [messages]);
+ 
+   return (
+-    <div className="flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
++    <div className="relative flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
++      <TTSHardLoadingScreen isBuffering={isInitialBuffering} />
+       <ChatHeader
+         title={adventureTitle}
+         region={region}
+diff --git a/_tester/_base/.silnik/src/components/chat/chat-window/types.ts b/_tester/_base/.silnik/src/components/chat/chat-window/types.ts
+index a851589..6bebc96 100644
+--- a/_tester/_base/.silnik/src/components/chat/chat-window/types.ts
++++ b/_tester/_base/.silnik/src/components/chat/chat-window/types.ts
+@@ -77,6 +77,7 @@ export interface ChatWindowProps {
+ 
+   // Loading
+   isLoading?: boolean;
++  isInitialBuffering?: boolean;
+ 
+   // === C4 (duet): bufor deklaracji + wysyłka tury ===
+   /** Czy tryb dla dwojga (Hot Seat 2 graczy) - Enter dokłada deklarację zamiast wysyłać. */
+diff --git a/_tester/_base/.silnik/src/hooks/useGameStart.ts b/_tester/_base/.silnik/src/hooks/useGameStart.ts
+index 63aff8e..dda2af2 100644
+--- a/_tester/_base/.silnik/src/hooks/useGameStart.ts
++++ b/_tester/_base/.silnik/src/hooks/useGameStart.ts
+@@ -71,6 +71,7 @@ interface UseGameStartProps {
+     ) => Promise<void>;
+     // M6 sesja 146: generateMultiVoice DROPPED per D3.
+     addToQueue: (text: string, messageId?: string) => void;
++    startInitialBuffering: () => void;
+   };
+   aiSettings?: AISettings | null;
+   /** IND-273 T3: self-check klucza/modeli przy starcie gry (fire-and-forget, TTL dławi). */
+@@ -257,6 +258,10 @@ export function useGameStart({
+     isStartingRef.current = true;
+     // IND-273 T3: self-check klucza/modeli (fire-and-forget, TTL dławi, nie blokuje startu).
+     runHealthCheck?.();
++
++    // Włącz hard-loading screen dla powitalnego intra TTS (zniknie po pobraniu 1 paczki)
++    tts.startInitialBuffering();
++
+     setHasStartedGame(true);
+     if (typeof window !== 'undefined') {
+       localStorage.setItem('has_started_game', 'true');
+diff --git a/_tester/_base/.silnik/src/hooks/useTTS.ts b/_tester/_base/.silnik/src/hooks/useTTS.ts
+index 3beff3c..4b3b4cc 100644
+--- a/_tester/_base/.silnik/src/hooks/useTTS.ts
++++ b/_tester/_base/.silnik/src/hooks/useTTS.ts
+@@ -27,6 +27,7 @@ export interface TTSState {
+     totalCharacters: number;
+     processing: boolean;
+   };
++  isInitialBuffering: boolean;
+ }
+ 
+ export interface UseTTSReturn extends TTSState {
+@@ -41,6 +42,7 @@ export interface UseTTSReturn extends TTSState {
+   stopCurrentAudio: () => void;
+   toggleAudioPause: () => void;
+   addToQueue: (text: string, messageId?: string, flush?: boolean) => void;
++  startInitialBuffering: () => void;
+ }
+ 
+ /**
+@@ -174,6 +176,7 @@ export function useTTS(): UseTTSReturn {
+   );
+   const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+   const [isAudioPaused, setIsAudioPaused] = useState(false);
++  const [isInitialBuffering, setIsInitialBuffering] = useState(false);
+   const [queueStatus, setQueueStatus] = useState({
+     queueLength: 0,
+     totalCharacters: 0,
+@@ -258,6 +261,7 @@ export function useTTS(): UseTTSReturn {
+     earlySpokenCharsRef.current = 0; // E1: świeży kursor wczesnego startu dla nowej wiadomości
+     completedMessageIdsRef.current.clear(); // IND-200
+     setIsAudioPaused(false);
++    setIsInitialBuffering(false);
+     setQueueStatus({ queueLength: 0, totalCharacters: 0, processing: false });
+   }, [currentAudio]);
+ 
+@@ -349,6 +353,7 @@ export function useTTS(): UseTTSReturn {
+             audio.volume = (currentSettings.voiceSettings?.volume || 75) / 100;
+             preloadedAudioRef.current.set(index, audio);
+             console.log(`✅ TTS Worker: Ready segment ${index}`);
++            setIsInitialBuffering(false);
+ 
+             // Spróbuj odtworzyć (jeśli to pierwszy segment lub poprzednie się skończyły)
+             playFromBuffer();
+@@ -360,6 +365,7 @@ export function useTTS(): UseTTSReturn {
+               `🔇 TTS Worker: segment ${index} nieudany (null) - tombstone, player pomija`
+             );
+             preloadedAudioRef.current.set(index, null);
++            setIsInitialBuffering(false);
+             playFromBuffer();
+           }
+         } catch (e) {
+@@ -683,6 +689,23 @@ export function useTTS(): UseTTSReturn {
+     ]
+   );
+ 
++  const startInitialBuffering = useCallback(() => {
++    if (!voiceEnabled || !isTTSEnabled) {
++      setIsInitialBuffering(false);
++      return;
++    }
++    setIsInitialBuffering(true);
++    // Timeout bezpieczeństwa na wypadek absolutnej awarii API lub wycieku pętli powtórzeń (cap na retryDelay)
++    setTimeout(() => {
++      setIsInitialBuffering((prev) => {
++        if (prev) {
++          console.warn('🔇 TTS: Timeout buforowania. Zrzucam Hard-loading screen.');
++        }
++        return false;
++      });
++    }, 6000);
++  }, [voiceEnabled, isTTSEnabled]);
++
+   const generateVoiceForMessage = useCallback(
+     async (message: Message) => {
+       if (!voiceEnabled || !isTTSEnabled || message.role !== 'assistant')
+@@ -711,5 +734,7 @@ export function useTTS(): UseTTSReturn {
+     stopCurrentAudio,
+     toggleAudioPause,
+     addToQueue,
++    isInitialBuffering,
++    startInitialBuffering,
+   };
+ }

@@ -71,6 +71,7 @@ interface UseGameStartProps {
     ) => Promise<void>;
     // M6 sesja 146: generateMultiVoice DROPPED per D3.
     addToQueue: (text: string, messageId?: string) => void;
+    startInitialBuffering: () => void;
   };
   aiSettings?: AISettings | null;
   /** IND-273 T3: self-check klucza/modeli przy starcie gry (fire-and-forget, TTL dławi). */
@@ -257,6 +258,10 @@ export function useGameStart({
     isStartingRef.current = true;
     // IND-273 T3: self-check klucza/modeli (fire-and-forget, TTL dławi, nie blokuje startu).
     runHealthCheck?.();
+
+    // Włącz hard-loading screen dla powitalnego intra TTS (zniknie po pobraniu 1 paczki)
+    tts.startInitialBuffering();
+
     setHasStartedGame(true);
     if (typeof window !== 'undefined') {
       localStorage.setItem('has_started_game', 'true');
@@ -459,6 +464,7 @@ export function useGameStart({
       }
     } catch (error) {
       console.error('Game start intro failed:', error);
+      tts.stopCurrentAudio();
       // Zadanie 6: po wyczerpaniu retry pokaż graczowi co się stało zamiast pustego
       // ekranu - blip sieci dostaje wskazówkę "spróbuj ponownie", inny błąd ogólny.
       // Usuwamy osierocony pusty placeholder assistantMessageId (jeśli istnieje

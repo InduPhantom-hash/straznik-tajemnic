@@ -198,3 +198,8 @@ Branch: aktywnego-brancha
 
 ### Decyzje podjęte
 - Rozszerzono PredefinedCharacter o tacticalNotes bez dotykania bazowego Character
+
+## Podsumowanie sesji: 2026-07-29
+### Co zrobiono
+- Zaimplementowano Hard-loading screen (Sekcja 4) zasłaniający UI podczas buforowania pierwszego fragmentu TTS z timeoutem 6s.
+- Zabezpieczono UI przed zawieszeniem poprzez rygorystyczne zdejmowanie timera oraz odblokowanie okna po wyjątku startu (try-catch useGameStart).
