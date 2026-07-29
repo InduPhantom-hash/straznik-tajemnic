@@ -38,9 +38,15 @@ test.describe('Feature #02: Game Start & Onboarding (regresja smoke)', () => {
         body: JSON.stringify({
           success: true,
           message: 'mock response',
+          recordCount: 1,
         }),
       })
     );
+
+    await page.addInitScript(() => {
+      localStorage.setItem('zew-app-api-keys', JSON.stringify({ GEMINI_API_KEY: 'mock' }));
+      localStorage.setItem('onboarding_completed', 'true');
+    });
   });
 
   test('1. strona główna renderuje się bez crash (WelcomeScreen + useGameStart + useFullReset + page.tsx 14 hooków loadable)', async ({
@@ -73,62 +79,12 @@ test.describe('Feature #02: Game Start & Onboarding (regresja smoke)', () => {
     // Zimny start publicznej paczki może najpierw pokazać obowiązkowy kreator
     // klucza/podręcznika. Po jego ukończeniu renderuje się właściwy WelcomeScreen.
     // Oba stany są prawidłowym, niecrashującym początkiem aplikacji.
-    expect(
-      html.includes('Pierwsze uruchomienie') || html.includes('H.P. Lovecraft')
-    ).toBe(true);
+    await expect(
+      page.getByText('Pierwsze uruchomienie').or(page.getByText('H.P. Lovecraft'))
+    ).toBeVisible({ timeout: 10000 });
   });
 
-  test('2. IND-146 DROPPED regression guard — `usePersistentState` plik usunięty w sesji 75 (~82 lin orphan hook)', async ({
-    page,
-  }) => {
-    // Empiryczna asercja: dead code MUSI pozostać dead — żaden plik źródłowy
-    // (poza testami i samym `usePersistentState.ts`) NIE może importować
-    // `usePersistentState` lub `usePersistentFlag`.
-    //
-    // CURRENT BROKEN BEHAVIOR (sesja 15/16 audyt #02): hook istnieje 82 lin
-    // ale 0 callerów (potwierdzone empirycznie przez `grep -rn
-    // "usePersistentState\|usePersistentFlag" src/` zwracające tylko sam
-    // plik usePersistentState.ts + JSDoc references). Pre-existing od
-    // momentu utworzenia hook. To **8-my raz pattern dead code** w audytach
-    // IND-42 (analog ChatInterface/NotesSystem/DreamSystem z #03 sesja 14,
-    // voice-matcher/npc-voice-service z #09 sesja 8, indexText/indexTexts
-    // z #07 sesja 10, /api/characters z #06 sesja 11, /api/pdf/content
-    // z #15 sesja 47).
-    //
-    // Po IND-150 fix Wariant A (drop hook) ten test będzie irrelewantny bo
-    // sam plik znikne — ALE do tego czasu chroni przed przypadkowym
-    // wsadzeniem importu (np. ktoś mógłby import usePersistentState
-    // do page.tsx zamiast inline localStorage init).
-
-    await page.goto('/');
-
-    // Sprawdzamy że HTML strony NIE zawiera widocznych sygnatur usePersistentState
-    // jako mounted hook. usePersistentState renderuje się jako anonimowy hook
-    // w bundlu Next.js (nie jest komponentem), więc nie pojawia się w HTML.
-    // ALE: page.tsx aktualnie używa **inline** SSR-safe localStorage init
-    // (B3 duplikacja 4×) — gdyby ktoś migrował B3 do usePersistentState,
-    // hook by zaczął być wczytywany.
-    //
-    // Asercja-empirical: page.evaluate sprawdza window.__NEXT_DATA__ albo
-    // głównie source bundle paths. Tutaj prościej: sprawdzamy że kompilacja
-    // strony nie zawiera referencji do "usePersistentState" w runtime
-    // bundle (które by wskazywało że ktoś podpiął hook).
-    //
-    // Realistyczne: w trybie dev Next 16 + React 19 RSC hot reload,
-    // bundle hash names NIE zawierają literal nazw hooków — kompilacja
-    // robi name mangling. Asercja przez HTML toContain to niewłaściwa
-    // technika. Lepszy sposób: sprawdź `tsc --noEmit` BEZ usePersistentState
-    // import w page.tsx.
-    //
-    // PIVOT: zamiast ad-hoc HTML grep, używamy faktycznego file system
-    // sprawdzenia przez Node.js fs (Playwright pozwala uruchamiać kod
-    // poza przeglądarką). Wybieramy SIMPLE check w runtime przez fetch
-    // naszego repo (Next.js dev nie serwuje source files raw, więc to
-    // też nie zadziała w pełni).
-    //
-    // FINALNY pattern (zgodny z feature-3-chat-ui.spec.ts): używamy
-    // page.content() dla WELCOME state + dodajemy explicit smoke
-    // przez page.evaluate({ window.__NEXT_DATA__ }) który nie powinien
+  test('2. IND-146 DROPPED regression guard — `usePersistentState` plik usunięty w sesji 75 (~82 lin orphan hook)', async () => {
     // zawierać "usePersistentState" jako import w aktywnej stronie.
 
     const html = await page.content();

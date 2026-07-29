@@ -72,6 +72,7 @@ interface UseGameStartProps {
     // M6 sesja 146: generateMultiVoice DROPPED per D3.
     addToQueue: (text: string, messageId?: string) => void;
     startInitialBuffering: () => void;
+    stopCurrentAudio: () => void;
   };
   aiSettings?: AISettings | null;
   /** IND-273 T3: self-check klucza/modeli przy starcie gry (fire-and-forget, TTL dławi). */

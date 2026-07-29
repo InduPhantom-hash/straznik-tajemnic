@@ -243,6 +243,7 @@ export default function Home() {
       generateVoiceForMessage: tts.generateVoiceForMessage,
       addToQueue: tts.addToQueue,
       startInitialBuffering: tts.startInitialBuffering,
+      stopCurrentAudio: tts.stopCurrentAudio,
     },
     aiSettings,
   });
@@ -376,8 +377,6 @@ export default function Home() {
     runHealthCheck();
   }, [runHealthCheck]);
 
-  // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
-  // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
   const handleQuickStartOnboarding = useCallback(
     (adventureId: string, characterId: string) => {
       // 1. Ustaw przygodę
@@ -400,8 +399,8 @@ export default function Home() {
         charMgmt.setCharacters(updatedList);
         charMgmt.setActiveCharacter(stamped);
         try {
-          const { persistCharacters } = require('@/lib/character-cloud-sync');
-          persistCharacters(updatedList);
+          const cloudSync = require('@/lib/character-cloud-sync') as { persistCharacters: (chars: Character[]) => void };
+          cloudSync.persistCharacters(updatedList);
         } catch {
           // fallback lokalny
         }
@@ -411,6 +410,8 @@ export default function Home() {
     [charMgmt]
   );
 
+  // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
+  // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
   // nakłada overlay i licznik kosztów liczy świeższymi stawkami. Błąd = cisza (bundled).
   useEffect(() => {
     fetch('/api/pricing/refresh', { headers: getApiKeyHeaders() }).catch(

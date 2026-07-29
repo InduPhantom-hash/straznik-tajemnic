@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import type { WelcomeScreenProps } from './types';
 import { WELCOME_QUOTES } from './data/quotes';
 import { useTypewriterSound } from './hooks/use-typewriter-sound';
-import { OnboardingButtons } from './components/onboarding-buttons';
+import { StartModeCards } from './components/start-mode-cards';
 import { BottomLinks } from './components/bottom-links';
 import { FullGameSaveManager } from '@/lib/full-game-save-manager';
 import { timeManager } from '@/lib/time-manager';
@@ -211,38 +211,10 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
         {/* karta wznowienia (quick-win, tylko gdy istnieje zapis) */}
         {recentSave && <ResumeCard save={recentSave} onResume={onLoadSave} />}
 
-        {/* mini-podgląd wybranej przygody */}
-        {hasAdventure && adventureTitle && (
-          <div className="deco-corners relative mb-6 px-5 py-2 bg-card/70 border border-brass/30 z-20">
-            <p className="text-sm text-brass font-special-elite">
-              📖 Wybrano:{' '}
-              <span className="font-bold text-foreground">
-                {adventureTitle}
-              </span>
-            </p>
-          </div>
-        )}
-
-        {/* przyciski onboardingu */}
-        <OnboardingButtons
-          onUploadRules={onUploadRules}
-          onSelectAdventure={onSelectAdventure}
-          onSessionZero={onSessionZero}
-          onCreateCharacter={onCreateCharacter}
-          onPickPredefinedCharacter={onPickPredefinedCharacter}
-          onPickCharacter={onPickCharacter}
-          onStartGame={onStartGame}
-          onChoosePlayMode={onChoosePlayMode}
-          hasRules={hasRules}
-          hasAdventure={hasAdventure}
-          hasSessionZero={hasSessionZero}
-          hasCharacter={hasCharacter}
-          hasSavedCharacters={hasSavedCharacters}
-          isDuet={isDuet}
-          duetCharacterSlots={duetCharacterSlots}
-          onOpenCharacterSheet={onOpenCharacterSheet}
-          characters={characters}
-        />
+        {/* Krok 3 - Nowe karty trybów startu */}
+        <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-6 w-[min(900px,90vw)] justify-center items-center z-20 mt-2">
+          <StartModeCards />
+        </div>
 
         {/* dolne linki (wczytaj / klucze / zimny start) */}
         <div className="mt-3">

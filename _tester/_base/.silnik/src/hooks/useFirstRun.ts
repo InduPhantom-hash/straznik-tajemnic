@@ -32,8 +32,6 @@ export interface FirstRunState {
 }
 
 export function useFirstRun(): FirstRunState {
-  const localMode = true;
-
   const [loading, setLoading] = useState(true);
   const [hasKey, setHasKey] = useState(false);
   const [rulesCount, setRulesCount] = useState<number>(0);
@@ -83,8 +81,8 @@ export function useFirstRun(): FirstRunState {
     };
   }, [checkRules]);
 
-  // W trybie lokalnym serwer ma fallback GEMINI_API_KEY → klucz "obecny" dla gracza.
-  const keyOk = localMode || hasKey;
+  // Wymuszenie fizycznej obecności klucza w localStorage dla gracza.
+  const keyOk = hasKey;
   const rulesOk = rulesCount > 0;
   const canPlay = keyOk && rulesOk;
   // Pokazuj wizard gdy brak klucza/zasad LUB gdy gracz nie przeszedł jeszcze onboardingu

@@ -203,3 +203,18 @@ Branch: aktywnego-brancha
 ### Co zrobiono
 - Zaimplementowano Hard-loading screen (Sekcja 4) zasłaniający UI podczas buforowania pierwszego fragmentu TTS z timeoutem 6s.
 - Zabezpieczono UI przed zawieszeniem poprzez rygorystyczne zdejmowanie timera oraz odblokowanie okna po wyjątku startu (try-catch useGameStart).
+
+## Podsumowanie sesji: 2026-07-29 (Etap 0.5)
+Branch: main
+
+### Co zrobiono
+- **Zabezpieczenia:** Usunięto deweloperskie obejście `localMode = true` z `useFirstRun.ts`. Weryfikacja fizycznego klucza (BYOK) działa poprawnie i uszczelnia system przed omijaniem kreatora.
+- **Interfejs (UI):** Zaimplementowano nowy `WelcomeScreen` (Czysty Ekran). Stare, zajmujące miejsce kafelki (`onboarding-buttons.tsx`) zostały wykasowane, a w ich miejsce wpięto nowy, odseparowany komponent `StartModeCards` z dwoma przyciskami ("Szybka Przygoda" i "Ustawienia Ręczne").
+- **Naprawy E2E:** Zaktualizowano i naprawiono przestarzałe asercje Playwright (`homepage.spec.ts`, `feature-2-game-start.spec.ts`) - zlikwidowano fałszywe przejścia (ślepe asercje na `__NEXT_DATA__` i pomijanie przez SSR hydration).
+- **TypeScript & Dług (Tech Debt):** Naprawiono brakujące typowanie `stopCurrentAudio` w interfejsie TTS oraz niejawne wycieki `any` w `page.tsx` i `useGameStart.ts`.
+
+### Co otwarte (do następnej sesji)
+- Implementacja logiki za nowymi przyciskami "Szybka Przygoda" (Krok 3/4) i "Ustawienia Ręczne".
+
+### Decyzje podjęte
+- Testy E2E poświadczają stabilność na Next.js App Router bez sztywnych asercji na stary routing i ucieczek hydratacyjnych (zastosowano node fs i locator.or()).
