@@ -49,10 +49,10 @@ export function extractAcquiredItemProposals(
 export function inferDocumentType(item: { name: string; description?: string }): DocumentSubType {
   const text = `${item.name} ${item.description || ''}`.toLocaleLowerCase('pl-PL');
   
-  if (/prasow|gazety|dziennikarsk|reporter/.test(text)) return 'press_pass';
+  if (/prasow|dziennikarsk|reporter/.test(text)) return 'press_pass';
   if (/dowód|odznaka|paszport|legitymacj|karta tożsamości|przepustka/.test(text)) return 'id_card';
   if (/kopert|akta|dowodów|policyj|śledcz|zeznan|raport polic/.test(text)) return 'evidence_envelope';
-  if (/gazet|kurier|dziennik|artykuł|nagłówek|wycinek/.test(text)) return 'newspaper';
+  if (/gazet|kurier|artykuł|nagłówek|wycinek/.test(text)) return 'newspaper';
   if (/pismo|dekret|oficjaln|rządow|sądow|zaświadczen|nakaz/.test(text)) return 'official_document';
   if (/pamiętnik|dziennik|notatnik|zapiski|szkic/.test(text)) return 'journal_page';
   if (/list|telegram|korespondencj|wiadomość|kartka/.test(text)) return 'letter';
@@ -109,6 +109,7 @@ export function createAcquiredEquipmentSeed(
     name: proposal.name,
     description: proposal.description,
     visualTreatment: proposal.visualTreatment,
+    ...(category === 'document' ? { documentType: inferDocumentType(proposal) } : {}),
     ...(damageStr || skill || rangeStr
       ? {
           modifiers: {

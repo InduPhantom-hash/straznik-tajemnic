@@ -123,3 +123,19 @@ Branch: main
 
 ### Decyzje podjęte
 - Pomyślnie użyto systemu testowego `convert-entries.test.ts` do weryfikacji izolacji logiki Dziennika z Ekwipunkiem. Odstąpiono od modyfikacji plików CI/CD w ramach tej sesji.
+
+## Podsumowanie sesji: 2026-07-29
+Branch: main
+
+### Co zrobiono
+- Zidentyfikowano właściwą ścieżkę kodową: odkryliśmy, że aktualny kod silnika gry znajduje się w `_tester/_base/.silnik/`, a główny `src/` to martwa odnoga.
+- Rozszerzono `createAcquiredEquipmentSeed` w parserze ekwipunku (`_tester/_base/.silnik/src/lib/acquired-equipment.ts`), tak aby po przyznaniu dokumentu na czacie poprawnie przypisywany był właściwy `documentType`.
+- Poprawiono błędy z wyrażeniami regularnymi dla typów dokumentów dziennikarskich (`press_pass`) i gazet (`newspaper`) w `inferDocumentType`.
+- Utworzono pliki z planami i zapiskami dla sztucznej inteligencji w `.agent/`.
+
+### Co otwarte (do następnej sesji)
+- Brak dobrego pokrycia testami nowej funkcji przypisywania podtypów w pliku `acquired-equipment.test.ts`.
+- Naprawa uszkodzonych, starych testów (PDF, Investigator Board, generate-starting), które nie przechodzą w silniku.
+
+### Decyzje podjęte
+- Konsekwentnie ignorujemy testy z głównego katalogu na rzecz testowania zaizolowanego silnika w `_tester/_base/.silnik/`.
