@@ -12,6 +12,7 @@ export type PredefinedCharacterArchetype =
 export interface PredefinedCharacter extends Character {
   era: PredefinedCharacterEra;
   archetype: PredefinedCharacterArchetype;
+  tacticalNotes?: string;
 }
 
 // Baza 30 predefiniowanych postaci zbalansowanych pod mechanike CoC 7e (3 ery x 5 archetypow x 2 plcie = 30 postaci)
@@ -61,7 +62,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Wnikliwy obserwator, świetny w wywiadach i zbieraniu plotek.',
+    notes: '',
+    tacticalNotes: 'Wnikliwy obserwator, świetny w wywiadach i zbieraniu plotek.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -136,7 +138,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Doskonała w ukrywaniu się, śledzeniu celów i otwieraniu zamków.',
+    notes: '',
+    tacticalNotes: 'Doskonała w ukrywaniu się, śledzeniu celów i otwieraniu zamków.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -211,7 +214,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Chodząca encyklopedia. Zna martwe języki i stare księgi.',
+    notes: '',
+    tacticalNotes: 'Chodząca encyklopedia. Zna martwe języki i stare księgi.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -289,7 +293,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Potrafi odczytać najstarsze pisma i ocenić każdy artefakt.',
+    notes: '',
+    tacticalNotes: 'Potrafi odczytać najstarsze pisma i ocenić każdy artefakt.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -368,7 +373,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Mistrz broni palnej długiej, odporny psychicznie.',
+    notes: '',
+    tacticalNotes: 'Mistrz broni palnej długiej, odporny psychicznie.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -445,7 +451,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Bardzo zwinna, świetna w nawigacji i wspinaczce.',
+    notes: '',
+    tacticalNotes: 'Bardzo zwinna, świetna w nawigacji i wspinaczce.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -520,7 +527,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Ekspert od medycyny, biologii i identyfikacji trucizn.',
+    notes: '',
+    tacticalNotes: 'Ekspert od medycyny, biologii i identyfikacji trucizn.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -596,7 +604,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Niezastąpiona w pierwszej pomocy i podnoszeniu morali zespołu.',
+    notes: '',
+    tacticalNotes: 'Niezastąpiona w pierwszej pomocy i podnoszeniu morali zespołu.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -677,8 +686,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Klimat noir. Szorstki w obyciu, ale ma miękkie serce do sprawiedliwości.',
+    notes: '',
+    tacticalNotes: 'Klimat noir. Szorstki w obyciu, ale ma miękkie serce do sprawiedliwości.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -759,7 +768,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Wyśmienita w rozmowach i badaniu starych archiwów.',
+    notes: '',
+    tacticalNotes: 'Wyśmienita w rozmowach i badaniu starych archiwów.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -839,7 +849,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Szeroka wiedza akademicka, geologiczna i umiejętności przetrwania.',
+    notes: '',
+    tacticalNotes: 'Szeroka wiedza akademicka, geologiczna i umiejętności przetrwania.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -910,7 +921,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Niezrównana w researchu, znajomości historii i starych języków.',
+    notes: '',
+    tacticalNotes: 'Niezrównana w researchu, znajomości historii i starych języków.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -987,8 +999,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Doskonały w walce, posługiwaniu się bronią palną i przetrwaniu w trudnych warunkach.',
+    notes: '',
+    tacticalNotes: 'Doskonały w walce, posługiwaniu się bronią palną i przetrwaniu w trudnych warunkach.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1059,7 +1071,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Niezwykle zręczna, zna się na maszynach i nawigacji.',
+    notes: '',
+    tacticalNotes: 'Niezwykle zręczna, zna się na maszynach i nawigacji.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1138,8 +1151,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Najlepszy specjalista od leczenia ran fizycznych i znajomości biologii.',
+    notes: '',
+    tacticalNotes: 'Najlepszy specjalista od leczenia ran fizycznych i znajomości biologii.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1217,8 +1230,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Kluczowa postać do leczenia utraty Poczytalności (SAN) i analizowania zachowań.',
+    notes: '',
+    tacticalNotes: 'Kluczowa postać do leczenia utraty Poczytalności (SAN) i analizowania zachowań.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1301,8 +1314,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Świetny w technologiach cyfrowych, pozyskiwaniu informacji i wywiadach.',
+    notes: '',
+    tacticalNotes: 'Świetny w technologiach cyfrowych, pozyskiwaniu informacji i wywiadach.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1378,7 +1391,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Mistrzyni hakowania, dyskrecji oraz walki wręcz obronnej.',
+    notes: '',
+    tacticalNotes: 'Mistrzyni hakowania, dyskrecji oraz walki wręcz obronnej.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1453,7 +1467,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Zna się na archeologii, historii i technologiach skanowania 3D.',
+    notes: '',
+    tacticalNotes: 'Zna się na archeologii, historii i technologiach skanowania 3D.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1524,8 +1539,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Geniusz lingwistyczny i analityczny, odczytuje najtrudniejsze kody.',
+    notes: '',
+    tacticalNotes: 'Geniusz lingwistyczny i analityczny, odczytuje najtrudniejsze kody.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1602,8 +1617,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Najwyższa sprawność bojowa, ekspert od broni palnej, taktyki i przetrwania.',
+    notes: '',
+    tacticalNotes: 'Najwyższa sprawność bojowa, ekspert od broni palnej, taktyki i przetrwania.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1680,8 +1695,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Wyjątkowo sprawna fizycznie, doskonała w robieniu zdjęć i wspinaczce.',
+    notes: '',
+    tacticalNotes: 'Wyjątkowo sprawna fizycznie, doskonała w robieniu zdjęć i wspinaczce.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1758,8 +1773,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Genialny chirurg, najlepszy w opatrywaniu najcięższych ran fizycznych.',
+    notes: '',
+    tacticalNotes: 'Genialny chirurg, najlepszy w opatrywaniu najcięższych ran fizycznych.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1835,8 +1850,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes:
-      'Kluczowa badaczka do stabilizowania zdrowia psychicznego (Poczytalności) zespołu.',
+    notes: '',
+    tacticalNotes: 'Kluczowa badaczka do stabilizowania zdrowia psychicznego (Poczytalności) zespołu.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1918,7 +1933,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Bardzo wysoka MOC. Ekspert od okultyzmu i starozytnych jezykow.',
+    notes: '',
+    tacticalNotes: 'Bardzo wysoka MOC. Ekspert od okultyzmu i starozytnych jezykow.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -1992,7 +2008,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Wysoka MOC i Szczescie. Perswazja i intuicja.',
+    notes: '',
+    tacticalNotes: 'Wysoka MOC i Szczescie. Perswazja i intuicja.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -2068,7 +2085,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Silna wola i szerokie wyksztalcenie. Ekspert od rzadkich ksiag.',
+    notes: '',
+    tacticalNotes: 'Silna wola i szerokie wyksztalcenie. Ekspert od rzadkich ksiag.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -2142,7 +2160,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Bardzo wysokie Szczescie (75). Intuicyjna i spostrzegawcza.',
+    notes: '',
+    tacticalNotes: 'Bardzo wysokie Szczescie (75). Intuicyjna i spostrzegawcza.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -2218,7 +2237,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Niezwykle silna wola. Wiedza o okultyzmie i badaniach terenowych.',
+    notes: '',
+    tacticalNotes: 'Niezwykle silna wola. Wiedza o okultyzmie i badaniach terenowych.',
     experience: {
       totalXP: 0,
       availableXP: 0,
@@ -2291,7 +2311,8 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
-    notes: 'Wysokie Szczęście. Intuicyjna i spostrzegawcza.',
+    notes: '',
+    tacticalNotes: 'Wysokie Szczęście. Intuicyjna i spostrzegawcza.',
     experience: {
       totalXP: 0,
       availableXP: 0,

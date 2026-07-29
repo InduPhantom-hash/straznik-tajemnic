@@ -106,7 +106,7 @@ export function PredefinedCharactersSelector({
   );
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
+  const [viewingCharacter, setViewingCharacter] = useState<PredefinedCharacter | null>(null);
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
   if (!isOpen) return null;
@@ -517,13 +517,13 @@ export function PredefinedCharactersSelector({
                     </div>
                   )}
 
-                  {viewingCharacter.notes && (
+                  {(viewingCharacter as PredefinedCharacter).tacticalNotes && (
                     <div className="border border-brass/20 bg-[#16130f] p-3">
                       <span className="font-special-elite text-xs text-brass uppercase tracking-[0.1em] block mb-1">
                         Notatki MG / Wskazówki
                       </span>
                       <p className="font-serif text-xs text-brass/90 italic leading-relaxed whitespace-pre-line">
-                        {viewingCharacter.notes}
+                        {(viewingCharacter as PredefinedCharacter).tacticalNotes}
                       </p>
                     </div>
                   )}

@@ -71,36 +71,41 @@
 - [ ] **Postaci Historyczne:** Wierne dane biograficzne z opcjonalnymi warstwami nadprzyrodzonymi dla przygód.
 - [ ] **Izolacja Prawna (Two-Tier RAG):** Wbudowany RAG (Public Domain + syntezy) vs Prywatny RAG Gracza (wgrane pliki PDF z prawem do cytowania stron w ramach dozwolonego użytku).
 
-### 📌 Etap 3.6 - Stabilizacja Immersji (Zaległości z przeglądu planu)
+### 📌 Etap 3.6 - Stabilizacja Immersji (UI i Zaległości z Sekcji 3 i 4)
+- [x] **Nowe Widoki Diegetyczne:** Stworzenie dedykowanych układów CSS w `DiegeticDocumentViewer` dla notatnika (`journal_page`) i biletu (`ticket`).
+- [ ] **Przebudowa Predefiniowanych Badaczy (Sekcja 3):** Modyfikacja metadanych 40 postaci w `predefined-characters.ts`.
+- [ ] **Awatary w Czecie (Sekcja 4):** Integracja portretów NPC w wypowiedziach AI (`render-narrative-with-images.tsx`).
 - [ ] **Synchronizacja Parsera Dokumentów:** Przeniesienie logiki przypisywania `documentType` z silnika testowego (`_tester`) do głównej aplikacji (`src/lib/acquired-equipment.ts`).
-- [ ] **Nowe Widoki Diegetyczne:** Stworzenie dedykowanych układów CSS w `DiegeticDocumentViewer` dla notatnika (`journal_page`) i biletu (`ticket`) z poprawką w `types.ts`.
 
-### 📌 Etap 0.5 - Wprowadzenie Gracza (Onboarding & Quick Setup Flow)
+### 📌 Etap 0.5 - Wprowadzenie Gracza (Onboarding & Ekran Startowy)
 > **Cel:** Uporządkowany proces pierwszego uruchomienia gry przy Zimnym Starcie.
 
-- [ ] **Krok 1: Wybór Języka (PL / EN):** Ekran inicjalny wyboru wersji językowej.
-- [ ] **Krok 2: Weryfikacja / Klucz API Gemini & Zasady:** Walidacja klucza API oraz stan wgranego podręcznika.
+- [ ] **Krok 0: Hard-loading Screen (Sekcja 4):** "Twardy" czarny ekran ładowania blokujący grę na czas inicjalizacji bufora TTS.
+- [ ] **Krok 1: Weryfikacja / Klucz API Gemini & Zasady:** Walidacja klucza API oraz stan wgranego podręcznika.
+- [ ] **Krok 2: Czysty Ekran Startowy (Sekcja 6):** Wyczyszczenie obcych linków z `page.tsx` oraz odświeżenie katalogu predefiniowanych przygód.
 - [ ] **Krok 3: Wybór Trybu Startu:**
-  - ⚡ **3.1 Quick Setup (Szybka Przygoda):** Wybór liczby graczy (Solo / Duet / Hot Seat) + zwięzłe opisy przygotowanych przygód z przypisanymi do nich dedykowanymi postaciami Badaczy.
-  - 🛠️ **3.2 Manual Setup (Manualny Setup):** Wejście do obecnego menu głównego (Tryb Gry, Wybierz Przygodę, Sesja Zero, Stwórz/Wybierz postać, Rozpocznij).
+  - ⚡ **3.1 Quick Setup (Szybka Przygoda):** Wybór liczby graczy (Solo / Duet / Hot Seat) + zwięzłe opisy przygotowanych przygód z przypisanymi postaciami.
+  - 🛠️ **3.2 Manual Setup (Manualny Setup):** Wejście do obecnego menu głównego (Tryb Gry, Wybierz Przygodę, Sesja Zero, Stwórz postać).
 
-### 📌 Etap 0 - Bezpieczny System Aktualizacji
-- [ ] Integracja wydań z GitHub Releases (manifest, checksum, auto-update).
-- [ ] Atomowa podmiana kodu i skrypt tworzenia backupów przed aktualizacją.
-- [ ] Rozdzielenie katalogu kodu od katalogu danych użytkownika (`data/saves/`, `data/rag/`).
+### 📌 Etap 5 - Wielojęzyczność (PL/EN) i Architektura (Sekcja 7)
+- [ ] Przełącznik flagi PL/EN na ekranie startowym (`page.tsx`) bez globalnego `next-i18next`.
+- [ ] Wymuszenie w kontekście LLM działania w wybranym języku (`run-chat-pipeline.ts`).
+- [ ] Angielski Master Prompt MG oraz weryfikacja angielskich źródeł w RAG.
+
+### 📌 Etap 6 - Dźwięk: TTS Słuchowisko i Lokalne Dyktowanie (Sekcja 5)
+- [ ] **Dynamiczny TTS Słuchowisko (Sekcja 5):** Zróżnicowanie modulacji TTS (emocje, płeć) na podstawie tagów z promptu AI (`route.ts`).
+- [ ] **Telemetryczny Cost Control (Sekcja 5):** Aktualizacja stawek użycia API w logach tokenów (`ai-cost-tracker.ts`).
+- [ ] **Lokalne Dyktowanie Głosowe:** Integracja natywnego runtime'u `whisper.cpp` (model `base` Q5/Q8) dla dyktowania offline bez chmury.
 
 ### 📌 Etap 4 - Adventure Creator & Graf Stanu
 - [ ] Baza grafowa stanu przygody (SQLite Graph / JSON State).
 - [ ] Generator przygód (Adventure Creator Engine) na podstawie 3-4 założeń gracza.
 - [ ] System wyliczania nagłówków relacji wstrzykiwanych do każdego promptu MG.
 
-### 📌 Etap 5 - Wielojęzyczność (PL/EN)
-- [ ] Warstwa i18n dla interfejsu użytkownika.
-- [ ] Angielski Master Prompt MG oraz weryfikacja angielskich źródeł w RAG.
-
-### 📌 Etap 6 - Lokalne Dyktowanie Głosowe (Whisper.cpp)
-- [ ] Integracja natywnego runtime'u `whisper.cpp` (model `base` Q5/Q8).
-- [ ] Dyktowanie wiadomości offline bez wysyłania nagrań audio do chmury.
+### 📌 Etap 0 - Bezpieczny System Aktualizacji
+- [ ] Integracja wydań z GitHub Releases (manifest, checksum, auto-update).
+- [ ] Atomowa podmiana kodu i skrypt tworzenia backupów przed aktualizacją.
+- [ ] Rozdzielenie katalogu kodu od katalogu danych użytkownika (`data/saves/`, `data/rag/`).
 
 ---
 

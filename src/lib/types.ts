@@ -275,7 +275,8 @@ export type DocumentSubType =
   | 'letter' // List osobisty / telegram
   | 'newspaper' // Artykuł / wycinek z prasowy
   | 'official_document' // Oficjalne pismo rządowe / urzędowe
-  | 'journal_page'; // Pamiętnik / notatka ręczna
+  | 'journal_page' // Pamiętnik / notatka ręczna
+  | 'ticket'; // Bilet transportowy / wejściówka
 
 export interface EquipmentItem {
   id: string;

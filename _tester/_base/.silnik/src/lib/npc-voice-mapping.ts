@@ -374,3 +374,61 @@ export function resolveNpcVoice(
 
   return undefined;
 }
+
+/**
+ * Ładuje mapę `name (lowercase) → portraitUrl` z localStorage gm_npcs.
+ */
+export function loadNpcPortraitMap(): Map<string, string> {
+  const map = new Map<string, string>();
+  if (typeof window === 'undefined') return map;
+
+  try {
+    const saved = window.localStorage.getItem('gm_npcs');
+    if (!saved) return map;
+    const npcs = JSON.parse(saved) as Array<Partial<NPC>>;
+    for (const npc of npcs) {
+      if (npc.name && npc.portraitUrl) {
+        map.set(npc.name.toLowerCase(), npc.portraitUrl);
+      }
+    }
+  } catch {
+    // localStorage corruption
+  }
+
+  return map;
+}
+
+/**
+ * Wyszukuje portret NPC z mapy lub próbuje dopasować do predefiniowanego awatara.
+ */
+export function resolveNpcPortrait(
+  speakerName: string,
+  npcPortraitMap?: Map<string, string>
+): string | undefined {
+  if (!speakerName) return undefined;
+
+  const rawLower = speakerName.trim().toLowerCase();
+  
+  if (npcPortraitMap) {
+    const directMatch = npcPortraitMap.get(rawLower);
+    if (directMatch) return directMatch;
+  }
+
+  const cleanName = rawLower.replace(
+    /^(doktor|dr|profesor|prof|inspektor|insp|kapitan|kap|pan|pani|panna|ojciec|brat|siostra|sierżant|detektyw)\.?\s+/i,
+    ''
+  );
+
+  if (npcPortraitMap && cleanName && npcPortraitMap.has(cleanName)) {
+    return npcPortraitMap.get(cleanName);
+  }
+
+  // Fallback: zgadujemy ścieżkę do predefiniowanego pliku w /public/portraits/predefined/
+  const dashName = (cleanName || rawLower).replace(/['"]/g, '').trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  if (dashName) {
+    return `/portraits/predefined/${dashName}.webp`;
+  }
+
+  return undefined;
+}
+

@@ -185,3 +185,16 @@ Branch: main
 
 ### Decyzje podjęte
 - Wybrano flat design wspierany wyłącznie wbudowanym Tailwindem (bez zaciągania assetów z zewnątrz). Zaakceptowano surowe testowanie w Spec Quality Gate przed kodowaniem UI.
+
+## Podsumowanie sesji: 2026-07-29
+Branch: aktywnego-brancha
+
+### Co zrobiono
+- Zintegrowano Roadmapę do state.md
+- Zrealizowano stabilizację immersji: notatki PredefinedCharacter, portrety NPC w render-sections, parser biletów w acquired-equipment
+
+### Co otwarte
+- Etap 3.5: Generatory Fabularne
+
+### Decyzje podjęte
+- Rozszerzono PredefinedCharacter o tacticalNotes bez dotykania bazowego Character
