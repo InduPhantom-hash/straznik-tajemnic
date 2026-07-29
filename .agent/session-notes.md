@@ -218,3 +218,16 @@ Branch: main
 
 ### Decyzje podjęte
 - Testy E2E poświadczają stabilność na Next.js App Router bez sztywnych asercji na stary routing i ucieczek hydratacyjnych (zastosowano node fs i locator.or()).
+
+## Podsumowanie sesji: 2026-07-29 (Sekcja 4 - UI i Ekran Ładowania)
+Branch: main
+
+### Co zrobiono
+- **Faza 1 (UI Dziennika Sesji)**: Masowa aktualizacja `session-journal.tsx` (w katalogu głównym i `.silnik`). Usunięto mosiężne i brązowe kolory (`brass`, `#14110c`, `#bfa15f`) na rzecz chłodnego grafitu i szmaragdowych akcentów (`zinc-950`, `emerald-500`), ujednolicając styl z resztą UI Badacza.
+- **Faza 2 (Hard-Loading Screen)**: Całkowicie przebudowano ekran ładowania TTS (`tts-hard-loading-screen.tsx`). Zamiast półprzezroczystego tła jest nieprzejrzysta czerń z pulsującą szmaragdową poświatą, a ikony i fonty zmieniły kolor z mosiądzu na zieleń.
+
+### Co otwarte (do następnej sesji)
+- **Faza 3 (Portrety NPC i Sceny w czacie)**: Wdrożenie zaktualizowanego planu – wymuszenie na LLM używania tagu `[PORTRET: ...]` i `[SCENA: ...]`, zmiana logiki parsera (`media-parser.ts`) i `useChat.ts`, aby przekazywać proporcje `aspectRatio` do `/api/imagen`, a na koniec renderować avatary ze stylem w linii w komponencie wiadomości.
+
+### Decyzje podjęte
+- **API Obrazów**: Odkryto, że `/api/imagen` i natywne API Gemini 2.5 Flash obsługuje pole `aspectRatio`. Dzięki temu rezygnujemy ze skomplikowanego kadrowania CSS, przerzucając to na LLM i API. Zdefiniowano twarde "Boundaries" dla Fazy 3.

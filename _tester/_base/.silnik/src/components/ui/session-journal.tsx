@@ -455,17 +455,17 @@ export function SessionJournal({
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4">
       {/* RPG-styled Container */}
-      <div className="bg-gradient-to-b from-[#14110c] to-background border-4 border-brass/30 rounded-xl shadow-2xl w-[85vw] max-w-[85vw] h-[85vh] flex flex-col overflow-hidden text-[#e2d4c9]">
+      <div className="bg-zinc-950/90 backdrop-blur-xl border-4 border-emerald-900/40 rounded-xl shadow-2xl w-[85vw] max-w-[85vw] h-[85vh] flex flex-col overflow-hidden text-zinc-300">
         {/* Nagłówek i Główne Zakładki */}
-        <div className="bg-[#120f0c] border-b-2 border-brass/35 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-zinc-900/80 border-b-2 border-emerald-900/50 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-7 w-7 text-[#bfa15f]" />
+            <BookOpen className="h-7 w-7 text-emerald-400" />
             <div>
-              <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-brass drop-shadow-md">
+              <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-emerald-500 drop-shadow-md">
                 DZIENNIK SESJI
               </h2>
               {isShared && participantNames.length > 0 && (
-                <p className="text-xs font-special-elite tracking-wider text-[#bfa15f]">
+                <p className="text-xs font-special-elite tracking-wider text-emerald-400">
                   Wspólny dla: {participantNames.join(' i ')}
                 </p>
               )}
@@ -479,8 +479,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 activeTab === 'board'
-                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
+                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
               📌 Tablica Badacza
@@ -490,8 +490,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 (activeTab === 'npc' || activeTab === 'location' || activeTab === 'item' || activeTab === 'quest')
-                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
+                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
               🔍 Odkrycia
@@ -506,8 +506,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 activeTab === 'journal'
-                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
+                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
               Kronika
@@ -522,8 +522,8 @@ export function SessionJournal({
               className={cn(
                 'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
                 activeTab === 'note'
-                  ? 'bg-[#14110c] text-brass border-brass/35 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#120f0c] text-muted-foreground/60 border-brass/35 border-b-brass/35 hover:text-brass hover:bg-brass/5'
+                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
               Notatki
@@ -539,7 +539,7 @@ export function SessionJournal({
           <div className="flex gap-2 items-center">
             <Button
               onClick={() => setShowAddForm(true)}
-              className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
+              className="bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40 font-serif"
             >
               <Plus className="h-4 w-4 mr-1" /> Dodaj notatkę
             </Button>
@@ -551,21 +551,21 @@ export function SessionJournal({
                   setBoardRelations(MOCK_BOARD_RELATIONS);
                 });
               }}
-              className="bg-[#3a2518] hover:bg-[#503422] text-[#bfa15f] border border-[#bfa15f]/40 font-serif text-xs"
+              className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-400 border border-emerald-500/40 font-serif text-xs"
               title="Wypełnij dziennik przykładowymi wpisami testowymi"
             >
               🧪 Wypełnij testowo
             </Button>
             <Button
               onClick={exportToMarkdown}
-              className="bg-[#2c4021] hover:bg-[#39532b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
+              className="bg-emerald-800/80 hover:bg-emerald-700/80 text-emerald-100 border border-emerald-500/40 font-serif"
             >
               <Download className="h-4 w-4 mr-1" /> Eksport MD
             </Button>
             {onClose && (
               <button
                 onClick={onClose}
-                className="ml-3 p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-[#f4ebd0] transition-colors"
+                className="ml-3 p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-emerald-100 transition-colors"
                 title="Zamknij dziennik"
               >
                 <X className="h-5 w-5" />
@@ -575,20 +575,20 @@ export function SessionJournal({
         </div>
 
         {/* Wyszukiwarka */}
-        <div className="bg-[#18100b] border-b border-[#3a2518] px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center bg-[#0d0906] rounded-md px-3 py-1.5 w-full sm:max-w-md border border-[#3a2518]">
+        <div className="bg-[#18100b] border-b border-emerald-900/30 px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center bg-zinc-950 rounded-md px-3 py-1.5 w-full sm:max-w-md border border-emerald-900/30">
             <Search className="h-4 w-4 text-[#8a7667] mr-2" />
             <input
               type="text"
               placeholder="Wyszukaj frazę..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm w-full outline-none text-[#e2d4c9] placeholder-[#5a4d43]"
+              className="bg-transparent text-sm w-full outline-none text-zinc-300 placeholder-emerald-900/60"
             />
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#1a1610] to-[#100d09] text-[#e2d4c9] journal-scroll">
+        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#1a1610] to-[#100d09] text-zinc-300 journal-scroll">
           {/* 0. SEKCJA TABLICY BADACZA */}
           {activeTab === 'board' && (
             <div className="flex-1 flex flex-col overflow-hidden journal-scroll">
@@ -654,8 +654,8 @@ export function SessionJournal({
           {activeTab === 'journal' && (
             <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c] space-y-6">
               <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex justify-between items-center border-b border-[#3a2518] pb-2">
-                  <h3 className="text-xl font-serif font-bold text-[#f4ebd0]">
+                <div className="flex justify-between items-center border-b border-emerald-900/30 pb-2">
+                  <h3 className="text-xl font-serif font-bold text-emerald-100">
                     Chronologia Wydarzeń
                   </h3>
                   <span className="text-sm text-[#8a7667]">
@@ -663,19 +663,19 @@ export function SessionJournal({
                   </span>
                 </div>
 
-                <div className="relative border-l-2 border-[#bfa15f]/40 pl-6 ml-4 space-y-6">
+                <div className="relative border-l-2 border-emerald-500/40 pl-6 ml-4 space-y-6">
                   {filteredEntries.map((entry) => (
                     <div key={entry.id} className="relative">
                       {/* Oś czasu */}
-                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-[#18120c] rounded-full h-4 w-4"></span>
+                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-zinc-950 rounded-full h-4 w-4"></span>
 
-                      <div className="bg-[#120905] border border-[#3a2518] rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-[#120905] border border-emerald-900/30 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="text-lg font-serif font-bold text-[#f4ebd0] flex items-center gap-2">
+                            <h4 className="text-lg font-serif font-bold text-emerald-100 flex items-center gap-2">
                               {entry.title}
                               {entry.isAutoGenerated && (
-                                <span className="text-[10px] bg-[#273a4b] text-[#f4ebd0] border border-[#bfa15f]/30 px-1.5 py-0.5 rounded uppercase font-sans">
+                                <span className="text-[10px] bg-emerald-900/70 text-emerald-100 border border-emerald-500/30 px-1.5 py-0.5 rounded uppercase font-sans">
                                   Auto
                                 </span>
                               )}
@@ -700,7 +700,7 @@ export function SessionJournal({
                           <div className="flex gap-1">
                             <button
                               onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#f4ebd0] hover:bg-[#3a2518] rounded transition-colors"
+                              className="p-1 text-emerald-100 hover:bg-emerald-900/60 rounded transition-colors"
                             >
                               <Edit3 className="h-4 w-4" />
                             </button>
@@ -714,12 +714,12 @@ export function SessionJournal({
                         </div>
 
                         {entry.imageStatus === 'pending' ? (
-                          <div className="mt-3 my-2 h-44 rounded border border-[#bfa15f]/30 bg-[#0d0906] p-4 flex flex-col items-center justify-center gap-2 text-[#bfa15f]">
-                            <div className="w-6 h-6 border-2 border-[#bfa15f] border-t-transparent rounded-full animate-spin"></div>
+                          <div className="mt-3 my-2 h-44 rounded border border-emerald-500/30 bg-zinc-950 p-4 flex flex-col items-center justify-center gap-2 text-emerald-400">
+                            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                             <span className="text-xs font-serif italic">Malowanie ilustracji...</span>
                           </div>
                         ) : entry.imageUrl ? (
-                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-[#bfa15f]/30 bg-[#0d0906] p-1">
+                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-emerald-500/30 bg-zinc-950 p-1">
                             <SafeImage
                               src={entry.imageUrl}
                               alt={entry.title}
@@ -730,7 +730,7 @@ export function SessionJournal({
                             />
                           </div>
                         ) : null}
-                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-[#e2d4c9]">
+                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-zinc-300">
                           {entry.content}
                         </p>
 
@@ -739,7 +739,7 @@ export function SessionJournal({
                             {entry.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="text-[11px] bg-[#3a2518] text-[#f4ebd0] px-2 py-0.5 rounded border border-[#bfa15f]/30"
+                                className="text-[11px] bg-emerald-900/60 text-emerald-100 px-2 py-0.5 rounded border border-emerald-500/30"
                               >
                                 #{tag}
                               </span>
@@ -962,14 +962,14 @@ function AddEntryForm({
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-[#e2d4c9] font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
-          <h3 className="text-xl font-bold text-[#f4ebd0]">
+      <div className="bg-[#1c120c] border-4 border-emerald-900/30 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-zinc-300 font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3 mb-5">
+          <h3 className="text-xl font-bold text-emerald-100">
             Dodaj nowy wpis do księgi przygód
           </h3>
           <button
             onClick={onCancel}
-            className="text-[#a29182] hover:text-[#f4ebd0]"
+            className="text-[#a29182] hover:text-emerald-100"
           >
             <X className="h-5 w-5" />
           </button>
@@ -977,7 +977,7 @@ function AddEntryForm({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Typ wpisu
             </label>
             <select
@@ -988,7 +988,7 @@ function AddEntryForm({
                   type: e.target.value as JournalEntryType,
                 })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
             >
               <option value="quest">Misja (Quest)</option>
               <option value="journal">Wpis do Dziennika (Kronika)</option>
@@ -1007,7 +1007,7 @@ function AddEntryForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
                 Dzień kampanii
               </label>
               <input
@@ -1020,11 +1020,11 @@ function AddEntryForm({
                     gameDay: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
                 Godzina
               </label>
               <input
@@ -1038,14 +1038,14 @@ function AddEntryForm({
                     gameHour: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               />
             </div>
           </div>
 
           {formData.type === 'quest' && (
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
                 Status misji
               </label>
               <select
@@ -1059,7 +1059,7 @@ function AddEntryForm({
                       | 'failed',
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               >
                 <option value="active">Aktywna</option>
                 <option value="completed">Ukończona</option>
@@ -1069,7 +1069,7 @@ function AddEntryForm({
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Tytuł wpisu
             </label>
             <input
@@ -1078,14 +1078,14 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none placeholder-[#5a4d43]"
+              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none placeholder-emerald-900/60"
               placeholder="np. Śledztwo w Domu Corbitów"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Treść / Opis
             </label>
             <Textarea
@@ -1093,22 +1093,22 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              className="min-h-32 bg-[#0d0906] text-[#e2d4c9] border-[#3a2518] focus-visible:ring-[#bfa15f] placeholder-[#5a4d43]"
+              className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f] placeholder-emerald-900/60"
               placeholder="Zapisz szczegóły przygody lub informacje o postaci/przedmiocie..."
               required
             />
           </div>
 
           {formData.type === 'quest' && (
-            <div className="border border-[#3a2518] p-4 rounded-md bg-[#0d0906]/40 space-y-3">
-              <label className="block text-sm font-serif font-bold text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+            <div className="border border-emerald-900/30 p-4 rounded-md bg-zinc-950/40 space-y-3">
+              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-emerald-900/30 pb-1">
                 Cele zadania
               </label>
               <div className="space-y-2">
                 {formData.objectives.map((obj, i) => (
                   <div
                     key={obj.id}
-                    className="flex justify-between items-center bg-[#0d0906] p-2 rounded border border-[#3a2518] text-sm"
+                    className="flex justify-between items-center bg-zinc-950 p-2 rounded border border-emerald-900/30 text-sm"
                   >
                     <span className="truncate">
                       {i + 1}. {obj.description}
@@ -1129,7 +1129,7 @@ function AddEntryForm({
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   placeholder="Nowy cel misji..."
-                  className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-sm text-[#e2d4c9] outline-none focus:border-[#bfa15f]"
+                  className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-sm text-zinc-300 outline-none focus:border-emerald-500"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
                   }
@@ -1137,7 +1137,7 @@ function AddEntryForm({
                 <Button
                   type="button"
                   onClick={addObjective}
-                  className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                  className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
                 >
                   Dodaj cel
                 </Button>
@@ -1146,14 +1146,14 @@ function AddEntryForm({
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Tagi
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {formData.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#5c3e21]/60 text-[#f4ebd0] border border-[#bfa15f]/25"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-900/50/60 text-emerald-100 border border-emerald-500/25"
                 >
                   #{tag}
                   <button
@@ -1171,7 +1171,7 @@ function AddEntryForm({
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none placeholder-[#5a4d43]"
+                className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none placeholder-emerald-900/60"
                 placeholder="Dodaj własny tag..."
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
@@ -1180,7 +1180,7 @@ function AddEntryForm({
               <Button
                 type="button"
                 onClick={() => addTag(newTag)}
-                className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
               >
                 +
               </Button>
@@ -1191,7 +1191,7 @@ function AddEntryForm({
                   key={tag}
                   type="button"
                   onClick={() => addTag(tag)}
-                  className="px-2 py-0.5 text-xs bg-[#0d0906] hover:bg-[#1a110a] text-[#8a7667] rounded border border-[#3a2518]"
+                  className="px-2 py-0.5 text-xs bg-zinc-950 hover:bg-[#1a110a] text-[#8a7667] rounded border border-emerald-900/30"
                 >
                   {tag}
                 </button>
@@ -1199,10 +1199,10 @@ function AddEntryForm({
             </div>
           </div>
 
-          <div className="flex gap-3 pt-3 border-t border-[#3a2518]">
+          <div className="flex gap-3 pt-3 border-t border-emerald-900/30">
             <Button
               type="submit"
-              className="flex-1 py-3 bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40"
+              className="flex-1 py-3 bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40"
               disabled={!formData.title.trim() || !formData.content.trim()}
             >
               Zapisz wpis
@@ -1279,14 +1279,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-[#3a2518] rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-[#e2d4c9] font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-[#3a2518] pb-3 mb-5">
-          <h3 className="text-xl font-bold text-[#f4ebd0]">
+      <div className="bg-[#1c120c] border-4 border-emerald-900/30 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-zinc-300 font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3 mb-5">
+          <h3 className="text-xl font-bold text-emerald-100">
             Edytuj wpis w księdze przygód
           </h3>
           <button
             onClick={onCancel}
-            className="text-[#a29182] hover:text-[#f4ebd0]"
+            className="text-[#a29182] hover:text-emerald-100"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1294,7 +1294,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Typ wpisu
             </label>
             <select
@@ -1305,7 +1305,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   type: e.target.value as JournalEntryType,
                 })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
             >
               <option value="quest">Misja (Quest)</option>
               <option value="journal">Wpis do Dziennika (Kronika)</option>
@@ -1324,7 +1324,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
                 Dzień kampanii
               </label>
               <input
@@ -1337,11 +1337,11 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     gameDay: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
                 Godzina
               </label>
               <input
@@ -1355,14 +1355,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     gameHour: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               />
             </div>
           </div>
 
           {formData.type === 'quest' && (
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
                 Status misji
               </label>
               <select
@@ -1376,7 +1376,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                       | 'failed',
                   })
                 }
-                className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               >
                 <option value="active">Aktywna</option>
                 <option value="completed">Ukończona</option>
@@ -1386,7 +1386,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Tytuł wpisu
             </label>
             <input
@@ -1395,13 +1395,13 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full p-2.5 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Treść / Opis
             </label>
             <Textarea
@@ -1409,21 +1409,21 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              className="min-h-32 bg-[#0d0906] text-[#e2d4c9] border-[#3a2518] focus-visible:ring-[#bfa15f]"
+              className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f]"
               required
             />
           </div>
 
           {formData.type === 'quest' && (
-            <div className="border border-[#3a2518] p-4 rounded-md bg-[#0d0906]/40 space-y-3">
-              <label className="block text-sm font-serif font-bold text-[#f4ebd0] border-b border-[#3a2518] pb-1">
+            <div className="border border-emerald-900/30 p-4 rounded-md bg-zinc-950/40 space-y-3">
+              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-emerald-900/30 pb-1">
                 Cele zadania
               </label>
               <div className="space-y-2">
                 {(formData.objectives || []).map((obj, i) => (
                   <div
                     key={obj.id}
-                    className="flex justify-between items-center bg-[#0d0906] p-2 rounded border border-[#3a2518] text-sm"
+                    className="flex justify-between items-center bg-zinc-950 p-2 rounded border border-emerald-900/30 text-sm"
                   >
                     <span className="truncate">
                       {i + 1}. {obj.description}
@@ -1444,7 +1444,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   placeholder="Nowy cel misji..."
-                  className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-sm text-[#e2d4c9] outline-none"
+                  className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-sm text-zinc-300 outline-none"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
                   }
@@ -1452,7 +1452,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 <Button
                   type="button"
                   onClick={addObjective}
-                  className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                  className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
                 >
                   Dodaj
                 </Button>
@@ -1461,14 +1461,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-[#f4ebd0]">
+            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
               Tagi
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {formData.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#5c3e21]/60 text-[#f4ebd0] border border-[#bfa15f]/25"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-900/50/60 text-emerald-100 border border-emerald-500/25"
                 >
                   #{tag}
                   <button
@@ -1486,7 +1486,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-[#0d0906] border border-[#3a2518] rounded-md text-[#e2d4c9] focus:border-[#bfa15f] focus:outline-none"
+                className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
                 placeholder="Dodaj własny tag..."
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
@@ -1495,17 +1495,17 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               <Button
                 type="button"
                 onClick={() => addTag(newTag)}
-                className="bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0]"
+                className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
               >
                 +
               </Button>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-3 border-t border-[#3a2518]">
+          <div className="flex gap-3 pt-3 border-t border-emerald-900/30">
             <Button
               type="submit"
-              className="flex-1 py-3 bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40"
+              className="flex-1 py-3 bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40"
               disabled={!formData.title.trim() || !formData.content.trim()}
             >
               Zapisz zmiany

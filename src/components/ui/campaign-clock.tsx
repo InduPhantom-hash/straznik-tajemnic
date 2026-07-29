@@ -71,7 +71,7 @@ export function CampaignClock({
   const formattedDate = timeManager.formatDate();
   const formattedTime = timeManager.formatTime();
 
-  const getWeatherEmoji = (text: string) => {
+  const getWeatherIcon = (text: string) => {
     const lower = text.toLowerCase();
     if (lower.includes('burz') || lower.includes('piorun') || lower.includes('nawałnic')) return <CloudLightning className="w-4 h-4 text-slate-300" />;
     if (lower.includes('deszcz') || lower.includes('ulew') || lower.includes('mżawk') || lower.includes('opad')) return <CloudRain className="w-4 h-4 text-blue-300" />;
@@ -102,7 +102,7 @@ export function CampaignClock({
 
         <div className="flex items-center gap-2 ml-1 pl-3 border-l border-zinc-800 text-xs text-zinc-300">
           <span className="flex items-center gap-1 max-w-[120px] truncate" title={`Pogoda: ${weather}`}>
-            <span aria-hidden="true">{getWeatherEmoji(weather)}</span>
+            <span aria-hidden="true">{getWeatherIcon(weather)}</span>
             <span className="truncate">{weather}</span>
           </span>
           <span className="text-zinc-600">|</span>
@@ -166,7 +166,7 @@ export function CampaignClock({
         </span>
         <span className="text-zinc-600 ml-1">|</span>
         <span className="flex items-center gap-1.5 ml-1" title={`Pogoda: ${weather}`}>
-          <span aria-hidden="true">{getWeatherEmoji(weather)}</span>
+          <span aria-hidden="true">{getWeatherIcon(weather)}</span>
         </span>
       </div>
 
