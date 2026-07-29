@@ -20,6 +20,11 @@ import {
   User,
   HeartPulse,
   Flame,
+  Mail,
+  IdCard,
+  Ticket,
+  BookOpen,
+  Newspaper
 } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
@@ -30,6 +35,7 @@ import {
 } from '@/lib/equipment-prompt-builder';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import { deriveFinances } from '@/lib/economy/credit-rating';
+import { inferDocumentType } from '@/lib/acquired-equipment';
 import {
   inferWeaponSkill,
   inferWeaponDamage,
@@ -111,7 +117,6 @@ export function EquipmentModal({
   // Generuj obraz dla przedmiotu
   const generateImage = useCallback(
     async (item: EquipmentItem) => {
-      if (isCatalogEquipment(item)) return;
       setGeneratingImage(item.id);
 
       try {
@@ -457,11 +462,35 @@ interface ItemCardProps {
 /** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
 function CategoryIcon({
   category,
+  item,
   className,
 }: {
   category: string;
+  item?: EquipmentItem;
   className?: string;
 }) {
+  if (category === 'document' && item) {
+    const docType = inferDocumentType(item);
+    switch (docType) {
+      case 'evidence_envelope':
+      case 'letter': return <Mail className={className} />;
+      case 'id_card':
+      case 'press_pass': return <IdCard className={className} />;
+      case 'newspaper': return <Newspaper className={className} />;
+      case 'official_document':
+      case 'journal_page': return <BookOpen className={className} />;
+      default:
+        // Sprawdzenie "na żywioł" dla biletów:
+        if (/bilet|ticket/.test(item.name.toLowerCase())) return <Ticket className={className} />;
+        return <FileText className={className} />;
+    }
+  }
+
+  // Sprawdzenie "na żywioł" czy to bilet chociaż nie jest "document" (np. "personal")
+  if (item && /bilet|ticket/.test(item.name.toLowerCase())) {
+    return <Ticket className={className} />;
+  }
+
   switch (category) {
     case 'weapon':
       return <Sword className={className} />;
@@ -483,6 +512,7 @@ function CategoryIcon({
       return <Package className={className} />;
   }
 }
+
 
 /** Mała ikona miniatury obrazu (generowanie / podgląd) - wspólna dla broni i wyposażenia. */
 function ItemThumbnail({
@@ -566,7 +596,7 @@ function ItemThumbnail({
           ) : (
             <div className="relative w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-b from-brass/5 to-transparent">
               <div className="text-brass/80 transition-transform duration-200 group-hover:scale-110 flex items-center justify-center">
-                <CategoryIcon category={item.category} className={iconSize} />
+                <CategoryIcon category={item.category} item={item} className={iconSize} />
               </div>
               <div className="flex flex-col items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
                 <span className="text-[9px] text-brass uppercase tracking-widest font-special-elite">
@@ -577,7 +607,7 @@ function ItemThumbnail({
           )}
         </Button>
       ) : (
-        <CategoryIcon category={item.category} className={iconSize} />
+        <CategoryIcon category={item.category} item={item} className={iconSize} />
       )}
     </div>
   );

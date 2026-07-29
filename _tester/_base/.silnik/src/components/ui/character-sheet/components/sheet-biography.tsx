@@ -158,17 +158,7 @@ export function SheetBiography({ character }: SheetBiographyProps) {
             </div>
           )}
 
-        {/* Notatki gracza */}
-        {character.notes && (
-          <div className="border border-brass/20 bg-[#16130f] p-4">
-            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-              📝 Notatki gracza
-            </span>
-            <p className="font-serif text-muted-foreground italic text-base leading-relaxed whitespace-pre-line">
-              {character.notes}
-            </p>
-          </div>
-        )}
+
 
         {/* Placeholder jeśli brak danych */}
         {!character.characterConcept &&

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { timeManager } from '@/lib/time-manager';
 import { GameTime, MoonPhase } from '@/lib/types';
-import { Moon, Sun, Clock, Calendar, CloudFog } from 'lucide-react';
+import { Moon, Sun, Clock, Calendar, CloudFog, CloudLightning, CloudRain, Snowflake } from 'lucide-react';
 
 // ============================================================================
 // MOON PHASE ICONS
@@ -71,15 +71,14 @@ export function CampaignClock({
   const formattedDate = timeManager.formatDate();
   const formattedTime = timeManager.formatTime();
 
-  // Dobór symbolu ikony dla pogody
   const getWeatherEmoji = (text: string) => {
     const lower = text.toLowerCase();
-    if (lower.includes('burz') || lower.includes('piorun') || lower.includes('nawałnic')) return '🌩️';
-    if (lower.includes('deszcz') || lower.includes('ulew') || lower.includes('mżawk') || lower.includes('opad')) return '🌧️';
-    if (lower.includes('śnieg') || lower.includes('zamieć') || lower.includes('mróz') || lower.includes('szron')) return '❄️';
-    if (lower.includes('mgła') || lower.includes('mgieł') || lower.includes('chmur') || lower.includes('mrocz') || lower.includes('ponur')) return '🌫️';
-    if (lower.includes('słońc') || lower.includes('słonecz') || lower.includes('pogodn') || lower.includes('jasn') || lower.includes('upał')) return '☀️';
-    return '🌫️';
+    if (lower.includes('burz') || lower.includes('piorun') || lower.includes('nawałnic')) return <CloudLightning className="w-4 h-4 text-slate-300" />;
+    if (lower.includes('deszcz') || lower.includes('ulew') || lower.includes('mżawk') || lower.includes('opad')) return <CloudRain className="w-4 h-4 text-blue-300" />;
+    if (lower.includes('śnieg') || lower.includes('zamieć') || lower.includes('mróz') || lower.includes('szron')) return <Snowflake className="w-4 h-4 text-sky-200" />;
+    if (lower.includes('mgła') || lower.includes('mgieł') || lower.includes('chmur') || lower.includes('mrocz') || lower.includes('ponur')) return <CloudFog className="w-4 h-4 text-zinc-400" />;
+    if (lower.includes('słońc') || lower.includes('słonecz') || lower.includes('pogodn') || lower.includes('jasn') || lower.includes('upał')) return <Sun className="w-4 h-4 text-amber-400" />;
+    return <CloudFog className="w-4 h-4 text-zinc-400" />;
   };
 
   if (compact) {
@@ -159,11 +158,15 @@ export function CampaignClock({
         </div>
       </div>
 
-      {/* Date */}
+      {/* Date & Weather */}
       <div className="flex items-center justify-center gap-2 text-zinc-200 bg-zinc-900/50 rounded-lg py-2 mb-4 border border-zinc-800/50 relative z-10">
         <Calendar className="w-3.5 h-3.5 text-emerald-600" />
         <span className="text-sm font-medium tracking-wide">
           {formattedDate}
+        </span>
+        <span className="text-zinc-600 ml-1">|</span>
+        <span className="flex items-center gap-1.5 ml-1" title={`Pogoda: ${weather}`}>
+          <span aria-hidden="true">{getWeatherEmoji(weather)}</span>
         </span>
       </div>
 

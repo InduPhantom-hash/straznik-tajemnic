@@ -40,6 +40,8 @@ export function cleanupContent(content: string): string {
     .replace(/\[GRAFIKA:[^\]]*\]/gi, '')
     .replace(/\[SCENA:[^\]]*\]/gi, '')
     .replace(/\[PORTRET:[^\]]*\]/gi, '')
+    .replace(/\[PROMPT[^\]]*\]/gi, '')
+    .replace(/^[*\s]*(?:Prompt|Ilustracja)(?:[^:\n]{0,20})[*\s]*:\s*.*$/gim, '')
     // Usuń tagi testów umiejętności (renderowane osobno przez SkillTestCard)
     .replace(/\[TEST:[^\]]*\]/gi, '')
     .replace(/\[WYNIK:[^\]]*\]/gi, '')

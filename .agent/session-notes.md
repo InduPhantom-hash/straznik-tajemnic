@@ -95,3 +95,17 @@ Branch: main
 ### Co otwarte (do następnej sesji)
 - Usunięcie wielu nagromadzonych błędów, zgłoszonych przez Użytkownika. Nowa sesja intake'owa przedstawi problemy i przydzieli tickety.
 
+## Podsumowanie sesji: 2026-07-29 (Sekcja 1 UI/UX)
+Branch: main
+
+### Co zrobiono
+- Naprawiono brakujące zmienne dla scrollbarów w jasnym motywie (`globals.css`)
+- Przywrócono widżet pogody z ikony `lucide-react` w pełnym trybie zegara (`campaign-clock.tsx`)
+- Wdrożono szczelniejszy regex odcinający logi modelu z obrazami "Prompt LLM: " + wprowadzono nowe instrukcje testowe.
+
+### Co otwarte (do następnej sesji)
+- Sekcja 2 Roadmapy (Ekwipunek i Finanse).
+
+### Decyzje podjęte
+- Zmiany zatwierdzono semantycznie.
+

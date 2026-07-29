@@ -79,6 +79,8 @@
     --border: 35 20% 85%;
     --input: 35 20% 80%;
     --ring: 158 82% 30%;
+    --brass: 45 68% 47%;
+    --gold: 43 89% 38%;
   }
 }
 
@@ -507,33 +509,30 @@
 }
 
 /* ===== CUSTOM SCROLLBAR - DARK ART DÉCO ===== */
-@layer base {
-  /* Firefox */
+@layer utilities {
+  .custom-scrollbar,
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--brass) / 0.4) hsl(var(--background));
-  }
-
-  /* WebKit (Chrome, Safari, Edge) */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #0a0c0f;
-    border-left: 1px solid rgba(201, 162, 39, 0.15);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #8a6f12, #c9a227);
-    border-radius: 2px;
-    box-shadow: 0 0 6px rgba(201, 162, 39, 0.3);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #e6bd35;
-    box-shadow: 0 0 10px rgba(201, 162, 39, 0.6);
+    scrollbar-color: hsl(var(--brass) / 0.5) transparent;
   }
 }
 
+/* Wymuszenie na Webkit customizacji bez ohydnych białych systemowych pasków na macOS */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--brass) / 0.6);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--brass) / 0.9);
+}

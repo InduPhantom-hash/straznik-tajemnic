@@ -13,4 +13,15 @@ describe('cleanupContent', () => {
     const output = cleanupContent(input);
     expect(output).toContain('[Co robisz?]');
   });
+
+  it('wycina różnorodne formy promptów obrazów wyciekające z LLM', () => {
+    const cases = [
+      '**Prompt:** Mroczny pokój',
+      '**Prompt LLM:** Zjawa w lesie',
+      'Prompt graficzny: Cień'
+    ];
+    cases.forEach(input => {
+      expect(cleanupContent(input)).toBe('');
+    });
+  });
 });
