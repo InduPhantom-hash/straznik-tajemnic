@@ -117,7 +117,6 @@ export function InspectionLightboxModal({
                     alt={node.title}
                     className="max-w-full max-h-full object-contain rounded shadow-lg transition-transform duration-200"
                     style={{ transform: `scale(${imageZoom})` }}
-                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                   />
                 </div>
                 {/* Zoom controls */}

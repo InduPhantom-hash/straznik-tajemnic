@@ -75,7 +75,7 @@
 - [x] **Nowe Widoki Diegetyczne:** Stworzenie dedykowanych układów CSS w `DiegeticDocumentViewer` dla notatnika (`journal_page`) i biletu (`ticket`).
 - [ ] **Przebudowa Predefiniowanych Badaczy (Sekcja 3):** Modyfikacja metadanych 40 postaci w `predefined-characters.ts`.
 - [ ] **Awatary w Czecie (Sekcja 4):** Integracja portretów NPC w wypowiedziach AI (`render-narrative-with-images.tsx`).
-- [ ] **Synchronizacja Parsera Dokumentów:** Przeniesienie logiki przypisywania `documentType` z silnika testowego (`_tester`) do głównej aplikacji (`src/lib/acquired-equipment.ts`).
+- [x] **Synchronizacja Parsera Dokumentów:** Przeniesienie logiki przypisywania `documentType` z silnika testowego (`_tester`) do głównej aplikacji (`src/lib/acquired-equipment.ts`).
 
 ### 📌 Etap 0.5 - Wprowadzenie Gracza (Onboarding & Ekran Startowy)
 > **Cel:** Uporządkowany proces pierwszego uruchomienia gry przy Zimnym Starcie.

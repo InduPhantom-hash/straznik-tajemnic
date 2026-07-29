@@ -261,3 +261,19 @@ Branch: main
 - Mechanika "Hot Seat" w szybkiej przygodzie została połączona "na twardo" (z pominięciem wizarda przypisywania imion) używając hotSeat.restoreConfig, by zapewnić bezawaryjne zestawienie 2 graczy i postaci od ręki.
 - Opcje deweloperskie (Zimny Start, Zapis/Odczyt) ukryto z widoku domyślnego dla czystszego onboardingu.
 
+
+## Podsumowanie sesji: 2026-07-30 (SafeImage Refactor)
+Branch: main
+
+### Co zrobiono
+- **Globalny refactor obrazków (Quick Win):** Zastąpiono surowe wywołania `onError` w plikach UI silnika (`message-card`, `inspection-lightbox-modal`, `investigator-board`, `corkboard-investigation-board`, `discoveries-view`, `session-journal`).
+- Wdrożono bezpieczny import i użycie `SafeImage` w `render-sections.tsx`.
+- Przeprowadzono pomyślne wykonanie 156 testów na środowisku `_tester/_base/.silnik`.
+
+### Co otwarte (do następnej sesji)
+- Implementacja awatarów NPC w czacie (`[PORTRET: ...]`) - Etap 3.6 (Faza 3)
+- Przebudowa układu i metadanych Predefiniowanych Badaczy (Sekcja 3)
+- Logika wejścia do gry z przycisków Quick Setup i Ustawień Ręcznych (Etap 0.5)
+
+### Decyzje podjęte
+- Zabezpieczono UI przed przerwaniami przy dogrywaniu portretów LLM, usuwając problematyczne tagi wymuszające `display: none` i stawiając w 100% na fallback z wdrożonego komponentu `SafeImage.tsx`.

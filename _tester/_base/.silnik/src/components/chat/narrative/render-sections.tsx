@@ -1,5 +1,7 @@
 'use client';
 
+import { SafeImage } from '@/components/ui/safe-image';
+
 /**
  * NarrativeFormatter renderSection - IND-144 micro 7/8 (extract z NarrativeFormatter.tsx)
  *
@@ -36,15 +38,10 @@ export function renderSection(
         <div key={key} className="my-3 flex items-start gap-3 pl-2">
           <div className="flex-shrink-0 mt-1">
             {portraitUrl ? (
-              <img
+              <SafeImage
                 src={portraitUrl}
                 alt={section.speaker || 'NPC'}
                 className="w-10 h-10 rounded-full object-cover border border-amber-500/40 shadow-md grayscale"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                  const nextSibling = (e.target as HTMLElement).nextElementSibling as HTMLElement;
-                  if (nextSibling) nextSibling.style.display = 'flex';
-                }}
               />
             ) : null}
             <div 

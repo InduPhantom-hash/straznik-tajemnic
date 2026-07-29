@@ -625,7 +625,6 @@ export function CorkboardInvestigationBoard({
                             src={node.imageUrl}
                             alt={node.title}
                             className="w-full h-full object-cover"
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                           />
                         </div>
                       )}

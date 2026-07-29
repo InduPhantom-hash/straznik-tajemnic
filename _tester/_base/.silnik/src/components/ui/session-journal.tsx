@@ -724,9 +724,6 @@ export function SessionJournal({
                               src={entry.imageUrl}
                               alt={entry.title}
                               className="w-full h-44 object-cover rounded"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
                             />
                           </div>
                         ) : null}
@@ -788,9 +785,6 @@ export function SessionJournal({
                             src={entry.imageUrl}
                             alt={entry.title}
                             className="w-full h-full object-cover mix-blend-multiply sepia-[0.3]"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
                           />
                         </div>
                       ) : (

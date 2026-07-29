@@ -310,7 +310,6 @@ export function DiscoveriesView({
                       src={selectedEntry.imageUrl}
                       alt={selectedEntry.title}
                       className="w-full h-auto object-cover border border-[#e0e0e0] mix-blend-multiply sepia-[0.2]"
-                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                     />
                     <div className="absolute bottom-2 left-0 right-0 text-center font-special-elite text-[10px] text-black/60 italic">
                       Załącznik A
