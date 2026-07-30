@@ -7,7 +7,8 @@ export type PredefinedCharacterArchetype =
   | 'scholar'
   | 'action'
   | 'healer'
-  | 'mystic';
+  | 'mystic'
+  | 'trickster';
 
 export interface PredefinedCharacter extends Character {
   era: PredefinedCharacterEra;

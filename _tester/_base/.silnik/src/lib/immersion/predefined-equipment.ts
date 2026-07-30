@@ -14,7 +14,8 @@ export type PresetArchetype =
   | 'scholar'
   | 'action'
   | 'healer'
-  | 'mystic';
+  | 'mystic'
+  | 'trickster';
 
 interface PresetEquipmentContext {
   id: string;
@@ -184,6 +185,18 @@ const ARCHETYPE_KITS: Record<PresetArchetype, EquipmentSeed[]> = {
       name: 'Talizman ochronny',
       category: 'occult',
       description: 'Osobista pamiątka używana podczas praktyk duchowych.',
+    },
+  ],
+  trickster: [
+    {
+      name: 'Drobne narzędzia',
+      category: 'tool',
+      description: 'Kieszonkowy zestaw uniwersalnych narzędzi.',
+    },
+    {
+      name: 'Fałszywe dokumenty',
+      category: 'document',
+      description: 'Dobrze przygotowane fałszywe referencje.',
     },
   ],
 };

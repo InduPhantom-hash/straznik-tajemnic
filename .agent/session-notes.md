@@ -307,3 +307,15 @@ Branch: main
 
 ### Decyzje podjęte
 - Wyeliminowano ukryty automatyzm na rzecz jawności interakcji w Hot Seat, poprawiając stabilność sesji duetowych.
+## Podsumowanie sesji: 2026-07-30
+Branch: main
+
+### Co zrobiono
+- Zintegrowano "Szybka Przygoda" (Etap 0.5) z przepływem ekranu powitalnego w `ChatWindow` i `page.tsx`.
+- Naprawiono problem kompilacji z typem `trickster` w ekwipunku postaci (dodano go do bazowych typów i ekwipunku archetypów).
+
+### Co otwarte (do następnej sesji)
+- Brak, główny przepływ Onboardingu jest ukończony i przetestowany.
+
+### Decyzje podjęte
+- Typowanie komponentu ChatWindow zostało zaktualizowane w celu ścisłego odbierania callbacku, bez pętli przez stan globalny.

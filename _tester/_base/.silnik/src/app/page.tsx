@@ -888,6 +888,7 @@ export default function Home() {
             ? handleStartGameGuarded
             : () => setShowFirstRunWizard(true)
         }
+        onQuickStart={handleQuickStartOnboarding}
         onChoosePlayMode={() => setShowHotSeatSetup(true)}
         onLoadSave={() => {
           save.setSaveModalMode('load');
