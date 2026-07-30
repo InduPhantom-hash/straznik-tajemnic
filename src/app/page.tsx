@@ -189,6 +189,7 @@ export default function Home() {
   const [showFirstRunWizard, setShowFirstRunWizard] = useState(false);
   // "Nowa przygoda" z opcją zapisu: gdy true, po udanym zapisie resetujemy do kreatora
   const [pendingNewAdventure, setPendingNewAdventure] = useState(false);
+  const [pendingGameStart, setPendingGameStart] = useState(false);
 
   // Refs
   const openSessionZeroRef = useRef<(() => void) | null>(null);
@@ -567,9 +568,17 @@ export default function Home() {
       if (active && player1Name) {
         charMgmt.handleUpdateCharacter({ ...active, playerName: player1Name });
       }
+      runHealthCheck();
     },
-    [hotSeat, charMgmt]
+    [charMgmt, hotSeat, runHealthCheck]
   );
+
+  useEffect(() => {
+    if (pendingGameStart && charMgmt.characters.length > 0) {
+      handleStartGameGuarded();
+      setPendingGameStart(false);
+    }
+  }, [pendingGameStart, charMgmt.characters, handleStartGameGuarded]);
 
   const handleQuickStart = useCallback(
     (adventureId: string, characterId1: string, mode: 'solo' | 'hot-seat', characterId2?: string) => {
@@ -612,8 +621,7 @@ export default function Home() {
       }
 
       if (firstRun.canPlay) {
-        // setTimeout aby dać renderowi zaktualizować postacie w stanie hooka
-        setTimeout(() => handleStartGameGuarded(), 50);
+        setPendingGameStart(true);
       } else {
         setShowFirstRunWizard(true);
       }
@@ -774,11 +782,11 @@ export default function Home() {
                 { name: p1, isGameMaster: false, characterId: undefined },
                 { name: p2, isGameMaster: false, characterId: undefined },
               ]);
-              if (firstRun.canPlay) setTimeout(() => handleStartGameGuarded(), 50);
+              if (firstRun.canPlay) setPendingGameStart(true);
             }}
             onChooseSolo={(p1) => {
               handleChooseSolo(p1);
-              if (firstRun.canPlay) setTimeout(() => handleStartGameGuarded(), 50);
+              if (firstRun.canPlay) setPendingGameStart(true);
             }}
           />
 

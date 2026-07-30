@@ -292,3 +292,18 @@ Branch: main
 
 ### Decyzje podjęte
 - Wyrenderowany portret postaci pozostaje pełnoprawnym obrazkiem w komponencie chata na desktopach, ale jest jednocześnie permanentnie rejestrowany (zapisywany) wewnątrz profilu postaci ułatwiając przyszłą ciągłość świata i immersję. Brak zmian ingerujących w lay-out kart samego logu chata.
+
+## Podsumowanie sesji: 2026-07-30 (Architektura Szybkiej Przygody)
+Branch: main
+
+### Co zrobiono
+- **Implementacja Dedykowanych Postaci Strefy 11:** Utworzono odrębny plik z pulą (Helena, Barbara, Tomasz, Ryszard) pasujących do realiów PRL/Lata 90 by urealnić grę w Strefie 11. 
+- **Przebudowa QuickSetupModal:** Skorygowano szerokość okna (responsive siatka kolumn grid) i poprawiono stylizację okien, ucinając pętlę restartu i bug braku dopasowania CSS "brass". Zastąpiono go mrocznym szmaragdowym profilem "primary".
+- **Aktualizacja Hot Seat:** Odcięto automatyczne, złośliwe zaciąganie postaci dla Gracza 2 – odtąd jest jawne, manualne UI.
+- **Refaktoryzacja Asynchroniczności (page.tsx):** Zastąpiono podatny na błedy `setTimeout(..., 50)` dedykowanym, wbudowanym systemem stanu Reacta (useEffect na fladze `pendingGameStart`), dbając o płynne i wolne od błędów zaczytywanie zmienionych postaci do silnika z modali menu.
+
+### Co otwarte (do następnej sesji)
+- Implementacja Etapu 1 (Rozszerzenie ekwipunku) z Roadmapy z wykorzystaniem naprawionych dzisiaj przepływów logowania postaci.
+
+### Decyzje podjęte
+- Wyeliminowano ukryty automatyzm na rzecz jawności interakcji w Hot Seat, poprawiając stabilność sesji duetowych.

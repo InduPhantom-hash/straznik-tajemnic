@@ -128,7 +128,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
             {/* Gracz 1 */}
             <div className="mb-4">
               <div className="text-xs text-muted-foreground mb-2">{playMode === 'hot-seat' ? 'Gracz 1 (Główna Postać):' : 'Twoja Postać:'}</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                 {STREFA_11_CHARACTERS.map(c => (
                   <button
                     key={'p1-'+c.id}
@@ -154,7 +154,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
             {playMode === 'hot-seat' && (
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Gracz 2 (Druga Postać):</div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   {STREFA_11_CHARACTERS.map(c => (
                     <button
                       key={'p2-'+c.id}
