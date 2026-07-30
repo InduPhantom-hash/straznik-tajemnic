@@ -38,6 +38,7 @@ export interface ImageRequest {
   isMythos?: boolean;
   type?: 'portrait' | 'scene';
   aspectRatio?: '16:9' | '3:4' | '1:1';
+  portraitName?: string;
 }
 
 export interface SFXRequest {

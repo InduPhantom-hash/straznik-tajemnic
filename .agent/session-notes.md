@@ -277,3 +277,18 @@ Branch: main
 
 ### Decyzje podjęte
 - Zabezpieczono UI przed przerwaniami przy dogrywaniu portretów LLM, usuwając problematyczne tagi wymuszające `display: none` i stawiając w 100% na fallback z wdrożonego komponentu `SafeImage.tsx`.
+
+## Podsumowanie sesji: 2026-07-30
+Branch: main
+
+### Co zrobiono
+- **Implementacja parsowania tagów portretowych:** Zaktualizowano `media-parser.ts` oraz typy tak, aby poprawnie wyciągał z tagów AI (`[PORTRET: Imię, opis]`) zmienną `portraitName` oraz przypisywał typ obrazka `portrait` z wymuszonym aspect ratio 3:4.
+- **Dodanie testów jednostkowych (TDD):** Utworzono plik `media-parser.test.ts`, który gwarantuje odporność parsera portretów oraz `detectSFX` na przypadki brzegowe i synonimy.
+- **Integracja portretów z Dziennikiem Gry:** Zmodyfikowano `useChat.ts`, co pozwala asynchronicznie po wygenerowaniu obrazu połączyć jego URL (`imageUrl`) z właściwym, odpowiednim dla NPC wpisem w wirtualnym profilu (`gameContext.characters.journal`).
+- **Instrukcje dla LLM:** Uzupełniono główny prompt systemowy w `image-instructions.ts` dla AI Mistrza Gry o nowy format wymuszający odpowiednią strukturę przy rzucaniu portretów.
+
+### Co otwarte (do następnej sesji)
+- Skonfigurowanie ewentualnego wyświetlania połączonego `imageUrl` w samym widoku Profilu Dziennika (`session-journal.tsx`), jeśli sam zapis do bazy postaci jeszcze nie mapuje obrazka w panelu po lewej stronie ekranu gry. Zależy to od układu wizualnego interfejsu Dziennika.
+
+### Decyzje podjęte
+- Wyrenderowany portret postaci pozostaje pełnoprawnym obrazkiem w komponencie chata na desktopach, ale jest jednocześnie permanentnie rejestrowany (zapisywany) wewnątrz profilu postaci ułatwiając przyszłą ciągłość świata i immersję. Brak zmian ingerujących w lay-out kart samego logu chata.

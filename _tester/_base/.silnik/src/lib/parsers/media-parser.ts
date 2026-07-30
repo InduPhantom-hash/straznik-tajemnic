@@ -22,13 +22,25 @@ export function extractImages(text: string): ImageRequest[] {
         const imgType = isPortrait ? 'portrait' : 'scene';
         const aspectRatio = isPortrait ? '3:4' : '16:9';
 
+        let portraitName: string | undefined = undefined;
+        let finalPrompt = prompt;
+
+        if (isPortrait) {
+            // Wzorzec: [PORTRET: Imię Postaci, opis]
+            const commaIndex = prompt.indexOf(',');
+            if (commaIndex !== -1 && commaIndex < 40) {
+                portraitName = prompt.substring(0, commaIndex).trim();
+            }
+        }
+
         images.push({
-            prompt,
+            prompt: finalPrompt,
             style: isPortrait ? 'portrait' : 'horror', // portrety mogą używać stylu 'portrait', sceny 'horror'
             priority: 'normal',
             isMythos,
             type: imgType,
             aspectRatio,
+            ...(portraitName ? { portraitName } : {})
         });
     }
 

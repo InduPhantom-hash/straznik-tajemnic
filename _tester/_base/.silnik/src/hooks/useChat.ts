@@ -183,6 +183,7 @@ export interface ImageToGenerate {
   isMythos?: boolean;
   type?: 'portrait' | 'scene';
   aspectRatio?: string;
+  portraitName?: string;
 }
 
 /**
@@ -538,9 +539,51 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             };
           })
         );
+
+        const portraitUpdates = illustrations
+          .map((img, idx) => ({ img, url: generatedUrls[idx] }))
+          .filter(update => update.img.type === 'portrait' && update.img.portraitName && update.url);
+
+        if (portraitUpdates.length > 0) {
+          setCharacters(prevChars => {
+            let changed = false;
+            const newChars = prevChars.map(char => {
+              if (!char.journal) return char;
+              let charChanged = false;
+              const newJournal = char.journal.map(entry => {
+                if (entry.type === 'npc') {
+                  const update = portraitUpdates.find(pu => pu.img.portraitName!.toLowerCase() === entry.title.toLowerCase());
+                  if (update && entry.imageUrl !== update.url) {
+                    charChanged = true;
+                    return { ...entry, imageUrl: update.url };
+                  }
+                }
+                return entry;
+              });
+              if (charChanged) {
+                changed = true;
+                return { ...char, journal: newJournal };
+              }
+              return char;
+            });
+
+            if (changed) {
+              setTimeout(() => {
+                if (typeof window !== 'undefined') persistCharacters(newChars);
+              }, 0);
+              
+              setActiveCharacter(prevActive => {
+                if (!prevActive) return prevActive;
+                const updatedActive = newChars.find(c => c.id === prevActive.id);
+                return updatedActive || prevActive;
+              });
+            }
+            return changed ? newChars : prevChars;
+          });
+        }
       }
     },
-    []
+    [setCharacters, setActiveCharacter]
   );
 
   const handleSendMessage = useCallback(

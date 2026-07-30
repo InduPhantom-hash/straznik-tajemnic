@@ -58,7 +58,7 @@ export function buildImageInstructions(settings: AISettings): string {
 ### JAK GENEROWAĆ:
 Użyj odpowiednich tagów w tekście odpowiedzi:
 - Dla ilustracji lokacji, wydarzeń i krajobrazów używaj: [SCENA: szczegółowy opis w języku ANGIELSKIM]
-- Dla portretów ważnych postaci (NPC/Badaczy) używaj: [PORTRET: szczegółowy opis w języku ANGIELSKIM]
+- Dla portretów ważnych postaci (NPC/Badaczy) używaj ZAWSZE formatu: [PORTRET: Imię Postaci, szczegółowy opis w języku ANGIELSKIM]
 
 Dla scen snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos dodaj flagę | mythos:
 [SCENA: deep one rising from the dark ocean under stormy sky, bioluminescent glow, grotesque fish-like features, 1920s coastal town harbor | mythos]

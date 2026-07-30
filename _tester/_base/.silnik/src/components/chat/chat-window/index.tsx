@@ -50,6 +50,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onPickCharacter,
   onStartGame,
   onChoosePlayMode,
+  onQuickStart,
   onLoadSave,
   onOpenApiKeys,
   onColdStart,
@@ -218,6 +219,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               onPickPredefinedCharacter={onPickPredefinedCharacter}
               onPickCharacter={onPickCharacter}
               onStartGame={onStartGame || (() => {})}
+              onQuickStart={onQuickStart}
               onChoosePlayMode={onChoosePlayMode}
               onLoadSave={onLoadSave}
               onOpenApiKeys={onOpenApiKeys}

@@ -180,6 +180,7 @@ export interface JournalEntry {
     locationName?: string; // Nazwa lokacji
     skillUsed?: string; // Użyta umiejętność
     rollResult?: number; // Wynik rzutu
+    imageUrl?: string; // Wygenerowany URL obrazu/portretu
   };
   /** Powiązane identyfikatory innych wpisów z dziennika (relacje na Tablicy Dowodów) */
   linkedEntryIds?: string[];
@@ -222,6 +223,7 @@ export interface ExtendedJournalEntry extends Omit<
   objectives?: QuestObjective[];
   gameDay?: number;
   gameHour?: number;
+  imageUrl?: string;
 }
 
 // === SYSTEM EKWIPUNKU (CoC 7e) ===

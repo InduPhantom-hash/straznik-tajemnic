@@ -19,6 +19,9 @@ import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
 import { ChatLayout } from '@/components/chat/ChatLayout';
 import { CutscenePlayer } from '@/components/ui/cutscene-player';
+import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
+import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
+import { getAdventureById, STREFA_11_ADVENTURES } from '@/lib/adventures-data';
 
 // === HOOKI ===
 import { useTTS } from '@/hooks/useTTS';
@@ -568,6 +571,56 @@ export default function Home() {
     [hotSeat, charMgmt]
   );
 
+  const handleQuickStart = useCallback(
+    (adventureId: string, characterId1: string, mode: 'solo' | 'hot-seat', characterId2?: string) => {
+      let adv = STREFA_11_ADVENTURES.find((a) => a.id === adventureId);
+      if (!adv) adv = getAdventureById(adventureId);
+      if (adv) setAdventureContext(adv);
+
+      let char1 = STREFA_11_CHARACTERS.find((c) => c.id === characterId1);
+      if (!char1) char1 = PREDEFINED_CHARACTERS.find((c) => c.id === characterId1);
+
+      if (char1) {
+        const stamped1 = { ...char1, id: `${char1.id}_${Date.now()}`, playerName: mode === 'solo' ? 'Gracz 1' : 'Gracz 1' };
+        const existingChars = [...charMgmt.characters];
+        existingChars.push(stamped1);
+
+        let stamped2 = undefined;
+        if (mode === 'hot-seat' && characterId2) {
+          let char2 = STREFA_11_CHARACTERS.find((c) => c.id === characterId2);
+          if (!char2) char2 = PREDEFINED_CHARACTERS.find((c) => c.id === characterId2);
+          if (char2) {
+             stamped2 = { ...char2, id: `${char2.id}_${Date.now()}`, playerName: 'Gracz 2' };
+             existingChars.push(stamped2);
+          }
+        }
+
+        charMgmt.setCharacters(existingChars);
+        charMgmt.setActiveCharacter(stamped1);
+
+        if (mode === 'hot-seat' && stamped2) {
+           hotSeat.initHotSeat([
+             { name: 'Gracz 1', isGameMaster: false, characterId: stamped1.id },
+             { name: 'Gracz 2', isGameMaster: false, characterId: stamped2.id }
+           ]);
+        } else {
+           handleChooseSolo('Gracz 1');
+        }
+        
+        const { persistCharacters } = require('@/lib/character-cloud-sync');
+        persistCharacters(existingChars);
+      }
+
+      if (firstRun.canPlay) {
+        // setTimeout aby dać renderowi zaktualizować postacie w stanie hooka
+        setTimeout(() => handleStartGameGuarded(), 50);
+      } else {
+        setShowFirstRunWizard(true);
+      }
+    },
+    [charMgmt, hotSeat, handleChooseSolo, handleStartGameGuarded, firstRun]
+  );
+
   return (
     <ChatLayout
       sidebar={
@@ -716,8 +769,17 @@ export default function Home() {
           <HotSeatSetup
             open={showHotSeatSetup}
             onClose={() => setShowHotSeatSetup(false)}
-            onStartHotSeat={hotSeat.initHotSeat}
-            onChooseSolo={handleChooseSolo}
+            onStartHotSeat={(p1, p2) => {
+              hotSeat.initHotSeat([
+                { name: p1, isGameMaster: false, characterId: undefined },
+                { name: p2, isGameMaster: false, characterId: undefined },
+              ]);
+              if (firstRun.canPlay) setTimeout(() => handleStartGameGuarded(), 50);
+            }}
+            onChooseSolo={(p1) => {
+              handleChooseSolo(p1);
+              if (firstRun.canPlay) setTimeout(() => handleStartGameGuarded(), 50);
+            }}
           />
 
           {/* C3: przełącznik graczy przeniesiony do CthulhuSidebar (osadzony
@@ -791,6 +853,7 @@ export default function Home() {
             : () => setShowFirstRunWizard(true)
         }
         onChoosePlayMode={() => setShowHotSeatSetup(true)}
+        onQuickStart={handleQuickStart}
         onLoadSave={() => {
           save.setSaveModalMode('load');
           save.setShowFullSaveModal(true);
