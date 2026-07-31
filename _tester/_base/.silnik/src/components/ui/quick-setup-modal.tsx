@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,21 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
   const [playMode, setPlayMode] = useState<'solo' | 'hot-seat'>('solo');
   const [selectedCharacter1, setSelectedCharacter1] = useState<string>('');
   const [selectedCharacter2, setSelectedCharacter2] = useState<string>('');
+
+  const availableCharacters = useMemo(() => {
+    return STREFA_11_CHARACTERS.filter(c => {
+      if (selectedAdventureId === 'cien-nad-prabutami') return c.id.startsWith('strefa11_');
+      if (selectedAdventureId === 'tajemnica-pendnika-lagiewki') return c.id.startsWith('pednik_');
+      if (selectedAdventureId === 'tajemnica-dzieci-z-traszyna') return c.id.startsWith('traszyn_');
+      if (selectedAdventureId === 'przybysz-z-matriksa-glogow') return c.id.startsWith('glogow_');
+      return true;
+    }).slice(0, 4);
+  }, [selectedAdventureId]);
+
+  useEffect(() => {
+    setSelectedCharacter1('');
+    setSelectedCharacter2('');
+  }, [selectedAdventureId]);
 
   const canStart = playMode === 'solo' 
     ? selectedCharacter1 !== ''
@@ -129,7 +144,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
             <div className="mb-4">
               <div className="text-xs text-muted-foreground mb-2">{playMode === 'hot-seat' ? 'Gracz 1 (Główna Postać):' : 'Twoja Postać:'}</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-                {STREFA_11_CHARACTERS.map(c => (
+                {availableCharacters.map(c => (
                   <button
                     key={'p1-'+c.id}
                     type="button"
@@ -155,7 +170,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Gracz 2 (Druga Postać):</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-                  {STREFA_11_CHARACTERS.map(c => (
+                  {availableCharacters.map(c => (
                     <button
                       key={'p2-'+c.id}
                       type="button"

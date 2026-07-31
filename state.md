@@ -33,6 +33,7 @@
 - [x] **Sensoryczny Model Szaleństwa:** Generowanie traum i obłędu bez mechanicznego języka w narracji.
 - [x] **Wielowarstwowy Profil NPC:** Generowanie kontekstu relacji i ukrytych celów dla postaci niezależnych.
 - [x] **System Przeczytania Dokumentów:** Generowanie treści listów i manuskryptów z zapisem w karcie postaci.
+- [x] **Paczki Badaczy dla Szybkiej Przygody (Strefa 11):** Dodano 12 nowych badaczy i spięto mapowanie logiki w modalu (`strefa-11-characters.ts`, `quick-setup-modal.tsx`).
 
 ---
 
@@ -73,7 +74,7 @@
 
 ### 📌 Etap 3.6 - Stabilizacja Immersji (UI i Zaległości z Sekcji 3 i 4)
 - [x] **Nowe Widoki Diegetyczne:** Stworzenie dedykowanych układów CSS w `DiegeticDocumentViewer` dla notatnika (`journal_page`) i biletu (`ticket`).
-- [ ] **Przebudowa Predefiniowanych Badaczy (Sekcja 3):** Modyfikacja metadanych 40 postaci w `predefined-characters.ts`.
+- [x] **Przebudowa Predefiniowanych Badaczy (Sekcja 3):** Zrealizowano dla trybu Szybkiej Przygody (12 dedykowanych postaci dla Strefy 11).
 - [ ] **Awatary w Czecie (Sekcja 4):** Integracja portretów NPC w wypowiedziach AI (`render-narrative-with-images.tsx`).
 - [x] **Synchronizacja Parsera Dokumentów:** Przeniesienie logiki przypisywania `documentType` z silnika testowego (`_tester`) do głównej aplikacji (`src/lib/acquired-equipment.ts`).
 
