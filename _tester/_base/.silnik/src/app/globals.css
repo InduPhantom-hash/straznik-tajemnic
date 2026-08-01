@@ -83,6 +83,10 @@
 }
 
 @layer base {
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: "Cormorant Garamond", serif;
@@ -92,6 +96,7 @@
       radial-gradient(125% 80% at 50% -8%, hsl(34 35% 11% / 0.55) 0%, transparent 60%),
       radial-gradient(100% 100% at 50% 50%, transparent 58%, hsl(220 30% 2% / 0.6) 100%);
     background-attachment: fixed;
+    overflow-x: hidden;
   }
 
   /* Improved typography hierarchy - nagłówki w déco-foncie Cinzel */

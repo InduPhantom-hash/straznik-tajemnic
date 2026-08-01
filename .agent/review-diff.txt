@@ -1,0 +1,343 @@
+diff --git a/_tester/_base/.silnik/src/app/globals.css b/_tester/_base/.silnik/src/app/globals.css
+index 04aa4a6..f6c4a24 100644
+--- a/_tester/_base/.silnik/src/app/globals.css
++++ b/_tester/_base/.silnik/src/app/globals.css
+@@ -83,6 +83,10 @@
+ }
+ 
+ @layer base {
++  html {
++    overflow-x: hidden;
++  }
++
+   body {
+     @apply bg-background text-foreground;
+     font-family: "Cormorant Garamond", serif;
+@@ -92,6 +96,7 @@
+       radial-gradient(125% 80% at 50% -8%, hsl(34 35% 11% / 0.55) 0%, transparent 60%),
+       radial-gradient(100% 100% at 50% 50%, transparent 58%, hsl(220 30% 2% / 0.6) 100%);
+     background-attachment: fixed;
++    overflow-x: hidden;
+   }
+ 
+   /* Improved typography hierarchy - nagłówki w déco-foncie Cinzel */
+diff --git a/_tester/_base/.silnik/src/app/page.tsx b/_tester/_base/.silnik/src/app/page.tsx
+index 9935f41..51ae6b0 100644
+--- a/_tester/_base/.silnik/src/app/page.tsx
++++ b/_tester/_base/.silnik/src/app/page.tsx
+@@ -203,6 +203,7 @@ export default function Home() {
+   // (className hideSidebarPanel) i WelcomeScreen.
+   const [hasStartedGame, setHasStartedGame] = useState(false);
+   const [sessionZeroCompleted, setSessionZeroCompleted] = useState(false);
++  const [pendingGameStart, setPendingGameStart] = useState(false);
+ 
+   const customAdventures = useCustomAdventures();
+   const cutsceneManager = useCutscene();
+@@ -378,6 +379,22 @@ export default function Home() {
+     runHealthCheck();
+   }, [runHealthCheck]);
+ 
++  // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
++  // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
++  // nakłada overlay i licznik kosztów liczy świeższymi stawkami. Błąd = cisza (bundled).
++  useEffect(() => {
++    fetch('/api/pricing/refresh', { headers: getApiKeyHeaders() }).catch(
++      () => {}
++    );
++  }, []);
++
++  useEffect(() => {
++    if (pendingGameStart && charMgmt.characters.length > 0) {
++      handleStartGameGuarded();
++      setPendingGameStart(false);
++    }
++  }, [pendingGameStart, charMgmt.characters, handleStartGameGuarded]);
++
+   const handleQuickStartOnboarding = useCallback(
+     (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat') => {
+       // 1. Ustaw przygodę
+@@ -439,20 +456,13 @@ export default function Home() {
+       
+       // Jeżeli jesteśmy na ekranie głównym (WelcomeScreen), automatycznie odpal grę
+       if (!firstRun.loading && !firstRun.needsWizard) {
+-        handleStartGameGuarded();
++        setPendingGameStart(true);
+       }
+     },
+     [charMgmt, hotSeat, firstRun, handleStartGameGuarded]
+   );
+ 
+-  // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
+-  // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
+-  // nakłada overlay i licznik kosztów liczy świeższymi stawkami. Błąd = cisza (bundled).
+-  useEffect(() => {
+-    fetch('/api/pricing/refresh', { headers: getApiKeyHeaders() }).catch(
+-      () => {}
+-    );
+-  }, []);
++
+ 
+   // 1b. Fala 2 - pierwsze uruchomienie ("Strażnik Tajemnic"): bez klucza Gemini LUB
+   // bez wgranego podręcznika (pusty lokalny indeks data/rag/rules) pokazujemy kreator.
+diff --git a/_tester/_base/.silnik/src/components/ui/quick-setup-modal.tsx b/_tester/_base/.silnik/src/components/ui/quick-setup-modal.tsx
+index 31bb569..5122379 100644
+--- a/_tester/_base/.silnik/src/components/ui/quick-setup-modal.tsx
++++ b/_tester/_base/.silnik/src/components/ui/quick-setup-modal.tsx
+@@ -9,9 +9,11 @@ import {
+   DialogDescription,
+ } from './dialog';
+ import { Button } from './button';
+-import { Sparkles, User, BookOpen, ArrowRight, Users } from 'lucide-react';
++import { SafeImage } from './safe-image';
++import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X } from 'lucide-react';
+ import { STREFA_11_ADVENTURES } from '@/lib/adventures-data';
+ import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
++import { Character } from '@/lib/types';
+ 
+ interface QuickSetupModalProps {
+   open: boolean;
+@@ -27,6 +29,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
+   const [playMode, setPlayMode] = useState<'solo' | 'hot-seat'>('solo');
+   const [selectedCharacter1, setSelectedCharacter1] = useState<string>('');
+   const [selectedCharacter2, setSelectedCharacter2] = useState<string>('');
++  const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
+ 
+   const availableCharacters = useMemo(() => {
+     return STREFA_11_CHARACTERS.filter(c => {
+@@ -60,7 +63,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
+           </DialogDescription>
+         </DialogHeader>
+ 
+-        <div className="flex-1 overflow-y-auto space-y-6 pt-4 pr-2">
++        <div className="flex-1 overflow-y-auto journal-scroll space-y-6 pt-4 pr-2">
+           {/* Wybór trybu */}
+           <div>
+             <label className="block text-xs font-display uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5">
+@@ -145,22 +148,55 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
+               <div className="text-xs text-muted-foreground mb-2">{playMode === 'hot-seat' ? 'Gracz 1 (Główna Postać):' : 'Twoja Postać:'}</div>
+               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                 {availableCharacters.map(c => (
+-                  <button
++                  <div
+                     key={'p1-'+c.id}
+-                    type="button"
+-                    disabled={playMode === 'hot-seat' && selectedCharacter2 === c.id}
+-                    onClick={() => setSelectedCharacter1(c.id)}
+-                    className={`p-2 rounded border text-xs font-medium text-left transition-all ${
++                    className={`relative rounded border transition-all flex flex-col overflow-hidden ${
+                       selectedCharacter1 === c.id
+-                        ? 'bg-primary/20 border-primary text-primary shadow-sm'
++                        ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                         : playMode === 'hot-seat' && selectedCharacter2 === c.id 
+-                          ? 'opacity-30 border-border bg-black cursor-not-allowed'
+-                          : 'bg-card/20 border-border text-muted-foreground hover:border-primary/30'
++                          ? 'opacity-30 border-border bg-black grayscale'
++                          : 'bg-card/20 border-border hover:border-primary/30 grayscale hover:grayscale-0'
+                     }`}
+                   >
+-                    <div className="font-bold">{c.name}</div>
+-                    <div className="text-[10px] opacity-80 truncate">{c.occupation}</div>
+-                  </button>
++                    <button
++                      type="button"
++                      disabled={playMode === 'hot-seat' && selectedCharacter2 === c.id}
++                      onClick={() => setSelectedCharacter1(c.id)}
++                      className="flex-1 text-left"
++                    >
++                      <div className="aspect-[3/4] w-full overflow-hidden border-b border-border/50 relative">
++                        {c.portraitUrl ? (
++                          <SafeImage
++                            src={c.portraitUrl}
++                            alt={c.name}
++                            className="w-full h-full object-cover"
++                          />
++                        ) : (
++                          <div className="w-full h-full bg-muted flex items-center justify-center">
++                            <User className="w-8 h-8 opacity-20" />
++                          </div>
++                        )}
++                        <button
++                          type="button"
++                          onClick={(e) => {
++                            e.stopPropagation();
++                            setViewingCharacter(c as unknown as Character);
++                          }}
++                          className="absolute top-1 right-1 p-1.5 bg-black/60 hover:bg-primary/80 text-white rounded backdrop-blur transition-colors z-10"
++                        >
++                          <Info className="w-4 h-4" />
++                        </button>
++                      </div>
++                      <div className="p-2">
++                        <div className={`font-bold text-xs truncate ${selectedCharacter1 === c.id ? 'text-primary' : 'text-foreground'}`}>
++                          {c.name}
++                        </div>
++                        <div className="text-[10px] text-muted-foreground truncate mt-0.5">
++                          {c.occupation}
++                        </div>
++                      </div>
++                    </button>
++                  </div>
+                 ))}
+               </div>
+             </div>
+@@ -171,22 +207,55 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
+                 <div className="text-xs text-muted-foreground mb-2">Gracz 2 (Druga Postać):</div>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                   {availableCharacters.map(c => (
+-                    <button
++                    <div
+                       key={'p2-'+c.id}
+-                      type="button"
+-                      disabled={selectedCharacter1 === c.id}
+-                      onClick={() => setSelectedCharacter2(c.id)}
+-                      className={`p-2 rounded border text-xs font-medium text-left transition-all ${
++                      className={`relative rounded border transition-all flex flex-col overflow-hidden ${
+                         selectedCharacter2 === c.id
+-                          ? 'bg-primary/20 border-primary text-primary shadow-sm'
++                          ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                           : selectedCharacter1 === c.id 
+-                            ? 'opacity-30 border-border bg-black cursor-not-allowed'
+-                            : 'bg-card/20 border-border text-muted-foreground hover:border-primary/30'
++                            ? 'opacity-30 border-border bg-black grayscale'
++                            : 'bg-card/20 border-border hover:border-primary/30 grayscale hover:grayscale-0'
+                       }`}
+                     >
+-                      <div className="font-bold">{c.name}</div>
+-                      <div className="text-[10px] opacity-80 truncate">{c.occupation}</div>
+-                    </button>
++                      <button
++                        type="button"
++                        disabled={selectedCharacter1 === c.id}
++                        onClick={() => setSelectedCharacter2(c.id)}
++                        className="flex-1 text-left"
++                      >
++                        <div className="aspect-[3/4] w-full overflow-hidden border-b border-border/50 relative">
++                          {c.portraitUrl ? (
++                            <SafeImage
++                              src={c.portraitUrl}
++                              alt={c.name}
++                              className="w-full h-full object-cover"
++                            />
++                          ) : (
++                            <div className="w-full h-full bg-muted flex items-center justify-center">
++                              <User className="w-8 h-8 opacity-20" />
++                            </div>
++                          )}
++                          <button
++                            type="button"
++                            onClick={(e) => {
++                              e.stopPropagation();
++                              setViewingCharacter(c as unknown as Character);
++                            }}
++                            className="absolute top-1 right-1 p-1.5 bg-black/60 hover:bg-primary/80 text-white rounded backdrop-blur transition-colors z-10"
++                          >
++                            <Info className="w-4 h-4" />
++                          </button>
++                        </div>
++                        <div className="p-2">
++                          <div className={`font-bold text-xs truncate ${selectedCharacter2 === c.id ? 'text-primary' : 'text-foreground'}`}>
++                            {c.name}
++                          </div>
++                          <div className="text-[10px] text-muted-foreground truncate mt-0.5">
++                            {c.occupation}
++                          </div>
++                        </div>
++                      </button>
++                    </div>
+                   ))}
+                 </div>
+               </div>
+@@ -211,6 +280,93 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
+           </Button>
+         </div>
+       </DialogContent>
++      
++      {viewingCharacter && (
++        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/90 backdrop-blur-md p-4 overflow-y-auto">
++          <div className="deco-corners relative w-full max-w-3xl bg-[#120f0c] border border-brass/50 p-6 md:p-8 my-8">
++            <div className="flex justify-between items-start mb-4 border-b border-brass/20 pb-3">
++              <div>
++                <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">
++                  Opis badacza
++                </div>
++                <h3 className="font-display font-bold text-2xl text-foreground mt-1 uppercase tracking-[0.06em]">
++                  {viewingCharacter.name}
++                </h3>
++              </div>
++              <button
++                onClick={() => setViewingCharacter(null)}
++                className="p-1 text-muted-foreground hover:text-brass transition-colors"
++              >
++                <X className="h-5 w-5" />
++              </button>
++            </div>
++            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
++              <div className="space-y-4">
++                <div className="relative aspect-[3/4] border border-brass/45 bg-gradient-to-b from-[#1a160f] to-[#0c0d0a] overflow-hidden">
++                  {viewingCharacter.portraitUrl ? (
++                    <SafeImage
++                      src={viewingCharacter.portraitUrl}
++                      alt={viewingCharacter.name}
++                      className="w-full h-full object-cover grayscale"
++                    />
++                  ) : (
++                    <div className="flex items-center justify-center w-full h-full text-muted-foreground/40">
++                      <User className="w-12 h-12" />
++                    </div>
++                  )}
++                </div>
++                <div className="text-center font-special-elite text-xs text-brass uppercase tracking-[0.1em]">
++                  {viewingCharacter.occupation}
++                  {viewingCharacter.age ? ` · lat ${viewingCharacter.age}` : ''}
++                </div>
++              </div>
++              <div className="space-y-4">
++                <div>
++                  <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-2">
++                    Biografia
++                  </h4>
++                  <p className="font-serif text-foreground text-sm leading-relaxed whitespace-pre-line">
++                    {viewingCharacter.background || viewingCharacter.backstory}
++                  </p>
++                </div>
++                {viewingCharacter.traits && viewingCharacter.traits.length > 0 && (
++                  <div>
++                    <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-2">
++                      Cechy charakteru
++                    </h4>
++                    <div className="flex flex-wrap gap-2">
++                      {viewingCharacter.traits.map((trait: string, i: number) => (
++                        <span key={i} className="text-xs border border-brass/35 text-foreground bg-[#1a160f] px-2 py-1 rounded">
++                          {trait}
++                        </span>
++                      ))}
++                    </div>
++                  </div>
++                )}
++                {(viewingCharacter as any).tacticalNotes && (
++                  <div>
++                    <h4 className="font-display uppercase tracking-[0.24em] text-primary text-xs font-semibold mb-2">
++                      Wskazówki
++                    </h4>
++                    <p className="font-serif text-primary/90 text-sm italic leading-relaxed">
++                      {(viewingCharacter as any).tacticalNotes}
++                    </p>
++                  </div>
++                )}
++                <div className="pt-4 flex justify-end">
++                  <Button
++                    onClick={() => setViewingCharacter(null)}
++                    variant="outline"
++                    className="font-display text-xs uppercase tracking-[0.16em] border-brass/20 text-muted-foreground hover:border-brass/50 hover:text-brass"
++                  >
++                    Zamknij
++                  </Button>
++                </div>
++              </div>
++            </div>
++          </div>
++        </div>
++      )}
+     </Dialog>
+   );
+ }

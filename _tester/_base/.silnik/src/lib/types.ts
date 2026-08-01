@@ -393,6 +393,7 @@ export interface Character {
   occupation: string;
   age: number;
   background: string;
+  tacticalNotes?: string;
 
   // Informacje o graczu (dla lokalnej gry przy stole)
   playerName: string; // Imię gracza

@@ -203,6 +203,7 @@ export default function Home() {
   // (className hideSidebarPanel) i WelcomeScreen.
   const [hasStartedGame, setHasStartedGame] = useState(false);
   const [sessionZeroCompleted, setSessionZeroCompleted] = useState(false);
+  const [pendingGameStart, setPendingGameStart] = useState(false);
 
   const customAdventures = useCustomAdventures();
   const cutsceneManager = useCutscene();
@@ -378,6 +379,22 @@ export default function Home() {
     runHealthCheck();
   }, [runHealthCheck]);
 
+  // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
+  // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
+  // nakłada overlay i licznik kosztów liczy świeższymi stawkami. Błąd = cisza (bundled).
+  useEffect(() => {
+    fetch('/api/pricing/refresh', { headers: getApiKeyHeaders() }).catch(
+      () => {}
+    );
+  }, []);
+
+  useEffect(() => {
+    if (pendingGameStart && charMgmt.characters.length > 0) {
+      handleStartGameGuarded();
+      setPendingGameStart(false);
+    }
+  }, [pendingGameStart, charMgmt.characters, handleStartGameGuarded]);
+
   const handleQuickStartOnboarding = useCallback(
     (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat') => {
       // 1. Ustaw przygodę
@@ -439,20 +456,13 @@ export default function Home() {
       
       // Jeżeli jesteśmy na ekranie głównym (WelcomeScreen), automatycznie odpal grę
       if (!firstRun.loading && !firstRun.needsWizard) {
-        handleStartGameGuarded();
+        setPendingGameStart(true);
       }
     },
     [charMgmt, hotSeat, firstRun, handleStartGameGuarded]
   );
 
-  // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
-  // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
-  // nakłada overlay i licznik kosztów liczy świeższymi stawkami. Błąd = cisza (bundled).
-  useEffect(() => {
-    fetch('/api/pricing/refresh', { headers: getApiKeyHeaders() }).catch(
-      () => {}
-    );
-  }, []);
+
 
   // 1b. Fala 2 - pierwsze uruchomienie ("Strażnik Tajemnic"): bez klucza Gemini LUB
   // bez wgranego podręcznika (pusty lokalny indeks data/rag/rules) pokazujemy kreator.

@@ -319,3 +319,18 @@ Branch: main
 
 ### Decyzje podjęte
 - Typowanie komponentu ChatWindow zostało zaktualizowane w celu ścisłego odbierania callbacku, bez pętli przez stan globalny.
+
+## Podsumowanie sesji: 2026-08-01
+Branch: main
+
+### Co zrobiono
+- Poprawiono błędne środowisko operacyjne (przeniesiono zmiany z src/ do _tester/_base/.silnik/src/).
+- Zlikwidowano race condition przy Szybkiej Przygodzie w page.tsx.
+- Rozbudowano UI modala szybkiego wyboru (quick-setup-modal.tsx): portrety SafeImage, Karta postaci z biografią.
+- Naprawiono błędy wyłapane przez Code Review (HTML zagnieżdżonego buttona oraz TypeScriptowe typowanie tacticalNotes).
+
+### Co otwarte (do następnej sesji)
+- Dalsze testy lub integracja kolejnych mechanik ułatwiających rozgrywkę.
+
+### Decyzje podjęte
+- Zmiany zawsze muszą trafiać do aktualnego środowiska testowego (_tester).
