@@ -112,10 +112,12 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 
 | Preset      | Model czatu      | Lektor         | Obrazy          |
 | ----------- | ---------------- | -------------- | --------------- |
-| **LOW**     | Gemini 3.6 Flash | brak           | Gemini          |
-| **MID**     | Gemini 3.6 Flash | Gemini TTS     | Gemini          |
-| **HIGH** ⭐ | Gemini 3.6 Flash / 2.5 | Gemini TTS | Gemini / Vertex |
-| **ULTRA**   | Gemini Pro       | Gemini Pro TTS | Gemini / Vertex |
+| **LOW**     | Gemini 3.6 Flash | brak           | Imagen 3.0      |
+| **MID**     | Gemini 3.6 Flash | Gemini TTS     | Imagen 3.0      |
+| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS     | Imagen 3.0      |
+| **ULTRA**   | Gemini 3.1 Pro Preview | Gemini TTS | Imagen 3.0      |
+
+*Szacowane koszty API (USD per 1M tokenów wejścia/wyjścia): Gemini 3.6 Flash (0.15/0.60), Gemini 2.5 Flash (0.075/0.30), Gemini 3.1 Pro Preview (2.00/12.00).*
 
 ## 🗺️ Roadmapa (Plany rozwojowe)
 
@@ -254,10 +256,12 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 
 | Preset | Chat Model | TTS Voice | Images |
 | --- | --- | --- | --- |
-| **LOW** | Gemini Flash | None | Gemini |
-| **MID** | Gemini Flash | Google TTS | Gemini |
-| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS | Gemini / Vertex |
-| **ULTRA** | Gemini Pro | Gemini Pro TTS | Gemini / Vertex |
+| **LOW** | Gemini 3.6 Flash | None | Imagen 3.0 |
+| **MID** | Gemini 3.6 Flash | Gemini TTS | Imagen 3.0 |
+| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS | Imagen 3.0 |
+| **ULTRA** | Gemini 3.1 Pro Preview | Gemini TTS | Imagen 3.0 |
+
+*Estimated API costs (USD per 1M tokens in/out): Gemini 3.6 Flash (0.15/0.60), Gemini 2.5 Flash (0.075/0.30), Gemini 3.1 Pro Preview (2.00/12.00).*
 
 ## 🗺️ Development Roadmap
 

@@ -2,12 +2,19 @@
 
 Roadmapa opisuje docelową wersję aplikacji lokalnej. Aplikacja działa na komputerze użytkownika, przechowuje stan gry i indeks wiedzy lokalnie, a z siecią łączy się tylko przez jawnie wybrane integracje.
 
-## Priorytet prac (Zatwierdzony 2026-07-20)
-- **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` (wariant Low/Flash) oraz zaktualizowanie szacunków kosztów gry.
-- **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG.
-- **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza.
-- **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji.
-- **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz tłumaczenie interfejsu (Nice to have).
+## Priorytet prac (Zatwierdzony 2026-08-01)
+- **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` (wariant Low/Flash) oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
+- **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟡 W TRAKCIE)
+- **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza. (🟡 W TRAKCIE)
+- **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji. (🔵 TODO)
+- **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz tłumaczenie interfejsu (Nice to have). (🔵 TODO)
+
+### Szacowane koszty API dla presetów (USD per 1M tokenów)
+- **LOW:** Gemini 3.6 Flash (0.15 in / 0.60 out)
+- **MID:** Gemini 3.6 Flash (0.15 in / 0.60 out) + Lektor TTS
+- **HIGH:** Gemini 2.5 Flash (0.075 in / 0.30 out) + Lektor TTS
+- **ULTRA:** Gemini 3.1 Pro Preview (2.00 in / 12.00 out) + Lektor TTS
+- **Dodatki:** Obrazy Imagen 3.0 (rozliczenie na żądanie, 30.0 USD wg stawki), Lektor Gemini 2.5 Flash TTS (0.50 in / 1.50 out).
 
 ## Zasady architektury
 

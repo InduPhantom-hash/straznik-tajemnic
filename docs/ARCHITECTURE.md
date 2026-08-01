@@ -42,11 +42,11 @@ To celowo aplikacja jednoinstancyjna - stąd dopuszczalne singletony modułowe i
 
 Wszystko opiera się o **rodzinę Gemini API** (jeden klucz):
 
-- **Czat** (Mistrz Gry) - domyślnie `gemini-3.6-flash` (lub wg presetu Flash / Pro), przez provider
+- **Czat** (Mistrz Gry) - domyślnie `gemini-3.6-flash` (lub wg presetu `gemini-2.5-flash` / `gemini-3.1-pro-preview`), przez provider
   `src/lib/ai-providers/gemini-provider.ts`, streaming SSE.
-- **Embeddingi** - `gemini-embedding-001` (3072 dim) do RAG.
-- **Lektor** - Gemini TTS (`/api/tts/gemini`); opcjonalnie Google Cloud TTS.
-- **Obrazy** - `gemini-2.5-flash-image` (`/api/imagen`); opcjonalnie Vertex Imagen 4 / Replicate Flux.
+- **Embeddingi** - `gemini-embedding-001` (768 dim dla V1, 3072 dim dla V2) do RAG.
+- **Lektor** - `gemini-2.5-flash-preview-tts` (`/api/tts/gemini`).
+- **Obrazy** - domyślnie `imagen-3.0-generate-002` (`/api/imagen`); opcjonalnie `gemini-2.5-flash-image`.
 
 ## RAG (lokalny - docelowa architektura)
 
