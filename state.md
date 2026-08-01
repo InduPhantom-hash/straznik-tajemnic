@@ -34,6 +34,7 @@
 - [x] **Wielowarstwowy Profil NPC:** Generowanie kontekstu relacji i ukrytych celów dla postaci niezależnych.
 - [x] **System Przeczytania Dokumentów:** Generowanie treści listów i manuskryptów z zapisem w karcie postaci.
 - [x] **Paczki Badaczy dla Szybkiej Przygody (Strefa 11):** Dodano 12 nowych badaczy i spięto mapowanie logiki w modalu (`strefa-11-characters.ts`, `quick-setup-modal.tsx`).
+- [x] **Generatory Fabularne (Etap 3.5 - Piggybacking):** Ręczne zdarzenia losowe (pogoda, przechodnie, wydarzenia kosmiczne/miejskie) przekazywane jako ukryta instrukcja reżyserska `[INSTRUKCJA REŻYSERSKA]` w strumieniu bez psujących cykl wiadomości wyścigów stanów (`RandomEventGenerator`, `useChat.ts`, `build-context.ts`).
 
 ---
 
