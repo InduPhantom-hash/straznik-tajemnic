@@ -315,6 +315,10 @@ interface UseChatOptions {
   // serwerowy HOT SEAT FIX (build-context.ts) wstrzyknął listę obu postaci
   // do promptu AI (AI rozpoznaje i adresuje obu graczy, nie tylko aktywnego).
   hotSeatConfig?: HotSeatConfig | null;
+  /** Wydarzenie z generatora fabularnego zrzucone z UI */
+  pendingDirectorEvent?: import('@/lib/random-event-generator').RandomEvent | null;
+  /** Czyszczenie wydarzenia po wysłaniu do LLM */
+  clearPendingDirectorEvent?: () => void;
   /** Po zapisaniu deklaracji przełącza UI na kolejnego oczekującego gracza. */
   onSwitchHotSeatPlayer?: (playerIndex: number) => void;
 }
@@ -658,10 +662,21 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               hotSeatConfig,
               characters
             ),
+            directorEvent: options.pendingDirectorEvent
+              ? {
+                  title: options.pendingDirectorEvent.title,
+                  description: options.pendingDirectorEvent.description,
+                }
+              : undefined,
           }),
         });
 
         if (!response.ok) throw new Error('Błąd połączenia');
+
+        // Udane wysłanie - wyczyść oczekujące zdarzenie w UI (Faza 2 planu)
+        if (options.clearPendingDirectorEvent) {
+          options.clearPendingDirectorEvent();
+        }
 
         let streamedFullText = '';
         const fullText = await parseSSEStream(response, {

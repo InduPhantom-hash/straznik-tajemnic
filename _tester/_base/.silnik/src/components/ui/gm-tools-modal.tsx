@@ -18,6 +18,7 @@ interface GMToolsModalProps {
   activeCharacter?: unknown;
   currentLocation?: string;
   sessionId?: string;
+  onEventGenerated?: (event: import('@/lib/random-event-generator').RandomEvent) => void;
 }
 
 export function GMToolsModal({
@@ -25,6 +26,7 @@ export function GMToolsModal({
   onClose,
   currentLocation,
   sessionId,
+  onEventGenerated,
 }: GMToolsModalProps) {
   const renderTool = () => {
     switch (tool) {
@@ -41,6 +43,7 @@ export function GMToolsModal({
           <RandomEventGenerator
             onClose={onClose}
             currentLocation={currentLocation}
+            onEventGenerated={onEventGenerated}
           />
         );
       case 'location-manager':

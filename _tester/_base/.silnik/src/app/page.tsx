@@ -39,6 +39,7 @@ import { useFullReset } from '@/hooks/useFullReset';
 import { toast } from '@/components/ui/use-toast';
 import { BUILT_IN_ADVENTURES } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
+import type { RandomEvent } from '@/lib/random-event-generator';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -146,6 +147,7 @@ export default function Home() {
     charMgmt.handleUpdateCharacter
   );
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
+  const [pendingDirectorEvent, setPendingDirectorEvent] = useState<RandomEvent | null>(null);
 
   // IND-246: Hot Seat przed useChat - useChat wysyła hotSeat.config do /api/chat.
   const hotSeat = useHotSeat(charMgmt.characters);
@@ -165,6 +167,8 @@ export default function Home() {
     aiSettings,
     onSkillResults: skillMarking.processSkillResults,
     hotSeatConfig: hotSeat.config,
+    pendingDirectorEvent,
+    clearPendingDirectorEvent: () => setPendingDirectorEvent(null),
   });
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -770,6 +774,15 @@ export default function Home() {
               activeCharacter={charMgmt.activeCharacter}
               currentLocation={chat.currentLocation}
               sessionId={charMgmt.activeGameState?.session?.id}
+              onEventGenerated={(event) => {
+                setPendingDirectorEvent(event);
+                toast({
+                  title: 'Wydarzenie dodane do bufora',
+                  description: 'Zostanie wplecione w kolejną odpowiedź AI.',
+                });
+                setShowGMTools(false);
+                setActiveGMTool(null);
+              }}
             />
           )}
 

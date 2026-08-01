@@ -334,3 +334,20 @@ Branch: main
 
 ### Decyzje podjęte
 - Zmiany zawsze muszą trafiać do aktualnego środowiska testowego (_tester).
+
+## Podsumowanie sesji: 2026-08-01 (Etap 3.5 Generatory Fabularne)
+Branch: main
+
+### Co zrobiono
+- **Wdrożenie Generatorów Fabularnych (Etap 3.5):** Podpięto przycisk "Użyj w Grze" z panelu narzędzi Mistrza Gry (`RandomEventGenerator`) do pętli LLM za pomocą techniki **Piggybacking**.
+- Zdarzenia tła (pogoda, NPC, atmosfera, zdarzenia miejskie/kosmiczne) lądują w buforze React (`pendingDirectorEvent`) i przy najbliższej wiadomości wysyłanej przez gracza trafiają do backendu jako sekcja `[INSTRUKCJA REŻYSERSKA]`.
+- AI Mistrz Gry płynnie i organicznie wplata zdarzenie tła w narrację, nie przerywając synchroniczności czatu i nie powodując problemów z TTS czy nakładaniem wyścigów stanów.
+- **Dodano powiadomienie Toast (UX):** Po kliknięciu "Użyj w Grze" wyskakuje informacja *"Wydarzenie dodane do bufora. Zostanie wplecione w kolejną odpowiedź AI"*, a modal zamyka się automatycznie.
+- **Testy jednostkowe (TDD):** Dodano zestaw testów w `build-context.test.ts` weryfikujący bezbłędne wstrzykiwanie sekcji instruującej dla obu wariantów (z obecnością oraz bez zdarzenia reżyserskiego).
+
+### Co otwarte (do następnej sesji)
+- Implementacja "Ekwipunek i Finanse" (Etap 1 z Roadmapy mechanik AI).
+
+### Decyzje podjęte
+- Odrzucono bezpośrednie asynchroniczne wstrzykiwanie wiadomości od generatora jako odrębnego komunikatu na czacie (ze względu na ryzyko race condition, uszkodzeń lektora TTS oraz zakłóceń cyklu życia wiadomości). Zastosowano bezpieczny wzorzec Piggybackingu.
+

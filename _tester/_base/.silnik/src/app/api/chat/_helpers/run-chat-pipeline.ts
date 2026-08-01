@@ -85,6 +85,7 @@ export async function runChatPipeline({
     isGameStart,
     aiSettings: clientAISettings,
     hotSeatConfig,
+    directorEvent,
   } = body as {
     message: string;
     character?: Character | null;
@@ -104,6 +105,7 @@ export async function runChatPipeline({
     isGameStart?: boolean;
     aiSettings?: { sessionId?: string } & Record<string, unknown>;
     hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
+    directorEvent?: { title: string; description: string };
   };
 
   // Komendy lokalne
@@ -258,6 +260,9 @@ export async function runChatPipeline({
     playerSkillsSection: buildPlayerSkillsSection(character ?? null),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,
+    directorEventSection: directorEvent 
+      ? `\n## INSTRUKCJA REŻYSERSKA\n[MG wrzucił to losowe wydarzenie. Wpleć je organicznie w swoją narrację, nie przerywając głównego wątku]\n${directorEvent.title}: ${directorEvent.description}\n` 
+      : undefined,
     isGameStart,
     characters,
   });

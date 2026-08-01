@@ -92,6 +92,8 @@ export interface BuildAdditionalContextOpts {
   tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
   /** Sekcja danych immersyjnych (astronomia, gazety, ceny epoki) - wstrzykiwana gdy dostępna. */
   immersionSection?: string;
+  /** Wydarzenie z generatora fabularnego zrzucone z UI, przekazywane z hooka useChat */
+  directorEventSection?: string;
 }
 
 export function buildAdditionalContext(
@@ -191,6 +193,11 @@ export function buildAdditionalContext(
 
   // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen) - wzbogacają narrację.
   if (opts.immersionSection) additionalContext.push(opts.immersionSection);
+
+  // Etap 3.5: Wstrzyknięcie instrukcji reżyserskiej z wylosowanego zdarzenia
+  if (opts.directorEventSection) {
+    additionalContext.push(opts.directorEventSection);
+  }
 
   // OPT-23: game context injection (gameContextPrompt LUB NPC fallback)
   if (!skipContext && gameContextPrompt) {

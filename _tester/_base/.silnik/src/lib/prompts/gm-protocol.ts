@@ -32,6 +32,7 @@ export function getCompactGMProtocolPrompt(): string {
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać. Użyj \`nadprzyrodzony\` wyłącznie dla jawnie anormalnego przedmiotu.
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka
+- \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie (pogoda, spotkanie) w swoją najbliższą narrację jako organiczną część opisu. Nigdy nie powtarzaj tekstu nagłówka tagu.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę na Kości). Trudność = ocena jakościowa, progu liczbowego NIE podajesz (liczy aplikacja). NIGDY nie wzywaj testu samą prozą ("rzuć d100") - proza nie tworzy Tacki. Ale ZAWSZE poprzedź tag \`[TEST:]\` min. 1 zdaniem opisu sceny - nie otwieraj tury samym gołym tagiem.
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata (lub \`+N\` odzysk) Poczytalności / Życia. Aplikacja odejmuje od karty postaci automatycznie (tag niewidoczny dla gracza). Używaj PO nieudanym teście Poczytalności i przy obrażeniach w walce. Liczbę bierz z \`[RAG_CONTEXT]\`/podręcznika - jeśli jej nie znasz, NIE zgaduj: napisz prozą i poproś o sprawdzenie.
 
