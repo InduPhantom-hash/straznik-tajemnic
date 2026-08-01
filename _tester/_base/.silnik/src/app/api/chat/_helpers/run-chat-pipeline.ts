@@ -260,9 +260,11 @@ export async function runChatPipeline({
     playerSkillsSection: buildPlayerSkillsSection(character ?? null),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,
-    directorEventSection: directorEvent 
-      ? `\n## INSTRUKCJA REŻYSERSKA\n[MG wrzucił to losowe wydarzenie. Wpleć je organicznie w swoją narrację, nie przerywając głównego wątku]\n${directorEvent.title}: ${directorEvent.description}\n` 
-      : undefined,
+    directorEventSection:
+      directorEvent &&
+      (directorEvent.title?.trim() || directorEvent.description?.trim())
+        ? `\n## INSTRUKCJA REŻYSERSKA\n[MG wrzucił to losowe wydarzenie. Wpleć je organicznie w swoją narrację, nie przerywając głównego wątku]\n${directorEvent.title.replace(/\[/g, '(').replace(/\]/g, ')')}: ${directorEvent.description.replace(/\[/g, '(').replace(/\]/g, ')')}\n`
+        : undefined,
     isGameStart,
     characters,
   });

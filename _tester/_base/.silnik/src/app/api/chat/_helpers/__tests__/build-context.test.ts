@@ -4,10 +4,12 @@ import type { GameContext } from '@/lib/prompt-section-parser';
 describe('buildAdditionalContext', () => {
   it('should include directorEventSection if provided', () => {
     const dummyGameContext: GameContext = {
-      location: 'Test',
-      time: '1920',
-      entities: [],
       mode: 'investigation',
+      hasNPCs: false,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
     };
 
     const result = buildAdditionalContext({
@@ -24,10 +26,12 @@ describe('buildAdditionalContext', () => {
 
   it('should not include directorEventSection if omitted', () => {
     const dummyGameContext: GameContext = {
-      location: 'Test',
-      time: '1920',
-      entities: [],
       mode: 'investigation',
+      hasNPCs: false,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
     };
 
     const result = buildAdditionalContext({
