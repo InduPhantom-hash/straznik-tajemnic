@@ -76,6 +76,7 @@
 ### 📌 Etap 3.6 - Stabilizacja Immersji (UI i Zaległości z Sekcji 3 i 4)
 - [x] **Nowe Widoki Diegetyczne:** Stworzenie dedykowanych układów CSS w `DiegeticDocumentViewer` dla notatnika (`journal_page`) i biletu (`ticket`).
 - [x] **Przebudowa Predefiniowanych Badaczy (Sekcja 3):** Zrealizowano dla trybu Szybkiej Przygody (12 dedykowanych postaci dla Strefy 11).
+- [ ] **Dedykowane Portrety Graczy Strefy 11:** Wygenerowanie zbioru portretów pasujących do lat 90./TV Strefa 11 (`/public/portraits/predefined/strefa11/`).
 - [ ] **Awatary w Czecie (Sekcja 4):** Integracja portretów NPC w wypowiedziach AI (`render-narrative-with-images.tsx`).
 - [x] **Synchronizacja Parsera Dokumentów:** Przeniesienie logiki przypisywania `documentType` z silnika testowego (`_tester`) do głównej aplikacji (`src/lib/acquired-equipment.ts`).
 

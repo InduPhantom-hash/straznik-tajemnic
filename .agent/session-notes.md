@@ -363,3 +363,19 @@ Branch: main
 ### Co otwarte (do następnej sesji)
 - Dokończenie podłączania danych pod Szybką Przygodę (jeśli wymaga poprawek).
 - Przejście do Etapu 3 (Tablica Badaczy i Dowody).
+## Podsumowanie sesji: 2026-08-02
+Branch: main
+
+### Co zrobiono
+- **Portrety postaci Strefa 11:** Zastąpiono uszkodzone linki realnymi plikami z `/public/portraits/predefined/`.
+- **Redesign Modala Szybka Przygoda:** Przebudowano layout na styl Dark Art Déco z narożnikami `deco-corners` i mosiężną ramką. Zwiększono opis przygód do 16px z tonacją `text-muted-foreground`.
+- **Pełna Karta Postaci CoC 7e:** Przycisk "Biografia" podpięto pod oficjalny komponent `CharacterSheet` prezentujący komplet statystyk, umiejętności i ekwipunku.
+- **Globalne scrollbary Art Déco:** Dodano w `globals.css` reguły usuwające białe paski przeglądarki z całej aplikacji.
+- **Przebudowa Desktop Launchera:** Skompilowano gotową aplikację `Strażnik Tajemnic AI.app` na biurko.
+
+### Co otwarte
+- Wygenerowanie dedykowanych portretów z lat 90. dla postaci ze Strefy 11 (dopisano do `state.md` i `zadania.md`).
+
+### Decyzje podjęte
+- Użycie wbudowanego komponentu `CharacterSheet` dla podglądu badaczy w oknie Szybkiej Przygody zamiast uproszczonego podglądu.
+

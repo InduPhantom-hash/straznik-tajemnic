@@ -511,7 +511,31 @@
     0 0 60px 24px hsl(var(--primary) / 0.18);
 }
 
-/* ─── Ciemne scrollbary Art-Deco (Dziennik Sesji, modale) ─── */
+/* ─── Globalne ciemne scrollbary Art-Deco (Wszystkie kontenery, modale i okna) ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a2e1d #0d0b08;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0b08;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a2e1d;
+  border-radius: 4px;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a482b;
+}
+
 .journal-scroll {
   scrollbar-width: thin;
   scrollbar-color: #3a2518 transparent;

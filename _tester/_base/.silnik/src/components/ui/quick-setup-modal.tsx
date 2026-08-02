@@ -14,6 +14,7 @@ import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X } from 'lucide-rea
 import { STREFA_11_ADVENTURES } from '@/lib/adventures-data';
 import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
 import { Character } from '@/lib/types';
+import { CharacterSheet } from './character-sheet';
 
 interface QuickSetupModalProps {
   open: boolean;
@@ -52,16 +53,29 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0c0d0a] border border-primary/40 shadow-[0_0_40px_rgba(16,185,129,0.15)] deco-corners w-[95vw] max-w-4xl h-[85vh] flex flex-col p-6 overflow-hidden">
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center gap-2 font-display uppercase tracking-[0.12em] text-foreground text-xl">
-            <Sparkles className="w-5 h-5 text-primary" />
-            Szybka Przygoda (Strefa 11)
+      <DialogContent size="screen">
+        <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-brass/55" />
+        <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-brass/55" />
+        <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-brass/55" />
+        <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-brass/55" />
+
+        <DialogHeader className="text-center sm:text-center shrink-0">
+          <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
+            Szybka Przygoda
+          </div>
+          <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-3xl font-black uppercase tracking-[0.12em] text-foreground flex items-center gap-2">
+            Strefa 11
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-xs">
+          <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
             Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="mt-2 mb-2 flex items-center gap-4 shrink-0">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gold" />
+          <span className="h-2 w-2 rotate-45 bg-brass" />
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold" />
+        </div>
 
         <div className="flex-1 overflow-y-auto journal-scroll space-y-6 pt-4 pr-2">
           {/* Wybór trybu */}
@@ -76,8 +90,8 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                 onClick={() => { setPlayMode('solo'); setSelectedCharacter2(''); }}
                 className={`p-3 rounded-lg border text-left transition-all flex items-center gap-3 ${
                   playMode === 'solo'
-                    ? 'bg-primary/15 border-primary text-foreground shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                    : 'bg-card/40 border-border text-muted-foreground hover:border-primary/40'
+                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(13,148,136,0.15)] text-foreground'
+                    : 'bg-[#16130f] border-brass/28 hover:border-brass/55 text-muted-foreground'
                 }`}
               >
                 <User className={`w-5 h-5 shrink-0 ${playMode === 'solo' ? 'text-primary' : ''}`} />
@@ -92,8 +106,8 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                 onClick={() => setPlayMode('hot-seat')}
                 className={`p-3 rounded-lg border text-left transition-all flex items-center gap-3 ${
                   playMode === 'hot-seat'
-                    ? 'bg-primary/15 border-primary text-foreground shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                    : 'bg-card/40 border-border text-muted-foreground hover:border-primary/40'
+                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(13,148,136,0.15)] text-foreground'
+                    : 'bg-[#16130f] border-brass/28 hover:border-brass/55 text-muted-foreground'
                 }`}
               >
                 <Users className={`w-5 h-5 shrink-0 ${playMode === 'hot-seat' ? 'text-primary' : ''}`} />
@@ -118,14 +132,14 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                   onClick={() => setSelectedAdventureId(adv.id)}
                   className={`p-3 rounded-md border cursor-pointer transition-all flex flex-col justify-between min-h-[5rem] ${
                     selectedAdventureId === adv.id
-                      ? 'bg-primary/10 border-primary text-foreground'
-                      : 'bg-card/20 border-border/60 hover:border-primary/30 text-muted-foreground'
+                      ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(13,148,136,0.15)] text-foreground'
+                      : 'bg-[#16130f] border-brass/28 hover:border-brass/55 text-muted-foreground'
                   }`}
                 >
                   <div className="font-display text-xs uppercase tracking-wide text-primary font-medium">
                     {adv.title}
                   </div>
-                  <div className="text-[11px] mt-1 line-clamp-3">
+                  <div className="text-[16px] leading-relaxed font-serif mt-1.5 line-clamp-3 text-muted-foreground">
                     {adv.description}
                   </div>
                   <div className="text-[10px] uppercase font-mono mt-2 self-start rounded bg-black/40 border border-primary/20 text-primary px-1">
@@ -158,45 +172,55 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                           : 'bg-card/20 border-border hover:border-primary/30 grayscale hover:grayscale-0'
                     }`}
                   >
-                    <button
-                      type="button"
-                      disabled={playMode === 'hot-seat' && selectedCharacter2 === c.id}
-                      onClick={() => setSelectedCharacter1(c.id)}
-                      className="flex-1 text-left"
-                    >
-                      <div className="aspect-[3/4] w-full overflow-hidden border-b border-border/50 relative">
-                        {c.portraitUrl ? (
-                          <SafeImage
-                            src={c.portraitUrl}
-                            alt={c.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <User className="w-8 h-8 opacity-20" />
+                    <div className="flex-1 flex flex-col">
+                      <button
+                        type="button"
+                        disabled={playMode === 'hot-seat' && selectedCharacter2 === c.id}
+                        onClick={() => setSelectedCharacter1(c.id)}
+                        className="flex-1 text-left w-full relative"
+                      >
+                        <div className="aspect-[3/4] w-full overflow-hidden border-b border-brass/20 relative">
+                          {c.portraitUrl ? (
+                            <SafeImage
+                              src={c.portraitUrl}
+                              alt={c.name}
+                              className="w-full h-full object-cover grayscale opacity-80 transition-all hover:grayscale-0 hover:opacity-100"
+                              style={{ 
+                                filter: selectedCharacter1 === c.id ? 'grayscale(0)' : undefined,
+                                opacity: selectedCharacter1 === c.id ? 1 : undefined
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <User className="w-8 h-8 opacity-20" />
+                            </div>
+                          )}
+                          {selectedCharacter1 === c.id && (
+                            <span className="absolute left-1.5 top-1.5 flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)] z-10">
+                              <span aria-hidden="true" className="-rotate-45 text-sm text-[#04110f]">✓</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <div className={`font-display uppercase tracking-wider text-[11px] truncate ${selectedCharacter1 === c.id ? 'text-primary font-bold' : 'text-foreground'}`}>
+                            {c.name}
                           </div>
-                        )}
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setViewingCharacter(c as Character);
-                          }}
-                          className="absolute top-1 right-1 p-1.5 bg-black/60 hover:bg-primary/80 text-white rounded backdrop-blur transition-colors z-10 cursor-pointer"
-                        >
-                          <Info className="w-4 h-4" />
+                          <div className="text-[10px] font-special-elite text-muted-foreground truncate mt-0.5">
+                            {c.occupation}
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-2">
-                        <div className={`font-bold text-xs truncate ${selectedCharacter1 === c.id ? 'text-primary' : 'text-foreground'}`}>
-                          {c.name}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground truncate mt-0.5">
-                          {c.occupation}
-                        </div>
-                      </div>
-                    </button>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingCharacter(c as Character);
+                        }}
+                        className="w-full py-1.5 border-t border-brass/20 bg-black/40 hover:bg-brass/10 text-brass hover:text-primary text-[10px] font-special-elite uppercase tracking-widest flex justify-center items-center gap-1 transition-colors mt-auto"
+                      >
+                        <Info className="w-3 h-3" /> Biografia
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -218,45 +242,55 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                             : 'bg-card/20 border-border hover:border-primary/30 grayscale hover:grayscale-0'
                       }`}
                     >
+                    <div className="flex-1 flex flex-col">
                       <button
                         type="button"
                         disabled={selectedCharacter1 === c.id}
                         onClick={() => setSelectedCharacter2(c.id)}
-                        className="flex-1 text-left"
+                        className="flex-1 text-left w-full relative"
                       >
-                        <div className="aspect-[3/4] w-full overflow-hidden border-b border-border/50 relative">
+                        <div className="aspect-[3/4] w-full overflow-hidden border-b border-brass/20 relative">
                           {c.portraitUrl ? (
                             <SafeImage
                               src={c.portraitUrl}
                               alt={c.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover grayscale opacity-80 transition-all hover:grayscale-0 hover:opacity-100"
+                              style={{ 
+                                filter: selectedCharacter2 === c.id ? 'grayscale(0)' : undefined,
+                                opacity: selectedCharacter2 === c.id ? 1 : undefined
+                              }}
                             />
                           ) : (
                             <div className="w-full h-full bg-muted flex items-center justify-center">
                               <User className="w-8 h-8 opacity-20" />
                             </div>
                           )}
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setViewingCharacter(c as Character);
-                            }}
-                            className="absolute top-1 right-1 p-1.5 bg-black/60 hover:bg-primary/80 text-white rounded backdrop-blur transition-colors z-10 cursor-pointer"
-                          >
-                            <Info className="w-4 h-4" />
-                          </div>
+                          {selectedCharacter2 === c.id && (
+                            <span className="absolute left-1.5 top-1.5 flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)] z-10">
+                              <span aria-hidden="true" className="-rotate-45 text-sm text-[#04110f]">✓</span>
+                            </span>
+                          )}
                         </div>
                         <div className="p-2">
-                          <div className={`font-bold text-xs truncate ${selectedCharacter2 === c.id ? 'text-primary' : 'text-foreground'}`}>
+                          <div className={`font-display uppercase tracking-wider text-[11px] truncate ${selectedCharacter2 === c.id ? 'text-primary font-bold' : 'text-foreground'}`}>
                             {c.name}
                           </div>
-                          <div className="text-[10px] text-muted-foreground truncate mt-0.5">
+                          <div className="text-[10px] font-special-elite text-muted-foreground truncate mt-0.5">
                             {c.occupation}
                           </div>
                         </div>
                       </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingCharacter(c as Character);
+                        }}
+                        className="w-full py-1.5 border-t border-brass/20 bg-black/40 hover:bg-brass/10 text-brass hover:text-primary text-[10px] font-special-elite uppercase tracking-widest flex justify-center items-center gap-1 transition-colors mt-auto"
+                      >
+                        <Info className="w-3 h-3" /> Biografia
+                      </button>
+                    </div>
                     </div>
                   ))}
                 </div>
@@ -283,92 +317,11 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
         </div>
       </DialogContent>
       
-      {viewingCharacter && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/90 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="deco-corners relative w-full max-w-3xl bg-[#120f0c] border border-brass/50 p-6 md:p-8 my-8">
-            <div className="flex justify-between items-start mb-4 border-b border-brass/20 pb-3">
-              <div>
-                <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">
-                  Opis badacza
-                </div>
-                <h3 className="font-display font-bold text-2xl text-foreground mt-1 uppercase tracking-[0.06em]">
-                  {viewingCharacter.name}
-                </h3>
-              </div>
-              <button
-                onClick={() => setViewingCharacter(null)}
-                className="p-1 text-muted-foreground hover:text-brass transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
-              <div className="space-y-4">
-                <div className="relative aspect-[3/4] border border-brass/45 bg-gradient-to-b from-[#1a160f] to-[#0c0d0a] overflow-hidden">
-                  {viewingCharacter.portraitUrl ? (
-                    <SafeImage
-                      src={viewingCharacter.portraitUrl}
-                      alt={viewingCharacter.name}
-                      className="w-full h-full object-cover grayscale"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full text-muted-foreground/40">
-                      <User className="w-12 h-12" />
-                    </div>
-                  )}
-                </div>
-                <div className="text-center font-special-elite text-xs text-brass uppercase tracking-[0.1em]">
-                  {viewingCharacter.occupation}
-                  {viewingCharacter.age ? ` · lat ${viewingCharacter.age}` : ''}
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-2">
-                    Biografia
-                  </h4>
-                  <p className="font-serif text-foreground text-sm leading-relaxed whitespace-pre-line">
-                    {viewingCharacter.background || viewingCharacter.backstory}
-                  </p>
-                </div>
-                {viewingCharacter.traits && viewingCharacter.traits.length > 0 && (
-                  <div>
-                    <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-2">
-                      Cechy charakteru
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {viewingCharacter.traits.map((trait: string, i: number) => (
-                        <span key={i} className="text-xs border border-brass/35 text-foreground bg-[#1a160f] px-2 py-1 rounded">
-                          {trait}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {viewingCharacter.tacticalNotes && (
-                  <div>
-                    <h4 className="font-display uppercase tracking-[0.24em] text-primary text-xs font-semibold mb-2">
-                      Wskazówki
-                    </h4>
-                    <p className="font-serif text-primary/90 text-sm italic leading-relaxed">
-                      {viewingCharacter.tacticalNotes}
-                    </p>
-                  </div>
-                )}
-                <div className="pt-4 flex justify-end">
-                  <Button
-                    onClick={() => setViewingCharacter(null)}
-                    variant="outline"
-                    className="font-display text-xs uppercase tracking-[0.16em] border-brass/20 text-muted-foreground hover:border-brass/50 hover:text-brass"
-                  >
-                    Zamknij
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CharacterSheet
+        open={!!viewingCharacter}
+        onOpenChange={(open) => !open && setViewingCharacter(null)}
+        character={viewingCharacter || undefined}
+      />
     </Dialog>
   );
 }
