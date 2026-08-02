@@ -207,10 +207,10 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         currentLocation={currentLocation}
       />
       {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4 max-w-4xl mx-auto w-full">
-          {/* Pokaż WelcomeScreen dopóki użytkownik nie kliknie Rozpocznij */}
-          {!hasStartedGame ? (
+      <ScrollArea className="flex-1 p-4 md:p-8">
+        {/* Pokaż WelcomeScreen dopóki użytkownik nie kliknie Rozpocznij */}
+        {!hasStartedGame ? (
+          <div className="w-full max-w-[85vw] xl:max-w-7xl h-[80vh] min-h-[700px] mx-auto mt-2 xl:mt-6 rounded-md overflow-hidden ring-1 ring-brass/10 shadow-[0_0_50px_rgba(201,162,39,0.03)]">
             <WelcomeScreen
               onUploadRules={onUploadRules || (() => {})}
               onSelectAdventure={onSelectAdventure || (() => {})}
@@ -237,8 +237,10 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               onOpenCharacterSheet={onOpenCharacterSheet}
               characters={characters}
             />
-          ) : (
-            messages.map((message, index) => (
+          </div>
+        ) : (
+          <div className="space-y-4 max-w-4xl mx-auto w-full">
+            {messages.map((message, index) => (
               <MessageCard
                 key={message.id}
                 message={message}
@@ -264,14 +266,12 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                 isDuet={isDuet}
                 characters={characters}
               />
-            ))
-          )}
-
-          {/* Loading indicator - animowane kropki */}
-          {isLoading && <LoadingIndicator />}
-
-          <div ref={messagesEndRef} />
-        </div>
+            ))}
+            {/* Loading indicator - animowane kropki */}
+            {isLoading && <LoadingIndicator />}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
       </ScrollArea>
       {/* Pasek wpisywania tylko w grze - ekran powitalny ma być czysty ("tylko ekran powitalny") */}
       {hasStartedGame && (

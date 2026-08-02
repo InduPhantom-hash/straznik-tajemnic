@@ -177,7 +177,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
       <span className="pointer-events-none absolute bottom-5 right-5 w-11 h-11 border-b-2 border-r-2 border-brass/60" />
 
       {/* === Centrum === */}
-      <div className="relative z-20 h-full flex flex-col items-center justify-center px-6 pb-40 text-center overflow-y-auto">
+      <div className="relative z-20 h-full flex flex-col items-center justify-center px-6 pb-40 text-center overflow-y-auto journal-scroll">
         {/* świeca CSS */}
         <div className="mb-3 animate-candle-flicker">
           <div className="deco-candle" />
@@ -213,7 +213,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
         {recentSave && <ResumeCard save={recentSave} onResume={onLoadSave} />}
 
         {/* Krok 3 - Nowe karty trybów startu */}
-        <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-6 w-[min(900px,90vw)] justify-center items-center z-20 mt-2">
+        <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-8 w-[min(1200px,95vw)] justify-center items-center z-20 mt-6">
           <StartModeCards 
             onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
             onManualStart={() => onChoosePlayMode?.()} 

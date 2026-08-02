@@ -84,7 +84,7 @@
 
 - [ ] **Krok 0: Hard-loading Screen (Sekcja 4):** "Twardy" czarny ekran ładowania blokujący grę na czas inicjalizacji bufora TTS.
 - [ ] **Krok 1: Weryfikacja / Klucz API Gemini & Zasady:** Walidacja klucza API oraz stan wgranego podręcznika.
-- [ ] **Krok 2: Czysty Ekran Startowy (Sekcja 6):** Wyczyszczenie obcych linków z `page.tsx` oraz odświeżenie katalogu predefiniowanych przygód.
+- [x] **Krok 2: Czysty Ekran Startowy (Sekcja 6):** Wyczyszczenie obcych linków z `page.tsx` oraz finalny layout powitalny z elastycznym wypełnieniem ekranu (85vw) i własnym systemem scrollbara.
 - [ ] **Krok 3: Wybór Trybu Startu:**
   - ⚡ **3.1 Quick Setup (Szybka Przygoda):** Wybór liczby graczy (Solo / Duet / Hot Seat) + zwięzłe opisy przygotowanych przygód z przypisanymi postaciami.
   - 🛠️ **3.2 Manual Setup (Manualny Setup):** Wejście do obecnego menu głównego (Tryb Gry, Wybierz Przygodę, Sesja Zero, Stwórz postać).

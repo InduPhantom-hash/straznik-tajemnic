@@ -159,7 +159,7 @@ Branch: main
 ### Co zrobiono
 - **Test Coverage (Faza 1)**: Dodano 9 testów jednostkowych w `acquired-equipment.test.ts` weryfikujących zachowanie `inferDocumentType` i fallbacku `documentType`.
 - **Naprawa Tablicy Śledczej (Faza 2)**: Zmodyfikowano `investigator-board.tsx`, zastępując renderowanie na podstawie `localNodes` użyciem przefiltrowanej tablicy `filteredNodes`. Zsynchronizowano cykl życia Hooka tak, aby filtry działały płynnie z systemem drag & drop.
-- **Naprawa Testów PDF Ingest (Faza 2)**: Zaktualizowano mocki wektorowej bazy lokalnej w `route.test.ts`, przez co test asercji klucza i środowiska wreszcie przechodzi na zielono.
+- **Naprawa Testów PDF Ingest (Faza 2)**: Zaktualizowano mocki wektorowej bazy lokalnej w `route.test.ts`, przez ty test asercji klucza i środowiska wreszcie przechodzi na zielono.
 - **Logika generowania broni (Faza 2)**: Zastosowano funkcję `resolveEraVisualProfile` do prawidłowego rozwiązywania parametrów dat w promptach na sztywne identyfikatory epoki (np. 1946 -> 1940s) podczas ładowania assetów graficznych broni.
 - Wszystkie 158 testów w środowisku `.silnik/` świeci się na zielono.
 
@@ -351,3 +351,15 @@ Branch: main
 ### Decyzje podjęte
 - Odrzucono bezpośrednie asynchroniczne wstrzykiwanie wiadomości od generatora jako odrębnego komunikatu na czacie (ze względu na ryzyko race condition, uszkodzeń lektora TTS oraz zakłóceń cyklu życia wiadomości). Zastosowano bezpieczny wzorzec Piggybackingu.
 
+## Podsumowanie sesji: 2026-08-02
+Branch: main
+
+### Co zrobiono
+- Zidentyfikowano problem zawężania obszaru `WelcomeScreen` (narzucony nadrzędny wrapper `max-w-4xl` w hierarchii czatu).
+- Uwolniono ekran startowy z ograniczeń, budując dedykowany, 85-procentowy obszar powitalny z proporcjami dla Dark Art Deco.
+- Powiększono rozmiar i czytelność kart Szybkiej Przygody oraz wdrożono globalny `journal-scroll`.
+- Przebudowano launcher aplikacji w trybie produkcyjnym.
+
+### Co otwarte (do następnej sesji)
+- Dokończenie podłączania danych pod Szybką Przygodę (jeśli wymaga poprawek).
+- Przejście do Etapu 3 (Tablica Badaczy i Dowody).
