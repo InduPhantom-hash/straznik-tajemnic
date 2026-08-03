@@ -66,9 +66,9 @@ export function SheetBiography({ character }: SheetBiographyProps) {
       <div className="space-y-3">
         {/* Koncept postaci (highlight) */}
         {character.characterConcept && (
-          <div className="border border-primary/30 bg-[#0e1413] p-4">
-            <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-1.5">
-              🎭 Biografia Postaci
+          <div className="border border-brass/20 bg-[#16130f] p-4">
+            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">
+              🎭 Koncept Postaci
             </span>
             <p className="font-serif text-foreground text-base leading-relaxed">
               {character.characterConcept}
@@ -128,37 +128,33 @@ export function SheetBiography({ character }: SheetBiographyProps) {
           </div>
         )}
 
-        {/* Kluczowa więź / Historia */}
+        {/* Kluczowa więź / Maska */}
+        {character.background && character.background !== character.backstory && (
+          <div className="relative border border-brass/20 bg-[#16130f] p-5">
+            <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
+            <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
+            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
+              🔗 Kluczowa Więź / Maska
+            </span>
+            <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
+              {character.background}
+            </p>
+          </div>
+        )}
+
+        {/* Biografia / Życiorys */}
         {character.backstory && (
           <div className="relative border border-brass/20 bg-[#16130f] p-5">
             <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
             <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
             <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-              ⭐ Kluczowa więź
+              📜 Biografia i Życiorys Postaci
             </span>
             <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
               {character.backstory}
             </p>
           </div>
         )}
-
-        {/* Fallback: background jeśli brak dedykowanych pól */}
-        {!character.backstory &&
-          !character.description &&
-          character.background && (
-            <div className="relative border border-brass/20 bg-[#16130f] p-5">
-              <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
-              <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
-              <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-                📜 Tło Postaci
-              </span>
-              <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
-                {character.background}
-              </p>
-            </div>
-          )}
-
-
 
         {/* Placeholder jeśli brak danych */}
         {!character.characterConcept &&

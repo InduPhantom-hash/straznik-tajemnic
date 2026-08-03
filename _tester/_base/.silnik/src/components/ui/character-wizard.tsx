@@ -200,9 +200,11 @@ interface WizardState {
   personalItems: string;
   traits: string;
   keyConnection: string;
+  backstory: string;
   portraitUrl: string | null;
   isGeneratingPortrait: boolean;
   isGeneratingBackstory: boolean;
+  isGeneratingNarrative: boolean;
   // Krok 5
   equipment: string;
 }
@@ -280,9 +282,11 @@ export function CharacterWizardV2({
       personalItems: '',
       traits: '',
       keyConnection: '',
+      backstory: '',
       portraitUrl: null,
       isGeneratingPortrait: false,
       isGeneratingBackstory: false,
+      isGeneratingNarrative: false,
       equipment: '',
     };
     if (!char) return base;
@@ -298,7 +302,8 @@ export function CharacterWizardV2({
       significantPlaces: char.meaningfulLocation ?? '',
       personalItems: char.treasuredPossession ?? '',
       traits: Array.isArray(char.traits) ? char.traits.join(', ') : '',
-      keyConnection: char.backstory ?? '',
+      keyConnection: char.background ?? '',
+      backstory: char.backstory ?? '',
       portraitUrl: char.portraitUrl ?? null,
     };
   };
@@ -1042,7 +1047,7 @@ WAŻNE:
 "significantPlaces": "miejsce z emocjonalną więzią",
 "personalItems": "unikalny przedmiot z historią",
 "traits": "2-3 cechy - pozytywne i negatywne",
-"keyConnection": "dramatyczna więź łącząca wszystko"
+"keyConnection": "najważniejsza więź/relacja postaci (1-2 zdania)"
 }`;
 
     try {
@@ -1148,7 +1153,55 @@ WAŻNE:
     }
   };
 
-  // IND-178 (sesja 92) - FIELD_PROMPTS przeniesione do @/lib/data/character (import na top).
+  const generateNarrativeBiography = async () => {
+    setState((prev) => ({ ...prev, isGeneratingNarrative: true }));
+    const occupation = OCCUPATIONS.find((o) => o.id === state.occupationId);
+    const occupationName = occupation?.name || 'badacz';
+    const adventurePrompt = adventureContext
+      ? getAdventureContextPrompt(adventureContext)
+      : 'Era: lata 20. XX wieku, USA';
+
+    const prompt = `Na podstawie poniższych suchych informacji z karty postaci, napisz spójną, klimatyczną biografię i życiorys (2-3 akapity). Pisz w 3 osobie. Nie wymieniaj mechanicznie punktów, lecz wpleć je w opowieść.
+
+${adventurePrompt}
+
+Imię i nazwisko: ${state.name}
+Płeć: ${state.gender}
+Wiek: ${state.age}
+Zawód: ${occupationName}
+Miejsce urodzenia: ${state.birthplace}
+Wygląd: ${state.description}
+Ideologia: ${state.ideology}
+Ważne osoby: ${state.importantPeople}
+Znaczące miejsca: ${state.significantPlaces}
+Rzeczy osobiste: ${state.personalItems}
+Przymioty: ${state.traits}
+Kluczowa więź: ${state.keyConnection}
+
+Zwróć TYLKO czysty tekst biografii. Brak nagłówków. Brak komentarzy. Zwróć tylko i wyłącznie 2-3 akapity opowiadania.`;
+
+    try {
+      const response = await fetchWithApiKeys('/api/ai/utility', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          messages: [],
+        }),
+      });
+
+      if (!response.ok) throw new Error('API Error');
+
+      let fullContent = await collectSSEText(response);
+      if (fullContent) {
+        fullContent = fullContent.replace(/```(markdown|text)?\n?/gi, '').replace(/```\n?/g, '').trim();
+        setState((prev) => ({ ...prev, backstory: fullContent, isGeneratingNarrative: false }));
+      }
+    } catch (err) {
+      console.error(err);
+      setState((prev) => ({ ...prev, isGeneratingNarrative: false }));
+    }
+  };
 
   const generateSingleField = async (fieldName: string) => {
     if (generatingField) return;
@@ -1500,7 +1553,7 @@ WAŻNE:
               .map((t) => t.trim())
               .filter(Boolean)
           : [],
-      backstory: state.keyConnection || undefined,
+      backstory: state.backstory || state.keyConnection || undefined,
       characterConcept: selectedArchetype
         ? `${selectedArchetype.name}: ${selectedArchetype.description}`
         : undefined,
@@ -1614,7 +1667,7 @@ WAŻNE:
                 onClick={() => setSelectedArchetypeId(archetype.id)}
                 className={`p-4 border text-left transition-all duration-200 ${
                   isSelected
-                    ? 'border-primary/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
+                    ? 'border-brass/30/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
                     : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
                 }`}
               >
@@ -1632,8 +1685,8 @@ WAŻNE:
 
         {/* Szczegóły wybranego archetypu */}
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
-          <div className="border border-primary/30 bg-[#0e1413] p-4">
-            <h4 className="font-display uppercase tracking-[0.1em] text-sm text-primary mb-2 flex items-center gap-2">
+          <div className="border border-brass/30/30 bg-[#0e1413] p-4">
+            <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
               {selectedArchetype.icon} {selectedArchetype.name}
             </h4>
             <p className="font-serif italic text-sm text-muted-foreground mb-3">
@@ -1740,7 +1793,7 @@ WAŻNE:
             }}
             className={`p-4 border text-left cursor-pointer transition-all duration-200 ${
               statMethod === 'roll'
-                ? 'border-primary bg-primary/15 shadow-[0_0_14px_rgba(13,148,136,.18)]'
+                ? 'border-brass/30 bg-primary/15 shadow-[0_0_14px_rgba(13,148,136,.18)]'
                 : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
             }`}
           >
@@ -1749,7 +1802,7 @@ WAŻNE:
               <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
                 Rzuć kośćmi
               </h4>
-              <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-primary border border-primary/50 px-1.5 py-0.5">
+              <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-brass/80 border border-brass/30/50 px-1.5 py-0.5">
                 ✦ Polecane na start
               </span>
             </div>
@@ -1767,7 +1820,7 @@ WAŻNE:
                   }}
                   disabled={allRolled}
                   size="sm"
-                  className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 disabled:opacity-50"
+                  className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 disabled:opacity-50"
                 >
                   ⬢ Rzuć wszystkie naraz
                 </Button>
@@ -1790,7 +1843,7 @@ WAŻNE:
             }}
             className={`p-4 border text-left cursor-pointer transition-all duration-200 ${
               statMethod === 'pointbuy'
-                ? 'border-primary bg-primary/15 shadow-[0_0_14px_rgba(13,148,136,.18)]'
+                ? 'border-brass/30 bg-primary/15 shadow-[0_0_14px_rgba(13,148,136,.18)]'
                 : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
             }`}
           >
@@ -1811,7 +1864,7 @@ WAŻNE:
                 </span>
                 <span
                   className={`font-display text-lg font-bold ${
-                    statBudgetLeft < 0 ? 'text-destructive' : 'text-primary'
+                    statBudgetLeft < 0 ? 'text-destructive' : 'text-brass/80'
                   }`}
                 >
                   {statSum} / {STAT_POINT_BUDGET}
@@ -1868,7 +1921,7 @@ WAŻNE:
                         type="button"
                         onClick={() => rollSingleStat(stat)}
                         size="sm"
-                        className="w-full font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-primary hover:brightness-110 text-xs px-2 py-1.5"
+                        className="w-full font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 text-xs px-2 py-1.5"
                       >
                         🎲 Rzuć
                       </Button>
@@ -1946,7 +1999,7 @@ WAŻNE:
         </div>
 
         {/* Onboarding: niskie cechy to nie wada (własny opis) */}
-        <div className="flex items-start gap-3 border border-primary/30 bg-primary/5 px-4 py-3">
+        <div className="flex items-start gap-3 border border-brass/30/30 bg-primary/5 px-4 py-3">
           <span aria-hidden="true" className="text-lg leading-none mt-0.5">
             🕯️
           </span>
@@ -1979,7 +2032,7 @@ WAŻNE:
           {ageModifier && (
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-primary font-medium">
+                <span className="text-brass/80 font-medium">
                   {ageModifier.label}
                 </span>
                 {ageModifier.physPenalty > 0 && (
@@ -1993,7 +2046,7 @@ WAŻNE:
                   </span>
                 )}
                 {ageModifier.eduChecks > 0 && (
-                  <span className="text-primary text-sm">
+                  <span className="text-brass/80 text-sm">
                     +{ageModifier.eduChecks} test WYK
                   </span>
                 )}
@@ -2057,10 +2110,10 @@ WAŻNE:
 
               {/* Testy rozwoju WYK dla starszych postaci */}
               {ageModifier.eduChecks > 0 && (
-                <div className="border border-primary/40 bg-[#0e1413] p-3">
+                <div className="border border-brass/20 bg-[#0e1413] p-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="text-sm max-w-xl">
-                      <span className="text-primary font-medium">
+                      <span className="text-brass/80 font-medium">
                         📚 Test rozwoju Wykształcenia:
                       </span>
                       <span className="text-muted-foreground ml-2">
@@ -2100,7 +2153,7 @@ WAŻNE:
                         }
                       }}
                       size="sm"
-                      className="font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)]"
+                      className="font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)]"
                     >
                       🎲 Rzuć test WYK
                     </Button>
@@ -2135,8 +2188,8 @@ WAŻNE:
               {state.derived.san}
             </div>
           </div>
-          <div className="border border-primary/50 bg-[#0e1413] p-3 text-center shadow-[0_0_14px_rgba(13,148,136,.14)]">
-            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-primary">
+          <div className="border border-brass/30/50 bg-[#0e1413] p-3 text-center shadow-[0_0_14px_rgba(13,148,136,.14)]">
+            <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80">
               ✨ PM{' '}
               <HelpIcon content={DERIVED_DESCRIPTIONS.mp} position="top" />
             </div>
@@ -2211,9 +2264,9 @@ WAŻNE:
                 onClick={() => selectOccupation(occ.id)}
                 className={`p-4 border cursor-pointer transition-all ${
                   isSelected
-                    ? 'border-primary/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
+                    ? 'border-brass/30/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
                     : isRecommended
-                      ? 'ring-1 ring-primary border-primary/50 bg-primary/10 hover:border-primary/70'
+                      ? 'ring-1 ring-primary border-brass/30/50 bg-primary/10 hover:border-brass/30/70'
                       : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
                 }`}
               >
@@ -2221,7 +2274,7 @@ WAŻNE:
                   {occ.name}
                   {isRecommended && (
                     <span
-                      className="text-primary ml-1"
+                      className="text-brass/80 ml-1"
                       title="Rekomendowane dla archetypu"
                     >
                       ★
@@ -2232,7 +2285,7 @@ WAŻNE:
                     position="right"
                   />
                 </div>
-                <div className="font-special-elite text-sm text-primary mt-1">
+                <div className="font-special-elite text-sm text-brass/80 mt-1">
                   {occ.formula}
                 </div>
                 <div className="font-special-elite text-xs text-muted-foreground mt-1">
@@ -2248,7 +2301,7 @@ WAŻNE:
             <div className="font-display uppercase tracking-[0.08em] text-foreground text-lg">
               {selectedOcc.name}
             </div>
-            <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-primary mb-2">
+            <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80 mb-2">
               Punkty zawodowe: {state.occupationPoints}
             </div>
             <div className="text-sm text-muted-foreground">
@@ -2293,7 +2346,7 @@ WAŻNE:
               onClick={autoDistributeSkillsAI}
               disabled={isDistributingSkills || totalPointsAvailable === 0}
               size="sm"
-              className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5"
+              className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5"
             >
               {isDistributingSkills
                 ? '⏳ Rozdzielam...'
@@ -2336,7 +2389,7 @@ WAŻNE:
           </div>
           <div className="border-t border-brass/20 pt-2 mt-2 grid grid-cols-3 gap-2 text-sm">
             <div>
-              <span className="text-primary">(X)</span> = wartość bazowa
+              <span className="text-brass/80">(X)</span> = wartość bazowa
               umiejętności
             </div>
             <div>
@@ -2358,7 +2411,7 @@ WAŻNE:
             <span
               className={`font-display ${
                 totalPointsUsed <= totalPointsAvailable
-                  ? 'text-primary'
+                  ? 'text-brass/80'
                   : 'text-destructive'
               }`}
             >
@@ -2377,15 +2430,15 @@ WAŻNE:
 
         {/* Majętność */}
         {selectedOcc && (
-          <div className="border border-primary/40 bg-[#0e1413] p-4">
+          <div className="border border-brass/20 bg-[#0e1413] p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <label className="block font-display uppercase tracking-[0.1em] text-sm text-primary mb-1">
+                <label className="block font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-1">
                   💰 Majętność (Credit Rating)
                 </label>
                 <p className="font-serif italic text-xs text-muted-foreground">
                   Twój zawód ({selectedOcc.name}) określa zakres:{' '}
-                  <span className="text-primary font-medium">
+                  <span className="text-brass/80 font-medium">
                     {selectedOcc.creditMin}-{selectedOcc.creditMax}
                   </span>
                 </p>
@@ -2415,7 +2468,7 @@ WAŻNE:
                     skills: { ...prev.skills, Majętność: clamped },
                   }));
                 }}
-                className="w-24 bg-[#16130f] border border-primary px-3 py-2 text-center font-display text-2xl font-bold text-foreground focus:outline-none"
+                className="w-24 bg-[#16130f] border border-brass/30 px-3 py-2 text-center font-display text-2xl font-bold text-foreground focus:outline-none"
                 min={selectedOcc.creditMin}
                 max={selectedOcc.creditMax}
               />
@@ -2436,7 +2489,7 @@ WAŻNE:
                   key={skillName}
                   className={`border p-4 ${
                     isRecommended
-                      ? 'ring-1 ring-primary border-primary/50 bg-primary/10'
+                      ? 'ring-1 ring-primary border-brass/30/50 bg-primary/10'
                       : 'border-brass/28 bg-[#16130f]'
                   }`}
                 >
@@ -2447,7 +2500,7 @@ WAŻNE:
                     </span>
                     {isRecommended && (
                       <span
-                        className="text-primary"
+                        className="text-brass/80"
                         title="Rekomendowane (archetyp / zawód)"
                       >
                         ★
@@ -2470,14 +2523,14 @@ WAŻNE:
                         onChange={(e) =>
                           updateSkill(skillName, parseInt(e.target.value) || 0)
                         }
-                        className="w-16 bg-[#0a0c0f] border border-brass/30 px-2 py-1.5 text-center font-display text-lg font-bold text-foreground focus:outline-none focus:border-primary"
+                        className="w-16 bg-[#0a0c0f] border border-brass/30 px-2 py-1.5 text-center font-display text-lg font-bold text-foreground focus:outline-none focus:border-brass/30"
                         min={baseValue}
                         max={99}
                       />
                       <div className="font-special-elite text-xs text-muted-foreground">
                         <div>
                           baza:{' '}
-                          <span className="text-primary">{baseValue}</span>
+                          <span className="text-brass/80">{baseValue}</span>
                         </div>
                         <div className="text-foreground">
                           {half(value)}/{fifth(value)}
@@ -2485,7 +2538,7 @@ WAŻNE:
                       </div>
                     </div>
                     {pointsAdded > 0 && (
-                      <span className="font-special-elite text-xs text-primary">
+                      <span className="font-special-elite text-xs text-brass/80">
                         +{pointsAdded} pkt
                       </span>
                     )}
@@ -2508,7 +2561,7 @@ WAŻNE:
             onClick={generateBackstory}
             disabled={state.isGeneratingBackstory}
             size="sm"
-            className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5"
+            className="font-display font-semibold uppercase tracking-[0.14em] text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 px-4 py-2.5"
           >
             {state.isGeneratingBackstory
               ? '⏳ Generuję...'
@@ -2528,7 +2581,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, name: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
             placeholder="np. John Smith"
           />
         </div>
@@ -2541,7 +2594,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, gender: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
           >
             <option value="">Wybierz...</option>
             <option value="male">Mężczyzna</option>
@@ -2558,7 +2611,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, birthplace: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
             placeholder="np. Boston, Massachusetts"
           />
         </div>
@@ -2572,7 +2625,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, description: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
             placeholder="Wygląd, ubiór..."
           />
         </div>
@@ -2594,7 +2647,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, ideology: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
             placeholder="W co wierzy, jakie ma wartości..."
           />
         </div>
@@ -2616,7 +2669,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, importantPeople: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
             placeholder="Kto jest dla Badacza ważny i dlaczego"
           />
         </div>
@@ -2641,7 +2694,7 @@ WAŻNE:
                 significantPlaces: e.target.value,
               }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
             placeholder="Miejsca o wartości sentymentalnej"
           />
         </div>
@@ -2663,7 +2716,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, personalItems: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
             placeholder="Przedmioty o szczególnym znaczeniu"
           />
         </div>
@@ -2685,13 +2738,13 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, traits: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
             placeholder="Cechy charakteru..."
           />
         </div>
-        <div className="md:col-span-2 border border-primary/40 bg-[#0e1413] p-3">
+        <div className="md:col-span-2 border border-brass/20 bg-[#0e1413] p-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="font-display uppercase tracking-[0.1em] text-xs text-primary">
+            <label className="font-display uppercase tracking-[0.1em] text-xs text-brass/80">
               ★ Kluczowa więź (najważniejsza)
             </label>
             <button
@@ -2707,8 +2760,37 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, keyConnection: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-primary px-3 py-2 text-foreground h-24 focus:outline-none"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none"
             placeholder="Jeden z powyższych elementów jako najważniejszy..."
+          />
+        </div>
+        
+        {/* NOWE POLE: NARRACYJNA BIOGRAFIA */}
+        <div className="md:col-span-2 mt-6 pt-6 border-t border-brass/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <label className="font-display uppercase tracking-[0.14em] text-sm text-brass font-bold flex items-center gap-2">
+                📜 Biografia i Życiorys Postaci
+              </label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pełne fabularne podsumowanie życia postaci na podstawie powyższych mechanik.
+              </p>
+            </div>
+            <button
+              onClick={generateNarrativeBiography}
+              disabled={state.isGeneratingNarrative}
+              className="font-display uppercase tracking-[0.1em] text-xs px-4 py-2 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50 flex-shrink-0"
+            >
+              {state.isGeneratingNarrative ? '⏳ Generuję...' : '✨ Generuj podsumowanie AI'}
+            </button>
+          </div>
+          <textarea
+            value={state.backstory}
+            onChange={(e) =>
+              setState((prev) => ({ ...prev, backstory: e.target.value }))
+            }
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] focus:outline-none leading-relaxed font-serif"
+            placeholder="Pełna historia postaci..."
           />
         </div>
       </div>
@@ -2740,7 +2822,7 @@ WAŻNE:
               <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
                 Gotówka
               </div>
-              <div className="font-display text-primary font-bold mt-1">
+              <div className="font-display text-brass/80 font-bold mt-1">
                 {wealthInfo.cash}
               </div>
             </div>
@@ -2756,7 +2838,7 @@ WAŻNE:
               <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
                 Wydatki/dzień
               </div>
-              <div className="font-display text-primary font-bold mt-1">
+              <div className="font-display text-brass/80 font-bold mt-1">
                 {wealthInfo.spending}
               </div>
             </div>
@@ -2777,7 +2859,7 @@ WAŻNE:
             onChange={(e) =>
               setState((prev) => ({ ...prev, equipment: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-2 text-foreground h-48 focus:outline-none focus:border-primary"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-2 text-foreground h-48 focus:outline-none focus:border-brass/30"
             placeholder={`Wybierz zawód, aby przydzielić ekwipunek startowy.\n\nMożesz też wpisać ręcznie:\n- .38 Revolver\n- Flashlight\n- Notebook & Pencil`}
           />
         </div>
@@ -2829,7 +2911,7 @@ WAŻNE:
                 className={
                   state.portraitUrl
                     ? 'font-display font-semibold uppercase tracking-[0.14em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-4 py-2.5'
-                    : 'font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5'
+                    : 'font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5'
                 }
               >
                 {state.isGeneratingPortrait
@@ -2856,8 +2938,8 @@ WAŻNE:
         )}
 
         {/* Podsumowanie postaci */}
-        <div className="border border-primary/40 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)]">
-          <div className="font-display uppercase tracking-[0.1em] text-primary text-sm font-semibold mb-2">
+        <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)]">
+          <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-sm font-semibold mb-2">
             ✓ Podsumowanie
           </div>
           <div className="text-sm text-foreground">
@@ -2930,7 +3012,7 @@ WAŻNE:
             </Button>
           </div>
           <div className="text-center mb-1">
-            <div className="font-special-elite uppercase tracking-[0.2em] text-xs text-primary">
+            <div className="font-special-elite uppercase tracking-[0.2em] text-xs text-brass/80">
               Miskatonic University · Akta nowego badacza
             </div>
             <h2 className="mt-1 font-display-decorative uppercase tracking-[0.1em] text-2xl text-foreground">
@@ -2950,9 +3032,9 @@ WAŻNE:
                     <div
                       className={`flex items-center justify-center font-display ${
                         active
-                          ? 'w-[42px] h-[42px] font-bold text-[17px] border border-primary bg-primary text-[#04110f] shadow-[0_0_18px_rgba(13,148,136,.5)] animate-emerald-pulse'
+                          ? 'w-[42px] h-[42px] font-bold text-[17px] border border-brass/30 bg-primary text-[#04110f] shadow-[0_0_18px_rgba(13,148,136,.5)] animate-emerald-pulse'
                           : done
-                            ? 'w-[38px] h-[38px] text-[15px] border border-primary bg-primary/[0.12] text-primary'
+                            ? 'w-[38px] h-[38px] text-[15px] border border-brass/30 bg-primary/[0.12] text-brass/80'
                             : 'w-[38px] h-[38px] text-[15px] border border-brass/40 text-muted-foreground'
                       }`}
                     >
@@ -2961,7 +3043,7 @@ WAŻNE:
                     <div
                       className={`font-special-elite text-xs uppercase tracking-[0.1em] text-center ${
                         active
-                          ? 'text-primary'
+                          ? 'text-brass/80'
                           : done
                             ? 'text-muted-foreground'
                             : 'text-muted-foreground/70'
@@ -3012,7 +3094,7 @@ WAŻNE:
                 (state.step === 3 && !state.occupationId)
               }
               size="sm"
-              className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
+              className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
             >
               Dalej ›
             </Button>
@@ -3021,7 +3103,7 @@ WAŻNE:
               onClick={finishCreation}
               disabled={isCreating}
               size="sm"
-              className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
+              className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
             >
               {isCreating ? '⏳ Tworzę postać...' : '✓ Zakończ i Zapisz'}
             </Button>

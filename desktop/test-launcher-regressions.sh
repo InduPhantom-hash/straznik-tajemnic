@@ -54,4 +54,13 @@ zsh -n \
   "$REPO_ROOT/_tester/_base/.silnik/desktop/launcher.sh" \
   "$REPO_ROOT/_tester/_base/Uruchom gre (Mac).command"
 
-echo "PASS: pełny ekran i blokada zapisywania haseł są zabezpieczone we wszystkich launcherach"
+BUILD_ID_LAUNCHERS=(
+  "desktop/launcher.sh"
+  "_tester/_base/.silnik/desktop/launcher.sh"
+)
+
+for file in "${BUILD_ID_LAUNCHERS[@]}"; do
+  assert_contains "$file" "_buildManifest.js" "launcher nie sprawdza zgodności BUILD_ID po restarcie"
+done
+
+echo "PASS: pełny ekran, blokada haseł i weryfikacja BUILD_ID są zabezpieczone we wszystkich launcherach"

@@ -1,10 +1,10 @@
 'use client';
 
-import { SafeImage } from '@/components/ui/safe-image';
 import { useState } from 'react';
 import { Character } from '@/lib/types';
 import {
   PREDEFINED_CHARACTERS,
+  PredefinedCharacter,
   PredefinedCharacterArchetype,
   PredefinedCharacterEra,
 } from '@/lib/immersion/predefined-characters';
@@ -17,7 +17,7 @@ interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCharacter: (character: Character) => void;
-  currentEra?: 'classic' | 'gaslight' | 'modern' | 'noir' | 'prl' | 'custom';
+  currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom' | 'noir' | 'prl' | 'prl-1970s' | '1990s' | '2000s';
   targetPlayerName?: string;
   unavailablePresetIds?: string[];
 }
@@ -75,6 +75,9 @@ const ARCHETYPE_LABELS: Array<{
 const ERA_LABELS: Array<{ value: PredefinedCharacterEra; label: string }> = [
   { value: 'gaslight', label: 'Lata 1890' },
   { value: 'classic', label: 'Lata 20.' },
+  { value: 'prl-1970s', label: 'PRL lata 70.' },
+  { value: '1990s', label: 'Lata 90.' },
+  { value: '2000s', label: 'Lata 2000 (Y2K)' },
   { value: 'modern', label: 'Współczesność' },
 ];
 
@@ -93,11 +96,18 @@ export function PredefinedCharactersSelector({
     'all' | PredefinedCharacterArchetype
   >('all');
   const [selectedEra, setSelectedEra] = useState<PredefinedCharacterEra | null>(
-    currentEra === 'gaslight' || currentEra === 'classic' || currentEra === 'modern' ? currentEra : null
+    currentEra === 'gaslight' ||
+      currentEra === 'classic' ||
+      currentEra === 'modern' ||
+      currentEra === 'prl-1970s' ||
+      currentEra === '1990s' ||
+      currentEra === '2000s'
+      ? (currentEra as PredefinedCharacterEra)
+      : null
   );
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
+  const [viewingCharacter, setViewingCharacter] = useState<PredefinedCharacter | null>(null);
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
   if (!isOpen) return null;
@@ -254,7 +264,7 @@ export function PredefinedCharactersSelector({
                       className="flex gap-4 p-4 border border-brass/20 bg-[#120f0c] hover:border-brass/50 transition-all duration-200 cursor-pointer"
                     >
                       <div className="flex-[0_0_80px] w-20 h-24 border border-brass/35 overflow-hidden">
-                        <SafeImage
+                        <img
                           src={char.portraitUrl}
                           alt={char.name}
                           className="w-full h-full object-cover grayscale opacity-90"
@@ -269,7 +279,7 @@ export function PredefinedCharactersSelector({
                             {char.occupation} · lat {char.age}
                           </div>
                           <p className="font-serif text-xs text-muted-foreground line-clamp-2 mt-2 leading-relaxed">
-                            {char.background}
+                            {char.characterConcept || char.background}
                           </p>
                         </div>
 
@@ -346,7 +356,7 @@ export function PredefinedCharactersSelector({
                     <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-4 h-4 border-b border-r border-brass" />
 
                     {viewingCharacter.portraitUrl ? (
-                      <SafeImage
+                      <img
                         src={viewingCharacter.portraitUrl}
                         alt={viewingCharacter.name}
                         className="relative w-full h-full object-cover grayscale"
@@ -472,19 +482,21 @@ export function PredefinedCharactersSelector({
                             <div
                               key={item.id}
                               onClick={() => setSelectedItem(item)}
-                              className="cursor-pointer flex items-start gap-3 border border-brass/25 hover:border-brass/50 bg-[#16130f] p-3 rounded-sm transition-all duration-200"
+                              className="group cursor-pointer flex items-start gap-3 border border-brass/25 hover:border-brass/70 hover:shadow-[0_0_15px_rgba(201,162,39,0.15)] bg-[#120e0b] p-3 rounded-sm transition-all duration-300 relative overflow-hidden"
                             >
-                              <div className="w-12 h-12 flex-none bg-[#0e0c0a] border border-brass/30 rounded flex items-center justify-center overflow-hidden p-1">
-                                <SafeImage
+                              <div className="absolute inset-0 bg-gradient-to-r from-brass/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <div className="relative w-14 h-14 flex-none bg-[#0a0806] border border-brass/40 rounded shadow-inner flex items-center justify-center p-1 group-hover:border-brass/60 transition-colors">
+                                <div className="absolute inset-0 shadow-[inset_0_0_8px_rgba(0,0,0,0.8)] pointer-events-none" />
+                                <img
                                   src={imgSrc}
                                   alt={item.name}
-                                  className="w-full h-full object-contain"
+                                  className="w-full h-full object-contain relative z-10 drop-shadow-md"
                                   onError={(e) => {
                                     (e.target as HTMLImageElement).src = '/equipment/predefined/personal.svg';
                                   }}
                                 />
                               </div>
-                              <div className="flex-1 min-w-0">
+                              <div className="flex-1 min-w-0 relative z-10">
                                 <div className="flex justify-between items-start gap-2">
                                   <span className="font-serif text-sm font-semibold text-foreground truncate leading-tight">
                                     {item.name}
@@ -506,13 +518,13 @@ export function PredefinedCharactersSelector({
                     </div>
                   )}
 
-                  {viewingCharacter.notes && (
+                  {(viewingCharacter as PredefinedCharacter).tacticalNotes && (
                     <div className="border border-brass/20 bg-[#16130f] p-3">
                       <span className="font-special-elite text-xs text-brass uppercase tracking-[0.1em] block mb-1">
                         Notatki MG / Wskazówki
                       </span>
                       <p className="font-serif text-xs text-brass/90 italic leading-relaxed whitespace-pre-line">
-                        {viewingCharacter.notes}
+                        {(viewingCharacter as PredefinedCharacter).tacticalNotes}
                       </p>
                     </div>
                   )}
@@ -654,8 +666,8 @@ export function PredefinedCharactersSelector({
                     </h4>
                     <div className="space-y-3">
                       {viewingCharacter.characterConcept && (
-                        <div className="border border-primary/30 bg-[#0e1413] p-4">
-                          <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-1.5">
+                        <div className="border border-brass/20 bg-[#16130f] p-4">
+                          <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">
                             🎭 Koncept Postaci
                           </span>
                           <p className="font-serif text-foreground text-base leading-relaxed">
@@ -716,30 +728,45 @@ export function PredefinedCharactersSelector({
                         </div>
                       )}
 
-                      {(viewingCharacter.backstory || viewingCharacter.background) && (
+                      {viewingCharacter.backstory && (
                         <div className="relative border border-brass/20 bg-[#16130f] p-5">
                           <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
                           <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
                           <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-                            📜 {viewingCharacter.backstory ? 'Kluczowa więź' : 'Tło Postaci'}
+                            📜 Biografia i Życiorys Postaci
                           </span>
                           <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
-                            {viewingCharacter.backstory || viewingCharacter.background}
+                            {viewingCharacter.backstory}
+                          </p>
+                        </div>
+                      )}
+
+                      {viewingCharacter.background && viewingCharacter.background !== viewingCharacter.backstory && (
+                        <div className="relative border border-brass/20 bg-[#16130f] p-5">
+                          <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
+                          <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
+                          <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
+                            🔗 Kluczowa Więź / Maska i Ukryta Trauma
+                          </span>
+                          <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
+                            {viewingCharacter.background}
                           </p>
                         </div>
                       )}
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
           </div>
         );
       })()}
-      {selectedItem && (
+      {selectedItem && viewingCharacter && (
         <EquipmentDetailDialog
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
+          onUpdateItem={console.log}
         />
       )}
     </>

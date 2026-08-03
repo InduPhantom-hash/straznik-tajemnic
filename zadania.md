@@ -1,19 +1,39 @@
 # Mapa Zadań - Strażnik Tajemnic
 
-**Zadanie: Naprawa Szybkiej Przygody (Strefa 11)**
+**Zadanie: Czyszczenie po awarii i naprawa launchera desktopowego**
 
-**Faza 1: Aktualizacja Danych Portretów**
-- [x] Poprawienie linków do obrazków w `strefa-11-characters.ts` aby wskazywały na realne pliki w `public/portraits/predefined/` (np. `andrzej-sokolowski.webp`, `ewa-nowak.webp`). `(Blokuje: Faza 2)`
-- Weryfikacja: Włączenie aplikacji i sprawdzenie w zakładce Network, czy zniknęły błędy 404 dla portretów.
+**Faza 1: Czyszczenie środowiska**
+- [ ] Usunięcie 17 plików śmieciowych (skrypty i PNG) z `_tester/_base/.silnik/`. `(Blokuje: Faza 2)`
+- [ ] Usunięcie 5 zduplikowanych plików z głównego katalogu `src/`.
+- [ ] Ubicie wiszącego serwera na porcie 4050.
+- Weryfikacja: `git status` i `lsof -ti :4050` nie zwracają pozostałości.
 
-**Faza 2: Przebudowa UX i UI Modala Szybkiej Przygody**
-- [x] Zmiana głównego kontenera `DialogContent` w `quick-setup-modal.tsx` na wzór z `adventure-selector.tsx` (dodanie `deco-corners`, mosiężnych ramek, gradientów tła). `(Zablokowane przez: Faza 1)`
-- [x] Refaktoryzacja kafelków postaci: wyraźne oddzielenie stanu `selected` (złota/mosiężna obwódka) od "nieaktywny/disabled" (hot-seat). Zmiana ukrytej ikonki `Info` na czytelniejszy przycisk "Biografia" pod imieniem bohatera.
-- [x] Aktualizacja typografii na `font-special-elite` i `font-display`.
-- Weryfikacja: `npm run dev`, otworzenie okna "Szybka Przygoda" i manualne przeklikanie trybu Solo oraz Hot-Seat. Zaznaczanie postaci musi działać bezbłędnie.
+**Faza 2: Naprawa mechanizmu restartu w launcher.sh**
+- [ ] Dodanie odczytu i weryfikacji `.next/BUILD_ID` w `desktop/launcher.sh` przed akceptacją działającego serwera. `(Zablokowane przez: Faza 1)`
+- [ ] Implementacja ubijania przestarzałego serwera w launcherze.
+- [ ] Rozszerzenie testów w `desktop/test-launcher-regressions.sh`.
+- [ ] Przebudowa `.app` przez `desktop/build-app.sh`.
+- Weryfikacja: `test-launcher-regressions.sh` przechodzi poprawnie.
+
+---
+
+**Zadanie: Rozwinięcie Biografii Postaci (Vibe-Coding Storytelling)**
+
+**Faza 1: Postacie Strefa 11 (Modern/TV)**
+- [x] Stworzenie i aplikacja 200-300 słownej biografii dla Tomasza Nowickiego, Heleny Krawczyk, Barbary Zawadzkiej, Ryszarda Klucznika. Oparcie historii na istniejących atrybutach boxowych (trauma, przedmioty, ideologia). `(Blokuje: Faza 3)`
+- Weryfikacja: Kompilacja i wyświetlenie postaci w UI.
+
+**Faza 2: Gotowi Badacze (Lata 1890 i 1920)**
+- [x] Rozszerzenie biografii dla 10 postaci (m.in. Arthur Pendleton, Beatrice Vance, Thomas O'Brien). Wplecenie poszlak, cennego przedmiotu i więzi, zachowując tonację Zew Cthulhu. `(Blokuje: Faza 3)`
+- Weryfikacja: Kompilacja i wyświetlenie kart postaci z epoki.
+
+**Faza 3: Wytyczne Generatora Graczy (API/State)**
+- [x] Aktualizacja `state.md` w bloku Onboarding / Manual Setup z wymogiem budowania "obszernej 300-słownej historii z boxów" przez LLM w momencie potwierdzania wpisów w generatorze ręcznym gracza. `(Zablokowane przez: Faza 1, Faza 2)`
+- Weryfikacja: Ręczny podgląd struktury `state.md`.
 
 ---
 
 **Do zrobienia w kolejnych etapach (Backlog):**
-- [ ] **Dedykowane portrety postaci dla Strefy 11:** Wygenerowanie nowych portretów pasujących epokowo (Polska lat 90. / ekipa programu telewizyjnego Strefa 11) dla wszystkich 12 badaczy i podłożenie ich do `/public/portraits/predefined/strefa11/`.
-
+- [ ] **Dedykowane portrety postaci dla Strefy 11:** Wygenerowanie nowych portretów pasujących epokowo (Polska lat 90. / ekipa programu telewizyjnego Strefa 11) dla wszystkich badaczy i podłożenie ich do `/public/portraits/predefined/strefa11/`.
+- [x] Poprawienie linków do obrazków w `strefa-11-characters.ts`.
+- [x] Przebudowa UX i UI Modala Szybkiej Przygody.

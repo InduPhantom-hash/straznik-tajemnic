@@ -379,3 +379,19 @@ Branch: main
 ### Decyzje podjęte
 - Użycie wbudowanego komponentu `CharacterSheet` dla podglądu badaczy w oknie Szybkiej Przygody zamiast uproszczonego podglądu.
 
+
+## Podsumowanie sesji: 2026-08-03 (Biografie Postaci & Naprawa Launchera)
+Branch: main
+
+### Co zrobiono
+- **Rozbudowa Biografii (Etap 3):** Wprowadzono 200-300 słowne ustrukturyzowane opisy historii dla 46 postaci (klasyczne epoki 1890s/1920s oraz Strefa 11) w oparciu o ich traumy, ideologie i przedmioty.
+- **Aktualizacja UX:** Zmodernizowano komponenty `sheet-biography.tsx`, `character-wizard.tsx` oraz selektory, implementując odpowiednie style i bezpieczne metody konwersji tekstu.
+- **Czyszczenie środowiska:** Usunięto 17 śmieciowych plików tymczasowych (skrypty Puppeteer, zrzuty ekranu) oraz przywrócono stan plików zduplikowanych w root `src/`.
+- **Naprawa Launchera (Build_ID):** Wprowadzono do `desktop/launcher.sh` zabezpieczenie, które weryfikuje aktualność buildu w pamięci RAM serwera na podstawie statycznego pliku `_buildManifest.js`. W razie niezgodności, stary proces jest bezlitośnie zabijany. Rozbudowano testy regresyjne.
+
+### Co otwarte (do następnej sesji)
+- Wygenerowanie epokowych portretów dla postaci ze Strefy 11 (backlog ujęty w `zadania.md`).
+- Powrót do planowanych integracji ekwipunku i mechanik AI.
+
+### Decyzje podjęte
+- Zastosowano "HTTP 404 check" pliku _buildManifest.js jako najbardziej kuloodporną metodę wyciągania i porównywania `BUILD_ID` między dyskiem a buforem serwera Next.js w bashowym launcherze.

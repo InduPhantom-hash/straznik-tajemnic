@@ -8,7 +8,15 @@ import {
   CATEGORY_FALLBACK_ASSETS,
 } from '@/lib/equipment-catalog';
 
-export type PresetEra = 'gaslight' | 'classic' | 'noir' | 'prl' | 'modern';
+export type PresetEra =
+  | 'gaslight'
+  | 'classic'
+  | 'noir'
+  | 'prl'
+  | 'prl-1970s'
+  | '1990s'
+  | '2000s'
+  | 'modern';
 export type PresetArchetype =
   | 'investigator'
   | 'scholar'
@@ -34,6 +42,9 @@ const PRESET_VISUAL_ERAS: Record<PresetEra, EquipmentVisualEra> = {
   classic: '1920s',
   noir: '1940s',
   prl: 'prl-1970s',
+  'prl-1970s': 'prl-1970s',
+  '1990s': 'modern',
+  '2000s': 'modern',
   modern: 'modern',
 };
 
@@ -104,6 +115,57 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
       name: 'Kieszonkowa apteczka',
       category: 'medical',
       description: 'Bandaże, plaster i podstawowe środki opatrunkowe.',
+    },
+  ],
+  'prl-1970s': [
+    {
+      name: 'Latarka elektryczna',
+      category: 'tool',
+      description: 'Prosta metalowa latarka z ciężką baterią.',
+    },
+    {
+      name: 'Notes badawczy',
+      category: 'document',
+      description: 'Kratkowany notes, ołówek i zapas kartek.',
+    },
+    {
+      name: 'Kieszonkowa apteczka',
+      category: 'medical',
+      description: 'Bandaże, plaster i podstawowe środki opatrunkowe.',
+    },
+  ],
+  '1990s': [
+    {
+      name: 'Telefon z ładowarką',
+      category: 'tool',
+      description: 'Telefon komórkowy z notatnikiem.',
+    },
+    {
+      name: 'Powerbank',
+      category: 'tool',
+      description: 'Zapas energii na długi dzień pracy.',
+    },
+    {
+      name: 'Dokumenty tożsamości',
+      category: 'document',
+      description: 'Portfel z dokumentami.',
+    },
+  ],
+  '2000s': [
+    {
+      name: 'Telefon z ładowarką',
+      category: 'tool',
+      description: 'Telefon komórkowy z notatnikiem.',
+    },
+    {
+      name: 'Powerbank',
+      category: 'tool',
+      description: 'Zapas energii na długi dzień pracy.',
+    },
+    {
+      name: 'Dokumenty tożsamości',
+      category: 'document',
+      description: 'Portfel z dokumentami.',
     },
   ],
   modern: [
