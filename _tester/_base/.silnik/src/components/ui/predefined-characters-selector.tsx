@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Character } from '@/lib/types';
 import {
   PREDEFINED_CHARACTERS,
-  PredefinedCharacter,
   PredefinedCharacterArchetype,
   PredefinedCharacterEra,
+  PredefinedCharacter,
 } from '@/lib/immersion/predefined-characters';
 import { Button } from './button';
 import { X, Search } from 'lucide-react';
@@ -17,7 +17,7 @@ interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCharacter: (character: Character) => void;
-  currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom' | 'noir' | 'prl' | 'prl-1970s' | '1990s' | '2000s';
+  currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom' | 'noir' | 'prl' | 'prl-1970s' | '1990s' | '2000s' | string;
   targetPlayerName?: string;
   unavailablePresetIds?: string[];
 }
@@ -279,7 +279,7 @@ export function PredefinedCharactersSelector({
                             {char.occupation} · lat {char.age}
                           </div>
                           <p className="font-serif text-xs text-muted-foreground line-clamp-2 mt-2 leading-relaxed">
-                            {char.characterConcept || char.background}
+                            {char.background}
                           </p>
                         </div>
 
@@ -665,13 +665,13 @@ export function PredefinedCharactersSelector({
                       Biografia
                     </h4>
                     <div className="space-y-3">
-                      {viewingCharacter.characterConcept && (
-                        <div className="border border-brass/20 bg-[#16130f] p-4">
-                          <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">
-                            🎭 Koncept Postaci
+                      {viewingCharacter.backstory && (
+                        <div className="border border-primary/30 bg-[#0e1413] p-4">
+                          <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-1.5">
+                            🎭 Życiorys
                           </span>
-                          <p className="font-serif text-foreground text-base leading-relaxed">
-                            {viewingCharacter.characterConcept}
+                          <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
+                            {viewingCharacter.backstory}
                           </p>
                         </div>
                       )}
@@ -728,18 +728,7 @@ export function PredefinedCharactersSelector({
                         </div>
                       )}
 
-                      {viewingCharacter.backstory && (
-                        <div className="relative border border-brass/20 bg-[#16130f] p-5">
-                          <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
-                          <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
-                          <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-                            📜 Biografia i Życiorys Postaci
-                          </span>
-                          <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
-                            {viewingCharacter.backstory}
-                          </p>
-                        </div>
-                      )}
+
 
                       {viewingCharacter.background && viewingCharacter.background !== viewingCharacter.backstory && (
                         <div className="relative border border-brass/20 bg-[#16130f] p-5">

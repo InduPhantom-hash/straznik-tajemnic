@@ -31,6 +31,15 @@ describe('text-cleaner (TTS)', () => {
     expect(stripped).toContain('Akapit drugi.');
     expect(stripped).not.toContain('Notatka');
   });
+
+  it('usuwa nieskończone multiline artifacts podczas strumieniowania', () => {
+    const raw =
+      'Akapit pierwszy.\n[DZIENNIK: Notatka]\nTreść notatki, która jeszcze się strumieniuje...';
+    const stripped = stripMultilineArtifacts(raw);
+    expect(stripped).toContain('Akapit pierwszy.');
+    expect(stripped).not.toContain('Notatka');
+    expect(stripped).not.toContain('strumieniuje');
+  });
 });
 
 import { resolveNpcVoice } from '@/lib/npc-voice-mapping';

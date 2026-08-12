@@ -95,8 +95,8 @@ export function stripMultilineArtifacts(text: string): string {
   if (!text) return '';
   return (
     text
-      .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?```/gi, '') // code fences
-      .replace(/\[DZIENNIK:[^\]]*\][\s\S]*?\[\/DZIENNIK\]/gi, '') // blok dziennika z treścią
+      .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
+      .replace(/\[DZIENNIK:[^\]]*\][\s\S]*?(?:\[\/DZIENNIK\]|$)/gi, '') // blok dziennika z treścią
       // każdy [TAG:...] (spans \n), odporny na zagnieżdżony [...]
       .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')

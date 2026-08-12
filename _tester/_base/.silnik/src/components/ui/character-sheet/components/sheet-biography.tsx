@@ -64,14 +64,14 @@ export function SheetBiography({ character }: SheetBiographyProps) {
         Biografia
       </h3>
       <div className="space-y-3">
-        {/* Koncept postaci (highlight) */}
-        {character.characterConcept && (
+        {/* Życiorys (highlight) */}
+        {character.backstory && (
           <div className="border border-brass/20 bg-[#16130f] p-4">
             <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">
-              🎭 Koncept Postaci
+              🎭 Życiorys
             </span>
-            <p className="font-serif text-foreground text-base leading-relaxed">
-              {character.characterConcept}
+            <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
+              {character.backstory}
             </p>
           </div>
         )}
@@ -142,19 +142,6 @@ export function SheetBiography({ character }: SheetBiographyProps) {
           </div>
         )}
 
-        {/* Biografia / Życiorys */}
-        {character.backstory && (
-          <div className="relative border border-brass/20 bg-[#16130f] p-5">
-            <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
-            <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
-            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-              📜 Biografia i Życiorys Postaci
-            </span>
-            <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
-              {character.backstory}
-            </p>
-          </div>
-        )}
 
         {/* Placeholder jeśli brak danych */}
         {!character.characterConcept &&

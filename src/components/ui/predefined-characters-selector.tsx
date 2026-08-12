@@ -6,6 +6,7 @@ import {
   PREDEFINED_CHARACTERS,
   PredefinedCharacterArchetype,
   PredefinedCharacterEra,
+  PredefinedCharacter,
 } from '@/lib/immersion/predefined-characters';
 import { Button } from './button';
 import { X, Search } from 'lucide-react';
@@ -16,7 +17,7 @@ interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCharacter: (character: Character) => void;
-  currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom';
+  currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom' | 'noir' | 'prl' | 'prl-1970s' | '1990s' | '2000s' | string;
   targetPlayerName?: string;
   unavailablePresetIds?: string[];
 }
@@ -664,13 +665,13 @@ export function PredefinedCharactersSelector({
                       Biografia
                     </h4>
                     <div className="space-y-3">
-                      {viewingCharacter.characterConcept && (
+                      {viewingCharacter.backstory && (
                         <div className="border border-primary/30 bg-[#0e1413] p-4">
                           <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-1.5">
-                            🎭 Koncept Postaci
+                            🎭 Życiorys
                           </span>
-                          <p className="font-serif text-foreground text-base leading-relaxed">
-                            {viewingCharacter.characterConcept}
+                          <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
+                            {viewingCharacter.backstory}
                           </p>
                         </div>
                       )}
@@ -727,18 +728,7 @@ export function PredefinedCharactersSelector({
                         </div>
                       )}
 
-                      {viewingCharacter.backstory && (
-                        <div className="relative border border-primary/40 bg-[#0e1413] p-5">
-                          <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-primary/60" />
-                          <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-primary/60" />
-                          <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-2">
-                            📜 Biografia i Życiorys Postaci
-                          </span>
-                          <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
-                            {viewingCharacter.backstory}
-                          </p>
-                        </div>
-                      )}
+
 
                       {viewingCharacter.background && viewingCharacter.background !== viewingCharacter.backstory && (
                         <div className="relative border border-brass/20 bg-[#16130f] p-5">
@@ -766,18 +756,6 @@ export function PredefinedCharactersSelector({
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
           onUpdateItem={console.log} // By aktywować przycisk "Przeczytaj dokument"
-          onNext={() => {
-            if (!viewingCharacter.equipment) return;
-            const index = viewingCharacter.equipment.findIndex(i => i.id === selectedItem.id);
-            if (index < viewingCharacter.equipment.length - 1) setSelectedItem(viewingCharacter.equipment[index + 1]);
-            else setSelectedItem(viewingCharacter.equipment[0]);
-          }}
-          onPrevious={() => {
-            if (!viewingCharacter.equipment) return;
-            const index = viewingCharacter.equipment.findIndex(i => i.id === selectedItem.id);
-            if (index > 0) setSelectedItem(viewingCharacter.equipment[index - 1]);
-            else setSelectedItem(viewingCharacter.equipment[viewingCharacter.equipment.length - 1]);
-          }}
         />
       )}
     </>
