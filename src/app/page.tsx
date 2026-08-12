@@ -573,12 +573,7 @@ export default function Home() {
     [charMgmt, hotSeat, runHealthCheck]
   );
 
-  useEffect(() => {
-    if (pendingGameStart && charMgmt.characters.length > 0) {
-      handleStartGameGuarded();
-      setPendingGameStart(false);
-    }
-  }, [pendingGameStart, charMgmt.characters, handleStartGameGuarded]);
+  // (Removed pendingGameStart effect loop, replaced with direct trigger)
 
   const handleQuickStart = useCallback(
     (adventureId: string, characterId1: string, mode: 'solo' | 'hot-seat', characterId2?: string) => {
@@ -620,10 +615,13 @@ export default function Home() {
         persistCharacters(existingChars);
       }
 
-      if (firstRun.canPlay) {
-        setPendingGameStart(true);
-      } else {
-        setShowFirstRunWizard(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('onboarding_completed', 'true');
+      }
+      setShowFirstRunWizard(false);
+      if (!firstRun.loading) {
+        // Direct jump bypassing the old effect loop
+        handleStartGameGuarded();
       }
     },
     [charMgmt, hotSeat, handleChooseSolo, handleStartGameGuarded, firstRun]

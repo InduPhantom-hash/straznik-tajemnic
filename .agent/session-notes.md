@@ -395,3 +395,19 @@ Branch: main
 
 ### Decyzje podjęte
 - Zastosowano "HTTP 404 check" pliku _buildManifest.js jako najbardziej kuloodporną metodę wyciągania i porównywania `BUILD_ID` między dyskiem a buforem serwera Next.js w bashowym launcherze.
+
+## Podsumowanie sesji: 2026-08-12
+Branch: main
+
+### Co zrobiono
+- **Fix Quick Setup (Szybka Przygoda):** Przebudowano funkcję `handleQuickStartOnboarding` (plik `page.tsx`), by poprawnie interpretowała parametry płynące z nowego modala wyboru, w tym postacie ze zbioru Strefy 11 oraz wymuszała zakończenie onboardingu poprzez `localStorage`.
+- **Wsparcie dla Hot-Seat:** Logika potrafi od teraz obsłużyć drugiego gracza wskazanego bezpośrednio z UI lub z automatu (łącząc listy `PREDEFINED_CHARACTERS` i `STREFA_11_CHARACTERS`).
+- **Fix etykiety biografii:** Nagłówek „🔗 Kluczowa Więź / Maska” ustąpił miejsca nazwie „🔗 Tło i Rola Fabularna” (`sheet-biography.tsx`).
+- **Dev-loop & Weryfikacja:** Kod poddano testom (zaliczone lintowanie środowiska) oraz skompilowano bezbłędnie (zakończony `npm run build`).
+
+### Co otwarte (do następnej sesji)
+- Podążanie za dalszymi wytycznymi z pliku `zadania.md` lub praca nad nowymi funkcjonalnościami po wyzerowaniu backlogu Szybkiej Przygody.
+
+### Decyzje podjęte
+- Rozszerzenie globalnego zasięgu sprawdzania postaci startowych. Łączenie starych i nowych presetów ratuje spójność na wypadek jakiejkolwiek zmiany logiki w menu.
+

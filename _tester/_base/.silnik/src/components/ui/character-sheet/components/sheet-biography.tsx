@@ -134,7 +134,7 @@ export function SheetBiography({ character }: SheetBiographyProps) {
             <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
             <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
             <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-              🔗 Kluczowa Więź / Maska
+              🔗 Tło i Rola Fabularna
             </span>
             <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
               {character.background}

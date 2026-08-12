@@ -37,8 +37,9 @@ import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
 import { toast } from '@/components/ui/use-toast';
-import { BUILT_IN_ADVENTURES } from '@/lib/adventures-data';
+import { BUILT_IN_ADVENTURES, STREFA_11_ADVENTURES, getAdventureById } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
+import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
 import type { RandomEvent } from '@/lib/random-event-generator';
 
 // Dynamic imports dla ciężkich komponentów
@@ -392,17 +393,20 @@ export default function Home() {
     );
   }, []);
 
+  const [pendingQuickStart, setPendingQuickStart] = useState(false);
   useEffect(() => {
-    if (pendingGameStart && charMgmt.characters.length > 0) {
+    if (pendingQuickStart && charMgmt.characters.length > 0) {
+      setPendingQuickStart(false);
       handleStartGameGuarded();
-      setPendingGameStart(false);
     }
-  }, [pendingGameStart, charMgmt.characters, handleStartGameGuarded]);
+  }, [pendingQuickStart, charMgmt.characters, handleStartGameGuarded]);
 
   const handleQuickStartOnboarding = useCallback(
-    (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat') => {
+    (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat', player2CharacterId?: string) => {
       // 1. Ustaw przygodę
-      const adv = BUILT_IN_ADVENTURES.find((a) => a.id === adventureId);
+      let adv = STREFA_11_ADVENTURES.find((a) => a.id === adventureId);
+      if (!adv) adv = getAdventureById(adventureId);
+      
       if (adv) {
         setAdventureContext(adv);
         if (typeof window !== 'undefined') {
@@ -411,7 +415,8 @@ export default function Home() {
       }
 
       // 2. Ustaw postać z presetów
-      const preset = PREDEFINED_CHARACTERS.find((c) => c.id === characterId);
+      const allCharacters = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
+      const preset = allCharacters.find((c) => c.id === characterId);
       if (preset) {
         const stamped: Character = {
           ...preset,
@@ -423,30 +428,43 @@ export default function Home() {
         const updatedList = [...charMgmt.characters, stamped];
 
         if (mode === 'hot-seat') {
-          // dobierz drugą postać (płci przeciwnej do wybranej)
-          const preset2 = PREDEFINED_CHARACTERS.find((c) => c.gender !== preset.gender) || PREDEFINED_CHARACTERS[1];
-          const stamped2: Character = {
-            ...preset2,
-            id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
-            playerName: 'Gracz 2',
-          };
-          updatedList.push(stamped2);
-          charMgmt.setCharacters(updatedList);
-          charMgmt.setActiveCharacter(stamped);
+          // dobierz drugą postać (płci przeciwnej do wybranej lub przekazaną)
+          let preset2 = player2CharacterId ? allCharacters.find((c) => c.id === player2CharacterId) : undefined;
+          if (!preset2) {
+            preset2 = allCharacters.find((c) => c.gender !== preset.gender) || allCharacters[1];
+          }
           
-          hotSeat.restoreConfig({
-            enabled: true,
-            players: [
-              { id: `p1_${Date.now()}`, name: 'Gracz 1', color: '#4ade80', characterId: stamped.id, isActive: true, turnCount: 0 },
-              { id: `p2_${Date.now()}`, name: 'Gracz 2', color: '#f472b6', characterId: stamped2.id, isActive: false, turnCount: 0 },
-            ],
-            activePlayerIndex: 0,
-            allowInterruptions: true,
-            showPlayerIndicator: true,
-          }, updatedList);
+          if (preset2) {
+            const stamped2: Character = {
+              ...preset2,
+              id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
+              playerName: 'Gracz 2',
+            };
+            updatedList.push(stamped2);
+            charMgmt.setCharacters(updatedList);
+            charMgmt.setActiveCharacter(stamped);
+            
+            hotSeat.restoreConfig({
+              enabled: true,
+              players: [
+                { id: `p1_${Date.now()}`, name: 'Gracz 1', color: '#4ade80', characterId: stamped.id, isActive: true, turnCount: 0 },
+                { id: `p2_${Date.now()}`, name: 'Gracz 2', color: '#f472b6', characterId: stamped2.id, isActive: false, turnCount: 0 },
+              ],
+              activePlayerIndex: 0,
+              allowInterruptions: true,
+              showPlayerIndicator: true,
+            }, updatedList);
+          }
         } else {
           charMgmt.setCharacters(updatedList);
           charMgmt.setActiveCharacter(stamped);
+          hotSeat.restoreConfig({
+            enabled: false,
+            players: [],
+            activePlayerIndex: 0,
+            allowInterruptions: true,
+            showPlayerIndicator: false,
+          }, updatedList);
         }
 
         try {
@@ -457,10 +475,16 @@ export default function Home() {
         }
       }
       setShowFirstRunWizard(false);
-      
-      // Jeżeli jesteśmy na ekranie głównym (WelcomeScreen), automatycznie odpal grę
-      if (!firstRun.loading && !firstRun.needsWizard) {
-        setPendingGameStart(true);
+
+      // Quick Setup omija onboarding wizard z definicji - oznacz jako ukończony
+      // i natychmiast odpal grę bez sprawdzania needsWizard (który po cold-start
+      // jest true bo localStorage jest wyczyszczony).
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('onboarding_completed', 'true');
+      }
+      setShowFirstRunWizard(false);
+      if (!firstRun.loading) {
+        setPendingQuickStart(true);
       }
     },
     [charMgmt, hotSeat, firstRun, handleStartGameGuarded]
@@ -802,16 +826,18 @@ export default function Home() {
               await firstRun.refresh();
               setShowFirstRunWizard(false);
             }}
-            onQuickStart={(advId, charId) => {
+            onQuickStart={async (advId, charId) => {
               if (typeof window !== 'undefined') {
                 localStorage.setItem('onboarding_completed', 'true');
               }
+              await firstRun.refresh();
               handleQuickStartOnboarding(advId, charId);
             }}
-            onClose={() => {
+            onClose={async () => {
               if (typeof window !== 'undefined') {
                 localStorage.setItem('onboarding_completed', 'true');
               }
+              await firstRun.refresh();
               setShowFirstRunWizard(false);
             }}
           />

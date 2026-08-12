@@ -97,9 +97,23 @@ fi
 rm -f data/rag/npcs.* data/rag/world-state.* 2>/dev/null || true
 log "usunieto: pamiec NPC (RAG npcs + world-state)"
 log "ZOSTAWIONO: baze wiedzy RAG (rules/adventures/mythos)"
+
+# --- 5. Auto-rebuild silnika (gwarancja aktualnego kodu) ---
+SILNIK_DIR="$APP_DIR/_tester/_base/.silnik"
+if [ -f "$SILNIK_DIR/package.json" ]; then
+  log "budowanie aktualnej wersji silnika..."
+  if (cd "$SILNIK_DIR" && npm run build 2>&1 | tail -5 | tee -a "$LOG"); then
+    log "build: OK"
+  else
+    log "build: FAIL (uruchomienie moze uzyc starego kodu)"
+  fi
+else
+  log "UWAGA: katalog silnika ($SILNIK_DIR) nie znaleziony - pomijam build"
+fi
+
 log "=== GOTOWY ==="
 
-# --- 5. Opcjonalnie: uruchom swieza gre ---
+# --- 6. Opcjonalnie: uruchom swieza gre ---
 if [ "${1:-}" = "--play" ]; then
   log "uruchamiam swieza gre..."
   exec bash "$APP_DIR/desktop/launcher.sh"

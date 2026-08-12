@@ -19,6 +19,8 @@ import { StartModeCards } from './components/start-mode-cards';
 import { BottomLinks } from './components/bottom-links';
 import { FullGameSaveManager } from '@/lib/full-game-save-manager';
 import { timeManager } from '@/lib/time-manager';
+import { StepGeminiKey } from '@/components/onboarding/steps/step-gemini-key';
+import { hasRequiredKeys } from '@/lib/api-keys-service';
 
 /** Metadane najświeższego zapisu (synchronicznie z localStorage). */
 interface RecentSave {
@@ -127,8 +129,16 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   // Quick-winy (read-only, po mount - unika hydration mismatch):
   const [gameYear, setGameYear] = useState<number | null>(null);
   const [recentSave, setRecentSave] = useState<RecentSave | null>(null);
+  const [hasKey, setHasKey] = useState<boolean>(true);
 
   useEffect(() => {
+    // Sprawdzanie po mount by uniknąć hydration mismatch
+    setHasKey(hasRequiredKeys());
+    
+    // Nasłuchuj na zmiany kluczy by automatycznie odświeżyć ekran po zapisie
+    const onKeysChanged = () => setHasKey(hasRequiredKeys());
+    window.addEventListener('api-keys-changed', onKeysChanged);
+
     // Rok do "Anno Domini" - ze źródła zegara kampanii (timeManager, klucz coc7_game_time),
     // czytany po mount (klient) by uniknąć hydration mismatch. Jedno źródło prawdy z
     // CampaignClock: pokazuje aktualny rok gry (po upływie czasu), nie tylko startowy.
@@ -149,6 +159,10 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
     } catch {
       /* brak zapisów - karta wznowienia po prostu się nie pokaże */
     }
+
+    return () => {
+      window.removeEventListener('api-keys-changed', onKeysChanged);
+    };
   }, []);
 
   return (
@@ -212,12 +226,21 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
         {/* karta wznowienia (quick-win, tylko gdy istnieje zapis) */}
         {recentSave && <ResumeCard save={recentSave} onResume={onLoadSave} />}
 
-        {/* Krok 3 - Nowe karty trybów startu */}
+        {/* Krok 3 - Autoryzacja i Start */}
         <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-8 w-[min(1200px,95vw)] justify-center items-center z-20 mt-6">
-          <StartModeCards 
-            onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
-            onManualStart={() => onChoosePlayMode?.()} 
-          />
+          {!hasKey ? (
+            <div className="bg-black/60 border border-brass/50 p-6 rounded-md shadow-[0_0_40px_rgba(201,162,39,0.1)] max-w-lg w-full relative z-30">
+              <div className="mb-4 text-center font-display uppercase tracking-[0.2em] text-primary text-sm">
+                Wymagana autoryzacja
+              </div>
+              <StepGeminiKey onNext={() => setHasKey(true)} />
+            </div>
+          ) : (
+            <StartModeCards 
+              onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
+              onManualStart={() => onChoosePlayMode?.()} 
+            />
+          )}
         </div>
 
         {/* dolne linki (wczytaj / klucze / zimny start) */}

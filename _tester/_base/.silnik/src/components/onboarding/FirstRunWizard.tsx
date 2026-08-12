@@ -51,10 +51,10 @@ export function FirstRunWizard({
   const localMode = process.env.NEXT_PUBLIC_LOCAL_MODE === 'true';
   const [step, setStep] = useState<Step>(1);
 
-  // Po otwarciu: jeśli klucz już jest (tryb lokalny lub zapisany), zacznij od kroku 2.
+  // Po otwarciu: zmuś do podania klucza jeśli fizycznie go brakuje, nawet w Zew App.
   useEffect(() => {
-    if (open) setStep(localMode || hasRequiredKeys() ? 2 : 1);
-  }, [open, localMode]);
+    if (open) setStep(hasRequiredKeys() ? 2 : 1);
+  }, [open]);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
