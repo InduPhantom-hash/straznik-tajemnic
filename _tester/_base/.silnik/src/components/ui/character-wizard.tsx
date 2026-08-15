@@ -889,11 +889,11 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
       OCCUPATIONS.find((o) => o.id === state.occupationId)?.name || '';
 
     // Era z kontekstu przygody lub domyślna
-    const eraStyle = adventureContext
-      ? `${adventureContext.yearRange}, ${adventureContext.eraLabel} era`
+    const rawEra = adventureContext
+      ? (adventureContext.yearRange || adventureContext.eraLabel || adventureContext.era || '1920s')
       : '1920s';
 
-    const prompt = `Portrait of a ${age} year old ${gender || 'person'}, ${occupation}, ${description || 'mysterious appearance'}, ${eraStyle} period-accurate portrait, realistic, dramatic lighting, vintage photograph aesthetic`;
+    const prompt = `Portrait of a ${age} year old ${gender || 'person'}, ${occupation}, ${description || 'mysterious appearance'}, ${rawEra} period-accurate portrait, realistic, dramatic lighting, authentic period photograph aesthetic`;
 
     // A5: gdy portret JUŻ istnieje, to "Generuj ponownie" - dołączamy losowy
     // seed, by ominąć cache /api/imagen (klucz = md5(prompt+style+seed)).
@@ -910,10 +910,12 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
-          style: 'vintage',
+          style: 'portrait',
+          era: rawEra,
           ...(seed && { seed }),
         }),
       });
+
       const data = await response.json();
 
       if (data.success && data.imageUrl) {

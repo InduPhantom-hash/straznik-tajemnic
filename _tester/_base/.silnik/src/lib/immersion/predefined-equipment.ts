@@ -43,61 +43,61 @@ const PRESET_VISUAL_ERAS: Record<PresetEra, EquipmentVisualEra> = {
   noir: '1940s',
   prl: 'prl-1970s',
   'prl-1970s': 'prl-1970s',
-  '1990s': 'modern',
-  '2000s': 'modern',
+  '1990s': '1990s',
+  '2000s': '2000s',
   modern: 'modern',
 };
 
 const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
   gaslight: [
     {
+      name: 'Latarnia oliwna',
+      category: 'tool',
+      description: 'Mosiężna latarnia na naftę dająca ciepłe, równe światło.',
+    },
+    {
       name: 'Zegarek kieszonkowy',
       category: 'personal',
-      description: 'Mosiężny zegarek na łańcuszku, niezawodny w podróży.',
+      description: 'Klasyczny zegarek na łańcuszku w stalowej kopercie.',
     },
     {
-      name: 'Skórzane rękawiczki',
+      name: 'Skórzany pugilares',
       category: 'personal',
-      description: 'Chronią dłonie i pozwalają ostrożnie badać ślady.',
-    },
-    {
-      name: 'Dokumenty podróżne',
-      category: 'document',
-      description: 'Bilety, listy polecające i dokumenty tożsamości.',
+      description: 'Portfel na banknoty, monety i dokumenty tożsamości.',
     },
   ],
   classic: [
     {
       name: 'Latarka elektryczna',
       category: 'tool',
-      description: 'Ciężka metalowa latarka z zapasową baterią.',
+      description: 'Masywna latarka na baterie z metalową obudową.',
     },
     {
-      name: 'Pudełko zapałek',
-      category: 'personal',
-      description: 'Woskowane zapałki zabezpieczone przed wilgocią.',
-    },
-    {
-      name: 'Dokumenty i bilety',
+      name: 'Notes badawczy',
       category: 'document',
-      description: 'Dowód tożsamości, wizytówki i bilety kolejowe.',
+      description: 'Kieszonkowy notatnik w twardej oprawie ze skórzanym grzbietem.',
+    },
+    {
+      name: 'Zapałki sztormowe',
+      category: 'tool',
+      description: 'Wodoodporne zapałki w metalowym etui.',
     },
   ],
   noir: [
     {
-      name: 'Latarka elektryczna',
+      name: 'Zapalniczka benzynowa',
       category: 'tool',
-      description: 'Metalowa latarka z zapasową płaską baterią.',
+      description: 'Ciężka metalowa zapalniczka z charakterystycznym kliknięciem.',
     },
     {
-      name: 'Dokumenty służbowe',
+      name: 'Papierosy i papierośnica',
+      category: 'personal',
+      description: 'Metalowa papierośnica z zapasem papierosów.',
+    },
+    {
+      name: 'Notes z ołówkiem',
       category: 'document',
-      description: 'Legitymacja, bilety i notatki podróżne.',
-    },
-    {
-      name: 'Kieszonkowa apteczka',
-      category: 'medical',
-      description: 'Opatrunki i środek odkażający w płóciennym etui.',
+      description: 'Dyskretny notes reportera lub detektywa.',
     },
   ],
   prl: [
@@ -136,14 +136,14 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
   ],
   '1990s': [
     {
-      name: 'Telefon z ładowarką',
+      name: 'Telefon komórkowy (cegła)',
       category: 'tool',
-      description: 'Telefon komórkowy z notatnikiem.',
+      description: 'Wczesny telefon komórkowy z anteną i ładowarką sieciową.',
     },
     {
-      name: 'Powerbank',
+      name: 'Zapasowe baterie (R6/AA)',
       category: 'tool',
-      description: 'Zapas energii na długi dzień pracy.',
+      description: 'Zestaw baterii alkalicznych do latarki i dyktafonu.',
     },
     {
       name: 'Dokumenty tożsamości',
@@ -153,14 +153,14 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
   ],
   '2000s': [
     {
-      name: 'Telefon z ładowarką',
+      name: 'Telefon komórkowy z klawiaturą',
       category: 'tool',
-      description: 'Telefon komórkowy z notatnikiem.',
+      description: 'Klasyczny telefon komórkowy z ładowarką.',
     },
     {
-      name: 'Powerbank',
+      name: 'Zapasowa bateria do telefonu',
       category: 'tool',
-      description: 'Zapas energii na długi dzień pracy.',
+      description: 'Zapasowy akumulator litowo-jonowy.',
     },
     {
       name: 'Dokumenty tożsamości',
@@ -170,7 +170,7 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
   ],
   modern: [
     {
-      name: 'Telefon z ładowarką',
+      name: 'Smartfon z ładowarką',
       category: 'tool',
       description: 'Smartfon z mapami offline i zabezpieczonym notatnikiem.',
     },
@@ -180,9 +180,9 @@ const ERA_KITS: Record<PresetEra, EquipmentSeed[]> = {
       description: 'Zapas energii na długi dzień pracy w terenie.',
     },
     {
-      name: 'Kieszonkowa apteczka',
-      category: 'medical',
-      description: 'Opatrunki, środek odkażający i leki przeciwbólowe.',
+      name: 'Dokumenty tożsamości',
+      category: 'document',
+      description: 'Portfel z kartami i dokumentami.',
     },
   ],
 };

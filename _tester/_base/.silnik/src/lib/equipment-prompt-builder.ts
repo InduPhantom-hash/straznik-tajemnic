@@ -5,13 +5,23 @@
  */
 
 import type { Character, EquipmentCategory, EquipmentItem } from './types';
-import { getEraColorDirection } from './era-visual-style';
+import {
+  getEraColorDirection,
+  getEraPhoneVisualDescription,
+  getEraTechnologyGuardrails,
+  resolveEraVisualProfile,
+} from './era-visual-style';
 
 const ERA_MODIFIERS: Record<string, string> = {
   '1890s': 'late Victorian period, historically accurate brass, wood and leather',
   '1920s': '1920s, historically accurate early electric consumer goods and art deco details',
+  '1930s': '1930s Great Depression era, functional utilitarian materials, early bakelite and steel',
   '1940s': '1940s, historically accurate wartime and postwar utilitarian materials',
-  'prl-1970s': 'Poland in the 1970s, PRL-era domestic object design, practical materials',
+  '1950s': '1950s mid-century design, chrome, bakelite, early vinyl and pressed steel',
+  'prl-1970s': 'Poland in the 1970s, PRL-era domestic object design, practical analog materials',
+  '1980s': '1980s analog retro design, matte plastic, mechanical switches, period electronic aesthetic',
+  '1990s': '1990s pre-smartphone technology, gray/black textured plastic, monochrome LCD if electronic, analog tools',
+  '2000s': 'early 2000s Y2K era design, silver/translucent plastic, compact feature phone aesthetic',
   modern: 'contemporary real-world design and materials',
 };
 
@@ -46,6 +56,9 @@ const SUPERNATURAL_GUARDRAILS =
 const CHARACTER_BOUND_ITEM_PATTERN =
   /\b(odznak\w*|legitymacj\w*|identyfikator\w*|dow[oó]d\w*|paszport\w*|przepustk\w*|praw[ao]\s+jazdy|karta\s+prasowa|press\s+card|identity\s+card|id\s+badge|credential\w*)\b/i;
 
+const PHONE_ITEM_PATTERN =
+  /\b(telefon\w*|smartfon\w*|kom[oó]rk\w*|phone|telephone|smartphone)\b/i;
+
 function isSupernatural(item: EquipmentItem): boolean {
   return item.visualTreatment === 'supernatural';
 }
@@ -75,13 +88,8 @@ function getCharacterBoundDirection(character: Character | null | undefined): st
 }
 
 function resolveEraModifier(era: string): string {
-  if (ERA_MODIFIERS[era]) return ERA_MODIFIERS[era];
-  if (/^189\d/.test(era)) return ERA_MODIFIERS['1890s'];
-  if (/^(?:192|193)\d/.test(era)) return ERA_MODIFIERS['1920s'];
-  if (/^194\d/.test(era)) return ERA_MODIFIERS['1940s'];
-  if (/^(?:196|197|198)\d/.test(era)) return ERA_MODIFIERS['prl-1970s'];
-  if (/^(?:19\d{2}|20\d{2})/.test(era)) return ERA_MODIFIERS.modern;
-  return ERA_MODIFIERS['1920s'];
+  const profile = resolveEraVisualProfile(era);
+  return ERA_MODIFIERS[profile] ?? ERA_MODIFIERS['1920s'];
 }
 
 /** Buduje realistyczny prompt dla jednego egzemplarza ekwipunku. */
@@ -105,8 +113,14 @@ export function buildEquipmentImagePrompt(
           ? 'broken but still clearly identifiable'
           : 'used, plausible wear and patina';
 
+  // Jeśli przedmiot to telefon, wstrzyknij ścisły opis wyglądu dla danej epoki
+  const isPhone = PHONE_ITEM_PATTERN.test(`${item.name} ${item.description ?? ''}`);
+  const phoneSpecificDescription = isPhone ? getEraPhoneVisualDescription(era) : undefined;
+  const eraGuardrails = getEraTechnologyGuardrails(era);
+
   return [
     `Photorealistic period object study of ${item.name}`,
+    phoneSpecificDescription,
     item.description,
     CATEGORY_STYLES[category],
     CATEGORY_MATERIALS[category],
@@ -117,6 +131,7 @@ export function buildEquipmentImagePrompt(
       ? getCharacterBoundDirection(_character)
       : undefined,
     treatment ? SUPERNATURAL_GUARDRAILS : MUNDANE_GUARDRAILS,
+    eraGuardrails,
     'natural directional light, accurate scale, documentary realism, detailed texture, square composition',
   ]
     .filter(Boolean)
@@ -135,8 +150,14 @@ export function getAvailableEras(): { value: string; label: string }[] {
   return [
     { value: '1890s', label: 'Epoka wiktoriańska (1890s)' },
     { value: '1920s', label: 'Szalone lata 20.' },
-    { value: '1940s', label: 'Lata 40.' },
+    { value: '1930s', label: 'Lata 30. (Wielki Kryzys)' },
+    { value: '1940s', label: 'Lata 40. (Noir / II WŚ)' },
+    { value: '1950s', label: 'Lata 50. (Powojenny modernizm)' },
     { value: 'prl-1970s', label: 'PRL - lata 70.' },
+    { value: '1980s', label: 'Lata 80. (Retro analog)' },
+    { value: '1990s', label: 'Lata 90. (Y2K / pre-smartfon)' },
+    { value: '2000s', label: 'Lata 2000 (Telefony klasyczne)' },
     { value: 'modern', label: 'Współczesność' },
   ];
 }
+

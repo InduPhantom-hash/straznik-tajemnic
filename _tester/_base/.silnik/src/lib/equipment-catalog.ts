@@ -374,8 +374,8 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   },
   {
     id: 'modern.phone',
-    name: 'Telefon z ładowarką',
-    aliases: ['Smartfon', 'Telefon'],
+    name: 'Smartfon z ładowarką',
+    aliases: ['Smartfon', 'Smartphone', 'Nowoczesny telefon'],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['modern'],
@@ -384,7 +384,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'modern.power-bank',
     name: 'Powerbank',
-    aliases: ['Bateria zewnętrzna'],
+    aliases: ['Bateria zewnętrzna', 'Przenośna bateria'],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['modern'],
@@ -431,6 +431,10 @@ export function resolveCatalogAsset(
   era: EquipmentVisualEra
 ): string | undefined {
   if (!template) return undefined;
+  // Jeśli szablon jest ściśle ograniczony do konkretnych epok, nie zwracaj assetu poza nimi
+  if (template.availableIn && !template.availableIn.includes(era)) {
+    return undefined;
+  }
   return template.assetPaths?.[era] ?? template.assetPaths?.shared;
 }
 
@@ -442,6 +446,12 @@ export function applyCatalogTemplate(
   if (item.visualSource === 'generated') return item;
   const template = findEquipmentTemplate(item.templateId ?? item.name);
   if (!template) return item;
+
+  // Zabezpieczenie epokowe: jeśli szablon nie jest dostępny w tej epoce, nie narzucaj go
+  if (template.availableIn && !template.availableIn.includes(era)) {
+    return item;
+  }
+
   return {
     ...item,
     templateId: template.id,
@@ -451,6 +461,7 @@ export function applyCatalogTemplate(
     imageUrl: item.imageUrl ?? resolveCatalogAsset(template, era),
   };
 }
+
 
 /** Lekka, idempotentna migracja zapisów sprzed `templateId` i `visualSource`. */
 export function migrateEquipmentCatalog(

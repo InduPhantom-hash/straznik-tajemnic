@@ -46,6 +46,8 @@ import {
   buildEquipmentImagePrompt,
   isCharacterBoundEquipment,
 } from '@/lib/equipment-prompt-builder';
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
+
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 
@@ -284,15 +286,11 @@ export interface UseChatReturn {
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
-  const year = context?.yearRange ?? '';
-  if (/^(?:194[0-9])/.test(year) || context?.eraLabel?.includes('40'))
-    return '1940s';
-  if (/^(?:196|197|198)/.test(year) || /prl/i.test(context?.eraLabel ?? ''))
-    return 'prl-1970s';
-  if (context?.era === 'gaslight') return '1890s';
-  if (context?.era === 'modern') return 'modern';
-  return '1920s';
+  return resolveEraVisualProfile(
+    context?.yearRange || context?.eraLabel || context?.era
+  );
 }
+
 
 interface UseChatOptions {
   pdfMemory: PdfMemory;
@@ -478,6 +476,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     async (illustrations: ImageToGenerate[], messageId: string) => {
       const generatedUrls: string[] = [];
       const generatedTypes: ('portrait' | 'scene')[] = [];
+      const activeEra =
+        adventureContext?.yearRange ||
+        adventureContext?.eraLabel ||
+        adventureContext?.era ||
+        '1920s';
+
       for (const img of illustrations) {
         try {
           const response = await fetchWithRetry('/api/imagen', {
@@ -487,6 +491,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               prompt: img.prompt,
               style: img.style || 'horror',
               isMythos: img.isMythos || false,
+              era: activeEra,
               // IND-216: sceny czatu w formacie pocztówkowym 16:9 (orchestrator
               // forwarduje ...body do Vertex/Replicate). Render i tak kadruje object-cover.
               aspectRatio: img.aspectRatio || '16:9',
@@ -498,14 +503,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           if (result.imageUrl) {
             generatedUrls.push(result.imageUrl);
             generatedTypes.push(img.type || 'scene');
-            // IND-272: koszt obrazu liczy server-side `recordUserUsage` w /api/imagen
-            // (jedno źródło prawdy). Client-side `recordImageCost` (cost_tracking_stats)
-            // był niepełnym duplikatem - usunięty.
           }
         } catch (error) {
           console.error('Image Error:', error);
         }
       }
+
 
       if (generatedUrls.length > 0) {
         setMessages((prev) =>

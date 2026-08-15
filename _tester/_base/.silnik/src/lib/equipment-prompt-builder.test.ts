@@ -63,4 +63,23 @@ describe('buildEquipmentImagePrompt', () => {
       'supplied owner portrait'
     );
   });
+
+  it('generuje właściwy opis telefonu i strażników dla roku 1983 oraz lat 20.', () => {
+    const phone: EquipmentItem = {
+      id: 'phone-1',
+      name: 'Telefon',
+      category: 'tool',
+      source: 'starting',
+    };
+
+    const prompt1983 = buildEquipmentImagePrompt(phone, '1983');
+    expect(prompt1983).toContain('rotary dial or mechanical push buttons');
+    expect(prompt1983).toContain('strictly no screen');
+    expect(prompt1983).toContain('no smartphones');
+    expect(prompt1983).toContain('no powerbanks');
+
+    const prompt1920 = buildEquipmentImagePrompt(phone, '1920s');
+    expect(prompt1920).toContain('candlestick telephone');
+  });
 });
+

@@ -192,4 +192,24 @@ describe('SessionJournal', () => {
     expect(graphTabButton).toBeTruthy();
     fireEvent.click(graphTabButton);
   });
+
+  it('wywołuje onClose po kliknięciu przycisku zamykania X oraz po wciśnięciu Escape', () => {
+    const handleClose = jest.fn();
+    render(
+      <SessionJournal
+        character={PREDEFINED_CHARACTERS[0]}
+        onUpdateCharacter={jest.fn()}
+        onClose={handleClose}
+      />
+    );
+
+    const closeButton = screen.getByRole('button', { name: 'Zamknij dziennik' });
+    expect(closeButton).toBeTruthy();
+    fireEvent.click(closeButton);
+    expect(handleClose).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(handleClose).toHaveBeenCalledTimes(2);
+  });
 });
+

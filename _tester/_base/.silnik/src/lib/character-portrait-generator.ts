@@ -101,7 +101,7 @@ function getSettingElements(setting: string, occupation: string): string {
     studio: 'professional portrait studio background with soft lighting, ',
     office: `in their ${occupation.toLowerCase()} office with period-appropriate furnishings, `,
     library: 'in a well-appointed library with books and scholarly atmosphere, ',
-    street: 'on a 1920s city street with period architecture in background, ',
+    street: 'on a period-accurate city street with architecture and atmosphere from the era in background, ',
     home: 'in an elegant home interior with period decorations, ',
   };
 
@@ -109,14 +109,31 @@ function getSettingElements(setting: string, occupation: string): string {
 }
 
 function getEraElements(era: string): string {
-  const eras: { [key: string]: string } = {
+  const profile = era;
+  const eras: Record<string, string> = {
+    '1890s':
+      'late Victorian / Edwardian fashion, high collar, tailored wool suit or period dress, vintage styling, ',
     '1920s':
       '1920s fashion and styling, period-appropriate clothing and hairstyles, Art Deco influences, ',
-    '1930s': '1930s fashion and styling, Depression-era clothing, classic Hollywood glamour, ',
-    modern: 'contemporary styling and clothing, modern professional appearance, ',
+    '1930s':
+      '1930s fashion and styling, Depression-era clothing, classic tailored cuts, ',
+    '1940s':
+      '1940s fashion and styling, wartime tailored suits, trench coats, 1940s hairstyles, ',
+    '1950s':
+      '1950s post-war fashion, structured tailored clothing, mid-century styling, ',
+    'prl-1970s':
+      '1970s Eastern European / PRL fashion and hairstyles, authentic 1970s clothing, ',
+    '1980s':
+      '1980s fashion and styling, period hairstyles, 1980s clothing, ',
+    '1990s':
+      '1990s fashion, leather jackets, casual 90s clothing and hair, ',
+    '2000s':
+      'early 2000s contemporary styling and clothing, ',
+    modern:
+      'contemporary styling and clothing, modern professional appearance, ',
   };
 
-  return eras[era] || eras['1920s'];
+  return eras[profile] || eras['1920s'];
 }
 
 function getQualityParameters(): string {
@@ -176,7 +193,8 @@ export async function generatePortraitVariants(
         },
         body: JSON.stringify({
           prompt,
-          type: 'portrait',
+          style: 'portrait',
+          era: config.template?.era || '1920s',
           characterName: config.character.name,
         }),
       });
@@ -203,7 +221,7 @@ export async function generatePortraitVariants(
         });
       }
     } catch (error) {
-      console.error('Error generating portrait variant:', error);
+      console.error(`Error generating portrait variant ${mood}:`, error);
       variants.push({
         imageUrl: `/api/placeholder-image?text=${encodeURIComponent(
           'Błąd generowania portretu'
@@ -227,6 +245,14 @@ export function getSuggestedPortraitConfigs(
     character,
     template,
     style: 'realistic',
+    mood: 'serious',
+    setting: 'studio',
+  });
+
+  configs.push({
+    character,
+    template,
+    style: 'artistic',
     mood: 'serious',
     setting: 'office',
   });
@@ -274,7 +300,8 @@ export async function generateQuickPortrait(
       },
       body: JSON.stringify({
         prompt,
-        type: 'portrait',
+        style: 'portrait',
+        era: template?.era || '1920s',
         characterName: character.name,
       }),
     });

@@ -143,7 +143,8 @@ export function EquipmentModal({
                 ? 'realistic'
                 : item.category === 'artifact'
                   ? 'horror'
-                  : 'vintage',
+                  : 'item',
+              era,
               aspectRatio: '1:1',
               seed: `${character?.id || ''}-${item.id}`,
               ...(usePortraitReference
@@ -152,6 +153,7 @@ export function EquipmentModal({
             }),
           }
         );
+
 
         if (!response.ok) {
           const errorData = await response.json();

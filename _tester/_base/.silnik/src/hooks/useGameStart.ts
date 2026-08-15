@@ -18,6 +18,7 @@ import { persistCharacters } from '@/lib/character-cloud-sync';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 import { sanitizeCharacterForApi } from '@/lib/chat-history-sanitizer';
 import { isCatalogEquipment } from '@/lib/equipment-catalog';
+import { getEraVehicleVisualDescription } from '@/lib/era-visual-style';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -202,7 +203,14 @@ export function useGameStart({
     try {
       const locationContext =
         adventureContext?.location || 'mysterious New England town';
-      const imagePrompt = `Atmospheric establishing shot, ${locationContext}, 1920s period-accurate, realistic, cinematic, moody natural lighting.`;
+      const rawEra =
+        adventureContext?.yearRange ||
+        adventureContext?.eraLabel ||
+        adventureContext?.era ||
+        '1920s';
+      const vehicleGuidance = getEraVehicleVisualDescription(rawEra);
+      const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${rawEra} period-accurate, ${vehicleGuidance}, realistic, cinematic, moody natural lighting.`;
+
       const response = await fetchWithRetry('/api/imagen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -210,10 +218,12 @@ export function useGameStart({
         // forwarduje ...body do Vertex/Replicate). Render kadruje object-cover.
         body: JSON.stringify({
           prompt: imagePrompt,
-          style: 'horror',
+          style: 'location',
+          era: rawEra,
           aspectRatio: '16:9',
         }),
       });
+
 
       if (!response.ok) {
         throw new Error(`Image API ${response.status}: ${response.statusText}`);

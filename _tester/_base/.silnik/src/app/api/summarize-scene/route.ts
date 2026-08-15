@@ -13,10 +13,11 @@ interface Message {
 }
 
 interface SummarizeRequest {
-  messages: Message[];
+  messages: Array<{ role: string; content: string }>;
   characterName?: string;
   adventureTitle?: string;
   participantCount?: number;
+  era?: string;
 }
 
 // IND-269: surowy kształt JSON zwracany przez model (NIE jest to JournalEntry).
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: SummarizeRequest = await request.json();
-    const { messages, characterName, adventureTitle, participantCount = 1 } = body;
+    const { messages, characterName, adventureTitle, participantCount = 1, era } = body;
 
     if (!messages || messages.length < 2) {
       return NextResponse.json(
@@ -145,11 +146,13 @@ export async function POST(request: NextRequest) {
       ? "Używaj drugiej osoby liczby MNOGIEJ (np. 'Odkryliście...', 'Zbadaliście...', 'Napotkaliście...'), ponieważ w sesji bierze udział drużyna badaczy."
       : "Używaj drugiej osoby liczby POJEDYNCZEJ (np. 'Odkryłeś...', 'Zbadałeś...').";
 
+    const eraContext = era ? ` (reala epoki: ${era})` : '';
+
     const prompt = `Jesteś analitykiem sesji RPG. Przeanalizuj poniższy fragment rozgrywki i wygeneruj wpis do dziennika sesji.
 
 KONTEKST:
 - Postać / Drużyna: ${characterName || 'Nieznany badacz'}
-- Przygoda: ${adventureTitle || 'Nieznana przygoda'}
+- Przygoda: ${adventureTitle || 'Nieznana przygoda'}${eraContext}
 - Liczba graczy: ${participantCount}
 
 FRAGMETY ROZGRYWKI:
@@ -167,10 +170,11 @@ ZASADA GRAMATYKI: ${grammarRule}
   "npcs": ["Lista imion NPC biorących udział"],
   "significance": "Dlaczego ta scena jest ważna dla fabuły (1 zdanie)",
   "playerActions": "Co gracz/drużyna zrobiła (1-2 zdania)",
-  "imagePrompt": "Krótki opis kluczowego momentu lub postaci/miejsca w języku angielskim (do wygenerowania ilustracji z lat 20.)"
+  "imagePrompt": "Krótki opis kluczowego momentu lub postaci/miejsca w języku angielskim zgodny z realiami epoki ${era || 'lat 20. XX wieku'} (bez anachronizmów, autentyczne stroje, technologia i architektura)"
 }
 
 Odpowiedz TYLKO poprawnym JSON-em, bez żadnego dodatkowego tekstu.`;
+
 
     const genAI = getGenAI(apiKey);
 

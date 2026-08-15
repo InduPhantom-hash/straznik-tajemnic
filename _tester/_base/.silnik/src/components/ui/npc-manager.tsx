@@ -50,6 +50,7 @@ interface NPCManagerProps {
   onAddToSession?: (npc: NPC) => void;
   currentLocation?: string;
   sessionId?: string;
+  era?: string;
 }
 
 // DEFAULT_SKILLS + NPC_TEMPLATES extracted do `@/lib/data/npc/` (sesja 100 IND-106 Wariant A scope-reduction).
@@ -60,7 +61,9 @@ export function NPCManager({
   onAddToSession,
   currentLocation,
   sessionId,
+  era = '1920s',
 }: NPCManagerProps) {
+
   const [npcs, setNPCs] = useState<NPC[]>([]);
   const [filteredNPCs, setFilteredNPCs] = useState<NPC[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,7 +169,8 @@ export function NPCManager({
   ) => {
     setIsGeneratingPortrait(true);
     try {
-      const prompt = `Portrait of ${npc.name}, ${npc.occupation}, ${npc.appearance || npc.description}, 1920s period-accurate, realistic, detailed, atmospheric`;
+      const activeEra = era || '1920s';
+      const prompt = `Portrait of ${npc.name}, ${npc.occupation}, ${npc.appearance || npc.description}, ${activeEra} period-accurate character portrait photography, realistic, detailed, atmospheric`;
 
       // M9 sesja 146 (D4): globalny toggle z Settings - gdy true + NPC ma
       // portretUrl, używamy Flux Kontext Pro (character consistency).
@@ -181,10 +185,12 @@ export function NPCManager({
         type: 'npc',
         id: npc.id,
         prompt,
-        style: 'realistic',
+        style: 'portrait',
+        era: activeEra,
         forceRegenerate,
         inputPortraitUrl,
       });
+
 
       console.log(
         `📸 NPC Portrait ${result.fromCache ? 'loaded from cache' : 'generated'}: ${npc.name}`

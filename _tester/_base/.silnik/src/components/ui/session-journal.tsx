@@ -480,15 +480,15 @@ export function SessionJournal({
     >
       {/* RPG-styled Container */}
       <div
-        className="bg-zinc-950/90 backdrop-blur-xl border-4 border-emerald-900/40 rounded-xl shadow-2xl w-[92vw] max-w-6xl h-[90vh] flex flex-col overflow-hidden text-zinc-300 relative"
+        className="bg-zinc-950/90 backdrop-blur-xl border-4 border-emerald-900/40 rounded-xl shadow-2xl w-[96vw] max-w-[1720px] h-[94vh] flex flex-col overflow-hidden text-zinc-300 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Nagłówek i Główne Zakładki */}
         <div className="bg-zinc-900/80 border-b-2 border-emerald-900/50 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-7 w-7 text-emerald-400" />
+          <div className="flex items-center gap-3 shrink-0">
+            <BookOpen className="h-7 w-7 text-emerald-400 shrink-0" />
             <div>
-              <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-emerald-500 drop-shadow-md">
+              <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-emerald-500 drop-shadow-md whitespace-nowrap">
                 DZIENNIK SESJI
               </h2>
               {isShared && participantNames.length > 0 && (
@@ -500,11 +500,11 @@ export function SessionJournal({
           </div>
 
           {/* Zakładki na górze - Styl Akt / Segregatora */}
-          <div className="flex gap-1 self-end translate-y-[2px] mt-2 md:mt-0">
+          <div className="flex gap-1.5 items-center self-center md:self-end translate-y-[2px] mt-2 md:mt-0 shrink-0">
             <button
               onClick={() => handleTabChange('board')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
+                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
                 activeTab === 'board'
                   ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
@@ -515,7 +515,7 @@ export function SessionJournal({
             <button
               onClick={() => handleTabChange('npc')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
+                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
                 (activeTab === 'npc' || activeTab === 'location' || activeTab === 'item' || activeTab === 'quest')
                   ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
@@ -531,7 +531,7 @@ export function SessionJournal({
             <button
               onClick={() => handleTabChange('journal')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
+                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
                 activeTab === 'journal'
                   ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
@@ -547,7 +547,7 @@ export function SessionJournal({
             <button
               onClick={() => handleTabChange('note')}
               className={cn(
-                'px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2',
+                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
                 activeTab === 'note'
                   ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
@@ -563,7 +563,7 @@ export function SessionJournal({
           </div>
 
           {/* Narzędzia i Przyciski */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center shrink-0">
             <Button
               onClick={() => setShowAddForm(true)}
               className="bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40 font-serif"
@@ -596,7 +596,7 @@ export function SessionJournal({
                   e.stopPropagation();
                   onClose();
                 }}
-                className="ml-3 p-2 bg-[#5a1c1c] hover:bg-[#782525] active:bg-[#942c2c] rounded-md border-2 border-[#b83838] text-[#f4ebd0] transition-all cursor-pointer shadow-md hover:scale-105 shrink-0 z-30"
+                className="ml-2 p-2 bg-[#5a1c1c] hover:bg-[#782525] active:bg-[#942c2c] rounded-md border-2 border-[#b83838] text-[#f4ebd0] transition-all cursor-pointer shadow-md hover:scale-105 shrink-0 flex items-center justify-center"
                 title="Zamknij dziennik (Esc)"
                 aria-label="Zamknij dziennik"
               >
@@ -851,7 +851,7 @@ export function SessionJournal({
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
             <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c]">
-              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}

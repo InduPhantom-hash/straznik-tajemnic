@@ -7,6 +7,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getEraColorDirection,
+  getEraTechnologyGuardrails,
+  resolveEraVisualProfile,
+} from '@/lib/era-visual-style';
+
 import crypto from 'crypto';
 import { resolveUserId } from '@/lib/auth-user';
 import { recordUserUsage } from '@/lib/user-usage';
@@ -164,13 +170,27 @@ export async function POST(request: NextRequest) {
     // 2026-07-22: filtr mitów dla zwykłych scen (isMythos=false).
     // Sceny oznaczone przez LLM jako | mythos pomijają filtrowanie.
     const basePrompt = isMythos ? prompt : sanitizePrompt(prompt);
+    const effectiveEra = era || '1920s';
+    const eraProfile = resolveEraVisualProfile(effectiveEra);
+    const colorDirection = getEraColorDirection(effectiveEra);
+    const techGuardrails = getEraTechnologyGuardrails(effectiveEra);
+    const eraKeyword = `${eraProfile} period-accurate, ${colorDirection}, `;
+
     let enhancedPrompt = basePrompt;
-    const eraKeyword = era ? `${era} period-accurate, ` : '';
     if (style === 'horror') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed`;
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed, ${techGuardrails}`;
     } else if (style === 'portrait') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression`;
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression, ${techGuardrails}`;
+    } else if (style === 'vintage') {
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}vintage archival photograph, authentic period textures, realistic, ${techGuardrails}`;
+    } else if (style === 'item') {
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}photorealistic period object study, authentic physical materials, ${techGuardrails}`;
+    } else if (style === 'location') {
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}atmospheric period establishing shot, realistic architectural details, ${techGuardrails}`;
+    } else {
+      enhancedPrompt = `${basePrompt}, ${eraKeyword}realistic, cinematic composition, authentic period details, ${techGuardrails}`;
     }
+
 
     // IND-232: gemini-2.5-flash-image bywa flaky - czasem zwraca sam TEKST zamiast
     // obrazu (brak inlineData), co dawniej kończyło się twardym 500 przy losowych

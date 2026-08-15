@@ -76,7 +76,8 @@ async function generateOneThumbnail(
             ? 'realistic'
             : item.category === 'artifact'
               ? 'horror'
-              : 'vintage',
+              : 'item',
+          era,
           aspectRatio: '1:1',
           seed: `${character?.id || ''}-${item.id}`,
           ...(usePortraitReference
@@ -85,6 +86,7 @@ async function generateOneThumbnail(
         }),
       }
     );
+
     if (!response.ok) return null;
     const data = await response.json();
     return typeof data.imageUrl === 'string'

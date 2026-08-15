@@ -244,6 +244,7 @@ export async function generateImageWithCache(options: {
   id: string;
   prompt: string;
   style?: string;
+  era?: string;
   forceRegenerate?: boolean;
   /**
    * Zew-App-Local: IGNOROWANE. Wcześniej URL portretu NPC dla Flux Kontext Pro
@@ -258,6 +259,7 @@ export async function generateImageWithCache(options: {
     id,
     prompt,
     style = 'horror',
+    era = '1920s',
     forceRegenerate = false,
   } = options;
 
@@ -282,8 +284,9 @@ export async function generateImageWithCache(options: {
   const response = await fetchWithApiKeys('/api/imagen', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, style }),
+    body: JSON.stringify({ prompt, style, era }),
   });
+
 
   const data = await response.json();
 

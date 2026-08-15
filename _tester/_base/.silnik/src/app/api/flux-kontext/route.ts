@@ -54,8 +54,9 @@ export async function POST(request: NextRequest) {
     if (style === 'horror') {
       enhancedPrompt = `${prompt}, dark atmosphere, cosmic horror, Lovecraftian style, eerie lighting, detailed`;
     } else if (style === 'vintage') {
-      enhancedPrompt = `${prompt}, 1920s style, vintage photography, sepia tones, period appropriate`;
+      enhancedPrompt = `${prompt}, vintage archival photography, sepia tones, authentic period appropriate`;
     }
+
 
     console.log(`🎨 Flux Kontext: generating image-to-image for prompt`);
 

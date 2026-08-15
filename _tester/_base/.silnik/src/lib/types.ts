@@ -244,9 +244,15 @@ export type EquipmentCategory =
 export type EquipmentVisualEra =
   | '1890s'
   | '1920s'
+  | '1930s'
   | '1940s'
+  | '1950s'
   | 'prl-1970s'
+  | '1980s'
+  | '1990s'
+  | '2000s'
   | 'modern';
+
 
 /** Pochodzenie grafiki przypisanej do konkretnego egzemplarza przedmiotu. */
 export type EquipmentVisualSource = 'catalog' | 'generated' | 'fallback';

@@ -27,11 +27,13 @@ import { getEraPromptInjection } from '@/lib/era-presets';
 import { getAtmosphereDirective } from '@/lib/time-atmosphere';
 import type { GameEra } from '@/lib/types';
 
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
+
 // Minimal shape z adventureContext - tylko `era` używane w sekcji TIME & ERA.
 // Pełny AdventureContext z @/lib/types ma więcej pól, ale helper nie potrzebuje
 // reszty (luźny kontrakt = łatwiejszy mock w testach).
 export interface BuildTimeContextOpts {
-  adventureContext?: { era?: string } | null;
+  adventureContext?: { era?: string; yearRange?: string; eraLabel?: string } | null;
 }
 
 export interface BuildTimeContextResult {
@@ -42,17 +44,25 @@ export interface BuildTimeContextResult {
 export function buildTimeContext(
   opts: BuildTimeContextOpts
 ): BuildTimeContextResult {
-  const eraMap: Record<string, GameEra> = {
-      gaslight: '1890s',
-      classic: '1920s',
-      noir: '1940s',
-      prl: 'prl-1970s',
-      modern: 'modern',
-    };
+  const rawEra =
+    opts.adventureContext?.yearRange ||
+    opts.adventureContext?.eraLabel ||
+    opts.adventureContext?.era ||
+    '1920s';
+
+  const profile = resolveEraVisualProfile(rawEra);
   const gameEra: GameEra =
-    eraMap[opts.adventureContext?.era ?? 'classic'] ?? '1920s';
+    profile === '1930s'
+      ? '1920s'
+      : profile === '1950s'
+        ? '1940s'
+        : profile === '1980s'
+          ? 'prl-1970s'
+          : (profile as GameEra);
+
   const timeContext = timeManager.formatForPrompt();
   const eraRules = getEraPromptInjection(gameEra);
+
 
   const weather = timeManager.getWeather();
   const atmosphere = getAtmosphereDirective(

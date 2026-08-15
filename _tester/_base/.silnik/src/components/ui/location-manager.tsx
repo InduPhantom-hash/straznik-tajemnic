@@ -109,16 +109,19 @@ export function LocationManager({
   const handleGenerateMap = async (location: Location, forceRegenerate: boolean = false) => {
     setIsGeneratingMap(true);
     try {
-      const prompt = `Map or layout of ${location.name}, ${location.type}, ${location.description}, 1920s period-accurate, realistic layout, detailed, atmospheric`;
+      const locationEra = location.era || '1920s';
+      const prompt = `Map or architectural layout of ${location.name}, ${location.type}, ${location.description}, ${locationEra} period-accurate layout, realistic, detailed, atmospheric`;
       
       // Use persistent cache - will check IndexedDB first
       const result = await generateImageWithCache({
         type: 'location',
         id: location.id,
         prompt,
-        style: 'realistic',
+        style: 'location',
+        era: locationEra,
         forceRegenerate,
       });
+
       
       console.log(`🗺️ Location map ${result.fromCache ? 'loaded from cache' : 'generated'}: ${location.name}`);
       
