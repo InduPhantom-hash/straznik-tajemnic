@@ -7,22 +7,24 @@ import {
   MapPin,
   Users,
   Sword,
-  FileText,
   Pin,
   Edit3,
   Trash2,
   Target,
-  Eye,
   Search,
   Plus,
-  Lightbulb,
+  Package,
 } from 'lucide-react';
+import { EquipmentImagePlaceholder } from '@/components/ui/equipment-image-placeholder';
+import { findEquipmentTemplate, resolveCatalogAsset } from '@/lib/equipment-catalog';
+import { findEntityVisualReference } from '@/lib/journal/entity-visual-resolver';
+import type { Character, NPC, Location } from '@/lib/types';
 
 // ------------------------------------------------------------------
 // Typy - reużywamy ExtendedJournalEntry z session-journal
 // ------------------------------------------------------------------
 
-interface DiscoveryEntry {
+export interface DiscoveryEntry {
   id: string;
   title: string;
   content: string;
@@ -52,6 +54,9 @@ interface DiscoveriesViewProps {
   /** Callback przypinania elementu do tablicy badacza przez szufladę poszlak */
   onPinToBoard?: (entry: DiscoveryEntry) => void;
   searchQuery?: string;
+  activeCharacter?: Character | null;
+  npcs?: NPC[];
+  locations?: Location[];
 }
 
 // ------------------------------------------------------------------
@@ -101,6 +106,17 @@ const QUEST_STATUS_STYLE: Record<string, { bg: string; border: string; text: str
   failed: { bg: 'bg-[#2b1010]', border: 'border-[#a84d4d]', text: 'text-[#e3a8a8]', label: 'Nieudana' },
 };
 
+function resolveItemCategory(entry: DiscoveryEntry): string {
+  const tags = (entry.tags || []).map((t) => t.toLowerCase());
+  if (tags.some((t) => t.includes('artefakt') || t.includes('mity') || t.includes('klucz'))) return 'artifact';
+  if (tags.some((t) => t.includes('broń') || t.includes('pistolet') || t.includes('sztylet'))) return 'weapon';
+  if (tags.some((t) => t.includes('księga') || t.includes('rękopis') || t.includes('dokument') || t.includes('dziennik'))) return 'document';
+  if (tags.some((t) => t.includes('okultyzm') || t.includes('zaklęcie') || t.includes('rytuał'))) return 'occult';
+  if (tags.some((t) => t.includes('medycyna') || t.includes('apteczka') || t.includes('leki'))) return 'medical';
+  if (tags.some((t) => t.includes('narzędzie') || t.includes('wytrych') || t.includes('latarka'))) return 'tool';
+  return 'artifact';
+}
+
 // ------------------------------------------------------------------
 // Komponent
 // ------------------------------------------------------------------
@@ -111,6 +127,9 @@ export function DiscoveriesView({
   onDeleteEntry,
   onPinToBoard,
   searchQuery = '',
+  activeCharacter,
+  npcs = [],
+  locations = [],
 }: DiscoveriesViewProps) {
   const [activeCategory, setActiveCategory] = useState<DiscoveryCategory>('places');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -150,6 +169,39 @@ export function DiscoveriesView({
 
   const selectedEntry = categoryEntries.find((e) => e.id === selectedEntryId) || categoryEntries[0] || null;
 
+  // Rozwiązywanie obrazu dla wybranego wpisu
+  const resolvedVisual = useMemo(() => {
+    if (!selectedEntry) return null;
+
+    // 1. Jawny URL we wpisie
+    if (selectedEntry.imageUrl) {
+      return { imageUrl: selectedEntry.imageUrl, source: 'entry' as const };
+    }
+
+    // 2. Wyszukanie w referencjach stanu gry
+    const ref = findEntityVisualReference(selectedEntry.title, {
+      character: activeCharacter,
+      npcs,
+      locations,
+    });
+    if (ref && ref.imageUrl) {
+      return { imageUrl: ref.imageUrl, source: 'resolver' as const };
+    }
+
+    // 3. Wyszukanie w katalogu ekwipunku
+    if (activeCategory === 'items') {
+      const template = findEquipmentTemplate(selectedEntry.title);
+      if (template) {
+        const asset = resolveCatalogAsset(template, '1920s');
+        if (asset) {
+          return { imageUrl: asset, source: 'catalog' as const };
+        }
+      }
+    }
+
+    return null;
+  }, [selectedEntry, activeCategory, activeCharacter, npcs, locations]);
+
   return (
     <div className="flex-1 flex overflow-hidden">
       {/* === LEWY SIDEBAR: Kategorie + Lista === */}
@@ -167,18 +219,23 @@ export function DiscoveriesView({
                   setIsEditingInsight(false);
                 }}
                 className={cn(
-                  'w-full flex items-center gap-2.5 px-3 py-2 rounded-md font-serif text-sm transition-all',
+                  'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md font-serif text-sm transition-all group',
                   isActive
-                    ? 'bg-[#3a2518] text-[#f4ebd0] border border-[#bfa15f]/40 shadow-inner'
+                    ? 'bg-[#3a2518] text-[#f4ebd0] border border-[#bfa15f]/60 shadow-inner'
                     : 'text-[#a29182] hover:text-[#e2d4c9] hover:bg-[#1a110a] border border-transparent'
                 )}
               >
                 <cat.Icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-[#bfa15f]' : 'text-[#8a7667]')} />
-                <span className="flex-1 text-left">{cat.label}</span>
-                <span className={cn(
-                  'text-[10px] font-bold min-w-[20px] text-center rounded-full px-1.5 py-0.5',
-                  isActive ? 'bg-[#bfa15f]/20 text-[#bfa15f]' : 'bg-[#3a2518]/50 text-[#8a7667]'
-                )}>
+                <span className="flex-1 text-left font-bold">{cat.label}</span>
+                {/* Czytelny licznik o wysokim kontraście */}
+                <span
+                  className={cn(
+                    'text-xs font-mono font-bold min-w-[24px] text-center rounded-full px-2 py-0.5 border shadow-sm transition-all',
+                    isActive
+                      ? 'bg-[#bfa15f] text-[#120905] border-[#f4ebd0] shadow-[0_0_8px_rgba(191,161,95,0.4)]'
+                      : 'bg-[#24150c] text-[#f4ebd0] border-[#bfa15f]/60 group-hover:border-[#bfa15f]'
+                  )}
+                >
                   {counts[cat.key]}
                 </span>
               </button>
@@ -308,22 +365,86 @@ export function DiscoveriesView({
                 </div>
               </div>
 
-              {/* Zdjęcie (Spinacz / Polaroids) */}
+              {/* Zdjęcie (Spinacz / Polaroid / Eksponat / Fallback) */}
               {selectedEntry.imageStatus === 'pending' ? (
                 <div className="float-right w-1/2 ml-6 mb-4 h-48 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
                   <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-xs font-special-elite italic">Wywyoływanie zdjęcia...</span>
                 </div>
-              ) : selectedEntry.imageUrl ? (
+              ) : resolvedVisual ? (
                 <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
                   <div className="bg-[#fcfbf9] p-2 pb-8 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
                     <SafeImage
-                      src={selectedEntry.imageUrl}
+                      src={resolvedVisual.imageUrl}
                       alt={selectedEntry.title}
-                      className="w-full h-auto object-cover border border-[#e0e0e0] mix-blend-multiply sepia-[0.2]"
+                      className="w-full h-44 object-cover border border-[#e0e0e0] mix-blend-multiply sepia-[0.2]"
                     />
                     <div className="absolute bottom-2 left-0 right-0 text-center font-special-elite text-[10px] text-black/60 italic">
-                      Załącznik A
+                      Załącznik A :: {selectedEntry.title}
+                    </div>
+                  </div>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
+                    📎
+                  </div>
+                </div>
+              ) : activeCategory === 'items' ? (
+                /* Diegetyczny placeholder dla Przedmiotów / Artefaktów */
+                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
+                  <div className="bg-[#fcfbf9] p-2 pb-6 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
+                    <div className="w-full h-44 border border-[#d8cbb5] overflow-hidden">
+                      <EquipmentImagePlaceholder
+                        category={resolveItemCategory(selectedEntry)}
+                        itemName={selectedEntry.title}
+                      />
+                    </div>
+                    <div className="absolute bottom-1.5 left-0 right-0 text-center font-special-elite text-[9px] text-black/60 italic uppercase tracking-wider">
+                      Eksponat Dowodowy
+                    </div>
+                  </div>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
+                    📎
+                  </div>
+                </div>
+              ) : activeCategory === 'characters' ? (
+                /* Diegetyczny placeholder dla Postaci / NPC */
+                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
+                  <div className="bg-[#fcfbf9] p-2 pb-6 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
+                    <div className="w-full h-44 bg-[#e8decd] border border-[#d1c2ab] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
+                      <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#8c7353]/60 flex items-center justify-center mb-2 bg-[#d9cbb2]/40">
+                        <Users className="w-7 h-7 text-[#8c7353]" />
+                      </div>
+                      <span className="font-special-elite text-[10px] uppercase tracking-widest text-[#5a4428] font-bold">
+                        Akta Osobowe
+                      </span>
+                      <span className="font-special-elite text-[8px] text-[#8c7353]/90 italic mt-0.5">
+                        Fotografia w archiwizacji
+                      </span>
+                    </div>
+                    <div className="absolute bottom-1.5 left-0 right-0 text-center font-special-elite text-[9px] text-black/60 italic uppercase tracking-wider">
+                      Dossier Śledcze
+                    </div>
+                  </div>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
+                    📎
+                  </div>
+                </div>
+              ) : activeCategory === 'places' ? (
+                /* Diegetyczny placeholder dla Lokacji */
+                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
+                  <div className="bg-[#fcfbf9] p-2 pb-6 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
+                    <div className="w-full h-44 bg-[#e8decd] border border-[#d1c2ab] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
+                      <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#5c8a47]/60 flex items-center justify-center mb-2 bg-[#d9cbb2]/40">
+                        <MapPin className="w-7 h-7 text-[#5c8a47]" />
+                      </div>
+                      <span className="font-special-elite text-[10px] uppercase tracking-widest text-[#5a4428] font-bold">
+                        Plan Terenu
+                      </span>
+                      <span className="font-special-elite text-[8px] text-[#5c8a47]/90 italic mt-0.5">
+                        Szkic sytuacyjny
+                      </span>
+                    </div>
+                    <div className="absolute bottom-1.5 left-0 right-0 text-center font-special-elite text-[9px] text-black/60 italic uppercase tracking-wider">
+                      Dokumentacja Miejsca
                     </div>
                   </div>
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">

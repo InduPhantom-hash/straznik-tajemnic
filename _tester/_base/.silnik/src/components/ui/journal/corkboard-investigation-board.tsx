@@ -37,6 +37,8 @@ import {
   RotateCcw,
   X,
   Check,
+  Loader2,
+  Brain,
 } from 'lucide-react';
 import {
   rollD100,
@@ -45,7 +47,9 @@ import {
   isSuccess,
   type RollOutcome,
 } from '@/lib/dice-utils';
-import type { Character } from '@/lib/types';
+import { type Character, getSkillValue } from '@/lib/types';
+import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { collectSSEText } from '@/lib/sse-parser';
 
 // ------------------------------------------------------------------
 // Typy i stale
@@ -162,12 +166,21 @@ export function CorkboardInvestigationBoard({
   const [connectionLabel, setConnectionLabel] = useState('');
   const [connectionColor, setConnectionColor] = useState('#a83232');
 
-  // Idea Roll modal state
+  // Deduction modal state (CoC 7e RAW + AI Keeper)
   const [showIdeaModal, setShowIdeaModal] = useState(false);
-  const [ideaRollResult, setIdeaRollResult] = useState<{ roll: number; outcome: RollOutcome } | null>(null);
+  const [selectedClueId, setSelectedClueId] = useState<string>('general');
+  const [selectedSkillKey, setSelectedSkillKey] = useState<string>('INT');
+  const [ideaRollResult, setIdeaRollResult] = useState<{
+    roll: number;
+    outcome: RollOutcome;
+    skillName: string;
+    targetValue: number;
+  } | null>(null);
   const [ideaInsightTitle, setIdeaInsightTitle] = useState('');
   const [ideaInsightText, setIdeaInsightText] = useState('');
   const [isRollingIdea, setIsRollingIdea] = useState(false);
+  const [isDeducingAI, setIsDeducingAI] = useState(false);
+  const [savedToTargetNode, setSavedToTargetNode] = useState(false);
   const [savedToJournal, setSavedToJournal] = useState(false);
 
   // Refs
@@ -176,6 +189,20 @@ export function CorkboardInvestigationBoard({
 
   // Sync z zewnetrznym stanem
   useEffect(() => { setLocalNodes(nodes); }, [nodes]);
+
+  // --- Lista umiejętności postaci ------------------------------------
+  const characterSkills = useMemo(() => {
+    if (!activeCharacter?.skills) return [];
+    return Object.entries(activeCharacter.skills)
+      .map(([name, val]) => ({ name, value: getSkillValue(val) }))
+      .filter((s) => s.value > 0)
+      .sort((a, b) => b.value - a.value);
+  }, [activeCharacter?.skills]);
+
+  const activeSkillValue = useMemo(() => {
+    if (selectedSkillKey === 'INT') return activeCharacter?.int ?? 50;
+    return getSkillValue(activeCharacter?.skills?.[selectedSkillKey]) || 25;
+  }, [selectedSkillKey, activeCharacter]);
 
   // --- Mapa wezlow ---------------------------------------------------
   const nodeMap = useMemo(() => {
@@ -344,36 +371,111 @@ export function CorkboardInvestigationBoard({
     setSelectedNodeId(newNode.id);
   }, [localNodes, viewport.zoom, onUpdateNodes]);
 
-  // --- Rzut na Pomysl (Idea Roll - INT) ------------------------------
+  // --- Helper fallbacku dedukcji ------------------------------------
+  const buildFallbackInsight = useCallback((
+    skill: string,
+    targetTitle?: string,
+    outcome: RollOutcome = 'fail',
+    roll: number = 50
+  ): string => {
+    const target = targetTitle ? `analizę obiektu "${targetTitle}"` : 'zebrane poszlaki śledcze';
+    if (isSuccess(outcome)) {
+      return `[Analiza: ${skill} | Rzut: ${roll}]: Badacz dostrzega kluczową zależność poprzez ${target}. Układ faktów jednoznacznie wskazuje na ukryty motyw i powiązanie z dawnymi rytuałami.`;
+    }
+    return `[Analiza: ${skill} | Rzut: ${roll} - Komplikacja]: Próba wyjaśnienia ${target} nasuwa niepokojące przypuszczenie, lecz brakujący fragment dokumentacji wymaga zbadania miejskich archiwów lub naraża badacza na fałszywy trop.`;
+  }, []);
+
+  // --- Inteligentna Dedukcja MG (CoC 7e RAW + AI) -------------------
   const handleOpenIdeaModal = useCallback(() => {
     const charName = activeCharacter?.name || 'Badacz';
     setIdeaRollResult(null);
     setSavedToJournal(false);
-    setIdeaInsightTitle(`Błysk Dedukcji: ${charName}`);
+    setSavedToTargetNode(false);
+    setSelectedClueId(selectedNodeId || 'general');
+    setSelectedSkillKey('INT');
+    const targetNode = selectedNodeId ? localNodes.find((n) => n.id === selectedNodeId) : null;
+    setIdeaInsightTitle(targetNode ? `Dedukcja: ${targetNode.title}` : `Błysk Dedukcji: ${charName}`);
     setIdeaInsightText('');
     setShowIdeaModal(true);
-  }, [activeCharacter]);
+  }, [activeCharacter, selectedNodeId, localNodes]);
 
-  const handleExecuteIdeaRoll = useCallback(() => {
+  const handleExecuteIdeaRoll = useCallback(async () => {
     setIsRollingIdea(true);
-    const charName = activeCharacter?.name || 'Badacz';
-    const intStat = activeCharacter?.int ?? 50;
-    const roll = rollD100();
-    const outcome = evaluateSkillCheck(roll, intStat);
-    setIdeaRollResult({ roll, outcome });
     setSavedToJournal(false);
-    setIdeaInsightTitle(`Błysk Dedukcji: ${charName}`);
-    if (isSuccess(outcome)) {
-      setIdeaInsightText(
-        `[Błysk Dedukcji]: Badacz ${charName} (INT ${intStat}%, rzut: ${roll}) dostrzega logiczne powiązania między zebranymi poszlakami. Ukryty wzorzec staje się widoczny.`
-      );
-    } else {
-      setIdeaInsightText(
-        `[Błysk Dedukcji - Komplikacja]: Badacz ${charName} (INT ${intStat}%, rzut: ${roll}) dociera do konkluzji okrężną drogą lub z komplikacją fabularną. Śledztwo posuwa się naprzód, lecz z ryzykiem lub stratą czasu.`
-      );
+    setSavedToTargetNode(false);
+
+    const charName = activeCharacter?.name || 'Badacz';
+    const targetValue = activeSkillValue;
+    const roll = rollD100();
+    const outcome = evaluateSkillCheck(roll, targetValue);
+    const skillLabel = selectedSkillKey === 'INT' ? 'Inteligencja (Pomysł)' : selectedSkillKey;
+
+    setIdeaRollResult({ roll, outcome, skillName: skillLabel, targetValue });
+
+    const targetNode = selectedClueId !== 'general' ? localNodes.find((n) => n.id === selectedClueId) : null;
+    const title = targetNode
+      ? `Dedukcja (${skillLabel}): ${targetNode.title}`
+      : `Błysk Dedukcji (${skillLabel}): ${charName}`;
+    setIdeaInsightTitle(title);
+
+    setIsDeducingAI(true);
+    try {
+      const outcomeInfo = getOutcomeInfo(outcome);
+      const otherNodesContext = localNodes
+        .filter((n) => n.id !== selectedClueId)
+        .slice(0, 5)
+        .map((n) => `- ${n.title} (${n.type}): ${n.description.slice(0, 80)}`)
+        .join('\n');
+
+      const prompt = `Jesteś Mistrzem Gry (Strażnikiem Tajemnic) w Call of Cthulhu 7ed.
+Badacz: ${charName} (Zawód: ${activeCharacter?.occupation || 'Badacz'})
+Testowana umiejętność / cecha: ${skillLabel} (${targetValue}%)
+Wynik rzutu kością k100: ${roll} -> ${outcomeInfo.label} (${isSuccess(outcome) ? 'SUKCES' : 'PORAŻKA'})
+Badany obiekt / dowód: "${targetNode?.title || 'Ogólny stan śledztwa'}" (${targetNode?.description || 'Analiza powiązań między dowodami'})
+Pozostałe znane dowody na tablicy:
+${otherNodesContext || 'Brak innych dowodów'}
+
+ZASADY CoC 7e RAW DLA DEDUKCJI ŚLEDCZEJ:
+1. Jeśli rzut to SUKCES (Zwykły / Trudny / Ekstremalny / Krytyk): Badacz wykorzystuje swoją wiedzę specjalistyczną (${skillLabel}) lub bystry umysł i dostrzega kluczowy, logiczny fakt/powiązanie bez komplikacji. Podaj konkretną, wartościową wskazówkę śledczą łączącą poszlaki.
+2. Jeśli rzut to PORAŻKA (Porażka / Fumble): Zgodnie z regułą Idea Roll w CoC 7e, wskaż częściowy trop, ale obarczony komplikacją, ryzykiem, stratą czasu lub koniecznością zdobycia dodatkowego dowodu w innej lokacji.
+3. Odpowiedź ma być wyłącznie 2-3 zwięzłymi, klimatycznymi zdaniami wniosku w języku polskim. Bez wstępów, bez metajęzyka, bez nagłówków.`;
+
+      const response = await fetchWithApiKeys('/api/ai/utility', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt }),
+      });
+
+      if (response.ok) {
+        const fullText = await collectSSEText(response);
+        if (fullText && fullText.trim()) {
+          setIdeaInsightText(fullText.trim());
+        } else {
+          setIdeaInsightText(buildFallbackInsight(skillLabel, targetNode?.title, outcome, roll));
+        }
+      } else {
+        setIdeaInsightText(buildFallbackInsight(skillLabel, targetNode?.title, outcome, roll));
+      }
+    } catch {
+      setIdeaInsightText(buildFallbackInsight(skillLabel, targetNode?.title, outcome, roll));
+    } finally {
+      setIsDeducingAI(false);
+      setIsRollingIdea(false);
     }
-    setIsRollingIdea(false);
-  }, [activeCharacter]);
+  }, [activeCharacter, activeSkillValue, selectedSkillKey, selectedClueId, localNodes, buildFallbackInsight]);
+
+  // Bezpośredni zapis wniosku do badanego dowodu (bez zbędnych kafelków)
+  const handleSaveInsightToTargetNode = useCallback(() => {
+    if (selectedClueId === 'general') return;
+    const updated = localNodes.map((n) =>
+      n.id === selectedClueId
+        ? { ...n, investigatorInsight: ideaInsightText.trim(), updatedAt: new Date().toISOString() }
+        : n
+    );
+    setLocalNodes(updated);
+    onUpdateNodes(updated);
+    setSavedToTargetNode(true);
+  }, [selectedClueId, ideaInsightText, localNodes, onUpdateNodes]);
 
   const handlePinIdeaToBoard = useCallback(() => {
     const charName = activeCharacter?.name || 'Badacz';
@@ -387,7 +489,7 @@ export function CorkboardInvestigationBoard({
       id: `node_deduction_${Date.now()}`,
       title: ideaInsightTitle.trim() || `Błysk Dedukcji: ${charName}`,
       description: ideaInsightText.trim() || `Wniosek badacza ${charName} po analizie poszlak.`,
-      type: 'clue',
+      type: 'player_note',
       status: 'hypothesis',
       position: { x: posX, y: posY },
       investigatorInsight: ideaInsightText.trim(),
@@ -411,12 +513,12 @@ export function CorkboardInvestigationBoard({
         title: ideaInsightTitle.trim() || `Błysk Dedukcji: ${charName}`,
         content: ideaInsightText.trim(),
         type: 'clue',
-        tags: ['dedukcja', 'pomysł', 'INT'],
+        tags: ['dedukcja', selectedSkillKey],
         investigatorInsight: ideaInsightText.trim(),
       });
       setSavedToJournal(true);
     }
-  }, [activeCharacter, ideaInsightTitle, ideaInsightText, onAddJournalEntry]);
+  }, [activeCharacter, selectedSkillKey, ideaInsightTitle, ideaInsightText, onAddJournalEntry]);
 
   // --- Przypinanie z Szuflady Poszlak --------------------------------
   const handlePinFromJournal = useCallback((entry: { id: string; title: string; content: string; type: string; imageUrl?: string; investigatorInsight?: string }) => {
@@ -968,22 +1070,22 @@ export function CorkboardInvestigationBoard({
         </div>
       )}
 
-      {/* =================== MODAL RZUTU NA POMYSŁ (IDEA ROLL) ====== */}
+      {/* =================== MODAL DEDUKCJI ŚLEDCZEJ (CoC 7e RAW) === */}
       {showIdeaModal && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1c120c] border-2 border-[#bfa15f]/80 rounded-xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] w-full max-w-xl p-6 text-[#e2d4c9] relative font-serif">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1c120c] border-2 border-[#bfa15f]/80 rounded-xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] w-full max-w-xl p-6 text-[#e2d4c9] relative font-serif max-h-[92vh] overflow-y-auto journal-scroll">
             {/* Dekoracyjny nagłówek retro */}
             <div className="flex items-start justify-between border-b border-[#3a2518] pb-3 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-[#3a2518] border border-[#bfa15f]/50">
-                  <Lightbulb className="h-5 w-5 text-[#f4ebd0]" />
+                  <Brain className="h-5 w-5 text-[#f4ebd0]" />
                 </div>
                 <div>
                   <h3 className="font-bold text-lg text-[#f4ebd0] tracking-wide">
-                    BŁYSK DEDUKCJI (IDEA ROLL)
+                    DEDUKCJA ŚLEDCZA (CoC 7e RAW)
                   </h3>
                   <p className="text-xs text-[#8a7667] italic">
-                    Analiza zebranych poszlak w oparciu o Inteligencję (INT) wg zasad CoC 7e RAW
+                    Badanie poszlak wiedzą zawodową lub Rzut na Pomysł (INT) ze Strażnikiem Tajemnic
                   </p>
                 </div>
               </div>
@@ -996,55 +1098,109 @@ export function CorkboardInvestigationBoard({
               </button>
             </div>
 
-            {/* Wizytówka badacza i progi INT */}
-            <div className="bg-[#120905] border border-[#3a2518] rounded-lg p-3.5 mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-bold text-[#f4ebd0]">
-                  Badacz: <span className="text-[#bfa15f]">{activeCharacter?.name || 'Badacz'}</span>
-                </span>
-                <span className="text-xs px-2.5 py-0.5 rounded bg-[#3a2518] text-[#f4ebd0] border border-[#bfa15f]/40 font-mono font-bold">
-                  INT: {activeCharacter?.int ?? 50}%
-                </span>
+            {/* Krok 1 & 2: Wybór Celu i Umiejętności */}
+            <div className="space-y-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Wybór badanego obiektu */}
+                <div>
+                  <label className="text-xs font-serif text-[#bfa15f] font-bold block mb-1">
+                    🔍 Badany obiekt / poszlaka:
+                  </label>
+                  <select
+                    value={selectedClueId}
+                    onChange={(e) => {
+                      setSelectedClueId(e.target.value);
+                      setIdeaRollResult(null);
+                    }}
+                    className="w-full bg-[#120905] border border-[#3a2518] rounded px-2.5 py-1.5 text-xs text-[#f4ebd0] outline-none focus:border-[#bfa15f]"
+                  >
+                    <option value="general">🎯 Ogólny stan śledztwa (cała tablica)</option>
+                    {localNodes.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        [{NODE_TYPE_LABELS[n.type]?.label.slice(0, 10)}] {n.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Wybór metody dedukcji / umiejętności */}
+                <div>
+                  <label className="text-xs font-serif text-[#bfa15f] font-bold block mb-1">
+                    🧠 Umiejętność / Cechy:
+                  </label>
+                  <select
+                    value={selectedSkillKey}
+                    onChange={(e) => {
+                      setSelectedSkillKey(e.target.value);
+                      setIdeaRollResult(null);
+                    }}
+                    className="w-full bg-[#120905] border border-[#3a2518] rounded px-2.5 py-1.5 text-xs text-[#f4ebd0] outline-none focus:border-[#bfa15f]"
+                  >
+                    <option value="INT">
+                      🧠 Rzut na Pomysł (INT: {activeCharacter?.int ?? 50}%) [Koło ratunkowe]
+                    </option>
+                    <optgroup label="Umiejętności Zawodowe / Wiedza">
+                      {characterSkills.map((s) => (
+                        <option key={s.name} value={s.name}>
+                          📚 {s.name} ({s.value}%)
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
               </div>
 
-              {/* Progi CoC 7e */}
-              <div className="grid grid-cols-5 gap-1.5 text-center text-[11px] pt-2 border-t border-[#2a1a10]">
-                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
-                  <span className="block text-[9px] uppercase text-[#8a7667]">Zwykły</span>
-                  <span className="font-mono font-bold text-[#e2d4c9]">≤ {activeCharacter?.int ?? 50}</span>
+              {/* Wizytówka badacza i progi wybranej cechy/umiejętności */}
+              <div className="bg-[#120905] border border-[#3a2518] rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-[#e2d4c9]">
+                    Badacz: <strong className="text-[#bfa15f]">{activeCharacter?.name || 'Badacz'}</strong>
+                    {activeCharacter?.occupation && ` (${activeCharacter.occupation})`}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-[#3a2518] text-[#f4ebd0] border border-[#bfa15f]/40 font-mono font-bold">
+                    Próg bazowy: {activeSkillValue}%
+                  </span>
                 </div>
-                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
-                  <span className="block text-[9px] uppercase text-[#8a7667]">Trudny (½)</span>
-                  <span className="font-mono font-bold text-[#a3d18e]">≤ {Math.floor((activeCharacter?.int ?? 50) / 2)}</span>
-                </div>
-                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
-                  <span className="block text-[9px] uppercase text-[#8a7667]">Ekstremalny (⅕)</span>
-                  <span className="font-mono font-bold text-[#b49bf0]">≤ {Math.floor((activeCharacter?.int ?? 50) / 5)}</span>
-                </div>
-                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
-                  <span className="block text-[9px] uppercase text-[#8a7667]">Krytyk</span>
-                  <span className="font-mono font-bold text-[#f4ebd0]">01</span>
-                </div>
-                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
-                  <span className="block text-[9px] uppercase text-[#8a7667]">Fumble</span>
-                  <span className="font-mono font-bold text-[#e3a8a8]">{(activeCharacter?.int ?? 50) < 50 ? '96-100' : '100'}</span>
+
+                {/* Progi CoC 7e */}
+                <div className="grid grid-cols-5 gap-1.5 text-center text-[11px] pt-2 border-t border-[#2a1a10]">
+                  <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                    <span className="block text-[9px] uppercase text-[#8a7667]">Zwykły</span>
+                    <span className="font-mono font-bold text-[#e2d4c9]">≤ {activeSkillValue}</span>
+                  </div>
+                  <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                    <span className="block text-[9px] uppercase text-[#8a7667]">Trudny (½)</span>
+                    <span className="font-mono font-bold text-[#a3d18e]">≤ {Math.floor(activeSkillValue / 2)}</span>
+                  </div>
+                  <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                    <span className="block text-[9px] uppercase text-[#8a7667]">Ekstremalny (⅕)</span>
+                    <span className="font-mono font-bold text-[#b49bf0]">≤ {Math.floor(activeSkillValue / 5)}</span>
+                  </div>
+                  <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                    <span className="block text-[9px] uppercase text-[#8a7667]">Krytyk</span>
+                    <span className="font-mono font-bold text-[#f4ebd0]">01</span>
+                  </div>
+                  <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                    <span className="block text-[9px] uppercase text-[#8a7667]">Fumble</span>
+                    <span className="font-mono font-bold text-[#e3a8a8]">{activeSkillValue < 50 ? '96-100' : '100'}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Rzut kością lub wynik */}
             {!ideaRollResult ? (
-              <div className="text-center py-4">
+              <div className="text-center py-4 border-t border-[#3a2518]/50">
                 <Button
                   onClick={handleExecuteIdeaRoll}
-                  disabled={isRollingIdea}
+                  disabled={isRollingIdea || isDeducingAI}
                   className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border-2 border-[#bfa15f] px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg transition-all"
                 >
                   <Dices className="h-4 w-4 mr-2" />
-                  Wykonaj Rzut Dedukcji (k100)
+                  Wykonaj Test Dedukcji (k100)
                 </Button>
                 <p className="text-[11px] text-[#8a7667] italic mt-2">
-                  Rzut na Pomysł w CoC 7e służy do wyciągnięcia logicznych wniosków ze zgromadzonych poszlak.
+                  Strażnik Tajemnic zinterpretuje wynik rzutu i powiąże fakty z perspektywy Twojej wiedzy.
                 </p>
               </div>
             ) : (
@@ -1067,62 +1223,47 @@ export function CorkboardInvestigationBoard({
                         </span>
                       </div>
                       <span className="text-[10px] text-[#e2d4c9]/70">
-                        (Próg INT: {activeCharacter?.int ?? 50}%)
+                        (Test: {ideaRollResult.skillName}, Próg: {ideaRollResult.targetValue}%)
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={handleExecuteIdeaRoll}
-                    className="text-xs text-[#bfa15f] hover:text-[#f4ebd0] flex items-center gap-1 underline"
+                    disabled={isDeducingAI}
+                    className="text-xs text-[#bfa15f] hover:text-[#f4ebd0] flex items-center gap-1 underline disabled:opacity-50"
                   >
                     <RotateCcw className="h-3 w-3" /> Rzuć ponownie
                   </button>
                 </div>
 
-                {/* Interpretacja fabularna CoC 7e RAW */}
-                <div className={cn(
-                  'p-3 rounded text-xs leading-relaxed border',
-                  isSuccess(ideaRollResult.outcome)
-                    ? 'bg-[#162712]/70 border-[#73a15c]/40 text-[#d8edd1]'
-                    : 'bg-[#301414]/70 border-[#a84d4d]/40 text-[#edd1d1]'
-                )}>
-                  <div className="font-bold mb-1 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Interpretacja fabularna (CoC 7e RAW):
+                {/* Stan ładowania AI lub wygenerowany wniosek */}
+                {isDeducingAI ? (
+                  <div className="p-4 bg-[#120905] border border-[#3a2518] rounded-lg flex items-center justify-center gap-3 text-sm text-[#bfa15f]">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Strażnik Tajemnic analizuje poszlaki i syntetyzuje wniosek...</span>
                   </div>
-                  {isSuccess(ideaRollResult.outcome) ? (
-                    <p>
-                      <strong>Sukces:</strong> Badacz dostrzega powiązania między zebranymi dowodami i wyciąga trafny, logiczny wniosek bez zbędnego ryzyka.
-                    </p>
-                  ) : (
-                    <p>
-                      <strong>Porażka:</strong> Badacz i tak uzyskuje kierunek działania, lecz okupiony komplikacją fabularną (strata cennego czasu, narażenie na niebezpieczeństwo lub mylny trop).
-                    </p>
-                  )}
-                </div>
-
-                {/* Edycja wniosku dedukcyjnego */}
-                <div className="space-y-2">
-                  <label className="text-xs font-serif text-[#bfa15f] block">
-                    Tytuł wniosku dedukcyjnego:
-                  </label>
-                  <input
-                    type="text"
-                    value={ideaInsightTitle}
-                    onChange={(e) => setIdeaInsightTitle(e.target.value)}
-                    className="w-full bg-[#0d0906] border border-[#3a2518] rounded px-3 py-1.5 text-xs text-[#e2d4c9] outline-none focus:border-[#bfa15f]"
-                  />
-
-                  <label className="text-xs font-serif text-[#bfa15f] block">
-                    Wniosek Dedukcyjny Badacza (edytowalny):
-                  </label>
-                  <textarea
-                    value={ideaInsightText}
-                    onChange={(e) => setIdeaInsightText(e.target.value)}
-                    rows={3}
-                    className="w-full bg-[#0d0906] border border-[#3a2518] rounded px-3 py-2 text-xs text-[#e2d4c9] outline-none focus:border-[#bfa15f] resize-none italic font-serif leading-relaxed"
-                  />
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Wniosek dedukcyjny */}
+                    <div className="bg-[#e8decd] text-[#2c241b] p-4 rounded shadow-md border border-[#d1c2ab]">
+                      <div className="flex items-center justify-between border-b border-[#2c241b]/20 pb-1.5 mb-2 font-special-elite text-xs font-bold text-[#5a4428]">
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5 text-[#8c7353]" />
+                          WNIOSEK STRAŻNIKA TAJEMNIC (CoC 7e):
+                        </span>
+                        <span className="text-[10px] opacity-70">
+                          {isSuccess(ideaRollResult.outcome) ? 'PEWNA POSZLAKA' : 'TROP Z KOMPLIKACJĄ'}
+                        </span>
+                      </div>
+                      <textarea
+                        value={ideaInsightText}
+                        onChange={(e) => setIdeaInsightText(e.target.value)}
+                        rows={3}
+                        className="w-full bg-transparent border-0 font-special-elite text-sm text-[#1a140f] leading-relaxed outline-none resize-y"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1137,8 +1278,39 @@ export function CorkboardInvestigationBoard({
                 Zamknij
               </Button>
 
-              {ideaRollResult && (
-                <div className="flex items-center gap-2">
+              {ideaRollResult && !isDeducingAI && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Bezpośredni zapis do badanego dowodu */}
+                  {selectedClueId !== 'general' && (
+                    <Button
+                      onClick={handleSaveInsightToTargetNode}
+                      size="sm"
+                      disabled={savedToTargetNode}
+                      className={cn(
+                        'border font-serif text-xs transition-colors',
+                        savedToTargetNode
+                          ? 'bg-[#142310] border-[#73a15c] text-[#a3d18e]'
+                          : 'bg-[#3a2518] hover:bg-[#503422] text-[#f4ebd0] border-[#bfa15f]/60 font-bold'
+                      )}
+                    >
+                      {savedToTargetNode ? (
+                        <><Check className="h-3.5 w-3.5 mr-1" /> Zapisano w dowodzie</>
+                      ) : (
+                        <><CheckCircle className="h-3.5 w-3.5 mr-1" /> Zapisz wniosek w dowodzie</>
+                      )}
+                    </Button>
+                  )}
+
+                  {/* Przypięcie jako nowa notatka */}
+                  <Button
+                    onClick={handlePinIdeaToBoard}
+                    size="sm"
+                    className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f] font-serif text-xs"
+                  >
+                    <Pin className="h-3.5 w-3.5 mr-1" /> Przypnij jako nową notatkę
+                  </Button>
+
+                  {/* Zapis w kronice */}
                   {onAddJournalEntry && (
                     <Button
                       onClick={handleSaveIdeaToJournal}
@@ -1152,20 +1324,12 @@ export function CorkboardInvestigationBoard({
                       )}
                     >
                       {savedToJournal ? (
-                        <><Check className="h-3.5 w-3.5 mr-1" /> Zapisano w Kronice</>
+                        <><Check className="h-3.5 w-3.5 mr-1" /> W Kronice</>
                       ) : (
                         <><BookOpen className="h-3.5 w-3.5 mr-1" /> Zapisz w Kronice</>
                       )}
                     </Button>
                   )}
-
-                  <Button
-                    onClick={handlePinIdeaToBoard}
-                    size="sm"
-                    className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f] font-serif text-xs font-bold"
-                  >
-                    <Pin className="h-3.5 w-3.5 mr-1" /> Przypnij wniosek do Tablicy
-                  </Button>
                 </div>
               )}
             </div>

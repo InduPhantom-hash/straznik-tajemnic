@@ -47,8 +47,18 @@ Branch: main
 - Zaimplementowano sekcję "Wniosek Badacza" w Aktach Sprawy (`discoveries-view.tsx`) z maszynowym krojem na pergaminowym tle oraz możliwością bezpośredniego dopisywania i edycji wniosków.
 - Zintegrowano przekazywanie `activeCharacter` i `investigatorInsight` w `session-journal.tsx` oraz `inspection-lightbox-modal.tsx`.
 - Dodano testy jednostkowe (`corkboard-investigation-board.test.tsx`, `discoveries-view.test.tsx`).
-- Wszystkie testy jednostkowe (`npm test` 48/48 suite'ów, 175 testów) i TypeScript (`npx tsc --noEmit`) zaliczone na 100% zielono.
-- Zaktualizowano `zadania.md`.
+## Podsumowanie sesji: 2026-08-15 (Zadanie 2 - Ulepszenia Dziennika, Wizualizacje i Dedukcja Domenowa CoC 7e)
+Branch: main
+
+### Co zrobiono
+- **Fikcyjny dataset testowy:** Wzbogacono `test-journal-data.ts` o kompletny zestaw danych miasteczka Arkham (Boston 1926) dla wszystkich zakładek (Zadania, Postacie, Miejsca, Przedmioty, Kronika, Notatki, Tablica Badacza z powiązaniami i `investigatorInsight`).
+- **Czytelne liczniki kategorii:** Wprowadzono kontrastowe badge (`bg-[#24150c] text-[#f4ebd0] border-[#bfa15f]/60 font-mono`) oraz poprawiono kalkulacje liczników w `discoveries-view.tsx` i `session-journal.tsx`.
+- **Wizualizacja NPC, Lokacji i Visual DNA:** Zaimplementowano automatyczne rozwiązywanie wizerunków postaci i lokacji ze stanu gry (`entity-visual-resolver.ts`), dodano diegetyczne fallbacki stylizowane na akta policyjne oraz wzmocniono reguły Visual DNA w `image-instructions.ts`.
+- **Wizualizacja Przedmiotów:** Zintegrowano wpisy przedmiotów z katalogiem ekwipunku (`EQUIPMENT_CATALOG` / `findEquipmentTemplate` / `resolveCatalogAsset`) i wdrożono `EquipmentImagePlaceholder` z winietami tematycznymi.
+- **Dedukcja Domenowa i Koło Ratunkowe INT (CoC 7e RAW):** Wdrożono pełny modal Dedukcji Śledczej w `corkboard-investigation-board.tsx` z wyborem badanego dowodu, testem umiejętności domenowych (np. Medycyna, Okultyzm, Spostrzegawczość) lub INT, kalkulacją progów CoC 7e, narracyjną syntezą MG (AI / fallback) oraz bezpośrednim zapisem w dowodzie (`investigatorInsight`) bez tworzenia zbędnych kafelków.
+- **Zimny Start i Przebudowa Desktopowej Aplikacji:** Wykonano `desktop/cold-start.sh` oraz `desktop/build-app.sh --rebuild` (zaktualizowano aplikację `Straznik Tajemnic AI.app` na Biurku).
+- **Testy CI:** `npx tsc --noEmit` (0 błędów) oraz `npm test` (48/48 suite'ów, 175/175 zdanych).
+- **Zaktualizowano dokumentację:** `state.md` oraz `docs/ROADMAP-MECHANIKI-AI.md`.
 
 ### Co otwarte (do następnej sesji)
 - Zadanie 3: Klimatyczny stempel powiadomień w czacie (`📜 Zapisano w aktach sprawy: [Nazwa]`).
@@ -56,7 +66,8 @@ Branch: main
 - Dedykowane portrety postaci Strefy 11 w klimacie lat 90.
 
 ### Decyzje podjęte
-- Rzut na Pomysł (INT) jest w pełni zgodny z CoC 7e RAW: porażka w teście dedukcji nie blokuje śledztwa, lecz wprowadza komplikację fabularną (np. stratę czasu lub ryzyko).
-- Wnioski Badacza (`investigatorInsight`) są traktowane jako osobna warstwa diegetyczna względem surowych faktów i poszlak.
+- Dedukcja śledcza obsługuje pełen wachlarz wiedzy domenowej badacza (np. Medycyna, Okultyzm, Spostrzegawczość) z automatycznym pobieraniem umiejętności z karty postaci.
+- Rzut na INT funkcjonuje jako koło ratunkowe (RAW CoC 7e) w sytuacjach utknięcia w martwym punkcie.
+- Wnioski dedukcyjne są domyślnie zapisywane bezpośrednio w badanym dowodzie, co eliminuje zaśmiecanie tablicy pustymi notatkami.
 
 

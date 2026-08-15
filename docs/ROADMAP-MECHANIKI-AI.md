@@ -5,7 +5,7 @@ Roadmapa opisuje docelową wersję aplikacji lokalnej. Aplikacja działa na komp
 ## Priorytet prac (Zatwierdzony 2026-08-01)
 - **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` (wariant Low/Flash) oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
 - **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟡 W TRAKCIE)
-- **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza. (🟡 W TRAKCIE)
+- **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza, Akt Sprawy i Dedukcji Domenowej CoC 7e. (🟢 ZREALIZOWANE)
 - **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji. (🔵 TODO)
 - **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz tłumaczenie interfejsu (Nice to have). (🔵 TODO)
 

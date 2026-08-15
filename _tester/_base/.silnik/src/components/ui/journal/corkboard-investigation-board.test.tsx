@@ -1,11 +1,15 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { CorkboardInvestigationBoard } from './corkboard-investigation-board';
 import { EvidenceNode, EvidenceRelation } from '@/types/investigator-board';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import * as diceUtils from '@/lib/dice-utils';
 
-describe('CorkboardInvestigationBoard - Idea Roll & Deduction', () => {
+jest.mock('@/lib/api-keys-service', () => ({
+  fetchWithApiKeys: jest.fn().mockRejectedValue(new Error('Offline mode fallback')),
+}));
+
+describe('CorkboardInvestigationBoard - Domain Deduction & CoC 7e RAW', () => {
   const mockNodes: EvidenceNode[] = [
     {
       id: 'node_1',
@@ -42,11 +46,15 @@ describe('CorkboardInvestigationBoard - Idea Roll & Deduction', () => {
     expect(screen.getByRole('button', { name: /Błysk Dedukcji \(INT\)/i })).toBeInTheDocument();
   });
 
-  it('otwiera modal Rzutu na Pomysł i wyświetla progi Inteligencji badacza', () => {
+  it('otwiera modal Dedukcji Śledczej, wyświetla umiejętności postaci i progi CoC 7e', () => {
     const character = {
       ...PREDEFINED_CHARACTERS[0],
       name: 'Harvey Walters',
       int: 75,
+      skills: {
+        Okultyzm: 65,
+        Medycyna: 40,
+      },
     };
 
     render(
@@ -61,15 +69,15 @@ describe('CorkboardInvestigationBoard - Idea Roll & Deduction', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Błysk Dedukcji \(INT\)/i }));
 
-    expect(screen.getByText('BŁYSK DEDUKCJI (IDEA ROLL)')).toBeInTheDocument();
+    expect(screen.getByText('DEDUKCJA ŚLEDCZA (CoC 7e RAW)')).toBeInTheDocument();
     expect(screen.getByText('Harvey Walters')).toBeInTheDocument();
-    expect(screen.getByText('INT: 75%')).toBeInTheDocument();
+    expect(screen.getByText('Próg bazowy: 75%')).toBeInTheDocument();
     expect(screen.getByText('≤ 75')).toBeInTheDocument(); // Zwykły
     expect(screen.getByText('≤ 37')).toBeInTheDocument(); // Trudny (75 / 2 = 37)
     expect(screen.getByText('≤ 15')).toBeInTheDocument(); // Ekstremalny (75 / 5 = 15)
   });
 
-  it('wykonuje rzut na INT z sukcesem, wyświetla interpretację CoC 7e RAW i przypina wniosek do tablicy', () => {
+  it('wykonuje test dedukcji z sukcesem i pozwala zapisać wniosek bezpośrednio w badanym dowodzie', async () => {
     const onUpdateNodes = jest.fn();
     const character = {
       ...PREDEFINED_CHARACTERS[0],
@@ -92,29 +100,32 @@ describe('CorkboardInvestigationBoard - Idea Roll & Deduction', () => {
     // Otwórz modal
     fireEvent.click(screen.getByRole('button', { name: /Błysk Dedukcji \(INT\)/i }));
 
-    // Rzuć kością
-    fireEvent.click(screen.getByRole('button', { name: /Wykonaj Rzut Dedukcji/i }));
+    // Wybierz badany obiekt: Dziwny Dziennik
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: 'node_1' } });
 
-    // Wynik i interpretacja
-    expect(screen.getByText('32')).toBeInTheDocument();
-    expect(screen.getByText(/TRUDNY SUKCES/i)).toBeInTheDocument();
-    expect(screen.getByText(/Badacz dostrzega powiązania między zebranymi dowodami/i)).toBeInTheDocument();
+    // Wykonaj test dedukcji
+    fireEvent.click(screen.getByRole('button', { name: /Wykonaj Test Dedukcji/i }));
 
-    // Przypnij wniosek do tablicy
-    fireEvent.click(screen.getByRole('button', { name: /Przypnij wniosek do Tablicy/i }));
+    // Wynik
+    await waitFor(() => {
+      expect(screen.getByText('32')).toBeInTheDocument();
+      expect(screen.getByText(/TRUDNY SUKCES/i)).toBeInTheDocument();
+      expect(screen.getByText(/PEWNA POSZLAKA/i)).toBeInTheDocument();
+    });
+
+    // Zapisz wniosek bezpośrednio w badanym dowodzie
+    const saveButton = screen.getByRole('button', { name: /Zapisz wniosek w dowodzie/i });
+    fireEvent.click(saveButton);
 
     expect(onUpdateNodes).toHaveBeenCalledTimes(1);
     const updatedNodes = onUpdateNodes.mock.calls[0][0];
-    expect(updatedNodes).toHaveLength(2);
-    expect(updatedNodes[1]).toMatchObject({
-      title: 'Błysk Dedukcji: Harvey Walters',
-      type: 'clue',
-      status: 'hypothesis',
-    });
-    expect(updatedNodes[1].investigatorInsight).toContain('Badacz Harvey Walters');
+    expect(updatedNodes[0].id).toBe('node_1');
+    expect(updatedNodes[0].investigatorInsight).toContain('Badacz dostrzega kluczową zależność');
   });
 
-  it('wykonuje rzut na INT z porażką, wyświetla komplikację CoC 7e RAW i zapisuje wpis w Kronice', () => {
+  it('wykonuje test dedukcji z porażką, generuje trop z komplikacją i pozwala przypiąć nową notatkę', async () => {
+    const onUpdateNodes = jest.fn();
     const onAddJournalEntry = jest.fn();
     const character = {
       ...PREDEFINED_CHARACTERS[0],
@@ -128,7 +139,7 @@ describe('CorkboardInvestigationBoard - Idea Roll & Deduction', () => {
       <CorkboardInvestigationBoard
         nodes={mockNodes}
         relations={mockRelations}
-        onUpdateNodes={jest.fn()}
+        onUpdateNodes={onUpdateNodes}
         onUpdateRelations={jest.fn()}
         activeCharacter={character}
         onAddJournalEntry={onAddJournalEntry}
@@ -136,23 +147,23 @@ describe('CorkboardInvestigationBoard - Idea Roll & Deduction', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Błysk Dedukcji \(INT\)/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Wykonaj Rzut Dedukcji/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Wykonaj Test Dedukcji/i }));
 
-    expect(screen.getByText('85')).toBeInTheDocument();
-    expect(screen.getAllByText(/PORAŻKA/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/okupiony komplikacją fabularną/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('85')).toBeInTheDocument();
+      expect(screen.getAllByText(/PORAŻKA/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/TROP Z KOMPLIKACJĄ/i)).toBeInTheDocument();
+    });
 
-    // Zapisz w kronice
-    fireEvent.click(screen.getByRole('button', { name: /Zapisz w Kronice/i }));
+    // Przypnij jako nowa notatka
+    fireEvent.click(screen.getByRole('button', { name: /Przypnij jako nową notatkę/i }));
 
-    expect(onAddJournalEntry).toHaveBeenCalledTimes(1);
-    expect(onAddJournalEntry).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Błysk Dedukcji: Harvey Walters',
-        type: 'clue',
-        tags: ['dedukcja', 'pomysł', 'INT'],
-      })
-    );
-    expect(screen.getByText('Zapisano w Kronice')).toBeInTheDocument();
+    expect(onUpdateNodes).toHaveBeenCalledTimes(1);
+    const updatedNodes = onUpdateNodes.mock.calls[0][0];
+    expect(updatedNodes).toHaveLength(2);
+    expect(updatedNodes[1]).toMatchObject({
+      type: 'player_note',
+      status: 'hypothesis',
+    });
   });
 });

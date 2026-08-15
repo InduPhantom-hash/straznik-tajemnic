@@ -32,10 +32,18 @@
 - [x] **Immersja Danych Świata:** Włączanie kontekstu astronomii (pory dnia/fazy księżyca), cen z epoki oraz nagłówków prasowych z oznaczeniem źródła i daty (`src/app/api/chat/_helpers/build-immersion-context.ts`).
 - [x] **Sensoryczny Model Szaleństwa:** Generowanie traum i obłędu bez mechanicznego języka w narracji.
 - [x] **Wielowarstwowy Profil NPC:** Generowanie kontekstu relacji i ukrytych celów dla postaci niezależnych.
-- [x] **System Przeczytania Dokumentów:** Generowanie treści listów i manuskryptów z zapisem w karcie postaci.
 - [x] **Paczki Badaczy dla Szybkiej Przygody (Strefa 11):** Dodano 12 nowych badaczy i spięto mapowanie logiki w modalu (`strefa-11-characters.ts`, `quick-setup-modal.tsx`).
 - [x] **Generatory Fabularne (Etap 3.5 - Piggybacking):** Ręczne zdarzenia losowe (pogoda, przechodnie, wydarzenia kosmiczne/miejskie) przekazywane jako ukryta instrukcja reżyserska `[INSTRUKCJA REŻYSERSKA]` w strumieniu bez psujących cykl wiadomości wyścigów stanów (`RandomEventGenerator`, `useChat.ts`, `build-context.ts`).
 - [x] **Ujednolicenie Dziennika i Usunięcie Długu Legacy Journal (Zadanie 1):** Usunięto 4 pliki legacy (`app/journal/page.tsx`, `app/api/journal/route.ts`, `components/ui/journal.tsx`, `lib/journal/types.ts`), wyczyszczono `useFullReset.ts` i ujednolicono architekturę na `character.journal` / `sharedJournal` (`session-journal.tsx`).
+- [x] **Wizualizacje i Nowy Dziennik Śledczy (Odkrycia & Tablica Badacza):**
+  - Wyraziste, czytelne liczniki kategorii o wysokim kontraście (`discoveries-view.tsx`).
+  - Automatyczne pobieranie wizerunków NPC, lokacji i przedmiotów z referencji gry oraz `EQUIPMENT_CATALOG`.
+  - Diegetyczne fallbacki stylizowane na akta policyjne (*„Akta Osobowe :: Fotografia w archiwizacji”*, *„Plan Terenu :: Szkic sytuacyjny”*, `EquipmentImagePlaceholder`).
+  - Ścisłe egzekwowanie Visual DNA dla postaci w promptach generowania obrazów (`image-instructions.ts`).
+- [x] **Inteligentna Dedukcja MG i Umiejętności Domenowe (CoC 7e RAW):**
+  - Pełny modal Dedukcji Śledczej z wyborem konkretnej poszlaki i metody: umiejętność zawodowa (np. *Medycyna*, *Okultyzm*, *Spostrzegawczość*, *Historia*) LUB koło ratunkowe *Rzut na Pomysł (INT)* (`corkboard-investigation-board.tsx`).
+  - Precyzyjne kalkulacje progów CoC 7e (Zwykły, Trudny ½, Ekstremalny ⅕, Krytyk 01, Fumble 96-100/100).
+  - Wnioski narracyjne generowane przez AI i bezpośrednio zapisywane w badanym dowodzie (`investigatorInsight`) bez generowania zbędnych pustych kafelków.
 
 ---
 

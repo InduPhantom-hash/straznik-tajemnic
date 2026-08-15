@@ -1,10 +1,12 @@
 import type { Character, NPC, Location } from '@/lib/types';
+import { findEquipmentTemplate, resolveCatalogAsset } from '@/lib/equipment-catalog';
 
 export interface EntityVisualReference {
   name: string;
   type: 'character' | 'npc' | 'location' | 'item';
   imageUrl: string;
   visualDescription?: string;
+  category?: string;
 }
 
 /**
@@ -19,7 +21,7 @@ export function normalizeEntityName(name: string): string {
 }
 
 /**
- * Wyszukuje istniejący obraz referencyjny dla danej postaci / lokacji z aktualnego stanu gry.
+ * Wyszukuje istniejący obraz referencyjny dla danej postaci / lokacji / przedmiotu z aktualnego stanu gry.
  */
 export function findEntityVisualReference(
   name: string,
@@ -70,6 +72,21 @@ export function findEntityVisualReference(
         type: 'location',
         imageUrl: foundLoc.mapUrl,
         visualDescription: foundLoc.appearance || foundLoc.description,
+      };
+    }
+  }
+
+  // 4. Sprawdź katalog ekwipunku (dla przedmiotów / rekwizytów)
+  const template = findEquipmentTemplate(name);
+  if (template) {
+    const asset = resolveCatalogAsset(template, '1920s');
+    if (asset) {
+      return {
+        name: template.name,
+        type: 'item',
+        imageUrl: asset,
+        visualDescription: template.aliases?.join(', '),
+        category: template.category,
       };
     }
   }

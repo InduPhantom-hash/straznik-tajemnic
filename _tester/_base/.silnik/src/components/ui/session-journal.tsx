@@ -502,7 +502,7 @@ export function SessionJournal({
             >
               🔍 Odkrycia
               {(unseenCounts.encyclopedia + unseenCounts.quest) > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
                   {unseenCounts.encyclopedia + unseenCounts.quest}
                 </span>
               )}
@@ -518,7 +518,7 @@ export function SessionJournal({
             >
               Kronika
               {unseenCounts.journal > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
                   {unseenCounts.journal}
                 </span>
               )}
@@ -534,7 +534,7 @@ export function SessionJournal({
             >
               Notatki
               {unseenCounts.note > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
                   {unseenCounts.note}
                 </span>
               )}
@@ -659,6 +659,7 @@ export function SessionJournal({
           {/* 1. SEKCJA ODKRYĆ (dawne Misje + Encyklopedia) */}
           {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
             <DiscoveriesView
+              activeCharacter={character}
               entries={(entries as unknown as Array<{ id: string; title: string; content: string; type: string; tags?: string[]; imageUrl?: string; imageStatus?: string; inGameDate?: string; timestamp?: number; questStatus?: 'active' | 'completed' | 'failed'; objectives?: Array<{ id: string; description: string; completed?: boolean; dateCompleted?: string }>; investigatorInsight?: string }>).filter(
                 (e) => ['quest', 'npc', 'location', 'item'].includes(e.type)
               )}
