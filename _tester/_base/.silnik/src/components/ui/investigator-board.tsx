@@ -374,11 +374,11 @@ export function InvestigatorBoard({
 
                   {/* Ilustracja Klocka / Dowodu */}
                   {node.imageUrl && (
-                    <div className="mb-2 overflow-hidden rounded border border-[#3a2518] h-24 bg-black/40">
+                    <div className="mb-2 overflow-hidden rounded border border-[#3a2518] h-32 bg-black/40">
                       <SafeImage
                         src={node.imageUrl}
                         alt={node.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top"
                       />
                     </div>
                   )}

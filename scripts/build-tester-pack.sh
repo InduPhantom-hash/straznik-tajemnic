@@ -5,7 +5,7 @@ set -eu
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE_DIR="$REPO_ROOT/_tester/_base"
 DIST_DIR="$REPO_ROOT/_tester/dist"
-ARCHIVE="$DIST_DIR/Straznik-Tajemnic-AI-0.9.0-beta-Win-Mac-2026-07-17.zip"
+ARCHIVE="$DIST_DIR/Straznik-Tajemnic-AI-0.9.3-Win-Mac.zip"
 STAGING_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/straznik-package.XXXXXX")"
 STAGING_DIR="$STAGING_ROOT/package"
 TEMP_ARCHIVE="$STAGING_ROOT/package.zip"

@@ -155,7 +155,6 @@ export const MOCK_JOURNAL_ENTRIES: ExtendedJournalEntry[] = [
     content:
       'Wzniesiona z ciemnej cegły, podniszczona kamienica w bostońskiej dzielnicy portowej. Wnętrze przesiąknięte jest zapachem stęchłego drewna i ozonu. Meble na pierwszym piętrze same zmieniają położenie, a temperatura w piwnicy spada poniżej zera.',
     category: 'Badania',
-    imageUrl: '/equipment/catalog/map-shared.webp',
     inGameDate: '21 Lipca 1926',
     tags: ['Lokalizacje', 'Boston', 'Nawiedzenie', 'Piwnica'],
     investigatorInsight:
@@ -168,7 +167,6 @@ export const MOCK_JOURNAL_ENTRIES: ExtendedJournalEntry[] = [
     content:
       'Gotycki, kamienny gmach w sercu Arkham. Miejsce przechowywania najrzadszych i najbardziej niebezpiecznych woluminów na świecie, chronionych w sejfie działu cymeliów i ksiąg zakazanych.',
     category: 'Badania',
-    imageUrl: '/equipment/catalog/photo-shared.webp',
     inGameDate: '20 Lipca 1926',
     tags: ['Lokalizacje', 'Arkham', 'Miskatonic', 'Biblioteka', 'Necronomicon'],
     investigatorInsight:
@@ -292,7 +290,6 @@ export const MOCK_BOARD_NODES: EvidenceNode[] = [
     status: 'confirmed',
     position: { x: 440, y: 220 },
     tags: ['Lokalizacja', 'Boston', 'Nawiedzenie'],
-    imageUrl: '/equipment/catalog/map-shared.webp',
     pinType: 'polaroid',
     rotation: -2.5,
     investigatorInsight:

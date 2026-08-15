@@ -367,7 +367,7 @@ export function NPCManager({
                             <SafeImage
                               src={npc.portraitUrl}
                               alt={npc.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover object-top"
                             />
                           ) : (
                             <span className="font-display text-brass text-sm">
@@ -492,7 +492,7 @@ export function NPCManager({
                         <SafeImage
                           src={npc.portraitUrl}
                           alt={npc.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover object-top"
                         />
                         {/* Winieta déco */}
                         <div

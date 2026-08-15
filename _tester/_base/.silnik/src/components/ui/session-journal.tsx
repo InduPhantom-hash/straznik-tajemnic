@@ -2,7 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import type { FormEvent } from 'react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from './button';
 import { Textarea } from './textarea';
 import { cn } from '@/lib/utils';
@@ -139,6 +139,17 @@ export function SessionJournal({
     savedBoardState?.viewport || { zoom: 1, panX: 0, panY: 0 }
   );
   const [inspectedNode, setInspectedNode] = useState<EvidenceNode | null>(null);
+
+  // Obsługa klawisza Escape do zamykania Dziennika
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   // Funkcja pomocnicza zapisująca zaktualizowaną tablicę badacza do postaci
   const syncInvestigatorBoard = useCallback(
@@ -459,9 +470,19 @@ export function SessionJournal({
   }, [character.name, entries, isShared, participantNames]);
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose?.();
+        }
+      }}
+    >
       {/* RPG-styled Container */}
-      <div className="bg-zinc-950/90 backdrop-blur-xl border-4 border-emerald-900/40 rounded-xl shadow-2xl w-[85vw] max-w-[85vw] h-[85vh] flex flex-col overflow-hidden text-zinc-300">
+      <div
+        className="bg-zinc-950/90 backdrop-blur-xl border-4 border-emerald-900/40 rounded-xl shadow-2xl w-[92vw] max-w-6xl h-[90vh] flex flex-col overflow-hidden text-zinc-300 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Nagłówek i Główne Zakładki */}
         <div className="bg-zinc-900/80 border-b-2 border-emerald-900/50 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
@@ -570,11 +591,16 @@ export function SessionJournal({
             </Button>
             {onClose && (
               <button
-                onClick={onClose}
-                className="ml-3 p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-emerald-100 transition-colors"
-                title="Zamknij dziennik"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="ml-3 p-2 bg-[#5a1c1c] hover:bg-[#782525] active:bg-[#942c2c] rounded-md border-2 border-[#b83838] text-[#f4ebd0] transition-all cursor-pointer shadow-md hover:scale-105 shrink-0 z-30"
+                title="Zamknij dziennik (Esc)"
+                aria-label="Zamknij dziennik"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 stroke-[2.5]" />
               </button>
             )}
           </div>
@@ -787,7 +813,7 @@ export function SessionJournal({
                             <SafeImage
                               src={entry.imageUrl}
                               alt={entry.title}
-                              className="w-full h-44 object-cover rounded"
+                              className="w-full h-44 object-cover object-top rounded"
                             />
                           </div>
                         ) : null}
@@ -848,7 +874,7 @@ export function SessionJournal({
                           <SafeImage
                             src={entry.imageUrl}
                             alt={entry.title}
-                            className="w-full h-full object-cover mix-blend-multiply sepia-[0.3]"
+                            className="w-full h-full object-cover object-top mix-blend-multiply sepia-[0.3]"
                           />
                         </div>
                       ) : (

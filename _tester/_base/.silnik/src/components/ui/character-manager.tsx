@@ -385,7 +385,7 @@ export function CharacterManager({
                     <SafeImage
                       src={character.portraitUrl}
                       alt={character.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top"
                     />
                   ) : isDead ? (
                     <span>✝</span>

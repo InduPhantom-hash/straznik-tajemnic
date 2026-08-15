@@ -75,7 +75,7 @@ export function SheetHeader({ character }: SheetHeaderProps) {
           <SafeImage
             src={character.portraitUrl}
             alt={character.name}
-            className="relative w-full h-full object-cover"
+            className="relative w-full h-full object-cover object-top"
           />
         ) : (
           <div className="relative text-center font-special-elite text-muted-foreground/60 text-[14px] tracking-[0.14em]">

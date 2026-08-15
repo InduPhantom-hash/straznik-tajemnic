@@ -2,20 +2,20 @@
 
 <img src="docs/assets/06-banner-1500x500.png" alt="Strażnik Tajemnic AI / Keeper of Arcane Lore AI" width="820">
 
-# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.2-beta)
+# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.3)
 
 **Nieoficjalny, fanowski Mistrz Gry AI do sesji RPG w klimacie lovecraftowskim.**  
 *An unofficial, fan-made AI Game Master for RPG sessions in the Lovecraftian setting.*
 
 ---
 
-[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v092-beta) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v092-beta)
+[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v093) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v093)
 
 </div>
 
 ---
 
-# 🇵🇱 Strażnik Tajemnic AI (v0.9.2-beta)
+# 🇵🇱 Strażnik Tajemnic AI (v0.9.3)
 
 Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Cała gra toczy się **lokalnie u Ciebie** - wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, save'y lądują na dysku. Bez logowania, bez chmury, bez telemetrii.
 
@@ -48,17 +48,17 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
   - **Lokalny RAG Podręcznika:** Aplikacja automatycznie przeszukuje **Twojego** wgranego PDF-a i podaje dokładny kontekst reguł do zapytania LLM. AI nie wymyśla zasad ani statystyk z głowy.
   - **Kodowane Rzuty k100:** AI **nie rzuca kośćmi w czacie**. Rzuty na umiejętności, kalkulacje progów (Zwykły, Trudny, Ekstremalny, Krytyczny, Pech), testy Poczytalności (SAN) i Poczytalności Chwilowej oraz Faza Rozwoju są wyliczane w 100% kodem aplikacji. AI otrzymuje twardy wynik i opisuje wyłącznie jego fabularne konsekwencje.
   - **Kontrola Stanu Świata:** Filtry kontynuacji narracyjnej pilnują faktów z przygody, lokacji, zdrowia badaczy oraz statusu NPC.
+- **Tablica Badacza & Dziennik Śledztwa (CoC 7e RAW):** Korkowa tablica dowodów ze sznurkami powiązań, ochrona koordynatów kart po zapisie i wczytaniu, rzuty na Pomysł (Idea Roll), obsługa fałszywych poszlak, diegetyczne notatki oraz widok Akt Sprawy.
+- **Ekwipunek i Ekonomia Badacza:** Pełny katalog przedmiotów fabularnych, lokalne miniatury SVG, automatyczne podnoszenie przedmiotów z narracji oraz integracja ze statystyką Majętności (Credit Rating).
+- **Dynamiczne Tempo Narracji (Dynamic Pacing):** Silnik automatycznie reguluje gęstość i dynamikę opisów w zależności od poziomu poczytalności, fazy śledztwa i zagrożenia.
+- **Tryb Szybka Przygoda:** Błyskawiczny start sesji z wyborem scenariusza i badacza w jednym, spójnym kroku.
+- **30 Gotowych Postaci & Scenariusze Strefy 11:** Pełne biografie i powiązania dla 30 badaczy, w tym 16 dedykowanych postaci dla 4 autorskich polskich scenariuszy.
 - **AI Mistrz Gry** - prowadzi narrację w stylu Lovecrafta z wykorzystaniem inżynierii opisu sensorycznego (geometria nieeuklidesowa, anomalie klimatyczne, odczucia fizyczne).
 - **Sesja Zero & Linie i Zasłony** - wbudowany kreator granic narracyjnych pozwalający wykluczyć niechciane motywy ze stołu.
-- **Kreator i Presety Badaczy** - gotowe postacie z uzupełnionymi biografiami i kluczowymi więziami lub tworzenie od zera.
 - **Hot Seat** - 1-2 graczy przy jednym laptopie, każdy ma swoją postać i kolor.
-- **Lektor (TTS)** - głos Mistrza Gry czyta narrację z natychmiastowym streamingiem.
-- **Ilustracje scen** - obrazy generowane na żywo w trakcie sesji.
+- **Lektor (TTS)** - głos Mistrza Gry czyta narrację z natychmiastowym streamingiem i ekranem hard-loadingu.
+- **Ilustracje scen & Bezpieczne Kadrowanie** - obrazy generowane na żywo, proporcje 4:3 (`h-32`), pozycjonowanie `object-top` chroniące twarze postaci i uniwersalny fallback `SafeImage`.
 - **Pomoc w Sidebarze & Asystent RAG** - natychmiastowe wyjaśnienie zasad gry w oknie bocznym podczas trwania przygody.
-
-> [!WARNING]
-> **Uwaga dotycząca wersji v0.9.2-beta:**
-> Moduł Dziennika Badacza (Tablica Dowodów) oraz katalog Ekwipunku są obecnie w fazie intensywnej przebudowy i szlifowania logiki powiązań. Mogą występować okresowe niestabilności – na ten moment **zalecamy prowadzenie notatek i spisywanie kluczowych poszlak ręcznie** (na kartce lub w zewnętrznym notatniku).
 
 ## 📸 Zrzuty ekranu
 
@@ -123,7 +123,7 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 
 - [ ] **Pełna angielska wersja językowa (EN):** Wdrożenie kompleksowej lokalizacji interfejsu oraz systemowych promptów narracyjnych do prowadzenia sesji w języku angielskim.
 - [ ] **Wsparcie dla alternatywnych dostawców AI (Multi-LLM / BYOK):** Rozszerzenie silnika poza Gemini API o obsługę Anthropic Claude, OpenAI (GPT-4o) oraz lokalnych modeli uruchamianych przez Ollama / Groq.
-- [ ] **Stabilizacja Tablicy Badacza & Ekwipunku:** Pełne dopracowanie automatycznego grafu powiązań poszlak i interaktywnego zarządzania przedmiotami.
+- [x] **Stabilizacja Tablicy Badacza & Ekwipunku:** Pełne dopracowanie automatycznego grafu powiązań poszlak i interaktywnego zarządzania przedmiotami.
 
 ## 🔧 Technologie
 
@@ -142,6 +142,15 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 | [`NOTICE`](./NOTICE) | Status prawny, znaki towarowe, treść |
 
 ## 📝 Change Log (Historia zmian)
+
+### [v0.9.3] - 2026-08-15
+- **Tablica Badacza & Dziennik Śledztwa (CoC 7e RAW):** Interaktywna korkowa tablica dowodów z ochroną współrzędnych kart po save/load, dedukcja domenowa (mechanika Rzutu na Pomysł / Idea Roll), obsługa fałszywych poszlak, diegetyczny styl notatek i biletów oraz widok Akt Sprawy.
+- **Ekwipunek i Ekonomia Majętności:** Nowy katalog ekwipunku z lokalnymi miniaturami SVG, automatyczne podnoszenie przedmiotów fabularnych z narracji oraz integracja z klasą majątkową (Credit Rating).
+- **30 Gotowych Biografii i Postacie Strefy 11:** 30 pełnych życiorysów badaczy (w tym 16 dedykowanych postaci dla 4 polskich scenariuszy Strefy 11) ze zunifikowanym Single Source of Truth pod polem Życiorys.
+- **Tryb Szybka Przygoda & Nowy Ekran Startowy:** Uproszczony modal wyboru scenariusza i badacza w jednym kroku, usunięcie ograniczeń kontenera czatu na ekranie powitalnym.
+- **Dynamiczne Tempo Narracji (Pacing):** Silnik automatycznie reguluje długość i gęstość opisów w zależności od poziomu poczytalności, dynamiki akcji i fazy śledztwa.
+- **Usprawnienia Wizualne i Kadrowanie Obrazów:** Zmiana formatu kart na 4:3 (`h-32`), pozycjonowanie `object-top` zapobiegające ucinaniu głów/twarzy w portretach postaci i NPC, bezpieczny fallback `SafeImage` oraz powiększanie w lightboxie dowodów.
+- **Stabilizacja Silnika i Architektury:** Usunięcie wycieków pamięci dziennika, automatyczna rekompilacja w `cold-start.sh` oraz eliminacja asynchronicznych zapętleń onboardingowych.
 
 ### [v0.9.2-beta] - 2026-07-27
 - **Inżynieria Narracji i Anty-Halucynacja:** Wdrożenie Lovecraftowskich filtrów stanu świata, 3-stopniowych poszlak, ziaren retrospekcji oraz ścisłego pilnowania zasad dzięki lokalnemu RAG i kodowanym rzutom k100.
@@ -165,7 +174,7 @@ Kod: **MIT** (patrz [`LICENSE`](./LICENSE)). Licencja obejmuje wyłącznie silni
 
 ---
 
-# 🇺🇸 Keeper of Arcane Lore AI (v0.9.2-beta)
+# 🇺🇸 Keeper of Arcane Lore AI (v0.9.3)
 
 Run your _Call of Cthulhu 7e_ sessions solo or with a friend on a single laptop (Hot Seat). The entire game runs **locally on your machine** - you insert your own Gemini API key, upload **your own** guidebook, and saves are stored on your disk. No registration, no cloud databases, no telemetry.
 
@@ -192,17 +201,17 @@ There comes a stage in life where gathering a full table for an RPG session is a
   - **Local Rulebook RAG:** The application automatically searches **your** uploaded PDF and injects exact rule context into the LLM prompt. The AI does not fabricate rules or stats.
   - **Hardcoded d100 Rolls:** The AI **never rolls dice in chat**. Skill checks, threshold calculations (Regular, Hard, Extreme, Critical, Fumble), Sanity (SAN) tests, and Development Phase are 100% computed in application code. The AI receives hard results and focuses solely on narrative outcomes.
   - **World State Control:** Narrative continuity filters prevent plot holes, lost facts, or forgotten investigator health states.
+- **Investigator Board & Session Journal (CoC 7e RAW):** Interactive evidence corkboard with pinned clues and thread connectors, coordinate persistence across saves, domain deduction engine (Idea Roll mechanics), false flags handling, diegetic document styling, and case dossier view.
+- **Equipment & Credit Rating Economy:** Full inventory catalog with local SVG vector thumbnails, automatic narrative loot pickup, and character Credit Rating integration.
+- **Context-Aware Dynamic Pacing:** Narrative engine dynamically adjusts description pacing based on sanity thresholds, investigation stage, and action tension.
+- **Quick Adventure Mode:** Instant session start with seamless scenario and investigator selection in one step.
+- **30 Predefined Characters & Zone 11 Scenarios:** 30 comprehensive investigator backstories (including 16 tailored characters for 4 custom Polish scenarios) with unified Single Source of Truth under Biography.
 - **AI Game Master** - leads the narrative in Lovecraft's style with sensory descriptions (non-Euclidean geometry, atmospheric shifts).
 - **Session Zero & Lines/Veils** - safety tool to calibrate story boundaries at the table.
-- **Investigator Creator & Presets** - pre-made characters with rich backstories or custom investigator builder.
 - **Hot Seat** - 1-2 players sharing one screen, each with a unique investigator and color theme.
-- **Voice (TTS)** - instant streaming narrative readout.
-- **Scene Illustrations** - real-time AI image generation.
+- **Voice (TTS)** - instant streaming narrative readout with hard-loading screens.
+- **Scene Illustrations & Safe Framing** - real-time AI image generation, 4:3 card aspect ratio (`h-32`), `object-top` positioning protecting portrait faces, universal `SafeImage` fallback, and inspection lightbox zoom.
 - **In-Game Help & RAG Assistant** - instant rule explanations right in the sidebar during play.
-
-> [!WARNING]
-> **Note regarding version v0.9.2-beta:**
-> The Investigator Journal (Evidence Board) and Equipment system are currently undergoing major refactoring. Minor instabilities may occur – **we currently recommend keeping track of clues and items manually on paper or in a separate notebook**.
 
 ## 📸 Screenshots
 
@@ -267,7 +276,7 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 
 - [ ] **Full English Language Support (EN):** Complete localization of UI and system narrative prompts to allow full sessions in English.
 - [ ] **Multi-LLM / BYOK Support:** Expand engine beyond Gemini API to support Anthropic Claude, OpenAI (GPT-4o), and local models via Ollama / Groq.
-- [ ] **Investigator Journal & Inventory Polish:** Finalize evidence graph relations and refine plot item management.
+- [x] **Investigator Journal & Inventory Polish:** Finalize evidence graph relations and refine plot item management.
 
 ## 🔧 Technologies
 
@@ -283,6 +292,15 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 - [`NOTICE`](./NOTICE) – Legal status and trademarks.
 
 ## 📝 Change Log
+
+### [v0.9.3] - 2026-08-15
+- **Investigator Board & Session Journal (CoC 7e RAW):** Interactive evidence corkboard with coordinate persistence after save/load, domain deduction engine (Idea Roll mechanics), false flags handling, diegetic document styling, and case dossier view.
+- **Equipment & Credit Rating Economy:** New inventory modal with local SVG vector thumbnails, automatic narrative loot pickup, and Credit Rating integration.
+- **30 Full Predefined Biographies & Zone 11:** 30 comprehensive investigator backstories (including 16 tailored characters for Zone 11 Polish scenarios) with unified Single Source of Truth under Biography.
+- **Quick Adventure Mode & Refreshed Welcome Screen:** Seamless one-step scenario and investigator selection, expanded welcome screen layout.
+- **Context-Aware Dynamic Pacing:** Narrative engine dynamically adjusts description pacing based on sanity thresholds, investigation stage, and action tension.
+- **Visual Enhancements & Image Framing:** Upgraded card aspect ratio to 4:3 (`h-32`), `object-top` positioning preventing portrait face cutoffs, universal `SafeImage` fallback, and inspection lightbox zoom.
+- **Engine & Architecture Stabilization:** Fixed legacy journal memory leaks, automated desktop rebuild in `cold-start.sh`, and resolved onboarding async loops.
 
 ### [v0.9.2-beta] - 2026-07-27
 - **Narrative Engineering & Anti-Hallucination:** Integrated Lovecraftian world-state filters, 3-tier clues, memory seeds, and local rulebook RAG with deterministic d100 engine.

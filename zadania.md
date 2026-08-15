@@ -57,16 +57,16 @@
 
 ---
 
-**Zadanie: Rzut na Pomysł (Idea Roll) i Wnioski Badacza (Tablica Badacza & Akta)**
+**Zadanie: Naprawa Wyświetlania i Kadrowania Obrazów (dev-loop)**
 
-**Faza 1: Typy i Mechanika Rzutu na Pomysł (INT)**
-- [x] Rozszerzenie typów `JournalEntry`, `ExtendedJournalEntry`, `EvidenceNode` oraz `DiscoveryEntry` o pole `investigatorInsight?: string`.
-- [x] Implementacja przycisku `💡 Błysk Dedukcji (INT)` w pasku narzędzi `CorkboardInvestigationBoard` oraz modalu rzutu kośćmi k100 (CoC 7e RAW) z progami Zwykły/Trudny/Ekstremalny/Krytyk/Fumble i interpretacją fabularną.
-- [x] Możliwość przypięcia wygenerowanego wniosku jako węzła na Tablicy Badacza lub zapisu w Kronice Sesji.
+**Faza 1: Tablica Badacza i Karty Dowodów**
+- [x] Zwiększenie wysokości kadru ilustracji na kartach Tablicy Badacza z `h-24` do `h-32` (`corkboard-investigation-board.tsx` oraz `investigator-board.tsx`).
+- [x] Wprowadzenie `object-cover object-top` zapobiegającego ucinaniu głów i twarzy w portretach postaci / NPC.
+- [x] Dodanie `min-h-0 min-w-0` do kontenerów flex w `inspection-lightbox-modal.tsx` dla stabilnego skalowania podglądu dowodu.
 
-**Faza 2: Prezentacja Wniosków Badacza w Aktach (Dossier)**
-- [x] Dodanie stylizowanego bloku "Wniosek Badacza" w kroju maszynowym w `discoveries-view.tsx`.
-- [x] Wdrożenie szybkiego dopisywania / edycji wniosku badacza bezpośrednio w widoku dossier.
-- [x] Integracja w `session-journal.tsx` i `inspection-lightbox-modal.tsx`.
-- Weryfikacja: `npx tsc --noEmit` PASS (0 błędów), `npm test` PASS (48/48 suite'ów, 175 testów).
+**Faza 2: Akta Sprawy, Dziennik i Pozostałe Widoki**
+- [x] Dodanie `object-top` do polaroida/załącznika graficznego w `discoveries-view.tsx`.
+- [x] Poprawki kadrowania portretów w `session-journal.tsx`, `npc-manager.tsx`, `predefined-characters-selector.tsx`, `character-manager.tsx`, `quick-setup-modal.tsx` oraz `message-card.tsx`.
+- Weryfikacja: `npx tsc --noEmit` (0 błędów), `npm test` PASS (48/48 suite'ów, 175 testów).
+
 

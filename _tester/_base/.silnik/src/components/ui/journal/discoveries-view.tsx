@@ -1,7 +1,7 @@
 'use client';
 
 import { SafeImage } from '@/components/ui/safe-image';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   MapPin,
@@ -15,7 +15,6 @@ import {
   Plus,
   Package,
 } from 'lucide-react';
-import { EquipmentImagePlaceholder } from '@/components/ui/equipment-image-placeholder';
 import { findEquipmentTemplate, resolveCatalogAsset } from '@/lib/equipment-catalog';
 import { findEntityVisualReference } from '@/lib/journal/entity-visual-resolver';
 import type { Character, NPC, Location } from '@/lib/types';
@@ -106,17 +105,6 @@ const QUEST_STATUS_STYLE: Record<string, { bg: string; border: string; text: str
   failed: { bg: 'bg-[#2b1010]', border: 'border-[#a84d4d]', text: 'text-[#e3a8a8]', label: 'Nieudana' },
 };
 
-function resolveItemCategory(entry: DiscoveryEntry): string {
-  const tags = (entry.tags || []).map((t) => t.toLowerCase());
-  if (tags.some((t) => t.includes('artefakt') || t.includes('mity') || t.includes('klucz'))) return 'artifact';
-  if (tags.some((t) => t.includes('broń') || t.includes('pistolet') || t.includes('sztylet'))) return 'weapon';
-  if (tags.some((t) => t.includes('księga') || t.includes('rękopis') || t.includes('dokument') || t.includes('dziennik'))) return 'document';
-  if (tags.some((t) => t.includes('okultyzm') || t.includes('zaklęcie') || t.includes('rytuał'))) return 'occult';
-  if (tags.some((t) => t.includes('medycyna') || t.includes('apteczka') || t.includes('leki'))) return 'medical';
-  if (tags.some((t) => t.includes('narzędzie') || t.includes('wytrych') || t.includes('latarka'))) return 'tool';
-  return 'artifact';
-}
-
 // ------------------------------------------------------------------
 // Komponent
 // ------------------------------------------------------------------
@@ -135,6 +123,14 @@ export function DiscoveriesView({
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [isEditingInsight, setIsEditingInsight] = useState(false);
   const [insightText, setInsightText] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset pozycji przewijania przy zmianie wpisu lub kategorii
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [selectedEntryId, activeCategory]);
 
   // Filtrowanie po kategorii i wyszukiwaniu
   const categoryConfig = CATEGORIES.find((c) => c.key === activeCategory)!;
@@ -291,7 +287,7 @@ export function DiscoveriesView({
       </div>
 
       {/* === PRAWY PANEL: Podgląd wybranego elementu (AKTA ŚLEDCZE) === */}
-      <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#120c08] relative">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#120c08] relative">
         {selectedEntry ? (
           <div className="max-w-2xl mx-auto">
             {/* Teczka / Akta */}
@@ -365,89 +361,27 @@ export function DiscoveriesView({
                 </div>
               </div>
 
-              {/* Zdjęcie (Spinacz / Polaroid / Eksponat / Fallback) */}
+              {/* Zdjęcie (Pionowy Polaroid Retro - renderowany wyłącznie gdy istnieje rzeczywisty obraz) */}
               {selectedEntry.imageStatus === 'pending' ? (
-                <div className="float-right w-1/2 ml-6 mb-4 h-48 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
+                <div className="float-right w-48 sm:w-52 ml-6 mb-4 h-56 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
                   <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-xs font-special-elite italic">Wywyoływanie zdjęcia...</span>
                 </div>
               ) : resolvedVisual ? (
-                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
-                  <div className="bg-[#fcfbf9] p-2 pb-8 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
-                    <SafeImage
-                      src={resolvedVisual.imageUrl}
-                      alt={selectedEntry.title}
-                      className="w-full h-44 object-cover border border-[#e0e0e0] mix-blend-multiply sepia-[0.2]"
-                    />
-                    <div className="absolute bottom-2 left-0 right-0 text-center font-special-elite text-[10px] text-black/60 italic">
-                      Załącznik A :: {selectedEntry.title}
-                    </div>
-                  </div>
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
-                    📎
-                  </div>
-                </div>
-              ) : activeCategory === 'items' ? (
-                /* Diegetyczny placeholder dla Przedmiotów / Artefaktów */
-                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
-                  <div className="bg-[#fcfbf9] p-2 pb-6 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
-                    <div className="w-full h-44 border border-[#d8cbb5] overflow-hidden">
-                      <EquipmentImagePlaceholder
-                        category={resolveItemCategory(selectedEntry)}
-                        itemName={selectedEntry.title}
+                <div className="float-right w-48 sm:w-52 ml-6 mb-4 relative z-10">
+                  <div className="bg-[#fcfbf9] p-2.5 pb-6 shadow-[2px_4px_12px_rgba(0,0,0,0.35)] transform rotate-2 border border-[#e2ded5]">
+                    <div className="w-full aspect-[3/4] overflow-hidden bg-[#1a140f] border border-[#d1c2ab]">
+                      <SafeImage
+                        src={resolvedVisual.imageUrl}
+                        alt={selectedEntry.title}
+                        className="w-full h-full object-cover object-top mix-blend-multiply sepia-[0.2]"
                       />
                     </div>
-                    <div className="absolute bottom-1.5 left-0 right-0 text-center font-special-elite text-[9px] text-black/60 italic uppercase tracking-wider">
-                      Eksponat Dowodowy
+                    <div className="mt-2 text-center font-special-elite text-[9px] text-black/60 italic truncate px-1">
+                      Załącznik :: {selectedEntry.title}
                     </div>
                   </div>
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
-                    📎
-                  </div>
-                </div>
-              ) : activeCategory === 'characters' ? (
-                /* Diegetyczny placeholder dla Postaci / NPC */
-                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
-                  <div className="bg-[#fcfbf9] p-2 pb-6 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
-                    <div className="w-full h-44 bg-[#e8decd] border border-[#d1c2ab] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
-                      <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#8c7353]/60 flex items-center justify-center mb-2 bg-[#d9cbb2]/40">
-                        <Users className="w-7 h-7 text-[#8c7353]" />
-                      </div>
-                      <span className="font-special-elite text-[10px] uppercase tracking-widest text-[#5a4428] font-bold">
-                        Akta Osobowe
-                      </span>
-                      <span className="font-special-elite text-[8px] text-[#8c7353]/90 italic mt-0.5">
-                        Fotografia w archiwizacji
-                      </span>
-                    </div>
-                    <div className="absolute bottom-1.5 left-0 right-0 text-center font-special-elite text-[9px] text-black/60 italic uppercase tracking-wider">
-                      Dossier Śledcze
-                    </div>
-                  </div>
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
-                    📎
-                  </div>
-                </div>
-              ) : activeCategory === 'places' ? (
-                /* Diegetyczny placeholder dla Lokacji */
-                <div className="float-right w-[45%] ml-6 mb-4 relative z-10">
-                  <div className="bg-[#fcfbf9] p-2 pb-6 shadow-[1px_2px_8px_rgba(0,0,0,0.4)] transform rotate-2">
-                    <div className="w-full h-44 bg-[#e8decd] border border-[#d1c2ab] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
-                      <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#5c8a47]/60 flex items-center justify-center mb-2 bg-[#d9cbb2]/40">
-                        <MapPin className="w-7 h-7 text-[#5c8a47]" />
-                      </div>
-                      <span className="font-special-elite text-[10px] uppercase tracking-widest text-[#5a4428] font-bold">
-                        Plan Terenu
-                      </span>
-                      <span className="font-special-elite text-[8px] text-[#5c8a47]/90 italic mt-0.5">
-                        Szkic sytuacyjny
-                      </span>
-                    </div>
-                    <div className="absolute bottom-1.5 left-0 right-0 text-center font-special-elite text-[9px] text-black/60 italic uppercase tracking-wider">
-                      Dokumentacja Miejsca
-                    </div>
-                  </div>
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#2c241b]/40 text-2xl rotate-45 z-20">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[#2c241b]/50 text-2xl rotate-45 z-20 pointer-events-none">
                     📎
                   </div>
                 </div>

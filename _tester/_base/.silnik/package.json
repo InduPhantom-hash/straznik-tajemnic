@@ -1,6 +1,6 @@
 {
   "name": "straznik-tajemnic",
-  "version": "4.0.0-local",
+  "version": "0.9.3",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev --webpack --port ${PORT:-3000}",

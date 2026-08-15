@@ -267,7 +267,7 @@ export function PredefinedCharactersSelector({
                         <img
                           src={char.portraitUrl}
                           alt={char.name}
-                          className="w-full h-full object-cover grayscale opacity-90"
+                          className="w-full h-full object-cover object-top grayscale opacity-90"
                         />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -359,7 +359,7 @@ export function PredefinedCharactersSelector({
                       <img
                         src={viewingCharacter.portraitUrl}
                         alt={viewingCharacter.name}
-                        className="relative w-full h-full object-cover grayscale"
+                        className="relative w-full h-full object-cover object-top grayscale"
                       />
                     ) : (
                       <div className="relative text-center font-special-elite text-muted-foreground/60 text-[14px] tracking-[0.14em]">

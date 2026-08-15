@@ -841,7 +841,7 @@ ZASADY CoC 7e RAW DLA DEDUKCJI ŚLEDCZEJ:
                       {/* Ilustracja */}
                       {node.imageUrl && (
                         <div
-                          className="mb-2 overflow-hidden rounded border border-[#3a2518] h-24 bg-black/40 cursor-pointer hover:opacity-90 transition-opacity"
+                          className="mb-2 overflow-hidden rounded border border-[#3a2518] h-32 bg-black/40 cursor-pointer hover:opacity-90 transition-opacity"
                           onPointerDown={(e) => e.stopPropagation()}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -851,7 +851,7 @@ ZASADY CoC 7e RAW DLA DEDUKCJI ŚLEDCZEJ:
                           <SafeImage
                             src={node.imageUrl}
                             alt={node.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover object-top"
                           />
                         </div>
                       )}

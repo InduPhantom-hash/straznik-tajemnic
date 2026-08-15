@@ -1,6 +1,88 @@
-# CHANGELOG - Zew-App
+# CHANGELOG - Strażnik Tajemnic AI
 
-> Szczegółowa historia sesji dewelperskich (sesje 14-135) w [CLAUDE.md](./CLAUDE.md) + [CLAUDE-history.md](./CLAUDE-history.md). Linear: tickety IND-NNN. Ten plik streszcza top-level zmiany.
+Wszystkie istotne zmiany w projekcie są dokumentowane w tym pliku.
+Format oparty na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+---
+
+## [0.9.3] - 2026-08-15
+
+### ✨ Nowości i Ulepszenia
+- **Tablica Badacza CoC 7e RAW (Investigation Board):**
+  - Korkowa tablica dowodów ze sznurkami powiązań i pinezkami.
+  - Pełna ochrona współrzędnych kart dowodów (X, Y) po zapisie i wczytaniu stanu gry (Save & Load).
+  - Wdrożenie mechaniki dedukcji domenowej CoC 7e RAW (Rzut na Pomysł / Idea Roll) oraz generowania wniosków (Investigator Insights).
+  - Obsługa fałszywych tropów (False Flags) i weryfikacji hipotez bez wycieków do Dziennika.
+  - Nowy, diegetyczny styl dokumentów (bilety, telegramy, wycinki) oraz widok Akt Sprawy (Discoveries View).
+- **Moduł Ekwipunku i Ekonomia Majętności:**
+  - Przebudowany modal ekwipunku z lokalnymi, lekkimi miniaturami wektorowymi SVG (8 dedykowanych ikon).
+  - Integracja automatycznego podnoszenia przedmiotów fabularnych z narracji (Auto-loot).
+  - Powiązanie finansów z klasą majątkową (Credit Rating) według oficjalnych zasad CoC 7e.
+  - Immersyjny czytnik dokumentów fabularnych (`documentType`).
+- **30 Pełnych Biografii i Scenariusze Strefy 11:**
+  - Rozbudowa życiorysów dla 30 badaczy (w tym 16 dedykowanych postaci dla 4 polskich scenariuszy Strefy 11: Sygnały Nieznanego, Kowary, Traszyn, Głogów).
+  - Unifikacja Single Source of Truth (SSOT) dla biografii postaci pod polem Życiorys.
+- **Dynamiczne Tempo Narracji (Context-Aware Dynamic Pacing):**
+  - Automatyczna regulacja gęstości, długości i tonu opisów MG w zależności od aktualnego poziomu poczytalności, fazy śledztwa oraz napięcia akcji.
+- **Odświeżony Onboarding & Szybka Przygoda:**
+  - Nowy, czysty ekran powitalny (WelcomeScreen) z dużymi kartami i uwolnionym układem.
+  - Redesign modalu Szybka Przygoda - wybór scenariusza i badacza w jednym, spójnym kroku.
+
+### 🖼️ UI, Grafika & Immersion
+- **Poprawki Kadrowania Obrazów:**
+  - Zwiększenie wysokości kadru ilustracji na kartach Tablicy Badacza z `h-24` (96px) do `h-32` (128px), eliminując zbyt wąski letterbox 2.5:1 na rzecz czytelnego formatu 4:3.
+  - Zastosowanie pozycjonowania `object-cover object-top` dla ilustracji, portretów postaci i NPC, zapobiegając obcinaniu czubków głów i twarzy we wszystkich widokach (Akta Sprawy, Dziennik Sesji, Kreator, Karta Badacza, Czat).
+  - Wdrożenie uniwersalnego komponentu ochronnego `SafeImage` z bezpiecznymi fallbackami.
+  - Dodanie płynnego zoomu i inspekcji w Lightboxie dowodów.
+- **Generatory Fabularne:**
+  - Podpięcie generatorów fabularnych techniką Piggybacking z sanitizacją tagów `directorEvent`.
+- **Lektor TTS:**
+  - Ekran ładowania (Hard-loading screen) przed wygenerowaniem narracji startowej, eliminujący migotanie i asynchroniczne wycieki.
+  - Parsowanie portretów NPC w logach i awatary dialogowe.
+
+### 🐛 Poprawki (Fixes)
+- Usunięto błędy wycieku pamięci Dziennika (`character.journal` jako jedyne źródło prawdy).
+- Naprawiono zapętlenie asynchroniczne przy starcie w trybie Szybkiej Przygody.
+- Dodano automatyczną rekompilację `npm run build` w skrypcie `desktop/cold-start.sh`.
+- Naprawiono weryfikację sum kontrolnych `BUILD_ID` w launcherze desktopowym.
+- 100% testów jednostkowych (48/48 suite'ów, 175 testów) i zgodność TypeScript bez błędów.
+
+---
+
+## [0.9.2-beta] - 2026-07-27
+
+### ✨ Nowości i Ulepszenia
+- **Inżynieria Narracji i Anty-Halucynacja:** Wdrożenie Lovecraftowskich filtrów stanu świata, 3-stopniowych poszlak, ziaren retrospekcji oraz ścisłego pilnowania zasad dzięki lokalnemu RAG i kodowanym rzutom k100.
+- **Odświeżony Interfejs Startowy:** Nowy ekran Menu Głównego, usprawnienia nawigacji oraz wbudowany wyznacznik granic narracyjnych Sesji Zero (Linie i Zasłony).
+- **Autorskie Scenariusze Strefy 11:** 4 wbudowane autorskie scenariusze i 16 predefiniowanych postaci z uzupełnionymi biografiami i więziami.
+- **Asystent RAG w Sidebarze:** Nowy modal pomocy, encyklopedia zasad oraz asystent odpowiadający na pytania o reguły gry w trakcie sesji.
+- **Ulepszony Lektor (TTS) & Audio:** Instant streaming narracji, głosy NPC oraz integracja ElevenLabs (BYOK).
+- **Dynamiczna Pogoda:** Integracja historycznych warunków pogodowych z zasadą "Klimat > Fakty".
+
+---
+
+## [0.9.1-beta] - 2026-07-20
+
+### ✨ Nowości i Ulepszenia
+- **Ulepszona atmosfera Lovecrafta:** Wdrożenie Konstytucji Narracji, głębszych opisów sensorycznych oraz geometrii nieeuklidesowej w scenach z Mitów.
+- **Biografie badaczy:** Uzupełnienie rostera o 30 pełnych, 6-8 zdaniowych opisów predefiniowanych postaci.
+- **Koniec Sesji:** Obsługa systemowej komendy `[KONIEC_SESJI]` w czacie z płynnym wygaszaniem wątków do cliffhangera przed autozapisem.
+- **Uporządkowanie kodu:** Dodanie mapy powiązań dokumentacji i instrukcji systemowych z plikami źródłowymi TypeScript (`docs/MAPA-POWIAZAN.md`).
+- **Szybki toggle obrazów:** Łatwiejsze zarządzanie kosztami API dzięki wyłącznikowi generowania ilustracji bezpośrednio w sidebarze.
+- **Poprawki mobilne i UX:** Lepsze skalowanie modali postaci na małych ekranach, dolny pasek nawigacyjny w lightboxie i naprawa timeoutów sieciowych panelu diagnostycznego.
+
+---
+
+## [0.9.0-beta] - 2026-07-01
+
+### ✨ Nowości
+- Pierwsze publiczne wydanie silnika Strażnik Tajemnic AI w wersji beta.
+- Obsługa trybu Solo oraz Hot Seat dla 2 graczy na jednym laptopie.
+- Wbudowany lokalny RAG podręcznika CoC 7e i deterministyczny silnik rzutów k100.
+- Wsparcie dla modeli Gemini 2.5 Flash, Gemini 3 Flash oraz Gemini 3.1 Pro.
+- Generowanie ilustracji scen z Google Imagen 3 oraz lektor TTS.
+
+---
 
 ## [v4.0.0] - 2026-05-23 (sesje 28-135)
 

@@ -94,7 +94,7 @@ export function MessageCard({
                   <AvatarImage
                     src={playerPortraitUrl ?? activeCharacter?.portraitUrl}
                     alt={activeCharacter?.name || 'Portret gracza'}
-                    className="object-cover rounded-none w-full h-full"
+                    className="object-cover object-top rounded-none w-full h-full"
                   />
                 )}
                 <AvatarFallback className="text-xs rounded-none">
@@ -205,7 +205,7 @@ export function MessageCard({
                     <SafeImage
                       src={imgUrl}
                       alt={isPortrait ? `Portret ${idx + 1}` : `Scena ${idx + 1}`}
-                      className={`w-full object-cover cursor-pointer hover:opacity-90 transition-opacity ${
+                      className={`w-full object-cover object-top cursor-pointer hover:opacity-90 transition-opacity ${
                         isPortrait ? 'aspect-[3/4]' : 'aspect-[16/9]'
                       }`}
                       style={{

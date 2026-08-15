@@ -184,7 +184,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                             <SafeImage
                               src={c.portraitUrl}
                               alt={c.name}
-                              className="w-full h-full object-cover grayscale opacity-80 transition-all hover:grayscale-0 hover:opacity-100"
+                              className="w-full h-full object-cover object-top grayscale opacity-80 transition-all hover:grayscale-0 hover:opacity-100"
                               style={{ 
                                 filter: selectedCharacter1 === c.id ? 'grayscale(0)' : undefined,
                                 opacity: selectedCharacter1 === c.id ? 1 : undefined
@@ -254,7 +254,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                             <SafeImage
                               src={c.portraitUrl}
                               alt={c.name}
-                              className="w-full h-full object-cover grayscale opacity-80 transition-all hover:grayscale-0 hover:opacity-100"
+                              className="w-full h-full object-cover object-top grayscale opacity-80 transition-all hover:grayscale-0 hover:opacity-100"
                               style={{ 
                                 filter: selectedCharacter2 === c.id ? 'grayscale(0)' : undefined,
                                 opacity: selectedCharacter2 === c.id ? 1 : undefined

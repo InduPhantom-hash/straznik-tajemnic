@@ -108,14 +108,14 @@ export function InspectionLightboxModal({
         {/* Tresc glowna */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Lewa kolumna: grafika */}
-          <div className="md:w-1/2 bg-black/60 flex flex-col items-center justify-center p-4 relative overflow-hidden border-r border-[#3a2518]">
+          <div className="md:w-1/2 bg-black/60 flex flex-col items-center justify-center p-4 relative overflow-hidden border-r border-[#3a2518] min-h-0 min-w-0">
             {node.imageUrl ? (
               <>
-                <div className="flex-1 flex items-center justify-center overflow-auto w-full">
+                <div className="flex-1 flex items-center justify-center overflow-auto w-full h-full min-h-0 min-w-0">
                   <SafeImage
                     src={node.imageUrl}
                     alt={node.title}
-                    className="max-w-full max-h-full object-contain rounded shadow-lg transition-transform duration-200"
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded shadow-lg transition-transform duration-200"
                     style={{ transform: `scale(${imageZoom})` }}
                   />
                 </div>
