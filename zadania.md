@@ -19,9 +19,11 @@
 
 **Zadanie: Rozwinięcie Biografii Postaci (Vibe-Coding Storytelling)**
 
-**Faza 1: Postacie Strefa 11 (Modern/TV)**
-- [x] Stworzenie i aplikacja 200-300 słownej biografii dla Tomasza Nowickiego, Heleny Krawczyk, Barbary Zawadzkiej, Ryszarda Klucznika. Oparcie historii na istniejących atrybutach boxowych (trauma, przedmioty, ideologia). `(Blokuje: Faza 3)`
-- Weryfikacja: Kompilacja i wyświetlenie postaci w UI.
+**Faza 1: Postacie Strefa 11 (16 badaczy - 4 scenariusze)**
+- [x] Stworzenie i aplikacja pełnych 200-300 słownych biografii (`backstory`) dla wszystkich 16 postaci Strefy 11 (Sygnały Nieznanego, Kowary, Traszyn, Głogów). Oparcie historii na atrybutach boxowych (trauma, przedmioty, ideologia, relacje). `(Blokuje: Faza 3)`
+- [x] Unifikacja architektury: usunięcie zduplikowanego `src/` z roota, podpięcie `STREFA_11_CHARACTERS` bezpośrednio z `strefa-11-characters.ts` do `predefined-characters.ts` (Single Source of Truth).
+- [x] Przebudowa paczki desktopowej na biurku (`desktop/build-app.sh --rebuild`).
+- Weryfikacja: `npm test` PASS, `npx tsc --noEmit` PASS, `npm run build` PASS, aplikacja na biurku odświeżona.
 
 **Faza 2: Gotowi Badacze (Lata 1890 i 1920)**
 - [x] Rozszerzenie biografii dla 10 postaci (m.in. Arthur Pendleton, Beatrice Vance, Thomas O'Brien). Wplecenie poszlak, cennego przedmiotu i więzi, zachowując tonację Zew Cthulhu. `(Blokuje: Faza 3)`

@@ -10,7 +10,19 @@ describe('SheetBiography', () => {
     } as any;
     render(<SheetBiography character={character} />);
 
-    expect(screen.getByText(/Tło Postaci/)).toBeTruthy();
+    expect(screen.getByText(/Tło i Rola Fabularna/)).toBeTruthy();
     expect(screen.getByText(character.background)).toBeTruthy();
+  });
+
+  it('pokazuje życiorys badacza gdy backstory jest obecne', () => {
+    const character = {
+      id: 'test-char-backstory',
+      name: 'Tomasz Nowicki',
+      backstory: 'To jest pełny życiorys badacza.',
+    } as any;
+    render(<SheetBiography character={character} />);
+
+    expect(screen.getByText(/Życiorys/)).toBeTruthy();
+    expect(screen.getByText(character.backstory)).toBeTruthy();
   });
 });

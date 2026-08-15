@@ -12,12 +12,15 @@ const VISUAL_ERAS: Record<string, EquipmentVisualEra> = {
   classic: '1920s',
   noir: '1940s',
   prl: 'prl-1970s',
+  'prl-1970s': 'prl-1970s',
+  '1990s': 'modern',
+  '2000s': 'modern',
   modern: 'modern',
 };
 
 describe('PREDEFINED_CHARACTERS', () => {
   it('zapewnia każdemu badaczowi pełną biografię i rozbudowany ekwipunek', () => {
-    expect(PREDEFINED_CHARACTERS).toHaveLength(30);
+    expect(PREDEFINED_CHARACTERS).toHaveLength(46);
 
     PREDEFINED_CHARACTERS.forEach((character) => {
       expect(character.background.trim().length).toBeGreaterThan(40);
@@ -33,7 +36,7 @@ describe('PREDEFINED_CHARACTERS', () => {
   it('zapewnia gotowych badaczy dla podstawowych epok (gaslight, classic, modern)', () => {
     expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'gaslight')).toHaveLength(10);
     expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'classic')).toHaveLength(10);
-    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'modern')).toHaveLength(10);
+    expect(PREDEFINED_CHARACTERS.filter((c) => c.era === 'modern')).toHaveLength(26);
   });
 
   it('wskazuje indywidualne, istniejące portrety dla nowych epok', () => {

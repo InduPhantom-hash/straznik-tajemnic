@@ -1,6 +1,9 @@
-import { PredefinedCharacter } from './predefined-characters';
+import type { PredefinedCharacter } from './predefined-characters';
 
 export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
+  // ==========================================================================
+  // 1. SYGNAŁY NIEZNANEGO / CIEŃ NAD PRABUTAMI
+  // ==========================================================================
   {
     id: 'strefa11_tomasz_nowicki',
     era: 'modern',
@@ -16,13 +19,13 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     birthplace: 'Warszawa, Polska',
     residence: 'Warszawa, Polska',
     characterConcept: 'Sceptyczny dziennikarz, który widział już zbyt wiele zjawisk niewyjaśnionych, by całkowicie zaprzeczać istnieniu nieznanego.',
-    ideology: 'Zawsze jest jakieś logiczne wytłumaczenie – a jeśli go nie ma, oznacza to, że nauka ma jeszcze wiele do odkrycia.',
+    ideology: 'Zawsze jest jakieś logiczne wytłumaczenie - a jeśli go nie ma, oznacza to, że nauka ma jeszcze wiele do odkrycia.',
     significantPerson: 'Była żona, która zostawiła go przez jego obsesję na punkcie "tych dziwnych spraw".',
     meaningfulLocation: 'Studio nagraniowe telewizji, jedyne miejsce, gdzie czuje, że w pełni kontroluje sytuację.',
     treasuredPossession: 'Kasetowy dyktafon reporterski marki Sony z lat 90., który nagrał kiedyś głos EVP.',
     traits: ['Opanowany', 'Sceptyczny', 'Dociekliwy'],
     description: 'Nosi charakterystyczną, czarną skórzaną kurtkę, z ciemnymi okularami zawieszonymi na kołnierzyku.',
-    backstory: 'Tomasz dorastał w cieniu betonowych blokowisk szarej Warszawy, co wcześnie wykształciło w nim instynkt dociekliwości i chłodny, niemal cyniczny dystans do rzeczywistości. Jako gwiazda działu kryminalnego dużego stołecznego dziennika, zyskał sławę obiektywnego analityka poszukującego prawdy ukrytej w aktach milicyjnych. Zawsze wyznawał żelazną zasadę: „Każdy fenomen ma logiczne wytłumaczenie, a ignorancja to tylko dowód na luki w nauce”. Złamaniem tej bariery stała się dla niego sprawa zaginięć na obrzeżach Puszczy Kampinoskiej. To tam, samotnie, o trzeciej nad ranem uchwycił na swój reporterski, kasetowy dyktafon marki Sony (z którym od lat się nie rozstaje) mrożący krew w żyłach trzask EVPu, odmawiający imię bytu, którego nigdy nie powinno być w lasach. To brutalne zderzenie z nieznanym zrujnowało nie tylko jego konwencjonalną karierę, ale przede wszystkim małżeństwo – żona odeszła, nie potrafiąc wytrzymać nozdrzy rozszerzonych od strachu i jego obsesyjnych nocnych poszukiwań kolejnych „Sygnałów”. Dziś bezpiecznie czuje się jedynie w otoczonym kablami, mrocznym studiu telewizyjnym, w swoim słynnym czarnym, skórzanym płaszczu z uniesionym kołnierzem, za ciemnymi okularami. Mimo opanowania i sceptycyzmu obnażającego naciągaczy i ezoterycznych magów, Tomasz każdego dnia walczy o udowodnienie samemu sobie, że to, co usłyszał przed laty na kasecie, nie było wynikiem wczesnego obłędu.',
+    backstory: 'Tomasz dorastał w cieniu betonowych blokowisk szarej Warszawy, co wcześnie wykształciło w nim instynkt dociekliwości i chłodny, niemal cyniczny dystans do rzeczywistości. Jako gwiazda działu kryminalnego dużego stołecznego dziennika, zyskał sławę obiektywnego analityka poszukującego prawdy ukrytej w aktach milicyjnych. Zawsze wyznawał żelazną zasadę: "Każdy fenomen ma logiczne wytłumaczenie, a ignorancja to tylko dowód na luki w nauce". Złamaniem tej bariery stała się dla niego sprawa zaginięć na obrzeżach Puszczy Kampinoskiej. To tam, samotnie, o trzeciej nad ranem uchwycił na swój reporterski, kasetowy dyktafon marki Sony (z którym od lat się nie rozstaje) mrożący krew w żyłach trzask EVPu, odmawiający imię bytu, którego nigdy nie powinno być w lasach. To brutalne zderzenie z nieznanym zrujnowało nie tylko jego konwencjonalną karierę, ale przede wszystkim małżeństwo - żona odeszła, nie potrafiąc wytrzymać nozdrzy rozszerzonych od strachu i jego obsesyjnych nocnych poszukiwań kolejnych "Sygnałów". Dziś bezpiecznie czuje się jedynie w otoczonym kablami, mrocznym studiu telewizyjnym, w swoim słynnym czarnym, skórzanym płaszczu z uniesionym kołnierzem, za ciemnymi okularami. Mimo opanowania i sceptycyzmu obnażającego naciągaczy i ezoterycznych magów, Tomasz każdego dnia walczy o udowodnienie samemu sobie, że to, co usłyszał przed laty na kasecie, nie było wynikiem wczesnego obłędu.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -49,12 +52,12 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     residence: 'Warszawa, Polska',
     characterConcept: 'Wyrachowana organizatorka, dla której liczy się oglądalność i dobrze opowiedziana historia.',
     ideology: 'Telewizja to iluzja, a ludzie chcą wierzyć w niesamowite rzeczy.',
-    significantPerson: 'Tomasz Nowicki – choć często się kłócą, tworzą niepokonany zespół.',
-    meaningfulLocation: 'Wóz transmisyjny – mobilne centrum dowodzenia.',
+    significantPerson: 'Tomasz Nowicki - choć często się kłócą, tworzą niepokonany zespół.',
+    meaningfulLocation: 'Wóz transmisyjny - mobilne centrum dowodzenia.',
     treasuredPossession: 'Notatnik z kontaktami do niemal każdego oficjela w państwie.',
     traits: ['Ambitna', 'Czarująca', 'Stanowcza'],
     description: 'Zawsze nienagannie ubrana (zwykle w dopasowane garnitury damskie i płaszcze), z telefonem komórkowym "cegłą" ciągle w ręku.',
-    backstory: 'Kariera Heleny w mediach rozpoczęła się na krakowskich korytarzach ośrodków telewizyjnych, gdzie szybko zorientowała się, że widzowie nie łakną suchej prawdy, lecz zapierających dech w piersiach iluzji i tajemnic. Bezkompromisowa i zdeterminowana, pokonała szczeble od asystentki do głównej producentki "Sygnałów Nieznanego", budując pozycję żelazną stanowczością i urokiem osobistym. Jej świat kręci się wokół notatnika z kontaktami – to dzięki niemu załatwia wejścia tam, gdzie policja wolałaby zamknąć drzwi. Zawsze ubrana w nienaganny garnitur, z przypiętą do ucha nieodłączną komórką w formie "cegły", potrafi dyrygować sztabem ludzi bez podnoszenia głosu. Helena uwielbia adrenalinę pracy w terenie, traktując wóz transmisyjny niczym swój azyl i mobilne centrum dowodzenia. Choć wyznaje, że "telewizja to tylko iluzja", jej zderzenia z niewytłumaczalnymi zjawiskami podczas kręcenia materiałów w opuszczonych klasztorach i nawiedzonych szpitalach zasiały w niej mroczne ziarno wątpliwości. Nigdy nie przyzna się do strachu przed kamerą, polegając na duecie z Tomaszem Nowickim. Choć ich metody pracy prowadzą do ciągłych i głośnych kłótni, oboje wiedzą, że stworzyli zespół, który jako jedyny w kraju potrafi udźwignąć ciężar dokumentowania prawdy czającej się w mroku wolnej Polski.',
+    backstory: 'Kariera Heleny w mediach rozpoczęła się na krakowskich korytarzach ośrodków telewizyjnych, gdzie szybko zorientowała się, że widzowie nie łakną suchej prawdy, lecz zapierających dech w piersiach iluzji i tajemnic. Bezkompromisowa i zdeterminowana, pokonała szczeble od asystentki do głównej producentki "Sygnałów Nieznanego", budując pozycję żelazną stanowczością i urokiem osobistym. Jej świat kręci się wokół notatnika z kontaktami - to dzięki niemu załatwia wejścia tam, gdzie policja wolałaby zamknąć drzwi. Zawsze ubrana w nienaganny garnitur, z przypiętą do ucha nieodłączną komórką w formie "cegły", potrafi dyrygować sztabem ludzi bez podnoszenia głosu. Helena uwielbia adrenalinę pracy w terenie, traktując wóz transmisyjny niczym swój azyl i mobilne centrum dowodzenia. Choć wyznaje, że "telewizja to tylko iluzja", jej zderzenia z niewytłumaczalnymi zjawiskami podczas kręcenia materiałów w opuszczonych klasztorach i nawiedzonych szpitalach zasiały w niej mroczne ziarno wątpliwości. Nigdy nie przyzna się do strachu przed kamerą, polegając na duecie z Tomaszem Nowickim. Choć ich metody pracy prowadzą do ciągłych i głośnych kłótni, oboje wiedzą, że stworzyli zespół, który jako jedyny w kraju potrafi udźwignąć ciężar dokumentowania prawdy czającej się w mroku wolnej Polski.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -86,7 +89,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Kamera na podczerwień i sprzęt do pomiaru pola elektromagnetycznego (EMF).',
     traits: ['Metodyczna', 'Otwarty umysł', 'Skoncentrowana'],
     description: 'Nosi luźne wełniane swetry, okulary na łańcuszku, często z teczką pełną wydruków i ryciny.',
-    backstory: 'Jako szanowany pracownik naukowy Uniwersytetu Warszawskiego, Barbara przez dekady zakładała, że za każdym podaniem ludowym, legendą czy klątwą kryje się zniekształcone przez wieki ziarno historycznej prawdy. Metodyczna do bólu, zorganizowała swój świat w zapachach starego papieru w wydziałowej bibliotece, uchodząc za specjalistkę z zakresu demonologii i ludowych wierzeń z Lubelszczyzny. Jej akademickie, bezpieczne postrzeganie świata pękło podczas wyprawy badawczej na Podlasie, w której asystowała swojemu wieloletniemu mentorowi. Podczas próby skatalogowania zjawisk w zapomnianej wiosce, jej mentor postradał zmysły, wpatrując się w mrok starej stodoły. Od tamtego dnia Barbara porzuciła klasyczną etnografię na rzecz parapsychologii. Wyposażona w nowoczesną – jak na lata 90. – aparaturę: kamerę na podczerwień oraz swój cenny miernik EMF, dołączyła do ekipy "Sygnałów Nieznanego" by znaleźć naukowy dowód na to, co widziała. Za maską spokojnej, ubranej w grube wełniane swetry i okulary na łańcuszku profesorki kryje się umysł łaknący dowodu na istnienie innej fizyki. Barbara uważa, że to nie duchy napadają na ludzi, ale niezrozumiane jeszcze echa energii, a każde odstępstwo od normy na jej mierniku przybliża ją do ocalenia dobrego imienia zamkniętego w zakładzie psychiatrycznym mentora.',
+    backstory: 'Jako szanowany pracownik naukowy Uniwersytetu Warszawskiego, Barbara przez dekady zakładała, że za każdym podaniem ludowym, legendą czy klątwą kryje się zniekształcone przez wieki ziarno historycznej prawdy. Metodyczna do bólu, zorganizowała swój świat w zapachach starego papieru w wydziałowej bibliotece, uchodząc za specjalistkę z zakresu demonologii i ludowych wierzeń z Lubelszczyzny. Jej akademickie, bezpieczne postrzeganie świata pękło podczas wyprawy badawczej na Podlasie, w której asystowała swojemu wieloletniemu mentorowi. Podczas próby skatalogowania zjawisk w zapomnianej wiosce, jej mentor postradał zmysły, wpatrując się w mrok starej stodoły. Od tamtego dnia Barbara porzuciła klasyczną etnografię na rzecz parapsychologii. Wyposażona w nowoczesną - jak na lata 90. - aparaturę: kamerę na podczerwień oraz swój cenny miernik EMF, dołączyła do ekipy "Sygnałów Nieznanego" by znaleźć naukowy dowód na to, co widziała. Za maską spokojnej, ubranej w grube wełniane swetry i okulary na łańcuszku profesorki kryje się umysł łaknący dowodu na istnienie innej fizyki. Barbara uważa, że to nie duchy napadają na ludzi, ale niezrozumiane jeszcze echa energii, a każde odstępstwo od normy na jej mierniku przybliża ją do ocalenia dobrego imienia zamkniętego w zakładzie psychiatrycznym mentora.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -118,7 +121,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Legalnie zarejestrowany pistolet P-64, w kaburze pod pachą.',
     traits: ['Podejrzliwy', 'Lojalny', 'Bezkompromisowy'],
     description: 'Masywnej postury, zawsze lekko niedogolony. Nosi sprane jeansy, ciężkie buty i wojskową kurtkę.',
-    backstory: 'Ryszard był człowiekiem systemu, oficerem służb bezpieczeństwa ukształtowanym przez brutalne realia zimnej wojny i PRL-u. Wychowany w Gdańsku, szybko nauczył się, że lojalność i bezkompromisowa siła są o wiele skuteczniejszymi walutami niż obietnice. W latach 80. zajmował się inwigilacją, otwieraniem zamków bez śladu i dyskretnym rozwiązywaniem problemów. System upadł, a po 1989 roku Ryszard pozostał człowiekiem o kompetencjach niepasujących do nowego świata. Targany wyrzutami sumienia za dawne czyny, których brzemię uderzyło w jego córkę, postanowił wykorzystać swoje paranoiczne nawyki do chronienia tych, którzy są zbyt naiwni, by dbać o siebie sami. Dziś zatrudnia go ekipa telewizyjna "Sygnałów Nieznanego". Za sterami swojej starej Łady Nivy pełni rolę ochroniarza, kierowcy i „ślusarza”. Nigdy nie rozstaje się z legalnym pistoletem P-64 skrytym pod wojskową kurtką, a na każdy uśmiech odpowiada podejrzliwym zmrużeniem oka. Ryszard absolutnie nie wierzy w duchy, kulty ani klątwy; wierzy za to, że najgorsze potwory mają dwie ręce, dwie nogi i motyw finansowy. Dopóki ma swój zestaw wytrychów i broń, jest w stanie uchronić "jajogłowych" dziennikarzy przed brutalnymi spotkaniami w zatęchłych piwnicach i opuszczonych bunkrach.',
+    backstory: 'Ryszard był człowiekiem systemu, oficerem służb bezpieczeństwa ukształtowanym przez brutalne realia zimnej wojny i PRL-u. Wychowany w Gdańsku, szybko nauczył się, że lojalność i bezkompromisowa siła są o wiele skuteczniejszymi walutami niż obietnice. W latach 80. zajmował się inwigilacją, otwieraniem zamków bez śladu i dyskretnym rozwiązywaniem problemów. System upadł, a po 1989 roku Ryszard pozostał człowiekiem o kompetencjach niepasujących do nowego świata. Targany wyrzutami sumienia za dawne czyny, których brzemię uderzyło w jego córkę, postanowił wykorzystać swoje paranoiczne nawyki do chronienia tych, którzy są zbyt naiwni, by dbać o siebie sami. Dziś zatrudnia go ekipa telewizyjna "Sygnałów Nieznanego". Za sterami swojej starej Łady Nivy pełni rolę ochroniarza, kierowcy i "ślusarza". Nigdy nie rozstaje się z legalnym pistoletem P-64 skrytym pod wojskową kurtką, a na każdy uśmiech odpowiada podejrzliwym zmrużeniem oka. Ryszard absolutnie nie wierzy w duchy, kulty ani klątwy; wierzy za to, że najgorsze potwory mają dwie ręce, dwie nogi i motyw finansowy. Dopóki ma swój zestaw wytrychów i broń, jest w stanie uchronić "jajogłowych" dziennikarzy przed brutalnymi spotkaniami w zatęchłych piwnicach i opuszczonych bunkrach.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -129,8 +132,9 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     skills: { 'Walka wręcz': 75, 'Broń palna (krótka)': 70, 'Unik': 60, 'Ślusarstwo': 65, 'Zastraszanie': 60, 'Spostrzegawczość': 55 },
     equipment: [{ id: 'eq_rysz_gun', name: 'Pistolet P-64 z zapasowym magazynkiem', category: 'weapon' }, { id: 'eq_rysz_lockpicks', name: 'Zestaw wytrychów i łom', category: 'tool' }]
   },
+
   // ==========================================================================
-  // TAJEMNICA PĘDNIKA: KOWARY
+  // 2. TAJEMNICA PĘDNIKA: KOWARY
   // ==========================================================================
   {
     id: 'pednik_inzynier',
@@ -153,7 +157,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Precyzyjna suwmiarka cyfrowa w skórzanym etui.',
     traits: ['Pragmatyczny', 'Uparty', 'Ciekawski'],
     description: 'Nosi roboczy drelich z wieloma kieszeniami i wiecznie umazane smarem dłonie.',
-    backstory: 'Spędził większość życia na poszukiwaniu sposobów na zminimalizowanie skutków wypadków samochodowych. Zderzak Łągiewki uważa za niemożliwy, ale intrygujący.',
+    backstory: 'Marek spędził ponad dwadzieścia lat przy deskach kreślarskich i w halach fabrycznych przemysłu motoryzacyjnego na Dolnym Śląsku. Jako inżynier mechaniki precyzyjnej wyznaje prostą zasadę: bilans energii we wszechświecie zawsze musi wyjść na zero. W jego uporządkowanym świecie wszystko da się zmierzyć suwmiarką i opisać prawami dynamiki Newtona. Pęknięcie w tym światopoglądzie pojawiło się podczas tajnych prób zderzeniowych na poligonie pod Jelczem. Zderzak prototypowego pojazdu pochłonął siłę uderzenia o betonowy blok, ale zamiast odkształcenia materiału aparatura pomiarowa zarejestrowała gwałtowny spadek temperatury wokół maszyny i nienaturalny impuls magnetyczny. Kiedy jego promotor ze studiów uznał to za błąd aparatury i zakazał dalszych dociekań, Marek na własną rękę rozpoczął poszukiwania prawdy. Wieść o eksperymentach konstrukcyjnych Lucjana Łągiewki w Kowarach ściągnęła go w Karkonosze. W roboczym drelichu z wiecznie umazanymi smarem dłońmi i wierną suwmiarką w kieszeni, Marek zamierza na własne oczy sprawdzić, czy kowarski pędnik to tylko genialny mechanizm, czy może nieświadome otwarcie wrót do obcej, nieznanej fizyki, przed którą konwencjonalna nauka zamyka oczy.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -185,7 +189,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Kluczyki do pierwszego wygranego samochodu rajdowego.',
     traits: ['Odważny', 'Impulsywny', 'Refleksyjny'],
     description: 'Nosi kurtkę skórzaną, często żuje gumę, rzadko ściąga rękawiczki do jazdy.',
-    backstory: 'Szuka coraz większych wrażeń. Pędnik w Kowarach to dla niego szansa na test maszyny, która zignoruje przeciążenia.',
+    backstory: 'Zapach spalonej gumy, gorącego oleju i etyliny towarzyszy Tomaszowi od dziecka. Jako jeden z najbardziej obiecujących kierowców rajdowych w Polsce lat 90., żył wyłącznie w rytmie obrotomierza i ryku silnika. Wszystko zmieniło się podczas jesiennego Rajdu Karkonoskiego w 1993 roku. Na ostrym wirażu pod Kowarami prowadzony przez niego wóz wypadł z trasy, uderzając w skały. Tomasz cudem ocalał, jednak jego wieloletni pilot i najbliższy przyjaciel Janek zginął na miejscu. Przeżyta trauma nie odebrała Tomaszowi głodu prędkości, lecz zamieniła sportową pasję w ponurą obsesję na punkcie granic ludzkiego przetrwania. Porzucił oficjalne mistrzostwa i został kierowcą testowym oraz kaskaderem do zadań, których nikt inny nie chciał się podjąć. W kieszeni skórzanej kurtki rajdowej zawsze nosi porysowane kluczyki do rozbitego wozu, traktując je jak talizman i wieczne memento. Kiedy usłyszał o zderzaku w Kowarach, który rzekomo całkowicie niweluje przeciążenia i siłę zderzenia, natychmiast zgłosił się na ochotnika. Tomasz nie boi się śmierci ani zniszczenia maszyny; za kółkiem szuka odpowiedzi na pytanie, jaka niepojęta siła ocaliła go w górach tamtej feralnej nocy.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -217,12 +221,12 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Kompaktowy aparat z bardzo czułym filmem fotograficznym.',
     traits: ['Dociekliwa', 'Podejrzliwa', 'Gadatliwa'],
     description: 'Bystre spojrzenie zza oprawek korekcyjnych, notes zawsze w pogotowiu.',
-    backstory: 'Odkryła, że polskie służby interesują się niezależnymi inżynierami w Karkonoszach. Pojechała tam, by udokumentować sprawę Łągiewki.',
+    backstory: 'Anna jest uosobieniem bezkompromisowego dziennikarstwa śledczego doby polskiej transformacji ustrojowej. Dla niej nie ma drzwi, w które nie da się włożyć buta, ani urzędnika, którego nie da się przycisnąć niewygodnym pytaniem. Swoją karierę zbudowała na ujawnianiu nielegalnego handlu mieniem poradzieckim i dzikiej prywatyzacji na zachodzie kraju. Zawsze nosi przy sobie kompaktowy aparat fotograficzny na czułym filmie, a jej ciemnia w redakcji to jedyne miejsce, w którym czuje się w pełni bezpiecznie. Jej zainteresowanie Kowarami zaczęło się od zaszyfrowanej wiadomości od informatora o kryptonimie Kruk, powiązanego z nowo tworzoną Agencją Ochrony Rzeczypospolitej. Przecieki sugerowały, że wokół warsztatu w Kowarach kręcą się ludzie z zagranicznych koncernów zbrojeniowych oraz dawni oficerowie wywiadu wojskowego. Wścibska i niezwykle czujna, Anna przyjechała w Sudety pod pozorem pisania lekkiego reportażu o lokalnym wynalazcy. Zza korekcyjnych okularów bacznie rejestruje każdy podejrzany ruch, czując w kościach, że sprawa pędnika to nie tylko polski patent techniczny, lecz niebezpieczna gra wywiadów na granicy zjawisk wymykających się ludzkiemu pojmowaniu.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
     notes: '',
-    tacticalNotes: 'Doskonale kłamie, podsłuchuje i włłamuje się do archiwów.',
+    tacticalNotes: 'Doskonale kłamie, podsłuchuje i włamuje się do archiwów.',
     experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 0 },
     developmentHistory: [],
     skills: { 'Spostrzegawczość': 70, 'Perswazja': 65, 'Psychologia': 60, 'Ukrywanie': 55, 'Gadanina': 70 },
@@ -249,7 +253,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Kalkulator naukowy CASIO z dodatkowymi funkcjami logarytmicznymi.',
     traits: ['Racjonalna', 'Skupiona', 'Arogancka'],
     description: 'Elegancka, z włosami spiętymi w ciasny kok, zawsze nosi marynarkę.',
-    backstory: 'Jej kariera zależy od obalenia mitów pseudonauki. Wyjazd do Kowar ma być prostym zadaniem, udowodnieniem błędu pomiarowego.',
+    backstory: 'Córka i wnuczka szanowanych toruńskich profesorów, Ewa od najmłodszych lat traktowała matematykę jak jedyny nieskazitelny język wszechświata. Jako pracowniczka instytutu fizyki teoretycznej zyskała renomę bezwzględnej polemistki, tępiącej wszelkie przejawy pseudonauki i ezoteryki, które po 1989 roku zalały polski rynek wydawniczy. Jej życiową tarczą jest kalkulator naukowy Casio i gęsto zapisany zeszyt równań różniczkowych. Wyjazd do Kowar traktowała początkowo jako rutynowy obowiązek akademicki, mający na celu publiczne obalenie mitu o łamaniu zasad zachowania pędu przez konstrukcję Łągiewki. Wszystko zmieniło się, gdy przeprowadziła wstępne kalkulacje rozkładu wektorów sił podczas zderzenia. Wyniki nie wykazały błędu pomiarowego; równania wskazywały na obecność punktowego zagięcia czasoprzestrzeni i transfer energii poza nasz wymiar. Ta świadomość uderzyła w fundamenty jej bezpiecznego, racjonalnego świata. Zawsze elegancka, z włosami spiętymi w ciasny kok, Ewa ukrywa pod maską akademickiej arogancji rosnące przerażenie. Przyjechała do kowarskiego warsztatu, by dowieść samej sobie, że rzeczywistość wokół nas wciąż podlega prawom ludzkiej matematyki.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -262,7 +266,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
 
   // ==========================================================================
-  // TAJEMNICA DZIECI Z TRASZYNA
+  // 3. TAJEMNICA DZIECI Z TRASZYNA
   // ==========================================================================
   {
     id: 'traszyn_egzorcysta',
@@ -285,7 +289,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Srebrny krucyfiks z relikwią wewnątrz.',
     traits: ['Spokojny', 'Niezłomny', 'Wierzący'],
     description: 'Nosi skromną sutannę. Jego oczy sprawiają wrażenie, że patrzą na wskroś człowieka.',
-    backstory: 'Wysłany do Traszyna po doniesieniach o niewyjaśnionych zjawiskach i zbeszczeszczonym krzyżu. Wie, jak odróżnić chorobę psychiczną od interwencji z zewnątrz.',
+    backstory: 'Ksiądz Jan spędził ponad dwadzieścia lat w duszpasterstwie diecezji lubelskiej, posługując na styku ludzkiego cierpienia i zjawisk, o których Kościół woli milczeć. Jako oficjalny egzorcysta delegowany przez biskupa, widział dziesiątki przypadków chorób psychicznych i histerii, które potrafił odsiać od prawdziwej obecności zła. Nigdy nie zapomni jednak zimowej nocy w opuszczonej parafii pod Hrubieszowem, gdzie głos wydobywający się z gardła opętanej dziewczynki recytował bluźniercze litanie w języku, którego nie znały żadne teksty biblijne. Od tamtego czasu Jan nosi pod sutanną srebrny krucyfiks z relikwią i nie rozstaje się z butelką wody święconej. Wezwanie do Traszyna po doniesieniach o odwróconym krzyżu i niewytłumaczalnych zachowaniach dzieci traktuje z najwyższą powagą. Cichy, wyważony i obdarzony żelazną wolą, doskonale wie, że zło przenika tam, gdzie pęka ludzka nadzieja. Wchodząc między zabobonnych mieszkańców Traszyna, ksiądz Jan przygotowuje się na duchowe starcie z siłą znacznie starszą i bardziej obcą niż demony z podręczników teologii.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -317,7 +321,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Duży, rzekomo stary kryształ kwarcu na rzemyku.',
     traits: ['Empatyczny', 'Charyzmatyczny', 'Ekscentryczny'],
     description: 'Ubiera się swobodnie w lniane koszule, nosi długie włosy związane w kucyk.',
-    backstory: 'Po wezwaniu przez znajomego egzorcystę, Andrzej wyczuł w Traszynie ogromne, rozerwane pole energetyczne, co wzbudziło w nim obawy o własne bezpieczeństwo.',
+    backstory: 'Gabinet Andrzeja w centrum Lublina na przełomie wieków przyciągał setki ludzi, dla których oficjalna służba zdrowia nie miała już ratunku. Długowłosy, ubrany w lniane koszule i otoczony dymem szałwiowych kadzideł, Andrzej uchodzi za charyzmatycznego mistrza bioterpaii i uzdrawiania kryształami. Za tą kolorową, new-ageową fasadą kryje się jednak człowiek noszący w sobie autentyczny, niewytłumaczalny dar odczuwania anomalii energetycznych. Jego życie pękło na pół podczas prywatnego seansu z dawnym pacjentem z okolic Traszyna. Kiedy dotknął dłońmi skroni mężczyzny, w ułamku sekundy ujrzał czarne, pulsujące niebo i bezkształtną obecność czającą się pod fundamentami wiejskich zabudowań. Złote wahadełko w jego rękach rozgrzało się do czerwoności, a fala obezwładniającego chłodu na zawsze zmieniła jego postrzeganie świata. Przyjechał do Traszyna na prośbę znajomego duchownego, wiedząc, że to nie zabawa w bioenergię, lecz walka o przetrwanie. Mimo że wciąż posługuje się żargonem o czakrach i wibracjach, Andrzej panicznie boi się chwili, w której jego własna wrażliwość przyciągnie uwagę bytu czuwającego w traszyńskich lasach.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -349,7 +353,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Mały, porysowany rysunek "potwora" podarowany przez uratowanego pacjenta.',
     traits: ['Cierpliwa', 'Analityczna', 'Empatyczna'],
     description: 'Spokojny głos, ciepły uśmiech, ubiera się w stonowane barwy, aby nie przerażać dzieci.',
-    backstory: 'Zaintrygowana zbieżnością w paraliżach sennych u kilku ofiar incydentu sprzed lat. Postanowiła pojechać do Traszyna z zamiarem znalezienia racjonalnych przyczyn traumy w lokalnej społeczności.',
+    backstory: 'Jako psycholog dziecięcy pracująca w lubelskich placówkach opieki społecznej, Marta poświęciła życie ratowaniu najmłodszych przed traumą i przemocą domową. Jest osobą twardo stąpającą po ziemi, dla której każde ludzkie zachowanie, nawet najbardziej skrajne, ma źródło w neurobiologii lub środowiskowych ranach. Wszystkie te racjonalne założenia stanęły pod znakiem zapytania, gdy na jej biurko trafiły akta trójki dzieci z Traszyna. Mali pacjenci cierpieli na identyczne ataki paniki nocnej, opisując wspólnie postać bez twarzy stojącą w progu starej stodoły. Największym wstrząsem był dla Marty podarunek od siedmioletniego chłopca, który po miesiącach milczenia narysował istotę o nieludzkich proporcjach, otoczoną geometrycznymi symbolami sprzed wieków. Prowadząc dochodzenie w odciętej od świata wsi, Marta każdego dnia walczy z poczuciem winy wobec własnej córeczki zostawionej pod opieką rodziny w Lublinie. Zawsze spokojna i metodyczna, z notesem pełnym zapisków klinicznych, próbuje znaleźć naukowe wytłumaczenie koszmaru, zanim obłęd pochłonie kolejne dzieci i jej własny, uporządkowany umysł.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -381,7 +385,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Prababci oprawiony w skórę śpiewnik z kilkoma bardzo starymi zaklęciami szeptuch.',
     traits: ['Wścibska', 'Towarzyska', 'Przesądna'],
     description: 'Nosi wełniane kardigany i szale. Zawsze jest w centrum lokalnych wydarzeń.',
-    backstory: 'Pamięta z dzieciństwa plotki o trójce znajomych, którzy bawili się w stodole. Kiedy pojawił się obrócony krzyż na polu, Zofia od razu wyczuła okazję do udokumentowania powrotu starego demona z podań.',
+    backstory: 'Zofia spędziła całe życie w Traszynie, pracując w skromnej gminnej bibliotece i opiekując się schorowaną ciotką, która uchodziła za ostatnią wiejską zielarkę i szeptuchę. Od najmłodszych lat Zosia chłonęła lokalne podania, spisując w grubych zeszytach legendy o utopcach, biesach i zapomnianych mogiłach w okolicznych zagajnikach. Pamięta szepty starszych mieszkańców o tragedii w starej stodole z lat 80., gdy zabawa trójki dzieci zakończyła się śmiercią jednego z nich i głuchym milczeniem pozostałych. Kiedy na polu za wsią znaleziono zbezczeszczony, odwrócony krzyż, a wśród zwierząt gospodarskich wybuchła niewytłumaczalna zaraza, Zosia zrozumiała, że stare przestrogi prababki nie były tylko ludowymi bajkami. Wyposażona w skórzany śpiewnik pełen archaicznych formuł ochronnych i niezrównaną znajomość wiejskich koneksji, Zofia stanowi dla przyjezdnych badaczy jedyny przewodnik po zamkniętej społeczności Traszyna. Za jej dziewczęcym urokiem i ciepłym uśmiechem kryje się jednak nieustanny strach przed zmrokiem i skrzypieniem desek w opuszczonych domostwach.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -394,7 +398,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
 
   // ==========================================================================
-  // PRZYBYSZ Z MATRIKSA: GŁOGÓW
+  // 4. PRZYBYSZ Z MATRIKSA: GŁOGÓW
   // ==========================================================================
   {
     id: 'glogow_detektyw',
@@ -417,7 +421,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Srebrna piersiówka, zawsze lekko wypełniona.',
     traits: ['Zgorzkniały', 'Cyniczny', 'Twardy'],
     description: 'Pognieciony trencz i głębokie worki pod oczami, wygląda jak relikt innej epoki.',
-    backstory: 'Został wynajęty, by odnaleźć zaginionego chłopaka. Zamiast ucieczki odkrył zapiski o Matriksie, przepowiedniach i wielkim kataklizmie, co wstrząsnęło jego światopoglądem.',
+    backstory: 'Artur to relikt dawno minionej epoki, zgorzkniały eks-milicjant, który po transformacji ustrojowej otworzył jednoosobowe biuro detektywistyczne w dusznej kamienicy w Legnicy. Przez dekady służby na Dolnym Śląsku widział najgorsze przejawy ludzkiej podłości, korupcji i zbrodni. Jego kariera w policji załamała się w 1991 roku po niewyjaśnionej tragedii w głogowskich podziemiach, gdzie wysłany patrol zniknął bez śladu, a jedyny ocalały funkcjonariusz wpadł w nieodwracalny obłęd. Od tamtej pory Artur żyje głównie z poszukiwań zaginionej młodzieży i drobnych spraw rozwodowych, topiąc wspomnienia w srebrnej piersiówce z żytnią i wypalając paczkę papierosów za paczką. Przyjęcie zlecenia odnalezienia chłopaka powiązanego z głogowskimi kafejkami internetowymi miało być prostą robotą za dobre pieniądze. Kiedy jednak na miejscu odnalazł notatki o wielkiej symulacji i ślady po istotach, których kule się nie imają, stary glina musiał odbezpieczyć swojego nielegalnego rewolweru. W pogniecionym trenczu i z papierosem w kąciku ust, Artur staje do ostatniego śledztwa, gotów spojrzeć w twarz prawdzie gorszej niż jakiekolwiek zbrodnie z milicyjnych kartotek.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -449,7 +453,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Twardy dysk wypełniony zaszyfrowanymi logami z forów o zjawiskach paranormalnych.',
     traits: ['Paranoiczny', 'Błyskotliwy', 'Introwertyk'],
     description: 'Blady, pije dużo tanich napojów energetycznych. Ubrany w za dużą bluzę z kapturem.',
-    backstory: 'Złamał hakerów z Głogowa w jakiejś internetowej przepychance. W zamian przysłali mu dziwne ciągi znaków, które przypominały kod obcej cywilizacji, po czym zniknęli z sieci i rzeczywistości.',
+    backstory: 'Dla Piotra świat zewnętrzny zawsze był zbyt głośny, chaotyczny i pozbawiony logiki. Jako samouk spędził młodość w piwnicach rodzinnego bloku w Legnicy, otoczony starymi monitorami CRT, kablami sieciowymi i szumem modemów dial-up. W świecie forów BBS i kanałów IRC uchodził za legendę podziemnego hackingu, łamiąc zabezpieczenia systemów telekomunikacyjnych i uczelnianych serwerów. Wszystko zmieniło się pamiętnej nocy, gdy w ramach sieciowej przepychanki włamał się na serwer powiązany z głogowską infrastrukturą przemysłową. Zamiast standardowych baz danych przechwycił nieskończony strumień obcych, fraktalnych ciągów znaków, które po zdekodowaniu układały się w logi błędów w fizycznej strukturze otaczającego nas świata. Chwilę później jego tajemniczy rozmówca o nicku Oracle zniknął z sieci, a w mieszkaniu Piotra padło zasilanie. Blady, wiecznie niewyspany i uzależniony od tanich napojów energetycznych, Piotr nie rozstaje się z ciężkim laptopem i zaszyfrowanym dyskiem. Jest święcie przekonany, że Głogów stał się epicentrum usterki w kosmicznym kodzie, a błędy renderowania rzeczywistości wkrótce doprowadzą do całkowitego restartu naszego świata.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -475,13 +479,13 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     birthplace: 'Szczecin, Polska',
     residence: 'Legnica, Polska',
     characterConcept: 'Współczująca, lecz zmęczona lekarka, której naukowe fundamenty powoli kruszeją pod naporem niewyjaśnionego.',
-    ideology: 'Każdy ból umysłu ma chemiczne podłoże – dopóki nie dowiedzie się, że to wpływ koszmarów z zewnątrz.',
+    ideology: 'Każdy ból umysłu ma chemiczne podłoże - dopóki nie dowiedzie się, że to wpływ koszmarów z zewnątrz.',
     significantPerson: 'Jej pacjent "Zerowy", który przed zapadnięciem w śpiączkę mówił o "siatce na niebie".',
     meaningfulLocation: 'Sterroryzowany, duszny oddział zamknięty, w którym spędza dnie i noce.',
     treasuredPossession: 'Notes z zapiskami z terapii najbardziej uciążliwych przypadków.',
     traits: ['Spokojna', 'Chłodna', 'Wnikliwa'],
     description: 'Nosi elegancki biały kitel na prostej bluzce, jej postawa sugeruje ogromne zmęczenie stresem.',
-    backstory: 'Zdecydowała się przeprowadzić dochodzenie na własną rękę, kiedy trzech nastolatków z Głogowa trafiło do niej tej samej nocy z identycznymi, "zaraźliwymi" halucynacjami dotyczącymi końca świata.',
+    backstory: 'Dr Krystyna Zawada przez niemal trzy dekady kierowała oddziałem zamkniętym szpitala psychiatrycznego w Legnicy. Jako wytrawny klinicysta zawsze uważała, że każdy omam, halucynacja czy urojenie mają swoje twarde podłoże w neurochemii mózgu. Ta niezłomna pewność legła w gruzach jednej nocy przełomu tysiącleci, kiedy na jej oddział przywieziono trójkę zupełnie obcych sobie nastolatków z Głogowa. Młodzi ludzie znajdowali się w stanie głębokiego szoku, powtarzając w transie te same matematyczne sekwencje i mówiąc o gasnącym niebie nad miastem. Co gorsza, na ciele każdego z nich Krystyna odkryła identyczne, geometryczne oparzenia przypominające ślady po układach scalonych. Próby konwencjonalnej terapii zawiodły, a jeden z pacjentów przed zapadnięciem w śpiączkę ostrzegł lekarkę przed nadchodzącym rozpadem materii. Zawsze opanowana, ubrana w nieskazitelny biały kitel i z notesem klinicznym pod pachą, Krystyna postanowiła osobiście udać się do Głogowa. Za jej chłodnym profesjonalizmem kryje się rosnące przerażenie i determinacja, by ocalić swoich pacjentów przed koszmarem wykraczającym poza ramy współczesnej medycyny.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
@@ -513,7 +517,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     treasuredPossession: 'Nietypowy kryształ rzekomo odnaleziony na miejscu katastrofy pod Wylatowem.',
     traits: ['Egzaltowana', 'Uparta', 'Otwarta'],
     description: 'Nosi hipisowskie ubrania, dużą ilość bransolet i zawsze z kamerą pod ręką.',
-    backstory: 'Śledząc wibracje w promieniowaniu ziemi na Dolnym Śląsku, trafiła na ślad "matriksowej sekty" w Głogowie. Postanowiła zinfiltrować ich szeregi by odkryć dowód na technologiczne ingerencje w ludzką świadomość.',
+    backstory: 'Karolina to niestrudzona poszukiwaczka prawdy o pozaziemskich cywilizacjach i zjawiskach anomalnych w Polsce lat 90. Od czasu tajemniczego zaginięcia jej partnera podczas wyprawy do słynnych kręgów zbożowych pod Wylatowem w 1997 roku, jej domem stał się rozklekotany kamper obwieszony folią aluminiową i mapami piktogramów. Jako niezależna publicystka magazynu Czwarty Wymiar przemierzyła cały kraj z aparatami do zdjęć nocnych i domowej roboty wykrywaczami pól elektromagnetycznych. Kiedy jej sensory zarejestrowały gigantyczne zaburzenia radiacyjne i mikrofale emanujące z opuszczonych korytarzy pod Głogowem, natychmiast skierowała tam swój wóz. Karolina uważa, że to, co dawni ludzie nazywali bogami i demonami, a współcześni biorą za gości z kosmosu, to pradawna inteligencja operująca na wyższych częstotliwościach wszechświata. Uparta, pełna pasji i nieustraszona w obliczu nieznanego, z nieodłączną kamerą w dłoniach, Luna jest gotowa wejść w najgłębsze podziemia, by zdobyć twardy dowód na to, że ludzkość nigdy nie była sama na tej planecie.',
     playerName: '',
     isActive: false,
     lastUsed: new Date(),
