@@ -195,7 +195,10 @@ export function DiscoveriesView({
             return (
               <button
                 key={entry.id}
-                onClick={() => setSelectedEntryId(entry.id)}
+                onClick={() => {
+                  setSelectedEntryId(entry.id);
+                  setIsEditingInsight(false);
+                }}
                 className={cn(
                   'w-full text-left p-3 rounded-md transition-all font-serif border-l-4 border-y border-r',
                   isSelected
@@ -333,6 +336,78 @@ export function DiscoveriesView({
               <div className="text-base leading-relaxed text-[#1a140f] whitespace-pre-wrap font-special-elite">
                 {selectedEntry.content}
               </div>
+
+              {/* Sekcja: Wnioski Badacza / Dedukcja */}
+              {isEditingInsight ? (
+                <div className="bg-[#d9cbb2] border-2 border-[#8c7353] p-4 my-4 rounded shadow-sm text-[#1f1712] clear-both">
+                  <div className="flex items-center gap-2 font-special-elite font-bold text-xs tracking-wider uppercase text-[#5a4428] mb-2">
+                    <Search className="h-4 w-4 text-[#8c7353]" />
+                    <span>WNIOSEK BADACZA / DEDUKCJA</span>
+                  </div>
+                  <textarea
+                    value={insightText}
+                    onChange={(e) => setInsightText(e.target.value)}
+                    placeholder="Wpisz dedukcję lub hipotezę badacza dotyczącą tego wpisu..."
+                    className="w-full bg-[#f4ebd0] border border-[#8c7353] rounded p-2.5 font-special-elite text-sm text-[#1f1712] placeholder-[#8c7353]/60 focus:outline-none focus:ring-1 focus:ring-[#8c7353] min-h-[90px] resize-y"
+                    autoFocus
+                  />
+                  <div className="flex justify-end gap-2 mt-2.5">
+                    <button
+                      onClick={() => setIsEditingInsight(false)}
+                      className="px-3 py-1 text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] border border-[#8c7353]/50 rounded"
+                    >
+                      Anuluj
+                    </button>
+                    <button
+                      onClick={() => {
+                        onEditEntry({
+                          ...selectedEntry,
+                          investigatorInsight: insightText.trim() || undefined,
+                        });
+                        setIsEditingInsight(false);
+                      }}
+                      className="px-3 py-1 text-xs font-special-elite bg-[#8c7353] hover:bg-[#725c40] text-[#f4ebd0] rounded font-bold transition-colors"
+                    >
+                      Zapisz wniosek
+                    </button>
+                  </div>
+                </div>
+              ) : selectedEntry.investigatorInsight ? (
+                <div className="bg-[#d9cbb2] border-2 border-[#8c7353] p-4 my-4 rounded shadow-sm text-[#1f1712] relative clear-both">
+                  <div className="flex items-center justify-between border-b border-[#8c7353]/30 pb-2 mb-2">
+                    <div className="flex items-center gap-2 font-special-elite font-bold text-xs tracking-wider uppercase text-[#5a4428]">
+                      <Search className="h-4 w-4 text-[#8c7353]" />
+                      <span>WNIOSEK BADACZA / DEDUKCJA</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setInsightText(selectedEntry.investigatorInsight || '');
+                        setIsEditingInsight(true);
+                      }}
+                      className="text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] underline flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity"
+                      title="Edytuj wniosek"
+                    >
+                      <Edit3 className="h-3 w-3" /> Edytuj wniosek
+                    </button>
+                  </div>
+                  <p className="font-special-elite text-sm leading-relaxed whitespace-pre-wrap">
+                    {selectedEntry.investigatorInsight}
+                  </p>
+                </div>
+              ) : (
+                <div className="my-4 clear-both">
+                  <button
+                    onClick={() => {
+                      setInsightText('');
+                      setIsEditingInsight(true);
+                    }}
+                    className="w-full py-2 px-3 border-2 border-dashed border-[#8c7353]/50 hover:border-[#8c7353] rounded bg-[#d9cbb2]/40 hover:bg-[#d9cbb2]/70 text-[#5a4428] font-special-elite text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Dodaj wniosek badacza (dedukcję)
+                  </button>
+                </div>
+              )}
 
               {/* Cele zadania dla questów */}
               {selectedEntry.objectives && selectedEntry.objectives.length > 0 && (

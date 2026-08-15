@@ -37,3 +37,26 @@ Branch: main
 ### Decyzje podjęte
 - `session-journal.tsx` oraz `src/lib/types.ts` stanowią jedyne źródło prawdy (SSOT) dla dziennika i tablicy dowodów.
 
+## Podsumowanie sesji: 2026-08-15 (Zadanie 2 - Rzut na Pomysł i Wnioski Badacza)
+Branch: main
+
+### Co zrobiono
+- Rozszerzono typy danych (`JournalEntry`, `ExtendedJournalEntry`, `EvidenceNode`, `DiscoveryEntry`) o pole `investigatorInsight?: string`.
+- Zaimplementowano mechanikę Rzutu na Pomysł (Idea Roll - INT) na Tablicy Badacza (`corkboard-investigation-board.tsx`) z kalkulacją progów CoC 7e RAW (Zwykły, Trudny, Ekstremalny, Krytyk, Fumble), animacją kości k100, fabularną interpretacją sukcesu/porażki, przypinaniem wniosku jako notatki do tablicy oraz zapisem w Kronice.
+- Dodano renderowanie winiety z wnioskiem dedukcyjnym bezpośrednio na kartach tablicy korkowej.
+- Zaimplementowano sekcję "Wniosek Badacza" w Aktach Sprawy (`discoveries-view.tsx`) z maszynowym krojem na pergaminowym tle oraz możliwością bezpośredniego dopisywania i edycji wniosków.
+- Zintegrowano przekazywanie `activeCharacter` i `investigatorInsight` w `session-journal.tsx` oraz `inspection-lightbox-modal.tsx`.
+- Dodano testy jednostkowe (`corkboard-investigation-board.test.tsx`, `discoveries-view.test.tsx`).
+- Wszystkie testy jednostkowe (`npm test` 48/48 suite'ów, 175 testów) i TypeScript (`npx tsc --noEmit`) zaliczone na 100% zielono.
+- Zaktualizowano `zadania.md`.
+
+### Co otwarte (do następnej sesji)
+- Zadanie 3: Klimatyczny stempel powiadomień w czacie (`📜 Zapisano w aktach sprawy: [Nazwa]`).
+- Zadanie 4: Dwustronna konfrontacja teorii i aktualizacja kolorów sznurków (`[HIPOTEZA]`).
+- Dedykowane portrety postaci Strefy 11 w klimacie lat 90.
+
+### Decyzje podjęte
+- Rzut na Pomysł (INT) jest w pełni zgodny z CoC 7e RAW: porażka w teście dedukcji nie blokuje śledztwa, lecz wprowadza komplikację fabularną (np. stratę czasu lub ryzyko).
+- Wnioski Badacza (`investigatorInsight`) są traktowane jako osobna warstwa diegetyczna względem surowych faktów i poszlak.
+
+

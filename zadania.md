@@ -54,3 +54,19 @@
 **Faza 3: Przebudowa Cold Start na Auto-Rebuild**
 - [x] Dodanie `npm run build` w skrypcie `desktop/cold-start.sh` dla katalogu silnika (`_tester/_base/.silnik/`), dzięki czemu po resecie gra uwzględni poprawki kodu przed uruchomieniem serwera. `(Zablokowane przez: Faza 1)`
 - Weryfikacja: `cold-start.sh` przechodzi, a po zimnym starcie modal szybkiej przygody otwiera grę, a biografie mają poprawne nagłówki.
+
+---
+
+**Zadanie: Rzut na Pomysł (Idea Roll) i Wnioski Badacza (Tablica Badacza & Akta)**
+
+**Faza 1: Typy i Mechanika Rzutu na Pomysł (INT)**
+- [x] Rozszerzenie typów `JournalEntry`, `ExtendedJournalEntry`, `EvidenceNode` oraz `DiscoveryEntry` o pole `investigatorInsight?: string`.
+- [x] Implementacja przycisku `💡 Błysk Dedukcji (INT)` w pasku narzędzi `CorkboardInvestigationBoard` oraz modalu rzutu kośćmi k100 (CoC 7e RAW) z progami Zwykły/Trudny/Ekstremalny/Krytyk/Fumble i interpretacją fabularną.
+- [x] Możliwość przypięcia wygenerowanego wniosku jako węzła na Tablicy Badacza lub zapisu w Kronice Sesji.
+
+**Faza 2: Prezentacja Wniosków Badacza w Aktach (Dossier)**
+- [x] Dodanie stylizowanego bloku "Wniosek Badacza" w kroju maszynowym w `discoveries-view.tsx`.
+- [x] Wdrożenie szybkiego dopisywania / edycji wniosku badacza bezpośrednio w widoku dossier.
+- [x] Integracja w `session-journal.tsx` i `inspection-lightbox-modal.tsx`.
+- Weryfikacja: `npx tsc --noEmit` PASS (0 błędów), `npm test` PASS (48/48 suite'ów, 175 testów).
+

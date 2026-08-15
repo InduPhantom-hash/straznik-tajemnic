@@ -20,7 +20,13 @@ import {
 import { CorkboardInvestigationBoard } from './journal/corkboard-investigation-board';
 import { DiscoveriesView } from './journal/discoveries-view';
 import { InspectionLightboxModal } from '../dialogs/inspection-lightbox-modal';
-import { EvidenceNode, EvidenceRelation, InvestigatorBoardState, BoardViewport } from '@/types/investigator-board';
+import {
+  EvidenceNode,
+  EvidenceRelation,
+  EvidenceNodeType,
+  InvestigatorBoardState,
+  BoardViewport,
+} from '@/types/investigator-board';
 import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
 import type { JournalEntry, JournalEventType, Character } from '@/lib/types';
 
@@ -608,6 +614,7 @@ export function SessionJournal({
                   content: e.content,
                   type: e.type,
                   imageUrl: (e as unknown as Record<string, string>).imageUrl,
+                  investigatorInsight: e.investigatorInsight,
                 }))}
                 equipmentItems={(character.equipment ?? []).map((e) => ({
                   id: e.id,
@@ -616,6 +623,17 @@ export function SessionJournal({
                   imageUrl: e.imageUrl,
                 }))}
                 onInspectNode={(node) => setInspectedNode(node)}
+                activeCharacter={character}
+                onAddJournalEntry={(entry) => {
+                  addEntry({
+                    title: entry.title,
+                    content: entry.content,
+                    type: entry.type as JournalEntryType,
+                    tags: entry.tags || ['dedukcja'],
+                    inGameDate: entry.inGameDate || currentInGameDate,
+                    investigatorInsight: entry.investigatorInsight,
+                  });
+                }}
               />
             </div>
           )}
@@ -641,11 +659,56 @@ export function SessionJournal({
           {/* 1. SEKCJA ODKRYĆ (dawne Misje + Encyklopedia) */}
           {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
             <DiscoveriesView
-              entries={(entries as unknown as Array<{ id: string; title: string; content: string; type: string; tags?: string[]; imageUrl?: string; imageStatus?: string; inGameDate?: string; timestamp?: number; questStatus?: 'active' | 'completed' | 'failed'; objectives?: Array<{ id: string; description: string; completed?: boolean; dateCompleted?: string }> }>).filter(
+              entries={(entries as unknown as Array<{ id: string; title: string; content: string; type: string; tags?: string[]; imageUrl?: string; imageStatus?: string; inGameDate?: string; timestamp?: number; questStatus?: 'active' | 'completed' | 'failed'; objectives?: Array<{ id: string; description: string; completed?: boolean; dateCompleted?: string }>; investigatorInsight?: string }>).filter(
                 (e) => ['quest', 'npc', 'location', 'item'].includes(e.type)
               )}
-              onEditEntry={(entry) => setEditingEntry(entry as unknown as ExtendedJournalEntry)}
+              onEditEntry={(entry) => {
+                const current = entries.find((e) => e.id === entry.id);
+                if (
+                  current &&
+                  (current.investigatorInsight !== entry.investigatorInsight ||
+                    current.title !== entry.title ||
+                    current.content !== entry.content)
+                ) {
+                  updateEntry(entry as unknown as ExtendedJournalEntry);
+                } else {
+                  setEditingEntry(entry as unknown as ExtendedJournalEntry);
+                }
+              }}
               onDeleteEntry={deleteEntry}
+              onPinToBoard={(entry) => {
+                let nodeType: EvidenceNodeType = 'clue';
+                if (entry.type === 'npc' || entry.type === 'encyclopedia_character') nodeType = 'suspect';
+                else if (entry.type === 'location' || entry.type === 'encyclopedia_location') nodeType = 'location';
+                else if (entry.type === 'item' || entry.type === 'encyclopedia_item') nodeType = 'artifact';
+                else if (entry.type === 'quest') nodeType = 'evidence';
+                else if (entry.type === 'note') nodeType = 'player_note';
+
+                const scrollLeft = 0;
+                const scrollTop = 0;
+                const zoom = boardViewport.zoom || 1;
+                const posX = scrollLeft / zoom + 60 + (boardNodes.length % 3) * 300;
+                const posY = scrollTop / zoom + 80;
+
+                const newNode: EvidenceNode = {
+                  id: `node_disc_${entry.id}_${Date.now()}`,
+                  title: entry.title,
+                  description: entry.content,
+                  type: nodeType,
+                  status: 'hypothesis',
+                  position: { x: posX, y: posY },
+                  imageUrl: entry.imageUrl,
+                  sourceJournalEntryId: entry.id,
+                  investigatorInsight: entry.investigatorInsight,
+                  isManuallyCreated: false,
+                  pinType: nodeType === 'player_note' ? 'note' : 'telegram',
+                  rotation: Math.round((Math.random() * 8 - 4) * 10) / 10,
+                  createdAt: new Date().toISOString(),
+                };
+
+                handleUpdateNodes([...boardNodes, newNode]);
+                setActiveTab('board');
+              }}
               searchQuery={searchQuery}
             />
           )}
@@ -908,6 +971,7 @@ function AddEntryForm({
     gameHour: 12,
     questStatus: 'active' as 'active' | 'completed' | 'failed',
     objectives: [] as QuestObjective[],
+    investigatorInsight: '',
   });
   const [newTag, setNewTag] = useState('');
   const [newObjective, setNewObjective] = useState('');
@@ -1090,6 +1154,20 @@ function AddEntryForm({
               className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f] placeholder-emerald-900/60"
               placeholder="Zapisz szczegóły przygody lub informacje o postaci/przedmiocie..."
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-amber-200/90 font-serif">
+              💡 Wnioski Badacza / Dedukcja (opcjonalnie)
+            </label>
+            <Textarea
+              value={formData.investigatorInsight}
+              onChange={(e) =>
+                setFormData({ ...formData, investigatorInsight: e.target.value })
+              }
+              className="min-h-20 bg-zinc-950 text-zinc-300 border-amber-900/40 focus-visible:ring-[#bfa15f] placeholder-amber-900/50 italic font-serif"
+              placeholder="Zapisz dedukcję lub hipotezę badacza..."
             />
           </div>
 
@@ -1405,6 +1483,20 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               }
               className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f]"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-amber-200/90 font-serif">
+              💡 Wnioski Badacza / Dedukcja (opcjonalnie)
+            </label>
+            <Textarea
+              value={formData.investigatorInsight || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, investigatorInsight: e.target.value })
+              }
+              className="min-h-20 bg-zinc-950 text-zinc-300 border-amber-900/40 focus-visible:ring-[#bfa15f] placeholder-amber-900/50 italic font-serif"
+              placeholder="Zapisz dedukcję lub hipotezę badacza..."
             />
           </div>
 

@@ -214,6 +214,16 @@ export function InspectionLightboxModal({
               )}
             </div>
 
+            {/* Wniosek Badacza / Dedukcja */}
+            {node.investigatorInsight && (
+              <div className="bg-[#2a1b12] border-l-2 border-[#bfa15f] p-3 rounded text-xs text-[#f4ebd0] shadow-inner">
+                <span className="text-[10px] uppercase font-bold text-[#bfa15f] block mb-1 flex items-center gap-1">
+                  <StickyNote className="h-3 w-3" /> Wniosek Badacza / Dedukcja
+                </span>
+                <p className="italic font-serif leading-relaxed">{node.investigatorInsight}</p>
+              </div>
+            )}
+
             {/* Notatki badacza */}
             <div className="flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-1.5">

@@ -118,4 +118,70 @@ describe('DiscoveriesView', () => {
     fireEvent.click(screen.getByTitle('Przypnij do Tablicy Badacza'));
     expect(onPin).toHaveBeenCalledWith(mockEntries[0]);
   });
+
+  it('wyświetla wniosek badacza jeśli jest obecny we wpisie oraz umożliwia jego edycję', () => {
+    const onEdit = jest.fn();
+    const entryWithInsight = {
+      id: '5',
+      title: 'Dziwny Symbol',
+      content: 'Wygrawerowany znak na podłodze.',
+      type: 'location',
+      investigatorInsight: 'Symbol ten przypomina pieczęć pradawnego bóstwa.',
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[entryWithInsight]}
+        onEditEntry={onEdit}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    // Nagłówek i treść wniosku
+    expect(screen.getByText('WNIOSEK BADACZA / DEDUKCJA')).toBeInTheDocument();
+    expect(screen.getByText('Symbol ten przypomina pieczęć pradawnego bóstwa.')).toBeInTheDocument();
+
+    // Edycja wniosku
+    fireEvent.click(screen.getByRole('button', { name: /Edytuj wniosek/i }));
+    const textarea = screen.getByPlaceholderText('Wpisz dedukcję lub hipotezę badacza dotyczącą tego wpisu...');
+    expect(textarea).toBeInTheDocument();
+    fireEvent.change(textarea, { target: { value: 'Zaktualizowana hipoteza śledcza.' } });
+    fireEvent.click(screen.getByRole('button', { name: /Zapisz wniosek/i }));
+
+    expect(onEdit).toHaveBeenCalledWith({
+      ...entryWithInsight,
+      investigatorInsight: 'Zaktualizowana hipoteza śledcza.',
+    });
+  });
+
+  it('umożliwia dodanie nowego wniosku badacza gdy go brak', () => {
+    const onEdit = jest.fn();
+    const entryWithoutInsight = {
+      id: '6',
+      title: 'Stara Piwnica',
+      content: 'Zimne, wilgotne pomieszczenie.',
+      type: 'location',
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[entryWithoutInsight]}
+        onEditEntry={onEdit}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    const addInsightBtn = screen.getByRole('button', { name: /Dodaj wniosek badacza/i });
+    expect(addInsightBtn).toBeInTheDocument();
+    fireEvent.click(addInsightBtn);
+
+    const textarea = screen.getByPlaceholderText('Wpisz dedukcję lub hipotezę badacza dotyczącą tego wpisu...');
+    fireEvent.change(textarea, { target: { value: 'Ślady wskazują na pośpieszne zatarcie dowodów.' } });
+    fireEvent.click(screen.getByRole('button', { name: /Zapisz wniosek/i }));
+
+    expect(onEdit).toHaveBeenCalledWith({
+      ...entryWithoutInsight,
+      investigatorInsight: 'Ślady wskazują na pośpieszne zatarcie dowodów.',
+    });
+  });
 });
