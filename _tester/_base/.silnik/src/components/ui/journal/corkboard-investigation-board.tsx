@@ -31,7 +31,21 @@ import {
   StickyNote,
   Search,
   Eye,
+  Lightbulb,
+  Sparkles,
+  Dices,
+  RotateCcw,
+  X,
+  Check,
 } from 'lucide-react';
+import {
+  rollD100,
+  evaluateSkillCheck,
+  getOutcomeInfo,
+  isSuccess,
+  type RollOutcome,
+} from '@/lib/dice-utils';
+import type { Character } from '@/lib/types';
 
 // ------------------------------------------------------------------
 // Typy i stale
@@ -45,11 +59,29 @@ interface CorkboardInvestigationBoardProps {
   viewport?: BoardViewport;
   onUpdateViewport?: (viewport: BoardViewport) => void;
   /** Wpisy z Dziennika (Kronika, Notatki) do przypinania na tablice */
-  journalEntries?: Array<{ id: string; title: string; content: string; type: string; imageUrl?: string }>;
+  journalEntries?: Array<{
+    id: string;
+    title: string;
+    content: string;
+    type: string;
+    imageUrl?: string;
+    investigatorInsight?: string;
+  }>;
   /** Przedmioty z Ekwipunku do przypinania na tablice */
   equipmentItems?: Array<{ id: string; name: string; description: string; imageUrl?: string }>;
   /** Callback otwierajacy Inspection Lightbox dla danego wezla */
   onInspectNode?: (node: EvidenceNode) => void;
+  /** Aktywny badacz wykonujacy dedukcje / test INT */
+  activeCharacter?: Character;
+  /** Callback zapisu nowego wpisu do kroniki */
+  onAddJournalEntry?: (entry: {
+    title: string;
+    content: string;
+    type: string;
+    tags?: string[];
+    inGameDate?: string;
+    investigatorInsight?: string;
+  }) => void;
 }
 
 const NODE_TYPE_LABELS: Record<EvidenceNodeType, { label: string; color: string; borderColor: string }> = {
@@ -107,6 +139,8 @@ export function CorkboardInvestigationBoard({
   journalEntries = [],
   equipmentItems = [],
   onInspectNode,
+  activeCharacter,
+  onAddJournalEntry,
 }: CorkboardInvestigationBoardProps) {
   // --- Stan lokalny --------------------------------------------------
   const [localNodes, setLocalNodes] = useState<EvidenceNode[]>(nodes);
@@ -127,6 +161,14 @@ export function CorkboardInvestigationBoard({
   const [pendingConnection, setPendingConnection] = useState<{ fromId: string; toId: string } | null>(null);
   const [connectionLabel, setConnectionLabel] = useState('');
   const [connectionColor, setConnectionColor] = useState('#a83232');
+
+  // Idea Roll modal state
+  const [showIdeaModal, setShowIdeaModal] = useState(false);
+  const [ideaRollResult, setIdeaRollResult] = useState<{ roll: number; outcome: RollOutcome } | null>(null);
+  const [ideaInsightTitle, setIdeaInsightTitle] = useState('');
+  const [ideaInsightText, setIdeaInsightText] = useState('');
+  const [isRollingIdea, setIsRollingIdea] = useState(false);
+  const [savedToJournal, setSavedToJournal] = useState(false);
 
   // Refs
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -302,8 +344,82 @@ export function CorkboardInvestigationBoard({
     setSelectedNodeId(newNode.id);
   }, [localNodes, viewport.zoom, onUpdateNodes]);
 
+  // --- Rzut na Pomysl (Idea Roll - INT) ------------------------------
+  const handleOpenIdeaModal = useCallback(() => {
+    const charName = activeCharacter?.name || 'Badacz';
+    setIdeaRollResult(null);
+    setSavedToJournal(false);
+    setIdeaInsightTitle(`Błysk Dedukcji: ${charName}`);
+    setIdeaInsightText('');
+    setShowIdeaModal(true);
+  }, [activeCharacter]);
+
+  const handleExecuteIdeaRoll = useCallback(() => {
+    setIsRollingIdea(true);
+    const charName = activeCharacter?.name || 'Badacz';
+    const intStat = activeCharacter?.int ?? 50;
+    const roll = rollD100();
+    const outcome = evaluateSkillCheck(roll, intStat);
+    setIdeaRollResult({ roll, outcome });
+    setSavedToJournal(false);
+    setIdeaInsightTitle(`Błysk Dedukcji: ${charName}`);
+    if (isSuccess(outcome)) {
+      setIdeaInsightText(
+        `[Błysk Dedukcji]: Badacz ${charName} (INT ${intStat}%, rzut: ${roll}) dostrzega logiczne powiązania między zebranymi poszlakami. Ukryty wzorzec staje się widoczny.`
+      );
+    } else {
+      setIdeaInsightText(
+        `[Błysk Dedukcji - Komplikacja]: Badacz ${charName} (INT ${intStat}%, rzut: ${roll}) dociera do konkluzji okrężną drogą lub z komplikacją fabularną. Śledztwo posuwa się naprzód, lecz z ryzykiem lub stratą czasu.`
+      );
+    }
+    setIsRollingIdea(false);
+  }, [activeCharacter]);
+
+  const handlePinIdeaToBoard = useCallback(() => {
+    const charName = activeCharacter?.name || 'Badacz';
+    const scrollLeft = boardCanvasRef.current?.scrollLeft || 0;
+    const scrollTop = boardCanvasRef.current?.scrollTop || 0;
+    const zoom = viewport.zoom;
+    const posX = scrollLeft / zoom + 80 + (localNodes.length % 3) * 280;
+    const posY = scrollTop / zoom + 80 + Math.floor(localNodes.length / 3) * 220;
+
+    const newNode: EvidenceNode = {
+      id: `node_deduction_${Date.now()}`,
+      title: ideaInsightTitle.trim() || `Błysk Dedukcji: ${charName}`,
+      description: ideaInsightText.trim() || `Wniosek badacza ${charName} po analizie poszlak.`,
+      type: 'clue',
+      status: 'hypothesis',
+      position: { x: posX, y: posY },
+      investigatorInsight: ideaInsightText.trim(),
+      isManuallyCreated: true,
+      pinType: 'note',
+      rotation: randomRotation(),
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = [...localNodes, newNode];
+    setLocalNodes(updated);
+    onUpdateNodes(updated);
+    setSelectedNodeId(newNode.id);
+    setShowIdeaModal(false);
+  }, [activeCharacter, ideaInsightTitle, ideaInsightText, localNodes, viewport.zoom, onUpdateNodes]);
+
+  const handleSaveIdeaToJournal = useCallback(() => {
+    const charName = activeCharacter?.name || 'Badacz';
+    if (onAddJournalEntry) {
+      onAddJournalEntry({
+        title: ideaInsightTitle.trim() || `Błysk Dedukcji: ${charName}`,
+        content: ideaInsightText.trim(),
+        type: 'clue',
+        tags: ['dedukcja', 'pomysł', 'INT'],
+        investigatorInsight: ideaInsightText.trim(),
+      });
+      setSavedToJournal(true);
+    }
+  }, [activeCharacter, ideaInsightTitle, ideaInsightText, onAddJournalEntry]);
+
   // --- Przypinanie z Szuflady Poszlak --------------------------------
-  const handlePinFromJournal = useCallback((entry: { id: string; title: string; content: string; type: string; imageUrl?: string }) => {
+  const handlePinFromJournal = useCallback((entry: { id: string; title: string; content: string; type: string; imageUrl?: string; investigatorInsight?: string }) => {
     const scrollLeft = boardCanvasRef.current?.scrollLeft || 0;
     const scrollTop = boardCanvasRef.current?.scrollTop || 0;
     const zoom = viewport.zoom;
@@ -326,6 +442,7 @@ export function CorkboardInvestigationBoard({
       position: { x: posX, y: posY },
       imageUrl: entry.imageUrl,
       sourceJournalEntryId: entry.id,
+      investigatorInsight: entry.investigatorInsight,
       isManuallyCreated: false,
       pinType: nodeType === 'player_note' ? 'note' : 'telegram',
       rotation: randomRotation(),
@@ -418,6 +535,14 @@ export function CorkboardInvestigationBoard({
               Anuluj laczenie sznurkiem
             </button>
           )}
+          <Button
+            onClick={handleOpenIdeaModal}
+            size="sm"
+            className="text-[#f4ebd0] bg-[#3a2518] hover:bg-[#503422] border border-[#bfa15f]/60 font-serif shadow-sm transition-all"
+            title="Wykonaj Rzut na Pomysł (INT) według zasad Call of Cthulhu 7e"
+          >
+            <Lightbulb className="h-4 w-4 mr-1 text-[#f4ebd0]" /> Błysk Dedukcji (INT)
+          </Button>
           <Button
             onClick={handleAddManualNote}
             size="sm"
@@ -635,6 +760,16 @@ export function CorkboardInvestigationBoard({
                         {node.description}
                       </p>
 
+                      {/* Wniosek Badacza / Dedukcja */}
+                      {node.investigatorInsight && (
+                        <div className="mt-2 p-1.5 bg-[#25170d] border-l-2 border-[#bfa15f] rounded-r text-[10px] text-[#f4ebd0] italic shadow-inner">
+                          <span className="font-bold text-[#bfa15f] not-italic block mb-0.5 text-[8px] uppercase tracking-wider flex items-center gap-1">
+                            <Lightbulb className="h-2.5 w-2.5" /> Wniosek:
+                          </span>
+                          <p className="line-clamp-2 font-serif">{node.investigatorInsight}</p>
+                        </div>
+                      )}
+
                       {/* Stopka karty */}
                       <div className="mt-3 pt-1.5 border-t border-[#3a2518] flex items-center justify-between text-xs">
                         <span className="text-[9px] text-[#8a7667] truncate max-w-[100px]">
@@ -828,6 +963,211 @@ export function CorkboardInvestigationBoard({
               >
                 Polacz sznurkiem
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =================== MODAL RZUTU NA POMYSŁ (IDEA ROLL) ====== */}
+      {showIdeaModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1c120c] border-2 border-[#bfa15f]/80 rounded-xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] w-full max-w-xl p-6 text-[#e2d4c9] relative font-serif">
+            {/* Dekoracyjny nagłówek retro */}
+            <div className="flex items-start justify-between border-b border-[#3a2518] pb-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-[#3a2518] border border-[#bfa15f]/50">
+                  <Lightbulb className="h-5 w-5 text-[#f4ebd0]" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#f4ebd0] tracking-wide">
+                    BŁYSK DEDUKCJI (IDEA ROLL)
+                  </h3>
+                  <p className="text-xs text-[#8a7667] italic">
+                    Analiza zebranych poszlak w oparciu o Inteligencję (INT) wg zasad CoC 7e RAW
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowIdeaModal(false)}
+                className="text-[#8a7667] hover:text-[#f4ebd0] p-1 rounded transition-colors"
+                title="Zamknij"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Wizytówka badacza i progi INT */}
+            <div className="bg-[#120905] border border-[#3a2518] rounded-lg p-3.5 mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-bold text-[#f4ebd0]">
+                  Badacz: <span className="text-[#bfa15f]">{activeCharacter?.name || 'Badacz'}</span>
+                </span>
+                <span className="text-xs px-2.5 py-0.5 rounded bg-[#3a2518] text-[#f4ebd0] border border-[#bfa15f]/40 font-mono font-bold">
+                  INT: {activeCharacter?.int ?? 50}%
+                </span>
+              </div>
+
+              {/* Progi CoC 7e */}
+              <div className="grid grid-cols-5 gap-1.5 text-center text-[11px] pt-2 border-t border-[#2a1a10]">
+                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                  <span className="block text-[9px] uppercase text-[#8a7667]">Zwykły</span>
+                  <span className="font-mono font-bold text-[#e2d4c9]">≤ {activeCharacter?.int ?? 50}</span>
+                </div>
+                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                  <span className="block text-[9px] uppercase text-[#8a7667]">Trudny (½)</span>
+                  <span className="font-mono font-bold text-[#a3d18e]">≤ {Math.floor((activeCharacter?.int ?? 50) / 2)}</span>
+                </div>
+                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                  <span className="block text-[9px] uppercase text-[#8a7667]">Ekstremalny (⅕)</span>
+                  <span className="font-mono font-bold text-[#b49bf0]">≤ {Math.floor((activeCharacter?.int ?? 50) / 5)}</span>
+                </div>
+                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                  <span className="block text-[9px] uppercase text-[#8a7667]">Krytyk</span>
+                  <span className="font-mono font-bold text-[#f4ebd0]">01</span>
+                </div>
+                <div className="bg-[#1a100a] p-1.5 rounded border border-[#3a2518]">
+                  <span className="block text-[9px] uppercase text-[#8a7667]">Fumble</span>
+                  <span className="font-mono font-bold text-[#e3a8a8]">{(activeCharacter?.int ?? 50) < 50 ? '96-100' : '100'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rzut kością lub wynik */}
+            {!ideaRollResult ? (
+              <div className="text-center py-4">
+                <Button
+                  onClick={handleExecuteIdeaRoll}
+                  disabled={isRollingIdea}
+                  className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border-2 border-[#bfa15f] px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg transition-all"
+                >
+                  <Dices className="h-4 w-4 mr-2" />
+                  Wykonaj Rzut Dedukcji (k100)
+                </Button>
+                <p className="text-[11px] text-[#8a7667] italic mt-2">
+                  Rzut na Pomysł w CoC 7e służy do wyciągnięcia logicznych wniosków ze zgromadzonych poszlak.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4 mb-4">
+                {/* Panel z wynikiem rzutu */}
+                <div className={cn(
+                  'p-3 rounded-lg border flex items-center justify-between',
+                  isSuccess(ideaRollResult.outcome)
+                    ? 'bg-[#142310] border-[#73a15c]/60'
+                    : 'bg-[#2b1010] border-[#a84d4d]/60'
+                )}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-mono font-bold text-[#f4ebd0]">
+                      {ideaRollResult.roll}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold">
+                          {getOutcomeInfo(ideaRollResult.outcome).emoji} {getOutcomeInfo(ideaRollResult.outcome).label}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#e2d4c9]/70">
+                        (Próg INT: {activeCharacter?.int ?? 50}%)
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleExecuteIdeaRoll}
+                    className="text-xs text-[#bfa15f] hover:text-[#f4ebd0] flex items-center gap-1 underline"
+                  >
+                    <RotateCcw className="h-3 w-3" /> Rzuć ponownie
+                  </button>
+                </div>
+
+                {/* Interpretacja fabularna CoC 7e RAW */}
+                <div className={cn(
+                  'p-3 rounded text-xs leading-relaxed border',
+                  isSuccess(ideaRollResult.outcome)
+                    ? 'bg-[#162712]/70 border-[#73a15c]/40 text-[#d8edd1]'
+                    : 'bg-[#301414]/70 border-[#a84d4d]/40 text-[#edd1d1]'
+                )}>
+                  <div className="font-bold mb-1 flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Interpretacja fabularna (CoC 7e RAW):
+                  </div>
+                  {isSuccess(ideaRollResult.outcome) ? (
+                    <p>
+                      <strong>Sukces:</strong> Badacz dostrzega powiązania między zebranymi dowodami i wyciąga trafny, logiczny wniosek bez zbędnego ryzyka.
+                    </p>
+                  ) : (
+                    <p>
+                      <strong>Porażka:</strong> Badacz i tak uzyskuje kierunek działania, lecz okupiony komplikacją fabularną (strata cennego czasu, narażenie na niebezpieczeństwo lub mylny trop).
+                    </p>
+                  )}
+                </div>
+
+                {/* Edycja wniosku dedukcyjnego */}
+                <div className="space-y-2">
+                  <label className="text-xs font-serif text-[#bfa15f] block">
+                    Tytuł wniosku dedukcyjnego:
+                  </label>
+                  <input
+                    type="text"
+                    value={ideaInsightTitle}
+                    onChange={(e) => setIdeaInsightTitle(e.target.value)}
+                    className="w-full bg-[#0d0906] border border-[#3a2518] rounded px-3 py-1.5 text-xs text-[#e2d4c9] outline-none focus:border-[#bfa15f]"
+                  />
+
+                  <label className="text-xs font-serif text-[#bfa15f] block">
+                    Wniosek Dedukcyjny Badacza (edytowalny):
+                  </label>
+                  <textarea
+                    value={ideaInsightText}
+                    onChange={(e) => setIdeaInsightText(e.target.value)}
+                    rows={3}
+                    className="w-full bg-[#0d0906] border border-[#3a2518] rounded px-3 py-2 text-xs text-[#e2d4c9] outline-none focus:border-[#bfa15f] resize-none italic font-serif leading-relaxed"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Przyciski akcji modala */}
+            <div className="flex flex-wrap gap-2 justify-between items-center pt-3 border-t border-[#3a2518]">
+              <Button
+                onClick={() => setShowIdeaModal(false)}
+                variant="outline"
+                size="sm"
+                className="border-[#3a2518] text-[#8a7667] hover:bg-[#2a1b12] bg-transparent"
+              >
+                Zamknij
+              </Button>
+
+              {ideaRollResult && (
+                <div className="flex items-center gap-2">
+                  {onAddJournalEntry && (
+                    <Button
+                      onClick={handleSaveIdeaToJournal}
+                      size="sm"
+                      disabled={savedToJournal}
+                      className={cn(
+                        'border font-serif text-xs transition-colors',
+                        savedToJournal
+                          ? 'bg-[#142310] border-[#73a15c] text-[#a3d18e]'
+                          : 'bg-[#2a1b12] hover:bg-[#3a2518] text-[#bfa15f] border-[#bfa15f]/40'
+                      )}
+                    >
+                      {savedToJournal ? (
+                        <><Check className="h-3.5 w-3.5 mr-1" /> Zapisano w Kronice</>
+                      ) : (
+                        <><BookOpen className="h-3.5 w-3.5 mr-1" /> Zapisz w Kronice</>
+                      )}
+                    </Button>
+                  )}
+
+                  <Button
+                    onClick={handlePinIdeaToBoard}
+                    size="sm"
+                    className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f] font-serif text-xs font-bold"
+                  >
+                    <Pin className="h-3.5 w-3.5 mr-1" /> Przypnij wniosek do Tablicy
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

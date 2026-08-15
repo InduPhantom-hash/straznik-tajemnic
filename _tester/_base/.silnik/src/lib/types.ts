@@ -172,6 +172,8 @@ export interface JournalEntry {
   content: string;
   tags: string[];
   isBookmarked: boolean;
+  /** Wniosek Badacza / Dedukcja postaci (np. z rzutu na INT / Pomysł lub sukcesu śledczego) */
+  investigatorInsight?: string;
   metadata?: {
     hpChange?: number; // Zmiana HP (np. -4)
     sanChange?: number; // Zmiana SAN

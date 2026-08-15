@@ -69,8 +69,8 @@ if ! unzip -p "$ARCHIVE" '.silnik/src/lib/journal/shared-adventure-journal.ts' |
   exit 1
 fi
 
-if ! unzip -p "$ARCHIVE" '.silnik/src/components/ui/journal.tsx' | grep -Fq 'DZIENNIK PRZYGODY'; then
-  echo 'FAIL: paczka nie zawiera interfejsu wspólnego Dziennika Przygody'
+if ! unzip -p "$ARCHIVE" '.silnik/src/components/ui/session-journal.tsx' | grep -Fq 'DZIENNIK SESJI'; then
+  echo 'FAIL: paczka nie zawiera interfejsu wspólnego Dziennika Sesji'
   exit 1
 fi
 

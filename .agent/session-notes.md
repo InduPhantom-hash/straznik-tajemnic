@@ -18,3 +18,22 @@ Branch: main
 ### Decyzje podjęte
 - `_tester/_base/.silnik/src/` jest wyłącznym źródłem prawdy dla kodu i danych aplikacji.
 - Wszystkie postacie Strefy 11 są zintegrowane w jednej wspólnej bazie `PREDEFINED_CHARACTERS` i dostępne we wszystkich modalach.
+
+## Podsumowanie sesji: 2026-08-15 (Zadanie 1 - Legacy Journal Cleanup)
+Branch: main
+
+### Co zrobiono
+- Usunięto 4 pliki legacy: `app/journal/page.tsx`, `app/api/journal/route.ts`, `components/ui/journal.tsx`, `lib/journal/types.ts` oraz martwe pliki pomocnicze (`categories.ts`, `markdown-export.ts`, `pdf-template.ts`, `index.ts`).
+- Zaktualizowano `useFullReset.ts` (usunięcie nieistniejącego endpointu `/api/journal`).
+- Wdrożono mechanikę Rzutu na Pomysł (Idea Roll / Test INT) z dedukcją postaci na Tablicy Badacza (`corkboard-investigation-board.tsx`, `types.ts`, `investigator-board.ts`).
+- Zaktualizowano testy i skrypty weryfikacyjne (`feature-16-settings.spec.ts`, `feature-4-image-gallery.spec.ts`, `build-tester-pack.sh`, `apply-journal-tags.ts`).
+- Wszystkie testy jednostkowe zaliczone (`npm test` PASS 47/47) oraz pomyślna kompilacja Next.js (`npm run build` PASS, 65 tras).
+- Zaktualizowano `state.md`.
+
+### Co otwarte (do następnej sesji)
+- Zadanie 2: Rozbudowa i optymalizacja Dziennika Sesji / Tablicy Badacza.
+- Dedykowane portrety graczy Strefy 11 w klimacie lat 90.
+
+### Decyzje podjęte
+- `session-journal.tsx` oraz `src/lib/types.ts` stanowią jedyne źródło prawdy (SSOT) dla dziennika i tablicy dowodów.
+

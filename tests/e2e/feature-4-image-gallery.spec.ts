@@ -90,7 +90,6 @@ test.describe('Feature #04: Image gallery & lightbox & media cache (regresja smo
       return JSON.stringify([
         'persistentMediaCache.clearAll', // IND-135 FIXED sesja 72
         '/api/pdf-memory',
-        '/api/journal',
         '/api/session',
         '/api/npc/list',
         '/api/pinecone/clear', // IND-115 FIXED sesja 73

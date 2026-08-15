@@ -8,7 +8,7 @@ import { persistentMediaCache } from '@/lib/persistent-media-cache';
  *
  * Pełny reset = `localStorage.clear()` + `sessionStorage.clear()`
  * + `persistentMediaCache.clearAll()` (IndexedDB, IND-135 sesja 72)
- * + 7 fetch DELETE (PDF Memory, Journal, Sessions, NPCs, Pinecone,
+ * + 6 fetch DELETE (PDF Memory, Sessions, NPCs,
  *   Cloud Characters, Account Usage - IND-168 Faza 5+6) + window reload.
  *
  * Krok 1 - pierwszy confirm (lista co zostanie usunięte).
@@ -80,7 +80,6 @@ export function useFullReset(): UseFullResetReturn {
       // 4. Wyczyść wszystkie API endpoints (kolejno, z obsługą błędów dla każdego)
       const apiEndpoints = [
         { url: '/api/pdf-memory', name: 'PDF Memory' },
-        { url: '/api/journal', name: 'Journal' },
         { url: '/api/session', name: 'Sessions' },
         { url: '/api/npc/list', name: 'NPCs' },
         // Licznik zużycia per-konto (lokalny plik na dysku) - audyt cleanup.

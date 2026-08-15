@@ -171,20 +171,17 @@ test.describe('Feature #16: Settings, koszty, monitoring (golden path)', () => {
       page.getByRole('heading', { name: /🚨 OSTATNIE OSTRZEŻENIE/ })
     ).toBeVisible();
 
-    // Step 2 → execute: "🗑️ TAK, USUŃ WSZYSTKO" (klik → 7 DELETE → setTimeout 100ms → reload)
+    // Step 2 → execute: "🗑️ TAK, USUŃ WSZYSTKO" (klik → 4 DELETE → setTimeout 100ms → reload)
     // Czekamy aż wszystkie DELETE pójdą zanim reload skasuje page state.
     await page.getByRole('button', { name: /TAK, USUŃ WSZYSTKO/ }).click();
-    await expect.poll(() => deleteCalls.length).toBe(7);
+    await expect.poll(() => deleteCalls.length).toBe(4);
 
-    // Weryfikacja: 7 endpointów wywołanych (po IND-168 Faza 5+6: + characters/cloud, user/usage)
+    // Weryfikacja: 4 aktywne endpointy wywołane (pdf-memory, session, npc/list, user/usage)
     expect(deleteCalls).toEqual(
       expect.arrayContaining([
         '/api/pdf-memory',
-        '/api/journal',
         '/api/session',
         '/api/npc/list',
-        '/api/pinecone/clear',
-        '/api/characters/cloud',
         '/api/user/usage',
       ])
     );

@@ -35,6 +35,9 @@ export interface EvidenceNode {
   createdAt: string;
   updatedAt?: string;
 
+  /** Opcjonalny wniosek lub hipoteza badacza wyciągnięta z tej poszlaki */
+  investigatorInsight?: string;
+
   // Powiazania zrodlowe (Traceability) - EPIC-01
   sourceJournalEntryId?: string;
   sourceEquipmentItemId?: string;

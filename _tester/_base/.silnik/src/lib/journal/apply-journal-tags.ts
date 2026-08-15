@@ -12,9 +12,8 @@ import { resolveCharacterByName } from '@/lib/character/match-by-name';
  * `character.journal`, czyli dziennika widocznego w modalu sesji (`session-journal.tsx`).
  * Efekt: gracz widział "Dziennik jest pusty" mimo tagów [DZIENNIK:] w narracji.
  *
- * UWAGA na dwa typy `JournalEntry`:
- *  - `@/lib/types`            → `character.journal` (modal sesji, useSceneSummary)  ← TEN
- *  - `@/lib/journal/types`    → standalone `/journal` page (osobny system)
+ * Typ `JournalEntry`:
+ *  - `@/lib/types`            → `character.journal` (modal sesji, useSceneSummary)  ← SSOT
  */
 
 /**

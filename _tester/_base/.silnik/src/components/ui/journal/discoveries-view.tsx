@@ -13,6 +13,9 @@ import {
   Trash2,
   Target,
   Eye,
+  Search,
+  Plus,
+  Lightbulb,
 } from 'lucide-react';
 
 // ------------------------------------------------------------------
@@ -36,6 +39,8 @@ interface DiscoveryEntry {
     completed?: boolean;
     dateCompleted?: string;
   }>;
+  /** Wniosek Badacza / Dedukcja postaci */
+  investigatorInsight?: string;
 }
 
 type DiscoveryCategory = 'places' | 'characters' | 'items' | 'quests';
@@ -109,6 +114,8 @@ export function DiscoveriesView({
 }: DiscoveriesViewProps) {
   const [activeCategory, setActiveCategory] = useState<DiscoveryCategory>('places');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [isEditingInsight, setIsEditingInsight] = useState(false);
+  const [insightText, setInsightText] = useState('');
 
   // Filtrowanie po kategorii i wyszukiwaniu
   const categoryConfig = CATEGORIES.find((c) => c.key === activeCategory)!;
@@ -157,6 +164,7 @@ export function DiscoveriesView({
                 onClick={() => {
                   setActiveCategory(cat.key);
                   setSelectedEntryId(null);
+                  setIsEditingInsight(false);
                 }}
                 className={cn(
                   'w-full flex items-center gap-2.5 px-3 py-2 rounded-md font-serif text-sm transition-all',
