@@ -70,4 +70,26 @@ Branch: main
 - Rzut na INT funkcjonuje jako koło ratunkowe (RAW CoC 7e) w sytuacjach utknięcia w martwym punkcie.
 - Wnioski dedukcyjne są domyślnie zapisywane bezpośrednio w badanym dowodzie, co eliminuje zaśmiecanie tablicy pustymi notatkami.
 
+## Podsumowanie sesji: 2026-08-20 (Aktualizacja Instrukcji Systemowych MG - Worldbuilding & Kontrast Grozy)
+Branch: main
+
+### Co zrobiono
+- **Transkrypcja i analiza video:** Pobrano i przeanalizowano materiał wideo dot. technik budowania świata i kosmicznego horroru.
+- **Debata Oksfordzka:** Przeprowadzono debatę nad wdrożeniem zasad (Kontrast Grozy, Materialne User Story, Echo Akcji, Actionable Clues) do instrukcji systemowych MG.
+- **Walidator Epokowy Lokacji i Obrazów:** Zaimplementowano moduł `location-era-validator.ts` z testami jednostkowymi (`location-era-validator.test.ts`), wpięto go do budowania kontekstu promptu w `build-context.ts`, `run-chat-pipeline.ts` oraz do generowania obrazów w `imagen/route.ts`.
+- **Aktualizacja Przewodnika Narracyjnego MG:** Zaktualizowano `public/default-gm-prompt.md` oraz `_tester/_base/.silnik/public/default-gm-prompt.md` w Częściach I, II, IV, V, VIII i XVIII (Kontrast Grozy 80/20, rekwizyty epoki, eliminacja inflacji nieeuklidesowych zniekształceń w zwykłych budynkach, Echo Akcji u NPC, Actionable Clues/Lore w dokumentach/księgach oraz Anti Info-Dumping).
+- **Aktualizacja Modułów Stylu i Protokołu TS:** Zaktualizowano filary stylu 1, 3 i 9 w `lovecraft-style-guide.ts` oraz dodano pole `| ECHO_AKCJI:` do tagu `[MYŚLI_MG]` w `gm-protocol.ts`.
+- **Testy Jednostkowe:** Utworzono i zaliczono `prompt-section-parser.test.ts` (5/5). Pełen suite testów jednostkowych przeszedł w 100% (53/53 test suites, 205/205 testów zdanych, `tsc --noEmit` 0 błędów).
+- **Dystrybucja:** Przebudowano paczkę testera `_tester/dist/Straznik-Tajemnic-AI-0.9.3-Win-Mac.zip` (40MB).
+- **Zadania i Stan:** Zaktualizowano `zadania.md`.
+
+### Co otwarte (do następnej sesji)
+- Dalsze zadania z mapy (np. Stempel powiadomień w czacie `📜 Zapisano w aktach sprawy`, dedykowane portrety postaci Strefy 11).
+
+### Decyzje podjęte
+- Groza kosmiczna działa przez kontrast: 80% stabilnego, realistycznego tła materialnego epoki i 1 punkt anomalii.
+- Zakaz inflacji anomalii: nieeuklidesowe kąty zarezerwowane są dla pradawnych ruin Mitów i rytuałów, nie dla zwykłych pomieszczeń.
+- Dokumenty i księgi muszą dostarczać poszlaki operacyjne tu i teraz (Actionable Clues), a nie encyklopedyczną ekspozycję.
+- Obie kopie `default-gm-prompt.md` (root oraz `.silnik/public`) muszą być zawsze synchronizowane 1:1 z zachowaniem 22 nagłówków `# CZĘŚĆ [X]:`.
+
 

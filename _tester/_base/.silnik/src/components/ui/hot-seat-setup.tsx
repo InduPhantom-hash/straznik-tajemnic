@@ -167,7 +167,7 @@ export function HotSeatSetup({
               disabled={!canStart}
               className="bg-gradient-to-r from-green-500 to-pink-500 hover:from-green-600 hover:to-pink-600"
             >
-              🎮 Rozpocznij
+              Zatwierdź tryb
             </Button>
           </div>
         </div>

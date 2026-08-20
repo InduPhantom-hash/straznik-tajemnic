@@ -12,6 +12,7 @@ import {
   getEraTechnologyGuardrails,
   resolveEraVisualProfile,
 } from '@/lib/era-visual-style';
+import { enrichImagePromptWithEraProps } from '@/lib/location-era-validator';
 
 import crypto from 'crypto';
 import { resolveUserId } from '@/lib/auth-user';
@@ -174,21 +175,22 @@ export async function POST(request: NextRequest) {
     const eraProfile = resolveEraVisualProfile(effectiveEra);
     const colorDirection = getEraColorDirection(effectiveEra);
     const techGuardrails = getEraTechnologyGuardrails(effectiveEra);
+    const eraPropsEnriched = enrichImagePromptWithEraProps(basePrompt, effectiveEra);
     const eraKeyword = `${eraProfile} period-accurate, ${colorDirection}, `;
 
-    let enhancedPrompt = basePrompt;
+    let enhancedPrompt = eraPropsEnriched;
     if (style === 'horror') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}realistic, cinematic film-grain, moody natural lighting, film noir aesthetic, muted color palette, highly detailed, ${techGuardrails}`;
     } else if (style === 'portrait') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}period-accurate portrait photography, realistic, head and shoulders shot, cinematic lighting, film-grain, highly detailed expression, ${techGuardrails}`;
     } else if (style === 'vintage') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}vintage archival photograph, authentic period textures, realistic, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}vintage archival photograph, authentic period textures, realistic, ${techGuardrails}`;
     } else if (style === 'item') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}photorealistic period object study, authentic physical materials, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}photorealistic period object study, authentic physical materials, ${techGuardrails}`;
     } else if (style === 'location') {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}atmospheric period establishing shot, realistic architectural details, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}atmospheric period establishing shot, realistic architectural details, ${techGuardrails}`;
     } else {
-      enhancedPrompt = `${basePrompt}, ${eraKeyword}realistic, cinematic composition, authentic period details, ${techGuardrails}`;
+      enhancedPrompt = `${eraPropsEnriched}, ${eraKeyword}realistic, cinematic composition, authentic period details, ${techGuardrails}`;
     }
 
 

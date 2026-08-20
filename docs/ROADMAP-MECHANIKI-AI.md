@@ -14,7 +14,14 @@ Roadmapa opisuje docelową wersję aplikacji lokalnej. Aplikacja działa na komp
 - **MID:** Gemini 3.6 Flash (0.15 in / 0.60 out) + Lektor TTS
 - **HIGH:** Gemini 2.5 Flash (0.075 in / 0.30 out) + Lektor TTS
 - **ULTRA:** Gemini 3.1 Pro Preview (2.00 in / 12.00 out) + Lektor TTS
-- **Dodatki:** Obrazy Imagen 3.0 (rozliczenie na żądanie, 30.0 USD wg stawki), Lektor Gemini 2.5 Flash TTS (0.50 in / 1.50 out).
+- **Dodatki:** Obrazy generuje `gemini-2.5-flash-image` przez `/api/imagen` za 0,02 USD za udany obraz. Lektor używa `gemini-2.5-flash-preview-tts` (0,50 in / 1,50 out).
+
+## Najbliższe zadanie: obrazy scen i epoki
+
+- [ ] Pokazać obrazy czatu bez przycinania przez sztywny kadr.
+- [ ] Zagwarantować 1-3 obrazy dla znaczącej sceny: lokacja, ważny NPC, przedmiot lub punkt zwrotny.
+- [ ] Używać aktualnego roku gry dla promptów, nie pierwszego roku zakresu przygody.
+- [ ] Uaktualnić testy i opisy po dawnych providerach obrazów.
 
 ## Zasady architektury
 

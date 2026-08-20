@@ -121,6 +121,8 @@ export interface CompletionUsage {
 export interface StreamingChatResult {
   stream: AsyncIterable<StreamChunk>;
   getUsage: () => Promise<CompletionUsage | null>;
+  /** Dostępne dopiero po skonsumowaniu całego streamu. */
+  getFinishReason: () => string | undefined;
 }
 
 export interface ChatResult {

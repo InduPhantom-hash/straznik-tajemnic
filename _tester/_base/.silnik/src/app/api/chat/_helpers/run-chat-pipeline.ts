@@ -267,6 +267,7 @@ export async function runChatPipeline({
         : undefined,
     isGameStart,
     characters,
+    era: adventureContext?.era || '1920s',
   });
 
   if (message.includes('[KONIEC_SESJI:FINAL]') || message.includes('[KONIEC_SESJI_FINAL]')) {
@@ -355,12 +356,13 @@ export async function runChatPipeline({
       throw err;
     }
   }
-  const { stream: providerStream, getUsage } = streamResult;
+  const { stream: providerStream, getUsage, getFinishReason } = streamResult;
 
   // === SSE STREAM + POST-STREAM SIDE EFFECTS - IND-71 micro 3/3 ===
   const sseStream = createSseStream({
     providerStream,
     getUsage,
+    getFinishReason,
     sessionId,
     message,
     character: character ?? undefined,

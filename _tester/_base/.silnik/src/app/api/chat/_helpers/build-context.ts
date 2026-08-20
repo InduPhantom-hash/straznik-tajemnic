@@ -24,6 +24,7 @@ import { getDirectorPromptSection } from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
+import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -90,6 +91,8 @@ export interface BuildAdditionalContextOpts {
   currentLocation?: string;
   hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
   tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
+  /** Epoka gry dla reguł materialnych i guardrails */
+  era?: string;
   /** Sekcja danych immersyjnych (astronomia, gazety, ceny epoki) - wstrzykiwana gdy dostępna. */
   immersionSection?: string;
   /** Wydarzenie z generatora fabularnego zrzucone z UI, przekazywane z hooka useChat */
@@ -119,9 +122,15 @@ export function buildAdditionalContext(
     playerSkillsSection,
     isGameStart,
     characters,
+    era,
   } = opts;
 
   const additionalContext: string[] = [timePromptSection];
+
+  // Materialne User Story i Kontrast Epoki dla MG
+  if (era || currentLocation) {
+    additionalContext.push(buildLocationEraGuidanceSection(era, currentLocation));
+  }
 
   // C1: recap przy wznowieniu zapisanej gry - instrukcja "zrób recap w tej turze".
   if (sessionRecapSection) {

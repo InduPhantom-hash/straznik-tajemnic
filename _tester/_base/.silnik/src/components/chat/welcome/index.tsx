@@ -16,6 +16,7 @@ import type { WelcomeScreenProps } from './types';
 import { WELCOME_QUOTES } from './data/quotes';
 import { useTypewriterSound } from './hooks/use-typewriter-sound';
 import { StartModeCards } from './components/start-mode-cards';
+import { ManualSetupPanel } from './components/manual-setup-panel';
 import { BottomLinks } from './components/bottom-links';
 import { FullGameSaveManager } from '@/lib/full-game-save-manager';
 import { timeManager } from '@/lib/time-manager';
@@ -31,7 +32,7 @@ interface RecentSave {
   imageCount: number;
 }
 
-/** Rok arabski → rzymski (Anno Domini). Zakres lat gry (1890-2000+). */
+/** Rok arabski -> rzymski (Anno Domini). Zakres lat gry (1890-2000+). */
 function toRoman(year: number): string {
   const map: Array<[number, string]> = [
     [1000, 'M'],
@@ -115,6 +116,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   adventureTitle,
   hasSessionZero = false,
   hasCharacter = false,
+  activeCharacter = null,
   hasSavedCharacters = false,
   isDuet = false,
   duetCharacterSlots = [],
@@ -130,6 +132,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   const [gameYear, setGameYear] = useState<number | null>(null);
   const [recentSave, setRecentSave] = useState<RecentSave | null>(null);
   const [hasKey, setHasKey] = useState<boolean>(true);
+  const [isManualMode, setIsManualMode] = useState<boolean>(false);
 
   useEffect(() => {
     // Sprawdzanie po mount by uniknąć hydration mismatch
@@ -223,8 +226,10 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold" />
         </div>
 
-        {/* karta wznowienia (quick-win, tylko gdy istnieje zapis) */}
-        {recentSave && <ResumeCard save={recentSave} onResume={onLoadSave} />}
+        {/* karta wznowienia (quick-win, tylko gdy istnieje zapis i nie jesteśmy w trybie manualnym) */}
+        {!isManualMode && recentSave && (
+          <ResumeCard save={recentSave} onResume={onLoadSave} />
+        )}
 
         {/* Krok 3 - Autoryzacja i Start */}
         <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-8 w-[min(1200px,95vw)] justify-center items-center z-20 mt-6">
@@ -235,22 +240,43 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
               </div>
               <StepGeminiKey onNext={() => setHasKey(true)} />
             </div>
+          ) : isManualMode ? (
+            <ManualSetupPanel
+              onBack={() => setIsManualMode(false)}
+              onChoosePlayMode={onChoosePlayMode}
+              onSelectAdventure={onSelectAdventure}
+              hasAdventure={hasAdventure}
+              adventureTitle={adventureTitle}
+              onCreateCharacter={onCreateCharacter}
+              onPickPredefinedCharacter={onPickPredefinedCharacter}
+              onPickCharacter={onPickCharacter}
+              hasCharacter={hasCharacter}
+              activeCharacter={activeCharacter}
+              hasSavedCharacters={hasSavedCharacters}
+              isDuet={isDuet}
+              duetCharacterSlots={duetCharacterSlots}
+              onSessionZero={onSessionZero}
+              hasSessionZero={hasSessionZero}
+              onStartGame={onStartGame}
+            />
           ) : (
             <StartModeCards 
               onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
-              onManualStart={() => onChoosePlayMode?.()} 
+              onManualStart={() => setIsManualMode(true)} 
             />
           )}
         </div>
 
         {/* dolne linki (wczytaj / klucze / zimny start) */}
-        <div className="mt-3">
-          <BottomLinks
-            onLoadSave={onLoadSave}
-            onOpenApiKeys={onOpenApiKeys}
-            onColdStart={onColdStart}
-          />
-        </div>
+        {!isManualMode && (
+          <div className="mt-3">
+            <BottomLinks
+              onLoadSave={onLoadSave}
+              onOpenApiKeys={onOpenApiKeys}
+              onColdStart={onColdStart}
+            />
+          </div>
+        )}
       </div>
 
       {/* === Cytat na dole (efekt maszyny do pisania) === */}
@@ -266,3 +292,4 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
     </div>
   );
 };
+

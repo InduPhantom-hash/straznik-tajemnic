@@ -131,3 +131,6 @@ desktop/*.iconset
 # generowany. NIE commitowac - publiczne buildy dostaja pusty adventures-catalog.public.ts.
 /src/lib/adventures-catalog.private.ts
 /src/lib/adventures-catalog.generated.ts
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/

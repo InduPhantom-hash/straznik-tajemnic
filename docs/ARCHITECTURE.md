@@ -5,7 +5,7 @@ aplikacji **lokalnej / offline** (wersja publiczna).
 
 ## Z lotu ptaka
 
-Monolityczna aplikacja **Next.js 14 (App Router)**. Frontend (React 18 + TypeScript
+Monolityczna aplikacja **Next.js 16 (App Router)**. Frontend (React 19 + TypeScript
 strict + Tailwind + shadcn/ui) i backend (Route Handlers w `src/app/api/**`) żyją w
 jednym repo. Brak bazy relacyjnej: stan gry trzymany jest w `localStorage` + zapisy na
 dysk, a wiedza o zasadach w **lokalnym indeksie wektorowym** na dysku.
@@ -46,7 +46,9 @@ Wszystko opiera się o **rodzinę Gemini API** (jeden klucz):
   `src/lib/ai-providers/gemini-provider.ts`, streaming SSE.
 - **Embeddingi** - `gemini-embedding-001` (768 dim dla V1, 3072 dim dla V2) do RAG.
 - **Lektor** - `gemini-2.5-flash-preview-tts` (`/api/tts/gemini`).
-- **Obrazy** - domyślnie `imagen-3.0-generate-002` (`/api/imagen`); opcjonalnie `gemini-2.5-flash-image`.
+- **Obrazy** - `/api/imagen` używa `gemini-2.5-flash-image` i zwraca obraz jako data URL. Endpoint dodaje profil epoki, kierunek kolorystyczny oraz blokady anachronizmów.
+
+`model-registry.ts` i definicje presetów nadal zawierają historyczne konfiguracje obrazów. Nie są aktywną ścieżką generowania obrazów i wymagają osobnej zmiany kodu po planie obrazów.
 
 ## RAG (lokalny - docelowa architektura)
 

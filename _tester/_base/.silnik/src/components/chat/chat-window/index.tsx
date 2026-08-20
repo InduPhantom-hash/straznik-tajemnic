@@ -231,6 +231,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
               hasCharacter={
                 hotSeatConfig?.enabled ? duetReady : !!activeCharacter
               }
+              activeCharacter={activeCharacter}
               hasSavedCharacters={characters.length > 0}
               isDuet={!!hotSeatConfig?.enabled}
               duetCharacterSlots={duetCharacterSlots}

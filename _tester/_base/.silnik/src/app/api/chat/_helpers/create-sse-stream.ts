@@ -34,6 +34,8 @@ import type { RagMeta } from './run-rag-summary';
 export interface CreateSseStreamOpts {
   providerStream: AsyncIterable<StreamChunk>;
   getUsage: () => Promise<CompletionUsage | null>;
+  /** Odczyt po skonsumowaniu providerStream. */
+  getFinishReason: () => string | undefined;
   sessionId?: string;
   message: string;
   character?: Character;
@@ -54,6 +56,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
   const {
     providerStream,
     getUsage,
+    getFinishReason,
     sessionId,
     message,
     character,
@@ -101,6 +104,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
         }
 
         const usage = await getUsage();
+        const finishReason = getFinishReason();
 
         // Telemetry namespace dla PostHog client-side emit (spawn task 2026-05-22).
         // Client (useChat.onMetadata) odbiera te pola → trackEvent('ai_request_completed').
@@ -117,6 +121,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           tokensIn: usage?.promptTokens ?? 0,
           tokensOut: usage?.completionTokens ?? 0,
           cachedTokens: usage?.cachedTokens ?? 0,
+          finishReason,
         };
 
         const metadata = {
@@ -133,6 +138,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
                 model: usage.model,
               }
             : null,
+          finishReason,
           telemetry,
         };
 
@@ -174,6 +180,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
               ragNamespaceCount: ragMeta?.namespaceCount ?? 0,
               embeddingDim,
               ragVersion,
+              finishReason: finishReason ?? null,
             },
           }).catch(() => {});
 

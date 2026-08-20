@@ -57,7 +57,7 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 - **Sesja Zero & Linie i Zasłony** - wbudowany kreator granic narracyjnych pozwalający wykluczyć niechciane motywy ze stołu.
 - **Hot Seat** - 1-2 graczy przy jednym laptopie, każdy ma swoją postać i kolor.
 - **Lektor (TTS)** - głos Mistrza Gry czyta narrację z natychmiastowym streamingiem i ekranem hard-loadingu.
-- **Ilustracje scen & Bezpieczne Kadrowanie** - obrazy generowane na żywo, proporcje 4:3 (`h-32`), pozycjonowanie `object-top` chroniące twarze postaci i uniwersalny fallback `SafeImage`.
+- **Ilustracje scen** - obrazy generowane na żywo przez Gemini Flash Image, portrety NPC i ważne lokacje oraz powiększanie w lightboxie. Kadrowanie czatu i reguła 1-3 obrazów na scenę są opisane w bieżącym planie rozwoju.
 - **Pomoc w Sidebarze & Asystent RAG** - natychmiastowe wyjaśnienie zasad gry w oknie bocznym podczas trwania przygody.
 
 ## 📸 Zrzuty ekranu
@@ -112,12 +112,13 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 
 | Preset      | Model czatu      | Lektor         | Obrazy          |
 | ----------- | ---------------- | -------------- | --------------- |
-| **LOW**     | Gemini 3.6 Flash | brak           | Imagen 3.0      |
-| **MID**     | Gemini 3.6 Flash | Gemini TTS     | Imagen 3.0      |
-| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS     | Imagen 3.0      |
-| **ULTRA**   | Gemini 3.1 Pro Preview | Gemini TTS | Imagen 3.0      |
+| **LOW**     | Gemini 3.6 Flash | brak           | wyłączone       |
+| **MID**     | Gemini 3.6 Flash | Gemini TTS     | Gemini Flash Image |
+| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS     | Gemini Flash Image |
+| **ULTRA**   | Gemini 3.1 Pro Preview | Gemini TTS | Gemini Flash Image |
 
 *Szacowane koszty API (USD per 1M tokenów wejścia/wyjścia): Gemini 3.6 Flash (0.15/0.60), Gemini 2.5 Flash (0.075/0.30), Gemini 3.1 Pro Preview (2.00/12.00).*
+*Obrazy: `gemini-2.5-flash-image`, 0,02 USD za udany obraz.*
 
 ## 🗺️ Roadmapa (Plany rozwojowe)
 
@@ -127,7 +128,7 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 
 ## 🔧 Technologie
 
-Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/ui · Google Gemini API · lokalny RAG (Float32 binarny, cosine) · Jest + Playwright.
+Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/ui · Google Gemini API · lokalny RAG (Float32 binarny, cosine) · Jest + Playwright.
 
 ## 📚 Dokumentacja
 
@@ -157,7 +158,7 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 - **Odświeżony Interfejs Startowy:** Nowy ekran Menu Głównego, usprawnienia nawigacji oraz wbudowany wyznacznik granic narracyjnych Sesji Zero (Linie i Zasłony).
 - **Autorskie Scenariusze Strefy 11:** 4 wbudowane autorskie scenariusze i 16 predefiniowanych postaci z uzupełnionymi biografiami i więziami.
 - **Asystent RAG w Sidebarze:** Nowy modal pomocy, encyklopedia zasad oraz asystent odpowiadający na pytania o reguły gry w trakcie sesji.
-- **Ulepszony Lektor (TTS) & Audio:** Instant streaming narracji, głosy NPC oraz integracja ElevenLabs (BYOK).
+- **Ulepszony Lektor (TTS) & Audio:** Instant streaming narracji i głosy NPC.
 - **Dynamiczna Pogoda:** Integracja historycznych warunków pogodowych z zasadą "Klimat > Fakty".
 
 ### [v0.9.1-beta] - 2026-07-20
@@ -210,7 +211,7 @@ There comes a stage in life where gathering a full table for an RPG session is a
 - **Session Zero & Lines/Veils** - safety tool to calibrate story boundaries at the table.
 - **Hot Seat** - 1-2 players sharing one screen, each with a unique investigator and color theme.
 - **Voice (TTS)** - instant streaming narrative readout with hard-loading screens.
-- **Scene Illustrations & Safe Framing** - real-time AI image generation, 4:3 card aspect ratio (`h-32`), `object-top` positioning protecting portrait faces, universal `SafeImage` fallback, and inspection lightbox zoom.
+- **Scene Illustrations** - real-time Gemini Flash Image generation, key NPC portraits and locations, and lightbox zoom. Chat framing and the 1-3 images-per-scene rule are tracked in the current development plan.
 - **In-Game Help & RAG Assistant** - instant rule explanations right in the sidebar during play.
 
 ## 📸 Screenshots
@@ -265,12 +266,13 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 
 | Preset | Chat Model | TTS Voice | Images |
 | --- | --- | --- | --- |
-| **LOW** | Gemini 3.6 Flash | None | Imagen 3.0 |
-| **MID** | Gemini 3.6 Flash | Gemini TTS | Imagen 3.0 |
-| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS | Imagen 3.0 |
-| **ULTRA** | Gemini 3.1 Pro Preview | Gemini TTS | Imagen 3.0 |
+| **LOW** | Gemini 3.6 Flash | None | disabled |
+| **MID** | Gemini 3.6 Flash | Gemini TTS | Gemini Flash Image |
+| **HIGH** ⭐ | Gemini 2.5 Flash | Gemini TTS | Gemini Flash Image |
+| **ULTRA** | Gemini 3.1 Pro Preview | Gemini TTS | Gemini Flash Image |
 
 *Estimated API costs (USD per 1M tokens in/out): Gemini 3.6 Flash (0.15/0.60), Gemini 2.5 Flash (0.075/0.30), Gemini 3.1 Pro Preview (2.00/12.00).*
+*Images use `gemini-2.5-flash-image` and cost USD 0.02 per successful image.*
 
 ## 🗺️ Development Roadmap
 
@@ -280,7 +282,7 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 
 ## 🔧 Technologies
 
-Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/ui · Google Gemini API · Local vector DB (Float32 binary, cosine similarity) · Jest + Playwright.
+Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/ui · Google Gemini API · Local vector DB (Float32 binary, cosine similarity) · Jest + Playwright.
 
 ## 📚 Documentation
 
@@ -307,7 +309,7 @@ Next.js 14 (App Router) · React 18 + TypeScript (strict) · Tailwind + shadcn/u
 - **Refreshed Main Menu:** New main menu layout, navigation polish, and built-in Session Zero safety setup (Lines & Veils).
 - **Zone 11 Custom Scenarios:** 4 built-in custom adventures and 16 preset investigators with rich backstories.
 - **Sidebar RAG Assistant:** Added help modal, rules encyclopedia, and live rules assistant in the sidebar.
-- **Enhanced Voice (TTS) & Audio:** Instant streaming narration, NPC voices, and ElevenLabs (BYOK) integration.
+- **Enhanced Voice (TTS) & Audio:** Instant streaming narration and NPC voices.
 - **Dynamic Weather:** Integrated historical weather conditions with "Climate > Facts" priority.
 
 ### [v0.9.1-beta] - 2026-07-20

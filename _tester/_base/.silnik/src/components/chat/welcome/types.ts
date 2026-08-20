@@ -3,6 +3,8 @@
  * Eksportuje WelcomeScreenProps (public, używane przez parent) + Quote (shape WELCOME_QUOTES[i]).
  */
 
+import type { Character } from '@/lib/types';
+
 export interface DuetCharacterSlot {
   playerId: string;
   playerName: string;
@@ -35,6 +37,7 @@ export interface WelcomeScreenProps {
   adventureTitle?: string;
   hasSessionZero?: boolean;
   hasCharacter?: boolean;
+  activeCharacter?: Character | null;
   /** C1: czy w katalogu są zapisane postacie (decyduje o kroku "Wybierz z katalogu"). */
   hasSavedCharacters?: boolean;
   /** #7: czy aktywny tryb duetu (Hot Seat 2 graczy). */
@@ -50,3 +53,4 @@ export interface Quote {
   greeting: string;
   work: string;
 }
+

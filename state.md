@@ -9,7 +9,7 @@
 | Obszar / Kamień Milowy | Stan | Progres | Kluczowy Plik / Moduł | Zależności |
 | :--- | :--- | :--- | :--- | :--- |
 | **Stan Bazowy (Core System)** | 🟢 DONE | 100% | `src/app/api/chat/`, `src/lib/dice-utils.ts` | Baza projektu |
-| **Model Gemini 3.6 Flash Baseline** | 🟢 DONE | 100% | `src/lib/model-registry.ts`, `src/lib/ai-presets/` | Domyślna obsługa aplikacji |
+| **Modele AI i presety** | 🟢 DONE | 100% | `src/lib/model-registry.ts`, `src/lib/ai-presets/` | Domyślny preset HIGH: Gemini 2.5 Flash; fallback czatu: Gemini 3.6 Flash |
 | **Etap 1: Domknięcie Sesji** | 🟢 DONE | 100% | `src/components/sidebar/CthulhuSidebar.tsx` | State machine sesji |
 | **Etap 2: Pipeline Przygody & RAG** | 🟡 IN PROGRESS | 40% | `src/lib/vector-db/local-vector-store.ts` | SQLite / Local RAG |
 | **Etap 3: Immersja & Tablica Badacza** | 🟢 DONE | 100% | `src/app/api/chat/_helpers/build-immersion-context.ts` | API danych świata + Save |
@@ -24,7 +24,7 @@
 
 ## 🟢 1. Ukończone Funkcje (DONE)
 
-- [x] **Domyślny model Gemini 3.6 Flash (Low):** Ustawienie modelu `gemini-3.6-flash` jako domyślnego dla całej aplikacji oraz zaktualizowanie szacunków kosztów w rejestrze i presetach (`src/lib/model-registry.ts`).
+- [x] **Modele i presety Gemini:** Preset LOW i MID używa `gemini-3.6-flash`, HIGH `gemini-2.5-flash`, a ULTRA `gemini-3.1-pro-preview`. Fallback czatu to `gemini-3.6-flash`.
 - [x] **Master Prompt MG (CoC 7e RAW):** Styl Lovecrafta, wsparcie dla trybów Noir/Pulp/Klasyczny (`public/default-gm-prompt.md`).
 - [x] **Deterministyczny Silnik Rzutów:** k100, progi trudności (Zwykły/Trudny/Ekstremalny/Krytyk/Fumble), obsługa Push Roll i Szczęścia (`src/lib/dice-utils.ts`).
 - [x] **Lokalny Magazyn RAG (Float32Array):** Przechowywanie wektorów i chunkowanie PDF bez chmurowego Pinecone (`src/lib/vector-db/local-vector-store.ts`).
@@ -44,11 +44,17 @@
   - Pełny modal Dedukcji Śledczej z wyborem konkretnej poszlaki i metody: umiejętność zawodowa (np. *Medycyna*, *Okultyzm*, *Spostrzegawczość*, *Historia*) LUB koło ratunkowe *Rzut na Pomysł (INT)* (`corkboard-investigation-board.tsx`).
   - Precyzyjne kalkulacje progów CoC 7e (Zwykły, Trudny ½, Ekstremalny ⅕, Krytyk 01, Fumble 96-100/100).
   - Wnioski narracyjne generowane przez AI i bezpośrednio zapisywane w badanym dowodzie (`investigatorInsight`) bez generowania zbędnych pustych kafelków.
+- [x] **Aktualizacja Instrukcji Systemowych MG (Worldbuilding & Kontrast Grozy):**
+  - Zaktualizowano `public/default-gm-prompt.md` oraz `.silnik/public/...` (Część I, II, IV, V, VIII, XVIII) o reguły: Kontrast Grozy (80% tła materialnego, 1 punkt anomalii), Materialne User Story lokacji (światło, ogrzewanie, łączność), Echo Akcji u NPC, Actionable Clues/Lore w handoutach i księgach oraz Anti Info-Dumping.
+  - Zaktualizowano `lovecraft-style-guide.ts` (Filary 1, 3, 9: zakaz inflacji anomalii geometrycznych w zwykłych budynkach) oraz `gm-protocol.ts` (`[MYŚLI_MG]` z polem `ECHO_AKCJI`).
+  - Wdrożono moduł walidatora epokowego `location-era-validator.ts` z testami jednostkowymi i integracją z generatorem obrazów (`imagen/route.ts`).
+  - Dodano zestaw testów `prompt-section-parser.test.ts` (100% PASS, 205/205 testów zdanych w projekcie).
 
 ---
 
 ## 🟡 2. W Trakcie / Częściowo Zrealizowane (IN PROGRESS)
 
+- [/] **Obrazy scen, pełny kadr i spójność epok:** Audyt ukończony, plan wdrożenia czeka na `/dev-2-plan`. Aktywny endpoint używa `gemini-2.5-flash-image`; wymagane są reguły 1-3 obrazów na scenę oraz rok obrazu wynikający z aktualnego czasu gry.
 - [/] **Lokalny Pipeline Przygody (Etap 2):**
   - [x] Izolacja przygód w nazwach namespace.
   - [x] Naprawa stabilności i wydajności uploadu PDF (polling stanu ACTIVE w Gemini File API, throttling embeddingów).

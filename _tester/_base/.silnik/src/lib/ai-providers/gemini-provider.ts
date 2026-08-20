@@ -336,7 +336,11 @@ export class GeminiChatProvider implements IChatProvider {
       return null;
     };
 
-    return { stream, getUsage };
+    // `finishReason` jest ustawiany podczas konsumpcji streamu, więc caller
+    // może go odczytać dopiero po zakończeniu `for await`.
+    const getFinishReason = (): string | undefined => lastFinishReason;
+
+    return { stream, getUsage, getFinishReason };
   }
 
   async chat(request: ChatCompletionRequest): Promise<ChatResult> {
