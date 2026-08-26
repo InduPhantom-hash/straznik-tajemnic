@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Character } from '@/lib/types';
 import { EnhancedCharacterTemplate } from '@/lib/enhanced-character-templates';
@@ -24,6 +25,7 @@ export function PortraitGeneratorModal({
   onPortraitSelected,
   onClose,
 }: PortraitGeneratorProps) {
+  const t = useTranslations('PortraitGenerator');
   const [isGenerating, setIsGenerating] = useState(false);
   const [portraits, setPortraits] = useState<PortraitResult[]>([]);
   const [selectedConfig, setSelectedConfig] = useState<PortraitConfig>({
@@ -84,11 +86,11 @@ export function PortraitGeneratorModal({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold text-foreground">
-              Generator Portretów: {character.name}
+              {t('title', { name: character.name })}
             </h2>
             <p className="text-sm text-muted-foreground">
               {character.occupation} •{' '}
-              {character.age ? `${character.age} lat` : 'Wiek nieznany'}
+              {character.age ? t('ageYears', { age: character.age }) : t('ageUnknown')}
             </p>
           </div>
           <Button onClick={onClose} variant="outline" size="sm">
@@ -103,14 +105,14 @@ export function PortraitGeneratorModal({
             disabled={isGenerating}
             className="bg-primary hover:bg-primary/90"
           >
-            ⚡ Szybki Portret
+            {t('quickPortrait')}
           </Button>
           <Button
             onClick={generatePortraits}
             disabled={isGenerating}
             variant="outline"
           >
-            🎨 Wiele Wariantów
+            {t('manyVariants')}
           </Button>
         </div>
 
@@ -119,7 +121,7 @@ export function PortraitGeneratorModal({
           {/* Style Selection */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Styl:
+              {t('styleLabel')}
             </label>
             <select
               value={selectedConfig.style}
@@ -131,17 +133,17 @@ export function PortraitGeneratorModal({
               }
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
             >
-              <option value="realistic">Realistyczny</option>
-              <option value="artistic">Artystyczny</option>
-              <option value="noir">Film Noir</option>
-              <option value="vintage">Vintage</option>
+              <option value="realistic">{t('styleRealistic')}</option>
+              <option value="artistic">{t('styleArtistic')}</option>
+              <option value="noir">{t('styleNoir')}</option>
+              <option value="vintage">{t('styleVintage')}</option>
             </select>
           </div>
 
           {/* Mood Selection */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Nastrój:
+              {t('moodLabel')}
             </label>
             <select
               value={selectedConfig.mood}
@@ -153,18 +155,18 @@ export function PortraitGeneratorModal({
               }
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
             >
-              <option value="serious">Poważny</option>
-              <option value="mysterious">Tajemniczy</option>
-              <option value="confident">Pewny siebie</option>
-              <option value="haunted">Nawiedzony</option>
-              <option value="scholarly">Uczony</option>
+              <option value="serious">{t('moodSerious')}</option>
+              <option value="mysterious">{t('moodMysterious')}</option>
+              <option value="confident">{t('moodConfident')}</option>
+              <option value="haunted">{t('moodHaunted')}</option>
+              <option value="scholarly">{t('moodScholarly')}</option>
             </select>
           </div>
 
           {/* Setting Selection */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Tło:
+              {t('settingLabel')}
             </label>
             <select
               value={selectedConfig.setting}
@@ -176,11 +178,11 @@ export function PortraitGeneratorModal({
               }
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
             >
-              <option value="studio">Studio</option>
-              <option value="office">Biuro</option>
-              <option value="library">Biblioteka</option>
-              <option value="street">Ulica</option>
-              <option value="home">Dom</option>
+              <option value="studio">{t('settingStudio')}</option>
+              <option value="office">{t('settingOffice')}</option>
+              <option value="library">{t('settingLibrary')}</option>
+              <option value="street">{t('settingStreet')}</option>
+              <option value="home">{t('settingHome')}</option>
             </select>
           </div>
         </div>
@@ -188,7 +190,7 @@ export function PortraitGeneratorModal({
         {/* Character Preview */}
         <div className="bg-muted/30 p-4 rounded-lg mb-6">
           <h3 className="text-sm font-semibold text-foreground mb-2">
-            📋 Podgląd Opisu Postaci:
+            {t('previewHeading')}
           </h3>
           <div className="text-xs text-muted-foreground">
             {characterPortraitGenerator
@@ -203,10 +205,10 @@ export function PortraitGeneratorModal({
           <div className="text-center py-12">
             <div className="animate-spin text-6xl mb-4">🎨</div>
             <p className="text-lg font-semibold text-foreground">
-              Generowanie portretów...
+              {t('loadingTitle')}
             </p>
             <p className="text-sm text-muted-foreground">
-              To może potrwać kilka sekund
+              {t('loadingHint')}
             </p>
           </div>
         )}
@@ -215,7 +217,7 @@ export function PortraitGeneratorModal({
         {portraits.length > 0 && !isGenerating && (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-foreground">
-              🖼️ Wygenerowane Portrety:
+              {t('galleryHeading')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -228,7 +230,7 @@ export function PortraitGeneratorModal({
                   <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden relative">
                     <Image
                       src={portrait.imageUrl}
-                      alt={`Portret ${character.name} - wariant ${index + 1}`}
+                      alt={t('portraitAlt', { name: character.name, variant: index + 1 })}
                       width={300}
                       height={300}
                       className="w-full h-full object-cover hover:scale-105 transition-transform"
@@ -244,7 +246,7 @@ export function PortraitGeneratorModal({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground">
-                        Wariant {index + 1}
+                        {t('variantLabel', { variant: index + 1 })}
                       </span>
                       <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
                         {portrait.style}
@@ -259,7 +261,7 @@ export function PortraitGeneratorModal({
                       className="w-full text-xs"
                       size="sm"
                     >
-                      ✨ Wybierz Ten Portret
+                      {t('chooseThisPortrait')}
                     </Button>
                   </div>
                 </div>
@@ -273,11 +275,10 @@ export function PortraitGeneratorModal({
           <div className="text-center py-12 border-2 border-dashed border-border rounded-lg">
             <div className="text-4xl mb-4">🎭</div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              Gotowy do stworzenia portretów?
+              {t('readyTitle')}
             </h3>
             <p className="text-sm text-muted-foreground mb-6">
-              Kliknij &quot;Szybki Portret&quot; dla jednego obrazu lub
-              &quot;Wiele Wariantów&quot; dla różnych stylów
+              {t('readyHint')}
             </p>
 
             {/* Suggested Configs */}
@@ -306,12 +307,12 @@ export function PortraitGeneratorModal({
         {/* Actions */}
         <div className="flex justify-between pt-6 border-t border-border">
           <Button onClick={onClose} variant="outline">
-            Anuluj
+            {t('cancel')}
           </Button>
 
           {portraits.length > 0 && (
             <div className="text-sm text-muted-foreground">
-              Kliknij na portret aby go wybrać
+              {t('clickToSelectHint')}
             </div>
           )}
         </div>

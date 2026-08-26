@@ -33,15 +33,26 @@ function resolveMessage(namespace: string, key: string): unknown {
   return node;
 }
 
+/**
+ * Normalizacja cudzysłowów ICU (chunk_ad): sekwencja '' oznacza literalny
+ * apostrof (np. "Hali''s Wine" -> "Hali's Wine") - 1:1 jak parser ICU
+ * w realnym next-intl. Dzięki temu asercje DOM w testach widzą dokładnie
+ * ten sam tekst co aplikacja produkcyjna.
+ */
+function normalizeIcuQuotes(message: string): string {
+  return message.replace(/''/g, "'");
+}
+
 /** Natywna interpolacja zmiennych {name} znana z next-intl. */
 function interpolate(
   message: string,
   values?: TranslationValues
 ): string {
-  if (!values) return message;
+  const normalized = normalizeIcuQuotes(message);
+  if (!values) return normalized;
   return Object.entries(values).reduce(
     (acc, [name, value]) => acc.replaceAll(`{${name}}`, stringifyValue(value)),
-    message
+    normalized
   );
 }
 
@@ -66,8 +77,9 @@ function stringifyValue(value: unknown): string {
  * next-intl.
  */
 function renderTags(message: string, values?: TranslationValues): React.ReactNode {
-  if (!values) return message;
-  const parts = message.split(/(<(\w+)>[\s\S]*?<\/\2>)/g);
+  const normalized = normalizeIcuQuotes(message);
+  if (!values) return normalized;
+  const parts = normalized.split(/(<(\w+)>[\s\S]*?<\/\2>)/g);
   const nodes = parts.map((part, index) => {
     const match = part.match(/^<(\w+)>([\s\S]*?)<\/\1>$/);
     if (!match) return part;

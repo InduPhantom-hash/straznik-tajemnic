@@ -2,6 +2,7 @@
 
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 
 interface NewSessionFormProps {
@@ -10,6 +11,7 @@ interface NewSessionFormProps {
 }
 
 export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
+  const t = useTranslations('NewSessionForm');
   const [sessionName, setSessionName] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +21,7 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
     e.preventDefault();
 
     if (!sessionName.trim()) {
-      setError('Nazwa sesji jest wymagana');
+      setError(t('sessionNameRequired'));
       return;
     }
 
@@ -34,10 +36,10 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
       if (success) {
         // Formularz zostanie zamknięty przez onSave
       } else {
-        setError('Błąd podczas zapisywania sesji');
+        setError(t('saveError'));
       }
     } catch {
-      setError('Nieoczekiwany błąd');
+      setError(t('unexpectedError'));
     } finally {
       setIsLoading(false);
     }
@@ -56,14 +58,14 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           htmlFor="sessionName"
           className="block text-sm font-medium text-foreground"
         >
-          Nazwa sesji *
+          {t('sessionNameLabel')}
         </label>
         <input
           id="sessionName"
           type="text"
           value={sessionName}
           onChange={(e) => setSessionName(e.target.value)}
-          placeholder="np. Przygoda w Arkham, Sesja z Testowym, etc."
+          placeholder={t('sessionNamePlaceholder')}
           className="w-full px-4 py-3 bg-black/30 backdrop-blur-sm border border-white/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all duration-300"
           disabled={isLoading}
         />
@@ -74,13 +76,13 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           htmlFor="description"
           className="block text-sm font-medium text-foreground"
         >
-          Opis (opcjonalny)
+          {t('descriptionLabel')}
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Krótki opis sesji, co się wydarzyło, gdzie się rozgrywa..."
+          placeholder={t('descriptionPlaceholder')}
           rows={3}
           className="w-full px-4 py-3 bg-black/30 backdrop-blur-sm border border-white/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all duration-300 resize-none"
           disabled={isLoading}
@@ -96,10 +98,10 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           {isLoading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              Zapisywanie...
+              {t('saving')}
             </div>
           ) : (
-            '💾 Zapisz jako nową sesję'
+            t('saveAsNewButton')
           )}
         </Button>
 
@@ -109,16 +111,15 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           disabled={isLoading}
           className="px-6 py-3 bg-muted hover:bg-muted disabled:bg-muted text-foreground font-medium rounded-xl transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
         >
-          Anuluj
+          {t('cancel')}
         </Button>
       </div>
 
       <div className="text-center text-sm text-muted-foreground">
         <p>
-          💡 <strong>Wskazówka:</strong> Nadaj opisową nazwę sesji, aby łatwo ją
-          znaleźć później
+          💡 <strong>{t('tipLabel')}</strong> {t('tipText')}
         </p>
-        <p>📅 Sesja zostanie zapisana z aktualną datą i czasem</p>
+        <p>📅 {t('dateInfo')}</p>
       </div>
     </form>
   );

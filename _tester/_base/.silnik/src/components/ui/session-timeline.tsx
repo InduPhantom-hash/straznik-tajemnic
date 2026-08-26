@@ -2,20 +2,22 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 
 // Typy wydarzeń na osi czasu
+// Pole label przechowuje płaski klucz tłumaczenia (namespace SessionTimeline)
 export const EVENT_TYPES = {
-  combat: { icon: '⚔️', color: 'bg-red-500', label: 'Walka' },
-  discovery: { icon: '🔍', color: 'bg-yellow-500', label: 'Odkrycie' },
-  npc: { icon: '👤', color: 'bg-blue-500', label: 'NPC' },
-  sanity: { icon: '🧠', color: 'bg-purple-500', label: 'Poczytalność' },
-  clue: { icon: '📜', color: 'bg-green-500', label: 'Trop' },
-  location: { icon: '📍', color: 'bg-orange-500', label: 'Lokacja' },
-  ritual: { icon: '🕯️', color: 'bg-pink-500', label: 'Rytuał' },
-  death: { icon: '💀', color: 'bg-muted', label: 'Śmierć' },
-  bookmark: { icon: '⭐', color: 'bg-amber-500', label: 'Zakładka' },
-  note: { icon: '📝', color: 'bg-cyan-500', label: 'Notatka' },
+  combat: { icon: '⚔️', color: 'bg-red-500', label: 'eventTypeCombat' },
+  discovery: { icon: '🔍', color: 'bg-yellow-500', label: 'eventTypeDiscovery' },
+  npc: { icon: '👤', color: 'bg-blue-500', label: 'eventTypeNpc' },
+  sanity: { icon: '🧠', color: 'bg-purple-500', label: 'eventTypeSanity' },
+  clue: { icon: '📜', color: 'bg-green-500', label: 'eventTypeClue' },
+  location: { icon: '📍', color: 'bg-orange-500', label: 'eventTypeLocation' },
+  ritual: { icon: '🕯️', color: 'bg-pink-500', label: 'eventTypeRitual' },
+  death: { icon: '💀', color: 'bg-muted', label: 'eventTypeDeath' },
+  bookmark: { icon: '⭐', color: 'bg-amber-500', label: 'eventTypeBookmark' },
+  note: { icon: '📝', color: 'bg-cyan-500', label: 'eventTypeNote' },
 } as const;
 
 export type EventType = keyof typeof EVENT_TYPES;
@@ -40,6 +42,7 @@ interface SessionTimelineProps {
 }
 
 export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: SessionTimelineProps) {
+  const t = useTranslations('SessionTimeline');
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [filterType, setFilterType] = useState<EventType | 'all'>('all');
@@ -79,7 +82,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
 
   // Toggle bookmark
   const toggleBookmark = useCallback((eventId: string) => {
-    const updatedEvents = events.map(e => 
+    const updatedEvents = events.map(e =>
       e.id === eventId ? { ...e, isBookmarked: !e.isBookmarked } : e
     );
     saveEvents(updatedEvents);
@@ -93,16 +96,16 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
   // Filtrowane wydarzenia
   const filteredEvents = useMemo(() => {
     let result = events;
-    
+
     if (filterType !== 'all') {
       result = result.filter(e => e.type === filterType);
     }
-    
+
     if (showBookmarksOnly) {
       result = result.filter(e => e.isBookmarked);
     }
-    
-    return result.sort((a, b) => 
+
+    return result.sort((a, b) =>
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   }, [events, filterType, showBookmarksOnly]);
@@ -110,7 +113,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
   // Grupowanie po dacie
   const groupedEvents = useMemo(() => {
     const groups: Record<string, TimelineEvent[]> = {};
-    
+
     filteredEvents.forEach(event => {
       const date = new Date(event.timestamp).toLocaleDateString('pl-PL', {
         weekday: 'long',
@@ -118,13 +121,13 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
         month: 'long',
         day: 'numeric',
       });
-      
+
       if (!groups[date]) {
         groups[date] = [];
       }
       groups[date].push(event);
     });
-    
+
     return groups;
   }, [filteredEvents]);
 
@@ -143,14 +146,14 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
   return (
     <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-lg overflow-hidden">
       {/* Header */}
-      <div 
+      <div
         className="flex items-center justify-between p-3 cursor-pointer hover:bg-amber-800/20 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">📜</span>
-          <span className="font-medium text-amber-200">Oś Czasu</span>
-          <span className="text-sm text-amber-300/70">({events.length} wydarzeń)</span>
+          <span className="font-medium text-amber-200">{t('timelineTitle')}</span>
+          <span className="text-sm text-amber-300/70">{t('eventsCount', { count: events.length })}</span>
         </div>
         <span className="text-amber-400">{isExpanded ? '▲' : '▼'}</span>
       </div>
@@ -160,7 +163,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
           {/* Quick Stats */}
           <div className="flex flex-wrap gap-2">
             {Object.entries(stats).map(([type, count]) => (
-              <div 
+              <div
                 key={type}
                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${EVENT_TYPES[type as EventType].color} bg-opacity-30`}
               >
@@ -177,14 +180,14 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
               onChange={(e) => setFilterType(e.target.value as EventType | 'all')}
               className="px-3 py-1.5 bg-amber-800/30 border border-amber-500/30 rounded-lg text-amber-100 text-sm"
             >
-              <option value="all">Wszystkie typy</option>
+              <option value="all">{t('filterAll')}</option>
               {(Object.keys(EVENT_TYPES) as EventType[]).map((type) => (
                 <option key={type} value={type}>
-                  {EVENT_TYPES[type].icon} {EVENT_TYPES[type].label}
+                  {EVENT_TYPES[type].icon} {t(EVENT_TYPES[type].label)}
                 </option>
               ))}
             </select>
-            
+
             <label className="flex items-center gap-2 text-sm text-amber-200">
               <input
                 type="checkbox"
@@ -192,15 +195,15 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                 onChange={(e) => setShowBookmarksOnly(e.target.checked)}
                 className="accent-amber-500"
               />
-              Tylko zakładki ⭐
+              {t('bookmarksOnlyFilter')}
             </label>
-            
+
             <Button
               onClick={() => setIsAddingBookmark(true)}
               size="sm"
               className="bg-amber-600 hover:bg-amber-700 ml-auto"
             >
-              ➕ Dodaj znacznik
+              {t('addMarkerButton')}
             </Button>
           </div>
 
@@ -209,13 +212,13 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
             <div className="p-3 bg-amber-800/20 rounded-lg space-y-2">
               <input
                 type="text"
-                placeholder="Tytuł znacznika..."
+                placeholder={t('markerTitlePlaceholder')}
                 value={newBookmarkTitle}
                 onChange={(e) => setNewBookmarkTitle(e.target.value)}
                 className="w-full px-3 py-2 bg-amber-800/30 border border-amber-500/30 rounded-lg text-amber-100 text-sm"
               />
               <textarea
-                placeholder="Opis (opcjonalny)..."
+                placeholder={t('markerDescPlaceholder')}
                 value={newBookmarkDescription}
                 onChange={(e) => setNewBookmarkDescription(e.target.value)}
                 className="w-full px-3 py-2 bg-amber-800/30 border border-amber-500/30 rounded-lg text-amber-100 text-sm h-16 resize-none"
@@ -233,7 +236,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                   size="sm"
                   className="bg-amber-600"
                 >
-                  ✓ Zapisz
+                  {t('saveMarkerButton')}
                 </Button>
                 <Button
                   onClick={() => setIsAddingBookmark(false)}
@@ -241,7 +244,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                   variant="outline"
                   className="border-amber-500 text-amber-200"
                 >
-                  ✕ Anuluj
+                  {t('cancelMarkerButton')}
                 </Button>
               </div>
             </div>
@@ -258,7 +261,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                   {dateEvents.map((event) => {
                     const eventType = EVENT_TYPES[event.type];
                     return (
-                      <div 
+                      <div
                         key={event.id}
                         className="relative flex items-start gap-3 p-2 rounded-lg hover:bg-amber-800/20 transition-colors group"
                       >
@@ -273,8 +276,8 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                             <p className="text-xs text-amber-300/70 mt-0.5 line-clamp-2">{event.description}</p>
                           )}
                           {event.imageUrl && (
-                            <SafeImage 
-                              src={event.imageUrl} 
+                            <SafeImage
+                              src={event.imageUrl}
                               alt={event.title}
                               className="mt-2 w-24 h-16 object-cover rounded border border-amber-500/30 cursor-pointer hover:opacity-80"
                               onClick={() => window.open(event.imageUrl, '_blank')}
@@ -297,10 +300,10 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                 </div>
               </div>
             ))}
-            
+
             {filteredEvents.length === 0 && (
               <p className="text-amber-400/70 text-sm text-center py-8">
-                Brak wydarzeń na osi czasu. Dodaj znaczniki ręcznie.
+                {t('emptyTimeline')}
               </p>
             )}
           </div>
@@ -310,7 +313,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
             <Button
               onClick={async () => {
                 const { exportTimelineToMarkdown } = await import('@/lib/session-timeline');
-                const markdown = exportTimelineToMarkdown(events as unknown as Parameters<typeof exportTimelineToMarkdown>[0], `Sesja ${new Date().toLocaleDateString('pl-PL')}`);
+                const markdown = exportTimelineToMarkdown(events as unknown as Parameters<typeof exportTimelineToMarkdown>[0], t('sessionExportTitle', { date: new Date().toLocaleDateString('pl-PL') }));
                 const blob = new Blob([markdown], { type: 'text/markdown' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -321,11 +324,11 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
               size="sm"
               className="bg-amber-600/50 hover:bg-amber-600"
             >
-              📥 Eksport MD
+              {t('exportMdButton')}
             </Button>
             <Button
               onClick={() => {
-                if (confirm('Czy na pewno chcesz wyczyścić całą oś czasu?')) {
+                if (confirm(t('clearConfirm'))) {
                   saveEvents([]);
                 }
               }}
@@ -333,7 +336,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
               variant="destructive"
               className="bg-red-600/50 hover:bg-red-600"
             >
-              🗑️ Wyczyść
+              {t('clearButton')}
             </Button>
           </div>
         </div>

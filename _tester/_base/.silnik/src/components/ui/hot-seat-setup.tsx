@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -31,9 +32,10 @@ export function HotSeatSetup({
   onChooseSolo,
   onStartHotSeat,
 }: HotSeatSetupProps) {
+  const t = useTranslations('HotSeatSetup');
   const [mode, setMode] = useState<PlayMode>('solo');
-  const [player1Name, setPlayer1Name] = useState('Gracz 1');
-  const [player2Name, setPlayer2Name] = useState('Gracz 2');
+  const [player1Name, setPlayer1Name] = useState(t('player1Default'));
+  const [player2Name, setPlayer2Name] = useState(t('player2Default'));
 
   const canStart =
     mode === 'solo'
@@ -55,10 +57,10 @@ export function HotSeatSetup({
       <DialogContent size="wide">
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2">
-            🎮 Tryb gry
+            🎮 {t('title')}
           </DialogTitle>
           <DialogDescription>
-            Grasz sam czy we dwoje przy jednej klawiaturze?
+            {t('subtitle')}
           </DialogDescription>
         </DialogHeader>
 
@@ -75,9 +77,11 @@ export function HotSeatSetup({
               }`}
             >
               <span className="text-base font-semibold">
-                {mode === 'solo' ? '◉' : '○'} Solo
+                {mode === 'solo' ? '◉' : '○'} {t('modeSoloLabel')}
               </span>
-              <span className="text-xs text-muted-foreground">1 osoba</span>
+              <span className="text-xs text-muted-foreground">
+                {t('soloPlayersCount')}
+              </span>
             </button>
             <button
               type="button"
@@ -89,9 +93,11 @@ export function HotSeatSetup({
               }`}
             >
               <span className="text-base font-semibold">
-                {mode === 'duet' ? '◉' : '○'} Duet
+                {mode === 'duet' ? '◉' : '○'} {t('modeDuetLabel')}
               </span>
-              <span className="text-xs text-muted-foreground">2 osoby</span>
+              <span className="text-xs text-muted-foreground">
+                {t('duetPlayersCount')}
+              </span>
             </button>
           </div>
 
@@ -106,17 +112,17 @@ export function HotSeatSetup({
                 style={{ backgroundColor: '#4ade80' }}
               />
               <Label className="text-base font-semibold">
-                {mode === 'duet' ? 'Gracz 1' : 'Gracz'}
+                {mode === 'duet' ? t('player1Label') : t('playerLabel')}
               </Label>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">
-                Imię gracza
+                {t('playerNameLabel')}
               </Label>
               <Input
                 value={player1Name}
                 onChange={(e) => setPlayer1Name(e.target.value)}
-                placeholder="np. Kasia"
+                placeholder={t('player1Placeholder')}
                 className="mt-1"
               />
             </div>
@@ -133,16 +139,18 @@ export function HotSeatSetup({
                   className="w-4 h-4 rounded-full"
                   style={{ backgroundColor: '#f472b6' }}
                 />
-                <Label className="text-base font-semibold">Gracz 2</Label>
+                <Label className="text-base font-semibold">
+                  {t('player2Label')}
+                </Label>
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">
-                  Imię gracza
+                  {t('playerNameLabel')}
                 </Label>
                 <Input
                   value={player2Name}
                   onChange={(e) => setPlayer2Name(e.target.value)}
-                  placeholder="np. Tomek"
+                  placeholder={t('player2Placeholder')}
                   className="mt-1"
                 />
               </div>
@@ -152,22 +160,22 @@ export function HotSeatSetup({
           {/* Info */}
           {mode === 'duet' && (
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>💡 Kliknij na pasek u góry ekranu aby zmienić gracza.</p>
-              <p>💡 Aktywny gracz widzi kolorową ramkę wokół UI.</p>
+              <p>💡 {t('changePlayerHint')}</p>
+              <p>💡 {t('activeFrameHint')}</p>
             </div>
           )}
 
           {/* Przyciski */}
           <div className="flex gap-3 justify-end">
             <Button variant="outline" onClick={onClose}>
-              Anuluj
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleStart}
               disabled={!canStart}
               className="bg-gradient-to-r from-green-500 to-pink-500 hover:from-green-600 hover:to-pink-600"
             >
-              Zatwierdź tryb
+              {t('confirmMode')}
             </Button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useSettingsModal } from '@/hooks/useSettingsModal';
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from './tooltip';
 import { Button } from './button';
 import {
@@ -43,6 +44,7 @@ export function SettingsModal({
   onClose,
   onOpenChange,
 }: SettingsModalProps) {
+  const t = useTranslations('SettingsModal');
   const m = useSettingsModal({ open, onClose, onOpenChange });
 
   return (
@@ -60,13 +62,13 @@ export function SettingsModal({
           {/* Nagłówek déco: nadtytuł + tytuł dekoracyjny + separator z rombem */}
           <div className="text-center">
             <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-primary">
-              Konfiguracja Strażnika
+              {t('kicker')}
             </div>
             <DialogTitle className="mt-1.5 justify-center font-display-decorative text-2xl font-black uppercase tracking-[0.12em] text-foreground">
-              Ustawienia
+              {t('title')}
             </DialogTitle>
             <DialogDescription className="sr-only">
-              Konfiguruj wszystkie ustawienia aplikacji, AI, głosu i interfejsu
+              {t('description')}
             </DialogDescription>
           </div>
           <div className="flex items-center gap-4 pt-5">
@@ -105,7 +107,7 @@ export function SettingsModal({
               className="border border-brass/30 bg-card px-4"
             >
               <AccordionTrigger className="font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                ⚙️ Ustawienia dla nerdów
+                {t('nerdySection')}
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-6 pt-2">
@@ -157,7 +159,7 @@ export function SettingsModal({
                 className="border border-green-700/40 bg-green-950/20 px-4"
               >
                 <AccordionTrigger className="font-display text-xs font-semibold uppercase tracking-[0.24em] text-green-400">
-                  🔧 Narzędzia Debug (dev)
+                  {t('debugSection')}
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pt-2">
@@ -185,7 +187,7 @@ export function SettingsModal({
               onClick={m.handleSave}
               className="flex-1 border border-primary bg-primary font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] hover:brightness-110"
             >
-              💾 Zapisz Ustawienia
+              {t('saveSettings')}
             </Button>
             <div className="flex items-center gap-1">
               <Button
@@ -193,9 +195,9 @@ export function SettingsModal({
                 variant="destructive"
                 className="px-6 font-display font-semibold uppercase tracking-[0.16em]"
               >
-                🔄 Resetuj
+                {t('reset')}
               </Button>
-              <HelpIcon content="Resetuje TYLKO ustawienia AI (model, temperatura, głośność itp.). NIE usuwa postaci, sesji ani historii czatu." />
+              <HelpIcon content={t('resetHelp')} />
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -203,9 +205,9 @@ export function SettingsModal({
                 variant="destructive"
                 className="px-6 bg-red-800 font-display font-semibold uppercase tracking-[0.16em] hover:bg-red-900"
               >
-                🗑️ Pełny Reset
+                {t('fullReset')}
               </Button>
-              <HelpIcon content="USUWA WSZYSTKO: postaci, sesje, historię czatu, ustawienia, notatki, cache. Operacja nieodwracalna!" />
+              <HelpIcon content={t('fullResetHelp')} />
             </div>
             <Button
               onClick={() => {
@@ -215,7 +217,7 @@ export function SettingsModal({
               variant="outline"
               className="border-brass/30 bg-brass/[0.04] px-6 font-display font-semibold uppercase tracking-[0.16em] text-muted-foreground hover:border-brass/60 hover:text-brass"
             >
-              ❌ Zamknij
+              {t('close')}
             </Button>
           </div>
 

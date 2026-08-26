@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
@@ -44,119 +45,122 @@ export interface ManiaEffect {
 
 // === TABELE FOBII I MANII (z CZĘŚĆ VI promptu) ===
 
+// Teksty (name/trigger/description) są resolwowane w komponentach przez
+// t(`phobia_${id}_name`) itd. Pola zostają puste jako placeholdery kształtu.
 export const SAMPLE_PHOBIAS: Phobia[] = [
   {
     id: 'claustrophobia',
-    name: 'Klaustrofobia',
-    trigger: 'Zamknięte, ciasne przestrzenie',
-    description: 'Paraliżujący strach przed małymi, zamkniętymi pomieszczeniami',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { skillPenalty: 20, fleeChance: 40, panicDuration: 3 }
   },
   {
     id: 'arachnophobia',
-    name: 'Arachnofobia',
-    trigger: 'Pająki i pajęczaki',
-    description: 'Intensywny strach przed pająkami',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'mild',
     mechanicalEffect: { skillPenalty: 10, fleeChance: 30 }
   },
   {
     id: 'nyctophobia',
-    name: 'Nyktofobia',
-    trigger: 'Ciemność',
-    description: 'Przerażający strach przed ciemnością',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'severe',
     mechanicalEffect: { skillPenalty: 30, sanPenalty: 1, fleeChance: 50, panicDuration: 5 }
   },
   {
     id: 'thalassophobia',
-    name: 'Talasofobia',
-    trigger: 'Głęboka woda, ocean',
-    description: 'Strach przed głębinami i tym, co w nich żyje',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { skillPenalty: 25, sanPenalty: 1, fleeChance: 35 }
   },
   {
     id: 'necrophobia',
-    name: 'Nekrofobia',
-    trigger: 'Zwłoki, zmarli',
-    description: 'Strach przed śmiercią i martwymi ciałami',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { skillPenalty: 20, fleeChance: 45, panicDuration: 2 }
   },
   {
     id: 'xenophobia',
-    name: 'Ksenofobia',
-    trigger: 'Obcy, nieznane istoty',
-    description: 'Intensywny strach przed nieznanym i obcym',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'severe',
     mechanicalEffect: { skillPenalty: 25, sanPenalty: 2, fleeChance: 60, panicDuration: 4 }
   },
   {
     id: 'hemophobia',
-    name: 'Hemofobia',
-    trigger: 'Krew, rany',
-    description: 'Strach przed widokiem krwi',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'mild',
     mechanicalEffect: { skillPenalty: 15, fleeChance: 20, panicDuration: 1 }
   },
   {
     id: 'acrophobia',
-    name: 'Akrofobia',
-    trigger: 'Wysokości',
-    description: 'Zawroty głowy i panika na wysokościach',
+    name: '',
+    trigger: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { skillPenalty: 20, fleeChance: 30, panicDuration: 2 }
   }
 ];
 
+// Teksty (name/compulsion/description) są resolwowane przez t(`mania_${id}_...`).
 export const SAMPLE_MANIAS: Mania[] = [
   {
     id: 'pyromania',
-    name: 'Piromania',
-    compulsion: 'Podpalanie, wpatrywanie się w ogień',
-    description: 'Przymus podpalania i fascynacja ogniem',
+    name: '',
+    compulsion: '',
+    description: '',
     severity: 'severe',
     mechanicalEffect: { resistDifficulty: 40, duration: 30, socialPenalty: 20 }
   },
   {
     id: 'kleptomania',
-    name: 'Kleptomania',
-    compulsion: 'Kradzież przedmiotów',
-    description: 'Nieodparta potrzeba kradzieży, nawet rzeczy niepotrzebnych',
+    name: '',
+    compulsion: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { resistDifficulty: 50, socialPenalty: 15 }
   },
   {
     id: 'megalomania',
-    name: 'Megalomania',
-    compulsion: 'Przekonanie o własnej wielkości',
-    description: 'Urojenia wielkościowe i przekonanie o własnej nieomylności',
+    name: '',
+    compulsion: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { resistDifficulty: 30, socialPenalty: 25 }
   },
   {
     id: 'dipsomania',
-    name: 'Dipsomania',
-    compulsion: 'Picie alkoholu',
-    description: 'Okresowe, niekontrolowane picie alkoholu',
+    name: '',
+    compulsion: '',
+    description: '',
     severity: 'severe',
     mechanicalEffect: { resistDifficulty: 35, duration: 480, socialPenalty: 30 }
   },
   {
     id: 'bibliomania',
-    name: 'Bibliomania',
-    compulsion: 'Zbieranie książek, zwłaszcza rzadkich',
-    description: 'Obsesyjna potrzeba posiadania książek',
+    name: '',
+    compulsion: '',
+    description: '',
     severity: 'mild',
     mechanicalEffect: { resistDifficulty: 60, socialPenalty: 5 }
   },
   {
     id: 'mythomania',
-    name: 'Mitomania',
-    compulsion: 'Kompulsywne kłamanie',
-    description: 'Nieodparta potrzeba opowiadania wymyślonych historii',
+    name: '',
+    compulsion: '',
+    description: '',
     severity: 'moderate',
     mechanicalEffect: { resistDifficulty: 45, socialPenalty: 20 }
   }
@@ -176,6 +180,7 @@ interface PhobiaCheckProps {
 }
 
 export function PhobiaCheck({ phobia, playerPOW, onCheckResult }: PhobiaCheckProps) {
+  const t = useTranslations('PhobiaManiaSystem');
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState<{
     roll: number;
@@ -227,20 +232,20 @@ export function PhobiaCheck({ phobia, playerPOW, onCheckResult }: PhobiaCheckPro
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg text-red-300 flex items-center gap-2">
-            😱 {phobia.name}
+            😱 {t(`phobia_${phobia.id as KnownPhobiaId}_name`)}
           </CardTitle>
           <Badge className={getSeverityColor(phobia.severity)}>
-            {phobia.severity === 'mild' ? 'Łagodna' : 
-             phobia.severity === 'moderate' ? 'Umiarkowana' : 'Ciężka'}
+            {phobia.severity === 'mild' ? t('severityMild') :
+             phobia.severity === 'moderate' ? t('severityModerate') : t('severitySevere')}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">{phobia.description}</p>
+        <p className="text-sm text-muted-foreground">{t(`phobia_${phobia.id as KnownPhobiaId}_description`)}</p>
         
         <div className="p-2 bg-red-900/20 rounded border border-red-500/30">
           <p className="text-xs text-red-300">
-            <strong>Trigger:</strong> {phobia.trigger}
+            <strong>{t('triggerLabel')}</strong> {t(`phobia_${phobia.id as KnownPhobiaId}_trigger`)}
           </p>
         </div>
         
@@ -248,17 +253,17 @@ export function PhobiaCheck({ phobia, playerPOW, onCheckResult }: PhobiaCheckPro
         <div className="flex flex-wrap gap-2 text-xs">
           {phobia.mechanicalEffect.skillPenalty && (
             <Badge variant="outline" className="border-red-500/50 text-red-400">
-              -{phobia.mechanicalEffect.skillPenalty}% umiejętności
+              {t('skillPenaltyBadge', { value: phobia.mechanicalEffect.skillPenalty })}
             </Badge>
           )}
           {phobia.mechanicalEffect.fleeChance && (
             <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-              {phobia.mechanicalEffect.fleeChance}% szans na ucieczkę
+              {t('fleeChanceBadge', { value: phobia.mechanicalEffect.fleeChance })}
             </Badge>
           )}
           {phobia.mechanicalEffect.panicDuration && (
             <Badge variant="outline" className="border-orange-500/50 text-orange-400">
-              Panika: {phobia.mechanicalEffect.panicDuration} rund
+              {t('panicDurationBadge', { value: phobia.mechanicalEffect.panicDuration })}
             </Badge>
           )}
         </div>
@@ -268,20 +273,20 @@ export function PhobiaCheck({ phobia, playerPOW, onCheckResult }: PhobiaCheckPro
             onClick={triggerPhobia}
             className="w-full bg-red-600 hover:bg-red-700"
           >
-            🎲 Test MOC (opór wobec fobii)
+            🎲 {t('phobiaCheckButton')}
           </Button>
         ) : result && (
           <div className={`p-3 rounded-lg ${result.resisted ? 'bg-green-900/30 border-green-500/50' : 'bg-red-900/30 border-red-500/50'} border`}>
             <div className="flex items-center justify-between mb-2">
               <span className={result.resisted ? 'text-green-400' : 'text-red-400'}>
-                {result.resisted ? '✓ Oparłeś się strachowi!' : '✗ Fobia przejmuje kontrolę!'}
+                {result.resisted ? t('resistedFear') : t('phobiaTakesOver')}
               </span>
               <Badge>{result.roll} / {playerPOW}</Badge>
             </div>
             {!result.resisted && (
               <div className="text-sm text-red-300 space-y-1">
-                {result.fled && <p>🏃 Automatycznie uciekasz od źródła strachu!</p>}
-                {result.panicRounds > 0 && <p>😰 Panika przez {result.panicRounds} rund!</p>}
+                {result.fled && <p>🏃 {t('autoFleeMessage')}</p>}
+                {result.panicRounds > 0 && <p>😰 {t('panicRoundsMessage', { value: result.panicRounds })}</p>}
               </div>
             )}
             <Button 
@@ -289,7 +294,7 @@ export function PhobiaCheck({ phobia, playerPOW, onCheckResult }: PhobiaCheckPro
               variant="outline"
               className="w-full mt-2"
             >
-              Kontynuuj
+              {t('continueButton')}
             </Button>
           </div>
         )}
@@ -307,6 +312,7 @@ interface ManiaCheckProps {
 }
 
 export function ManiaCheck({ mania, playerPOW, onCheckResult }: ManiaCheckProps) {
+  const t = useTranslations('PhobiaManiaSystem');
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState<{ roll: number; resisted: boolean } | null>(null);
 
@@ -327,15 +333,15 @@ export function ManiaCheck({ mania, playerPOW, onCheckResult }: ManiaCheckProps)
     <Card className="border-orange-500/30 bg-orange-950/30">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-orange-300 flex items-center gap-2">
-          🔥 {mania.name}
+          🔥 {t(`mania_${mania.id as KnownManiaId}_name`)}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">{mania.description}</p>
+        <p className="text-sm text-muted-foreground">{t(`mania_${mania.id as KnownManiaId}_description`)}</p>
         
         <div className="p-2 bg-orange-900/20 rounded border border-orange-500/30">
           <p className="text-xs text-orange-300">
-            <strong>Przymus:</strong> {mania.compulsion}
+            <strong>{t('compulsionLabel')}</strong> {t(`mania_${mania.id as KnownManiaId}_compulsion`)}
           </p>
         </div>
         
@@ -344,16 +350,16 @@ export function ManiaCheck({ mania, playerPOW, onCheckResult }: ManiaCheckProps)
             onClick={triggerMania}
             className="w-full bg-orange-600 hover:bg-orange-700"
           >
-            🎲 Test MOC (opór wobec przymusu)
+            🎲 {t('maniaCheckButton')}
           </Button>
         ) : result && (
           <div className={`p-3 rounded-lg ${result.resisted ? 'bg-green-900/30 border-green-500/50' : 'bg-orange-900/30 border-orange-500/50'} border`}>
             <span className={result.resisted ? 'text-green-400' : 'text-orange-400'}>
-              {result.resisted ? '✓ Powstrzymałeś się!' : '✗ Przymus jest silniejszy!'}
+              {result.resisted ? t('resistedCompulsion') : t('compulsionStronger')}
             </span>
             {!result.resisted && mania.mechanicalEffect.duration && (
               <p className="text-sm text-orange-300 mt-1">
-                ⏱️ Epizod trwa {mania.mechanicalEffect.duration} minut
+                ⏱️ {t('episodeDuration', { value: mania.mechanicalEffect.duration })}
               </p>
             )}
           </div>
@@ -371,7 +377,7 @@ export function generateRandomPhobia(triggerEvent?: string): Phobia {
   return {
     ...basePhobia,
     id: Date.now().toString(),
-    acquiredFrom: triggerEvent || 'Szaleństwo Nieokreślone',
+    acquiredFrom: triggerEvent || 'Szale\u0144stwo Nieokre\u015blone',
     acquiredDate: new Date()
   };
 }
@@ -382,7 +388,7 @@ export function generateRandomMania(triggerEvent?: string): Mania {
   return {
     ...baseMania,
     id: Date.now().toString(),
-    acquiredFrom: triggerEvent || 'Szaleństwo Nieokreślone',
+    acquiredFrom: triggerEvent || 'Szale\u0144stwo Nieokre\u015blone',
     acquiredDate: new Date()
   };
 }
@@ -399,40 +405,70 @@ export interface PushRollResult {
   consequence?: PushConsequence;
 }
 
+type PushConsequenceDescriptionKey =
+  | 'pushClimbingFall' | 'pushClimbingToolLoss' | 'pushPersuasionEnemy' | 'pushPersuasionUnmasked' | 'pushHidingSpotted' | 'pushListeningHorror' | 'pushAwarenessHorror' | 'pushMechanicsExplosion' | 'pushMechanicsToolsDestroyed' | 'pushDefaultWorse' | 'pushDefaultDamage';
+
+type KnownPhobiaId =
+  | 'claustrophobia' | 'arachnophobia' | 'nyctophobia' | 'thalassophobia' | 'necrophobia' | 'xenophobia' | 'hemophobia' | 'acrophobia';
+
+type KnownManiaId =
+  | 'pyromania' | 'kleptomania' | 'megalomania' | 'dipsomania' | 'bibliomania' | 'mythomania';
+
 export interface PushConsequence {
   type: 'damage' | 'san_loss' | 'equipment_loss' | 'social' | 'other';
-  description: string;
+  description: PushConsequenceDescriptionKey;
   severity: number;
 }
 
-// Tabela konsekwencji forsowania per umiejętność
+// Tabela konsekwencji forsowania per umiejętność.
+// description trzyma płaski klucz i18n - tekst resolwuje t() w komponencie.
 const PUSH_CONSEQUENCES: Record<string, PushConsequence[]> = {
-  'Wspinaczka': [
-    { type: 'damage', description: 'Spadasz i otrzymujesz 1d6 obrażeń', severity: 3 },
-    { type: 'equipment_loss', description: 'Tracisz jedno z trzymanych narzędzi', severity: 2 }
+  'climbing': [
+    { type: 'damage', description: 'pushClimbingFall', severity: 3 },
+    { type: 'equipment_loss', description: 'pushClimbingToolLoss', severity: 2 }
   ],
-  'Perswazja': [
-    { type: 'social', description: 'Rozmówca staje się wrogi', severity: 2 },
-    { type: 'social', description: 'Zostajesz zdemaskowany jako kłamca', severity: 3 }
+  'persuasion': [
+    { type: 'social', description: 'pushPersuasionEnemy', severity: 2 },
+    { type: 'social', description: 'pushPersuasionUnmasked', severity: 3 }
   ],
-  'Ukrywanie': [
-    { type: 'other', description: 'Zostałeś zauważony przez najgorszą możliwą osobę', severity: 3 }
+  'hiding': [
+    { type: 'other', description: 'pushHidingSpotted', severity: 3 }
   ],
-  'Nasłuchiwanie': [
-    { type: 'san_loss', description: 'Słyszysz coś, czego nie powinieneś - test SAN', severity: 2 }
+  'listening': [
+    { type: 'san_loss', description: 'pushListeningHorror', severity: 2 }
   ],
-  'Spostrzegawczość': [
-    { type: 'san_loss', description: 'Widzisz coś przerażającego - test SAN', severity: 2 }
+  'awareness': [
+    { type: 'san_loss', description: 'pushAwarenessHorror', severity: 2 }
   ],
-  'Mechanika': [
-    { type: 'damage', description: 'Mechanizm eksploduje - 1d3 obrażeń', severity: 2 },
-    { type: 'equipment_loss', description: 'Narzędzia są zniszczone', severity: 2 }
+  'mechanics': [
+    { type: 'damage', description: 'pushMechanicsExplosion', severity: 2 },
+    { type: 'equipment_loss', description: 'pushMechanicsToolsDestroyed', severity: 2 }
   ],
   'default': [
-    { type: 'other', description: 'Sytuacja znacząco się pogarsza', severity: 2 },
-    { type: 'damage', description: 'Otrzymujesz 1d3 obrażeń', severity: 2 }
+    { type: 'other', description: 'pushDefaultWorse', severity: 2 },
+    { type: 'damage', description: 'pushDefaultDamage', severity: 2 }
   ]
 };
+
+// Mapuje nazwę umiejętności (klucze danych) na grupę konsekwencji
+function getConsequenceGroup(skill: string): string {
+  switch (skill) {
+    case 'Wspinaczka':
+      return 'climbing';
+    case 'Perswazja':
+      return 'persuasion';
+    case 'Ukrywanie':
+      return 'hiding';
+    case 'Nas\u0142uchiwanie':
+      return 'listening';
+    case 'Spostrzegawczo\u015b\u0107':
+      return 'awareness';
+    case 'Mechanika':
+      return 'mechanics';
+    default:
+      return 'default';
+  }
+}
 
 interface PushRollDialogProps {
   skill: string;
@@ -453,6 +489,7 @@ export function PushRollDialog({
   playerNarration,
   onPushDecision
 }: PushRollDialogProps) {
+  const t = useTranslations('PhobiaManiaSystem');
   const [step, setStep] = useState<'question' | 'narration' | 'warning' | 'result'>('question');
   const [narration, setNarration] = useState(playerNarration || '');
   const [pushResult, setPushResult] = useState<PushRollResult | null>(null);
@@ -468,7 +505,7 @@ export function PushRollDialog({
     
     if (!pushedSuccess) {
       // Fumble lub porażka - konsekwencje
-      const skillConsequences = PUSH_CONSEQUENCES[skill] || PUSH_CONSEQUENCES['default'];
+      const skillConsequences = PUSH_CONSEQUENCES[getConsequenceGroup(skill)];
       consequence = skillConsequences[Math.floor(Math.random() * skillConsequences.length)];
     }
     
@@ -492,7 +529,7 @@ export function PushRollDialog({
       <Card className="border-red-500/30 bg-red-950/30">
         <CardContent className="p-4 text-center">
           <p className="text-red-400">
-            ❌ {isInCombat ? 'Nie można forsować rzutów w walce!' : 'Nie można forsować testów Poczytalności!'}
+            ❌ {isInCombat ? t('pushBlockedCombat') : t('pushBlockedSanity')}
           </p>
         </CardContent>
       </Card>
@@ -503,7 +540,7 @@ export function PushRollDialog({
     <Card className="border-amber-500/30 bg-amber-950/30">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-amber-300 flex items-center gap-2">
-          🔄 Forsowanie: {skill}
+          {t('pushTitle', { skill })}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -511,17 +548,17 @@ export function PushRollDialog({
         {step === 'question' && (
           <>
             <p className="text-foreground">
-              Twój rzut <Badge>{originalRoll}</Badge> vs <Badge>{targetValue}</Badge> nie powiódł się.
+              {t('pushYourRollLabel')} <Badge>{originalRoll}</Badge> vs <Badge>{targetValue}</Badge> {t('pushFailedSuffix')}
             </p>
             <p className="text-amber-300 text-sm">
-              Czy chcesz forsować ten rzut? Forsowanie daje drugą szansę, ale porażka może mieć poważne konsekwencje.
+              {t('pushOfferText')}
             </p>
             <div className="flex gap-2">
               <Button onClick={() => setStep('narration')} className="flex-1 bg-amber-600 hover:bg-amber-700">
-                🔄 Chcę forsować
+                🔄 {t('pushAcceptButton')}
               </Button>
               <Button onClick={() => onPushDecision(false)} variant="outline" className="flex-1">
-                ❌ Rezygnuję
+                ❌ {t('declineButton')}
               </Button>
             </div>
           </>
@@ -531,17 +568,17 @@ export function PushRollDialog({
         {step === 'narration' && (
           <>
             <p className="text-foreground">
-              Opisz, jak twoja postać próbuje ponownie:
+              {t('narrationPrompt')}
             </p>
             <textarea
               value={narration}
               onChange={(e) => setNarration(e.target.value)}
               className="w-full p-2 bg-muted border border-border rounded text-foreground"
-              placeholder="Np. 'Zaciskam zęby i próbuję raz jeszcze, ignorując ból w ramionach...'"
+              placeholder={t('narrationPlaceholder')}
               rows={3}
             />
             <Button onClick={() => setStep('warning')} className="w-full bg-amber-600">
-              Kontynuuj →
+              {t('continueArrow')}
             </Button>
           </>
         )}
@@ -550,25 +587,25 @@ export function PushRollDialog({
         {step === 'warning' && (
           <>
             <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
-              <p className="text-red-300 font-semibold mb-2">⚠️ OSTRZEŻENIE</p>
+              <p className="text-red-300 font-semibold mb-2">{t('warningTitle')}</p>
               <p className="text-red-200 text-sm">
-                Porażka przy forsowaniu {skill} może oznaczać:
+                {t('failureMayMean', { skill })}
               </p>
               <ul className="text-red-200 text-sm mt-2 list-disc list-inside">
-                {(PUSH_CONSEQUENCES[skill] || PUSH_CONSEQUENCES['default']).map((c, i) => (
-                  <li key={i}>{c.description}</li>
+                {(PUSH_CONSEQUENCES[getConsequenceGroup(skill)]).map((c, i) => (
+                  <li key={i}>{t(c.description)}</li>
                 ))}
               </ul>
             </div>
             <p className="text-amber-300 text-sm">
-              Czy na pewno chcesz forsować?
+              {t('confirmPush')}
             </p>
             <div className="flex gap-2">
               <Button onClick={executePush} className="flex-1 bg-red-600 hover:bg-red-700">
-                🎲 FORSUJ!
+                🎲 {t('pushExecuteButton')}
               </Button>
               <Button onClick={() => onPushDecision(false)} variant="outline" className="flex-1">
-                Rezygnuję
+                {t('declineButton')}
               </Button>
             </div>
           </>
@@ -582,17 +619,20 @@ export function PushRollDialog({
                 {pushResult.pushedSuccess ? '🎉' : '💥'}
               </div>
               <p className={`text-xl font-bold ${pushResult.pushedSuccess ? 'text-green-400' : 'text-red-400'}`}>
-                {pushResult.pushedSuccess ? 'SUKCES!' : 'PORAŻKA!'}
+                {pushResult.pushedSuccess ? t('successExclaim') : t('failureExclaim')}
               </p>
               <p className="text-muted-foreground mt-1">
-                Rzut: {pushResult.pushedRoll} / {pushResult.targetValue}
+                {t('rollScoreLabel', {
+                  roll: pushResult.pushedRoll,
+                  target: pushResult.targetValue,
+                })}
               </p>
             </div>
             
             {pushResult.consequence && (
               <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
-                <p className="text-red-300 font-semibold">💀 Konsekwencja:</p>
-                <p className="text-red-200">{pushResult.consequence.description}</p>
+                <p className="text-red-300 font-semibold">{t('consequenceHeading')}</p>
+                <p className="text-red-200">{t(pushResult.consequence.description)}</p>
               </div>
             )}
           </>

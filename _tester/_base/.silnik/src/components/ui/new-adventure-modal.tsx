@@ -9,6 +9,7 @@ import {
 } from './dialog';
 import { Button } from './button';
 import { Save, RotateCcw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface NewAdventureModalProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function NewAdventureModal({
   onSaveFirst,
   onSkipSave,
 }: NewAdventureModalProps) {
+  const t = useTranslations('NewAdventureModal');
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent size="wide">
@@ -40,15 +42,14 @@ export function NewAdventureModal({
 
         <DialogHeader className="text-center sm:text-center">
           <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
-            Powrót do progu
+            {t('backToThreshold')}
           </div>
           <DialogTitle className="mt-1 flex items-center justify-center gap-2 font-display-decorative text-2xl font-black uppercase tracking-[0.12em] text-foreground">
             <RotateCcw className="h-5 w-5 text-primary" />
-            Nowa przygoda
+            {t('newAdventureTitle')}
           </DialogTitle>
           <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
-            Wrócisz do ekranu głównego, by wybrać nowy scenariusz. Czy chcesz
-            najpierw zapisać aktualną sesję?
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -62,8 +63,7 @@ export function NewAdventureModal({
         <div className="relative mt-3 border border-destructive/30 bg-card p-4">
           <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-destructive/50" />
           <p className="font-serif text-base italic leading-relaxed text-destructive">
-            ⚠️ Bez zapisu utracisz postęp obecnej rozgrywki. Twoje postacie
-            pozostaną w katalogu.
+            ⚠️ {t('progressWarning')}
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export function NewAdventureModal({
             className="w-full font-display font-semibold uppercase tracking-[0.16em]"
           >
             <Save className="mr-2 h-4 w-4" />
-            Zapisz i rozpocznij nową
+            {t('saveAndStartNew')}
           </Button>
           <Button
             onClick={() => {
@@ -87,14 +87,14 @@ export function NewAdventureModal({
             className="w-full font-display font-semibold uppercase tracking-[0.16em]"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            Rozpocznij bez zapisywania
+            {t('startWithoutSaving')}
           </Button>
           <Button
             onClick={onClose}
             variant="ghost"
             className="w-full font-display uppercase tracking-[0.16em] text-muted-foreground hover:text-brass"
           >
-            Anuluj
+            {t('cancel')}
           </Button>
         </div>
       </DialogContent>

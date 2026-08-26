@@ -2,6 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card } from './card';
 import { Input } from './input';
@@ -27,6 +28,7 @@ export function LocationManager({
   npcs = [],
   currentSessionId
 }: LocationManagerProps) {
+  const t = useTranslations('LocationManager');
   const [locations, setLocations] = useState<Location[]>([]);
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +109,7 @@ export function LocationManager({
   };
 
   const handleDeleteLocation = (id: string) => {
-    if (confirm('Czy na pewno chcesz usunąć tę lokację?')) {
+    if (confirm(t('confirmDeleteLocation'))) {
       const newLocations = locations.filter(loc => loc.id !== id);
       saveLocations(newLocations);
     }
@@ -143,7 +145,7 @@ export function LocationManager({
       
     } catch (error) {
       console.error('Error generating map:', error);
-      alert('Błąd podczas generowania mapy');
+      alert(t('mapGenerationError'));
     } finally {
       setIsGeneratingMap(false);
     }
@@ -151,12 +153,12 @@ export function LocationManager({
 
   const getTypeLabel = (type: Location['type']) => {
     switch (type) {
-      case 'city': return 'Miasto';
-      case 'building': return 'Budowla';
-      case 'wilderness': return 'Dzicz';
-      case 'laboratory': return 'Laboratorium';
-      case 'temple': return 'Świątynia';
-      case 'other': return 'Inne';
+      case 'city': return t('typeCity');
+      case 'building': return t('typeBuilding');
+      case 'wilderness': return t('typeWilderness');
+      case 'laboratory': return t('typeLaboratory');
+      case 'temple': return t('typeTemple');
+      case 'other': return t('typeOther');
     }
   };
 
@@ -179,10 +181,10 @@ export function LocationManager({
       <Card className="bg-card border-border">
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground font-mono">📍 Menedżer Lokacji</h2>
+            <h2 className="text-2xl font-bold text-foreground font-mono">{t('title')}</h2>
             <Button onClick={handleCreateLocation} className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
-              Nowa Lokacja
+              {t('newLocation')}
             </Button>
           </div>
         </div>
@@ -193,7 +195,7 @@ export function LocationManager({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Szukaj lokacji..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -204,7 +206,7 @@ export function LocationManager({
               onChange={(e) => setFilterType(e.target.value)}
               className="px-3 py-2 bg-input border border-border rounded-md text-foreground"
             >
-              <option value="all">Wszystkie typy</option>
+              <option value="all">{t('allTypes')}</option>
               {locationTypes.map(type => (
                 <option key={type} value={type}>{getTypeLabel(type)}</option>
               ))}
@@ -214,11 +216,11 @@ export function LocationManager({
               onChange={(e) => setFilterEra(e.target.value)}
               className="px-3 py-2 bg-input border border-border rounded-md text-foreground"
             >
-              <option value="all">Wszystkie epoki</option>
-              <option value="1920s">Lata 20.</option>
-              <option value="1930s">Lata 30.</option>
-              <option value="modern">Współczesność</option>
-              <option value="other">Inna</option>
+              <option value="all">{t('allEras')}</option>
+              <option value="1920s">{t('era1920s')}</option>
+              <option value="1930s">{t('era1930s')}</option>
+              <option value="modern">{t('eraModern')}</option>
+              <option value="other">{t('eraOther')}</option>
             </select>
           </div>
 
@@ -227,7 +229,7 @@ export function LocationManager({
             {filteredLocations.length === 0 ? (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Brak lokacji. Kliknij &quot;Nowa Lokacja&quot; aby utworzyć pierwszą.</p>
+                <p>{t('emptyLocations')}</p>
               </div>
             ) : (
               filteredLocations.map(location => (
@@ -246,7 +248,7 @@ export function LocationManager({
                           </Badge>
                           {location.visitedByPlayer && (
                             <Badge variant="outline" className="bg-green-500/20 text-green-300 border-green-500/30">
-                              Odwiedzona
+                              {t('visitedBadge')}
                             </Badge>
                           )}
                         </div>
@@ -288,7 +290,7 @@ export function LocationManager({
                     {/* NPC */}
                     {location.npcs && location.npcs.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap text-xs">
-                        <span className="text-muted-foreground">NPC:</span>
+                        <span className="text-muted-foreground">{t('npcPrefix')}</span>
                         {location.npcs.map(npcId => {
                           const npc = npcs.find(n => n.id === npcId);
                           return npc ? (
@@ -309,7 +311,7 @@ export function LocationManager({
                           onClick={() => handleGenerateMap(location, true)}
                           disabled={isGeneratingMap}
                           className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
-                          title="Regeneruj mapę"
+                          title={t('regenerateMap')}
                         >
                           {isGeneratingMap ? (
                             <Loader2 className="w-4 h-4 text-foreground animate-spin" />
@@ -325,7 +327,10 @@ export function LocationManager({
                       <div className="flex items-center gap-1 text-xs">
                         <Eye className="w-3 h-3 text-muted-foreground" />
                         <span className="text-muted-foreground">
-                          {location.secrets.filter(s => s.discovered).length}/{location.secrets.length} tajemnic odkryte
+                          {t('secretsDiscovered', {
+                            discovered: location.secrets.filter(s => s.discovered).length,
+                            total: location.secrets.length,
+                          })}
                         </span>
                       </div>
                     )}
@@ -339,7 +344,7 @@ export function LocationManager({
                           onClick={() => onAddToSession(location)}
                           className="flex-1"
                         >
-                          Użyj w sesji
+                          {t('useInSession')}
                         </Button>
                       )}
                       {!location.mapUrl && (
@@ -353,7 +358,7 @@ export function LocationManager({
                           {isGeneratingMap ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
-                            'Generuj mapę'
+                            t('generateMap')
                           )}
                         </Button>
                       )}
@@ -402,6 +407,7 @@ interface LocationFormProps {
 }
 
 function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationFormProps) {
+  const t = useTranslations('LocationManager');
   const [formData, setFormData] = useState<Partial<Location>>(() => {
     if (location) {
       return { ...location };
@@ -427,7 +433,7 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
 
   const handleSave = () => {
     if (!formData.name?.trim()) {
-      alert('Nazwa lokacji jest wymagana');
+      alert(t('nameRequiredAlert'));
       return;
     }
 
@@ -504,7 +510,7 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
       <div className="p-6 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold text-foreground font-mono">
-            {location ? 'Edytuj Lokację' : 'Nowa Lokacja'}
+            {location ? t('editLocation') : t('newLocation')}
           </h3>
           <Button variant="ghost" size="sm" onClick={onCancel}>
             <X className="w-4 h-4" />
@@ -525,10 +531,10 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {tab === 'basic' && 'Podstawowe'}
-              {tab === 'details' && 'Szczegóły'}
-              {tab === 'connections' && 'Powiązania'}
-              {tab === 'secrets' && 'Tajemnice'}
+              {tab === 'basic' && t('tabBasic')}
+              {tab === 'details' && t('tabDetails')}
+              {tab === 'connections' && t('tabConnections')}
+              {tab === 'secrets' && t('tabSecrets')}
             </button>
           ))}
         </div>
@@ -537,57 +543,57 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
         {activeTab === 'basic' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Nazwa *</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('nameLabel')}</label>
               <Input
                 value={formData.name || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nazwa lokacji"
+                placeholder={t('namePlaceholder')}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Typ</label>
+                <label className="block text-sm font-medium text-foreground mb-2">{t('typeLabel')}</label>
                 <select
                   value={formData.type || 'building'}
                   onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as Location['type'] }))}
                   className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 >
-                  <option value="city">Miasto</option>
-                  <option value="building">Budowla</option>
-                  <option value="wilderness">Dzicz</option>
-                  <option value="laboratory">Laboratorium</option>
-                  <option value="temple">Świątynia</option>
-                  <option value="other">Inne</option>
+                  <option value="city">{t('typeCity')}</option>
+                  <option value="building">{t('typeBuilding')}</option>
+                  <option value="wilderness">{t('typeWilderness')}</option>
+                  <option value="laboratory">{t('typeLaboratory')}</option>
+                  <option value="temple">{t('typeTemple')}</option>
+                  <option value="other">{t('typeOther')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Epoka</label>
+                <label className="block text-sm font-medium text-foreground mb-2">{t('eraLabel')}</label>
                 <select
                   value={formData.era || '1920s'}
                   onChange={(e) => setFormData(prev => ({ ...prev, era: e.target.value as Location['era'] }))}
                   className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 >
-                  <option value="1920s">Lata 20.</option>
-                  <option value="1930s">Lata 30.</option>
-                  <option value="modern">Współczesność</option>
-                  <option value="other">Inna</option>
+                  <option value="1920s">{t('era1920s')}</option>
+                  <option value="1930s">{t('era1930s')}</option>
+                  <option value="modern">{t('eraModern')}</option>
+                  <option value="other">{t('eraOther')}</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Adres/Lokalizacja</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('addressLabel')}</label>
               <Input
                 value={formData.address || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                placeholder="Adres lub opis lokalizacji"
+                placeholder={t('addressPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Opis</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('descriptionLabel')}</label>
               <Textarea
                 value={formData.description || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Ogólny opis lokacji"
+                placeholder={t('descriptionPlaceholder')}
                 rows={4}
               />
             </div>
@@ -598,29 +604,29 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
         {activeTab === 'details' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Wygląd</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('appearanceLabel')}</label>
               <Textarea
                 value={formData.appearance || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, appearance: e.target.value }))}
-                placeholder="Szczegółowy opis wyglądu lokacji"
+                placeholder={t('appearancePlaceholder')}
                 rows={4}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Atmosfera</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('atmosphereLabel')}</label>
               <Textarea
                 value={formData.atmosphere || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, atmosphere: e.target.value }))}
-                placeholder="Opis atmosfery, odczuć, zmysłów"
+                placeholder={t('atmospherePlaceholder')}
                 rows={4}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Notatki GM</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('gmNotesLabel')}</label>
               <Textarea
                 value={formData.gmNotes || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, gmNotes: e.target.value }))}
-                placeholder="Prywatne notatki dla mistrza gry"
+                placeholder={t('gmNotesPlaceholder')}
                 rows={5}
               />
             </div>
@@ -632,7 +638,7 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
                   onChange={(e) => setFormData(prev => ({ ...prev, visitedByPlayer: e.target.checked }))}
                   className="w-4 h-4"
                 />
-                Lokacja została odwiedzona przez gracza
+                {t('visitedByPlayerCheckbox')}
               </label>
             </div>
           </div>
@@ -642,7 +648,7 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
         {activeTab === 'connections' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">NPC w lokacji</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('npcsInLocationLabel')}</label>
               <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
                 {npcs.map(npc => (
                   <label key={npc.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded border border-border cursor-pointer hover:bg-muted">
@@ -663,10 +669,10 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
         {activeTab === 'secrets' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-foreground">Tajemnice</label>
+              <label className="block text-sm font-medium text-foreground">{t('secretsLabel')}</label>
               <Button onClick={addSecret} variant="outline" size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Dodaj Tajemnicę
+                {t('addSecret')}
               </Button>
             </div>
             <div className="space-y-3">
@@ -677,7 +683,7 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
                       <Input
                         value={secret.title}
                         onChange={(e) => updateSecret(secret.id, 'title', e.target.value)}
-                        placeholder="Tytuł tajemnicy"
+                        placeholder={t('secretTitlePlaceholder')}
                         className="flex-1"
                       />
                       <Button
@@ -692,13 +698,13 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
                     <Textarea
                       value={secret.description}
                       onChange={(e) => updateSecret(secret.id, 'description', e.target.value)}
-                      placeholder="Opis tajemnicy"
+                      placeholder={t('secretDescriptionPlaceholder')}
                       rows={3}
                     />
                     <Input
                       value={secret.requirements || ''}
                       onChange={(e) => updateSecret(secret.id, 'requirements', e.target.value)}
-                      placeholder="Warunki odkrycia (opcjonalnie)"
+                      placeholder={t('secretRequirementsPlaceholder')}
                     />
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -706,14 +712,14 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
                         checked={secret.discovered}
                         onChange={(e) => updateSecret(secret.id, 'discovered', e.target.checked)}
                       />
-                      Odkryta przez gracza
+                      {t('discoveredByPlayer')}
                     </label>
                   </div>
                 </Card>
               ))}
               {(!formData.secrets || formData.secrets.length === 0) && (
                 <p className="text-center text-muted-foreground py-8">
-                  Brak tajemnic. Dodaj pierwszą tajemnicę.
+                  {t('emptySecrets')}
                 </p>
               )}
             </div>
@@ -723,13 +729,12 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
 
       <div className="p-6 border-t border-border flex-shrink-0 flex gap-2">
         <Button onClick={handleSave} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
-          Zapisz
+          {t('save')}
         </Button>
         <Button onClick={onCancel} variant="outline" className="flex-1">
-          Anuluj
+          {t('cancel')}
         </Button>
       </div>
     </Card>
   );
 }
-

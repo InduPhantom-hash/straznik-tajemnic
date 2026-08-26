@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
@@ -11,31 +12,31 @@ import { Progress } from './progress';
 export interface Ritual {
   id: string;
   name: string;
-  source: string; // Księga, z której pochodzi
+  source: string;
   type: 'summon' | 'banish' | 'contact' | 'enchant' | 'gate' | 'other';
-  
+
   // Koszty
   mpCost: number;
   sanCost: number;
   hpCost?: number;
-  lifespanCost?: number; // Lata życia (np. dla Gate)
-  
+  lifespanCost?: number;
+
   // Czas
   castingTimeHours: number;
-  studyTimeDays: number; // Czas nauki z księgi
-  
+  studyTimeDays: number;
+
   // Efekty
   description: string;
   effect: string;
   sideEffects: RitualSideEffect[];
-  difficulty: number; // Wartość docelowa testu POW
+  difficulty: number;
 }
 
 export interface RitualSideEffect {
   id: string;
   name: string;
   description: string;
-  probability: number; // 0-100
+  probability: number;
   severity: 'minor' | 'moderate' | 'severe' | 'catastrophic';
 }
 
@@ -44,78 +45,88 @@ export interface MythosBook {
   name: string;
   language: string;
   author?: string;
-  
+
   // Statystyki
-  cthulhuMythos: number; // Ile dodaje do umiejętności
-  sanLoss: string; // np. "1d6/2d6"
+  cthulhuMythos: number;
+  sanLoss: string;
   studyTimeWeeks: number;
-  
+
   // Zawartość
   spells: string[];
   rituals: string[];
-  
+
   // Status
   isStudied: boolean;
-  studyProgress: number; // 0-100
+  studyProgress: number;
 }
 
+// Klucze pól tekstowych tabel (namespace RitualSystem) - zawężone do literałów.
+type RitualFieldKey =
+  | 'ritualBanishDeepOnesDescription' | 'ritualBanishDeepOnesEffect' | 'ritualBanishDeepOnesName' | 'ritualBanishDeepOnesSource' | 'ritualBodyWarpingDescription' | 'ritualBodyWarpingEffect' | 'ritualBodyWarpingName' | 'ritualBodyWarpingSource' | 'ritualCommandGhostDescription' | 'ritualCommandGhostEffect' | 'ritualCommandGhostName' | 'ritualCommandGhostSource' | 'ritualContactDeepOnesDescription' | 'ritualContactDeepOnesEffect' | 'ritualContactDeepOnesName' | 'ritualContactDeepOnesSource' | 'ritualContactGhoulDescription' | 'ritualContactGhoulEffect' | 'ritualContactGhoulName' | 'ritualContactGhoulSource' | 'ritualContactMiGoDescription' | 'ritualContactMiGoEffect' | 'ritualContactMiGoName' | 'ritualContactMiGoSource' | 'ritualContactNyarlathotepDescription' | 'ritualContactNyarlathotepEffect' | 'ritualContactNyarlathotepName' | 'ritualContactNyarlathotepSource' | 'ritualCreateGateBoxDescription' | 'ritualCreateGateBoxEffect' | 'ritualCreateGateBoxName' | 'ritualCreateGateBoxSource' | 'ritualCreateZombieDescription' | 'ritualCreateZombieEffect' | 'ritualCreateZombieName' | 'ritualCreateZombieSource' | 'ritualDismissEntityDescription' | 'ritualDismissEntityEffect' | 'ritualDismissEntityName' | 'ritualDismissEntitySource' | 'ritualDominateDescription' | 'ritualDominateEffect' | 'ritualDominateName' | 'ritualDominateSource' | 'ritualDreadCurseOfAzathothDescription' | 'ritualDreadCurseOfAzathothEffect' | 'ritualDreadCurseOfAzathothName' | 'ritualDreadCurseOfAzathothSource' | 'ritualElderSignDescription' | 'ritualElderSignEffect' | 'ritualElderSignName' | 'ritualElderSignSource' | 'ritualFailure' | 'ritualFleshWardDescription' | 'ritualFleshWardEffect' | 'ritualFleshWardName' | 'ritualFleshWardSource' | 'ritualGateDescription' | 'ritualGateEffect' | 'ritualGateName' | 'ritualGateSource' | 'ritualPowderOfIbnGhaziDescription' | 'ritualPowderOfIbnGhaziEffect' | 'ritualPowderOfIbnGhaziName' | 'ritualPowderOfIbnGhaziSource' | 'ritualResurrectionDescription' | 'ritualResurrectionEffect' | 'ritualResurrectionName' | 'ritualResurrectionSource' | 'ritualSuccess' | 'ritualSummonByakheeDescription' | 'ritualSummonByakheeEffect' | 'ritualSummonByakheeName' | 'ritualSummonByakheeSource' | 'ritualSummonDarkYoungDescription' | 'ritualSummonDarkYoungEffect' | 'ritualSummonDarkYoungName' | 'ritualSummonDarkYoungSource' | 'ritualSummonDimensionalShamblerDescription' | 'ritualSummonDimensionalShamblerEffect' | 'ritualSummonDimensionalShamblerName' | 'ritualSummonDimensionalShamblerSource' | 'ritualSummonHuntingHorrorDescription' | 'ritualSummonHuntingHorrorEffect' | 'ritualSummonHuntingHorrorName' | 'ritualSummonHuntingHorrorSource' | 'ritualVoorishSignDescription' | 'ritualVoorishSignEffect' | 'ritualVoorishSignName' | 'ritualVoorishSignSource';
+
+type SideEffectFieldKey =
+  | 'sideEffect1Description' | 'sideEffect1Name' | 'sideEffect2Description' | 'sideEffect2Name' | 'sideEffect3Description' | 'sideEffect3Name' | 'sideEffect4Description' | 'sideEffect4Name' | 'sideEffect5Description' | 'sideEffect5Name' | 'sideEffect6Description' | 'sideEffect6Name' | 'sideEffect7Description' | 'sideEffect7Name' | 'sideEffect8Description' | 'sideEffect8Name' | 'sideEffect9Description' | 'sideEffect9Name' | 'sideEffect10Description' | 'sideEffect10Name';
+
 // === TABELA EFEKTÓW UBOCZNYCH ===
+// Pola tekstowe przechowują płaskie klucze tłumaczeń (namespace RitualSystem)
 
 const SIDE_EFFECTS: RitualSideEffect[] = [
-  { id: '1', name: 'Mroczna wizja', description: 'Widzisz rzeczy, których nie powinno się oglądać', probability: 30, severity: 'minor' },
-  { id: '2', name: 'Echo z otchłani', description: 'Słyszysz głosy przez kolejne 1d6 godzin', probability: 25, severity: 'minor' },
-  { id: '3', name: 'Magiczne piętno', description: 'Na twoim ciele pojawia się dziwny znak', probability: 20, severity: 'moderate' },
-  { id: '4', name: 'Przyciągnięcie uwagi', description: 'Coś z zewnątrz zaczyna cię obserwować', probability: 15, severity: 'moderate' },
-  { id: '5', name: 'Tymczasowe szaleństwo', description: 'Epizod fobii powiązanej z rytuałem', probability: 20, severity: 'moderate' },
-  { id: '6', name: 'Niechciany gość', description: 'Rytuał przyciąga coś niepożądanego', probability: 10, severity: 'severe' },
-  { id: '7', name: 'Utrata wspomnień', description: 'Tracisz 1d6 godzin wspomnień', probability: 10, severity: 'severe' },
-  { id: '8', name: 'Fizyczna deformacja', description: 'Drobna, ale permanentna zmiana wyglądu', probability: 5, severity: 'severe' },
-  { id: '9', name: 'Przeklęty przedmiot', description: 'Najbliższy przedmiot staje się nawiedzony', probability: 5, severity: 'moderate' },
-  { id: '10', name: 'Katastrofalne niepowodzenie', description: 'Rytuał przyzywa coś znacznie gorszego', probability: 2, severity: 'catastrophic' },
+  { id: '1', name: 'sideEffect1Name', description: 'sideEffect1Description', probability: 30, severity: 'minor' },
+  { id: '2', name: 'sideEffect2Name', description: 'sideEffect2Description', probability: 25, severity: 'minor' },
+  { id: '3', name: 'sideEffect3Name', description: 'sideEffect3Description', probability: 20, severity: 'moderate' },
+  { id: '4', name: 'sideEffect4Name', description: 'sideEffect4Description', probability: 15, severity: 'moderate' },
+  { id: '5', name: 'sideEffect5Name', description: 'sideEffect5Description', probability: 20, severity: 'moderate' },
+  { id: '6', name: 'sideEffect6Name', description: 'sideEffect6Description', probability: 10, severity: 'severe' },
+  { id: '7', name: 'sideEffect7Name', description: 'sideEffect7Description', probability: 10, severity: 'severe' },
+  { id: '8', name: 'sideEffect8Name', description: 'sideEffect8Description', probability: 5, severity: 'severe' },
+  { id: '9', name: 'sideEffect9Name', description: 'sideEffect9Description', probability: 5, severity: 'moderate' },
+  { id: '10', name: 'sideEffect10Name', description: 'sideEffect10Description', probability: 2, severity: 'catastrophic' },
 ];
 
 // Pełna lista rytuałów i zaklęć z podręcznika CoC 7e
+// Pola tekstowe przechowują płaskie klucze tłumaczeń (namespace RitualSystem)
+
 const SAMPLE_RITUALS: Ritual[] = [
   // === ZAKLĘCIA OCHRONNE ===
   {
     id: 'elder-sign',
-    name: 'Znak Starszych',
-    source: 'Necronomicon',
+    name: 'ritualElderSignName',
+    source: 'ritualElderSignSource',
     type: 'enchant',
     mpCost: 10,
     sanCost: 2,
     castingTimeHours: 1,
     studyTimeDays: 14,
-    description: 'Tworzy ochronny symbol odpychający istoty Mitów',
-    effect: 'Stworzony znak odpycha byty Mitów i uniemożliwia im przejście przez chroniony próg',
+    description: 'ritualElderSignDescription',
+    effect: 'ritualElderSignEffect',
     sideEffects: SIDE_EFFECTS.slice(0, 3),
     difficulty: 50
   },
   {
     id: 'powder-of-ibn-ghazi',
-    name: 'Proszek Ibn-Ghazi',
-    source: 'Necronomicon',
+    name: 'ritualPowderOfIbnGhaziName',
+    source: 'ritualPowderOfIbnGhaziSource',
     type: 'enchant',
     mpCost: 4,
     sanCost: 1,
     castingTimeHours: 0.5,
     studyTimeDays: 7,
-    description: 'Uwidacznia niewidzialne istoty Mitów na 1d6 rund',
-    effect: 'Posypany proszkiem niewidzialny byt staje się widoczny. Działa na Gwiezdne Wampiry, Latające Polipy i inne',
+    description: 'ritualPowderOfIbnGhaziDescription',
+    effect: 'ritualPowderOfIbnGhaziEffect',
     sideEffects: SIDE_EFFECTS.slice(0, 2),
     difficulty: 30
   },
   {
     id: 'voorish-sign',
-    name: 'Voorski Znak',
-    source: 'Unaussprechlichen Kulten',
+    name: 'ritualVoorishSignName',
+    source: 'ritualVoorishSignSource',
     type: 'enchant',
     mpCost: 2,
     sanCost: 0,
     castingTimeHours: 0.1,
     studyTimeDays: 3,
-    description: 'Gest rękami wzmacniający inne zaklęcia i odpychający słabsze byty',
-    effect: 'Daje +5% do testu następnego zaklęcia. Słabsze istoty (POW < 30) muszą zdać test POW lub uciec',
+    description: 'ritualVoorishSignDescription',
+    effect: 'ritualVoorishSignEffect',
     sideEffects: [],
     difficulty: 20
   },
@@ -123,58 +134,58 @@ const SAMPLE_RITUALS: Ritual[] = [
   // === ZAKLĘCIA KONTAKTU ===
   {
     id: 'contact-deep-ones',
-    name: 'Kontakt z Głębinowymi',
-    source: 'Kultyckie zapiski z Innsmouth',
+    name: 'ritualContactDeepOnesName',
+    source: 'ritualContactDeepOnesSource',
     type: 'contact',
     mpCost: 8,
     sanCost: 3,
     castingTimeHours: 2,
     studyTimeDays: 7,
-    description: 'Ustanawia mentalny kontakt z Głębinowymi',
-    effect: 'Pozwala na komunikację telepatyczną z pobliskimi Głębinowymi w promieniu 1 km',
+    description: 'ritualContactDeepOnesDescription',
+    effect: 'ritualContactDeepOnesEffect',
     sideEffects: SIDE_EFFECTS.slice(2, 6),
     difficulty: 40
   },
   {
     id: 'contact-ghoul',
-    name: 'Kontakt z Ghulem',
-    source: 'Cultes des Goules',
+    name: 'ritualContactGhoulName',
+    source: 'ritualContactGhoulSource',
     type: 'contact',
     mpCost: 6,
     sanCost: 2,
     castingTimeHours: 1,
     studyTimeDays: 5,
-    description: 'Przyzywa najbliższego ghula do negocjacji',
-    effect: 'Ghul pojawia się w ciągu 1d6 godzin i jest skłonny do rozmowy (nie do posłuszeństwa)',
+    description: 'ritualContactGhoulDescription',
+    effect: 'ritualContactGhoulEffect',
     sideEffects: SIDE_EFFECTS.slice(0, 4),
     difficulty: 35
   },
   {
     id: 'contact-mi-go',
-    name: 'Kontakt z Mi-Go',
-    source: 'Pnakotyckie Manuskrypty',
+    name: 'ritualContactMiGoName',
+    source: 'ritualContactMiGoSource',
     type: 'contact',
     mpCost: 10,
     sanCost: 4,
     castingTimeHours: 3,
     studyTimeDays: 14,
-    description: 'Wysyła sygnał do najbliższych Mi-Go',
-    effect: 'Mi-Go przybędzie w ciągu 1d3 dni, jeśli są w pobliżu. Skłonne do wymiany — ale za jaką cenę?',
+    description: 'ritualContactMiGoDescription',
+    effect: 'ritualContactMiGoEffect',
     sideEffects: SIDE_EFFECTS.slice(2, 7),
     difficulty: 55
   },
   {
     id: 'contact-nyarlathotep',
-    name: 'Kontakt z Nyarlathotepem',
-    source: 'Necronomicon',
+    name: 'ritualContactNyarlathotepName',
+    source: 'ritualContactNyarlathotepSource',
     type: 'contact',
     mpCost: 20,
     sanCost: 8,
     hpCost: 3,
     castingTimeHours: 6,
     studyTimeDays: 42,
-    description: 'Przyzywa awatar Pełzającego Chaosu',
-    effect: 'Nyarlathotep pojawia się w jednym ze swoich awatarów. Może udzielić wiedzy — ale zawsze za cenę',
+    description: 'ritualContactNyarlathotepDescription',
+    effect: 'ritualContactNyarlathotepEffect',
     sideEffects: SIDE_EFFECTS.slice(4, 10),
     difficulty: 75
   },
@@ -182,60 +193,60 @@ const SAMPLE_RITUALS: Ritual[] = [
   // === ZAKLĘCIA PRZYZWANIA ===
   {
     id: 'summon-byakhee',
-    name: 'Przyzwanie Byakhee',
-    source: 'Unaussprechlichen Kulten',
+    name: 'ritualSummonByakheeName',
+    source: 'ritualSummonByakheeSource',
     type: 'summon',
     mpCost: 15,
     sanCost: 5,
     hpCost: 2,
     castingTimeHours: 4,
     studyTimeDays: 21,
-    description: 'Przyzywa międzywymiarową bestię służącą jako wierzchowiec',
-    effect: 'Sprowadza Byakhee, które może przenosić przez kosmiczną pustkę. Wymaga Hali\'s Wine do kontroli',
+    description: 'ritualSummonByakheeDescription',
+    effect: 'ritualSummonByakheeEffect',
     sideEffects: SIDE_EFFECTS.slice(3, 8),
     difficulty: 60
   },
   {
     id: 'summon-hunting-horror',
-    name: 'Przyzwanie Łowczego Horroru',
-    source: 'De Vermis Mysteriis',
+    name: 'ritualSummonHuntingHorrorName',
+    source: 'ritualSummonHuntingHorrorSource',
     type: 'summon',
     mpCost: 18,
     sanCost: 6,
     hpCost: 3,
     castingTimeHours: 5,
     studyTimeDays: 28,
-    description: 'Przyzywa wężowate stworzenie Nyarlathotepa — niebezpieczne do kontrolowania',
-    effect: 'Łowczy Horror pojawia się i wykonuje jedno zadanie. Test POW vs POW istoty — porażka = obraca się przeciw przyzywającemu',
+    description: 'ritualSummonHuntingHorrorDescription',
+    effect: 'ritualSummonHuntingHorrorEffect',
     sideEffects: SIDE_EFFECTS.slice(4, 10),
     difficulty: 70
   },
   {
     id: 'summon-dark-young',
-    name: 'Przyzwanie Ciemnych Młodych',
-    source: 'Necronomicon',
+    name: 'ritualSummonDarkYoungName',
+    source: 'ritualSummonDarkYoungSource',
     type: 'summon',
     mpCost: 25,
     sanCost: 8,
     hpCost: 5,
     castingTimeHours: 6,
     studyTimeDays: 35,
-    description: 'Przyzywa potomstwo Shub-Niggurath. Wymaga lasu i ofiary krwi',
-    effect: 'Ciemne Młode pojawia się w lesie. Wymaga ofiary (zwierzę lub człowiek) do utrzymania kontroli',
+    description: 'ritualSummonDarkYoungDescription',
+    effect: 'ritualSummonDarkYoungEffect',
     sideEffects: SIDE_EFFECTS.slice(5, 10),
     difficulty: 75
   },
   {
     id: 'summon-dimensional-shambler',
-    name: 'Shambler z Gwiazd',
-    source: 'De Vermis Mysteriis',
+    name: 'ritualSummonDimensionalShamblerName',
+    source: 'ritualSummonDimensionalShamblerSource',
     type: 'summon',
     mpCost: 12,
     sanCost: 4,
     castingTimeHours: 1,
     studyTimeDays: 14,
-    description: 'Przyzywa Wymiarowego Włóczęgę — niebezpieczne, istota jest nieprzewidywalna',
-    effect: 'Wymiarowy Włóczęga pojawia się i może porwać wskazany cel do innego wymiaru. Kontrola wymaga testu POW',
+    description: 'ritualSummonDimensionalShamblerDescription',
+    effect: 'ritualSummonDimensionalShamblerEffect',
     sideEffects: SIDE_EFFECTS.slice(3, 9),
     difficulty: 55
   },
@@ -243,29 +254,29 @@ const SAMPLE_RITUALS: Ritual[] = [
   // === ZAKLĘCIA ODPĘDZANIA ===
   {
     id: 'banish-deep-ones',
-    name: 'Odpędzenie Głębinowych',
-    source: 'Spis Rytuałów Morskich',
+    name: 'ritualBanishDeepOnesName',
+    source: 'ritualBanishDeepOnesSource',
     type: 'banish',
     mpCost: 12,
     sanCost: 2,
     castingTimeHours: 0.5,
     studyTimeDays: 7,
-    description: 'Odpędza Głębinowych z powrotem do morza',
-    effect: 'Głębinowe w promieniu 30m muszą zdać test POW lub uciec do wody. Działa na 1d6 godzin',
+    description: 'ritualBanishDeepOnesDescription',
+    effect: 'ritualBanishDeepOnesEffect',
     sideEffects: SIDE_EFFECTS.slice(0, 3),
     difficulty: 45
   },
   {
     id: 'dismiss-entity',
-    name: 'Odprawienie Bytu',
-    source: 'Necronomicon',
+    name: 'ritualDismissEntityName',
+    source: 'ritualDismissEntitySource',
     type: 'banish',
     mpCost: 15,
     sanCost: 4,
     castingTimeHours: 1,
     studyTimeDays: 21,
-    description: 'Uniwersalne zaklęcie odprawienia — działa na większość przyzwanych istot',
-    effect: 'Przyzwana istota musi zdać test POW vs POW rzucającego + wydane MP. Porażka = odesłanie',
+    description: 'ritualDismissEntityDescription',
+    effect: 'ritualDismissEntityEffect',
     sideEffects: SIDE_EFFECTS.slice(1, 5),
     difficulty: 55
   },
@@ -273,23 +284,23 @@ const SAMPLE_RITUALS: Ritual[] = [
   // === ZAKLĘCIA BRAMY ===
   {
     id: 'gate',
-    name: 'Brama',
-    source: 'Necronomicon',
+    name: 'ritualGateName',
+    source: 'ritualGateSource',
     type: 'gate',
     mpCost: 20,
     sanCost: 10,
     lifespanCost: 2,
     castingTimeHours: 8,
     studyTimeDays: 60,
-    description: 'Otwiera przejście do innego miejsca lub wymiaru',
-    effect: 'Tworzy portal prowadzący do określonego miejsca. Brama jest dwukierunkowa i trwa 1d6 rund',
+    description: 'ritualGateDescription',
+    effect: 'ritualGateEffect',
     sideEffects: SIDE_EFFECTS.slice(5, 10),
     difficulty: 80
   },
   {
     id: 'create-gate-box',
-    name: 'Srebrna Brama (Gate Box)',
-    source: 'De Vermis Mysteriis',
+    name: 'ritualCreateGateBoxName',
+    source: 'ritualCreateGateBoxSource',
     type: 'gate',
     mpCost: 30,
     sanCost: 15,
@@ -297,8 +308,8 @@ const SAMPLE_RITUALS: Ritual[] = [
     hpCost: 5,
     castingTimeHours: 24,
     studyTimeDays: 90,
-    description: 'Tworzy permanentny artefakt bramowy — srebrną szkatułkę otwierającą bramy',
-    effect: 'Szkatułka pozwala otwierać bramy bez dalszych kosztów SAN. Koszt MP = 5 za użycie',
+    description: 'ritualCreateGateBoxDescription',
+    effect: 'ritualCreateGateBoxEffect',
     sideEffects: SIDE_EFFECTS.slice(6, 10),
     difficulty: 90
   },
@@ -306,94 +317,94 @@ const SAMPLE_RITUALS: Ritual[] = [
   // === INNE ZAKLĘCIA ===
   {
     id: 'body-warping',
-    name: 'Zniekształcenie Ciała (Body Warping of Gorgoroth)',
-    source: 'Revelations of Glaaki',
+    name: 'ritualBodyWarpingName',
+    source: 'ritualBodyWarpingSource',
     type: 'other',
     mpCost: 8,
     sanCost: 3,
     castingTimeHours: 1,
     studyTimeDays: 14,
-    description: 'Deformuje ciało ofiary — ból i utrata sprawności',
-    effect: 'Ofiara traci 1d6 STR, 1d6 CON i 1d6 APP. Leczenie wymaga zaklęcia odwrotnego lub miesiąca rekonwalescencji',
+    description: 'ritualBodyWarpingDescription',
+    effect: 'ritualBodyWarpingEffect',
     sideEffects: SIDE_EFFECTS.slice(2, 6),
     difficulty: 50
   },
   {
     id: 'flesh-ward',
-    name: 'Ochrona Ciała (Flesh Ward)',
-    source: 'Liber Ivonis',
+    name: 'ritualFleshWardName',
+    source: 'ritualFleshWardSource',
     type: 'enchant',
     mpCost: 6,
     sanCost: 1,
     castingTimeHours: 0.5,
     studyTimeDays: 7,
-    description: 'Wzmacnia ciało rzucającego — chwilowa odporność na obrażenia',
-    effect: 'Daje 6 punktów pancerza na 1d6+1 rund. Nie kumuluje się z naturalnym pancerzem',
+    description: 'ritualFleshWardDescription',
+    effect: 'ritualFleshWardEffect',
     sideEffects: SIDE_EFFECTS.slice(0, 2),
     difficulty: 35
   },
   {
     id: 'dominate',
-    name: 'Dominacja',
-    source: 'De Vermis Mysteriis',
+    name: 'ritualDominateName',
+    source: 'ritualDominateSource',
     type: 'enchant',
     mpCost: 10,
     sanCost: 4,
     castingTimeHours: 0.1,
     studyTimeDays: 21,
-    description: 'Przejmuje kontrolę nad umysłem jednej osoby',
-    effect: 'Test POW vs POW ofiary. Sukces = ofiara wykonuje jedno polecenie, potem jest zdezorientowana na 1d6 rund',
+    description: 'ritualDominateDescription',
+    effect: 'ritualDominateEffect',
     sideEffects: SIDE_EFFECTS.slice(3, 7),
     difficulty: 60
   },
   {
     id: 'create-zombie',
-    name: 'Stworzenie Zombie',
-    source: 'Cultes des Goules',
+    name: 'ritualCreateZombieName',
+    source: 'ritualCreateZombieSource',
     type: 'enchant',
     mpCost: 14,
     sanCost: 6,
     hpCost: 4,
     castingTimeHours: 12,
     studyTimeDays: 28,
-    description: 'Reanimuje świeże zwłoki jako posłusznego zombie',
-    effect: 'Zwłoki powstają jako zombie: STR+50, CON+50, INT 10, brak własnej woli. Trwa do zniszczenia lub odwołania',
+    description: 'ritualCreateZombieDescription',
+    effect: 'ritualCreateZombieEffect',
     sideEffects: SIDE_EFFECTS.slice(4, 9),
     difficulty: 65
   },
   {
     id: 'dread-curse-of-azathoth',
-    name: 'Straszliwe Przekleństwo Azathotha',
-    source: 'Necronomicon',
+    name: 'ritualDreadCurseOfAzathothName',
+    source: 'ritualDreadCurseOfAzathothSource',
     type: 'other',
     mpCost: 16,
     sanCost: 8,
     hpCost: 6,
     castingTimeHours: 3,
     studyTimeDays: 42,
-    description: 'Najpotężniejsze znane zaklęcie destrukcyjne — sprowadza kosmiczną energię na cel',
-    effect: 'Zadaje 1d100 obrażeń celowi (test POW). Trafiony cel jest także spalony kosmicznym ogniem',
+    description: 'ritualDreadCurseOfAzathothDescription',
+    effect: 'ritualDreadCurseOfAzathothEffect',
     sideEffects: SIDE_EFFECTS.slice(5, 10),
     difficulty: 85
   },
   {
     id: 'command-ghost',
-    name: 'Rozkaz Duchowi',
-    source: 'Liber Ivonis',
+    name: 'ritualCommandGhostName',
+    source: 'ritualCommandGhostSource',
     type: 'enchant',
     mpCost: 6,
     sanCost: 3,
     castingTimeHours: 1,
     studyTimeDays: 10,
-    description: 'Pozwala komunikować się z duchem i wydać mu jedno polecenie',
-    effect: 'Duch musi zdać test POW vs POW rzucającego. Porażka = wykonuje jedno polecenie. Sukces = duch atakuje rzucającego',
+    description: 'ritualCommandGhostDescription',
+    effect: 'ritualCommandGhostEffect',
     sideEffects: SIDE_EFFECTS.slice(1, 5),
     difficulty: 45
   },
   {
     id: 'resurrection',
-    name: 'Wskrzeszenie',
-    source: 'Necronomicon / De Vermis Mysteriis',
+    name: 'ritualResurrectionName',
+    source: 'ritualResurrectionSource',
     type: 'other',
     mpCost: 30,
     sanCost: 20,
@@ -401,11 +412,11 @@ const SAMPLE_RITUALS: Ritual[] = [
     lifespanCost: 5,
     castingTimeHours: 24,
     studyTimeDays: 120,
-    description: 'Przywraca życie zmarłemu — ciało musi być w miarę kompletne',
-    effect: 'Wskrzeszony traci 1d20 SAN permanentnie i zyskuje 1d10 Cthulhu Mythos. Osobowość może być zmieniona',
+    description: 'ritualResurrectionDescription',
+    effect: 'ritualResurrectionEffect',
     sideEffects: SIDE_EFFECTS.slice(5, 10),
     difficulty: 95
-  },
+  }
 ];
 
 // === KOMPONENTY ===
@@ -431,6 +442,7 @@ export function RitualInterface({
   onRitualComplete,
   availableRituals = SAMPLE_RITUALS
 }: RitualInterfaceProps) {
+  const t = useTranslations('RitualSystem');
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [isCasting, setIsCasting] = useState(false);
   const [castingProgress, setCastingProgress] = useState(0);
@@ -440,24 +452,26 @@ export function RitualInterface({
   // Czyszczenie timera
   useEffect(() => {
     return () => {
-      if (castingTimer) clearInterval(castingTimer);
+      if (castingTimer) {
+        clearInterval(castingTimer);
+      }
     };
   }, [castingTimer]);
 
   const canCast = useCallback((ritual: Ritual) => {
-    return playerMP >= ritual.mpCost && 
+    return playerMP >= ritual.mpCost &&
            playerSAN >= ritual.sanCost &&
            (!ritual.hpCost || playerHP > ritual.hpCost);
   }, [playerMP, playerSAN, playerHP]);
 
   const startCasting = useCallback((ritual: Ritual) => {
     if (!canCast(ritual)) return;
-    
+
     setIsCasting(true);
     setCastingProgress(0);
     setResult(null);
-    
-    // Symulacja czasu rzucania (przyspieszony dla UI)
+
+    // Symulacja czasu rzucania (przyspieszona dla UI)
     const totalTime = Math.min(ritual.castingTimeHours * 2, 30); // Max 30 sekund w UI
     const interval = setInterval(() => {
       setCastingProgress(prev => {
@@ -469,30 +483,30 @@ export function RitualInterface({
         return prev + (100 / totalTime);
       });
     }, 1000);
-    
+
     setCastingTimer(interval);
   }, [canCast]);
 
   const finishCasting = useCallback((ritual: Ritual) => {
     setIsCasting(false);
-    
+
     // Rzut na POW
     const roll = Math.floor(Math.random() * 100) + 1;
     const success = roll <= ritual.difficulty;
-    
-    // Sprawdź efekty uboczne
+
+    // Sprawdzenie efektów ubocznych
     const triggeredEffects: RitualSideEffect[] = [];
     for (const effect of ritual.sideEffects) {
       if (Math.random() * 100 < effect.probability) {
         triggeredEffects.push(effect);
       }
     }
-    
-    // Przy fumble - zawsze efekt uboczny
+
+    // Przy fumble zawsze aktywuje się jeden efekt uboczny
     if (roll >= 96 && triggeredEffects.length === 0) {
       triggeredEffects.push(SIDE_EFFECTS[Math.floor(Math.random() * SIDE_EFFECTS.length)]);
     }
-    
+
     setResult({ success, roll, sideEffects: triggeredEffects });
     onRitualComplete(ritual, success, triggeredEffects);
   }, [onRitualComplete]);
@@ -514,21 +528,31 @@ export function RitualInterface({
 
   const getTypeIcon = (type: Ritual['type']) => {
     switch (type) {
-      case 'summon': return '👹';
-      case 'banish': return '🚫';
-      case 'contact': return '📡';
-      case 'enchant': return '✨';
-      case 'gate': return '🌀';
-      default: return '🔮';
+      case 'summon':
+        return '👹';
+      case 'banish':
+        return '🚫';
+      case 'contact':
+        return '📡';
+      case 'enchant':
+        return '✨';
+      case 'gate':
+        return '🌀';
+      default:
+        return '🔮';
     }
   };
 
   const getSeverityColor = (severity: RitualSideEffect['severity']) => {
     switch (severity) {
-      case 'minor': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
-      case 'moderate': return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
-      case 'severe': return 'bg-red-500/20 text-red-400 border-red-500/50';
-      case 'catastrophic': return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
+      case 'minor':
+        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
+      case 'moderate':
+        return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
+      case 'severe':
+        return 'bg-red-500/20 text-red-400 border-red-500/50';
+      case 'catastrophic':
+        return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
     }
   };
 
@@ -540,32 +564,32 @@ export function RitualInterface({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl flex items-center gap-2 text-purple-300">
-              🔮 Odprawianie Rytuałów
+              {t('title')}
             </CardTitle>
             <Button variant="ghost" onClick={onClose}>✕</Button>
           </div>
-          
+
           {/* Statusy gracza */}
           <div className="flex gap-4 mt-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-purple-400">PM:</span>
+              <span className="text-purple-400">{t('pmShort')}</span>
               <span className={getCostColor(playerMP, selectedRitual?.mpCost || 0)}>{playerMP}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-blue-400">PR:</span>
+              <span className="text-blue-400">{t('prShort')}</span>
               <span className={getCostColor(playerSAN, selectedRitual?.sanCost || 0)}>{playerSAN}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-red-400">PŻ:</span>
+              <span className="text-red-400">{t('hpShort')}</span>
               <span className={getCostColor(playerHP, selectedRitual?.hpCost || 0)}>{playerHP}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-yellow-400">MOC:</span>
+              <span className="text-yellow-400">{t('powShort')}</span>
               <span>{playerPOW}</span>
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Ekran rzucania */}
           {isCasting && selectedRitual && (
@@ -573,17 +597,17 @@ export function RitualInterface({
               <CardContent className="p-6 text-center">
                 <div className="text-4xl mb-4 animate-pulse">🔮</div>
                 <h3 className="text-xl font-semibold text-purple-300 mb-2">
-                  Odprawianie: {selectedRitual.name}
+                  {t('castingTitle', { name: t(selectedRitual.name as RitualFieldKey) })}
                 </h3>
                 <Progress value={castingProgress} className="h-3 mb-4" />
                 <p className="text-sm text-purple-400 mb-4">
-                  {castingProgress < 30 && "Przygotowujesz składniki rytuału..."}
-                  {castingProgress >= 30 && castingProgress < 60 && "Recytujesz starożytne formuły..."}
-                  {castingProgress >= 60 && castingProgress < 90 && "Energia magiczna narasta..."}
-                  {castingProgress >= 90 && "Rytuał osiąga punkt kulminacyjny!"}
+                  {castingProgress < 30 && t('castStagePrepare')}
+                  {castingProgress >= 30 && castingProgress < 60 && t('castStageRecite')}
+                  {castingProgress >= 60 && castingProgress < 90 && t('castStageSurge')}
+                  {castingProgress >= 90 && t('castStagePeak')}
                 </p>
                 <Button onClick={cancelCasting} variant="destructive">
-                  ✕ Przerwij rytuał
+                  {t('interruptRitual')}
                 </Button>
               </CardContent>
             </Card>
@@ -596,29 +620,29 @@ export function RitualInterface({
                 <div className="text-center mb-4">
                   <div className="text-4xl mb-2">{result.success ? '✨' : '💥'}</div>
                   <h3 className={`text-xl font-bold ${result.success ? 'text-green-400' : 'text-red-400'}`}>
-                    {result.success ? 'RYTUAŁ UDANY!' : 'RYTUAŁ NIE POWIÓDŁ SIĘ'}
+                    {result.success ? t('ritualSuccess') : t('ritualFailure')}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Rzut: {result.roll} / {selectedRitual.difficulty}
+                    {t('rollResult', { roll: result.roll, difficulty: selectedRitual.difficulty })}
                   </p>
                 </div>
-                
+
                 {result.sideEffects.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-semibold text-orange-400 mb-2">⚠️ Efekty uboczne:</h4>
+                    <h4 className="text-sm font-semibold text-orange-400 mb-2">{t('triggeredSideEffectsHeader')}</h4>
                     <div className="space-y-2">
                       {result.sideEffects.map(effect => (
                         <div key={effect.id} className={`p-2 rounded border ${getSeverityColor(effect.severity)}`}>
-                          <div className="font-semibold">{effect.name}</div>
-                          <div className="text-sm opacity-80">{effect.description}</div>
+                          <div className="font-semibold">{t(effect.name as SideEffectFieldKey)}</div>
+                          <div className="text-sm opacity-80">{t(effect.description as SideEffectFieldKey)}</div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-                
+
                 <Button onClick={() => { setResult(null); setSelectedRitual(null); }} className="w-full mt-4">
-                  Kontynuuj
+                  {t('continueButton')}
                 </Button>
               </CardContent>
             </Card>
@@ -628,11 +652,11 @@ export function RitualInterface({
           {!isCasting && !result && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableRituals.map(ritual => (
-                <Card 
+                <Card
                   key={ritual.id}
                   className={`cursor-pointer transition-all border ${
-                    selectedRitual?.id === ritual.id 
-                      ? 'border-purple-400 bg-purple-900/30' 
+                    selectedRitual?.id === ritual.id
+                      ? 'border-purple-400 bg-purple-900/30'
                       : 'border-purple-800/50 hover:border-purple-600/50'
                   } ${!canCast(ritual) ? 'opacity-50' : ''}`}
                   onClick={() => setSelectedRitual(ritual)}
@@ -641,33 +665,33 @@ export function RitualInterface({
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h4 className="font-semibold text-purple-300 flex items-center gap-2">
-                          {getTypeIcon(ritual.type)} {ritual.name}
+                          {getTypeIcon(ritual.type)} {t(ritual.name as RitualFieldKey)}
                         </h4>
-                        <p className="text-xs text-muted-foreground">Źródło: {ritual.source}</p>
+                        <p className="text-xs text-muted-foreground">{t('sourceLabel', { source: t(ritual.source as RitualFieldKey) })}</p>
                       </div>
                       <Badge className="bg-purple-500/30 text-purple-300">
                         {ritual.difficulty}%
                       </Badge>
                     </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{ritual.description}</p>
-                    
+
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{t(ritual.description as RitualFieldKey)}</p>
+
                     {/* Koszty */}
                     <div className="flex flex-wrap gap-2 text-xs">
                       <Badge className={`${playerMP >= ritual.mpCost ? 'bg-purple-500/30' : 'bg-red-500/30'}`}>
-                        PM: {ritual.mpCost}
+                        {t('mpBadge', { cost: ritual.mpCost })}
                       </Badge>
                       <Badge className={`${playerSAN >= ritual.sanCost ? 'bg-blue-500/30' : 'bg-red-500/30'}`}>
-                        PR: {ritual.sanCost}
+                        {t('prBadge', { cost: ritual.sanCost })}
                       </Badge>
                       {ritual.hpCost && (
                         <Badge className={`${playerHP > ritual.hpCost ? 'bg-red-500/30' : 'bg-orange-500/30'}`}>
-                          PŻ: {ritual.hpCost}
+                          {t('hpBadge', { cost: ritual.hpCost })}
                         </Badge>
                       )}
                       {ritual.lifespanCost && (
                         <Badge className="bg-yellow-500/30">
-                          Lata życia: {ritual.lifespanCost}
+                          {t('lifespanBadge', { cost: ritual.lifespanCost })}
                         </Badge>
                       )}
                       <Badge className="bg-gray-500/30">
@@ -680,45 +704,47 @@ export function RitualInterface({
             </div>
           )}
 
-          {/* Szczegóły wybranego rytuału */}
+          {/* Szczegoly wybranego rytualu */}
           {selectedRitual && !isCasting && !result && (
             <Card className="border-purple-500/30 bg-purple-900/20">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-purple-300">
-                  {getTypeIcon(selectedRitual.type)} {selectedRitual.name}
+                  {getTypeIcon(selectedRitual.type)} {t(selectedRitual.name as RitualFieldKey)}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-foreground">{selectedRitual.effect}</p>
-                
+                <p className="text-foreground">{t(selectedRitual.effect as RitualFieldKey)}</p>
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Czas rzucania:</span>
-                    <span className="text-purple-300 ml-2">{selectedRitual.castingTimeHours} godzin</span>
+                    <span className="text-muted-foreground">{t('castingTimeLabel')}</span>
+                    <span className="text-purple-300 ml-2">{t('castingHoursValue', { hours: selectedRitual.castingTimeHours })}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Czas nauki:</span>
-                    <span className="text-purple-300 ml-2">{selectedRitual.studyTimeDays} dni</span>
+                    <span className="text-muted-foreground">{t('studyTimeLabel')}</span>
+                    <span className="text-purple-300 ml-2">{t('studyDaysValue', { days: selectedRitual.studyTimeDays })}</span>
                   </div>
                 </div>
-                
-                {/* Ostrzeżenie o efektach ubocznych */}
+
+                {/* Ostrzezenie o efektach ubocznych */}
                 {selectedRitual.sideEffects.length > 0 && (
                   <div className="p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
-                    <h5 className="text-sm font-semibold text-orange-400 mb-1">⚠️ Możliwe efekty uboczne:</h5>
+                    <h5 className="text-sm font-semibold text-orange-400 mb-1">{t('possibleSideEffectsHeader')}</h5>
                     <p className="text-xs text-orange-300">
-                      {selectedRitual.sideEffects.length} znanych komplikacji, w tym: &nbsp;
-                      {selectedRitual.sideEffects.slice(0, 2).map(e => e.name).join(', ')}...
+                      {t('knownComplications', {
+                        count: selectedRitual.sideEffects.length,
+                        names: selectedRitual.sideEffects.slice(0, 2).map(e => t(e.name as SideEffectFieldKey)).join(', ')
+                      })}
                     </p>
                   </div>
                 )}
-                
-                <Button 
+
+                <Button
                   onClick={() => startCasting(selectedRitual)}
                   disabled={!canCast(selectedRitual)}
                   className="w-full bg-purple-600 hover:bg-purple-700"
                 >
-                  {canCast(selectedRitual) ? '🔮 Rozpocznij rytuał' : '❌ Niewystarczające zasoby'}
+                  {canCast(selectedRitual) ? t('startRitualButton') : t('insufficientResources')}
                 </Button>
               </CardContent>
             </Card>
@@ -729,7 +755,7 @@ export function RitualInterface({
   );
 }
 
-// === KSIĘGI MITÓW ===
+// === KSIEGI MITOW ===
 
 interface MythosBookStudyProps {
   book: MythosBook;
@@ -739,25 +765,26 @@ interface MythosBookStudyProps {
 }
 
 export function MythosBookStudy({ book, playerSAN, onStudyComplete, onStudyProgress }: MythosBookStudyProps) {
+  const t = useTranslations('RitualSystem');
   const [isStudying, setIsStudying] = useState(false);
   const [progress, setProgress] = useState(book.studyProgress);
-  
+
   const studySession = useCallback(() => {
     setIsStudying(true);
-    
-    // Jedna "sesja" studiowania = 10% postępu
+
+    // Jedna sesja studiowania to 10% postepu
     setTimeout(() => {
       const newProgress = Math.min(100, progress + 10);
       setProgress(newProgress);
       onStudyProgress(newProgress);
       setIsStudying(false);
-      
+
       if (newProgress >= 100) {
-        // Zakończono studiowanie
+        // Zakonczono studiowanie
         const sanDice = book.sanLoss.split('/');
         const sanLoss = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
         const spellsLearned = book.spells.slice(0, Math.floor(Math.random() * book.spells.length) + 1);
-        
+
         onStudyComplete(book.cthulhuMythos, sanLoss, spellsLearned);
       }
     }, 2000);
@@ -770,39 +797,39 @@ export function MythosBookStudy({ book, playerSAN, onStudyComplete, onStudyProgr
           <span className="text-3xl">📜</span>
           <div>
             <h4 className="font-semibold text-amber-300">{book.name}</h4>
-            <p className="text-xs text-amber-500">{book.language} • {book.author || 'Autor nieznany'}</p>
+            <p className="text-xs text-amber-500">{book.language} • {book.author || t('unknownAuthor')}</p>
           </div>
         </div>
-        
+
         <div className="space-y-2 text-sm mb-3">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Wiedza Tajemna:</span>
+            <span className="text-muted-foreground">{t('mythosKnowledgeLabel')}</span>
             <span className="text-purple-400">+{book.cthulhuMythos}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Strata PR:</span>
+            <span className="text-muted-foreground">{t('sanLossLabel')}</span>
             <span className="text-red-400">{book.sanLoss}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Czas studiowania:</span>
-            <span className="text-foreground">{book.studyTimeWeeks} tygodni</span>
+            <span className="text-muted-foreground">{t('studyTimeBookLabel')}</span>
+            <span className="text-foreground">{t('studyWeeksValue', { weeks: book.studyTimeWeeks })}</span>
           </div>
         </div>
-        
+
         <div className="mb-3">
           <div className="flex justify-between text-xs mb-1">
-            <span>Postęp</span>
+            <span>{t('progressLabel')}</span>
             <span>{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
-        
-        <Button 
+
+        <Button
           onClick={studySession}
           disabled={isStudying || progress >= 100}
           className="w-full bg-amber-700 hover:bg-amber-600"
         >
-          {isStudying ? '📖 Studiujesz...' : progress >= 100 ? '✓ Przeczytano' : '📖 Studiuj (+10%)'}
+          {isStudying ? t('studyingButton') : progress >= 100 ? t('readComplete') : t('studyButton')}
         </Button>
       </CardContent>
     </Card>

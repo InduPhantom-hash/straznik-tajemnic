@@ -2,6 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import {
   MapPin,
@@ -62,47 +63,51 @@ interface DiscoveriesViewProps {
 // Stałe
 // ------------------------------------------------------------------
 
+type CategoryLabelKey = 'categoryPlaces' | 'categoryCharacters' | 'categoryItems' | 'categoryQuests';
+type EmptyTextKey = 'emptyPlaces' | 'emptyCharacters' | 'emptyItems' | 'emptyQuests';
+type QuestStatusLabelKey = 'questActive' | 'questCompleted' | 'questFailed';
+
 const CATEGORIES: {
   key: DiscoveryCategory;
-  label: string;
+  labelKey: CategoryLabelKey;
   Icon: typeof MapPin;
   types: string[];
-  emptyText: string;
+  emptyTextKey: EmptyTextKey;
 }[] = [
   {
     key: 'places',
-    label: 'Miejsca',
+    labelKey: 'categoryPlaces',
     Icon: MapPin,
     types: ['encyclopedia_location', 'location'],
-    emptyText: 'Nie odkryto jeszcze żadnych lokacji.',
+    emptyTextKey: 'emptyPlaces',
   },
   {
     key: 'characters',
-    label: 'Postacie',
+    labelKey: 'categoryCharacters',
     Icon: Users,
     types: ['encyclopedia_character', 'npc'],
-    emptyText: 'Nie spotkano jeszcze żadnych postaci.',
+    emptyTextKey: 'emptyCharacters',
   },
   {
     key: 'items',
-    label: 'Przedmioty',
+    labelKey: 'categoryItems',
     Icon: Sword,
     types: ['encyclopedia_item', 'item', 'discovery'],
-    emptyText: 'Nie znaleziono jeszcze żadnych przedmiotów.',
+    emptyTextKey: 'emptyItems',
   },
   {
     key: 'quests',
-    label: 'Misje',
+    labelKey: 'categoryQuests',
     Icon: Target,
     types: ['quest'],
-    emptyText: 'Brak misji w dzienniku.',
+    emptyTextKey: 'emptyQuests',
   },
 ];
 
-const QUEST_STATUS_STYLE: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  active: { bg: 'bg-[#2a1b12]', border: 'border-[#bfa15f]', text: 'text-[#f4ebd0]', label: 'Aktywna' },
-  completed: { bg: 'bg-[#142310]', border: 'border-[#73a15c]', text: 'text-[#a3d18e]', label: 'Ukończona' },
-  failed: { bg: 'bg-[#2b1010]', border: 'border-[#a84d4d]', text: 'text-[#e3a8a8]', label: 'Nieudana' },
+const QUEST_STATUS_STYLE: Record<string, { bg: string; border: string; text: string; labelKey: QuestStatusLabelKey }> = {
+  active: { bg: 'bg-[#2a1b12]', border: 'border-[#bfa15f]', text: 'text-[#f4ebd0]', labelKey: 'questActive' },
+  completed: { bg: 'bg-[#142310]', border: 'border-[#73a15c]', text: 'text-[#a3d18e]', labelKey: 'questCompleted' },
+  failed: { bg: 'bg-[#2b1010]', border: 'border-[#a84d4d]', text: 'text-[#e3a8a8]', labelKey: 'questFailed' },
 };
 
 // ------------------------------------------------------------------
@@ -119,6 +124,7 @@ export function DiscoveriesView({
   npcs = [],
   locations = [],
 }: DiscoveriesViewProps) {
+  const t = useTranslations('DiscoveriesView');
   const [activeCategory, setActiveCategory] = useState<DiscoveryCategory>('places');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [isEditingInsight, setIsEditingInsight] = useState(false);
@@ -222,7 +228,7 @@ export function DiscoveriesView({
                 )}
               >
                 <cat.Icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-[#bfa15f]' : 'text-[#8a7667]')} />
-                <span className="flex-1 text-left font-bold">{cat.label}</span>
+                <span className="flex-1 text-left font-bold">{t(cat.labelKey)}</span>
                 {/* Czytelny licznik o wysokim kontraście */}
                 <span
                   className={cn(
@@ -270,7 +276,7 @@ export function DiscoveriesView({
                     'inline-block mt-1.5 text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border',
                     questStyle.bg, questStyle.border, questStyle.text
                   )}>
-                    {questStyle.label}
+                    {t(questStyle.labelKey)}
                   </span>
                 )}
               </button>
@@ -280,7 +286,7 @@ export function DiscoveriesView({
           {categoryEntries.length === 0 && (
             <div className="text-center py-10 text-[#8a7667] italic font-serif text-sm px-4">
               <categoryConfig.Icon className="h-10 w-10 mx-auto mb-3 text-[#3a2518]" />
-              {categoryConfig.emptyText}
+              {t(categoryConfig.emptyTextKey)}
             </div>
           )}
         </div>
@@ -296,14 +302,14 @@ export function DiscoveriesView({
               {/* Pieczątka */}
               {selectedEntry.type !== 'quest' && (
                 <div className="absolute top-6 right-8 border-4 border-[#8a1c1c] text-[#8a1c1c] opacity-60 font-special-elite text-xl px-2 py-1 transform rotate-[15deg] uppercase pointer-events-none">
-                  POUFNE
+                  {t('confidentialStamp')}
                 </div>
               )}
 
               {/* Header Akt */}
               <div className="border-b-2 border-[#2c241b]/30 pb-4 mb-6 relative">
                 <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-[#2c241b]/60 mb-2">
-                  Dossier :: {categoryConfig.label}
+                  {t('dossierPrefix', { category: t(categoryConfig.labelKey) })}
                 </div>
                 
                 <div className="flex justify-between items-start gap-4">
@@ -317,7 +323,7 @@ export function DiscoveriesView({
                       <button
                         onClick={() => onPinToBoard(selectedEntry)}
                         className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
-                        title="Przypnij do Tablicy Badacza"
+                        title={t('pinToBoardTitle')}
                       >
                         <Pin className="h-5 w-5" />
                       </button>
@@ -325,14 +331,14 @@ export function DiscoveriesView({
                     <button
                       onClick={() => onEditEntry(selectedEntry)}
                       className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
-                      title="Edytuj"
+                      title={t('editTitle')}
                     >
                       <Edit3 className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => onDeleteEntry(selectedEntry.id)}
                       className="p-1.5 text-[#8a1c1c] hover:bg-[#8a1c1c]/10 rounded transition-colors"
-                      title="Usuń"
+                      title={t('deleteTitle')}
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>
@@ -342,19 +348,19 @@ export function DiscoveriesView({
                 <div className="flex flex-wrap gap-4 mt-3">
                   {selectedEntry.inGameDate && (
                     <div className="text-xs text-[#2c241b]/70 font-special-elite font-bold">
-                      DATA ZAPISU: {selectedEntry.inGameDate}
+                      {t('recordDate', { date: selectedEntry.inGameDate })}
                     </div>
                   )}
                   {selectedEntry.questStatus && (
                     <div className="text-xs font-special-elite font-bold flex items-center gap-1.5">
-                      STATUS:
+                      {t('statusLabel')}
                       <span className={cn(
                         'px-1.5 py-0.5 rounded border uppercase',
                         selectedEntry.questStatus === 'active' ? 'bg-[#2c241b]/10 border-[#2c241b]/40 text-[#2c241b]' :
                         selectedEntry.questStatus === 'completed' ? 'bg-[#73a15c]/20 border-[#73a15c] text-[#335620]' :
                         'bg-[#8a1c1c]/20 border-[#8a1c1c] text-[#6e1313]'
                       )}>
-                        {QUEST_STATUS_STYLE[selectedEntry.questStatus]?.label}
+                        {QUEST_STATUS_STYLE[selectedEntry.questStatus] ? t(QUEST_STATUS_STYLE[selectedEntry.questStatus].labelKey) : null}
                       </span>
                     </div>
                   )}
@@ -365,7 +371,7 @@ export function DiscoveriesView({
               {selectedEntry.imageStatus === 'pending' ? (
                 <div className="float-right w-48 sm:w-52 ml-6 mb-4 h-56 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
                   <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs font-special-elite italic">Wywyoływanie zdjęcia...</span>
+                  <span className="text-xs font-special-elite italic">{t('imagePending')}</span>
                 </div>
               ) : resolvedVisual ? (
                 <div className="float-right w-48 sm:w-52 ml-6 mb-4 relative z-10">
@@ -378,7 +384,7 @@ export function DiscoveriesView({
                       />
                     </div>
                     <div className="mt-2 text-center font-special-elite text-[9px] text-black/60 italic truncate px-1">
-                      Załącznik :: {selectedEntry.title}
+                      {t('attachmentPrefix', { title: selectedEntry.title })}
                     </div>
                   </div>
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[#2c241b]/50 text-2xl rotate-45 z-20 pointer-events-none">
@@ -397,12 +403,12 @@ export function DiscoveriesView({
                 <div className="bg-[#d9cbb2] border-2 border-[#8c7353] p-4 my-4 rounded shadow-sm text-[#1f1712] clear-both">
                   <div className="flex items-center gap-2 font-special-elite font-bold text-xs tracking-wider uppercase text-[#5a4428] mb-2">
                     <Search className="h-4 w-4 text-[#8c7353]" />
-                    <span>WNIOSEK BADACZA / DEDUKCJA</span>
+                      <span>{t('insightHeading')}</span>
                   </div>
                   <textarea
                     value={insightText}
                     onChange={(e) => setInsightText(e.target.value)}
-                    placeholder="Wpisz dedukcję lub hipotezę badacza dotyczącą tego wpisu..."
+                    placeholder={t('insightPlaceholder')}
                     className="w-full bg-[#f4ebd0] border border-[#8c7353] rounded p-2.5 font-special-elite text-sm text-[#1f1712] placeholder-[#8c7353]/60 focus:outline-none focus:ring-1 focus:ring-[#8c7353] min-h-[90px] resize-y"
                     autoFocus
                   />
@@ -411,7 +417,7 @@ export function DiscoveriesView({
                       onClick={() => setIsEditingInsight(false)}
                       className="px-3 py-1 text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] border border-[#8c7353]/50 rounded"
                     >
-                      Anuluj
+                      {t('cancel')}
                     </button>
                     <button
                       onClick={() => {
@@ -423,7 +429,7 @@ export function DiscoveriesView({
                       }}
                       className="px-3 py-1 text-xs font-special-elite bg-[#8c7353] hover:bg-[#725c40] text-[#f4ebd0] rounded font-bold transition-colors"
                     >
-                      Zapisz wniosek
+                      {t('saveInsight')}
                     </button>
                   </div>
                 </div>
@@ -432,7 +438,7 @@ export function DiscoveriesView({
                   <div className="flex items-center justify-between border-b border-[#8c7353]/30 pb-2 mb-2">
                     <div className="flex items-center gap-2 font-special-elite font-bold text-xs tracking-wider uppercase text-[#5a4428]">
                       <Search className="h-4 w-4 text-[#8c7353]" />
-                      <span>WNIOSEK BADACZA / DEDUKCJA</span>
+                    <span>{t('insightHeading')}</span>
                     </div>
                     <button
                       onClick={() => {
@@ -440,9 +446,9 @@ export function DiscoveriesView({
                         setIsEditingInsight(true);
                       }}
                       className="text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] underline flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity"
-                      title="Edytuj wniosek"
+                      title={t('editInsight')}
                     >
-                      <Edit3 className="h-3 w-3" /> Edytuj wniosek
+                      <Edit3 className="h-3 w-3" /> {t('editInsight')}
                     </button>
                   </div>
                   <p className="font-special-elite text-sm leading-relaxed whitespace-pre-wrap">
@@ -459,7 +465,7 @@ export function DiscoveriesView({
                     className="w-full py-2 px-3 border-2 border-dashed border-[#8c7353]/50 hover:border-[#8c7353] rounded bg-[#d9cbb2]/40 hover:bg-[#d9cbb2]/70 text-[#5a4428] font-special-elite text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Dodaj wniosek badacza (dedukcję)
+                    {t('addInsight')}
                   </button>
                 </div>
               )}
@@ -468,7 +474,7 @@ export function DiscoveriesView({
               {selectedEntry.objectives && selectedEntry.objectives.length > 0 && (
                 <div className="mt-8 pt-6 border-t-2 border-[#2c241b]/20 clear-both">
                   <h4 className="font-special-elite font-bold text-lg text-[#1a140f] mb-4">
-                    WYTYCZNE ZADANIA
+                    {t('objectivesHeading')}
                   </h4>
                   <div className="space-y-3">
                     {selectedEntry.objectives.map((obj) => (
@@ -488,7 +494,7 @@ export function DiscoveriesView({
                             {obj.description}
                           </div>
                           {obj.completed && obj.dateCompleted && (
-                            <span className="text-[10px] font-bold text-[#1a140f]/60 mt-1 block">ZREALIZOWANO: {obj.dateCompleted}</span>
+                            <span className="text-[10px] font-bold text-[#1a140f]/60 mt-1 block">{t('objectiveCompleted', { date: obj.dateCompleted })}</span>
                           )}
                         </div>
                       </div>
@@ -515,8 +521,8 @@ export function DiscoveriesView({
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-[#8a7667] italic font-serif h-full min-h-[300px]">
             <categoryConfig.Icon className="h-16 w-16 mb-4 text-[#3a2518]" />
-            <p className="text-lg mb-1">Odkrycia w kategorii: {categoryConfig.label}</p>
-            <p className="text-sm">Wybierz element z listy po lewej stronie</p>
+            <p className="text-lg mb-1">{t('discoveriesInCategory', { category: t(categoryConfig.labelKey) })}</p>
+            <p className="text-sm">{t('selectFromList')}</p>
           </div>
         )}
       </div>

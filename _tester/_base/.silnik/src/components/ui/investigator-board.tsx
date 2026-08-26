@@ -2,6 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useMemo, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   EvidenceNode,
   EvidenceRelation,
@@ -19,19 +20,15 @@ interface InvestigatorBoardProps {
   onUpdateRelations: (relations: EvidenceRelation[]) => void;
 }
 
-const nodeTypeLabels: Record<EvidenceNodeType, { label: string; color: string }> = {
-  evidence: { label: 'DOWÓD RZECZOWY', color: 'border-[#bfa15f] bg-[#221810]' },
-  clue: { label: 'POSZLAKA', color: 'border-[#4a7a96] bg-[#101b24]' },
-  suspect: { label: 'POSTAĆ / PODEJRZANY', color: 'border-[#a84d4d] bg-[#241010]' },
-  location: { label: 'LOKACJA', color: 'border-[#5c8a47] bg-[#12210e]' },
-  artifact: { label: 'ARTEFAKT MITÓW', color: 'border-[#8e4a96] bg-[#1e1024]' },
-  player_note: { label: 'NOTATKA GRACZA', color: 'border-[#6b7280] bg-[#1a1a1e]' },
-};
+type NodeTypeLabelKey = 'typeEvidence' | 'typeClue' | 'typeSuspect' | 'typeLocation' | 'typeArtifact' | 'typePlayerNote';
 
-const statusIcons: Record<EvidenceNodeStatus, React.ReactNode> = {
-  confirmed: <span title="Potwierdzone"><CheckCircle className="h-4 w-4 text-[#73a15c]" /></span>,
-  hypothesis: <span title="Hipoteza"><HelpCircle className="h-4 w-4 text-[#bfa15f]" /></span>,
-  refuted: <span title="Obalone"><XCircle className="h-4 w-4 text-[#a84d4d]" /></span>,
+const nodeTypeLabels: Record<EvidenceNodeType, { labelKey: NodeTypeLabelKey; color: string }> = {
+  evidence: { labelKey: 'typeEvidence', color: 'border-[#bfa15f] bg-[#221810]' },
+  clue: { labelKey: 'typeClue', color: 'border-[#4a7a96] bg-[#101b24]' },
+  suspect: { labelKey: 'typeSuspect', color: 'border-[#a84d4d] bg-[#241010]' },
+  location: { labelKey: 'typeLocation', color: 'border-[#5c8a47] bg-[#12210e]' },
+  artifact: { labelKey: 'typeArtifact', color: 'border-[#8e4a96] bg-[#1e1024]' },
+  player_note: { labelKey: 'typePlayerNote', color: 'border-[#6b7280] bg-[#1a1a1e]' },
 };
 
 const CARD_WIDTH = 260;
@@ -43,6 +40,14 @@ export function InvestigatorBoard({
   onUpdateNodes,
   onUpdateRelations,
 }: InvestigatorBoardProps) {
+  const t = useTranslations('InvestigatorBoard');
+
+  const statusIcons: Record<EvidenceNodeStatus, React.ReactNode> = {
+    confirmed: <span title={t('statusConfirmed')}><CheckCircle className="h-4 w-4 text-[#73a15c]" /></span>,
+    hypothesis: <span title={t('statusHypothesis')}><HelpCircle className="h-4 w-4 text-[#bfa15f]" /></span>,
+    refuted: <span title={t('statusRefuted')}><XCircle className="h-4 w-4 text-[#a84d4d]" /></span>,
+  };
+
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<EvidenceNodeStatus | 'all'>('all');
@@ -80,7 +85,7 @@ export function InvestigatorBoard({
   };
 
   const handleDeleteNode = (nodeId: string) => {
-    if (!confirm('Czy na pewno chcesz usunąć ten element z Tablicy Badacza?')) return;
+    if (!confirm(t('confirmDeleteNode'))) return;
     onUpdateNodes(nodes.filter((n) => n.id !== nodeId));
     onUpdateRelations(relations.filter((r) => r.fromNodeId !== nodeId && r.toNodeId !== nodeId));
     if (selectedNodeId === nodeId) setSelectedNodeId(null);
@@ -94,7 +99,7 @@ export function InvestigatorBoard({
     if (connectingFromId === null) {
       setConnectingFromId(nodeId);
     } else if (connectingFromId !== nodeId) {
-      const label = prompt('Etykieta powiązania (np. "Widziany w", "Właściciel"):', 'Powiązany z') || 'Powiązany z';
+      const label = prompt(t('promptRelationLabel'), t('relationDefaultLabel')) || t('relationDefaultLabel');
       const newRelation: EvidenceRelation = {
         id: `rel_${Date.now()}`,
         fromNodeId: connectingFromId,
@@ -110,10 +115,10 @@ export function InvestigatorBoard({
   };
 
   const handleAddNode = () => {
-    const title = prompt('Tytuł dowodu / poszlaki:');
+    const title = prompt(t('promptNodeTitle'));
     if (!title) return;
-    const description = prompt('Opis:') || '';
-    const imageUrl = prompt('URL obrazka / ilustracji (opcjonalnie):') || undefined;
+    const description = prompt(t('promptDescription')) || '';
+    const imageUrl = prompt(t('promptImageUrl')) || undefined;
 
     const canvasRect = boardCanvasRef.current?.getBoundingClientRect();
     const scrollLeft = boardCanvasRef.current?.scrollLeft || 0;
@@ -189,39 +194,39 @@ export function InvestigatorBoard({
       <div className="bg-[#1c120c] border-b border-[#3a2518] px-4 py-2 flex flex-wrap items-center justify-between gap-3 z-10 shadow-md">
         <div className="flex items-center gap-2">
           <Pin className="h-5 w-5 text-[#bfa15f]" />
-          <span className="font-serif font-bold text-lg text-[#f4ebd0]">TABLICA BADACZA</span>
-          <span className="text-xs text-[#8a7667] ml-2">({filteredNodes.length} dowodów)</span>
+          <span className="font-serif font-bold text-lg text-[#f4ebd0]">{t('title')}</span>
+          <span className="text-xs text-[#8a7667] ml-2">{t('evidenceCount', { count: filteredNodes.length })}</span>
           <span className="text-[11px] text-[#bfa15f]/70 italic ml-2 hidden md:inline">
-            Przeciągaj karty chwytając za nagłówek
+            {t('dragHint')}
           </span>
         </div>
 
         {/* Filtry */}
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-[#bfa15f] font-serif font-semibold">Status:</span>
+          <span className="text-[#bfa15f] font-serif font-semibold">{t('filterStatusLabel')}</span>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as EvidenceNodeStatus | 'all')}
             className="bg-[#0f0905] border border-[#3a2518] rounded px-2 py-1 text-[#e2d4c9] outline-none"
           >
-            <option value="all">Wszystkie</option>
-            <option value="confirmed">Potwierdzone</option>
-            <option value="hypothesis">Hipotezy</option>
-            <option value="refuted">Obalone</option>
+            <option value="all">{t('filterAll')}</option>
+            <option value="confirmed">{t('filterConfirmed')}</option>
+            <option value="hypothesis">{t('filterHypotheses')}</option>
+            <option value="refuted">{t('filterRefuted')}</option>
           </select>
 
-          <span className="text-[#bfa15f] font-serif font-semibold ml-2">Typ:</span>
+          <span className="text-[#bfa15f] font-serif font-semibold ml-2">{t('filterTypeLabel')}</span>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as EvidenceNodeType | 'all')}
             className="bg-[#0f0905] border border-[#3a2518] rounded px-2 py-1 text-[#e2d4c9] outline-none"
           >
-            <option value="all">Wszystkie typy</option>
-            <option value="evidence">Dowód rzeczowy</option>
-            <option value="clue">Poszlaka</option>
-            <option value="suspect">Postać / NPC</option>
-            <option value="location">Lokacja</option>
-            <option value="artifact">Artefakt</option>
+            <option value="all">{t('filterAllTypes')}</option>
+            <option value="evidence">{t('optionEvidence')}</option>
+            <option value="clue">{t('optionClue')}</option>
+            <option value="suspect">{t('optionSuspect')}</option>
+            <option value="location">{t('optionLocation')}</option>
+            <option value="artifact">{t('optionArtifact')}</option>
           </select>
         </div>
 
@@ -232,7 +237,7 @@ export function InvestigatorBoard({
               onClick={() => setConnectingFromId(null)}
               className="text-xs bg-[#942c2c] text-white px-2 py-1 rounded animate-pulse cursor-pointer"
             >
-              Anuluj łączenie sznurkiem
+              {t('cancelConnecting')}
             </button>
           )}
           <Button
@@ -240,7 +245,7 @@ export function InvestigatorBoard({
             size="sm"
             className="bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] border border-[#bfa15f]/40 font-serif"
           >
-            <Plus className="h-4 w-4 mr-1" /> Przypnij wpis
+            <Plus className="h-4 w-4 mr-1" /> {t('pinEntry')}
           </Button>
         </div>
       </div>
@@ -277,7 +282,7 @@ export function InvestigatorBoard({
                   strokeDasharray={rel.status === 'doubtful' ? '4,4' : undefined}
                   className="drop-shadow-md cursor-pointer hover:stroke-yellow-400 transition-colors"
                   onClick={() => {
-                    if (confirm(`Usuń sznurek "${rel.label}"?`)) {
+                    if (confirm(t('confirmDeleteString', { label: rel.label }))) {
                       handleDeleteRelation(rel.id);
                     }
                   }}
@@ -350,7 +355,7 @@ export function InvestigatorBoard({
                 <div>
                   <div className="flex justify-between items-center border-b border-[#3a2518] pb-1.5 mb-2">
                     <span className="text-[9px] uppercase font-bold tracking-widest text-[#bfa15f]">
-                      {typeInfo.label}
+                      {t(typeInfo.labelKey)}
                     </span>
                     <div className="flex items-center gap-1">
                       {statusIcons[node.status]}
@@ -367,7 +372,7 @@ export function InvestigatorBoard({
                         }}
                         className="text-[9px] text-[#8a7667] hover:text-[#f4ebd0] underline ml-1"
                       >
-                        zmień
+                        {t('changeStatus')}
                       </button>
                     </div>
                   </div>
@@ -400,14 +405,14 @@ export function InvestigatorBoard({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const url = prompt('URL ilustracji:', node.imageUrl || '');
+                        const url = prompt(t('promptIllustrationUrl'), node.imageUrl || '');
                         if (url !== null) {
                           const updated = nodes.map((n) => (n.id === node.id ? { ...n, imageUrl: url } : n));
                           onUpdateNodes(updated);
                         }
                       }}
                       className="p-1 text-[#bfa15f] hover:bg-[#3a2518] rounded transition-colors"
-                      title="Dodaj/Zmień obrazek"
+                      title={t('addOrChangeImage')}
                     >
                       <ImageIcon className="h-3.5 w-3.5" />
                     </button>
@@ -420,7 +425,7 @@ export function InvestigatorBoard({
                         'p-1 rounded hover:bg-[#3a2518] transition-colors',
                         isConnecting ? 'text-red-400 font-bold' : 'text-[#bfa15f]'
                       )}
-                      title="Połącz sznurkiem"
+                      title={t('connectWithThread')}
                     >
                       <Link2 className="h-3.5 w-3.5" />
                     </button>
@@ -430,7 +435,7 @@ export function InvestigatorBoard({
                         handleDeleteNode(node.id);
                       }}
                       className="p-1 text-[#a84d4d] hover:bg-[#3a2518] rounded transition-colors"
-                      title="Usuń z tablicy"
+                      title={t('removeFromBoard')}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -442,7 +447,7 @@ export function InvestigatorBoard({
 
           {filteredNodes.length === 0 && (
             <div className="text-center py-20 text-[#8a7667] italic font-serif">
-              Tablica Badacza jest pusta. Użyj przycisku &quot;Przypnij wpis&quot; aby rozpocząć układanie dowodów.
+              {t('emptyBoard')}
             </div>
           )}
         </div>

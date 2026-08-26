@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card } from './card';
 import { Badge } from './badge';
@@ -18,6 +19,7 @@ export function RandomEventGenerator({
   onEventGenerated,
   currentLocation
 }: RandomEventGeneratorProps) {
+  const t = useTranslations('RandomEventGenerator');
   const [eventType, setEventType] = useState<EventType | 'all'>('all');
   const [threatLevel, setThreatLevel] = useState<ThreatLevel | 'random'>('random');
   const [context, setContext] = useState('');
@@ -57,12 +59,12 @@ export function RandomEventGenerator({
 
   const getTypeLabel = (type: EventType) => {
     switch (type) {
-      case 'encounter': return 'Spotkanie';
-      case 'atmospheric': return 'Atmosferyczne';
-      case 'cosmic': return 'Kosmiczne';
-      case 'urban': return 'Miejskie';
-      case 'research': return 'Badawcze';
-      case 'travel': return 'Podróż';
+      case 'encounter': return t('typeEncounter');
+      case 'atmospheric': return t('typeAtmospheric');
+      case 'cosmic': return t('typeCosmic');
+      case 'urban': return t('typeUrban');
+      case 'research': return t('typeResearch');
+      case 'travel': return t('typeTravel');
     }
   };
 
@@ -72,7 +74,7 @@ export function RandomEventGenerator({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Shuffle className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground font-mono">🎲 Generator Wydarzeń</h2>
+            <h2 className="text-2xl font-bold text-foreground font-mono">{t('title')}</h2>
           </div>
           {onClose && (
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -81,7 +83,7 @@ export function RandomEventGenerator({
           )}
         </div>
         <p className="text-muted-foreground mt-2">
-          Automatyczne losowanie wydarzeń według zasad CoC7
+          {t('subtitle')}
         </p>
       </div>
 
@@ -89,40 +91,40 @@ export function RandomEventGenerator({
         {/* Konfiguracja */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Typ wydarzenia</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t('eventTypeLabel')}</label>
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value as EventType | 'all')}
               className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
             >
-              <option value="all">Wszystkie typy</option>
-              <option value="encounter">Spotkanie</option>
-              <option value="atmospheric">Atmosferyczne</option>
-              <option value="cosmic">Kosmiczne</option>
-              <option value="urban">Miejskie</option>
-              <option value="research">Badawcze</option>
-              <option value="travel">Podróż</option>
+              <option value="all">{t('allTypes')}</option>
+              <option value="encounter">{t('typeEncounter')}</option>
+              <option value="atmospheric">{t('typeAtmospheric')}</option>
+              <option value="cosmic">{t('typeCosmic')}</option>
+              <option value="urban">{t('typeUrban')}</option>
+              <option value="research">{t('typeResearch')}</option>
+              <option value="travel">{t('typeTravel')}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Poziom zagrożenia</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t('threatLevelLabel')}</label>
             <select
               value={threatLevel}
               onChange={(e) => setThreatLevel(e.target.value as ThreatLevel | 'random')}
               className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
             >
-              <option value="random">Losowy</option>
-              <option value="low">Niski</option>
-              <option value="medium">Średni</option>
-              <option value="high">Wysoki</option>
-              <option value="extreme">Ekstremalny</option>
+              <option value="random">{t('threatRandom')}</option>
+              <option value="low">{t('threatLow')}</option>
+              <option value="medium">{t('threatMedium')}</option>
+              <option value="high">{t('threatHigh')}</option>
+              <option value="extreme">{t('threatExtreme')}</option>
             </select>
           </div>
 
           {currentLocation && (
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-foreground mb-2">Lokalizacja</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('locationLabel')}</label>
               <div className="px-3 py-2 bg-muted/50 rounded-md text-foreground">
                 {currentLocation}
               </div>
@@ -130,11 +132,11 @@ export function RandomEventGenerator({
           )}
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-foreground mb-2">Kontekst (opcjonalnie)</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t('contextLabel')}</label>
             <textarea
               value={context}
               onChange={(e) => setContext(e.target.value)}
-              placeholder="Dodatkowy kontekst dla wydarzenia..."
+              placeholder={t('contextPlaceholder')}
               className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground min-h-[80px]"
             />
           </div>
@@ -147,7 +149,7 @@ export function RandomEventGenerator({
           size="lg"
         >
           <Shuffle className="w-5 h-5 mr-2" />
-          Wygeneruj Wydarzenie
+          {t('generateButton')}
         </Button>
 
         {/* Wygenerowane wydarzenie */}
@@ -159,9 +161,9 @@ export function RandomEventGenerator({
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-xl font-bold text-foreground">{generatedEvent.title}</h3>
                     <Badge className={getThreatColor(generatedEvent.threatLevel)}>
-                      {generatedEvent.threatLevel === 'low' ? 'Niski' :
-                       generatedEvent.threatLevel === 'medium' ? 'Średni' :
-                       generatedEvent.threatLevel === 'high' ? 'Wysoki' : 'Ekstremalny'}
+                      {generatedEvent.threatLevel === 'low' ? t('threatLow') :
+                       generatedEvent.threatLevel === 'medium' ? t('threatMedium') :
+                       generatedEvent.threatLevel === 'high' ? t('threatHigh') : t('threatExtreme')}
                     </Badge>
                     <Badge variant="outline">
                       {getTypeLabel(generatedEvent.type)}
@@ -185,7 +187,7 @@ export function RandomEventGenerator({
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Użyj w Grze
+                  {t('useInGame')}
                 </Button>
                 <Button
                   onClick={handleGenerate}
@@ -193,7 +195,7 @@ export function RandomEventGenerator({
                   className="flex-1"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Losuj Ponownie
+                  {t('rollAgain')}
                 </Button>
               </div>
             </div>
@@ -203,7 +205,7 @@ export function RandomEventGenerator({
         {/* Historia wydarzeń */}
         {eventHistory.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-3">Historia Wydarzeń</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-3">{t('historyTitle')}</h3>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {eventHistory.map(event => (
                 <Card key={event.id} className="bg-muted/30 border-border">
@@ -228,7 +230,7 @@ export function RandomEventGenerator({
                           }
                         }}
                       >
-                        Użyj
+                        {t('useShort')}
                       </Button>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
@@ -244,4 +246,3 @@ export function RandomEventGenerator({
     </Card>
   );
 }
-

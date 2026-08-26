@@ -3,6 +3,7 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import type { FormEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Textarea } from './textarea';
 import { cn } from '@/lib/utils';
@@ -75,31 +76,6 @@ interface SessionJournalProps {
   participantNames?: string[];
 }
 
-const categories = [
-  'Wydarzenia',
-  'Odkrycia',
-  'Spotkania',
-  'Walka',
-  'Badania',
-  'Sny',
-  'Wizje',
-  'Notatki',
-  'Inne',
-];
-
-const defaultTags = [
-  'Cthulhu',
-  'Kult',
-  'Koszmary',
-  'Badania',
-  'Walka',
-  'Tajemnice',
-  'NPC',
-  'Lokalizacje',
-  'Artefakty',
-  'Zaklęcia',
-];
-
 export function SessionJournal({
   character,
   onUpdateCharacter,
@@ -109,6 +85,32 @@ export function SessionJournal({
   onUpdateSharedJournal,
   participantNames = [],
 }: SessionJournalProps) {
+  const t = useTranslations('SessionJournal');
+  const categories = [
+    t('categoryEvents'),
+    t('categoryDiscoveries'),
+    t('categoryEncounters'),
+    t('categoryCombat'),
+    t('categoryResearch'),
+    t('categoryDreams'),
+    t('categoryVisions'),
+    t('categoryNotes'),
+    t('categoryOther'),
+  ];
+
+  const defaultTags = [
+    t('tagCthulhu'),
+    t('tagCult'),
+    t('tagNightmares'),
+    t('tagResearch'),
+    t('tagCombat'),
+    t('tagSecrets'),
+    t('tagNpc'),
+    t('tagLocations'),
+    t('tagArtifacts'),
+    t('tagSpells'),
+  ];
+
   const [activeTab, setActiveTab] = useState<JournalEntryType>('board');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(
@@ -235,7 +237,7 @@ export function SessionJournal({
   };
 
   const deleteEntry = (id: string) => {
-    if (!confirm('Czy na pewno chcesz usunąć ten wpis z księgi przygód?'))
+    if (!confirm(t('deleteEntryConfirm')))
       return;
     const updatedEntries = entries.filter((entry) => entry.id !== id);
     updateCharacterJournal(updatedEntries);
@@ -377,27 +379,33 @@ export function SessionJournal({
   // Eksport Dziennika do pliku Markdown (Pure Helper / Local Download)
   const exportToMarkdown = useCallback(() => {
     const owner = isShared ? participantNames.join(' i ') : character.name;
-    let md = `# 📖 Dziennik Przygody${owner ? `: ${owner}` : ''}\n\n`;
-    md += `*Eksport: ${new Date().toLocaleString('pl-PL')}*\n\n---\n\n`;
+    let md = owner
+      ? t('mdJournalTitleOwner', { owner })
+      : t('mdJournalTitle');
+    md += t('mdExportLine', { date: new Date().toLocaleString('pl-PL') });
 
     const quests = entries.filter((e) => e.type === 'quest');
     if (quests.length > 0) {
-      md += `## ⚔️ Misje i Zadania\n\n`;
+      md += t('mdQuestsSection');
       quests.forEach((q) => {
         const status =
           q.questStatus === 'completed'
-            ? '🟢 UKOŃCZONE'
+            ? t('mdStatusCompleted')
             : q.questStatus === 'failed'
-              ? '🔴 NIEUDANE'
-              : '🟡 AKTYWNE';
+              ? t('mdStatusFailed')
+              : t('mdStatusActive');
         md += `### ${q.title} [${status}]\n`;
         if (q.inGameDate)
-          md += `*Czas w grze: ${q.inGameDate} (Dzień ${q.gameDay || 1}, godz. ${q.gameHour || 12})*\n\n`;
+          md += t('mdQuestGameTime', {
+            date: q.inGameDate,
+            day: q.gameDay || 1,
+            hour: q.gameHour || 12,
+          });
         md += `${q.content}\n\n`;
         if (q.objectives && q.objectives.length > 0) {
-          md += `**Cele:**\n`;
+          md += t('mdObjectivesHeader');
           q.objectives.forEach((obj) => {
-            md += `- [${obj.completed ? 'x' : ' '}] ${obj.description}${obj.completed && obj.dateCompleted ? ` (Ukończono: ${obj.dateCompleted})` : ''}\n`;
+            md += `- [${obj.completed ? 'x' : ' '}] ${obj.description}${obj.completed && obj.dateCompleted ? ` ${t('mdObjectiveCompleted', { date: obj.dateCompleted })}` : ''}\n`;
           });
           md += `\n`;
         }
@@ -407,14 +415,14 @@ export function SessionJournal({
 
     const journalEntries = entries.filter((e) => e.type === 'journal');
     if (journalEntries.length > 0) {
-      md += `## 📔 Kronika Wydarzeń\n\n`;
+      md += t('mdChronicleSection');
       journalEntries.forEach((e) => {
         md += `### ${e.title}\n`;
         const formattedDate = e.inGameDate || (e.timestamp ? new Date(e.timestamp).toLocaleDateString('pl-PL') : '');
-        md += `*Data: ${formattedDate}*\n\n`;
+        md += t('mdDateLine', { date: formattedDate });
         md += `${e.content}\n\n`;
         if (e.tags && e.tags.length > 0) {
-          md += `*Tagi: ${e.tags.map((t) => `#${t}`).join(', ')}*\n\n`;
+          md += t('mdTagsLine', { tags: e.tags.map((tag) => `#${tag}`).join(', ') });
         }
         md += `---\n\n`;
       });
@@ -428,14 +436,14 @@ export function SessionJournal({
       ].includes(e.type)
     );
     if (encProps.length > 0) {
-      md += `## 📚 Encyklopedia Wiedzy\n\n`;
+      md += t('mdEncyclopediaSection');
       encProps.forEach((e) => {
         const typeLabel =
           e.type === 'npc'
-            ? 'Postać'
+            ? t('mdTypeNpc')
             : e.type === 'location'
-              ? 'Lokacja'
-              : 'Przedmiot';
+              ? t('mdTypeLocation')
+              : t('mdTypeItem');
         md += `### ${e.title} [${typeLabel}]\n\n`;
         md += `${e.content}\n\n`;
         md += `---\n\n`;
@@ -444,11 +452,11 @@ export function SessionJournal({
 
     const notes = entries.filter((e) => e.type === 'note');
     if (notes.length > 0) {
-      md += `## 📝 Notatki i Teorie\n\n`;
+      md += t('mdNotesSection');
       notes.forEach((e) => {
         md += `### ${e.title}\n`;
         const formattedNoteDate = e.timestamp ? new Date(e.timestamp).toLocaleDateString('pl-PL') : '';
-        md += `*Zapisano: ${formattedNoteDate}*\n\n`;
+        md += t('mdSavedLine', { date: formattedNoteDate });
         md += `${e.content}\n\n`;
         md += `---\n\n`;
       });
@@ -489,11 +497,11 @@ export function SessionJournal({
             <BookOpen className="h-7 w-7 text-emerald-400 shrink-0" />
             <div>
               <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-emerald-500 drop-shadow-md whitespace-nowrap">
-                DZIENNIK SESJI
+                {t('title')}
               </h2>
               {isShared && participantNames.length > 0 && (
                 <p className="text-xs font-special-elite tracking-wider text-emerald-400">
-                  Wspólny dla: {participantNames.join(' i ')}
+                  {t('sharedWith', { names: participantNames.join(' i ') })}
                 </p>
               )}
             </div>
@@ -510,7 +518,7 @@ export function SessionJournal({
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
-              📌 Tablica Badacza
+              📌 {t('tabBoard')}
             </button>
             <button
               onClick={() => handleTabChange('npc')}
@@ -521,7 +529,7 @@ export function SessionJournal({
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
-              🔍 Odkrycia
+              🔍 {t('tabDiscoveries')}
               {(unseenCounts.encyclopedia + unseenCounts.quest) > 0 && (
                 <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
                   {unseenCounts.encyclopedia + unseenCounts.quest}
@@ -537,7 +545,7 @@ export function SessionJournal({
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
-              Kronika
+              {t('tabChronicle')}
               {unseenCounts.journal > 0 && (
                 <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
                   {unseenCounts.journal}
@@ -553,7 +561,7 @@ export function SessionJournal({
                   : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
               )}
             >
-              Notatki
+              {t('tabNotes')}
               {unseenCounts.note > 0 && (
                 <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
                   {unseenCounts.note}
@@ -568,7 +576,7 @@ export function SessionJournal({
               onClick={() => setShowAddForm(true)}
               className="bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40 font-serif"
             >
-              <Plus className="h-4 w-4 mr-1" /> Dodaj notatkę
+              <Plus className="h-4 w-4 mr-1" /> {t('addNoteButton')}
             </Button>
             <Button
               onClick={() => {
@@ -579,15 +587,15 @@ export function SessionJournal({
                 });
               }}
               className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-400 border border-emerald-500/40 font-serif text-xs"
-              title="Wypełnij dziennik przykładowymi wpisami testowymi"
+              title={t('fillTestDataTooltip')}
             >
-              🧪 Wypełnij testowo
+              🧪 {t('fillTestDataButton')}
             </Button>
             <Button
               onClick={exportToMarkdown}
               className="bg-emerald-800/80 hover:bg-emerald-700/80 text-emerald-100 border border-emerald-500/40 font-serif"
             >
-              <Download className="h-4 w-4 mr-1" /> Eksport MD
+              <Download className="h-4 w-4 mr-1" /> {t('exportMdButton')}
             </Button>
             {onClose && (
               <button
@@ -597,8 +605,8 @@ export function SessionJournal({
                   onClose();
                 }}
                 className="ml-2 p-2 bg-[#5a1c1c] hover:bg-[#782525] active:bg-[#942c2c] rounded-md border-2 border-[#b83838] text-[#f4ebd0] transition-all cursor-pointer shadow-md hover:scale-105 shrink-0 flex items-center justify-center"
-                title="Zamknij dziennik (Esc)"
-                aria-label="Zamknij dziennik"
+                title={t('closeTooltip')}
+                aria-label={t('closeAriaLabel')}
               >
                 <X className="h-5 w-5 stroke-[2.5]" />
               </button>
@@ -612,7 +620,7 @@ export function SessionJournal({
             <Search className="h-4 w-4 text-[#8a7667] mr-2" />
             <input
               type="text"
-              placeholder="Wyszukaj frazę..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-sm w-full outline-none text-zinc-300 placeholder-emerald-900/60"
@@ -746,10 +754,10 @@ export function SessionJournal({
               <div className="max-w-4xl mx-auto space-y-4">
                 <div className="flex justify-between items-center border-b border-emerald-900/30 pb-2">
                   <h3 className="text-xl font-serif font-bold text-emerald-100">
-                    Chronologia Wydarzeń
+                    {t('chronologyTitle')}
                   </h3>
                   <span className="text-sm text-[#8a7667]">
-                    {filteredEntries.length} wpisów
+                    {t('entriesCount', { count: filteredEntries.length })}
                   </span>
                 </div>
 
@@ -766,7 +774,7 @@ export function SessionJournal({
                               {entry.title}
                               {entry.isAutoGenerated && (
                                 <span className="text-[10px] bg-emerald-900/70 text-emerald-100 border border-emerald-500/30 px-1.5 py-0.5 rounded uppercase font-sans">
-                                  Auto
+                                  {t('autoBadge')}
                                 </span>
                               )}
                             </h4>
@@ -779,10 +787,10 @@ export function SessionJournal({
                                     : '')}
                               </span>
                               {entry.gameDay && (
-                                <span>⏳ Dzień {entry.gameDay}</span>
+                                <span>{t('gameDayLabel', { day: entry.gameDay })}</span>
                               )}
                               {entry.category && (
-                                <span>📁 Kategoria: {entry.category}</span>
+                                <span>{t('categoryLabel', { category: entry.category })}</span>
                               )}
                             </div>
                           </div>
@@ -806,7 +814,7 @@ export function SessionJournal({
                         {entry.imageStatus === 'pending' ? (
                           <div className="mt-3 my-2 h-44 rounded border border-emerald-500/30 bg-zinc-950 p-4 flex flex-col items-center justify-center gap-2 text-emerald-400">
                             <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs font-serif italic">Malowanie ilustracji...</span>
+                            <span className="text-xs font-serif italic">{t('paintingIllustration')}</span>
                           </div>
                         ) : entry.imageUrl ? (
                           <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-emerald-500/30 bg-zinc-950 p-1">
@@ -839,8 +847,7 @@ export function SessionJournal({
 
                   {filteredEntries.length === 0 && (
                     <div className="text-center py-12 text-[#8a7667] italic font-serif">
-                      Kronika jest pusta. Wpisy z przygód pojawią się tutaj
-                      chronologicznie.
+                      {t('emptyChronicle')}
                     </div>
                   )}
                 </div>
@@ -867,7 +874,7 @@ export function SessionJournal({
                       {entry.imageStatus === 'pending' ? (
                         <div className="h-40 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner mb-3">
                           <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
-                          <span className="text-xs font-serif italic">Wywyoływanie...</span>
+                          <span className="text-xs font-serif italic">{t('summoningNote')}</span>
                         </div>
                       ) : entry.imageUrl ? (
                         <div className="h-40 overflow-hidden bg-[#111] mb-3 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
@@ -890,14 +897,14 @@ export function SessionJournal({
                             <button
                               onClick={() => setEditingEntry(entry)}
                               className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
-                              title="Edytuj notatkę"
+                              title={t('editNoteTitle')}
                             >
                               <Edit3 className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => deleteEntry(entry.id)}
                               className="p-1 text-[#8a1c1c]/70 hover:text-[#8a1c1c] hover:bg-[#ffcccc] rounded transition-colors"
-                              title="Usuń notatkę"
+                              title={t('deleteNoteTitle')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -935,7 +942,7 @@ export function SessionJournal({
 
                 {filteredEntries.length === 0 && (
                   <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
-                    Brak własnych zapisków. Dodaj nową notatkę.
+                    {t('emptyNotes')}
                   </div>
                 )}
               </div>
@@ -985,6 +992,7 @@ function AddEntryForm({
   defaultTags,
   initialType,
 }: AddEntryFormProps) {
+  const t = useTranslations('SessionJournal');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -1050,7 +1058,7 @@ function AddEntryForm({
       <div className="bg-[#1c120c] border-4 border-emerald-900/30 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-zinc-300 font-serif shadow-2xl">
         <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3 mb-5">
           <h3 className="text-xl font-bold text-emerald-100">
-            Dodaj nowy wpis do księgi przygód
+            {t('addFormTitle')}
           </h3>
           <button
             onClick={onCancel}
@@ -1063,7 +1071,7 @@ function AddEntryForm({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Typ wpisu
+              {t('entryTypeLabel')}
             </label>
             <select
               value={formData.type}
@@ -1075,25 +1083,25 @@ function AddEntryForm({
               }
               className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
             >
-              <option value="quest">Misja (Quest)</option>
-              <option value="journal">Wpis do Dziennika (Kronika)</option>
+              <option value="quest">{t('typeQuest')}</option>
+              <option value="journal">{t('typeJournal')}</option>
               <option value="npc">
-                Encyklopedia - Postać / Byt
+                {t('typeNpc')}
               </option>
               <option value="location">
-                Encyklopedia - Lokacja
+                {t('typeLocation')}
               </option>
               <option value="item">
-                Encyklopedia - Przedmiot
+                {t('typeItem')}
               </option>
-              <option value="note">Własna notatka / Teoria</option>
+              <option value="note">{t('typeNote')}</option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                Dzień kampanii
+                {t('campaignDayLabel')}
               </label>
               <input
                 type="number"
@@ -1110,7 +1118,7 @@ function AddEntryForm({
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                Godzina
+                {t('hourLabel')}
               </label>
               <input
                 type="number"
@@ -1131,7 +1139,7 @@ function AddEntryForm({
           {formData.type === 'quest' && (
             <div>
               <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                Status misji
+                {t('questStatusLabel')}
               </label>
               <select
                 value={formData.questStatus}
@@ -1146,16 +1154,16 @@ function AddEntryForm({
                 }
                 className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               >
-                <option value="active">Aktywna</option>
-                <option value="completed">Ukończona</option>
-                <option value="failed">Nieudana</option>
+                <option value="active">{t('statusActive')}</option>
+                <option value="completed">{t('statusCompleted')}</option>
+                <option value="failed">{t('statusFailed')}</option>
               </select>
             </div>
           )}
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Tytuł wpisu
+              {t('titleLabel')}
             </label>
             <input
               type="text"
@@ -1164,14 +1172,14 @@ function AddEntryForm({
                 setFormData({ ...formData, title: e.target.value })
               }
               className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none placeholder-emerald-900/60"
-              placeholder="np. Śledztwo w Domu Corbitów"
+              placeholder={t('titlePlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Treść / Opis
+              {t('contentLabel')}
             </label>
             <Textarea
               value={formData.content}
@@ -1179,14 +1187,14 @@ function AddEntryForm({
                 setFormData({ ...formData, content: e.target.value })
               }
               className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f] placeholder-emerald-900/60"
-              placeholder="Zapisz szczegóły przygody lub informacje o postaci/przedmiocie..."
+              placeholder={t('contentPlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-amber-200/90 font-serif">
-              💡 Wnioski Badacza / Dedukcja (opcjonalnie)
+              {t('insightLabel')}
             </label>
             <Textarea
               value={formData.investigatorInsight}
@@ -1194,14 +1202,14 @@ function AddEntryForm({
                 setFormData({ ...formData, investigatorInsight: e.target.value })
               }
               className="min-h-20 bg-zinc-950 text-zinc-300 border-amber-900/40 focus-visible:ring-[#bfa15f] placeholder-amber-900/50 italic font-serif"
-              placeholder="Zapisz dedukcję lub hipotezę badacza..."
+              placeholder={t('insightPlaceholder')}
             />
           </div>
 
           {formData.type === 'quest' && (
             <div className="border border-emerald-900/30 p-4 rounded-md bg-zinc-950/40 space-y-3">
               <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-emerald-900/30 pb-1">
-                Cele zadania
+                {t('objectivesLabel')}
               </label>
               <div className="space-y-2">
                 {formData.objectives.map((obj, i) => (
@@ -1227,7 +1235,7 @@ function AddEntryForm({
                   type="text"
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
-                  placeholder="Nowy cel misji..."
+                  placeholder={t('objectivePlaceholder')}
                   className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-sm text-zinc-300 outline-none focus:border-emerald-500"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
@@ -1238,7 +1246,7 @@ function AddEntryForm({
                   onClick={addObjective}
                   className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
                 >
-                  Dodaj cel
+                  {t('addObjectiveButton')}
                 </Button>
               </div>
             </div>
@@ -1246,7 +1254,7 @@ function AddEntryForm({
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Tagi
+              {t('tagsLabel')}
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {formData.tags.map((tag) => (
@@ -1271,7 +1279,7 @@ function AddEntryForm({
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none placeholder-emerald-900/60"
-                placeholder="Dodaj własny tag..."
+                placeholder={t('tagPlaceholder')}
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
                 }
@@ -1304,14 +1312,14 @@ function AddEntryForm({
               className="flex-1 py-3 bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40"
               disabled={!formData.title.trim() || !formData.content.trim()}
             >
-              Zapisz wpis
+              {t('saveEntryButton')}
             </Button>
             <Button
               type="button"
               onClick={onCancel}
               className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
             >
-              Anuluj
+              {t('cancelButton')}
             </Button>
           </div>
         </form>
@@ -1327,6 +1335,7 @@ interface EditEntryFormProps {
 }
 
 function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
+  const t = useTranslations('SessionJournal');
   const [formData, setFormData] = useState(entry);
   const [newTag, setNewTag] = useState('');
   const [newObjective, setNewObjective] = useState('');
@@ -1381,7 +1390,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
       <div className="bg-[#1c120c] border-4 border-emerald-900/30 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-zinc-300 font-serif shadow-2xl">
         <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3 mb-5">
           <h3 className="text-xl font-bold text-emerald-100">
-            Edytuj wpis w księdze przygód
+            {t('editFormTitle')}
           </h3>
           <button
             onClick={onCancel}
@@ -1394,7 +1403,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Typ wpisu
+              {t('entryTypeLabel')}
             </label>
             <select
               value={formData.type}
@@ -1406,25 +1415,25 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               }
               className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
             >
-              <option value="quest">Misja (Quest)</option>
-              <option value="journal">Wpis do Dziennika (Kronika)</option>
+              <option value="quest">{t('typeQuest')}</option>
+              <option value="journal">{t('typeJournal')}</option>
               <option value="npc">
-                Encyklopedia - Postać / Byt
+                {t('typeNpc')}
               </option>
               <option value="location">
-                Encyklopedia - Lokacja
+                {t('typeLocation')}
               </option>
               <option value="item">
-                Encyklopedia - Przedmiot
+                {t('typeItem')}
               </option>
-              <option value="note">Własna notatka / Teoria</option>
+              <option value="note">{t('typeNote')}</option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                Dzień kampanii
+                {t('campaignDayLabel')}
               </label>
               <input
                 type="number"
@@ -1441,7 +1450,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                Godzina
+                {t('hourLabel')}
               </label>
               <input
                 type="number"
@@ -1462,7 +1471,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
           {formData.type === 'quest' && (
             <div>
               <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                Status misji
+                {t('questStatusLabel')}
               </label>
               <select
                 value={formData.questStatus || 'active'}
@@ -1477,16 +1486,16 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 }
                 className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
               >
-                <option value="active">Aktywna</option>
-                <option value="completed">Ukończona</option>
-                <option value="failed">Nieudana</option>
+                <option value="active">{t('statusActive')}</option>
+                <option value="completed">{t('statusCompleted')}</option>
+                <option value="failed">{t('statusFailed')}</option>
               </select>
             </div>
           )}
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Tytuł wpisu
+              {t('titleLabel')}
             </label>
             <input
               type="text"
@@ -1501,7 +1510,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Treść / Opis
+              {t('contentLabel')}
             </label>
             <Textarea
               value={formData.content}
@@ -1515,7 +1524,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-amber-200/90 font-serif">
-              💡 Wnioski Badacza / Dedukcja (opcjonalnie)
+              {t('insightLabel')}
             </label>
             <Textarea
               value={formData.investigatorInsight || ''}
@@ -1523,14 +1532,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 setFormData({ ...formData, investigatorInsight: e.target.value })
               }
               className="min-h-20 bg-zinc-950 text-zinc-300 border-amber-900/40 focus-visible:ring-[#bfa15f] placeholder-amber-900/50 italic font-serif"
-              placeholder="Zapisz dedukcję lub hipotezę badacza..."
+              placeholder={t('insightPlaceholder')}
             />
           </div>
 
           {formData.type === 'quest' && (
             <div className="border border-emerald-900/30 p-4 rounded-md bg-zinc-950/40 space-y-3">
               <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-emerald-900/30 pb-1">
-                Cele zadania
+                {t('objectivesLabel')}
               </label>
               <div className="space-y-2">
                 {(formData.objectives || []).map((obj, i) => (
@@ -1556,7 +1565,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   type="text"
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
-                  placeholder="Nowy cel misji..."
+                  placeholder={t('objectivePlaceholder')}
                   className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-sm text-zinc-300 outline-none"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
@@ -1567,7 +1576,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   onClick={addObjective}
                   className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
                 >
-                  Dodaj
+                  {t('addButton')}
                 </Button>
               </div>
             </div>
@@ -1575,7 +1584,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
           <div>
             <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              Tagi
+              {t('tagsLabel')}
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {formData.tags.map((tag) => (
@@ -1600,7 +1609,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
-                placeholder="Dodaj własny tag..."
+                placeholder={t('tagPlaceholder')}
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
                 }
@@ -1621,14 +1630,14 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               className="flex-1 py-3 bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40"
               disabled={!formData.title.trim() || !formData.content.trim()}
             >
-              Zapisz zmiany
+              {t('saveChangesButton')}
             </Button>
             <Button
               type="button"
               onClick={onCancel}
               className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
             >
-              Anuluj
+              {t('cancelButton')}
             </Button>
           </div>
         </form>

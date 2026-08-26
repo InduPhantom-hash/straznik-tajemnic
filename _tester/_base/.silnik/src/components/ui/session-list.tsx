@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 
 interface Session {
@@ -26,6 +27,7 @@ export function SessionList({
   onDeleteSession,
   onClose,
 }: SessionListProps) {
+  const t = useTranslations('SessionList');
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,10 +46,10 @@ export function SessionList({
         const { sessions } = await response.json();
         setSessions(sessions || []);
       } else {
-        setError('Błąd podczas pobierania listy sesji');
+        setError(t('loadError'));
       }
     } catch {
-      setError('Błąd połączenia z serwerem');
+      setError(t('connectionError'));
     } finally {
       setIsLoading(false);
     }
@@ -61,11 +63,11 @@ export function SessionList({
   const handleDeleteSession = async (sessionId: string) => {
     if (
       window.confirm(
-        'Czy na pewno chcesz usunąć tę sesję? Tej operacji nie można cofnąć.'
+        t('deleteConfirm')
       )
     ) {
       await onDeleteSession(sessionId);
-      await loadSessions(); // Odśwież listę
+      await loadSessions();
     }
   };
 
@@ -86,7 +88,7 @@ export function SessionList({
           <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
         </div>
         <p className="text-muted-foreground text-lg">
-          Ładowanie listy sesji...
+          {t('loading')}
         </p>
       </div>
     );
@@ -103,7 +105,7 @@ export function SessionList({
           onClick={loadSessions}
           className="px-6 py-2 bg-blue-600 hover:bg-blue-700"
         >
-          Spróbuj ponownie
+          {t('retryButton')}
         </Button>
       </div>
     );
@@ -115,9 +117,9 @@ export function SessionList({
         <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-gray-500/20 to-gray-600/20 rounded-full flex items-center justify-center">
           <span className="text-2xl">📂</span>
         </div>
-        <p className="text-muted-foreground text-lg">Brak zapisanych sesji</p>
+        <p className="text-muted-foreground text-lg">{t('emptyTitle')}</p>
         <p className="text-muted-foreground text-sm mt-2">
-          Stwórz pierwszą sesję, aby rozpocząć grę
+          {t('emptyHint')}
         </p>
       </div>
     );
@@ -128,7 +130,7 @@ export function SessionList({
       <div className="bg-card border border-border rounded-xl p-6 w-[90vw] max-w-[1440px] max-h-[80vh] overflow-y-auto text-foreground">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-center flex-1">
-            📚 Lista Sesji
+            {t('title')}
           </h2>
           <button
             onClick={onClose}
@@ -147,7 +149,7 @@ export function SessionList({
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
                   <h4 className="text-xl font-bold text-foreground mb-2">
-                    {session.sessionData.sessionName || 'Bez nazwy'}
+                    {session.sessionData.sessionName || t('unnamed')}
                   </h4>
                   {session.sessionData.description && (
                     <p className="text-foreground text-sm mb-2">
@@ -156,13 +158,13 @@ export function SessionList({
                   )}
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>
-                      👤 {session.sessionData.character?.name || 'Brak postaci'}
+                      {t('characterLabel', { name: session.sessionData.character?.name || t('noCharacter') })}
                     </span>
                     <span>
-                      💬 {session.sessionData.messages?.length || 0} wiadomości
+                      {t('messagesCount', { count: session.sessionData.messages?.length || 0 })}
                     </span>
                     <span>
-                      📖 {session.sessionData.adventureText?.length || 0} znaków
+                      {t('charactersCount', { count: session.sessionData.adventureText?.length || 0 })}
                     </span>
                     <span>🕐 {formatDate(session.sessionData.timestamp)}</span>
                   </div>
@@ -172,13 +174,13 @@ export function SessionList({
                     onClick={() => handleLoadSession(session.sessionId)}
                     className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-foreground font-medium rounded-lg transition-all duration-300 hover:scale-105"
                   >
-                    📂 Wczytaj
+                    {t('loadButton')}
                   </Button>
                   <Button
                     onClick={() => handleDeleteSession(session.sessionId)}
                     className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-foreground font-medium rounded-lg transition-all duration-300 hover:scale-105"
                   >
-                    🗑️ Usuń
+                    {t('deleteButton')}
                   </Button>
                 </div>
               </div>

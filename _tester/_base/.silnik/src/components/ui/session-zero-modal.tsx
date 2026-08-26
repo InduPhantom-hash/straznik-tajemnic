@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -27,69 +28,41 @@ interface SessionZeroModalProps {
   adventureContext?: AdventureContext; // Opcjonalny kontekst przygody
 }
 
-const DEFAULT_LINES = ['Przemoc wobec dzieci', 'Przemoc seksualna'];
-
-const DEFAULT_VEILS = [
-  'Tortury (fade to black)',
-  'Szczegółowe obrażenia ciała',
-];
-
-const DIFFICULTIES = [
-  {
-    id: 'easy',
-    name: 'Łatwy',
-    description:
-      'Więcej podpowiedzi mechanicznych, łatwiejsze testy, AI naprowadza na rozwiązania',
-    icon: '🌱',
-  },
-  {
-    id: 'normal',
-    name: 'Normalny',
-    description:
-      'Standardowe zasady CoC 7e, AI jest neutralny, porażki mają konsekwencje',
-    icon: '⚖️',
-  },
-  {
-    id: 'hard',
-    name: 'Trudny',
-    description:
-      'Brak podpowiedzi, surowe konsekwencje, częstsze testy ze zwiększonymi progami',
-    icon: '🔥',
-  },
-  {
-    id: 'deadly',
-    name: 'Morderczy',
-    description:
-      'Każdy błąd fatalny, minimalna narracyjna osłona, strata PŻ/PR bez ostrzeżenia',
-    icon: '💀',
-  },
-];
-
 // FEATURE:#18 - Tryb narracji: pełne RPG, priorytet fabuły, czysta narracja
 const NARRATIVE_MODES = [
   {
     id: 'full_rpg',
-    name: 'Pełne RPG',
-    description:
-      'Klasyczne mechaniki CoC 7e. Widoczne testy umiejętności, rzuty kośćmi, statystyki PŻ/PR/PM.',
     icon: '🎲',
     color: 'text-blue-400',
   },
   {
     id: 'story_priority',
-    name: 'Priorytet Fabuły',
-    description:
-      'Gra paragrafowa. Mechaniki działają w tle - gracz nie widzi testów, AI decyduje przez narrację.',
     icon: '📖',
     color: 'text-purple-400',
   },
   {
     id: 'pure_narrative',
-    name: 'Czysta Narracja',
-    description:
-      'Interaktywna fikcja BEZ mechanik. Brak rzutów, brak statystyk - tylko wybory i historia.',
     icon: '✨',
     color: 'text-emerald-400',
+  },
+];
+
+const DIFFICULTIES = [
+  {
+    id: 'easy',
+    icon: '🌱',
+  },
+  {
+    id: 'normal',
+    icon: '⚖️',
+  },
+  {
+    id: 'hard',
+    icon: '🔥',
+  },
+  {
+    id: 'deadly',
+    icon: '💀',
   },
 ];
 
@@ -99,6 +72,35 @@ export function SessionZeroModal({
   onComplete,
   adventureContext,
 }: SessionZeroModalProps) {
+  const t = useTranslations('SessionZeroModal');
+  const narrativeModeNames: Record<string, string> = {
+    full_rpg: t('modeFullRpgName'),
+    story_priority: t('modeStoryPriorityName'),
+    pure_narrative: t('modePureNarrativeName'),
+  };
+  const narrativeModeDescriptions: Record<string, string> = {
+    full_rpg: t('modeFullRpgDescription'),
+    story_priority: t('modeStoryPriorityDescription'),
+    pure_narrative: t('modePureNarrativeDescription'),
+  };
+  const difficultyNames: Record<string, string> = {
+    easy: t('difficultyEasyName'),
+    normal: t('difficultyNormalName'),
+    hard: t('difficultyHardName'),
+    deadly: t('difficultyDeadlyName'),
+  };
+  const difficultyDescriptions: Record<string, string> = {
+    easy: t('difficultyEasyDescription'),
+    normal: t('difficultyNormalDescription'),
+    hard: t('difficultyHardDescription'),
+    deadly: t('difficultyDeadlyDescription'),
+  };
+  const defaultLines = [
+    t('defaultLineViolenceChildren'),
+    t('defaultLineSexualViolence'),
+  ];
+  const defaultVeils = [t('defaultVeilTortures'), t('defaultVeilInjuries')];
+
   const [step, setStep] = useState(1);
 
   // Era sugerowana z przygody (ale gracz może ją zmienić)
@@ -110,8 +112,8 @@ export function SessionZeroModal({
     tone: suggestedTone,
     narrativeMode: 'full_rpg',
     difficulty: adventureContext?.difficulty || 'normal',
-    lines: [...DEFAULT_LINES],
-    veils: [...DEFAULT_VEILS],
+    lines: [...defaultLines],
+    veils: [...defaultVeils],
     // Krok "słowo bezpieczeństwa" usunięty z UI (decyzja produktowa).
     // Pusty string wyłącza instrukcję pauzy w prompcie (guard w
     // session-zero-instructions.ts: `if (sessionZero.safetyWord)`).
@@ -181,7 +183,7 @@ export function SessionZeroModal({
 
   const totalSteps = 2;
 
-  const STEP_LABELS = ['Tryb i trudność', 'Linie i zasłony', 'Podsumowanie'];
+  const STEP_LABELS = [t('step1Label'), t('step2Label'), t('step3Label')];
 
   const renderStep = () => {
     switch (step) {
@@ -191,19 +193,18 @@ export function SessionZeroModal({
             {/* Nagłówek kroku */}
             <div>
               <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
-                🎲 Krok 1 · Tryb narracji i trudność
+                {t('step1Header')}
               </div>
               <p className="mt-1 font-serif text-lg italic text-muted-foreground">
-                Jak chcesz grać i jak wymagająca ma być przygoda? Ton i era
-                wynikają z wybranej przygody.
+                {t('step1Intro')}
               </p>
             </div>
 
             {/* Tryb narracji */}
             <div className="space-y-4">
               <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                Tryb narracji
-                <HelpIcon content="Pełne RPG = widoczne mechaniki. Priorytet Fabuły = mechaniki w tle. Czysta Narracja = bez mechanik." />
+                {t('narrativeModeLabel')}
+                <HelpIcon content={t('narrativeModeHelp')} />
               </Label>
               <div className="grid grid-cols-3 gap-4">
                 {NARRATIVE_MODES.map((mode) => {
@@ -230,11 +231,11 @@ export function SessionZeroModal({
                       <div className="mb-2 flex items-center gap-2">
                         <span className="text-2xl">{mode.icon}</span>
                         <span className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
-                          {mode.name}
+                          {narrativeModeNames[mode.id]}
                         </span>
                       </div>
                       <p className="font-serif text-base italic text-muted-foreground">
-                        {mode.description}
+                        {narrativeModeDescriptions[mode.id]}
                       </p>
                     </button>
                   );
@@ -245,8 +246,8 @@ export function SessionZeroModal({
             {/* Trudność */}
             <div className="space-y-4">
               <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                Poziom trudności
-                <HelpIcon content="Wpływa na ilość wsparcia narracyjnego, surowość konsekwencji i częstość podpowiedzi." />
+                {t('difficultyLevelLabel')}
+                <HelpIcon content={t('difficultyLevelHelp')} />
               </Label>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {DIFFICULTIES.map((diff) => {
@@ -266,14 +267,14 @@ export function SessionZeroModal({
                           ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
                           : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
                       }`}
-                      title={diff.description}
+                      title={difficultyDescriptions[diff.id]}
                     >
                       <span className="mb-1 block text-xl">{diff.icon}</span>
                       <span className="block font-special-elite text-xs uppercase tracking-[0.1em] text-foreground">
-                        {diff.name}
+                        {difficultyNames[diff.id]}
                       </span>
                       <span className="mt-1 block font-serif text-sm italic leading-snug text-muted-foreground">
-                        {diff.description}
+                        {difficultyDescriptions[diff.id]}
                       </span>
                     </button>
                   );
@@ -289,11 +290,10 @@ export function SessionZeroModal({
             {/* Nagłówek kroku */}
             <div>
               <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
-                🚫 Krok 2 · Linie i zasłony
+                {t('step2Header')}
               </div>
               <p className="mt-1 font-serif text-lg italic text-muted-foreground">
-                Określ granice treści, których chcesz unikać przy stole. Te
-                wybory stają się świętą umową ze Strażnikiem.
+                {t('step2Intro')}
               </p>
             </div>
 
@@ -302,16 +302,15 @@ export function SessionZeroModal({
               <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
               <p className="mb-2 font-serif text-base italic text-muted-foreground">
                 <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-destructive">
-                  Linie
+                  {t('linesTerm')}
                 </strong>{' '}
-                - tematy absolutnie zakazane. Nigdy nie pojawią się w grze.
+                {t('linesExplainer')}
               </p>
               <p className="font-serif text-base italic text-muted-foreground">
                 <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-brass">
-                  Zasłony
+                  {t('veilsTerm')}
                 </strong>{' '}
-                - tematy do „fade to black&rdquo;. Mogą wystąpić, ale bez
-                szczegółów.
+                {t('veilsExplainer')}
               </p>
             </div>
 
@@ -319,7 +318,7 @@ export function SessionZeroModal({
             <div className="relative space-y-3 border border-destructive/30 bg-card p-5">
               <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-destructive/45" />
               <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-destructive">
-                🚫 Linie (tematy zakazane)
+                {t('linesSectionLabel')}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {settings.lines.map((line, idx) => (
@@ -346,7 +345,7 @@ export function SessionZeroModal({
                 <Input
                   value={newLine}
                   onChange={(e) => setNewLine(e.target.value)}
-                  placeholder="Dodaj temat zakazany..."
+                  placeholder={t('lineInputPlaceholder')}
                   className="flex-1"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newLine.trim()) {
@@ -371,7 +370,7 @@ export function SessionZeroModal({
                   variant="outline"
                   size="sm"
                 >
-                  Dodaj
+                  {t('addButton')}
                 </Button>
               </div>
             </div>
@@ -380,7 +379,7 @@ export function SessionZeroModal({
             <div className="relative space-y-3 border border-brass/30 bg-card p-5">
               <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
               <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                🌫️ Zasłony (fade to black)
+                {t('veilsSectionLabel')}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {settings.veils.map((veil, idx) => (
@@ -407,7 +406,7 @@ export function SessionZeroModal({
                 <Input
                   value={newVeil}
                   onChange={(e) => setNewVeil(e.target.value)}
-                  placeholder="Dodaj temat do fade to black..."
+                  placeholder={t('veilInputPlaceholder')}
                   className="flex-1"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newVeil.trim()) {
@@ -432,7 +431,7 @@ export function SessionZeroModal({
                   variant="outline"
                   size="sm"
                 >
-                  Dodaj
+                  {t('addButton')}
                 </Button>
               </div>
             </div>
@@ -441,9 +440,7 @@ export function SessionZeroModal({
             <div className="flex items-center gap-3 border-l-2 border-primary/50 bg-primary/[0.06] px-4 py-3">
               <span className="text-primary">𓂀</span>
               <div className="font-serif text-base italic text-muted-foreground">
-                Wskazówka Strażnika: granice ustalone teraz pozwalają opowieści
-                sięgać głębiej, bez ryzyka, że ktoś przy stole poczuje się
-                osaczony.
+                {t('keeperTip')}
               </div>
             </div>
           </div>
@@ -456,13 +453,13 @@ export function SessionZeroModal({
             {/* Nagłówek kroku */}
             <div className="text-center">
               <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-primary">
-                Pieczęć przyłożona
+                {t('step3Kicker')}
               </div>
               <h3 className="mt-1 font-display-decorative text-2xl font-black uppercase tracking-[0.12em] text-foreground">
-                Sesja Zero ukończona
+                {t('step3Title')}
               </h3>
               <p className="mt-1 font-serif text-lg italic text-muted-foreground">
-                Twoje ustawienia zostały zapisane - opowieść może się zacząć.
+                {t('step3Subtitle')}
               </p>
             </div>
 
@@ -470,23 +467,20 @@ export function SessionZeroModal({
               <div className="relative border border-brass/30 bg-card p-5">
                 <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
                 <div className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  Trudność
+                  {t('summaryDifficulty')}
                 </div>
                 <p className="mt-2 font-display text-lg font-semibold uppercase tracking-[0.06em] text-foreground">
-                  {DIFFICULTIES.find((d) => d.id === settings.difficulty)?.name}
+                  {difficultyNames[settings.difficulty]}
                 </p>
               </div>
 
               <div className="relative border border-brass/30 bg-card p-5">
                 <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
                 <div className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  Tryb narracji
+                  {t('summaryNarrativeMode')}
                 </div>
                 <p className="mt-2 font-display text-lg font-semibold uppercase tracking-[0.06em] text-foreground">
-                  {
-                    NARRATIVE_MODES.find((m) => m.id === settings.narrativeMode)
-                      ?.name
-                  }
+                  {narrativeModeNames[settings.narrativeMode]}
                 </p>
               </div>
             </div>
@@ -494,23 +488,23 @@ export function SessionZeroModal({
             <div className="space-y-3">
               <p className="font-serif text-base italic text-muted-foreground">
                 <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-destructive">
-                  Linie:
+                  {t('linesColon')}
                 </strong>{' '}
-                {settings.lines.length > 0 ? settings.lines.join(', ') : 'Brak'}
+                {settings.lines.length > 0 ? settings.lines.join(', ') : t('none')}
               </p>
               <p className="font-serif text-base italic text-muted-foreground">
                 <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-brass">
-                  Zasłony:
+                  {t('veilsColon')}
                 </strong>{' '}
-                {settings.veils.length > 0 ? settings.veils.join(', ') : 'Brak'}
+                {settings.veils.length > 0 ? settings.veils.join(', ') : t('none')}
               </p>
             </div>
 
             <div className="mt-6 flex justify-center gap-3">
               <Button variant="outline" onClick={() => setStep(1)}>
-                Edytuj ustawienia
+                {t('editSettings')}
               </Button>
-              <Button onClick={onClose}>Zamknij</Button>
+              <Button onClick={onClose}>{t('close')}</Button>
             </div>
           </div>
         );
@@ -522,13 +516,13 @@ export function SessionZeroModal({
       <DialogContent size="screen">
         <DialogHeader className="text-center sm:text-center">
           <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-primary">
-            Zanim opadnie pierwsza mgła
+            {t('headerKicker')}
           </div>
           <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-3xl font-black uppercase tracking-[0.12em] text-foreground">
-            Sesja Zero
+            {t('dialogTitle')}
           </DialogTitle>
           <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
-            Kalibracja gry przed rozpoczęciem przygody
+            {t('dialogDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -592,11 +586,11 @@ export function SessionZeroModal({
               variant="outline"
               onClick={() => (step > 1 ? setStep(step - 1) : onClose())}
             >
-              {step === 1 ? '‹ Anuluj' : '‹ Wstecz'}
+              {step === 1 ? t('cancelNav') : t('backNav')}
             </Button>
 
             <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              Krok {step} z {totalSteps}
+              {t('stepCounter', { step, total: totalSteps })}
             </div>
 
             <Button
@@ -608,7 +602,7 @@ export function SessionZeroModal({
                 }
               }}
             >
-              {step === totalSteps ? 'Zakończ i zapisz ›' : 'Dalej ›'}
+              {step === totalSteps ? t('finishAndSaveNav') : t('nextNav')}
             </Button>
           </div>
         )}

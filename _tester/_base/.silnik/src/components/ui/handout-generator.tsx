@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,9 @@ import { Label } from './label';
 import { Input } from './input';
 import { Textarea } from './textarea';
 import type { HandoutType } from '@/components/chat/narrative/types';
+
+/** Kształt funkcji t() z next-intl potrzebnej helperom modułu. */
+type TranslateFn = ReturnType<typeof useTranslations>;
 
 interface HandoutGeneratorProps {
   open: boolean;
@@ -30,49 +34,14 @@ export interface GeneratedHandout {
   html: string;
 }
 
-const HANDOUT_TYPES: {
-  id: HandoutType;
-  name: string;
-  icon: string;
-  description: string;
-}[] = [
-  {
-    id: 'newspaper',
-    name: 'Wycinek prasowy',
-    icon: '📰',
-    description: 'Artykuł z gazety z lat 20.',
-  },
-  {
-    id: 'letter',
-    name: 'List osobisty',
-    icon: '✉️',
-    description: 'List z charakterystycznym pismem',
-  },
-  {
-    id: 'telegram',
-    name: 'Telegram',
-    icon: '📧',
-    description: 'Telegram Western Union',
-  },
-  {
-    id: 'report',
-    name: 'Raport policyjny',
-    icon: '📋',
-    description: 'Oficjalny raport z pieczątką',
-  },
-  {
-    id: 'diary',
-    name: 'Wpis z dziennika',
-    icon: '📓',
-    description: 'Dziennik z plamami atramentu',
-  },
-  {
-    id: 'book',
-    name: 'Zakazana księga',
-    icon: '📜',
-    description: 'Fragment Necronomiconu',
-  },
-  { id: 'note', name: 'Notatka', icon: '📝', description: 'Odręczna notatka' },
+const HANDOUT_TYPES: { id: HandoutType; icon: string }[] = [
+  { id: 'newspaper', icon: '📰' },
+  { id: 'letter', icon: '✉️' },
+  { id: 'telegram', icon: '📧' },
+  { id: 'report', icon: '📋' },
+  { id: 'diary', icon: '📓' },
+  { id: 'book', icon: '📜' },
+  { id: 'note', icon: '📝' },
 ];
 
 const NEWSPAPERS = [
@@ -89,10 +58,29 @@ export function HandoutGenerator({
   onClose,
   onGenerate,
 }: HandoutGeneratorProps) {
+  const t = useTranslations('HandoutGenerator');
+  const handoutTypeTexts: Record<
+    string,
+    { name: string; description: string }
+  > = {
+    newspaper: {
+      name: t('typeNameNewspaper'),
+      description: t('typeDescNewspaper'),
+    },
+    letter: { name: t('typeNameLetter'), description: t('typeDescLetter') },
+    telegram: {
+      name: t('typeNameTelegram'),
+      description: t('typeDescTelegram'),
+    },
+    report: { name: t('typeNameReport'), description: t('typeDescReport') },
+    diary: { name: t('typeNameDiary'), description: t('typeDescDiary') },
+    book: { name: t('typeNameBook'), description: t('typeDescBook') },
+    note: { name: t('typeNameNote'), description: t('typeDescNote') },
+  };
   const [selectedType, setSelectedType] = useState<HandoutType>('newspaper');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [date, setDate] = useState('17 października 1928');
+  const [date, setDate] = useState(t('defaultDate'));
   const [author, setAuthor] = useState('');
   const [location, setLocation] = useState('Arkham');
   const [newspaper, setNewspaper] = useState('Arkham Advertiser');
@@ -100,14 +88,18 @@ export function HandoutGenerator({
   const previewRef = useRef<HTMLDivElement>(null);
 
   const generateHandout = () => {
-    const html = renderHandoutHTML(selectedType, {
-      title,
-      content,
-      date,
-      author,
-      location,
-      newspaper,
-    });
+    const html = renderHandoutHTML(
+      selectedType,
+      {
+        title,
+        content,
+        date,
+        author,
+        location,
+        newspaper,
+      },
+      t
+    );
     setPreview(html);
 
     if (onGenerate) {
@@ -126,7 +118,7 @@ export function HandoutGenerator({
   const copyToClipboard = () => {
     if (preview) {
       navigator.clipboard.writeText(preview);
-      alert('Skopiowano do schowka!');
+      alert(t('copiedAlert'));
     }
   };
 
@@ -146,8 +138,8 @@ export function HandoutGenerator({
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
-      console.error('Błąd podczas eksportu:', error);
-      alert('Nie udało się wyeksportować obrazu. Sprawdź konsolę.');
+      console.error(t('exportErrorLog'), error);
+      alert(t('exportFailedAlert'));
     }
   };
 
@@ -156,10 +148,10 @@ export function HandoutGenerator({
       <DialogContent size="wide">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
-            📜 Generator Handoutów
+            📜 {t('title')}
           </DialogTitle>
           <DialogDescription>
-            Twórz realistyczne dokumenty w stylu lat 1920-1930
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,7 +160,7 @@ export function HandoutGenerator({
           <div className="space-y-4">
             {/* Wybór typu */}
             <div>
-              <Label>Typ dokumentu</Label>
+              <Label>{t('documentTypeLabel')}</Label>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {HANDOUT_TYPES.map((type) => (
                   <button
@@ -179,10 +171,12 @@ export function HandoutGenerator({
                         ? 'border-primary bg-primary/10'
                         : 'border-border hover:border-primary/50'
                     }`}
-                    title={type.description}
+                    title={handoutTypeTexts[type.id].description}
                   >
                     <span className="text-xl block">{type.icon}</span>
-                    <span className="text-xs">{type.name}</span>
+                    <span className="text-xs">
+                      {handoutTypeTexts[type.id].name}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -192,7 +186,7 @@ export function HandoutGenerator({
             {selectedType === 'newspaper' && (
               <>
                 <div>
-                  <Label>Gazeta</Label>
+                  <Label>{t('newspaperLabel')}</Label>
                   <select
                     value={newspaper}
                     onChange={(e) => setNewspaper(e.target.value)}
@@ -206,11 +200,11 @@ export function HandoutGenerator({
                   </select>
                 </div>
                 <div>
-                  <Label>Tytuł artykułu</Label>
+                  <Label>{t('articleTitleLabel')}</Label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="TAJEMNICZY ZGON NA UNIWERSYTECIE"
+                    placeholder={t('articleTitlePlaceholder')}
                   />
                 </div>
               </>
@@ -219,7 +213,7 @@ export function HandoutGenerator({
             {selectedType === 'letter' && (
               <>
                 <div>
-                  <Label>Od kogo</Label>
+                  <Label>{t('fromLabel')}</Label>
                   <Input
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
@@ -227,11 +221,11 @@ export function HandoutGenerator({
                   />
                 </div>
                 <div>
-                  <Label>Miejsce nadania</Label>
+                  <Label>{t('originPlaceLabel')}</Label>
                   <Input
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Biblioteka Uniwersytetu Miskatonic"
+                    placeholder={t('originPlacePlaceholder')}
                   />
                 </div>
               </>
@@ -239,7 +233,7 @@ export function HandoutGenerator({
 
             {selectedType === 'telegram' && (
               <div>
-                <Label>Nadawca</Label>
+                <Label>{t('senderLabel')}</Label>
                 <Input
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
@@ -251,7 +245,7 @@ export function HandoutGenerator({
             {selectedType === 'report' && (
               <>
                 <div>
-                  <Label>Numer sprawy</Label>
+                  <Label>{t('caseNumberLabel')}</Label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -259,7 +253,7 @@ export function HandoutGenerator({
                   />
                 </div>
                 <div>
-                  <Label>Prowadzący</Label>
+                  <Label>{t('investigatorLabel')}</Label>
                   <Input
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
@@ -271,7 +265,7 @@ export function HandoutGenerator({
 
             {selectedType === 'book' && (
               <div>
-                <Label>Tytuł księgi</Label>
+                <Label>{t('bookTitleLabel')}</Label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -282,34 +276,34 @@ export function HandoutGenerator({
 
             {/* Pola wspólne */}
             <div>
-              <Label>Data</Label>
+              <Label>{t('dateLabel')}</Label>
               <Input
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                placeholder="17 października 1928"
+                placeholder={t('defaultDate')}
               />
             </div>
 
             <div>
-              <Label>Treść</Label>
+              <Label>{t('contentLabel')}</Label>
               <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Treść dokumentu..."
+                placeholder={t('contentPlaceholder')}
                 className="min-h-[150px]"
               />
             </div>
 
             <div className="flex gap-2">
               <Button onClick={generateHandout} className="flex-1">
-                ✨ Generuj podgląd
+                ✨ {t('generatePreviewButton')}
               </Button>
             </div>
           </div>
 
           {/* Podgląd */}
           <div className="space-y-4">
-            <Label>Podgląd</Label>
+            <Label>{t('previewLabel')}</Label>
             <div
               ref={previewRef}
               className="bg-stone-900 border border-border rounded-lg p-4 min-h-[400px]"
@@ -321,7 +315,7 @@ export function HandoutGenerator({
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <p>Wygeneruj dokument, aby zobaczyć podgląd</p>
+                  <p>{t('emptyPreviewHint')}</p>
                 </div>
               )}
             </div>
@@ -333,14 +327,14 @@ export function HandoutGenerator({
                   onClick={copyToClipboard}
                   className="flex-1"
                 >
-                  📋 Kopiuj HTML
+                  📋 {t('copyHtmlButton')}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={downloadAsImage}
                   className="flex-1"
                 >
-                  📥 Pobierz obraz
+                  📥 {t('downloadImageButton')}
                 </Button>
               </div>
             )}
@@ -360,7 +354,8 @@ function renderHandoutHTML(
     author?: string;
     location?: string;
     newspaper?: string;
-  }
+  },
+  t: TranslateFn
 ): string {
   switch (type) {
     case 'newspaper':
@@ -371,7 +366,7 @@ function renderHandoutHTML(
     <div style="font-size: 11px; color: #5c4a32; margin-top: 5px;">${data.date}</div>
   </div>
   <div style="font-size: 16px; font-weight: bold; text-transform: uppercase; color: #2d2416; margin-bottom: 10px; line-height: 1.2;">
-    ${data.title || 'TAJEMNICZE WYDARZENIA'}
+    ${data.title || t('fallbackHeadline')}
   </div>
   <div style="font-size: 12px; color: #3d3020; line-height: 1.6; text-align: justify; column-count: 1;">
     ${data.content.replace(/\n/g, '<br>')}
@@ -386,7 +381,7 @@ function renderHandoutHTML(
     ${data.content.replace(/\n/g, '<br>')}
   </div>
   <div style="margin-top: 30px; text-align: right; font-style: italic; color: #5c4a32;">
-    ${data.author || 'Twój przyjaciel'}
+    ${data.author || t('letterFallbackAuthor')}
   </div>
 </div>`;
 
@@ -397,13 +392,13 @@ function renderHandoutHTML(
     ═══ WESTERN UNION ═══
   </div>
   <div style="margin-top: 15px; font-size: 10px; color: #8b7355;">
-    DATA: ${data.date} | KLASA: PILNE
+    ${t('telegramMetaLine', { date: data.date })}
   </div>
   <div style="margin-top: 15px; font-size: 14px; color: #2d2416; letter-spacing: 1px; line-height: 2; text-transform: uppercase;">
     ${data.content.replace(/\n/g, ' STOP<br>').replace(/\.\s*/g, ' STOP ')}
   </div>
   <div style="margin-top: 15px; font-size: 12px; color: #5c4a32;">
-    NADAWCA: ${data.author || 'NIEZNANY'}
+    ${t('telegramSenderLine', { author: data.author || t('telegramUnknownSender') })}
   </div>
 </div>`;
 
@@ -411,18 +406,18 @@ function renderHandoutHTML(
       return `
 <div style="font-family: 'Courier New', monospace; background: #f8f6f0; padding: 20px; border: 1px solid #999; max-width: 450px;">
   <div style="text-align: center; font-size: 14px; font-weight: bold; letter-spacing: 2px; color: #333; border: 2px solid #333; padding: 8px; margin-bottom: 15px;">
-    DEPARTAMENT POLICJI ARKHAM<br>
-    <span style="font-size: 11px; font-weight: normal;">RAPORT DOCHODZENIOWY</span>
+    ${t('reportHeaderTitle')}<br>
+    <span style="font-size: 11px; font-weight: normal;">${t('reportSubtitle')}</span>
   </div>
   <div style="font-size: 11px; color: #555; margin-bottom: 10px;">
-    Sprawa nr: ${data.title || 'AK-XX-XXXX'} | Data: ${data.date}<br>
-    Prowadzący: ${data.author || 'Det. [NAZWISKO]'}
+    ${t('reportCaseLine', { title: data.title || t('reportCaseFallback'), date: data.date })}<br>
+    ${t('reportInvestigatorLine', { author: data.author || t('reportInvestigatorFallback') })}
   </div>
   <div style="font-size: 12px; color: #333; line-height: 1.6; border-top: 1px solid #ccc; padding-top: 10px;">
     ${data.content.replace(/\n/g, '<br>')}
   </div>
   <div style="margin-top: 20px; text-align: right; font-size: 10px; color: #666; font-style: italic;">
-    [PIECZĄTKA: POUFNE]
+    ${t('reportStamp')}
   </div>
 </div>`;
 

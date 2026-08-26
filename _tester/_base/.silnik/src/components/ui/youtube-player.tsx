@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 
 interface YouTubePlayerProps {
@@ -104,26 +105,34 @@ function extractYouTubeContent(
   }
 }
 
-// Mapuj kod błędu YT IFrame API na czytelny komunikat PL.
+// Mapuj kod błędu YT IFrame API na klucz tłumaczenia (komunikat składany w komponencie).
 // 2 = zły identyfikator, 5 = błąd odtwarzacza, 100 = usunięty/prywatny,
 // 101/150 = właściciel zablokował osadzanie.
 function mapYouTubeError(code: number): string {
   switch (code) {
     case 2:
-      return 'Nieprawidłowy identyfikator filmu/playlisty.';
+      return 'errorInvalidId';
     case 100:
-      return 'Film/playlista usunięte lub prywatne.';
+      return 'errorDeletedOrPrivate';
     case 101:
     case 150:
-      return 'Właściciel zablokował odtwarzanie poza YouTube.';
+      return 'errorEmbeddingBlocked';
     case 5:
-      return 'Błąd odtwarzacza YouTube. Spróbuj odświeżyć stronę.';
+      return 'errorPlayerGeneric';
     default:
-      return 'Nie udało się odtworzyć. Wklej własny link YouTube poniżej.';
+      return 'errorFallback';
   }
 }
 
 export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
+  const t = useTranslations('YoutubePlayer');
+  const playbackErrorMessages: Record<string, string> = {
+    errorInvalidId: t('errorInvalidId'),
+    errorDeletedOrPrivate: t('errorDeletedOrPrivate'),
+    errorEmbeddingBlocked: t('errorEmbeddingBlocked'),
+    errorPlayerGeneric: t('errorPlayerGeneric'),
+    errorFallback: t('errorFallback'),
+  };
   const [isExpanded, setIsExpanded] = useState(false); // FEATURE:#16 - Domyślnie zwinięte
   const [content, setContent] = useState<{
     type: ContentType;
@@ -306,12 +315,12 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
     setPlaybackError(null);
     const trimmedUrl = inputValue.trim();
     if (!trimmedUrl) {
-      setError('Wklej URL');
+      setError(t('pasteUrlError'));
       return;
     }
     const parsed = extractYouTubeContent(trimmedUrl);
     if (!parsed) {
-      setError('Nieprawidłowy URL YouTube');
+      setError(t('invalidUrlError'));
       return;
     }
     setContent(parsed);
@@ -374,7 +383,7 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
               className={`inline-flex items-center gap-1.5 text-xs px-1.5 py-0.5 rounded ${isExpanded ? 'bg-red-500/20 text-red-400' : 'bg-muted text-muted-foreground'}`}
             >
               <span className="flex items-center justify-center leading-none">{isPlaying ? '▶️' : '⏸️'}</span>
-              <span>{content.type === 'playlist' ? 'Playlista' : 'Film'}</span>
+              <span>{content.type === 'playlist' ? t('typePlaylist') : t('typeVideo')}</span>
             </span>
           )}
         </div>
@@ -396,7 +405,7 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
           <div className="p-2 bg-[#1a1610] space-y-2">
             {playbackError && (
               <div className="text-xs text-destructive px-1">
-                ⚠️ {playbackError}
+                ⚠️ {playbackErrorMessages[playbackError]}
               </div>
             )}
             {currentTitle && (
@@ -456,7 +465,7 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
 
             {isTTSPlaying && (
               <div className="text-[14px] text-yellow-500 text-center">
-                🔇 Głośność obniżona
+                {t('volumeLowered')}
               </div>
             )}
 
@@ -465,7 +474,7 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Zmień..."
+                placeholder={t('changePlaceholder')}
                 className="flex-1 bg-background border border-brass/30 rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary"
                 onKeyDown={(e) => e.key === 'Enter' && handleLoad()}
               />
@@ -497,7 +506,7 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Link do YT..."
+              placeholder={t('linkPlaceholder')}
               className="min-w-0 flex-1 bg-background border border-brass/30 rounded px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
               onKeyDown={(e) => e.key === 'Enter' && handleLoad()}
             />
@@ -507,7 +516,7 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
           </div>
           {error && <p className="text-destructive text-xs">{error}</p>}
           <p className="text-muted-foreground text-xs">
-            Obsługiwane: filmy i playlisty YouTube
+            {t('supportedFormats')}
           </p>
         </div>
       )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { SafeImage } from '@/components/ui/safe-image';
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { Button } from './button';
 import { Card } from './card';
@@ -35,15 +36,6 @@ import { generateRandomNPC as libGenerateRandomNPC } from '@/lib/npc';
 import { GEMINI_VOICES, type GeminiVoiceRole } from '@/lib/gemini-voices';
 import { getVoiceForNPC } from '@/lib/npc-voice-mapping';
 
-const VOICE_ROLE_LABELS: Record<GeminiVoiceRole, string> = {
-  narrator: 'Narratorzy',
-  male: 'Mężczyźni',
-  female: 'Kobiety',
-  young: 'Młodzi',
-  old: 'Starsi',
-  monster: 'Potwory / Mythos',
-};
-
 interface NPCManagerProps {
   onClose?: () => void;
   onNPCSelected?: (npc: NPC) => void;
@@ -63,7 +55,7 @@ export function NPCManager({
   sessionId,
   era = '1920s',
 }: NPCManagerProps) {
-
+  const t = useTranslations('NpcManager');
   const [npcs, setNPCs] = useState<NPC[]>([]);
   const [filteredNPCs, setFilteredNPCs] = useState<NPC[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -157,7 +149,7 @@ export function NPCManager({
   };
 
   const handleDeleteNPC = (id: string) => {
-    if (confirm('Czy na pewno chcesz usunąć tego NPC?')) {
+    if (confirm(t('deleteConfirm'))) {
       const newNPCs = npcs.filter((npc) => npc.id !== id);
       saveNPCs(newNPCs);
     }
@@ -206,7 +198,7 @@ export function NPCManager({
       saveNPCs(newNPCs);
     } catch (error) {
       console.error('Error generating portrait:', error);
-      alert('Błąd podczas generowania portretu');
+      alert(t('portraitErrorAlert'));
     } finally {
       setIsGeneratingPortrait(false);
     }
@@ -266,10 +258,10 @@ export function NPCManager({
           <div className="flex items-center justify-between">
             <div>
               <div className="font-special-elite uppercase text-[14px] tracking-[0.4em] text-primary">
-                Spotkane osoby · Bohaterowie niezależni
+                {t('headerKicker')}
               </div>
               <h2 className="mt-1.5 font-display font-bold text-2xl uppercase tracking-[0.1em] text-foreground">
-                Menedżer NPC
+                {t('title')}
               </h2>
             </div>
             <Button
@@ -277,7 +269,7 @@ export function NPCManager({
               className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,0.3)]"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nowy NPC
+              {t('newNpcButton')}
             </Button>
           </div>
 
@@ -295,7 +287,7 @@ export function NPCManager({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brass/60 w-4 h-4" />
               <Input
-                placeholder="Szukaj NPC..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 font-special-elite"
@@ -306,28 +298,28 @@ export function NPCManager({
               onChange={(e) => setFilterType(e.target.value)}
               className="px-3 py-2 bg-[#16130f] border border-brass/30 rounded-md text-foreground font-special-elite text-sm focus:border-brass/60 focus:outline-none"
             >
-              <option value="all">Wszystkie typy</option>
-              <option value="friendly">Przyjazne</option>
-              <option value="neutral">Neutralne</option>
-              <option value="hostile">Wrogie</option>
-              <option value="monster">Potwory</option>
+              <option value="all">{t('filterAllTypes')}</option>
+              <option value="friendly">{t('filterFriendly')}</option>
+              <option value="neutral">{t('filterNeutral')}</option>
+              <option value="hostile">{t('filterHostile')}</option>
+              <option value="monster">{t('filterMonsters')}</option>
             </select>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-3 py-2 bg-[#16130f] border border-brass/30 rounded-md text-foreground font-special-elite text-sm focus:border-brass/60 focus:outline-none"
             >
-              <option value="all">Wszystkie statusy</option>
-              <option value="alive">Żywe</option>
-              <option value="dead">Martwe</option>
-              <option value="unknown">Nieznane</option>
+              <option value="all">{t('filterAllStatuses')}</option>
+              <option value="alive">{t('filterAlive')}</option>
+              <option value="dead">{t('filterDead')}</option>
+              <option value="unknown">{t('filterUnknown')}</option>
             </select>
             <select
               value={filterLocation}
               onChange={(e) => setFilterLocation(e.target.value)}
               className="px-3 py-2 bg-[#16130f] border border-brass/30 rounded-md text-foreground font-special-elite text-sm focus:border-brass/60 focus:outline-none"
             >
-              <option value="all">Wszystkie lokacje</option>
+              <option value="all">{t('filterAllLocations')}</option>
               {locations.map((loc) => (
                 <option key={loc} value={loc}>
                   {loc}
@@ -342,8 +334,7 @@ export function NPCManager({
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 <User className="w-12 h-12 mx-auto mb-4 text-brass/40" />
                 <p className="font-serif italic text-lg">
-                  Brak NPC. Kliknij &quot;Nowy NPC&quot; aby utworzyć pierwszą
-                  postać.
+                  {t('emptyList')}
                 </p>
               </div>
             ) : (
@@ -421,12 +412,12 @@ export function NPCManager({
                       >
                         {getNPCTypeIcon(npc.type)}
                         {npc.type === 'friendly'
-                          ? 'Przyjazny'
+                          ? t('typeFriendly')
                           : npc.type === 'neutral'
-                            ? 'Neutralny'
+                            ? t('typeNeutral')
                             : npc.type === 'hostile'
-                              ? 'Wrogi'
-                              : 'Potwór'}
+                              ? t('typeHostile')
+                              : t('typeMonster')}
                       </span>
                       <span
                         className={`font-special-elite text-[14px] uppercase tracking-[0.08em] border border-brass/30 px-2.5 py-1 ${getStatusColor(
@@ -434,10 +425,10 @@ export function NPCManager({
                         )}`}
                       >
                         {npc.status === 'alive'
-                          ? 'Żywy'
+                          ? t('statusAlive')
                           : npc.status === 'dead'
-                            ? 'Martwy'
-                            : 'Nieznany'}
+                            ? t('statusDead')
+                            : t('statusUnknown')}
                       </span>
                     </div>
 
@@ -445,7 +436,7 @@ export function NPCManager({
                     <div className="grid grid-cols-3 gap-2 font-special-elite text-xs">
                       <div className="border border-brass/20 bg-[#1f1a14] px-2 py-1.5 text-center">
                         <span className="block text-[13px] uppercase tracking-[0.1em] text-muted-foreground">
-                          PŻ
+                          {t('statHp')}
                         </span>
                         <span className="text-[#b3322c]">
                           {npc.hp}/{npc.maxHp}
@@ -453,7 +444,7 @@ export function NPCManager({
                       </div>
                       <div className="border border-brass/20 bg-[#1f1a14] px-2 py-1.5 text-center">
                         <span className="block text-[13px] uppercase tracking-[0.1em] text-muted-foreground">
-                          PR
+                          {t('statSan')}
                         </span>
                         <span className="text-brass">
                           {npc.san}/{npc.maxSan}
@@ -461,7 +452,7 @@ export function NPCManager({
                       </div>
                       <div className="border border-brass/20 bg-[#1f1a14] px-2 py-1.5 text-center">
                         <span className="block text-[13px] uppercase tracking-[0.1em] text-muted-foreground">
-                          PM
+                          {t('statMp')}
                         </span>
                         <span className="text-primary">
                           {npc.mp}/{npc.maxMp}
@@ -513,7 +504,7 @@ export function NPCManager({
                           onClick={() => handleGeneratePortrait(npc, true)}
                           disabled={isGeneratingPortrait}
                           className="absolute top-2 right-2 p-1.5 bg-black/60 border border-brass/40 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
-                          title="Regeneruj portret (tryb w Settings: Zachowaj wygląd)"
+                          title={t('regeneratePortraitTitle')}
                         >
                           {isGeneratingPortrait ? (
                             <Loader2 className="w-4 h-4 text-brass animate-spin" />
@@ -533,7 +524,7 @@ export function NPCManager({
                           onClick={() => onAddToSession(npc)}
                           className="flex-1 font-display uppercase tracking-[0.12em] text-xs text-brass bg-brass/[0.04] border-brass/45 hover:bg-brass/10"
                         >
-                          Użyj w sesji
+                          {t('useInSession')}
                         </Button>
                       )}
                       {!npc.portraitUrl && (
@@ -547,7 +538,7 @@ export function NPCManager({
                           {isGeneratingPortrait ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
-                            'Generuj portret'
+                            t('generatePortraitButton')
                           )}
                         </Button>
                       )}
@@ -611,6 +602,7 @@ function NPCForm({
   currentLocation,
   sessionId,
 }: NPCFormProps) {
+  const t = useTranslations('NpcManager');
   const [formData, setFormData] = useState<Partial<NPC>>(() => {
     if (npc) {
       return { ...npc };
@@ -766,7 +758,7 @@ function NPCForm({
       <div className="p-6 border-b border-brass/30 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h3 className="font-display font-bold text-xl uppercase tracking-[0.1em] text-foreground">
-            {npc ? 'Edytuj NPC' : 'Nowy NPC'}
+            {npc ? t('editNpcTitle') : t('newNpcButton')}
           </h3>
           <Button
             variant="ghost"
@@ -792,10 +784,10 @@ function NPCForm({
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {tab === 'basic' && 'Podstawowe'}
-              {tab === 'stats' && 'Statystyki'}
-              {tab === 'skills' && 'Umiejętności'}
-              {tab === 'details' && 'Szczegóły'}
+              {tab === 'basic' && t('tabBasic')}
+              {tab === 'stats' && t('tabStats')}
+              {tab === 'skills' && t('tabSkills')}
+              {tab === 'details' && t('tabDetails')}
             </button>
           ))}
         </div>
@@ -805,20 +797,20 @@ function NPCForm({
           <div className="space-y-4">
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Nazwa *
+                {t('nameLabel')}
               </label>
               <Input
                 value={formData.name || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="Imię NPC"
+                placeholder={t('namePlaceholder')}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                  Typ
+                  {t('typeLabel')}
                 </label>
                 <select
                   value={formData.type || 'neutral'}
@@ -830,15 +822,15 @@ function NPCForm({
                   }
                   className="w-full px-3 py-2 bg-[#16130f] border border-brass/30 rounded-md text-foreground font-special-elite text-sm focus:border-brass/60 focus:outline-none"
                 >
-                  <option value="friendly">Przyjazny</option>
-                  <option value="neutral">Neutralny</option>
-                  <option value="hostile">Wrogi</option>
-                  <option value="monster">Potwór</option>
+                  <option value="friendly">{t('typeFriendly')}</option>
+                  <option value="neutral">{t('typeNeutral')}</option>
+                  <option value="hostile">{t('typeHostile')}</option>
+                  <option value="monster">{t('typeMonster')}</option>
                 </select>
               </div>
               <div>
                 <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                  Zawód/Profesja
+                  {t('occupationLabel')}
                 </label>
                 <Input
                   value={formData.occupation || ''}
@@ -848,25 +840,25 @@ function NPCForm({
                       occupation: e.target.value,
                     }))
                   }
-                  placeholder="np. Detektyw, Antykwariusz"
+                  placeholder={t('occupationPlaceholder')}
                 />
               </div>
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Lokalizacja
+                {t('locationLabel')}
               </label>
               <Input
                 value={formData.location || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, location: e.target.value }))
                 }
-                placeholder="Gdzie można spotkać tego NPC"
+                placeholder={t('locationPlaceholder')}
               />
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Status
+                {t('statusLabel')}
               </label>
               <select
                 value={formData.status || 'alive'}
@@ -878,14 +870,14 @@ function NPCForm({
                 }
                 className="w-full px-3 py-2 bg-[#16130f] border border-brass/30 rounded-md text-foreground font-special-elite text-sm focus:border-brass/60 focus:outline-none"
               >
-                <option value="alive">Żywy</option>
-                <option value="dead">Martwy</option>
-                <option value="unknown">Nieznany</option>
+                <option value="alive">{t('statusAlive')}</option>
+                <option value="dead">{t('statusDead')}</option>
+                <option value="unknown">{t('statusUnknown')}</option>
               </select>
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Głos NPC (multi-voice ULTRA)
+                {t('voiceSectionLabel')}
               </label>
               <select
                 value={formData.voiceConfig?.voiceId || ''}
@@ -898,10 +890,12 @@ function NPCForm({
                   }))
                 }
                 className="w-full px-3 py-2 bg-[#16130f] border border-brass/30 rounded-md text-foreground font-special-elite text-sm focus:border-brass/60 focus:outline-none"
-                aria-label="Wybór głosu Gemini TTS dla NPC"
+                aria-label={t('voiceSelectAriaLabel')}
               >
                 <option value="">
-                  Auto (sugestia: {getVoiceForNPC(formData as NPC)})
+                  {t('voiceAutoOption', {
+                    suggestion: getVoiceForNPC(formData as NPC),
+                  })}
                 </option>
                 {(
                   [
@@ -913,7 +907,7 @@ function NPCForm({
                     'monster',
                   ] as GeminiVoiceRole[]
                 ).map((role) => (
-                  <optgroup key={role} label={VOICE_ROLE_LABELS[role]}>
+                  <optgroup key={role} label={t(`voiceRole_${role}`)}>
                     {GEMINI_VOICES.filter((v) => v.role === role).map((v) => (
                       <option key={v.voiceId} value={v.voiceId}>
                         {v.name} - {v.characteristic} ({v.description})
@@ -923,13 +917,12 @@ function NPCForm({
                 ))}
               </select>
               <p className="font-serif italic text-sm text-muted-foreground mt-1.5">
-                &quot;Auto&quot; - aplikacja dobiera głos po type/wieku/płci.
-                Słyszalny tylko gdy preset = ULTRA (słuchowisko radiowe).
+                {t('voiceAutoHint')}
               </p>
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Tagi
+                {t('tagsLabel')}
               </label>
               <div className="flex gap-2 flex-wrap mb-2">
                 {formData.tags?.map((tag) => (
@@ -949,7 +942,8 @@ function NPCForm({
               </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Dodaj tag..."
+                  placeholder={t('addTagPlaceholder')}
+                  id="add-tag-input"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       addTag(e.currentTarget.value);
@@ -960,26 +954,25 @@ function NPCForm({
                 <Button
                   size="sm"
                   onClick={() => {
-                    const input = document.querySelector(
-                      'input[placeholder="Dodaj tag..."]'
-                    ) as HTMLInputElement;
+                    const input = document.getElementById(
+                      'add-tag-input'
+                    ) as HTMLInputElement | null;
                     if (input) {
                       addTag(input.value);
                       input.value = '';
                     }
                   }}
                 >
-                  Dodaj
+                  {t('addButton')}
                 </Button>
               </div>
               <p className="font-serif italic text-sm text-muted-foreground mt-1.5">
-                Popularne tagi: Świadek, Sprzymierzeniec, Antagonista,
-                Informator
+                {t('popularTagsHint')}
               </p>
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Szablony
+                {t('templatesLabel')}
               </label>
               <div className="flex gap-2 flex-wrap">
                 {Object.keys(NPC_TEMPLATES).map((key) => (
@@ -1036,7 +1029,7 @@ function NPCForm({
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-brass/25">
               <div>
                 <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                  PŻ
+                  {t('statHp')}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -1066,7 +1059,7 @@ function NPCForm({
               </div>
               <div>
                 <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                  PR
+                  {t('statSan')}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -1096,7 +1089,7 @@ function NPCForm({
               </div>
               <div>
                 <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                  PM
+                  {t('statMp')}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -1161,13 +1154,16 @@ function NPCForm({
             </div>
             <div className="pt-4 border-t border-brass/25">
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Dodaj własną umiejętność
+                {t('customSkillLabel')}
               </label>
               <div className="flex gap-2">
-                <Input placeholder="Nazwa umiejętności" id="new-skill-name" />
+                <Input
+                  placeholder={t('skillNamePlaceholder')}
+                  id="new-skill-name"
+                />
                 <Input
                   type="number"
-                  placeholder="Wartość"
+                  placeholder={t('skillValuePlaceholder')}
                   id="new-skill-value"
                   min="0"
                   max="100"
@@ -1194,7 +1190,7 @@ function NPCForm({
                     }
                   }}
                 >
-                  Dodaj
+                  {t('addButton')}
                 </Button>
               </div>
             </div>
@@ -1206,7 +1202,7 @@ function NPCForm({
           <div className="space-y-4">
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Opis
+                {t('descriptionLabel')}
               </label>
               <Textarea
                 value={formData.description || ''}
@@ -1216,13 +1212,13 @@ function NPCForm({
                     description: e.target.value,
                   }))
                 }
-                placeholder="Ogólny opis NPC"
+                placeholder={t('descriptionPlaceholder')}
                 rows={3}
               />
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Wygląd
+                {t('appearanceLabel')}
               </label>
               <Textarea
                 value={formData.appearance || ''}
@@ -1232,13 +1228,13 @@ function NPCForm({
                     appearance: e.target.value,
                   }))
                 }
-                placeholder="Szczegółowy opis wyglądu"
+                placeholder={t('appearancePlaceholder')}
                 rows={3}
               />
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Osobowość
+                {t('personalityLabel')}
               </label>
               <Textarea
                 value={formData.personality || ''}
@@ -1248,13 +1244,13 @@ function NPCForm({
                     personality: e.target.value,
                   }))
                 }
-                placeholder="Charakter, zachowanie, cechy osobowości"
+                placeholder={t('personalityPlaceholder')}
                 rows={3}
               />
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Motywacje
+                {t('motivationsLabel')}
               </label>
               <Textarea
                 value={formData.motivations || ''}
@@ -1264,13 +1260,13 @@ function NPCForm({
                     motivations: e.target.value,
                   }))
                 }
-                placeholder="Co motywuje tego NPC? Jakie ma cele?"
+                placeholder={t('motivationsPlaceholder')}
                 rows={3}
               />
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Relacja z graczem
+                {t('relationshipLabel')}
               </label>
               <Textarea
                 value={formData.relationshipWithPlayer || ''}
@@ -1280,20 +1276,20 @@ function NPCForm({
                     relationshipWithPlayer: e.target.value,
                   }))
                 }
-                placeholder="Jak NPC odnosi się do postaci gracza?"
+                placeholder={t('relationshipPlaceholder')}
                 rows={2}
               />
             </div>
             <div>
               <label className="block font-display uppercase tracking-[0.16em] text-brass text-xs font-semibold mb-2">
-                Notatki GM
+                {t('gmNotesLabel')}
               </label>
               <Textarea
                 value={formData.gmNotes || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, gmNotes: e.target.value }))
                 }
-                placeholder="Prywatne notatki dla mistrza gry"
+                placeholder={t('gmNotesPlaceholder')}
                 rows={4}
               />
             </div>
@@ -1306,14 +1302,14 @@ function NPCForm({
           onClick={handleSave}
           className="flex-1 font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110"
         >
-          Zapisz
+          {t('saveButton')}
         </Button>
         <Button
           onClick={onCancel}
           variant="outline"
           className="flex-1 font-display uppercase tracking-[0.16em] text-muted-foreground border-brass/30 hover:border-brass/60 hover:text-brass"
         >
-          Anuluj
+          {t('cancelButton')}
         </Button>
       </div>
     </Card>
