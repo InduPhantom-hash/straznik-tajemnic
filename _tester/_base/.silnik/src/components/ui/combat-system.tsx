@@ -2,6 +2,7 @@
 
 import type { FormEvent } from 'react';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { isAIFeatureAvailable } from '@/lib/ai-settings';
 import { useSettingsSubscription } from '@/hooks/use-settings-subscription';
@@ -103,44 +104,41 @@ export interface CombatManeuver {
   effectOnFailure: string;
 }
 
+/**
+ * Teksty manewrów żyją w messages/*.json (namespace CombatSystem, prefiks m*).
+ * Pola przechowują stabilne identyfikatory kluczy - tłumaczenie następuje
+ * w miejscu renderu przez t().
+ */
 export const COMBAT_MANEUVERS: CombatManeuver[] = [
   {
     id: 'grapple',
-    name: 'Chwyt (Grapple)',
+    name: 'mGrappleName',
     type: 'grapple',
-    description:
-      'Chwytasz przeciwnika i unieruchamiasz go. W kolejnych rundach możesz zadawać obrażenia automatycznie.',
-    skillUsed: 'Walka Wręcz',
-    opposedBy: 'Walka Wręcz lub Unik',
-    effectOnSuccess:
-      'Cel jest unieruchomiony. Atakujący może: (1) zadać 1d6+DB obrażeń, (2) odebrać przedmiot, (3) utrzymać chwyt. Cel może próbować wyrwać się (test STR vs STR lub Walka Wręcz vs Walka Wręcz).',
-    effectOnFailure: 'Chwyt nieudany - atakujący traci akcję w tej rundzie.',
+    description: 'mGrappleDescription',
+    skillUsed: 'mGrappleSkillUsed',
+    opposedBy: 'mGrappleOpposedBy',
+    effectOnSuccess: 'mGrappleSuccess',
+    effectOnFailure: 'mGrappleFailure',
   },
   {
     id: 'disarm',
-    name: 'Rozbrojenie (Disarm)',
+    name: 'mDisarmName',
     type: 'disarm',
-    description:
-      'Wyrywasz broń z rąk przeciwnika. Wymaga Trudnego sukcesu Walki Wręcz.',
-    skillUsed: 'Walka Wręcz (Trudny)',
-    opposedBy: 'STR lub ZR (wyższe)',
-    effectOnSuccess:
-      'Broń przeciwnika upada na ziemię w odległości 1d4 metrów. Przeciwnik jest bezbronny do momentu podniesienia broni.',
-    effectOnFailure:
-      'Próba nieudana - atakujący traci akcję i jest narażony na kontratak.',
+    description: 'mDisarmDescription',
+    skillUsed: 'mDisarmSkillUsed',
+    opposedBy: 'mDisarmOpposedBy',
+    effectOnSuccess: 'mDisarmSuccess',
+    effectOnFailure: 'mDisarmFailure',
   },
   {
     id: 'knockback',
-    name: 'Odepchnięcie (Knockback)',
+    name: 'mKnockbackName',
     type: 'knockback',
-    description:
-      'Odpychasz przeciwnika siłą. Wymaga testu STR vs STR (lub SIZ).',
-    skillUsed: 'Walka Wręcz',
-    opposedBy: 'STR lub SIZ (wyższe)',
-    effectOnSuccess:
-      'Cel jest odrzucony o 1d4 metrów i musi zdać test ZR lub upada (traci następną akcję). Jeśli przy krawędzi/przepaści - test ZR lub spada.',
-    effectOnFailure:
-      'Przeciwnik się nie rusza. Atakujący traci równowagę - następna akcja z karą -20%.',
+    description: 'mKnockbackDescription',
+    skillUsed: 'mKnockbackSkillUsed',
+    opposedBy: 'mKnockbackOpposedBy',
+    effectOnSuccess: 'mKnockbackSuccess',
+    effectOnFailure: 'mKnockbackFailure',
   },
 ];
 
@@ -175,9 +173,9 @@ export function checkMajorWound(
     conTestRequired: true,
     conRoll,
     conTestPassed,
-    effect: conTestPassed
-      ? `RANA CIĘŻKA! Test CON (${conRoll} ≤ ${con}) - ZDANY. Postać walczy dalej, ale jest poważnie ranna.`
-      : `RANA CIĘŻKA! Test CON (${conRoll} > ${con}) - NIEZDANY. Postać traci przytomność i zaczyna umierać (wymaga Pierwszej Pomocy/Medycyny w ciągu 1 godziny).`,
+    // Stabilne tokeny (nie UI): gotowy tekst powstaje z kluczy
+    // majorWoundPassed/majorWoundFailed w messages/*.json.
+    effect: conTestPassed ? 'majorWoundPassed' : 'majorWoundFailed',
   };
 }
 
@@ -218,6 +216,7 @@ export function CombatSystem({
   turnTimeLimit = 0,
   onCombatStateChange,
 }: CombatSystemProps) {
+  const t = useTranslations('CombatSystem');
   const [combatants, setCombatants] = useState<Combatant[]>(characters);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentTurn, setCurrentTurn] = useState(0);
@@ -442,7 +441,7 @@ export function CombatSystem({
       // Critical doubles damage
       if (criticalSuccess) {
         damage = damage * 2;
-        damageRoll += ` × 2 (krytyk!) = ${damage}`;
+        damageRoll += t('critDouble', { damage });
       }
 
       // Apply armor
@@ -473,7 +472,10 @@ export function CombatSystem({
       onCombatantsChange(updatedCombatants);
 
       if (target.armor > 0) {
-        damageRoll += ` (pancerz ${target.armor} → ${effectiveDamage} obrażeń)`;
+        damageRoll += ` ${t('armorNote', {
+          armor: target.armor,
+          effective: effectiveDamage,
+        })}`;
       }
     }
 
@@ -491,7 +493,11 @@ export function CombatSystem({
       damage,
       damageRoll,
       majorWound,
-      description: `${attacker.name} atakuje ${target.name} używając ${weapon.name}`,
+      description: t('attackDescription', {
+        attacker: attacker.name,
+        target: target.name,
+        weapon: weapon.name,
+      }),
       timestamp: new Date(),
     };
 
@@ -589,11 +595,11 @@ export function CombatSystem({
         <div className="p-6 border-b border-white/20">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-purple-300">
-              ⚔️ System Walki
+              {t('title')}
             </h2>
           </div>
           <p className="text-muted-foreground mt-2">
-            Zarządzaj walką zgodnie z zasadami CoC7
+            {t('subtitle')}
           </p>
         </div>
 
@@ -605,26 +611,26 @@ export function CombatSystem({
               disabled={isCombatActive}
               className="px-4 py-2 bg-green-600 hover:bg-green-700 text-foreground rounded-lg transition-colors"
             >
-              🚀 Rozpocznij Walkę
+              {t('startCombat')}
             </Button>
             <Button
               onClick={endCombat}
               disabled={!isCombatActive}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-foreground rounded-lg transition-colors"
             >
-              🛑 Zakończ Walkę
+              {t('endCombat')}
             </Button>
             <Button
               onClick={rollInitiative}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-foreground rounded-lg transition-colors"
             >
-              🎲 Rzuć Inicjatywę
+              {t('rollInitiative')}
             </Button>
             <Button
               onClick={() => setShowAddCombatant(true)}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-foreground rounded-lg transition-colors"
             >
-              + Dodaj Uczestnika
+              {t('addCombatantButton')}
             </Button>
           </div>
 
@@ -634,17 +640,19 @@ export function CombatSystem({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-blue-300">
-                    🎯 Runda {currentRound} - Tura {currentTurn + 1}
+                    {t('roundTurn', { round: currentRound, turn: currentTurn + 1 })}
                   </h3>
                   <p className="text-blue-200 text-sm">
-                    Aktualny gracz: {getCurrentCombatant()?.name || 'Brak'}
+                    {t('currentPlayer', {
+                      name: getCurrentCombatant()?.name || t('none'),
+                    })}
                   </p>
                 </div>
                 <Button
                   onClick={nextTurn}
                   className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-foreground rounded-lg transition-colors"
                 >
-                  ⏭️ Następna Tura
+                  {t('nextTurn')}
                 </Button>
               </div>
             </div>
@@ -673,10 +681,10 @@ export function CombatSystem({
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">
-                      Inicjatywa: {combatant.initiative}
+                      {t('initiativeLabel', { value: combatant.initiative })}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Pozycja: {index + 1}
+                      {t('positionLabel', { position: index + 1 })}
                     </div>
                   </div>
                 </div>
@@ -711,7 +719,7 @@ export function CombatSystem({
                 {combatant.weapons.length > 0 && (
                   <div className="mb-3">
                     <h4 className="text-xs font-medium text-muted-foreground mb-2">
-                      Broń:
+                      {t('weaponsLabel')}
                     </h4>
                     <div className="space-y-1">
                       {combatant.weapons.map((weapon) => (
@@ -736,7 +744,7 @@ export function CombatSystem({
                             }
                             className="px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-muted text-foreground rounded text-xs transition-colors"
                           >
-                            ⚔️ Atak
+                            {t('attackButton')}
                           </Button>
                         </div>
                       ))}
@@ -750,13 +758,13 @@ export function CombatSystem({
                     onClick={() => setEditingCombatant(combatant)}
                     className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-foreground rounded text-xs transition-colors"
                   >
-                    ✏️ Edytuj
+                    {t('editButton')}
                   </Button>
                   <Button
                     onClick={() => removeCombatant(combatant.id)}
                     className="px-2 py-1 bg-red-600 hover:bg-red-700 text-foreground rounded text-xs transition-colors"
                   >
-                    🗑️ Usuń
+                    {t('deleteButton')}
                   </Button>
                 </div>
               </div>
@@ -767,13 +775,13 @@ export function CombatSystem({
           {combatHistory.length > 0 && (
             <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
               <h3 className="text-lg font-semibold text-purple-300 mb-4">
-                📜 Historia Walki
+                {t('historyTitle')}
               </h3>
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {combatHistory.map((round) => (
                   <div key={round.id} className="bg-muted/30 rounded-lg p-3">
                     <h4 className="font-medium text-blue-300 mb-2">
-                      Runda {round.roundNumber}
+                      {t('roundLabel', { round: round.roundNumber })}
                     </h4>
                     <div className="space-y-2">
                       {round.actions.map((action) => (
@@ -801,7 +809,10 @@ export function CombatSystem({
                           </div>
                           {action.damage !== undefined && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              Obrażenia: {action.damage} ({action.damageRoll})
+                              {t('damageLabel', {
+                                damage: action.damage,
+                                roll: action.damageRoll ?? '',
+                              })}
                             </div>
                           )}
                         </div>
@@ -848,6 +859,7 @@ interface AddCombatantFormProps {
 }
 
 function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
+  const t = useTranslations('CombatSystem');
   const [formData, setFormData] = useState({
     name: '',
     type: 'player' as Combatant['type'],
@@ -879,7 +891,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
       <div className="bg-card rounded-lg border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h3 className="text-xl font-bold text-purple-300 mb-4">
-            ⚔️ Dodaj Uczestnika Walki
+            {t('addFormTitle')}
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -887,7 +899,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Nazwa *
+                  {t('nameLabel')}
                 </label>
                 <input
                   type="text"
@@ -896,14 +908,14 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
-                  placeholder="Nazwa postaci/NPC"
+                  placeholder={t('namePlaceholder')}
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Typ
+                  {t('typeLabel')}
                 </label>
                 <select
                   value={formData.type}
@@ -915,9 +927,9 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                   }
                   className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
                 >
-                  <option value="player">Gracz</option>
-                  <option value="npc">NPC</option>
-                  <option value="monster">Potwór</option>
+                  <option value="player">{t('typePlayer')}</option>
+                  <option value="npc">{t('typeNpc')}</option>
+                  <option value="monster">{t('typeMonster')}</option>
                 </select>
               </div>
             </div>
@@ -926,7 +938,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Zręczność
+                  {t('dexLabel')}
                 </label>
                 <input
                   type="number"
@@ -989,14 +1001,14 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                 type="submit"
                 className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-foreground rounded-lg transition-colors"
               >
-                ➕ Dodaj Uczestnika
+                {t('addSubmit')}
               </Button>
               <Button
                 type="button"
                 onClick={onCancel}
                 className="flex-1 py-2 bg-muted hover:bg-muted text-foreground rounded-lg transition-colors"
               >
-                ❌ Anuluj
+                {t('cancelX')}
               </Button>
             </div>
           </form>
@@ -1017,6 +1029,7 @@ function EditCombatantForm({
   onUpdate,
   onCancel,
 }: EditCombatantFormProps) {
+  const t = useTranslations('CombatSystem');
   const [formData, setFormData] = useState(combatant);
 
   const handleSubmit = (e: FormEvent) => {
@@ -1029,7 +1042,7 @@ function EditCombatantForm({
       <div className="bg-card rounded-lg border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h3 className="text-xl font-bold text-purple-300 mb-4">
-            ✏️ Edytuj Uczestnika Walki
+            {t('editFormTitle')}
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -1037,7 +1050,7 @@ function EditCombatantForm({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Nazwa *
+                  {t('nameLabel')}
                 </label>
                 <input
                   type="text"
@@ -1052,7 +1065,7 @@ function EditCombatantForm({
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Typ
+                  {t('typeLabel')}
                 </label>
                 <select
                   value={formData.type}
@@ -1064,9 +1077,9 @@ function EditCombatantForm({
                   }
                   className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
                 >
-                  <option value="player">Gracz</option>
-                  <option value="npc">NPC</option>
-                  <option value="monster">Potwór</option>
+                  <option value="player">{t('typePlayer')}</option>
+                  <option value="npc">{t('typeNpc')}</option>
+                  <option value="monster">{t('typeMonster')}</option>
                 </select>
               </div>
             </div>
@@ -1075,7 +1088,7 @@ function EditCombatantForm({
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Zręczność
+                  {t('dexLabel')}
                 </label>
                 <input
                   type="number"
@@ -1137,14 +1150,14 @@ function EditCombatantForm({
                 type="submit"
                 className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-foreground rounded-lg transition-colors"
               >
-                💾 Zapisz Zmiany
+                {t('saveChanges')}
               </Button>
               <Button
                 type="button"
                 onClick={onCancel}
                 className="flex-1 py-2 bg-muted hover:bg-muted text-foreground rounded-lg transition-colors"
               >
-                ❌ Anuluj
+                {t('cancelX')}
               </Button>
             </div>
           </form>

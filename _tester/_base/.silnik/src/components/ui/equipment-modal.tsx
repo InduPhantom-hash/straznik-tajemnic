@@ -42,6 +42,7 @@ import {
   inferWeaponDamage,
   isWeapon,
 } from '@/lib/combat/weapon-context';
+import { useTranslations } from 'next-intl';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { isCatalogEquipment } from '@/lib/equipment-catalog';
 
@@ -64,14 +65,6 @@ interface EquipmentModalProps {
   onCharacterChange?: (character: Character) => void;
 }
 
-// Etykiety stanu przedmiotu (déco: zwięzłe statusy w stylu special-elite)
-const CONDITION_LABELS: Record<string, string> = {
-  new: 'nowy',
-  used: 'używany',
-  damaged: 'uszkodzony',
-  broken: 'zepsuty',
-};
-
 export function EquipmentModal({
   open,
   onOpenChange,
@@ -82,6 +75,7 @@ export function EquipmentModal({
   characters = [],
   onCharacterChange,
 }: EquipmentModalProps) {
+  const t = useTranslations('EquipmentModal');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<
     EquipmentCategory | 'all'
@@ -172,12 +166,12 @@ export function EquipmentModal({
         updateItem(updatedItem);
       } catch (error) {
         console.error('Error generating image:', error);
-        alert('Nie udało się wygenerować obrazu. Spróbuj ponownie.');
+        alert(t('imageGenerateFailed'));
       } finally {
         setGeneratingImage(null);
       }
     },
-    [era, adventureTheme, updateItem]
+    [era, adventureTheme, updateItem, t]
   );
 
   // Auto-generacja miniatur obsługiwana wyłącznie przez useEquipmentThumbnails
@@ -210,15 +204,14 @@ export function EquipmentModal({
             <Package className="w-5 h-5 text-brass" />
             <span>
               <span className="block font-special-elite text-xs font-normal normal-case tracking-[0.28em] text-primary">
-                {character.name} · wyposażenie
+                {t('titleEyebrow', { name: character.name })}
               </span>
-              Ekwipunek i finanse
+              {t('title')}
             </span>
           </DialogTitle>
           {/* IND-235 a11y: opis dla czytników ekranu (aria-describedby) */}
           <DialogDescription className="sr-only">
-            Lista przedmiotów i broni postaci {character.name} oraz status
-            majątkowy (Poziom Zamożności) wg zasad Call of Cthulhu 7e.
+            {t('descriptionA11y', { name: character.name })}
           </DialogDescription>
           {/* B2: przełącznik postaci - w duecie pokazuje czyj to ekwipunek jako zakładki */}
           {characters.length > 1 && onCharacterChange && (
@@ -261,7 +254,7 @@ export function EquipmentModal({
                   : 'text-brass/70 hover:text-brass'
               }`}
             >
-              ⚔️ Broń ({weaponItems.length})
+              {t('weaponsTab', { count: weaponItems.length })}
             </button>
             <button
               onClick={() => setActiveTab('gear')}
@@ -271,7 +264,7 @@ export function EquipmentModal({
                   : 'text-brass/70 hover:text-brass'
               }`}
             >
-              🎒 Wyposażenie ({gearItems.length})
+              {t('gearTab', { count: gearItems.length })}
             </button>
             <button
               onClick={() => setActiveTab('finances')}
@@ -281,7 +274,7 @@ export function EquipmentModal({
                   : 'text-brass/70 hover:text-brass'
               }`}
             >
-              💵 Finanse
+              {t('financesTab')}
             </button>
           </div>
 
@@ -290,7 +283,7 @@ export function EquipmentModal({
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brass/60" />
                 <Input
-                  placeholder="Szukaj przedmiotów..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 font-special-elite"
@@ -303,7 +296,7 @@ export function EquipmentModal({
                 }
                 className="bg-card border border-brass/30 rounded-none px-3 py-2 text-sm font-special-elite text-foreground"
               >
-                <option value="all">Wszystkie</option>
+                <option value="all">{t('allFilter')}</option>
                 {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                   <option key={key} value={key}>
                     {label}
@@ -331,8 +324,7 @@ export function EquipmentModal({
               ))}
               {weaponItems.length === 0 && (
                 <div className="border border-dashed border-brass/20 bg-[#1f1a14]/25 p-6 text-center font-serif italic text-base text-muted-foreground/70">
-                  Broń przydzielana wg zasad / poprzednich postaci - nie
-                  dodajesz jej ręcznie.
+                  {t('weaponsEmpty')}
                 </div>
               )}
             </div>
@@ -358,10 +350,10 @@ export function EquipmentModal({
                 <div className="text-center py-16 text-muted-foreground border border-brass/20 bg-card mt-2">
                   <Package className="w-12 h-12 mx-auto mb-4 text-brass/30" />
                   <p className="font-serif italic text-base">
-                    Brak przedmiotów w ekwipunku
+                    {t('gearEmptyTitle')}
                   </p>
                   <p className="mt-2 font-serif italic text-sm text-muted-foreground/70">
-                    Wyposażenie przydzielane jest wg zawodu i wydarzeń w grze.
+                    {t('gearEmptyDesc')}
                   </p>
                 </div>
               )}
@@ -376,13 +368,13 @@ export function EquipmentModal({
                 <span className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border-t-[1.5px] border-l-[1.5px] border-brass" />
                 <span className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 border-b-[1.5px] border-r-[1.5px] border-brass" />
                 <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Poziom życia
+                  {t('livingStandard')}
                 </div>
                 <div className="font-display font-bold text-3xl text-foreground tracking-[0.08em] my-2">
                   {finances.tierLabel}
                 </div>
                 <div className="font-special-elite text-sm tracking-[0.08em] text-primary">
-                  wydatki dzienne ≤ {formatUsd(finances.spendingLevel)}
+                  {t('dailySpending', { amount: formatUsd(finances.spendingLevel) })}
                 </div>
               </div>
 
@@ -390,7 +382,7 @@ export function EquipmentModal({
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
                   <span className="font-serif text-base text-muted-foreground">
-                    Zamożność
+                    {t('creditRatingLabel')}
                   </span>
                   <span className="font-display text-xl text-brass">
                     {finances.creditRating}%
@@ -398,7 +390,7 @@ export function EquipmentModal({
                 </div>
                 <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
                   <span className="font-serif text-base text-muted-foreground">
-                    Gotówka
+                    {t('cashLabel')}
                   </span>
                   <span className="font-display text-xl text-foreground">
                     {formatUsd(finances.cash)}
@@ -406,7 +398,7 @@ export function EquipmentModal({
                 </div>
                 <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
                   <span className="font-serif text-base text-muted-foreground">
-                    Majątek
+                    {t('assetsLabel')}
                   </span>
                   <span className="font-display text-xl text-foreground">
                     {finances.assetsDescription || formatUsd(finances.assets)}
@@ -414,7 +406,7 @@ export function EquipmentModal({
                 </div>
                 <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
                   <span className="font-serif text-base text-muted-foreground">
-                    Liczba przedmiotów
+                    {t('itemCountLabel')}
                   </span>
                   <span className="font-display text-xl text-foreground">
                     {equipment.length}
@@ -425,9 +417,7 @@ export function EquipmentModal({
               {/* Flavor déco */}
               <div className="border-l-2 border-brass/50 bg-brass/5 px-4 py-3">
                 <div className="font-serif italic text-sm text-muted-foreground leading-snug">
-                  Poziom życia określa, na co badacza stać bez dodatkowych
-                  testów Zamożności. Majątek obejmuje nieruchomości, udziały i
-                  inne dobra trwałe.
+                  {t('financesFlavor')}
                 </div>
               </div>
             </div>
@@ -531,6 +521,7 @@ function ItemThumbnail({
   size: 'sm' | 'md';
   era: string;
 }) {
+  const t = useTranslations('EquipmentModal');
   const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
   const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
 
@@ -567,14 +558,14 @@ function ItemThumbnail({
                   onGenerateImage(item);
                 }}
                 disabled={generatingImage === item.id}
-                title="Wygeneruj nową ilustrację AI przedmiotu"
+                title={t('regenerateImageTitle')}
                 className="w-full h-full p-0 text-brass hover:text-[#ffd79e] hover:bg-brass/10 transition-colors flex items-center justify-center"
               >
                 {generatingImage === item.id ? (
                   <Loader2 className="w-5 h-5 animate-spin text-brass" />
                 ) : (
                   <span className="text-brass text-xs font-special-elite uppercase tracking-wider">
-                    Nowy
+                    {t('newBadge')}
                   </span>
                 )}
               </Button>
@@ -590,7 +581,7 @@ function ItemThumbnail({
             onGenerateImage(item);
           }}
           disabled={generatingImage === item.id}
-          title="Wygeneruj ilustrację AI przedmiotu"
+          title={t('generateImageTitle')}
           className="w-full h-full p-0 flex items-center justify-center"
         >
           {generatingImage === item.id ? (
@@ -602,7 +593,7 @@ function ItemThumbnail({
               </div>
               <div className="flex flex-col items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
                 <span className="text-[9px] text-brass uppercase tracking-widest font-special-elite">
-                  Generuj
+                  {t('generateBadge')}
                 </span>
               </div>
             </div>
@@ -623,6 +614,13 @@ function WeaponCard({
   onOpenDetail,
   era,
 }: ItemCardProps) {
+  const t = useTranslations('EquipmentModal');
+  const conditionLabels: Record<string, string> = {
+    new: t('conditionNew'),
+    used: t('conditionUsed'),
+    damaged: t('conditionDamaged'),
+    broken: t('conditionBroken'),
+  };
   return (
     <div
       onClick={() => onOpenDetail(item)}
@@ -643,7 +641,7 @@ function WeaponCard({
         </div>
         {item.condition && (
           <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-muted-foreground hidden sm:inline flex-none">
-            {CONDITION_LABELS[item.condition] || item.condition}
+            {conditionLabels[item.condition] || item.condition}
           </span>
         )}
       </div>
@@ -655,19 +653,19 @@ function WeaponCard({
         <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2.5 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground">
           {item.modifiers?.damage && (
             <span>
-              Obraż.{' '}
+              {t('dmgShort')}{' '}
               <span className="text-foreground">{item.modifiers.damage}</span>
             </span>
           )}
           {item.modifiers?.skill && (
             <span>
-              Umiej.{' '}
+              {t('skillShort')}{' '}
               <span className="text-foreground">{item.modifiers.skill}</span>
             </span>
           )}
           {item.modifiers?.bonus && (
             <span>
-              Premia{' '}
+              {t('bonusShort')}{' '}
               <span className="text-foreground">+{item.modifiers.bonus}%</span>
             </span>
           )}
@@ -690,6 +688,13 @@ function GearCard({
   onOpenDetail,
   era,
 }: ItemCardProps) {
+  const t = useTranslations('EquipmentModal');
+  const conditionLabels: Record<string, string> = {
+    new: t('conditionNew'),
+    used: t('conditionUsed'),
+    damaged: t('conditionDamaged'),
+    broken: t('conditionBroken'),
+  };
   return (
     <div
       onClick={() => onOpenDetail(item)}
@@ -708,7 +713,7 @@ function GearCard({
         </div>
         <div className="mt-1 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground whitespace-normal break-words leading-relaxed line-clamp-2">
           {item.description ||
-            CONDITION_LABELS[item.condition || 'used'] ||
+            conditionLabels[item.condition || 'used'] ||
             CATEGORY_LABELS[item.category]}
         </div>
       </div>

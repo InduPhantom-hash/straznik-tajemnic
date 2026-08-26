@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Card } from './card';
 import { Button } from './button';
 import { NPCManager } from './npc-manager';
@@ -31,6 +32,7 @@ export function GMToolsModal({
   sessionId,
   onEventGenerated,
 }: GMToolsModalProps) {
+  const t = useTranslations('GmToolsModal');
   const renderTool = () => {
     switch (tool) {
       case 'npc-manager':
@@ -58,7 +60,7 @@ export function GMToolsModal({
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-foreground font-mono">
-                📜 Oś Czasu Sesji
+                {t('sessionTimelineTitle')}
               </h2>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="w-4 h-4" />
@@ -79,31 +81,29 @@ export function GMToolsModal({
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-foreground font-mono">
-                ⚔️ Tracker Inicjatywy
+                {t('initiativeTitle')}
               </h2>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="w-4 h-4" />
               </Button>
             </div>
             <p className="text-muted-foreground mb-4">
-              Tracker inicjatywy jest dostępny poprzez System Walki w
-              narzędziach głównych. Automatycznie uruchamia się gdy AI wykryje
-              walkę w narracji.
+              {t('initiativeInfo')}
             </p>
             <Button
               onClick={onClose}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Zamknij
+              {t('close')}
             </Button>
           </div>
         );
       default:
         return (
           <div className="p-6 text-center">
-            <p className="text-muted-foreground">Nieznane narzędzie: {tool}</p>
+            <p className="text-muted-foreground">{t('unknownTool', { tool })}</p>
             <Button onClick={onClose} className="mt-4">
-              Zamknij
+              {t('close')}
             </Button>
           </div>
         );

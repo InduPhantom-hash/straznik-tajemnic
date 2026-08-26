@@ -2,6 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Pause, Play, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 import { CutsceneState } from '@/lib/types';
 
@@ -34,6 +35,7 @@ export function CutscenePlayer({
   onMute,
   onClose,
 }: CutscenePlayerProps) {
+  const t = useTranslations('CutscenePlayer');
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -202,7 +204,7 @@ export function CutscenePlayer({
           <button
             onClick={cutscene.isPaused ? onResume : onPause}
             className="p-2 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors"
-            title={cutscene.isPaused ? 'Wznów (Spacja)' : 'Pauza (Spacja)'}
+            title={cutscene.isPaused ? t('resume') : t('pause')}
           >
             {cutscene.isPaused ? <Play size={18} /> : <Pause size={18} />}
           </button>
@@ -210,7 +212,7 @@ export function CutscenePlayer({
           <button
             onClick={onMute}
             className="p-2 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors"
-            title="Wycisz (M)"
+            title={t('mute')}
           >
             {cutscene.isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
@@ -218,7 +220,7 @@ export function CutscenePlayer({
           <button
             onClick={onSegmentComplete}
             className="p-2 border border-brass/35 bg-brass/[0.04] text-brass hover:bg-brass/10 hover:border-brass/60 transition-colors"
-            title="Następny segment (→)"
+            title={t('nextSegment')}
           >
             <SkipForward size={18} />
           </button>
@@ -228,7 +230,7 @@ export function CutscenePlayer({
           <button
             onClick={onClose}
             className="p-2 border border-brass/45 bg-brass/[0.04] text-brass hover:bg-destructive/40 hover:border-destructive/60 hover:text-foreground transition-colors"
-            title="Pomiń cutscenę (Esc)"
+            title={t('skip')}
           >
             <X size={18} />
           </button>
@@ -273,7 +275,7 @@ export function CutscenePlayer({
         {cutscene.isPaused && (
           <div className="mt-6 text-brass text-sm flex items-center gap-2 font-special-elite uppercase tracking-[0.12em]">
             <Pause size={14} />
-            PAUZA - naciśnij Spację aby kontynuować
+            {t('pausedHint')}
           </div>
         )}
       </div>
@@ -288,10 +290,10 @@ export function CutscenePlayer({
 
       {/* Keyboard hints */}
       <div className="relative z-10 p-2 text-center text-xs text-muted-foreground border-t border-brass/20 font-special-elite tracking-[0.08em]">
-        <span className="mx-2">Spacja: Pauza</span>
-        <span className="mx-2">→: Dalej</span>
-        <span className="mx-2">M: Wycisz</span>
-        <span className="mx-2">Esc: Pomiń</span>
+        <span className="mx-2">{t('hintSpacePause')}</span>
+        <span className="mx-2">{t('hintNext')}</span>
+        <span className="mx-2">{t('hintMute')}</span>
+        <span className="mx-2">{t('hintSkip')}</span>
       </div>
 
       {/* Audio element (hidden) */}

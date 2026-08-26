@@ -2,6 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import { Fragment, useState, useCallback, type ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
@@ -54,23 +55,6 @@ import {
   estimateWeight,
 } from '@/lib/character';
 
-/**
- * Krótkie, własne opisy cech dla onboardingu kroku 2 (pokazywane przy suwakach, nie
- * tylko w tooltipie). Świadomie pisane prostym językiem i WŁASNYMI słowami - bez cytatów
- * z podręcznika. Pełniejszy opis mechaniczny zostaje w `STAT_DESCRIPTIONS` (HelpIcon).
- */
-const STAT_SHORT_DESC: Record<string, string> = {
-  str: 'Krzepa mięśni - liczy się w starciu wręcz i przy dźwiganiu.',
-  con: 'Wytrzymałość ciała - więcej zdrowia i odporności na trudy.',
-  siz: 'Postura i masa - wpływa na zdrowie i siłę ciosu.',
-  dex: 'Zwinność i refleks - uniki, precyzja, szybkie ręce.',
-  app: 'Prezencja - jak łatwo zjednujesz sobie ludzi.',
-  int: 'Bystrość umysłu - kojarzenie faktów i spostrzegawczość.',
-  pow: 'Hart ducha - zasila psychikę i wyczucie nadnaturalnego.',
-  edu: 'Wiedza i wykształcenie - baza umiejętności zawodowych.',
-  luck: 'Łut szczęścia - możesz go wydać, by poprawić rzut.',
-};
-
 // ============================================================================
 // DANE REKOMENDACJI
 // ============================================================================
@@ -80,15 +64,29 @@ const STAT_SHORT_DESC: Record<string, string> = {
  * (highlight zielonych rekomendacji w kroku Umiejętności) i autoDistributeSkillsAI
  * korzystały z jednego źródła. Zero zmian logiki - wyniesione 1:1.
  */
+/**
+ * Nazwy umiejętności są kluczami danych aplikacji (BASE_SKILLS/OCCUPATIONS w
+ * lib/data/character) i pozostają po polsku niezależnie od locale UI. Dlatego
+ * literale zapisujemy z ucieczkami unicode - wartości runtime identyczne.
+ */
 const ARCHETYPE_SKILL_MAP: Record<string, string[]> = {
-  investigator: ['Spostrzegawczość', 'Biblioteka', 'Psychologia', 'Perswazja'],
-  scholar: ['Biblioteka', 'Historia', 'Język Obcy', 'Nauka'],
-  action: ['Walka Wręcz', 'Broń Palna', 'Unik', 'Atletyka'],
+  investigator: [
+    'Spostrzegawczo\u015b\u0107',
+    'Biblioteka',
+    'Psychologia',
+    'Perswazja',
+  ],
+  scholar: ['Biblioteka', 'Historia', 'J\u0119zyk Obcy', 'Nauka'],
+  action: ['Walka Wr\u0119cz', 'Bro\u0144 Palna', 'Unik', 'Atletyka'],
   trickster: ['Ukrywanie', 'Perswazja', 'Psychologia', 'Skradanie'],
-  mystic: ['Occultyzm', 'Psychologia', 'Historia', 'Nasłuchiwanie'],
+  mystic: ['Occultyzm', 'Psychologia', 'Historia', 'Nas\u0142uchiwanie'],
   healer: ['Medycyna', 'Pierwsza Pomoc', 'Psychologia', 'Nauka (Biologia)'],
   custom: [],
 };
+
+/** Stabilne identyfikatory umiejętności specjalnych (dane aplikacji, nie UI). */
+const NATIVE_LANGUAGE_SKILL = 'J\u0119zyk Ojczysty';
+const CREDIT_RATING_SKILL = 'Maj\u0119tno\u015b\u0107';
 
 // ============================================================================
 // LOSOWANIE CECH (krok po kroku)
@@ -231,10 +229,23 @@ export function CharacterWizardV2({
   adventureContext,
   initialCharacter,
 }: Props) {
+  const t = useTranslations('CharacterWizard');
+  const statShortDesc: Record<string, string> = {
+    str: t('statShort.str'),
+    con: t('statShort.con'),
+    siz: t('statShort.siz'),
+    dex: t('statShort.dex'),
+    app: t('statShort.app'),
+    int: t('statShort.int'),
+    pow: t('statShort.pow'),
+    edu: t('statShort.edu'),
+    luck: t('statShort.luck'),
+  };
+
   // Funkcja do obliczania umiejętności dynamicznych (Język Ojczysty = WYK, Unik = ZR/2)
   const getInitialSkills = (edu: number, dex: number) => ({
     ...BASE_SKILLS,
-    'Język Ojczysty': edu, // Język Ojczysty = WYK (zgodnie z CoC7)
+    [NATIVE_LANGUAGE_SKILL]: edu, // Język Ojczysty = WYK (zgodnie z CoC7)
     Unik: Math.floor(dex / 2), // Unik = ZR/2 (zgodnie z CoC7)
   });
 
@@ -364,7 +375,7 @@ export function CharacterWizardV2({
         const stats = { ...prev.stats, [stat]: value };
         const derived = calculateDerived(stats, prev.age);
         const skills = { ...prev.skills };
-        if (stat === 'edu') skills['Język Ojczysty'] = stats.edu;
+        if (stat === 'edu') skills[NATIVE_LANGUAGE_SKILL] = stats.edu;
         if (stat === 'dex') skills.Unik = Math.floor(stats.dex / 2);
         return { ...prev, stats, derived, skills };
       });
@@ -419,7 +430,7 @@ export function CharacterWizardV2({
       const derived = calculateDerived(stats, prev.age);
       const skills = {
         ...prev.skills,
-        'Język Ojczysty': stats.edu,
+        [NATIVE_LANGUAGE_SKILL]: stats.edu,
         Unik: Math.floor(stats.dex / 2),
       };
       return { ...prev, stats, derived, skills };
@@ -453,7 +464,7 @@ export function CharacterWizardV2({
       // RAW: minimalna Majętność zawodu. Kosztuje z puli (creditMin punktów),
       // dlatego trzymamy też kopię w skills dla spójnego wyświetlania.
       creditRating: occ.creditMin,
-      skills: { ...prev.skills, Majętność: occ.creditMin },
+      skills: { ...prev.skills, [CREDIT_RATING_SKILL]: occ.creditMin },
       interestPoints: prev.stats.int * 2,
     }));
   };
@@ -461,7 +472,7 @@ export function CharacterWizardV2({
   const updateSkill = (skillName: string, value: number) => {
     // Dynamiczne wartości bazowe dla Język Ojczysty i Unik
     let baseValue = BASE_SKILLS[skillName] || 0;
-    if (skillName === 'Język Ojczysty') baseValue = state.stats.edu;
+    if (skillName === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
     if (skillName === 'Unik') baseValue = Math.floor(state.stats.dex / 2);
 
     // Limit 75% podczas tworzenia postaci (wyjątki: Język Ojczysty, Majętność)
@@ -522,7 +533,7 @@ export function CharacterWizardV2({
 
     // Helpery wartości bazowej / limitu - spójne z resztą funkcji.
     const resolveBaseValue = (skill: string): number => {
-      if (skill === 'Język Ojczysty') return state.stats.edu;
+      if (skill === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
       if (skill === 'Unik') return Math.floor(state.stats.dex / 2);
       return BASE_SKILLS[skill] || 1;
     };
@@ -551,56 +562,44 @@ export function CharacterWizardV2({
     // Kontekst postaci dla AI
     const characterContext = [
       selectedArchetype &&
-        `ARCHETYP: ${selectedArchetype.name} - ${selectedArchetype.description}`,
-      state.name && `Imię: ${state.name}`,
-      selectedOcc && `Zawód: ${selectedOcc.name}`,
-      state.description && `Opis: ${state.description}`,
-      state.traits && `Cechy: ${state.traits}`,
-      state.ideology && `Ideologia: ${state.ideology}`,
+        t('ctxArchetype', {
+          value: `${selectedArchetype.name} - ${selectedArchetype.description}`,
+        }),
+      state.name && t('ctxName', { value: state.name }),
+      selectedOcc && t('ctxOccupation', { value: selectedOcc.name }),
+      state.description && t('ctxDescription', { value: state.description }),
+      state.traits && t('ctxTraits', { value: state.traits }),
+      state.ideology && t('ctxIdeology', { value: state.ideology }),
     ]
       .filter(Boolean)
       .join('\n');
 
-    const prompt = `Jesteś ekspertem od tworzenia postaci w grze Call of Cthulhu 7ed.
-
-KONTEKST POSTACI:
-${characterContext || 'Badacz tajemnic'}
-
-ZAWÓD: ${selectedOcc?.name || 'Nieznany'}
-UMIEJĘTNOŚCI ZAWODOWE: ${occupationalSkills.join(', ')}
-${archetypeSkills.length > 0 ? `KLUCZOWE UMIEJĘTNOŚCI ARCHETYPU "${selectedArchetype?.name}": ${archetypeSkills.join(', ')}` : ''}
-
-UWAGA: Umiejętności rekomendowane (archetyp + zawód) zostały JUŻ rozdzielone
-deterministycznie: ${recommendedSkills.join(', ') || 'brak'}. NIE dotykaj ich.
-Twoje zadanie: rozdziel POZOSTAŁĄ pulę na INNE umiejętności (klimatyczne,
-pasujące do tła postaci), żeby badacz był wszechstronny.
-
-POZOSTAŁE PUNKTY DO ROZDZIELENIA: ${remainingForAI}
-LIMIT NA POJEDYNCZĄ UMIEJĘTNOŚĆ: ${SKILL_CREATION_LIMIT}% (max podczas tworzenia)
-
-LISTA UMIEJĘTNOŚCI Z ICH BAZOWYMI WARTOŚCIAMI:
-${Object.entries(BASE_SKILLS)
-  .filter(
-    ([name]) =>
-      name !== 'Majętność' && name !== 'Język Ojczysty' && name !== 'Unik'
-  )
-  .map(([name, base]) => `${name}: ${base}%`)
-  .join('\n')}
-
-KRYTYCZNE WYMAGANIA:
-1. Rozdziel DOKŁADNIE ${remainingForAI} punktów - ani mniej, ani więcej!
-2. NIE rozdzielaj punktów na rekomendowane (są już zrobione): ${recommendedSkills.slice(0, 8).join(', ') || 'brak'}
-3. Wybierz umiejętności pasujące do postaci (tło, opis, cechy)
-4. Każda umiejętność może mieć max ${SKILL_CREATION_LIMIT}% (czyli dodajesz max ${SKILL_CREATION_LIMIT} - wartość_bazowa punktów)
-5. Rozdziel punkty między 5-10 umiejętności
-
-Przykład: jeśli Biblioteka ma bazę 20% i chcesz dać 60%, dodajesz 40 punktów.
-
-Odpowiedz TYLKO w formacie JSON bez markdown:
-{"skills": {"NazwaUmiejętności": nowaWartość, ...}}
-
-Uwzględnij TYLKO umiejętności, którym dodajesz punkty (nowa wartość > bazowa).
-SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
+    const prompt = t('prompts.skills', {
+      context: characterContext || t('investigator'),
+      occupation: selectedOcc?.name || t('unknown'),
+      occSkills: occupationalSkills.join(', '),
+      archetypeBlock:
+        archetypeSkills.length > 0
+          ? t('archetypeKeySkills', {
+              archetype: selectedArchetype?.name ?? '',
+              skills: archetypeSkills.join(', '),
+            })
+          : '',
+      recommended: recommendedSkills.join(', ') || t('noneFallback'),
+      remaining: remainingForAI,
+      limit: SKILL_CREATION_LIMIT,
+      skillsList: Object.entries(BASE_SKILLS)
+        .filter(
+          ([name]) =>
+            name !== CREDIT_RATING_SKILL &&
+            name !== NATIVE_LANGUAGE_SKILL &&
+            name !== 'Unik'
+        )
+        .map(([name, base]) => `${name}: ${base}%`)
+        .join('\n'),
+      recommendedTop:
+        recommendedSkills.slice(0, 8).join(', ') || t('noneFallback'),
+    });
 
     try {
       const response = await fetchWithApiKeys('/api/ai/utility', {
@@ -616,7 +615,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         );
         toast({
           variant: 'destructive',
-          title: 'Błąd API',
+          title: t('toasts.apiError'),
           description: `${response.status} ${response.statusText}`,
         });
         setIsDistributingSkills(false);
@@ -633,8 +632,8 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         );
         toast({
           variant: 'destructive',
-          title: 'Brak odpowiedzi AI',
-          description: 'AI nie zwróciło odpowiedzi. Spróbuj ponownie.',
+          title: t('toasts.noAiResponseTitle'),
+          description: t('toasts.noAiResponseDescription'),
         });
         setIsDistributingSkills(false);
         return;
@@ -656,8 +655,8 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         });
         toast({
           variant: 'destructive',
-          title: 'Błąd parsowania odpowiedzi AI',
-          description: 'Spróbuj ponownie (szczegóły w logach).',
+          title: t('toasts.parseErrorTitle'),
+          description: t('toasts.parseErrorDescription'),
         });
         setIsDistributingSkills(false);
         return;
@@ -670,8 +669,8 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         );
         toast({
           variant: 'destructive',
-          title: 'Nieprawidłowy format',
-          description: 'AI zwróciło nieprawidłowy format. Spróbuj ponownie.',
+          title: t('toasts.invalidFormatTitle'),
+          description: t('toasts.invalidFormatDescription'),
         });
         setIsDistributingSkills(false);
         return;
@@ -686,7 +685,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         if (typeof value !== 'number') continue;
 
         let baseValue = BASE_SKILLS[skillName] || 0;
-        if (skillName === 'Język Ojczysty') baseValue = state.stats.edu;
+        if (skillName === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
         if (skillName === 'Unik') baseValue = Math.floor(state.stats.dex / 2);
 
         // Floor: nie pozwól AI obniżyć rekomendowanej poniżej jej
@@ -717,11 +716,11 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
           // Znajdź umiejętności zawodowe które można jeszcze podnieść
           const upgradableSkills = occupationalSkills.filter((skillName) => {
             const skillKey = skillName.replace(/\s*\(\d*\).*$/, '').trim(); // Usuń "(2)" itp.
-            if (skillKey === 'Dowolna' || skillKey === 'Majętność')
+            if (skillKey === 'Dowolna' || skillKey === CREDIT_RATING_SKILL)
               return false;
 
             let baseValue = BASE_SKILLS[skillKey] || 1;
-            if (skillKey === 'Język Ojczysty') baseValue = state.stats.edu;
+            if (skillKey === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
             if (skillKey === 'Unik')
               baseValue = Math.floor(state.stats.dex / 2);
 
@@ -740,7 +739,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
 
               const skillKey = skillName.replace(/\s*\(\d*\).*$/, '').trim();
               let baseValue = BASE_SKILLS[skillKey] || 1;
-              if (skillKey === 'Język Ojczysty') baseValue = state.stats.edu;
+              if (skillKey === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
               if (skillKey === 'Unik')
                 baseValue = Math.floor(state.stats.dex / 2);
 
@@ -765,7 +764,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
             if (remainingPoints > 0) {
               const anySkillOptions = Object.keys(BASE_SKILLS).filter(
                 (skillKey) => {
-                  if (skillKey === 'Majętność') return false;
+                  if (skillKey === CREDIT_RATING_SKILL) return false;
                   const currentValue =
                     newSkills[skillKey] || BASE_SKILLS[skillKey] || 1;
                   const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
@@ -811,8 +810,11 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         // Sukces - pokaż krótki komunikat
         toast({
           variant: 'success',
-          title: 'Umiejętności rozdzielone',
-          description: `AI rozdzieliło ${pointsUsed}/${totalPoints} punktów umiejętności.`,
+          title: t('toasts.skillsAllocatedTitle'),
+          description: t('toasts.skillsAllocatedDescription', {
+            used: pointsUsed,
+            total: totalPoints,
+          }),
         });
       } else {
         // === AI przydzieliło za dużo - obetnij nadmiarowe punkty proporcjonalnie ===
@@ -825,7 +827,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         const skillsSortedByValue = Object.entries(newSkills)
           .map(([name, value]) => {
             let baseValue = BASE_SKILLS[name] || 0;
-            if (name === 'Język Ojczysty') baseValue = state.stats.edu;
+            if (name === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
             if (name === 'Unik') baseValue = Math.floor(state.stats.dex / 2);
             const floor = recommendedFloor[name] ?? baseValue;
             return {
@@ -856,18 +858,21 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         }));
         toast({
           variant: 'success',
-          title: 'Umiejętności rozdzielone',
+          title: t('toasts.skillsAllocatedTitle'),
           // Po normalizacji suma = pełna pula, więc nie straszymy gracza
           // "obcięciem" - z jego perspektywy wszystkie punkty są wydane.
-          description: `AI rozdzieliło ${pointsUsed}/${totalPoints} punktów umiejętności.`,
+          description: t('toasts.skillsAllocatedDescription', {
+            used: pointsUsed,
+            total: totalPoints,
+          }),
         });
       }
     } catch (err) {
       Sentry.captureException(err);
       toast({
         variant: 'destructive',
-        title: 'Błąd połączenia z AI',
-        description: err instanceof Error ? err.message : 'Nieznany błąd',
+        title: t('toasts.aiConnectionErrorTitle'),
+        description: err instanceof Error ? err.message : t('toasts.unknownError'),
       });
     }
 
@@ -927,7 +932,7 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         );
         toast({
           variant: 'destructive',
-          title: 'Błąd generowania portretu',
+          title: t('toasts.portraitErrorTitle'),
           description: data.error,
         });
       } else {
@@ -937,16 +942,16 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
         );
         toast({
           variant: 'destructive',
-          title: 'Błąd generowania portretu',
-          description: 'Nieznany błąd podczas generowania portretu.',
+          title: t('toasts.portraitErrorTitle'),
+          description: t('toasts.portraitUnknownError'),
         });
       }
     } catch (err) {
       Sentry.captureException(err);
       toast({
         variant: 'destructive',
-        title: 'Błąd połączenia',
-        description: 'Nie udało się połączyć z API portretu.',
+        title: t('toasts.connectionErrorTitle'),
+        description: t('toasts.portraitConnectionError'),
       });
     } finally {
       // Zawsze resetuj stan, nawet przy niespodziewanych błędach
@@ -959,59 +964,17 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
     setState((prev) => ({ ...prev, isGeneratingBackstory: true }));
 
     const occupation = OCCUPATIONS.find((o) => o.id === state.occupationId);
-    const occupationName = occupation?.name || 'badacz';
+    const occupationName = occupation?.name || t('researcherLowercase');
 
     // Buduj kontekst przygody dla promptu
     const adventurePrompt = adventureContext
       ? getAdventureContextPrompt(adventureContext)
-      : 'Era: lata 20. XX wieku, USA';
+      : t('defaultAdventureEra');
 
-    // === LOSOWE ELEMENTY DLA RÓŻNORODNOŚCI ===
-    const personalitySeeds = [
-      'optymistyczna',
-      'melancholijna',
-      'cyneczna',
-      'idealistyczna',
-      'pragmatyczna',
-      'nieufna',
-      'ciekawska',
-      'ostrożna',
-      'impulsywna',
-      'refleksyjna',
-      'ambitna',
-      'skromna',
-      'tajemnicza',
-      'otwarta',
-      'zamknięta w sobie',
-    ];
-    const backgroundFlavors = [
-      'z mroczną przeszłością',
-      'ze szlacheckim rodowodem',
-      'z nizin społecznych',
-      'z rodziną imigrancką',
-      'sierotą od dziecka',
-      'z zamożnej rodziny',
-      'z prowincji',
-      'z wielkiego miasta',
-      'z artystycznej rodziny',
-      'z wojskowymi tradycjami',
-      'z duchownymi korzeniami',
-      'z kryminalnymi koneksjami',
-    ];
-    const motivations = [
-      'szukająca odkupienia',
-      'szukająca prawdy',
-      'uciekająca przed przeszłością',
-      'szukająca zemsty',
-      'pragnąca uznania',
-      'chroniąca bliskich',
-      'kierowana ciekawością',
-      'z długiem do spłacenia',
-      'z misją do wykonania',
-      'szukająca spokoju',
-      'opętana tajemnicą',
-      'zafascynowana zakazaną wiedzą',
-    ];
+    // === LOSOWE ELEMENTY DLA RÓŻNORODNOŚCI (słowniki w messages/*.json) ===
+    const personalitySeeds = t.raw('personalitySeeds') as string[];
+    const backgroundFlavors = t.raw('backgroundFlavors') as string[];
+    const motivations = t.raw('motivationSeeds') as string[];
 
     // Wybierz losowe elementy
     const randomPersonality =
@@ -1022,35 +985,20 @@ SUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE ${remainingForAI}!`;
       motivations[Math.floor(Math.random() * motivations.length)];
     const randomSeed = Math.floor(Math.random() * 10000);
 
-    const prompt = `Wygeneruj UNIKALNE dane postaci dla gry Call of Cthulhu.
+    const prompt = t('prompts.backstory', {
+      adventure: adventurePrompt,
+      gender: state.gender || t('person'),
+      age: state.age,
+      occupation: occupationName,
+      personality: randomPersonality,
+      background: randomBackground,
+      motivation: randomMotivation,
+      seed: randomSeed,
+    });
 
-${adventurePrompt}
+    /* ORYGINALNA STRUKTURA PROMPTU (JSON schema w treści) - przeniesiona do
+       messages/*.json (CharacterWizard.prompts.backstory). */
 
-POSTAĆ: ${state.gender || 'osoba'}, ${state.age} lat, zawód: ${occupationName}.
-
-INSPIRACJA (bądź kreatywny!):
-- Osobowość: ${randomPersonality}
-- Pochodzenie: ${randomBackground}  
-- Motywacja: ${randomMotivation}
-- Seed: #${randomSeed}
-
-WAŻNE:
-- KAŻDA postać musi być INNA - nie powtarzaj schematów!
-- Wszystkie wartości PO POLSKU
-- Stwórz NIETYPOWE, INTERESUJĄCE tło fabularne
-- Zwróć TYLKO czysty JSON:
-
-{
-"name": "UNIKALNE imię (nie John/Edward/Mary)",
-"birthplace": "konkretne miasto pasujące do kontekstu",
-"description": "wygląd z 2-3 charakterystycznymi cechami",
-"ideology": "głębokie przekonanie - bądź konkretny",
-"importantPeople": "imię, relacja i DLACZEGO ważna",
-"significantPlaces": "miejsce z emocjonalną więzią",
-"personalItems": "unikalny przedmiot z historią",
-"traits": "2-3 cechy - pozytywne i negatywne",
-"keyConnection": "najważniejsza więź/relacja postaci (1-2 zdania)"
-}`;
 
     try {
       const response = await fetchWithApiKeys('/api/ai/utility', {
@@ -1063,7 +1011,12 @@ WAŻNE:
       });
 
       if (!response.ok) {
-        throw new Error(`Błąd API: ${response.status} ${response.statusText}`);
+        throw new Error(
+          t('apiErrorWithStatus', {
+            status: response.status,
+            statusText: response.statusText,
+          })
+        );
       }
 
       // === NOWA OBSŁUGA STRUMIENIOWANIA (SSE) ===
@@ -1080,7 +1033,7 @@ WAŻNE:
           // 2. Znajdź JSON w odpowiedzi (od { do })
           const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
           if (!jsonMatch) {
-            throw new Error('Nie znaleziono JSON w odpowiedzi AI');
+            throw new Error(t('jsonNotFound'));
           }
           jsonStr = jsonMatch[0].trim();
 
@@ -1107,7 +1060,7 @@ WAŻNE:
               }
               // Usuń znaki specjalne oprócz liter polskich, spacji i myślników
               cleanName = cleanName.replace(
-                /[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]/g,
+                /[^a-zA-Z\u0105\u0107\u0119\u0142\u0144\u00f3\u015b\u017a\u017c\u0104\u0106\u0118\u0141\u0143\u00d3\u015a\u0179\u017b\s-]/g,
                 ''
               );
               return cleanName || prev.name;
@@ -1132,8 +1085,8 @@ WAŻNE:
           Sentry.captureException(parseErr);
           toast({
             variant: 'destructive',
-            title: 'Błąd parsowania odpowiedzi AI',
-            description: 'Spróbuj ponownie.',
+            title: t('toasts.parseErrorTitle'),
+            description: t('toasts.tryAgain'),
           });
           setState((prev) => ({ ...prev, isGeneratingBackstory: false }));
         }
@@ -1148,8 +1101,8 @@ WAŻNE:
       Sentry.captureException(err);
       toast({
         variant: 'destructive',
-        title: 'Błąd połączenia z AI',
-        description: 'Spróbuj ponownie.',
+        title: t('toasts.aiConnectionErrorTitle'),
+        description: t('toasts.tryAgain'),
       });
       setState((prev) => ({ ...prev, isGeneratingBackstory: false }));
     }
@@ -1158,29 +1111,26 @@ WAŻNE:
   const generateNarrativeBiography = async () => {
     setState((prev) => ({ ...prev, isGeneratingNarrative: true }));
     const occupation = OCCUPATIONS.find((o) => o.id === state.occupationId);
-    const occupationName = occupation?.name || 'badacz';
+    const occupationName = occupation?.name || t('researcherLowercase');
     const adventurePrompt = adventureContext
       ? getAdventureContextPrompt(adventureContext)
-      : 'Era: lata 20. XX wieku, USA';
+      : t('defaultAdventureEra');
 
-    const prompt = `Na podstawie poniższych suchych informacji z karty postaci, napisz spójną, klimatyczną biografię i życiorys (2-3 akapity). Pisz w 3 osobie. Nie wymieniaj mechanicznie punktów, lecz wpleć je w opowieść.
-
-${adventurePrompt}
-
-Imię i nazwisko: ${state.name}
-Płeć: ${state.gender}
-Wiek: ${state.age}
-Zawód: ${occupationName}
-Miejsce urodzenia: ${state.birthplace}
-Wygląd: ${state.description}
-Ideologia: ${state.ideology}
-Ważne osoby: ${state.importantPeople}
-Znaczące miejsca: ${state.significantPlaces}
-Rzeczy osobiste: ${state.personalItems}
-Przymioty: ${state.traits}
-Kluczowa więź: ${state.keyConnection}
-
-Zwróć TYLKO czysty tekst biografii. Brak nagłówków. Brak komentarzy. Zwróć tylko i wyłącznie 2-3 akapity opowiadania.`;
+    const prompt = t('prompts.biography', {
+      adventure: adventurePrompt,
+      name: state.name,
+      gender: state.gender,
+      age: state.age,
+      occupation: occupationName,
+      birthplace: state.birthplace,
+      appearance: state.description,
+      ideology: state.ideology,
+      people: state.importantPeople,
+      places: state.significantPlaces,
+      items: state.personalItems,
+      traits: state.traits,
+      connection: state.keyConnection,
+    });
 
     try {
       const response = await fetchWithApiKeys('/api/ai/utility', {
@@ -1212,38 +1162,42 @@ Zwróć TYLKO czysty tekst biografii. Brak nagłówków. Brak komentarzy. Zwró�
     // Buduj kontekst z istniejących pól
     const contextParts: string[] = [];
     const occupation = OCCUPATIONS.find((o) => o.id === state.occupationId);
-    if (occupation) contextParts.push(`Zawód: ${occupation.name}`);
-    if (state.age) contextParts.push(`Wiek: ${state.age} lat`);
-    if (state.gender) contextParts.push(`Płeć: ${state.gender}`);
+    if (occupation)
+      contextParts.push(t('ctxOccupation', { value: occupation.name }));
+    if (state.age) contextParts.push(t('ctxAge', { value: state.age }));
+    if (state.gender) contextParts.push(t('ctxGender', { value: state.gender }));
     if (state.name && fieldName !== 'name')
-      contextParts.push(`Imię: ${state.name}`);
+      contextParts.push(t('ctxName', { value: state.name }));
     if (state.birthplace && fieldName !== 'birthplace')
-      contextParts.push(`Pochodzenie: ${state.birthplace}`);
+      contextParts.push(t('ctxOrigin', { value: state.birthplace }));
     if (state.description && fieldName !== 'description')
-      contextParts.push(`Wygląd: ${state.description}`);
+      contextParts.push(t('ctxAppearance', { value: state.description }));
     if (state.ideology && fieldName !== 'ideology')
-      contextParts.push(`Ideologia: ${state.ideology}`);
+      contextParts.push(t('ctxIdeology', { value: state.ideology }));
     if (state.traits && fieldName !== 'traits')
-      contextParts.push(`Cechy: ${state.traits}`);
+      contextParts.push(t('ctxTraits', { value: state.traits }));
     if (state.importantPeople && fieldName !== 'importantPeople')
-      contextParts.push(`Ważne osoby: ${state.importantPeople}`);
+      contextParts.push(t('ctxImportantPeople', { value: state.importantPeople }));
 
     // Dodaj kontekst przygody jeśli dostępny
     const adventureInfo = adventureContext
       ? `\n\nKONTEKST PRZYGODY:\n- Lokalizacja: ${adventureContext.location}\n- Era: ${adventureContext.eraLabel} (${adventureContext.yearRange})\n- Motywy: ${adventureContext.themes.join(', ')}`
       : '';
 
-    const prompt = `Jesteś generatorem tła postaci do gry Call of Cthulhu 7ed.
-Na podstawie kontekstu postaci:
-${contextParts.length > 0 ? contextParts.join('\n') : 'Brak dodatkowego kontekstu - wygeneruj kreatywnie.'}${adventureInfo}
-
-Wygeneruj ${FIELD_PROMPTS[fieldName] || fieldName}.
-
-WAŻNE:
-- Odpowiedz TYLKO wartością pola, bez cudzysłowów, bez prefiksów, bez wyjaśnień
-- Jeden krótki tekst, max 2-3 zdania
-- ${adventureContext ? `Styl pasujący do: ${adventureContext.location}, ${adventureContext.yearRange}` : 'Styl: lata 20. XX wieku, klimat horroru kosmicznego'}
-- Język: polski`;
+    const prompt = t('prompts.field', {
+      context:
+        contextParts.length > 0
+          ? contextParts.join('\n')
+          : t('noAdditionalContext'),
+      adventure: adventureInfo,
+      field: FIELD_PROMPTS[fieldName] || fieldName,
+      style: adventureContext
+        ? t('fieldStyleAdventure', {
+            location: adventureContext.location,
+            years: adventureContext.yearRange,
+          })
+        : t('fieldStyleDefault'),
+    });
 
     try {
       const response = await fetchWithApiKeys('/api/ai/utility', {
@@ -1253,7 +1207,12 @@ WAŻNE:
       });
 
       if (!response.ok) {
-        throw new Error(`Błąd API: ${response.status} ${response.statusText}`);
+        throw new Error(
+          t('apiErrorWithStatus', {
+            status: response.status,
+            statusText: response.statusText,
+          })
+        );
       }
 
       // === NOWA OBSŁUGA STRUMIENIOWANIA (SSE) ===
@@ -1291,8 +1250,8 @@ WAŻNE:
       if (!state.occupationId) {
         toast({
           variant: 'destructive',
-          title: 'Wybierz zawód',
-          description: 'Musisz wybrać zawód przed przejściem do Umiejętności.',
+          title: t('toasts.chooseOccupationTitle'),
+          description: t('toasts.chooseOccupationDescription'),
         });
         return;
       }
@@ -1423,16 +1382,14 @@ WAŻNE:
         if (sentenceMatch) {
           // Mamy co najmniej jedno zdanie - użyj jako nazwy, resztę jako lore
           name = sentenceMatch[1].trim().replace(/[.!?]$/, ''); // Usuń interpunkcję z końca nazwy
-          lore =
-            sentenceMatch[2]?.trim() ||
-            `Osobisty przedmiot o wielkim znaczeniu emocjonalnym.`;
+          lore = sentenceMatch[2]?.trim() || t('personalItemLore');
 
           // Generuj visualDescription na podstawie nazwy
           visualDescription = generateVisualDescription(name);
         } else {
           // Brak zdania - cały tekst jako nazwa
           name = cleaned;
-          lore = `Osobisty przedmiot o wielkim znaczeniu emocjonalnym. Towarzyszy ci od lat.`;
+          lore = t('personalItemLoreExtended');
           visualDescription = generateVisualDescription(name);
         }
 
@@ -1448,7 +1405,7 @@ WAŻNE:
         result.push({
           id: `inv_personal_${Date.now()}`,
           name: name,
-          description: `Pamiątka osobista: ${name.slice(0, 50)}`,
+          description: t('keepsakeDescription', { name: name.slice(0, 50) }),
           lore: lore,
           visualDescription: visualDescription,
           category: 'other' as const,
@@ -1517,7 +1474,7 @@ WAŻNE:
 
     const newCharacter: Character = {
       id: `char_${Date.now()}`,
-      name: state.name || 'Badacz',
+      name: state.name || t('defaultCharacterName'),
       str: state.stats.str,
       con: state.stats.con,
       siz: state.stats.siz,
@@ -1531,7 +1488,7 @@ WAŻNE:
       san: state.derived.san,
       mp: state.derived.mp,
       skills: state.skills,
-      occupation: occupation?.name || 'Nieznany',
+      occupation: occupation?.name || t('unknown'),
       age: state.age,
       portraitUrl: state.portraitUrl || undefined,
       // === NOWE: Dedykowane pola biografii ===
@@ -1560,7 +1517,20 @@ WAŻNE:
         ? `${selectedArchetype.name}: ${selectedArchetype.description}`
         : undefined,
       // Background jako fallback pełny tekst
-      background: `${state.description || ''}\n\nIdeologia: ${state.ideology || 'brak'}\n\nWażne osoby: ${state.importantPeople || 'brak'}\n\nZnaczące miejsca: ${state.significantPlaces || 'brak'}\n\nPrzymioty: ${state.traits || 'brak'}\n\n★ Kluczowa więź: ${state.keyConnection || 'brak'}`,
+      background: [
+        state.description || '',
+        t('bgIdeology', { value: state.ideology || t('noneFallback') }),
+        t('bgImportantPeople', {
+          value: state.importantPeople || t('noneFallback'),
+        }),
+        t('bgSignificantPlaces', {
+          value: state.significantPlaces || t('noneFallback'),
+        }),
+        t('bgTraits', { value: state.traits || t('noneFallback') }),
+        t('bgKeyConnection', {
+          value: state.keyConnection || t('noneFallback'),
+        }),
+      ].join('\n\n'),
       playerName: '',
       isActive: true,
       lastUsed: new Date(),
@@ -1650,12 +1620,15 @@ WAŻNE:
     return (
       <div className="space-y-6">
         <StepHeading
-          title="Krok 1 · Koncepcja"
-          subtitle="Wybierz ogólny typ postaci, którą chcesz stworzyć."
+          title={t('stepConceptTitle')}
+          subtitle={t('stepConceptSubtitle')}
         />
         {adventureContext && (
           <p className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass -mt-2">
-            📖 Przygoda: {adventureContext.title} ({adventureContext.location})
+            {t('adventureLabel', {
+              title: adventureContext.title,
+              location: adventureContext.location,
+            })}
           </p>
         )}
 
@@ -1697,7 +1670,7 @@ WAŻNE:
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div>
                 <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                  Sugerowane zawody:
+                  {t('suggestedOccupations')}
                 </span>
                 <div className="text-foreground">
                   {selectedArchetype.suggestedOccupations
@@ -1707,7 +1680,7 @@ WAŻNE:
               </div>
               <div>
                 <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                  Cechy:
+                  {t('traits')}
                 </span>
                 <div className="text-foreground">
                   {selectedArchetype.suggestedTraits.join(', ')}
@@ -1715,7 +1688,7 @@ WAŻNE:
               </div>
               <div>
                 <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                  Motywacje:
+                  {t('motivations')}
                 </span>
                 <div className="text-foreground">
                   {selectedArchetype.suggestedMotivations
@@ -1730,8 +1703,7 @@ WAŻNE:
         {/* Info gdy nie wybrano archetypu */}
         {!selectedArchetypeId && (
           <div className="font-serif italic text-center text-muted-foreground text-sm p-4 border border-brass/20 bg-[#16130f]">
-            💡 Wybierz archetyp aby kontynuować. Archetyp pomoże ukierunkować
-            historię postaci.
+            {t('selectArchetypeHint')}
           </div>
         )}
       </div>
@@ -1769,17 +1741,14 @@ WAŻNE:
     return (
       <div className="space-y-6">
         <StepHeading
-          title="Krok 2 · Cechy"
-          subtitle="Wybierz, jak chcesz ustalić charakterystyki swojego Badacza."
+          title={t('stepStatsTitle')}
+          subtitle={t('stepStatsSubtitle')}
         />
 
         {/* Onboarding: czym są cechy (własny opis, bez cytatów z podręcznika) */}
         <div className="border border-brass/20 bg-[#16130f] px-4 py-3">
           <p className="font-serif italic text-sm leading-relaxed text-muted-foreground">
-            Cechy to dziewięć liczb opisujących ciało i umysł twojego badacza -
-            od siły i zręczności po wiedzę i hart ducha. Decydują, co przychodzi
-            mu łatwo, a co z trudem, i z nich wyliczają się wartości pochodne
-            (zdrowie, poczytalność, magia). Wybierz, jak chcesz je ustalić.
+            {t('statsIntro')}
           </p>
         </div>
 
@@ -1802,15 +1771,14 @@ WAŻNE:
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">🎲</span>
               <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
-                Rzuć kośćmi
+                {t('rollDice')}
               </h4>
               <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-brass/80 border border-brass/30/50 px-1.5 py-0.5">
-                ✦ Polecane na start
+                ✦ {t('recommended')}
               </span>
             </div>
             <p className="font-serif italic text-sm text-muted-foreground">
-              Szybki start - los decyduje o twoich cechach. Każdą rzucasz
-              osobno, raz możesz przerzucić.
+              {t('rollDiceDescription')}
             </p>
             {statMethod === 'roll' && (
               <div className="mt-3 flex items-center gap-3">
@@ -1824,11 +1792,11 @@ WAŻNE:
                   size="sm"
                   className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 disabled:opacity-50"
                 >
-                  ⬢ Rzuć wszystkie naraz
+                  {t('rollAll')}
                 </Button>
                 {allRolled && (
                   <span className="font-serif italic text-sm text-muted-foreground">
-                    Wszystkie cechy wylosowane.
+                    {t('allStatsRolled')}
                   </span>
                 )}
               </div>
@@ -1852,17 +1820,16 @@ WAŻNE:
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">🔢</span>
               <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
-                Rozdziel punkty
+                {t('allocatePoints')}
               </h4>
             </div>
             <p className="font-serif italic text-sm text-muted-foreground">
-              Pełna kontrola - sam dzielisz pulę punktów między cechy. Dla
-              graczy, którzy mają plan na postać.
+              {t('allocatePointsDescription')}
             </p>
             {statMethod === 'pointbuy' && (
               <div className="mt-3 flex items-center gap-3">
                 <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                  Pula (bez Szczęścia):
+                  {t('pointPool')}
                 </span>
                 <span
                   className={`font-display text-lg font-bold ${
@@ -1873,7 +1840,7 @@ WAŻNE:
                 </span>
                 {statBudgetLeft < 0 && (
                   <span className="text-destructive text-sm">
-                    ⚠️ Przekroczono o {-statBudgetLeft}
+                    {t('overBudget', { count: -statBudgetLeft })}
                   </span>
                 )}
               </div>
@@ -1882,10 +1849,14 @@ WAŻNE:
         </div>
 
         <div className="font-serif italic text-sm text-muted-foreground text-center max-w-md mx-auto">
-          Pod każdą wartością: <span className="text-foreground">½:XX</span> =
-          połowa wartości (trudny test),{' '}
-          <span className="text-foreground">⅕:XX</span> = piąta część
-          (ekstremalny test)
+          {t.rich('halfFifthHint', {
+            half: (chunks) => (
+              <span className="text-foreground">{chunks}</span>
+            ),
+            fifth: (chunks) => (
+              <span className="text-foreground">{chunks}</span>
+            ),
+          })}
         </div>
 
         {/* Główne cechy */}
@@ -1925,7 +1896,7 @@ WAŻNE:
                         size="sm"
                         className="w-full font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 text-xs px-2 py-1.5"
                       >
-                        🎲 Rzuć
+                        {t('rollOne')}
                       </Button>
                     ) : !rollState.rerollUsed ? (
                       <Button
@@ -1935,11 +1906,11 @@ WAŻNE:
                         variant="outline"
                         className="w-full font-display uppercase tracking-[0.1em] border-brass/50 text-foreground hover:border-brass text-xs px-2 py-1.5"
                       >
-                        ↻ Przerzuć (1×)
+                        {t('rerollOnce')}
                       </Button>
                     ) : (
                       <div className="font-serif italic text-[14px] text-muted-foreground py-1.5">
-                        przerzut wykorzystany
+                        {t('rerollUsed')}
                       </div>
                     )}
                   </>
@@ -1968,7 +1939,7 @@ WAŻNE:
                         // WYK, Unik = ZR/2)
                         const updatedSkills = { ...state.skills };
                         if (stat === 'edu')
-                          updatedSkills['Język Ojczysty'] = newStats.edu;
+                          updatedSkills[NATIVE_LANGUAGE_SKILL] = newStats.edu;
                         if (stat === 'dex')
                           updatedSkills['Unik'] = Math.floor(newStats.dex / 2);
                         setState((prev) => ({
@@ -1993,7 +1964,7 @@ WAŻNE:
 
                 {/* Onboarding: krótki opis cechy własnymi słowami (P2) */}
                 <p className="font-serif text-xs leading-snug text-muted-foreground/80 mt-2">
-                  {STAT_SHORT_DESC[stat]}
+                  {statShortDesc[stat]}
                 </p>
               </div>
             );
@@ -2006,11 +1977,8 @@ WAŻNE:
             🕯️
           </span>
           <p className="font-serif text-sm leading-relaxed text-muted-foreground">
-            <span className="text-foreground">Niska cecha to nie błąd.</span>{' '}
-            Badacz ze słabym ciałem czy chwiejną psychiką bywa ciekawszy niż
-            ktoś dobry we wszystkim - jego braki napędzają fabułę i trudne
-            wybory. W Zew Cthulhu zwykli ludzie mierzą się z grozą ponad ich
-            siły; niedoskonałość jest częścią klimatu, nie przeszkodą.
+            <span className="text-foreground">{t('lowStatHintTitle')}</span>{' '}
+            {t('lowStatHintBody')}
           </p>
         </div>
 
@@ -2054,7 +2022,7 @@ WAŻNE:
                 )}
                 {ageModifier.luckReroll && (
                   <span className="text-muted-foreground text-sm">
-                    Przerzut szczęścia
+                    {t('luckReroll')}
                   </span>
                 )}
               </div>
@@ -2065,10 +2033,10 @@ WAŻNE:
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="text-sm">
                       <span className="text-destructive font-medium">
-                        ⚠️ Modyfikatory wieku:
+                        {t('ageModifiersWarning')}
                       </span>
                       <span className="text-muted-foreground ml-2">
-                        Kary za wiek nie są jeszcze odjęte od cech.
+                        {t('agePenaltiesPending')}
                       </span>
                     </div>
                     <Button
@@ -2099,13 +2067,16 @@ WAŻNE:
                       size="sm"
                       className="font-display font-semibold uppercase tracking-[0.1em] bg-destructive hover:brightness-110 text-white"
                     >
-                      Zastosuj kary wieku
+                      {t('applyAgePenalties')}
                     </Button>
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
-                    Po kliknięciu: S-{ageModifier.physPenalty}, KON-
-                    {ageModifier.physPenalty}, ZR-{ageModifier.physPenalty},
-                    WYG-{ageModifier.appPenalty}
+                    {t('agePenaltiesPreview', {
+                      str: ageModifier.physPenalty,
+                      con: ageModifier.physPenalty,
+                      dex: ageModifier.physPenalty,
+                      app: ageModifier.appPenalty,
+                    })}
                   </div>
                 </div>
               )}
@@ -2116,13 +2087,12 @@ WAŻNE:
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="text-sm max-w-xl">
                       <span className="text-brass/80 font-medium">
-                        📚 Test rozwoju Wykształcenia:
+                        {t('eduDevelopmentTest')}
                       </span>
                       <span className="text-muted-foreground ml-2">
-                        Starsza postać uczyła się dłużej, więc ma szansę podbić
-                        swoje Wykształcenie. Rzucasz {ageModifier.eduChecks}{' '}
-                        raz(y), żeby sprawdzić, czy te lata nauki dały owoc - i
-                        o ile.
+                        {t('eduDevelopmentDescription', {
+                          count: ageModifier.eduChecks,
+                        })}
                       </span>
                     </div>
                     <Button
@@ -2135,7 +2105,7 @@ WAŻNE:
                           const newStats = { ...state.stats, edu: newEdu };
                           const updatedSkills = {
                             ...state.skills,
-                            'Język Ojczysty': newEdu,
+                            [NATIVE_LANGUAGE_SKILL]: newEdu,
                           };
                           setState((prev) => ({
                             ...prev,
@@ -2144,25 +2114,32 @@ WAŻNE:
                           }));
                           toast({
                             variant: 'success',
-                            title: 'Sukces!',
-                            description: `Rzut ${roll} > ${state.stats.edu} - WYK +${bonus} → ${newEdu}`,
+                            title: t('eduSuccess'),
+                            description: t('eduRollSuccess', {
+                              roll,
+                              edu: state.stats.edu,
+                              bonus,
+                              newEdu,
+                            }),
                           });
                         } else {
                           toast({
-                            title: 'Porażka',
-                            description: `Rzut ${roll} ≤ ${state.stats.edu} - WYK bez zmian.`,
+                            title: t('statShort.failure'),
+                            description: t('eduRollFailure', {
+                              roll,
+                              edu: state.stats.edu,
+                            }),
                           });
                         }
                       }}
                       size="sm"
                       className="font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)]"
                     >
-                      🎲 Rzuć test WYK
+                      {t('rollEduTest')}
                     </Button>
                   </div>
                   <div className="text-sm text-muted-foreground mt-2 font-serif italic">
-                    Jeśli się powiedzie, Wykształcenie rośnie o losową wartość
-                    (do maksimum 99). Jeśli nie - zostaje bez zmian.
+                    {t('eduTestHint')}
                   </div>
                 </div>
               )}
@@ -2174,7 +2151,7 @@ WAŻNE:
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="border border-[#b3322c]/40 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-[#d9685f]">
-              ❤️ PŻ{' '}
+              ❤️ {t('hpAbbr')}{' '}
               <HelpIcon content={DERIVED_DESCRIPTIONS.hp} position="top" />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
@@ -2183,7 +2160,7 @@ WAŻNE:
           </div>
           <div className="border border-brass/40 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass">
-              🧠 PR{' '}
+              🧠 {t('sanAbbr')}{' '}
               <HelpIcon content={DERIVED_DESCRIPTIONS.san} position="top" />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
@@ -2192,7 +2169,7 @@ WAŻNE:
           </div>
           <div className="border border-brass/30/50 bg-[#0e1413] p-3 text-center shadow-[0_0_14px_rgba(13,148,136,.14)]">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80">
-              ✨ PM{' '}
+              ✨ {t('mpAbbr')}{' '}
               <HelpIcon content={DERIVED_DESCRIPTIONS.mp} position="top" />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
@@ -2201,7 +2178,7 @@ WAŻNE:
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              💪 MO{' '}
+              💪 {t('damageBonusAbbr')}{' '}
               <HelpIcon
                 content={DERIVED_DESCRIPTIONS.damageBonus}
                 position="top"
@@ -2213,7 +2190,7 @@ WAŻNE:
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              🏋️ Krzepa{' '}
+              🏋️ {t('buildLabel')}{' '}
               <HelpIcon content={DERIVED_DESCRIPTIONS.build} position="top" />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
@@ -2222,7 +2199,7 @@ WAŻNE:
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              🏃 Ruch{' '}
+              🏃 {t('moveLabel')}{' '}
               <HelpIcon
                 content={DERIVED_DESCRIPTIONS.movement}
                 position="top"
@@ -2251,8 +2228,8 @@ WAŻNE:
     return (
       <div className="space-y-6">
         <StepHeading
-          title="Krok 3 · Zawód"
-          subtitle="Wybierz profesję Badacza."
+          title={t('stepOccupationTitle')}
+          subtitle={t('stepOccupationSubtitle')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2">
@@ -2277,13 +2254,15 @@ WAŻNE:
                   {isRecommended && (
                     <span
                       className="text-brass/80 ml-1"
-                      title="Rekomendowane dla archetypu"
+                      title={t('recommendedForArchetype')}
                     >
                       ★
                     </span>
                   )}
                   <HelpIcon
-                    content={OCCUPATION_DESCRIPTIONS[occ.id] || 'Brak opisu'}
+                    content={
+                   OCCUPATION_DESCRIPTIONS[occ.id] || t('noDescription')
+                 }
                     position="right"
                   />
                 </div>
@@ -2291,7 +2270,9 @@ WAŻNE:
                   {occ.formula}
                 </div>
                 <div className="font-special-elite text-xs text-muted-foreground mt-1">
-                  Majętność: {occ.creditMin}-{occ.creditMax}
+                  {t('creditRatingColon', {
+                    range: `${occ.creditMin}-${occ.creditMax}`,
+                  })}
                 </div>
               </div>
             );
@@ -2304,11 +2285,11 @@ WAŻNE:
               {selectedOcc.name}
             </div>
             <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80 mb-2">
-              Punkty zawodowe: {state.occupationPoints}
+              {t('occupationPoints', { count: state.occupationPoints })}
             </div>
             <div className="text-sm text-muted-foreground">
               <span className="font-special-elite text-xs uppercase tracking-[0.1em]">
-                Umiejętności:
+                {t('skills')}:
               </span>{' '}
               {selectedOcc.skills.join(', ')}
             </div>
@@ -2341,8 +2322,8 @@ WAŻNE:
     return (
       <div className="space-y-4">
         <StepHeading
-          title="Krok 4 · Umiejętności"
-          subtitle="Rozdziel punkty między umiejętności postaci."
+          title={t('stepSkillsTitle')}
+          subtitle={t('stepSkillsSubtitle')}
           action={
             <Button
               onClick={autoDistributeSkillsAI}
@@ -2351,8 +2332,8 @@ WAŻNE:
               className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5"
             >
               {isDistributingSkills
-                ? '⏳ Rozdzielam...'
-                : '🤖 Rozdziel punkty AI'}
+                ? t('distributing')
+                : t('distributeWithAi')}
             </Button>
           }
         />
@@ -2360,46 +2341,45 @@ WAŻNE:
         {/* LEGENDA - wyjaśnienie systemu */}
         <div className="border border-brass/28 bg-[#16130f] p-4 text-sm space-y-2">
           <div className="font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-2">
-            📖 Jak to działa?
+            {t('howItWorks')}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
             <div>
               <span className="text-foreground font-special-elite text-xs uppercase tracking-[0.08em]">
-                Punkty zawodowe:
+                {t('occupationPointsLabel')}:
               </span>{' '}
               {state.occupationPoints} pkt
               <div className="font-serif italic text-sm mt-1">
                 {selectedOcc
-                  ? `Formuła zawodu: ${selectedOcc.formula}`
-                  : 'Z formuły zawodu (np. WYK × 4) - wybierz zawód wcześniej'}
+                  ? t('occupationFormula', { formula: selectedOcc.formula })
+                  : t('occupationFormulaMissing')}
               </div>
             </div>
             <div>
               <span className="text-foreground font-special-elite text-xs uppercase tracking-[0.08em]">
-                Punkty zainteresowań:
+                {t('interestPoints')}:
               </span>{' '}
               {state.interestPoints} pkt
               <div className="font-serif italic text-sm mt-1">
-                INT × 2 = {state.stats.int} × 2
+                {t('intFormula', { value: state.stats.int })}
               </div>
             </div>
           </div>
           <div className="border-t border-brass/20 pt-2 mt-1 font-serif italic text-sm text-muted-foreground">
-            🤖 Przycisk „Rozdziel punkty AI” zaspokaja najpierw umiejętności
-            rekomendowane (★) wg zawodu i archetypu, a resztę puli rozkłada
-            między pozostałe. Każdą wartość możesz potem poprawić ręcznie.
+            {t('aiSkillAllocationHelp')}
           </div>
           <div className="border-t border-brass/20 pt-2 mt-2 grid grid-cols-3 gap-2 text-sm">
             <div>
-              <span className="text-brass/80">(X)</span> = wartość bazowa
-              umiejętności
+              <span className="text-brass/80">(X)</span> ={' '}
+              {t('baseSkillValue')}
             </div>
             <div>
-              <span className="text-foreground">25/12</span> = połowa (½) /
-              piąta część (⅕)
+              <span className="text-foreground">25/12</span> ={' '}
+              {t('halfAndFifth')}
             </div>
             <div>
-              <span className="text-brass">★</span> = rekomendowane przez AI
+              <span className="text-brass">★</span> ={' '}
+              {t('aiRecommendedLegend')}
             </div>
           </div>
         </div>
@@ -2407,7 +2387,7 @@ WAŻNE:
         {/* Licznik punktów */}
         <div className="flex items-center gap-3 border border-brass/30 bg-[#1f1a14] px-4 py-2">
           <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-            Pozostało punktów:
+            {t('pointsRemaining')}
           </span>
           <div className="text-lg font-bold">
             <span
@@ -2420,11 +2400,14 @@ WAŻNE:
               {totalPointsAvailable - totalPointsUsed}
             </span>
             <span className="text-muted-foreground text-sm ml-2">
-              (wydano {totalPointsUsed} z {totalPointsAvailable})
+              {t('pointsSpent', {
+                used: totalPointsUsed,
+                available: totalPointsAvailable,
+              })}
             </span>
             {totalPointsUsed > totalPointsAvailable && (
               <span className="text-destructive text-sm ml-2">
-                ⚠️ Przekroczono limit!
+                {t('overLimit')}
               </span>
             )}
           </div>
@@ -2436,10 +2419,12 @@ WAŻNE:
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <label className="block font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-1">
-                  💰 Majętność (Credit Rating)
+                  💰 {t('creditRating')} (Credit Rating)
                 </label>
                 <p className="font-serif italic text-xs text-muted-foreground">
-                  Twój zawód ({selectedOcc.name}) określa zakres:{' '}
+                  {t('occupationDefinesRange', {
+                    occupation: selectedOcc.name,
+                  })}{' '}
                   <span className="text-brass/80 font-medium">
                     {selectedOcc.creditMin}-{selectedOcc.creditMax}
                   </span>
@@ -2467,7 +2452,7 @@ WAŻNE:
                   setState((prev) => ({
                     ...prev,
                     creditRating: clamped,
-                    skills: { ...prev.skills, Majętność: clamped },
+                    skills: { ...prev.skills, [CREDIT_RATING_SKILL]: clamped },
                   }));
                 }}
                 className="w-24 bg-[#16130f] border border-brass/30 px-3 py-2 text-center font-display text-2xl font-bold text-foreground focus:outline-none"
@@ -2481,7 +2466,7 @@ WAŻNE:
         {/* Lista umiejętności */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[45vh] overflow-y-auto pr-2">
           {Object.entries(state.skills)
-            .filter(([name]) => name !== 'Majętność')
+            .filter(([name]) => name !== CREDIT_RATING_SKILL)
             .map(([skillName, value]) => {
               const baseValue = BASE_SKILLS[skillName] || 0;
               const pointsAdded = value - baseValue;
@@ -2503,7 +2488,7 @@ WAŻNE:
                     {isRecommended && (
                       <span
                         className="text-brass/80"
-                        title="Rekomendowane (archetyp / zawód)"
+                        title={t('recommendedByArchetypeOrOccupation')}
                       >
                         ★
                       </span>
@@ -2511,7 +2496,7 @@ WAŻNE:
                     <HelpIcon
                       content={
                         SKILL_DESCRIPTIONS[skillName] ||
-                        `Bazowa wartość: ${baseValue}%`
+                        t('baseValue', { value: baseValue })
                       }
                       position="right"
                     />
@@ -2531,7 +2516,7 @@ WAŻNE:
                       />
                       <div className="font-special-elite text-xs text-muted-foreground">
                         <div>
-                          baza:{' '}
+                          {t('baseShort')}{' '}
                           <span className="text-brass/80">{baseValue}</span>
                         </div>
                         <div className="text-foreground">
@@ -2541,7 +2526,7 @@ WAŻNE:
                     </div>
                     {pointsAdded > 0 && (
                       <span className="font-special-elite text-xs text-brass/80">
-                        +{pointsAdded} pkt
+                        +{t('pointsAdded', { count: pointsAdded })}
                       </span>
                     )}
                   </div>
@@ -2556,8 +2541,8 @@ WAŻNE:
   const renderStep4 = () => (
     <div className="space-y-4">
       <StepHeading
-        title="Krok 5 · Biografia"
-        subtitle="Kim jest Twoja postać? Nadaj jej głębię i tło fabularne."
+        title={t('stepBiographyTitle')}
+        subtitle={t('stepBiographySubtitle')}
         action={
           <Button
             onClick={generateBackstory}
@@ -2566,8 +2551,8 @@ WAŻNE:
             className="font-display font-semibold uppercase tracking-[0.14em] text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 px-4 py-2.5"
           >
             {state.isGeneratingBackstory
-              ? '⏳ Generuję...'
-              : '✨ Generuj historię AI'}
+              ? t('generating')
+              : t('generateAiStory')}
           </Button>
         }
       />
@@ -2575,7 +2560,7 @@ WAŻNE:
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
-            Imię i nazwisko
+            {t('fullName')}
           </label>
           <input
             type="text"
@@ -2584,12 +2569,12 @@ WAŻNE:
               setState((prev) => ({ ...prev, name: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
-            placeholder="np. John Smith"
+            placeholder={t('namePlaceholder')}
           />
         </div>
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
-            Płeć
+            {t('gender')}
           </label>
           <select
             value={state.gender}
@@ -2598,14 +2583,14 @@ WAŻNE:
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
           >
-            <option value="">Wybierz...</option>
-            <option value="male">Mężczyzna</option>
-            <option value="female">Kobieta</option>
+            <option value="">{t('selectPlaceholder')}</option>
+            <option value="male">{t('male')}</option>
+            <option value="female">{t('female')}</option>
           </select>
         </div>
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
-            Miejsce urodzenia
+            {t('birthplace')}
           </label>
           <input
             type="text"
@@ -2614,12 +2599,12 @@ WAŻNE:
               setState((prev) => ({ ...prev, birthplace: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
-            placeholder="np. Boston, Massachusetts"
+            placeholder={t('birthplacePlaceholder')}
           />
         </div>
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
-            Opis wyglądu
+            {t('appearanceDescription')}
           </label>
           <input
             type="text"
@@ -2628,20 +2613,20 @@ WAŻNE:
               setState((prev) => ({ ...prev, description: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground focus:outline-none focus:border-brass/30"
-            placeholder="Wygląd, ubiór..."
+            placeholder={t('appearancePlaceholder')}
           />
         </div>
         <div className="md:col-span-2">
           <div className="flex items-center justify-between mb-1">
             <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              Ideologia / Przekonania
+              {t('ideologyLabel')}
             </label>
             <button
               onClick={() => generateSingleField('ideology')}
               disabled={!!generatingField}
               className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
-              {generatingField === 'ideology' ? '⏳...' : '✨ Generuj'}
+              {generatingField === 'ideology' ? t('generatingEllipsis') : t('generateButton')}
             </button>
           </div>
           <textarea
@@ -2650,20 +2635,20 @@ WAŻNE:
               setState((prev) => ({ ...prev, ideology: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
-            placeholder="W co wierzy, jakie ma wartości..."
+            placeholder={t('ideologyPlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              Ważne osoby
+              {t('importantPeople')}
             </label>
             <button
               onClick={() => generateSingleField('importantPeople')}
               disabled={!!generatingField}
               className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
-              {generatingField === 'importantPeople' ? '⏳...' : '✨ Generuj'}
+              {generatingField === 'importantPeople' ? t('generatingEllipsis') : t('generateButton')}
             </button>
           </div>
           <textarea
@@ -2672,20 +2657,20 @@ WAŻNE:
               setState((prev) => ({ ...prev, importantPeople: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
-            placeholder="Kto jest dla Badacza ważny i dlaczego"
+            placeholder={t('importantPeoplePlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              Znaczące miejsca
+              {t('significantPlaces')}
             </label>
             <button
               onClick={() => generateSingleField('significantPlaces')}
               disabled={!!generatingField}
               className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
-              {generatingField === 'significantPlaces' ? '⏳...' : '✨ Generuj'}
+              {generatingField === 'significantPlaces' ? t('generatingEllipsis') : t('generateButton')}
             </button>
           </div>
           <textarea
@@ -2697,20 +2682,20 @@ WAŻNE:
               }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
-            placeholder="Miejsca o wartości sentymentalnej"
+            placeholder={t('significantPlacesPlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              Rzeczy osobiste
+              {t('personalItems')}
             </label>
             <button
               onClick={() => generateSingleField('personalItems')}
               disabled={!!generatingField}
               className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
-              {generatingField === 'personalItems' ? '⏳...' : '✨ Generuj'}
+              {generatingField === 'personalItems' ? t('generatingEllipsis') : t('generateButton')}
             </button>
           </div>
           <textarea
@@ -2719,20 +2704,20 @@ WAŻNE:
               setState((prev) => ({ ...prev, personalItems: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
-            placeholder="Przedmioty o szczególnym znaczeniu"
+            placeholder={t('personalItemsPlaceholder')}
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              Przymioty
+              {t('traitsLabel')}
             </label>
             <button
               onClick={() => generateSingleField('traits')}
               disabled={!!generatingField}
               className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
-              {generatingField === 'traits' ? '⏳...' : '✨ Generuj'}
+              {generatingField === 'traits' ? t('generatingEllipsis') : t('generateButton')}
             </button>
           </div>
           <textarea
@@ -2741,20 +2726,20 @@ WAŻNE:
               setState((prev) => ({ ...prev, traits: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
-            placeholder="Cechy charakteru..."
+            placeholder={t('traitsPlaceholder')}
           />
         </div>
         <div className="md:col-span-2 border border-brass/20 bg-[#0e1413] p-3">
           <div className="flex items-center justify-between mb-1">
             <label className="font-display uppercase tracking-[0.1em] text-xs text-brass/80">
-              ★ Kluczowa więź (najważniejsza)
+              ★ {t('keyConnection')}
             </label>
             <button
               onClick={() => generateSingleField('keyConnection')}
               disabled={!!generatingField}
               className="font-display uppercase tracking-[0.1em] text-xs px-2 py-1 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50"
             >
-              {generatingField === 'keyConnection' ? '⏳...' : '✨ Generuj'}
+              {generatingField === 'keyConnection' ? t('generatingEllipsis') : t('generateButton')}
             </button>
           </div>
           <textarea
@@ -2763,7 +2748,7 @@ WAŻNE:
               setState((prev) => ({ ...prev, keyConnection: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none"
-            placeholder="Jeden z powyższych elementów jako najważniejszy..."
+            placeholder={t('keyConnectionPlaceholder')}
           />
         </div>
         
@@ -2772,10 +2757,10 @@ WAŻNE:
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
             <div>
               <label className="font-display uppercase tracking-[0.14em] text-sm text-brass font-bold flex items-center gap-2">
-                📜 Biografia i Życiorys Postaci
+                📜 {t('biographyHeading')}
               </label>
               <p className="text-xs text-muted-foreground mt-1">
-                Pełne fabularne podsumowanie życia postaci na podstawie powyższych mechanik.
+                {t('biographyDescription')}
               </p>
             </div>
             <button
@@ -2783,7 +2768,7 @@ WAŻNE:
               disabled={state.isGeneratingNarrative}
               className="font-display uppercase tracking-[0.1em] text-xs px-4 py-2 text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 disabled:opacity-50 flex-shrink-0"
             >
-              {state.isGeneratingNarrative ? '⏳ Generuję...' : '✨ Generuj podsumowanie AI'}
+              {state.isGeneratingNarrative ? t('generating') : t('generateAiSummary')}
             </button>
           </div>
           <textarea
@@ -2792,7 +2777,7 @@ WAŻNE:
               setState((prev) => ({ ...prev, backstory: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] focus:outline-none leading-relaxed font-serif"
-            placeholder="Pełna historia postaci..."
+            placeholder={t('fullHistoryPlaceholder')}
           />
         </div>
       </div>
@@ -2805,8 +2790,8 @@ WAŻNE:
     return (
       <div className="space-y-6">
         <StepHeading
-          title="Krok 6 · Portret i Wyposażenie"
-          subtitle={`Gotówka i majątek zależą od Majętności (${state.creditRating}).`}
+          title={t('stepEquipmentTitle')}
+          subtitle={t('wealthSubtitle', { creditRating: state.creditRating })}
         />
 
         {/* Tabela majątku */}
@@ -2814,7 +2799,7 @@ WAŻNE:
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                Poziom
+                {t('level')}
               </div>
               <div className="font-display text-foreground font-bold mt-1">
                 {wealthInfo.level}
@@ -2822,7 +2807,7 @@ WAŻNE:
             </div>
             <div>
               <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                Gotówka
+                {t('cash')}
               </div>
               <div className="font-display text-brass/80 font-bold mt-1">
                 {wealthInfo.cash}
@@ -2830,7 +2815,7 @@ WAŻNE:
             </div>
             <div>
               <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                Majątek
+                {t('assets')}
               </div>
               <div className="font-display text-muted-foreground font-bold mt-1">
                 {wealthInfo.assets}
@@ -2838,7 +2823,7 @@ WAŻNE:
             </div>
             <div>
               <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                Wydatki/dzień
+                {t('spendingPerDay')}
               </div>
               <div className="font-display text-brass/80 font-bold mt-1">
                 {wealthInfo.spending}
@@ -2850,11 +2835,10 @@ WAŻNE:
         {/* Lista ekwipunku - przydzielana automatycznie wg zawodu (CoC 7e) */}
         <div>
           <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-1">
-            Ekwipunek i przedmioty
+            {t('equipmentAndItems')}
           </label>
           <p className="font-serif italic text-xs text-muted-foreground mb-2">
-            Przydzielony automatycznie wg zawodu. Możesz dopisać lub usunąć
-            przedmioty (jeden na linię lub po przecinku).
+            {t('equipmentDescription')}
           </p>
           <textarea
             value={state.equipment}
@@ -2862,26 +2846,26 @@ WAŻNE:
               setState((prev) => ({ ...prev, equipment: e.target.value }))
             }
             className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-2 text-foreground h-48 focus:outline-none focus:border-brass/30"
-            placeholder={`Wybierz zawód, aby przydzielić ekwipunek startowy.\n\nMożesz też wpisać ręcznie:\n- .38 Revolver\n- Flashlight\n- Notebook & Pencil`}
+            placeholder={t('equipmentPlaceholder')}
           />
         </div>
 
         {/* Generator portretu - przeniesiony tutaj, bo AI ma komplet danych */}
         <div className="border border-brass/28 bg-[#16130f] p-4">
           <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-3">
-            🎨 Portret postaci
+            🎨 {t('characterPortrait')}
           </label>
           <div className="flex items-center gap-4">
             {state.portraitUrl ? (
               <button
                 type="button"
                 onClick={() => setShowPortraitZoom(true)}
-                title="Kliknij, aby powiększyć portret"
+                title={t('enlargePortrait')}
                 className="relative w-24 h-24 border border-brass/50 overflow-hidden cursor-zoom-in group p-0"
               >
                 <SafeImage
                   src={state.portraitUrl}
-                  alt="Portret"
+                  alt={t('portrait')}
                   className="w-full h-full object-cover"
                 />
                 <span
@@ -2917,15 +2901,15 @@ WAŻNE:
                 }
               >
                 {state.isGeneratingPortrait
-                  ? '⏳ Generuję...'
+                  ? t('generating')
                   : state.portraitUrl
-                    ? '🔄 Wygeneruj inny portret'
-                    : '🎨 Generuj portret AI'}
+                    ? `🔄 ${t('generateAnotherPortrait')}`
+                    : `🎨 ${t('generateAiPortrait')}`}
               </Button>
               <p className="font-serif italic text-xs text-muted-foreground">
                 {state.portraitUrl
-                  ? 'Kliknij aby wygenerować nowy portret (poprzedni zostanie zastąpiony)'
-                  : 'AI wygeneruje portret na podstawie wszystkich danych postaci'}
+                  ? t('replacePortraitHint')
+                  : t('portraitGenerationHint')}
               </p>
             </div>
           </div>
@@ -2934,7 +2918,7 @@ WAŻNE:
         {showPortraitZoom && state.portraitUrl && (
           <ImageLightbox
             src={state.portraitUrl}
-            alt="Portret postaci"
+            alt={t('characterPortrait')}
             onClose={() => setShowPortraitZoom(false)}
           />
         )}
@@ -2942,12 +2926,13 @@ WAŻNE:
         {/* Podsumowanie postaci */}
         <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)]">
           <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-sm font-semibold mb-2">
-            ✓ Podsumowanie
+            ✓ {t('summary')}
           </div>
           <div className="text-sm text-foreground">
-            <strong>{state.name || 'Badacz'}</strong>, {state.age} lat,{' '}
+            <strong>{state.name || t('defaultCharacterName')}</strong>,{' '}
+        {state.age} {t('yearsOld')},{' '}
             {OCCUPATIONS.find((o) => o.id === state.occupationId)?.name ||
-              'Nieznany zawód'}
+              t('unknownOccupation')}
           </div>
           <div className="font-special-elite text-xs text-muted-foreground mt-1">
             S:{state.stats.str} KON:{state.stats.con} BC:{state.stats.siz} ZR:
@@ -2965,12 +2950,12 @@ WAŻNE:
 
   // Kolejność: Koncepcja → Cechy → Zawód → Umiejętności → Historia → Wyposażenie
   const stepNames = [
-    'Koncepcja',
-    'Cechy',
-    'Zawód',
-    'Umiejętności',
-    'Historia',
-    'Wyposażenie',
+    t('stepNameConcept'),
+    t('stepNameStats'),
+    t('stepNameOccupation'),
+    t('stepNameSkills'),
+    t('stepNameHistory'),
+    t('stepNameEquipment'),
   ];
 
   const renderCurrentStep = () => {
@@ -3018,10 +3003,10 @@ WAŻNE:
           </div>
           <div className="text-center mb-1">
             <div className="font-special-elite uppercase tracking-[0.2em] text-xs text-brass/80">
-              Miskatonic University · Akta nowego badacza
+              {t('wizardEyebrow')}
             </div>
             <h2 className="mt-1 font-display-decorative uppercase tracking-[0.1em] text-2xl text-foreground">
-              Kreator Badacza
+              {t('wizardTitle')}
             </h2>
           </div>
 
@@ -3084,11 +3069,11 @@ WAŻNE:
             size="sm"
             className="font-display font-semibold uppercase tracking-[0.16em] text-muted-foreground bg-transparent border-brass/30 hover:border-brass/60 hover:text-brass px-6 py-3 disabled:opacity-40"
           >
-            ‹ Wstecz
+            ‹ {t('back')}
           </Button>
 
           <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-            Krok {state.step} z {TOTAL_STEPS}
+            {t('stepOf', { current: state.step, total: TOTAL_STEPS })}
           </div>
 
           {state.step < TOTAL_STEPS ? (
@@ -3101,7 +3086,7 @@ WAŻNE:
               size="sm"
               className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
             >
-              Dalej ›
+              {t('next')} ›
             </Button>
           ) : (
             <Button
@@ -3110,7 +3095,7 @@ WAŻNE:
               size="sm"
               className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
             >
-              {isCreating ? '⏳ Tworzę postać...' : '✓ Zakończ i Zapisz'}
+              {isCreating ? t('creating') : `✓ ${t('finishAndSave')}`}
             </Button>
           )}
         </div>

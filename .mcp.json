@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "monolynx": {
+      "type": "http",
+      "url": "https://monolynx.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer osk_2Bnqp01LXYwqDWKPXgv4C-GW4sBIutSLEEwEri1-nlg"
+      }
+    }
+  }
+}

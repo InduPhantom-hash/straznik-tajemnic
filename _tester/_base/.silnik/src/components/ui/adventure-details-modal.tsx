@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
 import { Button } from './button';
 import type { AdventureContext } from '@/lib/adventures-data';
@@ -58,6 +59,7 @@ export function AdventureDetailsModal({
   onClose,
   onChoose,
 }: AdventureDetailsModalProps) {
+  const t = useTranslations('AdventureDetailsModal');
   if (!adventure) return null;
 
   const toneStyle = TONE_STYLES[adventure.tone] || TONE_STYLES.purist;
@@ -76,7 +78,7 @@ export function AdventureDetailsModal({
 
         <DialogHeader>
           <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
-            Szczegóły scenariusza
+            {t('eyebrow')}
           </div>
           <DialogTitle className="mt-1 font-display-decorative text-2xl font-black uppercase tracking-[0.1em] text-foreground">
             {adventure.title}
@@ -114,7 +116,7 @@ export function AdventureDetailsModal({
             {adventure.country ? `, ${adventure.country}` : ''}
           </span>
           {adventure.estimatedSessions && (
-            <span>📅 Przewidywane na {adventure.estimatedSessions} sesji</span>
+            <span>{t('estimatedSessions', { count: adventure.estimatedSessions })}</span>
           )}
         </div>
 
@@ -130,18 +132,18 @@ export function AdventureDetailsModal({
         {/* Objaśnienie znaczników */}
         <div className="mt-1">
           <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-            Co oznaczają oznaczenia?
+            {t('tagsExplainTitle')}
           </h4>
           <div className="space-y-3">
-            <TagExplain style={toneStyle} fallbackLabel="Ton" />
-            <TagExplain style={eraStyle} fallbackLabel="Era" />
-            <TagExplain style={diffStyle} fallbackLabel="Trudność" />
+            <TagExplain style={toneStyle} fallbackLabel={t('fallbackTone')} />
+            <TagExplain style={eraStyle} fallbackLabel={t('fallbackEra')} />
+            <TagExplain style={diffStyle} fallbackLabel={t('fallbackDifficulty')} />
           </div>
 
           {adventure.themes.length > 0 && (
             <div className="mt-4">
               <span className="font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                Klimat i motywy
+                {t('themesTitle')}
               </span>
               <div className="mt-2 flex flex-wrap gap-2">
                 {adventure.themes.map((theme) => (
@@ -164,7 +166,7 @@ export function AdventureDetailsModal({
             onClick={onClose}
             className="font-display font-semibold uppercase tracking-[0.16em]"
           >
-            Zamknij
+            {t('close')}
           </Button>
           <Button
             onClick={() => {
@@ -173,7 +175,7 @@ export function AdventureDetailsModal({
             }}
             className="font-display font-semibold uppercase tracking-[0.16em]"
           >
-            Wybierz tę przygodę →
+            {t('choose')}
           </Button>
         </div>
       </DialogContent>

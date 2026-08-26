@@ -1,5 +1,6 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
@@ -37,7 +38,7 @@ export function getItemMechanics(
 ): { label: string; value: string }[] {
   const rows: { label: string; value: string }[] = [];
   if (isWeapon(item)) {
-    rows.push({ label: 'Test bojowy', value: inferWeaponSkill(item) });
+    rows.push({ label: 'combatTest', value: inferWeaponSkill(item) });
     // Dopełnij obrażenia/zasięg, gdy broń nie ma ich w modifiers (np. broń z
     // OCCUPATION_EQUIPMENT bez szablonu) - tabela CoC 7e per typ broni.
     const inferred =
@@ -46,23 +47,15 @@ export function getItemMechanics(
         : inferWeaponDamage(item);
     const damage = item.modifiers?.damage ?? inferred?.damage;
     const range = item.modifiers?.range ?? inferred?.range;
-    if (damage) rows.push({ label: 'Obrażenia', value: damage });
-    if (range) rows.push({ label: 'Zasięg', value: range });
+    if (damage) rows.push({ label: 'damage', value: damage });
+    if (range) rows.push({ label: 'range', value: range });
   }
   if (item.modifiers?.skill)
-    rows.push({ label: 'Umiejętność', value: item.modifiers.skill });
+    rows.push({ label: 'skill', value: item.modifiers.skill });
   if (item.modifiers?.bonus)
-    rows.push({ label: 'Premia', value: `+${item.modifiers.bonus}%` });
+    rows.push({ label: 'bonus', value: `+${item.modifiers.bonus}%` });
   return rows;
 }
-
-/** Etykiety stanu przedmiotu. */
-const CONDITION_LABELS: Record<string, string> = {
-  new: 'Nowy',
-  used: 'Używany',
-  damaged: 'Uszkodzony',
-  broken: 'Zepsuty',
-};
 
 export function EquipmentDetailDialog({
   item,
@@ -70,6 +63,20 @@ export function EquipmentDetailDialog({
   era,
   onUpdateItem,
 }: EquipmentDetailDialogProps) {
+  const t = useTranslations('EquipmentDetailDialog');
+  const conditionLabels: Record<string, string> = {
+    new: t('conditionNew'),
+    used: t('conditionUsed'),
+    damaged: t('conditionDamaged'),
+    broken: t('conditionBroken'),
+  };
+  const mechanicLabels: Record<string, string> = {
+    combatTest: t('mechanicCombatTest'),
+    damage: t('mechanicDamage'),
+    range: t('mechanicRange'),
+    skill: t('mechanicSkill'),
+    bonus: t('mechanicBonus'),
+  };
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeCharacter, setActiveCharacter] = useState<Character | null>(null);
@@ -94,7 +101,7 @@ export function EquipmentDetailDialog({
         if (activeChar) setActiveCharacter(activeChar);
       }
     } catch (e) {
-      console.error('Błąd ładowania aktywnej postaci w EquipmentDetailDialog:', e);
+      console.error('Failed to load active character in EquipmentDetailDialog:', e);
     }
   }, []);
 
@@ -142,7 +149,7 @@ export function EquipmentDetailDialog({
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.error || 'Nie udało się wczytać treści przedmiotu');
+        throw new Error(errData.error || t('readFailed'));
       }
 
       const data = await res.json();
@@ -156,7 +163,7 @@ export function EquipmentDetailDialog({
       }
     } catch (err: unknown) {
       console.error(err);
-      const message = err instanceof Error ? err.message : 'Wystąpił błąd podczas czytania.';
+      const message = err instanceof Error ? err.message : t('readError');
       setErrorMsg(message);
     } finally {
       setIsGenerating(false);
@@ -188,7 +195,7 @@ export function EquipmentDetailDialog({
           type="button"
           onClick={onClose}
           className="absolute top-3 right-3 z-20 flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full border border-brass/35 bg-[#120f0c]/90 text-muted-foreground shadow-lg backdrop-blur-sm transition-all hover:border-brass/70 hover:text-brass focus:outline-none focus:ring-2 focus:ring-brass/50"
-          aria-label="Zamknij"
+          aria-label={t('close')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -203,12 +210,12 @@ export function EquipmentDetailDialog({
               <div className="relative w-full h-full min-h-[280px] md:min-h-0 flex items-center justify-center p-4">
                 <SafeImage
                   src={item.mapUrl || item.imageUrl}
-                  alt={`Mapa: ${item.name}`}
+                  alt={t('mapAlt', { name: item.name })}
                   className="max-w-full max-h-full object-contain"
                   style={{ filter: getEraImageFilter(era) }}
                 />
                 <div className="absolute top-4 left-4 bg-brass/90 text-black text-[10px] font-bold font-special-elite uppercase px-2 py-0.5 shadow">
-                  🗺️ Mapa / Plan
+                  {t('mapBadge')}
                 </div>
               </div>
             ) : hasImage ? (
@@ -242,7 +249,7 @@ export function EquipmentDetailDialog({
                 {categoryLabel}
                 {item.condition && (
                   <span className="ml-2 text-muted-foreground/60">
-                    · {CONDITION_LABELS[item.condition] || item.condition}
+                    · {conditionLabels[item.condition] || item.condition}
                   </span>
                 )}
               </div>
@@ -251,7 +258,7 @@ export function EquipmentDetailDialog({
               </h3>
               {item.value != null && item.value > 0 && (
                 <div className="mt-1.5 font-special-elite text-sm text-brass/80">
-                  Wartość: {formatUsd(item.value)}
+                  {t('valueLabel', { value: formatUsd(item.value) })}
                 </div>
               )}
             </div>
@@ -260,7 +267,7 @@ export function EquipmentDetailDialog({
             {item.audioUrl && (
               <div className="mb-4 p-3 bg-[#0d0a07] border border-brass/30 rounded">
                 <div className="text-xs font-special-elite text-brass uppercase mb-1.5 flex items-center gap-1.5">
-                  <span>🔊</span> Nagranie / Taśma Audio
+                  <span>🔊</span> {t('audioLabel')}
                 </div>
                 <audio controls src={item.audioUrl} className="w-full h-8 outline-none" />
               </div>
@@ -297,15 +304,15 @@ export function EquipmentDetailDialog({
                         {isGenerating ? (
                           <>
                             <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                            Badanie dokumentu...
+                            {t('examining')}
                           </>
                         ) : (
-                          '📖 Przeczytaj dokument'
+                          t('readDocument')
                         )}
                       </Button>
                     ) : (
                       <p className="text-xs italic text-muted-foreground/60">
-                        Ten dokument można przeczytać na karcie postaci.
+                        {t('readableOnSheet')}
                       </p>
                     )}
                   </div>
@@ -317,7 +324,7 @@ export function EquipmentDetailDialog({
             {mechanics.length > 0 && (
               <div className="border-t border-brass/20 pt-3 space-y-1.5">
                 <div className="font-display uppercase tracking-[0.16em] text-brass text-xs mb-2">
-                  Zastosowanie / mechanika
+                  {t('mechanicsTitle')}
                 </div>
                 {mechanics.map((row) => (
                   <div
@@ -325,7 +332,7 @@ export function EquipmentDetailDialog({
                     className="flex justify-between gap-4 font-special-elite text-sm"
                   >
                     <span className="text-muted-foreground uppercase tracking-[0.06em] text-xs">
-                      {row.label}
+                      {mechanicLabels[row.label] ?? row.label}
                     </span>
                     <span className="text-foreground">{row.value}</span>
                   </div>
@@ -337,13 +344,13 @@ export function EquipmentDetailDialog({
             {mechanics.length === 0 && !item.description && !canRequestRead && (
               <div className="space-y-2 border-t border-brass/20 pt-3">
                 <div className="font-display uppercase tracking-[0.16em] text-brass text-xs">
-                  Opis przedmiotu
+                  {t('loreTitle')}
                 </div>
                 <p className="font-serif italic text-sm text-foreground/90 leading-relaxed">
                   {generateItemLore(item.name)}
                 </p>
                 <p className="font-special-elite text-xs text-muted-foreground/80">
-                  Wygląd: {generateVisualDescription(item.name)}
+                  {t('appearanceLabel')} {generateVisualDescription(item.name)}
                 </p>
               </div>
             )}

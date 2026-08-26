@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { trackEvent } from '@/lib/posthog';
 
 export interface DiceRoll {
@@ -41,14 +42,14 @@ interface DiceSystemProps {
 }
 
 const diceTypes = [
-  { name: 'd100', sides: 100, description: 'Kości setne (CoC7)' },
-  { name: 'd20', sides: 20, description: 'Kości dwudziestościenne' },
-  { name: 'd12', sides: 12, description: 'Kości dwunastościenne' },
-  { name: 'd10', sides: 10, description: 'Kości dziesięciościenne' },
-  { name: 'd8', sides: 8, description: 'Kości ośmiościenne' },
-  { name: 'd6', sides: 6, description: 'Kości sześciościenne' },
-  { name: 'd4', sides: 4, description: 'Kości czterościenne' },
-  { name: 'd3', sides: 3, description: 'Kości trójścienne' },
+  { name: 'd100', sides: 100, descriptionKey: 'descD100' },
+  { name: 'd20', sides: 20, descriptionKey: 'descD20' },
+  { name: 'd12', sides: 12, descriptionKey: 'descD12' },
+  { name: 'd10', sides: 10, descriptionKey: 'descD10' },
+  { name: 'd8', sides: 8, descriptionKey: 'descD8' },
+  { name: 'd6', sides: 6, descriptionKey: 'descD6' },
+  { name: 'd4', sides: 4, descriptionKey: 'descD4' },
+  { name: 'd3', sides: 3, descriptionKey: 'descD3' },
 ];
 
 /**
@@ -79,6 +80,17 @@ export function DiceSystem({
   character,
   sessionId,
 }: DiceSystemProps) {
+  const t = useTranslations('DiceSystem');
+  const diceDescriptions: Record<string, string> = {
+    d100: t('descD100'),
+    d20: t('descD20'),
+    d12: t('descD12'),
+    d10: t('descD10'),
+    d8: t('descD8'),
+    d6: t('descD6'),
+    d4: t('descD4'),
+    d3: t('descD3'),
+  };
   const [rollHistory, setRollHistory] = useState<DiceRoll[]>([]);
   const [isRolling, setIsRolling] = useState(false);
   const [selectedDice, setSelectedDice] = useState('d100');
@@ -144,7 +156,7 @@ export function DiceSystem({
     consequences?: string[]
   ): DiceRoll => {
     const dice = diceTypes.find((d) => d.name === diceType);
-    if (!dice) throw new Error(`Nieznany typ kości: ${diceType}`);
+    if (!dice) throw new Error(t('unknownDiceError', { dice: diceType }));
 
     const results: number[] = [];
     for (let i = 0; i < count; i++) {
@@ -245,9 +257,7 @@ export function DiceSystem({
     if (!skillTest) return;
 
     // Ask user for consequences
-    const consequences = prompt(
-      'Opisz konsekwencje Pushed Roll (co się stanie jeśli ponownie się nie uda):'
-    );
+    const consequences = prompt(t('pushedRollPrompt'));
 
     if (consequences) {
       const pushedRoll = rollDice(
@@ -288,7 +298,7 @@ export function DiceSystem({
 
     const skillValueNum = parseInt(skillValue);
     if (isNaN(skillValueNum) || skillValueNum < 1 || skillValueNum > 100) {
-      alert('Wartość umiejętności musi być liczbą od 1 do 100');
+      alert(t('skillValueRangeAlert'));
       return;
     }
 
@@ -350,11 +360,11 @@ export function DiceSystem({
         <div className="p-6 border-b border-white/20">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-purple-300">
-              🎲 System Kości
+              {t('title')}
             </h2>
           </div>
           <p className="text-muted-foreground mt-2">
-            Rzucaj kośćmi i testuj umiejętności zgodnie z zasadami CoC7
+            {t('subtitle')}
           </p>
         </div>
 
@@ -365,14 +375,14 @@ export function DiceSystem({
               {/* Basic Dice Rolling */}
               <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
                 <h3 className="text-lg font-semibold text-purple-300 mb-4">
-                  🎲 Podstawowe Rzuty
+                  {t('basicRollsTitle')}
                 </h3>
 
                 <div className="space-y-4">
                   {/* Dice Selection */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Typ kości:
+                      {t('diceTypeLabel')}
                     </label>
                     <select
                       value={selectedDice}
@@ -381,7 +391,7 @@ export function DiceSystem({
                     >
                       {diceTypes.map((dice) => (
                         <option key={dice.name} value={dice.name}>
-                          {dice.name} - {dice.description}
+                          {dice.name} - {diceDescriptions[dice.name]}
                         </option>
                       ))}
                     </select>
@@ -390,7 +400,7 @@ export function DiceSystem({
                   {/* Dice Count */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Liczba kości:
+                      {t('diceCountLabel')}
                     </label>
                     <input
                       type="number"
@@ -411,8 +421,8 @@ export function DiceSystem({
                     className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-muted disabled:cursor-not-allowed rounded-lg transition-colors text-foreground font-semibold"
                   >
                     {isRolling
-                      ? '🎲 Rzucam...'
-                      : `🎲 Rzuć ${diceCount}x${selectedDice}`}
+                      ? t('rolling')
+                      : t('rollButton', { count: diceCount, dice: selectedDice })}
                   </button>
                 </div>
               </div>
@@ -420,13 +430,13 @@ export function DiceSystem({
               {/* Skill Test Setup */}
               <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
                 <h3 className="text-lg font-semibold text-purple-300 mb-4">
-                  🎯 Test Umiejętności
+                  {t('skillTestTitle')}
                 </h3>
 
                 {character && (
                   <div className="mb-4 p-3 bg-blue-600/20 border border-blue-500/30 rounded-lg">
                     <p className="text-blue-300 text-sm font-medium mb-2">
-                      🎭 Postać: {character.name}
+                      {t('characterLabel', { name: character.name })}
                     </p>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {Object.entries(character.skills)
@@ -440,7 +450,7 @@ export function DiceSystem({
                               setDifficulty('Normal');
                             }}
                             className="px-2 py-1 bg-blue-600/30 hover:bg-blue-600/50 rounded text-blue-200 transition-colors"
-                            title={`Kliknij aby ustawić ${skill} (${value}%)`}
+                            title={t('setSkillTooltip', { skill, value })}
                           >
                             {skill}: {value}%
                           </button>
@@ -469,14 +479,16 @@ export function DiceSystem({
                         </p>
                         {skillTest.modifiers && (
                           <p className="text-sm text-muted-foreground">
-                            Modyfikatory: {skillTest.modifiers.join(', ')}
+                            {t('modifiersLabel', {
+                              modifiers: skillTest.modifiers.join(', '),
+                            })}
                           </p>
                         )}
                         <button
                           onClick={clearSkillTest}
                           className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors"
                         >
-                          Wyczyść
+                          {t('clear')}
                         </button>
                       </div>
                     ) : (
@@ -484,7 +496,7 @@ export function DiceSystem({
                         onClick={() => setShowSkillTest(true)}
                         className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-foreground"
                       >
-                        + Ustaw Test Umiejętności
+                        {t('setSkillTestButton')}
                       </button>
                     )}
                   </div>
@@ -492,7 +504,7 @@ export function DiceSystem({
                   <div className="space-y-4">
                     <input
                       type="text"
-                      placeholder="Nazwa umiejętności"
+                      placeholder={t('skillNamePlaceholder')}
                       value={skillName}
                       onChange={(e) => setSkillName(e.target.value)}
                       className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
@@ -500,7 +512,7 @@ export function DiceSystem({
 
                     <input
                       type="number"
-                      placeholder="Wartość umiejętności (1-100)"
+                      placeholder={t('skillValuePlaceholder')}
                       value={skillValue}
                       onChange={(e) => setSkillValue(e.target.value)}
                       className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
@@ -515,14 +527,14 @@ export function DiceSystem({
                       }
                       className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
                     >
-                      <option value="Normal">Normalna (100%)</option>
-                      <option value="Hard">Trudna (50%)</option>
-                      <option value="Extreme">Ekstremalna (20%)</option>
+                      <option value="Normal">{t('difficultyNormal')}</option>
+                      <option value="Hard">{t('difficultyHard')}</option>
+                      <option value="Extreme">{t('difficultyExtreme')}</option>
                     </select>
 
                     <input
                       type="text"
-                      placeholder="Modyfikatory (opcjonalnie)"
+                      placeholder={t('modifiersPlaceholder')}
                       value={modifiers}
                       onChange={(e) => setModifiers(e.target.value)}
                       className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
@@ -533,13 +545,13 @@ export function DiceSystem({
                         onClick={handleSkillTest}
                         className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-foreground"
                       >
-                        Ustaw
+                        {t('setButton')}
                       </button>
                       <button
                         onClick={() => setShowSkillTest(false)}
                         className="flex-1 px-4 py-2 bg-muted hover:bg-muted rounded-lg transition-colors text-foreground"
                       >
-                        Anuluj
+                        {t('cancelButton')}
                       </button>
                     </div>
                   </div>
@@ -550,7 +562,7 @@ export function DiceSystem({
               {Object.keys(pushedRolls).length > 0 && (
                 <div className="bg-muted/50 rounded-lg p-4 border border-yellow-500/30">
                   <h3 className="text-lg font-semibold text-yellow-300 mb-4">
-                    ⚠️ Dostępne Pushed Rolls
+                    {t('availablePushedRolls')}
                   </h3>
                   <div className="space-y-3">
                     {Object.values(pushedRolls).map((roll) => (
@@ -562,21 +574,23 @@ export function DiceSystem({
                           <strong>{roll.skillName}</strong> - {roll.description}
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          Wynik: {roll.total} vs {roll.target} (
-                          {getSuccessText(roll)})
+                          {t('pushResultLabel', {
+                            result: roll.total,
+                            target: roll.target ?? 0,
+                            verdict: getSuccessText(roll),
+                          })}
                         </p>
                         <button
                           onClick={() => handlePushedRoll(roll)}
                           className="mt-2 w-full px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm transition-colors text-foreground"
                         >
-                          🎯 Pushed Roll
+                          {t('pushRollButton')}
                         </button>
                       </div>
                     ))}
                   </div>
                   <p className="text-yellow-400 text-xs mt-2">
-                    ⚠️ Pushed Roll daje drugą szansę, ale z większymi
-                    konsekwencjami porażki
+                    {t('pushedRollWarning')}
                   </p>
                 </div>
               )}
@@ -586,13 +600,13 @@ export function DiceSystem({
             <div className="space-y-6">
               <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
                 <h3 className="text-lg font-semibold text-purple-300 mb-4">
-                  📜 Historia Rzutów
+                  {t('historyTitle')}
                 </h3>
 
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {rollHistory.length === 0 ? (
                     <p className="text-muted-foreground text-center py-8">
-                      Brak historii rzutów
+                      {t('noHistory')}
                     </p>
                   ) : (
                     rollHistory.map((roll) => (
@@ -631,7 +645,10 @@ export function DiceSystem({
 
                           {roll.target && (
                             <p className="text-sm text-muted-foreground">
-                              Cel: {roll.target} ({roll.difficulty})
+                              {t('targetShortLabel', {
+                                target: roll.target,
+                                difficulty: roll.difficulty ?? '',
+                              })}
                             </p>
                           )}
 
@@ -643,7 +660,9 @@ export function DiceSystem({
                               {roll.consequences &&
                                 roll.consequences.length > 0 && (
                                   <p className="text-yellow-200 text-xs mt-1">
-                                    Konsekwencje: {roll.consequences.join(', ')}
+                                    {t('consequencesLabel', {
+                                      consequences: roll.consequences.join(', '),
+                                    })}
                                   </p>
                                 )}
                             </div>

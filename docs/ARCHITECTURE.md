@@ -50,6 +50,25 @@ Wszystko opiera się o **rodzinę Gemini API** (jeden klucz):
 
 `model-registry.ts` i definicje presetów nadal zawierają historyczne konfiguracje obrazów. Nie są aktywną ścieżką generowania obrazów i wymagają osobnej zmiany kodu po planie obrazów.
 
+### Zakończenie streamu narracji
+
+Provider czatu zwraca strumień tekstu oraz getter końcowego `finishReason`. Getter ma
+wartość dopiero po pełnym odczytaniu strumienia providera. Pipeline przekazuje go do
+fabryki SSE, która w końcowym zdarzeniu `metadata` wysyła powód zakończenia do klienta
+i zapisuje go w telemetrii bez treści narracji.
+
+Klient zachowuje cały odebrany tekst. Gdy ostatnia wiadomość MG kończy się przez
+`MAX_TOKENS`, karta pokazuje ostrzeżenie i ręczną akcję „Kontynuuj narrację”. Dopiero
+kliknięcie wysyła ukryte polecenie przez istniejący endpoint `/api/chat`. Polecenie nie
+tworzy dymku gracza, a dalszy tekst powstaje jako osobna wiadomość MG. Nie ma
+automatycznego retry ani globalnego podnoszenia limitu tokenów.
+
+Pola `finishReason` i `continuationRequested` należą do modelu wiadomości. Zachowują
+je `localStorage`, pełny zapis gry oraz eksport/import. Starsze zapisy bez tych pól
+pozostają zgodne. Przycisk jest dostępny tylko dla ostatniej wiadomości MG z
+`finishReason === 'MAX_TOKENS'`; `STOP`, brak powodu i starsze wiadomości nie pokazują
+tej akcji.
+
 ## RAG (lokalny - docelowa architektura)
 
 Zasady z wgranego przez gracza PDF trafiają do **lokalnego indeksu** (`data/rag/`):

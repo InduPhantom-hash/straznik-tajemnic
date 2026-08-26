@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Character } from '@/lib/types';
 import { Button } from './button';
 import { 
@@ -32,6 +33,7 @@ export function CharacterSwitcher({
   onCharacterManage,
   className
 }: CharacterSwitcherProps) {
+  const t = useTranslations('CharacterSwitcher');
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -78,7 +80,7 @@ export function CharacterSwitcher({
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-foreground" />
               <h3 className="text-lg font-mono text-foreground">
-                Aktywna Postać
+                {t('activeCharacter')}
               </h3>
             </div>
             <div className="flex items-center gap-2">
@@ -157,7 +159,7 @@ export function CharacterSwitcher({
             <div className="text-center py-4">
               <User className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
               <p className="text-muted-foreground font-mono">
-                Brak aktywnej postaci
+                {t('noActiveCharacter')}
               </p>
               <Button
                 variant="outline"
@@ -166,7 +168,7 @@ export function CharacterSwitcher({
                 className="mt-2"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Stwórz postać
+                {t('createCharacter')}
               </Button>
             </div>
           )}

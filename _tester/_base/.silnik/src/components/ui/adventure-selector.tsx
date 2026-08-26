@@ -2,6 +2,7 @@
 
 import type { ChangeEvent, MouseEvent } from 'react';
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -64,6 +65,7 @@ export function AdventureSelector({
   uploadProgress = 0,
   loadingStatus = '',
 }: AdventureSelectorProps) {
+  const t = useTranslations('AdventureSelector');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -97,10 +99,10 @@ export function AdventureSelector({
     if (showCustomForm) {
       const customAdventure: AdventureContext = {
         ...CUSTOM_ADVENTURE_TEMPLATE,
-        title: customTitle || 'Własna Przygoda',
-        location: customLocation || 'Nieznana lokalizacja',
+        title: customTitle || t('defaultTitle'),
+        location: customLocation || t('defaultLocation'),
         era: customEra,
-        eraLabel: ERA_STYLES[customEra]?.label || 'Własna',
+        eraLabel: ERA_STYLES[customEra]?.label || t('defaultEraLabel'),
         yearRange: customYearRange,
         customDescription: customDescription,
       };
@@ -151,7 +153,7 @@ export function AdventureSelector({
     // Dłuższe opóźnienie dla stabilności
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const confirmed = window.confirm('Czy na pewno chcesz usunąć tę przygodę?');
+    const confirmed = window.confirm(t('deleteConfirm'));
     if (!confirmed) return;
 
     setDeletingId(id);
@@ -219,7 +221,7 @@ export function AdventureSelector({
               </span>
               {isSelected && (
                 <span
-                  aria-label="Wybrana przygoda"
+                  aria-label={t('selectedAria')}
                   className="flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)]"
                 >
                   <span
@@ -251,7 +253,7 @@ export function AdventureSelector({
 
           {/* Footer */}
           <div className="flex items-center justify-between font-special-elite text-[14px] uppercase tracking-[0.08em] text-muted-foreground">
-            <span>⏱️ {adventure.estimatedSessions} sesji</span>
+            <span>{t('sessionsCount', { count: adventure.estimatedSessions })}</span>
             <span className={diffStyle.color}>
               {diffStyle.icon} {diffStyle.label}
             </span>
@@ -260,7 +262,7 @@ export function AdventureSelector({
           {/* External Links dla scenariuszy Strefa 11 */}
           {adventure.externalLinks && adventure.externalLinks.length > 0 && (
             <div className="mt-3 pt-2 border-t border-brass/15 flex flex-wrap gap-2 text-[12px] font-special-elite" onClick={(e) => e.stopPropagation()}>
-              <span className="text-brass/70 font-semibold">📺 Oficjalne źródła:</span>
+              <span className="text-brass/70 font-semibold">{t('officialSources')}</span>
               {adventure.externalLinks.map((link, idx) => (
                 <a
                   key={idx}
@@ -294,7 +296,7 @@ export function AdventureSelector({
             className="flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.1em] text-primary hover:text-brass transition-colors"
           >
             <Info className="h-4 w-4" />
-            Więcej szczegółów
+            {t('moreDetails')}
           </button>
 
           {isCustom && onDeleteAdventure && (
@@ -303,14 +305,14 @@ export function AdventureSelector({
               onClick={(e) => handleDelete(adventure.id, e)}
               disabled={isDeleting}
               className="flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.1em] text-destructive hover:text-red-300 transition-colors p-1"
-              title="Usuń przygodę"
+              title={t('deleteAdventureTitle')}
             >
               {isDeleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Trash2 className="h-4 w-4" />
               )}
-              <span>Usuń</span>
+              <span>{t('deleteButton')}</span>
             </button>
           )}
         </div>
@@ -330,15 +332,15 @@ export function AdventureSelector({
 
           <DialogHeader className="text-center sm:text-center">
             <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
-              Wybierz, gdzie zaprowadzi cię ciekawość
+              {t('eyebrow')}
             </div>
             <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-3xl font-black uppercase tracking-[0.12em] text-foreground">
-              Nowa Przygoda
+              {t('title')}
             </DialogTitle>
             <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
-              Wybierz scenariusz, w którym rozegra się Twoja historia.
+              {t('description')}
               {customAdventures.length > 0 &&
-                ` Masz ${customAdventures.length} własnych przygód.`}
+                ` ${t('customCountSuffix', { count: customAdventures.length })}`}
             </DialogDescription>
           </DialogHeader>
 
@@ -359,17 +361,17 @@ export function AdventureSelector({
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                   <div className="space-y-1 font-serif text-base italic leading-relaxed text-amber-200/90">
                     <p>
-                      Strażnik to <strong>silnik</strong> - nie ma gotowych
-                      scenariuszy. Przygodę wnosisz Ty.
+                      {t.rich('publicModeInfo1', {
+                        strong: (chunks) => <strong>{chunks}</strong>,
+                      })}
                     </p>
                     <p>
-                      Masz darmowy starter z Black Monk (lub własny podręcznik)?{' '}
-                      <strong>Wgraj jego plik PDF poniżej</strong> - AI odczyta
-                      scenariusz i przygotuje przygodę.
+                      {t.rich('publicModeInfo2', {
+                        strong: (chunks) => <strong>{chunks}</strong>,
+                      })}
                     </p>
                     <p className="text-amber-200/70">
-                      Do odczytania PDF potrzebny jest Twój klucz Gemini
-                      (Ustawienia).
+                      {t('publicModeInfo3')}
                     </p>
                   </div>
                 </div>
@@ -379,7 +381,7 @@ export function AdventureSelector({
               {ALLOW_CUSTOM_ADVENTURES && customAdventures.length > 0 && (
                 <div className="mt-4">
                   <h3 className="mb-3 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                    📂 Twoje przygody
+                    {t('yourAdventures')}
                     <span className="font-special-elite text-[14px] tracking-[0.1em] text-muted-foreground">
                       ({customAdventures.length})
                     </span>
@@ -414,7 +416,7 @@ export function AdventureSelector({
                       className="w-full border-2 border-dashed border-primary/45 py-6 font-display font-semibold uppercase tracking-[0.16em] text-primary hover:bg-primary/10"
                     >
                       <Upload className="mr-2 h-5 w-5" />
-                      Wgraj przygodę (PDF)
+                      {t('uploadButton')}
                     </Button>
                   ) : (
                     <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
@@ -425,7 +427,7 @@ export function AdventureSelector({
                       <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
                         <span className="flex items-center gap-2">
                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          Przetwarzanie księgi tajemnic...
+                          {t('processingBook')}
                         </span>
                         <span>{uploadProgress}%</span>
                       </div>
@@ -439,14 +441,13 @@ export function AdventureSelector({
                       </div>
 
                       <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
-                        {loadingStatus ||
-                          'AI analizuje przygodę i automatycznie uzupełnia dane...'}
+                        {loadingStatus || t('aiAnalyzing')}
                       </p>
                     </div>
                   )}
                   {!isUploading && (
                     <p className="mt-2 text-center font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-                      np. darmowy starter pobrany z Black Monk
+                      {t('uploadHint')}
                     </p>
                   )}
                 </div>
@@ -456,13 +457,13 @@ export function AdventureSelector({
               <div>
                 <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
                   <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
-                    <span>📺</span> Autorskie Scenariusze (Inspirowane programem &quot;Strefa 11&quot; / &quot;Nie do wiary&quot; - TVN)
+                    <span>📺</span> {t('strefa11Header')}
                   </div>
                   <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
-                    Polskie scenariusze przygód RPG osadzone w realiach PRL i lat 90./2000. Każda przygoda posiada gotowe zbalansowane postacie Badaczy.
+                    {t('strefa11Desc')}
                   </p>
                   <div className="flex flex-wrap gap-3 mt-2 text-xs font-special-elite text-brass/80">
-                    <span>🔗 Dowiedz się więcej:</span>
+                    <span>{t('learnMore')}</span>
                     <a href="https://pl.wikipedia.org/wiki/Nie_do_wiary" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wikipedia ↗</a>
                     <span>·</span>
                     <a href="https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Filmweb ↗</a>
@@ -472,7 +473,7 @@ export function AdventureSelector({
                 </div>
 
                 <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                  📺 Wybierz scenariusz Strefy 11
+                  {t('strefa11SelectTitle')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {STREFA_11_ADVENTURES.map((adventure) => (
@@ -481,7 +482,7 @@ export function AdventureSelector({
                 </div>
 
                 <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                  🎲 Wybierz scenariusz
+                  {t('selectScenarioTitle')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Wbudowane scenariusze tylko w trybie pełnym/prywatnym */}
@@ -504,17 +505,15 @@ export function AdventureSelector({
                         <span className="text-3xl text-primary">✶</span>
                         <div>
                           <h3 className="font-display text-base font-semibold uppercase tracking-[0.06em] text-foreground">
-                            Własna Przygoda
+                            {t('customCardTitle')}
                           </h3>
                           <p className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-                            Opisz swoją bez PDF
+                            {t('customCardSubtitle')}
                           </p>
                         </div>
                       </div>
                       <p className="font-serif text-base italic text-muted-foreground">
-                        Masz własny scenariusz lub chcesz stworzyć przygodę od
-                        zera? Podaj podstawowy kontekst, a AI dostosuje
-                        generowanie postaci.
+                        {t('customCardDesc')}
                       </p>
                     </button>
                   )}
@@ -527,8 +526,8 @@ export function AdventureSelector({
                   <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
                   <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
                   <h4 className="mb-2 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                    ℹ️ Szczegóły przygody
-                    <HelpIcon content="Te informacje zostaną użyte do dopasowania postaci do scenariusza" />
+                    {t('detailsTitle')}
+                    <HelpIcon content={t('detailsHelp')} />
                   </h4>
                   <p className="mb-3 font-serif text-base italic leading-relaxed text-foreground/90">
                     {selectedAdventure.description}
@@ -537,7 +536,7 @@ export function AdventureSelector({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-muted-foreground">
-                        Motywy:{' '}
+                        {t('themesLabel')}{' '}
                       </span>
                       <span className="font-serif text-base italic text-foreground">
                         {selectedAdventure.themes.slice(0, 4).join(', ')}
@@ -545,7 +544,7 @@ export function AdventureSelector({
                     </div>
                     <div>
                       <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-muted-foreground">
-                        Sugerowane zawody:{' '}
+                        {t('suggestedOccupationsLabel')}{' '}
                       </span>
                       <span className="font-serif text-base italic text-foreground">
                         {selectedAdventure.suggestedOccupations
@@ -563,39 +562,37 @@ export function AdventureSelector({
               <div className="relative border border-brass/30 bg-card p-4">
                 <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
                 <p className="font-serif text-base italic text-brass">
-                  💡 Podaj podstawowe informacje o swojej przygodzie. Im więcej
-                  szczegółów, tym lepiej AI dopasuje generowaną postać do
-                  kontekstu.
+                  {t('formIntro')}
                 </p>
               </div>
               <div className="space-y-2">
                 <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  Tytuł przygody
+                  {t('adventureTitleLabel')}
                 </label>
                 <input
                   type="text"
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
-                  placeholder="np. Tajemnica Starego Dworu"
+                  placeholder={t('titlePlaceholder')}
                   className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
               <div className="space-y-2">
                 <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  Lokalizacja
+                  {t('locationLabel')}
                 </label>
                 <input
                   type="text"
                   value={customLocation}
                   onChange={(e) => setCustomLocation(e.target.value)}
-                  placeholder="np. Kraków, Polska"
+                  placeholder={t('locationPlaceholder')}
                   className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                    Era
+                    {t('eraLabel')}
                   </label>
                   <select
                     value={customEra}
@@ -604,36 +601,36 @@ export function AdventureSelector({
                     }
                     className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-special-elite text-sm text-foreground focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                   >
-                    <option value="classic">Klasyczne lata 20.</option>
-                    <option value="gaslight">Era wiktoriańska</option>
-                    <option value="noir">Lata 40.</option>
-                    <option value="prl">PRL - lata 70.</option>
-                    <option value="modern">Współczesność</option>
-                    <option value="custom">Inna</option>
+                    <option value="classic">{t('eraClassic')}</option>
+                    <option value="gaslight">{t('eraGaslight')}</option>
+                    <option value="noir">{t('eraNoir')}</option>
+                    <option value="prl">{t('eraPrl')}</option>
+                    <option value="modern">{t('eraModern')}</option>
+                    <option value="custom">{t('eraCustom')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
                   <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                    Lata
+                    {t('yearsLabel')}
                   </label>
                   <input
                     type="text"
                     value={customYearRange}
                     onChange={(e) => setCustomYearRange(e.target.value)}
-                    placeholder="np. 1923-1925"
+                    placeholder={t('yearsPlaceholder')}
                     className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  Założenia przygody (opcjonalnie)
+                  {t('assumptionsLabel')}
                 </label>
                 <textarea
                   value={customDescription}
                   onChange={(e) => setCustomDescription(e.target.value)}
-                  placeholder="Opisz fabułę, klimat, głównych antagonistów, motywy..."
+                  placeholder={t('assumptionsPlaceholder')}
                   className="h-32 w-full resize-none border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
@@ -642,7 +639,7 @@ export function AdventureSelector({
                 onClick={() => setShowCustomForm(false)}
                 className="w-full font-display font-semibold uppercase tracking-[0.16em]"
               >
-                ← Wróć do listy przygód
+                {t('backToList')}
               </Button>
             </div>
           )}
@@ -654,14 +651,14 @@ export function AdventureSelector({
               onClick={onClose}
               className="font-display font-semibold uppercase tracking-[0.16em]"
             >
-              Anuluj
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={!selectedId && !showCustomForm}
               className="font-display font-semibold uppercase tracking-[0.16em]"
             >
-              {showCustomForm ? 'Użyj tej przygody' : 'Wybierz i kontynuuj →'}
+              {showCustomForm ? t('useThisAdventure') : t('chooseAndContinue')}
             </Button>
           </div>
         </DialogContent>

@@ -3,6 +3,7 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent } from 'react';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Character } from '@/lib/types';
 import { CharacterWizardV2 as CharacterWizard } from './character-wizard';
@@ -28,6 +29,7 @@ export function CharacterManager({
   onCharactersChange,
   onSelectCharacter,
 }: CharacterManagerProps) {
+  const t = useTranslations('CharacterManager');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [showCreator, setShowCreator] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
@@ -56,7 +58,7 @@ export function CharacterManager({
           .then(setCharacters)
           .catch(() => {});
       } catch (error) {
-        console.error('Błąd podczas ładowania postaci:', error);
+        console.error('Failed to load characters:', error);
       }
     }
   }, []);
@@ -110,7 +112,7 @@ export function CharacterManager({
   // Eksport wszystkich postaci
   const handleExportAll = () => {
     if (characters.length === 0) {
-      alert('Brak postaci do eksportu');
+      alert(t('noCharactersToExport'));
       return;
     }
 
@@ -119,7 +121,7 @@ export function CharacterManager({
       includeHistory: true,
       includePortrait: true,
       includeStats: true,
-      notes: 'Backup wszystkich postaci',
+      notes: t('backupNotes'),
     });
   };
 
@@ -157,12 +159,12 @@ export function CharacterManager({
           const newCharacters = [...characters, ...multiResult.characters];
           saveCharacters(newCharacters);
 
-          let message = `Zaimportowano ${multiResult.characters.length} postaci.`;
+          let message = t('importedCount', { count: multiResult.characters.length });
           if (multiResult.errors && multiResult.errors.length > 0) {
-            message += `\n\nBłędy: ${multiResult.errors.join('\n')}`;
+            message += t('errorsLabel', { errors: multiResult.errors.join('\n') });
           }
           if (multiResult.warnings && multiResult.warnings.length > 0) {
-            message += `\n\nOstrzeżenia: ${multiResult.warnings.join('\n')}`;
+            message += t('warningsLabel', { warnings: multiResult.warnings.join('\n') });
           }
 
           alert(message);
@@ -175,14 +177,14 @@ export function CharacterManager({
           const newCharacters = [...characters, singleResult.character];
           saveCharacters(newCharacters);
 
-          let message = `Zaimportowano postać: ${singleResult.character.name}`;
+          let message = t('importedSingle', { name: singleResult.character.name });
           if (singleResult.warnings && singleResult.warnings.length > 0) {
-            message += `\n\nOstrzeżenia: ${singleResult.warnings.join('\n')}`;
+            message += t('warningsLabel', { warnings: singleResult.warnings.join('\n') });
           }
 
           alert(message);
         } else {
-          alert(`Błąd importu: ${singleResult.error || 'Nieznany błąd'}`);
+          alert(t('importError', { error: singleResult.error || t('unknownError') }));
         }
       };
 
@@ -194,7 +196,7 @@ export function CharacterManager({
 
   // Usuwanie postaci
   const handleDeleteCharacter = (id: string) => {
-    if (confirm('Czy na pewno chcesz usunąć tę postać?')) {
+    if (confirm(t('confirmDelete'))) {
       const newCharacters = characters.filter((char) => char.id !== id);
       saveCharacters(newCharacters);
       if (selectedCharacter?.id === id) {
@@ -215,12 +217,12 @@ export function CharacterManager({
         if (Array.isArray(importedCharacters)) {
           const newCharacters = [...characters, ...importedCharacters];
           saveCharacters(newCharacters);
-          alert(`Zaimportowano ${importedCharacters.length} postaci`);
+          alert(t('importedCount', { count: importedCharacters.length }));
         } else {
-          alert('Nieprawidłowy format pliku');
+          alert(t('invalidFormat'));
         }
       } catch (error) {
-        alert('Błąd podczas importu pliku');
+        alert(t('importFileError'));
         console.error(error);
       }
     };
@@ -283,10 +285,10 @@ export function CharacterManager({
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="font-special-elite uppercase tracking-[0.4em] text-[14px] text-primary">
-              Kartoteka badaczy
+              {t('eyebrow')}
             </div>
             <h2 className="mt-1.5 font-display font-bold uppercase tracking-[0.1em] text-3xl text-foreground">
-              Twoi Badacze
+              {t('title')}
             </h2>
           </div>
           <Button
@@ -308,26 +310,26 @@ export function CharacterManager({
         <div className="flex flex-wrap items-center gap-3">
           <input
             type="text"
-            placeholder="⌕ Szukaj badacza..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 min-w-[200px] max-w-[320px] bg-[#1f1a14] border border-brass/28 px-3.5 py-2.5 font-serif text-base text-foreground placeholder:text-muted-foreground placeholder:italic focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
           <span className="font-special-elite text-[14px] tracking-[0.08em] text-primary border border-primary/45 px-3.5 py-2">
-            Wszyscy · {filteredCharacters.length}
+            {t('allCount', { count: filteredCharacters.length })}
           </span>
           <Button
             onClick={handleExportAll}
             disabled={characters.length === 0}
             className="font-display font-semibold uppercase tracking-[0.16em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10"
           >
-            Eksportuj wszystkie
+            {t('exportAll')}
           </Button>
           <Button
             onClick={handleImport}
             className="font-display font-semibold uppercase tracking-[0.16em] text-muted-foreground bg-transparent border border-brass/30 hover:border-brass/60 hover:text-brass"
           >
-            Importuj
+            {t('importButton')}
           </Button>
         </div>
 
@@ -420,21 +422,21 @@ export function CharacterManager({
                       >
                         {character.occupation}
                         {typeof character.age === 'number' && character.age > 0
-                          ? ` · lat ${character.age}`
+                          ? t('ageSuffix', { age: character.age })
                           : ''}
                       </div>
                     </div>
                     {isDead ? (
                       <span className="shrink-0 font-special-elite text-[13px] tracking-[0.08em] text-[#d9685f] border border-destructive/50 px-2 py-0.5">
-                        ✝ MARTWY
+                        {t('statusDead')}
                       </span>
                     ) : isInsane ? (
                       <span className="shrink-0 font-special-elite text-[13px] tracking-[0.08em] text-brass border border-brass/50 px-2 py-0.5">
-                        ◐ OBŁĄKANY
+                        {t('statusInsane')}
                       </span>
                     ) : (
                       <span className="shrink-0 font-special-elite text-[13px] tracking-[0.08em] text-primary border border-primary/50 px-2 py-0.5">
-                        ● ŻYWY
+                        {t('statusAlive')}
                       </span>
                     )}
                   </div>
@@ -485,10 +487,10 @@ export function CharacterManager({
                           e.stopPropagation();
                           onSelectCharacter(character);
                         }}
-                        title="Zagraj tą postacią w bieżącej przygodzie"
+                        title={t('playTooltip')}
                         className="font-special-elite text-[14px] uppercase tracking-[0.08em] text-[#04110f] bg-primary border border-primary px-2.5 py-1 hover:brightness-110 cursor-pointer"
                       >
-                        ▶ Graj tą postacią
+                        {t('playCharacter')}
                       </button>
                     )}
                     {!isDead && (
@@ -500,17 +502,17 @@ export function CharacterManager({
                           }}
                           className="font-special-elite text-[14px] text-muted-foreground hover:text-brass cursor-pointer"
                         >
-                          Edytuj
+                          {t('edit')}
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setRerollCharacter(character);
                           }}
-                          title="Rozdaj statystyki na nowo do nowej przygody (zachowuje imię, zawód i historię)"
+                          title={t('rerollTooltip')}
                           className="font-special-elite text-[14px] text-primary hover:brightness-125 cursor-pointer"
                         >
-                          🎲 Nowa przygoda
+                          {t('newAdventure')}
                         </button>
                         <button
                           onClick={(e) => {
@@ -519,7 +521,7 @@ export function CharacterManager({
                           }}
                           className="font-special-elite text-[14px] text-muted-foreground hover:text-brass cursor-pointer"
                         >
-                          Rozwój
+                          {t('development')}
                         </button>
                         <button
                           onClick={(e) => {
@@ -539,7 +541,7 @@ export function CharacterManager({
                       }}
                       className="font-special-elite text-[14px] text-[#d9685f] hover:brightness-125 cursor-pointer"
                     >
-                      Usuń
+                      {t('delete')}
                     </button>
                   </div>
                 </div>
@@ -557,16 +559,16 @@ export function CharacterManager({
             <span className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/60" />
             <div className="text-5xl mb-4 text-brass/70">⌖</div>
             <h3 className="font-display uppercase tracking-[0.16em] text-xl text-foreground mb-2">
-              Brak badaczy
+              {t('emptyTitle')}
             </h3>
             <p className="font-serif italic text-base text-muted-foreground mb-5">
-              Stwórz swojego pierwszego badacza, aby rozpocząć śledztwo.
+              {t('emptyDesc')}
             </p>
             <Button
               onClick={() => setShowCreator(true)}
               className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,0.3)]"
             >
-              + Nowy badacz
+              {t('newInvestigator')}
             </Button>
           </div>
         )}

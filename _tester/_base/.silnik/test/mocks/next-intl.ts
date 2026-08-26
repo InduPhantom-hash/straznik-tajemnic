@@ -2,6 +2,14 @@ import React from 'react';
 import en from '../../messages/en.json';
 import pl from '../../messages/pl.json';
 
+type AppMessages = typeof en;
+
+declare module 'next-intl' {
+  interface AppConfig {
+    Messages: AppMessages;
+  }
+}
+
 type Messages = Record<string, unknown>;
 type TranslationValues = Record<string, unknown>;
 
@@ -32,28 +40,49 @@ function interpolate(
 ): string {
   if (!values) return message;
   return Object.entries(values).reduce(
-    (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+    (acc, [name, value]) => acc.replaceAll(`{${name}}`, stringifyValue(value)),
     message
   );
 }
 
 /**
+ * Jawne rzutowanie wartości interpolacji na tekst (chunk_ac: liczby pancerza,
+ * obrażeń i punktów w komponentach walki trafiają do {placeholders}).
+ * - number/boolean/string -> String() (bez formatowania - asercje cyfra w cyfrę)
+ * - Date                  -> ISO (deterministycznie w testach)
+ * - null/undefined        -> '' (brak 'undefined' w renderowanym DOM)
+ */
+function stringifyValue(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) return value.toISOString();
+  return String(value);
+}
+
+/**
  * Obsługa tagów <tag>...</tag> z t.rich()/t.markup(): funkcja przekazana
  * w values pod nazwą tagu dostaje tekst wewnętrzny i zwraca ReactNode.
+ * Zwraca tablicę węzłów (wirtualny DOM) ze stabilnymi kluczami - asercje
+ * typu getByText / container.querySelector działają 1:1 jak przy realnym
+ * next-intl.
  */
 function renderTags(message: string, values?: TranslationValues): React.ReactNode {
   if (!values) return message;
   const parts = message.split(/(<(\w+)>[\s\S]*?<\/\2>)/g);
-  return parts.map((part, index) => {
+  const nodes = parts.map((part, index) => {
     const match = part.match(/^<(\w+)>([\s\S]*?)<\/\1>$/);
     if (!match) return part;
     const [, tag, inner] = match;
     const render = values[tag];
     if (typeof render === 'function') {
-      return React.createElement(React.Fragment, { key: index }, render(inner));
+      return React.createElement(
+        React.Fragment,
+        { key: `${tag}-${index}` },
+        render(inner)
+      );
     }
     return inner;
   });
+  return React.createElement(React.Fragment, null, nodes);
 }
 
 export function useTranslations(namespace = '') {
@@ -94,7 +123,6 @@ export function useFormatter() {
     relativeTime: () => '',
   };
 }
-
 export function NextIntlClientProvider({ children }: { children: React.ReactNode }) {
   return React.createElement(React.Fragment, null, children);
 }

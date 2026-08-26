@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useSettingsSubscription } from '@/hooks/use-settings-subscription';
 import type { UserUsage } from '@/lib/user-usage';
 
@@ -20,6 +21,7 @@ interface APIUsageCounterProps {
  * (`recordUserUsage` w chat/imagen/tts). To jedyne źródło prawdy o kosztach.
  */
 export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
+  const t = useTranslations('ApiUsageCounter');
   const [isExpanded, setIsExpanded] = useState(false);
   // === REACTIVE SETTINGS: status aktywnych API + bramka costControl.enabled ===
   const settings = useSettingsSubscription();
@@ -82,13 +84,13 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
             ? 'w-48 h-auto'
             : 'w-8 h-8 flex items-center justify-center text-sm'
         }`}
-        title={isExpanded ? 'Zwiń licznik' : 'Rozwiń licznik'}
+        title={isExpanded ? t('collapse') : t('expand')}
       >
         {isExpanded ? (
           <div className="p-2 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-display uppercase tracking-[0.1em] text-brass">
-                💰 Koszty (konto)
+                {t('costsTitle')}
               </span>
               <span className="text-[14px] text-muted-foreground">
                 {new Date().toLocaleDateString('pl-PL')}
@@ -98,7 +100,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
             {/* === SERVER-SIDE BREAKDOWN (źródło prawdy) === */}
             <div className="p-3 bg-[#1a1610] border border-brass/30 rounded-lg space-y-2">
               <div className="text-xs font-display uppercase tracking-[0.08em] text-brass mb-2">
-                📊 Zużycie API
+                {t('usageTitle')}
               </div>
 
               {/* Gemini Tokens */}
@@ -129,7 +131,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
               <div className="flex justify-between items-center">
                 <span className="text-xs text-foreground flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-pink-400"></span>
-                  Obrazy:
+                  {t('imagesLabel')}
                 </span>
                 <span className="text-xs font-mono text-pink-300">
                   {usage?.image.count ?? 0} ({usage?.image.calls ?? 0})
@@ -139,7 +141,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
               {/* Total Cost */}
               <div className="pt-2 border-t border-brass/30 flex justify-between items-center">
                 <span className="text-xs text-muted-foreground font-medium">
-                  Koszt razem:
+                  {t('totalCostLabel')}
                 </span>
                 <span className="text-sm font-bold text-brass">
                   {formatCurrency(totalCost)}
@@ -150,7 +152,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
             {/* === BUDGET $10 (z user-usage) === */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-foreground">Budżet:</span>
+                <span className="text-xs text-foreground">{t('budgetLabel')}</span>
                 <span
                   className={`text-xs font-medium ${getBudgetColor(totalCost, budgetUsd)}`}
                 >
@@ -175,7 +177,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
               </div>
 
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Pozostało:</span>
+                <span className="text-muted-foreground">{t('remainingLabel')}</span>
                 <span className={getBudgetColor(remainingBudget, budgetUsd)}>
                   {formatCurrency(remainingBudget)}
                 </span>
@@ -185,7 +187,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
             {/* === API STATUS === */}
             <div className="pt-2 border-t border-border">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-foreground">Aktywne API:</span>
+                <span className="text-foreground">{t('activeApiLabel')}</span>
                 <div className="flex items-center gap-2">
                   <span
                     className={`w-2 h-2 rounded-full ${settings.geminiEnabled ? 'bg-blue-400' : 'bg-gray-500'}`}
@@ -210,7 +212,7 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
             {/* === WARNINGS === */}
             {budgetUsedPercent >= 90 && (
               <div className="p-2 bg-red-900/30 border border-red-500/30 rounded text-xs text-red-300">
-                ⚠️ Budżet prawie wyczerpany!
+                {t('budgetWarning')}
               </div>
             )}
           </div>

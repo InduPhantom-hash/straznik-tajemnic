@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Character, getSkillValue } from '@/lib/types';
 import {
@@ -21,6 +22,7 @@ export function CharacterDevelopmentPanel({
   onCharacterUpdate,
   onClose,
 }: CharacterDevelopmentPanelProps) {
+  const t = useTranslations('CharacterDevelopmentPanel');
   const [activeTab, setActiveTab] = useState<
     'overview' | 'skills' | 'trauma' | 'achievements'
   >('overview');
@@ -37,9 +39,11 @@ export function CharacterDevelopmentPanel({
 
     const traumaData = {
       ...newTrauma,
-      description: newTrauma.description || `Trauma typu ${newTrauma.type}`,
+      description:
+        newTrauma.description ||
+        t('defaultTraumaDescription', { type: newTrauma.type }),
       sanityLoss: newTrauma.sanityLoss || 0,
-      gameplayEffect: newTrauma.gameplayEffect || 'Brak szczególnych efektów',
+      gameplayEffect: newTrauma.gameplayEffect || t('noSpecialEffects'),
     } as Omit<TraumaEvent, 'id' | 'acquired'>;
 
     const updatedCharacter = characterDevelopment.addTrauma(
@@ -69,13 +73,13 @@ export function CharacterDevelopmentPanel({
         <div className="flex items-center justify-between p-6 border-b border-brass/30">
           <div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.3em] text-primary mb-1">
-              Strażnik Tajemnic · Rozwój
+              {t('eyebrow')}
             </div>
             <h2 className="font-display-decorative text-xl uppercase tracking-[0.08em] text-foreground">
-              Rozwój Postaci: {character.name}
+              {t('title', { name: character.name })}
             </h2>
             <p className="font-serif italic text-sm text-muted-foreground">
-              System rozwoju zgodny z zasadami Call of Cthulhu 7e
+              {t('subtitle')}
             </p>
           </div>
           <Button onClick={onClose} variant="outline" size="sm">
@@ -86,10 +90,10 @@ export function CharacterDevelopmentPanel({
         {/* Tabs */}
         <div className="flex border-b border-brass/30">
           {[
-            { id: 'overview', label: '📊 Przegląd', icon: '📊' },
-            { id: 'skills', label: '🎯 Umiejętności', icon: '🎯' },
-            { id: 'trauma', label: '🧠 Trauma', icon: '🧠' },
-            { id: 'achievements', label: '🏆 Osiągnięcia', icon: '🏆' },
+            { id: 'overview', label: t('tabOverview'), icon: '📊' },
+            { id: 'skills', label: t('tabSkills'), icon: '🎯' },
+            { id: 'trauma', label: t('tabTrauma'), icon: '🧠' },
+            { id: 'achievements', label: t('tabAchievements'), icon: '🏆' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -113,12 +117,12 @@ export function CharacterDevelopmentPanel({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="border border-primary/40 bg-[rgba(13,148,136,0.06)] p-4">
                   <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-primary mb-3">
-                    📈 Rozwój
+                    {t('developmentCardTitle')}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Sesje:
+                        {t('sessionsLabel')}
                       </span>
                       <span className="font-special-elite text-primary">
                         {stats.totalSessions}
@@ -126,7 +130,7 @@ export function CharacterDevelopmentPanel({
                     </div>
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Ulepszenia umiejętności:
+                        {t('skillImprovementsLabel')}
                       </span>
                       <span className="font-special-elite text-primary">
                         {stats.totalSkillImprovements}
@@ -134,7 +138,7 @@ export function CharacterDevelopmentPanel({
                     </div>
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Punkty rozwoju:
+                        {t('devPointsLabel')}
                       </span>
                       <span className="font-special-elite text-primary">
                         +{stats.totalPointsGained}
@@ -145,12 +149,12 @@ export function CharacterDevelopmentPanel({
 
                 <div className="border border-brass/40 bg-[rgba(201,162,39,0.06)] p-4">
                   <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-3">
-                    ✅ Oznaczone umiejętności
+                    {t('markedSkillsTitle')}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Do rozwoju:
+                        {t('forDevelopmentLabel')}
                       </span>
                       <span className="font-special-elite text-brass">
                         {stats.markedSkillsCount}
@@ -158,7 +162,7 @@ export function CharacterDevelopmentPanel({
                     </div>
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Przeżywalność:
+                        {t('survivalLabel')}
                       </span>
                       <span className="font-special-elite text-brass">
                         {stats.survivalRate.toFixed(0)}%
@@ -167,19 +171,19 @@ export function CharacterDevelopmentPanel({
                   </div>
                   {stats.markedSkillsCount > 0 && (
                     <p className="font-serif italic text-xs text-brass/80 mt-2">
-                      Użyj Fazy Rozwoju, aby rzucić na ulepszenie!
+                      {t('useDevPhaseHint')}
                     </p>
                   )}
                 </div>
 
                 <div className="border border-brass/30 bg-[#16130f] p-4">
                   <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-muted-foreground mb-3">
-                    🏆 Osiągnięcia
+                    {t('achievementsCardTitle')}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Trauma:
+                        {t('traumaLabel')}
                       </span>
                       <span className="font-special-elite text-destructive">
                         {stats.traumaCount}
@@ -187,7 +191,7 @@ export function CharacterDevelopmentPanel({
                     </div>
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Osiągnięcia:
+                        {t('achievementsLabel')}
                       </span>
                       <span className="font-special-elite text-brass">
                         {stats.achievementCount}
@@ -195,7 +199,7 @@ export function CharacterDevelopmentPanel({
                     </div>
                     <div className="flex justify-between">
                       <span className="font-serif text-foreground/80">
-                        Śledztwa:
+                        {t('investigationsLabel')}
                       </span>
                       <span className="font-special-elite text-foreground">
                         {stats.investigationsSolved}
@@ -209,7 +213,7 @@ export function CharacterDevelopmentPanel({
               {stats.favoriteSkills.length > 0 && (
                 <div className="border border-brass/25 bg-[#16130f] p-4">
                   <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-3">
-                    🎯 Najczęściej Rozwijane Umiejętności
+                    {t('favoriteSkillsTitle')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {stats.favoriteSkills.map((skill) => (
@@ -228,7 +232,7 @@ export function CharacterDevelopmentPanel({
               {character.developmentHistory.length > 0 && (
                 <div className="border border-brass/25 bg-[#16130f] p-4">
                   <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-3">
-                    📜 Historia Rozwoju
+                    {t('historyTitle')}
                   </h3>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {character.developmentHistory
@@ -258,29 +262,36 @@ export function CharacterDevelopmentPanel({
               {/* Zasady CoC 7e */}
               <div className="border border-brass/30 bg-[#16130f] p-4">
                 <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-2">
-                  📖 Zasady Rozwoju (Call of Cthulhu 7e)
+                  {t('rulesTitle')}
                 </h3>
                 <ul className="font-serif text-sm text-muted-foreground space-y-1 list-disc list-inside">
                   <li>
-                    Umiejętności są oznaczane automatycznie po{' '}
-                    <strong className="text-primary">
-                      udanym teście bez użycia Szczęścia
-                    </strong>
-                    .
+                    {t.rich('rule1', {
+                      strong: (chunks) => (
+                        <strong className="text-primary">{chunks}</strong>
+                      ),
+                    })}
                   </li>
                   <li>
-                    W Fazie Rozwoju rzucasz{' '}
-                    <strong className="text-primary">K100</strong> dla każdej
-                    oznaczonej umiejętności.
+                    {t.rich('rule2', {
+                      strong: (chunks) => (
+                        <strong className="text-primary">{chunks}</strong>
+                      ),
+                    })}
                   </li>
                   <li>
-                    Sukces (K100 &gt; aktualna wartość) = wzrost o{' '}
-                    <strong className="text-primary">1K10</strong> punktów.
+                    {t.rich('rule3', {
+                      strong: (chunks) => (
+                        <strong className="text-primary">{chunks}</strong>
+                      ),
+                    })}
                   </li>
                   <li>
-                    Osiągnięcie <strong className="text-brass">90%+</strong> w
-                    umiejętności daje bonus{' '}
-                    <strong className="text-brass">+2K6 Poczytalności</strong>.
+                    {t.rich('rule4', {
+                      strong: (chunks) => (
+                        <strong className="text-brass">{chunks}</strong>
+                      ),
+                    })}
                   </li>
                 </ul>
               </div>
@@ -288,7 +299,7 @@ export function CharacterDevelopmentPanel({
               {/* Skills List with Marks */}
               <div className="border border-brass/25 bg-[#16130f] p-4">
                 <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-4">
-                  📋 Wszystkie Umiejętności
+                  {t('allSkillsTitle')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {Object.entries(character.skills)
@@ -335,26 +346,26 @@ export function CharacterDevelopmentPanel({
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="font-display uppercase tracking-[0.16em] text-sm font-semibold text-foreground">
-                  🧠 Zarządzanie Traumą
+                  {t('traumaManagementTitle')}
                 </h3>
                 <Button
                   onClick={() => setShowTraumaForm(!showTraumaForm)}
                   variant="destructive"
                 >
-                  {showTraumaForm ? 'Anuluj' : '+ Dodaj Traumę'}
+                  {showTraumaForm ? t('cancelButton') : t('addTraumaButton')}
                 </Button>
               </div>
 
               {showTraumaForm && (
                 <div className="border-l-2 border-l-destructive/60 border border-destructive/30 bg-[rgba(179,50,44,0.07)] p-4">
                   <h4 className="font-display uppercase tracking-[0.14em] text-xs font-semibold text-destructive mb-4">
-                    Nowa Trauma
+                    {t('newTraumaTitle')}
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-                        Nazwa:
+                        {t('nameFieldLabel')}
                       </label>
                       <input
                         type="text"
@@ -363,13 +374,13 @@ export function CharacterDevelopmentPanel({
                           setNewTrauma({ ...newTrauma, name: e.target.value })
                         }
                         className="w-full px-3 py-2 border border-brass/30 bg-background text-foreground font-serif focus:border-brass/60 focus:outline-none"
-                        placeholder="np. Arachnofobia"
+                        placeholder={t('traumaNamePlaceholder')}
                       />
                     </div>
 
                     <div>
                       <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-                        Typ:
+                        {t('typeFieldLabel')}
                       </label>
                       <select
                         value={newTrauma.type || ''}
@@ -381,18 +392,18 @@ export function CharacterDevelopmentPanel({
                         }
                         className="w-full px-3 py-2 border border-brass/30 bg-background text-foreground font-serif focus:border-brass/60 focus:outline-none"
                       >
-                        <option value="">Wybierz typ...</option>
-                        <option value="phobia">Fobia</option>
-                        <option value="mania">Mania</option>
-                        <option value="delusion">Urojenia</option>
-                        <option value="amnesia">Amnezja</option>
-                        <option value="other">Inne</option>
+                        <option value="">{t('selectTypeOption')}</option>
+                        <option value="phobia">{t('typePhobia')}</option>
+                        <option value="mania">{t('typeMania')}</option>
+                        <option value="delusion">{t('typeDelusion')}</option>
+                        <option value="amnesia">{t('typeAmnesia')}</option>
+                        <option value="other">{t('typeOther')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-                        Nasilenie:
+                        {t('severityFieldLabel')}
                       </label>
                       <select
                         value={newTrauma.severity || ''}
@@ -404,17 +415,17 @@ export function CharacterDevelopmentPanel({
                         }
                         className="w-full px-3 py-2 border border-brass/30 bg-background text-foreground font-serif focus:border-brass/60 focus:outline-none"
                       >
-                        <option value="">Wybierz nasilenie...</option>
-                        <option value="mild">Łagodne</option>
-                        <option value="moderate">Umiarkowane</option>
-                        <option value="severe">Ciężkie</option>
-                        <option value="extreme">Ekstremalne</option>
+                        <option value="">{t('selectSeverityOption')}</option>
+                        <option value="mild">{t('severityMild')}</option>
+                        <option value="moderate">{t('severityModerate')}</option>
+                        <option value="severe">{t('severitySevere')}</option>
+                        <option value="extreme">{t('severityExtreme')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-                        Utrata PR:
+                        {t('sanityLossLabel')}
                       </label>
                       <input
                         type="number"
@@ -434,7 +445,7 @@ export function CharacterDevelopmentPanel({
 
                   <div className="mb-4">
                     <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-2">
-                      Opis:
+                      {t('descriptionFieldLabel')}
                     </label>
                     <textarea
                       value={newTrauma.description || ''}
@@ -446,7 +457,7 @@ export function CharacterDevelopmentPanel({
                       }
                       className="w-full px-3 py-2 border border-brass/30 bg-background text-foreground font-serif focus:border-brass/60 focus:outline-none"
                       rows={3}
-                      placeholder="Opis traumy i jej objawów..."
+                      placeholder={t('traumaDescPlaceholder')}
                     />
                   </div>
 
@@ -457,7 +468,7 @@ export function CharacterDevelopmentPanel({
                     }
                     variant="destructive"
                   >
-                    Dodaj Traumę
+                    {t('addTraumaSubmit')}
                   </Button>
                 </div>
               )}
@@ -476,13 +487,15 @@ export function CharacterDevelopmentPanel({
                           <h4 className="font-display uppercase tracking-[0.1em] text-xs font-semibold text-destructive">
                             {trauma.description
                               .split(' - ')[1]
-                              ?.split(' - ')[0] || 'Trauma'}
+                              ?.split(' - ')[0] || t('defaultTraumaName')}
                           </h4>
                           <p className="font-serif text-sm text-foreground/85 mt-1">
                             {trauma.description}
                           </p>
                           <p className="font-special-elite text-xs text-muted-foreground mt-1">
-                            Data: {trauma.timestamp.toLocaleDateString()}
+                            {t('dateLabel', {
+                              date: trauma.timestamp.toLocaleDateString(),
+                            })}
                           </p>
                         </div>
                         <span className="font-special-elite text-xs border border-destructive/40 bg-destructive/15 text-destructive px-2 py-1">
@@ -498,10 +511,10 @@ export function CharacterDevelopmentPanel({
                   <div className="text-center py-8 text-muted-foreground">
                     <div className="text-4xl mb-2">🧠</div>
                     <p className="font-serif italic text-base">
-                      Brak zarejestrowanych traum
+                      {t('noTraumas')}
                     </p>
                     <p className="font-serif italic text-sm text-muted-foreground/70">
-                      Na szczęście dla zdrowia psychicznego postaci!
+                      {t('noTraumasHint')}
                     </p>
                   </div>
                 )}
@@ -513,13 +526,13 @@ export function CharacterDevelopmentPanel({
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="font-display uppercase tracking-[0.16em] text-sm font-semibold text-foreground">
-                  🏆 Osiągnięcia
+                  {t('tabAchievements')}
                 </h3>
                 <Button
                   onClick={() => {
                     const achievementData = {
-                      name: 'Test Achievement',
-                      description: 'Testowe osiągnięcie za rozwój postaci',
+                      name: t('testAchievementName'),
+                      description: t('testAchievementDescription'),
                       type: 'special' as const,
                       requirements: ['Test requirement'],
                     };
@@ -527,7 +540,7 @@ export function CharacterDevelopmentPanel({
                   }}
                   className="font-display font-semibold uppercase tracking-[0.16em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10"
                 >
-                  + Dodaj Osiągnięcie
+                  {t('addAchievementButton')}
                 </Button>
               </div>
 
@@ -544,13 +557,15 @@ export function CharacterDevelopmentPanel({
                         <div>
                           <h4 className="font-display uppercase tracking-[0.1em] text-xs font-semibold text-brass">
                             {achievement.description.split(': ')[1] ||
-                              'Osiągnięcie'}
+                              t('defaultAchievementName')}
                           </h4>
                           <p className="font-serif text-sm text-foreground/85 mt-1">
                             {achievement.description}
                           </p>
                           <p className="font-special-elite text-xs text-muted-foreground mt-1">
-                            Data: {achievement.timestamp.toLocaleDateString()}
+                            {t('dateLabel', {
+                              date: achievement.timestamp.toLocaleDateString(),
+                            })}
                           </p>
                         </div>
                       </div>
@@ -563,10 +578,10 @@ export function CharacterDevelopmentPanel({
                   <div className="text-center py-8 text-muted-foreground">
                     <div className="text-4xl mb-2">🏆</div>
                     <p className="font-serif italic text-base">
-                      Brak osiągnięć
+                      {t('noAchievements')}
                     </p>
                     <p className="font-serif italic text-sm text-muted-foreground/70">
-                      Czas na pierwsze wielkie czyny!
+                      {t('noAchievementsHint')}
                     </p>
                   </div>
                 )}
@@ -578,11 +593,16 @@ export function CharacterDevelopmentPanel({
         {/* Footer (bez XP) */}
         <div className="flex justify-between items-center p-6 border-t border-brass/30">
           <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-            <span className="text-brass">PR: {character.san}</span> •
-            <span className="text-destructive"> PŻ: {character.hp}</span> •
-            Oznaczone: {stats.markedSkillsCount} umiejętności
+            <span className="text-brass">
+              {t('footerStats', { san: character.san })}
+            </span>{' '}
+            •
+            <span className="text-destructive">
+              {t('footerHp', { hp: character.hp })}
+            </span>{' '}
+            • {t('footerMarked', { count: stats.markedSkillsCount })}
           </div>
-          <Button onClick={onClose}>Zamknij</Button>
+          <Button onClick={onClose}>{t('closeButton')}</Button>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
@@ -166,39 +167,35 @@ const TACTICAL_OPTIONS: TacticalDecision[] = [
     action: 'dodge',
     bonusDice: 0,
     penaltyDice: 0,
-    description:
-      'Unikaj ataku (test Uniku). Możesz unikać wielu ataków, ale każdy kolejny z karą.',
+    description: 'dodge',
     risk: 'low',
   },
   {
     action: 'counterattack',
     bonusDice: 0,
     penaltyDice: 0,
-    description:
-      'Kontratakuj! Porównanie umiejętności walki. Wygrana oznacza zadanie obrażeń.',
+    description: 'counterattack',
     risk: 'high',
   },
   {
     action: 'flee',
     bonusDice: 0,
     penaltyDice: 1,
-    description:
-      'Próba ucieczki. Ryzykujesz jeden atak z okazji od każdego przeciwnika.',
+    description: 'flee',
     risk: 'medium',
   },
   {
     action: 'parry',
     bonusDice: 0,
     penaltyDice: 0,
-    description: 'Sparuj bronią lub tarczą. Wymaga odpowiedniego przedmiotu.',
+    description: 'parry',
     risk: 'low',
   },
   {
     action: 'fight_back',
     bonusDice: 0,
     penaltyDice: 0,
-    description:
-      'Walcz w defensywie - zmniejszone szanse na trafienie, ale też na bycie trafionym.',
+    description: 'fight_back',
     risk: 'medium',
   },
 ];
@@ -222,6 +219,14 @@ export function TacticalDecisionPanel({
   hasShield,
   canFlee,
 }: TacticalDecisionPanelProps) {
+  const t = useTranslations('CombatUtils');
+  const tacticalDescriptions: Record<TacticalAction, string> = {
+    dodge: t('tacticalDodgeDesc'),
+    counterattack: t('tacticalCounterattackDesc'),
+    flee: t('tacticalFleeDesc'),
+    parry: t('tacticalParryDesc'),
+    fight_back: t('tacticalFightBackDesc'),
+  };
   const [selectedAction, setSelectedAction] = useState<TacticalAction | null>(
     null
   );
@@ -240,15 +245,16 @@ export function TacticalDecisionPanel({
       return false;
     return true;
   }).map((opt) => {
+    const baseDescription = tacticalDescriptions[opt.action];
     // Dodaj karę za wielokrotne uniki
     if (opt.action === 'dodge' && dodgesUsed > 0) {
       return {
         ...opt,
         penaltyDice: dodgesUsed,
-        description: `${opt.description} (Kość Karna x${dodgesUsed} za poprzednie uniki)`,
+        description: `${baseDescription} ${t('penaltyDiceSuffix', { count: dodgesUsed })}`,
       };
     }
-    return opt;
+    return { ...opt, description: baseDescription };
   });
 
   const getRiskColor = (risk: string) => {
@@ -284,15 +290,15 @@ export function TacticalDecisionPanel({
   const getActionName = (action: TacticalAction) => {
     switch (action) {
       case 'dodge':
-        return 'Unik';
+        return t('actionDodge');
       case 'counterattack':
-        return 'Kontratak';
+        return t('actionCounterattack');
       case 'flee':
-        return 'Ucieczka';
+        return t('actionFlee');
       case 'parry':
-        return 'Parowanie';
+        return t('actionParry');
       case 'fight_back':
-        return 'Walka defensywna';
+        return t('actionFightBack');
       default:
         return action;
     }
@@ -304,14 +310,12 @@ export function TacticalDecisionPanel({
     <Card className="bg-gradient-to-br from-amber-900/30 to-red-900/30 border-amber-500/50">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2 text-amber-300">
-          {isDefending ? '🛡️ Reakcja na Atak' : '⚔️ Twoja Tura'}
+          {isDefending ? t('reactionTitle') : t('yourTurnTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-amber-200/80">
-          {isDefending
-            ? 'Wróg cię atakuje! Wybierz swoją reakcję:'
-            : 'Wybierz swoją akcję w tej turze:'}
+          {isDefending ? t('enemyAttacks') : t('chooseAction')}
         </p>
 
         <div className="grid grid-cols-2 gap-2">
@@ -336,12 +340,14 @@ export function TacticalDecisionPanel({
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <Badge className={`text-[14px] ${getRiskColor(option.risk)}`}>
-                  Ryzyko:{' '}
-                  {option.risk === 'low'
-                    ? 'niskie'
-                    : option.risk === 'medium'
-                      ? 'średnie'
-                      : 'wysokie'}
+                  {t('riskLabel', {
+                    risk:
+                      option.risk === 'low'
+                        ? t('riskLow')
+                        : option.risk === 'medium'
+                          ? t('riskMedium')
+                          : t('riskHigh'),
+                  })}
                 </Badge>
                 {option.bonusDice > 0 && (
                   <Badge className="text-[14px] bg-green-500/20 text-green-400">
@@ -363,9 +369,9 @@ export function TacticalDecisionPanel({
 
         {/* Podpowiedź */}
         <div className="text-xs text-muted-foreground mt-2 p-2 bg-black/20 rounded">
-          💡 <strong>Wskazówka:</strong> Unik jest bezpieczny, ale każdy kolejny
-          w rundzie otrzymuje Kość Karną. Kontratak jest ryzykowny, ale może
-          zadać obrażenia.
+          {t.rich('tip', {
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
         </div>
       </CardContent>
     </Card>
@@ -385,6 +391,7 @@ export function BonusPenaltyRollDisplay({
   skillName,
   targetValue,
 }: BonusPenaltyRollDisplayProps) {
+  const t = useTranslations('CombatUtils');
   const isSuccess = targetValue ? result.finalResult <= targetValue : false;
   const isCritical =
     result.finalResult === 1 ||
@@ -414,7 +421,7 @@ export function BonusPenaltyRollDisplay({
             <div className="text-3xl font-bold">{result.finalResult}</div>
             {targetValue && (
               <div className="text-sm text-muted-foreground">
-                Cel: {targetValue}
+                {t('targetLabel', { target: targetValue })}
               </div>
             )}
           </div>
@@ -445,7 +452,7 @@ export function BonusPenaltyRollDisplay({
               ))}
             </div>
             <div className="text-sm text-muted-foreground">
-              Jedności: {result.units}
+              {t('unitsLabel', { units: result.units })}
             </div>
             <Badge
               className={`mt-1 ${
@@ -457,10 +464,10 @@ export function BonusPenaltyRollDisplay({
               }`}
             >
               {result.type === 'bonus'
-                ? '🍀 Premia'
+                ? t('bonusDie')
                 : result.type === 'penalty'
-                  ? '⚡ Kara'
-                  : 'Normalny'}
+                  ? t('penaltyDie')
+                  : t('normalRoll')}
             </Badge>
           </div>
         </div>
@@ -468,13 +475,13 @@ export function BonusPenaltyRollDisplay({
         {/* Wynik */}
         <div className="mt-3 pt-3 border-t border-white/10">
           {isFumble ? (
-            <Badge className="bg-red-600 text-foreground">💀 FUMBLE!</Badge>
+            <Badge className="bg-red-600 text-foreground">{t('fumbleBadge')}</Badge>
           ) : isCritical ? (
-            <Badge className="bg-green-600 text-foreground">⭐ KRYTYK!</Badge>
+            <Badge className="bg-green-600 text-foreground">{t('criticalBadge')}</Badge>
           ) : isSuccess ? (
-            <Badge className="bg-blue-600 text-foreground">✓ Sukces</Badge>
+            <Badge className="bg-blue-600 text-foreground">{t('successBadge')}</Badge>
           ) : (
-            <Badge className="bg-muted text-foreground">✗ Porażka</Badge>
+            <Badge className="bg-muted text-foreground">{t('failureBadge')}</Badge>
           )}
         </div>
       </CardContent>
@@ -493,6 +500,7 @@ export function MajorWoundAlert({
   result,
   characterName,
 }: MajorWoundAlertProps) {
+  const t = useTranslations('CombatUtils');
   if (!result.isMajorWound) return null;
 
   return (
@@ -501,10 +509,13 @@ export function MajorWoundAlert({
         <div className="flex items-center gap-3">
           <span className="text-4xl">🩸</span>
           <div>
-            <h4 className="text-lg font-bold text-red-400">GŁĘBOKA RANA!</h4>
+            <h4 className="text-lg font-bold text-red-400">{t('majorWoundTitle')}</h4>
             <p className="text-sm text-red-300">
-              {characterName} otrzymuje {result.damageDealt} obrażeń (≥{' '}
-              {result.halfMaxHP} = połowa max HP)
+              {t('majorWoundDamage', {
+                name: characterName,
+                damage: result.damageDealt,
+                half: result.halfMaxHP,
+              })}
             </p>
           </div>
         </div>
@@ -512,7 +523,7 @@ export function MajorWoundAlert({
         {result.conTestResult && (
           <div className="mt-3 p-3 bg-black/30 rounded-lg">
             <div className="text-sm font-semibold text-foreground mb-2">
-              Test Kondycji (KON):
+              {t('conTestTitle')}
             </div>
             <div className="flex items-center gap-3">
               <Badge
@@ -524,15 +535,13 @@ export function MajorWoundAlert({
               </Badge>
               <span className="text-sm">
                 {result.conTestResult.consequence === 'conscious' && (
-                  <span className="text-green-400">✓ Pozostaje przytomny!</span>
+                  <span className="text-green-400">{t('staysConscious')}</span>
                 )}
                 {result.conTestResult.consequence === 'unconscious' && (
-                  <span className="text-yellow-400">😵 Traci przytomność!</span>
+                  <span className="text-yellow-400">{t('losesConsciousness')}</span>
                 )}
                 {result.conTestResult.consequence === 'dying' && (
-                  <span className="text-red-400">
-                    💀 KONAJĄCY! Wymaga natychmiastowej pomocy!
-                  </span>
+                  <span className="text-red-400">{t('dying')}</span>
                 )}
               </span>
             </div>

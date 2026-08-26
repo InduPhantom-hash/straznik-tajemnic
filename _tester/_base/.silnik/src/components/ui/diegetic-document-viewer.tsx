@@ -1,5 +1,6 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import FC, { FC as ReactFC } from 'react';
+import { useTranslations } from 'next-intl';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 import { User, FileText, Stamp, Award, Shield } from 'lucide-react';
@@ -13,8 +14,9 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   item,
   character,
 }) => {
+  const t = useTranslations('DiegeticDocumentViewer');
   const docType = item.documentType || inferDocumentType(item);
-  const content = item.readableContent || item.description || 'Brak zapisanej treści...';
+  const content = item.readableContent || item.description || t('noContent');
 
   // === 1. LEGITYMACJA PRASOWA / DOWÓD TOŻSAMOŚCI ===
   if (docType === 'press_pass' || docType === 'id_card') {
@@ -27,13 +29,13 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
         {/* Nagłówek instytucji */}
         <div className="relative border-b-2 border-[#5c4a35] pb-2 mb-4 text-center">
           <div className="text-[10px] font-special-elite uppercase tracking-[0.25em] text-[#6e5840]">
-            {isPress ? 'Legitymacja Prasowa' : 'Dokument Tożsamości'}
+            {isPress ? t('pressPassTitle') : t('idCardTitle')}
           </div>
           <h4 className="font-bold text-lg md:text-xl uppercase tracking-wider text-[#3d2f21] mt-0.5">
             {isPress ? '„THE ARKHAM ADVERTISER”' : 'COMMONWEALTH OF MASSACHUSETTS'}
           </h4>
           <div className="text-[11px] italic text-[#544332]">
-            {isPress ? 'French Hill & College Streets, Arkham, Mass.' : 'Departament Stanu i Bezpieczeństwa Publicznego'}
+            {isPress ? 'French Hill & College Streets, Arkham, Mass.' : t('idCardSubtitle')}
           </div>
         </div>
 
@@ -68,7 +70,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
           <div className="flex-1 text-sm leading-relaxed font-serif">
             <div className="mb-2 pb-1 border-b border-[#a8987d]/50 font-special-elite text-xs flex justify-between">
               <span>NRO: <strong className="text-[#3d2f21]">418/24</strong></span>
-              <span>WAŻNE DO: <strong className="text-[#3d2f21]">31.XII.1926 r.</strong></span>
+              <span>{t('validUntil')} <strong className="text-[#3d2f21]">31.XII.1926 r.</strong></span>
             </div>
             <p className="italic text-[#291e14] whitespace-pre-line">
               {content}
@@ -79,14 +81,14 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
         {/* Podpis redaktora / szeryfa */}
         <div className="relative mt-4 pt-2 border-t border-[#a8987d] flex justify-between items-end text-xs font-special-elite text-[#524131]">
           <div>
-            <span>Status: </span>
-            <span className="uppercase font-bold text-[#8b0000]">Uprawniony</span>
+            <span>{t('statusLabel')} </span>
+            <span className="uppercase font-bold text-[#8b0000]">{t('statusAuthorized')}</span>
           </div>
           <div className="text-right">
             <div className="font-serif italic text-sm text-[#2b1f15] font-bold">
               [-] Arthur Pendelton
             </div>
-            <div className="text-[10px] text-[#6b5643]">Redaktor Naczelny / Wydawca</div>
+            <div className="text-[10px] text-[#6b5643]">{t('editorRole')}</div>
           </div>
         </div>
       </div>
@@ -106,15 +108,15 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
           <div className="flex justify-between items-start border-b-2 border-[#453623] pb-2 mb-3">
             <div>
               <h4 className="font-bold text-base md:text-lg uppercase tracking-wider text-[#362a1b]">
-                DEPARTAMENT POLICJI W BOSTONIE
+                {t('policeDept')}
               </h4>
               <div className="text-xs uppercase tracking-widest text-[#5c4933]">
-                BIURO DOWODÓW RZECZOWYCH & TAJNYCH AKTA
+                {t('evidenceOffice')}
               </div>
             </div>
             <div className="text-right text-xs">
-              <div>SPRAWA NR: <strong className="text-[#731911]">412/1924</strong></div>
-              <div>DEPOZYT: <strong className="text-[#362a1b]">SEKTOR B</strong></div>
+              <div>{t('caseNo')} <strong className="text-[#731911]">412/1924</strong></div>
+              <div>{t('deposit')} <strong className="text-[#362a1b]">{t('sectorB')}</strong></div>
             </div>
           </div>
 
@@ -123,8 +125,8 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
           </div>
 
           <div className="mt-4 pt-2 border-t border-[#6b5438] flex flex-wrap justify-between text-xs text-[#4a3926] gap-2">
-            <div>Zabezpieczył: <strong>Det. M. Callahan</strong></div>
-            <div>Status: <strong className="text-[#8c2318] uppercase">Dowód Koronny</strong></div>
+            <div>{t('securedBy')} <strong>Det. M. Callahan</strong></div>
+            <div>{t('statusLabel')} <strong className="text-[#8c2318] uppercase">{t('crownEvidence')}</strong></div>
           </div>
         </div>
       </div>
@@ -142,10 +144,10 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
 
         <div className="text-center border-b border-[#a8997c] pb-3 mb-4">
           <div className="text-[10px] font-special-elite uppercase tracking-[0.3em] text-[#6b583e]">
-            URZĄD MARSZAŁKOWSKI / SEKRETARIAT STANOWY
+            {t('marshalOffice')}
           </div>
           <h4 className="font-bold text-lg md:text-xl uppercase tracking-widest text-[#2e2216] mt-1">
-            PISMO URZĘDOWE NR 89/B
+            {t('officialLetterNo')}
           </h4>
         </div>
 
@@ -154,7 +156,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
         </div>
 
         <div className="mt-6 pt-3 border-t border-[#a8997c] flex justify-between items-end text-xs font-special-elite text-[#544331]">
-          <div>Pieczęć Nagłówkowa: <strong className="text-[#2e2216]">ZATWIERDZONO</strong></div>
+          <div>{t('sealLabel')} <strong className="text-[#2e2216]">{t('sealApproved')}</strong></div>
           <div className="text-right">
             <div className="font-serif italic font-bold text-base text-[#1c150e]">
               [-] Inspector General
@@ -171,7 +173,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
       <div className="relative my-3 p-5 bg-[#e3d8c1] text-[#1a140e] border border-[#78664e] shadow-xl font-serif select-text">
         <div className="border-b-4 border-double border-[#3b3022] text-center pb-2 mb-3">
           <div className="text-[10px] font-special-elite uppercase tracking-widest text-[#5c4a35]">
-            WYCINEK PRASOWY • EDITION SPECIAL
+            {t('pressClipping')}
           </div>
           <h4 className="font-extrabold text-xl md:text-2xl uppercase tracking-tight text-[#211810]">
             THE ARKHAM DAILY GAZETTE
@@ -196,7 +198,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
         
         <div className="relative z-0 mt-2">
           <span className="block text-[10px] font-special-elite text-[#8c7356] uppercase tracking-wider mb-3 opacity-90 border-b border-[#a8987d]/40 pb-1">
-            Wyrwana strona z notatnika
+            {t('tornPage')}
           </span>
           <div className="whitespace-pre-line italic text-[#24170d] leading-[28px] pr-2 text-base">
             {content}
@@ -240,7 +242,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
       </div>
 
       <span className="block text-xs font-special-elite text-[#5c4a37] uppercase tracking-wider mb-2 opacity-70">
-        📜 Treść Dokumentu
+        {t('documentContent')}
       </span>
       <div className="whitespace-pre-line italic text-[#24170d] pr-6">
         {content}

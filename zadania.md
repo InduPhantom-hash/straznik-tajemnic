@@ -76,30 +76,30 @@
 **Zadanie: Niepełna odpowiedź MG po limicie tokenów**
 
 **Faza 1: Kontrakt zakończenia provider -> SSE**
-- [ ] Przekazać `finishReason` z Gemini przez provider, pipeline i końcowe metadane SSE. `(Blokuje: Faza 2)`
-- [ ] Dodać telemetrię i testy dla `STOP`, `MAX_TOKENS` oraz braku wartości.
+- [x] Przekazać `finishReason` z Gemini przez provider, pipeline i końcowe metadane SSE. `(Blokuje: Faza 2)`
+- [x] Dodać telemetrię i testy dla `STOP`, `MAX_TOKENS` oraz braku wartości.
 - Weryfikacja: częściowy tekst i `MAX_TOKENS` docierają razem do klienta.
 
 **Faza 2: Stan wiadomości i obsługa partialu**
-- [ ] Zapisać `finishReason` na właściwej wiadomości MG. `(Zablokowane przez: Faza 1; Blokuje: Faza 3)`
-- [ ] Oznaczyć intro tym samym statusem i zachować wykonane efekty partialu.
-- [ ] Dodać testy `STOP`, `MAX_TOKENS`, intra i persistencji localStorage.
+- [x] Zapisać `finishReason` na właściwej wiadomości MG. `(Zablokowane przez: Faza 1; Blokuje: Faza 3)`
+- [x] Oznaczyć intro tym samym statusem i zachować wykonane efekty partialu.
+- [x] Dodać testy `STOP`, `MAX_TOKENS`, intra i persistencji localStorage.
 - Weryfikacja: partial zachowuje tekst oraz efekty, ale nie ma requestu kontynuacji.
 
 **Faza 3: Ręczna kontynuacja, UI i save/load**
-- [ ] Dodać wewnętrzny request bez dymku gracza, z zachowaniem sanitizacji, telemetryki i race guard. `(Zablokowane przez: Faza 2)`
-- [ ] Dodać `handleContinueNarration(messageId)` wyłącznie dla ostatniego `MAX_TOKENS`.
-- [ ] Pokazać komunikat oraz przycisk „Kontynuuj narrację” tylko na ostatniej wiadomości `MAX_TOKENS`. `(Zablokowane przez: Faza 2; Blokuje: Faza 4)`
-- [ ] Zachować status przez localStorage i pełny save/load, w tym `useFullSave.ts`.
-- [ ] Sprawdzić TTS, payload API i brak technicznego dymku gracza.
-- [ ] Dodać test komponentu i Playwright z mockowanym SSE.
+- [x] Dodać wewnętrzny request bez dymku gracza, z zachowaniem sanitizacji, telemetryki i race guard. `(Zablokowane przez: Faza 2)`
+- [x] Dodać `handleContinueNarration(messageId)` wyłącznie dla ostatniego `MAX_TOKENS`.
+- [x] Pokazać komunikat oraz przycisk „Kontynuuj narrację” tylko na ostatniej wiadomości `MAX_TOKENS`. `(Zablokowane przez: Faza 2; Blokuje: Faza 4)`
+- [x] Zachować status przez localStorage i pełny save/load, w tym `useFullSave.ts`.
+- [x] Sprawdzić TTS, payload API i brak technicznego dymku gracza.
+- [x] Dodać test komponentu i Playwright z mockowanym SSE.
 - Weryfikacja: stary save działa bez migracji, a status ucięcia przeżywa nowy save/load.
 
 **Faza 4: Dokumentacja i pełna weryfikacja**
-- [ ] Uzupełnić architekturę streamu i dokumentację testów. `(Zablokowane przez: Faza 3)`
-- [ ] Uruchomić testy celowane, TypeScript, pełne Jest, lint, build i E2E.
+- [x] Uzupełnić architekturę streamu i dokumentację testów. `(Zablokowane przez: Faza 3)`
+- [/] Uruchomić testy celowane, TypeScript, pełne Jest, lint, build i E2E. Jest 244/244, TypeScript, build i dedykowany E2E 1/1 przechodzą; pełny lint ma 124 zastane błędy, a ogólny QA E2E przechodzi 12/14 przez dwa stare selektory ukrytego sidebara i TTS.
 - [ ] Sprawdzić ręcznie LOW/MID/HIGH, Solo, Hot Seat i intro.
-- Weryfikacja: pełny zestaw testów przechodzi, a request kontynuacji powstaje wyłącznie po kliknięciu.
+- Weryfikacja: request kontynuacji powstaje wyłącznie po kliknięciu. Próby z prawdziwym Gemini wymagają osobnej zgody na koszt; `state.md` pozostaje bez zmiany do pełnego zielonego wyniku.
 
 ---
 
@@ -142,5 +142,4 @@
 - [x] Dodanie `object-top` do polaroida/załącznika graficznego w `discoveries-view.tsx`.
 - [x] Poprawki kadrowania portretów w `session-journal.tsx`, `npc-manager.tsx`, `predefined-characters-selector.tsx`, `character-manager.tsx`, `quick-setup-modal.tsx` oraz `message-card.tsx`.
 - Weryfikacja: `npx tsc --noEmit` (0 błędów), `npm test` PASS (48/48 suite'ów, 175 testów).
-
 

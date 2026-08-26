@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
 import { GEMINI_VOICES, DEFAULT_GEMINI_VOICE } from '@/lib/gemini-voices';
 import { HelpIcon } from '../../ui/tooltip';
@@ -16,6 +17,7 @@ export function ProviderSwitch({
   availableVoicesCount,
   loadAvailableVoices,
 }: ProviderSwitchProps) {
+  const t = useTranslations('TTSSettings');
   const provider = settings.voiceSettings.provider;
   const isGoogle = !provider || provider === 'google';
 
@@ -23,9 +25,9 @@ export function ProviderSwitch({
     <div className="md:col-span-2">
       <div className="flex items-center gap-2 mb-2">
         <span className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass">
-          Dostawca TTS
+          {t('providerLabel')}
         </span>
-        <HelpIcon content="Wybierz silnik syntezy mowy. Google = standardowy (Wavenet/Chirp3-HD). Gemini = nowy (Pro narrator/Flash NPC, audio tags)." />
+        <HelpIcon content={t('providerHelp')} />
       </div>
       <div className="flex flex-wrap gap-3">
         <label
@@ -57,7 +59,7 @@ export function ProviderSwitch({
               Google Cloud
             </span>
             <span className="font-special-elite text-[14px] uppercase tracking-[0.08em] text-muted-foreground">
-              Standardowa jakość, szybki
+              {t('googleDesc')}
             </span>
           </div>
         </label>
@@ -97,7 +99,7 @@ export function ProviderSwitch({
               Gemini Flash TTS
             </span>
             <span className="font-special-elite text-[14px] uppercase tracking-[0.08em] text-muted-foreground">
-              Tani (~50× taniej od ElevenLabs), preview
+              {t('geminiDesc')}
             </span>
           </div>
         </label>

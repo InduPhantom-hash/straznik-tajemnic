@@ -3,6 +3,7 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent } from 'react';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   X,
   Save,
@@ -71,7 +72,10 @@ interface SaveMeta {
 }
 
 /** "Dziś, 23:51" / "Wczoraj, 21:08" / "12.05, 18:00" - relatywna data (makieta 15). */
-function formatRelativeDate(iso: string): string {
+function formatRelativeDate(
+  iso: string,
+  t: (k: 'today' | 'yesterday', v?: Record<string, string | number | Date>) => string
+): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
   const time = d.toLocaleTimeString('pl-PL', {
@@ -86,8 +90,8 @@ function formatRelativeDate(iso: string): string {
   ).getTime();
   const dayMs = 86_400_000;
   const dDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  if (dDay === startOfToday) return `Dziś, ${time}`;
-  if (dDay === startOfToday - dayMs) return `Wczoraj, ${time}`;
+  if (dDay === startOfToday) return t('today', { time });
+  if (dDay === startOfToday - dayMs) return t('yesterday', { time });
   return `${d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' })}, ${time}`;
 }
 
@@ -137,6 +141,7 @@ export function FullGameSaveModal({
   onLoad,
   onSaved,
 }: FullGameSaveModalProps) {
+  const t = useTranslations('FullGameSaveModal');
   const [saveName, setSaveName] = useState('');
   const [saveNotes, setSaveNotes] = useState('');
   const [saveImages, setSaveImages] = useState(true);
@@ -165,10 +170,10 @@ export function FullGameSaveModal({
         const data = await response.json();
         setSavesList(data.saves || []);
       } else {
-        console.error("Błąd podczas pobierania listy save'ów");
+        console.error('Failed to fetch saves list');
       }
     } catch (error) {
-      console.error("Błąd podczas ładowania save'ów:", error);
+      console.error('Failed to load saves:', error);
     } finally {
       setIsLoading(false);
     }
@@ -199,19 +204,19 @@ export function FullGameSaveModal({
       const data = await res.json();
       return data?.images?.[0]?.url ?? null;
     } catch (e) {
-      console.warn(`⚠️ Upload obrazu ${name} nie powiódł się:`, e);
+      console.warn(`Image upload ${name} failed:`, e);
       return null;
     }
   };
 
   const handleSave = async () => {
     if (!saveName.trim()) {
-      setError("Nazwa save'u jest wymagana");
+      setError(t('nameRequired'));
       return;
     }
 
     if (!currentData) {
-      setError('Brak danych do zapisania');
+      setError(t('noDataToSave'));
       return;
     }
 
@@ -310,18 +315,23 @@ export function FullGameSaveModal({
         const result = await response.json();
         console.log('✅ Save zapisany:', result);
         alert(
-          `Save "${saveName}" został zapisany pomyślnie!\nRozmiar: ${result.formattedSize}\nWiadomości: ${result.messageCount}\nObrazy: ${result.imageCount}`
+          t('savedSuccess', {
+            name: saveName,
+            size: result.formattedSize,
+            messages: result.messageCount,
+            images: result.imageCount,
+          })
         );
         onClose();
         // Po udanym zapisie: powiadom rodzica (np. reset do kreatora dla "Nowej przygody")
         onSaved?.();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Nie udało się zapisać save'u");
+        throw new Error(errorData.error || t('saveFailed'));
       }
     } catch (error) {
-      console.error('Błąd podczas zapisywania:', error);
-      setError(error instanceof Error ? error.message : 'Nieznany błąd');
+      console.error('Error while saving:', error);
+      setError(error instanceof Error ? error.message : t('unknownError'));
     } finally {
       setIsSaving(false);
     }
@@ -344,11 +354,11 @@ export function FullGameSaveModal({
         onClose();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Nie udało się wczytać save'u");
+        throw new Error(errorData.error || t('loadFailed'));
       }
     } catch (error) {
-      console.error('Błąd podczas wczytywania:', error);
-      setError(error instanceof Error ? error.message : 'Nieznany błąd');
+      console.error('Error while loading:', error);
+      setError(error instanceof Error ? error.message : t('unknownError'));
     } finally {
       setIsLoading(false);
     }
@@ -364,17 +374,19 @@ export function FullGameSaveModal({
       );
 
       if (response.ok) {
-        alert('Save usunięty pomyślnie');
+        alert(t('deletedSuccess'));
         loadSavesList();
         setShowDeleteConfirm(null);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Nie udało się usunąć save'u");
+        throw new Error(errorData.error || t('deleteFailed'));
       }
     } catch (error) {
-      console.error('Błąd podczas usuwania:', error);
+      console.error('Error while deleting:', error);
       alert(
-        `Błąd podczas usuwania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`
+        t('deleteErrorAlert', {
+          error: error instanceof Error ? error.message : t('unknownError'),
+        })
       );
     }
   };
@@ -389,11 +401,11 @@ export function FullGameSaveModal({
         const data = await response.json();
         FullGameSaveManager.exportToFile(data.save);
       } else {
-        alert("Nie udało się eksportować save'u");
+        alert(t('exportFailed'));
       }
     } catch (error) {
-      console.error('Błąd podczas eksportu:', error);
-      alert("Błąd podczas eksportu save'u");
+      console.error('Error while exporting:', error);
+      alert(t('exportError'));
     }
   };
 
@@ -407,11 +419,11 @@ export function FullGameSaveModal({
         onLoad(save);
         onClose();
       } else {
-        alert("Nie udało się zaimportować save'u");
+        alert(t('importFailed'));
       }
     } catch (error) {
-      console.error('Błąd podczas importu:', error);
-      alert("Błąd podczas importu save'u");
+      console.error('Error while importing:', error);
+      alert(t('importError'));
     }
   };
 
@@ -430,12 +442,10 @@ export function FullGameSaveModal({
         <div className="flex justify-between items-center p-6 border-b border-brass/25">
           <div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
-              {mode === 'save'
-                ? 'Archiwum · zapis stanu'
-                : 'Archiwum · wczytanie'}
+              {mode === 'save' ? t('saveEyebrow') : t('loadEyebrow')}
             </div>
             <h2 className="mt-1 font-display uppercase tracking-[0.1em] text-2xl text-foreground">
-              {mode === 'save' ? 'Zapisz grę' : 'Wczytaj grę'}
+              {mode === 'save' ? t('saveTitle') : t('loadTitle')}
             </h2>
           </div>
           <button
@@ -465,7 +475,7 @@ export function FullGameSaveModal({
                   type="text"
                   value={saveName}
                   onChange={(e) => setSaveName(e.target.value)}
-                  placeholder="Np. 'Rozdział 1 - Po śladach kultu'"
+                  placeholder={t('namePlaceholder')}
                   className="w-full px-4 py-2 bg-input border border-brass/30 rounded-md font-special-elite text-foreground focus:border-primary focus:outline-none"
                 />
               </div>
@@ -519,13 +529,13 @@ export function FullGameSaveModal({
                 <span className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/40" />
                 <h3 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-3 flex items-center gap-2">
                   <Info size={14} />
-                  Zawartość zapisu
+                  {t('contentTitle')}
                 </h3>
                 <ul className="font-special-elite text-xs text-muted-foreground tracking-[0.04em] space-y-2">
                   <li className="flex items-center justify-between">
                     <span>Historia rozmowy</span>
                     <span className="text-foreground">
-                      {currentData?.messages.length || 0} wiadomości
+                      {t('messagesCount', { count: currentData?.messages.length || 0 })}
                     </span>
                   </li>
                   <li className="flex items-center justify-between">
@@ -581,12 +591,12 @@ export function FullGameSaveModal({
                   className="px-4 py-2 border border-primary bg-primary text-[#04110f] font-display uppercase tracking-[0.12em] text-sm hover:brightness-110 disabled:opacity-50 flex items-center gap-2"
                 >
                   <FolderOpen size={16} />
-                  Odśwież listę
+                  {t('refreshList')}
                 </button>
 
                 <label className="px-4 py-2 border border-brass/50 bg-brass/[0.04] text-brass font-display uppercase tracking-[0.12em] text-sm hover:bg-brass/10 cursor-pointer flex items-center gap-2">
                   <Upload size={16} />
-                  Importuj z pliku
+                  {t('importFromFile')}
                   <input
                     type="file"
                     accept=".json"
@@ -597,7 +607,7 @@ export function FullGameSaveModal({
               </div>
               {isLoading ? (
                 <div className="text-center py-8 font-special-elite uppercase tracking-[0.18em] text-sm text-muted-foreground">
-                  Ładowanie zapisów...
+                  {t('loadingSaves')}
                 </div>
               ) : savesList.length === 0 ? (
                 <div className="relative border border-dashed border-brass/30 bg-[#1f1a14]/40 py-10 text-center">
@@ -605,7 +615,7 @@ export function FullGameSaveModal({
                     Brak zapisanych gier
                   </p>
                   <p className="font-serif italic text-muted-foreground mt-1">
-                    Zapisz swoją pierwszą kronikę
+                    {t('firstChronicle')}
                   </p>
                 </div>
               ) : (
@@ -624,12 +634,12 @@ export function FullGameSaveModal({
                           {save.thumbnail ? (
                             <SafeImage
                               src={save.thumbnail}
-                              alt="Miniatura sceny"
+                              alt={t('sceneAlt')}
                               className="w-full h-full object-cover"
                             />
                           ) : (
                             <span className="font-special-elite text-[13px] uppercase tracking-[0.18em] text-muted-foreground/60">
-                              Scena
+                              {t('sceneFallback')}
                             </span>
                           )}
                         </div>
@@ -643,11 +653,11 @@ export function FullGameSaveModal({
                             <div className="flex-none flex items-center gap-2">
                               {idx === 0 && (
                                 <span className="font-special-elite text-[13px] uppercase tracking-[0.14em] text-primary border border-primary/50 px-1.5 py-0.5">
-                                  ● Aktualny
+                                  {t('currentBadge')}
                                 </span>
                               )}
                               <span className="font-special-elite text-[14px] uppercase tracking-[0.06em] text-muted-foreground whitespace-nowrap">
-                                {formatRelativeDate(save.createdAt)}
+                                {formatRelativeDate(save.createdAt, t)}
                               </span>
                             </div>
                           </div>
@@ -669,23 +679,32 @@ export function FullGameSaveModal({
                             )}
                             {formatGameTime(save.durationMinutes) && (
                               <span>
-                                Czas gry {formatGameTime(save.durationMinutes)}
+                                {t('gameTimeLabel', {
+                                  time: formatGameTime(save.durationMinutes) ?? '',
+                                })}
                               </span>
                             )}
                             {typeof save.hp === 'number' && (
                               <span>
-                                PŻ {save.hp}
-                                {save.maxHp ? `/${save.maxHp}` : ''}
+                                {t('hpLabel', {
+                                  hp: save.hp,
+                                  max: save.maxHp ? `/${save.maxHp}` : '',
+                                })}
                               </span>
                             )}
                             {typeof save.san === 'number' && (
                               <span>
-                                PR {save.san}
-                                {save.maxSan ? `/${save.maxSan}` : ''}
+                                {t('sanLabel', {
+                                  san: save.san,
+                                  max: save.maxSan ? `/${save.maxSan}` : '',
+                                })}
                               </span>
                             )}
                             <span className="text-muted-foreground/60">
-                              {save.formattedSize} · {save.imageCount} ilustr.
+                              {t('sizeImagesLabel', {
+                                size: save.formattedSize,
+                                count: save.imageCount,
+                              })}
                             </span>
                           </div>
                         </div>
@@ -696,7 +715,7 @@ export function FullGameSaveModal({
                           onClick={() => handleLoad(save)}
                           className="flex-1 px-3 py-2 border border-primary bg-primary text-[#04110f] font-display uppercase tracking-[0.12em] text-xs hover:brightness-110"
                         >
-                          Wczytaj
+                          {t('loadButton')}
                         </button>
                         <button
                           onClick={() => handleExport(save)}
@@ -708,7 +727,7 @@ export function FullGameSaveModal({
                         <button
                           onClick={() => setShowDeleteConfirm(save.id)}
                           className="px-3 py-2 border border-destructive/50 bg-destructive/[0.06] text-destructive hover:bg-destructive/15 text-xs"
-                          title="Usuń"
+                          title={t('deleteTitle')}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -717,21 +736,20 @@ export function FullGameSaveModal({
                       {showDeleteConfirm === save.id && (
                         <div className="mt-3 border-l-2 border-destructive bg-destructive/10 p-3">
                           <p className="font-special-elite text-xs text-destructive mb-2 tracking-[0.04em]">
-                            Czy na pewno chcesz usunąć ten zapis? Tej operacji
-                            nie można cofnąć.
+                            {t('deleteConfirmQuestion')}
                           </p>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleDelete(save.id)}
                               className="px-3 py-1.5 border border-destructive bg-destructive text-destructive-foreground font-display uppercase tracking-[0.12em] text-xs hover:bg-destructive/90"
                             >
-                              Usuń
+                              {t('deleteButton')}
                             </button>
                             <button
                               onClick={() => setShowDeleteConfirm(null)}
                               className="px-3 py-1.5 border border-brass/40 text-muted-foreground font-display uppercase tracking-[0.12em] text-xs hover:text-brass hover:border-brass/60"
                             >
-                              Anuluj
+                              {t('cancel')}
                             </button>
                           </div>
                         </div>
@@ -750,7 +768,7 @@ export function FullGameSaveModal({
             onClick={onClose}
             className="px-6 py-2 border border-brass/40 text-muted-foreground font-display uppercase tracking-[0.16em] text-sm hover:text-brass hover:border-brass/60 transition-colors"
           >
-            Anuluj
+            {t('cancel')}
           </button>
 
           {mode === 'save' && (
@@ -760,7 +778,7 @@ export function FullGameSaveModal({
               className="px-6 py-2 border border-primary bg-primary text-[#04110f] font-display uppercase tracking-[0.16em] text-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Save size={16} />
-              {isSaving ? 'Zapisywanie...' : 'Zapisz grę'}
+              {isSaving ? t('saving') : t('saveTitle')}
             </button>
           )}
         </div>

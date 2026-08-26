@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 
 /**
@@ -29,6 +30,7 @@ export function FullResetDialog({
   onConfirmStep1,
   onConfirm,
 }: FullResetDialogProps) {
+  const t = useTranslations('FullResetDialog');
   if (!show) return null;
 
   return (
@@ -48,26 +50,26 @@ export function FullResetDialog({
         {step === 1 && (
           <>
             <h3 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
-              ⚠️ Pełny Reset Aplikacji
+              {t('title')}
             </h3>
             <div className="text-foreground mb-6 space-y-2">
               <p>
-                Ta operacja{' '}
-                <strong className="text-red-400">NIEODWRACALNIE</strong> usunie:
+                {t.rich('intro', {
+                  strong: (chunks) => (
+                    <strong className="text-red-400">{chunks}</strong>
+                  ),
+                })}
               </p>
               <ul className="list-disc list-inside text-sm space-y-1 ml-2">
-                <li>Wszystkie postaci i ich historię</li>
-                <li>Wszystkie sesje i kampanie</li>
-                <li>Historię czatu i wiadomości</li>
-                <li>Ustawienia aplikacji</li>
-                <li>Notatki i zapisane dane</li>
-                <li>
-                  🖼️ Cache mediów (IndexedDB ~150 MB - portrety NPC, obrazy,
-                  audio)
-                </li>
-                <li>🌲 Pinecone Vector DB (zasady CoC, NPC, świat gry)</li>
-                <li>📚 PDFy w GCS (zasady CoC, przygody, notatki MG)</li>
-                <li>Cache i tymczasowe pliki</li>
+                <li>{t('itemCharacters')}</li>
+                <li>{t('itemSessions')}</li>
+                <li>{t('itemChatHistory')}</li>
+                <li>{t('itemSettings')}</li>
+                <li>{t('itemNotes')}</li>
+                <li>{t('itemMediaCache')}</li>
+                <li>{t('itemPinecone')}</li>
+                <li>{t('itemPdfs')}</li>
+                <li>{t('itemCache')}</li>
               </ul>
             </div>
             <div className="flex gap-3">
@@ -76,14 +78,14 @@ export function FullResetDialog({
                 variant="outline"
                 className="flex-1 bg-muted hover:bg-muted border-border"
               >
-                Anuluj
+                {t('cancel')}
               </Button>
               <Button
                 onClick={onConfirmStep1}
                 variant="destructive"
                 className="flex-1 bg-red-600 hover:bg-red-700"
               >
-                Rozumiem, kontynuuj
+                {t('understandContinue')}
               </Button>
             </div>
           </>
@@ -92,15 +94,18 @@ export function FullResetDialog({
         {step === 2 && (
           <>
             <h3 className="text-xl font-bold text-red-500 mb-4 flex items-center gap-2">
-              🚨 OSTATNIE OSTRZEŻENIE
+              {t('lastWarning')}
             </h3>
             <div className="text-foreground mb-6">
               <p className="text-center text-lg mb-4">
-                Czy na pewno chcesz{' '}
-                <strong className="text-red-500">USUNĄĆ WSZYSTKIE DANE</strong>?
+                {t.rich('confirmDeleteAllQuestion', {
+                  strong: (chunks) => (
+                    <strong className="text-red-500">{chunks}</strong>
+                  ),
+                })}
               </p>
               <p className="text-center text-sm text-muted-foreground">
-                Ta operacja nie może być cofnięta!
+                {t('irreversible')}
               </p>
             </div>
             <div className="flex gap-3">
@@ -109,14 +114,14 @@ export function FullResetDialog({
                 variant="outline"
                 className="flex-1 bg-muted hover:bg-muted border-border"
               >
-                ❌ Anuluj
+                {t('cancelX')}
               </Button>
               <Button
                 onClick={() => onConfirm()}
                 variant="destructive"
                 className="flex-1 bg-red-700 hover:bg-red-800 animate-pulse"
               >
-                🗑️ TAK, USUŃ WSZYSTKO
+                {t('deleteAll')}
               </Button>
             </div>
           </>

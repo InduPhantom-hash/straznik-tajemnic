@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
@@ -54,18 +55,22 @@ export interface ChaseComplication {
   severity: number;
 }
 
-// Tabela komplikacji z promptu
+/**
+ * Tabela komplikacji z promptu. name/description przechowują stabilne
+ * identyfikatory kluczy (namespace ChaseSystem: comp<N>Name/comp<N>Desc) -
+ * tłumaczenie następuje w miejscu użycia przez t().
+ */
 const CHASE_COMPLICATIONS: ChaseComplication[] = [
-  { id: '1', name: 'Mokra nawierzchnia', description: 'Śliska podłoga/ulica - test ZRE lub upadek', effect: 'slow', severity: 1 },
-  { id: '2', name: 'Tłum przechodniów', description: 'Gęsty tłum blokuje drogę', effect: 'obstacle', severity: 1 },
-  { id: '3', name: 'Samochód wyjeżdża', description: 'Nagły samochód wymusza unik', effect: 'obstacle', severity: 2 },
-  { id: '4', name: 'Zamknięta brama', description: 'Trzeba przeskoczyć lub obejść', effect: 'slow', severity: 2 },
-  { id: '5', name: 'Sterta skrzynek', description: 'Można zrzucić za sobą jako przeszkodę', effect: 'advantage', severity: 1 },
-  { id: '6', name: 'Ciemna alejka', description: 'Możliwość ukrycia się lub zasadzki', effect: 'advantage', severity: 2 },
-  { id: '7', name: 'Budowa', description: 'Rusztowania - ryzykowny skrót lub okrążenie', effect: 'obstacle', severity: 3 },
-  { id: '8', name: 'Psy stróżujące', description: 'Agresywne psy atakują spóźnionego', effect: 'damage', severity: 2 },
-  { id: '9', name: 'Stromy dach', description: 'Niebezpieczna przeprawa nad ulicą', effect: 'obstacle', severity: 3 },
-  { id: '10', name: 'Zawalenie się', description: 'Konstrukcja się wali - szybka reakcja!', effect: 'damage', severity: 4 },
+  { id: '1', name: 'comp1Name', description: 'comp1Desc', effect: 'slow', severity: 1 },
+  { id: '2', name: 'comp2Name', description: 'comp2Desc', effect: 'obstacle', severity: 1 },
+  { id: '3', name: 'comp3Name', description: 'comp3Desc', effect: 'obstacle', severity: 2 },
+  { id: '4', name: 'comp4Name', description: 'comp4Desc', effect: 'slow', severity: 2 },
+  { id: '5', name: 'comp5Name', description: 'comp5Desc', effect: 'advantage', severity: 1 },
+  { id: '6', name: 'comp6Name', description: 'comp6Desc', effect: 'advantage', severity: 2 },
+  { id: '7', name: 'comp7Name', description: 'comp7Desc', effect: 'obstacle', severity: 3 },
+  { id: '8', name: 'comp8Name', description: 'comp8Desc', effect: 'damage', severity: 2 },
+  { id: '9', name: 'comp9Name', description: 'comp9Desc', effect: 'obstacle', severity: 3 },
+  { id: '10', name: 'comp10Name', description: 'comp10Desc', effect: 'damage', severity: 4 },
 ];
 
 // === GŁÓWNY KOMPONENT ===
@@ -85,6 +90,7 @@ export function ChaseSystem({
   pursuer,
   onChaseEnd
 }: ChaseSystemProps) {
+  const t = useTranslations('ChaseSystem');
   const [player, setPlayer] = useState<ChaseParticipant>(playerCharacter);
   const [enemy, setEnemy] = useState<ChaseParticipant>(pursuer);
   const [currentRound, setCurrentRound] = useState(1);
@@ -138,11 +144,11 @@ export function ChaseSystem({
     if (Math.random() < 0.3) { // 30% szans na komplikację
       const comp = CHASE_COMPLICATIONS[Math.floor(Math.random() * CHASE_COMPLICATIONS.length)];
       setComplication(comp);
-      addLog(`⚠️ Komplikacja: ${comp.name}`);
+      addLog(t('complicationLog', { name: t(comp.name as never) }));
       return comp;
     }
     return null;
-  }, [addLog]);
+  }, [addLog, t]);
 
   // Punkt decyzji
   const generateDecisionPoint = useCallback(() => {
@@ -154,39 +160,39 @@ export function ChaseSystem({
     
     switch (type) {
       case 'obstacle':
-        description = 'Przed tobą wysoki mur!';
+        description = t('dpObstacleDesc');
         options = [
-          { id: '1', name: 'Przeskocz', skillRequired: 'Skok', difficulty: 50, successBonus: 2, failurePenalty: 1 },
-          { id: '2', name: 'Obejdź', difficulty: 0, successBonus: 0, failurePenalty: 0 },
+          { id: '1', name: t('optJumpOver'), skillRequired: t('skillJump'), difficulty: 50, successBonus: 2, failurePenalty: 1 },
+          { id: '2', name: t('optGoAround'), difficulty: 0, successBonus: 0, failurePenalty: 0 },
         ];
         break;
       case 'hazard':
-        description = 'Nadjeżdża rozpędzony samochód!';
+        description = t('dpHazardDesc');
         options = [
-          { id: '1', name: 'Przebiegaj!', skillRequired: 'Zręczność', difficulty: 60, successBonus: 1, failurePenalty: 3, riskDescription: 'Ryzyko obrażeń!' },
-          { id: '2', name: 'Poczekaj', difficulty: 0, successBonus: -1, failurePenalty: 0 },
+          { id: '1', name: t('optRunThrough'), skillRequired: t('skillDex'), difficulty: 60, successBonus: 1, failurePenalty: 3, riskDescription: t('riskInjury') },
+          { id: '2', name: t('optWait'), difficulty: 0, successBonus: -1, failurePenalty: 0 },
         ];
         break;
       case 'shortcut':
-        description = 'Widzisz wąską alejkę - skrót?';
+        description = t('dpShortcutDesc');
         options = [
-          { id: '1', name: 'Skrót przez alejkę', skillRequired: 'Orientacja', difficulty: 40, successBonus: 3, failurePenalty: 2 },
-          { id: '2', name: 'Trzymaj się głównej drogi', difficulty: 0, successBonus: 1, failurePenalty: 0 },
+          { id: '1', name: t('optAlleyShortcut'), skillRequired: t('skillOrientation'), difficulty: 40, successBonus: 3, failurePenalty: 2 },
+          { id: '2', name: t('optStayMainRoad'), difficulty: 0, successBonus: 1, failurePenalty: 0 },
         ];
         break;
       case 'hideout':
-        description = 'Otwarte drzwi do piwnicy!';
+        description = t('dpHideoutDesc');
         options = [
-          { id: '1', name: 'Ukryj się', skillRequired: 'Ukrywanie', difficulty: 55, successBonus: 5, failurePenalty: 0, riskDescription: 'Możesz zgubić pościg!' },
-          { id: '2', name: 'Biegnij dalej', difficulty: 0, successBonus: 1, failurePenalty: 0 },
+          { id: '1', name: t('optHide'), skillRequired: t('skillHiding'), difficulty: 55, successBonus: 5, failurePenalty: 0, riskDescription: t('riskLoseChase') },
+          { id: '2', name: t('optKeepRunning'), difficulty: 0, successBonus: 1, failurePenalty: 0 },
         ];
         break;
       default:
-        description = 'Rozdroże - którą drogą?';
+        description = t('dpCrossroadsDesc');
         options = [
-          { id: '1', name: 'Lewo (wąska uliczka)', skillRequired: 'Szczęście', difficulty: 50, successBonus: 2, failurePenalty: 1 },
-          { id: '2', name: 'Prosto (główna droga)', difficulty: 0, successBonus: 1, failurePenalty: 0 },
-          { id: '3', name: 'Prawo (przez park)', skillRequired: 'Bieganie', difficulty: 45, successBonus: 2, failurePenalty: 1 },
+          { id: '1', name: t('optLeftAlley'), skillRequired: t('skillLuck'), difficulty: 50, successBonus: 2, failurePenalty: 1 },
+          { id: '2', name: t('optStraightMainRoad'), difficulty: 0, successBonus: 1, failurePenalty: 0 },
+          { id: '3', name: t('optRightPark'), skillRequired: t('skillRunning'), difficulty: 45, successBonus: 2, failurePenalty: 1 },
         ];
     }
     
@@ -200,7 +206,7 @@ export function ChaseSystem({
     
     setDecisionPoint(point);
     addLog(`📍 ${description}`);
-  }, [player.position, addLog]);
+  }, [player.position, addLog, t]);
 
   // Wykonaj test i przesuń
   const performChaseAction = useCallback((option: ChaseOption) => {
@@ -213,13 +219,23 @@ export function ChaseSystem({
       
       if (success) {
         positionChange = option.successBonus;
-        message = `✓ ${option.name}: Sukces! (${roll}/${option.difficulty}) +${option.successBonus} pól`;
+        message = t('successMsg', {
+          name: option.name,
+          roll,
+          difficulty: option.difficulty,
+          bonus: option.successBonus,
+        });
       } else {
         positionChange = -option.failurePenalty;
-        message = `✗ ${option.name}: Porażka! (${roll}/${option.difficulty}) -${option.failurePenalty} pól`;
+        message = t('failureMsg', {
+          name: option.name,
+          roll,
+          difficulty: option.difficulty,
+          penalty: option.failurePenalty,
+        });
       }
     } else {
-      message = `→ ${option.name}: +${option.successBonus} pól`;
+      message = t('freeMoveMsg', { name: option.name, bonus: option.successBonus });
     }
     
     addLog(message);
@@ -236,7 +252,7 @@ export function ChaseSystem({
     setTimeout(() => {
       enemyTurn();
     }, 500);
-  }, [addLog]);
+  }, [addLog, t]);
 
   // Tura przeciwnika (AI)
   const enemyTurn = useCallback(() => {
@@ -254,7 +270,13 @@ export function ChaseSystem({
       position: prev.position + Math.max(0, move)
     }));
     
-    addLog(`🔴 ${enemy.name} ${success ? 'przyspiesza' : 'zwalnia'} (+${move} pól)`);
+    addLog(
+      t('enemyMoveLog', {
+        name: enemy.name,
+        action: success ? t('enemyAccelerates') : t('enemySlowsDown'),
+        move,
+      })
+    );
     
     // Nowa runda
     setCurrentRound(prev => prev + 1);
@@ -266,7 +288,7 @@ export function ChaseSystem({
     } else {
       generateComplication();
     }
-  }, [enemy, addLog, generateDecisionPoint, generateComplication]);
+  }, [enemy, addLog, generateDecisionPoint, generateComplication, t]);
 
   // Podstawowe akcje gracza
   const sprintAction = useCallback(() => {
@@ -275,20 +297,20 @@ export function ChaseSystem({
     
     if (success) {
       setPlayer(prev => ({ ...prev, position: prev.position + player.speed + 1 }));
-      addLog(`🏃 Sprint: Sukces! (${roll}/${player.con}) +${player.speed + 1} pól`);
+      addLog(t('sprintSuccess', { roll, con: player.con, gain: player.speed + 1 }));
     } else {
       setPlayer(prev => ({ ...prev, position: prev.position + player.speed - 1, isExhausted: true }));
-      addLog(`🏃 Sprint: Porażka! (${roll}/${player.con}) +${player.speed - 1} pól, WYCZERPANY`);
+      addLog(t('sprintFailure', { roll, con: player.con, loss: player.speed - 1 }));
     }
     
     setTimeout(() => enemyTurn(), 500);
-  }, [player, addLog, enemyTurn]);
+  }, [player, addLog, enemyTurn, t]);
 
   const normalRun = useCallback(() => {
     setPlayer(prev => ({ ...prev, position: prev.position + player.speed }));
-    addLog(`🏃 Bieg: +${player.speed} pól`);
+    addLog(t('runLog', { speed: player.speed }));
     setTimeout(() => enemyTurn(), 500);
-  }, [player.speed, addLog, enemyTurn]);
+  }, [player.speed, addLog, enemyTurn, t]);
 
   const tryToHide = useCallback(() => {
     const roll = Math.floor(Math.random() * 100) + 1;
@@ -296,12 +318,12 @@ export function ChaseSystem({
     
     if (success) {
       setShowResult('escaped');
-      addLog(`🙈 Ukrycie: Sukces! (${roll}/40) Uciekłeś!`);
+      addLog(t('hideSuccess', { roll }));
     } else {
-      addLog(`🙈 Ukrycie: Porażka! (${roll}/40) Zostałeś zauważony!`);
+      addLog(t('hideFailure', { roll }));
       setTimeout(() => enemyTurn(), 500);
     }
-  }, [addLog, enemyTurn]);
+  }, [addLog, enemyTurn, t]);
 
   // Renderowanie toru pościgu
   const renderTrack = () => {
@@ -350,20 +372,20 @@ export function ChaseSystem({
               {showResult === 'escaped' ? '🏆' : '😱'}
             </div>
             <h2 className={`text-2xl font-bold mb-4 ${showResult === 'escaped' ? 'text-green-400' : 'text-red-400'}`}>
-              {showResult === 'escaped' ? 'UDAŁO SIĘ UCIEC!' : 'ZOSTAŁEŚ ZŁAPANY!'}
+              {showResult === 'escaped' ? t('escapedTitle') : t('caughtTitle')}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {showResult === 'escaped' 
-                ? 'Udało ci się zgubić pościg i znaleźć bezpieczne miejsce.'
-                : 'Pościg dogonił cię. Musisz stawić czoła konsekwencjom.'}
+              {showResult === 'escaped'
+                ? t('escapedText')
+                : t('caughtText')}
             </p>
             <div className="flex gap-3 justify-center">
               <Button onClick={() => onChaseEnd(showResult)}>
-                Kontynuuj
+                {t('continueButton')}
               </Button>
               {showResult === 'caught' && (
                 <Button variant="destructive" onClick={() => onChaseEnd('fight')}>
-                  ⚔️ Walcz!
+                  {t('fightButton')}
                 </Button>
               )}
             </div>
@@ -379,8 +401,8 @@ export function ChaseSystem({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl flex items-center gap-2">
-              🏃 Pościg! 
-              <Badge className="bg-amber-500">{currentRound} runda</Badge>
+              {t('title')}
+              <Badge className="bg-amber-500">{t('roundBadge', { round: currentRound })}</Badge>
             </CardTitle>
             <Button variant="ghost" onClick={onClose}>✕</Button>
           </div>
@@ -388,7 +410,7 @@ export function ChaseSystem({
           {/* Pasek napięcia */}
           <div className="mt-4">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-amber-400">⚡ Napięcie</span>
+              <span className="text-amber-400">{t('tensionLabel')}</span>
               <span className={tension < 30 ? 'text-red-400' : 'text-amber-400'}>{tension}%</span>
             </div>
             <Progress value={tension} className="h-2" />
@@ -399,20 +421,21 @@ export function ChaseSystem({
           {/* Tor pościgu */}
           <div className="bg-black/30 p-4 rounded-lg">
             <div className="text-center mb-2 text-sm text-muted-foreground">
-              Dystans: <span className={player.position - enemy.position > 2 ? 'text-green-400' : 'text-red-400'}>
-                {player.position - enemy.position} pól
+              {t('distanceLabel')}{' '}
+              <span className={player.position - enemy.position > 2 ? 'text-green-400' : 'text-red-400'}>
+                {t('fieldsUnit', { count: player.position - enemy.position })}
               </span>
               {player.position - enemy.position >= ESCAPE_DISTANCE - 1 && (
-                <Badge className="ml-2 bg-green-500">Blisko ucieczki!</Badge>
+                <Badge className="ml-2 bg-green-500">{t('nearEscape')}</Badge>
               )}
               {player.position - enemy.position <= 1 && (
-                <Badge className="ml-2 bg-red-500">Zaraz cię dogoni!</Badge>
+                <Badge className="ml-2 bg-red-500">{t('aboutToBeCaught')}</Badge>
               )}
             </div>
             {renderTrack()}
             <div className="flex justify-between text-xs text-muted-foreground mt-2">
-              <span>🏁 Start</span>
-              <span>🚪 Ucieczka</span>
+              <span>{t('startLabel')}</span>
+              <span>{t('escapeLabel')}</span>
             </div>
           </div>
 
@@ -452,21 +475,21 @@ export function ChaseSystem({
             <Card className="border-yellow-500/50 bg-yellow-900/20">
               <CardContent className="p-4">
                 <h4 className="text-lg font-semibold text-yellow-300 flex items-center gap-2">
-                  ⚠️ {complication.name}
+                  ⚠️ {t(complication.name as never)}
                 </h4>
-                <p className="text-sm text-yellow-200 mt-1">{complication.description}</p>
+                <p className="text-sm text-yellow-200 mt-1">{t(complication.description as never)}</p>
                 <Button 
                   onClick={() => {
                     setComplication(null);
                     // Zastosuj efekt komplikacji
                     if (complication.effect === 'slow') {
                       setPlayer(prev => ({ ...prev, position: prev.position - 1 }));
-                      addLog(`Komplikacja spowolniła cię o 1 pole`);
+                      addLog(t('complicationSlowLog'));
                     }
                   }}
                   className="mt-2"
                 >
-                  Kontynuuj
+                  {t('continueButton')}
                 </Button>
               </CardContent>
             </Card>
@@ -479,27 +502,27 @@ export function ChaseSystem({
                 onClick={normalRun}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                🏃 Biegnij (+{player.speed})
+                {t('runButton', { speed: player.speed })}
               </Button>
               <Button 
                 onClick={sprintAction}
                 className="bg-orange-600 hover:bg-orange-700"
                 disabled={player.isExhausted}
               >
-                💨 Sprint (KON)
+                {t('sprintButton')}
               </Button>
               <Button 
                 onClick={tryToHide}
                 className="bg-purple-600 hover:bg-purple-700"
               >
-                🙈 Ukryj się
+                {t('hideButton')}
               </Button>
             </div>
           )}
 
           {/* Log */}
           <div className="bg-black/30 rounded-lg p-3 max-h-32 overflow-y-auto">
-            <h4 className="text-sm font-semibold text-muted-foreground mb-2">📜 Historia</h4>
+            <h4 className="text-sm font-semibold text-muted-foreground mb-2">{t('historyTitle')}</h4>
             <div className="space-y-1 text-xs">
               {log.slice(-5).map((entry, i) => (
                 <div key={i} className="text-foreground">{entry}</div>

@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../../ui/tooltip';
 
@@ -8,13 +9,14 @@ interface SharedSlidersProps {
 }
 
 export function VolumeSlider({ settings, setSettings }: SharedSlidersProps) {
+  const t = useTranslations('TTSSettings');
   const volume = settings.voiceSettings.volume;
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <label className="flex items-center gap-2 font-special-elite uppercase text-[14px] tracking-[0.12em] text-muted-foreground">
-          Głośność
-          <HelpIcon content="Głośność narracji od 0 (cisza) do 100 (maksymalna głośność)" />
+          {t('volumeLabel')}
+          <HelpIcon content={t('volumeHelp')} />
         </label>
         <span className="font-special-elite text-sm text-primary">
           {volume}
@@ -54,14 +56,15 @@ export function VolumeSlider({ settings, setSettings }: SharedSlidersProps) {
 }
 
 export function SpeedSlider({ settings, setSettings }: SharedSlidersProps) {
+  const t = useTranslations('TTSSettings');
   const speed = settings.voiceSettings.speed || 1.0;
   const pct = ((speed - 0.5) / 1.5) * 100;
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <label className="flex items-center gap-2 font-special-elite uppercase text-[14px] tracking-[0.12em] text-muted-foreground">
-          Prędkość mówienia
-          <HelpIcon content="Szybkość czytania tekstu. 1.0x = normalnie." />
+          {t('speedLabel')}
+          <HelpIcon content={t('speedHelp')} />
         </label>
         <span className="font-special-elite text-sm text-primary">
           {speed.toFixed(1)}×
