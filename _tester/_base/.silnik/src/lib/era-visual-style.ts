@@ -4,6 +4,8 @@
  * filtry barwne, tekstowe dyrektywy oświetlenia oraz strażników anachronizmów.
  */
 
+import type { ResolvedEraContext } from '@/lib/era/types';
+
 export type EraVisualProfile =
   | '1890s'
   | '1920s'
@@ -32,10 +34,14 @@ const ERA_IMAGE_FILTERS: Record<EraVisualProfile, string> = {
 /**
  * Precyzyjnie rozpoznaje profil epoki na podstawie nazwy ery, etykiety lub roku.
  * Zapobiega wpadaniu lat 1900-1919 i 1950-1959 do modern, a lat 80. do PRL-u lat 70.
+ * Akceptuje też wprost `ResolvedEraContext` - wtedy decyduje `effectiveYear`.
  */
 export function resolveEraVisualProfile(
-  eraOrYear: string | undefined
+  eraOrYear: string | ResolvedEraContext | undefined
 ): EraVisualProfile {
+  if (eraOrYear && typeof eraOrYear === 'object') {
+    return resolveEraVisualProfile(String(eraOrYear.effectiveYear));
+  }
   const value = eraOrYear?.toLowerCase().trim() ?? '';
   if (!value) return '1920s';
 
@@ -87,7 +93,9 @@ export function getEraImageFilter(eraOrYear: string | undefined): string {
 }
 
 /** Tekstowy odpowiednik profilu barwnego dla generatora obrazów. */
-export function getEraColorDirection(eraOrYear: string | undefined): string {
+export function getEraColorDirection(
+  eraOrYear: string | ResolvedEraContext | undefined
+): string {
   switch (resolveEraVisualProfile(eraOrYear)) {
     case '1890s':
       return 'muted sepia monochrome, warm archival print character, soft vintage vignette';
@@ -116,7 +124,9 @@ export function getEraColorDirection(eraOrYear: string | undefined): string {
  * Twarde strażniki anachronizmów (Negative Guardrails) dla generatora obrazów.
  * Bezwzględnie blokuje pojawianie się technologii i pojazdów z późniejszych epok.
  */
-export function getEraTechnologyGuardrails(eraOrYear: string | undefined): string {
+export function getEraTechnologyGuardrails(
+  eraOrYear: string | ResolvedEraContext | undefined
+): string {
   const profile = resolveEraVisualProfile(eraOrYear);
 
   const baseNegative = 'no CGI, no 3D render, no futuristic elements';
@@ -148,7 +158,9 @@ export function getEraTechnologyGuardrails(eraOrYear: string | undefined): strin
 /**
  * Zwraca precyzyjny opis wyglądu telefonu dla danej epoki.
  */
-export function getEraPhoneVisualDescription(eraOrYear: string | undefined): string {
+export function getEraPhoneVisualDescription(
+  eraOrYear: string | ResolvedEraContext | undefined
+): string {
   const profile = resolveEraVisualProfile(eraOrYear);
   switch (profile) {
     case '1890s':

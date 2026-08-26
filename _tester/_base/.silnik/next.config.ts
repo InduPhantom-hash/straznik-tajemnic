@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 import bundleAnalyzer from '@next/bundle-analyzer';
 // @sentry/nextjs jest required dependency w package.json — usunięcie wymaga rollbacku do .mjs z dynamic import (try/catch wokół ESM static import jest niemożliwe)
 import { withSentryConfig } from '@sentry/nextjs';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+// next-intl: wskazujemy plik request config (i18n routing + messages).
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -72,7 +76,7 @@ const nextConfig: NextConfig = {
 };
 
 // Buduj końcowy config — Sentry owijamy warunkowo żeby nie blokować gdy DSN nie ustawiony
-const finalConfig = withBundleAnalyzer(nextConfig);
+const finalConfig = withNextIntl(withBundleAnalyzer(nextConfig));
 
 const config: NextConfig = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(finalConfig, {

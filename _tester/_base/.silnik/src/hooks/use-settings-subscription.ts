@@ -54,9 +54,10 @@ export function useSettingsWithUpdate(): [AISettings, (updates: Partial<AISettin
     const settings = useSettingsSubscription();
 
     const updateSettings = useCallback((updates: Partial<AISettings>) => {
-        const { saveAISettings } = require('@/lib/ai-settings');
-        const newSettings = { ...settings, ...updates };
-        saveAISettings(newSettings);
+        void import('@/lib/ai-settings').then(({ saveAISettings }) => {
+          const newSettings = { ...settings, ...updates };
+          saveAISettings(newSettings);
+        });
         // Nie trzeba ręcznie aktualizować state - settingsEmitter to zrobi
     }, [settings]);
 

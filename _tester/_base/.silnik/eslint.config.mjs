@@ -21,6 +21,7 @@ const eslintConfig = [
       "backups/**",
       "playwright-report/**",
       "test-results/**",
+      ".desktop/**",
     ],
   },
 ];

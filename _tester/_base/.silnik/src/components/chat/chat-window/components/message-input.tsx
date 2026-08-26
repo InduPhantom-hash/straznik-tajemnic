@@ -10,6 +10,7 @@
  */
 
 import { Send, BookOpen, Loader2, Users, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '../../../ui/button';
 import { Textarea } from '../../../ui/textarea';
 
@@ -74,6 +75,7 @@ export function MessageInput({
   isSessionEnded = false,
   sessionEndStatus = 'idle',
 }: MessageInputProps) {
+  const t = useTranslations('MessageInput');
   // C4: w duecie Enter/klik DOKŁADA deklarację (nie wysyła); solo bez zmian.
   const duetActive = isDuet && !!onAddDeclaration;
 
@@ -162,10 +164,12 @@ export function MessageInput({
           disabled={isSessionEnded || isLoading}
           placeholder={
             isSessionEnded
-              ? '🔒 Sesja została zakończona. Wczytaj sesję lub rozpocznij nową przygodę.'
+              ? `🔒 ${t('sessionEndedPlaceholder')}`
               : duetActive
-                ? `${currentPlayerName ? `${currentPlayerName}: ` : ''}wpisz deklarację i naciśnij Enter...`
-                : 'Wpisz wiadomość do Mistrza Gry...'
+                ? t('declarationPlaceholder', {
+                    player: currentPlayerName ? `${currentPlayerName}: ` : '',
+                  })
+                : t('messagePlaceholder')
           }
           rows={2}
           className="min-h-[52px] max-h-[112px] resize-y font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"

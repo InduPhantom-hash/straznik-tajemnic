@@ -1,5 +1,6 @@
 import { POST } from './route';
 import { GoogleGenAI } from '@google/genai';
+import type { NextRequest } from 'next/server';
 
 jest.mock('@google/genai', () => {
   return {
@@ -24,7 +25,7 @@ jest.mock('next/server', () => ({
   },
 }));
 
-function mockRequest(body: unknown, apiKeyHeader?: string): Request {
+function mockRequest(body: unknown, apiKeyHeader?: string): NextRequest {
   const headersMap = new Map<string, string>();
   if (apiKeyHeader) {
     headersMap.set('x-gemini-api-key', apiKeyHeader);
@@ -34,7 +35,7 @@ function mockRequest(body: unknown, apiKeyHeader?: string): Request {
       get: (name: string) => headersMap.get(name.toLowerCase()) || null,
     },
     json: async () => body,
-  } as unknown as Request;
+  } as unknown as NextRequest;
 }
 
 describe('read-item api route', () => {
@@ -47,7 +48,7 @@ describe('read-item api route', () => {
     process.env.GEMINI_API_KEY = '';
     const req = mockRequest({ item: { name: 'List' } });
 
-    const res = await POST(req as any);
+    const res = await POST(req);
     expect(res.status).toBe(401);
     const data = await res.json();
     expect(data.error).toContain('Gemini API');
@@ -60,7 +61,7 @@ describe('read-item api route', () => {
       adventureContext: { eraLabel: '1920s' },
     });
 
-    const res = await POST(req as any);
+    const res = await POST(req);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.success).toBe(true);

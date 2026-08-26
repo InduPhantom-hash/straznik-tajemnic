@@ -305,8 +305,9 @@ export default function Home() {
     charMgmt.setActiveCharacter(stamped);
     
     // Persystencja
-    const { persistCharacters } = require('@/lib/character-cloud-sync');
-    persistCharacters(existingCharacters);
+    void import('@/lib/character-cloud-sync').then(({ persistCharacters }) =>
+      persistCharacters(existingCharacters)
+    );
     
     setShowPredefinedSelector(false);
   }, [charMgmt]);
@@ -402,7 +403,7 @@ export default function Home() {
   }, [pendingQuickStart, charMgmt.characters, handleStartGameGuarded]);
 
   const handleQuickStartOnboarding = useCallback(
-    (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat', player2CharacterId?: string) => {
+    async (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat', player2CharacterId?: string) => {
       // 1. Ustaw przygodę
       let adv = STREFA_11_ADVENTURES.find((a) => a.id === adventureId);
       if (!adv) adv = getAdventureById(adventureId);
@@ -468,8 +469,8 @@ export default function Home() {
         }
 
         try {
-          const cloudSync = require('@/lib/character-cloud-sync') as { persistCharacters: (chars: Character[]) => void };
-          cloudSync.persistCharacters(updatedList);
+          const { persistCharacters } = await import('@/lib/character-cloud-sync');
+          persistCharacters(updatedList);
         } catch {
           // fallback lokalny
         }

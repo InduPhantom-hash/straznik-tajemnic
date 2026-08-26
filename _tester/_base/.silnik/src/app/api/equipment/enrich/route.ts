@@ -10,6 +10,14 @@ interface EnrichRequest {
   era?: string;
 }
 
+interface AiEnrichmentData {
+  description?: string;
+  value?: number;
+  weight?: number;
+  damage?: string;
+  skill?: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: EnrichRequest = await req.json();
@@ -91,7 +99,7 @@ Wygeneruj wyłącznie czysty obiekt JSON (bez znaczników markdown) zawierający
       .replace(/\s*```$/i, '')
       .trim();
 
-    let aiData: any = {};
+    let aiData: AiEnrichmentData = {};
     try {
       aiData = JSON.parse(cleanJsonText);
     } catch (parseErr) {

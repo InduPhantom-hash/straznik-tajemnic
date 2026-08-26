@@ -14,6 +14,9 @@
 // treści w czacie + lektorze. (?:[^\[\]]|\[[^\]]*\])* = znak nie-nawias ALBO
 // zagnieżdżona para [...], więc cały tag znika. Linia 63 (gola linia) domyka
 // skrajne przypadki (samotny niezamknięty `[`).
+
+import { timeManager } from '@/lib/time-manager';
+
 const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
 
 export function cleanupContent(content: string): string {
@@ -69,7 +72,6 @@ export function cleanupContent(content: string): string {
       if (typeof window !== 'undefined' && match && match[1]) {
         try {
           // Synchroniczny dostęp do wyemitowanej pogody
-          const { timeManager } = require('@/lib/time-manager');
           timeManager.setWeather(match[1]);
         } catch {}
       }

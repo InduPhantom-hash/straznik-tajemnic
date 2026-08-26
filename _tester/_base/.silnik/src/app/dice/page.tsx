@@ -1,6 +1,6 @@
 "use client";
 
-import { DiceSystem } from '@/components/ui/dice-system';
+import { DiceSystem, type DiceRoll } from '@/components/ui/dice-system';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,13 +8,13 @@ import { useState } from 'react';
 
 export default function DicePage() {
   const router = useRouter();
-  const [rolls, setRolls] = useState<any[]>([]);
+  const [rolls, setRolls] = useState<DiceRoll[]>([]);
 
   const handleClose = () => {
     router.push('/');
   };
 
-  const handleRollComplete = (roll: any) => {
+  const handleRollComplete = (roll: DiceRoll) => {
     setRolls(prev => [roll, ...prev]);
     console.log('Rzut kości wykonany:', roll);
   };

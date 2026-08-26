@@ -89,6 +89,10 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           // Obrazy scen żyją w generatedImages (nie illustrations) - bez tego
           // wczytany save tracił ilustracje scen.
           generatedImages: msg.generatedImages || [],
+          // Status urwanej narracji (MAX_TOKENS + zamówiona kontynuacja) musi
+          // przeżyć pełny load, inaczej przycisk "Kontynuuj narrację" znikał.
+          finishReason: msg.finishReason,
+          continuationRequested: msg.continuationRequested,
         }));
         setMessages(loadedMessages);
 

@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { useState, useEffect, useCallback } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -45,7 +46,6 @@ import {
   createSkillRoll,
   isSuccess,
   mapDifficultyToRequired,
-  REQUIRED_DIFFICULTY_LABELS,
   requiredThreshold,
   meetsDifficulty,
 } from '@/lib/dice-utils';
@@ -69,48 +69,6 @@ interface DiceDialogProps {
 }
 
 // === CONSTANTS ===
-
-const COMMON_SKILLS = [
-  'Antropologia',
-  'Archeologia',
-  'Broń palna (krótka)',
-  'Broń palna (długa)',
-  'Charakteryzacja',
-  'Cthulhu Mythos',
-  'Czytanie z ruchu warg',
-  'Elektryka',
-  'Jeździectwo',
-  'Księgowość',
-  'Maskowanie',
-  'Mechanika',
-  'Medycyna',
-  'Nauka (Astronomia)',
-  'Nauka (Biologia)',
-  'Nauka (Chemia)',
-  'Nauka (Fizyka)',
-  'Nasłuchiwanie',
-  'Nawigacja',
-  'Okultyzm',
-  'Orientacja',
-  'Perswazja',
-  'Pierwsza pomoc',
-  'Pływanie',
-  'Prawo',
-  'Prowadzenie samochodu',
-  'Psychoanaliza',
-  'Psychologia',
-  'Skradanie',
-  'Spostrzegawczość',
-  'Sztuka (Fotografia)',
-  'Tropienie',
-  'Ukrywanie',
-  'Unik',
-  'Walka wręcz (bijatyka)',
-  'Wspinaczka',
-  'Zastraszanie',
-  'Zręczność',
-  'Zwinność',
-];
 
 // FEATURE:#6 - Dźwięk rzutu kością (ulepszona implementacja z noise + clicks)
 const playDiceSound = () => {
@@ -180,6 +138,16 @@ export const DiceDialog: FC<DiceDialogProps> = ({
   preselectedBonusDice,
   onSpendLuck,
 }) => {
+  const t = useTranslations('DiceDialog');
+  const locale = useLocale();
+  const intlLocale = locale === 'en' ? 'en-US' : 'pl-PL';
+  // Etykiety wymaganej trudnosci (regular/hard/extreme) z messages/*.json.
+  const difficultyLabel = {
+    regular: t('diffRegular'),
+    hard: t('diffHard'),
+    extreme: t('diffExtreme'),
+  } as const;
+
   // State
   const [rolls, setRolls] = useState<DiceRoll[]>([]);
   const [bonusDice, setBonusDice] = useState(0);
@@ -420,8 +388,10 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                 variant={roll.passedRequirement ? 'default' : 'destructive'}
                 className={roll.passedRequirement ? 'bg-emerald-600' : ''}
               >
-                {roll.passedRequirement ? '✓' : '✗'} test{' '}
-                {REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty]}
+                {roll.passedRequirement ? '✓' : '✗'}{' '}
+                {t('testRequirement', {
+                  difficulty: difficultyLabel[roll.requiredDifficulty],
+                })}
               </Badge>
             )}
           {roll.luckSpent && (
@@ -429,7 +399,8 @@ export const DiceDialog: FC<DiceDialogProps> = ({
               variant="outline"
               className="border-yellow-500/50 text-yellow-300"
             >
-              <Sparkles className="w-3 h-3 mr-1" /> Szczęście -{roll.luckSpent}
+              <Sparkles className="w-3 h-3 mr-1" />{' '}
+              {t('luckBadge', { amount: roll.luckSpent })}
             </Badge>
           )}
         </div>
@@ -447,7 +418,10 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                 variant="outline"
                 onClick={() => handleSpendLuck(roll)}
                 className="border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10"
-                title={`Wydaj ${needed} pkt Szczęścia, by zdać (masz ${availableLuck})`}
+                title={t('spendLuckTitle', {
+                  needed,
+                  available: availableLuck,
+                })}
               >
                 <Sparkles className="w-4 h-4 mr-1" /> {needed}
               </Button>
@@ -458,13 +432,13 @@ export const DiceDialog: FC<DiceDialogProps> = ({
             size="sm"
             variant="outline"
             onClick={() => handleSendToChat(roll)}
-            title="Wyślij do czatu"
+            title={t('sendToChat')}
           >
             <Send className="w-4 h-4" />
           </Button>
         )}
         <span className="font-special-elite text-xs text-muted-foreground/70 whitespace-nowrap">
-          {roll.timestamp.toLocaleTimeString('pl-PL', {
+          {roll.timestamp.toLocaleTimeString(intlLocale, {
             hour: '2-digit',
             minute: '2-digit',
           })}
@@ -491,14 +465,14 @@ export const DiceDialog: FC<DiceDialogProps> = ({
           {/* Nagłówek déco wg makiety: micro-label emerald + tytuł Cinzel */}
           <div className="text-center">
             <div className="font-special-elite text-xs uppercase tracking-[0.32em] text-primary">
-              Niech zadecyduje los
+              {t('letFateDecide')}
             </div>
             <DialogTitle className="mt-1.5 justify-center font-display text-2xl font-bold uppercase tracking-[0.1em] text-foreground">
-              Tacka na Kości
+              {t('diceTray')}
             </DialogTitle>
           </div>
           <DialogDescription className="text-center font-serif italic text-muted-foreground">
-            Rzucaj kośćmi wirtualnie lub wpisuj wyniki z prawdziwych kości
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -557,8 +531,10 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                   <div
                     className={`relative mt-1.5 font-special-elite text-xs tracking-[0.1em] ${latestRoll.passedRequirement ? 'text-primary' : 'text-destructive'}`}
                   >
-                    {latestRoll.passedRequirement ? '✓' : '✗'} test{' '}
-                    {REQUIRED_DIFFICULTY_LABELS[latestRoll.requiredDifficulty]}
+                    {latestRoll.passedRequirement ? '✓' : '✗'}{' '}
+                    {t('testRequirement', {
+                      difficulty: difficultyLabel[latestRoll.requiredDifficulty],
+                    })}
                   </div>
                 )}
 
@@ -573,16 +549,20 @@ export const DiceDialog: FC<DiceDialogProps> = ({
               {latestRoll.targetValue !== undefined && (
                 <div className="relative mt-5 flex flex-wrap justify-center gap-x-6 gap-y-1.5 font-special-elite text-xs uppercase tracking-[0.06em]">
                   <span className="text-primary">
-                    Skrajny ≤ {Math.floor(latestRoll.targetValue / 5)}
+                    {t('thresholdExtreme', {
+                      value: Math.floor(latestRoll.targetValue / 5),
+                    })}
                   </span>
                   <span className="text-brass">
-                    Znacz. ≤ {Math.floor(latestRoll.targetValue / 2)}
+                    {t('thresholdHard', {
+                      value: Math.floor(latestRoll.targetValue / 2),
+                    })}
                   </span>
                   <span className="text-foreground">
-                    Zwykły ≤ {latestRoll.targetValue}
+                    {t('thresholdRegular', { value: latestRoll.targetValue })}
                   </span>
                   <span className="text-destructive">
-                    Porażka &gt; {latestRoll.targetValue}
+                    {t('thresholdFail', { value: latestRoll.targetValue })}
                   </span>
                 </div>
               )}
@@ -592,7 +572,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
           <Card className="bg-card border-brass/28">
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass">
-                Test Umiejętności (opcjonalny)
+                {t('skillTestOptional')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -609,7 +589,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                     }}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Wybierz umiejętność..." />
+                      <SelectValue placeholder={t('selectSkillPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {characterSkills.map((s) => (
@@ -621,7 +601,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                   </Select>
                 ) : (
                   <Input
-                    placeholder="Nazwa umiejętności"
+                    placeholder={t('skillNamePlaceholder')}
                     value={selectedSkill}
                     onChange={(e) => setSelectedSkill(e.target.value)}
                     className="flex-1"
@@ -629,7 +609,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                 )}
                 <Input
                   type="number"
-                  placeholder="Wartość %"
+                  placeholder={t('skillValuePlaceholder')}
                   value={skillValue}
                   onChange={(e) => setSkillValue(e.target.value)}
                   className="w-24"
@@ -647,7 +627,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                         : ''
                     }
                   >
-                    Zwykły: ≤{skillValue}
+                    {t('thresholdRegular', { value: skillValue })}
                   </span>
                   <span className="text-brass/30">·</span>
                   <span
@@ -655,7 +635,9 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                       difficulty === 'trudny' ? 'text-brass font-semibold' : ''
                     }
                   >
-                    Trudny: ≤{Math.floor(parseInt(skillValue) / 2)}
+                    {t('thresholdHard', {
+                      value: Math.floor(parseInt(skillValue) / 2),
+                    })}
                   </span>
                   <span className="text-brass/30">·</span>
                   <span
@@ -665,21 +647,23 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                         : ''
                     }
                   >
-                    Ekstremalny: ≤{Math.floor(parseInt(skillValue) / 5)}
+                    {t('thresholdExtreme', {
+                      value: Math.floor(parseInt(skillValue) / 5),
+                    })}
                   </span>
                 </div>
               )}
               {difficulty !== 'zwykly' && (
                 <div className="font-special-elite text-xs text-amber-400">
-                  🎯 Wymagany poziom:{' '}
+                  🎯 {t('requiredLevel')}{' '}
                   <strong>
                     {
-                      REQUIRED_DIFFICULTY_LABELS[
+                      difficultyLabel[
                         mapDifficultyToRequired(difficulty)
                       ]
                     }
                   </strong>{' '}
-                  - rzut musi zmieścić się w tym progu, by zaliczyć.
+                  {t('requiredLevelHint')}
                 </div>
               )}
             </CardContent>
@@ -688,7 +672,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
           {/* Kości premii / kary (déco panel wg makiety) */}
           <div className="border border-brass/28 bg-[#16130f] p-4">
             <div className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass mb-3">
-              Kości premii / kary
+              {t('bonusPenaltyDice')}
             </div>
             <div className="flex items-center justify-center gap-4">
               <Button
@@ -720,15 +704,14 @@ export const DiceDialog: FC<DiceDialogProps> = ({
               </Button>
             </div>
             <p className="font-serif italic text-sm text-muted-foreground/80 mt-3 text-center">
-              Kość premii: rzucasz dwiema dziesiątkami dziesiątek, bierzesz
-              niższy wynik.
+              {t('bonusDieHint')}
             </p>
           </div>
 
           {/* Rzut: k100 + opcjonalny test umiejętności */}
           <div className="border border-brass/28 bg-[#16130f] p-4">
             <div className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass mb-3">
-              Rzut
+              {t('rollSection')}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Button
@@ -745,7 +728,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                   className="font-display uppercase tracking-[0.12em]"
                 >
                   <Dices className="w-4 h-4 mr-2" />
-                  Test: {selectedSkill}
+                  {t('testWithSkill', { skill: selectedSkill })}
                 </Button>
               )}
             </div>
@@ -763,7 +746,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass">
-                  Ostatnie rzuty
+                  {t('recentRolls')}
                   <Badge variant="secondary">{rolls.length}</Badge>
                 </CardTitle>
                 <div className="flex gap-2">
@@ -774,7 +757,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                     className="text-muted-foreground"
                   >
                     <History className="w-4 h-4 mr-1" />
-                    Historia
+                    {t('history')}
                   </Button>
                   <Button
                     onClick={handleClearSession}
@@ -784,7 +767,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                     disabled={rolls.length === 0}
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
-                    Wyczyść
+                    {t('clear')}
                   </Button>
                 </div>
               </div>
@@ -794,10 +777,10 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                 <div className="text-center py-8 text-muted-foreground">
                   <Dices className="w-12 h-12 mx-auto mb-4 opacity-40 text-brass" />
                   <p className="font-special-elite uppercase tracking-[0.12em] text-sm">
-                    Brak rzutów w tej sesji
+                    {t('noSessionRolls')}
                   </p>
                   <p className="font-serif italic text-sm mt-1">
-                    Rzuć kośćmi lub wpisz wynik
+                    {t('rollHint')}
                   </p>
                 </div>
               ) : (
@@ -815,7 +798,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass">
                     <History className="w-4 h-4" />
-                    Pełna historia
+                    {t('fullHistory')}
                     <Badge variant="secondary">{historyRolls.length}</Badge>
                   </CardTitle>
                   <Button
@@ -824,14 +807,14 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                     size="sm"
                     disabled={historyRolls.length === 0}
                   >
-                    Wyczyść wszystko
+                    {t('clearAll')}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {historyRolls.length === 0 ? (
                   <p className="text-center py-4 font-serif italic text-muted-foreground">
-                    Brak zapisanej historii
+                    {t('noSavedHistory')}
                   </p>
                 ) : (
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -851,7 +834,9 @@ export const DiceDialog: FC<DiceDialogProps> = ({
               size="sm"
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="text-muted-foreground"
-              title={soundEnabled ? 'Wycisz kości' : 'Włącz dźwięk kości'}
+              title={
+                soundEnabled ? t('muteDiceTitle') : t('enableDiceSoundTitle')
+              }
             >
               <Volume2
                 className={`w-4 h-4 ${soundEnabled ? 'text-brass' : 'opacity-50'}`}
@@ -863,7 +848,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
               onClick={() => onOpenChange(false)}
               className="font-display uppercase tracking-[0.12em]"
             >
-              Zamknij
+              {t('close')}
             </Button>
           </div>
         </div>

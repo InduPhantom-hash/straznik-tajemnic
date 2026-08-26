@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import type { Character } from '@/lib/types';
 import { SheetBiography } from './sheet-biography';
 
 describe('SheetBiography', () => {
@@ -7,7 +8,7 @@ describe('SheetBiography', () => {
       id: 'test-char',
       name: 'Arthur Pendelton',
       background: 'To jest tło testowe postaci, które powinno się pojawić w komponencie.',
-    } as any;
+    } as Character;
     render(<SheetBiography character={character} />);
 
     expect(screen.getByText(/Tło i Rola Fabularna/)).toBeTruthy();
@@ -19,10 +20,10 @@ describe('SheetBiography', () => {
       id: 'test-char-backstory',
       name: 'Tomasz Nowicki',
       backstory: 'To jest pełny życiorys badacza.',
-    } as any;
+    } as Character;
     render(<SheetBiography character={character} />);
 
     expect(screen.getByText(/Życiorys/)).toBeTruthy();
-    expect(screen.getByText(character.backstory)).toBeTruthy();
+    expect(screen.getByText(character.backstory!)).toBeTruthy();
   });
 });

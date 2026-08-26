@@ -14,6 +14,8 @@ import { SafeImage } from '@/components/ui/safe-image';
  */
 
 import { Dices, Pause, Play, Square } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { Button } from '../../../ui/button';
 import { Card, CardContent } from '../../../ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar';
 import { NarrativeFormatter } from '../../NarrativeFormatter';
@@ -50,6 +52,9 @@ interface MessageCardProps {
   isSessionEnded?: boolean;
   isLastMessage?: boolean;
   onCharacterUpdate?: (char: Character) => void;
+  /** Kontynuacja uciętej narracji (MAX_TOKENS) - deklaruje caller; pole
+   *  opcjonalne dla zgodności z testami i chat-window types. */
+  onContinueNarration?: (messageId?: string) => void;
   isDuet?: boolean;
   characters?: Character[];
 }
@@ -72,9 +77,14 @@ export function MessageCard({
   isSessionEnded = false,
   isLastMessage = false,
   onCharacterUpdate,
+  onContinueNarration,
   isDuet = false,
   characters = [],
 }: MessageCardProps) {
+  const t = useTranslations('MessageCard');
+  const locale = useLocale();
+  const intlLocale = locale === 'en' ? 'en-US' : 'pl-PL';
+
   return (
     <Card
       className={`${getMessageStyle(message.role)} relative overflow-hidden`}
@@ -93,7 +103,7 @@ export function MessageCard({
                 {(playerPortraitUrl ?? activeCharacter?.portraitUrl) && (
                   <AvatarImage
                     src={playerPortraitUrl ?? activeCharacter?.portraitUrl}
-                    alt={activeCharacter?.name || 'Portret gracza'}
+                    alt={activeCharacter?.name || t('playerPortraitAlt')}
                     className="object-cover object-top rounded-none w-full h-full"
                   />
                 )}
@@ -113,7 +123,7 @@ export function MessageCard({
               <span className="text-sm text-muted-foreground">
                 {message.gameTime
                   ? `${message.gameTime.hour.toString().padStart(2, '0')}:${message.gameTime.minute.toString().padStart(2, '0')}`
-                  : message.timestamp.toLocaleTimeString('pl-PL', {
+                  : message.timestamp.toLocaleTimeString(intlLocale, {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
@@ -130,7 +140,9 @@ export function MessageCard({
                       }}
                       className="p-1 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
                       title={
-                        isAudioPaused ? 'Wznów czytanie' : 'Pauzuj czytanie'
+                        isAudioPaused
+                          ? t('resumeReading')
+                          : t('pauseReading')
                       }
                     >
                       {isAudioPaused ? (
@@ -147,7 +159,7 @@ export function MessageCard({
                       stopCurrentAudio();
                     }}
                     className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                    title="Zatrzymaj czytanie (Stop TTS)"
+                    title={t('stopReadingTitle')}
                   >
                     <Square className="w-3.5 h-3.5 fill-current" />
                   </button>
@@ -166,10 +178,8 @@ export function MessageCard({
                 {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
                   <>
                     <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
-                      <p className="font-semibold text-red-400 mb-1">𓂀 KRONIKA ZAPISANA 𓂀</p>
-                      <p className="italic">
-                        "Mrok nie śpi, a cienie Arkham wydłużają się w nieskończoność. Dziękujemy za wspólną sesję..."
-                      </p>
+                      <p className="font-semibold text-red-400 mb-1">{t('chronicleSavedTitle')}</p>
+                      <p className="italic">{t('chronicleSavedMessage')}</p>
                     </div>
 
                     {activeCharacter && onCharacterUpdate && (
@@ -204,7 +214,7 @@ export function MessageCard({
                   >
                     <SafeImage
                       src={imgUrl}
-                      alt={isPortrait ? `Portret ${idx + 1}` : `Scena ${idx + 1}`}
+                      alt={isPortrait ? t('portraitAlt', { value: idx + 1 }) : t('sceneAlt', { value: idx + 1 })}
                       className={`w-full object-cover object-top cursor-pointer hover:opacity-90 transition-opacity ${
                         isPortrait ? 'aspect-[3/4]' : 'aspect-[16/9]'
                       }`}
@@ -220,6 +230,26 @@ export function MessageCard({
                 )})}
               </div>
             )}
+
+            {/* Ręczna kontynuacja urwanej narracji (finishReason=MAX_TOKENS).
+                Tylko ostatnia wiadomość MG; po zamówieniu przycisk się blokuje. */}
+            {message.role === 'assistant' &&
+              isLastMessage &&
+              onContinueNarration &&
+              message.finishReason === 'MAX_TOKENS' && (
+                <div className="mt-3 flex justify-center print:hidden">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={message.continuationRequested === true}
+                    onClick={() => onContinueNarration(message.id)}
+                  >
+                    {message.continuationRequested
+                      ? t('continuationRequested')
+                      : t('continueNarration')}
+                  </Button>
+                </div>
+              )}
 
             {/* Tacka testów umiejętności [TEST:...] (Bug 2, sesja 2026-06-17) */}
             {message.skillTests && message.skillTests.length > 0 && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { SafeImage } from '@/components/ui/safe-image';
+import { useTranslations } from 'next-intl';
 /**
  * CharacterSheet - SheetEquipment komponent (re-skin Dark Art Déco, makieta 04).
  *
@@ -89,6 +90,16 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
  * Zwraca null gdy postać nie ma ekwipunku (sekcja znika z karty).
  */
 export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) {
+  const t = useTranslations('CharacterSheet');
+
+  // Kanoniczne nazwy umiejetnosci (dane gry, SSOT z weapon-context) mapujemy na
+  // etykiety wyswietlania per jezyk - dopasowanie wartosci zostaje na kanonie.
+  const skillLabel = (canonical: string): string => {
+    if (canonical === 'Broń Palna (Karabin)') return t('skillFirearmsLong');
+    if (canonical === 'Broń Palna') return t('skillFirearms');
+    if (canonical === 'Walka Wręcz') return t('skillMelee');
+    return canonical;
+  };
   const equipment = character.equipment ?? [];
   if (equipment.length === 0) return null;
 
@@ -102,18 +113,19 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
   return (
     <div>
       <h3 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-        🎒 Ekwipunek
+        🎒 {t('equipment')}
       </h3>
 
       {/* BROŃ - pełna statystyka bojowa CoC 7e */}
       {weapons.length > 0 && (
         <div className="mb-4">
           <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
-            ⚔️ Broń
+            ⚔️ {t('weapons')}
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {weapons.map((w) => {
               const skill = inferWeaponSkill(w);
+              const skillDisplayName = skillLabel(skill);
               const skillVal = resolveTestValue(skill, character);
               const melee = isMeleeWeapon(w);
               const damage = w.modifiers?.damage ?? '-';
@@ -133,19 +145,19 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
                       </span>
                     </span>
                     <span className="flex-none font-special-elite text-sm text-[#d9685f] bg-[#d9685f]/10 px-2 py-0.5 rounded border border-[#d9685f]/20">
-                      {skill}{' '}
+                      {skillDisplayName}{' '}
                       <span className="font-bold">
-                        {skillVal !== null ? `${skillVal}%` : 'baza'}
+                        {skillVal !== null ? `${skillVal}%` : t('base')}
                       </span>
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-special-elite text-sm text-muted-foreground/90 tracking-[0.04em] pt-2 border-t border-[#b3322c]/15">
-                    <span className="flex items-center gap-1">⚔️ Obrażenia: <strong className="text-foreground">{damageStr}</strong></span>
+                    <span className="flex items-center gap-1">⚔️ {t('damage')}: <strong className="text-foreground">{damageStr}</strong></span>
                     {w.modifiers?.range && (
-                      <span className="flex items-center gap-1">🎯 Zasięg: <strong className="text-foreground">{w.modifiers.range}</strong></span>
+                      <span className="flex items-center gap-1">🎯 {t('range')}: <strong className="text-foreground">{w.modifiers.range}</strong></span>
                     )}
                     {w.modifiers?.malfunction && (
-                      <span className="flex items-center gap-1">⚙️ Zacięcie: <strong className="text-foreground">{w.modifiers.malfunction}</strong></span>
+                      <span className="flex items-center gap-1">⚙️ {t('malfunction')}: <strong className="text-foreground">{w.modifiers.malfunction}</strong></span>
                     )}
                   </div>
                 </div>

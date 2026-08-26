@@ -48,23 +48,23 @@ export function collectCampaignStats(): CampaignStats {
     const timelineEvents = loadTimelineEvents();
 
     // Pobierz wiadomości z localStorage
-    let messages: any[] = [];
+    let messages: unknown[] = [];
     try {
         const messagesJson = localStorage.getItem('messages');
         messages = messagesJson ? JSON.parse(messagesJson) : [];
     } catch (e) { }
 
     // Pobierz postać
-    let character: any = null;
+    let character: { name?: string } | null = null;
     try {
         const charJson = localStorage.getItem('activeCharacter');
         character = charJson ? JSON.parse(charJson) : null;
     } catch (e) { }
 
     // Zlicz typy requestów
-    const geminiRequests = usageHistory.filter((r: any) => r.type === 'text').length;
-    const ttsRequests = usageHistory.filter((r: any) => r.type === 'voice').length;
-    const imageRequests = usageHistory.filter((r: any) => r.type === 'image').length;
+    const geminiRequests = usageHistory.filter((r) => r.type === 'text').length;
+    const ttsRequests = usageHistory.filter((r) => r.type === 'voice').length;
+    const imageRequests = usageHistory.filter((r) => r.type === 'image').length;
 
     // Zlicz typy wydarzeń
     const combatEvents = timelineEvents.filter(e => e.type === 'combat').length;

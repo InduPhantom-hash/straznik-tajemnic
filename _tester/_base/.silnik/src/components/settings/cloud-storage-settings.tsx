@@ -1,5 +1,6 @@
 import type { SetStateAction, Dispatch } from 'react';
 import { AISettings } from '@/lib/ai-settings';
+import type { TestResults } from '@/hooks/useApiTester';
 import { HelpIcon } from '../ui/tooltip';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -9,7 +10,7 @@ import { Label } from '../ui/label';
 interface CloudStorageSettingsProps {
   settings: AISettings;
   setSettings: Dispatch<SetStateAction<AISettings>>;
-  testResults: any;
+  testResults: TestResults;
   isLoading: boolean;
   testAPI: (apiType: string) => Promise<void>;
   getTestResultIcon: (result: boolean | null) => string;
@@ -98,7 +99,7 @@ export function CloudStorageSettings({
                 })}
                 className="w-4 h-4 text-orange-600 bg-input border-border rounded focus:ring-orange-500"
               />
-              <span className="ml-2">Włącz cache'owanie</span>
+              <span className="ml-2">Włącz cache&apos;owanie</span>
               <HelpIcon content="Tymczasowo przechowuj często używane pliki lokalnie dla szybszego dostępu." />
             </label>
           </div>

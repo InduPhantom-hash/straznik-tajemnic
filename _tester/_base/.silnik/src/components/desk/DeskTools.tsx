@@ -13,10 +13,17 @@ import { GMToolsPanel } from '../ui/gm-tools-panel';
 import { SessionZeroModal } from '../ui/session-zero-modal';
 import { AdventureSelector } from '../ui/adventure-selector';
 import { EquipmentModal } from '../ui/equipment-modal';
-import { Character } from '@/lib/types';
+import { Character, ActiveGameState, PdfMemory } from '@/lib/types';
 import { AdventureContext, CustomAdventure } from '@/lib/adventures-data';
 import { cn } from '@/lib/utils';
 import { SettingsModal } from '../ui/settings-modal';
+
+declare global {
+  interface Window {
+    rulesUploadInput?: HTMLInputElement;
+    adventureUploadInput?: HTMLInputElement;
+  }
+}
 
 interface DeskToolsProps {
   activeCharacter?: Character;
@@ -26,8 +33,8 @@ interface DeskToolsProps {
   onCharacterManage?: () => void;
   onUpdateCharacter?: (character: Character) => void;
   handleSendMessage?: (message: string) => void;
-  activeGameState?: any;
-  pdfMemory?: any;
+  activeGameState?: ActiveGameState | null;
+  pdfMemory?: PdfMemory;
   handleFileChange?: (e: ChangeEvent<HTMLInputElement>, type: 'rules' | 'adventure') => void;
   isUploading?: boolean;
   uploadProgress?: number;
@@ -47,7 +54,7 @@ interface DeskToolsProps {
   onSessionZeroComplete?: () => void;
   registerOpenSessionZero?: (openFn: () => void) => void;
   registerOpenAdventureSelector?: (openFn: () => void) => void;
-  onAdventureSelect?: (adventure: any) => void;
+  onAdventureSelect?: (adventure: AdventureContext) => void;
   customAdventures?: CustomAdventure[];
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
@@ -236,7 +243,7 @@ export const DeskTools: FC<DeskToolsProps> = ({
                       <span>PODRĘCZNIK (ZASADY)</span>
                       {!pdfMemory?.rulesUrl && (
                         <button 
-                            onClick={() => (window as any).rulesUploadInput?.click()}
+                            onClick={() => window.rulesUploadInput?.click()}
                             className="text-[#b94e48] text-xs font-bold hover:underline"
                         >
                             [DODAJ]
@@ -253,7 +260,7 @@ export const DeskTools: FC<DeskToolsProps> = ({
                       <span>AKTA SPRAWY (PDF)</span>
                       {!pdfMemory?.adventureUrl && (
                         <button 
-                            onClick={() => (window as any).adventureUploadInput?.click()}
+                            onClick={() => window.adventureUploadInput?.click()}
                             className="text-[#b94e48] text-xs font-bold hover:underline"
                         >
                             [DODAJ]
@@ -265,10 +272,10 @@ export const DeskTools: FC<DeskToolsProps> = ({
 
              {/* Hidden inputs */}
              <input type="file" id="rules-upload" className="hidden" accept=".pdf" 
-                ref={el => { if(el) (window as any).rulesUploadInput = el; }}
+                ref={el => { if(el) window.rulesUploadInput = el; }}
                 onChange={e => handleFileChange && handleFileChange(e, 'rules')} />
              <input type="file" id="adventure-upload" className="hidden" accept=".pdf"
-                ref={el => { if(el) (window as any).adventureUploadInput = el; }}
+                ref={el => { if(el) window.adventureUploadInput = el; }}
                 onChange={e => handleFileChange && handleFileChange(e, 'adventure')} />
         </div>
 

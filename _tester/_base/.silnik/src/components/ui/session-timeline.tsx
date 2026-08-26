@@ -25,6 +25,7 @@ export interface TimelineEvent {
   type: EventType;
   title: string;
   description: string;
+  imageUrl?: string;
   timestamp: string;
   sessionId?: string;
   messageIndex?: number;
@@ -271,12 +272,12 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                           {event.description && (
                             <p className="text-xs text-amber-300/70 mt-0.5 line-clamp-2">{event.description}</p>
                           )}
-                          {(event as any).imageUrl && (
+                          {event.imageUrl && (
                             <SafeImage 
-                              src={(event as any).imageUrl} 
+                              src={event.imageUrl} 
                               alt={event.title}
                               className="mt-2 w-24 h-16 object-cover rounded border border-amber-500/30 cursor-pointer hover:opacity-80"
-                              onClick={() => window.open((event as any).imageUrl, '_blank')}
+                              onClick={() => window.open(event.imageUrl, '_blank')}
                             />
                           )}
                           <span className="text-xs text-amber-400/50">
@@ -309,7 +310,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
             <Button
               onClick={async () => {
                 const { exportTimelineToMarkdown } = await import('@/lib/session-timeline');
-                const markdown = exportTimelineToMarkdown(events as any, `Sesja ${new Date().toLocaleDateString('pl-PL')}`);
+                const markdown = exportTimelineToMarkdown(events as unknown as Parameters<typeof exportTimelineToMarkdown>[0], `Sesja ${new Date().toLocaleDateString('pl-PL')}`);
                 const blob = new Blob([markdown], { type: 'text/markdown' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');

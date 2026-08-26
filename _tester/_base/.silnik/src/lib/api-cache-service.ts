@@ -10,7 +10,7 @@ interface CacheEntry<T> {
 }
 
 class ApiCacheService {
-  private cache: Map<string, CacheEntry<any>>;
+  private cache: Map<string, CacheEntry<unknown>>;
 
   constructor() {
     this.cache = new Map();
@@ -19,7 +19,7 @@ class ApiCacheService {
   /**
    * Get cached data if available and not expired
    */
-  get<T>(namespace: string, key: any): T | null {
+  get<T>(namespace: string, key: unknown): T | null {
     const cacheKey = this.generateKey(namespace, key);
     const entry = this.cache.get(cacheKey);
     
@@ -39,7 +39,7 @@ class ApiCacheService {
   /**
    * Set data in cache with TTL in milliseconds
    */
-  set<T>(namespace: string, key: any, data: T, ttl: number = 300000): void {
+  set<T>(namespace: string, key: unknown, data: T, ttl: number = 300000): void {
     const cacheKey = this.generateKey(namespace, key);
     this.cache.set(cacheKey, {
       data,
@@ -51,7 +51,7 @@ class ApiCacheService {
   /**
    * Generate cache key from namespace and key object
    */
-  private generateKey(namespace: string, key: any): string {
+  private generateKey(namespace: string, key: unknown): string {
     const keyStr = typeof key === 'string' ? key : JSON.stringify(key);
     return `${namespace}:${keyStr}`;
   }

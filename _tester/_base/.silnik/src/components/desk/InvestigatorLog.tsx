@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode, FC } from 'react';
+import type { CSSProperties, ReactNode, FC } from 'react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -16,7 +16,7 @@ export const InvestigatorLog: FC<InvestigatorLogProps> = ({
   isOpen = true
 }) => {
   return (
-    <section className={cn("journal-book prop-container relative w-full h-full flex flex-col items-center justify-center perspective-[1000px]", className)} style={{ "--rotation": "-2deg" } as any}>
+    <section className={cn("journal-book prop-container relative w-full h-full flex flex-col items-center justify-center perspective-[1000px]", className)} style={{ "--rotation": "-2deg" } as CSSProperties}>
       <div className="book-cover relative w-full max-w-5xl h-[90%] bg-[#5e2c2c] rounded-md shadow-2xl flex border-2 border-[#3a1b1b]">
         {/* Spine */}
         <div className="book-spine w-12 h-full bg-[#4a2323] rounded-l-md border-r border-[#3a1b1b] shadow-inner" />

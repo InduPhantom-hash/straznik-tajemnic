@@ -5,6 +5,7 @@
  */
 
 import type { Character, EquipmentCategory, EquipmentItem } from './types';
+import type { ResolvedEraContext } from '@/lib/era/types';
 import {
   getEraColorDirection,
   getEraPhoneVisualDescription,
@@ -87,7 +88,7 @@ function getCharacterBoundDirection(character: Character | null | undefined): st
     .join(', ');
 }
 
-function resolveEraModifier(era: string): string {
+function resolveEraModifier(era: string | ResolvedEraContext): string {
   const profile = resolveEraVisualProfile(era);
   return ERA_MODIFIERS[profile] ?? ERA_MODIFIERS['1920s'];
 }
@@ -95,7 +96,7 @@ function resolveEraModifier(era: string): string {
 /** Buduje realistyczny prompt dla jednego egzemplarza ekwipunku. */
 export function buildEquipmentImagePrompt(
   item: EquipmentItem,
-  era = '1920s',
+  era: string | ResolvedEraContext = '1920s',
   _adventureTheme?: string,
   _character?: Character | null
 ): string {

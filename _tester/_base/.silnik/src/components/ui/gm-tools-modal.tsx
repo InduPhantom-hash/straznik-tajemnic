@@ -18,6 +18,9 @@ interface GMToolsModalProps {
   activeCharacter?: unknown;
   currentLocation?: string;
   sessionId?: string;
+  // Kontekst epoki przekazywany przez caller (page.tsx); narzędzia czytają go
+  // bezpośrednio z lib/era, pole pozostaje opcjonalne dla zgodności.
+  eraContext?: unknown;
   onEventGenerated?: (event: import('@/lib/random-event-generator').RandomEvent) => void;
 }
 

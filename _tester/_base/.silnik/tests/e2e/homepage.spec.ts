@@ -10,21 +10,36 @@ test.describe('Homepage Tests', () => {
         body: JSON.stringify({ recordCount: 1 }),
       })
     );
+    // Health-check klucza (IND-273): bez mocka realny endpoint zwraca blad ->
+    // onInvalidKey otwiera ApiKeysModal, ktory (Radix modal) ustawia aria-hidden
+    // na calym tle i ukrywa naglowek glowny przed asercjami.
+    await page.route('**/api/health/gemini**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ keyValid: true, registry: { chatModelsMissing: [] } }),
+      })
+    );
     // Mock local storage to pass onboarding api key check
     await page.addInitScript(() => {
       localStorage.setItem('zew-app-api-keys', JSON.stringify({ GEMINI_API_KEY: 'mock' }));
       localStorage.setItem('onboarding_completed', 'true');
+      // Bramka językowa (next-intl) - bez tego LanguageSelectionModal zasłania ekran.
+      localStorage.setItem('language_selected', 'pl');
     });
   });
 
   test('should display main navigation and action cards', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
-    
+
+    // Dev-mode potrafi kompilowac trase przy pierwszym hicie - czekamy na siec.
+    await page.waitForLoadState('networkidle');
+
     // Wait for the app to render either the WelcomeScreen or the FirstRunWizard
     await expect(
       page.getByText('Pierwsze uruchomienie').or(page.getByRole('heading', { name: /Strażnik/i }))
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible({ timeout: 30_000 });
     
     // Test ignores FirstRunWizard intercept issue via logic, but we still verify the app didn't crash.
     // Assuming Playwright's local storage mock succeeded, we check for cards:

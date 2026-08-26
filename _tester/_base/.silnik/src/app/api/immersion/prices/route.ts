@@ -5,8 +5,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const amountStr = searchParams.get('amount') || '10';
-    const originalYearStr = searchParams.get('originalYear') || '2026';
-    const targetYearStr = searchParams.get('targetYear') || '1920';
+    const originalYearStr = searchParams.get('originalYear');
+    const targetYearStr = searchParams.get('targetYear');
+
+    // Era safety: lata musza byc JAWNE - ciche domyslniki (2026/1920) fabrykowaly
+    // konwersje spoza ery przygody, gdy klient zapomnial przekazac parametry.
+    if (!originalYearStr || !targetYearStr) {
+      return NextResponse.json(
+        { error: 'Missing required parameters: originalYear and targetYear.' },
+        { status: 400 }
+      );
+    }
 
     const amount = parseFloat(amountStr);
     const originalYear = parseInt(originalYearStr);

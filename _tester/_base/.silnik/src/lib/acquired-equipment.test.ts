@@ -101,7 +101,7 @@ describe('createAcquiredEquipmentSeed - documentType', () => {
 
     const seed = createAcquiredEquipmentSeed(proposal);
     expect(seed.category).toBe('document');
-    expect((seed as any).documentType).toBe('letter');
+    expect(seed.documentType).toBe('letter');
   });
 
   it('nie dodaje documentType dla przedmiotów innych niż dokumenty', () => {
@@ -114,6 +114,6 @@ describe('createAcquiredEquipmentSeed - documentType', () => {
     };
 
     const seed = createAcquiredEquipmentSeed(proposal);
-    expect((seed as any).documentType).toBeUndefined();
+    expect(seed.documentType).toBeUndefined();
   });
 });

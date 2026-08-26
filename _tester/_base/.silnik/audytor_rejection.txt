@@ -1,0 +1,9 @@
+Wyrok: nadal nie zatwierdzam.
+
+Usterka blokująca:
+- Playwright loguje 88 błędów MISSING_MESSAGE.
+- _tester/_base/.silnik/src/app/[locale]/prototypes/sanity-check/page.tsx używa 22 kluczy Page.*, których nie ma w żadnym słowniku, m.in. sanityCheckTitle, currentSanity, buttonRollSanity, howItWorksTitle.
+- Drzewa pl.json i en.json są identyczne po 3598 kluczy, ale oba mają ten sam brak. Sama zgodność drzew nie potwierdza kompletności używanych kluczy.
+- Cztery pliki nadal nie mają hooka useTranslations ani getTranslations: not-found.tsx, cutscene/page.tsx, prototypes/page.tsx, global-error.tsx.
+
+Mikrokrok: dodać brakujące klucze Page.* do obu słowników, wstawić brakujące hooki i uruchomić ponownie Playwright z przechwytywaniem MISSING_MESSAGE.

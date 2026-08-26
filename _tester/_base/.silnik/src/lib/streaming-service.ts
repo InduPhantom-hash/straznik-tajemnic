@@ -1,4 +1,6 @@
 // Streaming Service - Handles real-time streaming responses
+import type { GenerativeModel, Part } from '@google/generative-ai';
+
 interface StreamingConfig {
   chunkSize: number;
   delayBetweenChunks: number;
@@ -8,13 +10,13 @@ interface StreamingConfig {
 interface StreamChunk {
   id: string;
   type: 'text' | 'image' | 'voice' | 'error' | 'complete';
-  data: any;
+  data: unknown;
   timestamp: number;
   isPartial: boolean;
 }
 
 class StreamingService {
-  private activeStreams = new Map<string, ReadableStreamDefaultController<any>>();
+  private activeStreams = new Map<string, ReadableStreamDefaultController<Uint8Array>>();
   private config: StreamingConfig = {
     chunkSize: 50, // characters per chunk
     delayBetweenChunks: 50, // milliseconds
@@ -37,7 +39,7 @@ class StreamingService {
   // Stream text character by character
   private async streamText(
     text: string, 
-    controller: ReadableStreamDefaultController<any>,
+    controller: ReadableStreamDefaultController<Uint8Array>,
     streamId: string
   ): Promise<void> {
     const chunks = this.splitTextIntoChunks(text);
@@ -143,8 +145,8 @@ class StreamingService {
   // Create streaming endpoint for chat
   // Accepts either string (prompt) or array of parts (with file handles)
   async createChatStream(
-    promptOrParts: string | any[], 
-    model: any,
+    promptOrParts: string | Array<string | Part>,
+    model: GenerativeModel,
     streamId: string
   ): Promise<ReadableStream<Uint8Array>> {
     return new ReadableStream({

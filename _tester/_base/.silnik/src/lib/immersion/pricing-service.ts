@@ -94,9 +94,13 @@ export async function convertUSD(
     }
   }
 
-  // Fallback sanity check
-  if (!originalCPI) originalCPI = STATIC_CPI_TABLE[1920];
-  if (!targetCPI) targetCPI = STATIC_CPI_TABLE[2026];
+  // Era safety: brak danych CPI dla roku to blad - nie podstawiamy zamiennika
+  // (1920/2026), bo to fałszuje ceny w narracji poza supported zakresem tabeli.
+  if (!originalCPI || !targetCPI) {
+    throw new RangeError(
+      `Unsupported year for CPI conversion: ${!originalCPI ? originalYear : targetYear}`
+    );
+  }
 
   const multiplier = targetCPI / originalCPI;
   const converted = amount * multiplier;

@@ -111,6 +111,11 @@ function formatPricesSection(result: PriceConversionResult): string {
 // Eksportowana funkcja
 // ---------------------------------------------------------------------------
 
+interface EpochHighlight {
+  title: string;
+  summary: string;
+}
+
 export interface FetchImmersionContextOpts {
   /** Data w grze, format YYYY-MM-DD */
   gameDate: string;
@@ -176,10 +181,13 @@ export async function fetchImmersionContext(opts: FetchImmersionContextOpts): Pr
       const path = await import('path');
       const epochFilePath = path.join(process.cwd(), 'data', 'epochs', 'pl-1990s-2000s', 'summary_immersion.json');
       if (fs.existsSync(epochFilePath)) {
-        const summaryData = JSON.parse(fs.readFileSync(epochFilePath, 'utf-8'));
+        const summaryData = JSON.parse(fs.readFileSync(epochFilePath, 'utf-8')) as {
+          instructions?: string;
+          highlights?: EpochHighlight[];
+        };
         const highlightsText = (summaryData.highlights || [])
           .slice(0, 5)
-          .map((h: any) => `- **${h.title}**: ${h.summary.slice(0, 150)}...`)
+          .map((h) => `- **${h.title}**: ${h.summary.slice(0, 150)}...`)
           .join('\n');
         epochSummarySection = `### Realia i Tlo Epoki (Polska 1990-2000)\n${summaryData.instructions}\n\nKluczowe konteksty epokowe:\n${highlightsText}`;
       }

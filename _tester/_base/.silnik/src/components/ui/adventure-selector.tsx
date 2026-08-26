@@ -456,7 +456,7 @@ export function AdventureSelector({
               <div>
                 <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
                   <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
-                    <span>📺</span> Autorskie Scenariusze (Inspirowane programem "Strefa 11" / "Nie do wiary" - TVN)
+                    <span>📺</span> Autorskie Scenariusze (Inspirowane programem &quot;Strefa 11&quot; / &quot;Nie do wiary&quot; - TVN)
                   </div>
                   <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
                     Polskie scenariusze przygód RPG osadzone w realiach PRL i lat 90./2000. Każda przygoda posiada gotowe zbalansowane postacie Badaczy.

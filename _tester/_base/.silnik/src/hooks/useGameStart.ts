@@ -420,6 +420,19 @@ export function useGameStart({
           }
         },
         onMetadata: (metadata) => {
+          // finishReason z metadanych (MAX_TOKENS = urwane intro) musi trafić
+          // na wiadomość - bez tego przycisk "Kontynuuj narrację" nie wie, że
+          // intro jest częściowe.
+          if (metadata.finishReason) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, finishReason: String(metadata.finishReason) }
+                  : msg
+              )
+            );
+          }
+
           // Metadane costData zapisz do wiadomości
           if (metadata.costData) {
             setMessages((prev) =>

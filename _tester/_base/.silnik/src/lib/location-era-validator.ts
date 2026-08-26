@@ -11,6 +11,7 @@
  */
 
 import { resolveEraVisualProfile, type EraVisualProfile } from './era-visual-style';
+import type { ResolvedEraContext } from '@/lib/era/types';
 
 export interface LocationMaterialValidationResult {
   isValid: boolean;
@@ -259,7 +260,9 @@ const ENGLISH_ANACHRONISM_CLEANERS: Record<EraVisualProfile, RegExp[]> = {
   'prl-1970s': [/\b(smartphone|iphone|android|laptop|tablet|smartwatch|wifi|wi-fi|lcd|oled|led)\b/gi, /\b(ford model t|horse carriage)\b/gi],
   '1980s': [/\b(smartphone|iphone|android|wifi|wi-fi|touchscreen|smartwatch)\b/gi],
   '1990s': [/\b(smartphone|iphone|android|touchscreen|smartwatch|5g)\b/gi],
-  '2000s': [/\b(iphone 1[0-9]|smartwatch|5g|chatgpt|ai assistant)\b/gi],
+  // Rok 2000-2007: smartphone/powerbank jeszcze nie istnieja (feature phones),
+  // ale nowoczesne marki/standardy juz tak.
+  '2000s': [/\b(smartphone|powerbank|android|iphone 1[0-9]|smartwatch|5g|chatgpt|ai assistant)\b/gi],
   modern: [],
 };
 
@@ -269,7 +272,7 @@ const ENGLISH_ANACHRONISM_CLEANERS: Record<EraVisualProfile, RegExp[]> = {
  */
 export function enrichImagePromptWithEraProps(
   imagePrompt: string,
-  eraOrYear?: string
+  eraOrYear?: string | ResolvedEraContext
 ): string {
   const profile = resolveEraVisualProfile(eraOrYear);
   let cleaned = imagePrompt.trim();
@@ -293,14 +296,22 @@ export function enrichImagePromptWithEraProps(
  * Generuje blok instrukcji dla MG dotyczący materialnego User Story i kontrastu epoki.
  */
 export function buildLocationEraGuidanceSection(
-  eraOrYear: string | undefined,
+  eraOrYear: string | ResolvedEraContext | undefined,
   currentLocation?: string
 ): string {
   const profile = resolveEraVisualProfile(eraOrYear);
   const locationTag = currentLocation ? ` w lokacji "${currentLocation}"` : '';
 
+  // Z ResolvedEraContext kotwiczymy scenę w konkretnym roku i regionie -
+  // bez tego wytyczne zostają ogólne i MG może dryfować poza erę przygody.
+  const contextAnchor =
+    eraOrYear && typeof eraOrYear === 'object'
+      ? `0. KONTEKST SCENY: ${eraOrYear.effectiveYear}, ${eraOrYear.countryCode} - wszystkie realia materialne, technologia i marki kotwicz w tym roku i regionie.\n`
+      : '';
+
   return (
     `\n## MATERIALNE USER STORY I KONTRAST EPOKI (${profile.toUpperCase()})\n` +
+    contextAnchor +
     `1. MATERIALNE TŁO: Opisując przestrzeń${locationTag}, ZAWSZE zakotwicz scenę w realiach materialnych epoki (określ źródło światła: lampa naftowa/gazowa/żarówka, ogrzewanie: piec kaflowy/kaloryfer, oraz łączność: telefon naścienny/tarczowy/brak telefonu).\n` +
     `2. ZASADA KONTRASTU: Zachowaj 80% realistycznego, namacalnego tła. Anomalię i niepokój wprowadzaj jako JEDEN wyraźny punkt zaczepienia (flagowy trop), zamiast zniekształcać każdy zwykły pokój.\n` +
     `3. STRAŻNIK ANACHRONIZMÓW: Bezwzględny zakaz wtrącania technologii późniejszych (dla lat 20. brak smartfonów, plastiku, komputerów, LED; dla lat 70. brak smartfonów i ekranów LCD).\n` +

@@ -169,7 +169,7 @@ export function parseAIResponse(responseText: string): ParsedResponse {
 
     // Wykrywanie walki (tag > legacy)
     const combat = tagCombat
-        ? { isActive: tagCombat.isActive, trigger: tagCombat.trigger as any }
+        ? { isActive: tagCombat.isActive, trigger: tagCombat.trigger }
         : detectCombat(responseText);
 
     // Ekstrakcja dialogów (z NPC position cross-reference dla lepszej atrybucji)

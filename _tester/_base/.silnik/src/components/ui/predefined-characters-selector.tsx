@@ -20,6 +20,9 @@ interface PredefinedCharactersSelectorProps {
   currentEra?: 'classic' | 'gaslight' | 'modern' | 'custom' | 'noir' | 'prl' | 'prl-1970s' | '1990s' | '2000s' | string;
   targetPlayerName?: string;
   unavailablePresetIds?: string[];
+  /** Pełny kontekst epoki z lib/era - caller przekazuje dla spójności wizualnej;
+   *  selektor czyta profile przez preset.era, pole opcjonalne dla zgodności. */
+  eraContext?: unknown;
 }
 
 const CHARACTERISTIC_LABELS: Record<string, string> = {

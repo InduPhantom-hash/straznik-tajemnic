@@ -1,4 +1,7 @@
+'use client';
+
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, PackagePlus, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,6 +27,7 @@ export function AcquiredItemCard({
   isDuet = false,
   characters = [],
 }: AcquiredItemCardProps) {
+  const t = useTranslations('AcquiredItemCard');
   const [selectedCharId, setSelectedCharId] = useState<string>('');
 
   // Auto-loot logic dla trybu Solo
@@ -37,7 +41,7 @@ export function AcquiredItemCard({
     return (
       <div className="mt-2 flex items-center gap-1.5 text-xs text-[#bfa15f]/80 font-special-elite italic">
         <Check className="h-3.5 w-3.5" />
-        <span>Dopisano do akt: {proposal.name}</span>
+        <span>{t('acceptedMessage', { itemName: proposal.name })}</span>
       </div>
     );
   }
@@ -46,7 +50,7 @@ export function AcquiredItemCard({
     return (
       <div className="mt-2 flex items-center gap-1.5 text-xs text-[#8a7667]/60 font-special-elite italic">
         <X className="h-3.5 w-3.5" />
-        <span>Odrzucono dowód: {proposal.name}</span>
+        <span>{t('dismissedMessage', { itemName: proposal.name })}</span>
       </div>
     );
   }
@@ -63,7 +67,7 @@ export function AcquiredItemCard({
         <PackagePlus className="mt-0.5 h-4 w-4 shrink-0 text-[#bfa15f]" />
         <div className="min-w-0 flex-1">
           <p className="font-special-elite text-[10px] uppercase tracking-widest text-[#8a7667] mb-1">
-            Nowy Dowód Rzeczowy
+            {t('newEvidenceTitle')}
           </p>
           <p className="font-serif font-bold text-sm text-[#f4ebd0] leading-tight">
             {proposal.name}
@@ -72,7 +76,7 @@ export function AcquiredItemCard({
           <div className="mt-3 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
             <Select value={selectedCharId} onValueChange={setSelectedCharId}>
               <SelectTrigger className="w-full sm:w-[160px] h-7 text-xs bg-[#0d0906] border-[#3a2518] text-[#e2d4c9] font-serif rounded-sm">
-                <SelectValue placeholder="Wybierz badacza..." />
+                <SelectValue placeholder={t('selectInvestigatorPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {characters.map((char) => (
@@ -90,15 +94,15 @@ export function AcquiredItemCard({
                 disabled={!selectedCharId}
                 className="h-7 bg-[#3a2518] hover:bg-[#5c3e21] text-[#f4ebd0] text-xs font-serif rounded-sm border border-[#3a2518] hover:border-[#bfa15f]/40 px-2"
               >
-                <Check className="mr-1 h-3 w-3" /> Dopisz do akt
+                <Check className="mr-1 h-3 w-3" /> {t('addToRecordsButton')}
               </Button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <Button
+                size="sm"
+                variant="ghost"
                 onClick={onDismiss}
                 className="h-7 text-[#8a7667] hover:text-[#ff6b6b] hover:bg-transparent text-xs font-serif px-2"
               >
-                <X className="mr-1 h-3 w-3" /> Pomiń
+                <X className="mr-1 h-3 w-3" /> {t('dismissButton')}
               </Button>
             </div>
           </div>

@@ -35,7 +35,7 @@ export interface TimelineEvent {
 
   // Dodatkowe dane
   data?: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -56,7 +56,7 @@ export function createTimelineEvent(
     importance?: 'low' | 'medium' | 'high';
     tags?: string[];
     imageUrl?: string;
-    data?: { [key: string]: any };
+    data?: { [key: string]: unknown };
   }
 ): TimelineEvent {
   return {
@@ -87,7 +87,7 @@ export function saveTimelineEvent(event: TimelineEvent, sessionId?: string): voi
   try {
     const key = sessionId ? `timeline_${sessionId}` : 'timeline';
     const saved = localStorage.getItem(key);
-    const events: TimelineEvent[] = saved ? JSON.parse(saved).map((e: any) => ({
+    const events: TimelineEvent[] = saved ? JSON.parse(saved).map((e: Omit<TimelineEvent, 'timestamp'> & { timestamp: string }) => ({
       ...e,
       timestamp: new Date(e.timestamp)
     })) : [];
@@ -113,7 +113,7 @@ export function loadTimelineEvents(sessionId?: string): TimelineEvent[] {
     const key = sessionId ? `timeline_${sessionId}` : 'timeline';
     const saved = localStorage.getItem(key);
     if (saved) {
-      return JSON.parse(saved).map((e: any) => ({
+      return JSON.parse(saved).map((e: Omit<TimelineEvent, 'timestamp'> & { timestamp: string }) => ({
         ...e,
         timestamp: new Date(e.timestamp)
       }));

@@ -71,7 +71,14 @@ export function LocationManager({
     try {
       const saved = localStorage.getItem('gm_locations');
       if (saved) {
-        const loaded = JSON.parse(saved).map((loc: any) => ({
+        const storedLocations = JSON.parse(saved) as Array<
+          Omit<Location, 'createdAt' | 'updatedAt' | 'lastVisited'> & {
+            createdAt: string;
+            updatedAt: string;
+            lastVisited?: string;
+          }
+        >;
+        const loaded = storedLocations.map((loc) => ({
           ...loc,
           createdAt: new Date(loc.createdAt),
           updatedAt: new Date(loc.updatedAt),
@@ -220,7 +227,7 @@ export function LocationManager({
             {filteredLocations.length === 0 ? (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Brak lokacji. Kliknij "Nowa Lokacja" aby utworzyć pierwszą.</p>
+                <p>Brak lokacji. Kliknij &quot;Nowa Lokacja&quot; aby utworzyć pierwszą.</p>
               </div>
             ) : (
               filteredLocations.map(location => (
@@ -472,7 +479,7 @@ function LocationForm({ location, npcs, onSave, onCancel, sessionId }: LocationF
     }));
   };
 
-  const updateSecret = (id: string, field: string, value: any) => {
+  const updateSecret = (id: string, field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       secrets: (prev.secrets || []).map(s => 

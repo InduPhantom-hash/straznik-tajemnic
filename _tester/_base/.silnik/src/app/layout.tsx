@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
+import { cookies, headers } from 'next/headers';
 import './globals.css';
 import { PHProvider } from '@/lib/posthog';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,13 +10,23 @@ export const metadata: Metadata = {
   description: 'Twoje centrum dowodzenia w walce z kosmiczną grozą.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Root layout jest wspolny dla tras poza [locale] - jezyk <html> czytamy
+  // z cookie NEXT_LOCALE ustawianego przez middleware next-intl.
+  // Middleware next-intl przekazuje rozstrzygniety jezyk w naglowku zadania -
+  // dziala to juz przy PIERWSZEJ wizycie (zanim powstanie cookie NEXT_LOCALE).
+  const h = await headers();
+  const locale =
+    h.get('x-next-intl-locale') ??
+    (await cookies()).get('NEXT_LOCALE')?.value ??
+    'pl';
+
   return (
-    <html lang="pl" className="dark" suppressHydrationWarning>
+    <html lang={locale} className="dark" suppressHydrationWarning>
       <head>
         {/*
           Fonty ladowane przez <link> (nie @import w globals.css) - Tailwind/PostCSS

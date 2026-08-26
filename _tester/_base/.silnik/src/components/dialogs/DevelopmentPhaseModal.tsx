@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -69,6 +70,7 @@ export function DevelopmentPhaseModal({
   characters = [],
   onActiveCharacterChange,
 }: DevelopmentPhaseModalProps) {
+  const t = useTranslations('DevelopmentPhaseModal');
   const [skillResults, setSkillResults] = useState<DevelopmentRollResult[]>([]);
   const [luckResult, setLuckResult] = useState<EDURollResult | null>(null);
   const [selfHelpAspect, setSelfHelpAspect] = useState('');
@@ -197,7 +199,11 @@ export function DevelopmentPhaseModal({
           0
         ),
         xpCost: 0,
-        description: `Faza Rozwoju: ${successfulSkills.map((r) => `${r.skillName} +${r.improvement}`).join(', ')}`,
+        description: t('historySkillsDescription', {
+          skills: successfulSkills
+            .map((r) => `${r.skillName} +${r.improvement}`)
+            .join(', '),
+        }),
       });
     }
 
@@ -208,11 +214,14 @@ export function DevelopmentPhaseModal({
         id: `san_mastery_${Date.now()}_${r.skillName}`,
         timestamp: new Date(),
         type: 'attribute' as const,
-        target: 'Poczytalność (bonus za mistrzostwo)',
+        target: t('historyMasteryTarget'),
         oldValue: character.san || 0,
         newValue: updatedCharacter.san,
         xpCost: 0,
-        description: `+${r.sanityBonus} PR za osiągnięcie mistrzostwa w ${r.skillName} (90%+)`,
+        description: t('historyMasteryDescription', {
+          bonus: r.sanityBonus ?? 0,
+          skill: r.skillName,
+        }),
       });
     }
 
@@ -221,11 +230,15 @@ export function DevelopmentPhaseModal({
         id: `luck_recovery_${Date.now()}`,
         timestamp: new Date(),
         type: 'attribute' as const,
-        target: 'Szczęście',
+        target: t('historyLuckTarget'),
         oldValue: luckRoll.oldValue,
         newValue: luckRoll.newValue,
         xpCost: 0,
-        description: `Odzyskanie Szczęścia: ${luckRoll.oldValue} → ${luckRoll.newValue} (rzut ${luckRoll.roll})`,
+        description: t('historyLuckDescription', {
+          old: luckRoll.oldValue,
+          new: luckRoll.newValue,
+          roll: luckRoll.roll,
+        }),
       });
     }
 
@@ -263,11 +276,15 @@ export function DevelopmentPhaseModal({
           id: `self_help_${Date.now()}`,
           timestamp: new Date(),
           type: 'attribute' as const,
-          target: 'Poczytalność (Samopomoc)',
+          target: t('historySelfHelpTarget'),
           oldValue: oldSan,
           newValue: newSan,
           xpCost: 0,
-          description: `Samopomoc: ${selfHelpAspect.trim()} (+${actualGain} PR, rzut ${recovered})`,
+          description: t('historySelfHelpDescription', {
+            aspect: selfHelpAspect.trim(),
+            gain: actualGain,
+            roll: recovered,
+          }),
         },
       ],
     });
@@ -291,21 +308,21 @@ export function DevelopmentPhaseModal({
         {/* Nagłówek déco - eyebrow + tytuł Cinzel + opis serif italic */}
         <DialogHeader className="text-center sm:text-center mb-1">
           <div className="font-special-elite text-[14px] uppercase tracking-[0.36em] text-primary">
-            Koniec sesji · Faza Rozwoju
+            {t('eyebrow')}
           </div>
           <DialogTitle className="font-display-decorative text-2xl uppercase tracking-[0.1em] text-foreground flex items-center justify-center gap-2 pt-1">
             <GraduationCap className="w-5 h-5 text-brass" />
-            Faza Rozwoju Badacza
+            {t('title')}
           </DialogTitle>
           <DialogDescription className="font-serif italic text-base text-muted-foreground">
-            Rozwijaj umiejętności zgodnie z zasadami CoC 7e
+            {t('subtitle')}
           </DialogDescription>
 
           {/* Przełącznik postaci w duecie / multiplayer */}
           {characters.length > 1 && onActiveCharacterChange && (
             <div className="mt-3 flex justify-center">
               <select
-                aria-label="Wybierz postać, której fazę rozwoju przeprowadzasz"
+                aria-label={t('selectCharacterAria')}
                 value={character.id || ''}
                 onChange={(e) => {
                   const selected = characters.find(
@@ -322,7 +339,7 @@ export function DevelopmentPhaseModal({
                   const skillsCount = getMarkedSkills(char).length;
                   return (
                     <option key={char.id} value={char.id}>
-                      {char.name} ({skillsCount} {skillsCount === 1 ? 'oznaczona' : 'oznaczonych'})
+                      {char.name} ({t('markedSkillsCount', { count: skillsCount })})
                     </option>
                   );
                 })}
@@ -344,48 +361,44 @@ export function DevelopmentPhaseModal({
                   <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-brass/50" />
                   <p className="font-special-elite text-sm uppercase tracking-[0.12em] text-foreground flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <strong>Jeszcze nie masz czego rozwijać</strong>
+                    <strong>{t('nothingToDevelop')}</strong>
                   </p>
                   <p className="font-serif italic text-base text-muted-foreground">
-                    Faza Rozwoju pozwala ulepszać umiejętności, ale tylko te,
-                    które wcześniej{' '}
+                    {t('nothingToDevelopPre')}
                     <strong className="text-primary not-italic">
-                      zostały oznaczone w trakcie gry
+                      {t('nothingToDevelopMarked')}
                     </strong>
-                    . Na razie żadna nie jest oznaczona, więc nie ma jeszcze nic
-                    do rzucenia.
+                    {t('nothingToDevelopPost')}
                   </p>
 
                   <div className="border border-brass/25 bg-[#16130f] p-3">
                     <p className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-2">
-                      Jak postać rozwija umiejętności?
+                      {t('howToTitle')}
                     </p>
                     <ol className="font-serif text-base text-foreground/90 space-y-1.5 list-decimal list-inside">
                       <li>
-                        W trakcie gry zdajesz{' '}
-                        <strong className="text-primary">udany test</strong>{' '}
-                        umiejętności (bez wydania Szczęścia na poprawę).
+                        {t('howToStep1Pre')}{' '}
+                        <strong className="text-primary">{t('howToStep1Marked')}</strong>{' '}
+                        {t('howToStep1Post')}
                       </li>
                       <li>
-                        Aplikacja{' '}
+                        {t('howToStep2Pre')}{' '}
                         <strong className="text-primary">
-                          automatycznie oznacza
+                          {t('howToStep2Marked')}
                         </strong>{' '}
-                        tę umiejętność znaczkiem do rozwoju.
+                        {t('howToStep2Post')}
                       </li>
                       <li>
-                        Po zebraniu oznaczeń wracasz tutaj i{' '}
-                        <strong className="text-primary">rzucasz</strong> na ich
-                        poprawę (1D100 - im niższa umiejętność, tym łatwiej ją
-                        podnieść).
+                        {t('howToStep3Pre')}{' '}
+                        <strong className="text-primary">{t('howToStep3Marked')}</strong>{' '}
+                        {t('howToStep3Post')}
                       </li>
                     </ol>
                   </div>
 
                   <p className="font-serif italic text-sm text-muted-foreground flex items-center gap-1.5">
                     <Check className="w-4 h-4 text-primary not-italic" />
-                    Liczba oznaczonych umiejętności pojawi się jako odznaka przy
-                    przycisku &bdquo;Faza Rozwoju&rdquo; w panelu bocznym.
+                    {t('badgeInfo', { button: t('startButtonShort') })}
                   </p>
                 </div>
 
@@ -393,17 +406,17 @@ export function DevelopmentPhaseModal({
                   onClick={onClose}
                   className="w-full font-display font-semibold uppercase tracking-[0.16em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10"
                 >
-                  Rozumiem, wracam do gry
+                  {t('understandButton')}
                 </Button>
               </div>
             ) : (
               <>
                 <p className="font-serif italic text-base text-muted-foreground text-center">
-                  Masz{' '}
+                  {t('markedPre')}{' '}
                   <span className="font-special-elite not-italic text-primary font-bold">
                     {markedSkills.length}
                   </span>{' '}
-                  umiejętności oznaczonych do rozwoju.
+                  {t('markedPost')}
                 </p>
 
                 <DecoSeparator />
@@ -431,29 +444,29 @@ export function DevelopmentPhaseModal({
                   <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-brass/50" />
                   <p className="font-serif text-base text-muted-foreground">
                     <strong className="font-display uppercase tracking-[0.14em] text-xs text-brass">
-                      Zasady:
+                      {t('rulesLabel')}
                     </strong>{' '}
-                    Dla każdej umiejętności rzucisz 1D100. Jeśli wynik będzie{' '}
-                    <strong className="text-primary">wyższy</strong> niż
-                    aktualna wartość, umiejętność wzrośnie o 1D10 punktów.
+                    {t('rulesPre')}{' '}
+                    <strong className="text-primary">{t('rulesHigher')}</strong>{' '}
+                    {t('rulesPost')}
                   </p>
                   <p className="font-serif italic text-sm text-muted-foreground mt-2">
-                    Im niższa umiejętność, tym łatwiej ją rozwinąć!
+                    {t('lowSkillHint')}
                   </p>
                   <p className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass mt-3 flex items-center gap-1.5">
                     <Heart className="w-3 h-3 inline text-brass" />
-                    Osiągnięcie 90%+ = bonus +2K6 Poczytalności!
+                    {t('masteryBonus')}
                   </p>
                   {/* IND-268: jasny komunikat o odzysku Szczęścia - koniec
                   "odzyskało mi się Szczęście, nie wiem czemu". */}
                   <p className="font-serif italic text-sm text-muted-foreground mt-2 flex items-start gap-1.5">
                     <Clover className="w-3.5 h-3.5 inline mt-0.5 shrink-0 text-primary not-italic" />
                     <span>
-                      Na koniec sesji aplikacja rzuci też raz na{' '}
+                      {t('luckInfoPre')}{' '}
                       <strong className="not-italic text-foreground/90">
-                        odzyskanie Szczęścia
+                        {t('luckInfoMarked')}
                       </strong>{' '}
-                      (zasada CoC 7e, niezależna od rozwoju umiejętności).
+                      {t('luckInfoPost')}
                     </span>
                   </p>
                 </div>
@@ -463,7 +476,7 @@ export function DevelopmentPhaseModal({
                   className="w-full font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110 animate-emerald-pulse"
                 >
                   <Dices className="w-4 h-4 mr-2" />
-                  Rozpocznij Fazę Rozwoju
+                  {t('startButton')}
                 </Button>
               </>
             )}
@@ -512,19 +525,21 @@ export function DevelopmentPhaseModal({
                   <div className="space-y-1 mt-1.5">
                     <div className="font-special-elite text-sm text-primary flex items-center gap-2">
                       <Check className="w-3 h-3" />
-                      Sukces! +{result.improvement} →{' '}
-                      <strong>{result.newValue}%</strong>
+                      {t('successImprovement', {
+                        improvement: result.improvement ?? 0,
+                        newValue: String(result.newValue),
+                      })}
                     </div>
                     {result.sanityBonus && (
                       <div className="font-special-elite text-sm text-brass flex items-center gap-2">
                         <Heart className="w-3 h-3" />
-                        Mistrzostwo! +{result.sanityBonus} Poczytalności
+                        {t('masteryLine', { bonus: result.sanityBonus })}
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="font-serif italic text-sm text-muted-foreground mt-1">
-                    Rzut za niski - brak zmiany
+                    {t('noChange')}
                   </div>
                 )}
               </div>
@@ -538,7 +553,9 @@ export function DevelopmentPhaseModal({
                     <Dices className="w-8 h-8" />
                   </div>
                   <span className="ml-3 font-special-elite text-sm uppercase tracking-[0.1em] text-muted-foreground">
-                    Rzucam dla: {markedSkills[currentIndex]?.name}...
+                    {t('rollingFor', {
+                      name: markedSkills[currentIndex]?.name ?? '',
+                    })}
                   </span>
                 </div>
               )}
@@ -550,7 +567,7 @@ export function DevelopmentPhaseModal({
                   <Clover className="w-8 h-8" />
                 </div>
                 <span className="ml-3 font-special-elite text-sm uppercase tracking-[0.1em] text-muted-foreground">
-                  Odzyskiwanie Szczęścia...
+                  {t('luckRolling')}
                 </span>
               </div>
             )}
@@ -566,7 +583,7 @@ export function DevelopmentPhaseModal({
                 <div className="flex justify-between items-center">
                   <span className="font-serif text-lg text-foreground flex items-center gap-2">
                     <Clover className="w-4 h-4 text-brass" />
-                    Szczęście
+                    {t('luckLabel')}
                   </span>
                   <span className="font-special-elite text-sm">
                     <span
@@ -585,12 +602,14 @@ export function DevelopmentPhaseModal({
                 {luckResult.success ? (
                   <div className="font-special-elite text-sm text-brass mt-1.5 flex items-center gap-2">
                     <Check className="w-3 h-3" />
-                    Odzyskano! +{luckResult.improvement} →{' '}
-                    <strong>{luckResult.newValue}</strong>
+                    {t('luckRecovered', {
+                      improvement: luckResult.improvement ?? 0,
+                      newValue: String(luckResult.newValue),
+                    })}
                   </div>
                 ) : (
                   <div className="font-serif italic text-sm text-muted-foreground mt-1">
-                    Rzut za niski - brak zmiany
+                    {t('noChange')}
                   </div>
                 )}
               </div>
@@ -606,7 +625,7 @@ export function DevelopmentPhaseModal({
                   <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-brass/50" />
                   <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-brass/50" />
                   <h4 className="font-display uppercase tracking-[0.16em] text-xs font-semibold text-brass mb-3 text-center">
-                    Podsumowanie Fazy Rozwoju
+                    {t('summaryTitle')}
                   </h4>
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="border border-primary/30 bg-[#0e1413] p-3">
@@ -614,7 +633,7 @@ export function DevelopmentPhaseModal({
                         {skillSuccessCount}/{markedSkills.length}
                       </div>
                       <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mt-1">
-                        Udanych rzutów
+                        {t('successfulRolls')}
                       </div>
                     </div>
                     <div className="border border-brass/30 bg-[#16130f] p-3">
@@ -622,29 +641,31 @@ export function DevelopmentPhaseModal({
                         +{totalSkillImprovement}
                       </div>
                       <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mt-1">
-                        Punktów rozwoju
+                        {t('developmentPoints')}
                       </div>
                     </div>
                   </div>
                   {sanBonusTotal > 0 && (
                     <div className="mt-3 text-center">
                       <div className="font-display text-lg font-bold text-brass">
-                        <Heart className="w-4 h-4 inline mr-1" />+
-                        {sanBonusTotal} Poczytalności
+                        <Heart className="w-4 h-4 inline mr-1" />
+                        {t('sanityGain', { total: sanBonusTotal })}
                       </div>
                       <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/70">
-                        Bonus za mistrzostwo (90%+)
+                        {t('masteryCaption')}
                       </div>
                     </div>
                   )}
                   {luckResult?.success && (
                     <div className="mt-3 text-center">
                       <div className="font-display text-lg font-bold text-brass">
-                        <Clover className="w-4 h-4 inline mr-1" />+
-                        {luckResult.improvement} Szczęścia
+                        <Clover className="w-4 h-4 inline mr-1" />
+                        {t('luckGain', {
+                          improvement: luckResult.improvement ?? 0,
+                        })}
                       </div>
                       <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/70">
-                        Odzyskane po sesji
+                        {t('luckCaption')}
                       </div>
                     </div>
                   )}
@@ -654,19 +675,17 @@ export function DevelopmentPhaseModal({
                 <div className="relative border-l-2 border-l-brass/50 border border-brass/25 bg-[#16130f] p-4 space-y-2">
                   <p className="font-special-elite text-sm uppercase tracking-[0.12em] text-foreground flex items-center gap-2">
                     <Brain className="w-4 h-4 text-brass" />
-                    <strong>Samopomoc</strong> - odzyskiwanie Poczytalności
+                    <strong>{t('selfHelpLabel')}</strong> {t('selfHelpSuffix')}
                   </p>
                   <p className="font-serif italic text-sm text-muted-foreground">
-                    Opisz, jak Badacz poświęcił czas aspektowi swojej historii
-                    (np. Kluczowej Więzi). Rzut 1K10 Poczytalności. Mechanika
-                    uznaniowa (str. 185) - Strażnik może zmienić wynik.
+                    {t('selfHelpDesc')}
                   </p>
                   {sanRecovered === null ? (
                     <>
                       <Textarea
                         value={selfHelpAspect}
                         onChange={(e) => setSelfHelpAspect(e.target.value)}
-                        placeholder="Np. spędził wieczór z siostrą, odnajdując spokój..."
+                        placeholder={t('selfHelpPlaceholder')}
                         className="font-serif text-base min-h-[60px]"
                       />
                       <Button
@@ -675,15 +694,15 @@ export function DevelopmentPhaseModal({
                         className="w-full font-display font-semibold uppercase tracking-[0.16em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10"
                       >
                         <Brain className="w-4 h-4 mr-2" />
-                        Odzyskaj Poczytalność (1K10)
+                        {t('selfHelpButton')}
                       </Button>
                     </>
                   ) : (
                     <div className="font-special-elite text-sm text-brass flex items-center gap-2">
                       <Check className="w-4 h-4" />
                       {sanRecovered > 0
-                        ? `Odzyskano +${sanRecovered} Poczytalności`
-                        : 'Poczytalność już maksymalna - brak zmiany'}
+                        ? t('selfHelpRecovered', { amount: sanRecovered })
+                        : t('sanAlreadyMax')}
                     </div>
                   )}
                 </div>
@@ -692,7 +711,7 @@ export function DevelopmentPhaseModal({
                   onClick={onClose}
                   className="w-full font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-primary hover:brightness-110"
                 >
-                  Zamknij
+                  {t('close')}
                 </Button>
               </div>
             )}

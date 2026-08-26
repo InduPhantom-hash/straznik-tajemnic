@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode, FC } from 'react';
+import type { CSSProperties, ReactNode, FC } from 'react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -16,7 +16,7 @@ export const CharacterDossier: FC<CharacterDossierProps> = ({
   characterName
 }) => {
   return (
-    <section className={cn("character-dossier prop-container relative w-full h-full flex items-center justify-center", className)} style={{ "--rotation": "1.5deg" } as any}>
+    <section className={cn("character-dossier prop-container relative w-full h-full flex items-center justify-center", className)} style={{ "--rotation": "1.5deg" } as CSSProperties}>
        <div className="manila-folder relative w-full h-[90%] bg-[#dccc9a] rounded-lg shadow-2xl border border-[#c5b583] flex flex-col p-2">
           {/* Folder Tab */}
           <div className="folder-tab absolute -top-8 right-8 bg-[#e6d5a7] px-8 py-2 rounded-t-lg border-t border-x border-[#c5b583] shadow-sm font-bold text-[#5e5444] tracking-widest text-sm z-0">

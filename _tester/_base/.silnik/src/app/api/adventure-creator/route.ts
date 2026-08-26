@@ -73,10 +73,11 @@ export async function POST(req: Request) {
       graph: graphData
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Adventure Creator Error:', error);
+    const message = error instanceof Error ? error.message : undefined;
     return NextResponse.json(
-      { error: error.message || 'Wewnętrzny błąd serwera' },
+      { error: message || 'Wewnętrzny błąd serwera' },
       { status: 500 }
     );
   }

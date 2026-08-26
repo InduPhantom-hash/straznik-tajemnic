@@ -123,21 +123,21 @@ class GameContextService {
                 this.context = {
                     ...parsed,
                     lastUpdated: new Date(parsed.lastUpdated),
-                    keyFacts: parsed.keyFacts?.map((f: any) => ({
+                    keyFacts: parsed.keyFacts?.map((f: KeyFact) => ({
                         ...f,
                         timestamp: new Date(f.timestamp),
                     })) || [],
-                    npcs: parsed.npcs?.map((n: any) => ({
+                    npcs: parsed.npcs?.map((n: NPCEntry) => ({
                         ...n,
                         lastMentioned: new Date(n.lastMentioned),
                         firstMentioned: new Date(n.firstMentioned),
                     })) || [],
-                    locations: parsed.locations?.map((l: any) => ({
+                    locations: parsed.locations?.map((l: LocationEntry) => ({
                         ...l,
                         firstVisited: l.firstVisited ? new Date(l.firstVisited) : undefined,
                         lastVisited: l.lastVisited ? new Date(l.lastVisited) : undefined,
                     })) || [],
-                    timeline: parsed.timeline?.map((t: any) => ({
+                    timeline: parsed.timeline?.map((t: TimelineEvent) => ({
                         ...t,
                         timestamp: new Date(t.timestamp),
                     })) || [],

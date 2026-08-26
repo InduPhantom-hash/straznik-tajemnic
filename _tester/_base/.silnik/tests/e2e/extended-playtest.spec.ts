@@ -17,7 +17,7 @@
  *   6. Verification (10 min) - Sprawdzenie dziennika, eksport, raport
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import {
     START_GAME_MESSAGE,
     TEST_CHARACTER,
@@ -96,7 +96,7 @@ async function waitForAppReady(page: Page): Promise<void> {
     await page.waitForTimeout(3000);
 }
 
-async function findChatInput(page: Page): Promise<any> {
+async function findChatInput(page: Page): Promise<Locator> {
     await page.waitForTimeout(2000);
 
     const selectors = [

@@ -13,8 +13,7 @@
  */
 
 import { CampaignClock } from '../../../ui/campaign-clock';
-
-const DEFAULT_TITLE = 'Tajemnica Biblioteki Miskatonic';
+import { useTranslations } from 'next-intl';
 
 interface ChatHeaderProps {
   /** Tytuł wybranej przygody; gdy brak - domyślny scenariusz. */
@@ -33,6 +32,8 @@ export function ChatHeader({
   region,
   currentLocation,
 }: ChatHeaderProps) {
+  const t = useTranslations('ChatHeader');
+  const defaultTitle = t('defaultTitle');
   const place = currentLocation?.trim();
   const regionLabel = region?.trim();
   // 3H: "region · miejsce" gdy oba znane i RÓŻNE; w innym wypadku to z nich, które
@@ -60,9 +61,9 @@ export function ChatHeader({
         </span>
         <span 
           className="text-foreground tracking-wide truncate"
-          title={title?.trim() || DEFAULT_TITLE}
+          title={title?.trim() || defaultTitle}
         >
-          {title?.trim() || DEFAULT_TITLE}
+          {title?.trim() || defaultTitle}
         </span>
       </div>
 

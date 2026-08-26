@@ -8,6 +8,7 @@ import type {
   AdventureContext,
   HotSeatConfig,
   HotSeatPlayer,
+  JournalEntry,
 } from '@/lib/types';
 import {
   resolveTestValue,
@@ -256,6 +257,8 @@ export interface UseChatReturn {
     messageId: string
   ) => Promise<void>;
   isLoading: boolean;
+  handleContinueNarration?: (messageId?: string) => Promise<void>;
+
   /** IND-267: bieżąca lokacja bohatera z najnowszego [LOKACJA:] (pineska 📍 w headerze). */
   currentLocation: string;
   // === C4 (duet): bufor deklaracji + wysyłka tury ===
@@ -701,6 +704,18 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
+            // finishReason z metadanych (MAX_TOKENS/STOP) trafia na wiadomość -
+            // steruje przyciskiem "Kontynuuj narrację" i logiką urwanych scen.
+            if (metadata.finishReason) {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, finishReason: String(metadata.finishReason) }
+                    : msg
+                )
+              );
+            }
+
             // Telemetry: PostHog ai_request_completed (spawn task 2026-05-22).
             // Server (create-sse-stream) pisze `telemetry` namespace, klient emituje.
             // PostHog jest browser-only (posthog-js), więc emit MUSI być client-side.
@@ -957,6 +972,128 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     ]
   );
 
+  // === Ręczna kontynuacja urwanej narracji (finishReason=MAX_TOKENS) ===
+  // Single-flight: równoległe wywołania (double-click, Promise.all w testach)
+  // muszą dać DOKŁADNIE jedno żądanie - stąd ref zamiast stanu (synchroniczny).
+  const continuationInFlightRef = useRef(false);
+
+  const handleContinueNarration = useCallback(
+    async (messageId?: string) => {
+      if (continuationInFlightRef.current || isLoading) return;
+
+      // Cel: wskazana wiadomość albo najnowsza asystenta urwana na MAX_TOKENS.
+      const target = messageId
+        ? messages.find(
+            (m) =>
+              m.id === messageId &&
+              m.role === 'assistant' &&
+              m.finishReason === 'MAX_TOKENS'
+          )
+        : [...messages]
+            .reverse()
+            .find(
+              (m) =>
+                m.role === 'assistant' && m.finishReason === 'MAX_TOKENS'
+            );
+      if (!target) return;
+
+      continuationInFlightRef.current = true;
+      // Zamówienie oznaczamy PRZED wysyłką - UI natychmiast blokuje przycisk.
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === target.id ? { ...msg, continuationRequested: true } : msg
+        )
+      );
+
+      setIsLoading(true);
+      const assistantMessageId = crypto.randomUUID();
+      const assistantMessage: Message = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+      };
+      // Kontynuacja NIE tworzy dymku gracza - instrukcja leci tylko w payloadzie.
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      const markedTarget: Message = { ...target, continuationRequested: true };
+
+      try {
+        const response = await fetchWithRetry('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message:
+              'Dokończ poprzednią, urwaną wypowiedź Mistrza Gry dokładnie od miejsca, w którym się skończyła. Nie powtarzaj jej i nie komentuj przerwania.',
+            messages: sanitizeHistoryForApi([markedTarget]),
+            pdfMemory,
+            character: sanitizeCharacterForApi(activeCharacter),
+            adventureContext,
+            gameTime: timeManager.getTime(),
+            currentLocation: currentLocationRef.current,
+            aiSettings: options.aiSettings,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Błąd połączenia');
+
+        let streamedFullText = '';
+        const fullText = await parseSSEStream(response, {
+          onText: (text) => {
+            streamedFullText = text;
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId ? { ...msg, content: text } : msg
+              )
+            );
+            if (voiceEnabled && isTTSEnabled) {
+              options.addToQueue(text, assistantMessageId);
+            }
+          },
+          onMetadata: (metadata) => {
+            if (metadata.finishReason) {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, finishReason: String(metadata.finishReason) }
+                    : msg
+                )
+              );
+            }
+            if (voiceEnabled && isTTSEnabled) {
+              generateVoiceForMessage(
+                { ...assistantMessage, content: streamedFullText },
+                [...messages, markedTarget]
+              );
+            }
+          },
+          onParseError: createSseParseErrorHandler({
+            endpoint: '/api/chat',
+            hook: 'useChat:continueNarration',
+          }),
+        });
+
+        void fullText;
+      } catch (error) {
+        console.error('Błąd kontynuacji narracji:', error);
+        setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
+      } finally {
+        continuationInFlightRef.current = false;
+        setIsLoading(false);
+      }
+    },
+    [
+      isLoading,
+      messages,
+      pdfMemory,
+      activeCharacter,
+      adventureContext,
+      voiceEnabled,
+      isTTSEnabled,
+      generateVoiceForMessage,
+    ]
+  );
+
   // === C4 (duet): bufor deklaracji + wysyłka tury ===
   // Tryb dla dwojga = Hot Seat z 2+ graczami. Tylko wtedy buforujemy; solo
   // wysyła natychmiast (Enter w MessageInput → handleSendMessage bez zmian).
@@ -1127,7 +1264,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         imageUrl: undefined,
       };
       
-      const journalEntry = {
+      const journalEntry: JournalEntry = {
         id: `journal-${item.id}`,
         timestamp: new Date(),
         type: 'item',
@@ -1142,7 +1279,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           ? { 
               ...character, 
               equipment: [...(character.equipment ?? []), item],
-              journal: [...(character.journal ?? []), journalEntry as any]
+              journal: [...(character.journal ?? []), journalEntry]
             }
           : character
       );
@@ -1224,6 +1361,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     newMessage,
     setNewMessage,
     handleSendMessage,
+    handleContinueNarration,
     handleKeyPress,
     generateImages,
     isLoading,

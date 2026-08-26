@@ -17,6 +17,14 @@ const DICTIONARY_PATH = path.join(
 const BATCH_SIZE = 20; // limit by avoid rate-limiting
 const DELAY_MS = 2000;
 
+interface MythosEntry {
+  id: string;
+  term: string;
+  shortDefinition: string;
+  fullContent: string;
+  tags?: string[];
+}
+
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -37,7 +45,7 @@ async function runEmbed() {
   embeddingService.initialize(process.env.GEMINI_API_KEY);
   localVectorStore.initialize();
 
-  const entries = JSON.parse(fs.readFileSync(DICTIONARY_PATH, 'utf-8'));
+  const entries: MythosEntry[] = JSON.parse(fs.readFileSync(DICTIONARY_PATH, 'utf-8'));
   console.log(`[Embed Mythos] Wczytano ${entries.length} haseł do zindeksowania.`);
 
   // To avoid memory limits or API key exhaustion, we will batch upset to localVectorStore
@@ -60,7 +68,7 @@ async function runEmbed() {
     const batch = entries.slice(i, i + BATCH_SIZE);
     console.log(`[Embed Mythos] Przetwarzanie batcha ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(entries.length / BATCH_SIZE)} (hasła ${i} - ${i + batch.length - 1})...`);
 
-    const textsToEmbed = batch.map((entry: any) => 
+    const textsToEmbed = batch.map((entry) => 
       `${entry.term} - ${entry.shortDefinition}\n\n${entry.fullContent}`.slice(0, 5000)
     );
 

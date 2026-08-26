@@ -5,7 +5,7 @@ import { apiCacheService } from './api-cache-service';
 interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
   timeout?: number;
   retries?: number;
   cache?: boolean;
@@ -26,7 +26,7 @@ class OptimizedHTTPClient {
   private requestMetrics = new Map<string, RequestMetrics>();
 
   // Main request method with all optimizations
-  async request<T = any>(
+  async request<T = unknown>(
     url: string, 
     config: RequestConfig = {}
   ): Promise<{
@@ -122,24 +122,24 @@ class OptimizedHTTPClient {
   }
 
   // Convenience methods
-  async get<T = any>(url: string, config: Omit<RequestConfig, 'method'> = {}) {
+  async get<T = unknown>(url: string, config: Omit<RequestConfig, 'method'> = {}) {
     return this.request<T>(url, { ...config, method: 'GET' });
   }
 
-  async post<T = any>(url: string, body?: any, config: Omit<RequestConfig, 'method' | 'body'> = {}) {
+  async post<T = unknown>(url: string, body?: unknown, config: Omit<RequestConfig, 'method' | 'body'> = {}) {
     return this.request<T>(url, { ...config, method: 'POST', body });
   }
 
-  async put<T = any>(url: string, body?: any, config: Omit<RequestConfig, 'method' | 'body'> = {}) {
+  async put<T = unknown>(url: string, body?: unknown, config: Omit<RequestConfig, 'method' | 'body'> = {}) {
     return this.request<T>(url, { ...config, method: 'PUT', body });
   }
 
-  async delete<T = any>(url: string, config: Omit<RequestConfig, 'method'> = {}) {
+  async delete<T = unknown>(url: string, config: Omit<RequestConfig, 'method'> = {}) {
     return this.request<T>(url, { ...config, method: 'DELETE' });
   }
 
   // Batch requests with parallel execution
-  async batch<T extends Record<string, any>>(
+  async batch<T extends Record<string, unknown>>(
     requests: Array<{
       key: keyof T;
       url: string;
@@ -151,11 +151,11 @@ class OptimizedHTTPClient {
     // Execute all requests in parallel
     const promises = requests.map(async (req) => {
       try {
-        const result = await this.request(req.url, req.config);
+        const result = await this.request<T[keyof T]>(req.url, req.config);
         results[req.key] = result.data;
       } catch (error) {
         console.error(`Batch request ${String(req.key)} failed:`, error);
-        results[req.key] = null as any;
+        results[req.key] = null as unknown as T[keyof T];
       }
     });
 
@@ -164,7 +164,7 @@ class OptimizedHTTPClient {
   }
 
   // Generate cache key
-  private generateCacheKey(url: string, config: RequestConfig): Record<string, any> {
+  private generateCacheKey(url: string, config: RequestConfig): Record<string, unknown> {
     return {
       url,
       method: config.method || 'GET',

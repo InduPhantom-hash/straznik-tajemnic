@@ -3,6 +3,7 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import type { FC } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Settings,
   User,
@@ -148,6 +149,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   isSessionEnded = false,
   sessionEndStatus = 'idle',
 }) => {
+  const t = useTranslations('Sidebar');
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
   const [showHandoutGenerator, setShowHandoutGenerator] = useState(false);
@@ -258,20 +260,20 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
     {
       id: 'characterSheet',
       icon: User,
-      label: 'Karta Postaci',
-      description: 'Statystyki i umiejętności',
+      label: t('characterSheet'),
+      description: t('characterSheetDescription'),
     },
     {
       id: 'equipment',
       icon: Package,
-      label: 'Ekwipunek',
-      description: 'Przedmioty i broń',
+      label: t('equipment'),
+      description: t('equipmentDescription'),
     },
     {
       id: 'journal',
       icon: BookOpen,
-      label: 'Dziennik Przygody',
-      description: 'Zapiski i notatki',
+      label: t('journal'),
+      description: t('journalDescription'),
     },
   ];
 
@@ -291,7 +293,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             {/* Ikona aplikacji - Oko Horusa (ta sama grafika co launcher/icon.png) */}
             <NextImage
               src="/app-icon.png"
-              alt="Strażnik Tajemnic"
+              alt={t('appName')}
               width={32}
               height={32}
               className="w-8 h-8 rounded-md border border-brass/40 shadow-inner"
@@ -299,10 +301,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             />
             <div className="text-left">
               <div className="text-[14px] text-brass/80 font-special-elite tracking-[0.22em] uppercase">
-                Zew Cthulhu 7ed
+                {t('rulebookEdition')}
               </div>
               <div className="text-sm font-medium text-emerald-400 font-special-elite tracking-wide">
-                Strażnik Tajemnic AI
+                {t('appName')}
               </div>
             </div>
           </div>
@@ -315,7 +317,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-sm font-special-elite text-foreground">
-                  Postacie
+                  {t('characters')}
                 </CardTitle>
                 {/* Character Selector Dropdown - w linii z nagłówkiem */}
                 {characters && characters.length > 0 && (
@@ -333,11 +335,11 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       className="w-full appearance-none bg-card border-2 border-primary/60 rounded-lg px-3 py-1.5 pr-8 text-sm text-foreground font-medium cursor-pointer hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
                       <option value="" disabled>
-                        Wybierz...
+                        {t('select')}
                       </option>
                       {characters.map((char) => (
                         <option key={char.id} value={char.id}>
-                          🎭 {char.name} ({char.occupation || 'Badacz'})
+                          🎭 {char.name} ({char.occupation || t('investigator')})
                         </option>
                       ))}
                     </select>
@@ -367,8 +369,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                           setOpenDialog('characterSheet');
                         }
                       }}
-                      aria-label={`Otwórz kartę postaci: ${activeCharacter.name}`}
-                      title="Otwórz kartę postaci"
+                      aria-label={t('openCharacterSheet', { name: activeCharacter.name })}
+                      title={t('openCharacterSheet', { name: activeCharacter.name })}
                       className="relative deco-corners p-4 bg-card rounded-lg border border-brass/30 cursor-pointer transition-colors hover:bg-muted/40 hover:border-brass/60 focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
                       <div className="flex items-center gap-3">
@@ -402,25 +404,25 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                           variant="outline"
                           className="w-full inline-flex items-center justify-center text-center bg-destructive/15 text-destructive border-destructive/40 py-1"
                         >
-                          PŻ: {activeCharacter.hp}/{derived.maxHp}
+                          {t('hpAbbr')}: {activeCharacter.hp}/{derived.maxHp}
                         </Badge>
                         <Badge
                           variant="outline"
                           className="w-full inline-flex items-center justify-center text-center bg-brass/15 text-brass border-brass/40 py-1"
                         >
-                          PR: {activeCharacter.san}/{derived.maxSan}
+                          {t('sanAbbr')}: {activeCharacter.san}/{derived.maxSan}
                         </Badge>
                         <Badge
                           variant="outline"
                           className="w-full inline-flex items-center justify-center text-center bg-primary/15 text-primary border-primary/40 py-1"
                         >
-                          PM: {activeCharacter.mp}/{derived.maxMp}
+                          {t('mpAbbr')}: {activeCharacter.mp}/{derived.maxMp}
                         </Badge>
                         <Badge
                           variant="outline"
                           className="w-full inline-flex items-center justify-center text-center bg-gold/10 text-gold border-gold/40 py-1"
                         >
-                          SZC: {activeCharacter.luck}
+                          {t('luckAbbr')}: {activeCharacter.luck}
                         </Badge>
                       </div>
                     </div>
@@ -452,7 +454,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       {item.label}
                       {isEquipment && currentEquipmentLength > seenEquipmentCount && (
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase rounded bg-emerald-500 text-black px-1.5 py-0.5 animate-pulse shadow">
-                          NEW
+                          {t('newBadge')}
                         </span>
                       )}
                       {isJournal && unseenJournalCount > 0 && (
@@ -470,12 +472,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     variant="ghost"
                     className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
                     onClick={onOpenDevelopmentPhase}
-                    title="Faza Rozwoju - rzuć na poprawę oznaczonych umiejętności"
+                    title={t('developmentPhaseTitle')}
                   >
                     <span className="w-4 h-4 mr-3 flex items-center justify-center">
                       ✨
                     </span>
-                    Faza Rozwoju
+                    {t('developmentPhase')}
                     {markedSkillsCount > 0 && (
                       <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                         {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
@@ -492,20 +494,20 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     disabled
                     variant="outline"
                     className="w-full border-zinc-700 text-zinc-400 bg-zinc-900/50 opacity-70 cursor-not-allowed font-special-elite"
-                    title="Sesja została bezpiecznie zamknięta"
+                    title={t('sessionClosedTitle')}
                   >
                     <LogOut className="w-4 h-4 mr-2 text-zinc-500" />
-                    Sesja Zamknięta 🔒
+                    {t('sessionClosed')} 🔒
                   </Button>
                 ) : sessionEndStatus === 'awaiting_player_closure' ? (
                   <Button
                     disabled
                     variant="outline"
                     className="w-full border-amber-500/60 text-amber-300 bg-amber-950/20 font-special-elite animate-pulse cursor-wait"
-                    title="Trwa domykanie sesji. Wpisz swoją finałową akcję w czacie."
+                    title={t('awaitingClosureTitle')}
                   >
                     <Hourglass className="w-4 h-4 mr-2 animate-spin text-amber-400" />
-                    Oczekiwanie na słowo gracza...
+                    {t('awaitingClosure')}
                   </Button>
                 ) : (
                   <Button
@@ -516,20 +518,21 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     }}
                     variant="outline"
                     className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-special-elite"
-                    title="Wyślij sygnał końca sesji do Strażnika Tajemnic"
+                    title={t('endSessionTitle')}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    Koniec Sesji
+                    {t('endSession')}
                   </Button>
                 )
               ) : (
                 <Button
                   onClick={onCharacterCreate}
+                  data-testid="open-character-wizard"
                   variant="outline"
                   className="w-full border-primary/50 text-primary hover:bg-primary/10"
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  Stwórz nową postać
+                  {t('createCharacter')}
                 </Button>
               )}
             </CardContent>
@@ -539,7 +542,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-special-elite text-foreground">
-                Zapisz / Wczytaj
+                {t('saveLoad')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -548,19 +551,19 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   onClick={onSaveGame}
                   variant="outline"
                   className="flex-1"
-                  title="Zapisz grę"
+                  title={t('saveGame')}
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Zapisz
+                  {t('save')}
                 </Button>
                 <Button
                   onClick={onOpenGameSession}
                   variant="outline"
                   className="flex-1"
-                  title="Wczytaj zapisaną sesję"
+                  title={t('loadSession')}
                 >
                   <FolderOpen className="w-4 h-4 mr-2" />
-                  Wczytaj
+                  {t('load')}
                 </Button>
               </div>
               {/* Nowa przygoda - powrót do ekranu głównego (kreatora) */}
@@ -569,10 +572,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   onClick={() => setShowNewAdventureConfirm(true)}
                   variant="outline"
                   className="w-full border-primary/50 text-primary hover:bg-primary/10"
-                  title="Rozpocznij nową przygodę (powrót do kreatora)"
+                  title={t('newAdventureTitle')}
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  Nowa przygoda
+                  {t('newAdventure')}
                 </Button>
               )}
             </CardContent>
@@ -582,7 +585,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-special-elite text-foreground flex items-center gap-2">
-                <span>🔍</span> Pomoce Badacza
+                <span>🔍</span> {t('investigatorTools')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -605,7 +608,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-special-elite text-foreground">
-                ⚙️ Ustawienia
+                ⚙️ {t('settings')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -615,7 +618,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 onClick={() => setOpenDialog('settings')}
               >
                 <Settings className="w-4 h-4 mr-3 text-green-400" />
-                Konfiguracja
+                {t('configuration')}
               </Button>
               {/* IND-258: szybki mute lektora w grze (trwały, niezależny od presetu) */}
               {voiceFeatureAvailable !== false && (
@@ -623,14 +626,14 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   variant="ghost"
                   className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   onClick={() => onToggleNarrator?.(!isTTSEnabled)}
-                  title="Włącz/wyłącz automatyczny lektor narracji MG (niezależnie od presetu)"
+                  title={t('narratorToggleTitle')}
                 >
                   {isTTSEnabled ? (
                     <Volume2 className="w-4 h-4 mr-3 text-green-400" />
                   ) : (
                     <VolumeX className="w-4 h-4 mr-3 text-muted-foreground" />
                   )}
-                  Lektor: {isTTSEnabled ? 'Wł' : 'Wył'}
+                  {t('narrator')}: {isTTSEnabled ? t('on') : t('off')}
                 </Button>
               )}
               {/* Szybki toggle generowania obrazów w czacie (oszczędność kosztów) */}
@@ -650,12 +653,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       saveAISettings(updated);
                     });
                   }}
-                  title="Włącz/wyłącz generowanie ilustracji w czacie (oszczędność kosztów)"
+                  title={t('imagesToggleTitle')}
                 >
                   <ImageIcon
                     className={`w-4 h-4 mr-3 ${aiSettings.imageGenerationEnabled ? 'text-green-400' : 'text-muted-foreground'}`}
                   />
-                  Obrazy: {aiSettings.imageGenerationEnabled ? 'Wł' : 'Wył'}
+                  {t('images')}: {aiSettings.imageGenerationEnabled ? t('on') : t('off')}
                 </Button>
               )}
               {/* Przycisk Zimny Start - czyszczenie danych podręcznych i restart do stanu początkowego */}
@@ -663,16 +666,16 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 variant="ghost"
                 className="w-full justify-start text-red-400 hover:bg-red-950/30 hover:text-red-300"
                 onClick={() => {
-                  if (confirm('Czy na pewno chcesz wykonać Zimny Start? Usunie to lokalne dane podręczne i zresetuje sesję.')) {
+                  if (confirm(t('coldStartConfirm'))) {
                     localStorage.clear();
                     sessionStorage.clear();
                     window.location.reload();
                   }
                 }}
-                title="Wyczyść całą pamięć podręczną przeglądarki i uruchom czystą sesję"
+                title={t('coldStartTitle')}
               >
                 <Flame className="w-4 h-4 mr-3 text-red-500" />
-                Zimny Start
+                {t('coldStart')}
               </Button>
             </CardContent>
           </Card>
@@ -721,18 +724,15 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
           <div className="bg-card border border-border rounded-xl p-8 text-center w-[90vw] max-w-[1440px]">
             <div className="text-4xl mb-4">📚</div>
             <h3 className="text-xl font-bold text-foreground mb-2">
-              Wybierz postać
+              {t('selectCharacter')}
             </h3>
-            <p className="text-muted-foreground mb-6">
-              Dziennik jest powiązany z postacią. Wybierz lub stwórz postać, aby
-              otworzyć dziennik.
-            </p>
+            <p className="text-muted-foreground mb-6">{t('journalRequiresCharacter')}</p>
             <div className="flex gap-3 justify-center">
               <Button
                 onClick={() => setOpenDialog('character')}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                📋 Wybierz postać
+                📋 {t('selectCharacter')}
               </Button>
               <Button
                 onClick={() => {
@@ -741,7 +741,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 }}
                 variant="outline"
               >
-                ➕ Nowa postać
+                ➕ {t('newCharacter')}
               </Button>
             </div>
             <Button
@@ -749,7 +749,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               variant="ghost"
               className="mt-4 text-muted-foreground"
             >
-              Anuluj
+              {t('cancel')}
             </Button>
           </div>
         </div>

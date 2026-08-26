@@ -67,14 +67,17 @@ export async function fetchHistoricalBooks(
     console.warn('Open Library API request failed, using static book library fallbacks:', e);
   }
 
-  // Return static fallback matching query or random ones
-  const filtered = FALLBACK_BOOKS.filter(b => 
-    b.title.toLowerCase().includes(query.toLowerCase()) || 
-    b.subject.some(s => s.toLowerCase().includes(query.toLowerCase()))
+  // Return static fallback matching query or random ones.
+  // Era safety: fallback NIGDY nie proponuje pozycji nowszych niz zadana era.
+  const withinEra = FALLBACK_BOOKS.filter(b => b.publishYear <= maxYear);
+  const filtered = withinEra.filter(
+    b =>
+      b.title.toLowerCase().includes(query.toLowerCase()) ||
+      b.subject.some(s => s.toLowerCase().includes(query.toLowerCase()))
   );
-  
+
   return {
-    books: filtered.length > 0 ? filtered : FALLBACK_BOOKS.slice(0, 3),
+    books: filtered.length > 0 ? filtered : withinEra.slice(0, 3),
     isFallback: true
   };
 }

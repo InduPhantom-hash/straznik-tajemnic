@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,15 @@ interface JournalEntry {
   involvedCharacter?: string; // Nazwa postaci której dotyczy wpis
 }
 
+interface JournalSampleSeed {
+  id: string;
+  title: string;
+  content: string;
+  date: string; // ISO
+  tags: string[];
+  involvedCharacter?: string;
+}
+
 interface JournalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -44,76 +54,18 @@ export const JournalDialog: FC<JournalDialogProps> = ({
   onOpenChange,
   characters = [],
 }) => {
-  const [entries, setEntries] = useState<JournalEntry[]>([
-    {
-      id: '1',
-      title: 'Pierwsze spotkanie z profesorem Armitage',
-      content:
-        'Profesor Armitage wydawał się bardzo zaniepokojony. Mówił o dziwnych wydarzeniach w bibliotece Miskatonic. Wspomniał o zaginionych książkach i dziwnych dźwiękach dochodzących z piwnic. Jego ręce drżały, gdy pokazywał mi pożółkłe strony z dziennikiem Wilbura Whateleya.',
-      date: new Date('2025-09-17'),
-      tags: ['Arkham', 'Biblioteka', 'Profesor Armitage'],
-    },
-    {
-      id: '2',
-      title: 'Odkrycie w piwnicach biblioteki',
-      content:
-        'W piwnicach znaleźliśmy dziwne symbole na ścianach. Wyglądały na bardzo stare, prawdopodobnie z czasów założenia uniwersytetu. Dr. Nojks rozpoznała niektóre z nich jako pochodzące z kultów starożytnych.',
-      date: new Date('2025-09-16'),
-      tags: ['Piwnice', 'Symbole', 'Kulty'],
-      involvedCharacter: 'Helena Nowak',
-    },
-    {
-      id: '3',
-      title: 'Nocna wizyta w Innsmouth',
-      content:
-        'Nigdy nie zapomnę tego, co zobaczyłem na nadbrzeżu. Postacie przemykające między magazynami, ich dziwny, kołyszący chód. Zapach słonej wody i czegoś... gnijącego. Mieszkańcy patrzyli na mnie z wrogością, a ich oczy... Boże, te oczy były zbyt duże, zbyt rybiej formy.',
-      date: new Date('2025-09-15'),
-      tags: ['Innsmouth', 'Nadbrzeże', 'Dziwni mieszkańcy'],
-      involvedCharacter: 'Edward Kowalski',
-    },
-    {
-      id: '4',
-      title: 'List od doktora Morgana',
-      content:
-        'Otrzymałem niepokojący list od dr. Morgana z sanatorium Arkham. Pisze o pacjencie, który mówi w nieznanym języku i rysuje na ścianach te same symbole, które widzieliśmy w piwnicach. Pacjent twierdzi, że \\"Oni nadchodzą ze gwiazd\\" i że \\"bramy zostaną otwarte\\". Muszę go odwiedzić.',
-      date: new Date('2025-09-14'),
-      tags: ['Sanatorium Arkham', 'Dr. Morgan', 'Przepowiednia'],
-    },
-    {
-      id: '5',
-      title: 'Starożytny rytuał pod Bolton',
-      content:
-        'Podążając za wskazówkami z dziennika Whateleya, dotarliśmy do kamiennego kręgu na wzgórzach koło Bolton. Znaki na kamieniach pulsowały słabym, zielonkawym światłem kiedy zbliżył się zmierzch. Jeden z nas zemdlał i mówił przez sen w języku, którego nikt nie rozpoznał. Musimy wrócić przy pełni księżyca.',
-      date: new Date('2025-09-13'),
-      tags: ['Bolton', 'Kamienny krąg', 'Rytuał', 'Whateley'],
-      involvedCharacter: 'Helena Nowak',
-    },
-    {
-      id: '6',
-      title: 'Tajemnica zegara w ratuszu',
-      content:
-        'Miejscowi mówią, że stary zegar w wieży ratusza zatrzymał się dokładnie o 3:33 w nocy, kiedy zaginął burmistrz Harrington. Od tamtej pory nikt nie ośmiela się go naprawić. Słyszałem dziwne dźwięki dobiegające z wieży - jakby ktoś chodził tam w środku nocy.',
-      date: new Date('2025-09-12'),
-      tags: ['Ratusz', 'Zegar', 'Burmistrz Harrington', 'Zaginięcie'],
-    },
-    {
-      id: '7',
-      title: 'Przesłuchanie Josepha Curwena',
-      content:
-        'Joseph Curwen, antykwariusz z Salem, zgodził się odpowiedzieć na nasze pytania. Jego sklep pełen był zakurzonych tomów i dziwnych artefaktów. Kiedy zapytałem o Necronomicon, pobladł i kazał mi natychmiast wyjść. Zanim zamknął drzwi, szepnął: \\"Niektóra wiedza kosztuje więcej niż rozum.\\"',
-      date: new Date('2025-09-11'),
-      tags: ['Salem', 'Antykwariat', 'Joseph Curwen', 'Necronomicon'],
-    },
-    {
-      id: '8',
-      title: "Sen o R'lyeh",
-      content:
-        "Trzecią noc z rzędu śniłem o zatopionej metropolii. Cyklopowe mury z ciemnego kamienia, niemożliwe kąty architektury, które bolały moje oczy. Na końcu zawsze widzę TO - coś ogromnego, co czeka w ciemności morskich głębin. Budzę się z krzykiem i nie mogę przestać myśleć o słowach: \\\"Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.\\\"",
-      date: new Date('2025-09-10'),
-      tags: ['Koszmary', "R'lyeh", 'Cthulhu', 'Wizje'],
-      involvedCharacter: 'Edward Kowalski',
-    },
-  ]);
+  const t = useTranslations('JournalDialog');
+  const locale = useLocale();
+  const intlLocale = locale === 'en' ? 'en-US' : 'pl-PL';
+
+  // Przykładowa kronika (seed demo) - tresci w messages/*.json per jezyk.
+  const samples = t.raw('samples') as JournalSampleSeed[];
+  const [entries, setEntries] = useState<JournalEntry[]>(() =>
+    samples.map((s) => ({
+      ...s,
+      date: new Date(s.date),
+    }))
+  );
 
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -178,18 +130,18 @@ export const JournalDialog: FC<JournalDialogProps> = ({
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="font-special-elite text-xs uppercase tracking-[0.32em] text-primary">
-                Kronika śledztwa
+                {t('eyebrow')}
               </div>
               <DialogTitle className="mt-1 font-display uppercase tracking-[0.1em] text-2xl font-bold text-foreground">
-                Dziennik Przygody
+                {t('title')}
               </DialogTitle>
             </div>
             <span className="hidden sm:inline-flex items-center font-special-elite text-xs uppercase tracking-[0.08em] text-primary border border-primary/45 px-3 py-1.5">
-              Wpisy · {entries.length}
+              {t('entriesBadge', { count: entries.length })}
             </span>
           </div>
           <DialogDescription className="font-serif italic text-muted-foreground">
-            Zapisz swoje obserwacje, odkrycia i przemyślenia
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -208,7 +160,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brass/70 w-4 h-4" />
                 <Input
-                  placeholder="Szukaj w dzienniku..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 font-special-elite"
@@ -221,7 +173,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                 className="w-full text-[#04110f] bg-primary border border-primary hover:brightness-110 font-display font-semibold uppercase tracking-[0.16em]"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Nowy wpis
+                {t('newEntry')}
               </Button>
 
               {/* Oś czasu wpisów */}
@@ -252,7 +204,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                           {entry.title}
                         </h4>
                         <div className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.08em] text-muted-foreground mb-2">
-                          <span>{entry.date.toLocaleDateString('pl-PL')}</span>
+                          <span>{entry.date.toLocaleDateString(intlLocale)}</span>
                           {entry.involvedCharacter && (
                             <span className="inline-flex items-center gap-1 text-primary border border-primary/40 px-2 py-0.5">
                               <User className="w-3 h-3" />
@@ -288,7 +240,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
             {isEditing ? (
               <div className="space-y-4">
                 <Input
-                  placeholder="Tytuł wpisu..."
+                  placeholder={t('titlePlaceholder')}
                   value={newEntry.title}
                   onChange={(e) =>
                     setNewEntry({ ...newEntry, title: e.target.value })
@@ -297,7 +249,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                 />
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Tagi (oddzielone przecinkami)..."
+                    placeholder={t('tagsPlaceholder')}
                     value={newEntry.tags}
                     onChange={(e) =>
                       setNewEntry({ ...newEntry, tags: e.target.value })
@@ -306,7 +258,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                   />
                   {/* FEATURE:#11 - Data przygodowa */}
                   <Input
-                    placeholder="Data w przygodzie np. 12.12.1925"
+                    placeholder={t('datePlaceholder')}
                     value={newEntry.inGameDate}
                     onChange={(e) =>
                       setNewEntry({ ...newEntry, inGameDate: e.target.value })
@@ -325,10 +277,10 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                     >
                       <SelectTrigger className="w-48">
                         <User className="w-4 h-4 mr-2" />
-                        <SelectValue placeholder="Wszyscy gracze" />
+                        <SelectValue placeholder={t('allPlayers')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">👥 Wszyscy gracze</SelectItem>
+                        <SelectItem value="all">👥 {t('allPlayers')}</SelectItem>
                         {characters.map((char) => (
                           <SelectItem key={char.id} value={char.name}>
                             👤 {char.name}
@@ -339,7 +291,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                   )}
                 </div>
                 <Textarea
-                  placeholder="Treść wpisu..."
+                  placeholder={t('contentPlaceholder')}
                   value={newEntry.content}
                   onChange={(e) =>
                     setNewEntry({ ...newEntry, content: e.target.value })
@@ -351,14 +303,14 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                     onClick={handleAddEntry}
                     className="text-[#04110f] bg-primary border border-primary hover:brightness-110 font-display font-semibold uppercase tracking-[0.16em]"
                   >
-                    Zapisz
+                    {t('save')}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsEditing(false)}
                     className="text-muted-foreground border-brass/30 hover:border-brass/60 hover:text-brass font-display font-semibold uppercase tracking-[0.16em]"
                   >
-                    Anuluj
+                    {t('cancel')}
                   </Button>
                 </div>
               </div>
@@ -379,7 +331,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
                       </span>
                     )}
                     <span className="text-muted-foreground">
-                      {selectedEntry.date.toLocaleDateString('pl-PL', {
+                      {selectedEntry.date.toLocaleDateString(intlLocale, {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -414,10 +366,10 @@ export const JournalDialog: FC<JournalDialogProps> = ({
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <BookOpen className="w-16 h-16 text-brass/50 mb-4" />
                 <h3 className="font-display uppercase tracking-[0.1em] text-lg font-bold text-foreground mb-2">
-                  Wybierz wpis z kroniki
+                  {t('selectEntryTitle')}
                 </h3>
                 <p className="font-serif italic text-muted-foreground">
-                  Kliknij na wpis po lewej stronie, aby go przeczytać
+                  {t('selectEntryHint')}
                 </p>
               </div>
             )}
@@ -437,7 +389,7 @@ export const JournalDialog: FC<JournalDialogProps> = ({
             className="flex-1 text-muted-foreground bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 hover:text-brass font-display font-semibold uppercase tracking-[0.16em]"
             onClick={() => onOpenChange(false)}
           >
-            Zamknij
+            {t('close')}
           </Button>
         </div>
       </DialogContent>

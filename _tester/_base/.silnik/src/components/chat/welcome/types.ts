@@ -44,8 +44,8 @@ export interface WelcomeScreenProps {
   isDuet?: boolean;
   /** Jawne miejsca gracz -> postać na ekranie startowym duetu. */
   duetCharacterSlots?: DuetCharacterSlot[];
-  onOpenCharacterSheet?: (character: any) => void;
-  characters?: any[];
+  onOpenCharacterSheet?: (character: Character) => void;
+  characters?: Character[];
 }
 
 export interface Quote {

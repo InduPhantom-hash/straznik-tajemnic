@@ -23,7 +23,7 @@ export function extractImages(text: string): ImageRequest[] {
         const aspectRatio = isPortrait ? '3:4' : '16:9';
 
         let portraitName: string | undefined = undefined;
-        let finalPrompt = prompt;
+        const finalPrompt = prompt;
 
         if (isPortrait) {
             // Wzorzec: [PORTRET: Imię Postaci, opis]

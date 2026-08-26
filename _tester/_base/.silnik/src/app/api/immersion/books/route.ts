@@ -5,7 +5,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || 'magic';
-    const maxYearStr = searchParams.get('maxYear') || '1925';
+    const maxYearStr = searchParams.get('maxYear');
+
+    if (!maxYearStr) {
+      return NextResponse.json(
+        { error: 'Missing required parameter: maxYear.' },
+        { status: 400 }
+      );
+    }
 
     const maxYear = parseInt(maxYearStr);
 

@@ -4,6 +4,8 @@ import { persistCharacters } from '@/lib/character-cloud-sync';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 
 interface UseSceneSummaryProps {
+  adventureContext?: string;
+
   messages: Message[];
   activeCharacter: Character | null;
   adventureTitle?: string;

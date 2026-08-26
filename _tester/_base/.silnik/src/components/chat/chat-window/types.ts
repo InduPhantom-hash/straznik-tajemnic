@@ -103,4 +103,7 @@ export interface ChatWindowProps {
   isSessionEnded?: boolean;
   sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
   onCharacterUpdate?: (char: Character) => void;
+  /** Kontynuacja uciętej narracji MG - deklaruje caller; pole opcjonalne dla
+   *  zgodności z page.tsx (przekazywane dalej tylko gdy podane). */
+  onContinueNarration?: () => void;
 }

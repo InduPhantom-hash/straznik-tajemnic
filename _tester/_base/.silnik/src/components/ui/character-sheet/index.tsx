@@ -32,16 +32,19 @@ import {
 } from '../dialog';
 import { Button } from '../button';
 import { Download } from 'lucide-react';
+import { useMessages, useTranslations } from 'next-intl';
 import { type CharacterSheetProps } from './types';
 import { EquipmentItem } from '@/lib/types';
 import { EquipmentDetailDialog } from '../equipment-detail-dialog';
 import { exportCharacterToMarkdown } from './utils/export-markdown';
 import { deriveStats } from './utils/derive-stats';
+import { applyPresetTranslation } from '@/lib/i18n/preset-translation';
 import { useInlineEdit } from './hooks/use-inline-edit';
 import { SheetHeader } from './components/sheet-header';
 import { StatBars } from './components/stat-bars';
 import { SheetVitals } from './components/sheet-vitals';
 import { SheetSkills } from './components/sheet-skills';
+import { SheetEquipment } from './components/sheet-equipment';
 import { SheetRelations } from './components/sheet-relations';
 import { SheetBiography } from './components/sheet-biography';
 
@@ -72,6 +75,8 @@ export function CharacterSheet({
   characters = [],
   onCharacterChange,
 }: CharacterSheetProps) {
+  const t = useTranslations('CharacterSheet');
+  const messages = useMessages();
   const inlineEdit = useInlineEdit(character, onCharacterUpdate);
 
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
@@ -126,13 +131,13 @@ export function CharacterSheet({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent size="wide">
           <DialogHeader>
-            <DialogTitle>Karta Postaci</DialogTitle>
+            <DialogTitle>{t('dialogTitle')}</DialogTitle>
             <DialogDescription className="sr-only">
-              Pełna karta badacza Call of Cthulhu.
+              {t('dialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="text-center py-12 text-muted-foreground font-serif italic">
-            Wybierz postać, aby zobaczyć kartę.
+            {t('selectCharacterPrompt')}
           </div>
         </DialogContent>
       </Dialog>
@@ -140,7 +145,10 @@ export function CharacterSheet({
   }
 
   // Kopia do wyświetlenia (z portretem/ekwipunkiem dociągniętym z IndexedDB).
-  const display = displayCharacter ?? character;
+  const hydrated = displayCharacter ?? character;
+  // Nakładka tłumaczeń presetu (PredefinedCharacters) - wyłącznie warstwa
+  // wyświetlania; dane zapisane przez gracza pozostają nienaruszone.
+  const display = applyPresetTranslation(hydrated, messages);
   const { stats, maxHp, maxSan, maxMp, move, damageBonus, build } =
     deriveStats(display);
 
@@ -153,11 +161,11 @@ export function CharacterSheet({
         {/* Nagłówek z przyciskami */}
         <DialogHeader className="flex flex-row items-center justify-between print:hidden pr-12">
           <DialogTitle className="font-display uppercase tracking-[0.16em] text-brass text-base">
-            📜 Karta Postaci
+            📜 {t('dialogTitle')}
           </DialogTitle>
           {/* IND-235 a11y: opis dla czytników ekranu (aria-describedby) */}
           <DialogDescription className="sr-only">
-            Cechy, umiejętności, stan i biografia badacza.
+            {t('sheetDescription')}
           </DialogDescription>
           <div className="flex items-center gap-2">
             {/* Character selector tabs */}
@@ -183,7 +191,7 @@ export function CharacterSheet({
             )}
             <Button variant="outline" size="sm" onClick={handleExportMarkdown} className="-mt-1">
               <Download className="h-4 w-4 mr-2" />
-              Eksport MD
+              {t('exportMarkdown')}
             </Button>
           </div>
         </DialogHeader>
@@ -198,7 +206,7 @@ export function CharacterSheet({
 
           {/* Nagłówek dokumentu (akta śledcze) */}
           <div className="flex justify-between items-start mb-2 font-special-elite text-[14px] text-muted-foreground/70 uppercase tracking-[0.24em]">
-            <span>Akta śledcze · Strażnik Tajemnic</span>
+            <span>{t('caseFiles')}</span>
             <span>CoC 7e</span>
           </div>
 
@@ -237,6 +245,12 @@ export function CharacterSheet({
 
               {/* SEKCJA 5: UMIEJĘTNOŚCI */}
               <SheetSkills character={display} />
+
+              {/* SEKCJA 7: EKWIPUNEK (broń + wyposażenie) */}
+              <SheetEquipment
+                character={display}
+                onItemClick={(item) => setSelectedItem(item)}
+              />
 
               {/* SEKCJA 8: BIOGRAFIA */}
               <SheetBiography character={display} />

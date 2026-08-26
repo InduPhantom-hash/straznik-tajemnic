@@ -17,7 +17,7 @@
  *   6. Verify (3 min) - Sprawdzenie dziennika i eksport
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import {
     START_GAME_MESSAGE,
     SESSION_ZERO_RESPONSES,
@@ -57,7 +57,7 @@ async function waitForAppReady(page: Page): Promise<void> {
     await page.waitForTimeout(2000);
 }
 
-async function findChatInput(page: Page): Promise<any> {
+async function findChatInput(page: Page): Promise<Locator> {
     // Poczekaj na pojawienie się chatu (może być ukryty za modalem)
     await page.waitForTimeout(2000);
 

@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
   onCharacterCreate,
   onCharacterManage,
 }) => {
+  const t = useTranslations('CharacterDialog');
   const [view, setView] = useState<'list' | 'details'>('list');
 
   // Aktualnie wyświetlana postać (dla widoku szczegółów)
@@ -58,12 +60,10 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-special-elite text-foreground text-xl">
             <span className="text-2xl">👤</span>
-            {view === 'list' ? 'Zarządzanie Postaciami' : 'Karta Postaci'}
+            {view === 'list' ? t('manageTitle') : t('sheetTitle')}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {view === 'list'
-              ? 'Wybierz postać z listy lub stwórz nową'
-              : 'Przeglądaj charakterystyki i umiejętności postaci'}
+            {view === 'list' ? t('listDescription') : t('detailsDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -75,7 +75,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
               {activeCharacter && (
                 <div className="mb-4">
                   <div className="text-xs text-muted-foreground mb-2">
-                    Aktywna postać:
+                    {t('activeCharacter')}
                   </div>
                   <Card
                     className="bg-amber-900/20 border-amber-500 cursor-pointer hover:bg-amber-900/30 transition-colors"
@@ -98,7 +98,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                           {activeCharacter.occupation}
                         </div>
                       </div>
-                      <Badge className="bg-amber-600">Aktywna</Badge>
+                      <Badge className="bg-amber-600">{t('activeBadge')}</Badge>
                     </CardContent>
                   </Card>
                 </div>
@@ -108,7 +108,9 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
               {characters.length > 0 && (
                 <div>
                   <div className="text-xs text-muted-foreground mb-2">
-                    {activeCharacter ? 'Inne postacie:' : 'Dostępne postacie:'}
+                    {activeCharacter
+                      ? t('otherCharacters')
+                      : t('availableCharacters')}
                   </div>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {characters
@@ -144,7 +146,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                                 handleSelectCharacter(char);
                               }}
                             >
-                              Wybierz
+                              {t('select')}
                             </Button>
                           </CardContent>
                         </Card>
@@ -158,13 +160,13 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                 <div className="text-center py-8">
                   <div className="text-4xl mb-4">👤</div>
                   <p className="text-muted-foreground mb-4">
-                    Nie masz jeszcze żadnych postaci
+                    {t('noCharacters')}
                   </p>
                   <Button
                     onClick={onCharacterCreate}
                     className="bg-amber-600 hover:bg-amber-700"
                   >
-                    ➕ Stwórz pierwszą postać
+                    ➕ {t('createFirst')}
                   </Button>
                 </div>
               )}
@@ -176,17 +178,17 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                   className="flex-1"
                   onClick={() => onOpenChange(false)}
                 >
-                  Zamknij
+                  {t('close')}
                 </Button>
                 <Button
                   onClick={onCharacterCreate}
                   className="flex-1 bg-amber-600 hover:bg-amber-700"
                 >
-                  ➕ Nowa postać
+                  ➕ {t('newCharacter')}
                 </Button>
                 {characters.length > 0 && (
                   <Button variant="outline" onClick={onCharacterManage}>
-                    Zarządzaj
+                    {t('manage')}
                   </Button>
                 )}
               </div>
@@ -202,7 +204,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                 onClick={() => setView('list')}
                 className="mb-2"
               >
-                ← Powrót do listy
+                ← {t('backToList')}
               </Button>
 
               {/* Podstawowe informacje */}
@@ -230,18 +232,18 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Wiek:</span>
+                      <span className="text-muted-foreground">{t('age')}</span>
                       <p className="text-foreground">
-                        {displayedCharacter.age} lat
+                        {t('ageYears', { age: displayedCharacter.age })}
                       </p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">PW:</span>
+                      <span className="text-muted-foreground">{t('hp')}</span>
                       <p className="text-foreground">{displayedCharacter.hp}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground">
-                        Poczytalność:
+                        {t('sanity')}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-foreground">
@@ -266,54 +268,54 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
               <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="text-foreground">
-                    Charakterystyki
+                    {t('characteristics')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {[
                       {
-                        name: 'Siła',
+                        name: t('characteristicSTR'),
                         value: displayedCharacter.str || 0,
                         max: 100,
                       },
                       {
-                        name: 'Zręczność',
+                        name: t('characteristicDEX'),
                         value: displayedCharacter.dex || 0,
                         max: 100,
                       },
                       {
-                        name: 'Kondycja',
+                        name: t('characteristicCON'),
                         value: displayedCharacter.con || 0,
                         max: 100,
                       },
                       {
-                        name: 'Wygląd',
+                        name: t('characteristicAPP'),
                         value: displayedCharacter.app || 0,
                         max: 100,
                       },
                       {
-                        name: 'Siła Woli',
+                        name: t('characteristicPOW'),
                         value: displayedCharacter.pow || 0,
                         max: 100,
                       },
                       {
-                        name: 'Wykształcenie',
+                        name: t('characteristicEDU'),
                         value: displayedCharacter.edu || 0,
                         max: 100,
                       },
                       {
-                        name: 'Budowa Ciała',
+                        name: t('characteristicSIZ'),
                         value: displayedCharacter.siz || 0,
                         max: 100,
                       },
                       {
-                        name: 'Inteligencja',
+                        name: t('characteristicINT'),
                         value: displayedCharacter.int || 0,
                         max: 100,
                       },
                       {
-                        name: 'Szczęście',
+                        name: t('characteristicLuck'),
                         value: displayedCharacter.luck || 0,
                         max: 100,
                       },
@@ -341,14 +343,14 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                   className="flex-1"
                   onClick={() => onOpenChange(false)}
                 >
-                  Zamknij
+                  {t('close')}
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1"
                   onClick={onCharacterManage}
                 >
-                  Zarządzaj
+                  {t('manage')}
                 </Button>
               </div>
             </>

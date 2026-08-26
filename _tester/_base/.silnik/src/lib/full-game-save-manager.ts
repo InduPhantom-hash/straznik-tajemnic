@@ -10,7 +10,9 @@ import {
   EquipmentVisualEra,
 } from './types';
 
-// Lokalnie zdefiniowany interfejs Message
+// Lokalnie zdefiniowany interfejs Message (podzbiór @/lib/types Message -
+// pola istotne dla save'a). finishReason/continuationRequested odtwarzają
+// status urwanej narracji po pełnym loadzie.
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -20,6 +22,8 @@ interface Message {
   // URL-e/base64 wygenerowanych obrazów scen (pole `generatedImages` z @/lib/types).
   // Zapisywane do save'u, więc MUSZĄ tu być, by ścieżka load je odtworzyła.
   generatedImages?: string[];
+  finishReason?: string;
+  continuationRequested?: boolean;
 }
 
 /**

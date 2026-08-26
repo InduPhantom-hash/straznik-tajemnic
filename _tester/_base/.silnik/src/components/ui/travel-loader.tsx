@@ -87,7 +87,7 @@ export function TravelLoader({ isOpen, onClose, travelResult, isLoading }: Trave
             )}
             {/* Narrative */}
             <div className="bg-zinc-800/50 rounded-lg p-4 italic text-zinc-300 text-sm">
-              "{travelResult.narrativeDescription}"
+              &quot;{travelResult.narrativeDescription}&quot;
             </div>
             {/* Cost */}
             <p className="text-center text-zinc-400 text-sm">

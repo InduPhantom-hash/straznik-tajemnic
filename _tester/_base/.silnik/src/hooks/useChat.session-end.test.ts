@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
+import type { Character } from '@/lib/types';
 import { useChat } from './useChat';
 
 // Mock dependencies
@@ -21,7 +22,7 @@ jest.mock('@/lib/time-manager', () => ({
 describe('useChat - sessionEndStatus (LOG-01)', () => {
   const defaultOptions = {
     pdfMemory: { rulesUrl: undefined, moduleUrl: undefined },
-    activeCharacter: { id: 'char-1', name: 'Edward Carnby', skills: {} } as any,
+    activeCharacter: { id: 'char-1', name: 'Edward Carnby', skills: {} } as Character,
     characters: [],
     setCharacters: jest.fn(),
     setActiveCharacter: jest.fn(),

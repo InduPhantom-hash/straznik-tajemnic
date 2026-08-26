@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiCacheService } from '@/lib/api-cache-service';
 
+interface GoogleVoice {
+  name: string;
+  ssmlGender: string;
+  languageCodes: string[];
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { type, text, voiceId, soundEffectId, settings } = await request.json();
@@ -52,12 +58,12 @@ export async function POST(request: NextRequest) {
           throw new Error(`Failed to fetch voices: ${response.status}`);
         }
 
-        const data = await response.json();
-        const polishVoices = data.voices.filter((voice: any) => 
+        const data: { voices: GoogleVoice[] } = await response.json();
+        const polishVoices = data.voices.filter((voice) =>
           voice.languageCodes.includes('pl-PL')
         );
 
-        console.log('🎤 Available Polish voices:', polishVoices.map((v: any) => ({
+        console.log('🎤 Available Polish voices:', polishVoices.map((v) => ({
           name: v.name,
           ssmlGender: v.ssmlGender,
           languageCodes: v.languageCodes

@@ -16,9 +16,13 @@
  */
 
 import type { SkillTestData, SkillTestModifier } from '@/lib/parsers/types';
+import { useTranslations } from 'next-intl';
 import { Button } from '../../../ui/button';
 import { Badge } from '../../../ui/badge';
 import { Check, Dices } from 'lucide-react';
+
+/** Kształt funkcji t() z next-intl potrzebnej helperom modułu. */
+type TranslateFn = ReturnType<typeof useTranslations>;
 
 interface SkillTestCardProps extends SkillTestData {
   onRoll?: (testData: SkillTestData) => void;
@@ -52,36 +56,41 @@ function calculateDiceBalance(modifiers: SkillTestModifier[]): number {
 }
 
 /** Czytelna instrukcja rzutu wg bilansu kości */
-function getDiceInstruction(balance: number): string {
+function getDiceInstruction(t: TranslateFn, balance: number): string {
   if (balance === 0) {
-    return 'Rzuć 1d100 (normalny rzut)';
+    return t('rollNormal');
   } else if (balance > 0) {
     const extra =
-      balance === 1 ? '1 dodatkowa dziesiątka' : `${balance} dodatkowe dziesiątki`;
-    return `Rzuć 1d100 + ${extra}, wybierz lepszy wynik`;
+      balance === 1
+        ? t('extraTensOne')
+        : t('extraTensMany', { count: balance });
+    return t('rollBetter', { extra });
   } else {
     const extra =
       balance === -1
-        ? '1 dodatkowa dziesiątka'
-        : `${Math.abs(balance)} dodatkowe dziesiątki`;
-    return `Rzuć 1d100 + ${extra}, wybierz gorszy wynik`;
+        ? t('extraTensOne')
+        : t('extraTensMany', { count: Math.abs(balance) });
+    return t('rollWorse', { extra });
   }
 }
 
 /** Konfiguracja badge'a trudności */
-function getDifficultyBadge(difficulty: SkillTestData['difficulty']): {
+function getDifficultyBadge(
+  t: TranslateFn,
+  difficulty: SkillTestData['difficulty']
+): {
   label: string;
   className: string;
 } {
   switch (difficulty) {
     case 'zwykly':
-      return { label: 'ZWYKŁY', className: 'bg-green-600 text-white' };
+      return { label: t('difficultyRegular'), className: 'bg-green-600 text-white' };
     case 'trudny':
-      return { label: 'TRUDNY ½', className: 'bg-amber-600 text-white' };
+      return { label: t('difficultyHard'), className: 'bg-amber-600 text-white' };
     case 'ekstremalny':
-      return { label: 'EKSTREMALNY ⅕', className: 'bg-red-600 text-white' };
+      return { label: t('difficultyExtreme'), className: 'bg-red-600 text-white' };
     default:
-      return { label: 'ZWYKŁY', className: 'bg-green-600 text-white' };
+      return { label: t('difficultyRegular'), className: 'bg-green-600 text-white' };
   }
 }
 
@@ -100,10 +109,11 @@ export function SkillTestCard({
   onRoll,
   completed = false,
 }: SkillTestCardProps) {
+  const t = useTranslations('SkillTestCard');
   const threshold = calculateThreshold(skillValue, difficulty);
   const diceBalance = calculateDiceBalance(modifiers);
-  const diceInstruction = getDiceInstruction(diceBalance);
-  const difficultyBadge = getDifficultyBadge(difficulty);
+  const diceInstruction = getDiceInstruction(t, diceBalance);
+  const difficultyBadge = getDifficultyBadge(t, difficulty);
 
   const handleRollClick = () => {
     if (onRoll) {
@@ -140,11 +150,13 @@ export function SkillTestCard({
       {/* Wartość i próg */}
       <div className="px-4 py-2 border-b border-zinc-700/50">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-400">Twoja wartość:</span>
+          <span className="text-zinc-400">{t('yourValue')}</span>
           <span className="font-mono">
             <span className="text-white font-bold">{skillValue}%</span>
             <span className="text-zinc-500 mx-2">→</span>
-            <span className="text-emerald-400 font-bold">Próg: ≤{threshold}</span>
+            <span className="text-emerald-400 font-bold">
+              {t('threshold', { threshold })}
+            </span>
           </span>
         </div>
       </div>
@@ -153,7 +165,7 @@ export function SkillTestCard({
       {modifiers.length > 0 && (
         <div className="px-4 py-2 border-b border-zinc-700/50">
           <div className="text-xs text-zinc-500 uppercase tracking-wide mb-2">
-            Modyfikatory:
+            {t('modifiers')}
           </div>
           <div className="space-y-1">
             {modifiers.map((mod, index) => (
@@ -174,7 +186,9 @@ export function SkillTestCard({
                 <span
                   className={`font-mono ${mod.type === 'bonus' ? 'text-green-400' : 'text-red-400'}`}
                 >
-                  {mod.count} kość {mod.type === 'bonus' ? 'bonusowa' : 'karna'}
+                  {mod.type === 'bonus'
+                    ? t('bonusDiceCount', { count: mod.count })
+                    : t('penaltyDiceCount', { count: mod.count })}
                 </span>
               </div>
             ))}
@@ -189,8 +203,8 @@ export function SkillTestCard({
           <span className="font-medium text-amber-200">{diceInstruction}</span>
         </div>
         <div className="text-xs text-zinc-500 mt-1">
-          lub wpisz wynik w czacie:{' '}
-          <span className="font-mono text-zinc-400">&quot;wynik 47&quot;</span>
+          {t('orTypeInChat')}{' '}
+          <span className="font-mono text-zinc-400">{t('resultExample')}</span>
         </div>
       </div>
 
@@ -213,12 +227,12 @@ export function SkillTestCard({
             {completed ? (
               <>
                 <Check className="w-4 h-4 mr-2" />
-                Wynik zapisany
+                {t('resultSaved')}
               </>
             ) : (
               <>
                 <Dices className="w-4 h-4 mr-2" />
-                Rzuć kością
+                {t('rollDiceButton')}
               </>
             )}
           </Button>
