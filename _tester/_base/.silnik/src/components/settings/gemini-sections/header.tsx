@@ -1,6 +1,7 @@
 'use client';
 
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../../ui/tooltip';
 import { Button } from '../../ui/button';
@@ -25,6 +26,7 @@ export function HeaderSection({
   getTestResultColor,
   getTestResultIcon,
 }: HeaderSectionProps) {
+  const t = useTranslations('GeminiHeaderSection');
   const g = settings.geminiSettings;
 
   return (
@@ -32,7 +34,7 @@ export function HeaderSection({
       {/* === Header === */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display uppercase tracking-[0.16em] text-lg text-brass">
-          🤖 Gemini API (Google AI)
+          🤖 {t('title')}
         </h3>
         <div className="flex items-center gap-2">
           <span className={`text-lg ${getTestResultColor(testResults.gemini)}`}>
@@ -44,7 +46,7 @@ export function HeaderSection({
             disabled={isLoading}
             className="bg-primary hover:brightness-110 text-primary-foreground font-display uppercase tracking-[0.12em]"
           >
-            Test API
+            {t('testApi')}
           </Button>
         </div>
       </div>
@@ -53,8 +55,8 @@ export function HeaderSection({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
-            Włącz Gemini API
-            <HelpIcon content="Włącza główną funkcjonalność AI do generowania tekstu i narracji mistrza gry. Wymagany do działania systemu AI." />
+            {t('enableLabel')}
+            <HelpIcon content={t('enableHelp')} />
           </label>
           <input
             type="checkbox"
@@ -68,8 +70,8 @@ export function HeaderSection({
 
         <div>
           <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
-            API Key
-            <HelpIcon content="Klucz API z Google AI Studio. Bez tego klucza funkcje AI nie będą działać. Uzyskaj klucz na: https://aistudio.google.com" />
+            {t('apiKeyLabel')}
+            <HelpIcon content={t('apiKeyHelp')} />
           </label>
           <input
             type="password"
@@ -78,15 +80,15 @@ export function HeaderSection({
             onChange={(e) =>
               setSettings({ ...settings, geminiApiKey: e.target.value })
             }
-            placeholder="Wprowadź klucz API"
+            placeholder={t('apiKeyPlaceholder')}
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         <div className="md:col-span-2">
           <label className="flex items-center gap-2 text-xs font-special-elite uppercase tracking-[0.1em] text-muted-foreground mb-2">
-            Model
-            <HelpIcon content="Flash: Najszybszy i najtańszy • Pro: Najlepszy, ale droższy • 1.0 Pro: Stabilny, sprawdzony model" />
+            {t('modelLabel')}
+            <HelpIcon content={t('modelHelp')} />
           </label>
           <select
             value={g.model}
@@ -103,34 +105,28 @@ export function HeaderSection({
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
           >
             <option value="gemini-3.1-pro-preview">
-              Gemini 3.1 Pro Preview (najnowszy, ULTRA)
+              {t('model31ProPreview')}
             </option>
-            <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
+            <option value="gemini-3-pro-preview">{t('model3ProPreview')}</option>
             <option value="gemini-3-flash-preview">
-              Gemini 3 Flash Preview (szybki)
+              {t('model3FlashPreview')}
             </option>
-            <option value="gemini-2.5-pro">
-              Gemini 2.5 Pro (stabilny, zaawansowany)
-            </option>
-            <option value="gemini-2.5-flash">
-              Gemini 2.5 Flash (stabilny, szybki)
-            </option>
+            <option value="gemini-2.5-pro">{t('model25Pro')}</option>
+            <option value="gemini-2.5-flash">{t('model25Flash')}</option>
             <option value="gemini-2.5-flash-lite">
-              Gemini 2.5 Flash-Lite (lekki)
+              {t('model25FlashLite')}
             </option>
-            <option value="gemini-2.0-flash">
-              Gemini 2.0 Flash (sprawdzony)
-            </option>
+            <option value="gemini-2.0-flash">{t('model20Flash')}</option>
             <option value="gemini-2.0-flash-exp">
-              Gemini 2.0 Flash Experimental
+              {t('model20FlashExp')}
             </option>
-            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash-Lite</option>
+            <option value="gemini-2.0-flash-lite">
+              {t('model20FlashLite')}
+            </option>
             <option value="gemini-flash-latest">
-              Gemini Flash Latest (automatyczny)
+              {t('modelFlashLatest')}
             </option>
-            <option value="gemini-pro-latest">
-              Gemini Pro Latest (automatyczny)
-            </option>
+            <option value="gemini-pro-latest">{t('modelProLatest')}</option>
           </select>
         </div>
       </div>

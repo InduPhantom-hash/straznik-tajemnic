@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import type { TestResults } from '@/hooks/useApiTester';
 import { HelpIcon } from '../ui/tooltip';
@@ -24,11 +25,12 @@ export function CloudStorageSettings({
   testAPI,
   getTestResultIcon
 }: CloudStorageSettingsProps) {
+  const t = useTranslations('CloudStorageSettings');
   return (
     <Card className="bg-muted border-border">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-orange-300 flex items-center gap-2">
-          ☁️ Google Cloud Storage
+          ☁️ {t('sectionTitle')}
           <span className="text-sm font-normal text-muted-foreground">
             {getTestResultIcon(testResults.cloudSessions)}
           </span>
@@ -37,8 +39,8 @@ export function CloudStorageSettings({
       <CardContent className="space-y-4">
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-foreground/70 mb-2">
-            Włącz Cloud Storage
-            <HelpIcon content="Przechowywanie sesji i plików w chmurze Google. Umożliwia synchronizację między urządzeniami." />
+            {t('enableLabel')}
+            <HelpIcon content={t('enableHelp')} />
           </label>
           <input
             type="checkbox"
@@ -51,8 +53,8 @@ export function CloudStorageSettings({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-foreground flex items-center">
-              Nazwa bucket
-              <HelpIcon content="Nazwa zasobnika Google Cloud Storage gdzie będą przechowywane pliki sesji." />
+              {t('bucketLabel')}
+              <HelpIcon content={t('bucketHelp')} />
             </Label>
             <Input
               value={settings.googleCloudStorageBucket}
@@ -64,8 +66,8 @@ export function CloudStorageSettings({
 
           <div className="space-y-2">
             <Label className="text-foreground flex items-center">
-              Automatyczne czyszczenie (dni)
-              <HelpIcon content="Po ilu dniach automatycznie usuwać stare sesje z chmury. 30 dni to zalecana wartość." />
+              {t('retentionLabel')}
+              <HelpIcon content={t('retentionHelp')} />
             </Label>
             <Input
               type="number"
@@ -99,8 +101,8 @@ export function CloudStorageSettings({
                 })}
                 className="w-4 h-4 text-orange-600 bg-input border-border rounded focus:ring-orange-500"
               />
-              <span className="ml-2">Włącz cache&apos;owanie</span>
-              <HelpIcon content="Tymczasowo przechowuj często używane pliki lokalnie dla szybszego dostępu." />
+              <span className="ml-2">{t('cachingLabel')}</span>
+              <HelpIcon content={t('cachingHelp')} />
             </label>
           </div>
 
@@ -118,8 +120,8 @@ export function CloudStorageSettings({
                 })}
                 className="w-4 h-4 text-orange-600 bg-input border-border rounded focus:ring-orange-500"
               />
-              <span className="ml-2">Włącz kompresję</span>
-              <HelpIcon content="Kompresuj pliki przed zapisem aby oszczędzić miejsce i transfer danych." />
+              <span className="ml-2">{t('compressionLabel')}</span>
+              <HelpIcon content={t('compressionHelp')} />
             </label>
           </div>
         </div>
@@ -131,7 +133,7 @@ export function CloudStorageSettings({
             disabled={isLoading}
             className="bg-orange-600 hover:bg-orange-700 text-foreground"
           >
-            Test Cloud Storage
+            {t('testButton')}
           </Button>
         </div>
       </CardContent>

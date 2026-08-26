@@ -1,22 +1,84 @@
 import React from 'react';
+import en from '../../messages/en.json';
+import pl from '../../messages/pl.json';
 
+type Messages = Record<string, unknown>;
 type TranslationValues = Record<string, unknown>;
 
-export function useTranslations(namespace = '') {
-  const translate = (key: string, values?: TranslationValues) => {
-    const fullKey = namespace ? `${namespace}.${key}` : key;
-    if (!values) return fullKey;
+const MESSAGES: Record<string, Messages> = {
+  en: en as unknown as Messages,
+  pl: pl as unknown as Messages,
+};
 
-    return Object.entries(values).reduce(
-      (message, [name, value]) => message.replace(`{${name}}`, String(value)),
-      fullKey
-    );
+/** Zwraca surowy komunikat (lub undefined) dla namespace + klucz. */
+function resolveMessage(namespace: string, key: string): unknown {
+  const fullKey = namespace ? `${namespace}.${key}` : key;
+  const parts = fullKey.split('.');
+  let node: unknown = MESSAGES.pl;
+  for (const part of parts) {
+    if (node !== null && typeof node === 'object') {
+      node = (node as Messages)[part];
+    } else {
+      return undefined;
+    }
+  }
+  return node;
+}
+
+/** Natywna interpolacja zmiennych {name} znana z next-intl. */
+function interpolate(
+  message: string,
+  values?: TranslationValues
+): string {
+  if (!values) return message;
+  return Object.entries(values).reduce(
+    (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+    message
+  );
+}
+
+/**
+ * Obsługa tagów <tag>...</tag> z t.rich()/t.markup(): funkcja przekazana
+ * w values pod nazwą tagu dostaje tekst wewnętrzny i zwraca ReactNode.
+ */
+function renderTags(message: string, values?: TranslationValues): React.ReactNode {
+  if (!values) return message;
+  const parts = message.split(/(<(\w+)>[\s\S]*?<\/\2>)/g);
+  return parts.map((part, index) => {
+    const match = part.match(/^<(\w+)>([\s\S]*?)<\/\1>$/);
+    if (!match) return part;
+    const [, tag, inner] = match;
+    const render = values[tag];
+    if (typeof render === 'function') {
+      return React.createElement(React.Fragment, { key: index }, render(inner));
+    }
+    return inner;
+  });
+}
+
+export function useTranslations(namespace = '') {
+  const translate = (
+    key: string,
+    values?: TranslationValues
+  ): string => {
+    const raw = resolveMessage(namespace, key);
+    const fullKey = namespace ? `${namespace}.${key}` : key;
+    if (typeof raw !== 'string') return fullKey;
+    return interpolate(raw, values);
   };
 
-  translate.rich = (key: string, values?: TranslationValues) => translate(key, values);
-  translate.has = (key: string) => false;
-  translate.raw = (key: string) => translate(key);
-  translate.markup = (key: string, values?: TranslationValues) => translate(key, values);
+  translate.rich = (
+    key: string,
+    values?: TranslationValues
+  ): React.ReactNode => {
+    const raw = resolveMessage(namespace, key);
+    const fullKey = namespace ? `${namespace}.${key}` : key;
+    if (typeof raw !== 'string') return fullKey;
+    return renderTags(interpolate(raw, values), values);
+  };
+  translate.has = (key: string) => typeof resolveMessage(namespace, key) === 'string';
+  translate.raw = (key: string) => resolveMessage(namespace, key);
+  translate.markup = translate.rich;
   return translate;
 }
 
@@ -46,5 +108,5 @@ export function useTimeZone() {
 }
 
 export function useMessages() {
-  return {};
+  return MESSAGES.pl;
 }

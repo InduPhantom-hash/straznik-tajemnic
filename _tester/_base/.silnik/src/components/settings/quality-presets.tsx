@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import equal from 'fast-deep-equal';
 import { AISettings } from '@/lib/ai-settings';
 import {
@@ -20,6 +21,7 @@ interface QualityPresetsProps {
 }
 
 export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
+  const t = useTranslations('QualityPresets');
   // IND-33: badge "Modified" - race condition z drift detector (1 frame przed flip
   // na 'custom'). Akceptowalne - wizualny sygnał że values uciekły od presetu.
   const isModified =
@@ -32,14 +34,13 @@ export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
       <span className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/60" />
 
       <div className="font-special-elite text-[14px] uppercase tracking-[0.32em] text-primary">
-        Wydajność vs. głębia
+        {t('eyebrow')}
       </div>
       <h3 className="font-display uppercase text-brass text-xl font-bold tracking-[0.1em] mt-1.5">
-        Profil Jakości
+        {t('title')}
       </h3>
       <p className="font-serif italic text-base text-muted-foreground mt-1.5 mb-5">
-        Wyższe profile dają bogatszą narrację i ilustracje, ale działają wolniej
-        i kosztują więcej.
+        {t('description')}
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -62,7 +63,7 @@ export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
             >
               {settings.qualityPreset === key && (
                 <span className="absolute -top-px -right-px font-special-elite text-[13px] uppercase tracking-[0.1em] text-[#04110f] bg-primary px-2 py-0.5">
-                  Wybrany
+                  {t('selectedBadge')}
                 </span>
               )}
               <div
@@ -89,7 +90,7 @@ export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
         <div className="mt-5 border border-brass/22 bg-[#16130f] p-3.5">
           <div className="font-special-elite text-xs text-muted-foreground tracking-[0.06em]">
             <strong className="text-brass uppercase tracking-[0.16em]">
-              Aktywny preset:
+              {t('activePreset')}
             </strong>{' '}
             <span className="text-primary">
               {QUALITY_PRESETS[settings.qualityPreset].name}
@@ -100,12 +101,12 @@ export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
               </span>
             )}
             {' • '}
-            Model:{' '}
+            {t('modelLabel')}{' '}
             {settings.geminiSettings.model.split('-').slice(0, 2).join('-')}
             {' • '}
             TTS: {settings.voiceSettings?.enabled ? '✅' : '❌'}
             {' • '}
-            Obrazy: {settings.imageGenerationEnabled ? '✅' : '❌'}
+            {t('imagesLabel')} {settings.imageGenerationEnabled ? '✅' : '❌'}
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../ui/tooltip';
 import {
   AccordionContent,
@@ -15,6 +16,7 @@ import type { GeminiSectionProps } from './types';
  * Pola tools/toolConfig są przepuszczane do Gemini API, ale aplikacja jeszcze nie konsumuje wywołań funkcji w narracji.
  */
 export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
+  const t = useTranslations('GeminiToolsSection');
   // tools (JSON array)
   const [toolsRaw, setToolsRaw] = useState<string>(
     g.tools ? JSON.stringify(g.tools, null, 2) : ''
@@ -29,13 +31,13 @@ export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
     try {
       const parsed: unknown = JSON.parse(toolsRaw);
       if (!Array.isArray(parsed)) {
-        setToolsError('tools musi być tablicą deklaracji funkcji');
+        setToolsError(t('toolsMustBeArray'));
         return;
       }
       updateGemini({ tools: parsed as object[] });
       setToolsError(null);
     } catch (err) {
-      setToolsError(err instanceof Error ? err.message : 'Niepoprawny JSON');
+      setToolsError(err instanceof Error ? err.message : t('invalidJson'));
     }
   };
 
@@ -57,14 +59,14 @@ export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
         parsed === null ||
         Array.isArray(parsed)
       ) {
-        setToolConfigError('toolConfig musi być obiektem');
+        setToolConfigError(t('toolConfigMustBeObject'));
         return;
       }
       updateGemini({ toolConfig: parsed as object });
       setToolConfigError(null);
     } catch (err) {
       setToolConfigError(
-        err instanceof Error ? err.message : 'Niepoprawny JSON'
+        err instanceof Error ? err.message : t('invalidJson')
       );
     }
   };
@@ -74,12 +76,12 @@ export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
       <AccordionTrigger>
         <span className="flex items-center gap-2">
           <span className="font-display uppercase tracking-[0.16em] text-brass text-sm">
-            🔧 Eksperymentalne (Tools)
+            🔧 {t('title')}
           </span>
           <span className="text-xs text-muted-foreground font-special-elite uppercase tracking-[0.1em]">
             {g.tools && Array.isArray(g.tools) && g.tools.length > 0
               ? `${g.tools.length} fn`
-              : '○ brak'}
+              : t('stateNone')}
             {' · 🚧 power-user'}
           </span>
         </span>
@@ -89,11 +91,10 @@ export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
           <p className="text-sm text-muted-foreground font-serif italic">
             🚧{' '}
             <strong className="text-brass not-italic">
-              Function Calling - feature eksperymentalny.
+              {t('warningStrong')}
             </strong>{' '}
-            Pola <code>tools</code> i <code>toolConfig</code> są przepuszczane
-            do Gemini API, ale aplikacja jeszcze nie konsumuje wywołań funkcji w
-            narracji RPG (planowane). Power-user testing OK; produkcja - czekaj.
+            {t('warningPrefix')} <code>tools</code> {t('warningMiddle')}{' '}
+            <code>toolConfig</code> {t('warningSuffix')}
           </p>
         </div>
 
@@ -118,12 +119,11 @@ export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
             />
             {toolsError && (
               <p className="text-xs text-destructive font-special-elite mt-1">
-                ⚠️ Błąd: {toolsError}
+                {t('errorPrefix', { message: toolsError })}
               </p>
             )}
             <p className="text-sm text-muted-foreground font-serif italic mt-1">
-              JSON tablica deklaracji funkcji. Parsowane onBlur. Walidacja
-              kształtu w providerze.
+              {t('toolsHint')}
             </p>
           </div>
 
@@ -147,12 +147,13 @@ export function ToolsSection({ g, updateGemini }: GeminiSectionProps) {
             />
             {toolConfigError && (
               <p className="text-xs text-destructive font-special-elite mt-1">
-                ⚠️ Błąd: {toolConfigError}
+                {t('errorPrefix', { message: toolConfigError })}
               </p>
             )}
             <p className="text-sm text-muted-foreground font-serif italic mt-1">
-              Tryby: <code>AUTO</code> · <code>NONE</code> · <code>ANY</code>{' '}
-              (wymuś) · <code>MODE_UNSPECIFIED</code>.
+              {t('toolConfigHintPrefix')} <code>AUTO</code> · <code>NONE</code>{' '}
+              · <code>ANY</code> {t('toolConfigHintAny')}{' '}
+              <code>MODE_UNSPECIFIED</code>.
             </p>
           </div>
         </div>

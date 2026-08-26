@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   checkChromeAIStatus,
   getChromeAIStatus,
@@ -11,6 +12,7 @@ import {
 } from '@/lib/chrome-ai-reranker';
 
 export function HelpAssistantTab() {
+  const t = useTranslations('HelpAssistantTab');
   const [query, setQuery] = useState('');
   const [answer, setAnswer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,14 +38,14 @@ export function HelpAssistantTab() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Działasz jako Asystent Pomocy w grze RPG Zew Cthulhu 7e. Odpowiedz zwięźle i konkretnie na pytanie gracza dotyczące zasad, mechaniki lub lore epoki: ${query}`,
+          message: t('systemPrompt', { query }),
           // Flaga informująca backend, że chcemy surowe fragmenty RAG do re-rankingu
           returnRagFragments: nanoStatus === 'available',
         }),
       });
 
       if (!res.ok) {
-        throw new Error('Nie udało się uzyskać odpowiedzi od Asystenta.');
+        throw new Error(t('requestFailed'));
       }
 
       const data = await res.json();
@@ -65,10 +67,10 @@ export function HelpAssistantTab() {
         console.log('🧠 Re-ranked fragments:', reranked.length);
       }
 
-      setAnswer(data.response || data.text || 'Brak odpowiedzi.');
+      setAnswer(data.response || data.text || t('noAnswer'));
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieznany błąd.';
-      setAnswer(`⚠️ Błąd: ${errorMessage}`);
+      const errorMessage = err instanceof Error ? err.message : t('unknownError');
+      setAnswer(t('answerError', { message: errorMessage }));
     } finally {
       setIsLoading(false);
     }
@@ -76,16 +78,16 @@ export function HelpAssistantTab() {
 
   /** Etykieta statusu Nano dla UI. */
   const nanoLabel: Record<ChromeAIStatus, { text: string; color: string }> = {
-    available: { text: 'AI Nano aktywne', color: 'text-green-400' },
-    'after-download': { text: 'AI Nano (wymaga pobrania)', color: 'text-yellow-400' },
+    available: { text: t('nanoAvailable'), color: 'text-green-400' },
+    'after-download': { text: t('nanoAfterDownload'), color: 'text-yellow-400' },
     unavailable: { text: '', color: '' },
-    error: { text: 'AI Nano niedostępne', color: 'text-red-400' },
+    error: { text: t('nanoError'), color: 'text-red-400' },
   };
 
   return (
     <div className="space-y-4 text-gray-200">
       <div className="p-3 bg-gray-900/60 border border-amber-900/30 rounded text-xs text-gray-300">
-        <p>💡 <strong>Asystent RAG Pomocy:</strong> Zadaj pytanie odnośnie mechaniki Zewu Cthulhu 7. edycji lub realiów epoki. Asystent udzieli zwięzłej odpowiedzi bez wpływania na narrację Twojej sesji.</p>
+        <p>💡 <strong>{t('introLabel')}</strong> {t('introText')}</p>
         {nanoLabel[nanoStatus].text && (
           <p className={`mt-1 ${nanoLabel[nanoStatus].color}`}>
             🧠 {nanoLabel[nanoStatus].text}
@@ -96,7 +98,7 @@ export function HelpAssistantTab() {
       <form onSubmit={handleAsk} className="flex gap-2">
         <input
           type="text"
-          placeholder="np. Jak działa rzut przymuszony (Push Roll)?"
+          placeholder={t('inputPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 px-3 py-2 bg-gray-900 border border-amber-900/50 rounded text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-500"
@@ -106,13 +108,13 @@ export function HelpAssistantTab() {
           disabled={isLoading || !query.trim()}
           className="px-4 py-2 bg-amber-900/80 hover:bg-amber-800 disabled:opacity-50 text-amber-200 text-xs font-semibold rounded border border-amber-700/50 transition-colors"
         >
-          {isLoading ? 'Szukam...' : 'Zadaj Pytanie'}
+          {isLoading ? t('searchingButton') : t('askButton')}
         </button>
       </form>
 
       {answer && (
         <div className="p-4 bg-gray-900 border border-amber-900/40 rounded space-y-2">
-          <h5 className="text-xs font-serif text-amber-400 font-bold uppercase tracking-wider">Odpowiedź Asystenta</h5>
+          <h5 className="text-xs font-serif text-amber-400 font-bold uppercase tracking-wider">{t('answerTitle')}</h5>
           <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-line">{answer}</p>
         </div>
       )}

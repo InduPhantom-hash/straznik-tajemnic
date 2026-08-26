@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { EpochWikiTab } from './EpochWikiTab';
 import { BestiaryRulesTab } from './BestiaryRulesTab';
 import { HelpAssistantTab } from './HelpAssistantTab';
@@ -11,6 +12,7 @@ interface HelpModalProps {
 }
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
+  const t = useTranslations('HelpModal');
   const [activeTab, setActiveTab] = useState<'EPOCH_WIKI' | 'RULES_BESTIARY' | 'INTERFACE' | 'RAG_ASSISTANT' | 'COPYRIGHT'>('EPOCH_WIKI');
 
   useEffect(() => {
@@ -37,13 +39,13 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           <div className="flex items-center gap-2">
             <span className="text-xl">🕯️</span>
             <h2 className="text-lg font-serif text-amber-400 font-semibold tracking-wide">
-              Pomoc & Encyklopedia Badacza
+              {t('title')}
             </h2>
           </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-amber-400 text-xl font-bold px-2 py-1 transition-colors"
-            title="Zamknij (Esc)"
+            title={t('closeTitle')}
           >
             ✕
           </button>
@@ -59,7 +61,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            🇵🇱 Polska (1990–2000)
+            {t('tabEpochWiki')}
           </button>
           <button
             onClick={() => setActiveTab('RULES_BESTIARY')}
@@ -69,7 +71,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            🎲 Zasady & Bestiariusz
+            {t('tabRulesBestiary')}
           </button>
           <button
             onClick={() => setActiveTab('INTERFACE')}
@@ -79,7 +81,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            🖥️ Interfejs Aplikacji
+            {t('tabInterface')}
           </button>
           <button
             onClick={() => setActiveTab('RAG_ASSISTANT')}
@@ -89,7 +91,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            🤖 Asystent AI
+            {t('tabAssistant')}
           </button>
           <button
             onClick={() => setActiveTab('COPYRIGHT')}
@@ -99,7 +101,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 : 'border-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            ℹ️ Prawa & Informacje
+            {t('tabCopyright')}
           </button>
         </div>
 
@@ -110,17 +112,17 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           {activeTab === 'RAG_ASSISTANT' && <HelpAssistantTab />}
           {activeTab === 'INTERFACE' && (
             <div className="text-gray-300 text-xs space-y-3 p-4 bg-gray-900/40 border border-amber-900/30 rounded">
-              <h3 className="text-amber-400 font-serif text-sm font-bold">Instrukcja Interfejsu</h3>
-              <p>• <strong>Czat Narracyjny:</strong> Główna przestrzeń dialogu z AI Mistrzem Gry. Możesz wpisywać akcje postaci lub używać rzutów.</p>
-              <p>• <strong>Tacka Kości:</strong> Wybór kości do rzutu z automatycznym wyliczeniem stopnia sukcesu.</p>
-              <p>• <strong>Tablica Badacza:</strong> Zbiór dowodów, poszlak i notatek gromadzonych automatycznie podczas kampanii.</p>
+              <h3 className="text-amber-400 font-serif text-sm font-bold">{t('interfaceTitle')}</h3>
+              <p>• <strong>{t('interfaceChatLabel')}</strong> {t('interfaceChatText')}</p>
+              <p>• <strong>{t('interfaceDiceLabel')}</strong> {t('interfaceDiceText')}</p>
+              <p>• <strong>{t('interfaceBoardLabel')}</strong> {t('interfaceBoardText')}</p>
             </div>
           )}
           {activeTab === 'COPYRIGHT' && (
             <div className="text-gray-300 text-xs space-y-3 p-4 bg-gray-900/40 border border-amber-900/30 rounded">
-              <h3 className="text-amber-400 font-serif text-sm font-bold">Informacje Prawne & Autorskie</h3>
-              <p>Projekt Strażnik Tajemnic AI jest nieoficjalną aplikacją fanowską tworzoną w celach edukacyjnych i rozrywkowych.</p>
-              <p>Wszystkie elementy twórczości H.P. Lovecrafta wykorzystane w projekcie należą do Domeny Publicznej. Zew Cthulhu / Call of Cthulhu są zastrzeżonymi znakami towarowymi firmy Chaosium Inc.</p>
+              <h3 className="text-amber-400 font-serif text-sm font-bold">{t('copyrightTitle')}</h3>
+              <p>{t('copyrightFanProject')}</p>
+              <p>{t('copyrightPublicDomain')}</p>
             </div>
           )}
         </div>

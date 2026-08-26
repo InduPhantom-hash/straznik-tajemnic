@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
 import type { TestResults } from '@/hooks/useApiTester';
 import type { AvailableVoice } from '@/hooks/useSettingsModal';
@@ -42,6 +43,7 @@ export function TTSSettings({
   getTestResultColor,
   getTestResultIcon,
 }: TTSSettingsProps) {
+  const t = useTranslations('TTSSettings');
   const enabled = settings.voiceSettings.enabled;
 
   return (
@@ -56,10 +58,10 @@ export function TTSSettings({
       <div className="flex items-center justify-between">
         <div>
           <div className="font-special-elite uppercase text-[14px] tracking-[0.32em] text-primary">
-            Głos Strażnika
+            {t('eyebrow')}
           </div>
           <h3 className="mt-1 font-display uppercase text-2xl tracking-[0.1em] text-foreground">
-            Lektor narracji
+            {t('title')}
           </h3>
         </div>
         <div className="flex items-center gap-3">
@@ -68,7 +70,7 @@ export function TTSSettings({
               enabled ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
-            {enabled ? 'Włączony' : 'Wyłączony'}
+            {enabled ? t('stateEnabled') : t('stateDisabled')}
           </span>
           <Switch
             checked={enabled}
@@ -79,7 +81,7 @@ export function TTSSettings({
               })
             }
           />
-          <HelpIcon content="Automatyczne odczytywanie wiadomości od Mistrza Gry głosem Gemini." />
+          <HelpIcon content={t('toggleHelp')} />
         </div>
       </div>
 
@@ -102,22 +104,21 @@ export function TTSSettings({
         <div className="flex flex-col gap-4">
           <div className="relative border border-brass/22 bg-[#16130f] p-5">
             <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass mb-4">
-              Parametry głosu
+              {t('parametersTitle')}
             </div>
             <VolumeSlider settings={settings} setSettings={setSettings} />
           </div>
 
           <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col gap-3">
             <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass">
-              Diagnostyka silnika
+              {t('diagnosticsTitle')}
             </div>
             <p className="font-serif italic text-base text-muted-foreground leading-relaxed m-0">
-              „Mgła nad zatoką gęstnieje, a z głębi dobiega dźwięk, którego
-              żaden człowiek nie powinien usłyszeć...&rdquo;
+              {t('sampleQuote')}
             </p>
             <div className="flex items-center justify-between mt-auto pt-1">
               <span className="font-special-elite uppercase text-[14px] tracking-[0.12em] text-muted-foreground">
-                Test API · Gemini TTS
+                {t('testLabel')}
               </span>
               <ProviderTestButton
                 provider="gemini"

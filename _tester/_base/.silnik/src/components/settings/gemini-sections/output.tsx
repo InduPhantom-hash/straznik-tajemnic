@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../ui/tooltip';
 import {
   AccordionContent,
@@ -12,6 +13,7 @@ import type { GeminiSectionProps } from './types';
 
 /** Sekcja Output - maxOutputTokens / responseMimeType / stopSequences / responseSchema (conditional). */
 export function OutputSection({ g, updateGemini }: GeminiSectionProps) {
+  const t = useTranslations('GeminiOutputSection');
   // responseSchema jako raw string + parsowanie onBlur (allows invalid mid-typing)
   const [responseSchemaRaw, setResponseSchemaRaw] = useState<string>(
     g.responseSchema ? JSON.stringify(g.responseSchema, null, 2) : ''
@@ -32,7 +34,7 @@ export function OutputSection({ g, updateGemini }: GeminiSectionProps) {
       setResponseSchemaError(null);
     } catch (err) {
       setResponseSchemaError(
-        err instanceof Error ? err.message : 'Niepoprawny JSON'
+        err instanceof Error ? err.message : t('invalidJson')
       );
     }
   };
@@ -107,9 +109,9 @@ export function OutputSection({ g, updateGemini }: GeminiSectionProps) {
               }
               className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
             >
-              <option value="text/plain">text/plain (zwykły tekst)</option>
+              <option value="text/plain">{t('mimePlainText')}</option>
               <option value="application/json">
-                application/json (wymaga schematu)
+                {t('mimeJson')}
               </option>
             </select>
           </div>
@@ -126,12 +128,12 @@ export function OutputSection({ g, updateGemini }: GeminiSectionProps) {
           <textarea
             value={stopSequencesText}
             onChange={(e) => handleStopSequencesChange(e.target.value)}
-            placeholder="Np. ###&#10;KONIEC NARRACJI"
+            placeholder={t('stopSequencesPlaceholder')}
             rows={3}
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground focus:border-primary focus:outline-none font-mono text-xs"
           />
           <p className="text-sm text-muted-foreground font-serif italic mt-1">
-            Jeden ciąg per linia. Max 5 (nadmiarowe są obcinane).
+            {t('stopSequencesHint')}
           </p>
         </div>
 
@@ -156,12 +158,11 @@ export function OutputSection({ g, updateGemini }: GeminiSectionProps) {
             />
             {responseSchemaError && (
               <p className="text-xs text-destructive font-special-elite mt-1">
-                ⚠️ Błąd JSON: {responseSchemaError}
+                {t('jsonError', { message: responseSchemaError })}
               </p>
             )}
             <p className="text-sm text-muted-foreground font-serif italic mt-1">
-              JSON parsowany onBlur. Aplikacja jeszcze nie konsumuje structured
-              output (power-user feature).
+              {t('schemaHint')}
             </p>
           </div>
         )}

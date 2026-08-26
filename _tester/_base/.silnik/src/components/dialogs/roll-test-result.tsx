@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Dices, Sparkles, Send } from 'lucide-react';
@@ -11,12 +12,6 @@ import {
   REQUIRED_DIFFICULTY_LABELS,
 } from '@/lib/dice-utils';
 import type { RollTestData } from './RollTestModal';
-
-const DIFFICULTY_LABEL: Record<RollTestData['difficulty'], string> = {
-  zwykly: 'Zwykły',
-  trudny: 'Trudny (½)',
-  ekstremalny: 'Ekstremalny (⅕)',
-};
 
 interface RollTestResultProps {
   test: RollTestData;
@@ -48,6 +43,7 @@ export const RollTestResult: FC<RollTestResultProps> = ({
   onSend,
   onClose,
 }) => {
+  const t = useTranslations('RollTestResult');
   const target = test.value;
   const hardThreshold = Math.floor(target / 2);
   const extremeThreshold = Math.floor(target / 5);
@@ -77,9 +73,9 @@ export const RollTestResult: FC<RollTestResultProps> = ({
 
   const bonusLabel =
     test.bonusDice > 0
-      ? `+${test.bonusDice} kość premii`
+      ? t('bonusDicePlus', { count: test.bonusDice })
       : test.bonusDice < 0
-        ? `${Math.abs(test.bonusDice)} kość kary`
+        ? t('bonusDiceMinus', { count: Math.abs(test.bonusDice) })
         : null;
 
   const canSpendLuck =
@@ -91,19 +87,25 @@ export const RollTestResult: FC<RollTestResultProps> = ({
       <div className="border border-brass/28 bg-[#16130f] p-4 space-y-2">
         <div className="flex items-center justify-between">
           <span className="font-special-elite text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            Trudność
+            {t('difficulty')}
           </span>
-          <Badge variant="secondary">{DIFFICULTY_LABEL[test.difficulty]}</Badge>
+          <Badge variant="secondary">
+            {test.difficulty === 'zwykly'
+              ? t('difficultyRegular')
+              : test.difficulty === 'trudny'
+                ? t('difficultyHard')
+                : t('difficultyExtreme')}
+          </Badge>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-special-elite text-xs uppercase tracking-[0.06em]">
           <span className={thClass('zwykly', 'text-foreground')}>
-            Zwykły ≤ {target}
+            {t('thresholdRegular', { value: target })}
           </span>
           <span className={thClass('trudny', 'text-brass')}>
-            Trudny ≤ {hardThreshold}
+            {t('thresholdHard', { value: hardThreshold })}
           </span>
           <span className={thClass('ekstremalny', 'text-primary')}>
-            Ekstremalny ≤ {extremeThreshold}
+            {t('thresholdExtreme', { value: extremeThreshold })}
           </span>
         </div>
         {bonusLabel && (
@@ -148,13 +150,15 @@ export const RollTestResult: FC<RollTestResultProps> = ({
             <div
               className={`relative mt-1 font-special-elite text-xs tracking-[0.1em] ${succeeded ? 'text-primary' : 'text-destructive'}`}
             >
-              {succeeded ? '✓' : '✗'} test{' '}
-              {REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty]}
+              {succeeded ? '✓' : '✗'}{' '}
+              {t('requiredLevelTag', {
+                level: REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty],
+              })}
             </div>
           )}
         {phase === 'done' && roll?.luckSpent ? (
           <div className="relative mt-1 font-special-elite text-xs tracking-[0.1em] text-yellow-300">
-            ✦ wydano {roll.luckSpent} pkt Szczęścia
+            {t('luckSpentNote', { amount: roll.luckSpent })}
           </div>
         ) : null}
       </div>
@@ -167,7 +171,7 @@ export const RollTestResult: FC<RollTestResultProps> = ({
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-[0.12em] px-8"
           >
             <Dices className="w-4 h-4 mr-2" />
-            Rzuć
+            {t('roll')}
           </Button>
         ) : (
           <>
@@ -176,9 +180,13 @@ export const RollTestResult: FC<RollTestResultProps> = ({
                 variant="outline"
                 onClick={onSpendLuck}
                 className="border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10 font-display uppercase tracking-[0.1em]"
-                title={`Wydaj ${luckNeeded} pkt Szczęścia (masz ${availableLuck})`}
+                title={t('spendLuckTitle', {
+                  needed: luckNeeded,
+                  available: availableLuck,
+                })}
               >
-                <Sparkles className="w-4 h-4 mr-1" /> Szczęście {luckNeeded}
+                <Sparkles className="w-4 h-4 mr-1" />{' '}
+                {t('luckButton', { needed: luckNeeded })}
               </Button>
             )}
             {phase === 'done' && (
@@ -186,7 +194,7 @@ export const RollTestResult: FC<RollTestResultProps> = ({
                 onClick={onSend}
                 className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-[0.12em]"
               >
-                <Send className="w-4 h-4 mr-2" /> Do czatu
+                <Send className="w-4 h-4 mr-2" /> {t('sendToChat')}
               </Button>
             )}
             <Button
@@ -195,14 +203,14 @@ export const RollTestResult: FC<RollTestResultProps> = ({
               disabled={phase === 'rolling'}
               className="font-display uppercase tracking-[0.1em] text-muted-foreground"
             >
-              Zamknij
+              {t('close')}
             </Button>
           </>
         )}
       </div>
       {phase === 'done' && (
         <p className="text-center font-serif italic text-xs text-muted-foreground/80">
-          Wydaj Szczęście (jeśli dostępne), a potem wyślij rzut „Do czatu”.
+          {t('luckHint')}
         </p>
       )}
     </div>

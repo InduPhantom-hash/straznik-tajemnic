@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../ui/tooltip';
 import { Button } from '../ui/button';
@@ -13,23 +14,24 @@ interface CustomCommandsSettingsProps {
 }
 
 export function CustomCommandsSettings({ settings, setSettings }: CustomCommandsSettingsProps) {
+  const t = useTranslations('CustomCommandsSettings');
   return (
     <Card className="bg-muted border-border">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-primary flex items-center gap-2">
-          ⌨️ Komendy poza fabularne
-          <HelpIcon content="Komendy w nawiasach kwadratowych [] są traktowane jako pytania poza fabułą. Odpowiedzi na nie nie są czytane przez lektora." />
+          ⌨️ {t('sectionTitle')}
+          <HelpIcon content={t('sectionHelp')} />
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm text-muted-foreground mb-4">
-          <p>Komendy w nawiasach kwadratowych [] to pytania poza fabułą. AI odpowiada na nie zwięźle, bez narracji.</p>
-          <p className="mt-2">Domyślne komendy: <code className="bg-background px-1 rounded">[karta]</code>, <code className="bg-background px-1 rounded">[ekwipunek]</code> nie mogą być usunięte.</p>
+          <p>{t('introText')}</p>
+          <p className="mt-2">{t('defaultsPrefix')} <code className="bg-background px-1 rounded">[karta]</code>, <code className="bg-background px-1 rounded">[ekwipunek]</code> {t('defaultsSuffix')}</p>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-2">
-            <Label className="text-foreground font-medium">Dostępne komendy</Label>
+            <Label className="text-foreground font-medium">{t('availableCommands')}</Label>
             <Button
               size="sm"
               onClick={() => {
@@ -42,7 +44,7 @@ export function CustomCommandsSettings({ settings, setSettings }: CustomCommands
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="w-4 h-4 mr-1" />
-              Dodaj komendę
+              {t('addCommand')}
             </Button>
           </div>
 
@@ -54,9 +56,9 @@ export function CustomCommandsSettings({ settings, setSettings }: CustomCommands
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <code className="bg-muted px-2 py-1 rounded text-sm font-mono">[karta]</code>
-                    <span className="text-xs text-muted-foreground">(domyślna)</span>
+                    <span className="text-xs text-muted-foreground">{t('defaultBadge')}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Wyświetla aktualną kartę postaci (PŻ, PR, PM, główne umiejętności)</p>
+                  <p className="text-xs text-muted-foreground">{t('sheetCommandDescription')}</p>
                 </div>
               </div>
             </div>
@@ -66,9 +68,9 @@ export function CustomCommandsSettings({ settings, setSettings }: CustomCommands
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <code className="bg-muted px-2 py-1 rounded text-sm font-mono">[ekwipunek]</code>
-                    <span className="text-xs text-muted-foreground">(domyślna)</span>
+                    <span className="text-xs text-muted-foreground">{t('defaultBadge')}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Wyświetla listę przedmiotów w ekwipunku postaci</p>
+                  <p className="text-xs text-muted-foreground">{t('inventoryCommandDescription')}</p>
                 </div>
               </div>
             </div>
@@ -88,10 +90,10 @@ export function CustomCommandsSettings({ settings, setSettings }: CustomCommands
                             updated[originalIndex] = { ...cmd, command: e.target.value.toLowerCase().trim() };
                             setSettings({ ...settings, customCommands: updated });
                           }}
-                          placeholder="nazwa komendy"
+                          placeholder={t('commandNamePlaceholder')}
                           className="bg-input border-border text-foreground font-mono text-sm"
                         />
-                        <code className="bg-muted px-2 py-1 rounded text-sm">[{cmd.command || 'nazwa'}]</code>
+                        <code className="bg-muted px-2 py-1 rounded text-sm">[{cmd.command || t('commandNameFallback')}]</code>
                       </div>
                       <Input
                         value={cmd.description}
@@ -100,7 +102,7 @@ export function CustomCommandsSettings({ settings, setSettings }: CustomCommands
                           updated[originalIndex] = { ...cmd, description: e.target.value };
                           setSettings({ ...settings, customCommands: updated });
                         }}
-                        placeholder="Opis komendy (co robi)"
+                        placeholder={t('commandDescriptionPlaceholder')}
                         className="bg-input border-border text-foreground text-sm"
                       />
                     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../ui/tooltip';
 import {
   AccordionContent,
@@ -11,6 +12,7 @@ import type { GeminiSectionProps } from './types';
 
 /** Sekcja Cache - UI gotowe, faktyczna integracja w IND-13 (Gemini Context Caching). */
 export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
+  const t = useTranslations('GeminiCacheSection');
   return (
     <AccordionItem value="cache">
       <AccordionTrigger>
@@ -19,7 +21,7 @@ export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
             💾 Cache
           </span>
           <span className="text-xs text-muted-foreground font-special-elite uppercase tracking-[0.1em]">
-            {g.enableCache ? '✓ włączony' : '○ wyłączony'} · 🚧 IND-13
+            {g.enableCache ? t('stateOn') : t('stateOff')} · 🚧 IND-13
           </span>
         </span>
       </AccordionTrigger>
@@ -28,12 +30,10 @@ export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
           <p className="text-sm text-muted-foreground font-serif italic">
             🚧{' '}
             <strong className="text-brass not-italic">
-              Pełna integracja w IND-13.
+              {t('warningStrong')}
             </strong>{' '}
-            UI ustawień jest gotowe, ale wartości są zapisywane do{' '}
-            <code>cachedContent</code> placeholder w providerze i nie zmieniają
-            jeszcze faktycznego zachowania API. Po IND-13: oszczędność do 90%
-            input tokens.
+            {t('warningPrefix')} <code>cachedContent</code>{' '}
+            {t('warningSuffix')}
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
               className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none disabled:opacity-50"
             />
             <p className="text-sm text-muted-foreground font-serif italic mt-1">
-              W milisekundach. 3 600 000 = 1h. 86 400 000 = 24h.
+              {t('ttlHint')}
             </p>
           </div>
 
@@ -92,7 +92,7 @@ export function CacheSection({ g, updateGemini }: GeminiSectionProps) {
               onChange={(e) =>
                 updateGemini({ cachedContent: e.target.value || undefined })
               }
-              placeholder="cachedContents/abc123 (zaawansowane - zostaw puste)"
+              placeholder={t('cachedContentPlaceholder')}
               disabled={!g.enableCache}
               className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground focus:border-primary focus:outline-none font-mono text-xs disabled:opacity-50"
             />

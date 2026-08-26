@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface WikiEntry {
   id: string;
@@ -18,6 +19,7 @@ interface WikiEntry {
 type DatasetType = 'lovecraft-mythos' | 'pl-1990s-2000s';
 
 export function EpochWikiTab() {
+  const t = useTranslations('EpochWikiTab');
   const [currentDataset, setCurrentDataset] = useState<DatasetType>('lovecraft-mythos');
   const [entries, setEntries] = useState<WikiEntry[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -31,7 +33,7 @@ export function EpochWikiTab() {
 
     fetch(dataPath)
       .then((res) => {
-        if (!res.ok) throw new Error('Nie znaleziono danych encyklopedii.');
+        if (!res.ok) throw new Error(t('dataNotFoundError'));
         return res.json();
       })
       .then((data: WikiEntry[]) => {
@@ -41,11 +43,12 @@ export function EpochWikiTab() {
         setIsLoading(false);
       })
       .catch((err) => {
-        console.warn('Brak załadowanych danych encyklopedii:', err);
+        console.warn(t('loadWarn'), err);
         setEntries([]);
         setActiveEntry(null);
         setIsLoading(false);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t jest stabilne; ponowny fetch tylko przy zmianie datasetu
   }, [currentDataset]);
 
   const categories = Array.from(new Set(entries.map((e) => e.categoryTitle)));
@@ -66,7 +69,7 @@ export function EpochWikiTab() {
         <div className="flex items-center gap-2">
           <span className="text-xl">📜</span>
           <h3 className="text-lg font-serif text-amber-400 font-semibold">
-            {currentDataset === 'lovecraft-mythos' ? 'Encyklopedia Mitów Cthulhu' : 'Encyklopedia Epoki (PL 1990-2000)'}
+            {currentDataset === 'lovecraft-mythos' ? t('titleMythos') : t('titleEpoch')}
           </h3>
         </div>
 
@@ -79,7 +82,7 @@ export function EpochWikiTab() {
                 : 'text-gray-400 hover:text-gray-200'
             }`}
           >
-            🐙 Mity Cthulhu (Fandom Wiki)
+            {t('datasetMythos')}
           </button>
           <button
             onClick={() => setCurrentDataset('pl-1990s-2000s')}
@@ -89,7 +92,7 @@ export function EpochWikiTab() {
                 : 'text-gray-400 hover:text-gray-200'
             }`}
           >
-            🇵🇱 Polska (1990-2000)
+            {t('datasetEpoch')}
           </button>
         </div>
       </div>
@@ -100,7 +103,7 @@ export function EpochWikiTab() {
           {/* Wyszukiwarka */}
           <input
             type="text"
-            placeholder="Szukaj pojęcia, potwora, księgi..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-3 py-2 bg-gray-800 border border-amber-900/50 rounded text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-500"
@@ -112,7 +115,7 @@ export function EpochWikiTab() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="w-full px-3 py-2 bg-gray-800 border border-amber-900/50 rounded text-sm text-gray-100 focus:outline-none focus:border-amber-500 text-xs"
           >
-            <option value="ALL">Wszystkie kategorie ({entries.length})</option>
+            <option value="ALL">{t('allCategories', { count: entries.length })}</option>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
@@ -123,9 +126,9 @@ export function EpochWikiTab() {
           {/* Lista haseł */}
           <div className="flex-1 overflow-y-auto space-y-1 pr-1">
             {isLoading ? (
-              <div className="p-4 text-center text-xs text-amber-500/80 animate-pulse">Ładowanie haseł encyklopedii...</div>
+              <div className="p-4 text-center text-xs text-amber-500/80 animate-pulse">{t('loading')}</div>
             ) : filteredEntries.length === 0 ? (
-              <p className="text-xs text-gray-500 italic p-2">Brak wyników dla podanych kryteriów.</p>
+              <p className="text-xs text-gray-500 italic p-2">{t('noResults')}</p>
             ) : (
               filteredEntries.map((entry) => (
                 <button
@@ -159,12 +162,12 @@ export function EpochWikiTab() {
                   <div className="flex items-center gap-1.5">
                     {activeEntry.isPublicDomain && (
                       <span className="text-[10px] bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 px-2 py-0.5 rounded font-mono">
-                        🏛️ Domena Publiczna (H.P. Lovecraft)
+                        {t('publicDomainBadge')}
                       </span>
                     )}
                     {activeEntry.license && (
                       <span className="text-[10px] bg-amber-950/80 border border-amber-700/60 text-amber-300 px-2 py-0.5 rounded font-mono">
-                        ⚖️ CC-BY-SA 3.0 (Fandom Wiki)
+                        {t('ccBadge')}
                       </span>
                     )}
                   </div>
@@ -180,13 +183,13 @@ export function EpochWikiTab() {
               {/* Sekcja Uznania Autorstwa & Licencji w stopce wpisu */}
               <div className="pt-4 border-t border-amber-900/30 flex flex-col gap-2 text-xs text-gray-400 bg-gray-950/40 p-3 rounded border border-amber-950">
                 <div className="flex items-center gap-2">
-                  <span className="text-amber-500">ℹ️ Przypis autorski i prawo:</span>
+                  <span className="text-amber-500">{t('attributionLabel')}</span>
                   <span className="text-gray-300">
-                    {activeEntry.sourceAttribution || 'Społeczność The H.P. Lovecraft Wiki (Fandom)'}
+                    {activeEntry.sourceAttribution || t('defaultAttribution')}
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-500 leading-tight">
-                  Treść pochodzi ze społecznościowej encyklopedii The H.P. Lovecraft Wiki na platformie Fandom i udostępniana jest zgodnie z licencją Creative Commons Attribution-ShareAlike (CC-BY-SA 3.0 / 4.0). Oryginalna twórczość H.P. Lovecrafta pozostaje w Domenie Publicznej.
+                  {t('legalNote')}
                 </p>
               </div>
 
@@ -203,7 +206,7 @@ export function EpochWikiTab() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
               <span className="text-4xl mb-2">📜</span>
-              <p className="text-sm">Wybierz hasło z listy po lewej stronie, aby wyświetlić szczegóły i definicje.</p>
+              <p className="text-sm">{t('emptySelection')}</p>
             </div>
           )}
         </div>

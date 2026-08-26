@@ -1,6 +1,7 @@
 'use client';
 
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import { Accordion } from '../ui/accordion';
 import { HeaderSection } from './gemini-sections/header';
@@ -43,6 +44,7 @@ export function GeminiSettings({
   getTestResultColor,
   getTestResultIcon,
 }: GeminiSettingsProps) {
+  const t = useTranslations('GeminiSettingsPanel');
   const g = settings.geminiSettings;
 
   /** Patch helper - jedno źródło prawdy dla immutable update geminiSettings. */
@@ -58,10 +60,10 @@ export function GeminiSettings({
       {/* Nagłówek déco: złoty eyebrow + tytuł Cinzel (wg makiety 32) */}
       <div className="mb-3">
         <div className="font-special-elite text-[14px] uppercase tracking-[0.32em] text-brass">
-          Dla wtajemniczonych
+          {t('eyebrow')}
         </div>
         <h3 className="mt-1 font-display font-bold uppercase tracking-[0.1em] text-2xl text-foreground">
-          Gemini · zaawansowane
+          {t('title')}
         </h3>
       </div>
 
@@ -69,8 +71,7 @@ export function GeminiSettings({
       <div className="flex items-center gap-2.5 mb-4 px-4 py-3 border-l-2 border-destructive/50 bg-destructive/[0.06]">
         <span className="text-destructive">⚠</span>
         <p className="font-serif italic text-[15px] text-muted-foreground">
-          Te ustawienia wpływają bezpośrednio na zachowanie modeli. Zmieniaj je
-          tylko, jeśli wiesz, co czynisz.
+          {t('warning')}
         </p>
       </div>
 

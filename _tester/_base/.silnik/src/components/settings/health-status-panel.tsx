@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '../ui/button';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import type { GeminiHealth } from '@/app/api/health/gemini/route';
@@ -9,37 +10,6 @@ import type { PricingRefreshResponse } from '@/app/api/pricing/refresh/route';
 interface HealthStatusPanelProps {
   className?: string;
 }
-
-/** Etykieta + kolor statusu klucza wg `GeminiHealth.status`. */
-const STATUS_LABELS: Record<
-  GeminiHealth['status'],
-  { icon: string; text: string; className: string }
-> = {
-  ok: { icon: '✅', text: 'Klucz Gemini ważny', className: 'text-primary' },
-  invalid_key: {
-    icon: '❌',
-    text: 'Klucz nieważny lub wygasły',
-    className: 'text-red-400',
-  },
-  network_error: {
-    icon: '⚠️',
-    text: 'Nie udało się sprawdzić (problem sieci)',
-    className: 'text-amber-400',
-  },
-  no_key: {
-    icon: '⚠️',
-    text: 'Brak klucza',
-    className: 'text-amber-400',
-  },
-};
-
-/** Etykieta źródła cennika (IND-273 T5b). */
-const PRICING_SOURCE_LABELS: Record<PricingRefreshResponse['source'], string> =
-  {
-    fresh: 'Świeży (pobrany z API)',
-    cached: 'Z pamięci podręcznej',
-    bundled: 'Wbudowany',
-  };
 
 /**
  * IND-273 T6: panel „Zdrowie Strażnika" - widoczny payoff self-checku.
@@ -67,12 +37,46 @@ async function fetchWithTimeout(
 }
 
 export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
+  const t = useTranslations('HealthStatusPanel');
   const [health, setHealth] = useState<GeminiHealth | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingRefreshResponse | null>(null);
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingError, setPricingError] = useState<string | null>(null);
+
+  /** Etykieta + kolor statusu klucza wg `GeminiHealth.status`. */
+  const STATUS_LABELS: Record<
+    GeminiHealth['status'],
+    { icon: string; text: string; className: string }
+  > = {
+    ok: { icon: '✅', text: t('statusOk'), className: 'text-primary' },
+    invalid_key: {
+      icon: '❌',
+      text: t('statusInvalidKey'),
+      className: 'text-red-400',
+    },
+    network_error: {
+      icon: '⚠️',
+      text: t('statusNetworkError'),
+      className: 'text-amber-400',
+    },
+    no_key: {
+      icon: '⚠️',
+      text: t('statusNoKey'),
+      className: 'text-amber-400',
+    },
+  };
+
+  /** Etykieta źródła cennika (IND-273 T5b). */
+  const PRICING_SOURCE_LABELS: Record<
+    PricingRefreshResponse['source'],
+    string
+  > = {
+    fresh: t('pricingFresh'),
+    cached: t('pricingCached'),
+    bundled: t('pricingBundled'),
+  };
 
   const runCheck = useCallback(async () => {
     setLoading(true);
@@ -85,15 +89,15 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
       setHealth(data);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setError('Przekroczono limit czasu połączenia (8s)');
+        setError(t('healthTimeout'));
       } else {
-        setError('Błąd połączenia sieciowego');
+        setError(t('networkError'));
       }
       setHealth(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   // IND-273 T5b: świeżość cennika. Bez `force` tanio (serwer zwraca cache, bez LLM);
   // przycisk „Odśwież cennik" woła z `force=true` (Tier A LLM-extraction).
@@ -110,15 +114,15 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
       setPricing(data);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setPricingError('Przekroczono limit czasu (25s)');
+        setPricingError(t('pricingTimeout'));
       } else {
-        setPricingError('Błąd połączenia sieciowego');
+        setPricingError(t('networkError'));
       }
       setPricing(null);
     } finally {
       setPricingLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     runCheck();
@@ -139,7 +143,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
 
       <div className="mb-4 flex items-center justify-between gap-4">
         <h3 className="font-display uppercase tracking-[0.1em] text-xl text-foreground flex items-center gap-2">
-          🩺 Zdrowie Strażnika
+          🩺 {t('title')}
         </h3>
         <Button
           onClick={runCheck}
@@ -147,7 +151,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
           variant="outline"
           className="border-brass/30 bg-brass/[0.04] px-4 font-display text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground hover:border-brass/60 hover:text-brass"
         >
-          {loading ? 'Sprawdzam…' : 'Sprawdź teraz'}
+          {loading ? t('checking') : t('checkNow')}
         </Button>
       </div>
 
@@ -156,11 +160,11 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
       {/* Status klucza */}
       <div className="mt-4">
         <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
-          Klucz Gemini
+          {t('geminiKey')}
         </div>
         {loading ? (
           <div className="font-display text-sm text-muted-foreground">
-            Sprawdzam…
+            {t('checking')}
           </div>
         ) : error ? (
           <div className="font-display text-sm font-semibold text-red-400">
@@ -174,7 +178,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
           </div>
         ) : (
           <div className="font-display text-sm text-muted-foreground">
-            Kliknij „Sprawdź teraz&rdquo;, by zweryfikować klucz.
+            {t('clickToVerify')}
           </div>
         )}
       </div>
@@ -184,7 +188,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
         <div className="mt-4 space-y-3">
           <div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
-              Modele narracji
+              {t('narrationModels')}
             </div>
             {present.length > 0 ? (
               <ul className="font-special-elite text-sm text-primary space-y-0.5">
@@ -194,13 +198,13 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
               </ul>
             ) : (
               <div className="font-display text-sm text-muted-foreground">
-                Brak żywych modeli narracji.
+                {t('noLiveModels')}
               </div>
             )}
             {missing.length > 0 && (
               <ul className="mt-1 font-special-elite text-sm text-amber-400 space-y-0.5">
                 {missing.map((id) => (
-                  <li key={id}>⚠️ {id} - brak w żywym API</li>
+                  <li key={id}>⚠️ {t('modelMissing', { id })}</li>
                 ))}
               </ul>
             )}
@@ -208,7 +212,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
 
           <div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
-              Embeddingi RAG
+              {t('ragEmbeddings')}
             </div>
             <div
               className={`font-display text-sm font-semibold ${
@@ -217,12 +221,16 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
                   : 'text-red-400'
               }`}
             >
-              {health.registry.embeddingPresent ? '✅ Dostępne' : '❌ Brak'}
+              {health.registry.embeddingPresent
+                ? t('embeddingsAvailable')
+                : t('embeddingsMissing')}
             </div>
           </div>
 
           <div className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-            Sprawdzono: {new Date(health.checkedAt).toLocaleString('pl-PL')}
+            {t('checkedAt', {
+              time: new Date(health.checkedAt).toLocaleString('pl-PL'),
+            })}
           </div>
         </div>
       )}
@@ -230,12 +238,12 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
       {/* IND-273 T5b: świeżość cennika + ręczne odświeżenie */}
       <div className="mt-4">
         <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
-          Cennik
+          {t('pricing')}
         </div>
         <div className="flex items-center justify-between gap-3">
           <div className="font-display text-sm text-foreground">
             {pricingLoading ? (
-              'Odświeżam…'
+              t('refreshing')
             ) : pricingError ? (
               <span className="text-red-400 font-semibold">⚠️ {pricingError}</span>
             ) : pricing ? (
@@ -255,7 +263,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
             variant="outline"
             className="border-brass/30 bg-brass/[0.04] px-4 font-display text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground hover:border-brass/60 hover:text-brass"
           >
-            Odśwież cennik
+            {t('refreshPricing')}
           </Button>
         </div>
       </div>

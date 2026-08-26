@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../ui/tooltip';
 import {
   AccordionContent,
@@ -11,6 +12,7 @@ import type { GeminiSectionProps } from './types';
 
 /** Sekcja Thinking & Vision - thinkingLevel + info o multimodalności. */
 export function ThinkingSection({ g, updateGemini }: GeminiSectionProps) {
+  const t = useTranslations('GeminiThinkingSection');
   return (
     <AccordionItem value="thinking">
       <AccordionTrigger>
@@ -45,25 +47,20 @@ export function ThinkingSection({ g, updateGemini }: GeminiSectionProps) {
               }
               className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
             >
-              <option value="auto">Auto (adaptacyjny wybór)</option>
-              <option value="low">Low (szybkie, tańsze)</option>
-              <option value="medium">Medium (standardowe)</option>
-              <option value="high">High (głębsze rozumowanie)</option>
+              <option value="auto">{t('levelAuto')}</option>
+              <option value="low">{t('levelLow')}</option>
+              <option value="medium">{t('levelMedium')}</option>
+              <option value="high">{t('levelHigh')}</option>
             </select>
             <p className="text-sm text-muted-foreground font-serif italic mt-1">
-              {g.thinkingLevel === 'auto' &&
-                'Automatycznie wybiera poziom na podstawie złożoności zapytania'}
-              {g.thinkingLevel === 'low' &&
-                'Optymalne dla prostych komend i krótkich odpowiedzi'}
-              {g.thinkingLevel === 'medium' &&
-                'Standardowy poziom rozumowania dla większości zapytań'}
-              {g.thinkingLevel === 'high' &&
-                'Głębsze rozumowanie dla złożonych sytuacji, walki i ważnych decyzji'}
+              {g.thinkingLevel === 'auto' && t('hintAuto')}
+              {g.thinkingLevel === 'low' && t('hintLow')}
+              {g.thinkingLevel === 'medium' && t('hintMedium')}
+              {g.thinkingLevel === 'high' && t('hintHigh')}
             </p>
           </div>
           <p className="text-sm text-muted-foreground font-serif italic">
-            ℹ️ Multimodalność (wejście obrazów) jest aktywna automatycznie dla
-            Gemini 1.5+ i nie wymaga konfiguracji.
+            ℹ️ {t('multimodalNote')}
           </p>
         </div>
       </AccordionContent>

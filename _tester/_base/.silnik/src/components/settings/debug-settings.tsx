@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { DebugApiStatus } from './debug-api-status';
 import { DebugToolsGrid } from './debug-tools-grid';
 
@@ -24,6 +25,7 @@ export function DebugSettings({
   getTestResultColor,
   getTestResultIcon,
 }: DebugSettingsProps) {
+  const t = useTranslations('DebugSettings');
   return (
     <>
       <DebugApiStatus
@@ -40,13 +42,13 @@ export function DebugSettings({
 
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold">
-            Narzędzia Debugowania
+            {t('sectionTitle')}
           </h3>
           <Link
             href="/debug"
             className="font-special-elite uppercase tracking-[0.1em] text-[14px] text-primary hover:text-primary/80 hover:underline"
           >
-            Otwórz stronę debug →
+            {t('debugPageLink')}
           </Link>
         </div>
 

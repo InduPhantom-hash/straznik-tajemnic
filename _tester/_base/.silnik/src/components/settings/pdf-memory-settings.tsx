@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../ui/tooltip';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -12,23 +13,24 @@ interface PDFMemorySettingsProps {
 }
 
 export function PDFMemorySettings({ settings, setSettings }: PDFMemorySettingsProps) {
+  const t = useTranslations('PDFMemorySettings');
   return (
     <Card className="bg-muted border-border">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-primary flex items-center gap-2">
-          📚 Zarządzanie Pamięcią PDF
-          <HelpIcon content="Pozwól AI odwoływać się do treści podręczników i przygód zapisanych w PDF." />
+          📚 {t('sectionTitle')}
+          <HelpIcon content={t('sectionHelp')} />
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="text-foreground flex items-center">
-              Włącz pamięć PDF
-              <HelpIcon content="AI będzie mogło odwoływać się do zasad gry i treści przygód zapisanych w plikach PDF." />
+              {t('enableLabel')}
+              <HelpIcon content={t('enableHelp')} />
             </Label>
             <p className="text-sm text-muted-foreground">
-              AI będzie mogło odwoływać się do zasad gry i treści przygód
+              {t('enableDescription')}
             </p>
           </div>
           <Switch 
@@ -46,8 +48,8 @@ export function PDFMemorySettings({ settings, setSettings }: PDFMemorySettingsPr
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label className="text-foreground flex items-center">
-              URL podręcznika zasad
-              <HelpIcon content="Link do pliku PDF z zasadami gry Call of Cthulhu 7e. AI będzie mogło cytować i stosować te zasady." />
+              {t('rulesUrlLabel')}
+              <HelpIcon content={t('rulesUrlHelp')} />
             </Label>
             <Input
               type="url"
@@ -66,8 +68,8 @@ export function PDFMemorySettings({ settings, setSettings }: PDFMemorySettingsPr
           </div>
           <div className="space-y-2">
             <Label className="text-foreground flex items-center">
-              URL przygody
-              <HelpIcon content="Link do pliku PDF z scenariuszem przygody. AI będzie znało fabułę i szczegóły scenariusza." />
+              {t('adventureUrlLabel')}
+              <HelpIcon content={t('adventureUrlHelp')} />
             </Label>
             <Input
               type="url"

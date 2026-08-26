@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
 import {
   DEFAULT_GEMINI_VOICE,
@@ -7,15 +8,6 @@ import {
 } from '@/lib/gemini-voices';
 import { HelpIcon } from '../../ui/tooltip';
 import { Button } from '../../ui/button';
-
-const ROLE_LABELS: Record<GeminiVoiceRole, string> = {
-  narrator: 'Narrator',
-  male: 'Męski',
-  female: 'Kobiecy',
-  young: 'Młodzi',
-  old: 'Starsi',
-  monster: 'Potwór',
-};
 
 const ROLES = [
   'narrator',
@@ -37,13 +29,23 @@ export function GeminiSettings({
   setSettings,
   isLoading,
 }: GeminiSettingsProps) {
+  const t = useTranslations('TtsGeminiSettings');
+  const ROLE_LABELS: Record<GeminiVoiceRole, string> = {
+    narrator: t('roleNarrator'),
+    male: t('roleMale'),
+    female: t('roleFemale'),
+    young: t('roleYoung'),
+    old: t('roleOld'),
+    monster: t('roleMonster'),
+  };
+
   const playSample = async () => {
     try {
       const response = await fetch('/api/tts/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: 'Witaj, jestem Twoim narratorem w tej mrocznej opowieści. Przemawiam głosem Gemini.',
+          text: t('sampleText'),
           voice: settings.voiceSettings.voiceId || DEFAULT_GEMINI_VOICE,
           languageCode: 'pl-PL',
         }),
@@ -57,11 +59,11 @@ export function GeminiSettings({
         }
       } else {
         const err = await response.json();
-        alert(`Błąd Gemini TTS: ${err.error || 'nieznany'}`);
+        alert(t('ttsError', { message: err.error || t('unknownError') }));
       }
     } catch (e) {
       console.error(e);
-      alert('Błąd odtwarzania próbki Gemini');
+      alert(t('playbackError'));
     }
   };
 
@@ -69,9 +71,9 @@ export function GeminiSettings({
     <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <span className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass">
-          Wybór głosu
+          {t('voicePickerTitle')}
         </span>
-        <HelpIcon content="Prebuilt głosy Gemini Flash TTS. Status preview - brak dedykowanych głosów PL, jakość akcentu zależy od prebuiltu (smoke test rekomendowany)." />
+        <HelpIcon content={t('voicePickerHelp')} />
       </div>
 
       <select
@@ -110,8 +112,7 @@ export function GeminiSettings({
       </select>
 
       <p className="font-serif italic text-sm text-muted-foreground leading-relaxed mt-3 mb-4">
-        Wybierz barwę, która poprowadzi opowieść. Posłuchaj próbki, nim
-        powierzysz jej swój los.
+        {t('voiceHint')}
       </p>
 
       <Button
@@ -122,7 +123,7 @@ export function GeminiSettings({
         onClick={playSample}
         className="mt-auto self-start font-display font-semibold uppercase tracking-[0.16em] text-brass bg-brass/[0.04] border-brass/45 hover:bg-brass/10"
       >
-        ▶ Odtwórz próbkę
+        {t('playSample')}
       </Button>
     </div>
   );

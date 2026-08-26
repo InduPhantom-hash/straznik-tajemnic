@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../ui/tooltip';
 import { GMPromptStatus } from './gm-prompt-status';
@@ -9,11 +10,12 @@ interface GMPromptPanelProps {
 }
 
 export function GMPromptPanel({ settings, setSettings }: GMPromptPanelProps) {
+  const t = useTranslations('GMPromptPanel');
   return (
     <div>
       <label className="flex items-center gap-2 text-[14px] font-special-elite uppercase tracking-[0.16em] text-brass mb-2">
-        Główny prompt systemowy
-        <HelpIcon content="To jest główny prompt, który określa jak AI ma prowadzić grę. Musi być ustawiony, aby czat działał. Możesz tu określić zasady gry, styl narracji, role Mistrza Gry itp." />
+        {t('mainPromptLabel')}
+        <HelpIcon content={t('mainPromptHelp')} />
       </label>
       <div className="relative">
         <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/40" />
@@ -32,7 +34,7 @@ export function GMPromptPanel({ settings, setSettings }: GMPromptPanelProps) {
               },
             })
           }
-          placeholder="Wprowadź główny prompt systemowy dla Mistrza Gry. Określ tu zasady gry, styl narracji, role i zachowanie AI..."
+          placeholder={t('mainPromptPlaceholder')}
           className="w-full px-4 py-3 bg-[#1f1a14] border border-brass/30 text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none min-h-[150px] font-mono text-sm"
           rows={6}
         />
@@ -41,8 +43,8 @@ export function GMPromptPanel({ settings, setSettings }: GMPromptPanelProps) {
       {/* Upload pliku .md */}
       <div className="mt-3 p-3 bg-[#16130f] border border-brass/22">
         <label className="flex items-center gap-2 text-[14px] font-special-elite uppercase tracking-[0.16em] text-brass mb-2">
-          Lub wgraj plik .md z instrukcjami
-          <HelpIcon content="Zamiast wpisywać prompt ręcznie, możesz wgrać plik .md. Jeśli wgrasz plik, zastąpi on tekst z pola powyżej." />
+          {t('uploadLabel')}
+          <HelpIcon content={t('uploadHelp')} />
         </label>
 
         {settings.gameMasterNarration.prompts.gmInstructionsFileName ? (
@@ -66,7 +68,7 @@ export function GMPromptPanel({ settings, setSettings }: GMPromptPanelProps) {
               }}
               className="px-3 py-1 text-xs font-display font-semibold uppercase tracking-[0.16em] text-destructive bg-destructive/10 border border-destructive/50 hover:bg-destructive/20"
             >
-              Usuń
+              {t('removeFile')}
             </button>
           </div>
         ) : (
@@ -122,14 +124,16 @@ export function GMPromptPanel({ settings, setSettings }: GMPromptPanelProps) {
                     }
                   } else {
                     const errorData = await response.json();
-                    console.error('Błąd uploadu:', errorData);
+                    console.error(t('uploadErrorLog'), errorData);
                     alert(
-                      `Nie udało się wgrać pliku: ${errorData.error || 'Nieznany błąd'}`
+                      t('uploadFailed', {
+                        reason: errorData.error || t('unknownError'),
+                      })
                     );
                   }
                 } catch (error) {
-                  console.error('Błąd podczas uploadu:', error);
-                  alert('Wystąpił błąd podczas uploadu pliku.');
+                  console.error(t('uploadExceptionLog'), error);
+                  alert(t('uploadException'));
                 }
               }
               e.target.value = '';

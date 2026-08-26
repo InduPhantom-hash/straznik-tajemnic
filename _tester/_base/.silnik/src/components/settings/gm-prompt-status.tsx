@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings, loadDefaultPrompt } from '@/lib/ai-settings';
 
 interface GMPromptStatusProps {
@@ -7,6 +8,7 @@ interface GMPromptStatusProps {
 }
 
 export function GMPromptStatus({ settings, setSettings }: GMPromptStatusProps) {
+  const t = useTranslations('GMPromptStatus');
   const { prompts } = settings.gameMasterNarration;
 
   const loadDefault = async () => {
@@ -20,7 +22,7 @@ export function GMPromptStatus({ settings, setSettings }: GMPromptStatusProps) {
             ...settings.gameMasterNarration.prompts,
             mainPrompt: defaultPrompt,
             isDefaultPrompt: true,
-            gmInstructionsFileName: 'Strażnik Tajemnic (domyślny)',
+            gmInstructionsFileName: t('defaultFileName'),
           },
         },
       });
@@ -32,8 +34,7 @@ export function GMPromptStatus({ settings, setSettings }: GMPromptStatusProps) {
       {prompts.isDefaultPrompt ? (
         <div className="flex items-center justify-between">
           <span className="text-sm font-special-elite text-brass flex items-center gap-2">
-            ✅ Używasz domyślnego promptu &quot;Strażnik Tajemnic&quot; (1480
-            linii)
+            ✅ {t('usingDefault')}
           </span>
           <button
             onClick={() => {
@@ -52,31 +53,31 @@ export function GMPromptStatus({ settings, setSettings }: GMPromptStatusProps) {
             }}
             className="px-3 py-1 text-xs font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground bg-brass/[0.04] border border-brass/30 hover:border-brass/60 hover:text-brass"
           >
-            Wyczyść (użyj własnego)
+            {t('clearToCustom')}
           </button>
         </div>
       ) : prompts.mainPrompt?.trim() ? (
         <div className="flex items-center justify-between">
           <span className="text-sm font-special-elite text-primary flex items-center gap-2">
-            📝 Używasz własnego promptu ({prompts.mainPrompt.length} znaków)
+            📝 {t('usingCustom', { count: prompts.mainPrompt.length })}
           </span>
           <button
             onClick={loadDefault}
             className="px-3 py-1 text-xs font-display font-semibold uppercase tracking-[0.14em] bg-brass/[0.04] hover:bg-brass/10 text-brass border border-brass/45"
           >
-            Przywróć domyślny
+            {t('restoreDefault')}
           </button>
         </div>
       ) : (
         <div className="flex items-center justify-between">
           <span className="text-sm font-special-elite text-muted-foreground flex items-center gap-2">
-            ⚠️ Brak promptu - czat będzie działał jak normalny Gemini
+            ⚠️ {t('missingPrompt')}
           </span>
           <button
             onClick={loadDefault}
             className="px-3 py-1 text-xs font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-primary hover:brightness-110"
           >
-            Załaduj domyślny prompt
+            {t('loadDefault')}
           </button>
         </div>
       )}

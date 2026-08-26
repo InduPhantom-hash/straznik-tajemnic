@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import type { TestResults } from '@/hooks/useApiTester';
 import { HelpIcon } from '../ui/tooltip';
@@ -29,6 +30,7 @@ export function ReplicateSettings({
   getTestResultColor,
   getTestResultIcon,
 }: ReplicateSettingsProps) {
+  const t = useTranslations('ReplicateSettings');
   if (BETA_HIDE_REPLICATE) return null;
 
   return (
@@ -38,7 +40,7 @@ export function ReplicateSettings({
 
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold">
-          Replicate API (Generowanie Obrazów)
+          {t('sectionTitle')}
         </h3>
         <div className="flex items-center gap-2">
           <span
@@ -52,7 +54,7 @@ export function ReplicateSettings({
             disabled={isLoading}
             className="text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 font-display font-semibold uppercase tracking-[0.16em]"
           >
-            Test API
+            {t('testApi')}
           </Button>
         </div>
       </div>
@@ -60,8 +62,8 @@ export function ReplicateSettings({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-            Włącz Replicate
-            <HelpIcon content="Włącza generowanie obrazów AI dla postaci i lokacji. Wymaga klucza API Replicate." />
+            {t('enableLabel')}
+            <HelpIcon content={t('enableHelp')} />
           </label>
           <input
             type="checkbox"
@@ -78,8 +80,8 @@ export function ReplicateSettings({
 
         <div>
           <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-            API Key
-            <HelpIcon content="Klucz API Replicate do generowania obrazów. Uzyskaj klucz na: https://replicate.com" />
+            {t('apiKeyLabel')}
+            <HelpIcon content={t('apiKeyHelp')} />
           </label>
           <input
             type="password"
@@ -88,15 +90,15 @@ export function ReplicateSettings({
             onChange={(e) =>
               setSettings({ ...settings, replicateApiKey: e.target.value })
             }
-            placeholder="Wprowadź klucz Replicate API"
+            placeholder={t('apiKeyPlaceholder')}
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
           />
         </div>
 
         <div>
           <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-            Styl obrazów
-            <HelpIcon content="Realistyczny: Fotorealistyczne obrazy • Artystyczny: Malarski styl • Horror: Mroczny i przerażający • Vintage: Styl retro" />
+            {t('styleLabel')}
+            <HelpIcon content={t('styleHelp')} />
           </label>
           <select
             value={settings.replicateSettings.style}
@@ -112,17 +114,17 @@ export function ReplicateSettings({
             }
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-lg text-foreground focus:border-primary focus:outline-none"
           >
-            <option value="realistic">Realistyczny</option>
-            <option value="artistic">Artystyczny</option>
-            <option value="horror">Horror</option>
-            <option value="vintage">Vintage</option>
+            <option value="realistic">{t('styleRealistic')}</option>
+            <option value="artistic">{t('styleArtistic')}</option>
+            <option value="horror">{t('styleHorror')}</option>
+            <option value="vintage">{t('styleVintage')}</option>
           </select>
         </div>
 
         <div>
           <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-            Jakość
-            <HelpIcon content="Niska: Szybkie, tanie • Średnia: Zbalansowana • Wysoka: Lepsza jakość • Ultra: Najlepsza jakość, ale wolniejsze i droższe" />
+            {t('qualityLabel')}
+            <HelpIcon content={t('qualityHelp')} />
           </label>
           <select
             value={settings.replicateSettings.quality}
@@ -138,10 +140,10 @@ export function ReplicateSettings({
             }
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-lg text-foreground focus:border-primary focus:outline-none"
           >
-            <option value="low">Niska (szybkie)</option>
-            <option value="medium">Średnia</option>
-            <option value="high">Wysoka</option>
-            <option value="ultra">Ultra (wolne)</option>
+            <option value="low">{t('qualityLow')}</option>
+            <option value="medium">{t('qualityMedium')}</option>
+            <option value="high">{t('qualityHigh')}</option>
+            <option value="ultra">{t('qualityUltra')}</option>
           </select>
         </div>
 
@@ -161,8 +163,8 @@ export function ReplicateSettings({
               }
               className="w-4 h-4 accent-primary bg-[#1f1a14] border border-brass/30 rounded focus:ring-primary"
             />
-            <span className="ml-2">Automatyczne portrety postaci</span>
-            <HelpIcon content="Automatycznie generuj portrety dla nowych postaci graczy." />
+            <span className="ml-2">{t('autoPortraitsLabel')}</span>
+            <HelpIcon content={t('autoPortraitsHelp')} />
           </label>
         </div>
 
@@ -182,8 +184,8 @@ export function ReplicateSettings({
               }
               className="w-4 h-4 accent-primary bg-[#1f1a14] border border-brass/30 rounded focus:ring-primary"
             />
-            <span className="ml-2">Automatyczne ilustracje NPC</span>
-            <HelpIcon content="Automatycznie generuj ilustracje dla postaci niezależnych (NPC) spotykanych w grze." />
+            <span className="ml-2">{t('autoNpcsLabel')}</span>
+            <HelpIcon content={t('autoNpcsHelp')} />
           </label>
         </div>
 
@@ -203,8 +205,8 @@ export function ReplicateSettings({
               }
               className="w-4 h-4 accent-primary bg-[#1f1a14] border border-brass/30 rounded focus:ring-primary"
             />
-            <span className="ml-2">Automatyczne ilustracje lokacji</span>
-            <HelpIcon content="Automatycznie generuj ilustracje dla nowych lokacji odwiedzanych w grze." />
+            <span className="ml-2">{t('autoLocationsLabel')}</span>
+            <HelpIcon content={t('autoLocationsHelp')} />
           </label>
         </div>
 
@@ -228,17 +230,17 @@ export function ReplicateSettings({
               className="w-4 h-4 accent-primary bg-[#1f1a14] border border-brass/30 rounded focus:ring-primary"
             />
             <span className="ml-2">
-              Zachowuj wygląd NPC przy regeneracji portretu
+              {t('keepPortraitLabel')}
             </span>
-            <HelpIcon content="Gdy włączone, regeneracja portretu używa Flux Kontext Pro (image-to-image, $0.04) zachowując tożsamość postaci. Gdy wyłączone - generuje od zera przez Imagen 4 Ultra ($0.06)." />
+            <HelpIcon content={t('keepPortraitHelp')} />
           </label>
         </div>
 
         {/* IND-259: suwak częstotliwości ilustracji scen (łączy się z trybem narracji) */}
         <div>
           <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-            Częstotliwość ilustracji scen
-            <HelpIcon content="Jak często AI generuje obrazy scen w grze. Łączy się z trybem narracji (Sesja Zero): tryb ustala bazę, ten suwak ją przesuwa. Rzadko = płynniejsza narracja, mniej obrazów i niższy koszt. Często = więcej obrazów. W trybie Czysta Narracja obrazy i tak są minimalne." />
+            {t('frequencyLabel')}
+            <HelpIcon content={t('frequencyHelp')} />
           </label>
           <select
             value={settings.replicateSettings.imageFrequency ?? 'normal'}
@@ -254,16 +256,16 @@ export function ReplicateSettings({
             }
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded-lg text-foreground focus:border-primary focus:outline-none"
           >
-            <option value="rare">Rzadko (płynność narracji)</option>
-            <option value="normal">Normalnie</option>
-            <option value="often">Często (więcej obrazów)</option>
+            <option value="rare">{t('frequencyRare')}</option>
+            <option value="normal">{t('frequencyNormal')}</option>
+            <option value="often">{t('frequencyOften')}</option>
           </select>
         </div>
 
         <div>
           <label className="flex items-center gap-2 font-special-elite uppercase tracking-[0.1em] text-xs text-muted-foreground mb-2">
-            Maksymalna liczba obrazów na wiadomość
-            <HelpIcon content="Ile obrazów może wygenerować AI w jednej wiadomości. Wyższe wartości = więcej obrazów ale wyższy koszt." />
+            {t('maxImagesLabel')}
+            <HelpIcon content={t('maxImagesHelp')} />
           </label>
           <input
             type="number"
