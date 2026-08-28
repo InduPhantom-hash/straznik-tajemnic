@@ -39,7 +39,6 @@ for file in "${PASSWORD_PROFILE_LAUNCHERS[@]}"; do
 done
 
 API_KEY_INPUTS=(
-  "_tester/_base/.silnik/src/components/onboarding/steps/step-gemini-key.tsx"
   "_tester/_base/.silnik/src/components/dialogs/ApiKeysModal.tsx"
   "_tester/_base/.silnik/src/components/settings/gemini-sections/header.tsx"
   "_tester/_base/.silnik/src/components/settings/replicate-settings.tsx"
@@ -61,6 +60,7 @@ BUILD_ID_LAUNCHERS=(
 
 for file in "${BUILD_ID_LAUNCHERS[@]}"; do
   assert_contains "$file" "_buildManifest.js" "launcher nie sprawdza zgodności BUILD_ID po restarcie"
+  assert_contains "$file" "self.__BUILD_MANIFEST" "launcher akceptuje HTML 200 zamiast manifestu JavaScript"
 done
 
 echo "PASS: pełny ekran, blokada haseł i weryfikacja BUILD_ID są zabezpieczone we wszystkich launcherach"

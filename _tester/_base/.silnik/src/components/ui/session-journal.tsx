@@ -3,7 +3,7 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import type { FormEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Textarea } from './textarea';
 import { cn } from '@/lib/utils';
@@ -86,6 +86,7 @@ export function SessionJournal({
   participantNames = [],
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
+  const locale = useLocale();
   const categories = [
     t('categoryEvents'),
     t('categoryDiscoveries'),
@@ -479,7 +480,7 @@ export function SessionJournal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      data-testid="session-journal" className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose?.();
@@ -510,6 +511,7 @@ export function SessionJournal({
           {/* Zakładki na górze - Styl Akt / Segregatora */}
           <div className="flex gap-1.5 items-center self-center md:self-end translate-y-[2px] mt-2 md:mt-0 shrink-0">
             <button
+              data-testid="btn-corkboard"
               onClick={() => handleTabChange('board')}
               className={cn(
                 'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
@@ -521,6 +523,7 @@ export function SessionJournal({
               📌 {t('tabBoard')}
             </button>
             <button
+              data-testid="btn-discoveries"
               onClick={() => handleTabChange('npc')}
               className={cn(
                 'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
@@ -537,6 +540,7 @@ export function SessionJournal({
               )}
             </button>
             <button
+              data-testid="btn-timeline"
               onClick={() => handleTabChange('journal')}
               className={cn(
                 'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
@@ -580,10 +584,11 @@ export function SessionJournal({
             </Button>
             <Button
               onClick={() => {
-                import('@/lib/test-journal-data').then(({ MOCK_JOURNAL_ENTRIES, MOCK_BOARD_NODES, MOCK_BOARD_RELATIONS }) => {
-                  updateCharacterJournal([...MOCK_JOURNAL_ENTRIES, ...entries]);
-                  setBoardNodes(MOCK_BOARD_NODES);
-                  setBoardRelations(MOCK_BOARD_RELATIONS);
+                import('@/lib/test-journal-data').then((fixtures) => {
+                  const english = locale === 'en';
+                  updateCharacterJournal([...(english ? fixtures.MOCK_JOURNAL_ENTRIES_EN : fixtures.MOCK_JOURNAL_ENTRIES), ...entries]);
+                  setBoardNodes(english ? fixtures.MOCK_BOARD_NODES_EN : fixtures.MOCK_BOARD_NODES);
+                  setBoardRelations(english ? fixtures.MOCK_BOARD_RELATIONS_EN : fixtures.MOCK_BOARD_RELATIONS);
                 });
               }}
               className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-400 border border-emerald-500/40 font-serif text-xs"
@@ -750,7 +755,7 @@ export function SessionJournal({
 
           {/* 2. SEKCJA KRONIKI */}
           {activeTab === 'journal' && (
-            <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c] space-y-6">
+            <div data-testid="session-timeline" className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c] space-y-6">
               <div className="max-w-4xl mx-auto space-y-4">
                 <div className="flex justify-between items-center border-b border-emerald-900/30 pb-2">
                   <h3 className="text-xl font-serif font-bold text-emerald-100">
@@ -858,7 +863,7 @@ export function SessionJournal({
           {/* 4. SEKCJA NOTATEK */}
           {activeTab === 'note' && (
             <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c]">
-              <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div className="max-w-4xl mr-auto grid grid-cols-1 md:grid-cols-2 gap-5">
                 {filteredEntries.map((entry) => (
                   <div
                     key={entry.id}

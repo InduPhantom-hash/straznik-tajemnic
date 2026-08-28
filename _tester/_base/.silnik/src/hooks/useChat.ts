@@ -296,6 +296,7 @@ function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
 
 
 interface UseChatOptions {
+  locale?: 'pl' | 'en';
   pdfMemory: PdfMemory;
   activeCharacter: Character | null;
   characters: Character[];
@@ -338,6 +339,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     adventureContext,
     hotSeatConfig,
     onSwitchHotSeatPlayer,
+    locale = 'pl',
   } = options;
 
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -664,6 +666,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
             aiSettings: options.aiSettings,
+            locale,
             hotSeatConfig: resolveHotSeatCharacterNames(
               hotSeatConfig,
               characters
@@ -1024,7 +1027,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message:
-              'Dokończ poprzednią, urwaną wypowiedź Mistrza Gry dokładnie od miejsca, w którym się skończyła. Nie powtarzaj jej i nie komentuj przerwania.',
+              locale === 'en'
+                ? 'Continue the Game Master\'s previous truncated response exactly where it ended. Do not repeat it and do not comment on the interruption.'
+                : 'Dokończ poprzednią, urwaną wypowiedź Mistrza Gry dokładnie od miejsca, w którym się skończyła. Nie powtarzaj jej i nie komentuj przerwania.',
             messages: sanitizeHistoryForApi([markedTarget]),
             pdfMemory,
             character: sanitizeCharacterForApi(activeCharacter),
@@ -1032,6 +1037,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
             aiSettings: options.aiSettings,
+            locale,
           }),
         });
 

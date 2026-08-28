@@ -30,6 +30,7 @@ test('ręcznie kontynuuje MAX_TOKENS bez technicznego dymku gracza', async ({
 
   await page.addInitScript(() => {
     localStorage.clear();
+    localStorage.setItem('language_selected', 'pl');
     localStorage.setItem('onboarding_completed', 'true');
     localStorage.setItem('has_started_game', 'true');
     localStorage.setItem('session_zero_completed', 'true');
@@ -55,14 +56,8 @@ test('ręcznie kontynuuje MAX_TOKENS bez technicznego dymku gracza', async ({
     );
   });
 
-  await page.goto('/');
+  await page.goto('/pl');
   await expect(page.getByText('Urwany fragment')).toBeVisible();
-  const firstRunDialog = page.getByRole('dialog', {
-    name: 'Pierwsze uruchomienie',
-  });
-  await expect(firstRunDialog).toBeVisible({ timeout: 15_000 });
-  await firstRunDialog.getByRole('button', { name: 'Zamknij' }).click();
-  await expect(firstRunDialog).toBeHidden();
   await page.getByRole('button', { name: 'Kontynuuj narrację' }).click();
   await expect(page.getByText('Dokończenie sceny.')).toBeVisible();
   await expect.poll(() => chatRequests.length).toBe(1);

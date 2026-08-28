@@ -1,4 +1,4 @@
-import type { Character, EquipmentItem, SkillValue } from '@/lib/types';
+import type { Character, EquipmentItem } from '@/lib/types';
 
 type Translate = ((key: string) => string) & { has?: (key: string) => boolean };
 
@@ -50,12 +50,9 @@ export function localizePredefinedCharacter<T extends Character>(
     );
   }
 
-  localized.skills = Object.fromEntries(
-    Object.entries(character.skills).map(([skill, value]) => [
-      message(`${base}.skills.${skill}`, skill),
-      value as SkillValue,
-    ])
-  );
+  // Skill keys are part of the deterministic rules engine. Translate them only
+  // at rendering time, never in a Character value passed to mechanics.
+  localized.skills = { ...character.skills };
 
   localized.equipment = character.equipment?.map((item): EquipmentItem => {
     const personal = `${base}.equipment.${item.id}`;

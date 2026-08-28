@@ -57,7 +57,7 @@ export function SettingsModal({
         })
       }
     >
-      <DialogContent size="screen">
+      <DialogContent data-testid="settings-page" size="screen">
         <DialogHeader>
           {/* Nagłówek déco: nadtytuł + tytuł dekoracyjny + separator z rombem */}
           <div className="text-center">

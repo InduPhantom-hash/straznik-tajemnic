@@ -1,6 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   ArrowLeft,
   Settings,
@@ -57,18 +58,19 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
   hasSessionZero = false,
   onStartGame,
 }) => {
+  const t = useTranslations('ManualSetupPanel');
   const isReady = Boolean(hasAdventure && hasCharacter);
 
   const displaySlots: DuetCharacterSlot[] =
     duetCharacterSlots && duetCharacterSlots.length > 0
       ? duetCharacterSlots
       : [
-          { playerId: 'player1', playerName: 'Gracz 1' },
-          { playerId: 'player2', playerName: 'Gracz 2' },
+          { playerId: 'player1', playerName: t('player', { number: 1 }) },
+          { playerId: 'player2', playerName: t('player', { number: 2 }) },
         ];
 
   return (
-    <div className="deco-corners relative w-full max-w-4xl mx-auto p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_30px_rgba(201,162,39,0.08)] z-20 text-left">
+    <div data-testid="manual-setup-panel" className="deco-corners relative w-full max-w-4xl mx-auto p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_30px_rgba(201,162,39,0.08)] z-20 text-left">
       {/* Przycisk powrotu */}
       <button
         type="button"
@@ -76,17 +78,17 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
         className="inline-flex items-center gap-2 font-display text-xs uppercase tracking-[0.16em] text-brass/80 hover:text-brass transition-colors mb-6 cursor-pointer group"
       >
         <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        <span>Wróć do wyboru trybu</span>
+        <span>{t('backToMode')}</span>
       </button>
 
       {/* Nagłówek panelu */}
       <div className="border-b border-brass/30 pb-4 mb-6">
         <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground uppercase tracking-[0.08em] flex items-center gap-3">
           <Settings className="w-6 h-6 text-primary" />
-          Konfiguracja Sesji
+          {t('title')}
         </h2>
         <p className="font-special-elite text-sm text-muted-foreground tracking-[0.04em] mt-1">
-          Dostosuj tryb gry, wybierz scenariusz i powołaj Badaczy Tajemnic.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -100,17 +102,17 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
               </div>
               <div>
                 <div className="font-special-elite text-xs uppercase tracking-[0.18em] text-brass">
-                  Krok 1 - Tryb rozgrywki
+                  {t('stepMode')}
                 </div>
                 <div className="font-display font-bold text-lg text-foreground tracking-[0.04em]">
-                  {isDuet ? 'Duet (Hot Seat - 2 Graczy)' : 'Solo (1 Gracz)'}
+                  {isDuet ? t('duetMode') : t('soloMode')}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5 font-special-elite">
                   {isDuet && duetCharacterSlots.length > 0
-                    ? `Gracze: ${duetCharacterSlots.map((s) => s.playerName).join(' oraz ')}`
+                    ? t('players', { players: duetCharacterSlots.map((s) => s.playerName).join(t('and')) })
                     : isDuet
-                    ? 'Dwóch badaczy przy jednym ekranie'
-                    : 'Pojedynczy badacz stawiający czoła Mitom'}
+                    ? t('duetDesc')
+                    : t('soloDesc')}
                 </div>
               </div>
             </div>
@@ -121,7 +123,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                 onClick={onChoosePlayMode}
                 className="font-display uppercase tracking-[0.1em] text-xs border-brass/40 hover:border-brass hover:bg-brass/10 text-brass shrink-0"
               >
-                Zmień tryb
+                {t('changeMode')}
               </Button>
             )}
           </div>
@@ -146,20 +148,20 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
               </div>
               <div>
                 <div className="font-special-elite text-xs uppercase tracking-[0.18em] text-brass flex items-center gap-2">
-                  <span>Krok 2 - Przygoda</span>
+                  <span>{t('stepAdventure')}</span>
                   {hasAdventure && (
                     <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold normal-case">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Wybrano
+                      <CheckCircle2 className="w-3.5 h-3.5" /> {t('selected')}
                     </span>
                   )}
                 </div>
                 <div className="font-display font-bold text-lg text-foreground tracking-[0.04em]">
-                  {adventureTitle || 'Nie wybrano przygody'}
+                  {adventureTitle || t('noAdventure')}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5 font-special-elite">
                   {hasAdventure
-                    ? 'Scenariusz gotowy do rozegrania'
-                    : 'Wybierz gotowy moduł lub wgraj własne akta sprawy'}
+                    ? t('adventureReady')
+                    : t('advDescFallback')}
                 </div>
               </div>
             </div>
@@ -169,7 +171,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
               onClick={onSelectAdventure}
               className="font-display uppercase tracking-[0.1em] text-xs border-brass/40 hover:border-brass hover:bg-brass/10 text-brass shrink-0"
             >
-              {hasAdventure ? 'Zmień przygodę' : 'Wybierz przygodę'}
+              {hasAdventure ? t('changeAdv') : t('selectAdv')}
             </Button>
           </div>
         </div>
@@ -181,10 +183,10 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
           }`}
         >
           <div className="font-special-elite text-xs uppercase tracking-[0.18em] text-brass flex items-center gap-2 mb-3">
-            <span>Krok 3 - {isDuet ? 'Badacze Tajemnic' : 'Badacz Tajemnic'}</span>
+            <span>{isDuet ? t('stepInvestigators') : t('stepInvestigator')}</span>
             {hasCharacter && (
               <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold normal-case">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Gotowy do gry
+                <CheckCircle2 className="w-3.5 h-3.5" /> {t('readyToPlay')}
               </span>
             )}
           </div>
@@ -207,8 +209,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       {activeCharacter.name}
                     </div>
                     <div className="font-special-elite text-xs text-muted-foreground">
-                      {activeCharacter.occupation || 'Zawód nieznany'}
-                      {activeCharacter.age ? ` (${activeCharacter.age} lat)` : ''}
+                      {activeCharacter.occupation || t('unknownOcc')}
+                      {activeCharacter.age ? ` (${t('age', { age: activeCharacter.age })})` : ''}
                     </div>
                   </div>
                 </div>
@@ -222,7 +224,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                      Zmień postać
+                      {t('changeChar')}
                     </Button>
                   )}
                   <Button
@@ -233,7 +235,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                   >
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-                    Stwórz nową
+                    {t('createNew')}
                   </Button>
                   {hasSavedCharacters && onPickCharacter && (
                     <Button
@@ -244,7 +246,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                     >
                       <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
-                      Z katalogu
+                      {t('fromCatalog')}
                     </Button>
                   )}
                 </div>
@@ -252,7 +254,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 rounded bg-black/30 border border-brass/20">
                 <div className="text-sm text-muted-foreground font-special-elite">
-                  Brak wybranego Badacza. Wybierz gotową postać lub stwórz własną kartę.
+                  {t('noCharDesc')}
                 </div>
                 <div className="flex flex-wrap gap-2 shrink-0">
                   <Button
@@ -263,7 +265,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                   >
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-                    Stwórz nową postać
+                    {t('createNewChar')}
                   </Button>
                   {onPickPredefinedCharacter && (
                     <Button
@@ -274,7 +276,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                      Wybierz gotową postać
+                      {t('selectPremade')}
                     </Button>
                   )}
                   {hasSavedCharacters && onPickCharacter && (
@@ -286,7 +288,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                     >
                       <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
-                      Wybierz z katalogu
+                      {t('fromCatalog')}
                     </Button>
                   )}
                 </div>
@@ -313,7 +315,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       <span
                         className={`text-[11px] font-display font-semibold uppercase px-2 py-0.5 rounded border ${slotBadgeBg}`}
                       >
-                        {slot.playerName || `Gracz ${index + 1}`}
+                        {slot.playerName || t('player', { number: index + 1 })}
                       </span>
 
                       {slot.character ? (
@@ -331,13 +333,13 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               {slot.character.name}
                             </div>
                             <div className="font-special-elite text-xs text-muted-foreground">
-                              {slot.character.occupation || 'Zawód nieznany'}
+                              {slot.character.occupation || t('unknownOcc')}
                             </div>
                           </div>
                         </div>
                       ) : (
                         <span className="font-special-elite text-xs text-muted-foreground">
-                          Brak przypisanej postaci
+                          {t('noAssignedCharacter')}
                         </span>
                       )}
                     </div>
@@ -354,7 +356,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                             >
                               <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                              Zmień postać
+                              {t('changeChar')}
                             </Button>
                           )}
                           <Button
@@ -365,7 +367,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                             className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                           >
                             <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-                            Stwórz nową
+                            {t('createNew')}
                           </Button>
                           {hasSavedCharacters && onPickCharacter && (
                             <Button
@@ -390,7 +392,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                             className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                           >
                             <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-                            Stwórz nową
+                            {t('createNew')}
                           </Button>
                           {onPickPredefinedCharacter && (
                             <Button
@@ -401,7 +403,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                             >
                               <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                              Wybierz gotową
+                              {t('selectPremadeShort')}
                             </Button>
                           )}
                           {hasSavedCharacters && onPickCharacter && (
@@ -452,7 +454,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                 onClick={onSessionZero}
                 className="font-display uppercase tracking-[0.1em] text-xs border-brass/30 hover:border-brass text-brass shrink-0"
               >
-                {hasSessionZero ? 'Powtórz Sesję Zero' : 'Uruchom Sesję Zero'}
+                {hasSessionZero ? t('repeatS0') : t('runS0')}
               </Button>
             </div>
           </div>
@@ -468,7 +470,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
             className="w-full sm:w-auto min-w-[280px] px-8 py-4 bg-gradient-to-r from-[#0d9488] to-[#047857] hover:from-[#14b8a6] hover:to-[#059669] text-white font-display font-bold uppercase tracking-[0.2em] text-base rounded border border-primary/60 shadow-[0_0_25px_rgba(20,184,166,0.4)] hover:shadow-[0_0_35px_rgba(20,184,166,0.6)] animate-pulse transition-all cursor-pointer flex items-center justify-center gap-3"
           >
             <Play className="w-5 h-5 fill-current" />
-            <span>Rozpocznij Grę</span>
+            <span>{t('startGame')}</span>
           </button>
         ) : (
           <div className="w-full flex flex-col items-center gap-2">
@@ -478,15 +480,15 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
               className="w-full sm:w-auto min-w-[280px] px-8 py-4 bg-black/40 text-muted-foreground font-display font-bold uppercase tracking-[0.2em] text-base rounded border border-brass/20 cursor-not-allowed opacity-60 flex items-center justify-center gap-3"
             >
               <Play className="w-5 h-5" />
-              <span>Rozpocznij Grę</span>
+              <span>{t('startGame')}</span>
             </button>
             <p className="font-special-elite text-xs text-brass/80 tracking-[0.04em] flex items-center gap-1.5">
               <AlertCircle className="w-3.5 h-3.5" />
               {!hasAdventure && !hasCharacter
-                ? 'Wybierz przygodę i postać, aby rozpocząć grę'
+                ? t('needBoth')
                 : !hasAdventure
-                ? 'Wybierz przygodę, aby rozpocząć grę'
-                : 'Wybierz lub stwórz postać, aby rozpocząć grę'}
+                ? t('needAdv')
+                : t('needChar')}
             </p>
           </div>
         )}

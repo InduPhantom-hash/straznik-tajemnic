@@ -12,6 +12,7 @@ import { SafeImage } from '@/components/ui/safe-image';
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { Character } from '@/lib/types';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
 
@@ -20,9 +21,9 @@ export interface SheetHeaderProps {
 }
 
 /** Mapowanie gender → label PL. */
-function genderLabel(gender: string | undefined): string {
-  if (gender === 'male') return 'Mężczyzna';
-  if (gender === 'female') return 'Kobieta';
+function genderLabel(gender: string | undefined, t: ReturnType<typeof useTranslations>): string {
+  if (gender === 'male') return t('male');
+  if (gender === 'female') return t('female');
   return '';
 }
 
@@ -42,9 +43,10 @@ const VIGNETTE_STYLE = {
  * Jeśli `character.portraitUrl` brak → fallback emoji 👤.
  */
 export function SheetHeader({ character }: SheetHeaderProps) {
+  const t = useTranslations('CharacterSheet');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const hasPortrait = Boolean(character.portraitUrl);
-  const gender = genderLabel(character.gender);
+  const gender = genderLabel(character.gender, t);
   const place = character.birthplace || character.residence || '';
 
   return (
@@ -100,7 +102,7 @@ export function SheetHeader({ character }: SheetHeaderProps) {
         </div>
         <div className="font-special-elite text-[14px] text-brass tracking-[0.18em] uppercase mt-1.5">
           {character.occupation || '-'}
-          {character.age ? ` · lat ${character.age}` : ''}
+          {character.age ? ` · ${t('age', { age: character.age })}` : ''}
           {gender ? ` · ${gender}` : ''}
         </div>
         {place && (

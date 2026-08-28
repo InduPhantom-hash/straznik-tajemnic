@@ -12,7 +12,6 @@ import {
 import type { AISettings } from '@/lib/ai-settings/types';
 import { settingsEmitter } from '@/lib/settings-event-emitter';
 import { appendRollToJournal } from '@/lib/journal/build-roll-entry';
-import { useFirstRun } from '@/hooks/useFirstRun';
 import { CthulhuSidebar } from '@/components/sidebar/CthulhuSidebar';
 import { APIUsageCounter } from '@/components/ui/api-usage-counter';
 import { useHotSeat } from '@/components/ui/player-switcher';
@@ -32,7 +31,7 @@ import { useCutscene } from '@/hooks/useCutscene';
 import { useSceneSummary } from '@/hooks/useSceneSummary';
 import { useGameStart } from '@/hooks/useGameStart';
 import { useHealthCheck } from '@/hooks/useHealthCheck';
-import { getApiKeyHeaders } from '@/lib/api-keys-service';
+import { getApiKeyHeaders, hasRequiredKeys } from '@/lib/api-keys-service';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
@@ -94,17 +93,6 @@ const ApiKeysModal = dynamic(
   }
 );
 
-// Fala 2 - kreator pierwszego uruchomienia (klucz Gemini → podręcznik → indeks lokalny)
-const FirstRunWizard = dynamic(
-  () =>
-    import('@/components/onboarding/FirstRunWizard').then((mod) => ({
-      default: mod.FirstRunWizard,
-    })),
-  {
-    ssr: false,
-  }
-);
-
 const PredefinedCharactersSelector = dynamic(
   () =>
     import('@/components/ui/predefined-characters-selector').then((mod) => ({
@@ -121,7 +109,7 @@ const PredefinedCharactersSelector = dynamic(
  */
 export default function Home() {
   // === CORE HOOKS ===
-  const tts = useTTS();
+  const tts = useTTS('pl');
   const charMgmt = useCharacterManagement();
 
   // Wybrany kontekst przygody
@@ -170,6 +158,7 @@ export default function Home() {
     hotSeatConfig: hotSeat.config,
     pendingDirectorEvent,
     clearPendingDirectorEvent: () => setPendingDirectorEvent(null),
+    locale: 'pl',
   });
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -191,8 +180,6 @@ export default function Home() {
   const [activeGMTool, setActiveGMTool] = useState<string | null>(null);
   const [showHotSeatSetup, setShowHotSeatSetup] = useState(false);
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
-  // Fala 2: kreator pierwszego uruchomienia (klucz Gemini → podręcznik → indeks lokalny)
-  const [showFirstRunWizard, setShowFirstRunWizard] = useState(false);
   // "Nowa przygoda" z opcją zapisu: gdy true, po udanym zapisie resetujemy do kreatora
   const [pendingNewAdventure, setPendingNewAdventure] = useState(false);
 
@@ -212,8 +199,6 @@ export default function Home() {
 
   const customAdventures = useCustomAdventures();
   const cutsceneManager = useCutscene();
-  // Fala 2: stan pierwszego uruchomienia (klucz + niepuste data/rag/rules → canPlay)
-  const firstRun = useFirstRun();
   const fullReset = useFullReset();
 
   // === NOWE HOOKI (REFAKTORYZACJA) ===
@@ -253,6 +238,7 @@ export default function Home() {
       stopCurrentAudio: tts.stopCurrentAudio,
     },
     aiSettings,
+    locale: 'pl',
   });
 
   // Faza 2 + C2: gdy duet aktywny, stwórz/wybierz postać zapamiętuje (kanał
@@ -318,6 +304,10 @@ export default function Home() {
   // fallbacku z bindCharactersByPlayerName, który po cichu przydzielał pierwszą
   // wolną postać). Solo: przepuszczamy prosto do handleStartGame.
   const handleStartGameGuarded = useCallback(() => {
+    if (!hasRequiredKeys()) {
+      setShowApiKeysModal(true);
+      return;
+    }
     if (hotSeat.config.enabled) {
       const players = hotSeat.config.players;
 
@@ -374,7 +364,7 @@ export default function Home() {
 
   // 1. Init default GM prompt (async one-shot)
   useEffect(() => {
-    initializeDefaultPrompt().then((initialized) => {
+    initializeDefaultPrompt('pl').then((initialized) => {
       if (initialized) console.log('✅ Default GM prompt initialized');
     });
   }, []);
@@ -384,6 +374,10 @@ export default function Home() {
   useEffect(() => {
     runHealthCheck();
   }, [runHealthCheck]);
+
+  useEffect(() => {
+    if (!hasRequiredKeys()) setShowApiKeysModal(true);
+  }, []);
 
   // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie
   // serwera). Fire-and-forget; tanie gdy cache świeży (bez LLM). Po sukcesie serwer
@@ -422,6 +416,7 @@ export default function Home() {
         const stamped: Character = {
           ...preset,
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          sourcePresetId: preset.id,
         };
         if (mode === 'hot-seat') {
           stamped.playerName = 'Gracz 1';
@@ -439,6 +434,7 @@ export default function Home() {
             const stamped2: Character = {
               ...preset2,
               id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
+              sourcePresetId: preset2.id,
               playerName: 'Gracz 2',
             };
             updatedList.push(stamped2);
@@ -475,31 +471,10 @@ export default function Home() {
           // fallback lokalny
         }
       }
-      setShowFirstRunWizard(false);
-
-      // Quick Setup omija onboarding wizard z definicji - oznacz jako ukończony
-      // i natychmiast odpal grę bez sprawdzania needsWizard (który po cold-start
-      // jest true bo localStorage jest wyczyszczony).
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('onboarding_completed', 'true');
-      }
-      setShowFirstRunWizard(false);
-      if (!firstRun.loading) {
-        setPendingQuickStart(true);
-      }
+      setPendingQuickStart(true);
     },
-    [charMgmt, hotSeat, firstRun, handleStartGameGuarded]
+    [charMgmt, hotSeat, handleStartGameGuarded]
   );
-
-
-
-  // 1b. Fala 2 - pierwsze uruchomienie ("Strażnik Tajemnic"): bez klucza Gemini LUB
-  // bez wgranego podręcznika (pusty lokalny indeks data/rag/rules) pokazujemy kreator.
-  // RAG jest lokalny - podręcznik wnosi gracz. W trybie lokalnym (LOCAL_MODE=true +
-  // pełne data/rag) firstRun.needsWizard=false, więc kreator się nie pojawia (produkt A).
-  useEffect(() => {
-    if (!firstRun.loading && firstRun.needsWizard) setShowFirstRunWizard(true);
-  }, [firstRun.loading, firstRun.needsWizard]);
 
   // 1c. Hydration-safe: dociągnij flagi stanu gry z localStorage PO mount.
   // useState startuje na false (= SSR), tu ustawiamy realną wartość, więc
@@ -816,33 +791,6 @@ export default function Home() {
             onOpenChange={setShowApiKeysModal}
           />
 
-          {/* Fala 2 - kreator pierwszego uruchomienia (gate dla produktu B) */}
-          <FirstRunWizard
-            open={showFirstRunWizard}
-            gated={!firstRun.canPlay}
-            onCompleted={async () => {
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_completed', 'true');
-              }
-              await firstRun.refresh();
-              setShowFirstRunWizard(false);
-            }}
-            onQuickStart={async (advId, charId) => {
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_completed', 'true');
-              }
-              await firstRun.refresh();
-              handleQuickStartOnboarding(advId, charId);
-            }}
-            onClose={async () => {
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_completed', 'true');
-              }
-              await firstRun.refresh();
-              setShowFirstRunWizard(false);
-            }}
-          />
-
           {/* IND-230: Faza Rozwoju CoC - rzuty na poprawę oznaczonych umiejętności */}
           {showDevelopmentModal && charMgmt.activeCharacter && (
             <DevelopmentPhaseModal
@@ -933,11 +881,7 @@ export default function Home() {
         onSendTurn={chat.sendTurn}
         onSwitchPlayer={hotSeat.switchPlayer}
         onDisableHotSeat={hotSeat.disableHotSeat}
-        onStartGame={
-          firstRun.canPlay
-            ? handleStartGameGuarded
-            : () => setShowFirstRunWizard(true)
-        }
+        onStartGame={handleStartGameGuarded}
         onQuickStart={handleQuickStartOnboarding}
         onChoosePlayMode={() => setShowHotSeatSetup(true)}
         onLoadSave={() => {

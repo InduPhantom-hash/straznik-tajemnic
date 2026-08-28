@@ -11,9 +11,11 @@
 import { getSkillValue, type Character } from '@/lib/types';
 import { HelpIcon } from '../../tooltip';
 import { SECTION_HELP } from '../types';
+import { useTranslations } from 'next-intl';
 
 export interface SheetSkillsProps {
   character: Character;
+  skillLabels?: Record<string, string>;
 }
 
 /** Rozpoznaje umiejętność Mitów (czerwień + poświata, niebezpieczna wiedza). */
@@ -25,15 +27,16 @@ function isMythosSkill(skill: string): boolean {
  * Renderuje umiejętności postaci jako grid 2-kolumnowy déco. Zawodowe (★),
  * Mity na czerwono. Sortowanie alfabetyczne (locale 'pl').
  */
-export function SheetSkills({ character }: SheetSkillsProps) {
+export function SheetSkills({ character, skillLabels = {} }: SheetSkillsProps) {
+  const t = useTranslations('CharacterSheet');
   const skills = Object.entries(character.skills || {}).sort(([a], [b]) =>
-    a.localeCompare(b, 'pl')
+    (skillLabels[a] ?? a).localeCompare(skillLabels[b] ?? b)
   );
 
   return (
     <div>
       <h3 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4 flex items-center gap-1.5">
-        Umiejętności
+        {t('skills')}
         <HelpIcon content={SECTION_HELP.skills} position="right" />
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-7 gap-y-2.5">
@@ -53,7 +56,7 @@ export function SheetSkills({ character }: SheetSkillsProps) {
                   }`}
                 >
                   {isOccupational && <span className="text-brass mr-1">★</span>}
-                  {skill}
+                  {skillLabels[skill] ?? skill}
                 </span>
                 <span
                   className={`font-special-elite text-xs flex-none ${accent}`}

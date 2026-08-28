@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/pdf/ingest-local?type=rules|adventure
-// Zwraca statystyki lokalnego magazynu wektorów dla hooka useFirstRun
+// Zwraca statystyki lokalnego magazynu wektorów dla ustawień podręcznika.
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

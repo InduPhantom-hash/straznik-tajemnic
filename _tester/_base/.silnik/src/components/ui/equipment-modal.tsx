@@ -42,7 +42,8 @@ import {
   inferWeaponDamage,
   isWeapon,
 } from '@/lib/combat/weapon-context';
-import { useTranslations } from 'next-intl';
+import { useMessages, useTranslations } from 'next-intl';
+import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { isCatalogEquipment } from '@/lib/equipment-catalog';
 
@@ -76,6 +77,7 @@ export function EquipmentModal({
   onCharacterChange,
 }: EquipmentModalProps) {
   const t = useTranslations('EquipmentModal');
+  const messages = useMessages();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<
     EquipmentCategory | 'all'
@@ -85,7 +87,7 @@ export function EquipmentModal({
   // kontekstowo w narracji, nie ręcznie - dlatego bez edycji/usuwania).
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
-  const equipment = character.equipment || [];
+  const equipment = (character.equipment || []).map((item) => localizeSystemEquipment(item, messages));
 
   // Filtruj przedmioty
   const filteredEquipment = equipment.filter((item) => {
@@ -195,7 +197,7 @@ export function EquipmentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+      <DialogContent data-testid="equipment-modal"
         size="screen"
         className="bg-gradient-to-b from-[#14110c] to-background border-brass/30 flex flex-col !w-[93vw] !max-h-[92vh]"
       >

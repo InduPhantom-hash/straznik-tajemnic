@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../ui/tooltip';
 import { Button } from '../ui/button';
@@ -27,6 +28,7 @@ export function CostControlSettings({
   settings,
   setSettings,
 }: CostControlSettingsProps) {
+  const t = useTranslations('CostControl');
   const [usage, setUsage] = useState<UserUsage | null>(null);
   const [budgetUsd, setBudgetUsd] = useState(10);
 
@@ -49,7 +51,7 @@ export function CostControlSettings({
   }, [fetchUsage]);
 
   const handleReset = async () => {
-    if (!confirm('Czy na pewno chcesz wyzerować licznik kosztów konta?'))
+    if (!confirm(t.has('resetConfirm') ? t('resetConfirm') : 'Czy na pewno chcesz wyzerować licznik kosztów konta?'))
       return;
     try {
       await fetch('/api/user/usage', { method: 'DELETE' });
@@ -93,14 +95,14 @@ export function CostControlSettings({
 
       <div className="flex items-center justify-between mb-1">
         <h3 className="font-display uppercase tracking-[0.1em] text-xl text-foreground flex items-center gap-2">
-          Kontrola Kosztów
-          <HelpIcon content="Monitoruj wydatki na API. Dane z licznika konta (gemini + obrazy + TTS), nie z przeglądarki." />
+          {t.has('title') ? t('title') : 'Kontrola Kosztów'}
+          <HelpIcon content={t.has('tooltip') ? t('tooltip') : 'Monitoruj wydatki na API. Dane z licznika konta (gemini + obrazy + TTS), nie z przeglądarki.'} />
         </h3>
         {usage && (
           <div className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground flex items-center gap-2">
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-            Aktualizacja:{' '}
-            {new Date(usage.updatedAt).toLocaleTimeString('pl-PL')}
+            {t.has('updated') ? t('updated') : 'Aktualizacja:'}{' '}
+            {new Date(usage.updatedAt).toLocaleTimeString()}
           </div>
         )}
       </div>
@@ -114,7 +116,7 @@ export function CostControlSettings({
         <div className="flex items-center justify-between">
           <div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
-              Łączny koszt konta
+              {t.has('totalCost') ? t('totalCost') : 'Łączny koszt konta'}
             </div>
             <div className="font-display font-bold text-3xl text-foreground">
               ${totalCost.toFixed(4)}{' '}
@@ -123,11 +125,13 @@ export function CostControlSettings({
               </span>
             </div>
             <div className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground mt-1">
-              {usage?.total.calls || 0} żądań API
+              {t.has('apiRequests')
+                ? t('apiRequests', { count: usage?.total.calls || 0 })
+                : `${usage?.total.calls || 0} żądań API`}
             </div>
           </div>
           <Button onClick={handleReset} variant="destructive" size="sm">
-            🔄 Wyzeruj
+            🔄 {t.has('reset') ? t('reset') : 'Wyzeruj'}
           </Button>
         </div>
 

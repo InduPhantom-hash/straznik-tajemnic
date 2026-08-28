@@ -484,3 +484,31 @@ export const MOCK_BOARD_RELATIONS: EvidenceRelation[] = [
     status: 'doubtful',
   },
 ];
+
+/** English fixtures keep IDs, images, layout and relations identical to PL. */
+export const MOCK_JOURNAL_ENTRIES_EN: ExtendedJournalEntry[] = MOCK_JOURNAL_ENTRIES.map((entry, index) => ({
+  ...entry,
+  title: `Investigation record ${index + 1}`,
+  content: 'A recorded lead from the Miskatonic investigation. The team must verify the evidence before drawing conclusions.',
+  category: entry.type === 'note' ? 'Notes' : entry.type === 'journal' ? 'Research' : 'Discoveries',
+  inGameDate: '21 July 1926',
+  tags: ['Investigation', 'Arkham', 'Evidence'],
+  investigatorInsight: 'The available evidence points to a concealed connection that requires further investigation.',
+  objectives: entry.objectives?.map((objective, objectiveIndex) => ({
+    ...objective,
+    description: `Investigation objective ${objectiveIndex + 1}`,
+  })),
+}));
+
+export const MOCK_BOARD_NODES_EN: EvidenceNode[] = MOCK_BOARD_NODES.map((node, index) => ({
+  ...node,
+  title: `Evidence ${index + 1}`,
+  description: 'A documented lead connected to the current investigation.',
+  tags: ['Evidence', 'Investigation'],
+  investigatorInsight: 'This evidence may reveal a hidden connection.',
+}));
+
+export const MOCK_BOARD_RELATIONS_EN: EvidenceRelation[] = MOCK_BOARD_RELATIONS.map((relation) => ({
+  ...relation,
+  label: 'Connected evidence',
+}));

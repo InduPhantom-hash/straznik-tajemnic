@@ -13,15 +13,15 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import type { WelcomeScreenProps } from './types';
-import { WELCOME_QUOTES } from './data/quotes';
+import { WELCOME_QUOTES, WELCOME_QUOTES_EN } from './data/quotes';
 import { useTypewriterSound } from './hooks/use-typewriter-sound';
 import { StartModeCards } from './components/start-mode-cards';
 import { ManualSetupPanel } from './components/manual-setup-panel';
 import { BottomLinks } from './components/bottom-links';
 import { FullGameSaveManager } from '@/lib/full-game-save-manager';
 import { timeManager } from '@/lib/time-manager';
-import { StepGeminiKey } from '@/components/onboarding/steps/step-gemini-key';
 import { hasRequiredKeys } from '@/lib/api-keys-service';
+import { useLocale, useTranslations } from 'next-intl';
 
 /** Metadane najświeższego zapisu (synchronicznie z localStorage). */
 interface RecentSave {
@@ -71,20 +71,21 @@ function relativeTime(iso: string): string {
 }
 
 /** Karta wznowienia ostatniej sesji (styl déco z makiety karta 06). */
-const ResumeCard: FC<{ save: RecentSave; onResume?: () => void }> = ({
+const ResumeCard: FC<{ save: RecentSave; onResume?: () => void; t: any }> = ({
   save,
   onResume,
+  t,
 }) => (
-  <div className="deco-corners relative w-[min(420px,90vw)] mb-6 p-4 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_22px_rgba(13,148,136,0.08)] z-20">
+  <div data-testid="welcome-screen" className="deco-corners relative w-[min(420px,90vw)] mb-6 p-4 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_22px_rgba(13,148,136,0.08)] z-20">
     <div className="font-special-elite text-[14px] text-primary tracking-[0.22em] uppercase mb-1">
-      ● Ostatnia sesja
+      ● {t('lastSession')}
     </div>
     <div className="font-display font-bold text-lg text-foreground uppercase tracking-[0.06em] truncate">
       {save.name}
     </div>
     <div className="flex items-center gap-4 mt-2 font-special-elite text-[14px] text-muted-foreground tracking-[0.06em]">
-      <span>{save.messageCount} wpisów</span>
-      {save.imageCount > 0 && <span>{save.imageCount} ilustracji</span>}
+      <span>{t('entries', { count: save.messageCount })}</span>
+      {save.imageCount > 0 && <span>{t('images', { count: save.imageCount })}</span>}
       <span className="text-brass/90">{relativeTime(save.lastUpdated)}</span>
     </div>
     {onResume && (
@@ -92,7 +93,7 @@ const ResumeCard: FC<{ save: RecentSave; onResume?: () => void }> = ({
         onClick={onResume}
         className="mt-4 w-full font-display font-semibold uppercase tracking-[0.16em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all cursor-pointer"
       >
-        Wznów grę
+        {t('resume')}
       </button>
     )}
   </div>
@@ -123,8 +124,13 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   onOpenCharacterSheet,
   characters = [],
 }) => {
+  const t = useTranslations('WelcomeStart');
+  const locale = useLocale();
   const [quote] = useState(
-    () => WELCOME_QUOTES[Math.floor(Math.random() * WELCOME_QUOTES.length)]
+    () => {
+      const quotes = locale === 'en' ? WELCOME_QUOTES_EN : WELCOME_QUOTES;
+      return quotes[Math.floor(Math.random() * quotes.length)];
+    }
   );
   const { displayedText, isTyping } = useTypewriterSound(quote.greeting);
 
@@ -169,7 +175,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   }, []);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-background">
+    <div data-testid="welcome-screen" className="relative h-full w-full overflow-hidden bg-background">
       {/* === Warstwy tła (makieta karta 02) === */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden>
         <div
@@ -194,33 +200,33 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
       <span className="pointer-events-none absolute bottom-5 right-5 w-11 h-11 border-b-2 border-r-2 border-brass/60" />
 
       {/* === Centrum === */}
-      <div className="relative z-20 h-full flex flex-col items-center justify-center px-6 pb-40 text-center overflow-y-auto journal-scroll">
+      <div className="relative z-20 h-full flex flex-col items-center justify-start md:justify-center py-6 px-6 pb-28 text-center overflow-y-auto journal-scroll">
         {/* świeca CSS */}
-        <div className="mb-3 animate-candle-flicker">
+        <div className="mb-2 animate-candle-flicker">
           <div className="deco-candle" />
         </div>
 
         {/* Anno Domini (rok z gry) */}
-        <div className="font-special-elite text-xs text-primary uppercase tracking-[0.5em] mb-3">
+        <div className="font-special-elite text-xs text-primary uppercase tracking-[0.5em] mb-2">
           Anno Domini {toRoman(gameYear ?? 1925)}
         </div>
 
         {/* tytuł */}
         <h1
-          className="font-display-decorative font-black text-5xl md:text-7xl uppercase tracking-[0.1em] leading-none text-foreground"
+          className="font-display-decorative font-black text-4xl sm:text-5xl md:text-6xl uppercase tracking-[0.08em] leading-none text-foreground"
           style={{ textShadow: '0 0 40px rgba(201,162,39,0.18)' }}
         >
-          Strażnik
+          {t('titleLine1')}
           <br />
-          Tajemnic
+          {t('titleLine2')}
         </h1>
 
         {/* déco-divider z diamentami */}
-        <div className="flex items-center gap-4 my-8 w-[min(520px,90vw)]">
+        <div className="flex items-center gap-4 my-5 w-[min(520px,90vw)]">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold" />
           <span className="w-2 h-2 bg-brass rotate-45" />
           <span className="font-display text-[13px] tracking-[0.34em] uppercase text-brass whitespace-nowrap">
-            Wirtualny Mistrz Gry
+            {t('virtualGm')}
           </span>
           <span className="w-2 h-2 bg-brass rotate-45" />
           <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold" />
@@ -228,17 +234,23 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
 
         {/* karta wznowienia (quick-win, tylko gdy istnieje zapis i nie jesteśmy w trybie manualnym) */}
         {!isManualMode && recentSave && (
-          <ResumeCard save={recentSave} onResume={onLoadSave} />
+          <ResumeCard save={recentSave} onResume={onLoadSave} t={t} />
         )}
 
         {/* Krok 3 - Autoryzacja i Start */}
-        <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-8 w-[min(1200px,95vw)] justify-center items-center z-20 mt-6">
+        <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-6 w-[min(1200px,95vw)] justify-center items-center z-20 mt-4">
           {!hasKey ? (
             <div className="bg-black/60 border border-brass/50 p-6 rounded-md shadow-[0_0_40px_rgba(201,162,39,0.1)] max-w-lg w-full relative z-30">
               <div className="mb-4 text-center font-display uppercase tracking-[0.2em] text-primary text-sm">
-                Wymagana autoryzacja
+                {t('authorizationRequired')}
               </div>
-              <StepGeminiKey onNext={() => setHasKey(true)} />
+              <button
+                type="button"
+                onClick={onOpenApiKeys}
+                className="w-full font-display uppercase tracking-[0.14em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all"
+              >
+                {t('openApiKeys')}
+              </button>
             </div>
           ) : isManualMode ? (
             <ManualSetupPanel
@@ -292,4 +304,3 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
     </div>
   );
 };
-

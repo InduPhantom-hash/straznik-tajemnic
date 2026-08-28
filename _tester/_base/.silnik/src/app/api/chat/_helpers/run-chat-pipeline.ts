@@ -86,6 +86,7 @@ export async function runChatPipeline({
     aiSettings: clientAISettings,
     hotSeatConfig,
     directorEvent,
+    locale: requestedLocale,
   } = body as {
     message: string;
     character?: Character | null;
@@ -106,7 +107,9 @@ export async function runChatPipeline({
     aiSettings?: { sessionId?: string } & Record<string, unknown>;
     hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
     directorEvent?: { title: string; description: string };
+    locale?: 'pl' | 'en';
   };
+  const locale = requestedLocale === 'en' ? 'en' : 'pl';
 
   // Komendy lokalne
   const command = extractCommand(message);
@@ -127,7 +130,10 @@ export async function runChatPipeline({
   const aiSettings = resolveSettings(loadAISettings(), clientAISettings);
 
   if (!aiSettings.gameMasterNarration.enabled) {
-    return NextResponse.json({ response: 'Narracja AI jest wyłączona.' });
+    return NextResponse.json({
+      response:
+        locale === 'en' ? 'AI narration is disabled.' : 'Narracja AI jest wyłączona.',
+    });
   }
 
   const contextMemory =
@@ -137,7 +143,7 @@ export async function runChatPipeline({
   // IND-194: pełny path z przekazanym aiSettings (zmergowany z clientAISettings, lin 120).
   // Wcześniej getOptimizedGameMasterPrompt/getGameMasterPrompt re-czytały loadAISettings()
   // serwerowo → pusta localStorage → mainPrompt (.md gracza) gubiony. Teraz mainPrompt dociera.
-  const systemPrompt = getGameMasterPrompt(aiSettings);
+  const systemPrompt = getGameMasterPrompt(aiSettings, locale);
 
   if (process.env.DEBUG_GM_PROMPT === '1') {
     console.log(
@@ -151,8 +157,14 @@ export async function runChatPipeline({
   if (!systemPrompt) {
     return NextResponse.json(
       {
-        error: 'Brak system prompt dla AI Game Master',
-        details: 'gameMasterNarration.prompts wymaga konfiguracji w Settings',
+        error:
+          locale === 'en'
+            ? 'The AI Game Master system prompt is missing'
+            : 'Brak system prompt dla AI Game Master',
+        details:
+          locale === 'en'
+            ? 'Configure gameMasterNarration.prompts in Settings'
+            : 'gameMasterNarration.prompts wymaga konfiguracji w Settings',
       },
       { status: 500 }
     );
@@ -164,7 +176,10 @@ export async function runChatPipeline({
   if (!apiKey) {
     return NextResponse.json(
       {
-        error: 'Wklej swój klucz Google AI Studio w ustawieniach',
+        error:
+          locale === 'en'
+            ? 'Add your Google AI Studio key in Settings'
+            : 'Wklej swój klucz Google AI Studio w ustawieniach',
         code: 'BYOK_KEY_MISSING',
       },
       { status: 401 }
@@ -279,6 +294,12 @@ export async function runChatPipeline({
       '[INSTRUKCJA SPECJALNA - KONIEC SESJI (KROK 1 - DOMKNIĘCIE SCENY)]: Gracz zgłosił chęć zakończenia sesji. Zmierzaj do domknięcia bieżącej sceny i postaw gracza przed ostatnią, finałową decyzją lub gestem w tej sesji. Zakończ wypowiedź otwartym pytaniem [Co robisz?]. ABSOLUTNIE NIE wypisuj tagu [KONIEC_SESJI:POTWIERDZENIE].'
     );
   }
+
+  additionalContext.push(
+    locale === 'en'
+      ? `\n## OUTPUT LANGUAGE: ENGLISH\nWrite every player-visible sentence, question, journal title, journal body, category and tag content in English only. Do not use Polish. Use only these canonical English structural tags: [JOURNAL:type:title]body[/JOURNAL] and [LOCATION: name: atmosphere]. Use English journal types such as clue, discovery, note, location, combat and item. End an opening scene with [What do you do?].`
+      : `\n## JĘZYK WYJŚCIA: POLSKI\nPisz wszystkie zdania widoczne dla gracza, pytania, tytuły i treści dziennika wyłącznie po polsku. Używaj tagów [DZIENNIK:typ:tytuł]treść[/DZIENNIK] oraz [LOKACJA: nazwa: atmosfera]. Kończ scenę otwierającą znacznikiem [Co robisz?].`
+  );
 
   // === PDF STRATEGY (OPT-01) === - IND-183 micro 4/5
   const { fileAttachments } = buildPdfStrategy({

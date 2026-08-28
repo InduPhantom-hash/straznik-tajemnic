@@ -13,7 +13,6 @@ import {
 import type { AISettings } from '@/lib/ai-settings/types';
 import { settingsEmitter } from '@/lib/settings-event-emitter';
 import { appendRollToJournal } from '@/lib/journal/build-roll-entry';
-import { useFirstRun } from '@/hooks/useFirstRun';
 import { CthulhuSidebar } from '@/components/sidebar/CthulhuSidebar';
 import { APIUsageCounter } from '@/components/ui/api-usage-counter';
 import { useHotSeat } from '@/components/ui/player-switcher';
@@ -34,7 +33,7 @@ import { useCutscene } from '@/hooks/useCutscene';
 import { useSceneSummary } from '@/hooks/useSceneSummary';
 import { useGameStart } from '@/hooks/useGameStart';
 import { useHealthCheck } from '@/hooks/useHealthCheck';
-import { getApiKeyHeaders } from '@/lib/api-keys-service';
+import { getApiKeyHeaders, hasRequiredKeys } from '@/lib/api-keys-service';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
@@ -47,6 +46,10 @@ import {
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
 import { buildPredefinedEquipment } from '@/lib/immersion/predefined-equipment';
+import {
+  localizeStrefa11Adventure,
+  localizeStrefa11Character,
+} from '@/lib/immersion/strefa-11-localization';
 import type { RandomEvent } from '@/lib/random-event-generator';
 import { resolveGameEraContext } from '@/lib/era';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
@@ -103,18 +106,6 @@ const ApiKeysModal = dynamic(
     ssr: false,
   }
 );
-
-
-const FirstRunWizard = dynamic(
-  () =>
-    import('@/components/onboarding/FirstRunWizard').then((mod) => ({
-      default: mod.FirstRunWizard,
-    })),
-  {
-    ssr: false,
-  }
-);
-
 const PredefinedCharactersSelector = dynamic(
   () =>
     import('@/components/ui/predefined-characters-selector').then((mod) => ({
@@ -130,8 +121,9 @@ export default function Home() {
   const t = useTranslations('Page');
   
   const locale = useLocale();
+  const gameLocale: 'pl' | 'en' = locale === 'en' ? 'en' : 'pl';
   
-  const tts = useTTS();
+  const tts = useTTS(gameLocale);
   const charMgmt = useCharacterManagement();
 
   
@@ -181,6 +173,7 @@ export default function Home() {
     hotSeatConfig: hotSeat.config,
     pendingDirectorEvent,
     clearPendingDirectorEvent: () => setPendingDirectorEvent(null),
+    locale: gameLocale,
   });
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -203,7 +196,6 @@ export default function Home() {
   const [showHotSeatSetup, setShowHotSeatSetup] = useState(false);
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
   
-  const [showFirstRunWizard, setShowFirstRunWizard] = useState(false);
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState<boolean | null>(null);
   
   const [pendingNewAdventure, setPendingNewAdventure] = useState(false);
@@ -231,7 +223,6 @@ export default function Home() {
     : null;
   const cutsceneManager = useCutscene();
   
-  const firstRun = useFirstRun();
   const fullReset = useFullReset();
 
   
@@ -278,6 +269,7 @@ export default function Home() {
       stopCurrentAudio: tts.stopCurrentAudio,
     },
     aiSettings,
+    locale: gameLocale,
   });
 
   
@@ -346,6 +338,10 @@ export default function Home() {
   
   
   const handleStartGameGuarded = useCallback(() => {
+    if (!hasRequiredKeys()) {
+      setShowApiKeysModal(true);
+      return;
+    }
     if (hotSeat.config.enabled) {
       const players = hotSeat.config.players;
 
@@ -401,10 +397,10 @@ export default function Home() {
 
   
   useEffect(() => {
-    initializeDefaultPrompt().then((initialized) => {
+    initializeDefaultPrompt(gameLocale).then((initialized) => {
       if (initialized) console.log('✅ Default GM prompt initialized');
     });
-  }, [locale]);
+  }, [gameLocale]);
 
   
   
@@ -439,6 +435,9 @@ export default function Home() {
       
       let adv = STREFA_11_ADVENTURES.find((a) => a.id === adventureId);
       if (!adv) adv = getAdventureById(adventureId);
+      if (adv?.isStrefa11) {
+        adv = localizeStrefa11Adventure(adv, locale);
+      }
 
       if (adv) {
         setAdventureContext(adv);
@@ -449,7 +448,10 @@ export default function Home() {
 
       
       const allCharacters = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
-      const preset = allCharacters.find((c) => c.id === characterId);
+      const foundPreset = allCharacters.find((c) => c.id === characterId);
+      const preset = foundPreset
+        ? localizeStrefa11Character(foundPreset, locale)
+        : undefined;
       if (preset) {
         const targetEra = adv
           ? resolveEraVisualProfile(resolveGameEraContext({ adventure: adv }))
@@ -460,6 +462,7 @@ export default function Home() {
             ? { equipment: buildPredefinedEquipment(preset) }
             : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          sourcePresetId: foundPreset?.id,
         };
         if (mode === 'hot-seat') {
           stamped.playerName = t('player1Name');
@@ -478,12 +481,14 @@ export default function Home() {
           }
 
           if (preset2) {
+            const localizedPreset2 = localizeStrefa11Character(preset2, locale);
             const stamped2: Character = {
-              ...preset2,
+              ...localizedPreset2,
               ...(targetEra
-                ? { equipment: buildPredefinedEquipment(preset2) }
+                ? { equipment: buildPredefinedEquipment(localizedPreset2) }
                 : {}),
               id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
+              sourcePresetId: preset2.id,
               playerName: t('player2Name'),
             };
             updatedList.push(stamped2);
@@ -540,20 +545,9 @@ export default function Home() {
           
         }
       }
-      setShowFirstRunWizard(false);
-
-      
-      
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('onboarding_completed', 'true');
-      }
-      setShowFirstRunWizard(false);
-      if (!firstRun.loading) {
-        setPendingQuickStart(true);
-      }
+      setPendingQuickStart(true);
     },
-    [charMgmt, hotSeat, firstRun, handleStartGameGuarded, t]
+    [charMgmt, hotSeat, handleStartGameGuarded, t]
   );
 
   
@@ -561,14 +555,10 @@ export default function Home() {
   
   
   useEffect(() => {
-    if (
-      languageSelectionRequired === false &&
-      !firstRun.loading &&
-      firstRun.needsWizard
-    ) {
-      setShowFirstRunWizard(true);
+    if (languageSelectionRequired === false && !hasRequiredKeys()) {
+      setShowApiKeysModal(true);
     }
-  }, [firstRun.loading, firstRun.needsWizard, languageSelectionRequired]);
+  }, [languageSelectionRequired]);
 
   useEffect(() => {
     setLanguageSelectionRequired(
@@ -900,34 +890,6 @@ export default function Home() {
             onSelected={() => setLanguageSelectionRequired(false)}
           />
 
-          {languageSelectionRequired === false && (
-          <FirstRunWizard
-            open={showFirstRunWizard}
-            gated={!firstRun.canPlay}
-            onCompleted={async () => {
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_completed', 'true');
-              }
-              await firstRun.refresh();
-              setShowFirstRunWizard(false);
-            }}
-            onQuickStart={async (advId, charId) => {
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_completed', 'true');
-              }
-              await firstRun.refresh();
-              handleQuickStartOnboarding(advId, charId);
-            }}
-            onClose={async () => {
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_completed', 'true');
-              }
-              await firstRun.refresh();
-              setShowFirstRunWizard(false);
-            }}
-          />
-          )}
-
           {}
           {showDevelopmentModal && charMgmt.activeCharacter && (
             <DevelopmentPhaseModal
@@ -1021,11 +983,7 @@ export default function Home() {
           onSendTurn={chat.sendTurn}
           onSwitchPlayer={hotSeat.switchPlayer}
           onDisableHotSeat={hotSeat.disableHotSeat}
-          onStartGame={
-            firstRun.canPlay
-              ? handleStartGameGuarded
-              : () => setShowFirstRunWizard(true)
-          }
+          onStartGame={handleStartGameGuarded}
           onQuickStart={handleQuickStartOnboarding}
           onChoosePlayMode={() => setShowHotSeatSetup(true)}
           onLoadSave={() => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,10 @@ import { SafeImage } from './safe-image';
 import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X } from 'lucide-react';
 import { STREFA_11_ADVENTURES } from '@/lib/adventures-data';
 import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
+import {
+  localizeStrefa11Adventure,
+  localizeStrefa11Character,
+} from '@/lib/immersion/strefa-11-localization';
 import { Character } from '@/lib/types';
 import { CharacterSheet } from './character-sheet';
 
@@ -23,6 +28,8 @@ interface QuickSetupModalProps {
 }
 
 export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetupModalProps) {
+  const t = useTranslations('QuickSetupModal');
+  const locale = useLocale() as 'pl' | 'en';
   const [selectedAdventureId, setSelectedAdventureId] = useState<string>(
     STREFA_11_ADVENTURES[0]?.id || 'cien-nad-prabutami'
   );
@@ -32,6 +39,11 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
   const [selectedCharacter2, setSelectedCharacter2] = useState<string>('');
   const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
 
+  const adventures = useMemo(
+    () => STREFA_11_ADVENTURES.map((adventure) => localizeStrefa11Adventure(adventure, locale)),
+    [locale]
+  );
+
   const availableCharacters = useMemo(() => {
     return STREFA_11_CHARACTERS.filter(c => {
       if (selectedAdventureId === 'cien-nad-prabutami') return c.id.startsWith('strefa11_');
@@ -39,8 +51,10 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
       if (selectedAdventureId === 'tajemnica-dzieci-z-traszyna') return c.id.startsWith('traszyn_');
       if (selectedAdventureId === 'przybysz-z-matriksa-glogow') return c.id.startsWith('glogow_');
       return true;
-    }).slice(0, 4);
-  }, [selectedAdventureId]);
+    })
+      .slice(0, 4)
+      .map((character) => localizeStrefa11Character(character, locale));
+  }, [locale, selectedAdventureId]);
 
   useEffect(() => {
     setSelectedCharacter1('');
@@ -53,7 +67,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="screen">
+      <DialogContent data-testid="quick-setup-modal" size="screen">
         <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-brass/55" />
         <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-brass/55" />
         <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-brass/55" />
@@ -61,13 +75,13 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
 
         <DialogHeader className="text-center sm:text-center shrink-0">
           <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
-            Szybka Przygoda
+            {t('kicker')}
           </div>
           <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-3xl font-black uppercase tracking-[0.12em] text-foreground flex items-center gap-2">
             Strefa 11
           </DialogTitle>
           <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
-            Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -82,7 +96,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
           <div>
             <label className="block text-xs font-display uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5" />
-              1. Wybierz tryb gry
+              {t('stepMode')}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -96,8 +110,8 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
               >
                 <User className={`w-5 h-5 shrink-0 ${playMode === 'solo' ? 'text-primary' : ''}`} />
                 <div>
-                  <div className="font-display text-xs uppercase tracking-wider font-medium">Tryb Solo</div>
-                  <div className="text-[10px] mt-0.5 opacity-80">Jeden gracz, jedna postać</div>
+                  <div className="font-display text-xs uppercase tracking-wider font-medium">{t('solo')}</div>
+                  <div className="text-[10px] mt-0.5 opacity-80">{t('soloDescription')}</div>
                 </div>
               </button>
 
@@ -112,8 +126,8 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
               >
                 <Users className={`w-5 h-5 shrink-0 ${playMode === 'hot-seat' ? 'text-primary' : ''}`} />
                 <div>
-                  <div className="font-display text-xs uppercase tracking-wider font-medium">Hot Seat (Duet)</div>
-                  <div className="text-[10px] mt-0.5 opacity-80">Dwóch graczy na jednym urządzeniu</div>
+                  <div className="font-display text-xs uppercase tracking-wider font-medium">{t('hotSeat')}</div>
+                  <div className="text-[10px] mt-0.5 opacity-80">{t('hotSeatDescription')}</div>
                 </div>
               </button>
             </div>
@@ -123,10 +137,10 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
           <div>
             <label className="block text-xs font-display uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5" />
-              2. Wybierz scenariusz ze Strefy 11
+              {t('stepAdventure')}
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {STREFA_11_ADVENTURES.map((adv) => (
+              {adventures.map((adv) => (
                 <div
                   key={adv.id}
                   onClick={() => setSelectedAdventureId(adv.id)}
@@ -154,12 +168,12 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
           <div>
             <label className="block text-xs font-display uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5" />
-              3. Wybierz postacie
+              {t('stepCharacters')}
             </label>
             
             {/* Gracz 1 */}
             <div className="mb-4">
-              <div className="text-xs text-muted-foreground mb-2">{playMode === 'hot-seat' ? 'Gracz 1 (Główna Postać):' : 'Twoja Postać:'}</div>
+              <div className="text-xs text-muted-foreground mb-2">{playMode === 'hot-seat' ? t('playerOne') : t('yourCharacter')}</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                 {availableCharacters.map(c => (
                   <div
@@ -218,7 +232,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                         }}
                         className="w-full py-1.5 border-t border-brass/20 bg-black/40 hover:bg-brass/10 text-brass hover:text-primary text-[10px] font-special-elite uppercase tracking-widest flex justify-center items-center gap-1 transition-colors mt-auto"
                       >
-                        <Info className="w-3 h-3" /> Biografia
+                        <Info className="w-3 h-3" /> {t('biography')}
                       </button>
                     </div>
                   </div>
@@ -229,7 +243,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
             {/* Gracz 2 */}
             {playMode === 'hot-seat' && (
               <div>
-                <div className="text-xs text-muted-foreground mb-2">Gracz 2 (Druga Postać):</div>
+                <div className="text-xs text-muted-foreground mb-2">{t('playerTwo')}</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   {availableCharacters.map(c => (
                     <div
@@ -288,7 +302,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
                         }}
                         className="w-full py-1.5 border-t border-brass/20 bg-black/40 hover:bg-brass/10 text-brass hover:text-primary text-[10px] font-special-elite uppercase tracking-widest flex justify-center items-center gap-1 transition-colors mt-auto"
                       >
-                        <Info className="w-3 h-3" /> Biografia
+                        <Info className="w-3 h-3" /> {t('biography')}
                       </button>
                     </div>
                     </div>
@@ -311,7 +325,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
               }
             }}
           >
-            Rozpocznij przygodę
+            {t('start')}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

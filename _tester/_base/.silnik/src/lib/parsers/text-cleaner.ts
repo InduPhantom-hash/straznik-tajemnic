@@ -50,13 +50,13 @@ export function cleanResponseText(text: string): string {
       .replace(new RegExp(`\\[CEL_NARRACYJNY:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(/\[NPC:[^\]]*\]/gi, '')
       .replace(/\[POSTAĆ:[^\]]*\]/gi, '')
-      .replace(/\[LOKACJA:[^\]]*\]/gi, '')
+      .replace(/\[(?:LOKACJA|LOCATION):[^\]]*\]/gi, '')
       .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[WALKA:[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
-      .replace(/\[DZIENNIK:[^\]]*\]/gi, '')
-      .replace(/\[\/DZIENNIK\]/gi, '')
+      .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')
+      .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
       .replace(/\[EKSPOZYCJA:[^\]]*\]/gi, '')
       .replace(/\[KLIMAT:[^\]]*\]/gi, '')
       // Catch-all: dowolny [TAG...], z wyjątkiem oficjalnych tagów audio Gemini TTS ([whispers], [trembling] itp.)
@@ -96,7 +96,7 @@ export function stripMultilineArtifacts(text: string): string {
   return (
     text
       .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
-      .replace(/\[DZIENNIK:[^\]]*\][\s\S]*?(?:\[\/DZIENNIK\]|$)/gi, '') // blok dziennika z treścią
+      .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
       // każdy [TAG:...] (spans \n), odporny na zagnieżdżony [...]
       .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')
@@ -117,13 +117,13 @@ export function stripAITags(text: string): string {
       .replace(new RegExp(`\\[NASTRÓJ:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(new RegExp(`\\[CEL_NARRACYJNY:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(/\[NPC:[^\]]*\]/gi, '')
-      .replace(/\[LOKACJA:[^\]]*\]/gi, '')
+      .replace(/\[(?:LOKACJA|LOCATION):[^\]]*\]/gi, '')
       .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[WALKA:[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
-      .replace(/\[DZIENNIK:[^\]]*\]/gi, '')
-      .replace(/\[\/DZIENNIK\]/gi, '')
+      .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')
+      .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
       // Media i mechaniki
       .replace(/\[(?:ILUSTRACJA|OBRAZ|TEST|WYNIK)[^\]]*\]/gi, '')
       // Catch-all: [UPPERCASE_TAG...] (min 3 wielkie litery/podkreślenia),

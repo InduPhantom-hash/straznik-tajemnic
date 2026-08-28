@@ -9,6 +9,7 @@
 
 import type { Character } from '@/lib/types';
 import { Badge } from '../../badge';
+import { useTranslations } from 'next-intl';
 
 export interface SheetBiographyProps {
   character: Character;
@@ -58,17 +59,18 @@ function BioField({
  * render zależnie od posiadanych pól. Placeholder gdy brak danych.
  */
 export function SheetBiography({ character }: SheetBiographyProps) {
+  const t = useTranslations('CharacterSheet');
   return (
     <div>
       <h3 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-        Biografia
+        {t('biography')}
       </h3>
       <div className="space-y-3">
         {/* Życiorys (highlight) */}
         {character.backstory && (
           <div className="border border-brass/20 bg-[#16130f] p-4">
             <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">
-              🎭 Życiorys
+              🎭 {t('backstory')}
             </span>
             <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
               {character.backstory}
@@ -79,30 +81,30 @@ export function SheetBiography({ character }: SheetBiographyProps) {
         {/* Grid z podstawowymi informacjami */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {character.birthplace && (
-            <BioField label="🏠 Miejsce urodzenia">
+            <BioField label={`🏠 ${t('birthplace')}`}>
               {character.birthplace}
             </BioField>
           )}
           {character.description && (
-            <BioField label="👤 Wygląd">{character.description}</BioField>
+            <BioField label={`👤 ${t('appearance')}`}>{character.description}</BioField>
           )}
           {character.ideology && (
-            <BioField label="💭 Ideologia / Przekonania">
+            <BioField label={`💭 ${t('ideology')} `}>
               {character.ideology}
             </BioField>
           )}
           {character.significantPerson && (
-            <BioField label="👥 Ważna osoba">
+            <BioField label={`👥 ${t('significantPerson')}`}>
               {asText(character.significantPerson)}
             </BioField>
           )}
           {character.meaningfulLocation && (
-            <BioField label="📍 Znaczące miejsce">
+            <BioField label={`📍 ${t('meaningfulLocation')}`}>
               {asText(character.meaningfulLocation)}
             </BioField>
           )}
           {character.treasuredPossession && (
-            <BioField label="💎 Cenny przedmiot">
+            <BioField label={`💎 ${t('treasuredPossession')}`}>
               {asText(character.treasuredPossession)}
             </BioField>
           )}
@@ -112,7 +114,7 @@ export function SheetBiography({ character }: SheetBiographyProps) {
         {character.traits && character.traits.length > 0 && (
           <div className="border border-brass/20 bg-[#16130f] p-3">
             <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-              ✨ Cechy charakteru
+              ✨ {t('traits')}
             </span>
             <div className="flex flex-wrap gap-2">
               {character.traits.map((trait, i) => (
@@ -134,7 +136,7 @@ export function SheetBiography({ character }: SheetBiographyProps) {
             <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
             <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
             <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-              🔗 Tło i Rola Fabularna
+              🔗 {t('background')}
             </span>
             <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
               {character.background}
@@ -152,7 +154,7 @@ export function SheetBiography({ character }: SheetBiographyProps) {
           !character.ideology && (
             <div className="border border-dashed border-brass/30 bg-[#16130f]/50 p-4 text-center">
               <span className="font-serif italic text-muted-foreground text-sm">
-                Brak biografii. Dodaj w kreatorze postaci lub edytorze.
+                {t('noBiography')}
               </span>
             </div>
           )}

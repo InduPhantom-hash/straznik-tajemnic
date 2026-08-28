@@ -208,9 +208,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
       />
       {/* Chat Messages */}
       <ScrollArea className="flex-1 p-4 md:p-8">
-        {/* Pokaż WelcomeScreen dopóki użytkownik nie kliknie Rozpocznij */}
         {!hasStartedGame ? (
-          <div className="w-full max-w-[85vw] xl:max-w-7xl h-[80vh] min-h-[700px] mx-auto mt-2 xl:mt-6 rounded-md overflow-hidden ring-1 ring-brass/10 shadow-[0_0_50px_rgba(201,162,39,0.03)]">
+          <div className="w-full max-w-[92vw] xl:max-w-7xl h-full min-h-[680px] mx-auto rounded-md overflow-hidden ring-1 ring-brass/10 shadow-[0_0_50px_rgba(201,162,39,0.03)]">
             <WelcomeScreen
               onUploadRules={onUploadRules || (() => {})}
               onSelectAdventure={onSelectAdventure || (() => {})}

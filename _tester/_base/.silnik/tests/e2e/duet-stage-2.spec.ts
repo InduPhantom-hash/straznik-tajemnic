@@ -184,17 +184,7 @@ test.describe('Etap 2 - pełny playtest Hot Seat', () => {
       { seededCharacters: characters, seededHotSeat: hotSeatConfig }
     );
 
-    await page.goto('/');
-    const firstRunDialog = page.getByRole('dialog', {
-      name: 'Pierwsze uruchomienie',
-    });
-    const firstRunAppeared = await firstRunDialog
-      .waitFor({ state: 'visible', timeout: 2500 })
-      .then(() => true)
-      .catch(() => false);
-    if (firstRunAppeared) {
-      await firstRunDialog.getByRole('button', { name: 'Zamknij' }).click();
-    }
+    await page.goto('/pl');
     await expect(page.getByText('Aga', { exact: true })).toBeVisible();
     await expect(page.getByText('(Arthur Pendleton)')).toBeVisible();
 

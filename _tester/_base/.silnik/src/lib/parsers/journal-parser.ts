@@ -4,11 +4,11 @@ import { JournalTagEntry } from './types';
 export function extractJournalTags(text: string): JournalTagEntry[] {
   const entries: JournalTagEntry[] = [];
 
-  // Pattern: [DZIENNIK:typ:tytuł]treść[/DZIENNIK]
-  // lub: [DZIENNIK:typ:tytuł:data_w_grze]treść[/DZIENNIK]
-  // lub (duet): [DZIENNIK:@Imię:typ:tytuł]... - opcjonalny prefiks @Imię (właściciel wpisu).
+  // Polish and English protocols share one persisted JournalEntry format.
+  // [DZIENNIK:typ:tytuł]treść[/DZIENNIK] or [JOURNAL:type:title]body[/JOURNAL]
+  // Duet adds an optional @name owner prefix.
   const journalPattern =
-    /\[DZIENNIK:(?:@([^:\]\n]+?):)?([a-z]+):([^\]:\n]+)(?::([^\]]+))?\]([\s\S]*?)\[\/DZIENNIK\]/gi;
+    /\[(?:DZIENNIK|JOURNAL):(?:@([^:\]\n]+?):)?([a-z]+):([^\]:\n]+)(?::([^\]]+))?\]([\s\S]*?)\[\/(?:DZIENNIK|JOURNAL)\]/gi;
 
   let match;
   while ((match = journalPattern.exec(text)) !== null) {

@@ -38,7 +38,7 @@ import { EquipmentItem } from '@/lib/types';
 import { EquipmentDetailDialog } from '../equipment-detail-dialog';
 import { exportCharacterToMarkdown } from './utils/export-markdown';
 import { deriveStats } from './utils/derive-stats';
-import { applyPresetTranslation } from '@/lib/i18n/preset-translation';
+import { applyPresetTranslation, getPresetSkillLabels } from '@/lib/i18n/preset-translation';
 import { useInlineEdit } from './hooks/use-inline-edit';
 import { SheetHeader } from './components/sheet-header';
 import { StatBars } from './components/stat-bars';
@@ -129,7 +129,7 @@ export function CharacterSheet({
   if (!character) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent size="wide">
+        <DialogContent data-testid="character-sheet" size="wide">
           <DialogHeader>
             <DialogTitle>{t('dialogTitle')}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -149,12 +149,14 @@ export function CharacterSheet({
   // Nakładka tłumaczeń presetu (PredefinedCharacters) - wyłącznie warstwa
   // wyświetlania; dane zapisane przez gracza pozostają nienaruszone.
   const display = applyPresetTranslation(hydrated, messages);
+  const skillLabels = getPresetSkillLabels(display, messages);
   const { stats, maxHp, maxSan, maxMp, move, damageBonus, build } =
     deriveStats(display);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        data-testid="character-sheet"
         size="screen"
         className="print:block print:h-auto print:max-h-none print:w-auto print:overflow-visible print:rounded-none"
       >
@@ -211,7 +213,7 @@ export function CharacterSheet({
           </div>
 
           {/* Tytuł + separator déco */}
-          <DecoSeparator title="Karta Badacza" />
+          <DecoSeparator title={t('title')} />
 
           {/* Układ 2-kolumnowy: 300px portret / reszta */}
           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 lg:gap-10">
@@ -244,7 +246,7 @@ export function CharacterSheet({
               />
 
               {/* SEKCJA 5: UMIEJĘTNOŚCI */}
-              <SheetSkills character={display} />
+              <SheetSkills character={display} skillLabels={skillLabels} />
 
               {/* SEKCJA 7: EKWIPUNEK (broń + wyposażenie) */}
               <SheetEquipment

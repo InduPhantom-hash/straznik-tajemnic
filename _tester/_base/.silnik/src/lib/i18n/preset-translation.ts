@@ -11,6 +11,7 @@ import type { Character } from '@/lib/types';
 
 interface PresetEquipmentTranslation {
   name?: string;
+  description?: string;
 }
 
 interface PresetTranslation {
@@ -30,14 +31,24 @@ interface PresetTranslation {
     backstory?: string;
     tacticalNotes?: string;
     traits?: string[];
+    skills?: Record<string, string>;
   };
 }
 
 type MessagesBag = {
   PredefinedCharacters?: {
     characters?: Record<string, PresetTranslation>;
+    systemEquipment?: Record<string, PresetEquipmentTranslation>;
   };
 };
+
+export function localizeSystemEquipment<T extends { id: string; name: string; description?: string }>(
+  item: T,
+  messages: unknown
+): T {
+  const translated = (messages as MessagesBag)?.PredefinedCharacters?.systemEquipment?.[item.id];
+  return translated ? { ...item, name: translated.name ?? item.name, description: translated.description ?? item.description } : item;
+}
 
 export function applyPresetTranslation(
   character: Character,
@@ -82,9 +93,21 @@ export function applyPresetTranslation(
       Array.isArray(data.traits) && data.traits.length > 0
         ? data.traits
         : character.traits,
-    equipment: character.equipment?.map((item) => ({
-      ...item,
-      name: dict.equipment?.[item.id]?.name ?? item.name,
-    })),
+    equipment: character.equipment?.map((item) => {
+      const system = localizeSystemEquipment(item, messages);
+      const personal = dict.equipment?.[item.id];
+      return { ...system, name: personal?.name ?? system.name, description: personal?.description ?? system.description };
+    }),
   };
+}
+
+/** Labels only: game rules keep canonical skill keys in saved Character data. */
+export function getPresetSkillLabels(
+  character: Character,
+  messages: unknown
+): Record<string, string> {
+  const presetId = character.sourcePresetId;
+  if (!presetId) return {};
+  return (messages as MessagesBag)?.PredefinedCharacters?.characters?.[presetId]
+    ?.data?.skills ?? {};
 }

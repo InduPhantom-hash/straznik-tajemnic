@@ -618,7 +618,7 @@ export function CorkboardInvestigationBoard({
 
   // --- Render --------------------------------------------------------
   return (
-    <div className="flex flex-col h-full bg-[#140c07] text-[#e2d4c9] overflow-hidden select-none relative">
+    <div data-testid="corkboard-investigation" className="flex flex-col h-full bg-[#140c07] text-[#e2d4c9] overflow-hidden select-none relative">
       {/* =================== PASEK NARZEDZI ========================= */}
       <div className="bg-[#1c120c] border-b border-[#3a2518] px-4 py-2 flex flex-wrap items-center justify-between gap-3 z-20 shadow-md">
         <div className="flex items-center gap-2">
@@ -896,6 +896,7 @@ export function CorkboardInvestigationBoard({
                           {/* Podglad (Inspect) */}
                           {onInspectNode && (
                             <button
+                              data-testid="btn-inspect-node"
                               onPointerDown={(e) => e.stopPropagation()}
                               onClick={(e) => { e.stopPropagation(); onInspectNode(node); }}
                               className="p-1 text-[#bfa15f] hover:bg-[#3a2518] rounded transition-colors"

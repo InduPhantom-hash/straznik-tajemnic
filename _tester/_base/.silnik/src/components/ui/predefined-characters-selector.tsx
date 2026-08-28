@@ -535,7 +535,10 @@ export function PredefinedCharactersSelector({
                   <div className="flex flex-col gap-2 pt-4 border-t border-brass/10">
                     <button
                       onClick={() => {
-                        onSelectCharacter(viewingCharacter);
+                        onSelectCharacter({
+                          ...viewingCharacter,
+                          sourcePresetId: viewingCharacter.id,
+                        });
                         setViewingCharacter(null);
                       }}
                       disabled={isUnavailable}

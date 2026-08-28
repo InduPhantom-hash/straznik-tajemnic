@@ -1,4 +1,4 @@
-import { getGameMasterPrompt } from './prompts-generator';
+import { getGameMasterPrompt, loadDefaultPrompt } from './prompts-generator';
 import { getGMProtocolPrompt, getCompactGMProtocolPrompt } from '../prompts/gm-protocol';
 import { defaultAISettings } from './defaults';
 
@@ -17,6 +17,24 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       expect(prompt).toContain('LNG-02');
       expect(prompt).toMatch(/zero ponglish|poprawna polszczyzna|angielskich słów/i);
     });
+
+    it('uses English role instructions for the English locale', () => {
+      const prompt = getGameMasterPrompt(defaultAISettings, 'en');
+
+      expect(prompt).toContain('SECURE INSTRUCTIONS');
+      expect(prompt).toContain('Keeper of Secrets');
+    });
+  });
+
+  it('loads the English default prompt asset for /en', async () => {
+    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => 'English prompt',
+    } as Response);
+
+    await expect(loadDefaultPrompt('en')).resolves.toBe('English prompt');
+    expect(fetchMock).toHaveBeenCalledWith('/default-gm-prompt-en.md');
+    fetchMock.mockRestore();
   });
 
   describe('getGMProtocolPrompt & getCompactGMProtocolPrompt', () => {

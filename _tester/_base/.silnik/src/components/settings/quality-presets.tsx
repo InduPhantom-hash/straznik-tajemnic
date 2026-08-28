@@ -77,7 +77,7 @@ export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
                 {preset.name}
               </div>
               <div className="font-serif italic text-sm text-muted-foreground line-clamp-2 leading-snug">
-                {preset.description}
+                {t(`presets.${key}.description`)}
               </div>
               {settings.qualityPreset === key && (
                 <div className="absolute top-2 right-2 w-2 h-2 bg-brass rotate-45 animate-pulse" />

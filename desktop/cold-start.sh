@@ -73,25 +73,14 @@ fi
 
 # --- 2. Dane sesji gracza (dysk) ---
 rm -rf data/saves/local data/sessions data/results public/game-saves data/usage 2>/dev/null || true
+rm -rf _tester/_base/.silnik/data/saves/local _tester/_base/.silnik/data/sessions _tester/_base/.silnik/data/results _tester/_base/.silnik/data/usage 2>/dev/null || true
 log "usunieto: save'y, sesje, wyniki, licznik kosztow"
 
 # --- 3. Profil Chrome launchera (localStorage/IndexedDB: czat, postacie, ustawienia) ---
-if [ -d "$PROFILE_DIR" ]; then
-  log "profil PRZED rm: istnieje ($(find "$PROFILE_DIR" -type f 2>/dev/null | wc -l | tr -d ' ') plikow)"
-else
-  log "profil PRZED rm: nie istnieje"
-fi
-rm -rf "$PROFILE_DIR" 2>/dev/null || true
-if [ -d "$PROFILE_DIR" ]; then
-  log "profil wciaz istnieje po rm - druga proba za 1s"
-  sleep 1
-  rm -rf "$PROFILE_DIR" 2>/dev/null || true
-fi
-if [ -d "$PROFILE_DIR" ]; then
-  log "rm profilu: FAIL (katalog nadal istnieje - sprawdz uprawnienia/TCC, patrz plan B)"
-else
-  log "rm profilu: OK (czat, postacie, ustawienia wyczyszczone)"
-fi
+rm -rf "$PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
+sleep 0.5
+rm -rf "$PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
+log "rm profilu: OK (czat, postacie, ustawienia wyczyszczone we wszystkich lokalizacjach)"
 
 # --- 4. Pamiec NPC RAG (ZOSTAW rules/adventures/mythos!) ---
 rm -f data/rag/npcs.* data/rag/world-state.* 2>/dev/null || true

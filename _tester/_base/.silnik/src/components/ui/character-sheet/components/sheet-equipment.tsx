@@ -171,7 +171,7 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
       {gear.length > 0 && (
         <div>
           <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
-            🎒 Wyposażenie
+            🎒 {t('gear')}
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {gear.map((item) => (

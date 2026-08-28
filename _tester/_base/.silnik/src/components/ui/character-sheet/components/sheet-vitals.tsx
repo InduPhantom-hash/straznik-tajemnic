@@ -11,6 +11,7 @@
  * Najwyższa cecha wyróżniona emerald (highlight per makieta 04).
  */
 
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../tooltip';
 import { SECTION_HELP } from '../types';
 import { StatCard } from './stat-card';
@@ -57,6 +58,7 @@ export function SheetVitals({
   build,
   move,
 }: SheetVitalsProps) {
+  const t = useTranslations('CharacterSheet');
   const entries = Object.entries(stats) as [string, number][];
   const maxValue = entries.reduce((m, [, v]) => Math.max(m, v), 0);
   // Wyróżnij pierwszą cechę osiągającą maksimum (déco highlight emerald)
@@ -66,7 +68,7 @@ export function SheetVitals({
     <>
       {/* === SEKCJA 2: CECHY === */}
       <div>
-        <SectionTitle>Cechy</SectionTitle>
+        <SectionTitle>{t.has('characteristics') ? t('characteristics') : 'Cechy'}</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {entries.map(([key, value]) => (
             <StatCard
@@ -81,11 +83,11 @@ export function SheetVitals({
 
       {/* === SEKCJA 4: WALKA === */}
       <div>
-        <SectionTitle help={SECTION_HELP.walka}>Walka</SectionTitle>
+        <SectionTitle help={SECTION_HELP.walka}>{t.has('combat') ? t('combat') : 'Walka'}</SectionTitle>
         <div className="grid grid-cols-3 gap-3">
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">
-              Bonus DMG
+              {t.has('damageBonus') ? t('damageBonus') : 'Bonus DMG'}
             </div>
             <div className="font-display font-bold text-2xl text-foreground mt-1">
               {damageBonus}
@@ -93,7 +95,7 @@ export function SheetVitals({
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">
-              Krzepa
+              {t.has('build') ? t('build') : 'Krzepa'}
             </div>
             <div className="font-display font-bold text-2xl text-foreground mt-1">
               {build >= 0 ? `+${build}` : build}
@@ -101,7 +103,7 @@ export function SheetVitals({
           </div>
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">
-              Ruch
+              {t.has('movement') ? t('movement') : 'Ruch'}
             </div>
             <div className="font-display font-bold text-2xl text-foreground mt-1">
               {move}

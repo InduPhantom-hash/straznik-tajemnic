@@ -205,7 +205,7 @@ export function DiscoveriesView({
   }, [selectedEntry, activeCategory, activeCharacter, npcs, locations]);
 
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div data-testid="discoveries-view" className="flex-1 flex overflow-hidden">
       {/* === LEWY SIDEBAR: Kategorie + Lista === */}
       <div className="w-72 flex flex-col border-r-2 border-[#3a2518] bg-[#120905]">
         {/* Kategorie */}

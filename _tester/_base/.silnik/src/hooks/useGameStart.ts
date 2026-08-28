@@ -54,6 +54,7 @@ async function fetchWithRetry(
 }
 
 interface UseGameStartProps {
+  locale?: 'pl' | 'en';
   setHasStartedGame: (started: boolean) => void;
   activeCharacter: Character | null;
   characters: Character[];
@@ -99,6 +100,7 @@ export function useGameStart({
   tts,
   aiSettings,
   runHealthCheck,
+  locale = 'pl',
 }: UseGameStartProps) {
   // IND-271: kolejka auto-generacji miniatur ekwipunku w tle (fire-and-forget
   // po starcie gry, NIE blokuje startu; cache-aware - pomija itemy z imageUrl).
@@ -129,9 +131,18 @@ export function useGameStart({
         ? [activeCharacter]
         : [];
 
-    let prompt = 'Zaczynamy przygodę!\n\n';
+    const english = locale === 'en';
+    let prompt = english ? 'We are beginning the adventure!\n\n' : 'Zaczynamy przygodę!\n\n';
 
-    if (allPlayerCharacters.length > 1) {
+    if (english && allPlayerCharacters.length > 1) {
+      prompt += `**IMPORTANT: This is a Hot Seat game for ${allPlayerCharacters.length} players.**\n\n--- CHARACTER CONTEXT ---\n`;
+      allPlayerCharacters.forEach((char, index) => {
+        prompt += `\n**Player ${index + 1} - ${char.name}:**\n- Occupation: ${char.occupation || 'unknown'}\n- Age: ${char.age || 'unknown'}\n`;
+        if (char.characterConcept) prompt += `- Concept: ${char.characterConcept}\n`;
+        if (char.background) prompt += `- Background: ${char.background}\n`;
+      });
+      prompt += '--- END CHARACTER CONTEXT ---\n\nWrite an organic opening for every player. Do not repeat their sheet data.\n\n';
+    } else if (!english && allPlayerCharacters.length > 1) {
       prompt += `**UWAGA: Gra toczy się dla ${allPlayerCharacters.length} graczy (Hot Seat mode)!**\n\n`;
       prompt += `--- KONTEKST POSTACI ---\n`;
       allPlayerCharacters.forEach((char, index) => {
@@ -145,6 +156,11 @@ export function useGameStart({
       prompt += `--- KONIEC KONTEKSTU ---\n`;
       prompt +=
         '\n**WAŻNE:** Wprowadzenie MUSI uwzględnić WSZYSTKIE postacie graczy! NIE powtarzaj statystyk ani statycznych opisów postaci z bloku KONTEKST POSTACI w swojej narracji. Wpleć ewentualne nawiązania naturalnie w fabułę.\n\n';
+    } else if (english && activeCharacter) {
+      prompt += `--- CHARACTER CONTEXT ---\n**My character:**\n- Name: ${activeCharacter.name}\n- Occupation: ${activeCharacter.occupation || 'unknown'}\n- Age: ${activeCharacter.age || 'unknown'}\n`;
+      if (activeCharacter.characterConcept) prompt += `- Concept: ${activeCharacter.characterConcept}\n`;
+      if (activeCharacter.background) prompt += `- Background: ${activeCharacter.background}\n`;
+      prompt += '--- END CHARACTER CONTEXT ---\n\nUse this context only in the background. Do not quote or repeat it.\n\n';
     } else if (activeCharacter) {
       prompt += `--- KONTEKST POSTACI ---\n**Moja postać:**\n`;
       prompt += `- Imię: ${activeCharacter.name}\n- Zawód: ${activeCharacter.occupation || 'nieznany'}\n- Wiek: ${activeCharacter.age || 'nieznany'}\n`;
@@ -156,14 +172,18 @@ export function useGameStart({
     }
 
     if (adventureContext) {
-      prompt += `**KONTEKST PRZYGODY:**\n- Tytuł: ${adventureContext.title}\n- Lokalizacja: ${adventureContext.location}, ${adventureContext.country}\n- Hook: ${adventureContext.hook}\n\n`;
+      prompt += english
+        ? `**ADVENTURE CONTEXT:**\n- Title: ${adventureContext.title}\n- Location: ${adventureContext.location}, ${adventureContext.country}\n- Hook: ${adventureContext.hook}\n\n`
+        : `**KONTEKST PRZYGODY:**\n- Tytuł: ${adventureContext.title}\n- Lokalizacja: ${adventureContext.location}, ${adventureContext.country}\n- Hook: ${adventureContext.hook}\n\n`;
     }
 
     // IND-261: TURA WPROWADZAJĄCA = wyjątek od limitu długości (IND-213). Onboarding
     // dla kogoś, kto nie zna Lovecrafta ani CoC - świat + miejsce + czas, potem hook.
     // Działa wyłącznie na tę jedną turę (wiadomość użytkownika nadpisuje protokół MG);
     // kolejne tury wracają do zwięzłej długości narzuconej przez gm-protocol.
-    if (allPlayerCharacters.length > 1) {
+    if (english && allPlayerCharacters.length > 1) {
+      prompt += 'This is the opening turn for the whole party. Start with an ordinary, period-appropriate scene, establish place and mood, then introduce the adventure hook naturally. Address the party in the plural. Do not play for the characters. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about why the party is here.[/JOURNAL] End with [What do you do?].\n';
+    } else if (!english && allPlayerCharacters.length > 1) {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry DLA DRUŻYNY (Hot Seat mode).\n\n' +
         'WPROWADZENIE DLA DRUŻYNY - ORGANICZNY START FABUŁY:\n' +
@@ -173,6 +193,8 @@ export function useGameStart({
         '4. ZAKOŃCZENIE TURY: Zakończ turę otwartym pytaniem do drużyny: [Co robicie?]\n\n' +
         'NIE graj za postacie graczy. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj wpis otwierający do dziennika: [DZIENNIK:notatka:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
+    } else if (english) {
+      prompt += 'This is the opening turn of the game. Begin with an ordinary, period-appropriate scene. Establish the location and atmosphere before introducing the adventure hook. Write in second person, do not play for the player character, and use slow-burn horror. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about where the character is and why they came here.[/JOURNAL] End with [What do you do?] on its own line.\n';
     } else {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry.\n\n' +
@@ -187,7 +209,7 @@ export function useGameStart({
         'Zakończ otwartym pytaniem [Co robisz?] w OSOBNEJ linii.\n';
     }
     return prompt;
-  }, [activeCharacter, characters, hotSeatConfig, adventureContext]);
+  }, [activeCharacter, characters, hotSeatConfig, adventureContext, locale]);
 
   /**
    * Generuje obraz intro równolegle ze strumieniowaniem tekstu.
@@ -251,7 +273,9 @@ export function useGameStart({
           id: `gm-intro-image-error-${crypto.randomUUID()}`,
           role: 'assistant',
           content:
-            '⚠️ Nie udało się wygenerować obrazu intro. Sprawdź klucz Gemini API Key w Ustawieniach.',
+            locale === 'en'
+              ? '⚠️ The intro image could not be generated. Check the Gemini API key in Settings.'
+              : '⚠️ Nie udało się wygenerować obrazu intro. Sprawdź klucz Gemini API Key w Ustawieniach.',
           timestamp: new Date(),
         },
       ]);
@@ -369,6 +393,7 @@ export function useGameStart({
           characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
           hotSeatConfig: resolvedHotSeat,
           adventureContext: adventureContext,
+          locale,
           isGameStart: true,
           aiSettings: aiSettings,
           gameTime: timeManager.getTime(),
@@ -495,8 +520,12 @@ export function useGameStart({
       // i nie zdążył otrzymać treści) i ZASTĘPUJEMY go komunikatem błędu,
       // zamiast doklejać drugi dymek obok pustego.
       const friendly = isNetworkBlip(error)
-        ? '⚠️ Chwilowy problem z połączeniem przy starcie gry - kliknij „Rozpocznij" jeszcze raz.'
-        : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
+        ? locale === 'en'
+          ? '⚠️ A temporary connection problem occurred while starting the game. Try Start Adventure again.'
+          : '⚠️ Chwilowy problem z połączeniem przy starcie gry - kliknij „Rozpocznij" jeszcze raz.'
+        : locale === 'en'
+          ? '⚠️ The game could not start. Check your connection and API key, then try again.'
+          : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
       const errorMsg: Message = {
         id: `gm-intro-error-${crypto.randomUUID()}`,
         role: 'assistant',
@@ -529,6 +558,7 @@ export function useGameStart({
     generateThumbnailsInBackground,
     aiSettings,
     runHealthCheck,
+    locale,
   ]);
 
   return { handleStartGame };

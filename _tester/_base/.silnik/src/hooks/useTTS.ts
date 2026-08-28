@@ -168,7 +168,7 @@ export function removeDidaskalia(text: string): string {
   return cleanResponseText(text);
 }
 
-export function useTTS(): UseTTSReturn {
+export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
@@ -349,7 +349,7 @@ export function useTTS(): UseTTSReturn {
               text,
               voice: effectiveVoice,
               model: geminiModel,
-              languageCode: 'pl-PL',
+              languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
             });
           }
 

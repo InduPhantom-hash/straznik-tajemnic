@@ -354,7 +354,7 @@ export function DiceSystem({
   };
 
   return (
-    <div className="space-y-6">
+    <div data-testid="dice-system" className="space-y-6">
       <div className="bg-card rounded-lg border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="p-6 border-b border-white/20">
@@ -416,6 +416,7 @@ export function DiceSystem({
 
                   {/* Roll Button */}
                   <button
+                    data-testid="btn-roll-dice"
                     onClick={handleRoll}
                     disabled={isRolling}
                     className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-muted disabled:cursor-not-allowed rounded-lg transition-colors text-foreground font-semibold"
@@ -493,7 +494,7 @@ export function DiceSystem({
                       </div>
                     ) : (
                       <button
-                        onClick={() => setShowSkillTest(true)}
+                        data-testid="btn-roll-test" onClick={() => setShowSkillTest(true)}
                         className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-foreground"
                       >
                         {t('setSkillTestButton')}
@@ -501,7 +502,7 @@ export function DiceSystem({
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div data-testid="roll-test-modal" className="space-y-4">
                     <input
                       type="text"
                       placeholder={t('skillNamePlaceholder')}
@@ -542,7 +543,7 @@ export function DiceSystem({
 
                     <div className="flex space-x-2">
                       <button
-                        onClick={handleSkillTest}
+                        data-testid="btn-roll-confirm" onClick={handleSkillTest}
                         className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-foreground"
                       >
                         {t('setButton')}
@@ -567,7 +568,7 @@ export function DiceSystem({
                   <div className="space-y-3">
                     {Object.values(pushedRolls).map((roll) => (
                       <div
-                        key={roll.id}
+                        key={roll.id} data-testid="roll-test-result"
                         className="bg-muted/50 rounded-lg p-3 border border-yellow-500/20"
                       >
                         <p className="text-foreground text-sm">
@@ -611,7 +612,7 @@ export function DiceSystem({
                   ) : (
                     rollHistory.map((roll) => (
                       <div
-                        key={roll.id}
+                        key={roll.id} data-testid="roll-test-result"
                         className={`bg-muted/50 rounded-lg p-3 border ${
                           roll.isPushedRoll
                             ? 'border-yellow-500/30'

@@ -32,7 +32,6 @@ import { CharacterSheet } from '../ui/character-sheet';
 import { deriveStats } from '../ui/character-sheet/utils/derive-stats';
 import { SessionJournal } from '../ui/session-journal';
 
-import { GMToolsPanel } from '../ui/gm-tools-panel';
 import {
   SessionZeroModal,
   SessionZeroSettings,
@@ -440,6 +439,15 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   return (
                     <Button
                       key={item.id}
+                      data-testid={
+                        item.id === 'characterSheet'
+                          ? 'btn-open-character-sheet'
+                          : item.id === 'equipment'
+                            ? 'btn-open-equipment'
+                            : item.id === 'journal'
+                              ? 'btn-open-journal'
+                          : undefined
+                      }
                       variant="ghost"
                       className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
                       onClick={() => {
@@ -599,8 +607,6 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               </Button>
               */}
 
-              {/* YouTube */}
-              <GMToolsPanel />
             </CardContent>
           </Card>
 

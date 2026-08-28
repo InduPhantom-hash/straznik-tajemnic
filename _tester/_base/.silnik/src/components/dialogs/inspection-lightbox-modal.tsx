@@ -2,6 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useCallback } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { EvidenceNode, EvidenceNodeStatus } from '@/types/investigator-board';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
@@ -27,25 +28,31 @@ interface InspectionLightboxModalProps {
   onDeleteNode: (nodeId: string) => void;
 }
 
-const STATUS_CONFIG: Record<EvidenceNodeStatus, { icon: typeof CheckCircle; color: string; bgColor: string; label: string }> = {
-  confirmed:  { icon: CheckCircle, color: 'text-[#73a15c]', bgColor: 'bg-[#142310] border-[#2c4c19]', label: 'Potwierdzone' },
-  hypothesis: { icon: HelpCircle,  color: 'text-[#bfa15f]', bgColor: 'bg-[#2a1b12] border-[#bfa15f]', label: 'Hipoteza' },
-  refuted:    { icon: XCircle,     color: 'text-[#a84d4d]', bgColor: 'bg-[#2b1010] border-[#942c2c]', label: 'Obalone' },
-};
-
 export function InspectionLightboxModal({
   node,
   onClose,
   onUpdateNode,
   onDeleteNode,
 }: InspectionLightboxModalProps) {
+  const t = useTranslations('InspectionLightbox');
+  const locale = useLocale();
   const [imageZoom, setImageZoom] = useState(1);
   const [notes, setNotes] = useState(node.description);
   const [title, setTitle] = useState(node.title);
   const [isEditing, setIsEditing] = useState(false);
 
-  const statusConfig = STATUS_CONFIG[node.status];
-  const StatusIcon = statusConfig.icon;
+  const statusConfig: Record<EvidenceNodeStatus, { icon: typeof CheckCircle; color: string; bgColor: string; label: string }> = {
+    confirmed: { icon: CheckCircle, color: 'text-[#73a15c]', bgColor: 'bg-[#142310] border-[#2c4c19]', label: t('confirmed') },
+    hypothesis: { icon: HelpCircle, color: 'text-[#bfa15f]', bgColor: 'bg-[#2a1b12] border-[#bfa15f]', label: t('hypothesis') },
+    refuted: { icon: XCircle, color: 'text-[#a84d4d]', bgColor: 'bg-[#2b1010] border-[#942c2c]', label: t('refuted') },
+  };
+  const formatDate = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? t('unknownDate') : date.toLocaleString(locale);
+  };
+  const status = statusConfig[node.status];
+  const StatusIcon = status.icon;
 
   const handleStatusChange = useCallback((newStatus: EvidenceNodeStatus) => {
     onUpdateNode({ ...node, status: newStatus, updatedAt: new Date().toISOString() });
@@ -62,14 +69,14 @@ export function InspectionLightboxModal({
   }, [node, title, notes, onUpdateNode]);
 
   const handleDelete = useCallback(() => {
-    if (confirm('Czy na pewno chcesz usunac ten dowod z Tablicy Badacza?')) {
+    if (confirm(t('deleteConfirm'))) {
       onDeleteNode(node.id);
       onClose();
     }
   }, [node.id, onDeleteNode, onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+    <div data-testid="inspection-lightbox-modal" className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[60] p-4">
       {/* Mosiazna ramka Art Deco */}
       <div className="bg-[#1c120c] border-4 border-[#bfa15f]/60 rounded-xl shadow-2xl w-[95vw] max-w-5xl h-[90vh] flex flex-col overflow-hidden text-[#e2d4c9] relative">
         {/* Dekoracyjne narozniki Art Deco */}
@@ -81,24 +88,24 @@ export function InspectionLightboxModal({
         {/* Naglowek */}
         <div className="bg-[#2a1b12] border-b-2 border-[#3a2518] px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn('px-3 py-1 rounded border text-xs font-serif font-bold', statusConfig.bgColor)}>
-              <StatusIcon className={cn('h-3.5 w-3.5 inline mr-1', statusConfig.color)} />
-              {statusConfig.label}
+            <div className={cn('px-3 py-1 rounded border text-xs font-serif font-bold', status.bgColor)}>
+              <StatusIcon className={cn('h-3.5 w-3.5 inline mr-1', status.color)} />
+              {status.label}
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-[#8a7667]">Podglad dowodu</span>
+            <span className="text-[10px] uppercase tracking-widest text-[#8a7667]">{t('evidencePreview')}</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDelete}
               className="p-2 text-[#a84d4d] hover:bg-[#2b1010] rounded transition-colors"
-              title="Usun z tablicy"
+              title={t('delete')}
             >
               <Trash2 className="h-4 w-4" />
             </button>
             <button
               onClick={onClose}
               className="p-2 bg-[#4a1c1c] hover:bg-[#632525] rounded-md border border-[#942c2c] text-[#f4ebd0] transition-colors"
-              title="Zamknij"
+              title={t('close')}
             >
               <X className="h-5 w-5" />
             </button>
@@ -133,7 +140,7 @@ export function InspectionLightboxModal({
             ) : (
               <div className="text-center text-[#8a7667] italic font-serif">
                 <StickyNote className="h-16 w-16 mx-auto mb-3 text-[#bfa15f]/20" />
-                <p>Brak ilustracji</p>
+                <p>{t('noImage')}</p>
               </div>
             )}
           </div>
@@ -156,9 +163,9 @@ export function InspectionLightboxModal({
 
             {/* Status hipotezy */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider text-[#8a7667] block mb-1.5">Status hipotezy</label>
+              <label className="text-[10px] uppercase tracking-wider text-[#8a7667] block mb-1.5">{t('hypothesisStatus')}</label>
               <div className="flex gap-2">
-                {(Object.entries(STATUS_CONFIG) as [EvidenceNodeStatus, typeof STATUS_CONFIG.confirmed][]).map(([status, config]) => {
+                {(Object.entries(statusConfig) as [EvidenceNodeStatus, typeof statusConfig.confirmed][]).map(([status, config]) => {
                   const Icon = config.icon;
                   return (
                     <button
@@ -184,22 +191,22 @@ export function InspectionLightboxModal({
               {node.foundInLocation && (
                 <div className="flex items-center gap-2 text-xs">
                   <MapPin className="h-3.5 w-3.5 text-[#5c8a47]" />
-                  <span className="text-[#8a7667]">Lokacja:</span>
+                  <span className="text-[#8a7667]">{t('location')}</span>
                   <span className="text-[#e2d4c9]">{node.foundInLocation}</span>
                 </div>
               )}
               {node.sourceNpc && (
                 <div className="flex items-center gap-2 text-xs">
                   <User className="h-3.5 w-3.5 text-[#a84d4d]" />
-                  <span className="text-[#8a7667]">NPC:</span>
+                  <span className="text-[#8a7667]">{t('npc')}</span>
                   <span className="text-[#e2d4c9]">{node.sourceNpc}</span>
                 </div>
               )}
               {node.discoveredAtDate && (
                 <div className="flex items-center gap-2 text-xs">
                   <Calendar className="h-3.5 w-3.5 text-[#bfa15f]" />
-                  <span className="text-[#8a7667]">Odkryty:</span>
-                  <span className="text-[#e2d4c9]">{node.discoveredAtDate}</span>
+                  <span className="text-[#8a7667]">{t('discovered')}</span>
+                  <span className="text-[#e2d4c9]">{formatDate(node.discoveredAtDate)}</span>
                 </div>
               )}
               {node.tags && node.tags.length > 0 && (
@@ -218,7 +225,7 @@ export function InspectionLightboxModal({
             {node.investigatorInsight && (
               <div className="bg-[#2a1b12] border-l-2 border-[#bfa15f] p-3 rounded text-xs text-[#f4ebd0] shadow-inner">
                 <span className="text-[10px] uppercase font-bold text-[#bfa15f] block mb-1 flex items-center gap-1">
-                  <StickyNote className="h-3 w-3" /> Wniosek Badacza / Dedukcja
+                  <StickyNote className="h-3 w-3" /> {t('insight')}
                 </span>
                 <p className="italic font-serif leading-relaxed">{node.investigatorInsight}</p>
               </div>
@@ -227,20 +234,20 @@ export function InspectionLightboxModal({
             {/* Notatki badacza */}
             <div className="flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[10px] uppercase tracking-wider text-[#8a7667]">Notatki badacza</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#8a7667]">{t('notes')}</label>
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
                     className="text-[10px] text-[#bfa15f] hover:text-[#f4ebd0] underline font-serif"
                   >
-                    Edytuj
+                    {t('edit')}
                   </button>
                 ) : (
                   <button
                     onClick={handleSaveNotes}
                     className="text-[10px] bg-[#5c3e21] hover:bg-[#704d2b] text-[#f4ebd0] px-2 py-0.5 rounded border border-[#bfa15f]/30 font-serif"
                   >
-                    Zapisz
+                    {t('save')}
                   </button>
                 )}
               </div>
@@ -250,19 +257,19 @@ export function InspectionLightboxModal({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="flex-1 min-h-[120px] bg-[#0d0906] border border-[#3a2518] rounded px-3 py-2 text-sm text-[#e2d4c9] outline-none focus:border-[#bfa15f] resize-none font-serif italic leading-relaxed"
-                  placeholder="Zapisz swoje obserwacje i teorie..."
+                  placeholder={t('notesPlaceholder')}
                 />
               ) : (
                 <div className="flex-1 bg-[#120905] border border-[#3a2518] rounded p-3 text-sm text-[#e2d4c9]/90 font-serif italic leading-relaxed whitespace-pre-wrap min-h-[120px]">
-                  {node.description || <span className="text-[#8a7667]">Brak notatek. Kliknij &quot;Edytuj&quot; aby dodac obserwacje.</span>}
+                  {node.description || <span className="text-[#8a7667]">{t('noNotes')}</span>}
                 </div>
               )}
             </div>
 
             {/* Data */}
             <div className="text-[9px] text-[#5a4d43] text-right">
-              Utworzono: {new Date(node.createdAt).toLocaleString('pl-PL')}
-              {node.updatedAt && <> | Aktualizacja: {new Date(node.updatedAt).toLocaleString('pl-PL')}</>}
+              {t('created')}: {formatDate(node.createdAt)}
+              {node.updatedAt && <> | {t('updated')}: {formatDate(node.updatedAt)}</>}
             </div>
           </div>
         </div>

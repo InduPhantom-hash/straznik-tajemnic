@@ -5,9 +5,48 @@
     "playPl": "Zagraj po polsku",
     "playEn": "Play in English"
   },
+  "WelcomeStart": {
+    "quickTitle": "Szybka Przygoda",
+    "quickDescription": "Wskocz prosto w akcję z predefiniowaną postacią.",
+    "manualTitle": "Ustawienia Ręczne",
+    "manualDescription": "Wybierz własną przygodę i dobierz skład drużyny.",
+    "lastSession": "Ostatnia sesja",
+    "entries": "{count} wpisów",
+    "images": "{count} ilustracji",
+    "resume": "Wznów grę",
+    "titleLine1": "Strażnik",
+    "titleLine2": "Tajemnic",
+    "virtualGm": "Wirtualny Mistrz Gry",
+    "authorizationRequired": "Wymagana autoryzacja",
+    "openApiKeys": "Wprowadź klucz API"
+  },
+  "CostControl": {
+    "title": "Kontrola Kosztów",
+    "tooltip": "Monitoruj wydatki na API. Dane z licznika konta (gemini + obrazy + TTS), nie z przeglądarki.",
+    "updated": "Aktualizacja:",
+    "gemini": "Gemini",
+    "tts": "TTS",
+    "images": "Obrazy",
+    "kTokens": "{count}k tokenów",
+    "kChars": "{count}k znaków",
+    "imageCount": "{count} obrazów",
+    "pricingVerified": "Cennik zweryfikowany {date}",
+    "totalCost": "Łączny koszt konta",
+    "apiRequests": "{count} żądań API",
+    "reset": "Wyzeruj",
+    "resetConfirm": "Czy na pewno chcesz wyzerować licznik kosztów konta?"
+  },
+  "InspectionLightbox": {
+    "confirmed": "Potwierdzone", "hypothesis": "Hipoteza", "refuted": "Obalone", "unknownDate": "Nieznana data",
+    "deleteConfirm": "Czy na pewno chcesz usunąć ten dowód z Tablicy Badacza?", "evidencePreview": "Podgląd dowodu", "delete": "Usuń z tablicy", "close": "Zamknij", "noImage": "Brak ilustracji",
+    "hypothesisStatus": "Status hipotezy", "location": "Lokacja:", "npc": "NPC:", "discovered": "Odkryty:", "insight": "Wniosek Badacza / Dedukcja", "notes": "Notatki badacza", "edit": "Edytuj", "save": "Zapisz", "notesPlaceholder": "Zapisz swoje obserwacje i teorie...", "noNotes": "Brak notatek. Kliknij Edytuj, aby dodać obserwacje.", "created": "Utworzono", "updated": "Aktualizacja"
+  },
+  "QuickSetupModal": {
+    "kicker": "Szybka Przygoda", "description": "Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.", "stepMode": "1. Wybierz tryb gry", "solo": "Tryb Solo", "soloDescription": "Jeden gracz, jedna postać", "hotSeat": "Hot Seat (Duet)", "hotSeatDescription": "Dwóch graczy na jednym urządzeniu", "stepAdventure": "2. Wybierz scenariusz ze Strefy 11", "stepCharacters": "3. Wybierz postacie", "playerOne": "Gracz 1 (Główna Postać):", "yourCharacter": "Twoja Postać:", "playerTwo": "Gracz 2 (Druga Postać):", "biography": "Biografia", "start": "Rozpocznij przygodę"
+  },
   "LanguageSelection": {
-    "eyebrow": "Zanim rozpocznie się śledztwo",
-    "title": "Wybierz język",
+    "eyebrow": "ZANIM ROZPOCZNIE SIĘ ŚLEDZTWO",
+    "title": "WYBIERZ JĘZYK",
     "description": "Ten wybór ustawia język gry i narracji.",
     "polish": "Polski",
     "english": "English"
@@ -675,8 +714,8 @@
     "needChar": "Wybierz lub stwórz postać, aby rozpocząć grę",
     "title": "Konfiguracja sesji",
     "stepMode": "Krok 1 - Tryb rozgrywki",
-    "duetMode": "Duet (Hot Seat - 2 graczy)",
-    "soloMode": "Solo (1 gracz)",
+    "duetMode": "Duet (Hot Seat - 2 Graczy)",
+    "soloMode": "Solo (1 Gracz)",
     "players": "Gracze: {players}",
     "and": " oraz ",
     "stepAdventure": "Krok 2 - Przygoda",
@@ -692,9 +731,40 @@
     "player": "Gracz {number}",
     "optionalSessionZero": "Krok opcjonalny - Sesja Zero",
     "sessionZeroComplete": "Wprowadzenie i ustalenia sesji: gotowe",
-    "sessionZeroDescription": "Wprowadzenie fabularne i ustalenie konwencji"
+    "sessionZeroDescription": "Wprowadzenie fabularne i ustalenie konwencji",
+    "archetypes": {
+      "investigator": {
+        "name": "Śledczy",
+        "description": "Szukasz prawdy za wszelką cenę. Dociekliwość jest Twoją bronią, a każda zagadka wzywa do rozwiązania."
+      },
+      "scholar": {
+        "name": "Uczony",
+        "description": "Wiedza jest Twoją bronią. Książki i dokumenty mówią więcej niż ludzie. Rozumiesz, że niektóre prawdy lepiej..."
+      },
+      "action": {
+        "name": "Człowiek Czynu",
+        "description": "Działasz, nie myślisz. Kiedy inni analizują, Ty już jesteś w środku akcji. Fizyczna siła i odwaga wyróżniają Cię..."
+      },
+      "trickster": {
+        "name": "Oszust",
+        "description": "Spryt, urok i zręczne palce. Wiesz, jak zdobyć to, czego potrzebujesz, często omijając prawo i konwenanse."
+      },
+      "mystic": {
+        "name": "Mistyk",
+        "description": "Czujesz to, czego inni nie widzą. Świat niewidzialny jest dla Ciebie równie realny jak materialny."
+      },
+      "healer": {
+        "name": "Uzdrowiciel",
+        "description": "Twoim powołaniem jest ratowanie życia i leczenie ran - zarówno ciała, jak i umysłu."
+      },
+      "custom": {
+        "name": "Własny",
+        "description": "Stwórz postać od zera, bez narzuconego archetypu."
+      }
+    }
   },
   "CharacterSheet": {
+    "title": "Karta Badacza",
     "dialogTitle": "Karta postaci",
     "dialogDescription": "Pełna karta badacza Call of Cthulhu.",
     "selectCharacterPrompt": "Wybierz postać, aby zobaczyć kartę.",
@@ -709,9 +779,20 @@
     "cancel": "Anuluj",
     "characteristics": "Cechy",
     "combat": "Walka",
-    "damageBonus": "Bonus obrażeń",
+    "damageBonus": "Bonus DMG",
     "build": "Krzepa",
+    "movement": "Ruch",
     "move": "Ruch",
+    "stats": {
+      "str": { "full": "Siła", "short": "SIŁ" },
+      "con": { "full": "Kondycja", "short": "KON" },
+      "siz": { "full": "Budowa", "short": "BUD" },
+      "dex": { "full": "Zręczność", "short": "ZRE" },
+      "app": { "full": "Wygląd", "short": "WYG" },
+      "int": { "full": "Inteligencja", "short": "INT" },
+      "pow": { "full": "Moc", "short": "MOC" },
+      "edu": { "full": "Wykształcenie", "short": "WYK" }
+    },
     "skills": "Umiejętności",
     "biography": "Biografia",
     "backstory": "Życiorys",
@@ -4158,6 +4239,8 @@
     "equipmentDescription": "Przedmioty i broń",
     "journal": "Dziennik Przygody",
     "journalDescription": "Zapiski i notatki",
+    "gmTools": "Narzędzia MG",
+    "gmToolsDescription": "Postacie, wydarzenia i lokacje",
     "characters": "Postacie",
     "select": "Wybierz...",
     "investigator": "Badacz",
@@ -4206,6 +4289,10 @@
     "loadSave": "Wczytaj zapis",
     "apiKeys": "Klucze API",
     "coldStart": "Zimny start"
+  },
+  "HardLoadingScreen": {
+    "title": "Inicjalizacja Wirtualnego Mistrza Gry...",
+    "description": "Przygotowywanie scenariusza, aktywacja silnika narracyjnego i rozpalanie wyobraźni..."
   },
   "FirstRunWizard": {
     "steps": {
@@ -4945,7 +5032,14 @@
     "selectedBadge": "Wybrany",
     "activePreset": "Aktywny preset:",
     "modelLabel": "Model:",
-    "imagesLabel": "Obrazy:"
+    "imagesLabel": "Obrazy:",
+    "presets": {
+      "low": { "description": "Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)" },
+      "mid": { "description": "Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)" },
+      "high": { "description": "Gemini 3.1 Pro + lektor + obrazy Imagen 4 (~$0.50/sesja)" },
+      "ultra": { "description": "Gemini 3.1 Pro High + multi-voice słuchowisko + obrazy HD (~$1.00/sesja)" },
+      "custom": { "description": "Własna konfiguracja wszystkich parametrów" }
+    }
   },
   "ReplicateSettings": {
     "sectionTitle": "Replicate API (Generowanie Obrazów)",

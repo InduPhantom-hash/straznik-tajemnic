@@ -82,7 +82,10 @@ export const RollTestResult: FC<RollTestResultProps> = ({
     phase === 'done' && luckNeeded !== null && luckNeeded <= availableLuck;
 
   return (
-    <div className="space-y-4 py-2">
+    <div
+      data-testid={phase === 'done' ? 'roll-test-result' : undefined}
+      className="space-y-4 py-2"
+    >
       {/* Podsumowanie testu: próg trudności + kości premii/kary */}
       <div className="border border-brass/28 bg-[#16130f] p-4 space-y-2">
         <div className="flex items-center justify-between">

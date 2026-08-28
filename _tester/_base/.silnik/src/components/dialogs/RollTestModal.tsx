@@ -168,7 +168,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide">
+      <DialogContent data-testid="roll-test-modal" size="wide">
         <DialogHeader>
           <div className="text-center">
             <div className="font-special-elite text-[14px] uppercase tracking-[0.32em] text-primary">

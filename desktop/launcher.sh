@@ -79,7 +79,9 @@ fi
 if curl -sf "$URL" >/dev/null 2>&1; then
   if [ -f "$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID" ]; then
     DISK_BUILD_ID="$(cat "$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID")"
-    if ! curl -sf "$URL/_next/static/${DISK_BUILD_ID}/_buildManifest.js" >/dev/null 2>&1; then
+    # Next middleware can answer an unknown static URL with HTML and HTTP 200.
+    # A status code alone therefore cannot prove that this is the on-disk build.
+    if ! curl -fsS "$URL/_next/static/${DISK_BUILD_ID}/_buildManifest.js" 2>/dev/null | grep -q 'self.__BUILD_MANIFEST'; then
       echo "$(date) serwer ma przestarzaly BUILD_ID - zatrzymuje stary proces" >>"$LOG"
       lsof -ti :$PORT 2>/dev/null | xargs kill -9 2>/dev/null || true
       for _ in $(seq 1 20); do

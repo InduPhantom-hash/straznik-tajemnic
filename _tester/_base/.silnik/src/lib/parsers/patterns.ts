@@ -7,8 +7,8 @@ import { SFXRequest } from './types';
 /** [NPC: Imię: Opis] */
 export const TAG_NPC_PATTERN = /\[NPC:\s*([^:\]]+):\s*([^\]]+)\]/gi;
 
-/** [LOKACJA: Nazwa: Opis] */
-export const TAG_LOCATION_PATTERN = /\[LOKACJA:\s*([^:\]]+):\s*([^\]]+)\]/gi;
+/** [LOKACJA: Nazwa: Opis] or [LOCATION: Name: Description] */
+export const TAG_LOCATION_PATTERN = /\[(?:LOKACJA|LOCATION):\s*([^:\]]+):\s*([^\]]+)\]/gi;
 
 /** [PRZEDMIOT: Nazwa: Opis] */
 export const TAG_ITEM_PATTERN = /\[PRZEDMIOT:\s*([^:\]]+):\s*([^\]]+)\]/gi;

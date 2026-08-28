@@ -138,3 +138,17 @@ export const WELCOME_QUOTES: readonly Quote[] = [
     work: 'Przez bramy srebrnego klucza',
   },
 ];
+
+/** English startup copy must never fall back to a Polish quotation. */
+export const WELCOME_QUOTES_EN: readonly Quote[] = [
+  {
+    atmosphere: '*Fog drifts through Arkham. Somewhere far away, a dog howls.*',
+    greeting: 'The oldest and strongest emotion of mankind is fear, and the oldest and strongest kind of fear is fear of the unknown.',
+    work: 'Supernatural Horror in Literature',
+  },
+  {
+    atmosphere: '*The sea wind carries salt and something older.*',
+    greeting: 'In his house at R\'lyeh dead Cthulhu waits dreaming.',
+    work: 'The Call of Cthulhu',
+  },
+];

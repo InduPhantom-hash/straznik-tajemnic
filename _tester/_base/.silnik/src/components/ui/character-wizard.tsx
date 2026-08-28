@@ -1648,10 +1648,10 @@ export function CharacterWizardV2({
               >
                 <div className="text-2xl mb-2">{archetype.icon}</div>
                 <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
-                  {archetype.name}
+                  {(t as any).has?.(`archetypes.${archetype.id}.name`) ? (t as any)(`archetypes.${archetype.id}.name`) : archetype.name}
                 </h4>
                 <p className="font-serif italic text-sm text-muted-foreground line-clamp-2 mt-1">
-                  {archetype.description}
+                  {(t as any).has?.(`archetypes.${archetype.id}.description`) ? (t as any)(`archetypes.${archetype.id}.description`) : archetype.description}
                 </p>
               </button>
             );
@@ -2979,7 +2979,7 @@ export function CharacterWizardV2({
 
   return (
     <div
-      data-testid="character-wizard-modal"
+      data-testid="character-wizard"
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
       <div className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[90vw] max-w-[1440px] max-h-[90vh] overflow-hidden flex flex-col">

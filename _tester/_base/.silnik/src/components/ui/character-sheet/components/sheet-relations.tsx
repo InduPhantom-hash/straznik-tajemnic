@@ -15,6 +15,7 @@ import { SafeImage } from '@/components/ui/safe-image';
 
 import type { Character } from '@/lib/types';
 import { Badge } from '../../badge';
+import { useTranslations } from 'next-intl';
 
 export interface SheetRelationsProps {
   character: Character;
@@ -42,6 +43,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
  * wartości (ukrywa pustą sekcję).
  */
 export function SheetRelations({ character }: SheetRelationsProps) {
+  const t = useTranslations('CharacterSheet');
   const hasContent =
     character.importantPeople?.length ||
     character.significantPlaces?.length ||
@@ -55,7 +57,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
       {/* Ważne osoby - kafle déco z monogramem */}
       {character.importantPeople && character.importantPeople.length > 0 && (
         <div>
-          <SectionTitle>Relacje</SectionTitle>
+          <SectionTitle>{t('relations')}</SectionTitle>
           <div className="flex flex-col gap-2.5">
             {character.importantPeople.map((person) => {
               const statusColor =
@@ -97,9 +99,9 @@ export function SheetRelations({ character }: SheetRelationsProps) {
                     >
                       {person.relationship}
                       {person.status === 'dead'
-                        ? ' · zmarły'
+                        ? ` · ${t('dead')}`
                         : person.status === 'missing'
-                          ? ' · zaginiony'
+                          ? ` · ${t('missing')}`
                           : ''}
                     </div>
                   </div>
@@ -114,7 +116,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
       {character.significantPlaces &&
         character.significantPlaces.length > 0 && (
           <div>
-            <SectionTitle>Znaczące Miejsca</SectionTitle>
+            <SectionTitle>{t('meaningfulLocations')}</SectionTitle>
             <div className="flex flex-wrap gap-1.5">
               {character.significantPlaces.map((place) => (
                 <Badge
@@ -139,7 +141,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
       {/* Cechy ogólne */}
       {character.traits && character.traits.length > 0 && (
         <div>
-          <SectionTitle>Cechy</SectionTitle>
+          <SectionTitle>{t('traits')}</SectionTitle>
           <div className="flex flex-wrap gap-1.5">
             {character.traits.map((trait, i) => (
               <Badge
@@ -158,12 +160,12 @@ export function SheetRelations({ character }: SheetRelationsProps) {
       {character.characterTraits && (
         <div className="border border-[#b3322c]/25 bg-[#1a0f0d]/40 p-3">
           <span className="font-special-elite text-[14px] text-[#d9685f] tracking-[0.12em] uppercase block mb-2">
-            Cechy Psychologiczne
+            {t('psychologicalTraits')}
           </span>
           <div className="grid grid-cols-1 gap-2 text-xs">
             {character.characterTraits.phobias?.length > 0 && (
               <div>
-                <span className="text-[#d9685f]">😱 Fobie:</span>
+                <span className="text-[#d9685f]">😱 {t('phobias')}:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {character.characterTraits.phobias.map((p, i) => (
                     <Badge
@@ -179,7 +181,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
             )}
             {character.characterTraits.manias?.length > 0 && (
               <div>
-                <span className="text-orange-400">🔥 Manie:</span>
+                <span className="text-orange-400">🔥 {t('manias')}:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {character.characterTraits.manias.map((m, i) => (
                     <Badge
@@ -195,7 +197,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
             )}
             {character.characterTraits.beliefs?.length > 0 && (
               <div>
-                <span className="text-primary">💫 Przekonania:</span>
+                <span className="text-primary">💫 {t('beliefs')}:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {character.characterTraits.beliefs.map((b, i) => (
                     <Badge
@@ -211,7 +213,7 @@ export function SheetRelations({ character }: SheetRelationsProps) {
             )}
             {character.characterTraits.secrets?.length > 0 && (
               <div>
-                <span className="text-muted-foreground">🤫 Sekrety:</span>
+                <span className="text-muted-foreground">🤫 {t('secrets')}:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {character.characterTraits.secrets.map((s, i) => (
                     <Badge

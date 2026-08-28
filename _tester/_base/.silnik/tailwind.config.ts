@@ -98,8 +98,14 @@ const config: Config = {
           to: { height: '0' },
         },
         'modal-in': {
-          from: { opacity: '0', transform: 'scale(0.96) translateY(8px)' },
-          to: { opacity: '1', transform: 'scale(1) translateY(0)' },
+          // DialogContent jest centrowany przez translate(-50%, -50%).
+          // Animacja musi zachować tę transformację także w ostatniej klatce,
+          // inaczej modal kończy w prawym dolnym rogu względem środka ekranu.
+          from: {
+            opacity: '0',
+            transform: 'translate(-50%, -50%) scale(0.96) translateY(8px)',
+          },
+          to: { opacity: '1', transform: 'translate(-50%, -50%) scale(1)' },
         },
         shimmer: {
           '0%': { backgroundPosition: '-180% 0' },

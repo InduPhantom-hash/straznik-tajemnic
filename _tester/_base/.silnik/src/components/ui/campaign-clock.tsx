@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { timeManager } from '@/lib/time-manager';
 import { GameTime, MoonPhase } from '@/lib/types';
 import { Moon, Sun, Clock, Calendar, CloudFog } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 // ============================================================================
 // MOON PHASE ICONS
@@ -20,16 +21,6 @@ const MOON_PHASE_EMOJI: Record<MoonPhase, string> = {
   waning_crescent: '🌘',
 };
 
-const MOON_PHASE_NAMES: Record<MoonPhase, string> = {
-  new: 'Nów',
-  waxing_crescent: 'Rosnący Sierp',
-  first_quarter: 'Pierwsza Kwadra',
-  waxing_gibbous: 'Rosnący Garbaty',
-  full: 'Pełnia',
-  waning_gibbous: 'Malejący Garbaty',
-  last_quarter: 'Ostatnia Kwadra',
-  waning_crescent: 'Malejący Sierp',
-};
 
 // ============================================================================
 // COMPONENT
@@ -44,6 +35,7 @@ export function CampaignClock({
   className = '',
   compact = false,
 }: CampaignClockProps) {
+  const t = useTranslations('CampaignClock');
   const [time, setTime] = useState<GameTime>(timeManager.getTime());
   const [weather, setWeather] = useState<string>(timeManager.getWeather());
   const [moonPhase, setMoonPhase] = useState<MoonPhase>(
@@ -68,8 +60,11 @@ export function CampaignClock({
   }, []);
 
   // Formatowanie
-  const formattedDate = timeManager.formatDate();
+  const formattedDate = `${time.day} ${t(`months.${time.month}` as any)} ${time.year}`;
   const formattedTime = timeManager.formatTime();
+  const moonName = t(`moon.${moonPhase}`);
+  const dayName = t(`days.${new Date(time.year, time.month, time.day).getDay()}` as any);
+  const weatherLabel = weather === 'Lekka mgła, rześkie powietrze' ? t('defaultWeather') : weather;
 
   // Dobór symbolu ikony dla pogody
   const getWeatherEmoji = (text: string) => {
@@ -102,17 +97,17 @@ export function CampaignClock({
         </div>
 
         <div className="flex items-center gap-2 ml-1 pl-3 border-l border-zinc-800 text-xs text-zinc-300">
-          <span className="flex items-center gap-1 max-w-[120px] truncate" title={`Pogoda: ${weather}`}>
-            <span aria-hidden="true">{getWeatherEmoji(weather)}</span>
-            <span className="truncate">{weather}</span>
+          <span className="flex items-center gap-1 max-w-[120px] truncate" title={`${t('weather')}: ${weatherLabel}`}>
+            <span aria-hidden="true">{getWeatherEmoji(weatherLabel)}</span>
+            <span className="truncate">{weatherLabel}</span>
           </span>
           <span className="text-zinc-600">|</span>
           <span
             className="flex items-center gap-1"
-            title={`Faza księżyca: ${MOON_PHASE_NAMES[moonPhase]}`}
+            title={`${t('moonLabel')}: ${moonName}`}
           >
             <span aria-hidden="true">{MOON_PHASE_EMOJI[moonPhase]}</span>
-            <span>{MOON_PHASE_NAMES[moonPhase]}</span>
+            <span>{moonName}</span>
           </span>
         </div>
       </div>
@@ -130,20 +125,20 @@ export function CampaignClock({
       <div className="flex items-center justify-between mb-4 relative z-10">
         <h3 className="text-[14px] font-bold text-emerald-500/60 uppercase tracking-[0.2em] flex items-center gap-2">
           <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-          Chronometr Kampanii
+          {t('title')}
         </h3>
         {isNight ? (
           <div className="flex items-center gap-1.5 text-blue-400/80">
             <Moon className="w-4 h-4" />
             <span className="text-[14px] font-medium uppercase tracking-wider">
-              Noc
+              {t('night')}
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-1.5 text-amber-400/80">
             <Sun className="w-4 h-4" />
             <span className="text-[14px] font-medium uppercase tracking-wider">
-              Dzień
+              {t('day')}
             </span>
           </div>
         )}
@@ -155,7 +150,7 @@ export function CampaignClock({
           {formattedTime}
         </div>
         <div className="text-xs font-medium text-zinc-500 uppercase tracking-[0.15em] mt-1 border-t border-zinc-800/50 pt-1 mx-8">
-          {dayOfWeek}
+          {dayName}
         </div>
       </div>
 
@@ -173,10 +168,10 @@ export function CampaignClock({
           <span className="text-xl">{MOON_PHASE_EMOJI[moonPhase]}</span>
           <div className="flex flex-col">
             <span className="text-[13px] uppercase text-zinc-500 font-bold">
-              Księżyc
+              {t('moonLabel')}
             </span>
             <span className="text-[14px] text-zinc-300 font-medium whitespace-nowrap">
-              {MOON_PHASE_NAMES[moonPhase]}
+              {moonName}
             </span>
           </div>
         </div>
@@ -192,7 +187,7 @@ export function CampaignClock({
           </div>
           <div className="flex flex-col">
             <span className="text-[13px] uppercase text-zinc-500 font-bold">
-              Doba
+              {t('dayLabel')}
             </span>
             <span className="text-[14px] text-zinc-300 font-medium">
               {Math.round(((time.hour * 60 + time.minute) / 1440) * 100)}%

@@ -21,6 +21,7 @@ import type { CSSProperties } from 'react';
 import type { Character } from '@/lib/types';
 import type { UseInlineEditReturn } from '../hooks/use-inline-edit';
 import { Check, Edit2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export interface StatBarsProps {
   character: Character;
@@ -73,15 +74,6 @@ const THEMES: Record<'hp' | 'san' | 'mp' | 'luck', BarTheme> = {
  * Etykieta paska rozbita na skrót (PŻ) + opis (ŻYCIE).
  * Skrót jest osobnym węzłem tekstowym - test CS4 robi getByText('PŻ') exact.
  */
-const LABELS: Record<
-  'hp' | 'san' | 'mp' | 'luck',
-  { abbr: string; full: string }
-> = {
-  hp: { abbr: 'PŻ', full: 'ŻYCIE' },
-  san: { abbr: 'PR', full: 'POCZYTALNOŚĆ' },
-  mp: { abbr: 'PM', full: 'MOC' },
-  luck: { abbr: 'SZC', full: 'SZCZĘŚCIE' },
-};
 
 interface SingleBarProps {
   field: 'hp' | 'san' | 'mp' | 'luck';
@@ -92,6 +84,7 @@ interface SingleBarProps {
 
 /** Pojedynczy pasek stanu z inline edit. */
 function StatBar({ field, current, max, inlineEdit }: SingleBarProps) {
+  const t = useTranslations('CharacterSheet');
   const {
     editingField,
     editValue,
@@ -109,7 +102,7 @@ function StatBar({ field, current, max, inlineEdit }: SingleBarProps) {
     boxShadow: theme.boxShadow,
   };
 
-  const label = LABELS[field];
+  const label = { abbr: t(`vitals.${field}.abbr`), full: t(`vitals.${field}.full`) };
 
   // p-3 wrapper: test CS4 robi getByText('PŻ').closest('.p-3').querySelector('button')
   return (
@@ -136,14 +129,14 @@ function StatBar({ field, current, max, inlineEdit }: SingleBarProps) {
             <button
               onClick={saveEditing}
               className="p-0.5 hover:text-primary"
-              aria-label="Zapisz"
+              aria-label={t('save')}
             >
               <Check className="h-3 w-3 text-primary" />
             </button>
             <button
               onClick={cancelEditing}
               className="p-0.5 hover:text-destructive"
-              aria-label="Anuluj"
+              aria-label={t('cancel')}
             >
               <X className="h-3 w-3 text-destructive" />
             </button>

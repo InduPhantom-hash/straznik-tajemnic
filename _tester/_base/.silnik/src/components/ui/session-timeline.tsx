@@ -144,7 +144,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
   }, [events]);
 
   return (
-    <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-lg overflow-hidden">
+    <div data-testid="session-timeline" className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-lg overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between p-3 cursor-pointer hover:bg-amber-800/20 transition-colors"

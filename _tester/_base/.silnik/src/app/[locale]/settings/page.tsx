@@ -13,7 +13,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-testid="settings-page" className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center gap-4">
           <Link

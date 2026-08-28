@@ -1,12 +1,14 @@
 'use client';
 
 import type { FC } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface HardLoadingScreenProps {
   isVisible: boolean;
 }
 
 export const HardLoadingScreen: FC<HardLoadingScreenProps> = ({ isVisible }) => {
+  const t = useTranslations('HardLoadingScreen');
   if (!isVisible) return null;
 
   return (
@@ -38,7 +40,7 @@ export const HardLoadingScreen: FC<HardLoadingScreenProps> = ({ isVisible }) => 
           className="font-display font-bold text-xl md:text-2xl text-foreground uppercase tracking-[0.1em] mb-3 text-center"
           style={{ textShadow: '0 0 20px rgba(201,162,39,0.15)' }}
         >
-          Inicjalizacja Wirtualnego Mistrza Gry...
+          {t('title')}
         </h2>
         
         <div className="flex items-center gap-4 w-[min(300px,80vw)] opacity-70">
@@ -48,7 +50,7 @@ export const HardLoadingScreen: FC<HardLoadingScreenProps> = ({ isVisible }) => 
         </div>
         
         <p className="font-special-elite text-sm text-muted-foreground tracking-[0.06em] mt-6 text-center max-w-sm px-4 animate-pulse">
-          Przygotowywanie scenariusza, aktywacja silnika narracyjnego i rozpalanie wyobraźni...
+          {t('description')}
         </p>
       </div>
     </div>

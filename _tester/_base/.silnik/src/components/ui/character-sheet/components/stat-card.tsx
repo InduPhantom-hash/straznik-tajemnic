@@ -11,6 +11,7 @@
  * (lib/data/character) jako tooltip HelpIcon.
  */
 
+import { useTranslations } from 'next-intl';
 import { HelpIcon } from '../../tooltip';
 import { STAT_DESCRIPTIONS } from '@/lib/data/character';
 import { STAT_NAMES, STAT_FULL_NAMES } from '../types';
@@ -33,8 +34,30 @@ export function StatCard({
   value,
   highlighted = false,
 }: StatCardProps) {
+  const t = useTranslations('CharacterSheet');
   const half = Math.floor(value / 2);
   const fifth = Math.floor(value / 5);
+
+  const tAny = t as any;
+  const isEnglish = tAny.has?.('title') && tAny('title') === 'Investigator Sheet';
+  const STAT_SHORT_EN: Record<string, string> = {
+    str: 'STR',
+    con: 'CON',
+    siz: 'SIZ',
+    dex: 'DEX',
+    app: 'APP',
+    int: 'INT',
+    pow: 'POW',
+    edu: 'EDU',
+  };
+
+  const fullName = tAny.has?.(`stats.${statKey}.full`)
+    ? tAny(`stats.${statKey}.full`)
+    : STAT_FULL_NAMES[statKey] || STAT_NAMES[statKey] || statKey.toUpperCase();
+
+  const shortName = isEnglish
+    ? STAT_SHORT_EN[statKey] || statKey.toUpperCase()
+    : STAT_NAMES[statKey] || statKey.toUpperCase();
 
   return (
     <div
@@ -49,14 +72,12 @@ export function StatCard({
           highlighted ? 'text-primary' : 'text-foreground'
         }`}
       >
-        {STAT_FULL_NAMES[statKey] ||
-          STAT_NAMES[statKey] ||
-          statKey.toUpperCase()}
+        {fullName}
         <HelpIcon content={STAT_DESCRIPTIONS[statKey] || ''} position="top" />
       </div>
-      {/* Skrót CoC 7e jako akcent (zachowuje STAT_NAMES - test CS3) */}
+      {/* Skrót CoC 7e jako akcent */}
       <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mt-0.5">
-        {STAT_NAMES[statKey] || statKey.toUpperCase()}
+        {shortName}
       </div>
       <div className="font-display font-bold text-3xl text-foreground leading-tight mt-0.5">
         {value}

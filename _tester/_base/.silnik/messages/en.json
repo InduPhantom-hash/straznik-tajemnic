@@ -1,14 +1,53 @@
 {
   "Welcome": {
-    "title": "Wybierz język",
+    "title": "Select language",
     "subtitle": "Choose Language",
     "playPl": "Zagraj po polsku",
     "playEn": "Play in English"
   },
+  "WelcomeStart": {
+    "quickTitle": "Quick Adventure",
+    "quickDescription": "Jump straight into the action with a predefined character.",
+    "manualTitle": "Manual Setup",
+    "manualDescription": "Choose your own adventure and assemble the party.",
+    "lastSession": "Last session",
+    "entries": "{count} entries",
+    "images": "{count} illustrations",
+    "resume": "Resume game",
+    "titleLine1": "Keeper",
+    "titleLine2": "of Secrets",
+    "virtualGm": "Virtual Game Master",
+    "authorizationRequired": "Authorization required",
+    "openApiKeys": "Enter API key"
+  },
+  "CostControl": {
+    "title": "Cost Control",
+    "tooltip": "Monitor API expenses. Account counter data (gemini + images + TTS), not browser-based.",
+    "updated": "Updated:",
+    "gemini": "Gemini",
+    "tts": "TTS",
+    "images": "Images",
+    "kTokens": "{count}k tokens",
+    "kChars": "{count}k characters",
+    "imageCount": "{count} images",
+    "pricingVerified": "Pricing verified {date}",
+    "totalCost": "Total account cost",
+    "apiRequests": "{count} API requests",
+    "reset": "Reset",
+    "resetConfirm": "Are you sure you want to reset the account cost counter?"
+  },
+  "InspectionLightbox": {
+    "confirmed": "Confirmed", "hypothesis": "Hypothesis", "refuted": "Refuted", "unknownDate": "Unknown date",
+    "deleteConfirm": "Are you sure you want to remove this evidence from the Investigation Board?", "evidencePreview": "Evidence preview", "delete": "Remove from board", "close": "Close", "noImage": "No illustration",
+    "hypothesisStatus": "Hypothesis status", "location": "Location:", "npc": "NPC:", "discovered": "Discovered:", "insight": "Investigator insight / deduction", "notes": "Investigator notes", "edit": "Edit", "save": "Save", "notesPlaceholder": "Write your observations and theories...", "noNotes": "No notes. Click Edit to add observations.", "created": "Created", "updated": "Updated"
+  },
+  "QuickSetupModal": {
+    "kicker": "Quick Adventure", "description": "Set up a session from the Strefa 11 programme. Choose a mode, scenario and ready investigators from the television team.", "stepMode": "1. Choose play mode", "solo": "Solo mode", "soloDescription": "One player, one character", "hotSeat": "Hot Seat (Duet)", "hotSeatDescription": "Two players on one device", "stepAdventure": "2. Choose a Strefa 11 scenario", "stepCharacters": "3. Choose characters", "playerOne": "Player 1 (Primary Character):", "yourCharacter": "Your Character:", "playerTwo": "Player 2 (Secondary Character):", "biography": "Biography", "start": "Start adventure"
+  },
   "LanguageSelection": {
-    "eyebrow": "Before the investigation begins",
-    "title": "Choose your language",
-    "description": "This choice sets the language of the game and narration.",
+    "eyebrow": "BEFORE THE INVESTIGATION BEGINS",
+    "title": "CHOOSE LANGUAGE",
+    "description": "This choice sets the game and narrative language.",
     "polish": "Polski",
     "english": "English"
   },
@@ -338,7 +377,7 @@
     "sources": {
       "blackMonk": "Polish publisher of Call of Cthulhu 7e - PDF/print rulebooks and free materials (starters).",
       "driveThru": "Original Call of Cthulhu 7e PDFs from Chaosium.",
-      "description": "Strażnik Tajemnic is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
+      "description": "Keeper of Secrets is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
       "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies.",
       "back": "Back",
       "next": "I have a rulebook, next"
@@ -361,7 +400,7 @@
       "play": "Done, play"
     },
     "gm": {
-      "title": "Welcome to Strażnik Tajemnic",
+      "title": "Welcome to Keeper of Secrets",
       "quote": "“That is not dead which can eternal lie, and with strange aeons even death may die.”",
       "description": "I am your Virtual Game Master. I will guide you through the dark corners of Lovecraftian horror, resolve Call of Cthulhu 7e dice rolls, and paint a world of madness and mystery before you.",
       "quickTitle": "Quick Start (Quick Setup)",
@@ -692,9 +731,40 @@
     "player": "Player {number}",
     "optionalSessionZero": "Optional step - Session Zero",
     "sessionZeroComplete": "Introduction and session agreements: complete",
-    "sessionZeroDescription": "Narrative introduction and agreement on conventions"
+    "sessionZeroDescription": "Narrative introduction and agreement on conventions",
+    "archetypes": {
+      "investigator": {
+        "name": "Investigator",
+        "description": "You seek the truth at all costs. Inquisitiveness is your weapon, and every mystery demands a resolution."
+      },
+      "scholar": {
+        "name": "Scholar",
+        "description": "Knowledge is your weapon. Books and documents speak louder than people. You understand that some truths..."
+      },
+      "action": {
+        "name": "Man of Action",
+        "description": "You act rather than deliberate. While others analyze, you are already in the midst of action. Physical strength..."
+      },
+      "trickster": {
+        "name": "Trickster",
+        "description": "Cunning, charm, and nimble fingers. You know how to get what you need, often bending the law and conventions."
+      },
+      "mystic": {
+        "name": "Mystic",
+        "description": "You sense what others cannot perceive. The unseen world is as real to you as the material one."
+      },
+      "healer": {
+        "name": "Healer",
+        "description": "Your calling is to save lives and heal wounds - of both body and mind."
+      },
+      "custom": {
+        "name": "Custom",
+        "description": "Create a character from scratch without a preset archetype."
+      }
+    }
   },
   "CharacterSheet": {
+    "title": "Investigator Sheet",
     "dialogTitle": "Character sheet",
     "dialogDescription": "Complete Call of Cthulhu investigator sheet.",
     "selectCharacterPrompt": "Choose a character to view their sheet.",
@@ -709,9 +779,20 @@
     "cancel": "Cancel",
     "characteristics": "Characteristics",
     "combat": "Combat",
-    "damageBonus": "Damage bonus",
+    "damageBonus": "Damage Bonus",
     "build": "Build",
+    "movement": "Movement",
     "move": "Move",
+    "stats": {
+      "str": { "full": "Strength", "short": "STR" },
+      "con": { "full": "Constitution", "short": "CON" },
+      "siz": { "full": "Size", "short": "SIZ" },
+      "dex": { "full": "Dexterity", "short": "DEX" },
+      "app": { "full": "Appearance", "short": "APP" },
+      "int": { "full": "Intelligence", "short": "INT" },
+      "pow": { "full": "Power", "short": "POW" },
+      "edu": { "full": "Education", "short": "EDU" }
+    },
     "skills": "Skills",
     "biography": "Biography",
     "backstory": "Backstory",
@@ -2261,7 +2342,7 @@
         "data": {
           "occupation": "Television Producer",
           "background": "With an iron hand, he manages the Unknown Signal team. He arranges for entrances, finances, and he can convince the police to turn a blind eye to enter the restricted area.",
-          "birthplace": "Kraków, Poland",
+          "birthplace": "Krakow, Poland",
           "residence": "Warsaw, Poland",
           "characterConcept": "A calculating organizer for whom ratings and a well told story are important.",
           "ideology": "TV is an illusion, and people want to believe in amazing things.",
@@ -2269,7 +2350,7 @@
           "meaningfulLocation": "Transmission truck, mobile command center.",
           "treasuredPossession": "A notebook with contacts to almost every official in the state.",
           "description": "Always blamelessly dressed (usually in matching women's suits and coats), with a cell phone \"brick\" still in hand.",
-          "backstory": "Helena's career in the media began on Kraków's corridors of television centres, where she quickly realized that viewers did not crave dry truth, but breathtaking illusions and secrets. Uncompromising and determined, she defeated the rungs from the assistant to the lead producer of \"The Unknown Signals\", building a position with iron firmness and personal charm. Her world revolves around The contact notebook - it's thanks to him that gets the entrances where the police would rather close the door. Always dressed in a blameless suit, with an inherent cell attached to his ear in the form of a \"brick\", he can conduct people's staff without raising his voice. Helena loves the adrenaline of field work, treating the transmission truck like her asylum and mobile command center. Though he confesses that \"TV is just an illusion\", hers collisions with inexplicable phenomena while filming materials in abandoned monasteries and haunted hospitals filled her with dark seeds of doubt. He will never admit his fear of the camera, relying on a duet with Tomasz Nowicki. Although their working methods lead to continuous and loud arguments, they both know that they have formed a team that is the only one in the country to bear the burden of documenting the truth lurking in the darkness of free Poland.",
+          "backstory": "Helena's career in the media began on Krakow's corridors of television centres, where she quickly realized that viewers did not crave dry truth, but breathtaking illusions and secrets. Uncompromising and determined, she defeated the rungs from the assistant to the lead producer of \"The Unknown Signals\", building a position with iron firmness and personal charm. Her world revolves around The contact notebook - it's thanks to him that gets the entrances where the police would rather close the door. Always dressed in a blameless suit, with an inherent cell attached to his ear in the form of a \"brick\", he can conduct people's staff without raising his voice. Helena loves the adrenaline of field work, treating the transmission truck like her asylum and mobile command center. Though he confesses that \"TV is just an illusion\", hers collisions with inexplicable phenomena while filming materials in abandoned monasteries and haunted hospitals filled her with dark seeds of doubt. He will never admit his fear of the camera, relying on a duet with Tomasz Nowicki. Although their working methods lead to continuous and loud arguments, they both know that they have formed a team that is the only one in the country to bear the burden of documenting the truth lurking in the darkness of free Poland.",
           "tacticalNotes": "Excellent in handling official matters and personal charms.",
           "traits": [
             "Ambitious",
@@ -2344,7 +2425,7 @@
           "meaningfulLocation": "Its old Lada Niva (or Polonez Caro), serving as a base and equipment storage.",
           "treasuredPossession": "Legally registered P-64 gun, in a holster under his armpit.",
           "description": "Massive posture, always slightly undershave. He's wearing hot jeans, heavy shoes and a military jacket.",
-          "backstory": "Richard was a system man, a security officer shaped by the violent realities of the Cold War and the PRL. Raised in Gdańsk, he quickly learned that loyalty and uncompromising strength are far more effective currencies than promises. In the 1980s, he was involved in surveillance, opening locks without a trace and discreetly solving problems. The system collapsed, and after 1989 Richard remained a man of competences that do not fit into the new world. Tarnished by remorse for past actions that have hit his daughter, he decided to use his paranoid habits to protect those who are too naive to take care of themselves. Today he is hired by the TV crew \"The Unknown Signals\". Behind the rudders of his old Lady Niva acts as a bodyguard, driver, and \"the locksmith\". Never part with legal A P-64 gun hidden under a military jacket, and for every smile a suspicious wink of a wink. Richard absolutely does not believe in ghosts, cults, or curses; he believes that the worst monsters have two arms, two legs and a financial motive. As long as he has his set of lockets and weapons, he is able to protect \"egghead\" journalists from violent encounters in stale cellars and abandoned bunkers.",
+          "backstory": "Richard was a system man, a security officer shaped by the violent realities of the Cold War and the PRL. Raised in Gdansk, he quickly learned that loyalty and uncompromising strength are far more effective currencies than promises. In the 1980s, he was involved in surveillance, opening locks without a trace and discreetly solving problems. The system collapsed, and after 1989 Richard remained a man of competences that do not fit into the new world. Tarnished by remorse for past actions that have hit his daughter, he decided to use his paranoid habits to protect those who are too naive to take care of themselves. Today he is hired by the TV crew \"The Unknown Signals\". Behind the rudders of his old Lady Niva acts as a bodyguard, driver, and \"the locksmith\". Never part with legal A P-64 gun hidden under a military jacket, and for every smile a suspicious wink of a wink. Richard absolutely does not believe in ghosts, cults, or curses; he believes that the worst monsters have two arms, two legs and a financial motive. As long as he has his set of lockets and weapons, he is able to protect \"egghead\" journalists from violent encounters in stale cellars and abandoned bunkers.",
           "tacticalNotes": "Master of survival, combat and discreet opening of doors.",
           "traits": [
             "Suspect",
@@ -2374,15 +2455,15 @@
         "data": {
           "occupation": "Mechanical Engineer",
           "background": "Experienced bumper designer in the automotive industry. He has heard of groundbreaking experiments in Kowary and wants to see the kinetic absorber for himself.",
-          "birthplace": "Wrocław, Poland",
-          "residence": "Wrocław, Poland",
+          "birthplace": "Wroclaw, Poland",
+          "residence": "Wroclaw, Poland",
           "characterConcept": "A skeptical pragmatist who only believes in the laws of physics.",
           "ideology": "Energy doesn't come out of nowhere and it can't just disappear.",
           "significantPerson": "His college promoter, with whom he has a continuous scientific dispute.",
           "meaningfulLocation": "Test laboratory, full of collision mannequins and measuring apparatus.",
           "treasuredPossession": "Precise digital slide in leather case.",
           "description": "He wears a working denim with many pockets and always greased hands.",
-          "backstory": "Marek spent more than twenty years at drawing boards and in the factory halls of the automotive industry in Lower Silesia. As a precision mechanics engineer, he has a simple principle: the energy balance in the universe always has to be zero. In his organized world, everything can be measured with a spool and described Newton's laws of dynamics. The crack in this worldview came during secret trials The collisions at the camp near Jelcze. The vehicle's prototype bumper absorbed the force of impact by a concrete block, but instead of the material deformation, the measuring apparatus recorded a sharp drop in temperature around the machine and an unnatural magnetic pulse. When his college promoter considered it an apparatus error and banned further investigations, Mark began his own search for the truth. News Construction experiments by Lucian Łagiewka in Kowary brought it to the Krkonoše. In a working denim with always greased hands and a faithful stiletto in his pocket, Marek intends to check with his own eyes whether the aqueous propulsor is just a brilliant mechanism, or whether the unconscious opening of the gate to a foreign, unknown physics, from which conventional science closes its eyes.",
+          "backstory": "Marek spent more than twenty years at drawing boards and in the factory halls of the automotive industry in Lower Silesia. As a precision mechanics engineer, he has a simple principle: the energy balance in the universe always has to be zero. In his organized world, everything can be measured with a spool and described Newton's laws of dynamics. The crack in this worldview came during secret trials The collisions at the camp near Jelcze. The vehicle's prototype bumper absorbed the force of impact by a concrete block, but instead of the material deformation, the measuring apparatus recorded a sharp drop in temperature around the machine and an unnatural magnetic pulse. When his college promoter considered it an apparatus error and banned further investigations, Mark began his own search for the truth. News Construction experiments by Lucian Lagiewka in Kowary brought it to the Krkonoše. In a working denim with always greased hands and a faithful stiletto in his pocket, Marek intends to check with his own eyes whether the aqueous propulsor is just a brilliant mechanism, or whether the unconscious opening of the gate to a foreign, unknown physics, from which conventional science closes its eyes.",
           "tacticalNotes": "The handyman can fix or break any mechanical device.",
           "traits": [
             "Pragmatic",
@@ -2408,8 +2489,8 @@
         "data": {
           "occupation": "Test driver",
           "background": "A former rally driver who after a major accident hired himself as a stuntman and a cruiser of strange vehicles.",
-          "birthplace": "Kraków, Poland",
-          "residence": "Kraków, Poland",
+          "birthplace": "Krakow, Poland",
+          "residence": "Krakow, Poland",
           "characterConcept": "Adrenaline junkie who trusts his reflexes more than anyone.",
           "ideology": "Speed is freedom, and brakes are for cowards.",
           "significantPerson": "A rally pilot who died in an accident that Thomas miraculously survived.",
@@ -2445,7 +2526,7 @@
         "data": {
           "occupation": "Investigator",
           "background": "He's tracking hidden technologies and government ties to mystery agencies. He's sniffing around the Agency for the Protection of the Republic (AOR).",
-          "birthplace": "Poznań, Poland",
+          "birthplace": "Poznan, Poland",
           "residence": "Warsaw, Poland",
           "characterConcept": "A nosy reporter who won't back away from anything for a good story.",
           "ideology": "Knowledge belongs to the public, not to the closed offices of special services.",
@@ -2479,15 +2560,15 @@
         "data": {
           "occupation": "Physicist Theoretician",
           "background": "A member of the physics institute. He's trying to prove that the propulsor from Kowar is just a clever illusion.",
-          "birthplace": "Toruń, Poland",
-          "residence": "Toruń, Poland",
+          "birthplace": "Torun, Poland",
+          "residence": "Torun, Poland",
           "characterConcept": "A brilliant scientist whose whole understanding of the world is based on hard calculations.",
           "ideology": "Math is the language of the universe, everything has to be calculated.",
           "significantPerson": "Dead grandfather, respected professor of classical physics.",
           "meaningfulLocation": "A board covered with densely written equations.",
           "treasuredPossession": "CASIO Scientific Calculator with additional logarithmic functions.",
           "description": "Elegant, with hair tight in tight coke, always wears a jacket.",
-          "backstory": "Daughter and granddaughter of respected Torun professors, Eve treated mathematics as the only pristine language of the universe from an early age. As an employee of the theoretical physics institute, she gained the reputation of an absolute polemicist, exterminateing all manifestations of pseudoscience and esoterics, which flooded the Polish publishing market after 1989. Her life shield is a Casio scientific calculator and a densely written book of equations Differential. The trip to Kowar was initially treated as a routine academic duty, aimed at the public overthrow of the myth of breaking momentum rules by the construction of Łagiewka. Everything changed when she performed preliminary calculations of the distribution of force vectors during the collision. The results did not show a measurement error; the equations indicated the presence of a point curve of space-time and energy transfer beyond our dimension. This consciousness struck the foundations of her safe, rational world. Always elegant, with hair tight in tight coke, Eva hides growing terror under the mask of academic arrogance. She came to the workshop to prove to herself that the reality around us still falls under the laws of human mathematics.",
+          "backstory": "Daughter and granddaughter of respected Torun professors, Eve treated mathematics as the only pristine language of the universe from an early age. As an employee of the theoretical physics institute, she gained the reputation of an absolute polemicist, exterminateing all manifestations of pseudoscience and esoterics, which flooded the Polish publishing market after 1989. Her life shield is a Casio scientific calculator and a densely written book of equations Differential. The trip to Kowar was initially treated as a routine academic duty, aimed at the public overthrow of the myth of breaking momentum rules by the construction of Lagiewka. Everything changed when she performed preliminary calculations of the distribution of force vectors during the collision. The results did not show a measurement error; the equations indicated the presence of a point curve of space-time and energy transfer beyond our dimension. This consciousness struck the foundations of her safe, rational world. Always elegant, with hair tight in tight coke, Eva hides growing terror under the mask of academic arrogance. She came to the workshop to prove to herself that the reality around us still falls under the laws of human mathematics.",
           "tacticalNotes": "He will understand complex equipment, machines and physical phenomena, including alien technologies.",
           "traits": [
             "Rational",
@@ -2516,7 +2597,7 @@
         "data": {
           "occupation": "Priest Exorcist",
           "background": "A clergyman seconded to investigate possessions and hauntings. Quiet, balanced, but with powerful faith.",
-          "birthplace": "Częstochowa, Poland",
+          "birthplace": "Czestochowa, Poland",
           "residence": "Lublin, Poland",
           "characterConcept": "A tool of higher forces, facing darkness when logical solutions fail.",
           "ideology": "Evil penetrates the gaps in faith. Only prayer and light protect the soul.",
@@ -2553,7 +2634,7 @@
         "data": {
           "occupation": "Bioenergy therapy",
           "background": "A controversial healer who claims to be curing the aura. His office in Lublin breaks in stitches from patients rejected by conventional medicine.",
-          "birthplace": "Zamość, Poland",
+          "birthplace": "Zamosc, Poland",
           "residence": "Lublin, Poland",
           "characterConcept": "A modern shaman who actually senses something, but he's making a new-age cover.",
           "ideology": "Everything in the universe is vibrating, and we can tune these vibrations.",
@@ -2561,7 +2642,7 @@
           "meaningfulLocation": "It's a wake-up room, full of mountain crystals.",
           "treasuredPossession": "A large, supposedly old crystal quartz on the piece.",
           "description": "She dresses freely in linen shirts, wears long hair tied in a ponytail.",
-          "backstory": "Andrzej's office in the center of Lublin at the turn of the century attracted hundreds of people, for whom the official health care service no longer had a rescue. Long-haired, dressed in linen shirts and surrounded by the smoke of sage incense, Andrew is considered the charismatic master of biotherapy and crystal healing. Behind this colorful, new-age facade lies a man wearing an authentic, inexplicable gift of feeling Energy anomalies. His life broke in half during a private screening with an old patient from the Traszyn area. When he touched the man’s temple with his hands, he saw in a fraction of a second the black pulsating sky and shapeless presence lurking under the foundations of rural buildings. The golden pendulum in his hands warmed to red, and the wave of overpowering coolness forever changed his perception of the world. He came to Traszyn at the request of a priest friend, knowing that it was not a game of bioenergy, but a struggle for survival. Although he still uses jargon about chakras and vibrations, Andrzej is terrified of the moment when his own sensitivity will attract the attention of being awake in Traszyńskie forests.",
+          "backstory": "Andrzej's office in the center of Lublin at the turn of the century attracted hundreds of people, for whom the official health care service no longer had a rescue. Long-haired, dressed in linen shirts and surrounded by the smoke of sage incense, Andrew is considered the charismatic master of biotherapy and crystal healing. Behind this colorful, new-age facade lies a man wearing an authentic, inexplicable gift of feeling Energy anomalies. His life broke in half during a private screening with an old patient from the Traszyn area. When he touched the man’s temple with his hands, he saw in a fraction of a second the black pulsating sky and shapeless presence lurking under the foundations of rural buildings. The golden pendulum in his hands warmed to red, and the wave of overpowering coolness forever changed his perception of the world. He came to Traszyn at the request of a priest friend, knowing that it was not a game of bioenergy, but a struggle for survival. Although he still uses jargon about chakras and vibrations, Andrzej is terrified of the moment when his own sensitivity will attract the attention of being awake in Traszynskie forests.",
           "tacticalNotes": "Effective in unconventional treatment (first aid / psychology) and detection of magic anomalies.",
           "traits": [
             "Empathetic",
@@ -2658,15 +2739,15 @@
         "data": {
           "occupation": "Private Detective",
           "background": "A faded ex-cop running a detective office. He's mostly looking for youth running away from discos.",
-          "birthplace": "Wrocław, Poland",
-          "residence": "Głogów, Poland",
+          "birthplace": "Wroclaw, Poland",
+          "residence": "Glogow, Poland",
           "characterConcept": "Tired of the life of a cop who begins to doubt his own senses after strange disappearances.",
           "ideology": "The truth is often uglier than any bizarre explanation.",
           "significantPerson": "His former militia partner who fell into alcoholism after a 10-year-old case.",
           "meaningfulLocation": "His playful, smelly old tobacco office.",
           "treasuredPossession": "Silver flask, always slightly filled.",
           "description": "The creased Trench and deep bags under your eyes look like a relic of another era.",
-          "backstory": "Arthur is a relic of a long-lost era, a bitter ex-militarian who, after a systemic transformation, opened a one-man detective office in a soul building in Legnica. For decades of service in Lower Silesia, he saw the worst manifestations of human wickedness, corruption and crime. His career with the police broke down in 1991 after an unexplained tragedy in the Głogów underground, where the sent patrol disappeared without a trace, And the only surviving officer fell into irreversible insanity. Since then, Arthur has mostly lived from searching for missing youth and minor divorce cases, drowning memories in a silver flask with rye and burning a pack of cigarettes behind a package. Accepting an order to find a boy connected to a głogów internet cafe was supposed to be a simple job for good money. But when he found The notes on the great simulation and traces of creatures whose bullets don't fit, the old cop had to take off his illegal revolver. In a dented trainer and with a cigarette in the corner of his mouth, Arthur stands for his final investigation, ready to face the truth worse than any crime of militia records.",
+          "backstory": "Arthur is a relic of a long-lost era, a bitter ex-militarian who, after a systemic transformation, opened a one-man detective office in a soul building in Legnica. For decades of service in Lower Silesia, he saw the worst manifestations of human wickedness, corruption and crime. His career with the police broke down in 1991 after an unexplained tragedy in the Glogow underground, where the sent patrol disappeared without a trace, And the only surviving officer fell into irreversible insanity. Since then, Arthur has mostly lived from searching for missing youth and minor divorce cases, drowning memories in a silver flask with rye and burning a pack of cigarettes behind a package. Accepting an order to find a boy connected to a glogow internet cafe was supposed to be a simple job for good money. But when he found The notes on the great simulation and traces of creatures whose bullets don't fit, the old cop had to take off his illegal revolver. In a dented trainer and with a cigarette in the corner of his mouth, Arthur stands for his final investigation, ready to face the truth worse than any crime of militia records.",
           "tacticalNotes": "Effective in interrogations, looking for physical evidence, and a hard fight with bandits.",
           "traits": [
             "Bitter",
@@ -2696,14 +2777,14 @@
           "occupation": "Developer / hacker",
           "background": "Samouk, who spends nights on the early BBS internet forums. He believes the system we live in is simulation.",
           "birthplace": "Legnica, Poland",
-          "residence": "Głogów, Poland",
+          "residence": "Glogow, Poland",
           "characterConcept": "I'm fascinated by the paranoid computer, willing to believe the machines will take control.",
           "ideology": "Information must be free, but no one is safe on the network.",
           "significantPerson": "A user with the nickname \"Oracle\" with whom he has been correspondence for two years without knowing him personally.",
           "meaningfulLocation": "Basement with several networked PCs on Windows 95.",
           "treasuredPossession": "Hard drive filled with encrypted logs from paranormal forums.",
           "description": "Pale, he drinks a lot of cheap energy drinks. Dressed in too big a hoodie.",
-          "backstory": "For Peter, the outside world was always too loud, chaotic and devoid of logic. As a samouk, he spent his youth in the basements of the family block in Legnica, surrounded by old CRT monitors, network cables and dial-up modem noise. In the world of BBS and IRC channels, he was considered legend of underground hacking, breaking security features for telecommunications systems and university servers. Everything has changed a memorable night, As part of the network push, he hacked into a server connected to the Głogów industrial infrastructure. Instead of standard databases, he intercepted an infinite stream of alien fractal strings that, after decoding, were stacked into error logs in the physical structure of the world around us. Moments later, his mysterious interviewer about Oracle's nickname disappeared from the net, and Peter's apartment was powered down. Pale, sleepless and addicted to cheap energy drinks, Peter does not break up with a heavy laptop and encrypted disk. He is absolutely convinced that the Gloves have become the epicentre of the flaw in the space code, and that the errors of rendering reality will soon lead to the complete reboot of our world.",
+          "backstory": "For Peter, the outside world was always too loud, chaotic and devoid of logic. As a samouk, he spent his youth in the basements of the family block in Legnica, surrounded by old CRT monitors, network cables and dial-up modem noise. In the world of BBS and IRC channels, he was considered legend of underground hacking, breaking security features for telecommunications systems and university servers. Everything has changed a memorable night, As part of the network push, he hacked into a server connected to the Glogow industrial infrastructure. Instead of standard databases, he intercepted an infinite stream of alien fractal strings that, after decoding, were stacked into error logs in the physical structure of the world around us. Moments later, his mysterious interviewer about Oracle's nickname disappeared from the net, and Peter's apartment was powered down. Pale, sleepless and addicted to cheap energy drinks, Peter does not break up with a heavy laptop and encrypted disk. He is absolutely convinced that the Gloves have become the epicentre of the flaw in the space code, and that the errors of rendering reality will soon lead to the complete reboot of our world.",
           "tacticalNotes": "It moves perfectly on computers, technology, it can bypass digital security.",
           "traits": [
             "Paranoic",
@@ -2740,7 +2821,7 @@
           "meaningfulLocation": "A terrorized, suffocating unit locked in, where he spends days and nights.",
           "treasuredPossession": "Notebooks of the most cumbersome treatment cases.",
           "description": "She wears an elegant white coat on a straight blouse, her posture suggests immense stress fatigue.",
-          "backstory": "Dr. Krystyna Zawada led a closed psychiatric hospital ward in Legnica for almost three decades. As a dry clinicist, she has always felt that every hallucination, hallucination, or delusion have their hard roots in brain neurochemistry. This unbreakable certainty fell into the rubble of one night of the turn of the millennium, when three totally alien teenagers from Głogów were brought to her ward. Young People They were in a state of deep shock, repeating in a trance the same mathematical sequences and speaking of the fading sky above the city. Worse still, on each of them, Krystyna discovered identical geometric burns resembling traces of integrated circuits. Trials of conventional therapy failed, and one of the patients warned the doctor about the coming matter decay before falling into coma. Always mastered, dressed in a pristine white coat and with a clinical notebook under your armpit, Krystyna decided to go to Głogów personally. Behind her cold professionalism lies the growing fear and determination to save her patients from a nightmare beyond the framework of modern medicine.",
+          "backstory": "Dr. Krystyna Zawada led a closed psychiatric hospital ward in Legnica for almost three decades. As a dry clinicist, she has always felt that every hallucination, hallucination, or delusion have their hard roots in brain neurochemistry. This unbreakable certainty fell into the rubble of one night of the turn of the millennium, when three totally alien teenagers from Glogow were brought to her ward. Young People They were in a state of deep shock, repeating in a trance the same mathematical sequences and speaking of the fading sky above the city. Worse still, on each of them, Krystyna discovered identical geometric burns resembling traces of integrated circuits. Trials of conventional therapy failed, and one of the patients warned the doctor about the coming matter decay before falling into coma. Always mastered, dressed in a pristine white coat and with a clinical notebook under your armpit, Krystyna decided to go to Glogow personally. Behind her cold professionalism lies the growing fear and determination to save her patients from a nightmare beyond the framework of modern medicine.",
           "tacticalNotes": "First aid, stabilizing team mentality, in-depth witness psychoanalysis.",
           "traits": [
             "Peaceful",
@@ -2774,7 +2855,7 @@
           "meaningfulLocation": "Her mangled motorhome, covered with aluminum foil and pictogram maps.",
           "treasuredPossession": "An unusual crystal supposedly found at the site of the plane crash.",
           "description": "He wears hippie clothes, a lot of bracelets and always with a camera on hand.",
-          "backstory": "Karolina is an untiring searcher of truth about extraterrestrial civilizations and anomalous phenomena in Poland in the 1990s. Since her partner's mysterious disappearance during the expedition to the famous crop circles near Wylatów in 1997, her home has become a crumpled motorhome covered with aluminium foil and pictogram maps. As an independent magazine publicist, the Fourth Dimension traveled across the country with photo cameras night and homemade electromagnetic field detectors. When her sensors registered giant radiation disturbances and microwaves emanating from the abandoned corridors under Głogów, she immediately directed her car there. Carolina believes that what the ancient people called gods and demons, and today they consider to be visitors from outer space, is an ancient intelligence operating on the higher frequencies of the universe. Stubborn, passionate and fearless in the face of the unknown, with the inherent camera in her hands, Luna is ready to enter the deepest underground to gain hard evidence that humanity has never been alone on this planet.",
+          "backstory": "Karolina is an untiring searcher of truth about extraterrestrial civilizations and anomalous phenomena in Poland in the 1990s. Since her partner's mysterious disappearance during the expedition to the famous crop circles near Wylatow in 1997, her home has become a crumpled motorhome covered with aluminium foil and pictogram maps. As an independent magazine publicist, the Fourth Dimension traveled across the country with photo cameras night and homemade electromagnetic field detectors. When her sensors registered giant radiation disturbances and microwaves emanating from the abandoned corridors under Glogow, she immediately directed her car there. Carolina believes that what the ancient people called gods and demons, and today they consider to be visitors from outer space, is an ancient intelligence operating on the higher frequencies of the universe. Stubborn, passionate and fearless in the face of the unknown, with the inherent camera in her hands, Luna is ready to enter the deepest underground to gain hard evidence that humanity has never been alone on this planet.",
           "tacticalNotes": "As a field researcher with a large MOC she is great at operating at the interface of myths, occultism and observation.",
           "traits": [
             "Exalted",
@@ -4158,6 +4239,8 @@
     "equipmentDescription": "Items and weapons",
     "journal": "Adventure Journal",
     "journalDescription": "Notes and records",
+    "gmTools": "GM Tools",
+    "gmToolsDescription": "Characters, events, and locations",
     "characters": "Characters",
     "select": "Select...",
     "investigator": "Investigator",
@@ -4207,6 +4290,10 @@
     "apiKeys": "API keys",
     "coldStart": "Cold start"
   },
+  "HardLoadingScreen": {
+    "title": "Initializing the Virtual Game Master...",
+    "description": "Preparing the scenario, activating the narrative engine and igniting the imagination..."
+  },
   "FirstRunWizard": {
     "steps": {
       "key": "Key",
@@ -4236,7 +4323,7 @@
   "StepContentSources": {
     "blackMonk": "Polish publisher of Call of Cthulhu 7e - PDF/print rulebooks and free materials (starters).",
     "driveThru": "Original Call of Cthulhu 7e PDFs from Chaosium.",
-    "description": "Strażnik Tajemnic is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
+    "description": "Keeper of Secrets is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
     "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies.",
     "back": "Back",
     "next": "I have a rulebook, next"
@@ -4259,7 +4346,7 @@
     "play": "Done, play"
   },
   "StepWelcomeGM": {
-    "title": "Welcome to Strażnik Tajemnic",
+    "title": "Welcome to Keeper of Secrets",
     "quote": "“That is not dead which can eternal lie, and with strange aeons even death may die.”",
     "description": "I am your Virtual Game Master. I will guide you through the dark corners of Lovecraftian horror, resolve Call of Cthulhu 7e dice rolls, and paint a world of madness and mystery before you.",
     "quickTitle": "Quick Start (Quick Setup)",
@@ -4945,7 +5032,14 @@
     "selectedBadge": "Selected",
     "activePreset": "Active preset:",
     "modelLabel": "Model:",
-    "imagesLabel": "Images:"
+    "imagesLabel": "Images:",
+    "presets": {
+      "low": { "description": "Gemini 3.6 Flash, no voice, no images - most affordable (~$0.02-0.05/session)" },
+      "mid": { "description": "Gemini 3.6 Flash + voice (Gemini TTS) + Gemini images (~$0.20/session)" },
+      "high": { "description": "Gemini 3.1 Pro + voice + Imagen 4 images (~$0.50/session)" },
+      "ultra": { "description": "Gemini 3.1 Pro High + multi-voice radio drama + HD images (~$1.00/session)" },
+      "custom": { "description": "Custom configuration of all parameters" }
+    }
   },
   "ReplicateSettings": {
     "sectionTitle": "Replicate API (Image Generation)",
@@ -5607,7 +5701,7 @@
     "adventureTitleLabel": "Adventure title",
     "titlePlaceholder": "e.g. Mystery of the Old Manor",
     "locationLabel": "Location",
-    "locationPlaceholder": "e.g. Kraków, Poland",
+    "locationPlaceholder": "e.g. Krakow, Poland",
     "eraLabel": "Era",
     "eraClassic": "Classic 1920s",
     "eraGaslight": "Victorian era",

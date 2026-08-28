@@ -111,8 +111,18 @@ export function GMToolsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="bg-card border-border max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+    <div data-testid="gm-tools-modal" className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="relative bg-card border-border max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+        <Button
+          data-testid="btn-close-gm-tools"
+          aria-label={t('close')}
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-2 z-10"
+          onClick={onClose}
+        >
+          <X className="w-4 h-4" />
+        </Button>
         <div className="flex-1 overflow-y-auto">{renderTool()}</div>
       </Card>
     </div>
