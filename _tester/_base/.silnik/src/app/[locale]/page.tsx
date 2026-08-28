@@ -764,6 +764,7 @@ export default function Home() {
           setVoiceEnabled={tts.setVoiceEnabled}
           isTTSEnabled={tts.isTTSEnabled}
           setIsTTSEnabled={tts.setIsTTSEnabled}
+          isTTSPlaying={Boolean(tts.currentAudio && !tts.isAudioPaused)}
           onToggleNarrator={handleToggleNarrator}
           queueStatus={tts.queueStatus}
           onStartNewGame={save.handleStartNewGame}

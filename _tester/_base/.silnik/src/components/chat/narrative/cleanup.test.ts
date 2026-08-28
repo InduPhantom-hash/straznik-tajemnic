@@ -14,6 +14,24 @@ describe('cleanupContent', () => {
     expect(output).toContain('[Co robisz?]');
   });
 
+  it('wycina kompletny angielski blok JOURNAL z narracji', () => {
+    const input = 'The phone rings.\n\n[JOURNAL:clue:Telephone]\nA caller interrupts the morning.\n[/JOURNAL]';
+
+    expect(cleanupContent(input)).toBe('The phone rings.');
+  });
+
+  it('wycina osierocony znacznik zamykający JOURNAL', () => {
+    const input = 'The phone rings.[/JOURNAL]';
+
+    expect(cleanupContent(input)).toBe('The phone rings.');
+  });
+
+  it('zachowuje angielskie pytanie narracyjne w nawiasach', () => {
+    const input = 'The door opens.\n\n[What do you do?]';
+
+    expect(cleanupContent(input)).toContain('[What do you do?]');
+  });
+
   it('wycina różnorodne formy promptów obrazów wyciekające z LLM', () => {
     const cases = [
       '**Prompt:** Mroczny pokój',

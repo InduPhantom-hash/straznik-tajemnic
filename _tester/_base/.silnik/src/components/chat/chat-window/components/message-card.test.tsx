@@ -19,6 +19,19 @@ const baseProps = {
 };
 
 describe('MessageCard - ręczna kontynuacja narracji', () => {
+  afterEach(() => {
+    delete process.env.NEXT_INTL_TEST_LOCALE;
+  });
+
+  it('renders the Game Master label for the English locale', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'en';
+
+    render(<MessageCard {...baseProps} message={baseMessage} />);
+
+    expect(screen.getByText('Game Master')).toBeInTheDocument();
+    expect(screen.queryByText('Mistrz Gry')).not.toBeInTheDocument();
+  });
+
   it('pokazuje akcję tylko dla ostatniego MAX_TOKENS i wywołuje callback', () => {
     const onContinueNarration = jest.fn();
     render(

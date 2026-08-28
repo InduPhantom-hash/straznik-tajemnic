@@ -40,6 +40,7 @@ import { HandoutGenerator } from '../ui/handout-generator';
 import { AdventureSelector } from '../ui/adventure-selector';
 import { EquipmentModal } from '../ui/equipment-modal';
 import { NewAdventureModal } from '../ui/new-adventure-modal';
+import { YouTubePlayer } from '../ui/youtube-player';
 
 import {
   Character,
@@ -68,6 +69,7 @@ interface CthulhuSidebarProps {
   setVoiceEnabled?: (enabled: boolean) => void;
   isTTSEnabled?: boolean;
   setIsTTSEnabled?: (enabled: boolean) => void;
+  isTTSPlaying?: boolean;
   onToggleNarrator?: (enabled: boolean) => void; // IND-258: trwały mute lektora (voiceSettings.enabled)
   queueStatus?: {
     queueLength: number;
@@ -120,6 +122,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   setVoiceEnabled,
   isTTSEnabled,
   setIsTTSEnabled,
+  isTTSPlaying = false,
   onToggleNarrator,
   queueStatus,
   onStartNewGame,
@@ -597,6 +600,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <YouTubePlayer isTTSPlaying={isTTSPlaying} />
               {/* Handout Generator - UKRYTY (funkcjonalność zachowana na przyszłość)
               <Button
                 onClick={() => setShowHandoutGenerator(true)}

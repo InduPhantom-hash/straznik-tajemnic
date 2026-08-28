@@ -14,12 +14,19 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useLocale } from 'next-intl';
 
 /** Progi (sekundy) zmiany komunikatu przy rosnącym czasie myślenia modelu. */
 const PHASE_2_AFTER_S = 15;
 const PHASE_1_AFTER_S = 6;
 
-function labelForSeconds(seconds: number): string {
+export function labelForSeconds(seconds: number, locale: 'pl' | 'en' = 'pl'): string {
+  if (locale === 'en') {
+    if (seconds >= PHASE_2_AFTER_S) return 'The Game Master weighs their words...';
+    if (seconds >= PHASE_1_AFTER_S) return 'The Game Master is setting the scene...';
+    return 'The Game Master is responding...';
+  }
+
   if (seconds >= PHASE_2_AFTER_S) return 'Mistrz Gry waży słowa...';
   if (seconds >= PHASE_1_AFTER_S) return 'Mistrz Gry układa scenę...';
   return 'Mistrz Gry odpowiada...';
@@ -27,6 +34,7 @@ function labelForSeconds(seconds: number): string {
 
 export function LoadingIndicator() {
   const [seconds, setSeconds] = useState(0);
+  const locale = useLocale();
 
   useEffect(() => {
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -50,7 +58,7 @@ export function LoadingIndicator() {
         />
       </div>
       <span className="text-sm text-brass font-special-elite uppercase tracking-[0.12em] animate-pulse">
-        {labelForSeconds(seconds)}
+        {labelForSeconds(seconds, locale === 'en' ? 'en' : 'pl')}
       </span>
     </div>
   );

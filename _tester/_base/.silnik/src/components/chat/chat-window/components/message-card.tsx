@@ -108,7 +108,7 @@ export function MessageCard({
                   />
                 )}
                 <AvatarFallback className="text-xs rounded-none">
-                  {getAuthorInitials(message, activeCharacter)}
+                  {getAuthorInitials(message, activeCharacter, locale === 'en' ? 'en' : 'pl')}
                 </AvatarFallback>
               </>
             )}
@@ -118,7 +118,7 @@ export function MessageCard({
               <span
                 className={`font-medium text-base ${getAuthorColor(message.role)}`}
               >
-                {getAuthorName(message, activeCharacter)}
+                {getAuthorName(message, activeCharacter, locale === 'en' ? 'en' : 'pl')}
               </span>
               <span className="text-sm text-muted-foreground">
                 {message.gameTime

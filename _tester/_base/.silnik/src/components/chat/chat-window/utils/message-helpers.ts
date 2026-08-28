@@ -8,6 +8,8 @@
 
 import type { Character, Message } from '@/lib/types';
 
+type SupportedLocale = 'pl' | 'en';
+
 export function getMessageStyle(role: Message['role']): string {
   if (role === 'assistant') {
     return 'border-l-4 border-l-primary bg-primary/5';
@@ -30,10 +32,11 @@ export function getAuthorColor(role: Message['role']): string {
 
 export function getAuthorName(
   message: Message,
-  activeCharacter: Character | null
+  activeCharacter: Character | null,
+  locale: SupportedLocale = 'pl'
 ): string {
   if (message.role === 'assistant') {
-    return 'Mistrz Gry';
+    return locale === 'en' ? 'Game Master' : 'Mistrz Gry';
   } else if (message.role === 'user') {
     return activeCharacter?.name || 'Gracz';
   }
@@ -42,10 +45,11 @@ export function getAuthorName(
 
 export function getAuthorInitials(
   message: Message,
-  activeCharacter: Character | null
+  activeCharacter: Character | null,
+  locale: SupportedLocale = 'pl'
 ): string {
   if (message.role === 'assistant') {
-    return 'MG';
+    return locale === 'en' ? 'GM' : 'MG';
   } else if (message.role === 'user') {
     return activeCharacter?.name
       ? activeCharacter.name

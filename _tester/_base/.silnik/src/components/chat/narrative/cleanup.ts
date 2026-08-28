@@ -77,10 +77,11 @@ export function cleanupContent(content: string): string {
       }
       return '';
     })
-    // Dziennik - wieloliniowy tag [DZIENNIK:typ:tytuł]treść[/DZIENNIK]
-    .replace(/\[DZIENNIK:[^\]]*\][\s\S]*?\[\/DZIENNIK\]/gi, '')
-    .replace(/\[DZIENNIK:[^\]]*\]/gi, '')
-    .replace(/\[\/DZIENNIK\]/gi, '')
+    // Dziennik - wieloliniowy tag PL/EN. Parser korzysta z surowej odpowiedzi
+    // przed tym etapem; UI nigdy nie może pokazać protokołu dziennika.
+    .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
+    .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')
+    .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
     .replace(/\[KONIEC_SESJI:POTWIERDZENIE\]/gi, '')
     // IND-224: warianty BEZ nawiasów lub niedomknięte (Flash gubi `[`/`]`) - strip
     // całej linii nagłówka tagu protokołu. Bez tego przeciekają do czatu, a linia
@@ -88,7 +89,7 @@ export function cleanupContent(content: string): string {
     // PRASOWY"). Wymóg ':' tuż po słowie-kluczu chroni prozę ("Dziennik leżał na
     // biurku" - brak dwukropka - oraz tytuł gazety "Dziennik Polski" zostają).
     .replace(
-      /^\s*\[?(?:MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|DZIENNIK)\s*:[^\n]*$/gim,
+      /^\s*\[?(?:MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|DZIENNIK|JOURNAL)\s*:[^\n]*$/gim,
       ''
     )
     // IND-165 - Audio tags TTS (Gemini Flash TTS): regex restrictive whitelist
