@@ -438,12 +438,12 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                 </div>
                 <div>
                   <div className="font-special-elite text-xs uppercase tracking-[0.18em] text-brass/80">
-                    Krok Opcjonalny - Sesja Zero
+                    {t('optionalSessionZero')}
                   </div>
                   <div className="font-display font-medium text-sm text-foreground">
                     {hasSessionZero
-                      ? 'Wprowadzenie i ustalenia sesji: Gotowe'
-                      : 'Wprowadzenie fabularne i ustalenie konwencji'}
+                      ? t('sessionZeroComplete')
+                      : t('sessionZeroDescription')}
                   </div>
                 </div>
               </div>

@@ -3,6 +3,12 @@ import { ManualSetupPanel } from './manual-setup-panel';
 import type { Character } from '@/lib/types';
 
 describe('ManualSetupPanel', () => {
+  const originalLocale = process.env.NEXT_INTL_TEST_LOCALE;
+
+  afterEach(() => {
+    process.env.NEXT_INTL_TEST_LOCALE = originalLocale;
+  });
+
   const mockCharacter: Character = {
     id: 'char-1',
     name: 'Edward Carnby',
@@ -186,5 +192,48 @@ describe('ManualSetupPanel', () => {
     const createButtons = screen.getAllByRole('button', { name: /Stwórz nową/i });
     fireEvent.click(createButtons[1]);
     expect(onCreateCharacter).toHaveBeenCalledWith('Tomek');
+  });
+
+  it('lokalizuje kartę Session Zero po angielsku bez polskich wycieków', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'en';
+
+    render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        onSessionZero={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Optional step - Session Zero')).toBeInTheDocument();
+    expect(
+      screen.getByText('Narrative introduction and agreement on conventions')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Krok opcjonalny - Sesja Zero')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Wprowadzenie fabularne i ustalenie konwencji')
+    ).not.toBeInTheDocument();
+  });
+
+  it('pokazuje polski status ukończonej Session Zero', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+
+    render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        onSessionZero={jest.fn()}
+        hasSessionZero
+      />
+    );
+
+    expect(screen.getByText('Krok opcjonalny - Sesja Zero')).toBeInTheDocument();
+    expect(
+      screen.getByText('Wprowadzenie i ustalenia sesji: gotowe')
+    ).toBeInTheDocument();
   });
 });

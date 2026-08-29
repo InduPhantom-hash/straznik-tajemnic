@@ -45,7 +45,7 @@ export function ChatHeader({
       : place || regionLabel || '';
 
   return (
-    <div className="relative grid h-16 grid-cols-[minmax(10rem,0.8fr)_minmax(0,1.6fr)_auto] items-center gap-4 border-b border-brass/30 bg-card px-6">
+    <div className="relative grid h-16 grid-cols-[minmax(10rem,0.8fr)_minmax(0,1.6fr)_auto] md:grid-cols-[minmax(24rem,1fr)_minmax(0,1fr)_auto] items-center gap-4 border-b border-brass/30 bg-card px-6">
       {/* déco: złota linia akcentu pod nagłówkiem */}
       <div
         aria-hidden="true"
