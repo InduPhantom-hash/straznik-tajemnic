@@ -5204,6 +5204,14 @@
     "close": "Close",
     "choose": "Choose this adventure →"
   },
+  "AdventureStyles": {
+    "tonePurist": "Purist", "tonePulp": "Pulp", "toneNoir": "Noir",
+    "eraClassic": "1920s", "eraGaslight": "Victorian era", "eraNoir": "1940s", "eraPrl": "People's Poland - 1970s", "eraModern": "Modern day", "eraCustom": "Custom",
+    "difficultyEasy": "Easy", "difficultyNormal": "Normal", "difficultyHard": "Hard",
+    "tonePuristDescription": "Classic, grim horror. Dread builds slowly, danger is real and the investigators have little chance of heroism.", "tonePulpDescription": "Heroic action. Bolder investigators, more combat and adventure, and less despair.", "toneNoirDescription": "A dark investigation of intrigue, moral ambiguity and big-city secrets.",
+    "eraClassicDescription": "The classic 1920s: Prohibition, automobiles and the golden age of the Cthulhu Mythos.", "eraGaslightDescription": "The Victorian era: gas lamps, spiritualism and Gothic horror.", "eraNoirDescription": "The 1940s: war, reconstruction, radio and investigations in the shadow of history.", "eraPrlDescription": "Poland in the 1970s: queues, state institutions, analogue technology and distrust.", "eraModernDescription": "The present day: smartphones, the internet and cosmic horror in a digital world.", "eraCustomDescription": "An era defined by the player.",
+    "difficultyEasyDescription": "A gentler challenge for a first game, with fewer deadly traps.", "difficultyNormalDescription": "A standard challenge that rewards caution and sound judgment.", "difficultyHardDescription": "Demanding and deadly. It does not forgive mistakes."
+  },
   "ApiUsageCounter": {
     "collapse": "Collapse counter",
     "expand": "Expand counter",

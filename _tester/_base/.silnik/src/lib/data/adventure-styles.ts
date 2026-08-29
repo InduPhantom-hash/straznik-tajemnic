@@ -11,13 +11,40 @@
  * adventure-list-row, custom-adventure-form-preview).
  */
 
+type AdventureStyleLabelKey =
+  | 'tonePurist'
+  | 'tonePulp'
+  | 'toneNoir'
+  | 'eraClassic'
+  | 'eraGaslight'
+  | 'eraNoir'
+  | 'eraPrl'
+  | 'eraModern'
+  | 'eraCustom'
+  | 'difficultyEasy'
+  | 'difficultyNormal'
+  | 'difficultyHard';
+
+type AdventureStyleDescriptionKey =
+  | 'tonePuristDescription'
+  | 'tonePulpDescription'
+  | 'toneNoirDescription'
+  | 'eraClassicDescription'
+  | 'eraGaslightDescription'
+  | 'eraNoirDescription'
+  | 'eraPrlDescription'
+  | 'eraModernDescription'
+  | 'eraCustomDescription'
+  | 'difficultyEasyDescription'
+  | 'difficultyNormalDescription'
+  | 'difficultyHardDescription';
+
 export interface AdventureStyleEntry {
-  label: string;
+  translationKey: AdventureStyleLabelKey;
+  descriptionKey: AdventureStyleDescriptionKey;
   color: string;
   bg?: string;
   icon: string;
-  /** Krótkie wyjaśnienie dla gracza - jaki klimat niesie ten znacznik. */
-  description?: string;
 }
 
 /**
@@ -25,28 +52,25 @@ export interface AdventureStyleEntry {
  */
 export const TONE_STYLES: Record<string, AdventureStyleEntry> = {
   purist: {
-    label: 'Purist',
+    translationKey: 'tonePurist',
+    descriptionKey: 'tonePuristDescription',
     color: 'text-red-400',
     bg: 'bg-red-500/20',
     icon: '💀',
-    description:
-      'Klasyczny, mroczny horror. Powolne budowanie grozy, realne zagrożenie i niewielkie szanse na heroizm - bohaterowie są krusi wobec kosmicznego zła.',
   },
   pulp: {
-    label: 'Pulp',
+    translationKey: 'tonePulp',
+    descriptionKey: 'tonePulpDescription',
     color: 'text-orange-400',
     bg: 'bg-orange-500/20',
     icon: '⚡',
-    description:
-      'Heroiczna akcja. Odważniejsi badacze, więcej walki i przygody, mniej beznadziei - bliżej kina przygodowego niż czystej grozy.',
   },
   noir: {
-    label: 'Noir',
+    translationKey: 'toneNoir',
+    descriptionKey: 'toneNoirDescription',
     color: 'text-slate-400',
     bg: 'bg-slate-500/20',
     icon: '🔍',
-    description:
-      'Mroczne śledztwo. Intrygi, moralna dwuznaczność i tajemnice wielkiego miasta - więcej rozmów, tropów i podejrzeń niż otwartej walki.',
   },
 };
 
@@ -55,45 +79,40 @@ export const TONE_STYLES: Record<string, AdventureStyleEntry> = {
  */
 export const ERA_STYLES: Record<string, AdventureStyleEntry> = {
   classic: {
-    label: 'Lata 20.',
+    translationKey: 'eraClassic',
+    descriptionKey: 'eraClassicDescription',
     color: 'text-amber-400',
     icon: '🎩',
-    description:
-      'Klasyczne lata 20. XX wieku - prohibicja, automobile i złota era Mitów Cthulhu.',
   },
   gaslight: {
-    label: 'Wiktoria',
+    translationKey: 'eraGaslight',
+    descriptionKey: 'eraGaslightDescription',
     color: 'text-purple-400',
     icon: '🕯️',
-    description:
-      'Epoka wiktoriańska (XIX w.) - gazowe latarnie, spirytyzm i gotycka groza.',
   },
   noir: {
-    label: 'Lata 40.',
+    translationKey: 'eraNoir',
+    descriptionKey: 'eraNoirDescription',
     color: 'text-stone-300',
     icon: '📻',
-    description:
-      'Lata czterdzieste - wojna, odbudowa, radio i śledztwa w cieniu wielkiej historii.',
   },
   prl: {
-    label: 'PRL - lata 70.',
+    translationKey: 'eraPrl',
+    descriptionKey: 'eraPrlDescription',
     color: 'text-red-300',
     icon: '🏭',
-    description:
-      'Polska lat siedemdziesiątych - kolejki, państwowe instytucje, analogowa technika i nieufność.',
   },
   modern: {
-    label: 'Współczesność',
+    translationKey: 'eraModern',
+    descriptionKey: 'eraModernDescription',
     color: 'text-cyan-400',
     icon: '💻',
-    description:
-      'Czasy współczesne - smartfony, internet i kosmiczny horror w cyfrowym świecie.',
   },
   custom: {
-    label: 'Własna',
+    translationKey: 'eraCustom',
+    descriptionKey: 'eraCustomDescription',
     color: 'text-gray-400',
     icon: '✏️',
-    description: 'Era zdefiniowana przez gracza.',
   },
 };
 
@@ -102,23 +121,21 @@ export const ERA_STYLES: Record<string, AdventureStyleEntry> = {
  */
 export const DIFFICULTY_STYLES: Record<string, AdventureStyleEntry> = {
   easy: {
-    label: 'Łatwy',
+    translationKey: 'difficultyEasy',
+    descriptionKey: 'difficultyEasyDescription',
     color: 'text-green-400',
     icon: '🌱',
-    description:
-      'Łagodne wyzwanie - dobre na początek, mniej śmiertelne pułapki.',
   },
   normal: {
-    label: 'Normalny',
+    translationKey: 'difficultyNormal',
+    descriptionKey: 'difficultyNormalDescription',
     color: 'text-yellow-400',
     icon: '⚖️',
-    description: 'Standardowe wyzwanie - wymaga rozwagi i ostrożnych decyzji.',
   },
   hard: {
-    label: 'Trudny',
+    translationKey: 'difficultyHard',
+    descriptionKey: 'difficultyHardDescription',
     color: 'text-red-400',
     icon: '🔥',
-    description:
-      'Wymagające - wysoka śmiertelność, nie wybacza błędów. Dla doświadczonych.',
   },
 };

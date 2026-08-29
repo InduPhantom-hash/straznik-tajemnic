@@ -5204,6 +5204,14 @@
     "close": "Zamknij",
     "choose": "Wybierz tę przygodę →"
   },
+  "AdventureStyles": {
+    "tonePurist": "Purist", "tonePulp": "Pulp", "toneNoir": "Noir",
+    "eraClassic": "Lata 20.", "eraGaslight": "Wiktoria", "eraNoir": "Lata 40.", "eraPrl": "PRL - lata 70.", "eraModern": "Współczesność", "eraCustom": "Własna",
+    "difficultyEasy": "Łatwy", "difficultyNormal": "Normalny", "difficultyHard": "Trudny",
+    "tonePuristDescription": "Klasyczny, mroczny horror. Groza narasta powoli, zagrożenie jest realne, a badacze mają niewielkie szanse na heroizm.", "tonePulpDescription": "Heroiczna akcja. Odważniejsi badacze, więcej walki i przygody, mniej beznadziei.", "toneNoirDescription": "Mroczne śledztwo pełne intryg, moralnej dwuznaczności i tajemnic wielkiego miasta.",
+    "eraClassicDescription": "Klasyczne lata 20.: prohibicja, automobile i złota era Mitów Cthulhu.", "eraGaslightDescription": "Epoka wiktoriańska: gazowe latarnie, spirytyzm i gotycka groza.", "eraNoirDescription": "Lata czterdzieste: wojna, odbudowa, radio i śledztwa w cieniu historii.", "eraPrlDescription": "Polska lat siedemdziesiątych: kolejki, państwowe instytucje, analogowa technika i nieufność.", "eraModernDescription": "Czasy współczesne: smartfony, internet i kosmiczny horror w cyfrowym świecie.", "eraCustomDescription": "Era zdefiniowana przez gracza.",
+    "difficultyEasyDescription": "Łagodne wyzwanie na początek, z mniejszą liczbą śmiertelnych pułapek.", "difficultyNormalDescription": "Standardowe wyzwanie wymagające rozwagi i ostrożnych decyzji.", "difficultyHardDescription": "Wymagające i śmiertelne. Nie wybacza błędów."
+  },
   "ApiUsageCounter": {
     "collapse": "Zwiń licznik",
     "expand": "Rozwiń licznik",

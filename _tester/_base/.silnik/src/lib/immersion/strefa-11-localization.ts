@@ -14,6 +14,7 @@ type AdventureTranslation = Pick<
   | 'hook'
   | 'description'
   | 'source'
+  | 'externalLinks'
 >;
 
 const EN_ADVENTURES: Record<string, AdventureTranslation> = {
@@ -27,6 +28,11 @@ const EN_ADVENTURES: Record<string, AdventureTranslation> = {
     hook: "Investigating Father Klimuszko's phenomena leads the investigators to secret Security Service files and a dimensional anomaly in Prabuty.",
     description: 'The investigators are recruited by Helena Krawczyk, producer of the television programme "Signals from the Unknown", after the International Psychotronics Congress in Prague. Their task is to verify the extraordinary phenomena surrounding Father Klimuszko, a Franciscan friar from Elbląg.',
     source: 'Strefa 11 / Beyond Belief',
+    externalLinks: [
+      { label: 'Wikipedia (Beyond Belief)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Beyond Belief)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Official Player.pl TVN', url: 'https://player.pl' },
+    ],
   },
   'tajemnica-pendnika-lagiewki': {
     title: 'The Drive Mystery: A Brilliant Inventor from Kowary',
@@ -38,6 +44,11 @@ const EN_ADVENTURES: Record<string, AdventureTranslation> = {
     hook: "Łągiewka's bumper eliminates collision forces, but his Drive breaks the laws of physics using Mi-Go technology from the Mountains of Madness.",
     description: "The investigators uncover the discoveries of Lucjan Łągiewka from Kowary, whose kinetic bumpers eliminate overload. When he builds an inertia engine that works in a vacuum, AOR agents arrive at his workshop.",
     source: 'Strefa 11 / Beyond Belief',
+    externalLinks: [
+      { label: 'Wikipedia (Beyond Belief)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Beyond Belief)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Official Player.pl TVN', url: 'https://player.pl' },
+    ],
   },
   'tajemnica-dzieci-z-traszyna': {
     title: 'The Children of Traszyn: The Key and the Inverted Cross',
@@ -49,6 +60,11 @@ const EN_ADVENTURES: Record<string, AdventureTranslation> = {
     hook: 'In 1983, three children summoned a spirit in a barn. Sixteen years later it returns with a lightning strike and a scorched inverted cross.',
     description: 'An exorcist and bioenergy therapist, Tomasz Nowicki, summons the investigators to Traszyn. Sixteen years after a youthful seance with a book and a key, the entity returns and brings night paralysis with it.',
     source: 'Strefa 11 / Beyond Belief',
+    externalLinks: [
+      { label: 'Wikipedia (Beyond Belief)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Beyond Belief)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Official Player.pl TVN', url: 'https://player.pl' },
+    ],
   },
   'przybysz-z-matriksa-glogow': {
     title: 'The Visitor from the Matrix: Prophecy and the Głogów Phenomenon',
@@ -60,6 +76,11 @@ const EN_ADVENTURES: Record<string, AdventureTranslation> = {
     hook: 'A radio amateur records broadcasts from the future and a disrupted signal from the night of 14 November. An entity beneath the fortress manipulates time.',
     description: 'The investigators come to Głogów after a series of phenomena recorded on VHS tapes. Witnesses report night flashes, memory gaps and broadcasts from the future; the investigation leads beneath Głogów Fortress.',
     source: 'Strefa 11 / Beyond Belief',
+    externalLinks: [
+      { label: 'Wikipedia (Beyond Belief)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
+      { label: 'Filmweb (Beyond Belief)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
+      { label: 'Official Player.pl TVN', url: 'https://player.pl' },
+    ],
   },
 };
 

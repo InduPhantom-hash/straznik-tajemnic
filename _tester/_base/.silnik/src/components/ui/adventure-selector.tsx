@@ -1,8 +1,8 @@
 'use client';
 
 import type { ChangeEvent, MouseEvent } from 'react';
-import { useState, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useMemo, useState, useRef } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import {
 } from '@/lib/data/adventure-styles';
 import { Trash2, Upload, Loader2, FileText, Info } from 'lucide-react';
 import { AdventureDetailsModal } from './adventure-details-modal';
+import { localizeStrefa11Adventure } from '@/lib/immersion/strefa-11-localization';
 
 /**
  * Wgrywanie własnych przygód (PDF + formularz "bez PDF") + lista własnych przygód.
@@ -66,6 +67,12 @@ export function AdventureSelector({
   loadingStatus = '',
 }: AdventureSelectorProps) {
   const t = useTranslations('AdventureSelector');
+  const tStyles = useTranslations('AdventureStyles');
+  const locale = useLocale();
+  const strefa11Adventures = useMemo(
+    () => STREFA_11_ADVENTURES.map((adventure) => localizeStrefa11Adventure(adventure, locale)),
+    [locale]
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -102,7 +109,9 @@ export function AdventureSelector({
         title: customTitle || t('defaultTitle'),
         location: customLocation || t('defaultLocation'),
         era: customEra,
-        eraLabel: ERA_STYLES[customEra]?.label || t('defaultEraLabel'),
+        eraLabel: ERA_STYLES[customEra]
+          ? tStyles(ERA_STYLES[customEra].translationKey)
+          : t('defaultEraLabel'),
         yearRange: customYearRange,
         customDescription: customDescription,
       };
@@ -110,7 +119,7 @@ export function AdventureSelector({
     } else if (selectedId) {
       // Sprawdź w wbudowanych lub Strefa 11
       const builtIn = BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
-        STREFA_11_ADVENTURES.find((a) => a.id === selectedId);
+        strefa11Adventures.find((a) => a.id === selectedId);
       if (builtIn) {
         onSelect(builtIn);
       } else {
@@ -167,7 +176,7 @@ export function AdventureSelector({
 
   const selectedAdventure = selectedId
     ? BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
-      STREFA_11_ADVENTURES.find((a) => a.id === selectedId) ||
+      strefa11Adventures.find((a) => a.id === selectedId) ||
       customAdventures.find((a) => a.id === selectedId)
     : null;
 
@@ -217,7 +226,7 @@ export function AdventureSelector({
               <span
                 className={`border border-brass/35 px-2 py-0.5 font-special-elite text-[13px] uppercase tracking-[0.08em] ${toneStyle.color}`}
               >
-                {toneStyle.icon} {toneStyle.label}
+                {toneStyle.icon} {tStyles(toneStyle.translationKey)}
               </span>
               {isSelected && (
                 <span
@@ -255,7 +264,7 @@ export function AdventureSelector({
           <div className="flex items-center justify-between font-special-elite text-[14px] uppercase tracking-[0.08em] text-muted-foreground">
             <span>{t('sessionsCount', { count: adventure.estimatedSessions })}</span>
             <span className={diffStyle.color}>
-              {diffStyle.icon} {diffStyle.label}
+              {diffStyle.icon} {tStyles(diffStyle.translationKey)}
             </span>
           </div>
 
@@ -476,7 +485,7 @@ export function AdventureSelector({
                   {t('strefa11SelectTitle')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {STREFA_11_ADVENTURES.map((adventure) => (
+                  {strefa11Adventures.map((adventure) => (
                     <AdventureCard key={adventure.id} adventure={adventure} />
                   ))}
                 </div>

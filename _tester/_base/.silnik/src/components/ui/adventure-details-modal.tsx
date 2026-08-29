@@ -22,10 +22,12 @@ interface AdventureDetailsModalProps {
 /** Pojedynczy wiersz objaśnienia znacznika (ton/era/trudność). */
 function TagExplain({
   style,
-  fallbackLabel,
+  label,
+  description,
 }: {
   style?: AdventureStyleEntry;
-  fallbackLabel: string;
+  label: string;
+  description: string;
 }) {
   if (!style) return null;
   return (
@@ -35,11 +37,11 @@ function TagExplain({
         <span
           className={`font-special-elite text-xs font-semibold uppercase tracking-[0.1em] ${style.color}`}
         >
-          {style.label || fallbackLabel}
+          {label}
         </span>
-        {style.description && (
+        {description && (
           <p className="font-serif text-base italic text-muted-foreground">
-            {style.description}
+            {description}
           </p>
         )}
       </div>
@@ -60,6 +62,7 @@ export function AdventureDetailsModal({
   onChoose,
 }: AdventureDetailsModalProps) {
   const t = useTranslations('AdventureDetailsModal');
+  const tStyles = useTranslations('AdventureStyles');
   if (!adventure) return null;
 
   const toneStyle = TONE_STYLES[adventure.tone] || TONE_STYLES.purist;
@@ -87,17 +90,17 @@ export function AdventureDetailsModal({
             <span
               className={`border border-brass/40 px-3 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] ${toneStyle.color}`}
             >
-              {toneStyle.icon} {toneStyle.label}
+              {toneStyle.icon} {tStyles(toneStyle.translationKey)}
             </span>
             <span
               className={`border border-brass/40 px-3 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] ${eraStyle.color}`}
             >
-              {eraStyle.icon} {eraStyle.label}
+              {eraStyle.icon} {tStyles(eraStyle.translationKey)}
             </span>
             <span
               className={`border border-destructive/40 px-3 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] ${diffStyle.color}`}
             >
-              {diffStyle.icon} {diffStyle.label}
+              {diffStyle.icon} {tStyles(diffStyle.translationKey)}
             </span>
           </div>
         </DialogHeader>
@@ -135,9 +138,21 @@ export function AdventureDetailsModal({
             {t('tagsExplainTitle')}
           </h4>
           <div className="space-y-3">
-            <TagExplain style={toneStyle} fallbackLabel={t('fallbackTone')} />
-            <TagExplain style={eraStyle} fallbackLabel={t('fallbackEra')} />
-            <TagExplain style={diffStyle} fallbackLabel={t('fallbackDifficulty')} />
+            <TagExplain
+              style={toneStyle}
+              label={tStyles(toneStyle.translationKey) || t('fallbackTone')}
+              description={tStyles(toneStyle.descriptionKey)}
+            />
+            <TagExplain
+              style={eraStyle}
+              label={tStyles(eraStyle.translationKey) || t('fallbackEra')}
+              description={tStyles(eraStyle.descriptionKey)}
+            />
+            <TagExplain
+              style={diffStyle}
+              label={tStyles(diffStyle.translationKey) || t('fallbackDifficulty')}
+              description={tStyles(diffStyle.descriptionKey)}
+            />
           </div>
 
           {adventure.themes.length > 0 && (

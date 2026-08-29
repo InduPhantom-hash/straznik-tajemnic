@@ -30,6 +30,12 @@ const adventure: CustomAdventure = {
 };
 
 describe('AdventureSelector', () => {
+  const originalLocale = process.env.NEXT_INTL_TEST_LOCALE;
+
+  afterEach(() => {
+    process.env.NEXT_INTL_TEST_LOCALE = originalLocale;
+  });
+
   it('keeps the selection marker in the card header and hides player count', () => {
     render(
       <AdventureSelector
@@ -47,5 +53,35 @@ describe('AdventureSelector', () => {
     const marker = screen.getByLabelText('Wybrana przygoda');
     expect(marker).toBeInTheDocument();
     expect(marker).not.toHaveClass('absolute');
+  });
+
+  it('uses English Strefa 11 copy throughout selection and confirmation', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'en';
+    const onSelect = jest.fn();
+
+    render(<AdventureSelector open onClose={jest.fn()} onSelect={onSelect} />);
+
+    const title = "Shadow over Prabuty: Father Klimuszko's Vision";
+    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getByText(/People's Poland - 1970s/)).toBeInTheDocument();
+    expect(screen.getByText(/Easy/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Official Player\.pl TVN/)).toHaveLength(4);
+    expect(screen.queryByText('Cień nad Prabutami: Widzenie Ojca Klimuszki')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Łatwy/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(title));
+    expect(screen.getByText('A dark investigation of intrigue, moral ambiguity and big-city secrets.')).toBeInTheDocument();
+    expect(screen.getByText('People\'s Poland - 1970s')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    fireEvent.click(screen.getByRole('button', { name: /choose and continue/i }));
+
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'cien-nad-prabutami',
+        title,
+        hook: expect.stringContaining('Investigating Father Klimuszko'),
+      })
+    );
   });
 });
