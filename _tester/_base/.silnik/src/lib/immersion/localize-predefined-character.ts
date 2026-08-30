@@ -54,7 +54,7 @@ export function localizePredefinedCharacter<T extends Character>(
   // at rendering time, never in a Character value passed to mechanics.
   localized.skills = { ...character.skills };
 
-  localized.equipment = character.equipment?.map((item): EquipmentItem => {
+  localized.equipment = Array.isArray(character.equipment) ? character.equipment.map((item): EquipmentItem => {
     const personal = `${base}.equipment.${item.id}`;
     const system = `systemEquipment.${item.id}`;
     const itemBase = t.has?.(`${personal}.name`) ? personal : system;
@@ -65,7 +65,7 @@ export function localizePredefinedCharacter<T extends Character>(
         ? { description: message(`${itemBase}.description`, item.description) }
         : {}),
     };
-  });
+  }) : [];
 
   return localized;
 }

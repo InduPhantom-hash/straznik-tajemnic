@@ -39,6 +39,7 @@ import { EquipmentDetailDialog } from '../equipment-detail-dialog';
 import { exportCharacterToMarkdown } from './utils/export-markdown';
 import { deriveStats } from './utils/derive-stats';
 import { applyPresetTranslation, getPresetSkillLabels } from '@/lib/i18n/preset-translation';
+import { getEquipmentItems } from '@/lib/character-storage-normalizer';
 import { useInlineEdit } from './hooks/use-inline-edit';
 import { SheetHeader } from './components/sheet-header';
 import { StatBars } from './components/stat-bars';
@@ -97,10 +98,10 @@ export function CharacterSheet({
       return {
         ...character,
         portraitUrl: character.portraitUrl || prev?.portraitUrl,
-        equipment: character.equipment?.map((item, i) => ({
+        equipment: getEquipmentItems(character.equipment).map((item, i) => ({
           ...item,
           imageUrl: item.imageUrl || prev?.equipment?.[i]?.imageUrl,
-        })) ?? character.equipment,
+        })),
       };
     });
   }, [character]);
@@ -267,9 +268,9 @@ export function CharacterSheet({
             onUpdateItem={(updatedItem) => {
               setSelectedItem(updatedItem);
               if (onCharacterUpdate && character) {
-                const updatedEquipment = character.equipment?.map((eq) =>
+                const updatedEquipment = getEquipmentItems(character.equipment).map((eq) =>
                   eq.id === updatedItem.id ? updatedItem : eq
-                ) ?? [];
+                );
                 onCharacterUpdate({
                   ...character,
                   equipment: updatedEquipment,

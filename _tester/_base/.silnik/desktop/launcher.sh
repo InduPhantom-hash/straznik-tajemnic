@@ -27,6 +27,13 @@ if [ ! -f "$APP_DIR/package.json" ]; then
   APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
+# Bundle moze zostac zlozony z katalogu glownego albo bezposrednio z silnika.
+# Serwer, build i profil Chrome zawsze musza wskazywac na faktyczny runtime.
+GAME_DIR="$APP_DIR"
+if [ -f "$APP_DIR/_tester/_base/.silnik/package.json" ]; then
+  GAME_DIR="$APP_DIR/_tester/_base/.silnik"
+fi
+
 # --- node/npm w PATH ---
 # .app uruchamiany z Findera NIE dziedziczy shellowego PATH; trzeba wskazac node recznie.
 # Detekcja po -x (istnienie node), nie po placeholderze - z tego samego powodu co wyzej.
@@ -37,7 +44,7 @@ if [ ! -x "$NODE_BIN_DIR/node" ]; then
 fi
 export PATH="$NODE_BIN_DIR:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-RUNTIME_DIR="$APP_DIR/.desktop"
+RUNTIME_DIR="$GAME_DIR/.desktop"
 PROFILE_DIR="$RUNTIME_DIR/chrome-profile"
 PID_FILE="$RUNTIME_DIR/server.pid"
 COLD_START_FLAG="$RUNTIME_DIR/cold-start-requested"
@@ -45,7 +52,7 @@ LOG="$HOME/Library/Logs/straznik-tajemnic-ai.log"
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 mkdir -p "$RUNTIME_DIR" "$PROFILE_DIR"
-cd "$APP_DIR" || { echo "$(date) BLAD: brak katalogu $APP_DIR" >>"$LOG"; exit 1; }
+cd "$GAME_DIR" || { echo "$(date) BLAD: brak katalogu $GAME_DIR" >>"$LOG"; exit 1; }
 rm -f "$COLD_START_FLAG"
 
 # Chrome nie ma pytać o zapisywanie haseł w profilu launchera.
@@ -77,8 +84,8 @@ fi
 
 # Jeśli serwer działa, upewnijmy się że służy aktualny kod (BUILD_ID z dysku)
 if curl -sf "$URL" >/dev/null 2>&1; then
-  if [ -f "$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID" ]; then
-    DISK_BUILD_ID="$(cat "$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID")"
+  if [ -f "$GAME_DIR/.next/BUILD_ID" ]; then
+    DISK_BUILD_ID="$(cat "$GAME_DIR/.next/BUILD_ID")"
     # HTTP 200 may be the application's HTML fallback, not a real manifest.
     if ! curl -fsS "$URL/_next/static/${DISK_BUILD_ID}/_buildManifest.js" 2>/dev/null | grep -q 'self.__BUILD_MANIFEST'; then
       echo "$(date) serwer ma przestarzaly BUILD_ID - zatrzymuje stary proces" >>"$LOG"
@@ -93,7 +100,7 @@ fi
 
 STARTED_SERVER=0
 if ! curl -sf "$URL" >/dev/null 2>&1; then
-  if [ ! -f _tester/_base/.silnik/.next/BUILD_ID ]; then
+  if [ ! -f ".next/BUILD_ID" ]; then
     echo "$(date) brak buildu - buduje (to potrwa)..." >>"$LOG"
     PORT=$PORT npm run build >>"$LOG" 2>&1
   fi
@@ -136,7 +143,7 @@ done
 if [ "$COLD_START_REQUESTED" = "1" ]; then
   rm -f "$COLD_START_FLAG"
   echo "$(date) UI zlecilo zimny start" >>"$LOG"
-  exec env ZEW_APP_DIR="$APP_DIR" ZEW_APP_PORT="$PORT" bash "$APP_DIR/desktop/cold-start.sh" --play
+  exec env ZEW_APP_DIR="$GAME_DIR" ZEW_APP_PORT="$PORT" bash "$GAME_DIR/desktop/cold-start.sh" --play
 fi
 
 # Normalne zamkniecie ubija serwer tylko wtedy, gdy uruchomil go ten launcher.

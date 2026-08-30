@@ -1,6 +1,5 @@
 import { Character } from '@/lib/types';
 import { buildPredefinedEquipment } from './predefined-equipment';
-import { STREFA_11_CHARACTERS } from './strefa-11-characters';
 
 export type PredefinedCharacterEra =
   | 'gaslight'
@@ -21,7 +20,8 @@ export type PredefinedCharacterArchetype =
 export interface PredefinedCharacter extends Character {
   era: PredefinedCharacterEra;
   archetype: PredefinedCharacterArchetype;
-  scenarioId?: string; // Dedykowany identyfikator autorskiego scenariusza (np. Strefa 11)
+  /** Preset przypisany wyłącznie do wskazanych scenariuszy. */
+  scenarioIds?: string[];
   tacticalNotes?: string;
 }
 
@@ -2363,12 +2363,7 @@ const BASE_PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
 ];
 
 
-export { STREFA_11_CHARACTERS };
-
-export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = [
-  ...BASE_PREDEFINED_CHARACTERS,
-  ...STREFA_11_CHARACTERS,
-].map((character) => ({
+export const PREDEFINED_CHARACTERS: PredefinedCharacter[] = BASE_PREDEFINED_CHARACTERS.map((character) => ({
   ...character,
   equipment: buildPredefinedEquipment(character),
 }));

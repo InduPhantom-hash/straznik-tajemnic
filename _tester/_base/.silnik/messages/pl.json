@@ -271,6 +271,14 @@
         "description": "Stwórz bohatera od zera, dobierając zawód, umiejętności i historię według własnego pomysłu."
       }
     },
+    "archetypeDetails": {
+      "investigator": { "suggestedOccupations": ["Prywatny detektyw", "Detektyw policyjny", "Dziennikarz"], "suggestedTraits": ["dociekliwy", "uparty", "sceptyczny"], "suggestedMotivations": ["odkrycie prawdy", "sprawiedliwość", "ciekawość"] },
+      "scholar": { "suggestedOccupations": ["Profesor", "Bibliotekarz", "Antykwariusz"], "suggestedTraits": ["ciekawy świata", "metodyczny", "zamyślony"], "suggestedMotivations": ["zdobycie wiedzy", "ochrona przed zapomnianymi tajemnicami", "akademicka sława"] },
+      "action": { "suggestedOccupations": ["Żołnierz", "Atleta", "Marynarz"], "suggestedTraits": ["odważny", "impulsywny", "lojalny"], "suggestedMotivations": ["ochrona bliskich", "przygoda", "honor"] },
+      "trickster": { "suggestedOccupations": ["Przestępca", "Artysta estradowy", "Szpieg"], "suggestedTraits": ["przebiegły", "czarujący", "wyrachowany"], "suggestedMotivations": ["zysk", "emocje", "ucieczka przed przeszłością"] },
+      "mystic": { "suggestedOccupations": ["Parapsycholog", "Duchowny", "Artysta"], "suggestedTraits": ["intuicyjny", "tajemniczy", "wrażliwy"], "suggestedMotivations": ["zrozumienie niewidzialnego", "ochrona przed złem", "odkrycie przeznaczenia"] },
+      "healer": { "suggestedOccupations": ["Lekarz", "Pielęgniarka", "Duchowny"], "suggestedTraits": ["empatyczny", "opanowany", "cierpliwy"], "suggestedMotivations": ["ratowanie życia", "zrozumienie ludzkiej natury", "pokuta za przeszłość"] }
+    },
     "generateButton": "✨ Generuj",
     "generatingEllipsis": "⏳...",
     "researcherLowercase": "badacz",
@@ -888,6 +896,7 @@
   "PredefinedCharacters": {
     "eyebrow": "Gotowi badacze",
     "title": "Wybierz predefiniowaną postać",
+    "era": "Epoka",
     "characterForPlayer": "Postać dla gracza",
     "gender": "Płeć",
     "all": "Wszystkie",

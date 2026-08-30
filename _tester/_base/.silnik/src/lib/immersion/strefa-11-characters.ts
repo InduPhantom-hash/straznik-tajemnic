@@ -6,6 +6,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
   {
     id: 'strefa11_tomasz_nowicki',
+    scenarioIds: ['cien-nad-prabutami'],
     era: 'modern',
     archetype: 'investigator',
     name: 'Tomasz Nowicki',
@@ -38,6 +39,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'strefa11_helena_krawczyk',
+    scenarioIds: ['cien-nad-prabutami'],
     era: 'modern',
     archetype: 'trickster',
     name: 'Helena Krawczyk',
@@ -70,6 +72,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'strefa11_barbara_zawadzka',
+    scenarioIds: ['cien-nad-prabutami'],
     era: 'modern',
     archetype: 'scholar',
     name: 'Dr Barbara Zawadzka',
@@ -102,6 +105,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'strefa11_ryszard_klucznik',
+    scenarioIds: ['cien-nad-prabutami'],
     era: 'modern',
     archetype: 'action',
     name: 'Ryszard "Klucznik" Kaczmarek',
@@ -138,6 +142,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
   {
     id: 'pednik_inzynier',
+    scenarioIds: ['tajemnica-pendnika-lagiewki'],
     era: 'modern',
     archetype: 'scholar',
     name: 'Inż. Marek Kamiński',
@@ -170,6 +175,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'pednik_kierowca',
+    scenarioIds: ['tajemnica-pendnika-lagiewki'],
     era: 'modern',
     archetype: 'action',
     name: 'Tomasz "Ryzykant" Wójcik',
@@ -202,6 +208,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'pednik_dziennikarka',
+    scenarioIds: ['tajemnica-pendnika-lagiewki'],
     era: 'modern',
     archetype: 'investigator',
     name: 'Anna Dąbrowska',
@@ -234,6 +241,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'pednik_fizyk',
+    scenarioIds: ['tajemnica-pendnika-lagiewki'],
     era: 'modern',
     archetype: 'scholar',
     name: 'Dr Ewa Wiśniewska',
@@ -270,6 +278,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
   {
     id: 'traszyn_egzorcysta',
+    scenarioIds: ['tajemnica-dzieci-z-traszyna'],
     era: 'modern',
     archetype: 'mystic',
     name: 'Ksiądz Jan Kaczmarek',
@@ -302,6 +311,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'traszyn_terapeuta',
+    scenarioIds: ['tajemnica-dzieci-z-traszyna'],
     era: 'modern',
     archetype: 'healer',
     name: 'Andrzej "Aura" Zalewski',
@@ -334,6 +344,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'traszyn_psycholog',
+    scenarioIds: ['tajemnica-dzieci-z-traszyna'],
     era: 'modern',
     archetype: 'scholar',
     name: 'Marta Kamińska',
@@ -366,6 +377,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'traszyn_etnografka',
+    scenarioIds: ['tajemnica-dzieci-z-traszyna'],
     era: 'modern',
     archetype: 'investigator',
     name: 'Zofia "Zosia" Sadowska',
@@ -402,6 +414,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
   {
     id: 'glogow_detektyw',
+    scenarioIds: ['przybysz-z-matriksa-glogow'],
     era: 'modern',
     archetype: 'investigator',
     name: 'Artur "Stary" Majchrzak',
@@ -434,6 +447,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'glogow_haker',
+    scenarioIds: ['przybysz-z-matriksa-glogow'],
     era: 'modern',
     archetype: 'trickster',
     name: 'Piotr "Kabel" Wójcicki',
@@ -466,6 +480,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'glogow_psychiatra',
+    scenarioIds: ['przybysz-z-matriksa-glogow'],
     era: 'modern',
     archetype: 'healer',
     name: 'Dr Krystyna Zawada',
@@ -498,6 +513,7 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   },
   {
     id: 'glogow_ufolog',
+    scenarioIds: ['przybysz-z-matriksa-glogow'],
     era: 'modern',
     archetype: 'scholar',
     name: 'Karolina "Luna" Maj',
@@ -529,3 +545,9 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     equipment: [{ id: 'eq_luna_camera', name: 'Zestaw do zdjęć nocnych', category: 'tool' }, { id: 'eq_luna_detector', name: 'Wykrywacz pól elektromagnetycznych domowej roboty', category: 'tool' }]
   }
 ];
+
+export function getStrefa11CharactersForAdventure(adventureId: string): PredefinedCharacter[] {
+  return STREFA_11_CHARACTERS.filter((character) =>
+    character.scenarioIds?.includes(adventureId)
+  );
+}

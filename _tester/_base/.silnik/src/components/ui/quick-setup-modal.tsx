@@ -13,7 +13,7 @@ import { Button } from './button';
 import { SafeImage } from './safe-image';
 import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X } from 'lucide-react';
 import { STREFA_11_ADVENTURES } from '@/lib/adventures-data';
-import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
+import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
 import {
   localizeStrefa11Adventure,
   localizeStrefa11Character,
@@ -45,13 +45,7 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
   );
 
   const availableCharacters = useMemo(() => {
-    return STREFA_11_CHARACTERS.filter(c => {
-      if (selectedAdventureId === 'cien-nad-prabutami') return c.id.startsWith('strefa11_');
-      if (selectedAdventureId === 'tajemnica-pendnika-lagiewki') return c.id.startsWith('pednik_');
-      if (selectedAdventureId === 'tajemnica-dzieci-z-traszyna') return c.id.startsWith('traszyn_');
-      if (selectedAdventureId === 'przybysz-z-matriksa-glogow') return c.id.startsWith('glogow_');
-      return true;
-    })
+    return getStrefa11CharactersForAdventure(selectedAdventureId)
       .slice(0, 4)
       .map((character) => localizeStrefa11Character(character, locale));
   }, [locale, selectedAdventureId]);

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Character } from '@/lib/types';
 import {
-  PREDEFINED_CHARACTERS,
   PredefinedCharacterArchetype,
   PredefinedCharacterEra,
   PredefinedCharacter,
@@ -12,6 +12,9 @@ import { Button } from './button';
 import { X, Search } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { EquipmentItem } from '@/lib/types';
+import { localizeStrefa11Character } from '@/lib/immersion/strefa-11-localization';
+import { localizePredefinedCharacter } from '@/lib/immersion/localize-predefined-character';
+import { getEquipmentItems } from '@/lib/character-storage-normalizer';
 
 interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
@@ -23,6 +26,8 @@ interface PredefinedCharactersSelectorProps {
   /** Pełny kontekst epoki z lib/era - caller przekazuje dla spójności wizualnej;
    *  selektor czyta profile przez preset.era, pole opcjonalne dla zgodności. */
   eraContext?: unknown;
+  characters: PredefinedCharacter[];
+  filterByEra?: boolean;
 }
 
 const CHARACTERISTIC_LABELS: Record<string, string> = {
@@ -91,7 +96,11 @@ export function PredefinedCharactersSelector({
   currentEra = 'classic',
   targetPlayerName,
   unavailablePresetIds = [],
+  characters,
+  filterByEra = true,
 }: PredefinedCharactersSelectorProps) {
+  const t = useTranslations('PredefinedCharacters');
+  const locale = useLocale();
   const [selectedGender, setSelectedGender] = useState<
     'all' | 'male' | 'female'
   >('all');
@@ -116,8 +125,24 @@ export function PredefinedCharactersSelector({
   if (!isOpen) return null;
 
   // Epoka jest jawnym polem danych. Nie odczytujemy jej z identyfikatora.
-  const filtered = PREDEFINED_CHARACTERS.filter((char) => {
-    if (!selectedEra || char.era !== selectedEra) return false;
+  const localizeCharacter = (character: PredefinedCharacter): PredefinedCharacter => {
+    if (locale !== 'en') {
+      return character;
+    }
+    // Dane pod `data.equipment` w słowniku są mapą tłumaczeń, a nie listą
+    // EquipmentItem. Nie wolno ich rozlać na postać, bo nadpisują mechanikę
+    // gotowego badacza i wywołują błąd `.map is not a function` po wyborze.
+    const strefaLocalized = localizeStrefa11Character(character, locale);
+    return localizePredefinedCharacter(
+      strefaLocalized,
+      character.id,
+      locale,
+      t as unknown as Parameters<typeof localizePredefinedCharacter>[3]
+    );
+  };
+
+  const filtered = characters.filter((char) => {
+    if (filterByEra && (!selectedEra || char.era !== selectedEra)) return false;
 
     if (selectedGender !== 'all' && char.gender !== selectedGender)
       return false;
@@ -147,14 +172,14 @@ export function PredefinedCharactersSelector({
           <div className="flex items-center justify-between p-6 border-b border-brass/20">
             <div>
               <div className="font-special-elite text-xs uppercase tracking-[0.4em] text-primary">
-                Gotowi badacze
+                {t('eyebrow')}
               </div>
               <h2 className="font-display font-bold uppercase tracking-[0.1em] text-2xl text-foreground mt-1">
-                Wybierz predefiniowaną postać
+                {t('title')}
               </h2>
               {targetPlayerName && (
                 <p className="mt-1 font-special-elite text-sm text-brass">
-                  Postać dla gracza: <strong>{targetPlayerName}</strong>
+                  {t('characterForPlayer')}: <strong>{targetPlayerName}</strong>
                 </p>
               )}
             </div>
@@ -168,10 +193,10 @@ export function PredefinedCharactersSelector({
 
           {/* Filtry */}
           <div className="space-y-3 border-b border-brass/10 bg-[#1b1713] p-4">
-            {currentEra === 'custom' && (
+            {filterByEra && currentEra === 'custom' && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="mr-2 font-special-elite text-sm text-brass">
-                  Epoka:
+                  {t('era')}:
                 </span>
                 {ERA_LABELS.map((era) => (
                   <Button
@@ -188,7 +213,7 @@ export function PredefinedCharactersSelector({
             )}
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-special-elite text-sm text-brass mr-2">
-                Płeć:
+                {t('gender')}:
               </span>
               <Button
                 size="sm"
@@ -196,7 +221,7 @@ export function PredefinedCharactersSelector({
                 onClick={() => setSelectedGender('all')}
                 className="font-special-elite tracking-[0.06em] text-xs py-1"
               >
-                Wszystkie
+                {t('all')}
               </Button>
               <Button
                 size="sm"
@@ -204,7 +229,7 @@ export function PredefinedCharactersSelector({
                 onClick={() => setSelectedGender('female')}
                 className="font-special-elite tracking-[0.06em] text-xs py-1"
               >
-                Kobiety
+                {t('women')}
               </Button>
               <Button
                 size="sm"
@@ -212,12 +237,12 @@ export function PredefinedCharactersSelector({
                 onClick={() => setSelectedGender('male')}
                 className="font-special-elite tracking-[0.06em] text-xs py-1"
               >
-                Mężczyźni
+                {t('men')}
               </Button>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="mr-2 font-special-elite text-sm text-brass">
-                Archetyp:
+                {t('archetype')}:
               </span>
               {ARCHETYPE_LABELS.map((archetype) => (
                 <Button
@@ -229,14 +254,16 @@ export function PredefinedCharactersSelector({
                   onClick={() => setSelectedArchetype(archetype.value)}
                   className="py-1 font-special-elite text-xs tracking-[0.06em]"
                 >
-                  {archetype.label}
+                  {locale === 'pl'
+                    ? archetype.label
+                    : (t as any)(`archetypes.${archetype.value}`)}
                 </Button>
               ))}
             </div>
             <div className="relative w-full sm:w-80">
               <input
                 type="text"
-                placeholder="Szukaj po zawodzie lub opisie..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#120f0c] border border-brass/30 px-3 py-2 pl-9 font-serif text-sm text-foreground focus:border-primary focus:outline-none placeholder:italic"
@@ -247,53 +274,55 @@ export function PredefinedCharactersSelector({
 
           {/* Lista Postaci */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {!selectedEra ? (
+            {filterByEra && !selectedEra ? (
               <div className="py-12 text-center font-serif italic text-muted-foreground">
-                Epoka tej przygody nie jest określona. Wybierz epokę, aby zobaczyć
-                pasujących badaczy.
+                {locale === 'pl'
+                  ? 'Epoka tej przygody nie jest określona. Wybierz epokę, aby zobaczyć pasujących badaczy.'
+                  : t('noPresets')}
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground font-serif italic">
-                Nie znaleziono postaci z tej epoki spełniających wybrane kryteria.
+                {t('noResults')}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filtered.map((char) => {
+                  const localizedChar = localizeCharacter(char);
                   const unavailable = unavailablePresetIds.includes(char.id);
                   return (
                     <div
                       key={char.id}
-                      onClick={() => setViewingCharacter(char)}
+                      onClick={() => setViewingCharacter(localizedChar)}
                       className="flex gap-4 p-4 border border-brass/20 bg-[#120f0c] hover:border-brass/50 transition-all duration-200 cursor-pointer"
                     >
                       <div className="flex-[0_0_80px] w-20 h-24 border border-brass/35 overflow-hidden">
                         <img
-                          src={char.portraitUrl}
-                          alt={char.name}
+                          src={localizedChar.portraitUrl}
+                          alt={localizedChar.name}
                           className="w-full h-full object-cover object-top grayscale opacity-90"
                         />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
                         <div>
                           <h3 className="font-display font-bold text-lg text-foreground tracking-[0.04em] truncate">
-                            {char.name}
+                            {localizedChar.name}
                           </h3>
                           <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass">
-                            {char.occupation} · lat {char.age}
+                            {localizedChar.occupation} · {t('age', { age: localizedChar.age })}
                           </div>
                           <p className="font-serif text-xs text-muted-foreground line-clamp-2 mt-2 leading-relaxed">
-                            {char.background}
+                            {localizedChar.background}
                           </p>
                         </div>
 
                         <div className="flex items-center justify-between mt-3 pt-2 border-t border-brass/10">
                           <div className="flex gap-3 text-[11px] font-special-elite text-brass/70">
-                            <span>PŻ: {char.hp}</span>
-                            <span>PR: {char.san}</span>
-                            <span>PM: {char.mp}</span>
+                            <span>{t('hpShort')}: {localizedChar.hp}</span>
+                            <span>{t('sanityShort')}: {localizedChar.san}</span>
+                            <span>{t('magicShort')}: {localizedChar.mp}</span>
                           </div>
                           <span className="font-display text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-                            {unavailable ? 'Przypisana' : 'Szczegóły ➔'}
+                            {unavailable ? t('assigned') : t('details')}
                           </span>
                         </div>
                       </div>
@@ -310,7 +339,7 @@ export function PredefinedCharactersSelector({
               onClick={onClose}
               className="font-display font-semibold uppercase tracking-[0.16em] text-xs text-muted-foreground bg-transparent border border-brass/20 hover:border-brass/50 hover:text-brass"
             >
-              Zamknij
+              {t('close')}
             </Button>
           </div>
         </div>
@@ -323,7 +352,7 @@ export function PredefinedCharactersSelector({
               <div className="flex justify-between items-start mb-4 border-b border-brass/20 pb-3">
                 <div>
                   <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">
-                    Opis badacza (Karta Postaci)
+                    {t('sheetEyebrow')}
                   </div>
                   <h3 className="font-display font-bold text-2xl text-foreground mt-1 uppercase tracking-[0.06em]">
                     {viewingCharacter.name}
@@ -375,8 +404,8 @@ export function PredefinedCharactersSelector({
                   <div className="text-center">
                     <div className="font-special-elite text-[14px] text-brass tracking-[0.18em] uppercase mt-1.5">
                       {viewingCharacter.occupation || '-'}
-                      {viewingCharacter.age ? ` · lat ${viewingCharacter.age}` : ''}
-                      {viewingCharacter.gender === 'male' ? ' · Mężczyzna' : viewingCharacter.gender === 'female' ? ' · Kobieta' : ''}
+                      {viewingCharacter.age ? ` · ${t('age', { age: viewingCharacter.age })}` : ''}
+                      {viewingCharacter.gender === 'male' ? ` · ${t('man')}` : viewingCharacter.gender === 'female' ? ` · ${t('woman')}` : ''}
                     </div>
                   </div>
 
@@ -386,8 +415,8 @@ export function PredefinedCharactersSelector({
                     <div className="p-3 bg-[#16130f] border border-brass/20">
                       <div className="flex justify-between items-center font-special-elite text-[14px] tracking-[0.1em] mb-2">
                         <span className="text-[#d9685f]">
-                          <span>PŻ</span>
-                          <span className="text-muted-foreground/60"> · ŻYCIE</span>
+                          <span>{t('hpShort')}</span>
+                          <span className="text-muted-foreground/60"> · {t('health')}</span>
                         </span>
                         <span className="text-muted-foreground">{viewingCharacter.hp} / {viewingCharacter.maxHp || viewingCharacter.hp}</span>
                       </div>
@@ -407,8 +436,8 @@ export function PredefinedCharactersSelector({
                     <div className="p-3 bg-[#16130f] border border-brass/20">
                       <div className="flex justify-between items-center font-special-elite text-[14px] tracking-[0.1em] mb-2">
                         <span className="text-brass">
-                          <span>PR</span>
-                          <span className="text-muted-foreground/60"> · POCZYTALNOŚĆ</span>
+                          <span>{t('sanityShort')}</span>
+                          <span className="text-muted-foreground/60"> · {t('sanity')}</span>
                         </span>
                         <span className="text-muted-foreground">{viewingCharacter.san} / {viewingCharacter.maxSan || 99}</span>
                       </div>
@@ -428,8 +457,8 @@ export function PredefinedCharactersSelector({
                     <div className="p-3 bg-[#16130f] border border-brass/20">
                       <div className="flex justify-between items-center font-special-elite text-[14px] tracking-[0.1em] mb-2">
                         <span className="text-primary">
-                          <span>PM</span>
-                          <span className="text-muted-foreground/60"> · MOC</span>
+                          <span>{t('magicShort')}</span>
+                          <span className="text-muted-foreground/60"> · {t('magic')}</span>
                         </span>
                         <span className="text-muted-foreground">{viewingCharacter.mp} / {viewingCharacter.maxMp || viewingCharacter.mp}</span>
                       </div>
@@ -449,8 +478,7 @@ export function PredefinedCharactersSelector({
                     <div className="p-3 bg-[#16130f] border border-brass/20">
                       <div className="flex justify-between items-center font-special-elite text-[14px] tracking-[0.1em] mb-2">
                         <span className="text-brass">
-                          <span>SZC</span>
-                          <span className="text-muted-foreground/60"> · SZCZĘŚCIE</span>
+                          <span>{t('luck')}</span>
                         </span>
                         <span className="text-muted-foreground">{viewingCharacter.luck}</span>
                       </div>
@@ -468,14 +496,14 @@ export function PredefinedCharactersSelector({
                   </div>
 
                   {/* EKWIPUNKS I WYPOSAŻENIE W LEWEJ KOLUMNIE */}
-                  {viewingCharacter.equipment && viewingCharacter.equipment.length > 0 && (
+                  {getEquipmentItems(viewingCharacter.equipment).length > 0 && (
                     <div className="space-y-3 pt-3 border-t border-brass/20">
                       <div className="flex justify-between items-center font-special-elite text-[12px] uppercase tracking-[0.16em] text-brass">
-                        <span>🎒 EKWIPUNKEK & WYPOSAŻENIE</span>
-                        <span className="text-muted-foreground/60">{viewingCharacter.equipment.length} szt.</span>
+                        <span>🎒 {t('equipment')}</span>
+                        <span className="text-muted-foreground/60">{t('itemCount', { count: getEquipmentItems(viewingCharacter.equipment).length })}</span>
                       </div>
                       <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-                        {viewingCharacter.equipment.map((item) => {
+                        {getEquipmentItems(viewingCharacter.equipment).map((item) => {
                           const categoryIcon = item.category
                             ? `/equipment/predefined/${item.category}.svg`
                             : '/equipment/predefined/personal.svg';
@@ -505,7 +533,7 @@ export function PredefinedCharactersSelector({
                                     {item.name}
                                   </span>
                                   <span className="font-special-elite text-[9px] uppercase tracking-wider text-brass/70 bg-brass/10 border border-brass/25 px-1 py-0.5 rounded flex-none">
-                                    {item.condition === 'new' ? 'NOWY' : item.condition === 'damaged' ? 'USZKODZONY' : item.condition === 'broken' ? 'ZEPSUTY' : 'UŻYWANY'}
+                                    {item.condition === 'new' ? t('conditionNew') : item.condition === 'damaged' ? t('conditionDamaged') : item.condition === 'broken' ? t('conditionBroken') : t('conditionUsed')}
                                   </span>
                                 </div>
                                 {item.description && (
@@ -524,7 +552,7 @@ export function PredefinedCharactersSelector({
                   {(viewingCharacter as PredefinedCharacter).tacticalNotes && (
                     <div className="border border-brass/20 bg-[#16130f] p-3">
                       <span className="font-special-elite text-xs text-brass uppercase tracking-[0.1em] block mb-1">
-                        Notatki MG / Wskazówki
+                        {t('gmNotes')}
                       </span>
                       <p className="font-serif text-xs text-brass/90 italic leading-relaxed whitespace-pre-line">
                         {(viewingCharacter as PredefinedCharacter).tacticalNotes}
@@ -544,14 +572,14 @@ export function PredefinedCharactersSelector({
                       disabled={isUnavailable}
                       className="cursor-pointer bg-primary w-full py-2.5 font-display text-xs font-semibold uppercase tracking-[0.16em] text-[#04110f] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 text-center"
                     >
-                      {isUnavailable ? 'Przypisana' : 'Wybierz tę postać'}
+                      {isUnavailable ? t('assigned') : t('selectCharacter')}
                     </button>
                     <Button
                       onClick={() => setViewingCharacter(null)}
                       variant="outline"
                       className="font-display text-xs uppercase tracking-[0.16em] border-brass/20 text-muted-foreground hover:border-brass/50 hover:text-brass w-full"
                     >
-                      Wróć do listy
+                      {t('backToList')}
                     </Button>
                   </div>
                 </div>
@@ -561,7 +589,7 @@ export function PredefinedCharactersSelector({
                   {/* Cechy */}
                   <div>
                     <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-                      Cechy badacza
+                      {t('characteristics')}
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {Object.entries(CHARACTERISTIC_LABELS).map(([key, label]) => {
@@ -571,7 +599,7 @@ export function PredefinedCharactersSelector({
                         return (
                           <div key={key} className="border border-brass/28 bg-[#16130f] p-3 text-center">
                             <div className="font-display text-sm uppercase tracking-[0.08em] text-foreground">
-                              {STAT_FULL_NAMES[key] || key.toUpperCase()}
+                              {t(`stats.${key}` as any)}
                             </div>
                             <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mt-0.5">
                               {key.toUpperCase()}
@@ -589,12 +617,12 @@ export function PredefinedCharactersSelector({
                   {/* Walka */}
                   <div>
                     <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-                      Walka
+                      {t('combat')}
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
                         <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">
-                          Bonus DMG
+                          {t('damageBonus')}
                         </div>
                         <div className="font-display font-bold text-2xl text-foreground mt-1">
                           {viewingCharacter.damageBonus || '+0'}
@@ -602,7 +630,7 @@ export function PredefinedCharactersSelector({
                       </div>
                       <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
                         <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">
-                          Krzepa
+                          {t('build')}
                         </div>
                         <div className="font-display font-bold text-2xl text-foreground mt-1">
                           {viewingCharacter.build !== undefined ? (viewingCharacter.build >= 0 ? `+${viewingCharacter.build}` : viewingCharacter.build) : '0'}
@@ -610,7 +638,7 @@ export function PredefinedCharactersSelector({
                       </div>
                       <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
                         <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">
-                          Ruch
+                          {t('move')}
                         </div>
                         <div className="font-display font-bold text-2xl text-foreground mt-1">
                           {viewingCharacter.move || '8'}
@@ -623,7 +651,7 @@ export function PredefinedCharactersSelector({
                   {viewingCharacter.skills && Object.keys(viewingCharacter.skills).length > 0 && (
                     <div>
                       <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-                        Umiejętności
+                        {t('skills')}
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-7 gap-y-2.5">
                         {Object.entries(viewingCharacter.skills)
@@ -668,13 +696,13 @@ export function PredefinedCharactersSelector({
                   {/* Biografia i tło */}
                   <div>
                     <h4 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
-                      Biografia
+                      {t('biography')}
                     </h4>
                     <div className="space-y-3">
                       {viewingCharacter.backstory && (
                         <div className="border border-primary/30 bg-[#0e1413] p-4">
                           <span className="font-special-elite text-[14px] text-primary tracking-[0.12em] uppercase block mb-1.5">
-                            🎭 Życiorys
+                            🎭 {t('backstory')}
                           </span>
                           <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
                             {viewingCharacter.backstory}
@@ -685,37 +713,37 @@ export function PredefinedCharactersSelector({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {viewingCharacter.birthplace && (
                           <div className="border border-brass/20 bg-[#16130f] p-3">
-                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">🏠 Miejsce urodzenia</span>
+                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">🏠 {t('birthplace')}</span>
                             <p className="font-serif text-foreground text-base leading-relaxed">{viewingCharacter.birthplace}</p>
                           </div>
                         )}
                         {viewingCharacter.description && (
                           <div className="border border-brass/20 bg-[#16130f] p-3">
-                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">👤 Wygląd</span>
+                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">👤 {t('appearance')}</span>
                             <p className="font-serif text-foreground text-base leading-relaxed">{viewingCharacter.description}</p>
                           </div>
                         )}
                         {viewingCharacter.ideology && (
                           <div className="border border-brass/20 bg-[#16130f] p-3">
-                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">💭 Ideologia / Przekonania</span>
+                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">💭 {t('ideology')}</span>
                             <p className="font-serif text-foreground text-base leading-relaxed">{viewingCharacter.ideology}</p>
                           </div>
                         )}
                         {viewingCharacter.significantPerson && (
                           <div className="border border-brass/20 bg-[#16130f] p-3">
-                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">👥 Ważna osoba</span>
+                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">👥 {t('significantPerson')}</span>
                             <p className="font-serif text-foreground text-base leading-relaxed">{asText(viewingCharacter.significantPerson)}</p>
                           </div>
                         )}
                         {viewingCharacter.meaningfulLocation && (
                           <div className="border border-brass/20 bg-[#16130f] p-3">
-                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">📍 Znaczące miejsce</span>
+                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">📍 {t('meaningfulLocation')}</span>
                             <p className="font-serif text-foreground text-base leading-relaxed">{asText(viewingCharacter.meaningfulLocation)}</p>
                           </div>
                         )}
                         {viewingCharacter.treasuredPossession && (
                           <div className="border border-brass/20 bg-[#16130f] p-3">
-                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">💎 Cenny przedmiot</span>
+                            <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-1.5">💎 {t('treasuredPossession')}</span>
                             <p className="font-serif text-foreground text-base leading-relaxed">{asText(viewingCharacter.treasuredPossession)}</p>
                           </div>
                         )}
@@ -723,7 +751,7 @@ export function PredefinedCharactersSelector({
 
                       {viewingCharacter.traits && viewingCharacter.traits.length > 0 && (
                         <div className="border border-brass/20 bg-[#16130f] p-3">
-                          <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">✨ Cechy charakteru</span>
+                          <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">✨ {t('traits')}</span>
                           <div className="flex flex-wrap gap-2">
                             {viewingCharacter.traits.map((trait: string, i: number) => (
                               <span key={i} className="text-xs border border-brass/35 text-foreground bg-[#1a160f] px-2 py-1 rounded">
@@ -741,7 +769,7 @@ export function PredefinedCharactersSelector({
                           <span className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-brass/50" />
                           <span className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-brass/50" />
                           <span className="font-special-elite text-[14px] text-brass/80 tracking-[0.12em] uppercase block mb-2">
-                            🔗 Tło i Rola Fabularna
+                            🔗 {t('background')}
                           </span>
                           <p className="font-serif text-foreground text-base leading-relaxed whitespace-pre-line">
                             {viewingCharacter.background}

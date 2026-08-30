@@ -15,6 +15,7 @@
  */
 
 import type { Character, Message, NPC } from '@/lib/types';
+import { getEquipmentItems } from '@/lib/character-storage-normalizer';
 
 /** Markdown obraz z base64 data: URL → `[ilustracja: alt]` (bez ~MB base64). */
 const MARKDOWN_DATA_IMAGE = /!\[([^\]]*)\]\(data:[^)]*\)/gi;
@@ -247,7 +248,7 @@ export function sanitizeCharacterForApi(
     portraitUrl: isDataUrl(character.portraitUrl ?? '')
       ? ''
       : character.portraitUrl,
-    equipment: character.equipment?.map((item) =>
+    equipment: getEquipmentItems(character.equipment).map((item) =>
       isDataUrl(item.imageUrl ?? '') ? { ...item, imageUrl: '' } : item
     ),
     significantPlaces: character.significantPlaces?.map((place) =>

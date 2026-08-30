@@ -44,7 +44,7 @@ import {
   getAdventureById,
 } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
-import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
+import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
 import { buildPredefinedEquipment } from '@/lib/immersion/predefined-equipment';
 import {
   localizeStrefa11Adventure,
@@ -447,7 +447,9 @@ export default function Home() {
       }
 
       
-      const allCharacters = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
+      const allCharacters = adv?.isStrefa11
+        ? getStrefa11CharactersForAdventure(adv.id)
+        : PREDEFINED_CHARACTERS;
       const foundPreset = allCharacters.find((c) => c.id === characterId);
       const preset = foundPreset
         ? localizeStrefa11Character(foundPreset, locale)
@@ -1009,6 +1011,13 @@ export default function Home() {
           isOpen={showPredefinedSelector}
           onClose={() => setShowPredefinedSelector(false)}
           onSelectCharacter={handleSelectPredefinedCharacter}
+          characters={
+            adventureContext?.id && STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)
+              ? getStrefa11CharactersForAdventure(adventureContext.id)
+              : PREDEFINED_CHARACTERS
+          }
+          currentEra={adventureContext?.era || 'classic'}
+          filterByEra={!adventureContext?.id || !STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)}
           eraContext={resolvedEraContext}
         />
       )}

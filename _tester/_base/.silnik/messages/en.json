@@ -271,6 +271,14 @@
         "description": "Create a character from scratch, choosing an occupation, skills, and backstory according to your own idea."
       }
     },
+    "archetypeDetails": {
+      "investigator": { "suggestedOccupations": ["Private investigator", "Police detective", "Journalist"], "suggestedTraits": ["inquisitive", "stubborn", "skeptical"], "suggestedMotivations": ["discovering the truth", "justice", "curiosity"] },
+      "scholar": { "suggestedOccupations": ["Professor", "Librarian", "Antiquarian"], "suggestedTraits": ["curious", "methodical", "thoughtful"], "suggestedMotivations": ["gaining knowledge", "protecting forgotten secrets", "academic fame"] },
+      "action": { "suggestedOccupations": ["Soldier", "Athlete", "Sailor"], "suggestedTraits": ["brave", "impulsive", "loyal"], "suggestedMotivations": ["protecting loved ones", "adventure", "honour"] },
+      "trickster": { "suggestedOccupations": ["Criminal", "Entertainer", "Spy"], "suggestedTraits": ["cunning", "charming", "calculating"], "suggestedMotivations": ["profit", "excitement", "escaping the past"] },
+      "mystic": { "suggestedOccupations": ["Parapsychologist", "Clergy", "Artist"], "suggestedTraits": ["intuitive", "mysterious", "sensitive"], "suggestedMotivations": ["understanding the unseen", "protection from evil", "discovering destiny"] },
+      "healer": { "suggestedOccupations": ["Doctor", "Nurse", "Clergy"], "suggestedTraits": ["empathetic", "composed", "patient"], "suggestedMotivations": ["saving lives", "understanding human nature", "atonement for the past"] }
+    },
     "generateButton": "✨ Generate",
     "generatingEllipsis": "⏳...",
     "researcherLowercase": "investigator",
@@ -888,6 +896,7 @@
   "PredefinedCharacters": {
     "eyebrow": "Ready investigators",
     "title": "Choose a predefined character",
+    "era": "Era",
     "characterForPlayer": "Character for player",
     "gender": "Gender",
     "all": "All",

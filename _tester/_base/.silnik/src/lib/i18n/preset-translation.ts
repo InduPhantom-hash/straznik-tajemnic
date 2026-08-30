@@ -93,11 +93,11 @@ export function applyPresetTranslation(
       Array.isArray(data.traits) && data.traits.length > 0
         ? data.traits
         : character.traits,
-    equipment: character.equipment?.map((item) => {
+    equipment: Array.isArray(character.equipment) ? character.equipment.map((item) => {
       const system = localizeSystemEquipment(item, messages);
       const personal = dict.equipment?.[item.id];
       return { ...system, name: personal?.name ?? system.name, description: personal?.description ?? system.description };
-    }),
+    }) : [],
   };
 }
 

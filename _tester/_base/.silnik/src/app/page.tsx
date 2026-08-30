@@ -33,12 +33,14 @@ import { useGameStart } from '@/hooks/useGameStart';
 import { useHealthCheck } from '@/hooks/useHealthCheck';
 import { getApiKeyHeaders, hasRequiredKeys } from '@/lib/api-keys-service';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
+import { persistCharacters } from '@/lib/character-cloud-sync';
+import { normalizeStoredCharacters } from '@/lib/character-storage-normalizer';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
 import { toast } from '@/components/ui/use-toast';
 import { BUILT_IN_ADVENTURES, STREFA_11_ADVENTURES, getAdventureById } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
-import { STREFA_11_CHARACTERS } from '@/lib/immersion/strefa-11-characters';
+import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
 import type { RandomEvent } from '@/lib/random-event-generator';
 
 // Dynamic imports dla ciężkich komponentów
@@ -410,7 +412,9 @@ export default function Home() {
       }
 
       // 2. Ustaw postać z presetów
-      const allCharacters = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
+      const allCharacters = adv?.isStrefa11
+        ? getStrefa11CharactersForAdventure(adv.id)
+        : PREDEFINED_CHARACTERS;
       const preset = allCharacters.find((c) => c.id === characterId);
       if (preset) {
         const stamped: Character = {
@@ -534,9 +538,12 @@ export default function Home() {
     const savedChars = localStorage.getItem('characters');
     if (savedChars) {
       try {
-        const chars = JSON.parse(savedChars) as Character[];
+        const chars = normalizeStoredCharacters(JSON.parse(savedChars));
         charMgmt.setCharacters(chars);
         if (chars.length > 0) charMgmt.setActiveCharacter(chars[0]);
+        // Utrwal naprawioną strukturę, aby kolejny start nie czytał ponownie
+        // wadliwej wartości `equipment` z wcześniejszej wersji aplikacji.
+        persistCharacters(chars);
         // IND-262: portret + miniatury ekwipunku żyją w IndexedDB (wycięte z
         // localStorage przez quota). Dociągnij je do rosteru po załadowaniu.
         hydrateCharacterImages(chars)
@@ -905,7 +912,13 @@ export default function Home() {
           isOpen={showPredefinedSelector}
           onClose={() => setShowPredefinedSelector(false)}
           onSelectCharacter={handleSelectPredefinedCharacter}
+          characters={
+            adventureContext?.id && STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)
+              ? getStrefa11CharactersForAdventure(adventureContext.id)
+              : PREDEFINED_CHARACTERS
+          }
           currentEra={adventureContext?.era || 'classic'}
+          filterByEra={!adventureContext?.id || !STREFA_11_ADVENTURES.some((adventure) => adventure.id === adventureContext.id)}
         />
       )}
     </ChatLayout>

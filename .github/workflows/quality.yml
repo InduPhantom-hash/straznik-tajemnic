@@ -1,0 +1,47 @@
+name: Quality
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: _tester/_base/.silnik
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: _tester/_base/.silnik/package-lock.json
+      - run: npm ci
+      - run: npm run navigation:check
+      - run: npm run navigation:guard
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm test -- --runInBand
+      - run: npm run build
+
+  navigation-e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: _tester/_base/.silnik
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: _tester/_base/.silnik/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:navigation

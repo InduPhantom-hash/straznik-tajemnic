@@ -1,0 +1,10 @@
+# Dev Pipeline V2 project profile
+schema_version: 1
+runtime_root: _tester/_base/.silnik
+command_timeout_seconds: 1200
+command.typecheck: npx tsc --noEmit
+command.test: npm test -- --runInBand
+command.lint: npm run lint
+command.navigation: npm run navigation:check
+conditional.ui: npx playwright test --project=chromium
+conditional.release: npm run build

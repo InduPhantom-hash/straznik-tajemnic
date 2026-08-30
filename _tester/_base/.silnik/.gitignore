@@ -121,6 +121,7 @@ CODE_MAP.md
 # Desktop launcher: runtime (PID serwera, profil okna Chrome) + generowane ikony.
 # Wersjonujemy tylko zrodla w desktop/*.sh + README.
 /.desktop/
+/.dev_pid
 desktop/icon.icns
 desktop/icon.png
 desktop/icon-reset.icns

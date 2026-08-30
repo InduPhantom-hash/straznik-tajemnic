@@ -61,6 +61,12 @@ BUILD_ID_LAUNCHERS=(
 for file in "${BUILD_ID_LAUNCHERS[@]}"; do
   assert_contains "$file" "_buildManifest.js" "launcher nie sprawdza zgodności BUILD_ID po restarcie"
   assert_contains "$file" "self.__BUILD_MANIFEST" "launcher akceptuje HTML 200 zamiast manifestu JavaScript"
+  assert_contains "$file" 'GAME_DIR="$APP_DIR"' "launcher nie ustala katalogu silnika"
+  assert_contains "$file" '"$GAME_DIR/.next/BUILD_ID"' "launcher sprawdza BUILD_ID poza katalogiem silnika"
+  if grep -Fq -- '"$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID"' "$REPO_ROOT/$file"; then
+    echo "FAIL: launcher ma podwojnie zagniezdzona sciezke BUILD_ID ($file)"
+    exit 1
+  fi
 done
 
 echo "PASS: pełny ekran, blokada haseł i weryfikacja BUILD_ID są zabezpieczone we wszystkich launcherach"

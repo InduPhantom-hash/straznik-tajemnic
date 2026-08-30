@@ -1616,6 +1616,14 @@ export function CharacterWizardV2({
     const selectedArchetype = CHARACTER_ARCHETYPES.find(
       (a) => a.id === selectedArchetypeId
     );
+    const archetypeDetails = t.raw('archetypeDetails') as Record<string, {
+      suggestedOccupations: string[];
+      suggestedTraits: string[];
+      suggestedMotivations: string[];
+    }>;
+    const selectedDetails = selectedArchetype
+      ? archetypeDetails[selectedArchetype.id]
+      : undefined;
 
     return (
       <div className="space-y-6">
@@ -1662,10 +1670,10 @@ export function CharacterWizardV2({
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
           <div className="border border-brass/30/30 bg-[#0e1413] p-4">
             <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
-              {selectedArchetype.icon} {selectedArchetype.name}
+              {selectedArchetype.icon} {(t as any)(`archetypes.${selectedArchetype.id}.name`)}
             </h4>
             <p className="font-serif italic text-sm text-muted-foreground mb-3">
-              {selectedArchetype.description}
+              {(t as any)(`archetypes.${selectedArchetype.id}.description`)}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div>
@@ -1673,7 +1681,7 @@ export function CharacterWizardV2({
                   {t('suggestedOccupations')}
                 </span>
                 <div className="text-foreground">
-                  {selectedArchetype.suggestedOccupations
+                  {(selectedDetails?.suggestedOccupations || selectedArchetype.suggestedOccupations)
                     .slice(0, 3)
                     .join(', ')}
                 </div>
@@ -1683,7 +1691,7 @@ export function CharacterWizardV2({
                   {t('traits')}
                 </span>
                 <div className="text-foreground">
-                  {selectedArchetype.suggestedTraits.join(', ')}
+                  {(selectedDetails?.suggestedTraits || selectedArchetype.suggestedTraits).join(', ')}
                 </div>
               </div>
               <div>
@@ -1691,7 +1699,7 @@ export function CharacterWizardV2({
                   {t('motivations')}
                 </span>
                 <div className="text-foreground">
-                  {selectedArchetype.suggestedMotivations
+                  {(selectedDetails?.suggestedMotivations || selectedArchetype.suggestedMotivations)
                     .slice(0, 2)
                     .join(', ')}
                 </div>
@@ -2982,7 +2990,7 @@ export function CharacterWizardV2({
       data-testid="character-wizard"
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
-      <div className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[90vw] max-w-[1440px] max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[90vw] max-w-[1440px] h-[90vh] overflow-hidden flex flex-col">
         {/* Narożniki déco */}
         <span className="pointer-events-none absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-brass/55" />
         <span className="pointer-events-none absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-brass/55" />
@@ -3056,7 +3064,7 @@ export function CharacterWizardV2({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
           {renderCurrentStep()}
         </div>
 
