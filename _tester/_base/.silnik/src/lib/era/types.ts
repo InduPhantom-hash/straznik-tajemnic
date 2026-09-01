@@ -73,6 +73,53 @@ export type EraApprovalStatus =
 
 export type EraConfidence = 'low' | 'medium' | 'high';
 
+export type HistoricalSourceTrust =
+  | 'primary'
+  | 'authoritative'
+  | 'curated'
+  | 'untrusted';
+
+export interface HistoricalSourceRef {
+  id: string;
+  title: string;
+  trustLevel: HistoricalSourceTrust;
+  url: string;
+  retrievedAt: string;
+  contentHash: string;
+  usageRights: string;
+  verificationStatus: 'pending' | 'verified' | 'rejected' | 'quarantined';
+}
+
+export interface EraManifestV1 {
+  schemaVersion: 1;
+  id: string;
+  title: string;
+  validFrom: number;
+  validTo: number;
+  exactYearRequired: boolean;
+  countryCodes: string[];
+  regionProfiles: EraRegionProfile[];
+  economicBackground: string[];
+  socialAndClassStructure: string[];
+  politicalSituation: string[];
+  racismAndExclusion: string[];
+  genderRolesAndRights: string[];
+  technology: string[];
+  law: string[];
+  customs: string[];
+  occupations: string[];
+  communication: string[];
+  transport: string[];
+  architecture: string[];
+  periodKnowledgeAndLimits: string[];
+  language: string[];
+  visualDirection: string[];
+  forbidden: string[];
+  presentismRisks: string[];
+  sources: HistoricalSourceRef[];
+  approvalStatus: EraApprovalStatus;
+}
+
 export interface EraRuleSource {
   id: string;
   title: string;

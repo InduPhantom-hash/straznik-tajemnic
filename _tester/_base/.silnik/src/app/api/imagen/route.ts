@@ -18,6 +18,11 @@ import crypto from 'crypto';
 import { resolveUserId } from '@/lib/auth-user';
 import { recordUserUsage } from '@/lib/user-usage';
 import { generateTraceId, startTimer, logApiEvent } from '@/lib/telemetry';
+import {
+  compileVisualScenePrompt,
+  type VisualSceneSpec,
+  WorldSetupValidationError,
+} from '@/lib/world-setup';
 
 // Cache dla wygenerowanych obrazów
 const imageCache = new Map<
@@ -81,7 +86,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { prompt, style = 'horror', seed, era, isMythos = false } = body;
+    const {
+      prompt,
+      style = 'horror',
+      seed,
+      era,
+      isMythos = false,
+      sceneSpec,
+    } = body as {
+      prompt?: unknown;
+      style?: string;
+      seed?: unknown;
+      era?: unknown;
+      isMythos?: boolean;
+      sceneSpec?: VisualSceneSpec;
+    };
 
     // Walidacja promptu
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3) {
@@ -90,6 +109,21 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (sceneSpec === undefined && (typeof era !== 'string' || era.trim() === '')) {
+      return NextResponse.json(
+        {
+          error: 'Wymagany jest VisualSceneSpec albo jawna epoka legacy.',
+          code: 'ERA_CONTEXT_REQUIRED',
+        },
+        { status: 400 }
+      );
+    }
+
+    const scenePrompt = sceneSpec
+      ? `${prompt}\n${compileVisualScenePrompt(sceneSpec)}`
+      : prompt;
+    const sceneIsMythos = Boolean(isMythos || sceneSpec?.mythosException);
 
     // Test endpoint - diagnostyka providera (Zew-App-Local: tylko Gemini).
     if (prompt === 'test') {
@@ -118,7 +152,7 @@ export async function POST(request: NextRequest) {
     const seedSuffix = seed != null && seed !== '' ? `-${String(seed)}` : '';
     const cacheKey = crypto
       .createHash('md5')
-      .update(`${prompt}-${style}${seedSuffix}`)
+      .update(`${scenePrompt}-${style}${seedSuffix}`)
       .digest('hex');
     const cached = imageCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -170,8 +204,10 @@ export async function POST(request: NextRequest) {
     // Rozszerz prompt z uwzględnieniem wybranej epoki (Gaslight, 1920s, Modern itp.).
     // 2026-07-22: filtr mitów dla zwykłych scen (isMythos=false).
     // Sceny oznaczone przez LLM jako | mythos pomijają filtrowanie.
-    const basePrompt = isMythos ? prompt : sanitizePrompt(prompt);
-    const effectiveEra = era || '1920s';
+    const basePrompt = sceneIsMythos ? scenePrompt : sanitizePrompt(scenePrompt);
+    const effectiveEra = sceneSpec
+      ? String(sceneSpec.eraContext.effectiveYear)
+      : (era as string);
     const eraProfile = resolveEraVisualProfile(effectiveEra);
     const colorDirection = getEraColorDirection(effectiveEra);
     const techGuardrails = getEraTechnologyGuardrails(effectiveEra);
@@ -317,6 +353,12 @@ export async function POST(request: NextRequest) {
     logImagen(200, 'success', { costUsd: result.cost, cached: false });
     return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof WorldSetupValidationError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: 400 }
+      );
+    }
     console.error('Image generation error:', error);
     logImagen(500, 'error', {
       errorMsg: error instanceof Error ? error.message : 'unknown',

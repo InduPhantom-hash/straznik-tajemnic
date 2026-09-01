@@ -3,7 +3,7 @@ import { loadAISettings, getGameMasterPrompt } from '@/lib/ai-settings';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import { getContextLimit } from '@/lib/model-registry';
 import { getOptimizedMessages } from '@/lib/context-optimizer';
-import { Character, Message } from '@/lib/types';
+import { Character, Message, type GameTime } from '@/lib/types';
 import { extractCommand, handleCommand } from '@/lib/command-handler';
 import { detectGameContext } from '@/lib/prompt-section-parser';
 import { GeminiChatProvider } from '@/lib/ai-providers';
@@ -33,6 +33,12 @@ import { resolveUserId, scopeSessionId } from '@/lib/auth-user';
 import * as Sentry from '@sentry/nextjs';
 import { isModelNotFoundError } from './model-fallback';
 import { fetchImmersionContext } from './build-immersion-context';
+import {
+  isResolvedEraContext,
+  resolveGameEraContext,
+  type ResolvedEraContext,
+} from '@/lib/era';
+import { assertExactEraContext } from '@/lib/world-setup';
 
 /**
  * Rozwiązuje klucz Gemini dla requestu.
@@ -82,6 +88,8 @@ export async function runChatPipeline({
     gameContextPrompt,
     skipContext,
     adventureContext,
+    eraContext: requestedEraContext,
+    gameTime: requestedGameTime,
     isGameStart,
     aiSettings: clientAISettings,
     hotSeatConfig,
@@ -99,10 +107,15 @@ export async function runChatPipeline({
     skipContext?: boolean;
     adventureContext?: {
       era?: string;
+      eraLabel?: string;
+      yearRange?: string;
+      country?: string;
       sourceBookId?: string;
       handouts?: AdventureHandout[];
       tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
     } | null;
+    eraContext?: ResolvedEraContext;
+    gameTime?: GameTime;
     isGameStart?: boolean;
     aiSettings?: { sessionId?: string } & Record<string, unknown>;
     hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
@@ -189,17 +202,42 @@ export async function runChatPipeline({
   const modelId = aiSettings.geminiSettings.model || DEFAULT_GEMINI_MODEL;
   const provider = new GeminiChatProvider(apiKey, modelId);
 
+  // route.ts importuje `body.gameTime` do singletona przed wejściem w pipeline.
+  // Kolejne tury muszą rozwiązywać epokę z aktualnego czasu sceny, nie z pierwszego
+  // roku szerokiego zakresu scenariusza.
+  const { timeManager } = await import('@/lib/time-manager');
+  const currentGameTime = timeManager.getTime();
+
+  let eraContext: ResolvedEraContext;
+  try {
+    eraContext = isResolvedEraContext(requestedEraContext)
+      ? requestedEraContext
+      : resolveGameEraContext({
+          gameTime: requestedGameTime ? currentGameTime : null,
+          adventure: adventureContext,
+        });
+    assertExactEraContext(eraContext);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          locale === 'en'
+            ? 'The exact year and country are required before narration can start.'
+            : 'Przed rozpoczęciem narracji wymagany jest dokładny rok i kraj.',
+        code: 'ERA_CONTEXT_REQUIRED',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 400 }
+    );
+  }
+
   // === TIME & ERA CONTEXT === - IND-183 micro 2/5
   const { timePromptSection, eraRules } = buildTimeContext({
-    adventureContext,
+    eraContext,
   });
 
   // Wyciagnij date gry z time-managera (YYYY-MM-DD) dla immersji.
-  // Import dynamiczny - time-manager to singleton z side effects (localStorage),
-  // bezpieczny w kontekscie serverowym Next.js (uzywa tego juz buildTimeContext).
-  const { timeManager } = await import('@/lib/time-manager');
-  const gameTime = timeManager.getTime();
-  const gameDate = `${gameTime.year}-${String(gameTime.month + 1).padStart(2, '0')}-${String(gameTime.day).padStart(2, '0')}`;
+  const gameDate = `${currentGameTime.year}-${String(currentGameTime.month + 1).padStart(2, '0')}-${String(currentGameTime.day).padStart(2, '0')}`;
 
   // === OPT-21: CONTEXT-AWARE GM PROTOCOL ===
   const messageCount = messages?.length || 0;
@@ -236,7 +274,7 @@ export async function runChatPipeline({
     // Etap 3: dane immersyjne (astronomia, gazety, ceny epoki) - rownolegle z cache i RAG.
     fetchImmersionContext({
       gameDate,
-      gameEra: adventureContext?.era || '1920s',
+      eraContext,
     }),
   ]);
   const { ragUserId, sessionId, ragSection, summarySection, ragMeta } =
@@ -282,7 +320,7 @@ export async function runChatPipeline({
         : undefined,
     isGameStart,
     characters,
-    era: adventureContext?.era || '1920s',
+    era: String(eraContext.effectiveYear),
   });
 
   if (message.includes('[KONIEC_SESJI:FINAL]') || message.includes('[KONIEC_SESJI_FINAL]')) {

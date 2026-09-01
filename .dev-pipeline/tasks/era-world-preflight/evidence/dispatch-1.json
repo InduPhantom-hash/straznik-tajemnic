@@ -1,0 +1,11 @@
+{
+  "architect": "agy",
+  "attempt": 1,
+  "mode": "single-agent",
+  "plan_file": "/Volumes/Karta/Developer/straznik-tajemnic/.dev-pipeline/tasks/era-world-preflight/PLAN.md",
+  "report_schema": "/Users/phantom/Documents/AIOS-Vault/Projekty/Prywatne/AIOS-dev/skills/dev-pipeline-v2/schemas/agent-report.schema.json",
+  "task_file": "/Volumes/Karta/Developer/straznik-tajemnic/.dev-pipeline/tasks/era-world-preflight/task.json",
+  "task_id": "era-world-preflight",
+  "verifier": "claude",
+  "writer": "codex"
+}

@@ -9,6 +9,8 @@ import {
   HotSeatConfig,
   EquipmentVisualEra,
 } from './types';
+import type { WorldSetupBundleV1 } from './world-setup';
+import { isWorldSetupBundle } from './world-setup';
 
 // Lokalnie zdefiniowany interfejs Message (podzbiór @/lib/types Message -
 // pola istotne dla save'a). finishReason/continuationRequested odtwarzają
@@ -68,6 +70,8 @@ export interface FullGameSave {
   };
   /** Profil assetów katalogowych potrzebny do poprawnej migracji starego ekwipunku. */
   equipmentVisualEra?: EquipmentVisualEra;
+  /** Wersjonowany kanon preflightu. Brak zachowuje zgodność z save'ami v0.9.3. */
+  worldSetup?: WorldSetupBundleV1;
 
   // === Postacie ===
   characters: Character[];
@@ -160,6 +164,7 @@ export class FullGameSaveManager {
     descriptions?: FullGameSave['descriptions'];
     gameSettings: { aiSettings: AISettings };
     equipmentVisualEra?: EquipmentVisualEra;
+    worldSetup?: WorldSetupBundleV1;
     characters: Character[];
     activeCharacterId?: string;
     hotSeatConfig?: HotSeatConfig;
@@ -201,6 +206,7 @@ export class FullGameSaveManager {
       // Ustawienia
       gameSettings: data.gameSettings,
       equipmentVisualEra: data.equipmentVisualEra,
+      worldSetup: data.worldSetup,
 
       // Postacie
       characters: data.characters,
@@ -355,6 +361,12 @@ export class FullGameSaveManager {
         console.warn(`Brak wymaganego pola w save: ${field}`);
         return false;
       }
+    }
+
+    const candidate = save as Partial<FullGameSave>;
+    if (candidate.worldSetup !== undefined && !isWorldSetupBundle(candidate.worldSetup)) {
+      console.warn('Niepoprawny WorldSetupBundleV1 w save');
+      return false;
     }
 
     return true;

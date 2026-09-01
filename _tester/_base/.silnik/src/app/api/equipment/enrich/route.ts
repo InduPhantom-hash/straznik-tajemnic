@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { inferWeaponDamage, inferWeaponSkill, isWeapon } from '@/lib/combat/weapon-context';
 import type { EquipmentCategory, EquipmentItem, EquipmentModifiers } from '@/lib/types';
+import type { ResolvedEraContext } from '@/lib/era';
+import { assertExactEraContext } from '@/lib/world-setup';
 
 interface EnrichRequest {
   name: string;
   description?: string;
   category?: EquipmentCategory;
-  era?: string;
+  eraContext: ResolvedEraContext;
 }
 
 interface AiEnrichmentData {
@@ -21,7 +23,16 @@ interface AiEnrichmentData {
 export async function POST(req: NextRequest) {
   try {
     const body: EnrichRequest = await req.json();
-    const { name, description = '', category = 'tool', era = '1920s' } = body;
+    const { name, description = '', category = 'tool', eraContext } = body;
+    try {
+      assertExactEraContext(eraContext);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Brak dokładnego kontekstu epoki' },
+        { status: 400 }
+      );
+    }
+    const era = `${eraContext.effectiveYear}, ${eraContext.countryCode}`;
 
     if (!name || typeof name !== 'string') {
       return NextResponse.json(
@@ -83,7 +94,7 @@ Kategoria: "${category}"
 Wygeneruj wyłącznie czysty obiekt JSON (bez znaczników markdown) zawierający polskie pola:
 {
   "description": "Zwięzły, sensoryczny opis z fakturą, wykończeniem i historią z epoki (max 2 zdania)",
-  "value": "Szacunkowa wartość w dolarach USD z epoki 1920s (liczba całkowita)",
+  "value": "Szacunkowa wartość w walucie i realiach roku ${eraContext.effectiveYear} (liczba całkowita)",
   "weight": "Waga w kg lub funtach (liczba)",
   "damage": "Obrażenia broni w formacie CoC 7e (np. 1d6, 1d10+2) lub null jeśli to nie broń",
   "skill": "Umiejętność CoC 7e (np. Broń Palna (Krótka), Walka Wręcz (Bijatyka)) lub null"

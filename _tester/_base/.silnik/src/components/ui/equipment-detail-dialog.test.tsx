@@ -13,6 +13,11 @@ describe('EquipmentDetailDialog', () => {
     obtainedAt: new Date(),
   };
 
+  afterEach(() => {
+    localStorage.clear();
+    jest.restoreAllMocks();
+  });
+
   it('renders item details correctly', () => {
     render(<EquipmentDetailDialog item={mockItem} onClose={jest.fn()} />);
     expect(screen.getByText('Tajemniczy List')).toBeInTheDocument();
@@ -44,6 +49,15 @@ describe('EquipmentDetailDialog', () => {
 
   it('triggers API call on read click and updates item', async () => {
     const handleUpdate = jest.fn();
+    localStorage.setItem(
+      'adventure_context',
+      JSON.stringify({
+        id: 'test-1973',
+        title: 'Test 1973',
+        yearRange: '1973',
+        country: 'Polska',
+      })
+    );
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, content: 'Zinterpretowana treść z API...' }),
@@ -71,6 +85,11 @@ describe('EquipmentDetailDialog', () => {
         })
       );
     });
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/equipment/read-item',
+      expect.objectContaining({
+        body: expect.stringContaining('"effectiveYear":1973'),
+      })
+    );
   });
 });
-

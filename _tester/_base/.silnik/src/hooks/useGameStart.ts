@@ -17,8 +17,14 @@ import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 import { sanitizeCharacterForApi } from '@/lib/chat-history-sanitizer';
-import { isCatalogEquipment } from '@/lib/equipment-catalog';
 import { getEraVehicleVisualDescription } from '@/lib/era-visual-style';
+import { resolveGameEraContext } from '@/lib/era';
+import {
+  hasBlockingSetupFailure,
+  isWorldSetupBundle,
+  loadStoredWorldSetup,
+  storeWorldSetup,
+} from '@/lib/world-setup';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -223,13 +229,13 @@ export function useGameStart({
   const generateIntroImage = useCallback(async () => {
     if (aiSettings?.imageGenerationEnabled === false) return;
     try {
+      if (!adventureContext) {
+        throw new Error('Brak kontekstu przygody dla obrazu intro.');
+      }
+      const eraContext = resolveGameEraContext({ adventure: adventureContext });
       const locationContext =
         adventureContext?.location || 'mysterious New England town';
-      const rawEra =
-        adventureContext?.yearRange ||
-        adventureContext?.eraLabel ||
-        adventureContext?.era ||
-        '1920s';
+      const rawEra = String(eraContext.effectiveYear);
       const vehicleGuidance = getEraVehicleVisualDescription(rawEra);
       const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${rawEra} period-accurate, ${vehicleGuidance}, realistic, cinematic, moody natural lighting.`;
 
@@ -280,7 +286,7 @@ export function useGameStart({
         },
       ]);
     }
-  }, [adventureContext, aiSettings?.imageGenerationEnabled, setMessages]);
+  }, [adventureContext, aiSettings?.imageGenerationEnabled, locale, setMessages]);
 
   // IND-174 (port): guard przeciw podwójnemu startowi gry (double-click
   // "Rozpocznij", re-fire). Bez tego współbieżne wywołania handleStartGame
@@ -291,6 +297,82 @@ export function useGameStart({
   const handleStartGame = useCallback(async () => {
     if (isStartingRef.current) return;
     isStartingRef.current = true;
+
+    try {
+      if (!adventureContext) {
+        throw new Error('Brak wybranej przygody.');
+      }
+
+      const eraContext = resolveGameEraContext({
+        adventure: adventureContext,
+      });
+      const preflightSource = JSON.stringify({
+        title: adventureContext.title,
+        description: adventureContext.description,
+        hook: adventureContext.hook,
+        conflicts: adventureContext.conflicts,
+        setupAsymmetry: adventureContext.setupAsymmetry,
+        graph: adventureContext.graph,
+      });
+      const preflightResponse = await fetchWithRetry('/api/adventure/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adventureText: preflightSource,
+          scenarioId: adventureContext.id,
+          adventureTitle: adventureContext.title,
+          isCustomScenario: Boolean(adventureContext.isCustom),
+          scenarioYearRange: adventureContext.yearRange,
+          eraContext,
+          characters: (characters.length > 0
+            ? characters
+            : activeCharacter
+              ? [activeCharacter]
+              : []
+          ).map((character) => ({
+            id: character.id,
+            name: character.name,
+            occupation: character.occupation || '',
+            background: character.background || '',
+          })),
+        }),
+      });
+
+      if (!preflightResponse.ok) {
+        const errorBody = await preflightResponse.json().catch(() => ({}));
+        const serverMessage =
+          (errorBody as { error?: string }).error || preflightResponse.statusText;
+        throw new Error(`Preflight ${preflightResponse.status}: ${serverMessage}`);
+      }
+
+      const preflightPayload = (await preflightResponse.json()) as {
+        worldSetup?: unknown;
+      };
+      if (!isWorldSetupBundle(preflightPayload.worldSetup)) {
+        throw new Error('Preflight nie zwrócił poprawnego WorldSetupBundleV1.');
+      }
+      if (hasBlockingSetupFailure(preflightPayload.worldSetup.phaseResults)) {
+        throw new Error('Preflight wykrył krytyczny błąd setupu.');
+      }
+      storeWorldSetup(preflightPayload.worldSetup);
+    } catch (error) {
+      console.error('World preflight failed:', error);
+      setHasStartedGame(false);
+      setMessages([
+        {
+          id: `world-preflight-error-${crypto.randomUUID()}`,
+          role: 'assistant',
+          content:
+            locale === 'en'
+              ? 'The adventure cannot start because world preparation failed. Check the exact year, country, selected characters and API key, then try again.'
+              : 'Nie można rozpocząć przygody, ponieważ przygotowanie świata nie przeszło bramki. Sprawdź dokładny rok, kraj, wybrane postacie i klucz API, a potem spróbuj ponownie.',
+          timestamp: new Date(),
+        },
+      ]);
+      isStartingRef.current = false;
+      return;
+    }
+
     // IND-273 T3: self-check klucza/modeli (fire-and-forget, TTL dławi, nie blokuje startu).
     runHealthCheck?.();
 
@@ -393,6 +475,7 @@ export function useGameStart({
           characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
           hotSeatConfig: resolvedHotSeat,
           adventureContext: adventureContext,
+          eraContext: loadStoredWorldSetup()?.eraContext,
           locale,
           isGameStart: true,
           aiSettings: aiSettings,

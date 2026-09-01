@@ -24,6 +24,7 @@
 import { getDaylightAndMoon, type DaylightResult } from '@/lib/immersion/astronomy-service';
 import { fetchHistoricalNews, type HistoricalNewsItem } from '@/lib/immersion/news-service';
 import { convertUSD, type PriceConversionResult } from '@/lib/immersion/pricing-service';
+import type { ResolvedEraContext } from '@/lib/era';
 
 // ---------------------------------------------------------------------------
 // Cache in-memory (per-process, TTL 10 min)
@@ -123,8 +124,8 @@ export interface FetchImmersionContextOpts {
   lat?: number;
   /** Długość geograficzna lokacji (domyślnie Boston/Arkham: -71.0589) */
   lng?: number;
-  /** Era gry, np. '1920s', '1890s' - używane do przelicznika cen */
-  gameEra?: string;
+  /** Kanoniczny rok i region z preflightu. */
+  eraContext: ResolvedEraContext;
 }
 
 /**
@@ -137,10 +138,9 @@ export async function fetchImmersionContext(opts: FetchImmersionContextOpts): Pr
     return '';
   }
 
-  const { gameDate, lat = 42.3601, lng = -71.0589, gameEra = '1920s' } = opts;
-
-  // Wyciągnij rok gry z ery (np. '1920s' -> 1920, '1890s' -> 1890)
-  const eraYear = parseInt(gameEra.replace(/\D/g, '')) || 1920;
+  const { gameDate, eraContext, lat = 42.3601, lng = -71.0589 } = opts;
+  const eraYear = eraContext.effectiveYear;
+  const gameEra = `${eraYear}-${eraContext.countryCode}`;
 
   // Cache check
   const cacheKey = getCacheKey(gameDate, lat, lng, gameEra);
@@ -175,7 +175,11 @@ export async function fetchImmersionContext(opts: FetchImmersionContextOpts): Pr
 
   // Check for epoch specific knowledge summary (e.g. 1990s-2000s PL)
   let epochSummarySection = '';
-  if (gameEra.includes('1990') || gameEra.includes('2000') || gameEra.toLowerCase().includes('pl')) {
+  if (
+    eraContext.regionProfile === 'PL' &&
+    eraYear >= 1990 &&
+    eraYear <= 2005
+  ) {
     try {
       const fs = await import('fs');
       const path = await import('path');
@@ -191,7 +195,7 @@ export async function fetchImmersionContext(opts: FetchImmersionContextOpts): Pr
           .join('\n');
         epochSummarySection = `### Realia i Tlo Epoki (Polska 1990-2000)\n${summaryData.instructions}\n\nKluczowe konteksty epokowe:\n${highlightsText}`;
       }
-    } catch (e) {
+    } catch {
       // Ignorujemy błędy odczytu plików epokowych
     }
   }

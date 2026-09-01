@@ -5,8 +5,8 @@
  * additionalContext) + `eraRules` (osobno bo używane też w stableInstructions
  * dla Gemini Context Cache OPT-26 w route.ts:174).
  *
- * Bazuje na oryginalnym route.ts (lin 139-161 przed split):
- *   - gameEra = adventureContext.era || '1920s'
+ * Bazuje na kanonicznym `ResolvedEraContext` przekazanym przez preflight:
+ *   - dokładny rok i region nie mają cichego fallbacku
  *   - timeContext = timeManager.formatForPrompt()
  *   - eraRules = getEraPromptInjection(gameEra)
  *   - atmosphere = getAtmosphereDirective(hour, moonPhase)
@@ -28,12 +28,11 @@ import { getAtmosphereDirective } from '@/lib/time-atmosphere';
 import type { GameEra } from '@/lib/types';
 
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
+import { buildEraNarrativeRules, type ResolvedEraContext } from '@/lib/era';
 
-// Minimal shape z adventureContext - tylko `era` używane w sekcji TIME & ERA.
-// Pełny AdventureContext z @/lib/types ma więcej pól, ale helper nie potrzebuje
-// reszty (luźny kontrakt = łatwiejszy mock w testach).
+// Helper przyjmuje wyłącznie kanoniczny kontekst epoki.
 export interface BuildTimeContextOpts {
-  adventureContext?: { era?: string; yearRange?: string; eraLabel?: string } | null;
+  eraContext: ResolvedEraContext;
 }
 
 export interface BuildTimeContextResult {
@@ -44,11 +43,7 @@ export interface BuildTimeContextResult {
 export function buildTimeContext(
   opts: BuildTimeContextOpts
 ): BuildTimeContextResult {
-  const rawEra =
-    opts.adventureContext?.yearRange ||
-    opts.adventureContext?.eraLabel ||
-    opts.adventureContext?.era ||
-    '1920s';
+  const rawEra = String(opts.eraContext.effectiveYear);
 
   const profile = resolveEraVisualProfile(rawEra);
   const gameEra: GameEra =
@@ -61,7 +56,10 @@ export function buildTimeContext(
           : (profile as GameEra);
 
   const timeContext = timeManager.formatForPrompt();
-  const eraRules = getEraPromptInjection(gameEra);
+  const eraRules = [
+    buildEraNarrativeRules(opts.eraContext),
+    getEraPromptInjection(gameEra),
+  ].join('\n\n');
 
 
   const weather = timeManager.getWeather();

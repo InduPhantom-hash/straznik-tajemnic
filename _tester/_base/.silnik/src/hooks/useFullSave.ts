@@ -9,6 +9,7 @@ import type { AISettings } from '@/lib/ai-settings/types';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { migrateEquipmentCatalog } from '@/lib/equipment-catalog';
 import type { EquipmentVisualEra } from '@/lib/types';
+import { clearStoredWorldSetup, storeWorldSetup } from '@/lib/world-setup';
 
 /**
  * Hook do zarządzania zapisem i wczytywaniem gry
@@ -152,6 +153,12 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           safeSetItem('pdf_memory', JSON.stringify(migratedPdfMemory));
         }
 
+        if (save.worldSetup) {
+          storeWorldSetup(save.worldSetup);
+        } else {
+          clearStoredWorldSetup();
+        }
+
         // Aktualizuj activeGameState
         setActiveGameState({
           currentCharacter: save.activeCharacterId
@@ -200,6 +207,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
 
       // Wyczyść pamięć PDF
       setPdfMemory({});
+      clearStoredWorldSetup();
 
       // Zatrzymaj aktualny audio
       stopCurrentAudio();

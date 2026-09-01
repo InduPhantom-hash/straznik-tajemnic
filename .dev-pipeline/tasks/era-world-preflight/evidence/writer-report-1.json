@@ -1,0 +1,77 @@
+{
+  "run_id": "era-world-preflight-attempt-1-20260901",
+  "task_id": "era-world-preflight",
+  "role": "writer",
+  "result": "success",
+  "changed_files": [
+    "_tester/_base/.silnik/messages/en.json",
+    "_tester/_base/.silnik/messages/pl.json",
+    "_tester/_base/.silnik/src/app/api/adventure/analyze/route.ts",
+    "_tester/_base/.silnik/src/app/api/adventure/analyze/route.test.ts",
+    "_tester/_base/.silnik/src/app/api/adventure/setup/route.ts",
+    "_tester/_base/.silnik/src/app/api/adventure/setup/route.test.ts",
+    "_tester/_base/.silnik/src/app/api/chat/_helpers/build-immersion-context.ts",
+    "_tester/_base/.silnik/src/app/api/chat/_helpers/build-time-context.ts",
+    "_tester/_base/.silnik/src/app/api/chat/_helpers/run-chat-pipeline.ts",
+    "_tester/_base/.silnik/src/app/api/equipment/enrich/route.ts",
+    "_tester/_base/.silnik/src/app/api/equipment/read-item/route.ts",
+    "_tester/_base/.silnik/src/app/api/npc/generate-rich/route.ts",
+    "_tester/_base/.silnik/src/app/api/imagen/route.ts",
+    "_tester/_base/.silnik/src/components/ui/adventure-selector.tsx",
+    "_tester/_base/.silnik/src/components/ui/equipment-detail-dialog.tsx",
+    "_tester/_base/.silnik/src/components/ui/full-game-save-modal.tsx",
+    "_tester/_base/.silnik/src/hooks/useCustomAdventures.ts",
+    "_tester/_base/.silnik/src/hooks/useFullSave.ts",
+    "_tester/_base/.silnik/src/hooks/useGameStart.ts",
+    "_tester/_base/.silnik/src/lib/era/manifests.ts",
+    "_tester/_base/.silnik/src/lib/era/types.ts",
+    "_tester/_base/.silnik/src/lib/full-game-save-manager.ts",
+    "_tester/_base/.silnik/src/lib/world-setup/client-store.ts",
+    "_tester/_base/.silnik/src/lib/world-setup/historical-research.ts",
+    "_tester/_base/.silnik/src/lib/world-setup/types.ts",
+    "_tester/_base/.silnik/src/lib/world-setup/validation.ts",
+    "_tester/_base/.silnik/src/lib/world-setup/visual-prompt.ts",
+    "docs/audits/prompts/README.md"
+  ],
+  "checks": [
+    {
+      "name": "qa",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log",
+      "output": "navigation, typecheck and 76 Jest suites with 309 tests passed"
+    },
+    {
+      "name": "targeted-lint",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log"
+    },
+    {
+      "name": "build",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log"
+    },
+    {
+      "name": "full-lint",
+      "status": "pre_existing",
+      "exit_code": 1,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/baseline-lint.log",
+      "fingerprint": "98d0af8df9d2d4f6452f"
+    },
+    {
+      "name": "playwright",
+      "status": "pre_existing",
+      "exit_code": 1,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/baseline-ui.log",
+      "fingerprint": "d038dc51a7c01ffa854e"
+    }
+  ],
+  "artifacts": [
+    ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log",
+    "docs/audits/prompts/README.md"
+  ],
+  "summary": "Implemented validated era and world setup contracts, seven draft manifests, preflight before chat, canonical save/load persistence, exact custom scenario year and country gates, Google Search research restricted to preflight with trust registry, cache, quarantine and neutral degradation, removal of silent 1920 defaults from central prompt endpoints, and the vehicle office composition regression.",
+  "next_action": "Run independent verification against the approved plan and inspect UI behavior before any commit, tag or release."
+}

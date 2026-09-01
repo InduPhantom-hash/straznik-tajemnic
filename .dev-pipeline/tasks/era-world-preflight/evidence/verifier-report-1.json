@@ -1,0 +1,22 @@
+{
+  "run_id": "era-world-preflight-verifier-attempt-1-20260901",
+  "task_id": "era-world-preflight",
+  "role": "verifier",
+  "result": "needs_human",
+  "changed_files": [],
+  "checks": [
+    {
+      "name": "verifier-authentication",
+      "status": "failed",
+      "exit_code": 1,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/verifier-auth.log",
+      "output": "Configured independent verifier Claude is not logged in."
+    }
+  ],
+  "artifacts": [
+    ".dev-pipeline/tasks/era-world-preflight/evidence/verifier-auth.log"
+  ],
+  "failure_fingerprint": "claude-not-logged-in",
+  "summary": "Independent verification could not start because the configured Claude CLI is not authenticated. No completion judgment was made and no repository content was transmitted externally.",
+  "next_action": "Authenticate the configured independent verifier or explicitly approve a different external verifier, then rerun dev-verify."
+}

@@ -1,6 +1,7 @@
 import { POST } from './route';
 import { GoogleGenAI } from '@google/genai';
 import type { NextRequest } from 'next/server';
+import { resolveEraContext } from '@/lib/era';
 
 jest.mock('@google/genai', () => {
   return {
@@ -8,7 +9,7 @@ jest.mock('@google/genai', () => {
       return {
         models: {
           generateContent: jest.fn().mockResolvedValue({
-            text: 'Mroczny tekst dokumentu z roku 1920...',
+            text: 'Mroczny tekst dokumentu z roku 1973...',
           }),
         },
       };
@@ -58,14 +59,25 @@ describe('read-item api route', () => {
     const req = mockRequest({
       item: { name: 'List' },
       character: { name: 'Marcus' },
-      adventureContext: { eraLabel: '1920s' },
+      adventureContext: { eraLabel: 'Polska 1973' },
+      eraContext: resolveEraContext({
+        userSelection: { year: 1973, country: 'Polska' },
+      }),
     });
 
     const res = await POST(req);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.success).toBe(true);
-    expect(data.content).toBe('Mroczny tekst dokumentu z roku 1920...');
+    expect(data.content).toBe('Mroczny tekst dokumentu z roku 1973...');
+  });
+
+  it('odrzuca brak dokładnego kontekstu epoki przed wywołaniem modelu', async () => {
+    const req = mockRequest({ item: { name: 'List' } });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(400);
+    expect(GoogleGenAI).not.toHaveBeenCalled();
   });
 });
-

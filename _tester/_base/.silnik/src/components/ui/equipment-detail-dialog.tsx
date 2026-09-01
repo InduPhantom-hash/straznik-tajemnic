@@ -12,6 +12,7 @@ import { DiegeticDocumentViewer } from './diegetic-document-viewer';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 import { EquipmentImagePlaceholder } from './equipment-image-placeholder';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
+import { resolveGameEraContext } from '@/lib/era';
 
 import { createPortal } from 'react-dom';
 
@@ -128,6 +129,10 @@ export function EquipmentDetailDialog({
 
       const advSaved = localStorage.getItem('adventure_context');
       const adventureContext = advSaved ? JSON.parse(advSaved) : null;
+      if (!adventureContext) {
+        throw new Error(t('readFailed'));
+      }
+      const eraContext = resolveGameEraContext({ adventure: adventureContext });
 
       const chatSaved = localStorage.getItem('chat-messages');
       const recentHistory = chatSaved ? JSON.parse(chatSaved) : [];
@@ -142,6 +147,7 @@ export function EquipmentDetailDialog({
           item,
           character: activeChar,
           adventureContext,
+          eraContext,
           currentLocation: undefined,
           recentHistory,
         }),

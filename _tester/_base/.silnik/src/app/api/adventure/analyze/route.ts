@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import type {
   AdventureGraph,
   AdventureNPC,
@@ -273,18 +272,42 @@ export async function POST(request: NextRequest) {
       ? (adventureData.adventures as AdventureRaw[])
       : [adventureData as AdventureRaw]; // Fallback dla starego formatu
 
+    const invalidEraMetadata = rawAdventures.flatMap((adventure, index) => {
+      const issues: string[] = [];
+      if (!adventure.yearRange?.match(/\b\d{4}\b/)) issues.push('yearRange');
+      if (
+        !adventure.country?.trim() ||
+        /^(unknown|nieznany|nieznane)$/i.test(adventure.country.trim())
+      ) {
+        issues.push('country');
+      }
+      return issues.length > 0 ? [{ index, issues }] : [];
+    });
+    if (invalidEraMetadata.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Analiza PDF nie ustaliła roku lub kraju dla każdej przygody.',
+          code: 'ERA_METADATA_REQUIRED',
+          invalidAdventures: invalidEraMetadata,
+        },
+        { status: 422 }
+      );
+    }
+
     // Walidacja i uzupełnienie brakujących pól dla każdej przygody
     const validateAdventure = (data: AdventureRaw, index: number) => ({
       title:
         data.title || `${fileName.replace('.pdf', '')} - Przygoda ${index + 1}`,
       location: data.location || 'Nieznana lokalizacja',
-      country: data.country || 'Nieznany',
+      country: data.country!.trim(),
       era:
         data.era && ['classic', 'gaslight', 'modern'].includes(data.era)
           ? data.era
-          : 'classic',
-      eraLabel: data.eraLabel || 'Klasyczne lata 20.',
-      yearRange: data.yearRange || '1920-1930',
+          : 'custom',
+      eraLabel:
+        data.eraLabel || `${data.yearRange!.trim()}, ${data.country!.trim()}`,
+      yearRange: data.yearRange!.trim(),
       hook: data.hook || 'Tajemnicza przygoda czeka na odkrycie...',
       description: data.description || data.hook || '',
       tone:
@@ -332,9 +355,10 @@ export async function POST(request: NextRequest) {
 
     const fetchHistoricalWeather = async (lat: number, lon: number, yearRange: string): Promise<string | null> => {
       try {
-        // Wyciągnij pierwszy rok z zakresu lub domyślny 1925
+        // Rok jest wymagany przez walidację metadanych powyżej.
         const yearMatch = yearRange.match(/\b(18\d\d|19\d\d|20\d\d)\b/);
-        const year = yearMatch ? yearMatch[1] : '1925';
+        if (!yearMatch) return null;
+        const year = yearMatch[1];
         const date = `${year}-05-12`; // Domyślny, klimatyczny dzień wiosenny
 
         const res = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,rain,snowfall,weather_code`);
@@ -364,7 +388,8 @@ export async function POST(request: NextRequest) {
     const fetchHistoricalPOI = async (lat: number, lon: number, yearRange: string): Promise<Array<{ name: string; description: string }>> => {
       try {
         const yearMatch = yearRange.match(/\b(18\d\d|19\d\d|20\d\d)\b/);
-        const year = yearMatch ? parseInt(yearMatch[1]) : 1925;
+        if (!yearMatch) return [];
+        const year = parseInt(yearMatch[1]);
 
         // Zapytanie Overpass API dla OpenHistoricalMap o POI w promieniu 1000m
         const query = `
