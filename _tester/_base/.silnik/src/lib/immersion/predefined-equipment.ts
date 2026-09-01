@@ -295,8 +295,8 @@ function withLocalImage(
 
   return {
     ...catalogItem,
-    imageUrl: catalogItem.imageUrl,
-    visualSource: catalogItem.imageUrl ? 'catalog' : 'generated',
+    imageUrl: catalogItem.imageUrl ?? CATEGORY_IMAGES[catalogItem.category],
+    visualSource: catalogItem.imageUrl ? 'catalog' : 'fallback',
   };
 }
 

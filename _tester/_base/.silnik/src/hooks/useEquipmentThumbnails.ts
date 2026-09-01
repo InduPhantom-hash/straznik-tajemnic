@@ -134,6 +134,15 @@ export function useEquipmentThumbnails({
         // Cache-aware: pomijamy itemy które JUŻ mają dedykowaną grafikę katalogową WebP lub wygenerowany obrazek AI.
         const pending = (character.equipment ?? [])
           .filter((item) => {
+            // Katalog i wyposażenie startowe są deterministyczne. Brak dedykowanego
+            // WebP oznacza lokalną ikonę kategorii, nigdy płatne wywołanie API.
+            if (
+              isCatalogEquipment(item) ||
+              item.source === 'starting' ||
+              item.visualSource === 'fallback'
+            ) {
+              return false;
+            }
             if (!item.imageUrl) return true;
             return (
               item.imageUrl.endsWith('.svg') ||

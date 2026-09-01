@@ -55,6 +55,37 @@ describe('useEquipmentThumbnails', () => {
     expect(setCharacters).not.toHaveBeenCalled();
   });
 
+  it('nie wywołuje API dla startowego przedmiotu z ikoną kategorii', async () => {
+    const fallbackCharacter = {
+      ...character,
+      equipment: [
+        {
+          id: 'starting-recorder',
+          name: 'Dyktafon na mikrokasety',
+          category: 'tool',
+          source: 'starting',
+          visualSource: 'fallback',
+          imageUrl: '/equipment/predefined/tool.svg',
+        },
+      ],
+    } as Character;
+    const { result } = renderHook(() =>
+      useEquipmentThumbnails({
+        activeCharacter: fallbackCharacter,
+        adventureContext: null,
+        imageGenerationEnabled: true,
+        setActiveCharacter: jest.fn(),
+        setCharacters: jest.fn(),
+      })
+    );
+
+    await act(async () => {
+      await result.current.generateThumbnailsInBackground();
+    });
+
+    expect(fetchWithApiKeys).not.toHaveBeenCalled();
+  });
+
   it('nie wywołuje API, gdy generowanie obrazów jest wyłączone', async () => {
     const storyItemCharacter = {
       ...character,

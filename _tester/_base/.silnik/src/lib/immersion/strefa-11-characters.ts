@@ -1,6 +1,7 @@
 import type { PredefinedCharacter } from './predefined-characters';
+import { CATEGORY_FALLBACK_ASSETS } from '@/lib/equipment-catalog';
 
-export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
+const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
   // 1. SYGNAŁY NIEZNANEGO / CIEŃ NAD PRABUTAMI
   // ==========================================================================
@@ -545,6 +546,17 @@ export const STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     equipment: [{ id: 'eq_luna_camera', name: 'Zestaw do zdjęć nocnych', category: 'tool' }, { id: 'eq_luna_detector', name: 'Wykrywacz pól elektromagnetycznych domowej roboty', category: 'tool' }]
   }
 ];
+
+export const STREFA_11_CHARACTERS: PredefinedCharacter[] =
+  BASE_STREFA_11_CHARACTERS.map((character) => ({
+    ...character,
+    equipment: character.equipment?.map((item) => ({
+      ...item,
+      source: 'starting',
+      imageUrl: CATEGORY_FALLBACK_ASSETS[item.category],
+      visualSource: 'fallback',
+    })),
+  }));
 
 export function getStrefa11CharactersForAdventure(adventureId: string): PredefinedCharacter[] {
   return STREFA_11_CHARACTERS.filter((character) =>

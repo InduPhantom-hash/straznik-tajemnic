@@ -6,6 +6,7 @@ import {
   getStrefa11CharactersForAdventure,
 } from './strefa-11-characters';
 import {
+  CATEGORY_FALLBACK_ASSETS,
   findEquipmentTemplate,
   resolveCatalogAsset,
 } from '@/lib/equipment-catalog';
@@ -83,10 +84,42 @@ describe('PREDEFINED_CHARACTERS', () => {
     });
   });
 
+  it('wskazuje istniejący, unikalny portret dla każdego aktywnego presetu', () => {
+    const activeCharacters = [
+      ...PREDEFINED_CHARACTERS,
+      ...STREFA_11_CHARACTERS,
+    ];
+    const portraitUrls = activeCharacters.map((character) => character.portraitUrl);
+
+    expect(activeCharacters).toHaveLength(46);
+    expect(new Set(portraitUrls).size).toBe(activeCharacters.length);
+    activeCharacters.forEach((character) => {
+      expect(character.portraitUrl).toMatch(/^\/portraits\/predefined\/.+\.webp$/);
+      expect(
+        existsSync(join(process.cwd(), 'public', character.portraitUrl!.slice(1)))
+      ).toBe(true);
+    });
+  });
+
+  it('nie kieruje wyposażenia startowego do generatora obrazów', () => {
+    [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS].forEach((character) => {
+      character.equipment?.forEach((item) => {
+        expect(item.source).toBe('starting');
+        expect(item.imageUrl).toMatch(
+          /^\/equipment\/(?:catalog\/.+\.webp|predefined\/[a-z]+\.svg)$/
+        );
+        expect(item.visualSource).not.toBe('generated');
+        expect(
+          existsSync(join(process.cwd(), 'public', item.imageUrl!.slice(1)))
+        ).toBe(true);
+      });
+    });
+  });
+
   it('używa wyłącznie istniejących lokalnych miniatur ekwipunku dla przedmiotów katalogowych', () => {
     PREDEFINED_CHARACTERS.forEach((character) => {
       character.equipment?.forEach((item) => {
-        if (!item.imageUrl) return; // Przedmioty do wygenerowania AI w tle na starcie gry
+        if (!item.imageUrl) return;
         expect(item.imageUrl).toMatch(
           /^\/equipment\/(?:catalog\/.+\.webp|predefined\/[a-z]+\.svg)$/
         );
@@ -97,7 +130,8 @@ describe('PREDEFINED_CHARACTERS', () => {
         const template = findEquipmentTemplate(item.templateId);
         if (template) {
           expect(item.imageUrl).toBe(
-            resolveCatalogAsset(template, VISUAL_ERAS[character.era])
+            resolveCatalogAsset(template, VISUAL_ERAS[character.era]) ??
+              CATEGORY_FALLBACK_ASSETS[template.category]
           );
         }
       });
