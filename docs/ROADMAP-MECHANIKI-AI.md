@@ -2,6 +2,19 @@
 
 Roadmapa opisuje docelową wersję aplikacji lokalnej. Aplikacja działa na komputerze użytkownika, przechowuje stan gry i indeks wiedzy lokalnie, a z siecią łączy się tylko przez jawnie wybrane integracje.
 
+## Źródło prawdy dla prac
+
+Publiczne Issues tego repozytorium są jedynym backlogiem operacyjnym: zawierają epiki, błędy, priorytety i zależności. Ten dokument opisuje kierunek produktu, a nie zastępuje kolejki prac. Szczegóły: [`PROJECT-WORKFLOW.md`](./PROJECT-WORKFLOW.md).
+
+Kolejność najbliższych epików:
+
+1. Stabilizacja wydania i samodzielnej paczki macOS.
+2. Audyt architektury oraz usunięcie rozjazdów źródeł prawdy.
+3. Spakowanie dozwolonych danych Mythos bez zależności od wrappera.
+4. Manifesty epok, preflight świata i zgodność save/load.
+5. Deterministyczny katalog wyposażenia oraz audyt portretów.
+6. Rozszerzanie mechaniki, stanu gry, historycznej wiedzy MG i regresji kosztów.
+
 ## Priorytet prac (Zatwierdzony 2026-08-01)
 - **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` (wariant Low/Flash) oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
 - **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟡 W TRAKCIE)

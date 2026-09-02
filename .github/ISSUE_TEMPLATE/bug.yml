@@ -1,0 +1,40 @@
+name: Błąd runtime
+description: Zgłoś błąd z ograniczonym zakresem naprawy.
+title: "bug: "
+labels: ["triage"]
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Objaw i ścieżka odtworzenia
+      description: Co widzi gracz i jakie kroki wywołują problem?
+    validations:
+      required: true
+  - type: input
+    id: runtime-path
+    attributes:
+      label: Ścieżka runtime lub ekran
+      placeholder: np. /en/campaigns/new -> useGameStart -> /api/adventure/setup
+    validations:
+      required: true
+  - type: input
+    id: source-of-truth
+    attributes:
+      label: Źródło prawdy
+      description: Plik, kontrakt albo magazyn danych, który powinien decydować o tym zachowaniu.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Dopuszczalny zakres
+      description: Wymień pliki lub systemy, które wolno zmienić. Jeśli nie wiadomo, karta pozostaje diagnozą.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kryterium akceptacji i bramka
+      description: Test automatyczny, E2E lub ręczna akceptacja.
+    validations:
+      required: true

@@ -5,6 +5,19 @@ Format oparty na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.9.4] - w przygotowaniu
+
+### Gotowe w gałęzi wydaniowej
+- Pełniejsza lokalizacja PL/EN, w tym ręczny wybór przygody i Sesja Zero.
+- Stabilniejszy start gotowych przygód bez zbędnego preflightu AI.
+- Deterministyczne zestawy startowego wyposażenia, które nie zależą od odpowiedzi modelu.
+- Fundament manifestów epok, preflight świata, opcjonalny zapis `worldSetup` oraz odnowione mapowania portretów.
+- Zachowanie obrazów scen przy narracji MG i ręczna kontynuacja odpowiedzi uciętej limitem tokenów.
+
+### Przed publikacją
+- Pełne bramki techniczne, E2E PL/EN, zgodność save/load i test świeżej paczki macOS.
+- Tag, GitHub Release oraz paczka do pobrania wymagają osobnej akceptacji po przejściu bramek.
+
 ## [0.9.3] - 2026-08-15
 
 ### ✨ Nowości i Ulepszenia
