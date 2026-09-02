@@ -8,7 +8,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'strefa11_tomasz_nowicki',
     scenarioIds: ['cien-nad-prabutami'],
-    era: 'modern',
+    era: 'prl-1970s',
     archetype: 'investigator',
     name: 'Tomasz Nowicki',
     occupation: 'Dziennikarz Śledczy / Prowadzący',
@@ -41,7 +41,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'strefa11_helena_krawczyk',
     scenarioIds: ['cien-nad-prabutami'],
-    era: 'modern',
+    era: 'prl-1970s',
     archetype: 'trickster',
     name: 'Helena Krawczyk',
     occupation: 'Producent telewizyjny',
@@ -74,7 +74,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'strefa11_barbara_zawadzka',
     scenarioIds: ['cien-nad-prabutami'],
-    era: 'modern',
+    era: 'prl-1970s',
     archetype: 'scholar',
     name: 'Dr Barbara Zawadzka',
     occupation: 'Etnograf / Parapsycholog',
@@ -107,7 +107,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'strefa11_ryszard_klucznik',
     scenarioIds: ['cien-nad-prabutami'],
-    era: 'modern',
+    era: 'prl-1970s',
     archetype: 'action',
     name: 'Ryszard "Klucznik" Kaczmarek',
     occupation: 'B. Oficer SB / Technik Ochrony',
@@ -144,7 +144,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'pednik_inzynier',
     scenarioIds: ['tajemnica-pendnika-lagiewki'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'scholar',
     name: 'Inż. Marek Kamiński',
     occupation: 'Inżynier Mechanik',
@@ -177,7 +177,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'pednik_kierowca',
     scenarioIds: ['tajemnica-pendnika-lagiewki'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'action',
     name: 'Tomasz "Ryzykant" Wójcik',
     occupation: 'Kierowca Testowy',
@@ -210,7 +210,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'pednik_dziennikarka',
     scenarioIds: ['tajemnica-pendnika-lagiewki'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'investigator',
     name: 'Anna Dąbrowska',
     occupation: 'Dziennikarz śledczy',
@@ -243,7 +243,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'pednik_fizyk',
     scenarioIds: ['tajemnica-pendnika-lagiewki'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'scholar',
     name: 'Dr Ewa Wiśniewska',
     occupation: 'Fizyk teoretyczna',
@@ -280,7 +280,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'traszyn_egzorcysta',
     scenarioIds: ['tajemnica-dzieci-z-traszyna'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'mystic',
     name: 'Ksiądz Jan Kaczmarek',
     occupation: 'Ksiądz Egzorcysta',
@@ -313,7 +313,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'traszyn_terapeuta',
     scenarioIds: ['tajemnica-dzieci-z-traszyna'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'healer',
     name: 'Andrzej "Aura" Zalewski',
     occupation: 'Bioenergoterapeuta',
@@ -346,7 +346,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'traszyn_psycholog',
     scenarioIds: ['tajemnica-dzieci-z-traszyna'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'scholar',
     name: 'Marta Kamińska',
     occupation: 'Psycholog',
@@ -379,7 +379,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'traszyn_etnografka',
     scenarioIds: ['tajemnica-dzieci-z-traszyna'],
-    era: 'modern',
+    era: '1990s',
     archetype: 'investigator',
     name: 'Zofia "Zosia" Sadowska',
     occupation: 'Etnograf / Bibliotekarz',
@@ -416,7 +416,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'glogow_detektyw',
     scenarioIds: ['przybysz-z-matriksa-glogow'],
-    era: 'modern',
+    era: '2000s',
     archetype: 'investigator',
     name: 'Artur "Stary" Majchrzak',
     occupation: 'Prywatny Detektyw',
@@ -449,7 +449,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'glogow_haker',
     scenarioIds: ['przybysz-z-matriksa-glogow'],
-    era: 'modern',
+    era: '2000s',
     archetype: 'trickster',
     name: 'Piotr "Kabel" Wójcicki',
     occupation: 'Programista / Haker',
@@ -482,7 +482,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'glogow_psychiatra',
     scenarioIds: ['przybysz-z-matriksa-glogow'],
-    era: 'modern',
+    era: '2000s',
     archetype: 'healer',
     name: 'Dr Krystyna Zawada',
     occupation: 'Psychiatra',
@@ -515,7 +515,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   {
     id: 'glogow_ufolog',
     scenarioIds: ['przybysz-z-matriksa-glogow'],
-    era: 'modern',
+    era: '2000s',
     archetype: 'scholar',
     name: 'Karolina "Luna" Maj',
     occupation: 'Ufolog / Badacz anomalii',

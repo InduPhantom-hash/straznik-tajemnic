@@ -461,7 +461,7 @@ export default function Home() {
         const stamped: Character = {
           ...preset,
           ...(targetEra
-            ? { equipment: buildPredefinedEquipment(preset) }
+            ? { equipment: buildPredefinedEquipment(preset, targetEra) }
             : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           sourcePresetId: foundPreset?.id,
@@ -487,7 +487,7 @@ export default function Home() {
             const stamped2: Character = {
               ...localizedPreset2,
               ...(targetEra
-                ? { equipment: buildPredefinedEquipment(localizedPreset2) }
+                ? { equipment: buildPredefinedEquipment(localizedPreset2, targetEra) }
                 : {}),
               id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
               sourcePresetId: preset2.id,

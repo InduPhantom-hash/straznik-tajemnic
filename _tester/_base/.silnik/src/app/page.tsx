@@ -41,6 +41,9 @@ import { toast } from '@/components/ui/use-toast';
 import { BUILT_IN_ADVENTURES, STREFA_11_ADVENTURES, getAdventureById } from '@/lib/adventures-data';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
+import { buildPredefinedEquipment } from '@/lib/immersion/predefined-equipment';
+import { resolveGameEraContext } from '@/lib/era';
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import type { RandomEvent } from '@/lib/random-event-generator';
 
 // Dynamic imports dla ciężkich komponentów
@@ -417,8 +420,14 @@ export default function Home() {
         : PREDEFINED_CHARACTERS;
       const preset = allCharacters.find((c) => c.id === characterId);
       if (preset) {
+        const targetEra = adv
+          ? resolveEraVisualProfile(resolveGameEraContext({ adventure: adv }))
+          : undefined;
         const stamped: Character = {
           ...preset,
+          ...(targetEra
+            ? { equipment: buildPredefinedEquipment(preset, targetEra) }
+            : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           sourcePresetId: preset.id,
         };
@@ -437,6 +446,9 @@ export default function Home() {
           if (preset2) {
             const stamped2: Character = {
               ...preset2,
+              ...(targetEra
+                ? { equipment: buildPredefinedEquipment(preset2, targetEra) }
+                : {}),
               id: `char_${Date.now() + 1}_${Math.random().toString(36).substr(2, 4)}`,
               sourcePresetId: preset2.id,
               playerName: 'Gracz 2',

@@ -5,6 +5,7 @@ import {
   STREFA_11_CHARACTERS,
   getStrefa11CharactersForAdventure,
 } from './strefa-11-characters';
+import { buildPredefinedEquipment } from './predefined-equipment';
 import {
   CATEGORY_FALLBACK_ASSETS,
   findEquipmentTemplate,
@@ -153,6 +154,51 @@ describe('PREDEFINED_CHARACTERS', () => {
           );
         }
       });
+    });
+  });
+
+  it('przypisuje właściwe epoki historyczne do postaci ze Strefy 11 bez cichego modern', () => {
+    const prabuty = getStrefa11CharactersForAdventure('cien-nad-prabutami');
+    expect(prabuty).toHaveLength(4);
+    expect(prabuty.every((c) => c.era === 'prl-1970s')).toBe(true);
+
+    const kowary = getStrefa11CharactersForAdventure('tajemnica-pendnika-lagiewki');
+    expect(kowary).toHaveLength(4);
+    expect(kowary.every((c) => c.era === '1990s')).toBe(true);
+
+    const traszyn = getStrefa11CharactersForAdventure('tajemnica-dzieci-z-traszyna');
+    expect(traszyn).toHaveLength(4);
+    expect(traszyn.every((c) => c.era === '1990s')).toBe(true);
+
+    const glogow = getStrefa11CharactersForAdventure('przybysz-z-matriksa-glogow');
+    expect(glogow).toHaveLength(4);
+    expect(glogow.every((c) => c.era === '2000s')).toBe(true);
+
+    expect(STREFA_11_CHARACTERS.some((c) => c.era === 'modern')).toBe(false);
+  });
+
+  it('deterministycznie dobiera wyposażenie epokowe i eliminuje anachronizmy (smartfon, powerbank)', () => {
+    // Andrzej Zalewski z Traszyna (lata 90.)
+    const andrzej = STREFA_11_CHARACTERS.find((c) => c.id === 'traszyn_terapeuta');
+    expect(andrzej).toBeDefined();
+    const andrzejEq = buildPredefinedEquipment(andrzej!, '1990s');
+    const andrzejItemNames = andrzejEq.map((i) => i.name.toLowerCase());
+
+    expect(andrzejItemNames).not.toContain('smartfon z ładowarką'.toLowerCase());
+    expect(andrzejItemNames).not.toContain('powerbank'.toLowerCase());
+    expect(andrzejItemNames).toContain('telefon komórkowy (cegła)'.toLowerCase());
+    expect(andrzejItemNames).toContain('wahadełko z kryształem'.toLowerCase());
+
+    // Badacze z Cienia nad Prabutami (1973 PRL)
+    const prabutyChars = getStrefa11CharactersForAdventure('cien-nad-prabutami');
+    prabutyChars.forEach((c) => {
+      const eq = buildPredefinedEquipment(c, 'prl-1970s');
+      const names = eq.map((i) => i.name.toLowerCase());
+      expect(names).not.toContain('smartfon z ładowarką'.toLowerCase());
+      expect(names).not.toContain('powerbank'.toLowerCase());
+      expect(names).not.toContain('telefon komórkowy (cegła)'.toLowerCase());
+      expect(names).toContain('latarka elektryczna'.toLowerCase());
+      expect(names).toContain('notes badawczy'.toLowerCase());
     });
   });
 });
