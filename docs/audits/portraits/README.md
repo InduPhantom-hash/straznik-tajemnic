@@ -40,14 +40,14 @@ Decyzje są wizualnym baseline, nie zgodą na wygenerowanie lub podmianę assetu
 
 ## Strefa 11 - remapy zaakceptowane przez PO
 
-PO zaakceptował dwanaście remapów 2 września 2026 roku. Cztery portrety do `Cienia nad Prabutami` pozostają w kolejce regeneracji zgodnej z PRL 1973-1974.
+PO zaakceptował dwanaście remapów 2 września 2026 roku. Cztery portrety do `Cienia nad Prabutami` wygenerowano i wdrożono jako assety zgodne z PRL 1973-1974.
 
 | Postać | Obecny plik | Proponowany plik | Decyzja |
 |---|---|---|---|
-| Tomasz Nowicki | `tadeusz-krawiec.webp` | nowy portret PRL 1973-1974 | `regenerate` |
-| Helena Krawczyk | `ewa-nowak.webp` | nowy portret PRL 1973-1974 | `regenerate` |
-| Dr Barbara Zawadzka | `magdalena-koper.webp` | nowy portret PRL 1973-1974 | `regenerate` |
-| Ryszard Kaczmarek | `marek-dabrowski.webp` | nowy portret PRL 1973-1974 | `regenerate` |
+| Tomasz Nowicki | `tadeusz-krawiec.webp` | `tomasz_nowicki.webp` | `regenerated` |
+| Helena Krawczyk | `ewa-nowak.webp` | `helena_krawczyk.webp` | `regenerated` |
+| Dr Barbara Zawadzka | `magdalena-koper.webp` | `barbara_zawadzka.webp` | `regenerated` |
+| Ryszard Kaczmarek | `marek-dabrowski.webp` | `ryszard_kaczmarek.webp` | `regenerated` |
 | Inż. Marek Kamiński | `jerzy-kossak.webp` | `marek_kaminski.webp` | `remap` |
 | Tomasz Wójcik | `wiktor-lesniewski.webp` | `tomasz_wojcik.webp` | `remap` |
 | Anna Dąbrowska | `alicja-rudzka.webp` | `anna_dabrowska.webp` | `remap` |
@@ -65,7 +65,7 @@ Dwanaście proponowanych remapów ma istniejące pliki. Cztery portrety do `Cien
 
 ## Decyzja historyczna Strefy 11
 
-`Cień nad Prabutami` rozgrywa się w całości zimą 1973-1974. Postacie nie są podróżnikami z przyszłości. Tomasz Nowicki, Helena Krawczyk, Barbara Zawadzka i Ryszard Kaczmarek wymagają nowych biografii, wyposażenia i portretów zgodnych z PRL 1973-1974. Ich wcześniejsze propozycje `remap` tracą ważność i otrzymują decyzję `regenerate`.
+`Cień nad Prabutami` rozgrywa się w całości zimą 1973-1974. Postacie nie są podróżnikami z przyszłości. Tomasz Nowicki, Helena Krawczyk, Barbara Zawadzka i Ryszard Kaczmarek otrzymali nowe portrety zgodne z PRL 1973-1974. Biografie i wyposażenie wymagają osobnego zadania aktualizacyjnego.
 
 ## Bramka zmiany
 

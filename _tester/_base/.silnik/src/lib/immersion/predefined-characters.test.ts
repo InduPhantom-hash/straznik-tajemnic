@@ -101,6 +101,24 @@ describe('PREDEFINED_CHARACTERS', () => {
     });
   });
 
+  it('przypisuje portrety PRL 1973-1974 do postaci z Cienia nad Prabutami', () => {
+    const portraitsById = new Map(
+      getStrefa11CharactersForAdventure('cien-nad-prabutami').map((character) => [
+        character.id,
+        character.portraitUrl,
+      ])
+    );
+
+    expect(portraitsById).toEqual(
+      new Map([
+        ['strefa11_tomasz_nowicki', '/portraits/predefined/tomasz_nowicki.webp'],
+        ['strefa11_helena_krawczyk', '/portraits/predefined/helena_krawczyk.webp'],
+        ['strefa11_barbara_zawadzka', '/portraits/predefined/barbara_zawadzka.webp'],
+        ['strefa11_ryszard_klucznik', '/portraits/predefined/ryszard_kaczmarek.webp'],
+      ])
+    );
+  });
+
   it('nie kieruje wyposażenia startowego do generatora obrazów', () => {
     [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS].forEach((character) => {
       character.equipment?.forEach((item) => {
