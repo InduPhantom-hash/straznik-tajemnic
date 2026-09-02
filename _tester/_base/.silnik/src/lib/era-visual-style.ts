@@ -133,23 +133,23 @@ export function getEraTechnologyGuardrails(
 
   switch (profile) {
     case '1890s':
-      return `${baseNegative}, no electricity in rural areas, no electric lightbulbs in streets, no automobiles, no cars, no modern vehicles, no airplanes, no telephones, no plastic, no modern fabrics, strictly late 19th century authentic Victorian/Edwardian items only`;
+      return `${baseNegative}, no electricity in rural areas, no electric lightbulbs in streets, no automobiles, no cars, no modern vehicles, no airplanes, no telephones, no plastic, no modern fabrics, strictly late 19th century authentic Victorian setting`;
     case '1920s':
-      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no touchscreens, no computers, no modern electronics, no plastic gadgets, no modern cars, no post-1930 vehicles, strictly authentic 1920s technology`;
+      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no touchscreens, no computers, no modern electronics, no plastic gadgets, no modern cars, no post-1930 vehicles, strictly authentic 1920s period setting`;
     case '1930s':
-      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no modern screens, no television sets in private homes, no post-1939 vehicles, strictly 1930s Great Depression era design`;
+      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no modern screens, no television sets, no post-1939 vehicles, strictly authentic 1930s period setting`;
     case '1940s':
-      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no laptops, no modern plastics, no post-1950 vehicles, strictly 1940s wartime/noir technology`;
+      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no laptops, no modern plastics, no post-1950 vehicles, strictly authentic 1940s period setting`;
     case '1950s':
-      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no personal computers, no modern aerodynamic cars, strictly 1950s mid-century aesthetic`;
+      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no personal computers, no modern aerodynamic cars, strictly authentic 1950s period setting`;
     case 'prl-1970s':
-      return `${baseNegative}, no smartphones, no mobile phones, no iPhones, no powerbanks, no laptops, no modern screens, no USB, no modern cars, no 1920s vintage Model T cars (use 1970s boxy European/PRL automobiles), strictly 1970s analog technology`;
+      return `${baseNegative}, no smartphones, no mobile phones, no iPhones, no powerbanks, no laptops, no modern screens, no USB, no modern cars, no 1920s vintage cars, strictly authentic 1970s period setting`;
     case '1980s':
-      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreen phones, no powerbanks, no modern flat screen TVs, no modern aerodynamic cars, no 1920s vintage cars, strictly 1980s analog technology (rotary or push-button landline phones, boxy 1980s cars)`;
+      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreen phones, no powerbanks, no modern flat screen TVs, no modern aerodynamic cars, no 1920s vintage cars, strictly authentic 1980s period setting`;
     case '1990s':
-      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreens, no powerbanks, no wireless modern earbuds, no post-2000 vehicles, strictly 1990s technology (dial-up, CRT monitors, basic mobile phones with antennas, VHS)`;
+      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreens, no powerbanks, no wireless modern earbuds, no post-2000 vehicles, strictly authentic 1990s period setting`;
     case '2000s':
-      return `${baseNegative}, no modern full-screen smartphones, no iPhones, no modern powerbanks, strictly early 2000s feature phones (flip phones, Nokia bar phones with keypads), CRT/early LCD monitors`;
+      return `${baseNegative}, no modern full-screen smartphones, no iPhones, no modern powerbanks, no modern touchscreens, strictly authentic early 2000s period setting`;
     case 'modern':
       return `${baseNegative}`;
   }

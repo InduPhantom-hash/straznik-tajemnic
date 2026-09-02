@@ -251,6 +251,32 @@ const ERA_MATERIAL_IMAGE_PROPS: Record<EraVisualProfile, string> = {
   modern: 'contemporary authentic interior and architecture',
 };
 
+const ERA_OUTDOOR_IMAGE_PROPS: Record<EraVisualProfile, string> = {
+  '1890s': 'Victorian setting, authentic late 19th century exterior architecture, cobblestone or dirt path, gas lamps or darkness, weathered brick or timber, no modern technology',
+  '1920s': 'authentic 1920s exterior architecture, period streetlamps or natural moonlight, weathered period structures, strictly no modern electronics',
+  '1930s': '1930s Great Depression era exterior architecture, weathered period structures, authentic analog atmosphere',
+  '1940s': '1940s wartime noir exterior atmosphere, authentic period buildings, moody shadows, no modern gadgets',
+  '1950s': '1950s mid-century exterior architecture, authentic vintage street textures, no modern electronics',
+  'prl-1970s': '1970s Eastern European exterior atmosphere, authentic Polish period architecture, concrete, brick or rural wood, no modern digital devices',
+  '1980s': '1980s analog exterior atmosphere, authentic period architecture, boxy geometry, no modern smartphones',
+  '1990s': '1990s period exterior, authentic 90s analog atmosphere, authentic architecture, no modern touchscreens',
+  '2000s': 'early 2000s transition exterior architecture, authentic early millennium atmosphere, no modern smartphones',
+  modern: 'contemporary authentic exterior and architecture',
+};
+
+const ERA_PORTRAIT_IMAGE_PROPS: Record<EraVisualProfile, string> = {
+  '1890s': 'Victorian era portrait, authentic late 19th century styling and clothing, period photographic character, no modern technology',
+  '1920s': '1920s period portrait, authentic 1920s clothing and styling, vintage photographic plate character, strictly no modern electronics',
+  '1930s': '1930s period portrait, Depression era attire, authentic analog portrait character',
+  '1940s': '1940s noir portrait, wartime period attire, dramatic analog portrait lighting, no modern gadgets',
+  '1950s': '1950s mid-century portrait, authentic retro styling, vintage portrait character',
+  'prl-1970s': '1970s Eastern European portrait, authentic Polish period attire and styling, analog film character, no modern digital devices',
+  '1980s': '1980s analog portrait, authentic period attire and styling, 35mm film character, no modern smartphones',
+  '1990s': '1990s analog portrait, authentic 90s clothing and hair, authentic 90s film character, no modern touchscreens',
+  '2000s': 'early 2000s portrait, authentic early millennium styling and clothing, no modern smartphones',
+  modern: 'contemporary portrait photography, authentic styling',
+};
+
 const ENGLISH_ANACHRONISM_CLEANERS: Record<EraVisualProfile, RegExp[]> = {
   '1890s': [/\b(smartphone|iphone|cell phone|mobile phone|laptop|tablet|computer|led lights?|plastic|wifi|wi-fi)\b/gi, /\b(car|automobile|sedan|truck)\b/gi],
   '1920s': [/\b(smartphone|iphone|android|cell phone|mobile phone|laptop|tablet|pc|computer|led|leds|touchscreen|powerbank|usb|wifi|wi-fi|bluetooth)\b/gi, /\b(tv|television|laser|radar)\b/gi],
@@ -268,11 +294,13 @@ const ENGLISH_ANACHRONISM_CLEANERS: Record<EraVisualProfile, RegExp[]> = {
 
 /**
  * Automatyczna auto-korekta i wzbogacenie promptu obrazów o materialne rekwizyty epoki.
- * Usuwa ewentualne przypadkowe anachronizmy i dodaje charakterystyczne detale materialne.
+ * Usuwa ewentualne przypadkowe anachronizmy i dodaje charakterystyczne detale materialne
+ * z uwzględnieniem typu sceny (plener vs wnętrze vs portret).
  */
 export function enrichImagePromptWithEraProps(
   imagePrompt: string,
-  eraOrYear?: string | ResolvedEraContext
+  eraOrYear?: string | ResolvedEraContext,
+  sceneTypeHint?: 'interior' | 'exterior' | 'portrait'
 ): string {
   const profile = resolveEraVisualProfile(eraOrYear);
   let cleaned = imagePrompt.trim();
@@ -285,8 +313,25 @@ export function enrichImagePromptWithEraProps(
   cleaned = cleaned.replace(/\s{2,}/g, ' ').replace(/,\s*,/g, ',').trim();
   if (cleaned.endsWith(',')) cleaned = cleaned.slice(0, -1).trim();
 
-  // 2. Wzbogacenie o materialne rekwizyty epoki
-  const eraProps = ERA_MATERIAL_IMAGE_PROPS[profile];
+  // 2. Rozpoznanie typu sceny (interior vs exterior vs portrait)
+  let eraProps: string | undefined;
+  const isPortrait =
+    sceneTypeHint === 'portrait' ||
+    /\b(portrait|head and shoulders|close-up portrait|bust portrait|face of)\b/i.test(cleaned);
+
+  const isInterior =
+    sceneTypeHint === 'interior' ||
+    (!isPortrait &&
+      /\b(interior|office|desk|room|study|parlor|bedroom|kitchen|basement|attic|cellar|hall|corridor|library|laboratory|reception|clinic|hospital room|parish|cabin|apartment|flat|inside|indoor)\b/i.test(cleaned));
+
+  if (isPortrait) {
+    eraProps = ERA_PORTRAIT_IMAGE_PROPS[profile];
+  } else if (isInterior) {
+    eraProps = ERA_MATERIAL_IMAGE_PROPS[profile];
+  } else {
+    eraProps = ERA_OUTDOOR_IMAGE_PROPS[profile];
+  }
+
   if (!eraProps) return cleaned;
 
   return `${cleaned}, ${eraProps}`;

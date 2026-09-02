@@ -488,6 +488,23 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         '1920s';
 
       for (const img of illustrations) {
+        const isScene = (img.type || 'scene') === 'scene';
+        const loc = currentLocationRef.current?.trim();
+
+        // Sprawdź persistent cache lokacji przed wywołaniem API
+        if (isScene && loc) {
+          try {
+            const cachedLocImage = await persistentMediaCache.getLocationImage(loc);
+            if (cachedLocImage) {
+              generatedUrls.push(cachedLocImage);
+              generatedTypes.push('scene');
+              continue;
+            }
+          } catch {
+            // Ignoruj błąd odczytu cache lokacji
+          }
+        }
+
         try {
           const response = await fetchWithRetry('/api/imagen', {
             method: 'POST',
@@ -508,6 +525,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           if (result.imageUrl) {
             generatedUrls.push(result.imageUrl);
             generatedTypes.push(img.type || 'scene');
+
+            // Zapisz wygenerowany kadr lokacji do cache na przyszłe wizyty
+            if (isScene && loc) {
+              void persistentMediaCache
+                .setLocationImage(loc, result.imageUrl)
+                .catch(() => {});
+            }
           }
         } catch (error) {
           console.error('Image Error:', error);

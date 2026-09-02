@@ -85,4 +85,29 @@ describe('MessageCard - ręczna kontynuacja narracji', () => {
       screen.getByRole('button', { name: 'Kontynuacja zamówiona' })
     ).toBeDisabled();
   });
+
+  it('renderuje wygenerowany obraz na szczycie wiadomości, przed tekstem narracji', () => {
+    const { container } = render(
+      <MessageCard
+        {...baseProps}
+        message={{
+          ...baseMessage,
+          content: 'Tekst narracji po obrazku',
+          generatedImages: ['https://example.com/test-scene.jpg'],
+          generatedImageTypes: ['scene'],
+        }}
+      />
+    );
+
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+
+    const narrative = container.querySelector('.narrative-content');
+    expect(narrative).toBeInTheDocument();
+
+    // Sprawdź kolejność w drzewie DOM: obraz występuje PRZED narracją
+    expect(img!.compareDocumentPosition(narrative!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+  });
 });

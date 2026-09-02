@@ -166,40 +166,10 @@ export function MessageCard({
                 </div>
               )}
             </div>
-            {/* Formatowanie wiadomości - różne dla MG vs gracza */}
-            {message.role === 'assistant' ? (
-              <>
-                <NarrativeFormatter
-                  content={message.content}
-                  className="text-[18px] leading-relaxed font-special-elite"
-                  playerColors={playerColors}
-                  onImageClick={onImageClick}
-                />
-                {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
-                  <>
-                    <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
-                      <p className="font-semibold text-red-400 mb-1">{t('chronicleSavedTitle')}</p>
-                      <p className="italic">{t('chronicleSavedMessage')}</p>
-                    </div>
 
-                    {activeCharacter && onCharacterUpdate && (
-                      <DevelopmentPhaseCard
-                        character={activeCharacter}
-                        onCharacterUpdate={onCharacterUpdate}
-                      />
-                    )}
-                  </>
-                )}
-              </>
-            ) : (
-              <p className="text-[18px] leading-relaxed font-special-elite break-words overflow-wrap-anywhere whitespace-pre-wrap chat-message">
-                {cleanMarkdown(message.content)}
-              </p>
-            )}
-
-            {/* Wygenerowane obrazy */}
+            {/* Wygenerowane obrazy - ZAWSZE na szczycie wiadomości przed tekstem */}
             {message.generatedImages && message.generatedImages.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-4 items-start">
+              <div className="mb-4 flex flex-wrap gap-4 items-start">
                 {message.generatedImages.map((imgUrl, idx) => {
                   const isPortrait = message.generatedImageTypes?.[idx] === 'portrait';
                   return (
@@ -231,6 +201,37 @@ export function MessageCard({
                   </div>
                 )})}
               </div>
+            )}
+
+            {/* Formatowanie wiadomości - różne dla MG vs gracza */}
+            {message.role === 'assistant' ? (
+              <>
+                <NarrativeFormatter
+                  content={message.content}
+                  className="text-[18px] leading-relaxed font-special-elite"
+                  playerColors={playerColors}
+                  onImageClick={onImageClick}
+                />
+                {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
+                  <>
+                    <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
+                      <p className="font-semibold text-red-400 mb-1">{t('chronicleSavedTitle')}</p>
+                      <p className="italic">{t('chronicleSavedMessage')}</p>
+                    </div>
+
+                    {activeCharacter && onCharacterUpdate && (
+                      <DevelopmentPhaseCard
+                        character={activeCharacter}
+                        onCharacterUpdate={onCharacterUpdate}
+                      />
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <p className="text-[18px] leading-relaxed font-special-elite break-words overflow-wrap-anywhere whitespace-pre-wrap chat-message">
+                {cleanMarkdown(message.content)}
+              </p>
             )}
 
             {/* Ręczna kontynuacja urwanej narracji (finishReason=MAX_TOKENS).

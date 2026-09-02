@@ -39,8 +39,9 @@ export function renderNarrativeWithImages(
   // Reset regex (test() przesuwa lastIndex)
   imageRegex.lastIndex = 0;
 
-  // Podziel content na fragmenty texto i obrazy
-  const parts: ReactNode[] = [];
+  // Podziel content na obrazy (na szczycie) i akapity tekstu (poniżej)
+  const imageParts: ReactNode[] = [];
+  const textParts: ReactNode[] = [];
   let lastIndex = 0;
   let match;
   let partIndex = 0;
@@ -50,7 +51,7 @@ export function renderNarrativeWithImages(
     if (match.index > lastIndex) {
       const textBefore = content.slice(lastIndex, match.index).trim();
       if (textBefore) {
-        parts.push(
+        textParts.push(
           <p
             key={`${key}-text-${partIndex}`}
             className="text-foreground leading-relaxed whitespace-pre-wrap"
@@ -69,14 +70,9 @@ export function renderNarrativeWithImages(
     // Sprawdź czy to base64 czy URL
     const isBase64 = imageUrl.startsWith('data:image');
 
-    // IND-172: raw <img> zamiast next/image. AI chat generuje obrazy inline jako
-    // base64 data URLs (Gemini Image, Replicate Flux), które next/image NIE wspiera
-    // domyślnie (wymaga `unoptimized` prop lub custom loader z konwersją). HTTP URLs
-    // z GCS dałoby się migrować, ale różne paths render różnie (data URL wymaga
-    // explicit width/height inference z base64 header) → defer hybrid migrację do
-    // osobnego ticketu. Single `<img>` z fallback display:none on error wystarczy.
-    parts.push(
-      <div key={`${key}-img-${partIndex}`} className="my-4">
+    // IND-172: raw <img> zamiast next/image.
+    imageParts.push(
+      <div key={`${key}-img-${partIndex}`} className="mb-4">
         <SafeImage
           src={imageUrl}
           alt={altText}
@@ -107,7 +103,7 @@ export function renderNarrativeWithImages(
   if (lastIndex < content.length) {
     const textAfter = content.slice(lastIndex).trim();
     if (textAfter) {
-      parts.push(
+      textParts.push(
         <p
           key={`${key}-text-${partIndex}`}
           className="text-foreground leading-relaxed whitespace-pre-wrap"
@@ -118,5 +114,6 @@ export function renderNarrativeWithImages(
     }
   }
 
-  return <div key={key}>{parts}</div>;
+  // Obrazy zawsze na szczycie przed akapitami tekstu
+  return <div key={key}>{[...imageParts, ...textParts]}</div>;
 }
