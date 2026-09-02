@@ -5107,8 +5107,14 @@
     "model20Flash": "Gemini 2.0 Flash (proven)",
     "model20FlashExp": "Gemini 2.0 Flash Experimental",
     "model20FlashLite": "Gemini 2.0 Flash-Lite",
-    "modelFlashLatest": "Gemini Flash Latest (automatic)",
-    "modelProLatest": "Gemini Pro Latest (automatic)"
+    "modelFlashLatest": "Gemini Flash Latest (automatic, newest)",
+    "modelFlashLiteLatest": "Gemini Flash-Lite Latest (fast, low-cost)",
+    "modelProLatest": "Gemini Pro Latest (automatic)",
+    "model38Flash": "Gemini 3.8 Flash (newest Flash)",
+    "model37Flash": "Gemini 3.7 Flash",
+    "model36Flash": "Gemini 3.6 Flash",
+    "model31FlashLite": "Gemini 3.1 Flash-Lite (light)",
+    "modelDeprecated": "deprecated by Google"
   },
   "GeminiCacheSection": {
     "stateOn": "✓ enabled",

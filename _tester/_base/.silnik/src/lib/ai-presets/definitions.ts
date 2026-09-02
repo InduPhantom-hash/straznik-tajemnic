@@ -16,10 +16,10 @@ export const QUALITY_PRESETS = {
   low: {
     name: 'LOW COST',
     description:
-      'Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)',
+      'Gemini Flash-Lite, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)',
     settings: {
-      // Gemini settings - Gemini 3.6 Flash!
-      model: 'gemini-3.6-flash' as const, // Ultra-szybki i tani
+      // Gemini settings - Gemini Flash-Lite Latest!
+      model: 'gemini-flash-lite-latest' as const, // Ultra-szybki i tani
       temperature: 0.7,
       topP: 0.85,
       topK: 40,
@@ -51,10 +51,10 @@ export const QUALITY_PRESETS = {
   mid: {
     name: 'MID COST',
     description:
-      'Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)',
+      'Gemini Flash Latest + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)',
     settings: {
-      // Gemini settings
-      model: 'gemini-3.6-flash' as const,
+      // Gemini settings - Gemini Flash Latest
+      model: 'gemini-flash-latest' as const,
       temperature: 0.7,
       topP: 0.85,
       topK: 40,

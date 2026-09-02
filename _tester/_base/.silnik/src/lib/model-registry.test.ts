@@ -22,4 +22,21 @@ describe('Model Registry Drift-Guard', () => {
     expect(PRESET_MODELS.high.ttsVoice).toBe(QUALITY_PRESETS.high.settings.ttsVoice);
     expect(PRESET_MODELS.ultra.ttsVoice).toBe(QUALITY_PRESETS.ultra.settings.ttsVoice);
   });
+
+  it('defines valid default chat and image models and fallbacks', () => {
+    const {
+      DEFAULT_CHAT_MODEL,
+      DEFAULT_CHAT_MODEL_FALLBACK,
+      DEFAULT_IMAGE_MODEL,
+      FALLBACK_IMAGE_MODEL,
+      CACHEABLE_MODELS,
+    } = require('./model-registry');
+
+    expect(DEFAULT_CHAT_MODEL).toBe('gemini-flash-latest');
+    expect(DEFAULT_CHAT_MODEL_FALLBACK).toBe('gemini-2.5-flash');
+    expect(DEFAULT_IMAGE_MODEL).toBe('gemini-3.1-flash-image');
+    expect(FALLBACK_IMAGE_MODEL).toBe('gemini-2.5-flash-image');
+    expect(CACHEABLE_MODELS.has('gemini-flash-latest')).toBe(true);
+    expect(CACHEABLE_MODELS.has('gemini-2.5-flash')).toBe(true);
+  });
 });
