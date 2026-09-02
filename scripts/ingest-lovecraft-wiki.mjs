@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
+import { pathToFileURL } from 'url';
 
 /**
  * Lekki Parser MediaWiki XML bez zewnętrznych zależności
@@ -126,7 +127,7 @@ async function runIngest() {
   console.log(`[Lovecraft Wiki Ingest] Sukces! Zapisano bazy danych:\n - ${path.join(TARGET_DIR, 'dictionary_wiki.json')}\n - ${path.join(PUBLIC_TARGET_DIR, 'dictionary_wiki.json')}`);
 }
 
-function cleanWikitext(wikitext) {
+export function cleanWikitext(wikitext) {
   let cleaned = wikitext;
   cleaned = cleaned.replace(/\{\{[\s\S]*?\}\}/g, '');
   cleaned = cleaned.replace(/\[\[(Category|File|Image|Plik):[\s\S]*?\]\]/gi, '');
@@ -136,9 +137,67 @@ function cleanWikitext(wikitext) {
   cleaned = cleaned.replace(/'''''/g, '');
   cleaned = cleaned.replace(/'''/g, '');
   cleaned = cleaned.replace(/''/g, '');
-  cleaned = cleaned.replace(/<ref[\s\S]*?<\/ref>/gi, '');
-  cleaned = cleaned.replace(/<[^>]+>/g, '');
-  return cleaned.trim();
+  return stripHtmlLikeMarkup(cleaned).trim();
+}
+
+/**
+ * Usuwa znaczniki HTML jednym przebiegiem po tekście.
+ *
+ * Nie próbuje dopasowywać złożonych ani niedomkniętych znaczników wyrażeniem
+ * regularnym. Po napotkaniu "<" odrzuca wszystkie znaki do najbliższego ">";
+ * brak zamknięcia oznacza odrzucenie reszty wejścia. Dzięki temu wynik nigdy
+ * nie zawiera "<" ani ">" i nie może zostać potraktowany jako HTML przez
+ * późniejszego konsumenta słownika.
+ */
+function stripHtmlLikeMarkup(text) {
+  let result = '';
+  let referenceDepth = 0;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (character === '<') {
+      const tagEnd = text.indexOf('>', index + 1);
+      if (tagEnd === -1) break;
+
+      const tag = readHtmlTag(text.slice(index + 1, tagEnd));
+      if (tag.name === 'ref') {
+        if (tag.isClosing) {
+          referenceDepth = Math.max(0, referenceDepth - 1);
+        } else if (!tag.isSelfClosing) {
+          referenceDepth += 1;
+        }
+      }
+
+      index = tagEnd;
+      continue;
+    }
+
+    if (referenceDepth === 0 && character !== '>') result += character;
+  }
+
+  return result;
+}
+
+function readHtmlTag(markup) {
+  let index = 0;
+  while (index < markup.length && /\s/.test(markup[index])) index += 1;
+
+  let isClosing = false;
+  if (markup[index] === '/') {
+    isClosing = true;
+    index += 1;
+  }
+
+  while (index < markup.length && /\s/.test(markup[index])) index += 1;
+
+  let name = '';
+  while (index < markup.length && /[A-Za-z0-9:-]/.test(markup[index])) {
+    name += markup[index].toLowerCase();
+    index += 1;
+  }
+
+  return { name, isClosing, isSelfClosing: markup.trimEnd().endsWith('/') };
 }
 
 function unescapeXml(str) {
@@ -171,7 +230,9 @@ function extractTags(title, categoryId) {
   return Array.from(new Set(words.filter((w) => w.length > 3)));
 }
 
-runIngest().catch((err) => {
-  console.error('[Ingest Error]', err);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  runIngest().catch((err) => {
+    console.error('[Ingest Error]', err);
+    process.exit(1);
+  });
+}
