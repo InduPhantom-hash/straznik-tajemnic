@@ -6,7 +6,14 @@
  */
 
 import { QUALITY_PRESETS } from './ai-presets/definitions';
-import { PRESET_MODELS } from './model-registry';
+import {
+  PRESET_MODELS,
+  DEFAULT_CHAT_MODEL,
+  DEFAULT_CHAT_MODEL_FALLBACK,
+  DEFAULT_IMAGE_MODEL,
+  FALLBACK_IMAGE_MODEL,
+  CACHEABLE_MODELS,
+} from './model-registry';
 
 describe('Model Registry Drift-Guard', () => {
   it('PRESET_MODELS mirrors QUALITY_PRESETS models accurately', () => {
@@ -24,14 +31,6 @@ describe('Model Registry Drift-Guard', () => {
   });
 
   it('defines valid default chat and image models and fallbacks', () => {
-    const {
-      DEFAULT_CHAT_MODEL,
-      DEFAULT_CHAT_MODEL_FALLBACK,
-      DEFAULT_IMAGE_MODEL,
-      FALLBACK_IMAGE_MODEL,
-      CACHEABLE_MODELS,
-    } = require('./model-registry');
-
     expect(DEFAULT_CHAT_MODEL).toBe('gemini-flash-latest');
     expect(DEFAULT_CHAT_MODEL_FALLBACK).toBe('gemini-2.5-flash');
     expect(DEFAULT_IMAGE_MODEL).toBe('gemini-3.1-flash-image');

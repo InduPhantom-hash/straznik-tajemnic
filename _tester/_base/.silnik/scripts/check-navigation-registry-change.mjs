@@ -15,7 +15,9 @@ const changed = execFileSync('git', ['diff', '--name-only', `origin/${base}...HE
   cwd: repositoryRoot,
   encoding: 'utf8',
 }).trim().split('\n').filter(Boolean);
-const isUiFile = (file) => file.startsWith('_tester/_base/.silnik/src/app/') || file.startsWith('_tester/_base/.silnik/src/components/');
+const isUiFile = (file) =>
+  (file.startsWith('_tester/_base/.silnik/src/app/') && !file.startsWith('_tester/_base/.silnik/src/app/api/')) ||
+  file.startsWith('_tester/_base/.silnik/src/components/');
 const registryChanged = changed.includes('_tester/_base/.silnik/navigation/navigation-registry.json');
 
 if (changed.some(isUiFile) && !registryChanged) {

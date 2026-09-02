@@ -25,6 +25,8 @@ import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
+import { isWeapon } from '@/lib/combat/weapon-context';
+import { deriveFinances } from '@/lib/economy/credit-rating';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -46,6 +48,62 @@ export function buildPlayerSkillsSection(
     `Gdy wzywasz test \`[TEST:]\`, użyj DOKŁADNIE nazwy umiejętności z tej listy. ` +
     `Jeśli akcja nie pasuje do żadnej, wybierz najbliższą z listy albo test cechy ` +
     `(np. Inteligencja, Spostrzegawczość) - NIGDY nie wymyślaj nazwy spoza karty.`
+  );
+}
+
+/**
+ * Buduje sekcję promptu z listą wyposażenia i przedmiotów użytkowych badacza
+ * (z wyłączeniem broni, która jest już opisywana w sekcji uzbrojenia).
+ * Informuje AI MG co gracz ma przy sobie, aby zapobiec wymyślaniu przedmiotów
+ * znikąd oraz uwzględniać brak sprzętu w testach.
+ */
+export function buildPlayerEquipmentSection(
+  character: Character | null | undefined
+): string {
+  const equipment = character?.equipment;
+  if (!equipment || equipment.length === 0) return '';
+
+  const nonWeapons = equipment.filter((item) => !isWeapon(item));
+  if (nonWeapons.length === 0) return '';
+
+  const lines = nonWeapons.map((item) => {
+    const desc = item.description?.trim();
+    return desc ? `- **${item.name}**: ${desc}` : `- **${item.name}**`;
+  });
+
+  return (
+    `\n## EKWIPUNEK POSTACI (posiadane przedmioty)\n` +
+    `Badacz ma przy sobie WYŁĄCZNIE następujące przedmioty użytkowe:\n` +
+    lines.join('\n') +
+    `\nReguła: Gdy gracz podejmuje działania wymagające narzędzi (np. rozpalenie ognia, oświetlenie ciemności, otwarcie zamka, pierwsza pomoc, robienie zdjęć, badania naukowe), bierz pod uwagę powyższą listę. ` +
+    `Brak odpowiedniego narzędzia powinien utrudniać zadanie (np. kość kary w teście, brak możliwości wykonania testu lub konieczność improwizacji). ` +
+    `NIGDY nie zakładaj, że postać posiada przedmioty, których nie ma na tej liście, chyba że dopiero co podniosła je w bieżącej scenie.`
+  );
+}
+
+/**
+ * Buduje sekcję promptu ze statusem majątkowym i zamożnością badacza wg reguł CoC 7e RAW.
+ * Przekazuje AI poziom wydatków (Spending Level), gotówkę oraz majątek trwały,
+ * dzięki czemu MG wie, kiedy gracz może wydać pieniądze od ręki, a kiedy żądać testu.
+ */
+export function buildPlayerFinancesSection(
+  character: Character | null | undefined
+): string {
+  if (!character) return '';
+
+  const finances = deriveFinances(character);
+  const spendingStr = `${finances.spendingLevel} $`;
+  const cashStr = `${finances.cash} $`;
+  const assetsStr = `${finances.assets} $`;
+  const assetsDesc = finances.assetsDescription ? ` (${finances.assetsDescription})` : '';
+
+  return (
+    `\n## MAJĄTEK I STATUS FINANSOWY POSTACI (CoC 7e RAW)\n` +
+    `- Zamożność (Credit Rating): ${finances.creditRating}% [Poziom: ${finances.tierLabel}]\n` +
+    `- Dzienny poziom wydatków bez rzutu (Spending Level): ${spendingStr} dziennie (drobne wydatki, tanie hotele, posiłki, bilety miejskie gracz opłaca od ręki bez testu kośćmi i bez odliczania)\n` +
+    `- Gotówka pod ręką (Cash): ${cashStr} (na zakupy przekraczające poziom wydatków, lecz mieszczące się w tej kwocie)\n` +
+    `- Majątek trwały (Assets): ${assetsStr}${assetsDesc} (nieruchomości, oszczędności bankowe; spieniężenie wymaga czasu i procedur bankowych)\n` +
+    `Reguła: Gdy gracz próbuje dokonać wydatku znacząco przekraczającego gotówkę, wziąć dużą pożyczkę lub zaimponować statusem majątkowym, zażądaj \`[TEST: Majętność | zwykły | ... | powód]\`. Porażka oznacza odmowę lub utratę reputacji.`
   );
 }
 
@@ -76,6 +134,10 @@ export interface BuildAdditionalContextOpts {
   // Lista umiejętności postaci z wartościami % (gotowa sekcja). Wstrzykiwana, by AI
   // wzywało testy WYŁĄCZNIE nazwami z karty - eliminuje rozjazd nazw (Tacka 0%).
   playerSkillsSection?: string;
+  /** Ekwipunek i przedmioty użytkowe postaci (bez broni) */
+  playerEquipmentSection?: string;
+  /** Status majątkowy i poziom wydatków postaci wg CoC 7e RAW */
+  playerFinancesSection?: string;
   sessionId?: string;
   ragSection?: string;
   summarySection?: string | null;
@@ -120,6 +182,8 @@ export function buildAdditionalContext(
     playerCharacterName,
     playerWeaponsSection,
     playerSkillsSection,
+    playerEquipmentSection,
+    playerFinancesSection,
     isGameStart,
     characters,
     era,
@@ -157,6 +221,16 @@ export function buildAdditionalContext(
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.
   if (playerSkillsSection) {
     additionalContext.push(playerSkillsSection);
+  }
+
+  // Ekwipunek i przedmioty użytkowe postaci - AI wie co badacz ma przy sobie.
+  if (playerEquipmentSection) {
+    additionalContext.push(playerEquipmentSection);
+  }
+
+  // Sytuacja finansowa i Zamożność - AI zna poziom wydatków i gotówkę wg CoC 7e RAW.
+  if (playerFinancesSection) {
+    additionalContext.push(playerFinancesSection);
   }
 
   // Wstrzykiwanie Ustawy Przygody na podstawie tonu (dynamiczne pacingi z debaty)
