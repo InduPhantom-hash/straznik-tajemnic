@@ -4,7 +4,7 @@ Roadmapa opisuje docelową wersję aplikacji lokalnej. Aplikacja działa na komp
 
 ## Źródło prawdy dla prac
 
-Publiczne Issues tego repozytorium są jedynym backlogiem operacyjnym: zawierają epiki, błędy, priorytety i zależności. Ten dokument opisuje kierunek produktu, a nie zastępuje kolejki prac. Szczegóły: [`PROJECT-WORKFLOW.md`](./PROJECT-WORKFLOW.md).
+Publiczne Issues tego repozytorium są kanonicznym backlogiem: zawierają epiki, błędy, priorytety i zależności. Prywatny Project [Zarządzanie - Strażnik Tajemnic](https://github.com/users/InduPhantom-hash/projects/2) automatycznie pokazuje te same karty jako kolejkę operacyjną. Ten dokument opisuje kierunek produktu, a nie zastępuje kolejki prac. Szczegóły: [`PROJECT-WORKFLOW.md`](./PROJECT-WORKFLOW.md).
 
 Kolejność najbliższych epików:
 

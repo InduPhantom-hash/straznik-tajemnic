@@ -131,7 +131,7 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 - Rozwój mechaniki i trwałego stanu gry: testy, pościgi, walka oraz Poczytalność pozostają własnością kodu.
 - Historyczna baza wiedzy dla MG, kontrolowany research przed sesją oraz regresje jakości i kosztów.
 
-Stan prac, priorytety i zależności są prowadzone publicznie w [Issues tego repozytorium](https://github.com/InduPhantom-hash/straznik-tajemnic/issues). Szczegółowe zasady pracy opisuje [workflow projektu](./docs/PROJECT-WORKFLOW.md).
+Stan prac, priorytety i zależności są prowadzone publicznie w [Issues tego repozytorium](https://github.com/InduPhantom-hash/straznik-tajemnic/issues). Prywatna tablica nadzoru automatycznie układa te same karty do pracy operacyjnej. Szczegółowe zasady opisuje [workflow projektu](./docs/PROJECT-WORKFLOW.md).
 
 ## 🔧 Technologie
 
@@ -295,7 +295,7 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 - Extend mechanics and durable game state: checks, chases, combat, and Sanity remain code-owned.
 - Build a historical GM knowledge base, controlled pre-session research, and quality and cost regressions.
 
-Priorities and dependencies are maintained publicly in [this repository's Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues). The contribution workflow is documented in [the project workflow](./docs/PROJECT-WORKFLOW.md).
+Priorities and dependencies are maintained publicly in [this repository's Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues). A private command board automatically arranges the same cards for operational oversight. The contribution workflow is documented in [the project workflow](./docs/PROJECT-WORKFLOW.md).
 
 ## 🔧 Technologies
 
