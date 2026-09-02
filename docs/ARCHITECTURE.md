@@ -69,7 +69,7 @@ pozostają zgodne. Przycisk jest dostępny tylko dla ostatniej wiadomości MG z
 `finishReason === 'MAX_TOKENS'`; `STOP`, brak powodu i starsze wiadomości nie pokazują
 tej akcji.
 
-## RAG (lokalny - docelowa architektura)
+## RAG lokalny
 
 Zasady z wgranego przez gracza PDF trafiają do **lokalnego indeksu** (`data/rag/`):
 
@@ -79,7 +79,13 @@ Zasady z wgranego przez gracza PDF trafiają do **lokalnego indeksu** (`data/rag
 - Namespace'y: `rules` (zasady), `adventures` (przygody), `mythos` (lore PD).
 - **Anty-halucynacja**: gdy brak trafień, AI jawnie przyznaje brak zamiast zmyślać zasadę.
 
-> Pinecone nie jest elementem docelowej architektury. Pozostałe importy, typy, ustawienia i usługi o tej nazwie są reliktem wcześniejszej wersji i powinny zostać usunięte po audycie zależności.
+> Pinecone nie jest elementem docelowej architektury. Pakiet nadal zawiera zależność,
+> nazwy endpointów, ustawienia i pola migracyjne Pinecone. Nie wolno ich usuwać bez
+> osobnego testu zależności i zgodności starych save'ów.
+
+Źródło encyklopedii Mythos nie jest obecnie samowystarczalne w runtime. Skrypt
+`scripts/embed-mythos.ts` czyta dane cztery katalogi ponad runtime, z wrappera. Build
+wydania musi otrzymać jawnie paczkowane źródło albo gotowy, zweryfikowany indeks.
 
 ## Granica sieci
 
@@ -87,9 +93,13 @@ Aplikacja może wykonywać połączenia wychodzące wyłącznie do jawnie skonfi
 
 - Google AI - czat MG, embeddingi, obrazy i opcjonalnie TTS;
 - API danych świata - Daylight, Prices i Historical News, zawsze z timeoutem, cache'em i fallbackiem;
-- opcjonalne usługi dodatkowe tylko wtedy, gdy użytkownik świadomie je włączy.
+- opcjonalne usługi dodatkowe tylko wtedy, gdy użytkownik świadomie je włączy;
+- historyczne ścieżki GCS nadal istnieją dla PDF, pamięci, sesji i obrazów.
 
-Nie używamy zewnętrznej bazy stanu gry, zewnętrznego indeksu RAG ani logowania jako warunku działania. Save'y, dziennik, assety, postacie i indeks RAG pozostają na dysku użytkownika.
+Docelowo nie używamy zewnętrznej bazy stanu gry ani zewnętrznego indeksu RAG.
+Aktualny kod nie spełnia jeszcze tej granicy w całości: `googleCloudStorageEnabled`
+ma domyślną wartość `true`, a część endpointów nadal korzysta z GCS. To P0 do
+oddzielnej naprawy przed deklaracją pełnej lokalności.
 
 ## Aktualizacje aplikacji
 
@@ -122,8 +132,16 @@ i tylko opisuje skutek. Utrata SAN/PŻ zapisuje się na karcie tagami w narracji
 - **Postacie / ustawienia** - `localStorage`.
 - **Zapisy sesji** - na dysk (`data/saves/`).
 - **Obrazy postaci** - IndexedDB (duże dane base64 poza localStorage).
-- Brak chmury, kont, logowania. Telemetria (PostHog/Sentry) jest opcjonalna i bez
-  kluczy całkowicie nieaktywna.
+- **Legacy cloud** - część PDF, obrazów, pamięci i sesji ma nadal ścieżki GCS.
+- Telemetria PostHog/Sentry jest opcjonalna i bez kluczy nieaktywna.
+
+## Dokumentacja i graf
+
+- Root `docs/` jest źródłem prawdy.
+- Kopie w `_tester/_base/.silnik/docs` są długiem do usunięcia albo generowania w buildzie.
+- `navigation/navigation-registry.json` jest źródłem prawdy nawigacji.
+- Graf `graft/.graph/wiring.json` jest nieaktualny i nie może obecnie stanowić dowodu
+  zależności runtime.
 
 ## Build / launcher
 

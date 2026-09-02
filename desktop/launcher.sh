@@ -23,7 +23,9 @@ URL="http://localhost:${PORT}"
 # NIE przez porownanie z literalem "__APP_DIR__": sed -g w build-app.sh podmienia kazde
 # wystapienie placeholdera, wiec porownanie w warunku tez by sie podmienilo i fallback
 # odpalalby sie zawsze (ladujac w bundlu .app zamiast w repo). Detekcja po pliku jest odporna.
-if [ ! -f "$APP_DIR/package.json" ]; then
+# Repozytorium może być wrapperem: właściwy runtime ma wtedy package.json
+# w _tester/_base/.silnik. Nie przechodź do wnętrza .app w takim przypadku.
+if [ ! -f "$APP_DIR/package.json" ] && [ ! -f "$APP_DIR/_tester/_base/.silnik/package.json" ]; then
   APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
