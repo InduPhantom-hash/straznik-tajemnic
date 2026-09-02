@@ -100,6 +100,7 @@ export function PredefinedCharactersSelector({
   filterByEra = true,
 }: PredefinedCharactersSelectorProps) {
   const t = useTranslations('PredefinedCharacters');
+  const dynamicT = t as unknown as (key: string) => string;
   const locale = useLocale();
   const [selectedGender, setSelectedGender] = useState<
     'all' | 'male' | 'female'
@@ -256,7 +257,7 @@ export function PredefinedCharactersSelector({
                 >
                   {locale === 'pl'
                     ? archetype.label
-                    : (t as any)(`archetypes.${archetype.value}`)}
+                    : dynamicT(`archetypes.${archetype.value}`)}
                 </Button>
               ))}
             </div>
@@ -599,7 +600,7 @@ export function PredefinedCharactersSelector({
                         return (
                           <div key={key} className="border border-brass/28 bg-[#16130f] p-3 text-center">
                             <div className="font-display text-sm uppercase tracking-[0.08em] text-foreground">
-                              {t(`stats.${key}` as any)}
+                              {t(`stats.${key}` as never)}
                             </div>
                             <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mt-0.5">
                               {key.toUpperCase()}

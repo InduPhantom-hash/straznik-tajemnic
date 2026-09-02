@@ -38,7 +38,7 @@ export function StatCard({
   const half = Math.floor(value / 2);
   const fifth = Math.floor(value / 5);
 
-  const tAny = t as any;
+  const tAny = t as unknown as ((key: string) => string) & { has?: (key: string) => boolean };
   const isEnglish = tAny.has?.('title') && tAny('title') === 'Investigator Sheet';
   const STAT_SHORT_EN: Record<string, string> = {
     str: 'STR',

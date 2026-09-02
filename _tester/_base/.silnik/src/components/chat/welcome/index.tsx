@@ -71,7 +71,7 @@ function relativeTime(iso: string): string {
 }
 
 /** Karta wznowienia ostatniej sesji (styl déco z makiety karta 06). */
-const ResumeCard: FC<{ save: RecentSave; onResume?: () => void; t: any }> = ({
+const ResumeCard: FC<{ save: RecentSave; onResume?: () => void; t: ReturnType<typeof useTranslations> }> = ({
   save,
   onResume,
   t,

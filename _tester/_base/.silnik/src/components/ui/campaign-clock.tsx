@@ -60,10 +60,10 @@ export function CampaignClock({
   }, []);
 
   // Formatowanie
-  const formattedDate = `${time.day} ${t(`months.${time.month}` as any)} ${time.year}`;
+  const formattedDate = `${time.day} ${t(`months.${time.month}` as never)} ${time.year}`;
   const formattedTime = timeManager.formatTime();
   const moonName = t(`moon.${moonPhase}`);
-  const dayName = t(`days.${new Date(time.year, time.month, time.day).getDay()}` as any);
+  const dayName = t(`days.${new Date(time.year, time.month, time.day).getDay()}` as never);
   const weatherLabel = weather === 'Lekka mgła, rześkie powietrze' ? t('defaultWeather') : weather;
 
   // Dobór symbolu ikony dla pogody

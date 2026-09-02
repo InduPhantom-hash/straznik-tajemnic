@@ -11,7 +11,7 @@ describe('SheetBiography', () => {
     } as Character;
     render(<SheetBiography character={character} />);
 
-    expect(screen.getByText(/Tło i Rola Fabularna/)).toBeTruthy();
+    expect(screen.getByText(/Tło i rola fabularna/)).toBeTruthy();
     expect(screen.getByText(character.background)).toBeTruthy();
   });
 
