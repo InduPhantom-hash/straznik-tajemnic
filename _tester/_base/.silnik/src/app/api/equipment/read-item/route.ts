@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_GEMINI_MODEL_LITE } from '@/lib/ai-providers/constants';
 import { stripAITags } from '@/lib/parsers/text-cleaner';
+import type { ResolvedEraContext } from '@/lib/era';
+import { assertExactEraContext } from '@/lib/world-setup';
 
 function resolveGeminiApiKey(request: NextRequest): string | null {
   const key = request.headers.get('X-Gemini-Api-Key')?.trim();
@@ -25,6 +27,7 @@ export async function POST(request: NextRequest) {
       gameTime,
       currentLocation,
       recentHistory = [],
+      eraContext,
     } = await request.json();
 
     if (!item?.name) {
@@ -34,7 +37,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const era = adventureContext?.eraLabel || '1920s';
+    try {
+      assertExactEraContext(eraContext as ResolvedEraContext);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Brak dokładnego kontekstu epoki' },
+        { status: 400 }
+      );
+    }
+    const era = `${eraContext.effectiveYear}, ${eraContext.countryCode}`;
     const tone = adventureContext?.tone || 'purist';
     const characterName = character?.name || 'badacz';
     const occupation = character?.occupation || 'cywil';
@@ -92,4 +103,3 @@ WYMAGANIA:
     );
   }
 }
-

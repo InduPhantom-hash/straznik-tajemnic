@@ -80,10 +80,9 @@ export function renderNarrativeWithImages(
         <SafeImage
           src={imageUrl}
           alt={altText}
-          // IND-216: format pocztówkowy ~16:9 - wypełnia szerokość okna czatu,
-          // object-cover kadruje do proporcji (nie za wysoki) niezależnie od
-          // proporcji generacji. Obrazy scen generowane natywnie 16:9 (useChat/useGameStart).
-          className={`rounded-lg shadow-lg w-full aspect-[16/9] object-cover object-top border border-zinc-700 ${
+          // Zachowaj cały wygenerowany kadr. Wysokość jest ograniczona tylko po
+          // to, by pionowe obrazy nie zdominowały całego okna czatu.
+          className={`rounded-lg shadow-lg w-full h-auto max-h-[70vh] object-contain bg-black/30 border border-zinc-700 ${
             onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
           }`}
           style={{

@@ -2,22 +2,25 @@
 
 <img src="docs/assets/06-banner-1500x500.png" alt="Strażnik Tajemnic AI / Keeper of Arcane Lore AI" width="820">
 
-# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.3)
+# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.4)
 
 **Nieoficjalny, fanowski Mistrz Gry AI do sesji RPG w klimacie lovecraftowskim.**  
 *An unofficial, fan-made AI Game Master for RPG sessions in the Lovecraftian setting.*
 
+> v0.9.4 jest w przygotowaniu. Aktualne publiczne wydanie: v0.9.3.<br>
+> v0.9.4 is in preparation. Current public release: v0.9.3.
+
 ---
 
-[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v093) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v093)
+[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v094) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v094)
 
 </div>
 
 ---
 
-# 🇵🇱 Strażnik Tajemnic AI (v0.9.3)
+# 🇵🇱 Strażnik Tajemnic AI (v0.9.4)
 
-Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Cała gra toczy się **lokalnie u Ciebie** - wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, save'y lądują na dysku. Bez logowania, bez chmury, bez telemetrii.
+Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, a save'y lądują na dysku. Nie potrzebujesz konta w aplikacji. Audyt wydaniowy nadal domyka pozostałe, historyczne ścieżki chmurowe.
 
 <a href="https://youtu.be/k3NioUBRIes">
   <img src="docs/assets/07-onboarding-3024x1898.png" alt="Strażnik Tajemnic AI - wideo wprowadzające" width="640">
@@ -34,7 +37,7 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 
 ## ⬇️ Download / Pobierz
 
-**[Pobierz gotową paczkę (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest)** - cała aplikacja w środku, uruchamiasz dwuklikiem (Windows / Mac). Bez klucza API i bez podręcznika w paczce: przy pierwszym starcie wklejasz **własny** klucz Gemini i wgrywasz **swój** PDF (apka linkuje do źródeł).
+**[Pobierz paczkę macOS (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest)** - uruchom aplikację na macOS dwuklikiem. Paczka nie zawiera klucza API ani podręcznika: przy pierwszym starcie wklejasz **własny** klucz Gemini i wgrywasz **swój** PDF.
 
 > Wolisz uruchomić ze źródeł? Instrukcja niżej (**Szybki start**).
 
@@ -49,7 +52,7 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
   - **Kodowane Rzuty k100:** AI **nie rzuca kośćmi w czacie**. Rzuty na umiejętności, kalkulacje progów (Zwykły, Trudny, Ekstremalny, Krytyczny, Pech), testy Poczytalności (SAN) i Poczytalności Chwilowej oraz Faza Rozwoju są wyliczane w 100% kodem aplikacji. AI otrzymuje twardy wynik i opisuje wyłącznie jego fabularne konsekwencje.
   - **Kontrola Stanu Świata:** Filtry kontynuacji narracyjnej pilnują faktów z przygody, lokacji, zdrowia badaczy oraz statusu NPC.
 - **Tablica Badacza & Dziennik Śledztwa (CoC 7e RAW):** Korkowa tablica dowodów ze sznurkami powiązań, ochrona koordynatów kart po zapisie i wczytaniu, rzuty na Pomysł (Idea Roll), obsługa fałszywych poszlak, diegetyczne notatki oraz widok Akt Sprawy.
-- **Ekwipunek i Ekonomia Badacza:** Pełny katalog przedmiotów fabularnych, lokalne miniatury SVG, automatyczne podnoszenie przedmiotów z narracji oraz integracja ze statystyką Majętności (Credit Rating).
+- **Ekwipunek i Ekonomia Badacza:** Deterministyczne zestawy startowe oraz przedmioty katalogowe wybierane przez kod, nie przez AI. Brak assetu ma bezpieczny fallback.
 - **Dynamiczne Tempo Narracji (Dynamic Pacing):** Silnik automatycznie reguluje gęstość i dynamikę opisów w zależności od poziomu poczytalności, fazy śledztwa i zagrożenia.
 - **Tryb Szybka Przygoda:** Błyskawiczny start sesji z wyborem scenariusza i badacza w jednym, spójnym kroku.
 - **30 Gotowych Postaci & Scenariusze Strefy 11:** Pełne biografie i powiązania dla 30 badaczy, w tym 16 dedykowanych postaci dla 4 autorskich polskich scenariuszy.
@@ -120,11 +123,15 @@ Sesja ≈ 3h gry. Preset ustawiasz w Ustawieniach; domyślnie **HIGH**.
 *Szacowane koszty API (USD per 1M tokenów wejścia/wyjścia): Gemini 3.6 Flash (0.15/0.60), Gemini 2.5 Flash (0.075/0.30), Gemini 3.1 Pro Preview (2.00/12.00).*
 *Obrazy: `gemini-2.5-flash-image`, 0,02 USD za udany obraz.*
 
-## 🗺️ Roadmapa (Plany rozwojowe)
+## 🗺️ Co dalej
 
-- [ ] **Pełna angielska wersja językowa (EN):** Wdrożenie kompleksowej lokalizacji interfejsu oraz systemowych promptów narracyjnych do prowadzenia sesji w języku angielskim.
-- [ ] **Wsparcie dla alternatywnych dostawców AI (Multi-LLM / BYOK):** Rozszerzenie silnika poza Gemini API o obsługę Anthropic Claude, OpenAI (GPT-4o) oraz lokalnych modeli uruchamianych przez Ollama / Groq.
-- [x] **Stabilizacja Tablicy Badacza & Ekwipunku:** Pełne dopracowanie automatycznego grafu powiązań poszlak i interaktywnego zarządzania przedmiotami.
+- Stabilizacja samodzielnej paczki macOS i lokalnych danych Mythos.
+- Deterministyczny setup epoki: dokładny rok, region, manifest świata i zapis kontekstu przygody.
+- Dokończenie katalogu ekwipunku oraz audyt portretów predefiniowanych postaci.
+- Rozwój mechaniki i trwałego stanu gry: testy, pościgi, walka oraz Poczytalność pozostają własnością kodu.
+- Historyczna baza wiedzy dla MG, kontrolowany research przed sesją oraz regresje jakości i kosztów.
+
+Stan prac, priorytety i zależności są prowadzone publicznie w [Issues tego repozytorium](https://github.com/InduPhantom-hash/straznik-tajemnic/issues). Prywatna tablica nadzoru automatycznie układa te same karty do pracy operacyjnej. Szczegółowe zasady opisuje [workflow projektu](./docs/PROJECT-WORKFLOW.md).
 
 ## 🔧 Technologie
 
@@ -138,11 +145,17 @@ Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/u
 | [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md) | Gracz - jak prowadzić sesję |
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Deweloper - jak to działa pod spodem |
 | [`docs/MAPA-POWIAZAN.md`](./docs/MAPA-POWIAZAN.md) | Deweloper - mapa powiązań instrukcji z kodem |
+| [`docs/PROJECT-WORKFLOW.md`](./docs/PROJECT-WORKFLOW.md) | Współtwórca - zasady backlogu, priorytetów i zależności |
 | [`docs/TESTING.md`](./docs/TESTING.md) | Deweloper - testy |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Jak współtworzyć |
 | [`NOTICE`](./NOTICE) | Status prawny, znaki towarowe, treść |
 
 ## 📝 Change Log (Historia zmian)
+
+### [v0.9.4] - w przygotowaniu
+- **Gotowe w gałęzi wydaniowej:** lokalizacja PL/EN przepływu startu, odporniejszy start gotowych przygód, deterministyczne zestawy wyposażenia, kontekst epoki i preflight świata, poprawione mapowania portretów oraz ręczna kontynuacja urwanej narracji.
+- **Przed publikacją:** pełne bramki techniczne, testy E2E PL/EN, zgodność save/load, świeża paczka macOS i ręczna akceptacja wizualna.
+- **Nie jest jeszcze wydaniem:** tag, paczka GitHub Releases i deklaracja gotowości produkcyjnej powstaną dopiero po przejściu tych bramek.
 
 ### [v0.9.3] - 2026-08-15
 - **Tablica Badacza & Dziennik Śledztwa (CoC 7e RAW):** Interaktywna korkowa tablica dowodów z ochroną współrzędnych kart po save/load, dedukcja domenowa (mechanika Rzutu na Pomysł / Idea Roll), obsługa fałszywych poszlak, diegetyczny styl notatek i biletów oraz widok Akt Sprawy.
@@ -175,9 +188,9 @@ Kod: **MIT** (patrz [`LICENSE`](./LICENSE)). Licencja obejmuje wyłącznie silni
 
 ---
 
-# 🇺🇸 Keeper of Arcane Lore AI (v0.9.3)
+# 🇺🇸 Keeper of Arcane Lore AI (v0.9.4)
 
-Run your _Call of Cthulhu 7e_ sessions solo or with a friend on a single laptop (Hot Seat). The entire game runs **locally on your machine** - you insert your own Gemini API key, upload **your own** guidebook, and saves are stored on your disk. No registration, no cloud databases, no telemetry.
+Run your _Call of Cthulhu 7e_ sessions solo or with a friend on a single laptop (Hot Seat). You provide your own Gemini API key, upload **your own** guidebook, and saves are stored on your disk. The app does not require an account. The release audit is still closing remaining legacy cloud paths.
 
 ## 👥 Who is it for?
 
@@ -188,7 +201,7 @@ There comes a stage in life where gathering a full table for an RPG session is a
 
 ## ⬇️ Download
 
-**[Download the ready-to-run package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest)** - the entire app is inside, launch with a double-click (Windows / Mac). It does not include an API key or guidebook: during the first run, you paste your **own** Gemini key and upload **your** PDF guidebook (the app links to sources).
+**[Download the macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest)** - launch the app on macOS with a double-click. It does not include an API key or guidebook: during the first run, you paste your **own** Gemini key and upload **your** PDF guidebook.
 
 > Prefer running from source code? Follow the **Quick Start** guide below.
 
@@ -276,9 +289,13 @@ A single session lasts around 3 hours of gameplay. The default preset is **HIGH*
 
 ## 🗺️ Development Roadmap
 
-- [ ] **Full English Language Support (EN):** Complete localization of UI and system narrative prompts to allow full sessions in English.
-- [ ] **Multi-LLM / BYOK Support:** Expand engine beyond Gemini API to support Anthropic Claude, OpenAI (GPT-4o), and local models via Ollama / Groq.
-- [x] **Investigator Journal & Inventory Polish:** Finalize evidence graph relations and refine plot item management.
+- Stabilize the self-contained macOS package and local Mythos data.
+- Build deterministic era setup: an exact year, region, world manifest, and saved adventure context.
+- Complete the equipment catalog and audit predefined-character portraits.
+- Extend mechanics and durable game state: checks, chases, combat, and Sanity remain code-owned.
+- Build a historical GM knowledge base, controlled pre-session research, and quality and cost regressions.
+
+Priorities and dependencies are maintained publicly in [this repository's Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues). A private command board automatically arranges the same cards for operational oversight. The contribution workflow is documented in [the project workflow](./docs/PROJECT-WORKFLOW.md).
 
 ## 🔧 Technologies
 
@@ -290,10 +307,16 @@ Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/u
 - [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md) – Player's guide.
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) – System architecture.
 - [`docs/MAPA-POWIAZAN.md`](./docs/MAPA-POWIAZAN.md) – Dependency map.
+- [`docs/PROJECT-WORKFLOW.md`](./docs/PROJECT-WORKFLOW.md) – Backlog, priority, and dependency rules.
 - [`docs/TESTING.md`](./docs/TESTING.md) – Testing procedures.
 - [`NOTICE`](./NOTICE) – Legal status and trademarks.
 
 ## 📝 Change Log
+
+### [v0.9.4] - in preparation
+- **Ready in the release branch:** PL/EN start-flow localization, more resilient preset-adventure starts, deterministic starting equipment, era context and world preflight, portrait remaps, and manual continuation for truncated narration.
+- **Before publication:** full technical gates, PL/EN E2E, save/load compatibility, a fresh macOS package, and visual acceptance.
+- **Not a release yet:** the tag, GitHub Release package, and production-ready claim wait for those gates.
 
 ### [v0.9.3] - 2026-08-15
 - **Investigator Board & Session Journal (CoC 7e RAW):** Interactive evidence corkboard with coordinate persistence after save/load, domain deduction engine (Idea Roll mechanics), false flags handling, diegetic document styling, and case dossier view.

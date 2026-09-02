@@ -10,6 +10,7 @@
  */
 
 import { fetchImmersionContext } from './build-immersion-context';
+import { resolveEraContext } from '@/lib/era';
 
 // Mockujemy serwisy
 jest.mock('@/lib/immersion/astronomy-service', () => ({
@@ -29,6 +30,15 @@ import { convertUSD } from '@/lib/immersion/pricing-service';
 const mockDaylight = getDaylightAndMoon as jest.MockedFunction<typeof getDaylightAndMoon>;
 const mockNews = fetchHistoricalNews as jest.MockedFunction<typeof fetchHistoricalNews>;
 const mockPrices = convertUSD as jest.MockedFunction<typeof convertUSD>;
+const era1925 = resolveEraContext({
+  userSelection: { year: 1925, country: 'USA' },
+});
+const era1890 = resolveEraContext({
+  userSelection: { year: 1890, country: 'Wielka Brytania' },
+});
+const era1940 = resolveEraContext({
+  userSelection: { year: 1940, country: 'USA' },
+});
 
 // Dane testowe
 const DAYLIGHT_OK = {
@@ -83,7 +93,7 @@ describe('fetchImmersionContext', () => {
 
   it('zwraca sekcje z 3 zrodlami gdy wszystko OK', async () => {
     setupAllOk();
-    const result = await fetchImmersionContext({ gameDate: '1925-05-12' });
+    const result = await fetchImmersionContext({ gameDate: '1925-05-12', eraContext: era1925 });
 
     expect(result).toContain('## DANE SWIATA (IMMERSJA)');
     expect(result).toContain('### Astronomia');
@@ -96,7 +106,7 @@ describe('fetchImmersionContext', () => {
 
   it('oznacza zrodlo API gdy isFallback=false', async () => {
     setupAllOk();
-    const result = await fetchImmersionContext({ gameDate: '1925-05-12', gameEra: '1890s' });
+    const result = await fetchImmersionContext({ gameDate: '1925-05-12', eraContext: era1890 });
 
     expect(result).toContain('[zrodlo: API');
     expect(result).not.toContain('[dane lokalne');
@@ -107,7 +117,7 @@ describe('fetchImmersionContext', () => {
     mockNews.mockResolvedValue({ ...NEWS_OK, isFallback: true });
     mockPrices.mockResolvedValue({ ...PRICES_OK, isFallback: true });
 
-    const result = await fetchImmersionContext({ gameDate: '1925-06-01', gameEra: '1940s' });
+    const result = await fetchImmersionContext({ gameDate: '1925-06-01', eraContext: era1940 });
 
     expect(result).toContain('[dane lokalne - fallback]');
   });
@@ -117,7 +127,7 @@ describe('fetchImmersionContext', () => {
     mockNews.mockResolvedValue(NEWS_OK);
     mockPrices.mockRejectedValue(new Error('timeout'));
 
-    const result = await fetchImmersionContext({ gameDate: '1925-07-01' });
+    const result = await fetchImmersionContext({ gameDate: '1925-07-01', eraContext: era1925 });
 
     expect(result).toContain('### Naglowki gazet z epoki');
     expect(result).not.toContain('### Astronomia');
@@ -129,7 +139,7 @@ describe('fetchImmersionContext', () => {
     mockNews.mockRejectedValue(new Error('fail'));
     mockPrices.mockRejectedValue(new Error('fail'));
 
-    const result = await fetchImmersionContext({ gameDate: '1925-08-01' });
+    const result = await fetchImmersionContext({ gameDate: '1925-08-01', eraContext: era1925 });
     expect(result).toBe('');
   });
 
@@ -137,7 +147,7 @@ describe('fetchImmersionContext', () => {
     process.env.IMMERSION_OFFLINE = '1';
     setupAllOk();
 
-    const result = await fetchImmersionContext({ gameDate: '1925-09-01' });
+    const result = await fetchImmersionContext({ gameDate: '1925-09-01', eraContext: era1925 });
     expect(result).toBe('');
     expect(mockDaylight).not.toHaveBeenCalled();
   });

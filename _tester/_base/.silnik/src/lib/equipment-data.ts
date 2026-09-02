@@ -337,6 +337,24 @@ export const ARTIFACTS: Partial<EquipmentItem>[] = [
 
 // === EKWIPUNEK WG ZAWODU ===
 
+/**
+ * Zweryfikowane prywatne źródło reguł. Repo przechowuje wyłącznie metadane,
+ * numery stron i własne dane strukturalne, bez treści podręcznika.
+ */
+export const EQUIPMENT_RULES_REFERENCE = {
+  title: 'Zew Cthulhu - Księga Strażnika',
+  version: '1.3',
+  sha256: 'b463b904d4c2e9d69e08a4268691bed1a3d83e1f157a01e8dce42ef7e6cc795c',
+  verifiedAt: '2026-09-01',
+  rights: 'private-local-reference',
+  printedPages: {
+    occupations: [44, 45],
+    creditRating: [50, 107],
+    equipment: [447, 448, 449, 450],
+    weapons: [452, 453, 454, 455, 456, 457],
+  },
+} as const;
+
 // UWAGA: KLUCZE pozostają po angielsku (techniczne ID mapowane z OCCUPATIONS
 // przez kapitalizację/aliasy - patrz getStartingEquipmentForOccupation).
 // WARTOŚCI (nazwy przedmiotów) są po polsku. IND-233: nazwy NIE mogą mieć
@@ -459,6 +477,7 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
 
   // Artyści
   Artist: ['Szkicownik', 'Ołówki i węgiel', 'Paleta i pędzle'],
+  Athlete: ['Strój sportowy', 'Torba sportowa', 'Apteczka', 'Ręcznik'],
   Musician: ['Instrument', 'Nuty'],
   Actor: ['Zestaw do charakteryzacji', 'Scenariusz', 'Zegarek kieszonkowy'],
 
@@ -466,6 +485,23 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
   Mechanic: ['Zestaw narzędzi (mechaniczny)', 'Latarka', 'Kombinezon'],
   Sailor: ['Nóż', 'Lina (15 m)', 'Kompas', 'Piersiówka'],
   Farmer: ['Dubeltówka (dwururka)', 'Nóż', 'Lampa naftowa', 'Lina (15 m)'],
+
+  // Zawody wymagające jawnego zestawu zamiast cichego spadku do `default`.
+  Drifter: ['Plecak', 'Koc', 'Nóż', 'Zapałki', 'Manierka'],
+  Hacker: [
+    'Komputer przenośny',
+    'Zestaw narzędzi (elektryczny)',
+    'Notatnik i ołówek',
+  ],
+  'Police Officer': ['Pałka policyjna', 'Kajdanki', 'Odznaka', 'Latarka'],
+  Spy: [
+    'Aparat fotograficzny',
+    'Wytrychy',
+    'Fałszywe dokumenty',
+    'Pistolet .32',
+    'Notatnik i ołówek',
+  ],
+  'Tribe Member': ['Nóż', 'Lina (15 m)', 'Manierka', 'Apteczka'],
 
   // Domyślne
   default: ['Notatnik i ołówek', 'Zegarek kieszonkowy', 'Portfel'],
@@ -476,14 +512,36 @@ export const OCCUPATION_EQUIPMENT: Record<string, string[]> = {
  * gdy proste kapitalizowanie nie trafia w istniejący klucz. Reszta mapuje się
  * przez kapitalizację pierwszej litery, a brak dopasowania spada do 'default'.
  */
-const OCCUPATION_EQUIPMENT_ALIASES: Record<string, string> = {
-  military: 'Soldier',
-  pilot: 'Explorer',
+export const OCCUPATION_EQUIPMENT_ALIASES: Record<string, string> = {
+  antiquarian: 'Antiquarian',
+  artist: 'Artist',
+  athlete: 'Athlete',
+  author: 'Author',
+  clergy: 'Clergy',
+  criminal: 'Criminal',
+  dilettante: 'Dilettante',
+  doctor: 'Doctor',
+  drifter: 'Drifter',
   engineer: 'Mechanic',
   entertainer: 'Actor',
-  police_officer: 'Soldier',
-  police_detective: 'Criminal',
-  private_investigator: 'Criminal',
+  farmer: 'Farmer',
+  hacker: 'Hacker',
+  journalist: 'Journalist',
+  lawyer: 'Lawyer',
+  librarian: 'Librarian',
+  military: 'Soldier',
+  nurse: 'Nurse',
+  parapsychologist: 'Parapsychologist',
+  pilot: 'Explorer',
+  police_officer: 'Police Officer',
+  police_detective: 'Police Detective',
+  private_investigator: 'Private Investigator',
+  professor: 'Professor',
+  sailor: 'Sailor',
+  scientist: 'Scientist',
+  soldier: 'Soldier',
+  spy: 'Spy',
+  tribe_member: 'Tribe Member',
 };
 
 /**

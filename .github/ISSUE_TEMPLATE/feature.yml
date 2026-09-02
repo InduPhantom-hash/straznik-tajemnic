@@ -1,0 +1,31 @@
+name: Zmiana lub pomysł
+description: Dodaj propozycję do publicznego backlogu.
+title: "feat: "
+labels: ["triage"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Efekt dla gracza
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: Obszar systemu
+      placeholder: np. setup świata, save/load, ekwipunek, narracja
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Zależności i blokady
+      description: Podaj istniejące Issue albo dokumenty. Brak wiedzy oznacz jako „wymaga diagnozy”.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kryterium akceptacji
+    validations:
+      required: true

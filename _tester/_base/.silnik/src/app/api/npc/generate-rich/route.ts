@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
+import type { ResolvedEraContext } from '@/lib/era';
+import { assertExactEraContext } from '@/lib/world-setup';
 
 const getGenAI = (apiKey: string): GoogleGenAI => new GoogleGenAI({ apiKey });
 
@@ -9,7 +11,7 @@ interface NPCGenerateRequest {
   locationContext?: string;
   importance?: 'key' | 'background'; // kluczowy vs epizodyczny
   gender?: 'm' | 'f' | 'any';
-  era?: string;
+  eraContext: ResolvedEraContext;
 }
 
 export async function POST(request: NextRequest) {
@@ -28,7 +30,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body: NPCGenerateRequest = await request.json();
-    const { adventureTitle, locationContext, importance = 'background', gender = 'any', era = '1920s' } = body;
+    const { adventureTitle, locationContext, importance = 'background', gender = 'any', eraContext } = body;
+    try {
+      assertExactEraContext(eraContext);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Brak dokładnego kontekstu epoki' },
+        { status: 400 }
+      );
+    }
+    const era = `${eraContext.effectiveYear}, ${eraContext.countryCode}`;
 
     const importancePrompt = importance === 'key'
       ? `Jest to KLUCZOWY bohater niezależny dla fabuły. Musi mieć zdefiniowany głęboki cel, motywację opartą na jego psychice/pragnieniach, ewentualne ukryte powiązania z intrygą oraz unikalny sznyt zachowania (np. tiki nerwowe, niezwykły ubiór np. burleska, nienaturalny spokój).`

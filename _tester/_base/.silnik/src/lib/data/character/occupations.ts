@@ -403,7 +403,7 @@ export const OCCUPATIONS: Occupation[] = [
       'Dowolna',
     ],
     creditMin: 9,
-    creditMax: 50,
+    creditMax: 30,
   },
   {
     id: 'professor',

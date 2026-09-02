@@ -35,6 +35,7 @@ import {
   sanitizeCharacterForApi,
   sanitizeNpcForApi,
 } from '@/lib/chat-history-sanitizer';
+import { loadStoredWorldSetup } from '@/lib/world-setup';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -286,6 +287,7 @@ export function FullGameSaveModal({
             : ({} as AISettings),
         },
         equipmentVisualEra: currentData.equipmentVisualEra,
+        worldSetup: loadStoredWorldSetup(),
         // Bezpiecznik limitu body 10 MB: miniatury ekwipunku / portrety to base64
         // (~MB każdy) w żywym stanie - bez tego payload zapisu rośnie > 10 MB → HTTP 500.
         // Obrazy wracają po wczytaniu (hydracja z IndexedDB + regeneracja miniatur).

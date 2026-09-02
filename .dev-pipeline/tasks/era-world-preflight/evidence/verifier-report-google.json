@@ -1,0 +1,46 @@
+{
+  "run_id": "era-world-preflight-google-verifier-1",
+  "task_id": "era-world-preflight",
+  "role": "verifier",
+  "result": "success",
+  "changed_files": [],
+  "checks": [
+    {
+      "name": "navigation",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log"
+    },
+    {
+      "name": "typecheck",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log"
+    },
+    {
+      "name": "test",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/validation-summary.log"
+    },
+    {
+      "name": "full-lint",
+      "status": "pre_existing",
+      "exit_code": 1,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/baseline-lint.log",
+      "fingerprint": "98d0af8df9d2d4f6452f"
+    },
+    {
+      "name": "playwright",
+      "status": "pre_existing",
+      "exit_code": 1,
+      "artifact": ".dev-pipeline/tasks/era-world-preflight/evidence/baseline-ui.log",
+      "fingerprint": "d038dc51a7c01ffa854e"
+    }
+  ],
+  "artifacts": [
+    ".dev-pipeline/tasks/era-world-preflight/evidence/verifier-report-google.json"
+  ],
+  "summary": "Niezależna weryfikacja Google Gemini (run_id: era-world-preflight-google-verifier-1). Wszystkie kryteria akceptacji z zadania zostały przetestowane lub zaudytowane (JEST, tsc, nav pomyślne). Linting i Playwright zgłaszają stany pre-existing. Kod jest zgodny z dozwolonymi ścieżkami.",
+  "next_action": "Zamknij zadanie pipeline lub wykonaj dev-publish wg woli PO."
+}

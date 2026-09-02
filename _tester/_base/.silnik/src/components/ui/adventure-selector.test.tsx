@@ -84,4 +84,43 @@ describe('AdventureSelector', () => {
       })
     );
   });
+
+  it('requires one exact year before confirming a custom scenario range', () => {
+    const onSelect = jest.fn();
+    const rangedAdventure: CustomAdventure = {
+      ...adventure,
+      id: 'custom-range',
+      yearRange: '1973-1974',
+      country: 'Polska',
+    };
+    render(
+      <AdventureSelector
+        open
+        onClose={jest.fn()}
+        onSelect={onSelect}
+        customAdventures={[rangedAdventure]}
+      />
+    );
+
+    fireEvent.click(screen.getByText(rangedAdventure.title));
+    const closeButtons = screen.getAllByRole('button', { name: /close|zamknij/i });
+    fireEvent.click(closeButtons[closeButtons.length - 1]);
+
+    const confirm = screen.getByRole('button', { name: /wybierz i kontynuuj/i });
+    expect(confirm).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText('Dokładny rok'), {
+      target: { value: '1974' },
+    });
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
+
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'custom-range',
+        yearRange: '1974',
+        country: 'Polska',
+      })
+    );
+  });
 });

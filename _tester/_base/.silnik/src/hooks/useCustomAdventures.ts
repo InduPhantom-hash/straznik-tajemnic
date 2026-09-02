@@ -146,67 +146,51 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
               'Brak klucza Gemini - wklej swój klucz Google AI Studio w ustawieniach.'
           );
         }
+        if (!analyzeResponse.ok) {
+          const errData = await analyzeResponse.json().catch(() => ({}));
+          throw new Error(
+            errData.error ||
+              `Analiza przygody nie powiodła się: ${analyzeResponse.status}`
+          );
+        }
 
         setUploadProgress(90);
         setLoadingStatus('Pobieranie historycznej pogody (Open-Meteo) i map (OpenHistoricalMap)...');
 
-        let analyzeResult;
+        const analyzeResult = await analyzeResponse.json();
         // IND-134 (sesja 148): typed jako Partial<AdventureContext> + pageStart.
         // Shape z /api/adventure/analyze (Gemini), pola opcjonalne bo każde z `?.` fallback w map() lin ~195-235.
         let adventuresData: Array<
           Partial<AdventureContext> & { pageStart?: number | null }
         > = [];
 
-        if (analyzeResponse.ok) {
-          analyzeResult = await analyzeResponse.json();
-          if (analyzeResult.success) {
-            // Obsługa nowego formatu z wieloma przygodami
-            if (
-              analyzeResult.multipleAdventures &&
-              Array.isArray(analyzeResult.adventures)
-            ) {
-              adventuresData = analyzeResult.adventures;
-              console.log(
-                `✅ Detected ${adventuresData.length} adventures in PDF`
-              );
-            } else if (analyzeResult.adventure) {
-              // Fallback dla starego formatu (jedna przygoda)
-              adventuresData = [analyzeResult.adventure];
-              console.log(
-                `✅ Adventure analyzed:`,
-                analyzeResult.adventure.title
-              );
-            }
-          } else {
-            console.warn('Analysis returned error, using fallback');
-          }
-        } else {
-          console.warn('Analysis API failed, using fallback');
+        if (!analyzeResult.success) {
+          throw new Error(analyzeResult.error || 'Analiza przygody nie powiodła się');
+        }
+        if (
+          analyzeResult.multipleAdventures &&
+          Array.isArray(analyzeResult.adventures)
+        ) {
+          adventuresData = analyzeResult.adventures;
+          console.log(`✅ Detected ${adventuresData.length} adventures in PDF`);
+        } else if (analyzeResult.adventure) {
+          adventuresData = [analyzeResult.adventure];
+          console.log(`✅ Adventure analyzed:`, analyzeResult.adventure.title);
         }
 
-        // Jeśli brak danych - użyj fallback
-        let isFallback = false;
         if (adventuresData.length === 0) {
-          isFallback = true;
-          adventuresData = [
-            {
-              title: file.name.replace('.pdf', '').replace(/_/g, ' '),
-              era: 'classic',
-              eraLabel: 'Klasyczne lata 20.',
-              yearRange: '1920-1930',
-              location: 'Nieznana lokalizacja',
-              country: 'Nieznany',
-              tone: 'purist',
-              themes: ['tajemnica'],
-              suggestedOccupations: ['detektyw'],
-              hook: `Przygoda "${file.name.replace('.pdf', '').replace(/_/g, ' ')}" czeka na odkrycie.`,
-              description: '',
-              estimatedSessions: '2-3',
-              playerCount: '1-4',
-              difficulty: 'normal',
-              graph: { npcs: [], locations: [], clues: [], connections: [] },
-            },
-          ];
+          throw new Error('Analiza PDF nie zwróciła żadnej przygody.');
+        }
+        for (const [index, adventureData] of adventuresData.entries()) {
+          if (!adventureData.yearRange?.match(/\b\d{4}\b/)) {
+            throw new Error(`Przygoda ${index + 1} nie ma ustalonego roku.`);
+          }
+          if (
+            !adventureData.country?.trim() ||
+            /^(unknown|nieznany|nieznane)$/i.test(adventureData.country.trim())
+          ) {
+            throw new Error(`Przygoda ${index + 1} nie ma ustalonego kraju.`);
+          }
         }
 
         // Tworzenie CustomAdventure dla KAŻDEJ wykrytej przygody
@@ -216,11 +200,13 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
             title:
               adventureData?.title ||
               `${file.name.replace('.pdf', '')} - Przygoda ${index + 1}`,
-            era: adventureData?.era || 'classic',
-            eraLabel: adventureData?.eraLabel || 'Klasyczne lata 20.',
-            yearRange: adventureData?.yearRange || '1920-1930',
+            era: adventureData?.era || 'custom',
+            eraLabel:
+              adventureData?.eraLabel ||
+              `${adventureData.yearRange}, ${adventureData.country}`,
+            yearRange: adventureData.yearRange!,
             location: adventureData?.location || 'Nieznana lokalizacja',
-            country: adventureData?.country || 'Nieznany',
+            country: adventureData.country!,
             tone: adventureData?.tone || 'purist',
             themes: adventureData?.themes || ['tajemnica'],
             suggestedOccupations: adventureData?.suggestedOccupations || [
@@ -250,8 +236,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
             geminiFileUri: parseResult.geminiFileUri,
             fileName: file.name,
             uploadedAt: new Date().toISOString(),
-            isAnalyzed: !isFallback,
-            analysisError: isFallback ? 'Analiza nie powiodła się, użyto danych domyślnych' : undefined,
+            isAnalyzed: true,
             pageStart: adventureData?.pageStart || null,
             // Rozkład na czynniki pierwsze (postacie/miejsca/zdarzenia/przedmioty/
             // stwory) - kontekst dla MG/AI. Zapisywany razem z przygodą (IndexedDB).
@@ -272,7 +257,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
 
         // [Dodano z Code Review]: Uruchomienie tła dla Pre-bufferingu i RAG
         // Wykonujemy w tle, nie blokujemy UI
-        if (!isFallback && newAdventures.length > 0) {
+        if (newAdventures.length > 0) {
           console.log('🤖 Rozpoczynam tło: RAG indexing i TTS pre-buffering...');
           newAdventures.forEach(adv => {
             // RAG Indexing Background Call (uruchamiane w tle)
@@ -319,7 +304,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         setLoadingStatus('');
       }
     },
-    [customAdventures, activeAdventureId]
+    [activeAdventureId]
   );
 
   // Usuwanie przygody
@@ -373,7 +358,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         setIsLoading(false);
       }
     },
-    [customAdventures, activeAdventureId]
+    [customAdventures]
   );
 
   // Ustaw aktywną przygodę

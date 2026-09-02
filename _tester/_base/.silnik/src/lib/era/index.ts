@@ -4,3 +4,4 @@ export * from './registry';
 export * from './runtime';
 export * from './availability';
 export * from './legacy';
+export * from './manifests';

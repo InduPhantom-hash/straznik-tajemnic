@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Audyt portretów Strefy 11</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; background: #0d0e10; color: #f2f2f2; }
+    main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 36px 0 72px; }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    .lead { margin: 0 0 32px; color: #b8bcc4; line-height: 1.5; }
+    section { margin-top: 44px; }
+    h2 { margin-bottom: 6px; font-size: 23px; }
+    .scenario { color: #b8bcc4; margin: 0 0 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    article { border: 1px solid #30343a; border-radius: 14px; overflow: hidden; background: #17191d; }
+    header { padding: 16px 18px 12px; }
+    h3 { margin: 0 0 5px; font-size: 19px; }
+    .occupation { color: #d4b464; margin: 0; }
+    .portraits { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #30343a; }
+    figure { margin: 0; background: #101114; padding: 12px; }
+    img { display: block; width: 100%; height: 260px; object-fit: cover; object-position: center top; border-radius: 8px; }
+    figcaption { margin-top: 8px; color: #b8bcc4; font-size: 13px; }
+    .decision { margin: 0; padding: 14px 18px 17px; line-height: 1.45; }
+    .keep { color: #85d99a; }
+    .remap { color: #85d99a; }
+    .regen { color: #ffbd72; }
+    .empty { height: 260px; display: grid; place-items: center; border: 1px dashed #555b65; border-radius: 8px; color: #9ea3ad; text-align: center; padding: 0 20px; box-sizing: border-box; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Portrety Strefy 11 do decyzji</h1>
+  <p class="lead">Po lewej jest portret używany obecnie w grze. Po prawej kandydat. Oceniaj zgodność z konkretną przygodą, rokiem i profesją podaną nad obrazami.</p>
+
+  <section>
+    <h2>Cień nad Prabutami: Widzenie Ojca Klimuszki</h2>
+    <p class="scenario">Polska, Warszawa - Elbląg - Prabuty, zima 1973-1974. Wszystkie cztery postacie żyją w tej epoce. Nie są przybyszami z przyszłości.</p>
+    <div class="grid">
+      <article><header><h3>Tomasz Nowicki</h3><p class="occupation">Dziennikarz śledczy i prowadzący</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/tadeusz-krawiec.webp"><figcaption>Poprzedni: tadeusz-krawiec.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/tomasz_nowicki.webp"><figcaption>Wdrożony: tomasz_nowicki.webp</figcaption></figure></div><p class="decision keep">Wdrożono nowy portret PRL 1973-1974.</p></article>
+      <article><header><h3>Helena Krawczyk</h3><p class="occupation">Producent telewizyjny</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/ewa-nowak.webp"><figcaption>Poprzedni: ewa-nowak.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/helena_krawczyk.webp"><figcaption>Wdrożony: helena_krawczyk.webp</figcaption></figure></div><p class="decision keep">Wdrożono nowy portret PRL 1973-1974.</p></article>
+      <article><header><h3>Dr Barbara Zawadzka</h3><p class="occupation">Etnograf i parapsycholog</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/magdalena-koper.webp"><figcaption>Poprzedni: magdalena-koper.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/barbara_zawadzka.webp"><figcaption>Wdrożony: barbara_zawadzka.webp</figcaption></figure></div><p class="decision keep">Wdrożono nowy portret PRL 1973-1974.</p></article>
+      <article><header><h3>Ryszard „Klucznik” Kaczmarek</h3><p class="occupation">Były oficer SB i technik ochrony</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/marek-dabrowski.webp"><figcaption>Poprzedni: marek-dabrowski.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/ryszard_kaczmarek.webp"><figcaption>Wdrożony: ryszard_kaczmarek.webp</figcaption></figure></div><p class="decision keep">Wdrożono nowy portret PRL 1973-1974.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tajemnica Pędnika: Genialny Wynalazca z Kowar</h2>
+    <p class="scenario">Polska, Kowary i Karkonosze, 1995-1999. Dokładny rok wybierze setup przygody.</p>
+    <div class="grid">
+      <article><header><h3>Inż. Marek Kamiński</h3><p class="occupation">Inżynier mechanik</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/jerzy-kossak.webp"><figcaption>Obecnie: jerzy-kossak.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/marek_kaminski.webp"><figcaption>Kandydat: marek_kaminski.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat pokazuje starszego inżyniera w technicznym otoczeniu.</p></article>
+      <article><header><h3>Tomasz „Ryzykant” Wójcik</h3><p class="occupation">Kierowca testowy</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/wiktor-lesniewski.webp"><figcaption>Obecnie: wiktor-lesniewski.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/tomasz_wojcik.webp"><figcaption>Kandydat: tomasz_wojcik.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat jednoznacznie komunikuje profesję kierowcy.</p></article>
+      <article><header><h3>Anna Dąbrowska</h3><p class="occupation">Dziennikarz śledczy</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/alicja-rudzka.webp"><figcaption>Obecnie: alicja-rudzka.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/anna_dabrowska.webp"><figcaption>Kandydat: anna_dabrowska.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat ma reporterski kontekst uliczny lat 90.</p></article>
+      <article><header><h3>Dr Ewa Wiśniewska</h3><p class="occupation">Fizyk teoretyczna</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/krystyna-mroczek.webp"><figcaption>Obecnie: krystyna-mroczek.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/ewa_wisniewska.webp"><figcaption>Kandydat: ewa_wisniewska.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat pokazuje fizyka przy tablicy.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tajemnica Dzieci z Traszyna</h2>
+    <p class="scenario">Polska, okolice Lublina, 1999. Pierwsze wydarzenie miało miejsce w 1983 roku, a właściwa akcja następuje 16 lat później.</p>
+    <div class="grid">
+      <article><header><h3>Ksiądz Jan Kaczmarek</h3><p class="occupation">Ksiądz egzorcysta</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/stanislaw-wilczek.webp"><figcaption>Obecnie: stanislaw-wilczek.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/jan_kaczmarek.webp"><figcaption>Kandydat: jan_kaczmarek.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat odpowiada profesji i końcówce lat 90.</p></article>
+      <article><header><h3>Andrzej „Aura” Zalewski</h3><p class="occupation">Bioenergoterapeuta</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/piotr-wolski.webp"><figcaption>Obecnie: piotr-wolski.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/andrzej_zalewski.webp"><figcaption>Kandydat: andrzej_zalewski.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat komunikuje alternatywnego terapeutę bez efektów nadprzyrodzonych.</p></article>
+      <article><header><h3>Marta Kamińska</h3><p class="occupation">Psycholog</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/janina-rozycka.webp"><figcaption>Obecnie: janina-rozycka.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/marta_kaminska.webp"><figcaption>Kandydat: marta_kaminska.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat ma neutralne otoczenie gabinetowe.</p></article>
+      <article><header><h3>Zofia „Zosia” Sadowska</h3><p class="occupation">Etnograf i bibliotekarz</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/danuta-kwiecien.webp"><figcaption>Obecnie: danuta-kwiecien.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/zofia_sadowska.webp"><figcaption>Kandydat: zofia_sadowska.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat łączy postać z dokumentami i lokalnymi zbiorami.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Przybysz z Matriksa: Zjawisko z Głogowa</h2>
+    <p class="scenario">Polska, Głogów i Legnica, 2001.</p>
+    <div class="grid">
+      <article><header><h3>Artur „Stary” Majchrzak</h3><p class="occupation">Prywatny detektyw</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/antoni-lis.webp"><figcaption>Obecnie: antoni-lis.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/artur_majchrzak.webp"><figcaption>Kandydat: artur_majchrzak.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat wygląda jak terenowy detektyw z początku lat 2000.</p></article>
+      <article><header><h3>Piotr „Kabel” Wójcicki</h3><p class="occupation">Programista i haker</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/krzysztof-boruta.webp"><figcaption>Obecnie: krzysztof-boruta.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/piotr_wojcicki.webp"><figcaption>Kandydat: piotr_wojcicki.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Sprzęt i otoczenie pasują do informatyka z 2001 roku.</p></article>
+      <article><header><h3>Dr Krystyna Zawada</h3><p class="occupation">Psychiatra</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/zofia-mierzejewska.webp"><figcaption>Obecnie: zofia-mierzejewska.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/krystyna_zawada.webp"><figcaption>Kandydat: krystyna_zawada.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat ma neutralny, realistyczny gabinetowy kontekst.</p></article>
+      <article><header><h3>Karolina „Luna” Maj</h3><p class="occupation">Ufolog i badacz anomalii</p></header><div class="portraits"><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/irena-bielska.webp"><figcaption>Obecnie: irena-bielska.webp</figcaption></figure><figure><img src="../../../_tester/_base/.silnik/public/portraits/predefined/karolina_maj.webp"><figcaption>Kandydat: karolina_maj.webp</figcaption></figure></div><p class="decision remap">Rekomendacja: remap. Kandydat pokazuje terenowego badacza bez dosłownej fantastyki.</p></article>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -295,41 +295,135 @@ function withLocalImage(
 
   return {
     ...catalogItem,
-    imageUrl: catalogItem.imageUrl,
-    visualSource: catalogItem.imageUrl ? 'catalog' : 'generated',
+    imageUrl: catalogItem.imageUrl ?? CATEGORY_IMAGES[catalogItem.category],
+    visualSource: catalogItem.imageUrl ? 'catalog' : 'fallback',
   };
+}
+
+/**
+ * Rozwiązuje docelową epokę wyposażenia na podstawie epoki przygody lub presetu.
+ */
+export function resolveTargetPresetEra(
+  presetEra: PresetEra,
+  targetEra?: string | { effectiveYear?: number; canonicalEra?: string }
+): PresetEra {
+  if (!targetEra) return presetEra;
+
+  if (typeof targetEra === 'object' && targetEra !== null) {
+    if (targetEra.effectiveYear) {
+      const y = targetEra.effectiveYear;
+      if (y < 1914) return 'gaslight';
+      if (y <= 1933) return 'classic';
+      if (y <= 1959) return 'noir';
+      if (y <= 1980) return 'prl-1970s';
+      if (y <= 1999) return '1990s';
+      if (y <= 2009) return '2000s';
+      return 'modern';
+    }
+    if (targetEra.canonicalEra) {
+      return resolveTargetPresetEra(presetEra, targetEra.canonicalEra);
+    }
+  }
+
+  const str = String(targetEra).toLowerCase().trim();
+  if (
+    str === 'prl-1970s' ||
+    str === 'prl' ||
+    str.includes('prl') ||
+    str.includes('1970') ||
+    str.includes('1973') ||
+    str.includes('1974')
+  ) {
+    return 'prl-1970s';
+  }
+  if (
+    str === '1990s' ||
+    str.includes('1990') ||
+    str.includes('lata 90') ||
+    str.includes('1999') ||
+    str.includes('1995') ||
+    str.includes('1996')
+  ) {
+    return '1990s';
+  }
+  if (
+    str === '2000s' ||
+    str.includes('2000') ||
+    str.includes('2001') ||
+    str.includes('y2k')
+  ) {
+    return '2000s';
+  }
+  if (
+    str === 'gaslight' ||
+    str.includes('1890') ||
+    str.includes('gaslight') ||
+    str.includes('wiktoria')
+  ) {
+    return 'gaslight';
+  }
+  if (
+    str === 'classic' ||
+    str.includes('1920') ||
+    str.includes('classic') ||
+    str.includes('lata 20')
+  ) {
+    return 'classic';
+  }
+  if (
+    str === 'noir' ||
+    str.includes('1930') ||
+    str.includes('1940') ||
+    str.includes('1950')
+  ) {
+    return 'noir';
+  }
+  if (
+    str === 'modern' ||
+    str.includes('modern') ||
+    str.includes('wspolczesn') ||
+    str.includes('współczesn')
+  ) {
+    return 'modern';
+  }
+
+  return presetEra;
 }
 
 /**
  * Rozbudowuje osobisty ekwipunek presetu o zestaw epoki i archetypu.
  * Nazwy są deduplikowane, a każdy przedmiot dostaje lokalną miniaturę kategorii,
  * dzięki czemu gotowy badacz nie uruchamia generatora obrazów przez API.
+ * Jeśli przekazano targetEra ze scenariusza, ma ona pierwszeństwo nad presetem.
  */
 export function buildPredefinedEquipment(
-  preset: PresetEquipmentContext
+  preset: PresetEquipmentContext,
+  targetEra?: string | { effectiveYear?: number; canonicalEra?: string }
 ): EquipmentItem[] {
-  const visualEra = PRESET_VISUAL_ERAS[preset.era];
+  const effectiveEra = resolveTargetPresetEra(preset.era, targetEra);
+  const visualEra = PRESET_VISUAL_ERAS[effectiveEra] ?? '1920s';
   const result = (preset.equipment ?? []).map((item) =>
     withLocalImage(item, visualEra)
   );
   const names = new Set(result.map((item) => normalizeName(item.name)));
 
-  [...ERA_KITS[preset.era], ...ARCHETYPE_KITS[preset.archetype]].forEach(
-    (seed) => {
-      const normalized = normalizeName(seed.name);
-      if (names.has(normalized)) return;
-      names.add(normalized);
-      result.push(
-        withLocalImage(
-          {
-            ...seed,
-            id: `eq_${slugify(preset.id)}_${slugify(seed.name)}`,
-          },
-          visualEra
-        )
-      );
-    }
-  );
+  const eraKit = ERA_KITS[effectiveEra] ?? ERA_KITS['classic'];
+  const archetypeKit = ARCHETYPE_KITS[preset.archetype] ?? [];
+
+  [...eraKit, ...archetypeKit].forEach((seed) => {
+    const normalized = normalizeName(seed.name);
+    if (names.has(normalized)) return;
+    names.add(normalized);
+    result.push(
+      withLocalImage(
+        {
+          ...seed,
+          id: `eq_${slugify(preset.id)}_${slugify(seed.name)}`,
+        },
+        visualEra
+      )
+    );
+  });
 
   // Niektóre osobiste elementy celowo pokrywają się z zestawem epoki (np.
   // latarka kolejarza). Dajemy wtedy neutralny, użyteczny dodatek zamiast

@@ -83,10 +83,12 @@ export function AdventureSelector({
   // Custom adventure form state
   const [customTitle, setCustomTitle] = useState('');
   const [customLocation, setCustomLocation] = useState('');
+  const [customCountry, setCustomCountry] = useState('');
   const [customEra, setCustomEra] = useState<
     'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom'
   >('classic');
-  const [customYearRange, setCustomYearRange] = useState('1920-1930');
+  const [customYear, setCustomYear] = useState('');
+  const [selectedExactYear, setSelectedExactYear] = useState('');
   const [customDescription, setCustomDescription] = useState('');
 
   const handleSelect = (adventure: AdventureContext, openDetails = true) => {
@@ -96,6 +98,8 @@ export function AdventureSelector({
       setSelectedId(adventure.id);
     } else {
       setSelectedId(adventure.id);
+      const years = adventure.yearRange?.match(/\b\d{4}\b/g) ?? [];
+      setSelectedExactYear(new Set(years).size === 1 ? (years[0] ?? '') : '');
       if (openDetails) {
         setDetailsAdventure(adventure);
       }
@@ -104,15 +108,17 @@ export function AdventureSelector({
 
   const handleConfirm = () => {
     if (showCustomForm) {
+      if (!/^\d{4}$/.test(customYear) || !customCountry.trim()) return;
       const customAdventure: AdventureContext = {
         ...CUSTOM_ADVENTURE_TEMPLATE,
         title: customTitle || t('defaultTitle'),
         location: customLocation || t('defaultLocation'),
+        country: customCountry.trim(),
         era: customEra,
         eraLabel: ERA_STYLES[customEra]
           ? tStyles(ERA_STYLES[customEra].translationKey)
           : t('defaultEraLabel'),
-        yearRange: customYearRange,
+        yearRange: customYear,
         customDescription: customDescription,
       };
       onSelect(customAdventure);
@@ -126,7 +132,8 @@ export function AdventureSelector({
         // Sprawdź w własnych
         const custom = customAdventures.find((a) => a.id === selectedId);
         if (custom) {
-          onSelect(custom);
+          if (!/^\d{4}$/.test(selectedExactYear)) return;
+          onSelect({ ...custom, yearRange: selectedExactYear });
         }
       }
     }
@@ -179,6 +186,9 @@ export function AdventureSelector({
       strefa11Adventures.find((a) => a.id === selectedId) ||
       customAdventures.find((a) => a.id === selectedId)
     : null;
+  const manualFormReady = /^\d{4}$/.test(customYear) && Boolean(customCountry.trim());
+  const selectedCustomReady =
+    !selectedAdventure?.isCustom || /^\d{4}$/.test(selectedExactYear);
 
   // Komponent karty przygody (DRY)
   const AdventureCard = ({
@@ -564,6 +574,31 @@ export function AdventureSelector({
                   </div>
                 </div>
               )}
+              {selectedAdventure?.isCustom && (
+                <div className="relative mt-6 border border-brass/30 bg-card p-4">
+                  <label
+                    htmlFor="selected-exact-year"
+                    className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
+                  >
+                    {t('exactYearLabel')}
+                  </label>
+                  <input
+                    id="selected-exact-year"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={selectedExactYear}
+                    onChange={(event) =>
+                      setSelectedExactYear(event.target.value.replace(/\D/g, '').slice(0, 4))
+                    }
+                    placeholder={t('exactYearPlaceholder')}
+                    className="mt-2 w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  />
+                  <p className="mt-2 font-serif text-sm italic text-muted-foreground">
+                    {t('exactYearRequired')}
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             /* Formularz własnej przygody (bez PDF) */
@@ -583,6 +618,22 @@ export function AdventureSelector({
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   placeholder={t('titlePlaceholder')}
+                  className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="custom-country"
+                  className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
+                >
+                  {t('countryLabel')}
+                </label>
+                <input
+                  id="custom-country"
+                  type="text"
+                  value={customCountry}
+                  onChange={(e) => setCustomCountry(e.target.value)}
+                  placeholder={t('countryPlaceholder')}
                   className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
@@ -620,14 +671,22 @@ export function AdventureSelector({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                    {t('yearsLabel')}
+                  <label
+                    htmlFor="custom-exact-year"
+                    className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
+                  >
+                    {t('exactYearLabel')}
                   </label>
                   <input
+                    id="custom-exact-year"
                     type="text"
-                    value={customYearRange}
-                    onChange={(e) => setCustomYearRange(e.target.value)}
-                    placeholder={t('yearsPlaceholder')}
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={customYear}
+                    onChange={(e) =>
+                      setCustomYear(e.target.value.replace(/\D/g, '').slice(0, 4))
+                    }
+                    placeholder={t('exactYearPlaceholder')}
                     className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
                   />
                 </div>
@@ -664,7 +723,11 @@ export function AdventureSelector({
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={!selectedId && !showCustomForm}
+              disabled={
+                showCustomForm
+                  ? !manualFormReady
+                  : !selectedId || !selectedCustomReady
+              }
               className="font-display font-semibold uppercase tracking-[0.16em]"
             >
               {showCustomForm ? t('useThisAdventure') : t('chooseAndContinue')}

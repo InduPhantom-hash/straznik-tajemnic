@@ -15,10 +15,18 @@ import { trackEvent } from '@/lib/posthog';
 import { resetSessionTokens } from '@/lib/ai-settings/cost-control';
 import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
 import { persistCharacters } from '@/lib/character-cloud-sync';
+import { persistentMediaCache } from '@/lib/persistent-media-cache';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 import { sanitizeCharacterForApi } from '@/lib/chat-history-sanitizer';
-import { isCatalogEquipment } from '@/lib/equipment-catalog';
 import { getEraVehicleVisualDescription } from '@/lib/era-visual-style';
+import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
+import {
+  hasBlockingSetupFailure,
+  isWorldSetupBundle,
+  loadStoredWorldSetup,
+  storeWorldSetup,
+  type WorldSetupBundleV1,
+} from '@/lib/world-setup';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -51,6 +59,87 @@ async function fetchWithRetry(
     }
   }
   throw lastError;
+}
+
+function createPresetWorldSetup(
+  adventure: AdventureContext,
+  eraContext: ResolvedEraContext
+): WorldSetupBundleV1 {
+  const createdAt = new Date().toISOString();
+  const conflicts = (adventure.conflicts ?? []).map((conflict) => ({
+    ...conflict,
+    factions: conflict.factions.map((faction) => ({ ...faction })),
+  }));
+
+  return {
+    schemaVersion: 1,
+    id: `preset_${adventure.id ?? 'adventure'}_${Date.now()}`,
+    scenarioId: adventure.id ?? 'preset-adventure',
+    adventureTitle: adventure.title,
+    createdAt,
+    canonRevision: 1,
+    eraContext,
+    eraManifestId: null,
+    adventureGraph: {
+      source: 'preset',
+      conflicts,
+      setupAsymmetry: adventure.setupAsymmetry ?? {},
+      graph: adventure.graph ?? null,
+    },
+    factions: conflicts.flatMap((conflict) => conflict.factions),
+    npcs: [],
+    locations: adventure.location ? [{ name: adventure.location }] : [],
+    items: [],
+    events: [],
+    openingScene: { location: adventure.location ?? '' },
+    nearestBranches: conflicts,
+    adventureContent: JSON.stringify({
+      hook: adventure.hook,
+      description: adventure.description,
+      conflicts,
+      graph: adventure.graph,
+    }),
+    supplementalInformation: [],
+    sources: [],
+    knowledgeGaps: [
+      'Szybka przygoda używa lokalnego kanonu. Opcjonalny research historyczny nie blokuje startu.',
+    ],
+    exceptions: [],
+    phaseResults: [
+      {
+        phase: 'era',
+        status: 'passed',
+        critical: true,
+        retryable: false,
+        durationMs: 0,
+        estimatedCostUsd: 0,
+        completedAt: createdAt,
+      },
+      {
+        phase: 'adventure-graph',
+        status: conflicts.length > 0 ? 'passed' : 'degraded',
+        critical: false,
+        retryable: true,
+        durationMs: 0,
+        estimatedCostUsd: 0,
+        message:
+          conflicts.length > 0
+            ? undefined
+            : 'Preset nie zawiera gotowego grafu konfliktu.',
+        completedAt: createdAt,
+      },
+      {
+        phase: 'historical-research',
+        status: 'degraded',
+        critical: false,
+        retryable: true,
+        durationMs: 0,
+        estimatedCostUsd: 0,
+        message: 'Research online jest pomijany przy szybkim starcie.',
+        completedAt: createdAt,
+      },
+    ],
+  };
 }
 
 interface UseGameStartProps {
@@ -124,7 +213,9 @@ export function useGameStart({
     const allPlayerCharacters = isHotSeat
       ? hotSeatConfig.players
           .map((p: HotSeatPlayer) =>
-            characters.find((c) => c.id === p.characterId || c.playerName === p.name)
+            characters.find(
+              (c) => c.id === p.characterId || c.playerName === p.name
+            )
           )
           .filter((c): c is Character => !!c)
       : activeCharacter
@@ -132,16 +223,20 @@ export function useGameStart({
         : [];
 
     const english = locale === 'en';
-    let prompt = english ? 'We are beginning the adventure!\n\n' : 'Zaczynamy przygodę!\n\n';
+    let prompt = english
+      ? 'We are beginning the adventure!\n\n'
+      : 'Zaczynamy przygodę!\n\n';
 
     if (english && allPlayerCharacters.length > 1) {
       prompt += `**IMPORTANT: This is a Hot Seat game for ${allPlayerCharacters.length} players.**\n\n--- CHARACTER CONTEXT ---\n`;
       allPlayerCharacters.forEach((char, index) => {
         prompt += `\n**Player ${index + 1} - ${char.name}:**\n- Occupation: ${char.occupation || 'unknown'}\n- Age: ${char.age || 'unknown'}\n`;
-        if (char.characterConcept) prompt += `- Concept: ${char.characterConcept}\n`;
+        if (char.characterConcept)
+          prompt += `- Concept: ${char.characterConcept}\n`;
         if (char.background) prompt += `- Background: ${char.background}\n`;
       });
-      prompt += '--- END CHARACTER CONTEXT ---\n\nWrite an organic opening for every player. Do not repeat their sheet data.\n\n';
+      prompt +=
+        '--- END CHARACTER CONTEXT ---\n\nWrite an organic opening for every player. Do not repeat their sheet data.\n\n';
     } else if (!english && allPlayerCharacters.length > 1) {
       prompt += `**UWAGA: Gra toczy się dla ${allPlayerCharacters.length} graczy (Hot Seat mode)!**\n\n`;
       prompt += `--- KONTEKST POSTACI ---\n`;
@@ -158,9 +253,12 @@ export function useGameStart({
         '\n**WAŻNE:** Wprowadzenie MUSI uwzględnić WSZYSTKIE postacie graczy! NIE powtarzaj statystyk ani statycznych opisów postaci z bloku KONTEKST POSTACI w swojej narracji. Wpleć ewentualne nawiązania naturalnie w fabułę.\n\n';
     } else if (english && activeCharacter) {
       prompt += `--- CHARACTER CONTEXT ---\n**My character:**\n- Name: ${activeCharacter.name}\n- Occupation: ${activeCharacter.occupation || 'unknown'}\n- Age: ${activeCharacter.age || 'unknown'}\n`;
-      if (activeCharacter.characterConcept) prompt += `- Concept: ${activeCharacter.characterConcept}\n`;
-      if (activeCharacter.background) prompt += `- Background: ${activeCharacter.background}\n`;
-      prompt += '--- END CHARACTER CONTEXT ---\n\nUse this context only in the background. Do not quote or repeat it.\n\n';
+      if (activeCharacter.characterConcept)
+        prompt += `- Concept: ${activeCharacter.characterConcept}\n`;
+      if (activeCharacter.background)
+        prompt += `- Background: ${activeCharacter.background}\n`;
+      prompt +=
+        '--- END CHARACTER CONTEXT ---\n\nUse this context only in the background. Do not quote or repeat it.\n\n';
     } else if (activeCharacter) {
       prompt += `--- KONTEKST POSTACI ---\n**Moja postać:**\n`;
       prompt += `- Imię: ${activeCharacter.name}\n- Zawód: ${activeCharacter.occupation || 'nieznany'}\n- Wiek: ${activeCharacter.age || 'nieznany'}\n`;
@@ -182,7 +280,8 @@ export function useGameStart({
     // Działa wyłącznie na tę jedną turę (wiadomość użytkownika nadpisuje protokół MG);
     // kolejne tury wracają do zwięzłej długości narzuconej przez gm-protocol.
     if (english && allPlayerCharacters.length > 1) {
-      prompt += 'This is the opening turn for the whole party. Start with an ordinary, period-appropriate scene, establish place and mood, then introduce the adventure hook naturally. Address the party in the plural. Do not play for the characters. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about why the party is here.[/JOURNAL] End with [What do you do?].\n';
+      prompt +=
+        'This is the opening turn for the whole party. Start with an ordinary, period-appropriate scene, establish place and mood, then introduce the adventure hook naturally. Address the party in the plural. Do not play for the characters. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about why the party is here.[/JOURNAL] End with [What do you do?].\n';
     } else if (!english && allPlayerCharacters.length > 1) {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry DLA DRUŻYNY (Hot Seat mode).\n\n' +
@@ -194,7 +293,8 @@ export function useGameStart({
         'NIE graj za postacie graczy. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj wpis otwierający do dziennika: [DZIENNIK:notatka:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
     } else if (english) {
-      prompt += 'This is the opening turn of the game. Begin with an ordinary, period-appropriate scene. Establish the location and atmosphere before introducing the adventure hook. Write in second person, do not play for the player character, and use slow-burn horror. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about where the character is and why they came here.[/JOURNAL] End with [What do you do?] on its own line.\n';
+      prompt +=
+        'This is the opening turn of the game. Begin with an ordinary, period-appropriate scene. Establish the location and atmosphere before introducing the adventure hook. Write in second person, do not play for the player character, and use slow-burn horror. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about where the character is and why they came here.[/JOURNAL] End with [What do you do?] on its own line.\n';
     } else {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry.\n\n' +
@@ -220,67 +320,88 @@ export function useGameStart({
    * widział pusty obraz bez ostrzeżenia (5 scenariuszy errors silently swallowed:
    * replicateEnabled=false, 401, 429, network, provider chain exhausted).
    */
-  const generateIntroImage = useCallback(async () => {
-    if (aiSettings?.imageGenerationEnabled === false) return;
-    try {
-      const locationContext =
-        adventureContext?.location || 'mysterious New England town';
-      const rawEra =
-        adventureContext?.yearRange ||
-        adventureContext?.eraLabel ||
-        adventureContext?.era ||
-        '1920s';
-      const vehicleGuidance = getEraVehicleVisualDescription(rawEra);
-      const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${rawEra} period-accurate, ${vehicleGuidance}, realistic, cinematic, moody natural lighting.`;
+  const generateIntroImage = useCallback(
+    async (messageId: string) => {
+      if (aiSettings?.imageGenerationEnabled === false) return;
+      try {
+        if (!adventureContext) {
+          throw new Error('Brak kontekstu przygody dla obrazu intro.');
+        }
+        const eraContext = resolveGameEraContext({
+          adventure: adventureContext,
+        });
+        const locationContext =
+          adventureContext?.location || 'mysterious New England town';
+        const rawEra = String(eraContext.effectiveYear);
+        const vehicleGuidance = getEraVehicleVisualDescription(rawEra);
+        const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${rawEra} period-accurate, ${vehicleGuidance}, realistic, cinematic, moody natural lighting.`;
 
-      const response = await fetchWithRetry('/api/imagen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // IND-216: establishing shot w formacie pocztówkowym 16:9 (orchestrator
-        // forwarduje ...body do Vertex/Replicate). Render kadruje object-cover.
-        body: JSON.stringify({
-          prompt: imagePrompt,
-          style: 'location',
-          era: rawEra,
-          aspectRatio: '16:9',
-        }),
-      });
+        const response = await fetchWithRetry('/api/imagen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // IND-216: establishing shot w formacie pocztówkowym 16:9 (orchestrator
+          // forwarduje ...body do Vertex/Replicate). Render kadruje object-cover.
+          body: JSON.stringify({
+            prompt: imagePrompt,
+            style: 'location',
+            era: rawEra,
+            aspectRatio: '16:9',
+          }),
+        });
 
+        if (!response.ok) {
+          throw new Error(
+            `Image API ${response.status}: ${response.statusText}`
+          );
+        }
 
-      if (!response.ok) {
-        throw new Error(`Image API ${response.status}: ${response.statusText}`);
+        const imageData = await response.json();
+        if (!imageData.imageUrl) {
+          throw new Error('Brak imageUrl w odpowiedzi API');
+        }
+
+        setMessages((prev) =>
+          prev.map((message) => {
+            if (message.id !== messageId) return message;
+            const imageIndex = message.generatedImages?.length ?? 0;
+            void persistentMediaCache
+              .setChatImage(messageId, imageIndex, imageData.imageUrl)
+              .catch(() => {});
+            return {
+              ...message,
+              generatedImages: [
+                ...(message.generatedImages ?? []),
+                imageData.imageUrl,
+              ],
+              generatedImageTypes: [
+                ...(message.generatedImageTypes ?? []),
+                'scene',
+              ],
+              generatedImageCacheIds: [
+                ...(message.generatedImageCacheIds ?? []),
+                `${messageId}_${imageIndex}`,
+              ],
+            };
+          })
+        );
+      } catch (e) {
+        console.warn('Intro image generation failed:', e);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `gm-intro-image-error-${crypto.randomUUID()}`,
+            role: 'assistant',
+            content:
+              locale === 'en'
+                ? '⚠️ The intro image could not be generated. Check the Gemini API key in Settings.'
+                : '⚠️ Nie udało się wygenerować obrazu intro. Sprawdź klucz Gemini API Key w Ustawieniach.',
+            timestamp: new Date(),
+          },
+        ]);
       }
-
-      const imageData = await response.json();
-      if (!imageData.imageUrl) {
-        throw new Error('Brak imageUrl w odpowiedzi API');
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `gm-intro-image-${crypto.randomUUID()}`,
-          role: 'assistant',
-          content: `![Wprowadzenie](${imageData.imageUrl})`,
-          timestamp: new Date(),
-        },
-      ]);
-    } catch (e) {
-      console.warn('Intro image generation failed:', e);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `gm-intro-image-error-${crypto.randomUUID()}`,
-          role: 'assistant',
-          content:
-            locale === 'en'
-              ? '⚠️ The intro image could not be generated. Check the Gemini API key in Settings.'
-              : '⚠️ Nie udało się wygenerować obrazu intro. Sprawdź klucz Gemini API Key w Ustawieniach.',
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  }, [adventureContext, aiSettings?.imageGenerationEnabled, setMessages]);
+    },
+    [adventureContext, aiSettings?.imageGenerationEnabled, locale, setMessages]
+  );
 
   // IND-174 (port): guard przeciw podwójnemu startowi gry (double-click
   // "Rozpocznij", re-fire). Bez tego współbieżne wywołania handleStartGame
@@ -291,6 +412,92 @@ export function useGameStart({
   const handleStartGame = useCallback(async () => {
     if (isStartingRef.current) return;
     isStartingRef.current = true;
+
+    if (!adventureContext) {
+      isStartingRef.current = false;
+      return;
+    }
+
+    const eraContext = resolveGameEraContext({ adventure: adventureContext });
+    if (!adventureContext.isCustom) {
+      // Gotowe przygody mają lokalny kanon. Nie mogą wymagać odpowiedzi AI ani
+      // dodatkowego kosztu tylko po to, aby wejść do pierwszej sceny.
+      storeWorldSetup(createPresetWorldSetup(adventureContext, eraContext));
+    } else {
+      try {
+        const preflightSource = JSON.stringify({
+          title: adventureContext.title,
+          description: adventureContext.description,
+          hook: adventureContext.hook,
+          conflicts: adventureContext.conflicts,
+          setupAsymmetry: adventureContext.setupAsymmetry,
+          graph: adventureContext.graph,
+        });
+        const preflightResponse = await fetchWithRetry('/api/adventure/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adventureText: preflightSource,
+            scenarioId: adventureContext.id,
+            adventureTitle: adventureContext.title,
+            isCustomScenario: Boolean(adventureContext.isCustom),
+            scenarioYearRange: adventureContext.yearRange,
+            eraContext,
+            characters: (characters.length > 0
+              ? characters
+              : activeCharacter
+                ? [activeCharacter]
+                : []
+            ).map((character) => ({
+              id: character.id,
+              name: character.name,
+              occupation: character.occupation || '',
+              background: character.background || '',
+            })),
+          }),
+        });
+
+        if (!preflightResponse.ok) {
+          const errorBody = await preflightResponse.json().catch(() => ({}));
+          const serverMessage =
+            (errorBody as { error?: string }).error ||
+            preflightResponse.statusText;
+          throw new Error(
+            `Preflight ${preflightResponse.status}: ${serverMessage}`
+          );
+        }
+
+        const preflightPayload = (await preflightResponse.json()) as {
+          worldSetup?: unknown;
+        };
+        if (!isWorldSetupBundle(preflightPayload.worldSetup)) {
+          throw new Error(
+            'Preflight nie zwrócił poprawnego WorldSetupBundleV1.'
+          );
+        }
+        if (hasBlockingSetupFailure(preflightPayload.worldSetup.phaseResults)) {
+          throw new Error('Preflight wykrył krytyczny błąd setupu.');
+        }
+        storeWorldSetup(preflightPayload.worldSetup);
+      } catch (error) {
+        console.error('World preflight failed:', error);
+        setHasStartedGame(false);
+        setMessages([
+          {
+            id: `world-preflight-error-${crypto.randomUUID()}`,
+            role: 'assistant',
+            content:
+              locale === 'en'
+                ? 'The adventure cannot start because world preparation failed. Check the exact year, country, selected characters and API key, then try again.'
+                : 'Nie można rozpocząć przygody, ponieważ przygotowanie świata nie przeszło bramki. Sprawdź dokładny rok, kraj, wybrane postacie i klucz API, a potem spróbuj ponownie.',
+            timestamp: new Date(),
+          },
+        ]);
+        isStartingRef.current = false;
+        return;
+      }
+    }
+
     // IND-273 T3: self-check klucza/modeli (fire-and-forget, TTL dławi, nie blokuje startu).
     runHealthCheck?.();
 
@@ -328,7 +535,6 @@ export function useGameStart({
     // localStorage; reload zapisanej gry tu nie trafia (osobna ścieżka).
     timeManager.resetForAdventure(adventureContext);
     setMessages([]); // Wyczyść czat przed startem przygody
-    generateIntroImage(); // Równolegle z generowaniem tekstu
 
     // Wyczyść wyłącznie obrazy generowane dla egzemplarzy fabularnych. Katalogowe
     // assety są lokalne i muszą przetrwać start bez kosztu ani żądania do API.
@@ -368,7 +574,8 @@ export function useGameStart({
             ...hotSeatConfig,
             players: (hotSeatConfig.players || []).map((player) => {
               const matchedChar = characters.find(
-                (c) => c.id === player.characterId || c.playerName === player.name
+                (c) =>
+                  c.id === player.characterId || c.playerName === player.name
               );
               return {
                 ...player,
@@ -393,6 +600,7 @@ export function useGameStart({
           characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
           hotSeatConfig: resolvedHotSeat,
           adventureContext: adventureContext,
+          eraContext: loadStoredWorldSetup()?.eraContext,
           locale,
           isGameStart: true,
           aiSettings: aiSettings,
@@ -407,7 +615,8 @@ export function useGameStart({
       // osieroconą pustą wiadomość asystenta na ekranie.
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        const serverMsg = (errorBody as Record<string, string>)?.error || response.statusText;
+        const serverMsg =
+          (errorBody as Record<string, string>)?.error || response.statusText;
         throw new Error(`Chat API ${response.status}: ${serverMsg}`);
       }
 
@@ -421,6 +630,9 @@ export function useGameStart({
           timestamp: new Date(),
         },
       ]);
+      // Obraz należy do tej samej wiadomości MG co intro. Uruchamiamy go po
+      // utworzeniu placeholdera, aby wynik nie utworzył osobnej karty czatu.
+      void generateIntroImage(assistantMessageId);
 
       // Użyj uniwersalnego parsera SSE.
       // IND-256 (bliźniak useChat): `streamedFullText` akumuluje pełny tekst z

@@ -1,0 +1,30 @@
+{
+  "run_id": "portrait-audit-google-verifier-1",
+  "task_id": "portrait-audit",
+  "role": "verifier",
+  "result": "success",
+  "changed_files": [],
+  "checks": [
+    {
+      "name": "navigation",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md"
+    },
+    {
+      "name": "typecheck",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md"
+    },
+    {
+      "name": "test",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md"
+    }
+  ],
+  "artifacts": [],
+  "summary": "Independent verification completed successfully. Confirmed 12 accepted remaps point to existing unique files. Verified 4 characters from Cień nad Prabutami preserved their old portraits for regeneration. Confirmed target occupation names (Producent telewizyjny, Dziennikarz śledczy, Fizyk teoretyczna, Psycholog, Etnograf / Bibliotekarz, Ufolog / Badacz anomalii) are applied correctly. navigation:check, tsc and jest tests all pass.",
+  "next_action": "Task is ready for completion."
+}
