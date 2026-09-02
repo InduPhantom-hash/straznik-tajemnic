@@ -37,6 +37,7 @@
     "prepare": "node scripts/gen-adventure-catalog.mjs && (husky || true)",
     "gen:catalog": "node scripts/gen-adventure-catalog.mjs",
     "predev": "node scripts/gen-adventure-catalog.mjs",
+    "pretest": "node scripts/gen-adventure-catalog.mjs",
     "prebuild": "node scripts/gen-adventure-catalog.mjs"
   },
   "dependencies": {
@@ -83,6 +84,7 @@
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.542.0",
     "next": "^16.2.4",
+    "next-intl": "4.13.7",
     "pdf-parse": "^1.1.1",
     "posthog-js": "^1.365.0",
     "react": "^19.2.5",

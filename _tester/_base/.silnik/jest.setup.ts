@@ -56,6 +56,8 @@ jest.mock('next-intl', () => {
 
   return {
     useLocale: () => process.env.NEXT_INTL_TEST_LOCALE ?? 'pl',
+    useMessages: () =>
+      MESSAGES[process.env.NEXT_INTL_TEST_LOCALE ?? 'pl'] ?? MESSAGES.pl,
     useTranslations: (namespace: string) =>
       makeT(process.env.NEXT_INTL_TEST_LOCALE ?? 'pl', namespace),
     getTranslations: (namespaceOrOpts: string | { namespace?: string }) =>
