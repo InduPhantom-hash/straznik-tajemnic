@@ -92,19 +92,17 @@ describe('useGameStart - finishReason intra', () => {
     };
     jest
       .mocked(fetchWithApiKeys)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ worldSetup }),
-      } as Response)
       .mockResolvedValueOnce({ ok: true } as Response);
-    jest.mocked(parseSSEStream).mockImplementation(async (_response, callbacks) => {
-      callbacks?.onText?.('Mgła przesuwa się nad portem...');
-      callbacks?.onMetadata?.({
-        type: 'metadata',
-        finishReason: 'MAX_TOKENS',
+    jest
+      .mocked(parseSSEStream)
+      .mockImplementation(async (_response, callbacks) => {
+        callbacks?.onText?.('Mgła przesuwa się nad portem...');
+        callbacks?.onMetadata?.({
+          type: 'metadata',
+          finishReason: 'MAX_TOKENS',
+        });
+        return 'Mgła przesuwa się nad portem...';
       });
-      return 'Mgła przesuwa się nad portem...';
-    });
 
     let messages: Message[] = [];
     const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
@@ -151,18 +149,15 @@ describe('useGameStart - finishReason intra', () => {
       content: 'Mgła przesuwa się nad portem...',
       finishReason: 'MAX_TOKENS',
     });
-    expect(fetchWithApiKeys).toHaveBeenNthCalledWith(
-      1,
-      '/api/adventure/setup',
-      expect.any(Object)
-    );
-    expect(fetchWithApiKeys).toHaveBeenNthCalledWith(
-      2,
+    expect(fetchWithApiKeys).toHaveBeenCalledTimes(1);
+    expect(fetchWithApiKeys).toHaveBeenCalledWith(
       '/api/chat',
       expect.any(Object)
     );
-    expect(JSON.parse(localStorage.getItem('world_setup_v1') || '{}')).toMatchObject({
-      id: 'world-prabuty',
+    expect(
+      JSON.parse(localStorage.getItem('world_setup_v1') || '{}')
+    ).toMatchObject({
+      scenarioId: 'cien-nad-prabutami',
       eraContext: { effectiveYear: 1973, countryCode: 'PL' },
     });
   });
@@ -172,11 +167,15 @@ describe('useGameStart - finishReason intra', () => {
       ok: false,
       status: 400,
       statusText: 'Bad Request',
-      json: async () => ({ error: 'Własny scenariusz wymaga dokładnego kraju.' }),
+      json: async () => ({
+        error: 'Własny scenariusz wymaga dokładnego kraju.',
+      }),
     } as Response);
 
     let messages: Message[] = [];
-    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (update) => {
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
       messages = typeof update === 'function' ? update(messages) : update;
     };
     const setHasStartedGame = jest.fn();
@@ -190,6 +189,7 @@ describe('useGameStart - finishReason intra', () => {
       adventureContext: {
         id: 'custom',
         title: 'Własna przygoda',
+        isCustom: true,
         yearRange: '1973',
       },
       hotSeatConfig: { enabled: false, players: [] },
