@@ -333,14 +333,43 @@ export function useGameStart({
         const locationContext =
           adventureContext?.location || 'mysterious New England town';
         const rawEra = String(eraContext.effectiveYear);
-        const vehicleGuidance = getEraVehicleVisualDescription(rawEra);
-        const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${rawEra} period-accurate, ${vehicleGuidance}, realistic, cinematic, moody natural lighting.`;
+        // Wyciągnij porę roku i aurę z aktualnego czasu gry i pogody
+        const gameTime = typeof window !== 'undefined' ? timeManager.getTime() : null;
+        const weather = typeof window !== 'undefined' ? timeManager.getWeather() : '';
+
+        const month = gameTime?.month ?? 0;
+        const seasonAtmosphere =
+          month === 11 || month === 0 || month === 1
+            ? 'winter season, cold winter atmosphere, bare trees'
+            : month >= 2 && month <= 4
+              ? 'spring season, cool damp atmosphere'
+              : month >= 5 && month <= 7
+                ? 'summer season, hazy daylight'
+                : 'autumn season, chilly autumn atmosphere, fallen leaves';
+
+        let weatherAtmosphere = 'moody natural lighting';
+        if (/mgła|mgly|fog|haze/i.test(weather)) {
+          weatherAtmosphere = 'misty morning fog, thick haze, eerie gloom';
+        } else if (/deszcz|rain/i.test(weather)) {
+          weatherAtmosphere = 'cold rain, wet glistening ground, dark overcast sky';
+        } else if (/śnieg|snow|mróz|frost/i.test(weather)) {
+          weatherAtmosphere = 'frost and snow dusting, freezing cold mist';
+        }
+
+        // Pojazd tylko gdy scena/lokacja wyraźnie dotyczy podróży lub drogi
+        const isVehicleScene =
+          /\b(car|automobile|vehicle|drive|driving|road|highway|szosa|droga|parking)\b/i.test(
+            locationContext
+          );
+        const vehicleGuidance = isVehicleScene
+          ? `, ${getEraVehicleVisualDescription(rawEra)}`
+          : '';
+
+        const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${seasonAtmosphere}, ${weatherAtmosphere}, ${rawEra} period-accurate${vehicleGuidance}, realistic, cinematic, moody lighting.`;
 
         const response = await fetchWithRetry('/api/imagen', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // IND-216: establishing shot w formacie pocztówkowym 16:9 (orchestrator
-          // forwarduje ...body do Vertex/Replicate). Render kadruje object-cover.
           body: JSON.stringify({
             prompt: imagePrompt,
             style: 'location',
@@ -367,6 +396,11 @@ export function useGameStart({
             void persistentMediaCache
               .setChatImage(messageId, imageIndex, imageData.imageUrl)
               .catch(() => {});
+            if (adventureContext?.location) {
+              void persistentMediaCache
+                .setLocationImage(adventureContext.location.trim(), imageData.imageUrl)
+                .catch(() => {});
+            }
             return {
               ...message,
               generatedImages: [
