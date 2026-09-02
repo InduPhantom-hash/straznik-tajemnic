@@ -24,9 +24,8 @@ jobs:
           cache: npm
           cache-dependency-path: _tester/_base/.silnik/package-lock.json
       - run: npm ci
-      - run: npm run navigation:check
+      - run: npm run qa:quick
       - run: npm run navigation:guard
-      - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm test -- --runInBand
       - run: npm run build

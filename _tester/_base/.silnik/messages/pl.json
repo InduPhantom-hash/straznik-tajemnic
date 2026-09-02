@@ -4454,7 +4454,9 @@
     "unknownError": "Nieznany błąd",
     "errorIdPrefix": "ID błędu:",
     "tryAgainButton": "Spróbuj ponownie",
-    "homePageButton": "Strona główna"
+    "homePageButton": "Strona główna",
+    "copyDiagnosisButton": "Kopiuj raport dla AI",
+    "copiedDiagnosis": "Skopiowano do schowka!"
   },
   "Loading": {
     "title": "Ładowanie...",

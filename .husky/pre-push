@@ -1,1 +1,1 @@
-npx tsc --noEmit
+npm run --prefix _tester/_base/.silnik qa:quick

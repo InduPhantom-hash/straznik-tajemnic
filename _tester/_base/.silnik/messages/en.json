@@ -4454,7 +4454,9 @@
     "unknownError": "Unknown error",
     "errorIdPrefix": "Error ID:",
     "tryAgainButton": "Try again",
-    "homePageButton": "Home page"
+    "homePageButton": "Home page",
+    "copyDiagnosisButton": "Copy report for AI",
+    "copiedDiagnosis": "Copied to clipboard!"
   },
   "Loading": {
     "title": "Loading...",
