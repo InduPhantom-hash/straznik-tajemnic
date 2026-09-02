@@ -230,6 +230,7 @@ export function CharacterWizardV2({
   initialCharacter,
 }: Props) {
   const t = useTranslations('CharacterWizard');
+  const dynamicT = t as unknown as ((key: string) => string) & { has?: (key: string) => boolean };
   const statShortDesc: Record<string, string> = {
     str: t('statShort.str'),
     con: t('statShort.con'),
@@ -1656,10 +1657,10 @@ export function CharacterWizardV2({
               >
                 <div className="text-2xl mb-2">{archetype.icon}</div>
                 <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
-                  {(t as any).has?.(`archetypes.${archetype.id}.name`) ? (t as any)(`archetypes.${archetype.id}.name`) : archetype.name}
+                  {dynamicT.has?.(`archetypes.${archetype.id}.name`) ? dynamicT(`archetypes.${archetype.id}.name`) : archetype.name}
                 </h4>
                 <p className="font-serif italic text-sm text-muted-foreground line-clamp-2 mt-1">
-                  {(t as any).has?.(`archetypes.${archetype.id}.description`) ? (t as any)(`archetypes.${archetype.id}.description`) : archetype.description}
+                  {dynamicT.has?.(`archetypes.${archetype.id}.description`) ? dynamicT(`archetypes.${archetype.id}.description`) : archetype.description}
                 </p>
               </button>
             );
@@ -1670,10 +1671,10 @@ export function CharacterWizardV2({
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
           <div className="border border-brass/30/30 bg-[#0e1413] p-4">
             <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
-              {selectedArchetype.icon} {(t as any)(`archetypes.${selectedArchetype.id}.name`)}
+              {selectedArchetype.icon} {dynamicT(`archetypes.${selectedArchetype.id}.name`)}
             </h4>
             <p className="font-serif italic text-sm text-muted-foreground mb-3">
-              {(t as any)(`archetypes.${selectedArchetype.id}.description`)}
+              {dynamicT(`archetypes.${selectedArchetype.id}.description`)}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div>
