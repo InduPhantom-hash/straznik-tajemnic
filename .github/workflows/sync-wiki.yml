@@ -24,7 +24,6 @@ permissions:
 
 jobs:
   sync:
-    if: ${{ secrets.WIKI_SYNC_TOKEN != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +39,11 @@ jobs:
         env:
           WIKI_SYNC_TOKEN: ${{ secrets.WIKI_SYNC_TOKEN }}
         run: |
+          if [ -z "$WIKI_SYNC_TOKEN" ]; then
+            echo "WIKI_SYNC_TOKEN is not configured; rendered pages were not published."
+            exit 0
+          fi
+
           git clone "https://x-access-token:${WIKI_SYNC_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" "$RUNNER_TEMP/wiki"
           wiki_dir="$RUNNER_TEMP/wiki"
           rendered_dir="$RUNNER_TEMP/straznik-wiki"
