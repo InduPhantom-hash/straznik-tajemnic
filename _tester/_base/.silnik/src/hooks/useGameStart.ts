@@ -15,6 +15,7 @@ import { trackEvent } from '@/lib/posthog';
 import { resetSessionTokens } from '@/lib/ai-settings/cost-control';
 import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
 import { persistCharacters } from '@/lib/character-cloud-sync';
+import { persistentMediaCache } from '@/lib/persistent-media-cache';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 import { sanitizeCharacterForApi } from '@/lib/chat-history-sanitizer';
 import { getEraVehicleVisualDescription } from '@/lib/era-visual-style';
@@ -226,7 +227,7 @@ export function useGameStart({
    * widział pusty obraz bez ostrzeżenia (5 scenariuszy errors silently swallowed:
    * replicateEnabled=false, 401, 429, network, provider chain exhausted).
    */
-  const generateIntroImage = useCallback(async () => {
+  const generateIntroImage = useCallback(async (messageId: string) => {
     if (aiSettings?.imageGenerationEnabled === false) return;
     try {
       if (!adventureContext) {
@@ -262,15 +263,24 @@ export function useGameStart({
         throw new Error('Brak imageUrl w odpowiedzi API');
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `gm-intro-image-${crypto.randomUUID()}`,
-          role: 'assistant',
-          content: `![Wprowadzenie](${imageData.imageUrl})`,
-          timestamp: new Date(),
-        },
-      ]);
+      setMessages((prev) =>
+        prev.map((message) => {
+          if (message.id !== messageId) return message;
+          const imageIndex = message.generatedImages?.length ?? 0;
+          void persistentMediaCache
+            .setChatImage(messageId, imageIndex, imageData.imageUrl)
+            .catch(() => {});
+          return {
+            ...message,
+            generatedImages: [...(message.generatedImages ?? []), imageData.imageUrl],
+            generatedImageTypes: [...(message.generatedImageTypes ?? []), 'scene'],
+            generatedImageCacheIds: [
+              ...(message.generatedImageCacheIds ?? []),
+              `${messageId}_${imageIndex}`,
+            ],
+          };
+        })
+      );
     } catch (e) {
       console.warn('Intro image generation failed:', e);
       setMessages((prev) => [
@@ -410,7 +420,6 @@ export function useGameStart({
     // localStorage; reload zapisanej gry tu nie trafia (osobna ścieżka).
     timeManager.resetForAdventure(adventureContext);
     setMessages([]); // Wyczyść czat przed startem przygody
-    generateIntroImage(); // Równolegle z generowaniem tekstu
 
     // Wyczyść wyłącznie obrazy generowane dla egzemplarzy fabularnych. Katalogowe
     // assety są lokalne i muszą przetrwać start bez kosztu ani żądania do API.
@@ -504,6 +513,9 @@ export function useGameStart({
           timestamp: new Date(),
         },
       ]);
+      // Obraz należy do tej samej wiadomości MG co intro. Uruchamiamy go po
+      // utworzeniu placeholdera, aby wynik nie utworzył osobnej karty czatu.
+      void generateIntroImage(assistantMessageId);
 
       // Użyj uniwersalnego parsera SSE.
       // IND-256 (bliźniak useChat): `streamedFullText` akumuluje pełny tekst z

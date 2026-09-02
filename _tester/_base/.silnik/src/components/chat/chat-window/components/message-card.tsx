@@ -215,8 +215,10 @@ export function MessageCard({
                     <SafeImage
                       src={imgUrl}
                       alt={isPortrait ? t('portraitAlt', { value: idx + 1 }) : t('sceneAlt', { value: idx + 1 })}
-                      className={`w-full object-cover object-top cursor-pointer hover:opacity-90 transition-opacity ${
-                        isPortrait ? 'aspect-[3/4]' : 'aspect-[16/9]'
+                      className={`w-full cursor-pointer hover:opacity-90 transition-opacity ${
+                        isPortrait
+                          ? 'aspect-[3/4] object-cover object-top'
+                          : 'h-auto max-h-[70vh] object-contain bg-black/30'
                       }`}
                       style={{
                         filter: 'sepia(0.1) saturate(1.1)',
