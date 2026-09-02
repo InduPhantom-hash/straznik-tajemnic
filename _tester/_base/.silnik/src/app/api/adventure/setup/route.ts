@@ -34,6 +34,21 @@ interface SetupRequest {
   }>;
 }
 
+function parseSetupJson(text: string): Record<string, unknown> {
+  const clean = text
+    .replace(/```json\n?/g, '')
+    .replace(/```\n?/g, '')
+    .trim();
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+
+  if (start === -1 || end <= start) {
+    throw new SyntaxError('Model nie zwrócił kompletnego obiektu JSON.');
+  }
+
+  return JSON.parse(clean.slice(start, end + 1)) as Record<string, unknown>;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: SetupRequest = await request.json();
@@ -147,23 +162,31 @@ Przekształć tę przygodę w nieliniową strukturę konfliktu (Bunkier) i wygen
 
 Wygeneruj 1-2 główne konflikty, asymetryczne haczyki oraz spójność dla drużyny (duetCohesion). Odpowiedz wyłącznie czystym kodem JSON.`;
 
-    const result = await genAI.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: {
-        temperature: 0.7,
-        maxOutputTokens: 2048,
-        responseMimeType: 'application/json',
-      },
-    });
+    const generateSetup = (retryInstruction = '') =>
+      genAI.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: [{ role: 'user', parts: [{ text: `${prompt}${retryInstruction}` }] }],
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 3072,
+          responseMimeType: 'application/json',
+        },
+      });
 
-    const text = result.text ?? '';
-    const cleanJson = text
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim();
-
-    const data = JSON.parse(cleanJson) as Record<string, unknown>;
+    const result = await generateSetup();
+    let data: Record<string, unknown>;
+    try {
+      data = parseSetupJson(result.text ?? '');
+    } catch (initialParseError) {
+      const repaired = await generateSetup(
+        '\n\nPOPRZEDNIA ODPOWIEDŹ BYŁA NIEKOMPLETNYM JSON-em. Spróbuj jeszcze raz. Zwróć wyłącznie jeden kompletny obiekt JSON zgodny ze schematem, bez komentarzy i bez markdownu. Używaj krótkich opisów, aby odpowiedź nie została ucięta.'
+      );
+      try {
+        data = parseSetupJson(repaired.text ?? '');
+      } catch {
+        throw initialParseError;
+      }
+    }
     const conflicts = Array.isArray(data.conflicts)
       ? data.conflicts.filter(
           (conflict): conflict is Record<string, unknown> =>

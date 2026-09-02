@@ -138,6 +138,47 @@ describe('POST /api/adventure/setup', () => {
     });
   });
 
+  it('ponawia raz setup, gdy model zwróci niekompletny JSON', async () => {
+    mockGenerateContent
+      .mockResolvedValueOnce({ text: 'Brak dopuszczonych źródeł.' })
+      .mockResolvedValueOnce({ text: '{"conflicts": [' })
+      .mockResolvedValueOnce({
+        text: JSON.stringify({
+          conflicts: [
+            {
+              resource: 'Archiwum',
+              factions: [
+                { id: 'a', name: 'A', description: '', goal: '', motivation: '' },
+                { id: 'b', name: 'B', description: '', goal: '', motivation: '' },
+              ],
+            },
+          ],
+          setupAsymmetry: {},
+        }),
+      });
+    const eraContext = resolveEraContext({
+      userSelection: { year: 1973, country: 'Polska' },
+    });
+
+    const response = await POST(
+      request({ adventureText: 'Test', eraContext, characters: [] })
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateContent).toHaveBeenCalledTimes(3);
+    await expect(response.json()).resolves.toMatchObject({
+      success: true,
+      worldSetup: {
+        phaseResults: expect.arrayContaining([
+          expect.objectContaining({
+            phase: 'adventure-graph',
+            status: 'passed',
+          }),
+        ]),
+      },
+    });
+  });
+
   it('wykonuje Google Search tylko w preflight i zapisuje dopuszczone źródła', async () => {
     mockGenerateContent
       .mockResolvedValueOnce({
