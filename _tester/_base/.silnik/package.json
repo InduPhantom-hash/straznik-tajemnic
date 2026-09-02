@@ -37,6 +37,7 @@
     "prepare": "node scripts/gen-adventure-catalog.mjs && (husky || true)",
     "gen:catalog": "node scripts/gen-adventure-catalog.mjs",
     "predev": "node scripts/gen-adventure-catalog.mjs",
+    "pretest": "node scripts/gen-adventure-catalog.mjs",
     "prebuild": "node scripts/gen-adventure-catalog.mjs"
   },
   "dependencies": {
