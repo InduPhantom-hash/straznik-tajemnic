@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md",
+    "docs/audits/portraits/README.md",
+    "docs/audits/portraits/strefa11-review.html",
+    "docs/audits/portraits/all-portraits-contact-sheet.webp",
+    "docs/audits/portraits/strefa11-current-vs-name-match.webp"
+  ],
+  "changed_files": [
+    "_tester/_base/.silnik/src/lib/immersion/strefa-11-characters.ts",
+    "docs/audits/portraits/README.md",
+    "docs/audits/portraits/strefa11-review.html"
+  ],
+  "checks": [
+    {
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md",
+      "exit_code": 0,
+      "name": "portrait-test",
+      "output": "1 suite and 8 tests passed",
+      "status": "passed"
+    },
+    {
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md",
+      "exit_code": 0,
+      "name": "typecheck",
+      "status": "passed"
+    }
+  ],
+  "next_action": "Run independent verification against the approved portrait audit plan before committing the remaps.",
+  "result": "success",
+  "role": "writer",
+  "run_id": "portrait-audit-attempt-1-20260902",
+  "summary": "Inventoried 46 active presets and 70 portrait files, recorded decisions for every preset, preserved four 1973-1974 characters for regeneration, applied twelve PO-approved remaps, and replaced feminine occupation labels requested by the PO in the Strefa 11 runtime data and review artifact.",
+  "task_id": "portrait-audit"
+}

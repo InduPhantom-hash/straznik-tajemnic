@@ -1,0 +1,30 @@
+{
+  "artifacts": [],
+  "changed_files": [],
+  "checks": [
+    {
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md",
+      "exit_code": 0,
+      "name": "navigation",
+      "status": "passed"
+    },
+    {
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md",
+      "exit_code": 0,
+      "name": "typecheck",
+      "status": "passed"
+    },
+    {
+      "artifact": ".dev-pipeline/tasks/portrait-audit/evidence/validation-portrait.md",
+      "exit_code": 0,
+      "name": "test",
+      "status": "passed"
+    }
+  ],
+  "next_action": "Task is ready for completion.",
+  "result": "fail",
+  "role": "verifier",
+  "run_id": "portrait-audit-google-verifier-1",
+  "summary": "Brak wymaganych bramek: lint, ui",
+  "task_id": "portrait-audit"
+}

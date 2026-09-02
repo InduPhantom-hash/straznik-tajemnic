@@ -27,6 +27,7 @@ Nie usuwać żadnego z 24 plików przed zatwierdzeniem remapów i ponownym skane
 
 - `all-portraits-contact-sheet.webp` - wszystkie 70 plików.
 - `strefa11-current-vs-name-match.webp` - po lewej obecne przypisanie, po prawej dedykowany plik zgodny z nazwą postaci.
+- `strefa11-review.html` - właściwy materiał do decyzji PO: przygoda, rok, profesja, obecny portret, kandydat i rekomendacja dla każdej postaci.
 
 ## Presety uniwersalne
 
@@ -37,7 +38,9 @@ Wstępna decyzja po odczycie arkusza:
 
 Decyzje są wizualnym baseline, nie zgodą na wygenerowanie lub podmianę assetu.
 
-## Strefa 11 - remapy do akceptacji PO
+## Strefa 11 - remapy zaakceptowane przez PO
+
+PO zaakceptował dwanaście remapów 2 września 2026 roku. Cztery portrety do `Cienia nad Prabutami` pozostają w kolejce regeneracji zgodnej z PRL 1973-1974.
 
 | Postać | Obecny plik | Proponowany plik | Decyzja |
 |---|---|---|---|
@@ -66,4 +69,4 @@ Dwanaście proponowanych remapów ma istniejące pliki. Cztery portrety do `Cien
 
 ## Bramka zmiany
 
-Remapy można wdrożyć dopiero po zaakceptowaniu przez PO arkusza `strefa11-current-vs-name-match.webp`. Regeneracje wymagają osobnej akceptacji promptu i finalnego obrazu.
+Remapy zaakceptowano i można je wdrożyć. Regeneracje wymagają osobnej akceptacji promptu i finalnego obrazu.
