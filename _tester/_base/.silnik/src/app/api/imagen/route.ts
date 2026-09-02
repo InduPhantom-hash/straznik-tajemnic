@@ -23,8 +23,7 @@ import {
   type VisualSceneSpec,
   WorldSetupValidationError,
 } from '@/lib/world-setup';
-import { DEFAULT_IMAGE_MODEL } from '@/lib/model-registry';
-const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
+import { DEFAULT_IMAGE_MODEL, FALLBACK_IMAGE_MODEL } from '@/lib/model-registry';
 
 // Cache dla wygenerowanych obrazów
 const imageCache = new Map<

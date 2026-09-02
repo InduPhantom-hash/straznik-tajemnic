@@ -104,10 +104,22 @@ export function HeaderSection({
             }
             className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 rounded text-foreground font-special-elite text-sm focus:border-primary focus:outline-none"
           >
+            <option value="gemini-flash-latest">
+              {t('modelFlashLatest')}
+            </option>
+            <option value="gemini-flash-lite-latest">
+              {t('modelFlashLiteLatest')}
+            </option>
+            <option value="gemini-pro-latest">{t('modelProLatest')}</option>
+            <option value="gemini-3.8-flash">{t('model38Flash')}</option>
+            <option value="gemini-3.7-flash">{t('model37Flash')}</option>
+            <option value="gemini-3.6-flash">{t('model36Flash')}</option>
             <option value="gemini-3.1-pro-preview">
               {t('model31ProPreview')}
             </option>
-            <option value="gemini-3-pro-preview">{t('model3ProPreview')}</option>
+            <option value="gemini-3.1-flash-lite">
+              {t('model31FlashLite')}
+            </option>
             <option value="gemini-3-flash-preview">
               {t('model3FlashPreview')}
             </option>
@@ -116,17 +128,16 @@ export function HeaderSection({
             <option value="gemini-2.5-flash-lite">
               {t('model25FlashLite')}
             </option>
-            <option value="gemini-2.0-flash">{t('model20Flash')}</option>
-            <option value="gemini-2.0-flash-exp">
-              {t('model20FlashExp')}
-            </option>
-            <option value="gemini-2.0-flash-lite">
-              {t('model20FlashLite')}
-            </option>
-            <option value="gemini-flash-latest">
-              {t('modelFlashLatest')}
-            </option>
-            <option value="gemini-pro-latest">{t('modelProLatest')}</option>
+            {[
+              'gemini-2.0-flash',
+              'gemini-2.0-flash-exp',
+              'gemini-2.0-flash-lite',
+              'gemini-3-pro-preview',
+            ].includes(g.model) && (
+              <option value={g.model} disabled>
+                {g.model} ({t('modelDeprecated')})
+              </option>
+            )}
           </select>
         </div>
       </div>

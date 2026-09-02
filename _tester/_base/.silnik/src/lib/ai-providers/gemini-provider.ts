@@ -28,7 +28,7 @@ import type {
   ChatResult,
   CompletionUsage,
 } from './types';
-import { DEFAULT_GEMINI_MODEL } from './constants';
+import { DEFAULT_GEMINI_MODEL, DEFAULT_GEMINI_MODEL_FALLBACK } from './constants';
 import * as Sentry from '@sentry/nextjs';
 
 /** Mapowanie string-owych progów bezpieczeństwa (z UI) na enum SDK Gemini */
@@ -120,11 +120,11 @@ export class GeminiChatProvider implements IChatProvider {
     if (opts?.responseSchema !== undefined)
       config.responseSchema = opts.responseSchema;
 
-    // Thinking level dla modeli 3.x - IND-203: SDK oczekuje go WEWNĄTRZ
+    // Thinking level dla modeli 3.x i Pro - IND-203: SDK oczekuje go WEWNĄTRZ
     // config.thinkingConfig (nie top-level config.thinkingLevel, które było cicho
     // ignorowane → ULTRA myślał na domyślnym poziomie zamiast ustawionego).
     if (
-      this.modelId.includes('gemini-3') &&
+      (this.modelId.includes('gemini-3') || this.modelId.includes('pro-latest')) &&
       thinkingLevel &&
       thinkingLevel !== 'auto'
     ) {
@@ -133,10 +133,10 @@ export class GeminiChatProvider implements IChatProvider {
       };
     }
 
-    // gemini-2.5-* (flash/pro): myślenie WYŁĄCZONE (budget 0). Powody w JSDoc
+    // gemini-2.5-* (flash/pro) lub flash-lite: myślenie WYŁĄCZONE (budget 0). Powody w JSDoc
     // THINKING_BUDGET_GEMINI_25: (1) IND-199 pusta odpowiedź, (2) wyciek myślenia
     // jako pierwszy chunk (thought:false) → duplikacja narracji (pre-flight 06-24).
-    if (this.modelId.includes('gemini-2.5')) {
+    if (this.modelId.includes('gemini-2.5') || this.modelId.includes('flash-lite')) {
       config.thinkingConfig = { thinkingBudget: THINKING_BUDGET_GEMINI_25 };
     }
 
@@ -243,9 +243,9 @@ export class GeminiChatProvider implements IChatProvider {
     // === Wywołanie SDK (IND-19: ai.models.generateContentStream zamiast model.generateContentStream) ===
     // Capture `ai`/`model` do zmiennych - generator (async function*) nie ma dostępu do `this`.
     const ai = this.ai;
-    const model = this.modelId;
-    const streamOnce = (cfg: Record<string, unknown>) =>
-      ai.models.generateContentStream({ model, contents, config: cfg });
+    let activeModel = this.modelId;
+    const streamOnce = (modelToUse: string, cfg: Record<string, unknown>) =>
+      ai.models.generateContentStream({ model: modelToUse, contents, config: cfg });
 
     // Capture usage + finishReason z ostatniego chunku (dostępne po zakończeniu streamu)
     let lastUsage: GenerateContentResponse['usageMetadata'] = undefined;
@@ -272,9 +272,28 @@ export class GeminiChatProvider implements IChatProvider {
       }
     }
 
-    // EAGER pierwsze wywołanie - utrzymuje 1 wywołanie SDK dla zwykłej ścieżki (i testów
-    // mapowania config, które nie konsumują streamu). Retry jest leniwy (w generatorze).
-    const firstResponse = await streamOnce(config);
+    // EAGER pierwsze wywołanie z automatycznym fallbackiem na wypadek 404/503 (model wycofany lub przeciążony)
+    let firstResponse: Awaited<ReturnType<typeof streamOnce>>;
+    try {
+      firstResponse = await streamOnce(activeModel, config);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      const isUnavailable =
+        errMsg.includes('404') ||
+        errMsg.includes('not found') ||
+        errMsg.includes('no longer available') ||
+        errMsg.includes('503');
+
+      if (isUnavailable && activeModel !== DEFAULT_GEMINI_MODEL_FALLBACK) {
+        console.warn(
+          `⚠️ Model "${activeModel}" niedostępny (${errMsg}). Przełączam na sprawdzony fallback "${DEFAULT_GEMINI_MODEL_FALLBACK}".`
+        );
+        activeModel = DEFAULT_GEMINI_MODEL_FALLBACK;
+        firstResponse = await streamOnce(activeModel, config);
+      } else {
+        throw err;
+      }
+    }
 
     // IND-199: guard pustej odpowiedzi. gemini-2.5-flash potrafi wyczerpać budżet na
     // myśleniu → finishReason MAX_TOKENS z pustym text (out:0, cichy 200). Gdy CAŁY
@@ -294,13 +313,13 @@ export class GeminiChatProvider implements IChatProvider {
           category: 'gemini',
           level: 'warning',
           message: 'Pusta odpowiedź Gemini - retry bez myślenia',
-          data: { model, finishReason: lastFinishReason ?? 'unknown' },
+          data: { model: activeModel, finishReason: lastFinishReason ?? 'unknown' },
         });
         const retryConfig = {
           ...config,
           thinkingConfig: { thinkingBudget: THINKING_BUDGET_RETRY },
         };
-        for await (const text of pump(await streamOnce(retryConfig))) {
+        for await (const text of pump(await streamOnce(activeModel, retryConfig))) {
           emitted = true;
           yield { text };
         }
@@ -313,7 +332,7 @@ export class GeminiChatProvider implements IChatProvider {
             ),
             {
               tags: { feature: 'chat', provider: 'gemini' },
-              extra: { model, finishReason: lastFinishReason ?? 'unknown' },
+              extra: { model: activeModel, finishReason: lastFinishReason ?? 'unknown' },
             }
           );
           yield { text: EMPTY_RESPONSE_FALLBACK };
@@ -330,7 +349,7 @@ export class GeminiChatProvider implements IChatProvider {
           // OPT-26: tokeny obsłużone z cache promptu (mapowanie gubiło to pole →
           // telemetria/koszt pokazywały cached=0 mimo działającego cache).
           cachedTokens: lastUsage.cachedContentTokenCount ?? 0,
-          model,
+          model: activeModel,
         };
       }
       return null;
@@ -362,9 +381,31 @@ export class GeminiChatProvider implements IChatProvider {
       void response.text;
       return { success: true };
     } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e);
+      // Jeśli wybrany model został wycofany (404), sprawdź czy fallback działa i poinformuj gracza
+      if (
+        (errMsg.includes('404') ||
+          errMsg.includes('not found') ||
+          errMsg.includes('no longer available')) &&
+        this.modelId !== DEFAULT_GEMINI_MODEL_FALLBACK
+      ) {
+        try {
+          const fallbackRes = await this.ai.models.generateContent({
+            model: DEFAULT_GEMINI_MODEL_FALLBACK,
+            contents: 'Hello',
+          });
+          void fallbackRes.text;
+          return {
+            success: true,
+            error: `Model "${this.modelId}" został wycofany przez Google (404). Zastąpiono automatycznie sprawdzonym modelem "${DEFAULT_GEMINI_MODEL_FALLBACK}".`,
+          };
+        } catch {
+          // zwróć oryginalny błąd
+        }
+      }
       return {
         success: false,
-        error: e instanceof Error ? e.message : String(e),
+        error: errMsg,
       };
     }
   }
