@@ -1,0 +1,69 @@
+name: Synchronize public Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - README.md
+      - SETUP.md
+      - NOTICE
+      - CONTRIBUTING.md
+      - docs/ARCHITECTURE.md
+      - docs/MAPA-POWIAZAN.md
+      - docs/PROJECT-WORKFLOW.md
+      - docs/ROADMAP-MECHANIKI-AI.md
+      - docs/SYSTEMS-CATALOG.md
+      - docs/TESTING.md
+      - docs/USER_GUIDE.md
+      - .github/scripts/render-wiki.mjs
+      - .github/workflows/sync-wiki.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: ${{ secrets.WIKI_SYNC_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Render managed Wiki pages
+        run: node .github/scripts/render-wiki.mjs --output "$RUNNER_TEMP/straznik-wiki" --sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY"
+
+      - name: Clone and update only managed Wiki pages
+        env:
+          WIKI_SYNC_TOKEN: ${{ secrets.WIKI_SYNC_TOKEN }}
+        run: |
+          git clone "https://x-access-token:${WIKI_SYNC_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" "$RUNNER_TEMP/wiki"
+          wiki_dir="$RUNNER_TEMP/wiki"
+          rendered_dir="$RUNNER_TEMP/straznik-wiki"
+
+          if [ -f "$wiki_dir/.straznik-wiki-managed" ]; then
+            while IFS= read -r page; do
+              [ -z "$page" ] || git -C "$wiki_dir" rm --ignore-unmatch -- "$page"
+            done < "$wiki_dir/.straznik-wiki-managed"
+          fi
+
+          cp "$rendered_dir"/*.md "$wiki_dir"/
+          cp "$rendered_dir/.straznik-wiki-managed" "$wiki_dir"/
+
+          while IFS= read -r page; do
+            [ -z "$page" ] || git -C "$wiki_dir" add -- "$page"
+          done < "$rendered_dir/.straznik-wiki-managed"
+          git -C "$wiki_dir" add -- .straznik-wiki-managed
+
+          if git -C "$wiki_dir" diff --cached --quiet; then
+            echo "Wiki is already synchronized."
+            exit 0
+          fi
+
+          git -C "$wiki_dir" config user.name "straznik-wiki-sync[bot]"
+          git -C "$wiki_dir" config user.email "straznik-wiki-sync[bot]@users.noreply.github.com"
+          git -C "$wiki_dir" commit -m "docs: synchronize managed Wiki pages"
+          git -C "$wiki_dir" push
