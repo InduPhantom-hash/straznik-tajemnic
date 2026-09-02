@@ -16,6 +16,8 @@ import { getEmbeddingDimensions } from '@/lib/embedding-service';
 import {
   buildAdditionalContext,
   buildPlayerSkillsSection,
+  buildPlayerEquipmentSection,
+  buildPlayerFinancesSection,
   NpcContextEntry,
   HotSeatPlayerEntry,
 } from './build-context';
@@ -311,6 +313,10 @@ export async function runChatPipeline({
     playerWeaponsSection: buildPlayerWeaponContext(character ?? null),
     // Lista umiejetnosci postaci -> AI wzywa testy nazwami z karty (eliminuje Tacke 0%)
     playerSkillsSection: buildPlayerSkillsSection(character ?? null),
+    // Ekwipunek uzytkowy postaci -> AI wie co badacz ma przy sobie (narzedzia, medykamenty, dokumenty)
+    playerEquipmentSection: buildPlayerEquipmentSection(character ?? null),
+    // Status majatkowy postaci -> AI zna poziom wydatkow i gotowke wg CoC 7e RAW
+    playerFinancesSection: buildPlayerFinancesSection(character ?? null),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,
     directorEventSection:
