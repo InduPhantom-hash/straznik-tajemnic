@@ -15,6 +15,7 @@ import { EquipmentItem } from '@/lib/types';
 import { localizeStrefa11Character } from '@/lib/immersion/strefa-11-localization';
 import { localizePredefinedCharacter } from '@/lib/immersion/localize-predefined-character';
 import { getEquipmentItems } from '@/lib/character-storage-normalizer';
+import type { ResolvedEraContext } from '@/lib/era';
 
 interface PredefinedCharactersSelectorProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ interface PredefinedCharactersSelectorProps {
   unavailablePresetIds?: string[];
   /** Pełny kontekst epoki z lib/era - caller przekazuje dla spójności wizualnej;
    *  selektor czyta profile przez preset.era, pole opcjonalne dla zgodności. */
-  eraContext?: unknown;
+  eraContext?: ResolvedEraContext | null;
   characters: PredefinedCharacter[];
   filterByEra?: boolean;
 }
@@ -791,7 +792,7 @@ export function PredefinedCharactersSelector({
         <EquipmentDetailDialog
           item={selectedItem}
           era={currentEra}
-          eraContext={eraContext as any}
+          eraContext={eraContext}
           onClose={() => setSelectedItem(null)}
           onUpdateItem={(updatedItem) => {
             setSelectedItem(updatedItem);
