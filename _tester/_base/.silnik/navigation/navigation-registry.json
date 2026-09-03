@@ -155,6 +155,10 @@
       "label": {
         "pl": "Kreator postaci",
         "en": "Character wizard"
+      },
+      "description": {
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout)"
       }
     },
     {
@@ -283,6 +287,14 @@
       "label": {
         "pl": "Pełny reset",
         "en": "Full reset"
+      }
+    },
+    {
+      "id": "rulebook-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Podręcznik zasad",
+        "en": "Rulebook"
       }
     }
   ],
@@ -426,10 +438,10 @@
       "source": "session-zero",
       "target": "game",
       "label": {
-        "pl": "Rozpocznij grę",
-        "en": "Start game"
+        "pl": "Zakończ i zapisz",
+        "en": "Finish and save"
       },
-      "component": "src/app/[locale]/page.tsx"
+      "component": "src/components/ui/session-zero-modal.tsx"
     },
     {
       "source": "game",
@@ -565,6 +577,24 @@
         "en": "New character"
       },
       "component": "src/app/[locale]/characters/page.tsx"
+    },
+    {
+      "source": "home",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Wgraj zasady",
+        "en": "Upload rules"
+      },
+      "component": "src/components/chat/welcome/index.tsx"
+    },
+    {
+      "source": "home",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Podręcznik zasad",
+        "en": "Rulebook"
+      },
+      "component": "src/components/chat/welcome/components/bottom-links.tsx"
     }
   ]
 }

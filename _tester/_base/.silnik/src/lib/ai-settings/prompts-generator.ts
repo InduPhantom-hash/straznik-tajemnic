@@ -52,7 +52,7 @@ export const getGameMasterPrompt = (
   prompt = prompt + '\n' + getGMProtocolPrompt();
 
   // === SESSION ZERO - Kalibracja rozgrywki ===
-  prompt = prompt + buildSessionZeroInstructions(settings.sessionZero);
+  prompt = prompt + buildSessionZeroInstructions(settings.sessionZero, locale);
 
   // === OPT-03: INSTRUKCJE OBRAZÓW (shared builder) ===
   prompt = prompt + buildImageInstructions(settings);

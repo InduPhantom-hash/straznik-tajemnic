@@ -18,7 +18,9 @@
     "titleLine2": "of Secrets",
     "virtualGm": "Virtual Game Master",
     "authorizationRequired": "Authorization required",
-    "openApiKeys": "Enter API key"
+    "openApiKeys": "Enter API key",
+    "rulesRequired": "Rulebook required",
+    "openRulebook": "Upload rules (CoC 7e PDF)"
   },
   "CostControl": {
     "title": "Cost Control",
@@ -37,12 +39,43 @@
     "resetConfirm": "Are you sure you want to reset the account cost counter?"
   },
   "InspectionLightbox": {
-    "confirmed": "Confirmed", "hypothesis": "Hypothesis", "refuted": "Refuted", "unknownDate": "Unknown date",
-    "deleteConfirm": "Are you sure you want to remove this evidence from the Investigation Board?", "evidencePreview": "Evidence preview", "delete": "Remove from board", "close": "Close", "noImage": "No illustration",
-    "hypothesisStatus": "Hypothesis status", "location": "Location:", "npc": "NPC:", "discovered": "Discovered:", "insight": "Investigator insight / deduction", "notes": "Investigator notes", "edit": "Edit", "save": "Save", "notesPlaceholder": "Write your observations and theories...", "noNotes": "No notes. Click Edit to add observations.", "created": "Created", "updated": "Updated"
+    "confirmed": "Confirmed",
+    "hypothesis": "Hypothesis",
+    "refuted": "Refuted",
+    "unknownDate": "Unknown date",
+    "deleteConfirm": "Are you sure you want to remove this evidence from the Investigation Board?",
+    "evidencePreview": "Evidence preview",
+    "delete": "Remove from board",
+    "close": "Close",
+    "noImage": "No illustration",
+    "hypothesisStatus": "Hypothesis status",
+    "location": "Location:",
+    "npc": "NPC:",
+    "discovered": "Discovered:",
+    "insight": "Investigator insight / deduction",
+    "notes": "Investigator notes",
+    "edit": "Edit",
+    "save": "Save",
+    "notesPlaceholder": "Write your observations and theories...",
+    "noNotes": "No notes. Click Edit to add observations.",
+    "created": "Created",
+    "updated": "Updated"
   },
   "QuickSetupModal": {
-    "kicker": "Quick Adventure", "description": "Set up a session from the Strefa 11 programme. Choose a mode, scenario and ready investigators from the television team.", "stepMode": "1. Choose play mode", "solo": "Solo mode", "soloDescription": "One player, one character", "hotSeat": "Hot Seat (Duet)", "hotSeatDescription": "Two players on one device", "stepAdventure": "2. Choose a Strefa 11 scenario", "stepCharacters": "3. Choose characters", "playerOne": "Player 1 (Primary Character):", "yourCharacter": "Your Character:", "playerTwo": "Player 2 (Secondary Character):", "biography": "Biography", "start": "Start adventure"
+    "kicker": "Quick Adventure",
+    "description": "Set up a session from the Strefa 11 programme. Choose a mode, scenario and ready investigators from the television team.",
+    "stepMode": "1. Choose play mode",
+    "solo": "Solo mode",
+    "soloDescription": "One player, one character",
+    "hotSeat": "Hot Seat (Duet)",
+    "hotSeatDescription": "Two players on one device",
+    "stepAdventure": "2. Choose a Strefa 11 scenario",
+    "stepCharacters": "3. Choose characters",
+    "playerOne": "Player 1 (Primary Character):",
+    "yourCharacter": "Your Character:",
+    "playerTwo": "Player 2 (Secondary Character):",
+    "biography": "Biography",
+    "start": "Start adventure"
   },
   "LanguageSelection": {
     "eyebrow": "BEFORE THE INVESTIGATION BEGINS",
@@ -284,12 +317,108 @@
       }
     },
     "archetypeDetails": {
-      "investigator": { "suggestedOccupations": ["Private investigator", "Police detective", "Journalist"], "suggestedTraits": ["inquisitive", "stubborn", "skeptical"], "suggestedMotivations": ["discovering the truth", "justice", "curiosity"] },
-      "scholar": { "suggestedOccupations": ["Professor", "Librarian", "Antiquarian"], "suggestedTraits": ["curious", "methodical", "thoughtful"], "suggestedMotivations": ["gaining knowledge", "protecting forgotten secrets", "academic fame"] },
-      "action": { "suggestedOccupations": ["Soldier", "Athlete", "Sailor"], "suggestedTraits": ["brave", "impulsive", "loyal"], "suggestedMotivations": ["protecting loved ones", "adventure", "honour"] },
-      "trickster": { "suggestedOccupations": ["Criminal", "Entertainer", "Spy"], "suggestedTraits": ["cunning", "charming", "calculating"], "suggestedMotivations": ["profit", "excitement", "escaping the past"] },
-      "mystic": { "suggestedOccupations": ["Parapsychologist", "Clergy", "Artist"], "suggestedTraits": ["intuitive", "mysterious", "sensitive"], "suggestedMotivations": ["understanding the unseen", "protection from evil", "discovering destiny"] },
-      "healer": { "suggestedOccupations": ["Doctor", "Nurse", "Clergy"], "suggestedTraits": ["empathetic", "composed", "patient"], "suggestedMotivations": ["saving lives", "understanding human nature", "atonement for the past"] }
+      "investigator": {
+        "suggestedOccupations": [
+          "Private investigator",
+          "Police detective",
+          "Journalist"
+        ],
+        "suggestedTraits": [
+          "inquisitive",
+          "stubborn",
+          "skeptical"
+        ],
+        "suggestedMotivations": [
+          "discovering the truth",
+          "justice",
+          "curiosity"
+        ]
+      },
+      "scholar": {
+        "suggestedOccupations": [
+          "Professor",
+          "Librarian",
+          "Antiquarian"
+        ],
+        "suggestedTraits": [
+          "curious",
+          "methodical",
+          "thoughtful"
+        ],
+        "suggestedMotivations": [
+          "gaining knowledge",
+          "protecting forgotten secrets",
+          "academic fame"
+        ]
+      },
+      "action": {
+        "suggestedOccupations": [
+          "Soldier",
+          "Athlete",
+          "Sailor"
+        ],
+        "suggestedTraits": [
+          "brave",
+          "impulsive",
+          "loyal"
+        ],
+        "suggestedMotivations": [
+          "protecting loved ones",
+          "adventure",
+          "honour"
+        ]
+      },
+      "trickster": {
+        "suggestedOccupations": [
+          "Criminal",
+          "Entertainer",
+          "Spy"
+        ],
+        "suggestedTraits": [
+          "cunning",
+          "charming",
+          "calculating"
+        ],
+        "suggestedMotivations": [
+          "profit",
+          "excitement",
+          "escaping the past"
+        ]
+      },
+      "mystic": {
+        "suggestedOccupations": [
+          "Parapsychologist",
+          "Clergy",
+          "Artist"
+        ],
+        "suggestedTraits": [
+          "intuitive",
+          "mysterious",
+          "sensitive"
+        ],
+        "suggestedMotivations": [
+          "understanding the unseen",
+          "protection from evil",
+          "discovering destiny"
+        ]
+      },
+      "healer": {
+        "suggestedOccupations": [
+          "Doctor",
+          "Nurse",
+          "Clergy"
+        ],
+        "suggestedTraits": [
+          "empathetic",
+          "composed",
+          "patient"
+        ],
+        "suggestedMotivations": [
+          "saving lives",
+          "understanding human nature",
+          "atonement for the past"
+        ]
+      }
     },
     "generateButton": "✨ Generate",
     "generatingEllipsis": "⏳...",
@@ -804,14 +933,42 @@
     "movement": "Movement",
     "move": "Move",
     "stats": {
-      "str": { "full": "Strength", "short": "STR" },
-      "con": { "full": "Constitution", "short": "CON" },
-      "siz": { "full": "Size", "short": "SIZ" },
-      "dex": { "full": "Dexterity", "short": "DEX" },
-      "app": { "full": "Appearance", "short": "APP" },
-      "int": { "full": "Intelligence", "short": "INT" },
-      "pow": { "full": "Power", "short": "POW" },
-      "edu": { "full": "Education", "short": "EDU" }
+      "str": {
+        "abbr": "STR",
+        "full": "Strength"
+      },
+      "con": {
+        "abbr": "CON",
+        "full": "Constitution"
+      },
+      "siz": {
+        "abbr": "SIZ",
+        "full": "Size"
+      },
+      "dex": {
+        "abbr": "DEX",
+        "full": "Dexterity"
+      },
+      "app": {
+        "abbr": "APP",
+        "full": "Appearance"
+      },
+      "int": {
+        "abbr": "INT",
+        "full": "Intelligence"
+      },
+      "pow": {
+        "abbr": "POW",
+        "full": "Power"
+      },
+      "edu": {
+        "abbr": "EDU",
+        "full": "Education"
+      },
+      "luck": {
+        "abbr": "LCK",
+        "full": "Luck"
+      }
     },
     "skills": "Skills",
     "biography": "Biography",
@@ -854,44 +1011,6 @@
       "mp": {
         "abbr": "MP",
         "full": "Magic"
-      },
-      "luck": {
-        "abbr": "LCK",
-        "full": "Luck"
-      }
-    },
-    "stats": {
-      "str": {
-        "abbr": "STR",
-        "full": "Strength"
-      },
-      "con": {
-        "abbr": "CON",
-        "full": "Constitution"
-      },
-      "siz": {
-        "abbr": "SIZ",
-        "full": "Size"
-      },
-      "dex": {
-        "abbr": "DEX",
-        "full": "Dexterity"
-      },
-      "app": {
-        "abbr": "APP",
-        "full": "Appearance"
-      },
-      "int": {
-        "abbr": "INT",
-        "full": "Intelligence"
-      },
-      "pow": {
-        "abbr": "POW",
-        "full": "Power"
-      },
-      "edu": {
-        "abbr": "EDU",
-        "full": "Education"
       },
       "luck": {
         "abbr": "LCK",
@@ -5065,11 +5184,21 @@
     "modelLabel": "Model:",
     "imagesLabel": "Images:",
     "presets": {
-      "low": { "description": "Gemini 3.6 Flash, no voice, no images - most affordable (~$0.02-0.05/session)" },
-      "mid": { "description": "Gemini 3.6 Flash + voice (Gemini TTS) + Gemini images (~$0.20/session)" },
-      "high": { "description": "Gemini 3.1 Pro + voice + Imagen 4 images (~$0.50/session)" },
-      "ultra": { "description": "Gemini 3.1 Pro High + multi-voice radio drama + HD images (~$1.00/session)" },
-      "custom": { "description": "Custom configuration of all parameters" }
+      "low": {
+        "description": "Gemini 3.6 Flash, no voice, no images - most affordable (~$0.02-0.05/session)"
+      },
+      "mid": {
+        "description": "Gemini 3.6 Flash + voice (Gemini TTS) + Gemini images (~$0.20/session)"
+      },
+      "high": {
+        "description": "Gemini 3.1 Pro + voice + Imagen 4 images (~$0.50/session)"
+      },
+      "ultra": {
+        "description": "Gemini 3.1 Pro High + multi-voice radio drama + HD images (~$1.00/session)"
+      },
+      "custom": {
+        "description": "Custom configuration of all parameters"
+      }
     }
   },
   "ReplicateSettings": {
@@ -5242,12 +5371,30 @@
     "choose": "Choose this adventure →"
   },
   "AdventureStyles": {
-    "tonePurist": "Purist", "tonePulp": "Pulp", "toneNoir": "Noir",
-    "eraClassic": "1920s", "eraGaslight": "Victorian era", "eraNoir": "1940s", "eraPrl": "People's Poland - 1970s", "eraModern": "Modern day", "eraCustom": "Custom",
-    "difficultyEasy": "Easy", "difficultyNormal": "Normal", "difficultyHard": "Hard",
-    "tonePuristDescription": "Classic, grim horror. Dread builds slowly, danger is real and the investigators have little chance of heroism.", "tonePulpDescription": "Heroic action. Bolder investigators, more combat and adventure, and less despair.", "toneNoirDescription": "A dark investigation of intrigue, moral ambiguity and big-city secrets.",
-    "eraClassicDescription": "The classic 1920s: Prohibition, automobiles and the golden age of the Cthulhu Mythos.", "eraGaslightDescription": "The Victorian era: gas lamps, spiritualism and Gothic horror.", "eraNoirDescription": "The 1940s: war, reconstruction, radio and investigations in the shadow of history.", "eraPrlDescription": "Poland in the 1970s: queues, state institutions, analogue technology and distrust.", "eraModernDescription": "The present day: smartphones, the internet and cosmic horror in a digital world.", "eraCustomDescription": "An era defined by the player.",
-    "difficultyEasyDescription": "A gentler challenge for a first game, with fewer deadly traps.", "difficultyNormalDescription": "A standard challenge that rewards caution and sound judgment.", "difficultyHardDescription": "Demanding and deadly. It does not forgive mistakes."
+    "tonePurist": "Purist",
+    "tonePulp": "Pulp",
+    "toneNoir": "Noir",
+    "eraClassic": "1920s",
+    "eraGaslight": "Victorian era",
+    "eraNoir": "1940s",
+    "eraPrl": "People's Poland - 1970s",
+    "eraModern": "Modern day",
+    "eraCustom": "Custom",
+    "difficultyEasy": "Easy",
+    "difficultyNormal": "Normal",
+    "difficultyHard": "Hard",
+    "tonePuristDescription": "Classic, grim horror. Dread builds slowly, danger is real and the investigators have little chance of heroism.",
+    "tonePulpDescription": "Heroic action. Bolder investigators, more combat and adventure, and less despair.",
+    "toneNoirDescription": "A dark investigation of intrigue, moral ambiguity and big-city secrets.",
+    "eraClassicDescription": "The classic 1920s: Prohibition, automobiles and the golden age of the Cthulhu Mythos.",
+    "eraGaslightDescription": "The Victorian era: gas lamps, spiritualism and Gothic horror.",
+    "eraNoirDescription": "The 1940s: war, reconstruction, radio and investigations in the shadow of history.",
+    "eraPrlDescription": "Poland in the 1970s: queues, state institutions, analogue technology and distrust.",
+    "eraModernDescription": "The present day: smartphones, the internet and cosmic horror in a digital world.",
+    "eraCustomDescription": "An era defined by the player.",
+    "difficultyEasyDescription": "A gentler challenge for a first game, with fewer deadly traps.",
+    "difficultyNormalDescription": "A standard challenge that rewards caution and sound judgment.",
+    "difficultyHardDescription": "Demanding and deadly. It does not forgive mistakes."
   },
   "ApiUsageCounter": {
     "collapse": "Collapse counter",
@@ -6331,7 +6478,20 @@
     "backNav": "‹ Back",
     "stepCounter": "Step {step} of {total}",
     "finishAndSaveNav": "Finish and save ›",
-    "nextNav": "Next ›"
+    "nextNav": "Next ›",
+    "suggestedLinesLabel": "Suggested forbidden topics (click to add):",
+    "suggestedVeilsLabel": "Suggested fade-to-black topics (click to add):",
+    "violenceAnimals": "Harm to animals",
+    "suicide": "Suicide & self-harm",
+    "claustrophobia": "Claustrophobia",
+    "spidersInsects": "Spiders & insects",
+    "cannibalism": "Cannibalism",
+    "lossOfControl": "Loss of mental control",
+    "ritualsBlood": "Blood rituals & sacrifice",
+    "surgeriesAmputation": "Graphic surgery & amputation",
+    "bodyHorror": "Body horror & deformation",
+    "backToStep1": "Back to mode selection",
+    "backToStep2": "Back to lines and veils"
   },
   "NpcManager": {
     "headerKicker": "Met characters · Non-player characters",
@@ -6787,5 +6947,27 @@
     "clearConfirm": "Are you sure you want to clear the entire timeline?",
     "clearButton": "🗑️ Clear",
     "sessionExportTitle": "Session {date}"
+  },
+  "RulebookModal": {
+    "title": "CoC 7e Rulebook",
+    "description": "Upload the official Call of Cthulhu 7th Edition rulebook (PDF). The file will be processed and indexed locally on your device - it never leaves your machine.",
+    "privacyLabel": "Privacy & Local Processing:",
+    "privacyDescription": "Your PDF is parsed directly on your computer and stored in the local knowledge base (data/rag/rules). Required for Keeper mechanics and skill rolls.",
+    "requiredBadge": "Required",
+    "readyBadge": "Ready",
+    "dropZonePrompt": "Click to select a rulebook PDF file",
+    "dropZoneSub": "Supported format: PDF document (e.g. CoC 7e Keeper Rulebook)",
+    "processingTitle": "Processing rulebook...",
+    "processingDescription": "Parsing content and generating knowledge embeddings (this may take from a few seconds up to a few minutes)...",
+    "indexingChunkn": "Indexing rulebook chunks...",
+    "successTitle": "Rulebook successfully loaded!",
+    "successIndexed": "Indexed {count} fragments in local rules memory.",
+    "errorTitle": "Error uploading rulebook",
+    "retry": "Try again",
+    "selectAnother": "Select another file",
+    "close": "Close",
+    "continueToGame": "Ready, proceed to game",
+    "statusCurrent": "Current database status:",
+    "statusChunks": "{count} rule chunks in local index"
   }
 }

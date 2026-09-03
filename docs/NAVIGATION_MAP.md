@@ -41,6 +41,7 @@ graph TD
     help["Pomoc i zasady / Help and rules"]
     new_adventure_confirm["Potwierdzenie nowej przygody / New adventure confirmation"]
     full_reset["Pełny reset / Full reset"]
+    rulebook_modal["Podręcznik zasad / Rulebook"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -57,7 +58,7 @@ graph TD
     predefined_characters -->|Wybierz badacza / Choose investigator| session_zero
     character_wizard -->|Zakończ i zapisz / Finish and save| manual_setup
     hot_seat -->|Rozpocznij tryb / Start mode| session_zero
-    session_zero -->|Rozpocznij grę / Start game| game
+    session_zero -->|Zakończ i zapisz / Finish and save| game
     game -->|Karta postaci / Character sheet| character_sheet
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
@@ -73,6 +74,8 @@ graph TD
     settings -->|Pełny reset / Full reset| full_reset
     campaigns -->|Nowa kampania / New campaign| campaign_new
     characters -->|Nowa postać / New character| character_new
+    home -->|Wgraj zasady / Upload rules| rulebook_modal
+    home -->|Podręcznik zasad / Rulebook| rulebook_modal
 ```
 
 ## Routy
@@ -110,7 +113,7 @@ graph TD
 | Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero | `src/components/ui/predefined-characters-selector.tsx` |
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
-| Sesja Zero | Rozpocznij grę / Start game | Aktywna sesja | `src/app/[locale]/page.tsx` |
+| Sesja Zero | Zakończ i zapisz / Finish and save | Aktywna sesja | `src/components/ui/session-zero-modal.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
@@ -126,6 +129,8 @@ graph TD
 | Ustawienia | Pełny reset / Full reset | Pełny reset | `src/components/ui/settings-modal.tsx` |
 | Kampanie | Nowa kampania / New campaign | Nowa kampania | `src/app/[locale]/campaigns/page.tsx` |
 | Postacie | Nowa postać / New character | Nowa postać | `src/app/[locale]/characters/page.tsx` |
+| Strona główna | Wgraj zasady / Upload rules | Podręcznik zasad | `src/components/chat/welcome/index.tsx` |
+| Strona główna | Podręcznik zasad / Rulebook | Podręcznik zasad | `src/components/chat/welcome/components/bottom-links.tsx` |
 
 ## Zasady aktualizacji
 
