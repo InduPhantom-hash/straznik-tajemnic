@@ -130,7 +130,7 @@ export interface Message {
   gameTime?: GameTime; // Czas w grze w momencie wysłania wiadomości
   illustrations?: MessageIllustration[];
   generatedImages?: string[]; // URL-e wygenerowanych obrazów (base64 w sesji; stripowane z localStorage przez sanitizer)
-  generatedImageTypes?: ('portrait' | 'scene')[]; // Typy wygenerowanych obrazów (odpowiada indeksom w generatedImages)
+  generatedImageTypes?: ('portrait' | 'scene' | 'location' | 'item' | 'monster' | 'vision')[]; // Typy wygenerowanych obrazów (odpowiada indeksom w generatedImages)
   finishReason?: string;
   continuationRequested?: boolean;
   // IND-262: klucze obrazów w IndexedDB (persistentMediaCache, store chat-images).
@@ -493,6 +493,7 @@ export interface Character {
   treasuredPossession?: string;
   traits?: string[];
   backstory?: string;
+  appearance?: string; // Wygląd postaci (Visual DNA)
   description?: string; // Krótki opis postaci (wygląd, osobowość)
   characterConcept?: string; // Koncept postaci z kreatora (archetyp, motywacja)
 
