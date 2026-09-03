@@ -486,6 +486,7 @@ export default function Home() {
             : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           sourcePresetId: preset.id,
+          isActive: true,
         };
         if (mode === 'hot-seat') {
           stamped.playerName = 'Gracz 1';

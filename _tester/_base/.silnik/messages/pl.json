@@ -75,7 +75,9 @@
     "yourCharacter": "Twoja Postać:",
     "playerTwo": "Gracz 2 (Druga Postać):",
     "biography": "Biografia",
-    "start": "Rozpocznij przygodę"
+    "start": "Rozpocznij przygodę",
+    "startingGame": "Przygotowywanie sesji...",
+    "statusSettingUp": "Przygotowywanie założeń śledztwa..."
   },
   "LanguageSelection": {
     "eyebrow": "ZANIM ROZPOCZNIE SIĘ ŚLEDZTWO",

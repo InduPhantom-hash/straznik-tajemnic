@@ -11,7 +11,7 @@ import {
 } from './dialog';
 import { Button } from './button';
 import { SafeImage } from './safe-image';
-import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X } from 'lucide-react';
+import { Sparkles, User, BookOpen, ArrowRight, Users, Info, X, Loader2 } from 'lucide-react';
 import { STREFA_11_ADVENTURES } from '@/lib/adventures-data';
 import { getStrefa11CharactersForAdventure } from '@/lib/immersion/strefa-11-characters';
 import {
@@ -25,9 +25,19 @@ interface QuickSetupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onQuickStart: (adventureId: string, characterId: string, mode: 'solo' | 'hot-seat', player2CharacterId?: string) => void;
+  isStarting?: boolean;
+  startProgress?: number;
+  startStatus?: string;
 }
 
-export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetupModalProps) {
+export function QuickSetupModal({
+  open,
+  onOpenChange,
+  onQuickStart,
+  isStarting = false,
+  startProgress = 0,
+  startStatus = '',
+}: QuickSetupModalProps) {
   const t = useTranslations('QuickSetupModal');
   const locale = useLocale() as 'pl' | 'en';
   const [selectedAdventureId, setSelectedAdventureId] = useState<string>(
@@ -60,7 +70,10 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
     : selectedCharacter1 !== '' && selectedCharacter2 !== '' && selectedCharacter1 !== selectedCharacter2;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(nextOpen) => {
+      if (isStarting && !nextOpen) return;
+      onOpenChange(nextOpen);
+    }}>
       <DialogContent data-testid="quick-setup-modal" size="screen">
         <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-brass/55" />
         <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-brass/55" />
@@ -308,20 +321,67 @@ export function QuickSetupModal({ open, onOpenChange, onQuickStart }: QuickSetup
         </div>
         
         {/* Footer */}
-        <div className="shrink-0 flex justify-end pt-4 mt-auto border-t border-border/50">
-          <Button
-            className="bg-primary text-black hover:bg-primary/90 font-display uppercase tracking-wider text-xs px-6"
-            disabled={!canStart}
-            onClick={() => {
-              if (canStart) {
-                onQuickStart(selectedAdventureId, selectedCharacter1, playMode, playMode === 'hot-seat' ? selectedCharacter2 : undefined);
-                onOpenChange(false);
-              }
-            }}
-          >
-            {t('start')}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+        <div className="shrink-0 flex flex-col items-end gap-3 pt-4 mt-auto border-t border-border/50">
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
+            {isStarting ? (
+              <div
+                data-testid="quick-setup-progress-container"
+                className="w-full max-w-md flex flex-col gap-1.5 animate-in fade-in-50 duration-300"
+              >
+                <div className="w-full h-2 bg-black/70 rounded-full border border-brass/40 overflow-hidden relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.8)]">
+                  <div
+                    data-testid="quick-setup-progress-bar"
+                    className="h-full bg-gradient-to-r from-brass via-primary to-emerald-400 rounded-full transition-all duration-500 ease-out relative"
+                    style={{ width: `${Math.min(100, Math.max(5, startProgress))}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                  </div>
+                </div>
+                <div className="w-full flex items-center justify-between text-xs font-special-elite text-brass/90 tracking-[0.08em] px-1">
+                  <span className="flex items-center gap-1.5 truncate">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                    <span className="truncate">{startStatus || t('statusSettingUp')}</span>
+                  </span>
+                  <span className="font-mono text-brass/80 ml-2 shrink-0">{startProgress}%</span>
+                </div>
+              </div>
+            ) : (
+              <div className="hidden sm:block text-xs font-serif italic text-muted-foreground">
+                {playMode === 'hot-seat' ? t('hotSeatDescription') : t('soloDescription')}
+              </div>
+            )}
+
+            <Button
+              className={`font-display uppercase tracking-wider text-xs px-6 ${
+                isStarting
+                  ? 'bg-primary/80 text-black cursor-wait'
+                  : 'bg-primary text-black hover:bg-primary/90'
+              }`}
+              disabled={!canStart || isStarting}
+              onClick={() => {
+                if (canStart && !isStarting) {
+                  onQuickStart(
+                    selectedAdventureId,
+                    selectedCharacter1,
+                    playMode,
+                    playMode === 'hot-seat' ? selectedCharacter2 : undefined
+                  );
+                }
+              }}
+            >
+              {isStarting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin text-black" />
+                  <span>{t('startingGame')}</span>
+                </>
+              ) : (
+                <>
+                  <span>{t('start')}</span>
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
       
