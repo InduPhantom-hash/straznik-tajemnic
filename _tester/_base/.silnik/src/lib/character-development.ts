@@ -112,6 +112,18 @@ export interface EDURollResult {
   newValue?: number;
 }
 
+/**
+ * Wynik rzutu Samopomocy (CoC 7e oficjalne, str. 186-187)
+ */
+export interface SelfHelpRollResult {
+  roll: number;
+  success: boolean;
+  sanChange: number; // +1..6 jeśli sukces, -1 jeśli porażka
+  bonusDieUsed: boolean;
+  diceRolls?: number[];
+  recoveredSanity?: number;
+}
+
 class CharacterDevelopmentSystem {
   /**
    * Przeprowadza rzut na rozwój pojedynczej umiejętności (CoC 7e, str. 105-106)
@@ -209,20 +221,61 @@ class CharacterDevelopmentSystem {
   }
 
   /**
-   * Rzut Samopomocy - odzyskanie Poczytalności (CoC 7e, str. 185).
-   * Badacz poświęca czas aspektowi swojej historii (np. Kluczowa Więź) i
-   * odzyskuje 1K10 punktów Poczytalności.
+   * Rzut Samopomocy - odzyskanie Poczytalności (CoC 7e, str. 186-187).
+   * Badacz poświęca czas na kontakt z elementem swojej historii (np. Kluczowa Więź).
+   * Wykonuje test Poczytalności (z kością premiową dla Kluczowej Więzi).
+   * Sukces: +1K6 PP (i wyleczenie z 1 czasowej niepoczytalności).
+   * Porażka: -1 PP (oraz pęknięcie/utrata więzi).
    *
-   * UWAGA: mechanika jest UZNANIOWA (Keeper's discretion). 1K10 to wartość
-   * standardowa RAW - Strażnik może ją modyfikować (np. kość premiowa za
-   * szczególne zaangażowanie) oraz limituje użycie raz na aspekt historii.
+   * @param currentSanity - aktualna Poczytalność badacza
+   * @param isKeyConnection - czy aspekt jest Kluczową Więzią (kość premiowa)
+   * @param seed - opcjonalny seed dla determinizmu
+   */
+  rollSelfHelp(
+    currentSanity: number,
+    isKeyConnection: boolean = false,
+    seed?: number
+  ): SelfHelpRollResult {
+    const rng = createSeededRandom(seed);
+    let roll: number;
+    let diceRolls: number[] | undefined;
+
+    if (isKeyConnection) {
+      // Kość premiowa: dwa rzuty dziesiątek (00, 10..90), ta sama kość jedności
+      const tens1 = Math.floor(rng() * 10);
+      const tens2 = Math.floor(rng() * 10);
+      const units = Math.floor(rng() * 10);
+      const r1 = tens1 * 10 + units === 0 ? 100 : tens1 * 10 + units;
+      const r2 = tens2 * 10 + units === 0 ? 100 : tens2 * 10 + units;
+      roll = Math.min(r1, r2);
+      diceRolls = [r1, r2];
+    } else {
+      roll = rollD100(rng);
+    }
+
+    const success = roll <= currentSanity;
+    const sanChange = success ? Math.floor(rng() * 6) + 1 : -1;
+
+    return {
+      roll,
+      success,
+      sanChange,
+      bonusDieUsed: isKeyConnection,
+      diceRolls,
+      recoveredSanity: success ? sanChange : 0,
+    };
+  }
+
+  /**
+   * Rzut regeneracji Poczytalności 1K6 (CoC 7e, str. 186-187).
+   * Prosty rzut kostką dla udanej samopomocy.
    *
    * @param seed - opcjonalny seed (deterministyczne testy regresji + sesja replay)
-   * @returns liczba odzyskanych punktów Poczytalności (1-10)
+   * @returns liczba odzyskanych punktów Poczytalności (1-6)
    */
   rollSanityRecovery(seed?: number): number {
     const rng = createSeededRandom(seed);
-    return rollD10(rng);
+    return Math.floor(rng() * 6) + 1;
   }
 
   /**
@@ -257,10 +310,14 @@ class CharacterDevelopmentSystem {
       ],
     };
 
-    // Bonus Poczytalności za mistrzostwo (90%+)
+    // Bonus Poczytalności za mistrzostwo (90%+) z uwzględnieniem pułapu 99 - Mity Cthulhu
     if (result.sanityBonus) {
+      const mythosSkill = character.skills['Mity Cthulhu'] || character.skills['Cthulhu Mythos'];
+      const mythosValue = getSkillValue(mythosSkill);
+      const maxSanity = Math.max(0, 99 - mythosValue);
+
       updatedCharacter.san = Math.min(
-        99,
+        maxSanity,
         (updatedCharacter.san || 0) + result.sanityBonus
       );
       updatedCharacter.developmentHistory.push({
@@ -496,10 +553,10 @@ class CharacterDevelopmentSystem {
   ): Character {
     const updatedCharacter = { ...character };
 
-    // Apply skill improvements
+    // Apply skill improvements (RAW CoC 7e: umiejętności mogą przekraczać 100%)
     Object.entries(session.skillsImproved).forEach(([skill, improvement]) => {
       const currentValue = getSkillValue(updatedCharacter.skills[skill]);
-      updatedCharacter.skills[skill] = Math.min(99, currentValue + improvement);
+      updatedCharacter.skills[skill] = currentValue + improvement;
     });
 
     // Add development history entry

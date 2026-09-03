@@ -477,24 +477,46 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   );
                 })}
 
-                {/* IND-230: Faza Rozwoju CoC - rzuty na poprawę oznaczonych umiejętności */}
+                {/* IND-230 / Issue #28: Faza Rozwoju CoC - dostępna wyłącznie po zakończeniu sesji */}
                 {activeCharacter && onOpenDevelopmentPhase && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
-                    onClick={onOpenDevelopmentPhase}
-                    title={t('developmentPhaseTitle')}
-                  >
-                    <span className="w-4 h-4 mr-3 flex items-center justify-center">
-                      ✨
-                    </span>
-                    {t('developmentPhase')}
-                    {markedSkillsCount > 0 && (
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                        {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
+                  isSessionEnded || sessionEndStatus === 'ended' ? (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start border-amber-500/60 font-special-elite tracking-wide text-amber-300 bg-amber-950/20 hover:bg-amber-900/30 hover:border-amber-400 hover:text-amber-200 relative animate-pulse"
+                      onClick={onOpenDevelopmentPhase}
+                      title={t('developmentPhaseReadyTitle')}
+                    >
+                      <span className="w-4 h-4 mr-3 flex items-center justify-center">
+                        ✨
                       </span>
-                    )}
-                  </Button>
+                      {t('developmentPhaseReady')}
+                      {markedSkillsCount > 0 && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                          {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
+                        </span>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled
+                      variant="ghost"
+                      className="w-full justify-start border border-zinc-800/60 font-special-elite tracking-wide text-zinc-500 bg-zinc-900/40 opacity-60 cursor-not-allowed relative"
+                      title={t('developmentPhaseLockedTitle')}
+                    >
+                      <span className="w-4 h-4 mr-3 flex items-center justify-center text-zinc-600">
+                        🔒
+                      </span>
+                      {t('developmentPhaseLocked')}
+                      {markedSkillsCount > 0 && (
+                        <span
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-700 text-zinc-300 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                          title={t('markedSkillsBadgeTooltip', { count: markedSkillsCount })}
+                        >
+                          {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
+                        </span>
+                      )}
+                    </Button>
+                  )
                 )}
               </div>
 
