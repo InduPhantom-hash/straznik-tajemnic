@@ -70,11 +70,9 @@ export function buildPlayerEquipmentSection(
     const desc = item.description?.trim();
     let statusLabel = '';
     if (item.quantity && item.quantity > 0) {
-      statusLabel = ` (pozostało: ${item.quantity}${item.maxQuantity ? `/${item.maxQuantity}` : ''}) [zużywalny]`;
+      statusLabel = ` (pozostało: ${item.quantity}${item.maxQuantity ? `/${item.maxQuantity}` : ''})`;
     } else if (item.isConsumable) {
       statusLabel = ` [zużywalny]`;
-    } else {
-      statusLabel = ` [trwały]`;
     }
     return desc
       ? `- **${item.name}**${statusLabel}: ${desc}`
@@ -85,13 +83,15 @@ export function buildPlayerEquipmentSection(
     `\n## EKWIPUNEK POSTACI (posiadane przedmioty)\n` +
     `Badacz ma przy sobie WYŁĄCZNIE następujące przedmioty użytkowe:\n` +
     lines.join('\n') +
-    `\n\nReguły operowania ekwipunkiem (Fiction First & puryzm CoC 7e):\n` +
-    `1. Gdy gracz podejmuje działania wymagające narzędzi (np. rozpalenie ognia, oświetlenie ciemności, otwarcie zamka, pierwsza pomoc, badania), bierz pod uwagę powyższą listę. Brak narzędzia utrudnia zadanie lub wymaga improwizacji.\n` +
-    `2. Jeśli gracz deklaruje użycie czegoś, czego NIE ma na liście, opisz fabularnie brak sprzętu w świecie gry i NIGDY nie udawaj, że postać to posiada.\n` +
-    `3. Gdy badacz z sukcesem używa przedmiotu zużywalnego (np. dawka morfiny, bandaże, flara), dołącz na końcu odpowiedzi znacznik: \`[EKWIPUNEK: ZUZYJ | NazwaPrzedmiotu | 1]\`.\n` +
-    `4. Gdy przedmiot zostaje bezpowrotnie zniszczony, porzucony lub odebrany: \`[EKWIPUNEK: USUN | NazwaPrzedmiotu]\`.\n` +
-    `5. Gdy badacz odnajduje lub otrzymuje nowy kluczowy rekwizyt w śledztwie: \`[EKWIPUNEK: DODAJ | Nazwa | kategoria | opis]\` (kategorie: tool, document, weapon, medical, occult, artifact, personal).\n` +
-    `6. Drobiazgi tła (zapałki, ołówek, notes) oraz amunicja w broni są nielimitowane w normalnych warunkach - NIE zliczaj pojedynczych zapałek ani naboi jak w grach arcade. Mogą się skończyć wyłącznie przy dramatycznej komplikacji, zacięciu lub pechu.`
+    `\nReguła: Gdy gracz podejmuje działania wymagające narzędzi (np. rozpalenie ognia, oświetlenie ciemności, otwarcie zamka, pierwsza pomoc, robienie zdjęć, badania naukowe), bierz pod uwagę powyższą listę. ` +
+    `Brak odpowiedniego narzędzia powinien utrudniać zadanie (np. kość kary w teście, brak możliwości wykonania testu lub konieczność improwizacji). ` +
+    `NIGDY nie zakładaj, że postać posiada przedmioty, których nie ma na tej liście, chyba że dopiero co podniosła je w bieżącej scenie.\n\n` +
+    `Reguły operowania ekwipunkiem (Fiction First & puryzm CoC 7e):\n` +
+    `1. Gdy gracz deklaruje akcje w sposób naturalny w świecie gry, sprawdzaj posiadaną listę. Jeśli deklaruje użycie czegoś, czego nie ma, opisz to fabularnie w świecie gry i nie emituj tagu.\n` +
+    `2. Gdy badacz z sukcesem zużywa zasób zużywalny (np. dawka morfiny, bandaże, flara), dołącz na końcu odpowiedzi znacznik: \`[EKWIPUNEK: ZUZYJ | NazwaPrzedmiotu | 1]\`.\n` +
+    `3. Gdy przedmiot zostaje bezpowrotnie zniszczony, porzucony lub odebrany: \`[EKWIPUNEK: USUN | NazwaPrzedmiotu]\`.\n` +
+    `4. Gdy badacz odnajduje lub otrzymuje nowy kluczowy rekwizyt w śledztwie: \`[EKWIPUNEK: DODAJ | Nazwa | kategoria | opis]\` (kategorie: tool, document, weapon, medical, occult, artifact, personal).\n` +
+    `5. Drobiazgi tła (zapałki, ołówek, notes) oraz amunicja w broni są nielimitowane w normalnych warunkach - NIE zliczaj pojedynczych zapałek ani naboi jak w grach arcade. Mogą się skończyć wyłącznie przy dramatycznej komplikacji, zacięciu lub pechu.`
   );
 }
 
