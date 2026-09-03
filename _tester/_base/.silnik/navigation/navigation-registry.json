@@ -157,8 +157,8 @@
         "en": "Character wizard"
       },
       "description": {
-        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu)",
-        "en": "Multi-step character creation wizard (Master-Detail occupation layout)"
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, kary wieku CoC 7e RAW)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout, CoC 7e RAW age penalties)"
       }
     },
     {

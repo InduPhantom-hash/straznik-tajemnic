@@ -62,3 +62,67 @@ export function getWealthInfo(creditRating: number) {
   }
   return WEALTH_TABLE[2]; // Przeciętny jako fallback
 }
+
+/**
+ * Rozkłada łączną karę fizyczną (physPenalty) na cechy STR, CON i DEX (CoC 7e RAW)
+ * dbając, aby żadna cecha nie spadła poniżej minimalnej wartości 15.
+ */
+export function distributePhysPenalty(
+  stats: { str: number; con: number; dex: number },
+  totalPenalty: number,
+  minStat = 15
+): { str: number; con: number; dex: number } {
+  let { str, con, dex } = stats;
+  let remaining = totalPenalty;
+
+  while (remaining > 0) {
+    const available = [
+      { key: 'str' as const, val: str },
+      { key: 'con' as const, val: con },
+      { key: 'dex' as const, val: dex },
+    ].filter((s) => s.val > minStat);
+
+    if (available.length === 0) break;
+
+    available.sort((a, b) => b.val - a.val);
+    const target = available[0].key;
+
+    if (target === 'str') str--;
+    else if (target === 'con') con--;
+    else dex--;
+
+    remaining--;
+  }
+
+  return { str, con, dex };
+}
+
+/**
+ * Aplikuje modyfikatory wieku dla nastolatka (15-19 lat wg CoC 7e RAW):
+ * odejmuje 5 punktów łącznie z SIŁ lub BC oraz 5 punktów z WYK.
+ */
+export function applyTeenPenalty(
+  stats: { str: number; siz: number; edu: number },
+  minStat = 15
+): { str: number; siz: number; edu: number } {
+  let { str, siz, edu } = stats;
+  let remaining = 5;
+
+  while (remaining > 0) {
+    const available = [
+      { key: 'str' as const, val: str },
+      { key: 'siz' as const, val: siz },
+    ].filter((s) => s.val > minStat);
+
+    if (available.length === 0) break;
+
+    available.sort((a, b) => b.val - a.val);
+    if (available[0].key === 'str') str--;
+    else siz--;
+
+    remaining--;
+  }
+
+  edu = Math.max(minStat, edu - 5);
+  return { str, siz, edu };
+}
