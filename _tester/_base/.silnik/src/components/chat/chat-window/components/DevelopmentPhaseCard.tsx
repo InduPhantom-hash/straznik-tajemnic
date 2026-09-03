@@ -76,8 +76,14 @@ export function DevelopmentPhaseCard({
         };
 
         if (result.sanityBonus) {
+          const mythosSkill = character.skills['Mity Cthulhu'] || character.skills['Cthulhu Mythos'];
+          const mythosValue =
+            typeof mythosSkill === 'object' && mythosSkill !== null
+              ? mythosSkill.value
+              : Number(mythosSkill || 0);
+          const maxSan = Math.max(0, 99 - mythosValue);
           updatedCharacter.san = Math.min(
-            99,
+            maxSan,
             (updatedCharacter.san || 0) + result.sanityBonus
           );
         }
@@ -115,9 +121,17 @@ export function DevelopmentPhaseCard({
 
   const handleSelfHelp = () => {
     if (!selfHelpText.trim()) return;
-    const sanGain = Math.floor(Math.random() * 10) + 1; // 1D10
-    const newSan = Math.min(99, (character.san || 0) + sanGain);
-    setSelfHelpSan(sanGain);
+    const sanGain = characterDevelopment.rollSanityRecovery(); // 1K6 CoC 7e RAW (str. 186-187)
+    const mythosSkill = character.skills['Mity Cthulhu'] || character.skills['Cthulhu Mythos'];
+    const mythosValue =
+      typeof mythosSkill === 'object' && mythosSkill !== null
+        ? mythosSkill.value
+        : Number(mythosSkill || 0);
+    const maxSan = character.maxSan ?? Math.max(0, 99 - mythosValue);
+    const oldSan = character.san || 0;
+    const newSan = Math.min(maxSan, oldSan + sanGain);
+    const actualGain = newSan - oldSan;
+    setSelfHelpSan(actualGain);
     onCharacterUpdate({
       ...character,
       san: newSan,
