@@ -62,7 +62,7 @@ graph TD
     game -->|Dziennik / Journal| journal
     game -->|Rzuć kośćmi / Roll dice| dice
     game -->|Narzędzia MG / GM tools| gm_tools
-    game -->|Faza rozwoju / Development phase| development
+    game -->|Faza rozwoju (po sesji) / Development phase (after session)| development
     game -->|Zapisz grę / Save game| save_game
     game -->|Wczytaj grę / Load game| load_game
     game -->|Pomoc / Help| help
@@ -114,7 +114,7 @@ graph TD
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |
-| Aktywna sesja | Faza rozwoju / Development phase | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Zapisz grę / Save game | Zapis gry | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Wczytaj grę / Load game | Wczytanie gry | `src/components/desk/DeskTools.tsx` |
 | Aktywna sesja | Pomoc / Help | Pomoc i zasady | `src/components/help-modal/HelpModal.tsx` |

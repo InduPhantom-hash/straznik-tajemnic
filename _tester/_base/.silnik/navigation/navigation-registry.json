@@ -472,8 +472,8 @@
       "source": "game",
       "target": "development",
       "label": {
-        "pl": "Faza rozwoju",
-        "en": "Development phase"
+        "pl": "Faza rozwoju (po sesji)",
+        "en": "Development phase (after session)"
       },
       "component": "src/components/sidebar/CthulhuSidebar.tsx"
     },
