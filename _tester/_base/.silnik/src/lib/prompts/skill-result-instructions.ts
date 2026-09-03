@@ -24,4 +24,8 @@ Jeśli gracz użył Luck (Szczęścia) do zmiany wyniku, KONIECZNIE dodaj flagę
 - Sukces BEZ użycia Luck → umiejętność ZOSTANIE OZNACZONA do rozwoju ✓
 - Sukces Z użyciem Luck → umiejętność NIE JEST oznaczana
 - Porażka → umiejętność NIE JEST oznaczana
-- Credit Rating i Cthulhu Mythos NIGDY nie są oznaczane`;
+- Credit Rating i Cthulhu Mythos NIGDY nie są oznaczane
+
+### FAIL-FORWARD PRZY PORAŻCE (CoC 7e RAW):
+- Gdy wynik to PORAŻKA lub FUMBLE: Zastosuj Fail-Forward (Bieg 3: Przełamanie).
+- Porażka NIGDY nie oznacza "nie udało się" - natychmiast wprowadź nową komplikację pchnięcia fabuły (sukces za cenę, upływ czasu, uszkodzenie sprzętu, bezpośrednie zagrożenie lub alarm).`;

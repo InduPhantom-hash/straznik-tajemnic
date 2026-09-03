@@ -169,6 +169,8 @@ export interface BuildAdditionalContextOpts {
   tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
   /** Epoka gry dla reguł materialnych i guardrails */
   era?: string;
+  /** Język wyjścia dla dyrektyw kontekstowych */
+  locale?: 'pl' | 'en';
   /** Sekcja danych immersyjnych (astronomia, gazety, ceny epoki) - wstrzykiwana gdy dostępna. */
   immersionSection?: string;
   /** Wydarzenie z generatora fabularnego zrzucone z UI, przekazywane z hooka useChat */
@@ -275,7 +277,7 @@ export function buildAdditionalContext(
 
   // OPT-26: gmProtocol skip gdy cache aktywny - jest już w cachedContent.contents
   if (!resolvedCachedContent) additionalContext.push(gmProtocol);
-  additionalContext.push(getPacingDirective(gameContext));
+  additionalContext.push(getPacingDirective(gameContext, opts.locale));
 
   // Director's state injection
   if (sessionId) {
