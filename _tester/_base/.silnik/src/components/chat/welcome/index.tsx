@@ -11,7 +11,7 @@
  */
 
 import type { FC } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { WelcomeScreenProps } from './types';
 import { WELCOME_QUOTES, WELCOME_QUOTES_EN } from './data/quotes';
 import { useTypewriterSound } from './hooks/use-typewriter-sound';
@@ -140,9 +140,29 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   const [hasKey, setHasKey] = useState<boolean>(true);
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
 
+  const handleSetManualMode = useCallback((manual: boolean) => {
+    setIsManualMode(manual);
+    try {
+      if (manual) {
+        localStorage.setItem('welcome_manual_mode', 'true');
+      } else {
+        localStorage.removeItem('welcome_manual_mode');
+      }
+    } catch {
+      /* localStorage niedostępny */
+    }
+  }, []);
+
   useEffect(() => {
     // Sprawdzanie po mount by uniknąć hydration mismatch
     setHasKey(hasRequiredKeys());
+    try {
+      if (localStorage.getItem('welcome_manual_mode') === 'true') {
+        setIsManualMode(true);
+      }
+    } catch {
+      /* brak dostępu do storage */
+    }
     
     // Nasłuchuj na zmiany kluczy by automatycznie odświeżyć ekran po zapisie
     const onKeysChanged = () => setHasKey(hasRequiredKeys());
@@ -237,7 +257,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           <ResumeCard save={recentSave} onResume={onLoadSave} t={t} />
         )}
 
-        {/* Krok 3 - Autoryzacja i Start */}
+        {/* Krok 3 - Autoryzacja, Zasady i Start */}
         <div id="start-mode-cards-container" className="flex flex-col md:flex-row gap-6 w-[min(1200px,95vw)] justify-center items-center z-20 mt-4">
           {!hasKey ? (
             <div className="bg-black/60 border border-brass/50 p-6 rounded-md shadow-[0_0_40px_rgba(201,162,39,0.1)] max-w-lg w-full relative z-30">
@@ -267,7 +287,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
             </div>
           ) : isManualMode ? (
             <ManualSetupPanel
-              onBack={() => setIsManualMode(false)}
+              onBack={() => handleSetManualMode(false)}
               onChoosePlayMode={onChoosePlayMode}
               onSelectAdventure={onSelectAdventure}
               hasAdventure={hasAdventure}
@@ -287,7 +307,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           ) : (
             <StartModeCards 
               onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
-              onManualStart={() => setIsManualMode(true)} 
+              onManualStart={() => handleSetManualMode(true)} 
             />
           )}
         </div>

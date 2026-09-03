@@ -56,7 +56,7 @@ graph TD
     manual_setup -->|Gotowa postać / Predefined character| predefined_characters
     manual_setup -->|Stwórz postać / Create character| character_wizard
     predefined_characters -->|Wybierz badacza / Choose investigator| session_zero
-    character_wizard -->|Zakończ i zapisz / Finish and save| session_zero
+    character_wizard -->|Zakończ i zapisz / Finish and save| manual_setup
     hot_seat -->|Rozpocznij tryb / Start mode| session_zero
     session_zero -->|Zakończ i zapisz / Finish and save| game
     game -->|Karta postaci / Character sheet| character_sheet
@@ -111,7 +111,7 @@ graph TD
 | Ręczne ustawianie gry | Gotowa postać / Predefined character | Gotowe postacie | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Stwórz postać / Create character | Kreator postaci | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero | `src/components/ui/predefined-characters-selector.tsx` |
-| Kreator postaci | Zakończ i zapisz / Finish and save | Sesja Zero | `src/components/ui/character-wizard.tsx` |
+| Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
 | Sesja Zero | Zakończ i zapisz / Finish and save | Aktywna sesja | `src/components/ui/session-zero-modal.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza | `src/components/sidebar/CthulhuSidebar.tsx` |

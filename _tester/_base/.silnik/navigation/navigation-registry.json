@@ -418,7 +418,7 @@
     },
     {
       "source": "character-wizard",
-      "target": "session-zero",
+      "target": "manual-setup",
       "label": {
         "pl": "Zakończ i zapisz",
         "en": "Finish and save"

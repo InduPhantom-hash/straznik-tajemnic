@@ -7,7 +7,12 @@ import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
 import { ImageLightbox } from './image-lightbox';
-import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
+import {
+  Character,
+  EquipmentItem,
+  EquipmentCategory,
+  AdventureContext as TypeAdventureContext,
+} from '@/lib/types';
 import {
   AdventureContext,
   CHARACTER_ARCHETYPES,
@@ -213,7 +218,7 @@ interface WizardState {
 interface Props {
   onCharacterCreated: (character: Character) => void;
   onClose: () => void;
-  adventureContext?: AdventureContext; // Kontekst przygody dla AI
+  adventureContext?: AdventureContext | TypeAdventureContext; // Kontekst przygody dla AI
   /**
    * Re-roll: istniejąca postać do "rozdania statystyk od nowa". Zachowuje
    * imię/zawód/historię/dziennik (id), ale gracz rozdaje cechy i umiejętności
@@ -1038,7 +1043,7 @@ export function CharacterWizardV2({
 
     // Buduj kontekst przygody dla promptu
     const adventurePrompt = adventureContext
-      ? getAdventureContextPrompt(adventureContext)
+      ? getAdventureContextPrompt(adventureContext as AdventureContext)
       : t('defaultAdventureEra');
 
     // === LOSOWE ELEMENTY DLA RÓŻNORODNOŚCI (słowniki w messages/*.json) ===
@@ -1183,7 +1188,7 @@ export function CharacterWizardV2({
     const occupation = OCCUPATIONS.find((o) => o.id === state.occupationId);
     const occupationName = occupation?.name || t('researcherLowercase');
     const adventurePrompt = adventureContext
-      ? getAdventureContextPrompt(adventureContext)
+      ? getAdventureContextPrompt(adventureContext as AdventureContext)
       : t('defaultAdventureEra');
 
     const prompt = t('prompts.biography', {
@@ -1251,7 +1256,7 @@ export function CharacterWizardV2({
 
     // Dodaj kontekst przygody jeśli dostępny
     const adventureInfo = adventureContext
-      ? `\n\nKONTEKST PRZYGODY:\n- Lokalizacja: ${adventureContext.location}\n- Era: ${adventureContext.eraLabel} (${adventureContext.yearRange})\n- Motywy: ${adventureContext.themes.join(', ')}`
+      ? `\n\nKONTEKST PRZYGODY:\n- Lokalizacja: ${adventureContext.location || ''}\n- Era: ${adventureContext.eraLabel || ''} (${adventureContext.yearRange || ''})\n- Motywy: ${adventureContext.themes?.join(', ') || ''}`
       : '';
 
     const prompt = t('prompts.field', {
@@ -1263,8 +1268,8 @@ export function CharacterWizardV2({
       field: FIELD_PROMPTS[fieldName] || fieldName,
       style: adventureContext
         ? t('fieldStyleAdventure', {
-            location: adventureContext.location,
-            years: adventureContext.yearRange,
+            location: adventureContext.location || '',
+            years: adventureContext.yearRange || '',
           })
         : t('fieldStyleDefault'),
     });
@@ -1704,8 +1709,8 @@ export function CharacterWizardV2({
         {adventureContext && (
           <p className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass -mt-2">
             {t('adventureLabel', {
-              title: adventureContext.title,
-              location: adventureContext.location,
+              title: adventureContext.title || '',
+              location: adventureContext.location || '',
             })}
           </p>
         )}
@@ -3280,7 +3285,10 @@ export function CharacterWizardV2({
       data-testid="character-wizard"
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
-      <div className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[90vw] max-w-[1440px] h-[90vh] overflow-hidden flex flex-col">
+      <div
+        data-testid="character-wizard-modal"
+        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[90vw] max-w-[1440px] h-[90vh] overflow-hidden flex flex-col"
+      >
         {/* Narożniki déco */}
         <span className="pointer-events-none absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-brass/55" />
         <span className="pointer-events-none absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-brass/55" />
