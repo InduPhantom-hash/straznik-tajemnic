@@ -275,6 +275,8 @@ export interface EquipmentTemplate {
   visualTreatment: EquipmentVisualTreatment;
   availableIn: EquipmentVisualEra[];
   assetPaths?: Partial<Record<EquipmentVisualEra | 'shared', string>>;
+  modifiers?: EquipmentModifiers;
+  value?: number;
 }
 
 export interface EquipmentModifiers {

@@ -2,15 +2,14 @@
 
 Data baseline: 2026-09-01.
 
-## Wynik maszynowy
+## Wynik maszynowy (po wdrożeniu Issue #65)
 
 - Aktywne presety: 46.
 - Wszystkie instancje przedmiotów startowych: 264.
 - Unikalne nazwy po normalizacji: 133.
-- Wzorce katalogowe: 37.
-- Lokalne katalogowe WebP: 35.
-- Unikalne nazwy rozwiązywane przez obecny katalog i aliasy: 53.
-- Unikalne nazwy bez wzorca: 80.
+- Wzorce katalogowe w `EQUIPMENT_CATALOG`: 112 (37 bazowych + 75 nowych).
+- Lokalne katalogowe WebP na dysku: 47 (35 bazowych + 12 z Partii 1).
+- Pokrycie presetów badaczy przez katalog: 100% (wszystkie przedmioty posiadają deterministyczny szablon, aliasy PL/EN i zasady CoC 7e RAW).
 - Przedmioty startowe bez istniejącego lokalnego obrazu lub ikony: 0.
 - Przedmioty startowe oznaczone jako generowane: 0.
 
