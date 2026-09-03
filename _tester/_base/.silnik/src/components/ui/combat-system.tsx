@@ -12,6 +12,11 @@ import {
   isSuccess,
   rollDiceFormula,
 } from '@/lib/dice-utils';
+import {
+  resolveMeleeEngagement,
+  resolveOutnumberedBonus,
+} from '@/lib/combat/combat-resolver';
+import { rollWithBonusPenalty } from './combat-utils';
 
 export interface Combatant {
   id: string;
@@ -31,6 +36,10 @@ export interface Combatant {
   isActive: boolean;
   isDead: boolean;
   isUnconscious: boolean;
+  defensesUsedThisRound?: number;
+  build?: number;
+  brawlSkill?: number;
+  dodgeSkill?: number;
 }
 
 export interface Weapon {
@@ -350,10 +359,18 @@ export function CombatSystem({
 
   const rollInitiative = () => {
     const updatedCombatants = combatants
-      .map((combatant) => ({
-        ...combatant,
-        initiative: rollD100() + combatant.dex,
-      }))
+      .map((combatant) => {
+        const hasReadyFirearm = combatant.weapons.some(
+          (w) =>
+            (w.range && parseInt(w.range, 10) > 0) ||
+            /pistolet|gun|rewolwer|rifle|strzelb/i.test(w.name)
+        );
+        const firearmBonus = hasReadyFirearm ? 50 : 0;
+        return {
+          ...combatant,
+          initiative: combatant.dex + firearmBonus,
+        };
+      })
       .sort((a, b) => b.initiative - a.initiative);
 
     setCombatants(updatedCombatants);
@@ -405,6 +422,10 @@ export function CombatSystem({
     } else {
       setCurrentRound(currentRound + 1);
       setCurrentTurn(0);
+      // Nowa runda: reset darmowych obron (Outnumbered CoC 7e RAW)
+      setCombatants((prev) =>
+        prev.map((c) => ({ ...c, defensesUsedThisRound: 0 }))
+      );
       // Roll new initiative for next round
       rollInitiative();
     }
@@ -415,6 +436,150 @@ export function CombatSystem({
     target: Combatant,
     weapon: Weapon
   ) => {
+    const isFirearm =
+      (weapon.range && parseInt(weapon.range, 10) > 0) ||
+      /pistolet|gun|rewolwer|rifle|strzelb/i.test(weapon.name);
+
+    if (!isFirearm) {
+      // Walka wręcz - deterministyczne rozstrzygnięcie CoC 7e RAW
+      const defensesUsed = target.defensesUsedThisRound || 0;
+      const { isOutnumbered } = resolveOutnumberedBonus(defensesUsed);
+
+      // Jeśli obrońca jest osaczony, napastnik otrzymuje kość premiową
+      const attackRoll = isOutnumbered
+        ? rollWithBonusPenalty(1, 0).finalResult
+        : rollD100();
+
+      // Domyślny wybór reakcji obrońcy (Unik vs Kontratak)
+      const defenderDodge = target.dodgeSkill || target.dex;
+      const defenderBrawl = target.brawlSkill || 25;
+      const defenseChoice =
+        defenderDodge >= defenderBrawl ? 'dodge' : 'fight_back';
+      const defenderRoll = rollD100();
+      const defenderSkill =
+        defenseChoice === 'dodge' ? defenderDodge : defenderBrawl;
+
+      const resolution = resolveMeleeEngagement({
+        attackerName: attacker.name,
+        defenderName: target.name,
+        attackerRoll: attackRoll,
+        attackerSkill: weapon.skillValue,
+        defenderRoll,
+        defenderSkill,
+        defenseChoice,
+        attackerWeaponFormula: weapon.damage || '1d3',
+        defenderWeaponFormula: '1d3',
+        defenderArmor: target.armor,
+        attackerArmor: attacker.armor,
+        defenderMaxHp: target.maxHp,
+        attackerMaxHp: attacker.maxHp,
+        attackerBuild: attacker.build || 0,
+        defenderBuild: target.build || 0,
+      });
+
+      const updatedTargetDefenses = defensesUsed + 1;
+      let damage = 0;
+      let damageRoll = '';
+      let majorWound = false;
+
+      let nextCombatants = combatants.map((c) =>
+        c.id === target.id
+          ? { ...c, defensesUsedThisRound: updatedTargetDefenses }
+          : c
+      );
+
+      if (resolution.damageDealtTo === 'defender' && resolution.damage) {
+        damage = resolution.damage.effectiveDamage;
+        majorWound = resolution.damage.isMajorWound;
+        damageRoll = resolution.damage.breakdown;
+
+        const newHp = Math.max(0, target.hp - damage);
+        nextCombatants = nextCombatants.map((c) =>
+          c.id === target.id
+            ? {
+                ...c,
+                hp: newHp,
+                isDead: newHp <= 0,
+                isUnconscious: newHp <= 0 || majorWound,
+              }
+            : c
+        );
+      } else if (resolution.damageDealtTo === 'attacker' && resolution.damage) {
+        // Kontratak obrońcy zadał obrażenia atakującemu!
+        damage = resolution.damage.effectiveDamage;
+        majorWound = resolution.damage.isMajorWound;
+        damageRoll = `Kontratak: ${resolution.damage.breakdown}`;
+
+        const newHp = Math.max(0, attacker.hp - damage);
+        nextCombatants = nextCombatants.map((c) =>
+          c.id === attacker.id
+            ? {
+                ...c,
+                hp: newHp,
+                isDead: newHp <= 0,
+                isUnconscious: newHp <= 0 || majorWound,
+              }
+            : c
+        );
+      }
+
+      setCombatants(nextCombatants);
+      onCombatantsChange(nextCombatants);
+
+      const action: CombatAction = {
+        id: Date.now().toString(),
+        attackerId: attacker.id,
+        targetId: target.id,
+        actionType: 'attack',
+        weapon,
+        roll: attackRoll,
+        target: weapon.skillValue,
+        success: resolution.winner === 'attacker',
+        criticalSuccess: resolution.attackerOutcome === 'critical',
+        criticalFailure: resolution.attackerOutcome === 'fumble',
+        damage,
+        damageRoll,
+        majorWound,
+        description: t('attackDescription', {
+          attacker: attacker.name,
+          target: target.name,
+          weapon: weapon.name,
+        }),
+        timestamp: new Date(),
+      };
+
+      const currentRoundData = combatHistory.find(
+        (r) => r.roundNumber === currentRound
+      );
+      if (currentRoundData) {
+        const updatedRound = {
+          ...currentRoundData,
+          actions: [...currentRoundData.actions, action],
+        };
+        setCombatHistory(
+          combatHistory.map((r) =>
+            r.roundNumber === currentRound ? updatedRound : r
+          )
+        );
+      } else {
+        const newRound: CombatRound = {
+          id: Date.now().toString(),
+          roundNumber: currentRound,
+          actions: [action],
+          timestamp: new Date(),
+        };
+        setCombatHistory([...combatHistory, newRound]);
+      }
+
+      if (resolution.damageDealtTo !== 'none') {
+        playCombatSound('hit');
+      } else {
+        playCombatSound('miss');
+      }
+
+      return;
+    }
+
     const attackRoll = rollD100();
     const targetNumber = weapon.skillValue;
 

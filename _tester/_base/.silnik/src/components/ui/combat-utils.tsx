@@ -5,6 +5,15 @@ import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
+import {
+  Footprints,
+  Swords,
+  DoorOpen,
+  ShieldAlert,
+  Hand,
+  HelpCircle,
+  Activity,
+} from 'lucide-react';
 
 // === KOŚCI PREMIOWE/KARNE (CoC7) ===
 
@@ -152,7 +161,8 @@ export type TacticalAction =
   | 'counterattack'
   | 'flee'
   | 'parry'
-  | 'fight_back';
+  | 'fight_back'
+  | 'maneuver';
 
 export interface TacticalDecision {
   action: TacticalAction;
@@ -169,6 +179,20 @@ const TACTICAL_OPTIONS: TacticalDecision[] = [
     penaltyDice: 0,
     description: 'dodge',
     risk: 'low',
+  },
+  {
+    action: 'fight_back',
+    bonusDice: 0,
+    penaltyDice: 0,
+    description: 'fight_back',
+    risk: 'high',
+  },
+  {
+    action: 'maneuver',
+    bonusDice: 0,
+    penaltyDice: 0,
+    description: 'maneuver',
+    risk: 'medium',
   },
   {
     action: 'counterattack',
@@ -190,13 +214,6 @@ const TACTICAL_OPTIONS: TacticalDecision[] = [
     penaltyDice: 0,
     description: 'parry',
     risk: 'low',
-  },
-  {
-    action: 'fight_back',
-    bonusDice: 0,
-    penaltyDice: 0,
-    description: 'fight_back',
-    risk: 'medium',
   },
 ];
 
@@ -226,6 +243,7 @@ export function TacticalDecisionPanel({
     flee: t('tacticalFleeDesc'),
     parry: t('tacticalParryDesc'),
     fight_back: t('tacticalFightBackDesc'),
+    maneuver: t('tacticalManeuverDesc'),
   };
   const [selectedAction, setSelectedAction] = useState<TacticalAction | null>(
     null
@@ -240,7 +258,8 @@ export function TacticalDecisionPanel({
       !isDefending &&
       (opt.action === 'dodge' ||
         opt.action === 'parry' ||
-        opt.action === 'counterattack')
+        opt.action === 'counterattack' ||
+        opt.action === 'fight_back')
     )
       return false;
     return true;
@@ -273,17 +292,18 @@ export function TacticalDecisionPanel({
   const getActionIcon = (action: TacticalAction) => {
     switch (action) {
       case 'dodge':
-        return '🏃';
+        return <Footprints className="w-5 h-5 text-emerald-400" />;
       case 'counterattack':
-        return '⚔️';
-      case 'flee':
-        return '🚪';
-      case 'parry':
-        return '🛡️';
       case 'fight_back':
-        return '🥊';
+        return <Swords className="w-5 h-5 text-red-400" />;
+      case 'flee':
+        return <DoorOpen className="w-5 h-5 text-amber-400" />;
+      case 'parry':
+        return <ShieldAlert className="w-5 h-5 text-blue-400" />;
+      case 'maneuver':
+        return <Hand className="w-5 h-5 text-purple-400" />;
       default:
-        return '❓';
+        return <HelpCircle className="w-5 h-5 text-zinc-400" />;
     }
   };
 
@@ -299,6 +319,8 @@ export function TacticalDecisionPanel({
         return t('actionParry');
       case 'fight_back':
         return t('actionFightBack');
+      case 'maneuver':
+        return t('actionManeuver');
       default:
         return action;
     }
@@ -507,7 +529,7 @@ export function MajorWoundAlert({
     <Card className="border-red-500 bg-red-900/30 animate-pulse">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <span className="text-4xl">🩸</span>
+          <Activity className="w-8 h-8 text-red-500 animate-pulse shrink-0" />
           <div>
             <h4 className="text-lg font-bold text-red-400">{t('majorWoundTitle')}</h4>
             <p className="text-sm text-red-300">
