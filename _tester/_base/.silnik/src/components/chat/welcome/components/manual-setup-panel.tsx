@@ -70,7 +70,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
         ];
 
   return (
-    <div data-testid="manual-setup-panel" className="deco-corners relative w-full max-w-4xl mx-auto p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-[0_0_30px_rgba(201,162,39,0.08)] z-20 text-left">
+    <div data-testid="manual-setup-panel" className="deco-corners relative w-full max-w-5xl mx-auto p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610]/95 to-[#100d09]/95 shadow-[0_0_35px_rgba(201,162,39,0.1)] backdrop-blur-sm z-20 text-left my-2 md:my-4">
       {/* Przycisk powrotu */}
       <button
         type="button"
@@ -378,7 +378,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                             >
                               <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
-                              Z katalogu
+                              {t('fromCatalog')}
                             </Button>
                           )}
                         </>
@@ -415,7 +415,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
                             >
                               <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
-                              Z katalogu
+                              {t('fromCatalog')}
                             </Button>
                           )}
                         </>
