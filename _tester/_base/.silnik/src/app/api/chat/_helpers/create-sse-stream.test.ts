@@ -42,6 +42,7 @@ function parsedResponse(rawText: string): ParsedResponse {
     journalEntries: [],
     skillTests: [],
     skillResults: [],
+    equipmentEvents: [],
     timeUpdate: null,
     rawText,
   };

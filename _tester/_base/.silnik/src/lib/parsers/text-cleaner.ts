@@ -53,6 +53,7 @@ export function cleanResponseText(text: string): string {
       .replace(/\[(?:LOKACJA|LOCATION):[^\]]*\]/gi, '')
       .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
+      .replace(/\[EKWIPUNEK:[^\]]*\]/gi, '')
       .replace(/\[WALKA:[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')

@@ -35,6 +35,8 @@ import {
 import { resolveImageLevel } from '@/lib/prompts/image-instructions';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
+import { applyEquipmentEventsToParty } from '@/lib/character/apply-equipment-events';
+import { toast } from '@/components/ui/use-toast';
 import { resolveCharacterByName } from '@/lib/character/match-by-name';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { persistentMediaCache } from '@/lib/persistent-media-cache';
@@ -909,11 +911,47 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             j.activeCharacter,
             fullText
           );
-          if (j.changed || s.changed) {
-            setActiveCharacter(s.activeCharacter);
-            setCharacters(s.characters);
+          const eq = applyEquipmentEventsToParty(
+            s.characters,
+            s.activeCharacter,
+            fullText,
+            (notif) => {
+              if (notif.type === 'use') {
+                toast({
+                  title: locale === 'pl' ? 'Zużyto ekwipunek' : 'Item Used',
+                  description:
+                    locale === 'pl'
+                      ? `${notif.characterName}: ${notif.itemName} (pozostało: ${notif.remaining})`
+                      : `${notif.characterName}: ${notif.itemName} (${notif.remaining} left)`,
+                });
+              } else if (notif.type === 'remove') {
+                toast({
+                  title:
+                    locale === 'pl'
+                      ? 'Przedmiot wyczerpany / utracony'
+                      : 'Item Depleted / Lost',
+                  description:
+                    locale === 'pl'
+                      ? `${notif.characterName}: ${notif.itemName}`
+                      : `${notif.characterName}: ${notif.itemName}`,
+                });
+              } else if (notif.type === 'add') {
+                toast({
+                  title:
+                    locale === 'pl' ? 'Nowy przedmiot' : 'New Item Acquired',
+                  description:
+                    locale === 'pl'
+                      ? `${notif.characterName}: ${notif.itemName}`
+                      : `${notif.characterName}: ${notif.itemName}`,
+                });
+              }
+            }
+          );
+          if (j.changed || s.changed || eq.changed) {
+            setActiveCharacter(eq.activeCharacter);
+            setCharacters(eq.characters);
             if (typeof window !== 'undefined') {
-              persistCharacters(s.characters);
+              persistCharacters(eq.characters);
             }
           }
         }

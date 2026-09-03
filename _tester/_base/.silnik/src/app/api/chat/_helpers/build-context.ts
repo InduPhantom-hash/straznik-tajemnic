@@ -68,7 +68,15 @@ export function buildPlayerEquipmentSection(
 
   const lines = nonWeapons.map((item) => {
     const desc = item.description?.trim();
-    return desc ? `- **${item.name}**: ${desc}` : `- **${item.name}**`;
+    let statusLabel = '';
+    if (item.quantity && item.quantity > 0) {
+      statusLabel = ` (pozostało: ${item.quantity}${item.maxQuantity ? `/${item.maxQuantity}` : ''})`;
+    } else if (item.isConsumable) {
+      statusLabel = ` [zużywalny]`;
+    }
+    return desc
+      ? `- **${item.name}**${statusLabel}: ${desc}`
+      : `- **${item.name}**${statusLabel}`;
   });
 
   return (
@@ -77,7 +85,13 @@ export function buildPlayerEquipmentSection(
     lines.join('\n') +
     `\nReguła: Gdy gracz podejmuje działania wymagające narzędzi (np. rozpalenie ognia, oświetlenie ciemności, otwarcie zamka, pierwsza pomoc, robienie zdjęć, badania naukowe), bierz pod uwagę powyższą listę. ` +
     `Brak odpowiedniego narzędzia powinien utrudniać zadanie (np. kość kary w teście, brak możliwości wykonania testu lub konieczność improwizacji). ` +
-    `NIGDY nie zakładaj, że postać posiada przedmioty, których nie ma na tej liście, chyba że dopiero co podniosła je w bieżącej scenie.`
+    `NIGDY nie zakładaj, że postać posiada przedmioty, których nie ma na tej liście, chyba że dopiero co podniosła je w bieżącej scenie.\n\n` +
+    `Reguły operowania ekwipunkiem (Fiction First & puryzm CoC 7e):\n` +
+    `1. Gdy gracz deklaruje akcje w sposób naturalny w świecie gry, sprawdzaj posiadaną listę. Jeśli deklaruje użycie czegoś, czego nie ma, opisz to fabularnie w świecie gry i nie emituj tagu.\n` +
+    `2. Gdy badacz z sukcesem zużywa zasób zużywalny (np. dawka morfiny, bandaże, flara), dołącz na końcu odpowiedzi znacznik: \`[EKWIPUNEK: ZUZYJ | NazwaPrzedmiotu | 1]\`.\n` +
+    `3. Gdy przedmiot zostaje bezpowrotnie zniszczony, porzucony lub odebrany: \`[EKWIPUNEK: USUN | NazwaPrzedmiotu]\`.\n` +
+    `4. Gdy badacz odnajduje lub otrzymuje nowy kluczowy rekwizyt w śledztwie: \`[EKWIPUNEK: DODAJ | Nazwa | kategoria | opis]\` (kategorie: tool, document, weapon, medical, occult, artifact, personal).\n` +
+    `5. Drobiazgi tła (zapałki, ołówek, notes) oraz amunicja w broni są nielimitowane w normalnych warunkach - NIE zliczaj pojedynczych zapałek ani naboi jak w grach arcade. Mogą się skończyć wyłącznie przy dramatycznej komplikacji, zacięciu lub pechu.`
   );
 }
 
