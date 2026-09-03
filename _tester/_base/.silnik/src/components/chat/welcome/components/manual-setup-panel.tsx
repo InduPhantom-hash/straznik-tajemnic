@@ -452,6 +452,11 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       ? t('sessionZeroComplete')
                       : t('sessionZeroDescription')}
                   </div>
+                  {!isReady && (
+                    <p className="text-[11px] text-brass/60 font-special-elite mt-1">
+                      {t('sessionZeroRequiresSetup')}
+                    </p>
+                  )}
                 </div>
               </div>
               <Button
@@ -459,7 +464,9 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onSessionZero}
-                className="font-display uppercase tracking-[0.1em] text-xs border-brass/30 hover:border-brass text-brass shrink-0"
+                disabled={!isReady}
+                className="font-display uppercase tracking-[0.1em] text-xs border-brass/30 hover:border-brass text-brass shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                title={!isReady ? t('sessionZeroRequiresSetup') : undefined}
               >
                 {hasSessionZero ? t('repeatS0') : t('runS0')}
               </Button>

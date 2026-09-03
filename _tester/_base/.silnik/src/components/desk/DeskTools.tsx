@@ -313,7 +313,7 @@ export const DeskTools: FC<DeskToolsProps> = ({
       {openDialog === "journal" && activeCharacter && onUpdateCharacter && <SessionJournal character={activeCharacter} onUpdateCharacter={onUpdateCharacter} onClose={() => setOpenDialog(null)} />}
       {openDialog === "equipment" && activeCharacter && onUpdateCharacter && <EquipmentModal open={true} onOpenChange={o => !o && setOpenDialog(null)} character={activeCharacter} onCharacterUpdate={onUpdateCharacter} era={adventureContext?.yearRange?.split('-')[0] || '1920s'} adventureTheme={adventureContext?.title} />}
       <DiceDialog open={openDialog === "dice"} onOpenChange={o => !o && setOpenDialog(null)} activeCharacter={activeCharacter} onRollSendToChat={handleSendMessage} />
-      <SessionZeroModal open={showSessionZero} onClose={() => setShowSessionZero(false)} adventureContext={adventureContext || undefined} onComplete={() => onSessionZeroComplete && onSessionZeroComplete()} />
+      <SessionZeroModal open={showSessionZero} onClose={() => setShowSessionZero(false)} adventureContext={adventureContext || undefined} activeCharacter={activeCharacter} onComplete={() => onSessionZeroComplete && onSessionZeroComplete()} />
       <AdventureSelector open={showAdventureSelector} onClose={() => setShowAdventureSelector(false)} onSelect={a => { setAdventureContext(a); localStorage.setItem('adventure_context', JSON.stringify(a)); if (onAdventureSelect) onAdventureSelect(a); setShowAdventureSelector(false); setTimeout(() => setShowSessionZero(true), 300); }} customAdventures={customAdventures} onUploadAdventure={onUploadAdventure} onDeleteAdventure={onDeleteAdventure} isUploading={isUploadingAdventure} />
     </>
   );
