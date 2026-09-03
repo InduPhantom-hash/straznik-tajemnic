@@ -212,6 +212,7 @@ export default function Home() {
   const rulesStatus = useRulesStatus();
   
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState<boolean | null>(null);
+  const [rulesOnboardingCompleted, setRulesOnboardingCompleted] = useState<boolean | null>(null);
   
   const [pendingNewAdventure, setPendingNewAdventure] = useState(false);
 
@@ -634,32 +635,62 @@ export default function Home() {
   const handleApiKeysChange = useCallback(
     (open: boolean) => {
       setShowApiKeysModal(open);
-      if (!open && hasRequiredKeys() && !rulesStatus.hasRules) {
-        setShowRulebookModal(true);
+      if (!open && hasRequiredKeys()) {
+        if (rulesOnboardingCompleted === false || !rulesStatus.hasRules) {
+          setShowRulebookModal(true);
+        }
+      }
+    },
+    [rulesOnboardingCompleted, rulesStatus.hasRules]
+  );
+
+  const handleRulebookUploaded = useCallback(async () => {
+    try {
+      localStorage.setItem('rules_onboarding_completed', 'true');
+    } catch {}
+    setRulesOnboardingCompleted(true);
+    await rulesStatus.refresh();
+    setShowRulebookModal(false);
+  }, [rulesStatus]);
+
+  const handleRulebookChange = useCallback(
+    (open: boolean) => {
+      setShowRulebookModal(open);
+      if (!open && rulesStatus.hasRules) {
+        try {
+          localStorage.setItem('rules_onboarding_completed', 'true');
+        } catch {}
+        setRulesOnboardingCompleted(true);
       }
     },
     [rulesStatus.hasRules]
   );
-
-  const handleRulebookUploaded = useCallback(async () => {
-    await rulesStatus.refresh();
-    setShowRulebookModal(false);
-  }, [rulesStatus]);
 
   // Sekwencja pierwszego startu: Język -> Klucz API -> Podręcznik Zasad CoC 7e -> Ekran Główny
   useEffect(() => {
     if (languageSelectionRequired === false) {
       if (!hasRequiredKeys()) {
         setShowApiKeysModal(true);
-      } else if (!rulesStatus.loading && !rulesStatus.hasRules) {
+      } else if (
+        rulesOnboardingCompleted === false ||
+        (!rulesStatus.loading && !rulesStatus.hasRules)
+      ) {
         setShowRulebookModal(true);
       }
     }
-  }, [languageSelectionRequired, rulesStatus.loading, rulesStatus.hasRules]);
+  }, [
+    languageSelectionRequired,
+    rulesOnboardingCompleted,
+    rulesStatus.loading,
+    rulesStatus.hasRules,
+  ]);
 
   useEffect(() => {
     setLanguageSelectionRequired(
       localStorage.getItem('language_selected') === null
+    );
+    setRulesOnboardingCompleted(
+      localStorage.getItem('rules_onboarding_completed') === 'true'
     );
   }, []);
 
@@ -988,7 +1019,7 @@ export default function Home() {
               />
               <RulebookModal
                 open={showRulebookModal}
-                onOpenChange={setShowRulebookModal}
+                onOpenChange={handleRulebookChange}
                 gated={!rulesStatus.hasRules}
                 onUploaded={handleRulebookUploaded}
                 rulesCount={rulesStatus.rulesCount}
