@@ -611,6 +611,45 @@ export function findEquipmentByName(
 }
 
 /**
+ * Wykrywa czy przedmiot jest zasobem zużywalnym oraz wyciąga ilość z nawiasów
+ * (np. "Morfina (5 dawek)" -> cleanName: "Morfina", quantity: 5, isConsumable: true).
+ */
+export function parseItemConsumableInfo(name: string): {
+  cleanName: string;
+  quantity?: number;
+  maxQuantity?: number;
+  isConsumable?: boolean;
+} {
+  const trimmed = (name || '').trim();
+  const doseMatch = trimmed.match(
+    /^(.+?)\s*\((?:(\d+)\s*(?:dawek|dawki|dawka|szt\.|sztuk|ampułek|ładunków|użyć))\)$/i
+  );
+  if (doseMatch) {
+    const cleanName = doseMatch[1].trim();
+    const count = parseInt(doseMatch[2], 10);
+    return {
+      cleanName,
+      quantity: count,
+      maxQuantity: count,
+      isConsumable: true,
+    };
+  }
+
+  const lower = trimmed.toLowerCase();
+  if (lower === 'morfina' || lower === 'morphine') {
+    return { cleanName: trimmed, quantity: 5, maxQuantity: 5, isConsumable: true };
+  }
+  if (lower === 'bandaże' || lower === 'bandages') {
+    return { cleanName: trimmed, quantity: 3, maxQuantity: 3, isConsumable: true };
+  }
+  if (lower === 'apteczka' || lower === 'first aid kit') {
+    return { cleanName: trimmed, quantity: 3, maxQuantity: 3, isConsumable: true };
+  }
+
+  return { cleanName: trimmed, isConsumable: false };
+}
+
+/**
  * Wygeneruj pełny przedmiot z szablonu
  */
 export function createEquipmentItem(
@@ -618,11 +657,15 @@ export function createEquipmentItem(
   source: 'starting' | 'acquired' | 'found' = 'starting',
   era: EquipmentVisualEra = '1920s'
 ): EquipmentItem {
+  const rawName = template.name || 'Unknown Item';
+  const consumableInfo = parseItemConsumableInfo(rawName);
+  const finalName = consumableInfo.cleanName || rawName;
+
   return applyCatalogTemplate(
     {
       id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       templateId: template.templateId,
-      name: template.name || 'Unknown Item',
+      name: finalName,
       category: template.category || 'personal',
       description: template.description,
       modifiers: template.modifiers,
@@ -631,6 +674,9 @@ export function createEquipmentItem(
       condition: 'used',
       source,
       obtainedAt: new Date(),
+      quantity: template.quantity ?? consumableInfo.quantity,
+      maxQuantity: template.maxQuantity ?? consumableInfo.maxQuantity,
+      isConsumable: template.isConsumable ?? consumableInfo.isConsumable,
     },
     era
   );

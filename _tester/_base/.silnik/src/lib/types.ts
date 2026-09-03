@@ -313,6 +313,9 @@ export interface EquipmentItem {
   condition?: 'new' | 'used' | 'damaged' | 'broken';
   source?: 'starting' | 'acquired' | 'found';
   obtainedAt?: Date;
+  quantity?: number; // Liczba sztuk / dawek dla przedmiotów zużywalnych
+  maxQuantity?: number; // Pojemność maksymalna (np. 5 dawek)
+  isConsumable?: boolean; // Czy przedmiot zużywa się przy użyciu
 
   // Obraz i Multimedia
   imageUrl?: string;

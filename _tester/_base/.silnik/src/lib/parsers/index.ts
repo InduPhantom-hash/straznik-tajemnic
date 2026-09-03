@@ -6,6 +6,7 @@ import { extractImages, detectSFX } from './media-parser';
 import { extractJournalTags } from './journal-parser';
 
 import { extractTimeUpdate } from './time-parser';
+import { extractEquipmentEvents } from './equipment-parser';
 import {
     TAG_NPC_PATTERN,
     TAG_LOCATION_PATTERN,
@@ -24,6 +25,7 @@ export * from './mechanics-parser';
 export * from './dialogue-parser';
 export * from './media-parser';
 export * from './journal-parser';
+export * from './equipment-parser';
 export * from './time-parser';
 export * from './text-cleaner';
 
@@ -191,6 +193,9 @@ export function parseAIResponse(responseText: string): ParsedResponse {
     // NOWE: Ekstrakcja wyników testów (dla systemu rozwoju CoC 7e)
     const skillResults = extractSkillResults(responseText);
 
+    // NOWE: Ekstrakcja zdarzeń manipulacji ekwipunkiem (Fiction First)
+    const equipmentEvents = extractEquipmentEvents(responseText);
+
     // Ekstrakcja czasu gry
     const timeUpdate = extractTimeUpdate(responseText);
 
@@ -213,6 +218,7 @@ export function parseAIResponse(responseText: string): ParsedResponse {
         journalEntries,
         skillTests,
         skillResults,
+        equipmentEvents,
         timeUpdate,
         gmMetadata: (gmMeta.thoughts || gmMeta.mood || gmMeta.narrativeGoal) ? gmMeta : undefined,
         rawText: responseText,

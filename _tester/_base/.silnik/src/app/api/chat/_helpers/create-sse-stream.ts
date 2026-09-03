@@ -131,6 +131,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           dialogues: parsed.dialogues,
           illustrations: parsed.illustrations,
           skillTests: parsed.skillTests,
+          equipmentEvents: parsed.equipmentEvents || [],
           timeUpdate: parsed.timeUpdate,
           costData: usage
             ? {

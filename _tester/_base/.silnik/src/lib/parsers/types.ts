@@ -1,3 +1,17 @@
+import type { EquipmentCategory } from '../types';
+
+export type EquipmentEventAction = 'use' | 'remove' | 'add';
+
+export interface EquipmentEvent {
+  action: EquipmentEventAction;
+  itemName: string;
+  quantity?: number;
+  category?: EquipmentCategory;
+  description?: string;
+  characterName?: string;
+  rawText?: string;
+}
+
 export interface ParsedEvent {
   type:
     | 'npc'
@@ -133,6 +147,7 @@ export interface ParsedResponse {
   journalEntries: JournalTagEntry[];
   skillTests: SkillTestData[];
   skillResults: SkillTestResult[];
+  equipmentEvents: EquipmentEvent[];
   timeUpdate: TimeUpdate | null;
   gmMetadata?: { thoughts?: string; mood?: string; narrativeGoal?: string };
   rawText: string;
