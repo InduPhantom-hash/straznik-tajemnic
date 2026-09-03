@@ -11,15 +11,23 @@
  */
 
 import type { JournalTagEntry } from './parsers/types';
+import { synthesizeClueFact } from './parsers/journal-parser';
 
 // === INTERFEJSY ===
+
+export interface DirectorClueFact {
+  title: string;
+  fact: string;
+}
 
 export interface DirectorState {
   sessionId: string;
   currentPlans: string[];     // FIFO, max 3 (z MYŚLI_MG)
   narrativeGoal: string;      // ostatni CEL_NARRACYJNY
   moodProgression: string[];  // FIFO, max 5 (z NASTRÓJ)
-  discoveredClues: string[];  // z DZIENNIK:clue + DZIENNIK:discovery
+  discoveredClues: string[];  // z DZIENNIK:clue + DZIENNIK:discovery (wsteczna kompatybilność)
+  clueFacts: DirectorClueFact[]; // Zwięzłe fakty śledcze (max 5)
+  investigatorHypotheses: string[]; // Ostatnie wnioski i hipotezy badacza (max 3)
   turnCount: number;
   lastUpdated: string;
 }
@@ -66,10 +74,15 @@ export function updateDirectorState(
       narrativeGoal: '',
       moodProgression: [],
       discoveredClues: [],
+      clueFacts: [],
+      investigatorHypotheses: [],
       turnCount: 0,
       lastUpdated: new Date().toISOString(),
     };
   }
+
+  if (!state.clueFacts) state.clueFacts = [];
+  if (!state.investigatorHypotheses) state.investigatorHypotheses = [];
 
   state.turnCount++;
   state.lastUpdated = new Date().toISOString();
@@ -95,17 +108,47 @@ export function updateDirectorState(
     }
   }
 
-  // Tropy z dziennika
+  // Tropy z dziennika - Issue #68: 1-zdaniowe fakty poszlak i hipotezy
   if (journalEntries && journalEntries.length > 0) {
-    const clueEntries = journalEntries.filter(e => e.type === 'clue' || e.type === 'discovery');
+    const clueEntries = journalEntries.filter(
+      (e) => e.type === 'clue' || e.type === 'discovery'
+    );
     for (const entry of clueEntries) {
-      const clueKey = entry.title.toLowerCase();
-      if (!state.discoveredClues.some(c => c.toLowerCase() === clueKey)) {
+      const clueKey = entry.title.toLowerCase().trim();
+      if (!state.discoveredClues.some((c) => c.toLowerCase().trim() === clueKey)) {
         state.discoveredClues.push(entry.title);
+      }
+
+      // Aktualizuj lub dodaj zwięzły 1-zdaniowy fakt
+      const fact = synthesizeClueFact(entry.title, entry.content);
+      const existingFactIndex = state.clueFacts.findIndex(
+        (f) => f.title.toLowerCase().trim() === clueKey
+      );
+      if (existingFactIndex >= 0) {
+        state.clueFacts[existingFactIndex].fact = fact;
+      } else {
+        state.clueFacts.push({ title: entry.title, fact });
       }
     }
     if (state.discoveredClues.length > MAX_CLUES) {
       state.discoveredClues = state.discoveredClues.slice(-MAX_CLUES);
+    }
+    if (state.clueFacts.length > 5) {
+      state.clueFacts = state.clueFacts.slice(-5);
+    }
+
+    // Wnioski i notatki badacza
+    const noteEntries = journalEntries.filter(
+      (e) => e.type === 'note' || e.type === 'bookmark'
+    );
+    for (const entry of noteEntries) {
+      const insight = entry.content?.trim();
+      if (insight && !state.investigatorHypotheses.includes(insight)) {
+        state.investigatorHypotheses.push(insight);
+      }
+    }
+    if (state.investigatorHypotheses.length > 3) {
+      state.investigatorHypotheses = state.investigatorHypotheses.slice(-3);
     }
   }
 
@@ -113,18 +156,21 @@ export function updateDirectorState(
 }
 
 /**
- * Generuje sekcję promptu "Pamięć Reżysera" (~100-130 tokenów).
+ * Generuje sekcję promptu "Pamięć Reżysera" (~50-80 tokenów).
  * Zwraca null jeśli stan jest pusty (pierwsze tury sesji).
+ *
+ * Uwaga (Issue #68): tropy śledztwa zostały przeniesione do dedykowanej sekcji
+ * `## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA` (buildActiveInvestigationSection w build-context.ts).
  */
 export function getDirectorPromptSection(sessionId: string): string | null {
   const state = stateCache.get(sessionId);
   if (!state) return null;
 
-  // Nie generuj sekcji jeśli brak danych
-  const hasData = state.currentPlans.length > 0 ||
+  // Nie generuj sekcji jeśli brak danych reżyserskich
+  const hasData =
+    state.currentPlans.length > 0 ||
     state.narrativeGoal ||
-    state.moodProgression.length > 0 ||
-    state.discoveredClues.length > 0;
+    state.moodProgression.length > 0;
 
   if (!hasData) return null;
 
@@ -145,10 +191,6 @@ export function getDirectorPromptSection(sessionId: string): string | null {
     } else {
       parts.push(`**Nastrój:** ${current}`);
     }
-  }
-
-  if (state.discoveredClues.length > 0) {
-    parts.push(`**Odkryte tropy:** ${state.discoveredClues.slice(-5).join(', ')}`);
   }
 
   return parts.join('\n');

@@ -20,7 +20,10 @@
 
 import type { CachedContent } from '@google/genai';
 import { getPacingDirective } from '@/lib/pacing-controller';
-import { getDirectorPromptSection } from '@/lib/director-state';
+import {
+  getDirectorPromptSection,
+  getDirectorState,
+} from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
@@ -121,6 +124,238 @@ export function buildPlayerFinancesSection(
   );
 }
 
+/**
+ * Buduje sekcję promptu ze stałym profilem wizualnym Badacza (Visual DNA).
+ * Przekazuje AI wygląd, płeć, wiek, ubiór i cechy szczególne z karty,
+ * aby generowane ilustracje i portrety zachowywały pełną spójność.
+ */
+export function buildPlayerVisualProfileSection(
+  character: Character | null | undefined
+): string {
+  if (!character) return '';
+
+  const details: string[] = [];
+  if (character.gender) {
+    const g =
+      character.gender === 'male'
+        ? 'mężczyzna'
+        : character.gender === 'female'
+          ? 'kobieta'
+          : character.gender;
+    details.push(`Płeć: ${g}`);
+  }
+  if (character.age) details.push(`Wiek: ${character.age} lat`);
+  if (character.occupation) {
+    details.push(`Zawód / Profesja: ${character.occupation}`);
+  }
+  if (character.appearance && character.appearance.trim()) {
+    details.push(`Wygląd i aparycja: ${character.appearance.trim()}`);
+  }
+  if (character.traits && character.traits.length > 0) {
+    details.push(`Cechy szczególne i styl: ${character.traits.join(', ')}`);
+  }
+
+  if (details.length === 0) return '';
+
+  return (
+    `\n## PROFIL WIZUALNY BADACZA (VISUAL DNA)\n` +
+    `Badacz gracza to **${character.name}** o następującym stałym wyglądzie fizycznym:\n` +
+    details.map((d) => `- ${d}`).join('\n') +
+    `\nReguła: Gdy generujesz tagi ilustracji ([SCENA:], [PORTRET:]) z udziałem Badacza, ` +
+    `ZAWSZE wplataj powyższe cechy fizyczne (wiek, sylwetka, ubranie z epoki) w angielski prompt, ` +
+    `aby postać wyglądała spójnie na wszystkich wygenerowanych grafikach.`
+  );
+}
+
+export interface BuildActiveInvestigationOpts {
+  character?: Character | null;
+  characters?: Character[];
+  sessionId?: string;
+  locale?: 'pl' | 'en';
+}
+
+/**
+ * Buduje kompaktową sekcję promptu "AKTYWNE ŚLEDZTWO I WIEDZA BADACZA" (~80-120 tokenów)
+ * zamykającą dwukierunkową pętlę pamięci w relacji Gracz <-> AI MG (Issue #68).
+ *
+ * Zawiera:
+ * 1. Kluczowe potwierdzone poszlaki (do 5 najważniejszych z 1-zdaniową syntezą).
+ * 2. Ostatnie wnioski i hipotezy badacza (z rzutów na Pomysł / notatek / dossier).
+ * 3. Aktywny wątek lub cel śledczy.
+ *
+ * Zachowuje 100% symetrię językową (PL + EN).
+ */
+export function buildActiveInvestigationSection(
+  opts: BuildActiveInvestigationOpts
+): string {
+  const isEn = opts.locale === 'en';
+  const directorState = opts.sessionId ? getDirectorState(opts.sessionId) : null;
+
+  // Znajdź główną postać (lub pierwszą z drużyny)
+  const char = opts.character || opts.characters?.[0];
+
+  // 1. ZBIERZ POSZLAKI (do 5 najważniejszych)
+  const clues: { title: string; fact: string }[] = [];
+  const seenClueKeys = new Set<string>();
+
+  // A. Z dossier postaci (priorytet)
+  if (char?.investigatorDossier?.clues && char.investigatorDossier.clues.length > 0) {
+    // Sortuj: kluczowe poszlaki najpierw, potem najnowsze
+    const sorted = [...char.investigatorDossier.clues].sort((a, b) => {
+      if (a.isKeyClue && !b.isKeyClue) return -1;
+      if (!a.isKeyClue && b.isKeyClue) return 1;
+      return (b.timestamp || 0) - (a.timestamp || 0);
+    });
+
+    for (const c of sorted) {
+      const key = c.title.toLowerCase().trim();
+      if (!seenClueKeys.has(key)) {
+        seenClueKeys.add(key);
+        const fact = (c.description || c.investigatorInsight || '').trim();
+        clues.push({ title: c.title.trim(), fact });
+        if (clues.length >= 5) break;
+      }
+    }
+  }
+
+  // B. Fallback: z dziennika (character.journal)
+  if (clues.length < 5 && char?.journal && char.journal.length > 0) {
+    const journalClues = char.journal
+      .filter((e) => e.type === 'clue' || e.type === 'discovery')
+      .reverse();
+
+    for (const j of journalClues) {
+      const key = j.title.toLowerCase().trim();
+      if (!seenClueKeys.has(key)) {
+        seenClueKeys.add(key);
+        clues.push({ title: j.title.trim(), fact: j.content.trim() });
+        if (clues.length >= 5) break;
+      }
+    }
+  }
+
+  // C. Fallback: z directorState.clueFacts lub discoveredClues
+  if (clues.length < 5 && directorState) {
+    if (directorState.clueFacts && directorState.clueFacts.length > 0) {
+      for (const cf of directorState.clueFacts) {
+        const key = cf.title.toLowerCase().trim();
+        if (!seenClueKeys.has(key)) {
+          seenClueKeys.add(key);
+          clues.push({ title: cf.title, fact: cf.fact });
+          if (clues.length >= 5) break;
+        }
+      }
+    } else if (directorState.discoveredClues && directorState.discoveredClues.length > 0) {
+      for (const title of directorState.discoveredClues.slice(-5)) {
+        const key = title.toLowerCase().trim();
+        if (!seenClueKeys.has(key)) {
+          seenClueKeys.add(key);
+          clues.push({ title, fact: '' });
+          if (clues.length >= 5) break;
+        }
+      }
+    }
+  }
+
+  // 2. ZBIERZ HIPOTEZY I WNIOSKI (do 2 najważniejszych)
+  const hypotheses: string[] = [];
+  const seenHypo = new Set<string>();
+
+  // A. Z notatek badacza (dossier.notes)
+  if (char?.investigatorDossier?.notes && char.investigatorDossier.notes.length > 0) {
+    for (const note of char.investigatorDossier.notes.slice(-2)) {
+      const text = (note.content || note.title).trim();
+      if (text && !seenHypo.has(text.toLowerCase())) {
+        seenHypo.add(text.toLowerCase());
+        hypotheses.push(text);
+      }
+    }
+  }
+
+  // B. Z wniosków poszlak (investigatorInsight)
+  if (hypotheses.length < 2 && char?.investigatorDossier?.clues) {
+    for (const c of char.investigatorDossier.clues) {
+      if (c.investigatorInsight && !seenHypo.has(c.investigatorInsight.toLowerCase())) {
+        seenHypo.add(c.investigatorInsight.toLowerCase());
+        hypotheses.push(c.investigatorInsight.trim());
+        if (hypotheses.length >= 2) break;
+      }
+    }
+  }
+
+  // C. Z directorState.investigatorHypotheses
+  if (hypotheses.length < 2 && directorState?.investigatorHypotheses) {
+    for (const h of directorState.investigatorHypotheses.slice(-2)) {
+      if (!seenHypo.has(h.toLowerCase())) {
+        seenHypo.add(h.toLowerCase());
+        hypotheses.push(h);
+        if (hypotheses.length >= 2) break;
+      }
+    }
+  }
+
+  // 3. AKTYWNY CEL / WĄTEK ŚLEDCZY
+  let activeLead = '';
+  if (directorState?.narrativeGoal) {
+    activeLead = directorState.narrativeGoal.trim();
+  } else if (char?.investigatorDossier?.clues) {
+    const unconfirmedKey = char.investigatorDossier.clues.find(
+      (c) => c.status === 'unconfirmed' || c.isKeyClue
+    );
+    if (unconfirmedKey) {
+      activeLead = unconfirmedKey.title;
+    }
+  }
+
+  // Jeśli brak jakichkolwiek danych śledczych, nie marnujemy tokenów
+  if (clues.length === 0 && hypotheses.length === 0 && !activeLead) {
+    return '';
+  }
+
+  // SKŁADANIE SEKCJI
+  const header = isEn
+    ? '## ACTIVE INVESTIGATION & INVESTIGATOR KNOWLEDGE'
+    : '## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA';
+
+  const lines: string[] = [header];
+
+  // Formatowanie poszlak (1 linia = 1 zwięzła poszlaka z faktem)
+  if (clues.length > 0) {
+    const cluesHeader = isEn
+      ? '**Key confirmed clues:**'
+      : '**Kluczowe potwierdzone poszlaki:**';
+    lines.push(cluesHeader);
+    for (const c of clues) {
+      let desc = c.fact ? `: ${c.fact}` : '';
+      if (desc.length > 100) desc = `${desc.slice(0, 97)}...`;
+      lines.push(`- **${c.title}**${desc}`);
+    }
+  }
+
+  // Formatowanie hipotez
+  if (hypotheses.length > 0) {
+    const hypoHeader = isEn
+      ? '**Investigator hypotheses & insights:**'
+      : '**Wnioski i hipotezy badacza:**';
+    lines.push(hypoHeader);
+    for (const h of hypotheses) {
+      let text = h;
+      if (text.length > 100) text = `${text.slice(0, 97)}...`;
+      lines.push(`- ${text}`);
+    }
+  }
+
+  // Formatowanie aktywnego wątku
+  if (activeLead) {
+    const leadHeader = isEn
+      ? `**Active investigative lead:** ${activeLead}`
+      : `**Aktywny wątek śledczy:** ${activeLead}`;
+    lines.push(leadHeader);
+  }
+
+  return `\n${lines.join('\n')}\n`;
+}
+
 // IND-160: minimal NPC context shape z body request (cleanup `any` z lin 255 route.ts).
 export interface NpcContextEntry {
   name: string;
@@ -152,6 +387,8 @@ export interface BuildAdditionalContextOpts {
   playerEquipmentSection?: string;
   /** Status majątkowy i poziom wydatków postaci wg CoC 7e RAW */
   playerFinancesSection?: string;
+  /** Stały profil fizyczny Badacza (Visual DNA) */
+  playerVisualProfileSection?: string;
   sessionId?: string;
   ragSection?: string;
   summarySection?: string | null;
@@ -200,6 +437,7 @@ export function buildAdditionalContext(
     playerSkillsSection,
     playerEquipmentSection,
     playerFinancesSection,
+    playerVisualProfileSection,
     isGameStart,
     characters,
     era,
@@ -227,6 +465,11 @@ export function buildAdditionalContext(
     additionalContext.push(
       `\n## POSTAĆ GRACZA (STERUJE CZŁOWIEK)\nPostać gracza: **${playerCharacterName}**. To człowiek podejmuje jej decyzje, pisze jej kwestie i wykonuje jej akcje. NIGDY nie generuj wypowiedzi, myśli ani działań postaci ${playerCharacterName} - opisz świat i reakcje NPC, a potem zatrzymaj się na [Co robisz?] i czekaj na input gracza.`
     );
+  }
+
+  // Profil wizualny Badacza (Visual DNA) - by generowane ilustracje miały spójny wygląd
+  if (playerVisualProfileSection) {
+    additionalContext.push(playerVisualProfileSection);
   }
 
   // Uzbrojenie postaci gracza - by AI prowadziło walkę narracyjnie znając broń.
@@ -284,6 +527,15 @@ export function buildAdditionalContext(
     const directorSection = getDirectorPromptSection(sessionId);
     if (directorSection) additionalContext.push(directorSection);
   }
+
+  // Issue #68: Dwukierunkowa pętla pamięci - wstrzykiwanie sekcji ## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA
+  const investigationSection = buildActiveInvestigationSection({
+    character: characters?.[0] ?? undefined,
+    characters,
+    sessionId,
+    locale: opts.locale,
+  });
+  if (investigationSection) additionalContext.push(investigationSection);
 
   if (ragSection) additionalContext.push(ragSection);
   if (summarySection) additionalContext.push(summarySection);

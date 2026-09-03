@@ -31,7 +31,7 @@ export function getCompactGMProtocolPrompt(): string {
 - \`[LOKACJA: Nazwa: atmosfera]\` - w PIERWSZEJ turze (miejsce startu) ORAZ przy każdej zmianie miejsca; zapala pineskę 📍 w nagłówku. W Nazwie podawaj KONKRETNE miejsce (magazyn, biblioteka, pokój hotelowy), bez powtarzania regionu/miasta przygody.
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać.
-- \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka
+- \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata/odzysk SAN/HP. Liczbę bierz z podręcznika/RAG. **Przy stracie ≥5 SAN natychmiast wyzwij [TEST: Inteligencja] (szok poznawczy / wyparcie RAW).**
@@ -155,14 +155,18 @@ Format: \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | krótki opis fizyczny | zwykly]\`
 
 Przykład: \`[ZDOBYTY_PRZEDMIOT: @Eleonora | Mosiężny klucz | Ciężki klucz z numerem magazynu, bez żadnych niezwykłych właściwości. | zwykly]\`
 
-#### 7. DZIENNIK (Wpisy do dziennika gracza)
+#### 7. DZIENNIK (Wpisy do dziennika gracza i akt śledczych)
 Format: \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\`
 
 Typy: \`npc\`, \`odkrycie\`, \`trop\`, \`lokacja\`, \`walka\`, \`poczytalnosc\`, \`rytual\`, \`smierc\`, \`zakladka\`, \`notatka\`
 
+**ZASADY DWUKIERUNKOWEJ PĘTLI PAMIĘCI (Zero-Effort Ledger):**
+- **Poszlaki (\`trop\`, \`odkrycie\`):** Formułuj treść jako **precyzyjny, 1-zdaniowy fakt**. Unikaj ozdobników i lania wody - ta treść trafia do akt śledczych i jest wstrzykiwana do promptu kolejnych tur w sekcji \`## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA\`.
+- **Postacie (\`npc\`):** Gdy postać pojawia się po raz pierwszy lub dochodzi do ważnego zwrotu akcji, podaj zwięzłą informację lub zmianę relacji. System zaktualizuje istniejącą kartę w dossier bez zaśmiecania kroniki duplikatami.
+
 Przykłady:
-- \`[DZIENNIK:npc:Eleonora Vance]Pojawiła się w biurze, twierdząc że jej zmarły ojciec wrócił.[/DZIENNIK]\`
-- \`[DZIENNIK:trop:Ojciec Eleonory]"Wrócił" i obserwował ją z lustra. Możliwe powiązanie z nekromancją?[/DZIENNIK]\`
+- \`[DZIENNIK:npc:Eleonora Vance]Córka zaginionego profesora; podejrzewa, że ojciec upozorował śmierć.[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Dziennik z piwnicy]Ostatni wpis Westona wskazuje na spotkanie w Magazynie nr 7 o północy.[/DZIENNIK]\`
 
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)
 
