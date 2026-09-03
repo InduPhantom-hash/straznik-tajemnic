@@ -46,6 +46,9 @@ export interface WelcomeScreenProps {
   duetCharacterSlots?: DuetCharacterSlot[];
   onOpenCharacterSheet?: (character: Character) => void;
   characters?: Character[];
+  isStarting?: boolean;
+  startProgress?: number;
+  startStatus?: string;
 }
 
 export interface Quote {

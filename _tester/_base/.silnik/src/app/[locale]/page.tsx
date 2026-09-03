@@ -19,7 +19,6 @@ import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
 import { ChatLayout } from '@/components/chat/ChatLayout';
 import { CutscenePlayer } from '@/components/ui/cutscene-player';
-import { HardLoadingScreen } from '@/components/ui/hard-loading-screen';
 import { LanguageSelectionModal } from '@/components/onboarding/language-selection-modal';
 import { CharacterWizardV2 } from '@/components/ui/character-wizard';
 import { persistCharacters } from '@/lib/character-cloud-sync';
@@ -265,7 +264,7 @@ export default function Home() {
   }, [languageSelectionRequired]);
   const { runHealthCheck } = useHealthCheck({ onInvalidKey: handleInvalidKey });
 
-  const { handleStartGame } = useGameStart({
+  const { handleStartGame, isStarting, startProgress, startStatus } = useGameStart({
     setHasStartedGame,
     runHealthCheck,
     activeCharacter: charMgmt.activeCharacter,
@@ -1076,8 +1075,6 @@ export default function Home() {
               adventureContext={adventureContext || undefined}
             />
           )}
-
-          <HardLoadingScreen isVisible={tts.isInitialBuffering} />
         </>
       }
     >
@@ -1155,6 +1152,9 @@ export default function Home() {
           onConfirmAcquiredItem={chat.confirmAcquiredItem}
           onDismissAcquiredItem={chat.dismissAcquiredItem}
           onCharacterUpdate={charMgmt.handleUpdateCharacter}
+          isStarting={isStarting}
+          startProgress={startProgress}
+          startStatus={startStatus}
         />
       )}
       {showPredefinedSelector && (

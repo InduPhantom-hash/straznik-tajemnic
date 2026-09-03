@@ -18,7 +18,6 @@ import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
 import { ChatLayout } from '@/components/chat/ChatLayout';
 import { CutscenePlayer } from '@/components/ui/cutscene-player';
-import { HardLoadingScreen } from '@/components/ui/hard-loading-screen';
 import { CharacterWizardV2 } from '@/components/ui/character-wizard';
 
 // === HOOKI ===
@@ -224,7 +223,7 @@ export default function Home() {
   const handleInvalidKey = useCallback(() => setShowApiKeysModal(true), []);
   const { runHealthCheck } = useHealthCheck({ onInvalidKey: handleInvalidKey });
 
-  const { handleStartGame } = useGameStart({
+  const { handleStartGame, isStarting, startProgress, startStatus } = useGameStart({
     setHasStartedGame,
     runHealthCheck,
     activeCharacter: charMgmt.activeCharacter,
@@ -916,8 +915,6 @@ export default function Home() {
               adventureContext={adventureContext || undefined}
             />
           )}
-
-          <HardLoadingScreen isVisible={tts.isInitialBuffering} />
         </>
       }
     >
@@ -991,6 +988,9 @@ export default function Home() {
         onConfirmAcquiredItem={chat.confirmAcquiredItem}
         onDismissAcquiredItem={chat.dismissAcquiredItem}
         onCharacterUpdate={charMgmt.handleUpdateCharacter}
+        isStarting={isStarting}
+        startProgress={startProgress}
+        startStatus={startStatus}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector

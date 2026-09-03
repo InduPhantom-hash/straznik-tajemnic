@@ -123,6 +123,9 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   duetCharacterSlots = [],
   onOpenCharacterSheet,
   characters = [],
+  isStarting = false,
+  startProgress = 0,
+  startStatus = '',
 }) => {
   const t = useTranslations('WelcomeStart');
   const locale = useLocale();
@@ -314,6 +317,9 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
               onSessionZero={onSessionZero}
               hasSessionZero={hasSessionZero}
               onStartGame={onStartGame}
+              isStarting={isStarting}
+              startProgress={startProgress}
+              startStatus={startStatus}
             />
           ) : (
             <StartModeCards 

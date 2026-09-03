@@ -10,6 +10,7 @@ import {
   BookOpen,
   Sparkles,
   Play,
+  Loader2,
   CheckCircle2,
   AlertCircle,
   UserPlus,
@@ -38,6 +39,9 @@ export interface ManualSetupPanelProps {
   onSessionZero?: () => void;
   hasSessionZero?: boolean;
   onStartGame: () => void;
+  isStarting?: boolean;
+  startProgress?: number;
+  startStatus?: string;
 }
 
 export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
@@ -57,6 +61,9 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
   onSessionZero,
   hasSessionZero = false,
   onStartGame,
+  isStarting = false,
+  startProgress = 0,
+  startStatus = '',
 }) => {
   const t = useTranslations('ManualSetupPanel');
   const isReady = Boolean(hasAdventure && hasCharacter);
@@ -464,14 +471,52 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
       {/* Krok 5: Przycisk "Rozpocznij Grę" */}
       <div className="mt-8 pt-6 border-t border-brass/30 flex flex-col items-center gap-3">
         {isReady ? (
-          <button
-            type="button"
-            onClick={onStartGame}
-            className="w-full sm:w-auto min-w-[280px] px-8 py-4 bg-gradient-to-r from-[#0d9488] to-[#047857] hover:from-[#14b8a6] hover:to-[#059669] text-white font-display font-bold uppercase tracking-[0.2em] text-base rounded border border-primary/60 shadow-[0_0_25px_rgba(20,184,166,0.4)] hover:shadow-[0_0_35px_rgba(20,184,166,0.6)] animate-pulse transition-all cursor-pointer flex items-center justify-center gap-3"
-          >
-            <Play className="w-5 h-5 fill-current" />
-            <span>{t('startGame')}</span>
-          </button>
+          <div className="w-full flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={onStartGame}
+              disabled={isStarting}
+              className={`w-full sm:w-auto min-w-[280px] px-8 py-4 bg-gradient-to-r from-[#0d9488] to-[#047857] hover:from-[#14b8a6] hover:to-[#059669] text-white font-display font-bold uppercase tracking-[0.2em] text-base rounded border border-primary/60 shadow-[0_0_25px_rgba(20,184,166,0.4)] hover:shadow-[0_0_35px_rgba(20,184,166,0.6)] ${
+                isStarting
+                  ? 'opacity-85 cursor-wait brightness-90'
+                  : 'animate-pulse cursor-pointer'
+              } transition-all flex items-center justify-center gap-3`}
+            >
+              {isStarting ? (
+                <Loader2 className="w-5 h-5 animate-spin text-emerald-200" />
+              ) : (
+                <Play className="w-5 h-5 fill-current" />
+              )}
+              <span>{isStarting ? t('startingGame') : t('startGame')}</span>
+            </button>
+
+            {isStarting && (
+              <div
+                data-testid="setup-progress-container"
+                className="w-full max-w-md flex flex-col items-center gap-2 mt-2 animate-in fade-in-50 duration-300"
+              >
+                {/* Pasek postępu */}
+                <div className="w-full h-2.5 bg-black/70 rounded-full border border-brass/40 overflow-hidden relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.8)]">
+                  <div
+                    data-testid="setup-progress-bar"
+                    className="h-full bg-gradient-to-r from-brass via-primary to-emerald-400 rounded-full transition-all duration-500 ease-out relative"
+                    style={{ width: `${Math.min(100, Math.max(5, startProgress))}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Komunikat statusu i procenty */}
+                <div className="w-full flex items-center justify-between text-xs font-special-elite text-brass/90 tracking-[0.08em] px-1">
+                  <span className="flex items-center gap-2 truncate">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                    <span className="truncate">{startStatus || t('statusSettingUp')}</span>
+                  </span>
+                  <span className="font-mono text-brass/80 ml-2 shrink-0">{startProgress}%</span>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="w-full flex flex-col items-center gap-2">
             <button
