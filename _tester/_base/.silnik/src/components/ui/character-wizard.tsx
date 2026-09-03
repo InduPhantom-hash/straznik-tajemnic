@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
 import { ImageLightbox } from './image-lightbox';
+import { WizardEquipmentView } from './wizard-equipment-view';
 import {
   Character,
   EquipmentItem,
@@ -3216,23 +3217,11 @@ export function CharacterWizardV2({
               </div>
             </div>
 
-            {/* Lista ekwipunku */}
-            <div className="border border-brass/28 bg-[#16130f] p-4 flex-1 flex flex-col">
-              <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-1">
-                {t('equipmentAndItems')}
-              </label>
-              <p className="font-serif italic text-xs text-muted-foreground mb-2">
-                {t('equipmentDescription')}
-              </p>
-              <textarea
-                value={state.equipment}
-                onChange={(e) =>
-                  setState((prev) => ({ ...prev, equipment: e.target.value }))
-                }
-                className="w-full flex-1 min-h-[160px] bg-[#0a0c0f] border border-brass/30 p-3 text-foreground focus:outline-none focus:border-brass/50 font-mono text-xs leading-relaxed resize-y"
-                placeholder={t('equipmentPlaceholder')}
-              />
-            </div>
+            {/* Prezentacja ekwipunku Art Déco */}
+            <WizardEquipmentView
+              equipmentStr={state.equipment}
+              era={adventureContext?.yearRange}
+            />
           </div>
         </div>
 
