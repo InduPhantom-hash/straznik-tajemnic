@@ -24,7 +24,17 @@ import {
   ERA_STYLES,
   DIFFICULTY_STYLES,
 } from '@/lib/data/adventure-styles';
-import { Trash2, Upload, Loader2, FileText, Info } from 'lucide-react';
+import {
+  Trash2,
+  Upload,
+  Loader2,
+  FileText,
+  Info,
+  MapPin,
+  Clock,
+  Tv,
+  ExternalLink,
+} from 'lucide-react';
 import { AdventureDetailsModal } from './adventure-details-modal';
 import { localizeStrefa11Adventure } from '@/lib/immersion/strefa-11-localization';
 
@@ -206,135 +216,140 @@ export function AdventureSelector({
     const isDeleting = deletingId === adventure.id;
     const customAdv = adventure as CustomAdventure;
 
+    const ToneIcon = toneStyle.icon;
+    const EraIcon = eraStyle.icon;
+    const DiffIcon = diffStyle.icon;
+
     return (
-      <div className="flex flex-col gap-1.5">
-        <button
-          onClick={() => handleSelect(adventure)}
-          disabled={isDeleting}
-          className={`relative p-4 text-left transition-all duration-300 ${
-            isSelected
-              ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
-              : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
-          } ${isDeleting ? 'opacity-50' : ''}`}
-        >
-          {/* Narożnik déco (lewy-górny) */}
-          <span
-            className={`pointer-events-none absolute left-1.5 top-1.5 h-2.5 w-2.5 border-l-[1.5px] border-t-[1.5px] ${
-              isSelected ? 'border-primary' : 'border-brass/45'
-            }`}
-          />
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => handleSelect(adventure)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleSelect(adventure);
+          }
+        }}
+        className={`group relative p-4 text-left cursor-pointer transition-all duration-300 select-none ${
+          isSelected
+            ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
+            : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
+        } ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
+      >
+        {/* Narożnik déco (lewy-górny) */}
+        <span
+          className={`pointer-events-none absolute left-1.5 top-1.5 h-2.5 w-2.5 border-l-[1.5px] border-t-[1.5px] ${
+            isSelected ? 'border-primary' : 'border-brass/45'
+          }`}
+        />
 
-          {/* Header */}
-          <div className="mb-2 flex items-start justify-between gap-2">
-            <h3 
-              className="pr-2 font-display text-lg font-semibold leading-tight tracking-[0.06em] text-foreground"
-              title={adventure.title}
-            >
-              {adventure.title}
-            </h3>
-            <div className="flex shrink-0 items-center gap-2">
-              <span
-                className={`border border-brass/35 px-2 py-0.5 font-special-elite text-[13px] uppercase tracking-[0.08em] ${toneStyle.color}`}
-              >
-                {toneStyle.icon} {tStyles(toneStyle.translationKey)}
-              </span>
-              {isSelected && (
-                <span
-                  aria-label={t('selectedAria')}
-                  className="flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)]"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="-rotate-45 text-sm text-[#04110f]"
-                  >
-                    ✓
-                  </span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Meta info */}
-          <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-special-elite text-[14px] uppercase tracking-[0.08em]">
-            <span className={`${eraStyle.color}`}>
-              {eraStyle.icon} {adventure.eraLabel} ({adventure.yearRange})
-            </span>
-            <span className="text-brass/40">·</span>
-            <span className="text-muted-foreground">
-              📍 {adventure.location}
-            </span>
-          </div>
-
-          {/* Hook - klimatyczna zajawka (2 linijki) */}
-          <p className="mb-3 line-clamp-2 font-serif text-base italic leading-relaxed text-foreground/80">
-            {adventure.hook}
-          </p>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between font-special-elite text-[14px] uppercase tracking-[0.08em] text-muted-foreground">
-            <span>{t('sessionsCount', { count: adventure.estimatedSessions })}</span>
-            <span className={diffStyle.color}>
-              {diffStyle.icon} {tStyles(diffStyle.translationKey)}
-            </span>
-          </div>
-
-          {/* External Links dla scenariuszy Strefa 11 */}
-          {adventure.externalLinks && adventure.externalLinks.length > 0 && (
-            <div className="mt-3 pt-2 border-t border-brass/15 flex flex-wrap gap-2 text-[12px] font-special-elite" onClick={(e) => e.stopPropagation()}>
-              <span className="text-brass/70 font-semibold">{t('officialSources')}</span>
-              {adventure.externalLinks.map((link, idx) => (
-                <a
-                  key={idx}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:text-brass underline flex items-center gap-1 transition-colors"
-                >
-                  {link.label} ↗
-                </a>
-              ))}
-            </div>
-          )}
-
-          {/* PDF Badge for custom adventures */}
-          {isCustom && customAdv.fileName && (
-            <div className="mt-2 flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.08em] text-primary">
-              <FileText className="h-3 w-3" />
-              <span className="max-w-[200px] truncate">
-                {customAdv.fileName}
-              </span>
-            </div>
-          )}
-        </button>
-
-        {/* Dolne przyciski akcji (poza główną kartą) */}
-        <div className="flex items-center justify-between mt-1.5 w-full">
-          <button
-            type="button"
-            onClick={() => setDetailsAdventure(adventure)}
-            className="flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.1em] text-primary hover:text-brass transition-colors"
+        {/* Header */}
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <h3 
+            className="pr-2 font-display text-lg font-semibold leading-tight tracking-[0.06em] text-foreground"
+            title={adventure.title}
           >
-            <Info className="h-4 w-4" />
-            {t('moreDetails')}
-          </button>
+            {adventure.title}
+          </h3>
+          <div className="flex shrink-0 items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 border border-brass/35 px-2 py-0.5 font-display text-xs uppercase tracking-[0.08em] ${toneStyle.color}`}
+            >
+              <ToneIcon className="h-3 w-3 shrink-0" />
+              {tStyles(toneStyle.translationKey)}
+            </span>
+            {isSelected && (
+              <span
+                aria-label={t('selectedAria')}
+                className="flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="-rotate-45 text-sm text-[#04110f]"
+                >
+                  ✓
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
 
-          {isCustom && onDeleteAdventure && (
+        {/* Meta info */}
+        <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-sm italic text-muted-foreground">
+          <span className={`inline-flex items-center gap-1 ${eraStyle.color}`}>
+            <EraIcon className="h-3.5 w-3.5 shrink-0 text-brass/70" />
+            {adventure.eraLabel} ({adventure.yearRange})
+          </span>
+          <span className="text-brass/40 not-italic">·</span>
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+            {adventure.location}
+          </span>
+        </div>
+
+        {/* Hook - klimatyczna zajawka (2 linijki) */}
+        <p className="mb-3 line-clamp-2 font-serif text-base italic leading-relaxed text-foreground/80">
+          {adventure.hook}
+        </p>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between font-display text-xs uppercase tracking-wider text-muted-foreground border-t border-brass/15 pt-2.5">
+          <span className="inline-flex items-center gap-1 text-brass/80">
+            <Clock className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+            {t('sessionsCount', { count: adventure.estimatedSessions })}
+          </span>
+
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1 ${diffStyle.color}`}>
+              <DiffIcon className="h-3.5 w-3.5 shrink-0" />
+              {tStyles(diffStyle.translationKey)}
+            </span>
+
+            {/* Dyskretna zintegrowana akcja szczegółów */}
             <button
               type="button"
-              onClick={(e) => handleDelete(adventure.id, e)}
-              disabled={isDeleting}
-              className="flex items-center gap-1 font-special-elite text-[14px] uppercase tracking-[0.1em] text-destructive hover:text-red-300 transition-colors p-1"
-              title={t('deleteAdventureTitle')}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDetailsAdventure(adventure);
+              }}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 text-brass/70 hover:text-primary hover:bg-brass/10 rounded transition-colors"
+              title={t('moreDetails')}
+              aria-label={t('moreDetails')}
             >
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              <span>{t('deleteButton')}</span>
+              <Info className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold">{t('moreDetails')}</span>
             </button>
-          )}
+
+            {/* Przycisk usuwania dla własnych przygód */}
+            {isCustom && onDeleteAdventure && (
+              <button
+                type="button"
+                onClick={(e) => handleDelete(adventure.id, e)}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1 text-destructive hover:text-red-300 transition-colors p-0.5"
+                title={t('deleteAdventureTitle')}
+                aria-label={t('deleteButton')}
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* PDF Badge for custom adventures */}
+        {isCustom && customAdv.fileName && (
+          <div className="mt-2 flex items-center gap-1 font-serif text-sm italic text-primary">
+            <FileText className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-[200px] truncate">
+              {customAdv.fileName}
+            </span>
+          </div>
+        )}
       </div>
     );
   };
@@ -476,13 +491,17 @@ export function AdventureSelector({
               <div>
                 <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
                   <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
-                    <span>📺</span> {t('strefa11Header')}
+                    <Tv className="h-4 w-4 text-primary shrink-0" />
+                    {t('strefa11Header')}
                   </div>
                   <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
                     {t('strefa11Desc')}
                   </p>
-                  <div className="flex flex-wrap gap-3 mt-2 text-xs font-special-elite text-brass/80">
-                    <span>{t('learnMore')}</span>
+                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-serif italic text-brass/80">
+                    <span className="inline-flex items-center gap-1 font-display uppercase tracking-wider text-brass font-semibold not-italic text-[11px]">
+                      <ExternalLink className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+                      {t('learnMore')}
+                    </span>
                     <a href="https://pl.wikipedia.org/wiki/Nie_do_wiary" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wikipedia ↗</a>
                     <span>·</span>
                     <a href="https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Filmweb ↗</a>
