@@ -34,6 +34,7 @@ import { useSceneSummary } from '@/hooks/useSceneSummary';
 import { useGameStart } from '@/hooks/useGameStart';
 import { useHealthCheck } from '@/hooks/useHealthCheck';
 import { getApiKeyHeaders, hasRequiredKeys } from '@/lib/api-keys-service';
+import { useRulesStatus } from '@/hooks/useRulesStatus';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
 import { useSkillMarking } from '@/hooks/useSkillMarking';
 import { useFullReset } from '@/hooks/useFullReset';
@@ -101,6 +102,16 @@ const ApiKeysModal = dynamic(
   () =>
     import('@/components/dialogs/ApiKeysModal').then((mod) => ({
       default: mod.ApiKeysModal,
+    })),
+  {
+    ssr: false,
+  }
+);
+
+const RulebookModal = dynamic(
+  () =>
+    import('@/components/dialogs/RulebookModal').then((mod) => ({
+      default: mod.RulebookModal,
     })),
   {
     ssr: false,
@@ -195,6 +206,8 @@ export default function Home() {
   const [activeGMTool, setActiveGMTool] = useState<string | null>(null);
   const [showHotSeatSetup, setShowHotSeatSetup] = useState(false);
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
+  const [showRulebookModal, setShowRulebookModal] = useState(false);
+  const rulesStatus = useRulesStatus();
   
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState<boolean | null>(null);
   
@@ -342,6 +355,10 @@ export default function Home() {
       setShowApiKeysModal(true);
       return;
     }
+    if (!rulesStatus.hasRules) {
+      setShowRulebookModal(true);
+      return;
+    }
     if (hotSeat.config.enabled) {
       const players = hotSeat.config.players;
 
@@ -373,7 +390,7 @@ export default function Home() {
       hotSeat.bindCharactersByPlayerName(charMgmt.characters);
     }
     handleStartGame();
-  }, [hotSeat, charMgmt.characters, handleStartGame, t]);
+  }, [hotSeat, charMgmt.characters, handleStartGame, t, rulesStatus.hasRules]);
 
   
   
@@ -549,18 +566,38 @@ export default function Home() {
       }
       setPendingQuickStart(true);
     },
-    [charMgmt, hotSeat, handleStartGameGuarded, t]
+    [charMgmt, hotSeat, handleStartGameGuarded, t, rulesStatus.hasRules]
   );
 
   
   
   
   
+  const handleApiKeysChange = useCallback(
+    (open: boolean) => {
+      setShowApiKeysModal(open);
+      if (!open && hasRequiredKeys() && !rulesStatus.hasRules) {
+        setShowRulebookModal(true);
+      }
+    },
+    [rulesStatus.hasRules]
+  );
+
+  const handleRulebookUploaded = useCallback(async () => {
+    await rulesStatus.refresh();
+    setShowRulebookModal(false);
+  }, [rulesStatus]);
+
+  // Sekwencja pierwszego startu: Język -> Klucz API -> Podręcznik Zasad CoC 7e -> Ekran Główny
   useEffect(() => {
-    if (languageSelectionRequired === false && !hasRequiredKeys()) {
-      setShowApiKeysModal(true);
+    if (languageSelectionRequired === false) {
+      if (!hasRequiredKeys()) {
+        setShowApiKeysModal(true);
+      } else if (!rulesStatus.loading && !rulesStatus.hasRules) {
+        setShowRulebookModal(true);
+      }
     }
-  }, [languageSelectionRequired]);
+  }, [languageSelectionRequired, rulesStatus.loading, rulesStatus.hasRules]);
 
   useEffect(() => {
     setLanguageSelectionRequired(
@@ -881,10 +918,19 @@ export default function Home() {
           )}
 
           {languageSelectionRequired === false && (
-            <ApiKeysModal
-              open={showApiKeysModal}
-              onOpenChange={setShowApiKeysModal}
-            />
+            <>
+              <ApiKeysModal
+                open={showApiKeysModal}
+                onOpenChange={handleApiKeysChange}
+              />
+              <RulebookModal
+                open={showRulebookModal}
+                onOpenChange={setShowRulebookModal}
+                gated={!rulesStatus.hasRules}
+                onUploaded={handleRulebookUploaded}
+                rulesCount={rulesStatus.rulesCount}
+              />
+            </>
           )}
 
           {}
@@ -960,7 +1006,7 @@ export default function Home() {
               luck: Math.max(0, c.luck - amount),
             });
           }}
-          onUploadRules={() => document.getElementById('rules-upload')?.click()}
+          onUploadRules={() => setShowRulebookModal(true)}
           onSelectAdventure={() => openAdventureSelectorRef.current?.()}
           onSessionZero={() => openSessionZeroRef.current?.()}
           hasAdventure={!!adventureContext}
@@ -994,7 +1040,7 @@ export default function Home() {
             save.setShowFullSaveModal(true);
           }}
           onColdStart={fullReset.handleFullReset}
-          hasRules={!!pdf.pdfMemory.rulesUrl}
+          hasRules={rulesStatus.hasRules}
           hasSessionZero={sessionZeroCompleted}
           hasStartedGame={hasStartedGame}
           onOpenApiKeys={() => setShowApiKeysModal(true)}

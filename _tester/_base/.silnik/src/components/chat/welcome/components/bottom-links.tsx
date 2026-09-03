@@ -16,17 +16,19 @@ const GHOST_BTN =
 interface BottomLinksProps {
   onLoadSave?: () => void;
   onOpenApiKeys?: () => void;
+  onOpenRulebook?: () => void;
   onColdStart?: () => void;
 }
 
 export const BottomLinks: FC<BottomLinksProps> = ({
   onLoadSave,
   onOpenApiKeys,
+  onOpenRulebook,
   onColdStart,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!onLoadSave && !onOpenApiKeys && !onColdStart) return null;
+  if (!onLoadSave && !onOpenApiKeys && !onOpenRulebook && !onColdStart) return null;
 
   return (
     <div className="flex flex-col items-center gap-3 z-20 mt-4">
@@ -39,7 +41,7 @@ export const BottomLinks: FC<BottomLinksProps> = ({
       </button>
 
       {isOpen && (
-        <div className="flex flex-wrap justify-center gap-2 w-[min(500px,90vw)] animate-in fade-in-50 slide-in-from-top-2 duration-200">
+        <div className="flex flex-wrap justify-center gap-2 w-[min(550px,90vw)] animate-in fade-in-50 slide-in-from-top-2 duration-200">
           {onLoadSave && (
             <button onClick={onLoadSave} className={GHOST_BTN}>
               Wczytaj zapis
@@ -48,6 +50,11 @@ export const BottomLinks: FC<BottomLinksProps> = ({
           {onOpenApiKeys && (
             <button onClick={onOpenApiKeys} className={GHOST_BTN}>
               Klucze API
+            </button>
+          )}
+          {onOpenRulebook && (
+            <button onClick={onOpenRulebook} className={GHOST_BTN}>
+              Podręcznik zasad
             </button>
           )}
           {onColdStart && (

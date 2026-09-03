@@ -247,9 +247,22 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
               <button
                 type="button"
                 onClick={onOpenApiKeys}
-                className="w-full font-display uppercase tracking-[0.14em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all"
+                className="w-full font-display uppercase tracking-[0.14em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all cursor-pointer"
               >
                 {t('openApiKeys')}
+              </button>
+            </div>
+          ) : !hasRules ? (
+            <div className="bg-black/60 border border-brass/50 p-6 rounded-md shadow-[0_0_40px_rgba(201,162,39,0.1)] max-w-lg w-full relative z-30">
+              <div className="mb-4 text-center font-display uppercase tracking-[0.2em] text-primary text-sm">
+                {t('rulesRequired')}
+              </div>
+              <button
+                type="button"
+                onClick={onUploadRules}
+                className="w-full font-display uppercase tracking-[0.14em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all cursor-pointer"
+              >
+                {t('openRulebook')}
               </button>
             </div>
           ) : isManualMode ? (
@@ -285,6 +298,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
             <BottomLinks
               onLoadSave={onLoadSave}
               onOpenApiKeys={onOpenApiKeys}
+              onOpenRulebook={onUploadRules}
               onColdStart={onColdStart}
             />
           </div>
