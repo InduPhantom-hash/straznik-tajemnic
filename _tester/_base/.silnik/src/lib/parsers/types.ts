@@ -45,14 +45,18 @@ export interface DialogueLine {
   audioTags?: string; // audio tags dla ElevenLabs v3 ([whispers], [angrily], etc.)
 }
 
+export type ImageType = 'portrait' | 'scene' | 'location' | 'item' | 'monster' | 'vision';
+
 export interface ImageRequest {
   prompt: string;
-  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait';
+  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait' | 'item' | 'location';
   priority?: 'high' | 'normal';
   isMythos?: boolean;
-  type?: 'portrait' | 'scene';
+  type?: ImageType;
   aspectRatio?: '16:9' | '3:4' | '1:1';
   portraitName?: string;
+  itemName?: string;
+  locationName?: string;
 }
 
 export interface SFXRequest {

@@ -159,6 +159,14 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           clearStoredWorldSetup();
         }
 
+        // Przywróć listę NPC oraz lokacji z pliku zapisu do pamięci podręcznej
+        if (save.npcs && Array.isArray(save.npcs) && save.npcs.length > 0) {
+          safeSetItem('gm_npcs', JSON.stringify(save.npcs));
+        }
+        if (save.locations && Array.isArray(save.locations) && save.locations.length > 0) {
+          safeSetItem('gm_locations', JSON.stringify(save.locations));
+        }
+
         // Aktualizuj activeGameState
         setActiveGameState({
           currentCharacter: save.activeCharacterId

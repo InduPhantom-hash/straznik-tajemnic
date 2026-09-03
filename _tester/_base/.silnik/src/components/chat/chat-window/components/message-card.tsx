@@ -171,12 +171,15 @@ export function MessageCard({
             {message.generatedImages && message.generatedImages.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-4 items-start">
                 {message.generatedImages.map((imgUrl, idx) => {
-                  const isPortrait = message.generatedImageTypes?.[idx] === 'portrait';
+                  const imgType = message.generatedImageTypes?.[idx];
+                  const isPortrait = imgType === 'portrait';
+                  const isItem = imgType === 'item';
+                  const isCompact = isPortrait || isItem;
                   return (
                   <div
                     key={idx}
                     className={`relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg ${
-                      isPortrait ? 'w-48 sm:w-56 flex-shrink-0' : 'w-full'
+                      isCompact ? 'w-48 sm:w-56 flex-shrink-0' : 'w-full'
                     }`}
                     style={{
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
@@ -188,7 +191,9 @@ export function MessageCard({
                       className={`w-full cursor-pointer hover:opacity-90 transition-opacity ${
                         isPortrait
                           ? 'aspect-[3/4] object-cover object-top'
-                          : 'h-auto max-h-[70vh] object-contain bg-black/30'
+                          : isItem
+                            ? 'aspect-square object-contain bg-black/40 p-2'
+                            : 'h-auto max-h-[70vh] object-contain bg-black/30'
                       }`}
                       style={{
                         filter: 'sepia(0.1) saturate(1.1)',

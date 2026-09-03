@@ -832,8 +832,22 @@ export default function Home() {
                       activeCharacterId: charMgmt.activeCharacter?.id,
                       campaigns: campaigns,
                       activeCampaignId: charMgmt.activeGameState.campaign?.id,
-                      npcs: [],
-                      locations: [],
+                      npcs: (() => {
+                        if (typeof window === 'undefined') return [];
+                        try {
+                          return JSON.parse(localStorage.getItem('gm_npcs') || '[]');
+                        } catch {
+                          return [];
+                        }
+                      })(),
+                      locations: (() => {
+                        if (typeof window === 'undefined') return [];
+                        try {
+                          return JSON.parse(localStorage.getItem('gm_locations') || '[]');
+                        } catch {
+                          return [];
+                        }
+                      })(),
                       currentLocationId: undefined,
                       pdfMemory: pdf.pdfMemory,
                       notes: '',
