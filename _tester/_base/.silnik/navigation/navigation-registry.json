@@ -221,8 +221,8 @@
       "id": "journal",
       "kind": "modal",
       "label": {
-        "pl": "Dziennik sesji",
-        "en": "Session journal"
+        "pl": "Dziennik sesji i akta śledcze",
+        "en": "Session journal and investigator dossier"
       }
     },
     {
