@@ -236,4 +236,68 @@ describe('ManualSetupPanel', () => {
       screen.getByText('Wprowadzenie i ustalenia sesji: gotowe')
     ).toBeInTheDocument();
   });
+
+  it('wyświetla stan ładowania przycisku i pasek postępu ze statusem podczas uruchamiania (PL)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const onStartGame = jest.fn();
+
+    render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onStartGame={onStartGame}
+        hasAdventure={true}
+        adventureTitle="Zew Cthulhu"
+        hasCharacter={true}
+        activeCharacter={mockCharacter}
+        isStarting={true}
+        startProgress={45}
+        startStatus="Analiza scenariusza i spójności historycznej..."
+      />
+    );
+
+    const startBtn = screen.getByRole('button', { name: /Przygotowywanie sesji.../i });
+    expect(startBtn).toBeDisabled();
+    fireEvent.click(startBtn);
+    expect(onStartGame).not.toHaveBeenCalled();
+
+    expect(screen.getByTestId('setup-progress-container')).toBeInTheDocument();
+    const progressBar = screen.getByTestId('setup-progress-bar');
+    expect(progressBar).toHaveStyle({ width: '45%' });
+
+    expect(screen.getByText('Analiza scenariusza i spójności historycznej...')).toBeInTheDocument();
+    expect(screen.getByText('45%')).toBeInTheDocument();
+  });
+
+  it('poprawnie lokalizuje stan uruchamiania i pasek postępu po angielsku (EN)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'en';
+
+    render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        hasAdventure={true}
+        adventureTitle="Call of Cthulhu"
+        hasCharacter={true}
+        activeCharacter={mockCharacter}
+        isStarting={true}
+        startProgress={75}
+        startStatus="Connecting with the Game Master..."
+      />
+    );
+
+    const startBtn = screen.getByRole('button', { name: /Preparing session.../i });
+    expect(startBtn).toBeDisabled();
+
+    expect(screen.getByTestId('setup-progress-container')).toBeInTheDocument();
+    const progressBar = screen.getByTestId('setup-progress-bar');
+    expect(progressBar).toHaveStyle({ width: '75%' });
+
+    expect(screen.getByText('Connecting with the Game Master...')).toBeInTheDocument();
+    expect(screen.getByText('75%')).toBeInTheDocument();
+    expect(screen.queryByText('Przygotowywanie sesji...')).not.toBeInTheDocument();
+  });
 });

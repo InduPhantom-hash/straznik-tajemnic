@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Character,
   Message,
@@ -191,6 +191,10 @@ export function useGameStart({
   runHealthCheck,
   locale = 'pl',
 }: UseGameStartProps) {
+  const [isStarting, setIsStarting] = useState(false);
+  const [startProgress, setStartProgress] = useState(0);
+  const [startStatus, setStartStatus] = useState('');
+
   // IND-271: kolejka auto-generacji miniatur ekwipunku w tle (fire-and-forget
   // po starcie gry, NIE blokuje startu; cache-aware - pomija itemy z imageUrl).
   const { generateThumbnailsInBackground } = useEquipmentThumbnails({
@@ -446,11 +450,35 @@ export function useGameStart({
   const handleStartGame = useCallback(async () => {
     if (isStartingRef.current) return;
     isStartingRef.current = true;
+    setIsStarting(true);
+    setStartProgress(15);
+    setStartStatus(
+      locale === 'en'
+        ? 'Initializing session parameters...'
+        : 'Inicjalizacja parametrów sesji...'
+    );
+
+    // Autostart muzyki w tle (YouTubePlayer nasłuchuje 'zew:start-music').
+    // MUSI paść synchronicznie w obrębie gestu kliknięcia „Rozpocznij",
+    // PRZED pierwszym await - inaczej przeglądarka zablokuje odtwarzanie dźwięku.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zew:start-music'));
+    }
 
     if (!adventureContext) {
       isStartingRef.current = false;
+      setIsStarting(false);
+      setStartProgress(0);
+      setStartStatus('');
       return;
     }
+
+    setStartProgress(30);
+    setStartStatus(
+      locale === 'en'
+        ? 'Preparing world and era settings...'
+        : 'Przygotowywanie założeń świata i epoki...'
+    );
 
     const eraContext = resolveGameEraContext({ adventure: adventureContext });
     if (!adventureContext.isCustom) {
@@ -458,6 +486,12 @@ export function useGameStart({
       // dodatkowego kosztu tylko po to, aby wejść do pierwszej sceny.
       storeWorldSetup(createPresetWorldSetup(adventureContext, eraContext));
     } else {
+      setStartProgress(40);
+      setStartStatus(
+        locale === 'en'
+          ? 'Analyzing scenario and historical coherence...'
+          : 'Analiza scenariusza i spójności historycznej...'
+      );
       try {
         const preflightSource = JSON.stringify({
           title: adventureContext.title,
@@ -515,6 +549,9 @@ export function useGameStart({
         storeWorldSetup(preflightPayload.worldSetup);
       } catch (error) {
         console.error('World preflight failed:', error);
+        setIsStarting(false);
+        setStartProgress(0);
+        setStartStatus('');
         setHasStartedGame(false);
         setMessages([
           {
@@ -535,18 +572,15 @@ export function useGameStart({
     // IND-273 T3: self-check klucza/modeli (fire-and-forget, TTL dławi, nie blokuje startu).
     runHealthCheck?.();
 
-    // Włącz hard-loading screen dla powitalnego intra TTS (zniknie po pobraniu 1 paczki)
+    // Buforowanie TTS w tle
     tts.startInitialBuffering();
 
-    setHasStartedGame(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('has_started_game', 'true');
-      localStorage.setItem('session_started_at', String(Date.now()));
-      // Autostart muzyki w tle (YouTubePlayer nasłuchuje 'zew:start-music').
-      // MUSI paść synchronicznie w obrębie gestu kliknięcia „Rozpocznij",
-      // PRZED pierwszym await - inaczej przeglądarka zablokuje odtwarzanie dźwięku.
-      window.dispatchEvent(new CustomEvent('zew:start-music'));
-    }
+    setStartProgress(55);
+    setStartStatus(
+      locale === 'en'
+        ? 'Verifying investigator sheet and equipment...'
+        : 'Weryfikacja karty Badacza i ekwipunku...'
+    );
 
     // IND-57: zeruj licznik tokenów bieżącej sesji (totalTokens zostaje - career counter)
     resetSessionTokens();
@@ -621,6 +655,12 @@ export function useGameStart({
         : hotSeatConfig;
 
       // Zadanie 6: retry na chwilowy blip sieci przy starcie gry (1-2 próby).
+      setStartProgress(75);
+      setStartStatus(
+        locale === 'en'
+          ? 'Connecting with the Game Master...'
+          : 'Nawiązywanie kontaktu z Mistrzem Gry...'
+      );
       const response = await fetchWithRetry('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -654,6 +694,13 @@ export function useGameStart({
         throw new Error(`Chat API ${response.status}: ${serverMsg}`);
       }
 
+      setStartProgress(90);
+      setStartStatus(
+        locale === 'en'
+          ? 'Generating opening scene...'
+          : 'Generowanie sceny otwierającej...'
+      );
+
       // Dodaj pustą wiadomość asystenta do strumieniowania
       setMessages((prev) => [
         ...prev,
@@ -668,6 +715,24 @@ export function useGameStart({
       // utworzeniu placeholdera, aby wynik nie utworzył osobnej karty czatu.
       void generateIntroImage(assistantMessageId);
 
+      // Płynne przełączenie ekranu z panelu konfiguracji do czatu w momencie
+      // nadejścia pierwszego tokenu narracji lub rozpoczęcia strumienia.
+      let hasTransitionedToGame = false;
+      const transitionToGame = () => {
+        if (hasTransitionedToGame) return;
+        hasTransitionedToGame = true;
+        setStartProgress(100);
+        setStartStatus(
+          locale === 'en' ? 'Beginning the adventure!' : 'Zaczynamy przygodę!'
+        );
+        setHasStartedGame(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('has_started_game', 'true');
+          localStorage.setItem('session_started_at', String(Date.now()));
+        }
+        setIsStarting(false);
+      };
+
       // Użyj uniwersalnego parsera SSE.
       // IND-256 (bliźniak useChat): `streamedFullText` akumuluje pełny tekst z
       // onText, by onMetadata mógł go użyć BEZ czytania zewnętrznego `fullText`.
@@ -679,6 +744,7 @@ export function useGameStart({
       let streamedFullText = '';
       const fullText = await parseSSEStream(response, {
         onText: (text) => {
+          transitionToGame();
           streamedFullText = text;
           setMessages((prev) =>
             prev.map((msg) =>
@@ -738,6 +804,9 @@ export function useGameStart({
         }),
       });
 
+      // Bezpiecznik: jeśli parseSSEStream zakończył się bez ani jednego onText
+      transitionToGame();
+
       // IND-201: auto-dziennik dla openingu (opening idzie tym samym /api/chat
       // z gm-protocol, może nieść [DZIENNIK:]). Idempotentne (dedup po messageId).
       if (activeCharacter) {
@@ -759,6 +828,10 @@ export function useGameStart({
       }
     } catch (error) {
       console.error('Game start intro failed:', error);
+      setIsStarting(false);
+      setStartProgress(0);
+      setStartStatus('');
+      setHasStartedGame(true);
       tts.stopCurrentAudio();
       // Zadanie 6: po wyczerpaniu retry pokaż graczowi co się stało zamiast pustego
       // ekranu - blip sieci dostaje wskazówkę "spróbuj ponownie", inny błąd ogólny.
@@ -787,6 +860,7 @@ export function useGameStart({
       });
     } finally {
       isStartingRef.current = false;
+      setIsStarting(false);
     }
   }, [
     setHasStartedGame,
@@ -807,5 +881,10 @@ export function useGameStart({
     locale,
   ]);
 
-  return { handleStartGame };
+  return {
+    handleStartGame,
+    isStarting,
+    startProgress,
+    startStatus,
+  };
 }
