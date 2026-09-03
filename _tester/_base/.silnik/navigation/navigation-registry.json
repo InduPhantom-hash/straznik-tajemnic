@@ -206,6 +206,14 @@
       }
     },
     {
+      "id": "equipment-detail",
+      "kind": "modal",
+      "label": {
+        "pl": "Szczegóły przedmiotu",
+        "en": "Equipment detail"
+      }
+    },
+    {
       "id": "journal",
       "kind": "modal",
       "label": {
@@ -440,6 +448,15 @@
         "en": "Equipment"
       },
       "component": "src/components/sidebar/CthulhuSidebar.tsx"
+    },
+    {
+      "source": "equipment",
+      "target": "equipment-detail",
+      "label": {
+        "pl": "Szczegóły przedmiotu",
+        "en": "Equipment details"
+      },
+      "component": "src/components/ui/equipment-detail-dialog.tsx"
     },
     {
       "source": "game",
