@@ -5098,35 +5098,6 @@
     "searchingButton": "Searching...",
     "answerTitle": "Assistant's Answer"
   },
-  "CloudStorageSettings": {
-    "sectionTitle": "Google Cloud Storage",
-    "enableLabel": "Enable Cloud Storage",
-    "enableHelp": "Store sessions and files in Google Cloud. Enables synchronization between devices.",
-    "bucketLabel": "Bucket name",
-    "bucketHelp": "The name of the Google Cloud Storage bucket where session files will be stored.",
-    "retentionLabel": "Automatic cleanup (days)",
-    "retentionHelp": "After how many days old sessions should be removed from the cloud. 30 days is the recommended value.",
-    "cachingLabel": "Enable caching",
-    "cachingHelp": "Temporarily store frequently used files locally for faster access.",
-    "compressionLabel": "Enable compression",
-    "compressionHelp": "Compress files before saving to save space and data transfer.",
-    "testButton": "Test Cloud Storage"
-  },
-  "CustomCommandsSettings": {
-    "sectionTitle": "Out-of-story Commands",
-    "sectionHelp": "Commands in square brackets [] are treated as out-of-story questions. Answers to them are not read by the narrator voice.",
-    "introText": "Commands in square brackets [] are out-of-story questions. The AI answers them concisely, without narration.",
-    "defaultsPrefix": "Default commands:",
-    "defaultsSuffix": "cannot be removed.",
-    "availableCommands": "Available commands",
-    "addCommand": "Add command",
-    "defaultBadge": "(default)",
-    "sheetCommandDescription": "Shows the current character sheet (HP, MP, SAN, main skills)",
-    "inventoryCommandDescription": "Shows the list of items in the character's inventory",
-    "commandNamePlaceholder": "command name",
-    "commandNameFallback": "name",
-    "commandDescriptionPlaceholder": "Command description (what it does)"
-  },
   "DebugSettings": {
     "sectionTitle": "Debug Tools",
     "debugPageLink": "Open the debug page →"
@@ -5184,17 +5155,6 @@
     "healthTimeout": "Connection timed out (8s)",
     "pricingTimeout": "Timed out (25s)",
     "networkError": "Network connection error"
-  },
-  "PDFMemorySettings": {
-    "sectionTitle": "PDF Memory Management",
-    "sectionHelp": "Allow the AI to reference rulebooks and adventures stored as PDFs.",
-    "enableLabel": "Enable PDF memory",
-    "enableHelp": "The AI will be able to reference game rules and adventure content stored in PDF files.",
-    "enableDescription": "The AI will be able to reference game rules and adventure content",
-    "rulesUrlLabel": "Rulebook URL",
-    "rulesUrlHelp": "Link to the PDF file with the Call of Cthulhu 7e rules. The AI will be able to quote and apply these rules.",
-    "adventureUrlLabel": "Adventure URL",
-    "adventureUrlHelp": "Link to the PDF file with the adventure scenario. The AI will know the plot and scenario details."
   },
   "QualityPresets": {
     "eyebrow": "Performance vs. depth",
@@ -5364,16 +5324,6 @@
     "ttsError": "Gemini TTS error: {message}",
     "unknownError": "unknown",
     "playbackError": "Error playing the Gemini sample"
-  },
-  "TtsGoogleSettings": {
-    "voicePickerTitle": "Voice selection (Google)",
-    "voicePickerHelp": "Choose the narrator's voice. Chirp3 HD is the highest quality. Wavenet is high neural quality.",
-    "selectVoicePlaceholder": "Select a voice...",
-    "playSample": "▶ Sample",
-    "sampleText": "Hello, I am your narrator in this dark tale.",
-    "playbackError": "Error playing the sample",
-    "pitchLabel": "Voice pitch (Google)",
-    "pitchHelp": "Google TTS only. -20 = low, +20 = high."
   },
   "CharacterSwitcher": {
     "activeCharacter": "Active Character",

@@ -82,9 +82,12 @@ export function useSettingsInit(
   useEffect(() => {
     const initSettings = async () => {
       const savedSettings = loadAISettings();
-      // Ustaw domyślny głos jeśli nie jest wybrany
-      if (!savedSettings.voiceSettings.voiceId) {
-        savedSettings.voiceSettings.voiceId = 'pl-PL-Wavenet-G';
+      // Ustaw domyślny głos jeśli nie jest wybrany lub pozostał z Google Cloud
+      if (
+        !savedSettings.voiceSettings.voiceId ||
+        savedSettings.voiceSettings.voiceId.startsWith('pl-PL-Wavenet')
+      ) {
+        savedSettings.voiceSettings.voiceId = 'Charon';
         saveAISettings(savedSettings);
       }
 

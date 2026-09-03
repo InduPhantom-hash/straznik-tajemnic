@@ -117,12 +117,7 @@ export function formatDiagnosticSection(
 
   const issues: string[] = [];
 
-  // Sprawdź czy TTS jest włączony ale nie działa
-  // IND-86: googleTTSEnabled DROPPED - check provider enum dla Google
-  if (
-    settings.voiceSettings.enabled &&
-    settings.voiceSettings.provider === 'google'
-  ) {
+  if (settings.voiceSettings.enabled) {
     const ttsErrors = session.messages.filter((m) => m.ttsStatus === 'error');
     if (ttsErrors.length > 0) {
       issues.push(`TTS: ${ttsErrors.length} błędów generowania głosu`);

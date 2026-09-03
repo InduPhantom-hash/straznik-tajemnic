@@ -24,7 +24,7 @@ export function formatSettingsSection(settings: AISettings): string {
   md += `- **Włączony:** ${settings.voiceSettings.enabled ? 'Tak' : 'Nie'}\n`;
   if (settings.voiceSettings.enabled) {
     md += `- **Głos:** ${settings.voiceSettings.voiceId || 'domyślny'}\n`;
-    md += `- **Prędkość:** ${settings.voiceSettings.speakingRate}x\n`;
+    md += `- **Prędkość:** ${settings.voiceSettings.speed}x\n`;
     md += `- **Głośność:** ${settings.voiceSettings.volume}%\n`;
     md += `- **Tylko narrator:** ${settings.voiceSettings.narratorOnly ? 'Tak' : 'Nie'}\n`;
   }

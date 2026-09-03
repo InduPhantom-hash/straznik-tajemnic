@@ -62,42 +62,28 @@ export const loadAISettings = (): AISettings => {
             parsedSettings.imageGenerationEnabled ??
             parsedSettings.replicateEnabled ??
             defaultAISettings.imageGenerationEnabled,
-          pineconeEnabled:
-            parsedSettings.pineconeEnabled ?? defaultAISettings.pineconeEnabled,
-          pineconeSettings: {
-            ...defaultAISettings.pineconeSettings,
-            ...parsedSettings.pineconeSettings,
-          },
           geminiSettings: {
             ...defaultAISettings.geminiSettings,
             ...parsedSettings.geminiSettings,
           },
-          googleTTSSettings: {
-            ...defaultAISettings.googleTTSSettings,
-            ...parsedSettings.googleTTSSettings,
-          },
           voiceSettings: {
             ...defaultAISettings.voiceSettings,
             ...parsedSettings.voiceSettings,
-            ...(parsedSettings.voiceSettings?.provider === 'azure'
-              ? { provider: 'google' as const }
+            // Migracja legacy providerów chmurowych (google/azure/openai) na gemini
+            ...(parsedSettings.voiceSettings?.provider === 'azure' ||
+            parsedSettings.voiceSettings?.provider === 'google' ||
+            parsedSettings.voiceSettings?.provider === 'openai'
+              ? { provider: 'gemini' as const }
               : {}),
-            // M3 sesja 146 + IND-212: migration legacy 'openai' + 'elevenlabs' → 'gemini' + voiceId 'Charon'.
-            // Po D2 drop providerów, zapisane settings userów wskazujące na 'openai'/'elevenlabs'
-            // dostają domyślny Gemini Charon (męski głęboki narrator) - spójnie z defaults.ts. User może zmienić w UI.
-            ...(parsedSettings.voiceSettings?.provider === 'openai' ||
-            parsedSettings.voiceSettings?.provider === 'elevenlabs'
-              ? { provider: 'gemini' as const, voiceId: 'Charon' }
+            // Migracja legacy głosów Google Cloud (pl-PL-Wavenet) na Gemini Charon
+            ...(!parsedSettings.voiceSettings?.voiceId ||
+            parsedSettings.voiceSettings?.voiceId.startsWith('pl-PL-Wavenet')
+              ? { voiceId: 'Charon' }
               : {}),
           },
           replicateSettings: {
             ...defaultAISettings.replicateSettings,
             ...parsedSettings.replicateSettings,
-          },
-          // M3 sesja 146: elevenLabsSettings merge DROPPED (pole odchodzi z typu).
-          googleCloudStorageSettings: {
-            ...defaultAISettings.googleCloudStorageSettings,
-            ...parsedSettings.googleCloudStorageSettings,
           },
           gameMasterNarration: {
             ...defaultAISettings.gameMasterNarration,

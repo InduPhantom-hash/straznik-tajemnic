@@ -1,14 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { GEMINI_VOICES } from '@/lib/gemini-voices';
 
 /**
- * Hook ładujący listę głosów Google TTS (M5 sesja 146: drop ElevenLabs per D2).
- *
- * Brak useEffect - orkiestrator (`useSettingsModal`) triggeruje load po
- * inicjalizacji settings.
- *
- * Wyodrębniony z `useSettingsModal.ts` (linie 100-137) jako część IND-31.
+ * Hook dostarczający listę dostępnych głosów TTS dla modalu ustawień.
+ * Korzysta z deterministycznego katalogu Gemini TTS (offline-first).
  */
 
 export interface AvailableVoice {
@@ -28,35 +25,28 @@ export interface UseVoiceLoadersReturn {
 }
 
 export function useVoiceLoaders(): UseVoiceLoadersReturn {
-  const [availableVoices, setAvailableVoices] = useState<AvailableVoice[]>([]);
+  const [availableVoices, setAvailableVoices] = useState<AvailableVoice[]>(() =>
+    GEMINI_VOICES.map((v) => ({
+      voiceId: v.voiceId,
+      name: v.name,
+      description: v.description,
+      category: v.role,
+      language: 'pl-PL',
+      type: 'Gemini',
+    }))
+  );
 
   const loadAvailableVoices = useCallback(async () => {
-    try {
-      const { googleTTSService } = await import('@/lib/google-tts-service');
-      const voices = await googleTTSService.getAvailableVoices();
-      setAvailableVoices(voices);
-    } catch (error) {
-      console.error('Failed to load voices:', error);
-      // Fallback voices
-      setAvailableVoices([
-        {
-          voiceId: 'pl-PL-Wavenet-G',
-          name: 'Wavenet-G',
-          description: 'Głęboki, męski głos narratora',
-          category: 'narrator',
-          language: 'pl-PL',
-          type: 'Wavenet',
-        },
-        {
-          voiceId: 'pl-PL-Wavenet-F',
-          name: 'Wavenet-F',
-          description: 'Elegancki, kobiecy głos',
-          category: 'character',
-          language: 'pl-PL',
-          type: 'Wavenet',
-        },
-      ]);
-    }
+    setAvailableVoices(
+      GEMINI_VOICES.map((v) => ({
+        voiceId: v.voiceId,
+        name: v.name,
+        description: v.description,
+        category: v.role,
+        language: 'pl-PL',
+        type: 'Gemini',
+      }))
+    );
   }, []);
 
   return {
