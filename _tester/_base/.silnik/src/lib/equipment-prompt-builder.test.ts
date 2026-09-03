@@ -81,5 +81,97 @@ describe('buildEquipmentImagePrompt', () => {
     const prompt1920 = buildEquipmentImagePrompt(phone, '1920s');
     expect(prompt1920).toContain('candlestick telephone');
   });
+
+  it('dobiera precyzyjny opis dla elektroniki analogowej i rejestratorów zależnie od epoki', () => {
+    const recorder: EquipmentItem = {
+      id: 'recorder-1',
+      name: 'Dyktafon kasetowy',
+      category: 'tool',
+      source: 'starting',
+    };
+
+    const prompt1974 = buildEquipmentImagePrompt(recorder, '1974');
+    expect(prompt1974).toContain('Unitra');
+    expect(prompt1974).toContain('mechanical push-buttons');
+    expect(prompt1974).toContain('Poland in the 1970s');
+
+    const prompt1920 = buildEquipmentImagePrompt(recorder, '1920s');
+    expect(prompt1920).toContain('spring-wound portable gramophone');
+    expect(prompt1920).toContain('no cassette tapes');
+
+    const gramophone: EquipmentItem = {
+      id: 'gramophone-1',
+      name: 'Gramofon walizkowy',
+      category: 'tool',
+      source: 'starting',
+    };
+    const promptGramophone = buildEquipmentImagePrompt(gramophone, '1920s');
+    expect(promptGramophone).toContain('spring-wound portable gramophone');
+  });
+
+  it('dobiera precyzyjny opis aparatów fotograficznych i optyki zależnie od epoki', () => {
+    const camera: EquipmentItem = {
+      id: 'camera-1',
+      name: 'Aparat fotograficzny mieszkowy',
+      category: 'tool',
+      source: 'starting',
+    };
+
+    const prompt1920 = buildEquipmentImagePrompt(camera, '1920s');
+    expect(prompt1920).toContain('vintage 1920s folding pocket camera');
+    expect(prompt1920).toContain('accordion bellows');
+
+    const prompt1946 = buildEquipmentImagePrompt(camera, '1946');
+    expect(prompt1946).toContain('twin-lens reflex (TLR)');
+  });
+
+  it('wzbogaca dewocjonalia i akcesoria rytualne o autentyczne rzemiosło bez kiczu fantasy', () => {
+    const crucifix: EquipmentItem = {
+      id: 'cross-1',
+      name: 'Srebrny krzyżyk na łańcuszku',
+      category: 'occult',
+      source: 'starting',
+    };
+
+    const prompt = buildEquipmentImagePrompt(crucifix, '1920s');
+    expect(prompt).toContain('authentic liturgical devotional item');
+    expect(prompt).toContain('sterling silver with natural dark tarnish');
+    expect(prompt).toContain('zero fantasy embellishments');
+    expect(prompt).toContain('no pentagrams');
+    expect(prompt).toContain('no occult symbols');
+  });
+
+  it('wzbogaca odzież ochronną i akcesoria podróżne o autentyczne materiały', () => {
+    const goggles: EquipmentItem = {
+      id: 'goggles-1',
+      name: 'Gogle pilotki',
+      category: 'personal',
+      source: 'starting',
+    };
+
+    const prompt = buildEquipmentImagePrompt(goggles, '1920s');
+    expect(prompt).toContain('period protective or travel gear');
+    expect(prompt).toContain('heavy stitched saddle leather');
+    expect(prompt).toContain('optical glass');
+  });
+
+  it('wymusza studyjny kadr makro still-life na podłożu z epoki oraz brak ludzi i rąk w kadrze', () => {
+    const knife: EquipmentItem = {
+      id: 'knife-1',
+      name: 'Nóż myśliwski',
+      category: 'weapon',
+      source: 'starting',
+    };
+
+    const prompt = buildEquipmentImagePrompt(knife, '1920s');
+    expect(prompt).toContain('macro studio still-life photography');
+    expect(prompt).toContain('distressed wooden desk, leather briefcase or heavy canvas field cloth');
+    expect(prompt).toContain('no hands');
+    expect(prompt).toContain('no people');
+    expect(prompt).toContain('no fingers');
+    expect(prompt).toContain('no brands');
+    expect(prompt).toContain('no logos');
+    expect(prompt).toContain('blued carbon steel');
+  });
 });
 

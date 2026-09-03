@@ -133,23 +133,23 @@ export function getEraTechnologyGuardrails(
 
   switch (profile) {
     case '1890s':
-      return `${baseNegative}, no electricity in rural areas, no electric lightbulbs in streets, no automobiles, no cars, no modern vehicles, no airplanes, no telephones, no plastic, no modern fabrics, strictly late 19th century authentic Victorian setting`;
+      return `${baseNegative}, no electricity in rural areas, no electric lightbulbs in streets, no automobiles, no cars, no modern vehicles, no airplanes, no telephones, no plastic, no modern fabrics, no cassette tapes, no vinyl records, no transistors, no modern headphones, strictly late 19th century authentic Victorian setting`;
     case '1920s':
-      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no touchscreens, no computers, no modern electronics, no plastic gadgets, no modern cars, no post-1930 vehicles, strictly authentic 1920s period setting`;
+      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no touchscreens, no computers, no modern electronics, no plastic gadgets, no modern cars, no post-1930 vehicles, no cassette tapes, no microcassettes, no CDs, no transistors, no LED lights, no digital displays, no modern plastics, no nylon, strictly authentic 1920s period setting`;
     case '1930s':
-      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no modern screens, no television sets, no post-1939 vehicles, strictly authentic 1930s period setting`;
+      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no modern screens, no television sets, no post-1939 vehicles, no cassette tapes, no microcassettes, no digital screens, no transistors, no nylon, strictly authentic 1930s period setting`;
     case '1940s':
-      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no laptops, no modern plastics, no post-1950 vehicles, strictly authentic 1940s period setting`;
+      return `${baseNegative}, no smartphones, no mobile phones, no powerbanks, no laptops, no modern plastics, no post-1950 vehicles, no cassette tapes, no CDs, no transistors, no integrated circuits, no microchips, strictly authentic 1940s period setting`;
     case '1950s':
-      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no personal computers, no modern aerodynamic cars, strictly authentic 1950s period setting`;
+      return `${baseNegative}, no smartphones, no cell phones, no powerbanks, no personal computers, no modern aerodynamic cars, no cassette tapes, no CDs, no microprocessors, no digital screens, no USB, strictly authentic 1950s period setting`;
     case 'prl-1970s':
-      return `${baseNegative}, no smartphones, no mobile phones, no iPhones, no powerbanks, no laptops, no modern screens, no USB, no modern cars, no 1920s vintage cars, strictly authentic 1970s period setting`;
+      return `${baseNegative}, no smartphones, no mobile phones, no iPhones, no powerbanks, no laptops, no modern screens, no USB, no modern cars, no 1920s vintage cars, no CDs, no MP3 players, no USB flash drives, no memory cards, no laptops, no wireless devices, strictly authentic 1970s period setting`;
     case '1980s':
-      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreen phones, no powerbanks, no modern flat screen TVs, no modern aerodynamic cars, no 1920s vintage cars, strictly authentic 1980s period setting`;
+      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreen phones, no powerbanks, no modern flat screen TVs, no modern aerodynamic cars, no 1920s vintage cars, no DVDs, no USB, no SD cards, no modern LCD screens, strictly authentic 1980s period setting`;
     case '1990s':
-      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreens, no powerbanks, no wireless modern earbuds, no post-2000 vehicles, strictly authentic 1990s period setting`;
+      return `${baseNegative}, no smartphones, no iPhones, no modern touchscreens, no powerbanks, no wireless modern earbuds, no post-2000 vehicles, no USB thumbdrives, no microSD cards, no modern OLED displays, strictly authentic 1990s period setting`;
     case '2000s':
-      return `${baseNegative}, no modern full-screen smartphones, no iPhones, no modern powerbanks, no modern touchscreens, strictly authentic early 2000s period setting`;
+      return `${baseNegative}, no modern full-screen smartphones, no iPhones, no modern powerbanks, no modern touchscreens, no Bluetooth earbuds, no modern USB-C, strictly authentic early 2000s period setting`;
     case 'modern':
       return `${baseNegative}`;
   }
@@ -212,4 +212,81 @@ export function getEraVehicleVisualDescription(eraOrYear: string | undefined): s
       return 'modern contemporary vehicle with LED lights and aerodynamic styling';
   }
 }
+
+/**
+ * Zwraca precyzyjny opis urządzeń rejestrujących i elektroniki audio dla danej epoki.
+ */
+export function getEraAudioRecordingVisualDescription(
+  eraOrYear: string | ResolvedEraContext | undefined
+): string {
+  const profile = resolveEraVisualProfile(eraOrYear);
+  switch (profile) {
+    case '1890s':
+      return 'phonograph with hand-cranked clockwork motor, wax cylinder mechanism, large fluted brass horn, dark mahogany base with exposed cast-iron gearing, strictly mechanical acoustic recording';
+    case '1920s':
+      return '1920s spring-wound portable gramophone in black leatherette wooden case with nickel soundbox OR early vacuum tube radio receiver with exposed glowing triode valves, honeycomb tuning coils and large fluted horn speaker, external brass binding posts';
+    case '1930s':
+      return '1930s tabletop cathedral-style radio with arched walnut veneer cabinet, illuminated amber tuning dial, wooden fretwork grille, cloth speaker backing OR heavy portable wire-recorder with steel spools';
+    case '1940s':
+      return '1940s wartime communications receiver in olive-drab pressed steel chassis, rubber-coated cables, analog frequency dial with knurled knobs, heavy bakelite headphones';
+    case '1950s':
+      return '1950s mid-century desktop radio with pastel or ivory bakelite cabinet, gold anodized trim, horizontal tuning slide OR reel-to-reel magnetic tape recorder with two 7-inch aluminum reels, mechanical piano keys and analog VU meter';
+    case 'prl-1970s':
+      return '1970s Eastern European portable reel-to-reel or cassette recorder (e.g. Polish Unitra ZRK Magmor or Grundig license), two-tone grey/charcoal impact plastic, mechanical push-buttons with red record key, DIN connectors, analog needle VU meter';
+    case '1980s':
+      return '1980s portable microcassette voice recorder or boombox cassette deck, matte black plastic, mechanical click keys, small red LED indicator, built-in condenser mic grille';
+    case '1990s':
+      return '1990s handheld microcassette dictaphone or compact portable radio, charcoal-grey molded plastic with slide switches, mechanical tape counter, built-in miniature speaker';
+    case '2000s':
+      return 'early 2000s compact digital voice recorder with small monochrome backlit LCD, silver plastic case, USB cover cap';
+    case 'modern':
+      return 'contemporary slim metal-body digital audio recorder or studio microphone with shockmount';
+  }
+}
+
+/**
+ * Zwraca precyzyjny opis aparatów fotograficznych i optyki dla danej epoki.
+ */
+export function getEraCameraVisualDescription(
+  eraOrYear: string | ResolvedEraContext | undefined
+): string {
+  const profile = resolveEraVisualProfile(eraOrYear);
+  switch (profile) {
+    case '1890s':
+      return 'large wooden folding field camera on heavy brass-hinged tripod, pleated leather bellows, brass barrel lens with waterhouse stops, ground glass focusing back';
+    case '1920s':
+      return 'vintage 1920s folding pocket camera with black leather-covered body, accordion bellows, nickel-plated struts, rim-set leaf shutter and brilliant waist-level viewfinder';
+    case '1930s':
+      return '1930s rangefinder 35mm camera with satin-chrome top plate, black vulcanite body, collapsible lens and twin viewfinder windows';
+    case '1940s':
+      return 'wartime twin-lens reflex (TLR) camera with two vertically stacked lenses, black leatherette body, top pop-up waist-level focusing hood and winding crank';
+    case '1950s':
+      return '1950s all-metal 35mm rangefinder or early SLR, polished chrome accents, textured leatherette grip, mechanical winding lever';
+    case 'prl-1970s':
+      return '1970s Eastern European mechanical SLR (e.g. Zenit or Praktica), heavy die-cast metal body, black vulcanite, large manual aperture ring, cold shoe on top';
+    case '1980s':
+      return '1980s motorized SLR with black polycarbonate body, red grip stripe, manual focus ring, top prism housing';
+    case '1990s':
+      return '1990s compact point-and-shoot camera with sliding lens barrier, black textured plastic, built-in pop-up electronic flash';
+    case '2000s':
+      return 'early 2000s compact digital camera with silver aluminum finish, small color LCD on rear, optical zoom lens barrel';
+    case 'modern':
+      return 'modern mirrorless digital camera with matte black magnesium alloy body, electronic viewfinder and coated multi-element lens';
+  }
+}
+
+/**
+ * Zwraca opis dewocjonaliów i akcesoriów liturgicznych/rytualnych (CoC 7e RAW).
+ */
+export function getEraDevotionalVisualDescription(): string {
+  return 'authentic liturgical devotional item, consecrated period craftsmanship, sterling silver with natural dark tarnish, hand-rubbed olive wood, genuine beeswax candles with natural drips, untrimmed rag vellum, zero fantasy embellishments, strictly authentic historical religious or folk artifact';
+}
+
+/**
+ * Zwraca opis odzieży ochronnej, gogli i toreb podróżnych.
+ */
+export function getEraProtectiveVisualDescription(): string {
+  return 'period protective or travel gear, heavy stitched saddle leather, tarnished brass roller buckles, thick optical glass with stitched leather or aluminum eye-cups, wax-coated canvas with authentic travel patina and honest wear marks';
+}
+
 
