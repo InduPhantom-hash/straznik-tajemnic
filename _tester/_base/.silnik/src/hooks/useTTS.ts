@@ -227,6 +227,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   // pętla akapitów docina już wypowiedzianą część (slice o tę liczbę). Reset przy
   // ID-change/stop (jak openRunRef), by nie przeciekał między wiadomościami.
   const earlySpokenCharsRef = useRef(0);
+  const hasDispatchedFirstSegmentRef = useRef(false);
   const bufferTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -593,6 +594,16 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             openRunRef.current = { voiceId, texts: [] };
           }
           openRunRef.current.texts.push(textForQueue);
+
+          // E1 / IND-104 (First-chunk streaming): pierwsze pełne zdanie narracji wypychamy NATYCHMIAST
+          // do TTS, zamiast czekać na koniec całej wiadomości (~25-30s).
+          if (!hasDispatchedFirstSegmentRef.current && !flush) {
+            const currentRunLength = openRunRef.current.texts.join(' ').length;
+            if (currentRunLength >= EARLY_FIRST_SEGMENT_MIN_CHARS) {
+              closeRun();
+              hasDispatchedFirstSegmentRef.current = true;
+            }
+          }
         }
 
         // flush domyka ostatni (otwarty) run - resztę narracji oddajemy jako jeden segment.

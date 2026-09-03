@@ -203,7 +203,11 @@ export const ChatWindow: FC<ChatWindowProps> = ({
 
   return (
     <div className="relative flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
-      <TTSHardLoadingScreen isBuffering={false} />
+      <TTSHardLoadingScreen
+        isBuffering={isInitialBuffering}
+        adventureTitle={adventureTitle}
+        region={region}
+      />
       <ChatHeader
         title={adventureTitle}
         region={region}
