@@ -10,7 +10,6 @@ import { OutputSection } from './gemini-sections/output';
 import { CacheSection } from './gemini-sections/cache';
 import { SafetySection } from './gemini-sections/safety';
 import { ThinkingSection } from './gemini-sections/thinking';
-import { ToolsSection } from './gemini-sections/tools';
 
 interface GeminiSettingsProps {
   settings: AISettings;
@@ -24,14 +23,13 @@ interface GeminiSettingsProps {
 
 /**
  * Panel ustawień Gemini API - orkiestrator.
- * Po IND-12 podzielony na 7 sub-plików w `gemini-sections/`:
+ * Po IND-12 podzielony na sub-pliki w `gemini-sections/`:
  *   - header (enabled/apiKey/model + Test API)
  *   - sampling (temperature/topP/topK/seed/candidateCount/penalties)
  *   - output (maxOutputTokens/responseMimeType/stopSequences/responseSchema)
  *   - cache (enableCache/cacheTTL/cachedContent - placeholder dla IND-13)
  *   - safety (4 selecty + Horror authentic / Reset)
  *   - thinking (thinkingLevel + multimodal info)
- *   - tools (function calling - eksperymentalne)
  *
  * Eksport `GeminiSettings` zachowany - konsument: `src/components/ui/settings-modal.tsx`.
  */
@@ -93,7 +91,6 @@ export function GeminiSettings({
         <CacheSection g={g} updateGemini={updateGemini} />
         <SafetySection g={g} updateGemini={updateGemini} />
         <ThinkingSection g={g} updateGemini={updateGemini} />
-        <ToolsSection g={g} updateGemini={updateGemini} />
       </Accordion>
     </div>
   );

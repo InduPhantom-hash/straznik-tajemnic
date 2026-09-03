@@ -5275,21 +5275,6 @@
     "hintHigh": "Głębsze rozumowanie dla złożonych sytuacji, walki i ważnych decyzji",
     "multimodalNote": "Multimodalność (wejście obrazów) jest aktywna automatycznie dla Gemini 1.5+ i nie wymaga konfiguracji."
   },
-  "GeminiToolsSection": {
-    "title": "Eksperymentalne (Tools)",
-    "stateNone": "○ brak",
-    "invalidJson": "Niepoprawny JSON",
-    "toolsMustBeArray": "tools musi być tablicą deklaracji funkcji",
-    "toolConfigMustBeObject": "toolConfig musi być obiektem",
-    "errorPrefix": "⚠️ Błąd: {message}",
-    "warningStrong": "Function Calling - feature eksperymentalny.",
-    "warningPrefix": "Pola",
-    "warningMiddle": "i",
-    "warningSuffix": "są przepuszczane do Gemini API, ale aplikacja jeszcze nie konsumuje wywołań funkcji w narracji RPG (planowane). Power-user testing OK; produkcja - czekaj.",
-    "toolsHint": "JSON tablica deklaracji funkcji. Parsowane onBlur. Walidacja kształtu w providerze.",
-    "toolConfigHintPrefix": "Tryby:",
-    "toolConfigHintAny": "(wymuś) ·"
-  },
   "TTSSettings": {
     "eyebrow": "Głos Strażnika",
     "title": "Lektor narracji",

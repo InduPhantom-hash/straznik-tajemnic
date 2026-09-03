@@ -5275,21 +5275,6 @@
     "hintHigh": "Deeper reasoning for complex situations, combat and important decisions",
     "multimodalNote": "Multimodality (image input) is automatically active for Gemini 1.5+ and requires no configuration."
   },
-  "GeminiToolsSection": {
-    "title": "Experimental (Tools)",
-    "stateNone": "○ none",
-    "invalidJson": "Invalid JSON",
-    "toolsMustBeArray": "tools must be an array of function declarations",
-    "toolConfigMustBeObject": "toolConfig must be an object",
-    "errorPrefix": "⚠️ Error: {message}",
-    "warningStrong": "Function Calling - experimental feature.",
-    "warningPrefix": "Fields",
-    "warningMiddle": "and",
-    "warningSuffix": "are passed through to the Gemini API, but the app does not consume function calls in RPG narration yet (planned). Power-user testing OK; production - wait.",
-    "toolsHint": "JSON array of function declarations. Parsed onBlur. Shape validated in the provider.",
-    "toolConfigHintPrefix": "Modes:",
-    "toolConfigHintAny": "(force) ·"
-  },
   "TTSSettings": {
     "eyebrow": "Keeper's Voice",
     "title": "Narration Voice-over",
