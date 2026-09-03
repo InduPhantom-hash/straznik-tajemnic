@@ -86,6 +86,18 @@
     "stepOccupationSubtitle": "Wybierz profesję Badacza.",
     "creditRating": "Majętność",
     "skills": "Umiejętności",
+    "searchOccupationPlaceholder": "Szukaj profesji lub umiejętności...",
+    "allFilter": "Wszystkie ({count})",
+    "suggestedFilter": "★ Sugerowane ({count})",
+    "noOccupationsFound": "Brak profesji spełniających kryteria wyszukiwania.",
+    "occupationDetailsEyebrow": "Akta Miskatonic · Profil zawodu",
+    "noOccupationSelectedTitle": "Wybierz profesję z listy",
+    "noOccupationSelectedHint": "Wybierz profesję z listy po lewej, aby zapoznać się z jej wymaganiami, pulą punktów, umiejętnościami oraz startowym ekwipunkiem.",
+    "occupationalSkillsList": "Umiejętności zawodowe",
+    "startingEquipmentLabel": "Ekwipunek startowy zawodu",
+    "initialCreditRating": "Wartość początkowa: {val}%",
+    "skillsCount": "umiejętności",
+    "lore": "Tło fabularne",
     "stepSkillsTitle": "Krok 4 · Umiejętności",
     "stepSkillsSubtitle": "Rozdziel punkty między umiejętności postaci.",
     "howItWorks": "Jak to działa?",
@@ -149,7 +161,7 @@
       "backstory": "Wygeneruj unikalne dane postaci do Call of Cthulhu.\n\n{adventure}\n\nPOSTAĆ: {gender}, {age} lat, zawód: {occupation}.\nINSPIRACJA: osobowość {personality}; pochodzenie {background}; motywacja {motivation}; seed #{seed}.\nZwróć tylko JSON z polami name, birthplace, description, ideology, importantPeople, significantPlaces, personalItems, traits i keyConnection. Użyj polskiego.",
       "biography": "Na podstawie poniższej karty postaci napisz spójną, klimatyczną biografię w 2-3 akapitach, w trzeciej osobie.\n\n{adventure}\nImię i nazwisko: {name}\nPłeć: {gender}\nWiek: {age}\nZawód: {occupation}\nMiejsce urodzenia: {birthplace}\nWygląd: {appearance}\nIdeologia: {ideology}\nWażne osoby: {people}\nZnaczące miejsca: {places}\nRzeczy osobiste: {items}\nPrzymioty: {traits}\nKluczowa więź: {connection}\n\nZwróć tylko biografię, bez nagłówka i komentarzy.",
       "field": "Jesteś generatorem pola tła postaci do Call of Cthulhu 7e.\nKontekst postaci:\n{context}{adventure}\n\nWygeneruj {field}. Odpowiedz tylko wartością pola, bez cudzysłowów, prefiksów i wyjaśnień. Użyj 1-3 zdań. Styl: {style}. Użyj polskiego.",
-      "skills": "Jesteś ekspertem od tworzenia postaći w grze Call of Cthulhu 7ed.\n\nKONTEKST POSTACI:\n{context}\n\nZAWÓD: {occupation}\nUMIEJĘTNOŚCI ZAWODOWE: {occSkills}\n{archetypeBlock}\n\nUWAGA: Umiejętności rekomendowane (archetyp + zawód) zostały JUŻ rozdzielone deterministycznie: {recommended}. NIE dotykaj ich.\nTwoje zadanie: rozdziel POZOSTAŁĄ pulę na INNE umiejętności (klimatyczne, pasujące do tła postaći), żeby badacz był wszechstronny.\n\nPOZOSTAŁE PUNKTY DO ROZDZIELENIA: {remaining}\nLIMIT NA POJEDYNCZĄ UMIEJĘTNOŚĆ: {limit}% (max podczas tworzenia)\n\nLISTA UMIEJĘTNOŚCI Z ICH BAZOWYMI WARTOŚCIAMI:\n{skillsList}\n\nKRYTYCZNE WYMAGANIA:\n1. Rozdziel DOKŁADNIE {remaining} punktów - ani mniej, ani więcej!\n2. NIE rozdzielaj punktów na rekomendowane (są już zrobione): {recommendedTop}\n3. Wybierz umiejętności pasujące do postaći (tło, opis, cechy)\n4. Każda umiejętność może mieć max {limit}%\n5. Rozdziel punkty między 5-10 umiejętności\n\nPrzykład: jeśli Biblioteka ma bazę 20% i chcesz dać 60%, dodajesz 40 punktów.\n\nOdpowiedz TYLKO w formacie JSON bez markdown:\n{\"skills\": {\"NazwaUmiejętności\": nowaWartość, ...}}\n\nUwzględnij TYLKO umiejętności, którym dodajesz punkty (nowa wartość > bazowa).\nSUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE {remaining}!"
+      "skills": "Jesteś ekspertem od tworzenia postaci w grze Call of Cthulhu 7ed.\n\nKONTEKST POSTACI:\n{context}\n\nZAWÓD: {occupation}\nUMIEJĘTNOŚCI ZAWODOWE: {occSkills}\n{archetypeBlock}\n\nUWAGA: Umiejętności rekomendowane (archetyp + zawód) zostały JUŻ rozdzielone deterministycznie: {recommended}. NIE dotykaj ich.\nTwoje zadanie: rozdziel POZOSTAŁĄ pulę na INNE umiejętności (klimatyczne, pasujące do tła postaci), żeby badacz był wszechstronny.\n\nPOZOSTAŁE PUNKTY DO ROZDZIELENIA: {remaining}\nLIMIT NA POJEDYNCZĄ UMIEJĘTNOŚĆ: {limit}% (max podczas tworzenia)\n\nLISTA UMIEJĘTNOŚCI Z ICH BAZOWYMI WARTOŚCIAMI:\n{skillsList}\n\nKRYTYCZNE WYMAGANIA:\n1. Rozdziel DOKŁADNIE {remaining} punktów - ani mniej, ani więcej!\n2. NIE rozdzielaj punktów na rekomendowane (są już zrobione): {recommendedTop}\n3. Wybierz umiejętności pasujące do postaci (tło, opis, cechy)\n4. Każda umiejętność może mieć max {limit}%\n5. Rozdziel punkty między pasujące umiejętności\n\nPrzykład: jeśli Biblioteka ma bazę 20% i chcesz dać 60%, dodajesz 40 punktów.\n\nOdpowiedz TYLKO w formacie JSON bez markdown:\n{\"skills\": {\"NazwaUmiejętności\": nowaWartość, ...}}\n\nUwzględnij TYLKO umiejętności, którym dodajesz punkty (nowa wartość > bazowa).\nSUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE {remaining}!"
     },
     "toasts": {
       "apiError": "Błąd API",

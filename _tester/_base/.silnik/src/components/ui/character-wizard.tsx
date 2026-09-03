@@ -23,7 +23,10 @@ import {
 } from '@/lib/equipment-data';
 import { collectSSEText } from '@/lib/sse-parser';
 import { STAT_FULL_NAMES } from '@/components/ui/character-sheet/types';
-import { buildRecommendedSkills } from '@/lib/character/normalize-skill-name';
+import {
+  buildRecommendedSkills,
+  normalizeSkillName,
+} from '@/lib/character/normalize-skill-name';
 import { distributeRecommendedSkillPoints } from '@/lib/character/distribute-skill-points';
 import { toast } from '@/components/ui/use-toast';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
@@ -329,6 +332,12 @@ export function CharacterWizardV2({
     null
   );
 
+  // Stan wyszukiwarki i filtra profesji (Krok 3)
+  const [occupationSearchQuery, setOccupationSearchQuery] = useState('');
+  const [occupationFilter, setOccupationFilter] = useState<
+    'all' | 'recommended'
+  >('all');
+
   // State for per-field AI generation
   const [generatingField, setGeneratingField] = useState<string | null>(null);
 
@@ -560,6 +569,26 @@ export function CharacterWizardV2({
     // Punkty pozostałe do rozdania przez AI (na pozostałe umiejętności).
     const remainingForAI = deterministic.remainingPoints;
 
+    // Jeśli rekomendowane umiejętności zaspokoiły całą pulę w 100% (np. zawód z wieloma umiejętnościami):
+    // Zatwierdź natychmiast deterministyczny przydział bez zbędnego i błędogennego zapytania do AI o 0 punktów.
+    if (remainingForAI <= 0) {
+      setState((prev) => ({
+        ...prev,
+        skills: deterministic.skills,
+        occupationPointsUsed: deterministic.pointsUsed,
+      }));
+      toast({
+        variant: 'success',
+        title: t('toasts.skillsAllocatedTitle'),
+        description: t('toasts.skillsAllocatedDescription', {
+          used: deterministic.pointsUsed,
+          total: totalPoints,
+        }),
+      });
+      setIsDistributingSkills(false);
+      return;
+    }
+
     // Kontekst postaci dla AI
     const characterContext = [
       selectedArchetype &&
@@ -606,7 +635,12 @@ export function CharacterWizardV2({
       const response = await fetchWithApiKeys('/api/ai/utility', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: prompt, messages: [] }),
+        body: JSON.stringify({
+          message: prompt,
+          messages: [],
+          json: true,
+          responseMimeType: 'application/json',
+        }),
       });
 
       if (!response.ok) {
@@ -626,55 +660,87 @@ export function CharacterWizardV2({
       // === NOWA OBSŁUGA STRUMIENIOWANIA (SSE) ===
       const fullContent = await collectSSEText(response);
 
-      if (!fullContent) {
-        Sentry.captureMessage(
-          'Character wizard: empty AI response (skills)',
-          'error'
-        );
-        toast({
-          variant: 'destructive',
-          title: t('toasts.noAiResponseTitle'),
-          description: t('toasts.noAiResponseDescription'),
-        });
-        setIsDistributingSkills(false);
-        return;
+      // Odporny parser JSON
+      let parsed: unknown = null;
+      if (fullContent) {
+        let jsonStr = fullContent
+          .replace(/```(?:json)?\n?/gi, '')
+          .replace(/```\n?/g, '')
+          .trim();
+
+        const jsonMatch = jsonStr.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[0].trim();
+        }
+        jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+
+        try {
+          parsed = JSON.parse(jsonStr);
+        } catch (parseErr) {
+          Sentry.captureException(parseErr, {
+            extra: { rawResponse: fullContent.substring(0, 500) },
+          });
+        }
       }
 
-      // Wyczyść odpowiedź z markdown
-      const cleanJson = fullContent
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .replace(/^\s*\n/gm, '')
-        .trim();
+      // Wyciągnij mapę umiejętności z różnych formatów odpowiedzi AI
+      let skillsMap: Record<string, unknown> = {};
 
-      let parsed;
-      try {
-        parsed = JSON.parse(cleanJson);
-      } catch (parseErr) {
-        Sentry.captureException(parseErr, {
-          extra: { rawResponse: cleanJson.substring(0, 500) },
-        });
-        toast({
-          variant: 'destructive',
-          title: t('toasts.parseErrorTitle'),
-          description: t('toasts.parseErrorDescription'),
-        });
-        setIsDistributingSkills(false);
-        return;
-      }
-
-      if (!parsed.skills || typeof parsed.skills !== 'object') {
-        Sentry.captureMessage(
-          'Character wizard: invalid skills format from AI',
-          'error'
-        );
-        toast({
-          variant: 'destructive',
-          title: t('toasts.invalidFormatTitle'),
-          description: t('toasts.invalidFormatDescription'),
-        });
-        setIsDistributingSkills(false);
-        return;
+      if (parsed && typeof parsed === 'object') {
+        const obj = parsed as Record<string, unknown>;
+        if (
+          obj.skills &&
+          typeof obj.skills === 'object' &&
+          !Array.isArray(obj.skills)
+        ) {
+          skillsMap = obj.skills as Record<string, unknown>;
+        } else if (
+          obj['umiejętności'] &&
+          typeof obj['umiejętności'] === 'object' &&
+          !Array.isArray(obj['umiejętności'])
+        ) {
+          skillsMap = obj['umiejętności'] as Record<string, unknown>;
+        } else if (
+          obj['umiejetnosci'] &&
+          typeof obj['umiejetnosci'] === 'object' &&
+          !Array.isArray(obj['umiejetnosci'])
+        ) {
+          skillsMap = obj['umiejetnosci'] as Record<string, unknown>;
+        } else if (
+          obj.skills_distribution &&
+          typeof obj.skills_distribution === 'object' &&
+          !Array.isArray(obj.skills_distribution)
+        ) {
+          skillsMap = obj.skills_distribution as Record<string, unknown>;
+        } else if (Array.isArray(obj.skills)) {
+          for (const item of obj.skills) {
+            if (item && typeof item === 'object') {
+              const k = (item.skill || item.name || item.nazwa) as string;
+              const v =
+                item.value ?? item.points ?? item.punkty ?? item.nowaWartość;
+              if (k && v !== undefined) skillsMap[k] = v;
+            }
+          }
+        } else if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            if (item && typeof item === 'object') {
+              const k = (item.skill || item.name || item.nazwa) as string;
+              const v =
+                item.value ?? item.points ?? item.punkty ?? item.nowaWartość;
+              if (k && v !== undefined) skillsMap[k] = v;
+            }
+          }
+        } else {
+          // Bezpośrednia mapa: { "Spostrzegawczość": 50, ... }
+          const hasNumericValues = Object.values(obj).some(
+            (v) =>
+              typeof v === 'number' ||
+              (typeof v === 'string' && !isNaN(Number(v)))
+          );
+          if (hasNumericValues) {
+            skillsMap = obj;
+          }
+        }
       }
 
       // Oblicz zużyte punkty - START od deterministycznego rozdania
@@ -682,9 +748,12 @@ export function CharacterWizardV2({
       let pointsUsed = deterministic.pointsUsed;
       const newSkills = { ...deterministic.skills };
 
-      for (const [skillName, value] of Object.entries(parsed.skills)) {
-        if (typeof value !== 'number') continue;
+      for (const [rawSkillName, rawValue] of Object.entries(skillsMap)) {
+        const numValue =
+          typeof rawValue === 'number' ? rawValue : Number(rawValue);
+        if (isNaN(numValue) || numValue <= 0) continue;
 
+        const skillName = normalizeSkillName(rawSkillName) || rawSkillName;
         let baseValue = BASE_SKILLS[skillName] || 0;
         if (skillName === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
         if (skillName === 'Unik') baseValue = Math.floor(state.stats.dex / 2);
@@ -698,7 +767,7 @@ export function CharacterWizardV2({
           : SKILL_CREATION_LIMIT;
         const clampedValue = Math.max(
           lowerBound,
-          Math.min(maxValue, value as number)
+          Math.min(maxValue, numValue)
         );
 
         const previousValue = newSkills[skillName] ?? baseValue;
@@ -2234,76 +2303,269 @@ export function CharacterWizardV2({
       selectedArchetype?.suggestedOccupations || []
     );
 
-    return (
-      <div className="space-y-6">
-        <StepHeading
-          title={t('stepOccupationTitle')}
-          subtitle={t('stepOccupationSubtitle')}
-        />
+    const startingEquipmentList = selectedOcc
+      ? getStartingEquipmentForOccupation(selectedOcc.id)
+      : [];
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2">
-          {OCCUPATIONS.map((occ) => {
-            const isSelected = state.occupationId === occ.id;
-            const isRecommended =
-              !isSelected && recommendedOccupationIds.has(occ.id);
-            return (
-              <div
-                key={occ.id}
-                onClick={() => selectOccupation(occ.id)}
-                className={`p-4 border cursor-pointer transition-all ${
-                  isSelected
-                    ? 'border-brass/30/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
-                    : isRecommended
-                      ? 'ring-1 ring-primary border-brass/30/50 bg-primary/10 hover:border-brass/30/70'
-                      : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
+    const filteredOccupations = OCCUPATIONS.filter((occ) => {
+      if (
+        occupationFilter === 'recommended' &&
+        !recommendedOccupationIds.has(occ.id)
+      ) {
+        return false;
+      }
+      if (occupationSearchQuery.trim()) {
+        const q = occupationSearchQuery.toLowerCase().trim();
+        const matchesName = occ.name.toLowerCase().includes(q);
+        const matchesSkill = occ.skills.some((s) =>
+          s.toLowerCase().includes(q)
+        );
+        return matchesName || matchesSkill;
+      }
+      return true;
+    });
+
+    const recommendedCount = OCCUPATIONS.filter((o) =>
+      recommendedOccupationIds.has(o.id)
+    ).length;
+
+    return (
+      <div className="flex-1 min-h-0 flex flex-col space-y-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 flex-shrink-0">
+          <StepHeading
+            title={t('stepOccupationTitle')}
+            subtitle={t('stepOccupationSubtitle')}
+          />
+
+          {/* Filtry i wyszukiwarka */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center border border-brass/25 bg-[#120f0c] p-0.5">
+              <button
+                type="button"
+                onClick={() => setOccupationFilter('all')}
+                className={`font-special-elite text-xs uppercase tracking-[0.08em] px-3 py-1.5 transition-colors ${
+                  occupationFilter === 'all'
+                    ? 'bg-primary text-[#04110f] font-bold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <div className="flex items-center font-display uppercase tracking-[0.08em] text-base text-foreground">
-                  {occ.name}
-                  {isRecommended && (
-                    <span
-                      className="text-brass/80 ml-1"
-                      title={t('recommendedForArchetype')}
-                    >
-                      ★
-                    </span>
-                  )}
-                  <HelpIcon
-                    content={
-                   OCCUPATION_DESCRIPTIONS[occ.id] || t('noDescription')
-                 }
-                    position="right"
-                  />
-                </div>
-                <div className="font-special-elite text-sm text-brass/80 mt-1">
-                  {occ.formula}
-                </div>
-                <div className="font-special-elite text-xs text-muted-foreground mt-1">
-                  {t('creditRatingColon', {
-                    range: `${occ.creditMin}-${occ.creditMax}`,
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                {t('allFilter', { count: OCCUPATIONS.length })}
+              </button>
+              {recommendedCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setOccupationFilter('recommended')}
+                  className={`font-special-elite text-xs uppercase tracking-[0.08em] px-3 py-1.5 transition-colors ${
+                    occupationFilter === 'recommended'
+                      ? 'bg-primary text-[#04110f] font-bold shadow-sm'
+                      : 'text-brass/90 hover:text-brass'
+                  }`}
+                >
+                  {t('suggestedFilter', { count: recommendedCount })}
+                </button>
+              )}
+            </div>
 
-        {selectedOcc && (
-          <div className="border border-brass/30 bg-[#16130f] p-4">
-            <div className="font-display uppercase tracking-[0.08em] text-foreground text-lg">
-              {selectedOcc.name}
-            </div>
-            <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80 mb-2">
-              {t('occupationPoints', { count: state.occupationPoints })}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <span className="font-special-elite text-xs uppercase tracking-[0.1em]">
-                {t('skills')}:
-              </span>{' '}
-              {selectedOcc.skills.join(', ')}
+            <div className="relative">
+              <input
+                type="text"
+                value={occupationSearchQuery}
+                onChange={(e) => setOccupationSearchQuery(e.target.value)}
+                placeholder={t('searchOccupationPlaceholder')}
+                className="bg-[#120f0c] border border-brass/30 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-brass/80 font-special-elite w-56 tracking-[0.04em]"
+              />
+              {occupationSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setOccupationSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Układ Master-Detail: Siatka profesji (Lewa) + Akta Profesji (Prawa) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-0 max-lg:min-h-fit">
+          {/* Lewa kolumna: przewijalna lista profesji */}
+          <div className="lg:col-span-7 flex flex-col min-h-0 max-lg:h-[420px] border border-brass/25 bg-[#120f0c]/60 p-2.5">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1.5 p-1 custom-scrollbar scroll-py-2">
+              {filteredOccupations.length === 0 ? (
+                <div className="p-8 text-center font-serif italic text-sm text-muted-foreground">
+                  {t('noOccupationsFound')}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {filteredOccupations.map((occ) => {
+                    const isSelected = state.occupationId === occ.id;
+                    const isRecommended =
+                      !isSelected && recommendedOccupationIds.has(occ.id);
+                    return (
+                      <div
+                        key={occ.id}
+                        onClick={() => selectOccupation(occ.id)}
+                        className={`p-3.5 border cursor-pointer transition-all duration-150 relative text-left flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-brass bg-primary/20 shadow-[0_0_16px_rgba(13,148,136,.25)] ring-1 ring-brass/80'
+                            : isRecommended
+                              ? 'border-primary/50 bg-primary/[0.08] hover:border-primary/80 hover:bg-primary/[0.14] ring-1 ring-primary/30'
+                              : 'border-brass/25 bg-[#16130f] hover:border-brass/50 hover:bg-[#1c1813]'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-display uppercase tracking-[0.08em] text-base text-foreground font-semibold">
+                                {occ.name}
+                              </span>
+                              {isRecommended && (
+                                <span
+                                  className="text-brass text-sm"
+                                  title={t('recommendedForArchetype')}
+                                >
+                                  ★
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-special-elite text-[11px] text-brass/80 whitespace-nowrap bg-black/40 px-2 py-0.5 border border-brass/20">
+                              CR: {occ.creditMin}-{occ.creditMax}
+                            </span>
+                          </div>
+                          <div className="font-special-elite text-xs text-brass/90 mt-1.5">
+                            {occ.formula}
+                          </div>
+                        </div>
+                        <div className="font-special-elite text-[11px] text-muted-foreground/80 mt-2 flex items-center justify-between border-t border-brass/10 pt-1.5">
+                          <span>
+                            {occ.skills.length}{' '}
+                            {t('skillsCount', { count: occ.skills.length })}
+                          </span>
+                          <span className="text-brass/60">
+                            {isSelected ? '✓ ' + t('selected') : '›'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Prawa kolumna: Akta Profesji (Dossier) */}
+          <div className="lg:col-span-5 flex flex-col min-h-0 max-lg:min-h-[300px] border border-brass/30 bg-[#15110d] p-5 overflow-y-auto custom-scrollbar">
+            {selectedOcc ? (
+              <div className="space-y-4">
+                {/* Nagłówek akt */}
+                <div>
+                  <div className="font-special-elite uppercase tracking-[0.18em] text-[11px] text-brass/70">
+                    {t('occupationDetailsEyebrow')}
+                  </div>
+                  <h3 className="font-display uppercase tracking-[0.08em] text-2xl text-foreground mt-0.5">
+                    {selectedOcc.name}
+                  </h3>
+                  {recommendedOccupationIds.has(selectedOcc.id) && (
+                    <div className="inline-flex items-center gap-1.5 mt-2 font-special-elite text-xs text-brass border border-primary/40 bg-primary/10 px-2.5 py-0.5">
+                      ★ {t('recommendedByArchetypeOrOccupation')}
+                      {selectedArchetype && ` (${selectedArchetype.name})`}
+                    </div>
+                  )}
+                </div>
+
+                <div className="h-px bg-brass/20" />
+
+                {/* Opis fabularny */}
+                <div className="bg-[#0c0a08]/70 border border-brass/20 p-3.5">
+                  <div className="font-special-elite text-[11px] uppercase tracking-[0.1em] text-brass/70 mb-1">
+                    {t('lore')}
+                  </div>
+                  <p className="font-serif italic text-sm text-foreground/90 leading-relaxed">
+                    {OCCUPATION_DESCRIPTIONS[selectedOcc.id] ||
+                      t('noDescription')}
+                  </p>
+                </div>
+
+                {/* Metryka punktów i majętności */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border border-brass/25 bg-[#100d0a] p-3">
+                    <div className="font-special-elite text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                      {t('occupationPointsLabel')}
+                    </div>
+                    <div className="font-display text-2xl font-bold text-brass/90 mt-0.5">
+                      {state.occupationPoints}{' '}
+                      <span className="text-xs text-muted-foreground font-normal">
+                        pkt
+                      </span>
+                    </div>
+                    <div className="font-special-elite text-[11px] text-brass/70 mt-1 truncate">
+                      {selectedOcc.formula}
+                    </div>
+                  </div>
+
+                  <div className="border border-brass/25 bg-[#100d0a] p-3">
+                    <div className="font-special-elite text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                      {t('creditRating')}
+                    </div>
+                    <div className="font-display text-2xl font-bold text-foreground mt-0.5">
+                      {selectedOcc.creditMin}–{selectedOcc.creditMax}%
+                    </div>
+                    <div className="font-special-elite text-[11px] text-muted-foreground mt-1">
+                      {t('initialCreditRating', { val: selectedOcc.creditMin })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Umiejętności zawodowe */}
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80 mb-2">
+                    {t('occupationalSkillsList')} ({selectedOcc.skills.length})
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedOcc.skills.map((skill, i) => (
+                      <span
+                        key={i}
+                        className="font-special-elite text-xs uppercase tracking-[0.06em] px-2.5 py-1 bg-[#1a1611] border border-brass/30 text-brass/90 shadow-sm"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ekwipunek startowy */}
+                {startingEquipmentList.length > 0 && (
+                  <div>
+                    <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80 mb-2">
+                      {t('startingEquipmentLabel')}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {startingEquipmentList.map((item, i) => (
+                        <span
+                          key={i}
+                          className="font-special-elite text-xs px-2.5 py-1 bg-[#0a0c0f] border border-brass/20 text-muted-foreground"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center p-6 border border-dashed border-brass/20 min-h-[260px]">
+                <span className="text-4xl mb-3 opacity-60">📜</span>
+                <h4 className="font-display uppercase tracking-[0.08em] text-lg text-foreground mb-1">
+                  {t('noOccupationSelectedTitle')}
+                </h4>
+                <p className="font-serif italic text-sm text-muted-foreground max-w-xs leading-relaxed">
+                  {t('noOccupationSelectedHint')}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   };
@@ -2311,14 +2573,15 @@ export function CharacterWizardV2({
   const renderStep3 = () => {
     const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
     const totalPointsAvailable = state.occupationPoints + state.interestPoints;
-    // Zielone rekomendacje umiejętności: kluczowe umiejętności archetypu
-    // (ARCHETYPE_SKILL_MAP) + umiejętności zawodowe (OCCUPATIONS.skills).
-    const recommendedSkills = new Set<string>([
-      ...(selectedArchetypeId
-        ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-        : []),
-      ...(selectedOcc?.skills || []),
-    ]);
+    // Zielone rekomendacje umiejętności: znormalizowany zbiór (archetyp ∪ zawód)
+    // identyczny z autoDistributeSkillsAI (buildRecommendedSkills).
+    const archetypeSkills = selectedArchetypeId
+      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
+      : [];
+    const occupationalSkills = selectedOcc?.skills || [];
+    const recommendedSkills = new Set<string>(
+      buildRecommendedSkills(archetypeSkills, occupationalSkills)
+    );
     // Majętność (Credit Rating) to umiejętność zawodowa wg CoC 7e RAW: baza 0%,
     // a każdy punkt podniesienia kosztuje z puli punktów zawodowych. Dlatego
     // wliczamy creditRating do wydanych punktów - inaczej gracz dostaje
@@ -2803,123 +3066,167 @@ export function CharacterWizardV2({
           subtitle={t('wealthSubtitle', { creditRating: state.creditRating })}
         />
 
-        {/* Tabela majątku */}
-        <div className="border border-brass/28 bg-[#16130f] p-4">
-          <div className="grid grid-cols-4 gap-4 text-center">
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('level')}
-              </div>
-              <div className="font-display text-foreground font-bold mt-1">
-                {wealthInfo.level}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* LEWA KOLUMNA: Wizerunek i Akta Badacza */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {/* Generator portretu */}
+            <div className="border border-brass/28 bg-[#16130f] p-4">
+              <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-3">
+                🎨 {t('characterPortrait')}
+              </label>
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                {state.portraitUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPortraitZoom(true)}
+                    title={t('enlargePortrait')}
+                    className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-brass/50 overflow-hidden cursor-zoom-in group p-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+                  >
+                    <SafeImage
+                      src={state.portraitUrl}
+                      alt={t('portrait')}
+                      className="w-full h-full object-cover"
+                    />
+                    <span
+                      className="pointer-events-none absolute inset-0"
+                      style={{
+                        boxShadow: 'inset 0 0 70px 16px rgba(0,0,0,.7)',
+                      }}
+                    />
+                    <span className="pointer-events-none absolute bottom-1 right-1 text-brass/90 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 px-1 rounded">
+                      🔍
+                    </span>
+                  </button>
+                ) : (
+                  <div
+                    className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-dashed border-brass/40 flex items-center justify-center text-muted-foreground text-3xl"
+                    style={{
+                      backgroundImage:
+                        'repeating-linear-gradient(45deg, rgba(201,162,39,.03) 0, rgba(201,162,39,.03) 9px, transparent 9px, transparent 18px)',
+                    }}
+                  >
+                    👤
+                  </div>
+                )}
+                <div className="flex-1 space-y-2 text-center sm:text-left">
+                  <Button
+                    onClick={generatePortrait}
+                    disabled={state.isGeneratingPortrait}
+                    size="sm"
+                    className={
+                      state.portraitUrl
+                        ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
+                        : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
+                    }
+                  >
+                    {state.isGeneratingPortrait
+                      ? t('generating')
+                      : state.portraitUrl
+                        ? `🔄 ${t('generateAnotherPortrait')}`
+                        : `🎨 ${t('generateAiPortrait')}`}
+                  </Button>
+                  <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                    {state.portraitUrl
+                      ? t('replacePortraitHint')
+                      : t('portraitGenerationHint')}
+                  </p>
+                </div>
               </div>
             </div>
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('cash')}
+
+            {/* Podsumowanie postaci (Akta Badacza) */}
+            <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)] flex-1 flex flex-col justify-between">
+              <div>
+                <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-xs font-semibold mb-2">
+                  ✓ {t('summary')}
+                </div>
+                <div className="text-sm text-foreground">
+                  <strong className="text-brass/90 text-base">
+                    {state.name || t('defaultCharacterName')}
+                  </strong>
+                  <span className="text-muted-foreground">
+                    , {state.age} {t('yearsOld')},{' '}
+                    {OCCUPATIONS.find((o) => o.id === state.occupationId)?.name ||
+                      t('unknownOccupation')}
+                  </span>
+                </div>
               </div>
-              <div className="font-display text-brass/80 font-bold mt-1">
-                {wealthInfo.cash}
-              </div>
-            </div>
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('assets')}
-              </div>
-              <div className="font-display text-muted-foreground font-bold mt-1">
-                {wealthInfo.assets}
-              </div>
-            </div>
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('spendingPerDay')}
-              </div>
-              <div className="font-display text-brass/80 font-bold mt-1">
-                {wealthInfo.spending}
+
+              {/* Siatka atrybutów */}
+              <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-brass/20 text-center font-special-elite text-xs">
+                {STAT_KEYS.map((stat) => (
+                  <div
+                    key={stat}
+                    className="bg-[#14110c] border border-brass/20 py-1 px-1"
+                  >
+                    <span className="text-muted-foreground text-[10px] uppercase block tracking-wider">
+                      {stat.toUpperCase()}
+                    </span>
+                    <span className="text-brass font-bold">
+                      {state.stats[stat]}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Lista ekwipunku - przydzielana automatycznie wg zawodu (CoC 7e) */}
-        <div>
-          <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-1">
-            {t('equipmentAndItems')}
-          </label>
-          <p className="font-serif italic text-xs text-muted-foreground mb-2">
-            {t('equipmentDescription')}
-          </p>
-          <textarea
-            value={state.equipment}
-            onChange={(e) =>
-              setState((prev) => ({ ...prev, equipment: e.target.value }))
-            }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-2 text-foreground h-48 focus:outline-none focus:border-brass/30"
-            placeholder={t('equipmentPlaceholder')}
-          />
-        </div>
-
-        {/* Generator portretu - przeniesiony tutaj, bo AI ma komplet danych */}
-        <div className="border border-brass/28 bg-[#16130f] p-4">
-          <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-3">
-            🎨 {t('characterPortrait')}
-          </label>
-          <div className="flex items-center gap-4">
-            {state.portraitUrl ? (
-              <button
-                type="button"
-                onClick={() => setShowPortraitZoom(true)}
-                title={t('enlargePortrait')}
-                className="relative w-24 h-24 border border-brass/50 overflow-hidden cursor-zoom-in group p-0"
-              >
-                <SafeImage
-                  src={state.portraitUrl}
-                  alt={t('portrait')}
-                  className="w-full h-full object-cover"
-                />
-                <span
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    boxShadow: 'inset 0 0 90px 24px rgba(0,0,0,.7)',
-                  }}
-                />
-                <span className="pointer-events-none absolute bottom-1 right-1 text-brass/90 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                  🔍
-                </span>
-              </button>
-            ) : (
-              <div
-                className="w-24 h-24 border border-dashed border-brass/40 flex items-center justify-center text-muted-foreground text-2xl"
-                style={{
-                  backgroundImage:
-                    'repeating-linear-gradient(45deg, rgba(201,162,39,.03) 0, rgba(201,162,39,.03) 9px, transparent 9px, transparent 18px)',
-                }}
-              >
-                👤
+          {/* PRAWA KOLUMNA: Status finansowy i Ekwipunek */}
+          <div className="lg:col-span-7 flex flex-col gap-4">
+            {/* Tabela majątku */}
+            <div className="border border-brass/28 bg-[#16130f] p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('level')}
+                  </div>
+                  <div className="font-display text-foreground font-bold mt-1">
+                    {wealthInfo.level}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('cash')}
+                  </div>
+                  <div className="font-display text-brass/80 font-bold mt-1">
+                    {wealthInfo.cash}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('assets')}
+                  </div>
+                  <div className="font-display text-muted-foreground font-bold mt-1">
+                    {wealthInfo.assets}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('spendingPerDay')}
+                  </div>
+                  <div className="font-display text-brass/80 font-bold mt-1">
+                    {wealthInfo.spending}
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="space-y-2">
-              <Button
-                onClick={generatePortrait}
-                disabled={state.isGeneratingPortrait}
-                size="sm"
-                className={
-                  state.portraitUrl
-                    ? 'font-display font-semibold uppercase tracking-[0.14em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-4 py-2.5'
-                    : 'font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5'
-                }
-              >
-                {state.isGeneratingPortrait
-                  ? t('generating')
-                  : state.portraitUrl
-                    ? `🔄 ${t('generateAnotherPortrait')}`
-                    : `🎨 ${t('generateAiPortrait')}`}
-              </Button>
-              <p className="font-serif italic text-xs text-muted-foreground">
-                {state.portraitUrl
-                  ? t('replacePortraitHint')
-                  : t('portraitGenerationHint')}
+            </div>
+
+            {/* Lista ekwipunku */}
+            <div className="border border-brass/28 bg-[#16130f] p-4 flex-1 flex flex-col">
+              <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-1">
+                {t('equipmentAndItems')}
+              </label>
+              <p className="font-serif italic text-xs text-muted-foreground mb-2">
+                {t('equipmentDescription')}
               </p>
+              <textarea
+                value={state.equipment}
+                onChange={(e) =>
+                  setState((prev) => ({ ...prev, equipment: e.target.value }))
+                }
+                className="w-full flex-1 min-h-[160px] bg-[#0a0c0f] border border-brass/30 p-3 text-foreground focus:outline-none focus:border-brass/50 font-mono text-xs leading-relaxed resize-y"
+                placeholder={t('equipmentPlaceholder')}
+              />
             </div>
           </div>
         </div>
@@ -2931,24 +3238,6 @@ export function CharacterWizardV2({
             onClose={() => setShowPortraitZoom(false)}
           />
         )}
-
-        {/* Podsumowanie postaci */}
-        <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)]">
-          <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-sm font-semibold mb-2">
-            ✓ {t('summary')}
-          </div>
-          <div className="text-sm text-foreground">
-            <strong>{state.name || t('defaultCharacterName')}</strong>,{' '}
-        {state.age} {t('yearsOld')},{' '}
-            {OCCUPATIONS.find((o) => o.id === state.occupationId)?.name ||
-              t('unknownOccupation')}
-          </div>
-          <div className="font-special-elite text-xs text-muted-foreground mt-1">
-            S:{state.stats.str} KON:{state.stats.con} BC:{state.stats.siz} ZR:
-            {state.stats.dex} WYG:{state.stats.app} INT:{state.stats.int} MOC:
-            {state.stats.pow} WYK:{state.stats.edu}
-          </div>
-        </div>
       </div>
     );
   };
@@ -3065,7 +3354,7 @@ export function CharacterWizardV2({
         </div>
 
         {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6 flex flex-col">
           {renderCurrentStep()}
         </div>
 
