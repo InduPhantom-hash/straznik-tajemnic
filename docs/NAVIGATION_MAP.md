@@ -31,6 +31,7 @@ graph TD
     api_keys["Klucze API / API keys"]
     character_sheet["Karta badacza / Investigator sheet"]
     equipment["Ekwipunek / Equipment"]
+    equipment_detail["Szczegóły przedmiotu / Equipment detail"]
     journal["Dziennik sesji / Session journal"]
     dice["Rzuty kośćmi / Dice rolls"]
     gm_tools["Narzędzia MG / GM tools"]
@@ -59,6 +60,7 @@ graph TD
     session_zero -->|Rozpocznij grę / Start game| game
     game -->|Karta postaci / Character sheet| character_sheet
     game -->|Ekwipunek / Equipment| equipment
+    equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
     game -->|Dziennik / Journal| journal
     game -->|Rzuć kośćmi / Roll dice| dice
     game -->|Narzędzia MG / GM tools| gm_tools
@@ -111,6 +113,7 @@ graph TD
 | Sesja Zero | Rozpocznij grę / Start game | Aktywna sesja | `src/app/[locale]/page.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |

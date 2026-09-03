@@ -5350,7 +5350,10 @@
     "mechanicSkill": "Umiejętność",
     "mechanicBonus": "Premia",
     "loreTitle": "Opis przedmiotu",
-    "appearanceLabel": "Wygląd:"
+    "appearanceLabel": "Wygląd:",
+    "documentPreviewTitle": "Treść dokumentu",
+    "expandDocument": "Powiększ dokument",
+    "collapseDocument": "Zwiń do widoku przedmiotu"
   },
   "CharacterManager": {
     "noCharactersToExport": "Brak postaci do eksportu",
