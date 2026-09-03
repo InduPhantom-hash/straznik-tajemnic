@@ -426,10 +426,10 @@
       "source": "session-zero",
       "target": "game",
       "label": {
-        "pl": "Rozpocznij grę",
-        "en": "Start game"
+        "pl": "Zakończ i zapisz",
+        "en": "Finish and save"
       },
-      "component": "src/app/[locale]/page.tsx"
+      "component": "src/components/ui/session-zero-modal.tsx"
     },
     {
       "source": "game",
