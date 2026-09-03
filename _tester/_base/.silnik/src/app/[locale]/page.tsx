@@ -996,9 +996,7 @@ export default function Home() {
                 setDuetCreatingPlayerName(null);
               }}
               onCharacterCreated={handleCharacterWizardCreated}
-              adventureContext={
-                adventureContext ? (adventureContext as any) : undefined
-              }
+              adventureContext={adventureContext || undefined}
             />
           )}
 

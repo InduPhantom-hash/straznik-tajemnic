@@ -7,7 +7,12 @@ import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
 import { ImageLightbox } from './image-lightbox';
-import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
+import {
+  Character,
+  EquipmentItem,
+  EquipmentCategory,
+  AdventureContext as TypeAdventureContext,
+} from '@/lib/types';
 import {
   AdventureContext,
   CHARACTER_ARCHETYPES,
@@ -213,7 +218,7 @@ interface WizardState {
 interface Props {
   onCharacterCreated: (character: Character) => void;
   onClose: () => void;
-  adventureContext?: AdventureContext; // Kontekst przygody dla AI
+  adventureContext?: AdventureContext | TypeAdventureContext; // Kontekst przygody dla AI
   /**
    * Re-roll: istniejąca postać do "rozdania statystyk od nowa". Zachowuje
    * imię/zawód/historię/dziennik (id), ale gracz rozdaje cechy i umiejętności
@@ -1038,7 +1043,7 @@ export function CharacterWizardV2({
 
     // Buduj kontekst przygody dla promptu
     const adventurePrompt = adventureContext
-      ? getAdventureContextPrompt(adventureContext)
+      ? getAdventureContextPrompt(adventureContext as AdventureContext)
       : t('defaultAdventureEra');
 
     // === LOSOWE ELEMENTY DLA RÓŻNORODNOŚCI (słowniki w messages/*.json) ===
@@ -1183,7 +1188,7 @@ export function CharacterWizardV2({
     const occupation = OCCUPATIONS.find((o) => o.id === state.occupationId);
     const occupationName = occupation?.name || t('researcherLowercase');
     const adventurePrompt = adventureContext
-      ? getAdventureContextPrompt(adventureContext)
+      ? getAdventureContextPrompt(adventureContext as AdventureContext)
       : t('defaultAdventureEra');
 
     const prompt = t('prompts.biography', {
@@ -1251,7 +1256,7 @@ export function CharacterWizardV2({
 
     // Dodaj kontekst przygody jeśli dostępny
     const adventureInfo = adventureContext
-      ? `\n\nKONTEKST PRZYGODY:\n- Lokalizacja: ${adventureContext.location}\n- Era: ${adventureContext.eraLabel} (${adventureContext.yearRange})\n- Motywy: ${adventureContext.themes.join(', ')}`
+      ? `\n\nKONTEKST PRZYGODY:\n- Lokalizacja: ${adventureContext.location || ''}\n- Era: ${adventureContext.eraLabel || ''} (${adventureContext.yearRange || ''})\n- Motywy: ${adventureContext.themes?.join(', ') || ''}`
       : '';
 
     const prompt = t('prompts.field', {
@@ -1263,8 +1268,8 @@ export function CharacterWizardV2({
       field: FIELD_PROMPTS[fieldName] || fieldName,
       style: adventureContext
         ? t('fieldStyleAdventure', {
-            location: adventureContext.location,
-            years: adventureContext.yearRange,
+            location: adventureContext.location || '',
+            years: adventureContext.yearRange || '',
           })
         : t('fieldStyleDefault'),
     });
@@ -1704,8 +1709,8 @@ export function CharacterWizardV2({
         {adventureContext && (
           <p className="font-special-elite text-xs uppercase tracking-[0.1em] text-brass -mt-2">
             {t('adventureLabel', {
-              title: adventureContext.title,
-              location: adventureContext.location,
+              title: adventureContext.title || '',
+              location: adventureContext.location || '',
             })}
           </p>
         )}
