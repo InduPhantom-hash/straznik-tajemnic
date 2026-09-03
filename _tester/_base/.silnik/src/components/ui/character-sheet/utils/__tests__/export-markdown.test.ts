@@ -2,23 +2,12 @@ import type { Character } from '@/lib/types';
 import { exportCharacterToMarkdown } from '../export-markdown';
 
 describe('exportCharacterToMarkdown', () => {
-  let createdAnchor: any;
+  let createdAnchor: { href: string; download: string; click: () => void } | null = null;
   let clicked = false;
-  let downloadedContent = '';
 
   beforeEach(() => {
     clicked = false;
-    downloadedContent = '';
-    global.URL.createObjectURL = jest.fn((blob: Blob) => {
-      // Symulacja odczytu bloba w Node
-      const reader = (blob as any).text;
-      if (typeof reader === 'function') {
-        reader.call(blob).then((t: string) => {
-          downloadedContent = t;
-        });
-      }
-      return 'blob:mock-url';
-    });
+    global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
     global.URL.revokeObjectURL = jest.fn();
 
     const originalCreateElement = document.createElement.bind(document);
@@ -31,7 +20,7 @@ describe('exportCharacterToMarkdown', () => {
             clicked = true;
           },
         };
-        return createdAnchor as any;
+        return createdAnchor as unknown as HTMLAnchorElement;
       }
       return originalCreateElement(tag);
     });
@@ -72,7 +61,7 @@ describe('exportCharacterToMarkdown', () => {
     exportCharacterToMarkdown(char, 'pl');
 
     expect(clicked).toBe(true);
-    expect(createdAnchor.download).toBe('Zero_Badacz_karta.md');
+    expect(createdAnchor?.download).toBe('Zero_Badacz_karta.md');
   });
 
   it('generuje angielską nazwę pliku w locale en', () => {
@@ -106,6 +95,6 @@ describe('exportCharacterToMarkdown', () => {
     exportCharacterToMarkdown(char, 'en');
 
     expect(clicked).toBe(true);
-    expect(createdAnchor.download).toBe('John_Doe_sheet.md');
+    expect(createdAnchor?.download).toBe('John_Doe_sheet.md');
   });
 });
