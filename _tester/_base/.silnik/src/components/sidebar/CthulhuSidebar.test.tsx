@@ -73,4 +73,48 @@ describe('CthulhuSidebar player tools', () => {
     readyBtn.click();
     expect(mockOpenDev).toHaveBeenCalledTimes(1);
   });
+
+  it('poprawnie renderuje stan oczekiwania na słowo gracza bez rozbijania ramki', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar = {
+      id: 'char_1',
+      name: 'Harvey',
+      skills: {},
+    } as never;
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar}
+        isSessionEnded={false}
+        sessionEndStatus="awaiting_player_closure"
+      />
+    );
+
+    const awaitingBtn = screen.getByTitle(/Trwa domykanie sesji/i);
+    expect(awaitingBtn).toBeInTheDocument();
+    expect(awaitingBtn).toBeDisabled();
+    expect(awaitingBtn).toHaveTextContent(/Oczekiwanie na słowo gracza.../i);
+  });
+
+  it('renderuje stan bezpiecznie zamkniętej sesji z właściwą etykietą i tytułem', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar = {
+      id: 'char_1',
+      name: 'Harvey',
+      skills: {},
+    } as never;
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar}
+        isSessionEnded={true}
+        sessionEndStatus="ended"
+      />
+    );
+
+    const closedBtn = screen.getByTitle(/Sesja została bezpiecznie zamknięta/i);
+    expect(closedBtn).toBeInTheDocument();
+    expect(closedBtn).toBeDisabled();
+    expect(closedBtn).toHaveTextContent(/Sesja Zamknięta/i);
+  });
 });
