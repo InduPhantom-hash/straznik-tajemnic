@@ -155,6 +155,10 @@
       "label": {
         "pl": "Kreator postaci",
         "en": "Character wizard"
+      },
+      "description": {
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout)"
       }
     },
     {
