@@ -2803,123 +2803,167 @@ export function CharacterWizardV2({
           subtitle={t('wealthSubtitle', { creditRating: state.creditRating })}
         />
 
-        {/* Tabela majątku */}
-        <div className="border border-brass/28 bg-[#16130f] p-4">
-          <div className="grid grid-cols-4 gap-4 text-center">
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('level')}
-              </div>
-              <div className="font-display text-foreground font-bold mt-1">
-                {wealthInfo.level}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* LEWA KOLUMNA: Wizerunek i Akta Badacza */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {/* Generator portretu */}
+            <div className="border border-brass/28 bg-[#16130f] p-4">
+              <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-3">
+                🎨 {t('characterPortrait')}
+              </label>
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                {state.portraitUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPortraitZoom(true)}
+                    title={t('enlargePortrait')}
+                    className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-brass/50 overflow-hidden cursor-zoom-in group p-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+                  >
+                    <SafeImage
+                      src={state.portraitUrl}
+                      alt={t('portrait')}
+                      className="w-full h-full object-cover"
+                    />
+                    <span
+                      className="pointer-events-none absolute inset-0"
+                      style={{
+                        boxShadow: 'inset 0 0 70px 16px rgba(0,0,0,.7)',
+                      }}
+                    />
+                    <span className="pointer-events-none absolute bottom-1 right-1 text-brass/90 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 px-1 rounded">
+                      🔍
+                    </span>
+                  </button>
+                ) : (
+                  <div
+                    className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-dashed border-brass/40 flex items-center justify-center text-muted-foreground text-3xl"
+                    style={{
+                      backgroundImage:
+                        'repeating-linear-gradient(45deg, rgba(201,162,39,.03) 0, rgba(201,162,39,.03) 9px, transparent 9px, transparent 18px)',
+                    }}
+                  >
+                    👤
+                  </div>
+                )}
+                <div className="flex-1 space-y-2 text-center sm:text-left">
+                  <Button
+                    onClick={generatePortrait}
+                    disabled={state.isGeneratingPortrait}
+                    size="sm"
+                    className={
+                      state.portraitUrl
+                        ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
+                        : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
+                    }
+                  >
+                    {state.isGeneratingPortrait
+                      ? t('generating')
+                      : state.portraitUrl
+                        ? `🔄 ${t('generateAnotherPortrait')}`
+                        : `🎨 ${t('generateAiPortrait')}`}
+                  </Button>
+                  <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                    {state.portraitUrl
+                      ? t('replacePortraitHint')
+                      : t('portraitGenerationHint')}
+                  </p>
+                </div>
               </div>
             </div>
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('cash')}
+
+            {/* Podsumowanie postaci (Akta Badacza) */}
+            <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)] flex-1 flex flex-col justify-between">
+              <div>
+                <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-xs font-semibold mb-2">
+                  ✓ {t('summary')}
+                </div>
+                <div className="text-sm text-foreground">
+                  <strong className="text-brass/90 text-base">
+                    {state.name || t('defaultCharacterName')}
+                  </strong>
+                  <span className="text-muted-foreground">
+                    , {state.age} {t('yearsOld')},{' '}
+                    {OCCUPATIONS.find((o) => o.id === state.occupationId)?.name ||
+                      t('unknownOccupation')}
+                  </span>
+                </div>
               </div>
-              <div className="font-display text-brass/80 font-bold mt-1">
-                {wealthInfo.cash}
-              </div>
-            </div>
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('assets')}
-              </div>
-              <div className="font-display text-muted-foreground font-bold mt-1">
-                {wealthInfo.assets}
-              </div>
-            </div>
-            <div>
-              <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                {t('spendingPerDay')}
-              </div>
-              <div className="font-display text-brass/80 font-bold mt-1">
-                {wealthInfo.spending}
+
+              {/* Siatka atrybutów */}
+              <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-brass/20 text-center font-special-elite text-xs">
+                {STAT_KEYS.map((stat) => (
+                  <div
+                    key={stat}
+                    className="bg-[#14110c] border border-brass/20 py-1 px-1"
+                  >
+                    <span className="text-muted-foreground text-[10px] uppercase block tracking-wider">
+                      {stat.toUpperCase()}
+                    </span>
+                    <span className="text-brass font-bold">
+                      {state.stats[stat]}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Lista ekwipunku - przydzielana automatycznie wg zawodu (CoC 7e) */}
-        <div>
-          <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-1">
-            {t('equipmentAndItems')}
-          </label>
-          <p className="font-serif italic text-xs text-muted-foreground mb-2">
-            {t('equipmentDescription')}
-          </p>
-          <textarea
-            value={state.equipment}
-            onChange={(e) =>
-              setState((prev) => ({ ...prev, equipment: e.target.value }))
-            }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-2 text-foreground h-48 focus:outline-none focus:border-brass/30"
-            placeholder={t('equipmentPlaceholder')}
-          />
-        </div>
-
-        {/* Generator portretu - przeniesiony tutaj, bo AI ma komplet danych */}
-        <div className="border border-brass/28 bg-[#16130f] p-4">
-          <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-3">
-            🎨 {t('characterPortrait')}
-          </label>
-          <div className="flex items-center gap-4">
-            {state.portraitUrl ? (
-              <button
-                type="button"
-                onClick={() => setShowPortraitZoom(true)}
-                title={t('enlargePortrait')}
-                className="relative w-24 h-24 border border-brass/50 overflow-hidden cursor-zoom-in group p-0"
-              >
-                <SafeImage
-                  src={state.portraitUrl}
-                  alt={t('portrait')}
-                  className="w-full h-full object-cover"
-                />
-                <span
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    boxShadow: 'inset 0 0 90px 24px rgba(0,0,0,.7)',
-                  }}
-                />
-                <span className="pointer-events-none absolute bottom-1 right-1 text-brass/90 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                  🔍
-                </span>
-              </button>
-            ) : (
-              <div
-                className="w-24 h-24 border border-dashed border-brass/40 flex items-center justify-center text-muted-foreground text-2xl"
-                style={{
-                  backgroundImage:
-                    'repeating-linear-gradient(45deg, rgba(201,162,39,.03) 0, rgba(201,162,39,.03) 9px, transparent 9px, transparent 18px)',
-                }}
-              >
-                👤
+          {/* PRAWA KOLUMNA: Status finansowy i Ekwipunek */}
+          <div className="lg:col-span-7 flex flex-col gap-4">
+            {/* Tabela majątku */}
+            <div className="border border-brass/28 bg-[#16130f] p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('level')}
+                  </div>
+                  <div className="font-display text-foreground font-bold mt-1">
+                    {wealthInfo.level}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('cash')}
+                  </div>
+                  <div className="font-display text-brass/80 font-bold mt-1">
+                    {wealthInfo.cash}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('assets')}
+                  </div>
+                  <div className="font-display text-muted-foreground font-bold mt-1">
+                    {wealthInfo.assets}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                    {t('spendingPerDay')}
+                  </div>
+                  <div className="font-display text-brass/80 font-bold mt-1">
+                    {wealthInfo.spending}
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="space-y-2">
-              <Button
-                onClick={generatePortrait}
-                disabled={state.isGeneratingPortrait}
-                size="sm"
-                className={
-                  state.portraitUrl
-                    ? 'font-display font-semibold uppercase tracking-[0.14em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-4 py-2.5'
-                    : 'font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5'
-                }
-              >
-                {state.isGeneratingPortrait
-                  ? t('generating')
-                  : state.portraitUrl
-                    ? `🔄 ${t('generateAnotherPortrait')}`
-                    : `🎨 ${t('generateAiPortrait')}`}
-              </Button>
-              <p className="font-serif italic text-xs text-muted-foreground">
-                {state.portraitUrl
-                  ? t('replacePortraitHint')
-                  : t('portraitGenerationHint')}
+            </div>
+
+            {/* Lista ekwipunku */}
+            <div className="border border-brass/28 bg-[#16130f] p-4 flex-1 flex flex-col">
+              <label className="block font-display uppercase tracking-[0.1em] text-brass text-xs font-semibold mb-1">
+                {t('equipmentAndItems')}
+              </label>
+              <p className="font-serif italic text-xs text-muted-foreground mb-2">
+                {t('equipmentDescription')}
               </p>
+              <textarea
+                value={state.equipment}
+                onChange={(e) =>
+                  setState((prev) => ({ ...prev, equipment: e.target.value }))
+                }
+                className="w-full flex-1 min-h-[160px] bg-[#0a0c0f] border border-brass/30 p-3 text-foreground focus:outline-none focus:border-brass/50 font-mono text-xs leading-relaxed resize-y"
+                placeholder={t('equipmentPlaceholder')}
+              />
             </div>
           </div>
         </div>
@@ -2931,24 +2975,6 @@ export function CharacterWizardV2({
             onClose={() => setShowPortraitZoom(false)}
           />
         )}
-
-        {/* Podsumowanie postaci */}
-        <div className="border border-brass/20 bg-[#0e1413] p-4 shadow-[0_0_14px_rgba(13,148,136,.1)]">
-          <div className="font-display uppercase tracking-[0.1em] text-brass/80 text-sm font-semibold mb-2">
-            ✓ {t('summary')}
-          </div>
-          <div className="text-sm text-foreground">
-            <strong>{state.name || t('defaultCharacterName')}</strong>,{' '}
-        {state.age} {t('yearsOld')},{' '}
-            {OCCUPATIONS.find((o) => o.id === state.occupationId)?.name ||
-              t('unknownOccupation')}
-          </div>
-          <div className="font-special-elite text-xs text-muted-foreground mt-1">
-            S:{state.stats.str} KON:{state.stats.con} BC:{state.stats.siz} ZR:
-            {state.stats.dex} WYG:{state.stats.app} INT:{state.stats.int} MOC:
-            {state.stats.pow} WYK:{state.stats.edu}
-          </div>
-        </div>
       </div>
     );
   };
