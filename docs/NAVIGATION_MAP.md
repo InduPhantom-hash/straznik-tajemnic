@@ -32,7 +32,7 @@ graph TD
     character_sheet["Karta badacza (Dark Art Déco CoC 7e RAW) / Investigator sheet (Dark Art Déco CoC 7e RAW)"]
     equipment["Ekwipunek / Equipment"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
-    journal["Dziennik sesji / Session journal"]
+    journal["Dziennik sesji i akta śledcze / Session journal and investigator dossier"]
     dice["Rzuty kośćmi / Dice rolls"]
     gm_tools["Narzędzia MG / GM tools"]
     development["Faza rozwoju / Development phase"]
@@ -119,7 +119,7 @@ graph TD
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
-| Aktywna sesja | Dziennik / Journal | Dziennik sesji | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Aktywna sesja | Dziennik / Journal | Dziennik sesji i akta śledcze | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |

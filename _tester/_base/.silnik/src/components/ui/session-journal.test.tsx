@@ -211,5 +211,194 @@ describe('SessionJournal', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(handleClose).toHaveBeenCalledTimes(2);
   });
+
+  it('renderuje widok Akt Śledczych z poszlakami, statusem CoC 7e i umożliwia zmianę statusu', () => {
+    const onUpdate = jest.fn();
+    const testCharacter: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      id: 'investigator_test',
+      name: 'Edward Carnby',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'clue-1',
+            title: 'Krwawy Ślad w piwnicy',
+            description: 'Świeża krew na kamiennej posadzce.',
+            category: 'forensic',
+            status: 'unconfirmed',
+            isKeyClue: true,
+            sourceNpc: 'Inspektor Legrasse',
+            foundLocation: 'Kamienica Corbitta',
+          },
+        ],
+        npcs: [
+          {
+            id: 'npc-1',
+            name: 'Thomas Malone',
+            occupation: 'Detektyw',
+            firstImpression: 'Zmęczony życiem człowiek.',
+            relationshipStatus: 'friendly',
+          },
+        ],
+        locations: [
+          {
+            id: 'loc-1',
+            name: 'Zaułek Red Hook',
+            searchStatus: 'partially_searched',
+            description: 'Mroczne zaułki Brooklynu.',
+          },
+        ],
+        notes: [],
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+
+    render(
+      <SessionJournal
+        character={testCharacter}
+        onUpdateCharacter={onUpdate}
+        onClose={jest.fn()}
+      />
+    );
+
+    // Przejdź do zakładki Odkrycia / Akta Śledcze
+    const discoveriesTab = screen.getByTestId('btn-discoveries');
+    fireEvent.click(discoveriesTab);
+
+    // Kliknij teczkę Poszlaki (dawne Misje)
+    const cluesCategoryBtn = screen.getByRole('button', { name: /Misje/i });
+    fireEvent.click(cluesCategoryBtn);
+
+    // Poszlaka powinna być widoczna na liście i w podglądzie akt
+    expect(screen.getAllByText('Krwawy Ślad w piwnicy')[0]).toBeInTheDocument();
+    expect(screen.getByText('ŚWIADEK:')).toBeInTheDocument();
+    expect(screen.getByText('Inspektor Legrasse')).toBeInTheDocument();
+    expect(screen.getByText('KLUCZOWA POSZLAKA')).toBeInTheDocument();
+
+    // Zmień status poszlaki na Potwierdzona
+    const confirmBtn = screen.getByRole('button', { name: 'Potwierdzona' });
+    fireEvent.click(confirmBtn);
+
+    expect(onUpdate).toHaveBeenCalled();
+    const updatedChar = onUpdate.mock.calls[0][0] as Character;
+    expect(updatedChar.investigatorDossier?.clues[0].status).toBe('confirmed');
+  });
+
+  it('filtruje akta śledcze w czasie rzeczywistym za pomocą szybkiego filtra FTS', () => {
+    const testCharacter: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      id: 'investigator_test',
+      name: 'Edward Carnby',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'clue-1',
+            title: 'Krwawy Ślad w piwnicy',
+            description: 'Świeża krew na kamiennej posadzce.',
+            category: 'forensic',
+            status: 'unconfirmed',
+          },
+          {
+            id: 'clue-2',
+            title: 'List z Arkham Sanitarium',
+            description: 'Tajemnicza korespondencja lekarza.',
+            category: 'document',
+            status: 'unconfirmed',
+          },
+        ],
+        npcs: [],
+        locations: [],
+        notes: [],
+      },
+    };
+
+    render(
+      <SessionJournal
+        character={testCharacter}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('btn-discoveries'));
+    fireEvent.click(screen.getByRole('button', { name: /Misje/i }));
+
+    expect(screen.getAllByText('Krwawy Ślad w piwnicy')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('List z Arkham Sanitarium')[0]).toBeInTheDocument();
+
+    // Filtruj po słowie "Sanitarium"
+    const filterInput = screen.getByPlaceholderText('Szybki filtr FTS (np. nazwisko, poszlaka)...');
+    fireEvent.change(filterInput, { target: { value: 'Sanitarium' } });
+
+    expect(screen.queryByText('Krwawy Ślad w piwnicy')).not.toBeInTheDocument();
+    expect(screen.getAllByText('List z Arkham Sanitarium')[0]).toBeInTheDocument();
+  });
+
+  it('eksportuje akta śledcze w klimatycznym formacie CoC 7e Markdown', () => {
+    const testCharacter: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      id: 'investigator_test',
+      name: 'Harvey Walters',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'clue-1',
+            title: 'Dziwny Idol z Bagien',
+            description: 'Zielonkawy kamień o bluźnierczych kształtach.',
+            category: 'occult',
+            status: 'confirmed',
+            investigatorInsight: 'Pochodzi z kultu Cthulhu.',
+          },
+        ],
+        npcs: [
+          {
+            id: 'npc-1',
+            name: 'Profesor Angell',
+            occupation: 'Archeolog',
+            firstImpression: 'Uczony badacz mitów.',
+            relationshipStatus: 'friendly',
+          },
+        ],
+        locations: [
+          {
+            id: 'loc-1',
+            name: 'Muzeum Providence',
+            searchStatus: 'thoroughly_searched',
+            description: 'Bogata kolekcja starożytności.',
+          },
+        ],
+        notes: [],
+      },
+    };
+
+    let exportedBlobContent = '';
+    const originalCreateObjectURL = window.URL.createObjectURL;
+    window.URL.createObjectURL = jest.fn((blob: Blob) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        exportedBlobContent = reader.result as string;
+      };
+      reader.readAsText(blob);
+      return 'mock-url';
+    });
+
+    render(
+      <SessionJournal
+        character={testCharacter}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    const exportBtn = screen.getByRole('button', { name: /Eksport MD/i });
+    fireEvent.click(exportBtn);
+
+    expect(window.URL.createObjectURL).toHaveBeenCalled();
+    const createdBlob = (window.URL.createObjectURL as jest.Mock).mock.calls[0][0] as Blob;
+    expect(createdBlob).toBeInstanceOf(Blob);
+
+    window.URL.createObjectURL = originalCreateObjectURL;
+  });
 });
+
 
