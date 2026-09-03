@@ -49,16 +49,8 @@ export const defaultAISettings: AISettings = {
 
   // === IMAGE GENERATION (IND-91 rename) ===
   imageGenerationEnabled: true,
-  replicateApiKey: undefined,
   replicateSettings: {
     imageProvider: 'vertex', // HIGH/ULTRA: Imagen 4 Ultra Tier 1 (applyPreset - drift guard T31)
-    model: 'stability-ai/stable-diffusion',
-    width: 512,
-    height: 512,
-    numInferenceSteps: 20,
-    guidanceScale: 7.5,
-    seed: null,
-    scheduler: 'K_EULER',
     style: 'realistic',
     quality: 'high',
     autoGeneratePortraits: true,

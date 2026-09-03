@@ -18,7 +18,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from './accordion';
-import { ReplicateSettings } from '../settings/replicate-settings';
+import { ImageSettings } from '../settings/image-settings';
 import { GameMasterSettings } from '../settings/game-master-settings';
 import { CostControlSettings } from '../settings/cost-control-settings';
 import { HealthStatusPanel } from '../settings/health-status-panel';
@@ -121,14 +121,9 @@ export function SettingsModal({
                     loadAvailableVoices={m.loadAvailableVoices}
                   />
 
-                  <ReplicateSettings
+                  <ImageSettings
                     settings={m.settings}
                     setSettings={m.setSettings}
-                    testResults={m.apiTester.testResults}
-                    isLoading={m.apiTester.isLoading}
-                    testAPI={m.apiTester.testAPI}
-                    getTestResultColor={m.apiTester.getTestResultColor}
-                    getTestResultIcon={m.apiTester.getTestResultIcon}
                   />
 
                   <GameMasterSettings
