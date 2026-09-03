@@ -144,6 +144,14 @@ export function generateItemLore(itemName: string): string {
   ) {
     return 'Pojemny plecak ze śladami intensywnego użytkowania. Wiele kieszeni pozwala uporządkować ekwipunek na wyprawy.';
   }
+  if (
+    nameLower.includes('manierka') ||
+    nameLower.includes('piersiówka') ||
+    nameLower.includes('flask') ||
+    nameLower.includes('butelka')
+  ) {
+    return 'Solidne naczynie na wodę lub mocniejszy trunek. Niezbędne podczas długich wędrówek z dala od cywilizacji.';
+  }
 
   // Okultystyczne
   if (nameLower.includes('ouija') || nameLower.includes('ouja')) {

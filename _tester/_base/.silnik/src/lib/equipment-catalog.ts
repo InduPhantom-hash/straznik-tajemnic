@@ -149,7 +149,10 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { 'prl-1970s': '/equipment/catalog/first-aid-prl-1970s.webp' },
+    assetPaths: {
+      'prl-1970s': '/equipment/catalog/first-aid-prl-1970s.webp',
+      shared: '/equipment/catalog/first-aid-prl-1970s.webp',
+    },
   },
   {
     id: 'medical.bag',
@@ -190,7 +193,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'personal.flask',
     name: 'Piersiówka',
-    aliases: ['Hip Flask'],
+    aliases: ['Hip Flask', 'Manierka'],
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
