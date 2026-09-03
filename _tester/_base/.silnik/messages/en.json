@@ -86,6 +86,18 @@
     "stepOccupationSubtitle": "Choose your Investigator's profession.",
     "creditRating": "Credit Rating",
     "skills": "Skills",
+    "searchOccupationPlaceholder": "Search professions or skills...",
+    "allFilter": "All ({count})",
+    "suggestedFilter": "★ Suggested ({count})",
+    "noOccupationsFound": "No professions match the search criteria.",
+    "occupationDetailsEyebrow": "Miskatonic Files · Profession Dossier",
+    "noOccupationSelectedTitle": "Select a profession from the list",
+    "noOccupationSelectedHint": "Select a profession from the list on the left to review its requirements, points pool, occupational skills, and starting equipment.",
+    "occupationalSkillsList": "Occupational Skills",
+    "startingEquipmentLabel": "Starting Occupational Equipment",
+    "initialCreditRating": "Starting value: {val}%",
+    "skillsCount": "skills",
+    "lore": "Lore Background",
     "stepSkillsTitle": "Step 4 · Skills",
     "stepSkillsSubtitle": "Allocate points among the character's skills.",
     "howItWorks": "How does it work?",
@@ -149,7 +161,7 @@
       "backstory": "Generate UNIQUE character data for Call of Cthulhu.\n\n{adventure}\n\nCHARACTER: {gender}, {age} years old, occupation: {occupation}.\nINSPIRATION: personality {personality}; background {background}; motivation {motivation}; seed #{seed}.\nReturn ONLY JSON with name, birthplace, description, ideology, importantPeople, significantPlaces, personalItems, traits, and keyConnection. Use English.",
       "biography": "Using the following character sheet, write a coherent atmospheric biography in 2-3 third-person paragraphs.\n\n{adventure}\nName: {name}\nGender: {gender}\nAge: {age}\nOccupation: {occupation}\nBirthplace: {birthplace}\nAppearance: {appearance}\nIdeology: {ideology}\nImportant people: {people}\nSignificant places: {places}\nPersonal items: {items}\nTraits: {traits}\nKey connection: {connection}\n\nReturn only the biography, with no heading or commentary.",
       "field": "You generate a character-background field for Call of Cthulhu 7e.\nCharacter context:\n{context}{adventure}\n\nGenerate {field}. Return only the field value, without quotation marks, prefixes, or explanations. Use 1-3 sentences. Style: {style}. Use English.",
-      "skills": "You are an expert character builder for Call of Cthulhu 7ed.\n\nCHARACTER CONTEXT:\n{context}\n\nOCCUPATION: {occupation}\nOCCUPATIONAL SKILLS: {occSkills}\n{archetypeBlock}\n\nNOTE: Recommended skills (archetype + occupation) have ALREADY been allocated deterministically: {recommended}. Do not touch them.\nYour task: distribute the REMAINING pool across OTHER skills (flavorful, fitting the character background) to make the investigator well-rounded.\n\nREMAINING POINTS TO DISTRIBUTE: {remaining}\nPER-SKILL LIMIT: {limit}% (creation maximum)\n\nSKILL LIST WITH BASE VALUES:\n{skillsList}\n\nCRITICAL REQUIREMENTS:\n1. Distribute EXACTLY {remaining} points - no more, no less!\n2. Do NOT allocate to recommended skills (already done): {recommendedTop}\n3. Pick skills fitting the character (background, description, traits)\n4. Each skill may reach at most {limit}%\n5. Spread points across 5-10 skills\n\nExample: if Library has base 20% and you want 60%, you add 40 points.\n\nReply ONLY with plain JSON, no markdown:\n{\"skills\": {\"SkillName\": newValue, ...}}\n\nInclude ONLY skills you add points to (new value > base).\nTHE SUM OF ADDED POINTS MUST BE EXACTLY {remaining}!"
+      "skills": "You are an expert character builder for Call of Cthulhu 7ed.\n\nCHARACTER CONTEXT:\n{context}\n\nOCCUPATION: {occupation}\nOCCUPATIONAL SKILLS: {occSkills}\n{archetypeBlock}\n\nNOTE: Recommended skills (archetype + occupation) have ALREADY been allocated deterministically: {recommended}. Do not touch them.\nYour task: distribute the REMAINING pool across OTHER skills (flavorful, fitting the character background) to make the investigator well-rounded.\n\nREMAINING POINTS TO DISTRIBUTE: {remaining}\nPER-SKILL LIMIT: {limit}% (creation maximum)\n\nSKILL LIST WITH BASE VALUES:\n{skillsList}\n\nCRITICAL REQUIREMENTS:\n1. Distribute EXACTLY {remaining} points - no more, no less!\n2. Do NOT allocate to recommended skills (already done): {recommendedTop}\n3. Pick skills fitting the character (background, description, traits)\n4. Each skill may reach at most {limit}%\n5. Spread points across fitting skills\n\nExample: if Library has base 20% and you want 60%, you add 40 points.\n\nReply ONLY with plain JSON, no markdown:\n{\"skills\": {\"SkillName\": newValue, ...}}\n\nInclude ONLY skills you add points to (new value > base).\nTHE SUM OF ADDED POINTS MUST BE EXACTLY {remaining}!"
     },
     "toasts": {
       "apiError": "API error",
