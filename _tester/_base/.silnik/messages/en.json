@@ -6319,7 +6319,20 @@
     "backNav": "‹ Back",
     "stepCounter": "Step {step} of {total}",
     "finishAndSaveNav": "Finish and save ›",
-    "nextNav": "Next ›"
+    "nextNav": "Next ›",
+    "suggestedLinesLabel": "Suggested forbidden topics (click to add):",
+    "suggestedVeilsLabel": "Suggested fade-to-black topics (click to add):",
+    "violenceAnimals": "Harm to animals",
+    "suicide": "Suicide & self-harm",
+    "claustrophobia": "Claustrophobia",
+    "spidersInsects": "Spiders & insects",
+    "cannibalism": "Cannibalism",
+    "lossOfControl": "Loss of mental control",
+    "ritualsBlood": "Blood rituals & sacrifice",
+    "surgeriesAmputation": "Graphic surgery & amputation",
+    "bodyHorror": "Body horror & deformation",
+    "backToStep1": "Back to mode selection",
+    "backToStep2": "Back to lines and veils"
   },
   "NpcManager": {
     "headerKicker": "Met characters · Non-player characters",
