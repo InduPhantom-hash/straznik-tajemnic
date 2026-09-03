@@ -1041,7 +1041,14 @@
     },
     "skillFirearms": "Broń Palna",
     "skillFirearmsLong": "Broń Palna (Karabin)",
-    "skillMelee": "Walka Wręcz"
+    "skillMelee": "Walka Wręcz",
+    "sectionHelp": {
+      "vitals": "PŻ = Punkty Życia: (KON+BUD)/10. PR = Poczytalność: startowo MOC, maks. 99 - Mity Cthulhu. PM = Punkty Magii: MOC/5. SZC = Szczęście.",
+      "combat": "Bonus DMG i Krzepa wynikają z sumy SIŁ+BUD. Ruch = bazowo 7-9 zależnie od SIŁ, ZRĘ, BUD z modyfikatorem wieku.",
+      "skills": "Każdy test umiejętności to rzut k100: Sukces zwykły (≤ wartość), Trudny (≤ 1/2), Ekstremalny (≤ 1/5). Sukces krytyczny to wyłącznie 01. Pech to 100 (lub 96-100 gdy wartość < 50). ★ = umiejętność zawodowa. ✓ = oznaczona do rozwoju."
+    },
+    "markedForImprovement": "Umiejętność oznaczona do rozwoju w Fazie Rozwoju",
+    "skillBreakdownTooltip": "Zwykły: {regular}% | Trudny (1/2): {hard}% | Ekstremalny (1/5): {extreme}%"
   },
   "ChatHeader": {
     "defaultTitle": "Tajemnica Biblioteki Miskatonic"

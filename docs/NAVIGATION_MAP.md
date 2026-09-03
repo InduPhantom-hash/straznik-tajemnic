@@ -29,7 +29,7 @@ graph TD
     session_zero["Sesja Zero / Session Zero"]
     game["Aktywna sesja / Active session"]
     api_keys["Klucze API / API keys"]
-    character_sheet["Karta badacza / Investigator sheet"]
+    character_sheet["Karta badacza (Dark Art Déco CoC 7e RAW) / Investigator sheet (Dark Art Déco CoC 7e RAW)"]
     equipment["Ekwipunek / Equipment"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
     journal["Dziennik sesji / Session journal"]
@@ -116,7 +116,7 @@ graph TD
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
 | Sesja Zero | Zakończ i zapisz / Finish and save | Aktywna sesja | `src/components/ui/session-zero-modal.tsx` |
-| Aktywna sesja | Karta postaci / Character sheet | Karta badacza | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji | `src/components/sidebar/CthulhuSidebar.tsx` |

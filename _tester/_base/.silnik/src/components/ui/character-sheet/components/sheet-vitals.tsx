@@ -83,7 +83,15 @@ export function SheetVitals({
 
       {/* === SEKCJA 4: WALKA === */}
       <div>
-        <SectionTitle help={SECTION_HELP.walka}>{t.has('combat') ? t('combat') : 'Walka'}</SectionTitle>
+        <SectionTitle
+          help={
+            t.has('sectionHelp.combat')
+              ? t('sectionHelp.combat')
+              : SECTION_HELP.walka
+          }
+        >
+          {t.has('combat') ? t('combat') : 'Walka'}
+        </SectionTitle>
         <div className="grid grid-cols-3 gap-3">
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="font-special-elite text-xs text-muted-foreground tracking-[0.1em] uppercase">

@@ -95,7 +95,7 @@ function StatBar({ field, current, max, inlineEdit }: SingleBarProps) {
   } = inlineEdit;
   const isEditing = editingField === field;
   const theme = THEMES[field];
-  const percent = Math.max(0, Math.min(100, (current / max) * 100));
+  const percent = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
   const fillStyle: CSSProperties = {
     width: `${percent}%`,
     background: theme.background,
@@ -175,25 +175,25 @@ export function StatBars({
     <div className="flex flex-col gap-3.5">
       <StatBar
         field="hp"
-        current={character.hp || maxHp}
+        current={character.hp ?? maxHp}
         max={maxHp}
         inlineEdit={inlineEdit}
       />
       <StatBar
         field="san"
-        current={character.san || maxSan}
+        current={character.san ?? maxSan}
         max={maxSan}
         inlineEdit={inlineEdit}
       />
       <StatBar
         field="mp"
-        current={character.mp || maxMp}
+        current={character.mp ?? maxMp}
         max={maxMp}
         inlineEdit={inlineEdit}
       />
       <StatBar
         field="luck"
-        current={character.luck || 50}
+        current={character.luck ?? 50}
         max={99}
         inlineEdit={inlineEdit}
       />

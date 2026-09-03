@@ -1041,7 +1041,14 @@
     },
     "skillFirearms": "Firearms (Handgun)",
     "skillFirearmsLong": "Firearms (Long gun)",
-    "skillMelee": "Fighting (Brawl)"
+    "skillMelee": "Fighting (Brawl)",
+    "sectionHelp": {
+      "vitals": "HP = Hit Points: (CON+SIZ)/10. SAN = Sanity: starts at POW, max 99 - Cthulhu Mythos. MP = Magic Points: POW/5. LCK = Luck.",
+      "combat": "Damage Bonus and Build derive from the STR+SIZ table. Move = base 7-9 depending on STR, DEX, SIZ, and age.",
+      "skills": "Each skill test is a D100 roll: Regular success (≤ value), Hard (≤ 1/2), Extreme (≤ 1/5). Critical success is strictly 01. Fumble is 100 (or 96-100 if value < 50). ★ = occupational skill. ✓ = marked for improvement."
+    },
+    "markedForImprovement": "Skill marked for improvement in Development Phase",
+    "skillBreakdownTooltip": "Regular: {regular}% | Hard (1/2): {hard}% | Extreme (1/5): {extreme}%"
   },
   "ChatHeader": {
     "defaultTitle": "Mystery of the Miskatonic Library"
