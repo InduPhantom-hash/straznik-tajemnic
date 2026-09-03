@@ -5350,7 +5350,10 @@
     "mechanicSkill": "Skill",
     "mechanicBonus": "Bonus",
     "loreTitle": "Item description",
-    "appearanceLabel": "Appearance:"
+    "appearanceLabel": "Appearance:",
+    "documentPreviewTitle": "Document content",
+    "expandDocument": "Expand document",
+    "collapseDocument": "Collapse to item details"
   },
   "CharacterManager": {
     "noCharactersToExport": "No characters to export",

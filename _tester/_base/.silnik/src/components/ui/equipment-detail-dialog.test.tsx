@@ -92,4 +92,34 @@ describe('EquipmentDetailDialog', () => {
       })
     );
   });
+
+  it('calls onClose when close X button is clicked', () => {
+    const handleClose = jest.fn();
+    render(<EquipmentDetailDialog item={mockItem} onClose={handleClose} />);
+    const closeButton = screen.getByRole('button', { name: 'Zamknij' });
+    fireEvent.click(closeButton);
+    expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('allows expanding and collapsing the document viewer', () => {
+    const readableItem: EquipmentItem = {
+      ...mockItem,
+      readableContent: 'Bardzo długi tekst z archiwum...',
+      readableContentStatus: 'ready',
+    };
+    render(<EquipmentDetailDialog item={readableItem} onClose={jest.fn()} />);
+    
+    // Przycisk powiększenia
+    const expandBtn = screen.getByTitle('Powiększ dokument');
+    expect(expandBtn).toBeInTheDocument();
+    fireEvent.click(expandBtn);
+
+    // W trybie rozszerzonym pojawia się przycisk zwinięcia
+    const collapseBtn = screen.getByText('Zwiń do widoku przedmiotu');
+    expect(collapseBtn).toBeInTheDocument();
+
+    // Zwinięcie z powrotem
+    fireEvent.click(collapseBtn);
+    expect(screen.getByTitle('Powiększ dokument')).toBeInTheDocument();
+  });
 });

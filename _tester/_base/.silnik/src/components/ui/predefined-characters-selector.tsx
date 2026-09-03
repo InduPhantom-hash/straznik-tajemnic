@@ -98,6 +98,7 @@ export function PredefinedCharactersSelector({
   unavailablePresetIds = [],
   characters,
   filterByEra = true,
+  eraContext,
 }: PredefinedCharactersSelectorProps) {
   const t = useTranslations('PredefinedCharacters');
   const dynamicT = t as unknown as (key: string) => string;
@@ -789,8 +790,20 @@ export function PredefinedCharactersSelector({
       {selectedItem && viewingCharacter && (
         <EquipmentDetailDialog
           item={selectedItem}
+          era={currentEra}
+          eraContext={eraContext as any}
           onClose={() => setSelectedItem(null)}
-          onUpdateItem={console.log}
+          onUpdateItem={(updatedItem) => {
+            setSelectedItem(updatedItem);
+            const items = getEquipmentItems(viewingCharacter.equipment);
+            const updatedList = items.map((eq) =>
+              eq.id === updatedItem.id ? updatedItem : eq
+            );
+            setViewingCharacter({
+              ...viewingCharacter,
+              equipment: updatedList,
+            });
+          }}
         />
       )}
     </>

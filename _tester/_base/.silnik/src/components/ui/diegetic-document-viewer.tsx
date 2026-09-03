@@ -4,25 +4,91 @@ import { useTranslations } from 'next-intl';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 import { User, FileText, Stamp, Award, Shield } from 'lucide-react';
+import type { ResolvedEraContext } from '@/lib/era';
 
 interface DiegeticDocumentViewerProps {
   item: EquipmentItem;
   character?: Character | null;
+  eraContext?: ResolvedEraContext | null;
+  isExpanded?: boolean;
+}
+
+export interface EraDocumentHeaders {
+  pressOrg: string;
+  pressAddress: string;
+  idAuthority: string;
+  idSubtitle: string;
+  policeDept: string;
+  officialOffice: string;
+  officialSubtitle: string;
+  newspaperTitle: string;
+  validUntilYear: number;
+}
+
+export function getEraDocumentHeaders(eraContext?: ResolvedEraContext | null): EraDocumentHeaders {
+  const year = eraContext?.effectiveYear || 1924;
+  const region = eraContext?.regionProfile || 'US';
+  const country = eraContext?.countryCode || 'US';
+  const isPostWar = year >= 1945;
+
+  if (region === 'PL' || country === 'PL') {
+    return {
+      pressOrg: isPostWar ? '„TRYBUNA LUDU”' : '„KURIER WARSZAWSKI”',
+      pressAddress: isPostWar ? 'Plac Starynkiewicza 7/9, Warszawa' : 'Krakowskie Przedmieście 40, Warszawa',
+      idAuthority: isPostWar ? 'POLSKA RZECZPOSPOLITA LUDOWA' : 'RZECZPOSPOLITA POLSKA',
+      idSubtitle: isPostWar ? 'Ministerstwo Spraw Wewnętrznych • MO' : 'Ministerstwo Spraw Wewnętrznych • Policja Państwowa',
+      policeDept: isPostWar ? 'KOMENDA GŁÓWNA MILICJI OBYWATELSKIEJ' : 'KOMENDA GŁÓWNA POLICJI PAŃSTWOWEJ',
+      officialOffice: isPostWar ? 'URZĄD RADY MINISTRÓW • WARSZAWA' : 'MINISTERSTWO SPRAW WEWNĘTRZNYCH RP',
+      officialSubtitle: isPostWar ? 'Wydział Bezpieczeństwa Publicznego' : 'Wydział Bezpieczeństwa Państwowego',
+      newspaperTitle: isPostWar ? 'TRYBUNA LUDU' : 'KURIER WARSZAWSKI',
+      validUntilYear: year + 1,
+    };
+  }
+
+  if (region === 'GB' || country === 'GB') {
+    return {
+      pressOrg: '„THE TIMES”',
+      pressAddress: 'Printing House Square, London E.C.4',
+      idAuthority: 'UNITED KINGDOM OF GREAT BRITAIN',
+      idSubtitle: "His Majesty's Home Department",
+      policeDept: 'METROPOLITAN POLICE • SCOTLAND YARD',
+      officialOffice: "HIS MAJESTY'S STATIONERY OFFICE",
+      officialSubtitle: 'Whitehall, London S.W.1',
+      newspaperTitle: 'THE LONDON GAZETTE',
+      validUntilYear: year + 1,
+    };
+  }
+
+  return {
+    pressOrg: '„THE ARKHAM ADVERTISER”',
+    pressAddress: 'French Hill & College Streets, Arkham, Mass.',
+    idAuthority: 'COMMONWEALTH OF MASSACHUSETTS',
+    idSubtitle: 'Department of Public Safety & Civil Registry',
+    policeDept: 'ARKHAM POLICE DEPARTMENT',
+    officialOffice: 'COMMONWEALTH OF MASSACHUSETTS',
+    officialSubtitle: 'Executive Department & Civil Authority',
+    newspaperTitle: 'THE ARKHAM DAILY GAZETTE',
+    validUntilYear: year + 1,
+  };
 }
 
 export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   item,
   character,
+  eraContext,
+  isExpanded = false,
 }) => {
   const t = useTranslations('DiegeticDocumentViewer');
   const docType = item.documentType || inferDocumentType(item);
   const content = item.readableContent || item.description || t('noContent');
+  const headers = getEraDocumentHeaders(eraContext);
+  const year = eraContext?.effectiveYear || 1924;
 
   // === 1. LEGITYMACJA PRASOWA / DOWÓD TOŻSAMOŚCI ===
   if (docType === 'press_pass' || docType === 'id_card') {
     const isPress = docType === 'press_pass';
     return (
-      <div className="relative my-3 p-5 bg-[#d9cbb0] text-[#241a12] border-4 border-[#5c4a35] shadow-2xl rounded-sm font-serif select-text overflow-hidden">
+      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-5'} bg-[#d9cbb0] text-[#241a12] border-4 border-[#5c4a35] shadow-2xl rounded-sm font-serif select-text overflow-hidden`}>
         {/* Deseń tła paszportowego */}
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#423121_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
 
@@ -32,10 +98,10 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
             {isPress ? t('pressPassTitle') : t('idCardTitle')}
           </div>
           <h4 className="font-bold text-lg md:text-xl uppercase tracking-wider text-[#3d2f21] mt-0.5">
-            {isPress ? '„THE ARKHAM ADVERTISER”' : 'COMMONWEALTH OF MASSACHUSETTS'}
+            {isPress ? headers.pressOrg : headers.idAuthority}
           </h4>
           <div className="text-[11px] italic text-[#544332]">
-            {isPress ? 'French Hill & College Streets, Arkham, Mass.' : t('idCardSubtitle')}
+            {isPress ? headers.pressAddress : headers.idSubtitle}
           </div>
         </div>
 
@@ -67,10 +133,10 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
           </div>
 
           {/* Dane i Treść */}
-          <div className="flex-1 text-sm leading-relaxed font-serif">
+          <div className={`flex-1 ${isExpanded ? 'text-base' : 'text-sm'} leading-relaxed font-serif`}>
             <div className="mb-2 pb-1 border-b border-[#a8987d]/50 font-special-elite text-xs flex justify-between">
               <span>NRO: <strong className="text-[#3d2f21]">418/24</strong></span>
-              <span>{t('validUntil')} <strong className="text-[#3d2f21]">31.XII.1926 r.</strong></span>
+              <span>{t('validUntil')} <strong className="text-[#3d2f21]">31.XII.{headers.validUntilYear} r.</strong></span>
             </div>
             <p className="italic text-[#291e14] whitespace-pre-line">
               {content}
@@ -98,7 +164,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 2. TECZKA / KOPERTA NA DOWODY POLICYJNE ===
   if (docType === 'evidence_envelope') {
     return (
-      <div className="relative my-3 p-6 bg-[#c7b28b] text-[#241a10] border-2 border-[#695439] shadow-2xl rounded-none font-special-elite select-text">
+      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-6'} bg-[#c7b28b] text-[#241a10] border-2 border-[#695439] shadow-2xl rounded-none font-special-elite select-text`}>
         {/* Zagięcia i sznurki teczki */}
         <div className="absolute top-3 right-4 w-6 h-6 rounded-full bg-[#8c352b] border-2 border-[#57201a] shadow-inner flex items-center justify-center text-white text-[10px] font-bold">
           ★
@@ -108,19 +174,19 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
           <div className="flex justify-between items-start border-b-2 border-[#453623] pb-2 mb-3">
             <div>
               <h4 className="font-bold text-base md:text-lg uppercase tracking-wider text-[#362a1b]">
-                {t('policeDept')}
+                {headers.policeDept}
               </h4>
               <div className="text-xs uppercase tracking-widest text-[#5c4933]">
                 {t('evidenceOffice')}
               </div>
             </div>
             <div className="text-right text-xs">
-              <div>{t('caseNo')} <strong className="text-[#731911]">412/1924</strong></div>
+              <div>{t('caseNo')} <strong className="text-[#731911]">412/{year}</strong></div>
               <div>{t('deposit')} <strong className="text-[#362a1b]">{t('sectorB')}</strong></div>
             </div>
           </div>
 
-          <div className="font-serif italic text-sm md:text-base leading-relaxed text-[#1f160e] my-3 whitespace-pre-line">
+          <div className={`font-serif italic ${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} text-[#1f160e] my-3 whitespace-pre-line`}>
             {content}
           </div>
 
@@ -136,7 +202,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 3. OFICJALNE PISMO RZĄDOWE / URZĘDOWE ===
   if (docType === 'official_document') {
     return (
-      <div className="relative my-3 p-7 bg-[#ede4ce] text-[#1c150e] border border-[#a39474] shadow-2xl rounded-sm font-serif select-text">
+      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-7'} bg-[#ede4ce] text-[#1c150e] border border-[#a39474] shadow-2xl rounded-sm font-serif select-text`}>
         {/* Ślepa pieczęć urzędowa */}
         <div className="absolute top-6 right-6 w-16 h-16 rounded-full border-4 border-double border-[#8a7653]/40 flex items-center justify-center pointer-events-none select-none">
           <Shield className="w-8 h-8 text-[#8a7653]/30" />
@@ -144,14 +210,17 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
 
         <div className="text-center border-b border-[#a8997c] pb-3 mb-4">
           <div className="text-[10px] font-special-elite uppercase tracking-[0.3em] text-[#6b583e]">
-            {t('marshalOffice')}
+            {headers.officialOffice}
           </div>
           <h4 className="font-bold text-lg md:text-xl uppercase tracking-widest text-[#2e2216] mt-1">
-            {t('officialLetterNo')}
+            {t('officialLetterNo')} • {year}
           </h4>
+          <div className="text-[11px] italic text-[#5c4a35] mt-0.5">
+            {headers.officialSubtitle}
+          </div>
         </div>
 
-        <div className="text-sm md:text-base leading-relaxed text-[#1f170f] whitespace-pre-line my-4">
+        <div className={`${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} text-[#1f170f] whitespace-pre-line my-4`}>
           {content}
         </div>
 
@@ -170,16 +239,16 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 4. GAZETA / WYCINEK PRASOWY ===
   if (docType === 'newspaper') {
     return (
-      <div className="relative my-3 p-5 bg-[#e3d8c1] text-[#1a140e] border border-[#78664e] shadow-xl font-serif select-text">
+      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-5'} bg-[#e3d8c1] text-[#1a140e] border border-[#78664e] shadow-xl font-serif select-text`}>
         <div className="border-b-4 border-double border-[#3b3022] text-center pb-2 mb-3">
           <div className="text-[10px] font-special-elite uppercase tracking-widest text-[#5c4a35]">
-            {t('pressClipping')}
+            {t('pressClipping')} • {year}
           </div>
           <h4 className="font-extrabold text-xl md:text-2xl uppercase tracking-tight text-[#211810]">
-            THE ARKHAM DAILY GAZETTE
+            {headers.newspaperTitle}
           </h4>
         </div>
-        <div className="text-sm md:text-base leading-relaxed italic text-[#261d15] whitespace-pre-line font-serif">
+        <div className={`${isExpanded ? 'text-base md:text-lg leading-relaxed' : 'text-sm md:text-base leading-relaxed'} italic text-[#261d15] whitespace-pre-line font-serif`}>
           {content}
         </div>
       </div>
@@ -189,7 +258,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 5. NOTATNIK / PAMIĘTNIK ===
   if (docType === 'journal_page') {
     return (
-      <div className="relative my-3 p-6 bg-[#f4ebd8] text-[#2c1d11] shadow-md border border-[#d3c29e] rounded-sm font-serif select-text overflow-hidden">
+      <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto' : 'p-6'} bg-[#f4ebd8] text-[#2c1d11] shadow-md border border-[#d3c29e] rounded-sm font-serif select-text overflow-hidden`}>
         {/* Kawałek pożółkłej taśmy na górze */}
         <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-24 h-8 bg-[#e6d5b8]/50 backdrop-blur-sm border border-[#c5b599]/40 rotate-[2deg] shadow-sm z-10"></div>
         
@@ -200,7 +269,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
           <span className="block text-[10px] font-special-elite text-[#8c7356] uppercase tracking-wider mb-3 opacity-90 border-b border-[#a8987d]/40 pb-1">
             {t('tornPage')}
           </span>
-          <div className="whitespace-pre-line italic text-[#24170d] leading-[28px] pr-2 text-base">
+          <div className={`whitespace-pre-line italic text-[#24170d] ${isExpanded ? 'text-base md:text-lg leading-[32px]' : 'text-sm md:text-base leading-[28px]'} pr-2`}>
             {content}
           </div>
         </div>
@@ -211,7 +280,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
   // === 6. BILET / PRZEPUSTKA ===
   if (docType === 'ticket') {
     return (
-      <div className="relative my-3 mx-auto max-w-sm flex shadow-xl drop-shadow-md filter select-text">
+      <div className={`relative my-3 mx-auto ${isExpanded ? 'max-w-md' : 'max-w-sm'} flex shadow-xl drop-shadow-md filter select-text`}>
         <div className="flex-1 bg-[#e8cd9c] p-4 border-r-2 border-dashed border-[#8c6b45]/60 rounded-l-md relative">
            <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#735e47] mb-1">
              Admit One • Transferable
@@ -219,7 +288,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
            <h4 className="font-extrabold text-xl uppercase tracking-tighter text-[#2a2016] leading-tight mt-1">
              {item.name}
            </h4>
-           <div className="text-sm font-serif italic text-[#3d2f21] whitespace-pre-line mt-3 border-t border-[#8c6b45]/30 pt-2">
+           <div className={`font-serif italic text-[#3d2f21] whitespace-pre-line mt-3 border-t border-[#8c6b45]/30 pt-2 ${isExpanded ? 'text-base' : 'text-sm'}`}>
              {content}
            </div>
         </div>
@@ -234,17 +303,17 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
 
   // === 7. DEFAULT / LIST OSOBISTY ===
   return (
-    <div className="relative my-3 p-6 bg-[#ebdfc6] text-[#2c1d11] shadow-inner border border-[#d3c29e] rounded-sm font-serif text-sm md:text-base leading-relaxed select-text">
+    <div className={`relative my-3 ${isExpanded ? 'p-8 max-w-3xl mx-auto text-base md:text-lg' : 'p-6 text-sm md:text-base'} bg-[#ebdfc6] text-[#2c1d11] shadow-inner border border-[#d3c29e] rounded-sm font-serif leading-relaxed select-text`}>
       {/* Znaczek pocztowy w rogu dla listów */}
       <div className="absolute top-3 right-3 w-10 h-12 border-2 border-dashed border-[#8c765c] bg-[#d9c7a7] flex flex-col items-center justify-center text-[9px] font-special-elite text-[#5c4934]">
-        <span>USA</span>
-        <span className="font-bold">2¢</span>
+        <span>{eraContext?.countryCode === 'PL' ? 'POLSKA' : eraContext?.countryCode === 'GB' ? 'UK' : 'USA'}</span>
+        <span className="font-bold">{eraContext?.countryCode === 'PL' ? '10gr' : eraContext?.countryCode === 'GB' ? '1d' : '2¢'}</span>
       </div>
 
       <span className="block text-xs font-special-elite text-[#5c4a37] uppercase tracking-wider mb-2 opacity-70">
         {t('documentContent')}
       </span>
-      <div className="whitespace-pre-line italic text-[#24170d] pr-6">
+      <div className="whitespace-pre-line italic text-[#24170d] pr-6 leading-relaxed">
         {content}
       </div>
     </div>

@@ -87,6 +87,13 @@ describe('inferDocumentType', () => {
     expect(inferDocumentType({ name: 'Telegram z Londynu' })).toBe('letter');
     expect(inferDocumentType({ name: 'Tajemniczy zapisek bez słów kluczowych' })).toBe('letter');
   });
+
+  it('rozpoznaje fałszywe dokumenty i angielskie nazwy (PL/EN parity)', () => {
+    expect(inferDocumentType({ name: 'Fałszywe dokumenty', description: 'Dobrze przygotowane fałszywe referencje.' })).toBe('official_document');
+    expect(inferDocumentType({ name: 'Fake documents', description: 'Forged credentials' })).toBe('official_document');
+    expect(inferDocumentType({ name: 'Press pass', description: 'Arkham news reporter badge' })).toBe('press_pass');
+    expect(inferDocumentType({ name: 'Train ticket to London' })).toBe('ticket');
+  });
 });
 
 describe('createAcquiredEquipmentSeed - documentType', () => {
