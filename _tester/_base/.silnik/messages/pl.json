@@ -4565,7 +4565,6 @@
       "skipCutscene": "Pomiń cutscenę"
     },
     "cutsceneDescription": "Auto-GM - automatyczna narracja w stylu cutscenki filmowej",
-    "sanityCheckDescription": "Wizualizacja rzutu na poczytalność z efektami animacji",
     "dice3dDescription": "Trójwymiarowe kości z fizyką (planowane)",
     "backToGame": "Powrót do gry",
     "headerDescription": "Sandbox do testowania nowych funkcjonalności Zew-App. Prototypy są izolowane od głównej aplikacji.",

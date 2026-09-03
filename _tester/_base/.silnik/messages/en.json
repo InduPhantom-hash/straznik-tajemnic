@@ -4565,7 +4565,6 @@
       "skipCutscene": "Skip cutscene"
     },
     "cutsceneDescription": "Auto-GM - automatic narration in a cinematic cutscene style",
-    "sanityCheckDescription": "Visualization of a sanity roll with animation effects",
     "dice3dDescription": "Three-dimensional dice with physics (planned)",
     "backToGame": "Back to game",
     "headerDescription": "Sandbox for testing new Zew-App functionalities. Prototypes are isolated from the main application.",

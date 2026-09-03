@@ -377,6 +377,18 @@ export function isSkillMarked(skill: SkillValue | undefined): boolean {
   return skill.markedForImprovement;
 }
 
+export type InsanityState = 'none' | 'temporary' | 'indefinite' | 'permanent';
+
+export interface ActiveBoutOfMadness {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  unit: 'rounds' | 'hours';
+  duration: number;
+  startedAtTimestamp?: string;
+}
+
 export interface Character {
   id: string;
   /** Identyfikator wzorca, jeśli postać powstała z gotowego badacza. */
@@ -458,6 +470,15 @@ export interface Character {
   maxHp?: number;
   maxSan?: number;
   maxMp?: number;
+
+  // === MECHANIKA POCZYTALNOŚCI I SZALEŃSTWA (CoC 7e RAW) ===
+  dayStartSan?: number; // Wartość SAN na początku doby gry (do kalkulacji progu 1/5)
+  dailySanLoss?: number; // Skumulowana utrata SAN w bieżącej dobie gry
+  insanityState?: InsanityState; // Stan psychiczny badacza ('none' | 'temporary' | 'indefinite' | 'permanent')
+  underlyingInsanity?: boolean; // Ukryta niepoczytalność (każda strata SAN odpala atak szaleństwa)
+  activeBoutOfMadness?: ActiveBoutOfMadness | null; // Aktywny atak szaleństwa
+  mythosExceedsSanity?: boolean; // Gdy Mity Cthulhu > SAN (redukcja strat SAN o 50%)
+  creatureSanLoss?: Record<string, number>; // Skumulowana utrata SAN per typ potwora (max cap)
   move?: number;
   damageBonus?: string;
   build?: number;

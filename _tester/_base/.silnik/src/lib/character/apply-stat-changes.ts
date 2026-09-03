@@ -1,11 +1,15 @@
 /**
  * Most między tagami MG a kartą postaci - automatyczna utrata/odzysk SAN i HP
- * w trakcie sesji (Faza 5 audytu mechaniki, BRAK-1).
+ * w trakcie sesji (Faza 5 audytu mechaniki, BRAK-1 + Issue #48 Poczytalność RAW).
  *
  * AI zgłasza zmiany strukturalnymi tagami w surowej narracji:
  *   [SANITY: -3: widok rozkładających się zwłok]
  *   [HP: -5: cios nożem]   (ujemne = utrata, dodatnie = leczenie)
- * Aplikacja sumuje delty i odejmuje/dodaje do karty z clampem do [0, max].
+ * Aplikacja sumuje delty i odejmuje/dodaje do karty z pełną egzekucją progów CoC 7e RAW:
+ *   - utrata >= 5 SAN -> zdarzenie 'int_check_required'
+ *   - utrata 1/5 dziennej SAN -> Czasowa Niepoczytalność + 'underlyingInsanity'
+ *   - 'underlyingInsanity' -> każda utrata odpala atak szaleństwa
+ *   - próg Mity Cthulhu > SAN -> redukcja strat SAN o 50%
  *
  * Wzorzec (ref-equality skip + wywołanie raz po pełnym streamie) jak
  * `appendJournalFromText` (IND-201). Tag jest usuwany z czatu przez
@@ -15,6 +19,9 @@
 import type { Character } from '@/lib/types';
 import { rollDiceFormula } from '@/lib/dice-utils';
 import { resolveCharacterByName } from './match-by-name';
+import { applySanityDelta, type SanityEvent } from '@/lib/sanity/sanity-engine';
+
+export type { SanityEvent };
 
 // Delta: stała ze znakiem (±N) ALBO notacja kości (±NdM, ±NdM±K). Obrażenia CoC są
 // prawie zawsze kościowe (szpony 1d6, upadek 1d4), więc MG emituje np. [HP: -1D6: ...].
@@ -22,11 +29,11 @@ import { resolveCharacterByName } from './match-by-name';
 // postać). Powód dowolny do ']'. Globalne - sumujemy wszystkie wystąpienia.
 const DELTA = String.raw`[+-]?(?:\d+[dD]\d+(?:[+-]\d+)?|\d+)`;
 const SANITY_TAG = new RegExp(
-  `\\[SANITY:\\s*(?:@(?<who>[^:\\]]+?)\\s*:\\s*)?(?<delta>${DELTA})\\s*:[^\\]]*\\]`,
+  `\\[SANITY:\\s*(?:@(?<who>[^:\\]]+?)\\s*:\\s*)?(?<delta>${DELTA})(?:\\s*:\\s*(?<reason>[^\\]]*))?\\]`,
   'gi'
 );
 const HP_TAG = new RegExp(
-  `\\[HP:\\s*(?:@(?<who>[^:\\]]+?)\\s*:\\s*)?(?<delta>${DELTA})\\s*:[^\\]]*\\]`,
+  `\\[HP:\\s*(?:@(?<who>[^:\\]]+?)\\s*:\\s*)?(?<delta>${DELTA})(?:\\s*:[^\\]]*)?\\]`,
   'gi'
 );
 
@@ -45,57 +52,91 @@ function parseDelta(raw: string): number {
   return parseInt(raw, 10);
 }
 
-/** Sumuje wszystkie delty pasujące do wzorca (np. [HP: -2] + [HP: -1d4] = -2 - rzut). */
-function sumDeltas(text: string, pattern: RegExp): number {
-  let total = 0;
-  let match: RegExpExecArray | null;
-  pattern.lastIndex = 0;
-  while ((match = pattern.exec(text)) !== null) {
-    total += parseDelta(match.groups?.delta ?? '0');
-  }
-  return total;
-}
-
 /** Clamp do [0, max]; gdy max nieokreślony - tylko dolne ograniczenie (0). */
 function clampStat(value: number, max: number | undefined): number {
   const lower = Math.max(0, value);
   return max != null ? Math.min(max, lower) : lower;
 }
 
+interface SanityTagMatch {
+  who?: string;
+  delta: number;
+  reason?: string;
+}
+
 /**
- * Aplikuje zmiany SAN/HP z tagów [SANITY:]/[HP:] w surowym tekście MG.
+ * Zbiera tagi SAN z tekstu z rozbiciem na deltę i powód.
+ */
+function collectSanityMatches(text: string): SanityTagMatch[] {
+  const matches: SanityTagMatch[] = [];
+  SANITY_TAG.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = SANITY_TAG.exec(text)) !== null) {
+    const delta = parseDelta(match.groups?.delta ?? '0');
+    if (delta !== 0) {
+      matches.push({
+        who: match.groups?.who?.trim(),
+        delta,
+        reason: match.groups?.reason?.trim()
+      });
+    }
+  }
+  return matches;
+}
+
+/** Sumuje wszystkie delty HP pasujące do wzorca. */
+function sumHpDeltas(text: string): number {
+  let total = 0;
+  let match: RegExpExecArray | null;
+  HP_TAG.lastIndex = 0;
+  while ((match = HP_TAG.exec(text)) !== null) {
+    total += parseDelta(match.groups?.delta ?? '0');
+  }
+  return total;
+}
+
+/**
+ * Aplikuje zmiany SAN/HP z tagów [SANITY:]/[HP:] w surowym tekście MG dla pojedynczego badacza.
  * Zwraca TEN SAM obiekt (referencyjnie), gdy nie ma żadnej zmiany - caller
  * może tanio pominąć zapis/persist (jak przy appendJournalFromText).
  */
 export function applyStatChangesFromText(
   character: Character,
-  rawText: string
+  rawText: string,
+  onSanityEvent?: (event: SanityEvent) => void
 ): Character {
-  const sanDelta = sumDeltas(rawText, SANITY_TAG);
-  const hpDelta = sumDeltas(rawText, HP_TAG);
-  if (sanDelta === 0 && hpDelta === 0) return character;
+  const sanMatches = collectSanityMatches(rawText);
+  const hpDelta = sumHpDeltas(rawText);
+  if (sanMatches.length === 0 && hpDelta === 0) return character;
 
-  const next = { ...character };
-  if (sanDelta !== 0) {
-    next.san = clampStat(character.san + sanDelta, character.maxSan ?? 99);
+  let next = { ...character };
+
+  // Aplikuj każdą zmianę SAN przez regułowy silnik Poczytalności CoC 7e
+  for (const match of sanMatches) {
+    const result = applySanityDelta(next, match.delta, match.reason);
+    next = result.nextCharacter;
+    for (const event of result.events) {
+      onSanityEvent?.(event);
+    }
   }
+
   if (hpDelta !== 0) {
     next.hp = clampStat(character.hp + hpDelta, character.maxHp);
   }
+
   return next;
 }
 
-/** Zbiera delty (po jednym rzucie na tag) z grupowaniem po docelowej postaci. */
-function collectDeltas(
+/** Zbiera delty HP (po jednym rzucie na tag) z grupowaniem po docelowej postaci. */
+function collectHpDeltas(
   text: string,
-  pattern: RegExp,
   characters: Character[],
   active: Character
 ): Map<string, number> {
   const byChar = new Map<string, number>();
-  pattern.lastIndex = 0;
+  HP_TAG.lastIndex = 0;
   let match: RegExpExecArray | null;
-  while ((match = pattern.exec(text)) !== null) {
+  while ((match = HP_TAG.exec(text)) !== null) {
     const target = resolveCharacterByName(
       characters,
       match.groups?.who,
@@ -112,47 +153,76 @@ function collectDeltas(
 /**
  * Wariant party-aware (duet / Hot Seat): kieruje każdą zmianę SAN/HP do postaci
  * wskazanej prefiksem `@Imię` w tagu (`[SANITY:@Eleanor: -1]`), a bez prefiksu - do
- * `activeCharacter` (fallback, zachowuje zachowanie single-player). Dzięki temu
- * utrata SAN/HP postaci z narracji nie ląduje już na aktywnym graczu.
+ * `activeCharacter` (fallback, zachowuje zachowanie single-player).
  *
  * Zwraca zaktualizowaną listę postaci + zsynchronizowaną aktywną + flagę `changed`
- * (gdy false, caller pomija persist - jak przy applyStatChangesFromText).
+ * oraz listę wyemitowanych zdarzeń psychicznych `sanityEvents`.
  */
 export function applyStatChangesToParty(
   characters: Character[],
   activeCharacter: Character,
-  rawText: string
-): { characters: Character[]; activeCharacter: Character; changed: boolean } {
-  const sanByChar = collectDeltas(
-    rawText,
-    SANITY_TAG,
-    characters,
-    activeCharacter
-  );
-  const hpByChar = collectDeltas(rawText, HP_TAG, characters, activeCharacter);
+  rawText: string,
+  onSanityEvent?: (event: SanityEvent) => void
+): {
+  characters: Character[];
+  activeCharacter: Character;
+  changed: boolean;
+  sanityEvents: SanityEvent[];
+} {
+  const sanMatches = collectSanityMatches(rawText);
+  const hpByChar = collectHpDeltas(rawText, characters, activeCharacter);
 
-  if (sanByChar.size === 0 && hpByChar.size === 0) {
-    return { characters, activeCharacter, changed: false };
+  if (sanMatches.length === 0 && hpByChar.size === 0) {
+    return { characters, activeCharacter, changed: false, sanityEvents: [] };
+  }
+
+  // Zgrupuj zmiany SAN po postaci
+  const sanByChar = new Map<string, Array<{ delta: number; reason?: string }>>();
+  for (const m of sanMatches) {
+    const target = resolveCharacterByName(characters, m.who, activeCharacter);
+    const list = sanByChar.get(target.id) ?? [];
+    list.push({ delta: m.delta, reason: m.reason });
+    sanByChar.set(target.id, list);
   }
 
   let changed = false;
+  const allEvents: SanityEvent[] = [];
+
   const apply = (c: Character): Character => {
-    const sanD = sanByChar.get(c.id) ?? 0;
+    const sanList = sanByChar.get(c.id);
     const hpD = hpByChar.get(c.id) ?? 0;
-    if (sanD === 0 && hpD === 0) return c;
+    if (!sanList && hpD === 0) return c;
+
     changed = true;
-    const next = { ...c };
-    if (sanD !== 0) next.san = clampStat(c.san + sanD, c.maxSan ?? 99);
-    if (hpD !== 0) next.hp = clampStat(c.hp + hpD, c.maxHp);
+    let next = { ...c };
+
+    if (sanList) {
+      for (const entry of sanList) {
+        const res = applySanityDelta(next, entry.delta, entry.reason);
+        next = res.nextCharacter;
+        for (const ev of res.events) {
+          allEvents.push(ev);
+          onSanityEvent?.(ev);
+        }
+      }
+    }
+
+    if (hpD !== 0) {
+      next.hp = clampStat(c.hp + hpD, c.maxHp);
+    }
+
     return next;
   };
 
   const nextCharacters = characters.map(apply);
-  // Aktywna zwykle jest w `characters` - weź jej zaktualizowaną wersję; gdyby była
-  // spoza listy (edge), zastosuj zmianę bezpośrednio.
   const nextActive =
     nextCharacters.find((c) => c.id === activeCharacter.id) ??
     apply(activeCharacter);
 
-  return { characters: nextCharacters, activeCharacter: nextActive, changed };
+  return {
+    characters: nextCharacters,
+    activeCharacter: nextActive,
+    changed,
+    sanityEvents: allEvents
+  };
 }
