@@ -213,4 +213,71 @@ describe('useGameStart - finishReason intra', () => {
     expect(messages[0]?.content).toContain('nie przeszło bramki');
     expect(localStorage.getItem('has_started_game')).toBeNull();
   });
+
+  it('wstrzymuje wejście do gry aż do zakończenia całego strumienia SSE (Issue #123)', async () => {
+    let hasStartedDuringStream = false;
+    const setHasStartedGame = jest.fn((val: boolean) => {
+      if (val === true) hasStartedDuringStream = true;
+    });
+
+    jest
+      .mocked(fetchWithApiKeys)
+      .mockResolvedValueOnce({ ok: true } as Response);
+    jest
+      .mocked(parseSSEStream)
+      .mockImplementation(async (_response, callbacks) => {
+        // Pierwszy chunk tekstu
+        callbacks?.onText?.('Mgła unosi się nad rzeką.');
+        expect(hasStartedDuringStream).toBe(false);
+
+        // Kolejny chunk tekstu
+        callbacks?.onText?.('Mgła unosi się nad rzeką. Cienie przemykają w zaułkach.');
+        expect(hasStartedDuringStream).toBe(false);
+
+        return 'Mgła unosi się nad rzeką. Cienie przemykają w zaułkach.';
+      });
+
+    let messages: Message[] = [];
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
+      messages = typeof update === 'function' ? update(messages) : update;
+    };
+
+    const props: Parameters<typeof useGameStart>[0] = {
+      setHasStartedGame,
+      activeCharacter: null,
+      characters: [],
+      setActiveCharacter: jest.fn(),
+      setCharacters: jest.fn(),
+      pdfMemory: {},
+      adventureContext: {
+        id: 'cien-nad-prabutami',
+        title: 'Cień nad Prabutami',
+        yearRange: '1973-1974',
+        country: 'Polska',
+      },
+      hotSeatConfig: { enabled: false, players: [] },
+      setMessages,
+      tts: {
+        voiceEnabled: false,
+        isTTSEnabled: false,
+        generateVoiceForMessage: jest.fn().mockResolvedValue(undefined),
+        addToQueue: jest.fn(),
+        startInitialBuffering: jest.fn(),
+        stopCurrentAudio: jest.fn(),
+      },
+      aiSettings: { ...defaultAISettings, imageGenerationEnabled: false },
+    };
+
+    const { result } = renderHook(() => useGameStart(props));
+
+    await act(async () => {
+      await result.current.handleStartGame();
+    });
+
+    // Po zakończeniu pełnego strumienia gra przechodzi do czatu
+    expect(setHasStartedGame).toHaveBeenCalledWith(true);
+    expect(localStorage.getItem('has_started_game')).toBe('true');
+  });
 });
