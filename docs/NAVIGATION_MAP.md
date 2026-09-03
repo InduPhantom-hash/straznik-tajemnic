@@ -76,6 +76,8 @@ graph TD
     characters -->|Nowa postać / New character| character_new
     home -->|Wgraj zasady / Upload rules| rulebook_modal
     home -->|Podręcznik zasad / Rulebook| rulebook_modal
+    api_keys -->|Dalej do zasad / Continue to rules| rulebook_modal
+    rulebook_modal -->|Gotowe, przejdź do gry / Ready, proceed to game| home
 ```
 
 ## Routy
@@ -131,6 +133,8 @@ graph TD
 | Postacie | Nowa postać / New character | Nowa postać | `src/app/[locale]/characters/page.tsx` |
 | Strona główna | Wgraj zasady / Upload rules | Podręcznik zasad | `src/components/chat/welcome/index.tsx` |
 | Strona główna | Podręcznik zasad / Rulebook | Podręcznik zasad | `src/components/chat/welcome/components/bottom-links.tsx` |
+| Klucze API | Dalej do zasad / Continue to rules | Podręcznik zasad | `src/app/[locale]/page.tsx` |
+| Podręcznik zasad | Gotowe, przejdź do gry / Ready, proceed to game | Strona główna | `src/app/[locale]/page.tsx` |
 
 ## Zasady aktualizacji
 

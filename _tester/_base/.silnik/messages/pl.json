@@ -6968,6 +6968,9 @@
     "close": "Zamknij",
     "continueToGame": "Gotowe, przejdź do gry",
     "statusCurrent": "Aktualny stan bazy:",
-    "statusChunks": "{count} fragmentów zasad w lokalnym indeksie"
+    "statusChunks": "{count} fragmentów zasad w lokalnym indeksie",
+    "sourcesTitle": "Gdzie legalnie zdobyć podręcznik?",
+    "sourcesDesc": "Strażnik Tajemnic to silnik i sam w sobie nie zawiera treści podręcznika. Pobierz darmowy starter lub kup pełne wydanie:",
+    "disclaimer": "Projekt fanowski, niezwiązany i niewspierany przez Chaosium Inc. ani Black Monk. Call of Cthulhu / Zew Cthulhu to znaki towarowe Chaosium Inc. Korzystaj wyłącznie z legalnie nabytych egzemplarzy."
   }
 }

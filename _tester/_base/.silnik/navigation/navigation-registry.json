@@ -595,6 +595,24 @@
         "en": "Rulebook"
       },
       "component": "src/components/chat/welcome/components/bottom-links.tsx"
+    },
+    {
+      "source": "api-keys",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Dalej do zasad",
+        "en": "Continue to rules"
+      },
+      "component": "src/app/[locale]/page.tsx"
+    },
+    {
+      "source": "rulebook-modal",
+      "target": "home",
+      "label": {
+        "pl": "Gotowe, przejdź do gry",
+        "en": "Ready, proceed to game"
+      },
+      "component": "src/app/[locale]/page.tsx"
     }
   ]
 }

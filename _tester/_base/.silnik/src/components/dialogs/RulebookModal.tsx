@@ -22,6 +22,7 @@ import {
   Loader2,
   FileText,
   ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 
@@ -328,6 +329,40 @@ export const RulebookModal: FC<RulebookModalProps> = ({
               </CardContent>
             </Card>
           )}
+
+          {/* Źródła legalne podręcznika (z dawnego step-content-sources) */}
+          <div className="rounded-lg border border-brass/25 bg-[#120f0b] p-3 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-display uppercase tracking-wider text-brass/90">
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>{t('sourcesTitle')}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t('sourcesDesc')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <a
+                href="https://blackmonk.pl"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-2 rounded border border-brass/30 bg-brass/5 hover:bg-brass/15 transition-colors text-xs text-foreground group"
+              >
+                <span>Black Monk (PL)</span>
+                <ExternalLink className="w-3 h-3 text-brass/70 group-hover:text-brass" />
+              </a>
+              <a
+                href="https://www.drivethrurpg.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-2 rounded border border-brass/30 bg-brass/5 hover:bg-brass/15 transition-colors text-xs text-foreground group"
+              >
+                <span>DriveThruRPG (EN)</span>
+                <ExternalLink className="w-3 h-3 text-brass/70 group-hover:text-brass" />
+              </a>
+            </div>
+            <p className="text-[10px] text-muted-foreground/60 italic pt-1">
+              {t('disclaimer')}
+            </p>
+          </div>
         </div>
 
         {/* Dolny pasek przycisków */}

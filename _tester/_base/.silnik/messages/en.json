@@ -6968,6 +6968,9 @@
     "close": "Close",
     "continueToGame": "Ready, proceed to game",
     "statusCurrent": "Current database status:",
-    "statusChunks": "{count} rule chunks in local index"
+    "statusChunks": "{count} rule chunks in local index",
+    "sourcesTitle": "Where to legally acquire the rulebook?",
+    "sourcesDesc": "Strażnik Tajemnic is an engine and does not contain rulebook content. Download a free starter or purchase the full edition:",
+    "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. Call of Cthulhu is a trademark of Chaosium Inc. Use only legally acquired copies."
   }
 }
