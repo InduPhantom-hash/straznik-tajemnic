@@ -408,8 +408,8 @@
       "source": "character-wizard",
       "target": "session-zero",
       "label": {
-        "pl": "Zapisz postać",
-        "en": "Save character"
+        "pl": "Zakończ i zapisz",
+        "en": "Finish and save"
       },
       "component": "src/components/ui/character-wizard.tsx"
     },
