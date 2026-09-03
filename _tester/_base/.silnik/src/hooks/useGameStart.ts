@@ -694,7 +694,7 @@ export function useGameStart({
         throw new Error(`Chat API ${response.status}: ${serverMsg}`);
       }
 
-      setStartProgress(90);
+      setStartProgress(75);
       setStartStatus(
         locale === 'en'
           ? 'Generating opening scene...'
@@ -715,22 +715,35 @@ export function useGameStart({
       // utworzeniu placeholdera, aby wynik nie utworzył osobnej karty czatu.
       void generateIntroImage(assistantMessageId);
 
-      // Płynne przełączenie ekranu z panelu konfiguracji do czatu w momencie
-      // nadejścia pierwszego tokenu narracji lub rozpoczęcia strumienia.
+      // Płynne przełączenie ekranu z panelu konfiguracji do czatu PO wyrenderowaniu
+      // całego wstępu (Issue #123). Gracz nie ogląda streamowania ściany tekstu,
+      // lecz wchodzi od razu do gotowej, sformatowanej sceny otwierającej.
       let hasTransitionedToGame = false;
-      const transitionToGame = () => {
-        if (hasTransitionedToGame) return;
+      const transitionToGame = (immediate = false): Promise<void> => {
+        if (hasTransitionedToGame) return Promise.resolve();
         hasTransitionedToGame = true;
         setStartProgress(100);
         setStartStatus(
           locale === 'en' ? 'Beginning the adventure!' : 'Zaczynamy przygodę!'
         );
-        setHasStartedGame(true);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('has_started_game', 'true');
-          localStorage.setItem('session_started_at', String(Date.now()));
+        const finalize = () => {
+          setHasStartedGame(true);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('has_started_game', 'true');
+            localStorage.setItem('session_started_at', String(Date.now()));
+          }
+          setIsStarting(false);
+        };
+        if (immediate) {
+          finalize();
+          return Promise.resolve();
         }
-        setIsStarting(false);
+        return new Promise<void>((resolve) => {
+          setTimeout(() => {
+            finalize();
+            resolve();
+          }, 350);
+        });
       };
 
       // Użyj uniwersalnego parsera SSE.
@@ -744,13 +757,21 @@ export function useGameStart({
       let streamedFullText = '';
       const fullText = await parseSSEStream(response, {
         onText: (text) => {
-          transitionToGame();
           streamedFullText = text;
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId ? { ...msg, content: text } : msg
             )
           );
+          // Płynny mikro-postęp 75% -> 95% podczas dopisywania tekstu wstępu przez AI
+          const dynamicProgress = Math.min(95, 75 + Math.floor(text.length / 40));
+          setStartProgress((prev) => Math.max(prev, dynamicProgress));
+          setStartStatus(
+            locale === 'en'
+              ? 'Spelling out the opening chronicle...'
+              : 'Spisywanie kroniki otwarcia...'
+          );
+
           // Inkrementalny TTS
           if (tts.voiceEnabled && tts.isTTSEnabled) {
             tts.addToQueue(text, assistantMessageId);
@@ -804,8 +825,8 @@ export function useGameStart({
         }),
       });
 
-      // Bezpiecznik: jeśli parseSSEStream zakończył się bez ani jednego onText
-      transitionToGame();
+      // Zakończono generowanie pełnego otwarcia: odsłoń czat z gotową sceną (Issue #123)
+      await transitionToGame();
 
       // IND-201: auto-dziennik dla openingu (opening idzie tym samym /api/chat
       // z gm-protocol, może nieść [DZIENNIK:]). Idempotentne (dedup po messageId).

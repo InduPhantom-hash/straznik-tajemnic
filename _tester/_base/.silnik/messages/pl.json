@@ -881,6 +881,7 @@
     "statusCharacter": "Weryfikacja karty Badacza i ekwipunku...",
     "statusConnecting": "Nawiązywanie kontaktu z Mistrzem Gry...",
     "statusOpening": "Generowanie sceny otwierającej...",
+    "statusTranscribing": "Spisywanie kroniki otwarcia...",
     "statusReady": "Zaczynamy przygodę!",
     "needBoth": "Wybierz przygodę i postać, aby rozpocząć grę",
     "needAdv": "Wybierz przygodę, aby rozpocząć grę",

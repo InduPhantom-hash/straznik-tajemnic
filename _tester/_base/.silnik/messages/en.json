@@ -881,6 +881,7 @@
     "statusCharacter": "Verifying investigator sheet and equipment...",
     "statusConnecting": "Connecting with the Game Master...",
     "statusOpening": "Generating opening scene...",
+    "statusTranscribing": "Spelling out the opening chronicle...",
     "statusReady": "Beginning the adventure!",
     "needBoth": "Select adventure and character to start game",
     "needAdv": "Select adventure to start game",
