@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-03T18:50:00Z",
+  "updatedAt": "2026-09-03T20:55:00Z",
   "locales": [
     "pl",
     "en"
@@ -359,6 +359,15 @@
       "label": {
         "pl": "Wybierz przygodę",
         "en": "Choose adventure"
+      },
+      "component": "src/components/ui/quick-setup-modal.tsx"
+    },
+    {
+      "source": "quick-setup",
+      "target": "home",
+      "label": {
+        "pl": "Rozpocznij przygodę",
+        "en": "Start adventure"
       },
       "component": "src/components/ui/quick-setup-modal.tsx"
     },

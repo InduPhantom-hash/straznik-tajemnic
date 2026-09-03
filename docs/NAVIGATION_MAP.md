@@ -50,6 +50,7 @@ graph TD
     home -->|Wczytaj zapis / Load save| load_game
     home -->|Klucze API / API keys| api_keys
     quick_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
+    quick_setup -->|Rozpocznij przygodę / Start adventure| home
     adventure_selector -->|Wybierz postać / Choose character| predefined_characters
     manual_setup -->|Wybierz tryb gry / Choose play mode| hot_seat
     manual_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
@@ -107,6 +108,7 @@ graph TD
 | Strona główna | Wczytaj zapis / Load save | Wczytanie gry | `src/components/chat/welcome/components/bottom-links.tsx` |
 | Strona główna | Klucze API / API keys | Klucze API | `src/components/chat/welcome/index.tsx` |
 | Szybka przygoda | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/ui/quick-setup-modal.tsx` |
+| Szybka przygoda | Rozpocznij przygodę / Start adventure | Strona główna | `src/components/ui/quick-setup-modal.tsx` |
 | Wybór przygody | Wybierz postać / Choose character | Gotowe postacie | `src/components/ui/adventure-selector.tsx` |
 | Ręczne ustawianie gry | Wybierz tryb gry / Choose play mode | Wybór trybu gry | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
