@@ -4690,7 +4690,17 @@
   },
   "TtsHardLoadingScreen": {
     "preparingSession": "Mistrz Gry przygotowuje sesję...",
-    "generatingStory": "Trwa generowanie mrocznej opowieści i głosu narratora. Proszę czekać."
+    "generatingStory": "Trwa generowanie mrocznej opowieści i głosu narratora...",
+    "dispatchHeader": "Wycinek z kroniki epoki",
+    "clip1Source": "The Arkham Advertiser (1926)",
+    "clip1Headline": "Tajemnicze zaginięcia w dolinie rzeki Miskatonic",
+    "clip1Text": "Władze przeszukują podmiejskie lasy po tym, jak dwóch studentów uniwersytetu nie powróciło z ekspedycji terenowej. Świadkowie wspominają o dziwnych światłach nad wzgórzami.",
+    "clip2Source": "The Boston Globe (1925)",
+    "clip2Headline": "Nocny nalot policji na nabrzeżu North End",
+    "clip2Text": "Skonfiskowano sześć skrzyń z podejrzanym ładunkiem ze Starego Świata. Właściciel magazynu zbiegł przez labirynt zapomnianych zaułków portowych.",
+    "clip3Source": "The Providence Gazette (1924)",
+    "clip3Headline": "Niezwykłe zjawiska na wodach zatoki Narragansett",
+    "clip3Text": "Miejscowi rybacy donoszą o nienaturalnych poświatach widocznych w gęstej mgle na południe od latarni. Załogi odmawiają nocnych wypłynięć."
   },
   "ApiKeysModal": {
     "title": "Konfiguracja kluczy API",

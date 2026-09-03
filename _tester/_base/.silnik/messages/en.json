@@ -4690,7 +4690,17 @@
   },
   "TtsHardLoadingScreen": {
     "preparingSession": "The Keeper is preparing your session...",
-    "generatingStory": "Generating the dark tale and the narrator's voice. Please wait."
+    "generatingStory": "Generating the dark tale and the narrator's voice...",
+    "dispatchHeader": "Period Chronicle Dispatch",
+    "clip1Source": "The Arkham Advertiser (1926)",
+    "clip1Headline": "Mysterious Disappearances in Miskatonic Valley",
+    "clip1Text": "Authorities search suburban woods after two university students fail to return from a field expedition. Witnesses mention unnatural lights over the distant hills.",
+    "clip2Source": "The Boston Globe (1925)",
+    "clip2Headline": "Night Police Raid on North End Docks",
+    "clip2Text": "Six crates of suspicious Old World cargo seized. The warehouse proprietor eluded arrest through a maze of forgotten harbor alleyways.",
+    "clip3Source": "The Providence Gazette (1924)",
+    "clip3Headline": "Unusual Phenomena in Waters of Narragansett Bay",
+    "clip3Text": "Local fishermen report unnatural glows visible in dense fog south of the lighthouse. Trawler crews refuse to set sail after nightfall."
   },
   "ApiKeysModal": {
     "title": "API Keys Configuration",
