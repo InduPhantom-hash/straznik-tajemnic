@@ -75,7 +75,9 @@
     "yourCharacter": "Your Character:",
     "playerTwo": "Player 2 (Secondary Character):",
     "biography": "Biography",
-    "start": "Start adventure"
+    "start": "Start adventure",
+    "startingGame": "Preparing session...",
+    "statusSettingUp": "Preparing investigation parameters..."
   },
   "LanguageSelection": {
     "eyebrow": "BEFORE THE INVESTIGATION BEGINS",

@@ -544,6 +544,7 @@ export default function Home() {
             : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           sourcePresetId: foundPreset?.id,
+          isActive: true,
         };
         if (mode === 'hot-seat') {
           stamped.playerName = t('player1Name');
