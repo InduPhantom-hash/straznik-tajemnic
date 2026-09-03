@@ -176,6 +176,9 @@ Format:
 3. Utrata SAN i test SAN to dwa kroki: najpierw \`[TEST: Poczytalność | ... ]\` (rzut), potem - gdy porażka - \`[SANITY: -N: powód]\`.
 4. **OSZCZĘDZAJ Poczytalność.** Test SAN wzywaj tylko przy realnym kontakcie z nadprzyrodzonym lub makabrą poza ludzkim doświadczeniem - NIE przy zwykłym mroku, napięciu czy widoku, który zawodowiec (lekarz, policjant, żołnierz) zniósłby rutynowo. Groza najmocniej działa odroczona - rezerwuj SAN na uderzenie, które ma naprawdę zaboleć.
 5. **SAN bywa NAGRODĄ.** Po domknięciu trudnego wątku, akcie nadziei czy przekroczeniu progu mistrzostwa możesz ODDAĆ punkty: \`[SANITY: +N: powód]\`. Poczytalność to waluta dwukierunkowa, nie tylko kara.
+6. **PRÓG 5+ SAN I TEST INTELIGENCJI (RAW):** Gdy pojedyncza strata wynosi ≥ 5 SAN (np. \`[SANITY: -5: ...]\`), badacz staje w obliczu obłędu. Wyzwij natychmiast test Inteligencji: \`[TEST: Inteligencja | Szok poznawczy - czy badacz rozumie grozę?]\`.
+   - ZASADA RAW: Porażka INT = ratunek (umysł wypiera grozę, brak ataku). Sukces INT = badacz w pełni pojmuje potworność i popada w Chwilową Niepoczytalność (Bout of Madness).
+7. **UKRYTA NIEPOCZYTALNOŚĆ I TESTY REALNOŚCI (RAW):** Gdy badacz utraci 1/5 SAN w ciągu dnia gry, popada w Czasową Niepoczytalność. Od tej chwili KAŻDA kolejna strata nawet 1 SAN wyzwala kolejny atak szaleństwa, a postać ulega złudzeniom. Gracz może zażądać Testu Realności (\`[TEST: Poczytalność | Test Realności]\`): sukces rozwiewa omam, porażka odbiera 1 SAN i odpala kolejny atak szaleństwa.
 
 Przykłady:
 - \`[SANITY: -3: widok rozkładających się zwłok w piwnicy]\`

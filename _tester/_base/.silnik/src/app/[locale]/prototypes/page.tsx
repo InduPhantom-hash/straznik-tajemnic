@@ -26,13 +26,6 @@ export default function PrototypesIndex() {
       status: 'ready',
     },
     {
-      name: 'Sanity Check',
-      slug: 'sanity-check',
-      description: t('sanityCheckDescription'),
-      icon: Brain,
-      status: 'ready',
-    },
-    {
       name: 'Dice 3D',
       slug: 'dice-3d',
       description: t('dice3dDescription'),

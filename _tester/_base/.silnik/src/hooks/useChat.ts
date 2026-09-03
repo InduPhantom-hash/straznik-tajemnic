@@ -909,7 +909,42 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           const s = applyStatChangesToParty(
             j.characters,
             j.activeCharacter,
-            fullText
+            fullText,
+            (ev) => {
+              if (ev.type === 'int_check_required') {
+                toast({
+                  title:
+                    locale === 'pl'
+                      ? 'Wymagany Test Inteligencji (≥ 5 SAN)'
+                      : 'Intelligence Test Required (≥ 5 SAN)',
+                  description: ev.message[locale === 'pl' ? 'pl' : 'en'],
+                });
+              } else if (ev.type === 'indefinite_insanity') {
+                toast({
+                  title:
+                    locale === 'pl'
+                      ? 'Czasowa Niepoczytalność (1/5 SAN)'
+                      : 'Indefinite Insanity (1/5 SAN)',
+                  description: ev.message[locale === 'pl' ? 'pl' : 'en'],
+                });
+              } else if (ev.type === 'bout_of_madness') {
+                toast({
+                  title:
+                    locale === 'pl'
+                      ? 'Atak Szaleństwa'
+                      : 'Bout of Madness',
+                  description: ev.message[locale === 'pl' ? 'pl' : 'en'],
+                });
+              } else if (ev.type === 'permanent_insanity') {
+                toast({
+                  title:
+                    locale === 'pl'
+                      ? 'Nieodwracalny Obłęd (0 SAN)'
+                      : 'Permanent Insanity (0 SAN)',
+                  description: ev.message[locale === 'pl' ? 'pl' : 'en'],
+                });
+              }
+            }
           );
           const eq = applyEquipmentEventsToParty(
             s.characters,
