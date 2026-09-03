@@ -21,7 +21,8 @@ const resolveMessage = (
   values?: Record<string, unknown>
 ): string => {
   const bag = MESSAGES[locale] ?? MESSAGES.pl;
-  const raw = (bag[namespace] as Record<string, unknown> | undefined)?.[key];
+  const ns = bag[namespace] as Record<string, unknown> | undefined;
+  const raw = key.split('.').reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), ns);
   if (typeof raw !== 'string') return `${namespace}.${key}`;
   if (!values) return raw;
   return Object.entries(values).reduce(
@@ -34,14 +35,22 @@ jest.mock('next-intl', () => {
   type TranslateFn = ((key: string, values?: Record<string, unknown>) => string) & {
     rich: (key: string, chunks?: Record<string, unknown>) => string;
     raw: (key: string) => unknown;
+    has: (key: string) => boolean;
   };
 
   const makeT = (locale: string, namespace: string): TranslateFn => {
     const t = ((key: string, values?: Record<string, unknown>) =>
       resolveMessage(locale, namespace, key, values)) as TranslateFn;
     t.rich = (key: string) => resolveMessage(locale, namespace, key);
-    t.raw = (key: string) =>
-      ((MESSAGES[locale] ?? MESSAGES.pl)[namespace] as Record<string, unknown> | undefined)?.[key];
+    t.raw = (key: string) => {
+      const ns = (MESSAGES[locale] ?? MESSAGES.pl)[namespace] as Record<string, unknown> | undefined;
+      return key.split('.').reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), ns);
+    };
+    t.has = (key: string) => {
+      const ns = (MESSAGES[locale] ?? MESSAGES.pl)[namespace] as Record<string, unknown> | undefined;
+      const raw = key.split('.').reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), ns);
+      return raw !== undefined;
+    };
     return t;
   };
 

@@ -11,7 +11,7 @@
  * (lib/data/character) jako tooltip HelpIcon.
  */
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { HelpIcon } from '../../tooltip';
 import { STAT_DESCRIPTIONS } from '@/lib/data/character';
 import { STAT_NAMES, STAT_FULL_NAMES } from '../types';
@@ -25,6 +25,25 @@ export interface StatCardProps {
   highlighted?: boolean;
 }
 
+const STAT_SHORT_EN: Record<string, string> = {
+  str: 'STR',
+  con: 'CON',
+  siz: 'SIZ',
+  dex: 'DEX',
+  app: 'APP',
+  int: 'INT',
+  pow: 'POW',
+  edu: 'EDU',
+};
+
+type StatKey = 'str' | 'con' | 'siz' | 'dex' | 'app' | 'int' | 'pow' | 'edu' | 'luck';
+
+const KNOWN_STATS = new Set<string>(['str', 'con', 'siz', 'dex', 'app', 'int', 'pow', 'edu', 'luck']);
+
+function isStatKey(key: string): key is StatKey {
+  return KNOWN_STATS.has(key);
+}
+
 /**
  * Kafel cechy déco z value + ½ + ⅕. Wyróżniony (highlighted) ma ramkę i tło
  * emerald + poświatę.
@@ -35,29 +54,18 @@ export function StatCard({
   highlighted = false,
 }: StatCardProps) {
   const t = useTranslations('CharacterSheet');
+  const locale = useLocale();
+  const isEnglish = locale === 'en';
   const half = Math.floor(value / 2);
   const fifth = Math.floor(value / 5);
 
-  const tAny = t as unknown as ((key: string) => string) & { has?: (key: string) => boolean };
-  const isEnglish = tAny.has?.('title') && tAny('title') === 'Investigator Sheet';
-  const STAT_SHORT_EN: Record<string, string> = {
-    str: 'STR',
-    con: 'CON',
-    siz: 'SIZ',
-    dex: 'DEX',
-    app: 'APP',
-    int: 'INT',
-    pow: 'POW',
-    edu: 'EDU',
-  };
-
-  const fullName = tAny.has?.(`stats.${statKey}.full`)
-    ? tAny(`stats.${statKey}.full`)
+  const fullName = isStatKey(statKey)
+    ? t(`stats.${statKey}.full`)
     : STAT_FULL_NAMES[statKey] || STAT_NAMES[statKey] || statKey.toUpperCase();
 
-  const shortName = isEnglish
-    ? STAT_SHORT_EN[statKey] || statKey.toUpperCase()
-    : STAT_NAMES[statKey] || statKey.toUpperCase();
+  const shortName = isStatKey(statKey)
+    ? t(`stats.${statKey}.abbr`)
+    : (isEnglish ? STAT_SHORT_EN[statKey] : STAT_NAMES[statKey]) || statKey.toUpperCase();
 
   return (
     <div
