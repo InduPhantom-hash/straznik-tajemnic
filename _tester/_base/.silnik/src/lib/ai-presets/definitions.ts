@@ -92,10 +92,10 @@ export const QUALITY_PRESETS = {
   high: {
     name: 'HIGH COST',
     description:
-      'Gemini 2.5 Flash + lektor ElevenLabs (hybryda) + obrazy Vertex - słuchowisko (~$3-6/sesja)',
+      'Gemini 3.8 Flash (High) + lektor ElevenLabs (hybryda) + obrazy Vertex - słuchowisko (~$3-6/sesja)',
     settings: {
       // === GEMINI SETTINGS ===
-      model: 'gemini-2.5-flash' as const, // Stabilny balans (lub gemini-3-flash)
+      model: 'gemini-3.8-flash' as const, // Gemini 3.8 Flash z Thinking Level High
       temperature: 0.8,
       topP: 0.9,
       topK: 50,

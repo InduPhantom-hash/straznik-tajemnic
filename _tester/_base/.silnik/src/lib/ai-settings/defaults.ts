@@ -5,7 +5,7 @@ export const defaultAISettings: AISettings = {
   geminiEnabled: false,
   geminiApiKey: undefined,
   geminiSettings: {
-    model: 'gemini-3.6-flash', // Domyślny szybki i powtarzalny model dla aplikacji (LOW/MID preset baseline)
+    model: 'gemini-3.8-flash', // Domyślny model Mistrza Gry z poziomem myślenia HIGH (HIGH preset baseline)
     // === Sampling (HIGH) ===
     temperature: 0.8,
     topP: 0.9,
