@@ -58,6 +58,8 @@ import {
   calculateDerived as libCalculateDerived,
   getWealthInfo as libGetWealthInfo,
   calculateOccupationPoints as libCalculateOccupationPoints,
+  distributePhysPenalty,
+  applyTeenPenalty,
   generateVisualDescription,
   generateItemLore,
   categorizeItem,
@@ -365,6 +367,19 @@ export function CharacterWizardV2({
   const [statRolls, setStatRolls] = useState<StatRollMap>(() =>
     createStatRollMap()
   );
+
+  // Zarządzanie karami wieku i testami rozwoju WYK (CoC 7e RAW)
+  const initialAgeBracket =
+    AGE_MODIFIERS.find((m) => state.age >= m.min && state.age <= m.max) ||
+    AGE_MODIFIERS[1];
+  const [currentAgeBracketKey, setCurrentAgeBracketKey] = useState<string>(
+    initialAgeBracket.key
+  );
+  const [appliedAgePenaltiesKey, setAppliedAgePenaltiesKey] = useState<
+    string | null
+  >(null);
+  const [performedEduChecks, setPerformedEduChecks] = useState<number>(0);
+  const [teenLuckRerolled, setTeenLuckRerolled] = useState<boolean>(false);
 
   const TOTAL_STEPS = 6;
 
@@ -1315,7 +1330,47 @@ export function CharacterWizardV2({
   // Lokalny wrapper bez params zachowuje API callerów (state.creditRating capture).
   const getWealthInfo = () => libGetWealthInfo(state.creditRating);
 
+  const CORE_STATS = [
+    'str',
+    'con',
+    'siz',
+    'dex',
+    'app',
+    'int',
+    'pow',
+    'edu',
+  ] as const;
+
+  const isStepValid = () => {
+    if (state.step === 1) {
+      return !!selectedArchetypeId;
+    }
+    if (state.step === 2) {
+      if (statMethod === 'pointbuy') {
+        const statSum = CORE_STATS.reduce(
+          (sum, key) => sum + (state.stats[key] || 0),
+          0
+        );
+        return statSum <= 460;
+      }
+      return STAT_KEYS.every((k) => statRolls[k].rolled);
+    }
+    if (state.step === 3) {
+      return !!state.occupationId;
+    }
+    if (state.step === 4) {
+      const totalAvailable = state.occupationPoints + state.interestPoints;
+      const totalUsed =
+        state.occupationPointsUsed +
+        state.interestPointsUsed +
+        state.creditRating;
+      return totalUsed <= totalAvailable;
+    }
+    return true;
+  };
+
   const nextStep = () => {
+    if (!isStepValid()) return;
     // Kolejność: 1=Koncepcja, 2=Cechy, 3=Zawód, 4=Umiejętności, 5=Historia, 6=Wyposażenie
     if (state.step === 2) {
       // Po Cechach: przelicz cechy pochodne przed przejściem do Zawodu
@@ -1563,6 +1618,17 @@ export function CharacterWizardV2({
       hp: state.derived.hp,
       san: state.derived.san,
       mp: state.derived.mp,
+      maxHp: state.derived.hp,
+      maxSan: Math.min(99 - (state.skills['Mity Cthulhu'] ?? 0), 99),
+      maxMp: state.derived.mp,
+      move: state.derived.movement,
+      damageBonus: state.derived.damageBonus,
+      build: state.derived.build,
+      dayStartSan: state.derived.san,
+      dailySanLoss: 0,
+      insanityState: 'none',
+      underlyingInsanity: false,
+      activeBoutOfMadness: null,
       skills: state.skills,
       occupation: occupation?.name || t('unknown'),
       age: state.age,
@@ -1643,11 +1709,16 @@ export function CharacterWizardV2({
           san: state.derived.san,
           mp: state.derived.mp,
           maxHp: state.derived.hp,
-          maxSan: state.derived.san,
+          maxSan: Math.min(99 - (state.skills['Mity Cthulhu'] ?? 0), 99),
           maxMp: state.derived.mp,
           move: state.derived.movement,
           damageBonus: state.derived.damageBonus,
           build: state.derived.build,
+          dayStartSan: initialCharacter.dayStartSan ?? state.derived.san,
+          dailySanLoss: initialCharacter.dailySanLoss ?? 0,
+          insanityState: initialCharacter.insanityState ?? 'none',
+          underlyingInsanity: initialCharacter.underlyingInsanity ?? false,
+          activeBoutOfMadness: initialCharacter.activeBoutOfMadness ?? null,
           skills: state.skills,
           occupation: occupation?.name || initialCharacter.occupation,
           luckSpentThisSession: 0,
@@ -1726,7 +1797,7 @@ export function CharacterWizardV2({
                 onClick={() => setSelectedArchetypeId(archetype.id)}
                 className={`p-4 border text-left transition-all duration-200 ${
                   isSelected
-                    ? 'border-brass/30/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
+                    ? 'border-brass/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
                     : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
                 }`}
               >
@@ -1744,7 +1815,7 @@ export function CharacterWizardV2({
 
         {/* Szczegóły wybranego archetypu */}
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
-          <div className="border border-brass/30/30 bg-[#0e1413] p-4">
+          <div className="border border-brass/30 bg-[#0e1413] p-4">
             <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
               {selectedArchetype.icon} {dynamicT(`archetypes.${selectedArchetype.id}.name`)}
             </h4>
@@ -1857,7 +1928,7 @@ export function CharacterWizardV2({
               <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
                 {t('rollDice')}
               </h4>
-              <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-brass/80 border border-brass/30/50 px-1.5 py-0.5">
+              <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-brass/80 border border-brass/30 px-1.5 py-0.5">
                 ✦ {t('recommended')}
               </span>
             </div>
@@ -1960,7 +2031,14 @@ export function CharacterWizardV2({
               >
                 <label className="flex items-center justify-center font-display text-base uppercase tracking-[0.08em] text-foreground mb-1">
                   {STAT_FULL_NAMES[stat] || stat.toUpperCase()}
-                  <HelpIcon content={STAT_DESCRIPTIONS[stat]} position="top" />
+                  <HelpIcon
+                    content={
+                      t.has(`statTooltips.${stat}`)
+                        ? t(`statTooltips.${stat}`)
+                        : STAT_DESCRIPTIONS[stat]
+                    }
+                    position="top"
+                  />
                 </label>
 
                 {statMethod === 'roll' ? (
@@ -2056,7 +2134,7 @@ export function CharacterWizardV2({
         </div>
 
         {/* Onboarding: niskie cechy to nie wada (własny opis) */}
-        <div className="flex items-start gap-3 border border-brass/30/30 bg-primary/5 px-4 py-3">
+        <div className="flex items-start gap-3 border border-brass/30 bg-primary/5 px-4 py-3">
           <span aria-hidden="true" className="text-lg leading-none mt-0.5">
             🕯️
           </span>
@@ -2069,7 +2147,7 @@ export function CharacterWizardV2({
         {/* Wiek */}
         <div className="border border-brass/28 bg-[#16130f] p-4">
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-foreground mb-2">
-            Wiek: {state.age} lat
+            {t('ageLabel', { age: state.age })}
           </label>
           <input
             type="range"
@@ -2079,6 +2157,15 @@ export function CharacterWizardV2({
             onChange={(e) => {
               const age = parseInt(e.target.value);
               const derived = calculateDerived(state.stats, age);
+              const newBracket = AGE_MODIFIERS.find(
+                (m) => age >= m.min && age <= m.max
+              );
+              if (newBracket && newBracket.key !== currentAgeBracketKey) {
+                setCurrentAgeBracketKey(newBracket.key);
+                setPerformedEduChecks(0);
+                setAppliedAgePenaltiesKey(null);
+                setTeenLuckRerolled(false);
+              }
               setState((prev) => ({ ...prev, age, derived }));
             }}
             className="w-full"
@@ -2087,21 +2174,23 @@ export function CharacterWizardV2({
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-brass/80 font-medium">
-                  {ageModifier.label}
+                  {t.has(`ageBrackets.${ageModifier.key}`)
+                    ? t(`ageBrackets.${ageModifier.key}`)
+                    : ageModifier.label}
                 </span>
                 {ageModifier.physPenalty > 0 && (
                   <span className="text-destructive text-sm">
-                    -{ageModifier.physPenalty} (S/KON/ZR)
+                    {t('physPenalty', { count: ageModifier.physPenalty })}
                   </span>
                 )}
                 {ageModifier.appPenalty > 0 && (
                   <span className="text-destructive text-sm">
-                    -{ageModifier.appPenalty} WYG
+                    {t('appPenalty', { count: ageModifier.appPenalty })}
                   </span>
                 )}
                 {ageModifier.eduChecks > 0 && (
                   <span className="text-brass/80 text-sm">
-                    +{ageModifier.eduChecks} test WYK
+                    {t('eduChecksBonus', { count: ageModifier.eduChecks })}
                   </span>
                 )}
                 {ageModifier.luckReroll && (
@@ -2111,7 +2200,118 @@ export function CharacterWizardV2({
                 )}
               </div>
 
-              {/* Przycisk aplikowania modyfikatorów wieku */}
+              {/* Modyfikatory nastolatka (15-19 lat wg CoC 7e RAW) */}
+              {ageModifier.key === 'age_15_19' && (
+                <div className="border border-destructive/50 bg-[#16130f] p-3 mt-2 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="text-sm">
+                      <span className="text-destructive font-medium">
+                        {t('teenPenaltiesWarning')}
+                      </span>
+                      <span className="text-muted-foreground ml-2">
+                        {appliedAgePenaltiesKey === ageModifier.key
+                          ? t('agePenaltiesApplied')
+                          : t('teenPenaltiesPending')}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const teenResult = applyTeenPenalty({
+                          str: state.stats.str,
+                          siz: state.stats.siz,
+                          edu: state.stats.edu,
+                        });
+                        const newStats = {
+                          ...state.stats,
+                          str: teenResult.str,
+                          siz: teenResult.siz,
+                          edu: teenResult.edu,
+                        };
+                        const derived = calculateDerived(newStats, state.age);
+                        const updatedSkills = {
+                          ...state.skills,
+                          [NATIVE_LANGUAGE_SKILL]: newStats.edu,
+                        };
+                        setState((prev) => ({
+                          ...prev,
+                          stats: newStats,
+                          derived,
+                          skills: updatedSkills,
+                        }));
+                        setAppliedAgePenaltiesKey(ageModifier.key);
+                      }}
+                      disabled={appliedAgePenaltiesKey === ageModifier.key}
+                      size="sm"
+                      className={`font-display font-semibold uppercase tracking-[0.1em] ${
+                        appliedAgePenaltiesKey === ageModifier.key
+                          ? 'bg-primary/20 text-primary border border-primary/40'
+                          : 'bg-destructive hover:brightness-110 text-white'
+                      }`}
+                    >
+                      {appliedAgePenaltiesKey === ageModifier.key
+                        ? t('agePenaltiesAppliedBtn')
+                        : t('applyTeenPenalties')}
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {t('teenPenaltiesPreview')}
+                  </div>
+                  <div className="flex items-center justify-between border-t border-brass/20 pt-2 flex-wrap gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {teenLuckRerolled
+                        ? t('teenLuckRerollUsed')
+                        : t('luckReroll')}
+                    </span>
+                    <Button
+                      onClick={() => {
+                        const roll =
+                          (Math.floor(Math.random() * 6) +
+                            1 +
+                            Math.floor(Math.random() * 6) +
+                            1 +
+                            Math.floor(Math.random() * 6) +
+                            1) *
+                          5;
+                        const oldLuck = state.stats.luck;
+                        const newLuck = Math.max(oldLuck, roll);
+                        if (newLuck > oldLuck) {
+                          setState((prev) => ({
+                            ...prev,
+                            stats: { ...prev.stats, luck: newLuck },
+                          }));
+                          toast({
+                            variant: 'success',
+                            title: t('luckReroll'),
+                            description: t('teenLuckSuccess', {
+                              oldLuck,
+                              newLuck,
+                            }),
+                          });
+                        } else {
+                          toast({
+                            title: t('luckReroll'),
+                            description: t('teenLuckNoChange', {
+                              roll,
+                              oldLuck,
+                            }),
+                          });
+                        }
+                        setTeenLuckRerolled(true);
+                      }}
+                      disabled={teenLuckRerolled}
+                      size="sm"
+                      variant="outline"
+                      className="font-display font-semibold uppercase tracking-[0.1em] text-brass border-brass/40 hover:bg-brass/10"
+                    >
+                      {teenLuckRerolled
+                        ? t('teenLuckRerollUsed')
+                        : t('teenLuckReroll')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Przycisk aplikowania modyfikatorów wieku (40+ lat) */}
               {(ageModifier.physPenalty > 0 || ageModifier.appPenalty > 0) && (
                 <div className="border border-destructive/50 bg-[#16130f] p-3 mt-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
@@ -2120,23 +2320,34 @@ export function CharacterWizardV2({
                         {t('ageModifiersWarning')}
                       </span>
                       <span className="text-muted-foreground ml-2">
-                        {t('agePenaltiesPending')}
+                        {appliedAgePenaltiesKey === ageModifier.key
+                          ? t('agePenaltiesApplied')
+                          : t('agePenaltiesPending')}
                       </span>
                     </div>
                     <Button
                       onClick={() => {
-                        // Aplikuj kary wieku do cech
+                        // Aplikuj kary wieku do cech zgodnie z CoC 7e RAW:
+                        // Łączna kara fizyczna rozdzielana na STR, CON, DEX
                         const penalty = ageModifier.physPenalty;
                         const appPenalty = ageModifier.appPenalty;
+                        const distributed = distributePhysPenalty(
+                          {
+                            str: state.stats.str,
+                            con: state.stats.con,
+                            dex: state.stats.dex,
+                          },
+                          penalty
+                        );
                         const newStats = {
                           ...state.stats,
-                          str: Math.max(15, state.stats.str - penalty),
-                          con: Math.max(15, state.stats.con - penalty),
-                          dex: Math.max(15, state.stats.dex - penalty),
+                          str: distributed.str,
+                          con: distributed.con,
+                          dex: distributed.dex,
                           app: Math.max(15, state.stats.app - appPenalty),
                         };
                         const derived = calculateDerived(newStats, state.age);
-                        // Aktualizuj Unik bo ZR się zmieniło
+                        // Aktualizuj Unik bo ZR mogło się zmienić
                         const updatedSkills = {
                           ...state.skills,
                           Unik: Math.floor(newStats.dex / 2),
@@ -2147,11 +2358,19 @@ export function CharacterWizardV2({
                           derived,
                           skills: updatedSkills,
                         }));
+                        setAppliedAgePenaltiesKey(ageModifier.key);
                       }}
+                      disabled={appliedAgePenaltiesKey === ageModifier.key}
                       size="sm"
-                      className="font-display font-semibold uppercase tracking-[0.1em] bg-destructive hover:brightness-110 text-white"
+                      className={`font-display font-semibold uppercase tracking-[0.1em] ${
+                        appliedAgePenaltiesKey === ageModifier.key
+                          ? 'bg-primary/20 text-primary border border-primary/40'
+                          : 'bg-destructive hover:brightness-110 text-white'
+                      }`}
                     >
-                      {t('applyAgePenalties')}
+                      {appliedAgePenaltiesKey === ageModifier.key
+                        ? t('agePenaltiesAppliedBtn')
+                        : t('applyAgePenalties')}
                     </Button>
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
@@ -2178,9 +2397,20 @@ export function CharacterWizardV2({
                           count: ageModifier.eduChecks,
                         })}
                       </span>
+                      <span className="text-brass/90 text-xs block mt-1 font-semibold">
+                        {t('eduChecksLeft', {
+                          count: Math.max(
+                            0,
+                            ageModifier.eduChecks - performedEduChecks
+                          ),
+                        })}
+                      </span>
                     </div>
                     <Button
                       onClick={() => {
+                        if (performedEduChecks >= ageModifier.eduChecks) return;
+                        setPerformedEduChecks((prev) => prev + 1);
+
                         // Wykonaj test rozwoju WYK: rzut K% > WYK = +1K10
                         const roll = Math.floor(Math.random() * 100) + 1;
                         if (roll > state.stats.edu) {
@@ -2216,10 +2446,13 @@ export function CharacterWizardV2({
                           });
                         }
                       }}
+                      disabled={performedEduChecks >= ageModifier.eduChecks}
                       size="sm"
-                      className="font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)]"
+                      className="font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] disabled:opacity-40"
                     >
-                      {t('rollEduTest')}
+                      {performedEduChecks >= ageModifier.eduChecks
+                        ? t('eduChecksExhausted')
+                        : t('rollEduTest')}
                     </Button>
                   </div>
                   <div className="text-sm text-muted-foreground mt-2 font-serif italic">
@@ -2236,7 +2469,14 @@ export function CharacterWizardV2({
           <div className="border border-[#b3322c]/40 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-[#d9685f]">
               ❤️ {t('hpAbbr')}{' '}
-              <HelpIcon content={DERIVED_DESCRIPTIONS.hp} position="top" />
+              <HelpIcon
+                content={
+                  t.has('derivedTooltips.hp')
+                    ? t('derivedTooltips.hp')
+                    : DERIVED_DESCRIPTIONS.hp
+                }
+                position="top"
+              />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
               {state.derived.hp}
@@ -2245,16 +2485,30 @@ export function CharacterWizardV2({
           <div className="border border-brass/40 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass">
               🧠 {t('sanAbbr')}{' '}
-              <HelpIcon content={DERIVED_DESCRIPTIONS.san} position="top" />
+              <HelpIcon
+                content={
+                  t.has('derivedTooltips.san')
+                    ? t('derivedTooltips.san')
+                    : DERIVED_DESCRIPTIONS.san
+                }
+                position="top"
+              />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
               {state.derived.san}
             </div>
           </div>
-          <div className="border border-brass/30/50 bg-[#0e1413] p-3 text-center shadow-[0_0_14px_rgba(13,148,136,.14)]">
+          <div className="border border-brass/30 bg-[#0e1413] p-3 text-center shadow-[0_0_14px_rgba(13,148,136,.14)]">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-brass/80">
               ✨ {t('mpAbbr')}{' '}
-              <HelpIcon content={DERIVED_DESCRIPTIONS.mp} position="top" />
+              <HelpIcon
+                content={
+                  t.has('derivedTooltips.mp')
+                    ? t('derivedTooltips.mp')
+                    : DERIVED_DESCRIPTIONS.mp
+                }
+                position="top"
+              />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
               {state.derived.mp}
@@ -2264,7 +2518,11 @@ export function CharacterWizardV2({
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
               💪 {t('damageBonusAbbr')}{' '}
               <HelpIcon
-                content={DERIVED_DESCRIPTIONS.damageBonus}
+                content={
+                  t.has('derivedTooltips.damageBonus')
+                    ? t('derivedTooltips.damageBonus')
+                    : DERIVED_DESCRIPTIONS.damageBonus
+                }
                 position="top"
               />
             </div>
@@ -2275,7 +2533,14 @@ export function CharacterWizardV2({
           <div className="border border-brass/28 bg-[#16130f] p-3 text-center">
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
               🏋️ {t('buildLabel')}{' '}
-              <HelpIcon content={DERIVED_DESCRIPTIONS.build} position="top" />
+              <HelpIcon
+                content={
+                  t.has('derivedTooltips.build')
+                    ? t('derivedTooltips.build')
+                    : DERIVED_DESCRIPTIONS.build
+                }
+                position="top"
+              />
             </div>
             <div className="font-display text-2xl font-bold text-foreground">
               {state.derived.build}
@@ -2285,7 +2550,11 @@ export function CharacterWizardV2({
             <div className="flex items-center justify-center font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
               🏃 {t('moveLabel')}{' '}
               <HelpIcon
-                content={DERIVED_DESCRIPTIONS.movement}
+                content={
+                  t.has('derivedTooltips.movement')
+                    ? t('derivedTooltips.movement')
+                    : DERIVED_DESCRIPTIONS.movement
+                }
                 position="top"
               />
             </div>
@@ -2754,7 +3023,7 @@ export function CharacterWizardV2({
                   key={skillName}
                   className={`border p-4 ${
                     isRecommended
-                      ? 'ring-1 ring-primary border-brass/30/50 bg-primary/10'
+                      ? 'ring-1 ring-primary border-brass/50 bg-primary/10'
                       : 'border-brass/28 bg-[#16130f]'
                   }`}
                 >
@@ -3187,7 +3456,9 @@ export function CharacterWizardV2({
                     {t('level')}
                   </div>
                   <div className="font-display text-foreground font-bold mt-1">
-                    {wealthInfo.level}
+                    {t.has(`wealthLevels.${wealthInfo.key}`)
+                      ? t(`wealthLevels.${wealthInfo.key}`)
+                      : wealthInfo.level}
                   </div>
                 </div>
                 <div>
@@ -3203,7 +3474,9 @@ export function CharacterWizardV2({
                     {t('assets')}
                   </div>
                   <div className="font-display text-muted-foreground font-bold mt-1">
-                    {wealthInfo.assets}
+                    {wealthInfo.key === 'pauper' || wealthInfo.assets === 'Brak'
+                      ? t('assetsNone')
+                      : wealthInfo.assets}
                   </div>
                 </div>
                 <div>
@@ -3374,10 +3647,7 @@ export function CharacterWizardV2({
           {state.step < TOTAL_STEPS ? (
             <Button
               onClick={nextStep}
-              disabled={
-                (state.step === 1 && !selectedArchetypeId) ||
-                (state.step === 3 && !state.occupationId)
-              }
+              disabled={!isStepValid()}
               size="sm"
               className="font-display font-semibold uppercase tracking-[0.16em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-7 py-3"
             >
