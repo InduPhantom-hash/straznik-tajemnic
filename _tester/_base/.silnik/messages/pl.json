@@ -18,7 +18,9 @@
     "titleLine2": "Tajemnic",
     "virtualGm": "Wirtualny Mistrz Gry",
     "authorizationRequired": "Wymagana autoryzacja",
-    "openApiKeys": "Wprowadź klucz API"
+    "openApiKeys": "Wprowadź klucz API",
+    "rulesRequired": "Wymagany podręcznik zasad",
+    "openRulebook": "Wgraj zasady (CoC 7e PDF)"
   },
   "CostControl": {
     "title": "Kontrola Kosztów",
@@ -37,12 +39,43 @@
     "resetConfirm": "Czy na pewno chcesz wyzerować licznik kosztów konta?"
   },
   "InspectionLightbox": {
-    "confirmed": "Potwierdzone", "hypothesis": "Hipoteza", "refuted": "Obalone", "unknownDate": "Nieznana data",
-    "deleteConfirm": "Czy na pewno chcesz usunąć ten dowód z Tablicy Badacza?", "evidencePreview": "Podgląd dowodu", "delete": "Usuń z tablicy", "close": "Zamknij", "noImage": "Brak ilustracji",
-    "hypothesisStatus": "Status hipotezy", "location": "Lokacja:", "npc": "NPC:", "discovered": "Odkryty:", "insight": "Wniosek Badacza / Dedukcja", "notes": "Notatki badacza", "edit": "Edytuj", "save": "Zapisz", "notesPlaceholder": "Zapisz swoje obserwacje i teorie...", "noNotes": "Brak notatek. Kliknij Edytuj, aby dodać obserwacje.", "created": "Utworzono", "updated": "Aktualizacja"
+    "confirmed": "Potwierdzone",
+    "hypothesis": "Hipoteza",
+    "refuted": "Obalone",
+    "unknownDate": "Nieznana data",
+    "deleteConfirm": "Czy na pewno chcesz usunąć ten dowód z Tablicy Badacza?",
+    "evidencePreview": "Podgląd dowodu",
+    "delete": "Usuń z tablicy",
+    "close": "Zamknij",
+    "noImage": "Brak ilustracji",
+    "hypothesisStatus": "Status hipotezy",
+    "location": "Lokacja:",
+    "npc": "NPC:",
+    "discovered": "Odkryty:",
+    "insight": "Wniosek Badacza / Dedukcja",
+    "notes": "Notatki badacza",
+    "edit": "Edytuj",
+    "save": "Zapisz",
+    "notesPlaceholder": "Zapisz swoje obserwacje i teorie...",
+    "noNotes": "Brak notatek. Kliknij Edytuj, aby dodać obserwacje.",
+    "created": "Utworzono",
+    "updated": "Aktualizacja"
   },
   "QuickSetupModal": {
-    "kicker": "Szybka Przygoda", "description": "Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.", "stepMode": "1. Wybierz tryb gry", "solo": "Tryb Solo", "soloDescription": "Jeden gracz, jedna postać", "hotSeat": "Hot Seat (Duet)", "hotSeatDescription": "Dwóch graczy na jednym urządzeniu", "stepAdventure": "2. Wybierz scenariusz ze Strefy 11", "stepCharacters": "3. Wybierz postacie", "playerOne": "Gracz 1 (Główna Postać):", "yourCharacter": "Twoja Postać:", "playerTwo": "Gracz 2 (Druga Postać):", "biography": "Biografia", "start": "Rozpocznij przygodę"
+    "kicker": "Szybka Przygoda",
+    "description": "Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.",
+    "stepMode": "1. Wybierz tryb gry",
+    "solo": "Tryb Solo",
+    "soloDescription": "Jeden gracz, jedna postać",
+    "hotSeat": "Hot Seat (Duet)",
+    "hotSeatDescription": "Dwóch graczy na jednym urządzeniu",
+    "stepAdventure": "2. Wybierz scenariusz ze Strefy 11",
+    "stepCharacters": "3. Wybierz postacie",
+    "playerOne": "Gracz 1 (Główna Postać):",
+    "yourCharacter": "Twoja Postać:",
+    "playerTwo": "Gracz 2 (Druga Postać):",
+    "biography": "Biografia",
+    "start": "Rozpocznij przygodę"
   },
   "LanguageSelection": {
     "eyebrow": "ZANIM ROZPOCZNIE SIĘ ŚLEDZTWO",
@@ -284,12 +317,108 @@
       }
     },
     "archetypeDetails": {
-      "investigator": { "suggestedOccupations": ["Prywatny detektyw", "Detektyw policyjny", "Dziennikarz"], "suggestedTraits": ["dociekliwy", "uparty", "sceptyczny"], "suggestedMotivations": ["odkrycie prawdy", "sprawiedliwość", "ciekawość"] },
-      "scholar": { "suggestedOccupations": ["Profesor", "Bibliotekarz", "Antykwariusz"], "suggestedTraits": ["ciekawy świata", "metodyczny", "zamyślony"], "suggestedMotivations": ["zdobycie wiedzy", "ochrona przed zapomnianymi tajemnicami", "akademicka sława"] },
-      "action": { "suggestedOccupations": ["Żołnierz", "Atleta", "Marynarz"], "suggestedTraits": ["odważny", "impulsywny", "lojalny"], "suggestedMotivations": ["ochrona bliskich", "przygoda", "honor"] },
-      "trickster": { "suggestedOccupations": ["Przestępca", "Artysta estradowy", "Szpieg"], "suggestedTraits": ["przebiegły", "czarujący", "wyrachowany"], "suggestedMotivations": ["zysk", "emocje", "ucieczka przed przeszłością"] },
-      "mystic": { "suggestedOccupations": ["Parapsycholog", "Duchowny", "Artysta"], "suggestedTraits": ["intuicyjny", "tajemniczy", "wrażliwy"], "suggestedMotivations": ["zrozumienie niewidzialnego", "ochrona przed złem", "odkrycie przeznaczenia"] },
-      "healer": { "suggestedOccupations": ["Lekarz", "Pielęgniarka", "Duchowny"], "suggestedTraits": ["empatyczny", "opanowany", "cierpliwy"], "suggestedMotivations": ["ratowanie życia", "zrozumienie ludzkiej natury", "pokuta za przeszłość"] }
+      "investigator": {
+        "suggestedOccupations": [
+          "Prywatny detektyw",
+          "Detektyw policyjny",
+          "Dziennikarz"
+        ],
+        "suggestedTraits": [
+          "dociekliwy",
+          "uparty",
+          "sceptyczny"
+        ],
+        "suggestedMotivations": [
+          "odkrycie prawdy",
+          "sprawiedliwość",
+          "ciekawość"
+        ]
+      },
+      "scholar": {
+        "suggestedOccupations": [
+          "Profesor",
+          "Bibliotekarz",
+          "Antykwariusz"
+        ],
+        "suggestedTraits": [
+          "ciekawy świata",
+          "metodyczny",
+          "zamyślony"
+        ],
+        "suggestedMotivations": [
+          "zdobycie wiedzy",
+          "ochrona przed zapomnianymi tajemnicami",
+          "akademicka sława"
+        ]
+      },
+      "action": {
+        "suggestedOccupations": [
+          "Żołnierz",
+          "Atleta",
+          "Marynarz"
+        ],
+        "suggestedTraits": [
+          "odważny",
+          "impulsywny",
+          "lojalny"
+        ],
+        "suggestedMotivations": [
+          "ochrona bliskich",
+          "przygoda",
+          "honor"
+        ]
+      },
+      "trickster": {
+        "suggestedOccupations": [
+          "Przestępca",
+          "Artysta estradowy",
+          "Szpieg"
+        ],
+        "suggestedTraits": [
+          "przebiegły",
+          "czarujący",
+          "wyrachowany"
+        ],
+        "suggestedMotivations": [
+          "zysk",
+          "emocje",
+          "ucieczka przed przeszłością"
+        ]
+      },
+      "mystic": {
+        "suggestedOccupations": [
+          "Parapsycholog",
+          "Duchowny",
+          "Artysta"
+        ],
+        "suggestedTraits": [
+          "intuicyjny",
+          "tajemniczy",
+          "wrażliwy"
+        ],
+        "suggestedMotivations": [
+          "zrozumienie niewidzialnego",
+          "ochrona przed złem",
+          "odkrycie przeznaczenia"
+        ]
+      },
+      "healer": {
+        "suggestedOccupations": [
+          "Lekarz",
+          "Pielęgniarka",
+          "Duchowny"
+        ],
+        "suggestedTraits": [
+          "empatyczny",
+          "opanowany",
+          "cierpliwy"
+        ],
+        "suggestedMotivations": [
+          "ratowanie życia",
+          "zrozumienie ludzkiej natury",
+          "pokuta za przeszłość"
+        ]
+      }
     },
     "generateButton": "✨ Generuj",
     "generatingEllipsis": "⏳...",
@@ -804,14 +933,42 @@
     "movement": "Ruch",
     "move": "Ruch",
     "stats": {
-      "str": { "full": "Siła", "short": "SIŁ" },
-      "con": { "full": "Kondycja", "short": "KON" },
-      "siz": { "full": "Budowa", "short": "BUD" },
-      "dex": { "full": "Zręczność", "short": "ZRE" },
-      "app": { "full": "Wygląd", "short": "WYG" },
-      "int": { "full": "Inteligencja", "short": "INT" },
-      "pow": { "full": "Moc", "short": "MOC" },
-      "edu": { "full": "Wykształcenie", "short": "WYK" }
+      "str": {
+        "abbr": "SIŁ",
+        "full": "Siła"
+      },
+      "con": {
+        "abbr": "KON",
+        "full": "Kondycja"
+      },
+      "siz": {
+        "abbr": "BUD",
+        "full": "Budowa"
+      },
+      "dex": {
+        "abbr": "ZRĘ",
+        "full": "Zręczność"
+      },
+      "app": {
+        "abbr": "WYG",
+        "full": "Wygląd"
+      },
+      "int": {
+        "abbr": "INT",
+        "full": "Inteligencja"
+      },
+      "pow": {
+        "abbr": "MOC",
+        "full": "Moc"
+      },
+      "edu": {
+        "abbr": "WYK",
+        "full": "Wykształcenie"
+      },
+      "luck": {
+        "abbr": "SZC",
+        "full": "Szczęście"
+      }
     },
     "skills": "Umiejętności",
     "biography": "Biografia",
@@ -854,44 +1011,6 @@
       "mp": {
         "abbr": "PM",
         "full": "Moc"
-      },
-      "luck": {
-        "abbr": "SZC",
-        "full": "Szczęście"
-      }
-    },
-    "stats": {
-      "str": {
-        "abbr": "SIŁ",
-        "full": "Siła"
-      },
-      "con": {
-        "abbr": "KON",
-        "full": "Kondycja"
-      },
-      "siz": {
-        "abbr": "BUD",
-        "full": "Budowa"
-      },
-      "dex": {
-        "abbr": "ZRĘ",
-        "full": "Zręczność"
-      },
-      "app": {
-        "abbr": "WYG",
-        "full": "Wygląd"
-      },
-      "int": {
-        "abbr": "INT",
-        "full": "Inteligencja"
-      },
-      "pow": {
-        "abbr": "MOC",
-        "full": "Moc"
-      },
-      "edu": {
-        "abbr": "WYK",
-        "full": "Wykształcenie"
       },
       "luck": {
         "abbr": "SZC",
@@ -5065,11 +5184,21 @@
     "modelLabel": "Model:",
     "imagesLabel": "Obrazy:",
     "presets": {
-      "low": { "description": "Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)" },
-      "mid": { "description": "Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)" },
-      "high": { "description": "Gemini 3.1 Pro + lektor + obrazy Imagen 4 (~$0.50/sesja)" },
-      "ultra": { "description": "Gemini 3.1 Pro High + multi-voice słuchowisko + obrazy HD (~$1.00/sesja)" },
-      "custom": { "description": "Własna konfiguracja wszystkich parametrów" }
+      "low": {
+        "description": "Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)"
+      },
+      "mid": {
+        "description": "Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)"
+      },
+      "high": {
+        "description": "Gemini 3.1 Pro + lektor + obrazy Imagen 4 (~$0.50/sesja)"
+      },
+      "ultra": {
+        "description": "Gemini 3.1 Pro High + multi-voice słuchowisko + obrazy HD (~$1.00/sesja)"
+      },
+      "custom": {
+        "description": "Własna konfiguracja wszystkich parametrów"
+      }
     }
   },
   "ReplicateSettings": {
@@ -5242,12 +5371,30 @@
     "choose": "Wybierz tę przygodę →"
   },
   "AdventureStyles": {
-    "tonePurist": "Purist", "tonePulp": "Pulp", "toneNoir": "Noir",
-    "eraClassic": "Lata 20.", "eraGaslight": "Wiktoria", "eraNoir": "Lata 40.", "eraPrl": "PRL - lata 70.", "eraModern": "Współczesność", "eraCustom": "Własna",
-    "difficultyEasy": "Łatwy", "difficultyNormal": "Normalny", "difficultyHard": "Trudny",
-    "tonePuristDescription": "Klasyczny, mroczny horror. Groza narasta powoli, zagrożenie jest realne, a badacze mają niewielkie szanse na heroizm.", "tonePulpDescription": "Heroiczna akcja. Odważniejsi badacze, więcej walki i przygody, mniej beznadziei.", "toneNoirDescription": "Mroczne śledztwo pełne intryg, moralnej dwuznaczności i tajemnic wielkiego miasta.",
-    "eraClassicDescription": "Klasyczne lata 20.: prohibicja, automobile i złota era Mitów Cthulhu.", "eraGaslightDescription": "Epoka wiktoriańska: gazowe latarnie, spirytyzm i gotycka groza.", "eraNoirDescription": "Lata czterdzieste: wojna, odbudowa, radio i śledztwa w cieniu historii.", "eraPrlDescription": "Polska lat siedemdziesiątych: kolejki, państwowe instytucje, analogowa technika i nieufność.", "eraModernDescription": "Czasy współczesne: smartfony, internet i kosmiczny horror w cyfrowym świecie.", "eraCustomDescription": "Era zdefiniowana przez gracza.",
-    "difficultyEasyDescription": "Łagodne wyzwanie na początek, z mniejszą liczbą śmiertelnych pułapek.", "difficultyNormalDescription": "Standardowe wyzwanie wymagające rozwagi i ostrożnych decyzji.", "difficultyHardDescription": "Wymagające i śmiertelne. Nie wybacza błędów."
+    "tonePurist": "Purist",
+    "tonePulp": "Pulp",
+    "toneNoir": "Noir",
+    "eraClassic": "Lata 20.",
+    "eraGaslight": "Wiktoria",
+    "eraNoir": "Lata 40.",
+    "eraPrl": "PRL - lata 70.",
+    "eraModern": "Współczesność",
+    "eraCustom": "Własna",
+    "difficultyEasy": "Łatwy",
+    "difficultyNormal": "Normalny",
+    "difficultyHard": "Trudny",
+    "tonePuristDescription": "Klasyczny, mroczny horror. Groza narasta powoli, zagrożenie jest realne, a badacze mają niewielkie szanse na heroizm.",
+    "tonePulpDescription": "Heroiczna akcja. Odważniejsi badacze, więcej walki i przygody, mniej beznadziei.",
+    "toneNoirDescription": "Mroczne śledztwo pełne intryg, moralnej dwuznaczności i tajemnic wielkiego miasta.",
+    "eraClassicDescription": "Klasyczne lata 20.: prohibicja, automobile i złota era Mitów Cthulhu.",
+    "eraGaslightDescription": "Epoka wiktoriańska: gazowe latarnie, spirytyzm i gotycka groza.",
+    "eraNoirDescription": "Lata czterdzieste: wojna, odbudowa, radio i śledztwa w cieniu historii.",
+    "eraPrlDescription": "Polska lat siedemdziesiątych: kolejki, państwowe instytucje, analogowa technika i nieufność.",
+    "eraModernDescription": "Czasy współczesne: smartfony, internet i kosmiczny horror w cyfrowym świecie.",
+    "eraCustomDescription": "Era zdefiniowana przez gracza.",
+    "difficultyEasyDescription": "Łagodne wyzwanie na początek, z mniejszą liczbą śmiertelnych pułapek.",
+    "difficultyNormalDescription": "Standardowe wyzwanie wymagające rozwagi i ostrożnych decyzji.",
+    "difficultyHardDescription": "Wymagające i śmiertelne. Nie wybacza błędów."
   },
   "ApiUsageCounter": {
     "collapse": "Zwiń licznik",
@@ -6800,5 +6947,27 @@
     "clearConfirm": "Czy na pewno chcesz wyczyścić całą oś czasu?",
     "clearButton": "🗑️ Wyczyść",
     "sessionExportTitle": "Sesja {date}"
+  },
+  "RulebookModal": {
+    "title": "Podręcznik Zasad CoC 7e",
+    "description": "Wgraj oficjalny podręcznik zasad Call of Cthulhu 7. edycji (PDF). Plik zostanie przetworzony i zindeksowany lokalnie na Twoim urządzeniu - nie trafia do żadnej chmury.",
+    "privacyLabel": "Prywatność i przetwarzanie lokalne:",
+    "privacyDescription": "Twój plik PDF jest parsowany bezpośrednio na Twoim komputerze i zapisywany w lokalnej bazie wiedzy (data/rag/rules). Wymagany do rozstrzygania mechanik i rzutów przez Mistrza Gry.",
+    "requiredBadge": "Wymagany",
+    "readyBadge": "Gotowy",
+    "dropZonePrompt": "Kliknij, aby wybrać plik PDF z zasadami",
+    "dropZoneSub": "Obsługiwany format: dokument PDF (np. Księga Strażnika CoC 7e)",
+    "processingTitle": "Przetwarzam podręcznik...",
+    "processingDescription": "Parsowanie treści i generowanie wektorów wiedzy (może to zająć od kilkunastu sekund do kilku minut)...",
+    "indexingChunkn": "Trwa indeksowanie fragmentów zasad...",
+    "successTitle": "Podręcznik wczytany pomyślnie!",
+    "successIndexed": "Zindeksowano {count} fragmentów w lokalnej pamięci zasad.",
+    "errorTitle": "Błąd podczas wgrywania podręcznika",
+    "retry": "Spróbuj ponownie",
+    "selectAnother": "Wybierz inny plik",
+    "close": "Zamknij",
+    "continueToGame": "Gotowe, przejdź do gry",
+    "statusCurrent": "Aktualny stan bazy:",
+    "statusChunks": "{count} fragmentów zasad w lokalnym indeksie"
   }
 }
