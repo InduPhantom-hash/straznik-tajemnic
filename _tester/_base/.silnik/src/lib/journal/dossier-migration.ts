@@ -200,7 +200,13 @@ export function migrateLegacyJournalToDossier(
       entryType === 'encyclopedia_character' ||
       (entry.metadata?.npcName && entryType !== 'quest' && entryType !== 'clue')
     ) {
-      if (!npcIds.has(baseId)) {
+      const npcTargetName = (entry.metadata?.npcName || entry.title || '').trim().toLowerCase();
+      const alreadyExists =
+        npcIds.has(baseId) ||
+        (Boolean(npcTargetName) &&
+          result.npcs.some((n) => n.name.trim().toLowerCase() === npcTargetName));
+
+      if (!alreadyExists) {
         const relationship: NpcRelationshipStatus = tags.includes('wrogi') || tags.includes('hostile')
           ? 'hostile'
           : tags.includes('przyjazny') || tags.includes('friendly')
@@ -234,7 +240,13 @@ export function migrateLegacyJournalToDossier(
       entryType === 'encyclopedia_location' ||
       (entry.metadata?.locationName && entryType !== 'quest' && entryType !== 'clue')
     ) {
-      if (!locationIds.has(baseId)) {
+      const locTargetName = (entry.metadata?.locationName || entry.title || '').trim().toLowerCase();
+      const alreadyExists =
+        locationIds.has(baseId) ||
+        (Boolean(locTargetName) &&
+          result.locations.some((l) => l.name.trim().toLowerCase() === locTargetName));
+
+      if (!alreadyExists) {
         const loc: LocationDossierEntry = {
           id: baseId,
           name: entry.metadata?.locationName || entry.title || 'Nieznana lokacja',

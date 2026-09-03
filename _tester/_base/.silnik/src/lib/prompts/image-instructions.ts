@@ -55,27 +55,33 @@ export function buildImageInstructions(settings: AISettings): string {
 
   // Wspólny blok formatu (jak emitować tag).
   const formatBlock = `
-### JAK GENEROWAĆ:
-Użyj odpowiednich tagów w tekście odpowiedzi:
-- Dla ilustracji lokacji, wydarzeń i krajobrazów używaj: [SCENA: szczegółowy opis w języku ANGIELSKIM]
-- Dla portretów ważnych postaci (NPC/Badaczy) używaj ZAWSZE formatu: [PORTRET: Imię Postaci, szczegółowy opis w języku ANGIELSKIM]
-
-Dla scen snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos dodaj flagę | mythos:
-[SCENA: deep one rising from the dark ocean under stormy sky, bioluminescent glow, grotesque fish-like features, period-accurate coastal town harbor | mythos]
+### JAK GENEROWAĆ (DEDYKOWANE TAGI FABULARNE):
+Użyj odpowiedniego, precyzyjnego tagu w tekście odpowiedzi (opis ZAWSZE w języku ANGIELSKIM):
+- Dla pierwszego wejścia do nowej, znaczącej lokacji (establishing shot): [LOKACJA: Nazwa Lokacji, detailed period-accurate exterior or interior description]
+- Dla portretu nowo poznanej, ważnej postaci (NPC): [PORTRET: Imię Postaci, detailed period-accurate portrait photography, facial features, clothes]
+- Dla kluczowego dowodu rzeczowego, księgi lub artefaktu: [PRZEDMIOT: Nazwa Przedmiotu, detailed archival object study, materials, inscriptions]
+- Dla bezpośredniego ujrzenia istoty Mythos lub potwora: [POTWÓR: Nazwa Istoty, horrific lovecraftian entity description, grotesque features, moody cinematic lighting]
+- Dla snów, halucynacji, ataków szaleństwa lub anomalii nadprzyrodzonych: [ZJAWISKO: surreal nightmare vision, impossible geometry, sanity loss phenomenon]
+- Dla dynamicznych scen akcji, pościgów lub kulminacji: [SCENA: dramatic action scene description in the chosen era]
 
 Przykłady użycia: 
-[SCENA: dimly lit private study in the chosen era, mahogany desk with scattered papers, rain streaking the window, realistic period photograph, cinematic film-grain, moody natural light]
-[PORTRET: John Doe, weary period-accurate private investigator, wrinkled face, trench coat, dim lighting, realistic period photograph]
+[LOKACJA: Miskatonic University Library, towering gothic bookshelves, dust motes dancing in shafts of pale sunlight, dark mahogany study tables]
+[PORTRET: Professor Henry Armitage, distinguished elderly scholar with silver spectacles, tweed vest, weary sharp eyes, realistic vintage photograph]
+[PRZEDMIOT: Necronomicon Fragment, decaying parchment with blasphemous arabesque calligraphy, faded ink, leather binding]
+[POTWÓR: Deep One, grotesque amphibious humanoid crawling onto wet docks, bulging unblinking eyes, scaly glistening skin, stormy ocean backdrop]
+[ZJAWISKO: non-euclidean angles twisting the asylum corridor, shadows stretching in impossible directions, eerie greenish luminescence]
+[SCENA: desperate chase through narrow cobblestone alley in torrential rain, shadows cast by gas lamps, vintage sedan speeding away]
+
 ZASADY SPÓJNOŚCI WIZUALNEJ I REALIZMU (VISUAL CONSISTENCY & REALISM):
-1. BADACZ GRACZA (PLAYER CHARACTER): Gdy ilustrujesz scenę z udziałem Badacza, ZAWSZE uwzględniaj w opisie jego dokładny profil fizyczny (wiek, płeć, fryzurę, ubiór, znaki szczególne, okulary) z karty postaci / portretu referencyjnego, aby postać wyglądała spójnie na wszystkich ilustracjach.
+1. BADACZ GRACZA (PLAYER CHARACTER): Gdy ilustrujesz scenę z udziałem Badacza, ZAWSZE uwzględniaj w opisie jego dokładny profil fizyczny (wiek, płeć, fryzurę, ubiór, znaki szczególne, okulary) z sekcji ## PROFIL WIZUALNY BADACZA, aby postać wyglądała spójnie na wszystkich ilustracjach.
 2. POSTACIE (NPC - VISUAL DNA): Gdy ilustrujesz postać NPC (z listy ## AKTYWNE POSTACIE (NPC)), ZAWSZE zachowaj jej stałą matrycę cech fizycznych (wiek, rysy twarzy, zarost, fryzura, okulary, charakterystyczne blizny, fason i materiał ubioru). Wizerunki NIE MOGĄ się rozjeżdżać między scenami, a wygenerowany portret natychmiast definiuje oficjalny wygląd NPC w Dzienniku. Gracz musi od razu rozpoznać o kogo chodzi.
-3. LOKACJE (LOCATIONS): Gdy generujesz kolejny obraz tej samej lokacji, utrzymaj te same elementy architektoniczne (np. kształt okien, styl tapety, stałe meble jak kominek, zegar czy pianino). Zmiany mogą dotyczyć oświetlenia, kąta kamery lub drobnych interakcji.
+3. LOKACJE (LOCATIONS): Tag [LOKACJA:] emituj TYLKO przy pierwszym wejściu do ważnego punktu orientacyjnego scenariusza. Kolejne sceny akcji w tym miejscu opisuj tagiem [SCENA:], aby ukazać aktualne wydarzenia zamiast powtarzać ujęcie statyczne.
 4. POGODA I ATMOSFERA (WEATHER): Uwzględniaj w opisie aktualne warunki atmosferyczne podane w sekcji **Aktualna Pogoda & Warunki**.
-5. STYL I REALIZM EPOKI (SLOW BURN): Ilustracje muszą być DOMYŚLNIE REALISTYCZNE i spójne z wybraną epoką przygody (Gaslight / Klasyczne lata 20. / PRL lata 70. / Lata 80. i 90. / Współczesność / Custom). Buduj grozę cieniem, oświetleniem, fakturami i architekturą. ABSOLUTNY ZAKAZ rutynowego wstawiania macek, gargulców i potworów w zwykłych scenach. Elementy nadprzyrodzone / mityczne wprowadzaj TYLKO w momentach snów, wizji niepoczytalności lub bezpośrednich starć z istotami Mythos.
-6. ŚCISŁY ZAKAZ ANACHRONIZMÓW: Opisy w tagach [SCENA:] i [PORTRET:] muszą bezwzględnie odpowiadać epoce gry (brak nowoczesnych smartfonów, powerbanków i ekranów dotykowych przed 2007 r.). Skupiaj się na głównym temacie sceny (architektura, atmosfera, śledztwo, kluczowy ślad lub postać), a nie na losowych sprzętach codziennych, o ile nie biorą bezpośredniego udziału w akcji.
+5. STYL I REALIZM EPOKI (SLOW BURN): Ilustracje muszą być DOMYŚLNIE REALISTYCZNE i spójne z wybraną epoką przygody (Gaslight / Klasyczne lata 20. / PRL lata 70. / Lata 80. i 90. / Współczesność / Custom). Buduj grozę cieniem, oświetleniem, fakturami i architekturą. ABSOLUTNY ZAKAZ rutynowego wstawiania macek, gargulców i potworów w zwykłych scenach. Elementy nadprzyrodzone / mityczne wprowadzaj TYLKO w tagach [POTWÓR:] lub [ZJAWISKO:].
+6. ŚCISŁY ZAKAZ ANACHRONIZMÓW: Opisy w tagach muszą bezwzględnie odpowiadać epoce gry (brak nowoczesnych smartfonów, powerbanków i ekranów dotykowych przed 2007 r.). Skupiaj się na głównym temacie sceny (architektura, atmosfera, śledztwo, kluczowy ślad lub postać), a nie na losowych sprzętach codziennych, o ile nie biorą bezpośredniego udziału w akcji.
 7. PRZEDMIOTY I POTWORY: Artefakty oraz ujawnione potwory opisuj wg raz ustalonej anatomii i wyglądu.
 
-ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • zgodność z epoką przygody • styl DOMYŚLNIE realistyczny (fotografia z epoki, film-grain, naturalne światło, noir). Gracz może też jawnie poprosić komendą [obraz] / [scena] / [portret].`;
+ZASADY (STRICT): maksymalnie ${maxImages} ilustracja(e) na odpowiedź • opis ZAWSZE po ANGIELSKU • zgodność z epoką przygody • styl DOMYŚLNIE realistyczny (fotografia z epoki, film-grain, naturalne światło, noir). Gracz może też jawnie poprosić komendą [obraz] / [scena] / [portret] / [przedmiot].`;
 
 
   if (tier === 'minimal') {
