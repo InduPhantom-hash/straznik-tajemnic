@@ -1,6 +1,8 @@
 import { getGameMasterPrompt, loadDefaultPrompt } from './prompts-generator';
 import { getGMProtocolPrompt, getCompactGMProtocolPrompt } from '../prompts/gm-protocol';
 import { defaultAISettings } from './defaults';
+import { getPacingDirective } from '../pacing-controller';
+import { getLovecraftStylePrompt } from '../lovecraft-style-guide';
 
 describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () => {
   describe('getGameMasterPrompt', () => {
@@ -73,8 +75,6 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
     });
 
     it('różnicuje Matrycę 4 Biegów Kadencji i eliminuje monotonię (anti-monotony)', () => {
-      const { getPacingDirective } = require('../pacing-controller');
-
       const socialPacing = getPacingDirective({ mode: 'social', hasNPCs: true, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false });
       const explorationPacing = getPacingDirective({ mode: 'exploration', hasNPCs: false, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false });
       const combatPacing = getPacingDirective({ mode: 'combat', hasNPCs: true, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false });
@@ -93,8 +93,8 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
 
     it('wymusza test Inteligencji przy utracie >=5 SAN oraz somatykę grozy w obu językach', () => {
       const compactProtocol = getCompactGMProtocolPrompt();
-      const stylePl = require('../lovecraft-style-guide').getLovecraftStylePrompt('pl');
-      const styleEn = require('../lovecraft-style-guide').getLovecraftStylePrompt('en');
+      const stylePl = getLovecraftStylePrompt('pl');
+      const styleEn = getLovecraftStylePrompt('en');
 
       expect(compactProtocol).toMatch(/≥5 SAN.*Inteligencja/i);
       expect(stylePl).toMatch(/REAKCJA MIKROŚRODOWISKA I SOMATYKA/i);
@@ -102,5 +102,6 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       expect(styleEn).toMatch(/MICRO-ENVIRONMENT REACTION & SOMATIC DREAD/i);
       expect(styleEn).toMatch(/FAIR PLAY/i);
     });
+
   });
 });
