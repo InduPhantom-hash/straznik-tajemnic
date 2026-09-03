@@ -41,6 +41,7 @@ graph TD
     help["Pomoc i zasady / Help and rules"]
     new_adventure_confirm["Potwierdzenie nowej przygody / New adventure confirmation"]
     full_reset["Pełny reset / Full reset"]
+    rulebook_modal["Podręcznik zasad / Rulebook"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -73,6 +74,8 @@ graph TD
     settings -->|Pełny reset / Full reset| full_reset
     campaigns -->|Nowa kampania / New campaign| campaign_new
     characters -->|Nowa postać / New character| character_new
+    home -->|Wgraj zasady / Upload rules| rulebook_modal
+    home -->|Podręcznik zasad / Rulebook| rulebook_modal
 ```
 
 ## Routy
@@ -126,6 +129,8 @@ graph TD
 | Ustawienia | Pełny reset / Full reset | Pełny reset | `src/components/ui/settings-modal.tsx` |
 | Kampanie | Nowa kampania / New campaign | Nowa kampania | `src/app/[locale]/campaigns/page.tsx` |
 | Postacie | Nowa postać / New character | Nowa postać | `src/app/[locale]/characters/page.tsx` |
+| Strona główna | Wgraj zasady / Upload rules | Podręcznik zasad | `src/components/chat/welcome/index.tsx` |
+| Strona główna | Podręcznik zasad / Rulebook | Podręcznik zasad | `src/components/chat/welcome/components/bottom-links.tsx` |
 
 ## Zasady aktualizacji
 

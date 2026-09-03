@@ -284,6 +284,14 @@
         "pl": "Pełny reset",
         "en": "Full reset"
       }
+    },
+    {
+      "id": "rulebook-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Podręcznik zasad",
+        "en": "Rulebook"
+      }
     }
   ],
   "actions": [
@@ -565,6 +573,24 @@
         "en": "New character"
       },
       "component": "src/app/[locale]/characters/page.tsx"
+    },
+    {
+      "source": "home",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Wgraj zasady",
+        "en": "Upload rules"
+      },
+      "component": "src/components/chat/welcome/index.tsx"
+    },
+    {
+      "source": "home",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Podręcznik zasad",
+        "en": "Rulebook"
+      },
+      "component": "src/components/chat/welcome/components/bottom-links.tsx"
     }
   ]
 }
