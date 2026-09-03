@@ -5189,7 +5189,7 @@
         "description": "Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)"
       },
       "high": {
-        "description": "Gemini 3.1 Pro + lektor + obrazy Imagen 4 (~$0.50/sesja)"
+        "description": "Gemini 3.8 Flash (High) + lektor + obrazy Imagen 4 (~$0.50/sesja)"
       },
       "ultra": {
         "description": "Gemini 3.1 Pro High + multi-voice słuchowisko + obrazy HD (~$1.00/sesja)"

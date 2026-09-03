@@ -5189,7 +5189,7 @@
         "description": "Gemini 3.6 Flash + voice (Gemini TTS) + Gemini images (~$0.20/session)"
       },
       "high": {
-        "description": "Gemini 3.1 Pro + voice + Imagen 4 images (~$0.50/session)"
+        "description": "Gemini 3.8 Flash (High) + voice + Imagen 4 images (~$0.50/session)"
       },
       "ultra": {
         "description": "Gemini 3.1 Pro High + multi-voice radio drama + HD images (~$1.00/session)"
