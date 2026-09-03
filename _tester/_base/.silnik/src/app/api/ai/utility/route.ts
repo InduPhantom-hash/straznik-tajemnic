@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GeminiChatProvider } from '@/lib/ai-providers';
+import type { GeminiExtraOptions } from '@/lib/ai-providers/types';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import * as Sentry from '@sentry/nextjs';
 
@@ -49,7 +50,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { message?: unknown; prompt?: unknown };
+  let body: {
+    message?: unknown;
+    prompt?: unknown;
+    json?: boolean;
+    responseMimeType?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -68,6 +74,13 @@ export async function POST(request: NextRequest) {
 
   const provider = new GeminiChatProvider(apiKey, DEFAULT_GEMINI_MODEL);
 
+  const geminiOptions: GeminiExtraOptions = {};
+  if (body.responseMimeType === 'application/json' || body.json === true) {
+    geminiOptions.responseMimeType = 'application/json';
+  } else if (body.responseMimeType === 'text/plain') {
+    geminiOptions.responseMimeType = 'text/plain';
+  }
+
   let stream: Awaited<ReturnType<typeof provider.streamChat>>['stream'];
   try {
     // streamChat woła generateContentStream EAGER (gemini-provider) - błędy klucza/modelu
@@ -81,6 +94,7 @@ export async function POST(request: NextRequest) {
       temperature: 0.7,
       topP: 0.95,
       maxOutputTokens: 4096,
+      geminiOptions,
     }));
   } catch (err) {
     Sentry.captureException(err, { tags: { endpoint: '/api/ai/utility' } });
