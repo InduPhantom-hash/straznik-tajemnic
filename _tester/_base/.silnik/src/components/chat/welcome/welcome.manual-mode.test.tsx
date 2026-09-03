@@ -27,6 +27,7 @@ describe('WelcomeScreen - Manual Mode persistence (Issue #40)', () => {
   it('domyślnie renderuje kafelki wyboru trybu (StartModeCards), gdy localStorage jest pusty', () => {
     render(
       <WelcomeScreen
+        hasRules={true}
         onUploadRules={jest.fn()}
         onSelectAdventure={jest.fn()}
         onCreateCharacter={jest.fn()}
@@ -41,6 +42,7 @@ describe('WelcomeScreen - Manual Mode persistence (Issue #40)', () => {
   it('zapisuje welcome_manual_mode = "true" po kliknięciu "Konfiguracja ręczna"', () => {
     render(
       <WelcomeScreen
+        hasRules={true}
         onUploadRules={jest.fn()}
         onSelectAdventure={jest.fn()}
         onCreateCharacter={jest.fn()}
@@ -60,6 +62,7 @@ describe('WelcomeScreen - Manual Mode persistence (Issue #40)', () => {
 
     render(
       <WelcomeScreen
+        hasRules={true}
         onUploadRules={jest.fn()}
         onSelectAdventure={jest.fn()}
         onCreateCharacter={jest.fn()}
@@ -76,6 +79,7 @@ describe('WelcomeScreen - Manual Mode persistence (Issue #40)', () => {
 
     render(
       <WelcomeScreen
+        hasRules={true}
         onUploadRules={jest.fn()}
         onSelectAdventure={jest.fn()}
         onCreateCharacter={jest.fn()}
