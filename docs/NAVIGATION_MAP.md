@@ -58,7 +58,7 @@ graph TD
     predefined_characters -->|Wybierz badacza / Choose investigator| session_zero
     character_wizard -->|Zakończ i zapisz / Finish and save| session_zero
     hot_seat -->|Rozpocznij tryb / Start mode| session_zero
-    session_zero -->|Rozpocznij grę / Start game| game
+    session_zero -->|Zakończ i zapisz / Finish and save| game
     game -->|Karta postaci / Character sheet| character_sheet
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
@@ -113,7 +113,7 @@ graph TD
 | Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero | `src/components/ui/predefined-characters-selector.tsx` |
 | Kreator postaci | Zakończ i zapisz / Finish and save | Sesja Zero | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
-| Sesja Zero | Rozpocznij grę / Start game | Aktywna sesja | `src/app/[locale]/page.tsx` |
+| Sesja Zero | Zakończ i zapisz / Finish and save | Aktywna sesja | `src/components/ui/session-zero-modal.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |

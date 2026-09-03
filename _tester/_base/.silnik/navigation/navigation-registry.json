@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-03",
+  "updatedAt": "2026-09-03T11:58:00Z",
   "locales": [
     "pl",
     "en"
@@ -434,10 +434,10 @@
       "source": "session-zero",
       "target": "game",
       "label": {
-        "pl": "Rozpocznij grę",
-        "en": "Start game"
+        "pl": "Zakończ i zapisz",
+        "en": "Finish and save"
       },
-      "component": "src/app/[locale]/page.tsx"
+      "component": "src/components/ui/session-zero-modal.tsx"
     },
     {
       "source": "game",

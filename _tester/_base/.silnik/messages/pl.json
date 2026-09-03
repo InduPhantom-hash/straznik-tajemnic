@@ -6478,7 +6478,20 @@
     "backNav": "‹ Wstecz",
     "stepCounter": "Krok {step} z {total}",
     "finishAndSaveNav": "Zakończ i zapisz ›",
-    "nextNav": "Dalej ›"
+    "nextNav": "Dalej ›",
+    "suggestedLinesLabel": "Sugerowane tematy zakazane (kliknij, aby dodać):",
+    "suggestedVeilsLabel": "Sugerowane tematy do fade to black (kliknij, aby dodać):",
+    "violenceAnimals": "Krzywdzenie zwierząt",
+    "suicide": "Samobójstwo i samookaleczenie",
+    "claustrophobia": "Klaustrofobia",
+    "spidersInsects": "Pająki i insekty",
+    "cannibalism": "Kanibalizm",
+    "lossOfControl": "Utrata kontroli psychicznej",
+    "ritualsBlood": "Rytuały krwi i ofiary",
+    "surgeriesAmputation": "Drastyczne operacje i amputacje",
+    "bodyHorror": "Deformacje ciała (body horror)",
+    "backToStep1": "Wróć do wyboru trybu",
+    "backToStep2": "Wróć do linii i zasłon"
   },
   "NpcManager": {
     "headerKicker": "Spotkane osoby · Bohaterowie niezależni",

@@ -66,6 +66,23 @@ const DIFFICULTIES = [
   },
 ];
 
+const SUGGESTED_LINES_KEYS = [
+  'violenceAnimals',
+  'suicide',
+  'claustrophobia',
+  'spidersInsects',
+  'cannibalism',
+  'lossOfControl',
+] as const;
+
+const SUGGESTED_VEILS_KEYS = [
+  'bodyHorror',
+  'surgeriesAmputation',
+  'ritualsBlood',
+  'claustrophobia',
+  'spidersInsects',
+] as const;
+
 export function SessionZeroModal({
   open,
   onClose,
@@ -181,7 +198,7 @@ export function SessionZeroModal({
     onClose();
   };
 
-  const totalSteps = 2;
+  const totalSteps = 3;
 
   const STEP_LABELS = [t('step1Label'), t('step2Label'), t('step3Label')];
 
@@ -373,6 +390,46 @@ export function SessionZeroModal({
                   {t('addButton')}
                 </Button>
               </div>
+
+              {/* Sugerowane tagi dla Linii */}
+              <div className="pt-1">
+                <div className="mb-1.5 font-special-elite text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {t('suggestedLinesLabel')}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUGGESTED_LINES_KEYS.map((key) => {
+                    const tag = t(key);
+                    const isAdded = settings.lines.includes(tag);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          if (isAdded) {
+                            setSettings({
+                              ...settings,
+                              lines: settings.lines.filter((l) => l !== tag),
+                            });
+                          } else {
+                            setSettings({
+                              ...settings,
+                              lines: [...settings.lines, tag],
+                            });
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-none font-special-elite text-xs tracking-wider transition-colors border cursor-pointer ${
+                          isAdded
+                            ? 'border-destructive/70 bg-destructive/20 text-destructive'
+                            : 'border-brass/25 bg-black/40 text-muted-foreground hover:border-destructive/50 hover:text-destructive'
+                        }`}
+                        title={isAdded ? `Usuń: ${tag}` : `Dodaj: ${tag}`}
+                      >
+                        {isAdded ? `✓ ${tag}` : `+ ${tag}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Zasłony */}
@@ -434,6 +491,46 @@ export function SessionZeroModal({
                   {t('addButton')}
                 </Button>
               </div>
+
+              {/* Sugerowane tagi dla Zasłon */}
+              <div className="pt-1">
+                <div className="mb-1.5 font-special-elite text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {t('suggestedVeilsLabel')}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUGGESTED_VEILS_KEYS.map((key) => {
+                    const tag = t(key);
+                    const isAdded = settings.veils.includes(tag);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          if (isAdded) {
+                            setSettings({
+                              ...settings,
+                              veils: settings.veils.filter((v) => v !== tag),
+                            });
+                          } else {
+                            setSettings({
+                              ...settings,
+                              veils: [...settings.veils, tag],
+                            });
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-none font-special-elite text-xs tracking-wider transition-colors border cursor-pointer ${
+                          isAdded
+                            ? 'border-brass/70 bg-brass/20 text-brass'
+                            : 'border-brass/25 bg-black/40 text-muted-foreground hover:border-brass/50 hover:text-brass'
+                        }`}
+                        title={isAdded ? `Usuń: ${tag}` : `Dodaj: ${tag}`}
+                      >
+                        {isAdded ? `✓ ${tag}` : `+ ${tag}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Wskazówka Strażnika */}
@@ -485,26 +582,66 @@ export function SessionZeroModal({
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="font-serif text-base italic text-muted-foreground">
-                <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-destructive">
+            <div className="space-y-4">
+              <div className="relative border border-destructive/30 bg-card p-4 space-y-2">
+                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-destructive/45" />
+                <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-destructive">
                   {t('linesColon')}
-                </strong>{' '}
-                {settings.lines.length > 0 ? settings.lines.join(', ') : t('none')}
-              </p>
-              <p className="font-serif text-base italic text-muted-foreground">
-                <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-brass">
+                </div>
+                {settings.lines.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {settings.lines.map((line, idx) => (
+                      <span
+                        key={idx}
+                        className="border border-destructive/40 bg-destructive/10 px-3 py-1 font-special-elite text-xs uppercase tracking-[0.08em] text-destructive"
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-serif italic text-muted-foreground">{t('none')}</p>
+                )}
+              </div>
+
+              <div className="relative border border-brass/30 bg-card p-4 space-y-2">
+                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
+                <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-brass">
                   {t('veilsColon')}
-                </strong>{' '}
-                {settings.veils.length > 0 ? settings.veils.join(', ') : t('none')}
-              </p>
+                </div>
+                {settings.veils.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {settings.veils.map((veil, idx) => (
+                      <span
+                        key={idx}
+                        className="border border-brass/40 bg-brass/10 px-3 py-1 font-special-elite text-xs uppercase tracking-[0.08em] text-brass"
+                      >
+                        {veil}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-serif italic text-muted-foreground">{t('none')}</p>
+                )}
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-center gap-3">
-              <Button variant="outline" onClick={() => setStep(1)}>
-                {t('editSettings')}
-              </Button>
-              <Button onClick={onClose}>{t('close')}</Button>
+            <div className="flex justify-center gap-4 text-xs font-special-elite">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-brass/80 hover:text-brass underline uppercase tracking-wider cursor-pointer"
+              >
+                {t('backToStep1')}
+              </button>
+              <span className="text-brass/40">·</span>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="text-brass/80 hover:text-brass underline uppercase tracking-wider cursor-pointer"
+              >
+                {t('backToStep2')}
+              </button>
             </div>
           </div>
         );
@@ -548,14 +685,18 @@ export function SessionZeroModal({
                     }`}
                   />
                 )}
-                <div className="flex w-36 flex-col items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(stepNum)}
+                  className="flex w-36 flex-col items-center gap-2 cursor-pointer focus:outline-none group"
+                >
                   <div
                     className={`flex items-center justify-center font-display text-base transition-all ${
                       isActive
                         ? 'h-11 w-11 border border-primary bg-primary font-bold text-[#04110f] shadow-[0_0_18px_rgba(13,148,136,0.5)]'
                         : isDone
-                          ? 'h-10 w-10 border border-primary bg-primary/12 text-primary'
-                          : 'h-10 w-10 border border-brass/40 text-muted-foreground'
+                          ? 'h-10 w-10 border border-primary bg-primary/12 text-primary group-hover:border-primary/50'
+                          : 'h-10 w-10 border border-brass/40 text-muted-foreground group-hover:border-brass/70'
                     }`}
                   >
                     {isDone ? '✓' : stepNum}
@@ -565,13 +706,13 @@ export function SessionZeroModal({
                       isActive
                         ? 'text-primary'
                         : isDone
-                          ? 'text-muted-foreground'
-                          : 'text-muted-foreground/60'
+                          ? 'text-muted-foreground group-hover:text-foreground'
+                          : 'text-muted-foreground/60 group-hover:text-muted-foreground'
                     }`}
                   >
                     {label}
                   </div>
-                </div>
+                </button>
               </div>
             );
           })}
@@ -579,9 +720,9 @@ export function SessionZeroModal({
 
         {renderStep()}
 
-        {/* Navigation */}
+        {/* Sticky Navigation Footer */}
         {step <= totalSteps && (
-          <div className="mt-8 flex items-center justify-between border-t border-brass/20 pt-6">
+          <div className="sticky bottom-0 -mb-6 -mx-6 px-6 py-4 mt-8 flex items-center justify-between border-t border-brass/30 bg-card/95 backdrop-blur-md z-30 shadow-[0_-8px_20px_rgba(0,0,0,0.4)]">
             <Button
               variant="outline"
               onClick={() => (step > 1 ? setStep(step - 1) : onClose())}
