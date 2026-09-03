@@ -327,6 +327,7 @@ export async function runChatPipeline({
     isGameStart,
     characters,
     era: String(eraContext.effectiveYear),
+    locale,
   });
 
   if (message.includes('[KONIEC_SESJI:FINAL]') || message.includes('[KONIEC_SESJI_FINAL]')) {

@@ -294,3 +294,22 @@ Aktualizacja może zmienić kod, zależności i zasoby aplikacji. Nie może usuw
 - postaci, dziennika, assetów i pamięci sesji.
 
 Jeżeli w kodzie nadal występują te elementy, traktujemy je jako dług techniczny do audytu i usunięcia, a nie jako przyszłą funkcję produktu.
+
+---
+
+## Architektura Narracji i Pacingu v2 (Zrealizowane w Issue #98)
+
+Przebudowa promptów systemowych, protokołu GM i pacing controllera w oparciu o analizę habituacji sensorycznej (Rankin et al.), entropii narracyjnej (Bulut) oraz zasad Call of Cthulhu 7e RAW:
+
+1. **Matryca 4 Biegów Kadencji (Dynamic Cadence):**
+   - **Bieg 1: Ping-Pong (Staccato):** Dialog i szybkie interakcje (20-60 słów, 1-2 zdania). Natychmiastowa riposta NPC bez powielania opisów tła.
+   - **Bieg 2: Szeroki Kadr (Establishing Shot):** Otwarcie nowej lokacji lub fazy śledztwa (70-150 słów). Plastyczny realizm topograficzny i fizyka progów.
+   - **Bieg 3: Przełamanie / Cios (Hard Move):** Zagrożenie, walka, fail-forward (30-70 słów). Świat uderza bez pytania "co robisz?", stawiając badacza pod presją czasu.
+   - **Bieg 4: Zawieszenie / Pustka (The Void):** Po szoku lub utracie SAN (40-90 słów). Cisza, somatyczne reakcje ciała, Zmienna Próżni (brakujący element otoczenia).
+2. **Fail-Forward (CoC 7e RAW):** Porażka w teście kości nie zatrzymuje fabuły ("nie udało się"). Natychmiast wrzuca Bieg 3: sukces za cenę, upływ cennego czasu, uszkodzenie sprzętu lub alarm ściągający wrogów.
+3. **Zasada Uczciwej Gry (Fair Play Mystery):** Wszystkie poszlaki muszą być materialne i obecne w prozie przed rewelacją. Zero Deus ex Machina; pełna retrospektywna spójność.
+4. **Progi Liminalne i Dźwięk Akuzmatyczny:** Przejście do nowej strefy wiąże się ze zmianą temperatury, oporu powietrza i akustyki; groza sygnalizowana najpierw dźwiękiem spoza kadru.
+5. **Podwójna Maska NPC:** Każda kluczowa postać ma fasadę publiczną oraz prywatną skazę/lęk przełamującą positive bias modeli LLM.
+6. **100% Symetria Językowa (PL/EN):** Wyrównanie 15 filarów stylu Lovecrafta w `lovecraft-style-guide.ts` oraz priorytetów w `default-gm-prompt.md` i `default-gm-prompt-en.md`.
+7. **Bramka Jakości CI:** Zestaw automatycznych testów regresyjnych w `prompts-generator.test.ts`.
+

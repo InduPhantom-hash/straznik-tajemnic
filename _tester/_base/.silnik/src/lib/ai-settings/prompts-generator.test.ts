@@ -47,4 +47,60 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       expect(fullProtocol).toMatch(/ZERO PONGLISH/i);
     });
   });
+
+  describe('Architektura Narracji i Pacingu v2 [Issue #98]', () => {
+    it('wymusza regułę Fail-Forward (brak zacięć, pchnięcie fabuły komplikacją)', () => {
+      const fullProtocol = getGMProtocolPrompt();
+      const compactProtocol = getCompactGMProtocolPrompt();
+      const prompt = getGameMasterPrompt(defaultAISettings);
+
+      expect(fullProtocol).toMatch(/FAIL-FORWARD/i);
+      expect(fullProtocol).toMatch(/NIGDY nie pisz "nie udało się/i);
+      expect(compactProtocol).toMatch(/FAIL-FORWARD/i);
+      expect(prompt).toMatch(/FAIL-FORWARD/i);
+    });
+
+    it('bezwzględnie zakazuje grania za gracza (anti-puppeteering)', () => {
+      const fullProtocol = getGMProtocolPrompt();
+      const compactProtocol = getCompactGMProtocolPrompt();
+      const prompt = getGameMasterPrompt(defaultAISettings);
+
+      expect(fullProtocol).toMatch(/ABSOLUTNY ZAKAZ GRANIA ZA GRACZA/i);
+      expect(fullProtocol).toMatch(/nie pisz wypowiedzi.*postaci gracza/i);
+      expect(compactProtocol).toMatch(/SPRAWCZOŚĆ GRACZA \(absolutny zakaz\)/i);
+      expect(prompt).toMatch(/postacią gracza steruje/i);
+      expect(prompt).toMatch(/ABSOLUTNY ZAKAZ GRANIA ZA GRACZA/i);
+    });
+
+    it('różnicuje Matrycę 4 Biegów Kadencji i eliminuje monotonię (anti-monotony)', () => {
+      const { getPacingDirective } = require('../pacing-controller');
+
+      const socialPacing = getPacingDirective({ mode: 'social', hasNPCs: true, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false });
+      const explorationPacing = getPacingDirective({ mode: 'exploration', hasNPCs: false, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false });
+      const combatPacing = getPacingDirective({ mode: 'combat', hasNPCs: true, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false });
+      const voidPacing = getPacingDirective({ mode: 'exploration', hasNPCs: false, recentSANLoss: true, findingDocument: false, inDarkness: false, nightTime: false });
+      const enPacing = getPacingDirective({ mode: 'social', hasNPCs: true, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false }, 'en');
+
+      expect(socialPacing).toContain('BIEG 1 (PING-PONG');
+      expect(explorationPacing).toContain('BIEG 2 (SZEROKI KADR');
+      expect(combatPacing).toContain('BIEG 3 (PRZEŁAMANIE');
+      expect(voidPacing).toContain('BIEG 4 (ZAWIESZENIE / PUSTKA');
+      expect(socialPacing).toMatch(/ZAKAZ MONOTONII/i);
+
+      expect(enPacing).toContain('GEAR 1 (PING-PONG');
+      expect(enPacing).toMatch(/ANTI-MONOTONY/i);
+    });
+
+    it('wymusza test Inteligencji przy utracie >=5 SAN oraz somatykę grozy w obu językach', () => {
+      const compactProtocol = getCompactGMProtocolPrompt();
+      const stylePl = require('../lovecraft-style-guide').getLovecraftStylePrompt('pl');
+      const styleEn = require('../lovecraft-style-guide').getLovecraftStylePrompt('en');
+
+      expect(compactProtocol).toMatch(/≥5 SAN.*Inteligencja/i);
+      expect(stylePl).toMatch(/REAKCJA MIKROŚRODOWISKA I SOMATYKA/i);
+      expect(stylePl).toMatch(/FAIR PLAY/i);
+      expect(styleEn).toMatch(/MICRO-ENVIRONMENT REACTION & SOMATIC DREAD/i);
+      expect(styleEn).toMatch(/FAIR PLAY/i);
+    });
+  });
 });

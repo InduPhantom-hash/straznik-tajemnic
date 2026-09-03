@@ -1,94 +1,134 @@
 /**
- * Pacing Controller
+ * Pacing Controller - Matryca 4 Biegów Kadencji (Dynamic Cadence)
  *
- * Generuje dynamiczne dyrektywy długości odpowiedzi per tryb gry.
- * Injektowane do prompta jako dodatkowy kontekst.
+ * Zapobiega zjawisku Narrative Cold Death i habituacji sensorycznej.
+ * Zamiast jednego powtarzalnego schematu tury, generuje dynamiczne
+ * dyrektywy pacingu oparte na 4 Biegach Kadencji:
+ * - Bieg 1: Ping-Pong (Staccato / Dialog)
+ * - Bieg 2: Szeroki Kadr (Establishing Shot)
+ * - Bieg 3: Przełamanie / Cios (Hard Move & Fail-Forward)
+ * - Bieg 4: Zawieszenie / Pustka (The Void & Vacuum Variable)
  */
 
 import type { GameContext } from './prompt-section-parser';
 
+export type CadenceGear = 'staccato' | 'establishing' | 'hard_move' | 'void';
+
 interface PacingConfig {
+  gear: CadenceGear;
   tempo: 'fast' | 'normal' | 'slow';
   wordRange: [number, number];
-  directive: string;
+  directivePl: string;
+  directiveEn: string;
 }
 
 const PACING_MAP: Record<GameContext['mode'], PacingConfig> = {
   combat: {
+    gear: 'hard_move',
     tempo: 'fast',
     wordRange: [30, 70],
-    directive: 'TEMPO WALKI: do 30-70 słów. Krótkie, urwane zdania. Czysta akcja.',
+    directivePl: 'BIEG 3 (PRZEŁAMANIE / WALKA): do 30-70 słów. Krótkie, urwane zdania. Czysta akcja, bezpośrednie zagrożenie. Świat uderza bez pytania.',
+    directiveEn: 'GEAR 3 (HARD MOVE / COMBAT): up to 30-70 words. Short, terse sentences. Pure action, immediate threat. The world strikes without asking.',
   },
   chase: {
+    gear: 'hard_move',
     tempo: 'fast',
     wordRange: [30, 70],
-    directive: 'TEMPO POŚCIGU: do 30-70 słów. Dynamika, oddech, napięcie.',
+    directivePl: 'BIEG 3 (PRZEŁAMANIE / POŚCIG): do 30-70 słów. Dynamika, oddech, pośpiech, nagłe przeszkody terenowe.',
+    directiveEn: 'GEAR 3 (HARD MOVE / CHASE): up to 30-70 words. Momentum, breathless haste, sudden terrain obstacles.',
   },
   exploration: {
+    gear: 'establishing',
     tempo: 'normal',
-    wordRange: [60, 150],
-    directive: 'do 60-150 słów. Zwięzłość opisowa i otwarcie na akcję gracza.',
+    wordRange: [70, 150],
+    directivePl: 'BIEG 2 (SZEROKI KADR / EKSPLORACJA): 70-150 słów. Realizm topograficzny, 2-3 zmysły, jeden niepokojący detal anomalii.',
+    directiveEn: 'GEAR 2 (ESTABLISHING SHOT / EXPLORATION): 70-150 words. Topographical realism, 2-3 senses, one unsettling anomaly detail.',
   },
   investigation: {
+    gear: 'establishing',
     tempo: 'normal',
-    wordRange: [60, 150],
-    directive: 'do 60-150 słów. Wskazówki wplecione w atmosferę, bez zbędnych wypełniaczy.',
+    wordRange: [60, 140],
+    directivePl: 'BIEG 2 (SZEROKI KADR / ŚLEDZTWO): 60-140 słów. Wskazówki materialne wplecione w przestrzeń (Fair Play), zwięzłość.',
+    directiveEn: 'GEAR 2 (ESTABLISHING SHOT / INVESTIGATION): 60-140 words. Tangible clues embedded in setting (Fair Play), concise.',
   },
   social: {
-    tempo: 'normal',
-    wordRange: [30, 70],
-    directive: 'do 30-70 słów (1-3 zdania). Szybka wymiana zdań i dialog z NPC. Nie rozciągaj wypowiedzi tłem.',
+    gear: 'staccato',
+    tempo: 'fast',
+    wordRange: [20, 60],
+    directivePl: 'BIEG 1 (PING-PONG / DIALOG): 20-60 słów (1-2 zdania). Cięta replika NPC, podwójna maska (fasada vs skaza). ZAKAZ powtórnego opisywania tła.',
+    directiveEn: 'GEAR 1 (PING-PONG / DIALOGUE): 20-60 words (1-2 sentences). Sharp NPC reply, dual mask (facade vs flaw). FORBIDDEN to re-describe scenery.',
   },
   dream: {
+    gear: 'establishing',
     tempo: 'slow',
-    wordRange: [150, 300],
-    directive: '150-300 słów. Bogaty, oniryczny, wielozmysłowy opis.',
+    wordRange: [120, 220],
+    directivePl: 'BIEG 2 (SZEROKI KADR / ONIRYZM): 120-220 słów. Hipnotyczny, zmysłowy opis sprzecznej geometrii i odrealnienia.',
+    directiveEn: 'GEAR 2 (ESTABLISHING SHOT / ONIRISM): 120-220 words. Hypnotic, sensory description of contradictory geometry and derealization.',
   },
   ritual: {
+    gear: 'establishing',
     tempo: 'slow',
-    wordRange: [150, 300],
-    directive: '150-300 słów. Ceremonialna, narastająca narracja.',
+    wordRange: [120, 220],
+    directivePl: 'BIEG 2 (SZEROKI KADR / RYTUAŁ): 120-220 słów. Narastający chłód, dźwięk akuzmatyczny, ceremonialna groza.',
+    directiveEn: 'GEAR 2 (ESTABLISHING SHOT / RITUAL): 120-220 words. Deepening chill, acousmatic sound, ceremonial dread.',
   },
 };
 
+const VOID_CONFIG: PacingConfig = {
+  gear: 'void',
+  tempo: 'slow',
+  wordRange: [40, 90],
+  directivePl: 'BIEG 4 (ZAWIESZENIE / PUSTKA): 40-90 słów. Cisza po szoku, somatyczne odruchy ciała, zmienna próżni (brakujący element), chłodne zdania.',
+  directiveEn: 'GEAR 4 (THE VOID / POST-SHOCK): 40-90 words. Silence after shock, somatic body reflexes, vacuum variable (missing element), cold sentences.',
+};
+
 /**
- * Generuje dyrektywę tempa narracji na podstawie kontekstu gry.
+ * Generuje dyrektywę tempa narracji na podstawie kontekstu gry i Matrycy 4 Biegów.
  *
  * Modyfikatory:
- * - recentSANLoss → wymusza wolne tempo (horror reveal)
- * - nightTime → +20% do górnego limitu słów
+ * - recentSANLoss → Bieg 4 (Pustka / The Void)
+ * - nightTime → +15% do limitu słów
+ * - isStuck → War-room bodziec zewnętrzny
  */
-export function getPacingDirective(context: GameContext): string {
+export function getPacingDirective(
+  context: GameContext,
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  const isEn = locale === 'en';
   let config = PACING_MAP[context.mode];
 
-  // Horror reveal po utracie SAN - daj AI przestrzeń na opis
-  if (context.recentSANLoss && config.tempo === 'fast') {
-    config = PACING_MAP.dream; // przeskocz na wolne tempo
+  // Horror reveal po utracie SAN -> przeskocz natychmiast na Bieg 4 (Pustka)
+  if (context.recentSANLoss) {
+    config = VOID_CONFIG;
   }
 
   const min = config.wordRange[0];
   let max = config.wordRange[1];
 
-  // Noc = więcej atmosfery
   if (context.nightTime) {
-    max = Math.round(max * 1.2);
+    max = Math.round(max * 1.15);
   }
 
-  const rangeStr =
-    min === config.wordRange[0] && max === config.wordRange[1]
-      ? config.directive
-      : config.directive.replace(/\d+-\d+ słów/, `${min}-${max} słów`);
+  const directiveText = isEn ? config.directiveEn : config.directivePl;
+  const rangeStr = directiveText.replace(/\d+-\d+ (słów|words)/, `${min}-${max} ${isEn ? 'words' : 'słów'}`);
 
-  const base = `**Długość odpowiedzi:** ${rangeStr}\n**ZASADA ELASTYCZNOŚCI:** Dostosuj długość do akcji gracza. Przy prostych pytaniach lub dialogu odpowiadaj zwięźle (1-3 zdania). Nie rozciągaj wypowiedzi sztucznym opisem tła na siłę. Wyjątkiem są otwarcia nowych lokacji lub kluczowe zwroty akcji.`;
+  const antiMonotony = isEn
+    ? `\n**ANTI-MONOTONY RULE (CADENCE VARIANCE):** Never repeat the same opening sentence pattern or paragraph length across consecutive turns. Switch gears actively.`
+    : `\n**ZASADA ZMIENNEJ KADENCJI (ZAKAZ MONOTONII):** Nigdy nie powtarzaj tego samego schematu zdania otwierającego ani identycznej długości akapitów w dwóch kolejnych turach. Płynnie przełączaj biegi.`;
 
-  // War-room: gracze planują w kółko bez ruchu - MG ma wprowadzić bodziec wymuszający akcję.
+  const failForward = isEn
+    ? `\n**FAIL-FORWARD DIRECTIVE (CoC 7e RAW):** When a roll fails, NEVER stall ("you failed, what do you do?"). Immediately trigger GEAR 3 (Hard Move): apply success at a cost, time loss, gear damage, or an alerting consequence that drives the story forward.`
+    : `\n**DYREKTYWA FAIL-FORWARD (CoC 7e RAW):** Gdy rzut gracza zakończy się porażką, NIGDY nie zatrzymuj gry ("nie udało się, co robisz?"). Natychmiast zastosuj BIEG 3 (Przełamanie): sukces za cenę, strata cennego czasu, uszkodzenie sprzętu lub alarm naruszający równowagę sceny.`;
+
+  const base = isEn
+    ? `**NARRATIVE PACING & CADENCE GEAR:** ${rangeStr}${antiMonotony}${failForward}`
+    : `**PACING NARRACJI I BIEG KADENCJI:** ${rangeStr}${antiMonotony}${failForward}`;
+
   if (context.isStuck) {
-    return (
-      base +
-      `\n**TEMPO - WAR-ROOM (Uchwała III):** Gracze grzęzną w planowaniu bez ruchu. Wprowadź zewnętrzny bodziec. Zależnie od stopnia impasu sformułuj go jako:\n` +
-      `- **Silny bodziec**: Bezpośrednie zagrożenie powiązane z motywacją/więzią postaci. Wskaż w tagu: [BODZIEC:SILNY:postać:motywacja]. Rozlicz to w tle jako naturalny wybór fabularny z kosztem straty opanowania (SAN/Stabilność) w przypadku próby uniknięcia konwencji.\n` +
-      `- **Słaby bodziec**: Drobne zdarzenie, tajemniczy dźwięk, przeczucie. Wskaż w tagu: [BODZIEC:SŁABY:postać:opis].`
-    );
+    const stuckNote = isEn
+      ? `\n**PACING - WAR-ROOM STALL:** Players are trapped in planning without taking action. Inject an immediate external catalyst: a sudden threat tied to their bonds/motivation, or a startling ambient event. Force an immediate decision under pressure.`
+      : `\n**TEMPO - WAR-ROOM (Uchwała III):** Gracze grzęzną w planowaniu bez ruchu. Wprowadź natychmiastowy bodziec zewnętrzny: bezpośrednie zagrożenie powiązane z więzią postaci lub nagłe zjawisko otoczenia. Wymuś decyzję pod presją czasu.`;
+    return base + stuckNote;
   }
 
   return base;
