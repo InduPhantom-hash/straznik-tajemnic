@@ -5098,35 +5098,6 @@
     "searchingButton": "Szukam...",
     "answerTitle": "Odpowiedź Asystenta"
   },
-  "CloudStorageSettings": {
-    "sectionTitle": "Google Cloud Storage",
-    "enableLabel": "Włącz Cloud Storage",
-    "enableHelp": "Przechowywanie sesji i plików w chmurze Google. Umożliwia synchronizację między urządzeniami.",
-    "bucketLabel": "Nazwa bucket",
-    "bucketHelp": "Nazwa zasobnika Google Cloud Storage gdzie będą przechowywane pliki sesji.",
-    "retentionLabel": "Automatyczne czyszczenie (dni)",
-    "retentionHelp": "Po ilu dniach automatycznie usuwać stare sesje z chmury. 30 dni to zalecana wartość.",
-    "cachingLabel": "Włącz cache'owanie",
-    "cachingHelp": "Tymczasowo przechowuj często używane pliki lokalnie dla szybszego dostępu.",
-    "compressionLabel": "Włącz kompresję",
-    "compressionHelp": "Kompresuj pliki przed zapisem aby oszczędzić miejsce i transfer danych.",
-    "testButton": "Test Cloud Storage"
-  },
-  "CustomCommandsSettings": {
-    "sectionTitle": "Komendy poza fabularne",
-    "sectionHelp": "Komendy w nawiasach kwadratowych [] są traktowane jako pytania poza fabułą. Odpowiedzi na nie nie są czytane przez lektora.",
-    "introText": "Komendy w nawiasach kwadratowych [] to pytania poza fabułą. AI odpowiada na nie zwięźle, bez narracji.",
-    "defaultsPrefix": "Domyślne komendy:",
-    "defaultsSuffix": "nie mogą być usunięte.",
-    "availableCommands": "Dostępne komendy",
-    "addCommand": "Dodaj komendę",
-    "defaultBadge": "(domyślna)",
-    "sheetCommandDescription": "Wyświetla aktualną kartę postaci (PŻ, PR, PM, główne umiejętności)",
-    "inventoryCommandDescription": "Wyświetla listę przedmiotów w ekwipunku postaci",
-    "commandNamePlaceholder": "nazwa komendy",
-    "commandNameFallback": "nazwa",
-    "commandDescriptionPlaceholder": "Opis komendy (co robi)"
-  },
   "DebugSettings": {
     "sectionTitle": "Narzędzia Debugowania",
     "debugPageLink": "Otwórz stronę debug →"
@@ -5184,17 +5155,6 @@
     "healthTimeout": "Przekroczono limit czasu połączenia (8s)",
     "pricingTimeout": "Przekroczono limit czasu (25s)",
     "networkError": "Błąd połączenia sieciowego"
-  },
-  "PDFMemorySettings": {
-    "sectionTitle": "Zarządzanie Pamięcią PDF",
-    "sectionHelp": "Pozwól AI odwoływać się do treści podręczników i przygód zapisanych w PDF.",
-    "enableLabel": "Włącz pamięć PDF",
-    "enableHelp": "AI będzie mogło odwoływać się do zasad gry i treści przygód zapisanych w plikach PDF.",
-    "enableDescription": "AI będzie mogło odwoływać się do zasad gry i treści przygód",
-    "rulesUrlLabel": "URL podręcznika zasad",
-    "rulesUrlHelp": "Link do pliku PDF z zasadami gry Call of Cthulhu 7e. AI będzie mogło cytować i stosować te zasady.",
-    "adventureUrlLabel": "URL przygody",
-    "adventureUrlHelp": "Link do pliku PDF z scenariuszem przygody. AI będzie znało fabułę i szczegóły scenariusza."
   },
   "QualityPresets": {
     "eyebrow": "Wydajność vs. głębia",
@@ -5364,16 +5324,6 @@
     "ttsError": "Błąd Gemini TTS: {message}",
     "unknownError": "nieznany",
     "playbackError": "Błąd odtwarzania próbki Gemini"
-  },
-  "TtsGoogleSettings": {
-    "voicePickerTitle": "Wybór głosu (Google)",
-    "voicePickerHelp": "Wybierz głos narratora. Chirp3 HD to najwyższa jakość. Wavenet to wysoka jakość neuronowa.",
-    "selectVoicePlaceholder": "Wybierz głos...",
-    "playSample": "▶ Próbka",
-    "sampleText": "Witaj, jestem Twoim narratorem w tej mrocznej opowieści.",
-    "playbackError": "Błąd odtwarzania próbki",
-    "pitchLabel": "Wysokość głosu (Google)",
-    "pitchHelp": "Tylko dla Google TTS. -20 = niski, +20 = wysoki."
   },
   "CharacterSwitcher": {
     "activeCharacter": "Aktywna Postać",

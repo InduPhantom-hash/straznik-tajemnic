@@ -113,12 +113,6 @@ export function normalizeSessionZeroSettings(
 }
 
 export interface AISettings {
-  // === PINECONE (etap 2a) ===
-  pineconeEnabled?: boolean;
-  pineconeSettings?: {
-    indexHost: string; // URL indeksu z dashboardu Pinecone
-  };
-
   // === GEMINI API (Google AI) ===
   geminiEnabled: boolean;
   geminiApiKey?: string;
@@ -173,28 +167,14 @@ export interface AISettings {
     // NB: audioConfig + responseModalities - wymagają Gemini 2.0+ SDK, czekają na IND-19 (migracja na @google/genai).
   };
 
-  // === GOOGLE CLOUD TEXT-TO-SPEECH ===
-  // IND-86: googleTTSEnabled DROPPED - source of truth = voiceSettings.provider === 'google'
-  googleTTSApiKey?: string;
-  googleTTSProjectId?: string;
-  googleTTSSettings: {
-    audioEncoding: 'MP3' | 'LINEAR16' | 'OGG_OPUS' | 'MULAW' | 'ALAW';
-    sampleRateHertz: 8000 | 16000 | 22050 | 24000 | 32000 | 44100 | 48000;
-    effectsProfileId: string[];
-    enableTimePointing: boolean;
-  };
-
-  // Ustawienia głosu (M3 sesja 146: drop 'elevenlabs' + 'openai' z union per D2)
-  // 2026-07-25: elevenlabs RESTORED dla słuchowiska radiowego (multilingual_v2 + turbo_v2_5)
+  // Ustawienia głosu (Gemini TTS oraz opcjonalnie ElevenLabs)
   voiceSettings: {
     enabled: boolean;
-    provider?: 'google' | 'gemini' | 'elevenlabs';
+    provider?: 'gemini' | 'elevenlabs';
     narratorOnly: boolean; // Tylko narracje główne
     volume: number; // 0-100
     speed: number; // 0.5-2.0
-    voiceId?: string; // ID głosu z Google TTS / Gemini prebuilt
-    speakingRate: number; // 0.25-4.0
-    pitchControl: number; // -20.0 do +20.0
+    voiceId?: string; // ID głosu z Gemini prebuilt
     style?: string; // Styl mówienia (np. cheerful, sad)
     // === ElevenLabs-specific (opcjonalne, aktywne gdy provider === 'elevenlabs') ===
     elevenLabsModelKey?: 'multilingual_v2' | 'turbo_v2_5';
@@ -264,16 +244,6 @@ export interface AISettings {
 
   // M3 sesja 146: elevenLabsApiKey + elevenLabsSettings DROPPED per D2.
   // Legacy localStorage handled przez migration w storage.ts loadAISettings.
-
-  // === GOOGLE CLOUD STORAGE ===
-  googleCloudStorageEnabled: boolean;
-  googleCloudStorageBucket?: string;
-  googleCloudStorageKeyFile?: string;
-  googleCloudStorageSettings: {
-    retentionDays: number;
-    enableCaching: boolean;
-    enableCompression: boolean;
-  };
 
   // === GAME MASTER NARRATION ===
   gameMasterNarration: {

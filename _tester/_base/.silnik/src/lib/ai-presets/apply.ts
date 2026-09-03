@@ -61,14 +61,6 @@ export function applyPreset(
           : currentSettings.voiceSettings.narratorOnly,
       volume: 'volume' in s ? s.volume : currentSettings.voiceSettings.volume,
       speed: 'speed' in s ? s.speed : currentSettings.voiceSettings.speed,
-      speakingRate:
-        'speakingRate' in s
-          ? s.speakingRate
-          : currentSettings.voiceSettings.speakingRate,
-      pitchControl:
-        'pitchControl' in s
-          ? s.pitchControl
-          : currentSettings.voiceSettings.pitchControl,
       // ElevenLabs-specific (opcjonalne, undefined dla presetów bez EL)
       elevenLabsModelKey:
         'elevenLabsModelKey' in s
@@ -102,23 +94,6 @@ export function applyPreset(
         'maxImagesPerMessage' in s
           ? s.maxImagesPerMessage
           : currentSettings.replicateSettings.maxImagesPerMessage,
-    },
-
-    // GCS - IND-34: + googleCloudStorageEnabled (top-level) + enableCaching/enableCompression (HIGH only)
-    googleCloudStorageEnabled:
-      'googleCloudStorageEnabled' in s
-        ? s.googleCloudStorageEnabled
-        : currentSettings.googleCloudStorageEnabled,
-    googleCloudStorageSettings: {
-      ...currentSettings.googleCloudStorageSettings,
-      enableCaching:
-        'enableCaching' in s
-          ? s.enableCaching
-          : currentSettings.googleCloudStorageSettings.enableCaching,
-      enableCompression:
-        'enableCompression' in s
-          ? s.enableCompression
-          : currentSettings.googleCloudStorageSettings.enableCompression,
     },
 
     gameMasterNarration: {

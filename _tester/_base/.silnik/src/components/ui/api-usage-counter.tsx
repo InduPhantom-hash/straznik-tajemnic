@@ -194,10 +194,6 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
                     title="Gemini"
                   />
                   <span
-                    className={`w-2 h-2 rounded-full ${settings.voiceSettings?.provider === 'google' ? 'bg-green-400' : 'bg-gray-500'}`}
-                    title="Google TTS"
-                  />
-                  <span
                     className={`w-2 h-2 rounded-full ${settings.imageGenerationEnabled ? 'bg-pink-400' : 'bg-gray-500'}`}
                     title="Image generation (Vertex Imagen 4 / Replicate Flux Schnell / Gemini Flash)"
                   />
@@ -205,6 +201,12 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
                     className={`w-2 h-2 rounded-full ${settings.voiceSettings?.provider === 'gemini' ? 'bg-purple-400' : 'bg-gray-500'}`}
                     title="Gemini TTS (Pro narrator / Flash NPC)"
                   />
+                  {settings.voiceSettings?.provider === 'elevenlabs' && (
+                    <span
+                      className="w-2 h-2 rounded-full bg-emerald-400"
+                      title="ElevenLabs TTS"
+                    />
+                  )}
                 </div>
               </div>
             </div>

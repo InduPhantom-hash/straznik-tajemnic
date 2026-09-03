@@ -123,8 +123,6 @@ export const QUALITY_PRESETS = {
       narratorOnly: false,
       volume: 85,
       speed: 0.9,
-      speakingRate: 0.9,
-      pitchControl: -2,
 
       // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
       imagesEnabled: true,
@@ -137,11 +135,6 @@ export const QUALITY_PRESETS = {
       autoGenerateNPCs: true,
       autoGenerateLocations: true,
       maxImagesPerMessage: 1, // IND-259: 1/odpowiedź (sync z defaults.ts - płynność > ilość)
-
-      // === GOOGLE CLOUD STORAGE ===
-      googleCloudStorageEnabled: true,
-      enableCaching: true,
-      enableCompression: true,
 
       // === NARRATION STYLE ===
       responseLength: 'long' as const,
