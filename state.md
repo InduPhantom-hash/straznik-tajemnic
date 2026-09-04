@@ -173,6 +173,19 @@ graph TD
 
 ---
 
+## 🏛️ 6. Decyzje Architektoniczne (Archived Notes)
+
+- **Mechanika Routera Zapytań (2 kroki):** W przypadku wdrożenia dwuetapowego przepływu zapytań do API Gemini (Query Routing), **Krok 1 (Klasyfikator/Router)** musi używać najnowszego dostępnego modelu wariantu `flash` (ze względu na szybkość i niski koszt), a **Krok 2 (Generowanie Narracji MG)** musi być obsługiwany przez najnowszy wariant modelu `pro` z włączoną opcją `thinkingLevel: 'high'` (dla zaawansowanego Chain of Thought przy planowaniu fabuły i intrygi).
+- **Strategia Generowania Obrazów (Tiering Modelowy):** Zaplanowano podział silników graficznych względem "wagi" fabularnej sceny, co zoptymalizuje koszty i czas oczekiwania gracza:
+  - **Tier 1 (Imagen 3 - Najwyższa jakość):** Zarezerwowany dla ekranów startowych przygody (`useGameStart.ts`), głównych portretów badaczy i NPC (`character-wizard.tsx`), przełomowych momentów fabuły oraz "Handoutów" z napisami (np. gazety, listy).
+  - **Tier 2 (Imagen 3 Fast - Złoty środek):** Przeznaczony do dynamicznego ilustrowania pomniejszych scen w trakcie gry (np. zwykłe tła lokacji, ulice, wnętrza pokojów generowane z tagów `[LOKACJA:]` przez `useChat.ts`).
+  - **Tier 3 (Gemini Flash Image - Najszybszy/Najtańszy):** Przeznaczony do masowego renderowania prostych przedmiotów fabularnych w ekwipunku (`equipment-modal.tsx`), które nie posiadają napisów i nie wymagają precyzyjnej anatomii.
+- **Pipeline Przetwarzania PDF (Podręcznik vs Przygoda):** Ze względów bezpieczeństwa i kosztów odrzucono użycie chmurowego Gemini File API dla PDF-ów. Architektura zależy od wgranego modułu:
+  - **Podręcznik Zasad (Tylko lokalny RAG):** Parsowany 100% lokalnie przez moduł Node do surowego tekstu, cięty na chunki i wektoryzowany do lokalnego `local-vector-store.ts`. Żaden fragment pliku nie leci do analizy w chmurze Google.
+  - **Przygoda (Ekstrakcja lokalna + Analiza PRO):** Lokalny skrypt "gilotyna" wyciąga surowy tekst oraz fizycznie wypakowuje grafiki/mapy zapisując je na lokalnym dysku (`/assets/`). Następnie surowy tekst + zdjęcia są wysyłane zapytaniem do modelu `gemini-3.1-pro-preview` (jako jednorazowa ekstrakcja) w celu zbudowania siatki JSON (NPC, dowody) i skojarzenia wydarzeń z lokalnie zapisanymi plikami `.png` (np. podpięcie map pod konkretną lokację w formacie `[POKAŻ_ZASÓB: map.png]`).
+
+---
+
 ## 📝 Instrukcja Utrzymania Trackera (`state.md`)
 
 Przed rozpoczęciem nowego zadania lub po ukończeniu etapu:
