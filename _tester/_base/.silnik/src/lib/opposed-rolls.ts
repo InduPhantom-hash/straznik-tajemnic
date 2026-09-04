@@ -249,8 +249,7 @@ export function rollAndResolveOpposed(
  * Formatuje wynik testu przeciwstawnego do czytelnej wiadomości na czacie.
  */
 export function formatOpposedRollForChat(
-  resolution: OpposedRollResolution,
-  t?: (key: string, params?: Record<string, any>) => string
+  resolution: OpposedRollResolution
 ): string {
   const { sideA, sideB, winner, tieBreaker } = resolution;
 
