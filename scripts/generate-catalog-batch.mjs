@@ -473,7 +473,7 @@ export const CATALOG_ITEMS = [
   },
   {
     id: 'weapon.revolver-pocket-unlicensed',
-    filename: 'revolver-pocket-unlicensed.webp',
+    filename: 'pocket-revolver-shared.webp',
     name: 'Rewolwer kieszonkowy (bez zezwolenia)',
     nameEn: 'Unregistered Pocket Snub Revolver',
     category: 'weapon',
@@ -605,7 +605,7 @@ export const CATALOG_ITEMS = [
   },
   {
     id: 'personal.canteen-military-shared',
-    filename: 'canteen-military-shared.webp',
+    filename: 'canteen-flask-shared.webp',
     name: 'Manierka wojskowa',
     nameEn: 'Military Canteen in Canvas Cover',
     category: 'personal',
@@ -617,7 +617,7 @@ export const CATALOG_ITEMS = [
   },
   {
     id: 'tool.geological-hammer-shared',
-    filename: 'geological-hammer-shared.webp',
+    filename: 'geology-hammer-shared.webp',
     name: 'Młotek geologiczny',
     nameEn: 'Geologist Rock Pick Hammer',
     category: 'tool',
@@ -629,7 +629,7 @@ export const CATALOG_ITEMS = [
   },
   {
     id: 'tool.heavy-police-flashlight-prl',
-    filename: 'heavy-police-flashlight-prl.webp',
+    filename: 'police-flashlight-prl.webp',
     name: 'Mocna latarka policyjna PRL',
     nameEn: 'Heavy Duty Police Flashlight PRL',
     category: 'tool',
@@ -713,7 +713,7 @@ export const CATALOG_ITEMS = [
   },
   {
     id: 'document.sketchbook-shared',
-    filename: 'sketchbook-shared.webp',
+    filename: 'sketchbook-pencil-shared.webp',
     name: 'Szkicownik z ołówkiem',
     nameEn: 'Artist Sketchbook with Charcoal Study',
     category: 'document',
@@ -721,7 +721,7 @@ export const CATALOG_ITEMS = [
     isExisting: false,
     batch: 2,
     prompt:
-      'Photorealistic object study of an open linen-bound sketchbook showing a subtle architectural pencil sketch of an archway, with a graphite stick resting in the crease, soft north-facing studio light, square composition, no hands, no people, no text',
+      'Photorealistic macro object study of an open artist sketchbook with charcoal pencil sketch of an ancient monolith, soft window light, textured cotton rag paper, square composition, no hands, no people',
   },
   {
     id: 'medical.bandages-shared',
@@ -737,7 +737,7 @@ export const CATALOG_ITEMS = [
   },
   {
     id: 'medical.laudanum-bottle-vintage',
-    filename: 'laudanum-bottle-vintage.webp',
+    filename: 'laudanum-phial-shared.webp',
     name: 'Buteleczka z laudanum',
     nameEn: 'Amber Glass Tincture Bottle of Laudanum',
     category: 'medical',
@@ -1690,6 +1690,65 @@ export function buildContactSheetHtml(items, outputPath, title = 'Przegląd Graf
 }
 
 // ============================================================================
+// GENEROWANIE PRZEZ GEMINI API
+// ============================================================================
+
+export function getGeminiApiKey() {
+  if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
+  const envPath = path.join(REPO_ROOT, '.env.local');
+  if (fs.existsSync(envPath)) {
+    const content = fs.readFileSync(envPath, 'utf8');
+    const match = content.match(/GEMINI_API_KEY=(.+)/);
+    if (match) return match[1].trim();
+  }
+  return null;
+}
+
+export async function generateItemImage(prompt, apiKey, maxRetries = 5) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+
+    if (res.status === 429) {
+      let waitSec = 45;
+      try {
+        const errData = await res.json();
+        const retryInfo = errData.details?.find((d) => d['@type']?.includes('RetryInfo'));
+        if (retryInfo?.retryDelay) {
+          waitSec = Math.max(parseInt(retryInfo.retryDelay, 10) + 5, 45);
+        }
+      } catch {
+        waitSec = 45;
+      }
+      console.log(`   ⏳ Limit RPM Free Tier (429). Czekam ${waitSec}s przed ponowieniem (próba ${attempt}/${maxRetries})...`);
+      await new Promise((r) => setTimeout(r, waitSec * 1000));
+      continue;
+    }
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Błąd Gemini API (${res.status}): ${errText}`);
+    }
+
+    const data = await res.json();
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    for (const p of parts) {
+      if (p.inlineData?.data) {
+        return Buffer.from(p.inlineData.data, 'base64');
+      }
+    }
+    throw new Error('Brak danych obrazu w odpowiedzi Gemini API');
+  }
+  throw new Error('Przekroczono limit prób generowania dla tego przedmiotu');
+}
+
+// ============================================================================
 // MAIN CLI DISPATCHER
 // ============================================================================
 
@@ -1697,28 +1756,81 @@ async function main() {
   ensureDirectories();
   const args = process.argv.slice(2);
   const isBatch1 = args.includes('--batch=1') || args.includes('-b1');
+  const isBatch2 = args.includes('--batch=2') || args.includes('-b2');
+  const isBatch3 = args.includes('--batch=3') || args.includes('-b3');
+  const isBatch4 = args.includes('--batch=4') || args.includes('-b4');
   const isAll = args.includes('--all');
   const isDryRun = args.includes('--dry-run');
   const isHtmlOnly = args.includes('--html-only');
+  const isGenerate = args.includes('--generate');
+  const isForce = args.includes('--force');
 
-  const selectedItems = isBatch1
-    ? CATALOG_ITEMS.filter((i) => i.batch === 1)
-    : isAll
-      ? CATALOG_ITEMS
-      : CATALOG_ITEMS.filter((i) => i.batch === 1); // Domyślnie Partia 1
+  let batchNum = 1;
+  if (isBatch2) batchNum = 2;
+  if (isBatch3) batchNum = 3;
+  if (isBatch4) batchNum = 4;
+
+  const selectedItems = isAll
+    ? CATALOG_ITEMS
+    : CATALOG_ITEMS.filter((i) => i.batch === batchNum);
 
   console.log(`\n📦 Strażnik Tajemnic AI - Generator Katalogu Ekwipunku`);
-  console.log(`   Wybrana partia: ${isAll ? 'WSZYSTKIE (110 pozycji)' : 'Partia 1 (30 pozycji)'}`);
-  console.log(`   Pozycji do przetworzenia: ${selectedItems.length}`);
+  console.log(`   Wybrana partia: ${isAll ? 'WSZYSTKIE (110 pozycji)' : `Partia ${batchNum} (${selectedItems.length} pozycji)`}`);
+  console.log(`   Pozycji w partii: ${selectedItems.length}`);
+
+  // Generowanie przez API jeśli zażądano
+  if (isGenerate) {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      console.error('❌ Brak GEMINI_API_KEY w środowisku lub .env.local!');
+      process.exit(1);
+    }
+
+    const itemsToProcess = isForce
+      ? selectedItems
+      : selectedItems.filter((i) => !getFileStats(i.filename)?.exists);
+
+    console.log(`\n⚡ Tryb generowania aktywny! Pozycji do wygenerowania: ${itemsToProcess.length}`);
+
+    let index = 0;
+    for (const item of itemsToProcess) {
+      index++;
+      console.log(`\n[${index}/${itemsToProcess.length}] 🎨 Generowanie: ${item.name} (${item.filename})...`);
+      try {
+        const imgBuffer = await generateItemImage(item.prompt, apiKey);
+        const tmpPath = path.join('/tmp', `catalog_${item.filename.replace('.webp', '.png')}`);
+        fs.writeFileSync(tmpPath, imgBuffer);
+        const targetPath = path.join(CATALOG_DIR, item.filename);
+        const convResult = convertToWebp(tmpPath, targetPath);
+        if (convResult.success) {
+          console.log(`   ✅ Zapisano WebP: ${item.filename} (${convResult.sizeKb} KB)`);
+        } else {
+          console.error(`   ❌ Błąd konwersji do WebP: ${convResult.error}`);
+        }
+        if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+        // Bezpieczny odstęp 35s dla Free Tier RPM (stabilne tempo bez 429)
+        console.log(`   ⏳ Odczekuję 35s przed kolejną pozycją...`);
+        await new Promise((r) => setTimeout(r, 35000));
+      } catch (err) {
+        console.error(`   ❌ Błąd generowania ${item.filename}: ${err.message}`);
+      }
+    }
+  }
 
   // Zapis manifestu JSON
-  const manifestPath = path.join(AUDIT_DIR, isAll ? 'catalog-manifest-all.json' : 'catalog-manifest-batch-1.json');
+  const manifestPath = path.join(AUDIT_DIR, isAll ? 'catalog-manifest-all.json' : `catalog-manifest-batch-${batchNum}.json`);
   fs.writeFileSync(manifestPath, JSON.stringify(selectedItems, null, 2), 'utf8');
-  console.log(`📄 Zapisano manifest JSON: ${manifestPath}`);
+  console.log(`\n📄 Zapisano manifest JSON: ${manifestPath}`);
 
   // Generowanie arkusza HTML
-  const htmlPath = path.join(AUDIT_DIR, isAll ? 'review-all.html' : 'review-batch-1.html');
-  buildContactSheetHtml(selectedItems, htmlPath, isAll ? 'Pełny Katalog Grafik Ekwipunku (110 pozycji)' : 'Przegląd Grafik Ekwipunku (Partia 1 - 30 pozycji)');
+  const htmlPath = path.join(AUDIT_DIR, isAll ? 'review-all.html' : `review-batch-${batchNum}.html`);
+  buildContactSheetHtml(
+    selectedItems,
+    htmlPath,
+    isAll
+      ? 'Pełny Katalog Grafik Ekwipunku (110 pozycji)'
+      : `Przegląd Grafik Ekwipunku (Partia ${batchNum} - ${selectedItems.length} pozycji)`
+  );
 
   if (isDryRun) {
     console.log(`\n🔍 Dry-run zakończony. Sprawdzono poprawność definicji promptów i manifestu.`);
@@ -1730,7 +1842,7 @@ async function main() {
     return;
   }
 
-  console.log(`\n🚀 Gotowe do generowania grafik. Użyj dedykowanego zlecenia Codex / Image API.`);
+  console.log(`\n🚀 Zakończono operację.`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
