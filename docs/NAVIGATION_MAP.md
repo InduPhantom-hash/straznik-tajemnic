@@ -43,6 +43,7 @@ graph TD
     full_reset["Pełny reset / Full reset"]
     rulebook_modal["Podręcznik zasad / Rulebook"]
     chase_dialog["Pościg i tor przeszkód (CoC 7e RAW) / Chase and hazard track (CoC 7e RAW)"]
+    hazard_dialog["Zagrożenia środowiskowe i trucizny (CoC 7e RAW) / Environmental hazards and poisons (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home

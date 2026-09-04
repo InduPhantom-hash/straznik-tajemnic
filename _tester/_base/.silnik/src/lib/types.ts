@@ -138,6 +138,7 @@ export interface Message {
   // hydrują generatedImages z cache → obrazy "wracają na miejsce".
   generatedImageCacheIds?: string[];
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
+  hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
   acquiredItems?: AcquiredItemProposal[];
   cliffhanger?: {
     question: string;
@@ -902,6 +903,34 @@ export interface AdventureGraph {
   locations: AdventureLocation[];
   clues: AdventureClue[];
   connections: GraphConnection[];
+}
+
+// === ZAGROŻENIA ŚRODOWISKOWE I TRUCIZNY CoC 7e RAW (Issue #60) ===
+export type HazardType =
+  | 'falling'
+  | 'fire'
+  | 'acid'
+  | 'suffocation'
+  | 'drowning'
+  | 'poison';
+
+export interface HazardEventData {
+  id: string;
+  type: HazardType;
+  description: string;
+  characterName?: string;
+  characterId?: string;
+  fallHeightMeters?: number;
+  surface?: 'hard' | 'normal' | 'soft' | 'water';
+  fireIntensity?: 'minor' | 'moderate' | 'major' | 'inferno';
+  fireRounds?: number;
+  acidPotency?: 'splash' | 'immersion';
+  roundWithoutAir?: number;
+  poisonId?: string;
+  poisonName?: string;
+  poisonPotency?: number;
+  defensiveSkill?: string;
+  difficulty?: 'zwykly' | 'trudny' | 'ekstremalny';
 }
 
 

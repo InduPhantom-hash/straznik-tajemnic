@@ -34,6 +34,7 @@ export function getCompactGMProtocolPrompt(): string {
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
+- \`[ZAGROŻENIE: typ=upadek/ogien/uduszenie/trucizna | parametry | opis]\` - ZAWSZE gdy badacz staje w obliczu nagłego niebezpieczeństwa fizycznego lub toksyny CoC 7e RAW (renderuje Kartę Reakcji na Zagrożenie z testem obronnym na Skakanie lub Kondycję).
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata/odzysk SAN/HP. Liczbę bierz z podręcznika/RAG. **Przy stracie ≥5 SAN natychmiast wyzwij [TEST: Inteligencja] (szok poznawczy / wyparcie RAW).**
 
 **Audio tags TTS** (Gemini TTS - wbudowane w narrację, PO ANGIELSKU):

@@ -20,6 +20,7 @@ import { Card, CardContent } from '../../../ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar';
 import { NarrativeFormatter } from '../../NarrativeFormatter';
 import { SkillTestCard } from './skill-test-card';
+import { HazardCard } from './hazard-card';
 import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
@@ -268,6 +269,45 @@ export function MessageCard({
                     {...test}
                     onRoll={onRollTest}
                     completed={completedTestIds?.has(test.id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Zagrożenia środowiskowe i trucizny CoC 7e RAW (Issue #60) */}
+            {message.hazardEvents && message.hazardEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.hazardEvents.map((hazard) => (
+                  <HazardCard
+                    key={hazard.id}
+                    hazard={hazard}
+                    playerCon={activeCharacter?.con || 50}
+                    playerJump={
+                      typeof activeCharacter?.skills?.['Skakanie'] === 'number'
+                        ? activeCharacter.skills['Skakanie']
+                        : typeof activeCharacter?.skills?.['Jump'] === 'number'
+                        ? activeCharacter.skills['Jump']
+                        : 20
+                    }
+                    playerDodge={
+                      typeof activeCharacter?.skills?.['Unik'] === 'number'
+                        ? activeCharacter.skills['Unik']
+                        : typeof activeCharacter?.skills?.['Dodge'] === 'number'
+                        ? activeCharacter.skills['Dodge']
+                        : activeCharacter?.dex
+                        ? Math.floor(activeCharacter.dex / 2)
+                        : 25
+                    }
+                    playerName={activeCharacter?.name || 'Badacz'}
+                    onApplyDamage={(damage) => {
+                      if (activeCharacter && onCharacterUpdate) {
+                        const newHp = Math.max(0, activeCharacter.hp - damage);
+                        onCharacterUpdate({
+                          ...activeCharacter,
+                          hp: newHp,
+                        });
+                      }
+                    }}
                   />
                 ))}
               </div>

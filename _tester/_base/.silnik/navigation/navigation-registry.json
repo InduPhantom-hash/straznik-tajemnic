@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-04T15:39:00Z",
+  "updatedAt": "2026-09-04T16:01:00Z",
   "locales": [
     "pl",
     "en"
@@ -303,6 +303,14 @@
       "label": {
         "pl": "Pościg i tor przeszkód (CoC 7e RAW)",
         "en": "Chase and hazard track (CoC 7e RAW)"
+      }
+    },
+    {
+      "id": "hazard-dialog",
+      "kind": "modal",
+      "label": {
+        "pl": "Zagrożenia środowiskowe i trucizny (CoC 7e RAW)",
+        "en": "Environmental hazards and poisons (CoC 7e RAW)"
       }
     }
   ],
