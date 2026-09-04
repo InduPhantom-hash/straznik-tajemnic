@@ -1,4 +1,5 @@
-import type { EquipmentCategory } from '../types';
+import type { EquipmentCategory, HazardEventData, HazardType } from '../types';
+export type { HazardEventData, HazardType };
 
 export type EquipmentEventAction = 'use' | 'remove' | 'add';
 
@@ -151,6 +152,7 @@ export interface ParsedResponse {
   journalEntries: JournalTagEntry[];
   skillTests: SkillTestData[];
   skillResults: SkillTestResult[];
+  hazardEvents?: HazardEventData[];
   equipmentEvents: EquipmentEvent[];
   timeUpdate: TimeUpdate | null;
   gmMetadata?: { thoughts?: string; mood?: string; narrativeGoal?: string };

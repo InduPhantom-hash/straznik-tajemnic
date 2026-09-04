@@ -1,4 +1,4 @@
-import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier } from './types';
+import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType } from './types';
 import { COMBAT_END_PATTERNS, COMBAT_START_PATTERNS, DAMAGE_PLAYER_PATTERNS, SANITY_PATTERNS } from './patterns';
 
 // Wykrywanie walki
@@ -202,4 +202,110 @@ export function extractSkillResults(text: string): SkillTestResult[] {
     }
 
     return results;
+}
+
+// Wykrywanie zagrożeń środowiskowych i trucizn (CoC 7e RAW Issue #60)
+export function extractHazardEvents(text: string): HazardEventData[] {
+    const hazards: HazardEventData[] = [];
+    const pattern = /\[(?:ZAGROŻENIE|ZAGROZENIE|HAZARD):\s*(?:@([^:\]]+):\s*)?([^\]]+)\]/gi;
+
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        const characterName = match[1]?.trim();
+        const content = match[2]?.trim() || '';
+        const parts = content.split('|').map((p) => p.trim());
+
+        // Parsowanie par klucz=wartość lub pozycji
+        const kv: Record<string, string> = {};
+        const positional: string[] = [];
+
+        for (const part of parts) {
+            const eqIdx = part.indexOf('=');
+            if (eqIdx !== -1) {
+                const k = part.slice(0, eqIdx).trim().toLowerCase();
+                const v = part.slice(eqIdx + 1).trim();
+                kv[k] = v;
+            } else {
+                positional.push(part);
+            }
+        }
+
+        const rawType = (kv.typ || kv.type || positional[0] || '').toLowerCase();
+        let type: HazardType = 'falling';
+        if (rawType.includes('upad') || rawType.includes('fall')) {
+            type = 'falling';
+        } else if (rawType.includes('ogie') || rawType.includes('fire') || rawType.includes('płom')) {
+            type = 'fire';
+        } else if (rawType.includes('kwas') || rawType.includes('acid')) {
+            type = 'acid';
+        } else if (rawType.includes('ton') || rawType.includes('drown') || rawType.includes('woda')) {
+            type = 'drowning';
+        } else if (rawType.includes('dusz') || rawType.includes('suffocat') || rawType.includes('dym')) {
+            type = 'suffocation';
+        } else if (rawType.includes('truc') || rawType.includes('poison') || rawType.includes('jad') || rawType.includes('toksyn')) {
+            type = 'poison';
+        }
+
+        // Parsowanie wysokości dla upadku
+        let fallHeightMeters: number | undefined = undefined;
+        if (type === 'falling') {
+            const heightStr = kv.wys || kv.wysokosc || kv.height || (positional[1] && /\d+/.test(positional[1]) ? positional[1] : undefined);
+            if (heightStr) {
+                const m = heightStr.match(/(\d+)/);
+                if (m) fallHeightMeters = parseInt(m[1], 10);
+            }
+            if (!fallHeightMeters) fallHeightMeters = 3;
+        }
+
+        // Parsowanie ognia
+        let fireIntensity: 'minor' | 'moderate' | 'major' | 'inferno' | undefined = undefined;
+        if (type === 'fire') {
+            const rawInt = (kv.intensywnosc || kv.intensity || positional[1] || '').toLowerCase();
+            if (rawInt.includes('piek') || rawInt.includes('inferno') || rawInt.includes('3d6')) {
+                fireIntensity = 'inferno';
+            } else if (rawInt.includes('duz') || rawInt.includes('major') || rawInt.includes('2d6')) {
+                fireIntensity = 'major';
+            } else if (rawInt.includes('sred') || rawInt.includes('moderate')) {
+                fireIntensity = 'moderate';
+            } else {
+                fireIntensity = 'minor';
+            }
+        }
+
+        // Parsowanie trucizny
+        const poisonName = kv.nazwa || kv.name || (type === 'poison' ? positional[1] : undefined);
+        let poisonPotency: number | undefined = undefined;
+        if (type === 'poison') {
+            const potStr = kv.potega || kv.potency || kv.moc || (positional[2] && /^\d+$/.test(positional[2]) ? positional[2] : undefined);
+            if (potStr) poisonPotency = parseInt(potStr, 10);
+        }
+
+        // Obrona
+        let defensiveSkill = kv.obrona || kv.skill || kv.test;
+        if (!defensiveSkill) {
+            if (type === 'falling') defensiveSkill = 'Skakanie';
+            else if (type === 'fire' || type === 'acid') defensiveSkill = 'Unik';
+            else if (type === 'suffocation' || type === 'drowning' || type === 'poison') defensiveSkill = 'Kondycja';
+        }
+
+        // Opis
+        let description = kv.opis || kv.desc;
+        if (!description) {
+            description = positional[positional.length - 1] || 'Zagrożenie środowiskowe';
+        }
+
+        hazards.push({
+            id: crypto.randomUUID(),
+            type,
+            description,
+            characterName,
+            fallHeightMeters,
+            fireIntensity,
+            poisonName,
+            poisonPotency,
+            defensiveSkill,
+        });
+    }
+
+    return hazards;
 }
