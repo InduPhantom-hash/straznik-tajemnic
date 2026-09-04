@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-03T20:55:00Z",
+  "updatedAt": "2026-09-04T09:15:00Z",
   "locales": [
     "pl",
     "en"
@@ -295,6 +295,14 @@
       "label": {
         "pl": "Podręcznik zasad",
         "en": "Rulebook"
+      }
+    },
+    {
+      "id": "chase-dialog",
+      "kind": "modal",
+      "label": {
+        "pl": "Pościg i tor przeszkód (CoC 7e RAW)",
+        "en": "Chase and hazard track (CoC 7e RAW)"
       }
     }
   ],

@@ -9,6 +9,7 @@
  * Textarea onKeyDown: Enter (bez shift) wysyła wiadomość + reset newMessage.
  */
 
+import { useRef, useEffect } from 'react';
 import { Send, BookOpen, Loader2, Users, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '../../../ui/button';
@@ -76,6 +77,31 @@ export function MessageInput({
   sessionEndStatus = 'idle',
 }: MessageInputProps) {
   const t = useTranslations('MessageInput');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Nasłuchiwanie na akcję "Pytaj o to" (Quote-to-Input) ze wszystkich widoków Dziennika
+  useEffect(() => {
+    const handleQuoteToInput = (event: Event) => {
+      const customEvent = event as CustomEvent<{ text?: string }>;
+      const text = customEvent.detail?.text;
+      if (typeof text === 'string') {
+        setNewMessage(text);
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+            const len = textareaRef.current.value.length;
+            textareaRef.current.setSelectionRange(len, len);
+          }
+        }, 50);
+      }
+    };
+
+    window.addEventListener('straznik:quote-to-input', handleQuoteToInput);
+    return () => {
+      window.removeEventListener('straznik:quote-to-input', handleQuoteToInput);
+    };
+  }, [setNewMessage]);
+
   // C4: w duecie Enter/klik DOKŁADA deklarację (nie wysyła); solo bez zmian.
   const duetActive = isDuet && !!onAddDeclaration;
 
@@ -159,6 +185,7 @@ export function MessageInput({
 
       <div className="flex items-end gap-2 max-w-4xl mx-auto">
         <Textarea
+          ref={textareaRef}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           disabled={isSessionEnded || isLoading}

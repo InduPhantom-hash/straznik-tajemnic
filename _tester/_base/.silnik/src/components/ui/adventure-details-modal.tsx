@@ -1,14 +1,21 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from './dialog';
 import { Button } from './button';
+import { HelpIcon } from './tooltip';
+import { MapPin, Clock } from 'lucide-react';
 import type { AdventureContext } from '@/lib/adventures-data';
 import {
   TONE_STYLES,
   ERA_STYLES,
   DIFFICULTY_STYLES,
-  type AdventureStyleEntry,
 } from '@/lib/data/adventure-styles';
 
 interface AdventureDetailsModalProps {
@@ -19,41 +26,11 @@ interface AdventureDetailsModalProps {
   onChoose: (adventure: AdventureContext) => void;
 }
 
-/** Pojedynczy wiersz objaśnienia znacznika (ton/era/trudność). */
-function TagExplain({
-  style,
-  label,
-  description,
-}: {
-  style?: AdventureStyleEntry;
-  label: string;
-  description: string;
-}) {
-  if (!style) return null;
-  return (
-    <div className="flex gap-3">
-      <span className="mt-0.5 text-lg leading-none">{style.icon}</span>
-      <div>
-        <span
-          className={`font-special-elite text-xs font-semibold uppercase tracking-[0.1em] ${style.color}`}
-        >
-          {label}
-        </span>
-        {description && (
-          <p className="font-serif text-base italic text-muted-foreground">
-            {description}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /**
  * Modal "Więcej szczegółów" przygody.
  *
- * Pokazuje szerszą zajawkę (bez spoilerów), liczbę sesji i objaśnia znaczniki
- * (ton/era/trudność + motywy), by gracz wiedział, jaki klimat go czeka.
+ * Prezentuje fabułę, haczyk, sugerowane zawody i archetypy badaczy oraz tagi klimatu.
+ * Definicje mechaniczne (ton, era, trudność) są dostępne w dyskretnych tooltipach przy badge'ach.
  */
 export function AdventureDetailsModal({
   adventure,
@@ -70,6 +47,10 @@ export function AdventureDetailsModal({
   const diffStyle =
     DIFFICULTY_STYLES[adventure.difficulty] || DIFFICULTY_STYLES.normal;
 
+  const ToneIcon = toneStyle.icon;
+  const EraIcon = eraStyle.icon;
+  const DiffIcon = diffStyle.icon;
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent size="screen">
@@ -80,28 +61,47 @@ export function AdventureDetailsModal({
         <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-brass/55" />
 
         <DialogHeader>
-          <div className="font-special-elite text-[14px] uppercase tracking-[0.4em] text-primary">
+          <div className="font-display text-xs uppercase tracking-[0.3em] text-primary">
             {t('eyebrow')}
           </div>
-          <DialogTitle className="mt-1 font-display-decorative text-2xl font-black uppercase tracking-[0.1em] text-foreground">
+          <DialogTitle className="mt-1 font-display text-2xl font-bold uppercase tracking-[0.08em] text-foreground">
             {adventure.title}
           </DialogTitle>
-          <div className="flex flex-wrap gap-2 pt-3">
-            <span
-              className={`border border-brass/40 px-3 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] ${toneStyle.color}`}
-            >
-              {toneStyle.icon} {tStyles(toneStyle.translationKey)}
-            </span>
-            <span
-              className={`border border-brass/40 px-3 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] ${eraStyle.color}`}
-            >
-              {eraStyle.icon} {tStyles(eraStyle.translationKey)}
-            </span>
-            <span
-              className={`border border-destructive/40 px-3 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] ${diffStyle.color}`}
-            >
-              {diffStyle.icon} {tStyles(diffStyle.translationKey)}
-            </span>
+          <DialogDescription className="sr-only">
+            {adventure.title}
+          </DialogDescription>
+
+          {/* Badge'e z tooltipami definicji */}
+          <div className="flex flex-wrap items-center gap-2 pt-3">
+            <div className="flex items-center">
+              <span
+                className={`inline-flex items-center gap-1.5 border border-brass/40 px-2.5 py-1 font-display text-xs uppercase tracking-[0.08em] ${toneStyle.color}`}
+              >
+                <ToneIcon className="h-3.5 w-3.5 shrink-0" />
+                {tStyles(toneStyle.translationKey)}
+              </span>
+              <HelpIcon content={tStyles(toneStyle.descriptionKey)} />
+            </div>
+
+            <div className="flex items-center">
+              <span
+                className={`inline-flex items-center gap-1.5 border border-brass/40 px-2.5 py-1 font-display text-xs uppercase tracking-[0.08em] ${eraStyle.color}`}
+              >
+                <EraIcon className="h-3.5 w-3.5 shrink-0" />
+                {tStyles(eraStyle.translationKey)}
+              </span>
+              <HelpIcon content={tStyles(eraStyle.descriptionKey)} />
+            </div>
+
+            <div className="flex items-center">
+              <span
+                className={`inline-flex items-center gap-1.5 border border-brass/40 px-2.5 py-1 font-display text-xs uppercase tracking-[0.08em] ${diffStyle.color}`}
+              >
+                <DiffIcon className="h-3.5 w-3.5 shrink-0" />
+                {tStyles(diffStyle.translationKey)}
+              </span>
+              <HelpIcon content={tStyles(diffStyle.descriptionKey)} />
+            </div>
           </div>
         </DialogHeader>
 
@@ -112,70 +112,84 @@ export function AdventureDetailsModal({
           <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold" />
         </div>
 
-        {/* Meta */}
-        <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-          <span>
-            📍 {adventure.location}
+        {/* Metadane (lokalizacja, liczba sesji) */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 font-serif text-sm italic text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+            {adventure.location}
             {adventure.country ? `, ${adventure.country}` : ''}
           </span>
           {adventure.estimatedSessions && (
-            <span>{t('estimatedSessions', { count: adventure.estimatedSessions })}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+              {t('estimatedSessions', { count: adventure.estimatedSessions })}
+            </span>
           )}
         </div>
 
-        {/* Zajawka (bez spoilerów) */}
-        <div className="relative mt-1 border border-brass/30 bg-card p-4">
+        {/* Haczyk fabularny / lead jeśli dostępny */}
+        {adventure.hook && (
+          <div className="mt-3 border-l-2 border-brass/50 pl-3">
+            <p className="font-serif text-base italic text-brass/90 leading-relaxed">
+              {adventure.hook}
+            </p>
+          </div>
+        )}
+
+        {/* Główny opis intrygi */}
+        <div className="relative mt-3 border border-brass/30 bg-card/60 p-4">
           <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
           <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
-          <p className="font-serif text-lg italic leading-relaxed text-foreground/90">
+          <p className="font-serif text-base leading-relaxed text-foreground/90">
             {adventure.description}
           </p>
         </div>
 
-        {/* Objaśnienie znaczników */}
-        <div className="mt-1">
-          <h4 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-            {t('tagsExplainTitle')}
-          </h4>
-          <div className="space-y-3">
-            <TagExplain
-              style={toneStyle}
-              label={tStyles(toneStyle.translationKey) || t('fallbackTone')}
-              description={tStyles(toneStyle.descriptionKey)}
-            />
-            <TagExplain
-              style={eraStyle}
-              label={tStyles(eraStyle.translationKey) || t('fallbackEra')}
-              description={tStyles(eraStyle.descriptionKey)}
-            />
-            <TagExplain
-              style={diffStyle}
-              label={tStyles(diffStyle.translationKey) || t('fallbackDifficulty')}
-              description={tStyles(diffStyle.descriptionKey)}
-            />
-          </div>
-
-          {adventure.themes.length > 0 && (
-            <div className="mt-4">
-              <span className="font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                {t('themesTitle')}
+        {/* Sugerowane zawody i archetypy badaczy */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+          {adventure.suggestedOccupations && adventure.suggestedOccupations.length > 0 && (
+            <div className="border border-brass/20 bg-card/30 p-3">
+              <span className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass block mb-1">
+                {t('suggestedOccupationsTitle')}
               </span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {adventure.themes.map((theme) => (
-                  <span
-                    key={theme}
-                    className="border border-primary/30 bg-primary/10 px-2.5 py-1 font-special-elite text-[14px] uppercase tracking-[0.08em] text-primary"
-                  >
-                    {theme}
-                  </span>
-                ))}
-              </div>
+              <p className="font-serif text-sm italic text-foreground/80">
+                {adventure.suggestedOccupations.join(', ')}
+              </p>
+            </div>
+          )}
+          {adventure.suggestedArchetypes && adventure.suggestedArchetypes.length > 0 && (
+            <div className="border border-brass/20 bg-card/30 p-3">
+              <span className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass block mb-1">
+                {t('suggestedArchetypesTitle')}
+              </span>
+              <p className="font-serif text-sm italic text-foreground/80">
+                {adventure.suggestedArchetypes.join(', ')}
+              </p>
             </div>
           )}
         </div>
 
-        {/* Akcje */}
-        <div className="mt-4 flex justify-end gap-2 border-t border-brass/20 pt-4">
+        {/* Tagi klimatu */}
+        {adventure.themes && adventure.themes.length > 0 && (
+          <div className="mt-4">
+            <span className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-brass block mb-2">
+              {t('themesTitle')}
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {adventure.themes.map((theme) => (
+                <span
+                  key={theme}
+                  className="border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-display text-xs tracking-wider text-primary"
+                >
+                  {theme}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Przyciski akcji */}
+        <div className="mt-6 flex justify-end gap-2 border-t border-brass/20 pt-4">
           <Button
             variant="outline"
             onClick={onClose}
