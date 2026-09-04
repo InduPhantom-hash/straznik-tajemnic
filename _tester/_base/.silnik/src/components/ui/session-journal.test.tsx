@@ -128,7 +128,7 @@ describe('SessionJournal', () => {
     const noteHeader = addedTitle.parentElement;
     expect(noteHeader).not.toBeNull();
     fireEvent.click(
-      noteHeader?.querySelectorAll('button')[0] as HTMLButtonElement
+      screen.getByTitle('Edytuj notatkę')
     );
 
     const editDialog = screen.getByText('Edytuj wpis w księdze przygód')
@@ -166,7 +166,7 @@ describe('SessionJournal', () => {
     const editedHeader = editedTitle.parentElement;
     expect(editedHeader).not.toBeNull();
     fireEvent.click(
-      editedHeader?.querySelectorAll('button')[1] as HTMLButtonElement
+      screen.getByTitle('Usuń notatkę')
     );
 
     expect(confirmSpy).toHaveBeenCalledTimes(1);

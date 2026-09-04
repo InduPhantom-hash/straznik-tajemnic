@@ -18,9 +18,11 @@ import {
   Maximize2,
   Sparkles,
   Eye,
+  MessageSquare,
 } from 'lucide-react';
 import { findEquipmentTemplate, resolveCatalogAsset } from '@/lib/equipment-catalog';
 import { findEntityVisualReference } from '@/lib/journal/entity-visual-resolver';
+import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
 import type { Character, NPC, Location } from '@/lib/types';
 import type {
   ClueCategory,
@@ -79,6 +81,8 @@ interface DiscoveriesViewProps {
   activeCharacter?: Character | null;
   npcs?: NPC[];
   locations?: Location[];
+  /** Callback cytowania poszlaki/postaci do pola czatu (Quote-to-Input) */
+  onQuoteToInput?: (text: string) => void;
 }
 
 // ------------------------------------------------------------------
@@ -145,6 +149,7 @@ export function DiscoveriesView({
   activeCharacter,
   npcs = [],
   locations = [],
+  onQuoteToInput,
 }: DiscoveriesViewProps) {
   const t = useTranslations('DiscoveriesView');
   const [activeCategory, setActiveCategory] = useState<DiscoveryCategory>('places');
@@ -521,6 +526,32 @@ export function DiscoveriesView({
                         <Pin className="h-5 w-5" />
                       </button>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const quoteText = buildQuoteToInputText(
+                          selectedEntry.type,
+                          selectedEntry.title,
+                          {
+                            sourceNpc: selectedEntry.sourceNpc,
+                            foundLocation: selectedEntry.foundLocation,
+                          }
+                        );
+                        if (onQuoteToInput) {
+                          onQuoteToInput(quoteText);
+                        } else {
+                          window.dispatchEvent(
+                            new CustomEvent('straznik:quote-to-input', {
+                              detail: { text: quoteText },
+                            })
+                          );
+                        }
+                      }}
+                      className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
+                      title={t('quoteToChatTitle')}
+                    >
+                      <MessageSquare className="h-5 w-5" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => onEditEntry(selectedEntry)}

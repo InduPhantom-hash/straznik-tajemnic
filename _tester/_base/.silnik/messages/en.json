@@ -6408,7 +6408,9 @@
     "fastFilterPlaceholder": "Fast FTS filter (e.g. name, clue)...",
     "matchingCount": "{count} matching",
     "categoryHandouts": "Handouts & Documents",
-    "emptyHandouts": "No handouts or documents secured yet."
+    "emptyHandouts": "No handouts or documents secured yet.",
+    "quoteToChatTitle": "Quote and ask in chat (Quote-to-Input)",
+    "quoteToChatAction": "Ask about this in chat"
   },
   "LocationManager": {
     "title": "📍 Location Manager",
@@ -7066,7 +7068,10 @@
     "locStatusUnvisited": "Unvisited",
     "locStatusPartiallySearched": "Partially Searched",
     "locStatusThoroughlySearched": "Thoroughly Searched",
-    "recordDate": "RECORDED: {date}"
+    "recordDate": "RECORDED: {date}",
+    "ideaRollButton": "💡 Idea Roll (INT)",
+    "ideaRollTooltip": "Perform an Idea Roll on Intelligence characteristic according to CoC 7e RAW rules",
+    "quoteToChatTitle": "Quote and ask in chat (Quote-to-Input)"
   },
   "SessionList": {
     "title": "📚 Session List",
@@ -7135,5 +7140,37 @@
     "sourcesTitle": "Where to legally acquire the rulebook?",
     "sourcesDesc": "Strażnik Tajemnic is an engine and does not contain rulebook content. Download a free starter or purchase the full edition:",
     "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. Call of Cthulhu is a trademark of Chaosium Inc. Use only legally acquired copies."
+  },
+  "IdeaRoll": {
+    "headerSubtitle": "CoC 7e RAW Mechanics (pp. 199-201)",
+    "headerTitle": "Idea Roll (INT Test)",
+    "headerDescription": "According to Call of Cthulhu 7e rules, the Idea Roll serves to push the investigation forward when investigators hit a dead end.",
+    "subjectLabel": "FOCUSED ELEMENT:",
+    "generalInvestigationLabel": "ANALYSIS SCOPE:",
+    "generalDeductionTitle": "General investigation - synthesis of known clues",
+    "thresholdRegular": "Regular",
+    "thresholdHard": "Hard",
+    "thresholdExtreme": "Extreme",
+    "thresholdCritical": "Critical",
+    "rollButton": "Execute Idea Roll (INT)",
+    "rawRuleHint": "Success provides a clear deduction. Failure also provides the vital clue, but at the cost of a narrative complication (RAW).",
+    "reroll": "Reroll",
+    "verdictSuccess": "Success - investigator experiences a breakthrough",
+    "verdictFailureWithComplication": "Failure - clue attained with complication (RAW)",
+    "analyzingClues": "Keeper is analyzing clues and evidence...",
+    "deductionResultHeading": "KEEPER DEDUCTION & CONCLUSION",
+    "leadClean": "Clean lead",
+    "leadComplication": "Lead with complication",
+    "closeButton": "Close",
+    "quoteToChatButton": "Ask in chat",
+    "quoteToChatTooltip": "Pastes declaration template into chat input and returns to game",
+    "savedToTargetButton": "Saved in clue",
+    "saveToTargetButton": "Save in clue",
+    "savedToChronicleButton": "Saved in Chronicle",
+    "saveToChronicleButton": "Save in Chronicle",
+    "chronicleTitleSubject": "Idea Roll deduction: {title}",
+    "chronicleTitleGeneral": "Investigator breakthrough ({name}) - Idea Roll",
+    "fallbackSuccess": "Upon thorough analysis of gathered clues, investigator {name} notices a hidden connection that casts new light on the mystery.",
+    "fallbackFailure": "Investigator {name} reaches the vital deduction, but a moment of distraction draws unwanted attention or costs precious time."
   }
 }
