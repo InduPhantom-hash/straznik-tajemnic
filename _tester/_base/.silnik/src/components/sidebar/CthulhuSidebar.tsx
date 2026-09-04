@@ -19,6 +19,8 @@ import {
   LogOut,
   Flame,
   Hourglass,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 import type { SessionEndStatus } from '@/hooks/useChat';
 import NextImage from 'next/image';
@@ -452,7 +454,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                           : undefined
                       }
                       variant="ghost"
-                      className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
+                      className="w-full flex items-center justify-between border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground px-3 py-2 text-left"
                       onClick={() => {
                         if (isEquipment) {
                           setSeenEquipmentCount(currentEquipmentLength);
@@ -461,15 +463,17 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                         setOpenDialog(item.id);
                       }}
                     >
-                      <IconComponent className="w-4 h-4 mr-3 text-brass" />
-                      {item.label}
+                      <span className="flex items-center gap-3 min-w-0 truncate">
+                        <IconComponent className="w-4 h-4 text-brass shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </span>
                       {isEquipment && currentEquipmentLength > seenEquipmentCount && (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase rounded bg-emerald-500 text-black px-1.5 py-0.5 animate-pulse shadow">
+                        <span className="ml-2 text-[10px] font-bold uppercase rounded bg-emerald-500 text-black px-1.5 py-0.5 animate-pulse shadow shrink-0">
                           {t('newBadge')}
                         </span>
                       )}
                       {isJournal && unseenJournalCount > 0 && (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-red-500 text-white">
+                        <span className="ml-2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-red-500 text-white shrink-0 shadow">
                           {unseenJournalCount > 99 ? '99+' : unseenJournalCount}
                         </span>
                       )}
@@ -477,24 +481,46 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   );
                 })}
 
-                {/* IND-230: Faza Rozwoju CoC - rzuty na poprawę oznaczonych umiejętności */}
+                {/* IND-230 / Issue #28: Faza Rozwoju CoC - dostępna wyłącznie po zakończeniu sesji */}
                 {activeCharacter && onOpenDevelopmentPhase && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start border border-brass/15 font-special-elite tracking-wide text-foreground hover:bg-brass/5 hover:border-brass/40 hover:text-foreground relative"
-                    onClick={onOpenDevelopmentPhase}
-                    title={t('developmentPhaseTitle')}
-                  >
-                    <span className="w-4 h-4 mr-3 flex items-center justify-center">
-                      ✨
-                    </span>
-                    {t('developmentPhase')}
-                    {markedSkillsCount > 0 && (
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                        {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
+                  isSessionEnded || sessionEndStatus === 'ended' ? (
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-between border-amber-500/60 font-special-elite tracking-wide text-amber-300 bg-amber-950/20 hover:bg-amber-900/30 hover:border-amber-400 hover:text-amber-200 animate-pulse px-3 py-2 text-left"
+                      onClick={onOpenDevelopmentPhase}
+                      title={t('developmentPhaseReadyTitle')}
+                    >
+                      <span className="flex items-center gap-3 min-w-0 truncate">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span className="truncate">{t('developmentPhaseReady')}</span>
                       </span>
-                    )}
-                  </Button>
+                      {markedSkillsCount > 0 && (
+                        <span className="ml-2 bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0 shadow">
+                          {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
+                        </span>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled
+                      variant="ghost"
+                      className="w-full flex items-center justify-between border border-zinc-800/60 font-special-elite tracking-wide text-zinc-500 bg-zinc-900/40 opacity-60 cursor-not-allowed px-3 py-2 text-left"
+                      title={t('developmentPhaseLockedTitle')}
+                    >
+                      <span className="flex items-center gap-3 min-w-0 truncate">
+                        <Lock className="w-4 h-4 text-zinc-600 shrink-0" />
+                        <span className="truncate">{t('developmentPhaseLocked')}</span>
+                      </span>
+                      {markedSkillsCount > 0 && (
+                        <span
+                          className="ml-2 bg-zinc-700 text-zinc-300 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0"
+                          title={t('markedSkillsBadgeTooltip', { count: markedSkillsCount })}
+                        >
+                          {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
+                        </span>
+                      )}
+                    </Button>
+                  )
                 )}
               </div>
 
@@ -504,21 +530,21 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full border-zinc-700 text-zinc-400 bg-zinc-900/50 opacity-70 cursor-not-allowed font-special-elite"
+                    className="w-full h-auto min-h-10 py-2 px-3 border-zinc-700 text-zinc-400 bg-zinc-900/50 opacity-70 cursor-not-allowed font-special-elite text-xs whitespace-normal flex items-center justify-center gap-2"
                     title={t('sessionClosedTitle')}
                   >
-                    <LogOut className="w-4 h-4 mr-2 text-zinc-500" />
-                    {t('sessionClosed')} 🔒
+                    <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
+                    <span className="leading-tight">{t('sessionClosed')}</span>
                   </Button>
                 ) : sessionEndStatus === 'awaiting_player_closure' ? (
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full border-amber-500/60 text-amber-300 bg-amber-950/20 font-special-elite animate-pulse cursor-wait"
+                    className="w-full h-auto min-h-10 py-2 px-3 border-amber-500/60 text-amber-300 bg-amber-950/20 font-special-elite animate-pulse cursor-wait whitespace-normal text-xs leading-snug flex items-center justify-center gap-2 text-center"
                     title={t('awaitingClosureTitle')}
                   >
-                    <Hourglass className="w-4 h-4 mr-2 animate-spin text-amber-400" />
-                    {t('awaitingClosure')}
+                    <Hourglass className="w-4 h-4 mr-1 animate-spin text-amber-400 shrink-0" />
+                    <span className="leading-tight">{t('awaitingClosure')}</span>
                   </Button>
                 ) : (
                   <Button
@@ -528,11 +554,11 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       }
                     }}
                     variant="outline"
-                    className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-special-elite"
+                    className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-special-elite flex items-center justify-center gap-2"
                     title={t('endSessionTitle')}
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    {t('endSession')}
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    <span>{t('endSession')}</span>
                   </Button>
                 )
               ) : (
@@ -540,10 +566,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   onClick={onCharacterCreate}
                   data-testid="open-character-wizard"
                   variant="outline"
-                  className="w-full border-primary/50 text-primary hover:bg-primary/10"
+                  className="w-full border-primary/50 text-primary hover:bg-primary/10 flex items-center justify-center gap-2"
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  {t('createCharacter')}
+                  <Users className="w-4 h-4 shrink-0" />
+                  <span>{t('createCharacter')}</span>
                 </Button>
               )}
             </CardContent>

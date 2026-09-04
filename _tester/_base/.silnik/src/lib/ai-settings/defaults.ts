@@ -1,17 +1,11 @@
 import { AISettings } from './types';
 
 export const defaultAISettings: AISettings = {
-  // === PINECONE ===
-  pineconeEnabled: false,
-  pineconeSettings: {
-    indexHost: '', // URL indeksu z dashboardu Pinecone
-  },
-
   // === GEMINI API ===
   geminiEnabled: false,
   geminiApiKey: undefined,
   geminiSettings: {
-    model: 'gemini-3.6-flash', // Domyślny szybki i powtarzalny model dla aplikacji (LOW/MID preset baseline)
+    model: 'gemini-3.8-flash', // Domyślny model Mistrza Gry z poziomem myślenia HIGH (HIGH preset baseline)
     // === Sampling (HIGH) ===
     temperature: 0.8,
     topP: 0.9,
@@ -44,17 +38,6 @@ export const defaultAISettings: AISettings = {
     },
   },
 
-  // === GOOGLE CLOUD TEXT-TO-SPEECH ===
-  // IND-86: googleTTSEnabled DROPPED - source of truth = voiceSettings.provider
-  googleTTSApiKey: process.env.GOOGLE_CLOUD_API_KEY || undefined,
-  googleTTSProjectId: process.env.GOOGLE_CLOUD_PROJECT_ID || undefined,
-  googleTTSSettings: {
-    audioEncoding: 'MP3',
-    sampleRateHertz: 48000,
-    effectsProfileId: [],
-    enableTimePointing: false,
-  },
-
   voiceSettings: {
     enabled: true,
     provider: 'gemini', // M3 sesja 146: default Gemini (drop OpenAI per D2)
@@ -62,22 +45,12 @@ export const defaultAISettings: AISettings = {
     volume: 85,
     speed: 0.9, // Preset HIGH
     voiceId: 'Charon', // HIGH: męski głęboki narrator pod Lovecraft (IND-212), auto-route Pro/Flash w useTTS
-    speakingRate: 0.9,
-    pitchControl: -2.0,
   },
 
   // === IMAGE GENERATION (IND-91 rename) ===
   imageGenerationEnabled: true,
-  replicateApiKey: undefined,
   replicateSettings: {
     imageProvider: 'vertex', // HIGH/ULTRA: Imagen 4 Ultra Tier 1 (applyPreset - drift guard T31)
-    model: 'stability-ai/stable-diffusion',
-    width: 512,
-    height: 512,
-    numInferenceSteps: 20,
-    guidanceScale: 7.5,
-    seed: null,
-    scheduler: 'K_EULER',
     style: 'realistic',
     quality: 'high',
     autoGeneratePortraits: true,
@@ -91,18 +64,6 @@ export const defaultAISettings: AISettings = {
   },
 
   // M3 sesja 146: elevenLabsApiKey + elevenLabsSettings DROPPED per D2.
-
-  // === GOOGLE CLOUD STORAGE ===
-  googleCloudStorageEnabled: true,
-  googleCloudStorageBucket:
-    process.env.GOOGLE_CLOUD_STORAGE_BUCKET || 'zew-app-storage',
-  googleCloudStorageKeyFile:
-    process.env.GOOGLE_CLOUD_STORAGE_KEY_FILE || './google-cloud-key.json',
-  googleCloudStorageSettings: {
-    retentionDays: 30,
-    enableCaching: true,
-    enableCompression: true,
-  },
 
   // === GAME MASTER NARRATION ===
   gameMasterNarration: {

@@ -3,7 +3,21 @@
 import { useState, useEffect } from 'react';
 import { timeManager } from '@/lib/time-manager';
 import { GameTime, MoonPhase } from '@/lib/types';
-import { Moon, Sun, Clock, Calendar, CloudFog } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  Clock,
+  Calendar,
+  CloudFog,
+  CloudSun,
+  CloudRain,
+  CloudDrizzle,
+  CloudLightning,
+  Snowflake,
+  Wind,
+  Cloud,
+  LucideIcon,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 // ============================================================================
@@ -21,6 +35,140 @@ const MOON_PHASE_EMOJI: Record<MoonPhase, string> = {
   waning_crescent: '🌘',
 };
 
+// ============================================================================
+// WEATHER ICONS (Lucide weather pictograms, PL + EN)
+// ============================================================================
+
+export function getWeatherIcon(text: string): LucideIcon {
+  const lower = (text || '').toLowerCase();
+
+  // Burze / Thunderstorm
+  if (
+    lower.includes('burz') ||
+    lower.includes('piorun') ||
+    lower.includes('nawałnic') ||
+    lower.includes('grzmot') ||
+    lower.includes('storm') ||
+    lower.includes('thunder') ||
+    lower.includes('lightning')
+  ) {
+    return CloudLightning;
+  }
+
+  // Śnieg / Mróz / Zima / Snow / Frost
+  if (
+    lower.includes('śnieg') ||
+    lower.includes('zamieć') ||
+    lower.includes('mróz') ||
+    lower.includes('szron') ||
+    lower.includes('zawieja') ||
+    lower.includes('grad') ||
+    lower.includes('snow') ||
+    lower.includes('blizzard') ||
+    lower.includes('frost') ||
+    lower.includes('freezing') ||
+    lower.includes('sleet') ||
+    lower.includes('hail')
+  ) {
+    return Snowflake;
+  }
+
+  // Częściowe zachmurzenie / Przejaśnienia / Partly cloudy
+  if (
+    lower.includes('częściow') ||
+    lower.includes('przejaśn') ||
+    lower.includes('partly') ||
+    lower.includes('broken clouds') ||
+    lower.includes('scattered')
+  ) {
+    return CloudSun;
+  }
+
+  // Ulewa / Deszcz / Rain / Downpour
+  if (
+    lower.includes('deszcz') ||
+    lower.includes('ulew') ||
+    lower.includes('oberwanie') ||
+    lower.includes('opad') ||
+    lower.includes('rain') ||
+    lower.includes('downpour') ||
+    lower.includes('shower') ||
+    lower.includes('pour')
+  ) {
+    return CloudRain;
+  }
+
+  // Mżawka / Drizzle
+  if (
+    lower.includes('mżawk') ||
+    lower.includes('kapuśniaczek') ||
+    lower.includes('drizzle') ||
+    lower.includes('sprinkle')
+  ) {
+    return CloudDrizzle;
+  }
+
+  // Wiatr / Wichura / Wind / Gale
+  if (
+    lower.includes('wichur') ||
+    lower.includes('wicher') ||
+    lower.includes('wietrzn') ||
+    lower.includes('wiatr') ||
+    lower.includes('wind') ||
+    lower.includes('gale') ||
+    lower.includes('breeze')
+  ) {
+    return Wind;
+  }
+
+  // Mgła / Zamglenie / Fog / Mist / Haze
+  if (
+    lower.includes('mgła') ||
+    lower.includes('mgieł') ||
+    lower.includes('mglist') ||
+    lower.includes('zamglen') ||
+    lower.includes('opary') ||
+    lower.includes('fog') ||
+    lower.includes('mist') ||
+    lower.includes('haze') ||
+    lower.includes('smog')
+  ) {
+    return CloudFog;
+  }
+
+  // Słońce / Bezchmurnie / Jasno / Sun / Clear
+  if (
+    lower.includes('słońc') ||
+    lower.includes('słonecz') ||
+    lower.includes('pogodn') ||
+    lower.includes('jasn') ||
+    lower.includes('upał') ||
+    lower.includes('bezchmurn') ||
+    lower.includes('sun') ||
+    lower.includes('sunny') ||
+    lower.includes('clear') ||
+    lower.includes('bright')
+  ) {
+    return Sun;
+  }
+
+  // Chmury / Pochmurno / Clouds / Overcast
+  if (
+    lower.includes('chmur') ||
+    lower.includes('mrocz') ||
+    lower.includes('ponur') ||
+    lower.includes('pochmurn') ||
+    lower.includes('zachmurz') ||
+    lower.includes('cloud') ||
+    lower.includes('overcast') ||
+    lower.includes('gloomy')
+  ) {
+    return Cloud;
+  }
+
+  // Domyślna nastrojowa ikona dla klimatu CoC
+  return CloudFog;
+}
 
 // ============================================================================
 // COMPONENT
@@ -65,17 +213,7 @@ export function CampaignClock({
   const moonName = t(`moon.${moonPhase}`);
   const dayName = t(`days.${new Date(time.year, time.month, time.day).getDay()}` as never);
   const weatherLabel = weather === 'Lekka mgła, rześkie powietrze' ? t('defaultWeather') : weather;
-
-  // Dobór symbolu ikony dla pogody
-  const getWeatherEmoji = (text: string) => {
-    const lower = text.toLowerCase();
-    if (lower.includes('burz') || lower.includes('piorun') || lower.includes('nawałnic')) return '🌩️';
-    if (lower.includes('deszcz') || lower.includes('ulew') || lower.includes('mżawk') || lower.includes('opad')) return '🌧️';
-    if (lower.includes('śnieg') || lower.includes('zamieć') || lower.includes('mróz') || lower.includes('szron')) return '❄️';
-    if (lower.includes('mgła') || lower.includes('mgieł') || lower.includes('chmur') || lower.includes('mrocz') || lower.includes('ponur')) return '🌫️';
-    if (lower.includes('słońc') || lower.includes('słonecz') || lower.includes('pogodn') || lower.includes('jasn') || lower.includes('upał')) return '☀️';
-    return '🌫️';
-  };
+  const WeatherIcon = getWeatherIcon(weatherLabel);
 
   if (compact) {
     return (
@@ -97,8 +235,8 @@ export function CampaignClock({
         </div>
 
         <div className="flex items-center gap-2 ml-1 pl-3 border-l border-zinc-800 text-xs text-zinc-300">
-          <span className="flex items-center gap-1 max-w-[120px] truncate" title={`${t('weather')}: ${weatherLabel}`}>
-            <span aria-hidden="true">{getWeatherEmoji(weatherLabel)}</span>
+          <span className="flex items-center gap-1.5 max-w-[140px] truncate" title={`${t('weather')}: ${weatherLabel}`}>
+            <WeatherIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" aria-hidden="true" data-testid="weather-icon" />
             <span className="truncate">{weatherLabel}</span>
           </span>
           <span className="text-zinc-600">|</span>

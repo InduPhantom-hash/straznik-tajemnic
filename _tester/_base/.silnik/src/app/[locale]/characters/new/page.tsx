@@ -26,6 +26,11 @@ export default function NewCharacterPage() {
   }, []);
 
   const handleClose = () => {
+    try {
+      localStorage.setItem('welcome_manual_mode', 'true');
+    } catch {
+      /* ignore */
+    }
     router.push('/');
   };
 
@@ -38,14 +43,20 @@ export default function NewCharacterPage() {
       character.playerName = creatingForPlayer;
       localStorage.removeItem('hotSeatCreatingPlayerName');
     }
-    // Zapisz postać do localStorage
+    // Zapisz postać do localStorage i oznacz jako aktywną
     const existingCharacters = JSON.parse(
       localStorage.getItem('characters') || '[]'
     ) as Character[];
-    existingCharacters.push(character);
-    persistCharacters(existingCharacters);
-    // Po stworzeniu postaci wracamy do ekranu głównego (WelcomeScreen z "Rozpocznij"),
-    // a nie do listy zarządzania postaciami.
+    const updated = existingCharacters.map((c) => ({ ...c, isActive: false }));
+    const newChar: Character = { ...character, isActive: true, lastUsed: new Date() };
+    updated.push(newChar);
+    persistCharacters(updated);
+    try {
+      localStorage.setItem('welcome_manual_mode', 'true');
+    } catch {
+      /* ignore */
+    }
+    // Po stworzeniu postaci wracamy do ekranu głównego (WelcomeScreen z panelem konfiguracji manualnej)
     router.push('/');
   };
 

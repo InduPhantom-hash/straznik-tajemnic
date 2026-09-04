@@ -99,75 +99,77 @@ export function DevelopmentPhaseModal({
    * Przeprowadza pełną fazę rozwoju
    */
   const runDevelopmentPhase = async () => {
-    // IND-268: gating defensywny - bez oznaczonych umiejętności nie ma czego
-    // rozwijać, a samodzielny odzysk Szczęścia był mylący ("odzyskało mi się
-    // Szczęście, nie wiem czemu"). UI i tak ukrywa przycisk przy 0 oznaczonych.
-    if (markedSkills.length === 0) {
-      return;
-    }
-    setPhase('rolling_skills');
     const newResults: DevelopmentRollResult[] = [];
     const updatedCharacter = { ...character };
     const updatedSkills = { ...character.skills };
 
-    // === FAZA 1: Rzuty na umiejętności ===
-    for (let i = 0; i < markedSkills.length; i++) {
-      const skill = markedSkills[i];
-      setCurrentIndex(i);
+    // === FAZA 1: Rzuty na umiejętności (jeśli są oznaczone) ===
+    if (markedSkills.length > 0) {
+      setPhase('rolling_skills');
+      for (let i = 0; i < markedSkills.length; i++) {
+        const skill = markedSkills[i];
+        setCurrentIndex(i);
 
-      // Animacja - pauza między rzutami
-      await new Promise((r) => setTimeout(r, 800));
+        // Animacja - pauza między rzutami
+        await new Promise((r) => setTimeout(r, 800));
 
-      const result = characterDevelopment.rollSkillDevelopment(
-        skill.name,
-        skill.value
-      );
+        const result = characterDevelopment.rollSkillDevelopment(
+          skill.name,
+          skill.value
+        );
 
-      if (result.success && result.newValue !== undefined) {
-        // Zaktualizuj wartość umiejętności
-        const currentSkill = updatedSkills[skill.name];
-        const currentSkillData: SkillData =
-          typeof currentSkill === 'number'
-            ? { value: currentSkill, markedForImprovement: false }
-            : currentSkill;
+        if (result.success && result.newValue !== undefined) {
+          // Zaktualizuj wartość umiejętności
+          const currentSkill = updatedSkills[skill.name];
+          const currentSkillData: SkillData =
+            typeof currentSkill === 'number'
+              ? { value: currentSkill, markedForImprovement: false }
+              : currentSkill;
 
-        updatedSkills[skill.name] = {
-          ...currentSkillData,
-          value: result.newValue,
-          markedForImprovement: false,
-          improvementHistory: [
-            ...(currentSkillData.improvementHistory || []),
-            {
-              date: new Date(),
-              oldValue: skill.value,
-              newValue: result.newValue,
-              method: 'development_phase' as const,
-              rollValue: result.roll,
-              improvementRoll: result.improvement,
-            },
-          ],
-        };
-
-        // Bonus SAN za mistrzostwo (90%+)
-        if (result.sanityBonus) {
-          updatedCharacter.san = Math.min(
-            99,
-            (updatedCharacter.san || 0) + result.sanityBonus
-          );
-        }
-      } else {
-        // Przy porażce tylko czyścimy oznaczenie
-        const currentSkill = updatedSkills[skill.name];
-        if (typeof currentSkill !== 'number') {
           updatedSkills[skill.name] = {
-            ...currentSkill,
+            ...currentSkillData,
+            value: result.newValue,
             markedForImprovement: false,
+            improvementHistory: [
+              ...(currentSkillData.improvementHistory || []),
+              {
+                date: new Date(),
+                oldValue: skill.value,
+                newValue: result.newValue,
+                method: 'development_phase' as const,
+                rollValue: result.roll,
+                improvementRoll: result.improvement,
+              },
+            ],
           };
-        }
-      }
 
-      newResults.push(result);
-      setSkillResults([...newResults]);
+          // Bonus SAN za mistrzostwo (90%+) z pułapem 99 - Mity Cthulhu
+          if (result.sanityBonus) {
+            const mythosSkill = character.skills['Mity Cthulhu'] || character.skills['Cthulhu Mythos'];
+            const mythosValue =
+              typeof mythosSkill === 'object' && mythosSkill !== null
+                ? mythosSkill.value
+                : Number(mythosSkill || 0);
+            const maxSan = Math.max(0, 99 - mythosValue);
+            updatedCharacter.san = Math.min(
+              maxSan,
+              (updatedCharacter.san || 0) + result.sanityBonus
+            );
+          }
+        } else {
+          // Przy porażce tylko czyścimy oznaczenie
+          const currentSkill = updatedSkills[skill.name];
+          if (typeof currentSkill !== 'number') {
+            updatedSkills[skill.name] = {
+              ...currentSkill,
+              markedForImprovement: false,
+            };
+          }
+        }
+
+        newResults.push(result);
+        setSkillResults([...newResults]);
+      }
     }
 
     // === FAZA 2: Odzyskanie Szczęścia (CoC 7e, str. 110-111) ===
@@ -254,14 +256,19 @@ export function DevelopmentPhaseModal({
   };
 
   /**
-   * Samopomoc - odzyskanie Poczytalności (CoC 7e, str. 185).
-   * Mechanika uznaniowa: rzut 1K10 PR za zaangażowanie w aspekt historii.
+   * Samopomoc - odzyskanie Poczytalności (CoC 7e, str. 186-187).
+   * Mechanika CoC 7e: rzut 1K6 PR za zaangażowanie w aspekt historii.
    * Czyta aktualny stan postaci (po automatycznych rzutach z Fazy Rozwoju).
    */
   const applySelfHelp = () => {
     if (!selfHelpAspect.trim() || sanRecovered !== null) return;
     const recovered = characterDevelopment.rollSanityRecovery();
-    const maxSan = character.maxSan ?? 99;
+    const mythosSkill = character.skills['Mity Cthulhu'] || character.skills['Cthulhu Mythos'];
+    const mythosValue =
+      typeof mythosSkill === 'object' && mythosSkill !== null
+        ? mythosSkill.value
+        : Number(mythosSkill || 0);
+    const maxSan = character.maxSan ?? Math.max(0, 99 - mythosValue);
     const oldSan = character.san || 0;
     const newSan = Math.min(maxSan, oldSan + recovered);
     const actualGain = newSan - oldSan;
@@ -396,18 +403,33 @@ export function DevelopmentPhaseModal({
                     </ol>
                   </div>
 
-                  <p className="font-serif italic text-sm text-muted-foreground flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-primary not-italic" />
-                    {t('badgeInfo', { button: t('startButtonShort') })}
-                  </p>
+                  <div className="border border-amber-500/30 bg-amber-950/20 p-3 text-amber-200/90 text-sm font-serif">
+                    <p className="flex items-center gap-2 font-semibold text-amber-300 mb-1">
+                      <Clover className="w-4 h-4 text-amber-400" />
+                      {t('luckRecoveryAvailableTitle')}
+                    </p>
+                    <p className="text-xs text-amber-300/80 leading-relaxed">
+                      {t('luckRecoveryAvailableDesc')}
+                    </p>
+                  </div>
                 </div>
 
-                <Button
-                  onClick={onClose}
-                  className="w-full font-display font-semibold uppercase tracking-[0.16em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10"
-                >
-                  {t('understandButton')}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <Button
+                    onClick={runDevelopmentPhase}
+                    className="flex-1 font-display font-semibold uppercase tracking-[0.14em] text-zinc-950 bg-amber-500 hover:bg-amber-400 shadow-md flex items-center justify-center gap-2 py-2"
+                  >
+                    <Clover className="w-4 h-4" />
+                    {t('startLuckRecoveryButton')}
+                  </Button>
+                  <Button
+                    onClick={onClose}
+                    variant="outline"
+                    className="font-display font-semibold uppercase tracking-[0.14em] border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                  >
+                    {t('close')}
+                  </Button>
+                </div>
               </div>
             ) : (
               <>

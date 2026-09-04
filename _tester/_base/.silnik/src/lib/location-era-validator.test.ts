@@ -160,6 +160,24 @@ describe('location-era-validator (Materialne User Story i Strażnik Epoki)', () 
       expect(enriched).toMatch(/gaslight or candle warmth/i);
       expect(enriched).toMatch(/open fireplace/i);
     });
+
+    it('nie wstrzykuje mebli ani magnetofonów do scen plenerowych lat 80.', () => {
+      const outdoorPrompt = 'Rural countryside landscape with old wooden barn in winter mist';
+      const enriched = enrichImagePromptWithEraProps(outdoorPrompt, '1980s');
+
+      expect(enriched).not.toMatch(/tape recorder/i);
+      expect(enriched).not.toMatch(/interior/i);
+      expect(enriched).not.toMatch(/cathode ray/i);
+      expect(enriched).toMatch(/1980s analog exterior atmosphere/i);
+    });
+
+    it('stosuje profil portretowy dla portretów postaci', () => {
+      const portraitPrompt = 'Portrait of weary priest with silver crucifix, head and shoulders shot';
+      const enriched = enrichImagePromptWithEraProps(portraitPrompt, 'prl-1970s');
+
+      expect(enriched).toMatch(/Eastern European portrait/i);
+      expect(enriched).not.toMatch(/terrazzo|parquet|wall unit/i);
+    });
   });
 
   describe('Generator instrukcji lokacji dla MG (buildLocationEraGuidanceSection)', () => {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-02",
+  "updatedAt": "2026-09-04T09:15:00Z",
   "locales": [
     "pl",
     "en"
@@ -155,6 +155,10 @@
       "label": {
         "pl": "Kreator postaci",
         "en": "Character wizard"
+      },
+      "description": {
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, kary wieku CoC 7e RAW)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout, CoC 7e RAW age penalties)"
       }
     },
     {
@@ -193,8 +197,8 @@
       "id": "character-sheet",
       "kind": "modal",
       "label": {
-        "pl": "Karta badacza",
-        "en": "Investigator sheet"
+        "pl": "Karta badacza (Dark Art Déco CoC 7e RAW)",
+        "en": "Investigator sheet (Dark Art Déco CoC 7e RAW)"
       }
     },
     {
@@ -206,11 +210,19 @@
       }
     },
     {
+      "id": "equipment-detail",
+      "kind": "modal",
+      "label": {
+        "pl": "Szczegóły przedmiotu",
+        "en": "Equipment detail"
+      }
+    },
+    {
       "id": "journal",
       "kind": "modal",
       "label": {
-        "pl": "Dziennik sesji",
-        "en": "Session journal"
+        "pl": "Dziennik sesji i akta śledcze",
+        "en": "Session journal and investigator dossier"
       }
     },
     {
@@ -275,6 +287,22 @@
       "label": {
         "pl": "Pełny reset",
         "en": "Full reset"
+      }
+    },
+    {
+      "id": "rulebook-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Podręcznik zasad",
+        "en": "Rulebook"
+      }
+    },
+    {
+      "id": "chase-dialog",
+      "kind": "modal",
+      "label": {
+        "pl": "Pościg i tor przeszkód (CoC 7e RAW)",
+        "en": "Chase and hazard track (CoC 7e RAW)"
       }
     }
   ],
@@ -343,6 +371,15 @@
       "component": "src/components/ui/quick-setup-modal.tsx"
     },
     {
+      "source": "quick-setup",
+      "target": "home",
+      "label": {
+        "pl": "Rozpocznij przygodę",
+        "en": "Start adventure"
+      },
+      "component": "src/components/ui/quick-setup-modal.tsx"
+    },
+    {
       "source": "adventure-selector",
       "target": "predefined-characters",
       "label": {
@@ -398,10 +435,10 @@
     },
     {
       "source": "character-wizard",
-      "target": "session-zero",
+      "target": "manual-setup",
       "label": {
-        "pl": "Zapisz postać",
-        "en": "Save character"
+        "pl": "Zakończ i zapisz",
+        "en": "Finish and save"
       },
       "component": "src/components/ui/character-wizard.tsx"
     },
@@ -418,10 +455,10 @@
       "source": "session-zero",
       "target": "game",
       "label": {
-        "pl": "Rozpocznij grę",
-        "en": "Start game"
+        "pl": "Zakończ i zapisz",
+        "en": "Finish and save"
       },
-      "component": "src/app/[locale]/page.tsx"
+      "component": "src/components/ui/session-zero-modal.tsx"
     },
     {
       "source": "game",
@@ -440,6 +477,15 @@
         "en": "Equipment"
       },
       "component": "src/components/sidebar/CthulhuSidebar.tsx"
+    },
+    {
+      "source": "equipment",
+      "target": "equipment-detail",
+      "label": {
+        "pl": "Szczegóły przedmiotu",
+        "en": "Equipment details"
+      },
+      "component": "src/components/ui/equipment-detail-dialog.tsx"
     },
     {
       "source": "game",
@@ -472,8 +518,8 @@
       "source": "game",
       "target": "development",
       "label": {
-        "pl": "Faza rozwoju",
-        "en": "Development phase"
+        "pl": "Faza rozwoju (po sesji)",
+        "en": "Development phase (after session)"
       },
       "component": "src/components/sidebar/CthulhuSidebar.tsx"
     },
@@ -548,6 +594,42 @@
         "en": "New character"
       },
       "component": "src/app/[locale]/characters/page.tsx"
+    },
+    {
+      "source": "home",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Wgraj zasady",
+        "en": "Upload rules"
+      },
+      "component": "src/components/chat/welcome/index.tsx"
+    },
+    {
+      "source": "home",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Podręcznik zasad",
+        "en": "Rulebook"
+      },
+      "component": "src/components/chat/welcome/components/bottom-links.tsx"
+    },
+    {
+      "source": "api-keys",
+      "target": "rulebook-modal",
+      "label": {
+        "pl": "Dalej do zasad",
+        "en": "Continue to rules"
+      },
+      "component": "src/app/[locale]/page.tsx"
+    },
+    {
+      "source": "rulebook-modal",
+      "target": "home",
+      "label": {
+        "pl": "Gotowe, przejdź do gry",
+        "en": "Ready, proceed to game"
+      },
+      "component": "src/app/[locale]/page.tsx"
     }
   ]
 }

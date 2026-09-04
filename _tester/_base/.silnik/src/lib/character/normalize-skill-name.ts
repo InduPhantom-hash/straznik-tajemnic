@@ -14,6 +14,8 @@
  * BUG #1 (fix/skill-points) - sesja redesign Dark Art Déco.
  */
 
+import { BASE_SKILLS } from '../data/character/skills';
+
 /**
  * Sprowadza nazwę umiejętności do kanonicznego klucza zgodnego z `BASE_SKILLS`.
  *
@@ -21,6 +23,7 @@
  * - `Język Obcy (łacina)` → `Język Obcy`
  * - `Język Obcy (2)` → `Język Obcy`
  * - `Sztuka/Rzemiosło (Malarstwo)` → `Sztuka/Rzemiosło`
+ * - `Broń Palna (Karabin)` → `Broń Palna (Karabin)` (istnieje wprost w BASE_SKILLS)
  * - `Dowolna` → `null` (wolny wybór gracza - nie jest konkretną umiejętnością)
  * - puste / białe znaki → `null`
  *
@@ -31,12 +34,20 @@
 export function normalizeSkillName(raw: string): string | null {
   if (typeof raw !== 'string') return null;
 
-  // Usuń specjalizację w nawiasie (cyfry, litery, dowolny tekst) + spacje wokół.
-  const stripped = raw.replace(/\s*\([^)]*\)\s*$/, '').trim();
-
-  if (stripped.length === 0) return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return null;
 
   // `Dowolna` = wolny wybór gracza, nie konkretna umiejętność - odrzuć.
+  if (trimmed.toLowerCase() === 'dowolna') return null;
+
+  // Jeśli nazwa wprost odpowiada umiejętności z BASE_SKILLS (np. 'Broń Palna (Karabin)'),
+  // nie obcinaj nawiasu - to pełnoprawna, odrębna umiejętność bazowa.
+  if (trimmed in BASE_SKILLS) return trimmed;
+
+  // Usuń specjalizację w nawiasie (cyfry, litery, dowolny tekst) + spacje wokół.
+  const stripped = trimmed.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+  if (stripped.length === 0) return null;
   if (stripped.toLowerCase() === 'dowolna') return null;
 
   return stripped;

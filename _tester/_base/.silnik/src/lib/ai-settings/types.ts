@@ -113,12 +113,6 @@ export function normalizeSessionZeroSettings(
 }
 
 export interface AISettings {
-  // === PINECONE (etap 2a) ===
-  pineconeEnabled?: boolean;
-  pineconeSettings?: {
-    indexHost: string; // URL indeksu z dashboardu Pinecone
-  };
-
   // === GEMINI API (Google AI) ===
   geminiEnabled: boolean;
   geminiApiKey?: string;
@@ -173,28 +167,14 @@ export interface AISettings {
     // NB: audioConfig + responseModalities - wymagają Gemini 2.0+ SDK, czekają na IND-19 (migracja na @google/genai).
   };
 
-  // === GOOGLE CLOUD TEXT-TO-SPEECH ===
-  // IND-86: googleTTSEnabled DROPPED - source of truth = voiceSettings.provider === 'google'
-  googleTTSApiKey?: string;
-  googleTTSProjectId?: string;
-  googleTTSSettings: {
-    audioEncoding: 'MP3' | 'LINEAR16' | 'OGG_OPUS' | 'MULAW' | 'ALAW';
-    sampleRateHertz: 8000 | 16000 | 22050 | 24000 | 32000 | 44100 | 48000;
-    effectsProfileId: string[];
-    enableTimePointing: boolean;
-  };
-
-  // Ustawienia głosu (M3 sesja 146: drop 'elevenlabs' + 'openai' z union per D2)
-  // 2026-07-25: elevenlabs RESTORED dla słuchowiska radiowego (multilingual_v2 + turbo_v2_5)
+  // Ustawienia głosu (Gemini TTS oraz opcjonalnie ElevenLabs)
   voiceSettings: {
     enabled: boolean;
-    provider?: 'google' | 'gemini' | 'elevenlabs';
+    provider?: 'gemini' | 'elevenlabs';
     narratorOnly: boolean; // Tylko narracje główne
     volume: number; // 0-100
     speed: number; // 0.5-2.0
-    voiceId?: string; // ID głosu z Google TTS / Gemini prebuilt
-    speakingRate: number; // 0.25-4.0
-    pitchControl: number; // -20.0 do +20.0
+    voiceId?: string; // ID głosu z Gemini prebuilt
     style?: string; // Styl mówienia (np. cheerful, sad)
     // === ElevenLabs-specific (opcjonalne, aktywne gdy provider === 'elevenlabs') ===
     elevenLabsModelKey?: 'multilingual_v2' | 'turbo_v2_5';
@@ -210,34 +190,11 @@ export interface AISettings {
   // 2026-07-25: przywrócone dla presetów HIGH/ULTRA (słuchowisko radiowe)
   elevenLabsApiKey?: string;
 
-  // === IMAGE GENERATION (Vertex / Replicate / Gemini) ===
+  // === IMAGE GENERATION (Gemini Imagen / Vertex / Replicate) ===
   // IND-91: rename legacy `replicateEnabled` → `imageGenerationEnabled`
-  // Flag is provider-agnostic - toggles all 3 image providers (vertex/replicate/gemini).
+  // Flag is provider-agnostic - toggles all image providers.
   imageGenerationEnabled: boolean;
-  replicateApiKey?: string;
   replicateSettings: {
-    model:
-      | 'black-forest-labs/flux-schnell'
-      | 'stability-ai/stable-diffusion'
-      | 'stability-ai/sdxl'
-      | 'runwayml/stable-diffusion-v1-5'
-      | 'stability-ai/stable-diffusion-xl-base-1.0'
-      | 'stability-ai/stable-diffusion-3-medium';
-    width: number; // 256-2048
-    height: number; // 256-2048
-    numInferenceSteps: number; // 1-100
-    guidanceScale: number; // 1-20
-    seed: number | null;
-    scheduler:
-      | 'DDIM'
-      | 'DPMSolverMultistep'
-      | 'HeunDiscrete'
-      | 'KarrasDPM'
-      | 'K_EULER_ANCESTRAL'
-      | 'K_EULER'
-      | 'PNDM'
-      | 'EulerAncestralDiscrete'
-      | 'LMSDiscreteScheduler';
     style: 'realistic' | 'artistic' | 'horror' | 'vintage';
     quality: 'low' | 'medium' | 'high' | 'ultra';
     autoGeneratePortraits: boolean;
@@ -264,16 +221,6 @@ export interface AISettings {
 
   // M3 sesja 146: elevenLabsApiKey + elevenLabsSettings DROPPED per D2.
   // Legacy localStorage handled przez migration w storage.ts loadAISettings.
-
-  // === GOOGLE CLOUD STORAGE ===
-  googleCloudStorageEnabled: boolean;
-  googleCloudStorageBucket?: string;
-  googleCloudStorageKeyFile?: string;
-  googleCloudStorageSettings: {
-    retentionDays: number;
-    enableCaching: boolean;
-    enableCompression: boolean;
-  };
 
   // === GAME MASTER NARRATION ===
   gameMasterNarration: {

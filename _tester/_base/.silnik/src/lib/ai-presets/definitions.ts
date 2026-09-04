@@ -16,10 +16,10 @@ export const QUALITY_PRESETS = {
   low: {
     name: 'LOW COST',
     description:
-      'Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)',
+      'Gemini Flash-Lite, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)',
     settings: {
-      // Gemini settings - Gemini 3.6 Flash!
-      model: 'gemini-3.6-flash' as const, // Ultra-szybki i tani
+      // Gemini settings - Gemini Flash-Lite Latest!
+      model: 'gemini-flash-lite-latest' as const, // Ultra-szybki i tani
       temperature: 0.7,
       topP: 0.85,
       topK: 40,
@@ -51,10 +51,10 @@ export const QUALITY_PRESETS = {
   mid: {
     name: 'MID COST',
     description:
-      'Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)',
+      'Gemini Flash Latest + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)',
     settings: {
-      // Gemini settings
-      model: 'gemini-3.6-flash' as const,
+      // Gemini settings - Gemini Flash Latest
+      model: 'gemini-flash-latest' as const,
       temperature: 0.7,
       topP: 0.85,
       topK: 40,
@@ -92,10 +92,10 @@ export const QUALITY_PRESETS = {
   high: {
     name: 'HIGH COST',
     description:
-      'Gemini 2.5 Flash + lektor ElevenLabs (hybryda) + obrazy Vertex - słuchowisko (~$3-6/sesja)',
+      'Gemini 3.8 Flash (High) + lektor ElevenLabs (hybryda) + obrazy Vertex - słuchowisko (~$3-6/sesja)',
     settings: {
       // === GEMINI SETTINGS ===
-      model: 'gemini-2.5-flash' as const, // Stabilny balans (lub gemini-3-flash)
+      model: 'gemini-3.8-flash' as const, // Gemini 3.8 Flash z Thinking Level High
       temperature: 0.8,
       topP: 0.9,
       topK: 50,
@@ -123,8 +123,6 @@ export const QUALITY_PRESETS = {
       narratorOnly: false,
       volume: 85,
       speed: 0.9,
-      speakingRate: 0.9,
-      pitchControl: -2,
 
       // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
       imagesEnabled: true,
@@ -137,11 +135,6 @@ export const QUALITY_PRESETS = {
       autoGenerateNPCs: true,
       autoGenerateLocations: true,
       maxImagesPerMessage: 1, // IND-259: 1/odpowiedź (sync z defaults.ts - płynność > ilość)
-
-      // === GOOGLE CLOUD STORAGE ===
-      googleCloudStorageEnabled: true,
-      enableCaching: true,
-      enableCompression: true,
 
       // === NARRATION STYLE ===
       responseLength: 'long' as const,

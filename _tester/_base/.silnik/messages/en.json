@@ -18,7 +18,9 @@
     "titleLine2": "of Secrets",
     "virtualGm": "Virtual Game Master",
     "authorizationRequired": "Authorization required",
-    "openApiKeys": "Enter API key"
+    "openApiKeys": "Enter API key",
+    "rulesRequired": "Rulebook required",
+    "openRulebook": "Upload rules (CoC 7e PDF)"
   },
   "CostControl": {
     "title": "Cost Control",
@@ -37,12 +39,45 @@
     "resetConfirm": "Are you sure you want to reset the account cost counter?"
   },
   "InspectionLightbox": {
-    "confirmed": "Confirmed", "hypothesis": "Hypothesis", "refuted": "Refuted", "unknownDate": "Unknown date",
-    "deleteConfirm": "Are you sure you want to remove this evidence from the Investigation Board?", "evidencePreview": "Evidence preview", "delete": "Remove from board", "close": "Close", "noImage": "No illustration",
-    "hypothesisStatus": "Hypothesis status", "location": "Location:", "npc": "NPC:", "discovered": "Discovered:", "insight": "Investigator insight / deduction", "notes": "Investigator notes", "edit": "Edit", "save": "Save", "notesPlaceholder": "Write your observations and theories...", "noNotes": "No notes. Click Edit to add observations.", "created": "Created", "updated": "Updated"
+    "confirmed": "Confirmed",
+    "hypothesis": "Hypothesis",
+    "refuted": "Refuted",
+    "unknownDate": "Unknown date",
+    "deleteConfirm": "Are you sure you want to remove this evidence from the Investigation Board?",
+    "evidencePreview": "Evidence preview",
+    "delete": "Remove from board",
+    "close": "Close",
+    "noImage": "No illustration",
+    "hypothesisStatus": "Hypothesis status",
+    "location": "Location:",
+    "npc": "NPC:",
+    "discovered": "Discovered:",
+    "insight": "Investigator insight / deduction",
+    "notes": "Investigator notes",
+    "edit": "Edit",
+    "save": "Save",
+    "notesPlaceholder": "Write your observations and theories...",
+    "noNotes": "No notes. Click Edit to add observations.",
+    "created": "Created",
+    "updated": "Updated"
   },
   "QuickSetupModal": {
-    "kicker": "Quick Adventure", "description": "Set up a session from the Strefa 11 programme. Choose a mode, scenario and ready investigators from the television team.", "stepMode": "1. Choose play mode", "solo": "Solo mode", "soloDescription": "One player, one character", "hotSeat": "Hot Seat (Duet)", "hotSeatDescription": "Two players on one device", "stepAdventure": "2. Choose a Strefa 11 scenario", "stepCharacters": "3. Choose characters", "playerOne": "Player 1 (Primary Character):", "yourCharacter": "Your Character:", "playerTwo": "Player 2 (Secondary Character):", "biography": "Biography", "start": "Start adventure"
+    "kicker": "Quick Adventure",
+    "description": "Set up a session from the Strefa 11 programme. Choose a mode, scenario and ready investigators from the television team.",
+    "stepMode": "1. Choose play mode",
+    "solo": "Solo mode",
+    "soloDescription": "One player, one character",
+    "hotSeat": "Hot Seat (Duet)",
+    "hotSeatDescription": "Two players on one device",
+    "stepAdventure": "2. Choose a Strefa 11 scenario",
+    "stepCharacters": "3. Choose characters",
+    "playerOne": "Player 1 (Primary Character):",
+    "yourCharacter": "Your Character:",
+    "playerTwo": "Player 2 (Secondary Character):",
+    "biography": "Biography",
+    "start": "Start adventure",
+    "startingGame": "Preparing session...",
+    "statusSettingUp": "Preparing investigation parameters..."
   },
   "LanguageSelection": {
     "eyebrow": "BEFORE THE INVESTIGATION BEGINS",
@@ -86,6 +121,18 @@
     "stepOccupationSubtitle": "Choose your Investigator's profession.",
     "creditRating": "Credit Rating",
     "skills": "Skills",
+    "searchOccupationPlaceholder": "Search professions or skills...",
+    "allFilter": "All ({count})",
+    "suggestedFilter": "★ Suggested ({count})",
+    "noOccupationsFound": "No professions match the search criteria.",
+    "occupationDetailsEyebrow": "Miskatonic Files · Profession Dossier",
+    "noOccupationSelectedTitle": "Select a profession from the list",
+    "noOccupationSelectedHint": "Select a profession from the list on the left to review its requirements, points pool, occupational skills, and starting equipment.",
+    "occupationalSkillsList": "Occupational Skills",
+    "startingEquipmentLabel": "Starting Occupational Equipment",
+    "initialCreditRating": "Starting value: {val}%",
+    "skillsCount": "skills",
+    "lore": "Lore Background",
     "stepSkillsTitle": "Step 4 · Skills",
     "stepSkillsSubtitle": "Allocate points among the character's skills.",
     "howItWorks": "How does it work?",
@@ -128,7 +175,20 @@
     "assets": "Assets",
     "spendingPerDay": "Spending/day",
     "equipmentAndItems": "Equipment and items",
-    "equipmentDescription": "Assigned automatically for the occupation. You can add or remove items, one per line or separated by commas.",
+    "equipmentDescription": "Automatically assigned based on the chosen occupation and era.",
+    "equipmentCount": "Items ({count})",
+    "equipmentEmpty": "No equipment assigned for this configuration.",
+    "categoryWeapon": "Weapon",
+    "categoryArmor": "Armor",
+    "categoryTool": "Tools",
+    "categoryDocument": "Documents",
+    "categoryArtifact": "Artifact",
+    "categoryPersonal": "Personal",
+    "categoryMedical": "Medical",
+    "categoryOccult": "Occult",
+    "categoryOther": "Other",
+    "dosesCount": "{count} doses",
+    "usesCount": "{count} uses",
     "equipmentPlaceholder": "Choose an occupation to assign starting equipment.\n\nYou can also enter items manually:\n- .38 Revolver\n- Flashlight\n- Notebook & Pencil",
     "characterPortrait": "Character portrait",
     "enlargePortrait": "Click to enlarge portrait",
@@ -149,7 +209,7 @@
       "backstory": "Generate UNIQUE character data for Call of Cthulhu.\n\n{adventure}\n\nCHARACTER: {gender}, {age} years old, occupation: {occupation}.\nINSPIRATION: personality {personality}; background {background}; motivation {motivation}; seed #{seed}.\nReturn ONLY JSON with name, birthplace, description, ideology, importantPeople, significantPlaces, personalItems, traits, and keyConnection. Use English.",
       "biography": "Using the following character sheet, write a coherent atmospheric biography in 2-3 third-person paragraphs.\n\n{adventure}\nName: {name}\nGender: {gender}\nAge: {age}\nOccupation: {occupation}\nBirthplace: {birthplace}\nAppearance: {appearance}\nIdeology: {ideology}\nImportant people: {people}\nSignificant places: {places}\nPersonal items: {items}\nTraits: {traits}\nKey connection: {connection}\n\nReturn only the biography, with no heading or commentary.",
       "field": "You generate a character-background field for Call of Cthulhu 7e.\nCharacter context:\n{context}{adventure}\n\nGenerate {field}. Return only the field value, without quotation marks, prefixes, or explanations. Use 1-3 sentences. Style: {style}. Use English.",
-      "skills": "You are an expert character builder for Call of Cthulhu 7ed.\n\nCHARACTER CONTEXT:\n{context}\n\nOCCUPATION: {occupation}\nOCCUPATIONAL SKILLS: {occSkills}\n{archetypeBlock}\n\nNOTE: Recommended skills (archetype + occupation) have ALREADY been allocated deterministically: {recommended}. Do not touch them.\nYour task: distribute the REMAINING pool across OTHER skills (flavorful, fitting the character background) to make the investigator well-rounded.\n\nREMAINING POINTS TO DISTRIBUTE: {remaining}\nPER-SKILL LIMIT: {limit}% (creation maximum)\n\nSKILL LIST WITH BASE VALUES:\n{skillsList}\n\nCRITICAL REQUIREMENTS:\n1. Distribute EXACTLY {remaining} points - no more, no less!\n2. Do NOT allocate to recommended skills (already done): {recommendedTop}\n3. Pick skills fitting the character (background, description, traits)\n4. Each skill may reach at most {limit}%\n5. Spread points across 5-10 skills\n\nExample: if Library has base 20% and you want 60%, you add 40 points.\n\nReply ONLY with plain JSON, no markdown:\n{\"skills\": {\"SkillName\": newValue, ...}}\n\nInclude ONLY skills you add points to (new value > base).\nTHE SUM OF ADDED POINTS MUST BE EXACTLY {remaining}!"
+      "skills": "You are an expert character builder for Call of Cthulhu 7ed.\n\nCHARACTER CONTEXT:\n{context}\n\nOCCUPATION: {occupation}\nOCCUPATIONAL SKILLS: {occSkills}\n{archetypeBlock}\n\nNOTE: Recommended skills (archetype + occupation) have ALREADY been allocated deterministically: {recommended}. Do not touch them.\nYour task: distribute the REMAINING pool across OTHER skills (flavorful, fitting the character background) to make the investigator well-rounded.\n\nREMAINING POINTS TO DISTRIBUTE: {remaining}\nPER-SKILL LIMIT: {limit}% (creation maximum)\n\nSKILL LIST WITH BASE VALUES:\n{skillsList}\n\nCRITICAL REQUIREMENTS:\n1. Distribute EXACTLY {remaining} points - no more, no less!\n2. Do NOT allocate to recommended skills (already done): {recommendedTop}\n3. Pick skills fitting the character (background, description, traits)\n4. Each skill may reach at most {limit}%\n5. Spread points across fitting skills\n\nExample: if Library has base 20% and you want 60%, you add 40 points.\n\nReply ONLY with plain JSON, no markdown:\n{\"skills\": {\"SkillName\": newValue, ...}}\n\nInclude ONLY skills you add points to (new value > base).\nTHE SUM OF ADDED POINTS MUST BE EXACTLY {remaining}!"
     },
     "toasts": {
       "apiError": "API error",
@@ -172,17 +232,66 @@
       "chooseOccupationDescription": "You must choose an occupation before continuing to Skills."
     },
     "statShort": {
-      "str": "Muscular strength - useful in hand-to-hand fights and lifting.",
-      "con": "Physical endurance - more health and resistance to hardship.",
-      "siz": "Build and mass - affects health and damage bonus.",
-      "dex": "Agility and reflexes - dodging, precision, quick hands.",
-      "app": "Appearance - how easily you win people over.",
-      "int": "Mental sharpness - connecting facts and noticing details.",
+      "str": "Physical power - counts in melee combat and lifting.",
+      "con": "Endurance and health - more hit points and resistance to hardship.",
+      "siz": "Stature and mass - affects health and strike power.",
+      "dex": "Agility and reflexes - dodges, precision, quick hands.",
+      "app": "Presence - how easily you win people over.",
+      "int": "Sharpness of mind - connecting facts and noticing details.",
       "pow": "Strength of will - fuels sanity and the sense of the supernatural.",
       "edu": "Knowledge and education - the basis of occupational skills.",
       "luck": "A stroke of luck - you can spend it to improve a roll.",
       "failure": "Failure"
     },
+    "statTooltips": {
+      "str": "STRENGTH (STR) - Physical power. Determines melee damage and lifting capacity. Roll: 3D6×5",
+      "con": "CONSTITUTION (CON) - Health and endurance. Determines Hit Points and poison resistance. Roll: 3D6×5",
+      "siz": "SIZE (SIZ) - Height and body mass. Influences HP and Damage Bonus. Roll: 2D6+6×5",
+      "dex": "DEXTERITY (DEX) - Agility and coordination. Affects Dodge and combat initiative. Roll: 3D6×5",
+      "app": "APPEARANCE (APP) - Physical appeal and social poise. Useful in interpersonal encounters. Roll: 3D6×5",
+      "int": "INTELLIGENCE (INT) - Cognitive ability and reasoning. Determines personal interest skill points. Roll: 2D6+6×5",
+      "pow": "POWER (POW) - Force of will and spiritual fortitude. Determines starting Sanity and Magic Points. Roll: 3D6×5",
+      "edu": "EDUCATION (EDU) - Formal schooling and retained lore. Determines occupational skill points. Roll: 2D6+6×5",
+      "luck": "LUCK - Fortune and providence. May be spent to adjust dice rolls. Roll: 3D6×5"
+    },
+    "derivedTooltips": {
+      "hp": "HIT POINTS (HP) - Trauma tolerance of the body. When dropped to 0, investigator is unconscious or dead. Formula: (CON + SIZ) / 10",
+      "san": "SANITY (SAN) - Mental stability and equilibrium. Falls upon encountering cosmic horrors. Starting value = POW",
+      "mp": "MAGIC POINTS (MP) - Occult energy reserve. Used to cast spells. Formula: POW / 5",
+      "damageBonus": "DAMAGE BONUS (DB) - Extra melee combat impact. Depends on STR + SIZ",
+      "build": "BUILD - Physical stature rating used for combat maneuvers like shoving. Depends on STR + SIZ",
+      "movement": "MOVEMENT (MOV) - Base walking/running rate. Depends on STR, DEX, SIZ and age"
+    },
+    "wealthLevels": {
+      "pauper": "Penniless",
+      "poor": "Poor",
+      "average": "Average",
+      "wealthy": "Wealthy",
+      "rich": "Rich",
+      "superrich": "Super rich"
+    },
+    "assetsNone": "None",
+    "ageBrackets": {
+      "age_15_19": "15-19 years",
+      "age_20_39": "20-39 years",
+      "age_40_49": "40-49 years",
+      "age_50_59": "50-59 years",
+      "age_60_69": "60-69 years",
+      "age_70_79": "70-79 years",
+      "age_80_plus": "80+ years"
+    },
+    "agePenaltiesApplied": "✓ Age penalties have been applied",
+    "agePenaltiesAppliedBtn": "✓ Age penalties applied",
+    "teenPenaltiesWarning": "⚠️ Age 15-19 modifiers:",
+    "teenPenaltiesPending": "Deduct 5 points combined from STR or SIZ, and 5 points from EDU.",
+    "applyTeenPenalties": "Apply teen modifiers",
+    "teenPenaltiesPreview": "Upon click: -5 combined from STR/SIZ, -5 from EDU",
+    "teenLuckReroll": "🎲 Reroll Luck (age 15-19)",
+    "teenLuckRerollUsed": "✓ Teen Luck reroll used",
+    "teenLuckSuccess": "Luck reroll: {oldLuck} → {newLuck} (higher taken)",
+    "teenLuckNoChange": "Luck reroll: new roll {roll} ≤ {oldLuck} (kept {oldLuck})",
+    "eduChecksLeft": "Tests remaining: {count}",
+    "eduChecksExhausted": "All EDU checks for this age bracket have been completed",
     "adventureLabel": "📖 Adventure: {title} ({location})",
     "halfFifthHint": "Below each value: <half>½:XX</half> = half the value (hard test), <fifth>⅕:XX</fifth> = one fifth (extreme test)",
     "rollOne": "Roll",
@@ -272,12 +381,108 @@
       }
     },
     "archetypeDetails": {
-      "investigator": { "suggestedOccupations": ["Private investigator", "Police detective", "Journalist"], "suggestedTraits": ["inquisitive", "stubborn", "skeptical"], "suggestedMotivations": ["discovering the truth", "justice", "curiosity"] },
-      "scholar": { "suggestedOccupations": ["Professor", "Librarian", "Antiquarian"], "suggestedTraits": ["curious", "methodical", "thoughtful"], "suggestedMotivations": ["gaining knowledge", "protecting forgotten secrets", "academic fame"] },
-      "action": { "suggestedOccupations": ["Soldier", "Athlete", "Sailor"], "suggestedTraits": ["brave", "impulsive", "loyal"], "suggestedMotivations": ["protecting loved ones", "adventure", "honour"] },
-      "trickster": { "suggestedOccupations": ["Criminal", "Entertainer", "Spy"], "suggestedTraits": ["cunning", "charming", "calculating"], "suggestedMotivations": ["profit", "excitement", "escaping the past"] },
-      "mystic": { "suggestedOccupations": ["Parapsychologist", "Clergy", "Artist"], "suggestedTraits": ["intuitive", "mysterious", "sensitive"], "suggestedMotivations": ["understanding the unseen", "protection from evil", "discovering destiny"] },
-      "healer": { "suggestedOccupations": ["Doctor", "Nurse", "Clergy"], "suggestedTraits": ["empathetic", "composed", "patient"], "suggestedMotivations": ["saving lives", "understanding human nature", "atonement for the past"] }
+      "investigator": {
+        "suggestedOccupations": [
+          "Private investigator",
+          "Police detective",
+          "Journalist"
+        ],
+        "suggestedTraits": [
+          "inquisitive",
+          "stubborn",
+          "skeptical"
+        ],
+        "suggestedMotivations": [
+          "discovering the truth",
+          "justice",
+          "curiosity"
+        ]
+      },
+      "scholar": {
+        "suggestedOccupations": [
+          "Professor",
+          "Librarian",
+          "Antiquarian"
+        ],
+        "suggestedTraits": [
+          "curious",
+          "methodical",
+          "thoughtful"
+        ],
+        "suggestedMotivations": [
+          "gaining knowledge",
+          "protecting forgotten secrets",
+          "academic fame"
+        ]
+      },
+      "action": {
+        "suggestedOccupations": [
+          "Soldier",
+          "Athlete",
+          "Sailor"
+        ],
+        "suggestedTraits": [
+          "brave",
+          "impulsive",
+          "loyal"
+        ],
+        "suggestedMotivations": [
+          "protecting loved ones",
+          "adventure",
+          "honour"
+        ]
+      },
+      "trickster": {
+        "suggestedOccupations": [
+          "Criminal",
+          "Entertainer",
+          "Spy"
+        ],
+        "suggestedTraits": [
+          "cunning",
+          "charming",
+          "calculating"
+        ],
+        "suggestedMotivations": [
+          "profit",
+          "excitement",
+          "escaping the past"
+        ]
+      },
+      "mystic": {
+        "suggestedOccupations": [
+          "Parapsychologist",
+          "Clergy",
+          "Artist"
+        ],
+        "suggestedTraits": [
+          "intuitive",
+          "mysterious",
+          "sensitive"
+        ],
+        "suggestedMotivations": [
+          "understanding the unseen",
+          "protection from evil",
+          "discovering destiny"
+        ]
+      },
+      "healer": {
+        "suggestedOccupations": [
+          "Doctor",
+          "Nurse",
+          "Clergy"
+        ],
+        "suggestedTraits": [
+          "empathetic",
+          "composed",
+          "patient"
+        ],
+        "suggestedMotivations": [
+          "saving lives",
+          "understanding human nature",
+          "atonement for the past"
+        ]
+      }
     },
     "generateButton": "✨ Generate",
     "generatingEllipsis": "⏳...",
@@ -717,6 +922,16 @@
     "repeatS0": "Repeat Session Zero",
     "runS0": "Run Session Zero",
     "startGame": "Start Game",
+    "startingGame": "Preparing session...",
+    "statusSettingUp": "Setting up adventure...",
+    "statusInit": "Initializing session parameters...",
+    "statusWorld": "Preparing world and era settings...",
+    "statusPreflight": "Analyzing scenario and historical coherence...",
+    "statusCharacter": "Verifying investigator sheet and equipment...",
+    "statusConnecting": "Connecting with the Game Master...",
+    "statusOpening": "Generating opening scene...",
+    "statusTranscribing": "Spelling out the opening chronicle...",
+    "statusReady": "Beginning the adventure!",
     "needBoth": "Select adventure and character to start game",
     "needAdv": "Select adventure to start game",
     "needChar": "Select or create character to start game",
@@ -792,14 +1007,42 @@
     "movement": "Movement",
     "move": "Move",
     "stats": {
-      "str": { "full": "Strength", "short": "STR" },
-      "con": { "full": "Constitution", "short": "CON" },
-      "siz": { "full": "Size", "short": "SIZ" },
-      "dex": { "full": "Dexterity", "short": "DEX" },
-      "app": { "full": "Appearance", "short": "APP" },
-      "int": { "full": "Intelligence", "short": "INT" },
-      "pow": { "full": "Power", "short": "POW" },
-      "edu": { "full": "Education", "short": "EDU" }
+      "str": {
+        "abbr": "STR",
+        "full": "Strength"
+      },
+      "con": {
+        "abbr": "CON",
+        "full": "Constitution"
+      },
+      "siz": {
+        "abbr": "SIZ",
+        "full": "Size"
+      },
+      "dex": {
+        "abbr": "DEX",
+        "full": "Dexterity"
+      },
+      "app": {
+        "abbr": "APP",
+        "full": "Appearance"
+      },
+      "int": {
+        "abbr": "INT",
+        "full": "Intelligence"
+      },
+      "pow": {
+        "abbr": "POW",
+        "full": "Power"
+      },
+      "edu": {
+        "abbr": "EDU",
+        "full": "Education"
+      },
+      "luck": {
+        "abbr": "LCK",
+        "full": "Luck"
+      }
     },
     "skills": "Skills",
     "biography": "Biography",
@@ -848,47 +1091,16 @@
         "full": "Luck"
       }
     },
-    "stats": {
-      "str": {
-        "abbr": "STR",
-        "full": "Strength"
-      },
-      "con": {
-        "abbr": "CON",
-        "full": "Constitution"
-      },
-      "siz": {
-        "abbr": "SIZ",
-        "full": "Size"
-      },
-      "dex": {
-        "abbr": "DEX",
-        "full": "Dexterity"
-      },
-      "app": {
-        "abbr": "APP",
-        "full": "Appearance"
-      },
-      "int": {
-        "abbr": "INT",
-        "full": "Intelligence"
-      },
-      "pow": {
-        "abbr": "POW",
-        "full": "Power"
-      },
-      "edu": {
-        "abbr": "EDU",
-        "full": "Education"
-      },
-      "luck": {
-        "abbr": "LCK",
-        "full": "Luck"
-      }
-    },
     "skillFirearms": "Firearms (Handgun)",
     "skillFirearmsLong": "Firearms (Long gun)",
-    "skillMelee": "Fighting (Brawl)"
+    "skillMelee": "Fighting (Brawl)",
+    "sectionHelp": {
+      "vitals": "HP = Hit Points: (CON+SIZ)/10. SAN = Sanity: starts at POW, max 99 - Cthulhu Mythos. MP = Magic Points: POW/5. LCK = Luck.",
+      "combat": "Damage Bonus and Build derive from the STR+SIZ table. Move = base 7-9 depending on STR, DEX, SIZ, and age.",
+      "skills": "Each skill test is a D100 roll: Regular success (≤ value), Hard (≤ 1/2), Extreme (≤ 1/5). Critical success is strictly 01. Fumble is 100 (or 96-100 if value < 50). ★ = occupational skill. ✓ = marked for improvement."
+    },
+    "markedForImprovement": "Skill marked for improvement in Development Phase",
+    "skillBreakdownTooltip": "Regular: {regular}% | Hard (1/2): {hard}% | Extreme (1/5): {extreme}%"
   },
   "ChatHeader": {
     "defaultTitle": "Mystery of the Miskatonic Library"
@@ -4256,6 +4468,11 @@
     "openCharacterSheet": "Open character sheet: {name}",
     "developmentPhase": "Development Phase",
     "developmentPhaseTitle": "Development Phase - roll to improve marked skills",
+    "developmentPhaseLocked": "Development Phase (after session)",
+    "developmentPhaseLockedTitle": "Investigator Development Phase per CoC 7e rules is only available after ending the session.",
+    "developmentPhaseReady": "✨ Development Phase",
+    "developmentPhaseReadyTitle": "Session ended! Open Development Phase to roll for skills and Luck recovery.",
+    "markedSkillsBadgeTooltip": "{count, plural, =1 {1 skill marked for development after session} other {# skills marked for development after session}}",
     "sessionClosed": "Session Closed",
     "sessionClosedTitle": "The session has been safely closed",
     "awaitingClosure": "Waiting for the player's final word...",
@@ -4429,7 +4646,6 @@
       "skipCutscene": "Skip cutscene"
     },
     "cutsceneDescription": "Auto-GM - automatic narration in a cinematic cutscene style",
-    "sanityCheckDescription": "Visualization of a sanity roll with animation effects",
     "dice3dDescription": "Three-dimensional dice with physics (planned)",
     "backToGame": "Back to game",
     "headerDescription": "Sandbox for testing new Zew-App functionalities. Prototypes are isolated from the main application.",
@@ -4454,7 +4670,9 @@
     "unknownError": "Unknown error",
     "errorIdPrefix": "Error ID:",
     "tryAgainButton": "Try again",
-    "homePageButton": "Home page"
+    "homePageButton": "Home page",
+    "copyDiagnosisButton": "Copy report for AI",
+    "copiedDiagnosis": "Copied to clipboard!"
   },
   "Loading": {
     "title": "Loading...",
@@ -4520,11 +4738,25 @@
     "orTypeInChat": "or type the result in chat:",
     "resultExample": "\"result 47\"",
     "resultSaved": "Result saved",
-    "rollDiceButton": "Roll the dice"
+    "rollDiceButton": "Roll the dice",
+    "opposedBadge": "OPPOSED ROLL",
+    "versus": "vs",
+    "opponentValue": "Opponent value:",
+    "opposedRollButton": "Roll opposed test"
   },
   "TtsHardLoadingScreen": {
     "preparingSession": "The Keeper is preparing your session...",
-    "generatingStory": "Generating the dark tale and the narrator's voice. Please wait."
+    "generatingStory": "Generating the dark tale and the narrator's voice...",
+    "dispatchHeader": "Period Chronicle Dispatch",
+    "clip1Source": "The Arkham Advertiser (1926)",
+    "clip1Headline": "Mysterious Disappearances in Miskatonic Valley",
+    "clip1Text": "Authorities search suburban woods after two university students fail to return from a field expedition. Witnesses mention unnatural lights over the distant hills.",
+    "clip2Source": "The Boston Globe (1925)",
+    "clip2Headline": "Night Police Raid on North End Docks",
+    "clip2Text": "Six crates of suspicious Old World cargo seized. The warehouse proprietor eluded arrest through a maze of forgotten harbor alleyways.",
+    "clip3Source": "The Providence Gazette (1924)",
+    "clip3Headline": "Unusual Phenomena in Waters of Narragansett Bay",
+    "clip3Text": "Local fishermen report unnatural glows visible in dense fog south of the lighthouse. Trawler crews refuse to set sail after nightfall."
   },
   "ApiKeysModal": {
     "title": "API Keys Configuration",
@@ -4630,11 +4862,14 @@
     "luckCaption": "Recovered after the session",
     "selfHelpLabel": "Self-help",
     "selfHelpSuffix": "- recovering Sanity",
-    "selfHelpDesc": "Describe how the Investigator devoted time to an aspect of their story (e.g. a Key Connection). Roll 1D10 Sanity. Discretionary mechanic (p. 185) - the Keeper may adjust the result.",
+    "selfHelpDesc": "Describe how the Investigator devoted time to an aspect of their story (e.g. a Key Connection). Roll 1D6 Sanity (CoC 7e rules, p. 186-187).",
     "selfHelpPlaceholder": "E.g. spent the evening with a sister, finding peace...",
-    "selfHelpButton": "Recover Sanity (1D10)",
+    "selfHelpButton": "Recover Sanity (1D6)",
     "selfHelpRecovered": "Recovered +{amount} Sanity",
     "sanAlreadyMax": "Sanity already at maximum - no change",
+    "luckRecoveryAvailableTitle": "Luck Recovery and Self-Care",
+    "luckRecoveryAvailableDesc": "No skills were marked for development in this session. However, per CoC 7e rules, after each session you can still roll to recover Luck (1D10) and perform Self-Care (1D6 Sanity).",
+    "startLuckRecoveryButton": "Recover Luck & Self-Care",
     "close": "Close",
     "historySkillsDescription": "Development Phase: {skills}",
     "historyMasteryTarget": "Sanity (mastery bonus)",
@@ -4936,35 +5171,6 @@
     "searchingButton": "Searching...",
     "answerTitle": "Assistant's Answer"
   },
-  "CloudStorageSettings": {
-    "sectionTitle": "Google Cloud Storage",
-    "enableLabel": "Enable Cloud Storage",
-    "enableHelp": "Store sessions and files in Google Cloud. Enables synchronization between devices.",
-    "bucketLabel": "Bucket name",
-    "bucketHelp": "The name of the Google Cloud Storage bucket where session files will be stored.",
-    "retentionLabel": "Automatic cleanup (days)",
-    "retentionHelp": "After how many days old sessions should be removed from the cloud. 30 days is the recommended value.",
-    "cachingLabel": "Enable caching",
-    "cachingHelp": "Temporarily store frequently used files locally for faster access.",
-    "compressionLabel": "Enable compression",
-    "compressionHelp": "Compress files before saving to save space and data transfer.",
-    "testButton": "Test Cloud Storage"
-  },
-  "CustomCommandsSettings": {
-    "sectionTitle": "Out-of-story Commands",
-    "sectionHelp": "Commands in square brackets [] are treated as out-of-story questions. Answers to them are not read by the narrator voice.",
-    "introText": "Commands in square brackets [] are out-of-story questions. The AI answers them concisely, without narration.",
-    "defaultsPrefix": "Default commands:",
-    "defaultsSuffix": "cannot be removed.",
-    "availableCommands": "Available commands",
-    "addCommand": "Add command",
-    "defaultBadge": "(default)",
-    "sheetCommandDescription": "Shows the current character sheet (HP, MP, SAN, main skills)",
-    "inventoryCommandDescription": "Shows the list of items in the character's inventory",
-    "commandNamePlaceholder": "command name",
-    "commandNameFallback": "name",
-    "commandDescriptionPlaceholder": "Command description (what it does)"
-  },
   "DebugSettings": {
     "sectionTitle": "Debug Tools",
     "debugPageLink": "Open the debug page →"
@@ -5023,17 +5229,6 @@
     "pricingTimeout": "Timed out (25s)",
     "networkError": "Network connection error"
   },
-  "PDFMemorySettings": {
-    "sectionTitle": "PDF Memory Management",
-    "sectionHelp": "Allow the AI to reference rulebooks and adventures stored as PDFs.",
-    "enableLabel": "Enable PDF memory",
-    "enableHelp": "The AI will be able to reference game rules and adventure content stored in PDF files.",
-    "enableDescription": "The AI will be able to reference game rules and adventure content",
-    "rulesUrlLabel": "Rulebook URL",
-    "rulesUrlHelp": "Link to the PDF file with the Call of Cthulhu 7e rules. The AI will be able to quote and apply these rules.",
-    "adventureUrlLabel": "Adventure URL",
-    "adventureUrlHelp": "Link to the PDF file with the adventure scenario. The AI will know the plot and scenario details."
-  },
   "QualityPresets": {
     "eyebrow": "Performance vs. depth",
     "title": "Quality Profile",
@@ -5043,21 +5238,35 @@
     "modelLabel": "Model:",
     "imagesLabel": "Images:",
     "presets": {
-      "low": { "description": "Gemini 3.6 Flash, no voice, no images - most affordable (~$0.02-0.05/session)" },
-      "mid": { "description": "Gemini 3.6 Flash + voice (Gemini TTS) + Gemini images (~$0.20/session)" },
-      "high": { "description": "Gemini 3.1 Pro + voice + Imagen 4 images (~$0.50/session)" },
-      "ultra": { "description": "Gemini 3.1 Pro High + multi-voice radio drama + HD images (~$1.00/session)" },
-      "custom": { "description": "Custom configuration of all parameters" }
+      "low": {
+        "description": "Gemini 3.6 Flash, no voice, no images - most affordable (~$0.02-0.05/session)"
+      },
+      "mid": {
+        "description": "Gemini 3.6 Flash + voice (Gemini TTS) + Gemini images (~$0.20/session)"
+      },
+      "high": {
+        "description": "Gemini 3.8 Flash (High) + voice + Imagen 4 images (~$0.50/session)"
+      },
+      "ultra": {
+        "description": "Gemini 3.1 Pro High + multi-voice radio drama + HD images (~$1.00/session)"
+      },
+      "custom": {
+        "description": "Custom configuration of all parameters"
+      }
     }
   },
-  "ReplicateSettings": {
-    "sectionTitle": "Replicate API (Image Generation)",
-    "testApi": "Test API",
-    "enableLabel": "Enable Replicate",
-    "enableHelp": "Enables AI image generation for characters and locations. Requires a Replicate API key.",
-    "apiKeyLabel": "API Key",
-    "apiKeyHelp": "Replicate API key for image generation. Get a key at: https://replicate.com",
-    "apiKeyPlaceholder": "Enter your Replicate API key",
+  "ImageSettings": {
+    "eyebrow": "Keeper Visuals",
+    "sectionTitle": "Image Generation (Gemini Imagen)",
+    "stateEnabled": "Enabled",
+    "stateDisabled": "Disabled",
+    "enableHelp": "Enables illustration generation for scenes, characters, and locations using Gemini Imagen.",
+    "frequencySectionTitle": "Scene Frequency & Style",
+    "frequencyLabel": "Scene illustration frequency",
+    "frequencyHelp": "Controls how often the AI generates images during the session. Combines with narration mode (Session Zero): mode sets baseline, this slider shifts it. Rare = smoother narration, fewer images and lower cost. Often = more images.",
+    "frequencyRare": "Rare (narration smoothness)",
+    "frequencyNormal": "Normal",
+    "frequencyOften": "Often (more images)",
     "styleLabel": "Image style",
     "styleHelp": "Realistic: Photorealistic images • Artistic: Painterly style • Horror: Dark and terrifying • Vintage: Retro style",
     "styleRealistic": "Realistic",
@@ -5065,26 +5274,22 @@
     "styleHorror": "Horror",
     "styleVintage": "Vintage",
     "qualityLabel": "Quality",
-    "qualityHelp": "Low: Fast, cheap • Medium: Balanced • High: Better quality • Ultra: Best quality, but slower and more expensive",
+    "qualityHelp": "Low: Fast, cheap • Medium: Balanced • High: Better quality • Ultra: Best quality",
     "qualityLow": "Low (fast)",
     "qualityMedium": "Medium",
     "qualityHigh": "High",
-    "qualityUltra": "Ultra (slow)",
+    "qualityUltra": "Ultra",
+    "maxImagesLabel": "Maximum images per message",
+    "maxImagesHelp": "How many images the AI can generate in one message (1-5).",
+    "consistencySectionTitle": "Character Identity & Automation",
+    "keepPortraitLabel": "Keep NPC appearance when regenerating portraits",
+    "keepPortraitHelp": "When enabled, portrait regeneration preserves the existing appearance and facial features of the character.",
     "autoPortraitsLabel": "Automatic character portraits",
     "autoPortraitsHelp": "Automatically generate portraits for new player characters.",
     "autoNpcsLabel": "Automatic NPC illustrations",
     "autoNpcsHelp": "Automatically generate illustrations for non-player characters (NPCs) met in the game.",
     "autoLocationsLabel": "Automatic location illustrations",
-    "autoLocationsHelp": "Automatically generate illustrations for new locations visited in the game.",
-    "keepPortraitLabel": "Keep NPC appearance when regenerating portraits",
-    "keepPortraitHelp": "When enabled, portrait regeneration uses Flux Kontext Pro (image-to-image, $0.04), keeping the character's identity. When disabled - generates from scratch via Imagen 4 Ultra ($0.06).",
-    "frequencyLabel": "Scene illustration frequency",
-    "frequencyHelp": "How often the AI generates scene images in the game. Combines with the narration mode (Session Zero): the mode sets the baseline, this slider shifts it. Rare = smoother narration, fewer images and lower cost. Often = more images. In Pure Narration mode images are minimal anyway.",
-    "frequencyRare": "Rare (narration smoothness)",
-    "frequencyNormal": "Normal",
-    "frequencyOften": "Often (more images)",
-    "maxImagesLabel": "Maximum images per message",
-    "maxImagesHelp": "How many images the AI can generate in one message. Higher values = more images but higher cost."
+    "autoLocationsHelp": "Automatically generate illustrations for new locations visited in the game."
   },
   "GeminiHeaderSection": {
     "title": "Gemini API (Google AI)",
@@ -5105,8 +5310,14 @@
     "model20Flash": "Gemini 2.0 Flash (proven)",
     "model20FlashExp": "Gemini 2.0 Flash Experimental",
     "model20FlashLite": "Gemini 2.0 Flash-Lite",
-    "modelFlashLatest": "Gemini Flash Latest (automatic)",
-    "modelProLatest": "Gemini Pro Latest (automatic)"
+    "modelFlashLatest": "Gemini Flash Latest (automatic, newest)",
+    "modelFlashLiteLatest": "Gemini Flash-Lite Latest (fast, low-cost)",
+    "modelProLatest": "Gemini Pro Latest (automatic)",
+    "model38Flash": "Gemini 3.8 Flash (newest Flash)",
+    "model37Flash": "Gemini 3.7 Flash",
+    "model36Flash": "Gemini 3.6 Flash",
+    "model31FlashLite": "Gemini 3.1 Flash-Lite (light)",
+    "modelDeprecated": "deprecated by Google"
   },
   "GeminiCacheSection": {
     "stateOn": "✓ enabled",
@@ -5136,21 +5347,6 @@
     "hintMedium": "Standard reasoning level for most queries",
     "hintHigh": "Deeper reasoning for complex situations, combat and important decisions",
     "multimodalNote": "Multimodality (image input) is automatically active for Gemini 1.5+ and requires no configuration."
-  },
-  "GeminiToolsSection": {
-    "title": "Experimental (Tools)",
-    "stateNone": "○ none",
-    "invalidJson": "Invalid JSON",
-    "toolsMustBeArray": "tools must be an array of function declarations",
-    "toolConfigMustBeObject": "toolConfig must be an object",
-    "errorPrefix": "⚠️ Error: {message}",
-    "warningStrong": "Function Calling - experimental feature.",
-    "warningPrefix": "Fields",
-    "warningMiddle": "and",
-    "warningSuffix": "are passed through to the Gemini API, but the app does not consume function calls in RPG narration yet (planned). Power-user testing OK; production - wait.",
-    "toolsHint": "JSON array of function declarations. Parsed onBlur. Shape validated in the provider.",
-    "toolConfigHintPrefix": "Modes:",
-    "toolConfigHintAny": "(force) ·"
   },
   "TTSSettings": {
     "eyebrow": "Keeper's Voice",
@@ -5187,16 +5383,6 @@
     "unknownError": "unknown",
     "playbackError": "Error playing the Gemini sample"
   },
-  "TtsGoogleSettings": {
-    "voicePickerTitle": "Voice selection (Google)",
-    "voicePickerHelp": "Choose the narrator's voice. Chirp3 HD is the highest quality. Wavenet is high neural quality.",
-    "selectVoicePlaceholder": "Select a voice...",
-    "playSample": "▶ Sample",
-    "sampleText": "Hello, I am your narrator in this dark tale.",
-    "playbackError": "Error playing the sample",
-    "pitchLabel": "Voice pitch (Google)",
-    "pitchHelp": "Google TTS only. -20 = low, +20 = high."
-  },
   "CharacterSwitcher": {
     "activeCharacter": "Active Character",
     "noActiveCharacter": "No active character",
@@ -5204,22 +5390,38 @@
   },
   "AdventureDetailsModal": {
     "eyebrow": "Scenario details",
-    "estimatedSessions": "📅 Estimated at {count} sessions",
-    "tagsExplainTitle": "What do the tags mean?",
-    "fallbackTone": "Tone",
-    "fallbackEra": "Era",
-    "fallbackDifficulty": "Difficulty",
+    "estimatedSessions": "Estimated at {count} sessions",
+    "suggestedOccupationsTitle": "Suggested occupations",
+    "suggestedArchetypesTitle": "Suggested archetypes",
     "themesTitle": "Mood and motifs",
     "close": "Close",
     "choose": "Choose this adventure →"
   },
   "AdventureStyles": {
-    "tonePurist": "Purist", "tonePulp": "Pulp", "toneNoir": "Noir",
-    "eraClassic": "1920s", "eraGaslight": "Victorian era", "eraNoir": "1940s", "eraPrl": "People's Poland - 1970s", "eraModern": "Modern day", "eraCustom": "Custom",
-    "difficultyEasy": "Easy", "difficultyNormal": "Normal", "difficultyHard": "Hard",
-    "tonePuristDescription": "Classic, grim horror. Dread builds slowly, danger is real and the investigators have little chance of heroism.", "tonePulpDescription": "Heroic action. Bolder investigators, more combat and adventure, and less despair.", "toneNoirDescription": "A dark investigation of intrigue, moral ambiguity and big-city secrets.",
-    "eraClassicDescription": "The classic 1920s: Prohibition, automobiles and the golden age of the Cthulhu Mythos.", "eraGaslightDescription": "The Victorian era: gas lamps, spiritualism and Gothic horror.", "eraNoirDescription": "The 1940s: war, reconstruction, radio and investigations in the shadow of history.", "eraPrlDescription": "Poland in the 1970s: queues, state institutions, analogue technology and distrust.", "eraModernDescription": "The present day: smartphones, the internet and cosmic horror in a digital world.", "eraCustomDescription": "An era defined by the player.",
-    "difficultyEasyDescription": "A gentler challenge for a first game, with fewer deadly traps.", "difficultyNormalDescription": "A standard challenge that rewards caution and sound judgment.", "difficultyHardDescription": "Demanding and deadly. It does not forgive mistakes."
+    "tonePurist": "Purist",
+    "tonePulp": "Pulp",
+    "toneNoir": "Noir",
+    "eraClassic": "1920s",
+    "eraGaslight": "Victorian era",
+    "eraNoir": "1940s",
+    "eraPrl": "People's Poland - 1970s",
+    "eraModern": "Modern day",
+    "eraCustom": "Custom",
+    "difficultyEasy": "Easy",
+    "difficultyNormal": "Normal",
+    "difficultyHard": "Hard",
+    "tonePuristDescription": "Classic, grim horror. Dread builds slowly, danger is real and the investigators have little chance of heroism.",
+    "tonePulpDescription": "Heroic action. Bolder investigators, more combat and adventure, and less despair.",
+    "toneNoirDescription": "A dark investigation of intrigue, moral ambiguity and big-city secrets.",
+    "eraClassicDescription": "The classic 1920s: Prohibition, automobiles and the golden age of the Cthulhu Mythos.",
+    "eraGaslightDescription": "The Victorian era: gas lamps, spiritualism and Gothic horror.",
+    "eraNoirDescription": "The 1940s: war, reconstruction, radio and investigations in the shadow of history.",
+    "eraPrlDescription": "Poland in the 1970s: queues, state institutions, analogue technology and distrust.",
+    "eraModernDescription": "The present day: smartphones, the internet and cosmic horror in a digital world.",
+    "eraCustomDescription": "An era defined by the player.",
+    "difficultyEasyDescription": "A gentler challenge for a first game, with fewer deadly traps.",
+    "difficultyNormalDescription": "A standard challenge that rewards caution and sound judgment.",
+    "difficultyHardDescription": "Demanding and deadly. It does not forgive mistakes."
   },
   "ApiUsageCounter": {
     "collapse": "Collapse counter",
@@ -5342,7 +5544,10 @@
     "mechanicSkill": "Skill",
     "mechanicBonus": "Bonus",
     "loreTitle": "Item description",
-    "appearanceLabel": "Appearance:"
+    "appearanceLabel": "Appearance:",
+    "documentPreviewTitle": "Document content",
+    "expandDocument": "Expand document",
+    "collapseDocument": "Collapse to item details"
   },
   "CharacterManager": {
     "noCharactersToExport": "No characters to export",
@@ -5377,18 +5582,115 @@
     "emptyTitle": "No investigators",
     "emptyDesc": "Create your first investigator to start the investigation."
   },
+  "OpposedRoll": {
+    "title": "CoC 7e Opposed Roll",
+    "subtitle": "Direct contest — higher success level wins (RAW)",
+    "playerLabel": "Investigator",
+    "opponentLabel": "Adversary",
+    "skill": "Skill / Characteristic",
+    "baseValue": "Base value",
+    "thresholds": "Success thresholds",
+    "thresholdRegular": "Regular",
+    "thresholdHard": "Hard ½",
+    "thresholdExtreme": "Extreme ⅕",
+    "thresholdFumble": "Fumble",
+    "bonusDice": "Bonus / penalty dice",
+    "penaltyDice": "Penalty dice",
+    "noDiceModifier": "No modifiers",
+    "rollButton": "Roll dice (Both sides)",
+    "rolling": "Rolling dice...",
+    "verdictTitle": "Rulebook Verdict (CoC 7e RAW)",
+    "winByOutcomeRank": "{winner} wins! Higher success level ({winnerRank} vs {loserRank}).",
+    "winBySkillValue": "Level tie ({outcome})! {winner} wins with higher base value ({winnerSkill}% vs {loserSkill}%).",
+    "exactTie": "Absolute stalemate! Identical level ({outcome}) and equal base value ({skillValue}%).",
+    "mutualFailure": "Mutual failure! Neither side achieves their intended goal.",
+    "outcomeCritical": "Critical (01)",
+    "outcomeExtreme": "Extreme",
+    "outcomeHard": "Hard",
+    "outcomeRegular": "Regular",
+    "outcomeFail": "Failure",
+    "outcomeFumble": "Fumble",
+    "rerollButton": "Reroll (Resolve tie)",
+    "sendToChatButton": "Send to narration",
+    "closeButton": "Close",
+    "rulebookTieExplanation": "According to the CoC 7e Keeper Rulebook: a tied success level is won by higher characteristic value. Equal values result in a stalemate or reroll."
+  },
+  "Chase": {
+    "title": "CoC 7e Chase (RAW)",
+    "subtitle": "Hazard Track — fleeing from pursuit",
+    "roundLabel": "Round {round}/{maxRounds}",
+    "distanceLabel": "Distance: {distance} {distance, plural, one {location} other {locations}}",
+    "actionsRemaining": "Remaining actions: {count}",
+    "fleeingBadge": "Fleeing",
+    "pursuerBadge": "Pursuit",
+    "actionSprint": "Sprint forward",
+    "actionSprintDesc": "Quick run by 1 track segment. Cost: 1 action.",
+    "actionClearHazard": "Clear hazard",
+    "actionClearHazardDesc": "{skill} check ({difficulty}) to bypass barrier without losing momentum.",
+    "actionShortcut": "Daring shortcut",
+    "actionShortcutDesc": "Risky alleyway maneuver. Success gains +2 segments!",
+    "actionCreateBarrier": "Create barrier behind",
+    "actionCreateBarrierDesc": "Topple furniture or slam an iron gate shut to slow pursuers.",
+    "actionHide": "Vanish into shadows",
+    "actionHideDesc": "Attempt to instantly break visual contact (Stealth check).",
+    "caughtTitle": "Caught!",
+    "caughtDesc": "Pursuers intercepted the investigator! Immediate transition to melee combat.",
+    "escapedTitle": "Escaped!",
+    "escapedDesc": "You lost your pursuers in the maze of streets. You are safe!",
+    "sendToChatButton": "Send to narration",
+    "closeButton": "Close",
+    "hazardFence": "Tall chain-link fence",
+    "hazardCrowd": "Dense market crowd",
+    "hazardStairs": "Steep, crumbling stairs",
+    "hazardTraffic": "Busy street with vehicles"
+  },
+  "CombatDefense": {
+    "title": "Melee Combat Defense",
+    "chooseReaction": "Choose reaction",
+    "defenseResolved": "Defense resolved",
+    "incomingAttackWithWeapon": "{attacker} launches a melee attack with {weapon}!",
+    "incomingAttackUnarmed": "{attacker} launches a melee attack!",
+    "outnumberedWarningTitle": "Outnumbered",
+    "outnumberedWarningDesc": "You have already used your free defense this round. The attacker gains a bonus die (+1B)!",
+    "actionDodge": "Dodge",
+    "riskLow": "Low risk",
+    "dodgeDescription": "Slip away from the blow. On tied success levels, the defender wins (no damage).",
+    "skillValue": "Skill",
+    "actionFightBack": "Fight Back",
+    "riskHigh": "High risk",
+    "fightBackDescription": "Counter with an attack. On a tie, the attacker wins. You must roll strictly better to deal damage.",
+    "actionManeuver": "Fighting Maneuver",
+    "blocked": "Blocked",
+    "maneuverBlockedByBuild": "Target's Build difference is too great (≥3) - maneuver impossible (RAW).",
+    "maneuverDescription": "Grapple, knockdown, or disarm. On tied success levels, the defender wins.",
+    "maneuverKnockdown": "Knockdown",
+    "maneuverGrapple": "Grapple",
+    "maneuverDisarm": "Disarm",
+    "executeManeuver": "Execute",
+    "rulebookTieReminder": "CoC 7e Keeper Rulebook RAW: Dodge wins ties; Fight Back ties favor the attacker."
+  },
+  "QuickCombatTracker": {
+    "title": "Combat",
+    "playerName": "Investigator",
+    "outnumberedBadge": "Outnumbered (+1B for enemy)",
+    "majorWoundBadge": "Major Wound!",
+    "criticalCondition": "Critical condition!",
+    "damageDealt": "Took {damage} damage"
+  },
   "CombatUtils": {
     "tacticalDodgeDesc": "Avoid an attack (Dodge test). You can dodge multiple attacks, but each subsequent one is penalized.",
     "tacticalCounterattackDesc": "Counterattack! Opposed fighting skill check. Winning means dealing damage.",
     "tacticalFleeDesc": "Attempt to escape. You risk one opportunity attack from each opponent.",
     "tacticalParryDesc": "Parry with a weapon or shield. Requires a suitable item.",
     "tacticalFightBackDesc": "Fight defensively - reduced chance to hit, but also to be hit.",
+    "tacticalManeuverDesc": "Perform a maneuver: grapple, knockdown, or disarm (depends on Build).",
     "penaltyDiceSuffix": "(Penalty Die x{count} for previous dodges)",
     "actionDodge": "Dodge",
     "actionCounterattack": "Counterattack",
     "actionFlee": "Flee",
     "actionParry": "Parry",
     "actionFightBack": "Fight back",
+    "actionManeuver": "Fighting Maneuver",
     "reactionTitle": "🛡️ Reaction to Attack",
     "yourTurnTitle": "⚔️ Your Turn",
     "enemyAttacks": "The enemy attacks you! Choose your reaction:",
@@ -5542,8 +5844,31 @@
     "cancelX": "❌ Cancel",
     "editFormTitle": "✏️ Edit Combatant",
     "saveChanges": "💾 Save Changes",
-    "critDouble": " × 2 (critical!) = {damage}"
+    "critDouble": " × 2 (critical!) = {damage}",
+    "firearmMalfunctionDesc": "WEAPON MALFUNCTION! Roll {roll} ≥ {threshold}. Firearm jammed (RAW: Luck cannot be spent!).",
+    "impaleNotice": "(Impale! CoC 7e RAW Extreme Success: max weapon damage + extra dice roll)",
+    "firearmMissDesc": "Miss ({roll} > {target})"
   },
+  "CombatFirearms": {
+    "pointBlank": "Point-blank shot (+1 bonus die)",
+    "pointBlankDiveCover": "Target dove for cover (Dive for Cover) - bonus die cancelled",
+    "longRange": "Long range (1 penalty die)",
+    "extremeRange": "Extreme range (2 penalty dice)",
+    "outOfRange": "Out of range (shot impossible)",
+    "malfunctionJam": "Firearm malfunction ({roll} ≥ {threshold})",
+    "luckForbidden": "Rules As Written: Luck cannot be spent on a firearm malfunction!",
+    "multipleShotsPenalty": "Shot #{shot} in round (+{penalty}P)",
+    "burstTitle": "Automatic fire burst",
+    "burstFired": "Fired burst of {count} bullets",
+    "burstHits": "Hit with {hits}/{total} bullets",
+    "burstExtreme": "Extreme success! All bullets hit, half with Impale!",
+    "jamClearingSimple": "Simple clearing: 1 full round",
+    "jamClearingStandard": "Clearing: 1 round + Firearms / Mechanical Repair test",
+    "jamClearingComplex": "Complex jam: 1d6 rounds (requires Mechanical Repair)",
+    "reloadSingle": "Manual loading: 2 bullets per 1 combat round",
+    "reloadMagazine": "Magazine change / speedloader: 1 full round"
+  },
+
   "FullGameSaveModal": {
     "saveEyebrow": "Archive · save state",
     "loadEyebrow": "Archive · load",
@@ -5685,8 +6010,8 @@
     "defaultEraLabel": "Custom",
     "deleteConfirm": "Are you sure you want to delete this adventure?",
     "selectedAria": "Selected adventure",
-    "sessionsCount": "⏱️ {count} sessions",
-    "officialSources": "📺 Official sources:",
+    "sessionsCount": "{count} sessions",
+    "officialSources": "Official sources:",
     "moreDetails": "More details",
     "deleteAdventureTitle": "Delete adventure",
     "deleteButton": "Delete",
@@ -5697,24 +6022,24 @@
     "publicModeInfo1": "The Keeper is an <strong>engine</strong> - there are no ready-made scenarios. You bring the adventure.",
     "publicModeInfo2": "Do you have the free Black Monk starter (or your own rulebook)? <strong>Upload its PDF file below</strong> - the AI will read the scenario and prepare the adventure.",
     "publicModeInfo3": "Reading the PDF requires your Gemini key (Settings).",
-    "yourAdventures": "📂 Your adventures",
+    "yourAdventures": "Your adventures",
     "uploadButton": "Upload adventure (PDF)",
     "processingBook": "Processing the book of secrets...",
     "aiAnalyzing": "The AI is analyzing the adventure and automatically filling in details...",
     "uploadHint": "e.g. the free starter downloaded from Black Monk",
-    "strefa11Header": "📺 Original Scenarios (Inspired by the \"Strefa 11\" / \"Nie do wiary\" TV show - TVN)",
+    "strefa11Header": "Original Scenarios (Inspired by the \"Strefa 11\" / \"Nie do wiary\" TV show - TVN)",
     "strefa11Desc": "Polish RPG adventure scenarios set in communist-era Poland and the 1990s/2000s. Each adventure comes with ready, balanced Investigator characters.",
-    "learnMore": "🔗 Learn more:",
-    "strefa11SelectTitle": "📺 Choose a Strefa 11 scenario",
-    "selectScenarioTitle": "🎲 Choose a scenario",
+    "learnMore": "Learn more:",
+    "strefa11SelectTitle": "Choose a Strefa 11 scenario",
+    "selectScenarioTitle": "Choose a scenario",
     "customCardTitle": "Custom Adventure",
     "customCardSubtitle": "Describe yours without a PDF",
     "customCardDesc": "Have your own scenario or want to create an adventure from scratch? Provide basic context and the AI will adapt character generation.",
-    "detailsTitle": "ℹ️ Adventure details",
+    "detailsTitle": "Adventure details",
     "detailsHelp": "This information will be used to match characters to the scenario",
     "themesLabel": "Themes:",
     "suggestedOccupationsLabel": "Suggested occupations:",
-    "formIntro": "💡 Provide basic information about your adventure. The more detail, the better the AI will match the generated character to the context.",
+    "formIntro": "Provide basic information about your adventure. The more detail, the better the AI will match the generated character to the context.",
     "adventureTitleLabel": "Adventure title",
     "titlePlaceholder": "e.g. Mystery of the Old Manor",
     "locationLabel": "Location",
@@ -6070,10 +6395,31 @@
     "categoryCharacters": "Characters",
     "categoryItems": "Items",
     "categoryQuests": "Missions",
+    "categoryClues": "Evidence & Dossier",
+    "categoryNotes": "Investigator's Notes",
+    "categoryEvidence": "Clues & Forensic",
     "emptyPlaces": "No locations discovered yet.",
     "emptyCharacters": "No characters met yet.",
     "emptyItems": "No items found yet.",
     "emptyQuests": "No missions in the journal.",
+    "emptyClues": "No clues discovered yet.",
+    "emptyNotes": "No personal investigator notes.",
+    "clueCategoryForensic": "Forensic & Physical",
+    "clueCategoryDocument": "Documents & Press",
+    "clueCategoryTestimony": "Witness Testimony",
+    "clueCategoryOccult": "Occult & Mythos",
+    "clueStatusUnconfirmed": "Unconfirmed",
+    "clueStatusConfirmed": "Confirmed",
+    "clueStatusDisproven": "Disproven",
+    "npcRelFriendly": "Friendly",
+    "npcRelNeutral": "Neutral",
+    "npcRelHostile": "Hostile",
+    "npcRelSuspicious": "Suspicious",
+    "npcRelUnknown": "Unknown",
+    "npcRelDeceased": "Deceased",
+    "locStatusUnvisited": "Unvisited",
+    "locStatusPartiallySearched": "Partially Searched",
+    "locStatusThoroughlySearched": "Thoroughly Searched",
     "questActive": "Active",
     "questCompleted": "Completed",
     "questFailed": "Failed",
@@ -6095,7 +6441,28 @@
     "objectivesHeading": "MISSION OBJECTIVES",
     "objectiveCompleted": "COMPLETED: {date}",
     "discoveriesInCategory": "Discoveries in category: {category}",
-    "selectFromList": "Select an entry from the list on the left"
+    "selectFromList": "Select an entry from the list on the left",
+    "keyClueBadge": "KEY CLUE",
+    "fullscreenPreview": "Fullscreen Preview",
+    "closeLightbox": "Close preview (Esc)",
+    "sourceLabel": "SOURCE:",
+    "witnessLabel": "WITNESS:",
+    "locationLabel": "LOCATION:",
+    "occupationLabel": "OCCUPATION:",
+    "addressLabel": "REGION:",
+    "categoryLabel": "CATEGORY:",
+    "searchStatusLabel": "EXPLORATION:",
+    "relationshipLabel": "RELATIONSHIP:",
+    "changeStatusTooltip": "Click to change clue status",
+    "changeRelTooltip": "Click to change relationship",
+    "changeSearchTooltip": "Click to change search status",
+    "allCategories": "All dossiers",
+    "fastFilterPlaceholder": "Fast FTS filter (e.g. name, clue)...",
+    "matchingCount": "{count} matching",
+    "categoryHandouts": "Handouts & Documents",
+    "emptyHandouts": "No handouts or documents secured yet.",
+    "quoteToChatTitle": "Quote and ask in chat (Quote-to-Input)",
+    "quoteToChatAction": "Ask about this in chat"
   },
   "LocationManager": {
     "title": "📍 Location Manager",
@@ -6300,7 +6667,20 @@
     "backNav": "‹ Back",
     "stepCounter": "Step {step} of {total}",
     "finishAndSaveNav": "Finish and save ›",
-    "nextNav": "Next ›"
+    "nextNav": "Next ›",
+    "suggestedLinesLabel": "Suggested forbidden topics (click to add):",
+    "suggestedVeilsLabel": "Suggested fade-to-black topics (click to add):",
+    "violenceAnimals": "Harm to animals",
+    "suicide": "Suicide & self-harm",
+    "claustrophobia": "Claustrophobia",
+    "spidersInsects": "Spiders & insects",
+    "cannibalism": "Cannibalism",
+    "lossOfControl": "Loss of mental control",
+    "ritualsBlood": "Blood rituals & sacrifice",
+    "surgeriesAmputation": "Graphic surgery & amputation",
+    "bodyHorror": "Body horror & deformation",
+    "backToStep1": "Back to mode selection",
+    "backToStep2": "Back to lines and veils"
   },
   "NpcManager": {
     "headerKicker": "Met characters · Non-player characters",
@@ -6712,7 +7092,38 @@
     "mdTypeLocation": "Location",
     "mdTypeItem": "Item",
     "mdNotesSection": "## 📝 Notes & Theories\n\n",
-    "mdSavedLine": "*Saved: {date}*\n\n"
+    "mdSavedLine": "*Saved: {date}*\n\n",
+    "mdDossierTitle": "# 📁 Investigator's Dossier\n\n",
+    "mdDossierTitleOwner": "# 📁 Investigator's Dossier: {owner}\n\n",
+    "mdCluesSection": "## 🔍 Evidence & Clues Dossier\n\n",
+    "mdClueCategoryLine": "*Category: {category} | Status: {status}*\n",
+    "mdClueSourceLine": "*Source: {source}*\n",
+    "mdInsightLine": "> **Investigator Deduction:** {insight}\n\n",
+    "mdNpcSection": "## 👥 Person of Interest Dossier (NPC)\n\n",
+    "mdNpcRelationLine": "*Relationship: {relation} | Occupation: {occupation}*\n",
+    "mdLocationsSection": "## 📍 Location Atlas\n\n",
+    "mdLocationStatusLine": "*Search Status: {status}*\n",
+    "mdHandoutsSection": "## 📜 Handouts & Documents\n\n",
+    "clueCategoryForensic": "Forensic & Physical",
+    "clueCategoryDocument": "Documents & Press",
+    "clueCategoryTestimony": "Witness Testimony",
+    "clueCategoryOccult": "Occult & Mythos",
+    "clueStatusUnconfirmed": "Unconfirmed",
+    "clueStatusConfirmed": "Confirmed",
+    "clueStatusDisproven": "Disproven",
+    "npcRelFriendly": "Friendly",
+    "npcRelNeutral": "Neutral",
+    "npcRelHostile": "Hostile",
+    "npcRelSuspicious": "Suspicious",
+    "npcRelUnknown": "Unknown",
+    "npcRelDeceased": "Deceased",
+    "locStatusUnvisited": "Unvisited",
+    "locStatusPartiallySearched": "Partially Searched",
+    "locStatusThoroughlySearched": "Thoroughly Searched",
+    "recordDate": "RECORDED: {date}",
+    "ideaRollButton": "💡 Idea Roll (INT)",
+    "ideaRollTooltip": "Perform an Idea Roll on Intelligence characteristic according to CoC 7e RAW rules",
+    "quoteToChatTitle": "Quote and ask in chat (Quote-to-Input)"
   },
   "SessionList": {
     "title": "📚 Session List",
@@ -6756,5 +7167,62 @@
     "clearConfirm": "Are you sure you want to clear the entire timeline?",
     "clearButton": "🗑️ Clear",
     "sessionExportTitle": "Session {date}"
+  },
+  "RulebookModal": {
+    "title": "CoC 7e Rulebook",
+    "description": "Upload the official Call of Cthulhu 7th Edition rulebook (PDF). The file will be processed and indexed locally on your device - it never leaves your machine.",
+    "privacyLabel": "Privacy & Local Processing:",
+    "privacyDescription": "Your PDF is parsed directly on your computer and stored in the local knowledge base (data/rag/rules). Required for Keeper mechanics and skill rolls.",
+    "requiredBadge": "Required",
+    "readyBadge": "Ready",
+    "dropZonePrompt": "Click to select a rulebook PDF file",
+    "dropZoneSub": "Supported format: PDF document (e.g. CoC 7e Keeper Rulebook)",
+    "processingTitle": "Processing rulebook...",
+    "processingDescription": "Parsing content and generating knowledge embeddings (this may take from a few seconds up to a few minutes)...",
+    "indexingChunkn": "Indexing rulebook chunks...",
+    "successTitle": "Rulebook successfully loaded!",
+    "successIndexed": "Indexed {count} fragments in local rules memory.",
+    "errorTitle": "Error uploading rulebook",
+    "retry": "Try again",
+    "selectAnother": "Select another file",
+    "close": "Close",
+    "continueToGame": "Ready, proceed to game",
+    "statusCurrent": "Current database status:",
+    "statusChunks": "{count} rule chunks in local index",
+    "sourcesTitle": "Where to legally acquire the rulebook?",
+    "sourcesDesc": "Strażnik Tajemnic is an engine and does not contain rulebook content. Download a free starter or purchase the full edition:",
+    "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. Call of Cthulhu is a trademark of Chaosium Inc. Use only legally acquired copies."
+  },
+  "IdeaRoll": {
+    "headerSubtitle": "CoC 7e RAW Mechanics (pp. 199-201)",
+    "headerTitle": "Idea Roll (INT Test)",
+    "headerDescription": "According to Call of Cthulhu 7e rules, the Idea Roll serves to push the investigation forward when investigators hit a dead end.",
+    "subjectLabel": "FOCUSED ELEMENT:",
+    "generalInvestigationLabel": "ANALYSIS SCOPE:",
+    "generalDeductionTitle": "General investigation - synthesis of known clues",
+    "thresholdRegular": "Regular",
+    "thresholdHard": "Hard",
+    "thresholdExtreme": "Extreme",
+    "thresholdCritical": "Critical",
+    "rollButton": "Execute Idea Roll (INT)",
+    "rawRuleHint": "Success provides a clear deduction. Failure also provides the vital clue, but at the cost of a narrative complication (RAW).",
+    "reroll": "Reroll",
+    "verdictSuccess": "Success - investigator experiences a breakthrough",
+    "verdictFailureWithComplication": "Failure - clue attained with complication (RAW)",
+    "analyzingClues": "Keeper is analyzing clues and evidence...",
+    "deductionResultHeading": "KEEPER DEDUCTION & CONCLUSION",
+    "leadClean": "Clean lead",
+    "leadComplication": "Lead with complication",
+    "closeButton": "Close",
+    "quoteToChatButton": "Ask in chat",
+    "quoteToChatTooltip": "Pastes declaration template into chat input and returns to game",
+    "savedToTargetButton": "Saved in clue",
+    "saveToTargetButton": "Save in clue",
+    "savedToChronicleButton": "Saved in Chronicle",
+    "saveToChronicleButton": "Save in Chronicle",
+    "chronicleTitleSubject": "Idea Roll deduction: {title}",
+    "chronicleTitleGeneral": "Investigator breakthrough ({name}) - Idea Roll",
+    "fallbackSuccess": "Upon thorough analysis of gathered clues, investigator {name} notices a hidden connection that casts new light on the mystery.",
+    "fallbackFailure": "Investigator {name} reaches the vital deduction, but a moment of distraction draws unwanted attention or costs precious time."
   }
 }

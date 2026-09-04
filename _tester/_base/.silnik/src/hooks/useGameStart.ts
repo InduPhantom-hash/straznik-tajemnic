@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Character,
   Message,
@@ -191,6 +191,10 @@ export function useGameStart({
   runHealthCheck,
   locale = 'pl',
 }: UseGameStartProps) {
+  const [isStarting, setIsStarting] = useState(false);
+  const [startProgress, setStartProgress] = useState(0);
+  const [startStatus, setStartStatus] = useState('');
+
   // IND-271: kolejka auto-generacji miniatur ekwipunku w tle (fire-and-forget
   // po starcie gry, NIE blokuje startu; cache-aware - pomija itemy z imageUrl).
   const { generateThumbnailsInBackground } = useEquipmentThumbnails({
@@ -333,14 +337,43 @@ export function useGameStart({
         const locationContext =
           adventureContext?.location || 'mysterious New England town';
         const rawEra = String(eraContext.effectiveYear);
-        const vehicleGuidance = getEraVehicleVisualDescription(rawEra);
-        const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${rawEra} period-accurate, ${vehicleGuidance}, realistic, cinematic, moody natural lighting.`;
+        // Wyciągnij porę roku i aurę z aktualnego czasu gry i pogody
+        const gameTime = typeof window !== 'undefined' ? timeManager.getTime() : null;
+        const weather = typeof window !== 'undefined' ? timeManager.getWeather() : '';
+
+        const month = gameTime?.month ?? 0;
+        const seasonAtmosphere =
+          month === 11 || month === 0 || month === 1
+            ? 'winter season, cold winter atmosphere, bare trees'
+            : month >= 2 && month <= 4
+              ? 'spring season, cool damp atmosphere'
+              : month >= 5 && month <= 7
+                ? 'summer season, hazy daylight'
+                : 'autumn season, chilly autumn atmosphere, fallen leaves';
+
+        let weatherAtmosphere = 'moody natural lighting';
+        if (/mgła|mgly|fog|haze/i.test(weather)) {
+          weatherAtmosphere = 'misty morning fog, thick haze, eerie gloom';
+        } else if (/deszcz|rain/i.test(weather)) {
+          weatherAtmosphere = 'cold rain, wet glistening ground, dark overcast sky';
+        } else if (/śnieg|snow|mróz|frost/i.test(weather)) {
+          weatherAtmosphere = 'frost and snow dusting, freezing cold mist';
+        }
+
+        // Pojazd tylko gdy scena/lokacja wyraźnie dotyczy podróży lub drogi
+        const isVehicleScene =
+          /\b(car|automobile|vehicle|drive|driving|road|highway|szosa|droga|parking)\b/i.test(
+            locationContext
+          );
+        const vehicleGuidance = isVehicleScene
+          ? `, ${getEraVehicleVisualDescription(rawEra)}`
+          : '';
+
+        const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${seasonAtmosphere}, ${weatherAtmosphere}, ${rawEra} period-accurate${vehicleGuidance}, realistic, cinematic, moody lighting.`;
 
         const response = await fetchWithRetry('/api/imagen', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // IND-216: establishing shot w formacie pocztówkowym 16:9 (orchestrator
-          // forwarduje ...body do Vertex/Replicate). Render kadruje object-cover.
           body: JSON.stringify({
             prompt: imagePrompt,
             style: 'location',
@@ -367,6 +400,11 @@ export function useGameStart({
             void persistentMediaCache
               .setChatImage(messageId, imageIndex, imageData.imageUrl)
               .catch(() => {});
+            if (adventureContext?.location) {
+              void persistentMediaCache
+                .setLocationImage(adventureContext.location.trim(), imageData.imageUrl)
+                .catch(() => {});
+            }
             return {
               ...message,
               generatedImages: [
@@ -412,11 +450,35 @@ export function useGameStart({
   const handleStartGame = useCallback(async () => {
     if (isStartingRef.current) return;
     isStartingRef.current = true;
+    setIsStarting(true);
+    setStartProgress(15);
+    setStartStatus(
+      locale === 'en'
+        ? 'Initializing session parameters...'
+        : 'Inicjalizacja parametrów sesji...'
+    );
+
+    // Autostart muzyki w tle (YouTubePlayer nasłuchuje 'zew:start-music').
+    // MUSI paść synchronicznie w obrębie gestu kliknięcia „Rozpocznij",
+    // PRZED pierwszym await - inaczej przeglądarka zablokuje odtwarzanie dźwięku.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zew:start-music'));
+    }
 
     if (!adventureContext) {
       isStartingRef.current = false;
+      setIsStarting(false);
+      setStartProgress(0);
+      setStartStatus('');
       return;
     }
+
+    setStartProgress(30);
+    setStartStatus(
+      locale === 'en'
+        ? 'Preparing world and era settings...'
+        : 'Przygotowywanie założeń świata i epoki...'
+    );
 
     const eraContext = resolveGameEraContext({ adventure: adventureContext });
     if (!adventureContext.isCustom) {
@@ -424,6 +486,12 @@ export function useGameStart({
       // dodatkowego kosztu tylko po to, aby wejść do pierwszej sceny.
       storeWorldSetup(createPresetWorldSetup(adventureContext, eraContext));
     } else {
+      setStartProgress(40);
+      setStartStatus(
+        locale === 'en'
+          ? 'Analyzing scenario and historical coherence...'
+          : 'Analiza scenariusza i spójności historycznej...'
+      );
       try {
         const preflightSource = JSON.stringify({
           title: adventureContext.title,
@@ -481,6 +549,9 @@ export function useGameStart({
         storeWorldSetup(preflightPayload.worldSetup);
       } catch (error) {
         console.error('World preflight failed:', error);
+        setIsStarting(false);
+        setStartProgress(0);
+        setStartStatus('');
         setHasStartedGame(false);
         setMessages([
           {
@@ -501,18 +572,15 @@ export function useGameStart({
     // IND-273 T3: self-check klucza/modeli (fire-and-forget, TTL dławi, nie blokuje startu).
     runHealthCheck?.();
 
-    // Włącz hard-loading screen dla powitalnego intra TTS (zniknie po pobraniu 1 paczki)
+    // Buforowanie TTS w tle
     tts.startInitialBuffering();
 
-    setHasStartedGame(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('has_started_game', 'true');
-      localStorage.setItem('session_started_at', String(Date.now()));
-      // Autostart muzyki w tle (YouTubePlayer nasłuchuje 'zew:start-music').
-      // MUSI paść synchronicznie w obrębie gestu kliknięcia „Rozpocznij",
-      // PRZED pierwszym await - inaczej przeglądarka zablokuje odtwarzanie dźwięku.
-      window.dispatchEvent(new CustomEvent('zew:start-music'));
-    }
+    setStartProgress(55);
+    setStartStatus(
+      locale === 'en'
+        ? 'Verifying investigator sheet and equipment...'
+        : 'Weryfikacja karty Badacza i ekwipunku...'
+    );
 
     // IND-57: zeruj licznik tokenów bieżącej sesji (totalTokens zostaje - career counter)
     resetSessionTokens();
@@ -587,6 +655,12 @@ export function useGameStart({
         : hotSeatConfig;
 
       // Zadanie 6: retry na chwilowy blip sieci przy starcie gry (1-2 próby).
+      setStartProgress(75);
+      setStartStatus(
+        locale === 'en'
+          ? 'Connecting with the Game Master...'
+          : 'Nawiązywanie kontaktu z Mistrzem Gry...'
+      );
       const response = await fetchWithRetry('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -620,6 +694,13 @@ export function useGameStart({
         throw new Error(`Chat API ${response.status}: ${serverMsg}`);
       }
 
+      setStartProgress(75);
+      setStartStatus(
+        locale === 'en'
+          ? 'Generating opening scene...'
+          : 'Generowanie sceny otwierającej...'
+      );
+
       // Dodaj pustą wiadomość asystenta do strumieniowania
       setMessages((prev) => [
         ...prev,
@@ -633,6 +714,37 @@ export function useGameStart({
       // Obraz należy do tej samej wiadomości MG co intro. Uruchamiamy go po
       // utworzeniu placeholdera, aby wynik nie utworzył osobnej karty czatu.
       void generateIntroImage(assistantMessageId);
+
+      // Płynne przełączenie ekranu z panelu konfiguracji do czatu PO wyrenderowaniu
+      // całego wstępu (Issue #123). Gracz nie ogląda streamowania ściany tekstu,
+      // lecz wchodzi od razu do gotowej, sformatowanej sceny otwierającej.
+      let hasTransitionedToGame = false;
+      const transitionToGame = (immediate = false): Promise<void> => {
+        if (hasTransitionedToGame) return Promise.resolve();
+        hasTransitionedToGame = true;
+        setStartProgress(100);
+        setStartStatus(
+          locale === 'en' ? 'Beginning the adventure!' : 'Zaczynamy przygodę!'
+        );
+        const finalize = () => {
+          setHasStartedGame(true);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('has_started_game', 'true');
+            localStorage.setItem('session_started_at', String(Date.now()));
+          }
+          setIsStarting(false);
+        };
+        if (immediate) {
+          finalize();
+          return Promise.resolve();
+        }
+        return new Promise<void>((resolve) => {
+          setTimeout(() => {
+            finalize();
+            resolve();
+          }, 350);
+        });
+      };
 
       // Użyj uniwersalnego parsera SSE.
       // IND-256 (bliźniak useChat): `streamedFullText` akumuluje pełny tekst z
@@ -651,6 +763,15 @@ export function useGameStart({
               msg.id === assistantMessageId ? { ...msg, content: text } : msg
             )
           );
+          // Płynny mikro-postęp 75% -> 95% podczas dopisywania tekstu wstępu przez AI
+          const dynamicProgress = Math.min(95, 75 + Math.floor(text.length / 40));
+          setStartProgress((prev) => Math.max(prev, dynamicProgress));
+          setStartStatus(
+            locale === 'en'
+              ? 'Spelling out the opening chronicle...'
+              : 'Spisywanie kroniki otwarcia...'
+          );
+
           // Inkrementalny TTS
           if (tts.voiceEnabled && tts.isTTSEnabled) {
             tts.addToQueue(text, assistantMessageId);
@@ -704,6 +825,9 @@ export function useGameStart({
         }),
       });
 
+      // Zakończono generowanie pełnego otwarcia: odsłoń czat z gotową sceną (Issue #123)
+      await transitionToGame();
+
       // IND-201: auto-dziennik dla openingu (opening idzie tym samym /api/chat
       // z gm-protocol, może nieść [DZIENNIK:]). Idempotentne (dedup po messageId).
       if (activeCharacter) {
@@ -725,6 +849,10 @@ export function useGameStart({
       }
     } catch (error) {
       console.error('Game start intro failed:', error);
+      setIsStarting(false);
+      setStartProgress(0);
+      setStartStatus('');
+      setHasStartedGame(true);
       tts.stopCurrentAudio();
       // Zadanie 6: po wyczerpaniu retry pokaż graczowi co się stało zamiast pustego
       // ekranu - blip sieci dostaje wskazówkę "spróbuj ponownie", inny błąd ogólny.
@@ -753,6 +881,7 @@ export function useGameStart({
       });
     } finally {
       isStartingRef.current = false;
+      setIsStarting(false);
     }
   }, [
     setHasStartedGame,
@@ -773,5 +902,10 @@ export function useGameStart({
     locale,
   ]);
 
-  return { handleStartGame };
+  return {
+    handleStartGame,
+    isStarting,
+    startProgress,
+    startStatus,
+  };
 }

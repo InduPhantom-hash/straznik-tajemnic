@@ -166,6 +166,48 @@ export function MessageCard({
                 </div>
               )}
             </div>
+
+            {/* Wygenerowane obrazy - ZAWSZE na szczycie wiadomości przed tekstem */}
+            {message.generatedImages && message.generatedImages.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-4 items-start">
+                {message.generatedImages.map((imgUrl, idx) => {
+                  const imgType = message.generatedImageTypes?.[idx];
+                  const isPortrait = imgType === 'portrait';
+                  const isItem = imgType === 'item';
+                  const isCompact = isPortrait || isItem;
+                  return (
+                  <div
+                    key={idx}
+                    className={`relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg ${
+                      isCompact ? 'w-48 sm:w-56 flex-shrink-0' : 'w-full'
+                    }`}
+                    style={{
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                    }}
+                  >
+                    <SafeImage
+                      src={imgUrl}
+                      alt={isPortrait ? t('portraitAlt', { value: idx + 1 }) : t('sceneAlt', { value: idx + 1 })}
+                      className={`w-full cursor-pointer hover:opacity-90 transition-opacity ${
+                        isPortrait
+                          ? 'aspect-[3/4] object-cover object-top'
+                          : isItem
+                            ? 'aspect-square object-contain bg-black/40 p-2'
+                            : 'h-auto max-h-[70vh] object-contain bg-black/30'
+                      }`}
+                      style={{
+                        filter: 'sepia(0.1) saturate(1.1)',
+                      }}
+                      loading="lazy"
+                      onClick={() =>
+                        onImageClick(imgUrl, message.generatedImages || [])
+                      }
+                    />
+                  </div>
+                )})}
+              </div>
+            )}
+
             {/* Formatowanie wiadomości - różne dla MG vs gracza */}
             {message.role === 'assistant' ? (
               <>
@@ -195,42 +237,6 @@ export function MessageCard({
               <p className="text-[18px] leading-relaxed font-special-elite break-words overflow-wrap-anywhere whitespace-pre-wrap chat-message">
                 {cleanMarkdown(message.content)}
               </p>
-            )}
-
-            {/* Wygenerowane obrazy */}
-            {message.generatedImages && message.generatedImages.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-4 items-start">
-                {message.generatedImages.map((imgUrl, idx) => {
-                  const isPortrait = message.generatedImageTypes?.[idx] === 'portrait';
-                  return (
-                  <div
-                    key={idx}
-                    className={`relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg ${
-                      isPortrait ? 'w-48 sm:w-56 flex-shrink-0' : 'w-full'
-                    }`}
-                    style={{
-                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                    }}
-                  >
-                    <SafeImage
-                      src={imgUrl}
-                      alt={isPortrait ? t('portraitAlt', { value: idx + 1 }) : t('sceneAlt', { value: idx + 1 })}
-                      className={`w-full cursor-pointer hover:opacity-90 transition-opacity ${
-                        isPortrait
-                          ? 'aspect-[3/4] object-cover object-top'
-                          : 'h-auto max-h-[70vh] object-contain bg-black/30'
-                      }`}
-                      style={{
-                        filter: 'sepia(0.1) saturate(1.1)',
-                      }}
-                      loading="lazy"
-                      onClick={() =>
-                        onImageClick(imgUrl, message.generatedImages || [])
-                      }
-                    />
-                  </div>
-                )})}
-              </div>
             )}
 
             {/* Ręczna kontynuacja urwanej narracji (finishReason=MAX_TOKENS).

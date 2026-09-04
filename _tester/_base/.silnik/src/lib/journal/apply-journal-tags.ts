@@ -1,16 +1,29 @@
 import type { Character, JournalEntry } from '@/lib/types';
 import type { JournalTagEntry } from '@/lib/parsers/types';
-import { extractJournalTags } from '@/lib/parsers/journal-parser';
+import {
+  extractJournalTags,
+  extractNpcTags,
+  synthesizeClueFact,
+  ExtractedNpcTag,
+} from '@/lib/parsers/journal-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import { resolveCharacterByName } from '@/lib/character/match-by-name';
+import {
+  ensureCharacterDossier,
+  inferClueCategory,
+} from '@/lib/journal/dossier-migration';
+import type {
+  InvestigatorDossier,
+  NpcDossierEntry,
+  ClueEntry,
+} from '@/lib/journal/dossier-types';
 
 /**
- * Most między parserem tagów MG a dziennikiem postaci.
+ * Most między parserem tagów MG a dziennikiem postaci i aktami śledczymi (Investigator Dossier).
  *
- * IND-201: parser `extractJournalTags` istniał i miał testy, ale jego wynik trafiał
- * wyłącznie do Director's State (clue tracking, `director-state.ts`) - NIGDY do
- * `character.journal`, czyli dziennika widocznego w modalu sesji (`session-journal.tsx`).
- * Efekt: gracz widział "Dziennik jest pusty" mimo tagów [DZIENNIK:] w narracji.
+ * Issue #68: Dwukierunkowa pętla pamięci.
+ * 1. Gdy MG opisuje NPC -> tworzy lub aktualizuje kartę w dossier (zamiast dodawać kolejny powtarzający się wpis kroniki).
+ * 2. Gdy badacz odkrywa poszlakę -> syntetyzuje precyzyjny 1-zdaniowy fakt do dossier i dziennika.
  *
  * Typ `JournalEntry`:
  *  - `@/lib/types`            → `character.journal` (modal sesji, useSceneSummary)  ← SSOT
@@ -19,37 +32,33 @@ import { resolveCharacterByName } from '@/lib/character/match-by-name';
 /**
  * Mapuje tagi [DZIENNIK:typ:tytuł] na wpisy `character.journal`. Id jest deterministyczne
  * (`messageId` + index), więc dopisywanie jest idempotentne: ponowne przetworzenie tej samej
- * wiadomości (np. re-fire onMetadata - patrz IND-200) nie tworzy duplikatów.
- *
- * `JournalTagEntry.type` jest już znormalizowany przez parser (typeMap PL→EN) do tego samego
- * unionu co `JournalEventType`, więc mapowanie typu jest 1:1 bez konwersji.
+ * wiadomości nie tworzy duplikatów.
  */
 export function buildJournalEntriesFromTags(
   tags: JournalTagEntry[],
   messageId: string
 ): JournalEntry[] {
-  return tags.map((tag, index) => ({
-    id: `journal-${messageId}-${index}`,
-    timestamp: new Date(),
-    inGameDate: tag.inGameDate,
-    type: tag.type,
-    title: tag.title,
-    content: tag.content,
-    tags: [],
-    isBookmarked: false,
-  }));
+  return tags.map((tag, index) => {
+    const isClue = tag.type === 'clue' || tag.type === 'discovery';
+    const content = isClue
+      ? synthesizeClueFact(tag.title, tag.content)
+      : tag.content;
+
+    return {
+      id: `journal-${messageId}-${index}`,
+      timestamp: new Date(),
+      inGameDate: tag.inGameDate,
+      type: tag.type,
+      title: tag.title,
+      content,
+      tags: [],
+      isBookmarked: false,
+    };
+  });
 }
 
 /**
  * IND-267: most `[LOKACJA: Nazwa: opis]` → wpis dziennika typu `location`.
- *
- * NPC/odkrycia/tropy idą przez `[DZIENNIK:]`, ale lokacje AI emituje WYŁĄCZNIE przez
- * osobny tor `[LOKACJA:]` - przez co kategoria "Lokacje" w dzienniku (modal sesji) była
- * ZAWSZE pusta mimo że typ `location` istnieje w `JournalEventType` i UI go renderuje.
- * Ten most domyka lukę: najnowszy `[LOKACJA:]` z tury staje się wpisem `location`.
- *
- * Id jest deterministyczne (`location-${messageId}`) - jeden wpis lokacji na wiadomość,
- * więc ponowne przetworzenie tej samej tury jest idempotentne (dedup w callerze).
  */
 export function buildLocationEntryFromText(
   rawText: string,
@@ -70,45 +79,226 @@ export function buildLocationEntryFromText(
 }
 
 /**
- * Ekstrahuje tagi [DZIENNIK:] oraz [LOKACJA:] z SUROWEGO tekstu odpowiedzi MG (tagi są usuwane
- * dopiero w renderze przez `narrative/cleanup.ts`, więc `fullText` wciąż je niesie) i dopisuje
- * brakujące wpisy do `character.journal` z deduplikacją po deterministycznym id.
- *
- * Zwraca TEN SAM obiekt postaci (referencyjnie), gdy nie ma nic do dodania - caller może
- * tanio sprawdzić `updated !== character` i pominąć zbędny zapis/persist/render.
+ * Aktualizuje akta śledcze (dossier) oraz dziennik pojedynczej postaci na podstawie
+ * tagów z tury narracji MG.
+ */
+export function processCharacterJournalAndDossier(
+  character: Character,
+  tags: JournalTagEntry[],
+  npcTags: ExtractedNpcTag[],
+  locationEntry: JournalEntry | null,
+  messageId: string
+): { character: Character; changed: boolean } {
+  const charWithDossier = ensureCharacterDossier(character);
+  const dossier: InvestigatorDossier = {
+    ...charWithDossier.investigatorDossier,
+    clues: [...charWithDossier.investigatorDossier.clues],
+    npcs: [...charWithDossier.investigatorDossier.npcs],
+    locations: [...charWithDossier.investigatorDossier.locations],
+    notes: [...charWithDossier.investigatorDossier.notes],
+  };
+
+  const existingJournal = [...(charWithDossier.journal ?? [])];
+  const existingJournalIds = new Set(existingJournal.map((e) => e.id));
+  let changed = false;
+
+  // 1. Obsługa NPC (zarówno z [NPC: Imię: opis], jak i [DZIENNIK:npc:Imię])
+  const combinedNpcs = [...npcTags];
+  for (const t of tags) {
+    if (t.type === 'npc' && t.title && t.content) {
+      if (!combinedNpcs.some((n) => n.name.toLowerCase().trim() === t.title.toLowerCase().trim())) {
+        combinedNpcs.push({
+          name: t.title.trim(),
+          description: t.content.trim(),
+          who: t.who,
+        });
+      }
+    }
+  }
+
+  for (const npc of combinedNpcs) {
+    const normName = npc.name.trim();
+    if (!normName) continue;
+    const lowerName = normName.toLowerCase();
+
+    const existingNpcIndex = dossier.npcs.findIndex(
+      (n) => n.name.toLowerCase().trim() === lowerName
+    );
+
+    if (existingNpcIndex >= 0) {
+      // NPC już istnieje: AKTUALIZUJEMY kartę w dossier bez tworzenia kolejnego wpisu w kronice
+      const existing = dossier.npcs[existingNpcIndex];
+      let npcUpdated = false;
+
+      if (!existing.firstImpression && npc.description) {
+        existing.firstImpression = npc.description;
+        npcUpdated = true;
+      } else if (npc.description) {
+        // Dołącz nową informację, jeśli nie jest duplikatem
+        const snippet = npc.description.slice(0, 30).toLowerCase();
+        const currentKeyInfo = existing.keyInformation || '';
+        if (!currentKeyInfo.toLowerCase().includes(snippet)) {
+          existing.keyInformation = currentKeyInfo
+            ? `${currentKeyInfo}; ${npc.description}`
+            : npc.description;
+          npcUpdated = true;
+        }
+      }
+
+      if (npcUpdated) {
+        existing.timestamp = Date.now();
+        dossier.npcs[existingNpcIndex] = { ...existing };
+        changed = true;
+      }
+    } else {
+      // Nowy NPC: twórz nową kartę w dossier + JEDEN wpis w kronice
+      const newNpc: NpcDossierEntry = {
+        id: `npc-${lowerName.replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
+        name: normName,
+        firstImpression: npc.description,
+        relationshipStatus: 'unknown',
+        timestamp: Date.now(),
+      };
+      dossier.npcs.push(newNpc);
+
+      const jId = `journal-${messageId}-npc-${lowerName.replace(/[^a-z0-9]/g, '-')}`;
+      if (!existingJournalIds.has(jId)) {
+        existingJournal.push({
+          id: jId,
+          timestamp: new Date(),
+          type: 'npc',
+          title: normName,
+          content: npc.description,
+          tags: [],
+          isBookmarked: false,
+        });
+        existingJournalIds.add(jId);
+      }
+      changed = true;
+    }
+  }
+
+  // 2. Obsługa pozostałych tagów dziennika (w tym poszlak z syntezą 1-zdaniową)
+  tags.forEach((tag, index) => {
+    // Tagi typu 'npc' zostały już obsłużone powyżej
+    if (tag.type === 'npc') return;
+
+    const isClue = tag.type === 'clue' || tag.type === 'discovery';
+    const fact = isClue
+      ? synthesizeClueFact(tag.title, tag.content)
+      : tag.content;
+
+    // Aktualizuj poszlaki w dossier
+    if (isClue && tag.title) {
+      const lowerTitle = tag.title.toLowerCase().trim();
+      const existingClue = dossier.clues.find(
+        (c) => c.title.toLowerCase().trim() === lowerTitle
+      );
+
+      if (!existingClue) {
+        const isKey = /klucz|core|key|główn/i.test(`${tag.title} ${tag.content}`);
+        const newClue: ClueEntry = {
+          id: `clue-${messageId}-${index}`,
+          title: tag.title.trim(),
+          description: fact,
+          category: inferClueCategory({ title: tag.title, content: tag.content }),
+          status: 'confirmed',
+          isKeyClue: isKey,
+          timestamp: Date.now(),
+          sourceJournalEntryId: `journal-${messageId}-${index}`,
+        };
+        dossier.clues.push(newClue);
+        changed = true;
+      }
+    }
+
+    // Dopisz wpis do kroniki
+    const jId = `journal-${messageId}-${index}`;
+    if (!existingJournalIds.has(jId)) {
+      existingJournal.push({
+        id: jId,
+        timestamp: new Date(),
+        inGameDate: tag.inGameDate,
+        type: tag.type,
+        title: tag.title,
+        content: fact,
+        tags: [],
+        isBookmarked: false,
+      });
+      existingJournalIds.add(jId);
+      changed = true;
+    }
+  });
+
+  // 3. Obsługa lokacji
+  if (locationEntry) {
+    const lowerLoc = locationEntry.title.toLowerCase().trim();
+    const existingLoc = dossier.locations.find(
+      (l) => l.name.toLowerCase().trim() === lowerLoc
+    );
+
+    if (!existingLoc) {
+      dossier.locations.push({
+        id: `location-${lowerLoc.replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
+        name: locationEntry.title,
+        description: locationEntry.content,
+        searchStatus: 'partially_searched',
+        timestamp: Date.now(),
+      });
+      changed = true;
+    }
+
+    if (!existingJournalIds.has(locationEntry.id)) {
+      existingJournal.push(locationEntry);
+      existingJournalIds.add(locationEntry.id);
+      changed = true;
+    }
+  }
+
+  if (!changed) return { character, changed: false };
+
+  dossier.lastUpdated = new Date().toISOString();
+  return {
+    character: {
+      ...charWithDossier,
+      journal: existingJournal,
+      investigatorDossier: dossier,
+    },
+    changed: true,
+  };
+}
+
+/**
+ * Ekstrahuje tagi [DZIENNIK:], [NPC:] oraz [LOKACJA:] z tekstu odpowiedzi MG,
+ * aktualizuje dossier i dopisuje brakujące wpisy do `character.journal`.
  */
 export function appendJournalFromText(
   character: Character,
   rawText: string,
   messageId: string
 ): Character {
-  // [DZIENNIK:] tagi (NPC/odkrycia/tropy) + IND-267: najnowszy [LOKACJA:] jako wpis `location`.
-  const candidates = buildJournalEntriesFromTags(
-    extractJournalTags(rawText),
+  const tags = extractJournalTags(rawText);
+  const npcTags = extractNpcTags(rawText);
+  const locationEntry = buildLocationEntryFromText(rawText, messageId);
+
+  if (tags.length === 0 && npcTags.length === 0 && !locationEntry) {
+    return character;
+  }
+
+  const result = processCharacterJournalAndDossier(
+    character,
+    tags,
+    npcTags,
+    locationEntry,
     messageId
   );
-  const locationEntry = buildLocationEntryFromText(rawText, messageId);
-  if (locationEntry) candidates.push(locationEntry);
 
-  if (candidates.length === 0) return character;
-
-  const existing = character.journal ?? [];
-  const existingIds = new Set(existing.map((entry) => entry.id));
-  const fresh = candidates.filter((entry) => !existingIds.has(entry.id));
-
-  if (fresh.length === 0) return character;
-
-  return { ...character, journal: [...existing, ...fresh] };
+  return result.character;
 }
 
 /**
  * Wariant party-aware (duet / Hot Seat): wpis `[DZIENNIK:@Imię:...]` trafia do
  * dziennika postaci wskazanej prefiksem `@Imię` (fallback: aktywna postać).
- * Lokacja `[LOKACJA:]` (element wspólny świata) idzie do aktywnej. Bez tego wpis
- * „Eleanor straciła kontrolę" lądował w dzienniku Marcusa.
- *
- * Id wpisów jest deterministyczne (`journal-${messageId}-${index}`) - idempotentne
- * względem re-fire tej samej wiadomości (dedup po id w obrębie każdej postaci).
  */
 export function appendJournalToParty(
   characters: Character[],
@@ -117,46 +307,44 @@ export function appendJournalToParty(
   messageId: string
 ): { characters: Character[]; activeCharacter: Character; changed: boolean } {
   const tags = extractJournalTags(rawText);
+  const npcTags = extractNpcTags(rawText);
   const locationEntry = buildLocationEntryFromText(rawText, messageId);
 
-  // Grupuj wpisy per postać (po @Imię, fallback aktywna). Globalny index po tags
-  // zachowuje stabilne id (jak w appendJournalFromText) → idempotencja.
-  const entriesByChar = new Map<string, JournalEntry[]>();
-  const push = (charId: string, entry: JournalEntry) => {
-    const list = entriesByChar.get(charId) ?? [];
-    list.push(entry);
-    entriesByChar.set(charId, list);
-  };
-
-  tags.forEach((tag, index) => {
-    const target = resolveCharacterByName(characters, tag.who, activeCharacter);
-    push(target.id, {
-      id: `journal-${messageId}-${index}`,
-      timestamp: new Date(),
-      inGameDate: tag.inGameDate,
-      type: tag.type,
-      title: tag.title,
-      content: tag.content,
-      tags: [],
-      isBookmarked: false,
-    });
-  });
-  if (locationEntry) push(activeCharacter.id, locationEntry);
-
-  if (entriesByChar.size === 0) {
+  if (tags.length === 0 && npcTags.length === 0 && !locationEntry) {
     return { characters, activeCharacter, changed: false };
   }
 
-  let changed = false;
+  // Mapuj tagi na postacie
+  const tagsByChar = new Map<string, JournalTagEntry[]>();
+  const npcTagsByChar = new Map<string, ExtractedNpcTag[]>();
+
+  tags.forEach((tag) => {
+    const target = resolveCharacterByName(characters, tag.who, activeCharacter);
+    const list = tagsByChar.get(target.id) ?? [];
+    list.push(tag);
+    tagsByChar.set(target.id, list);
+  });
+
+  npcTags.forEach((npc) => {
+    const target = resolveCharacterByName(characters, npc.who, activeCharacter);
+    const list = npcTagsByChar.get(target.id) ?? [];
+    list.push(npc);
+    npcTagsByChar.set(target.id, list);
+  });
+
+  let changedAny = false;
   const apply = (c: Character): Character => {
-    const candidates = entriesByChar.get(c.id);
-    if (!candidates || candidates.length === 0) return c;
-    const existing = c.journal ?? [];
-    const existingIds = new Set(existing.map((e) => e.id));
-    const fresh = candidates.filter((e) => !existingIds.has(e.id));
-    if (fresh.length === 0) return c;
-    changed = true;
-    return { ...c, journal: [...existing, ...fresh] };
+    const cTags = tagsByChar.get(c.id) ?? [];
+    const cNpcs = npcTagsByChar.get(c.id) ?? [];
+    const cLoc = c.id === activeCharacter.id ? locationEntry : null;
+
+    if (cTags.length === 0 && cNpcs.length === 0 && !cLoc) {
+      return c;
+    }
+
+    const res = processCharacterJournalAndDossier(c, cTags, cNpcs, cLoc, messageId);
+    if (res.changed) changedAny = true;
+    return res.character;
   };
 
   const nextCharacters = characters.map(apply);
@@ -164,5 +352,9 @@ export function appendJournalToParty(
     nextCharacters.find((c) => c.id === activeCharacter.id) ??
     apply(activeCharacter);
 
-  return { characters: nextCharacters, activeCharacter: nextActive, changed };
+  return {
+    characters: nextCharacters,
+    activeCharacter: nextActive,
+    changed: changedAny,
+  };
 }

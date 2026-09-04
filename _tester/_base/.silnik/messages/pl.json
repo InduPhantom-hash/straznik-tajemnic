@@ -18,7 +18,9 @@
     "titleLine2": "Tajemnic",
     "virtualGm": "Wirtualny Mistrz Gry",
     "authorizationRequired": "Wymagana autoryzacja",
-    "openApiKeys": "Wprowadź klucz API"
+    "openApiKeys": "Wprowadź klucz API",
+    "rulesRequired": "Wymagany podręcznik zasad",
+    "openRulebook": "Wgraj zasady (CoC 7e PDF)"
   },
   "CostControl": {
     "title": "Kontrola Kosztów",
@@ -37,12 +39,45 @@
     "resetConfirm": "Czy na pewno chcesz wyzerować licznik kosztów konta?"
   },
   "InspectionLightbox": {
-    "confirmed": "Potwierdzone", "hypothesis": "Hipoteza", "refuted": "Obalone", "unknownDate": "Nieznana data",
-    "deleteConfirm": "Czy na pewno chcesz usunąć ten dowód z Tablicy Badacza?", "evidencePreview": "Podgląd dowodu", "delete": "Usuń z tablicy", "close": "Zamknij", "noImage": "Brak ilustracji",
-    "hypothesisStatus": "Status hipotezy", "location": "Lokacja:", "npc": "NPC:", "discovered": "Odkryty:", "insight": "Wniosek Badacza / Dedukcja", "notes": "Notatki badacza", "edit": "Edytuj", "save": "Zapisz", "notesPlaceholder": "Zapisz swoje obserwacje i teorie...", "noNotes": "Brak notatek. Kliknij Edytuj, aby dodać obserwacje.", "created": "Utworzono", "updated": "Aktualizacja"
+    "confirmed": "Potwierdzone",
+    "hypothesis": "Hipoteza",
+    "refuted": "Obalone",
+    "unknownDate": "Nieznana data",
+    "deleteConfirm": "Czy na pewno chcesz usunąć ten dowód z Tablicy Badacza?",
+    "evidencePreview": "Podgląd dowodu",
+    "delete": "Usuń z tablicy",
+    "close": "Zamknij",
+    "noImage": "Brak ilustracji",
+    "hypothesisStatus": "Status hipotezy",
+    "location": "Lokacja:",
+    "npc": "NPC:",
+    "discovered": "Odkryty:",
+    "insight": "Wniosek Badacza / Dedukcja",
+    "notes": "Notatki badacza",
+    "edit": "Edytuj",
+    "save": "Zapisz",
+    "notesPlaceholder": "Zapisz swoje obserwacje i teorie...",
+    "noNotes": "Brak notatek. Kliknij Edytuj, aby dodać obserwacje.",
+    "created": "Utworzono",
+    "updated": "Aktualizacja"
   },
   "QuickSetupModal": {
-    "kicker": "Szybka Przygoda", "description": "Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.", "stepMode": "1. Wybierz tryb gry", "solo": "Tryb Solo", "soloDescription": "Jeden gracz, jedna postać", "hotSeat": "Hot Seat (Duet)", "hotSeatDescription": "Dwóch graczy na jednym urządzeniu", "stepAdventure": "2. Wybierz scenariusz ze Strefy 11", "stepCharacters": "3. Wybierz postacie", "playerOne": "Gracz 1 (Główna Postać):", "yourCharacter": "Twoja Postać:", "playerTwo": "Gracz 2 (Druga Postać):", "biography": "Biografia", "start": "Rozpocznij przygodę"
+    "kicker": "Szybka Przygoda",
+    "description": "Skonfiguruj sesję z programu Strefa 11. Wybierz tryb, scenariusz oraz gotowych badaczy z zespołu telewizyjnego.",
+    "stepMode": "1. Wybierz tryb gry",
+    "solo": "Tryb Solo",
+    "soloDescription": "Jeden gracz, jedna postać",
+    "hotSeat": "Hot Seat (Duet)",
+    "hotSeatDescription": "Dwóch graczy na jednym urządzeniu",
+    "stepAdventure": "2. Wybierz scenariusz ze Strefy 11",
+    "stepCharacters": "3. Wybierz postacie",
+    "playerOne": "Gracz 1 (Główna Postać):",
+    "yourCharacter": "Twoja Postać:",
+    "playerTwo": "Gracz 2 (Druga Postać):",
+    "biography": "Biografia",
+    "start": "Rozpocznij przygodę",
+    "startingGame": "Przygotowywanie sesji...",
+    "statusSettingUp": "Przygotowywanie założeń śledztwa..."
   },
   "LanguageSelection": {
     "eyebrow": "ZANIM ROZPOCZNIE SIĘ ŚLEDZTWO",
@@ -86,6 +121,18 @@
     "stepOccupationSubtitle": "Wybierz profesję Badacza.",
     "creditRating": "Majętność",
     "skills": "Umiejętności",
+    "searchOccupationPlaceholder": "Szukaj profesji lub umiejętności...",
+    "allFilter": "Wszystkie ({count})",
+    "suggestedFilter": "★ Sugerowane ({count})",
+    "noOccupationsFound": "Brak profesji spełniających kryteria wyszukiwania.",
+    "occupationDetailsEyebrow": "Akta Miskatonic · Profil zawodu",
+    "noOccupationSelectedTitle": "Wybierz profesję z listy",
+    "noOccupationSelectedHint": "Wybierz profesję z listy po lewej, aby zapoznać się z jej wymaganiami, pulą punktów, umiejętnościami oraz startowym ekwipunkiem.",
+    "occupationalSkillsList": "Umiejętności zawodowe",
+    "startingEquipmentLabel": "Ekwipunek startowy zawodu",
+    "initialCreditRating": "Wartość początkowa: {val}%",
+    "skillsCount": "umiejętności",
+    "lore": "Tło fabularne",
     "stepSkillsTitle": "Krok 4 · Umiejętności",
     "stepSkillsSubtitle": "Rozdziel punkty między umiejętności postaci.",
     "howItWorks": "Jak to działa?",
@@ -128,7 +175,20 @@
     "assets": "Majątek",
     "spendingPerDay": "Wydatki/dzień",
     "equipmentAndItems": "Ekwipunek i przedmioty",
-    "equipmentDescription": "Przydzielony automatycznie wg zawodu. Możesz dopisać lub usunąć przedmioty, jeden na linię lub po przecinku.",
+    "equipmentDescription": "Przydzielony automatycznie na podstawie wybranego zawodu i epoki.",
+    "equipmentCount": "Przedmioty ({count})",
+    "equipmentEmpty": "Brak przypisanego ekwipunku dla tej konfiguracji.",
+    "categoryWeapon": "Broń",
+    "categoryArmor": "Ochrona",
+    "categoryTool": "Narzędzia",
+    "categoryDocument": "Dokumenty",
+    "categoryArtifact": "Artefakt",
+    "categoryPersonal": "Osobiste",
+    "categoryMedical": "Medyczne",
+    "categoryOccult": "Okultyzm",
+    "categoryOther": "Różne",
+    "dosesCount": "{count} dawek",
+    "usesCount": "{count} użycia",
     "equipmentPlaceholder": "Wybierz zawód, aby przydzielić ekwipunek startowy.\n\nMożesz też wpisać ręcznie:\n- .38 Revolver\n- Flashlight\n- Notebook & Pencil",
     "characterPortrait": "Portret postaci",
     "enlargePortrait": "Kliknij, aby powiększyć portret",
@@ -149,7 +209,7 @@
       "backstory": "Wygeneruj unikalne dane postaci do Call of Cthulhu.\n\n{adventure}\n\nPOSTAĆ: {gender}, {age} lat, zawód: {occupation}.\nINSPIRACJA: osobowość {personality}; pochodzenie {background}; motywacja {motivation}; seed #{seed}.\nZwróć tylko JSON z polami name, birthplace, description, ideology, importantPeople, significantPlaces, personalItems, traits i keyConnection. Użyj polskiego.",
       "biography": "Na podstawie poniższej karty postaci napisz spójną, klimatyczną biografię w 2-3 akapitach, w trzeciej osobie.\n\n{adventure}\nImię i nazwisko: {name}\nPłeć: {gender}\nWiek: {age}\nZawód: {occupation}\nMiejsce urodzenia: {birthplace}\nWygląd: {appearance}\nIdeologia: {ideology}\nWażne osoby: {people}\nZnaczące miejsca: {places}\nRzeczy osobiste: {items}\nPrzymioty: {traits}\nKluczowa więź: {connection}\n\nZwróć tylko biografię, bez nagłówka i komentarzy.",
       "field": "Jesteś generatorem pola tła postaci do Call of Cthulhu 7e.\nKontekst postaci:\n{context}{adventure}\n\nWygeneruj {field}. Odpowiedz tylko wartością pola, bez cudzysłowów, prefiksów i wyjaśnień. Użyj 1-3 zdań. Styl: {style}. Użyj polskiego.",
-      "skills": "Jesteś ekspertem od tworzenia postaći w grze Call of Cthulhu 7ed.\n\nKONTEKST POSTACI:\n{context}\n\nZAWÓD: {occupation}\nUMIEJĘTNOŚCI ZAWODOWE: {occSkills}\n{archetypeBlock}\n\nUWAGA: Umiejętności rekomendowane (archetyp + zawód) zostały JUŻ rozdzielone deterministycznie: {recommended}. NIE dotykaj ich.\nTwoje zadanie: rozdziel POZOSTAŁĄ pulę na INNE umiejętności (klimatyczne, pasujące do tła postaći), żeby badacz był wszechstronny.\n\nPOZOSTAŁE PUNKTY DO ROZDZIELENIA: {remaining}\nLIMIT NA POJEDYNCZĄ UMIEJĘTNOŚĆ: {limit}% (max podczas tworzenia)\n\nLISTA UMIEJĘTNOŚCI Z ICH BAZOWYMI WARTOŚCIAMI:\n{skillsList}\n\nKRYTYCZNE WYMAGANIA:\n1. Rozdziel DOKŁADNIE {remaining} punktów - ani mniej, ani więcej!\n2. NIE rozdzielaj punktów na rekomendowane (są już zrobione): {recommendedTop}\n3. Wybierz umiejętności pasujące do postaći (tło, opis, cechy)\n4. Każda umiejętność może mieć max {limit}%\n5. Rozdziel punkty między 5-10 umiejętności\n\nPrzykład: jeśli Biblioteka ma bazę 20% i chcesz dać 60%, dodajesz 40 punktów.\n\nOdpowiedz TYLKO w formacie JSON bez markdown:\n{\"skills\": {\"NazwaUmiejętności\": nowaWartość, ...}}\n\nUwzględnij TYLKO umiejętności, którym dodajesz punkty (nowa wartość > bazowa).\nSUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE {remaining}!"
+      "skills": "Jesteś ekspertem od tworzenia postaci w grze Call of Cthulhu 7ed.\n\nKONTEKST POSTACI:\n{context}\n\nZAWÓD: {occupation}\nUMIEJĘTNOŚCI ZAWODOWE: {occSkills}\n{archetypeBlock}\n\nUWAGA: Umiejętności rekomendowane (archetyp + zawód) zostały JUŻ rozdzielone deterministycznie: {recommended}. NIE dotykaj ich.\nTwoje zadanie: rozdziel POZOSTAŁĄ pulę na INNE umiejętności (klimatyczne, pasujące do tła postaci), żeby badacz był wszechstronny.\n\nPOZOSTAŁE PUNKTY DO ROZDZIELENIA: {remaining}\nLIMIT NA POJEDYNCZĄ UMIEJĘTNOŚĆ: {limit}% (max podczas tworzenia)\n\nLISTA UMIEJĘTNOŚCI Z ICH BAZOWYMI WARTOŚCIAMI:\n{skillsList}\n\nKRYTYCZNE WYMAGANIA:\n1. Rozdziel DOKŁADNIE {remaining} punktów - ani mniej, ani więcej!\n2. NIE rozdzielaj punktów na rekomendowane (są już zrobione): {recommendedTop}\n3. Wybierz umiejętności pasujące do postaci (tło, opis, cechy)\n4. Każda umiejętność może mieć max {limit}%\n5. Rozdziel punkty między pasujące umiejętności\n\nPrzykład: jeśli Biblioteka ma bazę 20% i chcesz dać 60%, dodajesz 40 punktów.\n\nOdpowiedz TYLKO w formacie JSON bez markdown:\n{\"skills\": {\"NazwaUmiejętności\": nowaWartość, ...}}\n\nUwzględnij TYLKO umiejętności, którym dodajesz punkty (nowa wartość > bazowa).\nSUMA DODANYCH PUNKTÓW MUSI WYNOSIĆ DOKŁADNIE {remaining}!"
     },
     "toasts": {
       "apiError": "Błąd API",
@@ -183,6 +243,55 @@
       "luck": "Łut szczęścia - możesz go wydać, by poprawić rzut.",
       "failure": "Porażka"
     },
+    "statTooltips": {
+      "str": "SIŁA (S) - Fizyczna siła postaci. Wpływa na obrażenia w walce wręcz i podnoszenie ciężarów. Rzut: 3K6×5",
+      "con": "KONDYCJA (KON) - Zdrowie i wytrzymałość. Wpływa na Punkty Wytrzymałości i odporność na choroby. Rzut: 3K6×5",
+      "siz": "BUDOWA CIAŁA (BC) - Wzrost i masa ciała. Wpływa na PW i Modyfikator Obrażeń. Rzut: 2K6+6×5",
+      "dex": "ZRĘCZNOŚĆ (ZR) - Szybkość i koordynacja ruchowa. Wpływa na uniki i inicjatywę. Rzut: 3K6×5",
+      "app": "WYGLĄD (WYG) - Atrakcyjność i charyzma. Przydatny w kontaktach towarzyskich. Rzut: 3K6×5",
+      "int": "INTELIGENCJA (INT) - Zdolność rozumowania i uczenia się. Określa punkty zainteresowań. Rzut: 2K6+6×5",
+      "pow": "MOC (MOC) - Siła woli i odporność psychiczna. Określa początkową Poczytalność i Punkty Magii. Rzut: 3K6×5",
+      "edu": "WYKSZTAŁCENIE (WYK) - Formalna edukacja i wiedza. Określa punkty umiejętności zawodowych. Rzut: 2K6+6×5",
+      "luck": "SZCZĘŚCIE - Szczęście postaci. Można je wydać na przerzuty. Rzut: 3K6×5"
+    },
+    "derivedTooltips": {
+      "hp": "PUNKTY WYTRZYMAŁOŚCI (PW) - Ilość obrażeń jakie może przyjąć postać. Gdy spadną do 0, postać jest nieprzytomna lub martwa. Wzór: (KON + BC) / 10",
+      "san": "POCZYTALNOŚĆ (PP) - Zdrowie psychiczne postaci. Spada przy spotkaniu z kosmiczną grozą. Początkowa wartość = MOC",
+      "mp": "PUNKTY MAGII (PM) - Energia magiczna. Używana do rzucania zaklęć. Wzór: MOC / 5",
+      "damageBonus": "MODYFIKATOR OBRAŻEŃ (MO) - Dodatkowe obrażenia w walce wręcz. Zależy od sumy S + BC",
+      "build": "KRZEPA - Wielkość i siła fizyczna. Używana do manewrów jak przewrócenie. Zależy od S + BC",
+      "movement": "RUCH - Szybkość poruszania się. Zależy od S, ZR, BC i wieku postaci"
+    },
+    "wealthLevels": {
+      "pauper": "Nędzarz",
+      "poor": "Biedny",
+      "average": "Przeciętny",
+      "wealthy": "Zamożny",
+      "rich": "Bogaty",
+      "superrich": "Super bogaty"
+    },
+    "assetsNone": "Brak",
+    "ageBrackets": {
+      "age_15_19": "15-19 lat",
+      "age_20_39": "20-39 lat",
+      "age_40_49": "40-49 lat",
+      "age_50_59": "50-59 lat",
+      "age_60_69": "60-69 lat",
+      "age_70_79": "70-79 lat",
+      "age_80_plus": "80+ lat"
+    },
+    "agePenaltiesApplied": "✓ Kary wieku zostały zastosowane",
+    "agePenaltiesAppliedBtn": "✓ Kary wieku zastosowane",
+    "teenPenaltiesWarning": "⚠️ Modyfikatory dla wieku 15-19 lat:",
+    "teenPenaltiesPending": "Należy odjąć 5 pkt łącznie z SIŁ lub BC oraz 5 pkt z WYK.",
+    "applyTeenPenalties": "Zastosuj modyfikatory nastolatka",
+    "teenPenaltiesPreview": "Po kliknięciu: -5 pkt łącznie z SIŁ/BC, -5 pkt z WYK",
+    "teenLuckReroll": "🎲 Przerzuć Szczęście (15-19 lat)",
+    "teenLuckRerollUsed": "✓ Wykorzystano przerzut Szczęścia",
+    "teenLuckSuccess": "Przerzut Szczęścia: {oldLuck} → {newLuck} (wyższy wynik)",
+    "teenLuckNoChange": "Przerzut Szczęścia: nowy rzut {roll} ≤ {oldLuck} (zachowano {oldLuck})",
+    "eduChecksLeft": "Pozostało testów: {count}",
+    "eduChecksExhausted": "Wszystkie testy WYK dla tego wieku zostały wykonane",
     "adventureLabel": "📖 Przygoda: {title} ({location})",
     "halfFifthHint": "Pod każdą wartością: <half>½:XX</half> = połowa wartości (trudny test), <fifth>⅕:XX</fifth> = piąta część (ekstremalny test)",
     "rollOne": "Rzuć",
@@ -272,12 +381,108 @@
       }
     },
     "archetypeDetails": {
-      "investigator": { "suggestedOccupations": ["Prywatny detektyw", "Detektyw policyjny", "Dziennikarz"], "suggestedTraits": ["dociekliwy", "uparty", "sceptyczny"], "suggestedMotivations": ["odkrycie prawdy", "sprawiedliwość", "ciekawość"] },
-      "scholar": { "suggestedOccupations": ["Profesor", "Bibliotekarz", "Antykwariusz"], "suggestedTraits": ["ciekawy świata", "metodyczny", "zamyślony"], "suggestedMotivations": ["zdobycie wiedzy", "ochrona przed zapomnianymi tajemnicami", "akademicka sława"] },
-      "action": { "suggestedOccupations": ["Żołnierz", "Atleta", "Marynarz"], "suggestedTraits": ["odważny", "impulsywny", "lojalny"], "suggestedMotivations": ["ochrona bliskich", "przygoda", "honor"] },
-      "trickster": { "suggestedOccupations": ["Przestępca", "Artysta estradowy", "Szpieg"], "suggestedTraits": ["przebiegły", "czarujący", "wyrachowany"], "suggestedMotivations": ["zysk", "emocje", "ucieczka przed przeszłością"] },
-      "mystic": { "suggestedOccupations": ["Parapsycholog", "Duchowny", "Artysta"], "suggestedTraits": ["intuicyjny", "tajemniczy", "wrażliwy"], "suggestedMotivations": ["zrozumienie niewidzialnego", "ochrona przed złem", "odkrycie przeznaczenia"] },
-      "healer": { "suggestedOccupations": ["Lekarz", "Pielęgniarka", "Duchowny"], "suggestedTraits": ["empatyczny", "opanowany", "cierpliwy"], "suggestedMotivations": ["ratowanie życia", "zrozumienie ludzkiej natury", "pokuta za przeszłość"] }
+      "investigator": {
+        "suggestedOccupations": [
+          "Prywatny detektyw",
+          "Detektyw policyjny",
+          "Dziennikarz"
+        ],
+        "suggestedTraits": [
+          "dociekliwy",
+          "uparty",
+          "sceptyczny"
+        ],
+        "suggestedMotivations": [
+          "odkrycie prawdy",
+          "sprawiedliwość",
+          "ciekawość"
+        ]
+      },
+      "scholar": {
+        "suggestedOccupations": [
+          "Profesor",
+          "Bibliotekarz",
+          "Antykwariusz"
+        ],
+        "suggestedTraits": [
+          "ciekawy świata",
+          "metodyczny",
+          "zamyślony"
+        ],
+        "suggestedMotivations": [
+          "zdobycie wiedzy",
+          "ochrona przed zapomnianymi tajemnicami",
+          "akademicka sława"
+        ]
+      },
+      "action": {
+        "suggestedOccupations": [
+          "Żołnierz",
+          "Atleta",
+          "Marynarz"
+        ],
+        "suggestedTraits": [
+          "odważny",
+          "impulsywny",
+          "lojalny"
+        ],
+        "suggestedMotivations": [
+          "ochrona bliskich",
+          "przygoda",
+          "honor"
+        ]
+      },
+      "trickster": {
+        "suggestedOccupations": [
+          "Przestępca",
+          "Artysta estradowy",
+          "Szpieg"
+        ],
+        "suggestedTraits": [
+          "przebiegły",
+          "czarujący",
+          "wyrachowany"
+        ],
+        "suggestedMotivations": [
+          "zysk",
+          "emocje",
+          "ucieczka przed przeszłością"
+        ]
+      },
+      "mystic": {
+        "suggestedOccupations": [
+          "Parapsycholog",
+          "Duchowny",
+          "Artysta"
+        ],
+        "suggestedTraits": [
+          "intuicyjny",
+          "tajemniczy",
+          "wrażliwy"
+        ],
+        "suggestedMotivations": [
+          "zrozumienie niewidzialnego",
+          "ochrona przed złem",
+          "odkrycie przeznaczenia"
+        ]
+      },
+      "healer": {
+        "suggestedOccupations": [
+          "Lekarz",
+          "Pielęgniarka",
+          "Duchowny"
+        ],
+        "suggestedTraits": [
+          "empatyczny",
+          "opanowany",
+          "cierpliwy"
+        ],
+        "suggestedMotivations": [
+          "ratowanie życia",
+          "zrozumienie ludzkiej natury",
+          "pokuta za przeszłość"
+        ]
+      }
     },
     "generateButton": "✨ Generuj",
     "generatingEllipsis": "⏳...",
@@ -717,6 +922,16 @@
     "repeatS0": "Powtórz Sesję Zero",
     "runS0": "Uruchom Sesję Zero",
     "startGame": "Rozpocznij Grę",
+    "startingGame": "Przygotowywanie sesji...",
+    "statusSettingUp": "Konfigurowanie przygody...",
+    "statusInit": "Inicjalizacja parametrów sesji...",
+    "statusWorld": "Przygotowywanie założeń świata i epoki...",
+    "statusPreflight": "Analiza scenariusza i spójności historycznej...",
+    "statusCharacter": "Weryfikacja karty Badacza i ekwipunku...",
+    "statusConnecting": "Nawiązywanie kontaktu z Mistrzem Gry...",
+    "statusOpening": "Generowanie sceny otwierającej...",
+    "statusTranscribing": "Spisywanie kroniki otwarcia...",
+    "statusReady": "Zaczynamy przygodę!",
     "needBoth": "Wybierz przygodę i postać, aby rozpocząć grę",
     "needAdv": "Wybierz przygodę, aby rozpocząć grę",
     "needChar": "Wybierz lub stwórz postać, aby rozpocząć grę",
@@ -792,14 +1007,42 @@
     "movement": "Ruch",
     "move": "Ruch",
     "stats": {
-      "str": { "full": "Siła", "short": "SIŁ" },
-      "con": { "full": "Kondycja", "short": "KON" },
-      "siz": { "full": "Budowa", "short": "BUD" },
-      "dex": { "full": "Zręczność", "short": "ZRE" },
-      "app": { "full": "Wygląd", "short": "WYG" },
-      "int": { "full": "Inteligencja", "short": "INT" },
-      "pow": { "full": "Moc", "short": "MOC" },
-      "edu": { "full": "Wykształcenie", "short": "WYK" }
+      "str": {
+        "abbr": "SIŁ",
+        "full": "Siła"
+      },
+      "con": {
+        "abbr": "KON",
+        "full": "Kondycja"
+      },
+      "siz": {
+        "abbr": "BUD",
+        "full": "Budowa"
+      },
+      "dex": {
+        "abbr": "ZRĘ",
+        "full": "Zręczność"
+      },
+      "app": {
+        "abbr": "WYG",
+        "full": "Wygląd"
+      },
+      "int": {
+        "abbr": "INT",
+        "full": "Inteligencja"
+      },
+      "pow": {
+        "abbr": "MOC",
+        "full": "Moc"
+      },
+      "edu": {
+        "abbr": "WYK",
+        "full": "Wykształcenie"
+      },
+      "luck": {
+        "abbr": "SZC",
+        "full": "Szczęście"
+      }
     },
     "skills": "Umiejętności",
     "biography": "Biografia",
@@ -848,47 +1091,16 @@
         "full": "Szczęście"
       }
     },
-    "stats": {
-      "str": {
-        "abbr": "SIŁ",
-        "full": "Siła"
-      },
-      "con": {
-        "abbr": "KON",
-        "full": "Kondycja"
-      },
-      "siz": {
-        "abbr": "BUD",
-        "full": "Budowa"
-      },
-      "dex": {
-        "abbr": "ZRĘ",
-        "full": "Zręczność"
-      },
-      "app": {
-        "abbr": "WYG",
-        "full": "Wygląd"
-      },
-      "int": {
-        "abbr": "INT",
-        "full": "Inteligencja"
-      },
-      "pow": {
-        "abbr": "MOC",
-        "full": "Moc"
-      },
-      "edu": {
-        "abbr": "WYK",
-        "full": "Wykształcenie"
-      },
-      "luck": {
-        "abbr": "SZC",
-        "full": "Szczęście"
-      }
-    },
     "skillFirearms": "Broń Palna",
     "skillFirearmsLong": "Broń Palna (Karabin)",
-    "skillMelee": "Walka Wręcz"
+    "skillMelee": "Walka Wręcz",
+    "sectionHelp": {
+      "vitals": "PŻ = Punkty Życia: (KON+BUD)/10. PR = Poczytalność: startowo MOC, maks. 99 - Mity Cthulhu. PM = Punkty Magii: MOC/5. SZC = Szczęście.",
+      "combat": "Bonus DMG i Krzepa wynikają z sumy SIŁ+BUD. Ruch = bazowo 7-9 zależnie od SIŁ, ZRĘ, BUD z modyfikatorem wieku.",
+      "skills": "Każdy test umiejętności to rzut k100: Sukces zwykły (≤ wartość), Trudny (≤ 1/2), Ekstremalny (≤ 1/5). Sukces krytyczny to wyłącznie 01. Pech to 100 (lub 96-100 gdy wartość < 50). ★ = umiejętność zawodowa. ✓ = oznaczona do rozwoju."
+    },
+    "markedForImprovement": "Umiejętność oznaczona do rozwoju w Fazie Rozwoju",
+    "skillBreakdownTooltip": "Zwykły: {regular}% | Trudny (1/2): {hard}% | Ekstremalny (1/5): {extreme}%"
   },
   "ChatHeader": {
     "defaultTitle": "Tajemnica Biblioteki Miskatonic"
@@ -4256,6 +4468,11 @@
     "openCharacterSheet": "Otwórz kartę postaci: {name}",
     "developmentPhase": "Faza Rozwoju",
     "developmentPhaseTitle": "Faza Rozwoju - rzuć na poprawę oznaczonych umiejętności",
+    "developmentPhaseLocked": "Faza Rozwoju (po sesji)",
+    "developmentPhaseLockedTitle": "Faza Rozwoju według zasad CoC 7e jest dostępna dopiero po zakończeniu sesji.",
+    "developmentPhaseReady": "✨ Faza Rozwoju",
+    "developmentPhaseReadyTitle": "Sesja zakończona! Otwórz Fazę Rozwoju, aby wykonać rzuty na umiejętności i odzysk Szczęścia.",
+    "markedSkillsBadgeTooltip": "{count, plural, =1 {1 umiejętność oznaczona do rozwoju po sesji} few {# umiejętności oznaczone do rozwoju po sesji} other {# umiejętności oznaczonych do rozwoju po sesji}}",
     "sessionClosed": "Sesja Zamknięta",
     "sessionClosedTitle": "Sesja została bezpiecznie zamknięta",
     "awaitingClosure": "Oczekiwanie na słowo gracza...",
@@ -4429,7 +4646,6 @@
       "skipCutscene": "Pomiń cutscenę"
     },
     "cutsceneDescription": "Auto-GM - automatyczna narracja w stylu cutscenki filmowej",
-    "sanityCheckDescription": "Wizualizacja rzutu na poczytalność z efektami animacji",
     "dice3dDescription": "Trójwymiarowe kości z fizyką (planowane)",
     "backToGame": "Powrót do gry",
     "headerDescription": "Sandbox do testowania nowych funkcjonalności Zew-App. Prototypy są izolowane od głównej aplikacji.",
@@ -4454,7 +4670,9 @@
     "unknownError": "Nieznany błąd",
     "errorIdPrefix": "ID błędu:",
     "tryAgainButton": "Spróbuj ponownie",
-    "homePageButton": "Strona główna"
+    "homePageButton": "Strona główna",
+    "copyDiagnosisButton": "Kopiuj raport dla AI",
+    "copiedDiagnosis": "Skopiowano do schowka!"
   },
   "Loading": {
     "title": "Ładowanie...",
@@ -4520,11 +4738,25 @@
     "orTypeInChat": "lub wpisz wynik w czacie:",
     "resultExample": "\"wynik 47\"",
     "resultSaved": "Wynik zapisany",
-    "rollDiceButton": "Rzuć kością"
+    "rollDiceButton": "Rzuć kością",
+    "opposedBadge": "TEST PRZECIWSTAWNY",
+    "versus": "kontra",
+    "opponentValue": "Wartość przeciwnika:",
+    "opposedRollButton": "Rzuć test przeciwstawny"
   },
   "TtsHardLoadingScreen": {
     "preparingSession": "Mistrz Gry przygotowuje sesję...",
-    "generatingStory": "Trwa generowanie mrocznej opowieści i głosu narratora. Proszę czekać."
+    "generatingStory": "Trwa generowanie mrocznej opowieści i głosu narratora...",
+    "dispatchHeader": "Wycinek z kroniki epoki",
+    "clip1Source": "The Arkham Advertiser (1926)",
+    "clip1Headline": "Tajemnicze zaginięcia w dolinie rzeki Miskatonic",
+    "clip1Text": "Władze przeszukują podmiejskie lasy po tym, jak dwóch studentów uniwersytetu nie powróciło z ekspedycji terenowej. Świadkowie wspominają o dziwnych światłach nad wzgórzami.",
+    "clip2Source": "The Boston Globe (1925)",
+    "clip2Headline": "Nocny nalot policji na nabrzeżu North End",
+    "clip2Text": "Skonfiskowano sześć skrzyń z podejrzanym ładunkiem ze Starego Świata. Właściciel magazynu zbiegł przez labirynt zapomnianych zaułków portowych.",
+    "clip3Source": "The Providence Gazette (1924)",
+    "clip3Headline": "Niezwykłe zjawiska na wodach zatoki Narragansett",
+    "clip3Text": "Miejscowi rybacy donoszą o nienaturalnych poświatach widocznych w gęstej mgle na południe od latarni. Załogi odmawiają nocnych wypłynięć."
   },
   "ApiKeysModal": {
     "title": "Konfiguracja kluczy API",
@@ -4630,11 +4862,14 @@
     "luckCaption": "Odzyskane po sesji",
     "selfHelpLabel": "Samopomoc",
     "selfHelpSuffix": "- odzyskiwanie Poczytalności",
-    "selfHelpDesc": "Opisz, jak Badacz poświęcił czas aspektowi swojej historii (np. Kluczowej Więzi). Rzut 1K10 Poczytalności. Mechanika uznaniowa (str. 185) - Strażnik może zmienić wynik.",
+    "selfHelpDesc": "Opisz, jak Badacz poświęcił czas aspektowi swojej historii (np. Kluczowej Więzi). Rzut 1K6 Poczytalności (zasady CoC 7e, str. 186-187).",
     "selfHelpPlaceholder": "Np. spędził wieczór z siostrą, odnajdując spokój...",
-    "selfHelpButton": "Odzyskaj Poczytalność (1K10)",
+    "selfHelpButton": "Odzyskaj Poczytalność (1K6)",
     "selfHelpRecovered": "Odzyskano +{amount} Poczytalności",
     "sanAlreadyMax": "Poczytalność już maksymalna - brak zmiany",
+    "luckRecoveryAvailableTitle": "Odzyskiwanie Szczęścia i Samopomoc",
+    "luckRecoveryAvailableDesc": "W tej sesji nie oznaczono umiejętności do rozwoju. Zgodnie z zasadami CoC 7e po każdej sesji możesz jednak wykonać test odzyskania Szczęścia (1K10) oraz Samopomoc (1K6 Poczytalności).",
+    "startLuckRecoveryButton": "Odzyskaj Szczęście i Samopomoc",
     "close": "Zamknij",
     "historySkillsDescription": "Faza Rozwoju: {skills}",
     "historyMasteryTarget": "Poczytalność (bonus za mistrzostwo)",
@@ -4936,35 +5171,6 @@
     "searchingButton": "Szukam...",
     "answerTitle": "Odpowiedź Asystenta"
   },
-  "CloudStorageSettings": {
-    "sectionTitle": "Google Cloud Storage",
-    "enableLabel": "Włącz Cloud Storage",
-    "enableHelp": "Przechowywanie sesji i plików w chmurze Google. Umożliwia synchronizację między urządzeniami.",
-    "bucketLabel": "Nazwa bucket",
-    "bucketHelp": "Nazwa zasobnika Google Cloud Storage gdzie będą przechowywane pliki sesji.",
-    "retentionLabel": "Automatyczne czyszczenie (dni)",
-    "retentionHelp": "Po ilu dniach automatycznie usuwać stare sesje z chmury. 30 dni to zalecana wartość.",
-    "cachingLabel": "Włącz cache'owanie",
-    "cachingHelp": "Tymczasowo przechowuj często używane pliki lokalnie dla szybszego dostępu.",
-    "compressionLabel": "Włącz kompresję",
-    "compressionHelp": "Kompresuj pliki przed zapisem aby oszczędzić miejsce i transfer danych.",
-    "testButton": "Test Cloud Storage"
-  },
-  "CustomCommandsSettings": {
-    "sectionTitle": "Komendy poza fabularne",
-    "sectionHelp": "Komendy w nawiasach kwadratowych [] są traktowane jako pytania poza fabułą. Odpowiedzi na nie nie są czytane przez lektora.",
-    "introText": "Komendy w nawiasach kwadratowych [] to pytania poza fabułą. AI odpowiada na nie zwięźle, bez narracji.",
-    "defaultsPrefix": "Domyślne komendy:",
-    "defaultsSuffix": "nie mogą być usunięte.",
-    "availableCommands": "Dostępne komendy",
-    "addCommand": "Dodaj komendę",
-    "defaultBadge": "(domyślna)",
-    "sheetCommandDescription": "Wyświetla aktualną kartę postaci (PŻ, PR, PM, główne umiejętności)",
-    "inventoryCommandDescription": "Wyświetla listę przedmiotów w ekwipunku postaci",
-    "commandNamePlaceholder": "nazwa komendy",
-    "commandNameFallback": "nazwa",
-    "commandDescriptionPlaceholder": "Opis komendy (co robi)"
-  },
   "DebugSettings": {
     "sectionTitle": "Narzędzia Debugowania",
     "debugPageLink": "Otwórz stronę debug →"
@@ -5023,17 +5229,6 @@
     "pricingTimeout": "Przekroczono limit czasu (25s)",
     "networkError": "Błąd połączenia sieciowego"
   },
-  "PDFMemorySettings": {
-    "sectionTitle": "Zarządzanie Pamięcią PDF",
-    "sectionHelp": "Pozwól AI odwoływać się do treści podręczników i przygód zapisanych w PDF.",
-    "enableLabel": "Włącz pamięć PDF",
-    "enableHelp": "AI będzie mogło odwoływać się do zasad gry i treści przygód zapisanych w plikach PDF.",
-    "enableDescription": "AI będzie mogło odwoływać się do zasad gry i treści przygód",
-    "rulesUrlLabel": "URL podręcznika zasad",
-    "rulesUrlHelp": "Link do pliku PDF z zasadami gry Call of Cthulhu 7e. AI będzie mogło cytować i stosować te zasady.",
-    "adventureUrlLabel": "URL przygody",
-    "adventureUrlHelp": "Link do pliku PDF z scenariuszem przygody. AI będzie znało fabułę i szczegóły scenariusza."
-  },
   "QualityPresets": {
     "eyebrow": "Wydajność vs. głębia",
     "title": "Profil Jakości",
@@ -5043,21 +5238,35 @@
     "modelLabel": "Model:",
     "imagesLabel": "Obrazy:",
     "presets": {
-      "low": { "description": "Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)" },
-      "mid": { "description": "Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)" },
-      "high": { "description": "Gemini 3.1 Pro + lektor + obrazy Imagen 4 (~$0.50/sesja)" },
-      "ultra": { "description": "Gemini 3.1 Pro High + multi-voice słuchowisko + obrazy HD (~$1.00/sesja)" },
-      "custom": { "description": "Własna konfiguracja wszystkich parametrów" }
+      "low": {
+        "description": "Gemini 3.6 Flash, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)"
+      },
+      "mid": {
+        "description": "Gemini 3.6 Flash + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)"
+      },
+      "high": {
+        "description": "Gemini 3.8 Flash (High) + lektor + obrazy Imagen 4 (~$0.50/sesja)"
+      },
+      "ultra": {
+        "description": "Gemini 3.1 Pro High + multi-voice słuchowisko + obrazy HD (~$1.00/sesja)"
+      },
+      "custom": {
+        "description": "Własna konfiguracja wszystkich parametrów"
+      }
     }
   },
-  "ReplicateSettings": {
-    "sectionTitle": "Replicate API (Generowanie Obrazów)",
-    "testApi": "Test API",
-    "enableLabel": "Włącz Replicate",
-    "enableHelp": "Włącza generowanie obrazów AI dla postaci i lokacji. Wymaga klucza API Replicate.",
-    "apiKeyLabel": "API Key",
-    "apiKeyHelp": "Klucz API Replicate do generowania obrazów. Uzyskaj klucz na: https://replicate.com",
-    "apiKeyPlaceholder": "Wprowadź klucz Replicate API",
+  "ImageSettings": {
+    "eyebrow": "Wizualia Strażnika",
+    "sectionTitle": "Generowanie Obrazów (Gemini Imagen)",
+    "stateEnabled": "Włączone",
+    "stateDisabled": "Wyłączone",
+    "enableHelp": "Włącza generowanie ilustracji dla scen, postaci i lokacji przy użyciu Gemini Imagen.",
+    "frequencySectionTitle": "Częstotliwość i Styl Kadrów",
+    "frequencyLabel": "Częstotliwość ilustracji scen",
+    "frequencyHelp": "Steruje tym, jak często AI generuje obrazy w trakcie sesji. Łączy się z trybem narracji (Sesja Zero): tryb ustala bazę, ten suwak ją przesuwa. Rzadko = maksymalna płynność narracji i niższy koszt. Często = bogatsze ilustrowanie wydarzeń.",
+    "frequencyRare": "Rzadko (płynność narracji)",
+    "frequencyNormal": "Normalnie",
+    "frequencyOften": "Często (więcej obrazów)",
     "styleLabel": "Styl obrazów",
     "styleHelp": "Realistyczny: Fotorealistyczne obrazy • Artystyczny: Malarski styl • Horror: Mroczny i przerażający • Vintage: Styl retro",
     "styleRealistic": "Realistyczny",
@@ -5065,26 +5274,22 @@
     "styleHorror": "Horror",
     "styleVintage": "Vintage",
     "qualityLabel": "Jakość",
-    "qualityHelp": "Niska: Szybkie, tanie • Średnia: Zbalansowana • Wysoka: Lepsza jakość • Ultra: Najlepsza jakość, ale wolniejsze i droższe",
+    "qualityHelp": "Niska: Szybkie, tanie • Średnia: Zbalansowana • Wysoka: Lepsza jakość • Ultra: Najlepsza jakość",
     "qualityLow": "Niska (szybkie)",
     "qualityMedium": "Średnia",
     "qualityHigh": "Wysoka",
-    "qualityUltra": "Ultra (wolne)",
+    "qualityUltra": "Ultra",
+    "maxImagesLabel": "Maksymalna liczba obrazów na wiadomość",
+    "maxImagesHelp": "Ile obrazów może wygenerować AI w jednej wiadomości (1-5).",
+    "consistencySectionTitle": "Tożsamość Postaci i Automatyzacja",
+    "keepPortraitLabel": "Zachowuj wygląd NPC przy regeneracji portretu",
+    "keepPortraitHelp": "Gdy włączone, regeneracja portretu zachowuje dotychczasowy wygląd i rysy twarzy postaci.",
     "autoPortraitsLabel": "Automatyczne portrety postaci",
     "autoPortraitsHelp": "Automatycznie generuj portrety dla nowych postaci graczy.",
     "autoNpcsLabel": "Automatyczne ilustracje NPC",
     "autoNpcsHelp": "Automatycznie generuj ilustracje dla postaci niezależnych (NPC) spotykanych w grze.",
     "autoLocationsLabel": "Automatyczne ilustracje lokacji",
-    "autoLocationsHelp": "Automatycznie generuj ilustracje dla nowych lokacji odwiedzanych w grze.",
-    "keepPortraitLabel": "Zachowuj wygląd NPC przy regeneracji portretu",
-    "keepPortraitHelp": "Gdy włączone, regeneracja portretu używa Flux Kontext Pro (image-to-image, $0.04) zachowując tożsamość postaci. Gdy wyłączone - generuje od zera przez Imagen 4 Ultra ($0.06).",
-    "frequencyLabel": "Częstotliwość ilustracji scen",
-    "frequencyHelp": "Jak często AI generuje obrazy scen w grze. Łączy się z trybem narracji (Sesja Zero): tryb ustala bazę, ten suwak ją przesuwa. Rzadko = płynniejsza narracja, mniej obrazów i niższy koszt. Często = więcej obrazów. W trybie Czysta Narracja obrazy i tak są minimalne.",
-    "frequencyRare": "Rzadko (płynność narracji)",
-    "frequencyNormal": "Normalnie",
-    "frequencyOften": "Często (więcej obrazów)",
-    "maxImagesLabel": "Maksymalna liczba obrazów na wiadomość",
-    "maxImagesHelp": "Ile obrazów może wygenerować AI w jednej wiadomości. Wyższe wartości = więcej obrazów ale wyższy koszt."
+    "autoLocationsHelp": "Automatycznie generuj ilustracje dla nowych lokacji odwiedzanych w grze."
   },
   "GeminiHeaderSection": {
     "title": "Gemini API (Google AI)",
@@ -5105,8 +5310,14 @@
     "model20Flash": "Gemini 2.0 Flash (sprawdzony)",
     "model20FlashExp": "Gemini 2.0 Flash Experimental",
     "model20FlashLite": "Gemini 2.0 Flash-Lite",
-    "modelFlashLatest": "Gemini Flash Latest (automatyczny)",
-    "modelProLatest": "Gemini Pro Latest (automatyczny)"
+    "modelFlashLatest": "Gemini Flash Latest (automatyczny, najnowszy)",
+    "modelFlashLiteLatest": "Gemini Flash-Lite Latest (szybki, tani)",
+    "modelProLatest": "Gemini Pro Latest (automatyczny)",
+    "model38Flash": "Gemini 3.8 Flash (najnowszy Flash)",
+    "model37Flash": "Gemini 3.7 Flash",
+    "model36Flash": "Gemini 3.6 Flash",
+    "model31FlashLite": "Gemini 3.1 Flash-Lite (lekki)",
+    "modelDeprecated": "wycofany przez Google"
   },
   "GeminiCacheSection": {
     "stateOn": "✓ włączony",
@@ -5136,21 +5347,6 @@
     "hintMedium": "Standardowy poziom rozumowania dla większości zapytań",
     "hintHigh": "Głębsze rozumowanie dla złożonych sytuacji, walki i ważnych decyzji",
     "multimodalNote": "Multimodalność (wejście obrazów) jest aktywna automatycznie dla Gemini 1.5+ i nie wymaga konfiguracji."
-  },
-  "GeminiToolsSection": {
-    "title": "Eksperymentalne (Tools)",
-    "stateNone": "○ brak",
-    "invalidJson": "Niepoprawny JSON",
-    "toolsMustBeArray": "tools musi być tablicą deklaracji funkcji",
-    "toolConfigMustBeObject": "toolConfig musi być obiektem",
-    "errorPrefix": "⚠️ Błąd: {message}",
-    "warningStrong": "Function Calling - feature eksperymentalny.",
-    "warningPrefix": "Pola",
-    "warningMiddle": "i",
-    "warningSuffix": "są przepuszczane do Gemini API, ale aplikacja jeszcze nie konsumuje wywołań funkcji w narracji RPG (planowane). Power-user testing OK; produkcja - czekaj.",
-    "toolsHint": "JSON tablica deklaracji funkcji. Parsowane onBlur. Walidacja kształtu w providerze.",
-    "toolConfigHintPrefix": "Tryby:",
-    "toolConfigHintAny": "(wymuś) ·"
   },
   "TTSSettings": {
     "eyebrow": "Głos Strażnika",
@@ -5187,16 +5383,6 @@
     "unknownError": "nieznany",
     "playbackError": "Błąd odtwarzania próbki Gemini"
   },
-  "TtsGoogleSettings": {
-    "voicePickerTitle": "Wybór głosu (Google)",
-    "voicePickerHelp": "Wybierz głos narratora. Chirp3 HD to najwyższa jakość. Wavenet to wysoka jakość neuronowa.",
-    "selectVoicePlaceholder": "Wybierz głos...",
-    "playSample": "▶ Próbka",
-    "sampleText": "Witaj, jestem Twoim narratorem w tej mrocznej opowieści.",
-    "playbackError": "Błąd odtwarzania próbki",
-    "pitchLabel": "Wysokość głosu (Google)",
-    "pitchHelp": "Tylko dla Google TTS. -20 = niski, +20 = wysoki."
-  },
   "CharacterSwitcher": {
     "activeCharacter": "Aktywna Postać",
     "noActiveCharacter": "Brak aktywnej postaci",
@@ -5204,22 +5390,38 @@
   },
   "AdventureDetailsModal": {
     "eyebrow": "Szczegóły scenariusza",
-    "estimatedSessions": "📅 Przewidywane na {count} sesji",
-    "tagsExplainTitle": "Co oznaczają oznaczenia?",
-    "fallbackTone": "Ton",
-    "fallbackEra": "Era",
-    "fallbackDifficulty": "Trudność",
+    "estimatedSessions": "Przewidywane na {count} sesji",
+    "suggestedOccupationsTitle": "Sugerowane zawody",
+    "suggestedArchetypesTitle": "Sugerowane archetypy",
     "themesTitle": "Klimat i motywy",
     "close": "Zamknij",
     "choose": "Wybierz tę przygodę →"
   },
   "AdventureStyles": {
-    "tonePurist": "Purist", "tonePulp": "Pulp", "toneNoir": "Noir",
-    "eraClassic": "Lata 20.", "eraGaslight": "Wiktoria", "eraNoir": "Lata 40.", "eraPrl": "PRL - lata 70.", "eraModern": "Współczesność", "eraCustom": "Własna",
-    "difficultyEasy": "Łatwy", "difficultyNormal": "Normalny", "difficultyHard": "Trudny",
-    "tonePuristDescription": "Klasyczny, mroczny horror. Groza narasta powoli, zagrożenie jest realne, a badacze mają niewielkie szanse na heroizm.", "tonePulpDescription": "Heroiczna akcja. Odważniejsi badacze, więcej walki i przygody, mniej beznadziei.", "toneNoirDescription": "Mroczne śledztwo pełne intryg, moralnej dwuznaczności i tajemnic wielkiego miasta.",
-    "eraClassicDescription": "Klasyczne lata 20.: prohibicja, automobile i złota era Mitów Cthulhu.", "eraGaslightDescription": "Epoka wiktoriańska: gazowe latarnie, spirytyzm i gotycka groza.", "eraNoirDescription": "Lata czterdzieste: wojna, odbudowa, radio i śledztwa w cieniu historii.", "eraPrlDescription": "Polska lat siedemdziesiątych: kolejki, państwowe instytucje, analogowa technika i nieufność.", "eraModernDescription": "Czasy współczesne: smartfony, internet i kosmiczny horror w cyfrowym świecie.", "eraCustomDescription": "Era zdefiniowana przez gracza.",
-    "difficultyEasyDescription": "Łagodne wyzwanie na początek, z mniejszą liczbą śmiertelnych pułapek.", "difficultyNormalDescription": "Standardowe wyzwanie wymagające rozwagi i ostrożnych decyzji.", "difficultyHardDescription": "Wymagające i śmiertelne. Nie wybacza błędów."
+    "tonePurist": "Purist",
+    "tonePulp": "Pulp",
+    "toneNoir": "Noir",
+    "eraClassic": "Lata 20.",
+    "eraGaslight": "Wiktoria",
+    "eraNoir": "Lata 40.",
+    "eraPrl": "PRL - lata 70.",
+    "eraModern": "Współczesność",
+    "eraCustom": "Własna",
+    "difficultyEasy": "Łatwy",
+    "difficultyNormal": "Normalny",
+    "difficultyHard": "Trudny",
+    "tonePuristDescription": "Klasyczny, mroczny horror. Groza narasta powoli, zagrożenie jest realne, a badacze mają niewielkie szanse na heroizm.",
+    "tonePulpDescription": "Heroiczna akcja. Odważniejsi badacze, więcej walki i przygody, mniej beznadziei.",
+    "toneNoirDescription": "Mroczne śledztwo pełne intryg, moralnej dwuznaczności i tajemnic wielkiego miasta.",
+    "eraClassicDescription": "Klasyczne lata 20.: prohibicja, automobile i złota era Mitów Cthulhu.",
+    "eraGaslightDescription": "Epoka wiktoriańska: gazowe latarnie, spirytyzm i gotycka groza.",
+    "eraNoirDescription": "Lata czterdzieste: wojna, odbudowa, radio i śledztwa w cieniu historii.",
+    "eraPrlDescription": "Polska lat siedemdziesiątych: kolejki, państwowe instytucje, analogowa technika i nieufność.",
+    "eraModernDescription": "Czasy współczesne: smartfony, internet i kosmiczny horror w cyfrowym świecie.",
+    "eraCustomDescription": "Era zdefiniowana przez gracza.",
+    "difficultyEasyDescription": "Łagodne wyzwanie na początek, z mniejszą liczbą śmiertelnych pułapek.",
+    "difficultyNormalDescription": "Standardowe wyzwanie wymagające rozwagi i ostrożnych decyzji.",
+    "difficultyHardDescription": "Wymagające i śmiertelne. Nie wybacza błędów."
   },
   "ApiUsageCounter": {
     "collapse": "Zwiń licznik",
@@ -5342,7 +5544,10 @@
     "mechanicSkill": "Umiejętność",
     "mechanicBonus": "Premia",
     "loreTitle": "Opis przedmiotu",
-    "appearanceLabel": "Wygląd:"
+    "appearanceLabel": "Wygląd:",
+    "documentPreviewTitle": "Treść dokumentu",
+    "expandDocument": "Powiększ dokument",
+    "collapseDocument": "Zwiń do widoku przedmiotu"
   },
   "CharacterManager": {
     "noCharactersToExport": "Brak postaci do eksportu",
@@ -5377,18 +5582,115 @@
     "emptyTitle": "Brak badaczy",
     "emptyDesc": "Stwórz swojego pierwszego badacza, aby rozpocząć śledztwo."
   },
+  "OpposedRoll": {
+    "title": "Test Przeciwstawny CoC 7e",
+    "subtitle": "Rywalizacja bezpośrednia — wyższy stopień sukcesu wygrywa (RAW)",
+    "playerLabel": "Badacz",
+    "opponentLabel": "Przeciwnik",
+    "skill": "Umiejętność / Cecha",
+    "baseValue": "Wartość bazowa",
+    "thresholds": "Progi sukcesu",
+    "thresholdRegular": "Zwykły",
+    "thresholdHard": "Trudny ½",
+    "thresholdExtreme": "Ekstremalny ⅕",
+    "thresholdFumble": "Fumble",
+    "bonusDice": "Kości premiowe / karne",
+    "penaltyDice": "Kości karne",
+    "noDiceModifier": "Brak modyfikatorów",
+    "rollButton": "Rzuć kośćmi (Obie strony)",
+    "rolling": "Toczenie kości...",
+    "verdictTitle": "Werdykt regułowy (CoC 7e RAW)",
+    "winByOutcomeRank": "Zwycięża {winner}! Wyższy stopień sukcesu ({winnerRank} vs {loserRank}).",
+    "winBySkillValue": "Remis stopni ({outcome})! Zwycięża {winner} wyższą wartością bazową ({winnerSkill}% vs {loserSkill}%).",
+    "exactTie": "Impas absolutny! Identyczny stopień ({outcome}) i równa wartość bazowa ({skillValue}%).",
+    "mutualFailure": "Obopólna porażka! Żadna ze stron nie osiąga zamierzonego celu.",
+    "outcomeCritical": "Krytyk (01)",
+    "outcomeExtreme": "Ekstremalny",
+    "outcomeHard": "Trudny",
+    "outcomeRegular": "Zwykły",
+    "outcomeFail": "Porażka",
+    "outcomeFumble": "Fumble",
+    "rerollButton": "Rzuć ponownie (Rozstrzygnij impas)",
+    "sendToChatButton": "Przekaż do narracji",
+    "closeButton": "Zamknij",
+    "rulebookTieExplanation": "Zgodnie z Księgą Strażnika CoC 7e: w przypadku remisu stopnia sukcesu wygrywa wyższa wartość cechy. Przy równych wartościach następuje pat lub ponowny rzut."
+  },
+  "Chase": {
+    "title": "Pościg CoC 7e RAW",
+    "subtitle": "Tor przeszkód (Hazard Track) — ucieczka przed pościgiem",
+    "roundLabel": "Runda {round}/{maxRounds}",
+    "distanceLabel": "Dystans: {distance} {distance, plural, one {lokacja} few {lokacje} other {lokacji}}",
+    "actionsRemaining": "Pozostałe akcje: {count}",
+    "fleeingBadge": "Uciekający",
+    "pursuerBadge": "Pościg",
+    "actionSprint": "Sprint naprzód",
+    "actionSprintDesc": "Szybki bieg o 1 segment toru. Koszt: 1 akcja.",
+    "actionClearHazard": "Forsuj przeszkodę",
+    "actionClearHazardDesc": "Test umiejętności {skill} ({difficulty}) by pokonać barierę bez utraty tempa.",
+    "actionShortcut": "Brawurowy skrót",
+    "actionShortcutDesc": "Ryzykowny manewr zaułkami. Sukces daje +2 segmenty!",
+    "actionCreateBarrier": "Zastaw przeszkodę z tyłu",
+    "actionCreateBarrierDesc": "Przewróć meble lub zamknij kratę za sobą, spowalniając wrogów.",
+    "actionHide": "Zniknij w cieniu",
+    "actionHideDesc": "Próba natychmiastowego zerwania kontaktu wzrokowego (test Ukrywania).",
+    "caughtTitle": "Schwytanie!",
+    "caughtDesc": "Pościg dopadł uciekiniera! Natychmiastowe przejście do starcia wręcz.",
+    "escapedTitle": "Ucieczka udana!",
+    "escapedDesc": "Zgubiłeś ścigających w labiryncie ulic. Jesteś bezpieczny!",
+    "sendToChatButton": "Przekaż do narracji",
+    "closeButton": "Zamknij",
+    "hazardFence": "Wysokie ogrodzenie z siatki",
+    "hazardCrowd": "Gęsty tłum na targu",
+    "hazardStairs": "Strome, zniszczone schody",
+    "hazardTraffic": "Ruchliwa ulica z pojazdami"
+  },
+  "CombatDefense": {
+    "title": "Obrona w walce wręcz",
+    "chooseReaction": "Wybierz reakcję",
+    "defenseResolved": "Obrona rozliczona",
+    "incomingAttackWithWeapon": "{attacker} wyprowadza atak wręcz bronią: {weapon}!",
+    "incomingAttackUnarmed": "{attacker} wyprowadza atak wręcz!",
+    "outnumberedWarningTitle": "Przewaga liczebna",
+    "outnumberedWarningDesc": "Zużyłeś już darmową obronę w tej rundzie. Przeciwnik otrzymuje kość premiową (+1K)!",
+    "actionDodge": "Unik",
+    "riskLow": "Niskie ryzyko",
+    "dodgeDescription": "Zejście z linii ciosu. Przy remisie stopni sukcesu wygrywa obrońca (brak obrażeń).",
+    "skillValue": "Umiejętność",
+    "actionFightBack": "Kontratak",
+    "riskHigh": "Wysokie ryzyko",
+    "fightBackDescription": "Odpowiedź atakiem. Przy remisie wygrywa atakujący. Musisz rzucić ściśle lepiej, aby zadać obrażenia.",
+    "actionManeuver": "Manewr bojowy",
+    "blocked": "Zablokowany",
+    "maneuverBlockedByBuild": "Różnica Budowy celu zbyt wielka (≥3) - manewr niemożliwy (RAW).",
+    "maneuverDescription": "Chwyt, powalenie lub rozbrojenie. Przy remisie wygrywa obrońca.",
+    "maneuverKnockdown": "Powalenie",
+    "maneuverGrapple": "Chwyt",
+    "maneuverDisarm": "Rozbrojenie",
+    "executeManeuver": "Wykonaj",
+    "rulebookTieReminder": "Księga Strażnika CoC 7e RAW: Unik wygrywa remisy; w Kontrataku remis sprzyja atakującemu."
+  },
+  "QuickCombatTracker": {
+    "title": "Walka",
+    "playerName": "Badacz",
+    "outnumberedBadge": "Osaczony (+1K dla wroga)",
+    "majorWoundBadge": "Ciężka Rana!",
+    "criticalCondition": "Stan krytyczny!",
+    "damageDealt": "Otrzymano {damage} obrażeń"
+  },
   "CombatUtils": {
     "tacticalDodgeDesc": "Unikaj ataku (test Uniku). Możesz unikać wielu ataków, ale każdy kolejny z karą.",
     "tacticalCounterattackDesc": "Kontratakuj! Porównanie umiejętności walki. Wygrana oznacza zadanie obrażeń.",
     "tacticalFleeDesc": "Próba ucieczki. Ryzykujesz jeden atak z okazji od każdego przeciwnika.",
     "tacticalParryDesc": "Sparuj bronią lub tarczą. Wymaga odpowiedniego przedmiotu.",
     "tacticalFightBackDesc": "Walcz w defensywie - zmniejszone szanse na trafienie, ale też na bycie trafionym.",
+    "tacticalManeuverDesc": "Wykonaj manewr: chwyt, powalenie lub rozbrojenie (zależne od Budowy).",
     "penaltyDiceSuffix": "(Kość Karna x{count} za poprzednie uniki)",
     "actionDodge": "Unik",
     "actionCounterattack": "Kontratak",
     "actionFlee": "Ucieczka",
     "actionParry": "Parowanie",
     "actionFightBack": "Walka defensywna",
+    "actionManeuver": "Manewr bojowy",
     "reactionTitle": "🛡️ Reakcja na Atak",
     "yourTurnTitle": "⚔️ Twoja Tura",
     "enemyAttacks": "Wróg cię atakuje! Wybierz swoją reakcję:",
@@ -5542,8 +5844,31 @@
     "cancelX": "❌ Anuluj",
     "editFormTitle": "✏️ Edytuj Uczestnika Walki",
     "saveChanges": "💾 Zapisz Zmiany",
-    "critDouble": " × 2 (krytyk!) = {damage}"
+    "critDouble": " × 2 (krytyk!) = {damage}",
+    "firearmMalfunctionDesc": "ZACIĘCIE BRONI! Rzut {roll} ≥ {threshold}. Broń zacięła się (RAW: zakaz wydawania Szczęścia!).",
+    "impaleNotice": "(Przebicie! Sukces Ekstremalny CoC 7e RAW: max obrażeń + dodatkowy rzut kością)",
+    "firearmMissDesc": "Pudło ({roll} > {target})"
   },
+  "CombatFirearms": {
+    "pointBlank": "Strzał z przyłożenia (+1 kość premiowa)",
+    "pointBlankDiveCover": "Cel rzucił się za osłonę (Dive for Cover) - anulowano kość premiową",
+    "longRange": "Długi dystans (1 kość karna)",
+    "extremeRange": "Ekstremalny dystans (2 kości karne)",
+    "outOfRange": "Poza zasięgiem (strzał niemożliwy)",
+    "malfunctionJam": "Zacięcie broni ({roll} ≥ {threshold})",
+    "luckForbidden": "Zasady RAW: na zacięcie broni nie wolno wydawać punktów Szczęścia!",
+    "multipleShotsPenalty": "Strzał #{shot} w rundzie (+{penalty}K)",
+    "burstTitle": "Salwa ognia ciągłego",
+    "burstFired": "Wystrzelono salwę {count} kul",
+    "burstHits": "Trafiło {hits}/{total} kul",
+    "burstExtreme": "Ekstremalny sukces! Wszystkie kule trafiają, połowa z Przebiciem (Impale)!",
+    "jamClearingSimple": "Odblokowanie proste: 1 pełna runda",
+    "jamClearingStandard": "Odblokowanie: 1 runda + test Broni Palnej / Naprawy Mechanicznej",
+    "jamClearingComplex": "Złożone zacięcie: 1d6 rund (wymaga Naprawy Mechanicznej)",
+    "reloadSingle": "Ładowanie ręczne: 2 naboje na 1 rundę walki",
+    "reloadMagazine": "Wymiana magazynka / speedloader: 1 pełna runda"
+  },
+
   "FullGameSaveModal": {
     "saveEyebrow": "Archiwum · zapis stanu",
     "loadEyebrow": "Archiwum · wczytanie",
@@ -5685,8 +6010,8 @@
     "defaultEraLabel": "Własna",
     "deleteConfirm": "Czy na pewno chcesz usunąć tę przygodę?",
     "selectedAria": "Wybrana przygoda",
-    "sessionsCount": "⏱️ {count} sesji",
-    "officialSources": "📺 Oficjalne źródła:",
+    "sessionsCount": "{count} sesji",
+    "officialSources": "Oficjalne źródła:",
     "moreDetails": "Więcej szczegółów",
     "deleteAdventureTitle": "Usuń przygodę",
     "deleteButton": "Usuń",
@@ -5697,24 +6022,24 @@
     "publicModeInfo1": "Strażnik to <strong>silnik</strong> - nie ma gotowych scenariuszy. Przygodę wnosisz Ty.",
     "publicModeInfo2": "Masz darmowy starter z Black Monk (lub własny podręcznik)? <strong>Wgraj jego plik PDF poniżej</strong> - AI odczyta scenariusz i przygotuje przygodę.",
     "publicModeInfo3": "Do odczytania PDF potrzebny jest Twój klucz Gemini (Ustawienia).",
-    "yourAdventures": "📂 Twoje przygody",
+    "yourAdventures": "Twoje przygody",
     "uploadButton": "Wgraj przygodę (PDF)",
     "processingBook": "Przetwarzanie księgi tajemnic...",
     "aiAnalyzing": "AI analizuje przygodę i automatycznie uzupełnia dane...",
     "uploadHint": "np. darmowy starter pobrany z Black Monk",
-    "strefa11Header": "📺 Autorskie Scenariusze (Inspirowane programiem \"Strefa 11\" / \"Nie do wiary\" - TVN)",
+    "strefa11Header": "Autorskie Scenariusze (Inspirowane programem \"Strefa 11\" / \"Nie do wiary\" - TVN)",
     "strefa11Desc": "Polskie scenariusze przygód RPG osadzone w realiach PRL i lat 90./2000. Każda przygoda posiada gotowe zbalansowane postacie Badaczy.",
-    "learnMore": "🔗 Dowiedz się więcej:",
-    "strefa11SelectTitle": "📺 Wybierz scenariusz Strefy 11",
-    "selectScenarioTitle": "🎲 Wybierz scenariusz",
+    "learnMore": "Dowiedz się więcej:",
+    "strefa11SelectTitle": "Wybierz scenariusz Strefy 11",
+    "selectScenarioTitle": "Wybierz scenariusz",
     "customCardTitle": "Własna Przygoda",
     "customCardSubtitle": "Opisz swoją bez PDF",
     "customCardDesc": "Masz własny scenariusz lub chcesz stworzyć przygodę od zera? Podaj podstawowy kontekst, a AI dostosuje generowanie postaci.",
-    "detailsTitle": "ℹ️ Szczegóły przygody",
+    "detailsTitle": "Szczegóły przygody",
     "detailsHelp": "Te informacje zostaną użyte do dopasowania postaci do scenariusza",
     "themesLabel": "Motywy:",
     "suggestedOccupationsLabel": "Sugerowane zawody:",
-    "formIntro": "💡 Podaj podstawowe informacje o swojej przygodzie. Im więcej szczegółów, tym lepiej AI dopasuje generowaną postać do kontekstu.",
+    "formIntro": "Podaj podstawowe informacje o swojej przygodzie. Im więcej szczegółów, tym lepiej AI dopasuje generowaną postać do kontekstu.",
     "adventureTitleLabel": "Tytuł przygody",
     "titlePlaceholder": "np. Tajemnica Starego Dworu",
     "locationLabel": "Lokalizacja",
@@ -6070,10 +6395,31 @@
     "categoryCharacters": "Postacie",
     "categoryItems": "Przedmioty",
     "categoryQuests": "Misje",
+    "categoryClues": "Poszlaki i Akta",
+    "categoryNotes": "Notatki Badacza",
+    "categoryEvidence": "Dowody i Ślady",
     "emptyPlaces": "Nie odkryto jeszcze żadnych lokacji.",
     "emptyCharacters": "Nie spotkano jeszcze żadnych postaci.",
     "emptyItems": "Nie znaleziono jeszcze żadnych przedmiotów.",
     "emptyQuests": "Brak misji w dzienniku.",
+    "emptyClues": "Nie odnaleziono jeszcze żadnych poszlak.",
+    "emptyNotes": "Brak osobistych notatek badacza.",
+    "clueCategoryForensic": "Ślady i medycyna sądowa",
+    "clueCategoryDocument": "Dokumenty i prasa",
+    "clueCategoryTestimony": "Zeznania świadków",
+    "clueCategoryOccult": "Wiedza tajemna i mity",
+    "clueStatusUnconfirmed": "Niepotwierdzona",
+    "clueStatusConfirmed": "Potwierdzona",
+    "clueStatusDisproven": "Wykluczona",
+    "npcRelFriendly": "Przyjazny",
+    "npcRelNeutral": "Neutralny",
+    "npcRelHostile": "Wrogi",
+    "npcRelSuspicious": "Podejrzany",
+    "npcRelUnknown": "Nieznany",
+    "npcRelDeceased": "Zmarły",
+    "locStatusUnvisited": "Nieodwiedzone",
+    "locStatusPartiallySearched": "Wstępnie przeszukane",
+    "locStatusThoroughlySearched": "Dokładnie przeszukane",
     "questActive": "Aktywna",
     "questCompleted": "Ukończona",
     "questFailed": "Nieudana",
@@ -6095,7 +6441,28 @@
     "objectivesHeading": "WYTYCZNE ZADANIA",
     "objectiveCompleted": "ZREALIZOWANO: {date}",
     "discoveriesInCategory": "Odkrycia w kategorii: {category}",
-    "selectFromList": "Wybierz element z listy po lewej stronie"
+    "selectFromList": "Wybierz element z listy po lewej stronie",
+    "keyClueBadge": "KLUCZOWA POSZLAKA",
+    "fullscreenPreview": "Podgląd pełnoekranowy",
+    "closeLightbox": "Zamknij podgląd (Esc)",
+    "sourceLabel": "ŹRÓDŁO:",
+    "witnessLabel": "ŚWIADEK:",
+    "locationLabel": "LOKACJA:",
+    "occupationLabel": "ZAWÓD:",
+    "addressLabel": "REJON:",
+    "categoryLabel": "KATEGORIA:",
+    "searchStatusLabel": "EKSPLORACJA:",
+    "relationshipLabel": "RELACJA:",
+    "changeStatusTooltip": "Kliknij, aby zmienić status poszlaki",
+    "changeRelTooltip": "Kliknij, aby zmienić relację postaci",
+    "changeSearchTooltip": "Kliknij, aby zmienić stan przeszukania",
+    "allCategories": "Wszystkie teczki",
+    "fastFilterPlaceholder": "Szybki filtr FTS (np. nazwisko, poszlaka)...",
+    "matchingCount": "{count} pasujących",
+    "categoryHandouts": "Wycinki i Dokumenty",
+    "emptyHandouts": "Nie zabezpieczono jeszcze żadnych wycinków ani dokumentów.",
+    "quoteToChatTitle": "Zacytuj i pytaj na czacie (Quote-to-Input)",
+    "quoteToChatAction": "Pytaj o to na czacie"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",
@@ -6300,7 +6667,20 @@
     "backNav": "‹ Wstecz",
     "stepCounter": "Krok {step} z {total}",
     "finishAndSaveNav": "Zakończ i zapisz ›",
-    "nextNav": "Dalej ›"
+    "nextNav": "Dalej ›",
+    "suggestedLinesLabel": "Sugerowane tematy zakazane (kliknij, aby dodać):",
+    "suggestedVeilsLabel": "Sugerowane tematy do fade to black (kliknij, aby dodać):",
+    "violenceAnimals": "Krzywdzenie zwierząt",
+    "suicide": "Samobójstwo i samookaleczenie",
+    "claustrophobia": "Klaustrofobia",
+    "spidersInsects": "Pająki i insekty",
+    "cannibalism": "Kanibalizm",
+    "lossOfControl": "Utrata kontroli psychicznej",
+    "ritualsBlood": "Rytuały krwi i ofiary",
+    "surgeriesAmputation": "Drastyczne operacje i amputacje",
+    "bodyHorror": "Deformacje ciała (body horror)",
+    "backToStep1": "Wróć do wyboru trybu",
+    "backToStep2": "Wróć do linii i zasłon"
   },
   "NpcManager": {
     "headerKicker": "Spotkane osoby · Bohaterowie niezależni",
@@ -6712,7 +7092,38 @@
     "mdTypeLocation": "Lokacja",
     "mdTypeItem": "Przedmiot",
     "mdNotesSection": "## 📝 Notatki i Teorie\n\n",
-    "mdSavedLine": "*Zapisano: {date}*\n\n"
+    "mdSavedLine": "*Zapisano: {date}*\n\n",
+    "mdDossierTitle": "# 📁 Akta Śledcze (Investigator's Dossier)\n\n",
+    "mdDossierTitleOwner": "# 📁 Akta Śledcze: {owner}\n\n",
+    "mdCluesSection": "## 🔍 Akta Poszlak i Śladów\n\n",
+    "mdClueCategoryLine": "*Kategoria: {category} | Status: {status}*\n",
+    "mdClueSourceLine": "*Źródło: {source}*\n",
+    "mdInsightLine": "> **Wniosek Badacza / Dedukcja:** {insight}\n\n",
+    "mdNpcSection": "## 👥 Teczka Osób (Dossier NPC)\n\n",
+    "mdNpcRelationLine": "*Relacja: {relation} | Zawód: {occupation}*\n",
+    "mdLocationsSection": "## 📍 Atlas Miejsc\n\n",
+    "mdLocationStatusLine": "*Stan przeszukania: {status}*\n",
+    "mdHandoutsSection": "## 📜 Wycinki i Dokumenty\n\n",
+    "clueCategoryForensic": "Ślady i medycyna sądowa",
+    "clueCategoryDocument": "Dokumenty i prasa",
+    "clueCategoryTestimony": "Zeznania świadków",
+    "clueCategoryOccult": "Wiedza tajemna i mity",
+    "clueStatusUnconfirmed": "Niepotwierdzona",
+    "clueStatusConfirmed": "Potwierdzona",
+    "clueStatusDisproven": "Wykluczona",
+    "npcRelFriendly": "Przyjazny",
+    "npcRelNeutral": "Neutralny",
+    "npcRelHostile": "Wrogi",
+    "npcRelSuspicious": "Podejrzany",
+    "npcRelUnknown": "Nieznany",
+    "npcRelDeceased": "Zmarły",
+    "locStatusUnvisited": "Nieodwiedzone",
+    "locStatusPartiallySearched": "Wstępnie przeszukane",
+    "locStatusThoroughlySearched": "Dokładnie przeszukane",
+    "recordDate": "DATA ZAPISU: {date}",
+    "ideaRollButton": "💡 Test Pomysłu (INT)",
+    "ideaRollTooltip": "Wykonaj Test Pomysłu (Idea Roll) na cechę Inteligencja zgodnie z regułami CoC 7e RAW",
+    "quoteToChatTitle": "Zacytuj i pytaj na czacie (Quote-to-Input)"
   },
   "SessionList": {
     "title": "📚 Lista Sesji",
@@ -6756,5 +7167,62 @@
     "clearConfirm": "Czy na pewno chcesz wyczyścić całą oś czasu?",
     "clearButton": "🗑️ Wyczyść",
     "sessionExportTitle": "Sesja {date}"
+  },
+  "RulebookModal": {
+    "title": "Podręcznik Zasad CoC 7e",
+    "description": "Wgraj oficjalny podręcznik zasad Call of Cthulhu 7. edycji (PDF). Plik zostanie przetworzony i zindeksowany lokalnie na Twoim urządzeniu - nie trafia do żadnej chmury.",
+    "privacyLabel": "Prywatność i przetwarzanie lokalne:",
+    "privacyDescription": "Twój plik PDF jest parsowany bezpośrednio na Twoim komputerze i zapisywany w lokalnej bazie wiedzy (data/rag/rules). Wymagany do rozstrzygania mechanik i rzutów przez Mistrza Gry.",
+    "requiredBadge": "Wymagany",
+    "readyBadge": "Gotowy",
+    "dropZonePrompt": "Kliknij, aby wybrać plik PDF z zasadami",
+    "dropZoneSub": "Obsługiwany format: dokument PDF (np. Księga Strażnika CoC 7e)",
+    "processingTitle": "Przetwarzam podręcznik...",
+    "processingDescription": "Parsowanie treści i generowanie wektorów wiedzy (może to zająć od kilkunastu sekund do kilku minut)...",
+    "indexingChunkn": "Trwa indeksowanie fragmentów zasad...",
+    "successTitle": "Podręcznik wczytany pomyślnie!",
+    "successIndexed": "Zindeksowano {count} fragmentów w lokalnej pamięci zasad.",
+    "errorTitle": "Błąd podczas wgrywania podręcznika",
+    "retry": "Spróbuj ponownie",
+    "selectAnother": "Wybierz inny plik",
+    "close": "Zamknij",
+    "continueToGame": "Gotowe, przejdź do gry",
+    "statusCurrent": "Aktualny stan bazy:",
+    "statusChunks": "{count} fragmentów zasad w lokalnym indeksie",
+    "sourcesTitle": "Gdzie legalnie zdobyć podręcznik?",
+    "sourcesDesc": "Strażnik Tajemnic to silnik i sam w sobie nie zawiera treści podręcznika. Pobierz darmowy starter lub kup pełne wydanie:",
+    "disclaimer": "Projekt fanowski, niezwiązany i niewspierany przez Chaosium Inc. ani Black Monk. Call of Cthulhu / Zew Cthulhu to znaki towarowe Chaosium Inc. Korzystaj wyłącznie z legalnie nabytych egzemplarzy."
+  },
+  "IdeaRoll": {
+    "headerSubtitle": "Mechanika CoC 7e RAW (s. 199-201)",
+    "headerTitle": "Test Pomysłu (Idea Roll)",
+    "headerDescription": "Zgodnie z zasadami Call of Cthulhu 7e, Test Pomysłu służy do pchnięcia śledztwa do przodu, gdy badacze utknęli w martwym punkcie.",
+    "subjectLabel": "BADANY ELEMENT:",
+    "generalInvestigationLabel": "ZAKRES ANALIZY:",
+    "generalDeductionTitle": "Ogólny stan śledztwa - synteza znanych poszlak",
+    "thresholdRegular": "Zwykły",
+    "thresholdHard": "Trudny",
+    "thresholdExtreme": "Ekstremalny",
+    "thresholdCritical": "Krytyk",
+    "rollButton": "Wykonaj Test Pomysłu (INT)",
+    "rawRuleHint": "Sukces przynosi jasne powiązanie faktów. Porażka również daje niezbędną wskazówkę, lecz za cenę narracyjnej komplikacji (RAW).",
+    "reroll": "Rzuć ponownie",
+    "verdictSuccess": "Sukces - badacz doznaje olśnienia",
+    "verdictFailureWithComplication": "Porażka - wskazówka okupiona komplikacją (RAW)",
+    "analyzingClues": "Strażnik Tajemnic analizuje poszlaki i fakty...",
+    "deductionResultHeading": "WNIOSEK STRAŻNIKA TAJEMNIC (DEDUKCJA)",
+    "leadClean": "Czysty trop",
+    "leadComplication": "Trop z komplikacją",
+    "closeButton": "Zamknij",
+    "quoteToChatButton": "Pytaj na czacie",
+    "quoteToChatTooltip": "Wstawia przygotowaną deklarację do pola czatu i przenosi do gry",
+    "savedToTargetButton": "Zapisano w poszlace",
+    "saveToTargetButton": "Zapisz w poszlace",
+    "savedToChronicleButton": "Zapisano w Kronice",
+    "saveToChronicleButton": "Zapisz w Kronice",
+    "chronicleTitleSubject": "Wniosek z Testu Pomysłu: {title}",
+    "chronicleTitleGeneral": "Olśnienie badacza ({name}) - Test Pomysłu",
+    "fallbackSuccess": "Po wnikliwej analizie zebranych śladów badacz {name} dostrzega ukryte powiązanie, które rzuca nowe światło na przebieg wydarzeń.",
+    "fallbackFailure": "Badacz {name} dochodzi do właściwego wniosku, jednak chwila nieuwagi sprawia, że zwraca na siebie niepożądaną uwagę lub traci cenny czas."
   }
 }

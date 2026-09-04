@@ -23,6 +23,7 @@ import {
   type VisualSceneSpec,
   WorldSetupValidationError,
 } from '@/lib/world-setup';
+import { DEFAULT_IMAGE_MODEL, FALLBACK_IMAGE_MODEL } from '@/lib/model-registry';
 
 // Cache dla wygenerowanych obrazów
 const imageCache = new Map<
@@ -31,25 +32,22 @@ const imageCache = new Map<
 >();
 const CACHE_DURATION = 60 * 60 * 1000; // 1 godzina
 
-// 2026-07-22: filtr słów mitologii Cthulhu w promptach obrazów.
+// Filtr zapobiegający zalewowi tanich macek i gigantycznych potworów CGI w scenach codziennych.
 // Wyjątek: sceny oznaczone jako mythos przez LLM (| mythos w tagu ILUSTRACJA)
 // lub przez klienta (isMythos: true w body POST).
-const MYTHOS_KEYWORDS = [
-  '\\bcthulhu\\b', '\\blovecraft\\b', '\\btentacles?\\b', '\\beldritch\\b',
-  '\\bcosmic horror\\b', '\\bmonster\\b', '\\bcreature\\b', '\\bmythos\\b',
-  '\\bnecronomicon\\b', '\\bgargoyle\\b', '\\bsupernatural\\b', '\\boccult\\b',
-  '\\britual\\b', '\\bcult\\b', '\\bhorror\\b', '\\bgrotesque\\b',
-  '\\beldritch horror\\b', '\\bforbidden knowledge\\b',
-  '\\babomination\\b', '\\bunspeakable\\b', '\\botherworldly\\b',
-  '\\blovecraftian\\b',
+// Kluczowe elementy śledztwa (occult, ritual, cult, horror, mystery) są ZACHOWANE.
+const MYTHOS_OVERT_MONSTER_KEYWORDS = [
+  '\\bcthulhu\\b', '\\blovecraftian tentacles?\\b', '\\btentacles?\\b',
+  '\\bcosmic horror entity\\b', '\\bshoggoth\\b', '\\bgiant monster\\b',
+  '\\balien god\\b', '\\beldritch monstrosity\\b',
 ];
 
 const NEGATIVE_SUFFIX =
-  ', strictly realistic, no monsters, no tentacles, no supernatural creatures, no cosmic horror elements, no occult symbols';
+  ', strictly realistic period photograph, authentic moody lighting, cinematic film-grain, no cartoonish monsters, no oversized tentacles, no cheap CGI creatures, no fantasy tropes';
 
 function sanitizePrompt(prompt: string): string {
   let cleaned = prompt;
-  for (const kw of MYTHOS_KEYWORDS) {
+  for (const kw of MYTHOS_OVERT_MONSTER_KEYWORDS) {
     cleaned = cleaned.replace(new RegExp(kw, 'gi'), '');
   }
   cleaned = cleaned.replace(/\s{2,}/g, ' ').replace(/,\s*,/g, ',').trim();
@@ -69,13 +67,13 @@ export async function POST(request: NextRequest) {
   const logImagen = (
     status: number,
     result: 'success' | 'error',
-    opts: { costUsd?: number; cached?: boolean; errorMsg?: string } = {}
+    opts: { costUsd?: number; cached?: boolean; errorMsg?: string; model?: string } = {}
   ) =>
     logApiEvent({
       traceId,
       endpoint: '/api/imagen',
       provider: 'gemini',
-      model: 'gemini-2.5-flash-image',
+      model: opts.model || DEFAULT_IMAGE_MODEL,
       status,
       durationMs: timer.elapsed(),
       result,
@@ -136,7 +134,7 @@ export async function POST(request: NextRequest) {
             available: hasGemini,
             priority: 1,
             env: { GEMINI_API_KEY: hasGemini ? 'set' : 'missing' },
-            model: 'gemini-2.5-flash-image',
+            model: DEFAULT_IMAGE_MODEL,
             hint: !hasGemini
               ? 'Set GEMINI_API_KEY in .env.local (klucz z Google AI Studio)'
               : undefined,
@@ -194,8 +192,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🎨 Generuję obraz przez Gemini...');
-    const model = 'gemini-2.5-flash-image';
+    let activeModel: string = DEFAULT_IMAGE_MODEL;
+    console.log(`🎨 Generuję obraz przez Gemini (${activeModel})...`);
 
     // Rozszerz prompt. 2026-06-28: domyślnie REALIZM epoki (świat rzeczywisty lat 20.,
     // film/noir) zamiast doklejania na sztywno "cosmic horror, Lovecraftian, eerie" -
@@ -211,7 +209,17 @@ export async function POST(request: NextRequest) {
     const eraProfile = resolveEraVisualProfile(effectiveEra);
     const colorDirection = getEraColorDirection(effectiveEra);
     const techGuardrails = getEraTechnologyGuardrails(effectiveEra);
-    const eraPropsEnriched = enrichImagePromptWithEraProps(basePrompt, effectiveEra);
+    const sceneTypeHint =
+      style === 'portrait'
+        ? 'portrait'
+        : style === 'location'
+          ? 'exterior'
+          : undefined;
+    const eraPropsEnriched = enrichImagePromptWithEraProps(
+      basePrompt,
+      effectiveEra,
+      sceneTypeHint
+    );
     const eraKeyword = `${eraProfile} period-accurate, ${colorDirection}, `;
 
     let enhancedPrompt = eraPropsEnriched;
@@ -244,7 +252,7 @@ export async function POST(request: NextRequest) {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS && !result; attempt++) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -266,10 +274,40 @@ export async function POST(request: NextRequest) {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          lastError = `Gemini API ${response.status}: ${errorData?.error?.message || response.statusText}`;
+          const errMsg = errorData?.error?.message || response.statusText;
+          lastError = `Gemini API ${response.status}: ${errMsg}`;
           console.warn(
             `⚠️ Gemini API error (próba ${attempt}/${MAX_ATTEMPTS}): ${lastError}`
           );
+
+          // 404 = model wycofany lub nieobsługiwany - przełącz natychmiast na sprawdzony fallback
+          if (response.status === 404 && activeModel !== FALLBACK_IMAGE_MODEL) {
+            console.warn(
+              `⚠️ Model "${activeModel}" niedostępny (404). Przełączam na model awaryjny "${FALLBACK_IMAGE_MODEL}".`
+            );
+            activeModel = FALLBACK_IMAGE_MODEL;
+            continue;
+          }
+
+          // 429 z limitem 0 = darmowe konto bez bilingu (Google wymaga Pay-As-You-Go dla obrazów)
+          if (
+            response.status === 429 &&
+            (errMsg.includes('limit: 0') || errMsg.includes('FreeTier') || errMsg.includes('free_tier'))
+          ) {
+            logImagen(429, 'error', {
+              errorMsg: 'IMAGE_BILLING_REQUIRED',
+              model: activeModel,
+            });
+            return NextResponse.json(
+              {
+                error:
+                  'Generowanie obrazów wymaga konta Google AI Studio z włączonym bilingiem (Pay-As-You-Go). Darmowy plan Google nie udostępnia generowania grafik.',
+                code: 'IMAGE_BILLING_REQUIRED',
+              },
+              { status: 429 }
+            );
+          }
+
           // 4xx poza 429 = błąd trwały (zły klucz/prompt) - nie ponawiaj.
           if (response.status < 500 && response.status !== 429) break;
         } else {
@@ -288,7 +326,7 @@ export async function POST(request: NextRequest) {
                   cost: 0.02,
                 };
                 console.log(
-                  `✅ Gemini succeeded (próba ${attempt}/${MAX_ATTEMPTS})`
+                  `✅ Gemini succeeded (próba ${attempt}/${MAX_ATTEMPTS}, model: ${activeModel})`
                 );
                 break;
               }
@@ -324,7 +362,7 @@ export async function POST(request: NextRequest) {
     // Jeśli generacja nie zadziałała
     if (!result) {
       console.error(`❌ Gemini image generation failed: ${lastError}`);
-      logImagen(500, 'error', { errorMsg: lastError });
+      logImagen(500, 'error', { errorMsg: lastError, model: activeModel });
       return NextResponse.json(
         {
           error: 'Image generation failed',

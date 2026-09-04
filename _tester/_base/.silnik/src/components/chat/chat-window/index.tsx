@@ -69,6 +69,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   isSummarizingScene = false,
   isLoading = false,
   isInitialBuffering = false,
+  isStarting = false,
+  startProgress = 0,
+  startStatus = '',
   isDuet = false,
   pendingDeclarations,
   playersAwaitingDeclaration,
@@ -200,82 +203,88 @@ export const ChatWindow: FC<ChatWindowProps> = ({
 
   return (
     <div className="relative flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
-      <TTSHardLoadingScreen isBuffering={isInitialBuffering} />
+      <TTSHardLoadingScreen
+        isBuffering={isInitialBuffering}
+        adventureTitle={adventureTitle}
+        region={region}
+      />
       <ChatHeader
         title={adventureTitle}
         region={region}
         currentLocation={currentLocation}
       />
-      {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4 md:p-8">
-        {!hasStartedGame ? (
-          <div className="w-full max-w-[92vw] xl:max-w-7xl h-full min-h-[680px] mx-auto rounded-md overflow-hidden ring-1 ring-brass/10 shadow-[0_0_50px_rgba(201,162,39,0.03)]">
-            <WelcomeScreen
-              onUploadRules={onUploadRules || (() => {})}
-              onSelectAdventure={onSelectAdventure || (() => {})}
-              onSessionZero={onSessionZero}
-              onCreateCharacter={onCreateCharacter || (() => {})}
-              onPickPredefinedCharacter={onPickPredefinedCharacter}
-              onPickCharacter={onPickCharacter}
-              onStartGame={onStartGame || (() => {})}
-              onQuickStart={onQuickStart}
-              onChoosePlayMode={onChoosePlayMode}
-              onLoadSave={onLoadSave}
-              onOpenApiKeys={onOpenApiKeys}
-              onColdStart={onColdStart}
-              hasRules={hasRules}
-              hasAdventure={hasAdventure}
-              adventureTitle={adventureTitle}
-              hasSessionZero={hasSessionZero}
-              hasCharacter={
-                hotSeatConfig?.enabled ? duetReady : !!activeCharacter
-              }
-              activeCharacter={activeCharacter}
-              hasSavedCharacters={characters.length > 0}
-              isDuet={!!hotSeatConfig?.enabled}
-              duetCharacterSlots={duetCharacterSlots}
-              onOpenCharacterSheet={onOpenCharacterSheet}
-              characters={characters}
-            />
-          </div>
-        ) : (
-          <div className="space-y-4 max-w-4xl mx-auto w-full">
-            {messages.map((message, index) => (
-              <MessageCard
-                key={message.id}
-                message={message}
-                activeCharacter={activeCharacter}
-                playerPortraitUrl={playerPortraitUrl}
-                isTTSEnabled={isTTSEnabled}
-                currentAudio={currentAudio}
-                toggleAudioPause={toggleAudioPause}
-                isAudioPaused={isAudioPaused}
-                stopCurrentAudio={stopCurrentAudio}
-                playerColors={playerColors}
-                completedTestIds={completedTestIds}
-                onImageClick={(imgUrl, allImages) => {
-                  setLightboxImages(allImages);
-                  setLightboxImage(imgUrl);
-                }}
-                onRollTest={handleRollTest}
-                onConfirmAcquiredItem={onConfirmAcquiredItem}
-                onDismissAcquiredItem={onDismissAcquiredItem}
-                isSessionEnded={isSessionEnded}
-                isLastMessage={index === messages.length - 1}
-                onCharacterUpdate={onCharacterUpdate}
-                isDuet={isDuet}
-                characters={characters}
-              />
-            ))}
-            {/* Loading indicator - animowane kropki */}
-            {isLoading && <LoadingIndicator />}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </ScrollArea>
-      {/* Pasek wpisywania tylko w grze - ekran powitalny ma być czysty ("tylko ekran powitalny") */}
-      {hasStartedGame && (
-        <MessageInput
+      {!hasStartedGame ? (
+        <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">
+          <WelcomeScreen
+            onUploadRules={onUploadRules || (() => {})}
+            onSelectAdventure={onSelectAdventure || (() => {})}
+            onSessionZero={onSessionZero}
+            onCreateCharacter={onCreateCharacter || (() => {})}
+            onPickPredefinedCharacter={onPickPredefinedCharacter}
+            onPickCharacter={onPickCharacter}
+            onStartGame={onStartGame || (() => {})}
+            onQuickStart={onQuickStart}
+            onChoosePlayMode={onChoosePlayMode}
+            onLoadSave={onLoadSave}
+            onOpenApiKeys={onOpenApiKeys}
+            onColdStart={onColdStart}
+            hasRules={hasRules}
+            hasAdventure={hasAdventure}
+            adventureTitle={adventureTitle}
+            hasSessionZero={hasSessionZero}
+            hasCharacter={
+              hotSeatConfig?.enabled ? duetReady : !!activeCharacter
+            }
+            activeCharacter={activeCharacter}
+            hasSavedCharacters={characters.length > 0}
+            isDuet={!!hotSeatConfig?.enabled}
+            duetCharacterSlots={duetCharacterSlots}
+            onOpenCharacterSheet={onOpenCharacterSheet}
+            characters={characters}
+            isStarting={isStarting}
+            startProgress={startProgress}
+            startStatus={startStatus}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Chat Messages */}
+          <ScrollArea className="flex-1 p-4 md:p-8">
+            <div className="space-y-4 max-w-4xl mx-auto w-full">
+              {messages.map((message, index) => (
+                <MessageCard
+                  key={message.id}
+                  message={message}
+                  activeCharacter={activeCharacter}
+                  playerPortraitUrl={playerPortraitUrl}
+                  isTTSEnabled={isTTSEnabled}
+                  currentAudio={currentAudio}
+                  toggleAudioPause={toggleAudioPause}
+                  isAudioPaused={isAudioPaused}
+                  stopCurrentAudio={stopCurrentAudio}
+                  playerColors={playerColors}
+                  completedTestIds={completedTestIds}
+                  onImageClick={(imgUrl, allImages) => {
+                    setLightboxImages(allImages);
+                    setLightboxImage(imgUrl);
+                  }}
+                  onRollTest={handleRollTest}
+                  onConfirmAcquiredItem={onConfirmAcquiredItem}
+                  onDismissAcquiredItem={onDismissAcquiredItem}
+                  isSessionEnded={isSessionEnded}
+                  isLastMessage={index === messages.length - 1}
+                  onCharacterUpdate={onCharacterUpdate}
+                  isDuet={isDuet}
+                  characters={characters}
+                />
+              ))}
+              {/* Loading indicator - animowane kropki */}
+              {isLoading && <LoadingIndicator />}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+          {/* Pasek wpisywania tylko w grze - ekran powitalny ma być czysty ("tylko ekran powitalny") */}
+          <MessageInput
           newMessage={newMessage}
           setNewMessage={setNewMessage}
           handleSendMessage={handleSendMessage}
@@ -301,6 +310,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           isSessionEnded={isSessionEnded}
           sessionEndStatus={sessionEndStatus}
         />
+        </>
       )}
       {/* Image Lightbox */}
       {lightboxImage && (

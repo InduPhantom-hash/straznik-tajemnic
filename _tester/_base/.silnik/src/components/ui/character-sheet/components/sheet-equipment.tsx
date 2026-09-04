@@ -81,6 +81,11 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
           <CategoryIcon category={item.category} className="w-6 h-6" />
         </div>
       )}
+      {typeof item.quantity === 'number' && item.quantity > 0 && (
+        <span className="absolute bottom-1 right-1 font-special-elite text-[11px] font-bold bg-[#120e0a]/95 text-brass border border-brass/40 px-1.5 py-0.5 rounded shadow">
+          x{item.quantity}
+        </span>
+      )}
     </div>
   );
 }

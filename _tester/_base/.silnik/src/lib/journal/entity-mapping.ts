@@ -20,12 +20,18 @@ export const ENTITY_MAP: Record<string, { journalType: string; boardType: Eviden
   
   // Notatki gracza
   note: { journalType: 'note', boardType: 'player_note' },
+  player_note: { journalType: 'note', boardType: 'player_note' },
   
-  // Zadania / Misje
-  quest: { journalType: 'quest', boardType: 'evidence' },
-  
-  // Poszlaki / Fallback
+  // Poszlaki i Dowody (CoC 7e RAW)
   clue: { journalType: 'clue', boardType: 'clue' },
+  evidence: { journalType: 'clue', boardType: 'evidence' },
+  forensic: { journalType: 'clue', boardType: 'evidence' },
+  document: { journalType: 'clue', boardType: 'evidence' },
+  testimony: { journalType: 'clue', boardType: 'clue' },
+  occult: { journalType: 'clue', boardType: 'artifact' },
+
+  // Zadania / Misje (Wsteczna normalizacja cRPG -> Poszlaka)
+  quest: { journalType: 'clue', boardType: 'evidence' },
 };
 
 /**

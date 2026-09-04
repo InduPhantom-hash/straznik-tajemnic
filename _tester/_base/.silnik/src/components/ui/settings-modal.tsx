@@ -18,12 +18,8 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from './accordion';
-import { ReplicateSettings } from '../settings/replicate-settings';
+import { ImageSettings } from '../settings/image-settings';
 import { GameMasterSettings } from '../settings/game-master-settings';
-// Lista 1 (offline fork): sekcje schowane z UI - kod i ustawienia zostają, render zakomentowany niżej.
-// import { CustomCommandsSettings } from '../settings/custom-commands-settings';
-// import { CloudStorageSettings } from '../settings/cloud-storage-settings';
-// import { PDFMemorySettings } from '../settings/pdf-memory-settings';
 import { CostControlSettings } from '../settings/cost-control-settings';
 import { HealthStatusPanel } from '../settings/health-status-panel';
 import { DebugSettings } from '../settings/debug-settings';
@@ -81,14 +77,6 @@ export function SettingsModal({
         <div className="space-y-6 py-4">
           <QualityPresets settings={m.settings} setSettings={m.setSettings} />
 
-          {/* Lista 1 (offline fork): Custom Commands, Cloud Storage (GCS),
-              PDF Memory - schowane z UI prywatnej gry. Ustawienia i logika
-              (np. domyślne komendy) działają dalej; render przywracalny przez
-              odkomentowanie importów wyżej. */}
-          {/* <CustomCommandsSettings /> - edytor własnych komend slash (nisza) */}
-          {/* <CloudStorageSettings />  - GCS; offline trzyma save'y na dysku */}
-          {/* <PDFMemorySettings />     - załączanie PDF per-wiadomość; RAG i tak ma zasady */}
-
           {/* IND-272: panel kosztów czyta server-side /api/user/usage (jedno źródło prawdy). */}
           <CostControlSettings
             settings={m.settings}
@@ -133,14 +121,9 @@ export function SettingsModal({
                     loadAvailableVoices={m.loadAvailableVoices}
                   />
 
-                  <ReplicateSettings
+                  <ImageSettings
                     settings={m.settings}
                     setSettings={m.setSettings}
-                    testResults={m.apiTester.testResults}
-                    isLoading={m.apiTester.isLoading}
-                    testAPI={m.apiTester.testAPI}
-                    getTestResultColor={m.apiTester.getTestResultColor}
-                    getTestResultIcon={m.apiTester.getTestResultIcon}
                   />
 
                   <GameMasterSettings

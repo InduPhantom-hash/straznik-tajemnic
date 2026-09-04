@@ -49,14 +49,14 @@ export function extractAcquiredItemProposals(
 export function inferDocumentType(item: { name: string; description?: string }): DocumentSubType {
   const text = `${item.name} ${item.description || ''}`.toLocaleLowerCase('pl-PL');
   
-  if (/prasow|dziennikarsk|reporter/.test(text)) return 'press_pass';
-  if (/dowód|odznaka|paszport|legitymacj|karta tożsamości|przepustka/.test(text)) return 'id_card';
-  if (/kopert|akta|dowodów|policyj|śledcz|zeznan|raport polic/.test(text)) return 'evidence_envelope';
-  if (/gazet|kurier|artykuł|nagłówek|wycinek/.test(text)) return 'newspaper';
-  if (/pismo|dekret|oficjaln|rządow|sądow|zaświadczen|nakaz/.test(text)) return 'official_document';
-  if (/bilet|karnet|wejściówk|boarding pass/.test(text)) return 'ticket';
-  if (/pamiętnik|dziennik|notatnik|zapiski|szkic/.test(text)) return 'journal_page';
-  if (/list|telegram|korespondencj|wiadomość|kartka/.test(text)) return 'letter';
+  if (/prasow|dziennikarsk|reporter|press pass|press card|journalist/i.test(text)) return 'press_pass';
+  if (/dowód|odznaka|paszport|legitymacj|karta tożsamości|przepustka|id card|identity card|passport|police badge|badge/i.test(text)) return 'id_card';
+  if (/kopert|akta|dowodów|policyj|śledcz|zeznan|raport polic|evidence|case file|police report/i.test(text)) return 'evidence_envelope';
+  if (/gazet|kurier|artykuł|nagłówek|wycinek|newspaper|gazette|daily|clipping|news article/i.test(text)) return 'newspaper';
+  if (/pismo|dekret|oficjaln|rządow|sądow|zaświadczen|nakaz|dokument|document|referencj|certyfikat|dyplom|official|warrant|certificate|decree|reference|forg|credential/i.test(text)) return 'official_document';
+  if (/bilet|karnet|wejściówk|boarding pass|ticket|pass|boarding/i.test(text)) return 'ticket';
+  if (/pamiętnik|dziennik|notatnik|zapiski|szkic|journal|diary|notebook|notes|sketch/i.test(text)) return 'journal_page';
+  if (/list|telegram|korespondencj|wiadomość|kartka|letter|telegram|message|postcard|memo/i.test(text)) return 'letter';
   
   return 'letter';
 }

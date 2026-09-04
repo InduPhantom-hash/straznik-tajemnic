@@ -22,13 +22,6 @@ const prototypes: Prototype[] = [
     status: 'ready',
   },
   {
-    name: 'Sanity Check',
-    slug: 'sanity-check',
-    description: 'Wizualizacja rzutu na poczytalność z efektami animacji',
-    icon: Brain,
-    status: 'ready',
-  },
-  {
     name: 'Dice 3D',
     slug: 'dice-3d',
     description: 'Trójwymiarowe kości z fizyką (planowane)',

@@ -20,11 +20,16 @@
 
 import type { CachedContent } from '@google/genai';
 import { getPacingDirective } from '@/lib/pacing-controller';
-import { getDirectorPromptSection } from '@/lib/director-state';
+import {
+  getDirectorPromptSection,
+  getDirectorState,
+} from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
+import { isWeapon } from '@/lib/combat/weapon-context';
+import { deriveFinances } from '@/lib/economy/credit-rating';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -47,6 +52,308 @@ export function buildPlayerSkillsSection(
     `Jeśli akcja nie pasuje do żadnej, wybierz najbliższą z listy albo test cechy ` +
     `(np. Inteligencja, Spostrzegawczość) - NIGDY nie wymyślaj nazwy spoza karty.`
   );
+}
+
+/**
+ * Buduje sekcję promptu z listą wyposażenia i przedmiotów użytkowych badacza
+ * (z wyłączeniem broni, która jest już opisywana w sekcji uzbrojenia).
+ * Informuje AI MG co gracz ma przy sobie, aby zapobiec wymyślaniu przedmiotów
+ * znikąd oraz uwzględniać brak sprzętu w testach.
+ */
+export function buildPlayerEquipmentSection(
+  character: Character | null | undefined
+): string {
+  const equipment = character?.equipment;
+  if (!equipment || equipment.length === 0) return '';
+
+  const nonWeapons = equipment.filter((item) => !isWeapon(item));
+  if (nonWeapons.length === 0) return '';
+
+  const lines = nonWeapons.map((item) => {
+    const desc = item.description?.trim();
+    let statusLabel = '';
+    if (item.quantity && item.quantity > 0) {
+      statusLabel = ` (pozostało: ${item.quantity}${item.maxQuantity ? `/${item.maxQuantity}` : ''})`;
+    } else if (item.isConsumable) {
+      statusLabel = ` [zużywalny]`;
+    }
+    return desc
+      ? `- **${item.name}**${statusLabel}: ${desc}`
+      : `- **${item.name}**${statusLabel}`;
+  });
+
+  return (
+    `\n## EKWIPUNEK POSTACI (posiadane przedmioty)\n` +
+    `Badacz ma przy sobie WYŁĄCZNIE następujące przedmioty użytkowe:\n` +
+    lines.join('\n') +
+    `\nReguła: Gdy gracz podejmuje działania wymagające narzędzi (np. rozpalenie ognia, oświetlenie ciemności, otwarcie zamka, pierwsza pomoc, robienie zdjęć, badania naukowe), bierz pod uwagę powyższą listę. ` +
+    `Brak odpowiedniego narzędzia powinien utrudniać zadanie (np. kość kary w teście, brak możliwości wykonania testu lub konieczność improwizacji). ` +
+    `NIGDY nie zakładaj, że postać posiada przedmioty, których nie ma na tej liście, chyba że dopiero co podniosła je w bieżącej scenie.\n\n` +
+    `Reguły operowania ekwipunkiem (Fiction First & puryzm CoC 7e):\n` +
+    `1. Gdy gracz deklaruje akcje w sposób naturalny w świecie gry, sprawdzaj posiadaną listę. Jeśli deklaruje użycie czegoś, czego nie ma, opisz to fabularnie w świecie gry i nie emituj tagu.\n` +
+    `2. Gdy badacz z sukcesem zużywa zasób zużywalny (np. dawka morfiny, bandaże, flara), dołącz na końcu odpowiedzi znacznik: \`[EKWIPUNEK: ZUZYJ | NazwaPrzedmiotu | 1]\`.\n` +
+    `3. Gdy przedmiot zostaje bezpowrotnie zniszczony, porzucony lub odebrany: \`[EKWIPUNEK: USUN | NazwaPrzedmiotu]\`.\n` +
+    `4. Gdy badacz odnajduje lub otrzymuje nowy kluczowy rekwizyt w śledztwie: \`[EKWIPUNEK: DODAJ | Nazwa | kategoria | opis]\` (kategorie: tool, document, weapon, medical, occult, artifact, personal).\n` +
+    `5. Drobiazgi tła (zapałki, ołówek, notes) oraz amunicja w broni są nielimitowane w normalnych warunkach - NIE zliczaj pojedynczych zapałek ani naboi jak w grach arcade. Mogą się skończyć wyłącznie przy dramatycznej komplikacji, zacięciu lub pechu.`
+  );
+}
+
+/**
+ * Buduje sekcję promptu ze statusem majątkowym i zamożnością badacza wg reguł CoC 7e RAW.
+ * Przekazuje AI poziom wydatków (Spending Level), gotówkę oraz majątek trwały,
+ * dzięki czemu MG wie, kiedy gracz może wydać pieniądze od ręki, a kiedy żądać testu.
+ */
+export function buildPlayerFinancesSection(
+  character: Character | null | undefined
+): string {
+  if (!character) return '';
+
+  const finances = deriveFinances(character);
+  const spendingStr = `${finances.spendingLevel} $`;
+  const cashStr = `${finances.cash} $`;
+  const assetsStr = `${finances.assets} $`;
+  const assetsDesc = finances.assetsDescription ? ` (${finances.assetsDescription})` : '';
+
+  return (
+    `\n## MAJĄTEK I STATUS FINANSOWY POSTACI (CoC 7e RAW)\n` +
+    `- Zamożność (Credit Rating): ${finances.creditRating}% [Poziom: ${finances.tierLabel}]\n` +
+    `- Dzienny poziom wydatków bez rzutu (Spending Level): ${spendingStr} dziennie (drobne wydatki, tanie hotele, posiłki, bilety miejskie gracz opłaca od ręki bez testu kośćmi i bez odliczania)\n` +
+    `- Gotówka pod ręką (Cash): ${cashStr} (na zakupy przekraczające poziom wydatków, lecz mieszczące się w tej kwocie)\n` +
+    `- Majątek trwały (Assets): ${assetsStr}${assetsDesc} (nieruchomości, oszczędności bankowe; spieniężenie wymaga czasu i procedur bankowych)\n` +
+    `Reguła: Gdy gracz próbuje dokonać wydatku znacząco przekraczającego gotówkę, wziąć dużą pożyczkę lub zaimponować statusem majątkowym, zażądaj \`[TEST: Majętność | zwykły | ... | powód]\`. Porażka oznacza odmowę lub utratę reputacji.`
+  );
+}
+
+/**
+ * Buduje sekcję promptu ze stałym profilem wizualnym Badacza (Visual DNA).
+ * Przekazuje AI wygląd, płeć, wiek, ubiór i cechy szczególne z karty,
+ * aby generowane ilustracje i portrety zachowywały pełną spójność.
+ */
+export function buildPlayerVisualProfileSection(
+  character: Character | null | undefined
+): string {
+  if (!character) return '';
+
+  const details: string[] = [];
+  if (character.gender) {
+    const g =
+      character.gender === 'male'
+        ? 'mężczyzna'
+        : character.gender === 'female'
+          ? 'kobieta'
+          : character.gender;
+    details.push(`Płeć: ${g}`);
+  }
+  if (character.age) details.push(`Wiek: ${character.age} lat`);
+  if (character.occupation) {
+    details.push(`Zawód / Profesja: ${character.occupation}`);
+  }
+  if (character.appearance && character.appearance.trim()) {
+    details.push(`Wygląd i aparycja: ${character.appearance.trim()}`);
+  }
+  if (character.traits && character.traits.length > 0) {
+    details.push(`Cechy szczególne i styl: ${character.traits.join(', ')}`);
+  }
+
+  if (details.length === 0) return '';
+
+  return (
+    `\n## PROFIL WIZUALNY BADACZA (VISUAL DNA)\n` +
+    `Badacz gracza to **${character.name}** o następującym stałym wyglądzie fizycznym:\n` +
+    details.map((d) => `- ${d}`).join('\n') +
+    `\nReguła: Gdy generujesz tagi ilustracji ([SCENA:], [PORTRET:]) z udziałem Badacza, ` +
+    `ZAWSZE wplataj powyższe cechy fizyczne (wiek, sylwetka, ubranie z epoki) w angielski prompt, ` +
+    `aby postać wyglądała spójnie na wszystkich wygenerowanych grafikach.`
+  );
+}
+
+export interface BuildActiveInvestigationOpts {
+  character?: Character | null;
+  characters?: Character[];
+  sessionId?: string;
+  locale?: 'pl' | 'en';
+}
+
+/**
+ * Buduje kompaktową sekcję promptu "AKTYWNE ŚLEDZTWO I WIEDZA BADACZA" (~80-120 tokenów)
+ * zamykającą dwukierunkową pętlę pamięci w relacji Gracz <-> AI MG (Issue #68).
+ *
+ * Zawiera:
+ * 1. Kluczowe potwierdzone poszlaki (do 5 najważniejszych z 1-zdaniową syntezą).
+ * 2. Ostatnie wnioski i hipotezy badacza (z rzutów na Pomysł / notatek / dossier).
+ * 3. Aktywny wątek lub cel śledczy.
+ *
+ * Zachowuje 100% symetrię językową (PL + EN).
+ */
+export function buildActiveInvestigationSection(
+  opts: BuildActiveInvestigationOpts
+): string {
+  const isEn = opts.locale === 'en';
+  const directorState = opts.sessionId ? getDirectorState(opts.sessionId) : null;
+
+  // Znajdź główną postać (lub pierwszą z drużyny)
+  const char = opts.character || opts.characters?.[0];
+
+  // 1. ZBIERZ POSZLAKI (do 5 najważniejszych)
+  const clues: { title: string; fact: string }[] = [];
+  const seenClueKeys = new Set<string>();
+
+  // A. Z dossier postaci (priorytet)
+  if (char?.investigatorDossier?.clues && char.investigatorDossier.clues.length > 0) {
+    // Sortuj: kluczowe poszlaki najpierw, potem najnowsze
+    const sorted = [...char.investigatorDossier.clues].sort((a, b) => {
+      if (a.isKeyClue && !b.isKeyClue) return -1;
+      if (!a.isKeyClue && b.isKeyClue) return 1;
+      return (b.timestamp || 0) - (a.timestamp || 0);
+    });
+
+    for (const c of sorted) {
+      const key = c.title.toLowerCase().trim();
+      if (!seenClueKeys.has(key)) {
+        seenClueKeys.add(key);
+        const fact = (c.description || c.investigatorInsight || '').trim();
+        clues.push({ title: c.title.trim(), fact });
+        if (clues.length >= 5) break;
+      }
+    }
+  }
+
+  // B. Fallback: z dziennika (character.journal)
+  if (clues.length < 5 && char?.journal && char.journal.length > 0) {
+    const journalClues = char.journal
+      .filter((e) => e.type === 'clue' || e.type === 'discovery')
+      .reverse();
+
+    for (const j of journalClues) {
+      const key = j.title.toLowerCase().trim();
+      if (!seenClueKeys.has(key)) {
+        seenClueKeys.add(key);
+        clues.push({ title: j.title.trim(), fact: j.content.trim() });
+        if (clues.length >= 5) break;
+      }
+    }
+  }
+
+  // C. Fallback: z directorState.clueFacts lub discoveredClues
+  if (clues.length < 5 && directorState) {
+    if (directorState.clueFacts && directorState.clueFacts.length > 0) {
+      for (const cf of directorState.clueFacts) {
+        const key = cf.title.toLowerCase().trim();
+        if (!seenClueKeys.has(key)) {
+          seenClueKeys.add(key);
+          clues.push({ title: cf.title, fact: cf.fact });
+          if (clues.length >= 5) break;
+        }
+      }
+    } else if (directorState.discoveredClues && directorState.discoveredClues.length > 0) {
+      for (const title of directorState.discoveredClues.slice(-5)) {
+        const key = title.toLowerCase().trim();
+        if (!seenClueKeys.has(key)) {
+          seenClueKeys.add(key);
+          clues.push({ title, fact: '' });
+          if (clues.length >= 5) break;
+        }
+      }
+    }
+  }
+
+  // 2. ZBIERZ HIPOTEZY I WNIOSKI (do 2 najważniejszych)
+  const hypotheses: string[] = [];
+  const seenHypo = new Set<string>();
+
+  // A. Z notatek badacza (dossier.notes)
+  if (char?.investigatorDossier?.notes && char.investigatorDossier.notes.length > 0) {
+    for (const note of char.investigatorDossier.notes.slice(-2)) {
+      const text = (note.content || note.title).trim();
+      if (text && !seenHypo.has(text.toLowerCase())) {
+        seenHypo.add(text.toLowerCase());
+        hypotheses.push(text);
+      }
+    }
+  }
+
+  // B. Z wniosków poszlak (investigatorInsight)
+  if (hypotheses.length < 2 && char?.investigatorDossier?.clues) {
+    for (const c of char.investigatorDossier.clues) {
+      if (c.investigatorInsight && !seenHypo.has(c.investigatorInsight.toLowerCase())) {
+        seenHypo.add(c.investigatorInsight.toLowerCase());
+        hypotheses.push(c.investigatorInsight.trim());
+        if (hypotheses.length >= 2) break;
+      }
+    }
+  }
+
+  // C. Z directorState.investigatorHypotheses
+  if (hypotheses.length < 2 && directorState?.investigatorHypotheses) {
+    for (const h of directorState.investigatorHypotheses.slice(-2)) {
+      if (!seenHypo.has(h.toLowerCase())) {
+        seenHypo.add(h.toLowerCase());
+        hypotheses.push(h);
+        if (hypotheses.length >= 2) break;
+      }
+    }
+  }
+
+  // 3. AKTYWNY CEL / WĄTEK ŚLEDCZY
+  let activeLead = '';
+  if (directorState?.narrativeGoal) {
+    activeLead = directorState.narrativeGoal.trim();
+  } else if (char?.investigatorDossier?.clues) {
+    const unconfirmedKey = char.investigatorDossier.clues.find(
+      (c) => c.status === 'unconfirmed' || c.isKeyClue
+    );
+    if (unconfirmedKey) {
+      activeLead = unconfirmedKey.title;
+    }
+  }
+
+  // Jeśli brak jakichkolwiek danych śledczych, nie marnujemy tokenów
+  if (clues.length === 0 && hypotheses.length === 0 && !activeLead) {
+    return '';
+  }
+
+  // SKŁADANIE SEKCJI
+  const header = isEn
+    ? '## ACTIVE INVESTIGATION & INVESTIGATOR KNOWLEDGE'
+    : '## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA';
+
+  const lines: string[] = [header];
+
+  // Formatowanie poszlak (1 linia = 1 zwięzła poszlaka z faktem)
+  if (clues.length > 0) {
+    const cluesHeader = isEn
+      ? '**Key confirmed clues:**'
+      : '**Kluczowe potwierdzone poszlaki:**';
+    lines.push(cluesHeader);
+    for (const c of clues) {
+      let desc = c.fact ? `: ${c.fact}` : '';
+      if (desc.length > 100) desc = `${desc.slice(0, 97)}...`;
+      lines.push(`- **${c.title}**${desc}`);
+    }
+  }
+
+  // Formatowanie hipotez
+  if (hypotheses.length > 0) {
+    const hypoHeader = isEn
+      ? '**Investigator hypotheses & insights:**'
+      : '**Wnioski i hipotezy badacza:**';
+    lines.push(hypoHeader);
+    for (const h of hypotheses) {
+      let text = h;
+      if (text.length > 100) text = `${text.slice(0, 97)}...`;
+      lines.push(`- ${text}`);
+    }
+  }
+
+  // Formatowanie aktywnego wątku
+  if (activeLead) {
+    const leadHeader = isEn
+      ? `**Active investigative lead:** ${activeLead}`
+      : `**Aktywny wątek śledczy:** ${activeLead}`;
+    lines.push(leadHeader);
+  }
+
+  return `\n${lines.join('\n')}\n`;
 }
 
 // IND-160: minimal NPC context shape z body request (cleanup `any` z lin 255 route.ts).
@@ -76,6 +383,12 @@ export interface BuildAdditionalContextOpts {
   // Lista umiejętności postaci z wartościami % (gotowa sekcja). Wstrzykiwana, by AI
   // wzywało testy WYŁĄCZNIE nazwami z karty - eliminuje rozjazd nazw (Tacka 0%).
   playerSkillsSection?: string;
+  /** Ekwipunek i przedmioty użytkowe postaci (bez broni) */
+  playerEquipmentSection?: string;
+  /** Status majątkowy i poziom wydatków postaci wg CoC 7e RAW */
+  playerFinancesSection?: string;
+  /** Stały profil fizyczny Badacza (Visual DNA) */
+  playerVisualProfileSection?: string;
   sessionId?: string;
   ragSection?: string;
   summarySection?: string | null;
@@ -93,6 +406,8 @@ export interface BuildAdditionalContextOpts {
   tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
   /** Epoka gry dla reguł materialnych i guardrails */
   era?: string;
+  /** Język wyjścia dla dyrektyw kontekstowych */
+  locale?: 'pl' | 'en';
   /** Sekcja danych immersyjnych (astronomia, gazety, ceny epoki) - wstrzykiwana gdy dostępna. */
   immersionSection?: string;
   /** Wydarzenie z generatora fabularnego zrzucone z UI, przekazywane z hooka useChat */
@@ -120,6 +435,9 @@ export function buildAdditionalContext(
     playerCharacterName,
     playerWeaponsSection,
     playerSkillsSection,
+    playerEquipmentSection,
+    playerFinancesSection,
+    playerVisualProfileSection,
     isGameStart,
     characters,
     era,
@@ -149,6 +467,11 @@ export function buildAdditionalContext(
     );
   }
 
+  // Profil wizualny Badacza (Visual DNA) - by generowane ilustracje miały spójny wygląd
+  if (playerVisualProfileSection) {
+    additionalContext.push(playerVisualProfileSection);
+  }
+
   // Uzbrojenie postaci gracza - by AI prowadziło walkę narracyjnie znając broń.
   if (playerWeaponsSection) {
     additionalContext.push(playerWeaponsSection);
@@ -157,6 +480,16 @@ export function buildAdditionalContext(
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.
   if (playerSkillsSection) {
     additionalContext.push(playerSkillsSection);
+  }
+
+  // Ekwipunek i przedmioty użytkowe postaci - AI wie co badacz ma przy sobie.
+  if (playerEquipmentSection) {
+    additionalContext.push(playerEquipmentSection);
+  }
+
+  // Sytuacja finansowa i Zamożność - AI zna poziom wydatków i gotówkę wg CoC 7e RAW.
+  if (playerFinancesSection) {
+    additionalContext.push(playerFinancesSection);
   }
 
   // Wstrzykiwanie Ustawy Przygody na podstawie tonu (dynamiczne pacingi z debaty)
@@ -187,13 +520,22 @@ export function buildAdditionalContext(
 
   // OPT-26: gmProtocol skip gdy cache aktywny - jest już w cachedContent.contents
   if (!resolvedCachedContent) additionalContext.push(gmProtocol);
-  additionalContext.push(getPacingDirective(gameContext));
+  additionalContext.push(getPacingDirective(gameContext, opts.locale));
 
   // Director's state injection
   if (sessionId) {
     const directorSection = getDirectorPromptSection(sessionId);
     if (directorSection) additionalContext.push(directorSection);
   }
+
+  // Issue #68: Dwukierunkowa pętla pamięci - wstrzykiwanie sekcji ## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA
+  const investigationSection = buildActiveInvestigationSection({
+    character: characters?.[0] ?? undefined,
+    characters,
+    sessionId,
+    locale: opts.locale,
+  });
+  if (investigationSection) additionalContext.push(investigationSection);
 
   if (ragSection) additionalContext.push(ragSection);
   if (summarySection) additionalContext.push(summarySection);

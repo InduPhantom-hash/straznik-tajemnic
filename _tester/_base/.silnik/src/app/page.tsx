@@ -18,7 +18,7 @@ import { useHotSeat } from '@/components/ui/player-switcher';
 import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
 import { ChatLayout } from '@/components/chat/ChatLayout';
 import { CutscenePlayer } from '@/components/ui/cutscene-player';
-import { HardLoadingScreen } from '@/components/ui/hard-loading-screen';
+import { CharacterWizardV2 } from '@/components/ui/character-wizard';
 
 // === HOOKI ===
 import { useTTS } from '@/hooks/useTTS';
@@ -223,7 +223,7 @@ export default function Home() {
   const handleInvalidKey = useCallback(() => setShowApiKeysModal(true), []);
   const { runHealthCheck } = useHealthCheck({ onInvalidKey: handleInvalidKey });
 
-  const { handleStartGame } = useGameStart({
+  const { handleStartGame, isStarting, startProgress, startStatus } = useGameStart({
     setHasStartedGame,
     runHealthCheck,
     activeCharacter: charMgmt.activeCharacter,
@@ -251,22 +251,78 @@ export default function Home() {
   // (tworzenie) oraz /characters (wybór z katalogu) ostemplują `playerName`,
   // a guard C2 może wymagać jawnego przypisania 2 RÓŻNYCH postaci po imieniu.
   // Solo: zachowanie bez zmian (zero setItem).
-  const stampDuetTargetPlayer = useCallback(() => {
-    if (hotSeat.config.enabled && hotSeat.config.players.length >= 2) {
-      const nextUnbound = hotSeat.config.players.find(
-        (p) =>
-          !charMgmt.characters.some((c) => c.playerName === p.name) &&
-          !p.characterId
-      );
-      const target = nextUnbound?.name ?? hotSeat.config.players[0]?.name;
-      if (target) localStorage.setItem('hotSeatCreatingPlayerName', target);
-    }
-  }, [hotSeat.config, charMgmt.characters]);
+  const [showCharacterWizard, setShowCharacterWizard] = useState(false);
+  const [duetCreatingPlayerName, setDuetCreatingPlayerName] = useState<string | null>(null);
 
-  const handleCreateCharacterForDuet = useCallback(() => {
-    stampDuetTargetPlayer();
-    charMgmt.handleCharacterCreate();
-  }, [stampDuetTargetPlayer, charMgmt]);
+  const stampDuetTargetPlayer = useCallback(
+    (explicitPlayerName?: string) => {
+      if (explicitPlayerName) {
+        try {
+          localStorage.setItem('hotSeatCreatingPlayerName', explicitPlayerName);
+        } catch {
+          /* ignore */
+        }
+        return explicitPlayerName;
+      }
+      if (hotSeat.config.enabled && hotSeat.config.players.length >= 2) {
+        const nextUnbound = hotSeat.config.players.find(
+          (p) =>
+            !charMgmt.characters.some((c) => c.playerName === p.name) &&
+            !p.characterId
+        );
+        const target = nextUnbound?.name ?? hotSeat.config.players[0]?.name;
+        if (target) {
+          try {
+            localStorage.setItem('hotSeatCreatingPlayerName', target);
+          } catch {
+            /* ignore */
+          }
+          return target;
+        }
+      }
+      return null;
+    },
+    [hotSeat.config, charMgmt.characters]
+  );
+
+  const handleCreateCharacterForDuet = useCallback(
+    (playerName?: string) => {
+      const target = stampDuetTargetPlayer(playerName);
+      setDuetCreatingPlayerName(target);
+      setShowCharacterWizard(true);
+    },
+    [stampDuetTargetPlayer]
+  );
+
+  const handleCharacterWizardCreated = useCallback(
+    (character: Character) => {
+      const targetPlayer =
+        duetCreatingPlayerName ||
+        (typeof window !== 'undefined'
+          ? localStorage.getItem('hotSeatCreatingPlayerName')
+          : null);
+      if (targetPlayer) {
+        character.playerName = targetPlayer;
+        try {
+          localStorage.removeItem('hotSeatCreatingPlayerName');
+        } catch {
+          /* ignore */
+        }
+      }
+      setDuetCreatingPlayerName(null);
+
+      const updated = charMgmt.characters.map((c) => ({ ...c, isActive: false }));
+      const newChar: Character = { ...character, isActive: true, lastUsed: new Date() };
+      const updatedList = [...updated, newChar];
+
+      charMgmt.setCharacters(updatedList);
+      charMgmt.setActiveCharacter(newChar);
+      persistCharacters(updatedList);
+
+      setShowCharacterWizard(false);
+    },
+    [duetCreatingPlayerName, charMgmt]
+  );
 
   const handlePickCharacterForDuet = useCallback(() => {
     stampDuetTargetPlayer();
@@ -430,6 +486,7 @@ export default function Home() {
             : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           sourcePresetId: preset.id,
+          isActive: true,
         };
         if (mode === 'hot-seat') {
           stamped.playerName = 'Gracz 1';
@@ -552,7 +609,10 @@ export default function Home() {
       try {
         const chars = normalizeStoredCharacters(JSON.parse(savedChars));
         charMgmt.setCharacters(chars);
-        if (chars.length > 0) charMgmt.setActiveCharacter(chars[0]);
+        const activeChar =
+          chars.find((c) => c.isActive) ||
+          (chars.length > 0 ? chars[chars.length - 1] : null);
+        if (activeChar) charMgmt.setActiveCharacter(activeChar);
         // Utrwal naprawioną strukturę, aby kolejny start nie czytał ponownie
         // wadliwej wartości `equipment` z wcześniejszej wersji aplikacji.
         persistCharacters(chars);
@@ -561,7 +621,10 @@ export default function Home() {
         hydrateCharacterImages(chars)
           .then((hydrated) => {
             charMgmt.setCharacters(hydrated);
-            if (hydrated.length > 0) charMgmt.setActiveCharacter(hydrated[0]);
+            const activeHydrated =
+              hydrated.find((c) => c.isActive) ||
+              (hydrated.length > 0 ? hydrated[hydrated.length - 1] : null);
+            if (activeHydrated) charMgmt.setActiveCharacter(activeHydrated);
           })
           .catch(() => {});
       } catch (e) {
@@ -770,8 +833,22 @@ export default function Home() {
                       activeCharacterId: charMgmt.activeCharacter?.id,
                       campaigns: campaigns,
                       activeCampaignId: charMgmt.activeGameState.campaign?.id,
-                      npcs: [],
-                      locations: [],
+                      npcs: (() => {
+                        if (typeof window === 'undefined') return [];
+                        try {
+                          return JSON.parse(localStorage.getItem('gm_npcs') || '[]');
+                        } catch {
+                          return [];
+                        }
+                      })(),
+                      locations: (() => {
+                        if (typeof window === 'undefined') return [];
+                        try {
+                          return JSON.parse(localStorage.getItem('gm_locations') || '[]');
+                        } catch {
+                          return [];
+                        }
+                      })(),
                       currentLocationId: undefined,
                       pdfMemory: pdf.pdfMemory,
                       notes: '',
@@ -843,8 +920,16 @@ export default function Home() {
               onClose={cutsceneManager.skipCutscene}
             />
           )}
-
-          <HardLoadingScreen isVisible={tts.isInitialBuffering} />
+          {showCharacterWizard && (
+            <CharacterWizardV2
+              onClose={() => {
+                setShowCharacterWizard(false);
+                setDuetCreatingPlayerName(null);
+              }}
+              onCharacterCreated={handleCharacterWizardCreated}
+              adventureContext={adventureContext || undefined}
+            />
+          )}
         </>
       }
     >
@@ -918,6 +1003,9 @@ export default function Home() {
         onConfirmAcquiredItem={chat.confirmAcquiredItem}
         onDismissAcquiredItem={chat.dismissAcquiredItem}
         onCharacterUpdate={charMgmt.handleUpdateCharacter}
+        isStarting={isStarting}
+        startProgress={startProgress}
+        startStatus={startStatus}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector

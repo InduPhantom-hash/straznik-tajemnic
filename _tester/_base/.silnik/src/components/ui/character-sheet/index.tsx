@@ -32,7 +32,7 @@ import {
 } from '../dialog';
 import { Button } from '../button';
 import { Download } from 'lucide-react';
-import { useMessages, useTranslations } from 'next-intl';
+import { useLocale, useMessages, useTranslations } from 'next-intl';
 import { type CharacterSheetProps } from './types';
 import { EquipmentItem } from '@/lib/types';
 import { EquipmentDetailDialog } from '../equipment-detail-dialog';
@@ -77,6 +77,7 @@ export function CharacterSheet({
   onCharacterChange,
 }: CharacterSheetProps) {
   const t = useTranslations('CharacterSheet');
+  const locale = useLocale();
   const messages = useMessages();
   const inlineEdit = useInlineEdit(character, onCharacterUpdate);
 
@@ -124,8 +125,8 @@ export function CharacterSheet({
   // FEATURE:#12 - Ikony pomocy przy statystykach (via HelpIcon w sub-komponentach)
   const handleExportMarkdown = useCallback(() => {
     if (!character) return;
-    exportCharacterToMarkdown(character);
-  }, [character]);
+    exportCharacterToMarkdown(character, locale);
+  }, [character, locale]);
 
   if (!character) {
     return (

@@ -6,7 +6,14 @@
  */
 
 import { QUALITY_PRESETS } from './ai-presets/definitions';
-import { PRESET_MODELS } from './model-registry';
+import {
+  PRESET_MODELS,
+  DEFAULT_CHAT_MODEL,
+  DEFAULT_CHAT_MODEL_FALLBACK,
+  DEFAULT_IMAGE_MODEL,
+  FALLBACK_IMAGE_MODEL,
+  CACHEABLE_MODELS,
+} from './model-registry';
 
 describe('Model Registry Drift-Guard', () => {
   it('PRESET_MODELS mirrors QUALITY_PRESETS models accurately', () => {
@@ -21,5 +28,14 @@ describe('Model Registry Drift-Guard', () => {
     expect(PRESET_MODELS.mid.ttsVoice).toBe(QUALITY_PRESETS.mid.settings.ttsVoice);
     expect(PRESET_MODELS.high.ttsVoice).toBe(QUALITY_PRESETS.high.settings.ttsVoice);
     expect(PRESET_MODELS.ultra.ttsVoice).toBe(QUALITY_PRESETS.ultra.settings.ttsVoice);
+  });
+
+  it('defines valid default chat and image models and fallbacks', () => {
+    expect(DEFAULT_CHAT_MODEL).toBe('gemini-3.8-flash');
+    expect(DEFAULT_CHAT_MODEL_FALLBACK).toBe('gemini-2.5-flash');
+    expect(DEFAULT_IMAGE_MODEL).toBe('gemini-3.1-flash-image');
+    expect(FALLBACK_IMAGE_MODEL).toBe('gemini-2.5-flash-image');
+    expect(CACHEABLE_MODELS.has('gemini-3.8-flash')).toBe(true);
+    expect(CACHEABLE_MODELS.has('gemini-2.5-flash')).toBe(true);
   });
 });

@@ -22,17 +22,8 @@ interface TTSSettingsProps {
 }
 
 /**
- * Panel TTS - Zew Home (fork offline). Cały lektor idzie przez `/api/tts/gemini`
- * (jeden klucz Gemini; Google Cloud TTS wycięty ze ścieżki - to osobny klucz/SA).
- * Dlatego UI jest GEMINI-ONLY - schowane (martwe dla rozgrywki) kontrolki:
- *  - przełącznik providera Google/Gemini (`useTTS` nie czyta `voiceSettings.provider`),
- *  - pod-sekcja Google (głos/encoding/sampleRate/pitch - niekonsumowana przez narrację),
- *  - checkbox "Tylko narrator" (`useTTS` hardkoduje `isNarratorOnly:false` - niezaimpl.),
- *  - suwak "Prędkość" (`useTTS` nie ustawia `playbackRate`, route nie przyjmuje speed).
- * Kod sub-komponentów (`provider-switch`, `google-settings`, `SpeedSlider`) zostaje na
- * dysku - render przywracalny gdyby wróciła obsługa Google TTS (wzorzec jak Replicate).
- * `availableVoices`/`loadAvailableVoices` (były dla panelu Google) zostają w kontrakcie
- * propsów, bez destrukturyzacji - parent nadal je przekazuje.
+ * Panel TTS - Zew Home (offline-first). Cały lektor idzie przez `/api/tts/gemini`
+ * (jeden klucz Gemini; Google Cloud TTS całkowicie usunięty).
  */
 export function TTSSettings({
   settings,

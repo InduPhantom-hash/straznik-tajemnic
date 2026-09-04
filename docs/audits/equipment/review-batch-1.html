@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Przegląd Grafik Ekwipunku (Partia 1 - 30 pozycji) | Strażnik Tajemnic AI</title>
+  <style>
+    :root {
+      --bg-dark: #0f1114;
+      --card-bg: #181b20;
+      --card-border: #2a2e36;
+      --gold-primary: #d4af37;
+      --gold-muted: #9e8328;
+      --text-main: #e6e8ec;
+      --text-muted: #8b929e;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1400px;
+      margin: 0 auto 2rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--gold-primary);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .header-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+    }
+    .stat-pill strong { color: var(--gold-primary); }
+    .grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      border-color: var(--gold-muted);
+      transform: translateY(-2px);
+    }
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      background: #000;
+    }
+    .image-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      background: #121418;
+      font-size: 0.85rem;
+    }
+    .placeholder .icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
+    .badges-overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-rebuild { background: #2c3e50; color: #ecf0f1; }
+    .badge-new { background: #16a085; color: #fff; }
+    .badge-era { background: #8e44ad; color: #fff; }
+    .badge-cat { background: #d35400; color: #fff; }
+    .badge-batch { background: #2980b9; color: #fff; }
+    .card-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 0.5rem;
+    }
+    .item-title {
+      font-size: 1.1rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .item-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .file-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111317;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .file-meta code {
+      color: var(--gold-primary);
+      font-family: monospace;
+    }
+    .file-size.status-ready { color: var(--success); font-weight: 600; }
+    .file-size.status-pending { color: var(--danger); }
+    .prompt-details {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #13161a;
+      padding: 0.4rem;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+    }
+    .prompt-details summary {
+      cursor: pointer;
+      color: var(--gold-muted);
+      font-weight: 500;
+    }
+    .prompt-text {
+      margin-top: 0.4rem;
+      color: #b0b6c0;
+      line-height: 1.4;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .btn {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-accept { background: #1b3a26; color: #2ecc71; border-color: #2ecc71; }
+    .btn-accept:hover { background: #2ecc71; color: #000; }
+    .btn-reject { background: #3a1c1c; color: #e74c3c; border-color: #e74c3c; }
+    .btn-reject:hover { background: #e74c3c; color: #fff; }
+    .card.approved { border-color: var(--success) !important; background: #132018; }
+    .card.rejected { border-color: var(--danger) !important; background: #221314; }
+  </style>
+  <script>
+    function markDecision(button, decision) {
+      const card = button.closest('.card');
+      card.classList.remove('approved', 'rejected');
+      card.classList.add(decision);
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Przegląd Grafik Ekwipunku (Partia 1 - 30 pozycji)</h1>
+    <p class="header-desc">Katalog grafik ekwipunku CoC 7e RAW. Spójność studyjna: makro still-life na podłożu z epoki, światło kierunkowe, brak ludzi i rąk, rozdzielczość 512×512 WebP (&lt;250 KB).</p>
+    <div class="stats-bar">
+      <div class="stat-pill">Pozycji w partii: <strong>30</strong></div>
+      <div class="stat-pill">Gotowe pliki WebP: <strong>27</strong></div>
+      <div class="stat-pill">Oczekuje na render: <strong>3</strong></div>
+    </div>
+  </header>
+  <main class="grid">
+    
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/revolver-colt38-1920s.webp" alt="Rewolwer Colt Police Positive .38" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Rewolwer Colt Police Positive .38</h3>
+          <p class="item-subtitle">Colt Police Positive .38 Revolver</p>
+          <div class="file-meta">
+            <code>revolver-colt38-1920s.webp</code>
+            <span class="file-size status-ready">40.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a blued steel Colt Police Positive .38 revolver with checkered walnut grip, resting on a worn dark oak detective desk next to two brass cartridge casings, dramatic side directional lighting, 1920s art deco noir atmosphere, authentic metal patina, square composition, macro photography, no hands, no people, no text, no modern elements</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/revolver-webley-1920s.webp" alt="Rewolwer Webley Mk IV .455" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Rewolwer Webley Mk IV .455</h3>
+          <p class="item-subtitle">Webley Mk IV .455 Revolver</p>
+          <div class="file-meta">
+            <code>revolver-webley-1920s.webp</code>
+            <span class="file-size status-ready">75 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a heavy British Webley Mk IV .455 top-break service revolver with vulcanite grips, resting on an olive green military canvas field cloth, authentic matte blued steel with holster wear, natural documentary directional light, square composition, macro details, no hands, no people, no text</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/derringer-1890s.webp" alt="Kieszonkowy pistolet Derringer .41" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1890s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kieszonkowy pistolet Derringer .41</h3>
+          <p class="item-subtitle">Pocket Remington Derringer .41</p>
+          <div class="file-meta">
+            <code>derringer-1890s.webp</code>
+            <span class="file-size status-ready">45 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an antique double-barrel Remington Derringer .41 over-under pocket pistol with tarnished nickel finish and mother-of-pearl grips, lying on a dark velvet surface beside an antique brass pocket watch, late Victorian 1890s period lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/pistol-p64-prl.webp" alt="Pistolet P-64 Czak 9mm Makarov" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Pistolet P-64 Czak 9mm Makarov</h3>
+          <p class="item-subtitle">P-64 Czak 9mm Makarov Pistol</p>
+          <div class="file-meta">
+            <code>pistol-p64-prl.webp</code>
+            <span class="file-size status-ready">34.4 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a Polish P-64 Czak 9mm Makarov service pistol with black polymer grips, resting on a gray laminate office desk next to a spare magazine, Poland in the 1970s PRL aesthetic, stark institutional directional light, square composition, documentary realism, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/pistol-glock-modern.webp" alt="Pistolet Glock 19 9mm" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Pistolet Glock 19 9mm</h3>
+          <p class="item-subtitle">Glock 19 9mm Pistol</p>
+          <div class="file-meta">
+            <code>pistol-glock-modern.webp</code>
+            <span class="file-size status-ready">37.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic contemporary object study of a matte black Glock 19 Gen 5 semi-automatic pistol, resting on a dark slate ballistic mat, clean studio side lighting, subtle reflections on matte polymer and tenifer steel slide, square composition, authentic scale, no hands, no people, no brands</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/shotgun-sawed-off-shared.webp" alt="Obrzyn dubeltówki" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Obrzyn dubeltówki</h3>
+          <p class="item-subtitle">Sawed-Off Double-Barrel Shotgun</p>
+          <div class="file-meta">
+            <code>shotgun-sawed-off-shared.webp</code>
+            <span class="file-size status-ready">53.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic gritty object study of a sawed-off double-barrel 12-gauge shotgun with roughly cut shortened barrels and modified wooden pistol grip, resting on rough burlap fabric, worn steel, dark moody noir lighting, square composition, no hands, no people, no blood</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/submachine-tommy-1920s.webp" alt="Pistolet maszynowy Thompson 1921" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Pistolet maszynowy Thompson 1921</h3>
+          <p class="item-subtitle">Thompson 1921 Submachine Gun</p>
+          <div class="file-meta">
+            <code>submachine-tommy-1920s.webp</code>
+            <span class="file-size status-ready">50.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic historical object study of an authentic 1921 Thompson submachine gun with front vertical foregrip and 50-round drum magazine, blued steel, rich walnut stock, resting on raw pine crate planks, 1920s prohibition era lighting, square composition, macro texture, no people, no hands</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/oil-lantern-1890s.webp" alt="Lampa naftowa" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">1890s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Lampa naftowa</h3>
+          <p class="item-subtitle">Brass Kerosene Hurricane Lantern</p>
+          <div class="file-meta">
+            <code>oil-lantern-1890s.webp</code>
+            <span class="file-size status-ready">26 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an antique brass Dietz hurricane oil lantern with clear glass chimney, unlit, authentic patina and brass oxidation, resting on a rough timber workbench, warm Victorian directional light, square composition, highly detailed texture, no people, no hands</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/flashlight-1920s.webp" alt="Latarka elektryczna 1920s" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Latarka elektryczna 1920s</h3>
+          <p class="item-subtitle">Tubular Nickel Flashlight 1920s</p>
+          <div class="file-meta">
+            <code>flashlight-1920s.webp</code>
+            <span class="file-size status-ready">27.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an early 1920s ribbed tubular nickel-plated electric flashlight with round bullseye glass lens and brass toggle switch, resting on a canvas field bag, authentic subtle scratches, 1920s lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/gasoline-lighter-1940s.webp" alt="Zapalniczka benzynowa" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1940s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zapalniczka benzynowa</h3>
+          <p class="item-subtitle">Vintage Gasoline Trench Lighter</p>
+          <div class="file-meta">
+            <code>gasoline-lighter-1940s.webp</code>
+            <span class="file-size status-ready">32.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a vintage 1940s brushed chrome flip-top gasoline lighter with flint wheel, resting open on a dark scarred mahogany table with a faint wisp of cold wick, moody noir side lighting, square composition, no hands, no people, no brand logos</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/crowbar-shared.webp" alt="Stalowy łom" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Stalowy łom</h3>
+          <p class="item-subtitle">Heavy Steel Crowbar</p>
+          <div class="file-meta">
+            <code>crowbar-shared.webp</code>
+            <span class="file-size status-ready">58.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic utilitarian object study of a heavy hexagonal forged steel wrecking crowbar with chisel and claw ends, chipped black enamel paint showing bare scratched metal, lying across worn wooden floorboards, hard directional industrial light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/lockpicks-shared.webp" alt="Wytrychy" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Wytrychy</h3>
+          <p class="item-subtitle">Lockpick Set in Leather Wrap</p>
+          <div class="file-meta">
+            <code>lockpicks-shared.webp</code>
+            <span class="file-size status-ready">52.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a fine locksmith pick set with tension wrenches and slender steel picks laid out on an open dark brown calfskin leather roll, resting on a dark desk, dramatic low-key raking light, square composition, authentic scale, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/pocket-watch-shared.webp" alt="Zegarek kieszonkowy" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zegarek kieszonkowy</h3>
+          <p class="item-subtitle">Engraved Pocket Watch with Chain</p>
+          <div class="file-meta">
+            <code>pocket-watch-shared.webp</code>
+            <span class="file-size status-ready">49 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an antique tarnished silver pocket watch with Roman numerals on an enamel dial and a heavy curb link watch chain, resting on an open vintage leather ledger, warm soft directional lighting, square composition, documentary realism, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/cigarette-case-shared.webp" alt="Srebrna papierośnica" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Srebrna papierośnica</h3>
+          <p class="item-subtitle">Art Deco Silver Cigarette Case</p>
+          <div class="file-meta">
+            <code>cigarette-case-shared.webp</code>
+            <span class="file-size status-ready">41.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an open 1920s Art Deco sterling silver cigarette case with geometric engine-turned engraving, holding thin rolled cigarettes held by an elastic band, resting on dark walnut, glinting metallic highlights, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/pilot-goggles-1920s.webp" alt="Skórzana pilotka i gogle" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Skórzana pilotka i gogle</h3>
+          <p class="item-subtitle">Aviation Helmet and Flying Goggles</p>
+          <div class="file-meta">
+            <code>pilot-goggles-1920s.webp</code>
+            <span class="file-size status-ready">44.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a 1920s brown leather aviator flight cap paired with brass-framed split-lens safety flying goggles, resting on a rolled khaki canvas map case, authentic distressed leather texture, documentary directional light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/french-wrench-tool.webp" alt="Klucz francuski nastawny" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Klucz francuski nastawny</h3>
+          <p class="item-subtitle">Vintage Adjustable Monkey Wrench</p>
+          <div class="file-meta">
+            <code>french-wrench-tool.webp</code>
+            <span class="file-size status-ready">62.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a heavy forged steel French adjustable monkey wrench with wooden handle inserts and threaded screw adjustment, stained with machine oil patina, lying on a grease-marked workbench cloth, sharp side lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/leather-briefcase-shared.webp" alt="Skórzana aktówka śledcza" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Skórzana aktówka śledcza</h3>
+          <p class="item-subtitle">Investigator Leather Briefcase</p>
+          <div class="file-meta">
+            <code>leather-briefcase-shared.webp</code>
+            <span class="file-size status-ready">33.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a thick distressed dark brown saddlery leather lawyer briefcase with dual brass buckle latches and a sturdy carry handle, standing upright on a parquet floor, moody chiaroscuro lighting, square composition, detailed leather grain, no people, no text</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/magnifier-shared.webp" alt="Mosiężna lupa" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Mosiężna lupa</h3>
+          <p class="item-subtitle">Brass Hand Magnifier with Ebony Handle</p>
+          <div class="file-meta">
+            <code>magnifier-shared.webp</code>
+            <span class="file-size status-ready">40.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a heavy optical magnifying glass with a solid brass rim and turned ebony wooden handle, resting over yellowed unreadable parchment paper, realistic glass optical refraction, studio side lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/notebook-shared.webp" alt="Notatnik badawczy i ołówek" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">document</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Notatnik badawczy i ołówek</h3>
+          <p class="item-subtitle">Field Notebook & Graphite Pencil</p>
+          <div class="file-meta">
+            <code>notebook-shared.webp</code>
+            <span class="file-size status-ready">21.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a small moleskin pocket field notebook bound in oilcloth with rounded corners and an elastic band, paired with a sharpened hexagonal graphite pencil, resting on a dark wood table, natural daylight from window, square composition, no readable text, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/camera-1920s.webp" alt="Aparat fotograficzny mieszkowy" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Aparat fotograficzny mieszkowy</h3>
+          <p class="item-subtitle">1920s Folding Bellows Camera</p>
+          <div class="file-meta">
+            <code>camera-1920s.webp</code>
+            <span class="file-size status-ready">28.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a vintage 1920s folding bellows camera with black leatherette cladding, nickeled metal struts and a brass optical shutter lens, standing unfolded on a wooden table, 1920s studio lighting, square composition, rich mechanical detail, no hands, no people, no readable logos</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card is-empty">
+        <div class="image-wrapper">
+          <div class="placeholder"><span class="icon">📷</span><p>Oczekuje na wygenerowanie</p></div>
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Magnetofon kasetowy PRL</h3>
+          <p class="item-subtitle">PRL Portable Cassette Recorder</p>
+          <div class="file-meta">
+            <code>tape-recorder-prl-1970s.webp</code>
+            <span class="file-size status-pending">Brak pliku</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a 1970s Polish Unitra-Kasprzak style portable cassette tape recorder, textured black and gray plastic housing with silver piano-key buttons, carrying handle and microphone input, resting on a desk, Poland PRL aesthetic, authentic era lighting, square composition, no people, no hands</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/medical-bag-shared.webp" alt="Torba lekarska" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">medical</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Torba lekarska</h3>
+          <p class="item-subtitle">Gladstone Doctor Medical Bag</p>
+          <div class="file-meta">
+            <code>medical-bag-shared.webp</code>
+            <span class="file-size status-ready">29.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a classic dark brown cowhide Gladstone medical doctor bag with hinged brass frame and top latch, closed, displaying dignified leather wear and scuffs, resting on a clean wooden examination table, soft medical studio light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/first-aid-prl-1970s.webp" alt="Apteczka samochodowa PRL" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">medical</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Apteczka samochodowa PRL</h3>
+          <p class="item-subtitle">PRL First Aid Metal Box</p>
+          <div class="file-meta">
+            <code>first-aid-prl-1970s.webp</code>
+            <span class="file-size status-ready">37 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a vintage 1970s Polish orange-red metal first aid box with stamped white cross symbol and metal latch, resting on a gray concrete bench, authentic chipped enamel and light surface rust, authentic PRL era daylight, square composition, no people, no readable labels</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card is-empty">
+        <div class="image-wrapper">
+          <div class="placeholder"><span class="icon">📷</span><p>Oczekuje na wygenerowanie</p></div>
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">medical</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Ampułki z morfiną</h3>
+          <p class="item-subtitle">Medical Morphine Ampoules in Tin</p>
+          <div class="file-meta">
+            <code>morphine-ampoules-shared.webp</code>
+            <span class="file-size status-pending">Brak pliku</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic historical object study of an open vintage nickel-plated tin case containing sealed glass liquid medicine ampoules cushioned in folded sterile gauze, resting on a medical tray, cool clinical side lighting, authentic early 20th century medical paraphernalia, square composition, no readable text, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card is-empty">
+        <div class="image-wrapper">
+          <div class="placeholder"><span class="icon">📷</span><p>Oczekuje na wygenerowanie</p></div>
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Srebrny krucyfiks</h3>
+          <p class="item-subtitle">Silver Crucifix on Chain</p>
+          <div class="file-meta">
+            <code>silver-cross-shared.webp</code>
+            <span class="file-size status-pending">Brak pliku</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a heavy solid sterling silver crucifix pendant with tarnished oxidation in the recesses, resting coiled on a dark ecclesiastical linen altar cloth, dramatic single candle light beam, square composition, documentary texture, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/candles-shared.webp" alt="Świece woskowe" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Świece woskowe</h3>
+          <p class="item-subtitle">Bundle of Natural Beeswax Candles</p>
+          <div class="file-meta">
+            <code>candles-shared.webp</code>
+            <span class="file-size status-ready">31.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a bundle of three hand-dipped natural golden beeswax taper candles tied with raw hemp twine, unlit, authentic wax drips and textured cotton wicks, resting on rough flagstone slate, atmospheric side lighting, square composition, no occult symbols, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/chalk-shared.webp" alt="Kreda rytualna" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kreda rytualna</h3>
+          <p class="item-subtitle">Mineral Ritual Chalk Pieces</p>
+          <div class="file-meta">
+            <code>chalk-shared.webp</code>
+            <span class="file-size status-ready">32.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of three irregular sticks of natural dense mineral chalk (off-white, ochre, and deep charcoal black) with powdered chalk dust on a dark slate slab, dramatic low raking light, square composition, high surface tactile detail, no hands, no pentagrams, no text</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/knife-shared.webp" alt="Nóż myśliwski" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Nóż myśliwski</h3>
+          <p class="item-subtitle">Fixed-Blade Hunting Knife</p>
+          <div class="file-meta">
+            <code>knife-shared.webp</code>
+            <span class="file-size status-ready">45.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a classic clip-point carbon steel hunting knife with a stacked leather washer grip and brass crossguard, sheathed partially in a brown tooled leather scabbard, resting on cedar wood, directional natural light, square composition, no blood, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/phone-modern.webp" alt="Smartfon z ładowarką" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Smartfon z ładowarką</h3>
+          <p class="item-subtitle">Smartphone & USB-C Cable</p>
+          <div class="file-meta">
+            <code>phone-modern.webp</code>
+            <span class="file-size status-ready">8.4 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a dark matte glass-and-aluminum modern smartphone with dark blank screen, lying flat next to a coiled braided black USB-C cable on a dark minimalist slate desk, clean contemporary studio directional lighting, square composition, no logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/power-bank-modern.webp" alt="Powerbank" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 1</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Powerbank</h3>
+          <p class="item-subtitle">Portable Slim Power Bank</p>
+          <div class="file-meta">
+            <code>power-bank-modern.webp</code>
+            <span class="file-size status-ready">21.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a compact rectangular anodized aluminum portable power bank with subtle dual USB ports, resting on a dark travel notebook, clean modern documentary lighting, square composition, no brand names, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+  </main>
+</body>
+</html>
