@@ -6408,7 +6408,9 @@
     "fastFilterPlaceholder": "Szybki filtr FTS (np. nazwisko, poszlaka)...",
     "matchingCount": "{count} pasujących",
     "categoryHandouts": "Wycinki i Dokumenty",
-    "emptyHandouts": "Nie zabezpieczono jeszcze żadnych wycinków ani dokumentów."
+    "emptyHandouts": "Nie zabezpieczono jeszcze żadnych wycinków ani dokumentów.",
+    "quoteToChatTitle": "Zacytuj i pytaj na czacie (Quote-to-Input)",
+    "quoteToChatAction": "Pytaj o to na czacie"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",
@@ -7066,7 +7068,10 @@
     "locStatusUnvisited": "Nieodwiedzone",
     "locStatusPartiallySearched": "Wstępnie przeszukane",
     "locStatusThoroughlySearched": "Dokładnie przeszukane",
-    "recordDate": "DATA ZAPISU: {date}"
+    "recordDate": "DATA ZAPISU: {date}",
+    "ideaRollButton": "💡 Test Pomysłu (INT)",
+    "ideaRollTooltip": "Wykonaj Test Pomysłu (Idea Roll) na cechę Inteligencja zgodnie z regułami CoC 7e RAW",
+    "quoteToChatTitle": "Zacytuj i pytaj na czacie (Quote-to-Input)"
   },
   "SessionList": {
     "title": "📚 Lista Sesji",
@@ -7135,5 +7140,37 @@
     "sourcesTitle": "Gdzie legalnie zdobyć podręcznik?",
     "sourcesDesc": "Strażnik Tajemnic to silnik i sam w sobie nie zawiera treści podręcznika. Pobierz darmowy starter lub kup pełne wydanie:",
     "disclaimer": "Projekt fanowski, niezwiązany i niewspierany przez Chaosium Inc. ani Black Monk. Call of Cthulhu / Zew Cthulhu to znaki towarowe Chaosium Inc. Korzystaj wyłącznie z legalnie nabytych egzemplarzy."
+  },
+  "IdeaRoll": {
+    "headerSubtitle": "Mechanika CoC 7e RAW (s. 199-201)",
+    "headerTitle": "Test Pomysłu (Idea Roll)",
+    "headerDescription": "Zgodnie z zasadami Call of Cthulhu 7e, Test Pomysłu służy do pchnięcia śledztwa do przodu, gdy badacze utknęli w martwym punkcie.",
+    "subjectLabel": "BADANY ELEMENT:",
+    "generalInvestigationLabel": "ZAKRES ANALIZY:",
+    "generalDeductionTitle": "Ogólny stan śledztwa - synteza znanych poszlak",
+    "thresholdRegular": "Zwykły",
+    "thresholdHard": "Trudny",
+    "thresholdExtreme": "Ekstremalny",
+    "thresholdCritical": "Krytyk",
+    "rollButton": "Wykonaj Test Pomysłu (INT)",
+    "rawRuleHint": "Sukces przynosi jasne powiązanie faktów. Porażka również daje niezbędną wskazówkę, lecz za cenę narracyjnej komplikacji (RAW).",
+    "reroll": "Rzuć ponownie",
+    "verdictSuccess": "Sukces - badacz doznaje olśnienia",
+    "verdictFailureWithComplication": "Porażka - wskazówka okupiona komplikacją (RAW)",
+    "analyzingClues": "Strażnik Tajemnic analizuje poszlaki i fakty...",
+    "deductionResultHeading": "WNIOSEK STRAŻNIKA TAJEMNIC (DEDUKCJA)",
+    "leadClean": "Czysty trop",
+    "leadComplication": "Trop z komplikacją",
+    "closeButton": "Zamknij",
+    "quoteToChatButton": "Pytaj na czacie",
+    "quoteToChatTooltip": "Wstawia przygotowaną deklarację do pola czatu i przenosi do gry",
+    "savedToTargetButton": "Zapisano w poszlace",
+    "saveToTargetButton": "Zapisz w poszlace",
+    "savedToChronicleButton": "Zapisano w Kronice",
+    "saveToChronicleButton": "Zapisz w Kronice",
+    "chronicleTitleSubject": "Wniosek z Testu Pomysłu: {title}",
+    "chronicleTitleGeneral": "Olśnienie badacza ({name}) - Test Pomysłu",
+    "fallbackSuccess": "Po wnikliwej analizie zebranych śladów badacz {name} dostrzega ukryte powiązanie, które rzuca nowe światło na przebieg wydarzeń.",
+    "fallbackFailure": "Badacz {name} dochodzi do właściwego wniosku, jednak chwila nieuwagi sprawia, że zwraca na siebie niepożądaną uwagę lub traci cenny czas."
   }
 }

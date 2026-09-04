@@ -17,9 +17,13 @@ import {
   CheckCircle2,
   Circle,
   Download,
+  Lightbulb,
+  MessageSquare,
 } from 'lucide-react';
 import { CorkboardInvestigationBoard } from './journal/corkboard-investigation-board';
 import { DiscoveriesView } from './journal/discoveries-view';
+import { IdeaRollModal } from './journal/idea-roll-modal';
+import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
 import { InspectionLightboxModal } from '../dialogs/inspection-lightbox-modal';
 import {
   EvidenceNode,
@@ -80,6 +84,8 @@ interface SessionJournalProps {
   sharedJournal?: JournalEntry[];
   onUpdateSharedJournal?: (journal: JournalEntry[]) => void;
   participantNames?: string[];
+  /** Callback cytowania poszlaki/tekstu do pola czatu (Quote-to-Input) */
+  onQuoteToInput?: (text: string) => void;
 }
 
 export function SessionJournal({
@@ -90,6 +96,7 @@ export function SessionJournal({
   sharedJournal,
   onUpdateSharedJournal,
   participantNames = [],
+  onQuoteToInput,
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
   const locale = useLocale();
@@ -128,6 +135,13 @@ export function SessionJournal({
   const [encyclopediaSubTab, setEncyclopediaSubTab] = useState<
     'location' | 'character' | 'item'
   >('character');
+  const [showIdeaModal, setShowIdeaModal] = useState(false);
+  const [ideaTargetSubject, setIdeaTargetSubject] = useState<{
+    id: string;
+    title: string;
+    description?: string;
+    type?: string;
+  } | undefined>(undefined);
 
   // Stan Tablicy Badacza z automatycznym odtworzeniem z postaci / sharedJournal
   const savedBoardState = character.investigatorBoard;
@@ -841,6 +855,17 @@ export function SessionJournal({
           {/* Narzędzia i Przyciski */}
           <div className="flex gap-2 items-center shrink-0">
             <Button
+              data-testid="btn-idea-roll"
+              onClick={() => {
+                setIdeaTargetSubject(undefined);
+                setShowIdeaModal(true);
+              }}
+              className="bg-amber-950/60 hover:bg-amber-900/80 text-amber-200 border border-amber-600/50 font-serif text-xs font-bold shadow-sm"
+              title={t('ideaRollTooltip')}
+            >
+              <Lightbulb className="h-4 w-4 mr-1 text-amber-400" /> {t('ideaRollButton')}
+            </Button>
+            <Button
               onClick={() => setShowAddForm(true)}
               className="bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40 font-serif"
             >
@@ -1007,6 +1032,18 @@ export function SessionJournal({
                 setActiveTab('board');
               }}
               searchQuery={searchQuery}
+              onQuoteToInput={(text) => {
+                if (onQuoteToInput) {
+                  onQuoteToInput(text);
+                } else {
+                  window.dispatchEvent(
+                    new CustomEvent('straznik:quote-to-input', {
+                      detail: { text },
+                    })
+                  );
+                }
+                onClose?.();
+              }}
             />
           )}
 
@@ -1058,6 +1095,42 @@ export function SessionJournal({
                           </div>
 
                           <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIdeaTargetSubject({
+                                  id: entry.id,
+                                  title: entry.title,
+                                  description: entry.content,
+                                  type: 'chronicle',
+                                });
+                                setShowIdeaModal(true);
+                              }}
+                              className="p-1 text-amber-300 hover:bg-amber-900/60 rounded transition-colors"
+                              title={t('ideaRollTooltip')}
+                            >
+                              <Lightbulb className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const quoteText = buildQuoteToInputText('clue', entry.title, undefined, locale as 'pl' | 'en');
+                                if (onQuoteToInput) {
+                                  onQuoteToInput(quoteText);
+                                } else {
+                                  window.dispatchEvent(
+                                    new CustomEvent('straznik:quote-to-input', {
+                                      detail: { text: quoteText },
+                                    })
+                                  );
+                                }
+                                onClose?.();
+                              }}
+                              className="p-1 text-emerald-300 hover:bg-emerald-900/60 rounded transition-colors"
+                              title={t('quoteToChatTitle')}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </button>
                             <button
                               onClick={() => setEditingEntry(entry)}
                               className="p-1 text-emerald-100 hover:bg-emerald-900/60 rounded transition-colors"
@@ -1157,6 +1230,42 @@ export function SessionJournal({
                           </h4>
                           <div className="flex gap-1 flex-none ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
+                              type="button"
+                              onClick={() => {
+                                setIdeaTargetSubject({
+                                  id: entry.id,
+                                  title: entry.title,
+                                  description: entry.content,
+                                  type: 'note',
+                                });
+                                setShowIdeaModal(true);
+                              }}
+                              className="p-1 text-[#8c7353] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
+                              title={t('ideaRollTooltip')}
+                            >
+                              <Lightbulb className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const quoteText = buildQuoteToInputText('note', entry.title, undefined, locale as 'pl' | 'en');
+                                if (onQuoteToInput) {
+                                  onQuoteToInput(quoteText);
+                                } else {
+                                  window.dispatchEvent(
+                                    new CustomEvent('straznik:quote-to-input', {
+                                      detail: { text: quoteText },
+                                    })
+                                  );
+                                }
+                                onClose?.();
+                              }}
+                              className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
+                              title={t('quoteToChatTitle')}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </button>
+                            <button
                               onClick={() => setEditingEntry(entry)}
                               className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
                               title={t('editNoteTitle')}
@@ -1231,6 +1340,52 @@ export function SessionJournal({
           onCancel={() => setEditingEntry(null)}
         />
       )}
+
+      {/* Modal Testu Pomysłu (Idea Roll INT CoC 7e RAW) */}
+      <IdeaRollModal
+        open={showIdeaModal}
+        onOpenChange={setShowIdeaModal}
+        character={character}
+        targetSubject={ideaTargetSubject}
+        contextClues={entries.map((e) => ({
+          title: e.title,
+          description: e.content,
+          type: e.type,
+        }))}
+        onSaveInsightToTarget={(insight) => {
+          if (ideaTargetSubject?.id) {
+            handleEditDiscoveryEntry({
+              id: ideaTargetSubject.id,
+              title: ideaTargetSubject.title,
+              content: ideaTargetSubject.description || '',
+              type: ideaTargetSubject.type || 'clue',
+              investigatorInsight: insight,
+            });
+          }
+        }}
+        onSaveInsightToChronicle={(title, insight) => {
+          addEntry({
+            title,
+            content: insight,
+            type: 'journal',
+            tags: ['test-pomysłu', 'dedukcja'],
+            investigatorInsight: insight,
+          });
+        }}
+        onQuoteToInput={(text) => {
+          if (onQuoteToInput) {
+            onQuoteToInput(text);
+          } else {
+            window.dispatchEvent(
+              new CustomEvent('straznik:quote-to-input', {
+                detail: { text },
+              })
+            );
+          }
+          setShowIdeaModal(false);
+          onClose?.();
+        }}
+      />
     </div>
   );
 }
