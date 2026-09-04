@@ -5844,8 +5844,31 @@
     "cancelX": "❌ Cancel",
     "editFormTitle": "✏️ Edit Combatant",
     "saveChanges": "💾 Save Changes",
-    "critDouble": " × 2 (critical!) = {damage}"
+    "critDouble": " × 2 (critical!) = {damage}",
+    "firearmMalfunctionDesc": "WEAPON MALFUNCTION! Roll {roll} ≥ {threshold}. Firearm jammed (RAW: Luck cannot be spent!).",
+    "impaleNotice": "(Impale! CoC 7e RAW Extreme Success: max weapon damage + extra dice roll)",
+    "firearmMissDesc": "Miss ({roll} > {target})"
   },
+  "CombatFirearms": {
+    "pointBlank": "Point-blank shot (+1 bonus die)",
+    "pointBlankDiveCover": "Target dove for cover (Dive for Cover) - bonus die cancelled",
+    "longRange": "Long range (1 penalty die)",
+    "extremeRange": "Extreme range (2 penalty dice)",
+    "outOfRange": "Out of range (shot impossible)",
+    "malfunctionJam": "Firearm malfunction ({roll} ≥ {threshold})",
+    "luckForbidden": "Rules As Written: Luck cannot be spent on a firearm malfunction!",
+    "multipleShotsPenalty": "Shot #{shot} in round (+{penalty}P)",
+    "burstTitle": "Automatic fire burst",
+    "burstFired": "Fired burst of {count} bullets",
+    "burstHits": "Hit with {hits}/{total} bullets",
+    "burstExtreme": "Extreme success! All bullets hit, half with Impale!",
+    "jamClearingSimple": "Simple clearing: 1 full round",
+    "jamClearingStandard": "Clearing: 1 round + Firearms / Mechanical Repair test",
+    "jamClearingComplex": "Complex jam: 1d6 rounds (requires Mechanical Repair)",
+    "reloadSingle": "Manual loading: 2 bullets per 1 combat round",
+    "reloadMagazine": "Magazine change / speedloader: 1 full round"
+  },
+
   "FullGameSaveModal": {
     "saveEyebrow": "Archive · save state",
     "loadEyebrow": "Archive · load",

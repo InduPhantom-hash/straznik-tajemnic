@@ -16,7 +16,12 @@ import {
   resolveMeleeEngagement,
   resolveOutnumberedBonus,
 } from '@/lib/combat/combat-resolver';
+import {
+  resolveFirearmShot,
+  calculateMultipleShotsPenalty,
+} from '@/lib/combat/firearms-engine';
 import { rollWithBonusPenalty } from './combat-utils';
+
 
 export interface Combatant {
   id: string;
@@ -436,6 +441,9 @@ export function CombatSystem({
     target: Combatant,
     weapon: Weapon
   ) => {
+    const currentRoundData = combatHistory.find(
+      (r) => r.roundNumber === currentRound
+    );
     const isFirearm =
       (weapon.range && parseInt(weapon.range, 10) > 0) ||
       /pistolet|gun|rewolwer|rifle|strzelb/i.test(weapon.name);
@@ -548,9 +556,6 @@ export function CombatSystem({
         timestamp: new Date(),
       };
 
-      const currentRoundData = combatHistory.find(
-        (r) => r.roundNumber === currentRound
-      );
       if (currentRoundData) {
         const updatedRound = {
           ...currentRoundData,
@@ -580,54 +585,83 @@ export function CombatSystem({
       return;
     }
 
-    const attackRoll = rollD100();
+    // Broń palna: deterministyczne rozstrzygnięcie CoC 7e RAW z zacięciami i karami za kolejne strzały
+    const previousFirearmShotsThisRound = (
+      currentRoundData?.actions || []
+    ).filter(
+      (a) =>
+        a.attackerId === attacker.id &&
+        a.actionType === 'attack' &&
+        ((a.weapon?.range && parseInt(a.weapon.range, 10) > 0) ||
+          /pistolet|gun|rewolwer|rifle|strzelb/i.test(a.weapon?.name || ''))
+    ).length;
+    const shotNumberInRound = previousFirearmShotsThisRound + 1;
+    const penaltyDice = calculateMultipleShotsPenalty(shotNumberInRound);
+
+    const attackRoll =
+      penaltyDice > 0
+        ? rollWithBonusPenalty(0, penaltyDice).finalResult
+        : rollD100();
     const targetNumber = weapon.skillValue;
 
-    // Ujednolicone z silnikiem kanonicznym (dice-utils) - wcześniej walka miała
-    // własną, błędną ocenę: krytyk mylony z sukcesem ekstremalnym (≤⅕),
-    // fumble zawsze przy ≥96 (RAW: dla skill ≥50 fumble tylko przy 100).
-    const outcome = evaluateSkillCheck(attackRoll, targetNumber);
-    const success = isSuccess(outcome);
-    const criticalSuccess = outcome === 'critical';
-    const criticalFailure = outcome === 'fumble';
+    const isTommy = /thompson|tommy/i.test(weapon.name);
+    const malfunctionThreshold = isTommy ? 96 : 100;
+    const baseRange = parseInt(weapon.range, 10) || 15;
+
+    const shotResolution = resolveFirearmShot({
+      shooterName: attacker.name,
+      targetName: target.name,
+      weaponName: weapon.name,
+      skillValue: targetNumber,
+      roll: attackRoll,
+      damageFormula: weapon.damage || '1d10',
+      distanceYards: baseRange,
+      baseRangeYards: baseRange,
+      shooterDex: attacker.dex,
+      shotNumberInRound,
+      malfunctionThreshold,
+      targetArmor: target.armor,
+      targetMaxHp: target.maxHp,
+    });
+
+    const success = shotResolution.hit;
+    const criticalSuccess = shotResolution.outcome === 'critical';
+    const criticalFailure =
+      shotResolution.outcome === 'fumble' || shotResolution.isMalfunction;
 
     let damage = 0;
     let damageRoll = '';
-
     let majorWound = false;
 
-    if (success) {
-      // Obrażenia przez wspólny parser formuły (rollDiceFormula); fallback 1d6.
-      const dmgFormula = weapon.damage || '1d6';
-      const dmgResult = rollDiceFormula(dmgFormula) ?? rollDiceFormula('1d6')!;
-      damage = dmgResult.total;
-      damageRoll = `${dmgFormula} [${dmgResult.results.join('+')}] = ${damage}`;
+    if (shotResolution.isMalfunction) {
+      damage = 0;
+      damageRoll = t('firearmMalfunctionDesc', {
+        roll: attackRoll,
+        threshold: malfunctionThreshold,
+      });
+      playCombatSound('miss');
+    } else if (success && shotResolution.damage) {
+      damage = shotResolution.damage.effectiveDamage;
+      majorWound = shotResolution.damage.isMajorWound;
+      damageRoll = shotResolution.damage.breakdown;
 
-      // Critical doubles damage
-      if (criticalSuccess) {
-        damage = damage * 2;
-        damageRoll += t('critDouble', { damage });
+      if (shotResolution.damage.isImpale) {
+        damageRoll += ` ${t('impaleNotice')}`;
       }
 
-      // Apply armor
-      const effectiveDamage = Math.max(0, damage - target.armor);
+      if (target.armor > 0) {
+        damageRoll += ` ${t('armorNote', {
+          armor: target.armor,
+          effective: damage,
+        })}`;
+      }
 
-      // Check Major Wound (CoC 7e: damage ≥ ½ maxHP in single hit)
-      const majorWoundResult = checkMajorWound(
-        effectiveDamage,
-        target.maxHp,
-        target.dex
-      ); // CON approximated by DEX for NPCs
-      majorWound = majorWoundResult.isMajorWound;
-
-      // Apply damage
-      const newHp = Math.max(0, target.hp - effectiveDamage);
+      const newHp = Math.max(0, target.hp - damage);
       const updatedTarget = {
         ...target,
         hp: newHp,
         isDead: newHp <= 0,
-        isUnconscious:
-          newHp <= 0 || (majorWound && !majorWoundResult.conTestPassed),
+        isUnconscious: newHp <= 0 || majorWound,
       };
 
       const updatedCombatants = combatants.map((c) =>
@@ -635,14 +669,16 @@ export function CombatSystem({
       );
       setCombatants(updatedCombatants);
       onCombatantsChange(updatedCombatants);
-
-      if (target.armor > 0) {
-        damageRoll += ` ${t('armorNote', {
-          armor: target.armor,
-          effective: effectiveDamage,
-        })}`;
-      }
+      playCombatSound('hit');
+    } else {
+      damage = 0;
+      damageRoll = t('firearmMissDesc', {
+        roll: attackRoll,
+        target: targetNumber,
+      });
+      playCombatSound('miss');
     }
+
 
     const action: CombatAction = {
       id: Date.now().toString(),
@@ -667,9 +703,6 @@ export function CombatSystem({
     };
 
     // Add to combat history
-    const currentRoundData = combatHistory.find(
-      (r) => r.roundNumber === currentRound
-    );
     if (currentRoundData) {
       const updatedRound = {
         ...currentRoundData,

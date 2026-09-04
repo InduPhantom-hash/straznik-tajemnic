@@ -5844,8 +5844,31 @@
     "cancelX": "❌ Anuluj",
     "editFormTitle": "✏️ Edytuj Uczestnika Walki",
     "saveChanges": "💾 Zapisz Zmiany",
-    "critDouble": " × 2 (krytyk!) = {damage}"
+    "critDouble": " × 2 (krytyk!) = {damage}",
+    "firearmMalfunctionDesc": "ZACIĘCIE BRONI! Rzut {roll} ≥ {threshold}. Broń zacięła się (RAW: zakaz wydawania Szczęścia!).",
+    "impaleNotice": "(Przebicie! Sukces Ekstremalny CoC 7e RAW: max obrażeń + dodatkowy rzut kością)",
+    "firearmMissDesc": "Pudło ({roll} > {target})"
   },
+  "CombatFirearms": {
+    "pointBlank": "Strzał z przyłożenia (+1 kość premiowa)",
+    "pointBlankDiveCover": "Cel rzucił się za osłonę (Dive for Cover) - anulowano kość premiową",
+    "longRange": "Długi dystans (1 kość karna)",
+    "extremeRange": "Ekstremalny dystans (2 kości karne)",
+    "outOfRange": "Poza zasięgiem (strzał niemożliwy)",
+    "malfunctionJam": "Zacięcie broni ({roll} ≥ {threshold})",
+    "luckForbidden": "Zasady RAW: na zacięcie broni nie wolno wydawać punktów Szczęścia!",
+    "multipleShotsPenalty": "Strzał #{shot} w rundzie (+{penalty}K)",
+    "burstTitle": "Salwa ognia ciągłego",
+    "burstFired": "Wystrzelono salwę {count} kul",
+    "burstHits": "Trafiło {hits}/{total} kul",
+    "burstExtreme": "Ekstremalny sukces! Wszystkie kule trafiają, połowa z Przebiciem (Impale)!",
+    "jamClearingSimple": "Odblokowanie proste: 1 pełna runda",
+    "jamClearingStandard": "Odblokowanie: 1 runda + test Broni Palnej / Naprawy Mechanicznej",
+    "jamClearingComplex": "Złożone zacięcie: 1d6 rund (wymaga Naprawy Mechanicznej)",
+    "reloadSingle": "Ładowanie ręczne: 2 naboje na 1 rundę walki",
+    "reloadMagazine": "Wymiana magazynka / speedloader: 1 pełna runda"
+  },
+
   "FullGameSaveModal": {
     "saveEyebrow": "Archiwum · zapis stanu",
     "loadEyebrow": "Archiwum · wczytanie",
