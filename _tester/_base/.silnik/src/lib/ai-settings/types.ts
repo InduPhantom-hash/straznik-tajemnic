@@ -16,6 +16,13 @@ export type SessionNarrativeMode =
   | 'story_priority'
   | 'pure_narrative';
 export type MechanicsPacing = 'narrative' | 'standard' | 'detailed';
+export type EraFilterMode = 'authentic_1920s' | 'modern_sensibilities';
+
+export interface SessionZeroAnchors {
+  keyConnection?: string; // Ważna Osoba (Key Connection - odzyskiwanie SAN CoC 7e RAW)
+  importantPlace?: string; // Znaczące Miejsce
+  treasuredItem?: string; // Cenny Przedmiot
+}
 
 export interface SessionMechanicsSettingsV1 {
   schemaVersion: 1;
@@ -29,7 +36,7 @@ export interface SessionZeroSettings {
   era: SessionZeroEra;
   eraCustom?: string;
   tone: SessionZeroTone;
-  difficulty: SessionZeroDifficulty;
+  difficulty?: SessionZeroDifficulty;
   narrativeMode: SessionNarrativeMode;
   lines: string[];
   veils: string[];
@@ -37,6 +44,11 @@ export interface SessionZeroSettings {
   playerName: string;
   completed: boolean;
   mechanics?: SessionMechanicsSettingsV1;
+  // Nowe pola kanonu CoC 7e RAW (Issue #90)
+  briefing?: string;
+  investigatorHook?: string;
+  anchors?: SessionZeroAnchors;
+  eraFilter?: EraFilterMode;
 }
 
 const MECHANICS_PACING_VALUES: readonly MechanicsPacing[] = [

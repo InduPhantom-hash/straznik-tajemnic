@@ -300,4 +300,42 @@ describe('ManualSetupPanel', () => {
     expect(screen.getByText('75%')).toBeInTheDocument();
     expect(screen.queryByText('Przygotowywanie sesji...')).not.toBeInTheDocument();
   });
+
+  it('blokuje przycisk Sesji Zero dopóki przygoda i badacz nie zostaną wybrani (gated flow)', () => {
+    const onSessionZero = jest.fn();
+
+    const { rerender } = render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        onSessionZero={onSessionZero}
+        hasAdventure={false}
+        hasCharacter={false}
+      />
+    );
+
+    const s0BtnDisabled = screen.getByRole('button', { name: /Uruchom Sesję Zero/i });
+    expect(s0BtnDisabled).toBeDisabled();
+    expect(screen.getByText('Wybierz najpierw przygodę i postać, aby skalibrować Sesję Zero')).toBeInTheDocument();
+
+    rerender(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        onSessionZero={onSessionZero}
+        hasAdventure={true}
+        hasCharacter={true}
+        activeCharacter={mockCharacter}
+      />
+    );
+
+    const s0BtnEnabled = screen.getByRole('button', { name: /Uruchom Sesję Zero/i });
+    expect(s0BtnEnabled).not.toBeDisabled();
+    fireEvent.click(s0BtnEnabled);
+    expect(onSessionZero).toHaveBeenCalledTimes(1);
+  });
 });

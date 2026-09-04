@@ -808,6 +808,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         open={showSessionZero}
         onClose={() => setShowSessionZero(false)}
         adventureContext={adventureContext || undefined}
+        activeCharacter={activeCharacter}
         onComplete={(settings: SessionZeroSettings) => {
           console.log('Session Zero completed:', settings);
           setShowSessionZero(false);
