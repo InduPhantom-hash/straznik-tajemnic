@@ -163,6 +163,7 @@ interface UseGameStartProps {
     // M6 sesja 146: generateMultiVoice DROPPED per D3.
     addToQueue: (text: string, messageId?: string) => void;
     startInitialBuffering: () => void;
+    waitForInitialBuffer?: (timeoutMs?: number) => Promise<void>;
     stopCurrentAudio: () => void;
   };
   aiSettings?: AISettings | null;
@@ -824,6 +825,17 @@ export function useGameStart({
           hook: 'useGameStart',
         }),
       });
+
+      // Oczekiwanie na zbuforowanie głosu lektora przed wejściem gracza do sceny (Issue #142)
+      if (tts.voiceEnabled && tts.isTTSEnabled && tts.waitForInitialBuffer) {
+        setStartProgress(95);
+        setStartStatus(
+          locale === 'en'
+            ? 'Buffering narrator voice (3-4 sentences)...'
+            : 'Buforowanie głosu lektora (3-4 zdania)...'
+        );
+        await tts.waitForInitialBuffer(15000);
+      }
 
       // Zakończono generowanie pełnego otwarcia: odsłoń czat z gotową sceną (Issue #123)
       await transitionToGame();

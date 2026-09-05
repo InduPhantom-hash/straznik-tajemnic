@@ -281,6 +281,7 @@ export default function Home() {
       generateVoiceForMessage: tts.generateVoiceForMessage,
       addToQueue: tts.addToQueue,
       startInitialBuffering: tts.startInitialBuffering,
+      waitForInitialBuffer: tts.waitForInitialBuffer,
       stopCurrentAudio: tts.stopCurrentAudio,
     },
     aiSettings,

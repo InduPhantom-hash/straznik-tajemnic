@@ -111,7 +111,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
         </div>
 
         <p className="text-zinc-500 text-xs tracking-wider animate-pulse">
-          {t('generatingStory')}
+          {t('bufferingNarrator')}
         </p>
       </div>
     </div>

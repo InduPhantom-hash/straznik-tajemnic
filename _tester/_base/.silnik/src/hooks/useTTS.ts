@@ -43,6 +43,7 @@ export interface UseTTSReturn extends TTSState {
   toggleAudioPause: () => void;
   addToQueue: (text: string, messageId?: string, flush?: boolean) => void;
   startInitialBuffering: () => void;
+  waitForInitialBuffer: (timeoutMs?: number) => Promise<void>;
 }
 
 /**
@@ -88,6 +89,14 @@ const TRANSIENT_RETRY_WAIT_MS = 400; // backoff dla 500/503/network
  * Próg ~jedno krótkie zdanie - chroni przed mikro-blipem audio ("Wchodzisz.").
  */
 const EARLY_FIRST_SEGMENT_MIN_CHARS = 25;
+
+/**
+ * Issue #142: buforowanie lektora przy starcie przygody.
+ * Zbuforowanie 3 segmentów (lub wszystkich przy krótkim intro) gwarantuje
+ * ciągłość lektora przed wejściem gracza do sceny, eliminując przerwę po 1. zdaniu.
+ */
+const INITIAL_BUFFER_TARGET_SEGMENTS = 3;
+const STREAMING_SEGMENT_TARGET_CHARS = 100;
 
 /**
  * IND-191: fetch TTS z ponowieniem. Zwraca `audioUrl` albo `null` (segment niemy -
@@ -228,6 +237,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   // ID-change/stop (jak openRunRef), by nie przeciekał między wiadomościami.
   const earlySpokenCharsRef = useRef(0);
   const hasDispatchedFirstSegmentRef = useRef(false);
+  const isInitialBufferingRef = useRef(false);
+  const initialBufferResolversRef = useRef<(() => void)[]>([]);
+  const finishInitialBufferingRef = useRef<() => void>(() => {});
   const bufferTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -235,41 +247,55 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     return () => console.log('🔊 TTS: Hook UNMOUNTED');
   }, []);
 
-  const stopCurrentAudio = useCallback(() => {
-    console.log('🔊 TTS: STOP called. Resetting state.');
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      setCurrentAudio(null);
-    }
-    // Zatrzymaj wszystkie prekładowane audio
-    preloadedAudioRef.current.forEach((audio) => {
-      if (!audio) return; // tombstone (null) - brak audio do zatrzymania
-      audio.pause();
-      audio.currentTime = 0;
-    });
-    preloadedAudioRef.current.clear();
-    queueRef.current = [];
-    pendingQueueRef.current = [];
-    isProcessingQueueRef.current = false;
-    isPlayingQueueRef.current = false;
-    currentMessageIdRef.current = null;
-    rawProcessedPosRef.current = 0;
-    processedSentenceCountRef.current = 0;
-    processingIndexRef.current = 0;
-    playbackIndexRef.current = 0; // IND-204: bez tego po Stop bez ID-change worker generuje od 0, a player czeka na ostatni N → cisza
-    flushedRef.current = false;
-    openRunRef.current = null; // demo 2026-06-22: nie przenoś niedokończonego runu narratora między wiadomościami
-    earlySpokenCharsRef.current = 0; // E1: świeży kursor wczesnego startu dla nowej wiadomości
-    completedMessageIdsRef.current.clear(); // IND-200
-    if (bufferTimeoutRef.current) {
-      clearTimeout(bufferTimeoutRef.current);
-      bufferTimeoutRef.current = null;
-    }
-    setIsAudioPaused(false);
-    setIsInitialBuffering(false);
-    setQueueStatus({ queueLength: 0, totalCharacters: 0, processing: false });
-  }, [currentAudio]);
+  const stopCurrentAudio = useCallback(
+    (preserveBuffering = false) => {
+      console.log('🔊 TTS: STOP called. Resetting state.');
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        setCurrentAudio(null);
+      }
+      // Zatrzymaj wszystkie prekładowane audio
+      preloadedAudioRef.current.forEach((audio) => {
+        if (!audio) return; // tombstone (null) - brak audio do zatrzymania
+        audio.pause();
+        audio.currentTime = 0;
+      });
+      preloadedAudioRef.current.clear();
+      queueRef.current = [];
+      pendingQueueRef.current = [];
+      isProcessingQueueRef.current = false;
+      isPlayingQueueRef.current = false;
+      currentMessageIdRef.current = null;
+      rawProcessedPosRef.current = 0;
+      processedSentenceCountRef.current = 0;
+      processingIndexRef.current = 0;
+      playbackIndexRef.current = 0; // IND-204: bez tego po Stop bez ID-change worker generuje od 0, a player czeka na ostatni N → cisza
+      flushedRef.current = false;
+      openRunRef.current = null; // demo 2026-06-22: nie przenoś niedokończonego runu narratora między wiadomościami
+      earlySpokenCharsRef.current = 0; // E1: świeży kursor wczesnego startu dla nowej wiadomości
+      hasDispatchedFirstSegmentRef.current = false;
+      completedMessageIdsRef.current.clear(); // IND-200
+
+      if (!preserveBuffering) {
+        if (bufferTimeoutRef.current) {
+          clearTimeout(bufferTimeoutRef.current);
+          bufferTimeoutRef.current = null;
+        }
+        if (initialBufferResolversRef.current.length > 0) {
+          const resolvers = [...initialBufferResolversRef.current];
+          initialBufferResolversRef.current = [];
+          resolvers.forEach((resolve) => resolve());
+        }
+        isInitialBufferingRef.current = false;
+        setIsInitialBuffering(false);
+      }
+
+      setIsAudioPaused(false);
+      setQueueStatus({ queueLength: 0, totalCharacters: 0, processing: false });
+    },
+    [currentAudio]
+  );
 
   // Reaktywne wyciszenie przy wyłączeniu lektora w runtime
   useEffect(() => {
@@ -359,11 +385,24 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             audio.volume = (currentSettings.voiceSettings?.volume || 75) / 100;
             preloadedAudioRef.current.set(index, audio);
             console.log(`✅ TTS Worker: Ready segment ${index}`);
-            setIsInitialBuffering(false);
-            if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
 
-            // Spróbuj odtworzyć (jeśli to pierwszy segment lub poprzednie się skończyły)
-            playFromBuffer();
+            if (isInitialBufferingRef.current) {
+              const bufferedCount = preloadedAudioRef.current.size;
+              const isTargetReached =
+                bufferedCount >= INITIAL_BUFFER_TARGET_SEGMENTS;
+              const isQueueDepleted =
+                flushedRef.current && pendingQueueRef.current.length === 0;
+
+              if (isTargetReached || isQueueDepleted) {
+                console.log(
+                  `✅ TTS: Initial buffer filled (${bufferedCount} segments). Unlocking playback.`
+                );
+                finishInitialBufferingRef.current();
+              }
+            } else {
+              // Spróbuj odtworzyć (jeśli to pierwszy segment lub poprzednie się skończyły)
+              playFromBuffer();
+            }
           } else {
             // Segment wyczerpał retry (500/429 → fetchTtsWithRetry zwrócił null).
             // Zapisz TOMBSTONE (null), by player pominął ten indeks zamiast czekać
@@ -372,14 +411,34 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               `🔇 TTS Worker: segment ${index} nieudany (null) - tombstone, player pomija`
             );
             preloadedAudioRef.current.set(index, null);
-            setIsInitialBuffering(false);
-            if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
-            playFromBuffer();
+
+            if (isInitialBufferingRef.current) {
+              const bufferedCount = preloadedAudioRef.current.size;
+              const isTargetReached =
+                bufferedCount >= INITIAL_BUFFER_TARGET_SEGMENTS;
+              const isQueueDepleted =
+                flushedRef.current && pendingQueueRef.current.length === 0;
+
+              if (isTargetReached || isQueueDepleted) {
+                finishInitialBufferingRef.current();
+              }
+            } else {
+              playFromBuffer();
+            }
           }
         } catch (e) {
           console.error(`❌ TTS Worker: Failed segment ${index}`, e);
-          setIsInitialBuffering(false);
-          if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
+          if (isInitialBufferingRef.current) {
+            const bufferedCount = preloadedAudioRef.current.size;
+            const isQueueDepleted =
+              flushedRef.current && pendingQueueRef.current.length === 0;
+            if (
+              bufferedCount >= INITIAL_BUFFER_TARGET_SEGMENTS ||
+              isQueueDepleted
+            ) {
+              finishInitialBufferingRef.current();
+            }
+          }
         }
       }
     } finally {
@@ -389,6 +448,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       // Jeśli w międzyczasie coś doszło, uruchom ponownie
       if (pendingQueueRef.current.length > 0) {
         runQueueWorker();
+      } else if (isInitialBufferingRef.current && flushedRef.current) {
+        finishInitialBufferingRef.current();
       }
     }
   }, []); // Removed 'playFromBuffer' from deps to avoid circular dependency mechanism, relying on ref stability
@@ -397,7 +458,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
   // Odtwarzaj audio z bufora bez opóźnień
   const playFromBuffer = useCallback(async () => {
-    if (isPlayingQueueRef.current) return;
+    if (isPlayingQueueRef.current || isInitialBufferingRef.current) return;
     isPlayingQueueRef.current = true;
 
     try {
@@ -450,6 +511,23 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     }
   }, []);
 
+  const finishInitialBuffering = useCallback(() => {
+    if (bufferTimeoutRef.current) {
+      clearTimeout(bufferTimeoutRef.current);
+      bufferTimeoutRef.current = null;
+    }
+    isInitialBufferingRef.current = false;
+    setIsInitialBuffering(false);
+    if (initialBufferResolversRef.current.length > 0) {
+      const resolvers = [...initialBufferResolversRef.current];
+      initialBufferResolversRef.current = [];
+      resolvers.forEach((resolve) => resolve());
+    }
+    playFromBuffer();
+  }, [playFromBuffer]);
+
+  finishInitialBufferingRef.current = finishInitialBuffering;
+
   const addToQueue = useCallback(
     (fullRawText: string, messageId?: string, flush: boolean = false) => {
       if (!voiceEnabled || !isTTSEnabled || !fullRawText) return;
@@ -459,7 +537,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         console.log(
           `🔊 TTS ID Change: ${currentMessageIdRef.current} -> ${messageId}`
         );
-        stopCurrentAudio();
+        stopCurrentAudio(isInitialBufferingRef.current);
         currentMessageIdRef.current = messageId;
         rawProcessedPosRef.current = 0;
         processedSentenceCountRef.current = 0;
@@ -468,6 +546,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         flushedRef.current = false;
         openRunRef.current = null; // demo 2026-06-22: nowy run scalania od zera dla nowej wiadomości
         earlySpokenCharsRef.current = 0; // E1: nowy kursor wczesnego startu dla nowej wiadomości
+        hasDispatchedFirstSegmentRef.current = false;
       }
 
       // IND-200: wiadomość już w pełni zakolejkowana (po flush). Spóźniony streaming
@@ -595,11 +674,17 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           }
           openRunRef.current.texts.push(textForQueue);
 
-          // E1 / IND-104 (First-chunk streaming): pierwsze pełne zdanie narracji wypychamy NATYCHMIAST
-          // do TTS, zamiast czekać na koniec całej wiadomości (~25-30s).
-          if (!hasDispatchedFirstSegmentRef.current && !flush) {
+          // E1 / IND-104 + Issue #142 (Streaming audio chunks):
+          // Pierwsze zdanie narracji wypychamy wcześnie (>= EARLY_FIRST_SEGMENT_MIN_CHARS).
+          // Kolejne segmenty zamykamy sukcesywnie po osiągnięciu >= STREAMING_SEGMENT_TARGET_CHARS,
+          // dzięki czemu worker TTS generuje kolejne zdania w tle podczas pisania tekstu przez AI.
+          if (!flush) {
             const currentRunLength = openRunRef.current.texts.join(' ').length;
-            if (currentRunLength >= EARLY_FIRST_SEGMENT_MIN_CHARS) {
+            const threshold = !hasDispatchedFirstSegmentRef.current
+              ? EARLY_FIRST_SEGMENT_MIN_CHARS
+              : STREAMING_SEGMENT_TARGET_CHARS;
+
+            if (currentRunLength >= threshold) {
               closeRun();
               hasDispatchedFirstSegmentRef.current = true;
             }
@@ -689,7 +774,11 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         runQueueWorker();
 
         // Uruchom odtwarzacz jeśli nie działa (i mamy coś w buforze, worker to obsłuży)
-        if (preloadedAudioRef.current.size > 0 && !isPlayingQueueRef.current) {
+        if (
+          preloadedAudioRef.current.size > 0 &&
+          !isPlayingQueueRef.current &&
+          !isInitialBufferingRef.current
+        ) {
           playFromBuffer();
         }
       }
@@ -712,19 +801,44 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const startInitialBuffering = useCallback(() => {
     if (!voiceEnabled || !isTTSEnabled) {
       setIsInitialBuffering(false);
+      isInitialBufferingRef.current = false;
       return;
     }
+    isInitialBufferingRef.current = true;
     setIsInitialBuffering(true);
+    if (bufferTimeoutRef.current) {
+      clearTimeout(bufferTimeoutRef.current);
+    }
     // Timeout bezpieczeństwa na wypadek absolutnej awarii API lub wycieku pętli powtórzeń (cap na retryDelay)
     bufferTimeoutRef.current = setTimeout(() => {
-      setIsInitialBuffering((prev) => {
-        if (prev) {
-          console.warn('🔇 TTS: Timeout buforowania. Zrzucam Hard-loading screen.');
-        }
-        return false;
-      });
-    }, 6000);
+      if (isInitialBufferingRef.current) {
+        console.warn('🔇 TTS: Timeout buforowania. Zrzucam Hard-loading screen.');
+        finishInitialBufferingRef.current();
+      }
+    }, 15000);
   }, [voiceEnabled, isTTSEnabled]);
+
+  const waitForInitialBuffer = useCallback(
+    (timeoutMs = 15000): Promise<void> => {
+      if (!voiceEnabled || !isTTSEnabled || !isInitialBufferingRef.current) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const onResolve = () => {
+          if (timer) clearTimeout(timer);
+          resolve();
+        };
+        timer = setTimeout(() => {
+          console.warn('🔇 TTS: waitForInitialBuffer timeout osiągnięty.');
+          finishInitialBufferingRef.current();
+          resolve();
+        }, timeoutMs);
+        initialBufferResolversRef.current.push(onResolve);
+      });
+    },
+    [voiceEnabled, isTTSEnabled]
+  );
 
   const generateVoiceForMessage = useCallback(
     async (message: Message) => {
@@ -756,5 +870,6 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     addToQueue,
     isInitialBuffering,
     startInitialBuffering,
+    waitForInitialBuffer,
   };
 }

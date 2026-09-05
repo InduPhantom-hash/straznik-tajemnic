@@ -280,4 +280,59 @@ describe('useGameStart - finishReason intra', () => {
     expect(setHasStartedGame).toHaveBeenCalledWith(true);
     expect(localStorage.getItem('has_started_game')).toBe('true');
   });
+
+  it('buforuje głos lektora przed wejściem do gry gdy TTS jest aktywny (Issue #142)', async () => {
+    jest
+      .mocked(fetchWithApiKeys)
+      .mockResolvedValueOnce({ ok: true } as Response);
+    jest
+      .mocked(parseSSEStream)
+      .mockResolvedValueOnce('Mgła przesuwa się nad portem...');
+
+    const setHasStartedGame = jest.fn();
+    const waitForInitialBuffer = jest.fn().mockResolvedValue(undefined);
+    let messages: Message[] = [];
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
+      messages = typeof update === 'function' ? update(messages) : update;
+    };
+
+    const props: Parameters<typeof useGameStart>[0] = {
+      setHasStartedGame,
+      activeCharacter: null,
+      characters: [],
+      setActiveCharacter: jest.fn(),
+      setCharacters: jest.fn(),
+      pdfMemory: {},
+      adventureContext: {
+        id: 'cien-nad-prabutami',
+        title: 'Cień nad Prabutami',
+        yearRange: '1973-1974',
+        country: 'Polska',
+      },
+      hotSeatConfig: { enabled: false, players: [] },
+      setMessages,
+      tts: {
+        voiceEnabled: true,
+        isTTSEnabled: true,
+        generateVoiceForMessage: jest.fn().mockResolvedValue(undefined),
+        addToQueue: jest.fn(),
+        startInitialBuffering: jest.fn(),
+        waitForInitialBuffer,
+        stopCurrentAudio: jest.fn(),
+      },
+      aiSettings: { ...defaultAISettings, imageGenerationEnabled: false },
+    };
+
+    const { result } = renderHook(() => useGameStart(props));
+
+    await act(async () => {
+      await result.current.handleStartGame();
+    });
+
+    // Weryfikacja: buforowanie lektora zostało wywołane z 15s timeoutem
+    expect(waitForInitialBuffer).toHaveBeenCalledWith(15000);
+    expect(setHasStartedGame).toHaveBeenCalledWith(true);
+  });
 });
