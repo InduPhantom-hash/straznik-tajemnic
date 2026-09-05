@@ -59,12 +59,46 @@ const NARRATIVE_MODES = [
   },
 ] as const;
 
+type BriefingDocType = 'telegram' | 'letter' | 'dossier';
+
+const SUGGESTED_HOOK_ITEMS = [
+  { key: 'hookJob', icon: '💼' },
+  { key: 'hookFamily', icon: '🩸' },
+  { key: 'hookAcademic', icon: '🔍' },
+  { key: 'hookDebt', icon: '📜' },
+  { key: 'hookAccident', icon: '👁️' },
+] as const;
+
 const SUGGESTED_HOOK_KEYS = [
   'hookJob',
   'hookFamily',
   'hookAcademic',
   'hookDebt',
   'hookAccident',
+] as const;
+
+const SUGGESTED_KEY_CONNECTIONS = [
+  'anchorConnectionMentor',
+  'anchorConnectionPartner',
+  'anchorConnectionSibling',
+  'anchorConnectionComrade',
+  'anchorConnectionClient',
+] as const;
+
+const SUGGESTED_IMPORTANT_PLACES = [
+  'anchorPlaceStudy',
+  'anchorPlaceHome',
+  'anchorPlaceLibrary',
+  'anchorPlaceClub',
+  'anchorPlaceHarbor',
+] as const;
+
+const SUGGESTED_TREASURED_ITEMS = [
+  'anchorItemWatch',
+  'anchorItemLocket',
+  'anchorItemJournal',
+  'anchorItemLighter',
+  'anchorItemCoin',
 ] as const;
 
 const SUGGESTED_LINES_KEYS = [
@@ -153,6 +187,15 @@ export function SessionZeroModal({
 
   const [newLine, setNewLine] = useState('');
   const [newVeil, setNewVeil] = useState('');
+  const [briefingDocType, setBriefingDocType] = useState<BriefingDocType>('telegram');
+
+  const scenarioDefaultBriefing =
+    adventureContext?.hook ||
+    adventureContext?.description ||
+    '';
+  const characterDefaultHook =
+    activeCharacter?.characterConcept ||
+    '';
 
   useEffect(() => {
     if (open) {
@@ -243,6 +286,181 @@ export function SessionZeroModal({
     t('step4Label'),
   ];
 
+  const renderBriefingDocument = () => {
+    switch (briefingDocType) {
+      case 'telegram':
+        return (
+          <div className="relative border-2 border-yellow-800/40 bg-[#16130b] p-5 shadow-lg">
+            {/* Kątowniki Art Déco */}
+            <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-yellow-700/60" />
+            <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-yellow-700/60" />
+            <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-yellow-700/60" />
+            <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-yellow-700/60" />
+
+            {/* Nagłówek Western Union */}
+            <div className="border-b-2 border-yellow-700/40 pb-3 text-center">
+              <div className="flex items-center justify-between mb-1 text-[10px] font-special-elite text-yellow-600/70 tracking-widest uppercase">
+                <span>FORM N° 1920-A</span>
+                <span className="border border-destructive/70 bg-destructive/15 text-destructive px-1.5 py-0.5 font-bold tracking-widest rotate-[-2deg]">
+                  {t('briefingStampUrgent')} · STOP
+                </span>
+                <span>NIGHT LETTER</span>
+              </div>
+              <div className="font-special-elite text-base sm:text-lg font-black tracking-[0.25em] text-yellow-500/90 uppercase">
+                {t('telegramWesternUnion')}
+              </div>
+              <div className="font-special-elite text-[10px] tracking-[0.2em] text-yellow-600/80 uppercase mt-0.5">
+                {t('telegramSubheader')}
+              </div>
+            </div>
+
+            {/* Pasek metadanych depeszy */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2.5 border-b border-yellow-800/30 text-xs font-special-elite text-yellow-400/80">
+              <div>
+                <span className="text-yellow-600/70 text-[10px] block uppercase">{t('telegramSender')}:</span>
+                <span className="font-bold truncate block">{adventureContext?.location || 'ARKHAM, MASS.'}</span>
+              </div>
+              <div>
+                <span className="text-yellow-600/70 text-[10px] block uppercase">{t('telegramDate')}:</span>
+                <span className="font-bold truncate block">{adventureContext?.yearRange || 'OCTOBER 1926'}</span>
+              </div>
+              <div>
+                <span className="text-yellow-600/70 text-[10px] block uppercase">{t('telegramAddressee')}:</span>
+                <span className="font-bold truncate block">
+                  {activeCharacter?.name || activeCharacter?.playerName || 'INVESTIGATOR'}
+                </span>
+              </div>
+            </div>
+
+            {/* Treść depeszy */}
+            <div className="mt-3">
+              <Textarea
+                value={settings.briefing || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    briefing: e.target.value,
+                  })
+                }
+                placeholder={t('briefingPlaceholder')}
+                rows={4}
+                className="w-full font-special-elite text-sm text-yellow-100/95 leading-relaxed bg-black/40 border border-yellow-900/40 focus:border-yellow-600/70 p-3 rounded-none resize-y"
+              />
+            </div>
+          </div>
+        );
+
+      case 'letter':
+        return (
+          <div className="relative border border-brass/40 bg-[#15120d] p-6 shadow-lg">
+            {/* Kątowniki Art Déco */}
+            <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-brass/60" />
+            <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-brass/60" />
+            <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-brass/60" />
+            <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-brass/60" />
+
+            {/* Nagłówek Papeterii */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brass/25 pb-3 gap-2">
+              <div>
+                <div className="font-display text-sm sm:text-base font-bold uppercase tracking-[0.18em] text-gold flex items-center gap-2">
+                  <span>⚜</span>
+                  <span>{adventureContext?.title ? adventureContext.title.toUpperCase() : 'ZLECENIE ŚLEDCZE'}</span>
+                </div>
+                <div className="font-serif italic text-xs text-brass/70">
+                  {t('docTypeLetter')} · {adventureContext?.location || 'Nowa Anglia'}
+                </div>
+              </div>
+              <div className="font-serif italic text-xs text-brass/80 sm:text-right">
+                {adventureContext?.yearRange || 'Rok 1926'}
+              </div>
+            </div>
+
+            {/* Zwrot grzecznościowy */}
+            <div className="mt-3 font-serif italic text-xs text-foreground/80">
+              {t('letterSalutation')} {activeCharacter?.name ? <strong className="text-gold font-normal">{activeCharacter.name}</strong> : ''}
+            </div>
+
+            {/* Treść listu */}
+            <div className="mt-2">
+              <Textarea
+                value={settings.briefing || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    briefing: e.target.value,
+                  })
+                }
+                placeholder={t('briefingPlaceholder')}
+                rows={4}
+                className="w-full font-serif text-sm italic text-foreground/95 leading-relaxed bg-black/35 border border-brass/25 focus:border-brass/70 p-3.5 rounded-none resize-y"
+              />
+            </div>
+
+            {/* Podpis zlecający */}
+            <div className="mt-3 text-right">
+              <p className="font-serif italic text-xs text-brass/70">{t('letterSignoff')}</p>
+              <p className="font-display text-xs uppercase tracking-wider text-gold mt-0.5">
+                — {adventureContext?.suggestedArchetypes?.[0] || 'Zleceniodawca Śledztwa'}
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'dossier':
+        return (
+          <div className="relative border-2 border-stone-700/60 bg-[#120f0c] p-5 shadow-lg">
+            {/* Kątowniki Art Déco */}
+            <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-stone-500/60" />
+            <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-stone-500/60" />
+            <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-stone-500/60" />
+            <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-stone-500/60" />
+
+            {/* Belka akt policyjnych / teczki */}
+            <div className="flex flex-wrap items-center justify-between border-b border-stone-700/60 pb-3 gap-2">
+              <div className="flex items-center gap-2">
+                <span className="border border-destructive/70 bg-destructive/15 text-destructive px-2 py-0.5 font-special-elite text-xs uppercase tracking-widest">
+                  {t('briefingStampConfidential')}
+                </span>
+                <span className="font-special-elite text-xs uppercase tracking-wider text-muted-foreground">
+                  {t('dossierCaseNumber')} {adventureContext?.id ? adventureContext.id.toUpperCase() : '1920-X'}
+                </span>
+              </div>
+              <div className="font-special-elite text-xs text-brass/80">
+                LOKALIZACJA: {adventureContext?.location || 'ARKHAM'}
+              </div>
+            </div>
+
+            {/* Metryka sprawy */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-2 py-1.5 text-xs font-special-elite text-muted-foreground border-b border-stone-800">
+              <div>
+                <span className="text-brass/70">{t('dossierSubject')}</span>{' '}
+                <span className="text-foreground font-semibold">{adventureContext?.title || 'NIEZNANA SPRAWA'}</span>
+              </div>
+              <div>
+                <span className="text-brass/70">{t('dossierSummary')}</span>
+              </div>
+            </div>
+
+            {/* Raport wstępny w teczce */}
+            <div className="mt-2">
+              <Textarea
+                value={settings.briefing || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    briefing: e.target.value,
+                  })
+                }
+                placeholder={t('briefingPlaceholder')}
+                rows={4}
+                className="w-full font-special-elite text-sm text-stone-200 leading-relaxed bg-black/40 border border-stone-800 focus:border-brass/70 p-3 rounded-none resize-y"
+              />
+            </div>
+          </div>
+        );
+    }
+  };
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -278,7 +496,7 @@ export function SessionZeroModal({
                       }
                       className={`relative p-4 text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
+                          ? 'border border-primary bg-primary/10 shadow-[0_0_14px_rgba(13,148,136,0.22)]'
                           : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
                       }`}
                     >
@@ -322,7 +540,7 @@ export function SessionZeroModal({
                       }
                       className={`relative p-4 text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
+                          ? 'border border-primary bg-primary/10 shadow-[0_0_14px_rgba(13,148,136,0.22)]'
                           : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
                       }`}
                     >
@@ -348,7 +566,7 @@ export function SessionZeroModal({
 
       case 2:
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div>
               <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
                 {t('step2Header')}
@@ -358,69 +576,184 @@ export function SessionZeroModal({
               </p>
             </div>
 
-            {/* Karta Odprawy */}
+            {/* Diegetyczny wybór formatu odprawy */}
             <div className="space-y-3">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('briefingSectionLabel')}
-                <HelpIcon content={t('briefingSectionHelp')} />
-              </Label>
-              <Textarea
-                value={settings.briefing || ''}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    briefing: e.target.value,
-                  })
-                }
-                placeholder={t('briefingPlaceholder')}
-                rows={4}
-                className="w-full font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
-              />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                  {t('briefingSectionLabel')}
+                  <HelpIcon content={t('briefingSectionHelp')} />
+                </Label>
+
+                {/* Przełącznik formatów dokumentu */}
+                <div className="flex items-center gap-1.5 p-1 bg-black/50 border border-brass/25 rounded-none">
+                  <span className="text-[10px] font-special-elite uppercase tracking-wider text-muted-foreground px-2 hidden md:inline">
+                    {t('docTypeSelectorLabel')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setBriefingDocType('telegram')}
+                    className={`px-2.5 py-1 text-xs font-special-elite uppercase tracking-wider transition-all cursor-pointer ${
+                      briefingDocType === 'telegram'
+                        ? 'border border-primary bg-primary/15 text-primary font-bold shadow-[0_0_10px_rgba(13,148,136,0.3)]'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-brass/10'
+                    }`}
+                  >
+                    📧 {t('docTypeTelegram')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBriefingDocType('letter')}
+                    className={`px-2.5 py-1 text-xs font-special-elite uppercase tracking-wider transition-all cursor-pointer ${
+                      briefingDocType === 'letter'
+                        ? 'border border-primary bg-primary/15 text-primary font-bold shadow-[0_0_10px_rgba(13,148,136,0.3)]'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-brass/10'
+                    }`}
+                  >
+                    ✉️ {t('docTypeLetter')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBriefingDocType('dossier')}
+                    className={`px-2.5 py-1 text-xs font-special-elite uppercase tracking-wider transition-all cursor-pointer ${
+                      briefingDocType === 'dossier'
+                        ? 'border border-primary bg-primary/15 text-primary font-bold shadow-[0_0_10px_rgba(13,148,136,0.3)]'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-brass/10'
+                    }`}
+                  >
+                    📁 {t('docTypeDossier')}
+                  </button>
+                </div>
+              </div>
+
+              {/* RENDEROWANIE DOKUMENTU DIEGETYCZNEGO */}
+              {renderBriefingDocument()}
+
+              {/* Dolny pasek pomocniczy pod odprawą */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-special-elite text-muted-foreground/80">
+                  <span>🖋️</span>
+                  <span>{t('editDocHint')}</span>
+                </div>
+                {scenarioDefaultBriefing && settings.briefing !== scenarioDefaultBriefing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        briefing: scenarioDefaultBriefing,
+                      })
+                    }
+                    className="text-[11px] font-special-elite uppercase tracking-wider text-brass/80 hover:text-brass underline cursor-pointer"
+                  >
+                    ↺ {t('restoreOriginalBriefing')}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Haczyk Badacza */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('hookSectionLabel')}
-                <HelpIcon content={t('hookSectionHelp')} />
-              </Label>
-              <Textarea
-                value={settings.investigatorHook || ''}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    investigatorHook: e.target.value,
-                  })
-                }
-                placeholder={t('hookPlaceholder')}
-                rows={2}
-                className="w-full font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
-              />
+            {/* Separator déco */}
+            <div className="flex items-center gap-3 my-4">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-brass/25 to-transparent" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-brass/60" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-brass/25 to-transparent" />
+            </div>
 
-              {/* Sugerowane haczyki */}
-              <div className="pt-1">
-                <div className="mb-1.5 font-special-elite text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
-                  {t('suggestedHooksLabel')}
+            {/* Haczyk Badacza (Investigator's Hook) */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                    {t('hookSectionLabel')}
+                    <HelpIcon content={t('hookSectionHelp')} />
+                  </Label>
+                  <p className="text-[11px] font-serif italic text-muted-foreground">
+                    {t('hookCardSubtitle')}
+                  </p>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {SUGGESTED_HOOK_KEYS.map((key) => {
-                    const text = t(key);
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() =>
-                          setSettings({
-                            ...settings,
-                            investigatorHook: text,
-                          })
-                        }
-                        className="px-2.5 py-1 rounded-none font-special-elite text-xs tracking-wider border border-brass/25 bg-black/40 text-muted-foreground hover:border-brass/60 hover:text-brass transition-colors cursor-pointer"
-                      >
-                        + {text}
-                      </button>
-                    );
-                  })}
+                {characterDefaultHook && settings.investigatorHook !== characterDefaultHook && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        investigatorHook: characterDefaultHook,
+                      })
+                    }
+                    className="text-[11px] font-special-elite uppercase tracking-wider text-brass/80 hover:text-brass underline cursor-pointer"
+                  >
+                    ↺ {t('restoreOriginalHook')}
+                  </button>
+                )}
+              </div>
+
+              {/* Stylizowana Karta Maszynopisu dla Haczyka */}
+              <div className="relative border border-brass/35 bg-[#14100c] p-4 shadow-md">
+                {/* Narożniki déco */}
+                <span className="absolute left-1.5 top-1.5 h-2.5 w-2.5 border-l border-t border-brass/50" />
+                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 border-r border-t border-brass/50" />
+                <span className="absolute left-1.5 bottom-1.5 h-2.5 w-2.5 border-l border-b border-brass/50" />
+                <span className="absolute right-1.5 bottom-1.5 h-2.5 w-2.5 border-r border-b border-brass/50" />
+
+                {/* Nagłówek fiszki */}
+                <div className="flex items-center justify-between border-b border-brass/20 pb-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rotate-45 bg-brass" />
+                    <span className="font-special-elite text-[11px] uppercase tracking-[0.2em] text-brass/90">
+                      {t('hookCardTitle')}
+                    </span>
+                  </div>
+                  {activeCharacter?.name && (
+                    <span className="font-special-elite text-[11px] text-muted-foreground uppercase tracking-wider">
+                      BADACZ: {activeCharacter.name}
+                    </span>
+                  )}
+                </div>
+
+                {/* Textarea */}
+                <Textarea
+                  value={settings.investigatorHook || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      investigatorHook: e.target.value,
+                    })
+                  }
+                  placeholder={t('hookPlaceholder')}
+                  rows={2}
+                  className="w-full font-special-elite text-sm bg-black/30 border-brass/20 focus:border-brass/70 text-foreground leading-relaxed rounded-none resize-y"
+                />
+
+                {/* Sugerowane haczyki jako pieczęcie */}
+                <div className="mt-3 pt-2 border-t border-brass/15">
+                  <div className="mb-2 font-special-elite text-[11px] uppercase tracking-[0.12em] text-brass/75">
+                    {t('suggestedHooksLabel')}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {SUGGESTED_HOOK_ITEMS.map((item) => {
+                      const text = t(item.key);
+                      const isSelected = settings.investigatorHook === text;
+                      return (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() =>
+                            setSettings({
+                              ...settings,
+                              investigatorHook: text,
+                            })
+                          }
+                          className={`group flex items-center gap-1.5 px-2.5 py-1.5 rounded-none font-special-elite text-xs tracking-wider border transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
+                              : 'border-brass/25 bg-black/40 text-muted-foreground hover:border-brass/60 hover:text-brass hover:bg-brass/5'
+                          }`}
+                        >
+                          <span className="text-sm">{item.icon}</span>
+                          <span>{text}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -429,7 +762,7 @@ export function SessionZeroModal({
 
       case 3:
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div>
               <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
                 {t('step3Header')}
@@ -438,77 +771,186 @@ export function SessionZeroModal({
                 {t('step3Intro')}
               </p>
               {activeCharacter?.name && (
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-brass/10 border border-brass/30 text-xs font-special-elite text-brass/90">
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-brass/10 border border-brass/30 text-xs font-special-elite text-brass/90">
                   <span>⚓</span>
                   <span>{t('importedFromCharacter', { name: activeCharacter.name })}</span>
                 </div>
               )}
             </div>
 
-            {/* Ważna Osoba */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('keyConnectionLabel')}
-                <HelpIcon content={t('keyConnectionHelp')} />
-              </Label>
-              <Input
-                value={settings.anchors?.keyConnection || ''}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    anchors: {
-                      ...settings.anchors,
-                      keyConnection: e.target.value,
-                    },
-                  })
-                }
-                placeholder={t('keyConnectionPlaceholder')}
-                className="font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
-              />
-            </div>
+            {/* Diegetyczna Kartoteka Powiązań Badacza */}
+            <div className="relative border border-brass/35 bg-[#14100c] p-6 shadow-md space-y-6">
+              {/* Kątowniki Art Déco */}
+              <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-brass/50" />
+              <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-brass/50" />
+              <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-brass/50" />
+              <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-brass/50" />
 
-            {/* Znaczące Miejsce */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('importantPlaceLabel')}
-                <HelpIcon content={t('importantPlaceHelp')} />
-              </Label>
-              <Input
-                value={settings.anchors?.importantPlace || ''}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    anchors: {
-                      ...settings.anchors,
-                      importantPlace: e.target.value,
-                    },
-                  })
-                }
-                placeholder={t('importantPlacePlaceholder')}
-                className="font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
-              />
-            </div>
+              {/* Nagłówek Kartoteki */}
+              <div className="border-b border-brass/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rotate-45 bg-brass" />
+                  <span className="font-display text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] text-gold">
+                    {t('anchorsDossierHeader')}
+                  </span>
+                </div>
+                <p className="text-[11px] font-serif italic text-muted-foreground mt-0.5">
+                  {t('anchorsDossierSub')}
+                </p>
+              </div>
 
-            {/* Cenny Przedmiot */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('treasuredItemLabel')}
-                <HelpIcon content={t('treasuredItemHelp')} />
-              </Label>
-              <Input
-                value={settings.anchors?.treasuredItem || ''}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    anchors: {
-                      ...settings.anchors,
-                      treasuredItem: e.target.value,
-                    },
-                  })
-                }
-                placeholder={t('treasuredItemPlaceholder')}
-                className="font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
-              />
+              {/* 1. Ważna Osoba */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                  {t('keyConnectionLabel')}
+                  <HelpIcon content={t('keyConnectionHelp')} />
+                </Label>
+                <Input
+                  value={settings.anchors?.keyConnection || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      anchors: {
+                        ...settings.anchors,
+                        keyConnection: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder={t('keyConnectionPlaceholder')}
+                  className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
+                />
+                {/* Sugestie ważnych osób */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {SUGGESTED_KEY_CONNECTIONS.map((key) => {
+                    const val = t(key);
+                    const isSelected = settings.anchors?.keyConnection === val;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            anchors: {
+                              ...settings.anchors,
+                              keyConnection: val,
+                            },
+                          })
+                        }
+                        className={`px-2 py-1 font-special-elite text-[11px] tracking-wider border rounded-none transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
+                            : 'border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass'
+                        }`}
+                      >
+                        + {val}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Znaczące Miejsce */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                  {t('importantPlaceLabel')}
+                  <HelpIcon content={t('importantPlaceHelp')} />
+                </Label>
+                <Input
+                  value={settings.anchors?.importantPlace || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      anchors: {
+                        ...settings.anchors,
+                        importantPlace: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder={t('importantPlacePlaceholder')}
+                  className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
+                />
+                {/* Sugestie miejsc */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {SUGGESTED_IMPORTANT_PLACES.map((key) => {
+                    const val = t(key);
+                    const isSelected = settings.anchors?.importantPlace === val;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            anchors: {
+                              ...settings.anchors,
+                              importantPlace: val,
+                            },
+                          })
+                        }
+                        className={`px-2 py-1 font-special-elite text-[11px] tracking-wider border rounded-none transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
+                            : 'border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass'
+                        }`}
+                      >
+                        + {val}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Cenny Przedmiot */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                  {t('treasuredItemLabel')}
+                  <HelpIcon content={t('treasuredItemHelp')} />
+                </Label>
+                <Input
+                  value={settings.anchors?.treasuredItem || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      anchors: {
+                        ...settings.anchors,
+                        treasuredItem: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder={t('treasuredItemPlaceholder')}
+                  className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
+                />
+                {/* Sugestie cennych przedmiotów */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {SUGGESTED_TREASURED_ITEMS.map((key) => {
+                    const val = t(key);
+                    const isSelected = settings.anchors?.treasuredItem === val;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            anchors: {
+                              ...settings.anchors,
+                              treasuredItem: val,
+                            },
+                          })
+                        }
+                        className={`px-2 py-1 font-special-elite text-[11px] tracking-wider border rounded-none transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
+                            : 'border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass'
+                        }`}
+                      >
+                        + {val}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         );

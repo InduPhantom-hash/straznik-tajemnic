@@ -215,4 +215,49 @@ describe('SessionZeroModal', () => {
       })
     );
   });
+
+  it('supports switching diegetic briefing document formats and selecting suggested hooks and anchors', () => {
+    render(
+      <SessionZeroModal
+        open={true}
+        onClose={onClose}
+        onComplete={onComplete}
+        adventureContext={mockAdventure}
+        activeCharacter={mockCharacter}
+      />
+    );
+
+    // Przejdź do Kroku 2
+    fireEvent.click(screen.getByRole('button', { name: /Odprawa i haczyk/i }));
+
+    // Domyślny format: Telegram
+    expect(screen.getByText('WESTERN UNION TELEGRAPH CO.')).toBeInTheDocument();
+    expect(screen.getByText(/PILNE · STOP/i)).toBeInTheDocument();
+
+    // Przełącz na List zlecający
+    const letterBtn = screen.getByRole('button', { name: /List Zlecający/i });
+    fireEvent.click(letterBtn);
+    expect(screen.getByText(/CIENIE NAD INNSMOUTH/i)).toBeInTheDocument();
+    expect(screen.getByText(/Do rąk własnych Badacza/i)).toBeInTheDocument();
+
+    // Przełącz na Teczkę Akt
+    const dossierBtn = screen.getByRole('button', { name: /Teczka Akt/i });
+    fireEvent.click(dossierBtn);
+    expect(screen.getByText('ŚCIŚLE TAJNE')).toBeInTheDocument();
+    expect(screen.getByText(/AKTA ŚLEDCZE N°/i)).toBeInTheDocument();
+
+    // Wybór sugerowanego haczyka badacza
+    const jobHookBtn = screen.getByRole('button', { name: /Zlecenie zawodowe \/ honorarium/i });
+    fireEvent.click(jobHookBtn);
+    expect(screen.getByDisplayValue('Zlecenie zawodowe / honorarium')).toBeInTheDocument();
+
+    // Przejdź do Kroku 3
+    fireEvent.click(screen.getByRole('button', { name: /Kotwice psychiczne/i }));
+    expect(screen.getByText('KARTOTEKA POWIĄZAŃ PSYCHOLOGICZNYCH')).toBeInTheDocument();
+
+    // Kliknięcie sugerowanej kotwicy
+    const mentorChip = screen.getByRole('button', { name: /\+ Mentor uniwersytecki/i });
+    fireEvent.click(mentorChip);
+    expect(screen.getByDisplayValue('Mentor uniwersytecki')).toBeInTheDocument();
+  });
 });
