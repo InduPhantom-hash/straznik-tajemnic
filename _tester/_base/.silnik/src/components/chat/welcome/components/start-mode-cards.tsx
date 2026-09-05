@@ -102,11 +102,11 @@ export const StartModeCards: FC<StartModeCardsProps> = ({
       {quickSetupOpen && (
         <QuickSetupModal
           open={quickSetupOpen}
-          onOpenChange={(open) => {
-            if (isStarting && !open) return;
-            setQuickSetupOpen(open);
+          onOpenChange={setQuickSetupOpen}
+          onQuickStart={(adv, char, mode, p2) => {
+            setQuickSetupOpen(false);
+            onQuickStart(adv, char, mode, p2);
           }}
-          onQuickStart={onQuickStart}
           isStarting={isStarting}
           startProgress={startProgress}
           startStatus={startStatus}
