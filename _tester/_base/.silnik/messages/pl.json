@@ -7148,6 +7148,7 @@
     "ritualResurrectionEffect": "Wskrzeszony traci 1d20 SAN permanentnie i zyskuje 1d10 Cthulhu Mythos. Osobowość może być zmieniona"
   },
   "SessionJournal": {
+    "titleEyebrow": "DOKUMENTY ŚLEDZTWA",
     "title": "DZIENNIK SESJI",
     "sharedWith": "Wspólny dla: {names}",
     "tabBoard": "Tablica Badacza",

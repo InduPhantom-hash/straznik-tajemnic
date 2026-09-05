@@ -29,14 +29,11 @@ const DialogOverlay = forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 /**
- * Warianty rozmiaru modala (Dark Art Déco).
+ * Warianty rozmiaru modala (Dark Art Déco - standard 75% powierzchni okna).
  * - `sm`    - drobne potwierdzenia (domyślny, ~max-w-lg, treść w grid).
  * - `lg`    - średni modal (~max-w-3xl) z przewijaniem.
- * - `wide`  - DOCELOWY ujednolicony rozmiar: szerokość jak Karta Postaci
- *             (90vw / max 1440px), wysokość DYNAMICZNA (rośnie z treścią, cap
- *             88vh + przewijanie). Domyślny dla wszystkich modali treściowych.
- * - `screen`- szeroka ramka (90vw / 1440px), flex-col z wewnętrznym przewijaniem;
- *             wysokość dynamiczna (max-h-88vh). X zawsze widoczny w rogu.
+ * - `wide`  - standard 75% powierzchni okna (86vw / max 1280px, max-h 85vh + przewijanie).
+ * - `screen`- standard 75% powierzchni okna (86vw / max 1280px, max-h 85vh), flex-col z wewnętrznym przewijaniem.
  */
 const dialogContentVariants = cva(
   'fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] border border-brass/30 bg-card shadow-deco duration-200 data-[state=open]:animate-modal-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 sm:rounded-lg',
@@ -45,9 +42,9 @@ const dialogContentVariants = cva(
       size: {
         sm: 'grid w-full max-w-lg gap-4 p-6',
         lg: 'grid w-full max-w-3xl max-h-[86vh] gap-4 overflow-y-auto p-6',
-        wide: 'grid w-[90vw] max-w-[1440px] max-h-[88vh] gap-4 overflow-y-auto p-6',
+        wide: 'grid w-[86vw] max-w-[1280px] max-h-[85vh] gap-4 overflow-y-auto p-6',
         screen:
-          'deco-corners flex max-h-[88vh] w-[90vw] max-w-[1440px] flex-col overflow-hidden p-0',
+          'deco-corners flex max-h-[85vh] w-[86vw] max-w-[1280px] flex-col overflow-hidden p-0',
       },
     },
     defaultVariants: {

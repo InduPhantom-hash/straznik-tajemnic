@@ -757,7 +757,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
       )}
       {openDialog === 'journal' && !activeCharacter && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-border rounded-xl p-8 text-center w-[90vw] max-w-[1440px]">
+          <div className="bg-card border border-border rounded-xl p-8 text-center w-full max-w-md">
             <div className="text-4xl mb-4">📚</div>
             <h3 className="text-xl font-bold text-foreground mb-2">
               {t('selectCharacter')}
