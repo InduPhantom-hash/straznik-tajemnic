@@ -122,4 +122,36 @@ describe('EquipmentDetailDialog', () => {
     fireEvent.click(collapseBtn);
     expect(screen.getByTitle('Powiększ dokument')).toBeInTheDocument();
   });
+
+  it('renders atmospheric lore and visual appearance for items without explicit description', () => {
+    const bareItem: EquipmentItem = {
+      id: 'eq_revolver_bare',
+      name: 'Rewolwer .38',
+      category: 'weapon',
+      modifiers: { damage: '1d10', range: '15 yards' },
+      condition: 'used',
+      source: 'starting',
+      obtainedAt: new Date(),
+    };
+
+    render(<EquipmentDetailDialog item={bareItem} onClose={jest.fn()} />);
+
+    // Tytuł i nazwa
+    expect(screen.getByText('Rewolwer .38')).toBeInTheDocument();
+
+    // Nastrojowy opis lore (fallback generowany z nazwy)
+    expect(
+      screen.getByText(/Starannie utrzymana broń, regularnie czyszczona i oliwiona/i)
+    ).toBeInTheDocument();
+
+    // Sekcja wyglądu fizycznego (appearance)
+    expect(screen.getByText('Wygląd:')).toBeInTheDocument();
+    expect(
+      screen.getByText(/antyczny przedmiot osobisty, patyna czasu/i)
+    ).toBeInTheDocument();
+
+    // Mechanika CoC 7e
+    expect(screen.getByText('Obrażenia')).toBeInTheDocument();
+    expect(screen.getByText('1d10')).toBeInTheDocument();
+  });
 });

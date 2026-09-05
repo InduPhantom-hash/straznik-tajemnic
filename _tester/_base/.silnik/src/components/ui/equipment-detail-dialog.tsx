@@ -1,6 +1,6 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from './button';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
@@ -118,6 +118,8 @@ export function EquipmentDetailDialog({
     return resolveGameEraContext({ userSelection: { year: 1924, country: 'USA' } });
   }, [propEraContext]);
 
+  const locale = useLocale();
+
   if (!item) return null;
 
   // Naprawiony warunek czytelności: tylko dokumenty lub przedmioty z jawnym
@@ -188,6 +190,9 @@ export function EquipmentDetailDialog({
   const hasImage = !!item.imageUrl && !item.mapUrl && !item.isMap;
   const hasMap = !!(item.mapUrl || (item.imageUrl && item.isMap));
   const categoryLabel = CATEGORY_LABELS[item.category] || item.category;
+
+  const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
+  const effectiveVisual = generateVisualDescription(item.name, locale);
 
   return (
     <DialogPrimitive.Root open={Boolean(item)} onOpenChange={(open) => !open && onClose()}>
@@ -325,12 +330,10 @@ export function EquipmentDetailDialog({
                   </div>
                 )}
 
-                {/* Opis fabularny */}
-                {item.description && (
-                  <p className="font-serif italic text-base text-muted-foreground leading-relaxed mb-4">
-                    {item.description}
-                  </p>
-                )}
+                {/* Opis fabularny (zawsze obecny) */}
+                <p className="font-serif italic text-base text-muted-foreground leading-relaxed mb-4">
+                  {effectiveLore}
+                </p>
 
                 {/* Sekcja czytania dokumentu */}
                 {canRequestRead && (
@@ -411,20 +414,15 @@ export function EquipmentDetailDialog({
                   </div>
                 )}
 
-                {/* Fallback: wygenerowany opis jeśli brak opisu, mechaniki i czytelności */}
-                {mechanics.length === 0 && !item.description && !canRequestRead && (
-                  <div className="space-y-2 border-t border-brass/20 pt-3">
-                    <div className="font-display uppercase tracking-[0.16em] text-brass text-xs">
-                      {t('loreTitle')}
-                    </div>
-                    <p className="font-serif italic text-sm text-foreground/90 leading-relaxed">
-                      {generateItemLore(item.name)}
-                    </p>
-                    <p className="font-special-elite text-xs text-muted-foreground/80">
-                      {t('appearanceLabel')} {generateVisualDescription(item.name)}
-                    </p>
+                {/* Detale wizualne i cechy fizyczne rekwizytu */}
+                <div className="border-t border-brass/20 pt-3 mt-3">
+                  <div className="font-display uppercase tracking-[0.16em] text-brass text-xs mb-1.5">
+                    {t('appearanceLabel')}
                   </div>
-                )}
+                  <p className="font-special-elite text-xs text-muted-foreground/90 leading-relaxed">
+                    {effectiveVisual}
+                  </p>
+                </div>
               </div>
             </div>
           )}

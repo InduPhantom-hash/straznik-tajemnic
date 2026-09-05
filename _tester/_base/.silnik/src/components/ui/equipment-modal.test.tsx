@@ -92,4 +92,49 @@ describe('EquipmentModal catalog images', () => {
 
     alertSpy.mockRestore();
   });
+
+  it('wyświetla nastrojowy opis lore na kafelkach wyposażenia i broni nawet bez podanego description', () => {
+    const character = {
+      id: 'investigator-3',
+      name: 'Arthur Pendelton',
+      equipment: [
+        {
+          id: 'revolver-bare',
+          name: 'Rewolwer .38',
+          category: 'weapon',
+          modifiers: { damage: '1d10' },
+        },
+        {
+          id: 'lantern-bare',
+          name: 'Lampa naftowa',
+          category: 'tool',
+        },
+      ],
+    } as Character;
+
+    render(
+      <EquipmentModal
+        open
+        onOpenChange={jest.fn()}
+        character={character}
+        onCharacterUpdate={jest.fn()}
+        era="1920s"
+      />
+    );
+
+    // Karta broni (domyślnie aktywna zakładka broń)
+    expect(screen.getByText('Rewolwer .38')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Starannie utrzymana broń, regularnie czyszczona i oliwiona/i)
+    ).toBeInTheDocument();
+
+    // Przełącz na wyposażenie
+    const gearTab = screen.getByRole('button', { name: /Wyposażenie/i });
+    fireEvent.click(gearTab);
+
+    expect(screen.getByText('Lampa naftowa')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Niezawodne źródło światła w ciemnościach/i)
+    ).toBeInTheDocument();
+  });
 });

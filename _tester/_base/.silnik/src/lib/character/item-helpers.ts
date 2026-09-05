@@ -16,188 +16,353 @@ export type ItemCategory =
   | 'other';
 
 /** Generuje opis wyglądu fizycznego (visualDescription) na podstawie nazwy przedmiotu. */
-export function generateVisualDescription(itemName: string): string {
+export function generateVisualDescription(itemName: string, locale: string = 'pl'): string {
   const nameLower = itemName.toLowerCase();
+  const isEn = locale === 'en';
 
   if (nameLower.includes('zegarek') || nameLower.includes('watch')) {
-    return 'srebrna koperta z grawerowanymi ornamentami, tarcza z rzymskimi cyframi, łańcuszek z patynowanego srebra';
+    return isEn
+      ? 'silver case with engraved ornaments, roman numeral dial, chain made of patinated silver'
+      : 'srebrna koperta z grawerowanymi ornamentami, tarcza z rzymskimi cyframi, łańcuszek z patynowanego srebra';
   } else if (
     nameLower.includes('pierścień') ||
     nameLower.includes('ring') ||
     nameLower.includes('obrączka')
   ) {
-    return 'złoty band z subtelnym wzorem, ślady noszenia, ciepły blask metalu';
+    return isEn
+      ? 'gold band with subtle pattern, signs of wear, warm metallic gleam'
+      : 'złoty band z subtelnym wzorem, ślady noszenia, ciepły blask metalu';
   } else if (
     nameLower.includes('naszyjnik') ||
     nameLower.includes('wisiorek') ||
-    nameLower.includes('medalion')
+    nameLower.includes('medalion') ||
+    nameLower.includes('necklace') ||
+    nameLower.includes('locket')
   ) {
-    return 'ozdobny wisiorek na łańcuszku, starożytny styl, tajemnicze symbole';
+    return isEn
+      ? 'ornate pendant on a chain, ancient style, enigmatic symbols'
+      : 'ozdobny wisiorek na łańcuszku, starożytny styl, tajemnicze symbole';
   } else if (
     nameLower.includes('zdjęcie') ||
     nameLower.includes('foto') ||
-    nameLower.includes('portret')
+    nameLower.includes('portret') ||
+    nameLower.includes('photo') ||
+    nameLower.includes('portrait')
   ) {
-    return 'pożółkła fotografia w ramce, sepia tones, wymięte rogi';
+    return isEn
+      ? 'yellowed photograph in a modest frame, sepia tones, creased corners'
+      : 'pożółkła fotografia w ramce, sepia tones, wymięte rogi';
   } else if (nameLower.includes('list') || nameLower.includes('letter')) {
-    return 'złożona kartka papieru z wyblakłym atramentem, pieczęć z wosku';
+    return isEn
+      ? 'folded sheet of paper with faded ink, wax seal remnants'
+      : 'złożona kartka papieru z wyblakłym atramentem, pieczęć z wosku';
   } else if (
     nameLower.includes('książka') ||
     nameLower.includes('dziennik') ||
-    nameLower.includes('notatnik')
+    nameLower.includes('notatnik') ||
+    nameLower.includes('book') ||
+    nameLower.includes('journal') ||
+    nameLower.includes('diary') ||
+    nameLower.includes('notebook')
   ) {
-    return 'skórzana oprawa ze złoceniami, pożółkłe strony, ślady użytkowania';
+    return isEn
+      ? 'leather binding with gilt lettering, yellowed pages, distinct signs of frequent use'
+      : 'skórzana oprawa ze złoceniami, pożółkłe strony, ślady użytkowania';
   } else {
-    return 'antyczny przedmiot osobisty, patyna czasu, detale z mosiądzu i skóry';
+    return isEn
+      ? 'antique personal item, patina of time, brass and aged leather details'
+      : 'antyczny przedmiot osobisty, patyna czasu, detale z mosiądzu i skóry';
   }
 }
 
 /** Generuje opis fabularny (lore) na podstawie nazwy przedmiotu. */
-export function generateItemLore(itemName: string): string {
+export function generateItemLore(itemName: string, locale: string = 'pl'): string {
   const nameLower = itemName.toLowerCase();
+  const isEn = locale === 'en';
 
   // Broń
   if (
     nameLower.includes('rewolwer') ||
     nameLower.includes('pistolet') ||
-    nameLower.includes('broń')
+    nameLower.includes('broń') ||
+    nameLower.includes('revolver') ||
+    nameLower.includes('pistol') ||
+    nameLower.includes('gun') ||
+    nameLower.includes('derringer') ||
+    nameLower.includes('automatic') ||
+    nameLower.includes('colt')
   ) {
-    return 'Starannie utrzymana broń, regularnie czyszczona i oliwiona. Ciężar metalu w dłoni daje poczucie bezpieczeństwa w mrocznych zaułkach.';
+    return isEn
+      ? 'Carefully maintained firearm, regularly cleaned and oiled. The weight of cold metal in hand brings a reassuring sense of safety in dark alleys.'
+      : 'Starannie utrzymana broń, regularnie czyszczona i oliwiona. Ciężar metalu w dłoni daje poczucie bezpieczeństwa w mrocznych zaułkach.';
   }
-  if (nameLower.includes('nóż') || nameLower.includes('sztylet')) {
-    return 'Ostrze o dobrze wyważonej rękojeści. Przydatny zarówno do codziennych zadań jak i w sytuacjach awaryjnych.';
+  if (
+    nameLower.includes('strzelb') ||
+    nameLower.includes('dubeltów') ||
+    nameLower.includes('karabin') ||
+    nameLower.includes('shotgun') ||
+    nameLower.includes('rifle')
+  ) {
+    return isEn
+      ? 'Sturdy hunting firearm built for stopping power. The wooden stock carries scratches from previous wilderness expeditions.'
+      : 'Solidna broń długa o dużej sile rażenia. Drewniana kolba nosi rysy po poprzednich wyprawach w teren.';
+  }
+  if (
+    nameLower.includes('nóż') ||
+    nameLower.includes('sztylet') ||
+    nameLower.includes('maczeta') ||
+    nameLower.includes('pałka') ||
+    nameLower.includes('knife') ||
+    nameLower.includes('dagger') ||
+    nameLower.includes('machete') ||
+    nameLower.includes('club') ||
+    nameLower.includes('baton')
+  ) {
+    return isEn
+      ? 'A well-balanced weapon with a firm grip. Dependable both for practical wilderness tasks and sudden desperate encounters.'
+      : 'Ostrze o dobrze wyważonej rękojeści. Przydatne zarówno do codziennych zadań jak i w sytuacjach awaryjnych.';
   }
 
   // Oświetlenie
-  if (nameLower.includes('latarka') || nameLower.includes('lamp')) {
-    return 'Niezawodne źródło światła w ciemnościach. Snop światła przecina mrok, odsłaniając to, co chciałoby pozostać ukryte.';
+  if (nameLower.includes('latarka') || nameLower.includes('lamp') || nameLower.includes('lantern') || nameLower.includes('flashlight')) {
+    return isEn
+      ? 'A steady beam of light against the oppressive darkness, revealing clues that preferred to remain hidden.'
+      : 'Niezawodne źródło światła w ciemnościach. Snop światła przecina mrok, odsłaniając to, co chciałoby pozostać ukryte.';
   }
   if (
     nameLower.includes('świeca') ||
     nameLower.includes('zapałki') ||
-    nameLower.includes('zapalniczka')
+    nameLower.includes('zapalniczka') ||
+    nameLower.includes('candle') ||
+    nameLower.includes('match') ||
+    nameLower.includes('lighter')
   ) {
-    return 'Prosty sposób na rozproszenie ciemności. Płomień daje nie tylko światło, ale i odrobinę ciepła w chłodne noce.';
+    return isEn
+      ? 'A simple way to dispel shadows. The small flame offers not only visibility, but a spark of reassuring warmth.'
+      : 'Prosty sposób na rozproszenie ciemności. Płomień daje nie tylko światło, ale i odrobinę ciepła w chłodne noce.';
   }
 
   // Dokumenty i notatki
   if (
     nameLower.includes('notes') ||
     nameLower.includes('notatnik') ||
-    nameLower.includes('dziennik')
+    nameLower.includes('dziennik') ||
+    nameLower.includes('szkicownik') ||
+    nameLower.includes('notebook') ||
+    nameLower.includes('diary') ||
+    nameLower.includes('journal')
   ) {
-    return 'Podniszczony zeszyt pełen notatek i obserwacji. Niektóre strony są wyrwane, inne zapisane nerwowym pismem.';
+    return isEn
+      ? 'A worn notebook filled with field observations, dates, and hurried sketches. Some pages are dog-eared and stained with ink.'
+      : 'Podniszczony zeszyt pełen notatek i obserwacji. Niektóre strony są wyrwane, inne zapisane nerwowym pismem.';
   }
-  if (nameLower.includes('mapa') || nameLower.includes('map')) {
-    return 'Sfatygowana mapa ze śladami wielokrotnego składania. Niektóre miejsca są zakreślone, inne przekreślone z nieznanych powodów.';
+  if (nameLower.includes('mapa') || nameLower.includes('map') || nameLower.includes('plan')) {
+    return isEn
+      ? 'A creased, repeatedly folded map. Key routes and remote buildings are marked with discreet penciled circles.'
+      : 'Sfatygowana mapa ze śladami wielokrotnego składania. Niektóre miejsca są zakreślone, inne przekreślone z nieznanych powodów.';
+  }
+  if (
+    nameLower.includes('książka') ||
+    nameLower.includes('ksiąg') ||
+    nameLower.includes('book') ||
+    nameLower.includes('tome') ||
+    nameLower.includes('biblia') ||
+    nameLower.includes('modlitewnik')
+  ) {
+    return isEn
+      ? 'A thick, bound volume smelling of aged paper and dry dust. Its passages hold knowledge forgotten by modern scholars.'
+      : 'Gruba księga pachnąca starym papierem i kurzem. Jej stronice kryją wiedzę zapomnianą przez współczesnych badaczy.';
   }
 
   // Narzędzia
-  if (nameLower.includes('lina') || nameLower.includes('sznur')) {
-    return 'Solidna lina o odpowiedniej długości. Może uratować życie przy wspinaczce lub przeprawie przez niebezpieczny teren.';
+  if (nameLower.includes('lina') || nameLower.includes('sznur') || nameLower.includes('rope')) {
+    return isEn
+      ? 'Dependable coiled rope with reinforced fibers. A vital lifeline when navigating steep descents or securing treacherous paths.'
+      : 'Solidna lina o odpowiedniej długości. Może uratować życie przy wspinaczce lub przeprawie przez niebezpieczny teren.';
   }
   if (
     nameLower.includes('lom') ||
     nameLower.includes('łom') ||
-    nameLower.includes('wytrych')
+    nameLower.includes('wytrych') ||
+    nameLower.includes('crowbar') ||
+    nameLower.includes('lockpick') ||
+    nameLower.includes('lock pick')
   ) {
-    return 'Narzędzie o wielu zastosowaniach - od otwierania zamków po wejście przez zablokowane drzwi. Lepiej mieć je i nie potrzebować.';
+    return isEn
+      ? 'A versatile mechanical tool designed for forced entry and stubborn locks. Far better to carry it along than to face a barred door empty-handed.'
+      : 'Narzędzie o wielu zastosowaniach - od otwierania zamków po wejście przez zablokowane drzwi. Lepiej mieć je i nie potrzebować.';
   }
   if (
     nameLower.includes('apteczka') ||
     nameLower.includes('bandaż') ||
-    nameLower.includes('medycz')
+    nameLower.includes('medycz') ||
+    nameLower.includes('first aid') ||
+    nameLower.includes('bandage') ||
+    nameLower.includes('medicine') ||
+    nameLower.includes('morfin') ||
+    nameLower.includes('morphine')
   ) {
-    return 'Podstawowe zaopatrzenie medyczne. Bandaże, środki odkażające i kilka tabletek przeciwbólowych - w terenie to skarb.';
+    return isEn
+      ? 'Essential emergency medical supplies: sterile dressings, disinfectant, and pain relievers indispensable during remote investigations.'
+      : 'Podstawowe zaopatrzenie medyczne. Bandaże, środki odkażające i kilka tabletek przeciwbólowych - w terenie to skarb.';
   }
 
-  // Elektronika (współczesność)
+  // Elektronika i przyrządy badawcze
   if (
     nameLower.includes('telefon') ||
     nameLower.includes('komórka') ||
-    nameLower.includes('smartfon')
+    nameLower.includes('smartfon') ||
+    nameLower.includes('phone')
   ) {
-    return 'Nieodłączny towarzysz współczesnego badacza. Dostęp do informacji, nawigacja, komunikacja - wszystko w jednym urządzeniu.';
+    return isEn
+      ? 'An indispensable tool for modern research: instant communication, navigation, and access to archives in one handheld device.'
+      : 'Nieodłączny towarzysz współczesnego badacza. Dostęp do informacji, nawigacja, komunikacja - wszystko w jednym urządzeniu.';
   }
-  if (nameLower.includes('laptop') || nameLower.includes('komputer')) {
-    return 'Przenośne centrum dowodzenia do badań i analizy zebranych danych. Zabezpieczone hasłem, zawiera ważne pliki.';
+  if (nameLower.includes('laptop') || nameLower.includes('komputer') || nameLower.includes('computer')) {
+    return isEn
+      ? 'A portable digital station storing encrypted case files, research records, and investigative databases.'
+      : 'Przenośne centrum dowodzenia do badań i analizy zebranych danych. Zabezpieczone hasłem, zawiera ważne pliki.';
   }
   if (
     nameLower.includes('kamera') ||
     nameLower.includes('aparat') ||
-    nameLower.includes('foto')
+    nameLower.includes('foto') ||
+    nameLower.includes('camera')
   ) {
-    return 'Urządzenie do dokumentowania odkryć. Niektóre zdjęcia pokazują więcej niż widziało ludzkie oko.';
+    return isEn
+      ? 'An optical instrument for documenting physical evidence. Developed plates occasionally capture subtle phenomena imperceptible to the naked eye.'
+      : 'Urządzenie do dokumentowania odkryć. Niektóre zdjęcia pokazują więcej niż widziało ludzkie oko.';
   }
-  if (nameLower.includes('dyktafon') || nameLower.includes('rejestrator')) {
-    return 'Nagrywanie wywiadów i własnych obserwacji. Czasem odsłuchując nagrania słychać rzeczy, których nie było słychać na żywo.';
+  if (nameLower.includes('dyktafon') || nameLower.includes('rejestrator') || nameLower.includes('recorder')) {
+    return isEn
+      ? 'A compact audio recorder for witness interviews. Listening back to recordings sometimes reveals faint whispers unheard during the session.'
+      : 'Nagrywanie wywiadów i własnych obserwacji. Czasem odsłuchując nagrania słychać rzeczy, których nie było słychać na żywo.';
   }
-  if (nameLower.includes('emf') || nameLower.includes('elektroma')) {
-    return 'Urządzenie do wykrywania anomalii elektromagnetycznych. Detektor piszczy w obecności nietypowych pól energetycznych.';
+  if (nameLower.includes('emf') || nameLower.includes('elektroma') || nameLower.includes('detektor') || nameLower.includes('detector')) {
+    return isEn
+      ? 'A sensitive instrument measuring electromagnetic fluctuations. Its needle twitches erratically near unnatural phenomena.'
+      : 'Urządzenie do wykrywania anomalii elektromagnetycznych. Detektor piszczy w obecności nietypowych pól energetycznych.';
   }
 
   // Plecaki i torby
   if (
     nameLower.includes('plecak') ||
     nameLower.includes('torba') ||
-    nameLower.includes('worek')
+    nameLower.includes('worek') ||
+    nameLower.includes('aktówk') ||
+    nameLower.includes('backpack') ||
+    nameLower.includes('bag') ||
+    nameLower.includes('briefcase')
   ) {
-    return 'Pojemny plecak ze śladami intensywnego użytkowania. Wiele kieszeni pozwala uporządkować ekwipunek na wyprawy.';
+    return isEn
+      ? 'A roomy, durable travel satchel with signs of constant wear. Multiple compartments keep gear organized during long treks.'
+      : 'Pojemny plecak ze śladami intensywnego użytkowania. Wiele kieszeni pozwala uporządkować ekwipunek na wyprawy.';
   }
   if (
     nameLower.includes('manierka') ||
     nameLower.includes('piersiówka') ||
     nameLower.includes('flask') ||
-    nameLower.includes('butelka')
+    nameLower.includes('butelka') ||
+    nameLower.includes('bottle')
   ) {
-    return 'Solidne naczynie na wodę lub mocniejszy trunek. Niezbędne podczas długich wędrówek z dala od cywilizacji.';
+    return isEn
+      ? 'A rugged metal container for water or comforting liquor, proven indispensable during grueling vigils.'
+      : 'Solidne naczynie na wodę lub mocniejszy trunek. Niezbędne podczas długich wędrówek z dala od cywilizacji.';
   }
 
   // Okultystyczne
   if (nameLower.includes('ouija') || nameLower.includes('ouja')) {
-    return 'Plansza do wywoływania duchów z wyblakłymi literami. Poprzedni właściciel podobno zmarł w niewyjaśnionych okolicznościach.';
+    return isEn
+      ? 'A spirit board etched with weathered letters and numbers. Local rumor claims its previous owner died under mysterious circumstances.'
+      : 'Plansza do wywoływania duchów z wyblakłymi literami. Poprzedni właściciel podobno zmarł w niewyjaśnionych okolicznościach.';
   }
-  if (nameLower.includes('tarot') || nameLower.includes('karty')) {
-    return 'Stara talia kart o nieznanym pochodzeniu. Obrazy na kartach zdają się zmieniać w zależności od kąta patrzenia.';
+  if (nameLower.includes('tarot') || nameLower.includes('karty') || nameLower.includes('cards')) {
+    return isEn
+      ? 'An antique deck of cards of mysterious origin. The painted figures seem subtly alter their expressions depending on the ambient candlelight.'
+      : 'Stara talia kart o nieznanym pochodzeniu. Obrazy na kartach zdają się zmieniać w zależności od kąta patrzenia.';
   }
   if (
     nameLower.includes('krzyż') ||
     nameLower.includes('różaniec') ||
-    nameLower.includes('amulet')
+    nameLower.includes('amulet') ||
+    nameLower.includes('cross') ||
+    nameLower.includes('rosary') ||
+    nameLower.includes('talisman')
   ) {
-    return 'Przedmiot o znaczeniu duchowym, noszony dla ochrony przed złem. Czy rzeczywiście chroni, pozostaje kwestią wiary.';
+    return isEn
+      ? 'An item of spiritual reverence carried as a safeguard against malevolence. Whether its warding power is tangible remains a matter of conviction.'
+      : 'Przedmiot o znaczeniu duchowym, noszony dla ochrony przed złem. Czy rzeczywiście chroni, pozostaje kwestią wiary.';
   }
 
+  // Specjalistyczne przyrządy badawcze z 30 zawodów CoC 7e
   if (nameLower.includes('termometr') || nameLower.includes('thermometer')) {
-    return 'Precyzyjny przyrząd pomiarowy. Nagłe spadki temperatury w pomieszczeniu to często pierwszy zwiastun obecności spoza naszego wymiaru.';
+    return isEn
+      ? 'Precision mercury gauge. Abrupt temperature plunges in closed rooms are often the foremost harbinger of extradimensional intrusion.'
+      : 'Precyzyjny przyrząd pomiarowy. Nagłe spadki temperatury w pomieszczeniu to często pierwszy zwiastun obecności spoza naszego wymiaru.';
   }
   if (nameLower.includes('statyw') || nameLower.includes('tripod')) {
-    return 'Solidny statyw gwarantujący stabilność aparatu przy długich ekspozycjach w ciemnościach.';
+    return isEn
+      ? 'Solid brass tripod ensuring photographic stability during lengthy exposures in dimly lit corridors.'
+      : 'Solidny statyw gwarantujący stabilność aparatu przy długich ekspozycjach w ciemnościach.';
   }
-  if (nameLower.includes('klisz') || nameLower.includes('film')) {
-    return 'Czułe materiały światłoczułe. Na naświetlonych klatkach może pojawić się to, co umyka ludzkiemu wzrokowi.';
+  if (nameLower.includes('klisz') || nameLower.includes('film') || nameLower.includes('plate')) {
+    return isEn
+      ? 'Sensitive light-recording medium. Upon chemical development, hidden silhouettes may appear where human eyesight detected nothing.'
+      : 'Czułe materiały światłoczułe. Na naświetlonych klatkach może pojawić się to, co umyka ludzkiemu wzrokowi.';
   }
-  if (nameLower.includes('pędzel') || nameLower.includes('kielni') || nameLower.includes('paleta')) {
-    return 'Niezbędne przybory rzemieślnicze pozwalające na ostrożne odkrywanie lub utrwalanie detali.';
+  if (nameLower.includes('pędzel') || nameLower.includes('kielni') || nameLower.includes('paleta') || nameLower.includes('brush') || nameLower.includes('trowel')) {
+    return isEn
+      ? 'Delicate excavation and preservation utensils essential for gently uncovering relics without damaging ancient engravings.'
+      : 'Niezbędne przybory rzemieślnicze pozwalające na ostrożne odkrywanie lub utrwalanie detali.';
   }
-  if (nameLower.includes('odznak') || nameLower.includes('badge') || nameLower.includes('legitymacj')) {
-    return 'Oficjalna odznaka służbowa. Otwiera wiele drzwi i budzi respekt wśród gapiów oraz lokalnych służb.';
+  if (nameLower.includes('odznak') || nameLower.includes('badge') || nameLower.includes('legitymacj') || nameLower.includes('id card') || nameLower.includes('press pass')) {
+    return isEn
+      ? 'Official credentials in a leather wallet. It opens restricted doors and commands immediate respect from onlookers and local authorities.'
+      : 'Oficjalna odznaka służbowa. Otwiera wiele drzwi i budzi respekt wśród gapiów oraz lokalnych służb.';
   }
-  if (nameLower.includes('nuty') || nameLower.includes('scenariusz')) {
-    return 'Zapisane na papierze linie i wskazówki. Czasem kryją w sobie ukrytą rytmikę lub zakodowane wiadomości.';
+  if (nameLower.includes('nuty') || nameLower.includes('scenariusz') || nameLower.includes('sheet music') || nameLower.includes('script')) {
+    return isEn
+      ? 'Stave lines and handwritten stage directions. Occasionally, subtle harmonic cadence conceals encoded cipher messages.'
+      : 'Zapisane na papierze linie i wskazówki. Czasem kryją w sobie ukrytą rytmikę lub zakodowane wiadomości.';
   }
-  if (nameLower.includes('instrument') || nameLower.includes('skrzypce') || nameLower.includes('trąbka')) {
-    return 'Precyzyjnie wykonany instrument muzyczny. Muzyka bywa ukojeniem dla zszarganych nerwów, ale niektóre melodie przywołują koszmary.';
+  if (nameLower.includes('instrument') || nameLower.includes('skrzypce') || nameLower.includes('trąbka') || nameLower.includes('violin') || nameLower.includes('trumpet')) {
+    return isEn
+      ? 'A meticulously crafted acoustic instrument. Music can soothe frayed nerves, yet certain melodies awaken ancient nightmares.'
+      : 'Precyzyjnie wykonany instrument muzyczny. Muzyka bywa ukojeniem dla zszarganych nerwów, ale niektóre melodie przywołują koszmary.';
   }
   if (nameLower.includes('maszyna do pisania') || nameLower.includes('typewriter')) {
-    return 'Ciężka, mechaniczna maszyna do pisania. Każde uderzenie czcionki w taśmę trwale dokumentuje zebrane fakty.';
+    return isEn
+      ? 'A heavy mechanical typewriter. Each sharp strike of typeface against ribbon permanently imprints uncovered truths.'
+      : 'Ciężka, mechaniczna maszyna do pisania. Każde uderzenie czcionki w taśmę trwale dokumentuje zebrane fakty.';
   }
-  if (nameLower.includes('kombinezon') || nameLower.includes('strój') || nameLower.includes('ręcznik') || nameLower.includes('koc')) {
-    return 'Praktyczny ekwipunek osobisty przydatny w trudnych warunkach polowych i podczas długiego czuwania.';
+  if (
+    nameLower.includes('kombinezon') ||
+    nameLower.includes('strój') ||
+    nameLower.includes('ręcznik') ||
+    nameLower.includes('koc') ||
+    nameLower.includes('suit') ||
+    nameLower.includes('towel') ||
+    nameLower.includes('blanket')
+  ) {
+    return isEn
+      ? 'Pragmatic personal apparel and textiles suited for harsh field conditions and protracted cold watches.'
+      : 'Praktyczny ekwipunek osobisty przydatny w trudnych warunkach polowych i podczas długiego czuwania.';
+  }
+  if (nameLower.includes('lupa') || nameLower.includes('magnif')) {
+    return isEn
+      ? 'A magnifying lens set in a polished brass rim. Essential for scrutinizing hair-line fractures, blurred signatures, and tiny inscriptions.'
+      : 'Szkło powiększające w mosiężnej oprawie. Niezbędne do analizy drobnych śladów, podpisów i tajemniczych mikro-rytów.';
+  }
+  if (nameLower.includes('kompas') || nameLower.includes('compass')) {
+    return isEn
+      ? 'A brass pocket compass with a jewel bearing. In distorted ruins, its needle may veer toward forces stranger than magnetic north.'
+      : 'Mosiężny kompas kieszonkowy. W prastarych ruinach igła magnetyczna potrafi gwałtownie drżeć, reagując na nieznane energie.';
   }
 
   // Domyślny opis
-  return `Przydatny przedmiot z ekwipunku badacza. Wielokrotnie sprawdzony w terenie, ma swoje szczególne miejsce w plecaku.`;
+  return isEn
+    ? 'A dependable item from an investigator\'s kit. Proven useful across multiple field assignments, it holds a dedicated place in the gear.'
+    : 'Przydatny przedmiot z ekwipunku badacza. Wielokrotnie sprawdzony w terenie, ma swoje szczególne miejsce w plecaku.';
 }
 
 /** Kategoryzuje przedmiot do jednej z 6 kategorii. */

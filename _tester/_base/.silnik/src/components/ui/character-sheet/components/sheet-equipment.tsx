@@ -1,7 +1,8 @@
 'use client';
 
 import { SafeImage } from '@/components/ui/safe-image';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { generateItemLore } from '@/lib/character/item-helpers';
 /**
  * CharacterSheet - SheetEquipment komponent (re-skin Dark Art Déco, makieta 04).
  *
@@ -96,6 +97,7 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
  */
 export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) {
   const t = useTranslations('CharacterSheet');
+  const locale = useLocale();
 
   // Kanoniczne nazwy umiejetnosci (dane gry, SSOT z weapon-context) mapujemy na
   // etykiety wyswietlania per jezyk - dopasowanie wartosci zostaje na kanonie.
@@ -136,25 +138,34 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
               const damage = w.modifiers?.damage ?? '-';
               const damageStr =
                 melee && hasDb ? `${damage} ${damageBonus}` : damage;
+              const weaponLore = w.description?.trim() || generateItemLore(w.name, locale);
+
               return (
                 <div
                   key={w.id}
                   onClick={() => onItemClick?.(w)}
                   className="cursor-pointer border border-[#b3322c]/35 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm flex flex-col justify-between hover:border-[#b3322c]/60 transition-all duration-200"
                 >
-                  <div className="flex justify-between items-start gap-3 mb-2.5">
-                    <span className="flex items-center gap-3 min-w-0">
-                      <ItemThumbnail item={w} />
-                      <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
-                        {w.name}
+                  <div>
+                    <div className="flex justify-between items-start gap-3 mb-2.5">
+                      <span className="flex items-center gap-3 min-w-0">
+                        <ItemThumbnail item={w} />
+                        <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
+                          {w.name}
+                        </span>
                       </span>
-                    </span>
-                    <span className="flex-none font-special-elite text-sm text-[#d9685f] bg-[#d9685f]/10 px-2 py-0.5 rounded border border-[#d9685f]/20">
-                      {skillDisplayName}{' '}
-                      <span className="font-bold">
-                        {skillVal !== null ? `${skillVal}%` : t('base')}
+                      <span className="flex-none font-special-elite text-sm text-[#d9685f] bg-[#d9685f]/10 px-2 py-0.5 rounded border border-[#d9685f]/20">
+                        {skillDisplayName}{' '}
+                        <span className="font-bold">
+                          {skillVal !== null ? `${skillVal}%` : t('base')}
+                        </span>
                       </span>
-                    </span>
+                    </div>
+                    {weaponLore && (
+                      <p className="font-serif italic text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed mb-2.5">
+                        {weaponLore}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-special-elite text-sm text-muted-foreground/90 tracking-[0.04em] pt-2 border-t border-[#b3322c]/15">
                     <span className="flex items-center gap-1">⚔️ {t('damage')}: <strong className="text-foreground">{damageStr}</strong></span>
@@ -179,32 +190,35 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
             🎒 {t('gear')}
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {gear.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onItemClick?.(item)}
-                className="cursor-pointer flex items-center gap-4 border border-brass/25 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
-              >
-                <ItemThumbnail item={item} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
-                      {item.name}
-                    </span>
-                    {item.modifiers?.skill && item.modifiers?.bonus && (
-                      <span className="flex-none font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
-                        {item.modifiers.skill} +{item.modifiers.bonus}%
+            {gear.map((item) => {
+              const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onItemClick?.(item)}
+                  className="cursor-pointer flex items-center gap-4 border border-brass/25 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
+                >
+                  <ItemThumbnail item={item} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
+                        {item.name}
                       </span>
+                      {item.modifiers?.skill && item.modifiers?.bonus && (
+                        <span className="flex-none font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                          {item.modifiers.skill} +{item.modifiers.bonus}%
+                        </span>
+                      )}
+                    </div>
+                    {gearLore && (
+                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                        {gearLore}
+                      </div>
                     )}
                   </div>
-                  {item.description && (
-                    <div className="font-special-elite text-sm text-muted-foreground/80 tracking-[0.04em] mt-1.5 line-clamp-2 leading-relaxed">
-                      {item.description}
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
