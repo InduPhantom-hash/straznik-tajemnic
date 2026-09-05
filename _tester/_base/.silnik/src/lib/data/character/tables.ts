@@ -20,6 +20,7 @@ export const DAMAGE_BUILD_TABLE = [
 // Modyfikatory wieku
 export const AGE_MODIFIERS = [
   {
+    key: 'age_15_19',
     min: 15,
     max: 19,
     label: '15-19 lat',
@@ -31,6 +32,7 @@ export const AGE_MODIFIERS = [
     physPenalty: 0,
   },
   {
+    key: 'age_20_39',
     min: 20,
     max: 39,
     label: '20-39 lat',
@@ -42,6 +44,7 @@ export const AGE_MODIFIERS = [
     physPenalty: 0,
   },
   {
+    key: 'age_40_49',
     min: 40,
     max: 49,
     label: '40-49 lat',
@@ -53,6 +56,7 @@ export const AGE_MODIFIERS = [
     physPenalty: 5,
   },
   {
+    key: 'age_50_59',
     min: 50,
     max: 59,
     label: '50-59 lat',
@@ -64,6 +68,7 @@ export const AGE_MODIFIERS = [
     physPenalty: 10,
   },
   {
+    key: 'age_60_69',
     min: 60,
     max: 69,
     label: '60-69 lat',
@@ -75,6 +80,7 @@ export const AGE_MODIFIERS = [
     physPenalty: 20,
   },
   {
+    key: 'age_70_79',
     min: 70,
     max: 79,
     label: '70-79 lat',
@@ -86,6 +92,7 @@ export const AGE_MODIFIERS = [
     physPenalty: 40,
   },
   {
+    key: 'age_80_plus',
     min: 80,
     max: 90,
     label: '80+ lat',
@@ -103,6 +110,7 @@ export const WEALTH_TABLE = [
   {
     min: 0,
     max: 0,
+    key: 'pauper',
     level: 'Nędzarz',
     cash: '$0.50',
     assets: 'Brak',
@@ -111,6 +119,7 @@ export const WEALTH_TABLE = [
   {
     min: 1,
     max: 9,
+    key: 'poor',
     level: 'Biedny',
     cash: '$10',
     assets: '$500',
@@ -119,6 +128,7 @@ export const WEALTH_TABLE = [
   {
     min: 10,
     max: 49,
+    key: 'average',
     level: 'Przeciętny',
     cash: '$50',
     assets: '$2,500',
@@ -127,6 +137,7 @@ export const WEALTH_TABLE = [
   {
     min: 50,
     max: 89,
+    key: 'wealthy',
     level: 'Zamożny',
     cash: '$500',
     assets: '$50,000',
@@ -135,6 +146,7 @@ export const WEALTH_TABLE = [
   {
     min: 90,
     max: 98,
+    key: 'rich',
     level: 'Bogaty',
     cash: '$2,000',
     assets: '$500,000',
@@ -143,6 +155,7 @@ export const WEALTH_TABLE = [
   {
     min: 99,
     max: 99,
+    key: 'superrich',
     level: 'Super bogaty',
     cash: '$20,000',
     assets: '$5,000,000+',

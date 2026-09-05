@@ -1,4 +1,5 @@
-import type { EquipmentCategory } from '../types';
+import type { EquipmentCategory, HazardEventData, HazardType } from '../types';
+export type { HazardEventData, HazardType };
 
 export type EquipmentEventAction = 'use' | 'remove' | 'add';
 
@@ -45,14 +46,18 @@ export interface DialogueLine {
   audioTags?: string; // audio tags dla ElevenLabs v3 ([whispers], [angrily], etc.)
 }
 
+export type ImageType = 'portrait' | 'scene' | 'location' | 'item' | 'monster' | 'vision';
+
 export interface ImageRequest {
   prompt: string;
-  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait';
+  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait' | 'item' | 'location';
   priority?: 'high' | 'normal';
   isMythos?: boolean;
-  type?: 'portrait' | 'scene';
+  type?: ImageType;
   aspectRatio?: '16:9' | '3:4' | '1:1';
   portraitName?: string;
+  itemName?: string;
+  locationName?: string;
 }
 
 export interface SFXRequest {
@@ -147,6 +152,7 @@ export interface ParsedResponse {
   journalEntries: JournalTagEntry[];
   skillTests: SkillTestData[];
   skillResults: SkillTestResult[];
+  hazardEvents?: HazardEventData[];
   equipmentEvents: EquipmentEvent[];
   timeUpdate: TimeUpdate | null;
   gmMetadata?: { thoughts?: string; mood?: string; narrativeGoal?: string };

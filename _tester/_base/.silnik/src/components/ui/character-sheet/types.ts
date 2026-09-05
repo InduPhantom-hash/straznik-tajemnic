@@ -53,9 +53,9 @@ export const STAT_FULL_NAMES: Record<string, string> = {
  * IND-126 (sesja 97): drop lokalny STAT_DESCRIPTIONS - import z @/lib/data/character.
  */
 export const SECTION_HELP = {
-  stan: 'PŻ = Punkty Życia (SIŁ+BC)/10. PR = Poczytalność (MOC). PM = Punkty Magii (MOC/5). SZC = Szczęście.',
+  stan: 'PŻ = Punkty Życia (KON+BUD)/10. PR = Poczytalność (startowo MOC, maks. 99 - Mity Cthulhu). PM = Punkty Magii (MOC/5). SZC = Szczęście.',
   walka:
-    'Bonus DMG zależy od SIŁ+BC. Krzepa określa możliwość szarpania/unieruchamiania. Ruch = dystans w metrach na rundę.',
+    'Bonus DMG i Krzepa wynikają z tabeli SIŁ+BUD. Ruch = bazowo 7-9 zależnie od SIŁ, ZRĘ, BUD i wieku badacza.',
   skills:
-    'Każdy test umiejętności to rzut k% ≤ wartości. Sukces krytyczny = 01-05. Wynik pogrubiony = zawodowa.',
+    'Każdy test umiejętności to rzut k100 ≤ wartości. Sukces krytyczny to wyłącznie 01. Pech = 100 (lub 96-100 gdy wartość < 50). ★ = zawodowa. ✓ = rozwój.',
 };

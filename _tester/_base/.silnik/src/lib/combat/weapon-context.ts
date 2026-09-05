@@ -20,6 +20,8 @@
 import type { Character, EquipmentItem } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { findEquipmentByName } from '@/lib/equipment-data';
+import { buildFirearmPromptGuidance } from './firearms-engine';
+
 
 // Nazwy kanoniczne z src/lib/data/character/skills.ts (BASE_SKILLS).
 const SKILL_FIREARM_HANDGUN = 'Broń Palna'; // baza 20%
@@ -146,14 +148,22 @@ export function buildPlayerWeaponContext(character: Character | null): string {
     const damageStr = melee && hasDb ? `${damage} ${damageBonus}` : damage;
     const rangeVal = w.modifiers?.range ?? inferred?.range;
     const range = rangeVal ? `, zasięg ${rangeVal}` : '';
-    return `- **${w.name}**: test ${skillStr}, obrażenia ${damageStr}${range}`;
+    const template = findEquipmentByName(w.name);
+    const malfunctionVal =
+      w.modifiers?.malfunction ?? template?.modifiers?.malfunction ?? 100;
+    const malfunctionStr = !melee ? `, zacięcie ${malfunctionVal}` : '';
+    return `- **${w.name}**: test ${skillStr}, obrażenia ${damageStr}${range}${malfunctionStr}`;
   });
+
+  const hasFirearms = weapons.some((w) => !isMeleeWeapon(w));
 
   return (
     '\n## UZBROJENIE POSTACI\n' +
     'Gdy postać używa broni w walce, wezwij `[TEST: <umiejętność>]` z poniższej listy, ' +
     'a po sukcesie opisz obrażenia wg podanej formuły. Broń biała dolicza modyfikator do ' +
     'obrażeń postaci (DB); broń palna nie.\n' +
-    lines.join('\n')
+    lines.join('\n') +
+    (hasFirearms ? `\n\n${buildFirearmPromptGuidance()}` : '')
   );
 }
+

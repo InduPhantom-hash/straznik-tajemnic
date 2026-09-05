@@ -18,6 +18,7 @@ import {
   buildPlayerSkillsSection,
   buildPlayerEquipmentSection,
   buildPlayerFinancesSection,
+  buildPlayerVisualProfileSection,
   NpcContextEntry,
   HotSeatPlayerEntry,
 } from './build-context';
@@ -317,6 +318,8 @@ export async function runChatPipeline({
     playerEquipmentSection: buildPlayerEquipmentSection(character ?? null),
     // Status majatkowy postaci -> AI zna poziom wydatkow i gotowke wg CoC 7e RAW
     playerFinancesSection: buildPlayerFinancesSection(character ?? null),
+    // Profil wizualny Badacza (Visual DNA) -> AI zachowuje spójność w opisach scen i portretów
+    playerVisualProfileSection: buildPlayerVisualProfileSection(character ?? null),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,
     directorEventSection:
@@ -327,6 +330,7 @@ export async function runChatPipeline({
     isGameStart,
     characters,
     era: String(eraContext.effectiveYear),
+    locale,
   });
 
   if (message.includes('[KONIEC_SESJI:FINAL]') || message.includes('[KONIEC_SESJI_FINAL]')) {

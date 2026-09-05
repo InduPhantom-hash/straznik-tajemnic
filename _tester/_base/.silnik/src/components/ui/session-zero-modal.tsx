@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Dialog,
@@ -12,59 +12,64 @@ import {
 import { Button } from './button';
 import { Label } from './label';
 import { Input } from './input';
+import { Textarea } from './textarea';
 import { HelpIcon } from './tooltip';
 import {
   saveAISettings,
   loadAISettings,
   AISettings,
   type SessionZeroSettings,
+  type SessionZeroAnchors,
+  type EraFilterMode,
 } from '@/lib/ai-settings';
 import { AdventureContext } from '@/lib/adventures-data';
+import type { Character } from '@/lib/types';
 
 interface SessionZeroModalProps {
   open: boolean;
   onClose: () => void;
   onComplete: (settings: SessionZeroSettings) => void;
-  adventureContext?: AdventureContext; // Opcjonalny kontekst przygody
+  adventureContext?: AdventureContext;
+  activeCharacter?: Character | null;
 }
 
-// FEATURE:#18 - Tryb narracji: pełne RPG, priorytet fabuły, czysta narracja
+const TONES = [
+  {
+    id: 'purist',
+    icon: '🐙',
+  },
+  {
+    id: 'pulp',
+    icon: '💥',
+  },
+  {
+    id: 'noir',
+    icon: '🕵️',
+  },
+] as const;
+
 const NARRATIVE_MODES = [
   {
     id: 'full_rpg',
     icon: '🎲',
-    color: 'text-blue-400',
   },
   {
     id: 'story_priority',
     icon: '📖',
-    color: 'text-purple-400',
   },
   {
     id: 'pure_narrative',
     icon: '✨',
-    color: 'text-emerald-400',
   },
-];
+] as const;
 
-const DIFFICULTIES = [
-  {
-    id: 'easy',
-    icon: '🌱',
-  },
-  {
-    id: 'normal',
-    icon: '⚖️',
-  },
-  {
-    id: 'hard',
-    icon: '🔥',
-  },
-  {
-    id: 'deadly',
-    icon: '💀',
-  },
-];
+const SUGGESTED_HOOK_KEYS = [
+  'hookJob',
+  'hookFamily',
+  'hookAcademic',
+  'hookDebt',
+  'hookAccident',
+] as const;
 
 const SUGGESTED_LINES_KEYS = [
   'violenceAnimals',
@@ -88,8 +93,21 @@ export function SessionZeroModal({
   onClose,
   onComplete,
   adventureContext,
+  activeCharacter,
 }: SessionZeroModalProps) {
   const t = useTranslations('SessionZeroModal');
+
+  const toneNames: Record<string, string> = {
+    purist: t('tonePuristName'),
+    pulp: t('tonePulpName'),
+    noir: t('toneNoirName'),
+  };
+  const toneDescriptions: Record<string, string> = {
+    purist: t('tonePuristDescription'),
+    pulp: t('tonePulpDescription'),
+    noir: t('toneNoirDescription'),
+  };
+
   const narrativeModeNames: Record<string, string> = {
     full_rpg: t('modeFullRpgName'),
     story_priority: t('modeStoryPriorityName'),
@@ -100,29 +118,20 @@ export function SessionZeroModal({
     story_priority: t('modeStoryPriorityDescription'),
     pure_narrative: t('modePureNarrativeDescription'),
   };
-  const difficultyNames: Record<string, string> = {
-    easy: t('difficultyEasyName'),
-    normal: t('difficultyNormalName'),
-    hard: t('difficultyHardName'),
-    deadly: t('difficultyDeadlyName'),
-  };
-  const difficultyDescriptions: Record<string, string> = {
-    easy: t('difficultyEasyDescription'),
-    normal: t('difficultyNormalDescription'),
-    hard: t('difficultyHardDescription'),
-    deadly: t('difficultyDeadlyDescription'),
-  };
-  const defaultLines = [
-    t('defaultLineViolenceChildren'),
-    t('defaultLineSexualViolence'),
-  ];
-  const defaultVeils = [t('defaultVeilTortures'), t('defaultVeilInjuries')];
+
+  const defaultLines = useMemo(
+    () => [t('defaultLineViolenceChildren'), t('defaultLineSexualViolence')],
+    [t]
+  );
+  const defaultVeils = useMemo(
+    () => [t('defaultVeilTortures'), t('defaultVeilInjuries')],
+    [t]
+  );
 
   const [step, setStep] = useState(1);
 
-  // Era sugerowana z przygody (ale gracz może ją zmienić)
   const suggestedEra = adventureContext?.era || 'classic';
-  const suggestedTone = adventureContext?.tone || 'purist';
+  const suggestedTone = (adventureContext?.tone as SessionZeroSettings['tone']) || 'purist';
 
   const [settings, setSettings] = useState<SessionZeroSettings>({
     era: suggestedEra,
@@ -131,62 +140,86 @@ export function SessionZeroModal({
     difficulty: adventureContext?.difficulty || 'normal',
     lines: [...defaultLines],
     veils: [...defaultVeils],
-    // Krok "słowo bezpieczeństwa" usunięty z UI (decyzja produktowa).
-    // Pusty string wyłącza instrukcję pauzy w prompcie (guard w
-    // session-zero-instructions.ts: `if (sessionZero.safetyWord)`).
     safetyWord: '',
     playerName: '',
     completed: false,
+    briefing: '',
+    investigatorHook: '',
+    anchors: {
+      keyConnection: '',
+      importantPlace: '',
+      treasuredItem: '',
+    },
+    eraFilter: 'authentic_1920s',
   });
+
   const [newLine, setNewLine] = useState('');
   const [newVeil, setNewVeil] = useState('');
 
-  // Załaduj wcześniej zapisane ustawienia. Gdy wybrano przygodę, jej
-  // era/tone/difficulty mają PRIORYTET nad cache z poprzedniej gry - inaczej
-  // gracz dostaje stary classic/purist mimo wyboru np. modern/pulp i musi
-  // przestawiać ręcznie. Z cache zostają tylko user-specific: lines, veils,
-  // safetyWord, playerName, narrativeMode.
   useEffect(() => {
     if (open) {
-      // Zawsze zaczynamy od kroku 1. Wartości z poprzedniej sesji (lines, veils,
-      // playerName, narrativeMode) są wstępnie wczytane jako domyślne, ale gracz
-      // przechodzi kreator od początku i sam je potwierdza. Wcześniej modal po
-      // ukończeniu skakał na krok 3 (podsumowanie) i NIE resetował kroku przy
-      // ponownym otwarciu - przez co przy nowym wyborze przygody gracz lądował
-      // od razu na kroku 3 z „wybranymi za niego" pierwszymi krokami.
       setStep(1);
 
       const aiSettings = loadAISettings();
-      if (aiSettings.sessionZero) {
-        // Fallback dla starszych zapisów bez narrativeMode
-        const loaded = aiSettings.sessionZero as SessionZeroSettings & {
-          playstyle?: string;
-        };
-        setSettings({
-          ...loaded,
-          // Nowa sesja: `completed` zaczyna od false, gracz musi domknąć kreator.
-          completed: false,
-          narrativeMode:
-            loaded.narrativeMode ||
-            (loaded.playstyle === 'storytelling'
-              ? 'story_priority'
-              : 'full_rpg'),
-          ...(adventureContext
-            ? {
-                era: adventureContext.era,
-                tone: adventureContext.tone ?? loaded.tone,
-                difficulty: adventureContext.difficulty ?? loaded.difficulty,
-              }
-            : {}),
-        });
-      }
+      const loaded = (aiSettings.sessionZero || {}) as Partial<SessionZeroSettings> & {
+        playstyle?: string;
+      };
+
+      const defaultBriefing =
+        loaded.briefing ||
+        adventureContext?.hook ||
+        adventureContext?.description ||
+        '';
+
+      const defaultHook =
+        loaded.investigatorHook ||
+        activeCharacter?.characterConcept ||
+        '';
+
+      const defaultAnchors: SessionZeroAnchors = {
+        keyConnection:
+          loaded.anchors?.keyConnection ||
+          activeCharacter?.significantPerson ||
+          '',
+        importantPlace:
+          loaded.anchors?.importantPlace ||
+          activeCharacter?.meaningfulLocation ||
+          '',
+        treasuredItem:
+          loaded.anchors?.treasuredItem ||
+          activeCharacter?.treasuredPossession ||
+          '',
+      };
+
+      const defaultEraFilter: EraFilterMode =
+        loaded.eraFilter || 'authentic_1920s';
+
+      setSettings({
+        era: adventureContext?.era || loaded.era || 'classic',
+        tone: (adventureContext?.tone as SessionZeroSettings['tone']) ?? loaded.tone ?? 'purist',
+        narrativeMode:
+          loaded.narrativeMode ||
+          (loaded.playstyle === 'storytelling'
+            ? 'story_priority'
+            : 'full_rpg'),
+        difficulty: loaded.difficulty || adventureContext?.difficulty || 'normal',
+        lines: loaded.lines && loaded.lines.length > 0 ? loaded.lines : [...defaultLines],
+        veils: loaded.veils && loaded.veils.length > 0 ? loaded.veils : [...defaultVeils],
+        safetyWord: loaded.safetyWord || '',
+        playerName: activeCharacter?.playerName || loaded.playerName || '',
+        completed: false,
+        briefing: defaultBriefing,
+        investigatorHook: defaultHook,
+        anchors: defaultAnchors,
+        eraFilter: defaultEraFilter,
+      });
     }
-  }, [open, adventureContext]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, adventureContext, activeCharacter]);
 
   const handleComplete = () => {
-    const completedSettings = { ...settings, completed: true };
+    const completedSettings: SessionZeroSettings = { ...settings, completed: true };
 
-    // Zapisz do AI Settings
     const aiSettings = loadAISettings();
     const updatedSettings: AISettings = {
       ...aiSettings,
@@ -198,16 +231,19 @@ export function SessionZeroModal({
     onClose();
   };
 
-  const totalSteps = 3;
-
-  const STEP_LABELS = [t('step1Label'), t('step2Label'), t('step3Label')];
+  const totalSteps = 4;
+  const STEP_LABELS = [
+    t('step1Label'),
+    t('step2Label'),
+    t('step3Label'),
+    t('step4Label'),
+  ];
 
   const renderStep = () => {
     switch (step) {
       case 1:
         return (
           <div className="space-y-8">
-            {/* Nagłówek kroku */}
             <div>
               <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
                 {t('step1Header')}
@@ -217,18 +253,62 @@ export function SessionZeroModal({
               </p>
             </div>
 
+            {/* Konwencja opowieści */}
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('conventionSectionLabel')}
+                <HelpIcon content={t('conventionSectionHelp')} />
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {TONES.map((tn) => {
+                  const isSelected = settings.tone === tn.id;
+                  return (
+                    <button
+                      key={tn.id}
+                      type="button"
+                      onClick={() =>
+                        setSettings({
+                          ...settings,
+                          tone: tn.id as SessionZeroSettings['tone'],
+                        })
+                      }
+                      className={`relative p-4 text-left transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
+                          : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
+                      }`}
+                    >
+                      {isSelected && (
+                        <span className="absolute left-2 top-2 h-3 w-3 border-l-2 border-t-2 border-primary/60" />
+                      )}
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="text-2xl">{tn.icon}</span>
+                        <span className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
+                          {toneNames[tn.id]}
+                        </span>
+                      </div>
+                      <p className="font-serif text-sm italic text-muted-foreground">
+                        {toneDescriptions[tn.id]}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Tryb narracji */}
             <div className="space-y-4">
               <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
                 {t('narrativeModeLabel')}
                 <HelpIcon content={t('narrativeModeHelp')} />
               </Label>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {NARRATIVE_MODES.map((mode) => {
                   const isSelected = settings.narrativeMode === mode.id;
                   return (
                     <button
                       key={mode.id}
+                      type="button"
                       onClick={() =>
                         setSettings({
                           ...settings,
@@ -236,7 +316,7 @@ export function SessionZeroModal({
                             mode.id as SessionZeroSettings['narrativeMode'],
                         })
                       }
-                      className={`relative p-4 text-left transition-all ${
+                      className={`relative p-4 text-left transition-all cursor-pointer ${
                         isSelected
                           ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
                           : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
@@ -251,48 +331,9 @@ export function SessionZeroModal({
                           {narrativeModeNames[mode.id]}
                         </span>
                       </div>
-                      <p className="font-serif text-base italic text-muted-foreground">
+                      <p className="font-serif text-sm italic text-muted-foreground">
                         {narrativeModeDescriptions[mode.id]}
                       </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Trudność */}
-            <div className="space-y-4">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('difficultyLevelLabel')}
-                <HelpIcon content={t('difficultyLevelHelp')} />
-              </Label>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {DIFFICULTIES.map((diff) => {
-                  const isSelected = settings.difficulty === diff.id;
-                  return (
-                    <button
-                      key={diff.id}
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          difficulty:
-                            diff.id as SessionZeroSettings['difficulty'],
-                        })
-                      }
-                      className={`relative p-3 text-center transition-all ${
-                        isSelected
-                          ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
-                          : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
-                      }`}
-                      title={difficultyDescriptions[diff.id]}
-                    >
-                      <span className="mb-1 block text-xl">{diff.icon}</span>
-                      <span className="block font-special-elite text-xs uppercase tracking-[0.1em] text-foreground">
-                        {difficultyNames[diff.id]}
-                      </span>
-                      <span className="mt-1 block font-serif text-sm italic leading-snug text-muted-foreground">
-                        {difficultyDescriptions[diff.id]}
-                      </span>
                     </button>
                   );
                 })}
@@ -304,7 +345,6 @@ export function SessionZeroModal({
       case 2:
         return (
           <div className="space-y-8">
-            {/* Nagłówek kroku */}
             <div>
               <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
                 {t('step2Header')}
@@ -314,21 +354,218 @@ export function SessionZeroModal({
               </p>
             </div>
 
-            {/* Wyjaśnienie */}
-            <div className="relative border border-brass/30 bg-card p-5">
-              <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-              <p className="mb-2 font-serif text-base italic text-muted-foreground">
-                <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-destructive">
-                  {t('linesTerm')}
-                </strong>{' '}
-                {t('linesExplainer')}
+            {/* Karta Odprawy */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('briefingSectionLabel')}
+                <HelpIcon content={t('briefingSectionHelp')} />
+              </Label>
+              <Textarea
+                value={settings.briefing || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    briefing: e.target.value,
+                  })
+                }
+                placeholder={t('briefingPlaceholder')}
+                rows={4}
+                className="w-full font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
+              />
+            </div>
+
+            {/* Haczyk Badacza */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('hookSectionLabel')}
+                <HelpIcon content={t('hookSectionHelp')} />
+              </Label>
+              <Textarea
+                value={settings.investigatorHook || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    investigatorHook: e.target.value,
+                  })
+                }
+                placeholder={t('hookPlaceholder')}
+                rows={2}
+                className="w-full font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
+              />
+
+              {/* Sugerowane haczyki */}
+              <div className="pt-1">
+                <div className="mb-1.5 font-special-elite text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {t('suggestedHooksLabel')}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUGGESTED_HOOK_KEYS.map((key) => {
+                    const text = t(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            investigatorHook: text,
+                          })
+                        }
+                        className="px-2.5 py-1 rounded-none font-special-elite text-xs tracking-wider border border-brass/25 bg-black/40 text-muted-foreground hover:border-brass/60 hover:text-brass transition-colors cursor-pointer"
+                      >
+                        + {text}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-8">
+            <div>
+              <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
+                {t('step3Header')}
+              </div>
+              <p className="mt-1 font-serif text-lg italic text-muted-foreground">
+                {t('step3Intro')}
               </p>
-              <p className="font-serif text-base italic text-muted-foreground">
-                <strong className="font-special-elite text-xs uppercase tracking-[0.12em] not-italic text-brass">
-                  {t('veilsTerm')}
-                </strong>{' '}
-                {t('veilsExplainer')}
+            </div>
+
+            {/* Ważna Osoba */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('keyConnectionLabel')}
+                <HelpIcon content={t('keyConnectionHelp')} />
+              </Label>
+              <Input
+                value={settings.anchors?.keyConnection || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    anchors: {
+                      ...settings.anchors,
+                      keyConnection: e.target.value,
+                    },
+                  })
+                }
+                placeholder={t('keyConnectionPlaceholder')}
+                className="font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
+              />
+            </div>
+
+            {/* Znaczące Miejsce */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('importantPlaceLabel')}
+                <HelpIcon content={t('importantPlaceHelp')} />
+              </Label>
+              <Input
+                value={settings.anchors?.importantPlace || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    anchors: {
+                      ...settings.anchors,
+                      importantPlace: e.target.value,
+                    },
+                  })
+                }
+                placeholder={t('importantPlacePlaceholder')}
+                className="font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
+              />
+            </div>
+
+            {/* Cenny Przedmiot */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('treasuredItemLabel')}
+                <HelpIcon content={t('treasuredItemHelp')} />
+              </Label>
+              <Input
+                value={settings.anchors?.treasuredItem || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    anchors: {
+                      ...settings.anchors,
+                      treasuredItem: e.target.value,
+                    },
+                  })
+                }
+                placeholder={t('treasuredItemPlaceholder')}
+                className="font-serif text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground"
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-8">
+            <div>
+              <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
+                {t('step4Header')}
+              </div>
+              <p className="mt-1 font-serif text-lg italic text-muted-foreground">
+                {t('step4Intro')}
               </p>
+            </div>
+
+            {/* Filtr epoki lat 20. */}
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                {t('eraFilterSectionLabel')}
+                <HelpIcon content={t('eraFilterSectionHelp')} />
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings({
+                      ...settings,
+                      eraFilter: 'authentic_1920s',
+                    })
+                  }
+                  className={`p-4 text-left transition-all cursor-pointer ${
+                    settings.eraFilter === 'authentic_1920s'
+                      ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
+                      : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
+                  }`}
+                >
+                  <div className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
+                    {t('eraFilterAuthenticName')}
+                  </div>
+                  <p className="mt-1 font-serif text-xs italic text-muted-foreground">
+                    {t('eraFilterAuthenticDesc')}
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings({
+                      ...settings,
+                      eraFilter: 'modern_sensibilities',
+                    })
+                  }
+                  className={`p-4 text-left transition-all cursor-pointer ${
+                    settings.eraFilter === 'modern_sensibilities'
+                      ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
+                      : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
+                  }`}
+                >
+                  <div className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
+                    {t('eraFilterModernName')}
+                  </div>
+                  <p className="mt-1 font-serif text-xs italic text-muted-foreground">
+                    {t('eraFilterModernDesc')}
+                  </p>
+                </button>
+              </div>
             </div>
 
             {/* Linie */}
@@ -345,13 +582,14 @@ export function SessionZeroModal({
                   >
                     {line}
                     <button
+                      type="button"
                       onClick={() =>
                         setSettings({
                           ...settings,
                           lines: settings.lines.filter((_, i) => i !== idx),
                         })
                       }
-                      className="text-base leading-none hover:text-foreground"
+                      className="text-base leading-none hover:text-foreground cursor-pointer"
                     >
                       ×
                     </button>
@@ -375,6 +613,7 @@ export function SessionZeroModal({
                   }}
                 />
                 <Button
+                  type="button"
                   onClick={() => {
                     if (newLine.trim()) {
                       setSettings({
@@ -446,13 +685,14 @@ export function SessionZeroModal({
                   >
                     {veil}
                     <button
+                      type="button"
                       onClick={() =>
                         setSettings({
                           ...settings,
                           veils: settings.veils.filter((_, i) => i !== idx),
                         })
                       }
-                      className="text-base leading-none hover:text-foreground"
+                      className="text-base leading-none hover:text-foreground cursor-pointer"
                     >
                       ×
                     </button>
@@ -476,6 +716,7 @@ export function SessionZeroModal({
                   }}
                 />
                 <Button
+                  type="button"
                   onClick={() => {
                     if (newVeil.trim()) {
                       setSettings({
@@ -533,96 +774,37 @@ export function SessionZeroModal({
               </div>
             </div>
 
-            {/* Wskazówka Strażnika */}
-            <div className="flex items-center gap-3 border-l-2 border-primary/50 bg-primary/[0.06] px-4 py-3">
-              <span className="text-primary">𓂀</span>
-              <div className="font-serif text-base italic text-muted-foreground">
-                {t('keeperTip')}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 3:
-        // Podsumowanie
-        return (
-          <div className="space-y-8">
-            {/* Nagłówek kroku */}
-            <div className="text-center">
-              <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-primary">
-                {t('step3Kicker')}
-              </div>
-              <h3 className="mt-1 font-display-decorative text-2xl font-black uppercase tracking-[0.12em] text-foreground">
-                {t('step3Title')}
-              </h3>
-              <p className="mt-1 font-serif text-lg italic text-muted-foreground">
-                {t('step3Subtitle')}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="relative border border-brass/30 bg-card p-5">
-                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-                <div className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('summaryDifficulty')}
+            {/* Podsumowanie ustaleń */}
+            <div className="relative border border-primary/40 bg-card p-5 space-y-4">
+              <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-primary/60" />
+              <div className="text-center">
+                <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-primary">
+                  {t('step3Kicker')}
                 </div>
-                <p className="mt-2 font-display text-lg font-semibold uppercase tracking-[0.06em] text-foreground">
-                  {difficultyNames[settings.difficulty]}
-                </p>
+                <h3 className="mt-1 font-display-decorative text-xl font-black uppercase tracking-[0.12em] text-foreground">
+                  {t('step3Title')}
+                </h3>
               </div>
 
-              <div className="relative border border-brass/30 bg-card p-5">
-                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-                <div className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('summaryNarrativeMode')}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="p-2 border border-brass/20 bg-black/30">
+                  <span className="font-special-elite text-brass/70 uppercase block">{t('summaryConvention')}</span>
+                  <span className="font-display font-medium text-foreground">{toneNames[settings.tone]}</span>
                 </div>
-                <p className="mt-2 font-display text-lg font-semibold uppercase tracking-[0.06em] text-foreground">
-                  {narrativeModeNames[settings.narrativeMode]}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="relative border border-destructive/30 bg-card p-4 space-y-2">
-                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-destructive/45" />
-                <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-destructive">
-                  {t('linesColon')}
+                <div className="p-2 border border-brass/20 bg-black/30">
+                  <span className="font-special-elite text-brass/70 uppercase block">{t('summaryNarrativeMode')}</span>
+                  <span className="font-display font-medium text-foreground">{narrativeModeNames[settings.narrativeMode]}</span>
                 </div>
-                {settings.lines.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {settings.lines.map((line, idx) => (
-                      <span
-                        key={idx}
-                        className="border border-destructive/40 bg-destructive/10 px-3 py-1 font-special-elite text-xs uppercase tracking-[0.08em] text-destructive"
-                      >
-                        {line}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="font-serif italic text-muted-foreground">{t('none')}</p>
-                )}
-              </div>
-
-              <div className="relative border border-brass/30 bg-card p-4 space-y-2">
-                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-                <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-brass">
-                  {t('veilsColon')}
+                <div className="p-2 border border-brass/20 bg-black/30">
+                  <span className="font-special-elite text-brass/70 uppercase block">{t('summaryKeyConnection')}</span>
+                  <span className="font-display font-medium text-foreground truncate block">{settings.anchors?.keyConnection || t('none')}</span>
                 </div>
-                {settings.veils.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {settings.veils.map((veil, idx) => (
-                      <span
-                        key={idx}
-                        className="border border-brass/40 bg-brass/10 px-3 py-1 font-special-elite text-xs uppercase tracking-[0.08em] text-brass"
-                      >
-                        {veil}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="font-serif italic text-muted-foreground">{t('none')}</p>
-                )}
+                <div className="p-2 border border-brass/20 bg-black/30">
+                  <span className="font-special-elite text-brass/70 uppercase block">{t('summaryEraFilter')}</span>
+                  <span className="font-display font-medium text-foreground">
+                    {settings.eraFilter === 'authentic_1920s' ? t('eraFilterAuthenticName') : t('eraFilterModernName')}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -641,6 +823,14 @@ export function SessionZeroModal({
                 className="text-brass/80 hover:text-brass underline uppercase tracking-wider cursor-pointer"
               >
                 {t('backToStep2')}
+              </button>
+              <span className="text-brass/40">·</span>
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="text-brass/80 hover:text-brass underline uppercase tracking-wider cursor-pointer"
+              >
+                {t('backToStep3')}
               </button>
             </div>
           </div>

@@ -55,6 +55,7 @@ export function cleanResponseText(text: string): string {
       .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[EKWIPUNEK:[^\]]*\]/gi, '')
       .replace(/\[WALKA:[^\]]*\]/gi, '')
+      .replace(/\[(?:ZAGROŻENIE|ZAGROZENIE|HAZARD):[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')
       .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')

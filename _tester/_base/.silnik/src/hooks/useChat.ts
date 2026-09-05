@@ -184,11 +184,14 @@ function resolveHotSeatCharacterNames(
 
 export interface ImageToGenerate {
   prompt: string;
-  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait';
+  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait' | 'item' | 'location';
+  priority?: 'high' | 'normal';
   isMythos?: boolean;
-  type?: 'portrait' | 'scene';
+  type?: 'portrait' | 'scene' | 'location' | 'item' | 'monster' | 'vision';
   aspectRatio?: string;
   portraitName?: string;
+  itemName?: string;
+  locationName?: string;
 }
 
 /**
@@ -482,7 +485,14 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const generateImages = useCallback(
     async (illustrations: ImageToGenerate[], messageId: string) => {
       const generatedUrls: string[] = [];
-      const generatedTypes: ('portrait' | 'scene')[] = [];
+      const generatedTypes: (
+        | 'portrait'
+        | 'scene'
+        | 'location'
+        | 'item'
+        | 'monster'
+        | 'vision'
+      )[] = [];
       const activeEra =
         adventureContext?.yearRange ||
         adventureContext?.eraLabel ||
@@ -490,16 +500,19 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         '1920s';
 
       for (const img of illustrations) {
-        const isScene = (img.type || 'scene') === 'scene';
-        const loc = currentLocationRef.current?.trim();
+        const isLocation = img.type === 'location';
+        const loc =
+          img.locationName?.trim() || currentLocationRef.current?.trim();
 
-        // Sprawdź persistent cache lokacji przed wywołaniem API
-        if (isScene && loc) {
+        // Sprawdź persistent cache lokacji przed wywołaniem API - WYŁĄCZNIE dla ujęć lokacji (establishing shot),
+        // NIGDY dla dynamicznych scen akcji, potworów ani wizji!
+        if (isLocation && loc) {
           try {
-            const cachedLocImage = await persistentMediaCache.getLocationImage(loc);
+            const cachedLocImage =
+              await persistentMediaCache.getLocationImage(loc);
             if (cachedLocImage) {
               generatedUrls.push(cachedLocImage);
-              generatedTypes.push('scene');
+              generatedTypes.push('location');
               continue;
             }
           } catch {
@@ -507,18 +520,40 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           }
         }
 
+        const isMythosEffective = Boolean(
+          img.isMythos ||
+            img.type === 'monster' ||
+            img.type === 'vision'
+        );
+
+        const defaultStyle =
+          img.style ||
+          (img.type === 'portrait'
+            ? 'portrait'
+            : img.type === 'item'
+              ? 'item'
+              : img.type === 'location'
+                ? 'location'
+                : 'horror');
+
+        const defaultAspectRatio =
+          img.aspectRatio ||
+          (img.type === 'portrait'
+            ? '3:4'
+            : img.type === 'item'
+              ? '1:1'
+              : '16:9');
+
         try {
           const response = await fetchWithRetry('/api/imagen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               prompt: img.prompt,
-              style: img.style || 'horror',
-              isMythos: img.isMythos || false,
+              style: defaultStyle,
+              isMythos: isMythosEffective,
               era: activeEra,
-              // IND-216: sceny czatu w formacie pocztówkowym 16:9 (orchestrator
-              // forwarduje ...body do Vertex/Replicate). Render i tak kadruje object-cover.
-              aspectRatio: img.aspectRatio || '16:9',
+              aspectRatio: defaultAspectRatio,
               preferredProvider:
                 options.aiSettings?.replicateSettings?.imageProvider || 'auto',
             }),
@@ -528,8 +563,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             generatedUrls.push(result.imageUrl);
             generatedTypes.push(img.type || 'scene');
 
-            // Zapisz wygenerowany kadr lokacji do cache na przyszłe wizyty
-            if (isScene && loc) {
+            // Zapisz wygenerowany kadr lokacji do cache na przyszłe wizyty (TYLKO dla typu location!)
+            if (isLocation && loc) {
               void persistentMediaCache
                 .setLocationImage(loc, result.imageUrl)
                 .catch(() => {});
@@ -539,7 +574,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           console.error('Image Error:', error);
         }
       }
-
 
       if (generatedUrls.length > 0) {
         setMessages((prev) =>
@@ -578,19 +612,37 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           })
         );
 
+        // Synchronizacja portretów NPC z Dziennikiem oraz pamięcią persistentMediaCache
         const portraitUpdates = illustrations
           .map((img, idx) => ({ img, url: generatedUrls[idx] }))
-          .filter(update => update.img.type === 'portrait' && update.img.portraitName && update.url);
+          .filter(
+            (update) =>
+              update.img.type === 'portrait' &&
+              update.img.portraitName &&
+              update.url
+          );
 
         if (portraitUpdates.length > 0) {
-          setCharacters(prevChars => {
+          portraitUpdates.forEach(({ img, url }) => {
+            if (img.portraitName && url) {
+              void persistentMediaCache
+                .setNpcPortrait(img.portraitName, url)
+                .catch(() => {});
+            }
+          });
+
+          setCharacters((prevChars) => {
             let changed = false;
-            const newChars = prevChars.map(char => {
+            const newChars = prevChars.map((char) => {
               if (!char.journal) return char;
               let charChanged = false;
-              const newJournal = char.journal.map(entry => {
+              const newJournal = char.journal.map((entry) => {
                 if (entry.type === 'npc') {
-                  const update = portraitUpdates.find(pu => pu.img.portraitName!.toLowerCase() === entry.title.toLowerCase());
+                  const update = portraitUpdates.find(
+                    (pu) =>
+                      pu.img.portraitName!.toLowerCase() ===
+                      entry.title.toLowerCase()
+                  );
                   if (update && entry.imageUrl !== update.url) {
                     charChanged = true;
                     return { ...entry, imageUrl: update.url };
@@ -609,10 +661,80 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               setTimeout(() => {
                 if (typeof window !== 'undefined') persistCharacters(newChars);
               }, 0);
-              
-              setActiveCharacter(prevActive => {
+
+              setActiveCharacter((prevActive) => {
                 if (!prevActive) return prevActive;
-                const updatedActive = newChars.find(c => c.id === prevActive.id);
+                const updatedActive = newChars.find(
+                  (c) => c.id === prevActive.id
+                );
+                return updatedActive || prevActive;
+              });
+            }
+            return changed ? newChars : prevChars;
+          });
+        }
+
+        // Synchronizacja ilustracji przedmiotów ze stanem ekwipunku i dziennika
+        const itemUpdates = illustrations
+          .map((img, idx) => ({ img, url: generatedUrls[idx] }))
+          .filter(
+            (update) =>
+              update.img.type === 'item' &&
+              update.img.itemName &&
+              update.url
+          );
+
+        if (itemUpdates.length > 0) {
+          setCharacters((prevChars) => {
+            let changed = false;
+            const newChars = prevChars.map((char) => {
+              let charChanged = false;
+              const newEq = (char.equipment || []).map((eq) => {
+                const match = itemUpdates.find(
+                  (iu) =>
+                    iu.img.itemName!.toLowerCase() === eq.name.toLowerCase()
+                );
+                if (match && !eq.imageUrl) {
+                  charChanged = true;
+                  return {
+                    ...eq,
+                    imageUrl: match.url,
+                    visualSource: 'generated' as const,
+                  };
+                }
+                return eq;
+              });
+              const newJournal = (char.journal || []).map((entry) => {
+                if (entry.type === 'item') {
+                  const match = itemUpdates.find(
+                    (iu) =>
+                      iu.img.itemName!.toLowerCase() ===
+                      entry.title.toLowerCase()
+                  );
+                  if (match && entry.imageUrl !== match.url) {
+                    charChanged = true;
+                    return { ...entry, imageUrl: match.url };
+                  }
+                }
+                return entry;
+              });
+              if (charChanged) {
+                changed = true;
+                return { ...char, equipment: newEq, journal: newJournal };
+              }
+              return char;
+            });
+
+            if (changed) {
+              setTimeout(() => {
+                if (typeof window !== 'undefined') persistCharacters(newChars);
+              }, 0);
+
+              setActiveCharacter((prevActive) => {
+                if (!prevActive) return prevActive;
+                const updatedActive = newChars.find(
+                  (c) => c.id === prevActive.id
+                );
                 return updatedActive || prevActive;
               });
             }
@@ -837,21 +959,54 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 lastTrackedSceneRef.current = sceneKey;
                 sceneImageCountRef.current = 0;
               }
+              const illustrationsList =
+                metadata.illustrations as unknown as ImageToGenerate[];
+              const hasHighPriority = illustrationsList.some(
+                (img) =>
+                  img.priority === 'high' ||
+                  img.isMythos ||
+                  img.type === 'monster' ||
+                  img.type === 'vision'
+              );
+
               if (
-                now - lastImageTime >= imageCooldown &&
-                sceneImageCountRef.current < MAX_IMAGES_PER_SCENE
+                hasHighPriority ||
+                (now - lastImageTime >= imageCooldown &&
+                  sceneImageCountRef.current < MAX_IMAGES_PER_SCENE)
               ) {
                 setLastImageTime(now);
-                sceneImageCountRef.current += 1;
+                if (!hasHighPriority) {
+                  sceneImageCountRef.current += 1;
+                }
+                // Sortuj tak, by obrazy przełomowe (potwory/wizje) oraz portrety
+                // miały pierwszeństwo przed zwykłym ujęciem tła sceny
+                const prioritized = [...illustrationsList].sort((a, b) => {
+                  const aScore =
+                    (a.priority === 'high' ||
+                    a.isMythos ||
+                    a.type === 'monster' ||
+                    a.type === 'vision'
+                      ? 10
+                      : 0) +
+                    (a.type === 'portrait' || a.type === 'item' ? 5 : 0);
+                  const bScore =
+                    (b.priority === 'high' ||
+                    b.isMythos ||
+                    b.type === 'monster' ||
+                    b.type === 'vision'
+                      ? 10
+                      : 0) +
+                    (b.type === 'portrait' || b.type === 'item' ? 5 : 0);
+                  return bScore - aScore;
+                });
+
                 // 2026-06-28 (portable): cap na 1 obraz sceny / turę. generateImages
                 // generuje WSZYSTKIE przekazane ilustracje sekwencyjnie (5-60 s każda),
                 // a w wersji portable seria obrazów zapychała limit Gemini i głodziła
                 // lektora (audio rusza >1 min po tekście). Jedna ilustracja na turę
                 // zwalnia limit dla TTS; cooldown międzyturowy (IND-259) zostaje.
                 generateImages(
-                  (
-                    metadata.illustrations as unknown as ImageToGenerate[]
-                  ).slice(0, 1),
+                  prioritized.slice(0, 1),
                   assistantMessageId
                 );
               }

@@ -64,14 +64,14 @@ describe('AdventureSelector', () => {
     const title = "Shadow over Prabuty: Father Klimuszko's Vision";
     expect(screen.getByText(title)).toBeInTheDocument();
     expect(screen.getByText(/People's Poland - 1970s/)).toBeInTheDocument();
-    expect(screen.getByText(/Easy/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Official Player\.pl TVN/)).toHaveLength(4);
+    expect(screen.getByText(/Player\.pl \(TVN\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/Official Player\.pl TVN/)).not.toBeInTheDocument();
     expect(screen.queryByText('Cień nad Prabutami: Widzenie Ojca Klimuszki')).not.toBeInTheDocument();
     expect(screen.queryByText(/Łatwy/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText(title));
-    expect(screen.getByText('A dark investigation of intrigue, moral ambiguity and big-city secrets.')).toBeInTheDocument();
-    expect(screen.getByText('People\'s Poland - 1970s')).toBeInTheDocument();
+    expect(screen.getAllByText(/The investigators are recruited by Helena Krawczyk/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("People's Poland - 1970s").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: /close/i }));
     fireEvent.click(screen.getByRole('button', { name: /choose and continue/i }));
@@ -122,5 +122,29 @@ describe('AdventureSelector', () => {
         country: 'Polska',
       })
     );
+  });
+
+  it('renders integrated details button on card and opens modal without external link duplicates', () => {
+    render(
+      <AdventureSelector
+        open
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+        customAdventures={[adventure]}
+      />
+    );
+
+    // Linki zewnętrzne istnieją wyłącznie w banerze głównym Strefy 11 (dokładnie 1 wystąpienie, brak duplikatów na kartach)
+    expect(screen.getAllByText('Wikipedia ↗')).toHaveLength(1);
+
+    // Zintegrowany przycisk otwierania szczegółów wewnątrz kafelka
+    const infoButtons = screen.getAllByRole('button', { name: /więcej szczegółów/i });
+    expect(infoButtons.length).toBeGreaterThan(0);
+
+    fireEvent.click(infoButtons[0]);
+
+    // Otwarcie modala z tytułem i opisem
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Szczegóły scenariusza')).toBeInTheDocument();
   });
 });

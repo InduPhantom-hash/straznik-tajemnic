@@ -323,8 +323,11 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
             />
           ) : (
             <StartModeCards 
-              onQuickStart={(adv, char, mode) => onQuickStart?.(adv, char, mode)} 
+              onQuickStart={(adv, char, mode, p2) => onQuickStart?.(adv, char, mode, p2)} 
               onManualStart={() => handleSetManualMode(true)} 
+              isStarting={isStarting}
+              startProgress={startProgress}
+              startStatus={startStatus}
             />
           )}
         </div>

@@ -29,10 +29,10 @@ graph TD
     session_zero["Sesja Zero / Session Zero"]
     game["Aktywna sesja / Active session"]
     api_keys["Klucze API / API keys"]
-    character_sheet["Karta badacza / Investigator sheet"]
+    character_sheet["Karta badacza (Dark Art Déco CoC 7e RAW) / Investigator sheet (Dark Art Déco CoC 7e RAW)"]
     equipment["Ekwipunek / Equipment"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
-    journal["Dziennik sesji / Session journal"]
+    journal["Dziennik sesji i akta śledcze / Session journal and investigator dossier"]
     dice["Rzuty kośćmi / Dice rolls"]
     gm_tools["Narzędzia MG / GM tools"]
     development["Faza rozwoju / Development phase"]
@@ -42,6 +42,8 @@ graph TD
     new_adventure_confirm["Potwierdzenie nowej przygody / New adventure confirmation"]
     full_reset["Pełny reset / Full reset"]
     rulebook_modal["Podręcznik zasad / Rulebook"]
+    chase_dialog["Pościg i tor przeszkód (CoC 7e RAW) / Chase and hazard track (CoC 7e RAW)"]
+    hazard_dialog["Zagrożenia środowiskowe i trucizny (CoC 7e RAW) / Environmental hazards and poisons (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -50,6 +52,7 @@ graph TD
     home -->|Wczytaj zapis / Load save| load_game
     home -->|Klucze API / API keys| api_keys
     quick_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
+    quick_setup -->|Rozpocznij przygodę / Start adventure| home
     adventure_selector -->|Wybierz postać / Choose character| predefined_characters
     manual_setup -->|Wybierz tryb gry / Choose play mode| hot_seat
     manual_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
@@ -107,6 +110,7 @@ graph TD
 | Strona główna | Wczytaj zapis / Load save | Wczytanie gry | `src/components/chat/welcome/components/bottom-links.tsx` |
 | Strona główna | Klucze API / API keys | Klucze API | `src/components/chat/welcome/index.tsx` |
 | Szybka przygoda | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/ui/quick-setup-modal.tsx` |
+| Szybka przygoda | Rozpocznij przygodę / Start adventure | Strona główna | `src/components/ui/quick-setup-modal.tsx` |
 | Wybór przygody | Wybierz postać / Choose character | Gotowe postacie | `src/components/ui/adventure-selector.tsx` |
 | Ręczne ustawianie gry | Wybierz tryb gry / Choose play mode | Wybór trybu gry | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
@@ -116,10 +120,10 @@ graph TD
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
 | Sesja Zero | Zakończ i zapisz / Finish and save | Aktywna sesja | `src/components/ui/session-zero-modal.tsx` |
-| Aktywna sesja | Karta postaci / Character sheet | Karta badacza | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
-| Aktywna sesja | Dziennik / Journal | Dziennik sesji | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Aktywna sesja | Dziennik / Journal | Dziennik sesji i akta śledcze | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |

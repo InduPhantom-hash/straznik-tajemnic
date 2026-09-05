@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-03T16:00:00Z",
+  "updatedAt": "2026-09-05T03:30:00Z",
   "locales": [
     "pl",
     "en"
@@ -157,8 +157,8 @@
         "en": "Character wizard"
       },
       "description": {
-        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu)",
-        "en": "Multi-step character creation wizard (Master-Detail occupation layout)"
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, kary wieku CoC 7e RAW)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout, CoC 7e RAW age penalties)"
       }
     },
     {
@@ -197,8 +197,8 @@
       "id": "character-sheet",
       "kind": "modal",
       "label": {
-        "pl": "Karta badacza",
-        "en": "Investigator sheet"
+        "pl": "Karta badacza (Dark Art Déco CoC 7e RAW)",
+        "en": "Investigator sheet (Dark Art Déco CoC 7e RAW)"
       }
     },
     {
@@ -221,8 +221,8 @@
       "id": "journal",
       "kind": "modal",
       "label": {
-        "pl": "Dziennik sesji",
-        "en": "Session journal"
+        "pl": "Dziennik sesji i akta śledcze",
+        "en": "Session journal and investigator dossier"
       }
     },
     {
@@ -296,6 +296,22 @@
         "pl": "Podręcznik zasad",
         "en": "Rulebook"
       }
+    },
+    {
+      "id": "chase-dialog",
+      "kind": "modal",
+      "label": {
+        "pl": "Pościg i tor przeszkód (CoC 7e RAW)",
+        "en": "Chase and hazard track (CoC 7e RAW)"
+      }
+    },
+    {
+      "id": "hazard-dialog",
+      "kind": "modal",
+      "label": {
+        "pl": "Zagrożenia środowiskowe i trucizny (CoC 7e RAW)",
+        "en": "Environmental hazards and poisons (CoC 7e RAW)"
+      }
     }
   ],
   "actions": [
@@ -359,6 +375,15 @@
       "label": {
         "pl": "Wybierz przygodę",
         "en": "Choose adventure"
+      },
+      "component": "src/components/ui/quick-setup-modal.tsx"
+    },
+    {
+      "source": "quick-setup",
+      "target": "home",
+      "label": {
+        "pl": "Rozpocznij przygodę",
+        "en": "Start adventure"
       },
       "component": "src/components/ui/quick-setup-modal.tsx"
     },

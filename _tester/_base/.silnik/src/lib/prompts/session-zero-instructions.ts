@@ -9,6 +9,10 @@ type SessionZeroPromptSettings = Pick<
   | 'veils'
   | 'safetyWord'
   | 'completed'
+  | 'briefing'
+  | 'investigatorHook'
+  | 'anchors'
+  | 'eraFilter'
 >;
 
 export const TONE_INSTRUCTIONS: Record<string, string> = {
@@ -257,9 +261,53 @@ export function buildSessionZeroInstructions(
   const diffMap = isEn ? DIFFICULTY_INSTRUCTIONS_EN : DIFFICULTY_INSTRUCTIONS;
   const modeMap = isEn ? NARRATIVE_MODE_INSTRUCTIONS_EN : NARRATIVE_MODE_INSTRUCTIONS;
 
+  let hookInstructions = '';
+  if (sessionZero.investigatorHook) {
+    hookInstructions = isEn
+      ? `\n\n## INVESTIGATOR MOTIVATION & HOOK\nThe investigator enters the case with this personal hook: "${sessionZero.investigatorHook}". Weave this personal stake into dialogues, NPC encounters, and moral dilemmas.`
+      : `\n\n## MOTYWACJA I HACZYK BADACZA\nBadacz wkracza w sprawę z następującego powodu: "${sessionZero.investigatorHook}". Wykorzystuj tę osobistą stawkę w dialogach, spotkaniach z NPC i dylematach moralnych.`;
+  }
+
+  let anchorsInstructions = '';
+  if (
+    sessionZero.anchors &&
+    (sessionZero.anchors.keyConnection ||
+      sessionZero.anchors.importantPlace ||
+      sessionZero.anchors.treasuredItem)
+  ) {
+    const { keyConnection, importantPlace, treasuredItem } = sessionZero.anchors;
+    if (isEn) {
+      anchorsInstructions = `\n\n## PSYCHOLOGICAL ANCHORS & CONNECTIONS (CoC 7e RAW)\n`;
+      if (keyConnection) anchorsInstructions += `- Key Connection (Important Person - SAN recovery): ${keyConnection}\n`;
+      if (importantPlace) anchorsInstructions += `- Significant Location: ${importantPlace}\n`;
+      if (treasuredItem) anchorsInstructions += `- Treasured Possession: ${treasuredItem}\n`;
+      anchorsInstructions += `GM Rule: Use these anchors as personal stakes in the plot, in nightmares, hallucinations during bouts of madness, or as targets threatened by cultists and Mythos forces.`;
+    } else {
+      anchorsInstructions = `\n\n## KOTWICE PSYCHICZNE I WIĘZI (CoC 7e RAW)\n`;
+      if (keyConnection) anchorsInstructions += `- Ważna Osoba (Kluczowa Więź - odzyskiwanie SAN): ${keyConnection}\n`;
+      if (importantPlace) anchorsInstructions += `- Ważne Miejsce: ${importantPlace}\n`;
+      if (treasuredItem) anchorsInstructions += `- Cenny Przedmiot: ${treasuredItem}\n`;
+      anchorsInstructions += `Zasada MG: Używaj tych kotwic jako osobistej stawki badacza, celów intrygi, w koszmarach sennych, wizjach szaleństwa oraz jako celów ataków lub manipulacji ze strony kultystów i istot Mitów.`;
+    }
+  }
+
+  let eraFilterInstructions = '';
+  if (sessionZero.eraFilter === 'authentic_1920s') {
+    eraFilterInstructions = isEn
+      ? `\n\n## ERA FILTER: 1920s HISTORICAL AUTHENTICITY\nReflect the social realities and historical atmosphere of the 1920s (class hierarchies, period constraints), while maintaining solemn investigative horror.`
+      : `\n\n## FILTR EPOKI: HISTORYCZNY AUTENTYZM LAT 20.\nOdzwierciedlaj surowe realia społeczne i obyczajowe epoki lat 20. XX wieku (hierarchie klasowe, bariery społeczne, specyfika okresu), zachowując powagę opowieści.`;
+  } else if (sessionZero.eraFilter === 'modern_sensibilities') {
+    eraFilterInstructions = isEn
+      ? `\n\n## ERA FILTER: MODERN SENSIBILITIES\nFocus on cosmic dread and investigation, omitting period prejudices or social discrimination of the 1920s.`
+      : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nSkup się na kosmicznej grozie i śledztwie, pomijając historyczne uprzedzenia i dyskryminację z lat 20.`;
+  }
+
+  const difficultySection = sessionZero.difficulty && diffMap[sessionZero.difficulty]
+    ? `\n${diffMap[sessionZero.difficulty]}`
+    : '';
+
   return `
-${toneMap[sessionZero.tone] || ''}
-${diffMap[sessionZero.difficulty] || ''}
-${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}
+${toneMap[sessionZero.tone] || ''}${difficultySection}
+${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}
 ${safetyInstructions}`;
 }

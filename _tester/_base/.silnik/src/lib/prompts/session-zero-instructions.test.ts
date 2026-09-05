@@ -73,4 +73,47 @@ describe('buildSessionZeroInstructions', () => {
     );
     expect(promptEn).not.toContain('## SAFETY WORD');
   });
+
+  it('generates investigator hook, psychological anchors, and era filter (PL and EN)', () => {
+    const rawSettings: SessionZeroSettings = {
+      ...baseSettings,
+      investigatorHook: 'Śledztwo na zlecenie wdowy po profesorze',
+      anchors: {
+        keyConnection: 'Siostra Clara w Bostonie',
+        importantPlace: 'Gabinet w Arkham',
+        treasuredItem: 'Zegarek kieszonkowy ojca',
+      },
+      eraFilter: 'authentic_1920s',
+    };
+
+    const promptPl = buildSessionZeroInstructions(rawSettings, 'pl');
+    expect(promptPl).toContain('## MOTYWACJA I HACZYK BADACZA');
+    expect(promptPl).toContain('Śledztwo na zlecenie wdowy po profesorze');
+    expect(promptPl).toContain('## KOTWICE PSYCHICZNE I WIĘZI (CoC 7e RAW)');
+    expect(promptPl).toContain('Ważna Osoba (Kluczowa Więź - odzyskiwanie SAN): Siostra Clara w Bostonie');
+    expect(promptPl).toContain('Ważne Miejsce: Gabinet w Arkham');
+    expect(promptPl).toContain('Cenny Przedmiot: Zegarek kieszonkowy ojca');
+    expect(promptPl).toContain('## FILTR EPOKI: HISTORYCZNY AUTENTYZM LAT 20.');
+
+    const promptEn = buildSessionZeroInstructions(
+      {
+        ...rawSettings,
+        investigatorHook: 'Investigation commissioned by professor widow',
+        anchors: {
+          keyConnection: 'Sister Clara in Boston',
+          importantPlace: 'Arkham Study',
+          treasuredItem: 'Father pocket watch',
+        },
+        eraFilter: 'modern_sensibilities',
+      },
+      'en'
+    );
+    expect(promptEn).toContain('## INVESTIGATOR MOTIVATION & HOOK');
+    expect(promptEn).toContain('Investigation commissioned by professor widow');
+    expect(promptEn).toContain('## PSYCHOLOGICAL ANCHORS & CONNECTIONS (CoC 7e RAW)');
+    expect(promptEn).toContain('Key Connection (Important Person - SAN recovery): Sister Clara in Boston');
+    expect(promptEn).toContain('Significant Location: Arkham Study');
+    expect(promptEn).toContain('Treasured Possession: Father pocket watch');
+    expect(promptEn).toContain('## ERA FILTER: MODERN SENSIBILITIES');
+  });
 });

@@ -26,7 +26,12 @@ export interface WelcomeScreenProps {
   onPickCharacter?: (playerName?: string) => void;
   onStartGame: () => void;
   /** Nowy handler do szybkiego startu (Etap 0.5) */
-  onQuickStart?: (adventureId: string, characterId: string, mode?: 'solo' | 'hot-seat') => void;
+  onQuickStart?: (
+    adventureId: string,
+    characterId: string,
+    mode?: 'solo' | 'hot-seat',
+    player2CharacterId?: string
+  ) => void;
   /** Otwiera setup Hot Seat (Solo / 2 osoby) z onboardingu. */
   onChoosePlayMode?: () => void;
   onLoadSave?: () => void;

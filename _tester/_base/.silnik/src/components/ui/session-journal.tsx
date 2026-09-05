@@ -17,9 +17,13 @@ import {
   CheckCircle2,
   Circle,
   Download,
+  Lightbulb,
+  MessageSquare,
 } from 'lucide-react';
 import { CorkboardInvestigationBoard } from './journal/corkboard-investigation-board';
 import { DiscoveriesView } from './journal/discoveries-view';
+import { IdeaRollModal } from './journal/idea-roll-modal';
+import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
 import { InspectionLightboxModal } from '../dialogs/inspection-lightbox-modal';
 import {
   EvidenceNode,
@@ -30,6 +34,12 @@ import {
 } from '@/types/investigator-board';
 import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
 import type { JournalEntry, JournalEventType, Character } from '@/lib/types';
+import {
+  ensureCharacterDossier,
+  migrateLegacyJournalToDossier,
+} from '@/lib/journal/dossier-migration';
+import type { InvestigatorDossier } from '@/lib/journal/dossier-types';
+import type { DiscoveryEntry } from './journal/discoveries-view';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
@@ -74,6 +84,8 @@ interface SessionJournalProps {
   sharedJournal?: JournalEntry[];
   onUpdateSharedJournal?: (journal: JournalEntry[]) => void;
   participantNames?: string[];
+  /** Callback cytowania poszlaki/tekstu do pola czatu (Quote-to-Input) */
+  onQuoteToInput?: (text: string) => void;
 }
 
 export function SessionJournal({
@@ -84,6 +96,7 @@ export function SessionJournal({
   sharedJournal,
   onUpdateSharedJournal,
   participantNames = [],
+  onQuoteToInput,
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
   const locale = useLocale();
@@ -122,6 +135,13 @@ export function SessionJournal({
   const [encyclopediaSubTab, setEncyclopediaSubTab] = useState<
     'location' | 'character' | 'item'
   >('character');
+  const [showIdeaModal, setShowIdeaModal] = useState(false);
+  const [ideaTargetSubject, setIdeaTargetSubject] = useState<{
+    id: string;
+    title: string;
+    description?: string;
+    type?: string;
+  } | undefined>(undefined);
 
   // Stan Tablicy Badacza z automatycznym odtworzeniem z postaci / sharedJournal
   const savedBoardState = character.investigatorBoard;
@@ -242,10 +262,202 @@ export function SessionJournal({
       return;
     const updatedEntries = entries.filter((entry) => entry.id !== id);
     updateCharacterJournal(updatedEntries);
+
+    const currentDossier = ensureCharacterDossier(character).investigatorDossier;
+    const newDossier: InvestigatorDossier = {
+      ...currentDossier,
+      clues: currentDossier.clues.filter((c) => c.id !== id),
+      npcs: currentDossier.npcs.filter((n) => n.id !== id),
+      locations: currentDossier.locations.filter((l) => l.id !== id),
+      notes: currentDossier.notes.filter((p) => p.id !== id),
+      lastUpdated: new Date().toISOString(),
+    };
+    onUpdateCharacter({
+      ...character,
+      journal: updatedEntries as unknown as JournalEntry[],
+      investigatorDossier: newDossier,
+    });
     if (selectedQuestId === id) {
       setSelectedQuestId(null);
     }
   };
+
+  // Stan Akt Śledczych (Investigator's Dossier CoC 7e RAW)
+  const dossier = useMemo(() => {
+    if (isShared && sharedJournal) {
+      return migrateLegacyJournalToDossier(sharedJournal, character.investigatorDossier);
+    }
+    return ensureCharacterDossier(character).investigatorDossier;
+  }, [character, isShared, sharedJournal]);
+
+  // Scalona lista odkryć i akt śledczych dla widoku DiscoveriesView
+  const dossierDiscoveryEntries = useMemo(() => {
+    const list: DiscoveryEntry[] = [];
+    const seenIds = new Set<string>();
+
+    if (Array.isArray(dossier.clues)) {
+      dossier.clues.forEach((c) => {
+        seenIds.add(c.id);
+        list.push({
+          id: c.id,
+          title: c.title,
+          content: c.description,
+          type: 'clue',
+          tags: c.tags,
+          imageUrl: c.imageUrl,
+          inGameDate: c.inGameDate,
+          timestamp: c.timestamp,
+          investigatorInsight: c.investigatorInsight,
+          clueCategory: c.category,
+          clueStatus: c.status,
+          isKeyClue: c.isKeyClue,
+          sourceNpc: c.sourceNpc,
+          foundLocation: c.foundLocation,
+          questStatus:
+            c.status === 'confirmed'
+              ? 'completed'
+              : c.status === 'disproven'
+                ? 'failed'
+                : 'active',
+        });
+      });
+    }
+
+    if (Array.isArray(dossier.npcs)) {
+      dossier.npcs.forEach((n) => {
+        seenIds.add(n.id);
+        list.push({
+          id: n.id,
+          title: n.name,
+          content: n.firstImpression || n.notes || '',
+          type: 'npc',
+          tags: n.tags,
+          imageUrl: n.avatarUrl,
+          inGameDate: n.inGameDate,
+          timestamp: n.timestamp,
+          investigatorInsight: n.keyInformation,
+          occupation: n.occupation,
+          relationshipStatus: n.relationshipStatus,
+          foundLocation: n.location,
+        });
+      });
+    }
+
+    if (Array.isArray(dossier.locations)) {
+      dossier.locations.forEach((l) => {
+        seenIds.add(l.id);
+        list.push({
+          id: l.id,
+          title: l.name,
+          content: l.description || '',
+          type: 'location',
+          tags: l.tags,
+          imageUrl: l.imageUrl,
+          inGameDate: l.inGameDate,
+          timestamp: l.timestamp,
+          searchStatus: l.searchStatus,
+          addressOrRegion: l.addressOrRegion,
+          discoveredClueIds: l.discoveredClueIds,
+        });
+      });
+    }
+
+    entries.forEach((e) => {
+      if (
+        !seenIds.has(e.id) &&
+        ['quest', 'npc', 'location', 'item', 'document', 'handout', 'discovery'].includes(e.type)
+      ) {
+        seenIds.add(e.id);
+        list.push({
+          id: e.id,
+          title: e.title,
+          content: e.content,
+          type: e.type,
+          tags: e.tags,
+          imageUrl: (e as unknown as Record<string, string>).imageUrl,
+          imageStatus: (e as unknown as Record<string, string>).imageStatus,
+          inGameDate: e.inGameDate,
+          timestamp: e.timestamp ? new Date(e.timestamp).getTime() : undefined,
+          questStatus: e.questStatus,
+          objectives: e.objectives,
+          investigatorInsight: e.investigatorInsight,
+        });
+      }
+    });
+
+    return list;
+  }, [dossier, entries]);
+
+  const handleEditDiscoveryEntry = useCallback(
+    (updated: DiscoveryEntry) => {
+      const currentDossier = ensureCharacterDossier(character).investigatorDossier;
+      const updatedClues = currentDossier.clues.map((c) =>
+        c.id === updated.id
+          ? {
+              ...c,
+              title: updated.title,
+              description: updated.content,
+              investigatorInsight: updated.investigatorInsight,
+              status: updated.clueStatus || c.status,
+              category: updated.clueCategory || c.category,
+            }
+          : c
+      );
+      const updatedNpcs = currentDossier.npcs.map((n) =>
+        n.id === updated.id
+          ? {
+              ...n,
+              name: updated.title,
+              firstImpression: updated.content,
+              keyInformation: updated.investigatorInsight,
+              relationshipStatus: updated.relationshipStatus || n.relationshipStatus,
+              occupation: updated.occupation || n.occupation,
+            }
+          : n
+      );
+      const updatedLocations = currentDossier.locations.map((l) =>
+        l.id === updated.id
+          ? {
+              ...l,
+              name: updated.title,
+              description: updated.content,
+              searchStatus: updated.searchStatus || l.searchStatus,
+            }
+          : l
+      );
+
+      const newDossier: InvestigatorDossier = {
+        ...currentDossier,
+        clues: updatedClues,
+        npcs: updatedNpcs,
+        locations: updatedLocations,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      const hasJournalEntry = entries.some((e) => e.id === updated.id);
+      if (hasJournalEntry) {
+        const updatedJournalEntries = entries.map((e) =>
+          e.id === updated.id
+            ? {
+                ...e,
+                title: updated.title,
+                content: updated.content,
+                investigatorInsight: updated.investigatorInsight,
+                questStatus: updated.questStatus,
+                updatedAt: new Date(),
+              }
+            : e
+        );
+        updateCharacterJournal(updatedJournalEntries);
+      }
+
+      onUpdateCharacter({
+        ...character,
+        investigatorDossier: newDossier,
+      });
+    },
+    [character, entries, onUpdateCharacter, updateCharacterJournal]
+  );
 
   // Śledzenie nieprzeczytanych wpisów w konkretnych zakładkach
   const journalSeenKey = isShared
@@ -377,88 +589,154 @@ export function SessionJournal({
     );
   }, [filteredEntries, selectedQuestId]);
 
-  // Eksport Dziennika do pliku Markdown (Pure Helper / Local Download)
+  // Eksport Dziennika i Akt Śledczych do pliku Markdown (Investigator's Dossier CoC 7e RAW)
   const exportToMarkdown = useCallback(() => {
     const owner = isShared ? participantNames.join(' i ') : character.name;
     let md = owner
-      ? t('mdJournalTitleOwner', { owner })
-      : t('mdJournalTitle');
-    md += t('mdExportLine', { date: new Date().toLocaleString('pl-PL') });
+      ? t('mdDossierTitleOwner', { owner })
+      : t('mdDossierTitle');
+    md += t('mdExportLine', { date: new Date().toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US') });
 
-    const quests = entries.filter((e) => e.type === 'quest');
-    if (quests.length > 0) {
-      md += t('mdQuestsSection');
-      quests.forEach((q) => {
-        const status =
-          q.questStatus === 'completed'
-            ? t('mdStatusCompleted')
-            : q.questStatus === 'failed'
-              ? t('mdStatusFailed')
-              : t('mdStatusActive');
-        md += `### ${q.title} [${status}]\n`;
-        if (q.inGameDate)
-          md += t('mdQuestGameTime', {
-            date: q.inGameDate,
-            day: q.gameDay || 1,
-            hour: q.gameHour || 12,
-          });
-        md += `${q.content}\n\n`;
-        if (q.objectives && q.objectives.length > 0) {
-          md += t('mdObjectivesHeader');
-          q.objectives.forEach((obj) => {
-            md += `- [${obj.completed ? 'x' : ' '}] ${obj.description}${obj.completed && obj.dateCompleted ? ` ${t('mdObjectiveCompleted', { date: obj.dateCompleted })}` : ''}\n`;
-          });
-          md += `\n`;
+    // 1. Akta Poszlak i Śladów (Dossier Clues)
+    const currentDossier = ensureCharacterDossier(character).investigatorDossier;
+    if (currentDossier.clues.length > 0) {
+      md += t('mdCluesSection');
+      currentDossier.clues.forEach((c) => {
+        const catLabel =
+          c.category === 'forensic'
+            ? t('clueCategoryForensic')
+            : c.category === 'document'
+              ? t('clueCategoryDocument')
+              : c.category === 'testimony'
+                ? t('clueCategoryTestimony')
+                : t('clueCategoryOccult');
+        const statusLabel =
+          c.status === 'confirmed'
+            ? t('clueStatusConfirmed')
+            : c.status === 'disproven'
+              ? t('clueStatusDisproven')
+              : t('clueStatusUnconfirmed');
+
+        md += `### ${c.isKeyClue ? '⭐ ' : ''}${c.title}\n`;
+        md += t('mdClueCategoryLine', {
+          category: catLabel,
+          status: statusLabel,
+        });
+        if (c.sourceNpc || c.foundLocation) {
+          const src = [c.sourceNpc, c.foundLocation].filter(Boolean).join(', ');
+          md += t('mdClueSourceLine', { source: src });
+        }
+        if (c.inGameDate) {
+          md += `*${t('recordDate', { date: c.inGameDate })}*\n`;
+        }
+        md += `\n${c.description}\n\n`;
+        if (c.investigatorInsight) {
+          md += t('mdInsightLine', { insight: c.investigatorInsight });
         }
         md += `---\n\n`;
       });
     }
 
+    // 2. Teczka Osób (Dossier NPCs)
+    if (currentDossier.npcs.length > 0) {
+      md += t('mdNpcSection');
+      currentDossier.npcs.forEach((n) => {
+        const relMap: Record<string, string> = {
+          friendly: t('npcRelFriendly'),
+          neutral: t('npcRelNeutral'),
+          hostile: t('npcRelHostile'),
+          suspicious: t('npcRelSuspicious'),
+          deceased: t('npcRelDeceased'),
+          unknown: t('npcRelUnknown'),
+        };
+        md += `### 👤 ${n.name}\n`;
+        md += t('mdNpcRelationLine', {
+          relation: relMap[n.relationshipStatus] || n.relationshipStatus,
+          occupation: n.occupation || '-',
+        });
+        if (n.location) {
+          md += `*Lokalizacja: ${n.location}*\n`;
+        }
+        if (n.firstImpression) {
+          md += `\n${n.firstImpression}\n\n`;
+        }
+        if (n.keyInformation) {
+          md += t('mdInsightLine', { insight: n.keyInformation });
+        }
+        md += `---\n\n`;
+      });
+    }
+
+    // 3. Atlas Miejsc (Dossier Locations)
+    if (currentDossier.locations.length > 0) {
+      md += t('mdLocationsSection');
+      currentDossier.locations.forEach((l) => {
+        const searchStatusMap: Record<string, string> = {
+          unvisited: t('locStatusUnvisited'),
+          partially_searched: t('locStatusPartiallySearched'),
+          thoroughly_searched: t('locStatusThoroughlySearched'),
+        };
+        md += `### 📍 ${l.name}\n`;
+        md += t('mdLocationStatusLine', {
+          status: searchStatusMap[l.searchStatus] || l.searchStatus,
+        });
+        if (l.addressOrRegion) {
+          md += `*${l.addressOrRegion}*\n`;
+        }
+        if (l.description) {
+          md += `\n${l.description}\n\n`;
+        }
+        md += `---\n\n`;
+      });
+    }
+
+    // 4. Wycinki i Dokumenty (Handouts)
+    const handouts = entries.filter((e) =>
+      ['item', 'document', 'handout', 'discovery'].includes(e.type)
+    );
+    if (handouts.length > 0) {
+      md += t('mdHandoutsSection');
+      handouts.forEach((h) => {
+        md += `### 📜 ${h.title}\n\n`;
+        md += `${h.content}\n\n`;
+        if (h.investigatorInsight) {
+          md += t('mdInsightLine', { insight: h.investigatorInsight });
+        }
+        md += `---\n\n`;
+      });
+    }
+
+    // 5. Notatki Terenowe Badacza (Notes)
+    const notes = entries.filter((e) => e.type === 'note');
+    if (notes.length > 0) {
+      md += t('mdNotesSection');
+      notes.forEach((e) => {
+        md += `### 📝 ${e.title}\n`;
+        const formattedNoteDate = e.timestamp
+          ? new Date(e.timestamp).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US')
+          : '';
+        md += t('mdSavedLine', { date: formattedNoteDate });
+        md += `${e.content}\n\n`;
+        md += `---\n\n`;
+      });
+    }
+
+    // 6. Kronika Wydarzeń (Chronicle)
     const journalEntries = entries.filter((e) => e.type === 'journal');
     if (journalEntries.length > 0) {
       md += t('mdChronicleSection');
       journalEntries.forEach((e) => {
         md += `### ${e.title}\n`;
-        const formattedDate = e.inGameDate || (e.timestamp ? new Date(e.timestamp).toLocaleDateString('pl-PL') : '');
+        const formattedDate =
+          e.inGameDate ||
+          (e.timestamp
+            ? new Date(e.timestamp).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US')
+            : '');
         md += t('mdDateLine', { date: formattedDate });
         md += `${e.content}\n\n`;
         if (e.tags && e.tags.length > 0) {
           md += t('mdTagsLine', { tags: e.tags.map((tag) => `#${tag}`).join(', ') });
         }
-        md += `---\n\n`;
-      });
-    }
-
-    const encProps = entries.filter((e) =>
-      [
-        'npc',
-        'location',
-        'item',
-      ].includes(e.type)
-    );
-    if (encProps.length > 0) {
-      md += t('mdEncyclopediaSection');
-      encProps.forEach((e) => {
-        const typeLabel =
-          e.type === 'npc'
-            ? t('mdTypeNpc')
-            : e.type === 'location'
-              ? t('mdTypeLocation')
-              : t('mdTypeItem');
-        md += `### ${e.title} [${typeLabel}]\n\n`;
-        md += `${e.content}\n\n`;
-        md += `---\n\n`;
-      });
-    }
-
-    const notes = entries.filter((e) => e.type === 'note');
-    if (notes.length > 0) {
-      md += t('mdNotesSection');
-      notes.forEach((e) => {
-        md += `### ${e.title}\n`;
-        const formattedNoteDate = e.timestamp ? new Date(e.timestamp).toLocaleDateString('pl-PL') : '';
-        md += t('mdSavedLine', { date: formattedNoteDate });
-        md += `${e.content}\n\n`;
         md += `---\n\n`;
       });
     }
@@ -470,13 +748,13 @@ export function SessionJournal({
     link.setAttribute(
       'download',
       isShared
-        ? 'dziennik_przygody_duet.md'
-        : `dziennik_sesji_${character.name.replace(/\s+/g, '_').toLowerCase()}.md`
+        ? 'akta_sledcze_duet.md'
+        : `akta_sledcze_${character.name.replace(/\s+/g, '_').toLowerCase()}.md`
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [character.name, entries, isShared, participantNames]);
+  }, [character, entries, isShared, locale, participantNames, t]);
 
   return (
     <div
@@ -576,6 +854,17 @@ export function SessionJournal({
 
           {/* Narzędzia i Przyciski */}
           <div className="flex gap-2 items-center shrink-0">
+            <Button
+              data-testid="btn-idea-roll"
+              onClick={() => {
+                setIdeaTargetSubject(undefined);
+                setShowIdeaModal(true);
+              }}
+              className="bg-amber-950/60 hover:bg-amber-900/80 text-amber-200 border border-amber-600/50 font-serif text-xs font-bold shadow-sm"
+              title={t('ideaRollTooltip')}
+            >
+              <Lightbulb className="h-4 w-4 mr-1 text-amber-400" /> {t('ideaRollButton')}
+            </Button>
             <Button
               onClick={() => setShowAddForm(true)}
               className="bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40 font-serif"
@@ -699,29 +988,17 @@ export function SessionJournal({
           {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
             <DiscoveriesView
               activeCharacter={character}
-              entries={(entries as unknown as Array<{ id: string; title: string; content: string; type: string; tags?: string[]; imageUrl?: string; imageStatus?: string; inGameDate?: string; timestamp?: number; questStatus?: 'active' | 'completed' | 'failed'; objectives?: Array<{ id: string; description: string; completed?: boolean; dateCompleted?: string }>; investigatorInsight?: string }>).filter(
-                (e) => ['quest', 'npc', 'location', 'item'].includes(e.type)
-              )}
+              entries={dossierDiscoveryEntries}
               onEditEntry={(entry) => {
-                const current = entries.find((e) => e.id === entry.id);
-                if (
-                  current &&
-                  (current.investigatorInsight !== entry.investigatorInsight ||
-                    current.title !== entry.title ||
-                    current.content !== entry.content)
-                ) {
-                  updateEntry(entry as unknown as ExtendedJournalEntry);
-                } else {
-                  setEditingEntry(entry as unknown as ExtendedJournalEntry);
-                }
+                handleEditDiscoveryEntry(entry);
               }}
               onDeleteEntry={deleteEntry}
               onPinToBoard={(entry) => {
                 let nodeType: EvidenceNodeType = 'clue';
-                if (entry.type === 'npc' || entry.type === 'encyclopedia_character') nodeType = 'suspect';
+                if (entry.type === 'npc' || entry.type === 'encyclopedia_character' || entry.type === 'character') nodeType = 'suspect';
                 else if (entry.type === 'location' || entry.type === 'encyclopedia_location') nodeType = 'location';
-                else if (entry.type === 'item' || entry.type === 'encyclopedia_item') nodeType = 'artifact';
-                else if (entry.type === 'quest') nodeType = 'evidence';
+                else if (entry.type === 'item' || entry.type === 'encyclopedia_item' || entry.type === 'document' || entry.type === 'handout') nodeType = 'artifact';
+                else if (entry.type === 'quest' || entry.type === 'clue' || entry.type === 'evidence') nodeType = 'evidence';
                 else if (entry.type === 'note') nodeType = 'player_note';
 
                 const scrollLeft = 0;
@@ -735,7 +1012,12 @@ export function SessionJournal({
                   title: entry.title,
                   description: entry.content,
                   type: nodeType,
-                  status: 'hypothesis',
+                  status:
+                    entry.clueStatus === 'confirmed'
+                      ? 'confirmed'
+                      : entry.clueStatus === 'disproven'
+                        ? 'refuted'
+                        : 'hypothesis',
                   position: { x: posX, y: posY },
                   imageUrl: entry.imageUrl,
                   sourceJournalEntryId: entry.id,
@@ -750,6 +1032,18 @@ export function SessionJournal({
                 setActiveTab('board');
               }}
               searchQuery={searchQuery}
+              onQuoteToInput={(text) => {
+                if (onQuoteToInput) {
+                  onQuoteToInput(text);
+                } else {
+                  window.dispatchEvent(
+                    new CustomEvent('straznik:quote-to-input', {
+                      detail: { text },
+                    })
+                  );
+                }
+                onClose?.();
+              }}
             />
           )}
 
@@ -801,6 +1095,42 @@ export function SessionJournal({
                           </div>
 
                           <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIdeaTargetSubject({
+                                  id: entry.id,
+                                  title: entry.title,
+                                  description: entry.content,
+                                  type: 'chronicle',
+                                });
+                                setShowIdeaModal(true);
+                              }}
+                              className="p-1 text-amber-300 hover:bg-amber-900/60 rounded transition-colors"
+                              title={t('ideaRollTooltip')}
+                            >
+                              <Lightbulb className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const quoteText = buildQuoteToInputText('clue', entry.title, undefined, locale as 'pl' | 'en');
+                                if (onQuoteToInput) {
+                                  onQuoteToInput(quoteText);
+                                } else {
+                                  window.dispatchEvent(
+                                    new CustomEvent('straznik:quote-to-input', {
+                                      detail: { text: quoteText },
+                                    })
+                                  );
+                                }
+                                onClose?.();
+                              }}
+                              className="p-1 text-emerald-300 hover:bg-emerald-900/60 rounded transition-colors"
+                              title={t('quoteToChatTitle')}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </button>
                             <button
                               onClick={() => setEditingEntry(entry)}
                               className="p-1 text-emerald-100 hover:bg-emerald-900/60 rounded transition-colors"
@@ -900,6 +1230,42 @@ export function SessionJournal({
                           </h4>
                           <div className="flex gap-1 flex-none ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
+                              type="button"
+                              onClick={() => {
+                                setIdeaTargetSubject({
+                                  id: entry.id,
+                                  title: entry.title,
+                                  description: entry.content,
+                                  type: 'note',
+                                });
+                                setShowIdeaModal(true);
+                              }}
+                              className="p-1 text-[#8c7353] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
+                              title={t('ideaRollTooltip')}
+                            >
+                              <Lightbulb className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const quoteText = buildQuoteToInputText('note', entry.title, undefined, locale as 'pl' | 'en');
+                                if (onQuoteToInput) {
+                                  onQuoteToInput(quoteText);
+                                } else {
+                                  window.dispatchEvent(
+                                    new CustomEvent('straznik:quote-to-input', {
+                                      detail: { text: quoteText },
+                                    })
+                                  );
+                                }
+                                onClose?.();
+                              }}
+                              className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
+                              title={t('quoteToChatTitle')}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </button>
+                            <button
                               onClick={() => setEditingEntry(entry)}
                               className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
                               title={t('editNoteTitle')}
@@ -974,6 +1340,52 @@ export function SessionJournal({
           onCancel={() => setEditingEntry(null)}
         />
       )}
+
+      {/* Modal Testu Pomysłu (Idea Roll INT CoC 7e RAW) */}
+      <IdeaRollModal
+        open={showIdeaModal}
+        onOpenChange={setShowIdeaModal}
+        character={character}
+        targetSubject={ideaTargetSubject}
+        contextClues={entries.map((e) => ({
+          title: e.title,
+          description: e.content,
+          type: e.type,
+        }))}
+        onSaveInsightToTarget={(insight) => {
+          if (ideaTargetSubject?.id) {
+            handleEditDiscoveryEntry({
+              id: ideaTargetSubject.id,
+              title: ideaTargetSubject.title,
+              content: ideaTargetSubject.description || '',
+              type: ideaTargetSubject.type || 'clue',
+              investigatorInsight: insight,
+            });
+          }
+        }}
+        onSaveInsightToChronicle={(title, insight) => {
+          addEntry({
+            title,
+            content: insight,
+            type: 'journal',
+            tags: ['test-pomysłu', 'dedukcja'],
+            investigatorInsight: insight,
+          });
+        }}
+        onQuoteToInput={(text) => {
+          if (onQuoteToInput) {
+            onQuoteToInput(text);
+          } else {
+            window.dispatchEvent(
+              new CustomEvent('straznik:quote-to-input', {
+                detail: { text },
+              })
+            );
+          }
+          setShowIdeaModal(false);
+          onClose?.();
+        }}
+      />
     </div>
   );
 }

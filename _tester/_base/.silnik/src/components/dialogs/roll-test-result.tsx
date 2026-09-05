@@ -12,12 +12,14 @@ import {
   REQUIRED_DIFFICULTY_LABELS,
 } from '@/lib/dice-utils';
 import type { RollTestData } from './RollTestModal';
+import { ArtDecoDice3D, type ArtDecoDiceBreakdown } from './ArtDecoDice3D';
 
 interface RollTestResultProps {
   test: RollTestData;
   phase: 'idle' | 'rolling' | 'done';
   animValue: number;
   roll: DiceRoll | null;
+  breakdown?: ArtDecoDiceBreakdown | null;
   /** Dostępne pkt Szczęścia (CoC 7e Faza 5B); null luckNeeded = nie wolno / nie trzeba. */
   availableLuck: number;
   luckNeeded: number | null;
@@ -36,6 +38,7 @@ export const RollTestResult: FC<RollTestResultProps> = ({
   phase,
   animValue,
   roll,
+  breakdown,
   availableLuck,
   luckNeeded,
   onRoll,
@@ -127,44 +130,40 @@ export const RollTestResult: FC<RollTestResultProps> = ({
         )}
       </div>
 
-      {/* Kość wyniku - animowana, potem ustalony wynik */}
-      <div className="relative flex flex-col items-center justify-center overflow-hidden border border-brass/28 bg-[radial-gradient(80%_70%_at_50%_40%,#16130f,#0c0a07)] px-6 py-7">
-        <div className="relative flex items-center justify-center w-[130px] h-[130px]">
-          <div
-            className={`absolute inset-0 border border-primary/50 rotate-45 ${phase === 'rolling' ? 'animate-spin' : 'animate-emerald-pulse'}`}
-          />
-          <div className="absolute inset-[14px] border border-brass/40 rotate-45" />
-          <div className="relative font-display font-bold text-[58px] leading-none text-foreground [text-shadow:0_0_24px_rgba(13,148,136,0.4)]">
-            {phase === 'idle' ? 'k100' : animValue}
-          </div>
-        </div>
+      {/* Trójwymiarowa fasetowana tacka kości Art Déco */}
+      <ArtDecoDice3D
+        phase={phase}
+        animValue={animValue}
+        total={roll?.total}
+        breakdown={breakdown}
+        bonusDice={test.bonusDice}
+        luckSpent={roll?.luckSpent}
+      />
 
-        {phase === 'done' && outcomeInfo && (
-          <div
-            className={`relative mt-3 font-display text-lg uppercase tracking-[0.16em] ${outcomeInfo.color}`}
-          >
-            {outcomeInfo.emoji} {outcomeInfo.label}
-          </div>
-        )}
-        {phase === 'done' &&
-          roll?.requiredDifficulty &&
-          roll.requiredDifficulty !== 'regular' &&
-          roll.passedRequirement !== undefined && (
+      {/* Werdykt po ustabilizowaniu rzutu */}
+      {phase === 'done' && (
+        <div className="flex flex-col items-center justify-center pt-0.5">
+          {outcomeInfo && (
             <div
-              className={`relative mt-1 font-special-elite text-xs tracking-[0.1em] ${succeeded ? 'text-primary' : 'text-destructive'}`}
+              className={`relative font-display text-lg uppercase tracking-[0.16em] ${outcomeInfo.color}`}
             >
-              {succeeded ? '✓' : '✗'}{' '}
-              {t('requiredLevelTag', {
-                level: REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty],
-              })}
+              {outcomeInfo.emoji} {outcomeInfo.label}
             </div>
           )}
-        {phase === 'done' && roll?.luckSpent ? (
-          <div className="relative mt-1 font-special-elite text-xs tracking-[0.1em] text-yellow-300">
-            {t('luckSpentNote', { amount: roll.luckSpent })}
-          </div>
-        ) : null}
-      </div>
+          {roll?.requiredDifficulty &&
+            roll.requiredDifficulty !== 'regular' &&
+            roll.passedRequirement !== undefined && (
+              <div
+                className={`relative mt-1 font-special-elite text-xs tracking-[0.1em] ${succeeded ? 'text-primary' : 'text-destructive'}`}
+              >
+                {succeeded ? '✓' : '✗'}{' '}
+                {t('requiredLevelTag', {
+                  level: REQUIRED_DIFFICULTY_LABELS[roll.requiredDifficulty],
+                })}
+              </div>
+            )}
+        </div>
+      )}
 
       {/* Akcje */}
       <div className="flex items-center justify-center gap-3 pt-1">

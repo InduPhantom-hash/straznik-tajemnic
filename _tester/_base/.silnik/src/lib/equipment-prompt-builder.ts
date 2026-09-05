@@ -7,8 +7,12 @@
 import type { Character, EquipmentCategory, EquipmentItem } from './types';
 import type { ResolvedEraContext } from '@/lib/era/types';
 import {
+  getEraAudioRecordingVisualDescription,
+  getEraCameraVisualDescription,
   getEraColorDirection,
+  getEraDevotionalVisualDescription,
   getEraPhoneVisualDescription,
+  getEraProtectiveVisualDescription,
   getEraTechnologyGuardrails,
   resolveEraVisualProfile,
 } from './era-visual-style';
@@ -27,38 +31,50 @@ const ERA_MODIFIERS: Record<string, string> = {
 };
 
 const CATEGORY_STYLES: Record<EquipmentCategory, string> = {
-  weapon: 'authentic object photography, mechanically plausible proportions',
-  armor: 'functional protective equipment, honest wear and construction',
-  tool: 'practical field equipment, visible materials and working details',
-  document: 'physical paper object with no readable words or labels',
-  artifact: 'singular old object, physical texture and restrained age',
-  personal: 'well-used personal belonging, understated and believable',
-  medical: 'period-appropriate medical kit or instrument, clean practical presentation',
-  occult: 'ordinary ritual supply, believable materials, no implied magic',
+  weapon: 'authentic object photography, mechanically plausible proportions, oiled metal finish and historic gunsmith craft',
+  armor: 'functional protective equipment, honest wear, period stitching, riveted leather and heavy canvas construction',
+  tool: 'practical field equipment, visible materials, mechanical assemblies and honest working wear',
+  document: 'tactile physical paper object with authentic aging, creases and foxing, no readable words or labels',
+  artifact: 'singular ancient object, weathered surface texture, restrained mysterious age, tactile physical authenticity',
+  personal: 'well-used personal belonging, understated and believable, genuine patina and subtle signs of frequent handling',
+  medical: 'period-appropriate medical instrument or kit, sterilized glass, brushed surgical steel, apothecary bottles and clean practical presentation',
+  occult: 'ordinary liturgical or esoteric ritual supply, authentic historical crafts, believable physical materials, no implied magic or glowing energy',
 };
 
 const CATEGORY_MATERIALS: Record<EquipmentCategory, string> = {
-  weapon: 'blued steel, wood, leather or bakelite where historically appropriate',
-  armor: 'canvas, leather, steel and functional fasteners',
-  tool: 'steel, brass, wood, leather, glass and rubber where appropriate',
-  document: 'paper, ink marks too small to read, folder or envelope',
-  artifact: 'stone, tarnished metal, wood or glass with credible age',
-  personal: 'leather, nickel, brass, wood, fabric or bakelite',
-  medical: 'leather case, glass, nickel-plated steel, cloth bandages',
-  occult: 'beeswax, chalk, untreated paper, ceramic or common metal',
+  weapon: 'blued carbon steel, carved walnut or oak wood, hand-stitched leather holster, brass pins or vintage bakelite grips where historically appropriate',
+  armor: 'heavy wax-treated canvas, thick harness leather, forged steel plates, reinforced webbing and functional brass or steel buckles',
+  tool: 'drop-forged steel, turned hardwood handles, cast brass fittings, optical glass, vulcanized rubber and hemp cordage where appropriate',
+  document: 'rag parchment, textured heavy bond paper, aged manila cardstock, iron gall ink traces too small to resolve, thread-sewn dossier binding or manila envelope',
+  artifact: 'hand-carved soapstone, oxidized bronze, tarnished silver, petrified bog oak, obsidian or hand-blown seeded glass with credible centuries of wear',
+  personal: 'tooled vegetable-tanned leather, polished nickel-silver, brushed brass, briar wood, woven wool, pressed amber or period bakelite',
+  medical: 'sturdy leather medical bag, amber glass tincture vials with cork stoppers, nickel-plated surgical steel, folded cotton gauze and linen bandages',
+  occult: 'natural yellow beeswax, carved chalk, untrimmed vellum, beaten tin or pewter, earthenware pottery, dried aromatic herbs and raw brass liturgical fixtures',
 };
 
 const MUNDANE_GUARDRAILS =
-  'one clear item as the focal point, universal period micro-scene on a worn wooden desk or field cloth, no people, no hands, no brands, no logos, no readable text, no map labels, no pentagrams, no occult symbols, no tentacles, no creatures, no cosmic imagery, no blood, no gore, no supernatural glow';
+  'one clear item as the focal point, macro studio still-life photography resting on an authentic period surface such as a distressed wooden desk, leather briefcase or heavy canvas field cloth, no people, no hands, no fingers, no brands, no logos, no readable text, no watermark, no map labels, no pentagrams, no fantasy runes, no occult symbols, no tentacles, no monsters, no creatures, no cosmic imagery, no blood, no gore, no supernatural glow';
 
 const SUPERNATURAL_GUARDRAILS =
-  'one clear item as the focal point, realistic physical materials first, subtle and restrained anomaly that follows the description only, no people, no hands, no brands, no readable text, no gratuitous tentacles, no generic pentagrams, no creature in frame';
+  'one clear item as the focal point, macro studio still-life photography resting on an authentic period surface, realistic physical materials first, subtle and restrained anomaly that strictly follows the description only, no people, no hands, no fingers, no brands, no readable text, no gratuitous tentacles, no generic pentagrams, no creature in frame';
 
 const CHARACTER_BOUND_ITEM_PATTERN =
   /\b(odznak\w*|legitymacj\w*|identyfikator\w*|dow[oó]d\w*|paszport\w*|przepustk\w*|praw[ao]\s+jazdy|karta\s+prasowa|press\s+card|identity\s+card|id\s+badge|credential\w*)\b/i;
 
 const PHONE_ITEM_PATTERN =
   /\b(telefon\w*|smartfon\w*|kom[oó]rk\w*|phone|telephone|smartphone)\b/i;
+
+const AUDIO_RECORDING_PATTERN =
+  /\b(dyktafon\w*|magnetofon\w*|gramofon\w*|radio\w*|radiostacj\w*|kr[oó]tkofal[oó]wk\w*|radiotelefon\w*|telegraf\w*|transceiver\w*|walkman\w*|fonograf\w*|nagrywark\w*|tape\s*recorder|voice\s*recorder|dictaphone|radio\s*receiver|phonograph|telegraph)\b/i;
+
+const CAMERA_OPTICS_PATTERN =
+  /\b(aparat\s+foto\w*|aparat\s+mieszkow\w*|kamera\w*|lornetk\w*|lunet\w*|mikroskop\w*|camera|bellows\s*camera|binoculars|telescope|microscope)\b/i;
+
+const DEVOTIONAL_ITEM_PATTERN =
+  /\b(krzy[zż]\w*|r[oó][zż]aniec\w*|kreda\w*|kadzidl\w*|zwoj\w*|zw[oó]j\w*|[sś]wiec\w*|relikwi\w*|woda\s+[sś]wi[eę]ta|aspersor\w*|kropid[lł]\w*|kielich\w*|crucifix|rosary|chalk|incense|censer|scroll|reliquary|holy\s*water|chalice)\b/i;
+
+const PROTECTIVE_TRAVEL_PATTERN =
+  /\b(gogle\w*|goggles|welon\w*|veil|akt[oó]wk\w*|briefcase|torba\s+podr[oó][zż]na|walizk\w*|travel\s*bag|suitcase|plecak\w*|backpack|maska\s+przeciwgaz\w*|gas\s*mask|r[eę]kawic\w*|gloves|sztormiak\w*|p[lł]aszcz\s+przeciwdeszcz\w*|raincoat)\b/i;
 
 function isSupernatural(item: EquipmentItem): boolean {
   return item.visualTreatment === 'supernatural';
@@ -114,14 +130,37 @@ export function buildEquipmentImagePrompt(
           ? 'broken but still clearly identifiable'
           : 'used, plausible wear and patina';
 
+  const itemText = `${item.name} ${item.description ?? ''}`;
+
   // Jeśli przedmiot to telefon, wstrzyknij ścisły opis wyglądu dla danej epoki
-  const isPhone = PHONE_ITEM_PATTERN.test(`${item.name} ${item.description ?? ''}`);
+  const isPhone = PHONE_ITEM_PATTERN.test(itemText);
   const phoneSpecificDescription = isPhone ? getEraPhoneVisualDescription(era) : undefined;
+
+  // Elektronika analogowa i urządzenia rejestrujące dźwięk
+  const isAudioRecording = AUDIO_RECORDING_PATTERN.test(itemText);
+  const audioSpecificDescription = isAudioRecording ? getEraAudioRecordingVisualDescription(era) : undefined;
+
+  // Aparaty fotograficzne i instrumenty optyczne
+  const isCameraOptics = CAMERA_OPTICS_PATTERN.test(itemText);
+  const cameraSpecificDescription = isCameraOptics ? getEraCameraVisualDescription(era) : undefined;
+
+  // Dewocjonalia i akcesoria rytualne
+  const isDevotional = DEVOTIONAL_ITEM_PATTERN.test(itemText);
+  const devotionalSpecificDescription = isDevotional ? getEraDevotionalVisualDescription() : undefined;
+
+  // Odzież ochronna i akcesoria podróżne
+  const isProtectiveTravel = PROTECTIVE_TRAVEL_PATTERN.test(itemText);
+  const protectiveSpecificDescription = isProtectiveTravel ? getEraProtectiveVisualDescription() : undefined;
+
   const eraGuardrails = getEraTechnologyGuardrails(era);
 
   return [
     `Photorealistic period object study of ${item.name}`,
     phoneSpecificDescription,
+    audioSpecificDescription,
+    cameraSpecificDescription,
+    devotionalSpecificDescription,
+    protectiveSpecificDescription,
     item.description,
     CATEGORY_STYLES[category],
     CATEGORY_MATERIALS[category],

@@ -60,6 +60,7 @@ export function cleanupContent(content: string): string {
     .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
     .replace(/\[EKWIPUNEK:[^\]]*\]/gi, '')
     .replace(/\[WALKA:[^\]]*\]/gi, '')
+    .replace(/\[(?:ZAGROŻENIE|ZAGROZENIE|HAZARD):[^\]]*\]/gi, '')
     .replace(/\[SANITY:[^\]]*\]/gi, '')
     // [HP: ±N: powód] - utrata/odzysk życia (aplikowane do karty, niewidoczne
     // w czacie). Krótszy niż 3 znaki, więc catch-all niżej go NIE łapie - explicit.

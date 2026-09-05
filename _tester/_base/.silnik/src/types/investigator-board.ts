@@ -38,9 +38,13 @@ export interface EvidenceNode {
   /** Opcjonalny wniosek lub hipoteza badacza wyciągnięta z tej poszlaki */
   investigatorInsight?: string;
 
-  // Powiazania zrodlowe (Traceability) - EPIC-01
+  // Powiazania zrodlowe (Traceability) - EPIC-01 & EPIC-66
   sourceJournalEntryId?: string;
   sourceEquipmentItemId?: string;
+  sourceClueId?: string;
+  sourceNpcId?: string;
+  sourceLocationId?: string;
+  sourceNoteId?: string;
   isManuallyCreated?: boolean;
 
   // Wygladd karty na tablicy korkowej - EPIC-01

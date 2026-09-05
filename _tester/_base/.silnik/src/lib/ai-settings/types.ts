@@ -16,6 +16,13 @@ export type SessionNarrativeMode =
   | 'story_priority'
   | 'pure_narrative';
 export type MechanicsPacing = 'narrative' | 'standard' | 'detailed';
+export type EraFilterMode = 'authentic_1920s' | 'modern_sensibilities';
+
+export interface SessionZeroAnchors {
+  keyConnection?: string; // Ważna Osoba (Key Connection - odzyskiwanie SAN CoC 7e RAW)
+  importantPlace?: string; // Znaczące Miejsce
+  treasuredItem?: string; // Cenny Przedmiot
+}
 
 export interface SessionMechanicsSettingsV1 {
   schemaVersion: 1;
@@ -29,7 +36,7 @@ export interface SessionZeroSettings {
   era: SessionZeroEra;
   eraCustom?: string;
   tone: SessionZeroTone;
-  difficulty: SessionZeroDifficulty;
+  difficulty?: SessionZeroDifficulty;
   narrativeMode: SessionNarrativeMode;
   lines: string[];
   veils: string[];
@@ -37,6 +44,11 @@ export interface SessionZeroSettings {
   playerName: string;
   completed: boolean;
   mechanics?: SessionMechanicsSettingsV1;
+  // Nowe pola kanonu CoC 7e RAW (Issue #90)
+  briefing?: string;
+  investigatorHook?: string;
+  anchors?: SessionZeroAnchors;
+  eraFilter?: EraFilterMode;
 }
 
 const MECHANICS_PACING_VALUES: readonly MechanicsPacing[] = [
@@ -190,34 +202,11 @@ export interface AISettings {
   // 2026-07-25: przywrócone dla presetów HIGH/ULTRA (słuchowisko radiowe)
   elevenLabsApiKey?: string;
 
-  // === IMAGE GENERATION (Vertex / Replicate / Gemini) ===
+  // === IMAGE GENERATION (Gemini Imagen / Vertex / Replicate) ===
   // IND-91: rename legacy `replicateEnabled` → `imageGenerationEnabled`
-  // Flag is provider-agnostic - toggles all 3 image providers (vertex/replicate/gemini).
+  // Flag is provider-agnostic - toggles all image providers.
   imageGenerationEnabled: boolean;
-  replicateApiKey?: string;
   replicateSettings: {
-    model:
-      | 'black-forest-labs/flux-schnell'
-      | 'stability-ai/stable-diffusion'
-      | 'stability-ai/sdxl'
-      | 'runwayml/stable-diffusion-v1-5'
-      | 'stability-ai/stable-diffusion-xl-base-1.0'
-      | 'stability-ai/stable-diffusion-3-medium';
-    width: number; // 256-2048
-    height: number; // 256-2048
-    numInferenceSteps: number; // 1-100
-    guidanceScale: number; // 1-20
-    seed: number | null;
-    scheduler:
-      | 'DDIM'
-      | 'DPMSolverMultistep'
-      | 'HeunDiscrete'
-      | 'KarrasDPM'
-      | 'K_EULER_ANCESTRAL'
-      | 'K_EULER'
-      | 'PNDM'
-      | 'EulerAncestralDiscrete'
-      | 'LMSDiscreteScheduler';
     style: 'realistic' | 'artistic' | 'horror' | 'vintage';
     quality: 'low' | 'medium' | 'high' | 'ultra';
     autoGeneratePortraits: boolean;

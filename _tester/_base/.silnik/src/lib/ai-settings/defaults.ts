@@ -5,7 +5,7 @@ export const defaultAISettings: AISettings = {
   geminiEnabled: false,
   geminiApiKey: undefined,
   geminiSettings: {
-    model: 'gemini-3.6-flash', // Domyślny szybki i powtarzalny model dla aplikacji (LOW/MID preset baseline)
+    model: 'gemini-3.8-flash', // Domyślny model Mistrza Gry z poziomem myślenia HIGH (HIGH preset baseline)
     // === Sampling (HIGH) ===
     temperature: 0.8,
     topP: 0.9,
@@ -49,16 +49,8 @@ export const defaultAISettings: AISettings = {
 
   // === IMAGE GENERATION (IND-91 rename) ===
   imageGenerationEnabled: true,
-  replicateApiKey: undefined,
   replicateSettings: {
     imageProvider: 'vertex', // HIGH/ULTRA: Imagen 4 Ultra Tier 1 (applyPreset - drift guard T31)
-    model: 'stability-ai/stable-diffusion',
-    width: 512,
-    height: 512,
-    numInferenceSteps: 20,
-    guidanceScale: 7.5,
-    seed: null,
-    scheduler: 'K_EULER',
     style: 'realistic',
     quality: 'high',
     autoGeneratePortraits: true,

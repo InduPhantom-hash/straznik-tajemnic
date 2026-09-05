@@ -31,11 +31,11 @@ describe('Model Registry Drift-Guard', () => {
   });
 
   it('defines valid default chat and image models and fallbacks', () => {
-    expect(DEFAULT_CHAT_MODEL).toBe('gemini-flash-latest');
+    expect(DEFAULT_CHAT_MODEL).toBe('gemini-3.8-flash');
     expect(DEFAULT_CHAT_MODEL_FALLBACK).toBe('gemini-2.5-flash');
     expect(DEFAULT_IMAGE_MODEL).toBe('gemini-3.1-flash-image');
     expect(FALLBACK_IMAGE_MODEL).toBe('gemini-2.5-flash-image');
-    expect(CACHEABLE_MODELS.has('gemini-flash-latest')).toBe(true);
+    expect(CACHEABLE_MODELS.has('gemini-3.8-flash')).toBe(true);
     expect(CACHEABLE_MODELS.has('gemini-2.5-flash')).toBe(true);
   });
 });

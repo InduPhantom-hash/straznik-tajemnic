@@ -61,6 +61,52 @@ describe('media-parser: extractImages', () => {
         expect(result[0].isMythos).toBe(true);
         expect(result[0].prompt).toBe('spooky ghost'); // Prompt powinien być oczyszczony z flagi
     });
+
+    it('should extract location image with locationName', () => {
+        const text = 'Wjeżdżacie do miasta. [LOKACJA: Arkham Cemetery, foggy Victorian graveyard at dusk] Cisza.';
+        const result = extractImages(text);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].type).toBe('location');
+        expect(result[0].style).toBe('location');
+        expect(result[0].aspectRatio).toBe('16:9');
+        expect(result[0].locationName).toBe('Arkham Cemetery');
+        expect(result[0].prompt).toBe('Arkham Cemetery, foggy Victorian graveyard at dusk');
+    });
+
+    it('should extract item/artifact image with itemName', () => {
+        const text = 'W skrytce leży artefakt. [PRZEDMIOT: Srebrny Klucz, ornate ancient silver key] Błyszczy w mroku.';
+        const result = extractImages(text);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].type).toBe('item');
+        expect(result[0].style).toBe('item');
+        expect(result[0].aspectRatio).toBe('1:1');
+        expect(result[0].itemName).toBe('Srebrny Klucz');
+    });
+
+    it('should extract monster tag with automatic isMythos and high priority', () => {
+        const text = 'Z wody wyłania się koszmar. [POTWÓR: Dagon, massive aquatic deity rising from the dark abyss] Rzucasz na SAN.';
+        const result = extractImages(text);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].type).toBe('monster');
+        expect(result[0].style).toBe('horror');
+        expect(result[0].aspectRatio).toBe('16:9');
+        expect(result[0].isMythos).toBe(true);
+        expect(result[0].priority).toBe('high');
+    });
+
+    it('should extract vision/phenomenon tag with automatic isMythos and high priority', () => {
+        const text = 'Ściany zaczynają falować. [ZJAWISKO: geometric impossible architecture bending space] Głowa ci pęka.';
+        const result = extractImages(text);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].type).toBe('vision');
+        expect(result[0].style).toBe('horror');
+        expect(result[0].isMythos).toBe(true);
+        expect(result[0].priority).toBe('high');
+    });
 });
 
 describe('media-parser: detectSFX', () => {

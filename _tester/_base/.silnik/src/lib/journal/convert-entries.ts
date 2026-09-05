@@ -1,5 +1,5 @@
-import { EvidenceNode, EvidenceNodeType, PinType } from '@/types/investigator-board';
-import { JournalEntry } from '@/lib/types';
+import { EvidenceNode, EvidenceNodeType, EvidenceNodeStatus, PinType } from '@/types/investigator-board';
+import { JournalEntry, InvestigatorDossier } from '@/lib/types';
 
 import { getMappedBoardType } from '@/lib/journal/entity-mapping';
 
@@ -68,4 +68,132 @@ export function convertEntriesToBoardNodes(entries: JournalEntry[]): EvidenceNod
       rotation: randomRotation(),
     };
   });
+}
+
+/**
+ * Konwertuje kanoniczną strukturę Akt Śledczych (InvestigatorDossier) na węzły Tablicy Badacza.
+ */
+export function convertDossierToBoardNodes(dossier: InvestigatorDossier): EvidenceNode[] {
+  const nodes: EvidenceNode[] = [];
+  let index = 0;
+
+  const pushNode = (
+    baseId: string,
+    title: string,
+    description: string,
+    type: EvidenceNodeType,
+    status: EvidenceNodeStatus,
+    pinType: PinType,
+    date?: string,
+    tags?: string[],
+    imageUrl?: string,
+    insight?: string,
+    extraSources?: {
+      sourceClueId?: string;
+      sourceNpcId?: string;
+      sourceLocationId?: string;
+      sourceNoteId?: string;
+    }
+  ) => {
+    const col = index % 4;
+    const row = Math.floor(index / 4);
+    nodes.push({
+      id: `node_${baseId}`,
+      title: title || 'Nieznany element',
+      description: description || '',
+      type,
+      status,
+      position: { x: 50 + col * 280, y: 50 + row * 220 },
+      imageUrl,
+      investigatorInsight: insight,
+      tags: tags || [],
+      createdAt: date || new Date().toISOString(),
+      isManuallyCreated: false,
+      pinType,
+      rotation: randomRotation(),
+      ...extraSources,
+    });
+    index++;
+  };
+
+  // 1. Poszlaki i dowody
+  if (Array.isArray(dossier.clues)) {
+    dossier.clues.forEach((clue) => {
+      const type: EvidenceNodeType = clue.category === 'occult' ? 'artifact' : 'clue';
+      const status: EvidenceNodeStatus =
+        clue.status === 'confirmed' ? 'confirmed' : clue.status === 'disproven' ? 'refuted' : 'hypothesis';
+      pushNode(
+        clue.id,
+        clue.title,
+        clue.description,
+        type,
+        status,
+        clue.category === 'occult' ? 'badge' : 'telegram',
+        clue.inGameDate,
+        clue.tags,
+        clue.imageUrl,
+        clue.investigatorInsight,
+        { sourceClueId: clue.id }
+      );
+    });
+  }
+
+  // 2. Postacie
+  if (Array.isArray(dossier.npcs)) {
+    dossier.npcs.forEach((npc) => {
+      pushNode(
+        npc.id,
+        npc.name,
+        npc.firstImpression || npc.occupation || '',
+        'suspect',
+        'confirmed',
+        'polaroid',
+        npc.inGameDate,
+        npc.tags,
+        npc.avatarUrl,
+        npc.keyInformation,
+        { sourceNpcId: npc.id }
+      );
+    });
+  }
+
+  // 3. Lokacje
+  if (Array.isArray(dossier.locations)) {
+    dossier.locations.forEach((loc) => {
+      pushNode(
+        loc.id,
+        loc.name,
+        loc.description || loc.addressOrRegion || '',
+        'location',
+        'confirmed',
+        'polaroid',
+        loc.inGameDate,
+        loc.tags,
+        loc.imageUrl,
+        undefined,
+        { sourceLocationId: loc.id }
+      );
+    });
+  }
+
+  // 4. Notatki badacza
+  if (Array.isArray(dossier.notes)) {
+    dossier.notes.forEach((note) => {
+      pushNode(
+        note.id,
+        note.title,
+        note.content,
+        'player_note',
+        'hypothesis',
+        'note',
+        note.inGameDate,
+        note.tags,
+        undefined,
+        undefined,
+        { sourceNoteId: note.id }
+      );
+    });
+  }
+
+  return nodes;
 }

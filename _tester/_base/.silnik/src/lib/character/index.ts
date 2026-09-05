@@ -17,6 +17,8 @@ export {
   getMovement,
   calculateDerived,
   getWealthInfo,
+  distributePhysPenalty,
+  applyTeenPenalty,
 } from './derived-stats';
 export { calculateOccupationPoints } from './occupation-points';
 export type { ItemCategory } from './item-helpers';

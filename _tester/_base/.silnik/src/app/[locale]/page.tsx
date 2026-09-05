@@ -544,6 +544,7 @@ export default function Home() {
             : {}),
           id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
           sourcePresetId: foundPreset?.id,
+          isActive: true,
         };
         if (mode === 'hot-seat') {
           stamped.playerName = t('player1Name');
@@ -974,8 +975,22 @@ export default function Home() {
                       activeCharacterId: charMgmt.activeCharacter?.id,
                       campaigns: campaigns,
                       activeCampaignId: charMgmt.activeGameState.campaign?.id,
-                      npcs: [],
-                      locations: [],
+                      npcs: (() => {
+                        if (typeof window === 'undefined') return [];
+                        try {
+                          return JSON.parse(localStorage.getItem('gm_npcs') || '[]');
+                        } catch {
+                          return [];
+                        }
+                      })(),
+                      locations: (() => {
+                        if (typeof window === 'undefined') return [];
+                        try {
+                          return JSON.parse(localStorage.getItem('gm_locations') || '[]');
+                        } catch {
+                          return [];
+                        }
+                      })(),
                       currentLocationId: undefined,
                       pdfMemory: pdf.pdfMemory,
                       notes: '',
