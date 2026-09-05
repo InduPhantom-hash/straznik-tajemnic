@@ -166,6 +166,8 @@ interface UseGameStartProps {
     waitForInitialBuffer?: (timeoutMs?: number) => Promise<void>;
     /** Issue #157: Zdejmuje blokadę oczekiwania na akcept gracza i rozpoczyna odtwarzanie lektora */
     playInitialNarration?: () => void;
+    /** Anuluje buforowanie i zdejmuje blokadę lektora przy błędzie lub resecie */
+    cancelInitialBuffering?: () => void;
     stopCurrentAudio: () => void;
   };
   aiSettings?: AISettings | null;
@@ -863,8 +865,8 @@ export function useGameStart({
         setStartProgress(95);
         setStartStatus(
           locale === 'en'
-            ? 'Buffering narrator voice (3-4 sentences)...'
-            : 'Buforowanie głosu lektora (3-4 zdania)...'
+            ? 'Buffering narrator voice...'
+            : 'Buforowanie głosu lektora...'
         );
         await tts.waitForInitialBuffer(15000);
       }
@@ -912,6 +914,7 @@ export function useGameStart({
       }
     } catch (error) {
       console.error('Game start intro failed:', error);
+      tts.cancelInitialBuffering?.();
       setIsStarting(false);
       setIsReadyToEnter(false);
       setStartProgress(0);

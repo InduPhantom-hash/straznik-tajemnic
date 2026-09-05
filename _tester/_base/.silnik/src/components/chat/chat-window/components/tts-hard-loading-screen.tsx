@@ -96,7 +96,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   return (
     <div
       data-testid="tts-hard-loading-screen"
-      className={`absolute inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0b08]/98 backdrop-blur-xl overflow-hidden transition-opacity duration-500 ease-out px-4 select-none ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0b08]/98 backdrop-blur-xl overflow-hidden transition-opacity duration-500 ease-out px-4 select-none ${
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >

@@ -58,6 +58,8 @@ export interface UseTTSReturn extends TTSState {
   waitForInitialBuffer: (timeoutMs?: number) => Promise<void>;
   /** Issue #157: Zdejmuje blokadę oczekiwania na akcept gracza i rozpoczyna odtwarzanie lektora z bufora */
   playInitialNarration?: () => void;
+  /** Anuluje buforowanie i zdejmuje blokadę lektora przy błędzie lub resecie */
+  cancelInitialBuffering?: () => void;
 }
 
 /**
@@ -308,7 +310,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           resolvers.forEach((resolve) => resolve());
         }
         isInitialBufferingRef.current = false;
-        isAwaitingInitialPlayRef.current = false;
+        // Issue #157: Nie resetuj isAwaitingInitialPlayRef.current tutaj!
+        // Bramka oczekiwania na akcept gracza (CTA) jest znoszona wyłącznie przez
+        // playInitialNarration() po kliknięciu lub jawne cancelInitialBuffering().
         setIsInitialBuffering(false);
       }
 
@@ -481,11 +485,23 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
   // Odtwarzaj audio z bufora bez opóźnień
   const playFromBuffer = useCallback(async () => {
-    if (isPlayingQueueRef.current || isInitialBufferingRef.current) return;
+    if (
+      isPlayingQueueRef.current ||
+      isInitialBufferingRef.current ||
+      isAwaitingInitialPlayRef.current
+    )
+      return;
     isPlayingQueueRef.current = true;
 
     try {
       while (true) {
+        if (isAwaitingInitialPlayRef.current) {
+          console.log(
+            '🔇 TTS Player: Awaiting initial play (CTA gate active). Halting playback.'
+          );
+          break;
+        }
+
         const currentIndex = playbackIndexRef.current;
         const hasEntry = preloadedAudioRef.current.has(currentIndex);
         const audio = preloadedAudioRef.current.get(currentIndex);
@@ -512,6 +528,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           // Czekamy na worker
           await new Promise((r) => setTimeout(r, 100));
           continue;
+        }
+
+        if (isAwaitingInitialPlayRef.current) {
+          break;
         }
 
         console.log(`▶️ TTS Player: Playing segment ${currentIndex}`);
@@ -916,8 +936,17 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   }, [voiceEnabled, isTTSEnabled]);
 
   const waitForInitialBuffer = useCallback(
-    (timeoutMs = 15000): Promise<void> => {
+    (timeoutMs = 8000): Promise<void> => {
       if (!voiceEnabled || !isTTSEnabled || !isInitialBufferingRef.current) {
+        return Promise.resolve();
+      }
+      // Jeśli mamy już przynajmniej 1 gotowy segment i kolejka została wyczerpana po flush:
+      if (
+        preloadedAudioRef.current.size >= 1 &&
+        pendingQueueRef.current.length === 0 &&
+        flushedRef.current
+      ) {
+        finishInitialBufferingRef.current();
         return Promise.resolve();
       }
       return new Promise<void>((resolve) => {
@@ -947,6 +976,20 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     playFromBuffer();
   }, [playFromBuffer]);
 
+  /**
+   * Anuluje buforowanie i zdejmuje blokadę lektora przy błędzie lub resecie.
+   */
+  const cancelInitialBuffering = useCallback(() => {
+    isInitialBufferingRef.current = false;
+    isAwaitingInitialPlayRef.current = false;
+    setIsInitialBuffering(false);
+    if (bufferTimeoutRef.current) {
+      clearTimeout(bufferTimeoutRef.current);
+      bufferTimeoutRef.current = null;
+    }
+    initialBufferResolversRef.current = [];
+  }, []);
+
   const generateVoiceForMessage = useCallback(
     async (message: Message) => {
       if (!voiceEnabled || !isTTSEnabled || message.role !== 'assistant')
@@ -956,7 +999,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     [voiceEnabled, isTTSEnabled, addToQueue]
   );
 
-  // M6 sesja 146: generateMultiVoice DROPPED per D3 (drop /api/tts/multi-voice).
+  // M6 sesja 146: drop generateMultiVoice (martwy kod, wywoływany z useGameStart
+  // przed D3 z sesji 145). Czysty interfejs 1:1 z architekturą useChat/useTTS.
   // NPC dialogi idą sekwencyjnie przez generateVoiceForMessage (parser cleanResponseText
   // złoży scenę w jednolity tekst). NPC voice auto-mapping per role - follow-up ticket.
 
@@ -979,5 +1023,6 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     startInitialBuffering,
     waitForInitialBuffer,
     playInitialNarration,
+    cancelInitialBuffering,
   };
 }

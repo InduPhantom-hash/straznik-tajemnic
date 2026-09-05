@@ -253,6 +253,7 @@ export default function Home() {
       startInitialBuffering: tts.startInitialBuffering,
       waitForInitialBuffer: tts.waitForInitialBuffer,
       playInitialNarration: tts.playInitialNarration,
+      cancelInitialBuffering: tts.cancelInitialBuffering,
       stopCurrentAudio: tts.stopCurrentAudio,
     },
     aiSettings,
