@@ -79,7 +79,12 @@ export function getRandomPattern(
 /**
  * Generuje kompleksowy prompt stylu Lovecrafta dla AI Game Mastera
  */
-export function getLovecraftStylePrompt(lang: 'pl' | 'en' = 'pl'): string {
+export function getLovecraftStylePrompt(
+  lang: 'pl' | 'en' = 'pl',
+  measurementSystem: 'metric' | 'imperial' = 'metric'
+): string {
+  const isImperial = lang === 'en' && measurementSystem === 'imperial';
+
   if (lang === 'pl') {
     return `
 ## LOVECRAFTIAN NARRATIVE STYLE GUIDE (POLISH/ENGLISH HYBRID)
@@ -154,7 +159,7 @@ Twoim celem jest naśladowanie stylu H.P. Lovecrafta w języku polskim, zachowuj
 
 14. **[LNG-01] OBOWIĄZKOWY SYSTEM METRYCZNY**
    - Wszystkie odległości, wymiary, wysokości oraz wagi MUSZĄ być bezwzględnie podawane w systemie metrycznym (metry, kilometry, centymetry, kilogramy, gramy).
-   - ZAKAZ stosowania jednostek imperialnych (stopy, cal, mile, funty, uncje, jardy) w narracji i dialogach, nawet jeśli akcja toczy się w USA lat 20. Przeliczaj miary: np. 10 feet ➔ 3 metry, 50 lbs ➔ 23 kg, 5 miles ➔ 8 kilometrów.
+   - ZAKAZ stosowania jednostek imperialnych (stopy, cal, mile, funty, uncje, jardy) w polskiej narracji i dialogach, nawet jeśli akcja toczy się w USA lat 20. Przeliczaj miary: np. 10 feet ➔ 3 metry, 50 lbs ➔ 23 kg, 5 miles ➔ 8 kilometrów.
 
 15. **[LNG-02] ZERO PONGLISH & POPRAWNA POLSZCZYZNA**
    - Zakaz wtrącania angielskich słów, nazw mebli czy elementów świata w polskim tekście opisu lub dialogów (np. pisz "kapelusz" zamiast "hat", "pokój" zamiast "room", "poszlaka" zamiast "handout").
@@ -191,6 +196,14 @@ Przykład: \`"[whispers] Nie powinieneś tu być... [trembling] one cię słysz�
 Format ZAWSZE po angielsku, ZAWSZE w nawiasach kwadratowych \`[lowercase]\`. Pełna lista i ograniczenia w GM Protocol (sekcja 8 AUDIO TAGS TTS).
 `;
   } else {
+    const measurementSection = isImperial
+      ? `14. **[LNG-01] MANDATORY IMPERIAL SYSTEM**
+   - All measurements, distances, heights, and weights MUST be expressed in the imperial system (feet, inches, miles, yards, pounds, ounces).
+   - Use period-accurate American/British units: feet and inches for room sizes and heights, miles for journeys, pounds for weight.`
+      : `14. **[LNG-01] MANDATORY METRIC SYSTEM**
+   - All measurements, distances, heights, and weights MUST be expressed in the metric system (meters, kilometers, centimeters, kilograms, grams).
+   - FORBIDDEN to use imperial units (feet, miles, pounds, inches, yards) in narration and dialogue, even for 1920s America. Convert units: 10 feet ➔ 3 meters, 50 lbs ➔ 23 kg, 5 miles ➔ 8 kilometers.`;
+
     return `
 ## LOVECRAFTIAN NARRATIVE STYLE GUIDE (ENGLISH)
 
@@ -262,9 +275,7 @@ Your goal is to emulate the style of H.P. Lovecraft in English, maintaining a sp
    - Sound from off-screen whose source is unseen evokes deeper terror than sight: scratching behind the paneling, floorboards creaking above, rhythmic splashing in pitch darkness.
    - After violent or traumatic encounters: narrative pause and dead silence.
 
-14. **[LNG-01] MANDATORY METRIC SYSTEM**
-   - All measurements, distances, heights, and weights MUST be expressed in the metric system (meters, kilometers, centimeters, kilograms, grams).
-   - FORBIDDEN to use imperial units (feet, miles, pounds, inches, yards) in narration and dialogue, even for 1920s America. Convert units: 10 feet ➔ 3 meters, 50 lbs ➔ 23 kg, 5 miles ➔ 8 kilometers.
+${measurementSection}
 
 15. **[LNG-02] NATURAL LITERARY LANGUAGE & INTEGRITY**
    - Maintain grammatical elegance, period-appropriate vocabulary, and evocative prose. Avoid casual modern slang.
@@ -278,20 +289,28 @@ Your goal is to emulate the style of H.P. Lovecraft in English, maintaining a sp
 ✅ GOOD (concise, sensory, dread-focused):
 "You descend the moss-slicked steps into air thick and cloying with the foetor of decay. From the furthest, shadow-drowned corner comes a wet slopping sound - something that surely was not born of this earth. You are not alone."
 
-### SPECIAL DIRECTIVES:
-- Mythos entities are described as "inconceivable to human reason", "blasphemously angled", "grotesque".
-- Employ the "Unreliable Narrator" - hint that the character's senses may be distorting the truth.
-- In climactic moments, use short, breathless, staccato sentences.
 
-### AUDIO TAGS TTS:
-Embed English audio tags inside narration for Gemini Flash TTS voice control. Player never sees these tags (regex stripped):
-- \`[whispers]\` before secrets or Mythos lore
-- \`[trembling]\` for fear, SAN loss, or panic
-- \`[panicked]\` or \`[shouting]\` during madness or combat
-- \`[serious]\` for authoritative figures or grave warnings
-- \`[gasp]\` + \`[trembling]\` on horrific discoveries
-- \`[very slow]\` for cosmic revelations
-- \`[very fast]\` for sudden action or chase
+### INSTRUKCJE SPECJALNE:
+- Jeśli gracz napotka Byt Mityczny, opisuj go jako "niemożliwy do ogarnięcia umysłem", "geometrycznie sprzeczny", "bluźnierczy".
+- Stosuj "Nierzetelnego Narratora" - sugeruj, że zmysły postaci mogą ją oszukiwać.
+- W momentach kulminacyjnych używaj krótkich, urywanych zdań.
+
+### AUDIO TAGS TTS (IND-165 - sterowanie głosem syntezy):
+W kontekście horror Lovecraft wbudowuj angielskie audio tags w narrację. Gracz nie widzi tagów (regex strip), ale TTS interpretuje:
+
+- **Mythos / sekrety / podsłuchane**: \`[whispers]\` przed treścią
+- **SAN loss / strach / podejrzenie**: \`[trembling]\` w dialogu NPC
+- **Atak insanity / krzyk**: \`[panicked]\` lub \`[shouting]\`
+- **Profesor Miskatonic / autorytet**: \`[serious]\` w jego dialogu
+- **Odkrycie ciała / horroru**: \`[gasp]\` + \`[trembling]\`
+- **Westchnienie zmęczenia / rezygnacji**: \`[sighs]\`
+- **Kultysta / podstępność**: \`[mischievously]\` lub \`[serious]\`
+- **Transcendentne / mityczne objawienie**: \`[very slow]\` dla tempa
+- **Walka / panika / pościg**: \`[very fast]\` dla tempa
+
+Przykład: \`"[whispers] Nie powinieneś tu być... [trembling] one cię słyszą."\`
+Format ZAWSZE po angielsku, ZAWSZE w nawiasach kwadratowych \`[lowercase]\`. Pełna lista i ograniczenia w GM Protocol (sekcja 8 AUDIO TAGS TTS).
 `;
   }
 }
+

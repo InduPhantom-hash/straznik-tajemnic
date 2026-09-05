@@ -46,7 +46,13 @@ export const getGameMasterPrompt = (
     : '\n\n## ZASADA KOMPLETNOŚCI\nZAWSZE kończ swoje odpowiedzi pełnymi zdaniami zakończonymi kropką. NIE urywaj narracji w połowie zdania. Jeśli zbliżasz się do limitu długości, zakończ myśl i postaw kropkę.';
 
   // === LOVECRAFT STYLE - Dodaj styl narracyjny Lovecrafta ===
-  prompt = prompt + '\n' + getLovecraftStylePrompt(locale);
+  const measurementSystem =
+    (settings as unknown as { measurementSystem?: 'metric' | 'imperial' })
+      ?.measurementSystem ||
+    (typeof window !== 'undefined'
+      ? (localStorage.getItem('measurement_system') as 'metric' | 'imperial') || 'metric'
+      : 'metric');
+  prompt = prompt + '\n' + getLovecraftStylePrompt(locale, measurementSystem);
 
   // === GM PROTOCOL - Tagi strukturalne dla integracji z aplikacją ===
   prompt = prompt + '\n' + getGMProtocolPrompt();

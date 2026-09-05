@@ -3,7 +3,10 @@
     "title": "Wybierz język",
     "subtitle": "Choose Language",
     "playPl": "Zagraj po polsku",
-    "playEn": "Play in English"
+    "playEn": "Play in English",
+    "units": "System miar",
+    "metric": "Metryczny (m, kg)",
+    "imperial": "Imperialny (ft, lbs)"
   },
   "WelcomeStart": {
     "quickTitle": "Szybka Przygoda",
