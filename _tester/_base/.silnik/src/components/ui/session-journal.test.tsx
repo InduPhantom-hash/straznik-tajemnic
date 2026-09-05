@@ -179,7 +179,7 @@ describe('SessionJournal', () => {
     expect(latestCharacters[2].journal).toEqual([outsideEntry]);
   });
 
-  it('przełącza i wyświetla zakładkę Tablica Badacza (Evidence Graph)', () => {
+  it('domyślnie wyświetla Akta Śledcze (Dossier) i nie zawiera Tablicy Badacza', () => {
     render(
       <SessionJournal
         character={PREDEFINED_CHARACTERS[0]}
@@ -188,9 +188,9 @@ describe('SessionJournal', () => {
       />
     );
 
-    const graphTabButton = screen.getByRole('button', { name: /Tablica Badacza/i });
-    expect(graphTabButton).toBeTruthy();
-    fireEvent.click(graphTabButton);
+    const discoveriesTabButton = screen.getByTestId('btn-discoveries');
+    expect(discoveriesTabButton).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Tablica Badacza/i })).toBeNull();
   });
 
   it('wywołuje onClose po kliknięciu przycisku zamykania X oraz po wciśnięciu Escape', () => {
@@ -266,7 +266,7 @@ describe('SessionJournal', () => {
     fireEvent.click(discoveriesTab);
 
     // Kliknij teczkę Poszlaki (dawne Misje)
-    const cluesCategoryBtn = screen.getByRole('button', { name: /Misje/i });
+    const cluesCategoryBtn = screen.getByRole('button', { name: /Poszlaki i Ślady/i });
     fireEvent.click(cluesCategoryBtn);
 
     // Poszlaka powinna być widoczna na liście i w podglądzie akt
@@ -321,7 +321,7 @@ describe('SessionJournal', () => {
     );
 
     fireEvent.click(screen.getByTestId('btn-discoveries'));
-    fireEvent.click(screen.getByRole('button', { name: /Misje/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
 
     expect(screen.getAllByText('Krwawy Ślad w piwnicy')[0]).toBeInTheDocument();
     expect(screen.getAllByText('List z Arkham Sanitarium')[0]).toBeInTheDocument();

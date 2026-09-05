@@ -67,8 +67,8 @@ describe('DiscoveriesView', () => {
     expect(screen.getAllByText('Złoty klucz')[0]).toBeInTheDocument();
     expect(screen.getByText('#artefakt')).toBeInTheDocument();
     
-    // Kliknij "Misje"
-    fireEvent.click(screen.getByRole('button', { name: /Misje/i }));
+    // Kliknij "Poszlaki i Ślady"
+    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
     expect(screen.getAllByText('Rozwiązanie zagadki')[0]).toBeInTheDocument();
     // Status
     expect(screen.getByText('STATUS:')).toBeInTheDocument();
@@ -92,17 +92,17 @@ describe('DiscoveriesView', () => {
     expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument(); // matches "Podejrzany" in content
   });
   
-  it('wywołuje akcje na wpisach', () => {
+  it('wywołuje akcje na wpisach oraz uruchamia Test Pomysłu (INT)', () => {
     const onEdit = jest.fn();
     const onDelete = jest.fn();
-    const onPin = jest.fn();
+    const onTriggerIdea = jest.fn();
 
     render(
       <DiscoveriesView
         entries={mockEntries}
         onEditEntry={onEdit}
         onDeleteEntry={onDelete}
-        onPinToBoard={onPin}
+        onTriggerIdeaRoll={onTriggerIdea}
       />
     );
 
@@ -114,9 +114,9 @@ describe('DiscoveriesView', () => {
     fireEvent.click(screen.getByTitle('Usuń'));
     expect(onDelete).toHaveBeenCalledWith(mockEntries[0].id);
 
-    // Pin
-    fireEvent.click(screen.getByTitle('Przypnij do Tablicy Badacza'));
-    expect(onPin).toHaveBeenCalledWith(mockEntries[0]);
+    // Test Pomysłu (INT)
+    fireEvent.click(screen.getByTitle('Test Pomysłu (INT) – dedukcja z poszlaki'));
+    expect(onTriggerIdea).toHaveBeenCalledWith(mockEntries[0]);
   });
 
   it('wyświetla wniosek badacza jeśli jest obecny we wpisie oraz umożliwia jego edycję', () => {

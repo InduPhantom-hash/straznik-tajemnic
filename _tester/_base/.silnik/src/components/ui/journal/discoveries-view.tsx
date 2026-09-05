@@ -11,7 +11,7 @@ import {
   Target,
   Search,
   Plus,
-  Pin,
+  Lightbulb,
   Edit3,
   Trash2,
   X,
@@ -75,8 +75,8 @@ interface DiscoveriesViewProps {
   entries: DiscoveryEntry[];
   onEditEntry: (entry: DiscoveryEntry) => void;
   onDeleteEntry: (id: string) => void;
-  /** Callback przypinania elementu do tablicy badacza przez szufladę poszlak */
-  onPinToBoard?: (entry: DiscoveryEntry) => void;
+  /** Callback uruchomienia Testu Pomysłu (INT) dla wybranego wpisu */
+  onTriggerIdeaRoll?: (entry: DiscoveryEntry) => void;
   searchQuery?: string;
   activeCharacter?: Character | null;
   npcs?: NPC[];
@@ -144,7 +144,7 @@ export function DiscoveriesView({
   entries,
   onEditEntry,
   onDeleteEntry,
-  onPinToBoard,
+  onTriggerIdeaRoll,
   searchQuery = '',
   activeCharacter,
   npcs = [],
@@ -516,14 +516,14 @@ export function DiscoveriesView({
                         <Maximize2 className="h-5 w-5" />
                       </button>
                     )}
-                    {onPinToBoard && (
+                    {onTriggerIdeaRoll && (
                       <button
                         type="button"
-                        onClick={() => onPinToBoard(selectedEntry)}
-                        className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
-                        title={t('pinToBoardTitle')}
+                        onClick={() => onTriggerIdeaRoll(selectedEntry)}
+                        className="p-1.5 text-[#8c7353] hover:text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
+                        title={t('ideaRollTitle')}
                       >
-                        <Pin className="h-5 w-5" />
+                        <Lightbulb className="h-5 w-5" />
                       </button>
                     )}
                     <button
@@ -824,35 +824,58 @@ export function DiscoveriesView({
                       <Search className="h-4 w-4 text-[#8c7353]" />
                       <span>{t('insightHeading')}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setInsightText(selectedEntry.investigatorInsight || '');
-                        setIsEditingInsight(true);
-                      }}
-                      className="text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] underline flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity"
-                      title={t('editInsight')}
-                    >
-                      <Edit3 className="h-3 w-3" /> {t('editInsight')}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {onTriggerIdeaRoll && (
+                        <button
+                          type="button"
+                          onClick={() => onTriggerIdeaRoll(selectedEntry)}
+                          className="text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] underline flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity mr-2"
+                          title={t('ideaRollAction')}
+                        >
+                          <Lightbulb className="h-3.5 w-3.5 text-amber-700" /> {t('ideaRollAction')}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInsightText(selectedEntry.investigatorInsight || '');
+                          setIsEditingInsight(true);
+                        }}
+                        className="text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] underline flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity"
+                        title={t('editInsight')}
+                      >
+                        <Edit3 className="h-3 w-3" /> {t('editInsight')}
+                      </button>
+                    </div>
                   </div>
                   <p className="font-special-elite text-sm leading-relaxed whitespace-pre-wrap">
                     {selectedEntry.investigatorInsight}
                   </p>
                 </div>
               ) : (
-                <div className="my-4 clear-both">
+                <div className="my-4 clear-both flex gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setInsightText('');
                       setIsEditingInsight(true);
                     }}
-                    className="w-full py-2 px-3 border-2 border-dashed border-[#8c7353]/50 hover:border-[#8c7353] rounded bg-[#d9cbb2]/40 hover:bg-[#d9cbb2]/70 text-[#5a4428] font-special-elite text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+                    className="flex-1 py-2 px-3 border-2 border-dashed border-[#8c7353]/50 hover:border-[#8c7353] rounded bg-[#d9cbb2]/40 hover:bg-[#d9cbb2]/70 text-[#5a4428] font-special-elite text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     {t('addInsight')}
                   </button>
+                  {onTriggerIdeaRoll && (
+                    <button
+                      type="button"
+                      onClick={() => onTriggerIdeaRoll(selectedEntry)}
+                      className="py-2 px-3 border-2 border-[#8c7353]/60 hover:border-[#8c7353] rounded bg-[#8c7353]/20 hover:bg-[#8c7353]/30 text-[#4a3525] font-special-elite text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors shrink-0"
+                      title={t('ideaRollAction')}
+                    >
+                      <Lightbulb className="h-3.5 w-3.5 text-amber-800" />
+                      {t('ideaRollAction')}
+                    </button>
+                  )}
                 </div>
               )}
 

@@ -117,16 +117,13 @@ for (const locale of LOCALES) {
     journalTool: locale === 'pl' ? 'Dziennik Przygody' : 'Adventure Journal',
     // SessionJournal
     journalTitle: locale === 'pl' ? 'DZIENNIK SESJI' : 'SESSION JOURNAL',
-    boardTab: locale === 'pl' ? /Tablica Badacza/ : /Investigator Board/,
-    discoveriesTab: locale === 'pl' ? /Odkrycia/ : /Discoveries/,
+    discoveriesTab: locale === 'pl' ? /Akta Śledcze/ : /Investigator Dossier/,
     chronicleTab: locale === 'pl' ? /Kronika/ : /Chronicle/,
-    // CorkboardInvestigationBoard
-    boardTitle: locale === 'pl' ? 'TABLICA BADACZA' : 'INVESTIGATOR BOARD',
-    boardCount: locale === 'pl' ? '(0 dowodów)' : '(0 pieces of evidence)',
-    boardEmptyTitle:
+    // Investigator Dossier (DiscoveriesView)
+    fastFilterPlaceholder:
       locale === 'pl'
-        ? 'Tablica Badacza jest pusta'
-        : 'The Investigator Board is empty',
+        ? 'Szybki filtr FTS (np. nazwisko, poszlaka)...'
+        : 'Fast FTS filter (e.g. name, clue)...',
     // SessionList
     sessionListEmptyTitle:
       locale === 'pl' ? 'Brak zapisanych sesji' : 'No saved sessions',
@@ -146,7 +143,7 @@ for (const locale of LOCALES) {
   };
 
   test.describe(`chunk_ad locale=${locale}`, () => {
-    test('Session Journal opens and Investigator Board renders i18n', async ({
+    test('Session Journal opens and Investigator Dossier renders i18n', async ({
       page,
     }) => {
       await seedApp(page, locale, true);
@@ -186,23 +183,18 @@ for (const locale of LOCALES) {
         page.getByRole('button', { name: T.discoveriesTab })
       ).toBeVisible();
 
-      // Przejście do zakładki Tablicy Śledczej.
-      await page.getByRole('button', { name: T.boardTab }).click();
-
-      // Nagłówek korka + licznik dowodów + stan pustej tablicy.
-      await expect(page.getByText(T.boardTitle).first()).toBeVisible({
-        timeout: 10_000,
-      });
-      await expect(page.getByText(T.boardCount)).toBeVisible();
-      await expect(page.getByText(T.boardEmptyTitle)).toBeVisible();
+      // Domyślny widok Akt Śledczych (Investigator Dossier)
+      await expect(
+        page.getByPlaceholder(T.fastFilterPlaceholder)
+      ).toBeVisible({ timeout: 10_000 });
 
       await capture(
         page,
-        `Investigator Board renders i18n (${locale})`,
-        `chunk-ad-corkboard-${locale}.png`
+        `Investigator Dossier renders i18n (${locale})`,
+        `chunk-ad-dossier-${locale}.png`
       );
       logLine(
-        `Session Journal opens and Investigator Board renders i18n (${locale})`,
+        `Session Journal opens and Investigator Dossier renders i18n (${locale})`,
         'PASS'
       );
     });
