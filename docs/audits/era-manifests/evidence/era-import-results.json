@@ -1,0 +1,56 @@
+[
+  {
+    "locale": "pl",
+    "scenario": "range",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4057/pl\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4057/pl\", waiting until \"load\"\u001b[22m\n",
+    "body": "Ta witryna jest nieosiągalna\n\nSerwer 127.0.0.1 odrzucił połączenie.\n\nWypróbuj te rozwiązania:\n\nSprawdź połączenie\nSprawdź serwer proxy i zaporę sieciową\nERR_CONNECTION_REFUSED\nOdśwież\nSzczegóły",
+    "errors": [
+      "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    ]
+  },
+  {
+    "locale": "pl",
+    "scenario": "missing-year",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4057/pl\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4057/pl\", waiting until \"load\"\u001b[22m\n",
+    "body": "Ta witryna jest nieosiągalna\n\nSerwer 127.0.0.1 odrzucił połączenie.\n\nWypróbuj te rozwiązania:\n\nSprawdź połączenie\nSprawdź serwer proxy i zaporę sieciową\nERR_CONNECTION_REFUSED\nOdśwież\nSzczegóły",
+    "errors": [
+      "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    ]
+  },
+  {
+    "locale": "pl",
+    "scenario": "missing-country",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4057/pl\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4057/pl\", waiting until \"load\"\u001b[22m\n",
+    "body": "Ta witryna jest nieosiągalna\n\nSerwer 127.0.0.1 odrzucił połączenie.\n\nWypróbuj te rozwiązania:\n\nSprawdź połączenie\nSprawdź serwer proxy i zaporę sieciową\nERR_CONNECTION_REFUSED\nOdśwież\nSzczegóły",
+    "errors": [
+      "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    ]
+  },
+  {
+    "locale": "en",
+    "scenario": "range",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4057/en\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4057/en\", waiting until \"load\"\u001b[22m\n",
+    "body": "Ta witryna jest nieosiągalna\n\nSerwer 127.0.0.1 odrzucił połączenie.\n\nWypróbuj te rozwiązania:\n\nSprawdź połączenie\nSprawdź serwer proxy i zaporę sieciową\nERR_CONNECTION_REFUSED\nOdśwież\nSzczegóły",
+    "errors": [
+      "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    ]
+  },
+  {
+    "locale": "en",
+    "scenario": "missing-year",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4057/en\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4057/en\", waiting until \"load\"\u001b[22m\n",
+    "body": "Ta witryna jest nieosiągalna\n\nSerwer 127.0.0.1 odrzucił połączenie.\n\nWypróbuj te rozwiązania:\n\nSprawdź połączenie\nSprawdź serwer proxy i zaporę sieciową\nERR_CONNECTION_REFUSED\nOdśwież\nSzczegóły",
+    "errors": [
+      "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    ]
+  },
+  {
+    "locale": "en",
+    "scenario": "missing-country",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4057/en\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4057/en\", waiting until \"load\"\u001b[22m\n",
+    "body": "Ta witryna jest nieosiągalna\n\nSerwer 127.0.0.1 odrzucił połączenie.\n\nWypróbuj te rozwiązania:\n\nSprawdź połączenie\nSprawdź serwer proxy i zaporę sieciową\nERR_CONNECTION_REFUSED\nOdśwież\nSzczegóły",
+    "errors": [
+      "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    ]
+  }
+]

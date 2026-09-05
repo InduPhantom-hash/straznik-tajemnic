@@ -206,6 +206,10 @@ export default function Home() {
   const cutsceneManager = useCutscene();
   const fullReset = useFullReset();
 
+  const resolvedEraContext = adventureContext
+    ? resolveGameEraContext({ adventure: adventureContext })
+    : null;
+
   // === NOWE HOOKI (REFAKTORYZACJA) ===
 
   const { handleSummarizeScene, isSummarizingScene } = useSceneSummary({
@@ -968,6 +972,7 @@ export default function Home() {
         adventureDescription={adventureContext?.description}
         region={adventureContext?.location}
         currentLocation={chat.currentLocation}
+        eraContext={resolvedEraContext}
         onCreateCharacter={handleCreateCharacterForDuet}
         onPickPredefinedCharacter={() => {
           stampDuetTargetPlayer();

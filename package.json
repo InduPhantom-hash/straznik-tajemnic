@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "cd _tester/_base/.silnik && npm run build",
-    "start": "cd _tester/_base/.silnik && npm run start"
+    "start": "cd _tester/_base/.silnik && npm run start",
+    "era:build-baseline": "node scripts/build-era-baseline.mjs"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

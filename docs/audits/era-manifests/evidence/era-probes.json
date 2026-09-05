@@ -1,0 +1,697 @@
+{
+  "cases": [
+    {
+      "year": 1895,
+      "country": "GB",
+      "manifest": "gb-1890s",
+      "profile": "GB"
+    },
+    {
+      "year": 1895,
+      "country": "US",
+      "manifest": null,
+      "profile": "US"
+    },
+    {
+      "year": 1925,
+      "country": "US",
+      "manifest": "us-1920s",
+      "profile": "US"
+    },
+    {
+      "year": 1943,
+      "country": "PL",
+      "manifest": null,
+      "profile": "PL"
+    },
+    {
+      "year": 1971,
+      "country": "PL",
+      "manifest": null,
+      "profile": "PL"
+    },
+    {
+      "year": 1973,
+      "country": "US",
+      "manifest": null,
+      "profile": "US"
+    },
+    {
+      "year": 1973,
+      "country": "PL",
+      "manifest": "pl-1973-1974",
+      "profile": "PL"
+    },
+    {
+      "year": 1985,
+      "country": "PL",
+      "manifest": "pl-1980s",
+      "profile": "PL"
+    },
+    {
+      "year": 1994,
+      "country": "PL",
+      "manifest": "pl-1990s",
+      "profile": "PL"
+    },
+    {
+      "year": 1995,
+      "country": "PL",
+      "manifest": "pl-1990s",
+      "profile": "PL"
+    },
+    {
+      "year": 2005,
+      "country": "PL",
+      "manifest": "pl-2000-2005",
+      "profile": "PL"
+    },
+    {
+      "year": 2006,
+      "country": "PL",
+      "manifest": null,
+      "profile": "PL"
+    },
+    {
+      "year": 2020,
+      "country": "US",
+      "manifest": null,
+      "profile": "US"
+    },
+    {
+      "year": 2020,
+      "country": "FR",
+      "manifest": "global-contemporary",
+      "profile": "GLOBAL"
+    }
+  ],
+  "invalidYearAcceptedByPreflightGuard": true,
+  "impossibleDate": {
+    "schemaVersion": 1,
+    "sceneDate": "2001-02-31",
+    "effectiveYear": 2001,
+    "countryCode": "PL",
+    "regionProfile": "PL",
+    "source": "scene-time",
+    "rulesVersion": "1.0.0"
+  },
+  "userSelectionOverridden": {
+    "schemaVersion": 1,
+    "sceneDate": null,
+    "effectiveYear": 1983,
+    "countryCode": "PL",
+    "regionProfile": "PL",
+    "source": "scenario-range",
+    "rulesVersion": "1.0.0"
+  },
+  "gaslightRules": "**KANONICZNY KONTEKST EPOKI:** rok 1895, kraj GB, profil regionalny GB.\nRok jest nadrzędny wobec etykiet classic, modern, prl i eraLabel.\nNie wprowadzaj technologii, instytucji, pojazdów ani mediów późniejszych niż aktualny rok sceny.\nStosuj realia regionu GB; nie zastępuj ich rekwizytami z innego kraju.\nno CGI, no 3D render, no futuristic elements, no electricity in rural areas, no electric lightbulbs in streets, no automobiles, no cars, no modern vehicles, no airplanes, no telephones, no plastic, no modern fabrics, no cassette tapes, no vinyl records, no transistors, no modern headphones, strictly late 19th century authentic Victorian setting\nBrak zatwierdzonego profilu szczegółowego: trzymaj się powyższych ograniczeń i opisuj tylko realia potrzebne w bieżącej scenie.",
+  "handout": {
+    "date": "17 października 2001",
+    "location": "",
+    "newspapers": [
+      "Gazeta lokalna",
+      "Dziennik regionalny"
+    ]
+  },
+  "boundaries": [
+    {
+      "year": 1889,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1889,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1889,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1889,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1890,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1890,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1890,
+      "country": "GB",
+      "manifest": "gb-1890s"
+    },
+    {
+      "year": 1890,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1899,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1899,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1899,
+      "country": "GB",
+      "manifest": "gb-1890s"
+    },
+    {
+      "year": 1899,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1900,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1900,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1900,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1900,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1919,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1919,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1919,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1919,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1920,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1920,
+      "country": "US",
+      "manifest": "us-1920s"
+    },
+    {
+      "year": 1920,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1920,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1929,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1929,
+      "country": "US",
+      "manifest": "us-1920s"
+    },
+    {
+      "year": 1929,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1929,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1930,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1930,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1930,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1930,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1939,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1939,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1939,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1939,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1940,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1940,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1940,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1940,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1949,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1949,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1949,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1949,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1950,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1950,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1950,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1950,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1970,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1970,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1970,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1970,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1972,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1972,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1972,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1972,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1973,
+      "country": "PL",
+      "manifest": "pl-1973-1974"
+    },
+    {
+      "year": 1973,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1973,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1973,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1974,
+      "country": "PL",
+      "manifest": "pl-1973-1974"
+    },
+    {
+      "year": 1974,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1974,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1974,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1975,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1975,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1975,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1975,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1979,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 1979,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1979,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1979,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1980,
+      "country": "PL",
+      "manifest": "pl-1980s"
+    },
+    {
+      "year": 1980,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1980,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1980,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1989,
+      "country": "PL",
+      "manifest": "pl-1980s"
+    },
+    {
+      "year": 1989,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1989,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1989,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1990,
+      "country": "PL",
+      "manifest": "pl-1990s"
+    },
+    {
+      "year": 1990,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1990,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1990,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 1999,
+      "country": "PL",
+      "manifest": "pl-1990s"
+    },
+    {
+      "year": 1999,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 1999,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 1999,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 2000,
+      "country": "PL",
+      "manifest": "pl-2000-2005"
+    },
+    {
+      "year": 2000,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 2000,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 2000,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 2005,
+      "country": "PL",
+      "manifest": "pl-2000-2005"
+    },
+    {
+      "year": 2005,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 2005,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 2005,
+      "country": "FR",
+      "manifest": null
+    },
+    {
+      "year": 2006,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 2006,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 2006,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 2006,
+      "country": "FR",
+      "manifest": "global-contemporary"
+    },
+    {
+      "year": 2019,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 2019,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 2019,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 2019,
+      "country": "FR",
+      "manifest": "global-contemporary"
+    },
+    {
+      "year": 2020,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 2020,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 2020,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 2020,
+      "country": "FR",
+      "manifest": "global-contemporary"
+    },
+    {
+      "year": 2026,
+      "country": "PL",
+      "manifest": null
+    },
+    {
+      "year": 2026,
+      "country": "US",
+      "manifest": null
+    },
+    {
+      "year": 2026,
+      "country": "GB",
+      "manifest": null
+    },
+    {
+      "year": 2026,
+      "country": "FR",
+      "manifest": "global-contemporary"
+    }
+  ],
+  "missingInputs": [
+    {
+      "input": {
+        "adventure": {
+          "country": "PL"
+        }
+      },
+      "error": "Nie można ustalić roku sceny. Podaj rok scenariusza, wybór użytkownika albo jawny profil custom."
+    },
+    {
+      "input": {
+        "adventure": {
+          "yearRange": "2001"
+        }
+      },
+      "error": "Własny scenariusz wymaga dokładnego kraju."
+    }
+  ],
+  "legacy1973Injection": "**Zasady Świata (PRL - lata 70.):**\n- Komunikacja: telefon stacjonarny, list, telegram, radio i prasa; brak telefonów komórkowych oraz internetu.\n- Podróże: kolej i PKS są podstawą, prywatny samochód jest cenny i nie zawsze niezawodny.\n- Dostęp do towarów jest ograniczony; nie zakładaj, że specjalistyczny sprzęt da się kupić od ręki.\n- Instytucje państwowe, milicja i zakłady pracy mają realny wpływ na śledztwo; prywatność jest ograniczona.\n- Broń palna jest reglamentowana, a jej użycie szybko zwraca uwagę władz."
+}

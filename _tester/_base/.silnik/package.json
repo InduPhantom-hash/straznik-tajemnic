@@ -21,6 +21,7 @@
     "backup:restore": "node backup.mjs restore",
     "backup:clean": "node backup.mjs clean",
     "i18n:check": "node scripts/validate-messages.mjs",
+    "era:build-baseline": "node ../../../scripts/build-era-baseline.mjs",
     "qa": "npm run i18n:check && npm run navigation:check && npm run navigation:guard && npx tsc --noEmit && npm test -- --runInBand",
     "qa:quick": "npm run i18n:check && npm run navigation:check && npx tsc --noEmit",
     "qa:smoke": "npx playwright test tests/e2e/dual-locale-smoke.spec.ts --project=chromium",

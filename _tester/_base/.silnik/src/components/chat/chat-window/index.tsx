@@ -87,6 +87,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   sessionEndStatus,
   onCharacterUpdate,
   onContinueNarration,
+  eraContext,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -311,6 +312,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           }))}
           isSessionEnded={isSessionEnded}
           sessionEndStatus={sessionEndStatus}
+          eraContext={eraContext}
         />
         </>
       )}
