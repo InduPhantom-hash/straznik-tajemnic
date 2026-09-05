@@ -477,6 +477,19 @@ export interface Character {
   mythosExceedsSanity?: boolean; // Gdy Mity Cthulhu > SAN (redukcja strat SAN o 50%)
   creatureSanLoss?: Record<string, number>; // Skumulowana utrata SAN per typ potwora (max cap)
   usedDowntimeRecovery?: boolean; // Czy w bieżącej przerwie śledczej wykorzystano próbę ukojenia (CoC 7e RAW)
+
+  // === MECHANIKA ZDROWIA I CIĘŻKICH RAN (CoC 7e RAW s. 119-123) ===
+  hasMajorWound?: boolean; // Czy postać ma aktywną Ciężką Ranę (utrata >= 1/2 maxHP w jednym ataku)
+  isDying?: boolean; // Czy postać umiera (0 HP z Ciężką Raną)
+  isUnconscious?: boolean; // Czy postać jest nieprzytomna (0 HP lub porażka CON po Ciężkiej Ranie)
+  scars?: string[]; // Trwałe blizny i pamiątki po Ciężkich Ranach (tabela trafień CoC 7e / Seth Skorkowsky)
+  healthRecoveryState?: {
+    daysElapsed: number; // Suma dni spędzonych na rekonwalescencji
+    weeksElapsed: number; // Liczba zakończonych tygodni
+    facility: 'home' | 'public_hospital' | 'private_clinic' | 'poor_conditions';
+    hasInfection: boolean; // Czy wdało się zakażenie/gorączka (fumble)
+    lastCheckDate?: string;
+  };
   move?: number;
   damageBonus?: string;
   build?: number;

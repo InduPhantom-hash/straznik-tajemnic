@@ -122,6 +122,19 @@ export function applyStatChangesFromText(
 
   if (hpDelta !== 0) {
     next.hp = clampStat(character.hp + hpDelta, character.maxHp);
+    const maxHp = character.maxHp || character.hp || 10;
+    const threshold = Math.floor(maxHp / 2);
+    if (hpDelta <= -threshold) {
+      next.hasMajorWound = true;
+    }
+    if (next.hp <= 0) {
+      next.isUnconscious = true;
+      if (next.hasMajorWound) {
+        next.isDying = true;
+      }
+    } else if (next.hp > 0 && next.isDying) {
+      next.isDying = false;
+    }
   }
 
   return next;
@@ -209,6 +222,19 @@ export function applyStatChangesToParty(
 
     if (hpD !== 0) {
       next.hp = clampStat(c.hp + hpD, c.maxHp);
+      const maxHp = c.maxHp || c.hp || 10;
+      const threshold = Math.floor(maxHp / 2);
+      if (hpD <= -threshold) {
+        next.hasMajorWound = true;
+      }
+      if (next.hp <= 0) {
+        next.isUnconscious = true;
+        if (next.hasMajorWound) {
+          next.isDying = true;
+        }
+      } else if (next.hp > 0 && next.isDying) {
+        next.isDying = false;
+      }
     }
 
     return next;
