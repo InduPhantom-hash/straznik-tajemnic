@@ -5084,7 +5084,18 @@
     "luckButton": "Szczęście {needed}",
     "sendToChat": "Do czatu",
     "close": "Zamknij",
-    "luckHint": "Wydaj Szczęście (jeśli dostępne), a potem wyślij rzut „Do czatu”."
+    "luckHint": "Wydaj Szczęście (jeśli dostępne), a potem wyślij rzut „Do czatu”.",
+    "tensDie": "Kość dziesiątek",
+    "unitsDie": "Kość jedności",
+    "bonusDieLabel": "Kość premii",
+    "penaltyDieLabel": "Kość kary",
+    "dieSelected": "Wybrana",
+    "dieDiscarded": "Odrzucona",
+    "diceSum": "Wynik testu",
+    "diceSumFormula": "{tens} + {units} = {total}",
+    "diceSumRaw100": "00 + 0 = 100",
+    "diceTrayAria": "Tacka na kości 3D Art Déco",
+    "rolling": "Rzut kośćmi w toku..."
   },
   "HelpModal": {
     "title": "Pomoc & Encyklopedia Badacza",
