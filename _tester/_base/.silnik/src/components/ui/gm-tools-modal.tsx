@@ -112,7 +112,7 @@ export function GMToolsModal({
 
   return (
     <div data-testid="gm-tools-modal" className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="relative bg-card border-border w-[86vw] max-w-[1280px] max-h-[85vh] overflow-hidden flex flex-col">
+      <Card className="relative bg-card border-border w-[80vw] h-[78vh] max-h-[85vh] overflow-hidden flex flex-col">
         <Button
           data-testid="btn-close-gm-tools"
           aria-label={t('close')}

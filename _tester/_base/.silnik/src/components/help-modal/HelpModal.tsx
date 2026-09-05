@@ -33,7 +33,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="relative w-[86vw] max-w-[1280px] max-h-[85vh] bg-gray-950 border border-amber-900/60 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-[80vw] h-[78vh] max-h-[85vh] bg-gray-950 border border-amber-900/60 rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Nagłówek Modalu */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/40 bg-gray-900/60">
           <div className="flex items-center gap-2">

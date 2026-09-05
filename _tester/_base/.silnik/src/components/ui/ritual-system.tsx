@@ -560,7 +560,7 @@ export function RitualInterface({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-500/30">
+      <Card className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-500/30">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl flex items-center gap-2 text-purple-300">

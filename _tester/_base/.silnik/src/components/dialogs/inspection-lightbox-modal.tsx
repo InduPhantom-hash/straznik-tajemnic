@@ -78,7 +78,7 @@ export function InspectionLightboxModal({
   return (
     <div data-testid="inspection-lightbox-modal" className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[60] p-4">
       {/* Mosiazna ramka Art Deco */}
-      <div className="bg-[#1c120c] border-4 border-[#bfa15f]/60 rounded-xl shadow-2xl w-[86vw] max-w-[1280px] h-[85vh] max-h-[85vh] flex flex-col overflow-hidden text-[#e2d4c9] relative">
+      <div className="bg-[#1c120c] border-4 border-[#bfa15f]/60 rounded-xl shadow-2xl w-[80vw] h-[78vh] max-h-[85vh] flex flex-col overflow-hidden text-[#e2d4c9] relative">
         {/* Dekoracyjne narozniki Art Deco */}
         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#bfa15f] rounded-tl-xl" />
         <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#bfa15f] rounded-tr-xl" />

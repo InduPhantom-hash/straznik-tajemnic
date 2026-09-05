@@ -122,7 +122,7 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto bg-zinc-950 border-brass/50 text-zinc-100 shadow-2xl p-6">
+      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-zinc-950 border-brass/50 text-zinc-100 shadow-2xl p-6">
         <DialogHeader>
           <DialogTitle className="font-display text-xl text-brass flex items-center gap-2">
             <Zap className="w-5 h-5 text-amber-400" />

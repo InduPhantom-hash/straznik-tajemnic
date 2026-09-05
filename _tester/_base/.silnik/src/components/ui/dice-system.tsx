@@ -355,7 +355,7 @@ export function DiceSystem({
 
   return (
     <div data-testid="dice-system" className="space-y-6">
-      <div className="bg-card rounded-lg border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg border border-white/20 w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="p-6 border-b border-white/20">
           <div className="flex justify-between items-center">

@@ -211,7 +211,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[86vw] max-w-[1280px] max-h-[85vh] border-brass/50 bg-zinc-950/95 text-zinc-100 shadow-2xl backdrop-blur-md p-0 overflow-hidden flex flex-col">
+      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] border-brass/50 bg-zinc-950/95 text-zinc-100 shadow-2xl backdrop-blur-md p-0 overflow-hidden flex flex-col">
         {/* Nagłówek Dark Art Déco */}
         <DialogHeader className="border-b border-brass/30 bg-zinc-900/80 px-6 py-4">
           <div className="flex items-center justify-between">

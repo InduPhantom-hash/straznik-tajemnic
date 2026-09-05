@@ -77,7 +77,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
         ];
 
   return (
-    <div data-testid="manual-setup-panel" className="deco-corners relative w-full max-w-5xl mx-auto p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610]/95 to-[#100d09]/95 shadow-[0_0_35px_rgba(201,162,39,0.1)] backdrop-blur-sm z-20 text-left my-2 md:my-4">
+    <div data-testid="manual-setup-panel" className="deco-corners relative w-[80vw] min-h-[72vh] mx-auto p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610]/95 to-[#100d09]/95 shadow-[0_0_35px_rgba(201,162,39,0.1)] backdrop-blur-sm z-20 text-left my-2 md:my-4 flex flex-col justify-between">
       {/* Przycisk powrotu */}
       <button
         type="button"

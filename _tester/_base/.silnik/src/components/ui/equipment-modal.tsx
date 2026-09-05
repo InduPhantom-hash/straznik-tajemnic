@@ -216,7 +216,7 @@ export function EquipmentModal({
       <DialogContent
         data-testid="equipment-modal"
         size="wide"
-        className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto p-6 sm:p-8 bg-gradient-to-b from-[#16120d] via-[#100c08] to-background border-brass/50 shadow-2xl"
+        className="w-[80vw] h-[78vh] max-h-[85vh] overflow-hidden flex flex-col p-6 sm:p-8 bg-gradient-to-b from-[#16120d] via-[#100c08] to-background border-brass/50 shadow-2xl"
       >
         <DialogHeader className="flex flex-row items-center justify-between gap-3 pr-12">
           <DialogTitle className="font-display uppercase tracking-[0.12em] text-foreground flex items-center gap-3">
@@ -347,7 +347,7 @@ export function EquipmentModal({
         </div>
 
         {/* Zawartość zakładek */}
-        <div className="min-h-0">
+        <div className="min-h-0 flex-1 overflow-y-auto journal-scroll">
           {/* === KARTA: BROŃ === */}
           {activeTab === 'weapon' && (
             <div className="max-w-6xl mx-auto">

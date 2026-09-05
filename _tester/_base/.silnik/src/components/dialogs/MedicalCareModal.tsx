@@ -108,7 +108,7 @@ export function MedicalCareModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent size="wide" className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto bg-[#16130f] border-2 border-brass/40 text-foreground font-cormorant p-6 shadow-2xl">
+      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-[#16130f] border-2 border-brass/40 text-foreground font-cormorant p-6 shadow-2xl">
         <DialogHeader className="border-b border-brass/20 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
