@@ -9,9 +9,11 @@
  * Textarea onKeyDown: Enter (bez shift) wysyła wiadomość + reset newMessage.
  */
 
-import { useRef, useEffect } from 'react';
-import { Send, BookOpen, Loader2, Users, Check } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useState, useRef, useEffect } from 'react';
+import { Send, BookOpen, Loader2, Users, Check, Clock } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
+import type { ResolvedEraContext, AnachronismDetection } from '@/lib/era';
+import { detectAnachronism } from '@/lib/era';
 import { Button } from '../../../ui/button';
 import { Textarea } from '../../../ui/textarea';
 
@@ -52,6 +54,8 @@ interface MessageInputProps {
   hotSeatPlayers?: { id: string; name: string; index: number }[];
   isSessionEnded?: boolean;
   sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
+  /** Kontekst kanoniczny epoki sceny dla reguł i detekcji anachronizmów. */
+  eraContext?: ResolvedEraContext | null;
 }
 
 export function MessageInput({
@@ -75,9 +79,39 @@ export function MessageInput({
   hotSeatPlayers,
   isSessionEnded = false,
   sessionEndStatus = 'idle',
+  eraContext,
 }: MessageInputProps) {
   const t = useTranslations('MessageInput');
+  const tAnachronism = useTranslations('Anachronism');
+  const locale = (useLocale?.() || 'pl') as 'pl' | 'en';
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const effectiveYear = eraContext?.effectiveYear;
+  const countryOrRegion = eraContext?.countryCode || eraContext?.regionProfile || 'US';
+
+  const [anachronismAlert, setAnachronismAlert] = useState<AnachronismDetection | null>(null);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  // Debounced detekcja anachronizmów (250ms)
+  useEffect(() => {
+    if (!newMessage.trim() || !effectiveYear) {
+      setAnachronismAlert(null);
+      setIsDismissed(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const detection = detectAnachronism(newMessage, effectiveYear, countryOrRegion, locale);
+      setAnachronismAlert((prev) => {
+        if (prev?.term !== detection?.term) {
+          setIsDismissed(false);
+        }
+        return detection;
+      });
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [newMessage, effectiveYear, countryOrRegion, locale]);
 
   // Nasłuchiwanie na akcję "Pytaj o to" (Quote-to-Input) ze wszystkich widoków Dziennika
   useEffect(() => {
@@ -115,6 +149,8 @@ export function MessageInput({
       handleSendMessage(text);
     }
     setNewMessage('');
+    setAnachronismAlert(null);
+    setIsDismissed(false);
   };
 
   return (
@@ -180,6 +216,43 @@ export function MessageInput({
               ✕
             </button>
           )}
+        </div>
+      )}
+
+      {/* Detekcja anachronizmu: Subtelny, klimatyczny badge Art Déco (non-blocking) */}
+      {anachronismAlert && !isDismissed && effectiveYear && (
+        <div
+          data-testid="anachronism-alert"
+          className="max-w-4xl mx-auto mb-2 px-3.5 py-2 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-950/70 via-black/80 to-amber-950/70 text-amber-200 text-xs font-special-elite flex items-center justify-between gap-3 shadow-[0_2px_12px_rgba(217,119,6,0.15)] animate-in fade-in slide-in-from-bottom-1 duration-200"
+        >
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="font-semibold text-amber-300 tracking-wide shrink-0">
+              {tAnachronism('badgeTitle', { year: effectiveYear || '' })}:
+            </span>
+            <span className="truncate text-amber-200/90">
+              {tAnachronism('warning', { term: anachronismAlert.term || '' })}
+              {anachronismAlert.alternative && (
+                <>
+                  {' '}
+                  <span className="text-amber-400 font-medium">
+                    {tAnachronism('recommendation')}
+                  </span>{' '}
+                  <span className="italic text-amber-100 font-sans text-[11px] bg-amber-900/40 px-1.5 py-0.5 rounded border border-amber-600/30">
+                    {anachronismAlert.alternative}
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
+          <button
+            type="button"
+            data-testid="anachronism-dismiss-button"
+            onClick={() => setIsDismissed(true)}
+            className="text-[11px] text-amber-400/80 hover:text-amber-200 underline shrink-0 transition-colors cursor-pointer px-1 py-0.5"
+          >
+            {tAnachronism('dismiss')}
+          </button>
         </div>
       )}
 

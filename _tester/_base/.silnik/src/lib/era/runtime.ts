@@ -1,3 +1,4 @@
+import { getEraHardGuardrails } from './baseline';
 import type { GameTime } from '@/lib/types';
 import { getEraTechnologyGuardrails } from '@/lib/era-visual-style';
 import { findEraRuleProfiles } from './registry';
@@ -79,6 +80,30 @@ export function buildEraNarrativeRules(context: ResolvedEraContext): string {
     ...profile.institutionsAndLanguage,
   ]);
 
+  const guardrails = getEraHardGuardrails(
+    context.effectiveYear,
+    context.countryCode || context.regionProfile
+  );
+
+  const guardrailLines: string[] = [];
+  if (guardrails) {
+    if (guardrails.forbiddenTech.length > 0) {
+      guardrailLines.push(
+        `KATEGORYCZNY ZAKAZ TECHNOLOGICZNY (anachronizmy): ${guardrails.forbiddenTech.slice(0, 10).join(', ')}.`
+      );
+    }
+    if (guardrails.forbiddenInstitutions.length > 0) {
+      guardrailLines.push(
+        `ZAKAZANE INSTYTUCJE I NUMERY: ${guardrails.forbiddenInstitutions.join(', ')}.`
+      );
+    }
+    if (guardrails.forbiddenForensics.length > 0) {
+      guardrailLines.push(
+        `ZAKAZANA KRYMINALISTYKA: ${guardrails.forbiddenForensics.join(', ')}.`
+      );
+    }
+  }
+
   return [
     `**KANONICZNY KONTEKST EPOKI:** rok ${context.effectiveYear}, kraj ${context.countryCode}, profil regionalny ${context.regionProfile}.`,
     'Rok jest nadrzędny wobec etykiet classic, modern, prl i eraLabel.',
@@ -87,6 +112,7 @@ export function buildEraNarrativeRules(context: ResolvedEraContext): string {
       ? 'Brak zatwierdzonej nakładki regionalnej: używaj wyłącznie neutralnych realiów i nie wymyślaj lokalnych marek ani instytucji.'
       : `Stosuj realia regionu ${context.regionProfile}; nie zastępuj ich rekwizytami z innego kraju.`,
     getEraTechnologyGuardrails(context),
+    ...guardrailLines,
     approvedDetails.length > 0
       ? `Zatwierdzone reguły: ${approvedDetails.join('; ')}.`
       : 'Brak zatwierdzonego profilu szczegółowego: trzymaj się powyższych ograniczeń i opisuj tylko realia potrzebne w bieżącej scenie.',

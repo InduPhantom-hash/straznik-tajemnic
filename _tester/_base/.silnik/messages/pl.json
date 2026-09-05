@@ -7458,5 +7458,12 @@
     "skillValue": "Poziom umiejętności",
     "actionRollFirstAid": "Wykonaj test Pierwszej Pomocy",
     "actionRollMedicine": "Wykonaj zabieg Medycyny (1 godzina)"
+  },
+  "Anachronism": {
+    "badgeTitle": "Realia roku {year}",
+    "warning": "Technologia lub pojęcie „{term}” nie istniało w tej epoce.",
+    "recommendation": "Historyczny odpowiednik:",
+    "dismiss": "Zrozumiałem"
   }
 }
+

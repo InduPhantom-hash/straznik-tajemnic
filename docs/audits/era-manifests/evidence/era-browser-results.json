@@ -1,0 +1,36 @@
+[
+  {
+    "locale": "pl",
+    "failure": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"btn-manual-setup\"]')\u001b[22m\n",
+    "text": "Zew Cthulhu 7ed\nStrażnik Tajemnic AI\nPostacie\nKarta PostaciEkwipunekDziennik Przygody\nStwórz nową postać\nZapisz / Wczytaj\nZapiszWczytaj\nNowa przygoda\n🔍 Pomoce Badacza\n📺YouTube\n▼\n⚙️ Ustawienia\nKonfiguracjaZimny Start\n💰",
+    "errors": [
+      "Failed to load resource: net::ERR_FAILED",
+      "Refused to apply style from 'http://localhost:4050/_next/static/css/85f68d2a954f7baa.css' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/webpack-841db882e33ddf38.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/3985-52333bc8ecc078ce.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/2859-937f0fc790dbca6d.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/406-85df91e0d7e7e773.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/9161-b3589792e9fca9e4.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/app/%5Blocale%5D/page-db429e35a88d079c.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/3814-0965961824908224.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/4885-d69bcbd352a34fbf.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+    ]
+  },
+  {
+    "locale": "en",
+    "failure": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"btn-manual-setup\"]')\u001b[22m\n",
+    "text": "Call of Cthulhu 7ed\nGuardian of Secrets AI\nCharacters\nCharacter SheetEquipmentAdventure Journal\nCreate a new character\nSave / Load\nSaveLoad\nNew adventure\n🔍 Investigator Tools\n📺YouTube\n▼\n⚙️ Settings\nConfigurationCold Start\n💰",
+    "errors": [
+      "Failed to load resource: net::ERR_FAILED",
+      "Refused to apply style from 'http://localhost:4050/_next/static/css/85f68d2a954f7baa.css' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/webpack-841db882e33ddf38.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/3985-52333bc8ecc078ce.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/2859-937f0fc790dbca6d.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/406-85df91e0d7e7e773.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/app/%5Blocale%5D/page-db429e35a88d079c.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/3814-0965961824908224.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/4885-d69bcbd352a34fbf.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Refused to execute script from 'http://localhost:4050/_next/static/chunks/9161-b3589792e9fca9e4.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+    ]
+  }
+]

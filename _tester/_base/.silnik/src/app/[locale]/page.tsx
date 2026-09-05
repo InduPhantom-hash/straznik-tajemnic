@@ -1132,6 +1132,7 @@ export default function Home() {
           adventureDescription={adventureContext?.description}
           region={adventureContext?.location}
           currentLocation={chat.currentLocation}
+          eraContext={resolvedEraContext}
           onCreateCharacter={handleCreateCharacterForDuet}
           onPickPredefinedCharacter={() => {
             stampDuetTargetPlayer();

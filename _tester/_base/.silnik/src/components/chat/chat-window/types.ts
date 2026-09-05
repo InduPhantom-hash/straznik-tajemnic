@@ -12,6 +12,7 @@
 
 import type { HotSeatConfig, Message, Character } from '@/lib/types';
 import type { DiceRoll } from '@/lib/dice-utils';
+import type { ResolvedEraContext } from '@/lib/era';
 
 export interface ChatWindowProps {
   // Messages + input
@@ -70,6 +71,8 @@ export interface ChatWindowProps {
   currentLocation?: string;
   hasSessionZero?: boolean;
   hasStartedGame?: boolean;
+  /** Kontekst kanoniczny epoki sceny dla reguł i detekcji anachronizmów. */
+  eraContext?: ResolvedEraContext | null;
 
   // Hot Seat
   hotSeatConfig?: HotSeatConfig;

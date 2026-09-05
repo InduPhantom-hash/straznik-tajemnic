@@ -7458,5 +7458,12 @@
     "skillValue": "Skill Rating",
     "actionRollFirstAid": "Roll First Aid Check",
     "actionRollMedicine": "Perform Medical Treatment (1 hour)"
+  },
+  "Anachronism": {
+    "badgeTitle": "Year {year} Reality",
+    "warning": "Technology or concept \"{term}\" did not exist in this era.",
+    "recommendation": "Historical alternative:",
+    "dismiss": "Dismiss"
   }
 }
+
