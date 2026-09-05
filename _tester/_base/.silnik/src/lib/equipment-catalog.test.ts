@@ -198,4 +198,78 @@ describe('equipment catalog', () => {
     });
     expect(missing).toEqual([]);
   });
+
+  it('zapewnia poprawne szablony i assety WebP dla przedmiotów epoki 2000s (laptop, komórka, powerbank, narzędzia)', () => {
+    // 1. Laptop
+    const laptopTemplate = findEquipmentTemplate('Ciężki laptop z wczesnym Wi-Fi');
+    expect(laptopTemplate?.id).toBe('tool.heavy-laptop-wifi-1990s');
+    expect(resolveCatalogAsset(laptopTemplate, '2000s')).toBe(
+      '/equipment/catalog/laptop-modern.webp'
+    );
+    const laptopEnriched = applyCatalogTemplate(
+      {
+        id: 'eq-laptop',
+        name: 'Ciężki laptop z wczesnym Wi-Fi',
+        category: 'tool',
+        imageUrl: '/equipment/predefined/tool.svg',
+      },
+      '2000s'
+    );
+    expect(laptopEnriched.imageUrl).toBe('/equipment/catalog/laptop-modern.webp');
+    expect(laptopEnriched.visualSource).toBe('catalog');
+
+    // 2. Telefon komórkowy
+    const phoneTemplate = findEquipmentTemplate('Telefon komórkowy');
+    expect(phoneTemplate?.id).toBe('modern.phone');
+    expect(resolveCatalogAsset(phoneTemplate, '2000s')).toBe(
+      '/equipment/catalog/phone-modern.webp'
+    );
+    const phoneEnriched = applyCatalogTemplate(
+      {
+        id: 'eq-phone',
+        name: 'Telefon komórkowy z klawiaturą',
+        category: 'tool',
+        imageUrl: '/equipment/predefined/tool.svg',
+      },
+      '2000s'
+    );
+    expect(phoneEnriched.imageUrl).toBe('/equipment/catalog/phone-modern.webp');
+    expect(phoneEnriched.visualSource).toBe('catalog');
+
+    // 3. Powerbank / Zapasowa bateria
+    const batteryTemplate = findEquipmentTemplate('Zapasowa bateria');
+    expect(batteryTemplate?.id).toBe('modern.power-bank');
+    expect(resolveCatalogAsset(batteryTemplate, '2000s')).toBe(
+      '/equipment/catalog/power-bank-modern.webp'
+    );
+    const batteryEnriched = applyCatalogTemplate(
+      {
+        id: 'eq-battery',
+        name: 'Zapasowa bateria',
+        category: 'tool',
+        imageUrl: '/equipment/predefined/tool.svg',
+      },
+      '2000s'
+    );
+    expect(batteryEnriched.imageUrl).toBe('/equipment/catalog/power-bank-modern.webp');
+    expect(batteryEnriched.visualSource).toBe('catalog');
+
+    // 4. Zestaw narzędzi do elektroniki
+    const kitTemplate = findEquipmentTemplate('Zestaw narzędzi do elektroniki');
+    expect(kitTemplate?.id).toBe('tool.electrical-kit');
+    expect(resolveCatalogAsset(kitTemplate, '2000s')).toBe(
+      '/equipment/catalog/electrical-kit-shared.webp'
+    );
+    const kitEnriched = applyCatalogTemplate(
+      {
+        id: 'eq-kit',
+        name: 'Zestaw narzędzi do elektroniki',
+        category: 'tool',
+        imageUrl: '/equipment/predefined/tool.svg',
+      },
+      '2000s'
+    );
+    expect(kitEnriched.imageUrl).toBe('/equipment/catalog/electrical-kit-shared.webp');
+    expect(kitEnriched.visualSource).toBe('catalog');
+  });
 });
