@@ -3,12 +3,17 @@ import { useFullSave } from './useFullSave';
 import { FullGameSaveManager } from '@/lib/full-game-save-manager';
 import { defaultAISettings } from '@/lib/ai-settings/defaults';
 import { persistCharacters } from '@/lib/character-cloud-sync';
-import type { Message } from '@/lib/types';
+import type { Message, Character } from '@/lib/types';
 import { resolveEraContext } from '@/lib/era';
 import type { WorldSetupBundleV1 } from '@/lib/world-setup';
+import { toast } from '@/components/ui/use-toast';
 
 jest.mock('@/lib/character-cloud-sync', () => ({
   persistCharacters: jest.fn(),
+}));
+
+jest.mock('@/components/ui/use-toast', () => ({
+  toast: jest.fn(),
 }));
 
 describe('useFullSave - status urwanej narracji', () => {
@@ -124,5 +129,62 @@ describe('useFullSave - status urwanej narracji', () => {
       id: 'world-save',
       eraContext: { effectiveYear: 1973, countryCode: 'PL' },
     });
+  });
+
+  it('migrates characters to ensure valid investigatorDossier and triggers toast instead of alert', () => {
+    const setCharacters = jest.fn();
+    const character: Partial<Character> = {
+      id: 'char-legacy',
+      name: 'Dr Harvey',
+      journal: [
+        {
+          id: 'note-1',
+          title: 'Notatka o rytuale',
+          content: 'Zapiski w starym tomie',
+          type: 'clue',
+          tags: ['okultyzm'],
+          isBookmarked: false,
+          timestamp: new Date(),
+        },
+      ],
+    };
+
+    const save = FullGameSaveManager.createFullSave({
+      name: 'Legacy Dossier Save',
+      userId: 'local',
+      messages: [],
+      gameSettings: { aiSettings: defaultAISettings },
+      characters: [character as Character],
+      campaigns: [],
+      npcs: [],
+      locations: [],
+    });
+
+    const { result } = renderHook(() =>
+      useFullSave({
+        setMessages: jest.fn(),
+        setCharacters,
+        setActiveCharacter: jest.fn(),
+        setCampaigns: jest.fn(),
+        setPdfMemory: jest.fn(),
+        setActiveGameState: jest.fn(),
+        setAiSettings: jest.fn(),
+        stopCurrentAudio: jest.fn(),
+      })
+    );
+
+    act(() => result.current.handleLoadFullSave(save));
+
+    expect(setCharacters).toHaveBeenCalledTimes(1);
+    const loadedChars = setCharacters.mock.calls[0][0] as Character[];
+    expect(loadedChars[0].investigatorDossier).toBeDefined();
+    expect(loadedChars[0].investigatorDossier?.clues).toHaveLength(1);
+    expect(loadedChars[0].investigatorDossier?.clues[0].title).toBe('Notatka o rytuale');
+
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Wczytano: Legacy Dossier Save',
+      })
+    );
   });
 });
