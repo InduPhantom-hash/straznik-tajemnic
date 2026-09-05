@@ -935,13 +935,27 @@ export function useGameStart({
       // Usuwamy osierocony pusty placeholder assistantMessageId (jeśli istnieje
       // i nie zdążył otrzymać treści) i ZASTĘPUJEMY go komunikatem błędu,
       // zamiast doklejać drugi dymek obok pustego.
-      const friendly = isNetworkBlip(error)
+      const errorStr = error instanceof Error ? error.message : String(error);
+      const isAuthError =
+        errorStr.includes('401') ||
+        errorStr.includes('BYOK_KEY') ||
+        errorStr.includes('API key');
+
+      if (isAuthError && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
+      }
+
+      const friendly = isAuthError
         ? locale === 'en'
-          ? '⚠️ A temporary connection problem occurred while starting the game. Try Start Adventure again.'
-          : '⚠️ Chwilowy problem z połączeniem przy starcie gry - kliknij „Rozpocznij" jeszcze raz.'
-        : locale === 'en'
-          ? '⚠️ The game could not start. Check your connection and API key, then try again.'
-          : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
+          ? '⚠️ The Gemini API key is invalid or expired. Enter a valid key in Settings (key icon in menu) and try again.'
+          : '⚠️ Klucz Gemini API jest nieprawidłowy lub wygasł. Wklej poprawny klucz w Ustawieniach (ikona klucza w menu) i spróbuj ponownie.'
+        : isNetworkBlip(error)
+          ? locale === 'en'
+            ? '⚠️ A temporary connection problem occurred while starting the game. Try Start Adventure again.'
+            : '⚠️ Chwilowy problem z połączeniem przy starcie gry - kliknij „Rozpocznij" jeszcze raz.'
+          : locale === 'en'
+            ? '⚠️ The game could not start. Check your connection and API key, then try again.'
+            : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
       const errorMsg: Message = {
         id: `gm-intro-error-${crypto.randomUUID()}`,
         role: 'assistant',

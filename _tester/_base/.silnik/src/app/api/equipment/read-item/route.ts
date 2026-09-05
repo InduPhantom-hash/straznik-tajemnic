@@ -91,7 +91,16 @@ WYMAGANIA:
       content: cleanText,
     });
   } catch (error) {
-    console.error('Error generating readable item content:', error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (/API[_ ]key not valid|API_KEY_INVALID|INVALID_ARGUMENT|PERMISSION_DENIED/i.test(errMsg)) {
+      return NextResponse.json(
+        {
+          error: 'Podany klucz Gemini API jest nieprawidłowy lub wygasł. Zaktualizuj klucz w Ustawieniach.',
+          code: 'BYOK_KEY_INVALID',
+        },
+        { status: 401 }
+      );
+    }
     return NextResponse.json(
       {
         error:

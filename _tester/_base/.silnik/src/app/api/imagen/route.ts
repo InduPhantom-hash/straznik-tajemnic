@@ -308,6 +308,21 @@ export async function POST(request: NextRequest) {
             );
           }
 
+          // 400/403 z nieprawidłowym kluczem API (BYOK)
+          if (
+            (response.status === 400 || response.status === 401 || response.status === 403) &&
+            (/API[_ ]key not valid|API_KEY_INVALID|INVALID_ARGUMENT|PERMISSION_DENIED/i.test(errMsg))
+          ) {
+            logImagen(401, 'error', { errorMsg: 'BYOK_KEY_INVALID', model: activeModel });
+            return NextResponse.json(
+              {
+                error: 'Podany klucz Gemini API jest nieprawidłowy lub wygasł. Zaktualizuj klucz w Ustawieniach.',
+                code: 'BYOK_KEY_INVALID',
+              },
+              { status: 401 }
+            );
+          }
+
           // 4xx poza 429 = błąd trwały (zły klucz/prompt) - nie ponawiaj.
           if (response.status < 500 && response.status !== 429) break;
         } else {
