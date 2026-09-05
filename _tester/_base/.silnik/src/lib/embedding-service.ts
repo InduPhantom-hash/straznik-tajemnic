@@ -14,6 +14,8 @@ import { MemoryIndexEntry, MemoryIndex } from './types';
 import { getGeminiClient } from './gemini-client-pool';
 // IND-275 T1: model embeddingu + wymiary scentralizowane w model-registry.
 import {
+  LOCAL_EMBEDDING_MODEL,
+  EMBEDDING_DIM_LOCAL,
   EMBEDDING_MODEL,
   EMBEDDING_DIM_V1,
   EMBEDDING_DIM_V2,
@@ -27,26 +29,59 @@ const SIMILARITY_THRESHOLD = 0.7; // Minimum similarity to consider relevant
 const MAX_RESULTS = 5;
 
 // ============================================================================
-// RAG_VERSION DUAL-VERSION SUPPORT (IND-164)
+// RAG_VERSION & LOCAL EMBEDDINGS SUPPORT
 // ============================================================================
 
 const RAG_VERSION_V1_DIM = EMBEDDING_DIM_V1;
 const RAG_VERSION_V2_DIM = EMBEDDING_DIM_V2;
 
 let _cachedDimensions: number | null = null;
+let _localPipelinePromise: Promise<any> | null = null;
+
+/**
+ * Zwraca instancję lokalnego pipeline ONNX (@xenova/transformers).
+ * Ładowana leniwie (singleton w pamięci procesu Node.js).
+ */
+async function getLocalPipeline(): Promise<any> {
+  if (!_localPipelinePromise) {
+    _localPipelinePromise = (async () => {
+      try {
+        const { pipeline, env } = await import('@xenova/transformers');
+        // Unikaj zbędnych warningów i konfiguruj lokalny cache
+        if (env) {
+          env.allowLocalModels = true;
+          env.useBrowserCache = false;
+        }
+        console.log(`🧠 [LocalEmbeddings] Inicjalizacja lokalnego modelu ONNX: ${LOCAL_EMBEDDING_MODEL}`);
+        const extractor = await pipeline('feature-extraction', LOCAL_EMBEDDING_MODEL);
+        console.log(`✅ [LocalEmbeddings] Model ${LOCAL_EMBEDDING_MODEL} gotowy do pracy.`);
+        return extractor;
+      } catch (err) {
+        console.error('❌ [LocalEmbeddings] Błąd inicjalizacji @xenova/transformers:', err);
+        _localPipelinePromise = null;
+        throw err;
+      }
+    })();
+  }
+  return _localPipelinePromise;
+}
 
 /**
  * Zwraca rozmiar embeddingu dla aktywnej wersji RAG.
- * V1 (default, backward compat) = 768 dim (MRL truncated z outputDimensionality).
- * V2 (opt-in via RAG_VERSION=v2) = 3072 dim (native Gemini bez outputDimensionality).
+ * Domyślnie używa lokalnego modelu (EMBEDDING_DIM_LOCAL = 1024 dim).
+ * Gdy RAG_PROVIDER=gemini, respektuje RAG_VERSION (V1 = 768 dim, V2 = 3072 dim).
  *
  * Cache module-level - read env once per Next.js serverless instance.
  */
 export function getEmbeddingDimensions(): number {
   if (_cachedDimensions !== null) return _cachedDimensions;
-  const version = process.env.RAG_VERSION === 'v2' ? 'v2' : 'v1';
-  _cachedDimensions =
-    version === 'v2' ? RAG_VERSION_V2_DIM : RAG_VERSION_V1_DIM;
+  if (process.env.RAG_PROVIDER === 'gemini') {
+    const version = process.env.RAG_VERSION === 'v2' ? 'v2' : 'v1';
+    _cachedDimensions =
+      version === 'v2' ? RAG_VERSION_V2_DIM : RAG_VERSION_V1_DIM;
+  } else {
+    _cachedDimensions = EMBEDDING_DIM_LOCAL;
+  }
   return _cachedDimensions;
 }
 
@@ -117,18 +152,11 @@ class EmbeddingService {
   private memoryIndex: MemoryIndex | null = null;
 
   /**
-   * Inicjalizacja z kluczem API.
-   * Klient jest pobierany leniwie z `gemini-client-pool` przy pierwszym wywołaniu -
-   * pool sam cache'uje instancje per klucz, więc tutaj wystarczy zapamiętać klucz.
+   * Inicjalizacja z kluczem API (opcjonalny dla lokalnego RAG, zachowany dla kompatybilności).
    */
-  initialize(apiKey: string): void {
-    if (!apiKey) {
-      console.warn('⚠️ EmbeddingService: No API key provided');
-      return;
-    }
-    if (this.apiKey === apiKey) {
-      return; // Already initialized with this key
-    }
+  initialize(apiKey?: string): void {
+    if (!apiKey) return;
+    if (this.apiKey === apiKey) return;
     this.apiKey = apiKey;
     console.log('🧠 EmbeddingService initialized');
   }
@@ -150,27 +178,60 @@ class EmbeddingService {
 
   /**
    * Generuj embedding dla tekstu.
-   * Zwraca wektor o wymiarach EMBEDDING_DIMENSIONS (MRL via outputDimensionality).
+   * Domyślnie: 100% lokalny model ONNX (Xenova/bge-m3, 1024 dim), zero chmury i zero klucza API.
+   * Fallback chmurowy: tylko gdy RAG_PROVIDER=gemini.
    *
    * @param text Tekst do zembedowania
    * @param taskType Opcjonalny typ zadania (RETRIEVAL_DOCUMENT/RETRIEVAL_QUERY/...).
-   *                 Brak = domyślne SDK (kompatybilne wstecz).
    */
   async generateEmbedding(
     text: string,
     taskType?: EmbeddingTaskType,
     apiKey?: string
   ): Promise<number[] | null> {
-    const key = apiKey || this.apiKey || undefined;
+    if (!text || text.trim() === '') return null;
+
+    // Tryb chmurowy (opt-in lub testowy)
+    if (process.env.RAG_PROVIDER === 'gemini') {
+      return this.generateGeminiEmbedding(text, taskType, apiKey);
+    }
+
+    // Tryb domyślny: 100% LOKALNY ONNX (suwerenność danych)
+    try {
+      const extractor = await getLocalPipeline();
+      const output = await extractor(text, { pooling: 'mean', normalize: true });
+      if (output?.data) {
+        return Array.from(output.data);
+      }
+      return null;
+    } catch (localErr) {
+      console.error('❌ [LocalEmbeddings] Błąd generowania lokalnego embeddingu:', localErr);
+      // Jeśli lokalny pipeline zawiedzie, a mamy klucz API w środowisku lub parametrze, spróbuj fallbacku
+      const key = apiKey || this.apiKey || process.env.GEMINI_API_KEY;
+      if (key) {
+        console.warn('⚠️ [LocalEmbeddings] Próba awaryjnego fallbacku na Gemini...');
+        return this.generateGeminiEmbedding(text, taskType, key);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Generowanie embeddingu przez Google Gemini API (fallback / legacy).
+   */
+  private async generateGeminiEmbedding(
+    text: string,
+    taskType?: EmbeddingTaskType,
+    apiKey?: string
+  ): Promise<number[] | null> {
+    const key = apiKey || this.apiKey || process.env.GEMINI_API_KEY;
     const ai = getGeminiClient(key);
     if (!ai) {
-      console.error('❌ EmbeddingService not initialized');
+      console.error('❌ EmbeddingService: Brak klienta Gemini (wymagany klucz API)');
       return null;
     }
 
     try {
-      // IND-164: V1 używa MRL truncation (outputDimensionality: 768),
-      // V2 drop param → Gemini zwraca native 3072 dim
       const dims = getEmbeddingDimensions();
       const result = await ai.models.embedContent({
         model: EMBEDDING_MODEL,
@@ -182,7 +243,6 @@ class EmbeddingService {
       });
 
       const embedding = result.embeddings?.[0]?.values ?? null;
-
       if (!embedding || embedding.length !== dims) {
         console.warn(
           '⚠️ Unexpected embedding dimensions:',
@@ -191,66 +251,55 @@ class EmbeddingService {
         );
         return null;
       }
-
       return embedding;
     } catch (error) {
-      console.error('❌ Error generating embedding:', error);
+      console.error('❌ Error generating Gemini embedding:', error);
       return null;
     }
   }
 
   /**
-   * OPT-14: Batch embedding generation.
-   * Generuje embeddingi dla wielu tekstów w jednym API call.
-   * 1 call zamiast N sekwencyjnych → 80% redukcja latencji archiwizacji.
-   *
-   * @param texts Lista tekstów do zembedowania
-   * @param taskType Opcjonalny typ zadania, propagowany do każdego embeddingu
+   * Batch embedding generation.
+   * W trybie lokalnym: natywny batching w ONNX runtime.
    */
   async generateBatchEmbeddings(
     texts: string[],
     taskType?: EmbeddingTaskType,
     apiKey?: string
   ): Promise<(number[] | null)[]> {
-    const key = apiKey || this.apiKey || undefined;
-    const ai = getGeminiClient(key);
-    if (!ai) {
-      console.error('❌ EmbeddingService not initialized');
-      return texts.map(() => null);
-    }
-
     if (texts.length === 0) return [];
 
-    try {
-      const dims = getEmbeddingDimensions();
-      const result = await ai.models.embedContent({
-        model: EMBEDDING_MODEL,
-        contents: texts,
-        config: {
-          ...(dims === RAG_VERSION_V1_DIM && { outputDimensionality: dims }),
-          ...(taskType && { taskType }),
-        },
-      });
-
-      return (result.embeddings ?? []).map((emb, i) => {
-        if (!emb.values || emb.values.length !== dims) {
-          console.warn(
-            `⚠️ Unexpected embedding dimensions for batch item ${i}:`,
-            emb.values?.length
-          );
-          return null;
-        }
-        return emb.values;
-      });
-    } catch (error) {
-      console.error(
-        '❌ Error generating batch embeddings, falling back to sequential:',
-        error
-      );
-      // Fallback: sekwencyjne generowanie
+    if (process.env.RAG_PROVIDER === 'gemini') {
       const results: (number[] | null)[] = [];
       for (const text of texts) {
-        results.push(await this.generateEmbedding(text, taskType, key));
+        results.push(await this.generateGeminiEmbedding(text, taskType, apiKey));
+      }
+      return results;
+    }
+
+    try {
+      const extractor = await getLocalPipeline();
+      const output = await extractor(texts, { pooling: 'mean', normalize: true });
+      if (output?.data && output?.dims) {
+        const [batchSize, dim] = output.dims;
+        const results: (number[] | null)[] = [];
+        for (let i = 0; i < batchSize; i++) {
+          const slice = output.data.subarray(i * dim, (i + 1) * dim);
+          results.push(Array.from(slice));
+        }
+        return results;
+      }
+      // Fallback sekwencyjny
+      const results: (number[] | null)[] = [];
+      for (const t of texts) {
+        results.push(await this.generateEmbedding(t, taskType, apiKey));
+      }
+      return results;
+    } catch (err) {
+      console.error('❌ [LocalEmbeddings] Błąd batch embeddingu, fallback sekwencyjny:', err);
+      const results: (number[] | null)[] = [];
+      for (const text of texts) {
+        results.push(await this.generateEmbedding(text, taskType, apiKey));
       }
       return results;
     }

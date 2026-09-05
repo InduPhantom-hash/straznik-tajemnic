@@ -185,11 +185,26 @@ class LocalVectorStore {
     topK: number = 5,
     filter?: Record<string, unknown>
   ): Promise<QueryResult[]> {
-    let scored = this.load(namespace).map((v) => ({
-      id: v.id,
-      score: cosineSimilarity(vector, v.values),
-      metadata: v.metadata,
-    }));
+    const loaded = this.load(namespace);
+    let dimensionMismatchWarned = false;
+
+    let scored: QueryResult[] = [];
+    for (const v of loaded) {
+      if (v.values.length !== vector.length) {
+        if (!dimensionMismatchWarned) {
+          console.warn(
+            `⚠️ LocalVectorStore: vector length mismatch in "${namespace}" (${v.values.length} vs query ${vector.length}). Re-indexing required for this namespace.`
+          );
+          dimensionMismatchWarned = true;
+        }
+        continue;
+      }
+      scored.push({
+        id: v.id,
+        score: cosineSimilarity(vector, v.values),
+        metadata: v.metadata,
+      });
+    }
 
     if (filter) {
       scored = scored.filter((r) =>

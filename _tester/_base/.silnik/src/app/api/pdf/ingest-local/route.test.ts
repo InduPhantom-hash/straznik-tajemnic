@@ -73,12 +73,12 @@ describe('POST /api/pdf/ingest-local', () => {
     });
   });
 
-  it('wymaga klucza Gemini', async () => {
+  it('działa pomyślnie w 100% lokalnie bez wymogu klucza Gemini', async () => {
     const response = await POST(request(pdfFile(), null));
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      success: false,
-      error: expect.any(String),
+      success: true,
+      indexed: 1,
     });
   });
 

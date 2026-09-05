@@ -31,20 +31,9 @@ const MIN_TEXT_LENGTH = 100;
 export async function POST(request: NextRequest) {
   const start = Date.now();
   try {
-    // Klucz Gemini: BYOK (nagłówek z localStorage gracza) lub env fallback.
-    // Wzorzec 1:1 z index-to-pinecone:67 - wymagany do liczenia embeddingów.
+    // Klucz Gemini (opcjonalny fallback): lokalny RAG używa wbudowanego modelu ONNX (BGE-M3).
     const geminiApiKey =
-      request.headers.get('X-Gemini-Api-Key') || process.env.GEMINI_API_KEY;
-
-    if (!geminiApiKey) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Brak klucza API Gemini (wymagany do generowania embeddingów)',
-        },
-        { status: 401 }
-      );
-    }
+      request.headers.get('X-Gemini-Api-Key')?.trim() || process.env.GEMINI_API_KEY?.trim() || undefined;
 
     let pdfText = '';
     let fileName = '';
@@ -147,9 +136,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Jeśli typ to 'adventure', wykonaj rozszerzoną ekstrakcję struktur przez Gemini 3.6 Flash
+    // Jeśli typ to 'adventure' i dostępny jest klucz Gemini, wykonaj rozszerzoną ekstrakcję struktur
     let extractedAdventure = null;
-    if (type === 'adventure') {
+    if (type === 'adventure' && geminiApiKey) {
       try {
         console.log('🤖 Rozpoczynanie ekstrakcji ustrukturyzowanej przygody przez Gemini 3.6 Flash...');
         extractedAdventure = await extractAdventureEntities(pdfText, fileName, geminiApiKey);

@@ -91,10 +91,15 @@ export const PRESET_MODELS: Record<PresetKey, PresetModelInfo> = {
 // EMBEDDINGI (z embedding-service.ts)
 // ============================================================================
 
-/** Model embeddingów RAG (#1 MTEB Multilingual). */
+/** Domyślny, 100% lokalny model embeddingów RAG ONNX (suwerenność danych). */
+export const LOCAL_EMBEDDING_MODEL = 'Xenova/bge-m3' as const;
+/** Wymiar embeddingów lokalnych (BGE-M3). */
+export const EMBEDDING_DIM_LOCAL = 1024;
+
+/** Model chmurowy embeddingów RAG (legacy / fallback). */
 export const EMBEDDING_MODEL = 'gemini-embedding-001' as const;
 
-/** Wymiar V1 (default, MRL truncated). */
+/** Wymiar V1 (legacy, MRL truncated). */
 export const EMBEDDING_DIM_V1 = 768;
 /** Wymiar V2 (opt-in RAG_VERSION=v2, native). */
 export const EMBEDDING_DIM_V2 = 3072;
