@@ -243,4 +243,37 @@ describe('ChatWindow - adresowane rzuty duetu', () => {
       combinedMessage.indexOf('Prof. William Dyer')
     );
   });
+
+  it('przekazuje onContinueNarration do MessageCard i wywołuje callback po kliknięciu', () => {
+    const onContinueNarration = jest.fn();
+    const truncatedMessage: Message = {
+      id: 'msg-trunc-test',
+      role: 'assistant',
+      content: 'Ciemność gęstnieje w pokoju. Drzwi powoli się uchylają...',
+      timestamp: new Date(),
+      finishReason: 'MAX_TOKENS',
+    };
+
+    render(
+      <ChatWindow
+        messages={[truncatedMessage]}
+        newMessage=""
+        setNewMessage={jest.fn()}
+        handleSendMessage={jest.fn()}
+        currentAudio={null}
+        stopCurrentAudio={jest.fn()}
+        isTTSEnabled={false}
+        activeCharacter={null}
+        hasStartedGame={true}
+        onContinueNarration={onContinueNarration}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: 'Kontynuuj narrację' });
+    expect(button).toBeInTheDocument();
+
+    fireEvent.click(button);
+    expect(onContinueNarration).toHaveBeenCalledWith('msg-trunc-test');
+  });
 });
+

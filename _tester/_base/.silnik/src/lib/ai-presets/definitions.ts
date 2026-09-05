@@ -100,7 +100,7 @@ export const QUALITY_PRESETS = {
       topP: 0.9,
       topK: 50,
       thinkingLevel: 'high' as const,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 8192,
 
       // === GEMINI nested (IND-32a) - Horror authentic safety ===
       safetySettings: {
