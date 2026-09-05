@@ -46,6 +46,11 @@ export interface UseSettingsInitReturn {
   setSettings: React.Dispatch<React.SetStateAction<AISettings>>;
   handleSave: () => Promise<void>;
   handleReset: () => void;
+  showResetConfirm: boolean;
+  openResetConfirm: () => void;
+  closeResetConfirm: () => void;
+  confirmReset: () => void;
+  saveStatus: 'idle' | 'saved' | 'error';
 }
 
 export function useSettingsInit(
@@ -138,36 +143,45 @@ export function useSettingsInit(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+
   const handleSave = useCallback(async () => {
     try {
       saveAISettings(settings);
-
-      alert('✅ Ustawienia zostały zapisane!');
-      setTimeout(() => {
-        onClose();
-        if (onOpenChange) onOpenChange(false);
-      }, 1000);
+      setSaveStatus('saved');
+      onClose();
+      if (onOpenChange) onOpenChange(false);
     } catch (error) {
       console.error('❌ Error saving settings:', error);
-      alert('Błąd podczas zapisywania ustawień. Spróbuj ponownie.');
+      setSaveStatus('error');
     }
   }, [settings, onClose, onOpenChange]);
 
-  const handleReset = useCallback(() => {
-    if (
-      confirm(
-        'Czy na pewno chcesz zresetować wszystkie ustawienia do wartości domyślnych?'
-      )
-    ) {
-      const resetSettings = resetAISettings();
-      setSettings(resetSettings);
-    }
+  const openResetConfirm = useCallback(() => {
+    setShowResetConfirm(true);
+  }, []);
+
+  const closeResetConfirm = useCallback(() => {
+    setShowResetConfirm(false);
+  }, []);
+
+  const confirmReset = useCallback(() => {
+    const resetSettings = resetAISettings();
+    setSettings(resetSettings);
+    setShowResetConfirm(false);
   }, []);
 
   return {
     settings,
     setSettings,
     handleSave,
-    handleReset,
+    handleReset: openResetConfirm,
+    showResetConfirm,
+    openResetConfirm,
+    closeResetConfirm,
+    confirmReset,
+    saveStatus,
   };
 }
+

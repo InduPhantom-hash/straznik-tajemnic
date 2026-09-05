@@ -6624,8 +6624,13 @@
     "nerdySection": "⚙️ Ustawienia dla nerdów",
     "debugSection": "🔧 Narzędzia Debug (dev)",
     "saveSettings": "💾 Zapisz Ustawienia",
+    "savedSuccess": "✅ Ustawienia zostały pomyślnie zapisane",
+    "saveError": "Błąd podczas zapisywania ustawień. Spróbuj ponownie.",
     "reset": "🔄 Resetuj",
     "resetHelp": "Resetuje TYLKO ustawienia AI (model, temperatura, głośność itp.). NIE usuwa postaci, sesji ani historii czatu.",
+    "resetConfirmTitle": "Przywrócenie Ustawień Domyślnych",
+    "resetConfirmQuestion": "Czy na pewno chcesz zresetować wszystkie parametry AI i interfejsu do wartości fabrycznych? Dane postaci, sesji i dziennika pozostaną nienaruszone.",
+    "cancel": "Anuluj",
     "fullReset": "🗑️ Pełny Reset",
     "fullResetHelp": "USUWA WSZYSTKO: postaci, sesje, historię czatu, ustawienia, notatki, cache. Operacja nieodwracalna!",
     "close": "❌ Zamknij"

@@ -57,6 +57,11 @@ export interface UseSettingsModalReturn {
   // Handlers
   handleSave: () => Promise<void>;
   handleReset: () => void;
+  showResetConfirm: boolean;
+  openResetConfirm: () => void;
+  closeResetConfirm: () => void;
+  confirmReset: () => void;
+  saveStatus: 'idle' | 'saved' | 'error';
   loadAvailableVoices: () => Promise<void>;
   // Nested sub-hooki
   apiTester: UseApiTesterReturn;
@@ -95,6 +100,11 @@ export function useSettingsModal(
     costStats: usage.costStats,
     handleSave: settingsInit.handleSave,
     handleReset: settingsInit.handleReset,
+    showResetConfirm: settingsInit.showResetConfirm,
+    openResetConfirm: settingsInit.openResetConfirm,
+    closeResetConfirm: settingsInit.closeResetConfirm,
+    confirmReset: settingsInit.confirmReset,
+    saveStatus: settingsInit.saveStatus,
     loadAvailableVoices: voiceLoaders.loadAvailableVoices,
     apiTester,
     fullReset,
