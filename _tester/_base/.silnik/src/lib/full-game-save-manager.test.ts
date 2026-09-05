@@ -201,7 +201,7 @@ describe('FullGameSaveManager duet persistence', () => {
       userId: 'local',
       messages: [],
       gameSettings: { aiSettings: {} as AISettings },
-      characters: [character as any],
+      characters: [character as unknown as Character],
       investigatorBoard: boardState,
       campaigns: [],
       npcs: [],
