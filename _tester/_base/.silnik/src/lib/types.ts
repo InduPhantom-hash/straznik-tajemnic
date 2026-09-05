@@ -952,4 +952,8 @@ export interface HazardEventData {
   difficulty?: 'zwykly' | 'trudny' | 'ekstremalny';
 }
 
+// === SYSTEM MIAR (Issue #191) ===
+export type MeasurementSystem = 'metric' | 'imperial';
+
+
 

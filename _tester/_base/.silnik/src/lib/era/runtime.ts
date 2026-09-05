@@ -127,15 +127,43 @@ export function formatEraCurrency(
   amount: number,
   context: ResolvedEraContext
 ): string {
-  const formatted = amount.toLocaleString(
-    context.regionProfile === 'PL' ? 'pl-PL' : 'en-US',
-    { maximumFractionDigits: amount < 1 ? 2 : 0 }
-  );
-  if (context.regionProfile === 'PL') return `${formatted} zł`;
+  if (context.regionProfile === 'PL') {
+    const year = context.effectiveYear;
+    // Okres PRL oraz transformacji przed denominacją 1995 r. (PLZ: stare złote - tysiące/miliony)
+    if (year >= 1950 && year < 1995) {
+      // Jeśli podana kwota to np. mała liczba (skala nowozłotowa np. 10 zł), przeliczamy na rząd wielkości cen PRL/transformacji
+      // W latach 70./80. i na początku 90. chleb lub gazeta kosztowały od dziesiątek do tysięcy/milionów złotych
+      const isSmallBaseAmount = amount > 0 && amount <= 500;
+      const displayAmount = isSmallBaseAmount
+        ? (year >= 1989 ? amount * 10000 : amount * 100)
+        : amount;
+      const formatted = displayAmount.toLocaleString('pl-PL', {
+        maximumFractionDigits: 0,
+      });
+      return `${formatted} zł (stare złote PLZ)`;
+    }
+    // Polska po denominacji 1 stycznia 1995 r. (PLN: nowe złote)
+    if (year >= 1995) {
+      const formatted = amount.toLocaleString('pl-PL', {
+        maximumFractionDigits: amount < 1 ? 2 : 0,
+      });
+      return `${formatted} zł`;
+    }
+    // Okres II Rzeczypospolitej (reforma Grabskiego 1924 r. i lata międzywojenne) oraz wcześniejszy
+    const formatted = amount.toLocaleString('pl-PL', {
+      maximumFractionDigits: amount < 1 ? 2 : 0,
+    });
+    return `${formatted} zł`;
+  }
+
+  const formatted = amount.toLocaleString('en-US', {
+    maximumFractionDigits: amount < 1 ? 2 : 0,
+  });
   if (context.regionProfile === 'US') return `$${formatted}`;
   if (context.regionProfile === 'GB') return `£${formatted}`;
   return `${formatted} jednostek wartości`;
 }
+
 
 export function getEraHandoutDefaults(
   context: ResolvedEraContext,

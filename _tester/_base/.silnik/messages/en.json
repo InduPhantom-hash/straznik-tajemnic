@@ -3,7 +3,10 @@
     "title": "Select language",
     "subtitle": "Choose Language",
     "playPl": "Zagraj po polsku",
-    "playEn": "Play in English"
+    "playEn": "Play in English",
+    "units": "Measurement System",
+    "metric": "Metric (m, kg)",
+    "imperial": "Imperial (ft, lbs)"
   },
   "WelcomeStart": {
     "quickTitle": "Quick Adventure",
