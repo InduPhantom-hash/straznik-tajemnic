@@ -148,4 +148,52 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     expect(bufferResolved).toBe(true);
     expect(result.current.isInitialBuffering).toBe(false);
   });
+
+  it('przekazuje audioDirection lektora do /api/tts/gemini w zależności od SAN i nastroju', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const traumaSentence =
+      '[SANITY: -6: potworny widok]\n[NASTRÓJ: klaustrofobiczny]\nCiemność zdaje się zacieśniać wokół twojej głowy.';
+
+    await act(async () => {
+      result.current.addToQueue(traumaSentence, 'msg-trauma-1', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalled();
+    const fetchArgs = (global.fetch as jest.Mock).mock.calls[0];
+    const payload = JSON.parse(fetchArgs[1].body);
+
+    expect(payload.audioDirection).toBeDefined();
+    expect(payload.audioDirection).toContain('paranoid whisper');
+    expect(payload.audioDirection).toContain('cosmic dread');
+  });
+
+  it('obsługuje wielogłosowe słuchowisko: NPC otrzymuje dedykowaną reżyserię aktorską', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const dialogue =
+      '@Walter Gilman: „Słyszycie ten nieustanny chrobot w ścianach starego domu?”';
+
+    await act(async () => {
+      result.current.addToQueue(dialogue, 'msg-dialogue-1', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalled();
+    const fetchArgs = (global.fetch as jest.Mock).mock.calls[0];
+    const payload = JSON.parse(fetchArgs[1].body);
+
+    expect(payload.audioDirection).toBeDefined();
+    expect(payload.audioDirection).toContain('natural, character-driven dramatic voice');
+    expect(payload.text).toContain('Słyszycie ten nieustanny chrobot');
+  });
 });

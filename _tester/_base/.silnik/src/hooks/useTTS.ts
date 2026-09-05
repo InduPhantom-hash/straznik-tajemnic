@@ -8,11 +8,23 @@ import { loadAISettings } from '@/lib/ai-settings';
 // Sesja 147 Faza 2: multi-voice WRACA dla preset=ultra (słuchowisko radiowe).
 // 2026-07-22: rozszerzone na HIGH (multi-voice NPC + parser `Imię: „dialog”`
 // obok legacy `@Imię:`). MID/LOW wciąż jednym głosem narratora.
-import { loadNpcVoiceMap, resolveNpcVoice } from '@/lib/npc-voice-mapping';
+import {
+  loadNpcVoiceMap,
+  resolveNpcVoice,
+  resolveNpcObject,
+  inferRoleFromNPC,
+} from '@/lib/npc-voice-mapping';
+import {
+  buildAudioDirection,
+  extractMoodFromText,
+  extractSanLossFromText,
+  getActiveCharacterSan,
+} from '@/lib/audio/sound-director';
 
 interface QueueItem {
   text: string;
   voiceId?: string; // override z multi-voice; undefined → settings.voiceSettings.voiceId
+  audioDirection?: string; // Issue #162: instrukcja reżyserska dla Gemini TTS
 }
 
 export interface TTSState {
@@ -229,6 +241,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   // flush. Reset przy ID-change, by nie przeciekał między wiadomościami.
   const openRunRef = useRef<{
     voiceId: string | undefined;
+    audioDirection?: string;
     texts: string[];
   } | null>(null);
   // E1 (start lektora): liczba znaków PIERWSZEGO akapitu już oddanych do TTS "na
@@ -245,6 +258,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const initialBufferResolversRef = useRef<(() => void)[]>([]);
   const finishInitialBufferingRef = useRef<() => void>(() => {});
   const bufferTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastKnownMoodRef = useRef<string | undefined>(undefined);
+  const lastKnownSanLossRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     console.log('🔊 TTS: Hook MOUNTED');
@@ -280,6 +295,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       earlySpokenCharsRef.current = 0; // E1: świeży kursor wczesnego startu dla nowej wiadomości
       hasDispatchedFirstSegmentRef.current = false;
       completedMessageIdsRef.current.clear(); // IND-200
+      lastKnownSanLossRef.current = undefined;
 
       if (!preserveBuffering) {
         if (bufferTimeoutRef.current) {
@@ -332,7 +348,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         // Przenieś z pending do głównej kolejki przetwarzania
         const item = pendingQueueRef.current.shift();
         if (!item) continue;
-        const { text, voiceId: overrideVoiceId } = item;
+        const { text, voiceId: overrideVoiceId, audioDirection } = item;
         if (!text) continue;
 
         const index = processingIndexRef.current++;
@@ -377,11 +393,13 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               ? TTS_MODEL_NPC
               : TTS_MODEL_NARRATOR;
             // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
+            // Issue #162: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
             audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
               text,
               voice: effectiveVoice,
               model: geminiModel,
               languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
+              audioDirection,
             });
           }
 
@@ -576,6 +594,18 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         );
       }
 
+      // Ekstrakcja nastroju i strat SAN ze strumienia odpowiedzi MG
+      const moodInChunk = extractMoodFromText(fullRawText);
+      if (moodInChunk) {
+        lastKnownMoodRef.current = moodInChunk;
+      }
+      const sanLossInChunk = extractSanLossFromText(fullRawText);
+      if (sanLossInChunk) {
+        lastKnownSanLossRef.current = sanLossInChunk;
+      }
+      const currentMood = lastKnownMoodRef.current;
+      const currentSanLoss = lastKnownSanLossRef.current;
+
       // IND-193 (A'): usuń bloki WIELOLINIOWE (tagi/JSON/fence/DZIENNIK) ZACHOWUJĄC `\n`,
       // utnij niezamknięty blok z ogona (streaming), DOPIERO POTEM tnij na zdania i czyść
       // per-zdanie. Bloki nie są już rozcinane na fragmenty, więc nie przeżywają w audio.
@@ -637,8 +667,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         }
 
         const npcVoiceMap = loadNpcVoiceMap();
+        const { san, maxSan } = getActiveCharacterSan();
 
-        // demo 2026-06-22: scalamy kolejne zdania o tym SAMYM voiceId w jeden segment
+        // demo 2026-06-22: scalamy kolejne zdania o tym SAMYM voiceId i audioDirection w jeden segment
         // TTS = jeden spójny głos (koniec resetu prozodii per zdanie). Run trzymany w
         // openRunRef MIĘDZY wywołaniami (streaming), zamykany przy zmianie mówcy / flush.
         const closeRun = () => {
@@ -647,6 +678,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             pendingItems.push({
               text: run.texts.join(' '),
               voiceId: run.voiceId,
+              audioDirection: run.audioDirection,
             });
           }
           openRunRef.current = null;
@@ -663,22 +695,62 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               /^(@)?([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):\s*([\s\S]*?)$/
             );
           let voiceId: string | undefined;
+          let audioDirection: string | undefined;
           let textForQueue = sentence;
 
           if (markerMatch) {
             const npcName = markerMatch[2].trim();
             voiceId = resolveNpcVoice(npcName, npcVoiceMap);
+            const npcObj = resolveNpcObject(npcName);
+            const npcRole = inferRoleFromNPC(
+              npcObj
+                ? {
+                    type: npcObj.type || 'neutral',
+                    occupation: npcObj.occupation || '',
+                    description: npcObj.description || '',
+                    appearance: npcObj.appearance || '',
+                    personality: npcObj.personality || '',
+                    name: npcObj.name || npcName,
+                  }
+                : {
+                    type: 'neutral',
+                    occupation: '',
+                    description: '',
+                    appearance: '',
+                    personality: '',
+                    name: npcName,
+                  }
+            );
+            audioDirection = buildAudioDirection({
+              isNpc: true,
+              speakerName: npcName,
+              npcRole,
+              mood: currentMood,
+            });
             textForQueue = markerMatch[3].trim() || sentence;
+          } else {
+            // Kwestia Narratora - modulacja SAN i nastrojem
+            audioDirection = buildAudioDirection({
+              isNpc: false,
+              san,
+              maxSan,
+              mood: currentMood,
+              recentSanLoss: currentSanLoss,
+            });
           }
           // Bez kontynuacji - każde zdanie dialogu ma własny marker per gm-protocol.
 
-          // Zmiana mówcy zamyka bieżący run; ten sam voiceId (w tym narrator=undefined)
+          // Zmiana mówcy lub zmiana dyrektywy zamyka bieżący run; ten sam voiceId + direction
           // dokleja się do otwartego runu = jedno wywołanie TTS.
-          if (openRunRef.current && openRunRef.current.voiceId !== voiceId) {
+          if (
+            openRunRef.current &&
+            (openRunRef.current.voiceId !== voiceId ||
+              openRunRef.current.audioDirection !== audioDirection)
+          ) {
             closeRun();
           }
           if (!openRunRef.current) {
-            openRunRef.current = { voiceId, texts: [] };
+            openRunRef.current = { voiceId, audioDirection, texts: [] };
           }
           openRunRef.current.texts.push(textForQueue);
 
@@ -711,6 +783,14 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         // Brak `\n\n` w narracji → cała wypowiedź to jeden akapit (maksymalna spójność,
         // odtwarzana po flush). processedSentenceCountRef = liczba zakolejkowanych akapitów.
         const paragraphs = stripped.split(/\n{2,}/);
+        const { san, maxSan } = getActiveCharacterSan();
+        const narratorAudioDirection = buildAudioDirection({
+          isNpc: false,
+          san,
+          maxSan,
+          mood: currentMood,
+          recentSanLoss: currentSanLoss,
+        });
 
         // E1 (start lektora): zanim akapity się domkną, oddaj wcześnie KOMPLETNE zdania
         // pierwszego (jeszcze rosnącego) akapitu - audio rusza w trakcie streamu zamiast
@@ -746,7 +826,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               !isFirstEarly ||
               cleanSpan.length >= EARLY_FIRST_SEGMENT_MIN_CHARS;
             if (cleanSpan && /[\p{L}\p{N}]/u.test(cleanSpan) && longEnough) {
-              pendingItems.push({ text: cleanSpan });
+              pendingItems.push({
+                text: cleanSpan,
+                audioDirection: narratorAudioDirection,
+              });
               earlySpokenCharsRef.current = lastSentenceEnd;
             }
           }
@@ -768,7 +851,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               : paragraphs[i];
           const cleanParagraph = removeDidaskalia(rawParagraph).trim();
           if (cleanParagraph && /[\p{L}\p{N}]/u.test(cleanParagraph)) {
-            pendingItems.push({ text: cleanParagraph });
+            pendingItems.push({
+              text: cleanParagraph,
+              audioDirection: narratorAudioDirection,
+            });
           }
         }
         processedSentenceCountRef.current = completeCount;
