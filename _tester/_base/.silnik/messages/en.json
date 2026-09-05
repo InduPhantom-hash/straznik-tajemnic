@@ -4765,7 +4765,16 @@
     "clip3Source": "The Providence Gazette (1924)",
     "clip3Headline": "Unusual Phenomena in Waters of Narragansett Bay",
     "clip3Text": "Local fishermen report unnatural glows visible in dense fog south of the lighthouse. Trawler crews refuse to set sail after nightfall.",
-    "bufferingNarrator": "Buffering narrator voice (3-4 sentences)..."
+    "bufferingNarrator": "Buffering narrator voice (3-4 sentences)...",
+    "chronicleDossier": "Investigation Dossier",
+    "defaultChronicleIntro": "Within the gloom of forgotten streets and dusty archives lie secrets never meant for mortal minds. The hour of confrontation draws near...",
+    "enterAdventure": "Begin Adventure",
+    "enterGame": "Enter the Game",
+    "chronicleReady": "The chronicle is ready. Enter when prepared.",
+    "awaitingAccept": "Click to begin the investigation",
+    "themesLabel": "Themes:",
+    "eraLabel": "Era:",
+    "locationLabel": "Location:"
   },
   "ApiKeysModal": {
     "title": "API Keys Configuration",

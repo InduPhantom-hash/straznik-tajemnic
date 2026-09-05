@@ -164,11 +164,15 @@ interface UseGameStartProps {
     addToQueue: (text: string, messageId?: string) => void;
     startInitialBuffering: () => void;
     waitForInitialBuffer?: (timeoutMs?: number) => Promise<void>;
+    /** Issue #157: Zdejmuje blokadę oczekiwania na akcept gracza i rozpoczyna odtwarzanie lektora */
+    playInitialNarration?: () => void;
     stopCurrentAudio: () => void;
   };
   aiSettings?: AISettings | null;
   /** IND-273 T3: self-check klucza/modeli przy starcie gry (fire-and-forget, TTL dławi). */
   runHealthCheck?: () => void;
+  /** Issue #157: Wymuszenie oczekiwania na akcept gracza nawet w środowisku testowym */
+  requirePlayerConfirmation?: boolean;
 }
 
 /**
@@ -190,11 +194,39 @@ export function useGameStart({
   tts,
   aiSettings,
   runHealthCheck,
+  requirePlayerConfirmation,
   locale = 'pl',
 }: UseGameStartProps) {
   const [isStarting, setIsStarting] = useState(false);
   const [startProgress, setStartProgress] = useState(0);
   const [startStatus, setStartStatus] = useState('');
+  const [isReadyToEnter, setIsReadyToEnter] = useState(false);
+
+  const waitForPlayerConfirmation = useCallback((): Promise<void> => {
+    // W środowisku testowym domyślnie przechodzimy bez blokowania, chyba że test jawnie tego żąda
+    if (process.env.NODE_ENV === 'test' && !requirePlayerConfirmation) {
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+      const handleConfirm = () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('zew:confirm-enter-game', handleConfirm);
+        }
+        resolve();
+      };
+      if (typeof window !== 'undefined') {
+        window.addEventListener('zew:confirm-enter-game', handleConfirm);
+      } else {
+        resolve();
+      }
+    });
+  }, [requirePlayerConfirmation]);
+
+  const confirmEnterGame = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zew:confirm-enter-game'));
+    }
+  }, []);
 
   // IND-271: kolejka auto-generacji miniatur ekwipunku w tle (fire-and-forget
   // po starcie gry, NIE blokuje startu; cache-aware - pomija itemy z imageUrl).
@@ -837,6 +869,25 @@ export function useGameStart({
         await tts.waitForInitialBuffer(15000);
       }
 
+      // Issue #157: Zakończono generowanie pełnego otwarcia i buforowanie głosu lektora (100%)
+      setStartProgress(100);
+      setStartStatus(
+        locale === 'en'
+          ? 'The chronicle is ready. Enter when you are prepared.'
+          : 'Kronika spisana. Wejdź, gdy będziesz gotów.'
+      );
+      setIsReadyToEnter(true);
+
+      // Czekaj na kliknięcie przycisku CTA przez gracza (bramka akceptacji)
+      await waitForPlayerConfirmation();
+
+      setIsReadyToEnter(false);
+
+      // Odblokuj i uruchom przygotowane pierwsze zdania głosu lektora
+      if (tts.playInitialNarration) {
+        tts.playInitialNarration();
+      }
+
       // Zakończono generowanie pełnego otwarcia: odsłoń czat z gotową sceną (Issue #123)
       await transitionToGame();
 
@@ -862,6 +913,7 @@ export function useGameStart({
     } catch (error) {
       console.error('Game start intro failed:', error);
       setIsStarting(false);
+      setIsReadyToEnter(false);
       setStartProgress(0);
       setStartStatus('');
       setHasStartedGame(true);
@@ -911,6 +963,7 @@ export function useGameStart({
     generateThumbnailsInBackground,
     aiSettings,
     runHealthCheck,
+    waitForPlayerConfirmation,
     locale,
   ]);
 
@@ -919,5 +972,7 @@ export function useGameStart({
     isStarting,
     startProgress,
     startStatus,
+    isReadyToEnter,
+    confirmEnterGame,
   };
 }
