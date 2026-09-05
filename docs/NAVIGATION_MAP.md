@@ -44,6 +44,7 @@ graph TD
     rulebook_modal["Podręcznik zasad / Rulebook"]
     chase_dialog["Pościg i tor przeszkód (CoC 7e RAW) / Chase and hazard track (CoC 7e RAW)"]
     hazard_dialog["Zagrożenia środowiskowe i trucizny (CoC 7e RAW) / Environmental hazards and poisons (CoC 7e RAW)"]
+    sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (CoC 7e RAW) / Sanity therapy and recovery (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -81,6 +82,7 @@ graph TD
     home -->|Podręcznik zasad / Rulebook| rulebook_modal
     api_keys -->|Dalej do zasad / Continue to rules| rulebook_modal
     rulebook_modal -->|Gotowe, przejdź do gry / Ready, proceed to game| home
+    character_sheet -->|Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery| sanity_therapy_modal
 ```
 
 ## Routy
@@ -139,6 +141,7 @@ graph TD
 | Strona główna | Podręcznik zasad / Rulebook | Podręcznik zasad | `src/components/chat/welcome/components/bottom-links.tsx` |
 | Klucze API | Dalej do zasad / Continue to rules | Podręcznik zasad | `src/app/[locale]/page.tsx` |
 | Podręcznik zasad | Gotowe, przejdź do gry / Ready, proceed to game | Strona główna | `src/app/[locale]/page.tsx` |
+| Karta badacza (Dark Art Déco CoC 7e RAW) | Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery | Terapia i rekonwalescencja psychiczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
 
 ## Zasady aktualizacji
 
