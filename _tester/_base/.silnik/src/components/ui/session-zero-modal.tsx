@@ -69,13 +69,6 @@ const SUGGESTED_HOOK_ITEMS = [
   { key: 'hookAccident', icon: '👁️' },
 ] as const;
 
-const SUGGESTED_HOOK_KEYS = [
-  'hookJob',
-  'hookFamily',
-  'hookAcademic',
-  'hookDebt',
-  'hookAccident',
-] as const;
 
 const SUGGESTED_KEY_CONNECTIONS = [
   'anchorConnectionMentor',
