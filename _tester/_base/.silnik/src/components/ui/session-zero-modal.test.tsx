@@ -86,7 +86,13 @@ describe('SessionZeroModal', () => {
 
     // Krok 1: Konwencja i styl
     expect(screen.getByText('Konwencja opowieści')).toBeInTheDocument();
+    expect(screen.getByText('Klasyczny Kosmiczny Horror (Purystyczny)')).toBeInTheDocument();
+    expect(screen.getByText('Awanturniczy (Pulp Cthulhu)')).toBeInTheDocument();
+    expect(screen.queryByText('Detektywistyczny / Noir')).not.toBeInTheDocument();
     expect(screen.getByText('Tryb narracji')).toBeInTheDocument();
+    expect(screen.getByText('Pełne RPG')).toBeInTheDocument();
+    expect(screen.getByText('Priorytet Fabuły')).toBeInTheDocument();
+    expect(screen.getByText('Czysta Narracja')).toBeInTheDocument();
     expect(screen.getByText('Krok 1 z 4')).toBeInTheDocument();
 
     // Przejście do Kroku 2
@@ -181,5 +187,32 @@ describe('SessionZeroModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /Konwencja i styl/i }));
     expect(screen.getByText('Krok 1 z 4')).toBeInTheDocument();
     expect(screen.getByText('Konwencja opowieści')).toBeInTheDocument();
+  });
+
+  it('normalizes legacy adventure tone noir to purist', () => {
+    const noirAdventure: AdventureContext = {
+      ...mockAdventure,
+      tone: 'noir' as const,
+    };
+
+    render(
+      <SessionZeroModal
+        open={true}
+        onClose={onClose}
+        onComplete={onComplete}
+        adventureContext={noirAdventure}
+        activeCharacter={mockCharacter}
+      />
+    );
+
+    // Skok do kroku 4 i zapis
+    fireEvent.click(screen.getByRole('button', { name: /Granice i epoka/i }));
+    fireEvent.click(screen.getByText('Zakończ i zapisz ›'));
+
+    expect(onComplete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tone: 'purist',
+      })
+    );
   });
 });
