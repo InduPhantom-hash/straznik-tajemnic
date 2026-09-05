@@ -77,3 +77,28 @@ W Zewie Cthulhu porażki na kościach są ciekawsze od rutynowych sukcesów. Nie
 Zamiast stukać w klawiaturę, graj głosem! Użycie dyktowania w pierwszej osobie prosto do czatu pozwala wejść w postać z intonacją i emocjami:
 - **MacWhisper / Superwhisper / Wispr Flow:** Globalny skrót klawiszowy (np. `Fn` lub `Ctrl+Space`) pozwala mówić do gry z natychmiastową transkrypcją.
 - Model Mistrza Gry doskonale radzi sobie z naturalną mową, pauzami i potocznym językiem śledczego.
+
+---
+
+## 6. Rola Sędziego i Twarde Weto RAW (The Referee Stance & Fiction First)
+
+Zgodnie z regułami Księgi Strażnika CoC 7e (s. 94, 218-219), Mistrz Gry ma dwie role: Opowiadacza (wewnątrz fikcji) oraz bezstronnego Sędziego/Arbitra (The Referee Stance, w metagrze).
+
+### Zasada: Rzut oznacza szansę powodzenia
+W Zewie Cthulhu poziom `ekstremalny` (1/5 umiejętności) dotyczy wyłącznie zadań skrajnie trudnych, ale **nadal mieszczących się w granicach ludzkich możliwości**.
+Czynności wykraczające poza ludzką biologię, prawa fizyki, realia historyczne epoki lub twarde zasady mechaniczne w ogóle **nie podlegają testom kośćmi**. Zarządzanie rzutu na czynność niemożliwą jest błędem proceduralnym (sukces krytyczny `01` zmusza do zamiany horroru w farsę).
+
+### Twarde Granice CoC 7e RAW (Automatyczne Weto MG)
+1. **Granice ludzkiej biologii (s. 94):** Skoki z wysokości bez szwanku, unikanie kul po strzale, podnoszenie wielotonowych obiektów.
+2. **Manewry w walce (s. 117-118):** Przeciwnik o Budowie (Build) wyższej o 3 lub więcej niż atakujący - manewr powalenia lub pochwycenia jest fizycznie niemożliwy.
+3. **Balistyka broni palnej (s. 125, 461):** Cele znajdujące się powyżej 4-krotności zasięgu bazowego broni - strzał jest fizycznie niemożliwy.
+4. **Zasoby i ekwipunek:** Deklaracja użycia przedmiotu nieposiadanego w ekwipunku, strzał z pustej lub zaciętej broni.
+5. **Zakazane forsowanie testów (s. 83, 115):** Bezwzględny zakaz forsowania testów w walce (wręcz, strzelanie, unik), testów Poczytalności (SAN) i testów Szczęścia.
+6. **Anachronizmy epoki i metagaming:** Budowanie urządzeń wykraczających poza wiedzę epoki, żądanie współczesnej kryminalistyki (DNA) w latach 20.
+
+### Protokół Odpowiedzi Sędziowskiej w Czacie
+Gdy gracz przekombinowuje lub deklaruje czynność niemożliwą, model AI przerywa poetycki styl narracji i odpowiada krótko z pozycji Sędziego (1-2 zdania):
+> **Nie możesz tego zrobić. [Uzasadnienie: fizyka / reguły CoC 7e RAW / ograniczenia epoki / brak narzędzia]. Zadeklaruj inną akcję.**
+> `[Co robisz?]`
+
+Czas gry (`[AKTUALNY CZAS]`) w takiej turze nie przesuwa się.
