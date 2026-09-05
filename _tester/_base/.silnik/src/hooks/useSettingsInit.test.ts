@@ -1,5 +1,5 @@
-import { renderHook, act } from '@testing-library/react';
-import { useSettingsInit } from './useSettingsInit';
+import { renderHook, act, RenderHookResult } from '@testing-library/react';
+import { useSettingsInit, UseSettingsInitReturn, UseSettingsInitOptions } from './useSettingsInit';
 import * as aiSettingsModule from '@/lib/ai-settings';
 
 jest.mock('@/lib/ai-settings', () => {
@@ -37,7 +37,7 @@ describe('useSettingsInit', () => {
     const onClose = jest.fn();
     const onOpenChange = jest.fn();
 
-    let resultHook: any;
+    let hookResult!: RenderHookResult<UseSettingsInitReturn, UseSettingsInitOptions>['result'];
     await act(async () => {
       const { result } = renderHook(() =>
         useSettingsInit({
@@ -46,16 +46,16 @@ describe('useSettingsInit', () => {
           onOpenChange,
         })
       );
-      resultHook = result;
+      hookResult = result;
     });
 
     await act(async () => {
-      await resultHook.current.handleSave();
+      await hookResult.current.handleSave();
     });
 
     expect(aiSettingsModule.saveAISettings).toHaveBeenCalled();
     expect(alertMock).not.toHaveBeenCalled();
-    expect(resultHook.current.saveStatus).toBe('saved');
+    expect(hookResult.current.saveStatus).toBe('saved');
     expect(onClose).toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -63,7 +63,7 @@ describe('useSettingsInit', () => {
   it('handleReset otwiera dialog potwierdzenia zamiast window.confirm', async () => {
     const onClose = jest.fn();
 
-    let resultHook: any;
+    let hookResult!: RenderHookResult<UseSettingsInitReturn, UseSettingsInitOptions>['result'];
     await act(async () => {
       const { result } = renderHook(() =>
         useSettingsInit({
@@ -71,32 +71,32 @@ describe('useSettingsInit', () => {
           onClose,
         })
       );
-      resultHook = result;
+      hookResult = result;
     });
 
-    expect(resultHook.current.showResetConfirm).toBe(false);
+    expect(hookResult.current.showResetConfirm).toBe(false);
 
     act(() => {
-      resultHook.current.handleReset();
+      hookResult.current.handleReset();
     });
 
     expect(confirmMock).not.toHaveBeenCalled();
-    expect(resultHook.current.showResetConfirm).toBe(true);
+    expect(hookResult.current.showResetConfirm).toBe(true);
 
     act(() => {
-      resultHook.current.closeResetConfirm();
+      hookResult.current.closeResetConfirm();
     });
-    expect(resultHook.current.showResetConfirm).toBe(false);
+    expect(hookResult.current.showResetConfirm).toBe(false);
 
     act(() => {
-      resultHook.current.openResetConfirm();
+      hookResult.current.openResetConfirm();
     });
-    expect(resultHook.current.showResetConfirm).toBe(true);
+    expect(hookResult.current.showResetConfirm).toBe(true);
 
     act(() => {
-      resultHook.current.confirmReset();
+      hookResult.current.confirmReset();
     });
     expect(aiSettingsModule.resetAISettings).toHaveBeenCalled();
-    expect(resultHook.current.showResetConfirm).toBe(false);
+    expect(hookResult.current.showResetConfirm).toBe(false);
   });
 });
