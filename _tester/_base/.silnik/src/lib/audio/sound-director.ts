@@ -30,7 +30,7 @@ export interface SoundDirectorContext {
  */
 export function buildAudioDirection(context?: SoundDirectorContext): string {
   if (!context) {
-    return 'Read the following in a slow, solemn, and ominous Lovecraftian cadence:';
+    return 'Read the following in a captivating, atmospheric storytelling voice with a natural, steady pace and a suspenseful Lovecraftian undertone:';
   }
 
   const { san, maxSan = 100, mood, isNpc, npcRole, recentSanLoss } = context;
@@ -41,7 +41,7 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
       return 'Read the following in an eerie, unsettling, rasping, and inhuman tone:';
     }
     if (npcRole === 'old') {
-      return 'Read the following in a mature, weathered, gravelly, and deliberate voice:';
+      return 'Read the following in a mature, weathered, and gravelly character voice:';
     }
     if (npcRole === 'young') {
       return 'Read the following in a youthful, emotional, and expressive voice:';
@@ -58,35 +58,35 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
 
   // Szok po nagłej utracie SAN (≥ 5 punktów) lub krytycznie niska poczytalność
   if ((recentSanLoss && recentSanLoss >= 5) || sanPercentage <= 0.25) {
-    return 'Read the following in a fractured, urgent, tense, and paranoid whisper, reflecting deep cosmic dread:';
+    return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror and cosmic dread:';
   }
 
   // Obniżona poczytalność (< 50%)
   if (sanPercentage <= 0.5) {
     if (mood && /klaustrofob|dusząc|ciemn|mrocz/i.test(mood)) {
-      return 'Read the following in a hushed, suffocating, ominous, and tense cadence:';
+      return 'Read the following in a hushed, tense, and uneasy cadence with a steady, captivating pace:';
     }
-    return 'Read the following in a nervous, uneasy, and dark Lovecraftian cadence:';
+    return 'Read the following in a tense, nervous, and suspenseful storytelling voice with a natural pace:';
   }
 
   // Stabilna wysoka poczytalność - dopasowanie do nastroju sceny
   if (mood) {
     if (/klaustrofob|dusząc|grobow/i.test(mood)) {
-      return 'Read the following in a hushed, deep, claustrophobic, and slow cadence:';
+      return 'Read the following in a hushed, deep, and claustrophobic cadence, maintaining a focused and steady pace:';
     }
     if (/panik|alarm|walk|pościg|ucieczk/i.test(mood)) {
       return 'Read the following in an intense, rapid, and thrilling cadence:';
     }
     if (/oniryczn|nieostr|mgł|tajemnicz/i.test(mood)) {
-      return 'Read the following in an ethereal, measured, mysterious, and slow cadence:';
+      return 'Read the following in an ethereal, mysterious, and captivating cadence with a fluid, measured pace:';
     }
     if (/fałszywy spokój|spokoj/i.test(mood)) {
-      return 'Read the following in a calm but subtly eerie and watchful tone:';
+      return 'Read the following in a calm, crisp, but subtly eerie and watchful tone:';
     }
   }
 
-  // Domyślny stabilny kronikarz Lovecrafta
-  return 'Read the following in a slow, solemn, and ominous Lovecraftian cadence:';
+  // Domyślny wciągający kronikarz Lovecrafta o naturalnym tempie radiowym
+  return 'Read the following in a captivating, atmospheric storytelling voice with a natural, steady pace and a suspenseful Lovecraftian undertone:';
 }
 
 /**
