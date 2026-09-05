@@ -10,7 +10,7 @@ export const defaultAISettings: AISettings = {
     temperature: 0.8,
     topP: 0.9,
     topK: 50,
-    maxOutputTokens: 4096, // HIGH preset (definitions.ts); flash nie potrzebuje 8192 jak myślący 3.1-pro
+    maxOutputTokens: 8192, // HIGH preset (definitions.ts); thinkingLevel high wymaga większego budżetu tokenów wyjściowych
     candidateCount: 1, // Jedna odpowiedź na request - wystarcza
     seed: undefined, // Losowy; user może ustawić dla powtarzalności (testy)
     presencePenalty: 0, // Neutralne

@@ -86,6 +86,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   isSessionEnded,
   sessionEndStatus,
   onCharacterUpdate,
+  onContinueNarration,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -276,6 +277,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   onCharacterUpdate={onCharacterUpdate}
                   isDuet={isDuet}
                   characters={characters}
+                  onContinueNarration={onContinueNarration}
                 />
               ))}
               {/* Loading indicator - animowane kropki */}
