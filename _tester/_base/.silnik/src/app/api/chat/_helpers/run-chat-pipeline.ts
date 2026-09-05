@@ -33,8 +33,7 @@ import { runRAGAndSummary } from './run-rag-summary';
 import { resolveSettings } from './resolve-settings';
 import { buildPlayerWeaponContext } from '@/lib/combat/weapon-context';
 import { resolveUserId, scopeSessionId } from '@/lib/auth-user';
-import * as Sentry from '@sentry/nextjs';
-import { isModelNotFoundError } from './model-fallback';
+import { isModelNotFoundError, isInvalidKeyError } from './model-fallback';
 import { fetchImmersionContext } from './build-immersion-context';
 import {
   isResolvedEraContext,
@@ -407,20 +406,45 @@ export async function runChatPipeline({
   try {
     streamResult = await provider.streamChat(streamArgs);
   } catch (err) {
+    if (isInvalidKeyError(err)) {
+      console.warn('⚠️ Gemini streamChat auth error (invalid API key):', err);
+      return NextResponse.json(
+        {
+          error:
+            locale === 'en'
+              ? 'The provided Gemini API key is invalid or expired. Please update it in Settings.'
+              : 'Podany klucz Gemini API jest nieprawidłowy lub wygasł. Zaktualizuj klucz w Ustawieniach.',
+          code: 'BYOK_KEY_INVALID',
+        },
+        { status: 401 }
+      );
+    }
     if (isModelNotFoundError(err) && modelId !== DEFAULT_GEMINI_MODEL) {
       console.warn(
         `⚠️ IND-222: model "${modelId}" zwrócił 404 NOT_FOUND → fallback na "${DEFAULT_GEMINI_MODEL}"`
-      );
-      Sentry.captureMessage(
-        `Gemini model 404 → fallback: ${modelId} → ${DEFAULT_GEMINI_MODEL}`,
-        { level: 'warning', tags: { feature: 'chat', issue: 'IND-222' } }
       );
       effectiveModelId = DEFAULT_GEMINI_MODEL;
       const fallbackProvider = new GeminiChatProvider(
         apiKey,
         DEFAULT_GEMINI_MODEL
       );
-      streamResult = await fallbackProvider.streamChat(streamArgs);
+      try {
+        streamResult = await fallbackProvider.streamChat(streamArgs);
+      } catch (fallbackErr) {
+        if (isInvalidKeyError(fallbackErr)) {
+          return NextResponse.json(
+            {
+              error:
+                locale === 'en'
+                  ? 'The provided Gemini API key is invalid or expired. Please update it in Settings.'
+                  : 'Podany klucz Gemini API jest nieprawidłowy lub wygasł. Zaktualizuj klucz w Ustawieniach.',
+              code: 'BYOK_KEY_INVALID',
+            },
+            { status: 401 }
+          );
+        }
+        throw fallbackErr;
+      }
     } else {
       throw err;
     }

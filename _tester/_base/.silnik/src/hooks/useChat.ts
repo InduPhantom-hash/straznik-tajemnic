@@ -828,7 +828,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           }),
         });
 
-        if (!response.ok) throw new Error('Błąd połączenia');
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          const serverMsg =
+            (errorBody as Record<string, string>)?.error || response.statusText;
+          throw new Error(`Chat API ${response.status}: ${serverMsg}`);
+        }
 
         // Udane wysłanie - wyczyść oczekujące zdarzenie w UI (Faza 2 planu)
         if (options.clearPendingDirectorEvent) {
@@ -1192,12 +1197,28 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           errorMessage: error instanceof Error ? error.message : String(error),
           messageNumber: messages.length + 1,
         });
-        // Zadanie 6: po wyczerpaniu retry rozróżnij blip sieci od innego błędu -
-        // graczowi mówimy wprost, że to chwilowy problem z połączeniem i może
-        // spróbować ponownie (zamiast surowego/ogólnego komunikatu).
-        const friendly = isNetworkBlip(error)
-          ? '⚠️ Chwilowy problem z połączeniem - spróbuj wysłać wiadomość jeszcze raz.'
-          : 'Przepraszam, wystąpił błąd.';
+        const errorStr = error instanceof Error ? error.message : String(error);
+        const isAuthError =
+          errorStr.includes('401') ||
+          errorStr.includes('BYOK_KEY') ||
+          errorStr.includes('API key');
+
+        if (isAuthError && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
+        }
+
+        // Zadanie 6: po wyczerpaniu retry rozróżnij błąd autoryzacji i blip sieci od innego błędu.
+        const friendly = isAuthError
+          ? locale === 'en'
+            ? '⚠️ The Gemini API key is invalid or expired. Enter a valid key in Settings (key icon in menu) and try again.'
+            : '⚠️ Klucz Gemini API jest nieprawidłowy lub wygasł. Wklej poprawny klucz w Ustawieniach (ikona klucza w menu) i spróbuj ponownie.'
+          : isNetworkBlip(error)
+            ? locale === 'en'
+              ? '⚠️ A temporary connection problem occurred - try sending your message again.'
+              : '⚠️ Chwilowy problem z połączeniem - spróbuj wysłać wiadomość jeszcze raz.'
+            : locale === 'en'
+              ? 'I am sorry, an error occurred.'
+              : 'Przepraszam, wystąpił błąd.';
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessageId ? { ...msg, content: friendly } : msg
@@ -1293,7 +1314,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           }),
         });
 
-        if (!response.ok) throw new Error('Błąd połączenia');
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          const serverMsg =
+            (errorBody as Record<string, string>)?.error || response.statusText;
+          throw new Error(`Chat API ${response.status}: ${serverMsg}`);
+        }
 
         let streamedFullText = '';
         const fullText = await parseSSEStream(response, {

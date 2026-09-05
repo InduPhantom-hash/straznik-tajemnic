@@ -452,6 +452,10 @@ export default function Home() {
 
   useEffect(() => {
     if (!hasRequiredKeys()) setShowApiKeysModal(true);
+
+    const handleOpenModal = () => setShowApiKeysModal(true);
+    window.addEventListener('open-api-keys-modal', handleOpenModal);
+    return () => window.removeEventListener('open-api-keys-modal', handleOpenModal);
   }, []);
 
   // 1a-bis. IND-273 T5b: auto-odświeżenie cennika Gemini (TTL 24h po stronie

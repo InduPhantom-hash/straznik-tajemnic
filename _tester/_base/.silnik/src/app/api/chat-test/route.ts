@@ -18,23 +18,28 @@ export async function POST(request: NextRequest) {
   try {
     const { testConnection, apiKey } = await request.json();
 
-    // IND-30: Resolve klucza API z body (priorytet) z fallbackiem do env.
-    // Wcześniej endpoint inicjalizował GoogleGenAI singleton z env na poziomie modułu,
-    // ignorując klucz wpisany w UI Settings. Teraz UI dostarcza klucz przez body request,
-    // env zostaje jako safety net (np. dla test E2E bez UI lub server-side wywołań).
-    const effectiveKey =
-      apiKey?.trim() || process.env.GEMINI_API_KEY?.trim() || null;
-    const client = getGeminiClient(effectiveKey);
+    // BYOK: Test połączenia z UI Settings testuje wyłącznie wpisany klucz (bez cichego fallbacku do .env.local).
+    // Jeśli apiKey nie został podany w body, zwracamy 400.
+    const effectiveKey = typeof apiKey === 'string' ? apiKey.trim() : null;
 
-    if (!client) {
-      console.error('❌ Gemini API Test: Brak klucza API (body i env puste)');
+    if (!effectiveKey) {
       return NextResponse.json(
         {
           error: 'Brak klucza API Gemini',
-          details:
-            'Wpisz klucz w Ustawieniach lub skonfiguruj GEMINI_API_KEY w środowisku',
+          details: 'Wpisz klucz API w formularzu, aby przetestować połączenie.',
         },
-        { status: 500 }
+        { status: 400 }
+      );
+    }
+    const client = getGeminiClient(effectiveKey);
+
+    if (!client) {
+      return NextResponse.json(
+        {
+          error: 'Błąd inicjalizacji klienta Gemini',
+          details: 'Nie udało się zainicjalizować klienta dla podanego klucza API.',
+        },
+        { status: 400 }
       );
     }
 
@@ -94,14 +99,19 @@ export async function POST(request: NextRequest) {
       if (testError instanceof Error) {
         errorDetails = testError.message;
 
+        let statusCode = 500;
         // Szczegółowe informacje o błędzie
         if (
           testError.message.includes('API key') ||
-          testError.message.includes('401')
+          testError.message.includes('401') ||
+          testError.message.includes('400') ||
+          testError.message.includes('INVALID_ARGUMENT') ||
+          testError.message.includes('PERMISSION_DENIED')
         ) {
           errorMessage = 'Nieprawidłowy klucz API Gemini';
           errorDetails =
-            'Błąd konfiguracji API. Skontaktuj się z pomocą techniczną';
+            'Podany klucz API nie przeszedł pomyślnie autoryzacji w Google AI Studio.';
+          statusCode = 401;
         } else if (
           testError.message.includes('quota') ||
           testError.message.includes('429')
@@ -109,6 +119,7 @@ export async function POST(request: NextRequest) {
           errorMessage = 'Przekroczono limit zapytań';
           errorDetails =
             'Spróbuj ponownie za chwilę lub sprawdź limity na https://makersuite.google.com';
+          statusCode = 429;
         } else if (
           testError.message.includes('model') ||
           testError.message.includes('404')
@@ -116,17 +127,19 @@ export async function POST(request: NextRequest) {
           errorMessage = 'Model nie jest dostępny';
           errorDetails =
             'Sprawdź czy wybrany model Gemini jest dostępny w Twoim regionie';
+          statusCode = 404;
         }
-      }
 
-      return NextResponse.json(
-        {
-          error: errorMessage,
-          details: errorDetails,
-          timestamp: new Date().toISOString(),
-        },
-        { status: 500 }
-      );
+        return NextResponse.json(
+          {
+            success: false,
+            error: errorMessage,
+            details: errorDetails,
+            timestamp: new Date().toISOString(),
+          },
+          { status: statusCode }
+        );
+      }
     }
   } catch (error) {
     // W3: outer catch ZACHOWANY z oryginału — `client.models.generateContent()` w block

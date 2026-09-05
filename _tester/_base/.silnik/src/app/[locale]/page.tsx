@@ -702,6 +702,10 @@ export default function Home() {
     setRulesOnboardingCompleted(
       localStorage.getItem('rules_onboarding_completed') === 'true'
     );
+
+    const handleOpenModal = () => setShowApiKeysModal(true);
+    window.addEventListener('open-api-keys-modal', handleOpenModal);
+    return () => window.removeEventListener('open-api-keys-modal', handleOpenModal);
   }, []);
 
   
