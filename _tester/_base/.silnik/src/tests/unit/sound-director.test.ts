@@ -14,11 +14,11 @@ describe('Sound Director Service (Issue #162)', () => {
   });
 
   describe('buildAudioDirection - Kwestie Narratora', () => {
-    it('zwraca posępny domyślny ton Lovecrafta przy stabilnej poczytalności i braku nastroju', () => {
+    it('zwraca naturalny, wciągający ton z nutą grozy przy stabilnej poczytalności i braku nastroju', () => {
       const direction = buildAudioDirection({ san: 75, maxSan: 80 });
-      expect(direction).toBe(
-        'Read the following in a slow, solemn, and ominous Lovecraftian cadence:'
-      );
+      expect(direction).toContain('captivating, atmospheric storytelling voice');
+      expect(direction).toContain('natural, steady pace');
+      expect(direction).not.toContain('slow');
     });
 
     it('zwraca paranoiczny szept przy nagłej stracie SAN >= 5 (trauma CoC 7e)', () => {
@@ -27,13 +27,14 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         recentSanLoss: 5,
       });
-      expect(direction).toContain('paranoid whisper');
+      expect(direction).toContain('urgent, tense, and paranoid whisper');
       expect(direction).toContain('cosmic dread');
+      expect(direction).not.toContain('slow');
     });
 
     it('zwraca paranoiczny szept przy krytycznie niskiej poczytalności (SAN <= 25%)', () => {
       const direction = buildAudioDirection({ san: 15, maxSan: 80 }); // 15/80 = 18.75%
-      expect(direction).toContain('paranoid whisper');
+      expect(direction).toContain('urgent, tense, and paranoid whisper');
     });
 
     it('zwraca duszny, złowrogi ton przy obniżonej poczytalności (< 50%) w klaustrofobicznej scenie', () => {
@@ -42,7 +43,9 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         mood: 'klaustrofobiczny i duszny',
       });
-      expect(direction).toContain('hushed, suffocating, ominous, and tense cadence');
+      expect(direction).toContain('hushed, tense, and uneasy cadence');
+      expect(direction).toContain('captivating pace');
+      expect(direction).not.toContain('slow');
     });
 
     it('zwraca niepokojący ton przy obniżonej poczytalności (< 50%) w standardowej scenie', () => {
@@ -51,7 +54,8 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         mood: 'tajemniczy',
       });
-      expect(direction).toContain('nervous, uneasy, and dark Lovecraftian cadence');
+      expect(direction).toContain('tense, nervous, and suspenseful storytelling voice');
+      expect(direction).toContain('natural pace');
     });
 
     it('dopasowuje tempo do nastroju walki lub pościgu przy wysokiej poczytalności', () => {
@@ -69,7 +73,9 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         mood: 'oniryczny, mgła nad portem',
       });
-      expect(direction).toContain('ethereal, measured, mysterious, and slow cadence');
+      expect(direction).toContain('ethereal, mysterious, and captivating cadence');
+      expect(direction).toContain('fluid, measured pace');
+      expect(direction).not.toContain('slow');
     });
 
     it('obsługuje fałszywy spokój', () => {
@@ -78,7 +84,7 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         mood: 'fałszywy spokój w salonie',
       });
-      expect(direction).toContain('calm but subtly eerie and watchful tone');
+      expect(direction).toContain('calm, crisp, but subtly eerie and watchful tone');
     });
   });
 
@@ -92,13 +98,13 @@ describe('Sound Director Service (Issue #162)', () => {
       expect(direction).toContain('eerie, unsettling, rasping, and inhuman tone');
     });
 
-    it('zwraca chrapliwy, zrównoważony głos dla starszych postaci (old)', () => {
+    it('zwraca dojrzały, chropowaty głos dla starszych postaci (old)', () => {
       const direction = buildAudioDirection({
         isNpc: true,
         speakerName: 'Stary Zadok Allen',
         npcRole: 'old',
       });
-      expect(direction).toContain('mature, weathered, gravelly, and deliberate voice');
+      expect(direction).toContain('mature, weathered, and gravelly character voice');
     });
 
     it('zwraca młodzieńczy, emocjonalny głos dla młodych postaci (young)', () => {

@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
 import { useTTS } from '@/hooks/useTTS';
-import { loadAISettings } from '@/lib/ai-settings';
 
 jest.mock('@/lib/ai-settings', () => ({
   loadAISettings: jest.fn(() => ({
@@ -196,4 +195,49 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     expect(payload.audioDirection).toContain('natural, character-driven dramatic voice');
     expect(payload.text).toContain('Słyszycie ten nieustanny chrobot');
   });
+
+  it('wstrzymuje odtwarzanie audio (playFromBuffer) do momentu wywołania playInitialNarration (bramka CTA)', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Inicjuj buforowanie początkowe (stan oczekiwania na CTA)
+    act(() => {
+      result.current.startInitialBuffering();
+    });
+
+    // Dodaj 3 segmenty (osiągnięcie progu buforowania)
+    const introPart1 = 'Cień kładzie się na starych dachach portowego miasteczka. Wiatr niesie zapach soli i zgnilizny.';
+    await act(async () => {
+      result.current.addToQueue(introPart1, 'msg-intro-cta', true);
+    });
+
+    // Mimo zakończenia buforowania lektor nie odtwarza audio automatycznie
+    expect(result.current.currentAudio).toBeNull();
+
+    // Wywołaj stopCurrentAudio (np. wewnętrzny cleanup) - bramka CTA nie może zostać zdjęta
+    act(() => {
+      result.current.stopCurrentAudio();
+    });
+
+    // Dodaj kolejną treść
+    await act(async () => {
+      result.current.addToQueue('Kolejne zdanie w trakcie oczekiwania.', 'msg-intro-cta-2', true);
+    });
+
+    // Audio nadal nie może grać bez CTA
+    expect(result.current.currentAudio).toBeNull();
+
+    // Dopiero kliknięcie CTA wywołuje playInitialNarration i odblokowuje odtwarzacz
+    act(() => {
+      result.current.playInitialNarration?.();
+    });
+
+    // Sprawdź czy po odblokowaniu audio ruszyło
+    expect(result.current.playInitialNarration).toBeDefined();
+  });
 });
+
