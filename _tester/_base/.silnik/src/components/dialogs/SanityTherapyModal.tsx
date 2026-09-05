@@ -88,22 +88,26 @@ export function SanityTherapyModal({
   );
   const [hospitalResult, setHospitalResult] = useState<HospitalCareResult | null>(null);
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const maxSan = getMaxSanity(character);
   const selectedAnchor = anchors.find((a) => a.id === selectedAnchorId) || anchors[0];
 
   const handleAnchorRecovery = () => {
     if (!selectedAnchor) return;
     try {
+      setErrorMessage(null);
       const res = recoverSanityFromAnchor(character, selectedAnchor.id, contactForm);
       setAnchorResult(res);
       onCharacterUpdate(res.nextCharacter);
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      setErrorMessage(e instanceof Error ? e.message : String(e));
     }
   };
 
   const handleSelfHelp = () => {
     if (!selectedTrait) return;
+    setErrorMessage(null);
     const res = attemptSelfHelp(character, selectedTrait);
     setSelfHelpResult(res);
     onCharacterUpdate(res.nextCharacter);
@@ -111,15 +115,17 @@ export function SanityTherapyModal({
 
   const handleHospitalCare = () => {
     try {
+      setErrorMessage(null);
       const res = institutionalizeCare(character, facility);
       setHospitalResult(res);
       onCharacterUpdate(res.nextCharacter);
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      setErrorMessage(e instanceof Error ? e.message : String(e));
     }
   };
 
   const handleResetModal = () => {
+    setErrorMessage(null);
     setAnchorResult(null);
     setSelfHelpResult(null);
     setHospitalResult(null);
@@ -156,14 +162,21 @@ export function SanityTherapyModal({
             </p>
           </div>
         ) : (
-          <Tabs
-            value={activeTab}
-            onValueChange={(val) => {
-              setActiveTab(val as any);
-              handleResetModal();
-            }}
-            className="w-full mt-2"
-          >
+          <>
+            {errorMessage && (
+              <div className="p-3 my-2 border border-red-500/40 bg-red-950/30 text-red-300 text-xs font-serif flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) => {
+                setActiveTab(val as 'anchors' | 'self_help' | 'asylum');
+                handleResetModal();
+              }}
+              className="w-full mt-2"
+            >
             <TabsList className="grid grid-cols-3 bg-[#181512] border border-brass/25 rounded-none p-1">
               <TabsTrigger
                 value="anchors"
@@ -577,6 +590,7 @@ export function SanityTherapyModal({
               )}
             </TabsContent>
           </Tabs>
+          </>
         )}
       </DialogContent>
     </Dialog>
