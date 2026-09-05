@@ -113,5 +113,5 @@ export interface ChatWindowProps {
   onCharacterUpdate?: (char: Character) => void;
   /** Kontynuacja uciętej narracji MG - deklaruje caller; pole opcjonalne dla
    *  zgodności z page.tsx (przekazywane dalej tylko gdy podane). */
-  onContinueNarration?: () => void;
+  onContinueNarration?: (messageId?: string) => void;
 }

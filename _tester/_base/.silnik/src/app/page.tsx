@@ -1003,6 +1003,7 @@ export default function Home() {
         onConfirmAcquiredItem={chat.confirmAcquiredItem}
         onDismissAcquiredItem={chat.dismissAcquiredItem}
         onCharacterUpdate={charMgmt.handleUpdateCharacter}
+        onContinueNarration={chat.handleContinueNarration}
         isStarting={isStarting}
         startProgress={startProgress}
         startStatus={startStatus}
