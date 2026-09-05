@@ -42,7 +42,8 @@ import {
   inferWeaponDamage,
   isWeapon,
 } from '@/lib/combat/weapon-context';
-import { useMessages, useTranslations } from 'next-intl';
+import { useMessages, useTranslations, useLocale } from 'next-intl';
+import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { isCatalogEquipment, migrateEquipmentCatalog } from '@/lib/equipment-catalog';
@@ -659,6 +660,9 @@ function WeaponCard({
     damaged: t('conditionDamaged'),
     broken: t('conditionBroken'),
   };
+  const locale = useLocale();
+  const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
+
   return (
     <div
       onClick={() => onOpenDetail(item)}
@@ -709,11 +713,9 @@ function WeaponCard({
           )}
         </div>
       )}
-      {item.description && (
-        <div className="mt-2 font-serif italic text-base text-muted-foreground line-clamp-2">
-          {item.description}
-        </div>
-      )}
+      <div className="mt-2 font-serif italic text-base text-muted-foreground line-clamp-2">
+        {effectiveLore}
+      </div>
     </div>
   );
 }
@@ -727,12 +729,15 @@ function GearCard({
   era,
 }: ItemCardProps) {
   const t = useTranslations('EquipmentModal');
+  const locale = useLocale();
   const conditionLabels: Record<string, string> = {
     new: t('conditionNew'),
     used: t('conditionUsed'),
     damaged: t('conditionDamaged'),
     broken: t('conditionBroken'),
   };
+  const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
+
   return (
     <div
       onClick={() => onOpenDetail(item)}
@@ -749,10 +754,8 @@ function GearCard({
         <div className="font-serif text-lg text-foreground truncate">
           {item.name}
         </div>
-        <div className="mt-1 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground whitespace-normal break-words leading-relaxed line-clamp-2">
-          {item.description ||
-            conditionLabels[item.condition || 'used'] ||
-            CATEGORY_LABELS[item.category]}
+        <div className="mt-1 font-serif italic text-sm text-muted-foreground/90 whitespace-normal break-words leading-relaxed line-clamp-2">
+          {effectiveLore}
         </div>
       </div>
     </div>
