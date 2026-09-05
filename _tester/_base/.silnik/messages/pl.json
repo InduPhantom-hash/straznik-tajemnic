@@ -6687,6 +6687,7 @@
     "hookAccident": "Przypadkowy świadek niezwykłego zdarzenia",
     "step3Header": "⚓ Krok 3 · Kotwice psychiczne (Więzi RAW)",
     "step3Intro": "Kluczowe więzi z Księgi Strażnika CoC 7e RAW. Pomagają odzyskiwać Poczytalność (SAN) w fazie rozwoju i stają się stawką w intrydze.",
+    "importedFromCharacter": "Pobrano z karty badacza: {name}",
     "keyConnectionLabel": "Ważna Osoba (Key Connection)",
     "keyConnectionHelp": "Najważniejsza więź emocjonalna badacza. Jej utrata może doprowadzić do załamania.",
     "keyConnectionPlaceholder": "np. Mentor z uniwersytetu, siostra, wierny przyjaciel...",

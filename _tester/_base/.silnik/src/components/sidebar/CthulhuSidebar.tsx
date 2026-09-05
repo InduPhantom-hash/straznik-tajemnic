@@ -830,8 +830,6 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             onAdventureSelect(adventure);
           }
           setShowAdventureSelector(false);
-          // Automatycznie otwórz Sesję Zero po wybraniu przygody
-          setTimeout(() => setShowSessionZero(true), 300);
         }}
         customAdventures={customAdventures}
         onUploadAdventure={onUploadAdventure}

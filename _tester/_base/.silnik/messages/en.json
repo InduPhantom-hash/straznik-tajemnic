@@ -6687,6 +6687,7 @@
     "hookAccident": "Accidental witness to an uncanny event",
     "step3Header": "⚓ Step 3 · Psychological anchors (RAW Connections)",
     "step3Intro": "Crucial connections from the CoC 7e Keeper Rulebook. They aid in Sanity recovery during the development phase and serve as stakes in the plot.",
+    "importedFromCharacter": "Imported from investigator sheet: {name}",
     "keyConnectionLabel": "Key Connection (Important Person)",
     "keyConnectionHelp": "The investigator's primary emotional bond. Losing them can trigger psychological breakdown.",
     "keyConnectionPlaceholder": "e.g. University mentor, sister, faithful comrade...",
