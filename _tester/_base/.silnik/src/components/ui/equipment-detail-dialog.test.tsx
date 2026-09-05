@@ -123,7 +123,7 @@ describe('EquipmentDetailDialog', () => {
     expect(screen.getByTitle('Powiększ dokument')).toBeInTheDocument();
   });
 
-  it('renders atmospheric lore and visual appearance for items without explicit description', () => {
+  it('renders atmospheric lore for items without explicit description and eliminates appearance label', () => {
     const bareItem: EquipmentItem = {
       id: 'eq_revolver_bare',
       name: 'Rewolwer .38',
@@ -144,11 +144,11 @@ describe('EquipmentDetailDialog', () => {
       screen.getByText(/Starannie utrzymana broń, regularnie czyszczona i oliwiona/i)
     ).toBeInTheDocument();
 
-    // Sekcja wyglądu fizycznego (appearance)
-    expect(screen.getByText('Wygląd:')).toBeInTheDocument();
+    // Sekcja wyglądu fizycznego (appearance) została całkowicie wyeliminowana
+    expect(screen.queryByText('Wygląd:')).not.toBeInTheDocument();
     expect(
-      screen.getByText(/antyczny przedmiot osobisty, patyna czasu/i)
-    ).toBeInTheDocument();
+      screen.queryByText(/antyczny przedmiot osobisty/i)
+    ).not.toBeInTheDocument();
 
     // Mechanika CoC 7e
     expect(screen.getByText('Obrażenia')).toBeInTheDocument();

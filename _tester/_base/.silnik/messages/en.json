@@ -5576,8 +5576,10 @@
     "mechanicRange": "Range",
     "mechanicSkill": "Skill",
     "mechanicBonus": "Bonus",
+    "mechanicAttacks": "Attacks",
+    "mechanicCapacity": "Capacity",
+    "mechanicMalfunction": "Malfunction",
     "loreTitle": "Item description",
-    "appearanceLabel": "Appearance:",
     "documentPreviewTitle": "Document content",
     "expandDocument": "Expand document",
     "collapseDocument": "Collapse to item details"
@@ -5821,7 +5823,18 @@
     "generateBadge": "Generate",
     "dmgShort": "Dmg.",
     "skillShort": "Skill",
-    "bonusShort": "Bonus"
+    "bonusShort": "Bonus",
+    "range": "Range",
+    "malfunction": "Malfunction",
+    "attacks": "Attacks",
+    "capacity": "Capacity",
+    "documentBadge": "Document",
+    "bankHeader": "Arkham First National Bank · Asset Registry",
+    "financialDossierTitle": "Financial Balance: {name}",
+    "financialDossierSubtitle": "Attestation of creditworthiness and liquid assets",
+    "dailySpendingExplainer": "Expenses up to this amount require neither bookkeeping nor Credit Rating checks.",
+    "cashSubtitle": "Ready cash in wallet",
+    "assetsSubtitle": "Real estate, shares, and bank deposits"
   },
   "CombatSystem": {
     "mGrappleName": "Grapple",
