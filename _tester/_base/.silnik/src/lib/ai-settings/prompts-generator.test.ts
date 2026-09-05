@@ -103,5 +103,22 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       expect(styleEn).toMatch(/FAIR PLAY/i);
     });
 
+    it('wymusza regułę sędziego i twarde weto RAW przy czynnościach niemożliwych [Issue #137]', () => {
+      const fullProtocol = getGMProtocolPrompt();
+      const compactProtocol = getCompactGMProtocolPrompt();
+
+      // Wymogi protokołu (pełny i kompaktowy)
+      expect(fullProtocol).toMatch(/TWARDE WETO SĘDZIEGO/i);
+      expect(fullProtocol).toMatch(/THE REFEREE STANCE/i);
+      expect(fullProtocol).toMatch(/BEZWZGLĘDNY ZAKAZ.*\[TEST:\]/i);
+      expect(fullProtocol).toMatch(/Nie możesz tego zrobić/i);
+      expect(compactProtocol).toMatch(/TWARDE WETO SĘDZIEGO/i);
+      expect(compactProtocol).toMatch(/Nie możesz tego zrobić/i);
+
+      // Twarde granice CoC 7e RAW skatalogowane w protokole
+      expect(fullProtocol).toMatch(/Budowie \(Build\) wyższej o 3/i);
+      expect(fullProtocol).toMatch(/4x zasięgu bazowego/i);
+      expect(fullProtocol).toMatch(/forsowania testu w walce/i);
+    });
   });
 });
