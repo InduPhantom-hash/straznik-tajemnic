@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
 import { Character, EquipmentItem, EquipmentCategory, EquipmentVisualEra } from '@/lib/types';
-import { CATEGORY_LABELS } from '@/lib/equipment-data';
+import { CATEGORY_LABELS, findEquipmentByName } from '@/lib/equipment-data';
 import {
   buildEquipmentImagePrompt,
   isCharacterBoundEquipment,
@@ -41,7 +41,9 @@ import {
   inferWeaponSkill,
   inferWeaponDamage,
   isWeapon,
+  isMeleeWeapon,
 } from '@/lib/combat/weapon-context';
+import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { useMessages, useTranslations, useLocale } from 'next-intl';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
@@ -211,15 +213,16 @@ export function EquipmentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-testid="equipment-modal"
+      <DialogContent
+        data-testid="equipment-modal"
         size="screen"
-        className="bg-gradient-to-b from-[#14110c] to-background border-brass/30 flex flex-col !w-[93vw] !max-h-[92vh]"
+        className="bg-gradient-to-b from-[#16120d] via-[#100c08] to-background border-brass/40"
       >
-        <DialogHeader className="flex-none flex flex-row items-center justify-between gap-3 pr-12">
-          <DialogTitle className="font-display uppercase tracking-[0.1em] text-foreground flex items-center gap-3">
+        <DialogHeader className="flex flex-row items-center justify-between gap-3 pr-12">
+          <DialogTitle className="font-display uppercase tracking-[0.12em] text-foreground flex items-center gap-3">
             <Package className="w-5 h-5 text-brass" />
             <span>
-              <span className="block font-special-elite text-xs font-normal normal-case tracking-[0.28em] text-primary">
+              <span className="block font-special-elite text-xs font-normal normal-case tracking-[0.24em] text-primary">
                 {t('titleEyebrow', { name: character.name })}
               </span>
               {t('title')}
@@ -231,20 +234,21 @@ export function EquipmentModal({
           </DialogDescription>
           {/* B2: przełącznik postaci - w duecie pokazuje czyj to ekwipunek jako zakładki */}
           {characters.length > 1 && onCharacterChange && (
-            <div className="flex items-center gap-1 border border-brass/35 bg-[#120f0c] p-0.5 font-special-elite mr-2">
+            <div className="flex items-center gap-1 border border-brass/40 bg-[#120f0c] p-0.5 font-special-elite mr-2">
               {characters.map((char) => {
                 const isActive = char.id === character.id;
                 return (
                   <button
                     key={char.id}
                     onClick={() => onCharacterChange(char)}
-                    className={`px-3 py-1.5 text-xs uppercase tracking-wider transition-all duration-200 ${
+                    className={`px-3 py-1.5 text-xs uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 ${
                       isActive
-                        ? 'bg-brass/20 text-foreground border border-brass/45'
+                        ? 'bg-brass/20 text-foreground border border-brass/50 font-bold'
                         : 'text-muted-foreground/60 hover:text-brass hover:bg-brass/5'
                     }`}
                   >
-                    {char.name}
+                    <User className="w-3 h-3 text-brass/70" />
+                    <span>{char.name}</span>
                   </button>
                 );
               })}
@@ -253,17 +257,19 @@ export function EquipmentModal({
         </DialogHeader>
 
         {/* Separator déco */}
-        <div className="flex-none flex items-center gap-4 mb-4">
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold/40" />
+        <div className="flex items-center gap-4 my-4">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold/50" />
           <span className="w-2 h-2 bg-brass rotate-45" />
-          <div className="flex-1 h-px bg-gradient-to-r from-gold/40 to-transparent" />
+          <span className="w-1.5 h-1.5 border border-brass rotate-45" />
+          <span className="w-2 h-2 bg-brass rotate-45" />
+          <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold/50" />
         </div>
 
         {/* Baner błędu generowania miniatury Art Déco */}
         {generateError && (
           <div
             data-testid="equipment-generate-error"
-            className="flex-none flex items-center justify-between gap-3 px-4 py-2.5 mb-4 bg-red-950/40 border border-red-800/60 text-red-200 text-xs font-special-elite"
+            className="flex items-center justify-between gap-3 px-4 py-2.5 mb-4 bg-red-950/40 border border-red-800/60 text-red-200 text-xs font-special-elite"
           >
             <span>{generateError}</span>
             <button
@@ -277,7 +283,7 @@ export function EquipmentModal({
         )}
 
         {/* Pasek zakładek i wyszukiwania */}
-        <div className="flex-none flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-brass/25 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-brass/25 pb-4">
           <div className="flex bg-[#120b07] p-1 border border-brass/35 rounded-none">
             <button
               onClick={() => setActiveTab('weapon')}
@@ -319,7 +325,7 @@ export function EquipmentModal({
                   placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 font-special-elite"
+                  className="pl-9 font-special-elite bg-[#120f0c] border-brass/30 focus:border-brass/70 text-foreground"
                 />
               </div>
               <select
@@ -327,7 +333,7 @@ export function EquipmentModal({
                 onChange={(e) =>
                   setFilterCategory(e.target.value as EquipmentCategory | 'all')
                 }
-                className="bg-card border border-brass/30 rounded-none px-3 py-2 text-sm font-special-elite text-foreground"
+                className="bg-[#120f0c] border border-brass/30 rounded-none px-3 py-2 text-sm font-special-elite text-foreground"
               >
                 <option value="all">{t('allFilter')}</option>
                 {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
@@ -341,22 +347,25 @@ export function EquipmentModal({
         </div>
 
         {/* Zawartość zakładek */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="min-h-0">
           {/* === KARTA: BROŃ === */}
           {activeTab === 'weapon' && (
-            <div className="flex flex-col gap-2.5 max-w-4xl mx-auto">
-              {weaponItems.map((item) => (
-                <WeaponCard
-                  key={item.id}
-                  item={item}
-                  generatingImage={generatingImage}
-                  onGenerateImage={generateImage}
-                  onOpenDetail={setSelectedItem}
-                  era={era}
-                />
-              ))}
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {weaponItems.map((item) => (
+                  <WeaponCard
+                    key={item.id}
+                    item={item}
+                    generatingImage={generatingImage}
+                    onGenerateImage={generateImage}
+                    onOpenDetail={setSelectedItem}
+                    era={era}
+                    character={character}
+                  />
+                ))}
+              </div>
               {weaponItems.length === 0 && (
-                <div className="border border-dashed border-brass/20 bg-[#1f1a14]/25 p-6 text-center font-serif italic text-base text-muted-foreground/70">
+                <div className="border border-dashed border-brass/20 bg-[#1f1a14]/25 p-8 text-center font-serif italic text-base text-muted-foreground/70">
                   {t('weaponsEmpty')}
                 </div>
               )}
@@ -375,6 +384,7 @@ export function EquipmentModal({
                     onGenerateImage={generateImage}
                     onOpenDetail={setSelectedItem}
                     era={era}
+                    character={character}
                   />
                 ))}
               </div>
@@ -395,61 +405,98 @@ export function EquipmentModal({
 
           {/* === KARTA: FINANSE === */}
           {activeTab === 'finances' && (
-            <div className="max-w-md mx-auto space-y-6">
-              {/* Poziom życia */}
-              <div className="relative border border-brass/40 bg-gradient-to-br from-[#1a1610] to-[#100d09] p-6 text-center">
-                <span className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border-t-[1.5px] border-l-[1.5px] border-brass" />
-                <span className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 border-b-[1.5px] border-r-[1.5px] border-brass" />
-                <div className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  {t('livingStandard')}
-                </div>
-                <div className="font-display font-bold text-3xl text-foreground tracking-[0.08em] my-2">
-                  {finances.tierLabel}
-                </div>
-                <div className="font-special-elite text-sm tracking-[0.08em] text-primary">
-                  {t('dailySpending', { amount: formatUsd(finances.spendingLevel) })}
-                </div>
-              </div>
+            <div className="max-w-4xl mx-auto py-2">
+              <div className="border border-brass/40 bg-gradient-to-br from-[#16120c] via-[#120e09] to-[#0a0805] p-6 md:p-8 shadow-2xl relative">
+                {/* Narożniki Deco */}
+                <span className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-brass/80 pointer-events-none" />
+                <span className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-brass/80 pointer-events-none" />
+                <span className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-brass/80 pointer-events-none" />
+                <span className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-brass/80 pointer-events-none" />
 
-              {/* Pozycje finansowe */}
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
-                  <span className="font-serif text-base text-muted-foreground">
-                    {t('creditRatingLabel')}
-                  </span>
-                  <span className="font-display text-xl text-brass">
-                    {finances.creditRating}%
-                  </span>
+                {/* Nagłówek bankowy */}
+                <div className="text-center mb-6 pb-4 border-b border-brass/30">
+                  <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-brass/80 mb-1">
+                    {t('bankHeader')}
+                  </div>
+                  <h3 className="font-display uppercase tracking-[0.16em] text-2xl text-foreground">
+                    {t('financialDossierTitle', { name: character.name })}
+                  </h3>
+                  <p className="font-serif italic text-sm text-muted-foreground/80 mt-1">
+                    {t('financialDossierSubtitle')}
+                  </p>
                 </div>
-                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
-                  <span className="font-serif text-base text-muted-foreground">
-                    {t('cashLabel')}
-                  </span>
-                  <span className="font-display text-xl text-foreground">
-                    {formatUsd(finances.cash)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
-                  <span className="font-serif text-base text-muted-foreground">
-                    {t('assetsLabel')}
-                  </span>
-                  <span className="font-display text-xl text-foreground">
-                    {finances.assetsDescription || formatUsd(finances.assets)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center border border-brass/20 bg-card px-4 py-3.5">
-                  <span className="font-serif text-base text-muted-foreground">
-                    {t('itemCountLabel')}
-                  </span>
-                  <span className="font-display text-xl text-foreground">
-                    {equipment.length}
-                  </span>
-                </div>
-              </div>
 
-              {/* Flavor déco */}
-              <div className="border-l-2 border-brass/50 bg-brass/5 px-4 py-3">
-                <div className="font-serif italic text-sm text-muted-foreground leading-snug">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Kolumna 1: Zamożność & Poziom Życia */}
+                  <div className="space-y-4">
+                    <div className="border border-brass/30 bg-[#100c08] p-5 relative">
+                      <div className="font-special-elite text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        {t('livingStandard')}
+                      </div>
+                      <div className="font-display text-2xl md:text-3xl text-brass font-bold tracking-wide">
+                        {finances.tierLabel}
+                      </div>
+                      <div className="mt-2 font-special-elite text-sm text-primary tracking-wide">
+                        {t('dailySpending', { amount: formatUsd(finances.spendingLevel) })}
+                      </div>
+                      <p className="mt-3 font-serif italic text-xs text-muted-foreground/75 leading-relaxed">
+                        {t('dailySpendingExplainer')}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3">
+                      <span className="font-serif text-base text-foreground">
+                        {t('creditRatingLabel')}
+                      </span>
+                      <span className="font-display text-2xl text-brass font-bold">
+                        {finances.creditRating}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Kolumna 2: Bilans Gotówki i Aktywów */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3.5">
+                      <div>
+                        <div className="font-serif text-base text-foreground">
+                          {t('cashLabel')}
+                        </div>
+                        <div className="font-special-elite text-xs text-muted-foreground">
+                          {t('cashSubtitle')}
+                        </div>
+                      </div>
+                      <span className="font-display text-2xl text-foreground font-bold">
+                        {formatUsd(finances.cash)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3.5">
+                      <div>
+                        <div className="font-serif text-base text-foreground">
+                          {t('assetsLabel')}
+                        </div>
+                        <div className="font-special-elite text-xs text-muted-foreground">
+                          {t('assetsSubtitle')}
+                        </div>
+                      </div>
+                      <span className="font-display text-2xl text-foreground font-bold">
+                        {finances.assetsDescription || formatUsd(finances.assets)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3.5">
+                      <span className="font-serif text-base text-foreground">
+                        {t('itemCountLabel')}
+                      </span>
+                      <span className="font-display text-xl text-brass font-bold">
+                        {equipment.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nota prawna / regułowa */}
+                <div className="mt-6 pt-4 border-t border-brass/20 text-center font-serif italic text-xs text-muted-foreground/70">
                   {t('financesFlavor')}
                 </div>
               </div>
@@ -483,6 +530,7 @@ interface ItemCardProps {
   /** Klik w kafelek otwiera modal detalu (obraz + pełny opis + mechanika). */
   onOpenDetail: (item: EquipmentItem) => void;
   era: string;
+  character: Character;
 }
 
 /** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
@@ -555,7 +603,7 @@ function ItemThumbnail({
   era: string;
 }) {
   const t = useTranslations('EquipmentModal');
-  const box = size === 'md' ? 'w-24 h-24' : 'w-20 h-20';
+  const box = size === 'md' ? 'w-20 h-20' : 'w-16 h-16';
   const iconSize = size === 'md' ? 'w-8 h-8' : 'w-6 h-6';
 
   const isSvgFallback = Boolean(
@@ -652,6 +700,7 @@ function WeaponCard({
   onGenerateImage,
   onOpenDetail,
   era,
+  character,
 }: ItemCardProps) {
   const t = useTranslations('EquipmentModal');
   const conditionLabels: Record<string, string> = {
@@ -662,6 +711,24 @@ function WeaponCard({
   };
   const locale = useLocale();
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
+
+  const skillName = inferWeaponSkill(item);
+  const skillVal = resolveTestValue(skillName, character);
+  const skillStr = skillVal !== null ? `${skillName} ${skillVal}%` : `${skillName} (baza)`;
+
+  const inferred =
+    item.modifiers?.damage && item.modifiers?.range ? null : inferWeaponDamage(item);
+  const damage = item.modifiers?.damage ?? inferred?.damage;
+  const melee = isMeleeWeapon(item);
+  const damageBonus = character.damageBonus?.trim();
+  const hasDb = Boolean(damageBonus) && damageBonus !== '0' && damageBonus !== '-';
+  const effectiveDamage = melee && hasDb && damage ? `${damage} ${damageBonus}` : damage;
+  const range = item.modifiers?.range ?? inferred?.range;
+
+  const template = findEquipmentByName(item.name);
+  const malfunction = item.modifiers?.malfunction ?? template?.modifiers?.malfunction;
+  const attacks = item.modifiers?.attacks ?? template?.modifiers?.attacks;
+  const capacity = item.modifiers?.capacity ?? template?.modifiers?.capacity;
 
   return (
     <div
@@ -677,9 +744,14 @@ function WeaponCard({
             size="md"
             era={era}
           />
-          <span className="font-serif text-lg text-foreground truncate">
-            {item.name}
-          </span>
+          <div className="min-w-0 flex-1">
+            <span className="font-serif text-lg text-foreground truncate block">
+              {item.name}
+            </span>
+            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-special-elite bg-brass/10 border border-brass/30 text-brass">
+              {skillStr}
+            </span>
+          </div>
         </div>
         {item.condition && (
           <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-muted-foreground hidden sm:inline flex-none">
@@ -688,32 +760,47 @@ function WeaponCard({
         )}
       </div>
 
-      {/* Statystyki bojowe - tylko realne pola z modifiers */}
-      {(item.modifiers?.damage ||
-        item.modifiers?.skill ||
-        item.modifiers?.bonus) && (
-        <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2.5 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground">
-          {item.modifiers?.damage && (
-            <span>
-              {t('dmgShort')}{' '}
-              <span className="text-foreground">{item.modifiers.damage}</span>
-            </span>
-          )}
-          {item.modifiers?.skill && (
-            <span>
-              {t('skillShort')}{' '}
-              <span className="text-foreground">{item.modifiers.skill}</span>
-            </span>
-          )}
-          {item.modifiers?.bonus && (
-            <span>
-              {t('bonusShort')}{' '}
-              <span className="text-foreground">+{item.modifiers.bonus}%</span>
-            </span>
-          )}
-        </div>
-      )}
-      <div className="mt-2 font-serif italic text-base text-muted-foreground line-clamp-2">
+      {/* Statystyki bojowe CoC 7e */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-2 border-t border-brass/15 font-special-elite text-xs uppercase tracking-[0.06em] text-muted-foreground">
+        {effectiveDamage && (
+          <span>
+            {t('dmgShort')}{' '}
+            <span className="text-foreground font-semibold">{effectiveDamage}</span>
+          </span>
+        )}
+        {range && (
+          <span>
+            {t('range')}:{' '}
+            <span className="text-foreground">{range}</span>
+          </span>
+        )}
+        {attacks && (
+          <span>
+            {t('attacks')}:{' '}
+            <span className="text-foreground">{attacks}</span>
+          </span>
+        )}
+        {capacity && (
+          <span>
+            {t('capacity')}:{' '}
+            <span className="text-foreground">{capacity}</span>
+          </span>
+        )}
+        {malfunction && !melee && (
+          <span>
+            {t('malfunction')}:{' '}
+            <span className="text-foreground">{malfunction}</span>
+          </span>
+        )}
+        {item.modifiers?.bonus && (
+          <span>
+            {t('bonusShort')}{' '}
+            <span className="text-foreground">+{item.modifiers.bonus}%</span>
+          </span>
+        )}
+      </div>
+
+      <div className="mt-2 font-serif italic text-sm text-muted-foreground/90 whitespace-normal break-words leading-relaxed line-clamp-2">
         {effectiveLore}
       </div>
     </div>
@@ -727,6 +814,7 @@ function GearCard({
   onGenerateImage,
   onOpenDetail,
   era,
+  character,
 }: ItemCardProps) {
   const t = useTranslations('EquipmentModal');
   const locale = useLocale();
@@ -738,22 +826,64 @@ function GearCard({
   };
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
 
+  const isDoc = item.category === 'document' || item.isReadable;
+  const quantity = item.quantity && item.quantity > 1 ? item.quantity : null;
+
   return (
     <div
       onClick={() => onOpenDetail(item)}
-      className="group flex items-center gap-4 border border-brass/25 bg-[#16130f] p-3.5 hover:border-brass/50 hover:bg-[#1f1a14] transition-all duration-200 cursor-pointer shadow-sm"
+      className="group flex items-center gap-4 border border-brass/25 bg-[#16130f] p-3.5 hover:border-brass/50 hover:bg-[#1f1a14] transition-all duration-200 cursor-pointer shadow-sm relative"
     >
-      <ItemThumbnail
-        item={item}
-        generatingImage={generatingImage}
-        onGenerateImage={onGenerateImage}
-        size="sm"
-        era={era}
-      />
+      <div className="relative flex-none">
+        <ItemThumbnail
+          item={item}
+          generatingImage={generatingImage}
+          onGenerateImage={onGenerateImage}
+          size="md"
+          era={era}
+        />
+        {quantity && (
+          <span className="absolute -bottom-1.5 -right-1.5 px-1.5 py-0.5 text-[10px] font-special-elite font-bold bg-[#1b150f] text-brass border border-brass/60 rounded shadow">
+            x{quantity}
+          </span>
+        )}
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="font-serif text-lg text-foreground truncate">
-          {item.name}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-serif text-lg text-foreground truncate">
+              {item.name}
+            </span>
+            {isDoc && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-special-elite uppercase tracking-wider bg-brass/15 text-brass border border-brass/35 rounded-sm flex-none">
+                <FileText className="w-3 h-3" />
+                {t('documentBadge')}
+              </span>
+            )}
+          </div>
+          {item.condition && (
+            <span className="font-special-elite text-xs uppercase tracking-[0.08em] text-muted-foreground hidden sm:inline flex-none">
+              {conditionLabels[item.condition] || item.condition}
+            </span>
+          )}
         </div>
+
+        {/* Modyfikatory / premie użytkowe */}
+        {(item.modifiers?.skill || item.modifiers?.bonus) && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 font-special-elite text-xs uppercase tracking-[0.06em] text-brass/90">
+            {item.modifiers?.skill && (
+              <span>
+                {t('skillShort')}: {item.modifiers.skill}
+              </span>
+            )}
+            {item.modifiers?.bonus && (
+              <span>
+                {t('bonusShort')}: +{item.modifiers.bonus}%
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="mt-1 font-serif italic text-sm text-muted-foreground/90 whitespace-normal break-words leading-relaxed line-clamp-2">
           {effectiveLore}
         </div>

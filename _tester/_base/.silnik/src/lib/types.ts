@@ -280,6 +280,8 @@ export interface EquipmentModifiers {
   range?: string; // Zasięg broni (np. "50 yards")
   malfunction?: number; // Awaria na (np. 100 = jam on 100)
   sanLoss?: string; // Strata SAN przy czytaniu (np. "1d4/1d8")
+  attacks?: string | number; // Liczba ataków na rundę (np. 1 lub "1(3)")
+  capacity?: string | number; // Pojemność magazynka / bębenka (np. 6)
 }
 
 export type DocumentSubType =

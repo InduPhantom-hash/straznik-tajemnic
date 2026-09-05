@@ -5576,8 +5576,10 @@
     "mechanicRange": "Zasięg",
     "mechanicSkill": "Umiejętność",
     "mechanicBonus": "Premia",
+    "mechanicAttacks": "Ataki",
+    "mechanicCapacity": "Magazynek",
+    "mechanicMalfunction": "Zacięcie",
     "loreTitle": "Opis przedmiotu",
-    "appearanceLabel": "Wygląd:",
     "documentPreviewTitle": "Treść dokumentu",
     "expandDocument": "Powiększ dokument",
     "collapseDocument": "Zwiń do widoku przedmiotu"
@@ -5821,7 +5823,18 @@
     "generateBadge": "Generuj",
     "dmgShort": "Obraż.",
     "skillShort": "Umiej.",
-    "bonusShort": "Premia"
+    "bonusShort": "Premia",
+    "range": "Zasięg",
+    "malfunction": "Zacięcie",
+    "attacks": "Ataki",
+    "capacity": "Magazynek",
+    "documentBadge": "Dokument",
+    "bankHeader": "Arkham First National Bank · Rejestr Majątkowy",
+    "financialDossierTitle": "Bilans Finansowy: {name}",
+    "financialDossierSubtitle": "Poświadczenie zdolności kredytowej i zasobów płynnych",
+    "dailySpendingExplainer": "Wydatki do tej kwoty nie wymagają odnotowywania ani testów Zamożności.",
+    "cashSubtitle": "Pieniądze podręczne w portfelu",
+    "assetsSubtitle": "Majątek trwały, udziały i depozyty"
   },
   "CombatSystem": {
     "mGrappleName": "Chwyt (Grapple)",

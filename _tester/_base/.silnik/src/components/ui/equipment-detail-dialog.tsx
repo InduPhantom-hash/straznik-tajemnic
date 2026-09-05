@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from './button';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
-import { generateItemLore, generateVisualDescription } from '@/lib/character/item-helpers';
+import { generateItemLore } from '@/lib/character/item-helpers';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { Loader2, X, Maximize2, Minimize2 } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
@@ -51,6 +51,9 @@ export function getItemMechanics(
     const range = item.modifiers?.range ?? inferred?.range;
     if (damage) rows.push({ label: 'damage', value: damage });
     if (range) rows.push({ label: 'range', value: range });
+    if (item.modifiers?.attacks) rows.push({ label: 'attacks', value: String(item.modifiers.attacks) });
+    if (item.modifiers?.capacity) rows.push({ label: 'capacity', value: String(item.modifiers.capacity) });
+    if (item.modifiers?.malfunction) rows.push({ label: 'malfunction', value: String(item.modifiers.malfunction) });
   }
   if (item.modifiers?.skill)
     rows.push({ label: 'skill', value: item.modifiers.skill });
@@ -79,6 +82,9 @@ export function EquipmentDetailDialog({
     range: t('mechanicRange'),
     skill: t('mechanicSkill'),
     bonus: t('mechanicBonus'),
+    attacks: t('mechanicAttacks'),
+    capacity: t('mechanicCapacity'),
+    malfunction: t('mechanicMalfunction'),
   };
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -190,9 +196,7 @@ export function EquipmentDetailDialog({
   const hasImage = !!item.imageUrl && !item.mapUrl && !item.isMap;
   const hasMap = !!(item.mapUrl || (item.imageUrl && item.isMap));
   const categoryLabel = CATEGORY_LABELS[item.category] || item.category;
-
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
-  const effectiveVisual = generateVisualDescription(item.name, locale);
 
   return (
     <DialogPrimitive.Root open={Boolean(item)} onOpenChange={(open) => !open && onClose()}>
@@ -414,15 +418,6 @@ export function EquipmentDetailDialog({
                   </div>
                 )}
 
-                {/* Detale wizualne i cechy fizyczne rekwizytu */}
-                <div className="border-t border-brass/20 pt-3 mt-3">
-                  <div className="font-display uppercase tracking-[0.16em] text-brass text-xs mb-1.5">
-                    {t('appearanceLabel')}
-                  </div>
-                  <p className="font-special-elite text-xs text-muted-foreground/90 leading-relaxed">
-                    {effectiveVisual}
-                  </p>
-                </div>
               </div>
             </div>
           )}
