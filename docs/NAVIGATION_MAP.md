@@ -27,6 +27,7 @@ graph TD
     character_wizard["Kreator postaci / Character wizard"]
     hot_seat["Wybór trybu gry / Play mode"]
     session_zero["Sesja Zero / Session Zero"]
+    loading_screen["Ekran ładowania (Dark Art Déco) / Loading screen (Dark Art Déco)"]
     game["Aktywna sesja / Active session"]
     api_keys["Klucze API / API keys"]
     character_sheet["Karta badacza (Dark Art Déco CoC 7e RAW) / Investigator sheet (Dark Art Déco CoC 7e RAW)"]
@@ -64,7 +65,8 @@ graph TD
     predefined_characters -->|Wybierz badacza / Choose investigator| session_zero
     character_wizard -->|Zakończ i zapisz / Finish and save| manual_setup
     hot_seat -->|Rozpocznij tryb / Start mode| session_zero
-    session_zero -->|Zakończ i zapisz / Finish and save| game
+    session_zero -->|Zatwierdź i przygotuj sesję / Confirm and prepare session| loading_screen
+    loading_screen -->|Rozpocznij przygodę / Begin adventure| game
     game -->|Karta postaci / Character sheet| character_sheet
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
@@ -125,7 +127,8 @@ graph TD
 | Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero | `src/components/ui/predefined-characters-selector.tsx` |
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
-| Sesja Zero | Zakończ i zapisz / Finish and save | Aktywna sesja | `src/components/ui/session-zero-modal.tsx` |
+| Sesja Zero | Zatwierdź i przygotuj sesję / Confirm and prepare session | Ekran ładowania (Dark Art Déco) | `src/components/ui/session-zero-modal.tsx` |
+| Ekran ładowania (Dark Art Déco) | Rozpocznij przygodę / Begin adventure | Aktywna sesja | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |

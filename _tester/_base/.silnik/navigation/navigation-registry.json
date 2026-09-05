@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-05T14:01:00Z",
+  "updatedAt": "2026-09-05T14:15:00Z",
   "locales": [
     "pl",
     "en"
@@ -175,6 +175,14 @@
       "label": {
         "pl": "Sesja Zero",
         "en": "Session Zero"
+      }
+    },
+    {
+      "id": "loading-screen",
+      "kind": "state",
+      "label": {
+        "pl": "Ekran ładowania (Dark Art Déco)",
+        "en": "Loading screen (Dark Art Déco)"
       }
     },
     {
@@ -485,12 +493,21 @@
     },
     {
       "source": "session-zero",
-      "target": "game",
+      "target": "loading-screen",
       "label": {
-        "pl": "Zakończ i zapisz",
-        "en": "Finish and save"
+        "pl": "Zatwierdź i przygotuj sesję",
+        "en": "Confirm and prepare session"
       },
       "component": "src/components/ui/session-zero-modal.tsx"
+    },
+    {
+      "source": "loading-screen",
+      "target": "game",
+      "label": {
+        "pl": "Rozpocznij przygodę",
+        "en": "Begin adventure"
+      },
+      "component": "src/components/chat/chat-window/components/tts-hard-loading-screen.tsx"
     },
     {
       "source": "game",
