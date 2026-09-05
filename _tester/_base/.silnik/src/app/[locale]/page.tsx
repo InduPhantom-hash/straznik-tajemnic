@@ -264,7 +264,14 @@ export default function Home() {
   }, [languageSelectionRequired]);
   const { runHealthCheck } = useHealthCheck({ onInvalidKey: handleInvalidKey });
 
-  const { handleStartGame, isStarting, startProgress, startStatus } = useGameStart({
+  const {
+    handleStartGame,
+    isStarting,
+    startProgress,
+    startStatus,
+    isReadyToEnter,
+    confirmEnterGame,
+  } = useGameStart({
     setHasStartedGame,
     runHealthCheck,
     activeCharacter: charMgmt.activeCharacter,
@@ -282,6 +289,7 @@ export default function Home() {
       addToQueue: tts.addToQueue,
       startInitialBuffering: tts.startInitialBuffering,
       waitForInitialBuffer: tts.waitForInitialBuffer,
+      playInitialNarration: tts.playInitialNarration,
       stopCurrentAudio: tts.stopCurrentAudio,
     },
     aiSettings,
@@ -1172,6 +1180,9 @@ export default function Home() {
           isStarting={isStarting}
           startProgress={startProgress}
           startStatus={startStatus}
+          isReadyToEnter={isReadyToEnter}
+          onConfirmEnterGame={confirmEnterGame}
+          adventureContext={adventureContext}
         />
       )}
       {showPredefinedSelector && (

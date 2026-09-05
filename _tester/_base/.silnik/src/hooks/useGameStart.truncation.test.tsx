@@ -335,4 +335,82 @@ describe('useGameStart - finishReason intra', () => {
     expect(waitForInitialBuffer).toHaveBeenCalledWith(15000);
     expect(setHasStartedGame).toHaveBeenCalledWith(true);
   });
+
+  it('wstrzymuje wejście do gry i mowę lektora do momentu potwierdzenia gracza zew:confirm-enter-game (Issue #157)', async () => {
+    jest
+      .mocked(fetchWithApiKeys)
+      .mockResolvedValueOnce({ ok: true } as Response);
+    jest
+      .mocked(parseSSEStream)
+      .mockResolvedValueOnce('Mgła przesuwa się nad portem...');
+
+    const setHasStartedGame = jest.fn();
+    const playInitialNarration = jest.fn();
+    const waitForInitialBuffer = jest.fn().mockResolvedValue(undefined);
+    let messages: Message[] = [];
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
+      messages = typeof update === 'function' ? update(messages) : update;
+    };
+
+    const props: Parameters<typeof useGameStart>[0] = {
+      setHasStartedGame,
+      activeCharacter: null,
+      characters: [],
+      setActiveCharacter: jest.fn(),
+      setCharacters: jest.fn(),
+      pdfMemory: {},
+      adventureContext: {
+        id: 'cien-nad-prabutami',
+        title: 'Cień nad Prabutami',
+        yearRange: '1973-1974',
+        country: 'Polska',
+      },
+      hotSeatConfig: { enabled: false, players: [] },
+      setMessages,
+      tts: {
+        voiceEnabled: true,
+        isTTSEnabled: true,
+        generateVoiceForMessage: jest.fn().mockResolvedValue(undefined),
+        addToQueue: jest.fn(),
+        startInitialBuffering: jest.fn(),
+        waitForInitialBuffer,
+        playInitialNarration,
+        stopCurrentAudio: jest.fn(),
+      },
+      aiSettings: { ...defaultAISettings, imageGenerationEnabled: false },
+      requirePlayerConfirmation: true,
+    };
+
+    const { result } = renderHook(() => useGameStart(props));
+
+    // Uruchom start gry (obietnica czeka na potwierdzenie)
+    let startPromise: Promise<void>;
+    act(() => {
+      startPromise = result.current.handleStartGame();
+    });
+
+    // Czekamy chwilę na zakończenie streamingu i buforowania
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Stan powinien być: 100%, isReadyToEnter: true, ale lektor NIE gra i gra NIE jest wystartowana
+    expect(result.current.startProgress).toBe(100);
+    expect(result.current.isReadyToEnter).toBe(true);
+    expect(playInitialNarration).not.toHaveBeenCalled();
+    expect(setHasStartedGame).not.toHaveBeenCalled();
+
+    // Gracz klika przycisk CTA (wysyła zdarzenie)
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('zew:confirm-enter-game'));
+      await startPromise;
+    });
+
+    // Po akceptacji: lektor zostaje uruchomiony i następuje przejście do gry
+    expect(playInitialNarration).toHaveBeenCalledTimes(1);
+    expect(setHasStartedGame).toHaveBeenCalledWith(true);
+    expect(result.current.isReadyToEnter).toBe(false);
+  });
 });

@@ -4765,7 +4765,16 @@
     "clip3Source": "The Providence Gazette (1924)",
     "clip3Headline": "Niezwykłe zjawiska na wodach zatoki Narragansett",
     "clip3Text": "Miejscowi rybacy donoszą o nienaturalnych poświatach widocznych w gęstej mgle na południe od latarni. Załogi odmawiają nocnych wypłynięć.",
-    "bufferingNarrator": "Buforowanie głosu lektora (3-4 zdania)..."
+    "bufferingNarrator": "Buforowanie głosu lektora (3-4 zdania)...",
+    "chronicleDossier": "Akta Śledztwa",
+    "defaultChronicleIntro": "W cieniu zapomnianych ulic i zakurzonych archiwów kryją się sekrety, których ludzki umysł nie powinien zgłębiać. Zbliża się godzina konfrontacji z nieznanym...",
+    "enterAdventure": "Rozpocznij Przygodę",
+    "enterGame": "Wejdź do Gry",
+    "chronicleReady": "Kronika spisana. Gotowy do wejścia.",
+    "awaitingAccept": "Kliknij, aby rozpocząć śledztwo",
+    "themesLabel": "Motywy:",
+    "eraLabel": "Epoka:",
+    "locationLabel": "Lokalizacja:"
   },
   "ApiKeysModal": {
     "title": "Konfiguracja kluczy API",

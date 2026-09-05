@@ -44,6 +44,8 @@ export interface UseTTSReturn extends TTSState {
   addToQueue: (text: string, messageId?: string, flush?: boolean) => void;
   startInitialBuffering: () => void;
   waitForInitialBuffer: (timeoutMs?: number) => Promise<void>;
+  /** Issue #157: Zdejmuje blokadę oczekiwania na akcept gracza i rozpoczyna odtwarzanie lektora z bufora */
+  playInitialNarration?: () => void;
 }
 
 /**
@@ -238,6 +240,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const earlySpokenCharsRef = useRef(0);
   const hasDispatchedFirstSegmentRef = useRef(false);
   const isInitialBufferingRef = useRef(false);
+  // Issue #157: Bramka CTA - lektor zbuforowany, ale czeka na kliknięcie gracza
+  const isAwaitingInitialPlayRef = useRef(false);
   const initialBufferResolversRef = useRef<(() => void)[]>([]);
   const finishInitialBufferingRef = useRef<() => void>(() => {});
   const bufferTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -288,6 +292,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           resolvers.forEach((resolve) => resolve());
         }
         isInitialBufferingRef.current = false;
+        isAwaitingInitialPlayRef.current = false;
         setIsInitialBuffering(false);
       }
 
@@ -399,7 +404,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
                 );
                 finishInitialBufferingRef.current();
               }
-            } else {
+            } else if (!isAwaitingInitialPlayRef.current) {
               // Spróbuj odtworzyć (jeśli to pierwszy segment lub poprzednie się skończyły)
               playFromBuffer();
             }
@@ -422,7 +427,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               if (isTargetReached || isQueueDepleted) {
                 finishInitialBufferingRef.current();
               }
-            } else {
+            } else if (!isAwaitingInitialPlayRef.current) {
               playFromBuffer();
             }
           }
@@ -523,7 +528,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       initialBufferResolversRef.current = [];
       resolvers.forEach((resolve) => resolve());
     }
-    playFromBuffer();
+    // Issue #157: Nie odtwarzaj automatycznie, jeśli trwa oczekiwanie na akcept gracza (bramka CTA)
+    if (!isAwaitingInitialPlayRef.current) {
+      playFromBuffer();
+    }
   }, [playFromBuffer]);
 
   finishInitialBufferingRef.current = finishInitialBuffering;
@@ -777,7 +785,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         if (
           preloadedAudioRef.current.size > 0 &&
           !isPlayingQueueRef.current &&
-          !isInitialBufferingRef.current
+          !isInitialBufferingRef.current &&
+          !isAwaitingInitialPlayRef.current
         ) {
           playFromBuffer();
         }
@@ -802,9 +811,11 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     if (!voiceEnabled || !isTTSEnabled) {
       setIsInitialBuffering(false);
       isInitialBufferingRef.current = false;
+      isAwaitingInitialPlayRef.current = false;
       return;
     }
     isInitialBufferingRef.current = true;
+    isAwaitingInitialPlayRef.current = true;
     setIsInitialBuffering(true);
     if (bufferTimeoutRef.current) {
       clearTimeout(bufferTimeoutRef.current);
@@ -840,6 +851,16 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     [voiceEnabled, isTTSEnabled]
   );
 
+  /**
+   * Issue #157: Zdejmuje blokadę oczekiwania na akcept gracza i natychmiast
+   * rozpoczyna odtwarzanie przygotowanego audio lektora z bufora.
+   */
+  const playInitialNarration = useCallback(() => {
+    console.log('▶️ TTS: playInitialNarration called after CTA click.');
+    isAwaitingInitialPlayRef.current = false;
+    playFromBuffer();
+  }, [playFromBuffer]);
+
   const generateVoiceForMessage = useCallback(
     async (message: Message) => {
       if (!voiceEnabled || !isTTSEnabled || message.role !== 'assistant')
@@ -871,5 +892,6 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     isInitialBuffering,
     startInitialBuffering,
     waitForInitialBuffer,
+    playInitialNarration,
   };
 }

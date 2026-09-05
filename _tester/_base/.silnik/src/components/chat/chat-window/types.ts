@@ -10,7 +10,7 @@
  * handleKeyPress) - destructured w refaktorze 1:1 ale nigdy używane w JSX.
  */
 
-import type { HotSeatConfig, Message, Character } from '@/lib/types';
+import type { HotSeatConfig, Message, Character, AdventureContext } from '@/lib/types';
 import type { DiceRoll } from '@/lib/dice-utils';
 import type { ResolvedEraContext } from '@/lib/era';
 
@@ -91,6 +91,12 @@ export interface ChatWindowProps {
   isStarting?: boolean;
   startProgress?: number;
   startStatus?: string;
+  /** Issue #157: Gotowość do wejścia do gry (100% zbuforowane, oczekiwanie na kliknięcie CTA) */
+  isReadyToEnter?: boolean;
+  /** Issue #157: Callback zatwierdzenia wejścia do gry po kliknięciu CTA */
+  onConfirmEnterGame?: () => void;
+  /** Issue #157: Pełny kontekst wybranej przygody dla dynamicznej karty Art Déco */
+  adventureContext?: AdventureContext | null;
 
   // === C4 (duet): bufor deklaracji + wysyłka tury ===
   /** Czy tryb dla dwojga (Hot Seat 2 graczy) - Enter dokłada deklarację zamiast wysyłać. */
