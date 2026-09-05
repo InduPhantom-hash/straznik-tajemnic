@@ -5084,7 +5084,18 @@
     "luckButton": "Luck {needed}",
     "sendToChat": "To chat",
     "close": "Close",
-    "luckHint": "Spend Luck (if available), then send the roll “To chat”."
+    "luckHint": "Spend Luck (if available), then send the roll “To chat”.",
+    "tensDie": "Tens die",
+    "unitsDie": "Units die",
+    "bonusDieLabel": "Bonus die",
+    "penaltyDieLabel": "Penalty die",
+    "dieSelected": "Selected",
+    "dieDiscarded": "Discarded",
+    "diceSum": "Test result",
+    "diceSumFormula": "{tens} + {units} = {total}",
+    "diceSumRaw100": "00 + 0 = 100",
+    "diceTrayAria": "Art Déco 3D dice tray",
+    "rolling": "Rolling dice..."
   },
   "HelpModal": {
     "title": "Help & Investigator Encyclopedia",

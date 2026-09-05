@@ -22,6 +22,7 @@ import {
 } from '@/lib/dice-utils';
 import { useLuckSpend } from './use-luck-spend';
 import { RollTestResult } from './roll-test-result';
+import type { ArtDecoDiceBreakdown } from './ArtDecoDice3D';
 
 /**
  * Dane testu z tagu [TEST:] przekazane do modalu (z SkillTestCard po kliknięciu "Rzuć").
@@ -81,6 +82,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
   const [phase, setPhase] = useState<'idle' | 'rolling' | 'done'>('idle');
   const [animValue, setAnimValue] = useState(0);
   const [roll, setRoll] = useState<DiceRoll | null>(null);
+  const [breakdown, setBreakdown] = useState<ArtDecoDiceBreakdown | null>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const { availableLuck, setAvailableLuck, luckNeeded, spendLuck } =
@@ -103,6 +105,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
       setPhase('idle');
       setRoll(null);
       setAnimValue(0);
+      setBreakdown(null);
       setAvailableLuck(activeCharacter?.luck ?? 0);
     }
     return clearTimers;
@@ -117,16 +120,38 @@ export const RollTestModal: FC<RollTestModalProps> = ({
     if (phase !== 'idle') return;
     setPhase('rolling');
 
-    // Wynik rzeczywisty (kości premii/kary uwzględnione przez silnik).
-    const result =
-      test.bonusDice !== 0
-        ? rollD100WithBonus(test.bonusDice).total
-        : rollD100();
+    // Wynik rzeczywisty generowany przez silnik (kości premii/kary uwzględnione).
+    const isBonus = (test.bonusDice || 0) !== 0;
+    const diceResult = isBonus
+      ? (() => {
+          const bRoll = rollD100WithBonus(test.bonusDice);
+          const selectedTens =
+            test.bonusDice > 0
+              ? Math.min(...bRoll.tensResults)
+              : Math.max(...bRoll.tensResults);
+          return {
+            total: bRoll.total,
+            tensResults: bRoll.tensResults,
+            unitsResult: bRoll.unitsResult,
+            selectedTens,
+          };
+        })()
+      : (() => {
+          const total = rollD100();
+          const tens = total === 100 ? 0 : Math.floor((total % 100) / 10) * 10;
+          const units = total === 100 ? 0 : total % 10;
+          return {
+            total,
+            tensResults: [tens],
+            unitsResult: units,
+            selectedTens: tens,
+          };
+        })();
 
     const finalRoll = createSkillRoll(
       test.skill,
       test.value,
-      result,
+      diceResult.total,
       false,
       activeCharacter?.name,
       test.bonusDice,
@@ -143,7 +168,13 @@ export const RollTestModal: FC<RollTestModalProps> = ({
 
     const settle = setTimeout(() => {
       clearInterval(interval);
-      setAnimValue(result);
+      setAnimValue(diceResult.total);
+      setBreakdown({
+        tensResults: diceResult.tensResults,
+        unitsResult: diceResult.unitsResult,
+        selectedTens: diceResult.selectedTens,
+        total: diceResult.total,
+      });
       setRoll(finalRoll);
       setPhase('done');
       // Historia łapie każdy rzut (nawet niewysłany). Wysyłka do czatu + dziennika
@@ -188,6 +219,7 @@ export const RollTestModal: FC<RollTestModalProps> = ({
           phase={phase}
           animValue={animValue}
           roll={roll}
+          breakdown={breakdown}
           availableLuck={availableLuck}
           luckNeeded={luckNeeded}
           onRoll={handleRoll}
