@@ -41,6 +41,7 @@ graph TD
     help["Pomoc i zasady / Help and rules"]
     new_adventure_confirm["Potwierdzenie nowej przygody / New adventure confirmation"]
     full_reset["Pełny reset / Full reset"]
+    reset_settings_confirm["Reset parametrów / Reset settings"]
     rulebook_modal["Podręcznik zasad / Rulebook"]
     chase_dialog["Pościg i tor przeszkód (CoC 7e RAW) / Chase and hazard track (CoC 7e RAW)"]
     hazard_dialog["Zagrożenia środowiskowe i trucizny (CoC 7e RAW) / Environmental hazards and poisons (CoC 7e RAW)"]
@@ -77,6 +78,7 @@ graph TD
     game -->|Ustawienia / Settings| settings
     game -->|Nowa przygoda / New adventure| new_adventure_confirm
     settings -->|Pełny reset / Full reset| full_reset
+    settings -->|Reset parametrów / Reset settings| reset_settings_confirm
     campaigns -->|Nowa kampania / New campaign| campaign_new
     characters -->|Nowa postać / New character| character_new
     home -->|Wgraj zasady / Upload rules| rulebook_modal
@@ -137,6 +139,7 @@ graph TD
 | Aktywna sesja | Ustawienia / Settings | Ustawienia | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Nowa przygoda / New adventure | Potwierdzenie nowej przygody | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ustawienia | Pełny reset / Full reset | Pełny reset | `src/components/ui/settings-modal.tsx` |
+| Ustawienia | Reset parametrów / Reset settings | Reset parametrów | `src/components/ui/settings-modal.tsx` |
 | Kampanie | Nowa kampania / New campaign | Nowa kampania | `src/app/[locale]/campaigns/page.tsx` |
 | Postacie | Nowa postać / New character | Nowa postać | `src/app/[locale]/characters/page.tsx` |
 | Strona główna | Wgraj zasady / Upload rules | Podręcznik zasad | `src/components/chat/welcome/index.tsx` |
