@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Message } from '@/lib/types';
-import { loadAISettings } from '@/lib/ai-settings';
+import { loadAISettings, saveAISettings } from '@/lib/ai-settings';
+import { settingsEmitter } from '@/lib/settings-event-emitter';
 
 // M6 sesja 146: import DialogueLine + generateMultiVoice DROPPED per D3 (drop multi-voice).
 // Sesja 147 Faza 2: multi-voice WRACA dla preset=ultra (słuchowisko radiowe).
@@ -201,6 +202,35 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [isAudioPaused, setIsAudioPaused] = useState(false);
   const [isInitialBuffering, setIsInitialBuffering] = useState(false);
+  // Reaktywny stan isNarratorOnly (Issue #172: przełącznik trybu lektora / słuchowiska)
+  const [isNarratorOnly, setIsNarratorOnlyState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return loadAISettings().voiceSettings?.narratorOnly ?? false;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const unsubscribe = settingsEmitter.subscribe((newSettings) => {
+      if (newSettings?.voiceSettings?.narratorOnly !== undefined) {
+        setIsNarratorOnlyState(!!newSettings.voiceSettings.narratorOnly);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const setIsNarratorOnly = useCallback((value: boolean) => {
+    setIsNarratorOnlyState(value);
+    const current = loadAISettings();
+    saveAISettings({
+      ...current,
+      voiceSettings: {
+        ...current.voiceSettings,
+        narratorOnly: value,
+      },
+    });
+  }, []);
+
   const [queueStatus, setQueueStatus] = useState({
     queueLength: 0,
     totalCharacters: 0,
@@ -238,6 +268,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const completedMessageIdsRef = useRef<Set<string>>(new Set());
   // Dynamiczny cache głosów i reżyserii NPC w trakcie sesji (gwarantuje spójność wokalną postaci)
   const dynamicNpcVoiceMapRef = useRef<Map<string, { voiceId: string; audioDirection: string }>>(new Map());
+  // Śledzi aktywnego mówcę NPC w obrębie bieżącej linii dialogowej (Issue #172: wielozdaniowe wypowiedzi postaci)
+  const activeNpcSpeakerRef = useRef<string | null>(null);
+  // Pozycja końca ostatnio przetworzonego zdania w stripped dla bieżącej wiadomości (Issue #172)
+  const prevSentenceEndRef = useRef(0);
   // demo 2026-06-22: ULTRA scala kolejne zdania o tym SAMYM voiceId w jeden segment TTS
   // (jeden spójny głos zamiast resetu prozodii per zdanie - objaw "lektor brzmi jak 3 osoby").
   // Run trzymany MIĘDZY wywołaniami addToQueue (streaming), zamykany przy zmianie mówcy lub
@@ -295,6 +329,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       playbackIndexRef.current = 0; // IND-204: bez tego po Stop bez ID-change worker generuje od 0, a player czeka na ostatni N → cisza
       flushedRef.current = false;
       openRunRef.current = null; // demo 2026-06-22: nie przenoś niedokończonego runu narratora między wiadomościami
+      activeNpcSpeakerRef.current = null; // Issue #172: wyczyść aktywnego mówcę dialogu przy stopie
+      prevSentenceEndRef.current = 0; // Issue #172: wyzeruj kursor zdań w stripped
       earlySpokenCharsRef.current = 0; // E1: świeży kursor wczesnego startu dla nowej wiadomości
       hasDispatchedFirstSegmentRef.current = false;
       completedMessageIdsRef.current.clear(); // IND-200
@@ -577,6 +613,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         playbackIndexRef.current = 0;
         flushedRef.current = false;
         openRunRef.current = null; // demo 2026-06-22: nowy run scalania od zera dla nowej wiadomości
+        activeNpcSpeakerRef.current = null; // Issue #172: wyczyść aktywnego mówcę dialogu dla nowej wiadomości
+        prevSentenceEndRef.current = 0; // Issue #172: wyzeruj kursor zdań w stripped dla nowej wiadomości
         earlySpokenCharsRef.current = 0; // E1: nowy kursor wczesnego startu dla nowej wiadomości
         hasDispatchedFirstSegmentRef.current = false;
       }
@@ -636,38 +674,60 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
       if (isUltraOrHigh) {
         // --- HIGH/ULTRA: per-zdanie + multi-voice marker @Imię: / Imię: „dialog” ---
-        const sentences: string[] = [];
+        interface SentenceItem {
+          raw: string;
+          clean: string;
+          startIndex: number;
+          endIndex: number;
+        }
+
+        const rawSentences: SentenceItem[] = [];
         let lastEnd = 0;
-        const sentenceRegex = /[^.!?\n]+[.!?\n]+/g;
+        // Issue #172: sentenceRegex wchłania terminatory [.!?] wraz z cudzysłowami zamykającymi oraz \n,
+        // zapobiegając ucinaniu cudzysłowów w osobne śmieciowe tokeny i gubieniu znaków nowej linii.
+        const sentenceRegex = /[^.!?\n]+(?:[.!?]+["”'»\s]*|[\n]+)/g;
         let match;
         while ((match = sentenceRegex.exec(stripped)) !== null) {
-          sentences.push(match[0]);
-          lastEnd = match.index + match[0].length;
+          const raw = match[0];
+          const startIndex = match.index;
+          const endIndex = startIndex + raw.length;
+          const clean = removeDidaskalia(raw).trim();
+          rawSentences.push({
+            raw,
+            clean,
+            startIndex,
+            endIndex,
+          });
+          lastEnd = endIndex;
         }
 
         // Nowe pełne zdania ponad już zakolejkowane (append-only → prefiks stabilny).
-        const newSentences: string[] = [];
+        const newSentences: SentenceItem[] = [];
         for (
           let i = processedSentenceCountRef.current;
-          i < sentences.length;
+          i < rawSentences.length;
           i++
         ) {
-          const cleanSentence = removeDidaskalia(sentences[i]).trim();
-          if (cleanSentence && /[\p{L}\p{N}]/u.test(cleanSentence)) {
-            newSentences.push(cleanSentence);
+          const item = rawSentences[i];
+          if (item.clean && /[\p{L}\p{N}]/u.test(item.clean)) {
+            newSentences.push(item);
           }
         }
-        processedSentenceCountRef.current = sentences.length;
+        processedSentenceCountRef.current = rawSentences.length;
 
         // flush: resztka po ostatnim pełnym zdaniu (bez terminatora kończącego).
         if (flush && !flushedRef.current) {
           flushedRef.current = true;
           if (lastEnd < stripped.length) {
-            const cleanRemainder = removeDidaskalia(
-              stripped.slice(lastEnd)
-            ).trim();
+            const rawRemainder = stripped.slice(lastEnd);
+            const cleanRemainder = removeDidaskalia(rawRemainder).trim();
             if (cleanRemainder && /[\p{L}\p{N}]/u.test(cleanRemainder)) {
-              newSentences.push(cleanRemainder);
+              newSentences.push({
+                raw: rawRemainder,
+                clean: cleanRemainder,
+                startIndex: lastEnd,
+                endIndex: stripped.length,
+              });
             }
           }
         }
@@ -690,24 +750,35 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           openRunRef.current = null;
         };
 
-        for (const sentence of newSentences) {
+        for (const sentenceItem of newSentences) {
+          const { raw, clean, startIndex, endIndex } = sentenceItem;
+
+          // Issue #172: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
+          // znak nowej linii, linia dialogowa dotychczasowego NPC się skończyła.
+          const between = stripped.slice(prevSentenceEndRef.current, startIndex);
+          if (between.includes('\n')) {
+            activeNpcSpeakerRef.current = null;
+          }
+
           // Marker: legacy `@Imię: dialog` lub `Imię: „dialog”` (gm-protocol).
           // trimStart() bo sentence regex może zwrócić zdanie z wiodącą spacją.
           // cleanResponseText kasuje „” przed regexem - cytaty tu nie są potrzebne.
           // Wymagamy wielkiej litery na początku imienia (anty-false-match: 1920s:, próg: itp).
-          const markerMatch = sentence
+          const markerMatch = clean
             .trimStart()
             .match(
               /^(@)?([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):\s*([\s\S]*?)$/
             );
           let voiceId: string | undefined;
           let audioDirection: string | undefined;
-          let textForQueue = sentence;
+          let textForQueue = clean;
 
-          const isNarratorOnly = !!settingsForQueue.voiceSettings?.narratorOnly;
+          const isNarratorOnlyMode =
+            isNarratorOnly || !!settingsForQueue.voiceSettings?.narratorOnly;
 
-          if (markerMatch && !isNarratorOnly) {
+          if (markerMatch && !isNarratorOnlyMode) {
             const npcName = markerMatch[2].trim();
+            activeNpcSpeakerRef.current = npcName;
             const npcObj = resolveNpcObject(npcName);
             const dynamicVoice = resolveDynamicNpcVoice(
               npcName,
@@ -723,7 +794,26 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             );
             voiceId = dynamicVoice.voiceId;
             audioDirection = dynamicVoice.audioDirection;
-            textForQueue = markerMatch[3].trim() || sentence;
+            textForQueue = markerMatch[3].trim() || clean;
+          } else if (activeNpcSpeakerRef.current && !isNarratorOnlyMode) {
+            // Issue #172: Kontynuacja dialogu tej samej postaci w obrębie tej samej linii/akapitu
+            const npcName = activeNpcSpeakerRef.current;
+            const npcObj = resolveNpcObject(npcName);
+            const dynamicVoice = resolveDynamicNpcVoice(
+              npcName,
+              npcVoiceMap,
+              dynamicNpcVoiceMapRef.current,
+              {
+                occupation: npcObj?.occupation,
+                description: npcObj?.description,
+                personality: npcObj?.personality,
+                type: npcObj?.type,
+                mood: currentMood,
+              }
+            );
+            voiceId = dynamicVoice.voiceId;
+            audioDirection = dynamicVoice.audioDirection;
+            textForQueue = clean;
           } else {
             // Kwestia Narratora (lub wymuszony tryb Audiobook / narratorOnly) - modulacja SAN i nastrojem
             voiceId = settingsForQueue.voiceSettings?.voiceId || 'Kore';
@@ -734,9 +824,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               mood: currentMood,
               recentSanLoss: currentSanLoss,
             });
-            textForQueue = markerMatch ? markerMatch[3].trim() || sentence : sentence;
+            textForQueue = markerMatch ? markerMatch[3].trim() || clean : clean;
           }
-          // Bez kontynuacji - każde zdanie dialogu ma własny marker per gm-protocol.
 
           // Zmiana mówcy lub zmiana dyrektywy zamyka bieżący run; ten sam voiceId + direction
           // dokleja się do otwartego runu = jedno wywołanie TTS.
@@ -767,6 +856,12 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               hasDispatchedFirstSegmentRef.current = true;
             }
           }
+
+          // Issue #172: Jeśli samo zdanie zawierało znak nowej linii, kończy ono linię dialogową
+          if (raw.includes('\n')) {
+            activeNpcSpeakerRef.current = null;
+          }
+          prevSentenceEndRef.current = endIndex;
         }
 
         // flush domyka ostatni (otwarty) run - resztę narracji oddajemy jako jeden segment.
@@ -989,10 +1084,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     isTTSEnabled,
     isAudioPaused,
     queueStatus,
-    isNarratorOnly: false,
+    isNarratorOnly,
     setVoiceEnabled,
     setIsTTSEnabled,
-    setIsNarratorOnly: () => {},
+    setIsNarratorOnly,
     generateVoiceForMessage,
     stopCurrentAudio,
     toggleAudioPause,
