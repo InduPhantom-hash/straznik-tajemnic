@@ -68,7 +68,7 @@ export function CharacterDevelopmentPanel({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="deco-corners relative border border-brass/40 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-deco w-[90vw] max-w-[1440px] mx-4 max-h-[90vh] overflow-hidden">
+      <div className="deco-corners relative border border-brass/40 bg-gradient-to-br from-[#1a1610] to-[#100d09] shadow-deco w-[86vw] max-w-[1280px] max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-brass/30">
           <div>

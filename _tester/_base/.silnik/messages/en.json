@@ -7148,6 +7148,7 @@
     "ritualResurrectionEffect": "The resurrected permanently loses 1d20 SAN and gains 1d10 Cthulhu Mythos. The personality may be changed"
   },
   "SessionJournal": {
+    "titleEyebrow": "INVESTIGATION DOSSIER",
     "title": "SESSION JOURNAL",
     "sharedWith": "Shared by: {names}",
     "tabBoard": "Investigator Board",

@@ -133,7 +133,7 @@ export function SanityTherapyModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl bg-[#120f0d] border border-brass/40 text-foreground p-6 shadow-2xl rounded-none">
+      <DialogContent size="wide" className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto bg-[#120f0d] border border-brass/40 text-foreground p-6 shadow-2xl rounded-none">
         <DialogHeader className="border-b border-brass/20 pb-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="font-display text-xl uppercase tracking-[0.2em] text-brass flex items-center gap-2">

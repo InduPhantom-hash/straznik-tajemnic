@@ -206,8 +206,7 @@ export function EquipmentDetailDialog({
         />
         <DialogPrimitive.Content
           className={cn(
-            'fixed left-[50%] top-[50%] z-[100] translate-x-[-50%] translate-y-[-50%] flex flex-col bg-[#120e0a] border-2 border-brass/60 overflow-hidden shadow-2xl focus:outline-none pointer-events-auto transition-all duration-200',
-            isExpanded ? 'w-[96vw] max-w-6xl max-h-[94vh]' : 'w-[95vw] max-w-5xl max-h-[90vh]'
+            'fixed left-[50%] top-[50%] z-[100] translate-x-[-50%] translate-y-[-50%] flex flex-col bg-[#120e0a] border-2 border-brass/60 overflow-hidden shadow-2xl focus:outline-none pointer-events-auto transition-all duration-200 w-[86vw] max-w-[1280px] max-h-[85vh]'
           )}
         >
           <DialogPrimitive.Title className="sr-only">

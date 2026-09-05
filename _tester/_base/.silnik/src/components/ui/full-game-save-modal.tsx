@@ -433,7 +433,7 @@ export function FullGameSaveModal({
 
   return (
     <div className="fixed inset-0 bg-[#050608]/80 flex items-center justify-center z-50 p-4">
-      <div className="relative w-[90vw] max-w-[1440px] max-h-[90vh] overflow-hidden flex flex-col border border-brass/30 bg-gradient-to-br from-[#14110c] to-[#0a0c0f] shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
+      <div className="relative w-[86vw] max-w-[1280px] max-h-[85vh] overflow-hidden flex flex-col border border-brass/30 bg-gradient-to-br from-[#14110c] to-[#0a0c0f] shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
         {/* Narożniki déco */}
         <span className="absolute top-3 left-3 w-[30px] h-[30px] border-t-2 border-l-2 border-brass/55 pointer-events-none" />
         <span className="absolute top-3 right-3 w-[30px] h-[30px] border-t-2 border-r-2 border-brass/55 pointer-events-none" />

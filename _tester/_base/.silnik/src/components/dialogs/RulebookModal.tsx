@@ -177,7 +177,7 @@ export const RulebookModal: FC<RulebookModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        size="lg"
+        size="wide"
         className={`bg-gradient-to-b from-card to-background border border-brass/40 shadow-[0_0_30px_rgba(0,0,0,0.55)] deco-corners ${
           gated && !hasRules ? '[&>button:last-child]:hidden' : ''
         }`}

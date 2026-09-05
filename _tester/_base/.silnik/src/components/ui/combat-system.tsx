@@ -1086,7 +1086,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg border border-white/20 w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto">
         <div className="p-6">
           <h3 className="text-xl font-bold text-purple-300 mb-4">
             {t('addFormTitle')}
@@ -1237,7 +1237,7 @@ function EditCombatantForm({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg border border-white/20 w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto">
         <div className="p-6">
           <h3 className="text-xl font-bold text-purple-300 mb-4">
             {t('editFormTitle')}

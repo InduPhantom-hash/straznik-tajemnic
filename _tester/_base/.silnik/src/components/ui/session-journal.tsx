@@ -758,44 +758,54 @@ export function SessionJournal({
 
   return (
     <div
-      data-testid="session-journal" className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      data-testid="session-journal"
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 sm:p-6"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose?.();
         }
       }}
     >
-      {/* RPG-styled Container */}
+      {/* RPG-styled Container - Standard 75% powierzchni ekranu & Dark Art Déco */}
       <div
-        className="bg-zinc-950/90 backdrop-blur-xl border-4 border-emerald-900/40 rounded-xl shadow-2xl w-[96vw] max-w-[1720px] h-[94vh] flex flex-col overflow-hidden text-zinc-300 relative"
+        className="bg-gradient-to-b from-[#18130e] via-[#120e0a] to-[#0a0805] border border-brass/50 shadow-2xl w-[86vw] max-w-[1280px] h-[85vh] max-h-[85vh] flex flex-col overflow-hidden text-zinc-300 relative rounded-sm"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Narożniki déco */}
+        <span className="pointer-events-none absolute left-2.5 top-2.5 h-5 w-5 border-l-2 border-t-2 border-brass/70 z-20" />
+        <span className="pointer-events-none absolute right-2.5 top-2.5 h-5 w-5 border-r-2 border-t-2 border-brass/70 z-20" />
+        <span className="pointer-events-none absolute bottom-2.5 left-2.5 h-5 w-5 border-l-2 border-b-2 border-brass/70 z-20" />
+        <span className="pointer-events-none absolute bottom-2.5 right-2.5 h-5 w-5 border-r-2 border-b-2 border-brass/70 z-20" />
+
         {/* Nagłówek i Główne Zakładki */}
-        <div className="bg-zinc-900/80 border-b-2 border-emerald-900/50 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-[#140f0b] border-b border-brass/30 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
           <div className="flex items-center gap-3 shrink-0">
-            <BookOpen className="h-7 w-7 text-emerald-400 shrink-0" />
+            <BookOpen className="h-6 w-6 text-brass shrink-0" />
             <div>
-              <h2 className="font-display-decorative font-black text-2xl tracking-[0.12em] text-emerald-500 drop-shadow-md whitespace-nowrap">
+              <div className="font-special-elite text-[10px] uppercase tracking-[0.24em] text-primary/90">
+                {t('titleEyebrow')}
+              </div>
+              <h2 className="font-display uppercase tracking-[0.14em] text-xl text-foreground drop-shadow-sm whitespace-nowrap">
                 {t('title')}
               </h2>
               {isShared && participantNames.length > 0 && (
-                <p className="text-xs font-special-elite tracking-wider text-emerald-400">
+                <p className="text-xs font-special-elite tracking-wider text-brass/80">
                   {t('sharedWith', { names: participantNames.join(' i ') })}
                 </p>
               )}
             </div>
           </div>
 
-          {/* Zakładki na górze - Styl Akt / Segregatora */}
-          <div className="flex gap-1.5 items-center self-center md:self-end translate-y-[2px] mt-2 md:mt-0 shrink-0">
+          {/* Zakładki na górze - Styl Akt / Segregatora Dark Art Déco */}
+          <div className="flex gap-1.5 items-center self-center md:self-end translate-y-[1px] mt-2 md:mt-0 shrink-0">
             <button
               data-testid="btn-corkboard"
               onClick={() => handleTabChange('board')}
               className={cn(
-                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
+                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
                 activeTab === 'board'
-                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
+                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
               )}
             >
               📌 {t('tabBoard')}
@@ -804,10 +814,10 @@ export function SessionJournal({
               data-testid="btn-discoveries"
               onClick={() => handleTabChange('npc')}
               className={cn(
-                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
+                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
                 (activeTab === 'npc' || activeTab === 'location' || activeTab === 'item' || activeTab === 'quest')
-                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
+                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
               )}
             >
               🔍 {t('tabDiscoveries')}
@@ -821,10 +831,10 @@ export function SessionJournal({
               data-testid="btn-timeline"
               onClick={() => handleTabChange('journal')}
               className={cn(
-                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
+                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
                 activeTab === 'journal'
-                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
+                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
               )}
             >
               {t('tabChronicle')}
@@ -837,10 +847,10 @@ export function SessionJournal({
             <button
               onClick={() => handleTabChange('note')}
               className={cn(
-                'px-4 lg:px-5 py-2 text-sm font-serif font-bold rounded-t-lg transition-all relative flex items-center gap-2 border-x-2 border-t-2 shrink-0',
+                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
                 activeTab === 'note'
-                  ? 'bg-zinc-950 text-emerald-500 border-emerald-900/50 border-b-transparent z-10 pt-3 shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-zinc-900/80 text-muted-foreground/60 border-emerald-900/50 border-b-emerald-900/50 hover:text-emerald-500 hover:bg-emerald-500/5'
+                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
               )}
             >
               {t('tabNotes')}
@@ -867,9 +877,9 @@ export function SessionJournal({
             </Button>
             <Button
               onClick={() => setShowAddForm(true)}
-              className="bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40 font-serif"
+              className="bg-[#1f1a14] hover:bg-[#2a2219] text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider"
             >
-              <Plus className="h-4 w-4 mr-1" /> {t('addNoteButton')}
+              <Plus className="h-4 w-4 mr-1 text-brass" /> {t('addNoteButton')}
             </Button>
             <Button
               onClick={() => {
@@ -880,16 +890,16 @@ export function SessionJournal({
                   setBoardRelations(english ? fixtures.MOCK_BOARD_RELATIONS_EN : fixtures.MOCK_BOARD_RELATIONS);
                 });
               }}
-              className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-400 border border-emerald-500/40 font-serif text-xs"
+              className="bg-[#16120e] hover:bg-[#221b14] text-brass/80 border border-brass/30 font-special-elite text-xs uppercase"
               title={t('fillTestDataTooltip')}
             >
               🧪 {t('fillTestDataButton')}
             </Button>
             <Button
               onClick={exportToMarkdown}
-              className="bg-emerald-800/80 hover:bg-emerald-700/80 text-emerald-100 border border-emerald-500/40 font-serif"
+              className="bg-[#1f1a14] hover:bg-[#2a2219] text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider"
             >
-              <Download className="h-4 w-4 mr-1" /> {t('exportMdButton')}
+              <Download className="h-4 w-4 mr-1 text-brass" /> {t('exportMdButton')}
             </Button>
             {onClose && (
               <button
@@ -898,31 +908,31 @@ export function SessionJournal({
                   e.stopPropagation();
                   onClose();
                 }}
-                className="ml-2 p-2 bg-[#5a1c1c] hover:bg-[#782525] active:bg-[#942c2c] rounded-md border-2 border-[#b83838] text-[#f4ebd0] transition-all cursor-pointer shadow-md hover:scale-105 shrink-0 flex items-center justify-center"
+                className="ml-2 flex h-9 w-9 items-center justify-center rounded-full border border-brass/40 bg-[#120f0c] text-muted-foreground transition-all hover:border-brass/80 hover:text-brass hover:scale-105 shrink-0"
                 title={t('closeTooltip')}
                 aria-label={t('closeAriaLabel')}
               >
-                <X className="h-5 w-5 stroke-[2.5]" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </div>
         </div>
 
         {/* Wyszukiwarka */}
-        <div className="bg-[#18100b] border-b border-emerald-900/30 px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center bg-zinc-950 rounded-md px-3 py-1.5 w-full sm:max-w-md border border-emerald-900/30">
-            <Search className="h-4 w-4 text-[#8a7667] mr-2" />
+        <div className="bg-[#120e0a] border-b border-brass/25 px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center bg-[#0a0805] rounded-none px-3 py-1.5 w-full sm:max-w-md border border-brass/30 focus-within:border-brass/70 transition-colors">
+            <Search className="h-4 w-4 text-brass/60 mr-2" />
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm w-full outline-none text-zinc-300 placeholder-emerald-900/60"
+              className="bg-transparent text-sm w-full outline-none text-foreground placeholder:text-muted-foreground/60 font-special-elite"
             />
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#1a1610] to-[#100d09] text-zinc-300 journal-scroll">
+        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#16120d] via-[#120e09] to-[#0a0805] text-zinc-300 journal-scroll">
           {/* 0. SEKCJA TABLICY BADACZA */}
           {activeTab === 'board' && (
             <div className="flex-1 flex flex-col overflow-hidden journal-scroll">
