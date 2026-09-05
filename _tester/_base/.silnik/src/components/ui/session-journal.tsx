@@ -20,19 +20,9 @@ import {
   Lightbulb,
   MessageSquare,
 } from 'lucide-react';
-import { CorkboardInvestigationBoard } from './journal/corkboard-investigation-board';
 import { DiscoveriesView } from './journal/discoveries-view';
 import { IdeaRollModal } from './journal/idea-roll-modal';
 import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
-import { InspectionLightboxModal } from '../dialogs/inspection-lightbox-modal';
-import {
-  EvidenceNode,
-  EvidenceRelation,
-  EvidenceNodeType,
-  InvestigatorBoardState,
-  BoardViewport,
-} from '@/types/investigator-board';
-import { convertEntriesToBoardNodes } from '@/lib/journal/convert-entries';
 import type { JournalEntry, JournalEventType, Character } from '@/lib/types';
 import {
   ensureCharacterDossier,
@@ -43,7 +33,6 @@ import type { DiscoveryEntry } from './journal/discoveries-view';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
-  | 'board'
   | 'quest'
   | 'journal'
   | 'location'
@@ -125,7 +114,7 @@ export function SessionJournal({
     t('tagSpells'),
   ];
 
-  const [activeTab, setActiveTab] = useState<JournalEntryType>('board');
+  const [activeTab, setActiveTab] = useState<JournalEntryType>('npc');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(
     null
@@ -143,26 +132,6 @@ export function SessionJournal({
     type?: string;
   } | undefined>(undefined);
 
-  // Stan Tablicy Badacza z automatycznym odtworzeniem z postaci / sharedJournal
-  const savedBoardState = character.investigatorBoard;
-
-  const initialNodes = useMemo(() => {
-    if (savedBoardState?.nodes && savedBoardState.nodes.length > 0) {
-      return savedBoardState.nodes;
-    }
-    // Domyślnie pusta tablica - gracz sam przypina poszlaki ze Szuflady.
-    return [];
-  }, [savedBoardState]);
-
-  const [boardNodes, setBoardNodes] = useState<EvidenceNode[]>(initialNodes);
-  const [boardRelations, setBoardRelations] = useState<EvidenceRelation[]>(
-    savedBoardState?.relations || []
-  );
-  const [boardViewport, setBoardViewport] = useState<BoardViewport>(
-    savedBoardState?.viewport || { zoom: 1, panX: 0, panY: 0 }
-  );
-  const [inspectedNode, setInspectedNode] = useState<EvidenceNode | null>(null);
-
   // Obsługa klawisza Escape do zamykania Dziennika
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -173,40 +142,6 @@ export function SessionJournal({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
-
-  // Funkcja pomocnicza zapisująca zaktualizowaną tablicę badacza do postaci
-  const syncInvestigatorBoard = useCallback(
-    (nodes: EvidenceNode[], relations: EvidenceRelation[]) => {
-      const updatedBoardState: InvestigatorBoardState = {
-        characterId: character.id,
-        nodes,
-        relations,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      onUpdateCharacter({
-        ...character,
-        investigatorBoard: updatedBoardState,
-      });
-    },
-    [character, onUpdateCharacter]
-  );
-
-  const handleUpdateNodes = useCallback(
-    (nodes: EvidenceNode[]) => {
-      setBoardNodes(nodes);
-      syncInvestigatorBoard(nodes, boardRelations);
-    },
-    [boardRelations, syncInvestigatorBoard]
-  );
-
-  const handleUpdateRelations = useCallback(
-    (relations: EvidenceRelation[]) => {
-      setBoardRelations(relations);
-      syncInvestigatorBoard(boardNodes, relations);
-    },
-    [boardNodes, syncInvestigatorBoard]
-  );
 
   const isShared = sharedJournal !== undefined;
 
@@ -799,18 +734,6 @@ export function SessionJournal({
           {/* Zakładki na górze - Styl Akt / Segregatora Dark Art Déco */}
           <div className="flex gap-1.5 items-center self-center md:self-end translate-y-[1px] mt-2 md:mt-0 shrink-0">
             <button
-              data-testid="btn-corkboard"
-              onClick={() => handleTabChange('board')}
-              className={cn(
-                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
-                activeTab === 'board'
-                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
-              )}
-            >
-              📌 {t('tabBoard')}
-            </button>
-            <button
               data-testid="btn-discoveries"
               onClick={() => handleTabChange('npc')}
               className={cn(
@@ -865,35 +788,10 @@ export function SessionJournal({
           {/* Narzędzia i Przyciski */}
           <div className="flex gap-2 items-center shrink-0">
             <Button
-              data-testid="btn-idea-roll"
-              onClick={() => {
-                setIdeaTargetSubject(undefined);
-                setShowIdeaModal(true);
-              }}
-              className="bg-amber-950/60 hover:bg-amber-900/80 text-amber-200 border border-amber-600/50 font-serif text-xs font-bold shadow-sm"
-              title={t('ideaRollTooltip')}
-            >
-              <Lightbulb className="h-4 w-4 mr-1 text-amber-400" /> {t('ideaRollButton')}
-            </Button>
-            <Button
               onClick={() => setShowAddForm(true)}
               className="bg-[#1f1a14] hover:bg-[#2a2219] text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider"
             >
               <Plus className="h-4 w-4 mr-1 text-brass" /> {t('addNoteButton')}
-            </Button>
-            <Button
-              onClick={() => {
-                import('@/lib/test-journal-data').then((fixtures) => {
-                  const english = locale === 'en';
-                  updateCharacterJournal([...(english ? fixtures.MOCK_JOURNAL_ENTRIES_EN : fixtures.MOCK_JOURNAL_ENTRIES), ...entries]);
-                  setBoardNodes(english ? fixtures.MOCK_BOARD_NODES_EN : fixtures.MOCK_BOARD_NODES);
-                  setBoardRelations(english ? fixtures.MOCK_BOARD_RELATIONS_EN : fixtures.MOCK_BOARD_RELATIONS);
-                });
-              }}
-              className="bg-[#16120e] hover:bg-[#221b14] text-brass/80 border border-brass/30 font-special-elite text-xs uppercase"
-              title={t('fillTestDataTooltip')}
-            >
-              🧪 {t('fillTestDataButton')}
             </Button>
             <Button
               onClick={exportToMarkdown}
@@ -918,83 +816,8 @@ export function SessionJournal({
           </div>
         </div>
 
-        {/* Wyszukiwarka */}
-        <div className="bg-[#120e0a] border-b border-brass/25 px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center bg-[#0a0805] rounded-none px-3 py-1.5 w-full sm:max-w-md border border-brass/30 focus-within:border-brass/70 transition-colors">
-            <Search className="h-4 w-4 text-brass/60 mr-2" />
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-sm w-full outline-none text-foreground placeholder:text-muted-foreground/60 font-special-elite"
-            />
-          </div>
-        </div>
-
         <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#16120d] via-[#120e09] to-[#0a0805] text-zinc-300 journal-scroll">
-          {/* 0. SEKCJA TABLICY BADACZA */}
-          {activeTab === 'board' && (
-            <div className="flex-1 flex flex-col overflow-hidden journal-scroll">
-              <CorkboardInvestigationBoard
-                nodes={boardNodes}
-                relations={boardRelations}
-                onUpdateNodes={handleUpdateNodes}
-                onUpdateRelations={handleUpdateRelations}
-                viewport={boardViewport}
-                onUpdateViewport={(v) => {
-                  setBoardViewport(v);
-                  syncInvestigatorBoard(boardNodes, boardRelations);
-                }}
-                journalEntries={entries.map((e) => ({
-                  id: e.id,
-                  title: e.title,
-                  content: e.content,
-                  type: e.type,
-                  imageUrl: (e as unknown as Record<string, string>).imageUrl,
-                  investigatorInsight: e.investigatorInsight,
-                }))}
-                equipmentItems={(character.equipment ?? []).map((e) => ({
-                  id: e.id,
-                  name: e.name,
-                  description: e.description || '',
-                  imageUrl: e.imageUrl,
-                }))}
-                onInspectNode={(node) => setInspectedNode(node)}
-                activeCharacter={character}
-                onAddJournalEntry={(entry) => {
-                  addEntry({
-                    title: entry.title,
-                    content: entry.content,
-                    type: entry.type as JournalEntryType,
-                    tags: entry.tags || ['dedukcja'],
-                    inGameDate: entry.inGameDate || currentInGameDate,
-                    investigatorInsight: entry.investigatorInsight,
-                  });
-                }}
-              />
-            </div>
-          )}
-
-          {/* Inspection Lightbox Modal */}
-          {inspectedNode && (
-            <InspectionLightboxModal
-              node={inspectedNode}
-              onClose={() => setInspectedNode(null)}
-              onUpdateNode={(updatedNode) => {
-                const updatedNodes = boardNodes.map((n) => n.id === updatedNode.id ? updatedNode : n);
-                handleUpdateNodes(updatedNodes);
-                setInspectedNode(updatedNode);
-              }}
-              onDeleteNode={(nodeId) => {
-                handleUpdateNodes(boardNodes.filter((n) => n.id !== nodeId));
-                handleUpdateRelations(boardRelations.filter((r) => r.fromNodeId !== nodeId && r.toNodeId !== nodeId));
-                setInspectedNode(null);
-              }}
-            />
-          )}
-
-          {/* 1. SEKCJA ODKRYĆ (dawne Misje + Encyklopedia) */}
+          {/* 1. SEKCJA AKT ŚLEDCZYCH (Dossier CoC 7e RAW) */}
           {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
             <DiscoveriesView
               activeCharacter={character}
@@ -1003,45 +826,15 @@ export function SessionJournal({
                 handleEditDiscoveryEntry(entry);
               }}
               onDeleteEntry={deleteEntry}
-              onPinToBoard={(entry) => {
-                let nodeType: EvidenceNodeType = 'clue';
-                if (entry.type === 'npc' || entry.type === 'encyclopedia_character' || entry.type === 'character') nodeType = 'suspect';
-                else if (entry.type === 'location' || entry.type === 'encyclopedia_location') nodeType = 'location';
-                else if (entry.type === 'item' || entry.type === 'encyclopedia_item' || entry.type === 'document' || entry.type === 'handout') nodeType = 'artifact';
-                else if (entry.type === 'quest' || entry.type === 'clue' || entry.type === 'evidence') nodeType = 'evidence';
-                else if (entry.type === 'note') nodeType = 'player_note';
-
-                const scrollLeft = 0;
-                const scrollTop = 0;
-                const zoom = boardViewport.zoom || 1;
-                const posX = scrollLeft / zoom + 60 + (boardNodes.length % 3) * 300;
-                const posY = scrollTop / zoom + 80;
-
-                const newNode: EvidenceNode = {
-                  id: `node_disc_${entry.id}_${Date.now()}`,
+              onTriggerIdeaRoll={(entry) => {
+                setIdeaTargetSubject({
+                  id: entry.id,
                   title: entry.title,
                   description: entry.content,
-                  type: nodeType,
-                  status:
-                    entry.clueStatus === 'confirmed'
-                      ? 'confirmed'
-                      : entry.clueStatus === 'disproven'
-                        ? 'refuted'
-                        : 'hypothesis',
-                  position: { x: posX, y: posY },
-                  imageUrl: entry.imageUrl,
-                  sourceJournalEntryId: entry.id,
-                  investigatorInsight: entry.investigatorInsight,
-                  isManuallyCreated: false,
-                  pinType: nodeType === 'player_note' ? 'note' : 'telegram',
-                  rotation: Math.round((Math.random() * 8 - 4) * 10) / 10,
-                  createdAt: new Date().toISOString(),
-                };
-
-                handleUpdateNodes([...boardNodes, newNode]);
-                setActiveTab('board');
+                  type: entry.type,
+                });
+                setShowIdeaModal(true);
               }}
-              searchQuery={searchQuery}
               onQuoteToInput={(text) => {
                 if (onQuoteToInput) {
                   onQuoteToInput(text);
