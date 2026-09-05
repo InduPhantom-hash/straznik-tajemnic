@@ -1,5 +1,5 @@
 import type { AISettings } from './ai-settings';
-import type { HotSeatConfig } from './types';
+import type { HotSeatConfig, Character } from './types';
 import { FullGameSaveManager } from './full-game-save-manager';
 import type { WorldSetupBundleV1 } from './world-setup';
 
