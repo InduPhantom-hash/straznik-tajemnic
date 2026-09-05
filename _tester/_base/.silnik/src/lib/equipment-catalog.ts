@@ -156,10 +156,17 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.electrical-kit',
     name: "Zestaw narzędzi elektrycznych",
-    aliases: ["Toolkit (Electrical)", "Zestaw narzędzi (elektryczny)", "tool.electrical-kit-shared"],
+    aliases: [
+      "Toolkit (Electrical)",
+      "Zestaw narzędzi (elektryczny)",
+      "Zestaw narzędzi do elektroniki",
+      "Narzędzia do elektroniki",
+      "Zestaw narzędzi",
+      "tool.electrical-kit-shared",
+    ],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['1920s', '1940s', 'prl-1970s', 'modern'],
+    availableIn: ALL_ERAS,
     assetPaths: { shared: '/equipment/catalog/electrical-kit-shared.webp' },
     modifiers: { skill: 'Naprawa elektryczna', bonus: 10 },
     value: 15,
@@ -418,21 +425,45 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'modern.phone',
     name: "Smartfon z ładowarką",
-    aliases: ["Smartfon", "Smartphone", "Nowoczesny telefon", "Najnowszy smartfon", "tool.phone-modern"],
+    aliases: [
+      "Smartfon",
+      "Smartphone",
+      "Nowoczesny telefon",
+      "Najnowszy smartfon",
+      "Telefon komórkowy",
+      "Telefon komórkowy z klawiaturą",
+      "Telefon z klawiaturą",
+      "Komórka",
+      "tool.phone-modern",
+    ],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['modern'],
-    assetPaths: { modern: '/equipment/catalog/phone-modern.webp' },
+    availableIn: ['2000s', 'modern'],
+    assetPaths: {
+      '2000s': '/equipment/catalog/phone-modern.webp',
+      modern: '/equipment/catalog/phone-modern.webp',
+    },
     value: 300,
   },
   {
     id: 'modern.power-bank',
     name: "Powerbank",
-    aliases: ["Bateria zewnętrzna", "Przenośna bateria", "tool.power-bank-modern"],
+    aliases: [
+      "Bateria zewnętrzna",
+      "Przenośna bateria",
+      "Zapasowa bateria",
+      "Bateria",
+      "Akumulator",
+      "Zapasowy akumulator",
+      "tool.power-bank-modern",
+    ],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['modern'],
-    assetPaths: { modern: '/equipment/catalog/power-bank-modern.webp' },
+    availableIn: ['2000s', 'modern'],
+    assetPaths: {
+      '2000s': '/equipment/catalog/power-bank-modern.webp',
+      modern: '/equipment/catalog/power-bank-modern.webp',
+    },
     value: 25,
   },
   {
@@ -844,7 +875,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.brick-cellphone-prl',
     name: "Telefon komórkowy (wielki)",
-    aliases: ["Vintage 1980s Brick Cellphone", "Telefon komórkowy (cegła)", "Telefon komórkowy z klawiaturą"],
+    aliases: ["Vintage 1980s Brick Cellphone", "Telefon komórkowy (cegła)"],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
@@ -1020,10 +1051,18 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.heavy-laptop-wifi-1990s',
     name: "Ciężki laptop z wczesnym Wi-Fi",
-    aliases: ["Heavy 1990s Laptop with PCMCIA Card", "Laptop z wczesnym Wi-Fi"],
+    aliases: [
+      "Heavy 1990s Laptop with PCMCIA Card",
+      "Laptop z wczesnym Wi-Fi",
+      "Laptop",
+      "Komputer przenośny",
+      "Ciężki laptop",
+      "tool.laptop-modern",
+    ],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['prl-1970s', '1980s'],
+    availableIn: ['1990s', '2000s', 'modern'],
+    assetPaths: { shared: '/equipment/catalog/laptop-modern.webp' },
     value: 800,
   },
   {
@@ -1208,6 +1247,12 @@ export function applyCatalogTemplate(
   }
 
   const catalogAsset = resolveCatalogAsset(template, era);
+  const isSvgOrFallback =
+    !item.imageUrl ||
+    item.imageUrl.endsWith('.svg') ||
+    item.imageUrl.includes('/predefined/') ||
+    item.imageUrl.includes('/equipment/predefined/') ||
+    item.visualSource === 'fallback';
 
   return {
     ...item,
@@ -1218,7 +1263,7 @@ export function applyCatalogTemplate(
     value: item.value ?? template.value,
     visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'catalog'),
     visualTreatment: template.visualTreatment,
-    imageUrl: item.imageUrl ?? catalogAsset,
+    imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset),
   };
 }
 

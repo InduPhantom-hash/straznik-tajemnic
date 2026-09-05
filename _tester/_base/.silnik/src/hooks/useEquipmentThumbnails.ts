@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
-import type { Character, EquipmentItem, AdventureContext } from '@/lib/types';
+import type { Character, EquipmentItem, AdventureContext, EquipmentVisualEra } from '@/lib/types';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import {
   buildEquipmentImagePrompt,
   isCharacterBoundEquipment,
 } from '@/lib/equipment-prompt-builder';
 import { persistCharacters } from '@/lib/character-cloud-sync';
-import { isCatalogEquipment } from '@/lib/equipment-catalog';
+import { applyCatalogTemplate } from '@/lib/equipment-catalog';
+import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 
 /**
  * IND-271: auto-generacja miniatur ekwipunku w tle przy starcie gry.
@@ -35,9 +36,10 @@ interface UseEquipmentThumbnailsProps {
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
 }
 
-/** Era do promptu obrazu - ta sama logika co EquipmentModal w CthulhuSidebar. */
-function resolveEra(adventureContext: AdventureContext | null): string {
-  return adventureContext?.yearRange?.split('-')[0] || '1920s';
+/** Era do promptu obrazu i dopasowania katalogowego. */
+function resolveEra(adventureContext: AdventureContext | null): EquipmentVisualEra {
+  const raw = adventureContext?.yearRange?.split('-')[0] || adventureContext?.era || '1920s';
+  return resolveEraVisualProfile(raw) as EquipmentVisualEra;
 }
 
 /**
@@ -112,6 +114,7 @@ export function useEquipmentThumbnails({
   const imageGenerationEnabledRef = useRef(imageGenerationEnabled);
   const activeCharacterIdRef = useRef(activeCharacter?.id);
   const runningCharacterIdsRef = useRef(new Set<string>());
+  const failedItemIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     imageGenerationEnabledRef.current = imageGenerationEnabled;
@@ -123,7 +126,6 @@ export function useEquipmentThumbnails({
 
   const generateThumbnailsInBackground = useCallback(
     async (characterOverride?: Character): Promise<void> => {
-      if (!imageGenerationEnabledRef.current) return;
       const character = characterOverride ?? activeCharacter;
       if (!character) return;
       if (runningCharacterIdsRef.current.has(character.id)) return;
@@ -131,30 +133,74 @@ export function useEquipmentThumbnails({
       runningCharacterIdsRef.current.add(character.id);
 
       try {
-        // Cache-aware: pomijamy itemy które JUŻ mają dedykowaną grafikę katalogową WebP lub wygenerowany obrazek AI.
-        const pending = (character.equipment ?? [])
+        const era = resolveEra(adventureContext);
+        const adventureTheme = adventureContext?.title;
+
+        // Krok 1: Wzbogacenie o lokalne assety katalogu (deterministyczne, 0 kosztu, natychmiastowe)
+        let catalogUpdated = false;
+        const enrichedEquipment = (character.equipment ?? []).map((item) => {
+          if (item.visualSource === 'generated') return item;
+          const hasValidImage =
+            item.imageUrl &&
+            !item.imageUrl.endsWith('.svg') &&
+            !item.imageUrl.includes('/predefined/') &&
+            !item.imageUrl.includes('/equipment/predefined/');
+          if (hasValidImage && item.visualSource === 'catalog') {
+            return item;
+          }
+
+          const enriched = applyCatalogTemplate(item, era);
+          const hasEnrichedValidImage =
+            enriched.imageUrl &&
+            !enriched.imageUrl.endsWith('.svg') &&
+            !enriched.imageUrl.includes('/predefined/') &&
+            !enriched.imageUrl.includes('/equipment/predefined/');
+
+          if (hasEnrichedValidImage && enriched.imageUrl !== item.imageUrl) {
+            catalogUpdated = true;
+            return enriched;
+          }
+          return item;
+        });
+
+        let currentCharacter = character;
+        if (catalogUpdated) {
+          currentCharacter = { ...character, equipment: enrichedEquipment };
+          setCharacters((prevList) => {
+            const updatedList = prevList.map((c) =>
+              c.id === character.id ? currentCharacter : c
+            );
+            if (typeof window !== 'undefined') {
+              persistCharacters(updatedList);
+            }
+            return updatedList;
+          });
+          setActiveCharacter((prev) =>
+            prev && prev.id === character.id ? currentCharacter : prev
+          );
+        }
+
+        if (!imageGenerationEnabledRef.current) return;
+
+        // Krok 2: Sekwencyjna generacja AI w tle dla przedmiotów bez lokalnego WebP
+        const pending = (currentCharacter.equipment ?? [])
           .filter((item) => {
-            // Katalog i wyposażenie startowe są deterministyczne. Brak dedykowanego
-            // WebP oznacza lokalną ikonę kategorii, nigdy płatne wywołanie API.
             if (
-              isCatalogEquipment(item) ||
-              item.source === 'starting' ||
-              item.visualSource === 'fallback'
+              item.imageUrl &&
+              !item.imageUrl.endsWith('.svg') &&
+              !item.imageUrl.includes('/predefined/') &&
+              !item.imageUrl.includes('/equipment/predefined/')
             ) {
               return false;
             }
-            if (!item.imageUrl) return true;
-            return (
-              item.imageUrl.endsWith('.svg') ||
-              item.imageUrl.includes('/predefined/') ||
-              item.imageUrl.includes('/equipment/predefined/')
-            );
+            if (failedItemIdsRef.current.has(item.id)) {
+              return false;
+            }
+            return true;
           })
           .slice(0, MAX_THUMBNAILS);
-        if (pending.length === 0) return;
 
-        const era = resolveEra(adventureContext);
-        const adventureTheme = adventureContext?.title;
+        if (pending.length === 0) return;
 
         // Sekwencyjnie - jedna miniatura na raz (zamiast N równoległych requestów).
         for (const item of pending) {
@@ -169,9 +215,10 @@ export function useEquipmentThumbnails({
             item,
             era,
             adventureTheme,
-            character
+            currentCharacter
           );
           if (!generated) {
+            failedItemIdsRef.current.add(item.id);
             const fallbackFields = {
               visualSource: 'fallback' as const,
             };
@@ -208,8 +255,6 @@ export function useEquipmentThumbnails({
             visualSource: 'generated' as const,
           };
 
-          // Aktualizuj tę konkretną postać + jej przedmiot, zachowując resztę
-          // edycji gracza (functional update na najświeższym stanie listy postaci).
           setCharacters((prevList) => {
             const updatedList = prevList.map((c) => {
               if (c.id !== character.id) return c;
@@ -226,20 +271,20 @@ export function useEquipmentThumbnails({
             return updatedList;
           });
 
-            setActiveCharacter((prev) => {
-              if (!prev || prev.id !== character.id) return prev;
-              return {
-                ...prev,
-                equipment: (prev.equipment ?? []).map((it) =>
-                  it.id === item.id ? { ...it, ...generatedFields } : it
-                ),
-              };
-            });
+          setActiveCharacter((prev) => {
+            if (!prev || prev.id !== character.id) return prev;
+            return {
+              ...prev,
+              equipment: (prev.equipment ?? []).map((it) =>
+                it.id === item.id ? { ...it, ...generatedFields } : it
+              ),
+            };
+          });
 
-            // Throttling 500ms, zapobieganie błędom HTTP 429 Too Many Requests
-            await new Promise((res) => setTimeout(res, 500));
-          }
-        } finally {
+          // Throttling 500ms, zapobieganie błędom HTTP 429 Too Many Requests
+          await new Promise((res) => setTimeout(res, 500));
+        }
+      } finally {
         runningCharacterIdsRef.current.delete(character.id);
       }
     },

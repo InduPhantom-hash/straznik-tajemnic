@@ -55,7 +55,55 @@ describe('useEquipmentThumbnails', () => {
     expect(setCharacters).not.toHaveBeenCalled();
   });
 
-  it('nie wywołuje API dla startowego przedmiotu z ikoną kategorii', async () => {
+  it('automatycznie przypisuje lokalny asset WebP z katalogu bez wywołania API', async () => {
+    const startingCharacter = {
+      ...character,
+      equipment: [
+        {
+          id: 'starting-laptop',
+          name: 'Ciężki laptop z wczesnym Wi-Fi',
+          category: 'tool',
+          source: 'starting',
+          visualSource: 'fallback',
+          imageUrl: '/equipment/predefined/tool.svg',
+        },
+      ],
+    } as Character;
+    let characters = [startingCharacter];
+    let activeCharacter: Character | null = startingCharacter;
+    const setCharacters = jest.fn((update) => {
+      characters = update(characters);
+    });
+    const setActiveCharacter = jest.fn((update) => {
+      activeCharacter = update(activeCharacter);
+    });
+
+    const { result } = renderHook(() =>
+      useEquipmentThumbnails({
+        activeCharacter: startingCharacter,
+        adventureContext: { yearRange: '2001-2005' } as any,
+        imageGenerationEnabled: true,
+        setActiveCharacter,
+        setCharacters,
+      })
+    );
+
+    await act(async () => {
+      await result.current.generateThumbnailsInBackground();
+    });
+
+    expect(fetchWithApiKeys).not.toHaveBeenCalled();
+    expect(characters[0].equipment?.[0]).toMatchObject({
+      imageUrl: '/equipment/catalog/laptop-modern.webp',
+      visualSource: 'catalog',
+    });
+    expect(activeCharacter?.equipment?.[0]).toMatchObject({
+      imageUrl: '/equipment/catalog/laptop-modern.webp',
+      visualSource: 'catalog',
+    });
+  });
+
+  it('wywołuje API generowania dla przedmiotu startowego bez lokalnego assetu w katalogu', async () => {
     const fallbackCharacter = {
       ...character,
       equipment: [
@@ -83,7 +131,7 @@ describe('useEquipmentThumbnails', () => {
       await result.current.generateThumbnailsInBackground();
     });
 
-    expect(fetchWithApiKeys).not.toHaveBeenCalled();
+    expect(fetchWithApiKeys).toHaveBeenCalledTimes(1);
   });
 
   it('nie wywołuje API, gdy generowanie obrazów jest wyłączone', async () => {
