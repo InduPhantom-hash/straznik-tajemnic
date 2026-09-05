@@ -25,6 +25,28 @@ describe('StartModeCards (Issue #121)', () => {
     expect(screen.getByTestId('quick-setup-modal')).toBeInTheDocument();
   });
 
+  it('zamyka QuickSetupModal po kliknięciu startu w modalu', () => {
+    const onQuickStart = jest.fn();
+    render(
+      <StartModeCards
+        onQuickStart={onQuickStart}
+        onManualStart={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('btn-quick-setup'));
+    expect(screen.getByTestId('quick-setup-modal')).toBeInTheDocument();
+
+    const charCard = screen.getAllByRole('button', { name: /Tomasz Nowicki/i })[0];
+    fireEvent.click(charCard);
+
+    const startBtn = screen.getByRole('button', { name: /Rozpocznij przygodę/i });
+    fireEvent.click(startBtn);
+
+    expect(onQuickStart).toHaveBeenCalled();
+    expect(screen.queryByTestId('quick-setup-modal')).not.toBeInTheDocument();
+  });
+
   it('blokuje kafelki gdy isStarting={true}', () => {
     const onQuickStart = jest.fn();
     const onManualStart = jest.fn();

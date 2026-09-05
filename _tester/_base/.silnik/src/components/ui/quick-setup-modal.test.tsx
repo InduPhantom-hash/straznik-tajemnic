@@ -29,7 +29,7 @@ describe('QuickSetupModal (Issue #121)', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it('po wybraniu postaci woła onQuickStart i NIE zamyka modala synchronicznie', () => {
+  it('po wybraniu postaci woła onQuickStart i zamyka modal (onOpenChange(false))', () => {
     const onOpenChange = jest.fn();
     const onQuickStart = jest.fn();
 
@@ -56,7 +56,32 @@ describe('QuickSetupModal (Issue #121)', () => {
       'solo',
       undefined
     );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('automatycznie wywołuje onOpenChange(false) gdy isStarting przełączy się na true', () => {
+    const onOpenChange = jest.fn();
+    const { rerender } = render(
+      <QuickSetupModal
+        open={true}
+        onOpenChange={onOpenChange}
+        onQuickStart={jest.fn()}
+        isStarting={false}
+      />
+    );
+
     expect(onOpenChange).not.toHaveBeenCalled();
+
+    rerender(
+      <QuickSetupModal
+        open={true}
+        onOpenChange={onOpenChange}
+        onQuickStart={jest.fn()}
+        isStarting={true}
+      />
+    );
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('w trybie Hot Seat przekazuje ID postaci Gracza 1 i Gracza 2', () => {

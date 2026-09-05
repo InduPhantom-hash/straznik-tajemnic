@@ -65,15 +65,19 @@ export function QuickSetupModal({
     setSelectedCharacter2('');
   }, [selectedAdventureId]);
 
+  // Gdy gra zaczyna się uruchamiać, zamknij modal, aby odsłonić pełnoekranowy ekran ładowania TTSHardLoadingScreen
+  useEffect(() => {
+    if (isStarting && open) {
+      onOpenChange(false);
+    }
+  }, [isStarting, open, onOpenChange]);
+
   const canStart = playMode === 'solo' 
     ? selectedCharacter1 !== ''
     : selectedCharacter1 !== '' && selectedCharacter2 !== '' && selectedCharacter1 !== selectedCharacter2;
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => {
-      if (isStarting && !nextOpen) return;
-      onOpenChange(nextOpen);
-    }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-testid="quick-setup-modal" size="screen">
         <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-brass/55" />
         <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-brass/55" />
@@ -366,6 +370,7 @@ export function QuickSetupModal({
                     playMode,
                     playMode === 'hot-seat' ? selectedCharacter2 : undefined
                   );
+                  onOpenChange(false);
                 }
               }}
             >
