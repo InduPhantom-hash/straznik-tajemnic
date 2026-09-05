@@ -4,7 +4,6 @@ import {
   buildNpcToneOfVoice,
   resolveDynamicNpcVoice,
   initializeAdventureNpcVoices,
-  resolveNpcVoice,
 } from '@/lib/npc-voice-mapping';
 import type { NPC } from '@/lib/types';
 

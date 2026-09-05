@@ -57,7 +57,7 @@ export function GeminiSettings({
           audio.volume = (settings.voiceSettings.volume || 85) / 100;
           audio.playbackRate = settings.voiceSettings.speed || 1.15;
           if ('preservesPitch' in audio) {
-            (audio as any).preservesPitch = true;
+            (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
           }
           await audio.play();
         }

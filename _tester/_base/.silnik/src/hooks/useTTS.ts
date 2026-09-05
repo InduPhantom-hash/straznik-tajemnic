@@ -10,9 +10,7 @@ import { loadAISettings } from '@/lib/ai-settings';
 // obok legacy `@Imię:`). MID/LOW wciąż jednym głosem narratora.
 import {
   loadNpcVoiceMap,
-  resolveNpcVoice,
   resolveNpcObject,
-  inferRoleFromNPC,
   resolveDynamicNpcVoice,
 } from '@/lib/npc-voice-mapping';
 import {
@@ -390,7 +388,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             const targetSpeed = currentSettings.voiceSettings?.speed || 1.15;
             audio.playbackRate = targetSpeed;
             if ('preservesPitch' in audio) {
-              (audio as any).preservesPitch = true;
+              (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
             }
             preloadedAudioRef.current.set(index, audio);
             console.log(`✅ TTS Worker: Ready segment ${index}`);
@@ -521,7 +519,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         const currentSpeed = currentSettings.voiceSettings?.speed || 1.15;
         audio.playbackRate = currentSpeed;
         if ('preservesPitch' in audio) {
-          (audio as any).preservesPitch = true;
+          (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
         }
         setCurrentAudio(audio);
 
