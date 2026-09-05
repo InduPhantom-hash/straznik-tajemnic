@@ -20,7 +20,7 @@
 import type { CSSProperties } from 'react';
 import type { Character } from '@/lib/types';
 import type { UseInlineEditReturn } from '../hooks/use-inline-edit';
-import { Check, Edit2, X } from 'lucide-react';
+import { Check, Edit2, X, AlertTriangle, HeartPulse } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export interface StatBarsProps {
@@ -29,6 +29,7 @@ export interface StatBarsProps {
   maxSan: number;
   maxMp: number;
   inlineEdit: UseInlineEditReturn;
+  onOpenMedicalCare?: () => void;
 }
 
 /** Konfiguracja koloru paska per stan (déco palette). */
@@ -170,7 +171,10 @@ export function StatBars({
   maxSan,
   maxMp,
   inlineEdit,
+  onOpenMedicalCare,
 }: StatBarsProps) {
+  const t = useTranslations('CharacterSheet');
+
   return (
     <div className="flex flex-col gap-3.5">
       <StatBar
@@ -179,6 +183,27 @@ export function StatBars({
         max={maxHp}
         inlineEdit={inlineEdit}
       />
+      {(character.hasMajorWound || onOpenMedicalCare) && (
+        <div className="-mt-1.5 mb-0.5 flex items-center justify-between px-1 text-xs">
+          {character.hasMajorWound ? (
+            <span className="font-special-elite text-[#d9685f] bg-[#7a221d]/30 border border-[#b3322c]/50 px-2 py-0.5 rounded text-[11px] animate-pulse flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {t('vitals.hp.majorWoundBadge')}
+            </span>
+          ) : (
+            <span />
+          )}
+          {onOpenMedicalCare && (
+            <button
+              onClick={onOpenMedicalCare}
+              className="font-special-elite text-brass/80 hover:text-brass border border-brass/30 hover:border-brass/60 bg-[#16130f] px-2 py-0.5 rounded text-[11px] flex items-center gap-1.5 transition-colors"
+            >
+              <HeartPulse className="h-3 w-3 text-[#d9685f]" />
+              <span>{t('vitals.hp.medicalCareBtn')}</span>
+            </button>
+          )}
+        </div>
+      )}
       <StatBar
         field="san"
         current={character.san ?? maxSan}

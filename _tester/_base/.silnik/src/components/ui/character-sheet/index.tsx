@@ -49,6 +49,7 @@ import { SheetEquipment } from './components/sheet-equipment';
 import { SheetRelations } from './components/sheet-relations';
 import { SheetBiography } from './components/sheet-biography';
 import { SanityTherapyModal } from '@/components/dialogs/SanityTherapyModal';
+import { MedicalCareModal } from '@/components/dialogs/MedicalCareModal';
 
 /** Separator déco - gradient-linie + obrócone romby (wzorzec _KONWENCJE). */
 function DecoSeparator({ title }: { title: string }) {
@@ -64,7 +65,7 @@ function DecoSeparator({ title }: { title: string }) {
       <span className="w-2 h-2 bg-brass rotate-45" />
       <span className="w-1.5 h-1.5 border border-brass rotate-45" />
       <span className="w-2 h-2 bg-brass rotate-45" />
-      <div className="flex-1 h-px bg-gradient-to-r from-gold to-transparent" />
+      <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold" />
     </div>
   );
 }
@@ -84,6 +85,7 @@ export function CharacterSheet({
 
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
   const [isTherapyOpen, setIsTherapyOpen] = useState(false);
+  const [isMedicalCareOpen, setIsMedicalCareOpen] = useState(false);
 
   // Portret + miniatury ekwipunku są offloadowane do IndexedDB (IND-262/271),
   // więc `character.portraitUrl` / `item.imageUrl` bywają puste (widoczne tylko
@@ -233,6 +235,7 @@ export function CharacterSheet({
                 maxSan={maxSan}
                 maxMp={maxMp}
                 inlineEdit={inlineEdit}
+                onOpenMedicalCare={() => setIsMedicalCareOpen(true)}
               />
 
               {/* SEKCJA 6: RELACJE I CECHY PSYCHOLOGICZNE (conditional) */}
@@ -312,6 +315,16 @@ export function CharacterSheet({
         <SanityTherapyModal
           isOpen={isTherapyOpen}
           onClose={() => setIsTherapyOpen(false)}
+          character={display}
+          onCharacterUpdate={(updated) => {
+            onCharacterUpdate?.(updated);
+            setDisplayCharacter(updated);
+          }}
+        />
+
+        <MedicalCareModal
+          isOpen={isMedicalCareOpen}
+          onClose={() => setIsMedicalCareOpen(false)}
           character={display}
           onCharacterUpdate={(updated) => {
             onCharacterUpdate?.(updated);

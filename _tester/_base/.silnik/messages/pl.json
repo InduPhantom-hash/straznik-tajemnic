@@ -1081,7 +1081,10 @@
     "vitals": {
       "hp": {
         "abbr": "PŻ",
-        "full": "Życie"
+        "full": "Życie",
+        "majorWoundBadge": "Ciężka Rana",
+        "medicalCareBtn": "Leczenie / Szpital",
+        "medicalCareTooltip": "Otwórz procedury rekonwalescencji i opieki szpitalnej"
       },
       "san": {
         "abbr": "PR",
@@ -7397,5 +7400,62 @@
     "outcomeSuccess": "Terapia zakończona sukcesem",
     "doctorRoll": "Test Psychoanalizy",
     "actionBeginHospitalCare": "Rozpocznij comiesięczną kurację"
+  },
+  "MedicalCareModal": {
+    "title": "Rekonwalescencja i Opieka Medyczna",
+    "subtitle": "Procedury leczenia ran, pobytu szpitalnego i powikłań wg Księgi Strażnika CoC 7e RAW (s. 119-123).",
+    "badges": {
+      "majorWound": "Ciężka Rana",
+      "dying": "Umiera",
+      "unconscious": "Nieprzytomny",
+      "infection": "Zakażenie / Gorączka"
+    },
+    "combatActiveWarning": "Leczenie i rekonwalescencja wymagają bezpiecznego schronienia. Nie można odpoczywać podczas walki lub pościgu.",
+    "vitalsLabel": "Stan zdrowia",
+    "thresholdLabel": "Próg Ciężkiej Rany",
+    "cashLabel": "Fundusze",
+    "tabs": {
+      "recovery": "Rekonwalescencja i Czas",
+      "facilities": "Katalog Placówek",
+      "treatments": "Doraźne Zabiegi"
+    },
+    "recoverySectionTitle": "Skok czasowy i leczenie naturalne",
+    "recoveryMajorWoundInfo": "Badacz odniósł Ciężką Ranę. Zwykłe leczenie dzienne jest zablokowane. Regeneracja wymaga tygodniowych testów Kondycji (CON) pod opieką medyczną.",
+    "recoveryStandardInfo": "Badacz nie ma Ciężkiej Rany. Każdy dzień spokojnego odpoczynku przywraca 1 PŻ (do pułapu maksimum).",
+    "selectPeriodLabel": "Okres odpoczynku / leczenia",
+    "periods": {
+      "1_day": "1 dzień",
+      "3_days": "3 dni",
+      "1_week": "1 tydzień",
+      "2_weeks": "2 tygodnie",
+      "1_month": "1 miesiąc"
+    },
+    "selectFacilityLabel": "Warunki opieki i placówka",
+    "facilityNames": {
+      "public_hospital": "Miejski Szpital Ogólny",
+      "private_clinic": "Prywatna Klinika dr. Pennhallowa",
+      "home": "Dom / Bezpieczna Kryjówka",
+      "poor_conditions": "Trudne Warunki Polowe"
+    },
+    "facilityDescriptions": {
+      "public_hospital": "Opieka szpitalna: Kość Premii do rzutów CON. Koszt: $10/tydz. Ryzyko pytań policji o rany postrzałowe.",
+      "private_clinic": "Luksusowe sanatorium: Kość Premii do CON, rygorystyczna antyseptyka (brak infekcji przy Fumble), pełna dyskrecja. Koszt: $100/tydz.",
+      "home": "Spokojny odpoczynek domowy: zwykły rzut CON bez modyfikatorów. Koszt: $0.",
+      "poor_conditions": "Wilgotna kryjówka lub ucieczka w dziczy: Kość Karna do rzutów CON, wysokie ryzyko zakażenia rany. Koszt: $0."
+    },
+    "costFree": "Bezpłatnie",
+    "actionExecuteRecovery": "Rozpocznij okres rekonwalescencji",
+    "recoveryResultsTitle": "Raport z przebiegu leczenia",
+    "periodAdvanced": "Upływ czasu",
+    "majorWoundHealedBanner": "Ciężka Rana została pomyślnie zaleczona!",
+    "scarAcquired": "Pamiątkowa blizna",
+    "weeklyChecksLog": "Dziennik tygodniowych rzutów na Kondycję",
+    "scarsJournalTitle": "Trwałe blizny i pamiątki cielesne badacza",
+    "noScarsRecorded": "Brak zarejestrowanych trwałych blizn po Ciężkich Ranach.",
+    "treatmentsFirstAidTitle": "Pierwsza Pomoc (Doraźna)",
+    "treatmentsMedicineTitle": "Zabieg Lekarski (Medycyna)",
+    "skillValue": "Poziom umiejętności",
+    "actionRollFirstAid": "Wykonaj test Pierwszej Pomocy",
+    "actionRollMedicine": "Wykonaj zabieg Medycyny (1 godzina)"
   }
 }

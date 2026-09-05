@@ -1081,7 +1081,10 @@
     "vitals": {
       "hp": {
         "abbr": "HP",
-        "full": "Health"
+        "full": "Health",
+        "majorWoundBadge": "Major Wound",
+        "medicalCareBtn": "Medical Care / Hospital",
+        "medicalCareTooltip": "Open convalescence and hospital care procedures"
       },
       "san": {
         "abbr": "SAN",
@@ -7397,5 +7400,62 @@
     "outcomeSuccess": "Therapy Succeeded",
     "doctorRoll": "Psychoanalysis Test",
     "actionBeginHospitalCare": "Begin Monthly Treatment"
+  },
+  "MedicalCareModal": {
+    "title": "Convalescence & Medical Care",
+    "subtitle": "Wound recovery procedures, hospital facilities, and complications per Keeper Rulebook CoC 7e RAW (pp. 119-123).",
+    "badges": {
+      "majorWound": "Major Wound",
+      "dying": "Dying",
+      "unconscious": "Unconscious",
+      "infection": "Infection / Fever"
+    },
+    "combatActiveWarning": "Healing and convalescence require safe shelter. You cannot rest during combat or chase scenes.",
+    "vitalsLabel": "Vital Status",
+    "thresholdLabel": "Major Wound Threshold",
+    "cashLabel": "Funds",
+    "tabs": {
+      "recovery": "Recovery & Time",
+      "facilities": "Medical Facilities",
+      "treatments": "Immediate Treatments"
+    },
+    "recoverySectionTitle": "Time Skip & Natural Healing",
+    "recoveryMajorWoundInfo": "Investigator has sustained a Major Wound. Daily healing is disabled. Recovery requires weekly Constitution (CON) checks under medical care.",
+    "recoveryStandardInfo": "Investigator has no Major Wound. Each day of quiet rest restores 1 HP (up to maximum).",
+    "selectPeriodLabel": "Rest / Treatment Period",
+    "periods": {
+      "1_day": "1 day",
+      "3_days": "3 days",
+      "1_week": "1 week",
+      "2_weeks": "2 weeks",
+      "1_month": "1 month"
+    },
+    "selectFacilityLabel": "Care Conditions & Facility",
+    "facilityNames": {
+      "public_hospital": "City General Hospital",
+      "private_clinic": "Dr. Pennhallow's Private Clinic",
+      "home": "Home / Safe Haven",
+      "poor_conditions": "Harsh Field Conditions"
+    },
+    "facilityDescriptions": {
+      "public_hospital": "Hospital ward care: Bonus Die to CON checks. Fee: $10/wk. Risk of police inquiry regarding gunshot wounds.",
+      "private_clinic": "Luxury sanitarium: Bonus Die to CON, strict antisepsis (no infection on Fumble), absolute discretion. Fee: $100/wk.",
+      "home": "Quiet convalescence at home: standard CON roll with no modifiers. Cost: $0.",
+      "poor_conditions": "Damp hideout or wilderness flight: Penalty Die to CON checks, high risk of wound infection. Cost: $0."
+    },
+    "costFree": "Free",
+    "actionExecuteRecovery": "Commence Convalescence Period",
+    "recoveryResultsTitle": "Medical Progress Report",
+    "periodAdvanced": "Time Elapsed",
+    "majorWoundHealedBanner": "Major Wound has healed successfully!",
+    "scarAcquired": "Lasting Scar",
+    "weeklyChecksLog": "Weekly Constitution Checks Log",
+    "scarsJournalTitle": "Investigator's Scars & Bodily Marks",
+    "noScarsRecorded": "No permanent scars from Major Wounds recorded.",
+    "treatmentsFirstAidTitle": "First Aid (Field Dressing)",
+    "treatmentsMedicineTitle": "Medical Care (Medicine)",
+    "skillValue": "Skill Rating",
+    "actionRollFirstAid": "Roll First Aid Check",
+    "actionRollMedicine": "Perform Medical Treatment (1 hour)"
   }
 }
