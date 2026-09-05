@@ -45,22 +45,22 @@ export function ChatHeader({
       : place || regionLabel || '';
 
   return (
-    <div className="relative grid h-16 grid-cols-[minmax(10rem,0.8fr)_minmax(0,1.6fr)_auto] md:grid-cols-[minmax(24rem,1fr)_minmax(0,1fr)_auto] items-center gap-4 border-b border-brass/30 bg-card px-6">
+    <div className="relative flex h-16 items-center justify-between gap-3 sm:gap-4 border-b border-brass/30 bg-card px-4 sm:px-6">
       {/* déco: złota linia akcentu pod nagłówkiem */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brass/40 to-transparent"
       />
-      <div className="flex items-center gap-3 font-special-elite min-w-0">
+      <div className="flex items-center gap-3 font-special-elite min-w-0 max-w-[45%] sm:max-w-[40%] md:max-w-[45%] lg:max-w-[50%] shrink-0">
         {/* déco: oko (Eye of Horus) jako znak marki - emerald, pulsujące */}
         <span
           aria-hidden="true"
-          className="text-primary text-lg leading-none animate-glyph-pulse select-none"
+          className="text-primary text-lg leading-none animate-glyph-pulse select-none shrink-0"
         >
           𓂀
         </span>
         <span 
-          className="text-foreground tracking-wide truncate"
+          className="text-foreground tracking-wide truncate block"
           title={title?.trim() || defaultTitle}
         >
           {title?.trim() || defaultTitle}
@@ -69,7 +69,7 @@ export function ChatHeader({
 
       {/* IND-267: elastyczny środkowy obszar wykorzystuje całą wolną szerokość.
           Truncate działa dopiero wtedy, gdy rzeczywiście zabraknie miejsca. */}
-      <div className="min-w-0 justify-self-end">
+      <div className="min-w-0 flex-1 flex justify-end">
         {location && (
           <span
             className="flex min-w-0 items-center gap-1 font-special-elite text-sm text-brass/90"
