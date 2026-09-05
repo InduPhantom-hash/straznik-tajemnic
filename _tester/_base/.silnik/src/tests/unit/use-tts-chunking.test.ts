@@ -1,11 +1,18 @@
 import { renderHook, act } from '@testing-library/react';
 import { useTTS } from '@/hooks/useTTS';
 
+const mockSaveAISettings = jest.fn();
+let currentMockSettings = {
+  qualityPreset: 'high',
+  voiceSettings: { voiceId: 'Kore', volume: 75, provider: 'gemini', narratorOnly: false },
+};
+
 jest.mock('@/lib/ai-settings', () => ({
-  loadAISettings: jest.fn(() => ({
-    qualityPreset: 'high',
-    voiceSettings: { voiceId: 'Kore', volume: 75, provider: 'gemini' },
-  })),
+  loadAISettings: jest.fn(() => currentMockSettings),
+  saveAISettings: jest.fn((newSettings) => {
+    currentMockSettings = newSettings;
+    mockSaveAISettings(newSettings);
+  }),
 }));
 
 jest.mock('@/lib/api-keys-service', () => ({
@@ -17,6 +24,10 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
   let originalAudio: typeof global.Audio;
 
   beforeEach(() => {
+    currentMockSettings = {
+      qualityPreset: 'high',
+      voiceSettings: { voiceId: 'Kore', volume: 75, provider: 'gemini', narratorOnly: false },
+    };
     originalFetch = global.fetch;
     originalAudio = global.Audio;
 
@@ -239,5 +250,124 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     // Sprawdź czy po odblokowaniu audio ruszyło
     expect(result.current.playInitialNarration).toBeDefined();
   });
+
+  it('Issue #172: zachowuje głos NPC dla wielozdaniowej kwestii dialogowej i wraca do lektora po nowej linii', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const fullScene =
+      'Walter Gilman: „Nie schodź tam! To czyste szaleństwo. Coś tam czeka w mroku!”\n\nNagle rozlega się zgrzyt klucza w zamku.';
+
+    await act(async () => {
+      result.current.addToQueue(fullScene, 'msg-multi-npc-1', true);
+    });
+
+    // Powinny być dokładnie 2 wywołania fetch: 1 scalony segment NPC + 1 segment Narratora
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+
+    const firstCallPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const secondCallPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    // Segment 1: Walter Gilman (cały 3-zdaniowy dialog aktorski scalony w jeden segment)
+    expect(firstCallPayload.voice).toBe('Puck');
+    expect(firstCallPayload.text).toContain('Nie schodź tam!');
+    expect(firstCallPayload.text).toContain('To czyste szaleństwo.');
+    expect(firstCallPayload.text).toContain('Coś tam czeka w mroku!');
+    expect(firstCallPayload.audioDirection).toContain('natural, character-driven dramatic');
+
+    // Segment 2: Narrator (powrót do lektora po nowej linii \n\n)
+    expect(secondCallPayload.voice).toBe('Kore');
+    expect(secondCallPayload.text).toBe('Nagle rozlega się zgrzyt klucza w zamku.');
+    expect(secondCallPayload.audioDirection).not.toContain('character-driven');
+  });
+
+  it('Issue #172: tryb narratorOnly wymusza głos lektora dla dialogów postaci', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+      result.current.setIsNarratorOnly(true);
+    });
+
+    expect(result.current.isNarratorOnly).toBe(true);
+
+    const dialogue = 'Walter Gilman: „Nie schodź tam! To czyste szaleństwo.”';
+    await act(async () => {
+      result.current.addToQueue(dialogue, 'msg-narrator-only', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(payload.voice).toBe('Kore');
+    expect(payload.text).toContain('Nie schodź tam!');
+  });
+
+  it('Issue #172: reaktywny przełącznik setIsNarratorOnly zapisuje konfigurację', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setIsNarratorOnly(true);
+    });
+
+    expect(result.current.isNarratorOnly).toBe(true);
+    expect(mockSaveAISettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        voiceSettings: expect.objectContaining({
+          narratorOnly: true,
+        }),
+      })
+    );
+  });
+
+  it('Issue #172: podtrzymuje głos NPC w strumieniowanych kolejno zdaniach dialogu', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Chunk 1: pierwsze zdanie z markerem NPC
+    const chunk1 = 'Walter Gilman: „Nie schodź tam! ';
+    await act(async () => {
+      result.current.addToQueue(chunk1, 'msg-stream-npc', false);
+    });
+
+    // Chunk 2: drugie zdanie w tej samej linii
+    const chunk2 = `${chunk1}To czyste szaleństwo. `;
+    await act(async () => {
+      result.current.addToQueue(chunk2, 'msg-stream-npc', false);
+    });
+
+    // Chunk 3: domknięcie dialogu nową linią i zdanie narracji lektora
+    const chunk3 = `${chunk2}Coś tam czeka w mroku!”\n\nNagle rozlega się zgrzyt klucza w zamku.`;
+    await act(async () => {
+      result.current.addToQueue(chunk3, 'msg-stream-npc', true);
+    });
+
+    // Oczekujemy 3 wywołań: segment 0 (Puck, wczesny start), segment 1 (Puck, domknięcie dialogu), segment 2 (Kore, narrator)
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    const call0Payload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const call1Payload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+    const call2Payload = JSON.parse((global.fetch as jest.Mock).mock.calls[2][1].body);
+
+    // Segmenty dialogu NPC - oba mają głos Waltera Gilmana (Puck)
+    expect(call0Payload.voice).toBe('Puck');
+    expect(call0Payload.text).toContain('Nie schodź tam!');
+    expect(call0Payload.text).toContain('To czyste szaleństwo.');
+
+    expect(call1Payload.voice).toBe('Puck');
+    expect(call1Payload.text).toContain('Coś tam czeka w mroku!');
+
+    // Segment narracji - powrót do głosu lektora (Kore)
+    expect(call2Payload.voice).toBe('Kore');
+    expect(call2Payload.text).toBe('Nagle rozlega się zgrzyt klucza w zamku.');
+  });
 });
+
 
