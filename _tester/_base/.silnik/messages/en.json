@@ -6624,8 +6624,13 @@
     "nerdySection": "⚙️ Nerdy Settings",
     "debugSection": "🔧 Debug Tools (dev)",
     "saveSettings": "💾 Save Settings",
+    "savedSuccess": "✅ Settings saved successfully",
+    "saveError": "Error saving settings. Please try again.",
     "reset": "🔄 Reset",
     "resetHelp": "Resets ONLY the AI settings (model, temperature, volume etc.). Does NOT delete characters, sessions or chat history.",
+    "resetConfirmTitle": "Reset to Default Settings",
+    "resetConfirmQuestion": "Are you sure you want to reset all AI and interface settings to factory defaults? Character, session, and journal data will remain untouched.",
+    "cancel": "Cancel",
     "fullReset": "🗑️ Full Reset",
     "fullResetHelp": "DELETES EVERYTHING: characters, sessions, chat history, settings, notes, cache. This operation is irreversible!",
     "close": "❌ Close"

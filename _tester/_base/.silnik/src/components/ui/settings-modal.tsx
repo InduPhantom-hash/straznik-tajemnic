@@ -215,7 +215,48 @@ export function SettingsModal({
           onConfirmStep1={m.fullReset.confirmStep1}
           onConfirm={m.fullReset.handleFullReset}
         />
+
+        {/* Dialog potwierdzenia zwykłego resetu parametrów AI */}
+        {m.showResetConfirm && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                m.closeResetConfirm();
+              }
+            }}
+          >
+            <div
+              className="mx-4 w-[90vw] max-w-[600px] rounded-xl border border-brass/40 bg-card p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="mb-3 font-display-decorative text-xl font-bold uppercase tracking-[0.1em] text-foreground">
+                {t('resetConfirmTitle')}
+              </h3>
+              <p className="mb-6 font-sans text-sm leading-relaxed text-muted-foreground">
+                {t('resetConfirmQuestion')}
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={m.closeResetConfirm}
+                  className="border-brass/30 bg-brass/[0.04] font-display uppercase tracking-wider text-muted-foreground hover:border-brass/60 hover:text-brass"
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={m.confirmReset}
+                  className="font-display uppercase tracking-wider"
+                >
+                  {t('reset')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
+

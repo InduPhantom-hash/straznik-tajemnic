@@ -290,6 +290,14 @@
       }
     },
     {
+      "id": "reset-settings-confirm",
+      "kind": "modal",
+      "label": {
+        "pl": "Reset parametrów",
+        "en": "Reset settings"
+      }
+    },
+    {
       "id": "rulebook-modal",
       "kind": "modal",
       "label": {
@@ -598,6 +606,15 @@
       "label": {
         "pl": "Pełny reset",
         "en": "Full reset"
+      },
+      "component": "src/components/ui/settings-modal.tsx"
+    },
+    {
+      "source": "settings",
+      "target": "reset-settings-confirm",
+      "label": {
+        "pl": "Reset parametrów",
+        "en": "Reset settings"
       },
       "component": "src/components/ui/settings-modal.tsx"
     },
