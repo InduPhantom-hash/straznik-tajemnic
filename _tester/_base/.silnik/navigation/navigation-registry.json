@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-05T05:05:00Z",
+  "updatedAt": "2026-09-05T05:08:00Z",
   "locales": [
     "pl",
     "en"
@@ -319,6 +319,14 @@
       "label": {
         "pl": "Terapia i rekonwalescencja psychiczna (CoC 7e RAW)",
         "en": "Sanity therapy and recovery (CoC 7e RAW)"
+      }
+    },
+    {
+      "id": "medical-care-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Rekonwalescencja i opieka medyczna (CoC 7e RAW)",
+        "en": "Convalescence and medical care (CoC 7e RAW)"
       }
     }
   ],
@@ -653,6 +661,15 @@
       "label": {
         "pl": "Terapia i rekonwalescencja psychiczna",
         "en": "Sanity therapy and recovery"
+      },
+      "component": "src/components/ui/character-sheet/index.tsx"
+    },
+    {
+      "source": "character-sheet",
+      "target": "medical-care-modal",
+      "label": {
+        "pl": "Rekonwalescencja i opieka medyczna",
+        "en": "Convalescence and medical care"
       },
       "component": "src/components/ui/character-sheet/index.tsx"
     }
