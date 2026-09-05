@@ -10,6 +10,8 @@ import { persistCharacters } from '@/lib/character-cloud-sync';
 import { migrateEquipmentCatalog } from '@/lib/equipment-catalog';
 import type { EquipmentVisualEra } from '@/lib/types';
 import { clearStoredWorldSetup, storeWorldSetup } from '@/lib/world-setup';
+import { ensureCharacterDossier } from '@/lib/journal/dossier-migration';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Hook do zarządzania zapisem i wczytywaniem gry
@@ -116,13 +118,16 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
 
         // Wczytaj postacie
         const saveEquipmentEra = save.equipmentVisualEra ?? equipmentVisualEra;
-        const migratedCharacters = save.characters.map((character) => ({
-          ...character,
-          equipment: migrateEquipmentCatalog(
-            character.equipment,
-            saveEquipmentEra
-          ),
-        }));
+        const migratedCharacters = save.characters.map((character) =>
+          ensureCharacterDossier({
+            ...character,
+            equipment: migrateEquipmentCatalog(
+              character.equipment,
+              saveEquipmentEra
+            ),
+            investigatorBoard: character.investigatorBoard || save.investigatorBoard,
+          })
+        );
         setCharacters(migratedCharacters);
         if (save.activeCharacterId) {
           const activeChar = migratedCharacters.find(
@@ -181,12 +186,17 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         });
 
         console.log(`✅ Wczytano save: ${save.name}`);
-        alert(
-          `Wczytano save: ${save.name}\n\nWiadomości: ${save.messages.length}\nPostacie: ${save.characters.length}\nKampanie: ${save.campaigns.length}`
-        );
+        toast({
+          title: `Wczytano: ${save.name}`,
+          description: `Wiadomości: ${save.messages.length} · Postacie: ${save.characters.length} · Kampanie: ${save.campaigns.length}`,
+        });
       } catch (error) {
         console.error("Błąd podczas wczytywania save'u:", error);
-        alert("Wystąpił błąd podczas wczytywania save'u");
+        toast({
+          title: "Błąd wczytywania save'u",
+          description: error instanceof Error ? error.message : "Wystąpił błąd podczas wczytywania save'u",
+          variant: 'destructive',
+        });
       }
     },
     [

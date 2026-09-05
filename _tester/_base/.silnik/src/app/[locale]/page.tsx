@@ -981,8 +981,11 @@ export default function Home() {
                   ? {
                       messages: chat.messages,
                       aiSettings: aiSettings || loadAISettings(),
+                      equipmentVisualEra: resolveEraVisualProfile(resolvedEraContext || undefined),
                       characters: charMgmt.characters,
                       activeCharacterId: charMgmt.activeCharacter?.id,
+                      hotSeatConfig: hotSeat.config,
+                      investigatorBoard: charMgmt.activeCharacter?.investigatorBoard,
                       campaigns: campaigns,
                       activeCampaignId: charMgmt.activeGameState.campaign?.id,
                       npcs: (() => {

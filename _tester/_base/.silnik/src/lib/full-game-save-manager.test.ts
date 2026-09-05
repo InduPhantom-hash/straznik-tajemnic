@@ -129,4 +129,91 @@ describe('FullGameSaveManager duet persistence', () => {
     const restored = FullGameSaveManager.decompressSave(JSON.stringify(save));
     expect(restored?.worldSetup).toEqual(worldSetup);
   });
+
+  it('preserves investigatorBoard and initializes clean investigatorDossier in characters round-trip', () => {
+    const boardState = {
+      nodes: [
+        {
+          id: 'node-1',
+          type: 'clue' as const,
+          title: 'Tajemniczy medalion',
+          description: 'Znaleziony w dokach',
+          status: 'confirmed' as const,
+          position: { x: 120, y: 300 },
+          createdAt: '2026-09-06T00:00:00.000Z',
+          tags: ['okultyzm'],
+        },
+      ],
+      relations: [
+        {
+          id: 'conn-1',
+          fromNodeId: 'node-1',
+          toNodeId: 'node-2',
+          label: 'powiązany z',
+          color: '#c5a059',
+        },
+      ],
+      viewport: { zoom: 1, panX: 0, panY: 0 },
+      lastUpdated: '2026-09-06T00:00:00.000Z',
+    };
+
+    // Postać ze starym journalem i bez zainicjalizowanego dossier
+    const character = {
+      id: 'char-1',
+      name: 'Thomas Malone',
+      str: 50,
+      dex: 60,
+      con: 55,
+      app: 45,
+      pow: 70,
+      edu: 75,
+      siz: 65,
+      int: 80,
+      luck: 50,
+      hp: 12,
+      san: 70,
+      mp: 14,
+      skills: {},
+      occupation: 'Detektyw',
+      age: 38,
+      background: 'Policja nowojorska',
+      playerName: 'Kuba',
+      isActive: true,
+      lastUsed: new Date(),
+      notes: '',
+      experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 10 },
+      developmentHistory: [],
+      journal: [
+        {
+          id: 'clue-1',
+          title: 'Krwawy ślad',
+          content: 'Ślad krwi prowadzi ku piwnicy',
+          type: 'clue' as const,
+          category: 'forensic',
+          timestamp: new Date(),
+          tags: ['poszlaka', 'ślad'],
+        },
+      ],
+    };
+
+    const save = FullGameSaveManager.createFullSave({
+      name: 'Dossier Roundtrip',
+      userId: 'local',
+      messages: [],
+      gameSettings: { aiSettings: {} as AISettings },
+      characters: [character as any],
+      investigatorBoard: boardState,
+      campaigns: [],
+      npcs: [],
+      locations: [],
+    });
+
+    const serialized = FullGameSaveManager.compressSave(save);
+    const loaded = FullGameSaveManager.decompressSave(serialized);
+
+    expect(loaded?.investigatorBoard).toEqual(boardState);
+    expect(loaded?.characters[0].investigatorDossier).toBeDefined();
+    expect(loaded?.characters[0].investigatorDossier?.clues).toHaveLength(1);
+    expect(loaded?.characters[0].investigatorDossier?.clues[0].title).toBe('Krwawy ślad');
+  });
 });

@@ -11,6 +11,7 @@ import {
 } from './types';
 import type { WorldSetupBundleV1 } from './world-setup';
 import { isWorldSetupBundle } from './world-setup';
+import { ensureCharacterDossier } from './journal/dossier-migration';
 
 // Lokalnie zdefiniowany interfejs Message (podzbiór @/lib/types Message -
 // pola istotne dla save'a). finishReason/continuationRequested odtwarzają
@@ -168,6 +169,7 @@ export class FullGameSaveManager {
     characters: Character[];
     activeCharacterId?: string;
     hotSeatConfig?: HotSeatConfig;
+    investigatorBoard?: InvestigatorBoardState;
     campaigns: Campaign[];
     activeCampaignId?: string;
     npcs: NPC[];
@@ -209,9 +211,10 @@ export class FullGameSaveManager {
       worldSetup: data.worldSetup,
 
       // Postacie
-      characters: data.characters,
+      characters: (data.characters || []).map((c) => ensureCharacterDossier(c)),
       activeCharacterId: data.activeCharacterId,
       hotSeatConfig: data.hotSeatConfig,
+      investigatorBoard: data.investigatorBoard,
 
       // Kampanie
       campaigns: data.campaigns,
@@ -395,9 +398,10 @@ export class FullGameSaveManager {
         gameSettings: {
           aiSettings: legacy.aiSettings || ({} as AISettings),
         },
-        characters: legacy.characters || [],
+        characters: (legacy.characters || []).map((c) => ensureCharacterDossier(c)),
         activeCharacterId: legacy.activeCharacterId,
         hotSeatConfig: legacy.hotSeatConfig,
+        investigatorBoard: legacy.investigatorBoard,
         campaigns: [],
         npcs: [],
         locations: [],

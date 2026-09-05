@@ -25,6 +25,8 @@ import {
   HotSeatConfig,
   EquipmentVisualEra,
 } from '@/lib/types';
+import type { InvestigatorBoardState } from '@/types/investigator-board';
+import { toast } from '@/components/ui/use-toast';
 import type { Message as LibMessage } from '@/lib/types';
 import type { PdfMemory } from '@/hooks/usePdfMemory';
 import {
@@ -117,6 +119,7 @@ interface FullGameSaveModalProps {
     characters: Character[];
     activeCharacterId?: string;
     hotSeatConfig?: HotSeatConfig;
+    investigatorBoard?: InvestigatorBoardState;
     campaigns: Campaign[];
     activeCampaignId?: string;
     npcs: NPC[];
@@ -296,6 +299,7 @@ export function FullGameSaveModal({
           .filter((c): c is Character => c !== null),
         activeCharacterId: currentData.activeCharacterId,
         hotSeatConfig: currentData.hotSeatConfig,
+        investigatorBoard: currentData.investigatorBoard,
         campaigns: currentData.campaigns,
         activeCampaignId: currentData.activeCampaignId,
         npcs: currentData.npcs.map((n) => sanitizeNpcForApi(n)),
@@ -316,14 +320,10 @@ export function FullGameSaveModal({
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Save zapisany:', result);
-        alert(
-          t('savedSuccess', {
-            name: saveName,
-            size: result.formattedSize,
-            messages: result.messageCount,
-            images: result.imageCount,
-          })
-        );
+        toast({
+          title: `Zapisano: ${saveName}`,
+          description: `Rozmiar: ${result.formattedSize} · Wiadomości: ${result.messageCount} · Obrazy: ${result.imageCount}`,
+        });
         onClose();
         // Po udanym zapisie: powiadom rodzica (np. reset do kreatora dla "Nowej przygody")
         onSaved?.();
@@ -376,7 +376,9 @@ export function FullGameSaveModal({
       );
 
       if (response.ok) {
-        alert(t('deletedSuccess'));
+        toast({
+          title: t('deletedSuccess'),
+        });
         loadSavesList();
         setShowDeleteConfirm(null);
       } else {
@@ -385,11 +387,11 @@ export function FullGameSaveModal({
       }
     } catch (error) {
       console.error('Error while deleting:', error);
-      alert(
-        t('deleteErrorAlert', {
-          error: error instanceof Error ? error.message : t('unknownError'),
-        })
-      );
+      toast({
+        title: t('deleteFailed'),
+        description: error instanceof Error ? error.message : t('unknownError'),
+        variant: 'destructive',
+      });
     }
   };
 
@@ -403,11 +405,17 @@ export function FullGameSaveModal({
         const data = await response.json();
         FullGameSaveManager.exportToFile(data.save);
       } else {
-        alert(t('exportFailed'));
+        toast({
+          title: t('exportFailed'),
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error while exporting:', error);
-      alert(t('exportError'));
+      toast({
+        title: t('exportError'),
+        variant: 'destructive',
+      });
     }
   };
 
@@ -421,11 +429,17 @@ export function FullGameSaveModal({
         onLoad(save);
         onClose();
       } else {
-        alert(t('importFailed'));
+        toast({
+          title: t('importFailed'),
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error while importing:', error);
-      alert(t('importError'));
+      toast({
+        title: t('importError'),
+        variant: 'destructive',
+      });
     }
   };
 
