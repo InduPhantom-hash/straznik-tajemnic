@@ -1,5 +1,5 @@
 import { SafeImage } from '@/components/ui/safe-image';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ import {
   Newspaper
 } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
-import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
+import { Character, EquipmentItem, EquipmentCategory, EquipmentVisualEra } from '@/lib/types';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
 import {
   buildEquipmentImagePrompt,
@@ -45,7 +45,7 @@ import {
 import { useMessages, useTranslations } from 'next-intl';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
-import { isCatalogEquipment } from '@/lib/equipment-catalog';
+import { isCatalogEquipment, migrateEquipmentCatalog } from '@/lib/equipment-catalog';
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
 function formatUsd(amount: number): string {
@@ -87,7 +87,18 @@ export function EquipmentModal({
   // kontekstowo w narracji, nie ręcznie - dlatego bez edycji/usuwania).
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
-  const equipment = (character.equipment || []).map((item) => localizeSystemEquipment(item, messages));
+  const migratedEquipment = useMemo(
+    () =>
+      migrateEquipmentCatalog(
+        character.equipment,
+        (era as EquipmentVisualEra) || '1920s'
+      ) || [],
+    [character.equipment, era]
+  );
+
+  const equipment = migratedEquipment.map((item) =>
+    localizeSystemEquipment(item, messages)
+  );
 
   // Filtruj przedmioty
   const filteredEquipment = equipment.filter((item) => {
@@ -111,10 +122,13 @@ export function EquipmentModal({
     [character, equipment, onCharacterUpdate]
   );
 
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
   // Generuj obraz dla przedmiotu
   const generateImage = useCallback(
     async (item: EquipmentItem) => {
       setGeneratingImage(item.id);
+      setGenerateError(null);
 
       try {
         const prompt = buildEquipmentImagePrompt(
@@ -150,7 +164,6 @@ export function EquipmentModal({
           }
         );
 
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Failed to generate image');
@@ -168,7 +181,7 @@ export function EquipmentModal({
         updateItem(updatedItem);
       } catch (error) {
         console.error('Error generating image:', error);
-        alert(t('imageGenerateFailed'));
+        setGenerateError(t('imageGenerateFailed'));
       } finally {
         setGeneratingImage(null);
       }
@@ -244,6 +257,23 @@ export function EquipmentModal({
           <span className="w-2 h-2 bg-brass rotate-45" />
           <div className="flex-1 h-px bg-gradient-to-r from-gold/40 to-transparent" />
         </div>
+
+        {/* Baner błędu generowania miniatury Art Déco */}
+        {generateError && (
+          <div
+            data-testid="equipment-generate-error"
+            className="flex-none flex items-center justify-between gap-3 px-4 py-2.5 mb-4 bg-red-950/40 border border-red-800/60 text-red-200 text-xs font-special-elite"
+          >
+            <span>{generateError}</span>
+            <button
+              onClick={() => setGenerateError(null)}
+              className="text-red-300 hover:text-white transition-colors uppercase tracking-widest text-[10px]"
+              title="Zamknij"
+            >
+              [×]
+            </button>
+          </div>
+        )}
 
         {/* Pasek zakładek i wyszukiwania */}
         <div className="flex-none flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-brass/25 pb-4">
@@ -574,35 +604,41 @@ function ItemThumbnail({
             </div>
           )}
         </>
-      ) : canGenerate ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onGenerateImage(item);
-          }}
-          disabled={generatingImage === item.id}
-          title={t('generateImageTitle')}
-          className="w-full h-full p-0 flex items-center justify-center"
-        >
-          {generatingImage === item.id ? (
-            <Loader2 className="w-7 h-7 animate-spin text-brass" />
-          ) : (
-            <div className="relative w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-b from-brass/5 to-transparent">
-              <div className="text-brass/80 transition-transform duration-200 group-hover:scale-110 flex items-center justify-center">
-                <CategoryIcon category={item.category} item={item} className={iconSize} />
-              </div>
-              <div className="flex flex-col items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
-                <span className="text-[9px] text-brass uppercase tracking-widest font-special-elite">
-                  {t('generateBadge')}
-                </span>
-              </div>
+      ) : (
+        <>
+          <CategoryIcon category={item.category} item={item} className={`${iconSize} text-brass/80`} />
+          {canGenerate && (
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGenerateImage(item);
+                }}
+                disabled={generatingImage === item.id}
+                title={t('generateImageTitle')}
+                className="w-full h-full p-0 text-brass hover:text-[#ffd79e] hover:bg-brass/10 transition-colors flex items-center justify-center"
+              >
+                {generatingImage === item.id ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-brass" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Sparkles className="w-4 h-4 text-brass" />
+                    <span className="text-brass text-[9px] font-special-elite uppercase tracking-wider">
+                      {t('generateBadge')}
+                    </span>
+                  </div>
+                )}
+              </Button>
             </div>
           )}
-        </Button>
-      ) : (
-        <CategoryIcon category={item.category} item={item} className={iconSize} />
+          {generatingImage === item.id && (
+            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-brass" />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -168,6 +168,34 @@ export function generateItemLore(itemName: string): string {
     return 'Przedmiot o znaczeniu duchowym, noszony dla ochrony przed złem. Czy rzeczywiście chroni, pozostaje kwestią wiary.';
   }
 
+  if (nameLower.includes('termometr') || nameLower.includes('thermometer')) {
+    return 'Precyzyjny przyrząd pomiarowy. Nagłe spadki temperatury w pomieszczeniu to często pierwszy zwiastun obecności spoza naszego wymiaru.';
+  }
+  if (nameLower.includes('statyw') || nameLower.includes('tripod')) {
+    return 'Solidny statyw gwarantujący stabilność aparatu przy długich ekspozycjach w ciemnościach.';
+  }
+  if (nameLower.includes('klisz') || nameLower.includes('film')) {
+    return 'Czułe materiały światłoczułe. Na naświetlonych klatkach może pojawić się to, co umyka ludzkiemu wzrokowi.';
+  }
+  if (nameLower.includes('pędzel') || nameLower.includes('kielni') || nameLower.includes('paleta')) {
+    return 'Niezbędne przybory rzemieślnicze pozwalające na ostrożne odkrywanie lub utrwalanie detali.';
+  }
+  if (nameLower.includes('odznak') || nameLower.includes('badge') || nameLower.includes('legitymacj')) {
+    return 'Oficjalna odznaka służbowa. Otwiera wiele drzwi i budzi respekt wśród gapiów oraz lokalnych służb.';
+  }
+  if (nameLower.includes('nuty') || nameLower.includes('scenariusz')) {
+    return 'Zapisane na papierze linie i wskazówki. Czasem kryją w sobie ukrytą rytmikę lub zakodowane wiadomości.';
+  }
+  if (nameLower.includes('instrument') || nameLower.includes('skrzypce') || nameLower.includes('trąbka')) {
+    return 'Precyzyjnie wykonany instrument muzyczny. Muzyka bywa ukojeniem dla zszarganych nerwów, ale niektóre melodie przywołują koszmary.';
+  }
+  if (nameLower.includes('maszyna do pisania') || nameLower.includes('typewriter')) {
+    return 'Ciężka, mechaniczna maszyna do pisania. Każde uderzenie czcionki w taśmę trwale dokumentuje zebrane fakty.';
+  }
+  if (nameLower.includes('kombinezon') || nameLower.includes('strój') || nameLower.includes('ręcznik') || nameLower.includes('koc')) {
+    return 'Praktyczny ekwipunek osobisty przydatny w trudnych warunkach polowych i podczas długiego czuwania.';
+  }
+
   // Domyślny opis
   return `Przydatny przedmiot z ekwipunku badacza. Wielokrotnie sprawdzony w terenie, ma swoje szczególne miejsce w plecaku.`;
 }
@@ -182,7 +210,12 @@ export function categorizeItem(itemName: string): ItemCategory {
     nameLower.includes('nóż') ||
     nameLower.includes('sztylet') ||
     nameLower.includes('broń') ||
-    nameLower.includes('karabin')
+    nameLower.includes('karabin') ||
+    nameLower.includes('dubeltów') ||
+    nameLower.includes('strzelb') ||
+    nameLower.includes('pałka') ||
+    nameLower.includes('baton') ||
+    nameLower.includes('maczeta')
   ) {
     return 'weapon';
   }
@@ -192,7 +225,14 @@ export function categorizeItem(itemName: string): ItemCategory {
     nameLower.includes('dokument') ||
     nameLower.includes('dziennik') ||
     nameLower.includes('list') ||
-    nameLower.includes('książka')
+    nameLower.includes('książka') ||
+    nameLower.includes('ksiąg') ||
+    nameLower.includes('karta biblioteczna') ||
+    nameLower.includes('biblia') ||
+    nameLower.includes('modlitewnik') ||
+    nameLower.includes('nuty') ||
+    nameLower.includes('scenariusz') ||
+    nameLower.includes('zwój')
   ) {
     return 'document';
   }
@@ -201,7 +241,10 @@ export function categorizeItem(itemName: string): ItemCategory {
     nameLower.includes('tarot') ||
     nameLower.includes('amulet') ||
     nameLower.includes('talizman') ||
-    nameLower.includes('okult')
+    nameLower.includes('okult') ||
+    nameLower.includes('kadzidł') ||
+    nameLower.includes('kreda') ||
+    nameLower.includes('świec')
   ) {
     return 'artifact';
   }
@@ -210,7 +253,8 @@ export function categorizeItem(itemName: string): ItemCategory {
     nameLower.includes('bandaż') ||
     nameLower.includes('lekarstw') ||
     nameLower.includes('tabletk') ||
-    nameLower.includes('jedzeni')
+    nameLower.includes('jedzeni') ||
+    nameLower.includes('morfin')
   ) {
     return 'consumable';
   }
@@ -223,7 +267,21 @@ export function categorizeItem(itemName: string): ItemCategory {
     nameLower.includes('kamera') ||
     nameLower.includes('laptop') ||
     nameLower.includes('telefon') ||
-    nameLower.includes('dyktafon')
+    nameLower.includes('dyktafon') ||
+    nameLower.includes('aparat') ||
+    nameLower.includes('termometr') ||
+    nameLower.includes('miernik') ||
+    nameLower.includes('detektor') ||
+    nameLower.includes('statyw') ||
+    nameLower.includes('klisz') ||
+    nameLower.includes('pędzel') ||
+    nameLower.includes('kielni') ||
+    nameLower.includes('narzędzi') ||
+    nameLower.includes('maszyna do pisania') ||
+    nameLower.includes('laborator') ||
+    nameLower.includes('kompas') ||
+    nameLower.includes('lornetka') ||
+    nameLower.includes('lupa')
   ) {
     return 'tool';
   }

@@ -48,6 +48,32 @@ describe('WizardEquipmentView', () => {
     expect(screen.getByText(/3 (dawek|użycia)/)).toBeInTheDocument();
   });
 
+  it('poprawnie renderuje przedmioty Parapsychologa (Termometr, Detektor EMF, Aparat) z odpowiednimi kategoriami i grafikami', () => {
+    render(
+      <WizardEquipmentView
+        equipmentStr="Termometr, Detektor pola elektromagnetycznego, Aparat fotograficzny, Notatnik i ołówek"
+        era="1920s"
+      />
+    );
+
+    // Nazwy przedmiotów
+    expect(screen.getByText('Termometr')).toBeInTheDocument();
+    expect(screen.getByText('Detektor pola elektromagnetycznego')).toBeInTheDocument();
+    expect(screen.getByText('Aparat fotograficzny')).toBeInTheDocument();
+    expect(screen.getByText('Notatnik i ołówek')).toBeInTheDocument();
+
+    // Miniatura aparatu z epoki 1920s
+    const cameraImg = screen.getByAltText('Aparat fotograficzny');
+    expect(cameraImg).toHaveAttribute(
+      'src',
+      expect.stringContaining('/equipment/catalog/camera-1920s.webp')
+    );
+
+    // Narzędzia: Termometr, Detektor EMF, Aparat fotograficzny
+    const toolBadges = screen.getAllByText('Narzędzia');
+    expect(toolBadges.length).toBeGreaterThanOrEqual(3);
+  });
+
   it('renderuje stan pusty gdy brak przedmiotów', () => {
     render(<WizardEquipmentView equipmentStr="" era="1920s" />);
     expect(
