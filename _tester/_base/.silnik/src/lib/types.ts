@@ -476,6 +476,7 @@ export interface Character {
   activeBoutOfMadness?: ActiveBoutOfMadness | null; // Aktywny atak szaleństwa
   mythosExceedsSanity?: boolean; // Gdy Mity Cthulhu > SAN (redukcja strat SAN o 50%)
   creatureSanLoss?: Record<string, number>; // Skumulowana utrata SAN per typ potwora (max cap)
+  usedDowntimeRecovery?: boolean; // Czy w bieżącej przerwie śledczej wykorzystano próbę ukojenia (CoC 7e RAW)
   move?: number;
   damageBonus?: string;
   build?: number;
@@ -509,6 +510,9 @@ export interface Character {
     status: 'alive' | 'dead' | 'unknown' | 'missing';
     avatarUrl?: string;
     notes?: string;
+    isKeyConnection?: boolean; // Kluczowa kotwica życiowa (daje kość premii w samopomocy CoC 7e RAW)
+    damaged?: boolean; // Nadszarpnięta relacja po porażce testu SAN
+    lost?: boolean; // Bezpowrotnie utracona więź
   }>;
 
   // Znaczące miejsca z historii postaci

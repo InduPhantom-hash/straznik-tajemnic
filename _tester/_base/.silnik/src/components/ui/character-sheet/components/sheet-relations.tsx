@@ -15,10 +15,13 @@ import { SafeImage } from '@/components/ui/safe-image';
 
 import type { Character } from '@/lib/types';
 import { Badge } from '../../badge';
+import { Button } from '../../button';
+import { Heart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export interface SheetRelationsProps {
   character: Character;
+  onOpenTherapy?: () => void;
 }
 
 /** Inicjały z imienia (monogram awatara). */
@@ -42,7 +45,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
  * Renderuje relacje + cechy psychologiczne. Zwraca null gdy żadne z pól nie ma
  * wartości (ukrywa pustą sekcję).
  */
-export function SheetRelations({ character }: SheetRelationsProps) {
+export function SheetRelations({ character, onOpenTherapy }: SheetRelationsProps) {
   const t = useTranslations('CharacterSheet');
   const hasContent =
     character.importantPeople?.length ||
@@ -57,7 +60,20 @@ export function SheetRelations({ character }: SheetRelationsProps) {
       {/* Ważne osoby - kafle déco z monogramem */}
       {character.importantPeople && character.importantPeople.length > 0 && (
         <div>
-          <SectionTitle>{t('relations')}</SectionTitle>
+          <div className="flex items-center justify-between mb-3">
+            <SectionTitle>{t('relations')}</SectionTitle>
+            {onOpenTherapy && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenTherapy}
+                className="h-6 px-2 text-[10px] font-display uppercase tracking-widest text-brass border-brass/35 bg-brass/[0.04] hover:bg-brass/15 rounded-none"
+              >
+                <Heart className="w-3 h-3 mr-1 text-brass" />
+                {t('openTherapyBtn')}
+              </Button>
+            )}
+          </div>
           <div className="flex flex-col gap-2.5">
             {character.importantPeople.map((person) => {
               const statusColor =
@@ -73,7 +89,13 @@ export function SheetRelations({ character }: SheetRelationsProps) {
               return (
                 <div
                   key={person.id}
-                  className="flex gap-3 items-center border border-brass/18 bg-[#16130f] p-2.5"
+                  className={`flex gap-3 items-center border p-2.5 transition-colors ${
+                    person.lost
+                      ? 'border-red-900/30 bg-[#16130f]/60 opacity-60'
+                      : person.damaged
+                        ? 'border-amber-700/40 bg-[#1a140e]'
+                        : 'border-brass/18 bg-[#16130f]'
+                  }`}
                 >
                   <div
                     className={`w-9 h-9 flex-none border ${monoBorder} flex items-center justify-center overflow-hidden`}
@@ -90,19 +112,34 @@ export function SheetRelations({ character }: SheetRelationsProps) {
                       </span>
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <div className="font-serif text-base text-foreground truncate">
-                      {person.name}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-serif text-base text-foreground truncate flex items-center gap-1.5">
+                      <span>{person.name}</span>
+                      {person.isKeyConnection && (
+                        <span className="text-[9px] px-1 py-0.2 bg-gold/15 text-gold border border-gold/40 font-special-elite uppercase">
+                          {t('keyAnchorBadge')}
+                        </span>
+                      )}
                     </div>
                     <div
-                      className={`font-special-elite text-[13px] tracking-[0.1em] uppercase ${statusColor}`}
+                      className={`font-special-elite text-[13px] tracking-[0.1em] uppercase ${statusColor} flex items-center gap-1.5 flex-wrap`}
                     >
-                      {person.relationship}
+                      <span>{person.relationship}</span>
                       {person.status === 'dead'
                         ? ` · ${t('dead')}`
                         : person.status === 'missing'
                           ? ` · ${t('missing')}`
                           : ''}
+                      {person.damaged && (
+                        <span className="text-amber-400 text-[10px] normal-case border border-amber-500/30 px-1 bg-amber-950/20">
+                          {t('damagedRelation')}
+                        </span>
+                      )}
+                      {person.lost && (
+                        <span className="text-red-400 text-[10px] normal-case border border-red-500/30 px-1 bg-red-950/20">
+                          {t('lostRelation')}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -48,6 +48,7 @@ import { SheetSkills } from './components/sheet-skills';
 import { SheetEquipment } from './components/sheet-equipment';
 import { SheetRelations } from './components/sheet-relations';
 import { SheetBiography } from './components/sheet-biography';
+import { SanityTherapyModal } from '@/components/dialogs/SanityTherapyModal';
 
 /** Separator déco - gradient-linie + obrócone romby (wzorzec _KONWENCJE). */
 function DecoSeparator({ title }: { title: string }) {
@@ -82,6 +83,7 @@ export function CharacterSheet({
   const inlineEdit = useInlineEdit(character, onCharacterUpdate);
 
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
+  const [isTherapyOpen, setIsTherapyOpen] = useState(false);
 
   // Portret + miniatury ekwipunku są offloadowane do IndexedDB (IND-262/271),
   // więc `character.portraitUrl` / `item.imageUrl` bywają puste (widoczne tylko
@@ -234,7 +236,10 @@ export function CharacterSheet({
               />
 
               {/* SEKCJA 6: RELACJE I CECHY PSYCHOLOGICZNE (conditional) */}
-              <SheetRelations character={display} />
+              <SheetRelations
+                character={display}
+                onOpenTherapy={() => setIsTherapyOpen(true)}
+              />
             </div>
 
             {/* === KOLUMNA PRAWA === */}
@@ -303,6 +308,16 @@ export function CharacterSheet({
             }
           }
         `}</style>
+
+        <SanityTherapyModal
+          isOpen={isTherapyOpen}
+          onClose={() => setIsTherapyOpen(false)}
+          character={display}
+          onCharacterUpdate={(updated) => {
+            onCharacterUpdate?.(updated);
+            setDisplayCharacter(updated);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
