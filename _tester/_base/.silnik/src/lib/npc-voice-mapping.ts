@@ -432,3 +432,35 @@ export function resolveNpcPortrait(
   return undefined;
 }
 
+
+/**
+ * Wyszukuje obiekt NPC z localStorage na podstawie nazwy mówcy.
+ */
+export function resolveNpcObject(
+  speakerName: string
+): Partial<NPC> | undefined {
+  if (!speakerName || typeof window === 'undefined') return undefined;
+
+  try {
+    const saved = window.localStorage.getItem('gm_npcs');
+    if (!saved) return undefined;
+    const npcs = JSON.parse(saved) as Array<Partial<NPC>>;
+    const rawLower = speakerName.trim().toLowerCase();
+    const cleanName = rawLower.replace(
+      /^(doktor|dr|profesor|prof|inspektor|insp|kapitan|kap|pan|pani|panna|ojciec|brat|siostra|sierżant|detektyw)\.?\s+/i,
+      ''
+    );
+
+    for (const npc of npcs) {
+      if (!npc.name) continue;
+      const nLower = npc.name.toLowerCase();
+      if (nLower === rawLower || nLower === cleanName || nLower.includes(cleanName) || cleanName.includes(nLower)) {
+        return npc;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return undefined;
+}

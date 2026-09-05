@@ -174,11 +174,12 @@ export async function POST(request: NextRequest) {
   let loggedModel = DEFAULT_MODEL;
   try {
     const body = await request.json();
-    const { text, voice, model, languageCode } = body as {
+    const { text, voice, model, languageCode, audioDirection } = body as {
       text?: string;
       voice?: string;
       model?: string;
       languageCode?: string;
+      audioDirection?: string;
     };
     loggedTextLength = typeof text === 'string' ? text.length : 0;
     loggedModel = model || DEFAULT_MODEL;
@@ -225,6 +226,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Treść dla modelu: jeśli przekazano dyrektywę reżyserską (Issue #162),
+    // podajemy ją jako prefiks instrukcji stylu mowy (Google TTS audio prompting).
+    const promptText = audioDirection?.trim()
+      ? `${audioDirection.trim()}\n\n${text}`
+      : text;
+
     // IND-191 + IND-236: retry server-side. Walidacja audio jest WEWNĄTRZ operacji -
     // brak inlineData rzuca sentinel (text-instead-of-audio) → ponowienie zamiast 500.
     // Transient (500/503) i 400 "tried to generate text" też ponawiane; 429 / inne 400
@@ -232,7 +239,7 @@ export async function POST(request: NextRequest) {
     const audioBase64 = await generateTtsWithRetry(async () => {
       const response = await client.models.generateContent({
         model: model || DEFAULT_MODEL,
-        contents: [{ role: 'user', parts: [{ text }] }],
+        contents: [{ role: 'user', parts: [{ text: promptText }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
