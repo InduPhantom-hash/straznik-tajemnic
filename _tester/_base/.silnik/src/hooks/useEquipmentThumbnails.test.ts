@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import type { Character, EquipmentItem } from '@/lib/types';
+import type { Character, EquipmentItem, AdventureContext } from '@/lib/types';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
@@ -81,7 +81,7 @@ describe('useEquipmentThumbnails', () => {
     const { result } = renderHook(() =>
       useEquipmentThumbnails({
         activeCharacter: startingCharacter,
-        adventureContext: { yearRange: '2001-2005' } as any,
+        adventureContext: { yearRange: '2001-2005' } as unknown as AdventureContext,
         imageGenerationEnabled: true,
         setActiveCharacter,
         setCharacters,
