@@ -5394,7 +5394,11 @@
     "volumeLabel": "Volume",
     "volumeHelp": "Narration volume from 0 (silence) to 100 (maximum loudness)",
     "speedLabel": "Speech rate",
-    "speedHelp": "Text reading speed. 1.0x = normal."
+    "speedHelp": "Text reading speed. 1.0x = normal.",
+    "modeLabel": "Narration format",
+    "modeHelp": "Choose how dialogue is voiced. Radio drama assigns unique voices and emotions to characters. Audiobook reads everything with a single selected voice.",
+    "modeRadioDrama": "Radio drama",
+    "modeAudiobook": "Single voice"
   },
   "TtsGeminiSettings": {
     "voicePickerTitle": "Voice selection",

@@ -112,17 +112,13 @@ export const QUALITY_PRESETS = {
       enableCache: true,
       cacheTTL: 60 * 60 * 1000, // 1h
 
-      // === ELEVENLABS TTS HYBRYDA (2026-07-25) ===
-      // Main NPC: eleven_multilingual_v2 (pełne emocje aktorskie PL)
-      // Background NPC: eleven_turbo_v2_5 (szybki, 4x tańszy)
-      // Fallback: Gemini TTS Charon (gdy brak klucza ElevenLabs)
+      // === GEMINI TTS SŁUCHOWISKO ===
       ttsEnabled: true,
-      ttsProvider: 'elevenlabs' as const,
-      ttsVoice: 'Charon', // Gemini fallback voice
-      elevenLabsModelKey: 'multilingual_v2' as const,
+      ttsProvider: 'gemini' as const,
+      ttsVoice: 'Charon',
       narratorOnly: false,
       volume: 85,
-      speed: 0.9,
+      speed: 1.15,
 
       // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
       imagesEnabled: true,
@@ -164,13 +160,10 @@ export const QUALITY_PRESETS = {
       },
       enableCache: true,
       cacheTTL: 2 * 60 * 60 * 1000, // 2h
-      // === ELEVENLABS TTS FULL PRO (2026-07-25) ===
-      // Wszyscy NPC na eleven_multilingual_v2 z pełnym podbiciem emocji aktorskich.
-      // Fallback: Gemini TTS Gacrux (gdy brak klucza ElevenLabs)
+      // === GEMINI TTS FULL SŁUCHOWISKO ===
       ttsEnabled: true,
-      ttsProvider: 'elevenlabs' as const,
-      ttsVoice: 'Gacrux', // Gemini fallback voice (Mature, głęboki narrator)
-      elevenLabsModelKey: 'multilingual_v2' as const,
+      ttsProvider: 'gemini' as const,
+      ttsVoice: 'Gacrux', // Gemini voice (Mature, głęboki narrator)
       narratorOnly: false, // pełne słuchowisko radiowe
       // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
       imagesEnabled: true,

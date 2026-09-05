@@ -5394,7 +5394,11 @@
     "volumeLabel": "Głośność",
     "volumeHelp": "Głośność narracji od 0 (cisza) do 100 (maksymalna głośność)",
     "speedLabel": "Prędkość mówienia",
-    "speedHelp": "Szybkość czytania tekstu. 1.0x = normalnie."
+    "speedHelp": "Szybkość czytania tekstu. 1.0x = normalnie.",
+    "modeLabel": "Format narracji",
+    "modeHelp": "Wybierz sposób odczytywania wypowiedzi. Słuchowisko przypisuje postaciom unikalne głosy i emocje. Audiobook czyta całość jednym wybranym lektorem.",
+    "modeRadioDrama": "Słuchowisko",
+    "modeAudiobook": "Jednolity lektor"
   },
   "TtsGeminiSettings": {
     "voicePickerTitle": "Wybór głosu",
