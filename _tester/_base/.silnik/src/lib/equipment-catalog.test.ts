@@ -10,6 +10,7 @@ import {
 } from './equipment-catalog';
 import { PREDEFINED_CHARACTERS } from './immersion/predefined-characters';
 import { STREFA_11_CHARACTERS } from './immersion/strefa-11-characters';
+import { OCCUPATION_EQUIPMENT, splitTopLevel } from './equipment-data';
 
 describe('equipment catalog', () => {
   it('rozpoznaje polskie nazwy i dawne aliasy bez fallbacku po nazwie UI', () => {
@@ -197,6 +198,40 @@ describe('equipment catalog', () => {
       });
     });
     expect(missing).toEqual([]);
+  });
+
+  it('zapewnia deterministyczny szablon w katalogu dla każdego przedmiotu ze wszystkich 30 zawodów RAW (OCCUPATION_EQUIPMENT)', () => {
+    const missing: string[] = [];
+    Object.entries(OCCUPATION_EQUIPMENT).forEach(([occ, eqList]) => {
+      eqList.forEach((eqStr) => {
+        const itemNames = splitTopLevel(eqStr).map((s) =>
+          s.replace(/\s+/g, ' ').trim()
+        );
+        itemNames.forEach((name) => {
+          const template = findEquipmentTemplate(name);
+          if (!template) {
+            missing.push(`${name} (${occ})`);
+          }
+        });
+      });
+    });
+    expect(missing).toEqual([]);
+  });
+
+  it('prawidłowo kategoryzuje przedmioty Parapsychologa (Termometr, Detektor EMF, Aparat) jako tool w 1920s', () => {
+    const thermo = findEquipmentTemplate('Termometr');
+    expect(thermo?.category).toBe('tool');
+    expect(thermo?.availableIn).toContain('1920s');
+
+    const emf = findEquipmentTemplate('Detektor pola elektromagnetycznego');
+    expect(emf?.category).toBe('tool');
+    expect(emf?.availableIn).toContain('1920s');
+
+    const camera = findEquipmentTemplate('Aparat fotograficzny');
+    expect(camera?.category).toBe('tool');
+    expect(resolveCatalogAsset(camera, '1920s')).toBe(
+      '/equipment/catalog/camera-1920s.webp'
+    );
   });
 
   it('zapewnia poprawne szablony i assety WebP dla przedmiotów epoki 2000s (laptop, komórka, powerbank, narzędzia)', () => {
