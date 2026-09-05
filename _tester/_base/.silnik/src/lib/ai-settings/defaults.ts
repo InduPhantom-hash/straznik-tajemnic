@@ -43,7 +43,7 @@ export const defaultAISettings: AISettings = {
     provider: 'gemini', // M3 sesja 146: default Gemini (drop OpenAI per D2)
     narratorOnly: false, // Włączone słuchowisko (multi-voice NPC: różne głosy i emocje)
     volume: 85,
-    speed: 0.9, // Preset HIGH
+    speed: 1.15, // Domyślnie 1.15x - naturalne tempo radiowe
     voiceId: 'Charon', // HIGH: męski głęboki narrator pod Lovecraft (IND-212), auto-route Pro/Flash w useTTS
   },
 

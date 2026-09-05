@@ -13,6 +13,7 @@ import {
   resolveNpcVoice,
   resolveNpcObject,
   inferRoleFromNPC,
+  resolveDynamicNpcVoice,
 } from '@/lib/npc-voice-mapping';
 import {
   buildAudioDirection,
@@ -237,6 +238,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   // (objaw: lektor czytał narrację 2×). Komplementarny do flushedRef. Czyszczony
   // w stopCurrentAudio (wołanym też przy ID-change → nowa wiadomość startuje świeżo).
   const completedMessageIdsRef = useRef<Set<string>>(new Set());
+  // Dynamiczny cache głosów i reżyserii NPC w trakcie sesji (gwarantuje spójność wokalną postaci)
+  const dynamicNpcVoiceMapRef = useRef<Map<string, { voiceId: string; audioDirection: string }>>(new Map());
   // demo 2026-06-22: ULTRA scala kolejne zdania o tym SAMYM voiceId w jeden segment TTS
   // (jeden spójny głos zamiast resetu prozodii per zdanie - objaw "lektor brzmi jak 3 osoby").
   // Run trzymany MIĘDZY wywołaniami addToQueue (streaming), zamykany przy zmianie mówcy lub
@@ -367,49 +370,28 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           const effectiveVoice =
             overrideVoiceId || currentSettings.voiceSettings?.voiceId || 'Kore';
 
-          // Zew-App-Local: wybór providera TTS na podstawie ustawień presetu.
-          // 2026-07-25: obsługa ElevenLabs z fallbackiem na Gemini TTS przy braku klucza.
-          const ttsProvider = currentSettings.voiceSettings?.provider || 'gemini';
-          const hasElevenLabsKey = !!(
-            currentSettings.elevenLabsApiKey ||
-            (typeof window !== 'undefined' && localStorage.getItem('elevenLabsApiKey'))
-          );
-
-          if (ttsProvider === 'elevenlabs' && hasElevenLabsKey) {
-            // ElevenLabs: użyj voice_id z override'u NPC lub właściwego głosu ElevenLabs (nie nazwy Gemini TTS!)
-            const elVoiceId =
-              overrideVoiceId ||
-              (currentSettings.voiceSettings?.voiceId &&
-              !['Charon', 'Gacrux', 'Kore', 'Puck', 'Fenrir', 'Aoede'].includes(currentSettings.voiceSettings.voiceId)
-                ? currentSettings.voiceSettings.voiceId
-                : '21m00Tcm4TlvDq8ikWAM'); // Domyślny głos ElevenLabs (Rachel) jeśli ustawiony był głos Gemini
-
-            const elModelKey = currentSettings.voiceSettings?.elevenLabsModelKey || 'multilingual_v2';
-            audioUrl = await fetchTtsWithRetry('/api/tts/elevenlabs', {
-              text,
-              voice_id: elVoiceId,
-              model: elModelKey,
-              voice_settings: currentSettings.voiceSettings?.elevenLabsVoiceSettings,
-            });
-          } else {
-            // Gemini TTS (domyślny lub fallback z braku klucza ElevenLabs)
-            const geminiModel = overrideVoiceId
-              ? TTS_MODEL_NPC
-              : TTS_MODEL_NARRATOR;
-            // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
-            // Issue #162: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
-            audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
-              text,
-              voice: effectiveVoice,
-              model: geminiModel,
-              languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
-              audioDirection,
-            });
-          }
+          // Gemini TTS: wyłączny silnik audio (offline-first / BYOK)
+          const geminiModel = overrideVoiceId
+            ? TTS_MODEL_NPC
+            : TTS_MODEL_NARRATOR;
+          // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
+          // Issue #162: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
+          audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
+            text,
+            voice: effectiveVoice,
+            model: geminiModel,
+            languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
+            audioDirection,
+          });
 
           if (audioUrl) {
             const audio = new Audio(audioUrl);
             audio.volume = (currentSettings.voiceSettings?.volume || 75) / 100;
+            const targetSpeed = currentSettings.voiceSettings?.speed || 1.15;
+            audio.playbackRate = targetSpeed;
+            if ('preservesPitch' in audio) {
+              (audio as any).preservesPitch = true;
+            }
             preloadedAudioRef.current.set(index, audio);
             console.log(`✅ TTS Worker: Ready segment ${index}`);
 
@@ -535,6 +517,12 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         }
 
         console.log(`▶️ TTS Player: Playing segment ${currentIndex}`);
+        const currentSettings = loadAISettings();
+        const currentSpeed = currentSettings.voiceSettings?.speed || 1.15;
+        audio.playbackRate = currentSpeed;
+        if ('preservesPitch' in audio) {
+          (audio as any).preservesPitch = true;
+        }
         setCurrentAudio(audio);
 
         await new Promise<void>((resolve) => {
@@ -718,38 +706,29 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           let audioDirection: string | undefined;
           let textForQueue = sentence;
 
-          if (markerMatch) {
+          const isNarratorOnly = !!settingsForQueue.voiceSettings?.narratorOnly;
+
+          if (markerMatch && !isNarratorOnly) {
             const npcName = markerMatch[2].trim();
-            voiceId = resolveNpcVoice(npcName, npcVoiceMap);
             const npcObj = resolveNpcObject(npcName);
-            const npcRole = inferRoleFromNPC(
-              npcObj
-                ? {
-                    type: npcObj.type || 'neutral',
-                    occupation: npcObj.occupation || '',
-                    description: npcObj.description || '',
-                    appearance: npcObj.appearance || '',
-                    personality: npcObj.personality || '',
-                    name: npcObj.name || npcName,
-                  }
-                : {
-                    type: 'neutral',
-                    occupation: '',
-                    description: '',
-                    appearance: '',
-                    personality: '',
-                    name: npcName,
-                  }
+            const dynamicVoice = resolveDynamicNpcVoice(
+              npcName,
+              npcVoiceMap,
+              dynamicNpcVoiceMapRef.current,
+              {
+                occupation: npcObj?.occupation,
+                description: npcObj?.description,
+                personality: npcObj?.personality,
+                type: npcObj?.type,
+                mood: currentMood,
+              }
             );
-            audioDirection = buildAudioDirection({
-              isNpc: true,
-              speakerName: npcName,
-              npcRole,
-              mood: currentMood,
-            });
+            voiceId = dynamicVoice.voiceId;
+            audioDirection = dynamicVoice.audioDirection;
             textForQueue = markerMatch[3].trim() || sentence;
           } else {
-            // Kwestia Narratora - modulacja SAN i nastrojem
+            // Kwestia Narratora (lub wymuszony tryb Audiobook / narratorOnly) - modulacja SAN i nastrojem
+            voiceId = settingsForQueue.voiceSettings?.voiceId || 'Kore';
             audioDirection = buildAudioDirection({
               isNpc: false,
               san,
@@ -757,6 +736,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               mood: currentMood,
               recentSanLoss: currentSanLoss,
             });
+            textForQueue = markerMatch ? markerMatch[3].trim() || sentence : sentence;
           }
           // Bez kontynuacji - każde zdanie dialogu ma własny marker per gm-protocol.
 

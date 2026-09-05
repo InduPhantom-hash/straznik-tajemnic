@@ -64,7 +64,7 @@ export function applyPreset(
       // ElevenLabs-specific (opcjonalne, undefined dla presetów bez EL)
       elevenLabsModelKey:
         'elevenLabsModelKey' in s
-          ? s.elevenLabsModelKey
+          ? (s as { elevenLabsModelKey?: 'multilingual_v2' | 'turbo_v2_5' }).elevenLabsModelKey
           : currentSettings.voiceSettings.elevenLabsModelKey,
     },
 

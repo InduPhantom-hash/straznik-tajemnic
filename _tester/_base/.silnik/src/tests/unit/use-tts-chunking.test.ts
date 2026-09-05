@@ -192,7 +192,7 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     const payload = JSON.parse(fetchArgs[1].body);
 
     expect(payload.audioDirection).toBeDefined();
-    expect(payload.audioDirection).toContain('natural, character-driven dramatic voice');
+    expect(payload.audioDirection).toContain('natural, character-driven dramatic');
     expect(payload.text).toContain('Słyszycie ten nieustanny chrobot');
   });
 

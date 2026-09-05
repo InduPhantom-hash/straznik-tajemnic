@@ -7,7 +7,7 @@ import { HelpIcon } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { ProviderTestButton } from './provider-test-button';
 import { GeminiSettings } from './gemini-settings';
-import { VolumeSlider } from './shared-sliders';
+import { VolumeSlider, SpeedSlider } from './shared-sliders';
 
 interface TTSSettingsProps {
   settings: AISettings;
@@ -93,11 +93,62 @@ export function TTSSettings({
 
         {/* Prawa kolumna - parametry + test/próbka */}
         <div className="flex flex-col gap-4">
-          <div className="relative border border-brass/22 bg-[#16130f] p-5">
-            <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass mb-4">
+          <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col gap-4">
+            <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass mb-1">
               {t('parametersTitle')}
             </div>
             <VolumeSlider settings={settings} setSettings={setSettings} />
+            <SpeedSlider settings={settings} setSettings={setSettings} />
+
+            {/* Wybór formatu narracji: Słuchowisko vs Audiobook */}
+            <div className="pt-3 border-t border-brass/15 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 font-special-elite uppercase text-[14px] tracking-[0.12em] text-brass">
+                  {t('modeLabel')}
+                  <HelpIcon content={t('modeHelp')} />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings({
+                      ...settings,
+                      voiceSettings: {
+                        ...settings.voiceSettings,
+                        narratorOnly: false,
+                      },
+                    })
+                  }
+                  className={`px-3 py-2 text-xs font-special-elite uppercase tracking-[0.08em] border transition-colors ${
+                    !settings.voiceSettings.narratorOnly
+                      ? 'bg-primary/20 border-primary text-primary shadow-[0_0_10px_rgba(13,148,136,0.2)]'
+                      : 'bg-[#0e0c08] border-brass/25 text-muted-foreground hover:border-brass/50'
+                  }`}
+                >
+                  🎭 {t('modeRadioDrama')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings({
+                      ...settings,
+                      voiceSettings: {
+                        ...settings.voiceSettings,
+                        narratorOnly: true,
+                      },
+                    })
+                  }
+                  className={`px-3 py-2 text-xs font-special-elite uppercase tracking-[0.08em] border transition-colors ${
+                    settings.voiceSettings.narratorOnly
+                      ? 'bg-primary/20 border-primary text-primary shadow-[0_0_10px_rgba(13,148,136,0.2)]'
+                      : 'bg-[#0e0c08] border-brass/25 text-muted-foreground hover:border-brass/50'
+                  }`}
+                >
+                  📖 {t('modeAudiobook')}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col gap-3">

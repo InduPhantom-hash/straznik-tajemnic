@@ -27,6 +27,7 @@ import {
   storeWorldSetup,
   type WorldSetupBundleV1,
 } from '@/lib/world-setup';
+import { initializeAdventureNpcVoices } from '@/lib/npc-voice-mapping';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -87,7 +88,13 @@ function createPresetWorldSetup(
       graph: adventure.graph ?? null,
     },
     factions: conflicts.flatMap((conflict) => conflict.factions),
-    npcs: [],
+    npcs: (adventure.graph?.npcs ?? []).map((n) => ({
+      id: n.id,
+      name: n.name,
+      description: n.description,
+      secret: n.secret,
+      statsSummary: n.statsSummary,
+    })),
     locations: adventure.location ? [{ name: adventure.location }] : [],
     items: [],
     events: [],
@@ -516,6 +523,8 @@ export function useGameStart({
     );
 
     const eraContext = resolveGameEraContext({ adventure: adventureContext });
+    // Inicjalizacja profili Tone of Voice postaci z przygody na etapie setupu
+    initializeAdventureNpcVoices(adventureContext);
     if (!adventureContext.isCustom) {
       // Gotowe przygody mają lokalny kanon. Nie mogą wymagać odpowiedzi AI ani
       // dodatkowego kosztu tylko po to, aby wejść do pierwszej sceny.

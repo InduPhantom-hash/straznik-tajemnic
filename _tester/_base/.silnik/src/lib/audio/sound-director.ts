@@ -21,6 +21,10 @@ export interface SoundDirectorContext {
   isNpc?: boolean;
   speakerName?: string;
   npcRole?: string;
+  npcGender?: 'male' | 'female';
+  npcAge?: 'young' | 'adult' | 'old';
+  npcOccupation?: string;
+  npcPersonality?: string;
   recentSanLoss?: number;
 }
 
@@ -33,21 +37,37 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     return 'Read the following in a captivating, atmospheric storytelling voice with a natural, steady pace and a suspenseful Lovecraftian undertone:';
   }
 
-  const { san, maxSan = 100, mood, isNpc, npcRole, recentSanLoss } = context;
+  const {
+    san,
+    maxSan = 100,
+    mood,
+    isNpc,
+    npcRole,
+    npcGender,
+    npcAge,
+    npcOccupation,
+    recentSanLoss,
+  } = context;
 
   // 1. Kwestie NPC
   if (isNpc) {
     if (npcRole === 'monster') {
       return 'Read the following in an eerie, unsettling, rasping, and inhuman tone:';
     }
-    if (npcRole === 'old') {
+    if (npcRole === 'old' || npcAge === 'old') {
       return 'Read the following in a mature, weathered, and gravelly character voice:';
     }
-    if (npcRole === 'young') {
+    if (npcRole === 'young' || npcAge === 'young') {
       return 'Read the following in a youthful, emotional, and expressive voice:';
     }
     if (mood && /panik|strach|groza|przeraż/i.test(mood)) {
       return 'Read the following in a terrified, trembling, and hurried voice:';
+    }
+    if (npcGender === 'female') {
+      if (npcOccupation && /profesor|nauk|badacz|lekarz|doktor/i.test(npcOccupation)) {
+        return 'Read the following in clear, articulate Polish with an intellectual, calm, and composed female voice:';
+      }
+      return 'Read the following in clear Polish with a natural, expressive female character voice:';
     }
     return 'Read the following in a natural, character-driven dramatic voice:';
   }
