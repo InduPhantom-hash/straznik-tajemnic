@@ -188,7 +188,7 @@ export function IdeaRollModal({
       <DialogContent
         data-testid="idea-roll-modal"
         size="wide"
-        className="bg-zinc-950 border-2 border-emerald-900/60 text-zinc-300 w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto shadow-2xl p-6"
+        className="bg-zinc-950 border-2 border-emerald-900/60 text-zinc-300 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto shadow-2xl p-6"
       >
         <DialogHeader className="border-b border-emerald-900/40 pb-3">
           <div className="flex items-center gap-2 text-emerald-400 font-special-elite text-xs uppercase tracking-widest">

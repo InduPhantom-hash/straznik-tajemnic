@@ -81,7 +81,7 @@ export function PortraitGeneratorModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-card border border-border rounded-lg p-6 w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto">
+      <div className="bg-card border border-border rounded-lg p-6 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>

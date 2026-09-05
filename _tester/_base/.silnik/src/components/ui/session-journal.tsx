@@ -766,9 +766,9 @@ export function SessionJournal({
         }
       }}
     >
-      {/* RPG-styled Container - Standard 75% powierzchni ekranu & Dark Art Déco */}
+      {/* RPG-styled Container - Standard 75-80% powierzchni ekranu & Dark Art Déco */}
       <div
-        className="bg-gradient-to-b from-[#18130e] via-[#120e0a] to-[#0a0805] border border-brass/50 shadow-2xl w-[86vw] max-w-[1280px] h-[85vh] max-h-[85vh] flex flex-col overflow-hidden text-zinc-300 relative rounded-sm"
+        className="bg-gradient-to-b from-[#18130e] via-[#120e0a] to-[#0a0805] border border-brass/50 shadow-2xl w-[80vw] h-[78vh] max-h-[85vh] flex flex-col overflow-hidden text-zinc-300 relative rounded-sm"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Narożniki déco */}

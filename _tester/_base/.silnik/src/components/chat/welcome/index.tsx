@@ -22,6 +22,7 @@ import { FullGameSaveManager } from '@/lib/full-game-save-manager';
 import { timeManager } from '@/lib/time-manager';
 import { hasRequiredKeys } from '@/lib/api-keys-service';
 import { useLocale, useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 
 /** Metadane najświeższego zapisu (synchronicznie z localStorage). */
 interface RecentSave {
@@ -271,7 +272,10 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
         {/* Krok 3 - Autoryzacja, Zasady i Start */}
         <div
           id="start-mode-cards-container"
-          className="flex flex-col md:flex-row gap-6 w-full max-w-5xl justify-center items-center z-20 mt-2"
+          className={cn(
+            'flex flex-col md:flex-row gap-6 w-full justify-center items-center z-20 mt-2',
+            isManualMode ? 'w-[80vw] max-w-none' : 'max-w-5xl'
+          )}
         >
           {!hasKey ? (
             <div className="bg-black/60 border border-brass/50 p-6 rounded-md shadow-[0_0_40px_rgba(201,162,39,0.1)] max-w-lg w-full relative z-30">

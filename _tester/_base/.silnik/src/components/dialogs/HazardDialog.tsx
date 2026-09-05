@@ -174,7 +174,7 @@ export function HazardDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto bg-zinc-950 border border-amber-900/40 text-amber-100 shadow-2xl">
+      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-zinc-950 border border-amber-900/40 text-amber-100 shadow-2xl">
         <DialogHeader className="border-b border-amber-900/30 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

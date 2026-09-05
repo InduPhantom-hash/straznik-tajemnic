@@ -68,7 +68,7 @@ export function AdventureDetailsModal({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
         size="wide"
-        className="w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto p-6 sm:p-10 shadow-2xl"
+        className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto p-6 sm:p-10 shadow-2xl"
       >
         {/* Narożniki déco */}
         <span className="pointer-events-none absolute left-2.5 top-2.5 h-5 w-5 border-l-2 border-t-2 border-brass/60" />

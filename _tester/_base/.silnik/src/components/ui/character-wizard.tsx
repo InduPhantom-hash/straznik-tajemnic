@@ -3418,7 +3418,7 @@ export function CharacterWizardV2({
     >
       <div
         data-testid="character-wizard-modal"
-        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[86vw] max-w-[1280px] h-[85vh] max-h-[85vh] overflow-hidden flex flex-col"
+        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[80vw] h-[78vh] max-h-[85vh] overflow-hidden flex flex-col"
       >
         {/* Narożniki déco */}
         <span className="pointer-events-none absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-brass/55" />

@@ -127,7 +127,7 @@ export function SessionList({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-xl p-6 w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto text-foreground">
+      <div className="bg-card border border-border rounded-xl p-6 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto text-foreground">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-center flex-1">
             {t('title')}

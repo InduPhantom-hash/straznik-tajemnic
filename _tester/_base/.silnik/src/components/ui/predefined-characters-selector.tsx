@@ -164,7 +164,7 @@ export function PredefinedCharactersSelector({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-        <div className="deco-corners relative w-[86vw] max-w-[1280px] max-h-[85vh] flex flex-col bg-[#16130f] border border-brass/45 shadow-[0_0_50px_rgba(201,162,39,0.15)] overflow-hidden">
+        <div className="deco-corners relative w-[80vw] h-[78vh] max-h-[85vh] flex flex-col bg-[#16130f] border border-brass/45 shadow-[0_0_50px_rgba(201,162,39,0.15)] overflow-hidden">
           {/* Narożniki Deco */}
           <span className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/60 pointer-events-none" />
           <span className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-brass/60 pointer-events-none" />
@@ -350,8 +350,8 @@ export function PredefinedCharactersSelector({
       {viewingCharacter && (() => {
         const isUnavailable = unavailablePresetIds.includes(viewingCharacter.id);
         return (
-          <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/90 backdrop-blur-md p-4 overflow-y-auto">
-            <div className="deco-corners relative w-[86vw] max-w-[1280px] max-h-[85vh] overflow-y-auto bg-[#120f0c] border border-brass/50 p-6 md:p-8 my-8">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+            <div className="deco-corners relative w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-[#120f0c] border border-brass/50 p-6 md:p-8">
               <div className="flex justify-between items-start mb-4 border-b border-brass/20 pb-3">
                 <div>
                   <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary">
