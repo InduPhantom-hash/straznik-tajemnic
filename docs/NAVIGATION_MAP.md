@@ -66,7 +66,7 @@ graph TD
     character_wizard -->|Zakończ i zapisz / Finish and save| manual_setup
     hot_seat -->|Rozpocznij tryb / Start mode| session_zero
     session_zero -->|Zatwierdź i przygotuj sesję / Confirm and prepare session| loading_screen
-    loading_screen -->|Rozpocznij przygodę / Begin adventure| game
+    loading_screen -->|Rozpocznij przygodę (bramka CTA) / Begin adventure (CTA gate)| game
     game -->|Karta postaci / Character sheet| character_sheet
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
@@ -128,7 +128,7 @@ graph TD
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
 | Sesja Zero | Zatwierdź i przygotuj sesję / Confirm and prepare session | Ekran ładowania (Dark Art Déco) | `src/components/ui/session-zero-modal.tsx` |
-| Ekran ładowania (Dark Art Déco) | Rozpocznij przygodę / Begin adventure | Aktywna sesja | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
+| Ekran ładowania (Dark Art Déco) | Rozpocznij przygodę (bramka CTA) / Begin adventure (CTA gate) | Aktywna sesja | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
