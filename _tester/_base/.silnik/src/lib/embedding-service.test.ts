@@ -3,7 +3,7 @@ import { EMBEDDING_DIM_LOCAL } from './model-registry';
 
 jest.mock('@xenova/transformers', () => ({
   pipeline: jest.fn().mockImplementation(async () => {
-    return (input: string | string[], _opts: any) => {
+    return (input: string | string[]) => {
       if (Array.isArray(input)) {
         const batchSize = input.length;
         const total = batchSize * 1024;

@@ -35,14 +35,24 @@ const MAX_RESULTS = 5;
 const RAG_VERSION_V1_DIM = EMBEDDING_DIM_V1;
 const RAG_VERSION_V2_DIM = EMBEDDING_DIM_V2;
 
+type FeatureExtractorOutput = {
+  data: Float32Array;
+  dims?: number[];
+};
+
+type FeatureExtractorFn = (
+  text: string | string[],
+  options?: Record<string, unknown>
+) => Promise<FeatureExtractorOutput>;
+
 let _cachedDimensions: number | null = null;
-let _localPipelinePromise: Promise<any> | null = null;
+let _localPipelinePromise: Promise<FeatureExtractorFn> | null = null;
 
 /**
  * Zwraca instancję lokalnego pipeline ONNX (@xenova/transformers).
  * Ładowana leniwie (singleton w pamięci procesu Node.js).
  */
-async function getLocalPipeline(): Promise<any> {
+async function getLocalPipeline(): Promise<FeatureExtractorFn> {
   if (!_localPipelinePromise) {
     _localPipelinePromise = (async () => {
       try {
@@ -55,7 +65,7 @@ async function getLocalPipeline(): Promise<any> {
         console.log(`🧠 [LocalEmbeddings] Inicjalizacja lokalnego modelu ONNX: ${LOCAL_EMBEDDING_MODEL}`);
         const extractor = await pipeline('feature-extraction', LOCAL_EMBEDDING_MODEL);
         console.log(`✅ [LocalEmbeddings] Model ${LOCAL_EMBEDDING_MODEL} gotowy do pracy.`);
-        return extractor;
+        return extractor as FeatureExtractorFn;
       } catch (err) {
         console.error('❌ [LocalEmbeddings] Błąd inicjalizacji @xenova/transformers:', err);
         _localPipelinePromise = null;
