@@ -116,4 +116,19 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptEn).toContain('Treasured Possession: Father pocket watch');
     expect(promptEn).toContain('## ERA FILTER: MODERN SENSIBILITIES');
   });
+
+  it('normalizes legacy tone noir to purist instructions in PL and EN', () => {
+    const noirSettings: SessionZeroSettings = {
+      ...baseSettings,
+      tone: 'noir',
+    };
+
+    const promptPl = buildSessionZeroInstructions(noirSettings, 'pl');
+    expect(promptPl).toContain('## STYL NARRACJI: PURYSTYCZNY');
+    expect(promptPl).not.toContain('## STYL NARRACJI: NOIR');
+
+    const promptEn = buildSessionZeroInstructions(noirSettings, 'en');
+    expect(promptEn).toContain('## NARRATIVE STYLE: PURIST');
+    expect(promptEn).not.toContain('## NARRATIVE STYLE: NOIR');
+  });
 });

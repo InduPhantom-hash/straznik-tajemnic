@@ -42,10 +42,6 @@ const TONES = [
     id: 'pulp',
     icon: '💥',
   },
-  {
-    id: 'noir',
-    icon: '🕵️',
-  },
 ] as const;
 
 const NARRATIVE_MODES = [
@@ -131,7 +127,9 @@ export function SessionZeroModal({
   const [step, setStep] = useState(1);
 
   const suggestedEra = adventureContext?.era || 'classic';
-  const suggestedTone = (adventureContext?.tone as SessionZeroSettings['tone']) || 'purist';
+  const rawSuggestedTone =
+    (adventureContext?.tone as SessionZeroSettings['tone']) || 'purist';
+  const suggestedTone = rawSuggestedTone === 'noir' ? 'purist' : rawSuggestedTone;
 
   const [settings, setSettings] = useState<SessionZeroSettings>({
     era: suggestedEra,
@@ -194,9 +192,15 @@ export function SessionZeroModal({
       const defaultEraFilter: EraFilterMode =
         loaded.eraFilter || 'authentic_1920s';
 
+      const rawLoadedTone =
+        (adventureContext?.tone as SessionZeroSettings['tone']) ??
+        loaded.tone ??
+        'purist';
+      const effectiveTone = rawLoadedTone === 'noir' ? 'purist' : rawLoadedTone;
+
       setSettings({
         era: adventureContext?.era || loaded.era || 'classic',
-        tone: (adventureContext?.tone as SessionZeroSettings['tone']) ?? loaded.tone ?? 'purist',
+        tone: effectiveTone,
         narrativeMode:
           loaded.narrativeMode ||
           (loaded.playstyle === 'storytelling'
@@ -259,7 +263,7 @@ export function SessionZeroModal({
                 {t('conventionSectionLabel')}
                 <HelpIcon content={t('conventionSectionHelp')} />
               </Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {TONES.map((tn) => {
                   const isSelected = settings.tone === tn.id;
                   return (

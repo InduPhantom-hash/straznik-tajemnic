@@ -302,12 +302,15 @@ export function buildSessionZeroInstructions(
       : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nSkup się na kosmicznej grozie i śledztwie, pomijając historyczne uprzedzenia i dyskryminację z lat 20.`;
   }
 
-  const difficultySection = sessionZero.difficulty && diffMap[sessionZero.difficulty]
-    ? `\n${diffMap[sessionZero.difficulty]}`
-    : '';
+  const difficultySection =
+    sessionZero.difficulty && diffMap[sessionZero.difficulty]
+      ? `\n${diffMap[sessionZero.difficulty]}`
+      : '';
+
+  const effectiveTone = sessionZero.tone === 'noir' ? 'purist' : sessionZero.tone;
 
   return `
-${toneMap[sessionZero.tone] || ''}${difficultySection}
+${toneMap[effectiveTone] || ''}${difficultySection}
 ${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}
 ${safetyInstructions}`;
 }
