@@ -4764,7 +4764,8 @@
     "clip2Text": "Skonfiskowano sześć skrzyń z podejrzanym ładunkiem ze Starego Świata. Właściciel magazynu zbiegł przez labirynt zapomnianych zaułków portowych.",
     "clip3Source": "The Providence Gazette (1924)",
     "clip3Headline": "Niezwykłe zjawiska na wodach zatoki Narragansett",
-    "clip3Text": "Miejscowi rybacy donoszą o nienaturalnych poświatach widocznych w gęstej mgle na południe od latarni. Załogi odmawiają nocnych wypłynięć."
+    "clip3Text": "Miejscowi rybacy donoszą o nienaturalnych poświatach widocznych w gęstej mgle na południe od latarni. Załogi odmawiają nocnych wypłynięć.",
+    "bufferingNarrator": "Buforowanie głosu lektora (3-4 zdania)..."
   },
   "ApiKeysModal": {
     "title": "Konfiguracja kluczy API",

@@ -4764,7 +4764,8 @@
     "clip2Text": "Six crates of suspicious Old World cargo seized. The warehouse proprietor eluded arrest through a maze of forgotten harbor alleyways.",
     "clip3Source": "The Providence Gazette (1924)",
     "clip3Headline": "Unusual Phenomena in Waters of Narragansett Bay",
-    "clip3Text": "Local fishermen report unnatural glows visible in dense fog south of the lighthouse. Trawler crews refuse to set sail after nightfall."
+    "clip3Text": "Local fishermen report unnatural glows visible in dense fog south of the lighthouse. Trawler crews refuse to set sail after nightfall.",
+    "bufferingNarrator": "Buffering narrator voice (3-4 sentences)..."
   },
   "ApiKeysModal": {
     "title": "API Keys Configuration",
