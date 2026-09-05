@@ -433,6 +433,12 @@ export function SessionZeroModal({
               <p className="mt-1 font-serif text-lg italic text-muted-foreground">
                 {t('step3Intro')}
               </p>
+              {activeCharacter?.name && (
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-brass/10 border border-brass/30 text-xs font-special-elite text-brass/90">
+                  <span>⚓</span>
+                  <span>{t('importedFromCharacter', { name: activeCharacter.name })}</span>
+                </div>
+              )}
             </div>
 
             {/* Ważna Osoba */}

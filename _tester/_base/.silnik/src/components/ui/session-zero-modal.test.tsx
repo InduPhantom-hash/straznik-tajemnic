@@ -111,6 +111,7 @@ describe('SessionZeroModal', () => {
     expect(screen.getByText('Cenny Przedmiot')).toBeInTheDocument();
     expect(screen.getByText('Krok 3 z 4')).toBeInTheDocument();
     // Sprawdzenie zasysania z karty postaci
+    expect(screen.getByText('Pobrano z karty badacza: Edward Carnby')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Siostra Clara w Bostonie')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Gabinet w Arkham')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Złoty zegarek po ojcu')).toBeInTheDocument();
