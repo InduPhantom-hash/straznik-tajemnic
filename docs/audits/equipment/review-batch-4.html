@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Przegląd Grafik Ekwipunku (Partia 4 - 25 pozycji) | Strażnik Tajemnic AI</title>
+  <style>
+    :root {
+      --bg-dark: #0f1114;
+      --card-bg: #181b20;
+      --card-border: #2a2e36;
+      --gold-primary: #d4af37;
+      --gold-muted: #9e8328;
+      --text-main: #e6e8ec;
+      --text-muted: #8b929e;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1400px;
+      margin: 0 auto 2rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--gold-primary);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .header-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+    }
+    .stat-pill strong { color: var(--gold-primary); }
+    .grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      border-color: var(--gold-muted);
+      transform: translateY(-2px);
+    }
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      background: #000;
+    }
+    .image-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      background: #121418;
+      font-size: 0.85rem;
+    }
+    .placeholder .icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
+    .badges-overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-rebuild { background: #2c3e50; color: #ecf0f1; }
+    .badge-new { background: #16a085; color: #fff; }
+    .badge-era { background: #8e44ad; color: #fff; }
+    .badge-cat { background: #d35400; color: #fff; }
+    .badge-batch { background: #2980b9; color: #fff; }
+    .card-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 0.5rem;
+    }
+    .item-title {
+      font-size: 1.1rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .item-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .file-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111317;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .file-meta code {
+      color: var(--gold-primary);
+      font-family: monospace;
+    }
+    .file-size.status-ready { color: var(--success); font-weight: 600; }
+    .file-size.status-pending { color: var(--danger); }
+    .prompt-details {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #13161a;
+      padding: 0.4rem;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+    }
+    .prompt-details summary {
+      cursor: pointer;
+      color: var(--gold-muted);
+      font-weight: 500;
+    }
+    .prompt-text {
+      margin-top: 0.4rem;
+      color: #b0b6c0;
+      line-height: 1.4;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .btn {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-accept { background: #1b3a26; color: #2ecc71; border-color: #2ecc71; }
+    .btn-accept:hover { background: #2ecc71; color: #000; }
+    .btn-reject { background: #3a1c1c; color: #e74c3c; border-color: #e74c3c; }
+    .btn-reject:hover { background: #e74c3c; color: #fff; }
+    .card.approved { border-color: var(--success) !important; background: #132018; }
+    .card.rejected { border-color: var(--danger) !important; background: #221314; }
+  </style>
+  <script>
+    function markDecision(button, decision) {
+      const card = button.closest('.card');
+      card.classList.remove('approved', 'rejected');
+      card.classList.add(decision);
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Przegląd Grafik Ekwipunku (Partia 4 - 25 pozycji)</h1>
+    <p class="header-desc">Katalog grafik ekwipunku CoC 7e RAW. Spójność studyjna: makro still-life na podłożu z epoki, światło kierunkowe, brak ludzi i rąk, rozdzielczość 512×512 WebP (&lt;250 KB).</p>
+    <div class="stats-bar">
+      <div class="stat-pill">Pozycji w partii: <strong>25</strong></div>
+      <div class="stat-pill">Gotowe pliki WebP: <strong>25</strong></div>
+      <div class="stat-pill">Oczekuje na render: <strong>0</strong></div>
+    </div>
+  </header>
+  <main class="grid">
+    
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/rifle-lee-metford-1890s.webp" alt="Karabin Lee-Metford .303" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1890s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Karabin Lee-Metford .303</h3>
+          <p class="item-subtitle">Lee-Metford .303 Bolt-Action Service Rifle</p>
+          <div class="file-meta">
+            <code>rifle-lee-metford-1890s.webp</code>
+            <span class="file-size status-ready">50.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic Victorian object study of a British military Lee-Metford .303 bolt-action service rifle with full-length walnut stock and blued steel action, resting on heavy canvas tent cloth, soft late Victorian daylight, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/rifle-springfield-1920s.webp" alt="Karabin Springfield M1903" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Karabin Springfield M1903</h3>
+          <p class="item-subtitle">Springfield M1903 .30-06 Rifle</p>
+          <div class="file-meta">
+            <code>rifle-springfield-1920s.webp</code>
+            <span class="file-size status-ready">45.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic historical object study of an authentic Springfield M1903 .30-06 bolt-action military rifle with oiled American walnut stock and dark parkerized steel, resting across wooden expedition crates, 1920s directional lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/rifle-hk416-modern.webp" alt="Karabinek H&K 416" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">weapon</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Karabinek H&K 416</h3>
+          <p class="item-subtitle">Tactical H&K 416 Carbine</p>
+          <div class="file-meta">
+            <code>rifle-hk416-modern.webp</code>
+            <span class="file-size status-ready">26.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic tactical object study of a matte black semi-automatic carbine with collapsible stock and Picatinny railed handguard, resting flat on a dark armor armory bench, clean contemporary side lighting, square composition, no brand trademarks, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/adrenaline-syringes-modern.webp" alt="Ampułkostrzykawki z adrenaliną" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">medical</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Ampułkostrzykawki z adrenaliną</h3>
+          <p class="item-subtitle">Auto-Injector Epinephrine Syringes</p>
+          <div class="file-meta">
+            <code>adrenaline-syringes-modern.webp</code>
+            <span class="file-size status-ready">37.4 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic medical object study of two auto-injector epinephrine adrenaline emergency pens with safety release caps, resting on an open sterile emergency medical pouch, bright clean clinical lighting, square composition, no brand logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/psychotropics-kit-shared.webp" alt="Leki uspokajające i psychotropowe" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">medical</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Leki uspokajające i psychotropowe</h3>
+          <p class="item-subtitle">Sedatives & Psychiatric Medication Kit</p>
+          <div class="file-meta">
+            <code>psychotropics-kit-shared.webp</code>
+            <span class="file-size status-ready">32.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic medical object study of several glass prescription medicine phials containing calming tablets and capsules, arranged inside an open dark leather doctor kit, soft dramatic lighting, square composition, no readable prescription names, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/patient-records-folder.webp" alt="Teczka z aktami pacjentów" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">document</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Teczka z aktami pacjentów</h3>
+          <p class="item-subtitle">Asylum Patient Case Files Folder</p>
+          <div class="file-meta">
+            <code>patient-records-folder.webp</code>
+            <span class="file-size status-ready">39.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic historical object study of a thick manila archival case folder bound with red cloth ribbon, marked with unreadable stamps and aged yellowed typewritten sheets inside, resting on a dark doctor desk, moody side lighting, square composition, no readable text, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/medical-id-badge.webp" alt="Identyfikator medyczny ordynatora" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Identyfikator medyczny ordynatora</h3>
+          <p class="item-subtitle">Hospital Chief Medical Officer Badge</p>
+          <div class="file-meta">
+            <code>medical-id-badge.webp</code>
+            <span class="file-size status-ready">17.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a plastic hospital medical identification access card in a clear polycarbonate badge holder clipped to a dark woven lanyard, resting on a polished medical countertop, clean directional lighting, square composition, no readable name or hospital logo, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/climbing-carabiners-modern.webp" alt="Lina wspinaczkowa i karabinki" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Lina wspinaczkowa i karabinki</h3>
+          <p class="item-subtitle">Dynamic Climbing Rope & Locking Carabiners</p>
+          <div class="file-meta">
+            <code>climbing-carabiners-modern.webp</code>
+            <span class="file-size status-ready">65.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic outdoor object study of a coiled dynamic kernmantle climbing rope in dark muted olive with two forged aluminum screw-lock carabiners clipped to the bight, resting on a granite rock ledge, crisp natural mountain light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/night-photo-kit-shared.webp" alt="Zestaw do zdjęć nocnych" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zestaw do zdjęć nocnych</h3>
+          <p class="item-subtitle">Night Photography Tripod and Cable Release</p>
+          <div class="file-meta">
+            <code>night-photo-kit-shared.webp</code>
+            <span class="file-size status-ready">41.1 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of an adjustable compact folding photography tripod with a mechanical bulb cable release and lens hood lying beside it on a slate surface, moody nocturnal side lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/diy-emf-detector-prl.webp" alt="Wykrywacz EMF domowej roboty" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Wykrywacz EMF domowej roboty</h3>
+          <p class="item-subtitle">Handmade Homemade EMF Detector Unit</p>
+          <div class="file-meta">
+            <code>diy-emf-detector-prl.webp</code>
+            <span class="file-size status-ready">45.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a homemade paranormal EMF detector built into a recycled stamped tin enclosure with exposed copper wire induction coil, miniature red neon bulb and toggle switch, resting on an electronics bench, dramatic low lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/electronics-case-prl.webp" alt="Zestaw narzędzi w walizce" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zestaw narzędzi w walizce</h3>
+          <p class="item-subtitle">Electronic Repair Tools in Hard Case</p>
+          <div class="file-meta">
+            <code>electronics-case-prl.webp</code>
+            <span class="file-size status-ready">62.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of an open vintage 1970s molded plastic tool suitcase fitted with partitioned foam holding precision screwdrivers, a soldering iron, spools of solder wire, and needle-nose pliers, resting on a workbench, institutional daylight, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/heavy-laptop-wifi-1990s.webp" alt="Ciężki laptop z wczesnym Wi-Fi" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Ciężki laptop z wczesnym Wi-Fi</h3>
+          <p class="item-subtitle">Heavy 1990s Laptop with PCMCIA Card</p>
+          <div class="file-meta">
+            <code>heavy-laptop-wifi-1990s.webp</code>
+            <span class="file-size status-ready">27.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic retro tech object study of a thick gray 1990s professional laptop with a black antenna PCMCIA wireless network card protruding from the side slot, screen closed, resting on a wooden office desk, documentary side lighting, square composition, no brand trademarks, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/scientific-calc-prl.webp" alt="Kalkulator naukowy Elwro/PRL" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kalkulator naukowy Elwro/PRL</h3>
+          <p class="item-subtitle">Vintage VFD Display Scientific Calculator</p>
+          <div class="file-meta">
+            <code>scientific-calc-prl.webp</code>
+            <span class="file-size status-ready">49 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an authentic 1970s Polish Elwro style scientific desktop calculator with bright teal-green vacuum fluorescent display (VFD) and hard angled plastic keys, resting on graph paper covered in handwritten formulas, documentary light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/safety-helmet-industrial.webp" alt="Przemysłowy kask ochronny" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">armor</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Przemysłowy kask ochronny</h3>
+          <p class="item-subtitle">Vintage Industrial Safety Hard Hat</p>
+          <div class="file-meta">
+            <code>safety-helmet-industrial.webp</code>
+            <span class="file-size status-ready">44.4 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a vintage fiberglass yellow industrial construction safety hard hat with adjustable leather suspension cradle inside, resting on a steel girder beam, scuffed and worn from use, directional workshop lighting, square composition, no logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/fireproof-gloves-shared.webp" alt="Rękawice ognioodporne" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">armor</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Rękawice ognioodporne</h3>
+          <p class="item-subtitle">Heavy Fireproof Cowhide Gauntlets</p>
+          <div class="file-meta">
+            <code>fireproof-gloves-shared.webp</code>
+            <span class="file-size status-ready">83.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a pair of heavy split cowhide heat-resistant gauntlet work gloves with reinforced leather palms and long protective cuffs, resting on a stone surface, warm side lighting, rich tactile suede texture, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/contacts-notebook-prl.webp" alt="Notes kontaktów i telefonów" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">document</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Notes kontaktów i telefonów</h3>
+          <p class="item-subtitle">Vintage Pocket Telephone Address Book</p>
+          <div class="file-meta">
+            <code>contacts-notebook-prl.webp</code>
+            <span class="file-size status-ready">61.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a small vintage pocket address telephone book with notched A-Z thumb tabs and textured vinyl cover, lying slightly open beside a plastic ballpoint pen, soft office lighting, square composition, no readable private text, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/embroidered-shawl.webp" alt="Haftowany szal wełniany" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Haftowany szal wełniany</h3>
+          <p class="item-subtitle">Traditional Folk Embroidered Wool Shawl</p>
+          <div class="file-meta">
+            <code>embroidered-shawl.webp</code>
+            <span class="file-size status-ready">49.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a heavy dark wool folded shawl with exquisite traditional red and gold silk floral embroidery along the fringed hem, resting on an antique wooden dowry chest, warm interior lighting, detailed weave texture, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/black-veil-hat.webp" alt="Czarny welon i kapelusz maskujący" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1890s</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Czarny welon i kapelusz maskujący</h3>
+          <p class="item-subtitle">Mourning Hat with Black Lace Veil</p>
+          <div class="file-meta">
+            <code>black-veil-hat.webp</code>
+            <span class="file-size status-ready">25 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a Victorian black felt mourning bonnet with delicate black lace veil draped over its brim, resting on an antique wooden vanity stand, dramatic soft side lighting, intricate lace patterns, square composition, no face, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/trenchcoat-hat-noir.webp" alt="Prochowiec i kapelusz" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1940s</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Prochowiec i kapelusz</h3>
+          <p class="item-subtitle">Folded Noir Trenchcoat and Fedora</p>
+          <div class="file-meta">
+            <code>trenchcoat-hat-noir.webp</code>
+            <span class="file-size status-ready">17.1 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a dark charcoal felt fedora hat with silk ribbon band resting atop a neatly folded heavy gabardine detective trench coat on an armchair, 1940s film noir venetian blind lighting, square composition, rich fabric texture, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/nurse-cross-silver.webp" alt="Srebrny krzyżyk pielęgniarki" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1920s</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Srebrny krzyżyk pielęgniarki</h3>
+          <p class="item-subtitle">Vintage Silver Nurse Cross Pendant</p>
+          <div class="file-meta">
+            <code>nurse-cross-silver.webp</code>
+            <span class="file-size status-ready">26.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a sterling silver red-enamel nurse cross medallion on a delicate silver safety brooch pin, resting on a folded white starched linen nurse apron, soft documentary light, square composition, antique enamel patina, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/holy-water-phial.webp" alt="Buteleczka z wodą święconą" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Buteleczka z wodą święconą</h3>
+          <p class="item-subtitle">Engraved Glass Phial of Blessed Water</p>
+          <div class="file-meta">
+            <code>holy-water-phial.webp</code>
+            <span class="file-size status-ready">18.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of an antique heavy cut-glass miniature flask with silver filigree cage and cork stopper, containing clear holy water, resting on dark church oak, single directional shaft of stained glass light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/sage-incense-bundle.webp" alt="Kadzidła szałwiowe" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kadzidła szałwiowe</h3>
+          <p class="item-subtitle">Dried White Sage Smudge Stick Bundle</p>
+          <div class="file-meta">
+            <code>sage-incense-bundle.webp</code>
+            <span class="file-size status-ready">48.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a tightly bound dried white sage smudge wand tied with natural cotton cord, unlit, resting in a polished abalone shell on a rough wooden table, natural soft daylight, square composition, detailed dried leaf texture, no smoke, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/protective-herbs-pouch.webp" alt="Woreczek ziół ochronnych" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Woreczek ziół ochronnych</h3>
+          <p class="item-subtitle">Linen Charm Pouch of Protective Herbs</p>
+          <div class="file-meta">
+            <code>protective-herbs-pouch.webp</code>
+            <span class="file-size status-ready">57.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a small unbleached coarse linen drawstring pouch tied with hemp cord, with a sprig of dried rosemary and dried rowan berries resting beside it on slate, warm quiet lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/silver-talisman-shared.webp" alt="Srebrny talizman z kamieniem" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Srebrny talizman z kamieniem</h3>
+          <p class="item-subtitle">Silver Amulet with Polished Obsidian</p>
+          <div class="file-meta">
+            <code>silver-talisman-shared.webp</code>
+            <span class="file-size status-ready">59.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of an antique sterling silver amulet set with a smooth jet-black polished obsidian cabochon stone, surrounded by subtle hand-chased filigree, resting on dark silk, dramatic raking light, square composition, no magic glow, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/ancient-translations-book.webp" alt="Zeszyt z odręcznymi tłumaczeniami" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 4</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">document</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zeszyt z odręcznymi tłumaczeniami</h3>
+          <p class="item-subtitle">Scholar Notebook of Hieroglyphic Translations</p>
+          <div class="file-meta">
+            <code>ancient-translations-book.webp</code>
+            <span class="file-size status-ready">27.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of an open marbled-cover academic notebook showing dense handwritten phonetics and small sketched glyphs in black fountain pen ink, with a bone magnifying ruler lying across the margin, warm library desk light, square composition, no readable modern words, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+  </main>
+</body>
+</html>

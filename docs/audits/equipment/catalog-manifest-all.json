@@ -397,7 +397,7 @@
   },
   {
     "id": "weapon.revolver-pocket-unlicensed",
-    "filename": "revolver-pocket-unlicensed.webp",
+    "filename": "pocket-revolver-shared.webp",
     "name": "Rewolwer kieszonkowy (bez zezwolenia)",
     "nameEn": "Unregistered Pocket Snub Revolver",
     "category": "weapon",
@@ -518,7 +518,7 @@
   },
   {
     "id": "personal.canteen-military-shared",
-    "filename": "canteen-military-shared.webp",
+    "filename": "canteen-flask-shared.webp",
     "name": "Manierka wojskowa",
     "nameEn": "Military Canteen in Canvas Cover",
     "category": "personal",
@@ -529,7 +529,7 @@
   },
   {
     "id": "tool.geological-hammer-shared",
-    "filename": "geological-hammer-shared.webp",
+    "filename": "geology-hammer-shared.webp",
     "name": "Młotek geologiczny",
     "nameEn": "Geologist Rock Pick Hammer",
     "category": "tool",
@@ -540,7 +540,7 @@
   },
   {
     "id": "tool.heavy-police-flashlight-prl",
-    "filename": "heavy-police-flashlight-prl.webp",
+    "filename": "police-flashlight-prl.webp",
     "name": "Mocna latarka policyjna PRL",
     "nameEn": "Heavy Duty Police Flashlight PRL",
     "category": "tool",
@@ -617,14 +617,14 @@
   },
   {
     "id": "document.sketchbook-shared",
-    "filename": "sketchbook-shared.webp",
+    "filename": "sketchbook-pencil-shared.webp",
     "name": "Szkicownik z ołówkiem",
     "nameEn": "Artist Sketchbook with Charcoal Study",
     "category": "document",
     "era": "shared",
     "isExisting": false,
     "batch": 2,
-    "prompt": "Photorealistic object study of an open linen-bound sketchbook showing a subtle architectural pencil sketch of an archway, with a graphite stick resting in the crease, soft north-facing studio light, square composition, no hands, no people, no text"
+    "prompt": "Photorealistic macro object study of an open artist sketchbook with charcoal pencil sketch of an ancient monolith, soft window light, textured cotton rag paper, square composition, no hands, no people"
   },
   {
     "id": "medical.bandages-shared",
@@ -639,7 +639,7 @@
   },
   {
     "id": "medical.laudanum-bottle-vintage",
-    "filename": "laudanum-bottle-vintage.webp",
+    "filename": "laudanum-phial-shared.webp",
     "name": "Buteleczka z laudanum",
     "nameEn": "Amber Glass Tincture Bottle of Laudanum",
     "category": "medical",

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Przegląd Grafik Ekwipunku (Partia 3 - 25 pozycji) | Strażnik Tajemnic AI</title>
+  <style>
+    :root {
+      --bg-dark: #0f1114;
+      --card-bg: #181b20;
+      --card-border: #2a2e36;
+      --gold-primary: #d4af37;
+      --gold-muted: #9e8328;
+      --text-main: #e6e8ec;
+      --text-muted: #8b929e;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1400px;
+      margin: 0 auto 2rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--gold-primary);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .header-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+    }
+    .stat-pill strong { color: var(--gold-primary); }
+    .grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      border-color: var(--gold-muted);
+      transform: translateY(-2px);
+    }
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      background: #000;
+    }
+    .image-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      background: #121418;
+      font-size: 0.85rem;
+    }
+    .placeholder .icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
+    .badges-overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-rebuild { background: #2c3e50; color: #ecf0f1; }
+    .badge-new { background: #16a085; color: #fff; }
+    .badge-era { background: #8e44ad; color: #fff; }
+    .badge-cat { background: #d35400; color: #fff; }
+    .badge-batch { background: #2980b9; color: #fff; }
+    .card-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 0.5rem;
+    }
+    .item-title {
+      font-size: 1.1rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .item-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .file-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111317;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .file-meta code {
+      color: var(--gold-primary);
+      font-family: monospace;
+    }
+    .file-size.status-ready { color: var(--success); font-weight: 600; }
+    .file-size.status-pending { color: var(--danger); }
+    .prompt-details {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #13161a;
+      padding: 0.4rem;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+    }
+    .prompt-details summary {
+      cursor: pointer;
+      color: var(--gold-muted);
+      font-weight: 500;
+    }
+    .prompt-text {
+      margin-top: 0.4rem;
+      color: #b0b6c0;
+      line-height: 1.4;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .btn {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-accept { background: #1b3a26; color: #2ecc71; border-color: #2ecc71; }
+    .btn-accept:hover { background: #2ecc71; color: #000; }
+    .btn-reject { background: #3a1c1c; color: #e74c3c; border-color: #e74c3c; }
+    .btn-reject:hover { background: #e74c3c; color: #fff; }
+    .card.approved { border-color: var(--success) !important; background: #132018; }
+    .card.rejected { border-color: var(--danger) !important; background: #221314; }
+  </style>
+  <script>
+    function markDecision(button, decision) {
+      const card = button.closest('.card');
+      card.classList.remove('approved', 'rejected');
+      card.classList.add(decision);
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Przegląd Grafik Ekwipunku (Partia 3 - 25 pozycji)</h1>
+    <p class="header-desc">Katalog grafik ekwipunku CoC 7e RAW. Spójność studyjna: makro still-life na podłożu z epoki, światło kierunkowe, brak ludzi i rąk, rozdzielczość 512×512 WebP (&lt;250 KB).</p>
+    <div class="stats-bar">
+      <div class="stat-pill">Pozycji w partii: <strong>25</strong></div>
+      <div class="stat-pill">Gotowe pliki WebP: <strong>25</strong></div>
+      <div class="stat-pill">Oczekuje na render: <strong>0</strong></div>
+    </div>
+  </header>
+  <main class="grid">
+    
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/incense-shared.webp" alt="Kadzidło i kadzielnica" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-rebuild">Przebudowa</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kadzidło i kadzielnica</h3>
+          <p class="item-subtitle">Bronze Incense Burner and Resins</p>
+          <div class="file-meta">
+            <code>incense-shared.webp</code>
+            <span class="file-size status-ready">121.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of an antique heavy cast bronze pierced censer bowl on three claw feet, unlit, with chunks of raw frankincense and myrrh resin resting on stone, moody quiet lighting, square composition, no smoke, no occult pentagrams, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/tarot-deck-vintage.webp" alt="Talia kart Tarota" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Talia kart Tarota</h3>
+          <p class="item-subtitle">Antique Marseilles Tarot Deck</p>
+          <div class="file-meta">
+            <code>tarot-deck-vintage.webp</code>
+            <span class="file-size status-ready">32.7 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of an antique hand-printed tarot card deck with worn gilded edges, a few cards loosely spread facedown on dark velvet cloth, subtle raking candle glow, square composition, antique paper texture, no readable modern text, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/crystal-ball-stand.webp" alt="Kula kryształowa" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kula kryształowa</h3>
+          <p class="item-subtitle">Flawless Quartz Scrying Sphere on Stand</p>
+          <div class="file-meta">
+            <code>crystal-ball-stand.webp</code>
+            <span class="file-size status-ready">29.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a clear natural quartz crystal scrying ball mounted on a carved dark ebony tripod stand, resting on an embroidered silk cloth, atmospheric moody lighting with soft internal light refractions, square composition, no magical glow, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/leather-grimoire-book.webp" alt="Oprawny w skórę grimuar" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Oprawny w skórę grimuar</h3>
+          <p class="item-subtitle">Heavy Leather-Bound Grimoire</p>
+          <div class="file-meta">
+            <code>leather-grimoire-book.webp</code>
+            <span class="file-size status-ready">22 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a massive antique book bound in heavy distressed dark brown calfskin with blind-tooled borders and two heavy iron clasps, closed, resting on a dark library lectern, soft chiaroscuro lighting, square composition, no glowing symbols, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/latin-scroll-vellum.webp" alt="Łaciński zwój z XIV wieku" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Łaciński zwój z XIV wieku</h3>
+          <p class="item-subtitle">Rolled Medieval Latin Vellum Scroll</p>
+          <div class="file-meta">
+            <code>latin-scroll-vellum.webp</code>
+            <span class="file-size status-ready">36.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a tightly rolled antique calfskin vellum scroll tied with a braided leather thong and a cracked red wax seal, resting on a dark wooden shelf, documentary side lighting, authentic vellum texture, square composition, no readable text, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/ancient-runes-stones.webp" alt="Zestaw starożytnych run" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zestaw starożytnych run</h3>
+          <p class="item-subtitle">Carved River Stone Runes in Pouch</p>
+          <div class="file-meta">
+            <code>ancient-runes-stones.webp</code>
+            <span class="file-size status-ready">82.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of smooth flat river pebbles with hand-carved ancient runic symbols, spilling out of a rough suede drawstring pouch onto weathered slate, low natural raking light, square composition, no glow, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/silver-amulet-sigil.webp" alt="Srebrny amulet z siglem" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Srebrny amulet z siglem</h3>
+          <p class="item-subtitle">Heavy Silver Talisman with Astrological Sigil</p>
+          <div class="file-meta">
+            <code>silver-amulet-sigil.webp</code>
+            <span class="file-size status-ready">49 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a heavy circular antique silver medallion engraved with fine astronomical and geometric sigils, resting on dark cloth, glinting metallic highlights, square composition, documentary texture, no magic glow, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/crystal-pendulum-shared.webp" alt="Wahadełko z kryształem" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">occult</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Wahadełko z kryształem</h3>
+          <p class="item-subtitle">Faceted Quartz Divination Pendulum</p>
+          <div class="file-meta">
+            <code>crystal-pendulum-shared.webp</code>
+            <span class="file-size status-ready">23.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a faceted clear quartz crystal pendulum on a delicate sterling silver curb chain with a silver ring end, resting on a dark polished mahogany desk, sharp directional light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/emf-meter-vintage.webp" alt="Miernik pola elektromagnetycznego" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Miernik pola elektromagnetycznego</h3>
+          <p class="item-subtitle">Analog Electromagnetic Field Meter</p>
+          <div class="file-meta">
+            <code>emf-meter-vintage.webp</code>
+            <span class="file-size status-ready">16 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of a 1970s analog electromagnetic radiation field detector with a galvanometer needle dial behind glass and rotary range switch, textured industrial case with telescopic metal antenna, resting on a desk, documentary side lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/microcassette-dictaphone.webp" alt="Dyktafon na mikrokasety" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">1980s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Dyktafon na mikrokasety</h3>
+          <p class="item-subtitle">Microcassette Pocket Dictaphone</p>
+          <div class="file-meta">
+            <code>microcassette-dictaphone.webp</code>
+            <span class="file-size status-ready">13.4 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a compact brushed aluminum handheld microcassette voice recorder with built-in microphone grille and mechanical push buttons, resting on a reporter notebook, authentic 1980s documentary light, square composition, no brands, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/digital-dictaphone-modern.webp" alt="Dyktafon cyfrowy" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Dyktafon cyfrowy</h3>
+          <p class="item-subtitle">Modern Digital Audio Dictaphone</p>
+          <div class="file-meta">
+            <code>digital-dictaphone-modern.webp</code>
+            <span class="file-size status-ready">8.2 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a sleek black zinc-alloy professional digital voice recorder with dual stereo condenser microphones at the top, resting on a dark wood conference desk, clean crisp studio light, square composition, no readable brand logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/nightvision-camera-modern.webp" alt="Kamera z trybem NightVision" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kamera z trybem NightVision</h3>
+          <p class="item-subtitle">Infrared Night-Vision Video Camcorder</p>
+          <div class="file-meta">
+            <code>nightvision-camera-modern.webp</code>
+            <span class="file-size status-ready">10.5 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a rugged handheld camcorder with infrared night vision emitter ring around the optical lens and folded side LCD screen, dark matte polymer chassis, resting on a tactical hard case, crisp documentary lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/dslr-camera-modern.webp" alt="Lustrzanka cyfrowa z fleszem" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Lustrzanka cyfrowa z fleszem</h3>
+          <p class="item-subtitle">Professional DSLR Camera with Speedlight</p>
+          <div class="file-meta">
+            <code>dslr-camera-modern.webp</code>
+            <span class="file-size status-ready">20.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a black weather-sealed professional DSLR camera fitted with a large prime lens and an external hot-shoe flash unit, resting on a dark tabletop, clean studio directional lighting, square composition, no camera brands or logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/satellite-gps-modern.webp" alt="Odbiornik GPS satelitarny" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Odbiornik GPS satelitarny</h3>
+          <p class="item-subtitle">Rugged Handheld Satellite GPS Navigator</p>
+          <div class="file-meta">
+            <code>satellite-gps-modern.webp</code>
+            <span class="file-size status-ready">54.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a heavy-duty rubberized handheld outdoor GPS satellite navigator with high-sensitivity quad-helix antenna, matte monochrome screen turned off, carabiner clip on back, resting on slate, documentary lighting, square composition, no brand logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/satellite-radio-modern.webp" alt="Zabezpieczone radio satelitarne" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zabezpieczone radio satelitarne</h3>
+          <p class="item-subtitle">Rugged Satellite Transceiver Radio</p>
+          <div class="file-meta">
+            <code>satellite-radio-modern.webp</code>
+            <span class="file-size status-ready">34.3 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a waterproof tactical handheld satellite transceiver radio with a thick swivel antenna and heavy rotary channel knobs, resting on a dark pelican case lid, studio side lighting, square composition, no brand names, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/rugged-ultrabook-modern.webp" alt="Zabezpieczony Ultrabook" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zabezpieczony Ultrabook</h3>
+          <p class="item-subtitle">Ruggedized Mil-Spec Laptop</p>
+          <div class="file-meta">
+            <code>rugged-ultrabook-modern.webp</code>
+            <span class="file-size status-ready">46.1 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a closed ruggedized magnesium-alloy military laptop with reinforced rubber shock corners and heavy carrying handle, resting on an industrial table, sharp directional lighting, square composition, no brand logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/rugged-tablet-lidar.webp" alt="Tablet ze skanerem LiDAR" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Tablet ze skanerem LiDAR</h3>
+          <p class="item-subtitle">Rugged Industrial Tablet with LiDAR Sensor</p>
+          <div class="file-meta">
+            <code>rugged-tablet-lidar.webp</code>
+            <span class="file-size status-ready">39.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a heavy-duty rugged industrial field tablet with hand strap on back and optical LiDAR sensor array window on the top edge, resting flat on drafting plans, clean crisp directional light, square composition, no brand names, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/brick-cellphone-prl.webp" alt="Telefon komórkowy (wielki)" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">prl-1970s</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Telefon komórkowy (wielki)</h3>
+          <p class="item-subtitle">Vintage 1980s Brick Cellphone</p>
+          <div class="file-meta">
+            <code>brick-cellphone-prl.webp</code>
+            <span class="file-size status-ready">22.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic period object study of an early analog heavy handheld brick mobile telephone with thick rubberized antenna, chunky black plastic casing and rubber keypad, standing upright on an office desk, documentary side lighting, square composition, no hands, no people, no brand trademarks</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/audio-cassette-shared.webp" alt="Taśma kasetowa z nagraniem" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">document</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Taśma kasetowa z nagraniem</h3>
+          <p class="item-subtitle">Compact Audio Cassette with Handwritten Label</p>
+          <div class="file-meta">
+            <code>audio-cassette-shared.webp</code>
+            <span class="file-size status-ready">39.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a standard compact audio cassette tape with dark magnetic ribbon visible inside clear smoked plastic, featuring an unreadable scribble on a white adhesive paper label, resting on dark walnut, documentary lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/film-reel-shared.webp" alt="Szpula taśmy 16mm" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">document</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Szpula taśmy 16mm</h3>
+          <p class="item-subtitle">16mm Metal Film Reel in Tin</p>
+          <div class="file-meta">
+            <code>film-reel-shared.webp</code>
+            <span class="file-size status-ready">33.4 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of an open circular galvanized tin movie film can with a perforated aluminum 16mm motion picture film reel partially pulled out, resting on an archival editing bench, soft cinematic side light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/encrypted-usb-modern.webp" alt="Zaszyfrowany pendrive i dysk" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">tool</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Zaszyfrowany pendrive i dysk</h3>
+          <p class="item-subtitle">Hardware Encrypted Flash Drive with Keypad</p>
+          <div class="file-meta">
+            <code>encrypted-usb-modern.webp</code>
+            <span class="file-size status-ready">31.9 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of a heavy black aluminum hardware-encrypted USB flash drive with a built-in miniature physical alphanumeric keypad, lying next to a compact external SSD on a dark slate surface, clean studio lighting, square composition, no brand logos, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/archive-keys-bundle.webp" alt="Pęk starych kluczy do archiwum" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Pęk starych kluczy do archiwum</h3>
+          <p class="item-subtitle">Heavy Iron Ring of Antique Archive Keys</p>
+          <div class="file-meta">
+            <code>archive-keys-bundle.webp</code>
+            <span class="file-size status-ready">44.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of an antique heavy wrought iron circular key ring holding five large ornate skeleton keys with intricate wards and rusted patina, resting on a dusty dark wood archive shelf, dramatic raking light, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/reading-glasses-case.webp" alt="Okulary do czytania w etui" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">shared</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Okulary do czytania w etui</h3>
+          <p class="item-subtitle">Tortoiseshell Reading Glasses & Leather Case</p>
+          <div class="file-meta">
+            <code>reading-glasses-case.webp</code>
+            <span class="file-size status-ready">43.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic macro object study of round tortoiseshell-framed vintage reading spectacles resting half inside a fitted worn brown saddle leather snap case, on a stack of old books, warm library window lighting, square composition, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/tactical-vest-black.webp" alt="Kamizelka taktyczna" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">armor</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Kamizelka taktyczna</h3>
+          <p class="item-subtitle">Black Tactical MOLLE Load-Bearing Vest</p>
+          <div class="file-meta">
+            <code>tactical-vest-black.webp</code>
+            <span class="file-size status-ready">40.6 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a black 1000D Cordura tactical plate carrier vest with laser-cut MOLLE webbing and modular magazine pouches, resting flat on a dark concrete locker room floor, moody studio lighting, square composition, no patches, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+
+      <article class="card has-file">
+        <div class="image-wrapper">
+          <img src="../../../public/equipment/catalog/rugged-hiking-backpack.webp" alt="Plecak turystyczny" loading="lazy" width="512" height="512">
+          <div class="badges-overlay">
+            <span class="badge badge-batch">Batch 3</span>
+            <span class="badge badge-new">Nowy</span>
+            <span class="badge badge-era">modern</span>
+            <span class="badge badge-cat">personal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="item-title">Plecak turystyczny</h3>
+          <p class="item-subtitle">Expedition Cordura Rucksack</p>
+          <div class="file-meta">
+            <code>rugged-hiking-backpack.webp</code>
+            <span class="file-size status-ready">68.8 KB</span>
+          </div>
+          <details class="prompt-details">
+            <summary>Prompt studyjny</summary>
+            <p class="prompt-text">Photorealistic object study of a rugged 45-liter technical expedition backpack in dark charcoal ripstop fabric with compression straps and aluminum stay frame, standing upright against a field boulder, crisp morning daylight, square composition, no brand names, no hands, no people</p>
+          </details>
+          <div class="actions">
+            <button class="btn btn-accept" onclick="markDecision(this, 'approved')">✓ Zatwierdź</button>
+            <button class="btn btn-reject" onclick="markDecision(this, 'rejected')">✗ Do poprawy</button>
+          </div>
+        </div>
+      </article>
+      
+  </main>
+</body>
+</html>
