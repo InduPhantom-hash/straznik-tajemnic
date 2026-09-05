@@ -8,17 +8,15 @@ jest.mock('../../../ui/campaign-clock', () => ({
 }));
 
 describe('ChatHeader', () => {
-  it('reserves desktop width for the full Miskatonic adventure title', () => {
-    const title = 'Mystery of the Miskatonic Library';
+  it('truncates adventure title with ellipsis and preserves full title in tooltip', () => {
+    const title = 'Cień nad Prabutami: Widzenie Ojca Kiszowa - Elbląg - Prabuty';
 
     render(<ChatHeader title={title} />);
 
     const titleLabel = screen.getByTitle(title);
     expect(titleLabel).toHaveTextContent(title);
     expect(titleLabel).toHaveClass('truncate');
-    expect(titleLabel.parentElement?.parentElement).toHaveClass(
-      'md:grid-cols-[minmax(24rem,1fr)_minmax(0,1fr)_auto]'
-    );
+    expect(titleLabel.parentElement).toHaveClass('min-w-0', 'shrink-0');
   });
 
   it('shows the complete region and current place without an artificial width limit', () => {
