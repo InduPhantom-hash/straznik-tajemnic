@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import type { AdventureContext } from '@/lib/adventures-data';
@@ -38,7 +38,7 @@ describe('AdventureDetailsModal', () => {
     expect(screen.queryByText(/4-6 graczy/i)).not.toBeInTheDocument();
   });
 
-  it('unifies title typography to font-display and replaces dictionary block with tooltips and plot', () => {
+  it('unifies title typography, presents narrative hook and metadata without spoilers initially', () => {
     render(
       <AdventureDetailsModal
         adventure={adventure}
@@ -52,14 +52,38 @@ describe('AdventureDetailsModal', () => {
     expect(heading).toHaveClass('font-display');
     expect(heading).not.toHaveClass('font-display-decorative');
 
-    // Usunięty blok słownikowy
+    // Usunięty stary blok słownikowy
     expect(screen.queryByText(/co oznaczają oznaczenia/i)).not.toBeInTheDocument();
 
-    // Wskaźniki pomocy (HelpIcon) przy badge'ach
+    // Wskaźniki pomocy (HelpIcon) przy kaflach metadanych
     const helpIcons = screen.getAllByText('?');
     expect(helpIcons.length).toBe(3); // ton, era, trudność
 
-    // Wyeksponowana fabuła i archetypy
+    // Haczyk narracyjny (hook) jest wyeksponowany dla gracza
+    expect(screen.getByText(adventure.hook)).toBeInTheDocument();
+
+    // Pełny opis fabularny (spoilery) NIE jest widoczny w widoku domyślnym
+    expect(screen.queryByText(adventure.description)).not.toBeInTheDocument();
+  });
+
+  it('reveals keeper dossier with full plot, themes and suggested cast when accordion is opened', () => {
+    render(
+      <AdventureDetailsModal
+        adventure={adventure}
+        open
+        onClose={jest.fn()}
+        onChoose={jest.fn()}
+      />
+    );
+
+    // Przed otwarciem: brak spoilerów
+    expect(screen.queryByText(adventure.description)).not.toBeInTheDocument();
+
+    // Kliknięcie w akordeon akt poufnych Strażnika Tajemnic (Spoilery)
+    const accordionTrigger = screen.getByText(/Akta poufne Strażnika Tajemnic \(Spoilery\)/i);
+    fireEvent.click(accordionTrigger);
+
+    // Po otwarciu: intryga, motywy i archetypy są dostępne
     expect(screen.getByText(adventure.description)).toBeInTheDocument();
     expect(screen.getByText('archeologia')).toBeInTheDocument();
     expect(screen.getByText('starożytne klątwy')).toBeInTheDocument();
