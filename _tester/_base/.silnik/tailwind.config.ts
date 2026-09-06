@@ -61,6 +61,16 @@ const config: Config = {
         },
       },
       fontFamily: {
+        sans: [
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
         serif: ['Cormorant Garamond', 'serif'],
         mono: ['Special Elite', 'monospace'],
         'special-elite': ['Special Elite', 'monospace'],

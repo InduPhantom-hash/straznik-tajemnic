@@ -85,6 +85,24 @@
 @layer base {
   html {
     overflow-x: hidden;
+    font-size: 16px;
+  }
+
+  /*
+   * Skalowanie typografii i UI na ekranach 16:9 oraz Apple Retina/Studio Display:
+   * - QHD (2560x1440) / Apple Studio Display 27" (skalowane 2560x1440): podbicie bazy o ~9%
+   * - 4K UHD (3840x2160) / Pro Display XDR 6K: podbicie bazy o ~22%
+   */
+  @media (min-width: 2000px) {
+    html {
+      font-size: 17.5px;
+    }
+  }
+
+  @media (min-width: 3200px) {
+    html {
+      font-size: 19.5px;
+    }
   }
 
   body {
