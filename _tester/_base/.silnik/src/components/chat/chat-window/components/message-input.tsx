@@ -14,6 +14,9 @@ import { Send, BookOpen, Loader2, Users, Check, Clock } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import type { ResolvedEraContext, AnachronismDetection } from '@/lib/era';
 import { detectAnachronism } from '@/lib/era';
+import { filterCheatSuggestions, type CheatSuggestion } from '@/lib/cheats/cheat-engine';
+import { CheatAutocompletePopup } from './cheat-autocomplete-popup';
+
 import { Button } from '../../../ui/button';
 import { Textarea } from '../../../ui/textarea';
 
@@ -91,6 +94,35 @@ export function MessageInput({
 
   const [anachronismAlert, setAnachronismAlert] = useState<AnachronismDetection | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [selectedCheatIndex, setSelectedCheatIndex] = useState(0);
+  const [cheatSuggestions, setCheatSuggestions] = useState<CheatSuggestion[]>([]);
+  const [showCheatPopup, setShowCheatPopup] = useState(false);
+
+  // Autocomplete cheatów pod znak [
+  useEffect(() => {
+    if (newMessage.startsWith('[')) {
+      const suggestions = filterCheatSuggestions(newMessage);
+      setCheatSuggestions(suggestions);
+      setShowCheatPopup(suggestions.length > 0);
+      setSelectedCheatIndex(0);
+    } else {
+      setShowCheatPopup(false);
+      setCheatSuggestions([]);
+    }
+  }, [newMessage]);
+
+  const handleSelectCheat = (suggestion: CheatSuggestion) => {
+    setNewMessage(suggestion.template);
+    setShowCheatPopup(false);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const len = suggestion.template.length;
+        textareaRef.current.setSelectionRange(len, len);
+      }
+    }, 50);
+  };
+
 
   // Debounced detekcja anachronizmów (250ms)
   useEffect(() => {
@@ -256,6 +288,17 @@ export function MessageInput({
         </div>
       )}
 
+      {/* Retro Popup Autocomplete Cheatów pod [ */}
+      {showCheatPopup && (
+        <div className="max-w-4xl mx-auto relative">
+          <CheatAutocompletePopup
+            suggestions={cheatSuggestions}
+            selectedIndex={selectedCheatIndex}
+            onSelectSuggestion={handleSelectCheat}
+            locale={locale}
+          />
+        </div>
+      )}
       <div className="flex items-end gap-2 max-w-4xl mx-auto">
         <Textarea
           ref={textareaRef}
@@ -274,8 +317,35 @@ export function MessageInput({
           rows={2}
           className="min-h-[52px] max-h-[112px] resize-y font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
           onKeyDown={(e) => {
+            if (showCheatPopup && cheatSuggestions.length > 0) {
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedCheatIndex((prev) => (prev + 1) % cheatSuggestions.length);
+                return;
+              }
+              if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedCheatIndex((prev) => (prev - 1 + cheatSuggestions.length) % cheatSuggestions.length);
+                return;
+              }
+              if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey && newMessage.trim().length <= 5)) {
+                e.preventDefault();
+                const selected = cheatSuggestions[selectedCheatIndex];
+                if (selected) {
+                  handleSelectCheat(selected);
+                  return;
+                }
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setShowCheatPopup(false);
+                return;
+              }
+            }
+
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
+              setShowCheatPopup(false);
               submitInput();
             }
           }}

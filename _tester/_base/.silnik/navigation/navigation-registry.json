@@ -364,6 +364,14 @@
         "pl": "Rekonwalescencja i opieka medyczna (CoC 7e RAW)",
         "en": "Convalescence and medical care (CoC 7e RAW)"
       }
+    },
+    {
+      "id": "combat-defense-dialog",
+      "kind": "modal",
+      "label": {
+        "pl": "Obrona w walce (CoC 7e RAW)",
+        "en": "Combat defense (CoC 7e RAW)"
+      }
     }
   ],
   "actions": [
@@ -735,6 +743,15 @@
         "en": "Convalescence and medical care"
       },
       "component": "src/components/ui/character-sheet/index.tsx"
+    },
+    {
+      "source": "game",
+      "target": "combat-defense-dialog",
+      "label": {
+        "pl": "Obrona w walce",
+        "en": "Combat defense"
+      },
+      "component": "src/components/chat/chat-window/index.tsx"
     }
   ]
 }

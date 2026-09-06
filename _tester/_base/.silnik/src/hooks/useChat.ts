@@ -50,6 +50,8 @@ import {
   isCharacterBoundEquipment,
 } from '@/lib/equipment-prompt-builder';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
+import { isCheatCommand, executeCheatCommand } from '@/lib/cheats/cheat-engine';
+
 
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
@@ -291,6 +293,26 @@ export interface UseChatReturn {
   isSessionEnded: boolean;
   /** Dwuetapowy stan końca sesji (idle | awaiting_player_closure | ended) */
   sessionEndStatus: SessionEndStatus;
+  // Retro Cheats
+  cheatCombatModal: {
+    attackerName: string;
+    attackerWeapon?: string;
+    dodgeSkill: number;
+    brawlSkill: number;
+    playerBuild?: number;
+    attackerBuild?: number;
+  } | null;
+  setCheatCombatModal: React.Dispatch<React.SetStateAction<{
+    attackerName: string;
+    attackerWeapon?: string;
+    dodgeSkill: number;
+    brawlSkill: number;
+    playerBuild?: number;
+    attackerBuild?: number;
+  } | null>>;
+  cheatChaseModal: boolean;
+  setCheatChaseModal: React.Dispatch<React.SetStateAction<boolean>>;
+
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
@@ -384,6 +406,17 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSessionEnded, setIsSessionEnded] = useState(false);
+  // Retro Cheats - stany modali wyzwalanych kodami [COMBAT] i [CHASE]
+  const [cheatCombatModal, setCheatCombatModal] = useState<{
+    attackerName: string;
+    attackerWeapon?: string;
+    dodgeSkill: number;
+    brawlSkill: number;
+    playerBuild?: number;
+    attackerBuild?: number;
+  } | null>(null);
+  const [cheatChaseModal, setCheatChaseModal] = useState<boolean>(false);
+
   const [sessionEndStatus, setSessionEndStatus] = useState<SessionEndStatus>('idle');
   const [lastImageTime, setLastImageTime] = useState(0);
 
@@ -748,6 +781,67 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
   const handleSendMessage = useCallback(
     async (message: string) => {
+      // Retro Cheat Interceptor (0 ms, 0 tokenów, wykonanie lokalne)
+      if (isCheatCommand(message)) {
+        const currentGameTime = timeManager.getTime();
+        const userMsg: Message = {
+          id: crypto.randomUUID(),
+          role: 'user',
+          content: message,
+          timestamp: new Date(),
+          gameTime: currentGameTime,
+        };
+        setMessages((prev) => [...prev, userMsg]);
+
+        const locale = (typeof window !== 'undefined' && window.location.pathname.startsWith('/en')) ? 'en' : 'pl';
+        const execRes = executeCheatCommand(message, activeCharacter, locale);
+
+        if (execRes.characterUpdates && activeCharacter) {
+          const updatedChar: Character = {
+            ...activeCharacter,
+            ...execRes.characterUpdates,
+          };
+          setActiveCharacter(updatedChar);
+          setCharacters((prev) =>
+            prev.map((c) => (c.id === updatedChar.id ? updatedChar : c))
+          );
+          if (typeof window !== 'undefined') {
+            persistCharacters(
+              characters.map((c) => (c.id === updatedChar.id ? updatedChar : c))
+            );
+          }
+        }
+
+        if (execRes.openCombatModal) {
+          setCheatCombatModal(execRes.openCombatModal);
+        }
+        if (execRes.openChaseModal) {
+          setCheatChaseModal(true);
+        }
+        if (execRes.toastMessage) {
+          toast({
+            title: 'Cheat Engine',
+            description: execRes.toastMessage,
+          });
+        }
+
+        if (execRes.assistantMessage) {
+          const assistantMsg: Message = {
+            id: execRes.assistantMessage.id || crypto.randomUUID(),
+            role: 'assistant',
+            content: execRes.assistantMessage.content || '',
+            timestamp: new Date(),
+            gameTime: currentGameTime,
+            skillTests: execRes.assistantMessage.skillTests,
+            hazardEvents: execRes.assistantMessage.hazardEvents,
+            acquiredItems: execRes.assistantMessage.acquiredItems,
+            generatedImages: execRes.assistantMessage.generatedImages,
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+        }
+        return;
+      }
+
       // IND-174: race condition guard. Chroni przed concurrent calls (double-click,
       // szybkie Enter, rapid programmatic invocation), które bez tego prowadziły do
       // przeplatania content streams w setMessages.map callbackach onText/onMetadata
@@ -1664,5 +1758,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     dismissAcquiredItem,
     isSessionEnded,
     sessionEndStatus,
+    cheatCombatModal,
+    setCheatCombatModal,
+    cheatChaseModal,
+    setCheatChaseModal,
   };
 }
