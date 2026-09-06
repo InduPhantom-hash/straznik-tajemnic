@@ -703,7 +703,7 @@ export function SessionJournal({
     >
       {/* RPG-styled Container - Standard 75-80% powierzchni ekranu & Dark Art Déco */}
       <div
-        className="bg-gradient-to-b from-[#18130e] via-[#120e0a] to-[#0a0805] border border-brass/50 shadow-2xl w-[80vw] h-[78vh] max-h-[85vh] flex flex-col overflow-hidden text-zinc-300 relative rounded-sm"
+        className="bg-gradient-to-b from-[#18130e] via-[#120e0a] to-[#0a0805] border border-brass/50 shadow-2xl w-[80vw] h-[78vh] max-h-[85vh] flex flex-col overflow-hidden text-foreground relative rounded-sm"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Narożniki déco */}
@@ -816,7 +816,7 @@ export function SessionJournal({
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#16120d] via-[#120e09] to-[#0a0805] text-zinc-300 journal-scroll">
+        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#16120d] via-[#120e09] to-[#0a0805] text-foreground journal-scroll">
           {/* 1. SEKCJA AKT ŚLEDCZYCH (Dossier CoC 7e RAW) */}
           {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
             <DiscoveriesView
@@ -867,7 +867,7 @@ export function SessionJournal({
                   {filteredEntries.map((entry) => (
                     <div key={entry.id} className="relative">
                       {/* Oś czasu */}
-                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-zinc-950 rounded-full h-4 w-4"></span>
+                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-background rounded-full h-4 w-4"></span>
 
                       <div className="bg-[#120905] border border-emerald-900/30 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
@@ -909,7 +909,7 @@ export function SessionJournal({
                                 });
                                 setShowIdeaModal(true);
                               }}
-                              className="p-1 text-amber-300 hover:bg-amber-900/60 rounded transition-colors"
+                              className="p-1 text-brass hover:bg-brass/10 rounded transition-colors"
                               title={t('ideaRollTooltip')}
                             >
                               <Lightbulb className="h-4 w-4" />
@@ -950,12 +950,12 @@ export function SessionJournal({
                         </div>
 
                         {entry.imageStatus === 'pending' ? (
-                          <div className="mt-3 my-2 h-44 rounded border border-emerald-500/30 bg-zinc-950 p-4 flex flex-col items-center justify-center gap-2 text-emerald-400">
+                          <div className="mt-3 my-2 h-44 rounded border border-emerald-500/30 bg-card p-4 flex flex-col items-center justify-center gap-2 text-emerald-400">
                             <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                             <span className="text-xs font-serif italic">{t('paintingIllustration')}</span>
                           </div>
                         ) : entry.imageUrl ? (
-                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-emerald-500/30 bg-zinc-950 p-1">
+                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-emerald-500/30 bg-card p-1">
                             <SafeImage
                               src={entry.imageUrl}
                               alt={entry.title}
@@ -963,7 +963,7 @@ export function SessionJournal({
                             />
                           </div>
                         ) : null}
-                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-zinc-300">
+                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-foreground">
                           {entry.content}
                         </p>
 
@@ -1275,8 +1275,8 @@ function AddEntryForm({
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-emerald-900/30 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-zinc-300 font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3 mb-5">
+      <div className="bg-[#1c120c] border-2 border-brass/40 rounded-lg p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-foreground font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-brass/20 pb-3 mb-5">
           <h3 className="text-xl font-bold text-emerald-100">
             {t('addFormTitle')}
           </h3>
@@ -1301,7 +1301,7 @@ function AddEntryForm({
                   type: e.target.value as JournalEntryType,
                 })
               }
-              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
             >
               <option value="quest">{t('typeQuest')}</option>
               <option value="journal">{t('typeJournal')}</option>
@@ -1333,7 +1333,7 @@ function AddEntryForm({
                     gameDay: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               />
             </div>
             <div>
@@ -1351,7 +1351,7 @@ function AddEntryForm({
                     gameHour: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               />
             </div>
           </div>
@@ -1372,7 +1372,7 @@ function AddEntryForm({
                       | 'failed',
                   })
                 }
-                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               >
                 <option value="active">{t('statusActive')}</option>
                 <option value="completed">{t('statusCompleted')}</option>
@@ -1391,7 +1391,7 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none placeholder-emerald-900/60"
+              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none placeholder:text-muted-foreground"
               placeholder={t('titlePlaceholder')}
               required
             />
@@ -1406,14 +1406,14 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f] placeholder-emerald-900/60"
+              className="min-h-32 bg-input text-foreground border-brass/30 focus-visible:ring-brass placeholder:text-muted-foreground"
               placeholder={t('contentPlaceholder')}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-amber-200/90 font-serif">
+            <label className="block text-sm font-medium mb-1.5 text-brass font-serif">
               {t('insightLabel')}
             </label>
             <Textarea
@@ -1421,21 +1421,21 @@ function AddEntryForm({
               onChange={(e) =>
                 setFormData({ ...formData, investigatorInsight: e.target.value })
               }
-              className="min-h-20 bg-zinc-950 text-zinc-300 border-amber-900/40 focus-visible:ring-[#bfa15f] placeholder-amber-900/50 italic font-serif"
+              className="min-h-20 bg-input text-foreground border-brass/30 focus-visible:ring-brass placeholder:text-muted-foreground italic font-serif"
               placeholder={t('insightPlaceholder')}
             />
           </div>
 
           {formData.type === 'quest' && (
-            <div className="border border-emerald-900/30 p-4 rounded-md bg-zinc-950/40 space-y-3">
-              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-emerald-900/30 pb-1">
+            <div className="border border-brass/20 p-4 rounded-md bg-card/60 space-y-3">
+              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-brass/20 pb-1">
                 {t('objectivesLabel')}
               </label>
               <div className="space-y-2">
                 {formData.objectives.map((obj, i) => (
                   <div
                     key={obj.id}
-                    className="flex justify-between items-center bg-zinc-950 p-2 rounded border border-emerald-900/30 text-sm"
+                    className="flex justify-between items-center bg-input p-2 rounded border border-brass/20 text-sm"
                   >
                     <span className="truncate">
                       {i + 1}. {obj.description}
@@ -1443,7 +1443,7 @@ function AddEntryForm({
                     <button
                       type="button"
                       onClick={() => removeObjective(obj.id)}
-                      className="text-[#942c2c] hover:text-red-400"
+                      className="text-[#942c2c] hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -1456,7 +1456,7 @@ function AddEntryForm({
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   placeholder={t('objectivePlaceholder')}
-                  className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-sm text-zinc-300 outline-none focus:border-emerald-500"
+                  className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-sm text-foreground outline-none focus:border-brass"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
                   }
@@ -1498,7 +1498,7 @@ function AddEntryForm({
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none placeholder-emerald-900/60"
+                className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none placeholder:text-muted-foreground"
                 placeholder={t('tagPlaceholder')}
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
@@ -1518,7 +1518,7 @@ function AddEntryForm({
                   key={tag}
                   type="button"
                   onClick={() => addTag(tag)}
-                  className="px-2 py-0.5 text-xs bg-zinc-950 hover:bg-[#1a110a] text-[#8a7667] rounded border border-emerald-900/30"
+                  className="px-2 py-0.5 text-xs bg-input hover:bg-[#1a110a] text-muted-foreground rounded border border-brass/20"
                 >
                   {tag}
                 </button>
@@ -1607,8 +1607,8 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-4 border-emerald-900/30 rounded-xl p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-zinc-300 font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3 mb-5">
+      <div className="bg-[#1c120c] border-2 border-brass/40 rounded-lg p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-foreground font-serif shadow-2xl">
+        <div className="flex justify-between items-center border-b border-brass/20 pb-3 mb-5">
           <h3 className="text-xl font-bold text-emerald-100">
             {t('editFormTitle')}
           </h3>
@@ -1633,7 +1633,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   type: e.target.value as JournalEntryType,
                 })
               }
-              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
             >
               <option value="quest">{t('typeQuest')}</option>
               <option value="journal">{t('typeJournal')}</option>
@@ -1665,7 +1665,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     gameDay: parseInt(e.target.value) || 1,
                   })
                 }
-                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               />
             </div>
             <div>
@@ -1683,7 +1683,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     gameHour: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               />
             </div>
           </div>
@@ -1704,7 +1704,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                       | 'failed',
                   })
                 }
-                className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               >
                 <option value="active">{t('statusActive')}</option>
                 <option value="completed">{t('statusCompleted')}</option>
@@ -1723,7 +1723,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full p-2.5 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
               required
             />
           </div>
@@ -1737,13 +1737,13 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              className="min-h-32 bg-zinc-950 text-zinc-300 border-emerald-900/30 focus-visible:ring-[#bfa15f]"
+              className="min-h-32 bg-input text-foreground border-brass/30 focus-visible:ring-brass"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-amber-200/90 font-serif">
+            <label className="block text-sm font-medium mb-1.5 text-brass font-serif">
               {t('insightLabel')}
             </label>
             <Textarea
@@ -1751,21 +1751,21 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, investigatorInsight: e.target.value })
               }
-              className="min-h-20 bg-zinc-950 text-zinc-300 border-amber-900/40 focus-visible:ring-[#bfa15f] placeholder-amber-900/50 italic font-serif"
+              className="min-h-20 bg-input text-foreground border-brass/30 focus-visible:ring-brass placeholder:text-muted-foreground italic font-serif"
               placeholder={t('insightPlaceholder')}
             />
           </div>
 
           {formData.type === 'quest' && (
-            <div className="border border-emerald-900/30 p-4 rounded-md bg-zinc-950/40 space-y-3">
-              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-emerald-900/30 pb-1">
+            <div className="border border-brass/20 p-4 rounded-md bg-card/60 space-y-3">
+              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-brass/20 pb-1">
                 {t('objectivesLabel')}
               </label>
               <div className="space-y-2">
                 {(formData.objectives || []).map((obj, i) => (
                   <div
                     key={obj.id}
-                    className="flex justify-between items-center bg-zinc-950 p-2 rounded border border-emerald-900/30 text-sm"
+                    className="flex justify-between items-center bg-input p-2 rounded border border-brass/20 text-sm"
                   >
                     <span className="truncate">
                       {i + 1}. {obj.description}
@@ -1773,7 +1773,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                     <button
                       type="button"
                       onClick={() => removeObjective(obj.id)}
-                      className="text-[#942c2c] hover:text-red-400"
+                      className="text-[#942c2c] hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -1786,7 +1786,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   placeholder={t('objectivePlaceholder')}
-                  className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-sm text-zinc-300 outline-none"
+                  className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-sm text-foreground outline-none"
                   onKeyDown={(e) =>
                     e.key === 'Enter' && (e.preventDefault(), addObjective())
                   }
@@ -1828,7 +1828,7 @@ function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-zinc-950 border border-emerald-900/30 rounded-md text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
                 placeholder={t('tagPlaceholder')}
                 onKeyDown={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
