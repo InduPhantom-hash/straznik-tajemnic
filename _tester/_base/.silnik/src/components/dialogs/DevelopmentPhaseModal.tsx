@@ -403,12 +403,12 @@ export function DevelopmentPhaseModal({
                     </ol>
                   </div>
 
-                  <div className="border border-amber-500/30 bg-amber-950/20 p-3 text-amber-200/90 text-sm font-serif">
-                    <p className="flex items-center gap-2 font-semibold text-amber-300 mb-1">
-                      <Clover className="w-4 h-4 text-amber-400" />
+                  <div className="border border-brass/35 bg-[rgba(201,162,39,0.08)] p-3 text-foreground/90 text-sm font-serif">
+                    <p className="flex items-center gap-2 font-semibold text-brass mb-1">
+                      <Clover className="w-4 h-4 text-gold" />
                       {t('luckRecoveryAvailableTitle')}
                     </p>
-                    <p className="text-xs text-amber-300/80 leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {t('luckRecoveryAvailableDesc')}
                     </p>
                   </div>
@@ -417,7 +417,7 @@ export function DevelopmentPhaseModal({
                 <div className="flex flex-col sm:flex-row gap-2.5">
                   <Button
                     onClick={runDevelopmentPhase}
-                    className="flex-1 font-display font-semibold uppercase tracking-[0.14em] text-zinc-950 bg-amber-500 hover:bg-amber-400 shadow-md flex items-center justify-center gap-2 py-2"
+                    className="flex-1 font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-primary hover:brightness-110 shadow-md flex items-center justify-center gap-2 py-2"
                   >
                     <Clover className="w-4 h-4" />
                     {t('startLuckRecoveryButton')}
@@ -425,7 +425,7 @@ export function DevelopmentPhaseModal({
                   <Button
                     onClick={onClose}
                     variant="outline"
-                    className="font-display font-semibold uppercase tracking-[0.14em] border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                    className="font-display font-semibold uppercase tracking-[0.14em] border-brass/40 text-muted-foreground hover:bg-brass/10 hover:text-foreground"
                   >
                     {t('close')}
                   </Button>
