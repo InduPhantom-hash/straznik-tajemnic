@@ -196,14 +196,36 @@ export function processCharacterJournalAndDossier(
     }
   }
 
-  // 2. Obsługa pozostałych tagów dziennika (w tym poszlak z syntezą 1-zdaniową)
+  // 2. Obsługa pozostałych tagów dziennika (w tym poszlak z syntezą 1-zdaniową i wektorem M.I.C.E.)
   tags.forEach((tag, index) => {
     // Tagi typu 'npc' zostały już obsłużone powyżej
     if (tag.type === 'npc') return;
 
     const isClue = tag.type === 'clue' || tag.type === 'discovery';
+    let rawContent = tag.content;
+    let explicitMiceType: import('@/lib/journal/dossier-types').MiceQuotientType | undefined;
+    let miceObjective: string | undefined;
+
+    if (isClue && tag.content.includes('|')) {
+      const parts = tag.content.split('|').map((p) => p.trim());
+      rawContent = parts[0] || tag.content;
+      const mToken = (parts[1] || '').toLowerCase();
+      if (['m', 'milieu', 'otoczenie', 'przestrzen'].includes(mToken)) {
+        explicitMiceType = 'milieu';
+      } else if (['i', 'inquiry', 'sledztwo', 'pytanie'].includes(mToken)) {
+        explicitMiceType = 'inquiry';
+      } else if (['c', 'character', 'postac', 'tozsamosc'].includes(mToken)) {
+        explicitMiceType = 'character';
+      } else if (['e', 'event', 'zagrozenie', 'wydarzenie', 'zdarzenie'].includes(mToken)) {
+        explicitMiceType = 'event';
+      }
+      if (parts[2]) {
+        miceObjective = parts[2];
+      }
+    }
+
     const fact = isClue
-      ? synthesizeClueFact(tag.title, tag.content)
+      ? synthesizeClueFact(tag.title, rawContent)
       : tag.content;
 
     // Aktualizuj poszlaki w dossier
@@ -215,13 +237,16 @@ export function processCharacterJournalAndDossier(
 
       if (!existingClue) {
         const isKey = /klucz|core|key|główn/i.test(`${tag.title} ${tag.content}`);
+        const resolvedMiceType = explicitMiceType || inferClueMiceType(tag.title, fact);
         const newClue: ClueEntry = {
           id: `clue-${messageId}-${index}`,
           title: tag.title.trim(),
           description: fact,
-          category: inferClueCategory({ title: tag.title, content: tag.content }),
+          category: inferClueCategory({ title: tag.title, content: rawContent }),
           status: 'confirmed',
           isKeyClue: isKey,
+          miceType: resolvedMiceType,
+          miceObjective,
           timestamp: Date.now(),
           sourceJournalEntryId: `journal-${messageId}-${index}`,
         };
@@ -410,4 +435,24 @@ export function appendJournalToParty(
     activeCharacter: nextActive,
     changed: changedAny,
   };
+}
+
+/**
+ * Rozpoznaje wektor dramatyczny M.I.C.E. poszlaki na podstawie tytułu i treści.
+ */
+export function inferClueMiceType(
+  title: string,
+  content: string
+): import('@/lib/journal/dossier-types').MiceQuotientType {
+  const text = `${title} ${content}`.toLowerCase();
+  if (/miejsce|lokacja|pokój|piwnica|krypta|tunel|drzwi|ucieczk|droga|wyjście|uwięzi|room|place|location|escape|door|tunnel|cell/i.test(text)) {
+    return 'milieu';
+  }
+  if (/postać|świadek|podejrzan|relacj|psycholog|lęk|sekret|moral|osoba|npc|character|suspect|witness|fear|secret|guilt/i.test(text)) {
+    return 'character';
+  }
+  if (/rytuał|kataklizm|zagrożeni|besti|potwór|eksplozj|zegar|pożar|czas|event|ritual|threat|monster|beast|countdown|fire/i.test(text)) {
+    return 'event';
+  }
+  return 'inquiry';
 }

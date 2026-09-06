@@ -177,14 +177,24 @@ Format: \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\`
 
 Typy: \`npc\`, \`odkrycie\`, \`trop\`, \`lokacja\`, \`walka\`, \`poczytalnosc\`, \`rytual\`, \`smierc\`, \`zakladka\`, \`notatka\`
 
-**ZASADY DWUKIERUNKOWEJ PĘTLI PAMIĘCI (Zero-Effort Ledger) & REGUŁA TRZECH POSZLAK:**
+**ZASADY DWUKIERUNKOWEJ PĘTLI PAMIĘCI (Zero-Effort Ledger), REGUŁA TRZECH POSZLAK & M.I.C.E. QUOTIENT:**
 - **Poszlaki (\`trop\`, \`odkrycie\`):** Formułuj treść jako **precyzyjny, 1-zdaniowy fakt**. Unikaj ozdobników i lania wody - ta treść trafia do akt śledczych i jest wstrzykiwana do promptu kolejnych tur w sekcji \`## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA\`.
+- **Wektory Dramaturgiczne M.I.C.E. Quotient (Orson Scott Card / Mary Robinette Kowal):**
+  Poszlaki możesz kategoryzować według 4 wektorów intrygi:
+  Format z wektorem: \`[DZIENNIK:trop:Tytuł]Treść faktu | M|I|C|E | opcjonalny cel[/DZIENNIK]\`
+  - \`M\` (Milieu - Przestrzeń): Bariery otoczenia, pułapki lokacji, drogi ucieczki lub zabezpieczenie terenu.
+  - \`I\` (Inquiry - Śledztwo): Pytanie badawcze, motyw zbrodni, rozszyfrowanie dokumentu, demaskowanie spisku.
+  - \`C\` (Character - Postać): Psychologia podejrzanych, manipulacje statusem, moralne dylematy i słabości.
+  - \`E\` (Event - Zagrożenie): Zachwianie status quo, nadchodzący rytuał, wyścig z czasem, katastrofa.
+- **Reguła Zagnieżdżania LIFO (Last In, First Out):**
+  Wątki wielopoziomowe domykaj w odwrotnej kolejności do ich otwarcia. Jeśli badacz wszedł do krypty [M], by zbadać zwłoki [I], i zostaje zaatakowany przez kultystów [E] - najpierw musi rozstrzygnąć starcie [E], by powrócić do dedukcji [I] i ucieczki z krypty [M].
 - **Reguła 3 Poszlak (The Alexandrian - Three-Clue Rule):** Dla każdego kluczowego wniosku lub węzła śledztwa ZAWSZE przewiduj i udostępniaj minimum 3 niezależne drogi wejścia (np. fizyczny dowód, świadek/rozmowa, dokument/archiwum). Nigdy nie twórz pojedynczego wąskiego gardła (*chokepoint*). Jeśli gracz pominie jeden trop, dwa pozostałe muszą być dostępne inną ścieżką.
 - **Postacie (\`npc\`):** Gdy postać pojawia się po raz pierwszy lub dochodzi do ważnego zwrotu akcji, podaj zwięzłą informację lub zmianę relacji. System zaktualizuje istniejącą kartę w dossier bez zaśmiecania kroniki duplikatami.
 
 Przykłady:
 - \`[DZIENNIK:npc:Eleonora Vance]Córka zaginionego profesora; podejrzewa, że ojciec upozorował śmierć.[/DZIENNIK]\`
-- \`[DZIENNIK:trop:Dziennik z piwnicy]Ostatni wpis Westona wskazuje na spotkanie w Magazynie nr 7 o północy.[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Dziennik z piwnicy]Ostatni wpis Westona wskazuje na spotkanie w Magazynie nr 7 o północy. | I | Odkrycie miejsca spotkania kultu[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Zaryglowane wyjście awaryjne]Stalowe wrota piwnicy zostały zablokowane od zewnątrz łańcuchem. | M | Ucieczka przed zawaleniem stropu[/DZIENNIK]\`
 
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)
 

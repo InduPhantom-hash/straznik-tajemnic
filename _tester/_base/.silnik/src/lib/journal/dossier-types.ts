@@ -8,6 +8,15 @@ export type ClueCategory = 'forensic' | 'document' | 'testimony' | 'occult';
 
 export type ClueStatus = 'unconfirmed' | 'confirmed' | 'disproven';
 
+/**
+ * Wektor dramatyczny M.I.C.E. Quotient (Orson Scott Card / Mary Robinette Kowal):
+ * - milieu: konflikt przestrzeni, uwięzienie, droga ucieczki lub zabezpieczenie lokacji
+ * - inquiry: pytanie śledcze, poszlaka, zagadka do rozwikłania
+ * - character: motywacja wewnętrzna, tożsamość, lęk moralny lub przemiana postaci
+ * - event: zachwianie porządku świata, kataklizm, rytuał, wyścig z czasem
+ */
+export type MiceQuotientType = 'milieu' | 'inquiry' | 'character' | 'event';
+
 export interface ClueEntry {
   id: string;
   title: string;
@@ -30,6 +39,10 @@ export interface ClueEntry {
   linkedNodeIds?: string[];
   /** Alternatywne tropy prowadzące do tej samej konkluzji (eliminacja chokepointów) */
   alternativeClueTrails?: string[];
+  /** Wektor dramatyczny M.I.C.E. Quotient */
+  miceType?: MiceQuotientType;
+  /** Kluczowe pytanie lub cel w ramach wektora M.I.C.E. */
+  miceObjective?: string;
   sourceJournalEntryId?: string;
 }
 

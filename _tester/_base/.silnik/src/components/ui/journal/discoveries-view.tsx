@@ -29,6 +29,7 @@ import type {
   ClueStatus,
   NpcRelationshipStatus,
   LocationSearchStatus,
+  MiceQuotientType,
 } from '@/lib/journal/dossier-types';
 
 // ------------------------------------------------------------------
@@ -62,6 +63,10 @@ export interface DiscoveryEntry {
   alternativeClueTrails?: string[];
   sourceNpc?: string;
   foundLocation?: string;
+  /** Wektor dramatyczny M.I.C.E. Quotient */
+  miceType?: MiceQuotientType;
+  /** Kluczowe pytanie lub cel w ramach wektora M.I.C.E. */
+  miceObjective?: string;
   relationshipStatus?: NpcRelationshipStatus;
   occupation?: string;
   firstImpression?: string;
@@ -287,6 +292,18 @@ export function DiscoveriesView({
     [onEditEntry, selectedEntry]
   );
 
+  // Zmiana wektora dramatycznego M.I.C.E. Quotient (Card / Kowal)
+  const handleMiceTypeChange = useCallback(
+    (miceType: MiceQuotientType) => {
+      if (!selectedEntry) return;
+      onEditEntry({
+        ...selectedEntry,
+        miceType: selectedEntry.miceType === miceType ? undefined : miceType,
+      });
+    },
+    [onEditEntry, selectedEntry]
+  );
+
   // Zmiana relacji postaci CoC 7e
   const handleNpcRelationshipChange = useCallback(
     (rel: NpcRelationshipStatus) => {
@@ -438,6 +455,28 @@ export function DiscoveriesView({
                             : t('clueCategoryOccult')}
                     </span>
                   )}
+                  {entry.miceType && (
+                    <span
+                      className={cn(
+                        'text-[9px] uppercase font-mono font-bold px-1 py-0.5 rounded border',
+                        entry.miceType === 'milieu' && 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60',
+                        entry.miceType === 'inquiry' && 'bg-[#bfa15f]/20 text-[#bfa15f] border-[#bfa15f]/50',
+                        entry.miceType === 'character' && 'bg-purple-950/80 text-purple-300 border-purple-700/60',
+                        entry.miceType === 'event' && 'bg-rose-950/80 text-rose-300 border-rose-700/60'
+                      )}
+                      title={
+                        entry.miceType === 'milieu'
+                          ? t('miceTypeMilieu')
+                          : entry.miceType === 'inquiry'
+                            ? t('miceTypeInquiry')
+                            : entry.miceType === 'character'
+                              ? t('miceTypeCharacter')
+                              : t('miceTypeEvent')
+                      }
+                    >
+                      [{entry.miceType.toUpperCase()[0]}]
+                    </span>
+                  )}
                   {entry.relationshipStatus && (
                     <span className="text-[9px] uppercase font-mono px-1 py-0.5 rounded bg-[#24150c] text-[#d1c2ab] border border-[#d1c2ab]/30">
                       {entry.relationshipStatus === 'friendly'
@@ -499,12 +538,25 @@ export function DiscoveriesView({
 
               {/* Nagłówek Akt */}
               <div className="border-b-2 border-[#2c241b]/30 pb-4 mb-6 relative">
-                <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-[#2c241b]/60 mb-2 flex items-center gap-2">
+                <div className="font-special-elite text-xs uppercase tracking-[0.2em] text-[#2c241b]/60 mb-2 flex items-center gap-2 flex-wrap">
                   <span>{t('dossierPrefix', { category: t(categoryConfig.labelKey) })}</span>
                   {selectedEntry.isKeyClue && (
                     <span className="bg-[#bfa15f] text-[#120905] px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm">
                       <Sparkles className="h-3 w-3" />
                       {t('keyClueBadge')}
+                    </span>
+                  )}
+                  {selectedEntry.miceType && (
+                    <span
+                      className={cn(
+                        'px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm uppercase font-mono',
+                        selectedEntry.miceType === 'milieu' && 'bg-emerald-800 text-emerald-100',
+                        selectedEntry.miceType === 'inquiry' && 'bg-[#bfa15f] text-[#120905]',
+                        selectedEntry.miceType === 'character' && 'bg-purple-900 text-purple-100',
+                        selectedEntry.miceType === 'event' && 'bg-rose-900 text-rose-100'
+                      )}
+                    >
+                      M.I.C.E. [{selectedEntry.miceType.toUpperCase()[0]}]
                     </span>
                   )}
                 </div>
@@ -591,50 +643,90 @@ export function DiscoveriesView({
 
                   {/* 1. SELEKTOR STATUSU POSZLAKI */}
                   {(activeCategory === 'quests' || selectedEntry.clueStatus) && (
-                    <div className="text-xs font-special-elite font-bold flex items-center gap-1.5">
-                      <span>{t('statusLabel')}</span>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleClueStatusChange('unconfirmed')}
-                          className={cn(
-                            'px-2 py-0.5 rounded border text-[10px] uppercase font-bold transition-all',
-                            selectedEntry.clueStatus === 'unconfirmed' || !selectedEntry.clueStatus
-                              ? 'bg-[#2c241b] text-[#f4ebd0] border-[#2c241b]'
-                              : 'bg-transparent text-[#2c241b]/60 border-[#2c241b]/30 hover:bg-[#2c241b]/10'
-                          )}
-                          title={t('changeStatusTooltip')}
-                        >
-                          {t('clueStatusUnconfirmed')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleClueStatusChange('confirmed')}
-                          className={cn(
-                            'px-2 py-0.5 rounded border text-[10px] uppercase font-bold transition-all',
-                            selectedEntry.clueStatus === 'confirmed'
-                              ? 'bg-[#73a15c] text-[#120905] border-[#73a15c]'
-                              : 'bg-transparent text-[#335620] border-[#73a15c]/50 hover:bg-[#73a15c]/20'
-                          )}
-                          title={t('changeStatusTooltip')}
-                        >
-                          {t('clueStatusConfirmed')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleClueStatusChange('disproven')}
-                          className={cn(
-                            'px-2 py-0.5 rounded border text-[10px] uppercase font-bold transition-all',
-                            selectedEntry.clueStatus === 'disproven'
-                              ? 'bg-[#8a1c1c] text-[#f4ebd0] border-[#8a1c1c]'
-                              : 'bg-transparent text-[#8a1c1c] border-[#8a1c1c]/50 hover:bg-[#8a1c1c]/20'
-                          )}
-                          title={t('changeStatusTooltip')}
-                        >
-                          {t('clueStatusDisproven')}
-                        </button>
+                    <>
+                      <div className="text-xs font-special-elite font-bold flex items-center gap-1.5">
+                        <span>{t('statusLabel')}</span>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleClueStatusChange('unconfirmed')}
+                            className={cn(
+                              'px-2 py-0.5 rounded border text-[10px] uppercase font-bold transition-all',
+                              selectedEntry.clueStatus === 'unconfirmed' || !selectedEntry.clueStatus
+                                ? 'bg-[#2c241b] text-[#f4ebd0] border-[#2c241b]'
+                                : 'bg-transparent text-[#2c241b]/60 border-[#2c241b]/30 hover:bg-[#2c241b]/10'
+                            )}
+                            title={t('changeStatusTooltip')}
+                          >
+                            {t('clueStatusUnconfirmed')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleClueStatusChange('confirmed')}
+                            className={cn(
+                              'px-2 py-0.5 rounded border text-[10px] uppercase font-bold transition-all',
+                              selectedEntry.clueStatus === 'confirmed'
+                                ? 'bg-[#73a15c] text-[#120905] border-[#73a15c]'
+                                : 'bg-transparent text-[#335620] border-[#73a15c]/50 hover:bg-[#73a15c]/20'
+                            )}
+                            title={t('changeStatusTooltip')}
+                          >
+                            {t('clueStatusConfirmed')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleClueStatusChange('disproven')}
+                            className={cn(
+                              'px-2 py-0.5 rounded border text-[10px] uppercase font-bold transition-all',
+                              selectedEntry.clueStatus === 'disproven'
+                                ? 'bg-[#8a1c1c] text-[#f4ebd0] border-[#8a1c1c]'
+                                : 'bg-transparent text-[#8a1c1c] border-[#8a1c1c]/50 hover:bg-[#8a1c1c]/20'
+                            )}
+                            title={t('changeStatusTooltip')}
+                          >
+                            {t('clueStatusDisproven')}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Wektor dramatyczny M.I.C.E. Quotient (Card / Kowal) */}
+                      <div className="text-xs font-special-elite font-bold flex items-center gap-1.5 mt-2 flex-wrap">
+                        <span>{t('miceVectorLabel')}</span>
+                        <div className="flex gap-1 flex-wrap">
+                          {(['inquiry', 'milieu', 'character', 'event'] as MiceQuotientType[]).map((mType) => {
+                            const isCurrent = selectedEntry.miceType === mType;
+                            return (
+                              <button
+                                key={mType}
+                                type="button"
+                                onClick={() => handleMiceTypeChange(mType)}
+                                className={cn(
+                                  'px-1.5 py-0.5 rounded border text-[10px] uppercase font-bold transition-all cursor-pointer',
+                                  isCurrent
+                                    ? mType === 'inquiry'
+                                      ? 'bg-[#bfa15f] text-[#120905] border-[#bfa15f]'
+                                      : mType === 'milieu'
+                                        ? 'bg-[#73a15c] text-[#120905] border-[#73a15c]'
+                                        : mType === 'character'
+                                          ? 'bg-[#8a4f9e] text-[#f4ebd0] border-[#8a4f9e]'
+                                          : 'bg-[#8a1c1c] text-[#f4ebd0] border-[#8a1c1c]'
+                                    : 'bg-transparent text-[#2c241b]/60 border-[#2c241b]/30 hover:bg-[#2c241b]/10'
+                                )}
+                                title={t('changeMiceTooltip')}
+                              >
+                                {mType === 'inquiry'
+                                  ? t('miceTypeInquiry')
+                                  : mType === 'milieu'
+                                    ? t('miceTypeMilieu')
+                                    : mType === 'character'
+                                      ? t('miceTypeCharacter')
+                                      : t('miceTypeEvent')}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   {/* 2. SELEKTOR RELACJI DLA POSTACI (NPC) */}
