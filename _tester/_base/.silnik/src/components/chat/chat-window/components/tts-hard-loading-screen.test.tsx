@@ -4,7 +4,7 @@ import { TTSHardLoadingScreen } from './tts-hard-loading-screen';
 
 // Mock next-intl useTranslations
 jest.mock('next-intl', () => ({
-  useTranslations: () => (key: string, params?: Record<string, any>) => {
+  useTranslations: () => (key: string, params?: Record<string, unknown>) => {
     const messages: Record<string, string> = {
       preparingSession: 'Mistrz Gry przygotowuje sesję...',
       generatingStory: 'Trwa generowanie mrocznej opowieści i głosu narratora...',
