@@ -389,7 +389,8 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     const payload = JSON.parse(fetchArgs[1].body);
 
     expect(payload.audioDirection).toBeDefined();
-    expect(payload.audioDirection).toContain('dynamic, high-urgency, rapid');
+    expect(payload.audioDirection).toContain('intense, rapid, and thrilling cadence');
+    expect(payload.audioDirection).toContain('dynamic, high-urgency momentum');
   });
 });
 
