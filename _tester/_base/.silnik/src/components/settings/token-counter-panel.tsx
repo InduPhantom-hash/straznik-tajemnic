@@ -17,29 +17,29 @@ export function TokenCounterPanel({
   setSettings,
 }: TokenCounterPanelProps) {
   return (
-    <div className="mb-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-      <h4 className="text-sm font-semibold text-blue-300 mb-3 flex items-center gap-2">
+    <div className="mb-6 p-4 bg-card/60 border border-brass/30">
+      <h4 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-brass mb-3 flex items-center gap-2">
         🔢 Licznik Tokenów
         <HelpIcon content="Tokeny to jednostki tekstu używane przez AI. Im więcej tokenów, tym wyższy koszt. 1 token ≈ 4 znaki." />
       </h4>
       <div className="grid grid-cols-3 gap-4 mb-3">
         <div className="text-center">
-          <div className="text-xl font-bold text-blue-200">
+          <div className="font-special-elite text-xl font-bold text-foreground">
             {((settings.costControl.sessionTokens || 0) / 1000).toFixed(1)}k
           </div>
-          <div className="text-xs text-blue-300/70">Sesja</div>
+          <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">Sesja</div>
         </div>
         <div className="text-center">
-          <div className="text-xl font-bold text-blue-200">
+          <div className="font-special-elite text-xl font-bold text-foreground">
             {((settings.costControl.todayTokens || 0) / 1000).toFixed(1)}k
           </div>
-          <div className="text-xs text-blue-300/70">Dzisiaj</div>
+          <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">Dzisiaj</div>
         </div>
         <div className="text-center">
-          <div className="text-xl font-bold text-blue-200">
+          <div className="font-special-elite text-xl font-bold text-foreground">
             {((settings.costControl.totalTokens || 0) / 1000).toFixed(1)}k
           </div>
-          <div className="text-xs text-blue-300/70">Ogółem</div>
+          <div className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">Ogółem</div>
         </div>
       </div>
       <div className="flex justify-end">
@@ -63,7 +63,7 @@ export function TokenCounterPanel({
           }}
           variant="outline"
           size="sm"
-          className="text-blue-300 border-blue-500 hover:bg-blue-900/50"
+          className="font-display font-semibold uppercase tracking-[0.12em] text-xs border-brass/40 text-muted-foreground hover:bg-brass/10 hover:text-foreground"
         >
           🔄 Wyzeruj tokeny
         </Button>
