@@ -144,11 +144,11 @@ export function BackgroundGeneratorModal({
                     {currentQuestion.question}
                   </h3>
                   {currentQuestion.context && (
-                    <div className="bg-blue-900/20 border border-blue-600/30 p-3 rounded mb-4">
-                      <p className="text-sm text-blue-200">
+                    <div className="bg-brass/10 border border-brass/30 p-3 rounded mb-4">
+                      <p className="text-sm text-foreground/90">
                         {t.rich('historicalContext', {
                           context: currentQuestion.context,
-                          strong: (chunks) => <strong>{chunks}</strong>,
+                          strong: (chunks) => <strong className="text-brass">{chunks}</strong>,
                         })}
                       </p>
                     </div>
@@ -215,14 +215,14 @@ export function BackgroundGeneratorModal({
                         <div className="space-y-2">
                           {option.equipmentGained && (
                             <div>
-                              <p className="text-xs font-semibold text-purple-400 mb-1">
+                              <p className="text-xs font-semibold text-brass mb-1">
                                 {t('equipmentLabel')}
                               </p>
                               <div className="flex flex-wrap gap-1">
                                 {option.equipmentGained.map((item, index) => (
                                   <span
                                     key={index}
-                                    className="text-xs bg-purple-900/30 text-purple-300 px-2 py-1 rounded"
+                                    className="text-xs bg-brass/20 text-brass border border-brass/30 px-2 py-1 rounded"
                                   >
                                     {item}
                                   </span>
@@ -232,7 +232,7 @@ export function BackgroundGeneratorModal({
                           )}
                           {option.connectionGained && (
                             <div>
-                              <p className="text-xs font-semibold text-blue-400 mb-1">
+                              <p className="text-xs font-semibold text-primary mb-1">
                                 {t('connectionsLabel')}
                               </p>
                               <div className="flex flex-wrap gap-1">
@@ -240,7 +240,7 @@ export function BackgroundGeneratorModal({
                                   (connection, index) => (
                                     <span
                                       key={index}
-                                      className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded"
+                                      className="text-xs bg-primary/20 text-primary border border-primary/30 px-2 py-1 rounded"
                                     >
                                       {connection}
                                     </span>
@@ -314,15 +314,15 @@ export function BackgroundGeneratorModal({
             )}
             {/* Equipment */}
             {result.equipment.length > 0 && (
-              <div className="bg-purple-900/20 border border-purple-600/30 p-4 rounded-lg">
-                <h4 className="font-semibold text-purple-300 mb-3">
+              <div className="bg-brass/10 border border-brass/30 p-4 rounded-lg">
+                <h4 className="font-semibold text-brass mb-3">
                   {t('equipmentTitle')}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {result.equipment.map((item, index) => (
                     <span
                       key={index}
-                      className="text-sm bg-purple-800/40 text-purple-200 px-3 py-1 rounded"
+                      className="text-sm bg-brass/20 text-brass border border-brass/30 px-3 py-1 rounded"
                     >
                       {item}
                     </span>
@@ -332,15 +332,15 @@ export function BackgroundGeneratorModal({
             )}
             {/* Connections */}
             {result.connections.length > 0 && (
-              <div className="bg-blue-900/20 border border-blue-600/30 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-300 mb-3">
+              <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg">
+                <h4 className="font-semibold text-primary mb-3">
                   {t('connectionsTitle')}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {result.connections.map((connection, index) => (
                     <span
                       key={index}
-                      className="text-sm bg-blue-800/40 text-blue-200 px-3 py-1 rounded"
+                      className="text-sm bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded"
                     >
                       {connection}
                     </span>

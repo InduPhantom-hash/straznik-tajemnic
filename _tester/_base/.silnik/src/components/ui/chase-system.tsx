@@ -338,11 +338,11 @@ export function ChaseSystem({
         <div
           key={i}
           className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold ${
-            isPlayer && isEnemy ? 'bg-purple-500' :
-            isPlayer ? 'bg-green-500' :
-            isEnemy ? 'bg-red-500' :
-            i < player.position ? 'bg-green-900/30' :
-            'bg-muted'
+            isPlayer && isEnemy ? 'bg-destructive text-destructive-foreground ring-2 ring-brass' :
+            isPlayer ? 'bg-primary text-primary-foreground' :
+            isEnemy ? 'bg-destructive text-destructive-foreground' :
+            i < player.position ? 'bg-primary/20 text-primary' :
+            'bg-muted text-muted-foreground'
           }`}
         >
           {isPlayer && isEnemy ? '⚔️' :
@@ -397,12 +397,12 @@ export function ChaseSystem({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto border-amber-500/50 bg-gradient-to-br from-card to-amber-950/30">
+      <Card className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto border-brass/50 bg-gradient-to-br from-card to-background">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl flex items-center gap-2">
               {t('title')}
-              <Badge className="bg-amber-500">{t('roundBadge', { round: currentRound })}</Badge>
+              <Badge className="bg-brass/20 text-brass border-brass/40 font-mono">{t('roundBadge', { round: currentRound })}</Badge>
             </CardTitle>
             <Button variant="ghost" onClick={onClose}>✕</Button>
           </div>
@@ -410,8 +410,8 @@ export function ChaseSystem({
           {/* Pasek napięcia */}
           <div className="mt-4">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-amber-400">{t('tensionLabel')}</span>
-              <span className={tension < 30 ? 'text-red-400' : 'text-amber-400'}>{tension}%</span>
+              <span className="text-brass">{t('tensionLabel')}</span>
+              <span className={tension < 30 ? 'text-destructive font-bold' : 'text-gold'}>{tension}%</span>
             </div>
             <Progress value={tension} className="h-2" />
           </div>
@@ -422,14 +422,14 @@ export function ChaseSystem({
           <div className="bg-black/30 p-4 rounded-lg">
             <div className="text-center mb-2 text-sm text-muted-foreground">
               {t('distanceLabel')}{' '}
-              <span className={player.position - enemy.position > 2 ? 'text-green-400' : 'text-red-400'}>
+              <span className={player.position - enemy.position > 2 ? 'text-primary' : 'text-destructive'}>
                 {t('fieldsUnit', { count: player.position - enemy.position })}
               </span>
               {player.position - enemy.position >= ESCAPE_DISTANCE - 1 && (
-                <Badge className="ml-2 bg-green-500">{t('nearEscape')}</Badge>
+                <Badge className="ml-2 bg-primary text-primary-foreground">{t('nearEscape')}</Badge>
               )}
               {player.position - enemy.position <= 1 && (
-                <Badge className="ml-2 bg-red-500">{t('aboutToBeCaught')}</Badge>
+                <Badge className="ml-2 bg-destructive text-destructive-foreground">{t('aboutToBeCaught')}</Badge>
               )}
             </div>
             {renderTrack()}
@@ -441,9 +441,9 @@ export function ChaseSystem({
 
           {/* Punkt decyzji */}
           {decisionPoint && isPlayerTurn && (
-            <Card className="border-amber-500/50 bg-amber-900/20">
+            <Card className="border-brass/40 bg-card/80">
               <CardContent className="p-4">
-                <h4 className="text-lg font-semibold text-amber-300 mb-2">
+                <h4 className="text-lg font-semibold text-brass mb-2">
                   📍 {decisionPoint.description}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -500,20 +500,21 @@ export function ChaseSystem({
             <div className="grid grid-cols-3 gap-2">
               <Button 
                 onClick={normalRun}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {t('runButton', { speed: player.speed })}
               </Button>
               <Button 
                 onClick={sprintAction}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-brass text-background font-bold hover:bg-brass/90"
                 disabled={player.isExhausted}
               >
                 {t('sprintButton')}
               </Button>
               <Button 
                 onClick={tryToHide}
-                className="bg-purple-600 hover:bg-purple-700"
+                variant="outline"
+                className="border-brass/40 text-brass hover:bg-brass/10"
               >
                 {t('hideButton')}
               </Button>
