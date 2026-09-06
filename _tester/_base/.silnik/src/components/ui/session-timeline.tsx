@@ -8,16 +8,16 @@ import { Button } from './button';
 // Typy wydarzeń na osi czasu
 // Pole label przechowuje płaski klucz tłumaczenia (namespace SessionTimeline)
 export const EVENT_TYPES = {
-  combat: { icon: '⚔️', color: 'bg-red-500', label: 'eventTypeCombat' },
-  discovery: { icon: '🔍', color: 'bg-yellow-500', label: 'eventTypeDiscovery' },
-  npc: { icon: '👤', color: 'bg-blue-500', label: 'eventTypeNpc' },
-  sanity: { icon: '🧠', color: 'bg-purple-500', label: 'eventTypeSanity' },
-  clue: { icon: '📜', color: 'bg-green-500', label: 'eventTypeClue' },
-  location: { icon: '📍', color: 'bg-orange-500', label: 'eventTypeLocation' },
-  ritual: { icon: '🕯️', color: 'bg-pink-500', label: 'eventTypeRitual' },
+  combat: { icon: '⚔️', color: 'bg-destructive', label: 'eventTypeCombat' },
+  discovery: { icon: '🔍', color: 'bg-gold', label: 'eventTypeDiscovery' },
+  npc: { icon: '👤', color: 'bg-secondary', label: 'eventTypeNpc' },
+  sanity: { icon: '🧠', color: 'bg-destructive/80', label: 'eventTypeSanity' },
+  clue: { icon: '📜', color: 'bg-primary', label: 'eventTypeClue' },
+  location: { icon: '📍', color: 'bg-brass', label: 'eventTypeLocation' },
+  ritual: { icon: '🕯️', color: 'bg-destructive/60', label: 'eventTypeRitual' },
   death: { icon: '💀', color: 'bg-muted', label: 'eventTypeDeath' },
-  bookmark: { icon: '⭐', color: 'bg-amber-500', label: 'eventTypeBookmark' },
-  note: { icon: '📝', color: 'bg-cyan-500', label: 'eventTypeNote' },
+  bookmark: { icon: '⭐', color: 'bg-gold', label: 'eventTypeBookmark' },
+  note: { icon: '📝', color: 'bg-accent', label: 'eventTypeNote' },
 } as const;
 
 export type EventType = keyof typeof EVENT_TYPES;
@@ -144,22 +144,22 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
   }, [events]);
 
   return (
-    <div data-testid="session-timeline" className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-lg overflow-hidden">
+    <div data-testid="session-timeline" className="bg-card border border-brass/30 rounded-lg overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center justify-between p-3 cursor-pointer hover:bg-amber-800/20 transition-colors"
+        className="flex items-center justify-between p-3 cursor-pointer hover:bg-brass/10 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">📜</span>
-          <span className="font-medium text-amber-200">{t('timelineTitle')}</span>
-          <span className="text-sm text-amber-300/70">{t('eventsCount', { count: events.length })}</span>
+          <span className="font-medium text-foreground">{t('timelineTitle')}</span>
+          <span className="text-sm text-muted-foreground">{t('eventsCount', { count: events.length })}</span>
         </div>
-        <span className="text-amber-400">{isExpanded ? '▲' : '▼'}</span>
+        <span className="text-brass">{isExpanded ? '▲' : '▼'}</span>
       </div>
 
       {isExpanded && (
-        <div className="p-4 border-t border-amber-500/20 space-y-4">
+        <div className="p-4 border-t border-brass/20 space-y-4">
           {/* Quick Stats */}
           <div className="flex flex-wrap gap-2">
             {Object.entries(stats).map(([type, count]) => (
@@ -178,7 +178,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as EventType | 'all')}
-              className="px-3 py-1.5 bg-amber-800/30 border border-amber-500/30 rounded-lg text-amber-100 text-sm"
+              className="px-3 py-1.5 bg-input border border-brass/30 rounded-md text-foreground text-sm focus:outline-none focus:border-brass"
             >
               <option value="all">{t('filterAll')}</option>
               {(Object.keys(EVENT_TYPES) as EventType[]).map((type) => (
@@ -188,12 +188,12 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
               ))}
             </select>
 
-            <label className="flex items-center gap-2 text-sm text-amber-200">
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
                 checked={showBookmarksOnly}
                 onChange={(e) => setShowBookmarksOnly(e.target.checked)}
-                className="accent-amber-500"
+                className="accent-brass"
               />
               {t('bookmarksOnlyFilter')}
             </label>
@@ -201,7 +201,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
             <Button
               onClick={() => setIsAddingBookmark(true)}
               size="sm"
-              className="bg-amber-600 hover:bg-amber-700 ml-auto"
+              className="bg-primary text-primary-foreground hover:bg-primary/80 ml-auto"
             >
               {t('addMarkerButton')}
             </Button>
@@ -209,19 +209,19 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
 
           {/* Add Bookmark Form */}
           {isAddingBookmark && (
-            <div className="p-3 bg-amber-800/20 rounded-lg space-y-2">
+            <div className="p-3 bg-card/80 border border-brass/20 rounded-lg space-y-2">
               <input
                 type="text"
                 placeholder={t('markerTitlePlaceholder')}
                 value={newBookmarkTitle}
                 onChange={(e) => setNewBookmarkTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-amber-800/30 border border-amber-500/30 rounded-lg text-amber-100 text-sm"
+                className="w-full px-3 py-2 bg-input border border-brass/30 rounded-md text-foreground text-sm focus:outline-none focus:border-brass"
               />
               <textarea
                 placeholder={t('markerDescPlaceholder')}
                 value={newBookmarkDescription}
                 onChange={(e) => setNewBookmarkDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-amber-800/30 border border-amber-500/30 rounded-lg text-amber-100 text-sm h-16 resize-none"
+                className="w-full px-3 py-2 bg-input border border-brass/30 rounded-md text-foreground text-sm h-16 resize-none focus:outline-none focus:border-brass"
               />
               <div className="flex gap-2">
                 <Button
@@ -234,7 +234,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                     }
                   }}
                   size="sm"
-                  className="bg-amber-600"
+                  className="bg-primary text-primary-foreground hover:bg-primary/80"
                 >
                   {t('saveMarkerButton')}
                 </Button>
@@ -242,7 +242,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                   onClick={() => setIsAddingBookmark(false)}
                   size="sm"
                   variant="outline"
-                  className="border-amber-500 text-amber-200"
+                  className="border-brass/40 text-muted-foreground hover:text-foreground"
                 >
                   {t('cancelMarkerButton')}
                 </Button>
@@ -254,44 +254,44 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
             {Object.entries(groupedEvents).map(([date, dateEvents]) => (
               <div key={date}>
-                <div className="text-xs text-amber-400/70 mb-2 sticky top-0 bg-amber-900/50 py-1 px-2 rounded">
+                <div className="text-xs text-brass mb-2 sticky top-0 bg-card/90 py-1 px-2 rounded border border-brass/20">
                   {date}
                 </div>
-                <div className="space-y-2 pl-4 border-l-2 border-amber-500/30">
+                <div className="space-y-2 pl-4 border-l-2 border-brass/30">
                   {dateEvents.map((event) => {
                     const eventType = EVENT_TYPES[event.type];
                     return (
                       <div
                         key={event.id}
-                        className="relative flex items-start gap-3 p-2 rounded-lg hover:bg-amber-800/20 transition-colors group"
+                        className="relative flex items-start gap-3 p-2 rounded-lg hover:bg-brass/10 transition-colors group"
                       >
-                        <div className={`absolute -left-6 w-3 h-3 rounded-full ${eventType.color} border-2 border-amber-900`} />
+                        <div className={`absolute -left-6 w-3 h-3 rounded-full ${eventType.color} border-2 border-background`} />
                         <span className="text-lg">{eventType.icon}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-amber-100 truncate">{event.title}</span>
-                            {event.isBookmarked && <span className="text-amber-400">⭐</span>}
+                            <span className="font-medium text-foreground truncate">{event.title}</span>
+                            {event.isBookmarked && <span className="text-gold">⭐</span>}
                           </div>
                           {event.description && (
-                            <p className="text-xs text-amber-300/70 mt-0.5 line-clamp-2">{event.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{event.description}</p>
                           )}
                           {event.imageUrl && (
                             <SafeImage
                               src={event.imageUrl}
                               alt={event.title}
-                              className="mt-2 w-24 h-16 object-cover rounded border border-amber-500/30 cursor-pointer hover:opacity-80"
+                              className="mt-2 w-24 h-16 object-cover rounded border border-brass/30 cursor-pointer hover:opacity-80"
                               onClick={() => window.open(event.imageUrl, '_blank')}
                             />
                           )}
-                          <span className="text-xs text-amber-400/50">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(event.timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => toggleBookmark(event.id)} className="p-1 hover:bg-amber-700/50 rounded text-xs">
+                          <button onClick={() => toggleBookmark(event.id)} className="p-1 hover:bg-brass/20 rounded text-xs">
                             {event.isBookmarked ? '⭐' : '☆'}
                           </button>
-                          <button onClick={() => onJumpToEvent?.(event)} className="p-1 hover:bg-amber-700/50 rounded text-xs">➡️</button>
+                          <button onClick={() => onJumpToEvent?.(event)} className="p-1 hover:bg-brass/20 rounded text-xs">➡️</button>
                           <button onClick={() => deleteEvent(event.id)} className="p-1 hover:bg-red-700/50 rounded text-xs">🗑️</button>
                         </div>
                       </div>
@@ -302,14 +302,14 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
             ))}
 
             {filteredEvents.length === 0 && (
-              <p className="text-amber-400/70 text-sm text-center py-8">
+              <p className="text-muted-foreground text-sm text-center py-8">
                 {t('emptyTimeline')}
               </p>
             )}
           </div>
 
           {/* Export */}
-          <div className="border-t border-amber-500/20 pt-3 flex gap-2">
+          <div className="border-t border-brass/20 pt-3 flex gap-2">
             <Button
               onClick={async () => {
                 const { exportTimelineToMarkdown } = await import('@/lib/session-timeline');
@@ -322,7 +322,7 @@ export function SessionTimeline({ messages = [], sessionId, onJumpToEvent }: Ses
                 a.click();
               }}
               size="sm"
-              className="bg-amber-600/50 hover:bg-amber-600"
+              className="bg-card border border-brass/40 text-foreground hover:bg-brass/20"
             >
               {t('exportMdButton')}
             </Button>
