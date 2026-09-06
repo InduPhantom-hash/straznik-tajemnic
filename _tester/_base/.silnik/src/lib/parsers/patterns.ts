@@ -87,23 +87,56 @@ export const SANITY_PATTERNS = [
     /test\s+poczytalności/gi,
 ];
 
-// SFX Patterns
+// SFX Patterns - wzorce detekcji efektów dźwiękowych w narracji
 export const SFX_PATTERNS: { pattern: RegExp; presetId: string; category: SFXRequest['category'] }[] = [
-    // Horror
-    { pattern: /skrzypią?ce?\s+(drzwi|podłog|schod)/gi, presetId: 'creaking_door', category: 'horror' },
-    { pattern: /dzwonienie?\s+telefon/gi, presetId: 'old_phone', category: 'city_1920s' },
-    { pattern: /kroki|stąpanie|kroczenie/gi, presetId: 'footsteps_wood', category: 'ambient' },
+    // --- Broń & Walka (precyzyjne typy broni mają pierwszeństwo przed ogólnym gunshot) ---
+    { pattern: /shotgun|strzelb[aąęy]|dubeltówk[aąęy]|obrzyn/gi, presetId: 'shotgun_blast', category: 'combat' },
+    { pattern: /thompson|tommy gun|seri[aąę]\s+z\s+automatu|pistolet\s+maszynow/gi, presetId: 'tommy_gun_burst', category: 'combat' },
+    { pattern: /karabin|sztucer|zamek\s+karabinu|przeładowan/gi, presetId: 'rifle_shot_bolt', category: 'combat' },
+    { pattern: /derringer|mały\s+pistolet/gi, presetId: 'derringer_pocket_shot', category: 'combat' },
+    { pattern: /9mm|glock|beretta|pistolet\s+półautomatyczn/gi, presetId: 'pistol_9mm_shot', category: 'combat' },
+    { pattern: /pust[aey]\s+komor[aey]|suchy\s+klik|brak(?:ło)?\s+amunicji|zaciął\s+się/gi, presetId: 'empty_gun_click', category: 'combat' },
+    { pattern: /strzał|wystrzał|pistolet|rewolwer|palb[aey]/gi, presetId: 'gunshot', category: 'combat' },
+    { pattern: /eksplozja|wybuch|dynamit|granat/gi, presetId: 'explosion', category: 'combat' },
+
+    // --- Pociąg & Kolej ---
+    { pattern: /stukot\s+kół|pociąg\s+(?:sunie|pędzi|toczy|jedzie)|tu[- ]?tum|wagon(?:ie)?\s+kołysz/gi, presetId: 'train_rhythm_steam', category: 'ambient' },
+    { pattern: /gwizd\s+lokomotywy|parowóz\s+gwizd/gi, presetId: 'train_whistle_steam', category: 'ambient' },
+
+    // --- Horror & Zjawiska Nadprzyrodzone ---
+    { pattern: /skrzypią?ce?\s+(?:drzwi|podłog|schod|wrot)|zawiasy\s+skrzypi/gi, presetId: 'creaking_door', category: 'horror' },
+    { pattern: /ciężkie\s+wrota|masywne\s+drzwi/gi, presetId: 'heavy_door_creak', category: 'horror' },
+    { pattern: /trzasn(?:ięcie|ęły|ął)\s+drzwiami|zatrzasn/gi, presetId: 'door_slam', category: 'horror' },
+    { pattern: /szept|szepcze|szepnął|obce\s+głosy/gi, presetId: 'whispers', category: 'supernatural' },
     { pattern: /krzyk|wrzask|wrzasnął/gi, presetId: 'distant_scream', category: 'horror' },
-    { pattern: /szept|szepcze|szepnął/gi, presetId: 'whispers', category: 'supernatural' },
+    { pattern: /bicie\s+serca|tętno\s+dudni|puls\s+wali|panik/gi, presetId: 'heartbeat_panic', category: 'horror' },
+    { pattern: /warkot|ryk\s+bestii|nieludzki\s+ryk|pomruk\s+monstrum|bulgot/gi, presetId: 'eldritch_growl', category: 'horror' },
+    { pattern: /mack[aąęi]|oślizgł|śluz|wijąc[aey]ch\s+się/gi, presetId: 'wet_tentacle_squelch', category: 'supernatural' },
+    { pattern: /rytuał|zaklęcie|inkantacj|chorał/gi, presetId: 'ritual_chant', category: 'supernatural' },
+    { pattern: /jęk|jęczy|stęka/gi, presetId: 'groan', category: 'horror' },
+    { pattern: /pękł[aoy]\s+lustr|tłuczone\s+szkł|odłamki\s+szkła|brzęk\s+szyb/gi, presetId: 'glass_shatter_sanity', category: 'horror' },
+    { pattern: /łańcuch[yów]|kłódk[aąę]|bram[aey]\s+cmentar/gi, presetId: 'metal_gate_chains', category: 'horror' },
+
+    // --- Rekwizyty & Dźwięki Epokowe ---
+    { pattern: /powóz|bryczk[aąę]|dorożk[aąę]|końsk[ieych]\s+kopyt|tętent/gi, presetId: 'horse_carriage_run', category: 'city_1920s' },
+    { pattern: /telegraf|morse|stukanie\s+klucza/gi, presetId: 'telegraph_morse', category: 'city_1920s' },
+    { pattern: /maszyn[aey]\s+do\s+pisania|czcionk[aey]\s+maszyny/gi, presetId: 'typewriter_typing', category: 'city_1920s' },
+    { pattern: /gramofon|płyt[aey]\s+winyl|igł[aey]\s+na\s+płycie/gi, presetId: 'gramophone_scratch', category: 'city_1920s' },
+    { pattern: /syren[aąę]\s+przeciwlotnicz|alarm\s+lotniczy/gi, presetId: 'air_raid_siren', category: 'city_1920s' },
+    { pattern: /telefon.*tarcza|wybiera(?:sz)?\s+numer\s+na\s+tarczy|aparat\s+RWT/gi, presetId: 'rotary_dial_prl', category: 'city_1920s' },
+    { pattern: /modem|dial[- ]?up|0202122|dźwięk\s+łączenia\s+z\s+internet/gi, presetId: 'dialup_modem', category: 'city_1920s' },
+    { pattern: /wibracj[aey]\s+telefonu|smartfon.*wibruje|piknięcie\s+komórk/gi, presetId: 'smartphone_vibrate', category: 'city_1920s' },
+    { pattern: /dzwonienie?\s+telefon|aparat\s+dzwoni/gi, presetId: 'old_phone', category: 'city_1920s' },
+    { pattern: /samochód|auto|silnik\s+(?:forda|pojazdu)|klakson/gi, presetId: 'car_engine_1920s', category: 'city_1920s' },
+    { pattern: /kufer|skrzyni[aąę]|otwiera(?:sz)?\s+wieko/gi, presetId: 'wooden_chest_open', category: 'ambient' },
+    { pattern: /zapałk[aąęi]|płomień\s+świec|rozpala(?:sz)?\s+ogień/gi, presetId: 'match_strike_candle', category: 'ambient' },
+    { pattern: /kroki|stąpanie|kroczenie/gi, presetId: 'footsteps_wood', category: 'ambient' },
+    { pattern: /zegar|tyka|wybija/gi, presetId: 'clock_ticking', category: 'ambient' },
+    { pattern: /kościół|dzwon|bije\s+dzwon/gi, presetId: 'church_bell', category: 'city_1920s' },
+
+    // --- Natura & Żywioły ---
     { pattern: /grzmot|błyskawica|piorun/gi, presetId: 'thunder', category: 'nature' },
     { pattern: /deszcz|pada|ulewa/gi, presetId: 'rain_heavy', category: 'nature' },
-    { pattern: /wiatr|wieje|szum/gi, presetId: 'wind_howling', category: 'nature' },
-    { pattern: /strzał|wystrzał|pistolet|rewolwer/gi, presetId: 'gunshot', category: 'combat' },
-    { pattern: /eksplozja|wybuch/gi, presetId: 'explosion', category: 'combat' },
-    { pattern: /kościół|dzwon/gi, presetId: 'church_bell', category: 'city_1920s' },
-    { pattern: /samochód|auto|motor/gi, presetId: 'car_engine_1920s', category: 'city_1920s' },
-    { pattern: /zegar|tyka|wybija/gi, presetId: 'clock_ticking', category: 'ambient' },
-    { pattern: /fale|morze|ocean/gi, presetId: 'ocean_waves', category: 'nature' },
-    { pattern: /rytuał|zaklęcie|inkantacj/gi, presetId: 'ritual_chant', category: 'supernatural' },
-    { pattern: /jęk|jęczy|stęka/gi, presetId: 'groan', category: 'horror' },
+    { pattern: /wiatr|wieje|szum\s+wichru/gi, presetId: 'wind_howling', category: 'nature' },
+    { pattern: /fale|morze|ocean|przybrzeżn/gi, presetId: 'ocean_waves', category: 'nature' },
 ];

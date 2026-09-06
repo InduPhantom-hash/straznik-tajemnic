@@ -20,12 +20,15 @@ import {
   extractSanLossFromText,
   getActiveCharacterSan,
 } from '@/lib/audio/sound-director';
+import { SFX_PATTERNS } from '@/lib/parsers/patterns';
+import { playSFX } from '@/lib/audio/sfx-catalog';
 
 interface QueueItem {
   text: string;
   voiceId?: string; // override z multi-voice; undefined → settings.voiceSettings.voiceId
   audioDirection?: string; // Issue #162: instrukcja reżyserska dla Gemini TTS
   speedMultiplier?: number; // Issue #200: adaptacyjne przyspieszenie tempa akcji (np. 1.25x dla starć/pościgów)
+  sfxPresetId?: string; // Wykryty efekt SFX do odtworzenia wraz z narracją
 }
 
 export interface TTSState {
@@ -250,6 +253,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const preloadedAudioRef = useRef<Map<number, HTMLAudioElement | null>>(
     new Map()
   );
+  const sfxQueueRef = useRef<Map<number, string>>(new Map());
   const isProcessingQueueRef = useRef(false);
   const isPlayingQueueRef = useRef(false);
   const currentMessageIdRef = useRef<string | null>(null);
@@ -280,6 +284,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const openRunRef = useRef<{
     voiceId: string | undefined;
     audioDirection?: string;
+    sfxPresetId?: string;
     texts: string[];
   } | null>(null);
   // E1 (start lektora): liczba znaków PIERWSZEGO akapitu już oddanych do TTS "na
@@ -390,7 +395,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         // Przenieś z pending do głównej kolejki przetwarzania
         const item = pendingQueueRef.current.shift();
         if (!item) continue;
-        const { text, voiceId: overrideVoiceId, audioDirection, speedMultiplier } = item;
+        const { text, voiceId: overrideVoiceId, audioDirection, speedMultiplier, sfxPresetId } = item;
         if (!text) continue;
 
         const index = processingIndexRef.current++;
@@ -429,6 +434,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
             }
             preloadedAudioRef.current.set(index, audio);
+            if (sfxPresetId) {
+              sfxQueueRef.current.set(index, sfxPresetId);
+            }
             console.log(`✅ TTS Worker: Ready segment ${index} (speed=${targetSpeed.toFixed(2)}x)`);
 
             if (isInitialBufferingRef.current) {
@@ -560,6 +568,12 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         }
         if ('preservesPitch' in audio) {
           (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
+        }
+        // SFX trigger dla bieżącego segmentu lektora
+        const sfxId = sfxQueueRef.current.get(currentIndex);
+        if (sfxId) {
+          sfxQueueRef.current.delete(currentIndex);
+          playSFX(sfxId);
         }
         setCurrentAudio(audio);
 
@@ -753,6 +767,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               voiceId: run.voiceId,
               audioDirection: run.audioDirection,
               speedMultiplier,
+              sfxPresetId: run.sfxPresetId,
             });
           }
           openRunRef.current = null;
@@ -760,6 +775,15 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
         for (const sentenceItem of newSentences) {
           const { raw, clean, startIndex, endIndex } = sentenceItem;
+          // Detekcja SFX dla bieżącego zdania
+          let sentenceSfxId: string | undefined;
+          for (const sfxEntry of SFX_PATTERNS) {
+            const rx = new RegExp(sfxEntry.pattern.source, sfxEntry.pattern.flags);
+            if (rx.test(clean)) {
+              sentenceSfxId = sfxEntry.presetId;
+              break;
+            }
+          }
 
           // Issue #172: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
           // znak nowej linii, linia dialogowa dotychczasowego NPC się skończyła.
@@ -845,7 +869,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             closeRun();
           }
           if (!openRunRef.current) {
-            openRunRef.current = { voiceId, audioDirection, texts: [] };
+            openRunRef.current = { voiceId, audioDirection, texts: [], sfxPresetId: sentenceSfxId };
           }
           openRunRef.current.texts.push(textForQueue);
 
@@ -954,11 +978,20 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               ? paragraphs[0].slice(earlySpokenCharsRef.current)
               : paragraphs[i];
           const cleanParagraph = removeDidaskalia(rawParagraph).trim();
+          let paraSfxId: string | undefined;
+          for (const sfxEntry of SFX_PATTERNS) {
+            const rx = new RegExp(sfxEntry.pattern.source, sfxEntry.pattern.flags);
+            if (rx.test(cleanParagraph)) {
+              paraSfxId = sfxEntry.presetId;
+              break;
+            }
+          }
           if (cleanParagraph && /[\p{L}\p{N}]/u.test(cleanParagraph)) {
             pendingItems.push({
               text: cleanParagraph,
               audioDirection: narratorAudioDirection,
               speedMultiplier: paragraphSpeedMultiplier,
+              sfxPresetId: paraSfxId,
             });
           }
         }
