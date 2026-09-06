@@ -30,13 +30,19 @@ import {
   CheckCircle,
   BookOpen,
   MessageSquare,
+  Compass,
+  Search,
+  User,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Character } from "@/lib/types";
+import type { MiceQuotientType } from "@/lib/journal/dossier-types";
 import {
   executeIdeaRoll,
   buildIdeaRollPrompt,
   buildQuoteToInputText,
+  inferMiceType,
   type IdeaRollResult,
 } from "@/lib/journal/idea-roll-service";
 import { fetchWithApiKeys } from "@/lib/api-keys-service";
@@ -51,11 +57,13 @@ export interface IdeaRollModalProps {
     title: string;
     description?: string;
     type?: string;
+    miceType?: MiceQuotientType;
   };
   contextClues?: Array<{
     title: string;
     description?: string;
     type?: string;
+    miceType?: MiceQuotientType;
   }>;
   onSaveInsightToTarget?: (insight: string) => void;
   onSaveInsightToChronicle?: (title: string, insight: string) => void;
@@ -75,6 +83,7 @@ export function IdeaRollModal({
   const t = useTranslations("IdeaRoll");
   const locale = useLocale() as "pl" | "en";
 
+  const [selectedMiceLens, setSelectedMiceLens] = useState<MiceQuotientType>("inquiry");
   const [rollResult, setRollResult] = useState<IdeaRollResult | null>(null);
   const [insightText, setInsightText] = useState("");
   const [isRolling, setIsRolling] = useState(false);
@@ -92,6 +101,7 @@ export function IdeaRollModal({
       setIsDeducing(false);
       setSavedToTarget(false);
       setSavedToChronicle(false);
+      setSelectedMiceLens(targetSubject ? inferMiceType(targetSubject) : "inquiry");
     }
   }, [open, targetSubject?.id]);
 
@@ -104,6 +114,7 @@ export function IdeaRollModal({
       character,
       targetSubject,
       contextClues,
+      selectedMiceLens,
     });
     setRollResult(result);
 
@@ -241,19 +252,67 @@ export function IdeaRollModal({
           </div>
         </div>
 
+        {/* Wybór Soczewki Dramaturgicznej M.I.C.E. (Card / Kowal) */}
+        <div className="bg-zinc-900/90 border border-emerald-900/50 rounded-lg p-3 my-2 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-1">
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-emerald-400">
+              {t("miceSectionTitle")}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-serif italic">
+              {t("miceSectionDescription")}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { id: 'inquiry', icon: Search, label: t('miceInquiry'), desc: t('miceInquiryDesc'), activeBorder: 'border-[#bfa15f] bg-[#bfa15f]/20 text-[#f4ebd0]' },
+              { id: 'milieu', icon: Compass, label: t('miceMilieu'), desc: t('miceMilieuDesc'), activeBorder: 'border-emerald-500 bg-emerald-950/60 text-emerald-200' },
+              { id: 'character', icon: User, label: t('miceCharacter'), desc: t('miceCharacterDesc'), activeBorder: 'border-purple-500 bg-purple-950/60 text-purple-200' },
+              { id: 'event', icon: Zap, label: t('miceEvent'), desc: t('miceEventDesc'), activeBorder: 'border-rose-500 bg-rose-950/60 text-rose-200' },
+            ].map((lens) => {
+              const Icon = lens.icon;
+              const isSelected = selectedMiceLens === lens.id;
+              return (
+                <button
+                  key={lens.id}
+                  type="button"
+                  onClick={() => setSelectedMiceLens(lens.id as MiceQuotientType)}
+                  className={cn(
+                    "p-2 rounded border text-left transition-all flex flex-col justify-between cursor-pointer",
+                    isSelected
+                      ? lens.activeBorder
+                      : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300"
+                  )}
+                  title={lens.desc}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs">
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{lens.label}</span>
+                  </div>
+                  <span className="text-[9px] line-clamp-2 mt-1 opacity-75 font-serif leading-tight">
+                    {lens.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Panel rzutu lub wynik */}
         {!rollResult ? (
-          <div className="text-center py-6 border-y border-emerald-900/30 my-2">
+          <div className="text-center py-5 border-y border-emerald-900/30 my-2">
             <Button
               onClick={handleRoll}
               disabled={isRolling}
-              className="bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-100 border-2 border-emerald-500/50 px-8 py-3 rounded-lg text-sm font-serif font-bold shadow-lg transition-all"
+              className="bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-100 border-2 border-emerald-500/50 px-8 py-3 rounded-lg text-sm font-serif font-bold shadow-lg transition-all cursor-pointer"
             >
               <Dices className="h-5 w-5 mr-2 text-emerald-400" />
               {t("rollButton")}
             </Button>
-            <p className="text-[11px] text-zinc-500 italic mt-3 max-w-md mx-auto font-serif">
+            <p className="text-[11px] text-zinc-500 italic mt-2.5 max-w-md mx-auto font-serif">
               {t("rawRuleHint")}
+            </p>
+            <p className="text-[10px] text-emerald-400/70 italic mt-1 font-serif">
+              {t("miceLifoHint")}
             </p>
           </div>
         ) : (
@@ -273,6 +332,9 @@ export function IdeaRollModal({
                   <div className="font-bold text-sm flex items-center gap-1.5">
                     <span>{rollResult.outcomeEmoji}</span>
                     <span>{rollResult.outcomeLabel}</span>
+                    <span className="text-[10px] uppercase font-mono font-bold px-1.5 py-0.5 rounded border ml-1.5 bg-zinc-900 border-zinc-700 text-zinc-300">
+                      M.I.C.E.: [{rollResult.miceLens.toUpperCase()[0]}]
+                    </span>
                   </div>
                   <span className="text-[10px] opacity-80 font-serif">
                     {rollResult.isSuccess ? t("verdictSuccess") : t("verdictFailureWithComplication")}
@@ -283,7 +345,7 @@ export function IdeaRollModal({
                 type="button"
                 onClick={handleRoll}
                 disabled={isDeducing}
-                className="text-xs text-emerald-400 hover:text-emerald-200 flex items-center gap-1 underline disabled:opacity-50 font-serif"
+                className="text-xs text-emerald-400 hover:text-emerald-200 flex items-center gap-1 underline disabled:opacity-50 font-serif cursor-pointer"
               >
                 <RotateCcw className="h-3 w-3" /> {t("reroll")}
               </button>

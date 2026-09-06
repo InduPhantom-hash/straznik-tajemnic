@@ -6580,7 +6580,13 @@
     "lockedRoomType_suicide_framed_as_murder": "Typ 4: Samobójstwo znikającą bronią (sopel/sznur)",
     "lockedRoomType_victim_impersonation": "Typ 5: Sprawca udający ofiarę po zbrodni",
     "lockedRoomType_strike_from_outside": "Typ 6: Cios lub strzał z zewnątrz (lufcik/szczelina)",
-    "lockedRoomType_strike_during_break_in": "Typ 7: Uderzenie w chaosie wyważania drzwi"
+    "lockedRoomType_strike_during_break_in": "Typ 7: Uderzenie w chaosie wyważania drzwi",
+    "miceVectorLabel": "Wektor M.I.C.E.:",
+    "miceTypeMilieu": "[M] Przestrzeń (Milieu)",
+    "miceTypeInquiry": "[I] Śledztwo (Inquiry)",
+    "miceTypeCharacter": "[C] Postać (Character)",
+    "miceTypeEvent": "[E] Zdarzenie (Event)",
+    "changeMiceTooltip": "Zmień wektor dramatyczny poszlaki (M.I.C.E. Quotient)"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",
@@ -7436,7 +7442,18 @@
     "chronicleTitleSubject": "Wniosek z Testu Pomysłu: {title}",
     "chronicleTitleGeneral": "Olśnienie badacza ({name}) - Test Pomysłu",
     "fallbackSuccess": "Po wnikliwej analizie zebranych śladów badacz {name} dostrzega ukryte powiązanie, które rzuca nowe światło na przebieg wydarzeń.",
-    "fallbackFailure": "Badacz {name} dochodzi do właściwego wniosku, jednak chwila nieuwagi sprawia, że zwraca na siebie niepożądaną uwagę lub traci cenny czas."
+    "fallbackFailure": "Badacz {name} dochodzi do właściwego wniosku, jednak chwila nieuwagi sprawia, że zwraca na siebie niepożądaną uwagę lub traci cenny czas.",
+    "miceSectionTitle": "SOCZEWKA DRAMATURGICZNA (M.I.C.E. QUOTIENT)",
+    "miceSectionDescription": "Wybierz oś napędu narracji (Orson Scott Card / Mary Robinette Kowal) dla ukierunkowania dedukcji:",
+    "miceMilieu": "[M] Przestrzeń i Ucieczka",
+    "miceMilieuDesc": "Badanie otoczenia, dróg odwrotu, barier i zabezpieczeń lokacji",
+    "miceInquiry": "[I] Śledztwo i Prawda",
+    "miceInquiryDesc": "Pytania, fakty, analiza poszlak, demaskowanie motywu",
+    "miceCharacter": "[C] Ludzie i Motywacje",
+    "miceCharacterDesc": "Konflikt wewnętrzny, lęki, manipulacje, moralność i relacje",
+    "miceEvent": "[E] Zagrożenie i Zdarzenia",
+    "miceEventDesc": "Zachwianie równowagi, powstrzymanie rytuału, wyścig z czasem",
+    "miceLifoHint": "Zasada domykania LIFO: wątki zagnieżdżone w śledztwie zamykają się w odwrotnej kolejności do ich otwarcia (Event -> Inquiry -> Milieu)."
   },
   "Hazards": {
     "dialogTitle": "Zagrożenia Środowiskowe i Trucizny",

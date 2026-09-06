@@ -6580,7 +6580,13 @@
     "lockedRoomType_suicide_framed_as_murder": "Type 4: Suicide with vanishing weapon (icicle/cord)",
     "lockedRoomType_victim_impersonation": "Type 5: Killer impersonating victim post-mortem",
     "lockedRoomType_strike_from_outside": "Type 6: Strike or shot from outside (transom/crevice)",
-    "lockedRoomType_strike_during_break_in": "Type 7: Strike during door break-in chaos"
+    "lockedRoomType_strike_during_break_in": "Type 7: Strike during door break-in chaos",
+    "miceVectorLabel": "M.I.C.E. Vector:",
+    "miceTypeMilieu": "[M] Milieu",
+    "miceTypeInquiry": "[I] Inquiry",
+    "miceTypeCharacter": "[C] Character",
+    "miceTypeEvent": "[E] Event",
+    "changeMiceTooltip": "Change dramatic vector of this clue (M.I.C.E. Quotient)"
   },
   "LocationManager": {
     "title": "📍 Location Manager",
@@ -7436,7 +7442,18 @@
     "chronicleTitleSubject": "Idea Roll deduction: {title}",
     "chronicleTitleGeneral": "Investigator breakthrough ({name}) - Idea Roll",
     "fallbackSuccess": "Upon thorough analysis of gathered clues, investigator {name} notices a hidden connection that casts new light on the mystery.",
-    "fallbackFailure": "Investigator {name} reaches the vital deduction, but a moment of distraction draws unwanted attention or costs precious time."
+    "fallbackFailure": "Investigator {name} reaches the vital deduction, but a moment of distraction draws unwanted attention or costs precious time.",
+    "miceSectionTitle": "DRAMATIC LENS (M.I.C.E. QUOTIENT)",
+    "miceSectionDescription": "Select the narrative drive vector (Orson Scott Card / Mary Robinette Kowal) to focus the deduction:",
+    "miceMilieu": "[M] Milieu & Escape",
+    "miceMilieuDesc": "Exploring environment, escape routes, barriers and securing the location",
+    "miceInquiry": "[I] Inquiry & Truth",
+    "miceInquiryDesc": "Central questions, facts, clue analysis, uncovering motives",
+    "miceCharacter": "[C] Character & Motives",
+    "miceCharacterDesc": "Internal conflict, fears, deception, morality and relationships",
+    "miceEvent": "[E] Event & Threat",
+    "miceEventDesc": "Status quo disruption, halting rituals, beating the clock",
+    "miceLifoHint": "LIFO Nesting Rule: nested plot threads should close in reverse order of opening (Event -> Inquiry -> Milieu)."
   },
   "Hazards": {
     "dialogTitle": "Environmental Hazards & Poisons",
