@@ -79,19 +79,19 @@ const ANIM_DURATION_MS = 650;
 function getOutcomeColor(outcome: RollOutcome): string {
   switch (outcome) {
     case 'critical':
-      return 'text-yellow-400 border-yellow-500/50 bg-yellow-950/40';
+      return 'text-gold border-gold/60 bg-brass/15 font-bold shadow-glow-brass';
     case 'extreme':
-      return 'text-purple-400 border-purple-500/50 bg-purple-950/40';
+      return 'text-brass border-brass/50 bg-brass/10 font-semibold';
     case 'hard':
-      return 'text-emerald-400 border-emerald-500/50 bg-emerald-950/40';
+      return 'text-primary border-primary/50 bg-primary/10 font-semibold';
     case 'regular':
-      return 'text-blue-400 border-blue-500/50 bg-blue-950/40';
+      return 'text-foreground border-border/80 bg-card/80';
     case 'fail':
-      return 'text-rose-400 border-rose-500/50 bg-rose-950/40';
+      return 'text-destructive border-destructive/50 bg-destructive/10';
     case 'fumble':
-      return 'text-red-500 border-red-600/60 bg-red-950/60 font-bold';
+      return 'text-destructive border-destructive bg-destructive/20 font-bold';
     default:
-      return 'text-zinc-300 border-zinc-700 bg-zinc-900';
+      return 'text-muted-foreground border-border bg-card';
   }
 }
 
@@ -211,19 +211,19 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] border-brass/50 bg-zinc-950/95 text-zinc-100 shadow-2xl backdrop-blur-md p-0 overflow-hidden flex flex-col">
+      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] border-brass/50 bg-card text-foreground shadow-deco backdrop-blur-md p-0 overflow-hidden flex flex-col">
         {/* Nagłówek Dark Art Déco */}
-        <DialogHeader className="border-b border-brass/30 bg-zinc-900/80 px-6 py-4">
+        <DialogHeader className="border-b border-brass/30 bg-card/90 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-brass/10 border border-brass/30 text-brass">
+              <div className="p-2 rounded-md bg-brass/10 border border-brass/30 text-brass">
                 <Swords className="w-5 h-5" />
               </div>
               <div>
                 <DialogTitle className="font-display text-lg tracking-wider text-brass uppercase">
                   {t('title')}
                 </DialogTitle>
-                <DialogDescription className="font-serif text-xs text-zinc-400 italic">
+                <DialogDescription className="font-serif text-xs text-muted-foreground italic">
                   {t('subtitle')}
                 </DialogDescription>
               </div>
@@ -233,58 +233,58 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
             </Badge>
           </div>
           {data.justification && (
-            <div className="mt-2 text-xs font-serif text-zinc-300 italic bg-zinc-900/50 p-2 rounded border border-zinc-800">
+            <div className="mt-2 text-xs font-serif text-muted-foreground italic bg-card/60 p-2 rounded border border-border">
               💡 {data.justification}
             </div>
           )}
         </DialogHeader>
 
         {/* Zawartość: Dwie Kolumny (Gracz vs Przeciwnik) */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
             {/* Ikona VS pośrodku */}
-            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-zinc-900 border border-brass/40 items-center justify-center text-brass z-10 text-xs font-bold font-display shadow-lg">
+            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card border border-brass/50 items-center justify-center text-brass z-10 text-xs font-bold font-display shadow-deco">
               VS
             </div>
 
             {/* LEWA KOLUMNA: BADACZ */}
-            <Card className="border-brass/30 bg-zinc-900/40 overflow-hidden">
-              <div className="bg-zinc-800/60 px-4 py-2.5 border-b border-brass/20 flex items-center justify-between">
+            <Card className="border-brass/30 bg-card/50 overflow-hidden">
+              <div className="bg-card/90 px-4 py-2.5 border-b border-brass/20 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-400" />
-                  <span className="font-display text-sm font-bold text-zinc-100">
+                  <User className="w-4 h-4 text-primary" />
+                  <span className="font-display text-sm font-bold text-foreground">
                     {data.playerName}
                   </span>
                 </div>
-                <Badge className="text-[10px] bg-emerald-950/60 text-emerald-300 border-emerald-700/50">
+                <Badge className="text-[10px] bg-primary/20 text-primary border-primary/40">
                   {t('playerLabel')}
                 </Badge>
               </div>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-400">{data.playerSkillName}:</span>
-                  <span className="font-mono font-bold text-emerald-300 text-base">
+                  <span className="text-muted-foreground">{data.playerSkillName}:</span>
+                  <span className="font-mono font-bold text-primary text-base">
                     {data.playerSkillValue}%
                   </span>
                 </div>
 
                 {/* Progi sukcesu */}
-                <div className="grid grid-cols-3 gap-1 text-[11px] font-mono text-center bg-zinc-950/60 p-2 rounded border border-zinc-800">
+                <div className="grid grid-cols-3 gap-1 text-[11px] font-mono text-center bg-card/80 p-2 rounded border border-border/80">
                   <div>
-                    <span className="text-zinc-500 block">{t('thresholdRegular')}</span>
-                    <span className="text-blue-300 font-semibold">
+                    <span className="text-muted-foreground block">{t('thresholdRegular')}</span>
+                    <span className="text-foreground font-semibold">
                       ≤{playerThresholds.regular}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-500 block">{t('thresholdHard')}</span>
-                    <span className="text-emerald-300 font-semibold">
+                    <span className="text-muted-foreground block">{t('thresholdHard')}</span>
+                    <span className="text-primary font-semibold">
                       ≤{playerThresholds.hard}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-500 block">{t('thresholdExtreme')}</span>
-                    <span className="text-purple-300 font-semibold">
+                    <span className="text-muted-foreground block">{t('thresholdExtreme')}</span>
+                    <span className="text-brass font-semibold">
                       ≤{playerThresholds.extreme}
                     </span>
                   </div>
@@ -292,7 +292,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
 
                 {/* Kości premiowe / karne */}
                 <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-zinc-400">{t('bonusDice')}:</span>
+                  <span className="text-muted-foreground">{t('bonusDice')}:</span>
                   <div className="flex items-center gap-1">
                     {[-2, -1, 0, 1, 2].map((mod) => (
                       <button
@@ -303,11 +303,11 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                         className={`w-6 h-6 rounded text-[11px] font-mono transition-colors ${
                           playerBonus === mod
                             ? mod > 0
-                              ? 'bg-emerald-600 text-white font-bold'
+                              ? 'bg-primary text-primary-foreground font-bold'
                               : mod < 0
-                              ? 'bg-rose-600 text-white font-bold'
-                              : 'bg-brass text-zinc-950 font-bold'
-                            : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'
+                              ? 'bg-destructive text-destructive-foreground font-bold'
+                              : 'bg-brass text-background font-bold'
+                            : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                         }`}
                       >
                         {mod > 0 ? `+${mod}` : mod}
@@ -322,10 +322,10 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                     className={`p-3 rounded-lg border flex flex-col items-center justify-center transition-all ${
                       phase === 'done' && resolution
                         ? getOutcomeColor(resolution.sideA.outcome)
-                        : 'border-zinc-800 bg-zinc-950/70'
+                        : 'border-border bg-card/80'
                     }`}
                   >
-                    <span className="text-xs text-zinc-400 uppercase tracking-widest font-mono">
+                    <span className="text-xs text-muted-foreground uppercase tracking-widest font-mono">
                       {phase === 'done' ? getOutcomeLabel(resolution!.sideA.outcome) : t('rolling')}
                     </span>
                     <span className="text-3xl font-mono font-extrabold tracking-tight mt-1">
@@ -336,7 +336,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                         : '--'}
                     </span>
                     {phase === 'done' && resolution && resolution.sideA.bonusDice !== 0 && (
-                      <span className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                      <span className="text-[10px] text-muted-foreground font-mono mt-0.5">
                         k10: [{resolution.sideA.tensResults.join(', ')}] + {resolution.sideA.unitsResult}
                       </span>
                     )}
@@ -346,43 +346,43 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
             </Card>
 
             {/* PRAWA KOLUMNA: PRZECIWNIK */}
-            <Card className="border-brass/30 bg-zinc-900/40 overflow-hidden">
-              <div className="bg-zinc-800/60 px-4 py-2.5 border-b border-brass/20 flex items-center justify-between">
+            <Card className="border-brass/30 bg-card/50 overflow-hidden">
+              <div className="bg-card/90 px-4 py-2.5 border-b border-brass/20 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Skull className="w-4 h-4 text-rose-400" />
-                  <span className="font-display text-sm font-bold text-zinc-100">
+                  <Skull className="w-4 h-4 text-destructive" />
+                  <span className="font-display text-sm font-bold text-foreground">
                     {data.opponentName}
                   </span>
                 </div>
-                <Badge className="text-[10px] bg-rose-950/60 text-rose-300 border-rose-700/50">
+                <Badge className="text-[10px] bg-destructive/20 text-destructive-foreground border-destructive/50">
                   {t('opponentLabel')}
                 </Badge>
               </div>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-400">{data.opponentSkillName}:</span>
-                  <span className="font-mono font-bold text-rose-300 text-base">
+                  <span className="text-muted-foreground">{data.opponentSkillName}:</span>
+                  <span className="font-mono font-bold text-destructive text-base">
                     {data.opponentSkillValue}%
                   </span>
                 </div>
 
                 {/* Progi sukcesu */}
-                <div className="grid grid-cols-3 gap-1 text-[11px] font-mono text-center bg-zinc-950/60 p-2 rounded border border-zinc-800">
+                <div className="grid grid-cols-3 gap-1 text-[11px] font-mono text-center bg-card/80 p-2 rounded border border-border/80">
                   <div>
-                    <span className="text-zinc-500 block">{t('thresholdRegular')}</span>
-                    <span className="text-blue-300 font-semibold">
+                    <span className="text-muted-foreground block">{t('thresholdRegular')}</span>
+                    <span className="text-foreground font-semibold">
                       ≤{opponentThresholds.regular}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-500 block">{t('thresholdHard')}</span>
-                    <span className="text-emerald-300 font-semibold">
+                    <span className="text-muted-foreground block">{t('thresholdHard')}</span>
+                    <span className="text-primary font-semibold">
                       ≤{opponentThresholds.hard}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-500 block">{t('thresholdExtreme')}</span>
-                    <span className="text-purple-300 font-semibold">
+                    <span className="text-muted-foreground block">{t('thresholdExtreme')}</span>
+                    <span className="text-brass font-semibold">
                       ≤{opponentThresholds.extreme}
                     </span>
                   </div>
@@ -390,7 +390,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
 
                 {/* Kości premiowe / karne */}
                 <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-zinc-400">{t('bonusDice')}:</span>
+                  <span className="text-muted-foreground">{t('bonusDice')}:</span>
                   <div className="flex items-center gap-1">
                     {[-2, -1, 0, 1, 2].map((mod) => (
                       <button
@@ -401,11 +401,11 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                         className={`w-6 h-6 rounded text-[11px] font-mono transition-colors ${
                           opponentBonus === mod
                             ? mod > 0
-                              ? 'bg-emerald-600 text-white font-bold'
+                              ? 'bg-primary text-primary-foreground font-bold'
                               : mod < 0
-                              ? 'bg-rose-600 text-white font-bold'
-                              : 'bg-brass text-zinc-950 font-bold'
-                            : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'
+                              ? 'bg-destructive text-destructive-foreground font-bold'
+                              : 'bg-brass text-background font-bold'
+                            : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                         }`}
                       >
                         {mod > 0 ? `+${mod}` : mod}
@@ -420,10 +420,10 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                     className={`p-3 rounded-lg border flex flex-col items-center justify-center transition-all ${
                       phase === 'done' && resolution
                         ? getOutcomeColor(resolution.sideB.outcome)
-                        : 'border-zinc-800 bg-zinc-950/70'
+                        : 'border-border bg-card/80'
                     }`}
                   >
-                    <span className="text-xs text-zinc-400 uppercase tracking-widest font-mono">
+                    <span className="text-xs text-muted-foreground uppercase tracking-widest font-mono">
                       {phase === 'done' ? getOutcomeLabel(resolution!.sideB.outcome) : t('rolling')}
                     </span>
                     <span className="text-3xl font-mono font-extrabold tracking-tight mt-1">
@@ -434,7 +434,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                         : '--'}
                     </span>
                     {phase === 'done' && resolution && resolution.sideB.bonusDice !== 0 && (
-                      <span className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                      <span className="text-[10px] text-muted-foreground font-mono mt-0.5">
                         k10: [{resolution.sideB.tensResults.join(', ')}] + {resolution.sideB.unitsResult}
                       </span>
                     )}
@@ -447,22 +447,22 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
           {/* WERDYKT REGIS / RAW (Widoczny po rzucie) */}
           {phase === 'done' && resolution && (
             <div
-              className={`p-4 rounded-lg border transition-all duration-300 ${
+              className={`p-4 rounded-lg border transition-all duration-300 shadow-deco ${
                 resolution.winner === 'sideA'
-                  ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-100'
+                  ? 'border-primary/60 bg-primary/10 text-foreground'
                   : resolution.winner === 'sideB'
-                  ? 'border-rose-500/60 bg-rose-950/40 text-rose-100'
-                  : 'border-amber-500/60 bg-amber-950/40 text-amber-100'
+                  ? 'border-destructive/60 bg-destructive/10 text-foreground'
+                  : 'border-brass/60 bg-brass/10 text-foreground'
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-md bg-zinc-950/60 shrink-0">
+                <div className="p-2 rounded-md bg-card shrink-0 border border-border/60">
                   {resolution.winner === 'sideA' ? (
-                    <Trophy className="w-6 h-6 text-emerald-400" />
+                    <Trophy className="w-6 h-6 text-primary" />
                   ) : resolution.winner === 'sideB' ? (
-                    <Skull className="w-6 h-6 text-rose-400" />
+                    <Skull className="w-6 h-6 text-destructive" />
                   ) : (
-                    <Scale className="w-6 h-6 text-amber-400" />
+                    <Scale className="w-6 h-6 text-brass" />
                   )}
                 </div>
                 <div className="space-y-1">
@@ -488,7 +488,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                           outcome: getOutcomeLabel(resolution.sideA.outcome),
                         })}
                   </div>
-                  <p className="font-serif text-xs opacity-80 leading-relaxed">
+                  <p className="font-serif text-xs opacity-80 leading-relaxed text-muted-foreground">
                     {resolution.tieBreaker === 'skill_value' &&
                       t('winBySkillValue', {
                         winner: resolution.winner === 'sideA' ? resolution.sideA.name : resolution.sideB.name,
@@ -511,13 +511,13 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
           )}
 
           {/* PRZYCISKI AKCJI */}
-          <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+          <div className="flex items-center justify-between pt-2 border-t border-border/80">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-border text-muted-foreground hover:bg-muted"
             >
               {t('closeButton')}
             </Button>
@@ -527,7 +527,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                 <Button
                   type="button"
                   onClick={startRoll}
-                  className="bg-brass hover:bg-brass-light text-zinc-950 font-display font-semibold tracking-wide px-5 shadow-lg flex items-center gap-2"
+                  className="bg-brass hover:bg-brass/80 text-background font-display font-semibold tracking-wide px-5 shadow-deco flex items-center gap-2"
                 >
                   <Dices className="w-4 h-4" />
                   {t('rollButton')}
@@ -541,7 +541,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                       type="button"
                       variant="outline"
                       onClick={startRoll}
-                      className="border-amber-500/50 text-amber-300 hover:bg-amber-950/40 flex items-center gap-1.5"
+                      className="border-brass/50 text-brass hover:bg-brass/10 flex items-center gap-1.5"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       {t('rerollButton')}
@@ -550,7 +550,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                   <Button
                     type="button"
                     onClick={handleSendToChat}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium flex items-center gap-2 shadow-lg"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium flex items-center gap-2 shadow-deco"
                   >
                     <Send className="w-4 h-4" />
                     {t('sendToChatButton')}
