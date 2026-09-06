@@ -147,11 +147,11 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
           </div>
 
           {(location || eraLabel) && (
-            <div className="flex items-center justify-center gap-3 text-xs md:text-sm font-mono text-zinc-300 tracking-wider">
+            <div className="flex items-center justify-center gap-3 text-xs md:text-sm font-mono text-foreground/80 tracking-wider">
               {location && (
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-gold" />
-                  <span className="text-zinc-200">{location}</span>
+                  <span className="text-foreground">{location}</span>
                 </span>
               )}
               {location && eraLabel && <span className="text-brass/50 font-bold">·</span>}
@@ -167,7 +167,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
         {/* 2-kolumnowy panel główny: Lewa = Akta Śledztwa, Prawa = Wycinek prasowy epoki */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 text-left">
           {/* Lewa kolumna: Dossier Przygody (7 kolumn) */}
-          <div className="lg:col-span-7 border border-brass/45 bg-zinc-950/90 rounded-xl p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between">
+          <div className="lg:col-span-7 border border-brass/45 bg-card/90 rounded-lg p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brass to-transparent" />
 
             <div>
@@ -177,18 +177,18 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                   {t('chronicleDossier')}
                 </span>
                 {eraLabel && (
-                  <span className="text-xs font-mono text-zinc-400">
+                  <span className="text-xs font-mono text-muted-foreground">
                     {eraLabel}
                   </span>
                 )}
               </div>
 
-              <h3 className="font-display text-xl md:text-3xl font-bold text-zinc-100 tracking-wide mb-4 italic leading-tight">
+              <h3 className="font-display text-xl md:text-3xl font-bold text-foreground tracking-wide mb-4 italic leading-tight">
                 „{title}”
               </h3>
 
               <div className="relative pl-3 border-l-2 border-gold/40 my-2">
-                <p className="font-special-elite text-sm md:text-base text-zinc-200 leading-relaxed max-h-56 overflow-y-auto pr-2">
+                <p className="font-special-elite text-sm md:text-base text-foreground/90 leading-relaxed max-h-56 overflow-y-auto pr-2">
                   {storyHook}
                 </p>
               </div>
@@ -202,7 +202,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 {themes.map((theme, i) => (
                   <span
                     key={i}
-                    className="px-2.5 py-1 rounded text-xs font-special-elite bg-brass/15 border border-brass/40 text-amber-200/90 shadow-sm"
+                    className="px-2.5 py-1 rounded text-xs font-special-elite bg-brass/15 border border-brass/40 text-brass shadow-sm"
                   >
                     {theme}
                   </span>
@@ -212,7 +212,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
           </div>
 
           {/* Prawa kolumna: Kronika Epoki / Wycinki z prasy 1920s (5 kolumn) */}
-          <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/90 to-[#0c0d09]/95 rounded-xl p-5 md:p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+          <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/90 to-[#0c0d09]/95 rounded-lg p-5 md:p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brass/30 via-gold/60 to-brass/30" />
 
             <div>
@@ -229,10 +229,10 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                     <div className="text-[10px] font-mono text-gold/80 tracking-wider uppercase mb-1">
                       {dispatch.source}
                     </div>
-                    <div className="font-display text-xs md:text-sm font-bold text-zinc-100 mb-1 leading-snug">
+                    <div className="font-display text-xs md:text-sm font-bold text-foreground mb-1 leading-snug">
                       {dispatch.headline}
                     </div>
-                    <p className="font-serif italic text-xs text-zinc-400 leading-relaxed line-clamp-3">
+                    <p className="font-serif italic text-xs text-muted-foreground leading-relaxed line-clamp-3">
                       &quot;{dispatch.text}&quot;
                     </p>
                   </div>
@@ -240,7 +240,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-[11px] font-mono text-zinc-500">
+            <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
               <span>ARCHIVUM 1920s</span>
               <span className="text-brass/60">CONFIDENTIAL</span>
             </div>
@@ -264,7 +264,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               {!isCompleted && (
                 <span className="inline-block w-2 h-2 rounded-full bg-gold animate-ping shrink-0" />
               )}
-              <span className="truncate text-zinc-200">
+              <span className="truncate text-foreground/90">
                 {isCompleted ? t('chronicleReady') : startStatus || t('generatingStory')}
               </span>
             </span>
@@ -282,18 +282,18 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 type="button"
                 onClick={handleConfirm}
                 data-testid="loading-screen-enter-cta"
-                className="group relative px-10 py-4 bg-gradient-to-r from-[#997a38] via-[#f0cc66] to-[#997a38] hover:from-[#b38f42] hover:via-[#ffde7a] hover:to-[#b38f42] text-zinc-950 font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] rounded-md border-2 border-gold shadow-[0_0_35px_rgba(201,169,74,0.55)] hover:shadow-[0_0_55px_rgba(201,169,74,0.9)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
+                className="group relative px-10 py-4 bg-gradient-to-r from-[#997a38] via-[#f0cc66] to-[#997a38] hover:from-[#b38f42] hover:via-[#ffde7a] hover:to-[#b38f42] text-background font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] rounded-md border-2 border-gold shadow-[0_0_35px_rgba(201,169,74,0.55)] hover:shadow-[0_0_55px_rgba(201,169,74,0.9)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
               >
-                <Play className="w-5 h-5 fill-zinc-950 text-zinc-950 transition-transform group-hover:scale-125" />
+                <Play className="w-5 h-5 fill-background text-background transition-transform group-hover:scale-125" />
                 <span>{t('enterAdventure')}</span>
-                <Sparkles className="w-5 h-5 text-zinc-950 animate-pulse" />
+                <Sparkles className="w-5 h-5 text-background animate-pulse" />
               </button>
               <p className="text-xs font-special-elite text-gold/90 tracking-widest uppercase animate-pulse">
                 {t('awaitingAccept')}
               </p>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5 text-zinc-400 text-xs md:text-sm font-special-elite tracking-wider">
+            <div className="flex items-center gap-2.5 text-muted-foreground text-xs md:text-sm font-special-elite tracking-wider">
               <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin text-gold" />
               <span>{t('bufferingNarrator')}</span>
             </div>
