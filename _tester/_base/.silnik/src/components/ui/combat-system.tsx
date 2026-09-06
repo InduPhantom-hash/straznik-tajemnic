@@ -790,9 +790,9 @@ export function CombatSystem({
     <div className="space-y-6">
       <div className="bg-card rounded-lg border border-white/20 w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-white/20">
+        <div className="p-6 border-b border-border">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-purple-300">
+            <h2 className="text-2xl font-bold font-display uppercase tracking-wider text-brass">
               {t('title')}
             </h2>
           </div>
@@ -807,26 +807,26 @@ export function CombatSystem({
             <Button
               onClick={startCombat}
               disabled={isCombatActive}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-foreground rounded-lg transition-colors"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-foreground rounded-lg transition-colors"
             >
               {t('startCombat')}
             </Button>
             <Button
               onClick={endCombat}
               disabled={!isCombatActive}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-foreground rounded-lg transition-colors"
+              className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors"
             >
               {t('endCombat')}
             </Button>
             <Button
               onClick={rollInitiative}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-foreground rounded-lg transition-colors"
+              className="px-4 py-2 bg-brass hover:bg-brass/90 text-primary-foreground font-semibold rounded-lg transition-colors"
             >
               {t('rollInitiative')}
             </Button>
             <Button
               onClick={() => setShowAddCombatant(true)}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-foreground rounded-lg transition-colors"
+              className="px-4 py-2 bg-card border border-brass/40 hover:bg-brass/10 text-brass rounded-lg transition-colors"
             >
               {t('addCombatantButton')}
             </Button>
@@ -834,13 +834,13 @@ export function CombatSystem({
 
           {/* Combat Status */}
           {isCombatActive && (
-            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+            <div className="bg-brass/10 border border-brass/30 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-blue-300">
+                  <h3 className="text-lg font-semibold font-display tracking-wider text-brass">
                     {t('roundTurn', { round: currentRound, turn: currentTurn + 1 })}
                   </h3>
-                  <p className="text-blue-200 text-sm">
+                  <p className="text-foreground/80 text-sm">
                     {t('currentPlayer', {
                       name: getCurrentCombatant()?.name || t('none'),
                     })}
@@ -848,7 +848,7 @@ export function CombatSystem({
                 </div>
                 <Button
                   onClick={nextTurn}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-foreground rounded-lg transition-colors"
+                  className="px-6 py-2 bg-brass hover:bg-brass/90 text-primary-foreground font-semibold rounded-lg transition-colors"
                 >
                   {t('nextTurn')}
                 </Button>
@@ -897,19 +897,19 @@ export function CombatSystem({
                   </div>
                   <div>
                     <span className="text-muted-foreground">SAN:</span>
-                    <span className="ml-1 text-blue-300">
+                    <span className="ml-1 text-primary">
                       {combatant.san}/{combatant.maxSan}
                     </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">MP:</span>
-                    <span className="ml-1 text-purple-300">
+                    <span className="ml-1 text-gold">
                       {combatant.mp}/{combatant.maxMp}
                     </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">ZR:</span>
-                    <span className="ml-1 text-green-300">{combatant.dex}</span>
+                    <span className="ml-1 text-emerald-400">{combatant.dex}</span>
                   </div>
                 </div>
 
@@ -940,7 +940,7 @@ export function CombatSystem({
                               currentTurn !== index ||
                               combatant.isDead
                             }
-                            className="px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-muted text-foreground rounded text-xs transition-colors"
+                            className="px-2 py-1 bg-destructive hover:bg-destructive/90 disabled:bg-muted text-destructive-foreground rounded text-xs transition-colors"
                           >
                             {t('attackButton')}
                           </Button>
@@ -954,13 +954,13 @@ export function CombatSystem({
                 <div className="flex gap-2">
                   <Button
                     onClick={() => setEditingCombatant(combatant)}
-                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-foreground rounded text-xs transition-colors"
+                    className="px-2 py-1 bg-card border border-brass/40 hover:bg-brass/10 text-brass rounded text-xs transition-colors"
                   >
                     {t('editButton')}
                   </Button>
                   <Button
                     onClick={() => removeCombatant(combatant.id)}
-                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-foreground rounded text-xs transition-colors"
+                    className="px-2 py-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded text-xs transition-colors"
                   >
                     {t('deleteButton')}
                   </Button>
@@ -971,21 +971,21 @@ export function CombatSystem({
 
           {/* Combat History */}
           {combatHistory.length > 0 && (
-            <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
-              <h3 className="text-lg font-semibold text-purple-300 mb-4">
+            <div className="bg-muted/50 rounded-lg p-4 border border-border">
+              <h3 className="text-lg font-semibold font-display tracking-wider text-brass mb-4">
                 {t('historyTitle')}
               </h3>
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {combatHistory.map((round) => (
-                  <div key={round.id} className="bg-muted/30 rounded-lg p-3">
-                    <h4 className="font-medium text-blue-300 mb-2">
+                  <div key={round.id} className="bg-muted/30 rounded-lg p-3 border border-border/40">
+                    <h4 className="font-medium text-brass mb-2">
                       {t('roundLabel', { round: round.roundNumber })}
                     </h4>
                     <div className="space-y-2">
                       {round.actions.map((action) => (
                         <div
                           key={action.id}
-                          className="text-sm bg-muted/30 rounded p-2"
+                          className="text-sm bg-muted/30 rounded p-2 border border-border/20"
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-foreground">
@@ -994,11 +994,11 @@ export function CombatSystem({
                             <span
                               className={`text-xs px-2 py-1 rounded ${
                                 action.criticalSuccess
-                                  ? 'bg-green-600'
+                                  ? 'bg-emerald-600 text-white'
                                   : action.success
-                                    ? 'bg-blue-600'
+                                    ? 'bg-primary/80 text-primary-foreground'
                                     : action.criticalFailure
-                                      ? 'bg-red-600'
+                                      ? 'bg-destructive text-destructive-foreground'
                                       : 'bg-muted'
                               }`}
                             >
@@ -1088,7 +1088,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card rounded-lg border border-white/20 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-xl font-bold text-purple-300 mb-4">
+          <h3 className="text-xl font-bold font-display uppercase tracking-wider text-brass mb-4">
             {t('addFormTitle')}
           </h3>
 
@@ -1105,7 +1105,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   placeholder={t('namePlaceholder')}
                   required
                 />
@@ -1123,7 +1123,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                       type: e.target.value as Combatant['type'],
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                 >
                   <option value="player">{t('typePlayer')}</option>
                   <option value="npc">{t('typeNpc')}</option>
@@ -1147,7 +1147,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                       dex: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   min="1"
                   max="100"
                 />
@@ -1167,7 +1167,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                       maxHp: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   min="1"
                 />
               </div>
@@ -1186,7 +1186,7 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
                       maxSan: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   min="1"
                   max="100"
                 />
@@ -1197,14 +1197,14 @@ function AddCombatantForm({ onAdd, onCancel }: AddCombatantFormProps) {
             <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
-                className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-foreground rounded-lg transition-colors"
+                className="flex-1 py-2 bg-brass hover:bg-brass/90 text-primary-foreground font-semibold rounded-lg transition-colors"
               >
                 {t('addSubmit')}
               </Button>
               <Button
                 type="button"
                 onClick={onCancel}
-                className="flex-1 py-2 bg-muted hover:bg-muted text-foreground rounded-lg transition-colors"
+                className="flex-1 py-2 bg-card border border-border hover:bg-muted text-foreground rounded-lg transition-colors"
               >
                 {t('cancelX')}
               </Button>
@@ -1239,7 +1239,7 @@ function EditCombatantForm({
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card rounded-lg border border-white/20 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-xl font-bold text-purple-300 mb-4">
+          <h3 className="text-xl font-bold font-display uppercase tracking-wider text-brass mb-4">
             {t('editFormTitle')}
           </h3>
 
@@ -1256,7 +1256,7 @@ function EditCombatantForm({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   required
                 />
               </div>
@@ -1273,7 +1273,7 @@ function EditCombatantForm({
                       type: e.target.value as Combatant['type'],
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                 >
                   <option value="player">{t('typePlayer')}</option>
                   <option value="npc">{t('typeNpc')}</option>
@@ -1297,7 +1297,7 @@ function EditCombatantForm({
                       dex: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   min="1"
                   max="100"
                 />
@@ -1316,7 +1316,7 @@ function EditCombatantForm({
                       hp: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   min="0"
                   max={formData.maxHp}
                 />
@@ -1335,7 +1335,7 @@ function EditCombatantForm({
                       san: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                   min="0"
                   max={formData.maxSan}
                 />
@@ -1346,14 +1346,14 @@ function EditCombatantForm({
             <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
-                className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-foreground rounded-lg transition-colors"
+                className="flex-1 py-2 bg-brass hover:bg-brass/90 text-primary-foreground font-semibold rounded-lg transition-colors"
               >
                 {t('saveChanges')}
               </Button>
               <Button
                 type="button"
                 onClick={onCancel}
-                className="flex-1 py-2 bg-muted hover:bg-muted text-foreground rounded-lg transition-colors"
+                className="flex-1 py-2 bg-card border border-border hover:bg-muted text-foreground rounded-lg transition-colors"
               >
                 {t('cancelX')}
               </Button>

@@ -137,7 +137,7 @@ export function AdventureBuilderModal({
         <DialogHeader className="border-b border-brass/30 pb-3">
           <div className="flex items-center justify-between">
             <DialogTitle className="font-display text-xl uppercase tracking-[0.2em] text-brass flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-amber-500" />
+              <Sparkles className="h-5 w-5 text-brass" />
               {t('modalTitle')}
             </DialogTitle>
             {role && (
@@ -146,14 +146,14 @@ export function AdventureBuilderModal({
                 className={`font-display uppercase tracking-wider text-xs border ${
                   role === 'player'
                     ? 'border-emerald-500/60 text-emerald-400 bg-emerald-950/30'
-                    : 'border-amber-500/60 text-amber-400 bg-amber-950/30'
+                    : 'border-brass/60 text-brass bg-brass/10'
                 }`}
               >
                 {role === 'player' ? t('rolePlayerBadge') : t('roleKeeperBadge')}
               </Badge>
             )}
           </div>
-          <p className="font-special-elite text-xs uppercase tracking-wider text-[#9b8f7e]">
+          <p className="font-special-elite text-xs uppercase tracking-wider text-muted-foreground">
             {t('modalSubtitle')}
           </p>
         </DialogHeader>
@@ -163,7 +163,7 @@ export function AdventureBuilderModal({
         {/* ============================================================ */}
         {step === 'role' && (
           <div className="py-6 space-y-6">
-            <h3 className="text-center font-display text-base uppercase tracking-[0.18em] text-amber-200">
+            <h3 className="text-center font-display text-base uppercase tracking-[0.18em] text-brass">
               {t('chooseRolePrompt')}
             </h3>
 
@@ -175,7 +175,7 @@ export function AdventureBuilderModal({
                   setRole('player');
                   setStep('input');
                 }}
-                className="group relative flex flex-col items-start p-6 text-left rounded-md border-2 border-brass/40 bg-[#191512] hover:bg-[#221c17] hover:border-emerald-500/70 transition-all duration-200 shadow-md"
+                className="group relative flex flex-col items-start p-6 text-left rounded-md border-2 border-brass/40 bg-card hover:bg-input/40 hover:border-emerald-500/70 transition-all duration-200 shadow-md"
               >
                 <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/40 group-hover:border-emerald-400" />
                 <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/40 group-hover:border-emerald-400" />
@@ -204,23 +204,23 @@ export function AdventureBuilderModal({
                   setRole('keeper');
                   setStep('input');
                 }}
-                className="group relative flex flex-col items-start p-6 text-left rounded-md border-2 border-brass/40 bg-[#191512] hover:bg-[#221c17] hover:border-amber-500/70 transition-all duration-200 shadow-md"
+                className="group relative flex flex-col items-start p-6 text-left rounded-md border-2 border-brass/40 bg-card hover:bg-input/40 hover:border-brass transition-all duration-200 shadow-md"
               >
-                <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/40 group-hover:border-amber-400" />
-                <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/40 group-hover:border-amber-400" />
+                <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/40 group-hover:border-brass" />
+                <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/40 group-hover:border-brass" />
 
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-amber-500/50 bg-amber-950/40 text-amber-400 group-hover:scale-110 transition-transform">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-brass/50 bg-brass/10 text-brass group-hover:scale-110 transition-transform">
                   <Scroll className="h-6 w-6" />
                 </div>
 
-                <h4 className="font-display text-lg uppercase tracking-[0.15em] text-brass group-hover:text-amber-300">
+                <h4 className="font-display text-lg uppercase tracking-[0.15em] text-brass group-hover:text-gold">
                   {t('keeperTileTitle')}
                 </h4>
                 <p className="mt-2 text-sm text-[#b8ab99] leading-relaxed">
                   {t('keeperTileDesc')}
                 </p>
 
-                <div className="mt-4 flex items-center gap-2 text-xs font-special-elite text-amber-400/90 tracking-wider uppercase">
+                <div className="mt-4 flex items-center gap-2 text-xs font-special-elite text-brass/90 tracking-wider uppercase">
                   <Eye className="h-4 w-4" />
                   {t('keeperTileFullControl')}
                 </div>
@@ -238,7 +238,7 @@ export function AdventureBuilderModal({
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border border-brass/40 bg-[#1c1713] rounded-md gap-3">
               <div>
                 <h4 className="font-display text-sm uppercase tracking-wider text-brass flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-amber-400" />
+                  <Sparkles className="h-4 w-4 text-brass" />
                   {t('surpriseMeTitle')}
                 </h4>
                 <p className="text-xs text-[#a89d8d]">
@@ -249,7 +249,7 @@ export function AdventureBuilderModal({
                 type="button"
                 onClick={handleSurpriseMe}
                 variant="outline"
-                className="border-amber-500/50 bg-amber-950/30 text-amber-300 hover:bg-amber-900/40 font-display uppercase tracking-wider text-xs whitespace-nowrap"
+                className="border-brass/50 bg-brass/10 text-brass hover:bg-brass/20 font-display uppercase tracking-wider text-xs whitespace-nowrap"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 {t('surpriseMeButton')}
@@ -383,10 +383,10 @@ export function AdventureBuilderModal({
                       key={idx}
                       className="flex items-center gap-2 p-2 border border-brass/20 bg-[#1f1915] rounded text-xs truncate"
                     >
-                      {file.fileType === 'document' && <FileText className="h-4 w-4 text-amber-400 shrink-0" />}
+                      {file.fileType === 'document' && <FileText className="h-4 w-4 text-brass shrink-0" />}
                       {file.fileType === 'spreadsheet' && <Table className="h-4 w-4 text-emerald-400 shrink-0" />}
-                      {file.fileType === 'audio' && <Music className="h-4 w-4 text-purple-400 shrink-0" />}
-                      {file.fileType === 'image' && <ImageIcon className="h-4 w-4 text-blue-400 shrink-0" />}
+                      {file.fileType === 'audio' && <Music className="h-4 w-4 text-brass shrink-0" />}
+                      {file.fileType === 'image' && <ImageIcon className="h-4 w-4 text-primary shrink-0" />}
                       <span className="truncate">{file.fileName}</span>
                     </div>
                   ))}
@@ -434,14 +434,14 @@ export function AdventureBuilderModal({
             <div className="flex items-center justify-between border-b border-brass/20 pb-2">
               <div>
                 <h3 className="font-display text-sm uppercase tracking-wider text-brass flex items-center gap-2">
-                  <Network className="h-4 w-4 text-amber-400" />
+                  <Network className="h-4 w-4 text-brass" />
                   {t('clueWebTitle')}
                 </h3>
                 <p className="text-xs text-[#a89d8d]">
                   {t('clueWebSubtitle')}
                 </p>
               </div>
-              <Badge variant="outline" className="border-amber-500/50 text-amber-300 text-[11px] font-special-elite">
+              <Badge variant="outline" className="border-brass/40 text-brass text-[11px] font-special-elite">
                 CoC 7e RAW &bull; MG ONLY
               </Badge>
             </div>
@@ -455,10 +455,10 @@ export function AdventureBuilderModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {adventure.graph?.npcs.map((npc) => (
                   <div key={npc.id} className="p-3 border border-brass/30 bg-[#16120e] rounded text-xs space-y-1">
-                    <div className="font-display font-bold text-amber-200">{npc.name}</div>
+                    <div className="font-display font-bold text-gold">{npc.name}</div>
                     <div className="text-[#b0a390]">{npc.description}</div>
                     {npc.secret && (
-                      <div className="text-red-400/90 italic mt-1 text-[11px]">
+                      <div className="text-destructive italic mt-1 text-[11px]">
                         ⚠️ Sekret MG: {npc.secret}
                       </div>
                     )}
@@ -481,11 +481,11 @@ export function AdventureBuilderModal({
               <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                 {adventure.graph?.connections.map((conn, idx) => (
                   <div key={idx} className="flex items-center gap-2 p-2 border border-brass/20 bg-[#181410] rounded text-xs">
-                    <span className="font-mono text-amber-400 font-bold">{conn.fromId}</span>
+                    <span className="font-mono text-brass font-bold">{conn.fromId}</span>
                     <span className="text-[#887b6a]">&rarr;</span>
                     <span className="text-[#d8cdbc] flex-1">{conn.description}</span>
                     <span className="text-[#887b6a]">&rarr;</span>
-                    <span className="font-mono text-amber-400 font-bold">{conn.toId}</span>
+                    <span className="font-mono text-brass font-bold">{conn.toId}</span>
                   </div>
                 ))}
               </div>
@@ -561,14 +561,14 @@ export function AdventureBuilderModal({
               <div className="p-4 border border-brass/30 bg-[#16120e] rounded flex flex-col justify-between space-y-3">
                 <div>
                   <h4 className="font-display text-sm uppercase tracking-wider text-brass flex items-center gap-2">
-                    <Download className="h-4 w-4 text-amber-400" />
+                    <Download className="h-4 w-4 text-brass" />
                     {t('downloadKitTitle')}
                   </h4>
                   <p className="text-xs text-[#a89d8d] mt-1">
                     {t('downloadKitDesc')}
                   </p>
                   {role === 'player' && (
-                    <div className="mt-2 flex items-center gap-1 text-[11px] text-amber-400/80 font-special-elite">
+                    <div className="mt-2 flex items-center gap-1 text-[11px] text-brass/80 font-special-elite">
                       <AlertTriangle className="h-3 w-3 shrink-0" />
                       {t('playerDownloadWarning')}
                     </div>
@@ -579,7 +579,7 @@ export function AdventureBuilderModal({
                   onClick={handleDownloadZip}
                   disabled={isExportingZip}
                   variant="outline"
-                  className="w-full border-amber-500/50 text-amber-300 hover:bg-amber-950/40 font-display uppercase tracking-wider text-xs font-bold py-5"
+                  className="w-full border-brass/40 text-brass hover:bg-brass/10 font-display uppercase tracking-wider text-xs font-bold py-5"
                 >
                   <Download className="mr-2 h-4 w-4" />
                   {isExportingZip ? t('exportingZip') : t('downloadKitButton')}
@@ -603,7 +603,7 @@ export function AdventureBuilderModal({
                 type="button"
                 variant="ghost"
                 onClick={handleReset}
-                className="text-xs font-display uppercase tracking-wider text-[#a89d8d] hover:text-amber-300"
+                className="text-xs font-display uppercase tracking-wider text-[#a89d8d] hover:text-brass"
               >
                 {t('startOver')}
               </Button>
