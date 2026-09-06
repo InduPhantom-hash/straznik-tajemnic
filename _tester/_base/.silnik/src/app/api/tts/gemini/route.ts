@@ -28,6 +28,10 @@ import {
   DEFAULT_GEMINI_VOICE,
   isValidGeminiVoice,
 } from '@/lib/gemini-voices';
+import {
+  normalizePhoneticsForTts,
+  enhanceAudioDirectionWithPhonetics,
+} from '@/lib/audio/polish-phonetics';
 
 const DEFAULT_MODEL = 'gemini-2.5-flash-preview-tts';
 const DEFAULT_LANGUAGE_CODE = 'pl-PL';
@@ -226,11 +230,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Treść dla modelu: jeśli przekazano dyrektywę reżyserską (Issue #162),
-    // podajemy ją jako prefiks instrukcji stylu mowy (Google TTS audio prompting).
-    const promptText = audioDirection?.trim()
-      ? `${audioDirection.trim()}\n\n${text}`
+    // Issue #173: Normalizacja fonetyczna i wzbogacenie dyrektywy dla języka polskiego
+    const effectiveLang = languageCode || DEFAULT_LANGUAGE_CODE;
+    const isPolish = effectiveLang.toLowerCase().startsWith('pl');
+    const normalizedText = isPolish
+      ? normalizePhoneticsForTts(text, 'pl')
       : text;
+    const effectiveAudioDirection = isPolish
+      ? enhanceAudioDirectionWithPhonetics(audioDirection || '', 'pl')
+      : audioDirection;
+
+    // Treść dla modelu: jeśli przekazano dyrektywę reżyserską (Issue #162 + #173),
+    // podajemy ją jako prefiks instrukcji stylu mowy (Google TTS audio prompting).
+    const promptText = effectiveAudioDirection?.trim()
+      ? `${effectiveAudioDirection.trim()}\n\n${normalizedText}`
+      : normalizedText;
 
     // IND-191 + IND-236: retry server-side. Walidacja audio jest WEWNĄTRZ operacji -
     // brak inlineData rzuca sentinel (text-instead-of-audio) → ponowienie zamiast 500.
