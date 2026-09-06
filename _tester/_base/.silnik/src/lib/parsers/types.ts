@@ -128,6 +128,7 @@ export interface TimeUpdate {
 
 export interface SkillTestResult {
   skillName: string; // Nazwa umiejętności
+  characterName?: string; // Opcjonalna nazwa badacza w trybie Duet / Hot Seat (@Imię)
   result: 'critical' | 'extreme' | 'hard' | 'regular' | 'failure' | 'fumble';
   rollValue: number; // Wynik rzutu D100
   threshold: number; // Próg sukcesu

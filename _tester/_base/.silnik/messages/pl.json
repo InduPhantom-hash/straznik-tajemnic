@@ -6279,6 +6279,12 @@
     "cancel": "Anuluj",
     "confirmMode": "Zatwierdź tryb"
   },
+  "PlayerSwitcher": {
+    "defaultPlayer1": "Gracz 1",
+    "noCharacter": "Brak postaci",
+    "switchTo": "Przełącz na {name}",
+    "disableHotSeat": "Wyłącz tryb Hot Seat"
+  },
   "QuickReferences": {
     "rulesFromPdfNotice": "Zasady gry powinny być załadowane z pliku PDF w sekcji Dokumenty",
     "noRulesTitle": "Brak załadowanych zasad",

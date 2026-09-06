@@ -171,6 +171,10 @@
       "label": {
         "pl": "Wybór trybu gry",
         "en": "Play mode"
+      },
+      "description": {
+        "pl": "Wybór trybu gry: Solo lub Duet (Hot Seat dla 2 graczy) wraz z przełącznikiem aktywnego badacza",
+        "en": "Play mode selection: Solo or Duet (Hot Seat for 2 players) with active investigator switcher"
       }
     },
     {
