@@ -275,8 +275,8 @@ export function AdventureSelector({
           </h3>
           <div className="flex shrink-0 items-center gap-2">
             {adventure.documentType && adventure.documentType !== 'scenario' && (
-              <span className="inline-flex items-center gap-1 border border-amber-500/40 bg-amber-950/40 px-2 py-0.5 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-300">
-                <Book className="h-3 w-3 text-amber-400" />
+              <span className="inline-flex items-center gap-1 border border-brass/40 bg-brass/10 px-2 py-0.5 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-brass">
+                <Book className="h-3 w-3 text-brass" />
                 {adventure.documentType === 'setting' ? t('docTypeSetting') : t('docTypeCompendium')}
               </span>
             )}
@@ -316,7 +316,7 @@ export function AdventureSelector({
           {adventure.lorebookData?.regionOrTheme && (
             <>
               <span className="text-brass/40 not-italic">·</span>
-              <span className="text-amber-200/80 font-sans text-xs not-italic">
+              <span className="text-gold font-sans text-xs not-italic">
                 {t('loreRegionLabel')} {adventure.lorebookData.regionOrTheme}
               </span>
             </>
@@ -463,8 +463,8 @@ export function AdventureSelector({
               {activeTab === 'lorebooks' && (
                 <div className="mt-4">
                   <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
-                    <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-amber-300 font-bold">
-                      <Book className="h-4 w-4 text-amber-400 shrink-0" />
+                    <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-brass font-bold">
+                      <Book className="h-4 w-4 text-brass shrink-0" />
                       {t('lorebooksTitle')}
                     </div>
                     <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
@@ -497,9 +497,9 @@ export function AdventureSelector({
                 <>
                   {/* Instrukcja trybu publicznego: brak gotowych scenariuszy */}
                   {!SHOW_BUILT_IN_ADVENTURES && ALLOW_CUSTOM_ADVENTURES && (
-                    <div className="mt-4 flex items-start gap-3 border border-amber-500/40 bg-amber-900/20 p-3">
-                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-                      <div className="space-y-1 font-serif text-base italic leading-relaxed text-amber-200/90">
+                    <div className="mt-4 flex items-start gap-3 border border-brass/40 bg-brass/10 p-3">
+                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-brass" />
+                      <div className="space-y-1 font-serif text-base italic leading-relaxed text-foreground/90">
                         <p>
                           {t.rich('publicModeInfo1', {
                             strong: (chunks) => <strong>{chunks}</strong>,
@@ -510,7 +510,7 @@ export function AdventureSelector({
                             strong: (chunks) => <strong>{chunks}</strong>,
                           })}
                         </p>
-                        <p className="text-amber-200/70">
+                        <p className="text-muted-foreground">
                           {t('publicModeInfo3')}
                         </p>
                       </div>
@@ -547,9 +547,9 @@ export function AdventureSelector({
                   <Button
                     onClick={() => setShowAdventureBuilder(true)}
                     variant="outline"
-                    className="w-full border-2 border-brass/60 bg-gradient-to-r from-[#1c1712] via-[#2a2219] to-[#1c1712] py-6 font-display font-semibold uppercase tracking-[0.16em] text-brass hover:text-amber-200 hover:border-brass hover:bg-brass/10 shadow-lg"
+                    className="w-full border-2 border-brass/60 bg-gradient-to-r from-[#1c1712] via-[#2a2219] to-[#1c1712] py-6 font-display font-semibold uppercase tracking-[0.16em] text-brass hover:text-foreground hover:border-brass hover:bg-brass/15 shadow-lg"
                   >
-                    <Sparkles className="mr-2 h-5 w-5 text-amber-400" />
+                    <Sparkles className="mr-2 h-5 w-5 text-brass" />
                     {t('openBuilderButton')}
                   </Button>
 
@@ -751,8 +751,8 @@ export function AdventureSelector({
                   <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
                   <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
                   <div className="mb-3 flex items-center justify-between">
-                    <h4 className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
-                      <Book className="h-4 w-4 text-amber-400" />
+                    <h4 className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                      <Book className="h-4 w-4 text-brass" />
                       {t('attachedLorebooksLabel')}
                     </h4>
                     <span className="font-special-elite text-xs text-muted-foreground">
@@ -770,24 +770,24 @@ export function AdventureSelector({
                           key={lorebook.id}
                           className={`flex items-center justify-between p-3 border transition-colors ${
                             isAttached
-                              ? 'border-amber-500/50 bg-amber-950/20'
+                              ? 'border-brass/50 bg-brass/10'
                               : 'border-brass/20 bg-[#120f0c]'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <span className="text-amber-400">
+                            <span className="text-brass">
                               {lorebook.documentType === 'compendium' ? '📜' : '🗺️'}
                             </span>
                             <div>
                               <div className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-                                {lorebook.title}
-                                {isAttached && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider bg-amber-500/20 text-amber-300 px-1.5 py-0.2 border border-amber-500/40 rounded">
-                                    <BookmarkCheck className="h-3 w-3" />
-                                    {t('attachedBadge')}
-                                  </span>
-                                )}
-                              </div>
+                                 {lorebook.title}
+                                 {isAttached && (
+                                   <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider bg-brass/20 text-brass px-1.5 py-0.2 border border-brass/40 rounded">
+                                     <BookmarkCheck className="h-3 w-3" />
+                                     {t('attachedBadge')}
+                                   </span>
+                                 )}
+                               </div>
                               <div className="font-serif text-xs italic text-muted-foreground">
                                 {lorebook.lorebookData?.regionOrTheme || lorebook.location}
                               </div>

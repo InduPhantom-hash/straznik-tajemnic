@@ -217,17 +217,17 @@ export function AdventureDetailsModal({
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem
               value="keeper-dossier"
-              className="border border-amber-600/40 bg-card/40 rounded-none"
+              className="border border-brass/40 bg-card/40 rounded-none"
             >
               <AccordionTrigger className="p-5 sm:p-6 hover:no-underline group cursor-pointer">
                 <div className="flex items-center gap-4 text-left">
-                  <div className="w-11 h-11 bg-amber-500/15 border border-amber-500/40 rounded flex items-center justify-center text-amber-400 text-xl shrink-0">
+                  <div className="w-11 h-11 bg-brass/15 border border-brass/40 rounded flex items-center justify-center text-brass text-xl shrink-0">
                     <Lock className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="font-display text-base sm:text-lg uppercase tracking-[0.16em] text-amber-300 font-bold group-hover:text-amber-200 transition-colors flex items-center gap-3">
+                    <div className="font-display text-base sm:text-lg uppercase tracking-[0.16em] text-brass font-bold group-hover:text-foreground transition-colors flex items-center gap-3">
                       <span>{t('keeperDossierTitle')}</span>
-                      <span className="bg-red-950/80 border border-red-500/50 text-red-300 font-display text-[11px] font-bold uppercase px-2 py-0.5 tracking-wider">
+                      <span className="bg-destructive/80 border border-destructive/50 text-destructive-foreground font-display text-[11px] font-bold uppercase px-2 py-0.5 tracking-wider">
                         MG only
                       </span>
                     </div>
@@ -240,8 +240,8 @@ export function AdventureDetailsModal({
               <AccordionContent className="pt-2 pb-6 px-5 sm:px-6 space-y-6">
                 {/* Pełny opis intrygi */}
                 {adventure.description && (
-                  <div className="border-l-4 border-amber-500/60 pl-4 py-1">
-                    <span className="font-display text-xs sm:text-sm font-bold uppercase tracking-[0.18em] text-amber-400/90 block mb-2">
+                  <div className="border-l-4 border-brass/60 pl-4 py-1">
+                    <span className="font-display text-xs sm:text-sm font-bold uppercase tracking-[0.18em] text-brass block mb-2">
                       {t('keeperPlotTitle')}
                     </span>
                     <p className="font-serif text-base sm:text-lg leading-relaxed text-foreground/90 bg-card/50 p-4">
@@ -258,24 +258,43 @@ export function AdventureDetailsModal({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
                     {adventure.suggestedOccupations &&
                       adventure.suggestedOccupations.length > 0 && (
-                        <div className="border border-brass/25 bg-card/30 p-4">
-                          <span className="font-display text-xs font-bold uppercase tracking-[0.18em] text-brass block mb-1.5">
+                        <div>
+                          <span className="font-display text-xs font-bold uppercase tracking-[0.18em] text-brass block mb-2">
                             {t('suggestedOccupationsTitle')}
                           </span>
-                          <p className="font-serif text-base italic text-foreground/85">
-                            {adventure.suggestedOccupations.join(', ')}
-                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {adventure.suggestedOccupations.map(
+                              (occ) => (
+                                <span
+                                  key={occ}
+                                  className="border border-border/80 bg-card/80 px-3 py-1 font-serif text-xs text-foreground/80"
+                                >
+                                  {occ}
+                                </span>
+                              )
+                            )}
+                          </div>
                         </div>
                       )}
+
                     {adventure.suggestedArchetypes &&
                       adventure.suggestedArchetypes.length > 0 && (
-                        <div className="border border-brass/25 bg-card/30 p-4">
-                          <span className="font-display text-xs font-bold uppercase tracking-[0.18em] text-brass block mb-1.5">
+                        <div>
+                          <span className="font-display text-xs font-bold uppercase tracking-[0.18em] text-brass block mb-2">
                             {t('suggestedArchetypesTitle')}
                           </span>
-                          <p className="font-serif text-base italic text-foreground/85">
-                            {adventure.suggestedArchetypes.join(', ')}
-                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {adventure.suggestedArchetypes.map(
+                              (arch) => (
+                                <span
+                                  key={arch}
+                                  className="border border-border/80 bg-card/80 px-3 py-1 font-serif text-xs text-foreground/80"
+                                >
+                                  {arch}
+                                </span>
+                              )
+                            )}
+                          </div>
                         </div>
                       )}
                   </div>
@@ -291,7 +310,7 @@ export function AdventureDetailsModal({
                       {adventure.themes.map((theme) => (
                         <span
                           key={theme}
-                          className="border border-amber-500/40 bg-amber-500/15 px-3 py-1 font-display text-xs tracking-wider text-amber-200"
+                          className="border border-brass/40 bg-brass/10 px-3 py-1 font-display text-xs tracking-wider text-brass"
                         >
                           {theme}
                         </span>
