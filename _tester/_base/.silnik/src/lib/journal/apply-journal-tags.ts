@@ -16,6 +16,7 @@ import type {
   InvestigatorDossier,
   NpcDossierEntry,
   ClueEntry,
+  LocationDossierEntry,
 } from '@/lib/journal/dossier-types';
 
 /**
@@ -255,11 +256,46 @@ export function processCharacterJournalAndDossier(
     );
 
     if (!existingLoc) {
+      let locDesc = locationEntry.content;
+      let lockedRoomMystery: LocationDossierEntry['lockedRoomMystery'];
+
+      if (locationEntry.content.includes('|')) {
+        const parts = locationEntry.content.split('|').map((p) => p.trim());
+        locDesc = parts[0] || locationEntry.content;
+        const typeToken = (parts[1] || '').toLowerCase();
+        const validTypes: Record<string, import('@/lib/journal/dossier-types').LockedRoomMysteryType> = {
+          typ1: 'accident_feigned_as_murder',
+          wypadek: 'accident_feigned_as_murder',
+          typ2: 'toxic_gas_or_paroxysm',
+          gaz: 'toxic_gas_or_paroxysm',
+          typ3: 'mechanical_trap',
+          pulapka: 'mechanical_trap',
+          typ4: 'suicide_framed_as_murder',
+          samobojstwo: 'suicide_framed_as_murder',
+          typ5: 'victim_impersonation',
+          podszycie: 'victim_impersonation',
+          typ6: 'strike_from_outside',
+          zewnatrz: 'strike_from_outside',
+          typ7: 'strike_during_break_in',
+          wywazanie: 'strike_during_break_in',
+        };
+
+        const matchedType = validTypes[typeToken];
+        if (matchedType) {
+          lockedRoomMystery = {
+            type: matchedType,
+            anomalyDescription: parts[2] || 'Zamknięte od wewnątrz drzwi i brak śladów ucieczki.',
+            investigationHint: parts[3] || undefined,
+          };
+        }
+      }
+
       dossier.locations.push({
         id: `location-${lowerLoc.replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
         name: locationEntry.title,
-        description: locationEntry.content,
+        description: locDesc,
         searchStatus: 'partially_searched',
+        lockedRoomMystery,
         timestamp: Date.now(),
       });
       changed = true;

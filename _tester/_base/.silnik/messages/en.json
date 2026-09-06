@@ -6564,7 +6564,17 @@
     "egriPsychologicalLabel": "Hidden Agenda / Fear",
     "alexandrianRuleTitle": "Investigation Clue Network (Three-Clue Rule)",
     "alexandrianTrailsLabel": "Alternative trails",
-    "alexandrianNodesLabel": "Linked nodes"
+    "alexandrianNodesLabel": "Linked nodes",
+    "lockedRoomMysteryTitle": "Locked Room Mystery (John Dickson Carr)",
+    "lockedRoomAnomalyLabel": "Crime anomaly",
+    "lockedRoomHintLabel": "Deductive clue",
+    "lockedRoomType_accident_feigned_as_murder": "Type 1: Accident feigned as murder",
+    "lockedRoomType_toxic_gas_or_paroxysm": "Type 2: Toxic gas or frenzied paroxysm",
+    "lockedRoomType_mechanical_trap": "Type 3: Mechanical trap (clock, latch)",
+    "lockedRoomType_suicide_framed_as_murder": "Type 4: Suicide with vanishing weapon (icicle/cord)",
+    "lockedRoomType_victim_impersonation": "Type 5: Killer impersonating victim post-mortem",
+    "lockedRoomType_strike_from_outside": "Type 6: Strike or shot from outside (transom/crevice)",
+    "lockedRoomType_strike_during_break_in": "Type 7: Strike during door break-in chaos"
   },
   "LocationManager": {
     "title": "📍 Location Manager",

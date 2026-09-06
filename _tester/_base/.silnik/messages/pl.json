@@ -6564,7 +6564,17 @@
     "egriPsychologicalLabel": "Ukryta motywacja / lęk",
     "alexandrianRuleTitle": "Sieć poszlak śledztwa (Reguła 3 Poszlak)",
     "alexandrianTrailsLabel": "Alternatywne tropy",
-    "alexandrianNodesLabel": "Powiązane węzły"
+    "alexandrianNodesLabel": "Powiązane węzły",
+    "lockedRoomMysteryTitle": "Zagadka Zamkniętego Pokoju (John Dickson Carr)",
+    "lockedRoomAnomalyLabel": "Anomalia zbrodni",
+    "lockedRoomHintLabel": "Wskazówka dedukcyjna",
+    "lockedRoomType_accident_feigned_as_murder": "Typ 1: Wypadek pozorowany na zabójstwo",
+    "lockedRoomType_toxic_gas_or_paroxysm": "Typ 2: Trujący gaz lub szał paroksyzmu",
+    "lockedRoomType_mechanical_trap": "Typ 3: Mechaniczna pułapka (zegar, rygiel)",
+    "lockedRoomType_suicide_framed_as_murder": "Typ 4: Samobójstwo znikającą bronią (sopel/sznur)",
+    "lockedRoomType_victim_impersonation": "Typ 5: Sprawca udający ofiarę po zbrodni",
+    "lockedRoomType_strike_from_outside": "Typ 6: Cios lub strzał z zewnątrz (lufcik/szczelina)",
+    "lockedRoomType_strike_during_break_in": "Typ 7: Uderzenie w chaosie wyważania drzwi"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",

@@ -136,13 +136,22 @@ Przykłady:
 #### 5. LOKACJA (Miejsce startu i każda zmiana)
 Emituj w PIERWSZEJ turze (oznacz miejsce startu) oraz za każdym razem, gdy gracz dociera do nowej, istotnej lokacji. Zapala pineskę 📍 lokacji w nagłówku.
 
-Format: \`[LOKACJA: Nazwa: Opis atmosfery i kluczowych cech]\`
+Format standardowy: \`[LOKACJA: Nazwa: Opis atmosfery i kluczowych cech]\`
+Format z Zagadką Zamkniętego Pokoju (John Dickson Carr - The Hollow Man, 1935):
+\`[LOKACJA: Nazwa: Opis atmosfery | typ1..typ7 | anomalia zamknięcia | wskazówka dedukcyjna]\`
+- **typ1 (wypadek):** fatalny upadek/wypadek pozorowany na zabójstwo
+- **typ2 (gaz):** trujący gaz lub szał paroksyzmu niszczący pokój
+- **typ3 (pulapka):** mechaniczna pułapka (zegar, sprężynowy rygiel)
+- **typ4 (samobojstwo):** samobójstwo znikającą bronią (np. sopel lodu, sznur)
+- **typ5 (podszycie):** morderca w przebraniu ofiary widziany po zbrodni
+- **typ6 (zewnatrz):** strzał lub pchnięcie z zewnątrz (lufcik, szczelina)
+- **typ7 (wywazanie):** cios zadany w zamieszaniu przy wyważaniu drzwi
 
 **Nazwa = KONKRETNE miejsce** (budynek, pomieszczenie, ulica), NIE region ani miasto przygody. Region (np. miasto/stan) jest wyświetlany osobno obok pineski, więc NIE powtarzaj go w Nazwie - inaczej w interfejsie pojawi się np. "Arkham · Arkham". Podaj sam punkt docelowy: "Magazyn nr 7", "Pokój hotelowy", "Biblioteka Uniwersytetu".
 
 Przykłady:
 - \`[LOKACJA: Magazyn nr 7 w dokach: Opuszczony, smród ryb i czegoś gorszego, połamane skrzynie, ślady krwi na betonie.]\`
-- \`[LOKACJA: Biblioteka Uniwersytetu Miskatonic: Ciemne regały sięgające sufitu, zapach starego papieru, cisza przerywana szuraniem.]\`
+- \`[LOKACJA: Gabinet profesora Westona: Zakurzony pokój z zaryglowanymi od wewnątrz oknami | typ3 | Drzwi zamknięte na ciężką zasuwę, ciało przy biurku | Wskazówka zegara ściennego połączona ze stalowym cięgnem zasuwy]\`
 
 #### 6. PRZEDMIOT (Znaleziony lub ważny przedmiot)
 Format: \`[PRZEDMIOT: Nazwa: Opis i potencjalne znaczenie]\`
