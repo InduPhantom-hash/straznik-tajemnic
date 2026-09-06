@@ -1,150 +1,98 @@
-# Architektura
+# Architektura Strażnika Tajemnic AI
 
-Dokument dla osób, które chcą zrozumieć kod albo współtworzyć. Opisuje stan
-aplikacji **lokalnej / offline** (wersja publiczna).
+Dokument techniczny opisujący stan architektury aplikacji **lokalnej / offline** (wersja v0.9.4).
 
-## Z lotu ptaka
+---
 
-Monolityczna aplikacja **Next.js 16 (App Router)**. Frontend (React 19 + TypeScript
-strict + Tailwind + shadcn/ui) i backend (Route Handlers w `src/app/api/**`) żyją w
-jednym repo. Brak bazy relacyjnej: stan gry trzymany jest w `localStorage` + zapisy na
-dysk, a wiedza o zasadach w **lokalnym indeksie wektorowym** na dysku.
+## 1. Z lotu ptaka & Single Source of Truth
+
+Monolityczna aplikacja **Next.js 16 (App Router)** z podziałem na wrapper i właściwy runtime silnika:
+
+- **Git Root (`/straznik-tajemnic`):** Pełni rolę launchera, przechowuje dokumentację kanoniczną (`docs/`), pliki konfiguracyjne i skrypty powłoki macOS (`desktop/`).
+- **Silnik Aplikacji (`_tester/_base/.silnik/`):** Jest jedynym miejscem, w którym żyje 100% kodu produkcyjnego TypeScript, komponentów React 19, słowników i18n oraz testów.
 
 ```
-Przeglądarka (React)  ──►  /api/* (Route Handlers)  ──►  Gemini API (Google)
-        │                          │
-   localStorage              data/rag/*.bin  (lokalny RAG)
-   data/saves/ (dysk)        data/saves/     (zapisy sesji)
+Przeglądarka (React 19 / Dark Art Déco) ──► Route Handlers (/api/*) ──► Google Gemini API (BYOK)
+                   │                                │
+             localStorage                     data/rag/*.bin (Lokalny RAG Float32)
+             IndexedDB (Obrazy)               data/saves/    (Zapisy sesji na dysku)
 ```
 
-Model użytkowania: **1 sesja przeglądarki = 1 gra = 1 grupa do 2 graczy** (Hot Seat).
-To celowo aplikacja jednoinstancyjna - stąd dopuszczalne singletony modułowe i
-`localStorage` jako główny magazyn.
+Model użytkowania: **1 sesja przeglądarki = 1 gra = 1-2 graczy** (Hot Seat). Aplikacja jest jednoinstancyjna, co pozwala na stosowanie sprawdzonych singletonów modułowych i szybkiego storage'u lokalnego.
 
-## Kluczowe ścieżki
+---
 
-| Obszar                          | Plik                                                      |
-| ------------------------------- | --------------------------------------------------------- |
-| Główny ekran gry                | `src/app/page.tsx`                                        |
-| AI Mistrz Gry (endpoint)        | `src/app/api/chat/route.ts` (+ `_helpers/`)               |
-| Generowanie obrazów             | `src/app/api/imagen/route.ts`                             |
-| Lektor (TTS)                    | `src/app/api/tts/gemini/route.ts`, `src/hooks/useTTS.ts`  |
-| Lokalny import PDF              | `src/app/api/pdf/ingest-local/route.ts`                   |
-| Kreator pierwszego uruchomienia | `src/components/onboarding/` + `src/hooks/useFirstRun.ts` |
-| Typy domenowe                   | `src/lib/types.ts`                                        |
-| Ustawienia AI / presety         | `src/lib/ai-settings/`                                    |
-| Lokalny magazyn wektorowy       | `src/lib/vector-db/local-vector-store.ts`                 |
-| Prompty MG / styl Lovecrafta    | `src/lib/prompts/`, `src/lib/lovecraft-style-guide.ts`    |
-| Mechanika kości / testów        | `src/lib/dice-utils.ts`, `skill-test-resolver.ts`         |
-| Mapa powiązań instrukcja ↔ kod  | [`docs/MAPA-POWIAZAN.md`](./MAPA-POWIAZAN.md)             |
+## 2. Podwójny Kontrakt Narracyjny (Silnik ↔ Prompt MG)
 
-## Warstwa AI
+Architektura gwarantuje, że model LLM nie ma bezpośredniej władzy nad stanem gry i nie wymyśla mechaniki:
 
-Wszystko opiera się o **rodzinę Gemini API** (jeden klucz):
+```
++-------------------------------------------------------------+
+|                     KOD APLIKACJI (TS)                      |
+|  - Rzuty kośćmi k100 (dice-utils.ts)                        |
+|  - Progi trudności RAW (skill-test-resolver.ts)             |
+|  - Faza Rozwoju Postaci (development-phase.ts)              |
+|  - Inwentarz i waluty (equipment-catalog.ts)                |
++------------------------------+------------------------------+
+                               | Twardy wynik mechaniczny
+                               v
++-------------------------------------------------------------+
+|                  MISTRZ GRY AI (LLM / GEMINI)               |
+|  - Protokół promptu: gm-protocol.ts                         |
+|  - Emisja tagów narracyjnych: [SANITY:], [HP:], [WYNIK:]    |
+|  - Dynamic Cadence: 4 Biegi Kadencji opisu                  |
++------------------------------+------------------------------+
+                               | Strumień SSE z tagami
+                               v
++-------------------------------------------------------------+
+|                     PARSER I SANITYZACJA                    |
+|  - apply-stat-changes.ts (aktualizacja stanu postaci)       |
+|  - text-cleaner.ts (usunięcie tagów przed wyświetleniem)    |
+|  - useTTS.ts (przekazanie czystego tekstu do lektora)       |
++-------------------------------------------------------------+
+```
 
-- **Czat** (Mistrz Gry) - domyślnie `gemini-3.6-flash` (lub wg presetu `gemini-2.5-flash` / `gemini-3.1-pro-preview`), przez provider
-  `src/lib/ai-providers/gemini-provider.ts`, streaming SSE.
-- **Embeddingi** - `gemini-embedding-001` (768 dim dla V1, 3072 dim dla V2) do RAG.
-- **Lektor** - `gemini-2.5-flash-preview-tts` (`/api/tts/gemini`).
-- **Obrazy** - `/api/imagen` używa `gemini-2.5-flash-image` i zwraca obraz jako data URL. Endpoint dodaje profil epoki, kierunek kolorystyczny oraz blokady anachronizmów.
+---
 
-`model-registry.ts` i definicje presetów nadal zawierają historyczne konfiguracje obrazów. Nie są aktywną ścieżką generowania obrazów i wymagają osobnej zmiany kodu po planie obrazów.
+## 3. Kluczowe ścieżki w kodzie (`_tester/_base/.silnik/src/`)
 
-### Zakończenie streamu narracji
+| Obszar | Ścieżka pliku | Odpowiedzialność |
+|---|---|---|
+| Główny ekran gry | `src/app/page.tsx` | Pulpit śledczy, okno narracji, Tacka na Kości |
+| Endpoint Mistrza Gry | `src/app/api/chat/route.ts` (+ `_helpers/`) | Pipeline czatu, streaming SSE, prompt MG |
+| Generowanie ilustracji | `src/app/api/imagen/route.ts` | Obrazy lokacji, portrety i przedmioty (Gemini Flash Image) |
+| Lektor (TTS) | `src/app/api/tts/gemini/route.ts` | Streaming mowy lektora przez Web Audio API |
+| Lokalny import PDF | `src/app/api/pdf/ingest-local/route.ts` | Ekstrakcja tekstu z podręcznika gracza |
+| Lokalny magazyn wektorowy | `src/lib/vector-db/local-vector-store.ts` | Wyszukiwanie zasad w formacie binarnym Float32 |
+| Mechanika kości CoC 7e | `src/lib/dice-utils.ts`, `skill-test-resolver.ts` | Rzuty k100, Faza Rozwoju, testy SAN |
+| Rejestr nawigacji | `navigation/navigation-registry.json` | Źródło prawdy dla 31 ekranów i modali UI |
+| Słowniki i18n | `messages/pl.json`, `messages/en.json` | 100% symetryczne tłumaczenia interfejsu |
 
-Provider czatu zwraca strumień tekstu oraz getter końcowego `finishReason`. Getter ma
-wartość dopiero po pełnym odczytaniu strumienia providera. Pipeline przekazuje go do
-fabryki SSE, która w końcowym zdarzeniu `metadata` wysyła powód zakończenia do klienta
-i zapisuje go w telemetrii bez treści narracji.
+---
 
-Klient zachowuje cały odebrany tekst. Gdy ostatnia wiadomość MG kończy się przez
-`MAX_TOKENS`, karta pokazuje ostrzeżenie i ręczną akcję „Kontynuuj narrację”. Dopiero
-kliknięcie wysyła ukryte polecenie przez istniejący endpoint `/api/chat`. Polecenie nie
-tworzy dymku gracza, a dalszy tekst powstaje jako osobna wiadomość MG. Nie ma
-automatycznego retry ani globalnego podnoszenia limitu tokenów.
+## 4. Warstwa Sztucznej Inteligencji (Google Gemini API)
 
-Pola `finishReason` i `continuationRequested` należą do modelu wiadomości. Zachowują
-je `localStorage`, pełny zapis gry oraz eksport/import. Starsze zapisy bez tych pól
-pozostają zgodne. Przycisk jest dostępny tylko dla ostatniej wiadomości MG z
-`finishReason === 'MAX_TOKENS'`; `STOP`, brak powodu i starsze wiadomości nie pokazują
-tej akcji.
+Wszystkie operacje AI opierają się na jednym kluczu Google AI Studio (BYOK):
 
-## RAG lokalny
+- **Czat (Mistrz Gry):** Domyślnie `gemini-3.6-flash` lub `gemini-3.8-flash` (z opcją `gemini-2.5-flash` / `gemini-3.1-pro-preview` dla presetu ULTRA).
+- **Embeddingi reguł:** `gemini-embedding-001` (generuje wektory zasad z PDF).
+- **Lektor:** `gemini-2.5-flash-preview-tts` (bezpośrednia synteza mowy w locie).
+- **Ilustracje:** `gemini-2.5-flash-image` generujący stylizowane ilustracje w klimacie lat 20. XX w.
 
-Zasady z wgranego przez gracza PDF trafiają do **lokalnego indeksu** (`data/rag/`):
+---
 
-- PDF → tekst → chunki → embeddingi Gemini → zapis jako binarne `Float32` (`*.bin` +
-  `*.meta.json`) dla małego zużycia RAM i szybkiego ładowania.
-- Wyszukiwanie: cosine similarity w `local-vector-store.ts` oraz lokalny BM25, bez zewnętrznej bazy wektorowej.
-- Namespace'y: `rules` (zasady), `adventures` (przygody), `mythos` (lore PD).
-- **Anty-halucynacja**: gdy brak trafień, AI jawnie przyznaje brak zamiast zmyślać zasadę.
+## 5. Lokalny Silnik RAG (`data/rag/`)
 
-> Pinecone nie jest elementem docelowej architektury. Pakiet nadal zawiera zależność,
-> nazwy endpointów, ustawienia i pola migracyjne Pinecone. Nie wolno ich usuwać bez
-> osobnego testu zależności i zgodności starych save'ów.
+Podręcznik gracza trafia do w pełni lokalnego indeksu dyskowego:
+- PDF → parsowanie tekstu → podział na chunki → embeddingi Gemini → binarne pliki `Float32` (`*.bin` + `*.meta.json`).
+- Wyszukiwanie realizowane jest przez Cosine Similarity oraz lokalny BM25 w pamięci RAM.
+- **Anty-halucynacja:** Gdy zapytanie o regułę nie znajdzie pokrycia w wektorach, model informuje o braku wiedzy w kontekście, zamiast zmyślać zasady.
 
-Źródło encyklopedii Mythos nie jest obecnie samowystarczalne w runtime. Skrypt
-`scripts/embed-mythos.ts` czyta dane cztery katalogi ponad runtime, z wrappera. Build
-wydania musi otrzymać jawnie paczkowane źródło albo gotowy, zweryfikowany indeks.
+---
 
-## Granica sieci
+## 6. Granice Sieci i Bezpieczeństwo
 
-Aplikacja może wykonywać połączenia wychodzące wyłącznie do jawnie skonfigurowanych usług:
-
-- Google AI - czat MG, embeddingi, obrazy i opcjonalnie TTS;
-- API danych świata - Daylight, Prices i Historical News, zawsze z timeoutem, cache'em i fallbackiem;
-- opcjonalne usługi dodatkowe tylko wtedy, gdy użytkownik świadomie je włączy;
-- historyczne ścieżki GCS nadal istnieją dla PDF, pamięci, sesji i obrazów.
-
-Docelowo nie używamy zewnętrznej bazy stanu gry ani zewnętrznego indeksu RAG.
-Aktualny kod nie spełnia jeszcze tej granicy w całości: `googleCloudStorageEnabled`
-ma domyślną wartość `true`, a część endpointów nadal korzysta z GCS. To P0 do
-oddzielnej naprawy przed deklaracją pełnej lokalności.
-
-## Aktualizacje aplikacji
-
-System aktualizacji jest osobną ścieżką sieciową i korzysta z repozytorium wydań, docelowo GitHub Releases. Sprawdza jedynie manifest wersji i pobiera artefakt aplikacji po świadomej akcji użytkownika.
-
-Aktualizowany jest kod, nie dane. Dane użytkownika muszą znajdować się poza katalogiem wersji aplikacji albo być automatycznie przenoszone podczas migracji. Dotyczy to `data/saves/`, `data/rag/`, profilu launchera Chrome, `localStorage`, IndexedDB, ustawień, postaci i dziennika.
-
-Bezpieczny przepływ aktualizacji:
-
-1. sprawdzenie manifestu z timeoutem;
-2. komunikat o nowej wersji;
-3. pobranie do katalogu tymczasowego po kliknięciu;
-4. weryfikacja checksumy i platformy;
-5. backup danych użytkownika;
-6. atomowa podmiana katalogu wersji przez launcher;
-7. migracja danych i test startowy;
-8. rollback, jeśli nowa wersja nie uruchomi się poprawnie.
-
-Sprawdzenie dostępności nowej wersji nie może blokować uruchomienia gry ani rozgrywki offline.
-
-## Mechanika (deterministyczna)
-
-Rzuty i progi trudności liczy aplikacja (`dice-utils.ts` jako jedno źródło prawdy):
-Tacka egzekwuje progi (½ / ⅕), krytyki, fumble wg CoC 7e (RAW). AI dostaje **wynik**
-i tylko opisuje skutek. Utrata SAN/PŻ zapisuje się na karcie tagami w narracji
-(`[SANITY:]`, `[HP:]`), Faza Rozwoju z tagów `[WYNIK:]`.
-
-## Storage
-
-- **Postacie / ustawienia** - `localStorage`.
-- **Zapisy sesji** - na dysk (`data/saves/`).
-- **Obrazy postaci** - IndexedDB (duże dane base64 poza localStorage).
-- **Legacy cloud** - część PDF, obrazów, pamięci i sesji ma nadal ścieżki GCS.
-- Telemetria PostHog/Sentry jest opcjonalna i bez kluczy nieaktywna.
-
-## Dokumentacja i graf
-
-- Root `docs/` jest źródłem prawdy.
-- Kopie w `_tester/_base/.silnik/docs` są długiem do usunięcia albo generowania w buildzie.
-- `navigation/navigation-registry.json` jest źródłem prawdy nawigacji.
-- Graf `graft/.graph/wiring.json` jest nieaktualny i nie może obecnie stanowić dowodu
-  zależności runtime.
-
-## Build / launcher
-
-- Dev: `npm run dev`. Prod: `npm run build && npm start`.
-- macOS: `desktop/build-app.sh` składa lekki launcher `.app` (Chrome `--app` + `next
-start`), `desktop/make-icon.sh` generuje ikonę (`oko` / `wir`).
+Aplikacja nie wymaga i nie utrzymuje żadnej zewnętrznej relacyjnej bazy danych:
+- Save'y, stan postaci, Dziennik i Tablica Badacza zapisują się lokalnie (`data/saves/` oraz `localStorage`).
+- Obrazy sesji cache'owane są w `IndexedDB`.
+- Połączenia wychodzące kierowane są wyłącznie do Google AI Studio pod kontrolą użytkownika.

@@ -15,19 +15,20 @@ Kolejność najbliższych epików:
 5. Deterministyczny katalog wyposażenia oraz audyt portretów.
 6. Rozszerzanie mechaniki, stanu gry, historycznej wiedzy MG i regresji kosztów.
 
-## Priorytet prac (Zatwierdzony 2026-08-01)
-- **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` (wariant Low/Flash) oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
-- **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟡 W TRAKCIE)
+## Priorytet prac (Zaktualizowano pod v0.9.4)
+- **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` / `gemini-3.8-flash` oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
+- **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟢 ZREALIZOWANE)
 - **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza, Akt Sprawy i Dedukcji Domenowej CoC 7e. (🟢 ZREALIZOWANE)
-- **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji. (🔵 TODO)
-- **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz tłumaczenie interfejsu (Nice to have). (🔵 TODO)
+- **Priorytet 2b (UI/UX):** Kompleksowy audyt i unifikacja stylu Dark Art Déco 1920s (Epic #165) oraz Faza Rozwoju Postaci CoC 7e RAW. (🟢 ZREALIZOWANE)
+- **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji i packaging macOS. (🟡 W TRAKCIE)
+- **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz weryfikacja tłumaczeń. (🔵 TODO)
 
 ### Szacowane koszty API dla presetów (USD per 1M tokenów)
 - **LOW:** Gemini 3.6 Flash (0.15 in / 0.60 out)
 - **MID:** Gemini 3.6 Flash (0.15 in / 0.60 out) + Lektor TTS
-- **HIGH:** Gemini 2.5 Flash (0.075 in / 0.30 out) + Lektor TTS
+- **HIGH:** Gemini 2.5 Flash / 3.8 Flash (0.075 in / 0.30 out) + Lektor TTS
 - **ULTRA:** Gemini 3.1 Pro Preview (2.00 in / 12.00 out) + Lektor TTS
-- **Dodatki:** Obrazy generuje `gemini-2.5-flash-image` przez `/api/imagen` za 0,02 USD za udany obraz. Lektor używa `gemini-2.5-flash-preview-tts` (0,50 in / 1,50 out).
+- **Dodatki:** Obrazy generuje `gemini-2.5-flash-image` przez `/api/imagen` za ~0,02 USD za udany obraz. Lektor używa `gemini-2.5-flash-preview-tts` (0,50 in / 1,50 out).
 
 ## Najbliższe zadanie: obrazy scen i epoki
 
