@@ -100,6 +100,9 @@ export function createAcquiredEquipmentSeed(
   const rangeStr = typeof weaponInfo === 'object' ? weaponInfo?.range : undefined;
   const skill = looksWeapon ? inferWeaponSkill(dummyItem) : undefined;
 
+  const text = `${proposal.name} ${proposal.description}`.toLocaleLowerCase('pl-PL');
+  const isAudioMedia = /płyta gramofon|cylinder fonograf|nagranie|taśma|kaseta|audycja radiowa|audio/i.test(text);
+
   return {
     ...(template
       ? {
@@ -111,6 +114,7 @@ export function createAcquiredEquipmentSeed(
     description: proposal.description,
     visualTreatment: proposal.visualTreatment,
     ...(category === 'document' ? { documentType: inferDocumentType(proposal) } : {}),
+    ...(isAudioMedia ? { audioUrl: (proposal as any).audioUrl || undefined } : {}),
     ...(damageStr || skill || rangeStr
       ? {
           modifiers: {

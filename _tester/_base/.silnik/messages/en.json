@@ -5542,6 +5542,12 @@
     "retry": "🔄 Try Again",
     "generating": "Generating character background..."
   },
+  "NarrativeFormatter": {
+    "audioTrack": "Audio Recording / Track",
+    "play": "Play",
+    "pause": "Pause",
+    "restart": "Restart"
+  },
   "DiegeticDocumentViewer": {
     "noContent": "No saved content...",
     "pressPassTitle": "Press Pass",
@@ -5564,7 +5570,9 @@
     "sealApproved": "APPROVED",
     "pressClipping": "PRESS CLIPPING • SPECIAL EDITION",
     "tornPage": "Torn page from a notebook",
-    "documentContent": "📜 Document Content"
+    "documentContent": "📜 Document Content",
+    "listenRecording": "🔊 Listen to voice recording",
+    "stopRecording": "⏹️ Stop playback"
   },
   "EquipmentDetailDialog": {
     "close": "Close",
@@ -5576,6 +5584,13 @@
     "conditionBroken": "Broken",
     "valueLabel": "Value: {value}",
     "audioLabel": "🔊 Recording / Audio Tape",
+    "playAudio": "Play recording",
+    "pauseAudio": "Pause",
+    "audioGramophone": "Gramophone record (78 RPM)",
+    "audioPhonograph": "Edison phonograph cylinder",
+    "audioRadio": "Radio broadcast",
+    "audioTape": "Magnetic tape cassette",
+    "audioLetterVoice": "Voice reading of the letter",
     "readFailed": "Failed to load item content",
     "readError": "An error occurred while reading.",
     "examining": "Examining document...",

@@ -39,10 +39,14 @@ export function parseIntoSections(content: string): Section[] {
     // Wykryj koniec handoutu
     if (inHandout && isHandoutEnd(trimmedLine)) {
       handoutBuffer.push(line);
+      const joined = handoutBuffer.join('\n');
+      const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
+      const cleanedContent = audioMatch ? joined.replace(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*[^\]]+\]/gi, '').trim() : joined;
       sections.push({
         type: 'handout',
-        content: handoutBuffer.join('\n'),
+        content: cleanedContent,
         handoutType: handoutType,
+        audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
       });
       inHandout = false;
       handoutBuffer = [];
@@ -157,10 +161,14 @@ export function parseIntoSections(content: string): Section[] {
 
   // Jeśli zostały linie w handoutBuffer
   if (handoutBuffer.length > 0) {
+    const joined = handoutBuffer.join('\n');
+    const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
+    const cleanedContent = audioMatch ? joined.replace(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*[^\]]+\]/gi, '').trim() : joined;
     sections.push({
       type: 'handout',
-      content: handoutBuffer.join('\n'),
+      content: cleanedContent,
       handoutType: handoutType,
+      audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
     });
   }
 

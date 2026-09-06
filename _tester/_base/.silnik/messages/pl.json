@@ -5542,6 +5542,12 @@
     "retry": "🔄 Spróbuj Ponownie",
     "generating": "Generowanie tła postaci..."
   },
+  "NarrativeFormatter": {
+    "audioTrack": "Nagranie / Ścieżka dźwiękowa",
+    "play": "Odsłuchaj",
+    "pause": "Pauza",
+    "restart": "Od początku"
+  },
   "DiegeticDocumentViewer": {
     "noContent": "Brak zapisanej treści...",
     "pressPassTitle": "Legitymacja Prasowa",
@@ -5564,7 +5570,9 @@
     "sealApproved": "ZATWIERDZONO",
     "pressClipping": "WYCINEK PRASOWY • EDITION SPECIAL",
     "tornPage": "Wyrwana strona z notatnika",
-    "documentContent": "📜 Treść Dokumentu"
+    "documentContent": "📜 Treść Dokumentu",
+    "listenRecording": "🔊 Odsłuchaj nagranie lektora",
+    "stopRecording": "⏹️ Zatrzymaj odtwarzanie"
   },
   "EquipmentDetailDialog": {
     "close": "Zamknij",
@@ -5576,6 +5584,13 @@
     "conditionBroken": "Zepsuty",
     "valueLabel": "Wartość: {value}",
     "audioLabel": "🔊 Nagranie / Taśma Audio",
+    "playAudio": "Odsłuchaj nagranie",
+    "pauseAudio": "Wstrzymaj",
+    "audioGramophone": "Płyta gramofonowa (78 RPM)",
+    "audioPhonograph": "Cylinder fonografu Edisona",
+    "audioRadio": "Przekaz radiowy",
+    "audioTape": "Taśma magnetofonowa",
+    "audioLetterVoice": "Głosowe czytanie listu",
     "readFailed": "Nie udało się wczytać treści przedmiotu",
     "readError": "Wystąpił błąd podczas czytania.",
     "examining": "Badanie dokumentu...",

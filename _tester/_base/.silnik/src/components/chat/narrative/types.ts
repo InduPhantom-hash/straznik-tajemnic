@@ -27,6 +27,7 @@ export interface Section {
   content: string;
   speaker?: string;
   handoutType?: HandoutType;
+  audioUrl?: string; // Opcjonalny URL nagrania audio / pliku dźwiękowego
   characterName?: string; // dla type='perspective' - imię postaci kierowanej
   characterColor?: string; // opcjonalny kolor ramki
 }
