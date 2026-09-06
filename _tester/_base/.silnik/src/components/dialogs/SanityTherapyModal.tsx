@@ -152,12 +152,12 @@ export function SanityTherapyModal({
         </DialogHeader>
 
         {isCombatOrChaseActive ? (
-          <div className="p-6 my-4 border border-amber-500/40 bg-amber-950/20 text-center space-y-2">
-            <ShieldAlert className="w-8 h-8 text-amber-500 mx-auto" />
-            <h4 className="font-display uppercase tracking-widest text-amber-400 text-sm font-semibold">
+          <div className="p-6 my-4 border border-brass/40 bg-card text-center space-y-2">
+            <ShieldAlert className="w-8 h-8 text-brass mx-auto" />
+            <h4 className="font-display uppercase tracking-widest text-gold text-sm font-semibold">
               {t('dangerLockTitle')}
             </h4>
-            <p className="font-serif text-xs text-amber-200/80">
+            <p className="font-serif text-xs text-muted-foreground">
               {t('dangerLockDesc')}
             </p>
           </div>
@@ -249,7 +249,7 @@ export function SanityTherapyModal({
                                 </Badge>
                               )}
                               {anchor.status === 'damaged' && (
-                                <Badge variant="outline" className="text-[9px] bg-amber-950/40 text-amber-400 border-amber-500/40 py-0">
+                                <Badge variant="outline" className="text-[9px] bg-brass/15 text-brass border-brass/40 py-0">
                                   {t('statusDamaged')}
                                 </Badge>
                               )}
@@ -312,8 +312,8 @@ export function SanityTherapyModal({
 
                   {/* Bezpiecznik: Użycie w tej przerwie */}
                   {character.usedDowntimeRecovery && !anchorResult && (
-                    <div className="p-3 border border-amber-500/30 bg-amber-950/20 text-amber-300 text-xs font-serif flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0 text-amber-400" />
+                    <div className="p-3 border border-brass/30 bg-card/80 text-brass text-xs font-serif flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0 text-brass" />
                       <span>{t('cooldownNotice')}</span>
                     </div>
                   )}
@@ -425,11 +425,11 @@ export function SanityTherapyModal({
                       className={`p-4 border space-y-2 ${
                         selfHelpResult.cured
                           ? 'border-emerald-500/40 bg-emerald-950/20'
-                          : 'border-amber-500/40 bg-amber-950/20'
+                          : 'border-brass/40 bg-brass/10'
                       }`}
                     >
                       <div className="flex items-center justify-between font-display text-sm font-semibold uppercase tracking-wider">
-                        <span className={selfHelpResult.cured ? 'text-emerald-400' : 'text-amber-400'}>
+                        <span className={selfHelpResult.cured ? 'text-emerald-400' : 'text-brass'}>
                           {selfHelpResult.cured ? t('selfHelpSuccess') : t('selfHelpFail')}
                         </span>
                         <span className="font-special-elite text-xs text-muted-foreground">
@@ -540,7 +540,7 @@ export function SanityTherapyModal({
                     hospitalResult.outcome === 'fumble'
                       ? 'border-red-500/40 bg-red-950/20'
                       : hospitalResult.outcome === 'fail'
-                        ? 'border-amber-500/40 bg-amber-950/20'
+                        ? 'border-brass/40 bg-brass/10'
                         : 'border-emerald-500/40 bg-emerald-950/20'
                   }`}
                 >
@@ -550,7 +550,7 @@ export function SanityTherapyModal({
                         hospitalResult.outcome === 'fumble'
                           ? 'text-red-400'
                           : hospitalResult.outcome === 'fail'
-                            ? 'text-amber-400'
+                            ? 'text-brass'
                             : 'text-emerald-400'
                       }
                     >

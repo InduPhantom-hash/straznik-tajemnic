@@ -43,7 +43,7 @@ export function HandoutAudioPlayer({ audioUrl }: { audioUrl: string }) {
   };
 
   return (
-    <div className="mt-3 pt-2.5 border-t border-amber-600/30 flex items-center justify-between gap-3 bg-black/40 px-3 py-2 rounded border border-brass/30">
+    <div className="mt-3 pt-2.5 border-t border-brass/20 flex items-center justify-between gap-3 bg-input/40 px-3 py-2 rounded border border-brass/30">
       <audio ref={audioRef} src={audioUrl} onEnded={handleEnded} preload="none" />
       <div className="flex items-center gap-2 text-xs font-special-elite text-brass/90 uppercase tracking-wider">
         <Volume2 className="w-4 h-4 text-brass animate-pulse" />
@@ -107,57 +107,57 @@ export function getHandoutStyles(type?: HandoutType): {
   switch (type) {
     case 'newspaper':
       return {
-        container: 'bg-amber-900/20 border-2 border-amber-700/50 rounded p-4',
-        content: 'text-amber-100',
+        container: 'bg-card/90 border border-brass/40 rounded p-4 shadow-md',
+        content: 'text-foreground font-serif',
         header: '📰 WYCINEK PRASOWY',
         headerClass:
-          'text-amber-400 text-xs font-bold mb-2 border-b border-amber-700/50 pb-1',
+          'text-gold text-xs font-bold mb-2 border-b border-brass/30 pb-1 font-display tracking-wider',
       };
 
     case 'letter':
       return {
         container:
-          'bg-stone-800/40 border border-stone-600/50 rounded-lg p-4 shadow-lg',
-        content: 'text-stone-200 italic',
+          'bg-card/95 border border-brass/30 rounded p-4 shadow-lg',
+        content: 'text-foreground italic font-serif',
         header: '✉️ LIST',
-        headerClass: 'text-stone-400 text-xs font-bold mb-2',
+        headerClass: 'text-brass text-xs font-bold mb-2 font-display',
       };
 
     case 'telegram':
       return {
-        container: 'bg-yellow-900/30 border-2 border-yellow-600/60 rounded p-3',
-        content: 'text-yellow-100 uppercase tracking-wide',
+        container: 'bg-secondary/40 border-2 border-brass/50 rounded p-3',
+        content: 'text-foreground uppercase tracking-wide font-mono',
         header: '📧 TELEGRAM',
-        headerClass: 'text-yellow-400 text-xs font-bold mb-2 tracking-widest',
+        headerClass: 'text-gold text-xs font-bold mb-2 tracking-widest font-mono',
       };
 
     case 'report':
       return {
-        container: 'bg-slate-800/50 border border-slate-600/50 rounded p-4',
-        content: 'text-slate-200',
+        container: 'bg-secondary/50 border border-border rounded p-4',
+        content: 'text-foreground font-mono',
         header: '📋 RAPORT OFICJALNY',
         headerClass:
-          'text-slate-400 text-xs font-bold mb-2 uppercase tracking-wide',
+          'text-brass text-xs font-bold mb-2 uppercase tracking-wide font-display',
       };
 
     case 'diary':
       // Sepia + italic - analog do handout-generator diary HTML (Brush Script MT + sepia gradient + plama atramentu).
-      // Tailwind w narrative renderer: ciemniejsza sepia niż newspaper (amber-950) + brązowa ramka.
+      // Dark Art Déco: karta akt z mosiężną ramką i złotym nagłówkiem.
       return {
         container:
-          'bg-amber-950/30 border border-amber-800/60 rounded-lg p-4 shadow-inner',
-        content: 'text-amber-100 italic',
+          'bg-card/95 border border-brass/40 rounded p-4 shadow-inner',
+        content: 'text-foreground italic font-serif',
         header: '📓 DZIENNIK',
-        headerClass: 'text-amber-600 text-xs font-bold mb-2 tracking-wide',
+        headerClass: 'text-gold text-xs font-bold mb-2 tracking-wide font-display',
       };
 
     case 'book':
       return {
         container:
-          'bg-purple-900/30 border border-purple-700/50 rounded-lg p-4',
-        content: 'text-purple-200 italic',
+          'bg-card/95 border border-primary/40 rounded p-4',
+        content: 'text-foreground italic font-serif',
         header: '📜 FRAGMENT KSIĘGI',
-        headerClass: 'text-purple-400 text-xs font-bold mb-2',
+        headerClass: 'text-primary text-xs font-bold mb-2 font-display',
       };
 
     default:

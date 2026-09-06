@@ -122,13 +122,13 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-zinc-950 border-brass/50 text-zinc-100 shadow-2xl p-6">
+      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-card border-brass/50 text-foreground shadow-2xl p-6">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-brass flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-400" />
+          <DialogTitle className="font-display text-xl text-gold flex items-center gap-2">
+            <Zap className="w-5 h-5 text-brass" />
             {t('title')}
           </DialogTitle>
-          <DialogDescription className="text-zinc-400 text-xs">
+          <DialogDescription className="text-muted-foreground text-xs font-sans">
             {t('subtitle')}
           </DialogDescription>
         </DialogHeader>
@@ -139,7 +139,7 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
         {/* Panel wyboru manewrów */}
         {state.status === 'ongoing' && (
           <div className="space-y-2 mt-2">
-            <p className="text-xs uppercase tracking-wider font-mono text-zinc-400 font-semibold mb-2">
+            <p className="text-xs uppercase tracking-wider font-mono text-brass/90 font-semibold mb-2">
               Wybierz manewr ucieczki:
             </p>
 
@@ -147,13 +147,13 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
               {/* 1. Sprint */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-zinc-700/70 hover:border-emerald-500 bg-zinc-900/60 text-left"
+                className="justify-start h-auto py-2.5 px-3 border-border hover:border-emerald-500/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
                 onClick={() => handleExecute('sprint')}
               >
                 <Footprints className="w-4 h-4 text-emerald-400 mr-2 shrink-0" />
                 <div>
-                  <div className="font-bold text-xs text-white">{t('actionSprint')}</div>
-                  <div className="text-[10px] text-zinc-400">{t('actionSprintDesc')}</div>
+                  <div className="font-bold text-xs text-foreground">{t('actionSprint')}</div>
+                  <div className="text-[10px] text-muted-foreground">{t('actionSprintDesc')}</div>
                 </div>
               </Button>
 
@@ -161,13 +161,13 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
               {currentHazard && (
                 <Button
                   variant="outline"
-                  className="justify-start h-auto py-2.5 px-3 border-amber-500/50 hover:border-amber-400 bg-amber-950/20 text-left"
+                  className="justify-start h-auto py-2.5 px-3 border-brass/40 hover:border-brass bg-brass/10 hover:bg-brass/20 text-left cursor-pointer"
                   onClick={() => handleExecute('clear_hazard')}
                 >
-                  <Flame className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
+                  <Flame className="w-4 h-4 text-brass mr-2 shrink-0" />
                   <div>
-                    <div className="font-bold text-xs text-amber-300">{t('actionClearHazard')}</div>
-                    <div className="text-[10px] text-amber-200/70">
+                    <div className="font-bold text-xs text-gold">{t('actionClearHazard')}</div>
+                    <div className="text-[10px] text-brass/80">
                       {t('actionClearHazardDesc', {
                         skill: currentHazard.requiredSkill,
                         difficulty: currentHazard.difficulty,
@@ -180,39 +180,39 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
               {/* 3. Brawurowy skrót */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-zinc-700/70 hover:border-blue-500 bg-zinc-900/60 text-left"
+                className="justify-start h-auto py-2.5 px-3 border-border hover:border-brass/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
                 onClick={() => handleExecute('shortcut')}
               >
-                <Zap className="w-4 h-4 text-blue-400 mr-2 shrink-0" />
+                <Zap className="w-4 h-4 text-brass mr-2 shrink-0" />
                 <div>
-                  <div className="font-bold text-xs text-white">{t('actionShortcut')}</div>
-                  <div className="text-[10px] text-zinc-400">{t('actionShortcutDesc')}</div>
+                  <div className="font-bold text-xs text-foreground">{t('actionShortcut')}</div>
+                  <div className="text-[10px] text-muted-foreground">{t('actionShortcutDesc')}</div>
                 </div>
               </Button>
 
               {/* 4. Zastawienie przeszkody z tyłu */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-zinc-700/70 hover:border-purple-500 bg-zinc-900/60 text-left"
+                className="justify-start h-auto py-2.5 px-3 border-border hover:border-brass/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
                 onClick={() => handleExecute('create_barrier')}
               >
-                <ShieldAlert className="w-4 h-4 text-purple-400 mr-2 shrink-0" />
+                <ShieldAlert className="w-4 h-4 text-brass mr-2 shrink-0" />
                 <div>
-                  <div className="font-bold text-xs text-white">{t('actionCreateBarrier')}</div>
-                  <div className="text-[10px] text-zinc-400">{t('actionCreateBarrierDesc')}</div>
+                  <div className="font-bold text-xs text-foreground">{t('actionCreateBarrier')}</div>
+                  <div className="text-[10px] text-muted-foreground">{t('actionCreateBarrierDesc')}</div>
                 </div>
               </Button>
 
               {/* 5. Zniknięcie w cieniu */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-zinc-700/70 hover:border-amber-500 bg-zinc-900/60 text-left"
+                className="justify-start h-auto py-2.5 px-3 border-border hover:border-brass/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
                 onClick={() => handleExecute('hide')}
               >
-                <EyeOff className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
+                <EyeOff className="w-4 h-4 text-brass mr-2 shrink-0" />
                 <div>
-                  <div className="font-bold text-xs text-white">{t('actionHide')}</div>
-                  <div className="text-[10px] text-zinc-400">{t('actionHideDesc')}</div>
+                  <div className="font-bold text-xs text-foreground">{t('actionHide')}</div>
+                  <div className="text-[10px] text-muted-foreground">{t('actionHideDesc')}</div>
                 </div>
               </Button>
             </div>
@@ -220,12 +220,12 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
         )}
 
         {/* Przyciski końcowe */}
-        <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-zinc-800">
+        <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-border">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="text-zinc-400 hover:text-white"
+            className="text-muted-foreground hover:text-foreground cursor-pointer"
           >
             {t('closeButton')}
           </Button>
@@ -234,7 +234,7 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
             <Button
               size="sm"
               onClick={handleSendReport}
-              className="bg-brass hover:bg-brass-light text-zinc-950 font-semibold font-display flex items-center gap-1.5"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold font-display flex items-center gap-1.5 cursor-pointer"
             >
               <Send className="w-4 h-4" />
               {t('sendToChatButton')}
