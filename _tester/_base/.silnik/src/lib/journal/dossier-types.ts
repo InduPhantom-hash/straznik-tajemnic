@@ -26,6 +26,10 @@ export interface ClueEntry {
   imageUrl?: string;
   /** Czy poszlaka stanowi kluczowy element śledztwa (Core Clue RAW) */
   isKeyClue?: boolean;
+  /** Powiązane identyfikatory węzłów dowodowych (Alexandrian Three-Clue Rule & Node Network) */
+  linkedNodeIds?: string[];
+  /** Alternatywne tropy prowadzące do tej samej konkluzji (eliminacja chokepointów) */
+  alternativeClueTrails?: string[];
   sourceJournalEntryId?: string;
 }
 
@@ -52,6 +56,14 @@ export interface NpcDossierEntry {
   inGameDate?: string;
   timestamp?: number;
   sourceJournalEntryId?: string;
+
+  // === Trójwymiarowy profil postaci według Lajosa Egriego (The Art of Dramatic Writing) ===
+  /** Wymiar fizjologiczny: cecha wyglądu, tik, manieryzm fizyczny, postawa */
+  physiologicalDetail?: string;
+  /** Wymiar socjologiczny: status społeczny, klasa, pozycja siły, przynależność */
+  sociologicalStatus?: string;
+  /** Wymiar psychologiczny: ukryta agenda, prywatny lęk, słabość moralna */
+  psychologicalAgenda?: string;
 }
 
 export type LocationSearchStatus =

@@ -638,6 +638,11 @@ export interface NPC {
   location: string;
   locationId?: string; // ID lokacji z menedżera lokacji
 
+  // Profil trójwymiarowy według Lajosa Egriego (The Art of Dramatic Writing)
+  physiologicalDetail?: string; // Wygląd, postawa, manieryzm fizyczny
+  sociologicalStatus?: string;  // Klasa, pozycja społeczna, dynamika siły
+  psychologicalAgenda?: string; // Ukryty cel, lęk, skaza moralna
+
   // Status i efekty
   status: 'alive' | 'dead' | 'unknown';
   statusEffects: Array<{

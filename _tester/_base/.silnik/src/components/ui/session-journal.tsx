@@ -246,6 +246,8 @@ export function SessionJournal({
           clueCategory: c.category,
           clueStatus: c.status,
           isKeyClue: c.isKeyClue,
+          linkedNodeIds: c.linkedNodeIds,
+          alternativeClueTrails: c.alternativeClueTrails,
           sourceNpc: c.sourceNpc,
           foundLocation: c.foundLocation,
           questStatus:
@@ -274,6 +276,9 @@ export function SessionJournal({
           occupation: n.occupation,
           relationshipStatus: n.relationshipStatus,
           foundLocation: n.location,
+          physiologicalDetail: n.physiologicalDetail,
+          sociologicalStatus: n.sociologicalStatus,
+          psychologicalAgenda: n.psychologicalAgenda,
         });
       });
     }

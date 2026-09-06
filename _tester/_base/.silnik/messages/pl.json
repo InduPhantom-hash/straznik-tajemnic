@@ -6557,7 +6557,14 @@
     "categoryHandouts": "Wycinki i Dokumenty",
     "emptyHandouts": "Nie zabezpieczono jeszcze żadnych wycinków ani dokumentów.",
     "quoteToChatTitle": "Zacytuj i pytaj na czacie (Quote-to-Input)",
-    "quoteToChatAction": "Pytaj o to na czacie"
+    "quoteToChatAction": "Pytaj o to na czacie",
+    "egriProfileTitle": "Trójwymiarowy profil postaci (Lajos Egri)",
+    "egriPhysiologicalLabel": "Ciało i fizjonomia",
+    "egriSociologicalLabel": "Status i pozycja",
+    "egriPsychologicalLabel": "Ukryta motywacja / lęk",
+    "alexandrianRuleTitle": "Sieć poszlak śledztwa (Reguła 3 Poszlak)",
+    "alexandrianTrailsLabel": "Alternatywne tropy",
+    "alexandrianNodesLabel": "Powiązane węzły"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",

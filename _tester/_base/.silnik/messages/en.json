@@ -6557,7 +6557,14 @@
     "categoryHandouts": "Handouts & Documents",
     "emptyHandouts": "No handouts or documents secured yet.",
     "quoteToChatTitle": "Quote and ask in chat (Quote-to-Input)",
-    "quoteToChatAction": "Ask about this in chat"
+    "quoteToChatAction": "Ask about this in chat",
+    "egriProfileTitle": "Three-Dimensional Character Profile (Lajos Egri)",
+    "egriPhysiologicalLabel": "Physique & Mannerisms",
+    "egriSociologicalLabel": "Social Class & Status",
+    "egriPsychologicalLabel": "Hidden Agenda / Fear",
+    "alexandrianRuleTitle": "Investigation Clue Network (Three-Clue Rule)",
+    "alexandrianTrailsLabel": "Alternative trails",
+    "alexandrianNodesLabel": "Linked nodes"
   },
   "LocationManager": {
     "title": "📍 Location Manager",

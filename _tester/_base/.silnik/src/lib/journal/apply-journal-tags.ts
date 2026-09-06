@@ -152,10 +152,27 @@ export function processCharacterJournalAndDossier(
       }
     } else {
       // Nowy NPC: twórz nową kartę w dossier + JEDEN wpis w kronice
+      // Ekstrakcja trójwymiarowości Egriego jeśli podana w formacie [opis | ciało | status | cel]
+      let firstImpression = npc.description;
+      let physiologicalDetail: string | undefined;
+      let sociologicalStatus: string | undefined;
+      let psychologicalAgenda: string | undefined;
+
+      if (npc.description.includes('|')) {
+        const parts = npc.description.split('|').map((p) => p.trim());
+        firstImpression = parts[0] || npc.description;
+        if (parts.length >= 2) physiologicalDetail = parts[1];
+        if (parts.length >= 3) sociologicalStatus = parts[2];
+        if (parts.length >= 4) psychologicalAgenda = parts[3];
+      }
+
       const newNpc: NpcDossierEntry = {
         id: `npc-${lowerName.replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
         name: normName,
-        firstImpression: npc.description,
+        firstImpression,
+        physiologicalDetail,
+        sociologicalStatus,
+        psychologicalAgenda,
         relationshipStatus: 'unknown',
         timestamp: Date.now(),
       };
@@ -168,7 +185,7 @@ export function processCharacterJournalAndDossier(
           timestamp: new Date(),
           type: 'npc',
           title: normName,
-          content: npc.description,
+          content: firstImpression,
           tags: [],
           isBookmarked: false,
         });

@@ -58,12 +58,17 @@ export interface DiscoveryEntry {
   clueCategory?: ClueCategory;
   clueStatus?: ClueStatus;
   isKeyClue?: boolean;
+  linkedNodeIds?: string[];
+  alternativeClueTrails?: string[];
   sourceNpc?: string;
   foundLocation?: string;
   relationshipStatus?: NpcRelationshipStatus;
   occupation?: string;
   firstImpression?: string;
   keyInformation?: string;
+  physiologicalDetail?: string;
+  sociologicalStatus?: string;
+  psychologicalAgenda?: string;
   searchStatus?: LocationSearchStatus;
   addressOrRegion?: string;
   discoveredClueIds?: string[];
@@ -741,6 +746,58 @@ export function DiscoveriesView({
                     </div>
                   )}
                 </div>
+
+                {/* Profil trójwymiarowy postaci (Lajos Egri: Fizjologia, Socjologia, Psychologia) */}
+                {activeCategory === 'characters' &&
+                  (selectedEntry.physiologicalDetail ||
+                    selectedEntry.sociologicalStatus ||
+                    selectedEntry.psychologicalAgenda) && (
+                    <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#bfa15f]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
+                      <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1">
+                        {t('egriProfileTitle')}
+                      </div>
+                      {selectedEntry.physiologicalDetail && (
+                        <div>
+                          <span className="font-bold text-[#3a2818]">{t('egriPhysiologicalLabel')}: </span>
+                          <span className="italic">{selectedEntry.physiologicalDetail}</span>
+                        </div>
+                      )}
+                      {selectedEntry.sociologicalStatus && (
+                        <div>
+                          <span className="font-bold text-[#3a2818]">{t('egriSociologicalLabel')}: </span>
+                          <span>{selectedEntry.sociologicalStatus}</span>
+                        </div>
+                      )}
+                      {selectedEntry.psychologicalAgenda && (
+                        <div>
+                          <span className="font-bold text-[#8a1c1c]">{t('egriPsychologicalLabel')}: </span>
+                          <span className="italic text-[#8a1c1c]/90">{selectedEntry.psychologicalAgenda}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {/* Sieć poszlak i alternatywne tropy (Justin Alexander: Three-Clue Rule) */}
+                {activeCategory === 'quests' &&
+                  (selectedEntry.alternativeClueTrails?.length || selectedEntry.linkedNodeIds?.length) && (
+                    <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#73a15c]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
+                      <div className="text-[10px] uppercase font-bold tracking-wider text-[#355227] border-b border-[#73a15c]/30 pb-1">
+                        {t('alexandrianRuleTitle')}
+                      </div>
+                      {selectedEntry.alternativeClueTrails && selectedEntry.alternativeClueTrails.length > 0 && (
+                        <div>
+                          <span className="font-bold text-[#1f3815]">{t('alexandrianTrailsLabel')}: </span>
+                          <span>{selectedEntry.alternativeClueTrails.join(' • ')}</span>
+                        </div>
+                      )}
+                      {selectedEntry.linkedNodeIds && selectedEntry.linkedNodeIds.length > 0 && (
+                        <div>
+                          <span className="font-bold text-[#1f3815]">{t('alexandrianNodesLabel')}: </span>
+                          <span>{selectedEntry.linkedNodeIds.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
 
               {/* Zdjęcie (Pionowy Polaroid Retro - klikalny podgląd) */}

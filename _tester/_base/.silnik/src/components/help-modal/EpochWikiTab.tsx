@@ -63,23 +63,23 @@ export function EpochWikiTab() {
   });
 
   return (
-    <div className="flex flex-col gap-4 text-gray-200 bg-gray-900/90 p-4 rounded-lg border border-amber-900/40 min-h-[620px]">
+    <div className="flex flex-col gap-4 text-foreground bg-card/90 p-4 rounded-lg border border-border min-h-[620px]">
       {/* Przełącznik Słowników / Baz Wiedzy */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-900/40 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <span className="text-xl">📜</span>
-          <h3 className="text-lg font-serif text-amber-400 font-semibold">
+          <h3 className="text-lg font-serif text-brass font-semibold">
             {currentDataset === 'lovecraft-mythos' ? t('titleMythos') : t('titleEpoch')}
           </h3>
         </div>
 
-        <div className="flex items-center bg-gray-950 p-1 rounded-md border border-amber-900/50">
+        <div className="flex items-center bg-input p-1 rounded-md border border-brass/30">
           <button
             onClick={() => setCurrentDataset('lovecraft-mythos')}
             className={`px-3 py-1.5 rounded text-xs font-serif transition-colors ${
               currentDataset === 'lovecraft-mythos'
-                ? 'bg-amber-900/80 text-amber-200 font-medium shadow'
-                : 'text-gray-400 hover:text-gray-200'
+                ? 'bg-brass/20 text-brass border border-brass/40 font-medium shadow'
+                : 'text-muted-foreground hover:text-foreground border border-transparent'
             }`}
           >
             {t('datasetMythos')}
@@ -88,8 +88,8 @@ export function EpochWikiTab() {
             onClick={() => setCurrentDataset('pl-1990s-2000s')}
             className={`px-3 py-1.5 rounded text-xs font-serif transition-colors ${
               currentDataset === 'pl-1990s-2000s'
-                ? 'bg-amber-900/80 text-amber-200 font-medium shadow'
-                : 'text-gray-400 hover:text-gray-200'
+                ? 'bg-brass/20 text-brass border border-brass/40 font-medium shadow'
+                : 'text-muted-foreground hover:text-foreground border border-transparent'
             }`}
           >
             {t('datasetEpoch')}
@@ -99,21 +99,21 @@ export function EpochWikiTab() {
 
       <div className="flex flex-col md:flex-row gap-4 h-[520px]">
         {/* Panel boczny - Lista haseł i filtry */}
-        <div className="w-full md:w-1/3 flex flex-col gap-3 border-b md:border-b-0 md:border-r border-amber-900/30 pr-0 md:pr-4">
+        <div className="w-full md:w-1/3 flex flex-col gap-3 border-b md:border-b-0 md:border-r border-border pr-0 md:pr-4">
           {/* Wyszukiwarka */}
           <input
             type="text"
             placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800 border border-amber-900/50 rounded text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-500"
+            className="w-full px-3 py-2 bg-input border border-brass/30 rounded text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brass"
           />
 
           {/* Filtr kategorii */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800 border border-amber-900/50 rounded text-sm text-gray-100 focus:outline-none focus:border-amber-500 text-xs"
+            className="w-full px-3 py-2 bg-input border border-brass/30 rounded text-sm text-foreground focus:outline-none focus:border-brass text-xs"
           >
             <option value="ALL">{t('allCategories', { count: entries.length })}</option>
             {categories.map((cat) => (
@@ -126,9 +126,9 @@ export function EpochWikiTab() {
           {/* Lista haseł */}
           <div className="flex-1 overflow-y-auto space-y-1 pr-1">
             {isLoading ? (
-              <div className="p-4 text-center text-xs text-amber-500/80 animate-pulse">{t('loading')}</div>
+              <div className="p-4 text-center text-xs text-brass/80 animate-pulse">{t('loading')}</div>
             ) : filteredEntries.length === 0 ? (
-              <p className="text-xs text-gray-500 italic p-2">{t('noResults')}</p>
+              <p className="text-xs text-muted-foreground italic p-2">{t('noResults')}</p>
             ) : (
               filteredEntries.map((entry) => (
                 <button
@@ -136,12 +136,12 @@ export function EpochWikiTab() {
                   onClick={() => setActiveEntry(entry)}
                   className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                     activeEntry?.id === entry.id
-                      ? 'bg-amber-950/80 border border-amber-600/50 text-amber-300 font-medium'
-                      : 'bg-gray-800/40 hover:bg-gray-800 text-gray-300'
+                      ? 'bg-brass/20 border border-brass/50 text-brass font-medium'
+                      : 'bg-input/40 hover:bg-input text-foreground/80'
                   }`}
                 >
                   <div className="truncate font-serif">{entry.term}</div>
-                  <div className="text-[10px] text-amber-600/80 uppercase tracking-wider">{entry.categoryTitle}</div>
+                  <div className="text-[10px] text-gold/80 uppercase tracking-wider">{entry.categoryTitle}</div>
                 </button>
               ))
             )}
@@ -152,43 +152,43 @@ export function EpochWikiTab() {
         <div className="w-full md:w-2/3 flex flex-col overflow-y-auto pl-0 md:pl-2">
           {activeEntry ? (
             <div className="space-y-4">
-              <div className="border-b border-amber-900/40 pb-2">
+              <div className="border-b border-border pb-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-xs text-amber-500 uppercase tracking-widest font-mono">
+                  <span className="text-xs text-brass uppercase tracking-widest font-mono">
                     {activeEntry.categoryTitle}
                   </span>
 
                   {/* Plakietka Licencyjna / Informacyjna */}
                   <div className="flex items-center gap-1.5">
                     {activeEntry.isPublicDomain && (
-                      <span className="text-[10px] bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 px-2 py-0.5 rounded font-mono">
+                      <span className="text-[10px] bg-primary/20 border border-primary/50 text-primary px-2 py-0.5 rounded font-mono">
                         {t('publicDomainBadge')}
                       </span>
                     )}
                     {activeEntry.license && (
-                      <span className="text-[10px] bg-amber-950/80 border border-amber-700/60 text-amber-300 px-2 py-0.5 rounded font-mono">
+                      <span className="text-[10px] bg-brass/20 border border-brass/50 text-brass px-2 py-0.5 rounded font-mono">
                         {t('ccBadge')}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-serif text-amber-200 mt-1">{activeEntry.term}</h2>
+                <h2 className="text-2xl font-serif text-gold mt-1">{activeEntry.term}</h2>
               </div>
 
-              <div className="prose prose-invert prose-amber max-w-none text-sm leading-relaxed whitespace-pre-line text-gray-300">
+              <div className="prose prose-invert max-w-none text-sm leading-relaxed whitespace-pre-line text-foreground/90">
                 {activeEntry.fullContent}
               </div>
 
               {/* Sekcja Uznania Autorstwa & Licencji w stopce wpisu */}
-              <div className="pt-4 border-t border-amber-900/30 flex flex-col gap-2 text-xs text-gray-400 bg-gray-950/40 p-3 rounded border border-amber-950">
+              <div className="pt-4 border-t border-border flex flex-col gap-2 text-xs text-muted-foreground bg-input/40 p-3 rounded border border-border/50">
                 <div className="flex items-center gap-2">
-                  <span className="text-amber-500">{t('attributionLabel')}</span>
-                  <span className="text-gray-300">
+                  <span className="text-brass">{t('attributionLabel')}</span>
+                  <span className="text-foreground/90">
                     {activeEntry.sourceAttribution || t('defaultAttribution')}
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-500 leading-tight">
+                <p className="text-[11px] text-muted-foreground leading-tight">
                   {t('legalNote')}
                 </p>
               </div>
@@ -196,7 +196,7 @@ export function EpochWikiTab() {
               {activeEntry.tags && activeEntry.tags.length > 0 && (
                 <div className="pt-2 flex flex-wrap gap-1">
                   {activeEntry.tags.map((tag) => (
-                    <span key={tag} className="text-[10px] px-2 py-0.5 bg-gray-800 border border-gray-700 text-gray-400 rounded">
+                    <span key={tag} className="text-[10px] px-2 py-0.5 bg-input border border-border text-muted-foreground rounded">
                       #{tag}
                     </span>
                   ))}
@@ -204,7 +204,7 @@ export function EpochWikiTab() {
               )}
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
               <span className="text-4xl mb-2">📜</span>
               <p className="text-sm">{t('emptySelection')}</p>
             </div>
