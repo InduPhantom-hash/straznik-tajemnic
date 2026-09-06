@@ -87,7 +87,8 @@ describe('AdventureDetailsModal', () => {
     expect(screen.getByText(adventure.description)).toBeInTheDocument();
     expect(screen.getByText('archeologia')).toBeInTheDocument();
     expect(screen.getByText('starożytne klątwy')).toBeInTheDocument();
-    expect(screen.getByText(/badacz, archeolog/i)).toBeInTheDocument();
-    expect(screen.getByText(/śledczy/i)).toBeInTheDocument();
+    expect(screen.getByText('badacz')).toBeInTheDocument();
+    expect(screen.getByText('archeolog')).toBeInTheDocument();
+    expect(screen.getByText('śledczy')).toBeInTheDocument();
   });
 });
