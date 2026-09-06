@@ -25,6 +25,7 @@ interface QueueItem {
   text: string;
   voiceId?: string; // override z multi-voice; undefined → settings.voiceSettings.voiceId
   audioDirection?: string; // Issue #162: instrukcja reżyserska dla Gemini TTS
+  speedMultiplier?: number; // Issue #200: adaptacyjne przyspieszenie tempa akcji (np. 1.25x dla starć/pościgów)
 }
 
 export interface TTSState {
@@ -81,8 +82,8 @@ import { getApiKeyHeaders } from '@/lib/api-keys-service';
  * akceptowalną barwę, a Flash ~2x szybszy (lektor rusza ~15s wcześniej). Oba modele
  * Flash = zero przeskoków (sedno IND-196 zachowane). Powrót na Pro = zmień stałą niżej.
  */
-const TTS_MODEL_NARRATOR = 'gemini-2.5-flash-preview-tts';
-const TTS_MODEL_NPC = 'gemini-2.5-flash-preview-tts';
+const TTS_MODEL_NARRATOR = 'gemini-3.1-flash-tts-preview';
+const TTS_MODEL_NPC = 'gemini-3.1-flash-tts-preview';
 
 /**
  * IND-191: parametry odporności kolejki TTS na rate-limit / błędy transient.
@@ -389,7 +390,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         // Przenieś z pending do głównej kolejki przetwarzania
         const item = pendingQueueRef.current.shift();
         if (!item) continue;
-        const { text, voiceId: overrideVoiceId, audioDirection } = item;
+        const { text, voiceId: overrideVoiceId, audioDirection, speedMultiplier } = item;
         if (!text) continue;
 
         const index = processingIndexRef.current++;
@@ -402,14 +403,14 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           let audioUrl: string | null = null;
           // Faza 2 sesji 147: voiceId z multi-voice parsera ma priorytet nad settings.
           const effectiveVoice =
-            overrideVoiceId || currentSettings.voiceSettings?.voiceId || 'Kore';
+            overrideVoiceId || currentSettings.voiceSettings?.voiceId || 'Sadaltager';
 
           // Gemini TTS: wyłączny silnik audio (offline-first / BYOK)
           const geminiModel = overrideVoiceId
             ? TTS_MODEL_NPC
             : TTS_MODEL_NARRATOR;
           // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
-          // Issue #162: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
+          // Issue #162 + #200: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
           audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
             text,
             voice: effectiveVoice,
@@ -421,13 +422,14 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           if (audioUrl) {
             const audio = new Audio(audioUrl);
             audio.volume = (currentSettings.voiceSettings?.volume || 75) / 100;
-            const targetSpeed = currentSettings.voiceSettings?.speed || 1.15;
+            const baseSpeed = currentSettings.voiceSettings?.speed || 0.92;
+            const targetSpeed = Math.min(2.0, Math.max(0.5, baseSpeed * (speedMultiplier || 1.0)));
             audio.playbackRate = targetSpeed;
             if ('preservesPitch' in audio) {
               (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
             }
             preloadedAudioRef.current.set(index, audio);
-            console.log(`✅ TTS Worker: Ready segment ${index}`);
+            console.log(`✅ TTS Worker: Ready segment ${index} (speed=${targetSpeed.toFixed(2)}x)`);
 
             if (isInitialBufferingRef.current) {
               const bufferedCount = preloadedAudioRef.current.size;
@@ -552,8 +554,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
         console.log(`▶️ TTS Player: Playing segment ${currentIndex}`);
         const currentSettings = loadAISettings();
-        const currentSpeed = currentSettings.voiceSettings?.speed || 1.15;
-        audio.playbackRate = currentSpeed;
+        if (!audio.playbackRate || audio.playbackRate === 1) {
+          const currentSpeed = currentSettings.voiceSettings?.speed || 0.92;
+          audio.playbackRate = currentSpeed;
+        }
         if ('preservesPitch' in audio) {
           (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
         }
@@ -741,10 +745,14 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         const closeRun = () => {
           const run = openRunRef.current;
           if (run && run.texts.length > 0) {
+            // Issue #200: Jeśli scena jest dynamiczna (akcja/pościg/alarm), przyspiesz tempo o +25%
+            const isActionMood = currentMood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(currentMood);
+            const speedMultiplier = isActionMood ? 1.25 : 1.0;
             pendingItems.push({
               text: run.texts.join(' '),
               voiceId: run.voiceId,
               audioDirection: run.audioDirection,
+              speedMultiplier,
             });
           }
           openRunRef.current = null;
@@ -931,6 +939,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         const completeCount = flush
           ? paragraphs.length
           : Math.max(0, paragraphs.length - 1);
+        const isActionMood = currentMood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(currentMood);
+        const paragraphSpeedMultiplier = isActionMood ? 1.25 : 1.0;
+
         for (
           let i = processedSentenceCountRef.current;
           i < completeCount;
@@ -947,6 +958,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             pendingItems.push({
               text: cleanParagraph,
               audioDirection: narratorAudioDirection,
+              speedMultiplier: paragraphSpeedMultiplier,
             });
           }
         }

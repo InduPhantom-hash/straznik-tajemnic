@@ -33,7 +33,7 @@ import {
   enhanceAudioDirectionWithPhonetics,
 } from '@/lib/audio/polish-phonetics';
 
-const DEFAULT_MODEL = 'gemini-2.5-flash-preview-tts';
+const DEFAULT_MODEL = 'gemini-3.1-flash-tts-preview';
 const DEFAULT_LANGUAGE_CODE = 'pl-PL';
 const PCM_SAMPLE_RATE = 24000;
 const PCM_CHANNELS = 1;

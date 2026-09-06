@@ -72,41 +72,44 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     return 'Read the following in a natural, character-driven dramatic voice:';
   }
 
-  // 2. Kwestie Narratora - modulowane przez Poczytalność (SAN) i nastrój
+  // 2. Kwestie Narratora - modulowane przez Poczytalność (SAN), nastrój i tempo akcji (Fonopolis / Poczytany)
   const currentSan = typeof san === 'number' ? san : 60;
   const sanPercentage = currentSan / Math.max(maxSan, 1);
 
   // Szok po nagłej utracie SAN (≥ 5 punktów) lub krytycznie niska poczytalność
   if ((recentSanLoss && recentSanLoss >= 5) || sanPercentage <= 0.25) {
-    return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror and cosmic dread:';
+    return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror, breathless panic, and cosmic dread:';
+  }
+
+  // Sceny dynamicznej akcji, pościgu, walki i bezpośredniego zagrożenia - adaptacyjne przyspieszenie tempa narracji
+  if (mood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(mood)) {
+    return 'Read the following in a dynamic, high-urgency, rapid, and thrilling cadence with crisp diction and fast-paced dramatic momentum:';
   }
 
   // Obniżona poczytalność (< 50%)
   if (sanPercentage <= 0.5) {
     if (mood && /klaustrofob|dusząc|ciemn|mrocz/i.test(mood)) {
-      return 'Read the following in a hushed, tense, and uneasy cadence with a steady, captivating pace:';
+      return 'Read the following in a hushed, deep, tense, and uneasy cadence with a steady, captivating, measured pace:';
     }
-    return 'Read the following in a tense, nervous, and suspenseful storytelling voice with a natural pace:';
+    return 'Read the following in a tense, nervous, and suspenseful storytelling voice with a solemn, measured pace:';
   }
 
   // Stabilna wysoka poczytalność - dopasowanie do nastroju sceny
   if (mood) {
     if (/klaustrofob|dusząc|grobow/i.test(mood)) {
-      return 'Read the following in a hushed, deep, and claustrophobic cadence, maintaining a focused and steady pace:';
-    }
-    if (/panik|alarm|walk|pościg|ucieczk/i.test(mood)) {
-      return 'Read the following in an intense, rapid, and thrilling cadence:';
+      return 'Read the following in a deep, hushed, and claustrophobic cadence, maintaining a slow, focused, and deliberate storytelling pace:';
     }
     if (/oniryczn|nieostr|mgł|tajemnicz/i.test(mood)) {
-      return 'Read the following in an ethereal, mysterious, and captivating cadence with a fluid, measured pace:';
+      return 'Read the following in an ethereal, mysterious, and captivating cadence with a fluid, measured, slow pace:';
     }
     if (/fałszywy spokój|spokoj/i.test(mood)) {
-      return 'Read the following in a calm, crisp, but subtly eerie and watchful tone:';
+      return 'Read the following in a calm, crisp, but subtly eerie, dignified, and watchful tone:';
     }
   }
 
-  // Domyślny wciągający kronikarz Lovecrafta o naturalnym tempie radiowym
-  return 'Read the following in a captivating, atmospheric storytelling voice with a natural, steady pace and a suspenseful Lovecraftian undertone:';
+  // Domyślny wzorzec słuchowiska radiowego (Krzysztof Gosztyła / Poczytany):
+  // dojrzały, niski, głęboki tembr, powolna i dostojna kadencja budująca napięcie i grozę Lovecrafta.
+  return 'Read the following as a legendary audiobook narrator with a deep, mature, commanding, and solemn voice, using a deliberate, slow, and measured pace with suspenseful pauses:';
 }
 
 /**

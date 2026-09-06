@@ -43,8 +43,8 @@ export const defaultAISettings: AISettings = {
     provider: 'gemini', // M3 sesja 146: default Gemini (drop OpenAI per D2)
     narratorOnly: false, // Włączone słuchowisko (multi-voice NPC: różne głosy i emocje)
     volume: 85,
-    speed: 1.15, // Domyślnie 1.15x - naturalne tempo radiowe
-    voiceId: 'Charon', // HIGH: męski głęboki narrator pod Lovecraft (IND-212), auto-route Pro/Flash w useTTS
+    speed: 0.92, // Domyślnie 0.92x - klasyczne, wyważone tempo słuchowiska radiowego (Fonopolis / Poczytany)
+    voiceId: 'Sadaltager', // Domyślny lektor: dojrzały, głęboki, wyważony kronikarz Lovecrafta (profesor/kronikarz)
   },
 
   // === IMAGE GENERATION (IND-91 rename) ===
