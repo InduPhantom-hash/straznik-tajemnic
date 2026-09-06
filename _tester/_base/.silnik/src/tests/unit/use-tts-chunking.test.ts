@@ -368,6 +368,30 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     expect(call2Payload.voice).toBe('Kore');
     expect(call2Payload.text).toBe('Nagle rozlega się zgrzyt klucza w zamku.');
   });
+
+  it('Issue #200: stosuje adaptacyjne tempo narracji w dynamicznych scenach akcji i walki', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const actionScene =
+      '[NASTRÓJ: panika i pościg]\nKultyści wypadają zza rogu z obnażonymi nożami!';
+
+    await act(async () => {
+      result.current.addToQueue(actionScene, 'msg-action-1', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalled();
+    const fetchArgs = (global.fetch as jest.Mock).mock.calls[0];
+    const payload = JSON.parse(fetchArgs[1].body);
+
+    expect(payload.audioDirection).toBeDefined();
+    expect(payload.audioDirection).toContain('intense, rapid, and thrilling cadence');
+    expect(payload.audioDirection).toContain('dynamic, high-urgency momentum');
+  });
 });
 
 

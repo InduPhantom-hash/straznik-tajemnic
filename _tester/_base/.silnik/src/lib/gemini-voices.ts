@@ -258,7 +258,7 @@ export const GEMINI_VOICES: readonly GeminiVoice[] = [
   },
 ] as const;
 
-export const DEFAULT_GEMINI_VOICE = 'Kore';
+export const DEFAULT_GEMINI_VOICE = 'Sadaltager';
 
 export function isValidGeminiVoice(voiceId: string): boolean {
   return GEMINI_VOICES.some((v) => v.voiceId === voiceId);

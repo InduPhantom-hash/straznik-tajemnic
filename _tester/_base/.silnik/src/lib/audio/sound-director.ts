@@ -72,13 +72,18 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     return 'Read the following in a natural, character-driven dramatic voice:';
   }
 
-  // 2. Kwestie Narratora - modulowane przez Poczytalność (SAN) i nastrój
+  // 2. Kwestie Narratora - modulowane przez Poczytalność (SAN), nastrój i tempo akcji (Fonopolis / Poczytany)
   const currentSan = typeof san === 'number' ? san : 60;
   const sanPercentage = currentSan / Math.max(maxSan, 1);
 
   // Szok po nagłej utracie SAN (≥ 5 punktów) lub krytycznie niska poczytalność
   if ((recentSanLoss && recentSanLoss >= 5) || sanPercentage <= 0.25) {
-    return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror and cosmic dread:';
+    return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror, breathless panic, and cosmic dread:';
+  }
+
+  // Sceny dynamicznej akcji, pościgu, walki i bezpośredniego zagrożenia - adaptacyjne przyspieszenie tempa narracji
+  if (mood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(mood)) {
+    return 'Read the following in an intense, rapid, and thrilling cadence with dynamic, high-urgency momentum and crisp diction:';
   }
 
   // Obniżona poczytalność (< 50%)
@@ -94,9 +99,6 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     if (/klaustrofob|dusząc|grobow/i.test(mood)) {
       return 'Read the following in a hushed, deep, and claustrophobic cadence, maintaining a focused and steady pace:';
     }
-    if (/panik|alarm|walk|pościg|ucieczk/i.test(mood)) {
-      return 'Read the following in an intense, rapid, and thrilling cadence:';
-    }
     if (/oniryczn|nieostr|mgł|tajemnicz/i.test(mood)) {
       return 'Read the following in an ethereal, mysterious, and captivating cadence with a fluid, measured pace:';
     }
@@ -105,8 +107,9 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     }
   }
 
-  // Domyślny wciągający kronikarz Lovecrafta o naturalnym tempie radiowym
-  return 'Read the following in a captivating, atmospheric storytelling voice with a natural, steady pace and a suspenseful Lovecraftian undertone:';
+  // Domyślny wzorzec słuchowiska radiowego (Krzysztof Gosztyła / Poczytany):
+  // dojrzały, wciągający lektor o nastrojowym tonie Lovecrafta.
+  return 'Read the following in a captivating, atmospheric storytelling voice as a mature audiobook narrator with a natural, steady pace and a suspenseful Lovecraftian undertone:';
 }
 
 /**
