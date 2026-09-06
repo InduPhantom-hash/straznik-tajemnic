@@ -8,8 +8,77 @@
  * z 7 case switch matchującym HandoutType (IND-173 unifikacja z handout-generator).
  */
 
+import { useState, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import type { Section, HandoutType } from './types';
+import { Volume2, Play, Pause, RotateCcw } from 'lucide-react';
+
+export function HandoutAudioPlayer({ audioUrl }: { audioUrl: string }) {
+  const t = useTranslations('NarrativeFormatter');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().then(() => setIsPlaying(true)).catch((e) => {
+        console.warn('Playback error:', e);
+        setIsPlaying(false);
+      });
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+  };
+
+  const handleRestart = () => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+  };
+
+  return (
+    <div className="mt-3 pt-2.5 border-t border-amber-600/30 flex items-center justify-between gap-3 bg-black/40 px-3 py-2 rounded border border-brass/30">
+      <audio ref={audioRef} src={audioUrl} onEnded={handleEnded} preload="none" />
+      <div className="flex items-center gap-2 text-xs font-special-elite text-brass/90 uppercase tracking-wider">
+        <Volume2 className="w-4 h-4 text-brass animate-pulse" />
+        <span>{t('audioTrack')}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleRestart}
+          className="p-1 text-brass/70 hover:text-brass transition-colors rounded hover:bg-brass/10 cursor-pointer"
+          title={t('restart')}
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={togglePlay}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-special-elite bg-brass/20 hover:bg-brass/30 text-brass border border-brass/40 rounded transition-all cursor-pointer active:scale-95 shadow"
+        >
+          {isPlaying ? (
+            <>
+              <Pause className="w-3.5 h-3.5" />
+              <span>{t('pause')}</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>{t('play')}</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function renderHandout(section: Section, key: number): ReactNode {
   const styles = getHandoutStyles(section.handoutType);
@@ -22,6 +91,9 @@ export function renderHandout(section: Section, key: number): ReactNode {
       <pre className={`whitespace-pre-wrap ${styles.content}`}>
         {section.content}
       </pre>
+      {section.audioUrl && (
+        <HandoutAudioPlayer audioUrl={section.audioUrl} />
+      )}
     </div>
   );
 }

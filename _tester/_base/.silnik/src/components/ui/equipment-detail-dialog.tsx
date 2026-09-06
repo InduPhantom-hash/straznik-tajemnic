@@ -1,12 +1,12 @@
 import { SafeImage } from '@/components/ui/safe-image';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from './button';
 import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { getEraImageFilter } from '@/lib/era-visual-style';
-import { Loader2, X, Maximize2, Minimize2 } from 'lucide-react';
+import { Loader2, X, Maximize2, Minimize2, Play, Pause, RotateCcw, Volume2, Disc, Radio } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { DiegeticDocumentViewer } from './diegetic-document-viewer';
 import { inferDocumentType } from '@/lib/acquired-equipment';
@@ -90,9 +90,16 @@ export function EquipmentDetailDialog({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeCharacter, setActiveCharacter] = useState<Character | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     setIsExpanded(false);
+    setIsAudioPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   }, [item?.id]);
 
   useEffect(() => {
@@ -323,13 +330,65 @@ export function EquipmentDetailDialog({
                   )}
                 </div>
 
-                {/* Audio (jeśli jest) */}
+                {/* Audio diegetyczne (jeśli jest) */}
                 {item.audioUrl && (
-                  <div className="mb-4 p-3 bg-[#0d0a07] border border-brass/30 rounded">
-                    <div className="text-xs font-special-elite text-brass uppercase mb-1.5 flex items-center gap-1.5">
-                      <span>🔊</span> {t('audioLabel')}
+                  <div className="mb-4 p-3.5 bg-[#0d0a07] border border-brass/40 rounded-sm shadow-md">
+                    <audio
+                      ref={audioRef}
+                      src={item.audioUrl}
+                      onEnded={() => setIsAudioPlaying(false)}
+                      preload="none"
+                    />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs font-special-elite text-brass uppercase flex items-center gap-2">
+                        <Disc className={`w-4 h-4 text-brass ${isAudioPlaying ? 'animate-spin' : ''}`} />
+                        <span>{t('audioLabel')}</span>
+                      </div>
+                      <div className="text-[11px] font-mono text-brass/60">
+                        {resolvedEraContext?.effectiveYear && resolvedEraContext.effectiveYear < 1930
+                          ? t('audioGramophone')
+                          : t('audioTape')}
+                      </div>
                     </div>
-                    <audio controls src={item.audioUrl} className="w-full h-8 outline-none" />
+                    <div className="flex items-center gap-3 pt-2 border-t border-brass/20">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!audioRef.current) return;
+                          audioRef.current.currentTime = 0;
+                          audioRef.current.play().then(() => setIsAudioPlaying(true)).catch(() => setIsAudioPlaying(false));
+                        }}
+                        className="p-1.5 text-brass/70 hover:text-brass transition-colors rounded hover:bg-brass/10 cursor-pointer"
+                        title="Od początku"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!audioRef.current) return;
+                          if (isAudioPlaying) {
+                            audioRef.current.pause();
+                            setIsAudioPlaying(false);
+                          } else {
+                            audioRef.current.play().then(() => setIsAudioPlaying(true)).catch(() => setIsAudioPlaying(false));
+                          }
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 py-1.5 px-3 text-xs font-special-elite bg-brass/20 hover:bg-brass/30 text-brass border border-brass/40 rounded-sm transition-all cursor-pointer active:scale-98 shadow"
+                      >
+                        {isAudioPlaying ? (
+                          <>
+                            <Pause className="w-4 h-4" />
+                            <span>{t('pauseAudio')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 fill-current" />
+                            <span>{t('playAudio')}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
 

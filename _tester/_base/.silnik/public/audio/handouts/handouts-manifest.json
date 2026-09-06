@@ -1,0 +1,38 @@
+[
+  {
+    "id": "corbitt_journal_page",
+    "title": "Dziennik Waltera Corbetta (Nawiedzony Dom)",
+    "mediaType": "journal_page",
+    "voiceType": "ominous_old_man",
+    "elevenVoiceId": "pNInz6obpgDQGcFmaJgB",
+    "text": "Piątek, 14 listopada. Czas płynie inaczej w tych murach. Czuję, jak w ziemi pod fundamentami coś pulsuje... Kościół Gwiezdnej Mądrości miał rację. Nie zaznam śmierci tak długo, jak długo znoszę im dar z krwi.",
+    "outputFilename": "corbitt_journal.mp3"
+  },
+  {
+    "id": "boston_globe_1919",
+    "title": "Wycinek prasowy z Boston Globe (1919)",
+    "mediaType": "radio_broadcast",
+    "voiceType": "radio_announcer_1920s",
+    "elevenVoiceId": "ErXwobaYiN019PkySvjV",
+    "text": "Wydanie wieczorne Boston Globe. Makabryczne odkrycie w piwnicy starego domostwa przy French Hill. Policja hrabstwa Essex wstrzymuje się od komentarza. Sąsiedzi twierdzą, że z piwnicy dochodziły nieludzkie jęki.",
+    "outputFilename": "boston_globe_radio.mp3"
+  },
+  {
+    "id": "letter_from_friend_starter",
+    "title": "List od przyjaciela (Wrota Mroku / Starter)",
+    "mediaType": "letter",
+    "voiceType": "panicked_scholar",
+    "elevenVoiceId": "VR6AewLTigWG4xSOukaG",
+    "text": "Mój drogi przyjacielu. Jeśli czytasz ten list, obawiam się, że moje najgorsze przypuszczenia stały się prawdą. Nie ufaj nikomu w porcie. Klucz do skrytki schowałem za portretem pradziadka. Błagam, spal te papiery!",
+    "outputFilename": "starter_friend_letter.mp3"
+  },
+  {
+    "id": "arkham_sanitarium_phonograph",
+    "title": "Cylinder fonografu: Zeznanie pacjenta Arkham Sanitarium",
+    "mediaType": "phonograph_cylinder",
+    "voiceType": "trembling_patient",
+    "elevenVoiceId": "TxGEqnHWrfWFTfGW9XjX",
+    "text": "Czy to nagrywa? Proszę... one nie mają twarzy, a mimo to na mnie patrzą. Zstępują ze wzgórz za każdym razem, gdy mgła opada nad rzekę Miskatonic... Doktórze, niech pan nie gasi lampy!",
+    "outputFilename": "arkham_phonograph_record.mp3"
+  }
+]
