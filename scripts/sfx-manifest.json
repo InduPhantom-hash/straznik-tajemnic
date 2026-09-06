@@ -1,0 +1,295 @@
+[
+  {
+    "id": "creaking_door",
+    "filename": "creaking_door.mp3",
+    "prompt": "heavy old creaking wooden door opening slowly in an empty dusty corridor",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "old_phone",
+    "filename": "old_phone.mp3",
+    "prompt": "loud vintage 1920s rotary phone bell ringing insistently",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "footsteps_wood",
+    "filename": "footsteps_wood.mp3",
+    "prompt": "slow heavy human footsteps on old creaky wooden floorboards",
+    "duration_seconds": 2.5
+  },
+  {
+    "id": "distant_scream",
+    "filename": "distant_scream.mp3",
+    "prompt": "chilling distant bloodcurdling human scream echoing in the night",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "whispers",
+    "filename": "whispers.mp3",
+    "prompt": "eerie hushed uncanny whispers murmuring in the shadows close to the ear",
+    "duration_seconds": 3.5
+  },
+  {
+    "id": "thunder",
+    "filename": "thunder.mp3",
+    "prompt": "deep ominous rolling thunder rumbling across dark stormy skies",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "rain_heavy",
+    "filename": "rain_heavy.mp3",
+    "prompt": "heavy pouring rain and storm tapping on cobblestone and windowpane",
+    "duration_seconds": 4.5
+  },
+  {
+    "id": "wind_howling",
+    "filename": "wind_howling.mp3",
+    "prompt": "cold bleak wind howling through desolate ruins and narrow alleys",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "gunshot",
+    "filename": "gunshot.mp3",
+    "prompt": "sharp loud .38 caliber revolver gunshot indoors with distinct echo",
+    "duration_seconds": 2.0
+  },
+  {
+    "id": "explosion",
+    "filename": "explosion.mp3",
+    "prompt": "massive muffled dynamite explosion with crumbling masonry and debris",
+    "duration_seconds": 3.5
+  },
+  {
+    "id": "church_bell",
+    "filename": "church_bell.mp3",
+    "prompt": "single deep mournful church bell chime tolling in the distance through fog",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "car_engine_1920s",
+    "filename": "car_engine_1920s.mp3",
+    "prompt": "vintage 1920s Ford Model T engine chugging and idling on gravel road",
+    "duration_seconds": 3.5
+  },
+  {
+    "id": "clock_ticking",
+    "filename": "clock_ticking.mp3",
+    "prompt": "slow rhythmic mechanical ticking of an old antique grandfather clock",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "ocean_waves",
+    "filename": "ocean_waves.mp3",
+    "prompt": "dark ocean waves crashing rhythmically against jagged coastal rocks at Innsmouth",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "ritual_chant",
+    "filename": "ritual_chant.mp3",
+    "prompt": "sinister low guttural cultists chanting in an unknown ancient tongue in dark cavern",
+    "duration_seconds": 4.5
+  },
+  {
+    "id": "groan",
+    "filename": "groan.mp3",
+    "prompt": "painful human groan and wheezing breath in darkness",
+    "duration_seconds": 2.5
+  },
+  {
+    "id": "dice_roll",
+    "filename": "dice_roll.mp3",
+    "prompt": "two wooden dice rolling across a green velvet table and stopping",
+    "duration_seconds": 2.0
+  },
+  {
+    "id": "page_turn",
+    "filename": "page_turn.mp3",
+    "prompt": "old parchment book page turning slowly in a quiet library",
+    "duration_seconds": 1.5
+  },
+  {
+    "id": "heartbeat_panic",
+    "filename": "heartbeat_panic.mp3",
+    "prompt": "fast intense human heartbeat echoing in ears during panic and terror",
+    "duration_seconds": 3.5
+  },
+  {
+    "id": "eldritch_growl",
+    "filename": "eldritch_growl.mp3",
+    "prompt": "deep unsettling wet slimy breathing growl of an unknown cosmic beast",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "combat_ambience",
+    "filename": "combat_ambience.mp3",
+    "prompt": "tense urgent scuffle struggle and fast heavy breathing during combat",
+    "duration_seconds": 3.0
+  },
+
+  {
+    "id": "shotgun_blast",
+    "filename": "shotgun_blast.mp3",
+    "prompt": "booming deafening 12 gauge double barrel shotgun blast followed by spent shell hitting floor",
+    "duration_seconds": 2.5
+  },
+  {
+    "id": "tommy_gun_burst",
+    "filename": "tommy_gun_burst.mp3",
+    "prompt": "fast aggressive rattling burst of gunfire from a 1928 Thompson submachine gun with shell casings falling",
+    "duration_seconds": 2.5
+  },
+  {
+    "id": "rifle_shot_bolt",
+    "filename": "rifle_shot_bolt.mp3",
+    "prompt": "loud sharp high-powered bolt-action hunting rifle shot with distinct metallic bolt racking reload sound",
+    "duration_seconds": 2.8
+  },
+  {
+    "id": "pistol_9mm_shot",
+    "filename": "pistol_9mm_shot.mp3",
+    "prompt": "sharp modern 9mm semi-automatic handgun shot with crisp slide cycling and cartridge dropping",
+    "duration_seconds": 2.0
+  },
+  {
+    "id": "derringer_pocket_shot",
+    "filename": "derringer_pocket_shot.mp3",
+    "prompt": "small dry sharp crack of a vintage Victorian pocket derringer pistol",
+    "duration_seconds": 1.8
+  },
+  {
+    "id": "empty_gun_click",
+    "filename": "empty_gun_click.mp3",
+    "prompt": "tense terrifying dry metallic hammer click on an empty gun chamber when out of ammo",
+    "duration_seconds": 1.5
+  },
+
+  {
+    "id": "train_rhythm_steam",
+    "filename": "train_rhythm_steam.mp3",
+    "prompt": "vintage steam train moving at full speed, rhythmic click-clack tu-tum tu-tum wheel sound over steel rails with steady chugging",
+    "duration_seconds": 5.0
+  },
+  {
+    "id": "train_whistle_steam",
+    "filename": "train_whistle_steam.mp3",
+    "prompt": "distant lonely steam locomotive horn whistle echoing across misty countryside at night",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "train_interior_ambience",
+    "filename": "train_interior_ambience.mp3",
+    "prompt": "inside passenger train compartment, gentle rhythmic swaying, muffled rail track rumble and wooden carriage creaking",
+    "duration_seconds": 5.0
+  },
+
+  {
+    "id": "city_ambience_1890s",
+    "filename": "city_ambience_1890s.mp3",
+    "prompt": "Victorian London city street ambience, horse carriage hooves on wet cobblestones, distant church chimes, muted vendor calls in thick fog",
+    "duration_seconds": 5.0
+  },
+  {
+    "id": "city_ambience_1920s",
+    "filename": "city_ambience_1920s.mp3",
+    "prompt": "1920s Arkham city street ambience, honking vintage klaxon car horns, distant tram trolley bell, pedestrian chatter on sidewalk",
+    "duration_seconds": 5.0
+  },
+  {
+    "id": "city_ambience_1940s",
+    "filename": "city_ambience_1940s.mp3",
+    "prompt": "1940s wartime city night ambience, distant air raid drill hum, military truck driving past, rainy noir dark alley",
+    "duration_seconds": 5.0
+  },
+  {
+    "id": "city_ambience_1970s",
+    "filename": "city_ambience_1970s.mp3",
+    "prompt": "1970s Communist PRL European city square ambience, rattling old tram on tracks, dull engine hum of old buses, grey rainy afternoon",
+    "duration_seconds": 5.0
+  },
+  {
+    "id": "city_ambience_1990s",
+    "filename": "city_ambience_1990s.mp3",
+    "prompt": "1990s bustling European city ambience, busy car traffic, passing car playing muffled eurodance radio, sidewalk chatter",
+    "duration_seconds": 5.0
+  },
+  {
+    "id": "city_ambience_modern",
+    "filename": "city_ambience_modern.mp3",
+    "prompt": "modern metropolitan city ambience, steady highway road hum, pedestrian crosswalk beeping, distant police siren echo",
+    "duration_seconds": 5.0
+  },
+
+  {
+    "id": "telegraph_morse",
+    "filename": "telegraph_morse.mp3",
+    "prompt": "mechanical brass telegraph key clicking rapid Morse code in a quiet station office",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "horse_carriage_run",
+    "filename": "horse_carriage_run.mp3",
+    "prompt": "fast galloping horse hooves pulling a heavy wooden carriage over stone cobblestone",
+    "duration_seconds": 3.5
+  },
+  {
+    "id": "air_raid_siren",
+    "filename": "air_raid_siren.mp3",
+    "prompt": "chilling eerie rising and falling mechanical air raid siren sounding in the night",
+    "duration_seconds": 4.5
+  },
+  {
+    "id": "rotary_dial_prl",
+    "filename": "rotary_dial_prl.mp3",
+    "prompt": "vintage telephone rotary wheel dial spinning and ratcheting back slowly",
+    "duration_seconds": 2.5
+  },
+  {
+    "id": "dialup_modem",
+    "filename": "dialup_modem.mp3",
+    "prompt": "iconic 1990s 56k dial-up internet modem connecting, screeching static handshake tones",
+    "duration_seconds": 4.0
+  },
+  {
+    "id": "smartphone_vibrate",
+    "filename": "smartphone_vibrate.mp3",
+    "prompt": "modern smartphone vibrating twice on a hollow wooden desk table, bzz bzz",
+    "duration_seconds": 2.0
+  },
+
+  {
+    "id": "glass_shatter_sanity",
+    "filename": "glass_shatter_sanity.mp3",
+    "prompt": "violent loud shattering of a glass window or mirror with sharp shards clattering on floor",
+    "duration_seconds": 2.5
+  },
+  {
+    "id": "wet_tentacle_squelch",
+    "filename": "wet_tentacle_squelch.mp3",
+    "prompt": "disgusting wet slimy squelching sound of unnatural slithering tentacles on cold stone",
+    "duration_seconds": 3.5
+  },
+  {
+    "id": "metal_gate_chains",
+    "filename": "metal_gate_chains.mp3",
+    "prompt": "heavy rusty iron chains rattling and padlock clanging against a graveyard gate",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "match_strike_candle",
+    "filename": "match_strike_candle.mp3",
+    "prompt": "wooden match scratching against sandpaper box striking fire with gentle flare and hissing flame",
+    "duration_seconds": 2.0
+  },
+  {
+    "id": "typewriter_typing",
+    "filename": "typewriter_typing.mp3",
+    "prompt": "rapid mechanical typewriter keystrokes on paper ending with a clear metallic bell chime ding and carriage return",
+    "duration_seconds": 3.0
+  },
+  {
+    "id": "wooden_chest_open",
+    "filename": "wooden_chest_open.mp3",
+    "prompt": "old heavy wooden antique trunk lid opening with squeaking iron hinges and latch",
+    "duration_seconds": 2.5
+  }
+]
