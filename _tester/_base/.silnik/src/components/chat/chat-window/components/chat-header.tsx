@@ -25,12 +25,15 @@ interface ChatHeaderProps {
   region?: string;
   /** IND-267: konkretne MIEJSCE bohatera (z najnowszego [LOKACJA:]); część po "·". */
   currentLocation?: string;
+  /** Otwiera kompendium zasad, bestiariusz i encyklopedię epoki. */
+  onOpenHelp?: () => void;
 }
 
 export function ChatHeader({
   title,
   region,
   currentLocation,
+  onOpenHelp,
 }: ChatHeaderProps) {
   const t = useTranslations('ChatHeader');
   const defaultTitle = t('defaultTitle');
@@ -83,7 +86,19 @@ export function ChatHeader({
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-4">
+      <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+        {onOpenHelp && (
+          <button
+            type="button"
+            onClick={onOpenHelp}
+            className="flex items-center gap-1.5 font-special-elite text-xs text-brass hover:text-gold border border-brass/30 hover:border-brass/70 px-2.5 py-1 rounded bg-card/60 transition-colors cursor-pointer"
+            title={t('compendiumTitle')}
+          >
+            <span aria-hidden="true">🕯️</span>
+            <span className="hidden sm:inline">{t('compendium')}</span>
+          </button>
+        )}
+
         {/* déco: brass-dzielnik */}
         <span
           aria-hidden="true"

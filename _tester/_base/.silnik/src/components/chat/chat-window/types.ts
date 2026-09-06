@@ -60,6 +60,7 @@ export interface ChatWindowProps {
   ) => void;
   onLoadSave?: () => void;
   onOpenApiKeys?: () => void;
+  onOpenHelp?: () => void;
   onColdStart?: () => void;
   hasRules?: boolean;
   hasAdventure?: boolean;

@@ -422,6 +422,15 @@
     },
     {
       "source": "home",
+      "target": "help",
+      "label": {
+        "pl": "Kompendium",
+        "en": "Compendium"
+      },
+      "component": "src/components/chat/welcome/components/bottom-links.tsx"
+    },
+    {
+      "source": "home",
       "target": "api-keys",
       "label": {
         "pl": "Klucze API",

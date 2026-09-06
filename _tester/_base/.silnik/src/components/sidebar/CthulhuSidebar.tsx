@@ -91,6 +91,7 @@ interface CthulhuSidebarProps {
   registerOpenSessionZero?: (openFn: () => void) => void; // Rejestracja funkcji otwierającej Sesję Zero
   registerOpenAdventureSelector?: (openFn: () => void) => void; // Rejestracja funkcji otwierającej AdventureSelector
   hideSidebarPanel?: boolean; // Welcome: ukryj wizualny panel (komponent zostaje zamontowany, by hostować modale + rejestrację)
+  onOpenHelp?: () => void; // Otwiera kompendium wiedzy, bestiariusz i encyklopedię epoki
   onAdventureSelect?: (adventure: AdventureContext) => void; // Callback: przygoda była wybrana
   // Custom Adventures
   customAdventures?: CustomAdventure[];
@@ -142,6 +143,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   registerOpenSessionZero,
   registerOpenAdventureSelector,
   hideSidebarPanel,
+  onOpenHelp,
   onAdventureSelect,
   customAdventures,
   onUploadAdventure,
@@ -630,6 +632,17 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {onOpenHelp && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  onClick={onOpenHelp}
+                  title={t('compendiumTitle')}
+                >
+                  <BookOpen className="w-4 h-4 mr-3 text-primary" />
+                  {t('compendium')}
+                </Button>
+              )}
               <YouTubePlayer isTTSPlaying={isTTSPlaying} />
             </CardContent>
           </Card>

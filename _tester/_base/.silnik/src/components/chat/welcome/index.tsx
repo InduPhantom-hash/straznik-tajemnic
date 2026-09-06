@@ -112,6 +112,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
   onChoosePlayMode,
   onLoadSave,
   onOpenApiKeys,
+  onOpenHelp,
   onColdStart,
   hasRules = false,
   hasAdventure = false,
@@ -343,6 +344,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
               onLoadSave={onLoadSave}
               onOpenApiKeys={onOpenApiKeys}
               onOpenRulebook={onUploadRules}
+              onOpenHelp={onOpenHelp}
               onColdStart={onColdStart}
             />
           </div>

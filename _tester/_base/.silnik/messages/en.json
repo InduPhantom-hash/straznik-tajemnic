@@ -1114,7 +1114,9 @@
     "skillBreakdownTooltip": "Regular: {regular}% | Hard (1/2): {hard}% | Extreme (1/5): {extreme}%"
   },
   "ChatHeader": {
-    "defaultTitle": "Mystery of the Miskatonic Library"
+    "defaultTitle": "Mystery of the Miskatonic Library",
+    "compendium": "Compendium",
+    "compendiumTitle": "Open rules compendium, bestiary and epoch encyclopedia"
   },
   "PredefinedCharacters": {
     "eyebrow": "Ready investigators",
@@ -4499,6 +4501,8 @@
     "newAdventure": "New adventure",
     "newAdventureTitle": "Start a new adventure and return to setup",
     "investigatorTools": "Investigator Tools",
+    "compendium": "Compendium & Rules",
+    "compendiumTitle": "Open rules compendium, bestiary and epoch encyclopedia",
     "settings": "Settings",
     "configuration": "Configuration",
     "narrator": "Narrator",
@@ -4525,6 +4529,8 @@
     "advancedOptions": "Advanced options",
     "loadSave": "Load save",
     "apiKeys": "API keys",
+    "rulebook": "Rulebook PDF",
+    "compendium": "Compendium",
     "coldStart": "Cold start"
   },
   "HardLoadingScreen": {
