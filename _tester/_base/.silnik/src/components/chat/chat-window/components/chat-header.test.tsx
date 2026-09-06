@@ -37,4 +37,19 @@ describe('ChatHeader', () => {
     expect(locationLabel).not.toHaveClass('sm:max-w-[16rem]');
     expect(screen.getByTestId('campaign-clock')).toBeInTheDocument();
   });
+
+  it('renders compendium button and invokes onOpenHelp on click', () => {
+    const handleOpenHelp = jest.fn();
+    render(
+      <ChatHeader
+        title="Tajemnica Czarnego Sarkofagu"
+        onOpenHelp={handleOpenHelp}
+      />
+    );
+
+    const compendiumBtn = screen.getByRole('button', { name: /kompendium/i });
+    expect(compendiumBtn).toBeInTheDocument();
+    compendiumBtn.click();
+    expect(handleOpenHelp).toHaveBeenCalledTimes(1);
+  });
 });

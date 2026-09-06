@@ -58,6 +58,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onQuickStart,
   onLoadSave,
   onOpenApiKeys,
+  onOpenHelp,
   onColdStart,
   onPickPredefinedCharacter, // NOWE: gotowa postać
   hasRules = false,
@@ -236,6 +237,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         title={adventureTitle}
         region={region}
         currentLocation={currentLocation}
+        onOpenHelp={onOpenHelp}
       />
       {!hasStartedGame ? (
         <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">
@@ -251,6 +253,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             onChoosePlayMode={onChoosePlayMode}
             onLoadSave={onLoadSave}
             onOpenApiKeys={onOpenApiKeys}
+            onOpenHelp={onOpenHelp}
             onColdStart={onColdStart}
             hasRules={hasRules}
             hasAdventure={hasAdventure}

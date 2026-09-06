@@ -1114,7 +1114,9 @@
     "skillBreakdownTooltip": "Zwykły: {regular}% | Trudny (1/2): {hard}% | Ekstremalny (1/5): {extreme}%"
   },
   "ChatHeader": {
-    "defaultTitle": "Tajemnica Biblioteki Miskatonic"
+    "defaultTitle": "Tajemnica Biblioteki Miskatonic",
+    "compendium": "Kompendium",
+    "compendiumTitle": "Otwórz kompendium zasad, bestiariusz i encyklopedię epoki"
   },
   "PredefinedCharacters": {
     "eyebrow": "Gotowi badacze",
@@ -4499,6 +4501,8 @@
     "newAdventure": "Nowa przygoda",
     "newAdventureTitle": "Rozpocznij nową przygodę i wróć do kreatora",
     "investigatorTools": "Pomoce Badacza",
+    "compendium": "Kompendium i Zasady",
+    "compendiumTitle": "Otwórz kompendium wiedzy, bestiariusz i encyklopedię epoki",
     "settings": "Ustawienia",
     "configuration": "Konfiguracja",
     "narrator": "Lektor",
@@ -4525,6 +4529,8 @@
     "advancedOptions": "Opcje zaawansowane",
     "loadSave": "Wczytaj zapis",
     "apiKeys": "Klucze API",
+    "rulebook": "Podręcznik zasad",
+    "compendium": "Kompendium",
     "coldStart": "Zimny start"
   },
   "HardLoadingScreen": {

@@ -118,6 +118,15 @@ const RulebookModal = dynamic(
     ssr: false,
   }
 );
+const HelpModal = dynamic(
+  () =>
+    import('@/components/help-modal/HelpModal').then((mod) => ({
+      default: mod.HelpModal,
+    })),
+  {
+    ssr: false,
+  }
+);
 const PredefinedCharactersSelector = dynamic(
   () =>
     import('@/components/ui/predefined-characters-selector').then((mod) => ({
@@ -210,6 +219,7 @@ export default function Home() {
   const [showHotSeatSetup, setShowHotSeatSetup] = useState(false);
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
   const [showRulebookModal, setShowRulebookModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const rulesStatus = useRulesStatus();
   
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState<boolean | null>(null);
@@ -900,6 +910,7 @@ export default function Home() {
       sidebar={
         <CthulhuSidebar
           hideSidebarPanel={!hasStartedGame}
+          onOpenHelp={() => setShowHelpModal(true)}
           activeCharacter={charMgmt.activeCharacter || undefined}
           characters={charMgmt.characters}
           onCharacterSwitch={charMgmt.handleCharacterSwitch}
@@ -1059,6 +1070,10 @@ export default function Home() {
                 onUploaded={handleRulebookUploaded}
                 rulesCount={rulesStatus.rulesCount}
               />
+              <HelpModal
+                isOpen={showHelpModal}
+                onClose={() => setShowHelpModal(false)}
+              />
             </>
           )}
 
@@ -1145,6 +1160,7 @@ export default function Home() {
             });
           }}
           onUploadRules={() => setShowRulebookModal(true)}
+          onOpenHelp={() => setShowHelpModal(true)}
           onSelectAdventure={() => openAdventureSelectorRef.current?.()}
           onSessionZero={() => openSessionZeroRef.current?.()}
           hasAdventure={!!adventureContext}
