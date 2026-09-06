@@ -163,7 +163,7 @@ export function MessageInput({
 
       {/* Komunikat o zamkniętej sesji */}
       {(isSessionEnded || sessionEndStatus === 'ended') && (
-        <div className="max-w-4xl mx-auto mb-3 px-4 py-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-amber-200 text-xs font-special-elite flex items-center justify-between shadow-inner">
+        <div className="max-w-4xl mx-auto mb-3 px-4 py-2 bg-card/90 border border-brass/40 rounded-lg text-brass text-xs font-special-elite flex items-center justify-between shadow-inner">
           <span className="flex items-center gap-2">
             <span className="text-base">🔒</span>
             Sesja została bezpiecznie zamknięta. Postać i historia są zapisane.
@@ -223,22 +223,22 @@ export function MessageInput({
       {anachronismAlert && !isDismissed && effectiveYear && (
         <div
           data-testid="anachronism-alert"
-          className="max-w-4xl mx-auto mb-2 px-3.5 py-2 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-950/70 via-black/80 to-amber-950/70 text-amber-200 text-xs font-special-elite flex items-center justify-between gap-3 shadow-[0_2px_12px_rgba(217,119,6,0.15)] animate-in fade-in slide-in-from-bottom-1 duration-200"
+          className="max-w-4xl mx-auto mb-2 px-3.5 py-2 rounded-lg border border-brass/50 bg-gradient-to-r from-card via-black/80 to-card text-foreground text-xs font-special-elite flex items-center justify-between gap-3 shadow-deco animate-in fade-in slide-in-from-bottom-1 duration-200"
         >
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
-            <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="font-semibold text-amber-300 tracking-wide shrink-0">
+            <Clock className="w-4 h-4 text-brass shrink-0" />
+            <span className="font-semibold text-brass tracking-wide shrink-0">
               {tAnachronism('badgeTitle', { year: effectiveYear || '' })}:
             </span>
-            <span className="truncate text-amber-200/90">
+            <span className="truncate text-foreground/90">
               {tAnachronism('warning', { term: anachronismAlert.term || '' })}
               {anachronismAlert.alternative && (
                 <>
                   {' '}
-                  <span className="text-amber-400 font-medium">
+                  <span className="text-brass font-medium">
                     {tAnachronism('recommendation')}
                   </span>{' '}
-                  <span className="italic text-amber-100 font-sans text-[11px] bg-amber-900/40 px-1.5 py-0.5 rounded border border-amber-600/30">
+                  <span className="italic text-foreground font-sans text-[11px] bg-brass/15 px-1.5 py-0.5 rounded border border-brass/30">
                     {anachronismAlert.alternative}
                   </span>
                 </>
@@ -249,7 +249,7 @@ export function MessageInput({
             type="button"
             data-testid="anachronism-dismiss-button"
             onClick={() => setIsDismissed(true)}
-            className="text-[11px] text-amber-400/80 hover:text-amber-200 underline shrink-0 transition-colors cursor-pointer px-1 py-0.5"
+            className="text-[11px] text-brass hover:text-foreground underline shrink-0 transition-colors cursor-pointer px-1 py-0.5"
           >
             {tAnachronism('dismiss')}
           </button>

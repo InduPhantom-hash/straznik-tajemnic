@@ -95,13 +95,13 @@ function getDifficultyBadge(
 } {
   switch (difficulty) {
     case 'zwykly':
-      return { label: t('difficultyRegular'), className: 'bg-green-600 text-white' };
+      return { label: t('difficultyRegular'), className: 'bg-primary/20 text-primary border border-primary/40' };
     case 'trudny':
-      return { label: t('difficultyHard'), className: 'bg-amber-600 text-white' };
+      return { label: t('difficultyHard'), className: 'bg-brass/20 text-brass border border-brass/40' };
     case 'ekstremalny':
-      return { label: t('difficultyExtreme'), className: 'bg-red-600 text-white' };
+      return { label: t('difficultyExtreme'), className: 'bg-destructive/20 text-destructive-foreground border border-destructive/50' };
     default:
-      return { label: t('difficultyRegular'), className: 'bg-green-600 text-white' };
+      return { label: t('difficultyRegular'), className: 'bg-primary/20 text-primary border border-primary/40' };
   }
 }
 
@@ -155,35 +155,35 @@ export function SkillTestCard({
 
   return (
     <div
-      className={`my-4 backdrop-blur rounded-r-lg overflow-hidden shadow-lg border-l-4 ${
+      className={`my-4 backdrop-blur rounded-r-md overflow-hidden shadow-deco border-l-4 ${
         isOpposed
-          ? 'bg-zinc-950/90 border-brass shadow-brass/5'
-          : 'bg-zinc-900/80 border-emerald-500'
+          ? 'bg-card/95 border-brass shadow-glow-brass'
+          : 'bg-card/90 border-primary'
       }`}
     >
       {/* Nagłówek z nazwą umiejętności i trudnością / trybem przeciwstawnym */}
       <div
         className={`flex items-center justify-between px-4 py-3 border-b ${
           isOpposed
-            ? 'bg-zinc-900/80 border-brass/20'
-            : 'bg-zinc-800/50 border-zinc-700'
+            ? 'bg-card border-brass/30'
+            : 'bg-card/95 border-border'
         }`}
       >
         <div className="flex items-center gap-2">
           {isOpposed ? (
             <Swords className="w-5 h-5 text-brass" />
           ) : (
-            <Dices className="w-5 h-5 text-emerald-400" />
+            <Dices className="w-5 h-5 text-primary" />
           )}
           <span
             className={`font-bold uppercase tracking-wide ${
-              isOpposed ? 'text-brass font-display' : 'text-white'
+              isOpposed ? 'text-brass font-display' : 'text-foreground font-display'
             }`}
           >
             {skillName}
           </span>
           {characterName && (
-            <span className="text-xs text-pink-300">@{characterName}</span>
+            <span className="text-xs text-muted-foreground font-special-elite">@{characterName}</span>
           )}
         </div>
         {isOpposed ? (
@@ -196,15 +196,15 @@ export function SkillTestCard({
       </div>
 
       {/* Wartość i próg */}
-      <div className="px-4 py-2 border-b border-zinc-700/50 space-y-1">
+      <div className="px-4 py-2 border-b border-border/60 space-y-1 bg-card/60">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-400">{t('yourValue')}</span>
+          <span className="text-muted-foreground">{t('yourValue')}</span>
           <span className="font-mono">
-            <span className="text-white font-bold">{skillValue}%</span>
+            <span className="text-foreground font-bold">{skillValue}%</span>
             {!isOpposed && (
               <>
-                <span className="text-zinc-500 mx-2">→</span>
-                <span className="text-emerald-400 font-bold">
+                <span className="text-muted-foreground mx-2">→</span>
+                <span className="text-primary font-bold">
                   {t('threshold', { threshold })}
                 </span>
               </>
@@ -214,14 +214,14 @@ export function SkillTestCard({
 
         {/* Wartość przeciwnika przy teście przeciwstawnym */}
         {isOpposed && opposed && (
-          <div className="flex items-center justify-between text-sm pt-1 border-t border-zinc-800/60">
-            <span className="text-zinc-400">
-              {t('opponentValue')} <span className="text-zinc-200 font-medium">{opposed.opponentName}</span>
+          <div className="flex items-center justify-between text-sm pt-1 border-t border-border/40">
+            <span className="text-muted-foreground">
+              {t('opponentValue')} <span className="text-foreground font-medium">{opposed.opponentName}</span>
               {opposed.opponentSkillName && opposed.opponentSkillName !== skillName && (
-                <span className="text-xs text-zinc-500 ml-1">({opposed.opponentSkillName})</span>
+                <span className="text-xs text-muted-foreground ml-1">({opposed.opponentSkillName})</span>
               )}
             </span>
-            <span className="font-mono text-rose-400 font-bold">
+            <span className="font-mono text-destructive font-bold">
               {opposed.opponentSkillValue}%
             </span>
           </div>
@@ -230,8 +230,8 @@ export function SkillTestCard({
 
       {/* Modyfikatory */}
       {modifiers.length > 0 && (
-        <div className="px-4 py-2 border-b border-zinc-700/50">
-          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-2">
+        <div className="px-4 py-2 border-b border-border/60 bg-card/40">
+          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2 font-display">
             {t('modifiers')}
           </div>
           <div className="space-y-1">
@@ -248,10 +248,10 @@ export function SkillTestCard({
                   >
                     {mod.type === 'bonus' ? '⬆️' : '⬇️'}
                   </span>
-                  <span className="text-zinc-300">{mod.reason}</span>
+                  <span className="text-foreground/80">{mod.reason}</span>
                 </span>
                 <span
-                  className={`font-mono ${mod.type === 'bonus' ? 'text-green-400' : 'text-red-400'}`}
+                  className={`font-mono ${mod.type === 'bonus' ? 'text-primary' : 'text-destructive'}`}
                 >
                   {mod.type === 'bonus'
                     ? t('bonusDiceCount', { count: mod.count })
@@ -265,38 +265,38 @@ export function SkillTestCard({
 
       {/* Instrukcja rzutu */}
       {!isOpposed && (
-        <div className="px-4 py-3 bg-zinc-800/30 border-b border-zinc-700/50">
+        <div className="px-4 py-3 bg-card/80 border-b border-border/60">
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-amber-400">🎯</span>
-            <span className="font-medium text-amber-200">{diceInstruction}</span>
+            <span className="text-brass">🎯</span>
+            <span className="font-medium text-brass">{diceInstruction}</span>
           </div>
-          <div className="text-xs text-zinc-500 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {t('orTypeInChat')}{' '}
-            <span className="font-mono text-zinc-400">{t('resultExample')}</span>
+            <span className="font-mono text-foreground/80">{t('resultExample')}</span>
           </div>
         </div>
       )}
 
       {/* Uzasadnienie fabularne */}
       {justification && (
-        <div className="px-4 py-2 border-b border-zinc-700/50">
+        <div className="px-4 py-2 border-b border-border/60 bg-card/40">
           <div className="flex items-start gap-2 text-sm">
-            <span className="text-blue-400 mt-0.5">💡</span>
-            <span className="text-zinc-400 italic">{justification}</span>
+            <span className="text-brass mt-0.5">💡</span>
+            <span className="text-muted-foreground italic font-serif">{justification}</span>
           </div>
         </div>
       )}
 
       {/* Przycisk Rzuć / Test Przeciwstawny */}
       {(onRoll || isOpposed) && (
-        <div className="px-4 py-3 flex justify-center">
+        <div className="px-4 py-3 flex justify-center bg-card/50">
           <Button
             onClick={handleRollClick}
             disabled={completed}
             className={
               isOpposed
-                ? 'bg-brass hover:bg-brass-light text-zinc-950 font-display font-semibold px-6 flex items-center gap-2 shadow-lg'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6'
+                ? 'bg-brass hover:bg-brass/80 text-background font-display font-semibold px-6 flex items-center gap-2 shadow-deco'
+                : 'bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 shadow-deco'
             }
           >
             {completed ? (
