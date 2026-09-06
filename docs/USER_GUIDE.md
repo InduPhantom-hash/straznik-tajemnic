@@ -90,10 +90,10 @@ Preset wybierasz w Ustawieniach; domyślny to **HIGH**:
 
 | Preset | Model czatu | Lektor TTS | Obrazy | Koszt sesji 3h |
 |---|---|---|---|---|
-| **LOW** | Gemini 3.6 Flash | brak | wyłączone | ~$0.02 - $0.05 |
-| **MID** | Gemini 3.6 Flash | Gemini TTS | Włączone | ~$0.15 - $0.35 |
-| **HIGH** ⭐ | Gemini 2.5 Flash / 3.8 Flash | Gemini TTS | Włączone | ~$0.20 - $0.45 |
-| **ULTRA** | Gemini 3.1 Pro Preview | Gemini TTS | Włączone | ~$1.50 - $3.00 |
+| **LOW** | Gemini 3.6 Flash | brak | wyłączone | ~$0.02 - $0.05 USD |
+| **MID** | Gemini 3.6 Flash | Gemini TTS (Charon) | Gemini Flash Image | ~$0.15 - $0.20 USD |
+| **HIGH** ⭐ *(Domyślny)* | **Gemini 3.8 Flash (High)** | **Gemini TTS (Charon)** | **Imagen 4 (Vertex)** | **~$0.40 - $0.50 USD** |
+| **ULTRA** | Gemini 3.1 Pro High | Multi-voice słuchowisko | Obrazy HD (Vertex) | ~$1.00 - $1.50 USD |
 
 Panel w Ustawieniach na bieżąco zlicza zużyte tokeny wejściowe i wyjściowe oraz szacuje koszt w dolarach.
 
