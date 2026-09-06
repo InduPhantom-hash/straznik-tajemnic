@@ -7328,7 +7328,7 @@
     "privacyLabel": "Privacy & Local Processing:",
     "privacyDescription": "Your PDF is parsed directly on your computer and stored in the local knowledge base (data/rag/rules). Required for Keeper mechanics and skill rolls.",
     "requiredBadge": "Required",
-    "readyBadge": "Ready",
+    "readyBadge": "Ready ({count} rule fragments)",
     "dropZonePrompt": "Click to select a rulebook PDF file",
     "dropZoneSub": "Supported format: PDF document (e.g. CoC 7e Keeper Rulebook)",
     "processingTitle": "Processing rulebook...",

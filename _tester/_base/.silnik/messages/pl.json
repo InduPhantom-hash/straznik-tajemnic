@@ -7328,7 +7328,7 @@
     "privacyLabel": "Prywatność i przetwarzanie lokalne:",
     "privacyDescription": "Twój plik PDF jest parsowany bezpośrednio na Twoim komputerze i zapisywany w lokalnej bazie wiedzy (data/rag/rules). Wymagany do rozstrzygania mechanik i rzutów przez Mistrza Gry.",
     "requiredBadge": "Wymagany",
-    "readyBadge": "Gotowy",
+    "readyBadge": "Gotowy ({count} fragmentów zasad)",
     "dropZonePrompt": "Kliknij, aby wybrać plik PDF z zasadami",
     "dropZoneSub": "Obsługiwany format: dokument PDF (np. Księga Strażnika CoC 7e)",
     "processingTitle": "Przetwarzam podręcznik...",
