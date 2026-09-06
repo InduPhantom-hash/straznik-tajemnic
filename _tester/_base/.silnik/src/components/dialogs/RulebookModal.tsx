@@ -331,35 +331,35 @@ export const RulebookModal: FC<RulebookModalProps> = ({
           )}
 
           {/* Źródła legalne podręcznika (z dawnego step-content-sources) */}
-          <div className="rounded-lg border border-brass/25 bg-[#120f0b] p-3 space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-display uppercase tracking-wider text-brass/90">
-              <ExternalLink className="w-3.5 h-3.5" />
+          <div className="rounded-lg border border-brass/35 bg-[#120f0b] p-3.5 space-y-2.5 font-sans">
+            <div className="flex items-center gap-1.5 text-xs font-display uppercase tracking-wider text-brass">
+              <ExternalLink className="w-3.5 h-3.5 text-brass" />
               <span>{t('sourcesTitle')}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground/90 font-sans leading-relaxed">
               {t('sourcesDesc')}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 font-sans">
               <a
                 href="https://blackmonk.pl"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-2 rounded border border-brass/30 bg-brass/5 hover:bg-brass/15 transition-colors text-xs text-foreground group"
+                className="flex items-center justify-between p-2.5 rounded border border-brass/35 bg-brass/10 hover:bg-brass/20 transition-colors text-xs text-foreground font-medium group"
               >
                 <span>Black Monk (PL)</span>
-                <ExternalLink className="w-3 h-3 text-brass/70 group-hover:text-brass" />
+                <ExternalLink className="w-3.5 h-3.5 text-brass/80 group-hover:text-brass" />
               </a>
               <a
                 href="https://www.drivethrurpg.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-2 rounded border border-brass/30 bg-brass/5 hover:bg-brass/15 transition-colors text-xs text-foreground group"
+                className="flex items-center justify-between p-2.5 rounded border border-brass/35 bg-brass/10 hover:bg-brass/20 transition-colors text-xs text-foreground font-medium group"
               >
                 <span>DriveThruRPG (EN)</span>
-                <ExternalLink className="w-3 h-3 text-brass/70 group-hover:text-brass" />
+                <ExternalLink className="w-3.5 h-3.5 text-brass/80 group-hover:text-brass" />
               </a>
             </div>
-            <p className="text-[10px] text-muted-foreground/60 italic pt-1">
+            <p className="text-xs text-muted-foreground italic pt-1 font-sans leading-normal border-t border-brass/15">
               {t('disclaimer')}
             </p>
           </div>
