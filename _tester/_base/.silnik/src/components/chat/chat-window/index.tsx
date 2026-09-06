@@ -28,6 +28,11 @@ import { LoadingIndicator } from './components/loading-indicator';
 import { MessageCard } from './components/message-card';
 import { MessageInput } from './components/message-input';
 import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
+import { CombatDefenseDialog } from './components/combat-defense-dialog';
+import { ChaseDialog } from './components/chase-dialog';
+import { createChaseState } from '@/lib/chase/chase-engine';
+import { getSkillValue } from '@/lib/types';
+
 
 export const ChatWindow: FC<ChatWindowProps> = ({
   messages,
@@ -91,6 +96,11 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   sessionEndStatus,
   onCharacterUpdate,
   onContinueNarration,
+  cheatCombatModal,
+  onCloseCheatCombat,
+  cheatChaseModal,
+  onCloseCheatChase,
+
   eraContext,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -334,6 +344,64 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           src={lightboxImage}
           images={lightboxImages}
           onClose={() => setLightboxImage(null)}
+        />
+      )}
+      {/* Retro Cheat: Dialog Obrony w Walce */}
+      {cheatCombatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md">
+            <CombatDefenseDialog
+              attackerName={cheatCombatModal.attackerName}
+              attackerWeapon={cheatCombatModal.attackerWeapon}
+              dodgeSkill={cheatCombatModal.dodgeSkill}
+              brawlSkill={cheatCombatModal.brawlSkill}
+              playerBuild={cheatCombatModal.playerBuild}
+              attackerBuild={cheatCombatModal.attackerBuild}
+              onSelectDefense={(choice, maneuver) => {
+                handleSendMessage(`[OBRONA: ${choice}${maneuver ? ` | ${maneuver}` : ''}]`);
+                if (onCloseCheatCombat) onCloseCheatCombat();
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Retro Cheat: Dialog Pościgu Filmowego */}
+      {cheatChaseModal && (
+        <ChaseDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open && onCloseCheatChase) onCloseCheatChase();
+          }}
+          initialState={createChaseState({
+            fleeing: {
+              id: activeCharacter?.id || 'char_player',
+              name: activeCharacter?.name || 'Badacz',
+              isPlayer: true,
+              mov: activeCharacter?.move || 8,
+              segmentIndex: 1,
+            },
+            pursuers: [
+              {
+                id: 'pursuer_1',
+                name: 'Kultysta z Arkham',
+                isPlayer: false,
+                mov: 7,
+                segmentIndex: 0,
+              },
+            ],
+          })}
+          playerSkillValues={
+            activeCharacter?.skills
+              ? Object.fromEntries(
+                  Object.entries(activeCharacter.skills).map(([k, v]) => [k, getSkillValue(v)])
+                )
+              : undefined
+          }
+          onSendToChat={(msg) => {
+            handleSendMessage(msg);
+            if (onCloseCheatChase) onCloseCheatChase();
+          }}
         />
       )}
       {/* D1: tacka testu ([TEST:]) odpala mały modal - rzut, ew. Szczęście, ręczna wysyłka */}

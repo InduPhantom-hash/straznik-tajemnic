@@ -1195,6 +1195,10 @@ export default function Home() {
           isReadyToEnter={isReadyToEnter}
           onConfirmEnterGame={confirmEnterGame}
           adventureContext={adventureContext}
+          cheatCombatModal={chat.cheatCombatModal}
+          onCloseCheatCombat={() => chat.setCheatCombatModal(null)}
+          cheatChaseModal={chat.cheatChaseModal}
+          onCloseCheatChase={() => chat.setCheatChaseModal(false)}
         />
       )}
       {showPredefinedSelector && (

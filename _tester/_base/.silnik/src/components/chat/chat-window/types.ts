@@ -123,4 +123,17 @@ export interface ChatWindowProps {
   /** Kontynuacja uciętej narracji MG - deklaruje caller; pole opcjonalne dla
    *  zgodności z page.tsx (przekazywane dalej tylko gdy podane). */
   onContinueNarration?: (messageId?: string) => void;
+  // Retro Cheats - wsparcie modali walki i pościgu
+  cheatCombatModal?: {
+    attackerName: string;
+    attackerWeapon?: string;
+    dodgeSkill: number;
+    brawlSkill: number;
+    playerBuild?: number;
+    attackerBuild?: number;
+  } | null;
+  onCloseCheatCombat?: () => void;
+  cheatChaseModal?: boolean;
+  onCloseCheatChase?: () => void;
+
 }
