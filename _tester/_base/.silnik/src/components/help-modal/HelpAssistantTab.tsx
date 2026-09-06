@@ -85,8 +85,8 @@ export function HelpAssistantTab() {
   };
 
   return (
-    <div className="space-y-4 text-gray-200">
-      <div className="p-3 bg-gray-900/60 border border-amber-900/30 rounded text-xs text-gray-300">
+    <div className="space-y-4 text-foreground">
+      <div className="p-3 bg-card/60 border border-border rounded text-xs text-foreground/90">
         <p>💡 <strong>{t('introLabel')}</strong> {t('introText')}</p>
         {nanoLabel[nanoStatus].text && (
           <p className={`mt-1 ${nanoLabel[nanoStatus].color}`}>
@@ -101,21 +101,21 @@ export function HelpAssistantTab() {
           placeholder={t('inputPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 px-3 py-2 bg-gray-900 border border-amber-900/50 rounded text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-500"
+          className="flex-1 px-3 py-2 bg-input border border-brass/30 rounded text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brass"
         />
         <button
           type="submit"
           disabled={isLoading || !query.trim()}
-          className="px-4 py-2 bg-amber-900/80 hover:bg-amber-800 disabled:opacity-50 text-amber-200 text-xs font-semibold rounded border border-amber-700/50 transition-colors"
+          className="px-4 py-2 bg-brass/20 hover:bg-brass/30 disabled:opacity-50 text-brass text-xs font-semibold rounded border border-brass/40 transition-colors"
         >
           {isLoading ? t('searchingButton') : t('askButton')}
         </button>
       </form>
 
       {answer && (
-        <div className="p-4 bg-gray-900 border border-amber-900/40 rounded space-y-2">
-          <h5 className="text-xs font-serif text-amber-400 font-bold uppercase tracking-wider">{t('answerTitle')}</h5>
-          <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-line">{answer}</p>
+        <div className="p-4 bg-card/90 border border-border rounded space-y-2">
+          <h5 className="text-xs font-serif text-brass font-bold uppercase tracking-wider">{t('answerTitle')}</h5>
+          <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-line">{answer}</p>
         </div>
       )}
     </div>

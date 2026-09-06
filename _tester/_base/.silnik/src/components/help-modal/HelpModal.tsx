@@ -33,18 +33,18 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="relative w-[80vw] h-[78vh] max-h-[85vh] bg-gray-950 border border-amber-900/60 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-[80vw] h-[78vh] max-h-[85vh] bg-card border border-brass/40 rounded-lg shadow-2xl overflow-hidden flex flex-col">
         {/* Nagłówek Modalu */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/40 bg-gray-900/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/90">
           <div className="flex items-center gap-2">
             <span className="text-xl">🕯️</span>
-            <h2 className="text-lg font-serif text-amber-400 font-semibold tracking-wide">
+            <h2 className="text-lg font-serif text-brass font-semibold tracking-wide">
               {t('title')}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-amber-400 text-xl font-bold px-2 py-1 transition-colors"
+            className="text-muted-foreground hover:text-brass text-xl font-bold px-2 py-1 transition-colors"
             title={t('closeTitle')}
           >
             ✕
@@ -52,13 +52,13 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         {/* Zakładki Nawigacji Pomocy */}
-        <div className="flex border-b border-amber-900/30 bg-gray-900/30 px-6 pt-2 gap-1 overflow-x-auto">
+        <div className="flex border-b border-border bg-input/40 px-6 pt-2 gap-1 overflow-x-auto">
           <button
             onClick={() => setActiveTab('EPOCH_WIKI')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'EPOCH_WIKI'
-                ? 'border-amber-500 text-amber-300 bg-amber-950/30'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                ? 'border-brass text-brass bg-brass/10'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('tabEpochWiki')}
@@ -67,8 +67,8 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('RULES_BESTIARY')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'RULES_BESTIARY'
-                ? 'border-amber-500 text-amber-300 bg-amber-950/30'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                ? 'border-brass text-brass bg-brass/10'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('tabRulesBestiary')}
@@ -77,8 +77,8 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('INTERFACE')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'INTERFACE'
-                ? 'border-amber-500 text-amber-300 bg-amber-950/30'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                ? 'border-brass text-brass bg-brass/10'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('tabInterface')}
@@ -87,8 +87,8 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('RAG_ASSISTANT')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'RAG_ASSISTANT'
-                ? 'border-amber-500 text-amber-300 bg-amber-950/30'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                ? 'border-brass text-brass bg-brass/10'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('tabAssistant')}
@@ -97,8 +97,8 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('COPYRIGHT')}
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'COPYRIGHT'
-                ? 'border-amber-500 text-amber-300 bg-amber-950/30'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                ? 'border-brass text-brass bg-brass/10'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('tabCopyright')}
@@ -106,21 +106,21 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         {/* Zawartość Aktywnej Zakładki */}
-        <div className="p-6 overflow-y-auto flex-1 bg-gray-950">
+        <div className="p-6 overflow-y-auto flex-1 bg-background">
           {activeTab === 'EPOCH_WIKI' && <EpochWikiTab />}
           {activeTab === 'RULES_BESTIARY' && <BestiaryRulesTab />}
           {activeTab === 'RAG_ASSISTANT' && <HelpAssistantTab />}
           {activeTab === 'INTERFACE' && (
-            <div className="text-gray-300 text-xs space-y-3 p-4 bg-gray-900/40 border border-amber-900/30 rounded">
-              <h3 className="text-amber-400 font-serif text-sm font-bold">{t('interfaceTitle')}</h3>
+            <div className="text-foreground/90 text-xs space-y-3 p-4 bg-card/60 border border-border rounded-md">
+              <h3 className="text-brass font-serif text-sm font-bold">{t('interfaceTitle')}</h3>
               <p>• <strong>{t('interfaceChatLabel')}</strong> {t('interfaceChatText')}</p>
               <p>• <strong>{t('interfaceDiceLabel')}</strong> {t('interfaceDiceText')}</p>
               <p>• <strong>{t('interfaceBoardLabel')}</strong> {t('interfaceBoardText')}</p>
             </div>
           )}
           {activeTab === 'COPYRIGHT' && (
-            <div className="text-gray-300 text-xs space-y-3 p-4 bg-gray-900/40 border border-amber-900/30 rounded">
-              <h3 className="text-amber-400 font-serif text-sm font-bold">{t('copyrightTitle')}</h3>
+            <div className="text-foreground/90 text-xs space-y-3 p-4 bg-card/60 border border-border rounded-md">
+              <h3 className="text-brass font-serif text-sm font-bold">{t('copyrightTitle')}</h3>
               <p>{t('copyrightFanProject')}</p>
               <p>{t('copyrightPublicDomain')}</p>
             </div>
