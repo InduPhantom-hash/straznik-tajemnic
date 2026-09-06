@@ -183,9 +183,20 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
   },
 ];
 
+const CHEAT_COMMAND_SET = new Set([
+  ...CHEAT_REGISTRY.map((c) => c.command.toUpperCase()),
+  'CHEATS',
+]);
+
 export function isCheatCommand(text: string): boolean {
   const trimmed = text.trim();
-  return trimmed.startsWith('[') && trimmed.endsWith(']');
+  if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
+    return false;
+  }
+  const content = trimmed.slice(1, -1).trim();
+  const colonIndex = content.indexOf(':');
+  const command = (colonIndex === -1 ? content : content.slice(0, colonIndex)).trim().toUpperCase();
+  return CHEAT_COMMAND_SET.has(command);
 }
 
 export function filterCheatSuggestions(input: string): CheatSuggestion[] {
