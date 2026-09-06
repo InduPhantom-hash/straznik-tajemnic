@@ -146,6 +146,18 @@
       }
     },
     {
+      "id": "adventure-builder",
+      "kind": "modal",
+      "label": {
+        "pl": "Kreator przygód i pakiet MG",
+        "en": "Adventure builder and campaign kit"
+      },
+      "description": {
+        "pl": "Wielomodułowy kreator śledztwa CoC 7e z bramką anty-spoilerową dla gracza i eksportem Campaign Kit ZIP dla MG",
+        "en": "Multi-module CoC 7e mystery builder with player anti-spoiler gate and Keeper Campaign Kit ZIP export"
+      }
+    },
+    {
       "id": "predefined-characters",
       "kind": "modal",
       "label": {
@@ -426,6 +438,15 @@
         "en": "Start adventure"
       },
       "component": "src/components/ui/quick-setup-modal.tsx"
+    },
+    {
+      "source": "adventure-selector",
+      "target": "adventure-builder",
+      "label": {
+        "pl": "Otwórz kreator przygód",
+        "en": "Open adventure builder"
+      },
+      "component": "src/components/ui/adventure-selector.tsx"
     },
     {
       "source": "adventure-selector",

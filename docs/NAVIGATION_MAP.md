@@ -23,6 +23,7 @@ graph TD
     quick_setup["Szybka przygoda / Quick adventure"]
     manual_setup["Ręczne ustawianie gry / Manual game setup"]
     adventure_selector["Wybór przygody / Adventure selector"]
+    adventure_builder["Kreator przygód i pakiet MG / Adventure builder and campaign kit"]
     predefined_characters["Gotowe postacie / Predefined characters"]
     character_wizard["Kreator postaci / Character wizard"]
     hot_seat["Wybór trybu gry / Play mode"]
@@ -57,6 +58,7 @@ graph TD
     home -->|Klucze API / API keys| api_keys
     quick_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
     quick_setup -->|Rozpocznij przygodę / Start adventure| home
+    adventure_selector -->|Otwórz kreator przygód / Open adventure builder| adventure_builder
     adventure_selector -->|Wybierz postać / Choose character| predefined_characters
     manual_setup -->|Wybierz tryb gry / Choose play mode| hot_seat
     manual_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
@@ -119,6 +121,7 @@ graph TD
 | Strona główna | Klucze API / API keys | Klucze API | `src/components/chat/welcome/index.tsx` |
 | Szybka przygoda | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/ui/quick-setup-modal.tsx` |
 | Szybka przygoda | Rozpocznij przygodę / Start adventure | Strona główna | `src/components/ui/quick-setup-modal.tsx` |
+| Wybór przygody | Otwórz kreator przygód / Open adventure builder | Kreator przygód i pakiet MG | `src/components/ui/adventure-selector.tsx` |
 | Wybór przygody | Wybierz postać / Choose character | Gotowe postacie | `src/components/ui/adventure-selector.tsx` |
 | Ręczne ustawianie gry | Wybierz tryb gry / Choose play mode | Wybór trybu gry | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
