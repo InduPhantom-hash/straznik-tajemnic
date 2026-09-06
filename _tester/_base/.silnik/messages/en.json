@@ -5940,7 +5940,6 @@
     "reloadSingle": "Manual loading: 2 bullets per 1 combat round",
     "reloadMagazine": "Magazine change / speedloader: 1 full round"
   },
-
   "FullGameSaveModal": {
     "saveEyebrow": "Archive · save state",
     "loadEyebrow": "Archive · load",
@@ -6150,9 +6149,9 @@
     "loreRegionLabel": "Region / Domain:",
     "loreFactionsCount": "Factions: {count}",
     "loreLocationsCount": "Locations: {count}",
-    "loreEntitiesCount": "Beasts / Spells: {count}"
+    "loreEntitiesCount": "Beasts / Spells: {count}",
+    "openBuilderButton": "Adventure Builder & Campaign Kit (New)"
   },
-
   "CharacterDevelopmentPanel": {
     "defaultTraumaDescription": "Trauma of type {type}",
     "noSpecialEffects": "No special effects",
@@ -7586,6 +7585,48 @@
     "warning": "Technology or concept \"{term}\" did not exist in this era.",
     "recommendation": "Historical alternative:",
     "dismiss": "Dismiss"
+  },
+  "AdventureBuilder": {
+    "modalTitle": "Adventure Builder & Campaign Kit",
+    "modalSubtitle": "Call of Cthulhu 7e · Mystery Builder, Multi-format Importer & Campaign Kit Generator",
+    "rolePlayerBadge": "Investigator Mode",
+    "roleKeeperBadge": "Keeper of Secrets Mode",
+    "chooseRolePrompt": "Choose your goal before building:",
+    "playerTileTitle": "I want to play this adventure",
+    "playerTileDesc": "The application generates the mystery while keeping secrets from you. Investigation structure, NPC motives, and culmination are hidden to preserve discovery immersion.",
+    "playerTileAntiSpoiler": "100% spoiler-free protection",
+    "keeperTileTitle": "Preparing a session (Keeper of Secrets)",
+    "keeperTileDesc": "Full control over mystery architecture. Inspect Dramatis Personae, CoC 7e RAW statistics, the Clue Web graph, and export a complete package for tabletop play.",
+    "keeperTileFullControl": "Full behind-the-scenes access",
+    "surpriseMeTitle": "Need inspiration? Surprise me!",
+    "surpriseMeHint": "Generates a complete, atmospheric CoC 7e mystery with mythos deities, antagonists, and key locations.",
+    "surpriseMeButton": "Roll a mystery",
+    "playerHookLabel": "Investigator Hook (What you know at the start):",
+    "playerHookPlaceholder": "Brief outline of the case, a letter from a friend, an alarming morning newspaper clipping...",
+    "keeperAssumptionsLabel": "Investigation Truth & Secrets (Keeper only):",
+    "keeperAssumptionsPlaceholder": "True nature of the cult, NPC secrets, Sanity costs, mythos entity...",
+    "importerHeader": "Input Materials (Multi-Asset Importer)",
+    "importerDropButton": "Drag & drop or browse files (PDF, Word, Spreadsheets, Audio, Maps)",
+    "backToRole": "Change goal",
+    "continueToPlayerReady": "Next: Summary",
+    "continueToKeeperReview": "Next: Inspect Mystery",
+    "clueWebTitle": "Investigation Architecture (Clue Web & CoC 7e)",
+    "clueWebSubtitle": "Structure linking clues, locations, and Dramatis Personae secrets.",
+    "dramatisPersonae": "Dramatis Personae (Non-Player Characters)",
+    "clueWebConnections": "Clue connection nodes",
+    "backToInput": "Back to outline",
+    "continueToDualOutput": "Next: Export & Play",
+    "adventureReadyHeader": "Mystery ready to play",
+    "playInAppTitle": "Play in application",
+    "playInAppDesc": "Saves the scenario to your library and starts your investigation with the AI Keeper immediately.",
+    "playInAppButton": "Begin investigation",
+    "downloadKitTitle": "Download Campaign Kit (ZIP)",
+    "downloadKitDesc": "Exports complete Campaign Kit: SCENARIUSZ.md, NPC dossiers, HTML/Mermaid Clue Web, handouts, and audio guide.",
+    "downloadKitButton": "Download Campaign Kit (ZIP)",
+    "exportingZip": "Packing campaign kit...",
+    "playerDownloadWarning": "Notice: The ZIP package contains full secrets and spoilers intended for the Keeper.",
+    "back": "Back",
+    "startOver": "Start over",
+    "openBuilderButton": "Adventure Builder & Campaign Kit"
   }
 }
-
