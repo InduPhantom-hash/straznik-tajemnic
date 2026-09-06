@@ -100,17 +100,18 @@ Więcej informacji dla programistów: [`CONTRIBUTING.md`](./CONTRIBUTING.md) ora
 
 ## 🏚️ Presety jakości & Szacowane Koszty
 
-Preset ustawiasz w Ustawieniach; domyślnie **HIGH** (sesja ≈ 3h gry):
+Dokładne odzwierciedlenie konfiguracji z panelu **Ustawienia → Profil Jakości** (sesja ≈ 3h gry):
 
 | Preset | Model czatu | Lektor | Obrazy | Szacowany koszt sesji 3h |
 |---|---|---|---|---|
 | **LOW** | Gemini 3.6 Flash | brak | wyłączone | ~$0.02 - $0.05 USD |
-| **MID** | Gemini 3.6 Flash | Gemini TTS | Gemini Flash Image | ~$0.15 - $0.35 USD |
-| **HIGH** ⭐ | Gemini 2.5 Flash / 3.8 Flash | Gemini TTS | Gemini Flash Image | ~$0.20 - $0.45 USD |
-| **ULTRA** | Gemini 3.1 Pro Preview | Gemini TTS | Gemini Flash Image | ~$1.50 - $3.00 USD |
+| **MID** | Gemini 3.6 Flash | Gemini TTS (Charon) | Gemini Flash Image | ~$0.15 - $0.20 USD |
+| **HIGH** ⭐ *(Domyślny)* | **Gemini 3.8 Flash (High)** | **Gemini TTS (Charon)** | **Imagen 4 (Vertex)** | **~$0.40 - $0.50 USD** |
+| **ULTRA** | Gemini 3.1 Pro High | Multi-voice słuchowisko | Obrazy HD (Vertex) | ~$1.00 - $1.50 USD |
 
-*Koszty tokenów (USD / 1M): Gemini 3.6 Flash (0.15 in / 0.60 out), Gemini 2.5 Flash (0.075 in / 0.30 out), Gemini 3.1 Pro (2.00 in / 12.00 out).*  
-*Generowanie obrazów: `gemini-2.5-flash-image` (~$0.02 USD za obraz).*
+*Koszty tokenów (Google AI Studio): Gemini 3.6 Flash (0.15 in / 0.60 out per 1M), Gemini 3.8 Flash (0.15 in / 0.60 out per 1M), Gemini 3.1 Pro (2.00 in / 12.00 out per 1M).*  
+*Lektor TTS: `gemini-2.5-flash-preview-tts` (0.50 in / 1.50 out per 1M).*  
+*Generowanie obrazów: Imagen 4 Fast (~$0.02 USD / obraz), Imagen 4 Ultra (~$0.04 USD / obraz).*
 
 ## 🔧 Technologie
 
@@ -197,14 +198,18 @@ For developer guidelines: [`CONTRIBUTING.md`](./CONTRIBUTING.md) and [`SETUP.md`
 
 ## 🏚️ Quality Presets & Estimated Costs
 
-Set preset in Settings; default is **HIGH** (approx. 3h session):
+Direct reflection of settings in **Settings → Quality Profile** (session ≈ 3h gameplay):
 
 | Preset | Chat Model | TTS Voice | Images | Est. 3h Session Cost |
 |---|---|---|---|---|
 | **LOW** | Gemini 3.6 Flash | None | Disabled | ~$0.02 - $0.05 USD |
-| **MID** | Gemini 3.6 Flash | Gemini TTS | Gemini Flash Image | ~$0.15 - $0.35 USD |
-| **HIGH** ⭐ | Gemini 2.5 Flash / 3.8 Flash | Gemini TTS | Gemini Flash Image | ~$0.20 - $0.45 USD |
-| **ULTRA** | Gemini 3.1 Pro Preview | Gemini TTS | Gemini Flash Image | ~$1.50 - $3.00 USD |
+| **MID** | Gemini 3.6 Flash | Gemini TTS (Charon) | Gemini Flash Image | ~$0.15 - $0.20 USD |
+| **HIGH** ⭐ *(Default)* | **Gemini 3.8 Flash (High)** | **Gemini TTS (Charon)** | **Imagen 4 (Vertex)** | **~$0.40 - $0.50 USD** |
+| **ULTRA** | Gemini 3.1 Pro High | Multi-voice radio drama | HD Images (Vertex) | ~$1.00 - $1.50 USD |
+
+*Token costs (Google AI Studio): Gemini 3.6 Flash (0.15 in / 0.60 out per 1M), Gemini 3.8 Flash (0.15 in / 0.60 out per 1M), Gemini 3.1 Pro (2.00 in / 12.00 out per 1M).*  
+*TTS Voice: `gemini-2.5-flash-preview-tts` (0.50 in / 1.50 out per 1M).*  
+*Image generation: Imagen 4 Fast (~$0.02 USD / image), Imagen 4 Ultra (~$0.04 USD / image).*
 
 ## 📚 Documentation Links
 
