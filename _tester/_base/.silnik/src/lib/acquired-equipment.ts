@@ -114,7 +114,7 @@ export function createAcquiredEquipmentSeed(
     description: proposal.description,
     visualTreatment: proposal.visualTreatment,
     ...(category === 'document' ? { documentType: inferDocumentType(proposal) } : {}),
-    ...(isAudioMedia ? { audioUrl: (proposal as any).audioUrl || undefined } : {}),
+    ...(isAudioMedia ? { audioUrl: proposal.audioUrl || undefined } : {}),
     ...(damageStr || skill || rangeStr
       ? {
           modifiers: {

@@ -120,6 +120,7 @@ export interface AcquiredItemProposal {
   recipientName?: string;
   visualTreatment: EquipmentVisualTreatment;
   status: 'pending' | 'accepted' | 'dismissed';
+  audioUrl?: string;
 }
 
 export interface Message {
