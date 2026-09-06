@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { CampaignClock } from '@/components/ui/campaign-clock';
+import type { ReactNode } from "react";
+import { CampaignClock } from "@/components/ui/campaign-clock";
+import { SubtreeErrorBoundary } from "@/components/ui/subtree-error-boundary";
 
 interface ChatLayoutProps {
   children: ReactNode;
@@ -15,18 +16,22 @@ export function ChatLayout({ children, sidebar, modals }: ChatLayoutProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5"></div>
       </div>
 
-      {/* Campaign Clock - Moved to ChatWindow header to avoid Sidebar overlap */}
+      {/* Główny Panel - Czat z granicą izolacji awarii */}
+      <main className="flex-1 overflow-hidden relative z-10">
+        <SubtreeErrorBoundary componentName="ChatWindow" fallbackTitle="Błąd widoku czatu">
+          {children}
+        </SubtreeErrorBoundary>
+      </main>
 
-      {/* Główny Panel - Czat */}
-      <main className="flex-1 overflow-hidden relative z-10">{children}</main>
-
-      {/* Sidebar - zawsze zamontowany (hostuje modale Sesja Zero / Wybór przygody
-          i rejestruje ich funkcje otwierania). Na welcome ukrywa tylko swój panel
-          wizualny wewnętrznie (hideSidebarPanel), więc welcome jest na całe okno. */}
-      {sidebar}
+      {/* Sidebar - z granicą izolacji awarii */}
+      <SubtreeErrorBoundary componentName="CthulhuSidebar" fallbackTitle="Błąd panelu bocznego">
+        {sidebar}
+      </SubtreeErrorBoundary>
 
       {/* Modals and Overlays */}
-      {modals}
+      <SubtreeErrorBoundary componentName="ModalsLayer" fallbackTitle="Błąd warstwy modalnej">
+        {modals}
+      </SubtreeErrorBoundary>
     </div>
   );
 }
