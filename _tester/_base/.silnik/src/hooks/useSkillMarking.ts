@@ -12,6 +12,8 @@ import {
     needsMigration
 } from '@/lib/skill-migration';
 
+import { resolveCharacterByName } from '@/lib/character/match-by-name';
+
 interface UseSkillMarkingResult {
     /** Przetwarza wyniki testów i automatycznie oznacza umiejętności */
     processSkillResults: (results: SkillTestResult[]) => void;
@@ -33,10 +35,13 @@ interface UseSkillMarkingResult {
  * - Tylko udane testy BEZ użycia Luck oznaczają umiejętność
  * - Credit Rating i Cthulhu Mythos nie są oznaczane
  * - Maksymalnie 1 oznaczenie per umiejętność per scenariusz
+ * - W trybie Duet / Hot Seat (@Imię) oznacza umiejętności wskazanej postaci
  */
 export function useSkillMarking(
     character: Character | null,
-    onCharacterUpdate: (char: Character) => void
+    onCharacterUpdate: (char: Character) => void,
+    characters?: Character[],
+    onCharactersUpdate?: (chars: Character[]) => void
 ): UseSkillMarkingResult {
 
     /**
@@ -45,6 +50,44 @@ export function useSkillMarking(
     const processSkillResults = useCallback((results: SkillTestResult[]) => {
         if (!character) return;
 
+        // Jeśli mamy pełną listę drużyny i callback do aktualizacji całej drużyny
+        if (characters && characters.length > 0 && onCharactersUpdate) {
+            let updatedCharacters = [...characters];
+            let anyGlobalMarked = false;
+
+            for (const result of results) {
+                if (!result.shouldMark) {
+                    console.log(`⏭️ Skill ${result.skillName}: nie oznaczam (${result.reason})`);
+                    continue;
+                }
+
+                // Rozpoznaj docelową postać (z @Imię lub fallback na postać aktywną)
+                const targetChar = resolveCharacterByName(
+                    updatedCharacters,
+                    result.characterName,
+                    character
+                );
+
+                const beforeCount = countMarkedSkills(targetChar);
+                const markedChar = markSkillForImprovement(targetChar, result.skillName);
+                const afterCount = countMarkedSkills(markedChar);
+
+                if (afterCount > beforeCount) {
+                    anyGlobalMarked = true;
+                    console.log(`✅ Oznaczono do rozwoju: ${result.skillName} dla ${markedChar.name}`);
+                    updatedCharacters = updatedCharacters.map((c) =>
+                        c.id === markedChar.id ? markedChar : c
+                    );
+                }
+            }
+
+            if (anyGlobalMarked) {
+                onCharactersUpdate(updatedCharacters);
+            }
+            return;
+        }
+
+        // Fallback dla trybu 1-postaciowego
         let updatedCharacter = character;
         let anyMarked = false;
 
@@ -68,7 +111,7 @@ export function useSkillMarking(
         if (anyMarked) {
             onCharacterUpdate(updatedCharacter);
         }
-    }, [character, onCharacterUpdate]);
+    }, [character, characters, onCharacterUpdate, onCharactersUpdate]);
 
     /**
      * Liczba oznaczonych umiejętności

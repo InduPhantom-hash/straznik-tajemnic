@@ -9,13 +9,18 @@ export const SKILL_RESULT_INSTRUCTIONS = `
 Gdy gracz wykonuje test umiejętności, ZAWSZE podaj wynik w formacie:
 [WYNIK: NazwaUmiejętności | wynik ≤ próg | SUKCES/PORAŻKA/FUMBLE]
 
+W trybie Duet / 2 graczy (Hot Seat) ZAWSZE wskaż badacza prefiksem @Imię:
+[WYNIK: @ImięBadacza: NazwaUmiejętności | wynik ≤ próg | SUKCES/PORAŻKA/FUMBLE]
+
 Jeśli gracz użył Luck (Szczęścia) do zmiany wyniku, KONIECZNIE dodaj flagę LUCK:
 [WYNIK: NazwaUmiejętności | wynik ≤ próg | SUKCES | LUCK]
+[WYNIK: @ImięBadacza: NazwaUmiejętności | wynik ≤ próg | SUKCES | LUCK]
 
 ### PRZYKŁADY:
 - [WYNIK: Spostrzegawczość | 34 ≤ 55 | SUKCES]
+- [WYNIK: @Margaret Sullivan: Spostrzegawczość | 34 ≤ 55 | SUKCES]
 - [WYNIK: Ukrywanie się | 78 ≤ 40 | PORAŻKA]
-- [WYNIK: Nasłuchiwanie | 67 ≤ 45 | SUKCES | LUCK] ← użyto szczęścia
+- [WYNIK: @Tomasz: Nasłuchiwanie | 67 ≤ 45 | SUKCES | LUCK] ← użyto szczęścia
 - [WYNIK: Walka Wręcz | 00 ≤ 35 | FUMBLE]
 - [WYNIK: Psychologia | 12 ≤ 60 | SUKCES TRUDNY]
 - [WYNIK: Medycyna | 05 ≤ 70 | SUKCES EKSTREMALNY]

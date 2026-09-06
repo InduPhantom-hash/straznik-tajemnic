@@ -4,7 +4,7 @@ import {
   extractNpcTags,
 } from './journal-parser';
 import { extractLatestTagLocation } from './event-parser';
-import { appendJournalFromText } from '../journal/apply-journal-tags';
+import { appendJournalFromText, appendJournalToParty } from '../journal/apply-journal-tags';
 import type { Character } from '../types';
 
 describe('English game protocol', () => {
@@ -161,5 +161,29 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
     expect(updated.journal?.[0].content).toBe(
       'W szufladzie biurka znaleziono stary sztylet ze śladami zaschniętej krwi.'
     );
+  });
+
+  it('appendJournalToParty kieruje wpisy z prefiksem @Imię do właściwego badacza w duecie', () => {
+    const char1 = { ...baseCharacter, id: 'char_1', name: 'Margaret Sullivan', journal: [] };
+    const char2 = { ...baseCharacter, id: 'char_2', name: 'Tomasz Czarnecki', journal: [] };
+
+    const raw =
+      '[DZIENNIK:@Tomasz:notatka:Zapiski w notesie]Zanotowano podejrzane godziny odjazdów pociągu.[/DZIENNIK]\n' +
+      '[DZIENNIK:trop:Ślad buta]Odcisk podeszwy w błocie.[/DZIENNIK]';
+
+    const result = appendJournalToParty([char1, char2], char1, raw, 'msg_party_1');
+
+    expect(result.changed).toBe(true);
+
+    const updatedChar1 = result.characters.find((c) => c.id === 'char_1');
+    const updatedChar2 = result.characters.find((c) => c.id === 'char_2');
+
+    // char1 (aktywny badacz) otrzymuje wpis bez prefiksu ("Ślad buta")
+    expect(updatedChar1?.journal?.some((j) => j.title === 'Ślad buta')).toBe(true);
+    expect(updatedChar1?.journal?.some((j) => j.title === 'Zapiski w notesie')).toBe(false);
+
+    // char2 (Tomasz) otrzymuje wpis z prefiksem @Tomasz
+    expect(updatedChar2?.journal?.some((j) => j.title === 'Zapiski w notesie')).toBe(true);
+    expect(updatedChar2?.journal?.some((j) => j.title === 'Ślad buta')).toBe(false);
   });
 });

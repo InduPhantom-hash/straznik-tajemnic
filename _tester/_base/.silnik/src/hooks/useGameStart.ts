@@ -13,7 +13,7 @@ import { timeManager } from '@/lib/time-manager';
 // M6 sesja 146: DialogueLine import DROPPED per D3 (multi-voice odchodzi).
 import { trackEvent } from '@/lib/posthog';
 import { resetSessionTokens } from '@/lib/ai-settings/cost-control';
-import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
+import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { persistentMediaCache } from '@/lib/persistent-media-cache';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
@@ -902,22 +902,20 @@ export function useGameStart({
       // Zakończono generowanie pełnego otwarcia: odsłoń czat z gotową sceną (Issue #123)
       await transitionToGame();
 
-      // IND-201: auto-dziennik dla openingu (opening idzie tym samym /api/chat
-      // z gm-protocol, może nieść [DZIENNIK:]). Idempotentne (dedup po messageId).
+      // IND-201 / Issue #153: auto-dziennik dla openingu (opening idzie tym samym /api/chat
+      // z gm-protocol, może nieść [DZIENNIK:] z prefiksem @Imię). Idempotentne (dedup po messageId).
       if (activeCharacter) {
-        const updatedChar = appendJournalFromText(
+        const j = appendJournalToParty(
+          characters,
           activeCharacter,
           fullText,
           assistantMessageId
         );
-        if (updatedChar !== activeCharacter) {
-          setActiveCharacter(updatedChar);
-          const updatedList = characters.map((c) =>
-            c.id === updatedChar.id ? updatedChar : c
-          );
-          setCharacters(updatedList);
+        if (j.changed) {
+          setActiveCharacter(j.activeCharacter);
+          setCharacters(j.characters);
           if (typeof window !== 'undefined') {
-            persistCharacters(updatedList);
+            persistCharacters(j.characters);
           }
         }
       }

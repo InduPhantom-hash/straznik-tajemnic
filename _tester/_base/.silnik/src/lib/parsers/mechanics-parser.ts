@@ -137,7 +137,11 @@ export function extractSkillResults(text: string): SkillTestResult[] {
 
     let match;
     while ((match = resultPattern.exec(text)) !== null) {
-        const skillName = match[1].trim();
+        const rawSkill = match[1].trim();
+        // Duet / Hot Seat: [WYNIK:@Margaret Sullivan: Spostrzegawczość | ...]
+        const addressed = rawSkill.match(/^@([^:]+):\s*(.+)$/);
+        const characterName = addressed?.[1]?.trim();
+        const skillName = (addressed?.[2] ?? rawSkill).trim();
         const rollInfo = match[2].trim();
         const resultTypeRaw = match[3].trim().toLowerCase();
         const extras = match[4]?.trim().toLowerCase() || '';
@@ -191,6 +195,7 @@ export function extractSkillResults(text: string): SkillTestResult[] {
 
         results.push({
             skillName,
+            characterName,
             result,
             rollValue,
             threshold,

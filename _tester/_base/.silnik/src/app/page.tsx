@@ -138,7 +138,9 @@ export default function Home() {
   // z wykluczeniem Credit Rating/Mythos). handleUpdateCharacter persystuje postać.
   const skillMarking = useSkillMarking(
     charMgmt.activeCharacter,
-    charMgmt.handleUpdateCharacter
+    charMgmt.handleUpdateCharacter,
+    charMgmt.characters,
+    charMgmt.handleCharactersChange
   );
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
   const [pendingDirectorEvent, setPendingDirectorEvent] = useState<RandomEvent | null>(null);

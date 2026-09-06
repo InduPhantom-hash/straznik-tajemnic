@@ -159,7 +159,9 @@ export default function Home() {
   
   const skillMarking = useSkillMarking(
     charMgmt.activeCharacter,
-    charMgmt.handleUpdateCharacter
+    charMgmt.handleUpdateCharacter,
+    charMgmt.characters,
+    charMgmt.handleCharactersChange
   );
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
   const [pendingDirectorEvent, setPendingDirectorEvent] =

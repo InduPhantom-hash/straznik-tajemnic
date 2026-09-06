@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from './button';
 import { HotSeatConfig, HotSeatPlayer } from '@/lib/types';
 import { Character } from '@/lib/types';
@@ -46,6 +47,8 @@ export function PlayerSwitcher({
   onDisableHotSeat,
   embedded = false,
 }: PlayerSwitcherProps) {
+  const t = useTranslations('PlayerSwitcher');
+
   if (!config.enabled || config.players.length < 2) {
     return null;
   }
@@ -68,6 +71,8 @@ export function PlayerSwitcher({
     ? 'flex flex-wrap items-center justify-center gap-2 px-3 py-2 rounded-lg bg-card/95 border shadow-sm'
     : 'fixed top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-4 py-2 rounded-full bg-card/95 backdrop-blur-sm border shadow-lg';
 
+  const otherPlayerDisplayName = otherPlayer?.name || t('defaultPlayer1');
+
   return (
     <div
       className={containerClass}
@@ -80,10 +85,10 @@ export function PlayerSwitcher({
           style={{ backgroundColor: activePlayer?.color || '#4ade80' }}
         />
         <span className="text-sm font-medium">
-          {activePlayer?.name || 'Gracz 1'}
+          {activePlayer?.name || t('defaultPlayer1')}
         </span>
         <span className="text-xs text-muted-foreground">
-          ({activeCharacter?.name || 'Brak postaci'})
+          ({activeCharacter?.name || t('noCharacter')})
         </span>
       </div>
 
@@ -93,9 +98,9 @@ export function PlayerSwitcher({
         size="sm"
         className="h-7 px-3 text-xs"
         onClick={() => onSwitchPlayer(otherPlayerIndex)}
-        title={`Przełącz na ${otherPlayer?.name}`}
+        title={t('switchTo', { name: otherPlayerDisplayName })}
       >
-        🔄 {otherPlayer?.name} ({otherCharacter?.name || '?'})
+        🔄 {otherPlayerDisplayName} ({otherCharacter?.name || '?'})
       </Button>
 
       {/* Przycisk wyłączenia */}
@@ -104,7 +109,7 @@ export function PlayerSwitcher({
         size="sm"
         className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
         onClick={onDisableHotSeat}
-        title="Wyłącz tryb Hot Seat"
+        title={t('disableHotSeat')}
       >
         ✕
       </Button>

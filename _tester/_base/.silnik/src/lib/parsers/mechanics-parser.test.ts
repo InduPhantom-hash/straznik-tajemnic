@@ -1,4 +1,8 @@
-import { extractSkillTests, extractHazardEvents } from './mechanics-parser';
+import {
+  extractSkillTests,
+  extractHazardEvents,
+  extractSkillResults,
+} from './mechanics-parser';
 
 describe('extractSkillTests - duet', () => {
   it('zachowuje zgodność ze starym tagiem solo', () => {
@@ -30,6 +34,39 @@ describe('extractSkillTests - duet', () => {
     });
     expect(tests[0].groupId).toBeTruthy();
     expect(tests[1].groupId).toBe(tests[0].groupId);
+  });
+});
+
+describe('extractSkillResults (WYNIK) - duet & solo', () => {
+  it('parsuje wyniki testów solo bez adresata', () => {
+    const [res] = extractSkillResults(
+      '[WYNIK: Spostrzegawczość | 34 ≤ 55 | SUKCES]'
+    );
+    expect(res).toBeDefined();
+    expect(res.skillName).toBe('Spostrzegawczość');
+    expect(res.characterName).toBeUndefined();
+    expect(res.shouldMark).toBe(true);
+    expect(res.result).toBe('regular');
+  });
+
+  it('parsuje wyniki testów duet z prefiksem @Imię', () => {
+    const results = extractSkillResults(
+      '[WYNIK:@Margaret Sullivan: Spostrzegawczość | 34 ≤ 55 | SUKCES]\n' +
+        '[WYNIK:@Tomasz: Nasłuchiwanie | 67 ≤ 45 | SUKCES | LUCK]'
+    );
+    expect(results).toHaveLength(2);
+    expect(results[0]).toMatchObject({
+      characterName: 'Margaret Sullivan',
+      skillName: 'Spostrzegawczość',
+      shouldMark: true,
+      usedLuck: false,
+    });
+    expect(results[1]).toMatchObject({
+      characterName: 'Tomasz',
+      skillName: 'Nasłuchiwanie',
+      shouldMark: false,
+      usedLuck: true,
+    });
   });
 });
 

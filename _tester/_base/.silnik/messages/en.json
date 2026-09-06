@@ -6279,6 +6279,12 @@
     "cancel": "Cancel",
     "confirmMode": "Confirm mode"
   },
+  "PlayerSwitcher": {
+    "defaultPlayer1": "Player 1",
+    "noCharacter": "No character",
+    "switchTo": "Switch to {name}",
+    "disableHotSeat": "Disable Hot Seat mode"
+  },
   "QuickReferences": {
     "rulesFromPdfNotice": "Game rules should be loaded from a PDF file in the Documents section",
     "noRulesTitle": "No rules loaded",
