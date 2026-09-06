@@ -814,9 +814,11 @@ export default function Home() {
           customAdventures={customAdventures.customAdventures}
           onUploadAdventure={customAdventures.uploadAdventure}
           onDeleteAdventure={customAdventures.deleteAdventure}
+          onToggleAttachLorebook={customAdventures.toggleAttachLorebook}
           isUploadingAdventure={customAdventures.isLoading}
           uploadProgressAdventure={customAdventures.uploadProgress}
           loadingStatusAdventure={customAdventures.loadingStatus}
+
           hotSeatConfig={hotSeat.config}
           onSwitchPlayer={handleSwitchPlayer}
           onDisableHotSeat={hotSeat.disableHotSeat}

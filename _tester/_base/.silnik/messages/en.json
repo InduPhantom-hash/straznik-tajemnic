@@ -6120,8 +6120,24 @@
     "backToList": "← Back to the adventure list",
     "cancel": "Cancel",
     "useThisAdventure": "Use this adventure",
-    "chooseAndContinue": "Choose and continue →"
+    "chooseAndContinue": "Choose and continue →",
+    "tabScenarios": "Investigative Scenarios",
+    "tabLorebooks": "Sourcebooks & Lorebooks",
+    "lorebooksTitle": "Your Lorebooks and Compendiums",
+    "lorebooksEmpty": "No setting guides or compendiums uploaded yet. Upload a setting sourcebook or bestiary PDF below.",
+    "docTypeScenario": "Scenario",
+    "docTypeSetting": "Setting Guide",
+    "docTypeCompendium": "Compendium / Almanac",
+    "attachedLorebooksLabel": "Attached sourcebooks & compendiums:",
+    "attachLorebookButton": "Attach to adventure",
+    "detachLorebookButton": "Detach",
+    "attachedBadge": "Attached to investigation",
+    "loreRegionLabel": "Region / Domain:",
+    "loreFactionsCount": "Factions: {count}",
+    "loreLocationsCount": "Locations: {count}",
+    "loreEntitiesCount": "Beasts / Spells: {count}"
   },
+
   "CharacterDevelopmentPanel": {
     "defaultTraumaDescription": "Trauma of type {type}",
     "noSpecialEffects": "No special effects",

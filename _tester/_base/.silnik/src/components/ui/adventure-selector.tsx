@@ -34,7 +34,11 @@ import {
   Clock,
   Tv,
   ExternalLink,
+  Book,
+  Library,
+  BookmarkCheck,
 } from 'lucide-react';
+
 import { AdventureDetailsModal } from './adventure-details-modal';
 import { localizeStrefa11Adventure } from '@/lib/immersion/strefa-11-localization';
 
@@ -60,6 +64,7 @@ interface AdventureSelectorProps {
   customAdventures?: CustomAdventure[];
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
+  onToggleAttachLorebook?: (adventureId: string, lorebookId: string) => Promise<void>;
   isUploading?: boolean;
   uploadProgress?: number;
   loadingStatus?: string;
@@ -72,6 +77,7 @@ export function AdventureSelector({
   customAdventures = [],
   onUploadAdventure,
   onDeleteAdventure,
+  onToggleAttachLorebook,
   isUploading = false,
   uploadProgress = 0,
   loadingStatus = '',
@@ -83,12 +89,24 @@ export function AdventureSelector({
     () => STREFA_11_ADVENTURES.map((adventure) => localizeStrefa11Adventure(adventure, locale)),
     [locale]
   );
+  const [activeTab, setActiveTab] = useState<'scenarios' | 'lorebooks'>('scenarios');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [detailsAdventure, setDetailsAdventure] =
     useState<AdventureContext | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Podział własnych materiałów na scenariusze śledcze i księgi wiedzy / kompendia
+  const customScenarios = useMemo(
+    () => customAdventures.filter((a) => !a.documentType || a.documentType === 'scenario'),
+    [customAdventures]
+  );
+  const customLorebooks = useMemo(
+    () => customAdventures.filter((a) => a.documentType === 'setting' || a.documentType === 'compendium'),
+    [customAdventures]
+  );
+
 
   // Custom adventure form state
   const [customTitle, setCustomTitle] = useState('');
@@ -253,6 +271,12 @@ export function AdventureSelector({
             {adventure.title}
           </h3>
           <div className="flex shrink-0 items-center gap-2">
+            {adventure.documentType && adventure.documentType !== 'scenario' && (
+              <span className="inline-flex items-center gap-1 border border-amber-500/40 bg-amber-950/40 px-2 py-0.5 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-300">
+                <Book className="h-3 w-3 text-amber-400" />
+                {adventure.documentType === 'setting' ? t('docTypeSetting') : t('docTypeCompendium')}
+              </span>
+            )}
             <span
               className={`inline-flex items-center gap-1.5 border border-brass/35 px-2 py-0.5 font-display text-xs uppercase tracking-[0.08em] ${toneStyle.color}`}
             >
@@ -286,12 +310,21 @@ export function AdventureSelector({
             <MapPin className="h-3.5 w-3.5 text-brass/70 shrink-0" />
             {adventure.location}
           </span>
+          {adventure.lorebookData?.regionOrTheme && (
+            <>
+              <span className="text-brass/40 not-italic">·</span>
+              <span className="text-amber-200/80 font-sans text-xs not-italic">
+                {t('loreRegionLabel')} {adventure.lorebookData.regionOrTheme}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Hook - klimatyczna zajawka (2 linijki) */}
         <p className="mb-3 line-clamp-2 font-serif text-base italic leading-relaxed text-foreground/80">
           {adventure.hook}
         </p>
+
 
         {/* Footer */}
         <div className="flex items-center justify-between font-display text-xs uppercase tracking-wider text-muted-foreground border-t border-brass/15 pt-2.5">
@@ -385,52 +418,125 @@ export function AdventureSelector({
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold" />
           </div>
 
+          {/* Pasek zakładek Dark Art Déco: Scenariusze vs Lorebooki */}
+          {!showCustomForm && (
+            <div className="mt-4 flex items-center justify-center gap-2 border-b border-brass/25 pb-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('scenarios')}
+                className={`flex items-center gap-2 px-4 py-2 font-display text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
+                  activeTab === 'scenarios'
+                    ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-[0_0_12px_rgba(13,148,136,0.2)]'
+                    : 'text-muted-foreground hover:text-brass hover:bg-brass/5'
+                }`}
+              >
+                <Library className="h-4 w-4" />
+                {t('tabScenarios')}
+                <span className="font-special-elite text-xs text-brass/70">
+                  ({(SHOW_BUILT_IN_ADVENTURES ? BUILT_IN_ADVENTURES.length : 0) + strefa11Adventures.length + customScenarios.length})
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('lorebooks')}
+                className={`flex items-center gap-2 px-4 py-2 font-display text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
+                  activeTab === 'lorebooks'
+                    ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-[0_0_12px_rgba(13,148,136,0.2)]'
+                    : 'text-muted-foreground hover:text-brass hover:bg-brass/5'
+                }`}
+              >
+                <Book className="h-4 w-4" />
+                {t('tabLorebooks')}
+                <span className="font-special-elite text-xs text-brass/70">
+                  ({customLorebooks.length})
+                </span>
+              </button>
+            </div>
+          )}
+
           {!showCustomForm ? (
             <>
-              {/* Instrukcja trybu publicznego: brak gotowych scenariuszy -
-                  gracz wnosi własny PDF (np. darmowy starter z Black Monk).
-                  Gatowane !SHOW_BUILT_IN_ADVENTURES, więc nieobecne w trybie pełnym. */}
-              {!SHOW_BUILT_IN_ADVENTURES && ALLOW_CUSTOM_ADVENTURES && (
-                <div className="mt-4 flex items-start gap-3 border border-amber-500/40 bg-amber-900/20 p-3">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-                  <div className="space-y-1 font-serif text-base italic leading-relaxed text-amber-200/90">
-                    <p>
-                      {t.rich('publicModeInfo1', {
-                        strong: (chunks) => <strong>{chunks}</strong>,
-                      })}
-                    </p>
-                    <p>
-                      {t.rich('publicModeInfo2', {
-                        strong: (chunks) => <strong>{chunks}</strong>,
-                      })}
-                    </p>
-                    <p className="text-amber-200/70">
-                      {t('publicModeInfo3')}
+              {/* ZAKŁADKA 2: KSIĘGI WIEDZY I LOREBOOKI */}
+              {activeTab === 'lorebooks' && (
+                <div className="mt-4">
+                  <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
+                    <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-amber-300 font-bold">
+                      <Book className="h-4 w-4 text-amber-400 shrink-0" />
+                      {t('lorebooksTitle')}
+                    </div>
+                    <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
+                      Przewodniki regionalne (*Cienie Tatr*, *Horror nad Wartą*), bestiariusze (*Malleus Monstrorum*) oraz grymuary magii wzbogacają tło sesji i stanowią kompendium wiedzy dla Mistrza Gry.
                     </p>
                   </div>
+
+                  {customLorebooks.length === 0 ? (
+                    <div className="border border-dashed border-brass/35 p-6 text-center">
+                      <p className="font-serif text-sm italic text-muted-foreground">
+                        {t('lorebooksEmpty')}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      {customLorebooks.map((lorebook) => (
+                        <AdventureCard
+                          key={lorebook.id}
+                          adventure={lorebook}
+                          isCustom
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Własne przygody (ukryte w becie) */}
-              {ALLOW_CUSTOM_ADVENTURES && customAdventures.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="mb-3 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                    {t('yourAdventures')}
-                    <span className="font-special-elite text-[14px] tracking-[0.1em] text-muted-foreground">
-                      ({customAdventures.length})
-                    </span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    {customAdventures.map((adventure) => (
-                      <AdventureCard
-                        key={adventure.id}
-                        adventure={adventure}
-                        isCustom
-                      />
-                    ))}
-                  </div>
-                </div>
+              {/* ZAKŁADKA 1: SCENARIUSZE ŚLEDCZE */}
+              {activeTab === 'scenarios' && (
+                <>
+                  {/* Instrukcja trybu publicznego: brak gotowych scenariuszy */}
+                  {!SHOW_BUILT_IN_ADVENTURES && ALLOW_CUSTOM_ADVENTURES && (
+                    <div className="mt-4 flex items-start gap-3 border border-amber-500/40 bg-amber-900/20 p-3">
+                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                      <div className="space-y-1 font-serif text-base italic leading-relaxed text-amber-200/90">
+                        <p>
+                          {t.rich('publicModeInfo1', {
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                          })}
+                        </p>
+                        <p>
+                          {t.rich('publicModeInfo2', {
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                          })}
+                        </p>
+                        <p className="text-amber-200/70">
+                          {t('publicModeInfo3')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Własne scenariusze */}
+                  {ALLOW_CUSTOM_ADVENTURES && customScenarios.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="mb-3 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                        {t('yourAdventures')}
+                        <span className="font-special-elite text-[14px] tracking-[0.1em] text-muted-foreground">
+                          ({customScenarios.length})
+                        </span>
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {customScenarios.map((adventure) => (
+                          <AdventureCard
+                            key={adventure.id}
+                            adventure={adventure}
+                            isCustom
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
+
 
               {/* Przycisk wgrania nowej przygody z klimatycznym mosiężnym paskiem postępu */}
               {ALLOW_CUSTOM_ADVENTURES && onUploadAdventure && (
@@ -487,76 +593,79 @@ export function AdventureSelector({
                 </div>
               )}
 
-              {/* Wbudowane autorskie scenariusze inspirowane Strefą 11 */}
-              <div>
-                <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
-                  <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
-                    <Tv className="h-4 w-4 text-primary shrink-0" />
-                    {t('strefa11Header')}
+              {/* Wbudowane autorskie scenariusze inspirowane Strefą 11 oraz gotowe scenariusze (tylko w zakładce Scenariusze) */}
+              {activeTab === 'scenarios' && (
+                <div>
+                  <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
+                    <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
+                      <Tv className="h-4 w-4 text-primary shrink-0" />
+                      {t('strefa11Header')}
+                    </div>
+                    <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
+                      {t('strefa11Desc')}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-serif italic text-brass/80">
+                      <span className="inline-flex items-center gap-1 font-display uppercase tracking-wider text-brass font-semibold not-italic text-[11px]">
+                        <ExternalLink className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+                        {t('learnMore')}
+                      </span>
+                      <a href="https://pl.wikipedia.org/wiki/Nie_do_wiary" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wikipedia ↗</a>
+                      <span>·</span>
+                      <a href="https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Filmweb ↗</a>
+                      <span>·</span>
+                      <a href="https://player.pl" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Player.pl (TVN) ↗</a>
+                    </div>
                   </div>
-                  <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
-                    {t('strefa11Desc')}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-serif italic text-brass/80">
-                    <span className="inline-flex items-center gap-1 font-display uppercase tracking-wider text-brass font-semibold not-italic text-[11px]">
-                      <ExternalLink className="h-3.5 w-3.5 text-brass/70 shrink-0" />
-                      {t('learnMore')}
-                    </span>
-                    <a href="https://pl.wikipedia.org/wiki/Nie_do_wiary" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wikipedia ↗</a>
-                    <span>·</span>
-                    <a href="https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Filmweb ↗</a>
-                    <span>·</span>
-                    <a href="https://player.pl" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Player.pl (TVN) ↗</a>
-                  </div>
-                </div>
 
-                <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                  {t('strefa11SelectTitle')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {strefa11Adventures.map((adventure) => (
-                    <AdventureCard key={adventure.id} adventure={adventure} />
-                  ))}
-                </div>
-
-                <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                  {t('selectScenarioTitle')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Wbudowane scenariusze tylko w trybie pełnym/prywatnym */}
-                  {SHOW_BUILT_IN_ADVENTURES &&
-                    BUILT_IN_ADVENTURES.map((adventure) => (
+                  <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                    {t('strefa11SelectTitle')}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {strefa11Adventures.map((adventure) => (
                       <AdventureCard key={adventure.id} adventure={adventure} />
                     ))}
+                  </div>
 
-                  {/* Własna przygoda bez PDF */}
-                  {ALLOW_CUSTOM_ADVENTURES && (
-                    <button
-                      onClick={() => handleSelect(CUSTOM_ADVENTURE_TEMPLATE, false)}
-                      className={`p-4 text-left transition-all duration-300 ${
-                        selectedId === 'custom'
-                          ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
-                          : 'border border-dashed border-brass/35 bg-[#1f1a14]/40 hover:border-brass/60'
-                      }`}
-                    >
-                      <div className="mb-2 flex items-center gap-3">
-                        <span className="text-3xl text-primary">✶</span>
-                        <div>
-                          <h3 className="font-display text-base font-semibold uppercase tracking-[0.06em] text-foreground">
-                            {t('customCardTitle')}
-                          </h3>
-                          <p className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-                            {t('customCardSubtitle')}
-                          </p>
+                  <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                    {t('selectScenarioTitle')}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Wbudowane scenariusze tylko w trybie pełnym/prywatnym */}
+                    {SHOW_BUILT_IN_ADVENTURES &&
+                      BUILT_IN_ADVENTURES.map((adventure) => (
+                        <AdventureCard key={adventure.id} adventure={adventure} />
+                      ))}
+
+                    {/* Własna przygoda bez PDF */}
+                    {ALLOW_CUSTOM_ADVENTURES && (
+                      <button
+                        onClick={() => handleSelect(CUSTOM_ADVENTURE_TEMPLATE, false)}
+                        className={`p-4 text-left transition-all duration-300 ${
+                          selectedId === 'custom'
+                            ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
+                            : 'border border-dashed border-brass/35 bg-[#1f1a14]/40 hover:border-brass/60'
+                        }`}
+                      >
+                        <div className="mb-2 flex items-center gap-3">
+                          <span className="text-3xl text-primary">✶</span>
+                          <div>
+                            <h3 className="font-display text-base font-semibold uppercase tracking-[0.06em] text-foreground">
+                              {t('customCardTitle')}
+                            </h3>
+                            <p className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
+                              {t('customCardSubtitle')}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <p className="font-serif text-base italic text-muted-foreground">
-                        {t('customCardDesc')}
-                      </p>
-                    </button>
-                  )}
+                        <p className="font-serif text-base italic text-muted-foreground">
+                          {t('customCardDesc')}
+                        </p>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
+
 
               {/* Szczegóły wybranej przygody */}
               {selectedAdventure && !selectedAdventure.isCustom && (
@@ -618,8 +727,80 @@ export function AdventureSelector({
                   </p>
                 </div>
               )}
+
+              {/* Podpinanie Lorebooków i Kompendiów do wybranej przygody */}
+              {selectedAdventure && customLorebooks.length > 0 && (
+
+                <div className="relative mt-6 border border-brass/30 bg-card p-4">
+                  <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
+                  <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
+                      <Book className="h-4 w-4 text-amber-400" />
+                      {t('attachedLorebooksLabel')}
+                    </h4>
+                    <span className="font-special-elite text-xs text-muted-foreground">
+                      ({selectedAdventure.attachedLorebookIds?.length || 0} podpięte)
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {customLorebooks.map((lorebook) => {
+                      const isAttached = Boolean(
+                        selectedAdventure.attachedLorebookIds?.includes(lorebook.id)
+                      );
+                      return (
+                        <div
+                          key={lorebook.id}
+                          className={`flex items-center justify-between p-3 border transition-colors ${
+                            isAttached
+                              ? 'border-amber-500/50 bg-amber-950/20'
+                              : 'border-brass/20 bg-[#120f0c]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-amber-400">
+                              {lorebook.documentType === 'compendium' ? '📜' : '🗺️'}
+                            </span>
+                            <div>
+                              <div className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+                                {lorebook.title}
+                                {isAttached && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider bg-amber-500/20 text-amber-300 px-1.5 py-0.2 border border-amber-500/40 rounded">
+                                    <BookmarkCheck className="h-3 w-3" />
+                                    {t('attachedBadge')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="font-serif text-xs italic text-muted-foreground">
+                                {lorebook.lorebookData?.regionOrTheme || lorebook.location}
+                              </div>
+                            </div>
+                          </div>
+
+                          {selectedAdventure.isCustom && onToggleAttachLorebook && (
+                            <Button
+                              type="button"
+                              variant={isAttached ? 'destructive' : 'outline'}
+                              size="sm"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await onToggleAttachLorebook(selectedAdventure.id, lorebook.id);
+                              }}
+                              className="font-display text-xs uppercase tracking-wider"
+                            >
+                              {isAttached ? t('detachLorebookButton') : t('attachLorebookButton')}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           ) : (
+
             /* Formularz własnej przygody (bez PDF) */
             <div className="mt-4 space-y-4">
               <div className="relative border border-brass/30 bg-card p-4">

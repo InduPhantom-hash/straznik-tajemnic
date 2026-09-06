@@ -7,6 +7,8 @@ import type {
   AdventureClue,
   GraphConnection
 } from '@/lib/types';
+import type { DocumentType, LorebookData } from '@/types/adventure';
+
 
 /**
  * API do analizy PDF przygody przez Gemini AI
@@ -14,30 +16,36 @@ import type {
  * Wspiera wykrywanie WIELU przygód w jednym PDF
  */
 
-const ANALYSIS_PROMPT = `Przeanalizuj ten scenariusz do gry RPG "Zew Cthulhu" (Call of Cthulhu).
+const ANALYSIS_PROMPT = `Przeanalizuj ten dokument do gry fabularnej RPG "Zew Cthulhu" (Call of Cthulhu 7ed).
+
+**KROK 1: KLASYFIKACJA TYPU DOKUMENTU (documentType)**
+Określ, z jakim rodzajem materiału mamy do czynienia:
+1. "scenario" - Scenariusz / Przygoda śledcza (np. gotowy one-shot, intryga, węzły poszlak, sceny, agendy BN-ów, finał). Może zawierać jedną lub wiele przygód.
+2. "setting" - Przewodnik regionalny / Lorebook / Tło świata (np. "Cienie Tatr", "Horror nad Wartą", "Berlin", przewodnik po mieście/epoce). Zawiera faktografię, opis dzielnic, frakcji, atmosfery, instytucji, bez pojedynczego linearnego scenariusza.
+3. "compendium" - Almanach / Bestiariusz / Grymuar regułowy (np. "Malleus Monstrorum", "Wielki Grymuar Magii"). Zawiera profile bestii, bóstw, katalog zaklęć, rytuałów, ksiąg i specyficznych zasad RAW.
 
 **KRYTYCZNE INSTRUKCJE:**
-1. Ten PDF może zawierać WIELE ODDZIELNYCH PRZYGÓD (np. antologia, zbiór scenariuszy).
-2. Każda przygoda to OSOBNY scenariusz z własnym tytułem, fabułą i lokalizacją.
-3. NIE łącz tytułów przygód - każdy tytuł musi być osobno!
-4. Szukaj nagłówków typu "Scenariusz:", "Przygoda:", spisu treści, lub wyraźnych podziałów.
-5. Jeśli plik zawiera tylko jeden scenariusz, ustaw multipleAdventures na false.
+1. Jeśli dokument to "scenario": PDF może zawierać WIELE ODDZIELNYCH PRZYGÓD (np. antologia). Każda przygoda to OSOBNY obiekt w tablicy "adventures".
+2. Jeśli dokument to "setting" lub "compendium": utwórz dokładnie jeden wpis w "adventures", reprezentujący całe kompendium/przewodnik. W polu "documentType" wpisz "setting" lub "compendium", a w "lorebookData" wyekstrahuj esencję wiedzy.
+3. NIE łącz tytułów przygód ani nie używaj nazwy pliku jako tytułu.
 
-Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy, bez tekstu przed/po JSON):
+Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy):
 
 {
+  "documentType": "scenario|setting|compendium",
   "multipleAdventures": true/false,
-  "totalCount": liczba_przygód,
+  "totalCount": liczba_elementów,
   "adventures": [
     {
-      "title": "DOKŁADNY tytuł przygody (NIE nazwa pliku!)",
-      "location": "Główna lokalizacja (miasto, region)",
-      "country": "Kraj",
-      "era": "classic|gaslight|modern",
+      "documentType": "scenario|setting|compendium",
+      "title": "DOKŁADNY oficjalny tytuł dzieła lub przygody",
+      "location": "Główna lokalizacja (miasto, region, lub 'Globalne / Różne')",
+      "country": "Kraj (lub 'Różne')",
+      "era": "classic|gaslight|modern|custom",
       "eraLabel": "Czytelna nazwa ery (np. 'Klasyczne lata 20.')",
-      "yearRange": "Zakres lat (np. '1923-1925')",
-      "hook": "BEZSPOILEROWE wprowadzenie 2-3 zdania - zajawka klimatu przyciągająca gracza, BEZ zdradzania rozwiązania",
-      "description": "BEZSPOILEROWY opis 3-4 zdania - sytuacja wyjściowa i ton, BEZ zakończenia",
+      "yearRange": "Zakres lat (np. '1923-1925' lub '1920-1929')",
+      "hook": "BEZSPOILEROWE wprowadzenie 2-3 zdania - zajawka klimatu przyciągająca gracza",
+      "description": "BEZSPOILEROWY opis 3-4 zdania - sytuacja wyjściowa, motyw przewodni lub streszczenie kompendium",
       "tone": "purist|pulp|noir",
       "themes": ["motyw1", "motyw2", "motyw3"],
       "suggestedOccupations": ["zawód1", "zawód2", "zawód3"],
@@ -58,19 +66,33 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy, bez tekstu 
         "connections": [
           { "fromId": "npc-1", "toId": "loc-1", "description": "Przebywa tutaj wieczorami" }
         ]
+      },
+      "lorebookData": {
+        "regionOrTheme": "Główny region lub domena (np. 'Małopolska i Tatry' lub 'Bestie i Bóstwa Mitów')",
+        "summary": "Kluczowa synteza zawartości tła (do 150 słów)",
+        "factions": [
+          { "id": "fac-1", "name": "Nazwa frakcji/sekty/policji", "influence": "Zasięg i siła", "agenda": "Główny cel jawny i ukryty" }
+        ],
+        "locations": [
+          { "id": "setloc-1", "name": "Nazwa miejsca", "districtOrRegion": "Dzielnica/Region", "atmosphere": "Klimat", "sensoryDetails": "Dźwięki, zapachy, koloryt" }
+        ],
+        "compendiumEntities": [
+          { "id": "ent-1", "name": "Nazwa potwora/zaklęcia", "category": "monster|deity|spell|ritual|artifact|rule", "summary": "Opis i działanie", "sanityLoss": "np. 1/1d8", "magicCost": "np. 3 PM" }
+        ],
+        "rawLoreSnippets": ["Ważny fakt o świecie 1", "Ważny fakt o świecie 2"]
       }
     }
   ]
 }
 
 WAŻNE:
-- Jeśli znajdziesz wiele przygód, KAŻDA musi mieć OSOBNY obiekt w tablicy "adventures"
-- "title" to oficjalny tytuł przygody z PDF, NIE nazwa pliku
-- NIGDY nie łącz kilku tytułów w jeden string!
-- "graph" to ZINTEGROWANA MAPA MYŚLI (Siatka Zależności). Musisz wyekstrahować wszystkie istotne postacie (NPC), lokacje i poszlaki.
-- Bądź niezwykle skrupulatny. "graph" to baza wiedzy dla Mistrza Gry i MOŻE zawierać spoilery (sprawca, zwroty akcji). Pamiętaj by każdemu elementowi nadać unikalne "id" (np. "npc-1", "loc-3") i użyć ich w "connections", żeby zmapować relacje (kto wie co, co jest gdzie).`;
+- Dla dokumentu typu "scenario" skup się na "graph" (NPC, lokacje, poszlaki, relacje).
+- Dla dokumentu typu "setting" lub "compendium" skup się na "lorebookData" (frakcje, specyfika świata, encje bestiariusza/magii).
+- "title" to oficjalny tytuł z PDF, NIGDY nazwa pliku.`;
+
 
 interface AdventureRaw {
+  documentType?: DocumentType;
   title?: string;
   location?: string;
   country?: string;
@@ -87,7 +109,59 @@ interface AdventureRaw {
   difficulty?: string;
   pageStart?: number | null;
   graph?: Partial<AdventureGraph>;
+  lorebookData?: Partial<LorebookData>;
 }
+
+const validateLorebookData = (
+  raw: unknown,
+  docType: DocumentType,
+  title: string
+): LorebookData | undefined => {
+  if (docType === 'scenario') return undefined;
+  const rawObj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+
+  return {
+    id: `lore-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    title,
+    documentType: docType as 'setting' | 'compendium',
+    regionOrTheme: String(rawObj.regionOrTheme || 'Świat Zewu Cthulhu'),
+    summary: String(rawObj.summary || 'Księga wiedzy i tła fabularnego.'),
+    factions: Array.isArray(rawObj.factions)
+      ? rawObj.factions.map((f: Record<string, unknown>, idx: number) => ({
+          id: String(f.id || `fac-${idx + 1}`),
+          name: String(f.name || 'Nieznana frakcja'),
+          influence: String(f.influence || ''),
+          agenda: String(f.agenda || ''),
+        }))
+      : [],
+    locations: Array.isArray(rawObj.locations)
+      ? rawObj.locations.map((l: Record<string, unknown>, idx: number) => ({
+          id: String(l.id || `setloc-${idx + 1}`),
+          name: String(l.name || 'Lokacja tła'),
+          districtOrRegion: String(l.districtOrRegion || ''),
+          atmosphere: String(l.atmosphere || ''),
+          sensoryDetails: String(l.sensoryDetails || ''),
+        }))
+      : [],
+    compendiumEntities: Array.isArray(rawObj.compendiumEntities)
+      ? rawObj.compendiumEntities.map((e: Record<string, unknown>, idx: number) => ({
+          id: String(e.id || `ent-${idx + 1}`),
+          name: String(e.name || 'Byt / Zaklęcie'),
+          category: (['monster', 'deity', 'spell', 'ritual', 'artifact', 'rule'].includes(
+            String(e.category)
+          )
+            ? e.category
+            : 'rule') as 'monster' | 'deity' | 'spell' | 'ritual' | 'artifact' | 'rule',
+          summary: String(e.summary || ''),
+          sanityLoss: e.sanityLoss ? String(e.sanityLoss) : undefined,
+          magicCost: e.magicCost ? String(e.magicCost) : undefined,
+        }))
+      : [],
+    rawLoreSnippets: Array.isArray(rawObj.rawLoreSnippets)
+      ? rawObj.rawLoreSnippets.map((s: unknown) => String(s))
+      : [],
+  };
+};
 
 const validateGraph = (raw: unknown): AdventureGraph | null => {
   if (!raw || typeof raw !== 'object') return null;
@@ -296,39 +370,63 @@ export async function POST(request: NextRequest) {
     }
 
     // Walidacja i uzupełnienie brakujących pól dla każdej przygody
-    const validateAdventure = (data: AdventureRaw, index: number) => ({
-      title:
-        data.title || `${fileName.replace('.pdf', '')} - Przygoda ${index + 1}`,
-      location: data.location || 'Nieznana lokalizacja',
-      country: data.country!.trim(),
-      era:
-        data.era && ['classic', 'gaslight', 'modern'].includes(data.era)
-          ? data.era
-          : 'custom',
-      eraLabel:
-        data.eraLabel || `${data.yearRange!.trim()}, ${data.country!.trim()}`,
-      yearRange: data.yearRange!.trim(),
-      hook: data.hook || 'Tajemnicza przygoda czeka na odkrycie...',
-      description: data.description || data.hook || '',
-      tone:
-        data.tone && ['purist', 'pulp', 'noir'].includes(data.tone)
-          ? data.tone
-          : 'purist',
-      themes: Array.isArray(data.themes)
-        ? data.themes.slice(0, 5)
-        : ['tajemnica'],
-      suggestedOccupations: Array.isArray(data.suggestedOccupations)
-        ? data.suggestedOccupations.slice(0, 5)
-        : ['detektyw'],
-      playerCount: data.playerCount || '1-4',
-      estimatedSessions: data.estimatedSessions || '2-3',
-      difficulty:
-        data.difficulty && ['easy', 'normal', 'hard'].includes(data.difficulty)
-          ? data.difficulty
-          : 'normal',
-      pageStart: data.pageStart || null,
-      graph: validateGraph(data.graph),
-    });
+    const validateAdventure = (data: AdventureRaw, index: number) => {
+      const docType: DocumentType =
+        data.documentType && ['scenario', 'setting', 'compendium'].includes(data.documentType)
+          ? data.documentType
+          : 'scenario';
+      const title =
+        data.title ||
+        `${fileName.replace('.pdf', '')} - ${
+          docType === 'scenario'
+            ? `Przygoda ${index + 1}`
+            : docType === 'setting'
+            ? 'Przewodnik regionalny'
+            : 'Kompendium wiedzy'
+        }`;
+
+      return {
+        documentType: docType,
+        title,
+        location: data.location || (docType === 'compendium' ? 'Wiedza ogólna' : 'Nieznana lokalizacja'),
+        country: data.country!.trim(),
+        era:
+          data.era && ['classic', 'gaslight', 'modern'].includes(data.era)
+            ? data.era
+            : 'custom',
+        eraLabel:
+          data.eraLabel || `${data.yearRange!.trim()}, ${data.country!.trim()}`,
+        yearRange: data.yearRange!.trim(),
+        hook:
+          data.hook ||
+          (docType === 'setting'
+            ? 'Regionalne tło i atmosfera dla Twoich śledztw...'
+            : docType === 'compendium'
+            ? 'Księga wiedzy, bestiariusz i arkana magii Mitów Cthulhu...'
+            : 'Tajemnicza przygoda czeka na odkrycie...'),
+        description: data.description || data.hook || '',
+        tone:
+          data.tone && ['purist', 'pulp', 'noir'].includes(data.tone)
+            ? data.tone
+            : 'purist',
+        themes: Array.isArray(data.themes)
+          ? data.themes.slice(0, 5)
+          : [docType === 'compendium' ? 'bestiariusz' : docType === 'setting' ? 'przewodnik' : 'tajemnica'],
+        suggestedOccupations: Array.isArray(data.suggestedOccupations)
+          ? data.suggestedOccupations.slice(0, 5)
+          : ['detektyw'],
+        playerCount: data.playerCount || '1-4',
+        estimatedSessions: data.estimatedSessions || (docType === 'scenario' ? '2-3' : '—'),
+        difficulty:
+          data.difficulty && ['easy', 'normal', 'hard'].includes(data.difficulty)
+            ? data.difficulty
+            : 'normal',
+        pageStart: data.pageStart || null,
+        graph: validateGraph(data.graph),
+        lorebookData: validateLorebookData(data.lorebookData, docType, title),
+      };
+    };
+
 
     // Funkcje pomocnicze do integracji z zewnętrznymi API (pogoda, geokodowanie i historyczna mapa)
     const fetchCoords = async (location: string, country: string): Promise<{ lat: number; lon: number } | null> => {

@@ -6120,8 +6120,24 @@
     "backToList": "← Wróć do listy przygód",
     "cancel": "Anuluj",
     "useThisAdventure": "Użyj tej przygody",
-    "chooseAndContinue": "Wybierz i kontynuuj →"
+    "chooseAndContinue": "Wybierz i kontynuuj →",
+    "tabScenarios": "Scenariusze śledcze",
+    "tabLorebooks": "Księgi wiedzy i tła (Lore)",
+    "lorebooksTitle": "Twoje Lorebooki i Kompendia",
+    "lorebooksEmpty": "Nie wgrano jeszcze przewodników regionalnych ani kompendiów. Wgraj plik PDF podręcznika tła lub bestiariusza poniżej.",
+    "docTypeScenario": "Scenariusz",
+    "docTypeSetting": "Przewodnik regionalny",
+    "docTypeCompendium": "Kompendium / Almanach",
+    "attachedLorebooksLabel": "Podpięte księgi tła i kompendia:",
+    "attachLorebookButton": "Dołącz do przygody",
+    "detachLorebookButton": "Odłącz",
+    "attachedBadge": "Podpięte do śledztwa",
+    "loreRegionLabel": "Obszar / Domena:",
+    "loreFactionsCount": "Frakcje: {count}",
+    "loreLocationsCount": "Lokacje: {count}",
+    "loreEntitiesCount": "Bestie / Zaklęcia: {count}"
   },
+
   "CharacterDevelopmentPanel": {
     "defaultTraumaDescription": "Trauma typu {type}",
     "noSpecialEffects": "Brak szczególnych efektów",

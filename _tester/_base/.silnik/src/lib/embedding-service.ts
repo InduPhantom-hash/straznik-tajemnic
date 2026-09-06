@@ -216,12 +216,7 @@ class EmbeddingService {
       return null;
     } catch (localErr) {
       console.error('❌ [LocalEmbeddings] Błąd generowania lokalnego embeddingu:', localErr);
-      // Jeśli lokalny pipeline zawiedzie, a mamy klucz API w środowisku lub parametrze, spróbuj fallbacku
-      const key = apiKey || this.apiKey || process.env.GEMINI_API_KEY;
-      if (key) {
-        console.warn('⚠️ [LocalEmbeddings] Próba awaryjnego fallbacku na Gemini...');
-        return this.generateGeminiEmbedding(text, taskType, key);
-      }
+      // Bezpieczna degradacja: zwracamy null, aby nie mieszać wymiarów i przestrzeni wektorowej
       return null;
     }
   }

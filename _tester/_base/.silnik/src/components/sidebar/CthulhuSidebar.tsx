@@ -96,9 +96,11 @@ interface CthulhuSidebarProps {
   customAdventures?: CustomAdventure[];
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
+  onToggleAttachLorebook?: (adventureId: string, lorebookId: string) => Promise<void>;
   isUploadingAdventure?: boolean;
   uploadProgressAdventure?: number;
   loadingStatusAdventure?: string;
+
   // Hot Seat config - potrzebny dla wspólnego dziennika (sharedJournal)
   hotSeatConfig?: HotSeatConfig;
   onSwitchPlayer?: (index: number) => void;
@@ -144,9 +146,11 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   customAdventures,
   onUploadAdventure,
   onDeleteAdventure,
+  onToggleAttachLorebook,
   isUploadingAdventure,
   uploadProgressAdventure = 0,
   loadingStatusAdventure = '',
+
   hotSeatConfig,
   aiSettings,
   onUpdateAISettings,
@@ -834,10 +838,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         customAdventures={customAdventures}
         onUploadAdventure={onUploadAdventure}
         onDeleteAdventure={onDeleteAdventure}
+        onToggleAttachLorebook={onToggleAttachLorebook}
         isUploading={isUploadingAdventure}
         uploadProgress={uploadProgressAdventure}
         loadingStatus={loadingStatusAdventure}
       />
+
       <HandoutGenerator
         open={showHandoutGenerator}
         onClose={() => setShowHandoutGenerator(false)}
