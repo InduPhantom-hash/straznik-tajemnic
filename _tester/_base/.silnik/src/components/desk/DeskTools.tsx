@@ -149,7 +149,7 @@ export const DeskTools: FC<DeskToolsProps> = ({
               <div className="flex items-start gap-4">
                   {/* Portrait - Paperclip style */}
                   <div className="relative transform -rotate-2 shadow-md">
-                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-8 bg-zinc-400 rounded-full border-2 border-zinc-500 z-10"></div>
+                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-8 bg-brass/70 rounded-full border-2 border-brass z-10"></div>
                      {activeCharacter.portraitUrl ? (
                          <SafeImage src={activeCharacter.portraitUrl} className="w-20 h-20 object-cover border-4 border-white sepia-[0.3]" alt="Badacz" />
                      ) : (

@@ -472,12 +472,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                         <span className="truncate">{item.label}</span>
                       </span>
                       {isEquipment && currentEquipmentLength > seenEquipmentCount && (
-                        <span className="ml-2 text-[10px] font-bold uppercase rounded bg-emerald-500 text-black px-1.5 py-0.5 animate-pulse shadow shrink-0">
+                        <span className="ml-2 text-[10px] font-bold uppercase rounded bg-primary text-primary-foreground px-1.5 py-0.5 animate-pulse shadow shrink-0">
                           {t('newBadge')}
                         </span>
                       )}
                       {isJournal && unseenJournalCount > 0 && (
-                        <span className="ml-2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-red-500 text-white shrink-0 shadow">
+                        <span className="ml-2 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-destructive text-destructive-foreground shrink-0 shadow">
                           {unseenJournalCount > 99 ? '99+' : unseenJournalCount}
                         </span>
                       )}
@@ -490,16 +490,16 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   isSessionEnded || sessionEndStatus === 'ended' ? (
                     <Button
                       variant="outline"
-                      className="w-full flex items-center justify-between border-amber-500/60 font-special-elite tracking-wide text-amber-300 bg-amber-950/20 hover:bg-amber-900/30 hover:border-amber-400 hover:text-amber-200 animate-pulse px-3 py-2 text-left"
+                      className="w-full flex items-center justify-between border-brass/60 font-special-elite tracking-wide text-brass bg-brass/10 hover:bg-brass/20 hover:border-brass hover:text-foreground animate-pulse px-3 py-2 text-left"
                       onClick={onOpenDevelopmentPhase}
                       title={t('developmentPhaseReadyTitle')}
                     >
                       <span className="flex items-center gap-3 min-w-0 truncate">
-                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <Sparkles className="w-4 h-4 text-brass shrink-0" />
                         <span className="truncate">{t('developmentPhaseReady')}</span>
                       </span>
                       {markedSkillsCount > 0 && (
-                        <span className="ml-2 bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0 shadow">
+                        <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0 shadow">
                           {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
                         </span>
                       )}
@@ -508,16 +508,16 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                     <Button
                       disabled
                       variant="ghost"
-                      className="w-full flex items-center justify-between border border-zinc-800/60 font-special-elite tracking-wide text-zinc-500 bg-zinc-900/40 opacity-60 cursor-not-allowed px-3 py-2 text-left"
+                      className="w-full flex items-center justify-between border border-border/60 font-special-elite tracking-wide text-muted-foreground/60 bg-muted/40 opacity-60 cursor-not-allowed px-3 py-2 text-left"
                       title={t('developmentPhaseLockedTitle')}
                     >
                       <span className="flex items-center gap-3 min-w-0 truncate">
-                        <Lock className="w-4 h-4 text-zinc-600 shrink-0" />
+                        <Lock className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                         <span className="truncate">{t('developmentPhaseLocked')}</span>
                       </span>
                       {markedSkillsCount > 0 && (
                         <span
-                          className="ml-2 bg-zinc-700 text-zinc-300 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0"
+                          className="ml-2 bg-muted text-muted-foreground text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0 border border-border/40"
                           title={t('markedSkillsBadgeTooltip', { count: markedSkillsCount })}
                         >
                           {markedSkillsCount > 99 ? '99+' : markedSkillsCount}
@@ -534,20 +534,20 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full h-auto min-h-10 py-2 px-3 border-zinc-700 text-zinc-400 bg-zinc-900/50 opacity-70 cursor-not-allowed font-special-elite text-xs whitespace-normal flex items-center justify-center gap-2"
+                    className="w-full h-auto min-h-10 py-2 px-3 border-border text-muted-foreground bg-muted/30 opacity-70 cursor-not-allowed font-special-elite text-xs whitespace-normal flex items-center justify-center gap-2"
                     title={t('sessionClosedTitle')}
                   >
-                    <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
+                    <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <span className="leading-tight">{t('sessionClosed')}</span>
                   </Button>
                 ) : sessionEndStatus === 'awaiting_player_closure' ? (
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full h-auto min-h-10 py-2 px-3 border-amber-500/60 text-amber-300 bg-amber-950/20 font-special-elite animate-pulse cursor-wait whitespace-normal text-xs leading-snug flex items-center justify-center gap-2 text-center"
+                    className="w-full h-auto min-h-10 py-2 px-3 border-brass/60 text-brass bg-brass/10 font-special-elite animate-pulse cursor-wait whitespace-normal text-xs leading-snug flex items-center justify-center gap-2 text-center"
                     title={t('awaitingClosureTitle')}
                   >
-                    <Hourglass className="w-4 h-4 mr-1 animate-spin text-amber-400 shrink-0" />
+                    <Hourglass className="w-4 h-4 mr-1 animate-spin text-brass shrink-0" />
                     <span className="leading-tight">{t('awaitingClosure')}</span>
                   </Button>
                 ) : (
@@ -558,7 +558,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                       }
                     }}
                     variant="outline"
-                    className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-special-elite flex items-center justify-center gap-2"
+                    className="w-full border-brass/40 text-brass hover:bg-brass/10 hover:border-brass/70 font-special-elite flex items-center justify-center gap-2"
                     title={t('endSessionTitle')}
                   >
                     <LogOut className="w-4 h-4 shrink-0" />
@@ -631,16 +631,6 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             </CardHeader>
             <CardContent className="space-y-3">
               <YouTubePlayer isTTSPlaying={isTTSPlaying} />
-              {/* Handout Generator - UKRYTY (funkcjonalność zachowana na przyszłość)
-              <Button
-                onClick={() => setShowHandoutGenerator(true)}
-                variant="outline"
-                className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
-              >
-                📜 Generator Handoutów
-              </Button>
-              */}
-
             </CardContent>
           </Card>
 
@@ -657,7 +647,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 onClick={() => setOpenDialog('settings')}
               >
-                <Settings className="w-4 h-4 mr-3 text-green-400" />
+                <Settings className="w-4 h-4 mr-3 text-primary" />
                 {t('configuration')}
               </Button>
               {/* IND-258: szybki mute lektora w grze (trwały, niezależny od presetu) */}
@@ -669,7 +659,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   title={t('narratorToggleTitle')}
                 >
                   {isTTSEnabled ? (
-                    <Volume2 className="w-4 h-4 mr-3 text-green-400" />
+                    <Volume2 className="w-4 h-4 mr-3 text-primary" />
                   ) : (
                     <VolumeX className="w-4 h-4 mr-3 text-muted-foreground" />
                   )}
@@ -696,7 +686,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   title={t('imagesToggleTitle')}
                 >
                   <ImageIcon
-                    className={`w-4 h-4 mr-3 ${aiSettings.imageGenerationEnabled ? 'text-green-400' : 'text-muted-foreground'}`}
+                    className={`w-4 h-4 mr-3 ${aiSettings.imageGenerationEnabled ? 'text-primary' : 'text-muted-foreground'}`}
                   />
                   {t('images')}: {aiSettings.imageGenerationEnabled ? t('on') : t('off')}
                 </Button>
@@ -704,7 +694,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
               {/* Przycisk Zimny Start - czyszczenie danych podręcznych i restart do stanu początkowego */}
               <Button
                 variant="ghost"
-                className="w-full justify-start text-red-400 hover:bg-red-950/30 hover:text-red-300"
+                className="w-full justify-start text-destructive hover:bg-destructive/15 hover:text-destructive-foreground"
                 onClick={() => {
                   if (confirm(t('coldStartConfirm'))) {
                     localStorage.clear();
@@ -714,7 +704,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 }}
                 title={t('coldStartTitle')}
               >
-                <Flame className="w-4 h-4 mr-3 text-red-500" />
+                <Flame className="w-4 h-4 mr-3 text-destructive" />
                 {t('coldStart')}
               </Button>
             </CardContent>
@@ -761,7 +751,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
       )}
       {openDialog === 'journal' && !activeCharacter && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-border rounded-xl p-8 text-center w-full max-w-md">
+          <div className="bg-card border border-brass/30 rounded-lg p-8 text-center w-full max-w-md shadow-deco">
             <div className="text-4xl mb-4">📚</div>
             <h3 className="text-xl font-bold text-foreground mb-2">
               {t('selectCharacter')}
