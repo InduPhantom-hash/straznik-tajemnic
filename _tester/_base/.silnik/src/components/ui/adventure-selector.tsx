@@ -40,7 +40,9 @@ import {
 } from 'lucide-react';
 
 import { AdventureDetailsModal } from './adventure-details-modal';
+import { AdventureBuilderModal } from '../adventures/AdventureBuilderModal';
 import { localizeStrefa11Adventure } from '@/lib/immersion/strefa-11-localization';
+import { Sparkles } from 'lucide-react';
 
 /**
  * Wgrywanie własnych przygód (PDF + formularz "bez PDF") + lista własnych przygód.
@@ -92,6 +94,7 @@ export function AdventureSelector({
   const [activeTab, setActiveTab] = useState<'scenarios' | 'lorebooks'>('scenarios');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
+  const [showAdventureBuilder, setShowAdventureBuilder] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [detailsAdventure, setDetailsAdventure] =
     useState<AdventureContext | null>(null);
@@ -539,56 +542,69 @@ export function AdventureSelector({
 
 
               {/* Przycisk wgrania nowej przygody z klimatycznym mosiężnym paskiem postępu */}
-              {ALLOW_CUSTOM_ADVENTURES && onUploadAdventure && (
-                <div className="mt-6 mb-4">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  {!isUploading ? (
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      variant="outline"
-                      className="w-full border-2 border-dashed border-primary/45 py-6 font-display font-semibold uppercase tracking-[0.16em] text-primary hover:bg-primary/10"
-                    >
-                      <Upload className="mr-2 h-5 w-5" />
-                      {t('uploadButton')}
-                    </Button>
-                  ) : (
-                    <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
-                      {/* Rogi deco */}
-                      <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
-                      <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/50" />
+              {ALLOW_CUSTOM_ADVENTURES && (
+                <div className="mt-6 mb-4 space-y-3">
+                  <Button
+                    onClick={() => setShowAdventureBuilder(true)}
+                    variant="outline"
+                    className="w-full border-2 border-brass/60 bg-gradient-to-r from-[#1c1712] via-[#2a2219] to-[#1c1712] py-6 font-display font-semibold uppercase tracking-[0.16em] text-brass hover:text-amber-200 hover:border-brass hover:bg-brass/10 shadow-lg"
+                  >
+                    <Sparkles className="mr-2 h-5 w-5 text-amber-400" />
+                    {t('openBuilderButton')}
+                  </Button>
 
-                      <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
-                        <span className="flex items-center gap-2">
-                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          {t('processingBook')}
-                        </span>
-                        <span>{uploadProgress}%</span>
-                      </div>
+                  {onUploadAdventure && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      {!isUploading ? (
+                        <Button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          variant="outline"
+                          className="w-full border-2 border-dashed border-primary/45 py-4 font-display font-semibold uppercase tracking-[0.16em] text-primary/80 hover:text-primary hover:bg-primary/10"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {t('uploadButton')}
+                        </Button>
+                      ) : (
+                        <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
+                          {/* Rogi deco */}
+                          <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
+                          <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/50" />
 
-                      {/* Klimatyczny pasek postępu (szmaragdowy/zielony z blaskiem) */}
-                      <div className="w-full h-3 border border-primary/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
-                        <div
-                          className="h-full bg-primary rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.6)] transition-all duration-500 ease-out"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
+                          <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
+                            <span className="flex items-center gap-2">
+                               <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                              {t('processingBook')}
+                            </span>
+                            <span>{uploadProgress}%</span>
+                          </div>
 
-                      <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
-                        {loadingStatus || t('aiAnalyzing')}
-                      </p>
-                    </div>
-                  )}
-                  {!isUploading && (
-                    <p className="mt-2 text-center font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-                      {t('uploadHint')}
-                    </p>
+                          {/* Klimatyczny pasek postępu (szmaragdowy/zielony z blaskiem) */}
+                          <div className="w-full h-3 border border-primary/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
+                            <div
+                              className="h-full bg-primary rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.6)] transition-all duration-500 ease-out"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+
+                          <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+                            {loadingStatus || t('aiAnalyzing')}
+                          </p>
+                        </div>
+                      )}
+                      {!isUploading && (
+                        <p className="mt-1 text-center font-special-elite text-[13px] uppercase tracking-[0.1em] text-muted-foreground">
+                          {t('uploadHint')}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -940,6 +956,15 @@ export function AdventureSelector({
         open={!!detailsAdventure}
         onClose={() => setDetailsAdventure(null)}
         onChoose={(adventure) => handleSelect(adventure, false)}
+      />
+      <AdventureBuilderModal
+        open={showAdventureBuilder}
+        onClose={() => setShowAdventureBuilder(false)}
+        onAdventureCreated={(createdAdventure) => {
+          setShowAdventureBuilder(false);
+          onSelect(createdAdventure);
+          onClose();
+        }}
       />
     </>
   );

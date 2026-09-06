@@ -5940,7 +5940,6 @@
     "reloadSingle": "Ładowanie ręczne: 2 naboje na 1 rundę walki",
     "reloadMagazine": "Wymiana magazynka / speedloader: 1 pełna runda"
   },
-
   "FullGameSaveModal": {
     "saveEyebrow": "Archiwum · zapis stanu",
     "loadEyebrow": "Archiwum · wczytanie",
@@ -6150,9 +6149,9 @@
     "loreRegionLabel": "Obszar / Domena:",
     "loreFactionsCount": "Frakcje: {count}",
     "loreLocationsCount": "Lokacje: {count}",
-    "loreEntitiesCount": "Bestie / Zaklęcia: {count}"
+    "loreEntitiesCount": "Bestie / Zaklęcia: {count}",
+    "openBuilderButton": "Kreator Przygód & Pakiet MG (Nowość)"
   },
-
   "CharacterDevelopmentPanel": {
     "defaultTraumaDescription": "Trauma typu {type}",
     "noSpecialEffects": "Brak szczególnych efektów",
@@ -7586,6 +7585,48 @@
     "warning": "Technologia lub pojęcie „{term}” nie istniało w tej epoce.",
     "recommendation": "Historyczny odpowiednik:",
     "dismiss": "Zrozumiałem"
+  },
+  "AdventureBuilder": {
+    "modalTitle": "Kreator Przygód & Pakiet MG",
+    "modalSubtitle": "Zew Cthulhu 7ed · Kreator Śledztwa, Multi-format Importer & Generator Campaign Kit",
+    "rolePlayerBadge": "Tryb Badacza",
+    "roleKeeperBadge": "Tryb Mistrza Gry",
+    "chooseRolePrompt": "Wybierz swój cel przed rozpoczęciem tworzenia:",
+    "playerTileTitle": "Chcę zagrać w tę przygodę",
+    "playerTileDesc": "Aplikacja wygeneruje tajemnicę i zachowa ją w sekrecie przed Tobą. Ukrywamy strukturę śledztwa, intencje NPC i kulminację, aby nie psuć zabawy z odkrywania koszmaru.",
+    "playerTileAntiSpoiler": "100% ochrona przed spoilerami",
+    "keeperTileTitle": "Przygotowuję sesję (Mistrz Gry)",
+    "keeperTileDesc": "Pełna kontrola nad architekturą tajemnicy. Wgląd w Dramatis Personae, statystyki CoC 7e RAW, Graf Powiązań (Clue Web) oraz eksport kompletnego pakietu do prowadzenia sesji przy stole.",
+    "keeperTileFullControl": "Pełny wgląd w kulisy i sekrety",
+    "surpriseMeTitle": "Nie masz pomysłu? Zaskocz mnie!",
+    "surpriseMeHint": "Losuje kompletną, klimatyczną tajemnicę CoC 7e z bóstwami mitów, antagonistami i lokacjami.",
+    "surpriseMeButton": "Losuj tajemnicę",
+    "playerHookLabel": "Zajawka dla Badacza (Co wiesz na starcie):",
+    "playerHookPlaceholder": "Krótki zarys sprawy, list od przyjaciela, niepokojący artykuł w porannej prasie...",
+    "keeperAssumptionsLabel": "Założenia i prawda o śledztwie (Tylko dla MG):",
+    "keeperAssumptionsPlaceholder": "Prawdziwa natura kultu, sekrety NPC, koszty Poczytalności, bóstwo mitów...",
+    "importerHeader": "Materiały wejściowe (Multi-Asset Importer)",
+    "importerDropButton": "Przeciągnij lub wybierz pliki (PDF, Word, Arkusze, Audio, Mapy)",
+    "backToRole": "Zmień cel",
+    "continueToPlayerReady": "Dalej: Podsumowanie",
+    "continueToKeeperReview": "Dalej: Inspekcja Śledztwa",
+    "clueWebTitle": "Architektura Śledztwa (Clue Web & CoC 7e)",
+    "clueWebSubtitle": "Struktura powiązań poszlak, lokacji i sekretów Dramatis Personae.",
+    "dramatisPersonae": "Dramatis Personae (Postacie Niezależne)",
+    "clueWebConnections": "Węzły powiązań poszlak",
+    "backToInput": "Wróć do zarysu",
+    "continueToDualOutput": "Dalej: Eksport i Gra",
+    "adventureReadyHeader": "Tajemnica gotowa do rozegrania",
+    "playInAppTitle": "Zagraj w aplikacji",
+    "playInAppDesc": "Zapisuje scenariusz do Twojej biblioteki i pozwala natychmiast rozpocząć sesję ze Strażnikiem Tajemnic AI.",
+    "playInAppButton": "Rozpocznij śledztwo",
+    "downloadKitTitle": "Pobierz Pakiet MG (ZIP)",
+    "downloadKitDesc": "Eksportuje kompletny Campaign Kit: SCENARIUSZ.md, karty NPC, graf śledztwa HTML/Mermaid, rekwizyty i szynę audio.",
+    "downloadKitButton": "Pobierz Campaign Kit (ZIP)",
+    "exportingZip": "Pakowanie materiałów...",
+    "playerDownloadWarning": "Uwaga: Paczka ZIP zawiera pełne sekrety i spoilery dla Mistrza Gry.",
+    "back": "Wstecz",
+    "startOver": "Zacznij od nowa",
+    "openBuilderButton": "Kreator Przygód & Pakiet MG"
   }
 }
-
