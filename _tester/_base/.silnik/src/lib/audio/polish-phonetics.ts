@@ -32,7 +32,7 @@ interface HomographRule {
   /** Wyrażenie regularne dopasowujące słowo (z uwzględnieniem granic słowa \b) */
   pattern: RegExp;
   /** Zastępnik zapewniający jednoznaczną polską fonetykę dla TTS */
-  replacement: string | ((match: string, ...args: any[]) => string);
+  replacement: string | ((substring: string, ...args: (string | number)[]) => string);
 }
 
 /**
@@ -98,7 +98,11 @@ export function normalizePhoneticsForTts(
 
   // Zastosuj reguły zamian fonetycznych
   for (const rule of POLISH_HOMOGRAPH_RULES) {
-    normalized = normalized.replace(rule.pattern, rule.replacement as any);
+    if (typeof rule.replacement === 'function') {
+      normalized = normalized.replace(rule.pattern, rule.replacement);
+    } else {
+      normalized = normalized.replace(rule.pattern, rule.replacement);
+    }
   }
 
   // Usuń podwójne/potrójne spacje powstałe po zamianach
