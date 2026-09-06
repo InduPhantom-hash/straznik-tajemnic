@@ -218,7 +218,7 @@ export const RulebookModal: FC<RulebookModalProps> = ({
               {hasRules ? (
                 <Badge variant="outline" className="text-emerald-400 border-emerald-500/50 bg-emerald-950/30 text-xs px-2 py-0.5">
                   <Check className="w-3.5 h-3.5 mr-1" />
-                  {t('readyBadge')} ({rulesCount > 0 ? rulesCount : indexed})
+                  {t('readyBadge', { count: rulesCount > 0 ? rulesCount : indexed })}
                 </Badge>
               ) : (
                 <Badge variant="destructive" className="text-xs px-2 py-0.5">
