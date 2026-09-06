@@ -59,50 +59,50 @@ export default function CutscenePrototype() {
   ].join('\n\n');
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-2xl mx-auto">
         <Link
           href="/prototypes"
-          className="text-zinc-500 hover:text-zinc-300 text-sm mb-4 inline-flex items-center gap-1 transition-colors"
+          className="text-muted-foreground hover:text-brass text-sm mb-4 inline-flex items-center gap-1 transition-colors font-display uppercase tracking-wider"
         >
           <ArrowLeft size={16} />
           {t('backToPrototypes')}
         </Link>
 
-        <h1 className="text-2xl font-bold text-emerald-500 flex items-center gap-2 mb-2">
-          <Film className="w-6 h-6" />
+        <h1 className="text-2xl font-bold font-display uppercase tracking-wider text-brass flex items-center gap-2 mb-2">
+          <Film className="w-6 h-6 text-primary" />
           {t('title')}
         </h1>
-        <p className="text-zinc-400 mb-8">{t('description')}</p>
+        <p className="text-muted-foreground mb-8">{t('description')}</p>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-3">{t('demoSection.title')}</h2>
-          <p className="text-zinc-400 text-sm mb-4">{t('demoSection.description')}</p>
+        <div className="bg-card border border-brass/30 rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold font-display tracking-wider text-foreground mb-3">{t('demoSection.title')}</h2>
+          <p className="text-muted-foreground text-sm mb-4">{t('demoSection.description')}</p>
           <button
             onClick={handleStartDemo}
-            className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white transition-all"
+            className="w-full py-3 rounded-lg font-semibold font-display uppercase tracking-wider flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm"
           >
             <Play size={20} />
             {t('demoSection.startButton')}
           </button>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-3">{t('customSection.title')}</h2>
-          <p className="text-zinc-400 text-sm mb-4">{t('customSection.description')}</p>
+        <div className="bg-card border border-brass/30 rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold font-display tracking-wider text-foreground mb-3">{t('customSection.title')}</h2>
+          <p className="text-muted-foreground text-sm mb-4">{t('customSection.description')}</p>
           <textarea
             value={customText}
             onChange={(e) => setCustomText(e.target.value)}
             placeholder={placeholder}
-            className="w-full h-48 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-zinc-200 resize-none focus:outline-none focus:border-emerald-500/50 mb-4"
+            className="w-full h-48 bg-muted border border-border rounded-lg p-3 text-foreground resize-none focus:outline-none focus:border-brass mb-4 placeholder:text-muted-foreground/50"
           />
           <button
             onClick={handleStartCustom}
             disabled={!customText.trim()}
-            className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-3 rounded-lg font-semibold font-display uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               customText.trim()
-                ? 'bg-purple-600 hover:bg-purple-500 text-white'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                ? 'bg-brass hover:bg-brass/90 text-primary-foreground font-bold shadow-sm'
+                : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
             }`}
           >
             <Film size={20} />
@@ -110,24 +110,24 @@ export default function CutscenePrototype() {
           </button>
         </div>
 
-        <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-zinc-400 mb-2">{t('controlsInfo.title')}</h3>
-          <ul className="text-zinc-500 text-sm space-y-1">
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h3 className="text-sm font-semibold font-display tracking-wider text-brass mb-2">{t('controlsInfo.title')}</h3>
+          <ul className="text-muted-foreground text-sm space-y-1">
             <li>
-              <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">Space</kbd> -{' '}
+              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">Space</kbd> -{' '}
               {t('controlsInfo.pauseResume')}
             </li>
             <li>
-              <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">→</kbd>{' '}
-              <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">Enter</kbd> -{' '}
+              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">→</kbd>{' '}
+              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">Enter</kbd> -{' '}
               {t('controlsInfo.nextSegment')}
             </li>
             <li>
-              <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">M</kbd> -{' '}
+              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">M</kbd> -{' '}
               {t('controlsInfo.muteUnmute')}
             </li>
             <li>
-              <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">Esc</kbd> -{' '}
+              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">Esc</kbd> -{' '}
               {t('controlsInfo.skipCutscene')}
             </li>
           </ul>

@@ -53,33 +53,33 @@ export default function CutscenePrototype() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <Link
           href="/prototypes"
-          className="text-zinc-500 hover:text-zinc-300 text-sm mb-4 inline-block"
+          className="text-muted-foreground hover:text-brass text-sm mb-4 inline-block font-display uppercase tracking-wider transition-colors"
         >
           ← Powrót do prototypów
         </Link>
 
-        <h1 className="text-2xl font-bold text-emerald-500 flex items-center gap-2 mb-2">
-          <Film className="w-6 h-6" />
+        <h1 className="text-2xl font-bold font-display uppercase tracking-wider text-brass flex items-center gap-2 mb-2">
+          <Film className="w-6 h-6 text-primary" />
           Auto-GM Cutscene Prototype
         </h1>
-        <p className="text-zinc-400 mb-8">
+        <p className="text-muted-foreground mb-8">
           Testuj automatyczną narrację w stylu cutscenki filmowej
         </p>
 
         {/* Demo Section */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-3">Demo Cutsceny</h2>
-          <p className="text-zinc-400 text-sm mb-4">
+        <div className="bg-card border border-brass/30 rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold font-display tracking-wider text-foreground mb-3">Demo Cutsceny</h2>
+          <p className="text-muted-foreground text-sm mb-4">
             Przykładowa cutscena w stylu Lovecrafta - 3 segmenty narracji.
           </p>
           <button
             onClick={handleStartDemo}
-            className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white transition-all"
+            className="w-full py-3 rounded-lg font-semibold font-display uppercase tracking-wider flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm"
           >
             <Play size={20} />
             Uruchom Demo
@@ -87,9 +87,9 @@ export default function CutscenePrototype() {
         </div>
 
         {/* Custom Cutscene */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-3">Własna Cutscena</h2>
-          <p className="text-zinc-400 text-sm mb-4">
+        <div className="bg-card border border-brass/30 rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold font-display tracking-wider text-foreground mb-3">Własna Cutscena</h2>
+          <p className="text-muted-foreground text-sm mb-4">
             Wpisz tekst narracji. Każdy akapit (oddzielony pustą linią) stanie się osobnym segmentem.
           </p>
           <textarea
@@ -100,15 +100,15 @@ export default function CutscenePrototype() {
 Wpisz drugi akapit narracji...
 
 Wpisz trzeci akapit narracji..."
-            className="w-full h-48 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-zinc-200 resize-none focus:outline-none focus:border-emerald-500/50 mb-4"
+            className="w-full h-48 bg-muted border border-border rounded-lg p-3 text-foreground resize-none focus:outline-none focus:border-brass mb-4 placeholder:text-muted-foreground/50"
           />
           <button
             onClick={handleStartCustom}
             disabled={!customText.trim()}
-            className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-3 rounded-lg font-semibold font-display uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               customText.trim()
-                ? 'bg-purple-600 hover:bg-purple-500 text-white'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                ? 'bg-brass hover:bg-brass/90 text-primary-foreground font-bold shadow-sm'
+                : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
             }`}
           >
             <Film size={20} />
@@ -117,13 +117,13 @@ Wpisz trzeci akapit narracji..."
         </div>
 
         {/* Controls Info */}
-        <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-zinc-400 mb-2">Kontrolki podczas cutsceny:</h3>
-          <ul className="text-zinc-500 text-sm space-y-1">
-            <li><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">Spacja</kbd> — Pauza / Wznów</li>
-            <li><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">→</kbd> lub <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">Enter</kbd> — Następny segment</li>
-            <li><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">M</kbd> — Wycisz/Włącz dźwięk</li>
-            <li><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">Esc</kbd> — Pomiń cutscenę</li>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h3 className="text-sm font-semibold font-display tracking-wider text-brass mb-2">Kontrolki podczas cutsceny:</h3>
+          <ul className="text-muted-foreground text-sm space-y-1">
+            <li><kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">Spacja</kbd> - Pauza / Wznów</li>
+            <li><kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">→</kbd> lub <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">Enter</kbd> - Następny segment</li>
+            <li><kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">M</kbd> - Wycisz/Włącz dźwięk</li>
+            <li><kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs text-foreground font-mono">Esc</kbd> - Pomiń cutscenę</li>
           </ul>
         </div>
       </div>
