@@ -71,6 +71,18 @@ export type LocationSearchStatus =
   | 'partially_searched'
   | 'thoroughly_searched';
 
+/**
+ * 7 Typów Zagadek Zamkniętego Pokoju (John Dickson Carr - The Hollow Man, 1935)
+ */
+export type LockedRoomMysteryType =
+  | 'accident_feigned_as_murder' // Typ 1: Fatalny wypadek pozorowany na zabójstwo
+  | 'toxic_gas_or_paroxysm'      // Typ 2: Trujący gaz lub szał niszczący otoczenie
+  | 'mechanical_trap'            // Typ 3: Mechaniczna pułapka (zegar, rygiel)
+  | 'suicide_framed_as_murder'   // Typ 4: Samobójstwo znikającą bronią (np. sopel)
+  | 'victim_impersonation'       // Typ 5: Sprawca udający ofiarę po zabójstwie
+  | 'strike_from_outside'        // Typ 6: Strzał/atak z zewnątrz (lufcik, szczelina)
+  | 'strike_during_break_in';    // Typ 7: Atak w trakcie wyważania drzwi w chaosie
+
 export interface LocationDossierEntry {
   id: string;
   name: string;
@@ -83,6 +95,13 @@ export interface LocationDossierEntry {
   inGameDate?: string;
   timestamp?: number;
   sourceJournalEntryId?: string;
+
+  // === Zagadka Zamkniętego Pokoju (John Dickson Carr) ===
+  lockedRoomMystery?: {
+    type: LockedRoomMysteryType;
+    anomalyDescription: string;
+    investigationHint?: string;
+  };
 }
 
 export interface PlayerNoteEntry {

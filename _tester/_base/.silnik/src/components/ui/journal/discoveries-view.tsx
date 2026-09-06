@@ -72,6 +72,11 @@ export interface DiscoveryEntry {
   searchStatus?: LocationSearchStatus;
   addressOrRegion?: string;
   discoveredClueIds?: string[];
+  lockedRoomMystery?: {
+    type: import('@/lib/journal/dossier-types').LockedRoomMysteryType;
+    anomalyDescription: string;
+    investigationHint?: string;
+  };
 }
 
 export type DiscoveryCategory = 'places' | 'characters' | 'items' | 'quests';
@@ -798,6 +803,25 @@ export function DiscoveriesView({
                       )}
                     </div>
                   )}
+
+                {/* Zagadka Zamkniętego Pokoju (John Dickson Carr - The Hollow Man) */}
+                {activeCategory === 'places' && selectedEntry.lockedRoomMystery && (
+                  <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#8a1c1c]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-[#8a1c1c] border-b border-[#8a1c1c]/30 pb-1">
+                      {t('lockedRoomMysteryTitle')}: {t(`lockedRoomType_${selectedEntry.lockedRoomMystery.type}` as Parameters<typeof t>[0])}
+                    </div>
+                    <div>
+                      <span className="font-bold text-[#5c1a1a]">{t('lockedRoomAnomalyLabel')}: </span>
+                      <span className="italic">{selectedEntry.lockedRoomMystery.anomalyDescription}</span>
+                    </div>
+                    {selectedEntry.lockedRoomMystery.investigationHint && (
+                      <div>
+                        <span className="font-bold text-[#3a2818]">{t('lockedRoomHintLabel')}: </span>
+                        <span>{selectedEntry.lockedRoomMystery.investigationHint}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Zdjęcie (Pionowy Polaroid Retro - klikalny podgląd) */}

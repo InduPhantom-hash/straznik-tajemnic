@@ -298,6 +298,7 @@ export function SessionJournal({
           searchStatus: l.searchStatus,
           addressOrRegion: l.addressOrRegion,
           discoveredClueIds: l.discoveredClueIds,
+          lockedRoomMystery: l.lockedRoomMystery,
         });
       });
     }
