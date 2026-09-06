@@ -347,19 +347,19 @@ export function DiceSystem({
   };
 
   const getSuccessColor = (roll: DiceRoll) => {
-    if (roll.criticalSuccess) return 'text-green-400';
-    if (roll.success) return 'text-blue-400';
-    if (roll.criticalFailure) return 'text-red-400';
+    if (roll.criticalSuccess) return 'text-primary font-bold';
+    if (roll.success) return 'text-primary';
+    if (roll.criticalFailure) return 'text-destructive';
     return 'text-muted-foreground';
   };
 
   return (
     <div data-testid="dice-system" className="space-y-6">
-      <div className="bg-card rounded-lg border border-white/20 w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg border border-border w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-white/20">
+        <div className="p-6 border-b border-border">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-purple-300">
+            <h2 className="text-2xl font-bold text-brass">
               {t('title')}
             </h2>
           </div>
@@ -373,8 +373,8 @@ export function DiceSystem({
             {/* Left Column - Dice Rolling */}
             <div className="space-y-6">
               {/* Basic Dice Rolling */}
-              <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
-                <h3 className="text-lg font-semibold text-purple-300 mb-4">
+              <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                <h3 className="text-lg font-semibold text-brass mb-4">
                   {t('basicRollsTitle')}
                 </h3>
 
@@ -387,7 +387,7 @@ export function DiceSystem({
                     <select
                       value={selectedDice}
                       onChange={(e) => setSelectedDice(e.target.value)}
-                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                     >
                       {diceTypes.map((dice) => (
                         <option key={dice.name} value={dice.name}>
@@ -410,7 +410,7 @@ export function DiceSystem({
                       onChange={(e) =>
                         setDiceCount(parseInt(e.target.value) || 1)
                       }
-                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                     />
                   </div>
 
@@ -419,7 +419,7 @@ export function DiceSystem({
                     data-testid="btn-roll-dice"
                     onClick={handleRoll}
                     disabled={isRolling}
-                    className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-muted disabled:cursor-not-allowed rounded-lg transition-colors text-foreground font-semibold"
+                    className="w-full px-6 py-3 bg-brass text-background hover:bg-brass-light disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
                   >
                     {isRolling
                       ? t('rolling')
@@ -429,14 +429,14 @@ export function DiceSystem({
               </div>
 
               {/* Skill Test Setup */}
-              <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
-                <h3 className="text-lg font-semibold text-purple-300 mb-4">
+              <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                <h3 className="text-lg font-semibold text-brass mb-4">
                   {t('skillTestTitle')}
                 </h3>
 
                 {character && (
-                  <div className="mb-4 p-3 bg-blue-600/20 border border-blue-500/30 rounded-lg">
-                    <p className="text-blue-300 text-sm font-medium mb-2">
+                  <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                    <p className="text-primary text-sm font-medium mb-2">
                       {t('characterLabel', { name: character.name })}
                     </p>
                     <div className="grid grid-cols-2 gap-2 text-xs">
@@ -450,7 +450,7 @@ export function DiceSystem({
                               setSkillValue(value.toString());
                               setDifficulty('Normal');
                             }}
-                            className="px-2 py-1 bg-blue-600/30 hover:bg-blue-600/50 rounded text-blue-200 transition-colors"
+                            className="px-2 py-1 bg-primary/20 hover:bg-primary/30 rounded text-foreground transition-colors"
                             title={t('setSkillTooltip', { skill, value })}
                           >
                             {skill}: {value}%
@@ -495,7 +495,7 @@ export function DiceSystem({
                     ) : (
                       <button
                         data-testid="btn-roll-test" onClick={() => setShowSkillTest(true)}
-                        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-foreground"
+                        className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-medium"
                       >
                         {t('setSkillTestButton')}
                       </button>
@@ -508,7 +508,7 @@ export function DiceSystem({
                       placeholder={t('skillNamePlaceholder')}
                       value={skillName}
                       onChange={(e) => setSkillName(e.target.value)}
-                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                     />
 
                     <input
@@ -516,7 +516,7 @@ export function DiceSystem({
                       placeholder={t('skillValuePlaceholder')}
                       value={skillValue}
                       onChange={(e) => setSkillValue(e.target.value)}
-                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                     />
 
                     <select
@@ -526,7 +526,7 @@ export function DiceSystem({
                           e.target.value as 'Normal' | 'Hard' | 'Extreme'
                         )
                       }
-                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                     >
                       <option value="Normal">{t('difficultyNormal')}</option>
                       <option value="Hard">{t('difficultyHard')}</option>
@@ -538,19 +538,19 @@ export function DiceSystem({
                       placeholder={t('modifiersPlaceholder')}
                       value={modifiers}
                       onChange={(e) => setModifiers(e.target.value)}
-                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-purple-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:border-brass focus:outline-none"
                     />
 
                     <div className="flex space-x-2">
                       <button
                         data-testid="btn-roll-confirm" onClick={handleSkillTest}
-                        className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-foreground"
+                        className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-medium"
                       >
                         {t('setButton')}
                       </button>
                       <button
                         onClick={() => setShowSkillTest(false)}
-                        className="flex-1 px-4 py-2 bg-muted hover:bg-muted rounded-lg transition-colors text-foreground"
+                        className="flex-1 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground"
                       >
                         {t('cancelButton')}
                       </button>
@@ -599,8 +599,8 @@ export function DiceSystem({
 
             {/* Right Column - Roll History */}
             <div className="space-y-6">
-              <div className="bg-muted/50 rounded-lg p-4 border border-white/10">
-                <h3 className="text-lg font-semibold text-purple-300 mb-4">
+              <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                <h3 className="text-lg font-semibold text-brass mb-4">
                   {t('historyTitle')}
                 </h3>
 
@@ -616,7 +616,7 @@ export function DiceSystem({
                         className={`bg-muted/50 rounded-lg p-3 border ${
                           roll.isPushedRoll
                             ? 'border-yellow-500/30'
-                            : 'border-white/10'
+                            : 'border-border'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
@@ -639,7 +639,7 @@ export function DiceSystem({
                             <span className="text-muted-foreground">
                               {roll.diceType}: {roll.result.join(', ')}
                             </span>
-                            <span className="text-purple-300 font-semibold">
+                            <span className="text-brass font-semibold">
                               = {roll.total}
                             </span>
                           </div>
