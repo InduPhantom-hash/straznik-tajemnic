@@ -52,7 +52,7 @@ export function HazardCard({
     switch (hazard.type) {
       case 'fire':
       case 'acid':
-        return <Flame className="w-5 h-5 text-amber-500 animate-pulse" />;
+        return <Flame className="w-5 h-5 text-brass animate-pulse" />;
       case 'poison':
         return <Skull className="w-5 h-5 text-emerald-500" />;
       case 'suffocation':
@@ -84,20 +84,20 @@ export function HazardCard({
 
   return (
     <>
-      <Card className="my-2 border border-red-900/50 bg-zinc-950/80 shadow-md backdrop-blur-sm">
+      <Card className="my-2 border border-destructive/50 bg-card/85 shadow-deco backdrop-blur-sm">
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-2.5">
-              <div className="p-1.5 rounded bg-zinc-900 border border-zinc-800 mt-0.5">
+              <div className="p-1.5 rounded-sm bg-card border border-brass/30 mt-0.5">
                 {getHazardIcon()}
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-serif text-sm font-semibold tracking-wide text-amber-200">
+                  <span className="font-serif text-sm font-semibold tracking-wide text-foreground">
                     {getHazardTypeLabel()}
                   </span>
                   {hazard.fallHeightMeters && (
-                    <Badge variant="outline" className="text-xs border-amber-800/60 text-amber-400">
+                    <Badge variant="outline" className="text-xs border-brass/40 text-brass">
                       {hazard.fallHeightMeters}m
                     </Badge>
                   )}
@@ -107,11 +107,11 @@ export function HazardCard({
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-zinc-300 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {hazard.description}
                 </p>
                 {hazard.defensiveSkill && (
-                  <p className="text-[11px] text-amber-400/90 font-mono">
+                  <p className="text-[11px] text-brass font-mono">
                     🛡️ {t('suggestedDefense')}: <strong>{hazard.defensiveSkill}</strong>
                   </p>
                 )}
@@ -128,7 +128,7 @@ export function HazardCard({
                 <Button
                   size="sm"
                   onClick={() => setIsDialogOpen(true)}
-                  className="bg-amber-800 hover:bg-amber-700 text-amber-100 font-medium text-xs shadow"
+                  className="bg-brass hover:bg-brass/80 text-background font-medium text-xs shadow-deco"
                 >
                   <ShieldAlert className="w-3.5 h-3.5 mr-1.5" />
                   {t('actionDefend')}
