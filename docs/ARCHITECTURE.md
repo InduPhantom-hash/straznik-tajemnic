@@ -74,10 +74,10 @@ Architektura gwarantuje, że model LLM nie ma bezpośredniej władzy nad stanem 
 
 Wszystkie operacje AI opierają się na jednym kluczu Google AI Studio (BYOK):
 
-- **Czat (Mistrz Gry):** Domyślnie `gemini-3.6-flash` lub `gemini-3.8-flash` (z opcją `gemini-2.5-flash` / `gemini-3.1-pro-preview` dla presetu ULTRA).
-- **Embeddingi reguł:** `gemini-embedding-001` (generuje wektory zasad z PDF).
-- **Lektor:** `gemini-2.5-flash-preview-tts` (bezpośrednia synteza mowy w locie).
-- **Ilustracje:** `gemini-2.5-flash-image` generujący stylizowane ilustracje w klimacie lat 20. XX w.
+- **Czat (Mistrz Gry):** Domyślnie `gemini-3.8-flash` (Thinking: High) dla presetu HIGH, `gemini-flash-latest` (MID), `gemini-flash-lite-latest` (LOW) oraz `gemini-3.1-pro-preview` dla presetu ULTRA.
+- **Embeddingi reguł:** Lokalny `Xenova/bge-m3` ONNX na dysku lub chmurowy `gemini-embedding-001`.
+- **Lektor:** `gemini-2.5-flash-preview-tts` (synteza mowy w locie, głosy Charon i Gacrux).
+- **Ilustracje:** `gemini-3.1-flash-image` (oraz awaryjny `gemini-2.5-flash-image`) generujące stylizowane sceny lat 20. na tym samym kluczu API.
 
 ---
 

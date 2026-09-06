@@ -64,10 +64,10 @@ Wpisujesz w polu czatu lub dyktujesz, co robi Twój badacz. AI prowadzi narracj�
 
 ---
 
-## 5. Tablica Badacza i Dziennik Śledztwa
+## 5. Tablica Badacza & Akta Śledcze (Dossier)
 
-- **Korkowa Tablica Dowodów:** Interaktywny stół śledczy w stylu Dark Art Déco. Przypinasz notatki, poszlaki, wycinki gazet i portrety podejrzanych, łącząc je czerwonymi sznurkami dedukcyjnymi. Pozycje i połączenia są trwale zapisywane.
-- **Dziennik Sesji:** Automatyczna kronika wydarzeń oraz diegetyczne dokumenty z gry.
+- **Pulpit Śledczy i Tablica Badacza:** Interaktywny stół dowodowy w stylu Dark Art Déco. Układasz i łączysz notatki, poszlaki, wycinki gazet i portrety podejrzanych. Pozycje i powiązania są trwale zapisywane na dysku.
+- **Dziennik Sesji & Akta Sprawy:** Automatyczna kronika wydarzeń, diegetyczne dokumenty oraz mechanika Rzutu na Pomysł (Idea Roll RAW CoC 7e) wyciągająca kluczowe tropy ze ślepych zaułków.
 
 ---
 
@@ -79,21 +79,21 @@ Wspólna rozgrywka przy jednym ekranie. W Ustawieniach włączasz tryb Hot Seat 
 
 ## 7. Lektor TTS i Ilustracje Scen
 
-- **Lektor (TTS):** Głos Mistrza Gry czyta narrację w czasie rzeczywistym z natychmiastowym buforowaniem audio.
-- **Ilustracje Gemini Flash Image:** Dynamicznie generowane sceny, lokacje i portrety NPC zgodne z realiami epoki lat 20. XX wieku.
+- **Lektor (TTS):** Głos Mistrza Gry czyta narrację w czasie rzeczywistym z natychmiastowym streamingiem audio (głosy Charon / Gacrux).
+- **Ilustracje Gemini Image:** Dynamicznie generowane sceny, lokacje i portrety NPC zgodne z realiami epoki przez `gemini-3.1-flash-image` (na tym samym kluczu Google AI Studio).
 
 ---
 
-## 8. Presety Jakości i Kontrola Kosztów API
+## 8. Profile Jakości i Kontrola Kosztów API
 
-Preset wybierasz w Ustawieniach; domyślny to **HIGH**:
+Profil wybierasz w Ustawieniach; domyślny to **HIGH**:
 
-| Preset | Model czatu | Lektor TTS | Obrazy | Koszt sesji 3h |
+| Profil | Model czatu | Lektor (TTS) | Ilustracje | Koszt sesji 3h |
 |---|---|---|---|---|
-| **LOW** | Gemini 3.6 Flash | brak | wyłączone | ~$0.02 - $0.05 USD |
-| **MID** | Gemini 3.6 Flash | Gemini TTS (Charon) | Gemini Flash Image | ~$0.15 - $0.20 USD |
-| **HIGH** ⭐ *(Domyślny)* | **Gemini 3.8 Flash (High)** | **Gemini TTS (Charon)** | **Imagen 4 (Vertex)** | **~$0.40 - $0.50 USD** |
-| **ULTRA** | Gemini 3.1 Pro High | Multi-voice słuchowisko | Obrazy HD (Vertex) | ~$1.00 - $1.50 USD |
+| **LOW** | Gemini Flash-Lite | brak | wyłączone | ~$0.02 - $0.05 USD |
+| **MID** | Gemini Flash | Gemini TTS (Charon) | Gemini Image | ~$0.15 - $0.20 USD |
+| **HIGH** ⭐ *(Domyślny)* | **Gemini 3.8 Flash (High)** | **Gemini TTS (Charon)** | **Gemini Image** | **~$0.40 - $0.50 USD** |
+| **ULTRA** | Gemini 3.1 Pro (High) | Multi-voice słuchowisko | Gemini Image HD | ~$1.00 - $1.50 USD |
 
 Panel w Ustawieniach na bieżąco zlicza zużyte tokeny wejściowe i wyjściowe oraz szacuje koszt w dolarach.
 
