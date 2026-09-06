@@ -279,31 +279,31 @@ export function TacticalDecisionPanel({
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case 'low':
-        return 'bg-green-500/20 text-green-400 border-green-500/50';
+        return 'bg-primary/20 text-primary border-primary/40';
       case 'medium':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
+        return 'bg-gold/20 text-gold border-gold/40';
       case 'high':
-        return 'bg-red-500/20 text-red-400 border-red-500/50';
+        return 'bg-destructive/20 text-destructive border-destructive/40';
       default:
-        return 'bg-gray-500/20 text-muted-foreground border-border/50';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   const getActionIcon = (action: TacticalAction) => {
     switch (action) {
       case 'dodge':
-        return <Footprints className="w-5 h-5 text-emerald-400" />;
+        return <Footprints className="w-5 h-5 text-primary" />;
       case 'counterattack':
       case 'fight_back':
-        return <Swords className="w-5 h-5 text-red-400" />;
+        return <Swords className="w-5 h-5 text-destructive" />;
       case 'flee':
-        return <DoorOpen className="w-5 h-5 text-amber-400" />;
+        return <DoorOpen className="w-5 h-5 text-gold" />;
       case 'parry':
-        return <ShieldAlert className="w-5 h-5 text-blue-400" />;
+        return <ShieldAlert className="w-5 h-5 text-brass" />;
       case 'maneuver':
-        return <Hand className="w-5 h-5 text-purple-400" />;
+        return <Hand className="w-5 h-5 text-gold" />;
       default:
-        return <HelpCircle className="w-5 h-5 text-zinc-400" />;
+        return <HelpCircle className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
@@ -329,14 +329,14 @@ export function TacticalDecisionPanel({
   if (!isDefending && !isPlayerTurn) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-amber-900/30 to-red-900/30 border-amber-500/50">
+    <Card className="bg-card/95 border-brass/50">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2 text-amber-300">
+        <CardTitle className="text-lg flex items-center gap-2 text-brass">
           {isDefending ? t('reactionTitle') : t('yourTurnTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-amber-200/80">
+        <p className="text-sm text-foreground/80">
           {isDefending ? t('enemyAttacks') : t('chooseAction')}
         </p>
 
@@ -350,8 +350,8 @@ export function TacticalDecisionPanel({
               }}
               className={`p-3 rounded-lg border transition-all text-left ${
                 selectedAction === option.action
-                  ? 'border-amber-400 bg-amber-500/20'
-                  : 'border-white/10 bg-white/5 hover:border-amber-500/50'
+                  ? 'border-brass bg-brass/20'
+                  : 'border-border bg-muted/30 hover:border-brass/50'
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
@@ -424,12 +424,12 @@ export function BonusPenaltyRollDisplay({
     <Card
       className={`border ${
         isFumble
-          ? 'border-red-500 bg-red-500/10'
+          ? 'border-destructive bg-destructive/10'
           : isCritical
-            ? 'border-green-500 bg-green-500/10'
+            ? 'border-primary bg-primary/10'
             : isSuccess
-              ? 'border-blue-500 bg-blue-500/10'
-              : 'border-border bg-gray-500/10'
+              ? 'border-brass bg-brass/10'
+              : 'border-border bg-muted/20'
       }`}
     >
       <CardContent className="p-4">
@@ -452,14 +452,14 @@ export function BonusPenaltyRollDisplay({
             {/* Pokazuj wszystkie rzucone dziesiątki */}
             <div className="flex gap-1 justify-end mb-1">
               <Badge
-                className={`${result.usedTens === result.tens ? 'bg-amber-500' : 'bg-muted'}`}
+                className={`${result.usedTens === result.tens ? 'bg-gold text-background font-bold' : 'bg-muted'}`}
               >
                 {result.tens.toString().padStart(2, '0')}
               </Badge>
               {result.bonusTens.map((t, i) => (
                 <Badge
                   key={i}
-                  className={`${result.usedTens === t ? 'bg-green-500' : 'bg-muted'}`}
+                  className={`${result.usedTens === t ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
                 >
                   {t.toString().padStart(2, '0')}
                 </Badge>
@@ -467,7 +467,7 @@ export function BonusPenaltyRollDisplay({
               {result.penaltyTens.map((t, i) => (
                 <Badge
                   key={i}
-                  className={`${result.usedTens === t ? 'bg-red-500' : 'bg-muted'}`}
+                  className={`${result.usedTens === t ? 'bg-destructive text-destructive-foreground' : 'bg-muted'}`}
                 >
                   {t.toString().padStart(2, '0')}
                 </Badge>
@@ -479,10 +479,10 @@ export function BonusPenaltyRollDisplay({
             <Badge
               className={`mt-1 ${
                 result.type === 'bonus'
-                  ? 'bg-green-500/30 text-green-400'
+                  ? 'bg-primary/20 text-primary border border-primary/30'
                   : result.type === 'penalty'
-                    ? 'bg-red-500/30 text-red-400'
-                    : 'bg-gray-500/30 text-muted-foreground'
+                    ? 'bg-destructive/20 text-destructive border border-destructive/30'
+                    : 'bg-muted text-muted-foreground'
               }`}
             >
               {result.type === 'bonus'
@@ -495,13 +495,13 @@ export function BonusPenaltyRollDisplay({
         </div>
 
         {/* Wynik */}
-        <div className="mt-3 pt-3 border-t border-white/10">
+        <div className="mt-3 pt-3 border-t border-border">
           {isFumble ? (
-            <Badge className="bg-red-600 text-foreground">{t('fumbleBadge')}</Badge>
+            <Badge className="bg-destructive text-destructive-foreground">{t('fumbleBadge')}</Badge>
           ) : isCritical ? (
-            <Badge className="bg-green-600 text-foreground">{t('criticalBadge')}</Badge>
+            <Badge className="bg-primary text-primary-foreground">{t('criticalBadge')}</Badge>
           ) : isSuccess ? (
-            <Badge className="bg-blue-600 text-foreground">{t('successBadge')}</Badge>
+            <Badge className="bg-brass text-background font-bold">{t('successBadge')}</Badge>
           ) : (
             <Badge className="bg-muted text-foreground">{t('failureBadge')}</Badge>
           )}
