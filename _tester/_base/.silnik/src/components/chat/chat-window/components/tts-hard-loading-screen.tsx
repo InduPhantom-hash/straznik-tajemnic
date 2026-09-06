@@ -93,140 +93,208 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   const isCompleted = isReadyToEnter || startProgress >= 100;
   const displayProgress = Math.min(100, Math.max(startProgress, 5));
 
+  // Wycinki prasowe epoki ze słowników i18n
+  const pressDispatches = [
+    {
+      source: t('clip1Source'),
+      headline: t('clip1Headline'),
+      text: t('clip1Text'),
+    },
+    {
+      source: t('clip2Source'),
+      headline: t('clip2Headline'),
+      text: t('clip2Text'),
+    },
+    {
+      source: t('clip3Source'),
+      headline: t('clip3Headline'),
+      text: t('clip3Text'),
+    },
+  ];
+
   return (
     <div
       data-testid="tts-hard-loading-screen"
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0b08]/98 backdrop-blur-xl overflow-hidden transition-opacity duration-500 ease-out px-4 select-none ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#070806]/98 backdrop-blur-2xl overflow-y-auto overflow-x-hidden transition-opacity duration-500 ease-out px-4 py-6 md:p-8 select-none ${
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >
-      {/* Tło Dark Art Déco: radialny mosiężny glow i winieta */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,74,0.12)_0%,rgba(14,15,11,0.85)_55%,rgba(10,11,8,0.98)_100%)] pointer-events-none" />
-      <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.95)] pointer-events-none" />
+      {/* Tło Dark Art Déco: głęboki radialny mosiężny glow, winieta i delikatne promienie */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,74,0.14)_0%,rgba(14,16,12,0.88)_50%,rgba(7,8,6,0.99)_100%)] pointer-events-none" />
+      <div className="absolute inset-0 shadow-[inset_0_0_160px_rgba(0,0,0,0.96)] pointer-events-none" />
+      <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#c9a94a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
-      {/* Geometryczne narożniki Art Déco */}
-      <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-brass/60 pointer-events-none">
-        <div className="absolute top-1 left-1 w-2 h-2 bg-brass/80 rotate-45" />
+      {/* Zewnętrzne geometryczne narożniki Art Déco */}
+      <div className="absolute top-5 left-5 w-16 h-16 border-t-2 border-l-2 border-brass/50 pointer-events-none hidden sm:block">
+        <div className="absolute top-1.5 left-1.5 w-2.5 h-2.5 bg-brass/80 rotate-45" />
       </div>
-      <div className="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-brass/60 pointer-events-none">
-        <div className="absolute top-1 right-1 w-2 h-2 bg-brass/80 rotate-45" />
+      <div className="absolute top-5 right-5 w-16 h-16 border-t-2 border-r-2 border-brass/50 pointer-events-none hidden sm:block">
+        <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brass/80 rotate-45" />
       </div>
-      <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-brass/60 pointer-events-none">
-        <div className="absolute bottom-1 left-1 w-2 h-2 bg-brass/80 rotate-45" />
+      <div className="absolute bottom-5 left-5 w-16 h-16 border-b-2 border-l-2 border-brass/50 pointer-events-none hidden sm:block">
+        <div className="absolute bottom-1.5 left-1.5 w-2.5 h-2.5 bg-brass/80 rotate-45" />
       </div>
-      <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-brass/60 pointer-events-none">
-        <div className="absolute bottom-1 right-1 w-2 h-2 bg-brass/80 rotate-45" />
+      <div className="absolute bottom-5 right-5 w-16 h-16 border-b-2 border-r-2 border-brass/50 pointer-events-none hidden sm:block">
+        <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 bg-brass/80 rotate-45" />
       </div>
 
-      <div className="w-full max-w-xl text-center space-y-6 relative z-10">
-        {/* Górny nagłówek i status */}
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/60 border border-brass/40 text-[11px] font-special-elite text-brass/90 tracking-widest uppercase shadow-[0_0_15px_rgba(201,169,74,0.15)]">
-            <Compass className="w-3.5 h-3.5 text-brass animate-spin-slow" />
+      <div className="w-full max-w-5xl text-center space-y-6 md:space-y-8 relative z-10 my-auto">
+        {/* Górny badge statusu i geolokalizacja */}
+        <div className="space-y-2.5">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/70 border border-brass/50 text-xs font-special-elite text-brass tracking-[0.14em] uppercase shadow-[0_0_20px_rgba(201,169,74,0.2)]">
+            <Compass className="w-4 h-4 text-brass animate-spin-slow" />
             <span>{t('preparingSession')}</span>
           </div>
 
           {(location || eraLabel) && (
-            <div className="flex items-center justify-center gap-2 text-xs font-mono text-zinc-400 tracking-wider">
+            <div className="flex items-center justify-center gap-3 text-xs md:text-sm font-mono text-zinc-300 tracking-wider">
               {location && (
-                <span className="inline-flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-brass/80" />
-                  <span>{location}</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-gold" />
+                  <span className="text-zinc-200">{location}</span>
                 </span>
               )}
-              {location && eraLabel && <span className="text-brass/40">·</span>}
-              {eraLabel && <span className="text-brass/90">{eraLabel}</span>}
+              {location && eraLabel && <span className="text-brass/50 font-bold">·</span>}
+              {eraLabel && (
+                <span className="px-2 py-0.5 rounded bg-brass/10 border border-brass/30 text-brass font-bold">
+                  {eraLabel}
+                </span>
+              )}
             </div>
           )}
         </div>
 
-        {/* Dynamiczna Karta Kroniki Śledztwa */}
-        <div className="text-left border border-brass/40 bg-zinc-950/85 rounded-lg p-5 md:p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brass/70 to-transparent" />
+        {/* 2-kolumnowy panel główny: Lewa = Akta Śledztwa, Prawa = Wycinek prasowy epoki */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 text-left">
+          {/* Lewa kolumna: Dossier Przygody (7 kolumn) */}
+          <div className="lg:col-span-7 border border-brass/45 bg-zinc-950/90 rounded-xl p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brass to-transparent" />
 
-          <div className="flex items-center justify-between border-b border-brass/25 pb-2.5 mb-3">
-            <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-brass font-bold">
-              <Scroll className="w-3.5 h-3.5 text-brass" />
-              {t('chronicleDossier')}
-            </span>
-            {eraLabel && (
-              <span className="text-[11px] font-mono text-zinc-400">
-                {eraLabel}
-              </span>
+            <div>
+              <div className="flex items-center justify-between border-b border-brass/25 pb-3 mb-4">
+                <span className="inline-flex items-center gap-2.5 text-xs font-mono uppercase tracking-widest text-brass font-bold">
+                  <Scroll className="w-4 h-4 text-gold" />
+                  {t('chronicleDossier')}
+                </span>
+                {eraLabel && (
+                  <span className="text-xs font-mono text-zinc-400">
+                    {eraLabel}
+                  </span>
+                )}
+              </div>
+
+              <h3 className="font-display text-xl md:text-3xl font-bold text-zinc-100 tracking-wide mb-4 italic leading-tight">
+                „{title}”
+              </h3>
+
+              <div className="relative pl-3 border-l-2 border-gold/40 my-2">
+                <p className="font-special-elite text-sm md:text-base text-zinc-200 leading-relaxed max-h-56 overflow-y-auto pr-2">
+                  {storyHook}
+                </p>
+              </div>
+            </div>
+
+            {themes.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-brass/20">
+                <span className="text-xs font-mono text-brass/80 mr-1 uppercase tracking-wider">
+                  {t('themesLabel')}
+                </span>
+                {themes.map((theme, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-1 rounded text-xs font-special-elite bg-brass/15 border border-brass/40 text-amber-200/90 shadow-sm"
+                  >
+                    {theme}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
 
-          <h3 className="font-display text-base md:text-xl font-bold text-zinc-100 tracking-wide mb-2 italic">
-            „{title}”
-          </h3>
+          {/* Prawa kolumna: Kronika Epoki / Wycinki z prasy 1920s (5 kolumn) */}
+          <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/90 to-[#0c0d09]/95 rounded-xl p-5 md:p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brass/30 via-gold/60 to-brass/30" />
 
-          <p className="font-special-elite text-xs md:text-sm text-zinc-300 leading-relaxed max-h-36 overflow-y-auto pr-1">
-            {storyHook}
-          </p>
-
-          {themes.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 mt-3.5 pt-2.5 border-t border-brass/20">
-              <span className="text-[10px] font-mono text-brass/70 mr-1 uppercase">
-                {t('themesLabel')}
-              </span>
-              {themes.map((theme, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 rounded text-[10px] font-special-elite bg-brass/10 border border-brass/30 text-brass/90"
-                >
-                  {theme}
+            <div>
+              <div className="flex items-center justify-between border-b border-brass/20 pb-2.5 mb-3">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-brass/90 font-semibold">
+                  {t('dispatchHeader')}
                 </span>
-              ))}
+                <span className="w-2 h-2 rounded-full bg-gold/70 animate-pulse" />
+              </div>
+
+              <div className="space-y-3.5 divide-y divide-brass/15">
+                {pressDispatches.map((dispatch, idx) => (
+                  <div key={idx} className={idx > 0 ? 'pt-3' : ''}>
+                    <div className="text-[10px] font-mono text-gold/80 tracking-wider uppercase mb-1">
+                      {dispatch.source}
+                    </div>
+                    <div className="font-display text-xs md:text-sm font-bold text-zinc-100 mb-1 leading-snug">
+                      {dispatch.headline}
+                    </div>
+                    <p className="font-serif italic text-xs text-zinc-400 leading-relaxed line-clamp-3">
+                      &quot;{dispatch.text}&quot;
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
+
+            <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-[11px] font-mono text-zinc-500">
+              <span>ARCHIVUM 1920s</span>
+              <span className="text-brass/60">CONFIDENTIAL</span>
+            </div>
+          </div>
         </div>
 
-        {/* Pasek Postępu Art Déco (0-100%) */}
-        <div className="w-full space-y-2">
-          <div className="w-full h-3 bg-black/80 rounded-full border border-brass/40 overflow-hidden relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.9)] p-[1px]">
+        {/* Pasek Postępu Art Déco (0-100%) - powiększony i wyrazisty */}
+        <div className="w-full max-w-3xl mx-auto space-y-2.5">
+          <div className="w-full h-4 bg-black/90 rounded-full border-2 border-brass/60 overflow-hidden relative shadow-[inset_0_2px_6px_rgba(0,0,0,0.95)] p-[1.5px]">
             <div
               data-testid="loading-screen-progress-bar"
-              className="h-full bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] rounded-full transition-all duration-500 ease-out relative shadow-[0_0_15px_rgba(201,169,74,0.5)]"
+              className="h-full bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] rounded-full transition-all duration-500 ease-out relative shadow-[0_0_20px_rgba(201,169,74,0.6)]"
               style={{ width: `${displayProgress}%` }}
             >
-              <div className="absolute inset-0 bg-white/20 animate-pulse" />
+              <div className="absolute inset-0 bg-white/25 animate-pulse" />
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs font-special-elite text-brass/90 tracking-[0.08em] px-1">
-            <span className="flex items-center gap-2 truncate text-left">
+          <div className="flex items-center justify-between text-xs md:text-sm font-special-elite text-brass tracking-[0.08em] px-2">
+            <span className="flex items-center gap-2.5 truncate text-left">
               {!isCompleted && (
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-brass animate-ping shrink-0" />
+                <span className="inline-block w-2 h-2 rounded-full bg-gold animate-ping shrink-0" />
               )}
-              <span className="truncate">
+              <span className="truncate text-zinc-200">
                 {isCompleted ? t('chronicleReady') : startStatus || t('generatingStory')}
               </span>
             </span>
-            <span className="font-mono text-brass ml-2 shrink-0">{displayProgress}%</span>
+            <span className="font-mono text-gold font-bold ml-2 shrink-0 text-sm">
+              {displayProgress}%
+            </span>
           </div>
         </div>
 
-        {/* Dolna strefa: Spinner podczas ładowania LUB przycisk CTA po 100% */}
-        <div className="pt-2 flex flex-col items-center justify-center min-h-[72px]">
+        {/* Dolna strefa Hero CTA: Spinner podczas ładowania LUB wielki przycisk wejścia po 100% */}
+        <div className="pt-2 flex flex-col items-center justify-center min-h-[84px]">
           {isCompleted ? (
-            <div className="flex flex-col items-center gap-2 animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center gap-2.5 animate-in fade-in zoom-in-95 duration-300">
               <button
                 type="button"
                 onClick={handleConfirm}
                 data-testid="loading-screen-enter-cta"
-                className="group relative px-8 py-3.5 bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] hover:from-[#b38f42] hover:via-[#f3cf65] hover:to-[#b38f42] text-zinc-950 font-display font-bold text-sm md:text-base uppercase tracking-[0.2em] rounded border-2 border-brass shadow-[0_0_25px_rgba(201,169,74,0.45)] hover:shadow-[0_0_45px_rgba(201,169,74,0.8)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2.5 cursor-pointer"
+                className="group relative px-10 py-4 bg-gradient-to-r from-[#997a38] via-[#f0cc66] to-[#997a38] hover:from-[#b38f42] hover:via-[#ffde7a] hover:to-[#b38f42] text-zinc-950 font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] rounded-md border-2 border-gold shadow-[0_0_35px_rgba(201,169,74,0.55)] hover:shadow-[0_0_55px_rgba(201,169,74,0.9)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
               >
-                <Play className="w-4 h-4 fill-zinc-950 text-zinc-950 transition-transform group-hover:scale-110" />
+                <Play className="w-5 h-5 fill-zinc-950 text-zinc-950 transition-transform group-hover:scale-125" />
                 <span>{t('enterAdventure')}</span>
-                <Sparkles className="w-4 h-4 text-zinc-950 animate-pulse" />
+                <Sparkles className="w-5 h-5 text-zinc-950 animate-pulse" />
               </button>
-              <p className="text-[11px] font-special-elite text-brass/75 tracking-wider animate-pulse">
+              <p className="text-xs font-special-elite text-gold/90 tracking-widest uppercase animate-pulse">
                 {t('awaitingAccept')}
               </p>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-zinc-500 text-xs font-special-elite tracking-wider">
-              <Loader2 className="w-4 h-4 animate-spin text-brass/80" />
+            <div className="flex items-center gap-2.5 text-zinc-400 text-xs md:text-sm font-special-elite tracking-wider">
+              <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin text-gold" />
               <span>{t('bufferingNarrator')}</span>
             </div>
           )}
