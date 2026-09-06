@@ -42,21 +42,21 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
     : 0;
 
   return (
-    <Card className={`border-brass/40 bg-zinc-950/95 shadow-xl backdrop-blur-md my-3 overflow-hidden ${className}`}>
+    <Card className={`border-brass/40 bg-card/95 shadow-xl backdrop-blur-md my-3 overflow-hidden ${className}`}>
       {/* Nagłówek toru Art Déco */}
-      <div className="bg-zinc-900/90 border-b border-brass/20 px-4 py-2.5 flex items-center justify-between">
+      <div className="bg-muted/80 border-b border-brass/20 px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Footprints className="w-5 h-5 text-brass animate-pulse" />
           <span className="font-display font-bold text-brass tracking-wider uppercase text-sm">
             {t('title')}
           </span>
-          <Badge className="bg-zinc-800 text-zinc-300 border-zinc-700 font-mono text-xs">
+          <Badge className="bg-muted text-muted-foreground border-border font-mono text-xs">
             {t('roundLabel', { round: state.round, maxRounds: state.maxRounds })}
           </Badge>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-amber-400 font-medium">
+          <span className="text-xs font-mono text-gold font-medium">
             {t('distanceLabel', { distance: Math.max(0, minDistance) })}
           </span>
           {fleeing && (
@@ -71,7 +71,7 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
         {/* Wizualizacja toru liniowego */}
         <div className="relative flex items-center justify-between gap-1 overflow-x-auto py-4 px-2">
           {/* Liniowy przewodnik / tło toru */}
-          <div className="absolute left-4 right-4 h-1 bg-zinc-800 -z-0 top-1/2 -translate-y-1/2" />
+          <div className="absolute left-4 right-4 h-1 bg-border/80 -z-0 top-1/2 -translate-y-1/2" />
 
           {state.segments.map((segment) => {
             const hasFleeing = fleeing?.segmentIndex === segment.index;
@@ -100,12 +100,12 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
                       : hasPursuer
                         ? 'border-rose-500 bg-rose-950 text-rose-300 ring-2 ring-rose-500/30'
                         : hasHazard
-                          ? 'border-amber-500/80 bg-zinc-900 text-amber-400 shadow-md'
-                          : 'border-zinc-700 bg-zinc-900 text-zinc-500'
+                          ? 'border-gold/80 bg-muted text-gold shadow-md'
+                          : 'border-border bg-muted/80 text-muted-foreground'
                   }`}
                 >
                   {hasHazard ? (
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <AlertTriangle className="w-4 h-4 text-gold" />
                   ) : (
                     <span className="text-xs font-mono font-semibold">
                       {segment.index + 1}
@@ -124,7 +124,7 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
 
                 {/* Nazwa/opis przeszkody pod węzłem */}
                 {hasHazard && (
-                  <span className="text-[10px] text-amber-300 font-mono tracking-tight text-center max-w-[60px] truncate mt-0.5">
+                  <span className="text-[10px] text-brass font-mono tracking-tight text-center max-w-[60px] truncate mt-0.5">
                     {segment.hazard?.name}
                   </span>
                 )}
