@@ -7628,5 +7628,11 @@
     "back": "Back",
     "startOver": "Start over",
     "openBuilderButton": "Adventure Builder & Campaign Kit"
+  },
+  "SubtreeError": {
+    "title": "View Error",
+    "description": "An unexpected error occurred in this module. The rest of the game continues to function normally.",
+    "tryAgainButton": "Try again",
+    "unknownError": "Unknown error"
   }
 }

@@ -7628,5 +7628,11 @@
     "back": "Wstecz",
     "startOver": "Zacznij od nowa",
     "openBuilderButton": "Kreator Przygód & Pakiet MG"
+  },
+  "SubtreeError": {
+    "title": "Błąd widoku",
+    "description": "W tym module wystąpił niespodziewany błąd. Pozostała część gry działa poprawnie.",
+    "tryAgainButton": "Spróbuj ponownie",
+    "unknownError": "Nieznany błąd"
   }
 }
