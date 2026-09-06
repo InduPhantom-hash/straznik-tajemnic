@@ -299,7 +299,7 @@ export function WizardEquipmentView({
                           </span>
                         )}
                         {item.isConsumable && item.quantity && (
-                          <span className="text-amber-300/90 bg-amber-950/40 px-1 py-0.2 rounded border border-amber-500/30">
+                          <span className="text-brass bg-brass/10 px-1 py-0.2 rounded border border-brass/30">
                             💊 {item.quantity === 1 ? t('usesCount', { count: 1 }) : t('dosesCount', { count: item.quantity })}
                           </span>
                         )}

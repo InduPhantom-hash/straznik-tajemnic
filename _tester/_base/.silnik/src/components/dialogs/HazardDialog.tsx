@@ -174,39 +174,39 @@ export function HazardDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-zinc-950 border border-amber-900/40 text-amber-100 shadow-2xl">
-        <DialogHeader className="border-b border-amber-900/30 pb-3">
+      <DialogContent className="max-w-xl border-brass/50 bg-card text-foreground shadow-deco overflow-hidden">
+        <DialogHeader className="border-b border-brass/20 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShieldAlert className="w-6 h-6 text-amber-500" />
-              <DialogTitle className="text-xl font-serif tracking-wider text-amber-200">
+              <ShieldAlert className="w-5 h-5 text-brass" />
+              <DialogTitle className="font-display text-lg tracking-wider text-brass uppercase">
                 {t('dialogTitle')}
               </DialogTitle>
             </div>
-            <Badge variant="outline" className="border-amber-700/60 text-amber-400 font-mono text-xs">
+            <Badge className="bg-brass/20 text-brass border-brass/40 text-xs font-mono">
               CoC 7e RAW
             </Badge>
           </div>
-          <DialogDescription className="text-zinc-400 text-sm mt-1">
+          <DialogDescription className="text-muted-foreground text-sm mt-1">
             {hazard?.description || t('dialogSubtitle')}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid grid-cols-4 bg-zinc-900/90 border border-amber-900/30">
-            <TabsTrigger value="falling" className="data-[state=active]:bg-amber-950/60 data-[state=active]:text-amber-200 text-xs">
+          <TabsList className="grid grid-cols-4 bg-card border border-brass/30">
+            <TabsTrigger value="falling" className="data-[state=active]:bg-brass/20 data-[state=active]:text-brass text-xs">
               <ArrowDownCircle className="w-3.5 h-3.5 mr-1.5" />
               {t('tabFalling')}
             </TabsTrigger>
-            <TabsTrigger value="fire" className="data-[state=active]:bg-amber-950/60 data-[state=active]:text-amber-200 text-xs">
+            <TabsTrigger value="fire" className="data-[state=active]:bg-brass/20 data-[state=active]:text-brass text-xs">
               <Flame className="w-3.5 h-3.5 mr-1.5" />
               {t('tabFire')}
             </TabsTrigger>
-            <TabsTrigger value="suffocation" className="data-[state=active]:bg-amber-950/60 data-[state=active]:text-amber-200 text-xs">
+            <TabsTrigger value="suffocation" className="data-[state=active]:bg-brass/20 data-[state=active]:text-brass text-xs">
               <Wind className="w-3.5 h-3.5 mr-1.5" />
               {t('tabSuffocation')}
             </TabsTrigger>
-            <TabsTrigger value="poison" className="data-[state=active]:bg-amber-950/60 data-[state=active]:text-amber-200 text-xs">
+            <TabsTrigger value="poison" className="data-[state=active]:bg-brass/20 data-[state=active]:text-brass text-xs">
               <Skull className="w-3.5 h-3.5 mr-1.5" />
               {t('tabPoison')}
             </TabsTrigger>
@@ -216,7 +216,7 @@ export function HazardDialog({
           <TabsContent value="falling" className="space-y-4 pt-3">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="space-y-1">
-                <label className="text-xs text-zinc-400 uppercase tracking-wider">{t('heightLabel')}:</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('heightLabel')}:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -224,17 +224,17 @@ export function HazardDialog({
                     max={60}
                     value={fallHeight}
                     onChange={(e) => setFallHeight(parseInt(e.target.value) || 1)}
-                    className="w-20 bg-zinc-900 border border-amber-900/40 rounded px-2 py-1 text-amber-200 text-center font-mono"
+                    className="w-20 bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-center font-mono"
                   />
-                  <span className="text-zinc-400">m ({Math.min(10, Math.max(1, Math.floor(fallHeight / 3)))}k6)</span>
+                  <span className="text-muted-foreground">m ({Math.min(10, Math.max(1, Math.floor(fallHeight / 3)))}k6)</span>
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-zinc-400 uppercase tracking-wider">{t('surfaceLabel')}:</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('surfaceLabel')}:</label>
                 <select
                   value={fallSurface}
                   onChange={(e) => setFallSurface(e.target.value as FallingSurface)}
-                  className="w-full bg-zinc-900 border border-amber-900/40 rounded px-2 py-1 text-amber-200 text-sm"
+                  className="w-full bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-sm"
                 >
                   <option value="normal">{t('surfaceNormal')}</option>
                   <option value="hard">{t('surfaceHard')}</option>
@@ -247,7 +247,7 @@ export function HazardDialog({
             <div className="flex gap-2">
               <Button
                 onClick={() => handleRollFalling(true)}
-                className="flex-1 bg-amber-700 hover:bg-amber-600 text-zinc-950 font-medium"
+                className="flex-1 bg-brass hover:bg-brass/80 text-background font-medium"
               >
                 <Dices className="w-4 h-4 mr-2" />
                 {t('actionJumpCheck', { skill: playerJump })}
@@ -255,16 +255,16 @@ export function HazardDialog({
               <Button
                 onClick={() => handleRollFalling(false)}
                 variant="outline"
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="border-border text-foreground hover:bg-muted"
               >
                 {t('actionDirectFall')}
               </Button>
             </div>
 
             {fallResult && (
-              <Card className="bg-zinc-900/70 border border-amber-900/40 p-3 space-y-2">
+              <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-400">{t('rawBaseDice')}: {fallResult.baseDiceCount}k6</span>
+                  <span className="text-muted-foreground">{t('rawBaseDice')}: {fallResult.baseDiceCount}k6</span>
                   {fallResult.jumpRoll && (
                     <Badge variant={fallResult.jumpRoll.outcome === 'fail' ? 'destructive' : 'default'}>
                       {t('jumpOutcome')}: {fallResult.jumpRoll.outcome} (-{fallResult.jumpRoll.diceReduced}k6)
@@ -276,9 +276,9 @@ export function HazardDialog({
                     {t('surfaceHalvedNotice')}
                   </p>
                 )}
-                <div className="flex justify-between items-center pt-2 border-t border-amber-900/20">
-                  <span className="text-amber-300 font-medium text-base">
-                    {t('finalDamage')}: <strong className="text-red-400 text-lg">{fallResult.finalDamage} HP</strong>
+                <div className="flex justify-between items-center pt-2 border-t border-border/60">
+                  <span className="text-foreground font-medium text-base">
+                    {t('finalDamage')}: <strong className="text-destructive text-lg">{fallResult.finalDamage} HP</strong>
                   </span>
                   <Button
                     size="sm"
@@ -290,7 +290,7 @@ export function HazardDialog({
                         `Upadek z wysokości ${fallResult.heightMeters}m. Obrażenia: ${fallResult.finalDamage} HP.`
                       )
                     }
-                    className="bg-red-800 hover:bg-red-700 text-white text-xs"
+                    className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
                   >
                     {isApplied ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     {isApplied ? t('applied') : t('applyToCharacter')}
@@ -304,11 +304,11 @@ export function HazardDialog({
           <TabsContent value="fire" className="space-y-4 pt-3">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="space-y-1">
-                <label className="text-xs text-zinc-400 uppercase tracking-wider">{t('fireIntensityLabel')}:</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('fireIntensityLabel')}:</label>
                 <select
                   value={fireIntensity}
                   onChange={(e) => setFireIntensity(e.target.value as FireIntensity)}
-                  className="w-full bg-zinc-900 border border-amber-900/40 rounded px-2 py-1 text-amber-200 text-sm"
+                  className="w-full bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-sm"
                 >
                   <option value="minor">{t('fireMinor')} (1k6)</option>
                   <option value="moderate">{t('fireModerate')} (1k6/rd)</option>
@@ -317,39 +317,39 @@ export function HazardDialog({
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-zinc-400 uppercase tracking-wider">{t('roundsCount')}:</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('roundsCount')}:</label>
                 <input
                   type="number"
                   min={1}
                   max={10}
                   value={fireRounds}
                   onChange={(e) => setFireRounds(parseInt(e.target.value) || 1)}
-                  className="w-20 bg-zinc-900 border border-amber-900/40 rounded px-2 py-1 text-amber-200 text-center font-mono"
+                  className="w-20 bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-center font-mono"
                 />
               </div>
             </div>
 
-            <p className="text-xs text-amber-500/80 italic">
+            <p className="text-xs text-brass italic">
               ⚠️ {t('armorIgnoredNotice')}
             </p>
 
             <Button
               onClick={handleRollFire}
-              className="w-full bg-amber-700 hover:bg-amber-600 text-zinc-950 font-medium"
+              className="w-full bg-brass hover:bg-brass/80 text-background font-medium"
             >
               <Dices className="w-4 h-4 mr-2" />
               {t('actionRollFireDamage')}
             </Button>
 
             {fireResult && (
-              <Card className="bg-zinc-900/70 border border-amber-900/40 p-3 space-y-2">
+              <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-400">{t('fireFormula')}: {fireResult.damageFormula}</span>
+                  <span className="text-muted-foreground">{t('fireFormula')}: {fireResult.damageFormula}</span>
                   <Badge variant="destructive">{t('armorBypassed')}</Badge>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-amber-900/20">
-                  <span className="text-amber-300 font-medium text-base">
-                    {t('finalDamage')}: <strong className="text-red-400 text-lg">{fireResult.damageRolled} HP</strong>
+                <div className="flex justify-between items-center pt-2 border-t border-border/60">
+                  <span className="text-foreground font-medium text-base">
+                    {t('finalDamage')}: <strong className="text-destructive text-lg">{fireResult.damageRolled} HP</strong>
                   </span>
                   <Button
                     size="sm"
@@ -361,7 +361,7 @@ export function HazardDialog({
                         `Obrażenia od ognia (${fireResult.intensity}, ${fireResult.rounds} rund): ${fireResult.damageRolled} HP.`
                       )
                     }
-                    className="bg-red-800 hover:bg-red-700 text-white text-xs"
+                    className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
                   >
                     {isApplied ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     {isApplied ? t('applied') : t('applyToCharacter')}
@@ -374,21 +374,21 @@ export function HazardDialog({
           {/* ZAKŁADKA 3: UDUSZENIE I TONIĘCIE */}
           <TabsContent value="suffocation" className="space-y-4 pt-3">
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-zinc-400 text-xs">
+              <div className="flex justify-between text-muted-foreground text-xs">
                 <span>{t('maxBreathSpokoj')}: <strong>{Math.floor(playerCon / 5)} rund</strong></span>
                 <span>{t('maxBreathWysilek')}: <strong>{Math.floor(playerCon / 10)} rund</strong></span>
               </div>
               <div className="flex items-center gap-3">
-                <label className="text-xs text-zinc-400 uppercase tracking-wider">{t('roundWithoutAirLabel')}:</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('roundWithoutAirLabel')}:</label>
                 <input
                   type="number"
                   min={1}
                   max={20}
                   value={airlessRound}
                   onChange={(e) => setAirlessRound(parseInt(e.target.value) || 1)}
-                  className="w-20 bg-zinc-900 border border-amber-900/40 rounded px-2 py-1 text-amber-200 text-center font-mono"
+                  className="w-20 bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-center font-mono"
                 />
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-muted-foreground">
                   {airlessRound === 1 && t('penaltyNone')}
                   {airlessRound === 2 && t('penaltyOne')}
                   {airlessRound >= 3 && t('penaltyTwo')}
@@ -398,25 +398,25 @@ export function HazardDialog({
 
             <Button
               onClick={handleRollSuffocation}
-              className="w-full bg-amber-700 hover:bg-amber-600 text-zinc-950 font-medium"
+              className="w-full bg-brass hover:bg-brass/80 text-background font-medium"
             >
               <Dices className="w-4 h-4 mr-2" />
               {t('actionRollSuffocationCon', { con: playerCon })}
             </Button>
 
             {suffocationResult && (
-              <Card className="bg-zinc-900/70 border border-amber-900/40 p-3 space-y-2">
+              <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-400">
+                  <span className="text-muted-foreground">
                     {t('conCheckOutcome')}: {suffocationResult.conRoll.total} / {playerCon}
                   </span>
                   <Badge variant={suffocationResult.conRoll.success ? 'default' : 'destructive'}>
                     {suffocationResult.conRoll.success ? t('breathHeldSuccess') : t('breathFailDamage')}
                   </Badge>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-amber-900/20">
-                  <span className="text-amber-300 font-medium text-base">
-                    {t('finalDamage')}: <strong className="text-red-400 text-lg">{suffocationResult.damageTaken} HP</strong>
+                <div className="flex justify-between items-center pt-2 border-t border-border/60">
+                  <span className="text-foreground font-medium text-base">
+                    {t('finalDamage')}: <strong className="text-destructive text-lg">{suffocationResult.damageTaken} HP</strong>
                   </span>
                   <Button
                     size="sm"
@@ -428,7 +428,7 @@ export function HazardDialog({
                         `Uduszenie/Tonięcie: runda ${suffocationResult.roundWithoutAir} bez powietrza. Obrażenia: ${suffocationResult.damageTaken} HP.`
                       )
                     }
-                    className="bg-red-800 hover:bg-red-700 text-white text-xs"
+                    className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
                   >
                     {isApplied ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     {isApplied ? t('applied') : t('applyToCharacter')}
@@ -441,11 +441,11 @@ export function HazardDialog({
           {/* ZAKŁADKA 4: TRUCIZNY I TOKSYNY */}
           <TabsContent value="poison" className="space-y-4 pt-3">
             <div className="space-y-2 text-sm">
-              <label className="text-xs text-zinc-400 uppercase tracking-wider">{t('selectPoisonLabel')}:</label>
+              <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('selectPoisonLabel')}:</label>
               <select
                 value={selectedPoisonId}
                 onChange={(e) => setSelectedPoisonId(e.target.value)}
-                className="w-full bg-zinc-900 border border-amber-900/40 rounded px-2 py-1.5 text-amber-200 text-sm font-serif"
+                className="w-full bg-input border border-brass/40 rounded px-2 py-1.5 text-foreground text-sm font-serif"
               >
                 {COC7E_POISONS.map((poison) => (
                   <option key={poison.id} value={poison.id}>
@@ -457,16 +457,16 @@ export function HazardDialog({
 
             <Button
               onClick={handleRollPoison}
-              className="w-full bg-amber-700 hover:bg-amber-600 text-zinc-950 font-medium"
+              className="w-full bg-brass hover:bg-brass/80 text-background font-medium"
             >
               <Dices className="w-4 h-4 mr-2" />
               {t('actionRollPoisonCon', { con: playerCon })}
             </Button>
 
             {poisonResult && (
-              <Card className="bg-zinc-900/70 border border-amber-900/40 p-3 space-y-2">
+              <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-400">
+                  <span className="text-muted-foreground">
                     {t('conCheckOutcome')}: {poisonResult.conRoll.total} / {playerCon} ({poisonResult.conRoll.outcome})
                   </span>
                   <Badge variant={poisonResult.conRoll.passedRequirement ? 'default' : 'destructive'}>
@@ -475,19 +475,19 @@ export function HazardDialog({
                 </div>
 
                 {poisonResult.isFatal && (
-                  <p className="text-xs text-red-500 font-bold tracking-wider uppercase">
+                  <p className="text-xs text-destructive font-bold tracking-wider uppercase">
                     💀 {t('lethalPoisonNotice')}
                   </p>
                 )}
                 {poisonResult.unconscious && (
-                  <p className="text-xs text-amber-400 italic">
+                  <p className="text-xs text-brass italic">
                     💤 {t('unconsciousNotice')}
                   </p>
                 )}
 
-                <div className="flex justify-between items-center pt-2 border-t border-amber-900/20">
-                  <span className="text-amber-300 font-medium text-base">
-                    {t('finalDamage')}: <strong className="text-red-400 text-lg">{poisonResult.damageTaken} HP</strong>
+                <div className="flex justify-between items-center pt-2 border-t border-border/60">
+                  <span className="text-foreground font-medium text-base">
+                    {t('finalDamage')}: <strong className="text-destructive text-lg">{poisonResult.damageTaken} HP</strong>
                   </span>
                   <Button
                     size="sm"
@@ -499,7 +499,7 @@ export function HazardDialog({
                         `Test przeciw truciznie ${poisonResult.poison.id}. Wynik: ${poisonResult.conRoll.outcome}. Obrażenia: ${poisonResult.damageTaken} HP.`
                       )
                     }
-                    className="bg-red-800 hover:bg-red-700 text-white text-xs"
+                    className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
                   >
                     {isApplied ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     {isApplied ? t('applied') : t('applyToCharacter')}
