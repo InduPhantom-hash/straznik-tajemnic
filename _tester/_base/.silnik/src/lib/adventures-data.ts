@@ -5,6 +5,11 @@
 
 import { ADVENTURE_CATALOG } from './adventures-catalog.generated';
 import type { AdventureGraph } from './types';
+import type {
+  DocumentType,
+  LorebookData,
+  SourcebookReference,
+} from '@/types/adventure';
 
 // ============================================================================
 // TYPY
@@ -48,6 +53,14 @@ export interface AdventureContext {
   pdfUrl?: string;
   customDescription?: string; // Opis założeń przygody od użytkownika (dla AI)
   graph?: AdventureGraph; // Zintegrowana mapa myśli (analiza AI)
+  /** Typ dokumentu: scenariusz vs przewodnik regionalny vs kompendium reguł/almanach */
+  documentType?: DocumentType;
+  /** Ustrukturyzowane dane dla Lorebooka / Kompendium */
+  lorebookData?: LorebookData;
+  /** Identyfikatory wgranych lorebooków / kompendiów podpiętych do tego scenariusza */
+  attachedLorebookIds?: string[];
+  /** Metadane podpiętych ksiąg tła (dla szybkiego odpytywania promptu MG) */
+  attachedLorebooks?: SourcebookReference[];
   // --- Źródło pochodzenia (katalog z metką zbioru) ---
   /** Nazwa zbioru źródłowego do wyświetlenia (np. nazwa antologii lub podręcznika). */
   source?: string;
@@ -88,7 +101,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     themes: ['Jasnowidzenie', 'Służba Bezpieczeństwa', 'Trauma wojenna', 'Cztery wymiary'],
     suggestedOccupations: ['Dziennikarz', 'Parapsycholog', 'Egzorcysta', 'Milicjant'],
     suggestedArchetypes: ['investigator', 'scholar', 'mystic', 'action'],
-    hook: 'Weryfikacja феноmenów ojca Klimuszki doprowadza badaczy do tajnych teczek SB i anomalii wymiarowej w Prabutach.',
+    hook: 'Weryfikacja fenomenów ojca Klimuszki doprowadza badaczy do tajnych teczek SB i anomalii wymiarowej w Prabutach.',
     description: 'Badacze zostają zaangażowani przez redaktorkę Helenę Krawczyk z programu "Sygnały Nieznanego" po Międzynarodowym Kongresie Psychotronicznym w Pradze. Ich zadaniem jest weryfikacja niezwykłych fenomenów ojca Klimuszki – franciszkanina z Elbląga.',
     estimatedSessions: '1-2',
     playerCount: '1-4',
@@ -97,6 +110,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     sourceCategory: 'oneshot',
     recommendedForBeginners: true,
     isStrefa11: true,
+    documentType: 'scenario',
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -124,6 +138,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     sourceCategory: 'oneshot',
     recommendedForBeginners: true,
     isStrefa11: true,
+    documentType: 'scenario',
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -151,6 +166,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     sourceCategory: 'oneshot',
     recommendedForBeginners: false,
     isStrefa11: true,
+    documentType: 'scenario',
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -178,6 +194,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     sourceCategory: 'oneshot',
     recommendedForBeginners: false,
     isStrefa11: true,
+    documentType: 'scenario',
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -186,7 +203,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
   },
 ];
 
-// Własna przygoda wgrana z PDF
+// Własna przygoda lub lorebook wgrany z PDF
 export interface CustomAdventure extends AdventureContext {
   pdfUrl: string; // URL pliku PDF w GCS
   geminiFileUri: string; // URI dla Gemini API
@@ -194,6 +211,10 @@ export interface CustomAdventure extends AdventureContext {
   uploadedAt: string; // ISO timestamp
   isAnalyzed: boolean; // Czy AI przeanalizowało
   analysisError?: string; // Błąd analizy (opcjonalnie)
+  documentType?: DocumentType; // scenario | setting | compendium
+  lorebookData?: LorebookData;
+  attachedLorebookIds?: string[];
+  attachedLorebooks?: SourcebookReference[];
 }
 
 // ============================================================================
@@ -396,21 +417,34 @@ export function getArchetypeById(id: string): CharacterArchetype | undefined {
  * Zwraca opis kontekstu przygody dla promptu AI
  */
 export function getAdventureContextPrompt(adventure: AdventureContext): string {
-  return `KONTEKST PRZYGODY:
+  let prompt = `KONTEKST PRZYGODY:
 - Tytuł: ${adventure.title}
 - Era: ${adventure.eraLabel} (${adventure.yearRange})
 - Lokalizacja: ${adventure.location}, ${adventure.country}
 - Ton: ${adventure.tone === 'purist' ? 'Mroczny, klasyczny horror' : adventure.tone === 'pulp' ? 'Heroiczna akcja' : 'Noir, śledztwo'}
-- Motywy: ${adventure.themes.join(', ')}${adventure.source ? `\n- Źródło: ${adventure.source}` : ''}
+- Motywy: ${adventure.themes.join(', ')}${adventure.source ? `\n- Źródło: ${adventure.source}` : ''}`;
 
-WYMOGI DLA POSTACI:
+  if (adventure.attachedLorebooks && adventure.attachedLorebooks.length > 0) {
+    prompt += `\n- Podpięte księgi tła i kompendia: ${adventure.attachedLorebooks.map(l => l.title).join(', ')}`;
+  }
+
+  if (adventure.lorebookData) {
+    prompt += `\n\n[LOREBOOK_CONTEXT - REGION I ŚWIAT]:
+- Obszar/Temat: ${adventure.lorebookData.regionOrTheme}
+- Synteza: ${adventure.lorebookData.summary}`;
+  }
+
+  prompt += `\n\nWYMOGI DLA POSTACI:
 - Postać MUSI pasować do lokalizacji: ${adventure.location}
 - Postać MUSI mieć powód do przebywania w ${adventure.location} w roku ${adventure.yearRange}
 - Zawód MUSI istnieć w epoce ${adventure.eraLabel}
 - Styl postaci MUSI pasować do tonu "${adventure.tone}"
 
 SUGEROWANE ZAWODY: ${adventure.suggestedOccupations.join(', ') || 'dowolne pasujące do ery'}`;
+
+  return prompt;
 }
+
 
 /**
  * Filtruje zawody według ery przygody

@@ -32,7 +32,10 @@ export interface UseCustomAdventuresReturn {
   getActiveAdventure: () => CustomAdventure | null;
   exportBackup: () => string;
   importBackup: (json: string) => boolean;
+  toggleAttachLorebook: (adventureId: string, lorebookId: string) => Promise<void>;
 }
+
+
 
 export function useCustomAdventures(): UseCustomAdventuresReturn {
   const [customAdventures, setCustomAdventures] = useState<CustomAdventure[]>(
@@ -237,12 +240,15 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
             fileName: file.name,
             uploadedAt: new Date().toISOString(),
             isAnalyzed: true,
-            pageStart: adventureData?.pageStart || null,
             // Rozkład na czynniki pierwsze (postacie/miejsca/zdarzenia/przedmioty/
             // stwory) - kontekst dla MG/AI. Zapisywany razem z przygodą (IndexedDB).
             graph: adventureData?.graph || { npcs: [], locations: [], clues: [], connections: [] },
+            documentType: adventureData?.documentType || 'scenario',
+            lorebookData: adventureData?.lorebookData,
+            attachedLorebookIds: [],
           })
         );
+
 
         // Aby uniknąć wyścigów (race condition) przy równoległych uploadach:
         // dociągamy najświeższy stan bezpośrednio przed zapisem.
@@ -401,6 +407,56 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     []
   );
 
+  // Dołączanie lub odłączanie Lorebooka / Kompendium do scenariusza
+  const toggleAttachLorebook = useCallback(
+    async (adventureId: string, lorebookId: string) => {
+      try {
+        const freshState = await loadCustomAdventures();
+        const target = freshState.adventures.find((a) => a.id === adventureId);
+        if (!target) return;
+
+        const lorebook = freshState.adventures.find((a) => a.id === lorebookId);
+        const currentIds = target.attachedLorebookIds || [];
+        const isAttached = currentIds.includes(lorebookId);
+
+        const newIds = isAttached
+          ? currentIds.filter((id) => id !== lorebookId)
+          : [...currentIds, lorebookId];
+
+        const updatedAdventures = freshState.adventures.map((a) => {
+          if (a.id !== adventureId) return a;
+          const attachedLorebooks = newIds
+            .map((id) => {
+              const lb = freshState.adventures.find((item) => item.id === id);
+              if (!lb) return null;
+              return {
+                id: lb.id,
+                title: lb.title,
+                documentType: (lb.documentType || 'setting') as 'setting' | 'compendium',
+                geminiFileUri: lb.geminiFileUri,
+              };
+            })
+            .filter(Boolean) as import('@/types/adventure').SourcebookReference[];
+
+          return {
+            ...a,
+            attachedLorebookIds: newIds,
+            attachedLorebooks,
+          };
+        });
+
+        setCustomAdventures(updatedAdventures);
+        await saveCustomAdventures({
+          adventures: updatedAdventures,
+          activeId: freshState.activeId,
+        });
+      } catch (err) {
+        console.error('❌ toggleAttachLorebook failed:', err);
+      }
+    },
+    []
+  );
+
   return {
     customAdventures,
     activeAdventureId,
@@ -414,5 +470,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     getActiveAdventure,
     exportBackup,
     importBackup,
+    toggleAttachLorebook,
   };
 }
+
