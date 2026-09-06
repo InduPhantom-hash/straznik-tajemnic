@@ -550,9 +550,9 @@ export function RitualInterface({
       case 'moderate':
         return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
       case 'severe':
-        return 'bg-red-500/20 text-red-400 border-red-500/50';
+        return 'bg-destructive/20 text-destructive border-destructive/50';
       case 'catastrophic':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
+        return 'bg-destructive/30 text-destructive border-destructive font-bold';
     }
   };
 
@@ -560,10 +560,10 @@ export function RitualInterface({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-500/30">
+      <Card className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-card border-2 border-brass/50">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl flex items-center gap-2 text-purple-300">
+            <CardTitle className="text-2xl flex items-center gap-2 text-brass">
               {t('title')}
             </CardTitle>
             <Button variant="ghost" onClick={onClose}>✕</Button>
@@ -572,19 +572,19 @@ export function RitualInterface({
           {/* Statusy gracza */}
           <div className="flex gap-4 mt-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-purple-400">{t('pmShort')}</span>
+              <span className="text-brass font-medium">{t('pmShort')}</span>
               <span className={getCostColor(playerMP, selectedRitual?.mpCost || 0)}>{playerMP}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-blue-400">{t('prShort')}</span>
+              <span className="text-primary font-medium">{t('prShort')}</span>
               <span className={getCostColor(playerSAN, selectedRitual?.sanCost || 0)}>{playerSAN}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-red-400">{t('hpShort')}</span>
+              <span className="text-destructive font-medium">{t('hpShort')}</span>
               <span className={getCostColor(playerHP, selectedRitual?.hpCost || 0)}>{playerHP}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-yellow-400">{t('powShort')}</span>
+              <span className="text-gold font-medium">{t('powShort')}</span>
               <span>{playerPOW}</span>
             </div>
           </div>
@@ -593,14 +593,14 @@ export function RitualInterface({
         <CardContent className="space-y-4">
           {/* Ekran rzucania */}
           {isCasting && selectedRitual && (
-            <Card className="border-purple-500/50 bg-purple-900/30">
+            <Card className="border-brass/40 bg-input/40">
               <CardContent className="p-6 text-center">
                 <div className="text-4xl mb-4 animate-pulse">🔮</div>
-                <h3 className="text-xl font-semibold text-purple-300 mb-2">
+                <h3 className="text-xl font-semibold text-brass mb-2">
                   {t('castingTitle', { name: t(selectedRitual.name as RitualFieldKey) })}
                 </h3>
                 <Progress value={castingProgress} className="h-3 mb-4" />
-                <p className="text-sm text-purple-400 mb-4">
+                <p className="text-sm text-brass/80 mb-4">
                   {castingProgress < 30 && t('castStagePrepare')}
                   {castingProgress >= 30 && castingProgress < 60 && t('castStageRecite')}
                   {castingProgress >= 60 && castingProgress < 90 && t('castStageSurge')}
@@ -656,20 +656,20 @@ export function RitualInterface({
                   key={ritual.id}
                   className={`cursor-pointer transition-all border ${
                     selectedRitual?.id === ritual.id
-                      ? 'border-purple-400 bg-purple-900/30'
-                      : 'border-purple-800/50 hover:border-purple-600/50'
+                      ? 'border-brass bg-brass/15'
+                      : 'border-border/60 hover:border-brass/40 bg-input/20'
                   } ${!canCast(ritual) ? 'opacity-50' : ''}`}
                   onClick={() => setSelectedRitual(ritual)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-purple-300 flex items-center gap-2">
+                        <h4 className="font-semibold text-brass flex items-center gap-2">
                           {getTypeIcon(ritual.type)} {t(ritual.name as RitualFieldKey)}
                         </h4>
                         <p className="text-xs text-muted-foreground">{t('sourceLabel', { source: t(ritual.source as RitualFieldKey) })}</p>
                       </div>
-                      <Badge className="bg-purple-500/30 text-purple-300">
+                      <Badge className="bg-brass/20 text-brass border border-brass/40">
                         {ritual.difficulty}%
                       </Badge>
                     </div>
@@ -678,23 +678,23 @@ export function RitualInterface({
 
                     {/* Koszty */}
                     <div className="flex flex-wrap gap-2 text-xs">
-                      <Badge className={`${playerMP >= ritual.mpCost ? 'bg-purple-500/30' : 'bg-red-500/30'}`}>
+                      <Badge className={`${playerMP >= ritual.mpCost ? 'bg-brass/20 text-brass' : 'bg-destructive/20 text-destructive'}`}>
                         {t('mpBadge', { cost: ritual.mpCost })}
                       </Badge>
-                      <Badge className={`${playerSAN >= ritual.sanCost ? 'bg-blue-500/30' : 'bg-red-500/30'}`}>
+                      <Badge className={`${playerSAN >= ritual.sanCost ? 'bg-primary/20 text-primary' : 'bg-destructive/20 text-destructive'}`}>
                         {t('prBadge', { cost: ritual.sanCost })}
                       </Badge>
                       {ritual.hpCost && (
-                        <Badge className={`${playerHP > ritual.hpCost ? 'bg-red-500/30' : 'bg-orange-500/30'}`}>
+                        <Badge className={`${playerHP > ritual.hpCost ? 'bg-destructive/20 text-destructive' : 'bg-orange-500/30'}`}>
                           {t('hpBadge', { cost: ritual.hpCost })}
                         </Badge>
                       )}
                       {ritual.lifespanCost && (
-                        <Badge className="bg-yellow-500/30">
+                        <Badge className="bg-gold/20 text-gold border border-gold/30">
                           {t('lifespanBadge', { cost: ritual.lifespanCost })}
                         </Badge>
                       )}
-                      <Badge className="bg-gray-500/30">
+                      <Badge className="bg-muted text-muted-foreground border border-border">
                         ⏱️ {ritual.castingTimeHours}h
                       </Badge>
                     </div>
@@ -706,9 +706,9 @@ export function RitualInterface({
 
           {/* Szczegoly wybranego rytualu */}
           {selectedRitual && !isCasting && !result && (
-            <Card className="border-purple-500/30 bg-purple-900/20">
+            <Card className="border-brass/30 bg-input/20">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-purple-300">
+                <CardTitle className="text-lg text-brass">
                   {getTypeIcon(selectedRitual.type)} {t(selectedRitual.name as RitualFieldKey)}
                 </CardTitle>
               </CardHeader>
@@ -718,19 +718,19 @@ export function RitualInterface({
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">{t('castingTimeLabel')}</span>
-                    <span className="text-purple-300 ml-2">{t('castingHoursValue', { hours: selectedRitual.castingTimeHours })}</span>
+                    <span className="text-brass ml-2">{t('castingHoursValue', { hours: selectedRitual.castingTimeHours })}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">{t('studyTimeLabel')}</span>
-                    <span className="text-purple-300 ml-2">{t('studyDaysValue', { days: selectedRitual.studyTimeDays })}</span>
+                    <span className="text-brass ml-2">{t('studyDaysValue', { days: selectedRitual.studyTimeDays })}</span>
                   </div>
                 </div>
 
                 {/* Ostrzezenie o efektach ubocznych */}
                 {selectedRitual.sideEffects.length > 0 && (
-                  <div className="p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
-                    <h5 className="text-sm font-semibold text-orange-400 mb-1">{t('possibleSideEffectsHeader')}</h5>
-                    <p className="text-xs text-orange-300">
+                  <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                    <h5 className="text-sm font-semibold text-destructive mb-1">{t('possibleSideEffectsHeader')}</h5>
+                    <p className="text-xs text-destructive/80">
                       {t('knownComplications', {
                         count: selectedRitual.sideEffects.length,
                         names: selectedRitual.sideEffects.slice(0, 2).map(e => t(e.name as SideEffectFieldKey)).join(', ')
@@ -742,7 +742,7 @@ export function RitualInterface({
                 <Button
                   onClick={() => startCasting(selectedRitual)}
                   disabled={!canCast(selectedRitual)}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-brass text-background hover:bg-brass-light font-semibold"
                 >
                   {canCast(selectedRitual) ? t('startRitualButton') : t('insufficientResources')}
                 </Button>
@@ -791,24 +791,24 @@ export function MythosBookStudy({ book, playerSAN, onStudyComplete, onStudyProgr
   }, [progress, book, onStudyComplete, onStudyProgress]);
 
   return (
-    <Card className="border-amber-900/50 bg-amber-950/30">
+    <Card className="border-brass/30 bg-input/20">
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <span className="text-3xl">📜</span>
           <div>
-            <h4 className="font-semibold text-amber-300">{book.name}</h4>
-            <p className="text-xs text-amber-500">{book.language} • {book.author || t('unknownAuthor')}</p>
+            <h4 className="font-semibold text-brass">{book.name}</h4>
+            <p className="text-xs text-muted-foreground">{book.language} • {book.author || t('unknownAuthor')}</p>
           </div>
         </div>
 
         <div className="space-y-2 text-sm mb-3">
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t('mythosKnowledgeLabel')}</span>
-            <span className="text-purple-400">+{book.cthulhuMythos}%</span>
+            <span className="text-brass font-semibold">+{book.cthulhuMythos}%</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t('sanLossLabel')}</span>
-            <span className="text-red-400">{book.sanLoss}</span>
+            <span className="text-destructive font-semibold">{book.sanLoss}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t('studyTimeBookLabel')}</span>
@@ -818,8 +818,8 @@ export function MythosBookStudy({ book, playerSAN, onStudyComplete, onStudyProgr
 
         <div className="mb-3">
           <div className="flex justify-between text-xs mb-1">
-            <span>{t('progressLabel')}</span>
-            <span>{progress}%</span>
+            <span className="text-muted-foreground">{t('progressLabel')}</span>
+            <span className="text-brass font-mono font-bold">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
@@ -827,7 +827,7 @@ export function MythosBookStudy({ book, playerSAN, onStudyComplete, onStudyProgr
         <Button
           onClick={studySession}
           disabled={isStudying || progress >= 100}
-          className="w-full bg-amber-700 hover:bg-amber-600"
+          className="w-full bg-brass text-background hover:bg-brass-light font-semibold"
         >
           {isStudying ? t('studyingButton') : progress >= 100 ? t('readComplete') : t('studyButton')}
         </Button>

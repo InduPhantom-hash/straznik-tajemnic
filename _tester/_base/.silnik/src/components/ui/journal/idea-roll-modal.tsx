@@ -199,34 +199,34 @@ export function IdeaRollModal({
       <DialogContent
         data-testid="idea-roll-modal"
         size="wide"
-        className="bg-zinc-950 border-2 border-emerald-900/60 text-zinc-300 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto shadow-2xl p-6"
+        className="bg-card border-2 border-brass/50 text-foreground w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto shadow-2xl p-6"
       >
-        <DialogHeader className="border-b border-emerald-900/40 pb-3">
-          <div className="flex items-center gap-2 text-emerald-400 font-special-elite text-xs uppercase tracking-widest">
-            <Lightbulb className="h-4 w-4" />
+        <DialogHeader className="border-b border-brass/30 pb-3">
+          <div className="flex items-center gap-2 text-brass font-special-elite text-xs uppercase tracking-widest">
+            <Lightbulb className="h-4 w-4 text-brass" />
             <span>{t("headerSubtitle")}</span>
           </div>
-          <DialogTitle className="font-display text-xl font-bold tracking-wide text-emerald-500 flex items-center justify-between">
+          <DialogTitle className="font-display text-xl font-bold tracking-wide text-brass flex items-center justify-between">
             <span>{t("headerTitle")}</span>
-            <span className="text-xs font-mono font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded">
+            <span className="text-xs font-mono font-bold bg-primary/20 text-primary-foreground border border-primary/40 px-2 py-0.5 rounded">
               INT: {intValue}%
             </span>
           </DialogTitle>
-          <DialogDescription className="text-zinc-400 text-xs font-serif italic">
+          <DialogDescription className="text-muted-foreground text-xs font-serif italic">
             {t("headerDescription")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Kontekst badanego elementu */}
-        <div className="bg-zinc-900/60 border border-emerald-900/40 rounded-lg p-3 my-2 text-xs font-serif">
-          <span className="text-emerald-400 font-bold uppercase tracking-wider block text-[10px] mb-1">
+        <div className="bg-input/40 border border-border/60 rounded-lg p-3 my-2 text-xs font-serif">
+          <span className="text-brass font-bold uppercase tracking-wider block text-[10px] mb-1">
             {targetSubject ? t("subjectLabel") : t("generalInvestigationLabel")}
           </span>
-          <p className="text-zinc-200 font-bold text-sm">
+          <p className="text-foreground font-bold text-sm">
             {targetSubject ? targetSubject.title : t("generalDeductionTitle")}
           </p>
           {targetSubject?.description && (
-            <p className="text-zinc-400 text-xs mt-1 line-clamp-2 italic">
+            <p className="text-muted-foreground text-xs mt-1 line-clamp-2 italic">
               {targetSubject.description}
             </p>
           )}
@@ -234,40 +234,40 @@ export function IdeaRollModal({
 
         {/* Progi CoC 7e RAW dla Inteligencji */}
         <div className="grid grid-cols-4 gap-2 text-center text-xs py-1">
-          <div className="bg-zinc-900/80 border border-emerald-900/40 rounded p-1.5">
-            <span className="block text-[9px] uppercase text-zinc-500 font-mono">{t("thresholdRegular")}</span>
-            <span className="font-bold font-mono text-zinc-200">≤ {intValue}</span>
+          <div className="bg-input/30 border border-border/50 rounded p-1.5">
+            <span className="block text-[9px] uppercase text-muted-foreground font-mono">{t("thresholdRegular")}</span>
+            <span className="font-bold font-mono text-foreground">≤ {intValue}</span>
           </div>
-          <div className="bg-zinc-900/80 border border-emerald-900/40 rounded p-1.5">
-            <span className="block text-[9px] uppercase text-emerald-500/70 font-mono">{t("thresholdHard")}</span>
-            <span className="font-bold font-mono text-emerald-400">≤ {Math.floor(intValue / 2)}</span>
+          <div className="bg-input/30 border border-border/50 rounded p-1.5">
+            <span className="block text-[9px] uppercase text-primary font-mono">{t("thresholdHard")}</span>
+            <span className="font-bold font-mono text-primary">≤ {Math.floor(intValue / 2)}</span>
           </div>
-          <div className="bg-zinc-900/80 border border-emerald-900/40 rounded p-1.5">
-            <span className="block text-[9px] uppercase text-purple-400/70 font-mono">{t("thresholdExtreme")}</span>
-            <span className="font-bold font-mono text-purple-300">≤ {Math.floor(intValue / 5)}</span>
+          <div className="bg-input/30 border border-border/50 rounded p-1.5">
+            <span className="block text-[9px] uppercase text-brass/80 font-mono">{t("thresholdExtreme")}</span>
+            <span className="font-bold font-mono text-brass">≤ {Math.floor(intValue / 5)}</span>
           </div>
-          <div className="bg-zinc-900/80 border border-emerald-900/40 rounded p-1.5">
-            <span className="block text-[9px] uppercase text-amber-400/70 font-mono">{t("thresholdCritical")}</span>
-            <span className="font-bold font-mono text-amber-300">01</span>
+          <div className="bg-input/30 border border-border/50 rounded p-1.5">
+            <span className="block text-[9px] uppercase text-gold font-mono">{t("thresholdCritical")}</span>
+            <span className="font-bold font-mono text-gold">01</span>
           </div>
         </div>
 
         {/* Wybór Soczewki Dramaturgicznej M.I.C.E. (Card / Kowal) */}
-        <div className="bg-zinc-900/90 border border-emerald-900/50 rounded-lg p-3 my-2 space-y-2">
+        <div className="bg-input/30 border border-brass/30 rounded-lg p-3 my-2 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-1">
-            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-emerald-400">
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-brass">
               {t("miceSectionTitle")}
             </span>
-            <span className="text-[10px] text-zinc-400 font-serif italic">
+            <span className="text-[10px] text-muted-foreground font-serif italic">
               {t("miceSectionDescription")}
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { id: 'inquiry', icon: Search, label: t('miceInquiry'), desc: t('miceInquiryDesc'), activeBorder: 'border-[#bfa15f] bg-[#bfa15f]/20 text-[#f4ebd0]' },
-              { id: 'milieu', icon: Compass, label: t('miceMilieu'), desc: t('miceMilieuDesc'), activeBorder: 'border-emerald-500 bg-emerald-950/60 text-emerald-200' },
-              { id: 'character', icon: User, label: t('miceCharacter'), desc: t('miceCharacterDesc'), activeBorder: 'border-purple-500 bg-purple-950/60 text-purple-200' },
-              { id: 'event', icon: Zap, label: t('miceEvent'), desc: t('miceEventDesc'), activeBorder: 'border-rose-500 bg-rose-950/60 text-rose-200' },
+              { id: 'inquiry', icon: Search, label: t('miceInquiry'), desc: t('miceInquiryDesc'), activeBorder: 'border-brass bg-brass/20 text-foreground' },
+              { id: 'milieu', icon: Compass, label: t('miceMilieu'), desc: t('miceMilieuDesc'), activeBorder: 'border-primary bg-primary/20 text-primary-foreground' },
+              { id: 'character', icon: User, label: t('miceCharacter'), desc: t('miceCharacterDesc'), activeBorder: 'border-brass/80 bg-brass/10 text-foreground' },
+              { id: 'event', icon: Zap, label: t('miceEvent'), desc: t('miceEventDesc'), activeBorder: 'border-destructive bg-destructive/20 text-destructive-foreground' },
             ].map((lens) => {
               const Icon = lens.icon;
               const isSelected = selectedMiceLens === lens.id;
@@ -280,7 +280,7 @@ export function IdeaRollModal({
                     "p-2 rounded border text-left transition-all flex flex-col justify-between cursor-pointer",
                     isSelected
                       ? lens.activeBorder
-                      : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300"
+                      : "bg-background/60 border-border text-muted-foreground hover:border-brass/40 hover:text-foreground"
                   )}
                   title={lens.desc}
                 >
@@ -299,19 +299,19 @@ export function IdeaRollModal({
 
         {/* Panel rzutu lub wynik */}
         {!rollResult ? (
-          <div className="text-center py-5 border-y border-emerald-900/30 my-2">
+          <div className="text-center py-5 border-y border-brass/20 my-2">
             <Button
               onClick={handleRoll}
               disabled={isRolling}
-              className="bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-100 border-2 border-emerald-500/50 px-8 py-3 rounded-lg text-sm font-serif font-bold shadow-lg transition-all cursor-pointer"
+              className="bg-brass text-background hover:bg-brass-light border border-brass/60 px-8 py-3 rounded-lg text-sm font-serif font-bold shadow-lg transition-all cursor-pointer"
             >
-              <Dices className="h-5 w-5 mr-2 text-emerald-400" />
+              <Dices className="h-5 w-5 mr-2 text-background" />
               {t("rollButton")}
             </Button>
-            <p className="text-[11px] text-zinc-500 italic mt-2.5 max-w-md mx-auto font-serif">
+            <p className="text-[11px] text-muted-foreground italic mt-2.5 max-w-md mx-auto font-serif">
               {t("rawRuleHint")}
             </p>
-            <p className="text-[10px] text-emerald-400/70 italic mt-1 font-serif">
+            <p className="text-[10px] text-brass/80 italic mt-1 font-serif">
               {t("miceLifoHint")}
             </p>
           </div>
@@ -322,21 +322,21 @@ export function IdeaRollModal({
               className={cn(
                 "p-3 rounded-lg border flex items-center justify-between",
                 rollResult.isSuccess
-                  ? "bg-emerald-950/40 border-emerald-600/50 text-emerald-200"
-                  : "bg-amber-950/30 border-amber-600/40 text-amber-200"
+                  ? "bg-primary/15 border-primary/50 text-foreground"
+                  : "bg-destructive/15 border-destructive/50 text-foreground"
               )}
             >
               <div className="flex items-center gap-3">
-                <span className="text-3xl font-mono font-bold">{rollResult.roll}</span>
+                <span className="text-3xl font-mono font-bold text-brass">{rollResult.roll}</span>
                 <div>
                   <div className="font-bold text-sm flex items-center gap-1.5">
                     <span>{rollResult.outcomeEmoji}</span>
                     <span>{rollResult.outcomeLabel}</span>
-                    <span className="text-[10px] uppercase font-mono font-bold px-1.5 py-0.5 rounded border ml-1.5 bg-zinc-900 border-zinc-700 text-zinc-300">
+                    <span className="text-[10px] uppercase font-mono font-bold px-1.5 py-0.5 rounded border ml-1.5 bg-input/60 border-border text-foreground">
                       M.I.C.E.: [{rollResult.miceLens.toUpperCase()[0]}]
                     </span>
                   </div>
-                  <span className="text-[10px] opacity-80 font-serif">
+                  <span className="text-[10px] opacity-80 font-serif text-muted-foreground">
                     {rollResult.isSuccess ? t("verdictSuccess") : t("verdictFailureWithComplication")}
                   </span>
                 </div>
@@ -345,7 +345,7 @@ export function IdeaRollModal({
                 type="button"
                 onClick={handleRoll}
                 disabled={isDeducing}
-                className="text-xs text-emerald-400 hover:text-emerald-200 flex items-center gap-1 underline disabled:opacity-50 font-serif cursor-pointer"
+                className="text-xs text-brass hover:text-brass-light flex items-center gap-1 underline disabled:opacity-50 font-serif cursor-pointer"
               >
                 <RotateCcw className="h-3 w-3" /> {t("reroll")}
               </button>
@@ -353,7 +353,7 @@ export function IdeaRollModal({
 
             {/* Treść dedukcji AI */}
             {isDeducing ? (
-              <div className="p-5 bg-zinc-900/80 border border-emerald-900/40 rounded-lg flex items-center justify-center gap-3 text-sm text-emerald-400 font-serif">
+              <div className="p-5 bg-input/30 border border-brass/30 rounded-lg flex items-center justify-center gap-3 text-sm text-brass font-serif">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span>{t("analyzingClues")}</span>
               </div>
@@ -380,12 +380,12 @@ export function IdeaRollModal({
         )}
 
         {/* Przyciski dolne modala */}
-        <div className="flex flex-wrap gap-2 justify-between items-center pt-3 border-t border-emerald-900/40 mt-2">
+        <div className="flex flex-wrap gap-2 justify-between items-center pt-3 border-t border-border/60 mt-2">
           <Button
             onClick={() => onOpenChange(false)}
             variant="outline"
             size="sm"
-            className="border-emerald-900/50 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+            className="border-border text-muted-foreground hover:bg-input/60 hover:text-foreground"
           >
             {t("closeButton")}
           </Button>
@@ -395,7 +395,7 @@ export function IdeaRollModal({
             <Button
               onClick={handleQuote}
               size="sm"
-              className="bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 border border-emerald-500/40 font-serif text-xs"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary/40 font-serif text-xs"
               title={t("quoteToChatTooltip")}
             >
               <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
@@ -412,8 +412,8 @@ export function IdeaRollModal({
                     className={cn(
                       "font-serif text-xs border transition-colors",
                       savedToTarget
-                        ? "bg-emerald-950 border-emerald-600 text-emerald-300"
-                        : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-600"
+                        ? "bg-primary/20 border-primary text-primary-foreground"
+                        : "bg-input/60 hover:bg-input text-foreground border-border"
                     )}
                   >
                     {savedToTarget ? (
@@ -432,8 +432,8 @@ export function IdeaRollModal({
                     className={cn(
                       "font-serif text-xs border transition-colors",
                       savedToChronicle
-                        ? "bg-emerald-950 border-emerald-600 text-emerald-300"
-                        : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-600"
+                        ? "bg-primary/20 border-primary text-primary-foreground"
+                        : "bg-input/60 hover:bg-input text-foreground border-border"
                     )}
                   >
                     {savedToChronicle ? (
