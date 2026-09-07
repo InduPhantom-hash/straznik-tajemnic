@@ -48,13 +48,13 @@ export function ChatHeader({
       : place || regionLabel || '';
 
   return (
-    <div className="relative flex h-16 items-center justify-between gap-3 sm:gap-4 border-b border-brass/30 bg-card px-4 sm:px-6">
+    <div className="relative flex h-16 items-center justify-between gap-2 sm:gap-4 border-b border-brass/30 bg-card px-3 sm:px-6">
       {/* déco: złota linia akcentu pod nagłówkiem */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brass/40 to-transparent"
       />
-      <div className="flex items-center gap-3 font-special-elite min-w-0 max-w-[45%] sm:max-w-[40%] md:max-w-[45%] lg:max-w-[50%] shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 font-special-elite min-w-0 max-w-[35%] sm:max-w-[40%] md:max-w-[45%] shrink-0">
         {/* déco: oko (Eye of Horus) jako znak marki - emerald, pulsujące */}
         <span
           aria-hidden="true"
@@ -86,23 +86,23 @@ export function ChatHeader({
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         {onOpenHelp && (
           <button
             type="button"
             onClick={onOpenHelp}
-            className="flex items-center gap-1.5 font-special-elite text-xs text-brass hover:text-gold border border-brass/30 hover:border-brass/70 px-2.5 py-1 rounded bg-card/60 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 font-special-elite text-xs text-brass hover:text-gold border border-brass/30 hover:border-brass/70 px-2.5 py-1 rounded bg-card/60 transition-colors cursor-pointer shrink-0"
             title={t('compendiumTitle')}
           >
             <span aria-hidden="true">🕯️</span>
-            <span className="hidden sm:inline">{t('compendium')}</span>
+            <span className="hidden md:inline">{t('compendium')}</span>
           </button>
         )}
 
         {/* déco: brass-dzielnik */}
         <span
           aria-hidden="true"
-          className="hidden sm:block h-7 w-px bg-brass/25"
+          className="hidden md:block h-7 w-px bg-brass/25"
         />
 
         {/* Campaign Clock - Integrated into main window header */}

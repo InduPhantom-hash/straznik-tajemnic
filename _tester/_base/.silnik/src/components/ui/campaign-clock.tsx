@@ -218,34 +218,34 @@ export function CampaignClock({
   if (compact) {
     return (
       <div
-        className={`flex items-center gap-3 bg-card/90 backdrop-blur-md border border-brass/30 rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(201,162,39,0.1)] ${className}`}
+        className={`flex items-center gap-2 sm:gap-3 bg-card/90 backdrop-blur-md border border-brass/30 rounded-full px-3 sm:px-4 py-1.5 shadow-[0_0_15px_rgba(201,162,39,0.1)] min-w-0 shrink-0 ${className}`}
       >
-        <div className="flex items-center gap-1.5 border-r border-brass/20 pr-3">
-          <Clock className="w-3.5 h-3.5 text-brass/80" />
+        <div className="flex items-center gap-1.5 border-r border-brass/20 pr-2 sm:pr-3 shrink-0">
+          <Clock className="w-3.5 h-3.5 text-brass/80 shrink-0" />
           <span className="text-sm font-mono font-bold text-brass drop-shadow-[0_0_5px_rgba(201,162,39,0.4)]">
             {formattedTime}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs text-foreground/80 tracking-tight uppercase">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <span className="text-xs text-foreground/80 tracking-tight uppercase whitespace-nowrap">
             {formattedDate}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 ml-1 pl-3 border-l border-brass/20 text-xs text-foreground/80">
-          <span className="flex items-center gap-1.5 max-w-[140px] truncate" title={`${t('weather')}: ${weatherLabel}`}>
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-0.5 sm:ml-1 pl-2 sm:pl-3 border-l border-brass/20 text-xs text-foreground/80 min-w-0">
+          <span className="flex items-center gap-1.5 min-w-0 max-w-[120px] lg:max-w-[140px] truncate" title={`${t('weather')}: ${weatherLabel}`}>
             <WeatherIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-hidden="true" data-testid="weather-icon" />
-            <span className="truncate">{weatherLabel}</span>
+            <span className="truncate hidden xl:inline">{weatherLabel}</span>
           </span>
-          <span className="text-muted-foreground/60">|</span>
+          <span className="text-muted-foreground/60 hidden md:inline">|</span>
           <span
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 shrink-0"
             title={`${t('moonLabel')}: ${moonName}`}
           >
             <span aria-hidden="true">{MOON_PHASE_EMOJI[moonPhase]}</span>
-            <span>{moonName}</span>
+            <span className="hidden 2xl:inline">{moonName}</span>
           </span>
         </div>
       </div>
