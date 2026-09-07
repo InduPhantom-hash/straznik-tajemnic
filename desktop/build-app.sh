@@ -41,6 +41,20 @@ mkdir -p "$APPS_DIR"
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 
+# Samowystarczalny runtime: desktop nie może czytać danych z worktree po przeniesieniu.
+PACKAGE_RUNTIME="$APP_BUNDLE/Contents/Resources/runtime"
+mkdir -p "$PACKAGE_RUNTIME"
+rsync -a --delete \
+  --exclude '.desktop' \
+  --exclude '.next/cache' \
+  --exclude 'data/saves' \
+  --exclude 'data/sessions' \
+  --exclude 'data/results' \
+  --exclude 'data/usage' \
+  --exclude 'data/pricing' \
+  "$GAME_DIR/" "$PACKAGE_RUNTIME/"
+rsync -a --delete "$DESKTOP_DIR/" "$PACKAGE_RUNTIME/desktop/"
+
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -61,7 +75,7 @@ cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 PLIST
 
 # launcher z podmienionymi placeholderami (sed z separatorem | - sciezki bez spacji)
-sed -e "s|__APP_DIR__|$APP_DIR|g" \
+sed -e "s|__APP_DIR__|$PACKAGE_RUNTIME|g" \
     -e "s|__NODE_BIN_DIR__|$NODE_BIN_DIR|g" \
     "$DESKTOP_DIR/launcher.sh" >"$APP_BUNDLE/Contents/MacOS/launcher"
 chmod +x "$APP_BUNDLE/Contents/MacOS/launcher"

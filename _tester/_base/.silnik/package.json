@@ -13,7 +13,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "rag:reindex": "node --experimental-strip-types scripts/reindex-pdfs.ts",
-    "rag:index-mythos": "node --experimental-strip-types scripts/embed-mythos.ts",
+    "rag:index-mythos": "node scripts/embed-mythos.mjs",
+    "mythos:prepare": "node scripts/prepare-mythos-dataset.mjs",
     "rag:convert-binary": "node --experimental-strip-types scripts/convert-rag-binary.ts",
     "backup": "node backup.mjs create",
     "backup:auto": "node backup.mjs auto",
@@ -39,9 +40,9 @@
     "smoke:secrets": "node --experimental-strip-types scripts/smoke-all-secrets.ts",
     "prepare": "node scripts/gen-adventure-catalog.mjs && (husky || true)",
     "gen:catalog": "node scripts/gen-adventure-catalog.mjs",
-    "predev": "node scripts/gen-adventure-catalog.mjs",
-    "pretest": "node scripts/gen-adventure-catalog.mjs",
-    "prebuild": "node scripts/gen-adventure-catalog.mjs"
+    "predev": "node scripts/gen-adventure-catalog.mjs && node scripts/prepare-mythos-dataset.mjs",
+    "pretest": "node scripts/gen-adventure-catalog.mjs && node scripts/prepare-mythos-dataset.mjs",
+    "prebuild": "node scripts/gen-adventure-catalog.mjs && node scripts/prepare-mythos-dataset.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.1",

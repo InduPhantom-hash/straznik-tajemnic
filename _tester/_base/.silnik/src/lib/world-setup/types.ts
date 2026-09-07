@@ -76,6 +76,7 @@ export interface WorldSetupBundleV1 {
   nearestBranches: Array<Record<string, unknown>>;
   adventureContent: string;
   supplementalInformation: string[];
+  mythosReferences?: Array<{ id: string; term: string; categoryTitle: string; sourceUrl: string; license: string }>;
   sources: HistoricalSourceRef[];
   knowledgeGaps: string[];
   exceptions: EraException[];
