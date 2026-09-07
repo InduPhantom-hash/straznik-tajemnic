@@ -370,7 +370,7 @@ export function DiscoveriesView({
 
         {/* Wyszukiwarka FTS (Fast Filter) w czasie rzeczywistym */}
         <div className="p-2 border-b border-[#3a2518] bg-[#18100b]">
-          <div className="flex items-center bg-zinc-950 rounded px-2.5 py-1.5 border border-[#3a2518] focus-within:border-[#bfa15f]/80">
+          <div className="flex items-center bg-black/50 rounded px-2.5 py-1.5 border border-[#3a2518] focus-within:border-[#bfa15f]/80">
             <Search className="h-3.5 w-3.5 text-[#8a7667] mr-2 shrink-0" />
             <input
               type="text"
@@ -461,7 +461,7 @@ export function DiscoveriesView({
                         'text-[9px] uppercase font-mono font-bold px-1 py-0.5 rounded border',
                         entry.miceType === 'milieu' && 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60',
                         entry.miceType === 'inquiry' && 'bg-[#bfa15f]/20 text-[#bfa15f] border-[#bfa15f]/50',
-                        entry.miceType === 'character' && 'bg-purple-950/80 text-purple-300 border-purple-700/60',
+                        entry.miceType === 'character' && 'bg-[#3b1736] text-[#e8b6de] border-[#7d3674]/60',
                         entry.miceType === 'event' && 'bg-rose-950/80 text-rose-300 border-rose-700/60'
                       )}
                       title={
@@ -552,7 +552,7 @@ export function DiscoveriesView({
                         'px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm uppercase font-mono',
                         selectedEntry.miceType === 'milieu' && 'bg-emerald-800 text-emerald-100',
                         selectedEntry.miceType === 'inquiry' && 'bg-[#bfa15f] text-[#120905]',
-                        selectedEntry.miceType === 'character' && 'bg-purple-900 text-purple-100',
+                        selectedEntry.miceType === 'character' && 'bg-[#5c2455] text-[#fcebf9]',
                         selectedEntry.miceType === 'event' && 'bg-rose-900 text-rose-100'
                       )}
                     >
@@ -1005,7 +1005,7 @@ export function DiscoveriesView({
                           className="text-xs font-special-elite text-[#5a4428] hover:text-[#1f1712] underline flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity mr-2"
                           title={t('ideaRollAction')}
                         >
-                          <Lightbulb className="h-3.5 w-3.5 text-amber-700" /> {t('ideaRollAction')}
+                          <Lightbulb className="h-3.5 w-3.5 text-[#8a5d20]" /> {t('ideaRollAction')}
                         </button>
                       )}
                       <button
@@ -1045,7 +1045,7 @@ export function DiscoveriesView({
                       className="py-2 px-3 border-2 border-[#8c7353]/60 hover:border-[#8c7353] rounded bg-[#8c7353]/20 hover:bg-[#8c7353]/30 text-[#4a3525] font-special-elite text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors shrink-0"
                       title={t('ideaRollAction')}
                     >
-                      <Lightbulb className="h-3.5 w-3.5 text-amber-800" />
+                      <Lightbulb className="h-3.5 w-3.5 text-[#8a5d20]" />
                       {t('ideaRollAction')}
                     </button>
                   )}
@@ -1117,7 +1117,7 @@ export function DiscoveriesView({
           onClick={() => setIsFullscreenImageOpen(false)}
         >
           <div
-            className="bg-[#1c120c] border-4 border-[#8c7353] rounded-xl p-4 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative text-[#f4ebd0] shadow-2xl"
+            className="bg-[#1c120c] border-4 border-[#8c7353] rounded-lg p-4 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative text-[#f4ebd0] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center pb-3 border-b border-[#3a2518]">
@@ -1143,7 +1143,7 @@ export function DiscoveriesView({
             </div>
 
             {selectedEntry?.content && (
-              <div className="p-3 bg-zinc-950/80 rounded border border-[#3a2518] text-xs font-special-elite text-[#d1c2ab] max-h-28 overflow-y-auto">
+              <div className="p-3 bg-black/80 rounded border border-[#3a2518] text-xs font-special-elite text-[#d1c2ab] max-h-28 overflow-y-auto">
                 {selectedEntry.content}
               </div>
             )}
