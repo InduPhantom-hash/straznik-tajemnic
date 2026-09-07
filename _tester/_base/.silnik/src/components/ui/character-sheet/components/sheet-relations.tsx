@@ -93,7 +93,7 @@ export function SheetRelations({ character, onOpenTherapy }: SheetRelationsProps
                     person.lost
                       ? 'border-red-900/30 bg-[#16130f]/60 opacity-60'
                       : person.damaged
-                        ? 'border-amber-700/40 bg-[#1a140e]'
+                        ? 'border-brass/40 bg-[#1a140e]'
                         : 'border-brass/18 bg-[#16130f]'
                   }`}
                 >
@@ -131,7 +131,7 @@ export function SheetRelations({ character, onOpenTherapy }: SheetRelationsProps
                           ? ` · ${t('missing')}`
                           : ''}
                       {person.damaged && (
-                        <span className="text-amber-400 text-[10px] normal-case border border-amber-500/30 px-1 bg-amber-950/20">
+                        <span className="text-brass text-[10px] normal-case border border-brass/40 px-1 bg-brass/10">
                           {t('damagedRelation')}
                         </span>
                       )}

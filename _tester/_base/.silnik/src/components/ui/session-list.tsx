@@ -103,7 +103,7 @@ export function SessionList({
         <p className="text-red-400 text-lg mb-4">{error}</p>
         <Button
           onClick={loadSessions}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700"
+          className="px-6 py-2 bg-brass/80 hover:bg-brass text-background font-medium rounded-md"
         >
           {t('retryButton')}
         </Button>
@@ -114,7 +114,7 @@ export function SessionList({
   if (sessions.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-gray-500/20 to-gray-600/20 rounded-full flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto mb-4 bg-brass/10 border border-brass/20 rounded-full flex items-center justify-center">
           <span className="text-2xl">📂</span>
         </div>
         <p className="text-muted-foreground text-lg">{t('emptyTitle')}</p>
@@ -126,15 +126,15 @@ export function SessionList({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-xl p-6 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto text-foreground">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-brass/30 rounded-lg p-6 w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto text-foreground shadow-2xl">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-center flex-1">
+          <h2 className="text-2xl font-display uppercase tracking-widest text-brass text-center flex-1">
             {t('title')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 bg-muted hover:bg-muted rounded-lg transition-colors"
+            className="p-2 bg-muted hover:bg-muted/80 text-brass border border-brass/20 rounded-md transition-colors"
           >
             ✕
           </button>
@@ -144,7 +144,7 @@ export function SessionList({
           {sessions.map((session) => (
             <div
               key={session.sessionId}
-              className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:bg-black/40 transition-all duration-300"
+              className="bg-black/40 backdrop-blur-sm border border-brass/20 rounded-lg p-6 hover:border-brass/40 hover:bg-black/50 transition-all duration-300"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
