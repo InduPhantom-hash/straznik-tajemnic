@@ -78,12 +78,12 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                     {t('activeCharacter')}
                   </div>
                   <Card
-                    className="bg-amber-900/20 border-amber-500 cursor-pointer hover:bg-amber-900/30 transition-colors"
+                    className="bg-card/70 border-brass/50 cursor-pointer hover:bg-card/90 transition-colors shadow-sm"
                     onClick={() => setView('details')}
                   >
                     <CardContent className="p-4 flex items-center gap-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-amber-600 text-white">
+                      <Avatar className="w-12 h-12 border border-brass/40">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-special-elite font-bold">
                           {activeCharacter.name
                             .split(' ')
                             .map((n: string) => n[0])
@@ -98,7 +98,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                           {activeCharacter.occupation}
                         </div>
                       </div>
-                      <Badge className="bg-amber-600">{t('activeBadge')}</Badge>
+                      <Badge className="bg-brass/20 text-brass border border-brass/40 font-special-elite">{t('activeBadge')}</Badge>
                     </CardContent>
                   </Card>
                 </div>
@@ -140,7 +140,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                             </div>
                             <Button
                               size="sm"
-                              className="bg-amber-600 hover:bg-amber-700"
+                              className="bg-brass/20 hover:bg-brass/30 text-foreground border border-brass/40"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSelectCharacter(char);
@@ -164,7 +164,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                   </p>
                   <Button
                     onClick={onCharacterCreate}
-                    className="bg-amber-600 hover:bg-amber-700"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground border border-brass/40"
                   >
                     ➕ {t('createFirst')}
                   </Button>
@@ -182,7 +182,7 @@ export const CharacterDialog: FC<CharacterDialogProps> = ({
                 </Button>
                 <Button
                   onClick={onCharacterCreate}
-                  className="flex-1 bg-amber-600 hover:bg-amber-700"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground border border-brass/40"
                 >
                   ➕ {t('newCharacter')}
                 </Button>
