@@ -821,6 +821,22 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         onClose={() => setShowSessionZero(false)}
         adventureContext={adventureContext || undefined}
         activeCharacter={activeCharacter}
+        onCharacterUpdate={onUpdateCharacter}
+        playerCharacters={
+          hotSeatConfig?.enabled
+            ? hotSeatConfig.players
+                .map((player) =>
+                  characters?.find(
+                    (character) =>
+                      character.id === player.characterId ||
+                      character.playerName === player.name
+                  )
+                )
+                .filter((character): character is Character => Boolean(character))
+            : activeCharacter
+              ? [activeCharacter]
+              : []
+        }
         onComplete={(settings: SessionZeroSettings) => {
           console.log('Session Zero completed:', settings);
           setShowSessionZero(false);
