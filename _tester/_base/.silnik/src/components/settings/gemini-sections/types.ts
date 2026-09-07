@@ -19,7 +19,7 @@ export type SafetyKey = keyof AISettings['geminiSettings']['safetySettings'];
 export const SAFETY_LEVELS: ReadonlyArray<{ value: SafetyLevel; label: string; badge: string }> = [
   { value: 'BLOCK_NONE',             label: 'Wyłączone (BLOCK_NONE)',           badge: 'bg-muted text-muted-foreground' },
   { value: 'BLOCK_ONLY_HIGH',        label: 'Tylko wysokie (BLOCK_ONLY_HIGH)',  badge: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40' },
-  { value: 'BLOCK_MEDIUM_AND_ABOVE', label: 'Średnie+ (default)',               badge: 'bg-amber-500/20 text-amber-200 border-amber-500/40' },
+  { value: 'BLOCK_MEDIUM_AND_ABOVE', label: 'Średnie+ (default)',               badge: 'bg-brass/20 text-brass border-brass/40' },
   { value: 'BLOCK_LOW_AND_ABOVE',    label: 'Niskie+ (najsurowsze)',            badge: 'bg-red-500/20 text-red-200 border-red-500/40' },
 ];
 
