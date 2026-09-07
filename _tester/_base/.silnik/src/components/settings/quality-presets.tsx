@@ -96,7 +96,7 @@ export function QualityPresets({ settings, setSettings }: QualityPresetsProps) {
               {QUALITY_PRESETS[settings.qualityPreset].name}
             </span>
             {isModified && (
-              <span className="ml-2 px-1.5 py-0.5 text-[14px] font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="ml-2 px-1.5 py-0.5 text-[14px] font-medium bg-brass/15 text-brass border border-brass/40">
                 ⚠️ Modified
               </span>
             )}
