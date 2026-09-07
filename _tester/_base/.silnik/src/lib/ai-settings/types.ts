@@ -16,12 +16,20 @@ export type SessionNarrativeMode =
   | 'story_priority'
   | 'pure_narrative';
 export type MechanicsPacing = 'narrative' | 'standard' | 'detailed';
-export type EraFilterMode = 'authentic_1920s' | 'modern_sensibilities';
+export type EraFilterMode = 'historical_realia' | 'modern_sensibilities';
 
 export interface SessionZeroAnchors {
   keyConnection?: string; // Ważna Osoba (Key Connection - odzyskiwanie SAN CoC 7e RAW)
   importantPlace?: string; // Znaczące Miejsce
   treasuredItem?: string; // Cenny Przedmiot
+}
+
+export interface SessionZeroPlayerContext {
+  characterId: string;
+  playerName: string;
+  characterName: string;
+  investigatorHook?: string;
+  anchors?: SessionZeroAnchors;
 }
 
 export interface SessionMechanicsSettingsV1 {
@@ -49,6 +57,8 @@ export interface SessionZeroSettings {
   investigatorHook?: string;
   anchors?: SessionZeroAnchors;
   eraFilter?: EraFilterMode;
+  /** Kontekst wszystkich postaci w sesji Hot Seat; playerName pozostaje polem legacy. */
+  players?: SessionZeroPlayerContext[];
 }
 
 const MECHANICS_PACING_VALUES: readonly MechanicsPacing[] = [
@@ -120,6 +130,10 @@ export function normalizeSessionZeroSettings(
   const narrativeMode = value.narrativeMode as SessionNarrativeMode | undefined;
   return {
     ...value,
+    eraFilter:
+      value.eraFilter === 'authentic_1920s'
+        ? 'historical_realia'
+        : value.eraFilter,
     mechanics: normalizeSessionMechanicsSettings(value.mechanics, narrativeMode),
   } as SessionZeroSettings;
 }

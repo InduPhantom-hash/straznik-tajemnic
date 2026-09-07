@@ -21,3 +21,6 @@ Thumbs.db
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 graft/
+
+# Lokalne analizy i zrzuty pomocnicze - nie należą do historii produktu.
+scratch/

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,15 @@ import { Label } from './label';
 import { Input } from './input';
 import { Textarea } from './textarea';
 import { HelpIcon } from './tooltip';
+import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { collectSSEText } from '@/lib/sse-parser';
 import {
   saveAISettings,
   loadAISettings,
   AISettings,
   type SessionZeroSettings,
   type SessionZeroAnchors,
+  type SessionZeroPlayerContext,
   type EraFilterMode,
 } from '@/lib/ai-settings';
 import { AdventureContext } from '@/lib/adventures-data';
@@ -31,6 +34,8 @@ interface SessionZeroModalProps {
   onComplete: (settings: SessionZeroSettings) => void;
   adventureContext?: AdventureContext;
   activeCharacter?: Character | null;
+  onCharacterUpdate?: (character: Character) => void;
+  playerCharacters?: Character[];
 }
 
 const TONES = [
@@ -60,15 +65,6 @@ const NARRATIVE_MODES = [
 ] as const;
 
 type BriefingDocType = 'telegram' | 'letter' | 'dossier';
-
-const SUGGESTED_HOOK_ITEMS = [
-  { key: 'hookJob', icon: '💼' },
-  { key: 'hookFamily', icon: '🩸' },
-  { key: 'hookAcademic', icon: '🔍' },
-  { key: 'hookDebt', icon: '📜' },
-  { key: 'hookAccident', icon: '👁️' },
-] as const;
-
 
 const SUGGESTED_KEY_CONNECTIONS = [
   'anchorConnectionMentor',
@@ -117,8 +113,11 @@ export function SessionZeroModal({
   onComplete,
   adventureContext,
   activeCharacter,
+  onCharacterUpdate,
+  playerCharacters,
 }: SessionZeroModalProps) {
   const t = useTranslations('SessionZeroModal');
+  const locale = useLocale();
 
   const toneNames: Record<string, string> = {
     purist: t('tonePuristName'),
@@ -175,24 +174,82 @@ export function SessionZeroModal({
       importantPlace: '',
       treasuredItem: '',
     },
-    eraFilter: 'authentic_1920s',
+    eraFilter: 'historical_realia',
   });
+
+  const partyCharacters = useMemo(
+    () => (playerCharacters && playerCharacters.length > 0
+      ? playerCharacters
+      : activeCharacter
+        ? [activeCharacter]
+        : []),
+    [activeCharacter, playerCharacters]
+  );
+
+  const buildPlayerContexts = (currentSettings: SessionZeroSettings): SessionZeroPlayerContext[] =>
+    partyCharacters.map((character) => {
+      const isActive = character.id === activeCharacter?.id;
+      return {
+        characterId: character.id,
+        playerName: character.playerName || character.name,
+        characterName: character.name,
+        investigatorHook: isActive
+          ? currentSettings.investigatorHook || character.characterConcept || undefined
+          : character.characterConcept || undefined,
+        anchors: isActive
+          ? currentSettings.anchors
+          : {
+              keyConnection: character.significantPerson,
+              importantPlace: character.meaningfulLocation,
+              treasuredItem: character.treasuredPossession,
+            },
+      };
+    });
 
   const [newLine, setNewLine] = useState('');
   const [newVeil, setNewVeil] = useState('');
-  const [briefingDocType, setBriefingDocType] = useState<BriefingDocType>('telegram');
+  const [briefingDocType] = useState<BriefingDocType>('telegram');
+  const [interviewMessages, setInterviewMessages] = useState<
+    Array<{ role: 'assistant' | 'user'; content: string }>
+  >([]);
+  const [interviewInput, setInterviewInput] = useState('');
+  const [interviewQuestionIndex, setInterviewQuestionIndex] = useState(0);
+  const [interviewAnswers, setInterviewAnswers] = useState<string[]>([]);
+  const [interviewProposal, setInterviewProposal] = useState<{
+    summary: string;
+    investigatorHook?: string;
+    keyConnection?: string;
+    importantPlace?: string;
+    treasuredItem?: string;
+    characterConcept?: string;
+    backstory?: string;
+  } | null>(null);
+  const [interviewLoading, setInterviewLoading] = useState(false);
+  const [interviewError, setInterviewError] = useState<string | null>(null);
 
-  const scenarioDefaultBriefing =
-    adventureContext?.hook ||
-    adventureContext?.description ||
-    '';
-  const characterDefaultHook =
-    activeCharacter?.characterConcept ||
-    '';
+  const interviewQuestions = useMemo(
+    () => [
+      t('interviewQuestionMotivation', {
+        name: activeCharacter?.name || t('interviewInvestigatorFallback'),
+        adventure: adventureContext?.title || t('interviewAdventureFallback'),
+      }),
+      t('interviewQuestionConnection'),
+      t('interviewQuestionAnchor'),
+    ],
+    [activeCharacter?.name, adventureContext?.title, t]
+  );
 
   useEffect(() => {
     if (open) {
       setStep(1);
+      setInterviewQuestionIndex(0);
+      setInterviewAnswers([]);
+      setInterviewProposal(null);
+      setInterviewInput('');
+      setInterviewError(null);
+      setInterviewMessages([
+        { role: 'assistant', content: interviewQuestions[0] },
+      ]);
 
       const aiSettings = loadAISettings();
       const loaded = (aiSettings.sessionZero || {}) as Partial<SessionZeroSettings> & {
@@ -225,8 +282,11 @@ export function SessionZeroModal({
           '',
       };
 
+      const loadedEraFilter = loaded.eraFilter as string | undefined;
       const defaultEraFilter: EraFilterMode =
-        loaded.eraFilter || 'authentic_1920s';
+        loadedEraFilter === 'authentic_1920s'
+          ? 'historical_realia'
+          : loaded.eraFilter || 'historical_realia';
 
       const rawLoadedTone =
         (adventureContext?.tone as SessionZeroSettings['tone']) ??
@@ -252,13 +312,142 @@ export function SessionZeroModal({
         investigatorHook: defaultHook,
         anchors: defaultAnchors,
         eraFilter: defaultEraFilter,
+        players: partyCharacters.map((character) => ({
+          characterId: character.id,
+          playerName: character.playerName || character.name,
+          characterName: character.name,
+          investigatorHook: character.characterConcept || undefined,
+          anchors: {
+            keyConnection: character.significantPerson,
+            importantPlace: character.meaningfulLocation,
+            treasuredItem: character.treasuredPossession,
+          },
+        })),
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, adventureContext, activeCharacter]);
 
+  const buildInterviewProposal = async (answers: string[]) => {
+    setInterviewLoading(true);
+    setInterviewError(null);
+    try {
+      const prompt = `
+Przygotuj propozycję uzupełnienia postaci do gry Call of Cthulhu 7e.
+Zwróć wyłącznie poprawny JSON bez markdownu w formacie:
+{"summary":"...","investigatorHook":"...","keyConnection":"...","importantPlace":"...","treasuredItem":"...","characterConcept":"...","backstory":"..."}
+
+Przygoda: ${adventureContext?.title || 'nie wybrano'}
+Opis przygody: ${adventureContext?.description || ''}
+Miejsce i czas: ${adventureContext?.location || ''}, ${adventureContext?.yearRange || ''}
+Postać: ${activeCharacter?.name || ''}; zawód: ${activeCharacter?.occupation || ''}; koncept: ${activeCharacter?.characterConcept || ''}; tło: ${activeCharacter?.background || activeCharacter?.backstory || ''}
+Dotychczasowe ważne dane: osoba=${activeCharacter?.significantPerson || ''}; miejsce=${activeCharacter?.meaningfulLocation || ''}; przedmiot=${activeCharacter?.treasuredPossession || ''}
+
+Odpowiedzi gracza:
+1. ${answers[0] || ''}
+2. ${answers[1] || ''}
+3. ${answers[2] || ''}
+
+Nie zmieniaj statystyk, umiejętności, zawodu ani ekwipunku. Pisz konkretnie, bez dopisywania faktów nieobecnych w odpowiedziach.
+Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
+`.trim();
+      const response = await fetchWithApiKeys('/api/ai/utility', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, json: true, responseMimeType: 'application/json' }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error || t('interviewError'));
+      }
+      const raw = await collectSSEText(response);
+      const cleaned = raw.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+      const proposal = JSON.parse(cleaned) as {
+        summary?: string;
+        investigatorHook?: string;
+        keyConnection?: string;
+        importantPlace?: string;
+        treasuredItem?: string;
+        characterConcept?: string;
+        backstory?: string;
+      };
+      setInterviewProposal({
+        summary: proposal.summary || t('interviewProposalFallback'),
+        investigatorHook: proposal.investigatorHook,
+        keyConnection: proposal.keyConnection,
+        importantPlace: proposal.importantPlace,
+        treasuredItem: proposal.treasuredItem,
+        characterConcept: proposal.characterConcept,
+        backstory: proposal.backstory,
+      });
+      setInterviewMessages((messages) => [
+        ...messages,
+        { role: 'assistant', content: t('interviewProposalReady') },
+      ]);
+    } catch (error) {
+      setInterviewError(error instanceof Error ? error.message : t('interviewError'));
+    } finally {
+      setInterviewLoading(false);
+    }
+  };
+
+  const submitInterviewAnswer = async () => {
+    const answer = interviewInput.trim();
+    if (!answer || interviewLoading || interviewProposal) return;
+    const nextAnswers = [...interviewAnswers, answer];
+    setInterviewAnswers(nextAnswers);
+    setInterviewInput('');
+    setInterviewMessages((messages) => [
+      ...messages,
+      { role: 'user', content: answer },
+    ]);
+    if (interviewQuestionIndex < interviewQuestions.length - 1) {
+      const nextIndex = interviewQuestionIndex + 1;
+      setInterviewQuestionIndex(nextIndex);
+      setInterviewMessages((messages) => [
+        ...messages,
+        { role: 'assistant', content: interviewQuestions[nextIndex] },
+      ]);
+    } else {
+      await buildInterviewProposal(nextAnswers);
+    }
+  };
+
+  const acceptInterviewProposal = () => {
+    if (!interviewProposal) return;
+    setSettings((current) => ({
+      ...current,
+      investigatorHook: interviewProposal.investigatorHook || current.investigatorHook,
+      anchors: {
+        ...current.anchors,
+        keyConnection: interviewProposal.keyConnection || current.anchors?.keyConnection,
+        importantPlace: interviewProposal.importantPlace || current.anchors?.importantPlace,
+        treasuredItem: interviewProposal.treasuredItem || current.anchors?.treasuredItem,
+      },
+    }));
+    if (activeCharacter && onCharacterUpdate) {
+      onCharacterUpdate({
+        ...activeCharacter,
+        characterConcept: interviewProposal.characterConcept || activeCharacter.characterConcept,
+        backstory: interviewProposal.backstory || activeCharacter.backstory,
+        significantPerson: interviewProposal.keyConnection || activeCharacter.significantPerson,
+        meaningfulLocation: interviewProposal.importantPlace || activeCharacter.meaningfulLocation,
+        treasuredPossession: interviewProposal.treasuredItem || activeCharacter.treasuredPossession,
+      });
+    }
+    setInterviewMessages((messages) => [
+      ...messages,
+      { role: 'assistant', content: t('interviewAccepted') },
+    ]);
+    setInterviewProposal(null);
+  };
+
   const handleComplete = () => {
-    const completedSettings: SessionZeroSettings = { ...settings, completed: true };
+    const completedSettings: SessionZeroSettings = {
+      ...settings,
+      completed: true,
+      players: buildPlayerContexts(settings),
+    };
 
     const aiSettings = loadAISettings();
     const updatedSettings: AISettings = {
@@ -271,12 +460,11 @@ export function SessionZeroModal({
     onClose();
   };
 
-  const totalSteps = 4;
+  const totalSteps = 3;
   const STEP_LABELS = [
     t('step1Label'),
     t('step2Label'),
     t('step3Label'),
-    t('step4Label'),
   ];
 
   const renderBriefingDocument = () => {
@@ -468,6 +656,17 @@ export function SessionZeroModal({
               </p>
             </div>
 
+            {partyCharacters.length > 1 && (
+              <div className="border border-primary/35 bg-primary/10 p-4 text-sm text-foreground/90">
+                <p className="font-special-elite text-xs uppercase tracking-wider text-primary">
+                  {t('partyContextTitle', { players: partyCharacters.length })}
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {partyCharacters.map((character) => character.playerName || character.name).join(', ')}
+                </p>
+              </div>
+            )}
+
             {/* Konwencja opowieści */}
             <div className="space-y-4">
               <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
@@ -569,191 +768,94 @@ export function SessionZeroModal({
               </p>
             </div>
 
-            {/* Diegetyczny wybór formatu odprawy */}
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('briefingSectionLabel')}
-                  <HelpIcon content={t('briefingSectionHelp')} />
-                </Label>
-
-                {/* Przełącznik formatów dokumentu */}
-                <div className="flex items-center gap-1.5 p-1 bg-black/50 border border-brass/25 rounded-none">
-                  <span className="text-[10px] font-special-elite uppercase tracking-wider text-muted-foreground px-2 hidden md:inline">
-                    {t('docTypeSelectorLabel')}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setBriefingDocType('telegram')}
-                    className={`px-2.5 py-1 text-xs font-special-elite uppercase tracking-wider transition-all cursor-pointer ${
-                      briefingDocType === 'telegram'
-                        ? 'border border-primary bg-primary/15 text-primary font-bold shadow-[0_0_10px_rgba(13,148,136,0.3)]'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-brass/10'
-                    }`}
-                  >
-                    📧 {t('docTypeTelegram')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBriefingDocType('letter')}
-                    className={`px-2.5 py-1 text-xs font-special-elite uppercase tracking-wider transition-all cursor-pointer ${
-                      briefingDocType === 'letter'
-                        ? 'border border-primary bg-primary/15 text-primary font-bold shadow-[0_0_10px_rgba(13,148,136,0.3)]'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-brass/10'
-                    }`}
-                  >
-                    ✉️ {t('docTypeLetter')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBriefingDocType('dossier')}
-                    className={`px-2.5 py-1 text-xs font-special-elite uppercase tracking-wider transition-all cursor-pointer ${
-                      briefingDocType === 'dossier'
-                        ? 'border border-primary bg-primary/15 text-primary font-bold shadow-[0_0_10px_rgba(13,148,136,0.3)]'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-brass/10'
-                    }`}
-                  >
-                    📁 {t('docTypeDossier')}
-                  </button>
-                </div>
-              </div>
-
-              {/* RENDEROWANIE DOKUMENTU DIEGETYCZNEGO */}
-              {renderBriefingDocument()}
-
-              {/* Dolny pasek pomocniczy pod odprawą */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <div className="flex items-center gap-1.5 text-[11px] font-special-elite text-muted-foreground/80">
-                  <span>🖋️</span>
-                  <span>{t('editDocHint')}</span>
-                </div>
-                {scenarioDefaultBriefing && settings.briefing !== scenarioDefaultBriefing && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSettings({
-                        ...settings,
-                        briefing: scenarioDefaultBriefing,
-                      })
-                    }
-                    className="text-[11px] font-special-elite uppercase tracking-wider text-brass/80 hover:text-brass underline cursor-pointer"
-                  >
-                    ↺ {t('restoreOriginalBriefing')}
-                  </button>
-                )}
-              </div>
+            <div className="border border-primary/35 bg-[#101817] p-4 text-sm text-foreground/90">
+              <p>{t('interviewIntro')}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t('interviewOptionalHint')}</p>
             </div>
 
-            {/* Separator déco */}
-            <div className="flex items-center gap-3 my-4">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-brass/25 to-transparent" />
-              <span className="h-1.5 w-1.5 rotate-45 bg-brass/60" />
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-brass/25 to-transparent" />
-            </div>
-
-            {/* Haczyk Badacza (Investigator's Hook) */}
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                    {t('hookSectionLabel')}
-                    <HelpIcon content={t('hookSectionHelp')} />
-                  </Label>
-                  <p className="text-[11px] font-serif italic text-muted-foreground">
-                    {t('hookCardSubtitle')}
-                  </p>
-                </div>
-                {characterDefaultHook && settings.investigatorHook !== characterDefaultHook && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSettings({
-                        ...settings,
-                        investigatorHook: characterDefaultHook,
-                      })
-                    }
-                    className="text-[11px] font-special-elite uppercase tracking-wider text-brass/80 hover:text-brass underline cursor-pointer"
-                  >
-                    ↺ {t('restoreOriginalHook')}
-                  </button>
-                )}
-              </div>
-
-              {/* Stylizowana Karta Maszynopisu dla Haczyka */}
-              <div className="relative border border-brass/35 bg-[#14100c] p-4 shadow-md">
-                {/* Narożniki déco */}
-                <span className="absolute left-1.5 top-1.5 h-2.5 w-2.5 border-l border-t border-brass/50" />
-                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 border-r border-t border-brass/50" />
-                <span className="absolute left-1.5 bottom-1.5 h-2.5 w-2.5 border-l border-b border-brass/50" />
-                <span className="absolute right-1.5 bottom-1.5 h-2.5 w-2.5 border-r border-b border-brass/50" />
-
-                {/* Nagłówek fiszki */}
-                <div className="flex items-center justify-between border-b border-brass/20 pb-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rotate-45 bg-brass" />
-                    <span className="font-special-elite text-[11px] uppercase tracking-[0.2em] text-brass/90">
-                      {t('hookCardTitle')}
-                    </span>
+            <div className="max-h-80 space-y-3 overflow-y-auto border border-brass/25 bg-black/25 p-4">
+              {interviewMessages.map((message, index) => (
+                <div
+                  key={`${message.role}-${index}`}
+                  className={`max-w-[92%] border p-3 text-sm ${
+                    message.role === 'assistant'
+                      ? 'border-brass/25 bg-[#17130e] text-foreground'
+                      : 'ml-auto border-primary/30 bg-primary/10 text-primary-foreground'
+                  }`}
+                >
+                  <div className="mb-1 text-[10px] font-special-elite uppercase tracking-wider text-muted-foreground">
+                    {message.role === 'assistant' ? t('interviewAssistantName') : t('interviewPlayerName')}
                   </div>
-                  {activeCharacter?.name && (
-                    <span className="font-special-elite text-[11px] text-muted-foreground uppercase tracking-wider">
-                      BADACZ: {activeCharacter.name}
-                    </span>
-                  )}
+                  {message.content}
                 </div>
+              ))}
+            </div>
 
-                {/* Textarea */}
+            {!interviewProposal && (
+              <div className="space-y-2">
                 <Textarea
-                  value={settings.investigatorHook || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      investigatorHook: e.target.value,
-                    })
-                  }
-                  placeholder={t('hookPlaceholder')}
-                  rows={2}
-                  className="w-full font-special-elite text-sm bg-black/30 border-brass/20 focus:border-brass/70 text-foreground leading-relaxed rounded-none resize-y"
+                  value={interviewInput}
+                  onChange={(event) => setInterviewInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault();
+                      void submitInterviewAnswer();
+                    }
+                  }}
+                  placeholder={t('interviewInputPlaceholder')}
+                  rows={3}
+                  disabled={interviewLoading}
                 />
-
-                {/* Sugerowane haczyki jako pieczęcie */}
-                <div className="mt-3 pt-2 border-t border-brass/15">
-                  <div className="mb-2 font-special-elite text-[11px] uppercase tracking-[0.12em] text-brass/75">
-                    {t('suggestedHooksLabel')}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {SUGGESTED_HOOK_ITEMS.map((item) => {
-                      const text = t(item.key);
-                      const isSelected = settings.investigatorHook === text;
-                      return (
-                        <button
-                          key={item.key}
-                          type="button"
-                          onClick={() =>
-                            setSettings({
-                              ...settings,
-                              investigatorHook: text,
-                            })
-                          }
-                          className={`group flex items-center gap-1.5 px-2.5 py-1.5 rounded-none font-special-elite text-xs tracking-wider border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
-                              : 'border-brass/25 bg-black/40 text-muted-foreground hover:border-brass/60 hover:text-brass hover:bg-brass/5'
-                          }`}
-                        >
-                          <span className="text-sm">{item.icon}</span>
-                          <span>{text}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="flex flex-wrap justify-between gap-2">
+                  <Button type="button" variant="outline" onClick={() => setStep(3)}>
+                    {t('interviewSkip')}
+                  </Button>
+                  <Button type="button" onClick={() => void submitInterviewAnswer()} disabled={!interviewInput.trim() || interviewLoading}>
+                    {interviewLoading ? t('interviewPreparing') : t('interviewSend')}
+                  </Button>
                 </div>
               </div>
-            </div>
+            )}
+
+            {interviewError && (
+              <div className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {interviewError}
+              </div>
+            )}
+
+            {interviewProposal && (
+              <div className="space-y-3 border border-primary/45 bg-primary/10 p-4">
+                <h3 className="font-display text-sm uppercase tracking-wider text-primary">
+                  {t('interviewProposalTitle')}
+                </h3>
+                <p className="text-sm text-foreground/90">{interviewProposal.summary}</p>
+                <div className="grid gap-2 text-xs md:grid-cols-2">
+                  {[
+                    [t('hookSectionLabel'), interviewProposal.investigatorHook],
+                    [t('keyConnectionLabel'), interviewProposal.keyConnection],
+                    [t('importantPlaceLabel'), interviewProposal.importantPlace],
+                    [t('treasuredItemLabel'), interviewProposal.treasuredItem],
+                  ].map(([label, value]) => value && (
+                    <div key={label} className="border border-brass/20 bg-black/25 p-2">
+                      <span className="block text-brass/70">{label}</span>
+                      <span>{value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" onClick={acceptInterviewProposal}>
+                    {t('interviewAccept')}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setInterviewProposal(null)}>
+                    {t('interviewEditAgain')}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
-      case 3:
+      case 99:
         return (
           <div className="space-y-6">
             <div>
@@ -948,7 +1050,7 @@ export function SessionZeroModal({
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-8">
             <div>
@@ -972,20 +1074,20 @@ export function SessionZeroModal({
                   onClick={() =>
                     setSettings({
                       ...settings,
-                      eraFilter: 'authentic_1920s',
+                      eraFilter: 'historical_realia',
                     })
                   }
                   className={`p-4 text-left transition-all cursor-pointer ${
-                    settings.eraFilter === 'authentic_1920s'
+                    settings.eraFilter === 'historical_realia'
                       ? 'border border-primary bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,0.18)]'
                       : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
                   }`}
                 >
                   <div className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
-                    {t('eraFilterAuthenticName')}
+                    {t('eraFilterHistoricalName')}
                   </div>
                   <p className="mt-1 font-serif text-xs italic text-muted-foreground">
-                    {t('eraFilterAuthenticDesc')}
+                    {t('eraFilterHistoricalDesc')}
                   </p>
                 </button>
 
@@ -1247,7 +1349,7 @@ export function SessionZeroModal({
                 <div className="p-2 border border-brass/20 bg-black/30">
                   <span className="font-special-elite text-brass/70 uppercase block">{t('summaryEraFilter')}</span>
                   <span className="font-display font-medium text-foreground">
-                    {settings.eraFilter === 'authentic_1920s' ? t('eraFilterAuthenticName') : t('eraFilterModernName')}
+                    {settings.eraFilter === 'historical_realia' ? t('eraFilterHistoricalName') : t('eraFilterModernName')}
                   </span>
                 </div>
               </div>

@@ -317,7 +317,7 @@ export interface UseChatReturn {
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
   return resolveEraVisualProfile(
-    context?.yearRange || context?.eraLabel || context?.era
+    context?.yearRange || context?.eraLabel || context?.era || '1920s'
   );
 }
 

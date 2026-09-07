@@ -851,7 +851,7 @@ export default function Home() {
                   ? {
                       messages: chat.messages,
                       aiSettings: aiSettings || loadAISettings(),
-                      equipmentVisualEra: resolveEraVisualProfile(resolvedEraContext || undefined),
+                      equipmentVisualEra: resolveEraVisualProfile(resolvedEraContext || '1920s'),
                       characters: charMgmt.characters,
                       activeCharacterId: charMgmt.activeCharacter?.id,
                       hotSeatConfig: hotSeat.config,

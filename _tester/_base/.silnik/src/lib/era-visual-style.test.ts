@@ -9,6 +9,7 @@ import {
   getEraTechnologyGuardrails,
   getEraVehicleVisualDescription,
   resolveEraVisualProfile,
+  EraVisualProfileError,
 } from './era-visual-style';
 
 describe('era visual style', () => {
@@ -30,6 +31,18 @@ describe('era visual style', () => {
     expect(resolveEraVisualProfile('2004')).toBe('2000s');
     expect(resolveEraVisualProfile('1912')).toBe('1890s');
     expect(resolveEraVisualProfile('1955')).toBe('1950s');
+  });
+
+  it('odrzuca nierozpoznaną etykietę zamiast udawać lata 20.', () => {
+    expect(() => resolveEraVisualProfile(undefined)).toThrow(
+      EraVisualProfileError
+    );
+    expect(() => resolveEraVisualProfile('unknown-era')).toThrow(
+      EraVisualProfileError
+    );
+    expect(() => resolveEraVisualProfile('1920ish')).toThrow(
+      EraVisualProfileError
+    );
   });
 
   it('generuje twarde strażniki anachronizmów dla epok historycznych', () => {
@@ -100,4 +113,3 @@ describe('era visual style', () => {
     expect(protective).toContain('tarnished brass roller buckles');
   });
 });
-

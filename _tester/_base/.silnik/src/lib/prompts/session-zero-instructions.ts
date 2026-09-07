@@ -13,6 +13,7 @@ type SessionZeroPromptSettings = Pick<
   | 'investigatorHook'
   | 'anchors'
   | 'eraFilter'
+  | 'players'
 >;
 
 export const TONE_INSTRUCTIONS: Record<string, string> = {
@@ -262,14 +263,20 @@ export function buildSessionZeroInstructions(
   const modeMap = isEn ? NARRATIVE_MODE_INSTRUCTIONS_EN : NARRATIVE_MODE_INSTRUCTIONS;
 
   let hookInstructions = '';
-  if (sessionZero.investigatorHook) {
+  if (sessionZero.players && sessionZero.players.length > 1) {
+    hookInstructions = isEn
+      ? `\n\n## PARTY CONTEXT (${sessionZero.players.length} PLAYERS)\nTreat this as a shared Hot Seat session. Keep every investigator present in the story and give each player meaningful opportunities to act.\n${sessionZero.players.map((player, index) => `- Player ${index + 1} (${player.playerName}) - Investigator: ${player.characterName}${player.investigatorHook ? `; personal hook: ${player.investigatorHook}` : ''}${player.anchors?.keyConnection || player.anchors?.importantPlace || player.anchors?.treasuredItem ? `; anchors: ${[player.anchors.keyConnection, player.anchors.importantPlace, player.anchors.treasuredItem].filter(Boolean).join('; ')}` : ''}`).join('\n')}`
+      : `\n\n## KONTEKST DRUŻYNY (${sessionZero.players.length} GRACZY)\nTo jest wspólna sesja Hot Seat. Utrzymuj w fabule obecność każdego badacza i dawaj każdemu graczowi znaczące okazje do działania.\n${sessionZero.players.map((player, index) => `- Gracz ${index + 1} (${player.playerName}) - Badacz: ${player.characterName}${player.investigatorHook ? `; osobisty haczyk: ${player.investigatorHook}` : ''}${player.anchors?.keyConnection || player.anchors?.importantPlace || player.anchors?.treasuredItem ? `; kotwice: ${[player.anchors.keyConnection, player.anchors.importantPlace, player.anchors.treasuredItem].filter(Boolean).join('; ')}` : ''}`).join('\n')}`;
+  } else if (sessionZero.investigatorHook) {
     hookInstructions = isEn
       ? `\n\n## INVESTIGATOR MOTIVATION & HOOK\nThe investigator enters the case with this personal hook: "${sessionZero.investigatorHook}". Weave this personal stake into dialogues, NPC encounters, and moral dilemmas.`
       : `\n\n## MOTYWACJA I HACZYK BADACZA\nBadacz wkracza w sprawę z następującego powodu: "${sessionZero.investigatorHook}". Wykorzystuj tę osobistą stawkę w dialogach, spotkaniach z NPC i dylematach moralnych.`;
   }
 
   let anchorsInstructions = '';
-  if (
+  if (sessionZero.players && sessionZero.players.length > 1) {
+    anchorsInstructions = '';
+  } else if (
     sessionZero.anchors &&
     (sessionZero.anchors.keyConnection ||
       sessionZero.anchors.importantPlace ||
@@ -292,14 +299,14 @@ export function buildSessionZeroInstructions(
   }
 
   let eraFilterInstructions = '';
-  if (sessionZero.eraFilter === 'authentic_1920s') {
+  if (sessionZero.eraFilter === 'historical_realia') {
     eraFilterInstructions = isEn
-      ? `\n\n## ERA FILTER: 1920s HISTORICAL AUTHENTICITY\nReflect the social realities and historical atmosphere of the 1920s (class hierarchies, period constraints), while maintaining solemn investigative horror.`
-      : `\n\n## FILTR EPOKI: HISTORYCZNY AUTENTYZM LAT 20.\nOdzwierciedlaj surowe realia społeczne i obyczajowe epoki lat 20. XX wieku (hierarchie klasowe, bariery społeczne, specyfika okresu), zachowując powagę opowieści.`;
+      ? `\n\n## ERA FILTER: HISTORICAL REALIA\nUse the selected adventure's historical manifest: period-accurate social realities, conventions, technology, language, and constraints for its exact year and region. Maintain solemn investigative horror.`
+      : `\n\n## FILTR EPOKI: REALIA HISTORYCZNE\nKorzystaj z manifestu historycznego wybranej przygody: realia społeczne, obyczaje, technologia, język i ograniczenia właściwe dokładnemu rokowi oraz regionowi. Zachowaj powagę opowieści.`;
   } else if (sessionZero.eraFilter === 'modern_sensibilities') {
     eraFilterInstructions = isEn
-      ? `\n\n## ERA FILTER: MODERN SENSIBILITIES\nFocus on cosmic dread and investigation, omitting period prejudices or social discrimination of the 1920s.`
-      : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nSkup się na kosmicznej grozie i śledztwie, pomijając historyczne uprzedzenia i dyskryminację z lat 20.`;
+      ? `\n\n## ERA FILTER: MODERN SENSIBILITIES\nUse the selected adventure's historical manifest for material reality, but do not reproduce period prejudice or discrimination as entertainment. Preserve contemporary table sensitivity.`
+      : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nKorzystaj z manifestu historycznego wybranej przygody dla realiów materialnych, ale nie odtwarzaj uprzedzeń ani dyskryminacji epoki jako rozrywki. Zachowaj współczesną wrażliwość przy stole.`;
   }
 
   const difficultySection =

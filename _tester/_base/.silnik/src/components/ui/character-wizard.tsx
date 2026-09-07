@@ -1433,7 +1433,7 @@ export function CharacterWizardV2({
             createEquipmentItem(
               template,
               'starting',
-              resolveEraVisualProfile(adventureContext?.yearRange)
+              resolveEraVisualProfile(adventureContext?.yearRange || '1920s')
             )
           );
         } else {

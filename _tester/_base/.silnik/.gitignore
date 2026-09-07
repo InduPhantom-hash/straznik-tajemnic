@@ -97,6 +97,10 @@ AGENTS.md
 # CoC 7e extracted text artifacts (copyrighted Chaosium + Black Monk - never commit)
 data/coc-rag/
 
+# Wygenerowane z wersjonowanego źródła danych Mythos przez `mythos:prepare`.
+/data/mythos/
+/public/data/epochs/lovecraft-mythos/
+
 # understand-anything knowledge graph + lekki derivat dla AI nawigacji (build artifact, per-developer)
 # Regeneruje sie przez /understand-anything:understand (1.2 MB JSON + 168 KB markdown).
 .understand-anything/

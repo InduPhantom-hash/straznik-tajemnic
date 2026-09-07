@@ -2,6 +2,61 @@ import { buildSessionZeroInstructions } from './session-zero-instructions';
 import type { SessionZeroSettings } from '../ai-settings/types';
 
 describe('buildSessionZeroInstructions', () => {
+  it('keeps both Hot Seat players in the GM context', () => {
+    const prompt = buildSessionZeroInstructions(
+      {
+        tone: 'purist',
+        difficulty: 'normal',
+        narrativeMode: 'full_rpg',
+        lines: [],
+        veils: [],
+        safetyWord: '',
+        completed: true,
+        players: [
+          {
+            characterId: 'char-1',
+            playerName: 'Jakub',
+            characterName: 'Edward Carnby',
+            investigatorHook: 'Dług karciany',
+            anchors: { keyConnection: 'Siostra Clara' },
+          },
+          {
+            characterId: 'char-2',
+            playerName: 'Marta',
+            characterName: 'Evelyn Reed',
+            investigatorHook: 'Zaginiony brat',
+            anchors: { importantPlace: 'Biblioteka Miskatonic' },
+          },
+        ],
+      },
+      'pl'
+    );
+
+    expect(prompt).toContain('## KONTEKST DRUŻYNY (2 GRACZY)');
+    expect(prompt).toContain('Gracz 1 (Jakub) - Badacz: Edward Carnby');
+    expect(prompt).toContain('Gracz 2 (Marta) - Badacz: Evelyn Reed');
+    expect(prompt).toContain('Utrzymuj w fabule obecność każdego badacza');
+
+    const promptEn = buildSessionZeroInstructions(
+      {
+        tone: 'purist',
+        difficulty: 'normal',
+        narrativeMode: 'full_rpg',
+        lines: [],
+        veils: [],
+        safetyWord: '',
+        completed: true,
+        players: [
+          { characterId: 'char-1', playerName: 'Jakub', characterName: 'Edward Carnby' },
+          { characterId: 'char-2', playerName: 'Marta', characterName: 'Evelyn Reed' },
+        ],
+      },
+      'en'
+    );
+    expect(promptEn).toContain('## PARTY CONTEXT (2 PLAYERS)');
+    expect(promptEn).toContain('Player 2 (Marta) - Investigator: Evelyn Reed');
+  });
+
   const baseSettings: SessionZeroSettings = {
     era: 'classic',
     tone: 'purist',
@@ -83,7 +138,7 @@ describe('buildSessionZeroInstructions', () => {
         importantPlace: 'Gabinet w Arkham',
         treasuredItem: 'Zegarek kieszonkowy ojca',
       },
-      eraFilter: 'authentic_1920s',
+      eraFilter: 'historical_realia',
     };
 
     const promptPl = buildSessionZeroInstructions(rawSettings, 'pl');
@@ -93,7 +148,7 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptPl).toContain('Ważna Osoba (Kluczowa Więź - odzyskiwanie SAN): Siostra Clara w Bostonie');
     expect(promptPl).toContain('Ważne Miejsce: Gabinet w Arkham');
     expect(promptPl).toContain('Cenny Przedmiot: Zegarek kieszonkowy ojca');
-    expect(promptPl).toContain('## FILTR EPOKI: HISTORYCZNY AUTENTYZM LAT 20.');
+    expect(promptPl).toContain('## FILTR EPOKI: REALIA HISTORYCZNE');
 
     const promptEn = buildSessionZeroInstructions(
       {

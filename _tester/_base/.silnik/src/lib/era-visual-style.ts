@@ -18,6 +18,13 @@ export type EraVisualProfile =
   | '2000s'
   | 'modern';
 
+export class EraVisualProfileError extends Error {
+  constructor(value: string) {
+    super(`Nieznany profil epoki wizualnej: ${value}`);
+    this.name = 'EraVisualProfileError';
+  }
+}
+
 const ERA_IMAGE_FILTERS: Record<EraVisualProfile, string> = {
   '1890s': 'sepia(0.5) saturate(0.58) contrast(1.06) brightness(0.96)',
   '1920s': 'sepia(0.22) saturate(0.76) contrast(1.04) brightness(0.98)',
@@ -43,7 +50,7 @@ export function resolveEraVisualProfile(
     return resolveEraVisualProfile(String(eraOrYear.effectiveYear));
   }
   const value = eraOrYear?.toLowerCase().trim() ?? '';
-  if (!value) return '1920s';
+  if (!value) throw new EraVisualProfileError('<empty>');
 
   // 1. Jawne słowa kluczowe
   if (value.includes('gaslight') || value.includes('wiktoria') || value.includes('victorian')) return '1890s';
@@ -74,18 +81,18 @@ export function resolveEraVisualProfile(
   }
 
   // 3. Wzorce prefiksowe (np. '1890s', '1920s', '1970s')
-  if (/^189/.test(value) || /^190/.test(value) || /^191/.test(value)) return '1890s';
-  if (/^192/.test(value)) return '1920s';
-  if (/^193/.test(value)) return '1930s';
-  if (/^194/.test(value)) return '1940s';
-  if (/^195/.test(value)) return '1950s';
-  if (/^196/.test(value) || /^197/.test(value)) return 'prl-1970s';
-  if (/^198/.test(value)) return '1980s';
-  if (/^199/.test(value)) return '1990s';
-  if (/^200/.test(value)) return '2000s';
-  if (/^20[1-9]/.test(value)) return 'modern';
+  if (/^(1890|1900|1910)s?$/.test(value)) return '1890s';
+  if (/^1920s?$/.test(value)) return '1920s';
+  if (/^1930s?$/.test(value)) return '1930s';
+  if (/^1940s?$/.test(value)) return '1940s';
+  if (/^1950s?$/.test(value)) return '1950s';
+  if (/^(1960|1970)s?$/.test(value)) return 'prl-1970s';
+  if (/^1980s?$/.test(value)) return '1980s';
+  if (/^1990s?$/.test(value)) return '1990s';
+  if (/^2000s?$/.test(value)) return '2000s';
+  if (/^20[1-9]\d?s?$/.test(value)) return 'modern';
 
-  return '1920s';
+  throw new EraVisualProfileError(value);
 }
 
 export function getEraImageFilter(eraOrYear: string | undefined): string {
@@ -288,5 +295,3 @@ export function getEraDevotionalVisualDescription(): string {
 export function getEraProtectiveVisualDescription(): string {
   return 'period protective or travel gear, heavy stitched saddle leather, tarnished brass roller buckles, thick optical glass with stitched leather or aluminum eye-cups, wax-coated canvas with authentic travel patina and honest wear marks';
 }
-
-
