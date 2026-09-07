@@ -19,7 +19,7 @@ export function SafeImage({ className, alt, fallbackIcon, src, ...props }: SafeI
     return (
       <div 
         className={cn(
-          "flex items-center justify-center bg-stone-900/50 border border-amber-900/20 text-amber-900/50",
+          "flex items-center justify-center bg-card/50 border border-brass/20 text-brass/40",
           className
         )}
         aria-label={alt || "Brak obrazu"}
