@@ -107,11 +107,11 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
 
         <div className="space-y-4 py-4">
           {/* Ostrzeżenie o bezpieczeństwie */}
-          <Card className="bg-amber-900/20 border-amber-500/50">
+          <Card className="bg-brass/10 border-brass/40">
             <CardContent className="py-3 px-4">
               <div className="flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-                <p className="text-sm text-amber-200">
+                <AlertCircle className="w-5 h-5 text-brass mt-0.5 shrink-0" />
+                <p className="text-sm text-foreground/90">
                   <strong>{t('securityLabel')}</strong>{' '}
                   {t('securityDescription')}
                 </p>
