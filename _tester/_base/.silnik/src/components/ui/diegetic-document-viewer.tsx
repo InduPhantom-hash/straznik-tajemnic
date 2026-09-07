@@ -112,7 +112,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
         <div className="relative flex flex-col sm:flex-row gap-4 items-start">
           {/* Zdjęcie z spinaczem */}
           <div className="relative flex-none mx-auto sm:mx-0 transform -rotate-1 shadow-md">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-7 bg-zinc-400 rounded-full border-2 border-zinc-600 z-20"></div>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-7 bg-muted-foreground/60 rounded-full border-2 border-border/80 z-20"></div>
             <div className="w-24 h-28 bg-[#c2b397] border-4 border-white overflow-hidden flex items-center justify-center sepia-[0.3]">
               {character?.portraitUrl ? (
                 <SafeImage
@@ -356,7 +356,7 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
                   audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
                 }
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-special-elite bg-[#8b5a2b] hover:bg-[#724922] text-amber-100 rounded-sm transition-all cursor-pointer active:scale-95 shadow"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-special-elite bg-[#8b5a2b] hover:bg-[#724922] text-brass rounded-sm transition-all cursor-pointer active:scale-95 shadow"
             >
               {isPlaying ? (
                 <>
