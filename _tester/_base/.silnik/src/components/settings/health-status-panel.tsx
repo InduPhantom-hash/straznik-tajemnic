@@ -59,12 +59,12 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
     network_error: {
       icon: '⚠️',
       text: t('statusNetworkError'),
-      className: 'text-amber-400',
+      className: 'text-brass',
     },
     no_key: {
       icon: '⚠️',
       text: t('statusNoKey'),
-      className: 'text-amber-400',
+      className: 'text-brass',
     },
   };
 
@@ -202,7 +202,7 @@ export function HealthStatusPanel({ className }: HealthStatusPanelProps) {
               </div>
             )}
             {missing.length > 0 && (
-              <ul className="mt-1 font-special-elite text-sm text-amber-400 space-y-0.5">
+              <ul className="mt-1 font-special-elite text-sm text-brass space-y-0.5">
                 {missing.map((id) => (
                   <li key={id}>⚠️ {t('modelMissing', { id })}</li>
                 ))}

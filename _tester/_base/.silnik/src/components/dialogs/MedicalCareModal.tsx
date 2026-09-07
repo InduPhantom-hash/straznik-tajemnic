@@ -143,7 +143,7 @@ export function MedicalCareModal({
                 </Badge>
               )}
               {character.healthRecoveryState?.hasInfection && (
-                <Badge variant="outline" className="border-amber-600 bg-amber-950/40 text-amber-400 font-special-elite">
+                <Badge variant="outline" className="border-brass/40 bg-brass/10 text-brass font-special-elite">
                   {t('badges.infection')}
                 </Badge>
               )}
