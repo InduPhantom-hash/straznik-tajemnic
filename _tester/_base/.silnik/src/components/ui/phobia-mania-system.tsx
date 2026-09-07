@@ -223,7 +223,7 @@ export function PhobiaCheck({ phobia, playerPOW, onCheckResult }: PhobiaCheckPro
       case 'mild': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
       case 'moderate': return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
       case 'severe': return 'bg-red-500/20 text-red-400 border-red-500/50';
-      default: return 'bg-gray-500/20';
+      default: return 'bg-muted/40 text-muted-foreground border-border';
     }
   };
 
@@ -537,9 +537,9 @@ export function PushRollDialog({
   }
 
   return (
-    <Card className="border-amber-500/30 bg-amber-950/30">
+    <Card className="border-brass/40 bg-card/90">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-amber-300 flex items-center gap-2">
+        <CardTitle className="text-lg text-brass flex items-center gap-2">
           {t('pushTitle', { skill })}
         </CardTitle>
       </CardHeader>
@@ -550,11 +550,11 @@ export function PushRollDialog({
             <p className="text-foreground">
               {t('pushYourRollLabel')} <Badge>{originalRoll}</Badge> vs <Badge>{targetValue}</Badge> {t('pushFailedSuffix')}
             </p>
-            <p className="text-amber-300 text-sm">
+            <p className="text-brass/90 text-sm">
               {t('pushOfferText')}
             </p>
             <div className="flex gap-2">
-              <Button onClick={() => setStep('narration')} className="flex-1 bg-amber-600 hover:bg-amber-700">
+              <Button onClick={() => setStep('narration')} className="flex-1 bg-brass hover:bg-brass/90 text-background font-semibold">
                 🔄 {t('pushAcceptButton')}
               </Button>
               <Button onClick={() => onPushDecision(false)} variant="outline" className="flex-1">
@@ -577,7 +577,7 @@ export function PushRollDialog({
               placeholder={t('narrationPlaceholder')}
               rows={3}
             />
-            <Button onClick={() => setStep('warning')} className="w-full bg-amber-600">
+            <Button onClick={() => setStep('warning')} className="w-full bg-brass hover:bg-brass/90 text-background font-semibold">
               {t('continueArrow')}
             </Button>
           </>
@@ -597,7 +597,7 @@ export function PushRollDialog({
                 ))}
               </ul>
             </div>
-            <p className="text-amber-300 text-sm">
+            <p className="text-brass/90 text-sm">
               {t('confirmPush')}
             </p>
             <div className="flex gap-2">

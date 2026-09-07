@@ -401,15 +401,15 @@ export function SessionZeroModal({
 
       case 'dossier':
         return (
-          <div className="relative border-2 border-stone-700/60 bg-[#120f0c] p-5 shadow-lg">
+          <div className="relative border-2 border-brass/50 bg-[#120f0c] p-5 shadow-lg">
             {/* Kątowniki Art Déco */}
-            <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-stone-500/60" />
-            <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-stone-500/60" />
-            <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-stone-500/60" />
-            <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-stone-500/60" />
+            <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-brass/70" />
+            <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-brass/70" />
+            <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-brass/70" />
+            <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-brass/70" />
 
             {/* Belka akt policyjnych / teczki */}
-            <div className="flex flex-wrap items-center justify-between border-b border-stone-700/60 pb-3 gap-2">
+            <div className="flex flex-wrap items-center justify-between border-b border-brass/40 pb-3 gap-2">
               <div className="flex items-center gap-2">
                 <span className="border border-destructive/70 bg-destructive/15 text-destructive px-2 py-0.5 font-special-elite text-xs uppercase tracking-widest">
                   {t('briefingStampConfidential')}
@@ -424,7 +424,7 @@ export function SessionZeroModal({
             </div>
 
             {/* Metryka sprawy */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-2 py-1.5 text-xs font-special-elite text-muted-foreground border-b border-stone-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-2 py-1.5 text-xs font-special-elite text-muted-foreground border-b border-border/70">
               <div>
                 <span className="text-brass/70">{t('dossierSubject')}</span>{' '}
                 <span className="text-foreground font-semibold">{adventureContext?.title || 'NIEZNANA SPRAWA'}</span>
@@ -446,7 +446,7 @@ export function SessionZeroModal({
                 }
                 placeholder={t('briefingPlaceholder')}
                 rows={4}
-                className="w-full font-special-elite text-sm text-stone-200 leading-relaxed bg-black/40 border border-stone-800 focus:border-brass/70 p-3 rounded-none resize-y"
+                className="w-full font-special-elite text-sm text-foreground leading-relaxed bg-black/40 border border-border/80 focus:border-brass/70 p-3 rounded-none resize-y"
               />
             </div>
           </div>
