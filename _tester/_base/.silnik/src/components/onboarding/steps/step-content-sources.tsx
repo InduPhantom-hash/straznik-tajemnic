@@ -68,11 +68,11 @@ export function StepContentSources({
         ))}
       </div>
 
-      <Card className="bg-amber-900/20 border-amber-500/40">
+      <Card className="bg-brass/10 border-brass/40">
         <CardContent className="py-3 px-4">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-            <p className="text-xs text-amber-200/90">
+            <AlertTriangle className="w-4 h-4 text-brass mt-0.5 shrink-0" />
+            <p className="text-xs text-foreground/90">
               Projekt fanowski, niezwiązany i niewspierany przez Chaosium Inc.
               ani Black Monk. <em>Call of Cthulhu</em> / <em>Zew Cthulhu</em> to
               znaki towarowe Chaosium Inc. Korzystaj wyłącznie z własnych,
