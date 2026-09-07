@@ -179,7 +179,7 @@ export function MessageCard({
                   return (
                   <div
                     key={idx}
-                    className={`relative rounded-lg overflow-hidden border border-zinc-700 shadow-lg ${
+                    className={`relative rounded-lg overflow-hidden border border-brass/30 shadow-lg ${
                       isCompact ? 'w-48 sm:w-56 flex-shrink-0' : 'w-full'
                     }`}
                     style={{

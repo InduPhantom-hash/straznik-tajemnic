@@ -68,7 +68,7 @@ export function CharacterSwitcher({
     if (character.lastUsed && new Date().getTime() - character.lastUsed.getTime() < 24 * 60 * 60 * 1000) {
       return 'bg-yellow-500';
     }
-    return 'bg-gray-400';
+    return 'bg-muted-foreground';
   };
 
   return (

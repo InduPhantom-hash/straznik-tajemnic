@@ -78,7 +78,7 @@ export function renderNarrativeWithImages(
           alt={altText}
           // Zachowaj cały wygenerowany kadr. Wysokość jest ograniczona tylko po
           // to, by pionowe obrazy nie zdominowały całego okna czatu.
-          className={`rounded-lg shadow-lg w-full h-auto max-h-[70vh] object-contain bg-black/30 border border-zinc-700 ${
+          className={`rounded-lg shadow-lg w-full h-auto max-h-[70vh] object-contain bg-black/30 border border-brass/30 ${
             onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
           }`}
           style={{
