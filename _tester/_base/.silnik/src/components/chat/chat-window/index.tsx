@@ -352,7 +352,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
       {/* Retro Cheat: Dialog Obrony w Walce */}
       {cheatCombatModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md">
+          <div className="w-full sm:w-[75vw] max-w-4xl max-h-[85vh] overflow-y-auto">
             <CombatDefenseDialog
               attackerName={cheatCombatModal.attackerName}
               attackerWeapon={cheatCombatModal.attackerWeapon}
