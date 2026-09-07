@@ -164,12 +164,12 @@ export function LocationManager({
 
   const getTypeColor = (type: Location['type']) => {
     switch (type) {
-      case 'city': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'building': return 'bg-gray-500/20 text-foreground border-border/30';
-      case 'wilderness': return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'laboratory': return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      case 'temple': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-      case 'other': return 'bg-gray-500/20 text-foreground border-border/30';
+      case 'city': return 'bg-brass/15 text-brass border-brass/40';
+      case 'building': return 'bg-muted/40 text-foreground border-border/60';
+      case 'wilderness': return 'bg-primary/15 text-primary border-primary/40';
+      case 'laboratory': return 'bg-secondary/40 text-secondary-foreground border-secondary/60';
+      case 'temple': return 'bg-brass/20 text-brass border-brass/50';
+      case 'other': return 'bg-muted/30 text-muted-foreground border-border/40';
     }
   };
 

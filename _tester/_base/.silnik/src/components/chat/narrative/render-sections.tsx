@@ -41,23 +41,23 @@ export function renderSection(
               <SafeImage
                 src={portraitUrl}
                 alt={section.speaker || 'NPC'}
-                className="w-10 h-10 rounded-full object-cover border border-amber-500/40 shadow-md grayscale"
+                className="w-10 h-10 rounded-full object-cover border border-brass/40 shadow-md grayscale"
               />
             ) : null}
             <div 
-              className="w-10 h-10 rounded-full bg-amber-950/60 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xs font-bold shadow-md"
+              className="w-10 h-10 rounded-full bg-brass/20 border border-brass/40 flex items-center justify-center text-brass text-xs font-bold shadow-md"
               style={{ display: portraitUrl ? 'none' : 'flex' }}
             >
               {getSpeakerInitials(section.speaker)}
             </div>
           </div>
-          <div className="flex-1 border-l-2 border-amber-500/60 bg-amber-500/5 py-2 px-3 rounded-r-lg">
+          <div className="flex-1 border-l-2 border-brass/60 bg-brass/5 py-2 px-3 rounded-r-lg">
             {section.speaker && (
-              <span className="text-amber-400 text-xs font-semibold block mb-1">
+              <span className="text-brass text-xs font-semibold block mb-1">
                 {section.speaker}
               </span>
             )}
-            <p className="text-amber-200 italic">
+            <p className="text-foreground/90 italic">
               „
               {section.content
                 .replace(/^[\u201E\u201C\u201D\u0022]/, '')
