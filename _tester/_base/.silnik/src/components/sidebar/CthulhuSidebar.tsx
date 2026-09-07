@@ -324,41 +324,46 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Character Management */}
           <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between gap-2">
+            <CardHeader className="pb-2 space-y-2">
+              <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-special-elite text-foreground">
                   {t('characters')}
                 </CardTitle>
-                {/* Character Selector Dropdown - w linii z nagłówkiem */}
-                {characters && characters.length > 0 && (
-                  <div className="relative flex-1">
-                    <select
-                      value={activeCharacter?.id || ''}
-                      onChange={(e) => {
-                        const selected = characters.find(
-                          (c) => c.id === e.target.value
-                        );
-                        if (selected && onCharacterSwitch) {
-                          onCharacterSwitch(selected);
-                        }
-                      }}
-                      className="w-full appearance-none bg-card border-2 border-primary/60 rounded-lg px-3 py-1.5 pr-8 text-sm text-foreground font-medium cursor-pointer hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    >
-                      <option value="" disabled>
-                        {t('select')}
-                      </option>
-                      {characters.map((char) => (
-                        <option key={char.id} value={char.id}>
-                          🎭 {char.name} ({char.occupation || t('investigator')})
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground text-xs">
-                      ▼
-                    </div>
-                  </div>
+                {activeCharacter && characters && (
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {characters.findIndex((c) => c.id === activeCharacter.id) + 1}/{characters.length}
+                  </span>
                 )}
               </div>
+              {/* Character Selector Dropdown - pełna szerokość, czytelne imię i profesja */}
+              {characters && characters.length > 0 && (
+                <div className="relative w-full">
+                  <select
+                    value={activeCharacter?.id || ''}
+                    onChange={(e) => {
+                      const selected = characters.find(
+                        (c) => c.id === e.target.value
+                      );
+                      if (selected && onCharacterSwitch) {
+                        onCharacterSwitch(selected);
+                      }
+                    }}
+                    className="w-full appearance-none bg-card border-2 border-primary/60 rounded-lg px-3 py-1.5 pr-8 text-sm text-foreground font-medium cursor-pointer hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="" disabled>
+                      {t('select')}
+                    </option>
+                    {characters.map((char) => (
+                      <option key={char.id} value={char.id}>
+                        🎭 {char.name} ({char.occupation || t('investigator')})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground text-xs">
+                    ▼
+                  </div>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
               {/* Character Portrait and Stats - klikalny kafelek otwierający kartę postaci */}
