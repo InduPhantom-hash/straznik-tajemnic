@@ -8,7 +8,7 @@
  * Reguły:
  * - Dyrektywy wokalne po angielsku per specyfikację Google TTS.
  * - Model TTS interpretuje prefiks jako wskazówkę stylu, nie czytając go na głos.
- * - Jeśli brak kontekstu, stosuje klimatyczny domyślny ton Lovecrafta.
+ * - Jeśli brak kontekstu, stosuje naturalny, stabilny ton narratora.
  */
 
 import type { Character } from '../types';
@@ -34,7 +34,7 @@ export interface SoundDirectorContext {
  */
 export function buildAudioDirection(context?: SoundDirectorContext): string {
   if (!context) {
-    return 'Read the following in a captivating, atmospheric storytelling voice with a natural, steady pace and a suspenseful Lovecraftian undertone:';
+    return 'Read the following in clear Polish with a natural, calm, and steady narrator voice:';
   }
 
   const {
@@ -69,7 +69,7 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
       }
       return 'Read the following in clear Polish with a natural, expressive female character voice:';
     }
-    return 'Read the following in a natural, character-driven dramatic voice:';
+    return 'Read the following in a natural, conversational character voice:';
   }
 
   // 2. Kwestie Narratora - modulowane przez Poczytalność (SAN), nastrój i tempo akcji (Fonopolis / Poczytany)
@@ -107,9 +107,8 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
     }
   }
 
-  // Domyślny wzorzec słuchowiska radiowego (Krzysztof Gosztyła / Poczytany):
-  // dojrzały, wciągający lektor o nastrojowym tonie Lovecrafta.
-  return 'Read the following in a captivating, atmospheric storytelling voice as a mature audiobook narrator with a natural, steady pace and a suspenseful Lovecraftian undertone:';
+  // Domyślna narracja ma być naturalna i stabilna; napięcie wynika z reguł powyżej.
+  return 'Read the following in clear Polish with a natural, calm, and steady narrator voice:';
 }
 
 /**
