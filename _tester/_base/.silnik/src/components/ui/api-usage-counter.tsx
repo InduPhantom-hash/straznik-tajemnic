@@ -106,10 +106,10 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
               {/* Gemini Tokens */}
               <div className="flex justify-between items-center">
                 <span className="text-xs text-foreground flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                  <span className="w-2 h-2 rounded-full bg-primary"></span>
                   Gemini:
                 </span>
-                <span className="text-xs font-mono text-blue-300">
+                <span className="text-xs font-mono text-primary">
                   {formatTokens(usage?.gemini.tokens ?? 0)} tok (
                   {usage?.gemini.calls ?? 0})
                 </span>
@@ -190,15 +190,15 @@ export function APIUsageCounter({ className = '' }: APIUsageCounterProps) {
                 <span className="text-foreground">{t('activeApiLabel')}</span>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-2 h-2 rounded-full ${settings.geminiEnabled ? 'bg-blue-400' : 'bg-gray-500'}`}
+                    className={`w-2 h-2 rounded-full ${settings.geminiEnabled ? 'bg-primary' : 'bg-muted-foreground/40'}`}
                     title="Gemini"
                   />
                   <span
-                    className={`w-2 h-2 rounded-full ${settings.imageGenerationEnabled ? 'bg-pink-400' : 'bg-gray-500'}`}
+                    className={`w-2 h-2 rounded-full ${settings.imageGenerationEnabled ? 'bg-pink-400' : 'bg-muted-foreground/40'}`}
                     title="Image generation (Vertex Imagen 4 / Replicate Flux Schnell / Gemini Flash)"
                   />
                   <span
-                    className={`w-2 h-2 rounded-full ${settings.voiceSettings?.provider === 'gemini' ? 'bg-purple-400' : 'bg-gray-500'}`}
+                    className={`w-2 h-2 rounded-full ${settings.voiceSettings?.provider === 'gemini' ? 'bg-brass' : 'bg-muted-foreground/40'}`}
                     title="Gemini TTS (Pro narrator / Flash NPC)"
                   />
                   {settings.voiceSettings?.provider === 'elevenlabs' && (

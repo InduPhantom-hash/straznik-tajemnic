@@ -83,8 +83,8 @@ export const TONE_STYLES: Record<string, AdventureStyleEntry> = {
   noir: {
     translationKey: 'toneNoir',
     descriptionKey: 'toneNoirDescription',
-    color: 'text-slate-400',
-    bg: 'bg-slate-500/20',
+    color: 'text-muted-foreground',
+    bg: 'bg-muted/40',
     icon: Search,
   },
 };
@@ -96,19 +96,19 @@ export const ERA_STYLES: Record<string, AdventureStyleEntry> = {
   classic: {
     translationKey: 'eraClassic',
     descriptionKey: 'eraClassicDescription',
-    color: 'text-amber-400',
+    color: 'text-brass',
     icon: Clock,
   },
   gaslight: {
     translationKey: 'eraGaslight',
     descriptionKey: 'eraGaslightDescription',
-    color: 'text-purple-400',
+    color: 'text-gold',
     icon: Flame,
   },
   noir: {
     translationKey: 'eraNoir',
     descriptionKey: 'eraNoirDescription',
-    color: 'text-stone-300',
+    color: 'text-foreground/80',
     icon: Radio,
   },
   prl: {
@@ -126,7 +126,7 @@ export const ERA_STYLES: Record<string, AdventureStyleEntry> = {
   custom: {
     translationKey: 'eraCustom',
     descriptionKey: 'eraCustomDescription',
-    color: 'text-gray-400',
+    color: 'text-muted-foreground',
     icon: PenTool,
   },
 };
