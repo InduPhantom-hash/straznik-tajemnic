@@ -11,6 +11,7 @@ interface WikiEntry {
   shortDefinition: string;
   fullContent: string;
   tags: string[];
+  sourceUrl?: string;
   sourceAttribution?: string;
   license?: string;
   isPublicDomain?: boolean;
@@ -29,16 +30,19 @@ export function EpochWikiTab() {
 
   useEffect(() => {
     setIsLoading(true);
-    const dataPath = `/data/epochs/${currentDataset}/dictionary_wiki.json`;
+    const dataPath = currentDataset === 'lovecraft-mythos'
+      ? '/api/mythos/index'
+      : `/data/epochs/${currentDataset}/dictionary_wiki.json`;
 
     fetch(dataPath)
       .then((res) => {
         if (!res.ok) throw new Error(t('dataNotFoundError'));
         return res.json();
       })
-      .then((data: WikiEntry[]) => {
-        setEntries(data);
-        setActiveEntry(data.length > 0 ? data[0] : null);
+      .then((data: WikiEntry[] | { entries: WikiEntry[] }) => {
+        const nextEntries = Array.isArray(data) ? data : data.entries;
+        setEntries(nextEntries);
+        setActiveEntry(nextEntries.length > 0 ? nextEntries[0] : null);
         setSelectedCategory('ALL');
         setIsLoading(false);
       })
@@ -50,6 +54,13 @@ export function EpochWikiTab() {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- t jest stabilne; ponowny fetch tylko przy zmianie datasetu
   }, [currentDataset]);
+
+  useEffect(() => {
+    if (!activeEntry || currentDataset !== 'lovecraft-mythos' || activeEntry.fullContent) return;
+    fetch(`/api/mythos/${encodeURIComponent(activeEntry.id)}`).then((res) => res.ok ? res.json() : null).then((data: { entry?: WikiEntry } | null) => {
+      if (data?.entry) setActiveEntry(data.entry);
+    }).catch(() => undefined);
+  }, [activeEntry, currentDataset]);
 
   const categories = Array.from(new Set(entries.map((e) => e.categoryTitle)));
 
@@ -177,7 +188,7 @@ export function EpochWikiTab() {
               </div>
 
               <div className="prose prose-invert max-w-none text-sm leading-relaxed whitespace-pre-line text-foreground/90">
-                {activeEntry.fullContent}
+                {activeEntry.fullContent || activeEntry.shortDefinition}
               </div>
 
               {/* Sekcja Uznania Autorstwa & Licencji w stopce wpisu */}
@@ -191,6 +202,7 @@ export function EpochWikiTab() {
                 <p className="text-[11px] text-muted-foreground leading-tight">
                   {t('legalNote')}
                 </p>
+                {activeEntry.sourceUrl && <a className="text-brass underline underline-offset-2" href={activeEntry.sourceUrl} target="_blank" rel="noreferrer">{t('sourceLink')}</a>}
               </div>
 
               {activeEntry.tags && activeEntry.tags.length > 0 && (

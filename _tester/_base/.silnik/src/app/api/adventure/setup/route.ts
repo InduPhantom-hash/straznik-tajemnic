@@ -15,6 +15,7 @@ import {
   type WorldSetupBundleV1,
   WorldSetupValidationError,
 } from '@/lib/world-setup';
+import { searchMythos } from '@/lib/mythos/server';
 
 const getGenAI = (apiKey: string): GoogleGenAI => new GoogleGenAI({ apiKey });
 
@@ -102,6 +103,10 @@ export async function POST(request: NextRequest) {
     const charactersSummary = characters && characters.length > 0
       ? characters.map(c => `- ${c.name} (${c.occupation}): ${c.background}`).join('\n')
       : 'Brak zdefiniowanych badaczy (generowanie domyślnego asymetrycznego setupu).';
+    const mythosReferences = searchMythos(`${body.adventureTitle ?? ''} ${eraContext.regionProfile} ${adventureText}`, 4);
+    const mythosContext = mythosReferences.length
+      ? mythosReferences.map((entry) => `- ${entry.term}: ${entry.shortDefinition}`).join('\n')
+      : 'Brak trafnych, lokalnych odniesień Mythos.';
 
     const prompt = `Jesteś zaawansowanym projektantem scenariuszy Call of Cthulhu RPG. Twoim zadaniem jest stworzenie nieliniowego setupu przygody w oparciu o dostarczony tekst scenariusza i karty badaczy.
 
@@ -116,6 +121,9 @@ ${charactersSummary}
 
 TEKST PRZYGODY / NOTATKI:
 ${adventureText}
+
+LOKALNE ODNIESIENIA MYTHOS (pomocnicze, nie cytuj dosłownie i nie traktuj jako zasad CoC 7e):
+${mythosContext}
 
 ZADANIE:
 Przekształć tę przygodę w nieliniową strukturę konfliktu (Bunkier) i wygeneruj indywidualne asymetryczne plotki/haczyki. Zwróć wynik jako poprawny JSON o następującej strukturze:
@@ -260,6 +268,7 @@ Wygeneruj 1-2 główne konflikty, asymetryczne haczyki oraz spójność dla dru�
       nearestBranches: conflicts,
       adventureContent: adventureText,
       supplementalInformation: research.summary ? [research.summary] : [],
+      mythosReferences: mythosReferences.map((entry) => ({ id: entry.id, term: entry.term, categoryTitle: entry.categoryTitle, sourceUrl: entry.sourceUrl, license: entry.license })),
       sources: [
         ...(Array.isArray(body.sources) ? body.sources : []),
         ...research.sources,

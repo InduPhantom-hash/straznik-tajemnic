@@ -15,6 +15,7 @@ import { embeddingService, cosineSimilarity } from '../embedding-service';
 import { LOCAL_RAG_NAMESPACES, type QueryResult } from './vector-types';
 import { localVectorStore } from './local-vector-store';
 import { bm25Index } from './bm25-index';
+import { ensureMythosBm25Index } from '@/lib/mythos/bm25';
 
 // ============================================================================
 // TYPES
@@ -178,30 +179,20 @@ class RetrievalService {
       minScore = getDefaultMinScore(),
     } = params;
 
-    // Generuj embedding zapytania
+    ensureMythosBm25Index();
+    const namespaces = params.namespaces || this.getDefaultNamespaces(sessionId);
+    // Embedding poprawia recall, ale brak klucza nie może wyłączyć lokalnego Mythos BM25.
     const queryEmbedding = await embeddingService.generateEmbedding(
       query,
       'RETRIEVAL_QUERY'
     );
-    if (!queryEmbedding) {
-      return {
-        promptSection: '',
-        results: [],
-        source: 'none',
-        durationMs: Date.now() - start,
-      };
-    }
-
-    // Określ namespace'y do przeszukania
-    const namespaces =
-      params.namespaces || this.getDefaultNamespaces(sessionId);
 
     let results: RetrievalResult[] = [];
     let source: RetrievalResponse['source'] = 'none';
 
     // Strategia 1: semantic search w lokalnym magazynie wektorów.
     let semanticResults: RetrievalResult[] = [];
-    if (localVectorStore.initialized) {
+    if (queryEmbedding && localVectorStore.initialized) {
       semanticResults = await this.searchSemantic(
         queryEmbedding,
         namespaces,
@@ -233,11 +224,11 @@ class RetrievalService {
       source = 'semantic';
     } else if (keywordResults.length > 0) {
       results = keywordResults;
-      source = 'semantic';
+      source = 'local';
     }
 
     // Strategia 4: Fallback na lokalny indeks
-    const localResults = await this.searchLocal(queryEmbedding, minScore);
+    const localResults = queryEmbedding ? await this.searchLocal(queryEmbedding, minScore) : [];
     if (localResults.length > 0) {
       if (results.length === 0) {
         results = localResults;
@@ -527,7 +518,7 @@ class RetrievalService {
       'Poniższe informacje zostały pobrane z bazy wiedzy i mogą być istotne dla odpowiedzi:\n\n';
 
     // Kolejność wyświetlania: rules → adventure → npc → world-state → session
-    const displayOrder = ['rule', 'adventure', 'npc', 'world-state', 'session'];
+    const displayOrder = ['rule', 'adventure', 'mythos', 'npc', 'world-state', 'session'];
 
     for (const contentType of displayOrder) {
       const items = grouped.get(contentType);
@@ -555,7 +546,7 @@ class RetrievalService {
       section += '\n';
     }
 
-    section += `**INSTRUKCJA:** Wykorzystaj powyższy kontekst jeśli jest relewantny. Nie cytuj go dosłownie - zintegruj naturalnie w narracji. Jeśli kontekst jest nieistotny dla bieżącej sceny, zignoruj go.\n`;
+    section += `**INSTRUKCJA:** Wykorzystaj powyższy kontekst jeśli jest relewantny. Nie cytuj go dosłownie - zintegruj naturalnie w narracji. Jeśli kontekst jest nieistotny dla bieżącej sceny, zignoruj go. Lore Mitów jest wiedzą MG: nie ujawniaj nazw bytów ani prawdy o zagrożeniu bez podstawy w aktywnym śledztwie. Nie traktuj lore Fandomu jako źródła reguł CoC 7e.\n`;
 
     return section;
   }

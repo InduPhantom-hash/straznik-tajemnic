@@ -15,6 +15,7 @@ export function HelpAssistantTab() {
   const t = useTranslations('HelpAssistantTab');
   const [query, setQuery] = useState('');
   const [answer, setAnswer] = useState<string | null>(null);
+  const [sources, setSources] = useState<Array<{ term: string; sourceUrl: string }> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [nanoStatus, setNanoStatus] = useState<ChromeAIStatus>('unavailable');
 
@@ -32,15 +33,14 @@ export function HelpAssistantTab() {
 
     setIsLoading(true);
     setAnswer(null);
+    setSources(null);
 
     try {
-      const res = await fetch('/api/chat-test', {
+      const res = await fetch('/api/mythos/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: t('systemPrompt', { query }),
-          // Flaga informująca backend, że chcemy surowe fragmenty RAG do re-rankingu
-          returnRagFragments: nanoStatus === 'available',
+          query,
         }),
       });
 
@@ -51,11 +51,11 @@ export function HelpAssistantTab() {
       const data = await res.json();
 
       // Jeśli Nano dostępne i backend zwrócił surowe fragmenty - re-rankuj
-      if (nanoStatus === 'available' && data.ragFragments?.length) {
-        const fragments: RagFragment[] = data.ragFragments.map(
-          (f: { content: string; source?: string; score?: number }) => ({
-            content: f.content,
-            source: f.source,
+      if (nanoStatus === 'available' && data.sources?.length) {
+        const fragments: RagFragment[] = data.sources.map(
+          (f: { shortDefinition: string; term: string; score?: number }) => ({
+            content: f.shortDefinition,
+            source: f.term,
             score: f.score,
           })
         );
@@ -67,7 +67,8 @@ export function HelpAssistantTab() {
         console.log('🧠 Re-ranked fragments:', reranked.length);
       }
 
-      setAnswer(data.response || data.text || t('noAnswer'));
+      setAnswer(data.answer || t('noAnswer'));
+      setSources(data.sources || []);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : t('unknownError');
       setAnswer(t('answerError', { message: errorMessage }));
@@ -116,6 +117,7 @@ export function HelpAssistantTab() {
         <div className="p-4 bg-card/90 border border-border rounded space-y-2">
           <h5 className="text-xs font-serif text-brass font-bold uppercase tracking-wider">{t('answerTitle')}</h5>
           <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-line">{answer}</p>
+          {sources && sources.length > 0 && <ul className="text-xs text-muted-foreground space-y-1">{sources.map((source) => <li key={source.sourceUrl}><a className="text-brass underline" href={source.sourceUrl} target="_blank" rel="noreferrer">{source.term}</a></li>)}</ul>}
         </div>
       )}
     </div>
