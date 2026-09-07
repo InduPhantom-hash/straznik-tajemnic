@@ -48,7 +48,7 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4">
+        <div className="bg-red-900/30 border border-red-500/50 rounded-md p-4">
           <p className="text-red-300 text-sm">{error}</p>
         </div>
       )}
@@ -66,7 +66,7 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           value={sessionName}
           onChange={(e) => setSessionName(e.target.value)}
           placeholder={t('sessionNamePlaceholder')}
-          className="w-full px-4 py-3 bg-black/30 backdrop-blur-sm border border-white/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all duration-300"
+          className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border border-brass/30 rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-brass/60 focus:border-brass/70 transition-all duration-300"
           disabled={isLoading}
         />
       </div>
@@ -84,7 +84,7 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t('descriptionPlaceholder')}
           rows={3}
-          className="w-full px-4 py-3 bg-black/30 backdrop-blur-sm border border-white/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all duration-300 resize-none"
+          className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border border-brass/30 rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-brass/60 focus:border-brass/70 transition-all duration-300 resize-none"
           disabled={isLoading}
         />
       </div>
@@ -93,11 +93,11 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
         <Button
           type="submit"
           disabled={isLoading || !sessionName.trim()}
-          className="flex-1 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 text-foreground font-medium rounded-xl transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+          className="flex-1 py-3 bg-gradient-to-r from-brass/80 to-gold/70 hover:from-brass hover:to-gold text-background font-medium rounded-md transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin"></div>
               {t('saving')}
             </div>
           ) : (
@@ -109,7 +109,8 @@ export function NewSessionForm({ onSave, onClose }: NewSessionFormProps) {
           type="button"
           onClick={onClose}
           disabled={isLoading}
-          className="px-6 py-3 bg-muted hover:bg-muted disabled:bg-muted text-foreground font-medium rounded-xl transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+          variant="outline"
+          className="px-6 py-3 border-brass/30 text-foreground font-medium rounded-md transition-all duration-300 hover:scale-[1.02] disabled:hover:scale-100"
         >
           {t('cancel')}
         </Button>

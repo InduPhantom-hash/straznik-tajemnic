@@ -16,8 +16,8 @@ describe('Sound Director Service (Issue #162)', () => {
   describe('buildAudioDirection - Kwestie Narratora', () => {
     it('zwraca naturalny, wciągający ton z nutą grozy przy stabilnej poczytalności i braku nastroju', () => {
       const direction = buildAudioDirection({ san: 75, maxSan: 80 });
-      expect(direction).toContain('captivating, atmospheric storytelling voice');
-      expect(direction).toContain('natural, steady pace');
+      expect(direction).toContain('natural, calm, and steady narrator voice');
+      expect(direction).toContain('calm, and steady narrator voice');
       expect(direction).not.toContain('slow');
     });
 
@@ -130,7 +130,7 @@ describe('Sound Director Service (Issue #162)', () => {
         isNpc: true,
         speakerName: 'Inspektor Legrasse',
       });
-      expect(direction).toContain('natural, character-driven dramatic voice');
+      expect(direction).toContain('natural, conversational character voice');
     });
   });
 
