@@ -59,7 +59,14 @@ describe('Polish Phonetics & Pronunciation Normalizer (Issue #173)', () => {
       const enhanced = enhanceAudioDirectionWithPhonetics(direction, 'pl');
       expect(enhanced).toContain(direction);
       expect(enhanced).toContain(POLISH_PHONETIC_AUDIO_DIRECTIVE);
-      expect(enhanced).toContain('crisp, sharp, and distinct articulation of Polish consonants');
+      expect(enhanced).toContain('accurate Polish sounds');
+    });
+
+    it('używa bezpiecznej dyrektywy bez fraz mogących uruchomić filtr treści Gemini', () => {
+      const directive = enhanceAudioDirectionWithPhonetics('', 'pl');
+
+      expect(directive).toBe(POLISH_PHONETIC_AUDIO_DIRECTIVE);
+      expect(directive).not.toMatch(/never|foreign accent|English phonetics/i);
     });
 
     it('nie dubluje dyrektywy jeśli instrukcja już zawiera wskazówki polskiej fonetyki', () => {
