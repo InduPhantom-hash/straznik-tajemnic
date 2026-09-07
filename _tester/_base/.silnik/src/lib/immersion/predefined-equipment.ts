@@ -401,7 +401,10 @@ export function buildPredefinedEquipment(
   targetEra?: string | { effectiveYear?: number; canonicalEra?: string }
 ): EquipmentItem[] {
   const effectiveEra = resolveTargetPresetEra(preset.era, targetEra);
-  const visualEra = PRESET_VISUAL_ERAS[effectiveEra] ?? '1920s';
+  const visualEra = PRESET_VISUAL_ERAS[effectiveEra];
+  if (!visualEra) {
+    throw new Error(`Brak wizualnego profilu epoki dla presetu: ${effectiveEra}`);
+  }
   const result = (preset.equipment ?? []).map((item) =>
     withLocalImage(item, visualEra)
   );
