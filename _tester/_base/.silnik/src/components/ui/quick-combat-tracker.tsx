@@ -73,36 +73,36 @@ export function QuickCombatTracker({
   // Kolor paska HP
   let hpColor = 'bg-emerald-600';
   if (hpPercentage <= 25) {
-    hpColor = 'bg-red-600 animate-pulse';
+    hpColor = 'bg-destructive animate-pulse';
   } else if (hpPercentage <= 50) {
-    hpColor = 'bg-amber-600';
+    hpColor = 'bg-gold';
   }
 
   return (
-    <div className="bg-gradient-to-br from-zinc-950/90 to-red-950/40 border border-brass/30 rounded-lg p-3 space-y-2.5 shadow-lg backdrop-blur-sm">
+    <div className="bg-gradient-to-br from-black/90 to-red-950/40 border border-brass/40 rounded-lg p-3 space-y-2.5 shadow-lg backdrop-blur-sm">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Swords className="w-4 h-4 text-brass animate-pulse" />
-          <span className="font-display font-bold text-sm text-brass uppercase tracking-wider">
+          <span className="font-special-elite font-bold text-sm text-brass uppercase tracking-wider">
             {t('title')}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           {effectiveOutnumbered && (
-            <Badge className="bg-amber-950/70 text-amber-300 border-amber-500/40 text-[10px] flex items-center gap-1">
-              <Users className="w-3 h-3 text-amber-400" />
+            <Badge className="bg-brass/20 text-brass border-brass/40 text-[10px] flex items-center gap-1 font-special-elite">
+              <Users className="w-3 h-3 text-gold" />
               {t('outnumberedBadge')}
             </Badge>
           )}
           {effectiveMajorWound && (
-            <Badge className="bg-red-950/80 text-red-200 border-red-500/50 text-[10px] flex items-center gap-1 animate-pulse">
-              <Activity className="w-3 h-3 text-red-400" />
+            <Badge className="bg-destructive/20 text-destructive-foreground border-destructive/50 text-[10px] flex items-center gap-1 animate-pulse font-special-elite">
+              <Activity className="w-3 h-3 text-destructive" />
               {t('majorWoundBadge')}
             </Badge>
           )}
           {combatState.description && (
-            <span className="text-xs text-zinc-400 font-serif italic truncate max-w-[150px]">
+            <span className="text-xs text-muted-foreground font-special-elite italic truncate max-w-[150px]">
               {combatState.description}
             </span>
           )}
@@ -112,14 +112,14 @@ export function QuickCombatTracker({
       {/* Player HP Bar */}
       <div className="space-y-1">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-200 font-medium font-serif">
+          <span className="text-foreground font-medium font-special-elite">
             {effectivePlayerName}
           </span>
-          <span className="text-zinc-300 font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-[11px]">
             {playerHP}/{playerMaxHP} HP
           </span>
         </div>
-        <div className="h-2.5 bg-zinc-900/80 rounded-full overflow-hidden border border-zinc-800">
+        <div className="h-2.5 bg-black/60 rounded-full overflow-hidden border border-brass/20">
           <div
             className={`h-full ${hpColor} transition-all duration-500`}
             style={{ width: `${hpPercentage}%` }}
