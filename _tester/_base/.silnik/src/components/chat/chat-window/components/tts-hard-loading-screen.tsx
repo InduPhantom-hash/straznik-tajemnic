@@ -62,10 +62,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   // Dynamiczne dane przygody
   const title = adventureTitle || adventureContext?.title || t('chronicleDossier');
   const location = region || adventureContext?.location || adventureContext?.country;
-  const eraLabel =
-    adventureContext?.eraLabel ||
-    adventureContext?.yearRange ||
-    (eraContext?.effectiveYear ? String(eraContext.effectiveYear) : undefined);
+  const eraLabel = eraContext?.effectiveYear ? String(eraContext.effectiveYear) : undefined;
 
   // Wprowadzenie fabularne: hook > description > default
   const storyHook = useMemo(() => {
@@ -92,25 +89,6 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
 
   const isCompleted = isReadyToEnter || startProgress >= 100;
   const displayProgress = Math.min(100, Math.max(startProgress, 5));
-
-  // Wycinki prasowe epoki ze słowników i18n
-  const pressDispatches = [
-    {
-      source: t('clip1Source'),
-      headline: t('clip1Headline'),
-      text: t('clip1Text'),
-    },
-    {
-      source: t('clip2Source'),
-      headline: t('clip2Headline'),
-      text: t('clip2Text'),
-    },
-    {
-      source: t('clip3Source'),
-      headline: t('clip3Headline'),
-      text: t('clip3Text'),
-    },
-  ];
 
   return (
     <div
@@ -211,38 +189,28 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
             )}
           </div>
 
-          {/* Prawa kolumna: Kronika Epoki / Wycinki z prasy 1920s (5 kolumn) */}
+          {/* Prawa kolumna: bezspoilerowy hook wybranej przygody */}
           <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/90 to-[#0c0d09]/95 rounded-lg p-5 md:p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brass/30 via-gold/60 to-brass/30" />
 
             <div>
               <div className="flex items-center justify-between border-b border-brass/20 pb-2.5 mb-3">
                 <span className="text-[11px] font-mono uppercase tracking-widest text-brass/90 font-semibold">
-                  {t('dispatchHeader')}
+                  {t('hookHeader')}
                 </span>
                 <span className="w-2 h-2 rounded-full bg-gold/70 animate-pulse" />
               </div>
 
-              <div className="space-y-3.5 divide-y divide-brass/15">
-                {pressDispatches.map((dispatch, idx) => (
-                  <div key={idx} className={idx > 0 ? 'pt-3' : ''}>
-                    <div className="text-[10px] font-mono text-gold/80 tracking-wider uppercase mb-1">
-                      {dispatch.source}
-                    </div>
-                    <div className="font-display text-xs md:text-sm font-bold text-foreground mb-1 leading-snug">
-                      {dispatch.headline}
-                    </div>
-                    <p className="font-serif italic text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                      &quot;{dispatch.text}&quot;
-                    </p>
-                  </div>
-                ))}
+              <div className="relative pl-3 border-l-2 border-gold/40">
+                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed">
+                  {storyHook}
+                </p>
               </div>
             </div>
 
             <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
-              <span>ARCHIVUM 1920s</span>
-              <span className="text-brass/60">CONFIDENTIAL</span>
+              <span>{t('spoilerFree')}</span>
+              <span className="text-brass/60">{t('confidential')}</span>
             </div>
           </div>
         </div>

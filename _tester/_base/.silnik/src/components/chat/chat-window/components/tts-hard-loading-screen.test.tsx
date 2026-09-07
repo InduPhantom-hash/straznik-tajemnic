@@ -8,16 +8,9 @@ jest.mock('next-intl', () => ({
     const messages: Record<string, string> = {
       preparingSession: 'Mistrz Gry przygotowuje sesję...',
       generatingStory: 'Trwa generowanie mrocznej opowieści i głosu narratora...',
-      dispatchHeader: 'Wycinek z kroniki epoki',
-      clip1Source: 'The Arkham Advertiser (1926)',
-      clip1Headline: 'Tajemnicze zaginięcia w dolinie rzeki Miskatonic',
-      clip1Text: 'Władze przeszukują podmiejskie lasy po tym, jak dwóch studentów uniwersytetu nie powróciło z ekspedycji.',
-      clip2Source: 'The Boston Globe (1925)',
-      clip2Headline: 'Nocny nalot policji na nabrzeżu North End',
-      clip2Text: 'Skonfiskowano sześć skrzyń z podejrzanym ładunkiem ze Starego Świata.',
-      clip3Source: 'The Providence Gazette (1924)',
-      clip3Headline: 'Niezwykłe zjawiska na wodach zatoki Narragansett',
-      clip3Text: 'Miejscowi rybacy donoszą o nienaturalnych poświatach widocznych w gęstej mgle.',
+      hookHeader: 'Bezspoilerowa zajawka sprawy',
+      spoilerFree: 'BEZ SPOILERÓW',
+      confidential: 'DLA BADACZA',
       bufferingNarrator: 'Buforowanie głosu lektora (3-4 zdania)...',
       chronicleDossier: 'Akta Śledztwa',
       defaultChronicleIntro: 'W cieniu zapomnianych ulic i zakurzonych archiwów kryją się sekrety...',
@@ -47,23 +40,24 @@ describe('TTSHardLoadingScreen (Issue #177)', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renderuje stan buforowania/generowania z paskiem postępu i wycinkami kroniki', () => {
+  it('renderuje stan buforowania z hookiem wybranej przygody bez stałej epoki', () => {
     render(
       <TTSHardLoadingScreen
         isStarting={true}
         startProgress={45}
         adventureTitle="Zew Innsmouth"
-        adventureDescription="Mroczna mgła nad portem rybackim."
+        adventureContext={{ title: 'Zew Innsmouth', hook: 'List od zaginionego brata prowadzi cię ku portowym mgłom.' }}
         region="Nowa Anglia"
       />
     );
 
     expect(screen.getByTestId('tts-hard-loading-screen')).toBeInTheDocument();
     expect(screen.getByText('„Zew Innsmouth”')).toBeInTheDocument();
-    expect(screen.getByText('Mroczna mgła nad portem rybackim.')).toBeInTheDocument();
+    expect(screen.getAllByText('List od zaginionego brata prowadzi cię ku portowym mgłom.')).toHaveLength(2);
     expect(screen.getByText('Nowa Anglia')).toBeInTheDocument();
-    expect(screen.getByText('Wycinek z kroniki epoki')).toBeInTheDocument();
-    expect(screen.getByText('The Arkham Advertiser (1926)')).toBeInTheDocument();
+    expect(screen.getByText('Bezspoilerowa zajawka sprawy')).toBeInTheDocument();
+    expect(screen.getByText('BEZ SPOILERÓW')).toBeInTheDocument();
+    expect(screen.queryByText(/192[0-9]/)).not.toBeInTheDocument();
     expect(screen.getByText('45%')).toBeInTheDocument();
     expect(screen.getByText('Buforowanie głosu lektora (3-4 zdania)...')).toBeInTheDocument();
   });
