@@ -227,7 +227,7 @@ export function SettingsModal({
             }}
           >
             <div
-              className="mx-4 w-[90vw] max-w-[600px] rounded-xl border border-brass/40 bg-card p-6 shadow-2xl"
+              className="mx-4 w-[90vw] max-w-[600px] rounded-lg border border-brass/40 bg-card p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="mb-3 font-display-decorative text-xl font-bold uppercase tracking-[0.1em] text-foreground">

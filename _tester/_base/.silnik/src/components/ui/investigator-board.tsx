@@ -347,7 +347,7 @@ export function InvestigatorBoard({
                 )}
               >
                 {/* Czerwona Szpilka Detektywistyczna */}
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 border-2 border-amber-200 shadow-md flex items-center justify-center pointer-events-none">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 border-2 border-brass/60 shadow-md flex items-center justify-center pointer-events-none">
                   <div className="w-1 h-1 bg-white rounded-full"></div>
                 </div>
 

@@ -65,7 +65,7 @@ const ChatWindow = dynamic(
     })),
   {
     loading: () => (
-      <div className="animate-pulse bg-gray-800 rounded-lg h-96" />
+      <div className="animate-pulse bg-muted/40 rounded-lg h-96" />
     ),
     ssr: false,
   }

@@ -306,7 +306,7 @@ export function HandoutGenerator({
             <Label>{t('previewLabel')}</Label>
             <div
               ref={previewRef}
-              className="bg-stone-900 border border-border rounded-lg p-4 min-h-[400px]"
+              className="bg-card border border-border rounded-lg p-4 min-h-[400px]"
             >
               {preview ? (
                 <div

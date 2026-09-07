@@ -654,7 +654,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                 </div>
               )}
               {difficulty !== 'zwykly' && (
-                <div className="font-special-elite text-xs text-amber-400">
+                <div className="font-special-elite text-xs text-brass">
                   🎯 {t('requiredLevel')}{' '}
                   <strong>
                     {

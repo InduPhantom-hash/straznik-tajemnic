@@ -44,7 +44,7 @@ export function FullResetDialog({
       }}
     >
       <div
-        className="bg-card border-2 border-red-500 rounded-xl p-6 w-full max-w-lg mx-4 shadow-2xl"
+        className="bg-card border-2 border-red-500 rounded-lg p-6 w-full max-w-lg mx-4 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {step === 1 && (
