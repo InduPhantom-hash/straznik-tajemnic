@@ -130,10 +130,10 @@ const OUTCOME_LABELS: Record<
   extreme: {
     label: 'SUKCES EKSTREMALNY',
     emoji: '✨',
-    color: 'text-purple-500',
+    color: 'text-gold',
   },
   hard: { label: 'TRUDNY SUKCES', emoji: '✅', color: 'text-green-500' },
-  regular: { label: 'SUKCES', emoji: '👍', color: 'text-blue-500' },
+  regular: { label: 'SUKCES', emoji: '👍', color: 'text-brass' },
   fail: { label: 'PORAŻKA', emoji: '❌', color: 'text-red-400' },
   fumble: { label: 'FUMBLE!', emoji: '💀', color: 'text-red-600' },
 };

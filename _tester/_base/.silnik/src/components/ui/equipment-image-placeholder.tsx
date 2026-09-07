@@ -33,13 +33,13 @@ const CATEGORY_VISUALS: Record<
   document: {
     Icon: FileText,
     gradient: 'from-[#1a1812] to-[#0d0b07]',
-    accent: 'text-amber-400/60',
+    accent: 'text-brass/60',
     label: 'Dokument',
   },
   artifact: {
     Icon: Sparkles,
     gradient: 'from-[#1a1020] to-[#0a0710]',
-    accent: 'text-purple-400/60',
+    accent: 'text-accent/60',
     label: 'Artefakt',
   },
   tool: {
