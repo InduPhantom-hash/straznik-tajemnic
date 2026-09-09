@@ -1,6 +1,7 @@
 import {
   extractSkillTests,
   extractHazardEvents,
+  extractSpellCastEvents,
   extractSkillResults,
   extractMeleeAttackReferences,
   stripMeleeAttackTags,
@@ -151,3 +152,39 @@ describe('extractHazardEvents (CoC 7e RAW)', () => {
     expect(hazard.fireIntensity).toBe('major');
   });
 });
+
+describe('extractSpellCastEvents (CoC 7e RAW & Poradniki MG)', () => {
+  it('parsuje poprawnie tag z kluczami, adresatem i rzutem spornym', () => {
+    const [spell] = extractSpellCastEvents(
+      '[CZAR: @Harvey Walters: id=wither-limb | alias=Pieśń Bólu | cel=Kultysta | pow=55 | opis=Klątwa usychającego ramienia]'
+    );
+
+    expect(spell).toBeDefined();
+    expect(spell.characterName).toBe('Harvey Walters');
+    expect(spell.spellId).toBe('wither-limb');
+    expect(spell.alias).toBe('Pieśń Bólu');
+    expect(spell.targetName).toBe('Kultysta');
+    expect(spell.targetPow).toBe(55);
+    expect(spell.description).toBe('Klątwa usychającego ramienia');
+  });
+
+  it('parsuje składnię pozycyjną bez prefiksu adresata', () => {
+    const [spell] = extractSpellCastEvents('[CZAR: flesh-ward | Cielesna Tarcza | Ochrona przed ciosami]');
+
+    expect(spell).toBeDefined();
+    expect(spell.spellId).toBe('flesh-ward');
+    expect(spell.alias).toBe('Cielesna Tarcza');
+    expect(spell.description).toBe('Ochrona przed ciosami');
+  });
+
+  it('obsługuje tag angielski [SPELL:...]', () => {
+    const [spell] = extractSpellCastEvents('[SPELL: id=dominate | alias=Dominate | target=Guard | pow=40]');
+
+    expect(spell).toBeDefined();
+    expect(spell.spellId).toBe('dominate');
+    expect(spell.alias).toBe('Dominate');
+    expect(spell.targetName).toBe('Guard');
+    expect(spell.targetPow).toBe(40);
+  });
+});
+

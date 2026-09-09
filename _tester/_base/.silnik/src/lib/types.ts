@@ -158,6 +158,7 @@ export interface Message {
   generatedImageCacheIds?: string[];
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
+  spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
   acquiredItems?: AcquiredItemProposal[];
   cliffhanger?: {
@@ -1038,6 +1039,17 @@ export interface HazardEventData {
   poisonSeverity?: 'mild' | 'strong' | 'lethal';
   defensiveSkill?: string;
   difficulty?: 'zwykly' | 'trudny' | 'ekstremalny';
+}
+
+export interface SpellCastEventData {
+  id: string;
+  spellId: string;
+  characterName?: string;
+  characterId?: string;
+  alias?: string;
+  targetName?: string;
+  targetPow?: number;
+  description?: string;
 }
 
 // === SYSTEM MIAR (Issue #191) ===
