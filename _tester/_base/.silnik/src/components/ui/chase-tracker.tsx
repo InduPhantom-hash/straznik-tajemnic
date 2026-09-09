@@ -31,7 +31,10 @@ export interface ChaseTrackerProps {
   className?: string;
 }
 
-export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '' }) => {
+export const ChaseTracker: React.FC<ChaseTrackerProps> = ({
+  state,
+  className = '',
+}) => {
   const t = useTranslations('Chase');
 
   const fleeing = state.participants.find((p) => p.isFleeing);
@@ -42,7 +45,9 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
     : 0;
 
   return (
-    <Card className={`border-brass/40 bg-card/95 shadow-xl backdrop-blur-md my-3 overflow-hidden ${className}`}>
+    <Card
+      className={`border-brass/40 bg-card/95 shadow-xl backdrop-blur-md my-3 overflow-hidden ${className}`}
+    >
       {/* Nagłówek toru Art Déco */}
       <div className="bg-muted/80 border-b border-brass/20 px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -51,7 +56,10 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
             {t('title')}
           </span>
           <Badge className="bg-muted text-muted-foreground border-border font-mono text-xs">
-            {t('roundLabel', { round: state.round, maxRounds: state.maxRounds })}
+            {t('roundLabel', {
+              round: state.round,
+              maxRounds: state.maxRounds ?? '—',
+            })}
           </Badge>
         </div>
 
@@ -75,7 +83,9 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
 
           {state.segments.map((segment) => {
             const hasFleeing = fleeing?.segmentIndex === segment.index;
-            const hasPursuer = pursuers.some((p) => p.segmentIndex === segment.index);
+            const hasPursuer = pursuers.some(
+              (p) => p.segmentIndex === segment.index
+            );
             const hasHazard = Boolean(segment.hazard);
 
             return (
@@ -117,7 +127,10 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
                 <div className="h-6 flex items-center justify-center mt-1">
                   {hasPursuer && (
                     <span className="bg-rose-500/20 text-rose-400 border border-rose-500/50 text-[10px] font-mono px-1.5 py-0.5 rounded shadow flex items-center gap-1">
-                      💀 {pursuers.find((p) => p.segmentIndex === segment.index)?.name.split(' ')[0] || 'Pościg'}
+                      💀{' '}
+                      {pursuers
+                        .find((p) => p.segmentIndex === segment.index)
+                        ?.name.split(' ')[0] || 'Pościg'}
                     </span>
                   )}
                 </div>
@@ -134,7 +147,7 @@ export const ChaseTracker: React.FC<ChaseTrackerProps> = ({ state, className = '
         </div>
 
         {/* Informacja o statusie końcowym */}
-        {state.status === 'caught' && (
+        {state.status === 'engaged' && (
           <div className="mt-3 p-3 bg-rose-950/40 border border-rose-900 rounded flex items-center gap-2 text-rose-300 text-sm">
             <Skull className="w-5 h-5 text-rose-400 shrink-0" />
             <div>

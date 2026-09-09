@@ -12,6 +12,7 @@ import {
 import type { WorldSetupBundleV1 } from './world-setup';
 import { isWorldSetupBundle } from './world-setup';
 import { ensureCharacterDossier } from './journal/dossier-migration';
+import type { ChaseState } from './chase/chase-engine';
 
 // Lokalnie zdefiniowany interfejs Message (podzbiór @/lib/types Message -
 // pola istotne dla save'a). finishReason/continuationRequested odtwarzają
@@ -27,6 +28,7 @@ interface Message {
   generatedImages?: string[];
   finishReason?: string;
   continuationRequested?: boolean;
+  mechanicsContext?: { chase?: ChaseState };
 }
 
 /**
@@ -77,6 +79,7 @@ export interface FullGameSave {
   // === Postacie ===
   characters: Character[];
   activeCharacterId?: string;
+  activeChaseState?: ChaseState | null;
   /** Jawne przypisania dwóch graczy do postaci; brak w starszych save'ach. */
   hotSeatConfig?: HotSeatConfig;
   /** Stan Tablicy Badacza (dowody, hipotezy, sznurki relacji). */
@@ -168,6 +171,7 @@ export class FullGameSaveManager {
     worldSetup?: WorldSetupBundleV1;
     characters: Character[];
     activeCharacterId?: string;
+    activeChaseState?: ChaseState | null;
     hotSeatConfig?: HotSeatConfig;
     investigatorBoard?: InvestigatorBoardState;
     campaigns: Campaign[];
@@ -213,6 +217,7 @@ export class FullGameSaveManager {
       // Postacie
       characters: (data.characters || []).map((c) => ensureCharacterDossier(c)),
       activeCharacterId: data.activeCharacterId,
+      activeChaseState: data.activeChaseState,
       hotSeatConfig: data.hotSeatConfig,
       investigatorBoard: data.investigatorBoard,
 

@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -20,27 +20,27 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  AlertTriangle,
   Flame,
   Skull,
   Wind,
   ArrowDownCircle,
   Dices,
-  Shield,
   ShieldAlert,
   Send,
   CheckCircle2,
-  XCircle,
 } from 'lucide-react';
 import {
   type HazardType,
   type FallingSurface,
   type FireIntensity,
-  type PoisonDefinition,
+  type AcidPotency,
+  type AirlessKind,
+  type PoisonSeverity,
   COC7E_POISONS,
+  normalizePoisonSeverity,
   resolveFallingDamage,
   resolveFireDamage,
   resolveAcidDamage,
@@ -48,23 +48,25 @@ import {
   resolvePoisonEffect,
   type FallingResolution,
   type FireResolution,
+  type AcidResolution,
   type SuffocationResolution,
   type PoisonResolution,
 } from '@/lib/hazards-engine';
 import type { HazardEventData } from '@/lib/types';
-import type { RollOutcome } from '@/lib/dice-utils';
 
 export interface HazardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hazard?: HazardEventData;
   playerCon?: number;
+  playerHp?: number;
   playerJump?: number;
   playerDodge?: number;
   playerName?: string;
   onApplyDamage?: (damage: number, reason: string) => void;
   onSendToChat?: (message: string) => void;
   onComplete?: () => void;
+  canApply?: boolean;
 }
 
 export function HazardDialog({
@@ -72,45 +74,54 @@ export function HazardDialog({
   onOpenChange,
   hazard,
   playerCon = 50,
+  playerHp,
   playerJump = 20,
-  playerDodge = 25,
-  playerName = 'Badacz',
   onApplyDamage,
   onSendToChat,
   onComplete,
+  canApply = true,
 }: HazardDialogProps) {
   const t = useTranslations('Hazards');
+  const locale = useLocale();
+  const formatDice = (formula: string) => locale === 'pl' ? formula.replace(/d/gi, 'k') : formula;
 
   // Aktywna zakładka / typ zagrożenia
-  const initialType: HazardType = hazard?.type || 'falling';
+  const tabForType = (type?: HazardType) =>
+    type === 'acid' ? 'fire' : type === 'drowning' ? 'suffocation' : type || 'falling';
+  const initialType = tabForType(hazard?.type);
   const [activeTab, setActiveTab] = useState<string>(initialType);
 
   useEffect(() => {
     if (hazard?.type) {
-      setActiveTab(hazard.type);
+      setActiveTab(tabForType(hazard.type));
     }
   }, [hazard]);
 
   // Stan dla upadku
   const [fallHeight, setFallHeight] = useState<number>(hazard?.fallHeightMeters || 3);
-  const [fallSurface, setFallSurface] = useState<FallingSurface>('normal');
+  const [fallSurface, setFallSurface] = useState<FallingSurface>(hazard?.surface || 'normal');
   const [fallResult, setFallResult] = useState<FallingResolution | null>(null);
 
   // Stan dla ognia
   const [fireIntensity, setFireIntensity] = useState<FireIntensity>(
     hazard?.fireIntensity || 'minor'
   );
-  const [fireRounds, setFireRounds] = useState<number>(1);
+  const [fireRounds, setFireRounds] = useState<number>(hazard?.fireRounds || 1);
+  const [damageSource, setDamageSource] = useState<'fire' | 'acid'>(hazard?.type === 'acid' ? 'acid' : 'fire');
+  const [acidPotency, setAcidPotency] = useState<AcidPotency>(hazard?.acidPotency || 'splash');
   const [fireResult, setFireResult] = useState<FireResolution | null>(null);
+  const [acidResult, setAcidResult] = useState<AcidResolution | null>(null);
 
   // Stan dla uduszenia / tonięcia
-  const [airlessRound, setAirlessRound] = useState<number>(1);
+  const [airlessRound, setAirlessRound] = useState<number>(hazard?.roundWithoutAir || 1);
+  const [airlessKind, setAirlessKind] = useState<AirlessKind>(hazard?.airlessKind || (hazard?.type === 'drowning' ? 'water' : 'smoke'));
   const [suffocationResult, setSuffocationResult] = useState<SuffocationResolution | null>(null);
 
   // Stan dla trucizny
-  const [selectedPoisonId, setSelectedPoisonId] = useState<string>(
-    hazard?.poisonName ? (COC7E_POISONS.find(p => p.id === hazard.poisonName || hazard.poisonName?.toLowerCase().includes(p.id))?.id || 'cyanide') : 'cyanide'
-  );
+  const initialPoisonSeverity = hazard?.poisonSeverity
+    ?? normalizePoisonSeverity(hazard?.poisonId || hazard?.poisonName, hazard?.poisonPotency)
+    ?? (hazard?.poisonName ? '' : 'mild');
+  const [selectedPoisonId, setSelectedPoisonId] = useState<PoisonSeverity | ''>(initialPoisonSeverity);
   const [poisonResult, setPoisonResult] = useState<PoisonResolution | null>(null);
 
   // Flaga zatwierdzenia
@@ -122,10 +133,22 @@ export function HazardDialog({
       setIsApplied(false);
       setFallResult(null);
       setFireResult(null);
+      setAcidResult(null);
       setSuffocationResult(null);
       setPoisonResult(null);
       if (hazard?.fallHeightMeters) setFallHeight(hazard.fallHeightMeters);
+      setFallSurface(hazard?.surface || 'normal');
       if (hazard?.fireIntensity) setFireIntensity(hazard.fireIntensity);
+      setFireRounds(hazard?.fireRounds || 1);
+      setDamageSource(hazard?.type === 'acid' ? 'acid' : 'fire');
+      setAcidPotency(hazard?.acidPotency || 'splash');
+      setAirlessRound(hazard?.roundWithoutAir || 1);
+      setAirlessKind(hazard?.airlessKind || (hazard?.type === 'drowning' ? 'water' : 'smoke'));
+      setSelectedPoisonId(
+        hazard?.poisonSeverity
+          ?? normalizePoisonSeverity(hazard?.poisonId || hazard?.poisonName, hazard?.poisonPotency)
+          ?? (hazard?.poisonName ? '' : 'mild')
+      );
     }
   }, [open, hazard]);
 
@@ -141,29 +164,40 @@ export function HazardDialog({
 
   // Obsługa ognia
   const handleRollFire = () => {
-    const res = resolveFireDamage(fireIntensity, fireRounds);
-    setFireResult(res);
+    if (damageSource === 'acid') {
+      setAcidResult(resolveAcidDamage(acidPotency));
+      setFireResult(null);
+    } else {
+      setFireResult(resolveFireDamage(fireIntensity, fireRounds));
+      setAcidResult(null);
+    }
   };
 
   // Obsługa uduszenia
   const handleRollSuffocation = () => {
-    const res = resolveSuffocationRound(playerCon, airlessRound);
+    const res = resolveSuffocationRound(playerCon, airlessRound, {
+      kind: airlessKind,
+      conFailed: hazard?.conFailed,
+      currentHp: playerHp,
+    });
     setSuffocationResult(res);
   };
 
   // Obsługa trucizny
   const handleRollPoison = () => {
+    if (!selectedPoisonId) return;
     const res = resolvePoisonEffect(selectedPoisonId, playerCon);
     setPoisonResult(res);
   };
 
   // Zastosowanie wyniku
   const handleApplyResolution = (damage: number, reason: string, fullSummary: string) => {
+    if (!canApply || isApplied) return;
     if (onApplyDamage && damage > 0) {
       onApplyDamage(damage, reason);
     }
     if (onSendToChat) {
-      const chatReport = `[WYNIK: Zagrożenie | Obrażenia: -${damage} HP | ${reason}]\n${fullSummary}`;
+      const chatReport = `[WYNIK_ZAGROŻENIA: id=${hazard?.id || 'manual'} | Obrażenia: -${damage} HP | ${reason}]\n${fullSummary}`;
       onSendToChat(chatReport);
     }
     setIsApplied(true);
@@ -191,6 +225,10 @@ export function HazardDialog({
             {hazard?.description || t('dialogSubtitle')}
           </DialogDescription>
         </DialogHeader>
+
+        {!canApply && (
+          <p className="text-xs text-destructive">{t('targetCharacterMissing')}</p>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
           <TabsList className="grid grid-cols-4 bg-card border border-brass/30">
@@ -226,7 +264,7 @@ export function HazardDialog({
                     onChange={(e) => setFallHeight(parseInt(e.target.value) || 1)}
                     className="w-20 bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-center font-mono"
                   />
-                  <span className="text-muted-foreground">m ({Math.min(10, Math.max(1, Math.floor(fallHeight / 3)))}k6)</span>
+                  <span className="text-muted-foreground">m ({Math.min(10, Math.max(1, Math.ceil(fallHeight / 3)))} {t(Math.ceil(fallHeight / 3) === 1 ? 'diceUnit' : 'diceUnits')})</span>
                 </div>
               </div>
               <div className="space-y-1">
@@ -264,30 +302,25 @@ export function HazardDialog({
             {fallResult && (
               <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">{t('rawBaseDice')}: {fallResult.baseDiceCount}k6</span>
+                  <span className="text-muted-foreground">{t('rawBaseDice')}: {formatDice(fallResult.damageFormula)}</span>
                   {fallResult.jumpRoll && (
                     <Badge variant={fallResult.jumpRoll.outcome === 'fail' ? 'destructive' : 'default'}>
-                      {t('jumpOutcome')}: {fallResult.jumpRoll.outcome} (-{fallResult.jumpRoll.diceReduced}k6)
+                      {t('jumpOutcome')}: {fallResult.jumpRoll.outcome} (-{fallResult.jumpRoll.diceReduced} {t('diceUnits')})
                     </Badge>
                   )}
                 </div>
-                {fallResult.halvedBySurface && (
-                  <p className="text-xs text-emerald-400 italic">
-                    {t('surfaceHalvedNotice')}
-                  </p>
-                )}
                 <div className="flex justify-between items-center pt-2 border-t border-border/60">
                   <span className="text-foreground font-medium text-base">
                     {t('finalDamage')}: <strong className="text-destructive text-lg">{fallResult.finalDamage} HP</strong>
                   </span>
                   <Button
                     size="sm"
-                    disabled={isApplied}
+                    disabled={isApplied || !canApply}
                     onClick={() =>
                       handleApplyResolution(
                         fallResult.finalDamage,
-                        `Upadek z ${fallResult.heightMeters}m`,
-                        `Upadek z wysokości ${fallResult.heightMeters}m. Obrażenia: ${fallResult.finalDamage} HP.`
+                        t('reasonFalling', { height: fallResult.heightMeters }),
+                        t('summaryFalling', { height: fallResult.heightMeters, formula: formatDice(fallResult.damageFormula), damage: fallResult.finalDamage })
                       )
                     }
                     className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
@@ -302,7 +335,17 @@ export function HazardDialog({
 
           {/* ZAKŁADKA 2: OGIEŃ I KWAS */}
           <TabsContent value="fire" className="space-y-4 pt-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant={damageSource === 'fire' ? 'default' : 'outline'} onClick={() => setDamageSource('fire')}>
+                {t('sourceFire')}
+              </Button>
+              <Button type="button" variant={damageSource === 'acid' ? 'default' : 'outline'} onClick={() => setDamageSource('acid')}>
+                {t('sourceAcid')}
+              </Button>
+            </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
+              {damageSource === 'fire' ? (
+                <>
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('fireIntensityLabel')}:</label>
                 <select
@@ -310,10 +353,10 @@ export function HazardDialog({
                   onChange={(e) => setFireIntensity(e.target.value as FireIntensity)}
                   className="w-full bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-sm"
                 >
-                  <option value="minor">{t('fireMinor')} (1k6)</option>
-                  <option value="moderate">{t('fireModerate')} (1k6/rd)</option>
-                  <option value="major">{t('fireMajor')} (2k6/rd)</option>
-                  <option value="inferno">{t('fireInferno')} (3k6/rd)</option>
+                  <option value="minor">{t('fireMinor')} ({formatDice('1d6')})</option>
+                  <option value="moderate">{t('fireModerate')} ({formatDice('1d6')}/{t('roundShort')})</option>
+                  <option value="major">{t('fireMajor')} ({formatDice('1d10')}/{t('roundShort')})</option>
+                  <option value="inferno">{t('fireInferno')} ({formatDice('1d10')}/{t('roundShort')})</option>
                 </select>
               </div>
               <div className="space-y-1">
@@ -327,6 +370,16 @@ export function HazardDialog({
                   className="w-20 bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-center font-mono"
                 />
               </div>
+                </>
+              ) : (
+                <div className="col-span-2 space-y-1">
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('acidStrengthLabel')}:</label>
+                  <select value={acidPotency} onChange={(e) => setAcidPotency(e.target.value as AcidPotency)} className="w-full bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-sm">
+                    <option value="splash">{t('acidMild')} ({formatDice('1d3')})</option>
+                    <option value="immersion">{t('acidStrong')} ({formatDice('1d6')})</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             <p className="text-xs text-brass italic">
@@ -338,27 +391,29 @@ export function HazardDialog({
               className="w-full bg-brass hover:bg-brass/80 text-background font-medium"
             >
               <Dices className="w-4 h-4 mr-2" />
-              {t('actionRollFireDamage')}
+              {damageSource === 'acid' ? t('actionRollAcidDamage') : t('actionRollFireDamage')}
             </Button>
 
-            {fireResult && (
+            {(fireResult || acidResult) && (
               <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">{t('fireFormula')}: {fireResult.damageFormula}</span>
+                  <span className="text-muted-foreground">{t('fireFormula')}: {formatDice(fireResult?.damageFormula || acidResult?.damageFormula || '')}</span>
                   <Badge variant="destructive">{t('armorBypassed')}</Badge>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border/60">
                   <span className="text-foreground font-medium text-base">
-                    {t('finalDamage')}: <strong className="text-destructive text-lg">{fireResult.damageRolled} HP</strong>
+                    {t('finalDamage')}: <strong className="text-destructive text-lg">{fireResult?.damageRolled ?? acidResult?.damageRolled ?? 0} HP</strong>
                   </span>
                   <Button
                     size="sm"
-                    disabled={isApplied}
+                    disabled={isApplied || !canApply}
                     onClick={() =>
                       handleApplyResolution(
-                        fireResult.damageRolled,
-                        `Oparzenia (${fireResult.intensity})`,
-                        `Obrażenia od ognia (${fireResult.intensity}, ${fireResult.rounds} rund): ${fireResult.damageRolled} HP.`
+                        fireResult?.damageRolled ?? acidResult?.damageRolled ?? 0,
+                        damageSource === 'acid' ? t('reasonAcid') : t('reasonFire'),
+                        damageSource === 'acid'
+                          ? t('summaryAcid', { formula: formatDice(acidResult?.damageFormula || ''), damage: acidResult?.damageRolled || 0 })
+                          : t('summaryFire', { formula: formatDice(fireResult?.damageFormula || ''), damage: fireResult?.damageRolled || 0 })
                       )
                     }
                     className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
@@ -374,10 +429,6 @@ export function HazardDialog({
           {/* ZAKŁADKA 3: UDUSZENIE I TONIĘCIE */}
           <TabsContent value="suffocation" className="space-y-4 pt-3">
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-muted-foreground text-xs">
-                <span>{t('maxBreathSpokoj')}: <strong>{Math.floor(playerCon / 5)} rund</strong></span>
-                <span>{t('maxBreathWysilek')}: <strong>{Math.floor(playerCon / 10)} rund</strong></span>
-              </div>
               <div className="flex items-center gap-3">
                 <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('roundWithoutAirLabel')}:</label>
                 <input
@@ -388,12 +439,13 @@ export function HazardDialog({
                   onChange={(e) => setAirlessRound(parseInt(e.target.value) || 1)}
                   className="w-20 bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-center font-mono"
                 />
-                <span className="text-xs text-muted-foreground">
-                  {airlessRound === 1 && t('penaltyNone')}
-                  {airlessRound === 2 && t('penaltyOne')}
-                  {airlessRound >= 3 && t('penaltyTwo')}
-                </span>
               </div>
+              <select value={airlessKind} onChange={(e) => setAirlessKind(e.target.value as AirlessKind)} className="w-full bg-input border border-brass/40 rounded px-2 py-1 text-foreground text-sm">
+                <option value="smoke">{t('airlessSmoke')} ({formatDice('1d3')})</option>
+                <option value="water">{t('airlessWater')} ({formatDice('1d6')})</option>
+                <option value="vacuum">{t('airlessVacuum')} ({formatDice('1d6')})</option>
+              </select>
+              <p className="text-xs text-muted-foreground">{hazard?.conFailed ? t('conAlreadyFailedNotice') : t('conEveryRoundNotice')}</p>
             </div>
 
             <Button
@@ -408,10 +460,12 @@ export function HazardDialog({
               <Card className="bg-card/70 border border-brass/40 p-3 space-y-2 shadow-deco">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">
-                    {t('conCheckOutcome')}: {suffocationResult.conRoll.total} / {playerCon}
+                    {suffocationResult.conRoll
+                      ? `${t('conCheckOutcome')}: ${suffocationResult.conRoll.total} / ${playerCon}`
+                      : t('damageContinuesNotice')}
                   </span>
-                  <Badge variant={suffocationResult.conRoll.success ? 'default' : 'destructive'}>
-                    {suffocationResult.conRoll.success ? t('breathHeldSuccess') : t('breathFailDamage')}
+                  <Badge variant={suffocationResult.conRoll?.success ? 'default' : 'destructive'}>
+                    {suffocationResult.conRoll?.success ? t('breathHeldSuccess') : t('breathFailDamage')}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border/60">
@@ -420,12 +474,12 @@ export function HazardDialog({
                   </span>
                   <Button
                     size="sm"
-                    disabled={isApplied}
+                    disabled={isApplied || !canApply}
                     onClick={() =>
                       handleApplyResolution(
                         suffocationResult.damageTaken,
-                        `Brak tchu (runda ${suffocationResult.roundWithoutAir})`,
-                        `Uduszenie/Tonięcie: runda ${suffocationResult.roundWithoutAir} bez powietrza. Obrażenia: ${suffocationResult.damageTaken} HP.`
+                        t('reasonAirless', { round: suffocationResult.roundWithoutAir }),
+                        t('summaryAirless', { round: suffocationResult.roundWithoutAir, formula: formatDice(suffocationResult.damageFormula), damage: suffocationResult.damageTaken })
                       )
                     }
                     className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"
@@ -434,6 +488,11 @@ export function HazardDialog({
                     {isApplied ? t('applied') : t('applyToCharacter')}
                   </Button>
                 </div>
+                {suffocationResult.deathAtZero && (
+                  <p className="text-xs font-medium text-destructive">
+                    {t('deathAtZeroNotice')}
+                  </p>
+                )}
               </Card>
             )}
           </TabsContent>
@@ -444,19 +503,22 @@ export function HazardDialog({
               <label className="text-xs text-muted-foreground uppercase tracking-wider">{t('selectPoisonLabel')}:</label>
               <select
                 value={selectedPoisonId}
-                onChange={(e) => setSelectedPoisonId(e.target.value)}
+                onChange={(e) => setSelectedPoisonId(e.target.value as PoisonSeverity | '')}
                 className="w-full bg-input border border-brass/40 rounded px-2 py-1.5 text-foreground text-sm font-serif"
               >
+                <option value="">{t('poisonCategoryPlaceholder')}</option>
                 {COC7E_POISONS.map((poison) => (
                   <option key={poison.id} value={poison.id}>
-                    {poison.id.toUpperCase()} (Moc: {poison.potency}, Wymóg: {poison.difficulty})
+                    {t(poison.nameKey)} ({formatDice(poison.damageFormula)})
                   </option>
                 ))}
               </select>
+              {!selectedPoisonId && <p className="text-xs text-destructive">{t('poisonCategoryRequired')}</p>}
             </div>
 
             <Button
               onClick={handleRollPoison}
+              disabled={!selectedPoisonId}
               className="w-full bg-brass hover:bg-brass/80 text-background font-medium"
             >
               <Dices className="w-4 h-4 mr-2" />
@@ -469,21 +531,12 @@ export function HazardDialog({
                   <span className="text-muted-foreground">
                     {t('conCheckOutcome')}: {poisonResult.conRoll.total} / {playerCon} ({poisonResult.conRoll.outcome})
                   </span>
-                  <Badge variant={poisonResult.conRoll.passedRequirement ? 'default' : 'destructive'}>
-                    {poisonResult.conRoll.passedRequirement ? t('poisonResisted') : t('poisonFailed')}
+                  <Badge variant={poisonResult.conRoll.extremeSuccess ? 'default' : 'destructive'}>
+                    {poisonResult.conRoll.extremeSuccess ? t('poisonResisted') : t('poisonFailed')}
                   </Badge>
                 </div>
 
-                {poisonResult.isFatal && (
-                  <p className="text-xs text-destructive font-bold tracking-wider uppercase">
-                    💀 {t('lethalPoisonNotice')}
-                  </p>
-                )}
-                {poisonResult.unconscious && (
-                  <p className="text-xs text-brass italic">
-                    💤 {t('unconsciousNotice')}
-                  </p>
-                )}
+                {poisonResult.halvedByExtremeCon && <p className="text-xs text-emerald-400">{t('poisonDamageHalved')}</p>}
 
                 <div className="flex justify-between items-center pt-2 border-t border-border/60">
                   <span className="text-foreground font-medium text-base">
@@ -491,12 +544,12 @@ export function HazardDialog({
                   </span>
                   <Button
                     size="sm"
-                    disabled={isApplied}
+                    disabled={isApplied || !canApply}
                     onClick={() =>
                       handleApplyResolution(
                         poisonResult.damageTaken,
-                        `Zatrucie: ${poisonResult.poison.id}`,
-                        `Test przeciw truciznie ${poisonResult.poison.id}. Wynik: ${poisonResult.conRoll.outcome}. Obrażenia: ${poisonResult.damageTaken} HP.`
+                        t('reasonPoison', { category: t(poisonResult.poison.nameKey) }),
+                        t('summaryPoison', { category: t(poisonResult.poison.nameKey), outcome: poisonResult.conRoll.outcome, damage: poisonResult.damageTaken })
                       )
                     }
                     className="bg-destructive hover:bg-destructive/80 text-destructive-foreground text-xs"

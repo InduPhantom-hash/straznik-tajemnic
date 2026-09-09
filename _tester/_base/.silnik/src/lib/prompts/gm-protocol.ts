@@ -20,6 +20,8 @@ export function getCompactGMProtocolPrompt(): string {
   return `
 ## PROTOKÓŁ MG (PRZYPOMNIENIE)
 
+Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatywny ukryty stan: narracyjnie pokaż skutek, ale nie ujawniaj JSON, MOV, punktów akcji, indeksów ani kolejki i nie przeliczaj mechaniki.
+
 **Tagi obowiązkowe** w każdej odpowiedzi:
 - \`[MYŚLI_MG: planowanie, sekrety | MASKA_NPC: fasada vs skaza | RETRO_ZIARNO: detal | KORELACJA: tropy | ECHO_AKCJI: reakcja świata]\`
 - \`[NASTRÓJ: przymiotnik]\`
@@ -34,7 +36,7 @@ export function getCompactGMProtocolPrompt(): string {
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
-- \`[ZAGROŻENIE: typ=upadek/ogien/uduszenie/trucizna | parametry | opis]\` - ZAWSZE gdy badacz staje w obliczu nagłego niebezpieczeństwa fizycznego lub toksyny CoC 7e RAW (renderuje Kartę Reakcji na Zagrożenie z testem obronnym na Skakanie lub Kondycję).
+- \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodawaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata/odzysk SAN/HP. Liczbę bierz z podręcznika/RAG. **Przy stracie ≥5 SAN natychmiast wyzwij [TEST: Inteligencja] (szok poznawczy / wyparcie RAW).**
 
 **Audio tags TTS** (Gemini TTS - wbudowane w narrację, PO ANGIELSKU):
@@ -72,6 +74,8 @@ export function getCompactGMProtocolPrompt(): string {
 export function getGMProtocolPrompt(): string {
   return `
 ## PROTOKÓŁ MISTRZA GRY (GM PROTOCOL)
+
+Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, jest to autorytatywny ukryty stan pościgu. Pokazuj graczowi tylko scenę, presję i konsekwencje; nie ujawniaj JSON, MOV, punktów akcji, indeksów ani kolejki i nie przeliczaj mechaniki.
 
 Oprócz narracji, MUSISZ używać specjalnych tagów strukturalnych w swoich odpowiedziach.
 Tagi te NIE są widoczne dla gracza - służą aplikacji do automatycznej aktualizacji interfejsu.

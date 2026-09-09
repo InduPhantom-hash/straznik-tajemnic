@@ -1,19 +1,7 @@
 'use client';
 
-/**
- * @file chase-dialog.tsx
- * Dialog manewrów w pościgu (Chase Decision Panel) w stylu Dark Art Déco.
- *
- * Umożliwia graczowi wybór 1 z 5 filmowych akcji ucieczki:
- * - Sprint (zwykły bieg naprzód)
- * - Forsowanie przeszkody (wymaga testu cechy/umiejętności)
- * - Brawurowy skrót (ryzykowny test dający +2 pola)
- * - Zastawienie przeszkody z tyłu (spowolnienie pościgu)
- * - Zniknięcie w cieniu (test Ukrywania kończący pościg)
- */
-
-import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import React, { useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -22,37 +10,60 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Footprints,
   Flame,
   ShieldAlert,
-  DoorOpen,
   EyeOff,
   Send,
   Zap,
-  RotateCcw,
 } from 'lucide-react';
 import {
   type ChaseState,
-  type ChaseManeuver,
   type ChaseManeuverType,
   executePlayerManeuver,
   executePursuerTurns,
   formatChaseForChat,
-  formatChaseForSystemContext,
 } from '@/lib/chase/chase-engine';
-import { ChaseTracker } from '@/components/ui/chase-tracker';
-import { rollD100, evaluateSkillCheck } from '@/lib/dice-utils';
+import {
+  rollD100,
+  evaluateSkillCheck,
+  type RollOutcome,
+} from '@/lib/dice-utils';
 
 export interface ChaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialState: ChaseState;
   playerSkillValues?: Record<string, number>;
-  onSendToChat?: (message: string, systemContext: string) => void;
+  onSendToChat?: (message: string, chaseState: ChaseState) => void;
+  onStateChange?: (state: ChaseState) => void;
   onComplete?: (finalState: ChaseState) => void;
+}
+
+function rollNpcHazards(state: ChaseState): Record<string, RollOutcome[]> {
+  return Object.fromEntries(
+    state.participants
+      .filter((participant) => !participant.isPlayer)
+      .map((participant) => [
+        participant.id,
+        state.segments
+          .slice(
+            participant.segmentIndex + 1,
+            participant.segmentIndex + participant.actionsRemaining + 1
+          )
+          .flatMap((segment) => {
+            const hazard = segment.hazard;
+            if (!hazard) return [];
+            const value = participant.skillValues?.[hazard.requiredSkill];
+            return [
+              typeof value === 'number'
+                ? evaluateSkillCheck(rollD100(), value)
+                : ('fail' as const),
+            ];
+          }),
+      ])
+  );
 }
 
 export const ChaseDialog: React.FC<ChaseDialogProps> = ({
@@ -61,182 +72,284 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
   initialState,
   playerSkillValues = {},
   onSendToChat,
+  onStateChange,
   onComplete,
 }) => {
   const t = useTranslations('Chase');
+  const locale = useLocale() === 'en' ? 'en' : 'pl';
   const [state, setState] = useState<ChaseState>(initialState);
-  const [selectedManeuver, setSelectedManeuver] = useState<ChaseManeuverType | null>(null);
+
+  useEffect(() => setState(initialState), [initialState]);
+
+  useEffect(() => {
+    if (!open || state.status !== 'ongoing') return;
+    const activeActor = state.participants.find(
+      (participant) => participant.id === state.activeActorId
+    );
+    if (!activeActor || activeActor.isPlayer) return;
+    const resolved = executePursuerTurns(
+      state,
+      rollNpcHazards(state)
+    ).nextState;
+    setState(resolved);
+    onStateChange?.(resolved);
+    if (resolved.status !== 'ongoing') onComplete?.(resolved);
+  }, [onComplete, onStateChange, open, state]);
 
   const player = state.participants.find((p) => p.isPlayer && p.isFleeing);
-  const currentSegment = player ? state.segments[player.segmentIndex] : null;
-  const currentHazard = currentSegment?.hazard;
+  const pursuers = state.participants.filter((p) => !p.isFleeing);
+  const nearestDistance = player
+    ? Math.min(...pursuers.map((p) => player.segmentIndex - p.segmentIndex))
+    : 0;
+  const scene = player ? state.segments[player.segmentIndex] : null;
+  const nextHazard = player
+    ? state.segments[player.segmentIndex + 1]?.hazard
+    : null;
+  const distanceKey =
+    nearestDistance <= 1
+      ? 'distanceRightBehind'
+      : nearestDistance <= 3
+        ? 'distanceClose'
+        : 'distanceLosingTrail';
+  const sceneName =
+    locale === 'en' && /^Lokacja \d+$/.test(scene?.name ?? '')
+      ? t('sceneNumber', { index: (scene?.index ?? 0) + 1 })
+      : scene?.name;
+  const hazardTranslationKey = nextHazard
+    ? (
+        {
+          hazard_fence: 'hazardFence',
+          hazard_crowd: 'hazardCrowd',
+          hazard_stairs: 'hazardStairs',
+          hazard_traffic: 'hazardTraffic',
+        } as const
+      )[
+        nextHazard.id as
+          | 'hazard_fence'
+          | 'hazard_crowd'
+          | 'hazard_stairs'
+          | 'hazard_traffic'
+      ]
+    : undefined;
+  const hazardName =
+    locale === 'en' && hazardTranslationKey
+      ? t(hazardTranslationKey)
+      : nextHazard?.name;
+
+  const skillValue = (...skills: string[]): number | null =>
+    skills
+      .map((skill) => playerSkillValues[skill])
+      .find((candidate) => typeof candidate === 'number') ?? null;
+  const hazardSkillValue = nextHazard
+    ? skillValue(nextHazard.requiredSkill)
+    : null;
+  const shortcutSkillValue = skillValue('Nawigacja', 'Zręczność');
+  const hideSkillValue = skillValue('Ukrywanie', 'Ukrywanie się');
 
   const handleExecute = (maneuverType: ChaseManeuverType) => {
-    if (!player) return;
+    if (!player || player.actionsRemaining <= 0 || state.status !== 'ongoing')
+      return;
 
-    let rollOutcome = undefined;
-
-    // Jeśli akcja wymaga testu
-    if (maneuverType === 'clear_hazard' && currentHazard) {
-      const skillVal = playerSkillValues[currentHazard.requiredSkill] || 50;
-      const roll = rollD100();
-      rollOutcome = evaluateSkillCheck(roll, skillVal);
+    let rollOutcome: RollOutcome | undefined;
+    if (maneuverType === 'clear_hazard' && nextHazard) {
+      if (hazardSkillValue === null) return;
+      rollOutcome = evaluateSkillCheck(rollD100(), hazardSkillValue);
     } else if (maneuverType === 'shortcut') {
-      const skillVal = playerSkillValues['Nawigacja'] || playerSkillValues['Zręczność'] || 50;
-      const roll = rollD100();
-      rollOutcome = evaluateSkillCheck(roll, skillVal);
+      if (shortcutSkillValue === null) return;
+      rollOutcome = evaluateSkillCheck(rollD100(), shortcutSkillValue);
     } else if (maneuverType === 'hide') {
-      const skillVal = playerSkillValues['Ukrywanie'] || playerSkillValues['Ukrywanie się'] || 40;
-      const roll = rollD100();
-      rollOutcome = evaluateSkillCheck(roll, skillVal);
+      if (hideSkillValue === null) return;
+      rollOutcome = evaluateSkillCheck(rollD100(), hideSkillValue);
     }
 
-    const { nextState: stateAfterPlayer, log: playerLog } = executePlayerManeuver(state, {
+    const { nextState: afterPlayer } = executePlayerManeuver(state, {
       type: maneuverType,
       actorId: player.id,
       rollOutcome,
     });
 
-    // Jeśli gracz zużył akcje lub uciekł/został złapany, rozlicz turę wrogów
-    let finalState = stateAfterPlayer;
-    if (stateAfterPlayer.status === 'ongoing' && player.actionsRemaining <= 1) {
-      const { nextState: stateAfterPursuers } = executePursuerTurns(stateAfterPlayer);
-      finalState = stateAfterPursuers;
+    let finalState = afterPlayer;
+    const updatedPlayer = afterPlayer.participants.find(
+      (p) => p.id === player.id
+    );
+    if (
+      afterPlayer.status === 'ongoing' &&
+      updatedPlayer?.actionsRemaining === 0
+    ) {
+      finalState = executePursuerTurns(
+        afterPlayer,
+        rollNpcHazards(afterPlayer)
+      ).nextState;
     }
 
     setState(finalState);
-
-    if (finalState.status !== 'ongoing') {
-      if (onComplete) onComplete(finalState);
-    }
+    onStateChange?.(finalState);
+    if (finalState.status !== 'ongoing') onComplete?.(finalState);
   };
 
   const handleSendReport = () => {
-    if (onSendToChat) {
-      const chatMsg = formatChaseForChat(state, state.logs[state.logs.length - 1]);
-      const sysCtx = formatChaseForSystemContext(state);
-      onSendToChat(chatMsg, sysCtx);
-    }
+    onSendToChat?.(
+      formatChaseForChat(state, state.logs[state.logs.length - 1], locale),
+      state
+    );
     onOpenChange(false);
   };
 
+  const actionsDisabled = !player || player.actionsRemaining <= 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="wide" className="w-[80vw] h-[78vh] max-h-[85vh] overflow-y-auto bg-card border-brass/50 text-foreground shadow-2xl p-6">
+      <DialogContent className="max-w-2xl overflow-y-auto border-brass/50 bg-card text-foreground shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-gold flex items-center gap-2">
-            <Zap className="w-5 h-5 text-brass" />
+          <DialogTitle className="flex items-center gap-2 font-display text-xl text-gold">
+            <Zap className="h-5 w-5 text-brass" />
             {t('title')}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-xs font-sans">
-            {t('subtitle')}
+          <DialogDescription className="text-sm text-muted-foreground">
+            {t('narrativeSubtitle')}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Tor pościgu Dark Art Déco */}
-        <ChaseTracker state={state} />
-
-        {/* Panel wyboru manewrów */}
-        {state.status === 'ongoing' && (
-          <div className="space-y-2 mt-2">
-            <p className="text-xs uppercase tracking-wider font-mono text-brass/90 font-semibold mb-2">
-              Wybierz manewr ucieczki:
+        <section className="space-y-3 rounded-md border border-brass/30 bg-secondary/30 p-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-brass">
+              {t('currentScene')}
             </p>
+            <h3 className="font-display text-lg text-foreground">
+              {sceneName || t('unknownScene')}
+            </h3>
+            {locale === 'pl' && scene?.description && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {scene.description}
+              </p>
+            )}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                {t('descriptiveDistance')}
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {t(distanceKey)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                {t('immediateThreat')}
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {hazardName || t('openWay')}
+              </p>
+            </div>
+          </div>
+          {state.logs.at(-1) && (
+            <p className="border-l-2 border-brass/50 pl-3 text-sm italic text-muted-foreground">
+              {locale === 'en'
+                ? t(
+                    state.logs.at(-1)?.success === false
+                      ? 'lastOutcomeFailure'
+                      : 'lastOutcomeSuccess'
+                  )
+                : state.logs.at(-1)?.details}
+            </p>
+          )}
+        </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* 1. Sprint */}
+        {state.status === 'ongoing' ? (
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-brass">
+              {t('whatDoYouDo')}
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-border hover:border-emerald-500/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
-                onClick={() => handleExecute('sprint')}
+                className="h-auto justify-start px-3 py-3 text-left"
+                disabled={
+                  actionsDisabled || (!!nextHazard && hazardSkillValue === null)
+                }
+                onClick={() =>
+                  handleExecute(nextHazard ? 'clear_hazard' : 'sprint')
+                }
               >
-                <Footprints className="w-4 h-4 text-emerald-400 mr-2 shrink-0" />
-                <div>
-                  <div className="font-bold text-xs text-foreground">{t('actionSprint')}</div>
-                  <div className="text-[10px] text-muted-foreground">{t('actionSprintDesc')}</div>
-                </div>
+                {nextHazard ? (
+                  <Flame className="mr-2 h-4 w-4 shrink-0 text-brass" />
+                ) : (
+                  <Footprints className="mr-2 h-4 w-4 shrink-0 text-emerald-400" />
+                )}
+                <span>
+                  <span className="block text-sm font-bold">
+                    {nextHazard ? t('actionClearHazard') : t('actionSprint')}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {nextHazard
+                      ? t('actionClearHazardNarrative')
+                      : t('actionSprintNarrative')}
+                  </span>
+                </span>
               </Button>
-
-              {/* 2. Forsowanie przeszkody */}
-              {currentHazard && (
-                <Button
-                  variant="outline"
-                  className="justify-start h-auto py-2.5 px-3 border-brass/40 hover:border-brass bg-brass/10 hover:bg-brass/20 text-left cursor-pointer"
-                  onClick={() => handleExecute('clear_hazard')}
-                >
-                  <Flame className="w-4 h-4 text-brass mr-2 shrink-0" />
-                  <div>
-                    <div className="font-bold text-xs text-gold">{t('actionClearHazard')}</div>
-                    <div className="text-[10px] text-brass/80">
-                      {t('actionClearHazardDesc', {
-                        skill: currentHazard.requiredSkill,
-                        difficulty: currentHazard.difficulty,
-                      })}
-                    </div>
-                  </div>
-                </Button>
-              )}
-
-              {/* 3. Brawurowy skrót */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-border hover:border-brass/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
+                className="h-auto justify-start px-3 py-3 text-left"
+                disabled={actionsDisabled || shortcutSkillValue === null}
                 onClick={() => handleExecute('shortcut')}
               >
-                <Zap className="w-4 h-4 text-brass mr-2 shrink-0" />
-                <div>
-                  <div className="font-bold text-xs text-foreground">{t('actionShortcut')}</div>
-                  <div className="text-[10px] text-muted-foreground">{t('actionShortcutDesc')}</div>
-                </div>
+                <Zap className="mr-2 h-4 w-4 shrink-0 text-brass" />
+                <span>
+                  <span className="block text-sm font-bold">
+                    {t('actionShortcut')}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t('actionShortcutNarrative')}
+                  </span>
+                </span>
               </Button>
-
-              {/* 4. Zastawienie przeszkody z tyłu */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-border hover:border-brass/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
+                className="h-auto justify-start px-3 py-3 text-left"
+                disabled={actionsDisabled}
                 onClick={() => handleExecute('create_barrier')}
               >
-                <ShieldAlert className="w-4 h-4 text-brass mr-2 shrink-0" />
-                <div>
-                  <div className="font-bold text-xs text-foreground">{t('actionCreateBarrier')}</div>
-                  <div className="text-[10px] text-muted-foreground">{t('actionCreateBarrierDesc')}</div>
-                </div>
+                <ShieldAlert className="mr-2 h-4 w-4 shrink-0 text-brass" />
+                <span>
+                  <span className="block text-sm font-bold">
+                    {t('actionCreateBarrier')}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t('actionCreateBarrierNarrative')}
+                  </span>
+                </span>
               </Button>
-
-              {/* 5. Zniknięcie w cieniu */}
               <Button
                 variant="outline"
-                className="justify-start h-auto py-2.5 px-3 border-border hover:border-brass/60 bg-secondary/40 hover:bg-secondary/70 text-left cursor-pointer"
+                className="h-auto justify-start px-3 py-3 text-left"
+                disabled={actionsDisabled || hideSkillValue === null}
                 onClick={() => handleExecute('hide')}
               >
-                <EyeOff className="w-4 h-4 text-brass mr-2 shrink-0" />
-                <div>
-                  <div className="font-bold text-xs text-foreground">{t('actionHide')}</div>
-                  <div className="text-[10px] text-muted-foreground">{t('actionHideDesc')}</div>
-                </div>
+                <EyeOff className="mr-2 h-4 w-4 shrink-0 text-brass" />
+                <span>
+                  <span className="block text-sm font-bold">
+                    {t('actionHide')}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t('actionHideNarrative')}
+                  </span>
+                </span>
               </Button>
             </div>
           </div>
+        ) : (
+          <p className="rounded-md border border-brass/30 p-4 text-sm font-semibold">
+            {state.status === 'escaped' ? t('escapedDesc') : t('engagedDesc')}
+          </p>
         )}
 
-        {/* Przyciski końcowe */}
-        <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-border">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            className="text-muted-foreground hover:text-foreground cursor-pointer"
-          >
+        <div className="flex justify-end gap-2 border-t border-border pt-3">
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
             {t('closeButton')}
           </Button>
-
           {onSendToChat && (
-            <Button
-              size="sm"
-              onClick={handleSendReport}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold font-display flex items-center gap-1.5 cursor-pointer"
-            >
-              <Send className="w-4 h-4" />
+            <Button size="sm" onClick={handleSendReport}>
+              <Send className="mr-1.5 h-4 w-4" />
               {t('sendToChatButton')}
             </Button>
           )}

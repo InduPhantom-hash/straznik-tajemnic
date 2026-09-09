@@ -12,7 +12,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  AlertTriangle,
   Flame,
   Skull,
   Wind,
@@ -26,23 +25,27 @@ import type { HazardEventData } from '@/lib/types';
 export interface HazardCardProps {
   hazard: HazardEventData;
   playerCon?: number;
+  playerHp?: number;
   playerJump?: number;
   playerDodge?: number;
   playerName?: string;
   completed?: boolean;
   onApplyDamage?: (damage: number, reason: string) => void;
   onSendChat?: (message: string) => void;
+  canApply?: boolean;
 }
 
 export function HazardCard({
   hazard,
   playerCon = 50,
+  playerHp,
   playerJump = 20,
   playerDodge = 25,
   playerName = 'Badacz',
   completed = false,
   onApplyDamage,
   onSendChat,
+  canApply = true,
 }: HazardCardProps) {
   const t = useTranslations('Hazards');
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -144,11 +147,13 @@ export function HazardCard({
         onOpenChange={setIsDialogOpen}
         hazard={hazard}
         playerCon={playerCon}
+        playerHp={playerHp}
         playerJump={playerJump}
         playerDodge={playerDodge}
         playerName={playerName}
         onApplyDamage={onApplyDamage}
         onSendToChat={onSendChat}
+        canApply={canApply}
         onComplete={() => setIsCompleted(true)}
       />
     </>
