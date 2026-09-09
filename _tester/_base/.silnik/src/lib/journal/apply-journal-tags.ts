@@ -277,12 +277,18 @@ export function processCharacterJournalAndDossier(
 
     // Dopisz wpis do kroniki
     const jId = `journal-${messageId}-${index}`;
+    const mappedType = ['sprawa', 'case', 'cel'].includes(tag.type)
+      ? 'case'
+      : ['notatka', 'note'].includes(tag.type)
+        ? 'note'
+        : tag.type;
+
     if (!existingJournalIds.has(jId)) {
       existingJournal.push({
         id: jId,
         timestamp: new Date(),
         inGameDate: tag.inGameDate,
-        type: tag.type,
+        type: mappedType,
         title: tag.title,
         content: fact,
         tags: [],

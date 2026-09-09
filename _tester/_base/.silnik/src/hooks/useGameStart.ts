@@ -327,7 +327,7 @@ export function useGameStart({
     // kolejne tury wracają do zwięzłej długości narzuconej przez gm-protocol.
     if (english && allPlayerCharacters.length > 1) {
       prompt +=
-        'This is the opening turn for the whole party. Start with an ordinary, period-appropriate scene, establish place and mood, then introduce the adventure hook naturally. Address the party in the plural. Do not play for the characters. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about why the party is here.[/JOURNAL] End with [What do you do?].\n';
+        'This is the opening turn for the whole party. Start with an ordinary, period-appropriate scene, establish place and mood, then introduce the adventure hook naturally. Address the party in the plural. Do not play for the characters. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:case:Beginning the investigation]1-2 sentences about why the party is here.[/JOURNAL] End with [What do you do?].\n';
     } else if (!english && allPlayerCharacters.length > 1) {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry DLA DRUŻYNY (Hot Seat mode).\n\n' +
@@ -337,10 +337,10 @@ export function useGameStart({
         '3. EKSPOZYCJA I KLIMAT: Pozwól graczom zorientować się w miejscu, czasie i klimacie epoki. Pozwól im poznać świat poprzez opis otoczenia lub interakcję z NPC-em (NIGDY nie zmuszaj graczy do dyskusji między sobą na czacie). Dopiero po przedstawieniu otoczenia zasiej pierwszy delikatny sygnał niepokoju i wprowadź hak fabularny (HOOK przygody).\n' +
         '4. ZAKOŃCZENIE TURY: Zakończ turę otwartym pytaniem do drużyny: [Co robicie?]\n\n' +
         'NIE graj za postacie graczy. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
-        'Dodaj wpis otwierający do dziennika: [DZIENNIK:notatka:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
+        'Dodaj wpis otwierający do dziennika: [DZIENNIK:sprawa:Początek śledztwa]1-2 zdania: co sprowadza naszą drużynę w to miejsce.[/DZIENNIK]\n';
     } else if (english) {
       prompt +=
-        'This is the opening turn of the game. Begin with an ordinary, period-appropriate scene. Establish the location and atmosphere before introducing the adventure hook. Write in second person, do not play for the player character, and use slow-burn horror. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:note:Beginning the investigation]1-2 sentences about where the character is and why they came here.[/JOURNAL] End with [What do you do?] on its own line.\n';
+        'This is the opening turn of the game. Begin with an ordinary, period-appropriate scene. Establish the location and atmosphere before introducing the adventure hook. Write in second person, do not play for the player character, and use slow-burn horror. Mark the starting place as [LOCATION: place name: brief atmosphere]. Add one opening journal entry as [JOURNAL:case:Beginning the investigation]1-2 sentences about where the character is and why they came here.[/JOURNAL] End with [What do you do?] on its own line.\n';
     } else {
       prompt +=
         'To jest TURA WPROWADZAJĄCA do gry.\n\n' +
@@ -351,7 +351,7 @@ export function useGameStart({
         '4. STYL: Pisz w drugiej osobie ("Widzisz...", "Czujesz..."), buduj atmosferę slow-burn horroru bez epatowania tanimi potworami.\n\n' +
         'NIE graj za postać gracza. Oznacz miejsce startu znacznikiem [LOKACJA: Nazwa miejsca: krótka atmosfera]. ' +
         'Dodaj też wpis otwierający do dziennika: ' +
-        '[DZIENNIK:notatka:Początek śledztwa]1-2 zdania: gdzie jestem i co mnie tu sprowadza.[/DZIENNIK] ' +
+        '[DZIENNIK:sprawa:Początek śledztwa]1-2 zdania: gdzie jestem i co mnie tu sprowadza.[/DZIENNIK] ' +
         'Zakończ otwartym pytaniem [Co robisz?] w OSOBNEJ linii.\n';
     }
     return prompt;
