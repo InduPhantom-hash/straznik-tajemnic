@@ -30,7 +30,6 @@ import { MessageCard } from './components/message-card';
 import { MessageInput } from './components/message-input';
 import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
 import { CombatDefenseDialog } from './components/combat-defense-dialog';
-import { ChaseDialog } from './components/chase-dialog';
 import { getSkillValue } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 
@@ -352,6 +351,10 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   resolvedSpellIds={resolvedSpellIds}
                   onSendTomeResult={handleSendMessage}
                   resolvedTomeIds={resolvedTomeIds}
+                  onChaseManeuver={(maneuverType, nextState, decl) => {
+                    onChaseStateChange?.(nextState);
+                    handleSendMessage(decl, { chase: nextState });
+                  }}
                   isDuet={isDuet}
                   characters={characters}
                   onContinueNarration={onContinueNarration}
@@ -473,34 +476,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         </DialogPrimitive.Root>
       )}
 
-      {/* Retro Cheat: Dialog Pościgu Filmowego */}
-      {cheatChaseModal && activeChaseState && (
-        <ChaseDialog
-          open={true}
-          onOpenChange={(open) => {
-            if (!open && onCloseCheatChase) onCloseCheatChase();
-          }}
-          initialState={activeChaseState}
-          playerSkillValues={
-            activeCharacter?.skills
-              ? {
-                  ...Object.fromEntries(
-                    Object.entries(activeCharacter.skills).map(([k, v]) => [
-                      k,
-                      getSkillValue(v),
-                    ])
-                  ),
-                  Zręczność: activeCharacter.dex,
-                }
-              : undefined
-          }
-          onStateChange={onChaseStateChange}
-          onSendToChat={(msg, chaseState) => {
-            handleSendMessage(msg, { chase: chaseState });
-            if (onCloseCheatChase) onCloseCheatChase();
-          }}
-        />
-      )}
       {/* D1: tacka testu ([TEST:]) odpala mały modal - rzut, ew. Szczęście, ręczna wysyłka */}
       <RollTestModal
         open={!!diceTest}

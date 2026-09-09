@@ -144,9 +144,7 @@ describe('MessageCard - zagrożenia', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reakcja obronna' }));
     fireEvent.click(screen.getByRole('button', { name: 'Bez amortyzacji (pełny upadek)' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Odejmij HP postaci' }));
 
     expect(onCharacterUpdate).toHaveBeenCalledTimes(1);
     expect(onCharacterUpdate.mock.calls[0][0].id).toBe('bob');
@@ -167,13 +165,13 @@ describe('MessageCard - zagrożenia', () => {
       />
     );
     expect(screen.getByText('Rozstrzygnięto')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Reakcja obronna' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Bez amortyzacji (pełny upadek)' })).not.toBeInTheDocument();
   });
 
   it.each([
-    ['acid', 'Łagodny kwas / rozprysk', 'Rzuć kośćmi na obrażenia od kwasu'],
-    ['drowning', 'Woda / tonięcie', 'Test Kondycji (60%) przeciw uduszeniu'],
-  ] as const)('otwiera kompletny widok dla typu %s', (type, expectedControl, expectedAction) => {
+    ['acid', 'Substancja żrąca / Kwas', 'Rzuć kośćmi na obrażenia od kwasu'],
+    ['drowning', 'Tonięcie', 'Test Kondycji (60%) przeciw uduszeniu'],
+  ] as const)('renderuje bezpośrednią kartę dla typu %s', (type, expectedLabel, expectedAction) => {
     render(
       <MessageCard
         {...baseProps}
@@ -194,9 +192,81 @@ describe('MessageCard - zagrożenia', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reakcja obronna' }));
-    expect(screen.getByText(expectedControl, { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(expectedLabel, { exact: false })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: expectedAction })).toBeInTheDocument();
+  });
+});
+
+describe('MessageCard - pościg w czacie', () => {
+  const alice: Character = { ...PREDEFINED_CHARACTERS[0], id: 'alice', name: 'Alice', hp: 12, dex: 60 };
+  const chaseMessage: Message = {
+    ...baseMessage,
+    id: 'chase-msg',
+    content: 'Kultyści depczą ci po piętach w zaułku!',
+    chaseState: {
+      id: 'chase-msg-state',
+      status: 'ongoing',
+      round: 1,
+      maxRounds: 6,
+      turnOrder: ['alice', 'cultist'],
+      activeActorId: 'alice',
+      participants: [
+        {
+          id: 'alice',
+          name: 'Alice',
+          isPlayer: true,
+          isFleeing: true,
+          mov: 8,
+          actionsTotal: 2,
+          actionsRemaining: 2,
+          segmentIndex: 3,
+        },
+        {
+          id: 'cultist',
+          name: 'Kultysta',
+          isPlayer: false,
+          isFleeing: false,
+          mov: 7,
+          actionsTotal: 1,
+          actionsRemaining: 1,
+          segmentIndex: 1,
+        },
+      ],
+      segments: [
+        { index: 0, name: 'Lokacja 1' },
+        { index: 1, name: 'Lokacja 2' },
+        { index: 2, name: 'Lokacja 3' },
+        { index: 3, name: 'Zaułek' },
+        { index: 4, name: 'Lokacja 5' },
+      ],
+      logs: [],
+    },
+  };
+
+  it('renderuje kartę pościgu w strumieniu wiadomości i pozwala wykonać manewr', () => {
+    const onChaseManeuver = jest.fn();
+    render(
+      <MessageCard
+        {...baseProps}
+        message={chaseMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        isLastMessage
+        onChaseManeuver={onChaseManeuver}
+      />
+    );
+
+    expect(screen.getByText('Pościg CoC 7e RAW')).toBeInTheDocument();
+    expect(screen.getByText('Runda 1/6')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sprint naprzód/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Brawurowy skrót/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Sprint naprzód/i }));
+    expect(onChaseManeuver).toHaveBeenCalledWith(
+      'sprint',
+      expect.objectContaining({ status: 'ongoing' }),
+      expect.stringContaining('Alice: Sprint naprzód')
+    );
   });
 });
 
