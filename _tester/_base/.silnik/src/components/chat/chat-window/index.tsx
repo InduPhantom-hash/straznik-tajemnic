@@ -11,6 +11,7 @@
 
 import type { FC } from 'react';
 import { useRef, useEffect, useMemo, useState } from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ScrollArea } from '../../ui/scroll-area';
 import { ImageLightbox } from '../../ui/image-lightbox';
 import { RollTestModal, type RollTestData } from '../../dialogs/RollTestModal';
@@ -30,15 +31,18 @@ import { MessageInput } from './components/message-input';
 import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
 import { CombatDefenseDialog } from './components/combat-defense-dialog';
 import { ChaseDialog } from './components/chase-dialog';
-import { createChaseState } from '@/lib/chase/chase-engine';
 import { getSkillValue } from '@/lib/types';
-
+import { resolveTestValue } from '@/lib/skill-test-resolver';
 
 export const ChatWindow: FC<ChatWindowProps> = ({
   messages,
   newMessage,
   setNewMessage,
   handleSendMessage,
+  pendingCombatAttack,
+  pendingCombatDefensesUsed = 0,
+  combatDefenseWeapons = [],
+  onCombatDefense,
   currentAudio,
   stopCurrentAudio,
   toggleAudioPause,
@@ -101,6 +105,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onCloseCheatCombat,
   cheatChaseModal,
   onCloseCheatChase,
+  activeChaseState,
+  onChaseStateChange,
 
   eraContext,
 }) => {
@@ -119,7 +125,23 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   const [completedTestIds, setCompletedTestIds] = useState<Set<string>>(
     () => new Set()
   );
+  const combatRoundAttacks = pendingCombatAttack
+    ? messages.flatMap((message) => message.pendingMeleeAttacks ?? []).filter(
+        (attack) => attack.roundId === pendingCombatAttack.roundId
+      )
+    : [];
   const groupResultsRef = useRef(new Map<string, CollectedTestResult[]>());
+  const resolvedHazardIds = useMemo(() => {
+    const ids = new Set<string>();
+    const pattern = /\[WYNIK_ZAGROŻENIA:\s*id=([^|\]]+)/gi;
+    for (const message of messages) {
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(message.content)) !== null)
+        ids.add(match[1].trim());
+      pattern.lastIndex = 0;
+    }
+    return ids;
+  }, [messages]);
 
   const diceTest: RollTestData | null = useMemo(
     () =>
@@ -278,7 +300,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           {/* Chat Messages */}
           <ScrollArea className="flex-1 p-4 md:p-8">
             <div className="space-y-4 max-w-4xl mx-auto w-full">
-              {messages.map((message, index) => (
+              {messages.map((message, index) =>
+                message.role === 'user' && message.mechanicsContext?.combat ? null : (
                 <MessageCard
                   key={message.id}
                   message={message}
@@ -301,6 +324,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   isSessionEnded={isSessionEnded}
                   isLastMessage={index === messages.length - 1}
                   onCharacterUpdate={onCharacterUpdate}
+                  onSendHazardResult={handleSendMessage}
+                  resolvedHazardIds={resolvedHazardIds}
                   isDuet={isDuet}
                   characters={characters}
                   onContinueNarration={onContinueNarration}
@@ -313,32 +338,32 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           </ScrollArea>
           {/* Pasek wpisywania tylko w grze - ekran powitalny ma być czysty ("tylko ekran powitalny") */}
           <MessageInput
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          handleSendMessage={handleSendMessage}
-          messagesCount={messages.length}
-          onSummarizeScene={onSummarizeScene}
-          isSummarizingScene={isSummarizingScene}
-          isDuet={isDuet}
-          pendingDeclarations={pendingDeclarations}
-          playersAwaitingDeclaration={playersAwaitingDeclaration}
-          onAddDeclaration={onAddDeclaration}
-          onPassDeclaration={onPassDeclaration}
-          currentPlayerName={currentPlayerName}
-          isTurnReady={isTurnReady}
-          onSendTurn={onSendTurn}
-          isLoading={isLoading}
-          onSwitchPlayer={onSwitchPlayer}
-          onDisableHotSeat={onDisableHotSeat}
-          hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({
-            id: p.id,
-            name: p.name,
-            index: i,
-          }))}
-          isSessionEnded={isSessionEnded}
-          sessionEndStatus={sessionEndStatus}
-          eraContext={eraContext}
-        />
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            handleSendMessage={handleSendMessage}
+            messagesCount={messages.length}
+            onSummarizeScene={onSummarizeScene}
+            isSummarizingScene={isSummarizingScene}
+            isDuet={isDuet}
+            pendingDeclarations={pendingDeclarations}
+            playersAwaitingDeclaration={playersAwaitingDeclaration}
+            onAddDeclaration={onAddDeclaration}
+            onPassDeclaration={onPassDeclaration}
+            currentPlayerName={currentPlayerName}
+            isTurnReady={isTurnReady}
+            onSendTurn={onSendTurn}
+            isLoading={isLoading}
+            onSwitchPlayer={onSwitchPlayer}
+            onDisableHotSeat={onDisableHotSeat}
+            hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({
+              id: p.id,
+              name: p.name,
+              index: i,
+            }))}
+            isSessionEnded={isSessionEnded}
+            sessionEndStatus={sessionEndStatus}
+            eraContext={eraContext}
+          />
         </>
       )}
       {/* Image Lightbox */}
@@ -349,60 +374,103 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           onClose={() => setLightboxImage(null)}
         />
       )}
-      {/* Retro Cheat: Dialog Obrony w Walce */}
-      {cheatCombatModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full sm:w-[75vw] max-w-4xl max-h-[85vh] overflow-y-auto">
+      {pendingCombatAttack && onCombatDefense && activeCharacter && (
+        <DialogPrimitive.Root open>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
+            <DialogPrimitive.Content
+              className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[min(75vw,64rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto focus:outline-none"
+              onEscapeKeyDown={(event) => event.preventDefault()}
+              onPointerDownOutside={(event) => event.preventDefault()}
+            >
+              <DialogPrimitive.Title className="sr-only">
+                Melee combat defense
+              </DialogPrimitive.Title>
+              <DialogPrimitive.Description className="sr-only">
+                Choose how the investigator reacts to the incoming attack.
+              </DialogPrimitive.Description>
+              <CombatDefenseDialog
+                attackerName={pendingCombatAttack.attacker.name}
+                attackerWeapon={pendingCombatAttack.weapon.name}
+                intent={pendingCombatAttack.intent}
+                targetName={pendingCombatAttack.target.name}
+                dodgeSkill={resolveTestValue(
+                  'Unik',
+                  activeCharacter.id === pendingCombatAttack.target.characterId
+                    ? activeCharacter
+                    : characters.find(
+                        (character) =>
+                          character.id === pendingCombatAttack.target.characterId
+                      ) ?? activeCharacter
+                ) ?? 0}
+                weapons={combatDefenseWeapons}
+                defensesUsedThisRound={pendingCombatDefensesUsed}
+                queuePosition={pendingCombatAttack.ordinal + 1}
+                queueTotal={Math.max(combatRoundAttacks.length, 1)}
+                disabled={isLoading}
+                onSelectDefense={(choice, weapon) =>
+                  onCombatDefense(pendingCombatAttack, choice, weapon)
+                }
+              />
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
+      )}
+
+      {/* Retro Cheat: ten sam komponent reakcji, bez zapisu mechaniki. */}
+      {cheatCombatModal && !pendingCombatAttack && (
+        <DialogPrimitive.Root open>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
+            <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[min(75vw,64rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto focus:outline-none">
+              <DialogPrimitive.Title className="sr-only">Melee combat defense</DialogPrimitive.Title>
+              <DialogPrimitive.Description className="sr-only">Choose a reaction.</DialogPrimitive.Description>
             <CombatDefenseDialog
               attackerName={cheatCombatModal.attackerName}
               attackerWeapon={cheatCombatModal.attackerWeapon}
               dodgeSkill={cheatCombatModal.dodgeSkill}
-              brawlSkill={cheatCombatModal.brawlSkill}
-              playerBuild={cheatCombatModal.playerBuild}
-              attackerBuild={cheatCombatModal.attackerBuild}
-              onSelectDefense={(choice, maneuver) => {
-                handleSendMessage(`[OBRONA: ${choice}${maneuver ? ` | ${maneuver}` : ''}]`);
+              weapons={[{
+                id: 'cheat-unarmed',
+                name: 'Walka wręcz',
+                skillId: 'Walka Wręcz',
+                skillValue: cheatCombatModal.brawlSkill,
+                damageFormula: '1d3',
+                damageType: 'non_impaling',
+              }]}
+              onSelectDefense={(choice, weapon) => {
+                handleSendMessage(`[OBRONA: ${choice}${weapon ? ` | ${weapon.name}` : ''}]`);
                 if (onCloseCheatCombat) onCloseCheatCombat();
               }}
             />
-          </div>
-        </div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
       )}
 
       {/* Retro Cheat: Dialog Pościgu Filmowego */}
-      {cheatChaseModal && (
+      {cheatChaseModal && activeChaseState && (
         <ChaseDialog
           open={true}
           onOpenChange={(open) => {
             if (!open && onCloseCheatChase) onCloseCheatChase();
           }}
-          initialState={createChaseState({
-            fleeing: {
-              id: activeCharacter?.id || 'char_player',
-              name: activeCharacter?.name || 'Badacz',
-              isPlayer: true,
-              mov: activeCharacter?.move || 8,
-              segmentIndex: 1,
-            },
-            pursuers: [
-              {
-                id: 'pursuer_1',
-                name: 'Kultysta z Arkham',
-                isPlayer: false,
-                mov: 7,
-                segmentIndex: 0,
-              },
-            ],
-          })}
+          initialState={activeChaseState}
           playerSkillValues={
             activeCharacter?.skills
-              ? Object.fromEntries(
-                  Object.entries(activeCharacter.skills).map(([k, v]) => [k, getSkillValue(v)])
-                )
+              ? {
+                  ...Object.fromEntries(
+                    Object.entries(activeCharacter.skills).map(([k, v]) => [
+                      k,
+                      getSkillValue(v),
+                    ])
+                  ),
+                  Zręczność: activeCharacter.dex,
+                }
               : undefined
           }
-          onSendToChat={(msg) => {
-            handleSendMessage(msg);
+          onStateChange={onChaseStateChange}
+          onSendToChat={(msg, chaseState) => {
+            handleSendMessage(msg, { chase: chaseState });
             if (onCloseCheatChase) onCloseCheatChase();
           }}
         />

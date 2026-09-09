@@ -28,7 +28,8 @@ import { logApiEvent } from '@/lib/telemetry';
 import { calculateGeminiCost } from '@/lib/ai-cost-tracker';
 import { recordUserUsage } from '@/lib/user-usage';
 import type { StreamChunk, CompletionUsage } from '@/lib/ai-providers/types';
-import type { Character } from '@/lib/types';
+import type { Character, NPC } from '@/lib/types';
+import { enrichMeleeAttackReferences } from '@/lib/combat/npc-combat-profile';
 import type { RagMeta } from './run-rag-summary';
 
 export interface CreateSseStreamOpts {
@@ -50,6 +51,10 @@ export interface CreateSseStreamOpts {
   ragVersion: string;
   /** IND-168 Faza 6: userId konta (Clerk) dla licznika zużycia per-konto */
   userId: string;
+  assistantMessageId?: string;
+  characters?: Character[];
+  npcs?: NPC[];
+  combatMechanicsEnabled?: boolean;
 }
 
 export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
@@ -67,6 +72,10 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
     embeddingDim,
     ragVersion,
     userId,
+    assistantMessageId,
+    characters = [],
+    npcs = [],
+    combatMechanicsEnabled = false,
   } = opts;
 
   const encoder = new TextEncoder();
@@ -89,6 +98,18 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
 
         // Parsuj pełną odpowiedź i wyślij metadane
         const parsed = parseAIResponse(fullText);
+        const melee =
+          combatMechanicsEnabled && assistantMessageId
+            ? enrichMeleeAttackReferences({
+                references: parsed.meleeAttacks,
+                npcs,
+                characters,
+                assistantMessageId,
+              })
+            : { attacks: [], rejected: [] };
+        if (melee.rejected.length > 0) {
+          console.warn('Rejected melee attack tags', melee.rejected);
+        }
 
         // Director's State update (warunkowo)
         if (sessionId && parsed.gmMetadata) {
@@ -131,6 +152,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           dialogues: parsed.dialogues,
           illustrations: parsed.illustrations,
           skillTests: parsed.skillTests,
+          pendingMeleeAttacks: melee.attacks,
           equipmentEvents: parsed.equipmentEvents || [],
           timeUpdate: parsed.timeUpdate,
           costData: usage

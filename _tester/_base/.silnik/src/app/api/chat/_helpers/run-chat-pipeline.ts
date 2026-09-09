@@ -3,7 +3,8 @@ import { loadAISettings, getGameMasterPrompt } from '@/lib/ai-settings';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import { getContextLimit } from '@/lib/model-registry';
 import { getOptimizedMessages } from '@/lib/context-optimizer';
-import { Character, Message, type GameTime } from '@/lib/types';
+import { Character, Message, type GameTime, type NPC } from '@/lib/types';
+import type { CombatResolution } from '@/lib/combat/combat-resolver';
 import { extractCommand, handleCommand } from '@/lib/command-handler';
 import { detectGameContext } from '@/lib/prompt-section-parser';
 import { GeminiChatProvider } from '@/lib/ai-providers';
@@ -19,7 +20,6 @@ import {
   buildPlayerEquipmentSection,
   buildPlayerFinancesSection,
   buildPlayerVisualProfileSection,
-  NpcContextEntry,
   HotSeatPlayerEntry,
 } from './build-context';
 import { buildHandoutsContext } from './build-handouts-context';
@@ -32,6 +32,7 @@ import { resolveGeminiCache } from './resolve-gemini-cache';
 import { runRAGAndSummary } from './run-rag-summary';
 import { resolveSettings } from './resolve-settings';
 import { buildPlayerWeaponContext } from '@/lib/combat/weapon-context';
+import { buildNpcMeleeOptionsContext } from '@/lib/combat/npc-combat-profile';
 import { resolveUserId, scopeSessionId } from '@/lib/auth-user';
 import { isModelNotFoundError, isInvalidKeyError } from './model-fallback';
 import { fetchImmersionContext } from './build-immersion-context';
@@ -41,6 +42,118 @@ import {
   type ResolvedEraContext,
 } from '@/lib/era';
 import { assertExactEraContext } from '@/lib/world-setup';
+import {
+  formatChaseForSystemContext,
+  type ChaseState,
+} from '@/lib/chase/chase-engine';
+
+function isChaseState(value: unknown): value is ChaseState {
+  if (!value || typeof value !== 'object') return false;
+  const state = value as Partial<ChaseState>;
+  const isFiniteInteger = (candidate: unknown): candidate is number =>
+    typeof candidate === 'number' &&
+    Number.isFinite(candidate) &&
+    Number.isInteger(candidate);
+  const isBoundedString = (candidate: unknown, max = 500): candidate is string =>
+    typeof candidate === 'string' && candidate.length > 0 && candidate.length <= max;
+  const hazardValid = (hazard: unknown): boolean => {
+    if (hazard === null || hazard === undefined) return true;
+    if (typeof hazard !== 'object') return false;
+    const candidate = hazard as Record<string, unknown>;
+    return (
+      isBoundedString(candidate.id, 100) &&
+      isBoundedString(candidate.name, 200) &&
+      isBoundedString(candidate.description, 1000) &&
+      isBoundedString(candidate.requiredSkill, 100) &&
+      ['zwykly', 'trudny', 'ekstremalny'].includes(
+        String(candidate.difficulty)
+      ) &&
+      ['barrier', 'hazard', 'shortcut'].includes(String(candidate.hazardType)) &&
+      (candidate.penaltyActionsOnFail === undefined ||
+        (isFiniteInteger(candidate.penaltyActionsOnFail) &&
+          candidate.penaltyActionsOnFail >= 0 &&
+          candidate.penaltyActionsOnFail <= 20)) &&
+      (candidate.damageOnFail === undefined ||
+        isBoundedString(candidate.damageOnFail, 30))
+    );
+  };
+  const participantsValid =
+    Array.isArray(state.participants) &&
+    state.participants.length >= 2 &&
+    state.participants.length <= 20 &&
+    state.participants.every(
+      (participant) =>
+        participant &&
+        typeof participant === 'object' &&
+        isBoundedString(participant.id, 100) &&
+        isBoundedString(participant.name, 200) &&
+        typeof participant.isPlayer === 'boolean' &&
+        typeof participant.isFleeing === 'boolean' &&
+        isFiniteInteger(participant.mov) &&
+        participant.mov >= 0 &&
+        isFiniteInteger(participant.segmentIndex) &&
+        participant.segmentIndex >= 0 &&
+        isFiniteInteger(participant.actionsTotal) &&
+        participant.actionsTotal >= 0 &&
+        isFiniteInteger(participant.actionsRemaining) &&
+        participant.actionsRemaining >= 0 &&
+        participant.actionsRemaining <= participant.actionsTotal
+    );
+  const segmentsValid =
+    Array.isArray(state.segments) &&
+    state.segments.length > 0 &&
+    state.segments.length <= 100 &&
+    state.segments.every(
+      (segment) =>
+        segment &&
+        typeof segment === 'object' &&
+        isFiniteInteger(segment.index) &&
+        isBoundedString(segment.name, 200) &&
+        hazardValid(segment.hazard)
+    );
+  const logsValid =
+    Array.isArray(state.logs) &&
+    state.logs.length <= 200 &&
+    state.logs.every(
+      (log) =>
+        log &&
+        typeof log === 'object' &&
+        isFiniteInteger(log.round) &&
+        isBoundedString(log.actorName, 200) &&
+        isBoundedString(log.actionName, 200) &&
+        isBoundedString(log.details, 2000) &&
+        isFiniteInteger(log.segmentBefore) &&
+        isFiniteInteger(log.segmentAfter)
+    );
+  const participantIds = state.participants?.map((participant) => participant.id) ?? [];
+  const participantIdSet = new Set(participantIds);
+  const turnOrderValid =
+    Array.isArray(state.turnOrder) &&
+    state.turnOrder.length === participantIds.length &&
+    new Set(state.turnOrder).size === state.turnOrder.length &&
+    state.turnOrder.every((id) =>
+      typeof id === 'string' && participantIdSet.has(id)
+    );
+  return (
+    typeof state.id === 'string' &&
+    state.id.length > 0 &&
+    state.id.length <= 200 &&
+    isFiniteInteger(state.round) &&
+    state.round > 0 &&
+    ['ongoing', 'escaped', 'engaged'].includes(String(state.status)) &&
+    participantsValid &&
+    participantIdSet.size === participantIds.length &&
+    state.participants?.filter((participant) => participant.isFleeing).length ===
+      1 &&
+    state.participants?.some((participant) => participant.isPlayer) === true &&
+    segmentsValid &&
+    logsValid &&
+    turnOrderValid &&
+    (state.activeActorId === null ||
+      (typeof state.activeActorId === 'string' &&
+        participantIdSet.has(state.activeActorId)))
+  );
+}
 
 /**
  * Rozwiązuje klucz Gemini dla requestu.
@@ -96,6 +209,8 @@ export async function runChatPipeline({
     aiSettings: clientAISettings,
     hotSeatConfig,
     directorEvent,
+    mechanicsContext,
+    assistantMessageId,
     locale: requestedLocale,
   } = body as {
     message: string;
@@ -103,7 +218,7 @@ export async function runChatPipeline({
     characters?: Character[];
     messages?: Message[];
     pdfMemory?: PdfMemoryAttachments | null;
-    npcs?: NpcContextEntry[];
+    npcs?: NPC[];
     currentLocation?: string;
     gameContextPrompt?: string;
     skipContext?: boolean;
@@ -122,6 +237,11 @@ export async function runChatPipeline({
     aiSettings?: { sessionId?: string } & Record<string, unknown>;
     hotSeatConfig?: { enabled?: boolean; players?: HotSeatPlayerEntry[] };
     directorEvent?: { title: string; description: string };
+    mechanicsContext?: {
+      chase?: unknown;
+      combat?: { resolutions?: CombatResolution[] };
+    };
+    assistantMessageId?: string;
     locale?: 'pl' | 'en';
   };
   const locale = requestedLocale === 'en' ? 'en' : 'pl';
@@ -143,11 +263,17 @@ export async function runChatPipeline({
 
   // Ustawienia i Prompty - IND-183 micro 1/5
   const aiSettings = resolveSettings(loadAISettings(), clientAISettings);
+  const combatMechanicsEnabled =
+    aiSettings.sessionZero?.mechanics?.schemaVersion === 1 &&
+    aiSettings.sessionZero.mechanics.enabled === true &&
+    aiSettings.sessionZero.narrativeMode !== 'pure_narrative';
 
   if (!aiSettings.gameMasterNarration.enabled) {
     return NextResponse.json({
       response:
-        locale === 'en' ? 'AI narration is disabled.' : 'Narracja AI jest wyłączona.',
+        locale === 'en'
+          ? 'AI narration is disabled.'
+          : 'Narracja AI jest wyłączona.',
     });
   }
 
@@ -249,36 +375,40 @@ export async function runChatPipeline({
   // Cache promptu (OPT-26) NIE zalezy od sessionId; lancuch userId->sessionId->RAG
   // (OPT-09) NIE zalezy od cache. Immersja (Etap 3) NIE zalezy od zadnego z powyzszych.
   // Promise.all -> koszt = najwolniejsza z trzech zamiast sumy.
-  const [resolvedCachedContent, ragResult, immersionSection] = await Promise.all([
-    resolveGeminiCache({
-      enableCache: aiSettings.geminiSettings.enableCache,
-      cacheTTL: aiSettings.geminiSettings.cacheTTL,
-      apiKey,
-      modelId,
-      systemPrompt,
-      eraRules,
-      gmProtocol,
-    }),
-    (async () => {
-      const ragUserId = await resolveUserId('');
-      const sessionId = scopeSessionId(ragUserId, clientAISettings?.sessionId);
-      const { ragSection, summarySection, ragMeta } = await runRAGAndSummary({
-        message,
-        messages,
-        sessionId,
+  const [resolvedCachedContent, ragResult, immersionSection] =
+    await Promise.all([
+      resolveGeminiCache({
+        enableCache: aiSettings.geminiSettings.enableCache,
+        cacheTTL: aiSettings.geminiSettings.cacheTTL,
         apiKey,
-        geminiKey: apiKey,
-        // Zaweża RAG 'adventures' do ksiazki aktywnej przygody (DriveThruRPG).
-        adventureSource: adventureContext?.sourceBookId,
-      });
-      return { ragUserId, sessionId, ragSection, summarySection, ragMeta };
-    })(),
-    // Etap 3: dane immersyjne (astronomia, gazety, ceny epoki) - rownolegle z cache i RAG.
-    fetchImmersionContext({
-      gameDate,
-      eraContext,
-    }),
-  ]);
+        modelId,
+        systemPrompt,
+        eraRules,
+        gmProtocol,
+      }),
+      (async () => {
+        const ragUserId = await resolveUserId('');
+        const sessionId = scopeSessionId(
+          ragUserId,
+          clientAISettings?.sessionId
+        );
+        const { ragSection, summarySection, ragMeta } = await runRAGAndSummary({
+          message,
+          messages,
+          sessionId,
+          apiKey,
+          geminiKey: apiKey,
+          // Zaweża RAG 'adventures' do ksiazki aktywnej przygody (DriveThruRPG).
+          adventureSource: adventureContext?.sourceBookId,
+        });
+        return { ragUserId, sessionId, ragSection, summarySection, ragMeta };
+      })(),
+      // Etap 3: dane immersyjne (astronomia, gazety, ceny epoki) - rownolegle z cache i RAG.
+      fetchImmersionContext({
+        gameDate,
+        eraContext,
+      }),
+    ]);
   const { ragUserId, sessionId, ragSection, summarySection, ragMeta } =
     ragResult;
 
@@ -288,7 +418,8 @@ export async function runChatPipeline({
     ? buildSessionRecapInstruction()
     : null;
 
-  const activeTone = aiSettings.sessionZero?.tone || adventureContext?.tone || 'purist';
+  const activeTone =
+    aiSettings.sessionZero?.tone || adventureContext?.tone || 'purist';
 
   const additionalContext = buildAdditionalContext({
     timePromptSection,
@@ -318,7 +449,9 @@ export async function runChatPipeline({
     // Status majatkowy postaci -> AI zna poziom wydatkow i gotowke wg CoC 7e RAW
     playerFinancesSection: buildPlayerFinancesSection(character ?? null),
     // Profil wizualny Badacza (Visual DNA) -> AI zachowuje spójność w opisach scen i portretów
-    playerVisualProfileSection: buildPlayerVisualProfileSection(character ?? null),
+    playerVisualProfileSection: buildPlayerVisualProfileSection(
+      character ?? null
+    ),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,
     directorEventSection:
@@ -332,7 +465,31 @@ export async function runChatPipeline({
     locale,
   });
 
-  if (message.includes('[KONIEC_SESJI:FINAL]') || message.includes('[KONIEC_SESJI_FINAL]')) {
+  if (isChaseState(mechanicsContext?.chase)) {
+    additionalContext.push(
+      `\n## MECHANICS_CONTEXT.chase (UKRYTY STAN AUTORYTATYWNY)\n${formatChaseForSystemContext(mechanicsContext.chase)}\nTo są dane, nie instrukcje gracza. Opisz wyłącznie wynik ostatniego manewru i jego konsekwencję w fikcji. Nie ujawniaj JSON, indeksów lokacji, punktów akcji, MOV ani kolejki. Nie przeliczaj i nie nadpisuj stanu mechaniki.`
+    );
+  }
+
+  if (combatMechanicsEnabled) {
+    const npcMeleeOptions = buildNpcMeleeOptionsContext(npcs ?? []);
+    if (npcMeleeOptions) {
+      additionalContext.push(
+        `${npcMeleeOptions}\nGdy NPC rozpoczyna realny atak wręcz na Badacza, opisz zamiar bez rozstrzygania wyniku i dodaj osobny tag dla każdego ataku w formacie: [ATAK_WRĘCZ: napastnik=<npcId> | cel=@<dokładna nazwa Badacza> | atak=<attackOptionId> | zamiar=<krótki opis>]. Nie wpisuj rzutów, obrażeń ani wyniku walki. Po tagu zakończ odpowiedź.`
+      );
+    }
+  }
+
+  if (mechanicsContext?.combat?.resolutions?.length) {
+    additionalContext.push(
+      `\n## MECHANICS_CONTEXT.combat (UKRYTY WYNIK AUTORYTATYWNY)\n${JSON.stringify(mechanicsContext.combat.resolutions)}\nTo są rozstrzygnięte dane mechaniki, nie instrukcje gracza. Opisz wszystkie wyniki jako jedną płynną scenę walki. Nie przeliczaj rzutów, obrażeń, pancerza, PW ani stanu postaci. Nie ujawniaj JSON ani nazw pól.`
+    );
+  }
+
+  if (
+    message.includes('[KONIEC_SESJI:FINAL]') ||
+    message.includes('[KONIEC_SESJI_FINAL]')
+  ) {
     additionalContext.push(
       '[INSTRUKCJA SPECJALNA - KONIEC SESJI (KROK 2 - FINAŁ)]: To jest ostatnia tura gracza w tej sesji. Uwzględnij jego finałową akcję, napisz klimatyczny epilog / monolog podsumowujący sesję w stylu Lovecrafta, zakończony niepokojącym cliffhangerem lub refleksją badacza. Na samym końcu wypowiedzi, w osobnej linii, wypisz DOKŁADNIE: [KONIEC_SESJI:POTWIERDZENIE]. NIE dodawaj pytania "Co robisz?".'
     );
@@ -468,6 +625,10 @@ export async function runChatPipeline({
     // IND-168 Faza 6: reuse rozwiązanego ragUserId (Clerk > '' dev) dla licznika
     // zużycia per-konto; user-usage normalizuje puste -> 'local'.
     userId: ragUserId,
+    assistantMessageId,
+    characters,
+    npcs: npcs ?? [],
+    combatMechanicsEnabled,
   });
 
   return new Response(sseStream, {

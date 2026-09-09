@@ -1,0 +1,86 @@
+{
+  "run_id": "combat-defense-raw-244-attempt-1-writer",
+  "task_id": "combat-defense-raw-244",
+  "role": "writer",
+  "result": "success",
+  "changed_files": [
+    "_tester/_base/.silnik/messages/en.json",
+    "_tester/_base/.silnik/messages/pl.json",
+    "_tester/_base/.silnik/src/app/[locale]/page.tsx",
+    "_tester/_base/.silnik/src/app/api/chat/_helpers/create-sse-stream.test.ts",
+    "_tester/_base/.silnik/src/app/api/chat/_helpers/create-sse-stream.ts",
+    "_tester/_base/.silnik/src/app/api/chat/_helpers/run-chat-pipeline.ts",
+    "_tester/_base/.silnik/src/app/page.tsx",
+    "_tester/_base/.silnik/src/components/chat/chat-window/components/combat-defense-dialog.tsx",
+    "_tester/_base/.silnik/src/components/chat/chat-window/index.tsx",
+    "_tester/_base/.silnik/src/components/chat/chat-window/types.ts",
+    "_tester/_base/.silnik/src/hooks/useChat.ts",
+    "_tester/_base/.silnik/src/lib/character-cloud-sync.ts",
+    "_tester/_base/.silnik/src/lib/combat/combat-resolver.ts",
+    "_tester/_base/.silnik/src/lib/combat/combat-transaction.test.ts",
+    "_tester/_base/.silnik/src/lib/combat/combat-transaction.ts",
+    "_tester/_base/.silnik/src/lib/combat/npc-combat-profile.test.ts",
+    "_tester/_base/.silnik/src/lib/combat/npc-combat-profile.ts",
+    "_tester/_base/.silnik/src/lib/combat/weapon-context.ts",
+    "_tester/_base/.silnik/src/lib/equipment-catalog.ts",
+    "_tester/_base/.silnik/src/lib/parsers/index.ts",
+    "_tester/_base/.silnik/src/lib/parsers/mechanics-parser.test.ts",
+    "_tester/_base/.silnik/src/lib/parsers/mechanics-parser.ts",
+    "_tester/_base/.silnik/src/lib/parsers/types.ts",
+    "_tester/_base/.silnik/src/lib/types.ts",
+    "_tester/_base/.silnik/src/tests/unit/combat-defense.test.ts",
+    "_tester/_base/.silnik/tests/e2e/combat-defense.spec.ts"
+  ],
+  "checks": [
+    {
+      "name": "lint",
+      "status": "pre_existing",
+      "exit_code": 1,
+      "artifact": ".dev-pipeline/tasks/combat-defense-raw-244/evidence/baseline-lint.log",
+      "fingerprint": "50959e8602328e7aff17",
+      "output": "Bieżący wynik identyczny ilościowo z baseline: 211 problemów, 1 błąd i 210 ostrzeżeń. Brak nowego ostrzeżenia w plikach funkcji walki."
+    },
+    {
+      "name": "navigation",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/combat-defense-raw-244/evidence/baseline-navigation.log",
+      "output": "npm run navigation:check: PASS"
+    },
+    {
+      "name": "test",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/combat-defense-raw-244/evidence/baseline-test.log",
+      "output": "128 zestawów, 839 testów, wszystkie przeszły. Testy celowane: 5 zestawów, 45 testów."
+    },
+    {
+      "name": "typecheck",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": ".dev-pipeline/tasks/combat-defense-raw-244/evidence/baseline-typecheck.log",
+      "output": "npx tsc --noEmit: PASS"
+    },
+    {
+      "name": "ui",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": "_tester/_base/.silnik/test-results/combat-defense-pl.png",
+      "output": "Chromium, świeży build, PL i EN: 2/2. Oba zrzuty przeczytane wizualnie."
+    },
+    {
+      "name": "release",
+      "status": "passed",
+      "exit_code": 0,
+      "artifact": "_tester/_base/.silnik/.next/BUILD_ID",
+      "output": "npm run build: PASS"
+    }
+  ],
+  "artifacts": [
+    "_tester/_base/.silnik/test-results/combat-defense-pl.png",
+    "_tester/_base/.silnik/test-results/combat-defense-en.png",
+    "_tester/_base/.silnik/.next/BUILD_ID"
+  ],
+  "summary": "Wdrożono deterministyczną obronę w walce wręcz jako blokującą decyzję narracyjną: ścisłe tagi referencyjne, zaufane profile NPC i katalog broni, Unik/Kontratak, kolejka wielu ataków, przewaga liczebna, obrażenia i stany zdrowia, trwały dziennik rundy oraz pojedynczy powrót do narracji MG. Zachowano obce zmiany w brudnym drzewie.",
+  "next_action": "Niezależny verifier ma porównać implementację z PLAN.md, uruchomić własne bramki i przeczytać zrzuty PL/EN."
+}

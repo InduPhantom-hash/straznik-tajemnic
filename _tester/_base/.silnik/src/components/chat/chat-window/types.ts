@@ -10,16 +10,41 @@
  * handleKeyPress) - destructured w refaktorze 1:1 ale nigdy używane w JSX.
  */
 
-import type { HotSeatConfig, Message, Character, AdventureContext } from '@/lib/types';
+import type {
+  HotSeatConfig,
+  Message,
+  Character,
+  AdventureContext,
+} from '@/lib/types';
 import type { DiceRoll } from '@/lib/dice-utils';
 import type { ResolvedEraContext } from '@/lib/era';
+import type { ChaseState } from '@/lib/chase/chase-engine';
+import type {
+  CombatResolution,
+  PendingMeleeAttack,
+} from '@/lib/combat/combat-resolver';
+import type { CombatDefenseWeaponOption } from '@/lib/combat/weapon-context';
 
 export interface ChatWindowProps {
   // Messages + input
   messages: Message[];
   newMessage: string;
   setNewMessage: (message: string) => void;
-  handleSendMessage: (message: string) => void;
+  handleSendMessage: (
+    message: string,
+    mechanicsContext?: {
+      chase?: ChaseState;
+      combat?: { resolutions: CombatResolution[] };
+    }
+  ) => void;
+  pendingCombatAttack?: PendingMeleeAttack | null;
+  pendingCombatDefensesUsed?: number;
+  combatDefenseWeapons?: CombatDefenseWeaponOption[];
+  onCombatDefense?: (
+    attack: PendingMeleeAttack,
+    choice: 'dodge' | 'fight_back',
+    weapon?: CombatDefenseWeaponOption
+  ) => void;
 
   // TTS state + controls (subset faktycznie używany w MessageCard)
   currentAudio: HTMLAudioElement | null;
@@ -116,7 +141,11 @@ export interface ChatWindowProps {
   onSendTurn?: () => void;
   onOpenCharacterSheet?: (character: Character) => void;
   /** Potwierdza lub odrzuca kartę [ZDOBYTY_PRZEDMIOT] w narracji MG. */
-  onConfirmAcquiredItem?: (messageId: string, proposalId: string, characterId?: string) => void;
+  onConfirmAcquiredItem?: (
+    messageId: string,
+    proposalId: string,
+    characterId?: string
+  ) => void;
   onDismissAcquiredItem?: (messageId: string, proposalId: string) => void;
   isSessionEnded?: boolean;
   sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
@@ -136,5 +165,6 @@ export interface ChatWindowProps {
   onCloseCheatCombat?: () => void;
   cheatChaseModal?: boolean;
   onCloseCheatChase?: () => void;
-
+  activeChaseState?: ChaseState | null;
+  onChaseStateChange?: (state: ChaseState) => void;
 }

@@ -9,7 +9,14 @@ import type {
   HotSeatConfig,
   HotSeatPlayer,
   JournalEntry,
+  NPC,
 } from '@/lib/types';
+import {
+  createChaseState,
+  speedRollOutcomeFromCheck,
+  type ChaseState,
+} from '@/lib/chase/chase-engine';
+import { evaluateSkillCheck, rollD100 } from '@/lib/dice-utils';
 import {
   resolveTestValue,
   resolveSkillBaseValue,
@@ -21,7 +28,10 @@ import {
 } from '@/lib/chat-history-sanitizer';
 import type { SkillTestData } from '@/lib/parsers/types';
 import type { SkillTestResult } from '@/lib/response-parser';
-import { extractSkillResults } from '@/lib/parsers/mechanics-parser';
+import {
+  extractSkillResults,
+  stripMeleeAttackTags,
+} from '@/lib/parsers/mechanics-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import { timeManager } from '@/lib/time-manager';
@@ -51,10 +61,39 @@ import {
 } from '@/lib/equipment-prompt-builder';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import { isCheatCommand, executeCheatCommand } from '@/lib/cheats/cheat-engine';
-
-
+import type {
+  CombatResolution,
+  PendingMeleeAttack,
+} from '@/lib/combat/combat-resolver';
+import {
+  createCombatRoundJournal,
+  loadCombatJournal,
+  resolveCombatJournalEvent,
+  saveCombatJournal,
+  type CombatRoundJournal,
+} from '@/lib/combat/combat-transaction';
+import {
+  getCombatDefenseWeapons,
+  type CombatDefenseWeaponOption,
+} from '@/lib/combat/weapon-context';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
+const ACTIVE_CHASE_STORAGE_KEY = 'zew_active_chase_state';
+
+type MechanicsContext = {
+  chase?: ChaseState;
+  combat?: { resolutions: CombatResolution[] };
+};
+
+function loadNpcSnapshot(): NPC[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem('gm_npcs') || '[]');
+    return Array.isArray(parsed) ? (parsed as NPC[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash gry.
@@ -186,7 +225,14 @@ function resolveHotSeatCharacterNames(
 
 export interface ImageToGenerate {
   prompt: string;
-  style?: 'horror' | 'vintage' | 'realistic' | 'artistic' | 'portrait' | 'item' | 'location';
+  style?:
+    | 'horror'
+    | 'vintage'
+    | 'realistic'
+    | 'artistic'
+    | 'portrait'
+    | 'item'
+    | 'location';
   priority?: 'high' | 'normal';
   isMythos?: boolean;
   type?: 'portrait' | 'scene' | 'location' | 'item' | 'monster' | 'vision';
@@ -257,7 +303,18 @@ export interface UseChatReturn {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   newMessage: string;
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
-  handleSendMessage: (message: string) => Promise<void>;
+  handleSendMessage: (
+    message: string,
+    mechanicsContext?: MechanicsContext
+  ) => Promise<boolean>;
+  pendingCombatAttack: PendingMeleeAttack | null;
+  pendingCombatDefensesUsed: number;
+  combatDefenseWeapons: CombatDefenseWeaponOption[];
+  handleCombatDefense: (
+    attack: PendingMeleeAttack,
+    choice: 'dodge' | 'fight_back',
+    weapon?: CombatDefenseWeaponOption
+  ) => Promise<void>;
   handleKeyPress: (e: React.KeyboardEvent) => void;
   generateImages: (
     illustrations: ImageToGenerate[],
@@ -287,7 +344,11 @@ export interface UseChatReturn {
   clearDeclarations: () => void;
   /** Składa bufor w jedną wiadomość i wysyła do MG (przycisk "Wyślij turę"). */
   sendTurn: () => void;
-  confirmAcquiredItem: (messageId: string, proposalId: string, characterId?: string) => Promise<void>;
+  confirmAcquiredItem: (
+    messageId: string,
+    proposalId: string,
+    characterId?: string
+  ) => Promise<void>;
   dismissAcquiredItem: (messageId: string, proposalId: string) => void;
   /** Stan informujący o zakończeniu sesji gier po tagu [KONIEC_SESJI:POTWIERDZENIE] */
   isSessionEnded: boolean;
@@ -302,17 +363,20 @@ export interface UseChatReturn {
     playerBuild?: number;
     attackerBuild?: number;
   } | null;
-  setCheatCombatModal: React.Dispatch<React.SetStateAction<{
-    attackerName: string;
-    attackerWeapon?: string;
-    dodgeSkill: number;
-    brawlSkill: number;
-    playerBuild?: number;
-    attackerBuild?: number;
-  } | null>>;
+  setCheatCombatModal: React.Dispatch<
+    React.SetStateAction<{
+      attackerName: string;
+      attackerWeapon?: string;
+      dodgeSkill: number;
+      brawlSkill: number;
+      playerBuild?: number;
+      attackerBuild?: number;
+    } | null>
+  >;
   cheatChaseModal: boolean;
   setCheatChaseModal: React.Dispatch<React.SetStateAction<boolean>>;
-
+  activeChaseState: ChaseState | null;
+  setActiveChaseState: React.Dispatch<React.SetStateAction<ChaseState | null>>;
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
@@ -320,7 +384,6 @@ function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
     context?.yearRange || context?.eraLabel || context?.era || '1920s'
   );
 }
-
 
 interface UseChatOptions {
   locale?: 'pl' | 'en';
@@ -345,7 +408,9 @@ interface UseChatOptions {
   // do promptu AI (AI rozpoznaje i adresuje obu graczy, nie tylko aktywnego).
   hotSeatConfig?: HotSeatConfig | null;
   /** Wydarzenie z generatora fabularnego zrzucone z UI */
-  pendingDirectorEvent?: import('@/lib/random-event-generator').RandomEvent | null;
+  pendingDirectorEvent?:
+    | import('@/lib/random-event-generator').RandomEvent
+    | null;
   /** Czyszczenie wydarzenia po wysłaniu do LLM */
   clearPendingDirectorEvent?: () => void;
   /** Po zapisaniu deklaracji przełącza UI na kolejnego oczekującego gracza. */
@@ -416,9 +481,58 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     attackerBuild?: number;
   } | null>(null);
   const [cheatChaseModal, setCheatChaseModal] = useState<boolean>(false);
+  const combatJournalRef = useRef<CombatRoundJournal | null>(
+    typeof window === 'undefined' ? null : loadCombatJournal(localStorage)
+  );
+  const shouldRecoverCombatCommitRef = useRef(
+    combatJournalRef.current?.phase === 'committing'
+  );
+  const [pendingCombatAttack, setPendingCombatAttack] =
+    useState<PendingMeleeAttack | null>(() => {
+      const journal = combatJournalRef.current;
+      return (
+        journal?.attacks.find(
+          (attack) =>
+            !journal.resolutions.some(
+              (resolution) => resolution.eventId === attack.eventId
+            )
+        ) ?? null
+      );
+    });
+  const [activeChaseState, setActiveChaseState] = useState<ChaseState | null>(
+    () => {
+      if (typeof window === 'undefined') return null;
+      try {
+        const active = localStorage.getItem(ACTIVE_CHASE_STORAGE_KEY);
+        if (active) return JSON.parse(active) as ChaseState;
+        const stored = JSON.parse(
+          localStorage.getItem(MESSAGES_STORAGE_KEY) || '[]'
+        ) as Message[];
+        return (
+          [...stored].reverse().find((item) => item.mechanicsContext?.chase)
+            ?.mechanicsContext?.chase ?? null
+        );
+      } catch {
+        return null;
+      }
+    }
+  );
 
-  const [sessionEndStatus, setSessionEndStatus] = useState<SessionEndStatus>('idle');
+  const [sessionEndStatus, setSessionEndStatus] =
+    useState<SessionEndStatus>('idle');
   const [lastImageTime, setLastImageTime] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activeChaseState) {
+      localStorage.setItem(
+        ACTIVE_CHASE_STORAGE_KEY,
+        JSON.stringify(activeChaseState)
+      );
+    } else {
+      localStorage.removeItem(ACTIVE_CHASE_STORAGE_KEY);
+    }
+  }, [activeChaseState]);
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -554,9 +668,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         }
 
         const isMythosEffective = Boolean(
-          img.isMythos ||
-            img.type === 'monster' ||
-            img.type === 'vision'
+          img.isMythos || img.type === 'monster' || img.type === 'vision'
         );
 
         const defaultStyle =
@@ -712,9 +824,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           .map((img, idx) => ({ img, url: generatedUrls[idx] }))
           .filter(
             (update) =>
-              update.img.type === 'item' &&
-              update.img.itemName &&
-              update.url
+              update.img.type === 'item' && update.img.itemName && update.url
           );
 
         if (itemUpdates.length > 0) {
@@ -780,7 +890,14 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   );
 
   const handleSendMessage = useCallback(
-    async (message: string) => {
+    async (
+      message: string,
+      mechanicsContext?: MechanicsContext,
+      runtimeOverride?: {
+        characters: Character[];
+        activeCharacter: Character | null;
+      }
+    ) => {
       // Retro Cheat Interceptor (0 ms, 0 tokenów, wykonanie lokalne)
       if (isCheatCommand(message)) {
         const currentGameTime = timeManager.getTime();
@@ -793,7 +910,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         };
         setMessages((prev) => [...prev, userMsg]);
 
-        const locale = (typeof window !== 'undefined' && window.location.pathname.startsWith('/en')) ? 'en' : 'pl';
+        const locale =
+          typeof window !== 'undefined' &&
+          window.location.pathname.startsWith('/en')
+            ? 'en'
+            : 'pl';
         const execRes = executeCheatCommand(message, activeCharacter, locale);
 
         if (execRes.characterUpdates && activeCharacter) {
@@ -816,6 +937,52 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           setCheatCombatModal(execRes.openCombatModal);
         }
         if (execRes.openChaseModal) {
+          const defaultPursuer = {
+            id: 'pursuer_1',
+            name: locale === 'en' ? 'The pursuer' : 'Ścigający',
+            isPlayer: false,
+            mov: 7,
+            dex: 40,
+            speedCheckValue: 50,
+            skillValues: {
+              Wspinaczka: 40,
+              Zręczność: 40,
+              Skakanie: 30,
+            },
+            segmentIndex: 0,
+          };
+          const chaseState =
+            activeChaseState?.status === 'ongoing'
+              ? activeChaseState
+              : createChaseState({
+                  fleeing: {
+                    id: activeCharacter?.id || 'char_player',
+                    name:
+                      activeCharacter?.name ||
+                      (locale === 'en' ? 'Investigator' : 'Badacz'),
+                    isPlayer: true,
+                    mov: activeCharacter?.move ?? 8,
+                    dex: activeCharacter?.dex ?? 0,
+                    segmentIndex: 2,
+                  },
+                  pursuers: [defaultPursuer],
+                  ...(typeof activeCharacter?.con === 'number'
+                    ? {
+                        fleeingSpeedRoll: speedRollOutcomeFromCheck(
+                          evaluateSkillCheck(rollD100(), activeCharacter.con)
+                        ),
+                      }
+                    : {}),
+                  pursuerSpeedRolls: {
+                    pursuer_1: speedRollOutcomeFromCheck(
+                      evaluateSkillCheck(
+                        rollD100(),
+                        defaultPursuer.speedCheckValue
+                      )
+                    ),
+                  },
+                });
+          setActiveChaseState(chaseState);
           setCheatChaseModal(true);
         }
         if (execRes.toastMessage) {
@@ -839,7 +1006,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           };
           setMessages((prev) => [...prev, assistantMsg]);
         }
-        return;
+        return true;
       }
 
       // IND-174: race condition guard. Chroni przed concurrent calls (double-click,
@@ -848,14 +1015,20 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // dla różnych assistantMessageId. Send button w ChatWindow NIE jest disabled
       // na isLoading (lin 403: disabled={!newMessage.trim()}), więc guard tutaj jest
       // jedyną linią obrony.
-      if (isLoading) return;
+      if (isLoading) return false;
+
+      const requestCharacters = runtimeOverride?.characters ?? characters;
+      const requestCharacter = runtimeOverride?.activeCharacter ?? activeCharacter;
 
       if (message.includes('[KONIEC_SESJI]')) {
         setSessionEndStatus('awaiting_player_closure');
       }
 
       let outgoingApiMessage = message;
-      if (sessionEndStatus === 'awaiting_player_closure' && !message.includes('[KONIEC_SESJI]')) {
+      if (
+        sessionEndStatus === 'awaiting_player_closure' &&
+        !message.includes('[KONIEC_SESJI]')
+      ) {
         outgoingApiMessage = `${message}\n[KONIEC_SESJI:FINAL]`;
       }
 
@@ -866,7 +1039,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         content: message,
         timestamp: new Date(),
         gameTime: currentGameTime,
+        mechanicsContext,
       };
+      if (mechanicsContext?.chase) setActiveChaseState(mechanicsContext.chase);
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
 
@@ -881,7 +1056,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           ? Math.round((Date.now() - sessionStartedAt) / 60000)
           : 0,
         voiceEnabled,
-        hasCharacter: !!activeCharacter,
+        hasCharacter: !!requestCharacter,
       });
 
       const assistantMessageId = crypto.randomUUID();
@@ -902,8 +1077,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             message: outgoingApiMessage,
             messages: sanitizeHistoryForApi([...messages, userMessage]),
             pdfMemory,
-            character: sanitizeCharacterForApi(activeCharacter),
-            characters: (characters || []).map((c) => sanitizeCharacterForApi(c) as Character),
+            character: sanitizeCharacterForApi(requestCharacter),
+            characters: (requestCharacters || []).map(
+              (c) => sanitizeCharacterForApi(c) as Character
+            ),
+            npcs: loadNpcSnapshot(),
+            assistantMessageId,
             adventureContext,
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
@@ -911,7 +1090,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             locale,
             hotSeatConfig: resolveHotSeatCharacterNames(
               hotSeatConfig,
-              characters
+              requestCharacters
             ),
             directorEvent: options.pendingDirectorEvent
               ? {
@@ -919,6 +1098,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   description: options.pendingDirectorEvent.description,
                 }
               : undefined,
+            mechanicsContext,
           }),
         });
 
@@ -937,16 +1117,20 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         let streamedFullText = '';
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
-            let cleanText = text;
+            let cleanText = stripMeleeAttackTags(text);
             if (text.includes('[KONIEC_SESJI:POTWIERDZENIE]')) {
-              cleanText = text.replace('[KONIEC_SESJI:POTWIERDZENIE]', '').trimEnd();
+              cleanText = text
+                .replace('[KONIEC_SESJI:POTWIERDZENIE]', '')
+                .trimEnd();
               setSessionEndStatus('ended');
               setIsSessionEnded(true);
             }
             streamedFullText = cleanText;
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === assistantMessageId ? { ...msg, content: cleanText } : msg
+                msg.id === assistantMessageId
+                  ? { ...msg, content: cleanText }
+                  : msg
               )
             );
             if (voiceEnabled && isTTSEnabled) {
@@ -954,6 +1138,39 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
+            if (
+              Array.isArray(metadata.pendingMeleeAttacks) &&
+              metadata.pendingMeleeAttacks.length > 0 &&
+              typeof window !== 'undefined'
+            ) {
+              const attacks = metadata.pendingMeleeAttacks as PendingMeleeAttack[];
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, pendingMeleeAttacks: attacks }
+                    : msg
+                )
+              );
+              const existing = combatJournalRef.current;
+              const journal =
+                existing?.roundId === attacks[0].roundId
+                  ? existing
+                  : createCombatRoundJournal({
+                      attacks,
+                      roster: requestCharacters,
+                      roundSeed: crypto.randomUUID(),
+                    });
+              combatJournalRef.current = journal;
+              saveCombatJournal(localStorage, journal);
+              setPendingCombatAttack(
+                journal.attacks.find(
+                  (attack) =>
+                    !journal.resolutions.some(
+                      (resolution) => resolution.eventId === attack.eventId
+                    )
+                ) ?? null
+              );
+            }
             // finishReason z metadanych (MAX_TOKENS/STOP) trafia na wiadomość -
             // steruje przyciskiem "Kontynuuj narrację" i logiką urwanych scen.
             if (metadata.finishReason) {
@@ -1013,8 +1230,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             ) {
               const resolvedTests = resolveSkillTestValues(
                 metadata.skillTests as unknown as SkillTestData[],
-                activeCharacter,
-                characters
+                requestCharacter,
+                requestCharacters
               );
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -1104,10 +1321,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 // a w wersji portable seria obrazów zapychała limit Gemini i głodziła
                 // lektora (audio rusza >1 min po tekście). Jedna ilustracja na turę
                 // zwalnia limit dla TTS; cooldown międzyturowy (IND-259) zostaje.
-                generateImages(
-                  prioritized.slice(0, 1),
-                  assistantMessageId
-                );
+                generateImages(prioritized.slice(0, 1), assistantMessageId);
               }
             }
 
@@ -1184,9 +1398,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               } else if (ev.type === 'bout_of_madness') {
                 toast({
                   title:
-                    locale === 'pl'
-                      ? 'Atak Szaleństwa'
-                      : 'Bout of Madness',
+                    locale === 'pl' ? 'Atak Szaleństwa' : 'Bout of Madness',
                   description: ev.message[locale === 'pl' ? 'pl' : 'en'],
                 });
               } else if (ev.type === 'permanent_insanity') {
@@ -1282,6 +1494,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             onSkillResults(skillResults);
           }
         }
+        return true;
       } catch (error) {
         console.error('Błąd:', error);
         trackEvent('ai_error', {
@@ -1318,6 +1531,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             msg.id === assistantMessageId ? { ...msg, content: friendly } : msg
           )
         );
+        return false;
       } finally {
         setIsLoading(false);
       }
@@ -1339,8 +1553,151 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       onSkillResults,
       hotSeatConfig,
       sessionEndStatus,
+      activeChaseState,
+      locale,
     ]
   );
+
+  const pendingCombatDefensesUsed = pendingCombatAttack
+    ? combatJournalRef.current?.resolutions.filter(
+        (resolution) =>
+          resolution.defenderId === pendingCombatAttack.target.characterId
+      ).length ?? 0
+    : 0;
+  const combatDefender = pendingCombatAttack
+    ? characters.find(
+        (character) => character.id === pendingCombatAttack.target.characterId
+      ) ?? null
+    : null;
+  const combatDefenseWeapons = getCombatDefenseWeapons(combatDefender);
+
+  const handleCombatDefense = useCallback(
+    async (
+      attack: PendingMeleeAttack,
+      choice: 'dodge' | 'fight_back',
+      weapon?: CombatDefenseWeaponOption
+    ) => {
+      if (typeof window === 'undefined') return;
+      const current = combatJournalRef.current;
+      if (!current || current.roundId !== attack.roundId) return;
+
+      const choiceJournal: CombatRoundJournal = {
+        ...current,
+        choices: {
+          ...current.choices,
+          [attack.eventId]: {
+            choice,
+            defenderWeaponId: weapon?.id,
+          },
+        },
+      };
+      saveCombatJournal(localStorage, choiceJournal);
+
+      const resolved = resolveCombatJournalEvent({
+        journal: choiceJournal,
+        eventId: attack.eventId,
+        choice,
+        defenderWeapon: weapon,
+      });
+      combatJournalRef.current = resolved;
+      saveCombatJournal(localStorage, resolved);
+
+      const persisted = persistCharacters(resolved.nextRoster);
+      if (!persisted.ok) {
+        toast({
+          title: locale === 'en' ? 'Combat not saved' : 'Nie zapisano walki',
+          description:
+            locale === 'en'
+              ? 'Free browser storage and try the defense again.'
+              : 'Zwolnij miejsce w pamięci przeglądarki i ponów obronę.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setCharacters(resolved.nextRoster);
+      setActiveCharacter((previous) =>
+        previous
+          ? resolved.nextRoster.find((character) => character.id === previous.id) ??
+            previous
+          : previous
+      );
+
+      const nextAttack = resolved.attacks.find(
+        (candidate) =>
+          !resolved.resolutions.some(
+            (resolution) => resolution.eventId === candidate.eventId
+          )
+      );
+      if (nextAttack) {
+        setPendingCombatAttack(nextAttack);
+        return;
+      }
+
+      const committing: CombatRoundJournal = {
+        ...resolved,
+        phase: 'committing',
+      };
+      combatJournalRef.current = committing;
+      saveCombatJournal(localStorage, committing);
+      setPendingCombatAttack(null);
+
+      const nextActive = activeCharacter
+        ? committing.nextRoster.find(
+            (character) => character.id === activeCharacter.id
+          ) ?? activeCharacter
+        : null;
+      const committedSuccessfully = await handleSendMessage(
+        locale === 'en'
+          ? 'Continue the scene from the resolved exchange of blows.'
+          : 'Kontynuuj scenę od rozstrzygniętej wymiany ciosów.',
+        { combat: { resolutions: committing.resolutions } },
+        { characters: committing.nextRoster, activeCharacter: nextActive }
+      );
+      if (!committedSuccessfully) {
+        setPendingCombatAttack(attack);
+        toast({
+          title: locale === 'en' ? 'Narration interrupted' : 'Przerwano narrację',
+          description:
+            locale === 'en'
+              ? 'Choose the defense once more to retry without rolling again.'
+              : 'Wybierz obronę ponownie. Aplikacja użyje tego samego wyniku rzutu.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      const committed: CombatRoundJournal = { ...committing, phase: 'committed' };
+      combatJournalRef.current = committed;
+      saveCombatJournal(localStorage, committed);
+      localStorage.removeItem('combat_round_journal_v1');
+      combatJournalRef.current = null;
+    },
+    [
+      activeCharacter,
+      handleSendMessage,
+      locale,
+      setActiveCharacter,
+      setCharacters,
+    ]
+  );
+
+  useEffect(() => {
+    const journal = combatJournalRef.current;
+    if (
+      !shouldRecoverCombatCommitRef.current ||
+      journal?.phase !== 'committing' ||
+      journal.resolutions.length !== journal.attacks.length
+    ) return;
+    const lastAttack = journal.attacks.at(-1);
+    if (!lastAttack) return;
+    const storedChoice = journal.choices[lastAttack.eventId];
+    if (!storedChoice) return;
+    shouldRecoverCombatCommitRef.current = false;
+    const weapon = combatDefenseWeapons.find(
+      (candidate) => candidate.id === storedChoice.defenderWeaponId
+    );
+    void handleCombatDefense(lastAttack, storedChoice.choice, weapon);
+  }, [combatDefenseWeapons, handleCombatDefense]);
 
   // === Ręczna kontynuacja urwanej narracji (finishReason=MAX_TOKENS) ===
   // Single-flight: równoległe wywołania (double-click, Promise.all w testach)
@@ -1362,8 +1719,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         : [...messages]
             .reverse()
             .find(
-              (m) =>
-                m.role === 'assistant' && m.finishReason === 'MAX_TOKENS'
+              (m) => m.role === 'assistant' && m.finishReason === 'MAX_TOKENS'
             );
       if (!target) return;
 
@@ -1395,7 +1751,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           body: JSON.stringify({
             message:
               locale === 'en'
-                ? 'Continue the Game Master\'s previous truncated response exactly where it ended. Do not repeat it and do not comment on the interruption.'
+                ? "Continue the Game Master's previous truncated response exactly where it ended. Do not repeat it and do not comment on the interruption."
                 : 'Dokończ poprzednią, urwaną wypowiedź Mistrza Gry dokładnie od miejsca, w którym się skończyła. Nie powtarzaj jej i nie komentuj przerwania.',
             messages: sanitizeHistoryForApi([markedTarget]),
             pdfMemory,
@@ -1454,7 +1810,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         void fullText;
       } catch (error) {
         console.error('Błąd kontynuacji narracji:', error);
-        setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== assistantMessageId)
+        );
       } finally {
         continuationInFlightRef.current = false;
         setIsLoading(false);
@@ -1606,7 +1964,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       const proposal = message?.acquiredItems?.find(
         (candidate) => candidate.id === proposalId
       );
-      if (!proposal || proposal.status !== 'pending' || !activeCharacter) return;
+      if (!proposal || proposal.status !== 'pending' || !activeCharacter)
+        return;
 
       // Stan karty najpierw - podwójny klik nie może dodać dwóch egzemplarzy.
       setMessages((prev) =>
@@ -1615,7 +1974,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             ? {
                 ...candidate,
                 acquiredItems: candidate.acquiredItems?.map((item) =>
-                  item.id === proposalId ? { ...item, status: 'accepted' } : item
+                  item.id === proposalId
+                    ? { ...item, status: 'accepted' }
+                    : item
                 ),
               }
             : candidate
@@ -1624,7 +1985,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
       let recipient = activeCharacter;
       if (characterId) {
-        const explicitTarget = characters.find(c => c.id === characterId);
+        const explicitTarget = characters.find((c) => c.id === characterId);
         if (explicitTarget) recipient = explicitTarget;
       } else {
         recipient = resolveCharacterByName(
@@ -1634,14 +1995,17 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         );
       }
       const item = {
-        ...createEquipmentItem(createAcquiredEquipmentSeed(proposal), 'acquired'),
+        ...createEquipmentItem(
+          createAcquiredEquipmentSeed(proposal),
+          'acquired'
+        ),
         // Znalezisko z sesji jest unikalnym egzemplarzem, nawet jeżeli jego nazwa
         // odpowiada katalogowi. Katalog pozostaje zarezerwowany dla stałej bazy.
         visualSource: 'generated' as const,
         visualTreatment: proposal.visualTreatment,
         imageUrl: undefined,
       };
-      
+
       const journalEntry: JournalEntry = {
         id: `journal-${item.id}`,
         timestamp: new Date(),
@@ -1654,10 +2018,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
       const afterAdd = characters.map((character) =>
         character.id === recipient.id
-          ? { 
-              ...character, 
+          ? {
+              ...character,
               equipment: [...(character.equipment ?? []), item],
-              journal: [...(character.journal ?? []), journalEntry]
+              journal: [...(character.journal ?? []), journalEntry],
             }
           : character
       );
@@ -1683,18 +2047,20 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const response = await fetchWithRetry(
           usePortraitReference ? '/api/flux-kontext' : '/api/imagen',
           {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt,
-            style:
-              proposal.visualTreatment === 'supernatural' ? 'horror' : 'realistic',
-            aspectRatio: '1:1',
-            seed: `${recipient.id}-${item.id}`,
-            ...(usePortraitReference
-              ? { inputImageUrl: recipient.portraitUrl }
-              : {}),
-          }),
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt,
+              style:
+                proposal.visualTreatment === 'supernatural'
+                  ? 'horror'
+                  : 'realistic',
+              aspectRatio: '1:1',
+              seed: `${recipient.id}-${item.id}`,
+              ...(usePortraitReference
+                ? { inputImageUrl: recipient.portraitUrl }
+                : {}),
+            }),
           }
         );
         if (!response.ok) return;
@@ -1708,7 +2074,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 ...character,
                 equipment: (character.equipment ?? []).map((candidate) =>
                   candidate.id === item.id
-                    ? { ...candidate, imageUrl: data.imageUrl, imagePrompt: prompt }
+                    ? {
+                        ...candidate,
+                        imageUrl: data.imageUrl,
+                        imagePrompt: prompt,
+                      }
                     : candidate
                 ),
               }
@@ -1720,7 +2090,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         );
         if (typeof window !== 'undefined') persistCharacters(afterImage);
       } catch (error) {
-        console.warn('Nie udało się wygenerować renderu zdobytego przedmiotu:', error);
+        console.warn(
+          'Nie udało się wygenerować renderu zdobytego przedmiotu:',
+          error
+        );
       }
     },
     [
@@ -1739,6 +2112,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     newMessage,
     setNewMessage,
     handleSendMessage,
+    pendingCombatAttack,
+    pendingCombatDefensesUsed,
+    combatDefenseWeapons,
+    handleCombatDefense,
     handleContinueNarration,
     handleKeyPress,
     generateImages,
@@ -1762,5 +2139,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     setCheatCombatModal,
     cheatChaseModal,
     setCheatChaseModal,
+    activeChaseState,
+    setActiveChaseState,
   };
 }

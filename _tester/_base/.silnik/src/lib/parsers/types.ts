@@ -35,6 +35,13 @@ export interface CombatState {
   description?: string;
 }
 
+export interface MeleeAttackReference {
+  attackerNpcId: string;
+  targetCharacterName: string;
+  attackOptionId: string;
+  intent: string;
+}
+
 export interface DialogueLine {
   speaker: string; // nazwa NPC lub "narrator"
   text: string;
@@ -154,6 +161,7 @@ export interface ParsedResponse {
   skillTests: SkillTestData[];
   skillResults: SkillTestResult[];
   hazardEvents?: HazardEventData[];
+  meleeAttacks: MeleeAttackReference[];
   equipmentEvents: EquipmentEvent[];
   timeUpdate: TimeUpdate | null;
   gmMetadata?: { thoughts?: string; mood?: string; narrativeGoal?: string };

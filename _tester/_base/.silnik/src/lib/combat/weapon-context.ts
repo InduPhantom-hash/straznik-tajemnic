@@ -20,6 +20,8 @@
 import type { Character, EquipmentItem } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { findEquipmentByName } from '@/lib/equipment-data';
+import { findEquipmentTemplate } from '@/lib/equipment-catalog';
+import type { WeaponDamageType } from './combat-resolver';
 import { buildFirearmPromptGuidance } from './firearms-engine';
 
 
@@ -42,6 +44,51 @@ const MELEE_WEAPON_PATTERN =
 const SHOTGUN_PATTERN = /shotgun|strzelb|dubeltów/i;
 const CLUB_PATTERN = /club|baton|pałk|palk|kij|cudgel|hammer|młot|mlot/i;
 const KNIFE_PATTERN = /knife|nóż|noz|dagger|sztylet|bagnet|bayonet/i;
+
+export interface CombatDefenseWeaponOption {
+  id: string;
+  name: string;
+  skillId: string;
+  skillValue: number;
+  damageFormula: string;
+  damageType: WeaponDamageType;
+}
+
+/** Tylko katalogowe profile mechaniczne, bez heurystyk nazw. */
+export function getCombatDefenseWeapons(
+  character: Character | null | undefined
+): CombatDefenseWeaponOption[] {
+  if (!character) return [];
+  const unarmedSkill = resolveTestValue(SKILL_MELEE, character);
+  const options: CombatDefenseWeaponOption[] = [
+    {
+      id: 'unarmed',
+      name: 'Bez broni',
+      skillId: SKILL_MELEE,
+      skillValue: unarmedSkill ?? 25,
+      damageFormula: '1d3',
+      damageType: 'non_impaling',
+    },
+  ];
+
+  for (const item of character.equipment ?? []) {
+    if (!item.templateId || item.condition === 'broken') continue;
+    const template = findEquipmentTemplate(item.templateId);
+    const profile = template?.combatProfile;
+    if (profile?.kind !== 'melee_weapon') continue;
+    const skillValue = resolveTestValue(profile.combatSkillId, character);
+    if (skillValue === null) continue;
+    options.push({
+      id: item.id,
+      name: item.name,
+      skillId: profile.combatSkillId,
+      skillValue,
+      damageFormula: profile.damageFormula,
+      damageType: profile.damageClass,
+    });
+  }
+  return options;
+}
 
 /**
  * Czy nazwa przedmiotu wygląda na broń (palną długą/krótką lub białą). Czyta wyłącznie
@@ -166,4 +213,3 @@ export function buildPlayerWeaponContext(character: Character | null): string {
     (hasFirearms ? `\n\n${buildFirearmPromptGuidance()}` : '')
   );
 }
-

@@ -853,6 +853,7 @@ export default function Home() {
           '![obraz]([IMG_BASE64])'
         ),
         timestamp: msg.timestamp,
+        mechanicsContext: msg.mechanicsContext,
       }));
       localStorage.setItem('chat-messages', JSON.stringify(messagesToSave));
     }
@@ -870,6 +871,7 @@ export default function Home() {
   
   const handleNewAdventure = () => {
     chat.setMessages([]);
+    chat.setActiveChaseState(null);
     localStorage.removeItem('chat-messages');
     tts.stopCurrentAudio();
     
@@ -1211,10 +1213,16 @@ export default function Home() {
           isReadyToEnter={isReadyToEnter}
           onConfirmEnterGame={confirmEnterGame}
           adventureContext={adventureContext}
+          pendingCombatAttack={chat.pendingCombatAttack}
+          pendingCombatDefensesUsed={chat.pendingCombatDefensesUsed}
+          combatDefenseWeapons={chat.combatDefenseWeapons}
+          onCombatDefense={chat.handleCombatDefense}
           cheatCombatModal={chat.cheatCombatModal}
           onCloseCheatCombat={() => chat.setCheatCombatModal(null)}
           cheatChaseModal={chat.cheatChaseModal}
           onCloseCheatChase={() => chat.setCheatChaseModal(false)}
+          activeChaseState={chat.activeChaseState}
+          onChaseStateChange={chat.setActiveChaseState}
         />
       )}
       {showPredefinedSelector && (
