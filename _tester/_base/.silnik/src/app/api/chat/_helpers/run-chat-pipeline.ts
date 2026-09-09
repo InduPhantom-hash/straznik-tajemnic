@@ -230,6 +230,13 @@ export async function runChatPipeline({
       sourceBookId?: string;
       handouts?: AdventureHandout[];
       tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
+      truthAnchor?: {
+        culprit?: string;
+        motive?: string;
+        murderWeapon?: string;
+        keyAlibi?: string;
+        immutableFacts?: string[];
+      };
     } | null;
     eraContext?: ResolvedEraContext;
     gameTime?: GameTime;
@@ -459,6 +466,7 @@ export async function runChatPipeline({
       (directorEvent.title?.trim() || directorEvent.description?.trim())
         ? `\n## INSTRUKCJA REŻYSERSKA\n[MG wrzucił to losowe wydarzenie. Wpleć je organicznie w swoją narrację, nie przerywając głównego wątku]\n${directorEvent.title.replace(/\[/g, '(').replace(/\]/g, ')')}: ${directorEvent.description.replace(/\[/g, '(').replace(/\]/g, ')')}\n`
         : undefined,
+    truthAnchor: adventureContext?.truthAnchor,
     isGameStart,
     characters,
     era: String(eraContext.effectiveYear),
