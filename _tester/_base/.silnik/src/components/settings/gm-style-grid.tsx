@@ -1,4 +1,5 @@
 import type { SetStateAction, Dispatch } from 'react';
+import { useTranslations } from 'next-intl';
 import { AISettings } from '@/lib/ai-settings';
 import { HelpIcon } from '../ui/tooltip';
 
@@ -13,12 +14,14 @@ type DetailLevel = AISettings['gameMasterNarration']['style']['detailLevel'];
 type Creativity = AISettings['gameMasterNarration']['behavior']['creativity'];
 
 export function GMStyleGrid({ settings, setSettings }: GMStyleGridProps) {
+  const t = useTranslations('GMStyleGrid');
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label className="flex items-center gap-2 text-[14px] font-special-elite uppercase tracking-[0.16em] text-brass mb-2">
-          Długość odpowiedzi
-          <HelpIcon content="Krótka: 1-2 zdania • Średnia: 3-5 zdań • Długa: Pełne akapity z detalami" />
+          {t('responseLengthLabel')}
+          <HelpIcon content={t('responseLengthHelp')} />
         </label>
         <select
           value={settings.gameMasterNarration.style.responseLength}
@@ -36,16 +39,16 @@ export function GMStyleGrid({ settings, setSettings }: GMStyleGridProps) {
           }
           className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 text-foreground focus:border-primary focus:outline-none"
         >
-          <option value="short">Krótka</option>
-          <option value="medium">Średnia</option>
-          <option value="long">Długa</option>
+          <option value="short">{t('lengthShort')}</option>
+          <option value="medium">{t('lengthMedium')}</option>
+          <option value="long">{t('lengthLong')}</option>
         </select>
       </div>
 
       <div>
         <label className="flex items-center gap-2 text-[14px] font-special-elite uppercase tracking-[0.16em] text-brass mb-2">
-          Poziom szczegółowości
-          <HelpIcon content="Minimalny: Tylko kluczowe informacje • Standardowy: Zbalansowany opis • Szczegółowy: Bogate opisy z detalami sensorycznymi" />
+          {t('detailLevelLabel')}
+          <HelpIcon content={t('detailLevelHelp')} />
         </label>
         <select
           value={settings.gameMasterNarration.style.detailLevel}
@@ -63,16 +66,16 @@ export function GMStyleGrid({ settings, setSettings }: GMStyleGridProps) {
           }
           className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 text-foreground focus:border-primary focus:outline-none"
         >
-          <option value="minimal">Minimalny</option>
-          <option value="standard">Standardowy</option>
-          <option value="detailed">Szczegółowy</option>
+          <option value="minimal">{t('detailMinimal')}</option>
+          <option value="standard">{t('detailStandard')}</option>
+          <option value="detailed">{t('detailDetailed')}</option>
         </select>
       </div>
 
       <div>
         <label className="flex items-center gap-2 text-[14px] font-special-elite uppercase tracking-[0.16em] text-brass mb-2">
-          Kreatywność
-          <HelpIcon content="Konserwatywna: Trzyma się scenariusza • Zbalansowana: Dodaje własne elementy • Kreatywna: Swobodna improwizacja" />
+          {t('creativityLabel')}
+          <HelpIcon content={t('creativityHelp')} />
         </label>
         <select
           value={settings.gameMasterNarration.behavior.creativity}
@@ -90,9 +93,9 @@ export function GMStyleGrid({ settings, setSettings }: GMStyleGridProps) {
           }
           className="w-full px-3 py-2 bg-[#1f1a14] border border-brass/30 text-foreground focus:border-primary focus:outline-none"
         >
-          <option value="conservative">Konserwatywna</option>
-          <option value="balanced">Zbalansowana</option>
-          <option value="creative">Kreatywna</option>
+          <option value="conservative">{t('creativityConservative')}</option>
+          <option value="balanced">{t('creativityBalanced')}</option>
+          <option value="creative">{t('creativityCreative')}</option>
         </select>
       </div>
     </div>

@@ -5216,6 +5216,30 @@
     "title": "Gemini · zaawansowane",
     "warning": "Te ustawienia wpływają bezpośrednio na zachowanie modeli. Zmieniaj je tylko, jeśli wiesz, co czynisz."
   },
+  "GameMasterSettings": {
+    "eyebrow": "Dusza Strażnika",
+    "title": "Prompt Mistrza Gry",
+    "titleHelp": "Konfiguruj zachowanie i styl narracji Mistrza Gry AI.",
+    "enableNarrationLabel": "Włącz narrację",
+    "enableNarrationHelp": "Włącza system narracji mistrza gry. Bez tego AI nie będzie generować opisów i prowadzić gry."
+  },
+  "GMStyleGrid": {
+    "responseLengthLabel": "Długość odpowiedzi",
+    "responseLengthHelp": "Krótka: 1-2 zdania • Średnia: 3-5 zdań • Długa: Pełne akapity z detalami",
+    "lengthShort": "Krótka",
+    "lengthMedium": "Średnia",
+    "lengthLong": "Długa",
+    "detailLevelLabel": "Poziom szczegółowości",
+    "detailLevelHelp": "Minimalny: Tylko kluczowe informacje • Standardowy: Zbalansowany opis • Szczegółowy: Bogate opisy z detalami sensorycznymi",
+    "detailMinimal": "Minimalny",
+    "detailStandard": "Standardowy",
+    "detailDetailed": "Szczegółowy",
+    "creativityLabel": "Kreatywność",
+    "creativityHelp": "Konserwatywna: Trzyma się scenariusza • Zbalansowana: Dodaje własne elementy • Kreatywna: Swobodna improwizacja",
+    "creativityConservative": "Konserwatywna",
+    "creativityBalanced": "Zbalansowana",
+    "creativityCreative": "Kreatywna"
+  },
   "GMPromptPanel": {
     "mainPromptLabel": "Główny prompt systemowy",
     "mainPromptHelp": "To jest główny prompt, który określa jak AI ma prowadzić grę. Musi być ustawiony, aby czat działał. Możesz tu określić zasady gry, styl narracji, role Mistrza Gry itp.",
