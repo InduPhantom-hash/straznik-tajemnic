@@ -33,7 +33,7 @@ import {
   stripMeleeAttackTags,
 } from '@/lib/parsers/mechanics-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, hasRequiredKeys } from '@/lib/api-keys-service';
 import { timeManager } from '@/lib/time-manager';
 import { parseSSEStream, createSseParseErrorHandler } from '@/lib/sse-parser';
 import { trackEvent } from '@/lib/posthog';
@@ -1070,6 +1070,49 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setMessages((prev) => [...prev, assistantMessage]);
 
       try {
+        // Doktryna Czystego Emulatora BYOB - Dwuskładnikowy Bloker Sesji (Runtime Hard Guard)
+        const hasKey = typeof hasRequiredKeys === 'function' ? hasRequiredKeys() : true;
+        const isTestEnv = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+        const hasRules =
+          isTestEnv ||
+          (typeof window !== 'undefined' &&
+            (localStorage.getItem('rules_onboarding_completed') === 'true' ||
+             !!localStorage.getItem('coc7_rulebook_profile')));
+
+        if (!hasKey || !hasRules) {
+          const locale =
+            typeof window !== 'undefined' &&
+            window.location.pathname.startsWith('/en')
+              ? 'en'
+              : 'pl';
+
+          const warningContent = !hasKey
+            ? (locale === 'en'
+                ? '⚠️ API Key required. Please configure your API key to start the investigation.'
+                : '⚠️ Wymagany klucz API. Skonfiguruj klucz API, aby rozpocząć śledztwo.')
+            : (locale === 'en'
+                ? '⚠️ CoC 7e Rulebook required (BYOB Clean Emulator). Upload your Quick-Start Rules or Keeper Rulebook to enable the Game Master.'
+                : '⚠️ Wymagana Księga Zasad CoC 7e (Doktryna Czystego Emulatora BYOB). Wgraj Zasady Skrócone lub Księgę Strażnika, aby aktywować Mistrza Gry.');
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, content: warningContent }
+                : msg
+            )
+          );
+          setIsLoading(false);
+
+          if (typeof window !== 'undefined') {
+            if (!hasKey) {
+              window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
+            } else {
+              window.dispatchEvent(new CustomEvent('open-rulebook-modal'));
+            }
+          }
+          return false;
+        }
+
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

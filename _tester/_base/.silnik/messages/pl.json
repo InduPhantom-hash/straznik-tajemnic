@@ -23,7 +23,11 @@
     "authorizationRequired": "Wymagana autoryzacja",
     "openApiKeys": "Wprowadź klucz API",
     "rulesRequired": "Wymagany podręcznik zasad",
-    "openRulebook": "Wgraj zasady (CoC 7e PDF)"
+    "openRulebook": "Wgraj zasady (CoC 7e PDF)",
+    "bookRequiredTitle": "Wymagana Księga Zasad CoC 7e",
+    "bookRequiredDesc": "Aplikacja działa jako czysty emulator zasad (BYOB). Aby odblokować rozgrywkę, wgraj legalnie posiadany podręcznik zasad (Starter lub Księgę Strażnika).",
+    "starterOrCoreAccepted": "Obsługiwane formaty: Darmowy Starter (Quick-Start Rules) lub pełna Księga Strażnika CoC 7e (PDF).",
+    "legalDisclaimerNotice": "Strażnik Tajemnic AI jest oprogramowaniem open-source i nie zawiera w sobie zastrzeżonych treści ani tabel Call of Cthulhu / Chaosium Inc. Wszelkie reguły są przetwarzane wyłącznie lokalnie z pliku użytkownika."
   },
   "CostControl": {
     "title": "Kontrola Kosztów",

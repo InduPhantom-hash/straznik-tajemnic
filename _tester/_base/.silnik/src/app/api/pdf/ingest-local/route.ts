@@ -19,6 +19,7 @@ import { pdfIndexingService } from '@/lib/vector-db/pdf-indexing-service';
 import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
+import { detectRulebookProfile } from '@/lib/pdf/rulebook-fingerprint';
 import fs from 'fs';
 import path from 'path';
 
@@ -136,6 +137,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Jeśli typ to 'rules', wykonaj detekcję profilu CoC 7e i zapisz metadane
+    let rulebookProfile = null;
+    if (type === 'rules') {
+      try {
+        rulebookProfile = detectRulebookProfile(pdfText);
+        const ragDir = path.join(process.cwd(), 'data', 'rag');
+        if (!fs.existsSync(ragDir)) {
+          fs.mkdirSync(ragDir, { recursive: true });
+        }
+        fs.writeFileSync(
+          path.join(ragDir, 'rules-profile.json'),
+          JSON.stringify(rulebookProfile, null, 2),
+          'utf-8'
+        );
+        console.log(`📜 Profil podręcznika wykryty i zapisany: ${rulebookProfile.profile} (${rulebookProfile.title})`);
+      } catch (profileErr) {
+        console.warn('⚠️ Nie udało się zapisać profilu podręcznika:', profileErr);
+      }
+    }
+
     // Jeśli typ to 'adventure' i dostępny jest klucz Gemini, wykonaj rozszerzoną ekstrakcję struktur
     let extractedAdventure = null;
     if (type === 'adventure' && geminiApiKey) {
@@ -158,6 +179,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ...result,
+      rulebookProfile,
       extractedAdventure,
     });
   } catch (error) {
@@ -182,10 +204,23 @@ export async function GET(request: NextRequest) {
     const { localVectorStore } = await import('@/lib/vector-db/local-vector-store');
     const recordCount = localVectorStore.getNamespaceCount(type);
 
+    let rulebookProfile = null;
+    if (type === 'rules') {
+      try {
+        const profilePath = path.join(process.cwd(), 'data', 'rag', 'rules-profile.json');
+        if (fs.existsSync(profilePath)) {
+          rulebookProfile = JSON.parse(fs.readFileSync(profilePath, 'utf-8'));
+        }
+      } catch (err) {
+        console.warn('Błąd odczytu rules-profile.json:', err);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       type,
       recordCount,
+      rulebookProfile,
     });
   } catch (error) {
     console.error('Błąd GET ingest-local:', error);

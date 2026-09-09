@@ -292,14 +292,25 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
               </button>
             </div>
           ) : !hasRules ? (
-            <div className="bg-black/60 border border-brass/50 p-6 rounded-md shadow-[0_0_40px_rgba(201,162,39,0.1)] max-w-lg w-full relative z-30">
-              <div className="mb-4 text-center font-display uppercase tracking-[0.2em] text-primary text-sm">
-                {t('rulesRequired')}
+            <div className="bg-black/70 border border-brass/60 p-6 rounded-lg shadow-[0_0_40px_rgba(201,162,39,0.15)] max-w-xl w-full relative z-30 text-left">
+              <div className="mb-2 text-center font-display uppercase tracking-[0.2em] text-primary text-sm font-semibold">
+                {t('bookRequiredTitle')}
+              </div>
+              <p className="text-xs text-muted-foreground text-center mb-4 leading-relaxed font-sans">
+                {t('bookRequiredDesc')}
+              </p>
+              <div className="mb-4 p-3 bg-card/60 border border-brass/30 rounded-md text-xs text-brass/90 space-y-1.5">
+                <div className="font-semibold text-primary">
+                  📜 {t('starterOrCoreAccepted')}
+                </div>
+                <div className="text-[11px] text-muted-foreground leading-normal">
+                  {t('legalDisclaimerNotice')}
+                </div>
               </div>
               <button
                 type="button"
                 onClick={onUploadRules}
-                className="w-full font-display uppercase tracking-[0.14em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all cursor-pointer"
+                className="w-full font-display uppercase tracking-[0.14em] text-sm py-3 text-[#04110f] bg-primary border border-primary hover:brightness-110 transition-all cursor-pointer font-bold"
               >
                 {t('openRulebook')}
               </button>
