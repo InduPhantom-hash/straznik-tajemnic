@@ -25,15 +25,29 @@ export interface ApiKeys {
 const STORAGE_KEY = 'zew-app-api-keys';
 
 /**
+ * Oczyszcza klucz API / ID projektu z niewidocznych znaków Unicode,
+ * separatorów linii (\u2028, \u2029), BOM (\uFEFF) oraz znaków spoza bezpiecznego ASCII (33-126).
+ * Zapewnia 100% zgodności ze specyfikacją HTTP RFC 7230 i WHATWG Fetch (ISO-8859-1).
+ */
+export function sanitizeApiKey(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.replace(/[^\x21-\x7E]/g, '').trim();
+}
+
+/**
  * Zapisuje klucze API do localStorage
  */
 export function saveApiKeys(keys: ApiKeys): void {
   if (typeof window === 'undefined') return;
 
-  // Filtruj puste wartości
-  const filtered = Object.fromEntries(
-    Object.entries(keys).filter(([, v]) => v && v.trim() !== '')
-  );
+  // Sanityzuj i filtruj puste wartości
+  const filtered: ApiKeys = {};
+  for (const [k, v] of Object.entries(keys)) {
+    const clean = sanitizeApiKey(v);
+    if (clean) {
+      filtered[k as keyof ApiKeys] = clean;
+    }
+  }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 
@@ -44,14 +58,23 @@ export function saveApiKeys(keys: ApiKeys): void {
 }
 
 /**
- * Pobiera klucze API z localStorage
+ * Pobiera klucze API z localStorage (automatycznie sanityzuje zapisane dane)
  */
 export function getApiKeys(): ApiKeys {
   if (typeof window === 'undefined') return {};
 
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {};
+    if (!stored) return {};
+    const parsed = JSON.parse(stored) as Record<string, unknown>;
+    const sanitized: ApiKeys = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      const clean = sanitizeApiKey(v);
+      if (clean) {
+        sanitized[k as keyof ApiKeys] = clean;
+      }
+    }
+    return sanitized;
   } catch {
     return {};
   }
@@ -75,27 +98,33 @@ export function clearApiKeys(): void {
 }
 
 /**
- * Zwraca nagłówki HTTP z kluczami API do użycia w fetch()
+ * Zwraca nagłówki HTTP z kluczami API do użycia w fetch().
+ * Gwarantuje, że nagłówki zawierają wyłącznie bezpieczny ASCII/ISO-8859-1 (brak awarii fetch).
  */
 export function getApiKeyHeaders(): Record<string, string> {
   const keys = getApiKeys();
   const headers: Record<string, string> = {};
 
-  if (keys.GEMINI_API_KEY) {
-    headers['X-Gemini-Api-Key'] = keys.GEMINI_API_KEY;
+  const gemini = sanitizeApiKey(keys.GEMINI_API_KEY);
+  if (gemini) {
+    headers['X-Gemini-Api-Key'] = gemini;
   }
-  if (keys.PINECONE_API_KEY) {
-    headers['X-Pinecone-Api-Key'] = keys.PINECONE_API_KEY;
+  const pinecone = sanitizeApiKey(keys.PINECONE_API_KEY);
+  if (pinecone) {
+    headers['X-Pinecone-Api-Key'] = pinecone;
   }
   // M5 sesja 146: ELEVENLABS_API_KEY header DROPPED per D2.
-  if (keys.REPLICATE_API_TOKEN) {
-    headers['X-Replicate-Api-Token'] = keys.REPLICATE_API_TOKEN;
+  const replicate = sanitizeApiKey(keys.REPLICATE_API_TOKEN);
+  if (replicate) {
+    headers['X-Replicate-Api-Token'] = replicate;
   }
-  if (keys.VERTEX_AI_API_KEY) {
-    headers['X-Vertex-Api-Key'] = keys.VERTEX_AI_API_KEY;
+  const vertex = sanitizeApiKey(keys.VERTEX_AI_API_KEY);
+  if (vertex) {
+    headers['X-Vertex-Api-Key'] = vertex;
   }
-  if (keys.VERTEX_AI_PROJECT_ID) {
-    headers['X-Vertex-Project-Id'] = keys.VERTEX_AI_PROJECT_ID;
+  const project = sanitizeApiKey(keys.VERTEX_AI_PROJECT_ID);
+  if (project) {
+    headers['X-Vertex-Project-Id'] = project;
   }
 
   return headers;
