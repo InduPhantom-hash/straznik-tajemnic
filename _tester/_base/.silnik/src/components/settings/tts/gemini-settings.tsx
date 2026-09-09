@@ -8,6 +8,7 @@ import {
 } from '@/lib/gemini-voices';
 import { HelpIcon } from '../../ui/tooltip';
 import { Button } from '../../ui/button';
+import { getApiKeyHeaders } from '@/lib/api-keys-service';
 
 const ROLES = [
   'narrator',
@@ -43,7 +44,10 @@ export function GeminiSettings({
     try {
       const response = await fetch('/api/tts/gemini', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getApiKeyHeaders(),
+        },
         body: JSON.stringify({
           text: t('sampleText'),
           voice: settings.voiceSettings.voiceId || DEFAULT_GEMINI_VOICE,

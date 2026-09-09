@@ -22,7 +22,7 @@
  * Dołączana do audioDirection dla języka polskiego.
  */
 export const POLISH_PHONETIC_AUDIO_DIRECTIVE =
-  'Speak in authentic, native Polish pronunciation with crisp, sharp, and distinct articulation of Polish consonants (sz, cz, rz, ż, ź, ć, ś, ł, ą, ę). Never pronounce Polish words with English phonetics or foreign accent.';
+  'Speak in authentic, native Polish pronunciation with crisp, clear, and distinct articulation of Polish speech sounds.';
 
 /**
  * Słownik homografów i słów wrażliwych fonetycznie:

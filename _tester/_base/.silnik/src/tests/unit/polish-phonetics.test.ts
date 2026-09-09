@@ -59,7 +59,7 @@ describe('Polish Phonetics & Pronunciation Normalizer (Issue #173)', () => {
       const enhanced = enhanceAudioDirectionWithPhonetics(direction, 'pl');
       expect(enhanced).toContain(direction);
       expect(enhanced).toContain(POLISH_PHONETIC_AUDIO_DIRECTIVE);
-      expect(enhanced).toContain('crisp, sharp, and distinct articulation of Polish consonants');
+      expect(enhanced).toContain('crisp, clear, and distinct articulation');
     });
 
     it('nie dubluje dyrektywy jeśli instrukcja już zawiera wskazówki polskiej fonetyki', () => {
