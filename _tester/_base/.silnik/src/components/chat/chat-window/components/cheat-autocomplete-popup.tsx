@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { Terminal, Sparkles, ShieldAlert, Footprints, Package, Dices, Skull } from 'lucide-react';
+import { Terminal, Sparkles, ShieldAlert, Footprints, Package, Dices, Skull, BookOpen } from 'lucide-react';
 import type { CheatSuggestion } from '@/lib/cheats/cheat-engine';
 
 interface CheatAutocompletePopupProps {
@@ -26,6 +26,7 @@ const CATEGORY_ICONS: Record<CheatSuggestion['category'], React.ReactNode> = {
   items: <Package className="w-3.5 h-3.5 text-brass" />,
   world: <Sparkles className="w-3.5 h-3.5 text-gold" />,
   retro: <Skull className="w-3.5 h-3.5 text-gold" />,
+  magic: <BookOpen className="w-3.5 h-3.5 text-purple-400" />,
 };
 
 export const CheatAutocompletePopup: React.FC<CheatAutocompletePopupProps> = ({

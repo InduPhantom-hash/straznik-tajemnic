@@ -183,7 +183,8 @@ export type JournalEventType =
   | 'note' // 📝 Notatka
   | 'item'
   | 'quest'
-  | 'journal';
+  | 'journal'
+  | 'case';
 
 // Wpis dziennika sesji
 export interface JournalEntry {

@@ -33,6 +33,7 @@ import type { DiscoveryEntry } from './journal/discoveries-view';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
+  | 'case'
   | 'quest'
   | 'journal'
   | 'location'
@@ -229,10 +230,13 @@ export function SessionJournal({
   const dossierDiscoveryEntries = useMemo(() => {
     const list: DiscoveryEntry[] = [];
     const seenIds = new Set<string>();
+    const seenTitles = new Set<string>();
 
     if (Array.isArray(dossier.clues)) {
       dossier.clues.forEach((c) => {
         seenIds.add(c.id);
+        const normTitle = (c.title || '').toLowerCase().trim();
+        if (normTitle) seenTitles.add(normTitle);
         list.push({
           id: c.id,
           title: c.title,
@@ -247,7 +251,6 @@ export function SessionJournal({
           clueStatus: c.status,
           isKeyClue: c.isKeyClue,
           linkedNodeIds: c.linkedNodeIds,
-          alternativeClueTrails: c.alternativeClueTrails,
           sourceNpc: c.sourceNpc,
           foundLocation: c.foundLocation,
           questStatus:
@@ -263,6 +266,8 @@ export function SessionJournal({
     if (Array.isArray(dossier.npcs)) {
       dossier.npcs.forEach((n) => {
         seenIds.add(n.id);
+        const normName = (n.name || '').toLowerCase().trim();
+        if (normName) seenTitles.add(normName);
         list.push({
           id: n.id,
           title: n.name,
@@ -278,7 +283,7 @@ export function SessionJournal({
           foundLocation: n.location,
           physiologicalDetail: n.physiologicalDetail,
           sociologicalStatus: n.sociologicalStatus,
-          psychologicalAgenda: n.psychologicalAgenda,
+          // psychologicalAgenda jest poufną wiedzą MG i nie trafia do widoku gracza
         });
       });
     }
@@ -286,6 +291,8 @@ export function SessionJournal({
     if (Array.isArray(dossier.locations)) {
       dossier.locations.forEach((l) => {
         seenIds.add(l.id);
+        const normLoc = (l.name || '').toLowerCase().trim();
+        if (normLoc) seenTitles.add(normLoc);
         list.push({
           id: l.id,
           title: l.name,
@@ -304,16 +311,29 @@ export function SessionJournal({
     }
 
     entries.forEach((e) => {
+      const normTitle = (e.title || '').toLowerCase().trim();
+      // Twarda deduplikacja po ID lub znormalizowanym tytule
+      if (seenIds.has(e.id) || (normTitle && seenTitles.has(normTitle))) {
+        return;
+      }
+
+      const isCaseIntro =
+        e.type === 'case' ||
+        normTitle === 'początek śledztwa' ||
+        normTitle === 'beginning the investigation' ||
+        normTitle === 'beginning of the investigation';
+
       if (
-        !seenIds.has(e.id) &&
-        ['quest', 'npc', 'location', 'item', 'document', 'handout', 'discovery'].includes(e.type)
+        isCaseIntro ||
+        ['quest', 'npc', 'location', 'item', 'document', 'handout', 'discovery', 'clue'].includes(e.type)
       ) {
         seenIds.add(e.id);
+        if (normTitle) seenTitles.add(normTitle);
         list.push({
           id: e.id,
           title: e.title,
           content: e.content,
-          type: e.type,
+          type: isCaseIntro ? 'case' : e.type,
           tags: e.tags,
           imageUrl: (e as unknown as Record<string, string>).imageUrl,
           imageStatus: (e as unknown as Record<string, string>).imageStatus,
@@ -470,7 +490,17 @@ export function SessionJournal({
       // Dopasowanie do zakładki
       if (activeTab === 'quest' && entry.type !== 'quest') return false;
       if (activeTab === 'journal' && entry.type !== 'journal') return false;
-      if (activeTab === 'note' && entry.type !== 'note') return false;
+      if (activeTab === 'note') {
+        if (entry.type !== 'note') return false;
+        const normTitle = (entry.title || '').toLowerCase().trim();
+        if (
+          normTitle === 'początek śledztwa' ||
+          normTitle === 'beginning the investigation' ||
+          normTitle === 'beginning of the investigation'
+        ) {
+          return false;
+        }
+      }
       if (activeTab === 'npc') {
         if (
           entry.type !== 'npc' &&
@@ -1007,7 +1037,7 @@ export function SessionJournal({
                   <div
                     key={entry.id}
                     className="bg-[#f0e6d2] border-[8px] border-[#f0e6d2] border-b-[24px] hover:scale-[1.02] hover:-rotate-1 transition-transform shadow-xl rounded-sm p-0 flex flex-col justify-between min-h-[220px] group relative text-[#2a1b12]"
-                    style={{ transform: `rotate(${Math.random() * 4 - 2}deg)` }}
+                    style={{ transform: `rotate(${((entry.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 5) - 2)}deg)` }}
                   >
                     {/* Przypinka */}
                     <div className="absolute -top-[16px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#8a1c1c] shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.5),2px_2px_4px_rgba(0,0,0,0.4)] z-10 border border-[#4a0c0c]">

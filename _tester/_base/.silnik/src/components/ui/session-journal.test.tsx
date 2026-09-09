@@ -399,6 +399,154 @@ describe('SessionJournal', () => {
 
     window.URL.createObjectURL = originalCreateObjectURL;
   });
+
+  it('eliminuje duplikaty postaci i lokacji pomiędzy investigatorDossier a character.journal', () => {
+    const charWithDuplicates: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      investigatorDossier: {
+        clues: [],
+        npcs: [
+          {
+            id: 'npc-tadeusz-wrona-1725',
+            name: 'Tadeusz Wrona',
+            firstImpression: 'Zgarbiony urzędnik w znoszonej kamizelce',
+            relationshipStatus: 'neutral',
+          },
+        ],
+        locations: [
+          {
+            id: 'loc-pokoj-redakcyjny-1725',
+            name: 'Pokój redakcyjny na Woronicza',
+            description: 'Duszny pokój z meblami z płyty paździerzowej',
+            searchStatus: 'partially_searched',
+          },
+        ],
+        notes: [],
+      },
+      journal: [
+        {
+          id: 'journal-msg1-npc-tadeusz-wrona',
+          title: 'Tadeusz Wrona',
+          content: 'Zgarbiony urzędnik',
+          type: 'npc',
+          timestamp: new Date(),
+          tags: [],
+          isBookmarked: false,
+        },
+        {
+          id: 'location-msg1',
+          title: 'Pokój redakcyjny na Woronicza',
+          content: 'Duszny pokój',
+          type: 'location',
+          timestamp: new Date(),
+          tags: [],
+          isBookmarked: false,
+        },
+      ],
+    };
+
+    render(
+      <SessionJournal
+        character={charWithDuplicates}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    // Miejsca (domyślna kategoria w DiscoveriesView)
+    const locationItems = screen.getAllByText('Pokój redakcyjny na Woronicza');
+    expect(locationItems.length).toBeLessThanOrEqual(2);
+
+    // Przełącz na Postacie
+    fireEvent.click(screen.getByRole('button', { name: /Postacie/i }));
+    const npcItems = screen.getAllByText('Tadeusz Wrona');
+    expect(npcItems.length).toBeLessThanOrEqual(2);
+  });
+
+  it('nie ujawnia ukrytej motywacji/lęku NPC ani żargonu scenopisarskiego graczowi', () => {
+    const charWithSecret: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      investigatorDossier: {
+        clues: [],
+        npcs: [
+          {
+            id: 'npc-tadeusz-wrona',
+            name: 'Tadeusz Wrona',
+            firstImpression: 'Zgarbiony urzędnik',
+            physiologicalDetail: 'Nerwowo przygryza dolną wargę',
+            sociologicalStatus: 'Archiwista taśm TVP',
+            psychologicalAgenda: 'Panicznie boi się utraty posady i wizyt panów z Rakowieckiej',
+            relationshipStatus: 'neutral',
+          },
+        ],
+        locations: [],
+        notes: [],
+      },
+      journal: [],
+    };
+
+    render(
+      <SessionJournal
+        character={charWithSecret}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Postacie/i }));
+
+    // Obserwacje są widoczne
+    expect(screen.getByText('Rysopis i obserwacja śledcza')).toBeInTheDocument();
+    expect(screen.getByText('Nerwowo przygryza dolną wargę')).toBeInTheDocument();
+    expect(screen.getByText('Archiwista taśm TVP')).toBeInTheDocument();
+
+    // Ukryte motywacje i żargon MG są całkowicie niewidoczne dla gracza
+    expect(screen.queryByText(/Panicznie boi się utraty posady/i)).toBeNull();
+    expect(screen.queryByText(/Lajos Egri/i)).toBeNull();
+    expect(screen.queryByText(/Ukryta motywacja/i)).toBeNull();
+  });
+
+  it('odfiltrowuje wpis Początek śledztwa z zakładki Notatki i przenosi do Akt Sprawy', () => {
+    const charWithIntro: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      investigatorDossier: {
+        clues: [],
+        npcs: [],
+        locations: [],
+        notes: [],
+      },
+      journal: [
+        {
+          id: 'journal-start-1',
+          title: 'Początek śledztwa',
+          content: 'Warszawa, 14 stycznia 1973. W redakcji na Woronicza archiwista przekazał mi nieocenzurowaną teczkę.',
+          type: 'note',
+          timestamp: new Date(),
+          tags: [],
+          isBookmarked: false,
+        },
+      ],
+    };
+
+    render(
+      <SessionJournal
+        character={charWithIntro}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    // W zakładce Notatki wpis nie zaśmieca prywatnego notesu
+    fireEvent.click(screen.getByRole('button', { name: /^Notatki/i }));
+    expect(screen.queryByText('Początek śledztwa')).toBeNull();
+    expect(screen.getByText(/Notes śledczy jest pusty/i)).toBeInTheDocument();
+
+    // W Aktach Śledczych jest dostępny w kategorii Akta Sprawy
+    fireEvent.click(screen.getByTestId('btn-discoveries'));
+    fireEvent.click(screen.getByRole('button', { name: /Akta Sprawy/i }));
+    expect(screen.getAllByText('Początek śledztwa')[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/archiwista przekazał mi nieocenzurowaną teczkę/i)[0]).toBeInTheDocument();
+  });
 });
 
 

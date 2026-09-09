@@ -108,4 +108,63 @@ describe('Cheat Engine (Retro Kodów CoC 7e)', () => {
     expect(chaseRes.isCheat).toBe(true);
     expect(chaseRes.openChaseModal).toBe(true);
   });
+
+  it('wykonuje [SPELL] oraz alias [CZAR] generując zdarzenie rzucania zaklęcia', () => {
+    const spellRes = executeCheatCommand('[SPELL: wither-limb | cel=Kultysta | pow=65]', mockCharacter, 'pl');
+    expect(spellRes.isCheat).toBe(true);
+    expect(spellRes.assistantMessage?.spellCastEvents).toBeDefined();
+    expect(spellRes.assistantMessage?.spellCastEvents?.[0].spellId).toBe('wither-limb');
+    expect(spellRes.assistantMessage?.spellCastEvents?.[0].targetName).toBe('Kultysta');
+    expect(spellRes.assistantMessage?.spellCastEvents?.[0].targetPow).toBe(65);
+
+    const czarRes = executeCheatCommand('[CZAR: elder-sign]', mockCharacter, 'pl');
+    expect(czarRes.isCheat).toBe(true);
+    expect(czarRes.assistantMessage?.spellCastEvents?.[0].spellId).toBe('elder-sign');
+  });
+
+  it('wykonuje [TOME] oraz alias [TOM] generując zdarzenie lektury tomu', () => {
+    const tomeRes = executeCheatCommand('[TOME: necronomicon-latin | akcja=study]', mockCharacter, 'pl');
+    expect(tomeRes.isCheat).toBe(true);
+    expect(tomeRes.assistantMessage?.tomeStudyEvents).toBeDefined();
+    expect(tomeRes.assistantMessage?.tomeStudyEvents?.[0].tomeId).toBe('necronomicon-latin');
+    expect(tomeRes.assistantMessage?.tomeStudyEvents?.[0].action).toBe('study');
+
+    const tomRes = executeCheatCommand('[TOM: de-vermis-mysteriis | akcja=reference | temat=Nyarlathotep]', mockCharacter, 'pl');
+    expect(tomRes.isCheat).toBe(true);
+    expect(tomRes.assistantMessage?.tomeStudyEvents?.[0].tomeId).toBe('de-vermis-mysteriis');
+    expect(tomRes.assistantMessage?.tomeStudyEvents?.[0].action).toBe('reference');
+    expect(tomRes.assistantMessage?.tomeStudyEvents?.[0].topic).toBe('Nyarlathotep');
+  });
+
+  it('wykonuje [HAZARD] oraz warianty RAW (upadek, trucizna, ogień, tonięcie, ZAGROŻENIE)', () => {
+    const fallRes = executeCheatCommand('[HAZARD: upadek | wys=6m | podloze=twarde | opis=Upadek z dachu]', mockCharacter, 'pl');
+    expect(fallRes.isCheat).toBe(true);
+    expect(fallRes.assistantMessage?.hazardEvents).toBeDefined();
+    expect(fallRes.assistantMessage?.hazardEvents?.[0].type).toBe('falling');
+    expect(fallRes.assistantMessage?.hazardEvents?.[0].fallHeightMeters).toBe(6);
+    expect(fallRes.assistantMessage?.hazardEvents?.[0].surface).toBe('hard');
+    expect(fallRes.assistantMessage?.hazardEvents?.[0].description).toBe('Upadek z dachu');
+
+    const poisonRes = executeCheatCommand('[HAZARD_POISON: trucizna | kategoria=silna | nazwa=Cyjanek | opis=Zatrute wino]', mockCharacter, 'pl');
+    expect(poisonRes.isCheat).toBe(true);
+    expect(poisonRes.assistantMessage?.hazardEvents?.[0].type).toBe('poison');
+    expect(poisonRes.assistantMessage?.hazardEvents?.[0].poisonSeverity).toBe('strong');
+    expect(poisonRes.assistantMessage?.hazardEvents?.[0].poisonName).toBe('Cyjanek');
+
+    const fireRes = executeCheatCommand('[HAZARD_FIRE: ogien | intensywnosc=major | rundy=2 | opis=Pożar]', mockCharacter, 'pl');
+    expect(fireRes.isCheat).toBe(true);
+    expect(fireRes.assistantMessage?.hazardEvents?.[0].type).toBe('fire');
+    expect(fireRes.assistantMessage?.hazardEvents?.[0].fireIntensity).toBe('major');
+    expect(fireRes.assistantMessage?.hazardEvents?.[0].fireRounds).toBe(2);
+
+    const drownRes = executeCheatCommand('[HAZARD_DROWN: toniecie | rodzaj=woda | opis=Pod wodą]', mockCharacter, 'pl');
+    expect(drownRes.isCheat).toBe(true);
+    expect(drownRes.assistantMessage?.hazardEvents?.[0].type).toBe('drowning');
+    expect(drownRes.assistantMessage?.hazardEvents?.[0].airlessKind).toBe('water');
+
+    const plAliasRes = executeCheatCommand('[ZAGROŻENIE: typ=kwas | moc=silna | opis=Kwas siarkowy]', mockCharacter, 'pl');
+    expect(plAliasRes.isCheat).toBe(true);
+    expect(plAliasRes.assistantMessage?.hazardEvents?.[0].type).toBe('acid');
+    expect(plAliasRes.assistantMessage?.hazardEvents?.[0].acidPotency).toBe('immersion');
+  });
 });
