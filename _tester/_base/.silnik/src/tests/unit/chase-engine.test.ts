@@ -554,4 +554,147 @@ describe('chase-engine (CoC 7e RAW)', () => {
       });
     });
   });
+
+  describe('Tryb Duet / Wielu uciekających badaczy', () => {
+    it('Inicjuje stan z dwoma badaczami i sortuje kolejkę po DEX', () => {
+      const state = createChaseState({
+        fleeing: [
+          {
+            id: 'investigator_fast',
+            name: 'Francis',
+            isPlayer: true,
+            mov: 9,
+            dex: 70,
+          },
+          {
+            id: 'investigator_slow',
+            name: 'Margaret',
+            isPlayer: true,
+            mov: 7,
+            dex: 40,
+          },
+        ],
+        pursuers: [
+          {
+            id: 'beast',
+            name: 'Ogar z Tindalos',
+            isPlayer: false,
+            mov: 10,
+            dex: 60,
+          },
+        ],
+        initialDistance: 2,
+      });
+
+      expect(state.participants.length).toBe(3);
+      // Min MOV = 7 (Margaret). Margaret = 1 akcja, Francis = 1 + (9-7) = 3 akcje, Bestia = 1 + (10-7) = 4 akcje
+      const margaret = state.participants.find((p) => p.id === 'investigator_slow');
+      const francis = state.participants.find((p) => p.id === 'investigator_fast');
+      const beast = state.participants.find((p) => p.id === 'beast');
+
+      expect(margaret?.actionsTotal).toBe(1);
+      expect(francis?.actionsTotal).toBe(3);
+      expect(beast?.actionsTotal).toBe(4);
+
+      // Turn order po DEX: Francis (70) -> Bestia (60) -> Margaret (40)
+      expect(state.turnOrder).toEqual([
+        'investigator_fast',
+        'beast',
+        'investigator_slow',
+      ]);
+      expect(state.activeActorId).toBe('investigator_fast');
+    });
+
+    it('Pozwala na manewr aktywnego badacza w jego turze i przekazuje turę dalej', () => {
+      const state = createChaseState({
+        fleeing: [
+          {
+            id: 'inv_1',
+            name: 'Francis',
+            isPlayer: true,
+            mov: 8,
+            dex: 80,
+          },
+          {
+            id: 'inv_2',
+            name: 'Margaret',
+            isPlayer: true,
+            mov: 8,
+            dex: 30,
+          },
+        ],
+        pursuers: [
+          {
+            id: 'cultist',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            dex: 50,
+          },
+        ],
+        initialDistance: 2,
+      });
+
+      // Runda 1: Tura Francisa (DEX 80)
+      const { nextState: afterFrancis } = executePlayerManeuver(state, {
+        type: 'sprint',
+        actorId: 'inv_1',
+      });
+
+      expect(afterFrancis.participants.find((p) => p.id === 'inv_1')?.segmentIndex).toBe(3);
+      // Francis miał 1 akcję (MOV równy), po jej zużyciu aktywny staje się Kultysta (DEX 50)
+      expect(afterFrancis.activeActorId).toBe('cultist');
+
+      // Tura Kultysty
+      const { nextState: afterCultist } = executePursuerTurns(afterFrancis);
+      // Po turze Kultysty aktywna staje się Margaret (DEX 30)
+      expect(afterCultist.activeActorId).toBe('inv_2');
+
+      // Tura Margaret
+      const { nextState: afterMargaret } = executePlayerManeuver(afterCultist, {
+        type: 'sprint',
+        actorId: 'inv_2',
+      });
+      expect(afterMargaret.participants.find((p) => p.id === 'inv_2')?.segmentIndex).toBe(3);
+    });
+
+    it('formatChaseForChat formatuje status dla każdego badacza w Duecie', () => {
+      const state = createChaseState({
+        fleeing: [
+          {
+            id: 'inv_1',
+            name: 'Francis',
+            isPlayer: true,
+            mov: 8,
+            dex: 80,
+          },
+          {
+            id: 'inv_2',
+            name: 'Margaret',
+            isPlayer: true,
+            mov: 8,
+            dex: 30,
+          },
+        ],
+        pursuers: [
+          {
+            id: 'cultist',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            dex: 50,
+          },
+        ],
+        initialDistance: 2,
+      });
+
+      const reportPl = formatChaseForChat(state, undefined, 'pl');
+      expect(reportPl).toContain('@Francis');
+      expect(reportPl).toContain('@Margaret');
+
+      const reportEn = formatChaseForChat(state, undefined, 'en');
+      expect(reportEn).toContain('@Francis');
+      expect(reportEn).toContain('@Margaret');
+    });
+  });
 });
