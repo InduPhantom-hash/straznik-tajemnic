@@ -5,6 +5,7 @@ import type {
   CombatResolution,
   PendingMeleeAttack,
 } from './combat/combat-resolver';
+import type { CharacterMagicState } from './magic/types';
 
 // === WIADOMOŚĆ CZATU ===
 // Przeniesiona z page.tsx dla centralizacji typów
@@ -533,6 +534,9 @@ export interface Character {
   move?: number;
   damageBonus?: string;
   build?: number;
+
+  // === MAGIA I TOMISKA MITÓW (CoC 7e RAW & Wielki Grymuar) ===
+  magic?: CharacterMagicState;
 
   // Dane dodatkowe dla karty postaci
   portraitUrl?: string;

@@ -38,6 +38,7 @@ flowchart LR
 | Specyfikacja sceny | `VisualSceneSpec` | adapter obrazu i test promptu | cache obrazu i metadata |
 | Kreator postaci | `Character` | Hot Seat, karta, mechanika, save | localStorage i `FullGameSave` |
 | Katalog ekwipunku | `templateId` i `EquipmentItem` | postać, dziennik, renderer | save i lokalny asset WebP |
+| Magia i tomiska CoC 7e RAW | `CharacterMagicState`, `SpellDefinition`, `TomeDefinition` | silnik magii, karta postaci, save | stan postaci (`Character.magic`) i save |
 | Wynik testu | wynik mechaniczny z kodu | narracja i dziennik | wiadomości i save |
 | Lokalny RAG | trafienia z namespace rules, adventure, mythos, memory | preflight i chat | dane na dysku |
 | Rejestr nawigacji | 31 węzłów i 30 akcji | guard, generator mapy, E2E | JSON w runtime |
