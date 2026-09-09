@@ -5216,6 +5216,30 @@
     "title": "Gemini · advanced",
     "warning": "These settings directly affect model behavior. Change them only if you know what you are doing."
   },
+  "GameMasterSettings": {
+    "eyebrow": "Keeper's Soul",
+    "title": "Keeper System Prompt",
+    "titleHelp": "Configure AI Keeper behavior and narration style.",
+    "enableNarrationLabel": "Enable Narration",
+    "enableNarrationHelp": "Enables the AI Keeper narration system. Without this, the AI will not generate scene descriptions or guide the game."
+  },
+  "GMStyleGrid": {
+    "responseLengthLabel": "Response Length",
+    "responseLengthHelp": "Short: 1-2 sentences • Medium: 3-5 sentences • Long: Full paragraphs with vivid details",
+    "lengthShort": "Short",
+    "lengthMedium": "Medium",
+    "lengthLong": "Long",
+    "detailLevelLabel": "Detail Level",
+    "detailLevelHelp": "Minimal: Core actionable facts • Standard: Balanced atmosphere • Detailed: Rich descriptions with sensory depth",
+    "detailMinimal": "Minimal",
+    "detailStandard": "Standard",
+    "detailDetailed": "Detailed",
+    "creativityLabel": "Creativity",
+    "creativityHelp": "Conservative: Strictly adheres to scenario • Balanced: Contextual flexibility • Creative: Bold atmospheric improvisation",
+    "creativityConservative": "Conservative",
+    "creativityBalanced": "Balanced",
+    "creativityCreative": "Creative"
+  },
   "GMPromptPanel": {
     "mainPromptLabel": "Main system prompt",
     "mainPromptHelp": "This is the main prompt that defines how the AI runs the game. It must be set for the chat to work. Here you can define game rules, narrative style, Keeper roles etc.",

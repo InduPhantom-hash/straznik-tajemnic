@@ -12,6 +12,7 @@ import { buildSessionZeroInstructions } from '../prompts/session-zero-instructio
 import { SKILL_RESULT_INSTRUCTIONS } from '../prompts/skill-result-instructions';
 import { HANDOUT_INSTRUCTIONS } from '../prompts/handout-instructions';
 import { buildAdvancedNarrationInstructions } from '../prompts/advanced-narration-instructions';
+import { buildNarrativeStyleInstructions } from '../prompts/narrative-style-instructions';
 
 // Funkcje pomocnicze dla ustawień narracji mistrza gry
 
@@ -70,6 +71,15 @@ export const getGameMasterPrompt = (
     prompt = prompt + SKILL_RESULT_INSTRUCTIONS;
   }
 
+  // === KALIBRACJA STYLU I DŁUGOŚCI NARRACJI (Issue #279) ===
+  prompt =
+    prompt +
+    buildNarrativeStyleInstructions(
+      narration.style,
+      narration.behavior,
+      locale
+    );
+
   return prompt;
 };
 
@@ -102,11 +112,6 @@ export const getOptimizedGameMasterPrompt = (
   // OPT-03: Shared image instructions builder (single source of truth)
   prompt = prompt + buildImageInstructions(settings);
 
-  // IND-156 (sesja 64): Hot Seat block dropnięty - był DEAD CODE server-side
-  // (`typeof window !== 'undefined'` zwraca FALSE w Node.js, a funkcja jest
-  // wołana TYLKO server-side z chat/route.ts:125). Aktywny fix Hot Seat to
-  // OPT-22 w chat/route.ts:273-284 (`hotSeatConfig` z request body).
-
   // Add contextual handout instructions when document-finding is detected
   if (context.findingDocument) {
     prompt = prompt + HANDOUT_INSTRUCTIONS;
@@ -116,6 +121,15 @@ export const getOptimizedGameMasterPrompt = (
   prompt =
     prompt +
     buildAdvancedNarrationInstructions(settings.gmTools?.advancedNarration);
+
+  // KALIBRACJA STYLU I DŁUGOŚCI NARRACJI (Issue #279)
+  prompt =
+    prompt +
+    buildNarrativeStyleInstructions(
+      narration.style,
+      narration.behavior,
+      'pl'
+    );
 
   return prompt;
 };

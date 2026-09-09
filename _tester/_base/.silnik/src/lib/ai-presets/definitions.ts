@@ -18,7 +18,7 @@ export const QUALITY_PRESETS = {
     description:
       'Gemini Flash-Lite, bez lektora, bez obrazów - najtańszy (~$0.02-0.05/sesja)',
     settings: {
-      // Gemini settings - Gemini Flash-Lite Latest!
+      // Gemini settings - Gemini Flash-Lite Latest
       model: 'gemini-flash-lite-latest' as const, // Ultra-szybki i tani
       temperature: 0.7,
       topP: 0.85,
@@ -38,20 +38,21 @@ export const QUALITY_PRESETS = {
       ttsEnabled: false,
       ttsProvider: 'gemini' as const,
       ttsVoice: null,
-      // Image settings - 2026-07-25: pure text, obrazy wyłączone
+      // Image settings - pure text, obrazy wyłączone
       imagesEnabled: false,
       imageProvider: 'vertex' as const,
       imageQuality: 'medium' as const,
-      // Narration style
-      responseLength: 'medium' as const,
-      detailLevel: 'standard' as const,
+      // Narration style - zwięzła narracja
+      responseLength: 'short' as const,
+      detailLevel: 'minimal' as const,
+      creativity: 'conservative' as const,
     },
   },
 
   mid: {
     name: 'MID COST',
     description:
-      'Gemini Flash Latest + lektor (Gemini TTS) + obrazy Gemini (~$0.20/sesja)',
+      'Gemini Flash Latest + lektor Charon (Gemini TTS) + obrazy Imagen (~$0.20/sesja)',
     settings: {
       // Gemini settings - Gemini Flash Latest
       model: 'gemini-flash-latest' as const,
@@ -69,30 +70,28 @@ export const QUALITY_PRESETS = {
       },
       enableCache: true,
       cacheTTL: 60 * 60 * 1000, // 1h
-      // TTS settings - Charon (Gemini prebuilt) jako lektor. Fork Zew Home tnie cały
-      // TTS przez /api/tts/gemini, który odrzuca głosy spoza katalogu Gemini
-      // (gemini-voices.ts). Stary 'pl-PL-Chirp3-HD-Enceladus' (Google Cloud TTS) dawał
-      // 400 → lektor niemy na MID. Charon = spójny narrator z HIGH.
+      // TTS settings - Charon jako jeden stabilny lektor
       ttsEnabled: true,
       ttsProvider: 'gemini' as const,
       ttsVoice: 'Charon',
-      // Sesja 147 Faza 3: MID = jeden głos narratora (zgodność z dispatch jednoVoice).
-      // Multi-voice "słuchowisko radiowe" dostępne TYLKO w preset ULTRA.
       narratorOnly: true,
-      // Image settings - M2 sesja 146: Imagen 4 Fast Tier 1 (~$0.02/obraz, spójność z innymi preset)
+      volume: 85,
+      speed: 0.92,
+      // Image settings - Imagen standard
       imagesEnabled: true,
       imageProvider: 'vertex' as const,
       imageQuality: 'medium' as const,
       // Narration style
       responseLength: 'medium' as const,
       detailLevel: 'standard' as const,
+      creativity: 'balanced' as const,
     },
   },
 
   high: {
     name: 'HIGH COST',
     description:
-      'Gemini 3.8 Flash (High) + lektor ElevenLabs (hybryda) + obrazy Vertex - słuchowisko (~$3-6/sesja)',
+      'Gemini 3.8 Flash (High) + lektor Charon (słuchowisko) + obrazy Imagen (~$0.50/sesja)',
     settings: {
       // === GEMINI SETTINGS ===
       model: 'gemini-3.8-flash' as const, // Gemini 3.8 Flash z Thinking Level High
@@ -118,19 +117,19 @@ export const QUALITY_PRESETS = {
       ttsVoice: 'Charon',
       narratorOnly: false,
       volume: 85,
-      speed: 1.15,
+      speed: 0.92,
 
-      // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
+      // === IMAGE SETTINGS ===
       imagesEnabled: true,
       imageProvider: 'vertex' as const,
       imageQuality: 'high' as const,
 
-      // === REPLICATE SETTINGS (legacy params dla custom flow) ===
+      // === REPLICATE SETTINGS ===
       replicateStyle: 'realistic' as const,
       autoGeneratePortraits: true,
       autoGenerateNPCs: true,
       autoGenerateLocations: true,
-      maxImagesPerMessage: 1, // IND-259: 1/odpowiedź (sync z defaults.ts - płynność > ilość)
+      maxImagesPerMessage: 1,
 
       // === NARRATION STYLE ===
       responseLength: 'long' as const,
@@ -142,16 +141,16 @@ export const QUALITY_PRESETS = {
   ultra: {
     name: 'ULTRA',
     description:
-      'Gemini 3.1 Pro + lektor ElevenLabs Pro (pełne słuchowisko radiowe) + obrazy Vertex (~$8-12/sesja)',
+      'Gemini 3.1 Pro + lektor Gacrux (pełne słuchowisko multi-voice) + obrazy Imagen HD (~$1.00/sesja)',
     settings: {
       // Gemini settings - maksymalna jakość
-      model: 'gemini-3.1-pro-preview' as const, // IND-222: poprawna nazwa API
+      model: 'gemini-3.1-pro-preview' as const,
       temperature: 0.9,
       topP: 0.95,
       topK: 60,
       thinkingLevel: 'high' as const,
       maxOutputTokens: 8192,
-      // === GEMINI nested (IND-32a) - Horror authentic + dłuższy cache (droższy 3.1 Pro = większe oszczędności) ===
+      // === GEMINI nested (IND-32a) ===
       safetySettings: {
         harassment: 'BLOCK_ONLY_HIGH' as const,
         hateSpeech: 'BLOCK_ONLY_HIGH' as const,
@@ -163,15 +162,18 @@ export const QUALITY_PRESETS = {
       // === GEMINI TTS FULL SŁUCHOWISKO ===
       ttsEnabled: true,
       ttsProvider: 'gemini' as const,
-      ttsVoice: 'Gacrux', // Gemini voice (Mature, głęboki narrator)
-      narratorOnly: false, // pełne słuchowisko radiowe
-      // === IMAGE SETTINGS (M2 sesja 146 - D3: Imagen 4 Ultra Tier 1) ===
+      ttsVoice: 'Gacrux',
+      narratorOnly: false,
+      volume: 85,
+      speed: 0.92,
+      // === IMAGE SETTINGS ===
       imagesEnabled: true,
       imageProvider: 'vertex' as const,
       imageQuality: 'high' as const,
-      // Narration style - długie, opisowe teksty
+      // Narration style - długie, bogate opisy
       responseLength: 'long' as const,
       detailLevel: 'detailed' as const,
+      creativity: 'creative' as const,
     },
   },
 

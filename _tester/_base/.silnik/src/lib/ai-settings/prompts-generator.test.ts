@@ -120,5 +120,34 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       expect(fullProtocol).toMatch(/4x zasięgu bazowego/i);
       expect(fullProtocol).toMatch(/forsowania testu w walce/i);
     });
+
+    it('wstrzykuje wytyczne długości, szczegółowości i kreatywności do promptu MG [Issue #279]', () => {
+      const customSettings = {
+        ...defaultAISettings,
+        gameMasterNarration: {
+          ...defaultAISettings.gameMasterNarration,
+          style: {
+            responseLength: 'short' as const,
+            detailLevel: 'minimal' as const,
+          },
+          behavior: {
+            ...defaultAISettings.gameMasterNarration.behavior,
+            creativity: 'conservative' as const,
+          },
+        },
+      };
+
+      const promptPl = getGameMasterPrompt(customSettings, 'pl');
+      expect(promptPl).toContain('KALIBRACJA STYLU I DŁUGOŚCI NARRACJI MG');
+      expect(promptPl).toContain('Długość odpowiedzi (KRÓTKA)');
+      expect(promptPl).toContain('Szczegółowość (MINIMALNA)');
+      expect(promptPl).toContain('Kreatywność (KONSERWATYWNA)');
+
+      const promptEn = getGameMasterPrompt(customSettings, 'en');
+      expect(promptEn).toContain('KEEPER NARRATION STYLE & PACING CALIBRATION');
+      expect(promptEn).toContain('Response Length (CONCISE)');
+      expect(promptEn).toContain('Detail Level (MINIMAL)');
+      expect(promptEn).toContain('Creativity (CONSERVATIVE)');
+    });
   });
 });
