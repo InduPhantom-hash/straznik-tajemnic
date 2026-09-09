@@ -21,6 +21,7 @@ export function formatJournalSection(journal: JournalEntry[]): string {
     quest: '⚔️',
     journal: '📖',
     item: '📦',
+    case: '📁',
   };
 
   // Sortuj chronologicznie
