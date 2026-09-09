@@ -189,7 +189,9 @@ describe('Mythos Library & Schema Validation (src/lib/mythos)', () => {
       const index = getMythosIndex();
       expect(index).toHaveLength(2);
       expect(index[0].term).toBe('Necronomicon');
-      expect((index[0] as any).fullContent).toBeUndefined();
+      expect(
+        (index[0] as unknown as Record<string, unknown>).fullContent
+      ).toBeUndefined();
     });
 
     it('getMythosRecord wyszukuje rekord po dokładnym ID', () => {
