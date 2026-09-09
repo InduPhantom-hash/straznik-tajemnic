@@ -19,6 +19,7 @@ import {
   Sparkles,
   Eye,
   MessageSquare,
+  FolderLock,
 } from 'lucide-react';
 import { findEquipmentTemplate, resolveCatalogAsset } from '@/lib/equipment-catalog';
 import { findEntityVisualReference } from '@/lib/journal/entity-visual-resolver';
@@ -84,7 +85,7 @@ export interface DiscoveryEntry {
   };
 }
 
-export type DiscoveryCategory = 'places' | 'characters' | 'items' | 'quests';
+export type DiscoveryCategory = 'places' | 'characters' | 'items' | 'quests' | 'case';
 
 interface DiscoveriesViewProps {
   entries: DiscoveryEntry[];
@@ -104,8 +105,8 @@ interface DiscoveriesViewProps {
 // Stałe
 // ------------------------------------------------------------------
 
-type CategoryLabelKey = 'categoryPlaces' | 'categoryCharacters' | 'categoryItems' | 'categoryQuests';
-type EmptyTextKey = 'emptyPlaces' | 'emptyCharacters' | 'emptyItems' | 'emptyQuests';
+type CategoryLabelKey = 'categoryPlaces' | 'categoryCharacters' | 'categoryItems' | 'categoryQuests' | 'categoryCase';
+type EmptyTextKey = 'emptyPlaces' | 'emptyCharacters' | 'emptyItems' | 'emptyQuests' | 'emptyCase';
 type QuestStatusLabelKey = 'questActive' | 'questCompleted' | 'questFailed';
 
 const CATEGORIES: {
@@ -115,6 +116,13 @@ const CATEGORIES: {
   types: string[];
   emptyTextKey: EmptyTextKey;
 }[] = [
+  {
+    key: 'case',
+    labelKey: 'categoryCase',
+    Icon: FolderLock,
+    types: ['case', 'case_file', 'objective', 'mission'],
+    emptyTextKey: 'emptyCase',
+  },
   {
     key: 'places',
     labelKey: 'categoryPlaces',
@@ -227,7 +235,7 @@ export function DiscoveriesView({
 
   // Liczniki per kategoria (bez filtra wyszukiwania)
   const counts = useMemo(() => {
-    const result: Record<DiscoveryCategory, number> = { places: 0, characters: 0, items: 0, quests: 0 };
+    const result: Record<DiscoveryCategory, number> = { case: 0, places: 0, characters: 0, items: 0, quests: 0 };
     for (const entry of entries) {
       if (entry.clueCategory === 'document') {
         result.items++;
@@ -844,53 +852,23 @@ export function DiscoveriesView({
                   )}
                 </div>
 
-                {/* Profil trójwymiarowy postaci (Lajos Egri: Fizjologia, Socjologia, Psychologia) */}
+                {/* Rysopis i obserwacja śledcza (Fizjonomia, Manieryzm, Status społeczny) */}
                 {activeCategory === 'characters' &&
-                  (selectedEntry.physiologicalDetail ||
-                    selectedEntry.sociologicalStatus ||
-                    selectedEntry.psychologicalAgenda) && (
+                  (selectedEntry.physiologicalDetail || selectedEntry.sociologicalStatus) && (
                     <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#bfa15f]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
                       <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1">
-                        {t('egriProfileTitle')}
+                        {t('observationTitle')}
                       </div>
                       {selectedEntry.physiologicalDetail && (
                         <div>
-                          <span className="font-bold text-[#3a2818]">{t('egriPhysiologicalLabel')}: </span>
+                          <span className="font-bold text-[#3a2818]">{t('observationPhysiological')}: </span>
                           <span className="italic">{selectedEntry.physiologicalDetail}</span>
                         </div>
                       )}
                       {selectedEntry.sociologicalStatus && (
                         <div>
-                          <span className="font-bold text-[#3a2818]">{t('egriSociologicalLabel')}: </span>
+                          <span className="font-bold text-[#3a2818]">{t('observationSociological')}: </span>
                           <span>{selectedEntry.sociologicalStatus}</span>
-                        </div>
-                      )}
-                      {selectedEntry.psychologicalAgenda && (
-                        <div>
-                          <span className="font-bold text-[#8a1c1c]">{t('egriPsychologicalLabel')}: </span>
-                          <span className="italic text-[#8a1c1c]/90">{selectedEntry.psychologicalAgenda}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                {/* Sieć poszlak i alternatywne tropy (Justin Alexander: Three-Clue Rule) */}
-                {activeCategory === 'quests' &&
-                  (selectedEntry.alternativeClueTrails?.length || selectedEntry.linkedNodeIds?.length) && (
-                    <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#73a15c]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
-                      <div className="text-[10px] uppercase font-bold tracking-wider text-[#355227] border-b border-[#73a15c]/30 pb-1">
-                        {t('alexandrianRuleTitle')}
-                      </div>
-                      {selectedEntry.alternativeClueTrails && selectedEntry.alternativeClueTrails.length > 0 && (
-                        <div>
-                          <span className="font-bold text-[#1f3815]">{t('alexandrianTrailsLabel')}: </span>
-                          <span>{selectedEntry.alternativeClueTrails.join(' • ')}</span>
-                        </div>
-                      )}
-                      {selectedEntry.linkedNodeIds && selectedEntry.linkedNodeIds.length > 0 && (
-                        <div>
-                          <span className="font-bold text-[#1f3815]">{t('alexandrianNodesLabel')}: </span>
-                          <span>{selectedEntry.linkedNodeIds.join(', ')}</span>
                         </div>
                       )}
                     </div>
