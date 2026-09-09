@@ -96,7 +96,17 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
     if (resolved.status !== 'ongoing') onComplete?.(resolved);
   }, [onComplete, onStateChange, open, state]);
 
-  const player = state.participants.find((p) => p.isPlayer && p.isFleeing);
+  const activeActor = state.participants.find(
+    (participant) => participant.id === state.activeActorId
+  );
+  const player =
+    (activeActor && activeActor.isPlayer && activeActor.isFleeing
+      ? activeActor
+      : state.participants.find(
+          (p) => p.isPlayer && p.isFleeing && p.actionsRemaining > 0
+        )) || state.participants.find((p) => p.isPlayer && p.isFleeing);
+
+  const isMultiplayer = state.participants.filter((p) => p.isPlayer && p.isFleeing).length > 1;
   const pursuers = state.participants.filter((p) => !p.isFleeing);
   const nearestDistance = player
     ? Math.min(...pursuers.map((p) => player.segmentIndex - p.segmentIndex))
@@ -218,6 +228,14 @@ export const ChaseDialog: React.FC<ChaseDialogProps> = ({
             <h3 className="font-display text-lg text-foreground">
               {sceneName || t('unknownScene')}
             </h3>
+            {isMultiplayer && player && (
+              <div className="mt-1 inline-flex items-center gap-1.5 rounded bg-brass/20 px-2 py-0.5 text-xs font-semibold text-gold">
+                <span>{t('activeInvestigator')}: @{player.name}</span>
+                <span className="text-muted-foreground">
+                  ({t('actionsRemaining', { count: player.actionsRemaining })})
+                </span>
+              </div>
+            )}
             {locale === 'pl' && scene?.description && (
               <p className="mt-1 text-sm text-muted-foreground">
                 {scene.description}

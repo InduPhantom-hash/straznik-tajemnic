@@ -224,24 +224,26 @@ export function calculateChaseActionPoints(
   });
 }
 
+export type ChaseParticipantInput = Omit<
+  ChaseParticipant,
+  'isFleeing' | 'actionsTotal' | 'actionsRemaining' | 'segmentIndex'
+> & {
+  segmentIndex?: number;
+};
+
 /**
- * Inicjuje stan pościgu (ChaseState) na podstawie parametrów uciekającego i pościgu.
+ * Inicjuje stan pościgu (ChaseState) na podstawie parametrów uciekającego (lub uciekających w duecie) i pościgu.
  */
 export function createChaseState(params: {
   id?: string;
-  fleeing: Omit<
-    ChaseParticipant,
-    'isFleeing' | 'actionsTotal' | 'actionsRemaining'
-  >;
-  pursuers: Array<
-    Omit<ChaseParticipant, 'isFleeing' | 'actionsTotal' | 'actionsRemaining'>
-  >;
+  fleeing: ChaseParticipantInput | ChaseParticipantInput[];
+  pursuers: ChaseParticipantInput[];
   initialDistance?: number;
   trackLength?: number;
   escapeDistanceThreshold?: number;
   maxRounds?: number;
   hazardPositions?: Record<number, ChaseHazard>;
-  fleeingSpeedRoll?: ChaseSpeedRollOutcome;
+  fleeingSpeedRoll?: ChaseSpeedRollOutcome | Record<string, ChaseSpeedRollOutcome>;
   pursuerSpeedRolls?: Record<string, ChaseSpeedRollOutcome>;
 }): ChaseState {
   const {
@@ -260,16 +262,24 @@ export function createChaseState(params: {
       6: DEFAULT_CHASE_HAZARDS.stairs,
     },
   } = params;
+
+  const fleeingArray = Array.isArray(fleeing) ? fleeing : [fleeing];
   const id =
     requestedId ??
-    `chase_${fleeing.id}_${pursuers.map((pursuer) => pursuer.id).join('_')}`;
+    `chase_${fleeingArray.map((f) => f.id).join('_')}_${pursuers.map((p) => p.id).join('_')}`;
 
-  const adjustedFleeing = {
-    ...fleeing,
-    mov: adjustedChaseMov(fleeing.mov, fleeingSpeedRoll),
-    speedModifier:
-      fleeingSpeedRoll === 'extreme' ? 1 : fleeingSpeedRoll === 'fail' ? -1 : 0,
-  };
+  const adjustedFleeing = fleeingArray.map((f) => {
+    const roll =
+      typeof fleeingSpeedRoll === 'string'
+        ? fleeingSpeedRoll
+        : fleeingSpeedRoll[f.id] ?? 'regular';
+    return {
+      ...f,
+      mov: adjustedChaseMov(f.mov, roll),
+      speedModifier: roll === 'extreme' ? 1 : roll === 'fail' ? -1 : 0,
+    };
+  });
+
   const adjustedPursuers = pursuers.map((pursuer) => {
     const speedRoll = pursuerSpeedRolls[pursuer.id] ?? 'regular';
     return {
@@ -279,27 +289,28 @@ export function createChaseState(params: {
         speedRoll === 'extreme' ? 1 : speedRoll === 'fail' ? -1 : 0,
     };
   });
-  const rawParticipants = [adjustedFleeing, ...adjustedPursuers];
+
+  const rawParticipants = [...adjustedFleeing, ...adjustedPursuers];
   const actionPoints = calculateChaseActionPoints(rawParticipants);
 
   const fullParticipants: ChaseParticipant[] = [
-    {
-      ...adjustedFleeing,
+    ...adjustedFleeing.map((f, idx) => ({
+      ...f,
       isFleeing: true,
       segmentIndex: initialDistance,
-      actionsTotal: actionPoints[0],
-      dex: fleeing.dex ?? 0,
-      actionsRemaining: actionPoints[0],
+      actionsTotal: actionPoints[idx],
+      dex: f.dex ?? 0,
+      actionsRemaining: actionPoints[idx],
       isCaught: false,
       isEscaped: false,
-    },
+    })),
     ...adjustedPursuers.map((p, idx) => ({
       ...p,
       isFleeing: false,
       dex: p.dex ?? 0,
       segmentIndex: 0,
-      actionsTotal: actionPoints[idx + 1],
-      actionsRemaining: actionPoints[idx + 1],
+      actionsTotal: actionPoints[adjustedFleeing.length + idx],
+      actionsRemaining: actionPoints[adjustedFleeing.length + idx],
       isCaught: false,
       isEscaped: false,
     })),
@@ -314,6 +325,15 @@ export function createChaseState(params: {
     })
   );
 
+  const sortedOrder = fullParticipants
+    .map((participant, index) => ({ participant, index }))
+    .sort(
+      (a, b) =>
+        (b.participant.dex ?? 0) - (a.participant.dex ?? 0) ||
+        a.index - b.index
+    )
+    .map(({ participant }) => participant.id);
+
   return {
     id,
     round: 1,
@@ -323,22 +343,8 @@ export function createChaseState(params: {
     segments,
     participants: fullParticipants,
     logs: [],
-    turnOrder: fullParticipants
-      .map((participant, index) => ({ participant, index }))
-      .sort(
-        (a, b) =>
-          (b.participant.dex ?? 0) - (a.participant.dex ?? 0) ||
-          a.index - b.index
-      )
-      .map(({ participant }) => participant.id),
-    activeActorId:
-      fullParticipants
-        .map((participant, index) => ({ participant, index }))
-        .sort(
-          (a, b) =>
-            (b.participant.dex ?? 0) - (a.participant.dex ?? 0) ||
-            a.index - b.index
-        )[0]?.participant.id ?? null,
+    turnOrder: sortedOrder,
+    activeActorId: sortedOrder[0] ?? null,
   };
 }
 
@@ -353,7 +359,9 @@ export function executePlayerManeuver(
   log: ChaseRoundLog;
 } {
   const next = JSON.parse(JSON.stringify(state)) as ChaseState;
-  const player = next.participants.find((p) => p.isPlayer && p.isFleeing);
+  const player =
+    next.participants.find((p) => p.id === (maneuver.actorId || next.activeActorId)) ||
+    next.participants.find((p) => p.isPlayer && p.isFleeing && p.actionsRemaining > 0);
 
   if (!player) {
     throw new Error('Player participant not found in chase state');
@@ -529,10 +537,9 @@ export function executePursuerTurns(
   logs: ChaseRoundLog[];
 } {
   const next = JSON.parse(JSON.stringify(state)) as ChaseState;
-  const fleeing = next.participants.find((p) => p.isFleeing);
   const newLogs: ChaseRoundLog[] = [];
 
-  if (next.status !== 'ongoing' || !fleeing) {
+  if (next.status !== 'ongoing') {
     return { nextState: next, logs: newLogs };
   }
 
@@ -543,6 +550,21 @@ export function executePursuerTurns(
     if (!pursuer || pursuer.isFleeing || pursuer.isPlayer) break;
 
     while (pursuer.actionsRemaining > 0 && next.status === 'ongoing') {
+      // Cel: najbliższy uciekający, który jeszcze nie uciekł i nie został schwytany
+      const activeFleeing = next.participants.filter(
+        (p) => p.isFleeing && !p.isCaught && !p.isEscaped
+      );
+      if (activeFleeing.length === 0) {
+        break;
+      }
+      // Sortuj wg odległości od ścigającego
+      activeFleeing.sort(
+        (a, b) =>
+          Math.abs(a.segmentIndex - pursuer.segmentIndex) -
+          Math.abs(b.segmentIndex - pursuer.segmentIndex)
+      );
+      const targetFleeing = activeFleeing[0];
+
       pursuer.actionsRemaining -= 1;
       const segBefore = pursuer.segmentIndex;
       const targetSegIdx = segBefore + 1;
@@ -605,12 +627,12 @@ export function executePursuerTurns(
         }
       } else {
         // Zwykły ruch naprzód
-        pursuer.segmentIndex = Math.min(fleeing.segmentIndex, targetSegIdx);
+        pursuer.segmentIndex = Math.min(targetFleeing.segmentIndex, targetSegIdx);
         const log: ChaseRoundLog = {
           round: next.round,
           actorName: pursuer.name,
           actionName: 'Bieg w pościgu',
-          details: `${pursuer.name} zbliża się do uciekiniera!`,
+          details: `${pursuer.name} zbliża się do celu: ${targetFleeing.name}!`,
           success: true,
           segmentBefore: segBefore,
           segmentAfter: pursuer.segmentIndex,
@@ -621,9 +643,9 @@ export function executePursuerTurns(
         newLogs.push(log);
       }
 
-      // Sprawdź natychmiastowe schwytanie
-      if (pursuer.segmentIndex >= fleeing.segmentIndex) {
-        fleeing.isCaught = true;
+      // Sprawdź kontakt z celem
+      if (pursuer.segmentIndex >= targetFleeing.segmentIndex) {
+        targetFleeing.isCaught = true;
         next.status = 'engaged';
         break;
       }
@@ -655,24 +677,35 @@ export function executePursuerTurns(
  * Sprawdza czy pościg osiągnął warunki krańcowe (Schwytanie lub Ucieczka).
  */
 export function evaluateChaseTermination(state: ChaseState): void {
-  const fleeing = state.participants.find((p) => p.isFleeing);
-  if (!fleeing) return;
+  const fleeingList = state.participants.filter((p) => p.isFleeing);
+  if (fleeingList.length === 0) return;
 
   const pursuers = state.participants.filter((p) => !p.isFleeing);
   if (pursuers.length === 0) {
     state.status = 'escaped';
-    fleeing.isEscaped = true;
+    for (const f of fleeingList) {
+      f.isEscaped = true;
+    }
     return;
   }
 
-  // Najmniejszy dystans do goniących
-  const distances = pursuers.map((p) => fleeing.segmentIndex - p.segmentIndex);
-  const minDistance = Math.min(...distances);
-
-  if (minDistance <= 0) {
-    state.status = 'engaged';
-    fleeing.isCaught = true;
+  // Jeśli wszyscy uciekający zdołali uciec
+  if (fleeingList.every((f) => f.isEscaped)) {
+    state.status = 'escaped';
     return;
+  }
+
+  // Sprawdź czy którykolwiek ścigający dotarł do któregokolwiek uciekającego
+  for (const f of fleeingList) {
+    if (f.isEscaped) continue;
+    const isEngagedWithPursuer = pursuers.some(
+      (p) => p.segmentIndex >= f.segmentIndex
+    );
+    if (isEngagedWithPursuer) {
+      f.isCaught = true;
+      state.status = 'engaged';
+      return;
+    }
   }
 }
 
@@ -684,45 +717,74 @@ export function formatChaseForChat(
   lastLog?: ChaseRoundLog,
   locale: 'pl' | 'en' = 'pl'
 ): string {
-  const fleeing = state.participants.find((p) => p.isFleeing);
+  const fleeingList = state.participants.filter((p) => p.isFleeing);
   const pursuers = state.participants.filter((p) => !p.isFleeing);
-  const minDistance = fleeing
-    ? Math.min(...pursuers.map((p) => fleeing.segmentIndex - p.segmentIndex))
-    : 0;
 
   const lines: string[] = [];
   lines.push(locale === 'en' ? '**CHASE**' : '**POŚCIG**');
 
   if (state.status === 'engaged') {
+    const caughtVictims = fleeingList.filter((f) => f.isCaught).map((f) => `@${f.name}`);
+    const victimText =
+      caughtVictims.length > 0 ? ` (${caughtVictims.join(', ')})` : '';
     lines.push(
       locale === 'en'
-        ? '**CONTACT!** Pursuer and quarry share a location. The Keeper resolves whether this becomes a struggle, escape attempt, or another scene.'
-        : '**KONTAKT!** Ścigający i uciekinier są w tej samej lokacji. MG rozstrzyga, czy sytuacja przechodzi w walkę, próbę wyrwania się lub inną scenę.'
+        ? `**CONTACT!** Pursuer and quarry share a location${victimText}. The Keeper resolves whether this becomes a struggle, escape attempt, or another scene.`
+        : `**KONTAKT!** Ścigający i uciekinier są w tej samej lokacji${victimText}. MG rozstrzyga, czy sytuacja przechodzi w walkę, próbę wyrwania się lub inną scenę.`
     );
   } else if (state.status === 'escaped') {
     lines.push(
       locale === 'en'
         ? '**ESCAPED!** The quarry broke contact and lost the pursuit.'
-        : '**UDANA UCIECZKA!** Uciekający zgubił pościg.'
+        : '**UDANA UCIECZKA!** Uciekający zgubili pościg.'
     );
   } else {
-    const distanceDescription =
-      minDistance <= 1
-        ? locale === 'en'
-          ? 'They are right behind you.'
-          : 'Są tuż za tobą.'
-        : minDistance <= 3
+    // Wypisz status dystansu dla każdego badacza w przypadku Duetu
+    if (fleeingList.length > 1) {
+      lines.push(locale === 'en' ? `- **The pursuit:**` : `- **Pościg:**`);
+      for (const fleeing of fleeingList) {
+        const minDistance =
+          pursuers.length > 0
+            ? Math.min(...pursuers.map((p) => fleeing.segmentIndex - p.segmentIndex))
+            : 99;
+        const desc =
+          minDistance <= 1
+            ? locale === 'en'
+              ? 'They are right behind!'
+              : 'Są tuż za plecami!'
+            : minDistance <= 3
+              ? locale === 'en'
+                ? 'Drawing closer.'
+                : 'Słyszy ich coraz bliżej.'
+              : locale === 'en'
+                ? 'Losing the trail.'
+                : 'Zaczynają tracić trop.';
+        lines.push(`  - @${fleeing.name} (Lokacja ${fleeing.segmentIndex + 1}): ${desc}`);
+      }
+    } else {
+      const fleeing = fleeingList[0];
+      const minDistance =
+        fleeing && pursuers.length > 0
+          ? Math.min(...pursuers.map((p) => fleeing.segmentIndex - p.segmentIndex))
+          : 0;
+      const distanceDescription =
+        minDistance <= 1
           ? locale === 'en'
-            ? 'You hear them drawing closer.'
-            : 'Słyszysz ich coraz bliżej.'
-          : locale === 'en'
-            ? 'They are starting to lose your trail.'
-            : 'Zaczynają tracić trop.';
-    lines.push(
-      locale === 'en'
-        ? `- **The pursuit:** ${distanceDescription}`
-        : `- **Pościg:** ${distanceDescription}`
-    );
+            ? 'They are right behind you.'
+            : 'Są tuż za tobą.'
+          : minDistance <= 3
+            ? locale === 'en'
+              ? 'You hear them drawing closer.'
+              : 'Słyszysz ich coraz bliżej.'
+            : locale === 'en'
+              ? 'They are starting to lose your trail.'
+              : 'Zaczynają tracić trop.';
+      lines.push(
+        locale === 'en'
+          ? `- **The pursuit:** ${distanceDescription}`
+          : `- **Pościg:** ${distanceDescription}`
+      );
+    }
   }
 
   if (lastLog) {

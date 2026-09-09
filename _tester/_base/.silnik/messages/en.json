@@ -5695,6 +5695,7 @@
     "roundLabel": "Round {round}/{maxRounds}",
     "distanceLabel": "Distance: {distance} {distance, plural, one {location} other {locations}}",
     "actionsRemaining": "Remaining actions: {count}",
+    "activeInvestigator": "Active investigator",
     "fleeingBadge": "Fleeing",
     "pursuerBadge": "Pursuit",
     "actionSprint": "Sprint forward",
