@@ -3,8 +3,9 @@
  * Retro Silnik Kodow i Testow Mechanik (Cheat Engine 90s/00s) dla Call of Cthulhu 7e.
  */
 
-import type { Character, Message } from '@/lib/types';
+import type { Character, Message, SpellCastEventData, TomeStudyEventData } from '@/lib/types';
 import type { SkillTestData, HazardEventData } from '@/lib/parsers/types';
+import { extractHazardEvents } from '@/lib/parsers/mechanics-parser';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { createEquipmentItem } from '@/lib/equipment-data';
 import { rollDiceFormula } from '@/lib/dice-utils';
@@ -14,7 +15,7 @@ export interface CheatSuggestion {
   template: string;
   labelPl: string;
   labelEn: string;
-  category: 'dice' | 'stats' | 'combat' | 'chase' | 'items' | 'world' | 'retro';
+  category: 'dice' | 'stats' | 'combat' | 'chase' | 'items' | 'world' | 'retro' | 'magic';
   descriptionPl: string;
   descriptionEn: string;
 }
@@ -138,12 +139,39 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
   },
   {
     command: 'HAZARD',
-    template: '[HAZARD: upadek | obrazenia=1d6 | opis=Krucha drabina]',
-    labelPl: 'Zagrożenie Środowiskowe',
-    labelEn: 'Environmental Hazard',
+    template: '[HAZARD: upadek | wys=6m | podloze=normalne | opis=Krucha drabina na wieży]',
+    labelPl: 'Zagrożenie RAW: Upadek',
+    labelEn: 'RAW Hazard: Falling',
     category: 'combat',
-    descriptionPl: 'Wstrzykuje kartę niebezpieczeństwa z testem Zręczności/Skakania.',
-    descriptionEn: 'Injects hazard card with Dex/Jump defensive test.',
+    descriptionPl: 'Otwiera dialog upadku CoC 7e RAW (wysokość w metrach, rodzaj podłoża, amortyzacja Skakaniem).',
+    descriptionEn: 'Opens CoC 7e RAW fall dialog (height in meters, surface type, Jump cushioning).',
+  },
+  {
+    command: 'HAZARD_POISON',
+    template: '[HAZARD: trucizna | kategoria=silna | nazwa=Arszenik | opis=Zatrute wino na bankiecie]',
+    labelPl: 'Zagrożenie RAW: Trucizna',
+    labelEn: 'RAW Hazard: Poison',
+    category: 'combat',
+    descriptionPl: 'Wstrzykuje kartę toksyny (kategoria łagodna/silna/śmiertelna, rzut obronny CON).',
+    descriptionEn: 'Injects poison card (mild/strong/lethal severity, defensive CON check).',
+  },
+  {
+    command: 'HAZARD_FIRE',
+    template: '[HAZARD: ogien | intensywnosc=major | rundy=2 | opis=Płonąca biblioteka]',
+    labelPl: 'Zagrożenie RAW: Ogień i Kwas',
+    labelEn: 'RAW Hazard: Fire & Acid',
+    category: 'combat',
+    descriptionPl: 'Testuje obrażenia od ognia lub kwasu (tabela RAW, ominięcie pancerza).',
+    descriptionEn: 'Tests fire or acid damage (RAW table, armor bypassed).',
+  },
+  {
+    command: 'HAZARD_DROWN',
+    template: '[HAZARD: toniecie | rodzaj=woda | opis=Zalewany korytarz podziemi]',
+    labelPl: 'Zagrożenie RAW: Uduszenie / Tonięcie',
+    labelEn: 'RAW Hazard: Suffocation / Drowning',
+    category: 'combat',
+    descriptionPl: 'Testuje rundy bez tchu (test CON co rundę, automatyczne obrażenia po porażce).',
+    descriptionEn: 'Tests airless rounds (CON check each round, automatic damage on failure).',
   },
   {
     command: 'IMAGE',
@@ -153,6 +181,24 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
     category: 'world',
     descriptionPl: 'Testuje renderowanie i lightbox karty obrazu w strumieniu czatu.',
     descriptionEn: 'Tests chat card image rendering and lightbox viewer.',
+  },
+  {
+    command: 'SPELL',
+    template: '[SPELL: wither-limb | cel=Kultysta]',
+    labelPl: 'Rzucenie Zaklęcia (Magia RAW)',
+    labelEn: 'Cast Spell (RAW Magic)',
+    category: 'magic',
+    descriptionPl: 'Otwiera interaktywną kartę rzucania czaru CoC 7e (Hard POW, koszty MP/SAN/POW, rzut sporny).',
+    descriptionEn: 'Opens interactive CoC 7e spell casting card (Hard POW, MP/SAN/POW costs, opposed roll).',
+  },
+  {
+    command: 'TOME',
+    template: '[TOME: necronomicon-latin | akcja=skimming]',
+    labelPl: 'Lektura i Studium Tomu Mitów',
+    labelEn: 'Mythos Tome Study / Reading',
+    category: 'magic',
+    descriptionPl: 'Generuje kartę tomu (Wstępny przegląd, Sprawdzenie referencyjne, Pełne studium, Reguła Wiary).',
+    descriptionEn: 'Generates mythos tome card (Initial Reading, Reference Check, Full Study, Belief rule).',
   },
   {
     command: 'IDDQD',
@@ -186,6 +232,12 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
 const CHEAT_COMMAND_SET = new Set([
   ...CHEAT_REGISTRY.map((c) => c.command.toUpperCase()),
   'CHEATS',
+  'ZAGROŻENIE',
+  'ZAGROZENIE',
+  'CZAR',
+  'CAST',
+  'TOM',
+  'STUDY',
 ]);
 
 export function isCheatCommand(text: string): boolean {
@@ -572,12 +624,82 @@ export function executeCheatCommand(
     };
   }
 
-  if (command === 'HAZARD') {
-    const hazardData: HazardEventData = {
-      id: 'hazard_' + Date.now(),
-      type: 'falling',
-      description: args[2] || (isPl ? 'Zawalający się fragment podłogi' : 'Collapsing floor section'),
-      fallHeightMeters: 3,
+  if (
+    command === 'HAZARD' ||
+    command === 'HAZARD_POISON' ||
+    command === 'HAZARD_FIRE' ||
+    command === 'HAZARD_DROWN' ||
+    command === 'ZAGROŻENIE' ||
+    command === 'ZAGROZENIE'
+  ) {
+    // Normalizujemy warianty komend (np. [HAZARD_POISON: ...] -> [HAZARD: ...]) pod kanoniczny parser CoC 7e RAW
+    const normalizedInput = trimmed.replace(/^\[(HAZARD_[A-Z]+):/i, '[HAZARD:');
+    const parsedHazards = extractHazardEvents(normalizedInput);
+    const hazardData: HazardEventData = parsedHazards.length > 0
+      ? parsedHazards[0]
+      : {
+          id: 'hazard_' + Date.now(),
+          type: 'falling',
+          description: args[2] || (isPl ? 'Zawalający się fragment podłogi' : 'Collapsing floor section'),
+          fallHeightMeters: 3,
+        };
+
+    return {
+      isCheat: true,
+      rawCommand: trimmed,
+      assistantMessage: {
+        id: 'cheat_msg_' + Date.now(),
+        role: 'assistant',
+        content: isPl
+          ? '⚠️ **[ZAGROŻENIE ŚRODOWISKOWE RAW]** ' + hazardData.description
+          : '⚠️ **[RAW ENVIRONMENTAL HAZARD]** ' + hazardData.description,
+        hazardEvents: [hazardData],
+        timestamp: now,
+      },
+    };
+  }
+
+  if (command === 'SPELL' || command === 'CZAR' || command === 'CAST') {
+    let spellId = 'wither-limb';
+    let targetName: string | undefined;
+    let targetPow: number | undefined;
+    let alias: string | undefined;
+    let description: string | undefined;
+
+    if (args.length > 0 && args[0]) {
+      const first = args[0];
+      if (first.toLowerCase().startsWith('id=')) {
+        spellId = first.slice(3).trim();
+      } else {
+        spellId = first;
+      }
+    }
+
+    for (let i = 1; i < args.length; i++) {
+      const part = args[i];
+      const lower = part.toLowerCase();
+      if (lower.startsWith('cel=') || lower.startsWith('target=')) {
+        targetName = part.slice(part.indexOf('=') + 1).trim();
+      } else if (lower.startsWith('pow=')) {
+        targetPow = parseInt(part.slice(part.indexOf('=') + 1).trim(), 10) || undefined;
+      } else if (lower.startsWith('alias=')) {
+        alias = part.slice(part.indexOf('=') + 1).trim();
+      } else if (lower.startsWith('opis=') || lower.startsWith('desc=')) {
+        description = part.slice(part.indexOf('=') + 1).trim();
+      } else if (!targetName) {
+        targetName = part;
+      }
+    }
+
+    const spellData: SpellCastEventData = {
+      id: 'spell_test_' + Date.now(),
+      spellId,
+      characterName: character?.name,
+      characterId: character?.id,
+      targetName: targetName || (isPl ? 'Kultysta z nożem' : 'Cultist with dagger'),
+      targetPow: targetPow ?? 55,
+      alias,
+      description,
     };
 
     return {
@@ -586,10 +708,71 @@ export function executeCheatCommand(
       assistantMessage: {
         id: 'cheat_msg_' + Date.now(),
         role: 'assistant',
-        content: isPl ? '⚠️ **[ZAGROŻENIE ŚRODOWISKOWE]** ' + hazardData.description : '⚠️ **[ENVIRONMENTAL HAZARD]** ' + hazardData.description,
-        hazardEvents: [hazardData],
+        content: isPl
+          ? '🔮 **[MAGIA MITÓW CoC 7e RAW]** Zainicjowano procedurę rzucania zaklęcia: **' + spellId + '**.'
+          : '🔮 **[CTHULHU MYTHOS MAGIC RAW]** Initiated spell casting procedure: **' + spellId + '**.',
+        spellCastEvents: [spellData],
         timestamp: now,
       },
+      toastMessage: isPl ? 'Wywołano kartę czaru' : 'Spell card triggered',
+    };
+  }
+
+  if (command === 'TOME' || command === 'TOM' || command === 'STUDY') {
+    let tomeId = 'necronomicon-latin';
+    let action: 'skimming' | 'study' | 'reference' = 'skimming';
+    let topic: string | undefined;
+    let title: string | undefined;
+
+    if (args.length > 0 && args[0]) {
+      const first = args[0];
+      if (first.toLowerCase().startsWith('id=')) {
+        tomeId = first.slice(3).trim();
+      } else {
+        tomeId = first;
+      }
+    }
+
+    for (let i = 1; i < args.length; i++) {
+      const part = args[i];
+      const lower = part.toLowerCase();
+      if (lower.startsWith('akcja=') || lower.startsWith('action=')) {
+        const actVal = part.slice(part.indexOf('=') + 1).trim().toLowerCase();
+        if (actVal === 'study' || actVal === 'studium' || actVal === 'pelne') action = 'study';
+        else if (actVal === 'reference' || actVal === 'sprawdzenie' || actVal === 'ref') action = 'reference';
+        else action = 'skimming';
+      } else if (lower.startsWith('temat=') || lower.startsWith('topic=')) {
+        topic = part.slice(part.indexOf('=') + 1).trim();
+      } else if (lower.startsWith('tytul=') || lower.startsWith('title=')) {
+        title = part.slice(part.indexOf('=') + 1).trim();
+      } else if (!topic) {
+        topic = part;
+      }
+    }
+
+    const tomeData: TomeStudyEventData = {
+      id: 'tome_test_' + Date.now(),
+      tomeId,
+      characterName: character?.name,
+      characterId: character?.id,
+      action,
+      topic,
+      title,
+    };
+
+    return {
+      isCheat: true,
+      rawCommand: trimmed,
+      assistantMessage: {
+        id: 'cheat_msg_' + Date.now(),
+        role: 'assistant',
+        content: isPl
+          ? '📜 **[TOMISKO MITÓW CoC 7e RAW]** Otwarto wolumin tajemnej wiedzy: **' + tomeId + '**.'
+          : '📜 **[CTHULHU MYTHOS TOME RAW]** Opened occult tome: **' + tomeId + '**.',
+        tomeStudyEvents: [tomeData],
+        timestamp: now,
+      },
+      toastMessage: isPl ? 'Wywołano kartę studium tomu' : 'Tome study card triggered',
     };
   }
 
