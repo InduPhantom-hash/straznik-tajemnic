@@ -4,6 +4,7 @@ import {
   getSpellDefinition,
   getTomeDefinition,
   findSpellByAnyName,
+  findTomeByAnyName,
 } from './catalog';
 import { DeterministicMagicDiceRoller } from './dice-roller';
 import { MagicEngine } from './magic-engine';
@@ -42,6 +43,17 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       expect(necro?.fullStudy.mr).toBe(48);
       expect(necro?.spells).toContain('wither-limb');
       expect(necro?.spells).toContain('resurrection');
+    });
+
+    it('wyszukuje tomy po nazwie, tytule lub autorze', () => {
+      const byTitle = findTomeByAnyName('Księga Eibona');
+      expect(byTitle?.id).toBe('book-of-eibon-english');
+
+      const byAuthor = findTomeByAnyName('Abdul Alhazred');
+      expect(byAuthor?.id).toBe('necronomicon-latin');
+
+      const byLatin = findTomeByAnyName('Vermis');
+      expect(byLatin?.id).toBe('de-vermis-mysteris');
     });
   });
 
@@ -314,6 +326,29 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       expect(result.hoursSpent).toBe(2);
       expect(result.roll).toBe(35);
       expect(result.mythosRating).toBe(48);
+    });
+
+    it('pełne studium (Full Study) wykonuje rzut obronny SAN i podwaja czas przy kolejnym czytaniu', () => {
+      // De Vermis Mysteriis: fullStudy: 48 tygodni, MR: 36, cmf: 8, sanCost: 1k10.
+      // Rzut SAN (d100): 40 vs SAN 50 (sukces - strata zmniejszona o połowę). Koszt 1k10 = 6 -> strata 3 SAN.
+      const roller = new DeterministicMagicDiceRoller({ d100: [40], formula: [6] });
+      const tomeEngine = new TomeEngine(roller);
+
+      const request: FullStudyRequest = {
+        tomeId: 'de-vermis-mysteris',
+        investigatorSan: 50,
+        investigatorMythos: 30, // 30 + 8 = 38, ale MR = 36 -> zysk tylko 6 CMF!
+        studyCount: 1, // druga lektura: 48 * 2 = 96 tygodni!
+        belief: 'believer',
+      };
+
+      const result = tomeEngine.resolveFullStudy(request);
+      expect(result.weeksRequired).toBe(96);
+      expect(result.sanRoll.success).toBe(true);
+      expect(result.sanLoss).toBe(3); // 6 / 2 = 3
+      expect(result.cmfGained).toBe(6); // 36 - 30 = 6 (limit MR!)
+      expect(result.mythosCappedAtMr).toBe(true);
+      expect(result.message.pl).toContain('osiągnięto limit MR 36');
     });
   });
 });

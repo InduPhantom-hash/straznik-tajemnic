@@ -2,6 +2,7 @@ import {
   extractSkillTests,
   extractHazardEvents,
   extractSpellCastEvents,
+  extractTomeStudyEvents,
   extractSkillResults,
   extractMeleeAttackReferences,
   stripMeleeAttackTags,
@@ -185,6 +186,48 @@ describe('extractSpellCastEvents (CoC 7e RAW & Poradniki MG)', () => {
     expect(spell.alias).toBe('Dominate');
     expect(spell.targetName).toBe('Guard');
     expect(spell.targetPow).toBe(40);
+  });
+});
+
+describe('extractTomeStudyEvents (CoC 7e RAW & Poradniki MG)', () => {
+  it('parsuje poprawnie tag z kluczami, adresatem i akcją wstępnego przeglądu', () => {
+    const [tome] = extractTomeStudyEvents(
+      '[TOM: @Harvey Walters: id=necronomicon-latin | akcja=skimming | tytul=Necronomicon]'
+    );
+
+    expect(tome).toBeDefined();
+    expect(tome.characterName).toBe('Harvey Walters');
+    expect(tome.tomeId).toBe('necronomicon-latin');
+    expect(tome.action).toBe('skimming');
+    expect(tome.title).toBe('Necronomicon');
+  });
+
+  it('parsuje sprawdzenie referencyjne z tematem poszukiwań w śledztwie', () => {
+    const [tome] = extractTomeStudyEvents(
+      '[TOM: @Arthur: id=de-vermis-mysteris | akcja=reference | temat=wskrzeszenie umarłych]'
+    );
+
+    expect(tome).toBeDefined();
+    expect(tome.characterName).toBe('Arthur');
+    expect(tome.tomeId).toBe('de-vermis-mysteris');
+    expect(tome.action).toBe('reference');
+    expect(tome.topic).toBe('wskrzeszenie umarłych');
+  });
+
+  it('obsługuje tag angielski [TOME:...] z akcją study', () => {
+    const [tome] = extractTomeStudyEvents(
+      '[TOME: @Eibon: id=book-of-eibon-english | action=study]'
+    );
+
+    expect(tome).toBeDefined();
+    expect(tome.characterName).toBe('Eibon');
+    expect(tome.tomeId).toBe('book-of-eibon-english');
+    expect(tome.action).toBe('study');
+  });
+
+  it('ignoruje tagi bez identyfikatora tomu', () => {
+    const tomes = extractTomeStudyEvents('[TOM: ]');
+    expect(tomes).toHaveLength(0);
   });
 });
 

@@ -1,0 +1,63 @@
+{
+  "acceptance_criteria": [
+    "Kod deterministyczny, nie narracja AI, rozstrzyga naukę, rzucanie, koszty i stan magii zgodnie z CoC 7e RAW.",
+    "Tomiska obsługują initial reading, full study, CMI, CMF, MR, kolejne lektury, reference check oraz belief bez utraty stanu po zapisie.",
+    "Zaklęcia obsługują pierwsze rzucenie Hard POW, forsowanie, kolejne automatyczne rzucenia, PM do HP, SAN, trwałe POW, testy przeciwstawne, czas, składniki i przerwanie.",
+    "RAG oraz dane zaklęć mają jawne źródło i stronę, a desktop otrzymuje wymagany indeks zasad bez halucynowania wartości mechanicznych.",
+    "Przepływ czatu i UI ma parytet PL/EN, działa dla drużyny i przechodzi testy RAW, zapisu, parsera oraz E2E obu locale."
+  ],
+  "allowed_paths": [
+    "_tester/_base/.silnik/src/lib/magic",
+    "_tester/_base/.silnik/src/lib/types.ts",
+    "_tester/_base/.silnik/src/lib/character/apply-stat-changes.ts",
+    "_tester/_base/.silnik/src/lib/parsers",
+    "_tester/_base/.silnik/src/lib/prompts/gm-protocol.ts",
+    "_tester/_base/.silnik/src/lib/content-library",
+    "_tester/_base/.silnik/src/components/ui/ritual-system.tsx",
+    "_tester/_base/.silnik/src/components/chat/chat-window",
+    "_tester/_base/.silnik/src/hooks/useChat.ts",
+    "_tester/_base/.silnik/src/types/adventure.ts",
+    "_tester/_base/.silnik/src/app/api/adventure/analyze/route.ts",
+    "_tester/_base/.silnik/src/lib/vector-db",
+    "_tester/_base/.silnik/src/lib/retrieval-service.ts",
+    "_tester/_base/.silnik/data/rag",
+    "_tester/_base/.silnik/messages/pl.json",
+    "_tester/_base/.silnik/messages/en.json",
+    "_tester/_base/.silnik/src/tests/unit",
+    "_tester/_base/.silnik/tests/e2e",
+    "desktop/launcher.sh",
+    "docs/MAPA-POWIAZAN.md",
+    "docs/SYSTEMS-CATALOG.md"
+  ],
+  "attempt": 0,
+  "baseline": [],
+  "created_at": "2026-09-08T17:19:38+00:00",
+  "deadline": "2026-09-08T21:19:38+00:00",
+  "last_failure_fingerprint": "",
+  "last_progress_signature": "",
+  "max_repairs": 2,
+  "no_progress_count": 0,
+  "plan_hash": "",
+  "resume_count": 0,
+  "risk": "high",
+  "runtime_root": "_tester/_base/.silnik",
+  "same_failure_count": 0,
+  "schema_version": "2.0",
+  "status": "intake",
+  "task_id": "magic-raw-252",
+  "terminal_reason": "",
+  "title": "Magia i tomiska CoC 7e RAW",
+  "updated_at": "2026-09-08T17:19:38+00:00",
+  "validation_commands": {
+    "lint": "npm run lint",
+    "navigation": "npm run navigation:check",
+    "test": "npm test -- --runInBand",
+    "typecheck": "npx tsc --noEmit",
+    "ui": "npx playwright test --project=chromium"
+  },
+  "verification_classes": [
+    "ui"
+  ],
+  "verifier": "claude",
+  "writer": "codex"
+}

@@ -566,3 +566,37 @@ export function findSpellByAnyName(query: string): SpellDefinition | undefined {
   }
   return undefined;
 }
+
+/**
+ * Szuka tomu Mitów po dowolnej nazwie, tytule lub autorze (PL lub EN).
+ */
+export function findTomeByAnyName(query: string): TomeDefinition | undefined {
+  const q = query.trim().toLowerCase();
+  if (!q) return undefined;
+
+  // 1. Dopasowanie dokładne po ID
+  if (CANONICAL_TOMES[q]) return CANONICAL_TOMES[q];
+
+  // 2. Dopasowanie częściowe po ID lub tytułach
+  for (const tome of Object.values(CANONICAL_TOMES)) {
+    const idLower = tome.id.toLowerCase();
+    const titleLower = tome.title.toLowerCase();
+    const titlePlLower = tome.titlePl.toLowerCase();
+    const titleEnLower = tome.titleEn.toLowerCase();
+    const authorLower = tome.author?.toLowerCase() ?? '';
+
+    if (
+      idLower === q ||
+      idLower.includes(q) ||
+      q.includes(idLower) ||
+      titleLower.includes(q) ||
+      titlePlLower.includes(q) ||
+      titleEnLower.includes(q) ||
+      (authorLower && authorLower.includes(q))
+    ) {
+      return tome;
+    }
+  }
+
+  return undefined;
+}

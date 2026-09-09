@@ -159,6 +159,7 @@ export interface Message {
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
+  tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
   acquiredItems?: AcquiredItemProposal[];
   cliffhanger?: {
@@ -1049,6 +1050,17 @@ export interface SpellCastEventData {
   alias?: string;
   targetName?: string;
   targetPow?: number;
+  description?: string;
+}
+
+export interface TomeStudyEventData {
+  id: string;
+  tomeId: string;
+  characterName?: string;
+  characterId?: string;
+  action?: 'skimming' | 'study' | 'reference';
+  topic?: string;
+  title?: string;
   description?: string;
 }
 
