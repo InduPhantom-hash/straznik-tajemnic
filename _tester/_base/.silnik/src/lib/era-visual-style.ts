@@ -95,8 +95,17 @@ export function resolveEraVisualProfile(
   throw new EraVisualProfileError(value);
 }
 
+/**
+ * Zwraca filtr CSS dla portretów i ilustracji danej epoki.
+ * Bezpieczny: w przypadku braku epoki, wartości pustej lub błędu zwraca 'none'.
+ */
 export function getEraImageFilter(eraOrYear: string | undefined): string {
-  return ERA_IMAGE_FILTERS[resolveEraVisualProfile(eraOrYear)];
+  if (!eraOrYear) return 'none';
+  try {
+    return ERA_IMAGE_FILTERS[resolveEraVisualProfile(eraOrYear)] ?? 'none';
+  } catch {
+    return 'none';
+  }
 }
 
 /** Tekstowy odpowiednik profilu barwnego dla generatora obrazów. */

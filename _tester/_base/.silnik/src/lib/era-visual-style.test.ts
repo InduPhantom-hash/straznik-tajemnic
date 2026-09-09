@@ -45,6 +45,12 @@ describe('era visual style', () => {
     );
   });
 
+  it('bezpiecznie zwraca none przy braku epoki lub błędnej wartości bez rzucania wyjątku', () => {
+    expect(getEraImageFilter(undefined)).toBe('none');
+    expect(getEraImageFilter('')).toBe('none');
+    expect(getEraImageFilter('unknown-era')).toBe('none');
+  });
+
   it('generuje twarde strażniki anachronizmów dla epok historycznych', () => {
     const guardrails1980s = getEraTechnologyGuardrails('1983');
     expect(guardrails1980s).toContain('no smartphones');

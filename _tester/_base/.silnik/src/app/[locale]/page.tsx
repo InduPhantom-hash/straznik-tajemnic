@@ -916,6 +916,7 @@ export default function Home() {
     <ChatLayout
       sidebar={
         <CthulhuSidebar
+          adventureContext={adventureContext}
           hideSidebarPanel={!hasStartedGame}
           onOpenHelp={() => setShowHelpModal(true)}
           activeCharacter={charMgmt.activeCharacter || undefined}

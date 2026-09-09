@@ -764,6 +764,7 @@ export default function Home() {
     <ChatLayout
       sidebar={
         <CthulhuSidebar
+          adventureContext={adventureContext}
           hideSidebarPanel={!hasStartedGame}
           activeCharacter={charMgmt.activeCharacter || undefined}
           characters={charMgmt.characters}
