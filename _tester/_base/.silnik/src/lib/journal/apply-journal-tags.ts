@@ -235,6 +235,19 @@ export function processCharacterJournalAndDossier(
         (c) => c.title.toLowerCase().trim() === lowerTitle
       );
 
+      // Wykrywanie unieważniania starszych poszlak
+      const supersedesMatch = tag.content.match(/(?:zastępuje|unieważnia|obala|supersedes|refutes):\s*([^|\n\]]+)/i);
+      const supersededTarget = supersedesMatch ? supersedesMatch[1].trim().toLowerCase() : null;
+      if (supersededTarget) {
+        dossier.clues.forEach((c) => {
+          if (c.title.toLowerCase().trim() === supersededTarget || c.title.toLowerCase().includes(supersededTarget)) {
+            c.status = 'superseded';
+            c.supersededBy = tag.title.trim();
+            changed = true;
+          }
+        });
+      }
+
       if (!existingClue) {
         const isKey = /klucz|core|key|główn/i.test(`${tag.title} ${tag.content}`);
         const resolvedMiceType = explicitMiceType || inferClueMiceType(tag.title, fact);
@@ -252,6 +265,13 @@ export function processCharacterJournalAndDossier(
         };
         dossier.clues.push(newClue);
         changed = true;
+      } else {
+        // Aktualizacja istniejącej poszlaki
+        if (existingClue.description !== fact && fact) {
+          existingClue.description = fact;
+          existingClue.timestamp = Date.now();
+          changed = true;
+        }
       }
     }
 

@@ -18,6 +18,10 @@ import { synthesizeClueFact } from './parsers/journal-parser';
 export interface DirectorClueFact {
   title: string;
   fact: string;
+  /** Status faktu śledczego (Arcanum Benchmark 2026: Fact Supersession) */
+  status?: 'active' | 'superseded' | 'refuted';
+  /** Identyfikator lub tytuł faktu, który go unieważnił */
+  supersededBy?: string;
 }
 
 export interface DirectorState {
@@ -124,17 +128,33 @@ export function updateDirectorState(
       const existingFactIndex = state.clueFacts.findIndex(
         (f) => f.title.toLowerCase().trim() === clueKey
       );
+
+      // Wykrywanie unieważnienia (np. [DZIENNIK:trop:Nowy trop]... | zastępuje: Stary trop lub treść wskazuje na obalenie)
+      const supersedesMatch = entry.content.match(/(?:zastępuje|unieważnia|obala|supersedes|refutes):\s*([^|\n\]]+)/i);
+      const supersededTarget = supersedesMatch ? supersedesMatch[1].trim().toLowerCase() : null;
+      if (supersededTarget) {
+        state.clueFacts.forEach((cf) => {
+          if (cf.title.toLowerCase().trim() === supersededTarget || cf.title.toLowerCase().includes(supersededTarget)) {
+            cf.status = 'superseded';
+            cf.supersededBy = entry.title;
+          }
+        });
+      }
+
       if (existingFactIndex >= 0) {
         state.clueFacts[existingFactIndex].fact = fact;
+        if (!state.clueFacts[existingFactIndex].status) {
+          state.clueFacts[existingFactIndex].status = 'active';
+        }
       } else {
-        state.clueFacts.push({ title: entry.title, fact });
+        state.clueFacts.push({ title: entry.title, fact, status: 'active' });
       }
     }
     if (state.discoveredClues.length > MAX_CLUES) {
       state.discoveredClues = state.discoveredClues.slice(-MAX_CLUES);
     }
-    if (state.clueFacts.length > 5) {
-      state.clueFacts = state.clueFacts.slice(-5);
+    if (state.clueFacts.length > 10) {
+      state.clueFacts = state.clueFacts.slice(-10);
     }
 
     // Wnioski i notatki badacza

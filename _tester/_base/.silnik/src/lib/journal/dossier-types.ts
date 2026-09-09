@@ -6,7 +6,7 @@
 
 export type ClueCategory = 'forensic' | 'document' | 'testimony' | 'occult';
 
-export type ClueStatus = 'unconfirmed' | 'confirmed' | 'disproven';
+export type ClueStatus = 'unconfirmed' | 'confirmed' | 'disproven' | 'superseded';
 
 /**
  * Wektor dramatyczny M.I.C.E. Quotient (Orson Scott Card / Mary Robinette Kowal):
@@ -23,6 +23,8 @@ export interface ClueEntry {
   description: string;
   category: ClueCategory;
   status: ClueStatus;
+  /** Identyfikator poszlaki unieważniającej (Arcanum Benchmark 2026: Fact Supersession) */
+  supersededBy?: string;
   sourceNpc?: string;
   sourceNpcId?: string;
   foundLocation?: string;
@@ -51,6 +53,7 @@ export type NpcRelationshipStatus =
   | 'neutral'
   | 'hostile'
   | 'suspicious'
+  | 'fanatical'
   | 'unknown'
   | 'deceased';
 
@@ -61,6 +64,8 @@ export interface NpcDossierEntry {
   firstImpression?: string;
   keyInformation?: string;
   relationshipStatus: NpcRelationshipStatus;
+  /** Nastawienie psychologiczne NPC (blokada uległości bez testu socjalnego) */
+  disposition?: 'friendly' | 'neutral' | 'suspicious' | 'hostile' | 'fanatical';
   location?: string;
   locationId?: string;
   avatarUrl?: string;

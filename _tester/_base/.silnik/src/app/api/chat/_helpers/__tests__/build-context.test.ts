@@ -336,4 +336,118 @@ describe('buildActiveInvestigationSection (Issue #68 - Memory Loop)', () => {
     );
     expect(hasInvestigationSection).toBe(true);
   });
+
+  it('pomija poszlaki ze statusem superseded lub disproven (Arcanum: Fact Supersession)', () => {
+    const character = {
+      id: 'c4',
+      name: 'Thomas Malone',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'clue_old',
+            title: 'Fałszywe alibi lokaja',
+            description: 'Lokaj twierdził, że był w spiżarni.',
+            status: 'superseded',
+            supersededBy: 'Przyznanie się lokaja',
+          },
+          {
+            id: 'clue_new',
+            title: 'Przyznanie się lokaja',
+            description: 'Lokaj przyznał się do kradzieży klucza.',
+            status: 'confirmed',
+          },
+          {
+            id: 'clue_refuted',
+            title: 'Ślady kół powozu',
+            description: 'Ślady okazały się należeć do mleczarza.',
+            status: 'disproven',
+          },
+        ],
+        notes: [],
+        npcs: [],
+        locations: [],
+      },
+    } as unknown as Character;
+
+    const section = buildActiveInvestigationSection({
+      character,
+      locale: 'pl',
+    });
+
+    expect(section).toContain('- **Przyznanie się lokaja**: Lokaj przyznał się do kradzieży klucza.');
+    expect(section).not.toContain('Fałszywe alibi lokaja');
+    expect(section).not.toContain('Ślady kół powozu');
+  });
+});
+
+describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => {
+  const dummyGameContext: GameContext = {
+    mode: 'investigation',
+    hasNPCs: true,
+    recentSANLoss: false,
+    findingDocument: false,
+    inDarkness: false,
+    nightTime: false,
+  };
+
+  it('wstrzykuje sekcję twardej obecności w scenie [OBECNI_NPC] dopasowując lokację', () => {
+    const result = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      currentLocation: 'Gabinet profesora',
+      npcs: [
+        { name: 'Profesor Armitage', location: 'Gabinet profesora', status: 'alive' },
+        { name: 'Kapitan Marsh', location: 'Doki', status: 'alive' },
+      ],
+      locale: 'pl',
+    });
+
+    const presenceSection = result.find((s) => s.includes('OBECNOŚĆ W SCENIE I HORYZONT INFORMACYJNY'));
+    expect(presenceSection).toBeDefined();
+    expect(presenceSection).toContain('[OBECNI_NPC: Profesor Armitage]');
+    expect(presenceSection).not.toContain('Kapitan Marsh');
+  });
+
+  it('wstrzykuje sekcję [PRESENT_NPCS] w języku angielskim przy locale: en', () => {
+    const result = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      currentLocation: 'Library',
+      presentNpcs: [{ name: 'Librarian' }],
+      locale: 'en',
+    });
+
+    const presenceSection = result.find((s) => s.includes('SCENE PRESENCE & INFORMATION HORIZON'));
+    expect(presenceSection).toBeDefined();
+    expect(presenceSection).toContain('[PRESENT_NPCS: Librarian]');
+    expect(presenceSection).toContain('STRICT RULE: ONLY NPCs explicitly listed');
+  });
+
+  it('wstrzykuje Zamkniętą Kopertę (truthAnchor) chroniącą przed uleganiem hipotezom gracza', () => {
+    const result = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      truthAnchor: {
+        culprit: 'Doktor Henry Armitage',
+        motive: 'Pozyskanie księgi Necronomicon',
+        murderWeapon: 'Arszenik w herbacie',
+        keyAlibi: 'Lokaj Barnaba był w areszcie o 22:00',
+        immutableFacts: ['Ślady błota pochodzą z cmentarza'],
+      },
+      locale: 'pl',
+    });
+
+    const truthSection = result.find((s) => s.includes('NIEZMIENNA PRAWDA ŚLEDZTWA (ZAMKNIĘTA KOPERTA)'));
+    expect(truthSection).toBeDefined();
+    expect(truthSection).toContain('- Prawdziwy sprawca: Doktor Henry Armitage');
+    expect(truthSection).toContain('- Motyw zbrodni: Pozyskanie księgi Necronomicon');
+    expect(truthSection).toContain('- Narzędzie / metoda: Arszenik w herbacie');
+    expect(truthSection).toContain('ŚCIŚLE ZAKAZANA RETROSPEKTYWNA KONFIRMACJA');
+  });
 });

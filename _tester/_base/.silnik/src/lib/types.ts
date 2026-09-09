@@ -680,6 +680,10 @@ export interface NPC {
   physiologicalDetail?: string; // Wygląd, postawa, manieryzm fizyczny
   sociologicalStatus?: string; // Klasa, pozycja społeczna, dynamika siły
   psychologicalAgenda?: string; // Ukryty cel, lęk, skaza moralna
+  /** Jawna agenda NPC (Arcanum Benchmark 2026: NPC Pushback) */
+  agenda?: string;
+  /** Nastawienie psychologiczne do badacza (blokada uległości) */
+  disposition?: 'friendly' | 'neutral' | 'suspicious' | 'hostile' | 'fanatical';
 
   // Status i efekty
   status: 'alive' | 'dead' | 'unknown';
@@ -940,6 +944,15 @@ export interface AdventureContext {
 
   // Zintegrowana mapa myśli, wygenerowana z PDF przez Gemini 3.1 Pro (Preview)
   graph?: AdventureGraph;
+
+  /** Niezmienna prawda śledztwa (Arcanum Benchmark 2026: Sealed Envelope Enforcement) */
+  truthAnchor?: {
+    culprit?: string;
+    motive?: string;
+    murderWeapon?: string;
+    keyAlibi?: string;
+    immutableFacts?: string[];
+  };
 }
 
 export interface ConflictFaction {

@@ -186,4 +186,21 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
     expect(updatedChar2?.journal?.some((j) => j.title === 'Zapiski w notesie')).toBe(true);
     expect(updatedChar2?.journal?.some((j) => j.title === 'Ślad buta')).toBe(false);
   });
+
+  it('unieważnia starszą poszlakę, gdy nowy wpis dziennika jawnie deklaruje zastąpienie (Fact Supersession)', () => {
+    const raw1 = '[DZIENNIK:trop:Alibi dozorcy]Dozorca twierdzi, że całą noc spał w stróżówce.[/DZIENNIK]';
+    const charWithClue1 = appendJournalFromText(baseCharacter, raw1, 'msg_super_1');
+
+    expect(charWithClue1.investigatorDossier?.clues[0].status).toBe('confirmed');
+
+    const raw2 = '[DZIENNIK:trop:Zdemaskowanie dozorcy]Dozorca przyznał się do kłamstwa. | zastępuje: Alibi dozorcy[/DZIENNIK]';
+    const charWithClue2 = appendJournalFromText(charWithClue1, raw2, 'msg_super_2');
+
+    const oldClue = charWithClue2.investigatorDossier?.clues.find((c) => c.title === 'Alibi dozorcy');
+    const newClue = charWithClue2.investigatorDossier?.clues.find((c) => c.title === 'Zdemaskowanie dozorcy');
+
+    expect(oldClue?.status).toBe('superseded');
+    expect(oldClue?.supersededBy).toBe('Zdemaskowanie dozorcy');
+    expect(newClue?.status).toBe('confirmed');
+  });
 });

@@ -198,14 +198,16 @@ export function buildActiveInvestigationSection(
   const clues: { title: string; fact: string }[] = [];
   const seenClueKeys = new Set<string>();
 
-  // A. Z dossier postaci (priorytet)
+  // A. Z dossier postaci (priorytet) - wykluczamy fakty unieważnione/obalone (Fact Supersession)
   if (char?.investigatorDossier?.clues && char.investigatorDossier.clues.length > 0) {
     // Sortuj: kluczowe poszlaki najpierw, potem najnowsze
-    const sorted = [...char.investigatorDossier.clues].sort((a, b) => {
-      if (a.isKeyClue && !b.isKeyClue) return -1;
-      if (!a.isKeyClue && b.isKeyClue) return 1;
-      return (b.timestamp || 0) - (a.timestamp || 0);
-    });
+    const sorted = [...char.investigatorDossier.clues]
+      .filter((c) => c.status !== 'superseded' && c.status !== 'disproven')
+      .sort((a, b) => {
+        if (a.isKeyClue && !b.isKeyClue) return -1;
+        if (!a.isKeyClue && b.isKeyClue) return 1;
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
 
     for (const c of sorted) {
       const key = c.title.toLowerCase().trim();
@@ -234,10 +236,11 @@ export function buildActiveInvestigationSection(
     }
   }
 
-  // C. Fallback: z directorState.clueFacts lub discoveredClues
+  // C. Fallback: z directorState.clueFacts lub discoveredClues (tylko aktywne fakty)
   if (clues.length < 5 && directorState) {
     if (directorState.clueFacts && directorState.clueFacts.length > 0) {
       for (const cf of directorState.clueFacts) {
+        if (cf.status === 'superseded' || cf.status === 'refuted') continue;
         const key = cf.title.toLowerCase().trim();
         if (!seenClueKeys.has(key)) {
           seenClueKeys.add(key);
@@ -362,6 +365,12 @@ export interface NpcContextEntry {
   status?: 'alive' | 'unknown' | 'dead' | string;
   occupation?: string;
   description?: string;
+  /** Lokacja, w której przebywa NPC (Arcanum Benchmark 2026: Scene Presence) */
+  location?: string;
+  /** Ukryty lub jawny cel postaci (Arcanum Benchmark 2026: NPC Pushback) */
+  agenda?: string;
+  /** Nastawienie psychologiczne do badacza (blokada uległości bez testu socjalnego) */
+  disposition?: 'friendly' | 'neutral' | 'suspicious' | 'hostile' | 'fanatical';
 }
 
 // IND-72: minimal Hot Seat player shape z body request (cleanup `any` z lin 291 route.ts).
@@ -412,6 +421,16 @@ export interface BuildAdditionalContextOpts {
   immersionSection?: string;
   /** Wydarzenie z generatora fabularnego zrzucone z UI, przekazywane z hooka useChat */
   directorEventSection?: string;
+  /** Niezmienna prawda śledztwa (Arcanum Benchmark 2026: Sealed Envelope Enforcement) */
+  truthAnchor?: {
+    culprit?: string;
+    motive?: string;
+    murderWeapon?: string;
+    keyAlibi?: string;
+    immutableFacts?: string[];
+  };
+  /** Twarda lista NPC fizycznie obecnych w scenie (Arcanum Benchmark 2026: Scene Presence) */
+  presentNpcs?: Array<{ id?: string; name: string; location?: string }>;
 }
 
 export function buildAdditionalContext(
@@ -445,9 +464,9 @@ export function buildAdditionalContext(
 
   const additionalContext: string[] = [timePromptSection];
 
-  // Materialne User Story i Kontrast Epoki dla MG
+  // Materialne User Story i Kontrast Epoki dla MG (domyślna epoka CoC to 1920s)
   if (era || currentLocation) {
-    additionalContext.push(buildLocationEraGuidanceSection(era, currentLocation));
+    additionalContext.push(buildLocationEraGuidanceSection(era || '1920s', currentLocation));
   }
 
   // C1: recap przy wznowieniu zapisanej gry - instrukcja "zrób recap w tej turze".
@@ -563,6 +582,9 @@ export function buildAdditionalContext(
         npcContext += `- **${npc.name}**`;
         if (npc.occupation) npcContext += ` (${npc.occupation})`;
         if (npc.description) npcContext += `: ${npc.description.slice(0, 100)}`;
+        if (npc.location) npcContext += ` [lokacja: ${npc.location}]`;
+        if (npc.disposition) npcContext += ` [nastawienie: ${npc.disposition}]`;
+        if (npc.agenda) npcContext += ` [agenda: ${npc.agenda}]`;
         npcContext += '\n';
       }
       if (currentLocation) {
@@ -570,6 +592,52 @@ export function buildAdditionalContext(
       }
       additionalContext.push(npcContext);
     }
+  }
+
+  // Arcanum Benchmark 2026: Task 2 - Scene Presence & Information Horizon
+  // Twarda obecność NPC w scenie wyznaczona z presentNpcs lub dopasowania npc.location do currentLocation
+  const scenePresentNpcs = (opts.presentNpcs && opts.presentNpcs.length > 0)
+    ? opts.presentNpcs
+    : (npcs && currentLocation
+        ? npcs.filter((n) => (n.status === 'alive' || n.status === 'unknown') && n.location && n.location.toLowerCase().trim() === currentLocation.toLowerCase().trim())
+        : []);
+
+  if (scenePresentNpcs.length > 0) {
+    const isEn = opts.locale === 'en';
+    const presentList = scenePresentNpcs.map((n) => n.name).join(', ');
+    const scenePresenceSection = isEn
+      ? `\n## SCENE PRESENCE & INFORMATION HORIZON (STRICT)\n` +
+        `[PRESENT_NPCS: ${presentList}]\n` +
+        `STRICT RULE: ONLY NPCs explicitly listed in [PRESENT_NPCS] are physically present in this room and can hear or speak. NPCs in other rooms CANNOT participate, react, or hear the Investigator's words.\n`
+      : `\n## OBECNOŚĆ W SCENIE I HORYZONT INFORMACYJNY (TWARDY)\n` +
+        `[OBECNI_NPC: ${presentList}]\n` +
+        `BEZWZGLĘDNA ZASADA: W dialogach mogą uczestniczyć i zabierać głos WYŁĄCZNIE NPC ze znacznika [OBECNI_NPC]. Postacie przebywające w innych lokacjach lub na korytarzu NIE mają prawa reagować, wtrącać się ani słyszeć wypowiedzi Badacza.\n`;
+    additionalContext.push(scenePresenceSection);
+  }
+
+  // Arcanum Benchmark 2026: Task 3 - Sealed Envelope Enforcement
+  // Niezmienna prawda śledztwa chroniąca przed retrospektywnym dopasowaniem (retrofitted mystery)
+  if (opts.truthAnchor) {
+    const isEn = opts.locale === 'en';
+    const ta = opts.truthAnchor;
+    const lines: string[] = isEn
+      ? [`\n## IMMUTABLE INVESTIGATION TRUTH (SEALED ENVELOPE)`]
+      : [`\n## NIEZMIENNA PRAWDA ŚLEDZTWA (ZAMKNIĘTA KOPERTA)`];
+
+    if (ta.culprit) lines.push(isEn ? `- True Culprit: ${ta.culprit}` : `- Prawdziwy sprawca: ${ta.culprit}`);
+    if (ta.motive) lines.push(isEn ? `- Motive: ${ta.motive}` : `- Motyw zbrodni: ${ta.motive}`);
+    if (ta.murderWeapon) lines.push(isEn ? `- Murder Weapon / Method: ${ta.murderWeapon}` : `- Narzędzie / metoda: ${ta.murderWeapon}`);
+    if (ta.keyAlibi) lines.push(isEn ? `- Inviolable Alibi: ${ta.keyAlibi}` : `- Kluczowe alibi: ${ta.keyAlibi}`);
+    if (ta.immutableFacts && ta.immutableFacts.length > 0) {
+      ta.immutableFacts.forEach((f) => lines.push(`- ${f}`));
+    }
+
+    const directive = isEn
+      ? `STRICT DIRECTIVE: DO NOT confirm false theories or bend the mystery to Investigator hypotheses. If the Investigator accuses an innocent person or follows a dead end, present natural contradictory evidence or physical resistance. The true culprit and facts NEVER change.`
+      : `ŚCIŚLE ZAKAZANA RETROSPEKTYWNA KONFIRMACJA: ZAKAZ ulegania fałszywym hipotezom Badacza. Jeśli gracz oskarża niewinną osobę lub forsuje zmyślony trop, świat przedstawia sprzeczne dowody lub opór materialny. Prawdziwy sprawca, motyw i narzędzie pozostają nienaruszalne.`;
+
+    lines.push(directive);
+    additionalContext.push(lines.join('\n'));
   }
 
   // OPT-22: Hot Seat FIX prompt (≥2 graczy z resolved characterName)

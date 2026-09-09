@@ -55,6 +55,7 @@ export function cleanupContent(content: string): string {
     .replace(new RegExp(`\\[NASTRÓJ:${NESTED_TAG_BODY}\\]`, 'gi'), '')
     .replace(new RegExp(`\\[CEL_NARRACYJNY:${NESTED_TAG_BODY}\\]`, 'gi'), '')
     .replace(/\[NPC:[^\]]*\]/gi, '')
+    .replace(/\[(?:OBECNI_NPC|PRESENT_NPCS):[^\]]*\]/gi, '')
     .replace(/\[LOKACJA:[^\]]*\]/gi, '')
     .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
     .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')

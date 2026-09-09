@@ -49,6 +49,7 @@ export function cleanResponseText(text: string): string {
       .replace(new RegExp(`\\[NASTRÓJ:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(new RegExp(`\\[CEL_NARRACYJNY:${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(/\[NPC:[^\]]*\]/gi, '')
+      .replace(/\[(?:OBECNI_NPC|PRESENT_NPCS):[^\]]*\]/gi, '')
       .replace(/\[POSTAĆ:[^\]]*\]/gi, '')
       .replace(/\[(?:LOKACJA|LOCATION):[^\]]*\]/gi, '')
       .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
