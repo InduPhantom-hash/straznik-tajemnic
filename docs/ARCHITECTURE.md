@@ -96,3 +96,15 @@ Aplikacja nie wymaga i nie utrzymuje żadnej zewnętrznej relacyjnej bazy danych
 - Save'y, stan postaci, Dziennik i Tablica Badacza zapisują się lokalnie (`data/saves/` oraz `localStorage`).
 - Obrazy sesji cache'owane są w `IndexedDB`.
 - Połączenia wychodzące kierowane są wyłącznie do Google AI Studio pod kontrolą użytkownika.
+
+---
+
+## 7. Doktryna Czystego Emulatora BYOB & Dwuskładnikowy Bloker Sesji
+
+W celu ochrony przed roszczeniami licencyjnymi (Chaosium BRP OGL / Fan Material Policy), aplikacja działa jako **Czysty Emulator Mechaniki (model ScummVM & RetroArch)**:
+- Kod silnika nie zawiera zastrzeżonych tabel obłędu, unikalnych mechanik Bouts of Madness ani chronionych podręczników.
+- **Dwuskładnikowy Bloker Sesji (Two-Factor Session Blocker):**
+  1. **Składnik 1 (Klucz API):** Własny klucz Google Gemini API (BYOK).
+  2. **Składnik 2 (Księga Szyfrów):** Legalnie nabyty przez gracza plik PDF z zasadami (Starter d100 lub Księga Strażnika CoC 7e).
+- **Blokada Runtime (Hard Guard):** Dopóki oba warunki nie zostaną spełnione, ekran powitalny blokuje wejście do gry, a hook `useChat` zatrzymuje wywołania API na poziomie lokalnym (0 tokenów, brak wywołań sieciowych).
+- **Fingerprint Podręcznika (`rulebook-fingerprint.ts`):** Przy imporcie pliku PDF silnik weryfikuje profil dokumentu (`starter-d100` lub `core-d100`) i zapisuje metadane, na podstawie których dostosowuje zaawansowanie reguł w promptach MG.

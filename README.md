@@ -36,8 +36,8 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 > Wolisz uruchomić ze źródeł? Instrukcja niżej (**Szybki start**).
 
 > [!IMPORTANT]
-> **Projekt fanowski, nieoficjalny.** Nie jest powiązany z Chaosium Inc. ani Black Monk.
-> Aplikacja to **sam silnik** - nie zawiera żadnego podręcznika. Grasz na **własnym, legalnie nabytym** egzemplarzu. _Call of Cthulhu_ / _Zew Cthulhu_ to znaki towarowe Chaosium Inc. Szczegóły: [`NOTICE`](./NOTICE).
+> **Projekt fanowski, nieoficjalny (Doktryna Czystego Emulatora BYOB).** Nie jest powiązany z Chaosium Inc. ani Black Monk.
+> Aplikacja to **sam silnik emulatora** (model ScummVM / RetroArch) z **dwuskładnikowym blokerem sesji** (Klucz API + własny PDF z zasadami) - nie zawiera żadnego podręcznika ani zastrzeżonych tabel. Grasz na **własnym, legalnie nabytym** egzemplarzu (darmowy Starter lub Księga Strażnika). _Call of Cthulhu_ / _Zew Cthulhu_ to znaki towarowe Chaosium Inc. Szczegóły: [`NOTICE`](./NOTICE).
 
 ## ✨ Co potrafi silnik
 
@@ -176,8 +176,8 @@ There comes a stage in life where gathering a full table for an RPG session is a
 > Prefer running from source code? Follow the **Quick Start** guide below.
 
 > [!IMPORTANT]
-> **Fan project, unofficial.** Not affiliated with Chaosium Inc. or Black Monk.
-> The application is **only the engine** - it does not contain any books. You play using your **own, legally acquired** copy. _Call of Cthulhu_ is a trademark of Chaosium Inc. Details: [`NOTICE`](./NOTICE).
+> **Fan project, unofficial (Clean Room BYOB Emulator Doctrine).** Not affiliated with Chaosium Inc. or Black Monk.
+> The application is **only the emulator engine** (ScummVM / RetroArch model) equipped with a **Two-Factor Session Blocker** (API Key + your own PDF rulebook) - it contains no rulebooks or proprietary tables. You play using your **own, legally acquired** copy (free Quick-Start Rules or Keeper Rulebook). _Call of Cthulhu_ is a trademark of Chaosium Inc. Details: [`NOTICE`](./NOTICE).
 
 ## ✨ Engine Features
 

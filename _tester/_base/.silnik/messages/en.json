@@ -23,7 +23,11 @@
     "authorizationRequired": "Authorization required",
     "openApiKeys": "Enter API key",
     "rulesRequired": "Rulebook required",
-    "openRulebook": "Upload rules (CoC 7e PDF)"
+    "openRulebook": "Upload rules (CoC 7e PDF)",
+    "bookRequiredTitle": "CoC 7e Rulebook Required",
+    "bookRequiredDesc": "The application operates as a clean rule emulator (BYOB). To unlock gameplay, upload your legally acquired rulebook (Starter Rules or Keeper Rulebook).",
+    "starterOrCoreAccepted": "Supported formats: Free Quick-Start Rules or full CoC 7e Keeper Rulebook (PDF).",
+    "legalDisclaimerNotice": "Strażnik Tajemnic AI is open-source software and contains no proprietary Call of Cthulhu / Chaosium Inc. text or tables. All rules are processed strictly locally from the user's file."
   },
   "CostControl": {
     "title": "Cost Control",

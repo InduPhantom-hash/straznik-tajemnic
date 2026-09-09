@@ -716,8 +716,13 @@ export default function Home() {
     );
 
     const handleOpenModal = () => setShowApiKeysModal(true);
+    const handleOpenRules = () => setShowRulebookModal(true);
     window.addEventListener('open-api-keys-modal', handleOpenModal);
-    return () => window.removeEventListener('open-api-keys-modal', handleOpenModal);
+    window.addEventListener('open-rulebook-modal', handleOpenRules);
+    return () => {
+      window.removeEventListener('open-api-keys-modal', handleOpenModal);
+      window.removeEventListener('open-rulebook-modal', handleOpenRules);
+    };
   }, []);
 
   

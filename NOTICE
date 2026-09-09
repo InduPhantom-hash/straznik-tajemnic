@@ -6,14 +6,14 @@ Strażnik Tajemnic AI to **nieoficjalny, fanowski silnik** AI Mistrza Gry
 do prowadzenia sesji RPG w klimacie lovecraftowskim. Projekt nie jest powiązany,
 sponsorowany ani wspierany przez Chaosium Inc. ani przez Black Monk Games.
 
-## To repozytorium NIE zawiera treści chronionych
+## To repozytorium NIE zawiera treści chronionych (Doktryna Czystego Emulatora BYOB)
 
-- Repozytorium dostarcza **wyłącznie kod silnika** (na licencji MIT, patrz `LICENSE`).
-- **Nie zawiera** żadnych podręczników, scenariuszy ani innych materiałów Chaosium /
-  Black Monk. Nie są one dołączane ani rozprowadzane w żadnej formie.
-- Aby grać, **wnosisz własny, legalnie nabyty egzemplarz** podręcznika (darmowy
-  starter albo pełne wydanie). Wgrywasz swój plik PDF lokalnie - trafia on wyłącznie
-  na Twój dysk i nigdy nie jest udostępniany dalej.
+- Repozytorium dostarcza **wyłącznie kod silnika** (na licencji MIT, patrz `LICENSE`) działający na zasadzie **Czystego Emulatora (Clean Room Engine / Model ScummVM & RetroArch)**.
+- **Nie zawiera** żadnych podręczników, zastrzeżonych tabel szaleństwa, unikalnych mechanik Bouts of Madness ani innych materiałów Chaosium Inc. / Black Monk Games.
+- Wdrażany jest **dwuskładnikowy bloker sesji (Two-Factor Session Blocker)**: aplikacja pozostaje nieaktywnym szkieletem matematycznym d100 do momentu dostarczenia:
+  1. **Klucza API gracza** (Google Gemini / Claude / lokalny LLM).
+  2. **Legalnie nabytego pliku PDF z podręcznikiem (Księga Szyfrów / Bring Your Own Book)**: darmowy Starter d100 (Quick-Start Rules) lub pełna Księga Strażnika.
+- Wgrywany plik PDF jest parsowany i indeksowany wyłącznie lokalnie w przeglądarce i na dysku gracza w ramach dozwolonego użytku osobistego. Silnik nie redystrybuuje ani nie udostępnia żadnych chronionych treści.
 
 ## Baza wiedzy i Encyklopedia Fandom Wiki (Licencja CC-BY-SA)
 
