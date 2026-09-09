@@ -525,7 +525,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     useState<SessionEndStatus>('idle');
   const [lastImageTime, setLastImageTime] = useState(0);
 
+  const activeChaseStateRef = useRef<ChaseState | null>(activeChaseState);
+
   useEffect(() => {
+    activeChaseStateRef.current = activeChaseState;
     if (typeof window === 'undefined') return;
     if (activeChaseState) {
       localStorage.setItem(
@@ -986,7 +989,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   },
                 });
           setActiveChaseState(chaseState);
-          setCheatChaseModal(true);
+          activeChaseStateRef.current = chaseState;
         }
         if (execRes.toastMessage) {
           toast({
@@ -1002,6 +1005,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             content: execRes.assistantMessage.content || '',
             timestamp: new Date(),
             gameTime: currentGameTime,
+            chaseState: (execRes.rawCommand?.includes('CHASE') || execRes.rawCommand?.includes('POŚCIG'))
+              ? activeChaseStateRef.current ?? undefined
+              : undefined,
             skillTests: execRes.assistantMessage.skillTests,
             hazardEvents: execRes.assistantMessage.hazardEvents,
             spellCastEvents: execRes.assistantMessage.spellCastEvents,
@@ -1046,7 +1052,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         gameTime: currentGameTime,
         mechanicsContext,
       };
-      if (mechanicsContext?.chase) setActiveChaseState(mechanicsContext.chase);
+      if (mechanicsContext?.chase) {
+        setActiveChaseState(mechanicsContext.chase);
+        activeChaseStateRef.current = mechanicsContext.chase;
+      }
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
 
@@ -1521,11 +1530,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           );
         }
 
-        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252)
+        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252), pościgi
         const hazardEvents = extractHazardEvents(fullText);
         const spellCastEvents = extractSpellCastEvents(fullText);
         const tomeStudyEvents = extractTomeStudyEvents(fullText);
-        if (hazardEvents.length > 0 || spellCastEvents.length > 0 || tomeStudyEvents.length > 0) {
+        const currentChase = activeChaseStateRef.current;
+        if (hazardEvents.length > 0 || spellCastEvents.length > 0 || tomeStudyEvents.length > 0 || currentChase) {
           setMessages((prev) =>
             prev.map((message) =>
               message.id === assistantMessageId
@@ -1534,10 +1544,15 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
                     ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),
                     ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
+                    ...(currentChase ? { chaseState: currentChase } : {}),
                   }
                 : message
             )
           );
+          if (currentChase && currentChase.status !== 'ongoing') {
+            setActiveChaseState(null);
+            activeChaseStateRef.current = null;
+          }
         }
 
         // IND-267: śledzenie lokacji. Najnowszy [LOKACJA:] z narracji MG zasila pineskę 📍

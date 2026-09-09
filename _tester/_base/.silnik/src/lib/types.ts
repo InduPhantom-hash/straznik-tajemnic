@@ -160,6 +160,7 @@ export interface Message {
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
   tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
+  chaseState?: ChaseState; // Pościg i tor przeszkód CoC 7e RAW [POŚCIG:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
   acquiredItems?: AcquiredItemProposal[];
   cliffhanger?: {

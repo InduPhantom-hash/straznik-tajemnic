@@ -27,6 +27,8 @@ import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
 import type { Character, Message } from '@/lib/types';
+import { ChaseCard } from './chase-card';
+import type { ChaseManeuverType, ChaseState } from '@/lib/chase/chase-engine';
 import type { SkillTestData } from '@/lib/parsers/types';
 import {
   getMessageStyle,
@@ -61,6 +63,11 @@ interface MessageCardProps {
   resolvedSpellIds?: ReadonlySet<string>;
   onSendTomeResult?: (message: string) => void;
   resolvedTomeIds?: ReadonlySet<string>;
+  onChaseManeuver?: (
+    maneuverType: ChaseManeuverType,
+    chaseState: ChaseState,
+    narrativeDeclaration: string
+  ) => void;
   /** Kontynuacja uciętej narracji (MAX_TOKENS) - deklaruje caller; pole
    *  opcjonalne dla zgodności z testami i chat-window types. */
   onContinueNarration?: (messageId?: string) => void;
@@ -92,6 +99,7 @@ export function MessageCard({
   resolvedSpellIds,
   onSendTomeResult,
   resolvedTomeIds,
+  onChaseManeuver,
   onContinueNarration,
   isDuet = false,
   characters = [],
@@ -395,6 +403,19 @@ export function MessageCard({
                     characters={characters}
                   />
                 ))}
+              </div>
+            )}
+
+            {/* Pościg i tor przeszkód CoC 7e RAW (Fiction First w czacie) */}
+            {message.chaseState && (
+              <div className="mt-3">
+                <ChaseCard
+                  chaseState={message.chaseState}
+                  activeCharacter={activeCharacter}
+                  characters={characters}
+                  completed={!isLastMessage || message.chaseState.status !== 'ongoing'}
+                  onManeuverSelect={onChaseManeuver}
+                />
               </div>
             )}
           </div>

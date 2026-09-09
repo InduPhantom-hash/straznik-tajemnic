@@ -65,6 +65,9 @@ export function cleanupContent(content: string): string {
     .replace(/\[(?:WYNIK_CZARU|SPELL_RESULT):[^\]]*\]/gi, '')
     .replace(/\[(?:TOM|TOME|KSIĘGA|KSIEGA|STUDIUM):[^\]]*\]/gi, '')
     .replace(/\[(?:WYNIK_TOMU|TOME_RESULT):[^\]]*\]/gi, '')
+    .replace(/\[(?:POŚCIG|POSCIG|CHASE):[^\]]*\]/gi, '')
+    .replace(/\[(?:WYNIK_POŚCIGU|WYNIK_POSCIGU|CHASE_RESULT):[^\]]*\]/gi, '')
+    .replace(/\[(?:WYNIK_ZAGROŻENIA|WYNIK_ZAGROZENIA|HAZARD_RESULT):[^\]]*\]/gi, '')
     .replace(/\[SANITY:[^\]]*\]/gi, '')
     // [HP: ±N: powód] - utrata/odzysk życia (aplikowane do karty, niewidoczne
     // w czacie). Krótszy niż 3 znaki, więc catch-all niżej go NIE łapie - explicit.
