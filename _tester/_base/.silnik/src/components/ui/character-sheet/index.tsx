@@ -48,6 +48,7 @@ import { SheetSkills } from './components/sheet-skills';
 import { SheetEquipment } from './components/sheet-equipment';
 import { SheetRelations } from './components/sheet-relations';
 import { SheetBiography } from './components/sheet-biography';
+import { SheetMagic } from './components/sheet-magic';
 import { SanityTherapyModal } from '@/components/dialogs/SanityTherapyModal';
 import { MedicalCareModal } from '@/components/dialogs/MedicalCareModal';
 
@@ -263,6 +264,9 @@ export function CharacterSheet({
                 character={display}
                 onItemClick={(item) => setSelectedItem(item)}
               />
+
+              {/* SEKCJA WIEDZY TAJEMNEJ, TOMÓW I MAGII (Issue #252) */}
+              <SheetMagic character={display} onCharacterUpdate={onCharacterUpdate} />
 
               {/* SEKCJA 8: BIOGRAFIA */}
               <SheetBiography character={display} />

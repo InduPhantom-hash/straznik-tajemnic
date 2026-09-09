@@ -22,6 +22,7 @@ import { NarrativeFormatter } from '../../NarrativeFormatter';
 import { SkillTestCard } from './skill-test-card';
 import { HazardCard } from './hazard-card';
 import { SpellCard } from './spell-card';
+import { TomeCard } from './tome-card';
 import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
@@ -58,6 +59,8 @@ interface MessageCardProps {
   resolvedHazardIds?: ReadonlySet<string>;
   onSendSpellResult?: (message: string) => void;
   resolvedSpellIds?: ReadonlySet<string>;
+  onSendTomeResult?: (message: string) => void;
+  resolvedTomeIds?: ReadonlySet<string>;
   /** Kontynuacja uciętej narracji (MAX_TOKENS) - deklaruje caller; pole
    *  opcjonalne dla zgodności z testami i chat-window types. */
   onContinueNarration?: (messageId?: string) => void;
@@ -87,6 +90,8 @@ export function MessageCard({
   resolvedHazardIds,
   onSendSpellResult,
   resolvedSpellIds,
+  onSendTomeResult,
+  resolvedTomeIds,
   onContinueNarration,
   isDuet = false,
   characters = [],
@@ -352,6 +357,23 @@ export function MessageCard({
                     completed={resolvedSpellIds?.has(spellEvent.id)}
                     onCharacterUpdate={onCharacterUpdate}
                     onSendChat={onSendSpellResult}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Badanie tomów Mitów CoC 7e RAW (Issue #252) */}
+            {message.tomeStudyEvents && message.tomeStudyEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.tomeStudyEvents.map((tomeEvent) => (
+                  <TomeCard
+                    key={tomeEvent.id}
+                    tomeEvent={tomeEvent}
+                    activeCharacter={activeCharacter}
+                    characters={characters}
+                    completed={resolvedTomeIds?.has(tomeEvent.id)}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onSendChat={onSendTomeResult}
                   />
                 ))}
               </div>

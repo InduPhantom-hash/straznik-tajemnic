@@ -1,6 +1,6 @@
 import { ParsedResponse, ParsedEvent, NPCPosition } from './types';
 import { extractNPCs, extractLocations, extractItems } from './event-parser';
-import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractSpellCastEvents, extractMeleeAttackReferences } from './mechanics-parser';
+import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractSpellCastEvents, extractTomeStudyEvents, extractMeleeAttackReferences } from './mechanics-parser';
 import { extractDialogues } from './dialogue-parser';
 import { extractImages, detectSFX } from './media-parser';
 import { extractJournalTags } from './journal-parser';
@@ -197,6 +197,8 @@ export function parseAIResponse(responseText: string): ParsedResponse {
     const hazardEvents = extractHazardEvents(responseText);
     // NOWE: Ekstrakcja rzucania czarów CoC 7e RAW (Issue #252)
     const spellCastEvents = extractSpellCastEvents(responseText);
+    // NOWE: Ekstrakcja badania tomów Mitów CoC 7e RAW (Issue #252)
+    const tomeStudyEvents = extractTomeStudyEvents(responseText);
     const meleeAttacks = extractMeleeAttackReferences(responseText);
 
     // NOWE: Ekstrakcja zdarzeń manipulacji ekwipunkiem (Fiction First)
@@ -226,6 +228,7 @@ export function parseAIResponse(responseText: string): ParsedResponse {
         skillResults,
         hazardEvents,
         spellCastEvents,
+        tomeStudyEvents,
         meleeAttacks,
         equipmentEvents,
         timeUpdate,

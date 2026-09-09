@@ -273,5 +273,60 @@ describe('MessageCard - czary i rytuały (Issue #252)', () => {
     expect(screen.getByText(/Inkantacja rozstrzygnięta/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Rzuć zaklęcie/i })).not.toBeInTheDocument();
   });
+
+  const tomeMessage: Message = {
+    ...baseMessage,
+    id: 'tome-message',
+    content: 'Na dębowym pulpicie spoczywa ciężki, oprawny w skórę wolumin.',
+    tomeStudyEvents: [
+      {
+        id: 'tome-study-1',
+        tomeId: 'necronomicon-latin',
+        characterName: 'Alice',
+      },
+    ],
+  };
+
+  it('renderuje kartę tomu Mitów i pozwala wykonać wstępny przegląd', () => {
+    const onCharacterUpdate = jest.fn();
+    const onSendTomeResult = jest.fn();
+
+    render(
+      <MessageCard
+        {...baseProps}
+        message={tomeMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        onCharacterUpdate={onCharacterUpdate}
+        onSendTomeResult={onSendTomeResult}
+      />
+    );
+
+    expect(screen.getByText(/Necronomicon/i)).toBeInTheDocument();
+    expect(screen.getByText(/Abdul Alhazred/i)).toBeInTheDocument();
+
+    const skimBtn = screen.getByRole('button', { name: /Wstępny przegląd/i });
+    fireEvent.click(skimBtn);
+
+    expect(onCharacterUpdate).toHaveBeenCalled();
+    expect(onSendTomeResult).toHaveBeenCalledWith(
+      expect.stringContaining('[WYNIK_TOMU: id=tome-study-1')
+    );
+  });
+
+  it('oznacza kartę tomu jako rozstrzygniętą, gdy id znajduje się w resolvedTomeIds', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={tomeMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        resolvedTomeIds={new Set(['tome-study-1'])}
+      />
+    );
+
+    expect(screen.getByText(/Badanie tomu zakończone/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Wstępny przegląd/i })).not.toBeInTheDocument();
+  });
 });
 

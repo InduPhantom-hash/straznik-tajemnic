@@ -212,3 +212,5 @@ export class TomeEngine {
     };
   }
 }
+
+export const tomeEngine = new TomeEngine();

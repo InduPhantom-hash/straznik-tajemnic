@@ -32,6 +32,7 @@ import {
   extractHazardEvents,
   extractSkillResults,
   extractSpellCastEvents,
+  extractTomeStudyEvents,
   stripMeleeAttackTags,
 } from '@/lib/parsers/mechanics-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
@@ -1004,6 +1005,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             skillTests: execRes.assistantMessage.skillTests,
             hazardEvents: execRes.assistantMessage.hazardEvents,
             spellCastEvents: execRes.assistantMessage.spellCastEvents,
+            tomeStudyEvents: execRes.assistantMessage.tomeStudyEvents,
             acquiredItems: execRes.assistantMessage.acquiredItems,
             generatedImages: execRes.assistantMessage.generatedImages,
           };
@@ -1519,10 +1521,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           );
         }
 
-        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60) oraz rzucanie czarów (Issue #252)
+        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252)
         const hazardEvents = extractHazardEvents(fullText);
         const spellCastEvents = extractSpellCastEvents(fullText);
-        if (hazardEvents.length > 0 || spellCastEvents.length > 0) {
+        const tomeStudyEvents = extractTomeStudyEvents(fullText);
+        if (hazardEvents.length > 0 || spellCastEvents.length > 0 || tomeStudyEvents.length > 0) {
           setMessages((prev) =>
             prev.map((message) =>
               message.id === assistantMessageId
@@ -1530,6 +1533,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     ...message,
                     ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
                     ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),
+                    ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
                   }
                 : message
             )

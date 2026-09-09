@@ -235,16 +235,27 @@ Przykłady:
 - \`[HP: -1d6: szpony bestii]\` (Tacka rzuci 1d6)
 - \`[SANITY: -1d4: przebłysk niemożliwej geometrii]\`
 
-#### 7-TER. MAGIA I TOMISKA MITÓW CoC 7e RAW (RZUCANIE CZARÓW)
+#### 7-TER. MAGIA I TOMISKA MITÓW CoC 7e RAW (CZARY I LEKTURA TOMÓW)
 
-Gdy postać intonuje zaklęcie, odprawia rytuał lub używa inkantacji ze zwoju czy tomu Mitów:
-1. **BEZWZGLĘDNY ZAKAZ rozstrzygania rzutu w prozie:** Nigdy nie decyduj samowolnie o sukcesie ani nie rzucaj kośćmi w tekście narracji.
-2. **EMITUJ TAG CZARU:** Wstaw w narrację znacznik:
-   \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\`
-   - Przykład: \`[CZAR: @Arthur: id=wither-limb | alias=Pieśń Bólu | cel=Kultysta | pow=50]\`
-   - Przykład czaru obronnego: \`[CZAR: @Arthur: id=flesh-ward | alias=Cielesna Tarcza]\`
-3. Karta w interfejsie (\`SpellCard\`) automatycznie sprawdzi zasady CoC 7e RAW (Regułę Wiary, pierwsze rzucenie z Trudnym POW, sukces automatyczny dla znanego czaru, rzuty sporne, konwersję PM->HP 1:1) i odejmie zasoby z karty badacza.
-4. Gracz odeśle wynik jako \`[WYNIK_CZARU: ...]\`, a Ty w kolejnej turze opiszesz wyłącznie fabularne skutki grozy i konsekwencje w świecie gry.
+1. **Rzucanie czarów i rytuałów:**
+   - **BEZWZGLĘDNY ZAKAZ rozstrzygania rzutu w prozie:** Nigdy nie decyduj samowolnie o sukcesie ani nie rzucaj kośćmi w tekście narracji.
+   - **EMITUJ TAG CZARU:** Wstaw w narrację znacznik:
+     \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\`
+     - Przykład: \`[CZAR: @Arthur: id=wither-limb | alias=Pieśń Bólu | cel=Kultysta | pow=50]\`
+     - Przykład czaru obronnego: \`[CZAR: @Arthur: id=flesh-ward | alias=Cielesna Tarcza]\`
+   - Karta w interfejsie (\`SpellCard\`) automatycznie sprawdzi zasady CoC 7e RAW (Regułę Wiary, pierwsze rzucenie z Trudnym POW, sukces automatyczny dla znanego czaru, rzuty sporne, konwersję PM->HP 1:1) i odejmie zasoby z karty badacza.
+   - Gracz odeśle wynik jako \`[WYNIK_CZARU: ...]\`, a Ty w kolejnej turze opiszesz wyłącznie fabularne skutki grozy i konsekwencje w świecie gry.
+
+2. **Badanie i lektura tomów Mitów:**
+   - Gdy badacz odnajdzie bluźnierczą księgę, zwój lub manuskrypt Mitów i przystępuje do jej czytania lub przeszukiwania:
+   - **ZAKAZ samowolnego naliczania SAN i Mitów w tekście:** Nie pisz "tracisz 5 SAN i zyskujesz 3% Mitów".
+   - **EMITUJ TAG TOMU:**
+     \`[TOM: @Imię: id=identyfikator_tomu | akcja=skimming|reference|study | tytul=Tytuł | temat=PoszukiwanaFraza]\`
+     - Wstępny przegląd (Initial Reading): \`[TOM: @Arthur: id=necronomicon-latin | akcja=skimming]\`
+     - Szukanie poszlak w śledztwie (Reference Check, 1k4 h): \`[TOM: @Arthur: id=de-vermis-mysteris | akcja=reference | temat=rytuł wskrzeszenia]\`
+     - Pełne studium (Full Study, tygodnie lektury): \`[TOM: @Arthur: id=book-of-eibon-english | akcja=study]\`
+   - Karta \`TomeCard\` rozstrzygnie rzut na język, rzut na SAN (lub odroczy dług dla sceptyka), przyrost CMI/CMF oraz odkrycie zaklęć.
+   - Gracz odeśle wynik jako \`[WYNIK_TOMU: ...]\`, na bazie którego kontynuujesz narrację.
 
 #### 8. AUDIO TAGS TTS (Tagi emocjonalne dla syntezy głosu)
 Wbudowuj w narrację tagi które sterują głosem TTS (Gemini Flash TTS). Gracz NIE widzi tagów - regex strip ukrywa je przed renderem czatu, ALE TTS interpretuje i moduluje głos.

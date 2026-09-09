@@ -1,4 +1,4 @@
-import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference, SpellCastEventData } from './types';
+import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference, SpellCastEventData, TomeStudyEventData } from './types';
 import { COMBAT_END_PATTERNS, COMBAT_START_PATTERNS, DAMAGE_PLAYER_PATTERNS, SANITY_PATTERNS } from './patterns';
 
 // Wykrywanie walki
@@ -467,4 +467,60 @@ export function extractSpellCastEvents(text: string): SpellCastEventData[] {
     }
 
     return spellEvents;
+}
+
+// Wykrywanie lektury i badania tomów Mitów CoC 7e RAW (Issue #252)
+export function extractTomeStudyEvents(text: string): TomeStudyEventData[] {
+    const tomeEvents: TomeStudyEventData[] = [];
+    const pattern = /\[(?:TOM|TOME|KSIĘGA|KSIEGA|STUDIUM):\s*(?:@([^:\]]+):\s*)?([^\]]+)\]/gi;
+
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        const characterName = match[1]?.trim();
+        const content = match[2]?.trim() || '';
+        const parts = content.split('|').map((p) => p.trim());
+
+        const kv: Record<string, string> = {};
+        const positional: string[] = [];
+
+        for (const part of parts) {
+            const eqIdx = part.indexOf('=');
+            if (eqIdx !== -1) {
+                const k = part.slice(0, eqIdx).trim().toLowerCase();
+                const v = part.slice(eqIdx + 1).trim();
+                kv[k] = v;
+            } else {
+                positional.push(part);
+            }
+        }
+
+        const tomeId = (kv.id || kv.tome || kv.ksiega || kv.tom || positional[0] || '').trim().toLowerCase();
+        if (!tomeId) continue;
+
+        const rawAction = (kv.akcja || kv.action || positional[1] || '').trim().toLowerCase();
+        let action: 'skimming' | 'study' | 'reference' | undefined;
+        if (rawAction.includes('skim') || rawAction.includes('przeglad') || rawAction.includes('wstepn')) {
+            action = 'skimming';
+        } else if (rawAction.includes('stud') || rawAction.includes('pelne')) {
+            action = 'study';
+        } else if (rawAction.includes('ref') || rawAction.includes('odnies') || rawAction.includes('szukaj')) {
+            action = 'reference';
+        }
+
+        const topic = kv.temat || kv.topic || kv.kwestia;
+        const title = kv.tytul || kv.title || kv.nazwa;
+        const description = kv.opis || kv.desc || kv.description || (positional.length > 2 ? positional[2] : undefined);
+
+        tomeEvents.push({
+            id: crypto.randomUUID(),
+            tomeId,
+            characterName,
+            action,
+            topic,
+            title,
+            description,
+        });
+    }
+
+    return tomeEvents;
 }

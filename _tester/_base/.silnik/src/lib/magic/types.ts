@@ -124,6 +124,8 @@ export interface TomeStudyEntry {
 export interface CharacterMagicState {
   schemaVersion: number;
   belief: 'skeptic' | 'believer';
+  beliefConversionDate?: string;
+  beliefConversionReason?: string;
   // U sceptyka strata SAN z lektury jest odkładana dopóki nie uwierzy lub nie spotka bytu Mitów
   deferredSanLoss: number;
   knownSpells: Record<string, KnownSpellEntry>;
