@@ -25,9 +25,14 @@
  *    - Ucieczka (Escape): dystans przekracza próg ucieczki (np. ≥ 4 lokacje przewagi) lub udany test Ukrycia.
  */
 
-import { type RollOutcome, isSuccess } from '@/lib/dice-utils';
+import {
+  type RollOutcome,
+  isSuccess,
+  mapDifficultyToRequired,
+  meetsDifficulty,
+} from '@/lib/dice-utils';
 
-export type ChaseStatus = 'ongoing' | 'escaped' | 'caught';
+export type ChaseStatus = 'ongoing' | 'escaped' | 'engaged';
 
 export type HazardType = 'barrier' | 'hazard' | 'shortcut';
 
@@ -55,12 +60,18 @@ export interface ChaseParticipant {
   isPlayer: boolean;
   isFleeing: boolean;
   mov: number;
+  /** Kolejność działań w rundzie pościgu CoC 7e. */
+  dex?: number;
   segmentIndex: number;
   actionsTotal: number;
   actionsRemaining: number;
   isCaught?: boolean;
   isEscaped?: boolean;
   speedModifier?: number;
+  /** Jawna cecha CON/Drive Auto użyta przy inicjalizującym speed rollu. */
+  speedCheckValue?: number;
+  /** Jawne wartości testów NPC; brak wartości oznacza automatyczną porażkę, nie fallback. */
+  skillValues?: Record<string, number>;
   characterId?: string;
 }
 
@@ -88,17 +99,68 @@ export interface ChaseRoundLog {
   rollOutcome?: RollOutcome;
   segmentBefore: number;
   segmentAfter: number;
+  maneuverType?: ChaseManeuverType;
+  hazardId?: string;
+  actionCost?: number;
 }
 
 export interface ChaseState {
   id: string;
   round: number;
-  maxRounds: number;
-  escapeDistanceThreshold: number;
+  /** Pozostawione dla zgodności z zapisem starszych stanów; nie kończą pościgu. */
+  maxRounds?: number;
+  escapeDistanceThreshold?: number;
   status: ChaseStatus;
   segments: ChaseSegment[];
   participants: ChaseParticipant[];
   logs: ChaseRoundLog[];
+  /** Stabilna kolejność DEX, wyższy wynik najpierw. */
+  turnOrder: string[];
+  activeActorId: string | null;
+}
+
+export type ChaseSpeedRollOutcome = 'fail' | 'regular' | 'extreme';
+
+/** Sprowadza pełny wynik testu CON/Drive do trzech modyfikatorów MOV z RAW. */
+export function speedRollOutcomeFromCheck(
+  outcome: RollOutcome
+): ChaseSpeedRollOutcome {
+  if (outcome === 'critical' || outcome === 'extreme') return 'extreme';
+  if (outcome === 'fail' || outcome === 'fumble') return 'fail';
+  return 'regular';
+}
+
+/** RAW: speed roll zmienia MOV tylko na czas bieżącego pościgu. */
+export function adjustedChaseMov(
+  mov: number,
+  outcome: ChaseSpeedRollOutcome
+): number {
+  return Math.max(
+    1,
+    mov + (outcome === 'extreme' ? 1 : outcome === 'fail' ? -1 : 0)
+  );
+}
+
+function nextActorWithActions(
+  state: ChaseState,
+  currentActorId: string | null
+): string | null {
+  if (state.turnOrder.length === 0) return null;
+  const currentIndex = Math.max(
+    -1,
+    state.turnOrder.indexOf(currentActorId ?? '')
+  );
+  for (let offset = 1; offset <= state.turnOrder.length; offset += 1) {
+    const id =
+      state.turnOrder[(currentIndex + offset) % state.turnOrder.length];
+    if (
+      state.participants.find((participant) => participant.id === id)
+        ?.actionsRemaining
+    ) {
+      return id;
+    }
+  }
+  return null;
 }
 
 /**
@@ -167,45 +229,74 @@ export function calculateChaseActionPoints(
  */
 export function createChaseState(params: {
   id?: string;
-  fleeing: Omit<ChaseParticipant, 'isFleeing' | 'actionsTotal' | 'actionsRemaining'>;
-  pursuers: Array<Omit<ChaseParticipant, 'isFleeing' | 'actionsTotal' | 'actionsRemaining'>>;
+  fleeing: Omit<
+    ChaseParticipant,
+    'isFleeing' | 'actionsTotal' | 'actionsRemaining'
+  >;
+  pursuers: Array<
+    Omit<ChaseParticipant, 'isFleeing' | 'actionsTotal' | 'actionsRemaining'>
+  >;
   initialDistance?: number;
   trackLength?: number;
   escapeDistanceThreshold?: number;
   maxRounds?: number;
   hazardPositions?: Record<number, ChaseHazard>;
+  fleeingSpeedRoll?: ChaseSpeedRollOutcome;
+  pursuerSpeedRolls?: Record<string, ChaseSpeedRollOutcome>;
 }): ChaseState {
   const {
-    id = `chase_${Date.now()}`,
+    id: requestedId,
     fleeing,
     pursuers,
-    initialDistance = 1,
+    initialDistance = 2,
     trackLength = 10,
     escapeDistanceThreshold = 4,
     maxRounds = 6,
+    fleeingSpeedRoll = 'regular',
+    pursuerSpeedRolls = {},
     hazardPositions = {
       2: DEFAULT_CHASE_HAZARDS.fence,
       4: DEFAULT_CHASE_HAZARDS.crowd,
       6: DEFAULT_CHASE_HAZARDS.stairs,
     },
   } = params;
+  const id =
+    requestedId ??
+    `chase_${fleeing.id}_${pursuers.map((pursuer) => pursuer.id).join('_')}`;
 
-  const rawParticipants = [fleeing, ...pursuers];
+  const adjustedFleeing = {
+    ...fleeing,
+    mov: adjustedChaseMov(fleeing.mov, fleeingSpeedRoll),
+    speedModifier:
+      fleeingSpeedRoll === 'extreme' ? 1 : fleeingSpeedRoll === 'fail' ? -1 : 0,
+  };
+  const adjustedPursuers = pursuers.map((pursuer) => {
+    const speedRoll = pursuerSpeedRolls[pursuer.id] ?? 'regular';
+    return {
+      ...pursuer,
+      mov: adjustedChaseMov(pursuer.mov, speedRoll),
+      speedModifier:
+        speedRoll === 'extreme' ? 1 : speedRoll === 'fail' ? -1 : 0,
+    };
+  });
+  const rawParticipants = [adjustedFleeing, ...adjustedPursuers];
   const actionPoints = calculateChaseActionPoints(rawParticipants);
 
   const fullParticipants: ChaseParticipant[] = [
     {
-      ...fleeing,
+      ...adjustedFleeing,
       isFleeing: true,
       segmentIndex: initialDistance,
       actionsTotal: actionPoints[0],
+      dex: fleeing.dex ?? 0,
       actionsRemaining: actionPoints[0],
       isCaught: false,
       isEscaped: false,
     },
-    ...pursuers.map((p, idx) => ({
+    ...adjustedPursuers.map((p, idx) => ({
       ...p,
       isFleeing: false,
+      dex: p.dex ?? 0,
       segmentIndex: 0,
       actionsTotal: actionPoints[idx + 1],
       actionsRemaining: actionPoints[idx + 1],
@@ -214,11 +305,14 @@ export function createChaseState(params: {
     })),
   ];
 
-  const segments: ChaseSegment[] = Array.from({ length: trackLength }, (_, i) => ({
-    index: i,
-    name: `Lokacja ${i + 1}`,
-    hazard: hazardPositions[i] || null,
-  }));
+  const segments: ChaseSegment[] = Array.from(
+    { length: trackLength },
+    (_, i) => ({
+      index: i,
+      name: `Lokacja ${i + 1}`,
+      hazard: hazardPositions[i] || null,
+    })
+  );
 
   return {
     id,
@@ -229,6 +323,22 @@ export function createChaseState(params: {
     segments,
     participants: fullParticipants,
     logs: [],
+    turnOrder: fullParticipants
+      .map((participant, index) => ({ participant, index }))
+      .sort(
+        (a, b) =>
+          (b.participant.dex ?? 0) - (a.participant.dex ?? 0) ||
+          a.index - b.index
+      )
+      .map(({ participant }) => participant.id),
+    activeActorId:
+      fullParticipants
+        .map((participant, index) => ({ participant, index }))
+        .sort(
+          (a, b) =>
+            (b.participant.dex ?? 0) - (a.participant.dex ?? 0) ||
+            a.index - b.index
+        )[0]?.participant.id ?? null,
   };
 }
 
@@ -247,6 +357,10 @@ export function executePlayerManeuver(
 
   if (!player) {
     throw new Error('Player participant not found in chase state');
+  }
+
+  if (player.actionsRemaining <= 0 || next.activeActorId !== player.id) {
+    throw new Error('Player cannot act outside their current chase turn');
   }
 
   if (next.status !== 'ongoing') {
@@ -278,9 +392,9 @@ export function executePlayerManeuver(
       const targetSegmentIdx = segmentBefore + 1;
       const targetSegment = next.segments[targetSegmentIdx];
 
-      // Jeśli na kolejnym polu jest przeszkoda, gracz dociera do niej, ale jej nie przekracza
+      // Przeszkoda leży na przejściu do kolejnej lokacji: bez testu ruch się zatrzymuje.
       if (targetSegment && targetSegment.hazard) {
-        segmentAfter = targetSegmentIdx;
+        segmentAfter = segmentBefore;
         details = `Dotarto do przeszkody: ${targetSegment.hazard.name}. Wymagany test, aby ją sforsować!`;
       } else {
         segmentAfter = targetSegmentIdx;
@@ -291,17 +405,33 @@ export function executePlayerManeuver(
 
     case 'clear_hazard': {
       actionName = 'Forsowanie przeszkody';
-      const currentHazard = next.segments[segmentBefore]?.hazard;
+      const currentHazard = next.segments[segmentBefore + 1]?.hazard;
       const rollOutcome = maneuver.rollOutcome || 'regular';
-      const rollSuccess = isSuccess(rollOutcome);
+      const rollSuccess = currentHazard
+        ? meetsDifficulty(
+            rollOutcome,
+            mapDifficultyToRequired(currentHazard.difficulty)
+          )
+        : isSuccess(rollOutcome);
 
       success = rollSuccess;
       if (rollSuccess) {
         segmentAfter = segmentBefore + 1;
         details = `Przeszkoda (${currentHazard?.name || 'Bariera'}) pomyślnie pokonana! Ruch o 1 segment naprzód.`;
       } else {
-        segmentAfter = segmentBefore;
-        details = `Porażka w teście pokonania przeszkody (${rollOutcome}). Strata cennego czasu!`;
+        const penalty = currentHazard?.penaltyActionsOnFail ?? 0;
+        player.actionsRemaining = Math.max(
+          0,
+          player.actionsRemaining - penalty
+        );
+        // Hazard przepuszcza z konsekwencją; bariera zatrzymuje przed przejściem.
+        segmentAfter =
+          currentHazard?.hazardType === 'hazard'
+            ? segmentBefore + 1
+            : segmentBefore;
+        details = currentHazard?.damageOnFail
+          ? `Porażka (${rollOutcome}). Przeszkoda kosztuje ${penalty} dodatkowych akcji i wymaga rozliczenia obrażeń ${currentHazard.damageOnFail}.`
+          : `Porażka (${rollOutcome}). Przeszkoda kosztuje ${penalty} dodatkowych akcji.`;
       }
       break;
     }
@@ -328,7 +458,7 @@ export function executePlayerManeuver(
       segmentAfter = segmentBefore;
       if (next.segments[barrierIndex]) {
         next.segments[barrierIndex].hazard = {
-          id: `custom_barrier_${Date.now()}`,
+          id: `custom_barrier_${next.id}_${next.round}_${player.id}_${next.logs.length}`,
           name: maneuver.customDescription || 'Przewrócone meble i barykada',
           description: 'Zatarasowane przejście spowalniające pościg.',
           requiredSkill: 'Zręczność',
@@ -372,11 +502,18 @@ export function executePlayerManeuver(
     rollOutcome: maneuver.rollOutcome,
     segmentBefore,
     segmentAfter,
+    maneuverType: maneuver.type,
+    hazardId: next.segments[segmentBefore + 1]?.hazard?.id,
+    actionCost: Math.max(0, state.participants.find((p) => p.id === player.id)!
+      .actionsRemaining - player.actionsRemaining),
   };
   next.logs.push(roundLog);
 
   // Weryfikacja warunków końca
   evaluateChaseTermination(next);
+  if (next.status === 'ongoing' && player.actionsRemaining === 0) {
+    next.activeActorId = nextActorWithActions(next, player.id);
+  }
 
   return { nextState: next, log: roundLog };
 }
@@ -384,12 +521,14 @@ export function executePlayerManeuver(
 /**
  * Automatyczne rozliczenie tury ścigających (NPC) dla bieżącej rundy.
  */
-export function executePursuerTurns(state: ChaseState): {
+export function executePursuerTurns(
+  state: ChaseState,
+  hazardOutcomes: Record<string, RollOutcome[]> = {}
+): {
   nextState: ChaseState;
   logs: ChaseRoundLog[];
 } {
   const next = JSON.parse(JSON.stringify(state)) as ChaseState;
-  const pursuers = next.participants.filter((p) => !p.isFleeing && !p.isCaught);
   const fleeing = next.participants.find((p) => p.isFleeing);
   const newLogs: ChaseRoundLog[] = [];
 
@@ -397,7 +536,12 @@ export function executePursuerTurns(state: ChaseState): {
     return { nextState: next, logs: newLogs };
   }
 
-  for (const pursuer of pursuers) {
+  while (next.status === 'ongoing' && next.activeActorId) {
+    const pursuer = next.participants.find(
+      (participant) => participant.id === next.activeActorId
+    );
+    if (!pursuer || pursuer.isFleeing || pursuer.isPlayer) break;
+
     while (pursuer.actionsRemaining > 0 && next.status === 'ongoing') {
       pursuer.actionsRemaining -= 1;
       const segBefore = pursuer.segmentIndex;
@@ -406,7 +550,11 @@ export function executePursuerTurns(state: ChaseState): {
 
       // Jeśli na drodze jest przeszkoda, pościg wykonuje test deterministyczny
       if (targetSeg && targetSeg.hazard) {
-        const passHazard = Math.random() >= 0.35; // 65% szans powodzenia NPC
+        const outcome = hazardOutcomes[pursuer.id]?.shift() ?? 'fail';
+        const passHazard = meetsDifficulty(
+          outcome,
+          mapDifficultyToRequired(targetSeg.hazard.difficulty)
+        );
         if (passHazard) {
           pursuer.segmentIndex = targetSegIdx;
           const log: ChaseRoundLog = {
@@ -415,20 +563,42 @@ export function executePursuerTurns(state: ChaseState): {
             actionName: 'Pokonanie przeszkody',
             details: `${pursuer.name} z łatwością pokonuje barierę: ${targetSeg.hazard.name}.`,
             success: true,
+            rollOutcome: outcome,
             segmentBefore: segBefore,
             segmentAfter: targetSegIdx,
+            maneuverType: 'clear_hazard',
+            hazardId: targetSeg.hazard.id,
+            actionCost: 1,
           };
           next.logs.push(log);
           newLogs.push(log);
         } else {
+          const penalty = targetSeg.hazard.penaltyActionsOnFail ?? 0;
+          pursuer.actionsRemaining = Math.max(
+            0,
+            pursuer.actionsRemaining - penalty
+          );
+          if (targetSeg.hazard.hazardType === 'hazard') {
+            pursuer.segmentIndex = targetSegIdx;
+          }
+          const damage = targetSeg.hazard.damageOnFail
+            ? ` Obrażenia do rozliczenia: ${targetSeg.hazard.damageOnFail}.`
+            : '';
           const log: ChaseRoundLog = {
             round: next.round,
             actorName: pursuer.name,
             actionName: 'Zatrzymanie na przeszkodzie',
-            details: `${pursuer.name} zostaje zatrzymany przez ${targetSeg.hazard.name}!`,
+            details:
+              targetSeg.hazard.hazardType === 'hazard'
+                ? `${pursuer.name} przedziera się dalej, ale traci ${penalty} dodatkowych akcji.${damage}`
+                : `${pursuer.name} zostaje zatrzymany przez ${targetSeg.hazard.name} i traci ${penalty} dodatkowych akcji.`,
             success: false,
+            rollOutcome: outcome,
             segmentBefore: segBefore,
-            segmentAfter: segBefore,
+            segmentAfter: pursuer.segmentIndex,
+            maneuverType: 'clear_hazard',
+            hazardId: targetSeg.hazard.id,
+            actionCost: 1 + penalty,
           };
           next.logs.push(log);
           newLogs.push(log);
@@ -444,6 +614,8 @@ export function executePursuerTurns(state: ChaseState): {
           success: true,
           segmentBefore: segBefore,
           segmentAfter: pursuer.segmentIndex,
+          maneuverType: 'sprint',
+          actionCost: 1,
         };
         next.logs.push(log);
         newLogs.push(log);
@@ -452,25 +624,26 @@ export function executePursuerTurns(state: ChaseState): {
       // Sprawdź natychmiastowe schwytanie
       if (pursuer.segmentIndex >= fleeing.segmentIndex) {
         fleeing.isCaught = true;
-        next.status = 'caught';
+        next.status = 'engaged';
         break;
       }
+    }
+    if (next.status === 'ongoing') {
+      next.activeActorId = nextActorWithActions(next, pursuer.id);
     }
   }
 
   // Jeśli wszyscy wykonali akcje, przygotuj następną rundę
-  const allActionsSpent = next.participants.every((p) => p.actionsRemaining <= 0);
+  const allActionsSpent = next.participants.every(
+    (p) => p.actionsRemaining <= 0
+  );
   if (allActionsSpent && next.status === 'ongoing') {
     next.round += 1;
-    if (next.round > next.maxRounds) {
-      next.status = 'escaped';
-      fleeing.isEscaped = true;
-    } else {
-      // Odnów punkty akcji dla nowej rundy
-      for (const p of next.participants) {
-        p.actionsRemaining = p.actionsTotal;
-      }
+    // RAW nie ustanawia automatycznej ucieczki po liczbie rund.
+    for (const p of next.participants) {
+      p.actionsRemaining = p.actionsTotal;
     }
+    next.activeActorId = next.turnOrder[0] ?? null;
   }
 
   evaluateChaseTermination(next);
@@ -497,14 +670,8 @@ export function evaluateChaseTermination(state: ChaseState): void {
   const minDistance = Math.min(...distances);
 
   if (minDistance <= 0) {
-    state.status = 'caught';
+    state.status = 'engaged';
     fleeing.isCaught = true;
-    return;
-  }
-
-  if (minDistance >= state.escapeDistanceThreshold) {
-    state.status = 'escaped';
-    fleeing.isEscaped = true;
     return;
   }
 }
@@ -514,7 +681,8 @@ export function evaluateChaseTermination(state: ChaseState): void {
  */
 export function formatChaseForChat(
   state: ChaseState,
-  lastLog?: ChaseRoundLog
+  lastLog?: ChaseRoundLog,
+  locale: 'pl' | 'en' = 'pl'
 ): string {
   const fleeing = state.participants.find((p) => p.isFleeing);
   const pursuers = state.participants.filter((p) => !p.isFleeing);
@@ -523,19 +691,46 @@ export function formatChaseForChat(
     : 0;
 
   const lines: string[] = [];
-  lines.push(`**🏃 POŚCIG (CoC 7e RAW) — Runda ${state.round}/${state.maxRounds}**`);
+  lines.push(locale === 'en' ? '**CHASE**' : '**POŚCIG**');
 
-  if (state.status === 'caught') {
-    lines.push(`🚨 **SCHWYTANIE!** Pościg dopadł uciekiniera na lokacji ${(fleeing?.segmentIndex ?? 0) + 1}. Następuje starcie wręcz!`);
+  if (state.status === 'engaged') {
+    lines.push(
+      locale === 'en'
+        ? '**CONTACT!** Pursuer and quarry share a location. The Keeper resolves whether this becomes a struggle, escape attempt, or another scene.'
+        : '**KONTAKT!** Ścigający i uciekinier są w tej samej lokacji. MG rozstrzyga, czy sytuacja przechodzi w walkę, próbę wyrwania się lub inną scenę.'
+    );
   } else if (state.status === 'escaped') {
-    lines.push(`🏁 **UDANA UCIECZKA!** Uciekający zgubił pościg w labiryncie ulic.`);
+    lines.push(
+      locale === 'en'
+        ? '**ESCAPED!** The quarry broke contact and lost the pursuit.'
+        : '**UDANA UCIECZKA!** Uciekający zgubił pościg.'
+    );
   } else {
-    lines.push(`- **Dystans do pościgu:** ${minDistance} ${minDistance === 1 ? 'lokacja' : 'lokacje'}`);
-    lines.push(`- **Punkty akcji gracza:** ${fleeing?.actionsRemaining ?? 0} / ${fleeing?.actionsTotal ?? 0}`);
+    const distanceDescription =
+      minDistance <= 1
+        ? locale === 'en'
+          ? 'They are right behind you.'
+          : 'Są tuż za tobą.'
+        : minDistance <= 3
+          ? locale === 'en'
+            ? 'You hear them drawing closer.'
+            : 'Słyszysz ich coraz bliżej.'
+          : locale === 'en'
+            ? 'They are starting to lose your trail.'
+            : 'Zaczynają tracić trop.';
+    lines.push(
+      locale === 'en'
+        ? `- **The pursuit:** ${distanceDescription}`
+        : `- **Pościg:** ${distanceDescription}`
+    );
   }
 
   if (lastLog) {
-    lines.push(`> *${lastLog.actorName}: ${lastLog.details}*`);
+    lines.push(
+      locale === 'en'
+        ? `> *Last maneuver: ${lastLog.success === false ? 'a costly complication' : 'the intended result'}.*`
+        : `> *Ostatni manewr: ${lastLog.success === false ? 'kosztowna komplikacja' : 'zamierzony skutek'}.*`
+    );
   }
 
   return lines.join('\n');
@@ -555,16 +750,46 @@ export function formatChaseForSystemContext(state: ChaseState): string {
     type: 'chase_engine_update',
     chaseId: state.id,
     round: state.round,
-    maxRounds: state.maxRounds,
     status: state.status,
     distanceToPursuers: minDistance,
     playerLocationIndex: fleeing?.segmentIndex ?? 0,
     playerActionsRemaining: fleeing?.actionsRemaining ?? 0,
     pursuers: pursuers.map((p) => ({
-      name: p.name,
+      id: p.id,
+      adjustedMov: p.mov,
+      speedModifier: p.speedModifier ?? 0,
       locationIndex: p.segmentIndex,
       actionsRemaining: p.actionsRemaining,
     })),
-    lastLog: state.logs[state.logs.length - 1] ?? null,
+    activeActorId: state.activeActorId,
+    turnOrder: state.turnOrder,
+    upcomingHazard: state.segments[(fleeing?.segmentIndex ?? -1) + 1]?.hazard
+      ? {
+          type: state.segments[(fleeing?.segmentIndex ?? -1) + 1].hazard
+            ?.hazardType,
+          difficulty:
+            state.segments[(fleeing?.segmentIndex ?? -1) + 1].hazard
+              ?.difficulty,
+          penaltyActionsOnFail:
+            state.segments[(fleeing?.segmentIndex ?? -1) + 1].hazard
+              ?.penaltyActionsOnFail ?? 0,
+          damageOnFail:
+            state.segments[(fleeing?.segmentIndex ?? -1) + 1].hazard
+              ?.damageOnFail ?? null,
+        }
+      : null,
+    lastResolution: state.logs[state.logs.length - 1]
+      ? {
+          maneuverType: state.logs[state.logs.length - 1].maneuverType ?? null,
+          hazardId: state.logs[state.logs.length - 1].hazardId ?? null,
+          actionCost: state.logs[state.logs.length - 1].actionCost ?? null,
+          success: state.logs[state.logs.length - 1].success ?? null,
+          rollOutcome: state.logs[state.logs.length - 1].rollOutcome ?? null,
+          segmentBefore: state.logs[state.logs.length - 1].segmentBefore,
+          segmentAfter: state.logs[state.logs.length - 1].segmentAfter,
+        }
+      : null,
+    fleeingAdjustedMov: fleeing?.mov ?? null,
+    fleeingSpeedModifier: fleeing?.speedModifier ?? 0,
   });
 }

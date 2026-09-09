@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MessageCard } from './message-card';
-import type { Message } from '@/lib/types';
+import type { Character, Message } from '@/lib/types';
+import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 
 const baseMessage: Message = {
   id: 'assistant-partial',
@@ -109,5 +110,92 @@ describe('MessageCard - ręczna kontynuacja narracji', () => {
     expect(img!.compareDocumentPosition(narrative!)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     );
+  });
+});
+
+describe('MessageCard - zagrożenia', () => {
+  const alice: Character = { ...PREDEFINED_CHARACTERS[0], id: 'alice', name: 'Alice', hp: 12 };
+  const bob: Character = { ...PREDEFINED_CHARACTERS[1], id: 'bob', name: 'Bob', hp: 10 };
+  const hazardMessage: Message = {
+    ...baseMessage,
+    id: 'hazard-message',
+    content: 'Pod Bobem pęka podłoga.',
+    hazardEvents: [{
+      id: 'hazard-bob',
+      type: 'falling',
+      description: 'Krucha podłoga',
+      characterName: 'Bob',
+      fallHeightMeters: 3,
+      surface: 'normal',
+    }],
+  };
+
+  it('stosuje obrażenia do wskazanego badacza i wysyła stabilny identyfikator', () => {
+    const onCharacterUpdate = jest.fn();
+    const onSendHazardResult = jest.fn();
+    render(
+      <MessageCard
+        {...baseProps}
+        message={hazardMessage}
+        activeCharacter={alice}
+        characters={[alice, bob]}
+        onCharacterUpdate={onCharacterUpdate}
+        onSendHazardResult={onSendHazardResult}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reakcja obronna' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Bez amortyzacji (pełny upadek)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Odejmij HP postaci' }));
+
+    expect(onCharacterUpdate).toHaveBeenCalledTimes(1);
+    expect(onCharacterUpdate.mock.calls[0][0].id).toBe('bob');
+    expect(onCharacterUpdate.mock.calls[0][0].hp).toBeLessThan(10);
+    expect(onSendHazardResult).toHaveBeenCalledWith(expect.stringContaining('id=hazard-bob'));
+  });
+
+  it('nie pozwala rozstrzygnąć zdarzenia zapisanego wcześniej w historii', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={hazardMessage}
+        activeCharacter={alice}
+        characters={[alice, bob]}
+        resolvedHazardIds={new Set(['hazard-bob'])}
+        onCharacterUpdate={jest.fn()}
+        onSendHazardResult={jest.fn()}
+      />
+    );
+    expect(screen.getByText('Rozstrzygnięto')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reakcja obronna' })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['acid', 'Łagodny kwas / rozprysk', 'Rzuć kośćmi na obrażenia od kwasu'],
+    ['drowning', 'Woda / tonięcie', 'Test Kondycji (60%) przeciw uduszeniu'],
+  ] as const)('otwiera kompletny widok dla typu %s', (type, expectedControl, expectedAction) => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={{
+          ...hazardMessage,
+          hazardEvents: [{
+            id: `hazard-${type}`,
+            type,
+            description: 'Test zagrożenia',
+            characterName: 'Bob',
+            ...(type === 'acid' ? { acidPotency: 'splash' as const } : { airlessKind: 'water' as const }),
+          }],
+        }}
+        activeCharacter={alice}
+        characters={[alice, bob]}
+        onCharacterUpdate={jest.fn()}
+        onSendHazardResult={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reakcja obronna' }));
+    expect(screen.getByText(expectedControl, { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: expectedAction })).toBeInTheDocument();
   });
 });

@@ -5,6 +5,7 @@ import {
   calculateMeleeDamage,
   checkMajorWound,
   getMaxDiceValue,
+  applyCombatDamage,
 } from '@/lib/combat/combat-resolver';
 
 describe('combat-resolver (CoC 7e RAW)', () => {
@@ -288,12 +289,29 @@ describe('combat-resolver (CoC 7e RAW)', () => {
       expect(res.conTestRequired).toBe(false);
     });
 
+    it('dla nieparzystego maxHP próg wynosi połowę zaokrągloną w górę', () => {
+      expect(checkMajorWound(5, 11, 'classic').isMajorWound).toBe(false);
+      expect(checkMajorWound(6, 11, 'classic').isMajorWound).toBe(true);
+    });
+
     it('w konwencji pulp brak Ciężkiej Rany przy życiu, chyba że obrażenia >= pełne maxHP', () => {
       const resPulp = checkMajorWound(7, 10, 'pulp');
       expect(resPulp.isMajorWound).toBe(false);
 
       const resInstantKill = checkMajorWound(10, 10, 'pulp');
       expect(resInstantKill.isMajorWound).toBe(true);
+    });
+  });
+
+  describe('Stan zdrowia po obrażeniach', () => {
+    it('obrażenia równe maksymalnym PW oznaczają natychmiastową śmierć', () => {
+      expect(applyCombatDamage({ hp: 10, maxHp: 10, con: 60, damage: 10, conRoll: 1 }))
+        .toMatchObject({ hpAfter: 0, isDead: true, isUnconscious: true });
+    });
+
+    it('zero PW po mniejszym ciosie oznacza umieranie, a nie automatyczną śmierć', () => {
+      expect(applyCombatDamage({ hp: 4, maxHp: 10, con: 60, damage: 4, hadMajorWound: true, conRoll: 1 }))
+        .toMatchObject({ hpAfter: 0, isDead: false, isDying: true, isUnconscious: true });
     });
   });
 });

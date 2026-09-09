@@ -42,6 +42,7 @@ function parsedResponse(rawText: string): ParsedResponse {
     journalEntries: [],
     skillTests: [],
     skillResults: [],
+    meleeAttacks: [],
     equipmentEvents: [],
     timeUpdate: null,
     rawText,
@@ -129,4 +130,54 @@ describe('createSseStream', () => {
       );
     }
   );
+
+  it('emituje wyłącznie wzbogacony, zaufany atak wręcz w metadanych', async () => {
+    jest.mocked(parseAIResponse).mockReturnValue({
+      ...parsedResponse('Atak'),
+      meleeAttacks: [{
+        attackerNpcId: 'npc-1',
+        targetCharacterName: 'Anna',
+        attackOptionId: 'fist',
+        intent: 'cios',
+      }],
+    });
+    const stream = createSseStream({
+      providerStream: streamChunks('Atak'),
+      getUsage: async () => null,
+      getFinishReason: () => 'STOP',
+      message: 'Czekam.',
+      modelId: 'gemini-test',
+      traceId: 'trace-combat',
+      timer: { elapsed: () => 1 },
+      embeddingDim: 768,
+      ragVersion: 'v1',
+      userId: 'local',
+      assistantMessageId: 'assistant-1',
+      combatMechanicsEnabled: true,
+      characters: [{ id: 'char-1', name: 'Anna', hp: 10, maxHp: 10, skills: {} } as never],
+      npcs: [{
+        id: 'npc-1', name: 'Kultysta', str: 50, siz: 50, hp: 10, maxHp: 10,
+        skills: { 'Walka Wręcz': 50 },
+        combatProfile: {
+          schemaVersion: 1,
+          attacksPerRound: 1,
+          attackOptions: [{
+            kind: 'natural', attackOptionId: 'fist', name: 'Pięść',
+            combatSkillId: 'Walka Wręcz', skillValue: 50,
+            damageFormula: '1d3', damageClass: 'non_impaling',
+          }],
+        },
+      } as never],
+    });
+
+    const events = (await readStream(stream)).trim().split('\n\n')
+      .map((event) => JSON.parse(event.slice('data: '.length)) as Record<string, unknown>);
+    expect(events.at(-1)).toMatchObject({
+      pendingMeleeAttacks: [{
+        eventId: 'assistant-1:melee:0',
+        target: { characterId: 'char-1' },
+        weapon: { damageFormula: '1d3' },
+      }],
+    });
+  });
 });

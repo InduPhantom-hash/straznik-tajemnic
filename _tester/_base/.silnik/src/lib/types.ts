@@ -1,5 +1,10 @@
 import { InvestigatorBoardState } from '@/types/investigator-board';
 import type { InvestigatorDossier } from './journal/dossier-types';
+import type { ChaseState } from './chase/chase-engine';
+import type {
+  CombatResolution,
+  PendingMeleeAttack,
+} from './combat/combat-resolver';
 
 // === WIADOMOŚĆ CZATU ===
 // Przeniesiona z page.tsx dla centralizacji typów
@@ -131,15 +136,28 @@ export interface Message {
   gameTime?: GameTime; // Czas w grze w momencie wysłania wiadomości
   illustrations?: MessageIllustration[];
   generatedImages?: string[]; // URL-e wygenerowanych obrazów (base64 w sesji; stripowane z localStorage przez sanitizer)
-  generatedImageTypes?: ('portrait' | 'scene' | 'location' | 'item' | 'monster' | 'vision')[]; // Typy wygenerowanych obrazów (odpowiada indeksom w generatedImages)
+  generatedImageTypes?: (
+    | 'portrait'
+    | 'scene'
+    | 'location'
+    | 'item'
+    | 'monster'
+    | 'vision'
+  )[]; // Typy wygenerowanych obrazów (odpowiada indeksom w generatedImages)
   finishReason?: string;
   continuationRequested?: boolean;
+  /** Niewidoczny dla gracza, deterministyczny stan mechaniki przekazywany MG. */
+  mechanicsContext?: {
+    chase?: ChaseState;
+    combat?: { resolutions: CombatResolution[] };
+  };
   // IND-262: klucze obrazów w IndexedDB (persistentMediaCache, store chat-images).
   // Lekkie - przeżywają localStorage (sanitizer wycina tylko base64). Po reloadzie
   // hydrują generatedImages z cache → obrazy "wracają na miejsce".
   generatedImageCacheIds?: string[];
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
+  pendingMeleeAttacks?: PendingMeleeAttack[];
   acquiredItems?: AcquiredItemProposal[];
   cliffhanger?: {
     question: string;
@@ -250,7 +268,6 @@ export type EquipmentVisualEra =
   | '2000s'
   | 'modern';
 
-
 /** Pochodzenie grafiki przypisanej do konkretnego egzemplarza przedmiotu. */
 export type EquipmentVisualSource = 'catalog' | 'generated' | 'fallback';
 
@@ -271,8 +288,27 @@ export interface EquipmentTemplate {
   availableIn: EquipmentVisualEra[];
   assetPaths?: Partial<Record<EquipmentVisualEra | 'shared', string>>;
   modifiers?: EquipmentModifiers;
+  combatProfile?: EquipmentCombatProfile;
   value?: number;
 }
+
+export type CombatDamageClass = 'impaling' | 'non_impaling';
+
+export type EquipmentCombatProfile =
+  | {
+      schemaVersion: 1;
+      kind: 'melee_weapon';
+      combatSkillId: string;
+      damageFormula: string;
+      damageClass: CombatDamageClass;
+    }
+  | {
+      schemaVersion: 1;
+      kind: 'armor';
+      armorValue: number;
+      coverage: 'full';
+      protectsAgainst: 'all' | 'melee';
+    };
 
 export interface EquipmentModifiers {
   skill?: string; // Umiejętność na którą wpływa (np. "First Aid")
@@ -485,6 +521,7 @@ export interface Character {
   hasMajorWound?: boolean; // Czy postać ma aktywną Ciężką Ranę (utrata >= 1/2 maxHP w jednym ataku)
   isDying?: boolean; // Czy postać umiera (0 HP z Ciężką Raną)
   isUnconscious?: boolean; // Czy postać jest nieprzytomna (0 HP lub porażka CON po Ciężkiej Ranie)
+  isDead?: boolean; // Śmierć natychmiastowa; hp=0 bez tej flagi oznacza unconscious/dying.
   scars?: string[]; // Trwałe blizny i pamiątki po Ciężkich Ranach (tabela trafień CoC 7e / Seth Skorkowsky)
   healthRecoveryState?: {
     daysElapsed: number; // Suma dni spędzonych na rekonwalescencji
@@ -628,6 +665,7 @@ export interface NPC {
 
   // Umiejętności
   skills: { [key: string]: number };
+  combatProfile?: NPCCombatProfile;
 
   // Dodatkowe informacje
   description: string;
@@ -640,7 +678,7 @@ export interface NPC {
 
   // Profil trójwymiarowy według Lajosa Egriego (The Art of Dramatic Writing)
   physiologicalDetail?: string; // Wygląd, postawa, manieryzm fizyczny
-  sociologicalStatus?: string;  // Klasa, pozycja społeczna, dynamika siły
+  sociologicalStatus?: string; // Klasa, pozycja społeczna, dynamika siły
   psychologicalAgenda?: string; // Ukryty cel, lęk, skaza moralna
 
   // Status i efekty
@@ -689,6 +727,30 @@ export interface NPC {
     newValue: unknown;
     reason: string;
   }>;
+}
+
+export interface NPCCombatEquipmentAttack {
+  kind: 'equipment';
+  attackOptionId: string;
+  equipmentTemplateId: string;
+  combatSkillId: string;
+}
+
+export interface NPCCombatNaturalAttack {
+  kind: 'natural';
+  attackOptionId: string;
+  name: string;
+  combatSkillId: string;
+  skillValue: number;
+  damageFormula: string;
+  damageClass: CombatDamageClass;
+}
+
+export interface NPCCombatProfile {
+  schemaVersion: 1;
+  attacksPerRound: number;
+  attackOptions: Array<NPCCombatEquipmentAttack | NPCCombatNaturalAttack>;
+  armorTemplateIds?: string[];
 }
 
 // Lokacja dla menedżera GM
@@ -872,7 +934,7 @@ export interface AdventureContext {
   // Dynamic Setup & Conflicts (Bunkry Nieliniowości z poradników)
   conflicts?: AdventureConflict[];
   setupAsymmetry?: {
-    rumors: string[];         // Lista sprzecznych plotek rozdawanych postaciom
+    rumors: string[]; // Lista sprzecznych plotek rozdawanych postaciom
     characterHooks: Array<{ characterId: string; personalHook: string }>;
   };
 
@@ -884,13 +946,13 @@ export interface ConflictFaction {
   id: string;
   name: string;
   description: string;
-  goal: string;         // Czego pożąda w konflikcie
-  motivation: string;   // Dlaczego (motywacja)
+  goal: string; // Czego pożąda w konflikcie
+  motivation: string; // Dlaczego (motywacja)
 }
 
 export interface AdventureConflict {
   factions: ConflictFaction[]; // Min. 2 sprzeczne strony
-  resource: string;            // Wspólny punkt zderzenia (np. las, przedmiot, wiedza)
+  resource: string; // Wspólny punkt zderzenia (np. las, przedmiot, wiedza)
 }
 
 // === GRAPH (ADVENTURE PREP ENGINE) ===
@@ -905,7 +967,7 @@ export interface AdventureNPC {
   id: string;
   name: string;
   description: string;
-  secret?: string;       // Mroczny sekret, jeśli istnieje
+  secret?: string; // Mroczny sekret, jeśli istnieje
   statsSummary?: string; // Ekstrakcja statystyk z podręcznika
 }
 
@@ -913,7 +975,7 @@ export interface AdventureLocation {
   id: string;
   name: string;
   description: string;
-  atmosphere?: string;   // Sensoryczny opis
+  atmosphere?: string; // Sensoryczny opis
 }
 
 export interface AdventureClue {
@@ -951,15 +1013,15 @@ export interface HazardEventData {
   fireRounds?: number;
   acidPotency?: 'splash' | 'immersion';
   roundWithoutAir?: number;
+  airlessKind?: 'smoke' | 'water' | 'vacuum';
+  conFailed?: boolean;
   poisonId?: string;
   poisonName?: string;
   poisonPotency?: number;
+  poisonSeverity?: 'mild' | 'strong' | 'lethal';
   defensiveSkill?: string;
   difficulty?: 'zwykly' | 'trudny' | 'ekstremalny';
 }
 
 // === SYSTEM MIAR (Issue #191) ===
 export type MeasurementSystem = 'metric' | 'imperial';
-
-
-

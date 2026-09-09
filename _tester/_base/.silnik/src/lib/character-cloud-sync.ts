@@ -27,19 +27,31 @@ const STORAGE_KEY = 'characters';
  * ~2,2 MB/obraz przekraczał quota i CAŁY roster nie zapisywał się (utrata
  * danych). Obrazy wracają przy ładowaniu przez `hydrateCharacterImages`.
  */
-export function persistCharacters(characters: Character[]): void {
+export type CharacterPersistResult =
+  | { ok: true }
+  | { ok: false; error: 'storage_unavailable' | 'quota_exceeded' };
+
+export function persistCharacters(characters: Character[]): CharacterPersistResult {
   try {
     const light = stripCharacterImages(characters);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(light));
     // Fire-and-forget: właściwe obrazy do IndexedDB (nie blokuje zapisu rosteru).
     void offloadCharacterImages(characters);
+    return { ok: true };
   } catch {
     // Fallback: spróbuj zapisać pełne (np. środowisko bez IndexedDB). Jeśli to
     // przekroczy quota - łykamy (jak dotąd), ale strip wyżej zwykle temu zapobiega.
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(characters));
+      return { ok: true };
     } catch {
-      // SSR / brak localStorage / quota - ignoruj.
+      return {
+        ok: false,
+        error:
+          typeof localStorage === 'undefined'
+            ? 'storage_unavailable'
+            : 'quota_exceeded',
+      };
     }
   }
 }

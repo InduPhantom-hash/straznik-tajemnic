@@ -379,6 +379,13 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     availableIn: ALL_ERAS,
     assetPaths: { shared: '/equipment/catalog/knife-shared.webp' },
     modifiers: { damage: '1d4+2' },
+    combatProfile: {
+      schemaVersion: 1,
+      kind: 'melee_weapon',
+      combatSkillId: 'Walka Wręcz',
+      damageFormula: '1d4+2',
+      damageClass: 'impaling',
+    },
     value: 3,
   },
   {
@@ -390,6 +397,13 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     availableIn: ALL_ERAS,
     assetPaths: { shared: '/equipment/catalog/machete-shared.webp' },
     modifiers: { damage: '1d8+1' },
+    combatProfile: {
+      schemaVersion: 1,
+      kind: 'melee_weapon',
+      combatSkillId: 'Walka Wręcz',
+      damageFormula: '1d8+1',
+      damageClass: 'non_impaling',
+    },
     value: 5,
   },
   {
@@ -1314,6 +1328,13 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
     modifiers: { damage: '1d6' },
+    combatProfile: {
+      schemaVersion: 1,
+      kind: 'melee_weapon',
+      combatSkillId: 'Walka Wręcz',
+      damageFormula: '1d6',
+      damageClass: 'non_impaling',
+    },
     value: 2,
   },
   {

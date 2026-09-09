@@ -706,6 +706,7 @@ export default function Home() {
           '![obraz]([IMG_BASE64])'
         ),
         timestamp: msg.timestamp,
+        mechanicsContext: msg.mechanicsContext,
       }));
       localStorage.setItem('chat-messages', JSON.stringify(messagesToSave));
     }
@@ -723,6 +724,7 @@ export default function Home() {
   // zasady (pdf_memory). Kontynuacja sesji z sejwu jest niezależna (handleLoadFullSave).
   const handleNewAdventure = () => {
     chat.setMessages([]);
+    chat.setActiveChaseState(null);
     localStorage.removeItem('chat-messages');
     tts.stopCurrentAudio();
     // Muzyka tła (YouTube) gra tylko w trakcie gry - przy powrocie do menu cichnie.
@@ -1036,10 +1038,16 @@ export default function Home() {
         isReadyToEnter={isReadyToEnter}
         onConfirmEnterGame={confirmEnterGame}
         adventureContext={adventureContext}
+        pendingCombatAttack={chat.pendingCombatAttack}
+        pendingCombatDefensesUsed={chat.pendingCombatDefensesUsed}
+        combatDefenseWeapons={chat.combatDefenseWeapons}
+        onCombatDefense={chat.handleCombatDefense}
         cheatCombatModal={chat.cheatCombatModal}
         onCloseCheatCombat={() => chat.setCheatCombatModal(null)}
         cheatChaseModal={chat.cheatChaseModal}
         onCloseCheatChase={() => chat.setCheatChaseModal(false)}
+        activeChaseState={chat.activeChaseState}
+        onChaseStateChange={chat.setActiveChaseState}
       />
       {showPredefinedSelector && (
         <PredefinedCharactersSelector

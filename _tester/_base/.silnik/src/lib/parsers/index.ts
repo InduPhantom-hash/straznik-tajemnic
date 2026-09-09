@@ -1,6 +1,6 @@
 import { ParsedResponse, ParsedEvent, NPCPosition } from './types';
 import { extractNPCs, extractLocations, extractItems } from './event-parser';
-import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents } from './mechanics-parser';
+import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractMeleeAttackReferences } from './mechanics-parser';
 import { extractDialogues } from './dialogue-parser';
 import { extractImages, detectSFX } from './media-parser';
 import { extractJournalTags } from './journal-parser';
@@ -195,6 +195,7 @@ export function parseAIResponse(responseText: string): ParsedResponse {
 
     // NOWE: Ekstrakcja zagrożeń środowiskowych i trucizn (CoC 7e RAW Issue #60)
     const hazardEvents = extractHazardEvents(responseText);
+    const meleeAttacks = extractMeleeAttackReferences(responseText);
 
     // NOWE: Ekstrakcja zdarzeń manipulacji ekwipunkiem (Fiction First)
     const equipmentEvents = extractEquipmentEvents(responseText);
@@ -222,10 +223,10 @@ export function parseAIResponse(responseText: string): ParsedResponse {
         skillTests,
         skillResults,
         hazardEvents,
+        meleeAttacks,
         equipmentEvents,
         timeUpdate,
         gmMetadata: (gmMeta.thoughts || gmMeta.mood || gmMeta.narrativeGoal) ? gmMeta : undefined,
         rawText: responseText,
     };
 }
-

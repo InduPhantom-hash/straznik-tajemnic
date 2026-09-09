@@ -11,11 +11,22 @@ import {
   formatChaseForChat,
   formatChaseForSystemContext,
   DEFAULT_CHASE_HAZARDS,
-  type ChaseParticipant,
+  adjustedChaseMov,
+  speedRollOutcomeFromCheck,
 } from '@/lib/chase/chase-engine';
 
 describe('chase-engine (CoC 7e RAW)', () => {
   describe('Kalkulacja punktów akcji (MOV)', () => {
+    it('Speed roll koryguje MOV o -1/0/+1 na czas pościgu', () => {
+      expect(adjustedChaseMov(8, 'fail')).toBe(7);
+      expect(adjustedChaseMov(8, 'regular')).toBe(8);
+      expect(adjustedChaseMov(8, 'extreme')).toBe(9);
+    });
+    it('Mapuje pełny wynik testu szybkości na modyfikator MOV RAW', () => {
+      expect(speedRollOutcomeFromCheck('critical')).toBe('extreme');
+      expect(speedRollOutcomeFromCheck('hard')).toBe('regular');
+      expect(speedRollOutcomeFromCheck('fumble')).toBe('fail');
+    });
     it('Najwolniejszy uczestnik ma 1 akcję, szybsi 1 + diff', () => {
       // Badacz MOV 7, Potwór MOV 9, Pies gończy MOV 10
       const participants = [{ mov: 7 }, { mov: 9 }, { mov: 10 }];
@@ -72,6 +83,62 @@ describe('chase-engine (CoC 7e RAW)', () => {
       expect(pFleeing?.actionsTotal).toBe(1);
       expect(pPursuer?.actionsTotal).toBe(1);
     });
+
+    it('Ustala stabilną kolejność tur według DEX', () => {
+      const state = createChaseState({
+        fleeing: {
+          id: 'player_1',
+          name: 'Badacz',
+          isPlayer: true,
+          mov: 8,
+          dex: 55,
+          segmentIndex: 2,
+        },
+        pursuers: [
+          {
+            id: 'cultist_1',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            dex: 40,
+            segmentIndex: 0,
+          },
+        ],
+      });
+
+      expect(state.turnOrder).toEqual(['player_1', 'cultist_1']);
+      expect(state.activeActorId).toBe('player_1');
+    });
+
+    it('Uwzględnia wynik speed roll przed obliczeniem punktów akcji', () => {
+      const state = createChaseState({
+        fleeing: {
+          id: 'player_1',
+          name: 'Badacz',
+          isPlayer: true,
+          mov: 8,
+          segmentIndex: 2,
+        },
+        pursuers: [
+          {
+            id: 'cultist_1',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            segmentIndex: 0,
+          },
+        ],
+        fleeingSpeedRoll: 'extreme',
+        pursuerSpeedRolls: { cultist_1: 'fail' },
+      });
+
+      expect(state.participants.map((participant) => participant.mov)).toEqual([
+        9, 7,
+      ]);
+      expect(
+        state.participants.map((participant) => participant.actionsTotal)
+      ).toEqual([3, 1]);
+    });
   });
 
   describe('Manewry uciekającego gracza', () => {
@@ -115,7 +182,7 @@ describe('chase-engine (CoC 7e RAW)', () => {
         fleeing: baseFleeing,
         pursuers: [basePursuer],
         initialDistance: 2,
-        hazardPositions: { 2: DEFAULT_CHASE_HAZARDS.fence },
+        hazardPositions: { 3: DEFAULT_CHASE_HAZARDS.fence },
       });
 
       const { nextState, log } = executePlayerManeuver(state, {
@@ -134,7 +201,7 @@ describe('chase-engine (CoC 7e RAW)', () => {
         fleeing: baseFleeing,
         pursuers: [basePursuer],
         initialDistance: 2,
-        hazardPositions: { 2: DEFAULT_CHASE_HAZARDS.fence },
+        hazardPositions: { 3: DEFAULT_CHASE_HAZARDS.fence },
       });
 
       const { nextState, log } = executePlayerManeuver(state, {
@@ -146,6 +213,47 @@ describe('chase-engine (CoC 7e RAW)', () => {
       const player = nextState.participants.find((p) => p.isPlayer);
       expect(player?.segmentIndex).toBe(2);
       expect(log.success).toBe(false);
+    });
+
+    it('Zwykły sukces nie wystarcza na trudną przeszkodę', () => {
+      const state = createChaseState({
+        fleeing: baseFleeing,
+        pursuers: [basePursuer],
+        initialDistance: 2,
+        hazardPositions: { 3: DEFAULT_CHASE_HAZARDS.traffic },
+      });
+
+      const { nextState, log } = executePlayerManeuver(state, {
+        type: 'clear_hazard',
+        actorId: 'player_1',
+        rollOutcome: 'regular',
+      });
+
+      expect(log.success).toBe(false);
+      expect(nextState.participants.find((p) => p.isPlayer)?.segmentIndex).toBe(
+        2
+      );
+    });
+
+    it('Porażka na hazardzie przepuszcza dalej z konsekwencją', () => {
+      const state = createChaseState({
+        fleeing: baseFleeing,
+        pursuers: [basePursuer],
+        initialDistance: 2,
+        hazardPositions: { 3: DEFAULT_CHASE_HAZARDS.stairs },
+      });
+
+      const { nextState, log } = executePlayerManeuver(state, {
+        type: 'clear_hazard',
+        actorId: 'player_1',
+        rollOutcome: 'fail',
+      });
+
+      expect(log.success).toBe(false);
+      expect(log.details).toContain('1k3');
+      expect(nextState.participants.find((p) => p.isPlayer)?.segmentIndex).toBe(
+        3
+      );
     });
 
     it('Brawurowy skrót przy sukcesie daje +2 segmenty', () => {
@@ -182,7 +290,9 @@ describe('chase-engine (CoC 7e RAW)', () => {
       });
 
       expect(nextState.segments[2]?.hazard).toBeTruthy();
-      expect(nextState.segments[2]?.hazard?.name).toBe('Przewrócone skrzynie z rybami');
+      expect(nextState.segments[2]?.hazard?.name).toBe(
+        'Przewrócone skrzynie z rybami'
+      );
     });
 
     it('Udany test ukrycia natychmiast kończy pościg ucieczką', () => {
@@ -206,6 +316,84 @@ describe('chase-engine (CoC 7e RAW)', () => {
   });
 
   describe('Rozstrzyganie pościgu i tury pościgu', () => {
+    it('Rozlicza wcześniejszą turę ścigającego, gdy gracz ma niższy DEX', () => {
+      const state = createChaseState({
+        fleeing: {
+          id: 'p1',
+          name: 'Badacz',
+          isPlayer: true,
+          mov: 8,
+          dex: 30,
+          segmentIndex: 3,
+        },
+        pursuers: [
+          {
+            id: 'c1',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            dex: 60,
+            segmentIndex: 0,
+          },
+        ],
+        initialDistance: 3,
+        hazardPositions: {},
+      });
+
+      expect(state.activeActorId).toBe('c1');
+      const afterNpc = executePursuerTurns(state).nextState;
+      expect(afterNpc.activeActorId).toBe('p1');
+      expect(() =>
+        executePlayerManeuver(afterNpc, { type: 'sprint', actorId: 'p1' })
+      ).not.toThrow();
+    });
+
+    it('Porażka NPC na hazardzie przesuwa go dalej, a bariera go zatrzymuje', () => {
+      const makeState = (hazard: typeof DEFAULT_CHASE_HAZARDS.crowd) =>
+        createChaseState({
+          fleeing: {
+            id: 'p1',
+            name: 'Badacz',
+            isPlayer: true,
+            mov: 8,
+            dex: 30,
+            segmentIndex: 3,
+          },
+          pursuers: [
+            {
+              id: 'c1',
+              name: 'Kultysta',
+              isPlayer: false,
+              mov: 8,
+              dex: 60,
+              segmentIndex: 0,
+            },
+          ],
+          initialDistance: 3,
+          hazardPositions: { 1: hazard },
+        });
+
+      const afterHazard = executePursuerTurns(
+        makeState(DEFAULT_CHASE_HAZARDS.crowd),
+        {
+          c1: ['fail'],
+        }
+      ).nextState;
+      const afterBarrier = executePursuerTurns(
+        makeState(DEFAULT_CHASE_HAZARDS.traffic),
+        {
+          c1: ['fail'],
+        }
+      ).nextState;
+
+      expect(
+        afterHazard.participants.find((p) => p.id === 'c1')?.segmentIndex
+      ).toBe(1);
+      expect(
+        afterBarrier.participants.find((p) => p.id === 'c1')?.segmentIndex
+      ).toBe(0);
+    });
+
     it('Ścigający dogania uciekającego -> stan caught', () => {
       const state = createChaseState({
         fleeing: {
@@ -238,12 +426,12 @@ describe('chase-engine (CoC 7e RAW)', () => {
       // Tura pościgu (Ogar ma 1 + (10 - 7) = 4 punkty akcji!)
       const { nextState: finalState } = executePursuerTurns(stateAfterPlayer);
 
-      expect(finalState.status).toBe('caught');
+      expect(finalState.status).toBe('engaged');
       const player = finalState.participants.find((p) => p.isPlayer);
       expect(player?.isCaught).toBe(true);
     });
 
-    it('Zwiększenie dystansu do progu ucieczki -> stan escaped', () => {
+    it('Dystans sam w sobie nie kończy pościgu', () => {
       const state = createChaseState({
         fleeing: {
           id: 'p1',
@@ -272,27 +460,57 @@ describe('chase-engine (CoC 7e RAW)', () => {
         actorId: 'p1',
       });
 
-      expect(nextState.status).toBe('escaped');
+      expect(nextState.status).toBe('ongoing');
     });
   });
 
   describe('Formatowanie do czatu i kontekstu AI MG', () => {
     it('formatChaseForChat generuje czytelny status pościgu', () => {
       const state = createChaseState({
-        fleeing: { id: 'p1', name: 'Badacz', isPlayer: true, mov: 8, segmentIndex: 2 },
-        pursuers: [{ id: 'c1', name: 'Kultysta', isPlayer: false, mov: 8, segmentIndex: 0 }],
+        fleeing: {
+          id: 'p1',
+          name: 'Badacz',
+          isPlayer: true,
+          mov: 8,
+          segmentIndex: 2,
+        },
+        pursuers: [
+          {
+            id: 'c1',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            segmentIndex: 0,
+          },
+        ],
         initialDistance: 2,
       });
 
       const text = formatChaseForChat(state);
-      expect(text).toContain('POŚCIG (CoC 7e RAW)');
-      expect(text).toContain('**Dystans do pościgu:** 2 lokacje');
+      expect(text).toContain('**POŚCIG**');
+      expect(text).toContain('**Pościg:** Słyszysz ich coraz bliżej.');
+      expect(text).not.toContain('2 lokacje');
+      expect(text).not.toContain('Runda 1');
     });
 
     it('formatChaseForSystemContext zwraca poprawny JSON', () => {
       const state = createChaseState({
-        fleeing: { id: 'p1', name: 'Badacz', isPlayer: true, mov: 8, segmentIndex: 2 },
-        pursuers: [{ id: 'c1', name: 'Kultysta', isPlayer: false, mov: 8, segmentIndex: 0 }],
+        fleeing: {
+          id: 'p1',
+          name: 'Badacz',
+          isPlayer: true,
+          mov: 8,
+          segmentIndex: 2,
+        },
+        pursuers: [
+          {
+            id: 'c1',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            segmentIndex: 0,
+          },
+        ],
         initialDistance: 2,
       });
 
@@ -301,6 +519,39 @@ describe('chase-engine (CoC 7e RAW)', () => {
       expect(parsed.type).toBe('chase_engine_update');
       expect(parsed.status).toBe('ongoing');
       expect(parsed.distanceToPursuers).toBe(2);
+      expect(json).not.toContain('Kultysta');
+      expect(json).not.toContain('Badacz');
+    });
+
+    it('kontekst MG zawiera mechaniczną semantykę najbliższej przeszkody', () => {
+      const state = createChaseState({
+        fleeing: {
+          id: 'p1',
+          name: 'Badacz',
+          isPlayer: true,
+          mov: 8,
+          segmentIndex: 2,
+        },
+        pursuers: [
+          {
+            id: 'c1',
+            name: 'Kultysta',
+            isPlayer: false,
+            mov: 8,
+            segmentIndex: 0,
+          },
+        ],
+        initialDistance: 2,
+        hazardPositions: { 3: DEFAULT_CHASE_HAZARDS.stairs },
+      });
+
+      expect(
+        JSON.parse(formatChaseForSystemContext(state)).upcomingHazard
+      ).toMatchObject({
+        type: 'hazard',
+        difficulty: 'trudny',
+        damageOnFail: '1k3',
+      });
     });
   });
 });

@@ -53,6 +53,8 @@ interface MessageCardProps {
   isSessionEnded?: boolean;
   isLastMessage?: boolean;
   onCharacterUpdate?: (char: Character) => void;
+  onSendHazardResult?: (message: string) => void;
+  resolvedHazardIds?: ReadonlySet<string>;
   /** Kontynuacja uciętej narracji (MAX_TOKENS) - deklaruje caller; pole
    *  opcjonalne dla zgodności z testami i chat-window types. */
   onContinueNarration?: (messageId?: string) => void;
@@ -78,6 +80,8 @@ export function MessageCard({
   isSessionEnded = false,
   isLastMessage = false,
   onCharacterUpdate,
+  onSendHazardResult,
+  resolvedHazardIds,
   onContinueNarration,
   isDuet = false,
   characters = [],
@@ -277,39 +281,57 @@ export function MessageCard({
             {/* Zagrożenia środowiskowe i trucizny CoC 7e RAW (Issue #60) */}
             {message.hazardEvents && message.hazardEvents.length > 0 && (
               <div className="mt-3 space-y-2">
-                {message.hazardEvents.map((hazard) => (
+                {message.hazardEvents.map((hazard) => {
+                  const normalizeName = (value: string) =>
+                    value.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+                  const characterPool = activeCharacter
+                    ? [activeCharacter, ...characters.filter((character) => character.id !== activeCharacter.id)]
+                    : characters;
+                  const targetCharacter = hazard.characterId
+                    ? characterPool.find((character) => character.id === hazard.characterId)
+                    : hazard.characterName
+                      ? characterPool.find(
+                          (character) => normalizeName(character.name) === normalizeName(hazard.characterName || '')
+                        )
+                      : activeCharacter;
+                  return (
                   <HazardCard
                     key={hazard.id}
                     hazard={hazard}
-                    playerCon={activeCharacter?.con || 50}
+                    playerCon={targetCharacter?.con || 50}
+                    playerHp={targetCharacter?.hp}
                     playerJump={
-                      typeof activeCharacter?.skills?.['Skakanie'] === 'number'
-                        ? activeCharacter.skills['Skakanie']
-                        : typeof activeCharacter?.skills?.['Jump'] === 'number'
-                        ? activeCharacter.skills['Jump']
+                      typeof targetCharacter?.skills?.['Skakanie'] === 'number'
+                        ? targetCharacter.skills['Skakanie']
+                        : typeof targetCharacter?.skills?.['Jump'] === 'number'
+                        ? targetCharacter.skills['Jump']
                         : 20
                     }
                     playerDodge={
-                      typeof activeCharacter?.skills?.['Unik'] === 'number'
-                        ? activeCharacter.skills['Unik']
-                        : typeof activeCharacter?.skills?.['Dodge'] === 'number'
-                        ? activeCharacter.skills['Dodge']
-                        : activeCharacter?.dex
-                        ? Math.floor(activeCharacter.dex / 2)
+                      typeof targetCharacter?.skills?.['Unik'] === 'number'
+                        ? targetCharacter.skills['Unik']
+                        : typeof targetCharacter?.skills?.['Dodge'] === 'number'
+                        ? targetCharacter.skills['Dodge']
+                        : targetCharacter?.dex
+                        ? Math.floor(targetCharacter.dex / 2)
                         : 25
                     }
-                    playerName={activeCharacter?.name || 'Badacz'}
+                    playerName={targetCharacter?.name || hazard.characterName}
+                    completed={resolvedHazardIds?.has(hazard.id)}
+                    canApply={Boolean(targetCharacter)}
                     onApplyDamage={(damage) => {
-                      if (activeCharacter && onCharacterUpdate) {
-                        const newHp = Math.max(0, activeCharacter.hp - damage);
+                      if (targetCharacter && onCharacterUpdate && !resolvedHazardIds?.has(hazard.id)) {
+                        const newHp = Math.max(0, targetCharacter.hp - damage);
                         onCharacterUpdate({
-                          ...activeCharacter,
+                          ...targetCharacter,
                           hp: newHp,
                         });
                       }
                     }}
+                    onSendChat={onSendHazardResult}
                   />
-                ))}
+                  );
+                })}
               </div>
             )}
 

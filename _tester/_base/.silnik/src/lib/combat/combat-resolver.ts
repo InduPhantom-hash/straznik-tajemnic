@@ -19,7 +19,67 @@ export type DefenseChoice = 'dodge' | 'fight_back' | 'maneuver';
 
 export type ManeuverType = 'grapple' | 'knockdown' | 'disarm' | 'shove';
 
-export type WeaponDamageType = 'blunt' | 'impaling' | 'slashing';
+export type WeaponDamageType = 'non_impaling' | 'impaling' | 'blunt' | 'slashing';
+
+export interface PendingMeleeAttack {
+  schemaVersion: 1;
+  eventId: string;
+  roundId: string;
+  ordinal: number;
+  intent: string;
+  attacker: {
+    id: string;
+    name: string;
+    build: number;
+    hp: number;
+    maxHp: number;
+    armor: number;
+    attackSkill: number;
+    damageBonus: string;
+  };
+  target: { characterId: string; name: string };
+  weapon: {
+    attackOptionId: string;
+    catalogId?: string;
+    name: string;
+    damageFormula: string;
+    damageClass: 'impaling' | 'non_impaling';
+  };
+}
+
+export interface CombatHealthState {
+  hpBefore: number;
+  hpAfter: number;
+  hasMajorWound: boolean;
+  conCheck?: { roll: number; outcome: RollOutcome };
+  isUnconscious: boolean;
+  isDying: boolean;
+  isDead: boolean;
+}
+
+export interface CombatResolution {
+  schemaVersion: 1;
+  eventId: string;
+  roundId: string;
+  attackerId: string;
+  attackerName: string;
+  defenderId: string;
+  defenderName: string;
+  defenseChoice: Exclude<DefenseChoice, 'maneuver'>;
+  defenderWeaponId?: string;
+  defenderWeaponName?: string;
+  attackerRoll: number;
+  defenderRoll: number;
+  attackerOutcome: RollOutcome;
+  defenderOutcome: RollOutcome;
+  attackerBonusDice: number;
+  winner: 'attacker' | 'defender' | 'none';
+  damageDealtTo: 'attacker' | 'defender' | 'none';
+  damage?: DamageBreakdown & { armor: number };
+  defenderHealth?: CombatHealthState;
+  attackerHpBefore: number;
+  attackerHpAfter: number;
+}
 
 export interface CombatantSnapshot {
   id: string;
@@ -152,7 +212,7 @@ export function resolveOutnumberedBonus(defensesUsedThisRound: number): {
  */
 export function getMaxDiceValue(formula: string): number {
   if (!formula || !formula.trim()) return 0;
-  const cleaned = formula.replace(/\s+/g, '');
+  const cleaned = normalizeDiceFormula(formula);
   const match = cleaned.match(/^(\d*)d(\d+)(?:([+-])(\d+))?$/i);
   if (!match) {
     const num = parseInt(cleaned, 10);
@@ -167,6 +227,15 @@ export function getMaxDiceValue(formula: string): number {
   if (sign === '+') total += mod;
   if (sign === '-') total -= mod;
   return Math.max(0, total);
+}
+
+/** Kanoniczny zapis formuły kości. Niepoprawne dane są odrzucane, nie dają 0. */
+export function normalizeDiceFormula(formula: string): string {
+  const normalized = formula.trim().replace(/k/gi, 'd').replace(/\s+/g, '');
+  if (!/^(?:\d*d\d+(?:[+-]\d+)?|[+-]?\d+)$/i.test(normalized)) {
+    throw new Error('invalid_dice_formula');
+  }
+  return normalized;
 }
 
 /**
@@ -185,16 +254,21 @@ export function calculateMeleeDamage(params: {
   breakdown: string;
 } {
   const {
-    weaponDamageFormula,
-    damageBonusFormula = '',
+    weaponDamageFormula: rawWeaponDamageFormula,
+    damageBonusFormula: rawDamageBonusFormula = '',
     damageType = 'blunt',
     outcome,
     isCounterattack = false,
     rollFn = (f: string) => rollDiceFormula(f)?.total ?? 0,
   } = params;
 
+  const weaponDamageFormula = normalizeDiceFormula(rawWeaponDamageFormula);
+  const damageBonusFormula = rawDamageBonusFormula
+    ? normalizeDiceFormula(rawDamageBonusFormula.replace(/^\+/, ''))
+    : '';
+
   const isExtreme = outcome === 'extreme' || outcome === 'critical';
-  const isPiercing = damageType === 'impaling' || damageType === 'slashing';
+  const isPiercing = damageType === 'impaling';
 
   // W kontrataku RAW CoC 7e sukces ekstremalny NIE daje Przebicia (Impale),
   // lecz zadaje zwykłe/maksymalne obrażenia bez dodatkowej kości broni.
@@ -251,11 +325,53 @@ export function checkMajorWound(
     };
   }
 
-  const halfMaxHp = Math.floor(maxHp / 2);
+  const halfMaxHp = Math.ceil(maxHp / 2);
   const isMajor = damage >= halfMaxHp;
   return {
     isMajorWound: isMajor,
     conTestRequired: isMajor,
+  };
+}
+
+export function applyCombatDamage(params: {
+  hp: number;
+  maxHp: number;
+  con: number;
+  damage: number;
+  hadMajorWound?: boolean;
+  convention?: CombatConvention;
+  conRoll?: number;
+}): CombatHealthState {
+  const hpBefore = Math.max(0, params.hp);
+  const maxHp = Math.max(1, params.maxHp);
+  const effectiveDamage = Math.max(0, params.damage);
+  const hpAfter = Math.max(0, hpBefore - effectiveDamage);
+  const instantDeath = effectiveDamage >= maxHp;
+  const wound = checkMajorWound(
+    effectiveDamage,
+    maxHp,
+    params.convention ?? 'classic'
+  );
+  const hasMajorWound = Boolean(params.hadMajorWound) || wound.isMajorWound;
+  const conCheck =
+    wound.conTestRequired && !instantDeath
+      ? {
+          roll: params.conRoll ?? 100,
+          outcome: evaluateSkillCheck(params.conRoll ?? 100, params.con),
+        }
+      : undefined;
+  const conFailed = conCheck ? !isSuccessOutcome(conCheck.outcome) : false;
+  const isDying = !instantDeath && hpAfter === 0 && hasMajorWound;
+  const isUnconscious = instantDeath || hpAfter === 0 || conFailed;
+
+  return {
+    hpBefore,
+    hpAfter,
+    hasMajorWound,
+    conCheck,
+    isUnconscious,
+    isDying,
+    isDead: instantDeath,
   };
 }
 

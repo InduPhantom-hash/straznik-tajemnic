@@ -1,4 +1,4 @@
-import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType } from './types';
+import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference } from './types';
 import { COMBAT_END_PATTERNS, COMBAT_START_PATTERNS, DAMAGE_PLAYER_PATTERNS, SANITY_PATTERNS } from './patterns';
 
 // Wykrywanie walki
@@ -42,6 +42,65 @@ export function detectCombat(text: string): CombatState | null {
     }
 
     return null;
+}
+
+/**
+ * Model wskazuje wyłącznie zapisany profil NPC, adresata i wariant ataku.
+ * Każde dodatkowe pole odrzuca cały tag, aby LLM nie mógł podać mechaniki.
+ */
+export function extractMeleeAttackReferences(text: string): MeleeAttackReference[] {
+    const attacks: MeleeAttackReference[] = [];
+    const pattern = /\[ATAK_WRĘCZ:\s*([^\]]+)\]/gi;
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(text)) !== null) {
+        const fields: Record<string, string> = {};
+        let invalid = false;
+        for (const rawPart of match[1].split('|')) {
+            const separator = rawPart.indexOf('=');
+            if (separator <= 0) {
+                invalid = true;
+                break;
+            }
+            const key = rawPart.slice(0, separator).trim().toLocaleLowerCase('pl-PL');
+            const value = rawPart.slice(separator + 1).trim();
+            if (!value || fields[key] !== undefined) {
+                invalid = true;
+                break;
+            }
+            fields[key] = value;
+        }
+
+        const allowed = new Set(['napastnik', 'cel', 'atak', 'zamiar']);
+        if (
+            invalid ||
+            Object.keys(fields).length !== allowed.size ||
+            Object.keys(fields).some((key) => !allowed.has(key))
+        ) continue;
+
+        const target = fields.cel.replace(/^@/, '').trim();
+        if (!target) continue;
+        attacks.push({
+            attackerNpcId: fields.napastnik,
+            targetCharacterName: target,
+            attackOptionId: fields.atak,
+            intent: fields.zamiar,
+        });
+    }
+    return attacks;
+}
+
+/** Removes complete combat control tags and hides a trailing partial tag while SSE streams. */
+export function stripMeleeAttackTags(text: string): string {
+  const withoutComplete = text.replace(/\[ATAK_WRĘCZ:\s*[^\]]*\]/gi, '');
+  const openBracket = withoutComplete.lastIndexOf('[');
+  if (openBracket < 0) return withoutComplete.trimEnd();
+  const trailing = withoutComplete.slice(openBracket).toLocaleUpperCase('pl-PL');
+  const marker = '[ATAK_WRĘCZ:';
+  if (marker.startsWith(trailing) || trailing.startsWith(marker)) {
+    return withoutComplete.slice(0, openBracket).trimEnd();
+  }
+  return withoutComplete.trimEnd();
 }
 
 // Wykrywanie poczytalności
@@ -277,13 +336,54 @@ export function extractHazardEvents(text: string): HazardEventData[] {
             }
         }
 
-        // Parsowanie trucizny
+        const surfaceRaw = (kv.podloze || kv.surface || '').toLowerCase();
+        const surface = type === 'falling'
+            ? (surfaceRaw.includes('tward') || surfaceRaw.includes('hard')
+                ? 'hard'
+                : surfaceRaw.includes('miekk') || surfaceRaw.includes('miękk') || surfaceRaw.includes('soft')
+                    ? 'soft'
+                    : surfaceRaw.includes('wod') || surfaceRaw.includes('water')
+                        ? 'water'
+                        : 'normal')
+            : undefined;
+
+        const fireRoundsRaw = kv.rundy || kv.rounds;
+        const fireRounds = type === 'fire' && fireRoundsRaw
+            ? Math.max(1, Math.min(10, parseInt(fireRoundsRaw, 10) || 1))
+            : undefined;
+
+        const acidRaw = (kv.moc || kv.potency || kv.sila || '').toLowerCase();
+        const acidPotency = type === 'acid'
+            ? (acidRaw.includes('siln') || acidRaw.includes('strong') || acidRaw.includes('immersion')
+                ? 'immersion'
+                : 'splash')
+            : undefined;
+
+        const airlessKind = type === 'drowning'
+            ? 'water'
+            : type === 'suffocation'
+                ? ((kv.rodzaj || kv.kind || '').toLowerCase().includes('vac') ? 'vacuum' : 'smoke')
+                : undefined;
+        const conFailed = (kv.confailed || kv.con_failed || '').toLowerCase() === 'true';
+
+        // Parsowanie trucizny. POT pozostaje wyłącznie wejściem migracyjnym;
+        // aktywny resolver używa kategorii RAW mild/strong/lethal.
         const poisonName = kv.nazwa || kv.name || (type === 'poison' ? positional[1] : undefined);
         let poisonPotency: number | undefined = undefined;
         if (type === 'poison') {
             const potStr = kv.potega || kv.potency || kv.moc || (positional[2] && /^\d+$/.test(positional[2]) ? positional[2] : undefined);
             if (potStr) poisonPotency = parseInt(potStr, 10);
         }
+        const severityRaw = (kv.kategoria || kv.severity || kv.sila || '').toLowerCase();
+        const poisonSeverity = type === 'poison'
+            ? (severityRaw.includes('śmiert') || severityRaw.includes('smiert') || severityRaw.includes('lethal')
+                ? 'lethal'
+                : severityRaw.includes('siln') || severityRaw.includes('strong')
+                    ? 'strong'
+                    : severityRaw.includes('łagod') || severityRaw.includes('lagod') || severityRaw.includes('mild')
+                        ? 'mild'
+                        : undefined)
+            : undefined;
 
         // Obrona
         let defensiveSkill = kv.obrona || kv.skill || kv.test;
@@ -294,7 +394,7 @@ export function extractHazardEvents(text: string): HazardEventData[] {
         }
 
         // Opis
-        let description = kv.opis || kv.desc;
+        let description = kv.opis || kv.desc || kv.description;
         if (!description) {
             description = positional[positional.length - 1] || 'Zagrożenie środowiskowe';
         }
@@ -305,9 +405,15 @@ export function extractHazardEvents(text: string): HazardEventData[] {
             description,
             characterName,
             fallHeightMeters,
+            surface,
             fireIntensity,
+            fireRounds,
+            acidPotency,
+            airlessKind,
+            conFailed,
             poisonName,
             poisonPotency,
+            poisonSeverity,
             defensiveSkill,
         });
     }

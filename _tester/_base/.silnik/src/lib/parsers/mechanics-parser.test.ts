@@ -2,7 +2,30 @@ import {
   extractSkillTests,
   extractHazardEvents,
   extractSkillResults,
+  extractMeleeAttackReferences,
+  stripMeleeAttackTags,
 } from './mechanics-parser';
+
+describe('ATAK_WRĘCZ', () => {
+  it('parsuje ścisły tag referencyjny i nie przyjmuje pól mechanicznych', () => {
+    expect(extractMeleeAttackReferences(
+      '[ATAK_WRĘCZ: napastnik=npc-1 | cel=@Anna Kowalska | atak=knife | zamiar=twardy cios]'
+    )).toEqual([{
+      attackerNpcId: 'npc-1',
+      targetCharacterName: 'Anna Kowalska',
+      attackOptionId: 'knife',
+      intent: 'twardy cios',
+    }]);
+    expect(extractMeleeAttackReferences(
+      '[ATAK_WRĘCZ: napastnik=npc-1 | cel=@Anna | atak=knife | zamiar=cios | obrażenia=99]'
+    )).toEqual([]);
+  });
+
+  it('ukrywa pełny i częściowo streamowany tag przed graczem', () => {
+    expect(stripMeleeAttackTags('Kultysta rusza.\n[ATAK_WRĘCZ: napastnik=npc-1')).toBe('Kultysta rusza.');
+    expect(stripMeleeAttackTags('Kultysta rusza.\n[ATAK_WRĘCZ: napastnik=npc-1 | cel=@Anna | atak=fist | zamiar=cios]')).toBe('Kultysta rusza.');
+  });
+});
 
 describe('extractSkillTests - duet', () => {
   it('zachowuje zgodność ze starym tagiem solo', () => {
@@ -93,6 +116,28 @@ describe('extractHazardEvents (CoC 7e RAW)', () => {
     expect(hazard.poisonName).toBe('Cyjanek');
     expect(hazard.poisonPotency).toBe(90);
     expect(hazard.defensiveSkill).toBe('Kondycja');
+  });
+
+  it('usuwa surowy klucz description i parsuje parametry RAW', () => {
+    const [hazard] = extractHazardEvents(
+      '[HAZARD: type=fall | height=4m | surface=hard | description=Broken fire escape]'
+    );
+    expect(hazard).toMatchObject({
+      type: 'falling',
+      fallHeightMeters: 4,
+      surface: 'hard',
+      description: 'Broken fire escape',
+    });
+    expect(hazard.description).not.toContain('description=');
+  });
+
+  it('parsuje kwas, tonięcie i kategorię trucizny', () => {
+    expect(extractHazardEvents('[HAZARD: type=acid | potency=strong | desc=Vitriol]')[0])
+      .toMatchObject({ type: 'acid', acidPotency: 'immersion' });
+    expect(extractHazardEvents('[HAZARD: type=drowning | desc=Flooded tunnel]')[0])
+      .toMatchObject({ type: 'drowning', airlessKind: 'water' });
+    expect(extractHazardEvents('[HAZARD: type=poison | severity=lethal | desc=Cyanide]')[0])
+      .toMatchObject({ type: 'poison', poisonSeverity: 'lethal' });
   });
 
   it('poprawnie obsługuje adresata w duecie', () => {
