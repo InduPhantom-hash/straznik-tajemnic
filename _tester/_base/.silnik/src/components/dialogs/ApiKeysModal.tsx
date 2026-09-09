@@ -24,7 +24,7 @@ import {
   EyeOff,
   Loader2,
 } from 'lucide-react';
-import { ApiKeys, saveApiKeys, getApiKeys } from '@/lib/api-keys-service';
+import { ApiKeys, saveApiKeys, getApiKeys, sanitizeApiKey } from '@/lib/api-keys-service';
 
 interface ApiKeysModalProps {
   open: boolean;
@@ -51,7 +51,8 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
   }, [open]);
 
   const handleChange = (key: keyof ApiKeys, value: string) => {
-    setKeys((prev) => ({ ...prev, [key]: value }));
+    const clean = sanitizeApiKey(value);
+    setKeys((prev) => ({ ...prev, [key]: clean }));
     setSaved(false);
     // Zmiana klucza unieważnia poprzedni wynik walidacji.
     if (key === 'GEMINI_API_KEY') setGeminiValidation('idle');
@@ -61,7 +62,7 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
   // Klucz idzie w body do serwera (jak przy każdej narracji - zero nowej ekspozycji);
   // endpoint nie loguje ani nie persystuje klucza.
   const handleValidateGemini = async () => {
-    const key = keys.GEMINI_API_KEY?.trim();
+    const key = sanitizeApiKey(keys.GEMINI_API_KEY);
     if (!key) return;
     setGeminiValidation('checking');
     try {
