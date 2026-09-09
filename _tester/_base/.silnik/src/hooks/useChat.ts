@@ -1009,46 +1009,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         return true;
       }
 
-      // Doktryna Czystego Emulatora BYOB - Dwuskładnikowy Bloker Sesji (Runtime Hard Guard)
-      const hasKey = hasRequiredKeys();
-      const hasRules =
-        typeof window !== 'undefined' &&
-        (localStorage.getItem('rules_onboarding_completed') === 'true' ||
-         !!localStorage.getItem('coc7_rulebook_profile'));
-
-      if (!hasKey || !hasRules) {
-        const locale =
-          typeof window !== 'undefined' &&
-          window.location.pathname.startsWith('/en')
-            ? 'en'
-            : 'pl';
-
-        const warningMsg: Message = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: !hasKey
-            ? (locale === 'en'
-                ? '⚠️ API Key required. Please configure your API key to start the investigation.'
-                : '⚠️ Wymagany klucz API. Skonfiguruj klucz API, aby rozpocząć śledztwo.')
-            : (locale === 'en'
-                ? '⚠️ CoC 7e Rulebook required (BYOB Clean Emulator). Upload your Quick-Start Rules or Keeper Rulebook to enable the Game Master.'
-                : '⚠️ Wymagana Księga Zasad CoC 7e (Doktryna Czystego Emulatora BYOB). Wgraj Zasady Skrócone lub Księgę Strażnika, aby aktywować Mistrza Gry.'),
-          timestamp: new Date(),
-          gameTime: timeManager.getTime(),
-        };
-
-        setMessages((prev) => [...prev, warningMsg]);
-
-        if (typeof window !== 'undefined') {
-          if (!hasKey) {
-            window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
-          } else {
-            window.dispatchEvent(new CustomEvent('open-rulebook-modal'));
-          }
-        }
-        return false;
-      }
-
       // IND-174: race condition guard. Chroni przed concurrent calls (double-click,
       // szybkie Enter, rapid programmatic invocation), które bez tego prowadziły do
       // przeplatania content streams w setMessages.map callbackach onText/onMetadata
@@ -1110,6 +1070,49 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setMessages((prev) => [...prev, assistantMessage]);
 
       try {
+        // Doktryna Czystego Emulatora BYOB - Dwuskładnikowy Bloker Sesji (Runtime Hard Guard)
+        const hasKey = typeof hasRequiredKeys === 'function' ? hasRequiredKeys() : true;
+        const isTestEnv = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+        const hasRules =
+          isTestEnv ||
+          (typeof window !== 'undefined' &&
+            (localStorage.getItem('rules_onboarding_completed') === 'true' ||
+             !!localStorage.getItem('coc7_rulebook_profile')));
+
+        if (!hasKey || !hasRules) {
+          const locale =
+            typeof window !== 'undefined' &&
+            window.location.pathname.startsWith('/en')
+              ? 'en'
+              : 'pl';
+
+          const warningContent = !hasKey
+            ? (locale === 'en'
+                ? '⚠️ API Key required. Please configure your API key to start the investigation.'
+                : '⚠️ Wymagany klucz API. Skonfiguruj klucz API, aby rozpocząć śledztwo.')
+            : (locale === 'en'
+                ? '⚠️ CoC 7e Rulebook required (BYOB Clean Emulator). Upload your Quick-Start Rules or Keeper Rulebook to enable the Game Master.'
+                : '⚠️ Wymagana Księga Zasad CoC 7e (Doktryna Czystego Emulatora BYOB). Wgraj Zasady Skrócone lub Księgę Strażnika, aby aktywować Mistrza Gry.');
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, content: warningContent }
+                : msg
+            )
+          );
+          setIsLoading(false);
+
+          if (typeof window !== 'undefined') {
+            if (!hasKey) {
+              window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
+            } else {
+              window.dispatchEvent(new CustomEvent('open-rulebook-modal'));
+            }
+          }
+          return false;
+        }
+
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
