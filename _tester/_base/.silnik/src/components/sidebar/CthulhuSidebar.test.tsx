@@ -117,4 +117,65 @@ describe('CthulhuSidebar player tools', () => {
     expect(closedBtn).toBeDisabled();
     expect(closedBtn).toHaveTextContent(/Sesja Zamknięta/i);
   });
+
+  it('bezpiecznie renderuje portret postaci gdy adventureContext jest pusty (ochrona przed błędem epoki)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar = {
+      id: 'char_1',
+      name: 'Harvey Walters',
+      occupation: 'Dziennikarz',
+      portraitUrl: 'https://example.com/harvey.png',
+      hp: 10,
+      san: 50,
+      mp: 10,
+      luck: 50,
+      skills: {},
+    } as never;
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar}
+        adventureContext={null}
+      />
+    );
+
+    const img = screen.getByAltText('Harvey Walters');
+    expect(img).toBeInTheDocument();
+    // Domyślny klasyczny filtr CoC 1920s gdy kontekst przygody jest pusty
+    expect(img).toHaveStyle({ filter: 'sepia(0.22) saturate(0.76) contrast(1.04) brightness(0.98)' });
+  });
+
+  it('stosuje autentyczny filtr epoki 1980s dla scenariusza Traszyn (1983-1999)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar = {
+      id: 'char_1',
+      name: 'Ksiądz Jan',
+      occupation: 'Egzorcysta',
+      portraitUrl: 'https://example.com/jan.png',
+      hp: 10,
+      san: 50,
+      mp: 10,
+      luck: 50,
+      skills: {},
+    } as never;
+
+    const mockAdventure = {
+      id: 'tajemnica-dzieci-z-traszyna',
+      title: 'Tajemnica Dzieci z Traszyna',
+      era: '1990s',
+      yearRange: '1983-1999',
+    } as never;
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar}
+        adventureContext={mockAdventure}
+      />
+    );
+
+    const img = screen.getByAltText('Ksiądz Jan');
+    expect(img).toBeInTheDocument();
+    // 1980s filter
+    expect(img).toHaveStyle({ filter: 'sepia(0.04) saturate(0.88) contrast(1.04) brightness(0.97)' });
+  });
 });

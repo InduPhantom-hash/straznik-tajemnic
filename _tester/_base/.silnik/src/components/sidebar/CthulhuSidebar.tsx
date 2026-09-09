@@ -49,6 +49,7 @@ import {
   ActiveGameState,
   HotSeatConfig,
   JournalEntry,
+  AdventureContext as BaseAdventureContext,
 } from '@/lib/types';
 import { AdventureContext, CustomAdventure } from '@/lib/adventures-data';
 import { useResolvedPortrait } from '@/hooks/useResolvedPortrait';
@@ -110,6 +111,7 @@ interface CthulhuSidebarProps {
   onUpdateAISettings?: (settings: AISettings) => void;
   isSessionEnded?: boolean;
   sessionEndStatus?: SessionEndStatus;
+  adventureContext?: BaseAdventureContext | AdventureContext | null; // Bieżący kontekst przygody i epoki
 }
 
 export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
@@ -158,6 +160,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   onUpdateAISettings,
   isSessionEnded = false,
   sessionEndStatus = 'idle',
+  adventureContext: adventureContextProp,
 }) => {
   const t = useTranslations('Sidebar');
   const [openDialog, setOpenDialog] = useState<string | null>(null);
@@ -168,6 +171,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>();
   const [adventureContext, setAdventureContext] =
     useState<AdventureContext | null>(null);
+  const effectiveAdventureContext = adventureContextProp ?? adventureContext;
 
   // System notyfikacji - nowe pozycje w dzienniku i ekwipunku
   const [unseenJournalCount, setUnseenJournalCount] = useState(0);
@@ -396,7 +400,9 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                             className="w-16 h-16 rounded-lg object-cover border border-brass/40"
                             style={{
                               filter: getEraImageFilter(
-                                adventureContext?.yearRange?.split('-')[0]
+                                effectiveAdventureContext?.yearRange?.split('-')[0] ||
+                                  effectiveAdventureContext?.era ||
+                                  '1920s'
                               ),
                             }}
                           />
@@ -808,8 +814,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
           onOpenChange={(open) => !open && setOpenDialog(null)}
           character={inspectedCharacter ?? activeCharacter}
           onCharacterUpdate={onUpdateCharacter}
-          era={adventureContext?.yearRange?.split('-')[0] || '1920s'}
-          adventureTheme={adventureContext?.title}
+          era={
+            effectiveAdventureContext?.yearRange?.split('-')[0] ||
+            effectiveAdventureContext?.era ||
+            '1920s'
+          }
+          adventureTheme={effectiveAdventureContext?.title}
           characters={characters}
           onCharacterChange={(character) =>
             setInspectedCharacterId(character.id)
@@ -819,7 +829,10 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
       <SessionZeroModal
         open={showSessionZero}
         onClose={() => setShowSessionZero(false)}
-        adventureContext={adventureContext || undefined}
+        adventureContext={
+          (effectiveAdventureContext as unknown as AdventureContext) ||
+          undefined
+        }
         activeCharacter={activeCharacter}
         onCharacterUpdate={onUpdateCharacter}
         playerCharacters={
