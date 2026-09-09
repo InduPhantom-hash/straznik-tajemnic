@@ -199,3 +199,79 @@ describe('MessageCard - zagrożenia', () => {
     expect(screen.getByRole('button', { name: expectedAction })).toBeInTheDocument();
   });
 });
+
+describe('MessageCard - czary i rytuały (Issue #252)', () => {
+  const alice: Character = {
+    ...PREDEFINED_CHARACTERS[0],
+    id: 'alice',
+    name: 'Alice',
+    pow: 60,
+    mp: 12,
+    hp: 12,
+    san: 55,
+    magic: {
+      schemaVersion: 1,
+      belief: 'believer',
+      deferredSanLoss: 0,
+      knownSpells: {},
+      tomeStudies: {},
+    },
+  };
+
+  const spellMessage: Message = {
+    ...baseMessage,
+    id: 'spell-message',
+    content: 'Pradawna inkantacja odbija się echem w krypcie.',
+    spellCastEvents: [
+      {
+        id: 'spell-cast-1',
+        spellId: 'wither-limb',
+        alias: 'Pieśń Bólu',
+        characterName: 'Alice',
+      },
+    ],
+  };
+
+  it('renderuje kartę zaklęcia z nazwą diegetyczną i pozwala rzucić czar', () => {
+    const onCharacterUpdate = jest.fn();
+    const onSendSpellResult = jest.fn();
+
+    render(
+      <MessageCard
+        {...baseProps}
+        message={spellMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        onCharacterUpdate={onCharacterUpdate}
+        onSendSpellResult={onSendSpellResult}
+      />
+    );
+
+    expect(screen.getByText('Pieśń Bólu')).toBeInTheDocument();
+    expect(screen.getByText('Uwiąd Kończyny')).toBeInTheDocument();
+
+    const castBtn = screen.getByRole('button', { name: /Rzuć zaklęcie/i });
+    fireEvent.click(castBtn);
+
+    expect(onCharacterUpdate).toHaveBeenCalled();
+    expect(onSendSpellResult).toHaveBeenCalledWith(
+      expect.stringContaining('[WYNIK_CZARU: id=spell-cast-1')
+    );
+  });
+
+  it('oznacza kartę jako rozstrzygniętą, gdy id znajduje się w resolvedSpellIds', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={spellMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        resolvedSpellIds={new Set(['spell-cast-1'])}
+      />
+    );
+
+    expect(screen.getByText(/Inkantacja rozstrzygnięta/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rzuć zaklęcie/i })).not.toBeInTheDocument();
+  });
+});
+

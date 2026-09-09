@@ -363,3 +363,5 @@ export class MagicEngine {
     };
   }
 }
+
+export const magicEngine = new MagicEngine();

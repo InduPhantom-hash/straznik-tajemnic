@@ -29,7 +29,9 @@ import {
 import type { SkillTestData } from '@/lib/parsers/types';
 import type { SkillTestResult } from '@/lib/response-parser';
 import {
+  extractHazardEvents,
   extractSkillResults,
+  extractSpellCastEvents,
   stripMeleeAttackTags,
 } from '@/lib/parsers/mechanics-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
@@ -1001,6 +1003,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             gameTime: currentGameTime,
             skillTests: execRes.assistantMessage.skillTests,
             hazardEvents: execRes.assistantMessage.hazardEvents,
+            spellCastEvents: execRes.assistantMessage.spellCastEvents,
             acquiredItems: execRes.assistantMessage.acquiredItems,
             generatedImages: execRes.assistantMessage.generatedImages,
           };
@@ -1511,6 +1514,23 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             prev.map((message) =>
               message.id === assistantMessageId
                 ? { ...message, acquiredItems }
+                : message
+            )
+          );
+        }
+
+        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60) oraz rzucanie czarów (Issue #252)
+        const hazardEvents = extractHazardEvents(fullText);
+        const spellCastEvents = extractSpellCastEvents(fullText);
+        if (hazardEvents.length > 0 || spellCastEvents.length > 0) {
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantMessageId
+                ? {
+                    ...message,
+                    ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
+                    ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),
+                  }
                 : message
             )
           );

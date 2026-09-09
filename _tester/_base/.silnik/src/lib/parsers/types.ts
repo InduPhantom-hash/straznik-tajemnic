@@ -1,5 +1,5 @@
-import type { EquipmentCategory, HazardEventData, HazardType } from '../types';
-export type { HazardEventData, HazardType };
+import type { EquipmentCategory, HazardEventData, HazardType, SpellCastEventData } from '../types';
+export type { HazardEventData, HazardType, SpellCastEventData };
 
 export type EquipmentEventAction = 'use' | 'remove' | 'add';
 
@@ -161,6 +161,7 @@ export interface ParsedResponse {
   skillTests: SkillTestData[];
   skillResults: SkillTestResult[];
   hazardEvents?: HazardEventData[];
+  spellCastEvents?: SpellCastEventData[];
   meleeAttacks: MeleeAttackReference[];
   equipmentEvents: EquipmentEvent[];
   timeUpdate: TimeUpdate | null;

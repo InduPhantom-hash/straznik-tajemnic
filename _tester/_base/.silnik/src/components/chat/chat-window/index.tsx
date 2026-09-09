@@ -142,6 +142,17 @@ export const ChatWindow: FC<ChatWindowProps> = ({
     }
     return ids;
   }, [messages]);
+  const resolvedSpellIds = useMemo(() => {
+    const ids = new Set<string>();
+    const pattern = /\[WYNIK_CZARU:\s*id=([^|\]]+)/gi;
+    for (const message of messages) {
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(message.content)) !== null)
+        ids.add(match[1].trim());
+      pattern.lastIndex = 0;
+    }
+    return ids;
+  }, [messages]);
 
   const diceTest: RollTestData | null = useMemo(
     () =>
@@ -326,6 +337,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   onCharacterUpdate={onCharacterUpdate}
                   onSendHazardResult={handleSendMessage}
                   resolvedHazardIds={resolvedHazardIds}
+                  onSendSpellResult={handleSendMessage}
+                  resolvedSpellIds={resolvedSpellIds}
                   isDuet={isDuet}
                   characters={characters}
                   onContinueNarration={onContinueNarration}

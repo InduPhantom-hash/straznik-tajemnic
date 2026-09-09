@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar';
 import { NarrativeFormatter } from '../../NarrativeFormatter';
 import { SkillTestCard } from './skill-test-card';
 import { HazardCard } from './hazard-card';
+import { SpellCard } from './spell-card';
 import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
@@ -55,6 +56,8 @@ interface MessageCardProps {
   onCharacterUpdate?: (char: Character) => void;
   onSendHazardResult?: (message: string) => void;
   resolvedHazardIds?: ReadonlySet<string>;
+  onSendSpellResult?: (message: string) => void;
+  resolvedSpellIds?: ReadonlySet<string>;
   /** Kontynuacja uciętej narracji (MAX_TOKENS) - deklaruje caller; pole
    *  opcjonalne dla zgodności z testami i chat-window types. */
   onContinueNarration?: (messageId?: string) => void;
@@ -82,6 +85,8 @@ export function MessageCard({
   onCharacterUpdate,
   onSendHazardResult,
   resolvedHazardIds,
+  onSendSpellResult,
+  resolvedSpellIds,
   onContinueNarration,
   isDuet = false,
   characters = [],
@@ -332,6 +337,23 @@ export function MessageCard({
                   />
                   );
                 })}
+              </div>
+            )}
+
+            {/* Rzucanie czarów i rytuałów CoC 7e RAW (Issue #252) */}
+            {message.spellCastEvents && message.spellCastEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.spellCastEvents.map((spellEvent) => (
+                  <SpellCard
+                    key={spellEvent.id}
+                    spellEvent={spellEvent}
+                    activeCharacter={activeCharacter}
+                    characters={characters}
+                    completed={resolvedSpellIds?.has(spellEvent.id)}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onSendChat={onSendSpellResult}
+                  />
+                ))}
               </div>
             )}
 
