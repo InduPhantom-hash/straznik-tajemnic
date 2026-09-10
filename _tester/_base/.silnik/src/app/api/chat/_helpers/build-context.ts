@@ -35,6 +35,7 @@ import {
   type InvestigatorSubjectiveState,
   type EpistemicTruthAnchor,
 } from '@/lib/concordia/make-observation';
+import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -437,6 +438,8 @@ export interface BuildAdditionalContextOpts {
   };
   /** Twarda lista NPC fizycznie obecnych w scenie (Arcanum Benchmark 2026: Scene Presence) */
   presentNpcs?: Array<{ id?: string; name: string; location?: string }>;
+  /** Visual Belief Graph (DeepMind Proactive T2I) */
+  visualBeliefGraph?: VisualBeliefGraph;
 }
 
 export function buildAdditionalContext(
@@ -495,6 +498,14 @@ export function buildAdditionalContext(
   // Profil wizualny Badacza (Visual DNA) - by generowane ilustracje miały spójny wygląd
   if (playerVisualProfileSection) {
     additionalContext.push(playerVisualProfileSection);
+  }
+
+  // Visual Belief Graph (DeepMind Proactive T2I) - kotwice postaci i stan lokacji
+  if (opts.visualBeliefGraph) {
+    const beliefDirective = opts.visualBeliefGraph.toPromptDirective(opts.locale);
+    if (beliefDirective) {
+      additionalContext.push(`\n${beliefDirective}`);
+    }
   }
 
   // Uzbrojenie postaci gracza - by AI prowadziło walkę narracyjnie znając broń.

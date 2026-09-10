@@ -46,6 +46,8 @@ import {
   MAX_IMAGES_PER_SCENE,
 } from '@/lib/constants/chat';
 import { resolveImageLevel } from '@/lib/prompts/image-instructions';
+import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
+import { directSceneIllustrations } from '@/lib/images/proactive-scene-director';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
 import { applyEquipmentEventsToParty } from '@/lib/character/apply-equipment-events';
@@ -563,6 +565,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   // `lastTrackedSceneRef` pamięta lokację, dla której liczymy, by wykryć zmianę sceny.
   const sceneImageCountRef = useRef(0);
   const lastTrackedSceneRef = useRef('');
+  // Visual Belief Graph (DeepMind Proactive T2I)
+  const visualBeliefGraphRef = useRef<VisualBeliefGraph>(new VisualBeliefGraph());
 
   useEffect(() => {
     if (typeof window !== 'undefined' && messages.length > 0) {
@@ -637,6 +641,19 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setCurrentLocation(loc);
     }
   }, [adventureContext?.location]);
+
+  // Visual Belief Graph: synchronizuj profil Badacza i epokę
+  useEffect(() => {
+    const era =
+      adventureContext?.yearRange ||
+      adventureContext?.eraLabel ||
+      adventureContext?.era ||
+      '1920s';
+    visualBeliefGraphRef.current.setEffectiveYear(era);
+    if (activeCharacter) {
+      visualBeliefGraphRef.current.registerPlayer(activeCharacter, era);
+    }
+  }, [activeCharacter, adventureContext?.era, adventureContext?.eraLabel, adventureContext?.yearRange]);
 
   const generateImages = useCallback(
     async (illustrations: ImageToGenerate[], messageId: string) => {
@@ -770,10 +787,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const portraitUpdates = illustrations
           .map((img, idx) => ({ img, url: generatedUrls[idx] }))
           .filter(
-            (update) =>
+            (update): update is { img: ImageToGenerate; url: string } =>
               update.img.type === 'portrait' &&
-              update.img.portraitName &&
-              update.url
+              Boolean(update.img.portraitName) &&
+              Boolean(update.url)
           );
 
         if (portraitUpdates.length > 0) {
@@ -1366,34 +1383,33 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 if (!hasHighPriority) {
                   sceneImageCountRef.current += 1;
                 }
-                // Sortuj tak, by obrazy przełomowe (potwory/wizje) oraz portrety
-                // miały pierwszeństwo przed zwykłym ujęciem tła sceny
-                const prioritized = [...illustrationsList].sort((a, b) => {
-                  const aScore =
-                    (a.priority === 'high' ||
-                    a.isMythos ||
-                    a.type === 'monster' ||
-                    a.type === 'vision'
-                      ? 10
-                      : 0) +
-                    (a.type === 'portrait' || a.type === 'item' ? 5 : 0);
-                  const bScore =
-                    (b.priority === 'high' ||
-                    b.isMythos ||
-                    b.type === 'monster' ||
-                    b.type === 'vision'
-                      ? 10
-                      : 0) +
-                    (b.type === 'portrait' || b.type === 'item' ? 5 : 0);
-                  return bScore - aScore;
+                // DeepMind Proactive T2I Scene Director:
+                // Zamiast naiwnego slice(0, 1), proaktywny reżyser ocenia wagę dramaturgiczną,
+                // dobiera 1-3 zbalansowane kadry (lokacja / NPC / poszlaka / Mity)
+                // i wzbogaca je o Visual Belief Graph.
+                const era =
+                  adventureContext?.yearRange ||
+                  adventureContext?.eraLabel ||
+                  adventureContext?.era ||
+                  '1920s';
+                const maxAllowed = options.aiSettings?.replicateSettings?.maxImagesPerMessage ?? 1;
+                const freq = options.aiSettings?.replicateSettings?.imageFrequency || 'normal';
+
+                const directorResult = directSceneIllustrations(illustrationsList as unknown as import('@/lib/parsers/types').ImageRequest[], {
+                  maxImagesPerMessage: maxAllowed,
+                  imageFrequency: freq,
+                  effectiveEraOrYear: era,
+                  beliefGraph: visualBeliefGraphRef.current,
                 });
 
-                // 2026-06-28 (portable): cap na 1 obraz sceny / turę. generateImages
-                // generuje WSZYSTKIE przekazane ilustracje sekwencyjnie (5-60 s każda),
-                // a w wersji portable seria obrazów zapychała limit Gemini i głodziła
-                // lektora (audio rusza >1 min po tekście). Jedna ilustracja na turę
-                // zwalnia limit dla TTS; cooldown międzyturowy (IND-259) zostaje.
-                generateImages(prioritized.slice(0, 1), assistantMessageId);
+                if (directorResult.shots.length > 0) {
+                  const curatedImages: ImageToGenerate[] = directorResult.shots.map((s) => ({
+                    ...s.request,
+                    prompt: s.enrichedPrompt,
+                    aspectRatio: s.aspectRatio,
+                  }));
+                  generateImages(curatedImages, assistantMessageId);
+                }
               }
             }
 

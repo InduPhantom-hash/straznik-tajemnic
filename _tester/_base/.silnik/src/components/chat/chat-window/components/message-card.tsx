@@ -226,7 +226,17 @@ export function MessageCard({
                   >
                     <SafeImage
                       src={imgUrl}
-                      alt={isPortrait ? t('portraitAlt', { value: idx + 1 }) : t('sceneAlt', { value: idx + 1 })}
+                      alt={
+                        isPortrait
+                          ? t('portraitAlt', { value: idx + 1 })
+                          : isItem
+                            ? t('itemAlt', { value: idx + 1 })
+                            : imgType === 'monster'
+                              ? t('monsterAlt', { value: idx + 1 })
+                              : imgType === 'vision'
+                                ? t('visionAlt', { value: idx + 1 })
+                                : t('sceneAlt', { value: idx + 1 })
+                      }
                       className={`w-full cursor-pointer hover:opacity-90 transition-opacity ${
                         isPortrait
                           ? 'aspect-[3/4] object-cover object-top'
