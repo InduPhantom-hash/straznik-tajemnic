@@ -3,7 +3,7 @@
 /**
  * @file tome-card.tsx
  * Karta badania i lektury tomisk Mitów w oknie czatu narracji (CoC 7e RAW & Poradniki MG).
- * Estetyka: Dark Art Déco.
+ * Estetyka: Dark Art Déco Fiction First.
  */
 
 import React, { useState } from 'react';
@@ -20,6 +20,11 @@ import {
   CheckCircle2,
   Bookmark,
   ShieldAlert,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Dices,
+  XCircle,
 } from 'lucide-react';
 import {
   getTomeDefinition,
@@ -33,6 +38,7 @@ import {
 } from '@/lib/magic';
 import type { Character, TomeStudyEventData, SkillData } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
+import type { RollOutcome } from '@/lib/dice-utils';
 
 export interface TomeCardProps {
   tomeEvent: TomeStudyEventData;
@@ -56,6 +62,8 @@ export function TomeCard({
 
   const [isResolved, setIsResolved] = useState<boolean>(completed);
   const [isBusy, setIsBusy] = useState<boolean>(false);
+  const [showLoreGuide, setShowLoreGuide] = useState<boolean>(false);
+
   const [initialRes, setInitialRes] = useState<InitialReadingResolution | null>(null);
   const [fullStudyRes, setFullStudyRes] = useState<FullStudyResolution | null>(null);
   const [refRes, setRefRes] = useState<ReferenceCheckResolution | null>(null);
@@ -115,6 +123,7 @@ export function TomeCard({
   const initialDone = Boolean(tomeStudy?.initialReadingDone);
   const studyCount = tomeStudy?.studyCount ?? 0;
   const fullStudyDone = Boolean(tomeStudy?.fullStudyDone);
+  const readerSan = reader?.san ?? 50;
 
   // Pobierz umiejętność językową badacza
   const findLanguageSkill = (lang: string): number => {
@@ -129,7 +138,6 @@ export function TomeCard({
         return getSkillValue(sVal);
       }
     }
-    // Domyślny fallback: własny język 50% lub obcy 10%
     return l.includes('angielski') || l.includes('polski') ? 60 : 10;
   };
 
@@ -146,6 +154,24 @@ export function TomeCard({
     return 0;
   };
   const currentMythos = getMythosSkill();
+
+  const getOutcomeBadge = (outcome?: RollOutcome) => {
+    switch (outcome) {
+      case 'critical':
+        return <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40">{t('outcomeCritical')}</Badge>;
+      case 'extreme':
+        return <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40">{t('outcomeExtreme')}</Badge>;
+      case 'hard':
+        return <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/30">{t('outcomeHard')}</Badge>;
+      case 'regular':
+        return <Badge className="bg-sky-500/20 text-sky-300 border-sky-500/40">{t('outcomeRegular')}</Badge>;
+      case 'fail':
+        return <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/40">{t('outcomeFail')}</Badge>;
+      case 'fumble':
+      default:
+        return <Badge className="bg-destructive/30 text-destructive-foreground border-destructive/50">{t('outcomeFumble')}</Badge>;
+    }
+  };
 
   // 1. Wstępny przegląd (Initial Reading / Skimming)
   const handleInitialReading = () => {
@@ -170,7 +196,6 @@ export function TomeCard({
         const newSan = Math.max(0, (reader.san || 0) - res.sanLoss);
         const updatedSkills = { ...reader.skills };
 
-        // Dodaj CMI do Mitów Cthulhu
         if (res.cmiGained > 0) {
           const mythosKey = Object.keys(updatedSkills).find((k) => /mit|mythos|cthulhu/i.test(k)) || 'Mity Cthulhu';
           const currentVal = getSkillValue(updatedSkills[mythosKey] ?? 0);
@@ -188,7 +213,6 @@ export function TomeCard({
         const currentTomes = reader.magic?.tomeStudies ?? {};
         const currentKnownSpells = reader.magic?.knownSpells ?? {};
 
-        // Jeśli sukces: dodaj odkryte zaklęcia ze statusem do nauki
         const updatedSpells = { ...currentKnownSpells };
         if (res.success && res.spellsDiscovered.length > 0) {
           for (const spId of res.spellsDiscovered) {
@@ -236,7 +260,7 @@ export function TomeCard({
       }
 
       if (onSendChat) {
-        const resultTag = `[WYNIK_TOMU: id=${tomeEvent.id} | tome=${effectiveTome.id} | akcja=skimming | badacz=${reader.name} | sukces=${res.success} | godziny=${res.hoursSpent} | san=${res.sanLoss} | deferred_san=${res.deferredSanLoss} | cmi=${res.cmiGained}]`;
+        const resultTag = `[WYNIK_TOMU: id=${tomeEvent.id} | tome=${effectiveTome.id} | akcja=skimming | badacz=${reader.name} | sukces=${res.success} | godziny=${res.hoursSpent} | san=${res.sanLoss} | deferred_san=${res.deferredSanLoss} | cmi=${res.cmiGained} | rzut=${res.languageRoll.roll}/${res.languageRoll.threshold}]`;
         const narrativeMessage = locale === 'en' ? res.message.en : res.message.pl;
         onSendChat(`${resultTag}\n\n${narrativeMessage}`);
       }
@@ -341,7 +365,7 @@ export function TomeCard({
       }
 
       if (onSendChat) {
-        const resultTag = `[WYNIK_TOMU: id=${tomeEvent.id} | tome=${effectiveTome.id} | akcja=study | badacz=${reader.name} | sukces=${res.sanRoll.success} | tygodnie=${res.weeksRequired} | san=${res.sanLoss} | cmf=${res.cmfGained}]`;
+        const resultTag = `[WYNIK_TOMU: id=${tomeEvent.id} | tome=${effectiveTome.id} | akcja=study | badacz=${reader.name} | sukces=${res.sanRoll.success} | tygodnie=${res.weeksRequired} | san=${res.sanLoss} | cmf=${res.cmfGained} | rzut=${res.sanRoll.roll}/${res.sanRoll.sanTarget}]`;
         const narrativeMessage = locale === 'en' ? res.message.en : res.message.pl;
         onSendChat(`${resultTag}\n\n${narrativeMessage}`);
       }
@@ -350,7 +374,7 @@ export function TomeCard({
     }
   };
 
-  // 4. Przełamanie sceptycyzmu (Reguła Wiary - konwersja sceptyka w wierzącego)
+  // 4. Przełamanie sceptycyzmu
   const handleConvertBelief = () => {
     if (!reader || isBusy) return;
     setIsBusy(true);
@@ -396,214 +420,309 @@ export function TomeCard({
   const tomeTitle = locale === 'en' ? effectiveTome.titleEn : effectiveTome.titlePl;
 
   return (
-    <Card className="my-2 border border-amber-900/50 bg-card/85 shadow-deco backdrop-blur-sm">
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <div className="p-1.5 rounded-sm bg-card border border-amber-600/40 mt-0.5">
-              <BookOpen className="w-5 h-5 text-amber-500 animate-pulse" />
+    <Card className="my-3 overflow-hidden border border-amber-900/60 bg-card/95 text-foreground shadow-deco backdrop-blur-sm">
+      {/* Nagłówek klimatyczny Dark Art Déco */}
+      <div className="border-b border-amber-900/40 bg-gradient-to-r from-amber-950/30 via-background/50 to-amber-950/20 px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1 rounded-sm bg-amber-950/60 border border-amber-500/40">
+              <BookOpen className="h-4 w-4 text-amber-500 animate-pulse" />
             </div>
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-serif text-sm font-semibold tracking-wide text-foreground">
-                  {tomeTitle}
-                </span>
-                <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-400 font-mono">
-                  {effectiveTome.language} ({effectiveTome.languageDifficulty})
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-serif text-sm font-semibold tracking-wide text-foreground">
+                {tomeTitle}
+              </span>
+              <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-400 font-mono">
+                {effectiveTome.language} ({effectiveTome.languageDifficulty})
+              </Badge>
+              {effectiveTome.source && (
+                <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground hidden sm:inline-flex">
+                  <Bookmark className="w-3 h-3 mr-1 inline" />
+                  {effectiveTome.source.title}, s. {effectiveTome.source.page}
                 </Badge>
-                {effectiveTome.source && (
-                  <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground">
-                    <Bookmark className="w-3 h-3 mr-1 inline" />
-                    {effectiveTome.source.title}, s. {effectiveTome.source.page}
-                  </Badge>
-                )}
-              </div>
-
-              {effectiveTome.author && (
-                <p className="text-xs text-muted-foreground italic">
-                  {t('authorLabel')} {effectiveTome.author}
-                </p>
-              )}
-
-              {/* Informacje o parametrach RAW */}
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-mono">
-                <span className="text-amber-300">
-                  ⏳ {t('initialReadingLabel')} {effectiveTome.initialReading.hours}h (+{effectiveTome.initialReading.cmi} CMI)
-                </span>
-                <span className="text-amber-400">
-                  📖 {t('fullStudyLabel')} {effectiveTome.fullStudy.weeks} tyg. (+{effectiveTome.fullStudy.cmf} CMF, MR: {effectiveTome.fullStudy.mr})
-                </span>
-                <span className="text-destructive">
-                  🧠 {t('costSan', { san: effectiveTome.initialReading.sanCost })}
-                </span>
-                {effectiveTome.spells.length > 0 && (
-                  <span className="text-purple-300">
-                    ✨ {t('spellsContainedLabel', { count: effectiveTome.spells.length })}
-                  </span>
-                )}
-              </div>
-
-              {/* Ostrzeżenie / status Wiary */}
-              {isSkeptic && (
-                <div className="flex items-center gap-1.5 text-xs text-amber-400/90 pt-1 font-mono">
-                  <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>{t('skepticTomeNotice')}</span>
-                </div>
-              )}
-
-              {deferredSan > 0 && (
-                <div className="flex items-center justify-between gap-2 p-1.5 rounded bg-amber-950/30 border border-amber-800/40 text-xs text-amber-300">
-                  <div className="flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                    <span>{t('deferredSanDebtNotice', { san: deferredSan })}</span>
-                  </div>
-                  {isSkeptic && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleConvertBelief}
-                      disabled={isBusy}
-                      className="text-[11px] h-6 border-destructive/50 text-destructive hover:bg-destructive/10"
-                    >
-                      {t('btnConvertBelief')}
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {/* Statusy ukończenia */}
-              {initialDone && (
-                <div className="flex items-center gap-1 text-xs text-emerald-400 font-mono pt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{t('initialReadingDoneNotice', { cmi: tomeStudy?.cmiAwarded ?? effectiveTome.initialReading.cmi })}</span>
-                </div>
-              )}
-              {fullStudyDone && (
-                <div className="flex items-center gap-1 text-xs text-emerald-400 font-mono pt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{t('fullStudyDoneNotice', { cmf: tomeStudy?.cmfAwarded ?? effectiveTome.fullStudy.cmf })}</span>
-                </div>
               )}
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowLoreGuide(!showLoreGuide)}
+              className="flex items-center gap-1 text-[11px] font-mono text-amber-300 hover:text-amber-100 transition-colors p-1 rounded hover:bg-amber-900/30"
+              title={showLoreGuide ? t('hideLoreGuide') : t('showLoreGuide')}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('toggleTomeGuide')}</span>
+              {showLoreGuide ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            {isResolved && (
+              <Badge className="border-emerald-500/40 bg-emerald-500/20 font-mono text-xs text-emerald-300">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                {t('btnTomeResolved')}
+              </Badge>
+            )}
           </div>
         </div>
 
-        {/* Wyniki akcji (jeśli właśnie rozstrzygnięte) */}
-        {initialRes && (
-          <div className="mt-2.5 p-2 rounded bg-card/60 border border-border/40 text-xs space-y-1">
-            <div className="flex items-center gap-1.5">
-              {initialRes.success ? (
-                <Badge className="bg-emerald-800 text-emerald-100">{t('rollSuccess')}</Badge>
-              ) : (
-                <Badge variant="destructive">{t('rollFailure')}</Badge>
-              )}
-              <span className="font-mono text-muted-foreground">
-                Rzut na język: {initialRes.languageRoll.roll}/{initialRes.languageRoll.threshold}
-              </span>
-            </div>
-            <p className="text-muted-foreground leading-relaxed">
-              {locale === 'en' ? initialRes.message.en : initialRes.message.pl}
+        {effectiveTome.author && (
+          <p className="mt-1 text-xs text-muted-foreground italic font-serif">
+            {t('authorLabel')} {effectiveTome.author}
+          </p>
+        )}
+
+        {/* Zwijany mini-przewodnik zasad badania tomów CoC 7e RAW */}
+        {showLoreGuide && (
+          <div className="mt-3 p-3 rounded border border-amber-500/30 bg-amber-950/30 space-y-1.5 text-xs text-amber-200">
+            <p className="font-display font-semibold text-amber-300 flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" />
+              {t('tomeLoreTitle')}
             </p>
+            <ul className="space-y-1 text-[11px] list-disc list-inside text-amber-200/90">
+              <li>{t('tomeLoreSkimming')}</li>
+              <li>{t('tomeLoreReference')}</li>
+              <li>{t('tomeLoreFullStudy')}</li>
+            </ul>
+            <div className="pt-1.5 border-t border-amber-800/40 space-y-0.5 text-[10px] font-mono text-amber-300/80">
+              <p>• {t('tomeGlossaryCmi')}</p>
+              <p>• {t('tomeGlossaryCmf')}</p>
+              <p>• {t('tomeGlossaryMr')}</p>
+            </div>
           </div>
         )}
 
-        {refRes && (
-          <div className="mt-2.5 p-2 rounded bg-card/60 border border-border/40 text-xs space-y-1">
-            <div className="flex items-center gap-1.5">
-              {refRes.success ? (
-                <Badge className="bg-emerald-800 text-emerald-100">{t('rollSuccess')}</Badge>
-              ) : (
-                <Badge variant="destructive">{t('rollFailure')}</Badge>
-              )}
-              <span className="font-mono text-muted-foreground">
-                Rzut vs MR: {refRes.roll}/{refRes.mythosRating} ({refRes.hoursSpent}h)
-              </span>
-            </div>
-            <p className="text-muted-foreground leading-relaxed">
-              {locale === 'en' ? refRes.message.en : refRes.message.pl}
-            </p>
+        {/* Ostrzeżenie / status Wiary dla sceptyka */}
+        {isSkeptic && (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-400 font-mono">
+            <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{t('skepticTomeNotice')}</span>
           </div>
         )}
 
-        {fullStudyRes && (
-          <div className="mt-2.5 p-2 rounded bg-card/60 border border-border/40 text-xs space-y-1">
+        {deferredSan > 0 && (
+          <div className="mt-2 flex items-center justify-between gap-2 p-2 rounded bg-amber-950/30 border border-amber-800/40 text-xs text-amber-300">
             <div className="flex items-center gap-1.5">
-              <Badge className="bg-amber-800 text-amber-100">
-                {fullStudyRes.sanRoll.success ? t('rollSuccess') : t('rollFailure')}
-              </Badge>
-              <span className="font-mono text-muted-foreground">
-                Rzut obronny SAN: {fullStudyRes.sanRoll.roll}/{fullStudyRes.sanRoll.sanTarget}
-              </span>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+              <span>{t('deferredSanDebtNotice', { san: deferredSan })}</span>
             </div>
-            <p className="text-muted-foreground leading-relaxed">
-              {locale === 'en' ? fullStudyRes.message.en : fullStudyRes.message.pl}
-            </p>
-          </div>
-        )}
-
-        {conversionRes && (
-          <div className="mt-2.5 p-2 rounded bg-destructive/10 border border-destructive/40 text-xs space-y-1">
-            <div className="flex items-center gap-1.5 text-destructive font-semibold">
-              <AlertTriangle className="w-4 h-4" />
-              <span>{t('beliefConvertedNotice', { san: conversionRes.sanLossApplied })}</span>
-            </div>
-            {conversionRes.intCheckRequired && (
-              <p className="text-destructive font-mono text-[11px]">
-                {t('intCheckRequiredNotice')}
-              </p>
+            {isSkeptic && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleConvertBelief}
+                disabled={isBusy}
+                className="text-[11px] h-6 border-destructive/50 text-destructive hover:bg-destructive/10"
+              >
+                {t('btnConvertBelief')}
+              </Button>
             )}
           </div>
         )}
 
-        {/* Panel przycisków interakcji */}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {!isResolved ? (
-            <>
-              {/* Wstępny przegląd */}
-              {!initialDone && (
-                <Button
-                  size="sm"
-                  onClick={handleInitialReading}
-                  disabled={isBusy}
-                  className="bg-amber-700 hover:bg-amber-600 text-white font-serif text-xs gap-1.5 shadow-sm"
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  {t('btnInitialReading', { hours: effectiveTome.initialReading.hours })}
-                </Button>
-              )}
+        {/* Statusy wcześniejszego ukończenia */}
+        {(initialDone || fullStudyDone) && (
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-mono text-emerald-400">
+            {initialDone && (
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                {t('initialReadingDoneNotice', { cmi: tomeStudy?.cmiAwarded ?? effectiveTome.initialReading.cmi })}
+              </span>
+            )}
+            {fullStudyDone && (
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                {t('fullStudyDoneNotice', { cmf: tomeStudy?.cmfAwarded ?? effectiveTome.fullStudy.cmf })}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
-              {/* Sprawdzenie referencyjne w śledztwie */}
+      <CardContent className="space-y-4 p-4">
+        {/* Stan 1: Przed wykonaniem akcji – 3 czytelne kafle Fiction First */}
+        {!isResolved && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Panel 1: Pobieżny przegląd */}
+            <div className="flex flex-col justify-between rounded-lg border border-amber-600/30 bg-amber-950/15 p-3 space-y-2 hover:border-amber-500/60 transition-colors">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-display text-xs font-semibold text-amber-400 flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    {t('panelSkimmingTitle')}
+                  </span>
+                  <Badge variant="outline" className="text-[10px] font-mono border-amber-600/40 text-amber-300">
+                    {t('panelSkimmingTime', { hours: effectiveTome.initialReading.hours })}
+                  </Badge>
+                </div>
+                <p className="text-[11px] font-mono text-muted-foreground">
+                  {t('panelSkimmingTest', { lang: effectiveTome.language, val: languageSkill })}
+                </p>
+                <div className="space-y-0.5 text-[11px] font-mono pt-1">
+                  <p className="text-emerald-400">✓ {t('panelSkimmingGain', { cmi: effectiveTome.initialReading.cmi })}</p>
+                  <p className="text-destructive">🧠 -{effectiveTome.initialReading.sanCost} SAN</p>
+                </div>
+              </div>
+
+              <Button
+                size="sm"
+                onClick={handleInitialReading}
+                disabled={isBusy || initialDone}
+                className="mt-2 w-full bg-amber-700 hover:bg-amber-600 text-white font-serif text-xs shadow-sm"
+              >
+                {initialDone ? t('btnCompleted') : t('btnInitialReading', { hours: effectiveTome.initialReading.hours })}
+              </Button>
+            </div>
+
+            {/* Panel 2: Wyszukanie w księdze (Reference Check w śledztwie) */}
+            <div className="flex flex-col justify-between rounded-lg border border-sky-600/30 bg-sky-950/15 p-3 space-y-2 hover:border-sky-500/60 transition-colors">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-display text-xs font-semibold text-sky-400 flex items-center gap-1">
+                    <Search className="w-3.5 h-3.5" />
+                    {t('panelReferenceTitle')}
+                  </span>
+                  <Badge variant="outline" className="text-[10px] font-mono border-sky-600/40 text-sky-300">
+                    {t('panelReferenceTime')}
+                  </Badge>
+                </div>
+                <p className="text-[11px] font-mono text-muted-foreground">
+                  {t('panelReferenceTest', { mr: effectiveTome.fullStudy.mr })}
+                </p>
+                <div className="space-y-0.5 text-[11px] font-mono pt-1">
+                  <p className="text-sky-300">✓ {t('panelReferenceGain')}</p>
+                  <p className="text-emerald-400">🧠 0 SAN (bezpieczne)</p>
+                </div>
+              </div>
+
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleReferenceCheck}
                 disabled={isBusy}
-                className="border-amber-600/50 text-amber-300 hover:bg-amber-600/10 font-serif text-xs gap-1.5"
+                className="mt-2 w-full border-sky-600/50 text-sky-300 hover:bg-sky-600/20 font-serif text-xs"
               >
-                <Search className="w-3.5 h-3.5" />
                 {t('btnReferenceCheck')}
               </Button>
+            </div>
 
-              {/* Pełne studium */}
+            {/* Panel 3: Pełne studia (Full Study w downtime) */}
+            <div className="flex flex-col justify-between rounded-lg border border-purple-600/30 bg-purple-950/15 p-3 space-y-2 hover:border-purple-500/60 transition-colors">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-display text-xs font-semibold text-purple-400 flex items-center gap-1">
+                    <Brain className="w-3.5 h-3.5" />
+                    {t('panelFullStudyTitle')}
+                  </span>
+                  <Badge variant="outline" className="text-[10px] font-mono border-purple-600/40 text-purple-300">
+                    {t('panelFullStudyTime', { weeks: effectiveTome.fullStudy.weeks * Math.pow(2, studyCount) })}
+                  </Badge>
+                </div>
+                <p className="text-[11px] font-mono text-muted-foreground">
+                  {t('panelFullStudyTest', { san: readerSan })}
+                </p>
+                <div className="space-y-0.5 text-[11px] font-mono pt-1">
+                  <p className="text-purple-300">✓ {t('panelFullStudyGain', { cmf: effectiveTome.fullStudy.cmf, mr: effectiveTome.fullStudy.mr })}</p>
+                  <p className="text-destructive">🧠 -{effectiveTome.fullStudy.sanCost} SAN (save ½)</p>
+                </div>
+              </div>
+
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={handleFullStudy}
                 disabled={isBusy}
-                className="bg-card hover:bg-muted text-foreground font-serif text-xs gap-1.5 border border-border"
+                className="mt-2 w-full bg-card hover:bg-muted text-foreground font-serif text-xs border border-border"
               >
-                <Brain className="w-3.5 h-3.5 text-purple-400" />
                 {t('btnFullStudy', { weeks: effectiveTome.fullStudy.weeks * Math.pow(2, studyCount) })}
               </Button>
-            </>
-          ) : (
-            <Badge variant="outline" className="border-emerald-600/50 text-emerald-400 font-mono text-xs py-1">
-              <CheckCircle2 className="w-3.5 h-3.5 mr-1 inline" />
-              {t('btnTomeResolved')}
-            </Badge>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stan 2: Po wykonaniu akcji – Wynik rzutów kośćmi K100 */}
+        {isResolved && (
+          <div className="space-y-3 rounded-lg border border-amber-900/40 bg-background/60 p-4 text-xs font-mono">
+            {initialRes && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                  <span className="font-serif">
+                    {t('rollLanguageCheck', { lang: effectiveTome.language, threshold: initialRes.languageRoll.threshold })}
+                  </span>
+                  <span>{initialRes.hoursSpent}h</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Dices className="h-4 w-4 text-amber-400" />
+                  <span className="text-base font-bold text-foreground">
+                    K100: {initialRes.languageRoll.roll} / {initialRes.languageRoll.threshold}
+                  </span>
+                  {getOutcomeBadge(initialRes.languageRoll.outcome)}
+                </div>
+                <p className="text-muted-foreground font-serif text-xs leading-relaxed pt-1">
+                  {locale === 'en' ? initialRes.message.en : initialRes.message.pl}
+                </p>
+              </div>
+            )}
+
+            {refRes && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                  <span className="font-serif">
+                    {t('rollReferenceCheck', { mr: refRes.mythosRating })}
+                  </span>
+                  <span>{refRes.hoursSpent}h</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Dices className="h-4 w-4 text-sky-400" />
+                  <span className="text-base font-bold text-foreground">
+                    K100: {refRes.roll} / {refRes.mythosRating}
+                  </span>
+                  {getOutcomeBadge(refRes.outcome)}
+                </div>
+                <p className="text-muted-foreground font-serif text-xs leading-relaxed pt-1">
+                  {locale === 'en' ? refRes.message.en : refRes.message.pl}
+                </p>
+              </div>
+            )}
+
+            {fullStudyRes && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                  <span className="font-serif">
+                    {t('rollSanDefense', { target: fullStudyRes.sanRoll.sanTarget })}
+                  </span>
+                  <span>{fullStudyRes.weeksRequired} tyg.</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Dices className="h-4 w-4 text-purple-400" />
+                  <span className="text-base font-bold text-foreground">
+                    K100: {fullStudyRes.sanRoll.roll} / {fullStudyRes.sanRoll.sanTarget}
+                  </span>
+                  {getOutcomeBadge(fullStudyRes.sanRoll.outcome)}
+                </div>
+                <p className="text-muted-foreground font-serif text-xs leading-relaxed pt-1">
+                  {locale === 'en' ? fullStudyRes.message.en : fullStudyRes.message.pl}
+                </p>
+              </div>
+            )}
+
+            {conversionRes && (
+              <div className="p-3 rounded border border-destructive/50 bg-destructive/15 space-y-1 text-destructive">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>{t('beliefConvertedNotice', { san: conversionRes.sanLossApplied })}</span>
+                </div>
+                {conversionRes.intCheckRequired && (
+                  <p className="text-[11px] font-mono">
+                    {t('intCheckRequiredNotice')}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
+
+export default TomeCard;

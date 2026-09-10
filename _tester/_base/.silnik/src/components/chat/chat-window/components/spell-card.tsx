@@ -3,7 +3,7 @@
 /**
  * @file spell-card.tsx
  * Karta rzucania czarów i rytuałów w oknie czatu narracji (CoC 7e RAW & Poradniki MG).
- * Estetyka: Dark Art Déco.
+ * Estetyka: Dark Art Déco Fiction First.
  */
 
 import React, { useState } from 'react';
@@ -16,6 +16,15 @@ import {
   AlertTriangle,
   CheckCircle2,
   BookOpen,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Dices,
+  Skull,
+  HeartPulse,
+  ShieldAlert,
+  Swords,
+  XCircle,
 } from 'lucide-react';
 import {
   getSpellDefinition,
@@ -25,6 +34,7 @@ import {
   type CastingResolution,
 } from '@/lib/magic';
 import type { Character, SpellCastEventData } from '@/lib/types';
+import type { RollOutcome } from '@/lib/dice-utils';
 
 export interface SpellCardProps {
   spellEvent: SpellCastEventData;
@@ -51,6 +61,7 @@ export function SpellCard({
   const [allowHpConversion, setAllowHpConversion] = useState<boolean>(false);
   const [canPush, setCanPush] = useState<boolean>(false);
   const [isCasting, setIsCasting] = useState<boolean>(false);
+  const [showLoreGuide, setShowLoreGuide] = useState<boolean>(false);
 
   // Znajdź docelową postać (rzucającego)
   const normalizeName = (val: string) => val.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -105,7 +116,9 @@ export function SpellCard({
   const isSkeptic = caster?.magic?.belief === 'skeptic';
   const knownEntry = caster?.magic?.knownSpells?.[effectiveSpell.id];
   const isFirstCast = !knownEntry?.isFirstCastDone;
-  const hardPow = caster ? Math.floor(caster.pow / 2) : 25;
+  const casterPow = caster?.pow ?? 50;
+  const hardPow = Math.floor(casterPow / 2);
+  const extremePow = Math.floor(casterPow / 5);
 
   const mpCostNumeric =
     typeof effectiveSpell.mpCost === 'number'
@@ -113,8 +126,11 @@ export function SpellCard({
       : parseInt(String(effectiveSpell.mpCost), 10) || 5;
 
   const casterMp = caster?.mp ?? 0;
+  const casterSan = caster?.san ?? 50;
+  const casterHp = caster?.hp ?? 10;
   const hasEnoughMp = casterMp >= mpCostNumeric;
   const missingMp = Math.max(0, mpCostNumeric - casterMp);
+  const targetPow = spellEvent.targetPow ?? 50;
 
   // Tytuł diegetyczny i kanoniczny
   const diegeticTitle =
@@ -123,10 +139,28 @@ export function SpellCard({
     (locale === 'en' ? effectiveSpell.nameEn : effectiveSpell.namePl);
   const canonicalName = locale === 'en' ? effectiveSpell.nameEn : effectiveSpell.namePl;
 
+  const getOutcomeBadge = (outcome?: RollOutcome) => {
+    switch (outcome) {
+      case 'critical':
+        return <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40">{t('outcomeCritical')}</Badge>;
+      case 'extreme':
+        return <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40">{t('outcomeExtreme')}</Badge>;
+      case 'hard':
+        return <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/30">{t('outcomeHard')}</Badge>;
+      case 'regular':
+        return <Badge className="bg-sky-500/20 text-sky-300 border-sky-500/40">{t('outcomeRegular')}</Badge>;
+      case 'fail':
+        return <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/40">{t('outcomeFail')}</Badge>;
+      case 'fumble':
+      default:
+        return <Badge className="bg-destructive/30 text-destructive-foreground border-destructive/50">{t('outcomeFumble')}</Badge>;
+    }
+  };
+
   const handleCast = (isPush = false) => {
-    if (!caster || isResolved || isCasting) return;
+    if (!caster || (isResolved && !isPush) || isCasting) return;
     if (isSkeptic) return;
-    if (!hasEnoughMp && !allowHpConversion) return;
+    if (!isPush && !hasEnoughMp && !allowHpConversion) return;
 
     setIsCasting(true);
 
@@ -141,11 +175,12 @@ export function SpellCard({
           casterSan: caster.san,
           belief: caster.magic?.belief ?? 'believer',
           spellId: effectiveSpell.id,
+          isFirstCastOverride: isFirstCast,
           isPush,
           allowHpConversion,
           target:
-            spellEvent.targetName && spellEvent.targetPow
-              ? { name: spellEvent.targetName, pow: spellEvent.targetPow }
+            spellEvent.targetName
+              ? { name: spellEvent.targetName, pow: targetPow }
               : undefined,
         },
         effectiveSpell
@@ -200,9 +235,9 @@ export function SpellCard({
         });
       }
 
-      // Wysłanie raportu rzutu do czatu (Fiction First)
+      // Wysłanie raportu rzutu do czatu (Fiction First z czyszczeniem tagu przed graczem)
       if (onSendChat) {
-        const resultTag = `[WYNIK_CZARU: id=${spellEvent.id} | spell=${effectiveSpell.id} | nazwa=${canonicalName} | rzucajacy=${caster.name} | sukces=${res.success} | mp=${res.costPaid.mp} | hp=${res.costPaid.hpFromMp} | san=${res.costPaid.san} | pow=${res.costPaid.powPermanent}${res.firstCastRoll ? ` | rzut=${res.firstCastRoll.roll}/${res.firstCastRoll.threshold}` : ''}${res.firstCastRoll?.pushedFailedCatastrophe ? ' | KATASTROFA' : ''}]`;
+        const resultTag = `[WYNIK_CZARU: id=${spellEvent.id} | spell=${effectiveSpell.id} | nazwa=${canonicalName} | rzucajacy=${caster.name} | sukces=${res.success} | mp=${res.costPaid.mp} | hp=${res.costPaid.hpFromMp} | san=${res.costPaid.san} | pow=${res.costPaid.powPermanent}${res.firstCastRoll ? ` | rzut=${res.firstCastRoll.roll}/${res.firstCastRoll.threshold}` : ''}${res.opposedRoll ? ` | starcie=${res.opposedRoll.casterRoll}vs${res.opposedRoll.targetRoll} | zwyciezca=${res.opposedRoll.winner}` : ''}${res.firstCastRoll?.pushedFailedCatastrophe ? ' | KATASTROFA' : ''}]`;
         const narrativeMessage = locale === 'en' ? res.message.en : res.message.pl;
         onSendChat(`${resultTag}\n\n${narrativeMessage}`);
       }
@@ -212,159 +247,410 @@ export function SpellCard({
   };
 
   return (
-    <Card className="my-2 border border-purple-900/50 bg-card/85 shadow-deco backdrop-blur-sm">
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <div className="p-1.5 rounded-sm bg-card border border-purple-500/40 mt-0.5">
-              <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
+    <Card className="my-3 overflow-hidden border border-purple-900/60 bg-card/95 text-foreground shadow-deco backdrop-blur-sm">
+      {/* Nagłówek klimatyczny Dark Art Déco */}
+      <div className="border-b border-purple-900/40 bg-gradient-to-r from-purple-950/30 via-background/50 to-purple-950/20 px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1 rounded-sm bg-purple-950/60 border border-purple-500/40">
+              <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
             </div>
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-serif text-sm font-semibold tracking-wide text-foreground">
-                  {diegeticTitle}
-                </span>
-                <Badge variant="outline" className="text-xs border-purple-500/40 text-purple-300 font-mono">
-                  {canonicalName}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-serif text-sm font-semibold tracking-wide text-foreground">
+                {diegeticTitle}
+              </span>
+              <Badge variant="outline" className="text-xs border-purple-500/40 text-purple-300 font-mono">
+                {canonicalName}
+              </Badge>
+              {effectiveSpell.source && (
+                <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground hidden sm:inline-flex">
+                  <BookOpen className="w-3 h-3 mr-1 inline" />
+                  {effectiveSpell.source.title}, s. {effectiveSpell.source.page}
                 </Badge>
-                {effectiveSpell.source && (
-                  <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground">
-                    <BookOpen className="w-3 h-3 mr-1 inline" />
-                    {effectiveSpell.source.title}, s. {effectiveSpell.source.page}
-                  </Badge>
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {effectiveSpell.description[locale]}
-              </p>
-
-              {/* Koszty i Czas */}
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-mono">
-                <span className="text-purple-300">
-                  🔮 {t('costMp', { mp: effectiveSpell.mpCost })}
-                </span>
-                <span className="text-destructive">
-                  🧠 {t('costSan', { san: effectiveSpell.sanCost })}
-                </span>
-                {effectiveSpell.powCost && (
-                  <span className="text-amber-400 font-bold">
-                    ⚡ {t('costPow', { pow: effectiveSpell.powCost })}
-                  </span>
-                )}
-                <span className="text-muted-foreground">
-                  ⏳ {effectiveSpell.castingTime.value[locale]}
-                </span>
-              </div>
-
-              {/* Informacja o pierwszym rzuceniu / opanowanym zaklęciu */}
-              <div className="pt-1">
-                {isFirstCast ? (
-                  <p className="text-[11px] text-amber-400 font-mono flex items-center gap-1">
-                    <AlertTriangle className="w-3.5 h-3.5 inline" />
-                    {t('firstCastNotice', { target: hardPow })}
-                  </p>
-                ) : (
-                  <p className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 inline" />
-                    {t('knownCastNotice')}
-                  </p>
-                )}
-              </div>
-
-              {/* Rzut sporny */}
-              {effectiveSpell.opposedRoll === 'pow' && spellEvent.targetName && (
-                <p className="text-[11px] text-cyan-400 font-mono">
-                  ⚔️ {t('opposedRollNotice', { target: spellEvent.targetName, pow: spellEvent.targetPow ?? 50 })}
-                </p>
-              )}
-
-              {/* Blokada Sceptyka */}
-              {isSkeptic && (
-                <div className="p-2 rounded bg-destructive/10 border border-destructive/40 text-destructive text-xs">
-                  {t('skepticBlocked')}
-                </div>
-              )}
-
-              {/* Konwersja PM -> HP */}
-              {!hasEnoughMp && !isSkeptic && (
-                <div className="p-2 rounded bg-amber-950/20 border border-amber-800/40 text-xs space-y-1">
-                  <p className="text-amber-300 font-medium">
-                    ⚠️ {t('insufficientMp', { current: casterMp, required: mpCostNumeric })}
-                  </p>
-                  <label className="flex items-center gap-2 text-foreground cursor-pointer pt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={allowHpConversion}
-                      onChange={(e) => setAllowHpConversion(e.target.checked)}
-                      className="rounded border-amber-500 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-[11px]">{t('hpConversionLabel', { cost: missingMp })}</span>
-                  </label>
-                  <p className="text-[10px] text-muted-foreground">
-                    {t('hpConversionWarning')}
-                  </p>
-                </div>
-              )}
-
-              {/* Komunikat po rozstrzygnięciu w sesji */}
-              {resolution && (
-                <div className="p-2 rounded bg-card/60 border border-border text-xs font-mono space-y-1 mt-1">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    {resolution.success ? (
-                      <span className="text-emerald-400">✓ {t('rollSuccess')}</span>
-                    ) : resolution.firstCastRoll?.pushedFailedCatastrophe ? (
-                      <span className="text-destructive font-black">☠ {t('rollCatastrophe')}</span>
-                    ) : (
-                      <span className="text-destructive">✕ {t('rollFailure')}</span>
-                    )}
-                    {resolution.firstCastRoll && (
-                      <span className="text-muted-foreground font-normal">
-                        ({resolution.firstCastRoll.roll} / {resolution.firstCastRoll.threshold})
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground font-sans">
-                    {locale === 'en' ? resolution.message.en : resolution.message.pl}
-                  </p>
-                </div>
               )}
             </div>
           </div>
 
-          {/* Kolumna akcji */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowLoreGuide(!showLoreGuide)}
+              className="flex items-center gap-1 text-[11px] font-mono text-purple-300 hover:text-purple-100 transition-colors p-1 rounded hover:bg-purple-900/30"
+              title={showLoreGuide ? t('hideLoreGuide') : t('showLoreGuide')}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('toggleLoreGuide')}</span>
+              {showLoreGuide ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
             {isResolved ? (
-              <Badge variant="outline" className="text-xs border-emerald-500/40 text-emerald-400">
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+              <Badge className="border-emerald-500/40 bg-emerald-500/20 font-mono text-xs text-emerald-300">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
                 {t('btnCompleted')}
               </Badge>
-            ) : canPush ? (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => handleCast(true)}
-                disabled={isCasting}
-                className="text-xs shadow-deco"
-              >
-                <AlertTriangle className="w-3.5 h-3.5 mr-1 animate-bounce" />
-                {t('btnPush')}
-              </Button>
             ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleCast(false)}
-                disabled={isSkeptic || (!hasEnoughMp && !allowHpConversion) || isCasting}
-                className="text-xs border-purple-500/50 hover:bg-purple-950/40 shadow-deco text-purple-200"
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1" />
-                {t('btnCast')}
-              </Button>
+              <Badge className="border-purple-500/40 bg-purple-500/20 font-mono text-xs text-purple-300">
+                ⏳ {effectiveSpell.castingTime.value[locale]}
+              </Badge>
             )}
           </div>
         </div>
+
+        {/* Lorowy opis zaklęcia w fikcji gry */}
+        <p className="mt-2 text-xs font-serif text-muted-foreground leading-relaxed">
+          {effectiveSpell.description[locale]}
+        </p>
+
+        {/* Zwijany mini-przewodnik zasad magii CoC 7e RAW */}
+        {showLoreGuide && (
+          <div className="mt-3 p-3 rounded border border-purple-500/30 bg-purple-950/30 space-y-1.5 text-xs text-purple-200">
+            <p className="font-display font-semibold text-purple-300 flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" />
+              {t('spellLoreTitle')}
+            </p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              {t('spellLorePhilosophy')}
+            </p>
+            <ul className="space-y-1 text-[11px] list-disc list-inside text-purple-200/90 pt-0.5">
+              <li>{t('spellLoreFirstCast')}</li>
+              <li>{t('spellLoreSubsequent')}</li>
+              <li>{t('spellLorePush')}</li>
+              <li>{t('spellLoreOpposed')}</li>
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <CardContent className="space-y-4 p-4">
+        {/* Stan 1: Przed rzuceniem – Bilans zasobów i stawki */}
+        {!isResolved && (
+          <div className="space-y-3">
+            {/* Siatka zasobów (Pre-flight cost preview) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
+              {/* PM */}
+              <div className={`p-2.5 rounded border ${hasEnoughMp ? 'border-purple-500/30 bg-purple-950/20' : 'border-amber-500/40 bg-amber-950/30'} space-y-1`}>
+                <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                  <span>{t('preflightMp')}</span>
+                  <span>🔮 -{mpCostNumeric}</span>
+                </div>
+                <div className="flex items-center justify-between font-bold">
+                  <span className={hasEnoughMp ? 'text-purple-300' : 'text-amber-400'}>
+                    {casterMp} PM
+                  </span>
+                  <span className="text-muted-foreground">➔</span>
+                  <span className={hasEnoughMp ? 'text-emerald-400' : 'text-destructive'}>
+                    {Math.max(0, casterMp - mpCostNumeric)} PM
+                  </span>
+                </div>
+              </div>
+
+              {/* SAN */}
+              <div className="p-2.5 rounded border border-border/50 bg-card/60 space-y-1">
+                <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                  <span>{t('preflightSan')}</span>
+                  <span className="text-destructive">🧠 -{effectiveSpell.sanCost}</span>
+                </div>
+                <div className="flex items-center justify-between font-bold">
+                  <span className="text-foreground">{casterSan} SAN</span>
+                  <span className="text-muted-foreground">➔</span>
+                  <span className="text-amber-300">
+                    {effectiveSpell.sanCost === '1k4' ? `${casterSan - 4}..${casterSan - 1}` : `${casterSan - 6}..${casterSan - 1}`}
+                  </span>
+                </div>
+              </div>
+
+              {/* MOC trwale / HP */}
+              {effectiveSpell.powCost ? (
+                <div className="p-2.5 rounded border border-amber-500/40 bg-amber-950/20 space-y-1 col-span-2 sm:col-span-1">
+                  <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                    <span>{t('preflightPow')}</span>
+                    <span className="text-amber-400 font-bold">⚡ -{effectiveSpell.powCost}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="text-foreground">{casterPow}</span>
+                    <span className="text-muted-foreground">➔</span>
+                    <span className="text-destructive">{casterPow - effectiveSpell.powCost} POW</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-2.5 rounded border border-border/50 bg-card/60 space-y-1 col-span-2 sm:col-span-1">
+                  <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                    <span>{t('preflightHp')}</span>
+                    <span>❤️ 0</span>
+                  </div>
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="text-foreground">{casterHp} HP</span>
+                    <span className="text-muted-foreground">➔</span>
+                    <span className="text-emerald-400">{casterHp} HP</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Krwawa ofiara (gdy brakuje PM) */}
+            {!hasEnoughMp && !isSkeptic && (
+              <div className="p-3 rounded border border-destructive/50 bg-destructive/15 space-y-2 text-xs">
+                <div className="flex items-center gap-2 text-destructive font-semibold">
+                  <HeartPulse className="w-4 h-4 animate-pulse flex-shrink-0" />
+                  <span>{t('bloodSacrificeBanner', { cost: missingMp })}</span>
+                </div>
+                <p className="text-[11px] text-destructive-foreground leading-relaxed">
+                  {t('bloodSacrificeWarning', {
+                    cost: missingMp,
+                    beforeHp: casterHp,
+                    afterHp: Math.max(0, casterHp - missingMp),
+                  })}
+                </p>
+                <label className="flex items-center gap-2 cursor-pointer pt-1 font-medium text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={allowHpConversion}
+                    onChange={(e) => setAllowHpConversion(e.target.checked)}
+                    className="rounded border-destructive text-destructive focus:ring-destructive"
+                  />
+                  <span className="text-[11px]">{t('bloodSacrificeConsent')}</span>
+                </label>
+              </div>
+            )}
+
+            {/* Blokada Sceptyka */}
+            {isSkeptic && (
+              <div className="p-3 rounded border border-destructive/50 bg-destructive/10 text-destructive text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>{t('skepticBlocked')}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Baner stawek i trudności rzutu */}
+            <div className="p-3 rounded border border-purple-900/40 bg-card/60 text-xs space-y-1.5">
+              {isFirstCast ? (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between font-mono">
+                    <span className="text-amber-400 font-semibold flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      {t('firstCastStakes', { threshold: hardPow })}
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">
+                      Zwykły ≤ {casterPow} | Trudny ≤ {hardPow} | Ekstr. ≤ {extremePow}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed font-serif">
+                    {t('spellLoreFirstCast')}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-emerald-400 font-mono">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{t('knownCastStakes')}</span>
+                </div>
+              )}
+
+              {/* Starcie woli z celem */}
+              {effectiveSpell.opposedRoll === 'pow' && spellEvent.targetName && (
+                <div className="pt-2 border-t border-border/40 space-y-1">
+                  <div className="flex items-center justify-between font-mono text-cyan-400 font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      <Swords className="w-3.5 h-3.5" />
+                      {t('opposedStakes', {
+                        casterPow,
+                        target: spellEvent.targetName,
+                        targetPow,
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground font-serif leading-relaxed">
+                    {t('opposedStakesDescription')}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Przycisk rzucenia zaklęcia */}
+            <div className="flex justify-end pt-1">
+              <Button
+                onClick={() => handleCast(false)}
+                disabled={isSkeptic || (!hasEnoughMp && !allowHpConversion) || isCasting}
+                className="bg-purple-700 hover:bg-purple-600 text-white font-serif text-xs gap-2 shadow-deco px-5 py-2.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                {t('btnCast')}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Stan 2: Po rzuceniu – Tabela kości, rzuty K100 i werdykt */}
+        {isResolved && resolution && (
+          <div className="space-y-3 rounded-lg border border-purple-900/40 bg-background/60 p-4 text-xs font-mono">
+            {/* Werdykt główny */}
+            <div className="flex items-center justify-between gap-2 pb-1 border-b border-border/40">
+              <div className="flex items-center gap-2 font-display text-sm font-semibold">
+                {resolution.success ? (
+                  <div className="flex items-center gap-1.5 text-emerald-400">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>
+                      {resolution.isFirstCast
+                        ? t('firstCastSuccessSummary')
+                        : resolution.opposedRoll
+                        ? t('opposedVictoryCaster')
+                        : t('automaticSuccessSummary')}
+                    </span>
+                  </div>
+                ) : resolution.firstCastRoll?.pushedFailedCatastrophe ? (
+                  <div className="flex items-center gap-1.5 text-destructive font-black">
+                    <Skull className="h-5 w-5 animate-pulse" />
+                    <span>{t('pushedCatastropheSummary')}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-destructive font-semibold">
+                    <XCircle className="h-5 w-5" />
+                    <span>
+                      {resolution.opposedRoll && resolution.opposedRoll.winner === 'target'
+                        ? t('opposedVictoryTarget')
+                        : t('firstCastFailureSummary')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tabela kości K100 (Dice Breakdown) */}
+            <div className="space-y-2.5">
+              {/* Rzut na pierwsze rzucenie (Hard POW) */}
+              {resolution.firstCastRoll && (
+                <div className="p-3 rounded border border-purple-900/40 bg-card/60 space-y-1.5">
+                  <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                    <span className="font-serif">{t('rollHardPow', { threshold: resolution.firstCastRoll.threshold })}</span>
+                    <span>POW: {casterPow}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <Dices className="h-4 w-4 text-purple-400" />
+                    <span className="text-base font-bold text-foreground">
+                      K100: {resolution.firstCastRoll.roll} / {resolution.firstCastRoll.threshold}
+                    </span>
+                    {getOutcomeBadge(resolution.firstCastRoll.outcome)}
+                  </div>
+                </div>
+              )}
+
+              {/* Rzut sporny (Opposed POW) */}
+              {resolution.opposedRoll && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded border border-cyan-900/40 bg-card/60">
+                  {/* Badacz */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                      <span className="font-serif">{resolution.opposedRoll.casterName || caster?.name}</span>
+                      <span>MOC {resolution.opposedRoll.casterPow ?? casterPow}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Dices className="h-4 w-4 text-cyan-400" />
+                      <span className="text-sm font-bold text-foreground">
+                        K100: {resolution.opposedRoll.casterRoll}
+                      </span>
+                      {getOutcomeBadge(resolution.opposedRoll.casterOutcome)}
+                    </div>
+                  </div>
+
+                  {/* Cel */}
+                  <div className="space-y-1 border-t border-border/40 pt-2 sm:border-t-0 sm:pt-0 sm:border-l sm:pl-3">
+                    <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                      <span className="font-serif">{resolution.opposedRoll.targetName || spellEvent.targetName}</span>
+                      <span>MOC {resolution.opposedRoll.targetPow ?? targetPow}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Dices className="h-4 w-4 text-destructive" />
+                      <span className="text-sm font-bold text-foreground">
+                        K100: {resolution.opposedRoll.targetRoll}
+                      </span>
+                      {getOutcomeBadge(resolution.opposedRoll.targetOutcome)}
+                    </div>
+                  </div>
+
+                  {/* Werdykt starcia woli */}
+                  <div className="col-span-1 sm:col-span-2 pt-2 border-t border-border/30 text-[11px] font-serif">
+                    {resolution.opposedRoll.winner === 'caster' ? (
+                      <p className="text-emerald-400 font-medium">
+                        ✓ {t('opposedVictoryCaster')}
+                        {resolution.opposedRoll.casterPowImprovementEligible && (
+                          <span className="block text-cyan-300 font-mono text-[10px] pt-0.5">
+                            ★ {t('casterPowImprovementNotice')}
+                          </span>
+                        )}
+                      </p>
+                    ) : resolution.opposedRoll.winner === 'target' ? (
+                      <p className="text-destructive font-medium">
+                        ✕ {t('opposedVictoryTarget')}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground font-medium">
+                        {resolution.opposedRoll.casterPow && resolution.opposedRoll.targetPow && resolution.opposedRoll.casterPow > resolution.opposedRoll.targetPow
+                          ? t('opposedTieCaster')
+                          : t('opposedTieTarget')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Kolejne rzucenie bez testu kości */}
+              {!resolution.firstCastRoll && !resolution.opposedRoll && (
+                <div className="p-2.5 rounded border border-border/40 bg-card/40 text-muted-foreground text-xs font-serif">
+                  {t('automaticSuccessSummary')}
+                </div>
+              )}
+            </div>
+
+            {/* Podsumowanie zużytych zasobów */}
+            <div className="pt-2 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-muted-foreground font-serif">{t('costsDeducted')}</span>
+              <div className="flex flex-wrap gap-2 font-mono">
+                <Badge variant="outline" className="text-purple-300 border-purple-500/40">
+                  -{resolution.costPaid.mp} PM
+                </Badge>
+                <Badge variant="outline" className="text-destructive border-destructive/40">
+                  -{resolution.costPaid.san} SAN
+                </Badge>
+                {resolution.costPaid.hpFromMp > 0 && (
+                  <Badge variant="outline" className="text-destructive font-bold border-destructive">
+                    🩸 -{resolution.costPaid.hpFromMp} HP
+                  </Badge>
+                )}
+                {resolution.costPaid.powPermanent > 0 && (
+                  <Badge variant="outline" className="text-amber-400 font-bold border-amber-500/50">
+                    ⚡ -{resolution.costPaid.powPermanent} POW
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Opcja forsowania przy porażce */}
+            {canPush && (
+              <div className="pt-2 flex items-center justify-between gap-3 bg-destructive/10 p-3 rounded border border-destructive/30">
+                <div className="space-y-0.5 font-serif">
+                  <p className="text-destructive font-semibold text-xs flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {t('pushedWarning')}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleCast(true)}
+                  disabled={isCasting}
+                  className="text-xs font-serif shadow-deco shrink-0"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 mr-1 animate-bounce" />
+                  {t('btnPush')}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
+
+export default SpellCard;

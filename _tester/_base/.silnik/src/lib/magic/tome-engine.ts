@@ -45,6 +45,7 @@ export class TomeEngine {
         languageRoll: {
           roll,
           threshold: request.investigatorLanguageSkill,
+          outcome,
           success: false,
         },
         hoursSpent: tome.initialReading.hours,
@@ -70,6 +71,7 @@ export class TomeEngine {
       languageRoll: {
         roll,
         threshold: request.investigatorLanguageSkill,
+        outcome,
         success: true,
       },
       hoursSpent: tome.initialReading.hours,
@@ -108,6 +110,7 @@ export class TomeEngine {
     // Rzut obronny na SAN przy pełnym studium (Księga Strażnika s. 227 & Seth Skorkowsky)
     const sanRoll = this.roller.rollD100();
     const sanSuccess = sanRoll <= request.investigatorSan;
+    const sanOutcome = evaluateSkillCheck(sanRoll, request.investigatorSan);
 
     const fullSanCost = this.roller.rollFormula(tome.fullStudy.sanCost);
     // Sukces rzutu na SAN zmniejsza stratę o połowę (min. 1) lub do minimum
@@ -138,6 +141,7 @@ export class TomeEngine {
       sanRoll: {
         roll: sanRoll,
         sanTarget: request.investigatorSan,
+        outcome: sanOutcome,
         success: sanSuccess,
       },
       sanLoss,
@@ -168,11 +172,13 @@ export class TomeEngine {
     const hoursSpent = this.roller.rollFormula('1k4');
     const roll = this.roller.rollD100();
     const success = roll <= tome.fullStudy.mr;
+    const outcome = evaluateSkillCheck(roll, tome.fullStudy.mr);
 
     return {
       hoursSpent,
       roll,
       mythosRating: tome.fullStudy.mr,
+      outcome,
       success,
       message: {
         pl: success

@@ -41,6 +41,11 @@ export function cleanMarkdown(text: string): string {
   // Pattern dla tagów: [ILUSTRACJA: opis], [OBRAZ: opis], [IMAGE: opis], etc.
   cleaned = cleaned.replace(/\[(?:ILUSTRACJA|OBRAZ|GRAFIKA|RYSUNEK|ZDJĘCIE|SCENA|PORTRET|WIZUALIZACJA|IMAGE|PICTURE|ILLUSTRATION|SHOW|VISUALIZE|SCENE|PORTRAIT):\s*[^\]]*\]/gi, '');
 
+  // Usuń tagi techniczne mechaniki CoC 7e (wyniki walki, magii, tomów, pościgów, zagrożeń)
+  cleaned = cleaned
+    .replace(/\[(?:WYNIK_CZARU|SPELL_RESULT|WYNIK_TOMU|TOME_RESULT|WYNIK_WALKI|COMBAT_RESULT|WYNIK_POŚCIGU|WYNIK_POSCIGU|CHASE_RESULT|WYNIK_ZAGROŻENIA|WYNIK_ZAGROZENIA|HAZARD_RESULT):[^\]]*\]/gi, '')
+    .replace(/\[(?:SPELL|CZAR|TOM|TOME|KSIĘGA|KSIEGA|ATAK_WRĘCZ|ATAK_WRECZ|MELEE_ATTACK|POŚCIG|POSCIG|CHASE|ZAGROŻENIE|ZAGROZENIE|HAZARD):[^\]]*\]/gi, '');
+
   // Usuń ukryte instrukcje MG w nawiasach klamrowych (ze specjalnymi prefiksami)
   cleaned = cleaned.replace(/\{(?:INSTRUKCJA|GM|META|UKRYTE|HIDDEN|SFX|DŹWIĘK|DZWIEK):[^}]*\}/gi, '');
 

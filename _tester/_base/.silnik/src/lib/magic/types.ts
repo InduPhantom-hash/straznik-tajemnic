@@ -5,6 +5,8 @@
  * - Poradniki MG (Seth Skorkowsky: Part 8 - The Mythos & Magic)
  */
 
+import type { RollOutcome } from '@/lib/dice-utils';
+
 export interface MagicSourceRef {
   sourceId: 'keeper-rulebook-7e' | 'grand-grimoire' | 'custom';
   title: string;
@@ -163,6 +165,7 @@ export interface CastingResolution {
   firstCastRoll?: {
     roll: number;
     threshold: number;
+    outcome?: RollOutcome;
     success: boolean;
     isPushed?: boolean;
     pushedFailedCatastrophe?: boolean;
@@ -170,8 +173,14 @@ export interface CastingResolution {
   opposedRoll?: {
     casterRoll: number;
     casterSuccessLevel: number; // 0=fail, 1=regular, 2=hard, 3=extreme, 4=critical
+    casterOutcome?: RollOutcome;
+    casterName?: string;
+    casterPow?: number;
     targetRoll: number;
     targetSuccessLevel: number;
+    targetOutcome?: RollOutcome;
+    targetName?: string;
+    targetPow?: number;
     winner: 'caster' | 'target' | 'tie';
     casterPowImprovementEligible: boolean;
   };
@@ -211,6 +220,7 @@ export interface InitialReadingResolution {
   languageRoll: {
     roll: number;
     threshold: number;
+    outcome?: RollOutcome;
     success: boolean;
   };
   hoursSpent: number;
@@ -237,6 +247,7 @@ export interface FullStudyResolution {
   sanRoll: {
     roll: number;
     sanTarget: number;
+    outcome?: RollOutcome;
     success: boolean;
   };
   sanLoss: number;
@@ -258,6 +269,7 @@ export interface ReferenceCheckResolution {
   hoursSpent: number;
   roll: number;
   mythosRating: number;
+  outcome?: RollOutcome;
   success: boolean;
   message: {
     pl: string;
