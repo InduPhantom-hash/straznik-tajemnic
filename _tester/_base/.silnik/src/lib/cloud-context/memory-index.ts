@@ -2,7 +2,7 @@
  * Cloud Context — Memory Index (RAG)
  *
  * Zapisuje/odczytuje indeks pamięci sesji (embeddingi) z GCS.
- * Sync do Pinecone przy load.
+ * Sync do lokalnego magazynu wektorów przy load.
  */
 
 import { googleCloudStorageService } from '../google-cloud-storage-service-fixed';
@@ -66,7 +66,7 @@ export async function loadMemoryIndex(
       embeddingService.setMemoryIndex(index);
 
       indexingService.indexMemoryIndex(index, sessionId).catch((err) => {
-        console.warn('⚠️ Pinecone sync on load failed:', err);
+        console.warn('⚠️ Vector store sync on load failed:', err);
       });
 
       console.log(`🧠 Memory index loaded: ${index.entries.length} entries`);

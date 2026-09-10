@@ -35,7 +35,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Feature #03: Chat UI visions/journal/dice (regresja smoke)', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock all /api/** — zero kosztów GCS/AI/Pinecone. Default 200 success.
+    // Mock all /api/** — zero kosztów GCS/AI/RAG. Default 200 success.
     await page.route('**/api/**', (route) =>
       route.fulfill({
         status: 200,

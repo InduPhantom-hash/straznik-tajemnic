@@ -2,7 +2,7 @@
  * buildPdfStrategy - pure function dla sekcji PDF STRATEGY route.ts (IND-183 micro 4/5).
  *
  * Decyduje czy używać native Gemini Files API (file_api) czy fallback do RAG
- * (Pinecone retrieval). Strategy `file_api` aktywna tylko gdy:
+ * (lokalny RAG retrieval). Strategy `file_api` aktywna tylko gdy:
  *   - PDF files uploaded (pdfMemory ma Gemini file URI)
  *   - AND (early session ≤10 msg LUB rule-lookup query)
  *
@@ -11,13 +11,14 @@
  * Pure function: brak side effects, brak async, brak external deps.
  */
 
-// Minimal shape z pdfMemory - tylko 4 pola (file URIs + mime types) używane.
-// Pełny PdfMemory z @/lib/types ma więcej pól (Pinecone status, parsed metadata).
+// Minimal shape z pdfMemory (file URIs + mime types + adventureId).
+// Pełny PdfMemory z @/hooks/usePdfMemory ma więcej pól (parsed metadata, local indexing status).
 export interface PdfMemoryAttachments {
   rulesGeminiFileUri?: string;
   rulesGeminiMimeType?: string;
   adventureGeminiFileUri?: string;
   adventureGeminiMimeType?: string;
+  adventureId?: string;
 }
 
 export interface BuildPdfStrategyOpts {

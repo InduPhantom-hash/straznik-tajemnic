@@ -31,4 +31,5 @@ export const LOCAL_RAG_NAMESPACES = {
   MYTHOS: 'mythos',
   CUSTOM: 'custom',
   session: (id: string) => `sessions/${id}`,
+  adventure: (id: string) => `adventures/${id}`,
 } as const;

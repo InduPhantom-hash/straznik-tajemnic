@@ -20,7 +20,7 @@
 // ============================================================================
 
 export interface BM25Document {
-  /** Unikalny ID dokumentu (= chunk ID z Pinecone) */
+  /** Unikalny ID dokumentu (= chunk ID z magazynu wektorów) */
   id: string;
   /** Pełny tekst dokumentu */
   text: string;

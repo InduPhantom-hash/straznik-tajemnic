@@ -63,12 +63,12 @@ describe("api-keys-service (sanityzacja i ochrona nagłówków HTTP)", () => {
     it("zapisuje oczyszczone klucze w localStorage", () => {
       saveApiKeys({
         GEMINI_API_KEY: "test-key\u2028",
-        PINECONE_API_KEY: "  pinecone-key  ",
+        REPLICATE_API_TOKEN: "  replicate-key  ",
       });
 
       const keys = getApiKeys();
       expect(keys.GEMINI_API_KEY).toBe("test-key");
-      expect(keys.PINECONE_API_KEY).toBe("pinecone-key");
+      expect(keys.REPLICATE_API_TOKEN).toBe("replicate-key");
     });
 
     it("automatycznie sanityzuje zabrudzone klucze istniejące już w localStorage", () => {

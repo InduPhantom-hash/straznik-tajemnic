@@ -161,6 +161,7 @@ export default function Home() {
 
   const pdf = usePdfMemory({
     setMessages: (fn) => chat.setMessages(fn),
+    adventureId: adventureContext?.id,
   });
 
   

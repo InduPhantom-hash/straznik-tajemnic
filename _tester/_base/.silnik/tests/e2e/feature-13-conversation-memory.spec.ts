@@ -4,12 +4,12 @@
  * Test regresyjny dla obszaru #13 audytowanego w Sesji 4 IND-42 (2026-05-07).
  * Pokrywa critical path: page renders → /api/chat parallel summary mock guard.
  *
- * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów Gemini/Pinecone.
- * Testy NIE wywołują prawdziwego /api/chat (tokeny + SSE + Pinecone upsert).
+ * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów Gemini/RAG.
+ * Testy NIE wywołują prawdziwego /api/chat (tokeny + SSE + local RAG upsert).
  *
  * Pominięte (świadomie minimal scope, smoke zbiorczy na końcu cleanup serii per
  * memory feedback strategy):
- *  - Real saveConversationTurn → Pinecone upsert (race + flakey w CI)
+ *  - Real saveConversationTurn → local RAG upsert (race + flakey w CI)
  *  - Real getOrGenerateSummary → Gemini Flash 2.0 call (tokeny + cost)
  *  - Cache hit/miss path (wymaga 80+ msgs context state)
  *  - Multi-user summaryCache regression (B5 finding — wymaga 2 instance test)
@@ -23,7 +23,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Feature #13: Conversation Memory & Summaries (regresja smoke)', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock all /api/** — zero kosztów Gemini + zero flakiness Pinecone.
+    // Mock all /api/** — zero kosztów Gemini + zero flakiness RAG.
     // Default 200 success, T2 nadpisuje dla error path.
     await page.route('**/api/**', (route) =>
       route.fulfill({

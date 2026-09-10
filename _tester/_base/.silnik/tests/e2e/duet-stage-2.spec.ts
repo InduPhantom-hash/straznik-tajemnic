@@ -142,7 +142,7 @@ test.describe('Etap 2 - pełny playtest Hot Seat', () => {
         body: JSON.stringify({ success: true }),
       })
     );
-    await page.route('**/api/pdf/index-to-pinecone?type=rules*', (route) =>
+    await page.route('**/api/pdf/ingest-local?type=rules*', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',

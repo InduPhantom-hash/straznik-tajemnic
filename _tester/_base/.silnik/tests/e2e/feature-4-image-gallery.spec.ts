@@ -32,7 +32,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Feature #04: Image gallery & lightbox & media cache (regresja smoke)', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock all /api/** — zero kosztów GCS/AI/Pinecone. Default 200 success.
+    // Mock all /api/** — zero kosztów GCS/AI/RAG. Default 200 success.
     await page.route('**/api/**', (route) =>
       route.fulfill({
         status: 200,
@@ -71,7 +71,6 @@ test.describe('Feature #04: Image gallery & lightbox & media cache (regresja smo
     // ~150 MB IndexedDB media cache pozostającego po Pełnym Resecie).
     //
     // POZOSTAŁE Pełny Reset stub pattern (status):
-    //  - /api/pinecone/clear (IND-115 — FIXED sesja 73)
     //  - /api/settings GCS (IND-54+IND-55 — DROPPED sesja 85, endpoint dead code)
     //  - /api/pdfs GCS (IND-66 — Backlog Medium)
     //  - characters localStorage (IND-122 — DONE sesja 75 scope reduction)
@@ -85,20 +84,19 @@ test.describe('Feature #04: Image gallery & lightbox & media cache (regresja smo
     await expect(page.locator('body')).toBeVisible();
 
     const cleanupActions = await page.evaluate(async () => {
-      // Snapshot FIXED state listy cleanup actions w useFullReset.ts po
-      // IND-135 (sesja 72) + IND-115 (sesja 73) fixes. Hardcoded reflection.
+      // Snapshot FIXED state listy cleanup actions w useFullReset.ts.
       return JSON.stringify([
         'persistentMediaCache.clearAll', // IND-135 FIXED sesja 72
         '/api/pdf-memory',
         '/api/session',
         '/api/npc/list',
-        '/api/pinecone/clear', // IND-115 FIXED sesja 73
+        '/api/user/usage',
       ]);
     });
 
-    // FIXED state: lista zawiera persistentMediaCache.clearAll + Pinecone clear
+    // FIXED state: lista zawiera persistentMediaCache.clearAll + API endpoints
     expect(cleanupActions).toContain('persistentMediaCache.clearAll');
-    expect(cleanupActions).toContain('/api/pinecone/clear');
+    expect(cleanupActions).toContain('/api/pdf-memory');
 
     // POZOSTAŁE Pełny Reset stub pattern (status post-sesja 85):
     // /api/settings endpoint DROPPED (IND-54 sesja 85, dead code 0 callerów)

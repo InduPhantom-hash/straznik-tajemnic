@@ -6,11 +6,10 @@
  * parse w pamięci → chunk → embedding (Gemini) → zapis do data/rag/rules.*
  * przez localVectorStore (`getWritableDataDir()` / `RAG_DATA_DIR`).
  *
- * Różni się od /api/upload-pdf (GCS-first) i /api/pdf/index-to-pinecone
- * (round-trip przez textUrl/GCS): tu plik leci od razu do pamięci serwera
+ * Różni się od /api/upload-pdf (GCS-first): tu plik leci od razu do pamięci serwera
  * i nigdy nie dotyka chmury - jedyne wyjście to embeddingi do Gemini.
  *
- * POST FormData { file: PDF, type?: 'rules'|'adventure' (domyślnie rules), fileName? }
+ * POST FormData { file: PDF, type?: 'rules'|'adventure' (domyślnie rules), fileName?, adventureId? }
  *   → { success, indexed, failed, totalChunks, namespace, durationMs }
  */
 
@@ -40,6 +39,7 @@ export async function POST(request: NextRequest) {
     let fileName = '';
     let type: 'rules' | 'adventure' = 'rules';
     let clearBefore = false;
+    let adventureId: string | undefined;
 
     const contentType = request.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -47,6 +47,10 @@ export async function POST(request: NextRequest) {
       pdfText = body.text;
       type = body.type === 'adventure' ? 'adventure' : 'rules';
       fileName = body.fileName || `${type}-document`;
+      adventureId =
+        typeof body.adventureId === 'string' && body.adventureId.trim()
+          ? body.adventureId.trim()
+          : undefined;
       clearBefore = body.clearBefore === true;
     } else {
       const formData = await request.formData();
@@ -76,13 +80,18 @@ export async function POST(request: NextRequest) {
 
       const rawType = formData.get('type');
       type = rawType === 'adventure' ? 'adventure' : 'rules';
+      const rawAdvId = formData.get('adventureId');
+      adventureId =
+        typeof rawAdvId === 'string' && rawAdvId.trim()
+          ? rawAdvId.trim()
+          : undefined;
       fileName =
         (typeof formData.get('fileName') === 'string'
           ? (formData.get('fileName') as string)
           : '') ||
         file.name ||
         `${type}-document`;
-      clearBefore = type === 'rules';
+      clearBefore = type === 'rules' || (type === 'adventure' && !!adventureId);
 
       // Parse PDF w pamięci (pdf-parse na buforze - GCS-free).
       const arrayBuffer = await file.arrayBuffer();
@@ -128,6 +137,7 @@ export async function POST(request: NextRequest) {
       fileName,
       clearBefore,
       apiKey: geminiApiKey,
+      adventureId,
     });
 
     if (!result.success) {
@@ -201,8 +211,16 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'rules';
+    const adventureId = searchParams.get('adventureId') || undefined;
     const { localVectorStore } = await import('@/lib/vector-db/local-vector-store');
-    const recordCount = localVectorStore.getNamespaceCount(type);
+    const { LOCAL_RAG_NAMESPACES } = await import('@/lib/vector-db/vector-types');
+    const targetNamespace =
+      type === 'rules'
+        ? LOCAL_RAG_NAMESPACES.RULES
+        : adventureId
+          ? LOCAL_RAG_NAMESPACES.adventure(adventureId)
+          : LOCAL_RAG_NAMESPACES.ADVENTURES;
+    const recordCount = localVectorStore.getNamespaceCount(targetNamespace);
 
     let rulebookProfile = null;
     if (type === 'rules') {

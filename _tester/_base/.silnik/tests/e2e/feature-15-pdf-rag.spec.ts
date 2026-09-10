@@ -4,13 +4,13 @@
  * Test regresyjny dla obszaru #15 audytowanego w Sesji 2 IND-42 (2026-05-07).
  * Pokrywa critical path: page renders → pdf-memory localStorage mechanika.
  *
- * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów GCS/Gemini/Pinecone.
- * Testy NIE wywołują prawdziwych endpointów upload-pdf/parse/extract-text/index-to-pinecone.
+ * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów GCS/Gemini/lokalnego RAG.
+ * Testy NIE wywołują prawdziwych endpointów upload-pdf/parse/extract-text/ingest-local.
  *
  * Pominięte (świadomie minimal scope):
  *  - Upload flow end-to-end z 4 krokami (wymaga real GCS + 48h TTL Gemini Files API)
  *  - Auto-indexing trigger (race condition setTimeout 100ms, niedeterministyczne w CI)
- *  - Pinecone RAG retrieval (wymaga real index host + zaindeksowane dokumenty)
+ *  - RAG retrieval (wymaga zaindeksowanych dokumentów)
  * Powód: scope sesji audytowej = SMOKE regresji (czy UI nie wisi, czy localStorage flow działa),
  * NIE pełna integracja. Pełen e2e upload flow → osobny ticket follow-up.
  *
@@ -51,7 +51,7 @@ test.describe('Feature #15: PDF Upload & RAG (regresja smoke)', () => {
         rulesUrl:
           'https://storage.googleapis.com/zew-voice-gemini-bucket/pdfs/rules/test.pdf',
         rulesFileName: 'CoC-7e-podstawowy.pdf',
-        rulesIndexedToPinecone: true,
+        rulesIndexedLocally: true,
         rulesIndexedChunks: 240,
         lastUpdated: new Date().toISOString(),
       };
@@ -64,7 +64,7 @@ test.describe('Feature #15: PDF Upload & RAG (regresja smoke)', () => {
     );
     expect(stored).not.toBeNull();
     expect(stored).toContain('"rulesFileName":"CoC-7e-podstawowy.pdf"');
-    expect(stored).toContain('"rulesIndexedToPinecone":true');
+    expect(stored).toContain('"rulesIndexedLocally":true');
     expect(stored).toContain('"rulesIndexedChunks":240');
 
     // Reload — persistencja powinna działać (chroni przed regresją w usePdfMemory state hydration)

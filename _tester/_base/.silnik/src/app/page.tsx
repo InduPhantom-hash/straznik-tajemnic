@@ -131,6 +131,7 @@ export default function Home() {
 
   const pdf = usePdfMemory({
     setMessages: (fn) => chat.setMessages(fn),
+    adventureId: adventureContext?.id,
   });
 
   // IND-230: Faza Rozwoju CoC. Wynik testu [WYNIK:] z narracji MG ->

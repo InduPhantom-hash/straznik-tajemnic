@@ -45,6 +45,8 @@ export interface PdfIndexingRequest {
   clearBefore?: boolean;
   /** Klucz API Gemini (opcjonalny, zapobiega wyścigom singletonu) */
   apiKey?: string;
+  /** ID aktywnej przygody (dla izolacji namespace'u adventures/{id}) */
+  adventureId?: string;
 }
 
 export interface PdfIndexingProgress {
@@ -345,7 +347,9 @@ class PdfIndexingService {
     const namespace =
       request.type === 'rules'
         ? LOCAL_RAG_NAMESPACES.RULES
-        : LOCAL_RAG_NAMESPACES.ADVENTURES;
+        : request.adventureId
+          ? LOCAL_RAG_NAMESPACES.adventure(request.adventureId)
+          : LOCAL_RAG_NAMESPACES.ADVENTURES;
 
     try {
       // Krok 1: Chunking
@@ -510,7 +514,10 @@ class PdfIndexingService {
   /**
    * Zwraca statystyki namespace'u (ile wektorów).
    */
-  async getNamespaceStats(type: 'rules' | 'adventure'): Promise<{
+  async getNamespaceStats(
+    type: 'rules' | 'adventure',
+    adventureId?: string
+  ): Promise<{
     recordCount: number;
     namespace: string;
   }> {
@@ -521,7 +528,9 @@ class PdfIndexingService {
     const namespace =
       type === 'rules'
         ? LOCAL_RAG_NAMESPACES.RULES
-        : LOCAL_RAG_NAMESPACES.ADVENTURES;
+        : adventureId
+          ? LOCAL_RAG_NAMESPACES.adventure(adventureId)
+          : LOCAL_RAG_NAMESPACES.ADVENTURES;
 
     try {
       const stats = await localVectorStore.getStats();

@@ -2,13 +2,13 @@
  * Conversation Memory Service - etap 2d roadmapy v4.0
  *
  * Automatycznie zapisuje każdą turę rozmowy (wiadomość gracza + odpowiedź AI)
- * do Pinecone namespace `sessions/{id}`, aby MG nigdy nie zgubił fabuły.
+ * do lokalnego magazynu wektorów (namespace `sessions/{id}`), aby MG nigdy nie zgubił fabuły.
  *
  * Cechy:
  * - Fire-and-forget: błędy są logowane, nigdy nie blokują odpowiedzi
  * - Ekstrakcja summary, tagów (NPC, lokacje, mechaniki) z odpowiedzi
  * - Embedding pary user+AI dla pełnego kontekstu semantycznego
- * - Integracja z istniejącym indexingService (Pinecone upsert)
+ * - Integracja z istniejącym indexingService (lokalny magazyn wektorów)
  */
 
 import * as Sentry from '@sentry/nextjs';
@@ -55,7 +55,7 @@ const MAX_TAGS = 10;
 /** Długość summary (znaków) */
 const SUMMARY_TARGET_LENGTH = 200;
 
-/** IND-75: liczba prób (initial + retries) dla transient Pinecone/embedding errors */
+/** IND-75: liczba prób (initial + retries) dla transient local vector store / embedding errors */
 export const RETRY_MAX_ATTEMPTS = 3;
 
 /** IND-75: base delay między próbami (exp backoff: 500 → 1000 → 2000 ms) */
@@ -136,7 +136,7 @@ function captureDlq(
  * "failing" result (jeśli predicate stale=false).
  *
  * NIE używamy dla validation errors (deterministyczne) - tylko dla operacji
- * I/O (Pinecone upsert, Gemini embedding) gdzie warto powtórzyć.
+ * I/O (zapis wektorów, Gemini embedding) gdzie warto powtórzyć.
  */
 async function retryWithBackoff<T>(
   operation: () => Promise<T>,
@@ -178,7 +178,7 @@ async function retryWithBackoff<T>(
 
 class ConversationMemoryService {
   /**
-   * Zapisuje turę rozmowy do Pinecone.
+   * Zapisuje turę rozmowy do lokalnego magazynu wektorów.
    * Fire-and-forget - błędy logowane, nigdy nie rzucane.
    */
   async saveConversationTurn(turn: ConversationTurn): Promise<SaveResult> {

@@ -1,37 +1,32 @@
 /**
- * Feature #07 — Pinecone sessions namespace (regresja smoke)
+ * Feature #07 — RAG sessions namespace (regresja smoke)
  *
  * Test regresyjny dla obszaru #07 audytowanego w Sesji 10/16 IND-42 (2026-05-08).
  * Pokrywa critical path: page renders + DELETE /api/session/cloud orphan namespace
  * regression guard.
  *
- * Strategia: mock fetch przez `page.route('**\/api/**')` — zero kosztów Pinecone
- * + zero kosztów GCS. Testy NIE wywołują prawdziwego Pinecone SDK ani GCS API.
+ * Strategia: mock fetch przez `page.route('**\/api/**')` — zero kosztów RAG
+ * + zero kosztów GCS. Testy NIE wywołują prawdziwych operacji wektorowych ani GCS API.
  *
  * Pominięte (świadomie minimal scope, smoke zbiorczy na końcu cleanup serii per
  * memory feedback strategy):
- *  - Real `indexingService.indexChunk` flow (B4 multi-user singleton broken przez
- *    `indexingService = new IndexingService()` module-level state)
- *  - Real `pineconeClient.deleteNamespace(sessions/{id})` (B1 KRYT — orphan
- *    namespace bo `cloudSessionManager.deleteSession` nie woła tego cleanup)
- *  - Real Pełny Reset → Pinecone cleanup (B3 KRYT — `useFullReset.ts:67-72` lista
- *    apiEndpoints NIE zawiera Pinecone clear endpoint)
- *  - Real `conversationMemory.saveConversationTurn` fire-and-forget (B5
- *    `.catch(() => {})` w chat/route.ts:481 świadomy pattern)
- *  - Real e2e DELETE z asercją "Pinecone namespace empty po DELETE" (wymaga
- *    integration test setup z real Pinecone instance)
+ *  - Real `indexingService.indexChunk` flow
+ *  - Real `localVectorStore.deleteNamespace(sessions/{id})`
+ *  - Real Pełny Reset → local RAG cleanup
+ *  - Real `conversationMemory.saveConversationTurn` fire-and-forget
+ *  - Real e2e DELETE z asercją "RAG namespace empty po DELETE"
  *
  * Powód: scope sesji audytowej = SMOKE regresji (page renders + /api/session/cloud
- * DELETE response shape), NIE pełna integracja Pinecone session lifecycle.
+ * DELETE response shape), NIE pełna integracja RAG session lifecycle.
  *
  * Spec doc: .agent/features/07-pinecone-sessions-namespace.md
  */
 
 import { test, expect } from '@playwright/test';
 
-test.describe('Feature #07: Pinecone sessions namespace (regresja smoke)', () => {
+test.describe('Feature #07: RAG sessions namespace (regresja smoke)', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock all /api/** — zero kosztów Pinecone/GCS. Default 200 success.
+    // Mock all /api/** — zero kosztów RAG/GCS. Default 200 success.
     await page.route('**/api/**', (route) =>
       route.fulfill({
         status: 200,
@@ -44,12 +39,12 @@ test.describe('Feature #07: Pinecone sessions namespace (regresja smoke)', () =>
     );
   });
 
-  test('1. strona główna renderuje się bez crash (indexing-service + pineconeClient loadable, NAMESPACES.session helper dostępny)', async ({
+  test('1. strona główna renderuje się bez crash (indexing-service loadable, LOCAL_RAG_NAMESPACES.session helper dostępny)', async ({
     page,
   }) => {
     await page.goto('/');
     // Sanity: body istnieje, brak runtime errorów blokujących render po imporcie
-    // PINECONE_NAMESPACES.session helper + indexingService singleton.
+    // LOCAL_RAG_NAMESPACES.session helper + indexingService.
     await expect(page.locator('body')).toBeVisible();
     const html = await page.content();
     expect(html).not.toContain('Application error');
