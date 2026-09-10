@@ -54,6 +54,24 @@ interface UseMediaCacheResult {
   getSfxAudio: (prompt: string) => Promise<string | null>;
   setSfxAudio: (prompt: string, audioData: string) => Promise<boolean>;
 
+  // Chat images (Issue #78)
+  getChatImage: (
+    messageId: string,
+    imageIndex?: number
+  ) => Promise<string | null>;
+  setChatImage: (
+    messageId: string,
+    imageIndex: number,
+    imageData: string,
+    metadata?: MediaMetadata
+  ) => Promise<boolean>;
+
+  // Maintenance & Retention (Issue #78)
+  cleanupExpired: () => Promise<number>;
+  resetDatabase: (
+    timeoutOrOptions?: number | { blockedTimeoutMs?: number }
+  ) => Promise<boolean>;
+
   // Utility
   refreshStats: () => Promise<void>;
   clearAll: () => Promise<void>;
@@ -203,6 +221,54 @@ export function useMediaCache(): UseMediaCacheResult {
     [refreshStats]
   );
 
+  // Chat images (Issue #78)
+  const getChatImage = useCallback(
+    async (messageId: string, imageIndex = 0): Promise<string | null> => {
+      return persistentMediaCache.getChatImage(messageId, imageIndex);
+    },
+    []
+  );
+
+  const setChatImage = useCallback(
+    async (
+      messageId: string,
+      imageIndex: number,
+      imageData: string,
+      metadata?: MediaMetadata
+    ): Promise<boolean> => {
+      const result = await persistentMediaCache.setChatImage(
+        messageId,
+        imageIndex,
+        imageData,
+        metadata
+      );
+      if (result) refreshStats();
+      return result;
+    },
+    [refreshStats]
+  );
+
+  // Maintenance & Retention (Issue #78)
+  const cleanupExpired = useCallback(async (): Promise<number> => {
+    const deletedCount = await persistentMediaCache.cleanupExpired();
+    if (deletedCount > 0) refreshStats();
+    return deletedCount;
+  }, [refreshStats]);
+
+  const resetDatabase = useCallback(
+    async (
+      timeoutOrOptions?: number | { blockedTimeoutMs?: number }
+    ): Promise<boolean> => {
+      const success =
+        await persistentMediaCache.resetDatabase(timeoutOrOptions);
+      if (success) {
+        setStats(null);
+      }
+      return success;
+    },
+    []
+  );
+
   // Utility
   const clearAll = useCallback(async () => {
     await persistentMediaCache.clearAll();
@@ -225,10 +291,14 @@ export function useMediaCache(): UseMediaCacheResult {
     setNpcPortrait,
     getLocationImage,
     setLocationImage,
+    getChatImage,
+    setChatImage,
     getTtsAudio,
     setTtsAudio,
     getSfxAudio,
     setSfxAudio,
+    cleanupExpired,
+    resetDatabase,
     refreshStats,
     clearAll,
     clearStore,

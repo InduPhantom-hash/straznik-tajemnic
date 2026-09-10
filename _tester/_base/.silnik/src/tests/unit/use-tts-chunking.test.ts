@@ -392,6 +392,29 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     expect(payload.audioDirection).toContain('intense, rapid, and thrilling cadence');
     expect(payload.audioDirection).toContain('dynamic, high-urgency momentum');
   });
+
+  it('Issue #78: odzyskuje audio z persistentMediaCache z pominięciem zapytania sieciowego fetch (Cache Hit)', async () => {
+    const { persistentMediaCache } = await import('@/lib/persistent-media-cache');
+    const isAvailableSpy = jest.spyOn(persistentMediaCache, 'isAvailable').mockReturnValue(true);
+    const getTtsAudioSpy = jest.spyOn(persistentMediaCache, 'getTtsAudio').mockResolvedValue('data:audio/wav;base64,mock-cached-audio');
+
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    await act(async () => {
+      result.current.addToQueue('Zapach stęchłego papieru unosi się w bibliotece.', 'msg-cache-hit', true);
+    });
+
+    expect(getTtsAudioSpy).toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    isAvailableSpy.mockRestore();
+    getTtsAudioSpy.mockRestore();
+  });
 });
 
 
