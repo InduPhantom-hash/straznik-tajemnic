@@ -41,6 +41,7 @@ import {
   resolveGameEraContext,
   type ResolvedEraContext,
 } from '@/lib/era';
+import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import { assertExactEraContext } from '@/lib/world-setup';
 import {
   formatChaseForSystemContext,
@@ -481,6 +482,23 @@ export async function runChatPipeline({
     characters,
     era: String(eraContext.effectiveYear),
     locale,
+    visualBeliefGraph: (() => {
+      const vbg = new VisualBeliefGraph();
+      vbg.setEffectiveYear(String(eraContext.effectiveYear));
+      if (character) {
+        vbg.registerPlayer(character, String(eraContext.effectiveYear));
+      }
+      if (characters && characters.length > 0) {
+        characters.forEach((c) => vbg.registerPlayer(c, String(eraContext.effectiveYear)));
+      }
+      if (npcs && npcs.length > 0) {
+        npcs.forEach((npc) => vbg.registerNPC(npc, String(eraContext.effectiveYear)));
+      }
+      if (currentLocation) {
+        vbg.updateLocation(currentLocation, {});
+      }
+      return vbg;
+    })(),
   });
 
   if (isChaseState(mechanicsContext?.chase)) {
