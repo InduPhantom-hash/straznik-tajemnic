@@ -12,6 +12,8 @@
 import type { FC } from 'react';
 import { useRef, useEffect, useMemo, useState } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { ScrollArea } from '../../ui/scroll-area';
 import { ImageLightbox } from '../../ui/image-lightbox';
 import { RollTestModal, type RollTestData } from '../../dialogs/RollTestModal';
@@ -109,6 +111,58 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   eraContext,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  // Tryb reżyserski (Kulisy MG / BOP) - domyślnie wyłączony z zapamiętywaniem w localStorage
+  const [isDirectorMode, setIsDirectorMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('straznik_director_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleDirectorMode = () => {
+    setIsDirectorMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('straznik_director_mode', String(next));
+      } catch {
+        // ignore localStorage errors (e.g. Safari private mode)
+      }
+      return next;
+    });
+  };
+
+  // Inteligentny autoscroll
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+  const isAtBottomRef = useRef<boolean>(true);
+
+  const handleViewportScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    const distanceToBottom =
+      target.scrollHeight - target.scrollTop - target.clientHeight;
+    // Tolerancja 120px dla uznania, że gracz jest na dole
+    const atBottom = distanceToBottom <= 120;
+    setIsAtBottom(atBottom);
+    isAtBottomRef.current = atBottom;
+  };
+
+  const scrollToBottom = (smooth = true) => {
+    if (typeof viewportRef.current?.scrollTo === 'function') {
+      viewportRef.current.scrollTo({
+        top: viewportRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    } else {
+      messagesEndRef.current?.scrollIntoView?.({
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    }
+    setIsAtBottom(true);
+    isAtBottomRef.current = true;
+  };
 
   // Lightbox state
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -266,10 +320,21 @@ export const ChatWindow: FC<ChatWindowProps> = ({
     duetCharacterSlots.every((slot) => slot.character) &&
     new Set(duetCharacterSlots.map((slot) => slot.character?.id)).size === 2;
 
-  // Auto-scroll do dołu czatu
+  const tChatHeader = useTranslations('ChatHeader');
+
+  // Auto-scroll do dołu czatu: tylko gdy użytkownik nie przewinął w górę
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (isAtBottomRef.current) {
+      if (typeof viewportRef.current?.scrollTo === 'function') {
+        viewportRef.current.scrollTo({
+          top: viewportRef.current.scrollHeight,
+          behavior: 'auto',
+        });
+      } else {
+        messagesEndRef.current?.scrollIntoView?.({ behavior: 'auto' });
+      }
+    }
+  }, [messages, isLoading]);
 
   return (
     <div className="relative flex-1 flex flex-col h-full bg-background bg-[radial-gradient(1200px_700px_at_50%_0%,rgba(20,184,166,0.06),transparent_55%),radial-gradient(600px_400px_at_100%_100%,rgba(201,169,74,0.04),transparent_60%)]">
@@ -291,6 +356,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         region={region}
         currentLocation={currentLocation}
         onOpenHelp={onOpenHelp}
+        isDirectorMode={isDirectorMode}
+        onToggleDirectorMode={toggleDirectorMode}
       />
       {!hasStartedGame ? (
         <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">
@@ -329,55 +396,75 @@ export const ChatWindow: FC<ChatWindowProps> = ({
       ) : (
         <>
           {/* Chat Messages */}
-          <ScrollArea className="flex-1 p-4 md:p-8">
-            <div className="space-y-4 max-w-4xl mx-auto w-full">
-              {messages.map((message, index) =>
-                message.role === 'user' && message.mechanicsContext?.combat ? null : (
-                <MessageCard
-                  key={message.id}
-                  message={message}
-                  activeCharacter={activeCharacter}
-                  playerPortraitUrl={playerPortraitUrl}
-                  isTTSEnabled={isTTSEnabled}
-                  currentAudio={currentAudio}
-                  toggleAudioPause={toggleAudioPause}
-                  isAudioPaused={isAudioPaused}
-                  stopCurrentAudio={stopCurrentAudio}
-                  playerColors={playerColors}
-                  completedTestIds={completedTestIds}
-                  onImageClick={(imgUrl, allImages) => {
-                    setLightboxImages(allImages);
-                    setLightboxImage(imgUrl);
-                  }}
-                  onRollTest={handleRollTest}
-                  onConfirmAcquiredItem={onConfirmAcquiredItem}
-                  onDismissAcquiredItem={onDismissAcquiredItem}
-                  isSessionEnded={isSessionEnded}
-                  isLastMessage={index === messages.length - 1}
-                  onCharacterUpdate={onCharacterUpdate}
-                  onSendHazardResult={handleSendMessage}
-                  resolvedHazardIds={resolvedHazardIds}
-                  onSendSpellResult={handleSendMessage}
-                  resolvedSpellIds={resolvedSpellIds}
-                  onSendTomeResult={handleSendMessage}
-                  resolvedTomeIds={resolvedTomeIds}
-                  onSendCombatResult={handleSendMessage}
-                  resolvedCombatIds={resolvedCombatIds}
-                  onCombatDefense={onCombatDefense}
-                  onChaseManeuver={(maneuverType, nextState, decl) => {
-                    onChaseStateChange?.(nextState);
-                    handleSendMessage(decl, { chase: nextState });
-                  }}
-                  isDuet={isDuet}
-                  characters={characters}
-                  onContinueNarration={onContinueNarration}
-                />
-              ))}
-              {/* Loading indicator - animowane kropki */}
-              {isLoading && <LoadingIndicator />}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+          <div className="relative flex-1 min-h-0">
+            <ScrollArea
+              className="h-full w-full p-4 md:p-8"
+              viewportRef={viewportRef}
+              onViewportScroll={handleViewportScroll}
+            >
+              <div className="space-y-4 max-w-4xl mx-auto w-full">
+                {messages.map((message, index) =>
+                  message.role === 'user' && message.mechanicsContext?.combat ? null : (
+                  <MessageCard
+                    key={message.id}
+                    message={message}
+                    activeCharacter={activeCharacter}
+                    playerPortraitUrl={playerPortraitUrl}
+                    isTTSEnabled={isTTSEnabled}
+                    currentAudio={currentAudio}
+                    toggleAudioPause={toggleAudioPause}
+                    isAudioPaused={isAudioPaused}
+                    stopCurrentAudio={stopCurrentAudio}
+                    playerColors={playerColors}
+                    completedTestIds={completedTestIds}
+                    onImageClick={(imgUrl, allImages) => {
+                      setLightboxImages(allImages);
+                      setLightboxImage(imgUrl);
+                    }}
+                    onRollTest={handleRollTest}
+                    onConfirmAcquiredItem={onConfirmAcquiredItem}
+                    onDismissAcquiredItem={onDismissAcquiredItem}
+                    isSessionEnded={isSessionEnded}
+                    isLastMessage={index === messages.length - 1}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onSendHazardResult={handleSendMessage}
+                    resolvedHazardIds={resolvedHazardIds}
+                    onSendSpellResult={handleSendMessage}
+                    resolvedSpellIds={resolvedSpellIds}
+                    onSendTomeResult={handleSendMessage}
+                    resolvedTomeIds={resolvedTomeIds}
+                    onSendCombatResult={handleSendMessage}
+                    resolvedCombatIds={resolvedCombatIds}
+                    onCombatDefense={onCombatDefense}
+                    onChaseManeuver={(maneuverType, nextState, decl) => {
+                      onChaseStateChange?.(nextState);
+                      handleSendMessage(decl, { chase: nextState });
+                    }}
+                    isDuet={isDuet}
+                    characters={characters}
+                    onContinueNarration={onContinueNarration}
+                    isDirectorMode={isDirectorMode}
+                  />
+                ))}
+                {/* Loading indicator - animowane kropki */}
+                {isLoading && <LoadingIndicator />}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Pływający przycisk przewijania na dół gdy gracz przegląda wcześniejsze wiadomości */}
+            {!isAtBottom && (
+              <button
+                type="button"
+                onClick={() => scrollToBottom(true)}
+                className="absolute bottom-4 right-6 z-20 flex items-center gap-1.5 px-3 py-1.5 text-xs font-special-elite bg-card/95 border border-brass/60 text-brass hover:text-gold hover:border-brass rounded-full shadow-lg backdrop-blur transition-all duration-200 cursor-pointer animate-fade-in"
+                title={tChatHeader('scrollToBottom')}
+              >
+                <ChevronDown className="w-3.5 h-3.5 text-brass" />
+                <span>{tChatHeader('scrollToBottom')}</span>
+              </button>
+            )}
+          </div>
           {/* Pasek wpisywania tylko w grze - ekran powitalny ma być czysty ("tylko ekran powitalny") */}
           <MessageInput
             newMessage={newMessage}

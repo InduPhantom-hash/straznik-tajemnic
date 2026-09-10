@@ -15,6 +15,7 @@ import type { Section } from './types';
 import { renderHandout } from './render-handout';
 import { renderPerspective } from './render-perspective';
 import { renderNarrativeWithImages } from './render-narrative-with-images';
+import { DirectorNotes } from './render-director-notes';
 import { resolveNpcPortrait } from '@/lib/npc-voice-mapping';
 
 function getSpeakerInitials(name?: string): string {
@@ -99,6 +100,9 @@ export function renderSection(
 
     case 'perspective':
       return renderPerspective(section, key, playerColors);
+
+    case 'director-notes':
+      return <DirectorNotes key={key} content={section.content} />;
 
     case 'narrative':
     default:

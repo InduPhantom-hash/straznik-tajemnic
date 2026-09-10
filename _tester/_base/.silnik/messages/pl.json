@@ -1120,7 +1120,10 @@
   "ChatHeader": {
     "defaultTitle": "Tajemnica Biblioteki Miskatonic",
     "compendium": "Kompendium",
-    "compendiumTitle": "Otwórz kompendium zasad, bestiariusz i encyklopedię epoki"
+    "compendiumTitle": "Otwórz kompendium zasad, bestiariusz i encyklopedię epoki",
+    "directorMode": "Kulisy MG",
+    "directorModeTooltip": "Przełącz widok kulis Mistrza Gry (BOP)",
+    "scrollToBottom": "Przewiń na dół"
   },
   "PredefinedCharacters": {
     "eyebrow": "Gotowi badacze",
@@ -5573,7 +5576,8 @@
     "audioTrack": "Nagranie / Ścieżka dźwiękowa",
     "play": "Odsłuchaj",
     "pause": "Pauza",
-    "restart": "Od początku"
+    "restart": "Od początku",
+    "directorNotesTitle": "Kulisy Mistrza Gry (BOP)"
   },
   "DiegeticDocumentViewer": {
     "noContent": "Brak zapisanej treści...",

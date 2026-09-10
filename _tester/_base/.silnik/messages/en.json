@@ -1120,7 +1120,10 @@
   "ChatHeader": {
     "defaultTitle": "Mystery of the Miskatonic Library",
     "compendium": "Compendium",
-    "compendiumTitle": "Open rules compendium, bestiary and epoch encyclopedia"
+    "compendiumTitle": "Open rules compendium, bestiary and epoch encyclopedia",
+    "directorMode": "Director Mode",
+    "directorModeTooltip": "Toggle Director's Notes (BOP)",
+    "scrollToBottom": "Scroll to bottom"
   },
   "PredefinedCharacters": {
     "eyebrow": "Ready investigators",
@@ -5573,7 +5576,8 @@
     "audioTrack": "Audio Recording / Track",
     "play": "Play",
     "pause": "Pause",
-    "restart": "Restart"
+    "restart": "Restart",
+    "directorNotesTitle": "Director's Notes (BOP)"
   },
   "DiegeticDocumentViewer": {
     "noContent": "No saved content...",

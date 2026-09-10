@@ -180,7 +180,11 @@ function isHandoutStart(line: string): boolean {
   // to NIE handouty. "DZIENNIK" jest aliasem gazety (H9), więc bare/niedomknięty tag
   // mylił parser → fałszywy "WYCINEK PRASOWY" + surowe tagi w środku. Protokół ma ':'
   // tuż po słowie-kluczu; tytuł gazety ("Dziennik Polski") ma spację, więc nietknięty.
-  if (/^\[?(?:DZIENNIK|MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY)\s*:/i.test(line))
+  if (
+    /^\[?(?:DZIENNIK|JOURNAL|MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|MASKA_NPC|RETRO_ZIARNO|KORELACJA|ECHO_AKCJI)\s*:/i.test(
+      line
+    )
+  )
     return false;
   // ASCII art borders
   if (line.match(/^[━═─╔╗╚╝┌┐└┘│║╠╣╦╩╬+=\-_*~]{5,}$/)) return true;

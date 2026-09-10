@@ -17,7 +17,7 @@
 
 import { timeManager } from '@/lib/time-manager';
 
-const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
+export const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
 
 export function cleanupContent(content: string): string {
   // Usuń prefiksy AI z początku tekstu (MG: Assistant:, GM:, itp.)
@@ -101,7 +101,7 @@ export function cleanupContent(content: string): string {
     // PRASOWY"). Wymóg ':' tuż po słowie-kluczu chroni prozę ("Dziennik leżał na
     // biurku" - brak dwukropka - oraz tytuł gazety "Dziennik Polski" zostają).
     .replace(
-      /^\s*\[?(?:MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|DZIENNIK|JOURNAL)\s*:[^\n]*$/gim,
+      /^\s*\[?(?:MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|DZIENNIK|JOURNAL|MASKA_NPC|RETRO_ZIARNO|KORELACJA|ECHO_AKCJI)\s*:[^\n]*$/gim,
       ''
     )
     // IND-165 - Audio tags TTS (Gemini Flash TTS): regex restrictive whitelist
