@@ -366,11 +366,11 @@
       }
     },
     {
-      "id": "combat-defense-dialog",
+      "id": "combat-card",
       "kind": "modal",
       "label": {
-        "pl": "Obrona w walce (CoC 7e RAW)",
-        "en": "Combat defense (CoC 7e RAW)"
+        "pl": "Obrona w walce wręcz w czacie (CoC 7e RAW)",
+        "en": "In-chat melee combat defense (CoC 7e RAW)"
       }
     }
   ],
@@ -755,12 +755,12 @@
     },
     {
       "source": "game",
-      "target": "combat-defense-dialog",
+      "target": "combat-card",
       "label": {
         "pl": "Obrona w walce",
         "en": "Combat defense"
       },
-      "component": "src/components/chat/chat-window/index.tsx"
+      "component": "src/components/chat/chat-window/components/combat-card.tsx"
     }
   ]
 }

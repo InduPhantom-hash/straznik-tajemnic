@@ -5,6 +5,10 @@ import type {
   CombatResolution,
   PendingMeleeAttack,
 } from './combat/combat-resolver';
+export type {
+  CombatResolution,
+  PendingMeleeAttack,
+};
 import type { CharacterMagicState } from './magic/types';
 
 // === WIADOMOŚĆ CZATU ===

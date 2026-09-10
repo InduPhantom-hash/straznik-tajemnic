@@ -9,6 +9,7 @@ import {
   resolveOutnumberedBonus,
   type CombatResolution,
   type DefenseChoice,
+  type ManeuverType,
   type PendingMeleeAttack,
 } from './combat-resolver';
 
@@ -22,7 +23,11 @@ export interface CombatRoundJournal {
   attacks: PendingMeleeAttack[];
   choices: Record<
     string,
-    { choice: Exclude<DefenseChoice, 'maneuver'>; defenderWeaponId?: string }
+    {
+      choice: DefenseChoice;
+      defenderWeaponId?: string;
+      maneuverType?: ManeuverType;
+    }
   >;
   resolutions: CombatResolution[];
   rosterBefore: Character[];
@@ -152,8 +157,9 @@ function currentNpcHp(
 export function resolveCombatJournalEvent(params: {
   journal: CombatRoundJournal;
   eventId: string;
-  choice: Exclude<DefenseChoice, 'maneuver'>;
+  choice: DefenseChoice;
   defenderWeapon?: CombatDefenseWeaponOption;
+  maneuverType?: ManeuverType;
 }): CombatRoundJournal {
   if (params.journal.resolutions.some((item) => item.eventId === params.eventId)) {
     return params.journal;
@@ -188,7 +194,7 @@ export function resolveCombatJournalEvent(params: {
     defenderSkill:
       params.choice === 'dodge'
         ? resolveTestValue('Unik', defender) ?? 0
-        : params.defenderWeapon?.skillValue ?? 0,
+        : params.defenderWeapon?.skillValue ?? resolveTestValue('Walka wręcz', defender) ?? 25,
     defenseChoice: params.choice,
     attackerWeaponFormula: attack.weapon.damageFormula,
     attackerDamageBonusFormula: attack.attacker.damageBonus,
@@ -200,6 +206,9 @@ export function resolveCombatJournalEvent(params: {
     attackerArmor: attack.attacker.armor,
     defenderMaxHp: defender.maxHp ?? defender.hp,
     attackerMaxHp: attack.attacker.maxHp,
+    maneuverType: params.maneuverType,
+    attackerBuild: attack.attacker.build,
+    defenderBuild: defender.build ?? 0,
     rollFn: (formula) =>
       deterministicFormulaRoll(eventSeed, `damage:${damageIndex++}`, formula),
   });
@@ -238,6 +247,7 @@ export function resolveCombatJournalEvent(params: {
     defenderId: defender.id,
     defenderName: defender.name,
     defenseChoice: params.choice,
+    maneuverType: params.maneuverType,
     defenderWeaponId: params.defenderWeapon?.id,
     defenderWeaponName: params.defenderWeapon?.name,
     attackerRoll,
@@ -263,6 +273,7 @@ export function resolveCombatJournalEvent(params: {
       [params.eventId]: {
         choice: params.choice,
         defenderWeaponId: params.defenderWeapon?.id,
+        maneuverType: params.maneuverType,
       },
     },
     resolutions: [...params.journal.resolutions, resolution],
@@ -276,8 +287,10 @@ export function formatCombatRoundMessage(
 ): string {
   const lines = resolutions.map((result) => {
     const choice = result.defenseChoice === 'dodge'
-      ? locale === 'en' ? 'Dodge' : 'Unik'
-      : locale === 'en' ? 'Fight Back' : 'Kontratak';
+      ? (locale === 'en' ? 'Dodge' : 'Unik')
+      : result.defenseChoice === 'fight_back'
+      ? (locale === 'en' ? 'Fight Back' : 'Kontratak')
+      : (locale === 'en' ? 'Maneuver' : 'Manewr');
     const damage = result.damage?.effectiveDamage ?? 0;
     return locale === 'en'
       ? `${result.defenderName}: ${choice}. Attack ${result.attackerRoll} (${result.attackerOutcome}), defense ${result.defenderRoll} (${result.defenderOutcome}), damage ${damage}.`
