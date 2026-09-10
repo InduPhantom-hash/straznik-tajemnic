@@ -444,7 +444,6 @@ export function MessageCard({
                     characters={characters}
                     completed={resolvedCombatIds?.has(attack.eventId)}
                     onCharacterUpdate={onCharacterUpdate}
-                    onResolveDefense={onCombatDefense}
                     onSendChat={onSendCombatResult}
                   />
                 ))}

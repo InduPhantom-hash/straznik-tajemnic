@@ -125,8 +125,17 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
     labelPl: 'Starcie Wręcz (Obrona)',
     labelEn: 'Melee Combat (Defense)',
     category: 'combat',
-    descriptionPl: 'Otwiera dialog wyboru reakcji obrońcy (Unik vs Kontratak vs Manewr).',
-    descriptionEn: 'Opens defender choice modal (Dodge vs Fight Back vs Maneuver).',
+    descriptionPl: 'Inicjuje starcie wręcz w czacie (CombatCard - Unik vs Kontratak vs Manewr).',
+    descriptionEn: 'Initiates melee combat in chat (CombatCard - Dodge vs Fight Back vs Maneuver).',
+  },
+  {
+    command: 'WALKA',
+    template: '[WALKA: Bandyta z zaułka | nóż sprężynowy]',
+    labelPl: 'Starcie Wręcz (CombatCard)',
+    labelEn: 'Melee Combat (CombatCard)',
+    category: 'combat',
+    descriptionPl: 'Inicjuje starcie wręcz w czacie (CombatCard - Unik vs Kontratak vs Manewr).',
+    descriptionEn: 'Initiates melee combat in chat (CombatCard - Dodge vs Fight Back vs Maneuver).',
   },
   {
     command: 'CHASE',
@@ -580,7 +589,7 @@ export function executeCheatCommand(
     };
   }
 
-  if (command === 'COMBAT') {
+  if (command === 'COMBAT' || command === 'WALKA') {
     const attackerName = args[0] || (isPl ? 'Bandyta z zaułka' : 'Alley thug');
     const attackerWeapon = args[1] || (isPl ? 'nóż sprężynowy' : 'switchblade');
 

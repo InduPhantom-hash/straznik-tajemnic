@@ -1017,6 +1017,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             tomeStudyEvents: execRes.assistantMessage.tomeStudyEvents,
             acquiredItems: execRes.assistantMessage.acquiredItems,
             generatedImages: execRes.assistantMessage.generatedImages,
+            pendingMeleeAttacks: execRes.assistantMessage.pendingMeleeAttacks,
           };
           setMessages((prev) => [...prev, assistantMsg]);
         }
