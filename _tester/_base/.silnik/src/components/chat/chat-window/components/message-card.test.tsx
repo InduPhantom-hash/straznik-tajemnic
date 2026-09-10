@@ -400,3 +400,105 @@ describe('MessageCard - czary i rytuały (Issue #252)', () => {
   });
 });
 
+describe('MessageCard - Bliskie starcie wręcz (CombatCard)', () => {
+  const combatAttack = {
+    schemaVersion: 1 as const,
+    eventId: 'combat-event-1',
+    roundId: 'round-1',
+    ordinal: 0,
+    intent: 'Cięcie nożem w pierś',
+    attacker: {
+      id: 'npc-thug',
+      name: 'Bandyta z zaułka',
+      build: 0,
+      hp: 9,
+      maxHp: 9,
+      armor: 0,
+      attackSkill: 45,
+      damageBonus: '0',
+    },
+    target: {
+      characterId: 'char-alice',
+      name: 'Alice',
+    },
+    weapon: {
+      attackOptionId: 'switchblade',
+      name: 'nóż sprężynowy',
+      damageFormula: '1d4',
+      damageClass: 'impaling' as const,
+    },
+  };
+
+  const combatMessage: Message = {
+    id: 'msg-combat',
+    role: 'assistant',
+    content: 'Z mroku wyłania się Bandyta z zaułka!',
+    timestamp: new Date('2026-08-23T12:00:00.000Z'),
+    pendingMeleeAttacks: [combatAttack],
+  };
+
+  const alice = {
+    id: 'char-alice',
+    name: 'Alice',
+    hp: 12,
+    maxHp: 12,
+    con: 60,
+    dex: 50,
+    build: 0,
+    skills: {
+      Unik: 40,
+      'Walka Wręcz': 45,
+    },
+  } as unknown as Character;
+
+  it('renderuje CombatCard bezpośrednio w czacie, gdy pendingMeleeAttacks są obecne', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={combatMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+      />
+    );
+
+    expect(screen.getByText('Bandyta z zaułka')).toBeInTheDocument();
+    expect(screen.getAllByText(/nóż sprężynowy/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /Wykonaj zwinny unik/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Wejdź w zwarcie i kontratakuj/i })).toBeInTheDocument();
+  });
+
+  it('wykonuje unik i wysyła raport WYNIK_WALKI do czatu', () => {
+    const onSendCombatResult = jest.fn();
+    render(
+      <MessageCard
+        {...baseProps}
+        message={combatMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        onSendCombatResult={onSendCombatResult}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Wykonaj zwinny unik/i }));
+
+    expect(onSendCombatResult).toHaveBeenCalledWith(
+      expect.stringContaining('[WYNIK_WALKI: id=combat-event-1')
+    );
+  });
+
+  it('oznacza CombatCard jako rozstrzygniętą, gdy id znajduje się w resolvedCombatIds', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={combatMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        resolvedCombatIds={new Set(['combat-event-1'])}
+      />
+    );
+
+    expect(screen.getByText(/Starcie rozstrzygnięte/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Wykonaj zwinny unik/i })).not.toBeInTheDocument();
+  });
+});
+

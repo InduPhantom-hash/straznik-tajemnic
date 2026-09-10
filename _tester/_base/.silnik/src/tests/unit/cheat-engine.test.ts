@@ -98,11 +98,16 @@ describe('Cheat Engine (Retro Kodów CoC 7e)', () => {
     expect(res.assistantMessage?.content).toContain('TEST INTELIGENCJI (RAW)');
   });
 
-  it('wykonuje [COMBAT] i [CHASE] zwracając payloady Fiction First w czacie i pościgu', () => {
+  it('wykonuje [COMBAT] oraz alias [WALKA] i [CHASE] zwracając payloady Fiction First w czacie i pościgu', () => {
     const combatRes = executeCheatCommand('[COMBAT: Zbój | nóż]', mockCharacter, 'pl');
     expect(combatRes.isCheat).toBe(true);
     expect(combatRes.assistantMessage?.pendingMeleeAttacks).toBeDefined();
     expect(combatRes.assistantMessage?.pendingMeleeAttacks?.[0].attacker.name).toBe('Zbój');
+
+    const walkaRes = executeCheatCommand('[WALKA: Bandyta | pałka]', mockCharacter, 'pl');
+    expect(walkaRes.isCheat).toBe(true);
+    expect(walkaRes.assistantMessage?.pendingMeleeAttacks).toBeDefined();
+    expect(walkaRes.assistantMessage?.pendingMeleeAttacks?.[0].attacker.name).toBe('Bandyta');
 
     const chaseRes = executeCheatCommand('[CHASE]', mockCharacter, 'pl');
     expect(chaseRes.isCheat).toBe(true);
