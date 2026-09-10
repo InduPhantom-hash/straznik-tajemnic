@@ -68,6 +68,11 @@ export function cleanResponseText(text: string): string {
       .replace(/\[(?:WYNIK_POŚCIGU|WYNIK_POSCIGU|CHASE_RESULT):[^\]]*\]/gi, '')
       .replace(/\[(?:WYNIK_ZAGROŻENIA|WYNIK_ZAGROZENIA|HAZARD_RESULT):[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
+      .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
+      .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\]/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\]/gi, '')
+      .replace(/\[\/(?:OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')
       .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
       .replace(/\[EKSPOZYCJA:[^\]]*\]/gi, '')
@@ -110,6 +115,8 @@ export function stripMultilineArtifacts(text: string): string {
     text
       .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
+      .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
       // każdy [TAG:...] (spans \n), odporny na zagnieżdżony [...]
       .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')
@@ -135,6 +142,9 @@ export function stripAITags(text: string): string {
       .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
       .replace(/\[WALKA:[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
+      .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\]/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\]/gi, '')
+      .replace(/\[\/(?:OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\]/gi, '')
       .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
       // Media i mechaniki

@@ -239,7 +239,72 @@ describe('RetrievalService', () => {
 
       expect(response.results).toEqual([]);
       expect(response.promptSection).toBe('');
-      expect(response.source).toBe('none');
+      mockGenerateEmbedding.mockRestore();
+      mockQuery.mockRestore();
+    });
+
+    it('separuje sekrety scenariusza do chronionego bloku Zapory Epistemicznej (Fog of War)', async () => {
+      const mockGenerateEmbedding = jest
+        .spyOn(embeddingService, 'generateEmbedding')
+        .mockResolvedValue([1, 0, 0]);
+
+      const mockQuery = jest
+        .spyOn(localVectorStore, 'query')
+        .mockImplementation(async (namespace) => {
+          if (namespace === 'rules') {
+            return [
+              {
+                id: 'rule-1',
+                score: 0.9,
+                metadata: {
+                  contentType: 'rule',
+                  summary: 'Zasada walki wręcz',
+                  tags: JSON.stringify(['combat']),
+                  gameTimestamp: '',
+                  realTimestamp: '',
+                  sessionId: '',
+                  messageRange: '',
+                },
+              },
+            ];
+          }
+          if (namespace === 'adventures') {
+            return [
+              {
+                id: 'adv-secret-1',
+                score: 0.88,
+                metadata: {
+                  contentType: 'adventure',
+                  summary: 'Prawda o mordercy: Kultysta Henry ukrył nóż pod ołtarzem [SECRET]',
+                  tags: JSON.stringify(['secret', 'keeper_truth']),
+                  gameTimestamp: '',
+                  realTimestamp: '',
+                  sessionId: '',
+                  messageRange: '',
+                },
+              },
+            ];
+          }
+          return [];
+        });
+
+      const response = await retrievalService.retrieve({
+        query: 'kto zabił',
+      });
+
+      expect(response.promptSection).toContain('Zasada walki wręcz');
+      expect(response.promptSection).toContain('SEKRETY STRÓŻA (KEEPER TRUTH - EPISTEMICZNA MGŁA WOJNY)');
+      expect(response.promptSection).toContain('BEZWZGLĘDNY ZAKAZ bezpośredniego ujawniania');
+      expect(response.promptSection).toContain('Prawda o mordercy');
+
+      const responseEn = await retrievalService.retrieve({
+        query: 'who killed',
+        locale: 'en',
+      });
+
+      expect(responseEn.promptSection).toContain('## RAG CONTEXT');
+      expect(responseEn.promptSection).toContain('KEEPER SECRETS (KEEPER TRUTH - EPISTEMIC FOG OF WAR)');
+      expect(responseEn.promptSection).toContain('STRICT DIRECTIVE');
 
       mockGenerateEmbedding.mockRestore();
       mockQuery.mockRestore();

@@ -16,6 +16,10 @@ import { LOCAL_RAG_NAMESPACES, type QueryResult } from './vector-types';
 import { localVectorStore } from './local-vector-store';
 import { bm25Index } from './bm25-index';
 import { ensureMythosBm25Index } from '@/lib/mythos/bm25';
+import {
+  filterRAGResultsByFogOfWar,
+  formatKeeperSecretsSection,
+} from '../concordia/make-observation';
 
 // ============================================================================
 // TYPES
@@ -57,6 +61,8 @@ export interface RetrievalQuery {
    * (rules/mythos/npcs/sessions) bez filtra.
    */
   adventureSource?: string;
+  /** Język wyjściowy sekcji promptu (domyślnie 'pl') */
+  locale?: 'pl' | 'en';
 }
 
 /** Wynik retrieval ze sformatowanym kontekstem */
@@ -264,7 +270,7 @@ class RetrievalService {
     results = results.sort((a, b) => b.score - a.score).slice(0, maxResults);
 
     // Formatuj do promptu
-    const promptSection = this.formatPromptSection(results);
+    const promptSection = this.formatPromptSection(results, params.locale);
 
     return {
       promptSection,
@@ -515,22 +521,31 @@ class RetrievalService {
    * Formatuje wyniki retrieval jako sekcję promptu AI.
    * Grupuje po typie treści dla lepszej czytelności.
    */
-  private formatPromptSection(results: RetrievalResult[]): string {
+  private formatPromptSection(
+    results: RetrievalResult[],
+    locale: 'pl' | 'en' = 'pl'
+  ): string {
     if (results.length === 0) return '';
 
-    // Grupuj wyniki po contentType
+    const isEn = locale === 'en';
+    // Epistemiczna Mgła Wojny (Concordia pattern): separacja sekretów MG od wiedzy ogólnej
+    const { publicResults, keeperSecrets } = filterRAGResultsByFogOfWar(results);
+
+    // Grupuj wyniki po contentType (wiedza jawna / ogólna)
     const grouped = new Map<string, RetrievalResult[]>();
-    for (const result of results) {
+    for (const result of publicResults) {
       const key = result.contentType;
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(result);
     }
 
-    let section = '\n## KONTEKST RAG (automatycznie pobrany)\n';
-    section +=
-      'Poniższe informacje zostały pobrane z bazy wiedzy i mogą być istotne dla odpowiedzi:\n\n';
+    let section = isEn
+      ? '\n## RAG CONTEXT (automatically retrieved)\n' +
+        'The following information was retrieved from the knowledge base and may be relevant for the response:\n\n'
+      : '\n## KONTEKST RAG (automatycznie pobrany)\n' +
+        'Poniższe informacje zostały pobrane z bazy wiedzy i mogą być istotne dla odpowiedzi:\n\n';
 
-    // Kolejność wyświetlania: rules → adventure → npc → world-state → session
+    // Kolejność wyświetlania: rules → adventure → mythos → npc → world-state → session
     const displayOrder = ['rule', 'adventure', 'mythos', 'npc', 'world-state', 'session'];
 
     for (const contentType of displayOrder) {
@@ -547,19 +562,30 @@ class RetrievalService {
         const simPercent = Math.round(item.score * 100);
         section += `- **[${simPercent}%]** ${item.summary}`;
         if (item.gameTimestamp) {
-          section += ` _(czas: ${item.gameTimestamp})_`;
+          section += isEn
+            ? ` _(time: ${item.gameTimestamp})_`
+            : ` _(czas: ${item.gameTimestamp})_`;
         }
         section += '\n';
         // Pomijamy wewnętrzne metki (`source:<slug>` - służą tylko do filtra retrievalu).
         const visibleTags = item.tags.filter((t) => !t.startsWith('source:'));
         if (visibleTags.length > 0) {
-          section += `  Tagi: ${visibleTags.join(', ')}\n`;
+          section += isEn
+            ? `  Tags: ${visibleTags.join(', ')}\n`
+            : `  Tagi: ${visibleTags.join(', ')}\n`;
         }
       }
       section += '\n';
     }
 
-    section += `**INSTRUKCJA:** Wykorzystaj powyższy kontekst jeśli jest relewantny. Nie cytuj go dosłownie - zintegruj naturalnie w narracji. Jeśli kontekst jest nieistotny dla bieżącej sceny, zignoruj go. Lore Mitów jest wiedzą MG: nie ujawniaj nazw bytów ani prawdy o zagrożeniu bez podstawy w aktywnym śledztwie. Nie traktuj lore Fandomu jako źródła reguł CoC 7e.\n`;
+    // Jeśli wykryto chronione sekrety scenariusza, wstrzyknij je w dedykowany blok zapory epistemicznej
+    if (keeperSecrets.length > 0) {
+      section += formatKeeperSecretsSection(keeperSecrets, locale);
+    }
+
+    section += isEn
+      ? `**INSTRUCTION:** Use the above context if relevant. Do not quote it verbatim - integrate it naturally into the narrative. If the context is irrelevant to the current scene, ignore it. Mythos lore is Keeper knowledge: do not reveal entity names or the truth behind the threat without justification from active investigation. Do not treat Fandom lore as a source of CoC 7e rules.\n`
+      : `**INSTRUKCJA:** Wykorzystaj powyższy kontekst jeśli jest relewantny. Nie cytuj go dosłownie - zintegruj naturalnie w narracji. Jeśli kontekst jest nieistotny dla bieżącej sceny, zignoruj go. Lore Mitów jest wiedzą MG: nie ujawniaj nazw bytów ani prawdy o zagrożeniu bez podstawy w aktywnym śledztwie. Nie traktuj lore Fandomu jako źródła reguł CoC 7e.\n`;
 
     return section;
   }

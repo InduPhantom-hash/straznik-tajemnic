@@ -40,6 +40,13 @@ describe('text-cleaner (TTS)', () => {
     expect(stripped).not.toContain('Notatka');
     expect(stripped).not.toContain('strumieniuje');
   });
+
+  it('usuwa tagi OBSERWACJA i SEKRETY_MG z lektora TTS (Concordia pattern)', () => {
+    const raw =
+      'Na zewnątrz szaleje burza. [OBSERWACJA: @Arthur | słuch | Dudnienie w rurach] [SEKRETY_MG: Potwór zbliża się szybem] Co robisz?';
+    const cleaned = cleanResponseText(raw);
+    expect(cleaned).toBe('Na zewnątrz szaleje burza. Co robisz?');
+  });
 });
 
 import { resolveNpcVoice } from '@/lib/npc-voice-mapping';

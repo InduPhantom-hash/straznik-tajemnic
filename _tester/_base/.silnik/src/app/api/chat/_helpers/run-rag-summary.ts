@@ -40,6 +40,8 @@ export interface RunRAGAndSummaryOpts {
    * ID aktywnej przygody (dla izolacji namespace'u adventures/{id}).
    */
   adventureId?: string;
+  /** Język promptu RAG (domyślnie 'pl') */
+  locale?: 'pl' | 'en';
 }
 
 /**
@@ -80,6 +82,7 @@ export async function runRAGAndSummary(
     geminiKey,
     adventureSource,
     adventureId,
+    locale,
   } = opts;
 
   // OPT-09: embedding service init (idempotent, no-op gdy już zainicjalizowany)
@@ -93,6 +96,7 @@ export async function runRAGAndSummary(
       sessionId,
       adventureSource,
       adventureId,
+      locale,
     })
     .catch((ragErr) => {
       console.warn('⚠️ RAG retrieval failed:', ragErr);

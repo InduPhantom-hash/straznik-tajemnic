@@ -66,4 +66,29 @@ describe('InvestigatorBoard Component', () => {
     expect(screen.getByText('Ślad krwi w bibliotece')).toBeInTheDocument();
     expect(screen.queryByText('Prof. Archibald Sterling')).not.toBeInTheDocument();
   });
+
+  it('renders discovery status badges (Fog of War)', () => {
+    const nodesWithDiscovery: EvidenceNode[] = [
+      {
+        ...mockNodes[0],
+        discoveryStatus: 'unrevealed',
+      },
+      {
+        ...mockNodes[1],
+        discoveryStatus: 'discovered',
+      },
+    ];
+
+    render(
+      <InvestigatorBoard
+        nodes={nodesWithDiscovery}
+        relations={mockRelations}
+        onUpdateNodes={jest.fn()}
+        onUpdateRelations={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Nieodkryte (Mgła wojny)')).toBeInTheDocument();
+    expect(screen.getByText('Odkryte')).toBeInTheDocument();
+  });
 });

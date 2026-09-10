@@ -11,6 +11,9 @@ export type EvidenceNodeStatus =
   | 'hypothesis'   // Hipoteza / przeczucie badacza
   | 'refuted';     // Dowod / hipoteza obalona
 
+export type EvidenceDiscoveryStatus = 'unrevealed' | 'discovered' | 'verified';
+export type EvidenceEpistemicLayer = 'keeper_truth' | 'player_clue';
+
 export type PinType = 'polaroid' | 'note' | 'telegram' | 'badge';
 
 export type ConnectionAnchor = 'top' | 'bottom' | 'left' | 'right' | 'center';
@@ -26,6 +29,8 @@ export interface EvidenceNode {
   description: string;
   type: EvidenceNodeType;
   status: EvidenceNodeStatus;
+  discoveryStatus?: EvidenceDiscoveryStatus;
+  epistemicLayer?: EvidenceEpistemicLayer;
   position: EvidencePosition;
   imageUrl?: string;
   foundInLocation?: string;

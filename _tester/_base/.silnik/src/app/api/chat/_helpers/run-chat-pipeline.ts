@@ -416,6 +416,7 @@ export async function runChatPipeline({
           // Zaweża RAG 'adventures' do ksiazki aktywnej przygody (DriveThruRPG).
           adventureSource: adventureContext?.sourceBookId,
           adventureId: effectiveAdventureId,
+          locale,
         });
         return { ragUserId, sessionId, ragSection, summarySection, ragMeta };
       })(),

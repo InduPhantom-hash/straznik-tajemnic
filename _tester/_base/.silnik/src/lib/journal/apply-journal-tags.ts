@@ -257,6 +257,8 @@ export function processCharacterJournalAndDossier(
           description: fact,
           category: inferClueCategory({ title: tag.title, content: rawContent }),
           status: 'confirmed',
+          discoveryStatus: 'discovered',
+          epistemicLayer: 'player_clue',
           isKeyClue: isKey,
           miceType: resolvedMiceType,
           miceObjective,

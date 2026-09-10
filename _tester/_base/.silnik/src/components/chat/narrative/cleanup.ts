@@ -72,6 +72,11 @@ export function cleanupContent(content: string): string {
     .replace(/\[(?:WYNIK_POŚCIGU|WYNIK_POSCIGU|CHASE_RESULT):[^\]]*\]/gi, '')
     .replace(/\[(?:WYNIK_ZAGROŻENIA|WYNIK_ZAGROZENIA|HAZARD_RESULT):[^\]]*\]/gi, '')
     .replace(/\[SANITY:[^\]]*\]/gi, '')
+    .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
+    .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
+    .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\]/gi, '')
+    .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\]/gi, '')
+    .replace(/\[\/(?:OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
     // [HP: ±N: powód] - utrata/odzysk życia (aplikowane do karty, niewidoczne
     // w czacie). Krótszy niż 3 znaki, więc catch-all niżej go NIE łapie - explicit.
     .replace(/\[HP:[^\]]*\]/gi, '')
@@ -101,7 +106,7 @@ export function cleanupContent(content: string): string {
     // PRASOWY"). Wymóg ':' tuż po słowie-kluczu chroni prozę ("Dziennik leżał na
     // biurku" - brak dwukropka - oraz tytuł gazety "Dziennik Polski" zostają).
     .replace(
-      /^\s*\[?(?:MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|DZIENNIK|JOURNAL|MASKA_NPC|RETRO_ZIARNO|KORELACJA|ECHO_AKCJI)\s*:[^\n]*$/gim,
+      /^\s*\[?(?:MYŚLI_MG|NASTRÓJ|CEL_NARRACYJNY|DZIENNIK|JOURNAL|MASKA_NPC|RETRO_ZIARNO|KORELACJA|ECHO_AKCJI|OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS)\s*:[^\n]*$/gim,
       ''
     )
     // IND-165 - Audio tags TTS (Gemini Flash TTS): regex restrictive whitelist

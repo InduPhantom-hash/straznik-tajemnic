@@ -8,6 +8,9 @@ export type ClueCategory = 'forensic' | 'document' | 'testimony' | 'occult';
 
 export type ClueStatus = 'unconfirmed' | 'confirmed' | 'disproven' | 'superseded';
 
+export type ClueDiscoveryStatus = 'unrevealed' | 'discovered' | 'verified';
+export type EpistemicLayerType = 'keeper_truth' | 'player_clue';
+
 /**
  * Wektor dramatyczny M.I.C.E. Quotient (Orson Scott Card / Mary Robinette Kowal):
  * - milieu: konflikt przestrzeni, uwięzienie, droga ucieczki lub zabezpieczenie lokacji
@@ -23,6 +26,10 @@ export interface ClueEntry {
   description: string;
   category: ClueCategory;
   status: ClueStatus;
+  /** Status odkrycia poszlaki w ramach epistemicznej mgły wojny (Concordia pattern) */
+  discoveryStatus?: ClueDiscoveryStatus;
+  /** Warstwa epistemiczna: obiektywna prawda MG vs wiedza badacza */
+  epistemicLayer?: EpistemicLayerType;
   /** Identyfikator poszlaki unieważniającej (Arcanum Benchmark 2026: Fact Supersession) */
   supersededBy?: string;
   sourceNpc?: string;
