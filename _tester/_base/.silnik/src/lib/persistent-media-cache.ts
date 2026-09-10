@@ -47,6 +47,34 @@ export const STORES = {
 
 type StoreName = (typeof STORES)[keyof typeof STORES];
 
+/**
+ * Issue #78: Magazyny chronione - wyłączone z automatycznej eksmisji LRU.
+ * Portrety i miniatury postaci gracza nie mogą być usuwane w tle.
+ */
+export const PROTECTED_STORES: ReadonlySet<StoreName> = new Set<StoreName>([
+  STORES.CHARACTER_IMAGES,
+]);
+
+/**
+ * Issue #78: Domyślna polityka retencji czasowej (TTL) per-store.
+ * Wpisy starsze niż TTL są automatycznie odrzucane przy odczycie oraz sprzątane w tle.
+ */
+export const DEFAULT_STORE_TTL_MS: Record<StoreName, number> = {
+  [STORES.CHARACTER_IMAGES]: Infinity, // Dane postaci gracza są trwałe
+  [STORES.NPC_PORTRAITS]: 30 * 24 * 60 * 60 * 1000, // 30 dni
+  [STORES.LOCATION_IMAGES]: 30 * 24 * 60 * 60 * 1000, // 30 dni
+  [STORES.CHAT_IMAGES]: 14 * 24 * 60 * 60 * 1000, // 14 dni
+  [STORES.TTS_AUDIO]: 7 * 24 * 60 * 60 * 1000, // 7 dni
+  [STORES.SFX_AUDIO]: 7 * 24 * 60 * 60 * 1000, // 7 dni
+};
+
+interface CacheEntryMetadata {
+  id: string;
+  size: number;
+  lastAccessed: number;
+  createdAt: number;
+}
+
 interface CacheEntry {
   id: string;
   data: string; // base64 data URL
@@ -67,10 +95,45 @@ interface CacheStats {
 class PersistentMediaCache {
   private db: IDBDatabase | null = null;
   private dbPromise: Promise<IDBDatabase> | null = null;
+  private isBlocked = false;
   // IND-136 B4: single-flight mutex dla LRU cleanup w ensureSpaceAvailable
   // Dedupe równoległe calls - gdy 2 setX() trigger cleanup z różnych transactions,
   // tylko pierwsza wykona cleanup, druga czeka na tę samą Promise.
   private cleanupPromise: Promise<void> | null = null;
+
+  /**
+   * Sprawdza, czy dany błąd reprezentuje trwałą restrykcję bezpieczeństwa
+   * (np. Safari Private Browsing / SecurityError) lub brak uprawnień,
+   * kwalifikującą się do trwałego odcięcia circuit breakera (isBlocked = true).
+   * Błędy przejściowe (QuotaExceededError, UnknownError, AbortError) NIE blokują cache trwale.
+   */
+  private isPermanentRestriction(error: unknown): boolean {
+    if (!error) return false;
+    if (typeof error === 'string') {
+      const lower = error.toLowerCase();
+      return (
+        lower.includes('securityerror') ||
+        lower.includes('notallowederror') ||
+        lower.includes('insecure') ||
+        lower.includes('not allowed') ||
+        lower.includes('notallowed')
+      );
+    }
+    const err = error as { name?: string; message?: string; code?: number };
+    const lowerName = (err.name || '').toLowerCase();
+    const lowerMessage = (err.message || '').toLowerCase();
+    const code = err.code || 0;
+    return (
+      lowerName === 'securityerror' ||
+      lowerName === 'notallowederror' ||
+      code === 18 ||
+      lowerMessage.includes('securityerror') ||
+      lowerMessage.includes('notallowederror') ||
+      lowerMessage.includes('insecure') ||
+      lowerMessage.includes('not allowed') ||
+      lowerMessage.includes('notallowed')
+    );
+  }
 
   /**
    * Initialize the IndexedDB database
@@ -81,48 +144,107 @@ class PersistentMediaCache {
 
     this.dbPromise = new Promise((resolve, reject) => {
       if (typeof indexedDB === 'undefined') {
+        this.dbPromise = null;
         reject(new Error('IndexedDB not available'));
         return;
       }
 
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onerror = () => {
-        Sentry.captureException(
-          request.error ?? new Error('Failed to open IndexedDB')
+      if (this.isBlocked) {
+        this.dbPromise = null;
+        reject(
+          new Error('IndexedDB is disabled due to security restrictions')
         );
-        reject(request.error);
-      };
+        return;
+      }
 
-      request.onsuccess = () => {
-        this.db = request.result;
-        resolve(this.db);
-      };
+      try {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-
-        // Create stores for each media type
-        Object.values(STORES).forEach((storeName) => {
-          if (!db.objectStoreNames.contains(storeName)) {
-            const store = db.createObjectStore(storeName, { keyPath: 'id' });
-            store.createIndex('lastAccessed', 'lastAccessed', {
-              unique: false,
-            });
-            store.createIndex('createdAt', 'createdAt', { unique: false });
-            store.createIndex('size', 'size', { unique: false });
+        request.onerror = () => {
+          const error = request.error;
+          if (this.isPermanentRestriction(error)) {
+            this.isBlocked = true;
           }
-        });
-      };
+          this.dbPromise = null;
+          Sentry.captureException(
+            error ?? new Error('Failed to open IndexedDB')
+          );
+          reject(error);
+        };
+
+        request.onblocked = () => {
+          Sentry.addBreadcrumb({
+            category: 'cache',
+            level: 'warning',
+            message: `open('${DB_NAME}') blocked by open connection in another tab`,
+          });
+        };
+
+        request.onsuccess = () => {
+          this.db = request.result;
+          this.isBlocked = false;
+
+          // Obsługa zamykania połączenia gdy inna karta inicjuje resetDatabase/deleteDatabase (versionchange)
+          this.db.onversionchange = () => {
+            this.db?.close();
+            this.db = null;
+            this.dbPromise = null;
+          };
+
+          this.db.onclose = () => {
+            this.db = null;
+            this.dbPromise = null;
+          };
+
+          resolve(this.db);
+        };
+
+        request.onupgradeneeded = (event) => {
+          const db = (event.target as IDBOpenDBRequest).result;
+          const transaction = (event.target as IDBOpenDBRequest).transaction;
+
+          // Create stores for each media type and ensure all indexes exist (Issue #78 migration)
+          Object.values(STORES).forEach((storeName) => {
+            let store: IDBObjectStore;
+            if (!db.objectStoreNames.contains(storeName)) {
+              store = db.createObjectStore(storeName, { keyPath: 'id' });
+            } else if (transaction) {
+              store = transaction.objectStore(storeName);
+            } else {
+              return;
+            }
+
+            if (!store.indexNames.contains('lastAccessed')) {
+              store.createIndex('lastAccessed', 'lastAccessed', {
+                unique: false,
+              });
+            }
+            if (!store.indexNames.contains('createdAt')) {
+              store.createIndex('createdAt', 'createdAt', { unique: false });
+            }
+            if (!store.indexNames.contains('size')) {
+              store.createIndex('size', 'size', { unique: false });
+            }
+          });
+        };
+      } catch (error) {
+        if (this.isPermanentRestriction(error)) {
+          this.isBlocked = true;
+        }
+        this.dbPromise = null;
+        Sentry.captureException(error);
+        reject(error);
+      }
     });
 
     return this.dbPromise;
   }
 
   /**
-   * Check if IndexedDB is available
+   * Check if IndexedDB is available (Issue #78: returns false if blocked by Safari/incognito security error)
    */
   isAvailable(): boolean {
+    if (this.isBlocked) return false;
     return typeof indexedDB !== 'undefined';
   }
 
@@ -130,6 +252,7 @@ class PersistentMediaCache {
    * Get item from cache
    */
   async get(store: StoreName, id: string): Promise<string | null> {
+    if (!this.isAvailable()) return null;
     try {
       const db = await this.initDB();
 
@@ -142,6 +265,20 @@ class PersistentMediaCache {
         request.onsuccess = () => {
           const entry = request.result as CacheEntry | undefined;
           if (!entry) {
+            resolve(null);
+            return;
+          }
+
+          // Issue #78: Walidacja TTL - jeśli wpis wygasł, usuwamy go i zwracamy null (cache miss)
+          // Obsługuje także wpisy legacy z brakiem pola createdAt (fallback do lastAccessed)
+          const ttl = DEFAULT_STORE_TTL_MS[store] ?? Infinity;
+          const entryTime = entry.createdAt || entry.lastAccessed || 0;
+          if (
+            ttl !== Infinity &&
+            entryTime > 0 &&
+            Date.now() - entryTime > ttl
+          ) {
+            objectStore.delete(id);
             resolve(null);
             return;
           }
@@ -168,11 +305,26 @@ class PersistentMediaCache {
     data: string,
     metadata?: MediaMetadata
   ): Promise<boolean> {
+    if (!this.isAvailable()) return false;
     try {
-      const db = await this.initDB();
-
       // Calculate size
-      const size = new Blob([data]).size;
+      const size =
+        typeof Blob !== 'undefined' ? new Blob([data]).size : data.length;
+
+      // Issue #78 audit finding: pojedynczy element większy niż maxCacheSize nie może być
+      // buforowany, gdyż przekracza dopuszczalny limit całego magazynu i powodowałby
+      // bezcelową kaskadową eksmisję wszystkich innych wpisów.
+      const maxCacheSize = await this.getMaxCacheSize();
+      if (size > maxCacheSize) {
+        Sentry.addBreadcrumb({
+          category: 'cache',
+          level: 'warning',
+          message: `Item size (${size} B) exceeds maxCacheSize (${maxCacheSize} B) for ${store}/${id}. Skipping cache set.`,
+        });
+        return false;
+      }
+
+      const db = await this.initDB();
 
       // IND-139 B9: graceful - błąd cleanup (np. quota) NIE blokuje zapisu entry
       try {
@@ -223,21 +375,23 @@ class PersistentMediaCache {
   }
 
   /**
-   * Delete item from cache
+   * Issue #78: Batch delete items in a single readwrite transaction to eliminate N+1 IPC overhead.
    */
-  async delete(store: StoreName, id: string): Promise<boolean> {
+  async batchDelete(store: StoreName, ids: string[]): Promise<boolean> {
+    if (!this.isAvailable() || ids.length === 0) return true;
     try {
       const db = await this.initDB();
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const transaction = db.transaction(store, 'readwrite');
         const objectStore = transaction.objectStore(store);
-        const request = objectStore.delete(id);
+        for (const id of ids) {
+          objectStore.delete(id);
+        }
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          resolve(true);
-        };
+        transaction.oncomplete = () => resolve(true);
+        transaction.onerror = () => resolve(false);
+        transaction.onabort = () => resolve(false);
       });
     } catch (error) {
       Sentry.captureException(error);
@@ -246,9 +400,17 @@ class PersistentMediaCache {
   }
 
   /**
+   * Delete item from cache
+   */
+  async delete(store: StoreName, id: string): Promise<boolean> {
+    return this.batchDelete(store, [id]);
+  }
+
+  /**
    * Check if item exists in cache
    */
   async has(store: StoreName, id: string): Promise<boolean> {
+    if (!this.isAvailable()) return false;
     const data = await this.get(store, id);
     return data !== null;
   }
@@ -261,6 +423,9 @@ class PersistentMediaCache {
    * ~500ms (5× IndexedDB overhead). Teraz jedna transakcja + Promise.all per store cursor.
    */
   async getStats(): Promise<CacheStats> {
+    if (!this.isAvailable()) {
+      return { totalSize: 0, itemCount: 0, byStore: {} };
+    }
     try {
       const db = await this.initDB();
       const stats: CacheStats = {
@@ -320,16 +485,16 @@ class PersistentMediaCache {
   }
 
   /**
-   * IND-139 C6: dynamiczny limit cache wg navigator.storage.estimate() (80% quota),
-   * fallback MAX_CACHE_SIZE_BYTES (150 MB) gdy API niedostępne lub błąd.
-   * Niektóre przeglądarki dają 500MB+, mobile Safari ~50MB.
+   * Issue #78: dynamiczny limit cache z twardym sufitem bezpieczeństwa MAX_CACHE_SIZE_BYTES (150 MB).
+   * Poprzednio quota dysku (np. 200 GB) unieważniała limit 150 MB, powodując niekontrolowane puchnięcie.
+   * Teraz bierzemy minimum z limitu 150 MB i 80% quota (dla restrykcyjnych przeglądarek np. Safari 50 MB).
    */
   private async getMaxCacheSize(): Promise<number> {
     try {
       if (typeof navigator !== 'undefined' && navigator.storage?.estimate) {
         const { quota } = await navigator.storage.estimate();
         if (quota && quota > 0) {
-          return Math.floor(quota * 0.8);
+          return Math.min(MAX_CACHE_SIZE_BYTES, Math.floor(quota * 0.8));
         }
       }
     } catch {
@@ -342,9 +507,14 @@ class PersistentMediaCache {
    * Ensure there's space available by removing old entries (LRU)
    *
    * IND-136 B4: single-flight pattern - równoległe set() calls otrzymują tę samą Promise.
-   * Pierwsza wywołanie startuje cleanup, kolejne czekają. Po finish, mutex resetuje.
+   * Issue #78:
+   * 1. Ochrona magazynów chronionych (PROTECTED_STORES, np. character-images).
+   * 2. Eliminacja OOM: skanowanie kursorowe samych metadanych zamiast ładowania całych stringów base64 przez getAll().
+   * 3. W pierwszej kolejności czyści wpisy przedawnione wg TTL, co często eliminuje potrzebę eksmisji aktywnych mediów.
+   * 4. Grupowe usuwanie wsadowe (batchDelete) w 1 transakcji per-store zamiast N pojedynczych transakcji.
    */
   private async ensureSpaceAvailable(requiredSize: number): Promise<void> {
+    if (!this.isAvailable()) return;
     if (this.cleanupPromise) {
       return this.cleanupPromise;
     }
@@ -352,35 +522,81 @@ class PersistentMediaCache {
     this.cleanupPromise = (async () => {
       try {
         const maxCacheSize = await this.getMaxCacheSize();
-        const stats = await this.getStats();
+
+        // Issue #78 audit finding: jeśli pojedynczy element przekracza cały limit magazynu,
+        // żadna eksmisja (nawet wyczyszczenie 100% bazy) nie pozwoli go pomieścić.
+        // Wyjście zapobiega bezsensownemu usunięciu wszystkich dotychczasowych wpisów.
+        if (requiredSize > maxCacheSize) {
+          return;
+        }
+
+        let stats = await this.getStats();
 
         if (stats.totalSize + requiredSize <= maxCacheSize) {
           return; // Enough space
         }
 
-        const db = await this.initDB();
-        const targetSize = maxCacheSize * 0.8; // Clean to 80% capacity
-        let currentSize = stats.totalSize;
+        // Krok 1: W pierwszej kolejności usuń wpisy przeterminowane wg TTL.
+        // Purge wygasłych próbek audio i starych kadrów czatu często natychmiast zwalnia
+        // potrzebne miejsce, zapobiegając przedwczesnej eksmisji aktywnych materiałów.
+        await this.cleanupExpired();
+        stats = await this.getStats();
 
-        // Get all entries sorted by lastAccessed
-        const allEntries: { store: string; entry: CacheEntry }[] = [];
-
-        for (const storeName of Object.values(STORES)) {
-          const entries = await this.getAllEntries(db, storeName);
-          allEntries.push(
-            ...entries.map((entry) => ({ store: storeName, entry }))
-          );
+        if (stats.totalSize + requiredSize <= maxCacheSize) {
+          return; // Po usunięciu wygasłych mamy wystarczająco miejsca
         }
 
-        // Sort by lastAccessed (oldest first)
-        allEntries.sort((a, b) => a.entry.lastAccessed - b.entry.lastAccessed);
+        const db = await this.initDB();
+        // Celujemy w redukcję do 80% pojemności lub wystarczająco dużo miejsca na requiredSize z buforem
+        const targetSize = Math.max(
+          0,
+          Math.min(maxCacheSize * 0.8, maxCacheSize - requiredSize)
+        );
+        let currentSize = stats.totalSize;
 
-        // Delete oldest entries until we're under target size
-        for (const { store, entry } of allEntries) {
+        // Kandydaci do eksmisji - wyłącznie niechronione magazyny (wyklucza character-images)
+        const candidateStores = Object.values(STORES).filter(
+          (storeName) => !PROTECTED_STORES.has(storeName as StoreName)
+        );
+
+        if (candidateStores.length === 0) return;
+
+        // Skanowanie metadanych w pojedynczej transakcji
+        const scanTx = db.transaction(candidateStores, 'readonly');
+        const candidateEntries: {
+          store: StoreName;
+          metadata: CacheEntryMetadata;
+        }[] = [];
+
+        await Promise.all(
+          candidateStores.map(async (storeName) => {
+            const entries = await this.getStoreMetadataInTx(
+              scanTx,
+              storeName as StoreName
+            );
+            candidateEntries.push(...entries);
+          })
+        );
+
+        // Sortowanie po lastAccessed (od najstarszego)
+        candidateEntries.sort(
+          (a, b) => a.metadata.lastAccessed - b.metadata.lastAccessed
+        );
+
+        // Zbieranie identyfikatorów do usunięcia wg store (grupowanie dla transakcji wsadowej)
+        const toDeleteByStore = new Map<StoreName, string[]>();
+        for (const { store, metadata } of candidateEntries) {
           if (currentSize <= targetSize) break;
 
-          await this.delete(store as StoreName, entry.id);
-          currentSize -= entry.size;
+          const list = toDeleteByStore.get(store) || [];
+          list.push(metadata.id);
+          toDeleteByStore.set(store, list);
+          currentSize -= metadata.size;
+        }
+
+        // Usuwanie najstarszych wpisów wsadowo (1 transakcja per store)
+        for (const [storeName, ids] of toDeleteByStore.entries()) {
+          await this.batchDelete(storeName, ids);
         }
       } finally {
         this.cleanupPromise = null;
@@ -390,24 +606,244 @@ class PersistentMediaCache {
     return this.cleanupPromise;
   }
 
-  private async getAllEntries(
-    db: IDBDatabase,
-    storeName: string
-  ): Promise<CacheEntry[]> {
+  /**
+   * Issue #78: pobiera wyłącznie lekkie metadane wpisów kursorowo,
+   * zapobiegając ładowaniu łańcuchów Base64 do pamięci RAM.
+   */
+  private async getStoreMetadataInTx(
+    transaction: IDBTransaction,
+    storeName: StoreName
+  ): Promise<{ store: StoreName; metadata: CacheEntryMetadata }[]> {
     return new Promise((resolve) => {
-      const transaction = db.transaction(storeName, 'readonly');
       const objectStore = transaction.objectStore(storeName);
-      const request = objectStore.getAll();
+      const results: { store: StoreName; metadata: CacheEntryMetadata }[] = [];
+      const request = objectStore.openCursor();
 
-      request.onsuccess = () => resolve(request.result || []);
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (cursor) {
+          const val = cursor.value as CacheEntry;
+          results.push({
+            store: storeName,
+            metadata: {
+              id: val.id,
+              size: val.size || (val.data ? val.data.length : 0),
+              lastAccessed: val.lastAccessed || val.createdAt || 0,
+              createdAt: val.createdAt || 0,
+            },
+          });
+          cursor.continue();
+        } else {
+          resolve(results);
+        }
+      };
+
       request.onerror = () => resolve([]);
     });
+  }
+
+  /**
+   * Issue #78: Usuwa wpisy, których wiek przekroczył zdefiniowany TTL.
+   * Zwraca liczbę usuniętych wpisów. Wykorzystuje wsadowe usuwanie w 1 transakcji per store.
+   */
+  async cleanupExpired(): Promise<number> {
+    if (!this.isAvailable()) return 0;
+    try {
+      const db = await this.initDB();
+      let deletedCount = 0;
+      const now = Date.now();
+
+      for (const storeName of Object.values(STORES)) {
+        const ttl = DEFAULT_STORE_TTL_MS[storeName as StoreName];
+        if (ttl === Infinity) continue; // Pomiń magazyny chronione/wieczne
+
+        const toDelete: string[] = [];
+        await new Promise<void>((resolve) => {
+          const transaction = db.transaction(storeName, 'readonly');
+          const objectStore = transaction.objectStore(storeName);
+          const request = objectStore.openCursor();
+
+          request.onsuccess = (event) => {
+            const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+            if (cursor) {
+              const entry = cursor.value as CacheEntry;
+              const entryTime = entry.createdAt || entry.lastAccessed || 0;
+              if (entryTime > 0 && now - entryTime > ttl) {
+                toDelete.push(entry.id);
+              }
+              cursor.continue();
+            } else {
+              resolve();
+            }
+          };
+          request.onerror = () => resolve();
+        });
+
+        if (toDelete.length > 0) {
+          await this.batchDelete(storeName as StoreName, toDelete);
+          deletedCount += toDelete.length;
+        }
+      }
+
+      return deletedCount;
+    } catch (error) {
+      Sentry.captureException(error);
+      return 0;
+    }
+  }
+
+  /**
+   * Issue #78: Twarde usunięcie i reinicjalizacja bazy IndexedDB (samonaprawa przy korupcji / hard reset).
+   * Obsługuje blokowanie połączeń przez inne karty (onblocked) z konfigurowalnym czasem oczekiwania.
+   */
+  async resetDatabase(
+    timeoutOrOptions?: number | { blockedTimeoutMs?: number }
+  ): Promise<boolean> {
+    const blockedTimeoutMs =
+      typeof timeoutOrOptions === 'number'
+        ? timeoutOrOptions
+        : timeoutOrOptions?.blockedTimeoutMs ?? 2000;
+
+    try {
+      this.isBlocked = false;
+
+      // Zabezpieczenie przed samoblokowaniem: zaczekaj na trwające w tle operacje cleanup/init (z timeoutem)
+      const drainTimeoutMs = Math.max(0, Math.min(1000, blockedTimeoutMs));
+
+      if (this.cleanupPromise || this.dbPromise) {
+        let drainTimer: ReturnType<typeof setTimeout> | null = null;
+        try {
+          await Promise.race([
+            (async () => {
+              if (this.cleanupPromise) {
+                try {
+                  await this.cleanupPromise;
+                } catch {
+                  // ignoruj błędy cleanup podczas resetu
+                }
+              }
+
+              if (this.dbPromise) {
+                try {
+                  const pendingDb = await this.dbPromise;
+                  pendingDb.close();
+                } catch {
+                  // ignoruj błędy init podczas resetu
+                }
+              }
+            })(),
+            new Promise<void>((resolve) => {
+              drainTimer = setTimeout(resolve, drainTimeoutMs);
+            }),
+          ]);
+        } finally {
+          if (drainTimer) {
+            clearTimeout(drainTimer);
+          }
+        }
+      }
+
+      if (this.dbPromise) {
+        // Zabezpieczenie: jeśli dbPromise wisiała i nie zakończyła się przed timeoutem,
+        // zamykamy połączenie po jej ewentualnym późniejszym rozstrzygnięciu
+        const stuckDbPromise = this.dbPromise;
+        stuckDbPromise
+          .then((stuckDb) => {
+            try {
+              stuckDb.close();
+            } catch {
+              // ignoruj błędy zamykania spóźnionego połączenia
+            }
+          })
+          .catch(() => {});
+      }
+
+      if (this.db) {
+        this.db.close();
+        this.db = null;
+      }
+      this.dbPromise = null;
+
+      if (typeof indexedDB === 'undefined') {
+        return false;
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        let blockedTimer: ReturnType<typeof setTimeout> | null = null;
+        let isSettled = false;
+
+        const cleanup = () => {
+          if (blockedTimer) {
+            clearTimeout(blockedTimer);
+            blockedTimer = null;
+          }
+        };
+
+        request.onsuccess = () => {
+          if (isSettled) return;
+          isSettled = true;
+          cleanup();
+          resolve();
+        };
+
+        request.onerror = () => {
+          if (isSettled) return;
+          isSettled = true;
+          cleanup();
+          reject(request.error ?? new Error('Failed to delete database'));
+        };
+
+        request.onblocked = () => {
+          Sentry.addBreadcrumb({
+            category: 'cache',
+            level: 'warning',
+            message: `deleteDatabase('${DB_NAME}') blocked by open connections in other tabs`,
+          });
+
+          if (blockedTimeoutMs <= 0) {
+            if (isSettled) return;
+            isSettled = true;
+            cleanup();
+            reject(
+              new Error(
+                'Database deletion blocked by open connections in other tabs'
+              )
+            );
+            return;
+          }
+
+          if (!blockedTimer) {
+            blockedTimer = setTimeout(() => {
+              if (isSettled) return;
+              isSettled = true;
+              cleanup();
+              reject(
+                new Error(
+                  `Database deletion blocked by open connections (timed out after ${blockedTimeoutMs}ms)`
+                )
+              );
+            }, blockedTimeoutMs);
+          }
+        };
+      });
+
+      await this.initDB();
+      return true;
+    } catch (error) {
+      if (this.isPermanentRestriction(error)) {
+        this.isBlocked = true;
+      }
+      Sentry.captureException(error);
+      return false;
+    }
   }
 
   /**
    * Clear all cache
    */
   async clearAll(): Promise<void> {
+    if (!this.isAvailable()) return;
     try {
       const db = await this.initDB();
 
@@ -429,6 +865,7 @@ class PersistentMediaCache {
    * Clear specific store
    */
   async clearStore(store: StoreName): Promise<void> {
+    if (!this.isAvailable()) return;
     try {
       const db = await this.initDB();
 

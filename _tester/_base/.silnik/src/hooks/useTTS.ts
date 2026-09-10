@@ -22,6 +22,7 @@ import {
 } from '@/lib/audio/sound-director';
 import { SFX_PATTERNS } from '@/lib/parsers/patterns';
 import { playSFX } from '@/lib/audio/sfx-catalog';
+import { persistentMediaCache } from '@/lib/persistent-media-cache';
 
 interface QueueItem {
   text: string;
@@ -414,15 +415,44 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           const geminiModel = overrideVoiceId
             ? TTS_MODEL_NPC
             : TTS_MODEL_NARRATOR;
-          // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
-          // Issue #162 + #200: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
-          audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
+          // Issue #78: Sprawdź pamięć podręczną IndexedDB przed wywołaniem API sieciowego
+          const ttsCacheKey = persistentMediaCache.generateTtsCacheKey(
             text,
-            voice: effectiveVoice,
-            model: geminiModel,
-            languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
-            audioDirection,
-          });
+            `${effectiveVoice}_${locale}_${audioDirection || ''}`
+          );
+
+          if (persistentMediaCache.isAvailable()) {
+            try {
+              audioUrl = await persistentMediaCache.getTtsAudio(ttsCacheKey);
+              if (audioUrl) {
+                console.log(`⚡ TTS Worker: Cache HIT dla segmentu ${index}`);
+              }
+            } catch {
+              audioUrl = null;
+            }
+          }
+
+          if (!audioUrl) {
+            // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
+            // Issue #162 + #200: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
+            audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
+              text,
+              voice: effectiveVoice,
+              model: geminiModel,
+              languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
+              audioDirection,
+            });
+
+            if (audioUrl && persistentMediaCache.isAvailable()) {
+              persistentMediaCache
+                .setTtsAudio(ttsCacheKey, audioUrl, {
+                  text,
+                  voiceId: effectiveVoice,
+                  languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
+                })
+                .catch(() => {});
+            }
+          }
 
           if (audioUrl) {
             const audio = new Audio(audioUrl);
