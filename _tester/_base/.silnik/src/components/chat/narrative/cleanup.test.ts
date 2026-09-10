@@ -1,4 +1,5 @@
 import { cleanupContent } from './cleanup';
+import { formatNarrative } from './formatter';
 
 describe('cleanupContent', () => {
   it('wycina tag [KONIEC_SESJI:POTWIERDZENIE] z tekstu narracji', () => {
@@ -57,7 +58,6 @@ Na biurku leży stary telegram.`;
   });
 
   it('formatNarrative poprawnie ekstrahuje MYŚLI_MG z zagnieżdżonymi nawiasami w trybie Director Mode', () => {
-    const { formatNarrative } = require('./formatter');
     const input = `[MYŚLI_MG: plan [serious] działania | MASKA_NPC: profesor [calm]]
 Wkraczasz do gabinetu.`;
     const nodes = formatNarrative(input, undefined, undefined, true);
