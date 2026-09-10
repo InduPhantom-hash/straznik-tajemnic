@@ -103,6 +103,13 @@ describe('POST /api/adventure/generate', () => {
     expect(data.error).toBe('Nieprawidłowe ciało żądania (oczekiwano obiektu JSON).');
   });
 
+  it('zwraca 400 gdy ciało żądania jest tablicą', async () => {
+    const res = await POST(request([{ theme: 'infiltracja' }]));
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('Nieprawidłowe ciało żądania (oczekiwano obiektu JSON).');
+  });
+
   it('sanitaryzuje nieznane wartości era i tone bez błędu', async () => {
     const res = await POST(
       request({

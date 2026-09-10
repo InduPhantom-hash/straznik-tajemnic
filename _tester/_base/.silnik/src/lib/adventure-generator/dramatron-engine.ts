@@ -969,15 +969,48 @@ Wygeneruj scenariusz Dramatron:
         parsed = null;
       }
 
+      const hasValidPremise = Boolean(
+        parsed?.premise &&
+        typeof parsed.premise.title === 'string' &&
+        parsed.premise.title.trim().length > 0
+      );
+
+      const hasValidCast = Boolean(
+        Array.isArray(parsed?.cast) &&
+        parsed.cast.length > 0 &&
+        parsed.cast.every((npc) => npc && typeof npc.name === 'string' && npc.name.trim().length > 0)
+      );
+
+      const hasValidClues = Boolean(
+        Array.isArray(parsed?.clueWeb?.clues) &&
+        parsed.clueWeb.clues.length > 0 &&
+        parsed.clueWeb.clues.every((c) => c && typeof c.title === 'string' && c.title.trim().length > 0)
+      );
+
+      const hasValidLocations = Boolean(
+        Array.isArray(parsed?.locations) &&
+        parsed.locations.length > 0 &&
+        parsed.locations.every((l) => l && typeof l.name === 'string' && l.name.trim().length > 0)
+      );
+
+      const hasValidScenes = Boolean(
+        Array.isArray(parsed?.scenes) &&
+        parsed.scenes.length > 0 &&
+        parsed.scenes.every((s) => s && typeof s.title === 'string' && s.title.trim().length > 0)
+      );
+
       if (
         parsed &&
-        parsed.premise?.title &&
-        Array.isArray(parsed.cast) &&
-        parsed.cast.length > 0 &&
-        parsed.clueWeb?.clues &&
-        Array.isArray(parsed.locations) &&
-        Array.isArray(parsed.scenes)
+        hasValidPremise &&
+        hasValidCast &&
+        hasValidClues &&
+        hasValidLocations &&
+        hasValidScenes
       ) {
+        const allowedDispositions: readonly DramatronNpc['disposition'][] = ['friendly', 'neutral', 'suspicious', 'hostile', 'fanatical'];
+        const allowedCategories: readonly ClueCategory[] = ['forensic', 'document', 'testimony', 'occult'];
+        const allowedMice: readonly MiceQuotientType[] = ['milieu', 'inquiry', 'character', 'event'];
+
         return {
           version: '1.0.0',
           generatedAt: new Date().toISOString(),
@@ -986,34 +1019,60 @@ Wygeneruj scenariusz Dramatron:
             ...fallback.premise,
             ...parsed.premise,
           },
-          cast: parsed.cast.map((npc: Partial<DramatronNpc>, idx: number) => ({
-            ...fallback.cast[idx % fallback.cast.length],
-            ...npc,
-            id: npc.id || `npc-ai-${idx + 1}`,
-          })),
+          cast: (parsed.cast || []).map((npc, idx) => {
+            const fallbackNpc = fallback.cast[idx % fallback.cast.length];
+            const disposition = allowedDispositions.includes(npc.disposition as typeof allowedDispositions[number])
+              ? (npc.disposition as typeof allowedDispositions[number])
+              : fallbackNpc.disposition;
+
+            return {
+              ...fallbackNpc,
+              ...npc,
+              id: npc.id || `npc-ai-${idx + 1}`,
+              disposition,
+            };
+          }),
           clueWeb: {
-            clues: (parsed.clueWeb.clues || []).map((c: Partial<DramatronClue>, idx: number) => ({
-              ...fallback.clueWeb.clues[idx % fallback.clueWeb.clues.length],
-              ...c,
-              id: c.id || `clue-ai-${idx + 1}`,
-            })),
-            connections: Array.isArray(parsed.clueWeb.connections)
+            clues: (parsed.clueWeb?.clues || []).map((c, idx) => {
+              const fallbackClue = fallback.clueWeb.clues[idx % fallback.clueWeb.clues.length];
+              const category: ClueCategory = (c.category && allowedCategories.includes(c.category as ClueCategory))
+                ? (c.category as ClueCategory)
+                : fallbackClue.category;
+              const miceType: MiceQuotientType = (c.miceType && allowedMice.includes(c.miceType as MiceQuotientType))
+                ? (c.miceType as MiceQuotientType)
+                : fallbackClue.miceType;
+
+              return {
+                ...fallbackClue,
+                ...c,
+                id: c.id || `clue-ai-${idx + 1}`,
+                category,
+                miceType,
+              };
+            }),
+            connections: Array.isArray(parsed.clueWeb?.connections)
               ? parsed.clueWeb.connections
               : fallback.clueWeb.connections,
-            truthAnchor: parsed.clueWeb.truthAnchor
+            truthAnchor: parsed.clueWeb?.truthAnchor
               ? { ...fallback.clueWeb.truthAnchor, ...parsed.clueWeb.truthAnchor }
               : fallback.clueWeb.truthAnchor,
           },
-          locations: parsed.locations.map((loc: Partial<DramatronLocation>, idx: number) => ({
-            ...fallback.locations[idx % fallback.locations.length],
-            ...loc,
-            id: loc.id || `loc-ai-${idx + 1}`,
-          })),
-          scenes: parsed.scenes.map((sc: Partial<DramatronScene>, idx: number) => ({
-            ...fallback.scenes[idx % fallback.scenes.length],
-            ...sc,
-            id: sc.id || `scene-ai-${idx + 1}`,
-          })),
+          locations: (parsed.locations || []).map((loc, idx) => {
+            const fallbackLoc = fallback.locations[idx % fallback.locations.length];
+            return {
+              ...fallbackLoc,
+              ...loc,
+              id: loc.id || `loc-ai-${idx + 1}`,
+            };
+          }),
+          scenes: (parsed.scenes || []).map((sc, idx) => {
+            const fallbackScene = fallback.scenes[idx % fallback.scenes.length];
+            return {
+              ...fallbackScene,
+              ...sc,
+              id: sc.id || `scene-ai-${idx + 1}`,
+            };
+          }),
         };
       }
 

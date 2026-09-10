@@ -16,7 +16,7 @@ const ALLOWED_TONES: readonly DramatronTone[] = ['purist', 'pulp', 'noir'];
 export async function POST(req: Request) {
   try {
     const rawBody = await req.json().catch(() => null);
-    if (!rawBody || typeof rawBody !== 'object') {
+    if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
       return NextResponse.json(
         { error: 'Nieprawidłowe ciało żądania (oczekiwano obiektu JSON).' },
         { status: 400 }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const mythosEntity = typeof body.mythosEntity === 'string' ? body.mythosEntity.slice(0, 100) : undefined;
     const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : undefined;
     const locale = body.locale === 'en' ? 'en' : 'pl';
-    const forPlayer = Boolean(body.forPlayer);
+    const forPlayer = body.forPlayer === true || body.forPlayer === 'true';
 
     const dramatron = await dramatronEngine.generateAI({
       theme,
