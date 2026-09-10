@@ -14,7 +14,7 @@
 │
 ├─→ Gemini embedding (3072-dim, MRL @ 768)
 │
-├─→ Strategia 1: Pinecone semantic (multi-namespace: rules, adventures, npcs, world-state, sessions/{id})
+├─→ Strategia 1: Local vector store semantic (multi-namespace: rules, adventures, sessions/{id})
 │
 ├─→ Strategia 2: BM25 keyword (TYLKO namespace rules + adventures = PDF dokumenty)
 │
@@ -22,7 +22,7 @@
 │      RRF score = SEMANTIC_WEIGHT/(RRF_K + rank_sem) + KEYWORD_WEIGHT/(RRF_K + rank_kw)
 │      → normalizacja do [0..1]
 │
-├─→ Strategia 4: Fallback `MemoryIndex` (lokalny cosine similarity) - gdy Pinecone niedostępny
+├─→ Strategia 4: Fallback `MemoryIndex` (lokalny cosine similarity) - gdy lokalny magazyn wektorów pusty
 │
 └─→ filter score >= minScore → sort desc → slice maxResults → format prompt section
 ```
@@ -120,11 +120,11 @@ Symptom: `RetrievalResponse.results.length === 0` dla typowych zapytań.
 
 1. `DEFAULT_MIN_SCORE: 0.65 → 0.55` (poluź filtr).
 2. Jeśli dalej zero → `DEFAULT_TOP_K_PER_NAMESPACE: 3 → 5` (więcej kandydatów).
-3. Jeśli dalej zero → sprawdź `pineconeClient.initialized` i logi BM25 (`bm25Index.size > 0`).
+3. Jeśli dalej zero → sprawdź `localVectorStore.initialized` i logi BM25 (`bm25Index.size > 0`).
 
 ### Recipe C - "Keyword nie wpływa na wyniki - semantic przygniata"
 
-Symptom: `source: 'pinecone'` w 95% requestów, prawie nigdy `'hybrid'`.
+Symptom: `source: 'semantic'` w 95% requestów, prawie nigdy `'hybrid'`.
 
 **Działanie**: `SEMANTIC_WEIGHT: 0.7 → 0.6` (więcej miejsca dla keyword).
 
@@ -148,7 +148,7 @@ Symptom: telemetria pokazuje `promptSection.length` >2000 znaków per request.
 
 Symptom: AI zapomina NPC pojawiającego się w turze 30, mimo że jest w `conversation-memory`.
 
-**Działanie**: NIE zmieniaj wag retrieval - to NIE jest problem hybrid search. Sprawdź `conversation-memory.ts` (auto-save turns) i `pineconeClient.upsert` dla namespace `sessions/{id}`. Diagnoza: `pineconeClient.query('sessions/{id}', topK=10)` ręcznie i sprawdź czy NPC ma chunk.
+**Działanie**: NIE zmieniaj wag retrieval - to NIE jest problem hybrid search. Sprawdź `conversation-memory.ts` (auto-save turns) i `localVectorStore.upsert` dla namespace `sessions/{id}`. Diagnoza: `localVectorStore.query('sessions/{id}', vec, 10)` ręcznie i sprawdź czy NPC ma chunk.
 
 ---
 
@@ -172,10 +172,10 @@ Manualny smoke na ~10 zapytaniach pokrywających różne mechaniki:
 | typ zapytania       | przykład                                                              | oczekiwane źródło                   |
 | ------------------- | --------------------------------------------------------------------- | ----------------------------------- |
 | Mechanika exact     | "rzut na SAN po widzeniu Cthulhu"                                     | hybrid (BM25 łapie SAN)             |
-| Mechanika parafraza | "ile zdrowia psychicznego tracę po widzeniu Wielkiego Przedwiecznego" | pinecone (semantic łapie parafrazę) |
+| Mechanika parafraza | "ile zdrowia psychicznego tracę po widzeniu Wielkiego Przedwiecznego" | semantic (semantic łapie parafrazę) |
 | Nazwa własna        | "Necronomicon"                                                        | hybrid (keyword dominuje)           |
-| Lore parafraza      | "kto stworzył Mythos"                                                 | pinecone (semantic)                 |
-| Wspomnienie sesji   | "co zrobił Profesor Armitage w turze 5"                               | pinecone z sessions namespace       |
+| Lore parafraza      | "kto stworzył Mythos"                                                 | semantic (semantic)                 |
+| Wspomnienie sesji   | "co zrobił Profesor Armitage w turze 5"                               | semantic z sessions namespace       |
 
 Każde zapytanie sprawdź ręcznie: czy zwrócone fragmenty są relewantne? Średnia jakość >70% = pass.
 
@@ -184,7 +184,7 @@ Każde zapytanie sprawdź ręcznie: czy zwrócone fragmenty są relewantne? Śre
 Po deploy monitoruj przez 1 tydzień:
 
 - `RetrievalResponse.results.length` (rozkład - zero, 1-5, 6+)
-- `RetrievalResponse.source` (pinecone vs hybrid vs local vs mixed vs none)
+- `RetrievalResponse.source` (semantic vs hybrid vs local vs mixed vs none)
 - `RetrievalResponse.durationMs` (cel: p95 <500 ms)
 
 Ostry spadek `'hybrid'` względem baseline = problem z BM25 indeksem.
@@ -209,7 +209,7 @@ Wzrost `'none'` = za ostry minScore lub problem z embeddingami.
 
 - [`retrieval-service.ts`](./retrieval-service.ts) - implementacja
 - [`bm25-index.ts`](./bm25-index.ts) - BM25 keyword search
-- [`pinecone-client.ts`](./pinecone-client.ts) - wrapper Pinecone SDK
+- [`local-vector-store.ts`](./local-vector-store.ts) - lokalny magazyn wektorów
 - [`embedding-service`](../embedding-service.ts) - Gemini embedding (V1: 3072 → 768 MRL, V2: 3072 native)
 - [`CLAUDE.md`](../../../CLAUDE.md) - pełen kontekst Etap 2 RAG roadmapy v4.0
 
@@ -224,32 +224,29 @@ Aplikacja wspiera 2 wersje shape embeddingów:
 | **v1** (default) | 768  | `outputDimensionality: 768` (MRL truncated) | 0.65      | Backward compat z istniejącym indexem `coc-rag`                                                   |
 | **v2** (opt-in)  | 3072 | brak `outputDimensionality` (native Gemini) | 0.70      | Target produkcyjny po IND-164 follow-up infra (recipe B - patrz sesja 142 w retrieval-service.ts) |
 
-**Powód dual-version**: wyższa precision V2 (3072 dim) → mniej halucynacji w long-context RPG sesji (4h × 100+ wiadomości). V1 zostaje jako safe-fallback gdy V2 padnie A/B test lub Pinecone Free 2GB limit jest przekroczony.
+**Powód dual-version**: wyższa precision V2 (3072 dim) → mniej halucynacji w long-context RPG sesji (4h × 100+ wiadomości). V1 zostaje jako safe-fallback gdy V2 padnie A/B test.
 
 **Migration steps (gdy gotowe na V2 - follow-up ticket)**:
 
-1. Utwórz drugi Pinecone index `coc-rag-v2` w konsoli (dim=3072, metric=cosine)
-2. Ustaw `PINECONE_INDEX_HOST_V2=https://coc-rag-v2-...` w `.env.local` + Vercel
-3. Re-index CoC 7e PDF via UI upload (`clearBefore=true`, namespace `rules`)
-4. Ustaw `RAG_VERSION=v2` w `.env.local` + Vercel (po smoke V2)
-5. A/B test recall@5 na 10 hard CoC questions (IND-167)
-6. Smoke 1h sesja CoC z RAG queries
+1. Re-index CoC 7e PDF via UI upload (`clearBefore=true`, namespace `rules`)
+2. Ustaw `RAG_VERSION=v2` w `.env.local` (po smoke V2)
+3. A/B test recall@5 na 10 hard CoC questions (IND-167)
+4. Smoke 1h sesja CoC z RAG queries
 
-**Rollback**: usuń `RAG_VERSION` z env (defaults to v1) lub ustaw `RAG_VERSION=v1`. Index V1 zostaje fallback przez 1-2 tyg po V2 deploy.
+**Rollback**: usuń `RAG_VERSION` z env (defaults to v1) lub ustaw `RAG_VERSION=v1`.
 
 **Helpers (server-side, cache module-level per process)**:
 
 - `getEmbeddingDimensions()` w [`embedding-service.ts`](../embedding-service.ts) - runtime dim per RAG_VERSION
-- `getActivePineconeHost()` w [`pinecone-client.ts`](./pinecone-client.ts) - runtime host (V1 lub V2 z fallback)
 - `getDefaultMinScore()` w [`retrieval-service.ts`](./retrieval-service.ts) - runtime threshold
 
-Wszystkie helpery cache'ują wartości module-level (Next.js serverless instance scope). Reset przez `_reset*Cache()` eksportowany dla testów.
+Wszystkie helpery cache'ują wartości module-level. Reset przez `_reset*Cache()` eksportowany dla testów.
 
 **Pułapki**:
 
 - `process.env.RAG_VERSION` server-only - embedding-service NIE jest wołany client-side (verified empirycznie sesja 78).
 - Backward compat dla `MemoryIndexEntry.embedding: number[]` w localStorage - V1 zostaje default, brak breaking change. V2 wymaga re-index (clean environment dla beta testerów per opis IND-164).
-- Pinecone Free 2GB limit dla V2: 3072 dim × ~600 chunks ≈ 2.4 GB ⚠️ może przekroczyć. Fallback A: MRL truncated 1536 dim, fallback B: Pinecone Standard $70/mc, fallback C: chunking optimization (CHUNK_SIZE 2000 → 4000-6000).
+- Lokalne wektory przechowywane w formacie binarnym Float32 (`.bin` + `.meta.json`) w `data/rag/`.
 
 ---
 

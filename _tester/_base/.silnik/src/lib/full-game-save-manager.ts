@@ -117,10 +117,6 @@ export interface FullGameSave {
     rulesIndexedChunks?: number;
     adventureIndexedLocally?: boolean;
     adventureIndexedChunks?: number;
-    /** @deprecated Kompatybilność save'ów sprzed lokalnego RAG. */
-    rulesIndexedToPinecone?: boolean;
-    /** @deprecated Kompatybilność save'ów sprzed lokalnego RAG. */
-    adventureIndexedToPinecone?: boolean;
   };
 
   // === GM Tools ===

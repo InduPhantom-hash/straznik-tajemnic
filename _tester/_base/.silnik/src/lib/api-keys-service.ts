@@ -11,9 +11,6 @@ export interface ApiKeys {
 
   // M5+M6 sesja 146: ELEVENLABS_API_KEY DROPPED per D2.
 
-  // Opcjonalny - Pinecone vector DB
-  PINECONE_API_KEY?: string;
-
   // Opcjonalny - Fallback image generation (Flux Schnell)
   REPLICATE_API_TOKEN?: string;
 
@@ -108,10 +105,6 @@ export function getApiKeyHeaders(): Record<string, string> {
   const gemini = sanitizeApiKey(keys.GEMINI_API_KEY);
   if (gemini) {
     headers['X-Gemini-Api-Key'] = gemini;
-  }
-  const pinecone = sanitizeApiKey(keys.PINECONE_API_KEY);
-  if (pinecone) {
-    headers['X-Pinecone-Api-Key'] = pinecone;
   }
   // M5 sesja 146: ELEVENLABS_API_KEY header DROPPED per D2.
   const replicate = sanitizeApiKey(keys.REPLICATE_API_TOKEN);

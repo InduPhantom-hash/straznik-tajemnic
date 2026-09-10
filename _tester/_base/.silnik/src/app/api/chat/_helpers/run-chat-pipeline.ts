@@ -212,8 +212,10 @@ export async function runChatPipeline({
     mechanicsContext,
     assistantMessageId,
     locale: requestedLocale,
+    adventureId: explicitAdventureId,
   } = body as {
     message: string;
+    adventureId?: string;
     character?: Character | null;
     characters?: Character[];
     messages?: Message[];
@@ -223,6 +225,7 @@ export async function runChatPipeline({
     gameContextPrompt?: string;
     skipContext?: boolean;
     adventureContext?: {
+      id?: string;
       era?: string;
       eraLabel?: string;
       yearRange?: string;
@@ -399,6 +402,11 @@ export async function runChatPipeline({
           ragUserId,
           clientAISettings?.sessionId
         );
+        const effectiveAdventureId =
+          explicitAdventureId ||
+          adventureContext?.id ||
+          pdfMemory?.adventureId ||
+          (clientAISettings as { adventureId?: string } | undefined)?.adventureId;
         const { ragSection, summarySection, ragMeta } = await runRAGAndSummary({
           message,
           messages,
@@ -407,6 +415,7 @@ export async function runChatPipeline({
           geminiKey: apiKey,
           // Zaweża RAG 'adventures' do ksiazki aktywnej przygody (DriveThruRPG).
           adventureSource: adventureContext?.sourceBookId,
+          adventureId: effectiveAdventureId,
         });
         return { ragUserId, sessionId, ragSection, summarySection, ragMeta };
       })(),

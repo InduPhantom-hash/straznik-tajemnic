@@ -9,28 +9,27 @@ jest.mock('@/lib/api-keys-service', () => ({
 describe('lokalna pamięć PDF', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('migruje stare pola Pinecone bez usuwania danych save', () => {
+  it('normalizuje stan pamięci PDF z domyślnymi wartościami flag lokalnych', () => {
     expect(
       normalizePdfMemory({
         rulesFileName: 'rules.pdf',
-        rulesIndexedToPinecone: true,
-        adventureIndexedToPinecone: false,
+        rulesIndexedLocally: true,
+        adventureIndexedLocally: false,
+        adventureId: 'adv-scenariusz-1',
       })
     ).toMatchObject({
       rulesFileName: 'rules.pdf',
-      rulesIndexedToPinecone: true,
       rulesIndexedLocally: true,
       adventureIndexedLocally: false,
+      adventureId: 'adv-scenariusz-1',
     });
   });
 
-  it('nie nadpisuje nowych pól wartościami legacy', () => {
-    expect(
-      normalizePdfMemory({
-        rulesIndexedLocally: false,
-        rulesIndexedToPinecone: true,
-      }).rulesIndexedLocally
-    ).toBe(false);
+  it('zwraca domyślne flagi false dla pustego obiektu pamięci', () => {
+    expect(normalizePdfMemory({})).toEqual({
+      rulesIndexedLocally: false,
+      adventureIndexedLocally: false,
+    });
   });
 
   it('wysyła PDF do ingest-local jako FormData z BYOK', async () => {
@@ -63,6 +62,31 @@ describe('lokalna pamięć PDF', () => {
       })
     );
     expect(getApiKeyHeaders).toHaveBeenCalled();
+    fetchMock.mockRestore();
+  });
+
+  it('przekazuje adventureId w FormData podczas indeksowania przygody', async () => {
+    let capturedFormData: any = null;
+    const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(async (_url, init) => {
+      capturedFormData = (init?.body as FormData) ?? null;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          indexed: 1,
+          failed: 0,
+          totalChunks: 1,
+          namespace: 'adventures/adv-99',
+          durationMs: 8,
+        }),
+      } as Response;
+    });
+
+    const file = new File(['%PDF-1.7'], 'adv.pdf', { type: 'application/pdf' });
+    await indexPdfLocally(file, 'adventure', 'adv.pdf', 'adv-99');
+    expect(capturedFormData?.get('adventureId')).toBe('adv-99');
+    expect(capturedFormData?.get('type')).toBe('adventure');
     fetchMock.mockRestore();
   });
 

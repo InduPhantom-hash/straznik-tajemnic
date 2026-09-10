@@ -19,7 +19,7 @@ export async function resolveUserId(legacyFallback: string): Promise<string> {
 /**
  * Scope'uje identyfikator sesji per-konto (IND-168 Faza 3, izolacja RAG).
  *
- * Magazyny kluczowane sessionId (Pinecone namespace `sessions/{id}`, cache
+ * Magazyny kluczowane sessionId (lokalny RAG namespace `sessions/{id}`, cache
  * podsumowań, director state) stają się per-user: `{userId}/{sessionId}`.
  * Dzięki temu pamięć fabularna jednego gracza nie wycieka do RAG innego.
  *

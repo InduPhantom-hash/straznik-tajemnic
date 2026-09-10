@@ -28,11 +28,8 @@ export interface PdfMemory {
   adventureFileName?: string;
   adventureIndexedLocally?: boolean;
   adventureIndexedChunks?: number;
+  adventureId?: string;
   lastUpdated?: string;
-  /** @deprecated Odczyt wyłącznie dla kompatybilności starszych save'ów. */
-  rulesIndexedToPinecone?: boolean;
-  /** @deprecated Odczyt wyłącznie dla kompatybilności starszych save'ów. */
-  adventureIndexedToPinecone?: boolean;
 }
 
 export interface LocalPdfIndexingResult {
@@ -51,24 +48,24 @@ export function normalizePdfMemory(
   const memory = value ?? {};
   return {
     ...memory,
-    rulesIndexedLocally:
-      memory.rulesIndexedLocally ?? memory.rulesIndexedToPinecone ?? false,
-    adventureIndexedLocally:
-      memory.adventureIndexedLocally ??
-      memory.adventureIndexedToPinecone ??
-      false,
+    rulesIndexedLocally: memory.rulesIndexedLocally ?? false,
+    adventureIndexedLocally: memory.adventureIndexedLocally ?? false,
   };
 }
 
 export async function indexPdfLocally(
   file: File,
   type: 'rules' | 'adventure',
-  fileName: string = file.name
+  fileName: string = file.name,
+  adventureId?: string
 ): Promise<LocalPdfIndexingResult> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', type);
   formData.append('fileName', fileName);
+  if (adventureId) {
+    formData.append('adventureId', adventureId);
+  }
 
   const response = await fetch('/api/pdf/ingest-local', {
     method: 'POST',
@@ -91,19 +88,25 @@ export interface UsePdfMemoryReturn {
   isIndexing: boolean;
   uploadProgress: number; // 0-100
   indexingProgress: number; // 0-100
-  handlePdfUpload: (file: File, type: 'rules' | 'adventure') => Promise<void>;
+  handlePdfUpload: (
+    file: File,
+    type: 'rules' | 'adventure',
+    customAdventureId?: string
+  ) => Promise<void>;
   handleFileChange: (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: 'rules' | 'adventure'
+    type: 'rules' | 'adventure',
+    customAdventureId?: string
   ) => void;
 }
 
 interface UsePdfMemoryOptions {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  adventureId?: string;
 }
 
 export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
-  const { setMessages } = options;
+  const { setMessages, adventureId: defaultAdventureId } = options;
 
   const [pdfMemory, setPdfMemory] = useState<PdfMemory>({});
   const [isUploading, setIsUploading] = useState(false);
@@ -112,7 +115,12 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
   const [indexingProgress, setIndexingProgress] = useState(0);
 
   const handlePdfUpload = useCallback(
-    async (file: File, type: 'rules' | 'adventure') => {
+    async (
+      file: File,
+      type: 'rules' | 'adventure',
+      customAdventureId?: string
+    ) => {
+      const effectiveAdventureId = customAdventureId ?? defaultAdventureId;
       setIsUploading(true);
       setUploadProgress(10); // Start
 
@@ -172,6 +180,7 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
                 adventureGeminiFileUri: uploadData.geminiFileUri,
                 adventureTextGeminiFileUri: undefined,
                 adventureFileName: uploadData.fileName,
+                adventureId: effectiveAdventureId,
               }),
           lastUpdated: new Date().toISOString(),
         };
@@ -222,7 +231,10 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
                   text: uploadData.parsedData.text,
                   type,
                   fileName: uploadData.fileName,
-                  clearBefore: type === 'rules',
+                  clearBefore:
+                    type === 'rules' ||
+                    (type === 'adventure' && !!effectiveAdventureId),
+                  adventureId: effectiveAdventureId,
                 }),
               });
 
@@ -296,14 +308,18 @@ export function usePdfMemory(options: UsePdfMemoryOptions): UsePdfMemoryReturn {
         setTimeout(() => setUploadProgress(0), 500);
       }
     },
-    [pdfMemory, setMessages]
+    [pdfMemory, setMessages, defaultAdventureId]
   );
 
   const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, type: 'rules' | 'adventure') => {
+    (
+      e: React.ChangeEvent<HTMLInputElement>,
+      type: 'rules' | 'adventure',
+      customAdventureId?: string
+    ) => {
       const file = e.target.files?.[0];
       if (file) {
-        handlePdfUpload(file, type);
+        handlePdfUpload(file, type, customAdventureId);
       }
     },
     [handlePdfUpload]

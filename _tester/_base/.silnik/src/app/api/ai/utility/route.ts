@@ -15,7 +15,7 @@ import * as Sentry from '@sentry/nextjs';
  *
  * Ten endpoint daje kreatorowi (rozdział umiejętności, losowanie postaci, rekomendacje,
  * ekwipunek, pola tła) osobny kanał BEZ persony GM, BEZ RAG, BEZ gmProtocol i BEZ
- * efektów ubocznych (Pinecone/director-state/telemetria). Zwraca DOKŁADNIE to, o co
+ * efektów ubocznych (RAG/director-state/telemetria). Zwraca DOKŁADNIE to, o co
  * prosi prompt (zwykle JSON lub prosta lista).
  *
  * Klucz (IND-231, wersja lokalna Zew Home): priorytet ma nagłówek `X-Gemini-Api-Key`

@@ -7,7 +7,7 @@
  *   2. updateDirectorState - warunkowo gdy sessionId + parsed.gmMetadata
  *   3. enqueue metadata event ('data: {type:"metadata",...}\n\n')
  *   4. logApiEvent - fire-and-forget cost recording + telemetria (OPT-28)
- *   5. conversationMemory.saveConversationTurn - fire-and-forget Pinecone persist
+ *   5. conversationMemory.saveConversationTurn - fire-and-forget local RAG persist
  *
  * Pattern SSE: każdy chunk to `data: {JSON}\n\n` (z double-newline separator).
  * Error w stream → controller.error(e) propaguje do client (NIE swallows).
@@ -216,7 +216,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           }).catch(() => {});
         }
 
-        // Conversation memory persist (fire-and-forget Pinecone)
+        // Conversation memory persist (fire-and-forget local RAG)
         if (sessionId && fullText) {
           conversationMemory
             .saveConversationTurn({

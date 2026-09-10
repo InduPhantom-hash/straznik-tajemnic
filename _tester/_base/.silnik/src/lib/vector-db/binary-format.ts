@@ -89,15 +89,21 @@ export function countBinaryNamespace(
   dir: string,
   namespace: string
 ): number | null {
+  if (!hasBinaryNamespace(dir, namespace)) return null;
   const file = binPath(dir, namespace);
-  if (!fs.existsSync(file)) return null;
   let fd: number | null = null;
   try {
+    const stat = fs.statSync(file);
+    if (stat.size < HEADER_SIZE) return null;
     fd = fs.openSync(file, 'r');
     const header = Buffer.alloc(HEADER_SIZE);
     fs.readSync(fd, header, 0, HEADER_SIZE, 0);
     if (header.toString('ascii', 0, 4) !== MAGIC) return null;
-    return header.readUInt32LE(4);
+    const count = header.readUInt32LE(4);
+    const dim = header.readUInt32LE(8);
+    const expectedBytes = HEADER_SIZE + count * dim * 4;
+    if (stat.size !== expectedBytes) return null;
+    return count;
   } catch {
     return null;
   } finally {

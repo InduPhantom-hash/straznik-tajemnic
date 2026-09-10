@@ -67,7 +67,6 @@ export function FullResetDialog({
                 <li>{t('itemSettings')}</li>
                 <li>{t('itemNotes')}</li>
                 <li>{t('itemMediaCache')}</li>
-                <li>{t('itemPinecone')}</li>
                 <li>{t('itemPdfs')}</li>
                 <li>{t('itemCache')}</li>
               </ul>

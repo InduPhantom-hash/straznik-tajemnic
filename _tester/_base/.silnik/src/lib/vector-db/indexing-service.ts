@@ -3,8 +3,8 @@
  * Etap 2b roadmapy v4.0
  *
  * Odpowiada za:
- * - Konwersję MemoryIndexEntry → Pinecone UpsertVector
- * - Indeksowanie nowych chunków do Pinecone (real-time, przy archiwizacji)
+ * - Konwersję MemoryIndexEntry → UpsertVector
+ * - Indeksowanie nowych chunków do lokalnego RAG (real-time, przy archiwizacji)
  * - Bulk indeksowanie istniejących sesji (migracja z GCS JSON)
  * - Zarządzanie namespace'ami per sesja
  *
@@ -25,11 +25,11 @@ import {
 import { localVectorStore } from './local-vector-store';
 
 // ============================================================================
-// KONWERSJA MemoryIndexEntry → Pinecone
+// KONWERSJA MemoryIndexEntry → Wektor
 // ============================================================================
 
 /**
- * Konwertuje wpis z lokalnego indeksu pamięci na wektor Pinecone.
+ * Konwertuje wpis z lokalnego indeksu pamięci na wektor.
  */
 function entryToVector(
   entry: MemoryIndexEntry,
@@ -57,7 +57,7 @@ function entryToVector(
 // ============================================================================
 
 /**
- * Indeksuj pojedynczy chunk do Pinecone.
+ * Indeksuj pojedynczy chunk do lokalnego RAG.
  * Wywoływane real-time po archiwizacji nowego chunka.
  *
  * IND-119 B6: walidacja embedding.length === getEmbeddingDimensions() przed upsert.
@@ -97,7 +97,7 @@ export async function indexChunk(
 }
 
 /**
- * Bulk indeksowanie całego MemoryIndex do Pinecone.
+ * Bulk indeksowanie całego MemoryIndex do lokalnego RAG.
  * Używane przy migracji istniejącej sesji z GCS JSON.
  *
  * IND-119 B6: walidacja embedding dim per entry przed mapowaniem na vector.
@@ -146,7 +146,7 @@ export async function indexMemoryIndex(
 /**
  * Batch indeksowanie wielu tekstów do namespace'u.
  * Generuje embeddingi sekwencyjnie (API rate limits), upsertuje batchowo.
- * Caller: pdf-indexing-service.ts:388 (PDF → Pinecone pipeline).
+ * Caller: pdf-indexing-service.ts (PDF → lokalny RAG pipeline).
  *
  * IND-117 (sesja 75): `indexText` (single text variant, 45 lin) dropniete
  * jako dead code (0 callerów empirycznie). `indexTexts` (batch) zostaje -
@@ -225,7 +225,7 @@ export async function indexTexts(
         await localVectorStore.upsert(namespace, vectors);
       }
       console.log(
-        `🌲 Batch indexed ${vectors.length} texts to namespace "${namespace}"`
+        `💾 Batch indexed ${vectors.length} texts to namespace "${namespace}"`
       );
     } catch (error) {
       console.error('❌ Batch upsert failed:', error);
@@ -245,7 +245,7 @@ export async function indexTexts(
 }
 
 /**
- * Usuń wszystkie wektory sesji z Pinecone.
+ * Usuń wszystkie wektory sesji z lokalnego RAG.
  */
 export async function deleteSession(sessionId: string): Promise<void> {
   if (!localVectorStore.initialized) return;

@@ -5523,7 +5523,6 @@
     "itemSettings": "Application settings",
     "itemNotes": "Notes and saved data",
     "itemMediaCache": "🖼️ Media cache (IndexedDB ~150 MB - NPC portraits, images, audio)",
-    "itemPinecone": "🌲 Pinecone Vector DB (CoC rules, NPCs, game world)",
     "itemPdfs": "📚 PDFs in GCS (CoC rules, adventures, GM notes)",
     "itemCache": "Cache and temporary files",
     "cancel": "Cancel",

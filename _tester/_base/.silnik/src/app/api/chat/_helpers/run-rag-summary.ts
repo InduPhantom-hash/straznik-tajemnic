@@ -36,6 +36,10 @@ export interface RunRAGAndSummaryOpts {
    * retrievalService.retrieve → zawęża wyniki z namespace 'adventures' do tej książki.
    */
   adventureSource?: string;
+  /**
+   * ID aktywnej przygody (dla izolacji namespace'u adventures/{id}).
+   */
+  adventureId?: string;
 }
 
 /**
@@ -49,7 +53,7 @@ export interface RunRAGAndSummaryOpts {
 export interface RagMeta {
   /** Ilość hits zwróconych z retrieval (po RRF merge + filter minScore) */
   hits: number;
-  /** Źródło retrieval: 'hybrid' | 'pinecone' | 'local' | 'mixed' | 'none' */
+  /** Źródło retrieval: 'hybrid' | 'semantic' | 'local' | 'mixed' | 'none' */
   source: string;
   /** Czas retrieval w ms (subset całego durationMs requestu) */
   durationMs: number;
@@ -68,8 +72,15 @@ export interface RunRAGAndSummaryResult {
 export async function runRAGAndSummary(
   opts: RunRAGAndSummaryOpts
 ): Promise<RunRAGAndSummaryResult> {
-  const { message, messages, sessionId, apiKey, geminiKey, adventureSource } =
-    opts;
+  const {
+    message,
+    messages,
+    sessionId,
+    apiKey,
+    geminiKey,
+    adventureSource,
+    adventureId,
+  } = opts;
 
   // OPT-09: embedding service init (idempotent, no-op gdy już zainicjalizowany)
   if (geminiKey) {
@@ -81,6 +92,7 @@ export async function runRAGAndSummary(
       query: message,
       sessionId,
       adventureSource,
+      adventureId,
     })
     .catch((ragErr) => {
       console.warn('⚠️ RAG retrieval failed:', ragErr);

@@ -4,14 +4,14 @@
  * Test regresyjny dla obszaru #14 audytowanego w Sesji 3 IND-42 (2026-05-07).
  * Pokrywa critical path: page renders → /api/chat error path mock guard.
  *
- * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów Gemini/Pinecone.
+ * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów Gemini/RAG.
  * Testy NIE wywołują prawdziwego /api/chat (tokeny + SSE streaming).
  *
  * Pominięte (świadomie minimal scope per W4 patch z plan-review):
  *  - Pełen happy path SSE streaming (Content-Type: text/event-stream + chunks data:...\n\n,
  *    forcefit przez page.route trudny — osobny ticket follow-up dla pełnego e2e SSE)
- *  - Real Gemini/Pinecone integration (wymaga API keys + rate limits)
- *  - Save turn fire-and-forget (Pinecone upsert, race condition w CI)
+ *  - Real Gemini/RAG integration (wymaga API keys + rate limits)
+ *  - Save turn fire-and-forget (RAG upsert, race condition w CI)
  * Powód: scope sesji audytowej = SMOKE regresji (czy UI nie wisi, czy mock /api/chat trafia),
  * NIE pełna integracja chat flow.
  *

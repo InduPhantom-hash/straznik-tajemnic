@@ -3,10 +3,10 @@
  * Etap 2c + 3c roadmapy v4.0
  *
  * Odpowiada za:
- * - Wyszukiwanie w Pinecone (multi-namespace: rules, adventures, sessions, npcs, world-state)
+ * - Wyszukiwanie w lokalnym store (multi-namespace: rules, adventures, mythos, sessions)
  * - BM25 keyword search dla dokładnych dopasowań terminów (etap 3c)
  * - Reciprocal Rank Fusion (RRF) do łączenia wyników semantic + keyword
- * - Fallback na lokalny MemoryIndex gdy Pinecone niedostępny
+ * - Fallback na lokalny MemoryIndex gdy store niedostępny
  * - Merge i deduplikacja wyników z wielu źródeł
  * - Formatowanie kontekstu RAG do wstrzyknięcia w prompt AI
  */
@@ -39,7 +39,9 @@ export interface RetrievalQuery {
   query: string;
   /** ID aktywnej sesji (dla namespace sessions/{id}) */
   sessionId?: string;
-  /** Które namespace'y przeszukiwać (domyślnie: wszystkie dostępne) */
+  /** ID aktywnej przygody (dla izolowanego namespace'u adventures/{id}) */
+  adventureId?: string;
+  /** Które namespace'y przeszukiwać (domyślnie: wyznaczone z kontekstu) */
   namespaces?: string[];
   /** Ile wyników na namespace (domyślnie: 3) */
   topKPerNamespace?: number;
@@ -137,10 +139,6 @@ const BM25_NAMESPACES: Set<string> = new Set([
   LOCAL_RAG_NAMESPACES.RULES,
   LOCAL_RAG_NAMESPACES.ADVENTURES,
   LOCAL_RAG_NAMESPACES.MYTHOS,
-  // npcs: nazwiska postaci historycznych ("Piłsudski", "Ćwikliński") to
-  // twarde keyword matche - BM25 podbija ich trafność obok semantycznego.
-  LOCAL_RAG_NAMESPACES.NPCS,
-  LOCAL_RAG_NAMESPACES.CUSTOM,
 ]);
 
 /** Mapowanie contentType → emoji + etykieta PL do promptu */
@@ -162,10 +160,10 @@ class RetrievalService {
    * Główna metoda retrieval - hybrid search z wielu źródeł.
    *
    * Strategia (etap 3c):
-   * 1. Pinecone semantic search (multi-namespace)
-   * 2. BM25 keyword search (namespace rules + adventures)
+   * 1. Semantic search w lokalnym store (multi-namespace)
+   * 2. BM25 keyword search (namespace rules + adventures + mythos)
    * 3. Reciprocal Rank Fusion (RRF) → merge semantic + keyword
-   * 4. Fallback na lokalny MemoryIndex gdy Pinecone niedostępny
+   * 4. Fallback na lokalny MemoryIndex gdy store niedostępny
    * 5. Formatowanie kontekstu RAG
    */
   async retrieve(params: RetrievalQuery): Promise<RetrievalResponse> {
@@ -180,7 +178,9 @@ class RetrievalService {
     } = params;
 
     ensureMythosBm25Index();
-    const namespaces = params.namespaces || this.getDefaultNamespaces(sessionId);
+    const namespaces =
+      params.namespaces ||
+      this.getDefaultNamespaces(sessionId, params.adventureId);
     // Embedding poprawia recall, ale brak klucza nie może wyłączyć lokalnego Mythos BM25.
     const queryEmbedding = await embeddingService.generateEmbedding(
       query,
@@ -201,8 +201,10 @@ class RetrievalService {
       );
     }
 
-    // Strategia 2: BM25 keyword search (tylko dla rules + adventures)
-    const bm25Namespaces = namespaces.filter((ns) => BM25_NAMESPACES.has(ns));
+    // Strategia 2: BM25 keyword search (dla rules + adventures + mythos)
+    const bm25Namespaces = namespaces.filter(
+      (ns) => BM25_NAMESPACES.has(ns) || ns.startsWith('adventures/')
+    );
     let keywordResults: RetrievalResult[] = [];
     if (bm25Index.size > 0 && bm25Namespaces.length > 0) {
       keywordResults = this.searchBM25(
@@ -315,10 +317,15 @@ class RetrievalService {
     namespace: string
   ): RetrievalResult {
     let tags: string[] = [];
-    try {
-      tags = JSON.parse(qr.metadata.tags || '[]');
-    } catch {
-      tags = [];
+    if (Array.isArray(qr.metadata.tags)) {
+      tags = qr.metadata.tags;
+    } else if (typeof qr.metadata.tags === 'string') {
+      try {
+        const parsed = JSON.parse(qr.metadata.tags);
+        tags = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        tags = qr.metadata.tags ? [qr.metadata.tags] : [];
+      }
     }
 
     return {
@@ -462,18 +469,21 @@ class RetrievalService {
 
   /**
    * Zwraca domyślne namespace'y do przeszukania na podstawie kontekstu.
-   * Zawsze szukaj w rules + adventures + npcs + world-state + mythos.
-   * Dodaj session jeśli podano sessionId.
+   * Szuka w rules + mythos + (adventures/{adventureId} lub adventures).
+   * Dodaje session jeśli podano sessionId.
+   * Usunięto fantomowe namespace'y (npcs, world-state, custom).
    */
-  private getDefaultNamespaces(sessionId?: string): string[] {
+  getDefaultNamespaces(sessionId?: string, adventureId?: string): string[] {
     const ns: string[] = [
       LOCAL_RAG_NAMESPACES.RULES,
-      LOCAL_RAG_NAMESPACES.ADVENTURES,
-      LOCAL_RAG_NAMESPACES.NPCS,
-      LOCAL_RAG_NAMESPACES.WORLD_STATE,
       LOCAL_RAG_NAMESPACES.MYTHOS,
-      LOCAL_RAG_NAMESPACES.CUSTOM,
     ];
+
+    if (adventureId) {
+      ns.push(LOCAL_RAG_NAMESPACES.adventure(adventureId));
+    } else {
+      ns.push(LOCAL_RAG_NAMESPACES.ADVENTURES);
+    }
 
     if (sessionId) {
       ns.push(LOCAL_RAG_NAMESPACES.session(sessionId));
@@ -487,9 +497,12 @@ class RetrievalService {
    * Reindex zapisuje go w metadata.tags dla namespace 'adventures'. Zwraca null
    * gdy brak metki - taki fragment NIE przejdzie filtra adventureSource.
    */
-  private extractSourceTag(tags: string[]): string | null {
+  private extractSourceTag(tags?: string[]): string | null {
+    if (!tags || !Array.isArray(tags)) return null;
     for (const t of tags) {
-      if (t.startsWith('source:')) return t.slice('source:'.length);
+      if (typeof t === 'string' && t.startsWith('source:')) {
+        return t.slice('source:'.length);
+      }
     }
     return null;
   }

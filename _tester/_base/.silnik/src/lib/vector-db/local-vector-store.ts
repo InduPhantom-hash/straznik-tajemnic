@@ -10,8 +10,8 @@
  * Namespace z `/` (np. sessions/{id}) → bezpieczna nazwa pliku (sessions__{id}.json).
  * Query: cosineSimilarity (reuse z embedding-service) po wszystkich wektorach namespace.
  *
- * Skala gry (~1868 wektorów @ 3072 dim) → brute-force cosine <10 ms, szybsze niż
- * round-trip do Pinecone. RAM ~50 MB przy pełnym podręczniku.
+ * Skala gry (~1868 wektorów @ 3072 dim) → brute-force cosine <10 ms.
+ * RAM ~50 MB przy pełnym podręczniku.
  */
 
 import fs from 'fs';
@@ -22,6 +22,7 @@ import {
   readBinaryNamespace,
   countBinaryNamespace,
   deleteBinaryNamespace,
+  writeBinaryNamespace,
 } from './binary-format';
 import type { UpsertVector, QueryResult, VectorMetadata } from './vector-types';
 
@@ -48,9 +49,107 @@ function namespaceToFile(namespace: string): string {
   return path.join(dataDir(), `${safe}.json`);
 }
 
+/**
+ * Bounded min-heap dla topK wyników retrieval.
+ * Utrzymuje w pamięci co najwyżej K elementów, eliminując
+ * alokację tysięcy obiektów QueryResult i sortowanie całego zbioru N.
+ */
+export class BoundedMinHeap {
+  private heap: QueryResult[] = [];
+  readonly capacity: number;
+
+  constructor(capacity: number) {
+    this.capacity =
+      Number.isFinite(capacity) && capacity > 0 ? Math.floor(capacity) : 0;
+  }
+
+  get size(): number {
+    return this.heap.length;
+  }
+
+  peek(): QueryResult | undefined {
+    return this.heap[0];
+  }
+
+  push(item: QueryResult): void {
+    if (this.capacity <= 0 || !Number.isFinite(item.score)) return;
+
+    if (this.heap.length < this.capacity) {
+      this.heap.push(item);
+      this.siftUp(this.heap.length - 1);
+    } else if (item.score > this.heap[0].score) {
+      this.heap[0] = item;
+      this.siftDown(0);
+    }
+  }
+
+  private siftUp(index: number): void {
+    let current = index;
+    const item = this.heap[current];
+    while (current > 0) {
+      const parent = (current - 1) >> 1;
+      if (this.heap[parent].score <= item.score) break;
+      this.heap[current] = this.heap[parent];
+      current = parent;
+    }
+    this.heap[current] = item;
+  }
+
+  private siftDown(index: number): void {
+    const length = this.heap.length;
+    const half = length >> 1;
+    const item = this.heap[index];
+    let current = index;
+
+    while (current < half) {
+      let left = (current << 1) + 1;
+      const right = left + 1;
+      let minChild = left;
+
+      if (right < length && this.heap[right].score < this.heap[left].score) {
+        minChild = right;
+      }
+      if (item.score <= this.heap[minChild].score) break;
+      this.heap[current] = this.heap[minChild];
+      current = minChild;
+    }
+    this.heap[current] = item;
+  }
+
+  toSortedArray(): QueryResult[] {
+    return this.heap.sort((a, b) => b.score - a.score);
+  }
+}
+
 class LocalVectorStore {
+  /** Maksymalna liczba załadowanych namespace'ów w pamięci RAM (LRU eviction). */
+  static readonly MAX_CACHE_NAMESPACES = 20;
+
   private cache = new Map<string, StoredVector[]>();
   private writeQueue: Promise<void> = Promise.resolve();
+
+  /** Aktualna liczba załadowanych namespace'ów w cache RAM (inspekcja testowa). */
+  get cacheSize(): number {
+    return this.cache.size;
+  }
+
+  /**
+   * Zapis do cache z LRU eviction (max 20 namespace'ów w pamięci).
+   */
+  private setCache(namespace: string, vectors: StoredVector[]): void {
+    if (this.cache.has(namespace)) {
+      this.cache.delete(namespace);
+    }
+    this.cache.set(namespace, vectors);
+    while (this.cache.size > LocalVectorStore.MAX_CACHE_NAMESPACES) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      } else {
+        break;
+      }
+    }
+  }
 
   /**
    * Kolejkuje zadanie modyfikujące stan (zapis/usuwanie) w celu uniknięcia wyścigów I/O.
@@ -82,14 +181,19 @@ class LocalVectorStore {
   }
 
   /**
-   * Lazy-load namespace z dysku do pamięci (cache module-level, single-instance).
+   * Lazy-load namespace z dysku do pamięci (cache module-level, LRU max 20).
    * Preferuje format binarny `.bin` (Float32Array, lekki - IND-263); fallback do
    * `.json` (number[]) gdy brak binarnego LUB binarny uszkodzony. Statyczne
-   * namespace (rules/adventures/mythos) → bin; runtime (sessions/npcs/world) → JSON.
+   * namespace (rules/adventures/mythos) → bin; runtime (sessions) → JSON.
    */
   private load(namespace: string): StoredVector[] {
     const cached = this.cache.get(namespace);
-    if (cached) return cached;
+    if (cached) {
+      // LRU refresh: przesuwamy na koniec Mapy (najświeższy)
+      this.cache.delete(namespace);
+      this.cache.set(namespace, cached);
+      return cached;
+    }
 
     let vectors: StoredVector[] = [];
     try {
@@ -104,7 +208,7 @@ class LocalVectorStore {
       console.warn(`⚠️ LocalVectorStore: load failed for "${namespace}":`, e);
       vectors = [];
     }
-    this.cache.set(namespace, vectors);
+    this.setCache(namespace, vectors);
     return vectors;
   }
 
@@ -152,20 +256,21 @@ class LocalVectorStore {
         });
       }
       const merged = Array.from(byId.values());
-      this.cache.set(namespace, merged);
+      this.setCache(namespace, merged);
       this.persist(namespace, merged);
     });
   }
 
   /**
-   * Atomowo zastępuje cały namespace gotowym zestawem wektorów. Poprzedni plik
-   * pozostaje dostępny aż do udanego zapisu pliku tymczasowego i rename.
+   * Atomowo zastępuje cały namespace gotowym zestawem wektorów.
+   * Używa formatu binarnego (.bin + .meta.json) zamiast JSON dla minimalizacji
+   * narzutu RAM i szybkiego, bezstratnego odczytu Float32.
+   * Usuwa przestarzały plik JSON jeśli istniał.
    */
   async replaceNamespace(
     namespace: string,
     vectors: UpsertVector[]
   ): Promise<void> {
-    if (vectors.length === 0) return;
     return this.enqueueWrite(() => {
       const replacement: StoredVector[] = vectors.map((vector) => ({
         id: vector.id,
@@ -173,23 +278,55 @@ class LocalVectorStore {
         metadata: vector.metadata,
         text: vector.text,
       }));
-      this.persist(namespace, replacement);
-      this.cache.set(namespace, replacement);
+      const dir = dataDir();
+      writeBinaryNamespace(dir, namespace, replacement);
+      // Usunięcie starego pliku JSON po udanej konwersji do formatu binarnego
+      const jsonFile = namespaceToFile(namespace);
+      try {
+        if (fs.existsSync(jsonFile)) fs.unlinkSync(jsonFile);
+      } catch (e) {
+        console.warn(`⚠️ LocalVectorStore: failed to remove legacy JSON file "${jsonFile}":`, e);
+      }
+      this.setCache(namespace, replacement);
     });
   }
 
-  /** Wyszukiwanie semantyczne: cosine po wszystkich wektorach namespace, topK. */
+  /**
+   * Wyszukiwanie semantyczne: cosine po wszystkich wektorach namespace, topK.
+   * Zoptymalizowane za pomocą BoundedMinHeap o pojemności topK - eliminuje
+   * churn alokacji obiektów i sortowanie całego zbioru N.
+   */
   async query(
     namespace: string,
     vector: number[],
     topK: number = 5,
     filter?: Record<string, unknown>
   ): Promise<QueryResult[]> {
-    const loaded = this.load(namespace);
-    let dimensionMismatchWarned = false;
+    if (
+      !Number.isFinite(topK) ||
+      topK <= 0 ||
+      !Array.isArray(vector) ||
+      vector.length === 0
+    ) {
+      return [];
+    }
 
-    let scored: QueryResult[] = [];
+    const loaded = this.load(namespace);
+    if (loaded.length === 0) return [];
+
+    let dimensionMismatchWarned = false;
+    const heap = new BoundedMinHeap(topK);
+
     for (const v of loaded) {
+      // 1. Tani filtr metadanych przed obliczeniem embeddingu
+      if (filter) {
+        const matches = Object.entries(filter).every(
+          ([k, val]) => (v.metadata as Record<string, unknown>)[k] === val
+        );
+        if (!matches) continue;
+      }
+
+      // 2. Walidacja wymiarowości wektora
       if (v.values.length !== vector.length) {
         if (!dimensionMismatchWarned) {
           console.warn(
@@ -199,22 +336,17 @@ class LocalVectorStore {
         }
         continue;
       }
-      scored.push({
+
+      // 3. Obliczenie score i umieszczenie w bounded heap
+      const score = cosineSimilarity(vector, v.values);
+      heap.push({
         id: v.id,
-        score: cosineSimilarity(vector, v.values),
+        score,
         metadata: v.metadata,
       });
     }
 
-    if (filter) {
-      scored = scored.filter((r) =>
-        Object.entries(filter).every(
-          ([k, val]) => (r.metadata as Record<string, unknown>)[k] === val
-        )
-      );
-    }
-
-    return scored.sort((a, b) => b.score - a.score).slice(0, topK);
+    return heap.toSortedArray();
   }
 
   /** Wyszukiwanie równoległe w wielu namespace, posortowane globalnie. */
@@ -238,7 +370,7 @@ class LocalVectorStore {
     return this.enqueueWrite(() => {
       const set = new Set(ids);
       const remaining = this.load(namespace).filter((v) => !set.has(v.id));
-      this.cache.set(namespace, remaining);
+      this.setCache(namespace, remaining);
       this.persist(namespace, remaining);
     });
   }
@@ -246,7 +378,7 @@ class LocalVectorStore {
   /** Usunięcie całego namespace (cache + plik JSON + pliki binarne). */
   async deleteNamespace(namespace: string): Promise<void> {
     return this.enqueueWrite(() => {
-      this.cache.set(namespace, []);
+      this.cache.delete(namespace);
       try {
         const file = namespaceToFile(namespace);
         if (fs.existsSync(file)) fs.unlinkSync(file);
@@ -309,7 +441,7 @@ class LocalVectorStore {
   }
 }
 
-// Singleton (analog pineconeClient; single-instance fork = bezpieczne)
+// Singleton (single-instance fork = bezpieczne)
 export const localVectorStore = new LocalVectorStore();
 
 // Eksport klasy dla testów (świeża instancja z własnym RAG_DATA_DIR)
