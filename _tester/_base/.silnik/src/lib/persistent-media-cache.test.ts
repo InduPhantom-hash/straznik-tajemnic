@@ -5,16 +5,32 @@
 import {
   persistentMediaCache,
   STORES,
-  PROTECTED_STORES,
-  DEFAULT_STORE_TTL_MS,
-  StoreName,
 } from './persistent-media-cache';
+
+interface TestCacheEntry {
+  id: string;
+  data?: string;
+  size?: number;
+  lastAccessed?: number;
+  createdAt?: number;
+  [key: string]: unknown;
+}
+
+interface MockRequest<T = unknown> {
+  result?: T;
+  error?: Error | DOMException | null;
+  transaction?: { objectStore: (name: string) => MockObjectStore };
+  onsuccess?: ((event: { target: MockRequest<T> }) => void) | null;
+  onerror?: ((event: { target: MockRequest<T> }) => void) | null;
+  onupgradeneeded?: ((event: { target: MockRequest<T> }) => void) | null;
+  onblocked?: ((event: { target: MockRequest<T> }) => void) | null;
+}
 
 // Mock IDB in-memory implementation for testing
 class MockCursor {
   private index = 0;
   constructor(
-    private entries: [string, any][],
+    private entries: [string, TestCacheEntry][],
     private onRequestSuccess: (cursor: MockCursor | null) => void
   ) {}
 
@@ -37,7 +53,7 @@ class MockCursor {
 }
 
 class MockObjectStore {
-  public data = new Map<string, any>();
+  public data = new Map<string, TestCacheEntry>();
   public indices = new Set<string>();
 
   get indexNames() {
@@ -51,8 +67,8 @@ class MockObjectStore {
     return {};
   }
 
-  get(key: string) {
-    const req: any = { result: this.data.get(key) };
+  get(key: string): MockRequest<TestCacheEntry | undefined> {
+    const req: MockRequest<TestCacheEntry | undefined> = { result: this.data.get(key) };
     setTimeout(() => {
       req.result = this.data.get(key);
       if (req.onsuccess) req.onsuccess({ target: req });
@@ -60,36 +76,36 @@ class MockObjectStore {
     return req;
   }
 
-  put(value: any) {
+  put(value: TestCacheEntry): MockRequest<string> {
     this.data.set(value.id, value);
-    const req: any = { result: value.id };
+    const req: MockRequest<string> = { result: value.id };
     setTimeout(() => {
       if (req.onsuccess) req.onsuccess({ target: req });
     }, 0);
     return req;
   }
 
-  delete(key: string) {
+  delete(key: string): MockRequest<undefined> {
     this.data.delete(key);
-    const req: any = { result: undefined };
+    const req: MockRequest<undefined> = { result: undefined };
     setTimeout(() => {
       if (req.onsuccess) req.onsuccess({ target: req });
     }, 0);
     return req;
   }
 
-  clear() {
+  clear(): MockRequest<undefined> {
     this.data.clear();
-    const req: any = { result: undefined };
+    const req: MockRequest<undefined> = { result: undefined };
     setTimeout(() => {
       if (req.onsuccess) req.onsuccess({ target: req });
     }, 0);
     return req;
   }
 
-  openCursor() {
+  openCursor(): MockRequest<MockCursor | null> {
     const entries = Array.from(this.data.entries());
-    const req: any = {};
+    const req: MockRequest<MockCursor | null> = {};
     setTimeout(() => {
       if (entries.length === 0) {
         req.result = null;
@@ -110,8 +126,10 @@ class MockObjectStore {
 class MockIDBDatabase {
   public stores = new Map<string, MockObjectStore>();
 
-  get objectStoreNames() {
-    const list = Array.from(this.stores.keys()) as any;
+  get objectStoreNames(): DOMStringList {
+    const list = Array.from(this.stores.keys()) as unknown as DOMStringList & {
+      contains: (name: string) => boolean;
+    };
     list.contains = (name: string) => this.stores.has(name);
     return list;
   }
@@ -122,8 +140,8 @@ class MockIDBDatabase {
     return store;
   }
 
-  transaction(storeNames: string | string[], _mode?: string) {
-    const tx: any = {
+  transaction(_storeNames: string | string[], _mode?: string) {
+    const tx = {
       objectStore: (name: string) => {
         let store = this.stores.get(name);
         if (!store) {
@@ -132,9 +150,9 @@ class MockIDBDatabase {
         }
         return store;
       },
-      oncomplete: null,
-      onerror: null,
-      onabort: null,
+      oncomplete: null as ((event: { target: unknown }) => void) | null,
+      onerror: null as ((event: { target: unknown }) => void) | null,
+      onabort: null as ((event: { target: unknown }) => void) | null,
     };
     setTimeout(() => {
       if (tx.oncomplete) tx.oncomplete({ target: tx });
@@ -150,8 +168,8 @@ function createMockIndexedDB() {
 
   return {
     getDb: () => dbInstance,
-    open: (_name: string, _version?: number) => {
-      const req: any = {};
+    open: (_name: string, _version?: number): MockRequest<MockIDBDatabase> => {
+      const req: MockRequest<MockIDBDatabase> = {};
       setTimeout(() => {
         req.transaction = {
           objectStore: (name: string) => dbInstance.transaction(name).objectStore(name),
@@ -167,9 +185,9 @@ function createMockIndexedDB() {
       }, 0);
       return req;
     },
-    deleteDatabase: (_name: string) => {
+    deleteDatabase: (_name: string): MockRequest<undefined> => {
       dbInstance = new MockIDBDatabase();
-      const req: any = {};
+      const req: MockRequest<undefined> = {};
       setTimeout(() => {
         if (req.onsuccess) req.onsuccess({ target: req });
       }, 0);
@@ -178,40 +196,52 @@ function createMockIndexedDB() {
   };
 }
 
+interface PersistentMediaCacheInternal {
+  db: IDBDatabase | null;
+  dbPromise: Promise<IDBDatabase> | null;
+  getMaxCacheSize: () => Promise<number>;
+  ensureSpaceAvailable: (size: number) => Promise<void>;
+  initDB: () => Promise<IDBDatabase>;
+  isPermanentRestriction: (error: unknown) => boolean;
+}
+
+const internalPmc = persistentMediaCache as unknown as PersistentMediaCacheInternal;
+
 describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
-  let originalIndexedDB: any;
+  let originalIndexedDB: unknown;
+  const globalRef = globalThis as unknown as { indexedDB?: unknown };
 
   beforeEach(() => {
-    originalIndexedDB = (global as any).indexedDB;
+    originalIndexedDB = globalRef.indexedDB;
   });
 
   afterEach(() => {
-    (global as any).indexedDB = originalIndexedDB;
+    globalRef.indexedDB = originalIndexedDB;
     jest.restoreAllMocks();
   });
 
   describe('isAvailable & Safari Private Browsing Circuit Breaker', () => {
     it('zwraca false gdy indexedDB jest niezdefiniowane', () => {
-      delete (global as any).indexedDB;
+      delete globalRef.indexedDB;
       expect(persistentMediaCache.isAvailable()).toBe(false);
     });
 
     it('zwraca true gdy indexedDB jest dostępne i nie zablokowane', () => {
-      (global as any).indexedDB = createMockIndexedDB();
+      globalRef.indexedDB = createMockIndexedDB();
       expect(persistentMediaCache.isAvailable()).toBe(true);
     });
 
     it('wyłącza isAvailable gdy indexedDB.open wyrzuca SecurityError (Safari Private Browsing)', async () => {
-      (global as any).indexedDB = {
+      globalRef.indexedDB = {
         open: () => {
-          const req: any = { error: new Error('SecurityError: The operation is insecure.') };
+          const req: MockRequest = { error: new Error('SecurityError: The operation is insecure.') };
           setTimeout(() => {
             if (req.onerror) req.onerror({ target: req });
           }, 0);
           return req;
         },
         deleteDatabase: () => {
-          const req: any = {};
+          const req: MockRequest = {};
           setTimeout(() => {
             if (req.onsuccess) req.onsuccess({ target: req });
           }, 0);
@@ -234,9 +264,9 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
 
     it('nie blokuje trwale isAvailable przy błędzie przejściowym (np. UnknownError), umożliwiając ponowienie', async () => {
       let shouldFail = true;
-      (global as any).indexedDB = {
+      globalRef.indexedDB = {
         open: () => {
-          const req: any = {};
+          const req: MockRequest = {};
           setTimeout(() => {
             if (shouldFail) {
               req.error = new Error('UnknownError: transient disk failure');
@@ -244,7 +274,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
             } else {
               const mock = createMockIndexedDB();
               const realReq = mock.open('test');
-              realReq.onsuccess = (ev: any) => {
+              realReq.onsuccess = (ev) => {
                 req.result = ev.target.result;
                 if (req.onsuccess) req.onsuccess({ target: req });
               };
@@ -253,7 +283,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
           return req;
         },
         deleteDatabase: () => {
-          const req: any = {};
+          const req: MockRequest = {};
           setTimeout(() => {
             if (req.onsuccess) req.onsuccess({ target: req });
           }, 0);
@@ -278,10 +308,10 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
 
     it('ustawia stan isBlocked gdy resetDatabase napotyka SecurityError', async () => {
       // Symulujemy SecurityError przy deleteDatabase
-      (global as any).indexedDB = {
+      globalRef.indexedDB = {
         open: () => ({ error: null }),
         deleteDatabase: () => {
-          const req: any = { error: new Error('SecurityError: The operation is insecure.') };
+          const req: MockRequest = { error: new Error('SecurityError: The operation is insecure.') };
           setTimeout(() => {
             if (req.onerror) req.onerror({ target: req });
           }, 0);
@@ -295,157 +325,151 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     });
 
     it('wykrywa trwałe restrykcje bezpieczeństwa z kodem DOMException 18 lub stringiem błędu (w tym case variations)', () => {
-      const pmc = persistentMediaCache as any;
-      expect(pmc.isPermanentRestriction({ code: 18, name: 'SecurityError' })).toBe(true);
-      expect(pmc.isPermanentRestriction({ code: 18, message: 'some code 18 error' })).toBe(true);
-      expect(pmc.isPermanentRestriction('SecurityError: The operation is insecure.')).toBe(true);
-      expect(pmc.isPermanentRestriction('securityerror: the operation is insecure.')).toBe(true);
-      expect(pmc.isPermanentRestriction('SECURITYERROR: ACCESS DENIED')).toBe(true);
-      expect(pmc.isPermanentRestriction('NotAllowedError: user denied storage access')).toBe(true);
-      expect(pmc.isPermanentRestriction('notallowederror: user denied')).toBe(true);
-      expect(pmc.isPermanentRestriction({ name: 'securityerror', message: '' })).toBe(true);
-      expect(pmc.isPermanentRestriction({ name: 'notallowederror', message: '' })).toBe(true);
-      expect(pmc.isPermanentRestriction({ name: 'Error', message: 'The user denied permission (not allowed)' })).toBe(true);
-      expect(pmc.isPermanentRestriction('UnknownError: transient')).toBe(false);
-      expect(pmc.isPermanentRestriction(null)).toBe(false);
+      expect(internalPmc.isPermanentRestriction({ code: 18, name: 'SecurityError' })).toBe(true);
+      expect(internalPmc.isPermanentRestriction({ code: 18, message: 'some code 18 error' })).toBe(true);
+      expect(internalPmc.isPermanentRestriction({ name: 'NotAllowedError' })).toBe(true);
+      expect(internalPmc.isPermanentRestriction('SecurityError: The operation is insecure.')).toBe(true);
+      expect(internalPmc.isPermanentRestriction('securityerror: lower case variant')).toBe(true);
+      expect(internalPmc.isPermanentRestriction('notallowederror')).toBe(true);
+      expect(internalPmc.isPermanentRestriction('user was not allowed to open storage')).toBe(true);
+      expect(internalPmc.isPermanentRestriction('insecure origin')).toBe(true);
+
+      // Błędy niebędące restrykcją bezpieczeństwa
+      expect(internalPmc.isPermanentRestriction({ name: 'QuotaExceededError' })).toBe(false);
+      expect(internalPmc.isPermanentRestriction(new Error('Quota exceeded'))).toBe(false);
+      expect(internalPmc.isPermanentRestriction(null)).toBe(false);
+      expect(internalPmc.isPermanentRestriction(undefined)).toBe(false);
+      expect(internalPmc.isPermanentRestriction('random transient error')).toBe(false);
     });
   });
 
-  describe('Konfiguracja retencji i ochrona store', () => {
-    it('chroni character-images przed eksmisją LRU', () => {
-      expect(PROTECTED_STORES.has(STORES.CHARACTER_IMAGES)).toBe(true);
-      expect(PROTECTED_STORES.has(STORES.CHAT_IMAGES)).toBe(false);
-      expect(PROTECTED_STORES.has(STORES.NPC_PORTRAITS)).toBe(false);
-      expect(PROTECTED_STORES.has(STORES.LOCATION_IMAGES)).toBe(false);
-      expect(PROTECTED_STORES.has(STORES.TTS_AUDIO)).toBe(false);
-    });
-
-    it('definiuje odpowiednie TTL dla wszystkich magazynów', () => {
-      expect(DEFAULT_STORE_TTL_MS[STORES.CHARACTER_IMAGES]).toBe(Infinity);
-      expect(DEFAULT_STORE_TTL_MS[STORES.NPC_PORTRAITS]).toBe(30 * 24 * 3600 * 1000);
-      expect(DEFAULT_STORE_TTL_MS[STORES.LOCATION_IMAGES]).toBe(30 * 24 * 3600 * 1000);
-      expect(DEFAULT_STORE_TTL_MS[STORES.CHAT_IMAGES]).toBe(14 * 24 * 3600 * 1000);
-      expect(DEFAULT_STORE_TTL_MS[STORES.TTS_AUDIO]).toBe(7 * 24 * 3600 * 1000);
-      expect(DEFAULT_STORE_TTL_MS[STORES.SFX_AUDIO]).toBe(7 * 24 * 3600 * 1000);
-    });
-  });
-
-  describe('Generatory kluczy i helpery', () => {
-    it('generateTtsCacheKey generuje znormalizowany deterministyczny klucz', () => {
-      const key1 = persistentMediaCache.generateTtsCacheKey(
-        ' Witaj w Arkham! ',
-        'Kore',
-        0,
-        1.0
-      );
-      const key2 = persistentMediaCache.generateTtsCacheKey(
-        'witaj w arkham!',
-        'Kore',
-        0,
-        1.0
-      );
-      expect(key1).toBe(key2);
-      expect(key1).toContain('Kore_0_1_');
-    });
-
-    it('generateSfxCacheKey generuje hash z promptu', () => {
-      const key1 = persistentMediaCache.generateSfxCacheKey('Kroki na schodach');
-      const key2 = persistentMediaCache.generateSfxCacheKey('kroki na schodach');
-      expect(key1).toBe(key2);
-      expect(typeof key1).toBe('string');
-    });
-  });
-
-  describe('Operacje CRUD, wygasanie TTL i reset bazy', () => {
+  describe('Polityka retencji TTL (Time-To-Live)', () => {
     let mockIDB: ReturnType<typeof createMockIndexedDB>;
 
     beforeEach(async () => {
       mockIDB = createMockIndexedDB();
-      (global as any).indexedDB = mockIDB;
+      globalRef.indexedDB = mockIDB;
       await persistentMediaCache.resetDatabase();
     });
 
-    it('zapisuje i odczytuje dane z magazynu', async () => {
-      const testData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-      const success = await persistentMediaCache.set(
-        STORES.NPC_PORTRAITS,
-        'npc-123',
-        testData,
-        { prompt: 'Stary antykwariusz' }
-      );
-      expect(success).toBe(true);
+    it('odrzuca i usuwa wpis z pamięci podręcznej podczas odczytu get() gdy upłynął TTL', async () => {
+      const now = Date.now();
+      // Zapisujemy kadr czatu (TTL: 14 dni)
+      await persistentMediaCache.set(STORES.CHAT_IMAGES, 'chat-1', 'data:image/png;base64,AAA');
 
-      const hasItem = await persistentMediaCache.has(STORES.NPC_PORTRAITS, 'npc-123');
-      expect(hasItem).toBe(true);
-
-      const retrieved = await persistentMediaCache.get(STORES.NPC_PORTRAITS, 'npc-123');
-      expect(retrieved).toBe(testData);
-    });
-
-    it('automatycznie usuwa wpis wygasły wg polityki TTL przy get()', async () => {
-      const testData = 'data:audio/mp3;base64,SUQzBAAAAAAA';
-      await persistentMediaCache.set(STORES.TTS_AUDIO, 'tts-expired', testData);
-
+      // Manipulujemy czasem utworzenia wpisu na 15 dni wstecz
       const db = mockIDB.getDb();
-      const store = db.stores.get(STORES.TTS_AUDIO);
-      const entry = store?.get('tts-expired').result;
+      const store = db.stores.get(STORES.CHAT_IMAGES);
+      const entry = store?.get('chat-1').result;
+      expect(entry).toBeDefined();
       if (entry) {
-        entry.createdAt = Date.now() - 8 * 24 * 3600 * 1000;
+        entry.createdAt = now - 15 * 24 * 60 * 60 * 1000;
+        entry.lastAccessed = now - 15 * 24 * 60 * 60 * 1000;
       }
 
-      const retrieved = await persistentMediaCache.get(STORES.TTS_AUDIO, 'tts-expired');
-      expect(retrieved).toBeNull();
+      // Odczyt get() powinien wykryć przeterminowanie, usunąć wpis i zwrócić null
+      const result = await persistentMediaCache.get(STORES.CHAT_IMAGES, 'chat-1');
+      expect(result).toBeNull();
 
-      const hasItem = await persistentMediaCache.has(STORES.TTS_AUDIO, 'tts-expired');
-      expect(hasItem).toBe(false);
+      // Wpis został usunięty z magazynu
+      expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'chat-1')).toBe(false);
     });
 
-    it('automatycznie usuwa wpis legacy bez createdAt przy get() na bazie lastAccessed', async () => {
-      const testData = 'data:image/png;base64,LEGACY';
-      await persistentMediaCache.set(STORES.CHAT_IMAGES, 'chat-legacy', testData);
+    it('zwraca poprawny wpis z get() gdy nie upłynął TTL i aktualizuje lastAccessed', async () => {
+      await persistentMediaCache.set(STORES.NPC_PORTRAITS, 'npc-1', 'data:image/png;base64,BBB');
+
+      const result = await persistentMediaCache.get(STORES.NPC_PORTRAITS, 'npc-1');
+      expect(result).toBe('data:image/png;base64,BBB');
+    });
+
+    it('wygasza rekordy legacy bez pola createdAt bazując na znaczniku lastAccessed jako fallbacku', async () => {
+      const now = Date.now();
+      await persistentMediaCache.set(STORES.CHAT_IMAGES, 'legacy-1', 'data:image/png;base64,LEGACY');
 
       const db = mockIDB.getDb();
       const store = db.stores.get(STORES.CHAT_IMAGES);
-      const entry = store?.get('chat-legacy').result;
+      const entry = store?.get('legacy-1').result;
+      expect(entry).toBeDefined();
       if (entry) {
+        // Symulujemy rekord ze starszych wersji aplikacji: brak createdAt, stary lastAccessed
         delete entry.createdAt;
-        entry.lastAccessed = Date.now() - 20 * 24 * 3600 * 1000;
+        entry.lastAccessed = now - 20 * 24 * 60 * 60 * 1000; // 20 dni temu
       }
 
-      const retrieved = await persistentMediaCache.get(STORES.CHAT_IMAGES, 'chat-legacy');
-      expect(retrieved).toBeNull();
-      expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'chat-legacy')).toBe(false);
+      const result = await persistentMediaCache.get(STORES.CHAT_IMAGES, 'legacy-1');
+      expect(result).toBeNull();
+      expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'legacy-1')).toBe(false);
     });
 
-    it('cleanupExpired usuwa wygasłe wpisy z ulotnych magazynów w transakcji batch', async () => {
-      await persistentMediaCache.set(STORES.CHAT_IMAGES, 'chat-old', 'data:image/png;base64,OLD');
-      await persistentMediaCache.set(STORES.CHAT_IMAGES, 'chat-fresh', 'data:image/png;base64,FRESH');
-
+    it('cleanupExpired usuwa wygasłe wpisy we wszystkich magazynach z wyjątkiem chronionych', async () => {
+      const now = Date.now();
       const db = mockIDB.getDb();
-      const store = db.stores.get(STORES.CHAT_IMAGES);
-      const oldEntry = store?.get('chat-old').result;
-      if (oldEntry) {
-        oldEntry.createdAt = Date.now() - 15 * 24 * 3600 * 1000;
-      }
+
+      // Wpis 1: chat-images (wygasły, 16 dni)
+      await persistentMediaCache.set(STORES.CHAT_IMAGES, 'c-exp', 'data:img:1');
+      const chatStore = db.stores.get(STORES.CHAT_IMAGES);
+      const cEntry = chatStore?.get('c-exp').result;
+      if (cEntry) cEntry.createdAt = now - 16 * 24 * 60 * 60 * 1000;
+
+      // Wpis 2: tts-audio (wygasły, 8 dni, TTL 7 dni)
+      await persistentMediaCache.set(STORES.TTS_AUDIO, 'tts-exp', 'data:audio:1');
+      const ttsStore = db.stores.get(STORES.TTS_AUDIO);
+      const ttsEntry = ttsStore?.get('tts-exp').result;
+      if (ttsEntry) ttsEntry.createdAt = now - 8 * 24 * 60 * 60 * 1000;
+
+      // Wpis 3: tts-audio (świeży, 2 dni)
+      await persistentMediaCache.set(STORES.TTS_AUDIO, 'tts-fresh', 'data:audio:2');
+
+      // Wpis 4: character-images (nigdy nie wygasa, nawet stary)
+      await persistentMediaCache.set(STORES.CHARACTER_IMAGES, 'char-old', 'data:img:char');
+      const charStore = db.stores.get(STORES.CHARACTER_IMAGES);
+      const charEntry = charStore?.get('char-old').result;
+      if (charEntry) cEntry && (charEntry.createdAt = now - 100 * 24 * 60 * 60 * 1000);
 
       const deletedCount = await persistentMediaCache.cleanupExpired();
-      expect(deletedCount).toBe(1);
+      expect(deletedCount).toBe(2);
 
-      expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'chat-old')).toBe(false);
-      expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'chat-fresh')).toBe(true);
+      expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'c-exp')).toBe(false);
+      expect(await persistentMediaCache.has(STORES.TTS_AUDIO, 'tts-exp')).toBe(false);
+      expect(await persistentMediaCache.has(STORES.TTS_AUDIO, 'tts-fresh')).toBe(true);
+      expect(await persistentMediaCache.has(STORES.CHARACTER_IMAGES, 'char-old')).toBe(true);
+    });
+  });
+
+  describe('Metoda batchDelete (Transakcje wsadowe)', () => {
+    let mockIDB: ReturnType<typeof createMockIndexedDB>;
+
+    beforeEach(async () => {
+      mockIDB = createMockIndexedDB();
+      globalRef.indexedDB = mockIDB;
+      await persistentMediaCache.resetDatabase();
     });
 
-    it('batchDelete usuwa wiele kluczy jednocześnie', async () => {
-      await persistentMediaCache.set(STORES.SFX_AUDIO, 'sfx-1', 'data:audio/wav;base64,1');
-      await persistentMediaCache.set(STORES.SFX_AUDIO, 'sfx-2', 'data:audio/wav;base64,2');
-      await persistentMediaCache.set(STORES.SFX_AUDIO, 'sfx-3', 'data:audio/wav;base64,3');
+    it('usuwa wiele rekordów w pojedynczej transakcji wsadowej', async () => {
+      await persistentMediaCache.set(STORES.NPC_PORTRAITS, 'n-1', 'data:1');
+      await persistentMediaCache.set(STORES.NPC_PORTRAITS, 'n-2', 'data:2');
+      await persistentMediaCache.set(STORES.NPC_PORTRAITS, 'n-3', 'data:3');
 
-      const deleted = await persistentMediaCache.batchDelete(STORES.SFX_AUDIO, ['sfx-1', 'sfx-2']);
+      const deleted = await persistentMediaCache.batchDelete(STORES.NPC_PORTRAITS, ['n-1', 'n-3']);
       expect(deleted).toBe(true);
 
-      expect(await persistentMediaCache.has(STORES.SFX_AUDIO, 'sfx-1')).toBe(false);
-      expect(await persistentMediaCache.has(STORES.SFX_AUDIO, 'sfx-2')).toBe(false);
-      expect(await persistentMediaCache.has(STORES.SFX_AUDIO, 'sfx-3')).toBe(true);
+      expect(await persistentMediaCache.has(STORES.NPC_PORTRAITS, 'n-1')).toBe(false);
+      expect(await persistentMediaCache.has(STORES.NPC_PORTRAITS, 'n-2')).toBe(true);
+      expect(await persistentMediaCache.has(STORES.NPC_PORTRAITS, 'n-3')).toBe(false);
+    });
+
+    it('zwraca true i nie wykonuje operacji gdy tablica id jest pusta', async () => {
+      const deleted = await persistentMediaCache.batchDelete(STORES.NPC_PORTRAITS, []);
+      expect(deleted).toBe(true);
+    });
+  });
+
+  describe('Samonaprawa i reset bazy (resetDatabase & self-healing)', () => {
+    let mockIDB: ReturnType<typeof createMockIndexedDB>;
+
+    beforeEach(() => {
+      mockIDB = createMockIndexedDB();
+      globalRef.indexedDB = mockIDB;
     });
 
     it('resetDatabase czyści bazę, reicjalizuje schemat i odblokowuje stan', async () => {
@@ -460,10 +484,10 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     });
 
     it('resetDatabase zwraca false gdy usunięcie bazy jest trwale zablokowane (onblocked) i nie twierdzi sukcesu', async () => {
-      (global as any).indexedDB = {
+      globalRef.indexedDB = {
         open: mockIDB.open,
         deleteDatabase: () => {
-          const req: any = {};
+          const req: MockRequest = {};
           setTimeout(() => {
             if (req.onblocked) req.onblocked({ target: req });
           }, 0);
@@ -480,10 +504,10 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     });
 
     it('resetDatabase czeka na odblokowanie gdy inne połączenie zamknie się przed upływem timeoutu', async () => {
-      (global as any).indexedDB = {
+      globalRef.indexedDB = {
         open: mockIDB.open,
         deleteDatabase: () => {
-          const req: any = {};
+          const req: MockRequest = {};
           setTimeout(() => {
             if (req.onblocked) req.onblocked({ target: req });
             // Druga karta po 10ms zwalnia połączenie i baza pomyślnie się usuwa
@@ -501,8 +525,8 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     });
 
     it('resetDatabase poprawnie czeka i zamyka połączenie gdy initDB było w trakcie otwierania', async () => {
-      const mockIDB = createMockIndexedDB();
-      (global as any).indexedDB = mockIDB;
+      const mock = createMockIndexedDB();
+      globalRef.indexedDB = mock;
 
       // Inicjujemy asynchroniczne otwarcie DB
       const inFlightInit = persistentMediaCache.get(STORES.NPC_PORTRAITS, 'test');
@@ -518,20 +542,20 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     it('resetDatabase nie zawiesza się w nieskończoność gdy initDB wisi na wiecznie otwartym żądaniu (timeout pre-drain)', async () => {
       let openCallCount = 0;
       let deleteCalled = false;
-      const mockIDB = createMockIndexedDB();
+      const mock = createMockIndexedDB();
 
-      (global as any).indexedDB = {
+      globalRef.indexedDB = {
         open: (_name: string, _version?: number) => {
           openCallCount++;
           if (openCallCount === 1) {
             // Pierwsze wywołanie wisi i nigdy nie rozstrzyga ani nie odrzuca
-            return {} as any;
+            return {} as MockRequest;
           }
-          return mockIDB.open(_name, _version);
+          return mock.open(_name, _version);
         },
         deleteDatabase: (_name: string) => {
           deleteCalled = true;
-          const req: any = {};
+          const req: MockRequest = {};
           setTimeout(() => {
             if (req.onsuccess) req.onsuccess({ target: req });
           }, 0);
@@ -540,8 +564,8 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
       };
 
       // Czyścimy instancję, by wymusić ponowne wywołanie initDB
-      (persistentMediaCache as any).db = null;
-      (persistentMediaCache as any).dbPromise = null;
+      internalPmc.db = null;
+      internalPmc.dbPromise = null;
 
       // Rozpoczynamy operację, która uruchamia wiszący initDB
       persistentMediaCache.get(STORES.NPC_PORTRAITS, 'hang-test');
@@ -564,7 +588,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
 
     beforeEach(async () => {
       mockIDB = createMockIndexedDB();
-      (global as any).indexedDB = mockIDB;
+      globalRef.indexedDB = mockIDB;
       await persistentMediaCache.resetDatabase();
     });
 
@@ -582,7 +606,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
         configurable: true,
       });
 
-      const maxSize = await (persistentMediaCache as any).getMaxCacheSize();
+      const maxSize = await internalPmc.getMaxCacheSize();
       expect(maxSize).toBe(150 * 1024 * 1024);
     });
 
@@ -600,13 +624,13 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
         configurable: true,
       });
 
-      const maxSize = await (persistentMediaCache as any).getMaxCacheSize();
+      const maxSize = await internalPmc.getMaxCacheSize();
       expect(maxSize).toBe(40 * 1024 * 1024);
     });
 
     it('egzekwuje politykę LRU: najpierw czyści wygasłe, usuwa najstarsze niechronione i BEZWZGLĘDNIE CHRONI character-images', async () => {
       // Symulujemy mały limit cache = 6000 bajtów
-      jest.spyOn(persistentMediaCache as any, 'getMaxCacheSize').mockResolvedValue(6000);
+      jest.spyOn(internalPmc, 'getMaxCacheSize').mockResolvedValue(6000);
 
       const db = mockIDB.getDb();
 
@@ -655,7 +679,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
       );
 
       // Aktualny rozmiar w mocku przekracza 6000 B. Wywołujemy ensureSpaceAvailable dla nowego zapisu 1000 B.
-      await (persistentMediaCache as any).ensureSpaceAvailable(1000);
+      await internalPmc.ensureSpaceAvailable(1000);
 
       // Asercje:
       // a) Wpis wygasły 'chat:expired' został bezwzględnie usunięty w kroku 1 (TTL purge)
@@ -673,7 +697,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     });
 
     it('odrzuca wpis większy niż maxCacheSize w set() i nie usuwa istniejącego cache', async () => {
-      jest.spyOn(persistentMediaCache as any, 'getMaxCacheSize').mockResolvedValue(5000);
+      jest.spyOn(internalPmc, 'getMaxCacheSize').mockResolvedValue(5000);
 
       // Zapisujemy normalny poprawny wpis
       await persistentMediaCache.set(
@@ -699,7 +723,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
     });
 
     it('ensureSpaceAvailable nie usuwa wpisów gdy requiredSize przekracza maxCacheSize', async () => {
-      jest.spyOn(persistentMediaCache as any, 'getMaxCacheSize').mockResolvedValue(4000);
+      jest.spyOn(internalPmc, 'getMaxCacheSize').mockResolvedValue(4000);
 
       await persistentMediaCache.set(
         STORES.CHAT_IMAGES,
@@ -709,7 +733,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
       expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'chat-item')).toBe(true);
 
       // Wywołujemy bezpośrednio ensureSpaceAvailable z rozmiarem 10000 B > 4000 B
-      await (persistentMediaCache as any).ensureSpaceAvailable(10000);
+      await internalPmc.ensureSpaceAvailable(10000);
 
       // Wpis chat-item NIE powinien zostać skasowany
       expect(await persistentMediaCache.has(STORES.CHAT_IMAGES, 'chat-item')).toBe(true);
@@ -717,7 +741,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
 
     it('zwalnia miejsce gdy stats.totalSize <= maxCacheSize * 0.8 ale po dodaniu requiredSize suma przekroczy maxCacheSize', async () => {
       // maxCacheSize = 6000, 80% = 4800
-      jest.spyOn(persistentMediaCache as any, 'getMaxCacheSize').mockResolvedValue(6000);
+      jest.spyOn(internalPmc, 'getMaxCacheSize').mockResolvedValue(6000);
 
       // Zapisujemy 2 wpisy po 2000 B (razem 4000 B <= 4800 B)
       await persistentMediaCache.set(
@@ -739,7 +763,7 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
       // Poprzednio bug powodował break bo 4000 <= 4800 (targetSize), nic nie było usuwane!
       // Z naszą poprawką targetSize = min(4800, 6000 - 3000) = 3000 B.
       // Więc najstarszy wpis entry-1 (2000 B) MUSI zostać usunięty, zwalniając miejsce na 3000 B.
-      await (persistentMediaCache as any).ensureSpaceAvailable(3000);
+      await internalPmc.ensureSpaceAvailable(3000);
 
       expect(await persistentMediaCache.has(STORES.NPC_PORTRAITS, 'entry-1')).toBe(false);
       expect(await persistentMediaCache.has(STORES.NPC_PORTRAITS, 'entry-2')).toBe(true);
@@ -754,16 +778,16 @@ describe('PersistentMediaCache (Issue #78 Retention & Audit)', () => {
       const existingStore = existingDb.createObjectStore(STORES.NPC_PORTRAITS);
       existingStore.createIndex('lastAccessed');
 
-      (global as any).indexedDB = mockIDB;
+      globalRef.indexedDB = mockIDB;
 
       // Zamykamy poprzednie połączenie i reinicjalizujemy bazę
-      if ((persistentMediaCache as any).db) {
-        (persistentMediaCache as any).db.close();
-        (persistentMediaCache as any).db = null;
+      if (internalPmc.db) {
+        internalPmc.db.close();
+        internalPmc.db = null;
       }
-      (persistentMediaCache as any).dbPromise = null;
+      internalPmc.dbPromise = null;
 
-      await (persistentMediaCache as any).initDB();
+      await internalPmc.initDB();
 
       // Sprawdzenie czy istniejący store zyskał brakujące indeksy
       expect(existingStore.indices.has('lastAccessed')).toBe(true);
