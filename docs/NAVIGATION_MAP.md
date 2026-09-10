@@ -50,6 +50,8 @@ graph TD
     sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (CoC 7e RAW) / Sanity therapy and recovery (CoC 7e RAW)"]
     medical_care_modal["Rekonwalescencja i opieka medyczna (CoC 7e RAW) / Convalescence and medical care (CoC 7e RAW)"]
     combat_card["Obrona w walce wręcz w czacie (CoC 7e RAW) / In-chat melee combat defense (CoC 7e RAW)"]
+    spell_card["Rzucanie zaklęć w czacie (CoC 7e RAW) / In-chat spell casting (CoC 7e RAW)"]
+    tome_card["Badanie tomów w czacie (CoC 7e RAW) / In-chat tome study (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -94,6 +96,8 @@ graph TD
     character_sheet -->|Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery| sanity_therapy_modal
     character_sheet -->|Rekonwalescencja i opieka medyczna / Convalescence and medical care| medical_care_modal
     game -->|Obrona w walce / Combat defense| combat_card
+    game -->|Rzucanie zaklęcia / Cast spell| spell_card
+    game -->|Badanie tomu / Study tome| tome_card
 ```
 
 ## Routy
@@ -159,6 +163,8 @@ graph TD
 | Karta badacza (Dark Art Déco CoC 7e RAW) | Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery | Terapia i rekonwalescencja psychiczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
 | Karta badacza (Dark Art Déco CoC 7e RAW) | Rekonwalescencja i opieka medyczna / Convalescence and medical care | Rekonwalescencja i opieka medyczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
 | Aktywna sesja | Obrona w walce / Combat defense | Obrona w walce wręcz w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/combat-card.tsx` |
+| Aktywna sesja | Rzucanie zaklęcia / Cast spell | Rzucanie zaklęć w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/spell-card.tsx` |
+| Aktywna sesja | Badanie tomu / Study tome | Badanie tomów w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/tome-card.tsx` |
 
 ## Zasady aktualizacji
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-09T13:11:00.000Z",
+  "updatedAt": "2026-09-10T09:20:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -371,6 +371,22 @@
       "label": {
         "pl": "Obrona w walce wręcz w czacie (CoC 7e RAW)",
         "en": "In-chat melee combat defense (CoC 7e RAW)"
+      }
+    },
+    {
+      "id": "spell-card",
+      "kind": "modal",
+      "label": {
+        "pl": "Rzucanie zaklęć w czacie (CoC 7e RAW)",
+        "en": "In-chat spell casting (CoC 7e RAW)"
+      }
+    },
+    {
+      "id": "tome-card",
+      "kind": "modal",
+      "label": {
+        "pl": "Badanie tomów w czacie (CoC 7e RAW)",
+        "en": "In-chat tome study (CoC 7e RAW)"
       }
     }
   ],
@@ -761,6 +777,24 @@
         "en": "Combat defense"
       },
       "component": "src/components/chat/chat-window/components/combat-card.tsx"
+    },
+    {
+      "source": "game",
+      "target": "spell-card",
+      "label": {
+        "pl": "Rzucanie zaklęcia",
+        "en": "Cast spell"
+      },
+      "component": "src/components/chat/chat-window/components/spell-card.tsx"
+    },
+    {
+      "source": "game",
+      "target": "tome-card",
+      "label": {
+        "pl": "Badanie tomu",
+        "en": "Study tome"
+      },
+      "component": "src/components/chat/chat-window/components/tome-card.tsx"
     }
   ]
 }

@@ -124,6 +124,7 @@ export class MagicEngine {
     if (isFirstCast) {
       const roll = this.roller.rollD100();
       const passed = roll <= hardPowThreshold;
+      const outcome = evaluateSkillCheck(roll, hardPowThreshold);
 
       if (!request.isPush) {
         // Zwykła pierwsza próba
@@ -132,6 +133,7 @@ export class MagicEngine {
           firstCastRollData = {
             roll,
             threshold: hardPowThreshold,
+            outcome,
             success: true,
             isPushed: false,
           };
@@ -142,6 +144,7 @@ export class MagicEngine {
           firstCastRollData = {
             roll,
             threshold: hardPowThreshold,
+            outcome,
             success: false,
             isPushed: false,
           };
@@ -153,6 +156,7 @@ export class MagicEngine {
           firstCastRollData = {
             roll,
             threshold: hardPowThreshold,
+            outcome,
             success: true,
             isPushed: true,
           };
@@ -163,6 +167,7 @@ export class MagicEngine {
           firstCastRollData = {
             roll,
             threshold: hardPowThreshold,
+            outcome,
             success: false,
             isPushed: true,
             pushedFailedCatastrophe: true,
@@ -223,6 +228,9 @@ export class MagicEngine {
       const casterRank = getSuccessRank(casterRoll, request.casterPow);
       const targetRank = getSuccessRank(targetRoll, request.target.pow);
 
+      const casterOutcome = evaluateSkillCheck(casterRoll, request.casterPow);
+      const targetOutcome = evaluateSkillCheck(targetRoll, request.target.pow);
+
       let winner: 'caster' | 'target' | 'tie' = 'caster';
       if (casterRank > targetRank) {
         winner = 'caster';
@@ -238,8 +246,14 @@ export class MagicEngine {
       opposedRollData = {
         casterRoll,
         casterSuccessLevel: casterRank,
+        casterOutcome,
+        casterName: request.casterName,
+        casterPow: request.casterPow,
         targetRoll,
         targetSuccessLevel: targetRank,
+        targetOutcome,
+        targetName: request.target.name,
+        targetPow: request.target.pow,
         winner,
         casterPowImprovementEligible: winner === 'caster' && casterRank > targetRank,
       };
