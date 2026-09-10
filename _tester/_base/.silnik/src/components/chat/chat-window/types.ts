@@ -22,6 +22,8 @@ import type { ChaseState } from '@/lib/chase/chase-engine';
 import type {
   CombatResolution,
   PendingMeleeAttack,
+  DefenseChoice,
+  ManeuverType,
 } from '@/lib/combat/combat-resolver';
 import type { CombatDefenseWeaponOption } from '@/lib/combat/weapon-context';
 
@@ -42,8 +44,9 @@ export interface ChatWindowProps {
   combatDefenseWeapons?: CombatDefenseWeaponOption[];
   onCombatDefense?: (
     attack: PendingMeleeAttack,
-    choice: 'dodge' | 'fight_back',
-    weapon?: CombatDefenseWeaponOption
+    choice: DefenseChoice,
+    weapon?: CombatDefenseWeaponOption,
+    maneuverType?: ManeuverType
   ) => void;
 
   // TTS state + controls (subset faktycznie używany w MessageCard)

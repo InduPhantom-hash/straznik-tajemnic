@@ -26,9 +26,12 @@ import { TomeCard } from './tome-card';
 import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
-import type { Character, Message } from '@/lib/types';
 import { ChaseCard } from './chase-card';
+import { CombatCard } from './combat-card';
+import type { Character, Message } from '@/lib/types';
 import type { ChaseManeuverType, ChaseState } from '@/lib/chase/chase-engine';
+import type { PendingMeleeAttack, DefenseChoice, ManeuverType } from '@/lib/combat/combat-resolver';
+import type { CombatDefenseWeaponOption } from '@/lib/combat/weapon-context';
 import type { SkillTestData } from '@/lib/parsers/types';
 import {
   getMessageStyle,
@@ -63,6 +66,14 @@ interface MessageCardProps {
   resolvedSpellIds?: ReadonlySet<string>;
   onSendTomeResult?: (message: string) => void;
   resolvedTomeIds?: ReadonlySet<string>;
+  onSendCombatResult?: (message: string) => void;
+  resolvedCombatIds?: ReadonlySet<string>;
+  onCombatDefense?: (
+    attack: PendingMeleeAttack,
+    choice: DefenseChoice,
+    weapon?: CombatDefenseWeaponOption,
+    maneuverType?: ManeuverType
+  ) => void;
   onChaseManeuver?: (
     maneuverType: ChaseManeuverType,
     chaseState: ChaseState,
@@ -99,6 +110,9 @@ export function MessageCard({
   resolvedSpellIds,
   onSendTomeResult,
   resolvedTomeIds,
+  onSendCombatResult,
+  resolvedCombatIds,
+  onCombatDefense,
   onChaseManeuver,
   onContinueNarration,
   isDuet = false,
@@ -416,6 +430,24 @@ export function MessageCard({
                   completed={!isLastMessage || message.chaseState.status !== 'ongoing'}
                   onManeuverSelect={onChaseManeuver}
                 />
+              </div>
+            )}
+
+            {/* Bliskie starcie wręcz CoC 7e RAW (Issue #302 - Fiction First w czacie) */}
+            {message.pendingMeleeAttacks && message.pendingMeleeAttacks.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.pendingMeleeAttacks.map((attack) => (
+                  <CombatCard
+                    key={attack.eventId}
+                    attack={attack}
+                    activeCharacter={activeCharacter}
+                    characters={characters}
+                    completed={resolvedCombatIds?.has(attack.eventId)}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onResolveDefense={onCombatDefense}
+                    onSendChat={onSendCombatResult}
+                  />
+                ))}
               </div>
             )}
           </div>

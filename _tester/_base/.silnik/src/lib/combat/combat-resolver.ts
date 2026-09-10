@@ -65,7 +65,8 @@ export interface CombatResolution {
   attackerName: string;
   defenderId: string;
   defenderName: string;
-  defenseChoice: Exclude<DefenseChoice, 'maneuver'>;
+  defenseChoice: DefenseChoice;
+  maneuverType?: ManeuverType;
   defenderWeaponId?: string;
   defenderWeaponName?: string;
   attackerRoll: number;

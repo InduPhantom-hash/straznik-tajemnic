@@ -67,6 +67,8 @@ import { isCheatCommand, executeCheatCommand } from '@/lib/cheats/cheat-engine';
 import type {
   CombatResolution,
   PendingMeleeAttack,
+  DefenseChoice,
+  ManeuverType,
 } from '@/lib/combat/combat-resolver';
 import {
   createCombatRoundJournal,
@@ -315,8 +317,9 @@ export interface UseChatReturn {
   combatDefenseWeapons: CombatDefenseWeaponOption[];
   handleCombatDefense: (
     attack: PendingMeleeAttack,
-    choice: 'dodge' | 'fight_back',
-    weapon?: CombatDefenseWeaponOption
+    choice: DefenseChoice,
+    weapon?: CombatDefenseWeaponOption,
+    maneuverType?: ManeuverType
   ) => Promise<void>;
   handleKeyPress: (e: React.KeyboardEvent) => void;
   generateImages: (
@@ -1656,8 +1659,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const handleCombatDefense = useCallback(
     async (
       attack: PendingMeleeAttack,
-      choice: 'dodge' | 'fight_back',
-      weapon?: CombatDefenseWeaponOption
+      choice: DefenseChoice,
+      weapon?: CombatDefenseWeaponOption,
+      maneuverType?: ManeuverType
     ) => {
       if (typeof window === 'undefined') return;
       const current = combatJournalRef.current;
@@ -1670,6 +1674,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           [attack.eventId]: {
             choice,
             defenderWeaponId: weapon?.id,
+            maneuverType,
           },
         },
       };
@@ -1680,6 +1685,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         eventId: attack.eventId,
         choice,
         defenderWeapon: weapon,
+        maneuverType,
       });
       combatJournalRef.current = resolved;
       saveCombatJournal(localStorage, resolved);
@@ -1778,7 +1784,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     const weapon = combatDefenseWeapons.find(
       (candidate) => candidate.id === storedChoice.defenderWeaponId
     );
-    void handleCombatDefense(lastAttack, storedChoice.choice, weapon);
+    void handleCombatDefense(
+      lastAttack,
+      storedChoice.choice,
+      weapon,
+      storedChoice.maneuverType
+    );
   }, [combatDefenseWeapons, handleCombatDefense]);
 
   // === Ręczna kontynuacja urwanej narracji (finishReason=MAX_TOKENS) ===

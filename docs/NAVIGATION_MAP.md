@@ -49,7 +49,7 @@ graph TD
     hazard_card["Zagrożenia środowiskowe i trucizny w czacie (CoC 7e RAW) / In-chat environmental hazards and poisons (CoC 7e RAW)"]
     sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (CoC 7e RAW) / Sanity therapy and recovery (CoC 7e RAW)"]
     medical_care_modal["Rekonwalescencja i opieka medyczna (CoC 7e RAW) / Convalescence and medical care (CoC 7e RAW)"]
-    combat_defense_dialog["Obrona w walce (CoC 7e RAW) / Combat defense (CoC 7e RAW)"]
+    combat_card["Obrona w walce wręcz w czacie (CoC 7e RAW) / In-chat melee combat defense (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -93,7 +93,7 @@ graph TD
     rulebook_modal -->|Gotowe, przejdź do gry / Ready, proceed to game| home
     character_sheet -->|Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery| sanity_therapy_modal
     character_sheet -->|Rekonwalescencja i opieka medyczna / Convalescence and medical care| medical_care_modal
-    game -->|Obrona w walce / Combat defense| combat_defense_dialog
+    game -->|Obrona w walce / Combat defense| combat_card
 ```
 
 ## Routy
@@ -158,7 +158,7 @@ graph TD
 | Podręcznik zasad | Gotowe, przejdź do gry / Ready, proceed to game | Strona główna | `src/app/[locale]/page.tsx` |
 | Karta badacza (Dark Art Déco CoC 7e RAW) | Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery | Terapia i rekonwalescencja psychiczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
 | Karta badacza (Dark Art Déco CoC 7e RAW) | Rekonwalescencja i opieka medyczna / Convalescence and medical care | Rekonwalescencja i opieka medyczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
-| Aktywna sesja | Obrona w walce / Combat defense | Obrona w walce (CoC 7e RAW) | `src/components/chat/chat-window/index.tsx` |
+| Aktywna sesja | Obrona w walce / Combat defense | Obrona w walce wręcz w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/combat-card.tsx` |
 
 ## Zasady aktualizacji
 

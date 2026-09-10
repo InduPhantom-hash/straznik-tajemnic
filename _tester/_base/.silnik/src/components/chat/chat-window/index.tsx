@@ -29,7 +29,6 @@ import { LoadingIndicator } from './components/loading-indicator';
 import { MessageCard } from './components/message-card';
 import { MessageInput } from './components/message-input';
 import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
-import { CombatDefenseDialog } from './components/combat-defense-dialog';
 import { getSkillValue } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 
@@ -155,6 +154,17 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   const resolvedTomeIds = useMemo(() => {
     const ids = new Set<string>();
     const pattern = /\[WYNIK_TOMU:\s*id=([^|\]]+)/gi;
+    for (const message of messages) {
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(message.content)) !== null)
+        ids.add(match[1].trim());
+      pattern.lastIndex = 0;
+    }
+    return ids;
+  }, [messages]);
+  const resolvedCombatIds = useMemo(() => {
+    const ids = new Set<string>();
+    const pattern = /\[WYNIK_WALKI:\s*id=([^|\]]+)/gi;
     for (const message of messages) {
       let match: RegExpExecArray | null;
       while ((match = pattern.exec(message.content)) !== null)
@@ -351,6 +361,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                   resolvedSpellIds={resolvedSpellIds}
                   onSendTomeResult={handleSendMessage}
                   resolvedTomeIds={resolvedTomeIds}
+                  onSendCombatResult={handleSendMessage}
+                  resolvedCombatIds={resolvedCombatIds}
+                  onCombatDefense={onCombatDefense}
                   onChaseManeuver={(maneuverType, nextState, decl) => {
                     onChaseStateChange?.(nextState);
                     handleSendMessage(decl, { chase: nextState });
@@ -403,79 +416,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
           onClose={() => setLightboxImage(null)}
         />
       )}
-      {pendingCombatAttack && onCombatDefense && activeCharacter && (
-        <DialogPrimitive.Root open>
-          <DialogPrimitive.Portal>
-            <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
-            <DialogPrimitive.Content
-              className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[min(75vw,64rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto focus:outline-none"
-              onEscapeKeyDown={(event) => event.preventDefault()}
-              onPointerDownOutside={(event) => event.preventDefault()}
-            >
-              <DialogPrimitive.Title className="sr-only">
-                Melee combat defense
-              </DialogPrimitive.Title>
-              <DialogPrimitive.Description className="sr-only">
-                Choose how the investigator reacts to the incoming attack.
-              </DialogPrimitive.Description>
-              <CombatDefenseDialog
-                attackerName={pendingCombatAttack.attacker.name}
-                attackerWeapon={pendingCombatAttack.weapon.name}
-                intent={pendingCombatAttack.intent}
-                targetName={pendingCombatAttack.target.name}
-                dodgeSkill={resolveTestValue(
-                  'Unik',
-                  activeCharacter.id === pendingCombatAttack.target.characterId
-                    ? activeCharacter
-                    : characters.find(
-                        (character) =>
-                          character.id === pendingCombatAttack.target.characterId
-                      ) ?? activeCharacter
-                ) ?? 0}
-                weapons={combatDefenseWeapons}
-                defensesUsedThisRound={pendingCombatDefensesUsed}
-                queuePosition={pendingCombatAttack.ordinal + 1}
-                queueTotal={Math.max(combatRoundAttacks.length, 1)}
-                disabled={isLoading}
-                onSelectDefense={(choice, weapon) =>
-                  onCombatDefense(pendingCombatAttack, choice, weapon)
-                }
-              />
-            </DialogPrimitive.Content>
-          </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
-      )}
-
-      {/* Retro Cheat: ten sam komponent reakcji, bez zapisu mechaniki. */}
-      {cheatCombatModal && !pendingCombatAttack && (
-        <DialogPrimitive.Root open>
-          <DialogPrimitive.Portal>
-            <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
-            <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[min(75vw,64rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto focus:outline-none">
-              <DialogPrimitive.Title className="sr-only">Melee combat defense</DialogPrimitive.Title>
-              <DialogPrimitive.Description className="sr-only">Choose a reaction.</DialogPrimitive.Description>
-            <CombatDefenseDialog
-              attackerName={cheatCombatModal.attackerName}
-              attackerWeapon={cheatCombatModal.attackerWeapon}
-              dodgeSkill={cheatCombatModal.dodgeSkill}
-              weapons={[{
-                id: 'cheat-unarmed',
-                name: 'Walka wręcz',
-                skillId: 'Walka Wręcz',
-                skillValue: cheatCombatModal.brawlSkill,
-                damageFormula: '1d3',
-                damageType: 'non_impaling',
-              }]}
-              onSelectDefense={(choice, weapon) => {
-                handleSendMessage(`[OBRONA: ${choice}${weapon ? ` | ${weapon.name}` : ''}]`);
-                if (onCloseCheatCombat) onCloseCheatCombat();
-              }}
-            />
-            </DialogPrimitive.Content>
-          </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
-      )}
-
       {/* D1: tacka testu ([TEST:]) odpala mały modal - rzut, ew. Szczęście, ręczna wysyłka */}
       <RollTestModal
         open={!!diceTest}

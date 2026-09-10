@@ -3,7 +3,7 @@
  * Retro Silnik Kodow i Testow Mechanik (Cheat Engine 90s/00s) dla Call of Cthulhu 7e.
  */
 
-import type { Character, Message, SpellCastEventData, TomeStudyEventData } from '@/lib/types';
+import type { Character, Message, SpellCastEventData, TomeStudyEventData, PendingMeleeAttack } from '@/lib/types';
 import type { SkillTestData, HazardEventData } from '@/lib/parsers/types';
 import { extractHazardEvents } from '@/lib/parsers/mechanics-parser';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
@@ -581,29 +581,50 @@ export function executeCheatCommand(
   }
 
   if (command === 'COMBAT') {
-    const attackerName = args[0] || (isPl ? 'Kultysta z nożem' : 'Cultist with dagger');
+    const attackerName = args[0] || (isPl ? 'Bandyta z zaułka' : 'Alley thug');
     const attackerWeapon = args[1] || (isPl ? 'nóż sprężynowy' : 'switchblade');
-    const dodgeVal = (resolveTestValue('Unik', character) ?? 25);
-    const brawlVal = (resolveTestValue('Walka Wręcz (Bijatyka)', character) ?? 25);
+
+    const attack: PendingMeleeAttack = {
+      schemaVersion: 1,
+      eventId: 'cheat_combat_' + Date.now(),
+      roundId: 'round_' + Date.now(),
+      ordinal: 0,
+      intent: isPl
+        ? 'Wyprowadza zdradzieckie, prędkie pchnięcie prosto w pierś!'
+        : 'Strikes with a swift, treacherous stab straight for your chest!',
+      attacker: {
+        id: 'npc_thug_' + Date.now(),
+        name: attackerName,
+        build: 0,
+        hp: 9,
+        maxHp: 9,
+        armor: 0,
+        attackSkill: 45,
+        damageBonus: '0',
+      },
+      target: {
+        characterId: character?.id || 'active_char',
+        name: character?.name || (isPl ? 'Badacz' : 'Investigator'),
+      },
+      weapon: {
+        attackOptionId: 'switchblade',
+        name: attackerWeapon,
+        damageFormula: '1d4',
+        damageClass: 'impaling',
+      },
+    };
 
     return {
       isCheat: true,
       rawCommand: trimmed,
-      openCombatModal: {
-        attackerName,
-        attackerWeapon,
-        dodgeSkill: dodgeVal,
-        brawlSkill: brawlVal,
-        playerBuild: character?.build ?? 0,
-        attackerBuild: 0,
-      },
       assistantMessage: {
         id: 'cheat_msg_' + Date.now(),
         role: 'assistant',
         content: isPl
-          ? '⚔️ **[STARCIE WRĘCZ]** Przeciwnik **' + attackerName + '** wyprowadza atak (' + attackerWeapon + ')! Wybierz reakcję obronną na tacce walki.'
-          : '⚔️ **[MELEE COMBAT]** Opponent **' + attackerName + '** attacks with ' + attackerWeapon + '! Choose defensive reaction on the combat tray.',
+          ? `Z mroku wyłania się **${attackerName}**, błyskając w świetle latarni ostrzem (${attackerWeapon}) i biorąc zamach w Twoją stronę!`
+          : `Emerging from the shadows, **${attackerName}** flashes a ${attackerWeapon} in the lantern light and lunges in your direction!`,
         timestamp: now,
+        pendingMeleeAttacks: [attack],
       },
     };
   }
