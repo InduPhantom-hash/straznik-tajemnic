@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useTransition } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Dialog,
@@ -85,7 +85,6 @@ export function AdventureBuilderModal({
 
   // Pobieranie ZIP
   const [isExportingZip, setIsExportingZip] = useState(false);
-  const [, startTransition] = useTransition();
 
   const handleReset = () => {
     setRole(null);

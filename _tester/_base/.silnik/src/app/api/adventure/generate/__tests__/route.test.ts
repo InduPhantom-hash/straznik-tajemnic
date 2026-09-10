@@ -1,4 +1,3 @@
-import type { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { dramatronEngine } from '@/lib/adventure-generator';
 
@@ -95,5 +94,26 @@ describe('POST /api/adventure/generate', () => {
     expect(data.error).toBe('Krytyczny błąd generatora');
 
     spy.mockRestore();
+  });
+
+  it('zwraca 400 gdy ciało żądania nie jest obiektem', async () => {
+    const res = await POST(request(null));
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('Nieprawidłowe ciało żądania (oczekiwano obiektu JSON).');
+  });
+
+  it('sanitaryzuje nieznane wartości era i tone bez błędu', async () => {
+    const res = await POST(
+      request({
+        era: 'nieznana_era',
+        tone: 'nieznany_ton',
+        theme: 'Test sanitacji',
+      })
+    );
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.dramatron).toBeDefined();
   });
 });

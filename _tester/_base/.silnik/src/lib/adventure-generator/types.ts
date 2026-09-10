@@ -167,6 +167,7 @@ export interface DramatronScene {
 export interface DramatronAdventure {
   version: string;
   generatedAt: string;
+  source?: 'ai' | 'deterministic';
   premise: DramatronPremise;
   cast: DramatronNpc[];
   clueWeb: DramatronClueWeb;

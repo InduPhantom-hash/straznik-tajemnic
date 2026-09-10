@@ -25,6 +25,11 @@ import type {
   DramatronTruthAnchor,
 } from './types';
 import type { GraphConnection } from '../types';
+import type {
+  ClueCategory,
+  LockedRoomMysteryType,
+  MiceQuotientType,
+} from '../journal/dossier-types';
 
 interface EraPresetArchetype {
   eraLabel: string;
@@ -35,8 +40,8 @@ interface EraPresetArchetype {
   anomalies: string[];
   culprits: Array<{ name: string; occupation: string; motive: string; weapon: string; secret: string }>;
   suspects: Array<{ name: string; occupation: string; mask: string; secret: string; quirk: string; socio: string; psycho: string; stats: string }>;
-  locations: Array<{ name: string; address: string; atmosphere: string; illusion: string; carrType: any; carrAnomaly: string; carrHint: string }>;
-  clueTemplates: Array<{ title: string; desc: string; category: any; miceType: any }>;
+  locations: Array<{ name: string; address: string; atmosphere: string; illusion: string; carrType: LockedRoomMysteryType; carrAnomaly: string; carrHint: string }>;
+  clueTemplates: Array<{ title: string; desc: string; category: ClueCategory; miceType: MiceQuotientType }>;
 }
 
 const ERA_PRESETS: Record<DramatronEra, EraPresetArchetype> = {
@@ -682,7 +687,7 @@ export class DramatronEngine {
         occupation: s.occupation,
         firstImpression: `Postać sprawiająca wrażenie znerwicowanej; ${s.mask.toLowerCase()}.`,
         relationshipStatus: 'neutral' as const,
-        disposition: (idx === 0 ? 'friendly' : idx === 1 ? 'neutral' : 'suspicious') as any,
+        disposition: (idx === 0 ? 'friendly' : idx === 1 ? 'neutral' : 'suspicious') as DramatronNpc['disposition'],
         physiologicalDetail: s.quirk,
         sociologicalStatus: s.socio,
         psychologicalAgenda: s.psycho,
@@ -891,6 +896,7 @@ export class DramatronEngine {
     return {
       version: '1.0.0',
       generatedAt: new Date(timestamp).toISOString(),
+      source: 'deterministic',
       premise,
       cast,
       clueWeb,
@@ -945,7 +951,23 @@ Wygeneruj scenariusz Dramatron:
       });
 
       const text = response.text || '';
-      const parsed = JSON.parse(text);
+      let parsed: {
+        premise?: Partial<DramatronPremise>;
+        cast?: Array<Partial<DramatronNpc>>;
+        clueWeb?: {
+          clues?: Array<Partial<DramatronClue>>;
+          connections?: GraphConnection[];
+          truthAnchor?: Partial<DramatronTruthAnchor>;
+        };
+        locations?: Array<Partial<DramatronLocation>>;
+        scenes?: Array<Partial<DramatronScene>>;
+      } | null = null;
+
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        parsed = null;
+      }
 
       if (
         parsed &&
@@ -959,17 +981,18 @@ Wygeneruj scenariusz Dramatron:
         return {
           version: '1.0.0',
           generatedAt: new Date().toISOString(),
+          source: 'ai',
           premise: {
             ...fallback.premise,
             ...parsed.premise,
           },
-          cast: parsed.cast.map((npc: any, idx: number) => ({
+          cast: parsed.cast.map((npc: Partial<DramatronNpc>, idx: number) => ({
             ...fallback.cast[idx % fallback.cast.length],
             ...npc,
             id: npc.id || `npc-ai-${idx + 1}`,
           })),
           clueWeb: {
-            clues: parsed.clueWeb.clues.map((c: any, idx: number) => ({
+            clues: (parsed.clueWeb.clues || []).map((c: Partial<DramatronClue>, idx: number) => ({
               ...fallback.clueWeb.clues[idx % fallback.clueWeb.clues.length],
               ...c,
               id: c.id || `clue-ai-${idx + 1}`,
@@ -977,14 +1000,16 @@ Wygeneruj scenariusz Dramatron:
             connections: Array.isArray(parsed.clueWeb.connections)
               ? parsed.clueWeb.connections
               : fallback.clueWeb.connections,
-            truthAnchor: parsed.clueWeb.truthAnchor || fallback.clueWeb.truthAnchor,
+            truthAnchor: parsed.clueWeb.truthAnchor
+              ? { ...fallback.clueWeb.truthAnchor, ...parsed.clueWeb.truthAnchor }
+              : fallback.clueWeb.truthAnchor,
           },
-          locations: parsed.locations.map((loc: any, idx: number) => ({
+          locations: parsed.locations.map((loc: Partial<DramatronLocation>, idx: number) => ({
             ...fallback.locations[idx % fallback.locations.length],
             ...loc,
             id: loc.id || `loc-ai-${idx + 1}`,
           })),
-          scenes: parsed.scenes.map((sc: any, idx: number) => ({
+          scenes: parsed.scenes.map((sc: Partial<DramatronScene>, idx: number) => ({
             ...fallback.scenes[idx % fallback.scenes.length],
             ...sc,
             id: sc.id || `scene-ai-${idx + 1}`,
