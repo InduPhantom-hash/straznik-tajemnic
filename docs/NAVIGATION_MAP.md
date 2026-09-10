@@ -45,7 +45,7 @@ graph TD
     full_reset["Pełny reset / Full reset"]
     reset_settings_confirm["Reset parametrów / Reset settings"]
     rulebook_modal["Podręcznik zasad / Rulebook"]
-    chase_card["Pościg i tor przeszkód w czacie (CoC 7e RAW) / In-chat chase and hazard track (CoC 7e RAW)"]
+    chase_card["Pościg narracyjny i tor przeszkód w czacie (Fiction First CoC 7e RAW) / In-chat narrative chase and hazard track (Fiction First CoC 7e RAW)"]
     hazard_card["Zagrożenia środowiskowe i trucizny w czacie (CoC 7e RAW) / In-chat environmental hazards and poisons (CoC 7e RAW)"]
     sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (CoC 7e RAW) / Sanity therapy and recovery (CoC 7e RAW)"]
     medical_care_modal["Rekonwalescencja i opieka medyczna (CoC 7e RAW) / Convalescence and medical care (CoC 7e RAW)"]

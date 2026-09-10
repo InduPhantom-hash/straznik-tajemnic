@@ -1048,17 +1048,28 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       }
 
       const currentGameTime = timeManager.getTime();
+      const effectiveMechanicsContext = {
+        ...mechanicsContext,
+        ...(activeChaseStateRef.current?.status === 'ongoing' && !mechanicsContext?.chase
+          ? { chase: activeChaseStateRef.current }
+          : {}),
+      };
+      const resolvedMechanicsContext =
+        Object.keys(effectiveMechanicsContext).length > 0
+          ? effectiveMechanicsContext
+          : undefined;
+
       const userMessage: Message = {
         id: crypto.randomUUID(),
         role: 'user',
         content: message,
         timestamp: new Date(),
         gameTime: currentGameTime,
-        mechanicsContext,
+        mechanicsContext: resolvedMechanicsContext,
       };
-      if (mechanicsContext?.chase) {
-        setActiveChaseState(mechanicsContext.chase);
-        activeChaseStateRef.current = mechanicsContext.chase;
+      if (resolvedMechanicsContext?.chase) {
+        setActiveChaseState(resolvedMechanicsContext.chase);
+        activeChaseStateRef.current = resolvedMechanicsContext.chase;
       }
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
@@ -1159,7 +1170,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   description: options.pendingDirectorEvent.description,
                 }
               : undefined,
-            mechanicsContext,
+            mechanicsContext: resolvedMechanicsContext,
           }),
         });
 

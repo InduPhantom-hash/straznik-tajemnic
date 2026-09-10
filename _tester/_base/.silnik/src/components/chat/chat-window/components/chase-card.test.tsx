@@ -73,6 +73,9 @@ describe('ChaseCard - tor pościgu w czacie', () => {
     expect(screen.getByText(/@Alice/)).toBeInTheDocument();
     expect(screen.getByText(/Pozostałe akcje: 2/)).toBeInTheDocument();
 
+    expect(screen.getByText(/Zadeklaruj działanie w czacie \(Fiction First\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Inspiracje taktyczne/i)).toBeInTheDocument();
+
     expect(screen.getByRole('button', { name: /Sprint naprzód/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Brawurowy skrót/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Zastaw przeszkodę z tyłu/i })).toBeInTheDocument();
