@@ -52,4 +52,31 @@ describe('ChatHeader', () => {
     compendiumBtn.click();
     expect(handleOpenHelp).toHaveBeenCalledTimes(1);
   });
+
+  it('renders director mode button when onToggleDirectorMode is provided and toggles state', () => {
+    const handleToggleDirector = jest.fn();
+    const { rerender } = render(
+      <ChatHeader
+        title="Tajemnica Czarnego Sarkofagu"
+        isDirectorMode={false}
+        onToggleDirectorMode={handleToggleDirector}
+      />
+    );
+
+    const directorBtn = screen.getByRole('button', { name: /kulisy mg/i });
+    expect(directorBtn).toBeInTheDocument();
+    expect(directorBtn).toHaveAttribute('aria-pressed', 'false');
+
+    directorBtn.click();
+    expect(handleToggleDirector).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <ChatHeader
+        title="Tajemnica Czarnego Sarkofagu"
+        isDirectorMode={true}
+        onToggleDirectorMode={handleToggleDirector}
+      />
+    );
+    expect(directorBtn).toHaveAttribute('aria-pressed', 'true');
+  });
 });

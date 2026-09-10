@@ -42,4 +42,29 @@ describe('cleanupContent', () => {
       expect(cleanupContent(input)).toBe('');
     });
   });
+
+  it('wycina tagi protokołu BOP oraz ich ucięte linie bez nawiasów', () => {
+    const inputWithBrackets = `[MYŚLI_MG: plan działania | MASKA_NPC: uprzejmy profesor, skrywa szaleństwo | RETRO_ZIARNO: pył na mankietach | KORELACJA: pasuje do zbrodni | ECHO_AKCJI: policja krąży wokół]
+Kroki cichną w korytarzu.`;
+    expect(cleanupContent(inputWithBrackets)).toBe('Kroki cichną w korytarzu.');
+
+    const inputTruncated = `MASKA_NPC: ukryty motyw
+RETRO_ZIARNO: zapach ozonu
+KORELACJA: trop prowadzi do piwnicy
+ECHO_AKCJI: portier obserwuje badacza
+Na biurku leży stary telegram.`;
+    expect(cleanupContent(inputTruncated)).toBe('Na biurku leży stary telegram.');
+  });
+
+  it('formatNarrative poprawnie ekstrahuje MYŚLI_MG z zagnieżdżonymi nawiasami w trybie Director Mode', () => {
+    const { formatNarrative } = require('./formatter');
+    const input = `[MYŚLI_MG: plan [serious] działania | MASKA_NPC: profesor [calm]]
+Wkraczasz do gabinetu.`;
+    const nodes = formatNarrative(input, undefined, undefined, true);
+    expect(nodes.length).toBeGreaterThan(0);
+    // Sprawdź czy sekcja director-notes została poprawnie wygenerowana
+    const nonDirectorNodes = formatNarrative(input, undefined, undefined, false);
+    expect(nonDirectorNodes.length).toBeLessThan(nodes.length);
+  });
 });
+

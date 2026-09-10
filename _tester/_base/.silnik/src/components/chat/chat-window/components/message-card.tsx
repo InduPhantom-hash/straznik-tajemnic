@@ -84,6 +84,7 @@ interface MessageCardProps {
   onContinueNarration?: (messageId?: string) => void;
   isDuet?: boolean;
   characters?: Character[];
+  isDirectorMode?: boolean;
 }
 
 export function MessageCard({
@@ -117,6 +118,7 @@ export function MessageCard({
   onContinueNarration,
   isDuet = false,
   characters = [],
+  isDirectorMode = false,
 }: MessageCardProps) {
   const t = useTranslations('MessageCard');
   const locale = useLocale();
@@ -253,6 +255,7 @@ export function MessageCard({
                   className="text-[18px] leading-relaxed font-special-elite"
                   playerColors={playerColors}
                   onImageClick={onImageClick}
+                  isDirectorMode={isDirectorMode}
                 />
                 {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
                   <>

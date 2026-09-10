@@ -11,7 +11,8 @@ export type SectionType =
   | 'mechanic'
   | 'roll'
   | 'whisper'
-  | 'perspective';
+  | 'perspective'
+  | 'director-notes';
 
 export type HandoutType =
   | 'newspaper'
