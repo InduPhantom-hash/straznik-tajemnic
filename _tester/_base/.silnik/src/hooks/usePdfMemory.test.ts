@@ -85,8 +85,10 @@ describe('lokalna pamięć PDF', () => {
 
     const file = new File(['%PDF-1.7'], 'adv.pdf', { type: 'application/pdf' });
     await indexPdfLocally(file, 'adventure', 'adv.pdf', 'adv-99');
-    expect(capturedFormData?.get('adventureId')).toBe('adv-99');
-    expect(capturedFormData?.get('type')).toBe('adventure');
+    expect(capturedFormData).not.toBeNull();
+    const fd = capturedFormData as unknown as FormData;
+    expect(fd.get('adventureId')).toBe('adv-99');
+    expect(fd.get('type')).toBe('adventure');
     fetchMock.mockRestore();
   });
 
