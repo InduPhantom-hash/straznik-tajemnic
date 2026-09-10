@@ -36,6 +36,15 @@ import { AdventureContext } from '@/lib/adventures-data';
 import { generateSurpriseAdventure } from '@/lib/adventures/random-adventure-generator';
 import { buildCampaignKitZip } from '@/lib/adventures/campaign-kit-builder';
 import { processImportedFile, ImportedFileResult } from '@/lib/adventures/file-importer';
+import { DramatronStageProgress } from '@/components/ui/adventure-builder/DramatronStageProgress';
+import { DramatronReviewInspector } from '@/components/ui/adventure-builder/DramatronReviewInspector';
+import {
+  dramatronEngine,
+  dramatronToAdventureContext,
+  type DramatronAdventure,
+  type DramatronEra,
+  type DramatronGenerationStageId,
+} from '@/lib/adventure-generator';
 
 interface AdventureBuilderModalProps {
   open: boolean;
@@ -64,6 +73,11 @@ export function AdventureBuilderModal({
     generateSurpriseAdventure('classic')
   );
 
+  // Stan silnika DeepMind Dramatron
+  const [dramatronData, setDramatronData] = useState<DramatronAdventure | null>(null);
+  const [dramatronStage, setDramatronStage] = useState<DramatronGenerationStageId | undefined>(undefined);
+  const [isGeneratingDramatron, setIsGeneratingDramatron] = useState(false);
+
   // Zaimportowane pliki
   const [importedFiles, setImportedFiles] = useState<ImportedFileResult[]>([]);
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
@@ -77,12 +91,75 @@ export function AdventureBuilderModal({
     setRole(null);
     setStep('role');
     setImportedFiles([]);
+    setDramatronData(null);
+    setDramatronStage(undefined);
+    setIsGeneratingDramatron(false);
     setAdventure(generateSurpriseAdventure('classic'));
   };
 
   const handleSurpriseMe = () => {
     const fresh = generateSurpriseAdventure(adventure.era || 'classic');
     setAdventure(fresh);
+    setDramatronData(null);
+    setDramatronStage(undefined);
+  };
+
+  const handleGenerateDramatron = async () => {
+    setIsGeneratingDramatron(true);
+    setDramatronStage('premise');
+    const safeEra = (adventure.era && adventure.era !== 'custom' ? adventure.era : 'classic') as DramatronEra;
+    try {
+      const res = await fetch('/api/adventure/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          theme: adventure.title || adventure.description,
+          era: safeEra,
+          exactYear: adventure.yearRange,
+          location: adventure.location,
+          country: adventure.country,
+          tone: adventure.tone,
+          forPlayer: role === 'player',
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.adventure && data.dramatron) {
+          setAdventure(data.adventure);
+          setDramatronData(data.dramatron);
+          setDramatronStage('scenes');
+          return;
+        }
+      }
+
+      const fallback = dramatronEngine.generateDeterministic({
+        theme: adventure.title || adventure.description,
+        era: safeEra,
+        exactYear: adventure.yearRange,
+        location: adventure.location,
+        country: adventure.country,
+        tone: adventure.tone,
+      });
+      setAdventure(dramatronToAdventureContext(fallback));
+      setDramatronData(fallback);
+      setDramatronStage('scenes');
+    } catch (err) {
+      console.warn('Błąd wywołania API Dramatron, fallback deterministyczny:', err);
+      const fallback = dramatronEngine.generateDeterministic({
+        theme: adventure.title || adventure.description,
+        era: safeEra,
+        exactYear: adventure.yearRange,
+        location: adventure.location,
+        country: adventure.country,
+        tone: adventure.tone,
+      });
+      setAdventure(dramatronToAdventureContext(fallback));
+      setDramatronData(fallback);
+      setDramatronStage('scenes');
+    } finally {
+      setIsGeneratingDramatron(false);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,7 +311,7 @@ export function AdventureBuilderModal({
         {/* ============================================================ */}
         {step === 'input' && (
           <div className="py-4 space-y-6">
-            {/* PRZYCISK ZASKOCZ MNIE (One-Click CoC 7e RAW Seed) */}
+            {/* PRZYCISK ZASKOCZ MNIE (One-Click CoC 7e RAW Seed) / GENERATOR DRAMATRON */}
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border border-brass/40 bg-[#1c1713] rounded-md gap-3">
               <div>
                 <h4 className="font-display text-sm uppercase tracking-wider text-brass flex items-center gap-2">
@@ -245,16 +322,37 @@ export function AdventureBuilderModal({
                   {t('surpriseMeHint')}
                 </p>
               </div>
-              <Button
-                type="button"
-                onClick={handleSurpriseMe}
-                variant="outline"
-                className="border-brass/50 bg-brass/10 text-brass hover:bg-brass/20 font-display uppercase tracking-wider text-xs whitespace-nowrap"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                {t('surpriseMeButton')}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  onClick={handleSurpriseMe}
+                  variant="outline"
+                  disabled={isGeneratingDramatron}
+                  className="border-brass/50 bg-brass/10 text-brass hover:bg-brass/20 font-display uppercase tracking-wider text-xs whitespace-nowrap"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {t('surpriseMeButton')}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleGenerateDramatron}
+                  variant="default"
+                  disabled={isGeneratingDramatron}
+                  className="bg-brass text-[#120f0d] hover:bg-brass/90 font-display uppercase tracking-wider text-xs whitespace-nowrap font-bold"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {isGeneratingDramatron ? t('dramatron.generating') : t('dramatron.button')}
+                </Button>
+              </div>
             </div>
+
+            {/* PASEK POSTĘPU DRAMATRON GDY AKTYWNY */}
+            {(isGeneratingDramatron || dramatronData) && (
+              <DramatronStageProgress
+                currentStage={dramatronStage}
+                isGenerating={isGeneratingDramatron}
+              />
+            )}
 
             {/* FORMULARZ ZARYSU */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -431,65 +529,71 @@ export function AdventureBuilderModal({
         {/* ============================================================ */}
         {step === 'review' && role === 'keeper' && (
           <div className="py-4 space-y-6">
-            <div className="flex items-center justify-between border-b border-brass/20 pb-2">
-              <div>
-                <h3 className="font-display text-sm uppercase tracking-wider text-brass flex items-center gap-2">
-                  <Network className="h-4 w-4 text-brass" />
-                  {t('clueWebTitle')}
-                </h3>
-                <p className="text-xs text-[#a89d8d]">
-                  {t('clueWebSubtitle')}
-                </p>
-              </div>
-              <Badge variant="outline" className="border-brass/40 text-brass text-[11px] font-special-elite">
-                CoC 7e RAW &bull; MG ONLY
-              </Badge>
-            </div>
-
-            {/* DRAMATIS PERSONAE */}
-            <div>
-              <h4 className="font-display text-xs uppercase tracking-wider text-brass mb-2 flex items-center gap-2">
-                <Users className="h-3.5 w-3.5 text-primary" />
-                {t('dramatisPersonae')} ({adventure.graph?.npcs.length || 0})
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {adventure.graph?.npcs.map((npc) => (
-                  <div key={npc.id} className="p-3 border border-brass/30 bg-[#16120e] rounded text-xs space-y-1">
-                    <div className="font-display font-bold text-gold">{npc.name}</div>
-                    <div className="text-[#b0a390]">{npc.description}</div>
-                    {npc.secret && (
-                      <div className="text-destructive italic mt-1 text-[11px]">
-                        ⚠️ Sekret MG: {npc.secret}
-                      </div>
-                    )}
-                    {npc.statsSummary && (
-                      <div className="text-[10px] font-mono text-[#8a7f70] pt-1">
-                        {npc.statsSummary}
-                      </div>
-                    )}
+            {dramatronData ? (
+              <DramatronReviewInspector dramatron={dramatronData} />
+            ) : (
+              <>
+                <div className="flex items-center justify-between border-b border-brass/20 pb-2">
+                  <div>
+                    <h3 className="font-display text-sm uppercase tracking-wider text-brass flex items-center gap-2">
+                      <Network className="h-4 w-4 text-brass" />
+                      {t('clueWebTitle')}
+                    </h3>
+                    <p className="text-xs text-[#a89d8d]">
+                      {t('clueWebSubtitle')}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <Badge variant="outline" className="border-brass/40 text-brass text-[11px] font-special-elite">
+                    CoC 7e RAW &bull; MG ONLY
+                  </Badge>
+                </div>
 
-            {/* CLUE WEB CONNECTIONS */}
-            <div>
-              <h4 className="font-display text-xs uppercase tracking-wider text-brass mb-2 flex items-center gap-2">
-                <Network className="h-3.5 w-3.5 text-primary" />
-                {t('clueWebConnections')} ({adventure.graph?.connections.length || 0})
-              </h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                {adventure.graph?.connections.map((conn, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 border border-brass/20 bg-[#181410] rounded text-xs">
-                    <span className="font-mono text-brass font-bold">{conn.fromId}</span>
-                    <span className="text-[#887b6a]">&rarr;</span>
-                    <span className="text-[#d8cdbc] flex-1">{conn.description}</span>
-                    <span className="text-[#887b6a]">&rarr;</span>
-                    <span className="font-mono text-brass font-bold">{conn.toId}</span>
+                {/* DRAMATIS PERSONAE */}
+                <div>
+                  <h4 className="font-display text-xs uppercase tracking-wider text-brass mb-2 flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-primary" />
+                    {t('dramatisPersonae')} ({adventure.graph?.npcs.length || 0})
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {adventure.graph?.npcs.map((npc) => (
+                      <div key={npc.id} className="p-3 border border-brass/30 bg-[#16120e] rounded text-xs space-y-1">
+                        <div className="font-display font-bold text-gold">{npc.name}</div>
+                        <div className="text-[#b0a390]">{npc.description}</div>
+                        {npc.secret && (
+                          <div className="text-destructive italic mt-1 text-[11px]">
+                            ⚠️ Sekret MG: {npc.secret}
+                          </div>
+                        )}
+                        {npc.statsSummary && (
+                          <div className="text-[10px] font-mono text-[#8a7f70] pt-1">
+                            {npc.statsSummary}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+
+                {/* CLUE WEB CONNECTIONS */}
+                <div>
+                  <h4 className="font-display text-xs uppercase tracking-wider text-brass mb-2 flex items-center gap-2">
+                    <Network className="h-3.5 w-3.5 text-primary" />
+                    {t('clueWebConnections')} ({adventure.graph?.connections.length || 0})
+                  </h4>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {adventure.graph?.connections.map((conn, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 border border-brass/20 bg-[#181410] rounded text-xs">
+                        <span className="font-mono text-brass font-bold">{conn.fromId}</span>
+                        <span className="text-[#887b6a]">&rarr;</span>
+                        <span className="text-[#d8cdbc] flex-1">{conn.description}</span>
+                        <span className="text-[#887b6a]">&rarr;</span>
+                        <span className="font-mono text-brass font-bold">{conn.toId}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* NAWIGACJA */}
             <div className="flex items-center justify-between pt-3 border-t border-brass/20">

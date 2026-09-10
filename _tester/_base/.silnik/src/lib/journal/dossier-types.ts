@@ -89,6 +89,8 @@ export interface NpcDossierEntry {
   sociologicalStatus?: string;
   /** Wymiar psychologiczny: ukryta agenda, prywatny lęk, słabość moralna */
   psychologicalAgenda?: string;
+  /** Sekret postaci (dla Mistrza Gry lub zamaskowany dla Badacza) */
+  secret?: string;
 }
 
 export type LocationSearchStatus =
@@ -142,11 +144,53 @@ export interface PlayerNoteEntry {
   sourceJournalEntryId?: string;
 }
 
+/**
+ * Kotwica Prawdy (Truth Anchor / Sealed Envelope)
+ */
+export interface DossierTruthAnchor {
+  culprit: string;
+  motive: string;
+  murderWeapon: string;
+  immutableFacts: string[];
+}
+
+/**
+ * Beat w scenie śledztwa (DeepMind Dramatron / CoC 7e RAW)
+ */
+export interface SceneBeatEntry {
+  id: string;
+  title: string;
+  description: string;
+  miceType?: MiceQuotientType;
+  sanLossRisk?: string;
+  skillChecks?: string[];
+  keyClueId?: string;
+  outcome?: string;
+}
+
+/**
+ * Karta Sceny w Dossier (4 Akty Obłędu)
+ */
+export interface SceneDossierEntry {
+  id: string;
+  title: string;
+  act: 1 | 2 | 3 | 4;
+  locationId: string;
+  npcIds: string[];
+  description: string;
+  clueIds: string[];
+  isClimax?: boolean;
+  beats: SceneBeatEntry[];
+}
+
 export interface InvestigatorDossier {
+  adventureId?: string;
   clues: ClueEntry[];
   npcs: NpcDossierEntry[];
   locations: LocationDossierEntry[];
   notes: PlayerNoteEntry[];
+  scenes?: SceneDossierEntry[];
+  truthAnchor?: DossierTruthAnchor;
   lastUpdated?: string;
 }
 
@@ -213,5 +257,19 @@ export function isPlayerNoteEntry(item: unknown): item is PlayerNoteEntry {
     typeof p.id === 'string' &&
     typeof p.title === 'string' &&
     typeof p.content === 'string'
+  );
+}
+
+/**
+ * Type guard sprawdzający, czy obiekt to SceneDossierEntry.
+ */
+export function isSceneDossierEntry(item: unknown): item is SceneDossierEntry {
+  if (!item || typeof item !== 'object') return false;
+  const s = item as Record<string, unknown>;
+  return (
+    typeof s.id === 'string' &&
+    typeof s.title === 'string' &&
+    typeof s.act === 'number' &&
+    Array.isArray(s.beats)
   );
 }
