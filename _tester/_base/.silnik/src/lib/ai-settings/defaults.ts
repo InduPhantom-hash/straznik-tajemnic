@@ -39,7 +39,7 @@ export const defaultAISettings: AISettings = {
   },
 
   voiceSettings: {
-    enabled: true,
+    enabled: false, // Tymczasowo wyłączony lektor jako stan domyślny na czas testów
     provider: 'gemini', // M3 sesja 146: default Gemini (drop OpenAI per D2)
     narratorOnly: false, // Włączone słuchowisko (multi-voice NPC: różne głosy i emocje)
     volume: 85,

@@ -677,7 +677,7 @@ export default function Home() {
     setAiSettings(settings);
     setVoiceFeatureAvailable(true);
     // IND-86: googleTTSEnabled DROPPED - voiceSettings.enabled = single source of truth
-    const ttsEnabled = settings.voiceSettings?.enabled !== false;
+    const ttsEnabled = !!settings.voiceSettings?.enabled;
     tts.setVoiceEnabled(ttsEnabled);
     tts.setIsTTSEnabled(ttsEnabled);
   }, []);
@@ -686,7 +686,7 @@ export default function Home() {
   useEffect(() => {
     const unsubscribeSettings = settingsEmitter.subscribe((newSettings) => {
       setAiSettings(newSettings);
-      const newTtsEnabled = newSettings.voiceSettings?.enabled !== false;
+      const newTtsEnabled = !!newSettings.voiceSettings?.enabled;
       tts.setVoiceEnabled(newTtsEnabled);
       tts.setIsTTSEnabled(newTtsEnabled);
     });

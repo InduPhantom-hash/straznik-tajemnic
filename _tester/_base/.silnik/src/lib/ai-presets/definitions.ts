@@ -112,7 +112,7 @@ export const QUALITY_PRESETS = {
       cacheTTL: 60 * 60 * 1000, // 1h
 
       // === GEMINI TTS SŁUCHOWISKO ===
-      ttsEnabled: true,
+      ttsEnabled: false, // Tymczasowo wyłączony lektor w domyślnym presecie HIGH na testy
       ttsProvider: 'gemini' as const,
       ttsVoice: 'Charon',
       narratorOnly: false,
