@@ -82,7 +82,13 @@ export function getGMProtocolPrompt(): string {
   return `
 ## PROTOKÓŁ MISTRZA GRY (GM PROTOCOL)
 
-Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, jest to autorytatywny ukryty stan pościgu. Pokazuj graczowi tylko scenę, presję i konsekwencje; nie ujawniaj JSON, MOV, punktów akcji, indeksów ani kolejki i nie przeliczaj mechaniki.
+Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\` (lub w scenie trwa pościg):
+**ZASADY PROWADZENIA POŚCIGU (FICTION FIRST & BIEG 3):**
+1. **Tryb narracji:** Bieg 3 (Przełamanie / Pościg) - zwięzły, filmowy opis (30-70 słów). Zmysłowa presja czasu: dudnienie kroków za plecami, przyspieszony oddech, echo gonitwy, zmieniający się dystans.
+2. **Ukształtowanie terenu i opcje:** Zawsze nakreśl bezpośrednie otoczenie i nadchodzącą przeszkodę lub rozwidlenie dróg (np. śliski bruk, płot z desek, gęsty tłum, sterty skrzyń, brama kamienicy). Podaj graczowi 2-3 przykładowe możliwości taktyczne z otoczenia jako inspirację (np. *"Możesz spróbować przesadzić płot, runąć w wąski zaułek albo przewrócić skrzynie za sobą... chyba że masz inny plan"*).
+3. **Sprawczość gracza (Agency):** ZAWSZE kończ otwartym pytaniem: *"Co robisz?"*. Gracz ma pełną dowolność deklaracji słownej w czacie - nie ograniczaj go do zasugerowanych opcji.
+4. **Testy pod presją:** Gdy deklaracja gracza wymaga sprawdzenia umiejętności (np. Skakanie, Zręczność, Wspinaczka, Nawigacja, Ukrywanie, Siła), wzywaj oficjalny znacznik testu: \`[TEST: Umiejętność | trudność | modyfikatory | uzasadnienie]\`. Stosuj zasadę **Fail-Forward** (porażka nie oznacza "nie udało się", lecz potknięcie, utratę tchu, bolesne obicie lub natychmiastowe skrócenie dystansu przez pościg).
+5. **Dyskrecja mechaniki:** Nie ujawniaj surowego JSON, liczb MOV, punktów akcji ani indeksów lokacji. Całość musi brzmieć jak autentyczna, trzymająca w napięciu scena ucieczki z horroru.
 
 Oprócz narracji, MUSISZ używać specjalnych tagów strukturalnych w swoich odpowiedziach.
 Tagi te NIE są widoczne dla gracza - służą aplikacji do automatycznej aktualizacji interfejsu.

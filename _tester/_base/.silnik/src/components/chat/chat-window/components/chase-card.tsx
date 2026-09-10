@@ -19,6 +19,7 @@ import {
   Zap,
   CheckCircle2,
   AlertTriangle,
+  Compass,
 } from 'lucide-react';
 import {
   type ChaseState,
@@ -279,107 +280,121 @@ export function ChaseCard({
             {lastLog?.details || t('lastOutcomeSuccess')}
           </div>
         ) : (
-          /* Opcje manewrów w czacie (1-klik) */
-          <div className="space-y-2 pt-1">
-            <span className="text-xs font-semibold text-brass block">
-              {t('whatDoYouDo')}
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              {/* Opcja 1: Pokonanie przeszkody lub zwykły sprint */}
-              {nextHazard ? (
+          /* Prawdziwy pościg Fiction First w czacie */
+          <div className="space-y-2.5 pt-1">
+            {/* Baner Fiction First */}
+            <div className="rounded border border-brass/30 bg-brass/5 p-2.5 space-y-1 text-xs">
+              <div className="flex items-center gap-1.5 text-brass font-medium">
+                <Compass className="h-4 w-4 shrink-0 text-brass" />
+                <span className="font-semibold">{t('fictionFirstTitle')}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {t('fictionFirstHint')}
+              </p>
+            </div>
+
+            {/* Inspiracje taktyczne (opcjonalne szybkie akcje lub deklaracje) */}
+            <div className="space-y-1.5 pt-0.5">
+              <span className="text-[11px] font-mono text-brass/80 block">
+                {t('tacticalInspirations')}
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                {/* Opcja 1: Pokonanie przeszkody lub zwykły sprint */}
+                {nextHazard ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
+                    disabled={!canAct || !player || player.actionsRemaining <= 0}
+                    onClick={() => handleExecute('clear_hazard')}
+                  >
+                    <Flame className="h-3.5 w-3.5 mr-1.5 shrink-0 text-amber-400" />
+                    <div className="overflow-hidden">
+                      <span className="block text-xs font-bold text-foreground truncate">
+                        {t('actionClearHazard')}: {hazardName}
+                      </span>
+                      <span className="block text-[10px] text-muted-foreground truncate">
+                        {nextHazard.requiredSkill} ({hazardSkillValue}%)
+                      </span>
+                    </div>
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
+                    disabled={!canAct || !player || player.actionsRemaining <= 0}
+                    onClick={() => handleExecute('sprint')}
+                  >
+                    <Footprints className="h-3.5 w-3.5 mr-1.5 shrink-0 text-emerald-400" />
+                    <div>
+                      <span className="block text-xs font-bold text-foreground">
+                        {t('actionSprint')}
+                      </span>
+                      <span className="block text-[10px] text-muted-foreground">
+                        {t('actionSprintNarrative')}
+                      </span>
+                    </div>
+                  </Button>
+                )}
+
+                {/* Opcja 2: Brawurowy skrót */}
                 <Button
                   size="sm"
                   variant="outline"
                   className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
                   disabled={!canAct || !player || player.actionsRemaining <= 0}
-                  onClick={() => handleExecute('clear_hazard')}
+                  onClick={() => handleExecute('shortcut')}
                 >
-                  <Flame className="h-3.5 w-3.5 mr-1.5 shrink-0 text-amber-400" />
-                  <div className="overflow-hidden">
-                    <span className="block text-xs font-bold text-foreground truncate">
-                      {t('actionClearHazard')}: {hazardName}
-                    </span>
-                    <span className="block text-[10px] text-muted-foreground truncate">
-                      {nextHazard.requiredSkill} ({hazardSkillValue}%)
-                    </span>
-                  </div>
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
-                  disabled={!canAct || !player || player.actionsRemaining <= 0}
-                  onClick={() => handleExecute('sprint')}
-                >
-                  <Footprints className="h-3.5 w-3.5 mr-1.5 shrink-0 text-emerald-400" />
+                  <Zap className="h-3.5 w-3.5 mr-1.5 shrink-0 text-brass" />
                   <div>
                     <span className="block text-xs font-bold text-foreground">
-                      {t('actionSprint')}
+                      {t('actionShortcut')} ({shortcutSkillValue}%)
                     </span>
                     <span className="block text-[10px] text-muted-foreground">
-                      {t('actionSprintNarrative')}
+                      {t('actionShortcutNarrative')}
                     </span>
                   </div>
                 </Button>
-              )}
 
-              {/* Opcja 2: Brawurowy skrót */}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
-                disabled={!canAct || !player || player.actionsRemaining <= 0}
-                onClick={() => handleExecute('shortcut')}
-              >
-                <Zap className="h-3.5 w-3.5 mr-1.5 shrink-0 text-brass" />
-                <div>
-                  <span className="block text-xs font-bold text-foreground">
-                    {t('actionShortcut')} ({shortcutSkillValue}%)
-                  </span>
-                  <span className="block text-[10px] text-muted-foreground">
-                    {t('actionShortcutNarrative')}
-                  </span>
-                </div>
-              </Button>
+                {/* Opcja 3: Zastaw przeszkodę */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
+                  disabled={!canAct || !player || player.actionsRemaining <= 0}
+                  onClick={() => handleExecute('create_barrier')}
+                >
+                  <ShieldAlert className="h-3.5 w-3.5 mr-1.5 shrink-0 text-brass" />
+                  <div>
+                    <span className="block text-xs font-bold text-foreground">
+                      {t('actionCreateBarrier')}
+                    </span>
+                    <span className="block text-[10px] text-muted-foreground">
+                      {t('actionCreateBarrierNarrative')}
+                    </span>
+                  </div>
+                </Button>
 
-              {/* Opcja 3: Zastaw przeszkodę */}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
-                disabled={!canAct || !player || player.actionsRemaining <= 0}
-                onClick={() => handleExecute('create_barrier')}
-              >
-                <ShieldAlert className="h-3.5 w-3.5 mr-1.5 shrink-0 text-brass" />
-                <div>
-                  <span className="block text-xs font-bold text-foreground">
-                    {t('actionCreateBarrier')}
-                  </span>
-                  <span className="block text-[10px] text-muted-foreground">
-                    {t('actionCreateBarrierNarrative')}
-                  </span>
-                </div>
-              </Button>
-
-              {/* Opcja 4: Zniknij w cieniu */}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
-                disabled={!canAct || !player || player.actionsRemaining <= 0}
-                onClick={() => handleExecute('hide')}
-              >
-                <EyeOff className="h-3.5 w-3.5 mr-1.5 shrink-0 text-brass" />
-                <div>
-                  <span className="block text-xs font-bold text-foreground">
-                    {t('actionHide')} ({hideSkillValue}%)
-                  </span>
-                  <span className="block text-[10px] text-muted-foreground">
-                    {t('actionHideNarrative')}
-                  </span>
-                </div>
-              </Button>
+                {/* Opcja 4: Zniknij w cieniu */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-auto py-2 px-2.5 justify-start text-left border-brass/40 hover:bg-brass/10"
+                  disabled={!canAct || !player || player.actionsRemaining <= 0}
+                  onClick={() => handleExecute('hide')}
+                >
+                  <EyeOff className="h-3.5 w-3.5 mr-1.5 shrink-0 text-brass" />
+                  <div>
+                    <span className="block text-xs font-bold text-foreground">
+                      {t('actionHide')} ({hideSkillValue}%)
+                    </span>
+                    <span className="block text-[10px] text-muted-foreground">
+                      {t('actionHideNarrative')}
+                    </span>
+                  </div>
+                </Button>
+              </div>
             </div>
           </div>
         )}
