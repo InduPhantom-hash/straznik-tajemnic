@@ -203,7 +203,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
-  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const [isAudioPaused, setIsAudioPaused] = useState(false);
   const [isInitialBuffering, setIsInitialBuffering] = useState(false);
   // Reaktywny stan isNarratorOnly (Issue #172: przełącznik trybu lektora / słuchowiska)
