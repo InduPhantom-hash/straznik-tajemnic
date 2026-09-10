@@ -102,7 +102,7 @@ export class BoundedMinHeap {
     let current = index;
 
     while (current < half) {
-      let left = (current << 1) + 1;
+      const left = (current << 1) + 1;
       const right = left + 1;
       let minChild = left;
 

@@ -66,7 +66,7 @@ describe('lokalna pamięć PDF', () => {
   });
 
   it('przekazuje adventureId w FormData podczas indeksowania przygody', async () => {
-    let capturedFormData: any = null;
+    let capturedFormData: FormData | null = null;
     const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(async (_url, init) => {
       capturedFormData = (init?.body as FormData) ?? null;
       return {
