@@ -66,5 +66,12 @@ Wkraczasz do gabinetu.`;
     const nonDirectorNodes = formatNarrative(input, undefined, undefined, false);
     expect(nonDirectorNodes.length).toBeLessThan(nodes.length);
   });
+
+  it('wycina tagi [OBSERWACJA] i [SEKRETY_MG] z czatu (Concordia MakeObservation pattern)', () => {
+    const input = `[OBSERWACJA: @Arthur | wzrok | Cienie w kącie pokoju zdają się poruszać wbrew źródłu światła]
+[SEKRETY_MG: Prawdziwy kultysta ukrył księgę w skrytce za obrazem]
+Wkraczasz do cichego gabinetu profesora.`;
+    expect(cleanupContent(input)).toBe('Wkraczasz do cichego gabinetu profesora.');
+  });
 });
 

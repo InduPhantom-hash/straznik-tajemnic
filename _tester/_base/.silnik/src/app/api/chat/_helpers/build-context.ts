@@ -30,6 +30,11 @@ import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 import { isWeapon } from '@/lib/combat/weapon-context';
 import { deriveFinances } from '@/lib/economy/credit-rating';
+import {
+  buildConcordiaObservationDirective,
+  type InvestigatorSubjectiveState,
+  type EpistemicTruthAnchor,
+} from '@/lib/concordia/make-observation';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -428,6 +433,7 @@ export interface BuildAdditionalContextOpts {
     murderWeapon?: string;
     keyAlibi?: string;
     immutableFacts?: string[];
+    unrevealedClueTitles?: string[];
   };
   /** Twarda lista NPC fizycznie obecnych w scenie (Arcanum Benchmark 2026: Scene Presence) */
   presentNpcs?: Array<{ id?: string; name: string; location?: string }>;
@@ -676,6 +682,77 @@ export function buildAdditionalContext(
       additionalContext.push(duetContext);
     }
   }
+
+  // Concordia Pattern: Epistemic Fog of War & MakeObservation
+  const epistemicChars: InvestigatorSubjectiveState[] = (characters && characters.length > 0)
+    ? characters.map((c) => ({
+        id: c.id,
+        name: c.name,
+        currentLocation: currentLocation,
+        sanity: c.san,
+        maxSanity: c.maxSan ?? (typeof c.san === 'number' ? 99 : undefined),
+        dayStartSan: c.dayStartSan,
+        dailySanLoss: c.dailySanLoss,
+        insanityState: c.insanityState,
+        underlyingInsanity: c.underlyingInsanity,
+        isBoutOfMadnessActive: Boolean(c.activeBoutOfMadness),
+        phobias: c.characterTraits?.phobias,
+        manias: c.characterTraits?.manias,
+      }))
+    : playerCharacterName
+      ? [{ id: 'p1', name: playerCharacterName, currentLocation }]
+      : [];
+
+  const unrevealedClueSet = new Set<string>();
+  if (opts.truthAnchor?.unrevealedClueTitles) {
+    opts.truthAnchor.unrevealedClueTitles.forEach((t) => unrevealedClueSet.add(t));
+  }
+
+  if (characters && characters.length > 0) {
+    for (const char of characters) {
+      if (char.investigatorDossier?.clues) {
+        char.investigatorDossier.clues.forEach((c) => {
+          if (c.discoveryStatus === 'unrevealed' || c.status === 'unconfirmed') {
+            unrevealedClueSet.add(c.title);
+          }
+        });
+      }
+      if (char.investigatorBoard?.nodes) {
+        char.investigatorBoard.nodes.forEach((node) => {
+          if (node.discoveryStatus === 'unrevealed') {
+            unrevealedClueSet.add(node.title);
+          }
+        });
+      }
+    }
+  }
+
+  const unrevealedClueTitles = Array.from(unrevealedClueSet);
+
+  const concordiaTruthAnchor: EpistemicTruthAnchor | undefined = opts.truthAnchor
+    ? {
+        culprit: opts.truthAnchor.culprit,
+        motive: opts.truthAnchor.motive,
+        murderWeapon: opts.truthAnchor.murderWeapon,
+        keyAlibi: opts.truthAnchor.keyAlibi,
+        immutableFacts: opts.truthAnchor.immutableFacts,
+        unrevealedClueTitles: unrevealedClueTitles.length > 0 ? unrevealedClueTitles.slice(0, 5) : undefined,
+      }
+    : unrevealedClueTitles.length > 0
+      ? { unrevealedClueTitles: unrevealedClueTitles.slice(0, 5) }
+      : undefined;
+
+  const observationDirective = buildConcordiaObservationDirective({
+    characters: epistemicChars,
+    activeCharacterName: playerCharacterName,
+    currentLocation,
+    scenePresentNpcNames: scenePresentNpcs.map((n) => n.name),
+    truthAnchor: concordiaTruthAnchor,
+    isHotSeat: isHotSeatActive,
+    locale: opts.locale,
+  });
+
+  additionalContext.push(observationDirective);
 
   return additionalContext;
 }

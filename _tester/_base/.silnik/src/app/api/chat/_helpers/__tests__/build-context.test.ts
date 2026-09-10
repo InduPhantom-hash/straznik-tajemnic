@@ -450,4 +450,108 @@ describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => 
     expect(truthSection).toContain('- Narzędzie / metoda: Arszenik w herbacie');
     expect(truthSection).toContain('ŚCIŚLE ZAKAZANA RETROSPEKTYWNA KONFIRMACJA');
   });
+
+  describe('Concordia Pattern: MakeObservation & Epistemic Fog of War', () => {
+    it('wstrzykuje dyrektywę Epistemicznej Mgły Wojny do additionalContext', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        playerCharacterName: 'Arthur',
+        currentLocation: 'Gabinet',
+        locale: 'pl',
+      });
+
+      const observationSection = result.find((s) =>
+        s.includes('EPISTEMICZNA MGŁA WOJNY & MAKEOBSERVATION')
+      );
+      expect(observationSection).toBeDefined();
+      expect(observationSection).toContain('ZAPORA EPISTEMICZNA');
+      expect(observationSection).toContain('WARUNKOWE UJAWNIANIE POSZLAK');
+    });
+
+    it('obsługuje separację epistemiczną w Hot Seat z 2+ graczami', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        characters: [
+          {
+            id: 'c1',
+            name: 'Arthur',
+            san: 45,
+            maxSan: 90,
+            occupation: 'Detektyw',
+          } as unknown as Character,
+          {
+            id: 'c2',
+            name: 'Eleanor',
+            san: 20,
+            maxSan: 80,
+            activeBoutOfMadness: { id: 'bout-1' },
+            occupation: 'Dziennikarka',
+          } as unknown as Character,
+        ],
+        hotSeatConfig: {
+          enabled: true,
+          players: [{ characterName: 'Arthur' }, { characterName: 'Eleanor' }],
+        },
+        locale: 'pl',
+      });
+
+      const observationSection = result.find((s) =>
+        s.includes('SEPARACJA EPISTEMICZNA W TRYBIE DRUŻYNY / HOT SEAT')
+      );
+      expect(observationSection).toBeDefined();
+      expect(observationSection).toContain('Arthur');
+      expect(observationSection).toContain('Eleanor');
+      expect(observationSection).toContain('@ImięPostaci:');
+      expect(observationSection).toContain('AKTYWNE ZNIEKSZTAŁCENIA POCZYTALNOŚCI BOHATERÓW');
+    });
+
+    it('zbiera nieodkryte poszlaki od wszystkich postaci i zachowuje truthAnchor', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        characters: [
+          {
+            id: 'c1',
+            name: 'Arthur',
+            san: 60,
+            investigatorDossier: {
+              clues: [
+                { id: 'clue-1', title: 'Zakrwawiony sztylet', discoveryStatus: 'unrevealed' },
+              ],
+            },
+          } as unknown as Character,
+          {
+            id: 'c2',
+            name: 'Eleanor',
+            san: 50,
+            investigatorBoard: {
+              nodes: [
+                { id: 'node-2', title: 'Szyfr kultu', discoveryStatus: 'unrevealed' },
+              ],
+            },
+          } as unknown as Character,
+        ],
+        truthAnchor: {
+          unrevealedClueTitles: ['Sekretny dziennik'],
+        },
+        locale: 'pl',
+      });
+
+      const observationSection = result.find((s) =>
+        s.includes('EPISTEMICZNA MGŁA WOJNY & MAKEOBSERVATION')
+      );
+      expect(observationSection).toBeDefined();
+      expect(observationSection).toContain('Zakrwawiony sztylet');
+      expect(observationSection).toContain('Szyfr kultu');
+      expect(observationSection).toContain('Sekretny dziennik');
+    });
+  });
 });

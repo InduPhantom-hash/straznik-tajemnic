@@ -343,7 +343,8 @@ export function InvestigatorBoard({
                   'rounded-lg p-3 shadow-2xl border-2 transition-shadow cursor-grab active:cursor-grabbing font-serif flex flex-col justify-between select-none bg-[#1a110a]',
                   typeInfo.color,
                   isSelected && 'ring-2 ring-[#bfa15f] shadow-amber-900/30 scale-[1.01]',
-                  isConnecting && 'border-red-500 animate-pulse'
+                  isConnecting && 'border-red-500 animate-pulse',
+                  node.discoveryStatus === 'unrevealed' && 'opacity-65 border-dashed border-zinc-600'
                 )}
               >
                 {/* Czerwona Szpilka Detektywistyczna */}
@@ -359,6 +360,32 @@ export function InvestigatorBoard({
                     </span>
                     <div className="flex items-center gap-1">
                       {statusIcons[node.status]}
+                      {node.discoveryStatus && (
+                        <span
+                          title={
+                            node.discoveryStatus === 'unrevealed'
+                              ? t('discoveryUnrevealed')
+                              : node.discoveryStatus === 'discovered'
+                              ? t('discoveryDiscovered')
+                              : t('discoveryVerified')
+                          }
+                          className={cn(
+                            'px-1 py-0.5 rounded text-[8px] uppercase tracking-wider font-mono',
+                            node.discoveryStatus === 'unrevealed' &&
+                              'bg-zinc-800 text-zinc-400 border border-zinc-700',
+                            node.discoveryStatus === 'discovered' &&
+                              'bg-amber-950/80 text-amber-300 border border-amber-800/60',
+                            node.discoveryStatus === 'verified' &&
+                              'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'
+                          )}
+                        >
+                          {node.discoveryStatus === 'unrevealed'
+                            ? t('discoveryUnrevealed')
+                            : node.discoveryStatus === 'discovered'
+                            ? t('discoveryDiscovered')
+                            : t('discoveryVerified')}
+                        </span>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
