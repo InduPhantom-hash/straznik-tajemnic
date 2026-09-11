@@ -16,16 +16,28 @@
 
 import { BASE_SKILLS } from '../data/character/skills';
 
+const SYNONYMS: Record<string, string> = {
+  'Korzystanie z Bibliotek': 'Biblioteka',
+  'Korzystanie z Komputerów': 'Komputery',
+  Charakteryzacja: 'Przebranie',
+  Nawigacja: 'Orientacja',
+  'Sztuka Przetrwania': 'Przetrwanie',
+  Skakanie: 'Skok',
+  Occultyzm: 'Okultyzm',
+  'Broń Palna (Dowolna)': 'Broń Palna',
+  'Walka Wręcz (Dowolna)': 'Walka Wręcz',
+};
+
 /**
  * Sprowadza nazwę umiejętności do kanonicznego klucza zgodnego z `BASE_SKILLS`.
  *
- * - `Nauka (Biologia)` → `Nauka`
- * - `Język Obcy (łacina)` → `Język Obcy`
- * - `Język Obcy (2)` → `Język Obcy`
- * - `Sztuka/Rzemiosło (Malarstwo)` → `Sztuka/Rzemiosło`
- * - `Broń Palna (Karabin)` → `Broń Palna (Karabin)` (istnieje wprost w BASE_SKILLS)
- * - `Dowolna` → `null` (wolny wybór gracza - nie jest konkretną umiejętnością)
- * - puste / białe znaki → `null`
+ * - `Nauka (Biologia)` -> `Nauka`
+ * - `Język Obcy (łacina)` -> `Język Obcy`
+ * - `Język Obcy (2)` -> `Język Obcy`
+ * - `Sztuka/Rzemiosło (Malarstwo)` -> `Sztuka/Rzemiosło`
+ * - `Broń Palna (Karabin)` -> `Broń Palna (Karabin)` (istnieje wprost w BASE_SKILLS)
+ * - `Dowolna` -> `null` (wolny wybór gracza - nie jest konkretną umiejętnością)
+ * - puste / białe znaki -> `null`
  *
  * @param raw surowa nazwa umiejętności (może zawierać specjalizację w nawiasie)
  * @returns kanoniczny klucz umiejętności lub `null`, gdy nazwa nie mapuje się
@@ -40,6 +52,8 @@ export function normalizeSkillName(raw: string): string | null {
   // `Dowolna` = wolny wybór gracza, nie konkretna umiejętność - odrzuć.
   if (trimmed.toLowerCase() === 'dowolna') return null;
 
+  if (trimmed in SYNONYMS) return SYNONYMS[trimmed];
+
   // Jeśli nazwa wprost odpowiada umiejętności z BASE_SKILLS (np. 'Broń Palna (Karabin)'),
   // nie obcinaj nawiasu - to pełnoprawna, odrębna umiejętność bazowa.
   if (trimmed in BASE_SKILLS) return trimmed;
@@ -49,6 +63,8 @@ export function normalizeSkillName(raw: string): string | null {
 
   if (stripped.length === 0) return null;
   if (stripped.toLowerCase() === 'dowolna') return null;
+  if (stripped in SYNONYMS) return SYNONYMS[stripped];
+  if (stripped in BASE_SKILLS) return stripped;
 
   return stripped;
 }
@@ -57,7 +73,7 @@ export function normalizeSkillName(raw: string): string | null {
  * Buduje JEDEN, znormalizowany zbiór umiejętności rekomendowanych dla postaci.
  *
  * Zbiór = umiejętności archetypu ∪ umiejętności zawodowe. Specjalizacje są
- * znormalizowane (`Nauka (Biologia)` → `Nauka`), a `Dowolna` odrzucona.
+ * znormalizowane (`Nauka (Biologia)` -> `Nauka`), a `Dowolna` odrzucona.
  * Kolejność zachowuje pierwsze wystąpienie (archetyp przed zawodem), bez
  * duplikatów.
  *

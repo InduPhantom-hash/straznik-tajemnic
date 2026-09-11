@@ -539,9 +539,9 @@ export const enhancedCharacterTemplates: { [key: string]: EnhancedCharacterTempl
       str: 45, dex: 55, con: 55, app: 55, pow: 80, edu: 75, siz: 50, int: 80, luck: 60
     },
     occupationalSkillPoints: "EDU × 4",
-    occupationalSkills: ['Antropologia', 'Historia', 'Korzystanie z Bibliotek', 'Occultyzm', 'Język Obcy', 'Psychologia', 'Dwie umiejętności wybrane przez gracza'],
+    occupationalSkills: ['Antropologia', 'Historia', 'Korzystanie z Bibliotek', 'Okultyzm', 'Język Obcy', 'Psychologia', 'Dwie umiejętności wybrane przez gracza'],
     suggestedSkills: {
-      'Occultyzm': 65, 'Psychologia': 55, 'Historia': 55, 'Korzystanie z Bibliotek': 60,
+      'Okultyzm': 65, 'Psychologia': 55, 'Historia': 55, 'Korzystanie z Bibliotek': 60,
       'Antropologia': 45, 'Język Obcy': 40, 'Spostrzegawczość': 55, 'Nasłuchiwanie': 50
     },
     creditRating: { min: 9, max: 30 },
