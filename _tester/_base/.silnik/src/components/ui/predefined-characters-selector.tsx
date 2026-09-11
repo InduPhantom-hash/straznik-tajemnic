@@ -15,6 +15,7 @@ import { EquipmentItem } from '@/lib/types';
 import { localizeStrefa11Character } from '@/lib/immersion/strefa-11-localization';
 import { localizePredefinedCharacter } from '@/lib/immersion/localize-predefined-character';
 import { getEquipmentItems } from '@/lib/character-storage-normalizer';
+import { applyCatalogTemplate, migrateEquipmentCatalog } from '@/lib/equipment-catalog';
 import type { ResolvedEraContext } from '@/lib/era';
 
 interface PredefinedCharactersSelectorProps {
@@ -506,7 +507,11 @@ export function PredefinedCharactersSelector({
                         <span className="text-muted-foreground/60">{t('itemCount', { count: getEquipmentItems(viewingCharacter.equipment).length })}</span>
                       </div>
                       <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-                        {getEquipmentItems(viewingCharacter.equipment).map((item) => {
+                        {getEquipmentItems(viewingCharacter.equipment).map((rawItem) => {
+                          const item = applyCatalogTemplate(
+                            rawItem,
+                            viewingCharacter.era || currentEra
+                          );
                           const categoryIcon = item.category
                             ? `/equipment/predefined/${item.category}.svg`
                             : '/equipment/predefined/personal.svg';
@@ -568,6 +573,10 @@ export function PredefinedCharactersSelector({
                       onClick={() => {
                         onSelectCharacter({
                           ...viewingCharacter,
+                          equipment: migrateEquipmentCatalog(
+                            getEquipmentItems(viewingCharacter.equipment),
+                            viewingCharacter.era || currentEra
+                          ),
                           sourcePresetId: viewingCharacter.id,
                         });
                         setViewingCharacter(null);
@@ -791,7 +800,7 @@ export function PredefinedCharactersSelector({
       {selectedItem && viewingCharacter && (
         <EquipmentDetailDialog
           item={selectedItem}
-          era={currentEra}
+          era={viewingCharacter.era || currentEra}
           eraContext={eraContext}
           onClose={() => setSelectedItem(null)}
           onUpdateItem={(updatedItem) => {

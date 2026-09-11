@@ -1,5 +1,5 @@
 import type { PredefinedCharacter } from './predefined-characters';
-import { CATEGORY_FALLBACK_ASSETS } from '@/lib/equipment-catalog';
+import { applyCatalogTemplate, CATEGORY_FALLBACK_ASSETS } from '@/lib/equipment-catalog';
 
 const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
   // ==========================================================================
@@ -477,7 +477,7 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
     experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 0 },
     developmentHistory: [],
     skills: { 'Korzystanie z Komputerów': 85, 'Elektronika': 60, 'Języki obce (Angielski)': 65, 'Spostrzegawczość': 50, 'Gadanina': 40 },
-    equipment: [{ id: 'eq_piotr_laptop', name: 'Ciężki laptop z wczesnym Wi-Fi', category: 'tool' }, { id: 'eq_piotr_cables', name: 'Zestaw narzędzi do elektroniki', category: 'tool' }]
+    equipment: [{ id: 'eq_piotr_laptop', name: 'Ciężki laptop z wczesnym Wi-Fi', category: 'tool' }, { id: 'eq_piotr_cables', name: 'Zestaw narzędzi do elektroniki', category: 'tool', templateId: 'tool.electronics-case-prl' }]
   },
   {
     id: 'glogow_psychiatra',
@@ -550,12 +550,23 @@ const BASE_STREFA_11_CHARACTERS: PredefinedCharacter[] = [
 export const STREFA_11_CHARACTERS: PredefinedCharacter[] =
   BASE_STREFA_11_CHARACTERS.map((character) => ({
     ...character,
-    equipment: character.equipment?.map((item) => ({
-      ...item,
-      source: 'starting',
-      imageUrl: CATEGORY_FALLBACK_ASSETS[item.category],
-      visualSource: 'fallback',
-    })),
+    equipment: character.equipment?.map((item) => {
+      const catalogItem = applyCatalogTemplate(
+        {
+          ...item,
+          source: item.source ?? 'starting',
+          condition: item.condition ?? 'used',
+        },
+        character.era
+      );
+      return {
+        ...catalogItem,
+        imageUrl:
+          catalogItem.imageUrl ??
+          CATEGORY_FALLBACK_ASSETS[catalogItem.category],
+        visualSource: catalogItem.imageUrl ? 'catalog' : 'fallback',
+      };
+    }),
   }));
 
 export function getStrefa11CharactersForAdventure(adventureId: string): PredefinedCharacter[] {

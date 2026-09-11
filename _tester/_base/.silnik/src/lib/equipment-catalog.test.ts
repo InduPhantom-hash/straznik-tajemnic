@@ -460,4 +460,115 @@ describe('equipment catalog', () => {
       '/equipment/catalog/oil-lantern-1890s.webp'
     );
   });
+
+  it('gwarantuje, że wszystkie postacie Strefy 11 mają bezpośrednio w obiektach equipment lokalne grafiki .webp (0 fallbacków SVG)', () => {
+    expect(STREFA_11_CHARACTERS.length).toBe(16);
+
+    let totalItems = 0;
+    const nonWebpItems: string[] = [];
+    const svgFallbackItems: string[] = [];
+    const missingDiskFiles: string[] = [];
+
+    STREFA_11_CHARACTERS.forEach((character) => {
+      const items = character.equipment ?? [];
+      expect(items.length).toBeGreaterThan(0);
+
+      items.forEach((item) => {
+        totalItems++;
+        if (!item.imageUrl || !item.imageUrl.endsWith('.webp')) {
+          nonWebpItems.push(
+            `${character.name} (${character.era}) -> ${item.name}: ${item.imageUrl}`
+          );
+        }
+        if (
+          !item.imageUrl ||
+          item.imageUrl.endsWith('.svg') ||
+          item.imageUrl.includes('/equipment/predefined/') ||
+          item.visualSource !== 'catalog'
+        ) {
+          svgFallbackItems.push(
+            `${character.name} (${character.era}) -> ${item.name}: ${item.imageUrl} (visualSource: ${item.visualSource})`
+          );
+        }
+        if (item.imageUrl) {
+          const relativeAssetPath = item.imageUrl.replace(/^\//, '');
+          const diskPath = join(process.cwd(), 'public', relativeAssetPath);
+          if (!existsSync(diskPath)) {
+            missingDiskFiles.push(`${character.name} -> ${item.name}: ${diskPath}`);
+          }
+        }
+      });
+    });
+
+    expect(totalItems).toBe(27);
+    expect(nonWebpItems).toEqual([]);
+    expect(svgFallbackItems).toEqual([]);
+    expect(missingDiskFiles).toEqual([]);
+  });
+
+  it('obsługuje tool.electronics-case-prl w epoce 2000s oraz modern bez odrzucania szablonu', () => {
+    const template = findEquipmentTemplate('tool.electronics-case-prl');
+    expect(template).toBeDefined();
+    expect(template?.availableIn).toContain('2000s');
+    expect(template?.availableIn).toContain('modern');
+
+    expect(resolveCatalogAsset(template, '2000s')).toBe(
+      '/equipment/catalog/electronics-case-prl.webp'
+    );
+    expect(resolveCatalogAsset(template, 'modern')).toBe(
+      '/equipment/catalog/electronics-case-prl.webp'
+    );
+
+    const applied2000s = applyCatalogTemplate(
+      {
+        id: 'eq_piotr_test',
+        templateId: 'tool.electronics-case-prl',
+        name: 'Zestaw narzędzi do elektroniki',
+        category: 'tool',
+      },
+      '2000s'
+    );
+    expect(applied2000s.imageUrl).toBe(
+      '/equipment/catalog/electronics-case-prl.webp'
+    );
+    expect(applied2000s.visualSource).toBe('catalog');
+
+    const appliedModern = applyCatalogTemplate(
+      {
+        id: 'eq_modern_test',
+        templateId: 'tool.electronics-case-prl',
+        name: 'Zestaw narzędzi w walizce',
+        category: 'tool',
+      },
+      'modern'
+    );
+    expect(appliedModern.imageUrl).toBe(
+      '/equipment/catalog/electronics-case-prl.webp'
+    );
+    expect(appliedModern.visualSource).toBe('catalog');
+  });
+
+  it('obsługuje tool.diy-emf-detector-prl w epoce 2000s i modern oraz poprawnie rozstrzyga wykrywacz domowej roboty Karoliny Maj', () => {
+    const template = findEquipmentTemplate('tool.diy-emf-detector-prl');
+    expect(template).toBeDefined();
+    expect(template?.availableIn).toContain('2000s');
+    expect(template?.availableIn).toContain('modern');
+
+    const applied = applyCatalogTemplate(
+      {
+        id: 'eq_luna_detector',
+        name: 'Wykrywacz pól elektromagnetycznych domowej roboty',
+        category: 'tool',
+      },
+      '2000s'
+    );
+    expect(applied.imageUrl).toBe('/equipment/catalog/diy-emf-detector-prl.webp');
+    expect(applied.visualSource).toBe('catalog');
+
+    const luna = STREFA_11_CHARACTERS.find((c) => c.id === 'glogow_ufolog');
+    expect(luna).toBeDefined();
+    const detector = luna?.equipment?.find((e) => e.id === 'eq_luna_detector');
+    expect(detector?.imageUrl).toBe('/equipment/catalog/diy-emf-detector-prl.webp');
+    expect(detector?.visualSource).toBe('catalog');
+  });
 });
