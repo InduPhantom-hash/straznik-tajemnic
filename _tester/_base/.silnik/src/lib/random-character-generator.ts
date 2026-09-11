@@ -12,12 +12,7 @@ import {
   calculateOccupationPoints,
 } from './character';
 import { normalizeSkillName } from './character/normalize-skill-name';
-import {
-  IIRP_MALE_NAMES,
-  IIRP_FEMALE_NAMES,
-  IIRP_SURNAMES,
-  getRandomIIRPCharacterName,
-} from './data/character/names-iirp';
+import { getRandomIIRPCharacterName } from './data/character/names-iirp';
 import { getWealthInfo } from './economy/credit-rating';
 
 const DEFAULT_MALE_NAMES = [

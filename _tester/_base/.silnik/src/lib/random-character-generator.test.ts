@@ -13,7 +13,7 @@ import {
   MINORITY_EASTERN_MALE,
   MINORITY_EASTERN_FEMALE,
 } from './data/character/names-iirp';
-import { OCCUPATIONS, BASE_SKILLS } from './data/character';
+import { OCCUPATIONS } from './data/character';
 import { calculateOccupationPoints } from './character/occupation-points';
 
 describe('random-character-generator (CoC 7e RAW)', () => {

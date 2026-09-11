@@ -1,5 +1,7 @@
 import { WEAPONS_II_RP, ALL_EQUIPMENT } from './equipment-data';
 import { findEquipmentTemplate } from './equipment-catalog';
+import { inferWeaponSkill, isMeleeWeapon } from './combat/weapon-context';
+import { categorizeItem, generateItemLore } from './character/item-helpers';
 
 describe('equipment-iirp (Podrecznik Badacza CoC 7ed, s. 214-216)', () => {
   it('zawiera co najmniej 15 historycznych modeli broni II Rzeczypospolitej', () => {
@@ -117,8 +119,6 @@ describe('equipment-iirp (Podrecznik Badacza CoC 7ed, s. 214-216)', () => {
   });
 
   it('poprawnie wnioskuje umiejetnosci bojowe CoC 7e dla wszystkich 16 broni II RP (inferWeaponSkill)', () => {
-    const { inferWeaponSkill, isMeleeWeapon } = require('./combat/weapon-context');
-
     const handguns = [
       'Nagant wz. 1895',
       'Reichsrevolver M1879',
@@ -155,16 +155,12 @@ describe('equipment-iirp (Podrecznik Badacza CoC 7ed, s. 214-216)', () => {
   });
 
   it('przypisuje kategorie weapon dla wszystkich 16 modeli broni w categorizeItem', () => {
-    const { categorizeItem } = require('./character/item-helpers');
-
     WEAPONS_II_RP.forEach((w) => {
       expect(categorizeItem(w.name || '')).toBe('weapon');
     });
   });
 
   it('generuje dwujezyczne lore bojowe w generateItemLore dla broni II RP', () => {
-    const { generateItemLore } = require('./character/item-helpers');
-
     const nagantLorePl = generateItemLore('Nagant wz. 1895', 'pl');
     expect(nagantLorePl).toMatch(/Starannie utrzymana broń/i);
 
