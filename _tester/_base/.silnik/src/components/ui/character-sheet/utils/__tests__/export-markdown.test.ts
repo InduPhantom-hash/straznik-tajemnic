@@ -97,4 +97,51 @@ describe('exportCharacterToMarkdown', () => {
     expect(clicked).toBe(true);
     expect(createdAnchor?.download).toBe('John_Doe_sheet.md');
   });
+
+  it('zawiera sekcję Finanse i Poziom Życia w wygenerowanym Markdown', () => {
+    let capturedBlobContent: string[] = [];
+    const originalBlob = global.Blob;
+    global.Blob = jest.fn((parts?: BlobPart[]) => {
+      capturedBlobContent = (parts ?? []).map(String);
+      return new originalBlob(parts);
+    }) as unknown as typeof Blob;
+
+    const char: Character = {
+      id: 'char-rich',
+      name: 'Cornelius Vance',
+      str: 50,
+      con: 50,
+      siz: 50,
+      dex: 50,
+      app: 50,
+      int: 50,
+      pow: 50,
+      edu: 50,
+      age: 45,
+      hp: 10,
+      san: 50,
+      mp: 10,
+      luck: 50,
+      occupation: 'Dilettante',
+      skills: { 'Majętność': 60 },
+      playerName: 'Gracz',
+      isActive: true,
+      lastUsed: new Date(),
+      notes: '',
+      background: '',
+      experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 100 },
+      developmentHistory: [],
+    };
+
+    exportCharacterToMarkdown(char, 'pl');
+    expect(capturedBlobContent.join('')).toContain('## 💵 Finanse i Poziom Życia');
+    expect(capturedBlobContent.join('')).toContain('Poziom życia:');
+    expect(capturedBlobContent.join('')).toContain('Dzienny limit wydatków:');
+
+    exportCharacterToMarkdown(char, 'en');
+    expect(capturedBlobContent.join('')).toContain('## 💵 Finances & Living Standard');
+    expect(capturedBlobContent.join('')).toContain('Daily Spending Limit:');
+
+    global.Blob = originalBlob;
+  });
 });

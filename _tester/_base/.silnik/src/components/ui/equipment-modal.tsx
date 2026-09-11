@@ -201,7 +201,13 @@ export function EquipmentModal({
   );
 
   // Ekonomia CoC 7e (RAW): zamożność z Credit Rating, NIE suma $ per-przedmiot.
-  const finances = deriveFinances(character);
+  const finances = deriveFinances(character, {
+    era,
+    country:
+      adventureTheme?.includes('Polska') || adventureTheme?.includes('Poland')
+        ? 'Polska'
+        : undefined,
+  });
 
   // Déco: rozdziel broń od reszty wyposażenia (układ kolumnowy wg makiety 21).
   const weaponItems = filteredEquipment.filter(
@@ -437,11 +443,16 @@ export function EquipmentModal({
                         {finances.tierLabel}
                       </div>
                       <div className="mt-2 font-special-elite text-sm text-primary tracking-wide">
-                        {t('dailySpending', { amount: formatUsd(finances.spendingLevel) })}
+                        {t('dailySpending', { amount: finances.formattedSpendingLevel })}
                       </div>
                       <p className="mt-3 font-serif italic text-xs text-muted-foreground/75 leading-relaxed">
                         {t('dailySpendingExplainer')}
                       </p>
+                      {finances.livingConditions && (
+                        <p className="mt-2 font-serif text-xs text-brass/85 leading-snug">
+                          🏠 {finances.livingConditions}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3">
@@ -466,7 +477,7 @@ export function EquipmentModal({
                         </div>
                       </div>
                       <span className="font-display text-2xl text-foreground font-bold">
-                        {formatUsd(finances.cash)}
+                        {finances.formattedCash}
                       </span>
                     </div>
 
@@ -480,7 +491,7 @@ export function EquipmentModal({
                         </div>
                       </div>
                       <span className="font-display text-2xl text-foreground font-bold">
-                        {finances.assetsDescription || formatUsd(finances.assets)}
+                        {finances.assetsDescription || finances.formattedAssets}
                       </span>
                     </div>
 

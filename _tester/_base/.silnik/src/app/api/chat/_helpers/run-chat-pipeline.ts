@@ -465,7 +465,12 @@ export async function runChatPipeline({
     // Ekwipunek uzytkowy postaci -> AI wie co badacz ma przy sobie (narzedzia, medykamenty, dokumenty)
     playerEquipmentSection: buildPlayerEquipmentSection(character ?? null),
     // Status majatkowy postaci -> AI zna poziom wydatkow i gotowke wg CoC 7e RAW
-    playerFinancesSection: buildPlayerFinancesSection(character ?? null),
+    playerFinancesSection: buildPlayerFinancesSection(character ?? null, {
+      country: eraContext?.countryCode || adventureContext?.country,
+      yearRange: String(eraContext?.effectiveYear || adventureContext?.yearRange || ''),
+      location: currentLocation,
+      era: adventureContext?.era,
+    }),
     // Profil wizualny Badacza (Visual DNA) -> AI zachowuje spójność w opisach scen i portretów
     playerVisualProfileSection: buildPlayerVisualProfileSection(
       character ?? null

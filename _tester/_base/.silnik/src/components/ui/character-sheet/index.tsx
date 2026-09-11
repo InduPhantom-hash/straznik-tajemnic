@@ -75,6 +75,7 @@ export function CharacterSheet({
   open,
   onOpenChange,
   character,
+  eraContext,
   onCharacterUpdate,
   characters = [],
   onCharacterChange,
@@ -130,8 +131,8 @@ export function CharacterSheet({
   // FEATURE:#12 - Ikony pomocy przy statystykach (via HelpIcon w sub-komponentach)
   const handleExportMarkdown = useCallback(() => {
     if (!character) return;
-    exportCharacterToMarkdown(character, locale);
-  }, [character, locale]);
+    exportCharacterToMarkdown(character, locale, eraContext);
+  }, [character, locale, eraContext]);
 
   if (!character) {
     return (
@@ -262,6 +263,7 @@ export function CharacterSheet({
               {/* SEKCJA 7: EKWIPUNEK (broń + wyposażenie) */}
               <SheetEquipment
                 character={display}
+                eraContext={eraContext}
                 onItemClick={(item) => setSelectedItem(item)}
               />
 

@@ -6,7 +6,8 @@ import { generateItemLore } from '@/lib/character/item-helpers';
 /**
  * CharacterSheet - SheetEquipment komponent (re-skin Dark Art Déco, makieta 04).
  *
- * Sekcja 7 EKWIPUNEK. Rozdziela:
+ * Sekcja 7 EKWIPUNEK I FINANSE. Rozdziela:
+ *   - 💵 FINANSE I STANDARD ŻYCIA - CoC 7e RAW (poziom życia, wydatki dzienne, gotówka, majątek),
  *   - ⚔️ BROŃ - pełna statystyka bojowa (umiejętność %, obrażenia, zasięg, zacięcie),
  *   - 🎒 WYPOSAŻENIE - pozostałe przedmioty jako kafle déco 2-kolumnowe.
  *
@@ -31,6 +32,10 @@ import {
   User,
   HeartPulse,
   Flame,
+  Coins,
+  Wallet,
+  Landmark,
+  Home,
 } from 'lucide-react';
 
 /** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
@@ -57,8 +62,11 @@ function CategoryIcon({ category, className }: { category: string; className?: s
   }
 }
 
+import { deriveFinances, type EconomyEraContext } from '@/lib/economy/credit-rating';
+
 export interface SheetEquipmentProps {
   character: Character;
+  eraContext?: EconomyEraContext | string | null;
   onItemClick?: (item: EquipmentItem) => void;
 }
 
@@ -95,9 +103,11 @@ function ItemThumbnail({ item }: { item: EquipmentItem }) {
  * Renderuje ekwipunek postaci: broń z pełną statystyką bojową + resztę jako kafle.
  * Zwraca null gdy postać nie ma ekwipunku (sekcja znika z karty).
  */
-export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) {
+export function SheetEquipment({ character, eraContext, onItemClick }: SheetEquipmentProps) {
   const t = useTranslations('CharacterSheet');
   const locale = useLocale();
+  const currentLocale = (locale === 'en' ? 'en' : 'pl') as 'pl' | 'en';
+  const finances = deriveFinances(character, eraContext, currentLocale);
 
   // Kanoniczne nazwy umiejetnosci (dane gry, SSOT z weapon-context) mapujemy na
   // etykiety wyswietlania per jezyk - dopasowanie wartosci zostaje na kanonie.
@@ -108,8 +118,6 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
     return canonical;
   };
   const equipment = character.equipment ?? [];
-  if (equipment.length === 0) return null;
-
   const weapons = equipment.filter(isWeapon);
   const gear = equipment.filter((item) => !isWeapon(item));
 
@@ -122,6 +130,68 @@ export function SheetEquipment({ character, onItemClick }: SheetEquipmentProps) 
       <h3 className="font-display uppercase tracking-[0.24em] text-brass text-xs font-semibold mb-4">
         🎒 {t('equipment')}
       </h3>
+
+      {/* FINANSE I STANDARD ŻYCIA (CoC 7e RAW) */}
+      <div className="mb-5 border border-brass/30 bg-gradient-to-br from-[#181410] via-[#140f0c] to-[#0d0a08] p-4 rounded-sm relative overflow-hidden shadow-md">
+        {/* Narożniki Déco */}
+        <span className="absolute top-1 left-1 w-3 h-3 border-t border-l border-brass/50 pointer-events-none" />
+        <span className="absolute top-1 right-1 w-3 h-3 border-t border-r border-brass/50 pointer-events-none" />
+        <span className="absolute bottom-1 left-1 w-3 h-3 border-b border-l border-brass/50 pointer-events-none" />
+        <span className="absolute bottom-1 right-1 w-3 h-3 border-b border-r border-brass/50 pointer-events-none" />
+
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-brass/20">
+          <div className="flex items-center gap-2">
+            <Coins className="w-4 h-4 text-brass" />
+            <span className="font-display uppercase tracking-[0.18em] text-xs font-semibold text-brass">
+              {t('livingStandard')}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-special-elite text-xs bg-brass/10 text-brass border border-brass/30 px-2 py-0.5 rounded">
+              {finances.tierLabel} ({finances.creditRating}%)
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-special-elite text-sm mb-3">
+          <div className="bg-[#100c09] border border-brass/20 p-2.5 rounded-sm">
+            <div className="text-[11px] uppercase tracking-wider text-brass/70 mb-1 flex items-center gap-1.5">
+              <Wallet className="w-3.5 h-3.5 text-brass/80" />
+              {t('dailySpending')}
+            </div>
+            <div className="text-foreground font-bold text-base">
+              {finances.formattedSpendingLevel}
+            </div>
+          </div>
+
+          <div className="bg-[#100c09] border border-brass/20 p-2.5 rounded-sm">
+            <div className="text-[11px] uppercase tracking-wider text-brass/70 mb-1 flex items-center gap-1.5">
+              <Coins className="w-3.5 h-3.5 text-brass/80" />
+              {t('cash')}
+            </div>
+            <div className="text-foreground font-bold text-base">
+              {finances.formattedCash}
+            </div>
+          </div>
+
+          <div className="bg-[#100c09] border border-brass/20 p-2.5 rounded-sm">
+            <div className="text-[11px] uppercase tracking-wider text-brass/70 mb-1 flex items-center gap-1.5">
+              <Landmark className="w-3.5 h-3.5 text-brass/80" />
+              {t('assets')}
+            </div>
+            <div className="text-foreground font-bold text-base truncate" title={finances.formattedAssets}>
+              {finances.formattedAssets}
+            </div>
+          </div>
+        </div>
+
+        {finances.livingConditions && (
+          <div className="flex items-start gap-2 pt-2 border-t border-brass/15 text-xs font-serif italic text-muted-foreground/80 leading-relaxed">
+            <Home className="w-3.5 h-3.5 text-brass/60 mt-0.5 shrink-0" />
+            <span>{finances.livingConditions}</span>
+          </div>
+        )}
+      </div>
 
       {/* BROŃ - pełna statystyka bojowa CoC 7e */}
       {weapons.length > 0 && (

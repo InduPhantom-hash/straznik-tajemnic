@@ -8,7 +8,6 @@ import {
   type CharacterStats,
   type DerivedStats,
   DAMAGE_BUILD_TABLE,
-  WEALTH_TABLE,
 } from '@/lib/data/character';
 
 export function getDamageAndBuild(
@@ -54,14 +53,20 @@ export function calculateDerived(
   return { hp, san, mp, damageBonus, build, movement };
 }
 
-export function getWealthInfo(creditRating: number) {
-  for (const row of WEALTH_TABLE) {
-    if (creditRating >= row.min && creditRating <= row.max) {
-      return row;
-    }
-  }
-  return WEALTH_TABLE[2]; // Przeciętny jako fallback
+import {
+  getWealthInfo as libGetWealthInfo,
+  type DynamicWealthInfo,
+  type EconomyEraContext,
+} from '@/lib/economy/credit-rating';
+
+export function getWealthInfo(
+  creditRating: number,
+  eraContext?: EconomyEraContext | string | null,
+  locale: 'pl' | 'en' = 'pl'
+): DynamicWealthInfo {
+  return libGetWealthInfo(creditRating, eraContext, locale);
 }
+
 
 /**
  * Rozkłada łączną karę fizyczną (physPenalty) na cechy STR, CON i DEX (CoC 7e RAW)

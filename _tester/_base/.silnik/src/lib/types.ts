@@ -504,8 +504,11 @@ export interface Character {
   // Ekonomia CoC 7e (RAW) - zamożność wynika z umiejętności "Majętność" (Credit Rating).
   // Spending Level/Cash/Assets wyliczane z CR przez lib/economy/credit-rating.ts;
   // poniższe pola to opcjonalne override'y wpisane ręcznie na karcie.
-  cash?: number; // Gotówka pod ręką ($)
+  cash?: number; // Gotówka pod ręką ($ / zł)
+  spendingLevel?: number; // Dzienny limit wydatków bez księgowania (CoC 7e RAW)
   assets?: string; // Opisowy majątek (np. "Dom w Arkham, samochód")
+  currency?: 'USD' | 'PLN'; // Waluta postaci (np. zł dla II RP / Współczesnej Polski, $ dla USA)
+  era?: string; // Era ekonomiczna (np. '1920s-us', '1920s-pl', 'modern-pl', 'modern-us')
 
   journal?: JournalEntry[];
   investigatorBoard?: InvestigatorBoardState;

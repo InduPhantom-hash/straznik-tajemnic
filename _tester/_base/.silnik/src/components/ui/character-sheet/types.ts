@@ -6,11 +6,13 @@
  */
 
 import type { Character } from '@/lib/types';
+import type { EconomyEraContext } from '@/lib/economy/credit-rating';
 
 export interface CharacterSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   character?: Character;
+  eraContext?: EconomyEraContext | string | null;
   onCharacterUpdate?: (character: Character) => void;
   characters?: Character[];
   onCharacterChange?: (character: Character) => void;
