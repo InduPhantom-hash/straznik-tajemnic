@@ -32,10 +32,10 @@ const SKILL_MELEE = 'Walka Wręcz'; // baza 25% (broń biała + bijatyka)
 
 // Broń długa (karabin/strzelba) - sprawdzane PRZED krótką, bo "hunting rifle" itp.
 const LONG_GUN_PATTERN =
-  /rifle|shotgun|carbine|musket|karabin|strzelb|sztucer|dubeltów/i;
-// Broń palna krótka (pistolety/rewolwery) + typowe kalibry 1920s.
+  /rifle|shotgun|carbine|musket|karabin|strzelb|sztucer|dubeltów|ur\.?\s*35|chauchat/i;
+// Broń palna krótka (pistolety/rewolwery) + typowe kalibry 1920s i modele II RP.
 const HANDGUN_PATTERN =
-  /revolver|automatic|pistol|handgun|rewolwer|pistolet|\.32|\.38|\.45|luger|colt/i;
+  /revolver|automatic|pistol|handgun|rewolwer|pistolet|\.32|\.38|\.45|luger|colt|nagant|browning|vis|mauser|parabellum|mors|reichsrevolver/i;
 // Broń biała (do jawnego rozpoznania broni po nazwie, gdy brak kategorii/obrażeń).
 const MELEE_WEAPON_PATTERN =
   /knife|nóż|noz|dagger|sztylet|machete|maczet|club|baton|pałk|palk|kij|cudgel|axe|topór|topor|siekier|hammer|młot|mlot|sword|miecz|szabla|bagnet|bayonet/i;
@@ -95,7 +95,7 @@ export function getCombatDefenseWeapons(
  * `item.name`. Pozwala rozpoznać broń, której generator nie dostał z szablonu i zapisał
  * jako `category: 'personal'` bez `modifiers` (np. „Rewolwer .38" z OCCUPATION_EQUIPMENT).
  */
-export function looksLikeWeapon(item: EquipmentItem): boolean {
+export function looksLikeWeapon(item: { name: string }): boolean {
   const name = item.name.toLowerCase();
   return (
     LONG_GUN_PATTERN.test(name) ||
@@ -151,7 +151,7 @@ export function inferWeaponDamage(
  * więc `resolveTestValue` dopasuje ją do karty postaci (fuzzy match obejmuje warianty
  * typu "Broń Palna (Krótka)").
  */
-export function inferWeaponSkill(item: EquipmentItem): string {
+export function inferWeaponSkill(item: { name: string }): string {
   const name = item.name.toLowerCase();
   if (LONG_GUN_PATTERN.test(name)) return SKILL_FIREARM_LONG;
   if (HANDGUN_PATTERN.test(name)) return SKILL_FIREARM_HANDGUN;
@@ -162,7 +162,7 @@ export function inferWeaponSkill(item: EquipmentItem): string {
  * Czy broń jest biała (walka wręcz). RAW: tylko broń biała dolicza modyfikator do
  * obrażeń postaci (Damage Bonus); broń palna NIE.
  */
-export function isMeleeWeapon(item: EquipmentItem): boolean {
+export function isMeleeWeapon(item: { name: string }): boolean {
   return inferWeaponSkill(item) === SKILL_MELEE;
 }
 

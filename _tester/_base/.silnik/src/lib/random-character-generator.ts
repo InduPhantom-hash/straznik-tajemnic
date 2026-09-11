@@ -12,8 +12,10 @@ import {
   calculateOccupationPoints,
 } from './character';
 import { normalizeSkillName } from './character/normalize-skill-name';
+import { getRandomIIRPCharacterName } from './data/character/names-iirp';
+import { getWealthInfo } from './economy/credit-rating';
 
-const maleNames = [
+const DEFAULT_MALE_NAMES = [
   'Aleksander',
   'Bartosz',
   'Cezary',
@@ -40,7 +42,7 @@ const maleNames = [
   'Cyprian',
 ];
 
-const femaleNames = [
+const DEFAULT_FEMALE_NAMES = [
   'Anna',
   'Barbara',
   'Celina',
@@ -67,7 +69,7 @@ const femaleNames = [
   'Beata',
 ];
 
-const surnames = [
+const DEFAULT_SURNAMES = [
   'Nowak',
   'Kowalski',
   'Wiśniewski',
@@ -93,6 +95,7 @@ const surnames = [
   'Michalski',
   'Król',
 ];
+
 
 const playerNames = [
   'Marcin',
@@ -137,21 +140,54 @@ function roll2d6plus6(rng: () => number): number {
   return Math.floor(rng() * 6) + Math.floor(rng() * 6) + 6 + 2;
 }
 
+export interface RandomCharacterOptions {
+  seed?: number;
+  era?: string;
+  country?: string;
+  isPoland?: boolean;
+  includeMinorities?: boolean;
+  gender?: 'male' | 'female';
+}
+
 /**
  * Generuje losową postać CoC7 zgodnie z regułami CoC 7e RAW.
  *
- * @param seed - opcjonalny seed dla deterministycznej generacji (sesja replay, testy regresji).
- *               Bez seed używa Math.random.
+ * @param seedOrOptions - opcjonalny seed liczbowy lub obiekt opcji (np. realia II RP).
  */
-export function generateRandomCharacter(seed?: number): Character {
-  const rng = createSeededRandom(seed);
+export function generateRandomCharacter(
+  seedOrOptions?: number | RandomCharacterOptions
+): Character {
+  const options: RandomCharacterOptions =
+    typeof seedOrOptions === 'number'
+      ? { seed: seedOrOptions }
+      : seedOrOptions ?? {};
 
-  const isMale = rng() > 0.5;
-  const firstName = isMale
-    ? maleNames[Math.floor(rng() * maleNames.length)]
-    : femaleNames[Math.floor(rng() * femaleNames.length)];
-  const surname = surnames[Math.floor(rng() * surnames.length)];
-  const name = `${firstName} ${surname}`;
+  const rng = createSeededRandom(options.seed);
+
+  const isPoland = Boolean(
+    options.isPoland ||
+      options.country === 'Poland' ||
+      options.country === 'PL' ||
+      (options.era && /poland|iirp|ii-rp/i.test(options.era))
+  );
+
+  const gender = options.gender ?? (rng() > 0.5 ? 'male' : 'female');
+
+  let name: string;
+  if (isPoland) {
+    const generated = getRandomIIRPCharacterName(
+      { gender, includeMinorities: options.includeMinorities },
+      rng
+    );
+    name = generated.fullName;
+  } else {
+    const isMale = gender === 'male';
+    const firstName = isMale
+      ? DEFAULT_MALE_NAMES[Math.floor(rng() * DEFAULT_MALE_NAMES.length)]
+      : DEFAULT_FEMALE_NAMES[Math.floor(rng() * DEFAULT_FEMALE_NAMES.length)];
+    const surname = DEFAULT_SURNAMES[Math.floor(rng() * DEFAULT_SURNAMES.length)];
+    name = `${firstName} ${surname}`;
+  }
 
   const playerName = playerNames[Math.floor(rng() * playerNames.length)];
   const occupation = OCCUPATIONS[Math.floor(rng() * OCCUPATIONS.length)];
@@ -312,9 +348,23 @@ export function generateRandomCharacter(seed?: number): Character {
   // Generowanie ID
   const id = Date.now().toString() + rng().toString(36).substring(2, 11);
 
+  // Status ekonomiczny (CoC 7e RAW: credit-rating.ts)
+  const economyContext = isPoland
+    ? { country: 'PL', era: '1920s-poland' }
+    : { country: options.country || 'USA', era: options.era || '1920s' };
+  const wealth = getWealthInfo(skills['Majętność'] ?? 0, economyContext);
+
   return {
     id,
     name,
+    cash: wealth.cashAmount,
+    spendingLevel: wealth.spendingAmount,
+    currency: wealth.currency,
+    era: options.era || (isPoland ? '1920s-poland' : wealth.era),
+    assets:
+      wealth.key === 'pauper' || wealth.assetsAmount === 0
+        ? undefined
+        : wealth.assets,
     str,
     dex,
     con,
@@ -349,6 +399,20 @@ export function generateRandomCharacter(seed?: number): Character {
     developmentHistory: [],
   };
 }
+
+/**
+ * Generuje losową postać osadzoną w realiach II Rzeczypospolitej (Polska lat 20./30. XX w.).
+ */
+export function generateRandomIIRPCharacter(
+  seedOrOptions?: number | Omit<RandomCharacterOptions, 'isPoland'>
+): Character {
+  const opts =
+    typeof seedOrOptions === 'number'
+      ? { seed: seedOrOptions }
+      : seedOrOptions ?? {};
+  return generateRandomCharacter({ ...opts, isPoland: true });
+}
+
 
 /**
  * Generuje wiele losowych postaci.

@@ -54,6 +54,26 @@ export const ERA_PRESETS: Record<GameEra, EraSettings> = {
 - Broń: Pistolety automatyczne (Colt 1911), Tommy Gun (gangsterzy), shotguny.`,
     },
 
+    '1920s-poland': {
+        id: '1920s-poland',
+        name: 'II Rzeczpospolita (Lata 20./30. XX w.)',
+        description: 'Polska międzywojenna: dorożki, kolej PKP, pistolety browning, restrykcyjne dekrety o broni i reforma Grabskiego.',
+        transport: {
+            flight: { available: 'rare', risk: 'high', avgSpeedKmh: 140 },
+            train: { available: 'common', risk: 'low', avgSpeedKmh: 65 },
+            ship: { available: 'rare', risk: 'medium', avgSpeedKmh: 30 },
+            car: { available: 'common', risk: 'medium', avgSpeedKmh: 45 },
+            horse: { available: 'common', risk: 'low', avgSpeedKmh: 15 },
+        },
+        communication: 'hours',
+        worldRules: `**Zasady Świata (II Rzeczpospolita - Polska lat 20./30.):**
+- Podróże: Kolej państwowa (PKP) łączy zjednoczone ziemie pozaborcze. W miastach dorożki i tramwaje elektryczne, na wsiach furmanki konne.
+- Waluta: Polski złoty (1 zł = 100 groszy) wprowadzony reformą Grabskiego w 1924 r. (wcześniej marka polska).
+- Komunikacja: Telegraf i poczta; telefon naścienny na abonament (75 połączeń/miesięcznie). Prasa codzienna (wydania poranne i wieczorne) to główne źródło wiedzy.
+- Broń: Rygorystyczny dekret z 1919 r. - posiadanie broni wymaga uznaniowego zezwolenia Starosty Powiatowego. Zakaz broni w pasie granicznym (20 km). Powszechne nagany i browningi.
+- Społeczeństwo: Zmagania z analfabetyzmem, różnice pozaborcze, epidemia hiszpanki, rozwój portu w Gdyni, seanse spirytystyczne elit.`,
+    },
+
     '1940s': {
         id: '1940s',
         name: 'Lata Czterdzieste / Noir',

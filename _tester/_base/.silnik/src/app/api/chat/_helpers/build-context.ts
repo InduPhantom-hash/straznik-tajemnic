@@ -29,7 +29,12 @@ import type { Character } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 import { isWeapon } from '@/lib/combat/weapon-context';
-import { deriveFinances, type EconomyEraContext } from '@/lib/economy/credit-rating';
+import {
+  deriveFinances,
+  resolveEconomyEra,
+  type EconomyEraContext,
+} from '@/lib/economy/credit-rating';
+import type { ResolvedEraContext } from '@/lib/era/types';
 import {
   buildConcordiaObservationDirective,
   type InvestigatorSubjectiveState,
@@ -181,6 +186,86 @@ export function buildPlayerVisualProfileSection(
     `\nReguła: Gdy generujesz tagi ilustracji ([SCENA:], [PORTRET:]) z udziałem Badacza, ` +
     `ZAWSZE wplataj powyższe cechy fizyczne (wiek, sylwetka, ubranie z epoki) w angielski prompt, ` +
     `aby postać wyglądała spójnie na wszystkich wygenerowanych grafikach.`
+  );
+}
+
+/**
+ * Sprawdza, czy dane realia/lokacja/epoka odpowiadają Polsce międzywojennej (II RP).
+ */
+export function isIIRPSetting(
+  era?: string,
+  currentLocation?: string,
+  eraContext?: ResolvedEraContext | EconomyEraContext | string | null,
+  characters?: Character[]
+): boolean {
+  if (
+    era === '1920s-poland' ||
+    era === '1920s-pl' ||
+    era === 'iirp' ||
+    era === 'pl-1920s' ||
+    era === 'poland-1920s'
+  ) {
+    return true;
+  }
+  if (
+    characters &&
+    characters.some(
+      (c) => c.era === '1920s-poland' || c.era === '1920s-pl'
+    )
+  ) {
+    return true;
+  }
+  if (eraContext) {
+    const resolved = resolveEconomyEra(eraContext as EconomyEraContext);
+    if (resolved === '1920s-pl') return true;
+  }
+  if (currentLocation && era) {
+    const resolved = resolveEconomyEra({ era, location: currentLocation });
+    if (resolved === '1920s-pl') return true;
+  }
+  if (era) {
+    const resolved = resolveEconomyEra(era);
+    if (resolved === '1920s-pl') return true;
+  }
+  return false;
+}
+
+/**
+ * Buduje sekcję promptu dotyczącą realiów prawnych i posiadania broni w II Rzeczypospolitej.
+ * Oparta na rozdziale 9 Podręcznika Badacza CoC 7ed (s. 214-216):
+ * - Dekret z 25 stycznia 1919 r. o nabywaniu i posiadaniu broni i amunicji.
+ * - Uznaniowe pozwolenia Starosty Powiatowego (lub Komisarza Rządu w Warszawie).
+ * - Podział na pozwolenia do obrony osobistej (broń krótka) i myśliwskie.
+ * - Rygorystyczny pas graniczny (20 km): KOP, Straż Graniczna, sądy doraźne.
+ * - Reakcja Policji Państwowej na jawną broń w miastach.
+ */
+export function buildIIRPWeaponLawContext(
+  eraContextOrEra?: ResolvedEraContext | EconomyEraContext | string | null,
+  currentLocation?: string,
+  locale?: 'pl' | 'en'
+): string {
+  const isEn = locale === 'en';
+
+  if (isEn) {
+    return (
+      `\n## WEAPON LAWS & FIREARMS IN INTERWAR POLAND (II RP RAW)\n` +
+      `In interwar Poland (1918-1939), strict firearm regulations apply:\n` +
+      `1. Decree of January 25, 1919: Acquiring and possessing firearms or ammunition requires an official government permit. Unregistered weapons carry severe criminal penalties.\n` +
+      `2. Starosta Discretion: Firearm permits are issued by the district starosta (in Warsaw, the Government Commissioner). The official has complete discretion and may deny permits without justification. Permits distinguish personal defense (handguns) from hunting firearms.\n` +
+      `3. Border Zone (20 km): Within 20 km of the state border, strict security zones enforced by KOP (Border Protection Corps) and the Border Guard apply. Carrying weapons without an explicit border pass leads to immediate arrest and summary trial.\n` +
+      `4. Open Carry in Cities: Displaying weapons openly in urban areas triggers an immediate armed intervention by Policja Panstwowa (State Police). Handguns must remain concealed in an inner coat pocket or holster.\n` +
+      `5. Military & Automatic Weapons: Civilian ownership of military rifles (Mauser wz. 29), submachine guns, or anti-tank rifles is strictly forbidden and treated as high treason or banditry.`
+    );
+  }
+
+  return (
+    `\n## PRAWO I POSIADANIE BRONI W II RZECZYPOSPOLITEJ (REGUŁY RAW)\n` +
+    `W realiach Polski międzywojennej (II RP) obowiązują surowe przepisy dotyczące broni palnej:\n` +
+    `1. Dekret z 25 stycznia 1919 r.: Nabywanie i posiadanie broni palnej oraz amunicji wymaga oficjalnego zezwolenia władz. Nielegalne posiadanie broni jest surowo karane.\n` +
+    `2. Uznaniowość Starosty: Pozwolenia wydaje Starosta Powiatowy (w Warszawie Komisarz Rządu). Urzędnik ma pełną swobodę decyzyjną i może odmówić bez podania przyczyny. Zezwolenia dzielą się na obronę osobistą (broń krótka) oraz myśliwskie (strzelby, sztucery).\n` +
+    `3. Pas graniczny (20 km): W strefie 20 km od granicy państwowej obowiązują rygorystyczne obostrzenia KOP (Korpus Ochrony Pogranicza) i Straży Granicznej. Noszenie broni bez specjalnej przepustki granicznej grozi natychmiastowym aresztem i sądem doraźnym.\n` +
+    `4. Zakaz afiszowania się z bronią: Paradowanie z bronią na widoku w miastach wywołuje natychmiastową interwencję Policji Państwowej. Broń krótka musi być noszona w ukryciu (kieszeń płaszcza, dyskretna kabura pod marynarką).\n` +
+    `5. Broń wojskowa i maszynowa: Posiadanie przez cywilów wojskowych karabinów (Mauser wz. 29), pistoletów maszynowych lub broni przeciwpancernej jest całkowicie zakazane i traktowane jak przestępstwo przeciw bezpieczeństwu państwa.`
   );
 }
 
@@ -451,6 +536,10 @@ export interface BuildAdditionalContextOpts {
   presentNpcs?: Array<{ id?: string; name: string; location?: string }>;
   /** Visual Belief Graph (DeepMind Proactive T2I) */
   visualBeliefGraph?: VisualBeliefGraph;
+  /** Sekcja realiów prawnych i posiadania broni w II RP (dekret 1919, starosta, pas graniczny) */
+  iirpWeaponLawSection?: string;
+  /** Kontekst epoki lub ekonomiczny dla automatycznej detekcji realiów II RP */
+  eraContext?: ResolvedEraContext | EconomyEraContext;
 }
 
 export function buildAdditionalContext(
@@ -522,6 +611,19 @@ export function buildAdditionalContext(
   // Uzbrojenie postaci gracza - by AI prowadziło walkę narracyjnie znając broń.
   if (playerWeaponsSection) {
     additionalContext.push(playerWeaponsSection);
+  }
+
+  // Realiów prawnych i broni w II RP (dekret 1919, pozwolenia starosty, pas graniczny 20 km)
+  if (opts.iirpWeaponLawSection) {
+    additionalContext.push(opts.iirpWeaponLawSection);
+  } else if (isIIRPSetting(era, currentLocation, opts.eraContext, characters)) {
+    additionalContext.push(
+      buildIIRPWeaponLawContext(
+        opts.eraContext || era,
+        currentLocation,
+        opts.locale
+      )
+    );
   }
 
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.

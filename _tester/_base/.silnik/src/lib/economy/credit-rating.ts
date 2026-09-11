@@ -496,7 +496,7 @@ export function resolveEconomyEra(
 
   if (typeof context === 'string') {
     const s = context.toLowerCase().trim();
-    if (s === '1920s-pl' || s === 'iirp' || s === 'pl-1920s' || s === 'poland-1920s') {
+    if (s === '1920s-pl' || s === '1920s-poland' || s === 'iirp' || s === 'pl-1920s' || s === 'poland-1920s') {
       return '1920s-pl';
     }
     if (s === 'modern-pl' || s === 'pl-modern') {
@@ -521,8 +521,12 @@ export function resolveEconomyEra(
     return '1920s-us';
   }
 
-  const { era, yearRange, country, countryCode, location, currency } = context;
-  const combined = [era, yearRange, country, countryCode, location, currency]
+  const effectiveYear =
+    typeof context === 'object' && 'effectiveYear' in context && context.effectiveYear
+      ? String(context.effectiveYear)
+      : '';
+  const { era, yearRange, country, countryCode, location, currency } = context as EconomyEraContext;
+  const combined = [era, yearRange, country, countryCode, location, currency, effectiveYear]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();

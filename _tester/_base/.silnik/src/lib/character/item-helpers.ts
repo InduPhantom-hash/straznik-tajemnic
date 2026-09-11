@@ -2,7 +2,7 @@
  * Helpery do generowania opisów wizualnych, lore, kategorii i wagi przedmiotów
  * na podstawie samej nazwy (heurystyka tekstowa).
  *
- * IND-123 (sesja 90) — wyodrębnione z character-wizard.tsx Faza 2.
+ * IND-123 (sesja 90) - wyodrębnione z character-wizard.tsx Faza 2.
  *
  * UWAGA: hardcoded dictionaries (~190 lin) to świadomy dług IND-126 (CoC items DRY).
  */
@@ -90,7 +90,15 @@ export function generateItemLore(itemName: string, locale: string = 'pl'): strin
     nameLower.includes('gun') ||
     nameLower.includes('derringer') ||
     nameLower.includes('automatic') ||
-    nameLower.includes('colt')
+    nameLower.includes('colt') ||
+    nameLower.includes('nagant') ||
+    nameLower.includes('vis') ||
+    nameLower.includes('browning') ||
+    nameLower.includes('mauser') ||
+    nameLower.includes('parabellum') ||
+    nameLower.includes('luger') ||
+    nameLower.includes('mors') ||
+    nameLower.includes('reichsrevolver')
   ) {
     return isEn
       ? 'Carefully maintained firearm, regularly cleaned and oiled. The weight of cold metal in hand brings a reassuring sense of safety in dark alleys.'
@@ -101,7 +109,11 @@ export function generateItemLore(itemName: string, locale: string = 'pl'): strin
     nameLower.includes('dubeltów') ||
     nameLower.includes('karabin') ||
     nameLower.includes('shotgun') ||
-    nameLower.includes('rifle')
+    nameLower.includes('rifle') ||
+    nameLower.includes('sztucer') ||
+    nameLower.includes('chauchat') ||
+    nameLower.includes('ur wz') ||
+    nameLower.includes('ur.')
   ) {
     return isEn
       ? 'Sturdy hunting firearm built for stopping power. The wooden stock carries scratches from previous wilderness expeditions.'
@@ -378,9 +390,20 @@ export function categorizeItem(itemName: string): ItemCategory {
     nameLower.includes('karabin') ||
     nameLower.includes('dubeltów') ||
     nameLower.includes('strzelb') ||
+    nameLower.includes('sztucer') ||
     nameLower.includes('pałka') ||
     nameLower.includes('baton') ||
-    nameLower.includes('maczeta')
+    nameLower.includes('maczeta') ||
+    nameLower.includes('nagant') ||
+    nameLower.includes('vis') ||
+    nameLower.includes('browning') ||
+    nameLower.includes('mauser') ||
+    nameLower.includes('parabellum') ||
+    nameLower.includes('luger') ||
+    nameLower.includes('colt') ||
+    nameLower.includes('mors') ||
+    nameLower.includes('chauchat') ||
+    nameLower.includes('reichsrevolver')
   ) {
     return 'weapon';
   }
