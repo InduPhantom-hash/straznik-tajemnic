@@ -4,6 +4,32 @@ import type {
   EquipmentTemplate,
   EquipmentVisualEra,
 } from './types';
+import { resolveEraVisualProfile } from './era-visual-style';
+
+export function safeResolveVisualEra(era: string | undefined): EquipmentVisualEra {
+  if (!era) return '1920s';
+  if ((EQUIPMENT_VISUAL_ERAS as string[]).includes(era)) {
+    return era as EquipmentVisualEra;
+  }
+  try {
+    const resolved = resolveEraVisualProfile(era);
+    if ((EQUIPMENT_VISUAL_ERAS as string[]).includes(resolved)) {
+      return resolved as EquipmentVisualEra;
+    }
+  } catch {
+    // Fallback poniżej
+  }
+  const lower = era.toLowerCase();
+  if (lower.includes('gaslight') || lower.includes('1890') || lower.includes('wiktoria')) return '1890s';
+  if (lower.includes('pulp') || lower.includes('1930') || lower.includes('depression')) return '1930s';
+  if (lower.includes('noir') || lower.includes('1940') || lower.includes('wojen')) return '1940s';
+  if (lower.includes('prl') || lower.includes('1970') || lower.includes('1960')) return 'prl-1970s';
+  if (lower.includes('1980')) return '1980s';
+  if (lower.includes('1990')) return '1990s';
+  if (lower.includes('2000') || lower.includes('y2k')) return '2000s';
+  if (lower.includes('modern') || lower.includes('wspolczesn') || lower.includes('współczesn')) return 'modern';
+  return '1920s';
+}
 
 /** Bezpieczny lokalny fallback, używany zanim konkretny render WebP jest dostępny. */
 export const CATEGORY_FALLBACK_ASSETS: Record<EquipmentCategory, string> = {
@@ -61,17 +87,17 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'light.oil-lantern',
     name: "Lampa naftowa",
-    aliases: ["Lantern (Oil)", "Latarnia naftowa", "Latarnia oliwna", "Lampa naftowa kieszonkowa", "tool.oil-lantern-1890s"],
+    aliases: ["Lantern (Oil)", "Latarnia naftowa", "Latarnia oliwna", "Lampa naftowa kieszonkowa", "Brass Kerosene Hurricane Lantern", "tool.oil-lantern-1890s"],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
-    assetPaths: { '1890s': '/equipment/catalog/oil-lantern-1890s.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/oil-lantern-1890s.webp', shared: '/equipment/catalog/oil-lantern-1890s.webp' },
     value: 2,
   },
   {
     id: 'light.matches',
     name: "Pudełko zapałek",
-    aliases: ["Zapałki", "Zapałki sztormowe", "Matches", "tool.matches-shared"],
+    aliases: ["Zapałki", "Zapałki sztormowe", "Matches", "Vintage Wooden Matchbox", "tool.matches-shared"],
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -81,7 +107,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.rope',
     name: "Lina (15 m)",
-    aliases: ["Rope (50 ft)", "Mocna lina", "Lina", "tool.rope-shared"],
+    aliases: ["Rope (50 ft)", "Mocna lina", "Lina", "Coiled Heavy Manila Hemp Rope", "tool.rope-shared"],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -91,7 +117,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.lockpicks',
     name: "Wytrychy",
-    aliases: ["Lockpicks", "Zestaw wytrychów", "Zardzewiałe wytrychy", "Zestaw wytrychów w etui", "Zestaw wytrychów i łom", "tool.lockpicks-shared"],
+    aliases: ["Lockpicks", "Zestaw wytrychów", "Zardzewiałe wytrychy", "Zestaw wytrychów w etui", "Zestaw wytrychów i łom", "Lockpick Set in Leather Wrap", "tool.lockpicks-shared"],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -102,7 +128,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.magnifier',
     name: "Lupa",
-    aliases: ["Magnifying Glass", "Lupa terenowa", "Lupa jubilerska", "Lupa kieszonkowa", "Lupa w mosiężnej oprawie", "tool.magnifier-shared"],
+    aliases: ["Magnifying Glass", "Lupa terenowa", "Lupa jubilerska", "Lupa kieszonkowa", "Lupa w mosiężnej oprawie", "Brass Hand Magnifier with Ebony Handle", "tool.magnifier-shared"],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -145,7 +171,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'tool.mechanical-kit',
     name: "Zestaw narzędzi mechanicznych",
-    aliases: ["Toolkit (Mechanical)", "Zestaw narzędzi (mechaniczny)", "Skrzynka z narzędziami", "Drobne narzędzia", "tool.mechanical-kit-shared"],
+    aliases: ["Toolkit (Mechanical)", "Zestaw narzędzi (mechaniczny)", "Skrzynka z narzędziami", "Drobne narzędzia", "Mechanical Tool Roll", "tool.mechanical-kit-shared"],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -162,6 +188,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
       "Zestaw narzędzi do elektroniki",
       "Narzędzia do elektroniki",
       "Zestaw narzędzi",
+      "Vintage Electrical Test Kit",
       "tool.electrical-kit-shared",
     ],
     category: 'tool',
@@ -174,7 +201,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'medical.first-aid',
     name: "Apteczka",
-    aliases: ["First Aid Kit", "Kieszonkowa apteczka", "Apteczka polowa", "Zaawansowana torba reanimacyjna", "Zestaw pierwszej pomocy z środkami uspokajającymi", "medical.first-aid-prl-1970s"],
+    aliases: ["First Aid Kit", "Kieszonkowa apteczka", "Apteczka polowa", "Zaawansowana torba reanimacyjna", "Zestaw pierwszej pomocy z środkami uspokajającymi", "PRL First Aid Metal Box", "medical.first-aid-prl-1970s"],
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -196,7 +223,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'medical.bandages',
     name: "Bandaże",
-    aliases: ["Bandages", "Opatrunek uciskowy", "Rolki bandaży i antyseptyk", "Zestaw sterylnych bandaży", "medical.bandages-shared"],
+    aliases: ["Bandages", "Opatrunek uciskowy", "Rolki bandaży i antyseptyk", "Zestaw sterylnych bandaży", "Sterile Cotton Gauze Rolls", "medical.bandages-shared"],
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -247,7 +274,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'document.notebook',
     name: "Notatnik i ołówek",
-    aliases: ["Notebook & Pencil", "Notes badawczy", "Szkicownik", "Notatnik", "Notes z ołówkiem", "Notatnik podróżnika", "Skórzany notatnik i pióro", "Zeszyt do notatek psychologicznych", "Zeszyt pełen wzorów", "Zeszyt z legendami i baśniami", "document.notebook-shared"],
+    aliases: ["Notebook & Pencil", "Notes badawczy", "Szkicownik", "Notatnik", "Notes z ołówkiem", "Notatnik podróżnika", "Skórzany notatnik i pióro", "Zeszyt do notatek psychologicznych", "Zeszyt pełen wzorów", "Zeszyt z legendami i baśniami", "Field Notebook & Graphite Pencil", "document.notebook-shared"],
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -287,7 +314,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'document.diary',
     name: "Dziennik",
-    aliases: ["Journal/Diary", "Dziennik", "Pamiętnik", "Notatnik z zapiskami", "Dziennik skórzany", "Dziennik analiz snów pacjentów", "Dziennik badań", "Dziennik sekcji zwłok", "Dziennik wykopalisk", "Notes z zapiskami snów", "document.diary-shared"],
+    aliases: ["Journal/Diary", "Dziennik", "Pamiętnik", "Notatnik z zapiskami", "Dziennik skórzany", "Dziennik analiz snów pacjentów", "Dziennik badań", "Dziennik sekcji zwłok", "Dziennik wykopalisk", "Notes z zapiskami snów", "Leather-Bound Journal with Clasp", "document.diary-shared"],
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -318,7 +345,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'weapon.revolver-32',
     name: "Rewolwer .32",
-    aliases: [".32 Revolver", "Pistolet .32", ".32 Pistol", "weapon.revolver-32-shared"],
+    aliases: [".32 Revolver", "Pistolet .32", ".32 Pistol", ".32 Snubnose Revolver", "weapon.revolver-32-shared"],
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: HISTORICAL_ERAS,
@@ -329,11 +356,15 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'weapon.revolver-38',
     name: "Rewolwer .38",
-    aliases: [".38 Revolver", "weapon.revolver-1940s"],
+    aliases: [".38 Revolver", "1940s Detective Special Revolver", "weapon.revolver-1940s"],
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s', 'prl-1970s'],
-    assetPaths: { '1940s': '/equipment/catalog/revolver-1940s.webp' },
+    assetPaths: {
+      '1920s': '/equipment/catalog/revolver-colt38-1920s.webp',
+      '1940s': '/equipment/catalog/revolver-1940s.webp',
+      shared: '/equipment/catalog/revolver-colt38-1920s.webp',
+    },
     modifiers: { damage: '1d10', range: '15 yards', malfunction: 100 },
     value: 25,
   },
@@ -351,7 +382,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'weapon.shotgun',
     name: "Dubeltówka",
-    aliases: ["Shotgun (Double-Barrel)", "Dubeltówka (dwururka)", "Strzelba myśliwska", "weapon.shotgun-shared"],
+    aliases: ["Shotgun (Double-Barrel)", "Dubeltówka (dwururka)", "Strzelba myśliwska", "Double-Barrel Side-by-Side Shotgun", "weapon.shotgun-shared"],
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -729,7 +760,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'occult.candles',
     name: "Świece",
-    aliases: ["Candles (12)", "Świece (12 szt.)", "Świece woskowe", "Zestaw rytualnych swiec", "occult.candles-shared"],
+    aliases: ["Candles (12)", "Świece (12 szt.)", "Świece woskowe", "Zestaw rytualnych swiec", "Bundle of Natural Beeswax Candles", "occult.candles-shared"],
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -739,7 +770,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'occult.chalk',
     name: "Kreda rytualna",
-    aliases: ["Chalk (colored)", "Kreda (kolorowa)", "occult.chalk-shared"],
+    aliases: ["Chalk (colored)", "Kreda (kolorowa)", "Mineral Ritual Chalk Pieces", "occult.chalk-shared"],
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -749,7 +780,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'occult.incense',
     name: "Kadzidło i kadzielnica",
-    aliases: ["Incense & Burner", "occult.incense-shared"],
+    aliases: ["Incense & Burner", "Bronze Incense Burner and Resins", "occult.incense-shared"],
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -776,6 +807,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     assetPaths: {
       '2000s': '/equipment/catalog/phone-modern.webp',
       modern: '/equipment/catalog/phone-modern.webp',
+      shared: '/equipment/catalog/phone-modern.webp',
     },
     value: 300,
   },
@@ -789,6 +821,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
       "Bateria",
       "Akumulator",
       "Zapasowy akumulator",
+      "Portable Slim Power Bank",
       "tool.power-bank-modern",
     ],
     category: 'tool',
@@ -797,6 +830,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     assetPaths: {
       '2000s': '/equipment/catalog/power-bank-modern.webp',
       modern: '/equipment/catalog/power-bank-modern.webp',
+      shared: '/equipment/catalog/power-bank-modern.webp',
     },
     value: 25,
   },
@@ -807,7 +841,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/revolver-colt38-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/revolver-colt38-1920s.webp', shared: '/equipment/catalog/revolver-colt38-1920s.webp' },
     modifiers: { damage: '1d10', range: '15 yards', malfunction: 100 },
     value: 25,
   },
@@ -817,8 +851,12 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Webley Mk IV .455 Revolver", "Webley .455", "Rewolwer Webley", "Webley Mk IV"],
     category: 'weapon',
     visualTreatment: 'mundane',
-    availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/revolver-webley-1920s.webp' },
+    availableIn: ['1890s', '1920s', '1940s'],
+    assetPaths: {
+      '1890s': '/equipment/catalog/revolver-webley-1920s.webp',
+      '1920s': '/equipment/catalog/revolver-webley-1920s.webp',
+      shared: '/equipment/catalog/revolver-webley-1920s.webp',
+    },
     modifiers: { damage: '1d10+2', range: '15 yards', malfunction: 100 },
     value: 30,
   },
@@ -829,7 +867,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
-    assetPaths: { '1890s': '/equipment/catalog/derringer-1890s.webp' },
+    assetPaths: { '1890s': '/equipment/catalog/derringer-1890s.webp', shared: '/equipment/catalog/derringer-1890s.webp' },
     modifiers: { damage: '1d6', range: '3 yards', malfunction: 100 },
     value: 8,
   },
@@ -840,7 +878,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
-    assetPaths: { 'prl-1970s': '/equipment/catalog/pistol-p64-prl.webp' },
+    assetPaths: { 'prl-1970s': '/equipment/catalog/pistol-p64-prl.webp', shared: '/equipment/catalog/pistol-p64-prl.webp' },
     modifiers: { damage: '1d8', range: '15 yards', malfunction: 99 },
     value: 40,
   },
@@ -851,7 +889,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
-    assetPaths: { 'modern': '/equipment/catalog/pistol-glock-modern.webp' },
+    assetPaths: { 'modern': '/equipment/catalog/pistol-glock-modern.webp', shared: '/equipment/catalog/pistol-glock-modern.webp' },
     modifiers: { damage: '1d10', range: '15 yards', malfunction: 99 },
     value: 500,
   },
@@ -873,7 +911,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/submachine-tommy-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/submachine-tommy-1920s.webp', shared: '/equipment/catalog/submachine-tommy-1920s.webp' },
     modifiers: { damage: '1d10+2', range: '20 yards', malfunction: 96 },
     value: 200,
   },
@@ -884,7 +922,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1940s'],
-    assetPaths: { '1940s': '/equipment/catalog/gasoline-lighter-1940s.webp' },
+    assetPaths: { '1940s': '/equipment/catalog/gasoline-lighter-1940s.webp', shared: '/equipment/catalog/gasoline-lighter-1940s.webp' },
     value: 2,
   },
   {
@@ -905,7 +943,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
-    assetPaths: { '1920s': '/equipment/catalog/pilot-goggles-1920s.webp' },
+    assetPaths: { '1920s': '/equipment/catalog/pilot-goggles-1920s.webp', shared: '/equipment/catalog/pilot-goggles-1920s.webp' },
     value: 15,
   },
   {
@@ -936,6 +974,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/tape-recorder-prl-1970s.webp', shared: '/equipment/catalog/tape-recorder-prl-1970s.webp' },
     value: 60,
   },
   {
@@ -945,6 +984,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
+    assetPaths: { '1920s': '/equipment/catalog/morphine-ampoules-shared.webp', shared: '/equipment/catalog/morphine-ampoules-shared.webp' },
     value: 5,
   },
   {
@@ -954,6 +994,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/silver-cross-shared.webp' },
     value: 15,
   },
   {
@@ -963,6 +1004,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/pocket-revolver-shared.webp' },
     modifiers: { damage: '1d6', range: '10 yards', malfunction: 100 },
     value: 10,
   },
@@ -973,6 +1015,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/leather-whip-shared.webp' },
     modifiers: { damage: '1d3' },
     value: 5,
   },
@@ -983,6 +1026,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/handcuffs-shared.webp' },
     value: 10,
   },
   {
@@ -992,6 +1036,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/canteen-flask-shared.webp' },
     value: 2,
   },
   {
@@ -1001,6 +1046,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/geology-hammer-shared.webp' },
     modifiers: { damage: '1d4', skill: 'Walka wręcz' },
     value: 2,
   },
@@ -1011,6 +1057,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/police-flashlight-prl.webp', shared: '/equipment/catalog/police-flashlight-prl.webp' },
     value: 5,
   },
   {
@@ -1020,6 +1067,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/tactical-flashlight-modern.webp', shared: '/equipment/catalog/tactical-flashlight-modern.webp' },
     value: 35,
   },
   {
@@ -1029,6 +1077,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/multitool-modern.webp', shared: '/equipment/catalog/multitool-modern.webp' },
     modifiers: { skill: 'Naprawa mechaniczna', bonus: 5 },
     value: 60,
   },
@@ -1039,6 +1088,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/sketchbook-pencil-shared.webp' },
     value: 2,
   },
   {
@@ -1048,6 +1098,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
+    assetPaths: { '1890s': '/equipment/catalog/laudanum-phial-shared.webp', shared: '/equipment/catalog/laudanum-phial-shared.webp' },
     value: 3,
   },
   {
@@ -1057,6 +1108,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/smelling-salts-vial.webp' },
     value: 1,
   },
   {
@@ -1066,6 +1118,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/tarot-deck-vintage.webp' },
     value: 5,
   },
   {
@@ -1075,6 +1128,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/crystal-ball-stand.webp' },
     value: 25,
   },
   {
@@ -1084,6 +1138,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/leather-grimoire-book.webp' },
     value: 50,
   },
   {
@@ -1093,6 +1148,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/latin-scroll-vellum.webp' },
     value: 40,
   },
   {
@@ -1102,6 +1158,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/ancient-runes-stones.webp' },
     value: 15,
   },
   {
@@ -1111,6 +1168,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/silver-amulet-sigil.webp' },
     value: 20,
   },
   {
@@ -1120,6 +1178,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/crystal-pendulum-shared.webp' },
     value: 8,
   },
   {
@@ -1137,6 +1196,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { 'prl-1970s': '/equipment/catalog/emf-meter-vintage.webp', shared: '/equipment/catalog/emf-meter-vintage.webp' },
     modifiers: { skill: 'Nauka' },
     value: 50,
   },
@@ -1146,7 +1206,12 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Microcassette Pocket Dictaphone", "Dyktafon reporterski", "Dyktafon kasetowy"],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['1980s', '1990s'],
+    availableIn: ['prl-1970s', '1980s', '1990s'],
+    assetPaths: {
+      'prl-1970s': '/equipment/catalog/microcassette-dictaphone.webp',
+      '1980s': '/equipment/catalog/microcassette-dictaphone.webp',
+      shared: '/equipment/catalog/microcassette-dictaphone.webp',
+    },
     value: 35,
   },
   {
@@ -1156,6 +1221,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/digital-dictaphone-modern.webp', shared: '/equipment/catalog/digital-dictaphone-modern.webp' },
     value: 80,
   },
   {
@@ -1164,7 +1230,8 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Infrared Night-Vision Video Camcorder", "Kamera na podczerwień", "Kamera noktowizyjna"],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: MODERN_ERAS,
+    availableIn: ['prl-1970s', '1980s', '1990s', '2000s', 'modern'],
+    assetPaths: { 'modern': '/equipment/catalog/nightvision-camera-modern.webp', shared: '/equipment/catalog/nightvision-camera-modern.webp' },
     value: 400,
   },
   {
@@ -1174,6 +1241,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/dslr-camera-modern.webp', shared: '/equipment/catalog/dslr-camera-modern.webp' },
     value: 600,
   },
   {
@@ -1183,6 +1251,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/satellite-gps-modern.webp', shared: '/equipment/catalog/satellite-gps-modern.webp' },
     modifiers: { skill: 'Nawigacja', bonus: 20 },
     value: 150,
   },
@@ -1193,6 +1262,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/satellite-radio-modern.webp', shared: '/equipment/catalog/satellite-radio-modern.webp' },
     value: 300,
   },
   {
@@ -1202,6 +1272,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rugged-ultrabook-modern.webp', shared: '/equipment/catalog/rugged-ultrabook-modern.webp' },
     modifiers: { skill: 'Korzystanie z komputerów', bonus: 10 },
     value: 1500,
   },
@@ -1212,6 +1283,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rugged-tablet-lidar.webp', shared: '/equipment/catalog/rugged-tablet-lidar.webp' },
     value: 1200,
   },
   {
@@ -1221,6 +1293,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/brick-cellphone-prl.webp', shared: '/equipment/catalog/brick-cellphone-prl.webp' },
     value: 500,
   },
   {
@@ -1230,6 +1303,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/audio-cassette-shared.webp' },
     value: 2,
   },
   {
@@ -1239,6 +1313,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/film-reel-shared.webp' },
     value: 10,
   },
   {
@@ -1248,6 +1323,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/encrypted-usb-modern.webp', shared: '/equipment/catalog/encrypted-usb-modern.webp' },
     value: 40,
   },
   {
@@ -1257,6 +1333,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/archive-keys-bundle.webp' },
     value: 5,
   },
   {
@@ -1266,6 +1343,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/reading-glasses-case.webp' },
     value: 5,
   },
   {
@@ -1275,6 +1353,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/tactical-vest-black.webp', shared: '/equipment/catalog/tactical-vest-black.webp' },
     modifiers: { bonus: 6 },
     value: 250,
   },
@@ -1285,6 +1364,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rugged-hiking-backpack.webp', shared: '/equipment/catalog/rugged-hiking-backpack.webp' },
     value: 15,
   },
   {
@@ -1294,6 +1374,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
+    assetPaths: { '1890s': '/equipment/catalog/rifle-lee-metford-1890s.webp', shared: '/equipment/catalog/rifle-lee-metford-1890s.webp' },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 60,
   },
@@ -1304,6 +1385,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
+    assetPaths: { '1920s': '/equipment/catalog/rifle-springfield-1920s.webp', shared: '/equipment/catalog/rifle-springfield-1920s.webp' },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 75,
   },
@@ -1314,6 +1396,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rifle-hk416-modern.webp', shared: '/equipment/catalog/rifle-hk416-modern.webp' },
     modifiers: { damage: '2d6', range: '90 yards', malfunction: 98 },
     value: 1200,
   },
@@ -1324,6 +1407,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/adrenaline-syringes-modern.webp', shared: '/equipment/catalog/adrenaline-syringes-modern.webp' },
     value: 20,
   },
   {
@@ -1333,6 +1417,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/psychotropics-kit-shared.webp' },
     value: 5,
   },
   {
@@ -1342,6 +1427,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/patient-records-folder.webp' },
     value: 2,
   },
   {
@@ -1351,6 +1437,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/medical-id-badge.webp', shared: '/equipment/catalog/medical-id-badge.webp' },
     value: 5,
   },
   {
@@ -1360,6 +1447,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/climbing-carabiners-modern.webp', shared: '/equipment/catalog/climbing-carabiners-modern.webp' },
     value: 40,
   },
   {
@@ -1369,6 +1457,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/night-photo-kit-shared.webp' },
     value: 50,
   },
   {
@@ -1378,6 +1467,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/diy-emf-detector-prl.webp', shared: '/equipment/catalog/diy-emf-detector-prl.webp' },
     value: 10,
   },
   {
@@ -1386,7 +1476,8 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Electronic Repair Tools in Hard Case", "Zestaw narzędzi w walizce", "Zestaw narzędzi do elektroniki"],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['prl-1970s', '1980s'],
+    availableIn: ['prl-1970s', '1980s', '1990s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/electronics-case-prl.webp', shared: '/equipment/catalog/electronics-case-prl.webp' },
     modifiers: { skill: 'Elektronika', bonus: 10 },
     value: 25,
   },
@@ -1404,7 +1495,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1990s', '2000s', 'modern'],
-    assetPaths: { shared: '/equipment/catalog/laptop-modern.webp' },
+    assetPaths: { shared: '/equipment/catalog/heavy-laptop-wifi-1990s.webp' },
     value: 800,
   },
   {
@@ -1413,7 +1504,8 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Vintage VFD Display Scientific Calculator", "Kalkulator naukowy", "Kalkulator Elwro"],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['prl-1970s', '1980s'],
+    availableIn: ['prl-1970s', '1980s', '1990s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/scientific-calc-prl.webp', shared: '/equipment/catalog/scientific-calc-prl.webp' },
     value: 20,
   },
   {
@@ -1423,6 +1515,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/safety-helmet-industrial.webp' },
     modifiers: { bonus: 2 },
     value: 10,
   },
@@ -1433,6 +1526,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/fireproof-gloves-shared.webp' },
     modifiers: { bonus: 1 },
     value: 10,
   },
@@ -1443,6 +1537,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/contacts-notebook-prl.webp', shared: '/equipment/catalog/contacts-notebook-prl.webp' },
     value: 2,
   },
   {
@@ -1452,6 +1547,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/embroidered-shawl.webp' },
     value: 8,
   },
   {
@@ -1461,6 +1557,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
+    assetPaths: { '1890s': '/equipment/catalog/black-veil-hat.webp', shared: '/equipment/catalog/black-veil-hat.webp' },
     value: 12,
   },
   {
@@ -1469,7 +1566,8 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Folded Noir Trenchcoat and Fedora", "Prochowiec i kapelusz", "Płaszcz detektywistyczny"],
     category: 'personal',
     visualTreatment: 'mundane',
-    availableIn: ['1940s'],
+    availableIn: ['1920s', '1940s'],
+    assetPaths: { '1920s': '/equipment/catalog/trenchcoat-hat-noir.webp', '1940s': '/equipment/catalog/trenchcoat-hat-noir.webp', shared: '/equipment/catalog/trenchcoat-hat-noir.webp' },
     value: 25,
   },
   {
@@ -1478,7 +1576,12 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: ["Vintage Silver Nurse Cross Pendant", "Krzyżyk pielęgniarki"],
     category: 'personal',
     visualTreatment: 'mundane',
-    availableIn: ['1920s', '1940s'],
+    availableIn: ['1890s', '1920s', '1940s'],
+    assetPaths: {
+      '1890s': '/equipment/catalog/nurse-cross-silver.webp',
+      '1920s': '/equipment/catalog/nurse-cross-silver.webp',
+      shared: '/equipment/catalog/nurse-cross-silver.webp',
+    },
     value: 10,
   },
   {
@@ -1488,6 +1591,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/holy-water-phial.webp' },
     value: 5,
   },
   {
@@ -1497,6 +1601,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/sage-incense-bundle.webp' },
     value: 3,
   },
   {
@@ -1506,6 +1611,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/protective-herbs-pouch.webp' },
     value: 3,
   },
   {
@@ -1515,6 +1621,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/silver-talisman-shared.webp' },
     value: 25,
   },
   {
@@ -1524,6 +1631,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/ancient-translations-book.webp' },
     value: 15,
   },
   {
@@ -1789,31 +1897,33 @@ export function findEquipmentTemplate(
 
 export function resolveCatalogAsset(
   template: EquipmentTemplate | undefined,
-  era: EquipmentVisualEra
+  era: EquipmentVisualEra | string = '1920s'
 ): string | undefined {
   if (!template) return undefined;
+  const visualEra = safeResolveVisualEra(era);
   // Jeśli szablon jest ściśle ograniczony do konkretnych epok, nie zwracaj assetu poza nimi
-  if (template.availableIn && !template.availableIn.includes(era)) {
+  if (template.availableIn && !template.availableIn.includes(visualEra)) {
     return undefined;
   }
-  return template.assetPaths?.[era] ?? template.assetPaths?.shared;
+  return template.assetPaths?.[visualEra] ?? template.assetPaths?.shared;
 }
 
 /** Oznacza istniejący przedmiot jako katalogowy, nie zmieniając jego ID egzemplarza. */
 export function applyCatalogTemplate(
   item: EquipmentItem,
-  era: EquipmentVisualEra = '1920s'
+  era: EquipmentVisualEra | string = '1920s'
 ): EquipmentItem {
   if (item.visualSource === 'generated') return item;
   const template = findEquipmentTemplate(item.templateId ?? item.name);
   if (!template) return item;
 
+  const visualEra = safeResolveVisualEra(era);
   // Zabezpieczenie epokowe: jeśli szablon nie jest dostępny w tej epoce, nie narzucaj go
-  if (template.availableIn && !template.availableIn.includes(era)) {
+  if (template.availableIn && !template.availableIn.includes(visualEra)) {
     return item;
   }
 
-  const catalogAsset = resolveCatalogAsset(template, era);
+  const catalogAsset = resolveCatalogAsset(template, visualEra);
   const isSvgOrFallback =
     !item.imageUrl ||
     item.imageUrl.endsWith('.svg') ||
@@ -1837,9 +1947,10 @@ export function applyCatalogTemplate(
 /** Lekka, idempotentna migracja zapisów sprzed `templateId` i `visualSource`. */
 export function migrateEquipmentCatalog(
   items: EquipmentItem[] | undefined,
-  era: EquipmentVisualEra = '1920s'
+  era: EquipmentVisualEra | string = '1920s'
 ): EquipmentItem[] | undefined {
-  return items?.map((item) => applyCatalogTemplate(item, era));
+  const visualEra = safeResolveVisualEra(era);
+  return items?.map((item) => applyCatalogTemplate(item, visualEra));
 }
 
 export function isCatalogEquipment(item: EquipmentItem): boolean {
