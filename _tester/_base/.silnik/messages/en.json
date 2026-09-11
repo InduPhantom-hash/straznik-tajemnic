@@ -7847,5 +7847,13 @@
     "outcomeRegular": "Regular success",
     "outcomeFail": "Failure",
     "outcomeFumble": "Fumble (96-100)!"
+  },
+  "EventResolution": {
+    "putativeEvent": "Putative Intent",
+    "adjudicating": "Adjudicating intent...",
+    "realEvent": "Grounded Real Event",
+    "impossibleAction": "Physically impossible action",
+    "checkRequired": "Rule check required",
+    "autoSuccess": "Routine action (auto-success)"
   }
 }

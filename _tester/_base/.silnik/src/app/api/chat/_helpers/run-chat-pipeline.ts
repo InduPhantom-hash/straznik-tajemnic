@@ -510,6 +510,7 @@ export async function runChatPipeline({
       }
       return vbg;
     })(),
+    playerMessage: message,
   });
 
   if (isChaseState(mechanicsContext?.chase)) {

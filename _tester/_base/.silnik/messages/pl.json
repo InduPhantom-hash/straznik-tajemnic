@@ -7847,5 +7847,13 @@
     "outcomeRegular": "Zwykły sukces",
     "outcomeFail": "Porażka",
     "outcomeFumble": "Pech (96-100)!"
+  },
+  "EventResolution": {
+    "putativeEvent": "Deklaracja intencji",
+    "adjudicating": "Adjudykacja intencji...",
+    "realEvent": "Ugruntowany fakt",
+    "impossibleAction": "Akcja niemożliwa fizycznie",
+    "checkRequired": "Wymagany test zasad",
+    "autoSuccess": "Akcja rutynowa (sukces automatyczny)"
   }
 }
