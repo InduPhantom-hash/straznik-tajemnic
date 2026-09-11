@@ -133,9 +133,10 @@ describe('equipment-iirp (Podrecznik Badacza CoC 7ed, s. 214-216)', () => {
     ];
 
     handguns.forEach((name) => {
-      const skill = inferWeaponSkill({ name });
+      const item = { id: `test-${name}`, name, category: 'weapon' as const };
+      const skill = inferWeaponSkill(item);
       expect(skill).toBe('Broń Palna');
-      expect(isMeleeWeapon({ name })).toBe(false);
+      expect(isMeleeWeapon(item)).toBe(false);
     });
 
     const longGuns = [
@@ -148,9 +149,10 @@ describe('equipment-iirp (Podrecznik Badacza CoC 7ed, s. 214-216)', () => {
     ];
 
     longGuns.forEach((name) => {
-      const skill = inferWeaponSkill({ name });
+      const item = { id: `test-${name}`, name, category: 'weapon' as const };
+      const skill = inferWeaponSkill(item);
       expect(skill).toBe('Broń Palna (Karabin)');
-      expect(isMeleeWeapon({ name })).toBe(false);
+      expect(isMeleeWeapon(item)).toBe(false);
     });
   });
 

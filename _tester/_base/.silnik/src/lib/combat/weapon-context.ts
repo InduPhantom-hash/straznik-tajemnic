@@ -95,7 +95,7 @@ export function getCombatDefenseWeapons(
  * `item.name`. Pozwala rozpoznać broń, której generator nie dostał z szablonu i zapisał
  * jako `category: 'personal'` bez `modifiers` (np. „Rewolwer .38" z OCCUPATION_EQUIPMENT).
  */
-export function looksLikeWeapon(item: EquipmentItem): boolean {
+export function looksLikeWeapon(item: { name: string }): boolean {
   const name = item.name.toLowerCase();
   return (
     LONG_GUN_PATTERN.test(name) ||
@@ -151,7 +151,7 @@ export function inferWeaponDamage(
  * więc `resolveTestValue` dopasuje ją do karty postaci (fuzzy match obejmuje warianty
  * typu "Broń Palna (Krótka)").
  */
-export function inferWeaponSkill(item: EquipmentItem): string {
+export function inferWeaponSkill(item: { name: string }): string {
   const name = item.name.toLowerCase();
   if (LONG_GUN_PATTERN.test(name)) return SKILL_FIREARM_LONG;
   if (HANDGUN_PATTERN.test(name)) return SKILL_FIREARM_HANDGUN;
@@ -162,7 +162,7 @@ export function inferWeaponSkill(item: EquipmentItem): string {
  * Czy broń jest biała (walka wręcz). RAW: tylko broń biała dolicza modyfikator do
  * obrażeń postaci (Damage Bonus); broń palna NIE.
  */
-export function isMeleeWeapon(item: EquipmentItem): boolean {
+export function isMeleeWeapon(item: { name: string }): boolean {
   return inferWeaponSkill(item) === SKILL_MELEE;
 }
 
