@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   EQUIPMENT_CATALOG,
@@ -121,7 +121,7 @@ describe('equipment catalog', () => {
     const templatesWithAssets = EQUIPMENT_CATALOG.filter(
       (template) => Object.values(template.assetPaths ?? {}).length > 0
     );
-    expect(templatesWithAssets.length).toBeGreaterThanOrEqual(47);
+    expect(templatesWithAssets.length).toBeGreaterThanOrEqual(110);
 
     templatesWithAssets
       .flatMap((template) => Object.values(template.assetPaths!))
@@ -239,7 +239,7 @@ describe('equipment catalog', () => {
     const laptopTemplate = findEquipmentTemplate('Ciężki laptop z wczesnym Wi-Fi');
     expect(laptopTemplate?.id).toBe('tool.heavy-laptop-wifi-1990s');
     expect(resolveCatalogAsset(laptopTemplate, '2000s')).toBe(
-      '/equipment/catalog/laptop-modern.webp'
+      '/equipment/catalog/heavy-laptop-wifi-1990s.webp'
     );
     const laptopEnriched = applyCatalogTemplate(
       {
@@ -250,7 +250,7 @@ describe('equipment catalog', () => {
       },
       '2000s'
     );
-    expect(laptopEnriched.imageUrl).toBe('/equipment/catalog/laptop-modern.webp');
+    expect(laptopEnriched.imageUrl).toBe('/equipment/catalog/heavy-laptop-wifi-1990s.webp');
     expect(laptopEnriched.visualSource).toBe('catalog');
 
     // 2. Telefon komórkowy
@@ -306,5 +306,81 @@ describe('equipment catalog', () => {
     );
     expect(kitEnriched.imageUrl).toBe('/equipment/catalog/electrical-kit-shared.webp');
     expect(kitEnriched.visualSource).toBe('catalog');
+  });
+
+  it('mapuje w 100% wszystkie 110 grafik WebP z katalogu i gwarantuje ich obecność na dysku', () => {
+    const manifestPath = existsSync(join(process.cwd(), 'docs/audits/equipment/catalog-manifest-all.json'))
+      ? join(process.cwd(), 'docs/audits/equipment/catalog-manifest-all.json')
+      : join(process.cwd(), '../../../docs/audits/equipment/catalog-manifest-all.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    expect(manifest).toHaveLength(110);
+
+    manifest.forEach((entry: { id: string; filename: string; era: string; name: string }) => {
+      // Każdy plik musi fizycznie istnieć na dysku w public/equipment/catalog/
+      const diskPath = join(process.cwd(), 'public', 'equipment', 'catalog', entry.filename);
+      expect(existsSync(diskPath)).toBe(true);
+
+      // Każdy element manifestu musi odpowiadać szablonowi w EQUIPMENT_CATALOG
+      const template = findEquipmentTemplate(entry.id) || findEquipmentTemplate(entry.name);
+      expect(template).toBeDefined();
+
+      // Asset musi być powiązany ze zdefiniowanym szablonem
+      const assets = Object.values(template?.assetPaths ?? {});
+      expect(assets).toContain(`/equipment/catalog/${entry.filename}`);
+    });
+  });
+
+  it('nie zawiera martwego odwołania laptop-modern.webp w żadnym szablonie', () => {
+    EQUIPMENT_CATALOG.forEach((template) => {
+      const assets = Object.values(template.assetPaths ?? {});
+      assets.forEach((asset) => {
+        expect(asset).not.toContain('laptop-modern.webp');
+      });
+    });
+  });
+
+  it('prawidłowo przypisuje i rozstrzyga assety WebP dla przedmiotów epokowych i uniwersalnych (Batch 2-4)', () => {
+    // 1. Broń epoki 1890s (Lee-Metford)
+    const leeMetford = findEquipmentTemplate('Karabin Lee-Metford .303');
+    expect(leeMetford?.id).toBe('weapon.rifle-lee-metford-1890s');
+    expect(resolveCatalogAsset(leeMetford, '1890s')).toBe(
+      '/equipment/catalog/rifle-lee-metford-1890s.webp'
+    );
+    expect(resolveCatalogAsset(leeMetford, '1920s')).toBeUndefined();
+
+    // 2. Broń epoki 1920s (Springfield M1903)
+    const springfield = findEquipmentTemplate('Karabin Springfield M1903');
+    expect(springfield?.id).toBe('weapon.rifle-springfield-1920s');
+    expect(resolveCatalogAsset(springfield, '1920s')).toBe(
+      '/equipment/catalog/rifle-springfield-1920s.webp'
+    );
+
+    // 3. Broń współczesna (H&K 416)
+    const hk416 = findEquipmentTemplate('Karabinek H&K 416');
+    expect(hk416?.id).toBe('weapon.rifle-hk416-modern');
+    expect(resolveCatalogAsset(hk416, 'modern')).toBe(
+      '/equipment/catalog/rifle-hk416-modern.webp'
+    );
+
+    // 4. Sprzęt PRL (Magnetofon kasetowy)
+    const tapeRecorder = findEquipmentTemplate('Magnetofon kasetowy PRL');
+    expect(tapeRecorder?.id).toBe('tool.tape-recorder-prl-1970s');
+    expect(resolveCatalogAsset(tapeRecorder, 'prl-1970s')).toBe(
+      '/equipment/catalog/tape-recorder-prl-1970s.webp'
+    );
+
+    // 5. Przedmiot okultystyczny (Talia kart Tarota)
+    const tarot = findEquipmentTemplate('Talia kart Tarota');
+    expect(tarot?.id).toBe('occult.tarot-deck-vintage');
+    expect(resolveCatalogAsset(tarot, '1920s')).toBe(
+      '/equipment/catalog/tarot-deck-vintage.webp'
+    );
+
+    // 6. Zasób medyczny (Ampułki z morfiną)
+    const morphine = findEquipmentTemplate('Ampułki z morfiną');
+    expect(morphine?.id).toBe('medical.morphine-ampoules-shared');
+    expect(resolveCatalogAsset(morphine, '1920s')).toBe(
+      '/equipment/catalog/morphine-ampoules-shared.webp'
+    );
   });
 });

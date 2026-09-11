@@ -936,6 +936,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/tape-recorder-prl-1970s.webp', shared: '/equipment/catalog/tape-recorder-prl-1970s.webp' },
     value: 60,
   },
   {
@@ -945,6 +946,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
+    assetPaths: { '1920s': '/equipment/catalog/morphine-ampoules-shared.webp', shared: '/equipment/catalog/morphine-ampoules-shared.webp' },
     value: 5,
   },
   {
@@ -954,6 +956,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/silver-cross-shared.webp' },
     value: 15,
   },
   {
@@ -963,6 +966,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/pocket-revolver-shared.webp' },
     modifiers: { damage: '1d6', range: '10 yards', malfunction: 100 },
     value: 10,
   },
@@ -973,6 +977,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/leather-whip-shared.webp' },
     modifiers: { damage: '1d3' },
     value: 5,
   },
@@ -983,6 +988,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/handcuffs-shared.webp' },
     value: 10,
   },
   {
@@ -992,6 +998,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/canteen-flask-shared.webp' },
     value: 2,
   },
   {
@@ -1001,6 +1008,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/geology-hammer-shared.webp' },
     modifiers: { damage: '1d4', skill: 'Walka wręcz' },
     value: 2,
   },
@@ -1011,6 +1019,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/police-flashlight-prl.webp', shared: '/equipment/catalog/police-flashlight-prl.webp' },
     value: 5,
   },
   {
@@ -1020,6 +1029,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/tactical-flashlight-modern.webp', shared: '/equipment/catalog/tactical-flashlight-modern.webp' },
     value: 35,
   },
   {
@@ -1029,6 +1039,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/multitool-modern.webp', shared: '/equipment/catalog/multitool-modern.webp' },
     modifiers: { skill: 'Naprawa mechaniczna', bonus: 5 },
     value: 60,
   },
@@ -1039,6 +1050,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/sketchbook-pencil-shared.webp' },
     value: 2,
   },
   {
@@ -1048,6 +1060,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
+    assetPaths: { '1890s': '/equipment/catalog/laudanum-phial-shared.webp', shared: '/equipment/catalog/laudanum-phial-shared.webp' },
     value: 3,
   },
   {
@@ -1057,6 +1070,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/smelling-salts-vial.webp' },
     value: 1,
   },
   {
@@ -1066,6 +1080,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/tarot-deck-vintage.webp' },
     value: 5,
   },
   {
@@ -1075,6 +1090,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/crystal-ball-stand.webp' },
     value: 25,
   },
   {
@@ -1084,6 +1100,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/leather-grimoire-book.webp' },
     value: 50,
   },
   {
@@ -1093,6 +1110,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/latin-scroll-vellum.webp' },
     value: 40,
   },
   {
@@ -1102,6 +1120,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/ancient-runes-stones.webp' },
     value: 15,
   },
   {
@@ -1111,6 +1130,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/silver-amulet-sigil.webp' },
     value: 20,
   },
   {
@@ -1120,6 +1140,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/crystal-pendulum-shared.webp' },
     value: 8,
   },
   {
@@ -1137,6 +1158,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { 'prl-1970s': '/equipment/catalog/emf-meter-vintage.webp', shared: '/equipment/catalog/emf-meter-vintage.webp' },
     modifiers: { skill: 'Nauka' },
     value: 50,
   },
@@ -1147,6 +1169,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1980s', '1990s'],
+    assetPaths: { '1980s': '/equipment/catalog/microcassette-dictaphone.webp', shared: '/equipment/catalog/microcassette-dictaphone.webp' },
     value: 35,
   },
   {
@@ -1156,6 +1179,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/digital-dictaphone-modern.webp', shared: '/equipment/catalog/digital-dictaphone-modern.webp' },
     value: 80,
   },
   {
@@ -1165,6 +1189,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/nightvision-camera-modern.webp', shared: '/equipment/catalog/nightvision-camera-modern.webp' },
     value: 400,
   },
   {
@@ -1174,6 +1199,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/dslr-camera-modern.webp', shared: '/equipment/catalog/dslr-camera-modern.webp' },
     value: 600,
   },
   {
@@ -1183,6 +1209,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/satellite-gps-modern.webp', shared: '/equipment/catalog/satellite-gps-modern.webp' },
     modifiers: { skill: 'Nawigacja', bonus: 20 },
     value: 150,
   },
@@ -1193,6 +1220,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/satellite-radio-modern.webp', shared: '/equipment/catalog/satellite-radio-modern.webp' },
     value: 300,
   },
   {
@@ -1202,6 +1230,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rugged-ultrabook-modern.webp', shared: '/equipment/catalog/rugged-ultrabook-modern.webp' },
     modifiers: { skill: 'Korzystanie z komputerów', bonus: 10 },
     value: 1500,
   },
@@ -1212,6 +1241,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rugged-tablet-lidar.webp', shared: '/equipment/catalog/rugged-tablet-lidar.webp' },
     value: 1200,
   },
   {
@@ -1221,6 +1251,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/brick-cellphone-prl.webp', shared: '/equipment/catalog/brick-cellphone-prl.webp' },
     value: 500,
   },
   {
@@ -1230,6 +1261,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/audio-cassette-shared.webp' },
     value: 2,
   },
   {
@@ -1239,6 +1271,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/film-reel-shared.webp' },
     value: 10,
   },
   {
@@ -1248,6 +1281,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/encrypted-usb-modern.webp', shared: '/equipment/catalog/encrypted-usb-modern.webp' },
     value: 40,
   },
   {
@@ -1257,6 +1291,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/archive-keys-bundle.webp' },
     value: 5,
   },
   {
@@ -1266,6 +1301,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/reading-glasses-case.webp' },
     value: 5,
   },
   {
@@ -1275,6 +1311,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/tactical-vest-black.webp', shared: '/equipment/catalog/tactical-vest-black.webp' },
     modifiers: { bonus: 6 },
     value: 250,
   },
@@ -1285,6 +1322,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rugged-hiking-backpack.webp', shared: '/equipment/catalog/rugged-hiking-backpack.webp' },
     value: 15,
   },
   {
@@ -1294,6 +1332,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
+    assetPaths: { '1890s': '/equipment/catalog/rifle-lee-metford-1890s.webp', shared: '/equipment/catalog/rifle-lee-metford-1890s.webp' },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 60,
   },
@@ -1304,6 +1343,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
+    assetPaths: { '1920s': '/equipment/catalog/rifle-springfield-1920s.webp', shared: '/equipment/catalog/rifle-springfield-1920s.webp' },
     modifiers: { damage: '2d6+4', range: '110 yards', malfunction: 100 },
     value: 75,
   },
@@ -1314,6 +1354,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/rifle-hk416-modern.webp', shared: '/equipment/catalog/rifle-hk416-modern.webp' },
     modifiers: { damage: '2d6', range: '90 yards', malfunction: 98 },
     value: 1200,
   },
@@ -1324,6 +1365,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/adrenaline-syringes-modern.webp', shared: '/equipment/catalog/adrenaline-syringes-modern.webp' },
     value: 20,
   },
   {
@@ -1333,6 +1375,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'medical',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/psychotropics-kit-shared.webp' },
     value: 5,
   },
   {
@@ -1342,6 +1385,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/patient-records-folder.webp' },
     value: 2,
   },
   {
@@ -1351,6 +1395,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/medical-id-badge.webp', shared: '/equipment/catalog/medical-id-badge.webp' },
     value: 5,
   },
   {
@@ -1360,6 +1405,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: MODERN_ERAS,
+    assetPaths: { 'modern': '/equipment/catalog/climbing-carabiners-modern.webp', shared: '/equipment/catalog/climbing-carabiners-modern.webp' },
     value: 40,
   },
   {
@@ -1369,6 +1415,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/night-photo-kit-shared.webp' },
     value: 50,
   },
   {
@@ -1378,6 +1425,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/diy-emf-detector-prl.webp', shared: '/equipment/catalog/diy-emf-detector-prl.webp' },
     value: 10,
   },
   {
@@ -1387,6 +1435,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/electronics-case-prl.webp', shared: '/equipment/catalog/electronics-case-prl.webp' },
     modifiers: { skill: 'Elektronika', bonus: 10 },
     value: 25,
   },
@@ -1404,7 +1453,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['1990s', '2000s', 'modern'],
-    assetPaths: { shared: '/equipment/catalog/laptop-modern.webp' },
+    assetPaths: { shared: '/equipment/catalog/heavy-laptop-wifi-1990s.webp' },
     value: 800,
   },
   {
@@ -1414,6 +1463,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/scientific-calc-prl.webp', shared: '/equipment/catalog/scientific-calc-prl.webp' },
     value: 20,
   },
   {
@@ -1423,6 +1473,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/safety-helmet-industrial.webp' },
     modifiers: { bonus: 2 },
     value: 10,
   },
@@ -1433,6 +1484,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'armor',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/fireproof-gloves-shared.webp' },
     modifiers: { bonus: 1 },
     value: 10,
   },
@@ -1443,6 +1495,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ['prl-1970s', '1980s'],
+    assetPaths: { 'prl-1970s': '/equipment/catalog/contacts-notebook-prl.webp', shared: '/equipment/catalog/contacts-notebook-prl.webp' },
     value: 2,
   },
   {
@@ -1452,6 +1505,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/embroidered-shawl.webp' },
     value: 8,
   },
   {
@@ -1461,6 +1515,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1890s'],
+    assetPaths: { '1890s': '/equipment/catalog/black-veil-hat.webp', shared: '/equipment/catalog/black-veil-hat.webp' },
     value: 12,
   },
   {
@@ -1470,6 +1525,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1940s'],
+    assetPaths: { '1940s': '/equipment/catalog/trenchcoat-hat-noir.webp', shared: '/equipment/catalog/trenchcoat-hat-noir.webp' },
     value: 25,
   },
   {
@@ -1479,6 +1535,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ['1920s', '1940s'],
+    assetPaths: { '1920s': '/equipment/catalog/nurse-cross-silver.webp', shared: '/equipment/catalog/nurse-cross-silver.webp' },
     value: 10,
   },
   {
@@ -1488,6 +1545,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/holy-water-phial.webp' },
     value: 5,
   },
   {
@@ -1497,6 +1555,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/sage-incense-bundle.webp' },
     value: 3,
   },
   {
@@ -1506,6 +1565,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/protective-herbs-pouch.webp' },
     value: 3,
   },
   {
@@ -1515,6 +1575,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'occult',
     visualTreatment: 'supernatural',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/silver-talisman-shared.webp' },
     value: 25,
   },
   {
@@ -1524,6 +1585,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/ancient-translations-book.webp' },
     value: 15,
   },
   {

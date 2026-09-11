@@ -2,16 +2,19 @@
 
 Data baseline: 2026-09-01.
 
-## Wynik maszynowy (po wdrożeniu Issue #65)
+## Wynik maszynowy (po wdrożeniu Issue #324)
 
 - Aktywne presety: 46.
 - Wszystkie instancje przedmiotów startowych: 264.
 - Unikalne nazwy po normalizacji: 133.
-- Wzorce katalogowe w `EQUIPMENT_CATALOG`: 112 (37 bazowych + 75 nowych).
-- Lokalne katalogowe WebP na dysku: 47 (35 bazowych + 12 z Partii 1).
+- Wzorce katalogowe w `EQUIPMENT_CATALOG`: 150.
+- Lokalne katalogowe WebP na dysku (w 100% zmapowane w kodzie): 110 (komplet Partii 1-4 z `catalog-manifest-all.json`).
+- Wzorce katalogu z przypisanym WebP: 128 (w tym warianty epokowe i uniwersalne).
+- Szablony katalogowe oczekujące na dedykowany render (fallback SVG): 22.
 - Pokrycie presetów badaczy przez katalog: 100% (wszystkie przedmioty posiadają deterministyczny szablon, aliasy PL/EN i zasady CoC 7e RAW).
 - Przedmioty startowe bez istniejącego lokalnego obrazu lub ikony: 0.
 - Przedmioty startowe oznaczone jako generowane: 0.
+- Martwe odwołania do plików: 0 (usunięto `laptop-modern.webp`, zastąpiono `heavy-laptop-wifi-1990s.webp`).
 
 ## Naprawiony P0 kosztu
 
@@ -53,23 +56,34 @@ Repo zapisuje wyłącznie własne dane strukturalne, własne opisy, hash i numer
 - Przedział Majętności prywatnego detektywa poprawiono z 9-50 na 9-30.
 - Endpoint wyposażenia startowego wymaga jawnej epoki i nie uruchamia Gemini. AI nie może zmienić ceny ani mechaniki.
 
-## Kolejka katalogu
+## Kolejka katalogu do prerenderowania (Partia 5 - 22 przedmioty)
 
-Priorytet 1:
+Po wdrożeniu 110 grafik z Partii 1-4, w katalogu `EQUIPMENT_CATALOG` pozostają 22 przedmioty używające lokalnego fallbacku SVG (`CATEGORY_FALLBACK_ASSETS`):
 
-- normalizacja 80 nazw bez wzorca,
-- osobne wzorce broni o odrębnej mechanice,
-- warianty telefonów, komputerów, aparatów i nośników dla 1973-1974, 1980s, 1990s i 2000-2005,
-- poprawa aliasu `Latarnia oliwna` do lampy naftowej,
-- test dostępności zestawów zawodowych w każdej obsługiwanej epoce.
+1. `tool.thermometer` – Termometr (`tool`)
+2. `tool.photo-tripod` – Statyw fotograficzny (`tool`)
+3. `tool.photo-plates` – Klisza fotograficzna (`tool`)
+4. `tool.trowel-brush` – Pędzel i kielnia archeologiczna (`tool`)
+5. `tool.lab-equipment` – Sprzęt laboratoryjny (`tool`)
+6. `tool.typewriter` – Maszyna do pisania (`tool`)
+7. `document.source-books` – Książki źródłowe (`document`)
+8. `document.library-card` – Karta biblioteczna (`document`)
+9. `document.bible` – Biblia / modlitewnik (`document`)
+10. `document.music-sheets` – Nuty i partytury (`document`)
+11. `document.script` – Scenariusz teatralny (`document`)
+12. `weapon.police-baton` – Pałka policyjna (`weapon`)
+13. `personal.car-keys` – Kluczyki do samochodu (`personal`)
+14. `personal.art-pencils` – Ołówki i węgiel rysunkowy (`personal`)
+15. `personal.palette-brushes` – Paleta i pędzle malarskie (`personal`)
+16. `personal.sports-gear` – Strój sportowy (`personal`)
+17. `personal.sports-bag` – Torba sportowa (`personal`)
+18. `personal.towel` – Ręcznik bawełniany (`personal`)
+19. `personal.musical-instrument` – Instrument muzyczny (`personal`)
+20. `personal.makeup-kit` – Zestaw do charakteryzacji (`personal`)
+21. `personal.overalls` – Kombinezon roboczy (`personal`)
+22. `personal.blanket` – Wełniany koc (`personal`)
 
-Priorytet 2:
-
-- osobiste dokumenty, notesy, ubrania i pamiątki,
-- przedmioty scenariuszowe Strefy 11,
-- rendery zatwierdzane partiami według epoki.
-
-Artefakty Mythos i unikalne dokumenty pozostają poza katalogiem statycznym, chyba że PO jawnie zatwierdzi konkretny wzorzec.
+Artefakty Mythos i unikalne dokumenty fabularne pozostają poza katalogiem statycznym (generowane w locie przez MG lub z portretu Flux Kontext).
 
 ## Bramka akceptacji
 

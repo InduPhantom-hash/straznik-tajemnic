@@ -94,11 +94,11 @@ describe('useEquipmentThumbnails', () => {
 
     expect(fetchWithApiKeys).not.toHaveBeenCalled();
     expect(characters[0].equipment?.[0]).toMatchObject({
-      imageUrl: '/equipment/catalog/laptop-modern.webp',
+      imageUrl: '/equipment/catalog/heavy-laptop-wifi-1990s.webp',
       visualSource: 'catalog',
     });
     expect(activeCharacter?.equipment?.[0]).toMatchObject({
-      imageUrl: '/equipment/catalog/laptop-modern.webp',
+      imageUrl: '/equipment/catalog/heavy-laptop-wifi-1990s.webp',
       visualSource: 'catalog',
     });
   });
