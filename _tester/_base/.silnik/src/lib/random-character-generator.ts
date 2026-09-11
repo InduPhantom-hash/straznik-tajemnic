@@ -165,10 +165,10 @@ export function generateRandomCharacter(seed?: number): Character {
   let dex = roll3d6(rng) * 5;
   let con = roll3d6(rng) * 5;
   let app = roll3d6(rng) * 5;
-  let pow = roll3d6(rng) * 5;
+  const pow = roll3d6(rng) * 5;
   let edu = roll2d6plus6(rng) * 5;
   let siz = roll2d6plus6(rng) * 5;
-  let int = roll2d6plus6(rng) * 5;
+  const int = roll2d6plus6(rng) * 5;
   let luck = roll3d6(rng) * 5;
 
   // Modyfikatory wieku CoC 7e RAW
