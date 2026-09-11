@@ -87,9 +87,9 @@ const ARCHETYPE_SKILL_MAP: Record<string, string[]> = {
     'Perswazja',
   ],
   scholar: ['Biblioteka', 'Historia', 'J\u0119zyk Obcy', 'Nauka'],
-  action: ['Walka Wr\u0119cz', 'Bro\u0144 Palna', 'Unik', 'Atletyka'],
+  action: ['Walka Wr\u0119cz', 'Bro\u0144 Palna', 'Unik', 'Skok'],
   trickster: ['Ukrywanie', 'Perswazja', 'Psychologia', 'Skradanie'],
-  mystic: ['Occultyzm', 'Psychologia', 'Historia', 'Nas\u0142uchiwanie'],
+  mystic: ['Okultyzm', 'Psychologia', 'Historia', 'Nas\u0142uchiwanie'],
   healer: ['Medycyna', 'Pierwsza Pomoc', 'Psychologia', 'Nauka (Biologia)'],
   custom: [],
 };
@@ -500,6 +500,9 @@ export function CharacterWizardV2({
   };
 
   const updateSkill = (skillName: string, value: number) => {
+    // Mity Cthulhu sa zablokowane podczas tworzenia postaci (CoC 7e RAW: 00%)
+    if (skillName === 'Mity Cthulhu') return;
+
     // Dynamiczne wartości bazowe dla Język Ojczysty i Unik
     let baseValue = BASE_SKILLS[skillName] || 0;
     if (skillName === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
@@ -643,7 +646,8 @@ export function CharacterWizardV2({
           ([name]) =>
             name !== CREDIT_RATING_SKILL &&
             name !== NATIVE_LANGUAGE_SKILL &&
-            name !== 'Unik'
+            name !== 'Unik' &&
+            name !== 'Mity Cthulhu'
         )
         .map(([name, base]) => `${name}: ${base}%`)
         .join('\n'),
@@ -2653,7 +2657,7 @@ export function CharacterWizardV2({
                       {t('creditRating')}
                     </div>
                     <div className="font-display text-2xl font-bold text-foreground mt-0.5">
-                      {selectedOcc.creditMin}–{selectedOcc.creditMax}%
+                      {selectedOcc.creditMin}-{selectedOcc.creditMax}%
                     </div>
                     <div className="font-special-elite text-[11px] text-muted-foreground mt-1">
                       {t('initialCreditRating', { val: selectedOcc.creditMin })}
@@ -2923,12 +2927,17 @@ export function CharacterWizardV2({
                       <input
                         type="number"
                         value={value}
+                        disabled={skillName === 'Mity Cthulhu'}
                         onChange={(e) =>
                           updateSkill(skillName, parseInt(e.target.value) || 0)
                         }
-                        className="w-16 bg-[#0a0c0f] border border-brass/30 px-2 py-1.5 text-center font-display text-lg font-bold text-foreground focus:outline-none focus:border-brass/30"
+                        className={`w-16 bg-[#0a0c0f] border border-brass/30 px-2 py-1.5 text-center font-display text-lg font-bold text-foreground focus:outline-none focus:border-brass/30 ${
+                          skillName === 'Mity Cthulhu'
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
                         min={baseValue}
-                        max={99}
+                        max={skillName === 'Mity Cthulhu' ? 0 : 99}
                       />
                       <div className="font-special-elite text-xs text-muted-foreground">
                         <div>
