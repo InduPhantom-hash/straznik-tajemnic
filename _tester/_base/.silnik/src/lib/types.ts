@@ -46,7 +46,8 @@ export type GameEra =
   | '1990s'
   | '2000s'
   | 'modern'
-  | 'future';
+  | 'future'
+  | '1920s-poland';
 
 /** Ustawienia epoki - definiują realia technologiczne świata */
 export interface EraSettings {
@@ -328,6 +329,8 @@ export interface EquipmentModifiers {
   sanLoss?: string; // Strata SAN przy czytaniu (np. "1d4/1d8")
   attacks?: string | number; // Liczba ataków na rundę (np. 1 lub "1(3)")
   capacity?: string | number; // Pojemność magazynka / bębenka (np. 6)
+  priceZl?: number; // Cena w złotych II RP (s. 214-216 Podręcznika Badacza)
+  availability?: string; // Dostępność prawna i rynkowa w II RP
 }
 
 export type DocumentSubType =
@@ -513,6 +516,12 @@ export interface Character {
   journal?: JournalEntry[];
   investigatorBoard?: InvestigatorBoardState;
   investigatorDossier?: InvestigatorDossier;
+
+  // === KONWENCJA PULP CTHULHU (RAW) ===
+  archetype?: string; // Wybrany archetyp pulpowy (np. 'investigator', 'hard_boiled', 'mystic')
+  pulpTalents?: string[]; // 2-4 pulpowe talenty postaci
+  insaneTalents?: string[]; // Szalone talenty nabyte w trakcie ataku szaleństwa (Pulp Sanity RAW)
+  rulesetVariant?: 'classic' | 'pulp'; // Wariant zasad na karcie postaci
 
   // Pochodne - maksymalne wartości
   maxHp?: number;

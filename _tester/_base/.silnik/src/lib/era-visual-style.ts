@@ -54,7 +54,7 @@ export function resolveEraVisualProfile(
 
   // 1. Jawne słowa kluczowe
   if (value.includes('gaslight') || value.includes('wiktoria') || value.includes('victorian')) return '1890s';
-  if (value.includes('classic') || value.includes('lata 20') || value.includes('twenties')) return '1920s';
+  if (value.includes('classic') || value.includes('lata 20') || value.includes('twenties') || /\b(1920s?|ii[- ]?rp|iirp)\b/i.test(value)) return '1920s';
   if (value.includes('lata 30') || value.includes('thirties') || value.includes('depression')) return '1930s';
   if (value.includes('noir') || value.includes('lata 40') || value.includes('forties') || value.includes('wojen')) return '1940s';
   if (value.includes('lata 50') || value.includes('fifties')) return '1950s';

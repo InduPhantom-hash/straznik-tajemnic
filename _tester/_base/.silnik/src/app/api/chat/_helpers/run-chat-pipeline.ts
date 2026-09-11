@@ -486,6 +486,7 @@ export async function runChatPipeline({
     isGameStart,
     characters,
     era: String(eraContext.effectiveYear),
+    eraContext,
     locale,
     visualBeliefGraph: (() => {
       const vbg = new VisualBeliefGraph();

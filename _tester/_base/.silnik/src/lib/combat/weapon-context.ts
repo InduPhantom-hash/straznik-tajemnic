@@ -32,10 +32,10 @@ const SKILL_MELEE = 'Walka Wręcz'; // baza 25% (broń biała + bijatyka)
 
 // Broń długa (karabin/strzelba) - sprawdzane PRZED krótką, bo "hunting rifle" itp.
 const LONG_GUN_PATTERN =
-  /rifle|shotgun|carbine|musket|karabin|strzelb|sztucer|dubeltów/i;
-// Broń palna krótka (pistolety/rewolwery) + typowe kalibry 1920s.
+  /rifle|shotgun|carbine|musket|karabin|strzelb|sztucer|dubeltów|ur\.?\s*35|chauchat/i;
+// Broń palna krótka (pistolety/rewolwery) + typowe kalibry 1920s i modele II RP.
 const HANDGUN_PATTERN =
-  /revolver|automatic|pistol|handgun|rewolwer|pistolet|\.32|\.38|\.45|luger|colt/i;
+  /revolver|automatic|pistol|handgun|rewolwer|pistolet|\.32|\.38|\.45|luger|colt|nagant|browning|vis|mauser|parabellum|mors|reichsrevolver/i;
 // Broń biała (do jawnego rozpoznania broni po nazwie, gdy brak kategorii/obrażeń).
 const MELEE_WEAPON_PATTERN =
   /knife|nóż|noz|dagger|sztylet|machete|maczet|club|baton|pałk|palk|kij|cudgel|axe|topór|topor|siekier|hammer|młot|mlot|sword|miecz|szabla|bagnet|bayonet/i;

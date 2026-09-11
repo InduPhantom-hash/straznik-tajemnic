@@ -1,7 +1,18 @@
 import {
   generateRandomCharacter,
   generateRandomCharacters,
+  generateRandomIIRPCharacter,
 } from './random-character-generator';
+import {
+  NAMES_IIRP_MALE,
+  NAMES_IIRP_FEMALE,
+  MINORITY_JEWISH_MALE,
+  MINORITY_JEWISH_FEMALE,
+  MINORITY_GERMAN_MALE,
+  MINORITY_GERMAN_FEMALE,
+  MINORITY_EASTERN_MALE,
+  MINORITY_EASTERN_FEMALE,
+} from './data/character/names-iirp';
 import { OCCUPATIONS, BASE_SKILLS } from './data/character';
 import { calculateOccupationPoints } from './character/occupation-points';
 
@@ -111,6 +122,37 @@ describe('random-character-generator (CoC 7e RAW)', () => {
     // Każda postać ma unikalne imię lub identyfikator
     const ids = new Set(list.map((c) => c.id));
     expect(ids.size).toBe(5);
+  });
+
+  it('generateRandomIIRPCharacter generuje postac w realiach II RP', () => {
+    const char = generateRandomIIRPCharacter(1925);
+
+    expect(char.era).toBe('1920s-poland');
+    expect(char.currency).toBe('PLN');
+    expect(char.spendingLevel).toBeDefined();
+    expect(char.cash).toBeDefined();
+    expect(char.assets).toBeDefined();
+
+    // Sprawdz czy imie pochodzi z puli II RP
+    const [firstName] = char.name.split(' ');
+    const isPolishName =
+      NAMES_IIRP_MALE.includes(firstName) ||
+      NAMES_IIRP_FEMALE.includes(firstName) ||
+      MINORITY_JEWISH_MALE.includes(firstName) ||
+      MINORITY_JEWISH_FEMALE.includes(firstName) ||
+      MINORITY_GERMAN_MALE.includes(firstName) ||
+      MINORITY_GERMAN_FEMALE.includes(firstName) ||
+      MINORITY_EASTERN_MALE.includes(firstName) ||
+      MINORITY_EASTERN_FEMALE.includes(firstName);
+    expect(isPolishName).toBe(true);
+  });
+
+  it('generateRandomCharacter z opcja era: 1920s-poland ustawia polska walute i realia', () => {
+    const char = generateRandomCharacter({ seed: 1930, era: '1920s-poland' });
+    expect(char.era).toBe('1920s-poland');
+    expect(char.currency).toBe('PLN');
+    expect(char.spendingLevel).toBeGreaterThan(0);
+    expect(char.cash).toBeGreaterThanOrEqual(0);
   });
 });
 
