@@ -41,6 +41,8 @@ import {
   type EpistemicTruthAnchor,
 } from '@/lib/concordia/make-observation';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
+import { buildOrganizationPromptSection } from '@/lib/data/investigator-organizations';
+import type { DocumentType } from '@/types/adventure';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -540,6 +542,12 @@ export interface BuildAdditionalContextOpts {
   iirpWeaponLawSection?: string;
   /** Kontekst epoki lub ekonomiczny dla automatycznej detekcji realiów II RP */
   eraContext?: ResolvedEraContext | EconomyEraContext;
+  /** Sekcja Stowarzyszenia Badaczy i mecenatu (Rozdział 6 CoC 7e RAW) */
+  organizationSection?: string;
+  /** Typ dokumentu przygody: 'scenario' | 'campaign' | 'setting' | 'compendium' */
+  adventureDocumentType?: DocumentType;
+  /** Flaga oznaczająca czy bieżąca przygoda to kampania (wieloczęściowa z ciągłością Badaczy) */
+  isCampaign?: boolean;
 }
 
 export function buildAdditionalContext(
@@ -624,6 +632,33 @@ export function buildAdditionalContext(
         opts.locale
       )
     );
+  }
+
+  // Stowarzyszenie Badaczy i mecenat (Rozdział 6 CoC 7e RAW s. 117-139)
+  // KRYTYCZNA ZASADA PO: Stowarzyszenia są aktywne WYŁĄCZNIE dla kampanii!
+  // W oneshotach, pojedynczych scenariuszach i antologiach ten moduł jest bezwzględnie zablokowany,
+  // aby nie niszczyć natywnych haczyków fabularnych scenariusza i gotowych postaci.
+  const isCampaignContext = Boolean(
+    opts.isCampaign || opts.adventureDocumentType === 'campaign'
+  );
+
+  if (isCampaignContext) {
+    if (opts.organizationSection) {
+      additionalContext.push(opts.organizationSection);
+    } else {
+      const activeCharWithOrg = characters?.find(
+        (c) => c.organizationId || c.investigatorSociety
+      );
+      const orgId =
+        activeCharWithOrg?.organizationId ||
+        activeCharWithOrg?.investigatorSociety;
+      if (orgId) {
+        const orgSection = buildOrganizationPromptSection(orgId, opts.locale);
+        if (orgSection) {
+          additionalContext.push(orgSection);
+        }
+      }
+    }
   }
 
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.

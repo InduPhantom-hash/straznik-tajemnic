@@ -24,6 +24,7 @@ import {
 } from './build-context';
 import { buildHandoutsContext } from './build-handouts-context';
 import type { AdventureHandout } from '@/lib/adventures-data';
+import type { DocumentType } from '@/types/adventure';
 import { buildGeminiOptions } from './build-gemini-options';
 import { buildPdfStrategy, PdfMemoryAttachments } from './build-pdf-strategy';
 import { buildTimeContext } from './build-time-context';
@@ -232,6 +233,8 @@ export async function runChatPipeline({
       yearRange?: string;
       country?: string;
       sourceBookId?: string;
+      documentType?: DocumentType;
+      isCampaign?: boolean;
       handouts?: AdventureHandout[];
       tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
       truthAnchor?: {
@@ -483,6 +486,8 @@ export async function runChatPipeline({
         ? `\n## INSTRUKCJA REŻYSERSKA\n[MG wrzucił to losowe wydarzenie. Wpleć je organicznie w swoją narrację, nie przerywając głównego wątku]\n${directorEvent.title.replace(/\[/g, '(').replace(/\]/g, ')')}: ${directorEvent.description.replace(/\[/g, '(').replace(/\]/g, ')')}\n`
         : undefined,
     truthAnchor: adventureContext?.truthAnchor,
+    adventureDocumentType: adventureContext?.documentType,
+    isCampaign: adventureContext?.isCampaign,
     isGameStart,
     characters,
     era: String(eraContext.effectiveYear),

@@ -1,4 +1,5 @@
 import type { SessionZeroSettings } from '../ai-settings/types';
+import { buildOrganizationPromptSection } from '../data/investigator-organizations';
 
 type SessionZeroPromptSettings = Pick<
   SessionZeroSettings,
@@ -13,6 +14,9 @@ type SessionZeroPromptSettings = Pick<
   | 'investigatorHook'
   | 'anchors'
   | 'eraFilter'
+  | 'isCampaign'
+  | 'organizationId'
+  | 'investigatorSociety'
   | 'players'
 >;
 
@@ -314,10 +318,16 @@ export function buildSessionZeroInstructions(
       ? `\n${diffMap[sessionZero.difficulty]}`
       : '';
 
+  let organizationInstructions = '';
+  const orgId = sessionZero.organizationId || sessionZero.investigatorSociety;
+  if (orgId && sessionZero.isCampaign) {
+    organizationInstructions = `\n${buildOrganizationPromptSection(orgId, locale)}`;
+  }
+
   const effectiveTone = sessionZero.tone === 'noir' ? 'purist' : sessionZero.tone;
 
   return `
 ${toneMap[effectiveTone] || ''}${difficultySection}
-${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}
+${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}${organizationInstructions}
 ${safetyInstructions}`;
 }

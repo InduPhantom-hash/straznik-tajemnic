@@ -1,6 +1,8 @@
 {
   "id": "cien-nad-prabutami",
   "title": "Cień nad Prabutami: Widzenie Ojca Klimuszki",
+  "documentType": "scenario",
+  "isCampaign": false,
   "era": "prl-1970s",
   "setting": "Polska Ludowa, Zima 1973/1974 (Warszawa - Elbląg - Prabuty)",
   "startingLocation": "Główny Gmach Państwowego Studia RTV, Warszawa, ul. Woronicza",

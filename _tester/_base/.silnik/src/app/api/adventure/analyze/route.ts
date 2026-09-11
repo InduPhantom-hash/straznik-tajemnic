@@ -8,6 +8,7 @@ import type {
   GraphConnection
 } from '@/lib/types';
 import type { DocumentType, LorebookData } from '@/types/adventure';
+import { classifyDocumentAsCampaign } from '@/lib/data/official-campaigns';
 
 
 /**
@@ -20,14 +21,16 @@ const ANALYSIS_PROMPT = `Przeanalizuj ten dokument do gry fabularnej RPG "Zew Ct
 
 **KROK 1: KLASYFIKACJA TYPU DOKUMENTU (documentType)**
 Określ, z jakim rodzajem materiału mamy do czynienia:
-1. "scenario" - Scenariusz / Przygoda śledcza (np. gotowy one-shot, intryga, węzły poszlak, sceny, agendy BN-ów, finał). Może zawierać jedną lub wiele przygód.
-2. "setting" - Przewodnik regionalny / Lorebook / Tło świata (np. "Cienie Tatr", "Horror nad Wartą", "Berlin", przewodnik po mieście/epoce). Zawiera faktografię, opis dzielnic, frakcji, atmosfery, instytucji, bez pojedynczego linearnego scenariusza.
-3. "compendium" - Almanach / Bestiariusz / Grymuar regułowy (np. "Malleus Monstrorum", "Wielki Grymuar Magii"). Zawiera profile bestii, bóstw, katalog zaklęć, rytuałów, ksiąg i specyficznych zasad RAW.
+1. "scenario" - Pojedynczy scenariusz / Przygoda śledcza / One-shot lub zbiór niezależnych scenariuszy (np. "Nawiedzony dom", "Blackwater Creek", "Wrota Ciemności", "Posiadłości Szaleństwa", "Cień nad Prabutami"). W takim dokumencie stowarzyszenia badaczy są WYŁĄCZONE (postacie opierają się na haczyku przygody).
+2. "campaign" - Pełna wieloczęściowa kampania (np. "Maski Nyarlathotepa", "Horror w Orient Expressie", "Dwugłowy Wąż", "Czas Żniw", "Wielki Terror", "Zimne Płomienie", "Dzieci Snów", "The Order of the Stone" lub autorska kampania podzielona na rozdziały/akty z ciągłością Badaczy). Kampania może posiadać dedykowanego patrona ("campaignPatron").
+3. "setting" - Przewodnik regionalny / Lorebook / Tło świata (np. "Cienie Tatr", "Horror nad Wartą", "Berlin", przewodnik po mieście/epoce). Zawiera faktografię, opis dzielnic, frakcji, atmosfery, instytucji, bez pojedynczego linearnego scenariusza.
+4. "compendium" - Almanach / Bestiariusz / Grymuar regułowy (np. "Malleus Monstrorum", "Wielki Grymuar Magii"). Zawiera profile bestii, bóstw, katalog zaklęć, rytuałów, ksiąg i specyficznych zasad RAW.
 
 **KRYTYCZNE INSTRUKCJE:**
 1. Jeśli dokument to "scenario": PDF może zawierać WIELE ODDZIELNYCH PRZYGÓD (np. antologia). Każda przygoda to OSOBNY obiekt w tablicy "adventures".
-2. Jeśli dokument to "setting" lub "compendium": utwórz dokładnie jeden wpis w "adventures", reprezentujący całe kompendium/przewodnik. W polu "documentType" wpisz "setting" lub "compendium", a w "lorebookData" wyekstrahuj esencję wiedzy.
-3. NIE łącz tytułów przygód ani nie używaj nazwy pliku jako tytułu.
+2. Jeśli dokument to "campaign": PDF to wieloczęściowa kampania. Utwórz dokładnie jeden główny wpis w "adventures" lub osobne dla każdego dużego rozdziału, oznaczając documentType jako "campaign", a isCampaign jako true.
+3. Jeśli dokument to "setting" lub "compendium": utwórz dokładnie jeden wpis w "adventures", reprezentujący całe kompendium/przewodnik. W polu "documentType" wpisz "setting" lub "compendium", a w "lorebookData" wyekstrahuj esencję wiedzy.
+4. NIE łącz tytułów przygód ani nie używaj nazwy pliku jako tytułu.
 
 Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez komentarzy):
 
@@ -93,6 +96,8 @@ WAŻNE:
 
 interface AdventureRaw {
   documentType?: DocumentType;
+  isCampaign?: boolean;
+  campaignPatron?: string;
   title?: string;
   location?: string;
   country?: string;
@@ -117,7 +122,7 @@ const validateLorebookData = (
   docType: DocumentType,
   title: string
 ): LorebookData | undefined => {
-  if (docType === 'scenario') return undefined;
+  if (docType === 'scenario' || docType === 'campaign') return undefined;
   const rawObj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
 
   return {
@@ -371,22 +376,36 @@ export async function POST(request: NextRequest) {
 
     // Walidacja i uzupełnienie brakujących pól dla każdej przygody
     const validateAdventure = (data: AdventureRaw, index: number) => {
-      const docType: DocumentType =
-        data.documentType && ['scenario', 'setting', 'compendium'].includes(data.documentType)
-          ? data.documentType
-          : 'scenario';
-      const title =
+      const fallbackTitle =
         data.title ||
         `${fileName.replace('.pdf', '')} - ${
-          docType === 'scenario'
-            ? `Przygoda ${index + 1}`
-            : docType === 'setting'
+          data.documentType === 'setting'
             ? 'Przewodnik regionalny'
-            : 'Kompendium wiedzy'
+            : data.documentType === 'compendium'
+            ? 'Kompendium wiedzy'
+            : data.documentType === 'campaign'
+            ? 'Kampania'
+            : `Przygoda ${index + 1}`
         }`;
+
+      // Heurystyka kampanii z bazy oficjalnych wydań Black Monk / Chaosium oraz struktury
+      const campaignCheck = classifyDocumentAsCampaign(
+        fallbackTitle,
+        `${data.description || ''} ${data.hook || ''}`
+      );
+      const isCampaign = Boolean(data.isCampaign) || campaignCheck.isCampaign || data.documentType === 'campaign';
+      const docType: DocumentType = isCampaign
+        ? 'campaign'
+        : data.documentType && ['scenario', 'campaign', 'setting', 'compendium'].includes(data.documentType)
+        ? data.documentType
+        : 'scenario';
+      const campaignPatron = data.campaignPatron || campaignCheck.detectedPatron || undefined;
+      const title = fallbackTitle;
 
       return {
         documentType: docType,
+        isCampaign,
+        campaignPatron,
         title,
         location: data.location || (docType === 'compendium' ? 'Wiedza ogólna' : 'Nieznana lokalizacja'),
         country: data.country!.trim(),
@@ -403,6 +422,8 @@ export async function POST(request: NextRequest) {
             ? 'Regionalne tło i atmosfera dla Twoich śledztw...'
             : docType === 'compendium'
             ? 'Księga wiedzy, bestiariusz i arkana magii Mitów Cthulhu...'
+            : isCampaign
+            ? 'Monumentalna wieloczęściowa kampania czeka na śmiałków...'
             : 'Tajemnicza przygoda czeka na odkrycie...'),
         description: data.description || data.hook || '',
         tone:
@@ -411,12 +432,12 @@ export async function POST(request: NextRequest) {
             : 'purist',
         themes: Array.isArray(data.themes)
           ? data.themes.slice(0, 5)
-          : [docType === 'compendium' ? 'bestiariusz' : docType === 'setting' ? 'przewodnik' : 'tajemnica'],
+          : [docType === 'compendium' ? 'bestiariusz' : docType === 'setting' ? 'przewodnik' : isCampaign ? 'kampania' : 'tajemnica'],
         suggestedOccupations: Array.isArray(data.suggestedOccupations)
           ? data.suggestedOccupations.slice(0, 5)
           : ['detektyw'],
         playerCount: data.playerCount || '1-4',
-        estimatedSessions: data.estimatedSessions || (docType === 'scenario' ? '2-3' : '—'),
+        estimatedSessions: data.estimatedSessions || (isCampaign ? '10+' : docType === 'scenario' ? '2-3' : '-'),
         difficulty:
           data.difficulty && ['easy', 'normal', 'hard'].includes(data.difficulty)
             ? data.difficulty

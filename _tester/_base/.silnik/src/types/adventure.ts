@@ -2,7 +2,7 @@
  * Typy danych dla wyekstrahowanych encji przygody, lorebooków i kompendiów z PDF
  */
 
-export type DocumentType = 'scenario' | 'setting' | 'compendium';
+export type DocumentType = 'scenario' | 'campaign' | 'setting' | 'compendium';
 
 export interface AdventureNPC {
   id: string;
@@ -39,6 +39,9 @@ export interface AdventureStructure {
   npcs: AdventureNPC[];
   locations: AdventureLocation[];
   items: AdventureItem[];
+  documentType?: DocumentType;
+  isCampaign?: boolean;
+  campaignPatron?: string;
   extractedAt: string;
 }
 

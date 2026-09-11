@@ -1,6 +1,8 @@
 {
   "id": "tajemnica-pendnika-lagiewki",
   "title": "Tajemnica Pędnika: Genialny Wynalazca z Kowar",
+  "documentType": "scenario",
+  "isCampaign": false,
   "era": "1990s",
   "setting": "Polska, Przełom Lat 90. (Kowary - Karkonosze - Warszawa)",
   "startingLocation": "Warsztat i Pracownia Lucjana Łągiewki, Kowary, Dolny Śląsk",
