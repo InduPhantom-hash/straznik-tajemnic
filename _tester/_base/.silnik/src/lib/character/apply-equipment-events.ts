@@ -1,6 +1,7 @@
-import type { Character, EquipmentItem } from '../types';
+import type { Character, EquipmentItem, EquipmentVisualEra } from '../types';
 import { extractEquipmentEvents } from '../parsers/equipment-parser';
 import { createEquipmentItem } from '../equipment-data';
+import { safeResolveVisualEra } from '../equipment-catalog';
 
 export interface EquipmentNotification {
   type: 'use' | 'remove' | 'add';
@@ -50,7 +51,8 @@ export function applyEquipmentEventsToParty(
   characters: Character[],
   activeCharacter: Character,
   rawText: string,
-  onNotify?: (notification: EquipmentNotification) => void
+  onNotify?: (notification: EquipmentNotification) => void,
+  defaultEra: EquipmentVisualEra | string = '1920s'
 ): {
   characters: Character[];
   activeCharacter: Character;
@@ -152,6 +154,7 @@ export function applyEquipmentEventsToParty(
         onNotify?.(notif);
       }
     } else if (event.action === 'add') {
+      const itemEra = safeResolveVisualEra(charInMap.era || defaultEra);
       // Dodaj nowy przedmiot
       const newItem = createEquipmentItem(
         {
@@ -159,7 +162,8 @@ export function applyEquipmentEventsToParty(
           category: event.category || 'personal',
           description: event.description,
         },
-        'found'
+        'found',
+        itemEra
       );
       charInMap.equipment = [...currentEq, newItem];
       changed = true;

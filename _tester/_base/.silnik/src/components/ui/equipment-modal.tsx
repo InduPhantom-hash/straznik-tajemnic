@@ -48,7 +48,7 @@ import { useMessages, useTranslations, useLocale } from 'next-intl';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
-import { isCatalogEquipment, migrateEquipmentCatalog } from '@/lib/equipment-catalog';
+import { isCatalogEquipment, migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
 function formatUsd(amount: number): string {
@@ -90,13 +90,14 @@ export function EquipmentModal({
   // kontekstowo w narracji, nie ręcznie - dlatego bez edycji/usuwania).
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
+  const visualEra = useMemo(
+    () => safeResolveVisualEra(era || character.era),
+    [era, character.era]
+  );
+
   const migratedEquipment = useMemo(
-    () =>
-      migrateEquipmentCatalog(
-        character.equipment,
-        (era as EquipmentVisualEra) || '1920s'
-      ) || [],
-    [character.equipment, era]
+    () => migrateEquipmentCatalog(character.equipment, visualEra) || [],
+    [character.equipment, visualEra]
   );
 
   const equipment = migratedEquipment.map((item) =>

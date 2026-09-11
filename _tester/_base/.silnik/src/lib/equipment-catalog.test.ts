@@ -7,6 +7,7 @@ import {
   findEquipmentTemplate,
   isCatalogEquipment,
   resolveCatalogAsset,
+  safeResolveVisualEra,
 } from './equipment-catalog';
 import { PREDEFINED_CHARACTERS } from './immersion/predefined-characters';
 import { STREFA_11_CHARACTERS } from './immersion/strefa-11-characters';
@@ -381,6 +382,82 @@ describe('equipment catalog', () => {
     expect(morphine?.id).toBe('medical.morphine-ampoules-shared');
     expect(resolveCatalogAsset(morphine, '1920s')).toBe(
       '/equipment/catalog/morphine-ampoules-shared.webp'
+    );
+  });
+
+  it('bezpiecznie normalizuje niestandardowe i złożone identyfikatory epok (safeResolveVisualEra)', () => {
+    expect(safeResolveVisualEra('classic')).toBe('1920s');
+    expect(safeResolveVisualEra('gaslight')).toBe('1890s');
+    expect(safeResolveVisualEra('1920s-us')).toBe('1920s');
+    expect(safeResolveVisualEra('1920s-pl')).toBe('1920s');
+    expect(safeResolveVisualEra('noir')).toBe('1940s');
+    expect(safeResolveVisualEra('pulp')).toBe('1930s');
+    expect(safeResolveVisualEra('1946')).toBe('1940s');
+    expect(safeResolveVisualEra('prl-1970s')).toBe('prl-1970s');
+    expect(safeResolveVisualEra('modern')).toBe('modern');
+    expect(safeResolveVisualEra(undefined)).toBe('1920s');
+    expect(safeResolveVisualEra('unknown-era-xyz')).toBe('1920s');
+  });
+
+  it('gwarantuje deterministyczne przypisanie WebP dla 100% z 264 przedmiotów w 46 presetach (0 fallbacków SVG)', () => {
+    const allPresets = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
+    expect(allPresets).toHaveLength(46);
+
+    let totalItems = 0;
+    const nonWebpItems: string[] = [];
+
+    allPresets.forEach((character) => {
+      const items = character.equipment ?? [];
+      items.forEach((item) => {
+        totalItems++;
+        const applied = applyCatalogTemplate(item, character.era);
+        if (!applied.imageUrl || !applied.imageUrl.endsWith('.webp')) {
+          nonWebpItems.push(`${item.name} (${character.name}, era: ${character.era}) -> ${applied.imageUrl}`);
+        }
+      });
+    });
+
+    expect(totalItems).toBe(264);
+    expect(nonWebpItems).toEqual([]);
+  });
+
+  it('znajduje szablony po angielskich nazwach (nameEn) dla wszystkich 110 wpisów manifestu', () => {
+    const manifestPath = existsSync(join(process.cwd(), 'docs/audits/equipment/catalog-manifest-all.json'))
+      ? join(process.cwd(), 'docs/audits/equipment/catalog-manifest-all.json')
+      : join(process.cwd(), '../../../docs/audits/equipment/catalog-manifest-all.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    expect(manifest).toHaveLength(110);
+
+    const missingEn: string[] = [];
+    manifest.forEach((entry: { id: string; nameEn?: string }) => {
+      if (entry.nameEn) {
+        const template = findEquipmentTemplate(entry.nameEn);
+        if (!template) {
+          missingEn.push(`${entry.nameEn} (id: ${entry.id})`);
+        }
+      }
+    });
+
+    expect(missingEn).toEqual([]);
+  });
+
+  it('rozstrzyga ikoniczne przedmioty (Rewolwer .38 i Lampa naftowa) do grafik WebP w 1920s', () => {
+    const revolver = findEquipmentTemplate('weapon.revolver-38');
+    expect(revolver).toBeDefined();
+    expect(resolveCatalogAsset(revolver, '1920s')).toBe(
+      '/equipment/catalog/revolver-colt38-1920s.webp'
+    );
+    expect(resolveCatalogAsset(revolver, '1940s')).toBe(
+      '/equipment/catalog/revolver-1940s.webp'
+    );
+
+    const lantern = findEquipmentTemplate('light.oil-lantern');
+    expect(lantern).toBeDefined();
+    expect(resolveCatalogAsset(lantern, '1920s')).toBe(
+      '/equipment/catalog/oil-lantern-1890s.webp'
+    );
+    expect(resolveCatalogAsset(lantern, '1890s')).toBe(
+      '/equipment/catalog/oil-lantern-1890s.webp'
     );
   });
 });

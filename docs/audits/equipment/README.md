@@ -11,7 +11,9 @@ Data baseline: 2026-09-01.
 - Lokalne katalogowe WebP na dysku (w 100% zmapowane w kodzie): 110 (komplet Partii 1-4 z `catalog-manifest-all.json`).
 - Wzorce katalogu z przypisanym WebP: 128 (w tym warianty epokowe i uniwersalne).
 - Szablony katalogowe oczekujące na dedykowany render (fallback SVG): 22.
-- Pokrycie presetów badaczy przez katalog: 100% (wszystkie przedmioty posiadają deterministyczny szablon, aliasy PL/EN i zasady CoC 7e RAW).
+- Pokrycie presetów badaczy przez katalog: 100% (wszystkie 264 przedmioty w 46 presetach posiadają deterministyczny szablon, aliasy PL/EN, zasady CoC 7e RAW oraz rozstrzygają się do lokalnych grafik WebP - 0 fallbacków SVG).
+- Integralność językowa: 100% (110/110 pozycji z manifestu dopasowuje się po angielskich nazwach nameEn w findEquipmentTemplate).
+- Odporność epokowa: safeResolveVisualEra normalizuje epoki złożone (classic, gaslight, 1920s-us, 1920s-pl, noir, pulp, 1946) do kanonicznych profili wizualnych bez utraty dopasowania.
 - Przedmioty startowe bez istniejącego lokalnego obrazu lub ikony: 0.
 - Przedmioty startowe oznaczone jako generowane: 0.
 - Martwe odwołania do plików: 0 (usunięto `laptop-modern.webp`, zastąpiono `heavy-laptop-wifi-1990s.webp`).

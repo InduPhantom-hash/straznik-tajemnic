@@ -123,4 +123,30 @@ describe('applyEquipmentEventsToParty', () => {
     const updatedC2 = result.characters.find((c) => c.id === 'c2');
     expect(updatedC2?.equipment?.[0].quantity).toBe(2);
   });
+
+  it('uwzględnia epokę postaci przy dodawaniu przedmiotów z katalogu przez narrację', () => {
+    const gaslightChar = {
+      ...createMockCharacter('c-gaslight', 'Lady Alexandra', []),
+      era: 'gaslight',
+    };
+    const textGaslight = 'Znajdujesz starą lampę. [EKWIPUNEK: DODAJ | Lampa naftowa | tool]';
+    const resGaslight = applyEquipmentEventsToParty([gaslightChar], gaslightChar, textGaslight);
+
+    expect(resGaslight.changed).toBe(true);
+    const itemGaslight = resGaslight.activeCharacter.equipment?.[0];
+    expect(itemGaslight?.imageUrl).toBe('/equipment/catalog/oil-lantern-1890s.webp');
+    expect(itemGaslight?.visualSource).toBe('catalog');
+
+    const twentiesChar = {
+      ...createMockCharacter('c-1920s', 'Thomas O Brien', []),
+      era: '1920s-us',
+    };
+    const textTwenties = 'Kupujesz broń w lombardzie. [EKWIPUNEK: DODAJ | Rewolwer Colt .38 | weapon]';
+    const resTwenties = applyEquipmentEventsToParty([twentiesChar], twentiesChar, textTwenties);
+
+    expect(resTwenties.changed).toBe(true);
+    const itemTwenties = resTwenties.activeCharacter.equipment?.[0];
+    expect(itemTwenties?.imageUrl).toBe('/equipment/catalog/revolver-colt38-1920s.webp');
+    expect(itemTwenties?.visualSource).toBe('catalog');
+  });
 });
