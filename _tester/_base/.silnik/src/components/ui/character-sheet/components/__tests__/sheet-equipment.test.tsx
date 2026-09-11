@@ -60,4 +60,51 @@ describe('SheetEquipment lore and descriptions', () => {
       screen.getByText(/Niezawodne źródło światła w ciemnościach/i)
     ).toBeInTheDocument();
   });
+
+  it('renders Art Déco finances card and living standard with CoC 7e RAW calculations', () => {
+    const character: Character = {
+      id: 'char-eq-fin-test',
+      name: 'Thomas Malone',
+      str: 50,
+      con: 50,
+      siz: 50,
+      dex: 50,
+      app: 50,
+      int: 50,
+      pow: 50,
+      edu: 50,
+      age: 40,
+      hp: 10,
+      san: 50,
+      mp: 10,
+      luck: 50,
+      occupation: 'Detektyw policyjny',
+      skills: {
+        'Majętność': 35,
+      },
+      equipment: [],
+      playerName: 'Gracz',
+      isActive: true,
+      lastUsed: new Date(),
+      notes: '',
+      background: '',
+      experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 100 },
+      developmentHistory: [],
+    };
+
+    render(<SheetEquipment character={character} />);
+
+    // Finanse nagłówek i poziom życia
+    expect(screen.getByText('Poziom życia')).toBeInTheDocument();
+    expect(screen.getByText(/Przeciętny \(35%\)/i)).toBeInTheDocument();
+
+    // Dzienny limit wydatków dla Przeciętnego w 1920s USA to $10
+    expect(screen.getByText('$10')).toBeInTheDocument();
+
+    // Gotówka: 35 * 2 = $70
+    expect(screen.getByText('$70')).toBeInTheDocument();
+
+    // Majątek: 35 * 50 = $1,750
+    expect(screen.getByText('$1,750')).toBeInTheDocument();
+  });
 });

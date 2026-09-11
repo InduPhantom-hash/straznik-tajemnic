@@ -271,6 +271,7 @@
     },
     "wealthLevels": {
       "pauper": "Nędzarz",
+      "penniless": "Nędzarz",
       "poor": "Biedny",
       "average": "Przeciętny",
       "wealthy": "Zamożny",
@@ -278,6 +279,7 @@
       "superrich": "Super bogaty"
     },
     "assetsNone": "Brak",
+    "livingConditions": "Warunki życiowe i transport",
     "ageBrackets": {
       "age_15_19": "15-19 lat",
       "age_20_39": "20-39 lat",
@@ -1078,6 +1080,11 @@
     "beliefs": "Przekonania",
     "secrets": "Sekrety",
     "equipment": "Ekwipunek",
+    "livingStandard": "Poziom życia",
+    "dailySpending": "Wydatki dzienne (bez rzutu)",
+    "cash": "Gotówka",
+    "assets": "Majątek",
+    "livingConditions": "Standard życia w epoce",
     "weapons": "Broń",
     "gear": "Wyposażenie",
     "firearms": "Broń palna",

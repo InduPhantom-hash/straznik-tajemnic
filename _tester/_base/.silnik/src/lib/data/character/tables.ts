@@ -105,60 +105,32 @@ export const AGE_MODIFIERS = [
   },
 ];
 
-// Tabela gotówka/majątek wg Majętności
-export const WEALTH_TABLE = [
-  {
-    min: 0,
-    max: 0,
-    key: 'pauper',
-    level: 'Nędzarz',
-    cash: '$0.50',
-    assets: 'Brak',
-    spending: '$0.50',
-  },
-  {
-    min: 1,
-    max: 9,
-    key: 'poor',
-    level: 'Biedny',
-    cash: '$10',
-    assets: '$500',
-    spending: '$2',
-  },
-  {
-    min: 10,
-    max: 49,
-    key: 'average',
-    level: 'Przeciętny',
-    cash: '$50',
-    assets: '$2,500',
-    spending: '$10',
-  },
-  {
-    min: 50,
-    max: 89,
-    key: 'wealthy',
-    level: 'Zamożny',
-    cash: '$500',
-    assets: '$50,000',
-    spending: '$50',
-  },
-  {
-    min: 90,
-    max: 98,
-    key: 'rich',
-    level: 'Bogaty',
-    cash: '$2,000',
-    assets: '$500,000',
-    spending: '$250',
-  },
-  {
-    min: 99,
-    max: 99,
-    key: 'superrich',
-    level: 'Super bogaty',
-    cash: '$20,000',
-    assets: '$5,000,000+',
-    spending: '$5,000',
-  },
-];
+import {
+  CREDIT_RATING_TIERS,
+  getWealthInfo,
+} from '@/lib/economy/credit-rating';
+
+export { CREDIT_RATING_TIERS };
+
+/**
+ * Tabela gotówka/majątek wg Majętności (CoC 7e RAW).
+ * Zastępuje dawną sztywną tabelę na rzecz dynamicznych formuł mnożnikowych z credit-rating.ts.
+ */
+export const WEALTH_TABLE = CREDIT_RATING_TIERS.map((tier) => {
+  const info = getWealthInfo(tier.min);
+  return {
+    min: tier.min,
+    max: tier.max,
+    key: tier.key,
+    id: tier.id,
+    level: tier.label,
+    cash: info.cash,
+    assets: info.assets,
+    spending: info.spending,
+    cashMultiplier: tier.cashMultiplier,
+    assetsMultiplier: tier.assetsMultiplier,
+    fixedCash: tier.fixedCash,
+    fixedAssets: tier.fixedAssets,
+  };
+});
+

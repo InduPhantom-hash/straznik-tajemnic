@@ -12,6 +12,7 @@
 
 import { getSkillValue, type Character } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
+import { deriveFinances, type EconomyEraContext } from '@/lib/economy/credit-rating';
 import {
   isWeapon,
   inferWeaponSkill,
@@ -30,7 +31,8 @@ const FILENAME_SANITIZE_REGEX = /[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ
  */
 export function exportCharacterToMarkdown(
   character: Character,
-  locale: string = 'pl'
+  locale: string = 'pl',
+  eraContext?: EconomyEraContext | string | null
 ): void {
   const isEn = locale === 'en';
   const stats = {
@@ -122,6 +124,30 @@ export function exportCharacterToMarkdown(
         const fifth = Math.floor(val / 5);
         md += `- ${isOcc ? '★ ' : ''}${skill}: **${val}%** (${half}/${fifth})\n`;
       });
+    md += '\n';
+  }
+
+  // Finanse i poziom życia (CoC 7e RAW)
+  const finances = deriveFinances(character, eraContext, isEn ? 'en' : 'pl');
+  if (isEn) {
+    md += `## 💵 Finances & Living Standard\n\n`;
+    md += `- **Living Standard:** ${finances.tierLabel} (${finances.creditRating}%)\n`;
+    md += `- **Daily Spending Limit:** ${finances.formattedSpendingLevel}\n`;
+    md += `- **Cash on Hand:** ${finances.formattedCash}\n`;
+    md += `- **Assets:** ${finances.formattedAssets}\n`;
+    if (finances.livingConditions) {
+      md += `- **Living Conditions:** ${finances.livingConditions}\n`;
+    }
+    md += '\n';
+  } else {
+    md += `## 💵 Finanse i Poziom Życia\n\n`;
+    md += `- **Poziom życia:** ${finances.tierLabel} (${finances.creditRating}%)\n`;
+    md += `- **Dzienny limit wydatków:** ${finances.formattedSpendingLevel}\n`;
+    md += `- **Gotówka pod ręką:** ${finances.formattedCash}\n`;
+    md += `- **Majątek:** ${finances.formattedAssets}\n`;
+    if (finances.livingConditions) {
+      md += `- **Warunki życia:** ${finances.livingConditions}\n`;
+    }
     md += '\n';
   }
 

@@ -2,7 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import { Fragment, useState, useCallback, type ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
@@ -240,6 +240,7 @@ export function CharacterWizardV2({
   initialCharacter,
 }: Props) {
   const t = useTranslations('CharacterWizard');
+  const locale = useLocale();
   const dynamicT = t as unknown as ((key: string) => string) & { has?: (key: string) => boolean };
   const statShortDesc: Record<string, string> = {
     str: t('statShort.str'),
@@ -1329,9 +1330,16 @@ export function CharacterWizardV2({
     setGeneratingField(null);
   };
 
-  // IND-178 (sesja 92) - getWealthInfo przeniesione do @/lib/character (libGetWealthInfo, import na top).
-  // Lokalny wrapper bez params zachowuje API callerów (state.creditRating capture).
-  const getWealthInfo = () => libGetWealthInfo(state.creditRating);
+  const getWealthInfo = () =>
+    libGetWealthInfo(
+      state.creditRating,
+      {
+        era: adventureContext?.yearRange || adventureContext?.era,
+        country: adventureContext?.country,
+        location: adventureContext?.location,
+      },
+      locale as 'pl' | 'en'
+    );
 
   const CORE_STATS = [
     'str',
@@ -1476,9 +1484,19 @@ export function CharacterWizardV2({
       (a) => a.id === selectedArchetypeId
     );
 
+    const wealth = getWealthInfo();
+
     const newCharacter: Character = {
       id: `char_${Date.now()}`,
       name: state.name || t('defaultCharacterName'),
+      cash: wealth.cashAmount,
+      spendingLevel: wealth.spendingAmount,
+      currency: wealth.currency,
+      era: wealth.era,
+      assets:
+        wealth.key === 'pauper' || wealth.assetsAmount === 0
+          ? undefined
+          : wealth.assets,
       str: state.stats.str,
       con: state.stats.con,
       siz: state.stats.siz,
@@ -1594,6 +1612,10 @@ export function CharacterWizardV2({
           activeBoutOfMadness: initialCharacter.activeBoutOfMadness ?? null,
           skills: state.skills,
           occupation: occupation?.name || initialCharacter.occupation,
+          cash: initialCharacter.cash ?? wealth.cashAmount,
+          spendingLevel: initialCharacter.spendingLevel ?? wealth.spendingAmount,
+          currency: initialCharacter.currency ?? wealth.currency,
+          era: initialCharacter.era ?? wealth.era,
           luckSpentThisSession: 0,
           lastUsed: new Date(),
         }
@@ -3366,6 +3388,13 @@ export function CharacterWizardV2({
                   </div>
                 </div>
               </div>
+              {wealthInfo.livingConditions && (
+                <div className="mt-3 pt-3 border-t border-brass/15 text-left">
+                  <div className="font-serif italic text-xs text-muted-foreground/85 leading-snug">
+                    <span className="font-semibold text-brass/80 not-italic">🏠 {t('livingConditions')}:</span> {wealthInfo.livingConditions}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Prezentacja ekwipunku Art Déco */}

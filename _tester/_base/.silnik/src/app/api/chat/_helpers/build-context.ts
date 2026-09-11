@@ -29,7 +29,7 @@ import type { Character } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 import { isWeapon } from '@/lib/combat/weapon-context';
-import { deriveFinances } from '@/lib/economy/credit-rating';
+import { deriveFinances, type EconomyEraContext } from '@/lib/economy/credit-rating';
 import {
   buildConcordiaObservationDirective,
   type InvestigatorSubjectiveState,
@@ -110,22 +110,33 @@ export function buildPlayerEquipmentSection(
  * dzięki czemu MG wie, kiedy gracz może wydać pieniądze od ręki, a kiedy żądać testu.
  */
 export function buildPlayerFinancesSection(
-  character: Character | null | undefined
+  character: Character | null | undefined,
+  eraContext?: EconomyEraContext | string | null
 ): string {
   if (!character) return '';
 
-  const finances = deriveFinances(character);
-  const spendingStr = `${finances.spendingLevel} $`;
-  const cashStr = `${finances.cash} $`;
-  const assetsStr = `${finances.assets} $`;
-  const assetsDesc = finances.assetsDescription ? ` (${finances.assetsDescription})` : '';
+  const finances = deriveFinances(character, eraContext);
+  const isDefaultUsd = finances.currency === 'USD' && !eraContext;
+  const spendingStr = isDefaultUsd ? `${finances.spendingLevel} $` : finances.formattedSpendingLevel;
+  const cashStr = isDefaultUsd ? `${finances.cash} $` : finances.formattedCash;
+  const assetsStr = isDefaultUsd ? `${finances.assets} $` : finances.formattedAssets;
+  const assetsDesc =
+    finances.assetsDescription &&
+    finances.assetsDescription !== assetsStr &&
+    finances.assetsDescription !== finances.formattedAssets
+      ? ` (${finances.assetsDescription})`
+      : '';
+  const livingConditionsLine = finances.livingConditions
+    ? `\n- Standard życiowy w epoce: ${finances.livingConditions}`
+    : '';
 
   return (
     `\n## MAJĄTEK I STATUS FINANSOWY POSTACI (CoC 7e RAW)\n` +
     `- Zamożność (Credit Rating): ${finances.creditRating}% [Poziom: ${finances.tierLabel}]\n` +
     `- Dzienny poziom wydatków bez rzutu (Spending Level): ${spendingStr} dziennie (drobne wydatki, tanie hotele, posiłki, bilety miejskie gracz opłaca od ręki bez testu kośćmi i bez odliczania)\n` +
     `- Gotówka pod ręką (Cash): ${cashStr} (na zakupy przekraczające poziom wydatków, lecz mieszczące się w tej kwocie)\n` +
-    `- Majątek trwały (Assets): ${assetsStr}${assetsDesc} (nieruchomości, oszczędności bankowe; spieniężenie wymaga czasu i procedur bankowych)\n` +
+    `- Majątek trwały (Assets): ${assetsStr}${assetsDesc} (nieruchomości, oszczędności bankowe; spieniężenie wymaga czasu i procedur bankowych)` +
+    `${livingConditionsLine}\n` +
     `Reguła: Gdy gracz próbuje dokonać wydatku znacząco przekraczającego gotówkę, wziąć dużą pożyczkę lub zaimponować statusem majątkowym, zażądaj \`[TEST: Majętność | zwykły | ... | powód]\`. Porażka oznacza odmowę lub utratę reputacji.`
   );
 }
