@@ -25,7 +25,7 @@ import {
   getDirectorState,
 } from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
-import type { Character } from '@/lib/types';
+import type { Character, NPC } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 import { isWeapon } from '@/lib/combat/weapon-context';
@@ -40,6 +40,7 @@ import {
   type InvestigatorSubjectiveState,
   type EpistemicTruthAnchor,
 } from '@/lib/concordia/make-observation';
+import { adjudicateEventPipeline } from '@/lib/concordia/event-resolution';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import { buildOrganizationPromptSection } from '@/lib/data/investigator-organizations';
 import type { DocumentType } from '@/types/adventure';
@@ -548,6 +549,10 @@ export interface BuildAdditionalContextOpts {
   adventureDocumentType?: DocumentType;
   /** Flaga oznaczająca czy bieżąca przygoda to kampania (wieloczęściowa z ciągłością Badaczy) */
   isCampaign?: boolean;
+  /** Surowa deklaracja / wypowiedź gracza w tej turze podlegająca adjudykacji intencji (Concordia EventResolution) */
+  playerMessage?: string;
+  /** Bezpośrednia dyrektywa Adjudykacji Zdarzeń (Concordia EventResolution) */
+  eventResolutionDirective?: string;
 }
 
 export function buildAdditionalContext(
@@ -912,6 +917,29 @@ export function buildAdditionalContext(
   });
 
   additionalContext.push(observationDirective);
+
+  // Concordia Pattern: EventResolution & Intent Adjudication
+  if (opts.eventResolutionDirective) {
+    additionalContext.push(opts.eventResolutionDirective);
+  } else if (opts.playerMessage && !opts.isGameStart) {
+    const activeChar =
+      (playerCharacterName ? characters?.find((c) => c.name === playerCharacterName) : undefined) ??
+      characters?.[0] ??
+      (playerCharacterName ? ({ name: playerCharacterName } as Character) : null);
+
+    const eventResolution = adjudicateEventPipeline(opts.playerMessage, {
+      character: activeChar,
+      characters,
+      currentLocation,
+      npcs: npcs as NPC[] | undefined,
+      presentNpcNames: scenePresentNpcs.map((n) => n.name),
+      locale: opts.locale,
+      gameContext: typeof opts.gameContext === 'object' ? JSON.stringify(opts.gameContext) : undefined,
+    });
+    if (eventResolution?.directive) {
+      additionalContext.push(eventResolution.directive);
+    }
+  }
 
   return additionalContext;
 }

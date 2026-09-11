@@ -620,4 +620,88 @@ describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => 
       expect(observationSection).toContain('Sekretny dziennik');
     });
   });
+
+  describe('Concordia Pattern: EventResolution & Intent Adjudication', () => {
+    const dummyGameContext: GameContext = {
+      mode: 'investigation',
+      hasNPCs: false,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
+    };
+
+    it('wstrzykuje dyrektywę adjudykacji intencji gdy przekazano playerMessage', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        playerMessage: 'Wyważam drzwi do gabinetu',
+        playerCharacterName: 'Edward',
+        locale: 'pl',
+      });
+
+      const eventResolutionSection = result.find((s) =>
+        s.includes('ADJUDYKACJA ZDARZEŃ I INTENCJI GRACZA (CONCORDIA EVENT RESOLUTION)')
+      );
+      expect(eventResolutionSection).toBeDefined();
+      expect(eventResolutionSection).toContain('UGRUNTOWANY FAKT (REAL EVENT):');
+      expect(eventResolutionSection).toContain('ŻELAZNY ZAKAZ AUTOSUKCESU');
+    });
+
+    it('obsługuje bezpośrednio przekazaną dyrektywę eventResolutionDirective', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        eventResolutionDirective: '## CUSTOM_EVENT_RESOLUTION_DIRECTIVE',
+      });
+
+      expect(result).toContain('## CUSTOM_EVENT_RESOLUTION_DIRECTIVE');
+    });
+
+    it('pomija adjudykację intencji gdy isGameStart jest true', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        isGameStart: true,
+        playerMessage: 'Zaczynamy przygodę! Strzelam z karabinu.',
+        playerCharacterName: 'Edward',
+        locale: 'pl',
+      });
+
+      const eventResolutionSection = result.find((s) =>
+        s.includes('ADJUDYKACJA ZDARZEŃ I INTENCJI GRACZA (CONCORDIA EVENT RESOLUTION)')
+      );
+      expect(eventResolutionSection).toBeUndefined();
+    });
+
+    it('wstrzykuje dyrektywę rozstrzygnięcia rzutu gdy playerMessage to wynik z Tacki', () => {
+      const rollMessage = `[🎲 Test: Skradanie (50%)]
+Wynik: 23 → ✅ Zwykły sukces
+Progi: Zwykły ≤50 | Trudny ≤25 | Ekstremalny ≤10
+(Rzut wirtualny)`;
+
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time Prompt',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        playerMessage: rollMessage,
+        playerCharacterName: 'Edward',
+        locale: 'pl',
+      });
+
+      const eventResolutionSection = result.find((s) =>
+        s.includes('UGRUNTOWANY FAKT (ROZSTRZYGNIĘCIE RZUTU):')
+      );
+      expect(eventResolutionSection).toBeDefined();
+      expect(eventResolutionSection).toContain('INWARIANT DOMKNIĘCIA RZUTU (ZAKAZ ZAPĘTLANIA TESTÓW)');
+      expect(eventResolutionSection).toContain('BEZWZGLĘDNY ZAKAZ ponownego emitowania tagu [TEST:]');
+    });
+  });
 });
