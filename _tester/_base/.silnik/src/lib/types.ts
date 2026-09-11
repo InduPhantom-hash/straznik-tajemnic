@@ -523,6 +523,10 @@ export interface Character {
   insaneTalents?: string[]; // Szalone talenty nabyte w trakcie ataku szaleństwa (Pulp Sanity RAW)
   rulesetVariant?: 'classic' | 'pulp'; // Wariant zasad na karcie postaci
 
+  // Stowarzyszenia Badaczy (Rozdział 6 CoC 7e RAW, s. 117-139)
+  organizationId?: string; // Identyfikator Stowarzyszenia Badaczy (np. 'the-cleaners', 'wraths-circus')
+  investigatorSociety?: string; // Opcjonalny alias organizacji Badacza
+
   // Pochodne - maksymalne wartości
   maxHp?: number;
   maxSan?: number;

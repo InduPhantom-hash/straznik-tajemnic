@@ -76,6 +76,72 @@ describe('buildAdditionalContext', () => {
     expect(result).toContain('## EKWIPUNEK POSTACI\n- Latarka elektryczna');
     expect(result).toContain('## MAJĄTEK I STATUS FINANSOWY\n- Zamożność: 50%');
   });
+
+  it('wstrzykuje sekcję Stowarzyszenia Badaczy z postaci lub jawnego parametru', () => {
+    const dummyGameContext: GameContext = {
+      mode: 'investigation',
+      hasNPCs: false,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
+    };
+
+    // 1. W scenariuszu / oneshocie stowarzyszenie jest bezwzględnie zablokowane
+    const resultFromScenario = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      adventureDocumentType: 'scenario',
+      isCampaign: false,
+      characters: [
+        {
+          id: 'char-1',
+          name: 'Jan Kowalski',
+          organizationId: 'the-cleaners',
+        } as unknown as Character,
+      ],
+      locale: 'pl',
+    });
+    expect(
+      resultFromScenario.some((s) =>
+        s.includes('STOWARZYSZENIE BADACZY I MECENAT: CZYŚCICIELE')
+      )
+    ).toBe(false);
+
+    // 2. W kampanii stowarzyszenie jest wstrzykiwane
+    const resultFromCampaign = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      isCampaign: true,
+      characters: [
+        {
+          id: 'char-1',
+          name: 'Jan Kowalski',
+          organizationId: 'the-cleaners',
+        } as unknown as Character,
+      ],
+      locale: 'pl',
+    });
+    expect(
+      resultFromCampaign.some((s) =>
+        s.includes('STOWARZYSZENIE BADACZY I MECENAT: CZYŚCICIELE')
+      )
+    ).toBe(true);
+
+    const resultFromOpt = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      isCampaign: true,
+      organizationSection: 'CUSTOM_ORGANIZATION_SECTION',
+    });
+    expect(resultFromOpt).toContain('CUSTOM_ORGANIZATION_SECTION');
+  });
 });
 
 describe('buildPlayerEquipmentSection', () => {

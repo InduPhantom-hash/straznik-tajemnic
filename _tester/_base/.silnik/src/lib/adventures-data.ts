@@ -53,8 +53,12 @@ export interface AdventureContext {
   pdfUrl?: string;
   customDescription?: string; // Opis założeń przygody od użytkownika (dla AI)
   graph?: AdventureGraph; // Zintegrowana mapa myśli (analiza AI)
-  /** Typ dokumentu: scenariusz vs przewodnik regionalny vs kompendium reguł/almanach */
+  /** Typ dokumentu: scenariusz vs kampania vs przewodnik regionalny vs kompendium reguł/almanach */
   documentType?: DocumentType;
+  /** Flaga oznaczająca czy przygoda jest kampanią (wieloczęściową z ciągłością Badaczy) */
+  isCampaign?: boolean;
+  /** Dedykowany patron kampanii (np. 'Caduceus', 'Uniwersytet Miskatonic'), który nadpisuje ogólne stowarzyszenia */
+  campaignPatron?: string;
   /** Ustrukturyzowane dane dla Lorebooka / Kompendium */
   lorebookData?: LorebookData;
   /** Identyfikatory wgranych lorebooków / kompendiów podpiętych do tego scenariusza */
@@ -111,6 +115,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     recommendedForBeginners: true,
     isStrefa11: true,
     documentType: 'scenario',
+    isCampaign: false,
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -139,6 +144,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     recommendedForBeginners: true,
     isStrefa11: true,
     documentType: 'scenario',
+    isCampaign: false,
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -167,6 +173,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     recommendedForBeginners: false,
     isStrefa11: true,
     documentType: 'scenario',
+    isCampaign: false,
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
@@ -195,6 +202,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     recommendedForBeginners: false,
     isStrefa11: true,
     documentType: 'scenario',
+    isCampaign: false,
     externalLinks: [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },

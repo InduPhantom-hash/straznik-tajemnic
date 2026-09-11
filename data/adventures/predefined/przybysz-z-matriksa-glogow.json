@@ -1,6 +1,8 @@
 {
   "id": "przybysz-z-matriksa-glogow",
   "title": "Przybysz z Matriksa: Przepowiednie i Zjawisko z Głogowa",
+  "documentType": "scenario",
+  "isCampaign": false,
   "era": "2000s",
   "setting": "Polska, Przełom Tysiącleci / Jesień 2001 r. (Głogów - Legnica - Wrocław)",
   "startingLocation": "Redakcja Telewizji Lokalnej w Głogowie / Osiedle Kopernika",

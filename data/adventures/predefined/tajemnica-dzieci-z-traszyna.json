@@ -1,6 +1,8 @@
 {
   "id": "tajemnica-dzieci-z-traszyna",
   "title": "Tajemnica Dzieci z Traszyna: Klucz i Odwrócony Krzyż",
+  "documentType": "scenario",
+  "isCampaign": false,
   "era": "1990s",
   "setting": "Polska, Jesień 1999 r. (Wieś Traszyn k. Lublina / Południowa Lubelszczyzna)",
   "startingLocation": "Gospodarstwo Rodziny Dąbrowskich, Wieś Traszyn",

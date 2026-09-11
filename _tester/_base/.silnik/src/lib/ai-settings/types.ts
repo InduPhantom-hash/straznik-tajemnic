@@ -57,6 +57,10 @@ export interface SessionZeroSettings {
   investigatorHook?: string;
   anchors?: SessionZeroAnchors;
   eraFilter?: EraFilterMode;
+  /** Stowarzyszenie Badaczy (Rozdział 6 CoC 7e RAW, s. 117-139) - dozwolone WYŁĄCZNIE dla kampanii */
+  isCampaign?: boolean;
+  organizationId?: string;
+  investigatorSociety?: string;
   /** Kontekst wszystkich postaci w sesji Hot Seat; playerName pozostaje polem legacy. */
   players?: SessionZeroPlayerContext[];
 }
