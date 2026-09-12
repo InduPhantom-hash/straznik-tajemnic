@@ -43,10 +43,20 @@ function dataDir(): string {
   return process.env.RAG_DATA_DIR || path.join(process.cwd(), 'data', 'rag');
 }
 
+/** Statyczne indeksy dołączone do bundla; nigdy nie są modyfikowane w desktopie. */
+function bundledDataDir(): string {
+  return process.env.RAG_BUNDLED_DATA_DIR || path.join(process.cwd(), 'data', 'rag');
+}
+
 /** Namespace → ścieżka pliku. `/` i `\` → `__` (bezpieczna nazwa). */
 function namespaceToFile(namespace: string): string {
   const safe = namespace.replace(/[/\\]/g, '__');
   return path.join(dataDir(), `${safe}.json`);
+}
+
+function namespaceFileIn(directory: string, namespace: string): string {
+  const safe = namespace.replace(/[/\\]/g, '__');
+  return path.join(directory, `${safe}.json`);
 }
 
 /**
@@ -197,12 +207,18 @@ class LocalVectorStore {
 
     let vectors: StoredVector[] = [];
     try {
-      const dir = dataDir();
-      if (hasBinaryNamespace(dir, namespace)) {
+      const writableDir = dataDir();
+      const bundledDir = bundledDataDir();
+      const sourceDir =
+        hasBinaryNamespace(writableDir, namespace) ||
+        fs.existsSync(namespaceFileIn(writableDir, namespace))
+          ? writableDir
+          : bundledDir;
+      if (hasBinaryNamespace(sourceDir, namespace)) {
         vectors =
-          readBinaryNamespace(dir, namespace) ?? this.loadJson(namespace);
+          readBinaryNamespace(sourceDir, namespace) ?? this.loadJson(namespace, sourceDir);
       } else {
-        vectors = this.loadJson(namespace);
+        vectors = this.loadJson(namespace, sourceDir);
       }
     } catch (e) {
       console.warn(`⚠️ LocalVectorStore: load failed for "${namespace}":`, e);
@@ -213,8 +229,8 @@ class LocalVectorStore {
   }
 
   /** Odczyt namespace ze starego formatu JSON (number[]). */
-  private loadJson(namespace: string): StoredVector[] {
-    const file = namespaceToFile(namespace);
+  private loadJson(namespace: string, directory = dataDir()): StoredVector[] {
+    const file = namespaceFileIn(directory, namespace);
     if (fs.existsSync(file)) {
       return JSON.parse(fs.readFileSync(file, 'utf-8')) as StoredVector[];
     }
@@ -399,22 +415,24 @@ class LocalVectorStore {
     const namespaces: Record<string, { recordCount: number }> = {};
     let total = 0;
     try {
-      const dir = dataDir();
+      const dirs = Array.from(new Set([dataDir(), bundledDataDir()]));
       // Zbierz unikalne namespace z obu formatów (.bin i .json). `.meta.json` to
       // sidecar binarnego - pomijamy. Namespace z `/` mają w pliku `__` → odwracamy.
       const nsSet = new Set<string>();
-      for (const f of fs.readdirSync(dir)) {
-        if (f.endsWith('.tmp') || f.endsWith('.meta.json')) continue;
-        let base: string | null = null;
-        if (f.endsWith('.bin')) base = f.slice(0, -'.bin'.length);
-        else if (f.endsWith('.json')) base = f.slice(0, -'.json'.length);
-        if (base === null) continue;
-        nsSet.add(base.replace(/__/g, '/'));
+      for (const dir of dirs) {
+        if (!fs.existsSync(dir)) continue;
+        for (const f of fs.readdirSync(dir)) {
+          if (f.endsWith('.tmp') || f.endsWith('.meta.json')) continue;
+          let base: string | null = null;
+          if (f.endsWith('.bin')) base = f.slice(0, -'.bin'.length);
+          else if (f.endsWith('.json')) base = f.slice(0, -'.json'.length);
+          if (base === null) continue;
+          nsSet.add(base.replace(/__/g, '/'));
+        }
       }
       for (const ns of nsSet) {
         // Bin: liczba z nagłówka (bez ładowania values). JSON: load.
-        const binCount = countBinaryNamespace(dir, ns);
-        const count = binCount !== null ? binCount : this.load(ns).length;
+        const count = this.load(ns).length;
         namespaces[ns] = { recordCount: count };
         total += count;
       }
@@ -427,9 +445,6 @@ class LocalVectorStore {
   /** Zwraca liczbę wektorów dla konkretnego namespace. */
   getNamespaceCount(namespace: string): number {
     try {
-      const dir = dataDir();
-      const binCount = countBinaryNamespace(dir, namespace);
-      if (binCount !== null) return binCount;
       return this.load(namespace).length;
     } catch {
       return 0;

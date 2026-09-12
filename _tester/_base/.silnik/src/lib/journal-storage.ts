@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { getWritableDataDir } from '@/lib/paths';
 
-const JOURNALS_DIR = path.join(process.cwd(), 'data', 'journals');
+function journalsDirectory(): string {
+  return path.join(getWritableDataDir(), 'journals');
+}
 
 function ensureDirectoryExists(dirPath: string) {
   if (!fs.existsSync(dirPath)) {
@@ -12,12 +15,12 @@ function ensureDirectoryExists(dirPath: string) {
 export function getLocalJournalPath(userId: string, journalId: string): string {
   const safeUserId = userId.replace(/[^a-zA-Z0-9_-]/g, '_');
   const safeJournalId = journalId.replace(/[^a-zA-Z0-9_-]/g, '_');
-  return path.join(JOURNALS_DIR, safeUserId, `${safeJournalId}.json`);
+  return path.join(journalsDirectory(), safeUserId, `${safeJournalId}.json`);
 }
 
 export function saveJournalLocally(userId: string, journalId: string, data: Record<string, unknown>): boolean {
   try {
-    const userDir = path.join(JOURNALS_DIR, userId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+    const userDir = path.join(journalsDirectory(), userId.replace(/[^a-zA-Z0-9_-]/g, '_'));
     ensureDirectoryExists(userDir);
     const filePath = getLocalJournalPath(userId, journalId);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
