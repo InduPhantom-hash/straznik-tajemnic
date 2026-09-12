@@ -48,6 +48,10 @@ import {
   formatChaseForSystemContext,
   type ChaseState,
 } from '@/lib/chase/chase-engine';
+import {
+  isCampaignMemoryScope,
+} from '@/core/memory/campaign-scope';
+import type { CampaignMemoryScope } from '@/core/memory/types';
 
 function isChaseState(value: unknown): value is ChaseState {
   if (!value || typeof value !== 'object') return false;
@@ -215,6 +219,7 @@ export async function runChatPipeline({
     assistantMessageId,
     locale: requestedLocale,
     adventureId: explicitAdventureId,
+    memoryScope: requestedMemoryScope,
   } = body as {
     message: string;
     adventureId?: string;
@@ -257,8 +262,12 @@ export async function runChatPipeline({
     };
     assistantMessageId?: string;
     locale?: 'pl' | 'en';
+    memoryScope?: CampaignMemoryScope;
   };
   const locale = requestedLocale === 'en' ? 'en' : 'pl';
+  const memoryScope = isCampaignMemoryScope(requestedMemoryScope)
+    ? requestedMemoryScope
+    : null;
 
   // Komendy lokalne
   const command = extractCommand(message);
@@ -404,7 +413,7 @@ export async function runChatPipeline({
         const ragUserId = await resolveUserId('');
         const sessionId = scopeSessionId(
           ragUserId,
-          clientAISettings?.sessionId
+          clientAISettings?.sessionId ?? memoryScope?.playthroughId
         );
         const effectiveAdventureId =
           explicitAdventureId ||
@@ -677,6 +686,7 @@ export async function runChatPipeline({
     characters,
     npcs: npcs ?? [],
     combatMechanicsEnabled,
+    memoryScope,
   });
 
   return new Response(sseStream, {

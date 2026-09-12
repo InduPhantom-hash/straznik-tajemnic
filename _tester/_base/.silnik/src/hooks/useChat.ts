@@ -83,6 +83,7 @@ import {
   getCombatDefenseWeapons,
   type CombatDefenseWeaponOption,
 } from '@/lib/combat/weapon-context';
+import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 const ACTIVE_CHASE_STORAGE_KEY = 'zew_active_chase_state';
@@ -1173,6 +1174,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             npcs: loadNpcSnapshot(),
             assistantMessageId,
             adventureContext,
+            memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
             aiSettings: options.aiSettings,
@@ -1878,6 +1880,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             pdfMemory,
             character: sanitizeCharacterForApi(activeCharacter),
             adventureContext,
+            memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
             aiSettings: options.aiSettings,

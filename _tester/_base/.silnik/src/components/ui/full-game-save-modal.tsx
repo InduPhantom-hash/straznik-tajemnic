@@ -38,6 +38,7 @@ import {
   sanitizeNpcForApi,
 } from '@/lib/chat-history-sanitizer';
 import { loadStoredWorldSetup } from '@/lib/world-setup';
+import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -302,6 +303,7 @@ export function FullGameSaveModal({
         investigatorBoard: currentData.investigatorBoard,
         campaigns: currentData.campaigns,
         activeCampaignId: currentData.activeCampaignId,
+        campaignMemory: loadCampaignMemoryScope() ?? undefined,
         npcs: currentData.npcs.map((n) => sanitizeNpcForApi(n)),
         locations: currentData.locations,
         currentLocationId: currentData.currentLocationId,

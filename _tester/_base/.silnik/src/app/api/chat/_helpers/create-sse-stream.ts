@@ -31,6 +31,9 @@ import type { StreamChunk, CompletionUsage } from '@/lib/ai-providers/types';
 import type { Character, NPC } from '@/lib/types';
 import { enrichMeleeAttackReferences } from '@/lib/combat/npc-combat-profile';
 import type { RagMeta } from './run-rag-summary';
+import type { CampaignMemoryScope } from '@/core/memory/types';
+import { getCampaignMemoryLedgerStore } from '@/core/memory/ledger-store';
+import { cleanResponseText } from '@/lib/parsers/text-cleaner';
 
 export interface CreateSseStreamOpts {
   providerStream: AsyncIterable<StreamChunk>;
@@ -55,6 +58,7 @@ export interface CreateSseStreamOpts {
   characters?: Character[];
   npcs?: NPC[];
   combatMechanicsEnabled?: boolean;
+  memoryScope?: CampaignMemoryScope | null;
 }
 
 export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
@@ -76,6 +80,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
     characters = [],
     npcs = [],
     combatMechanicsEnabled = false,
+    memoryScope,
   } = opts;
 
   const encoder = new TextEncoder();
@@ -226,6 +231,23 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
               characterName: character?.name,
             })
             .catch(() => {});
+        }
+
+        if (memoryScope && fullText) {
+          try {
+            const revealedNarrative = cleanResponseText(fullText);
+            if (revealedNarrative) {
+              getCampaignMemoryLedgerStore().recordConversationTurn({
+                scope: memoryScope,
+                sessionId: sessionId ?? memoryScope.playthroughId,
+                messageId: assistantMessageId ?? traceId,
+                userText: message,
+                assistantText: revealedNarrative,
+              });
+            }
+          } catch (error) {
+            console.warn('Campaign memory ledger write failed:', error);
+          }
         }
 
         controller.close();

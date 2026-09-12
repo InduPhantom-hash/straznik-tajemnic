@@ -5,6 +5,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '^@/core/(.*)$': '<rootDir>/src/core/$1',
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/hooks$': '<rootDir>/src/hooks/index.ts',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',

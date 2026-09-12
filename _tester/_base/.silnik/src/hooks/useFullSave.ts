@@ -12,6 +12,11 @@ import type { EquipmentVisualEra } from '@/lib/types';
 import { clearStoredWorldSetup, storeWorldSetup } from '@/lib/world-setup';
 import { ensureCharacterDossier } from '@/lib/journal/dossier-migration';
 import { toast } from '@/components/ui/use-toast';
+import {
+  clearCampaignMemoryScope,
+  createCampaignMemoryScope,
+  storeCampaignMemoryScope,
+} from '@/core/memory/campaign-scope';
 
 /**
  * Hook do zarządzania zapisem i wczytywaniem gry
@@ -164,6 +169,22 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           clearStoredWorldSetup();
         }
 
+        const campaignMemory =
+          save.campaignMemory ??
+          createCampaignMemoryScope({
+            id:
+              save.worldSetup?.scenarioId ??
+              save.activeCampaignId ??
+              save.id,
+            title:
+              save.worldSetup?.adventureTitle ??
+              save.campaigns.find((campaign) => campaign.id === save.activeCampaignId)?.name ??
+              save.name,
+            isCustom: !save.activeCampaignId,
+            isCampaign: Boolean(save.activeCampaignId),
+          });
+        storeCampaignMemoryScope(campaignMemory);
+
         // Przywróć listę NPC oraz lokacji z pliku zapisu do pamięci podręcznej
         if (save.npcs && Array.isArray(save.npcs) && save.npcs.length > 0) {
           safeSetItem('gm_npcs', JSON.stringify(save.npcs));
@@ -226,6 +247,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       // Wyczyść pamięć PDF
       setPdfMemory({});
       clearStoredWorldSetup();
+      clearCampaignMemoryScope();
 
       // Zatrzymaj aktualny audio
       stopCurrentAudio();
