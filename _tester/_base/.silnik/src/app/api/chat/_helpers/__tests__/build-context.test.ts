@@ -535,6 +535,72 @@ describe('buildActiveInvestigationSection (Issue #68 - Memory Loop)', () => {
     expect(section).toContain(longFact);
     expect(section).not.toContain('...');
   });
+
+  it('agreguje poszlaki od wszystkich postaci z drużyny w trybie Party / Hot Seat', () => {
+    const char1 = {
+      id: 'c_party_1',
+      name: 'Edward',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'clue_edward',
+            title: 'List Westona',
+            description: 'List z ostrzeżeniem przed kultem.',
+            status: 'confirmed',
+            provenance: 'handout' as const,
+          },
+        ],
+        notes: [],
+        npcs: [],
+        locations: [],
+      },
+    } as unknown as Character;
+
+    const char2 = {
+      id: 'c_party_2',
+      name: 'Eleanor',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'clue_eleanor',
+            title: 'Ślady w ogrodzie',
+            description: 'Zdeptane grządki kwiatowe.',
+            status: 'confirmed',
+            provenance: 'observed' as const,
+          },
+        ],
+        notes: [],
+        npcs: [],
+        locations: [],
+      },
+    } as unknown as Character;
+
+    const section = buildActiveInvestigationSection({
+      characters: [char1, char2],
+      locale: 'pl',
+    });
+
+    expect(section).toContain('- **List Westona** [Handout]: List z ostrzeżeniem przed kultem.');
+    expect(section).toContain('- **Ślady w ogrodzie** [Zaobserwowane]: Zdeptane grządki kwiatowe.');
+  });
+
+  it('automatycznie wnioskuje proweniencję, gdy poszlaka pochodzi z dziennika postaci (fallback B)', () => {
+    const character = {
+      id: 'c_no_prov',
+      name: 'Thomas',
+      journal: [
+        {
+          id: 'j_doc_1',
+          type: 'clue',
+          title: 'Wycinek z gazety',
+          content: 'Artykuł o pożarze magazynu.',
+        },
+      ],
+    } as unknown as Character;
+
+    const section = buildActiveInvestigationSection({ character, locale: 'pl' });
+    expect(section).toContain('- **Wycinek z gazety** [Handout]: Artykuł o pożarze magazynu.');
+  });
 });
 
 describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => {

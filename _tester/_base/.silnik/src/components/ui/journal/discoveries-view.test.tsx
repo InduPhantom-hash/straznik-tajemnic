@@ -223,4 +223,35 @@ describe('DiscoveriesView', () => {
       provenance: 'testimony',
     });
   });
+
+  it('umożliwia odznaczenie proweniencji (toggle off do undefined) przy ponownym kliknięciu aktywnej', () => {
+    const onEdit = jest.fn();
+    const clueWithProv = {
+      id: 'clue_prov_active',
+      title: 'Zapiski z piwnicy',
+      content: 'Stary notes z zapiskami.',
+      type: 'quest' as const,
+      questStatus: 'active' as const,
+      provenance: 'handout' as const,
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[clueWithProv]}
+        onEditEntry={onEdit}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
+
+    // Kliknięcie aktywnego przycisku "Handout" w selektorze powinno zresetować proweniencję do undefined
+    const handoutButtons = screen.getAllByRole('button', { name: /Handout/i });
+    const selectorBtn = handoutButtons.find((b) => b.getAttribute('title')?.includes('proweniencj')) || handoutButtons[handoutButtons.length - 1];
+    fireEvent.click(selectorBtn);
+    expect(onEdit).toHaveBeenCalledWith({
+      ...clueWithProv,
+      provenance: undefined,
+    });
+  });
 });

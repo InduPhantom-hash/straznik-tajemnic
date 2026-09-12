@@ -175,6 +175,13 @@ export function migrateLegacyJournalToDossier(
     lastUpdated: existingDossier?.lastUpdated || new Date().toISOString(),
   };
 
+  // Uzupełnij proweniencję dla istniejących poszlak ze starych zapisów gry
+  result.clues.forEach((c) => {
+    if (!c.provenance) {
+      c.provenance = inferClueProvenance(c.title, c.description, c.category);
+    }
+  });
+
   if (!Array.isArray(legacyEntries)) {
     return result;
   }
@@ -326,17 +333,36 @@ export function ensureCharacterDossier<T extends { journal?: unknown[]; investig
     Array.isArray(character.investigatorDossier.locations) &&
     Array.isArray(character.investigatorDossier.notes)
   ) {
+    // Upewnij się, że poszlaki w istniejącym dossier mają uzupełnioną proweniencję
+    let cluesUpdated = false;
+    const clues = character.investigatorDossier.clues.map((c) => {
+      if (!c.provenance) {
+        cluesUpdated = true;
+        return {
+          ...c,
+          provenance: inferClueProvenance(c.title, c.description, c.category),
+        };
+      }
+      return c;
+    });
+    const baseDossier = cluesUpdated
+      ? { ...character.investigatorDossier, clues }
+      : character.investigatorDossier;
+
     // Jeśli postać ma też wpisy w journal, dołącz ewentualne brakujące
     if (Array.isArray(character.journal) && character.journal.length > 0) {
       return {
         ...character,
         investigatorDossier: migrateLegacyJournalToDossier(
           character.journal,
-          character.investigatorDossier
+          baseDossier
         ),
       };
     }
-    return character as T & { investigatorDossier: InvestigatorDossier };
+    return {
+      ...character,
+      investigatorDossier: baseDossier,
+    };
   }
 
   return {

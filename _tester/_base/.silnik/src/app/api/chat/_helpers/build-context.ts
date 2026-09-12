@@ -45,6 +45,7 @@ import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import { buildOrganizationPromptSection } from '@/lib/data/investigator-organizations';
 import type { DocumentType } from '@/types/adventure';
 import type { ClueProvenance } from '@/lib/journal/dossier-types';
+import { inferClueProvenance } from '@/lib/parsers/journal-parser';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -297,47 +298,58 @@ export function buildActiveInvestigationSection(
   const isEn = opts.locale === 'en';
   const directorState = opts.sessionId ? getDirectorState(opts.sessionId) : null;
 
-  // Znajdź główną postać (lub pierwszą z drużyny)
+  // Znajdź listę badaczy (wszystkie postacie z drużyny lub główny badacz)
   const char = opts.character || opts.characters?.[0];
+  const targetChars = opts.characters && opts.characters.length > 0
+    ? opts.characters
+    : (char ? [char] : []);
 
   // 1. ZBIERZ POSZLAKI (Context Stuffing: pełna lista aktywnych faktów śledczych z dossier)
   const clues: { title: string; fact: string; provenance?: ClueProvenance }[] = [];
   const seenClueKeys = new Set<string>();
 
   // A. Z dossier postaci (priorytet) - wykluczamy fakty unieważnione/obalone (Fact Supersession)
-  if (char?.investigatorDossier?.clues && char.investigatorDossier.clues.length > 0) {
-    // Sortuj: kluczowe poszlaki najpierw, potem najnowsze
-    const sorted = [...char.investigatorDossier.clues]
-      .filter((c) => c.status !== 'superseded' && c.status !== 'disproven')
-      .sort((a, b) => {
-        if (a.isKeyClue && !b.isKeyClue) return -1;
-        if (!a.isKeyClue && b.isKeyClue) return 1;
-        return (b.timestamp || 0) - (a.timestamp || 0);
-      });
+  for (const cChar of targetChars) {
+    if (cChar?.investigatorDossier?.clues && cChar.investigatorDossier.clues.length > 0) {
+      // Sortuj: kluczowe poszlaki najpierw, potem najnowsze
+      const sorted = [...cChar.investigatorDossier.clues]
+        .filter((c) => c.status !== 'superseded' && c.status !== 'disproven')
+        .sort((a, b) => {
+          if (a.isKeyClue && !b.isKeyClue) return -1;
+          if (!a.isKeyClue && b.isKeyClue) return 1;
+          return (b.timestamp || 0) - (a.timestamp || 0);
+        });
 
-    for (const c of sorted) {
-      const key = c.title.toLowerCase().trim();
-      if (!seenClueKeys.has(key)) {
-        seenClueKeys.add(key);
-        const fact = (c.description || c.investigatorInsight || '').trim();
-        clues.push({ title: c.title.trim(), fact, provenance: c.provenance });
+      for (const c of sorted) {
+        const key = c.title.toLowerCase().trim();
+        if (!seenClueKeys.has(key)) {
+          seenClueKeys.add(key);
+          const fact = (c.description || c.investigatorInsight || '').trim();
+          clues.push({ title: c.title.trim(), fact, provenance: c.provenance });
+        }
       }
     }
   }
 
   // B. Fallback: z dziennika (character.journal) - gdy w dossier było mało poszlak
-  if (clues.length < 5 && char?.journal && char.journal.length > 0) {
-    const journalClues = char.journal
-      .filter((e) => e.type === 'clue' || e.type === 'discovery')
-      .reverse();
+  if (clues.length < 5) {
+    for (const cChar of targetChars) {
+      if (cChar?.journal && cChar.journal.length > 0) {
+        const journalClues = cChar.journal
+          .filter((e) => e.type === 'clue' || e.type === 'discovery')
+          .reverse();
 
-    for (const j of journalClues) {
-      const key = j.title.toLowerCase().trim();
-      if (!seenClueKeys.has(key)) {
-        seenClueKeys.add(key);
-        clues.push({ title: j.title.trim(), fact: j.content.trim() });
-        if (clues.length >= 5) break;
+        for (const j of journalClues) {
+          const key = j.title.toLowerCase().trim();
+          if (!seenClueKeys.has(key)) {
+            seenClueKeys.add(key);
+            const prov = inferClueProvenance(j.title, j.content);
+            clues.push({ title: j.title.trim(), fact: j.content.trim(), provenance: prov });
+            if (clues.length >= 5) break;
+          }
+        }
       }
+      if (clues.length >= 5) break;
     }
   }
 
@@ -349,7 +361,8 @@ export function buildActiveInvestigationSection(
         const key = cf.title.toLowerCase().trim();
         if (!seenClueKeys.has(key)) {
           seenClueKeys.add(key);
-          clues.push({ title: cf.title, fact: cf.fact });
+          const prov = inferClueProvenance(cf.title, cf.fact);
+          clues.push({ title: cf.title, fact: cf.fact, provenance: prov });
           if (clues.length >= 5) break;
         }
       }
@@ -358,7 +371,8 @@ export function buildActiveInvestigationSection(
         const key = title.toLowerCase().trim();
         if (!seenClueKeys.has(key)) {
           seenClueKeys.add(key);
-          clues.push({ title, fact: '' });
+          const prov = inferClueProvenance(title, '');
+          clues.push({ title, fact: '', provenance: prov });
           if (clues.length >= 5) break;
         }
       }
@@ -370,24 +384,33 @@ export function buildActiveInvestigationSection(
   const seenHypo = new Set<string>();
 
   // A. Z notatek badacza (dossier.notes)
-  if (char?.investigatorDossier?.notes && char.investigatorDossier.notes.length > 0) {
-    for (const note of char.investigatorDossier.notes.slice(-2)) {
-      const text = (note.content || note.title).trim();
-      if (text && !seenHypo.has(text.toLowerCase())) {
-        seenHypo.add(text.toLowerCase());
-        hypotheses.push(text);
+  for (const cChar of targetChars) {
+    if (cChar?.investigatorDossier?.notes && cChar.investigatorDossier.notes.length > 0) {
+      for (const note of cChar.investigatorDossier.notes.slice(-2)) {
+        const text = (note.content || note.title).trim();
+        if (text && !seenHypo.has(text.toLowerCase())) {
+          seenHypo.add(text.toLowerCase());
+          hypotheses.push(text);
+          if (hypotheses.length >= 2) break;
+        }
       }
     }
+    if (hypotheses.length >= 2) break;
   }
 
   // B. Z wniosków poszlak (investigatorInsight)
-  if (hypotheses.length < 2 && char?.investigatorDossier?.clues) {
-    for (const c of char.investigatorDossier.clues) {
-      if (c.investigatorInsight && !seenHypo.has(c.investigatorInsight.toLowerCase())) {
-        seenHypo.add(c.investigatorInsight.toLowerCase());
-        hypotheses.push(c.investigatorInsight.trim());
-        if (hypotheses.length >= 2) break;
+  if (hypotheses.length < 2) {
+    for (const cChar of targetChars) {
+      if (cChar?.investigatorDossier?.clues) {
+        for (const c of cChar.investigatorDossier.clues) {
+          if (c.investigatorInsight && !seenHypo.has(c.investigatorInsight.toLowerCase())) {
+            seenHypo.add(c.investigatorInsight.toLowerCase());
+            hypotheses.push(c.investigatorInsight.trim());
+            if (hypotheses.length >= 2) break;
+          }
+        }
       }
+      if (hypotheses.length >= 2) break;
     }
   }
 
@@ -735,8 +758,12 @@ export function buildAdditionalContext(
   }
 
   // Issue #68: Dwukierunkowa pętla pamięci - wstrzykiwanie sekcji ## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA
+  const activeInvestigationChar =
+    (playerCharacterName ? characters?.find((c) => c.name === playerCharacterName) : undefined) ??
+    characters?.[0];
+
   const investigationSection = buildActiveInvestigationSection({
-    character: characters?.[0] ?? undefined,
+    character: activeInvestigationChar,
     characters,
     sessionId,
     locale: opts.locale,

@@ -44,8 +44,12 @@ export function buildJournalEntriesFromTags(
 ): JournalEntry[] {
   return tags.map((tag, index) => {
     const isClue = tag.type === 'clue' || tag.type === 'discovery';
+    let cleanTitle = tag.title.trim();
+    if (isClue && cleanTitle.includes('|')) {
+      cleanTitle = cleanTitle.split('|')[0].trim();
+    }
     const content = isClue
-      ? synthesizeClueFact(tag.title, tag.content)
+      ? synthesizeClueFact(cleanTitle, tag.content)
       : tag.content;
 
     return {
@@ -53,7 +57,7 @@ export function buildJournalEntriesFromTags(
       timestamp: new Date(),
       inGameDate: tag.inGameDate,
       type: tag.type,
-      title: tag.title,
+      title: cleanTitle,
       content,
       tags: [],
       isBookmarked: false,
@@ -210,6 +214,16 @@ export function processCharacterJournalAndDossier(
     let miceObjective: string | undefined;
     let explicitProvenance: ClueProvenance | undefined;
     let cleanClueTitle = tag.title.trim();
+    let clueInGameDate = tag.inGameDate;
+
+    // Sprawdź czy w 4. argumencie / dacie nie podano proweniencji (np. [DZIENNIK:trop:Tytuł:obserwacja])
+    if (isClue && clueInGameDate) {
+      const provFromDate = parseClueProvenance(clueInGameDate);
+      if (provFromDate) {
+        explicitProvenance = provFromDate;
+        clueInGameDate = undefined;
+      }
+    }
 
     // Sprawdź czy w tytule nie podano proweniencji (np. [DZIENNIK:trop:Tytuł|zeznanie])
     if (isClue && cleanClueTitle.includes('|')) {
@@ -311,6 +325,7 @@ export function processCharacterJournalAndDossier(
           isKeyClue: isKey,
           miceType: resolvedMiceType,
           miceObjective,
+          inGameDate: clueInGameDate,
           timestamp: Date.now(),
           sourceJournalEntryId: `journal-${messageId}-${index}`,
         };
@@ -347,9 +362,9 @@ export function processCharacterJournalAndDossier(
       existingJournal.push({
         id: jId,
         timestamp: new Date(),
-        inGameDate: tag.inGameDate,
+        inGameDate: isClue ? clueInGameDate : tag.inGameDate,
         type: mappedType,
-        title: tag.title,
+        title: isClue ? cleanClueTitle : tag.title,
         content: fact,
         tags: [],
         isBookmarked: false,
