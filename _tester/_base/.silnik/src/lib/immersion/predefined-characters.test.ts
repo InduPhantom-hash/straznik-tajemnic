@@ -201,4 +201,22 @@ describe('PREDEFINED_CHARACTERS', () => {
       expect(names).toContain('notes badawczy'.toLowerCase());
     });
   });
+
+  it('zapewnia pełną siatkę umiejętności CoC 7e RAW dla postaci Strefy 11', () => {
+    STREFA_11_CHARACTERS.forEach((character) => {
+      const skillKeys = Object.keys(character.skills);
+      expect(skillKeys.length).toBeGreaterThanOrEqual(10);
+      expect(character.skills['Unik']).toBeDefined();
+      expect(character.skills['Język Ojczysty (Polski)']).toBeDefined();
+      expect(character.skills['Spostrzegawczość']).toBeDefined();
+
+      // Zgodność Uniku z zasadą RAW (bazowo DEX/2 lub więcej z punktów)
+      const rawDodgeBase = Math.floor(character.dex / 2);
+      const characterDodge = typeof character.skills['Unik'] === 'number'
+        ? character.skills['Unik']
+        : character.skills['Unik'].value;
+      expect(characterDodge).toBeGreaterThanOrEqual(rawDodgeBase);
+    });
+  });
 });
+
