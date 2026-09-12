@@ -336,14 +336,14 @@ export function buildActiveInvestigationSection(
     for (const cChar of targetChars) {
       if (cChar?.journal && cChar.journal.length > 0) {
         const journalClues = cChar.journal
-          .filter((e) => e.type === 'clue' || e.type === 'discovery')
+          .filter((e) => e.type === 'clue' || e.type === 'discovery' || e.type === 'case')
           .reverse();
 
         for (const j of journalClues) {
           const key = j.title.toLowerCase().trim();
           if (!seenClueKeys.has(key)) {
             seenClueKeys.add(key);
-            const prov = inferClueProvenance(j.title, j.content);
+            const prov = j.provenance || inferClueProvenance(j.title, j.content);
             clues.push({ title: j.title.trim(), fact: j.content.trim(), provenance: prov });
             if (clues.length >= 5) break;
           }

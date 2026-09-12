@@ -28,7 +28,8 @@ import {
   ensureCharacterDossier,
   migrateLegacyJournalToDossier,
 } from '@/lib/journal/dossier-migration';
-import type { InvestigatorDossier } from '@/lib/journal/dossier-types';
+import type { InvestigatorDossier, ClueProvenance } from '@/lib/journal/dossier-types';
+import { inferClueProvenance } from '@/lib/parsers/journal-parser';
 import type { DiscoveryEntry } from './journal/discoveries-view';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
@@ -328,10 +329,17 @@ export function SessionJournal({
 
       if (
         isCaseIntro ||
-        ['quest', 'npc', 'location', 'item', 'document', 'handout', 'discovery', 'clue'].includes(e.type)
+        ['quest', 'npc', 'location', 'item', 'document', 'handout', 'discovery', 'clue', 'case'].includes(e.type)
       ) {
         seenIds.add(e.id);
         if (normTitle) seenTitles.add(normTitle);
+        const eProv = (e as unknown as Record<string, unknown>).provenance as ClueProvenance | undefined;
+        const resolvedProv =
+          eProv ||
+          (isCaseIntro || e.type === 'clue' || e.type === 'discovery' || e.type === 'case'
+            ? inferClueProvenance(e.title, e.content)
+            : undefined);
+
         list.push({
           id: e.id,
           title: e.title,
@@ -345,6 +353,7 @@ export function SessionJournal({
           questStatus: e.questStatus,
           objectives: e.objectives,
           investigatorInsight: e.investigatorInsight,
+          provenance: resolvedProv,
         });
       }
     });
@@ -411,19 +420,27 @@ export function SessionJournal({
                 content: updated.content,
                 investigatorInsight: updated.investigatorInsight,
                 questStatus: updated.questStatus,
+                provenance: 'provenance' in updated ? updated.provenance : e.provenance,
                 updatedAt: new Date(),
               }
             : e
         );
-        updateCharacterJournal(updatedJournalEntries);
+        if (onUpdateSharedJournal) {
+          onUpdateSharedJournal(updatedJournalEntries as unknown as JournalEntry[]);
+        }
+        onUpdateCharacter({
+          ...character,
+          journal: updatedJournalEntries as unknown as JournalEntry[],
+          investigatorDossier: newDossier,
+        });
+      } else {
+        onUpdateCharacter({
+          ...character,
+          investigatorDossier: newDossier,
+        });
       }
-
-      onUpdateCharacter({
-        ...character,
-        investigatorDossier: newDossier,
-      });
     },
-    [character, entries, onUpdateCharacter, updateCharacterJournal]
+    [character, entries, onUpdateCharacter, onUpdateSharedJournal]
   );
 
   // Śledzenie nieprzeczytanych wpisów w konkretnych zakładkach

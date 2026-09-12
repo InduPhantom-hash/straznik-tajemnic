@@ -77,7 +77,7 @@ export function inferClueProvenance(
 
   // Handout / dokumenty - zabezpieczone granice słów dla krótkich/kolizyjnych rdzeni (list, akt, file, tape itp.)
   if (
-    /(?:^|[^\p{L}])(?:akt|akta|aktach|aktów|file|book|list|listu|listem|liście|listy|listów|letter|letters|tape|tapes|photo|photos|prasa|prasy|prasie)(?:[^\p{L}]|$)|dziennik|wycinek|gazet|artykuł|dokument|pismo|notatk|zapisk|fotografi|zdjęci|taśm|nagrani|rejestr|książk|księg|folder|teczk|document|clipping|article|recording|journal|diary/iu.test(
+    /(?:^|[^\p{L}])(?:akt|akta|aktach|aktów|file|book|list|listu|listem|liście|listy|listów|letter|letters|tape|tapes|photo|photos|prasa|prasy|prasie)(?:[^\p{L}]|$)|kopert|telegram|raport|dziennik|wycinek|gazet|artykuł|dokument|pismo|notatk|zapisk|fotografi|zdjęci|taśm|nagrani|rejestr|książk|księg|folder|teczk|document|clipping|article|recording|journal|diary/iu.test(
       text
     )
   ) {

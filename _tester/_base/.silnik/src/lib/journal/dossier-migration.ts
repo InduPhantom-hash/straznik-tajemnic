@@ -294,6 +294,19 @@ export function migrateLegacyJournalToDossier(
     }
 
     // 4. Poszlaki, dowody, dawne questy i odkrycia
+    const isCaseIntro =
+      entryType === 'case' ||
+      entryType === 'case_file' ||
+      entryType === 'objective' ||
+      entryType === 'mission' ||
+      (entry.title || '').toLowerCase().trim() === 'początek śledztwa' ||
+      (entry.title || '').toLowerCase().trim() === 'beginning the investigation' ||
+      (entry.title || '').toLowerCase().trim() === 'beginning of the investigation';
+
+    if (isCaseIntro) {
+      return;
+    }
+
     if (!clueIds.has(baseId)) {
       const clue: ClueEntry = {
         id: baseId,
