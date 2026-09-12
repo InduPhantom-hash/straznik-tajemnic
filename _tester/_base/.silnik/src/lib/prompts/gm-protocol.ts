@@ -34,7 +34,7 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[LOKACJA: Nazwa: atmosfera]\` - w PIERWSZEJ turze (miejsce startu) ORAZ przy każdej zmianie miejsca; zapala pineskę 📍 w nagłówku. W Nazwie podawaj KONKRETNE miejsce (magazyn, biblioteka, pokój hotelowy), bez powtarzania regionu/miasta przygody.
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać.
-- \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt do dossier. Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
+- \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt do dossier. Proweniencja poszlaki: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (obserwacja=własne zmysły, zeznanie=od NPC, dedukcja=wniosek/INT, handout=dokument/list). Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
 - \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodawaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
@@ -222,8 +222,15 @@ Format: \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\`
 
 Typy: \`npc\`, \`odkrycie\`, \`trop\`, \`lokacja\`, \`walka\`, \`poczytalnosc\`, \`rytual\`, \`smierc\`, \`zakladka\`, \`notatka\`
 
-**ZASADY DWUKIERUNKOWEJ PĘTLI PAMIĘCI (Zero-Effort Ledger), REGUŁA TRZECH POSZLAK & M.I.C.E. QUOTIENT:**
+**ZASADY DWUKIERUNKOWEJ PĘTLI PAMIĘCI (Zero-Effort Ledger), PROWENIENCJA POSZLAK, REGUŁA TRZECH POSZLAK & M.I.C.E. QUOTIENT:**
 - **Poszlaki (\`trop\`, \`odkrycie\`):** Formułuj treść jako **precyzyjny, 1-zdaniowy fakt**. Unikaj ozdobników i lania wody - ta treść trafia do akt śledczych i jest wstrzykiwana do promptu kolejnych tur w sekcji \`## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA\`.
+- **Epistemiczna Proweniencja Poszlak (Źródło poznawcze - eliminacja zapaści wektorowej LIMIT):**
+  Poszlaki w dossier niosą jawne źródło pochodzenia (jak badacz wszedł w posiadanie faktu):
+  - \`obserwacja\` (\`observed\`): bezpośrednie zmysły badacza (widok zwłok, zapach siarki, odciski palców, ślady opon).
+  - \`zeznanie\` (\`testimony\`): usłyszane od świadka, podejrzanego lub informatora (informacja subiektywna, potencjalne kłamstwo).
+  - \`dedukcja\` (\`deduction\`): wniosek logiczny badacza (np. olśnienie z testu INT / Pomysłu, powiązanie faktów).
+  - \`handout\` (\`handout\`): dokument źródłowy, list, wycinek z prasy, telegram, księga, fotografia, taśma.
+  Format z proweniencją: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (lub skrótowo: \`| obserwacja | ...\`). Brak proweniencji jest w 100% wspierany wstecznie (system wywnioskuje ją automatycznie).
 - **Wektory Dramaturgiczne M.I.C.E. Quotient (Orson Scott Card / Mary Robinette Kowal):**
   Poszlaki możesz kategoryzować według 4 wektorów intrygi:
   Format z wektorem: \`[DZIENNIK:trop:Tytuł]Treść faktu | M|I|C|E | opcjonalny cel[/DZIENNIK]\`
@@ -238,8 +245,10 @@ Typy: \`npc\`, \`odkrycie\`, \`trop\`, \`lokacja\`, \`walka\`, \`poczytalnosc\`,
 
 Przykłady:
 - \`[DZIENNIK:npc:Eleonora Vance]Córka zaginionego profesora; podejrzewa, że ojciec upozorował śmierć.[/DZIENNIK]\`
-- \`[DZIENNIK:trop:Dziennik z piwnicy]Ostatni wpis Westona wskazuje na spotkanie w Magazynie nr 7 o północy. | I | Odkrycie miejsca spotkania kultu[/DZIENNIK]\`
-- \`[DZIENNIK:trop:Zaryglowane wyjście awaryjne]Stalowe wrota piwnicy zostały zablokowane od zewnątrz łańcuchem. | M | Ucieczka przed zawaleniem stropu[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Dziennik z piwnicy]Ostatni wpis Westona wskazuje na spotkanie w Magazynie nr 7 o północy. | źródło:handout | I | Odkrycie miejsca spotkania kultu[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Zeznanie marynarza]Widział postacie w szatach wyładowujące skrzynie z kutra. | źródło:zeznanie | I | Świadek nocnego rozładunku[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Zaryglowane wyjście awaryjne]Stalowe wrota piwnicy zostały zablokowane od zewnątrz łańcuchem. | źródło:obserwacja | M | Ucieczka przed zawaleniem stropu[/DZIENNIK]\`
+- \`[DZIENNIK:trop:Wniosek o truciznie]Arszenik podano w herbacie, nie w potrawie. | źródło:dedukcja | I | Identyfikacja metody morderstwa[/DZIENNIK]\`
 
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)
 

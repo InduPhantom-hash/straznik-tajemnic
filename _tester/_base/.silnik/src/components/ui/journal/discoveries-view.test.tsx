@@ -184,4 +184,43 @@ describe('DiscoveriesView', () => {
       investigatorInsight: 'Ślady wskazują na pośpieszne zatarcie dowodów.',
     });
   });
+
+  it('umożliwia wybór epistemicznej proweniencji dla poszlaki', () => {
+    const onEdit = jest.fn();
+    const clueEntry = {
+      id: 'clue_test',
+      title: 'Zakrwawiony nóż',
+      content: 'Nóż myśliwski ze śladami krwi.',
+      type: 'quest' as const,
+      questStatus: 'active' as const,
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[clueEntry]}
+        onEditEntry={onEdit}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    // Przejdź do zakładki "Poszlaki i Ślady"
+    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
+
+    // Sprawdź obecność etykiety proweniencji
+    expect(screen.getByText('PROWENIENCJA:')).toBeInTheDocument();
+
+    // Kliknij przycisk "Zaobserwowane"
+    fireEvent.click(screen.getByRole('button', { name: /Zaobserwowane/i }));
+    expect(onEdit).toHaveBeenCalledWith({
+      ...clueEntry,
+      provenance: 'observed',
+    });
+
+    // Kliknij przycisk "Usłyszane"
+    fireEvent.click(screen.getByRole('button', { name: /Usłyszane/i }));
+    expect(onEdit).toHaveBeenCalledWith({
+      ...clueEntry,
+      provenance: 'testimony',
+    });
+  });
 });

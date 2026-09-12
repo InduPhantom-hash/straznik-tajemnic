@@ -44,6 +44,7 @@ import { adjudicateEventPipeline } from '@/lib/concordia/event-resolution';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import { buildOrganizationPromptSection } from '@/lib/data/investigator-organizations';
 import type { DocumentType } from '@/types/adventure';
+import type { ClueProvenance } from '@/lib/journal/dossier-types';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -299,8 +300,8 @@ export function buildActiveInvestigationSection(
   // Znajdź główną postać (lub pierwszą z drużyny)
   const char = opts.character || opts.characters?.[0];
 
-  // 1. ZBIERZ POSZLAKI (do 5 najważniejszych)
-  const clues: { title: string; fact: string }[] = [];
+  // 1. ZBIERZ POSZLAKI (Context Stuffing: pełna lista aktywnych faktów śledczych z dossier)
+  const clues: { title: string; fact: string; provenance?: ClueProvenance }[] = [];
   const seenClueKeys = new Set<string>();
 
   // A. Z dossier postaci (priorytet) - wykluczamy fakty unieważnione/obalone (Fact Supersession)
@@ -319,13 +320,12 @@ export function buildActiveInvestigationSection(
       if (!seenClueKeys.has(key)) {
         seenClueKeys.add(key);
         const fact = (c.description || c.investigatorInsight || '').trim();
-        clues.push({ title: c.title.trim(), fact });
-        if (clues.length >= 5) break;
+        clues.push({ title: c.title.trim(), fact, provenance: c.provenance });
       }
     }
   }
 
-  // B. Fallback: z dziennika (character.journal)
+  // B. Fallback: z dziennika (character.journal) - gdy w dossier było mało poszlak
   if (clues.length < 5 && char?.journal && char.journal.length > 0) {
     const journalClues = char.journal
       .filter((e) => e.type === 'clue' || e.type === 'discovery')
@@ -427,16 +427,33 @@ export function buildActiveInvestigationSection(
 
   const lines: string[] = [header];
 
-  // Formatowanie poszlak (1 linia = 1 zwięzła poszlaka z faktem)
+  // Formatowanie poszlak (Context Stuffing: pełne fakty z etykietą proweniencji bez obcinania do 100 znaków)
   if (clues.length > 0) {
     const cluesHeader = isEn
       ? '**Key confirmed clues:**'
       : '**Kluczowe potwierdzone poszlaki:**';
     lines.push(cluesHeader);
     for (const c of clues) {
-      let desc = c.fact ? `: ${c.fact}` : '';
-      if (desc.length > 100) desc = `${desc.slice(0, 97)}...`;
-      lines.push(`- **${c.title}**${desc}`);
+      let provLabel = '';
+      if (c.provenance) {
+        switch (c.provenance) {
+          case 'observed':
+            provLabel = isEn ? 'Observed' : 'Zaobserwowane';
+            break;
+          case 'testimony':
+            provLabel = isEn ? 'Testimony' : 'Zeznanie';
+            break;
+          case 'deduction':
+            provLabel = isEn ? 'Deduction' : 'Dedukcja';
+            break;
+          case 'handout':
+            provLabel = isEn ? 'Handout' : 'Handout';
+            break;
+        }
+      }
+      const provTag = provLabel ? ` [${provLabel}]` : '';
+      const desc = c.fact ? `: ${c.fact}` : '';
+      lines.push(`- **${c.title}**${provTag}${desc}`);
     }
   }
 

@@ -1,4 +1,164 @@
 import { JournalTagEntry } from './types';
+import type { ClueProvenance, ClueCategory } from '../journal/dossier-types';
+
+/**
+ * Wykrywa jawną deklarację proweniencji epistemicznej ze wskazanego segmentu tagu lub tekstu.
+ * Obsługuje formaty z prefiksem (np. "źródło:obserwacja", "source:testimony")
+ * oraz bezpośrednie słowa kluczowe w języku polskim i angielskim.
+ */
+export function parseClueProvenance(segment: string): ClueProvenance | undefined {
+  if (!segment) return undefined;
+  let s = segment.trim().toLowerCase();
+
+  // Usuń prefiksy typu źródło:, zrodlo:, source:, proweniencja:, provenance:
+  s = s.replace(/^(?:źródło|zrodlo|source|proweniencja|provenance)\s*:\s*/i, '').trim();
+
+  // 1. Observed / Zaobserwowane
+  if (
+    [
+      'observed',
+      'observation',
+      'obserwacja',
+      'obserwacje',
+      'zaobserwowane',
+      'spostrzeżenie',
+      'spostrzezenie',
+      'widok',
+      'naoczne',
+      'naoczny',
+      'oględziny',
+      'ogledziny',
+    ].includes(s)
+  ) {
+    return 'observed';
+  }
+
+  // 2. Testimony / Usłyszane / Zeznanie
+  if (
+    [
+      'testimony',
+      'statement',
+      'witness',
+      'hearsay',
+      'interview',
+      'zeznanie',
+      'zeznania',
+      'usłyszane',
+      'uslyszane',
+      'świadek',
+      'swiadek',
+      'świadectwo',
+      'swiadectwo',
+      'wywiad',
+      'relacja',
+      'rozmowa',
+    ].includes(s)
+  ) {
+    return 'testimony';
+  }
+
+  // 3. Deduction / Dedukcja
+  if (
+    [
+      'deduction',
+      'insight',
+      'inference',
+      'conclusion',
+      'hypothesis',
+      'dedukcja',
+      'wniosek',
+      'wnioskowanie',
+      'analiza',
+      'pomysł',
+      'pomysl',
+      'hipoteza',
+    ].includes(s)
+  ) {
+    return 'deduction';
+  }
+
+  // 4. Handout / Dokument
+  if (
+    [
+      'handout',
+      'document',
+      'letter',
+      'clipping',
+      'record',
+      'file',
+      'tape',
+      'photo',
+      'photograph',
+      'dokument',
+      'list',
+      'wycinek',
+      'gazeta',
+      'prasa',
+      'artykuł',
+      'artykul',
+      'pismo',
+      'fotografia',
+      'zdjęcie',
+      'zdjecie',
+      'akta',
+      'notatka',
+      'notatki',
+      'zapiski',
+      'rejestr',
+      'taśma',
+      'tasma',
+    ].includes(s)
+  ) {
+    return 'handout';
+  }
+
+  return undefined;
+}
+
+/**
+ * Automatyczna heurystyka wnioskowania proweniencji poszlaki (Zero-Effort Ledger).
+ * Używana, gdy MG nie określił wprost proweniencji w tagu.
+ */
+export function inferClueProvenance(
+  title: string,
+  content: string,
+  category?: ClueCategory
+): ClueProvenance {
+  if (category === 'document') return 'handout';
+  if (category === 'testimony') return 'testimony';
+
+  const text = `${title} ${content}`.toLowerCase();
+
+  // Handout / dokumenty
+  if (
+    /(?:^|[^\p{L}])(?:akt|akta|aktach|aktów|file|book)(?:[^\p{L}]|$)|list|dziennik|wycinek|gazet|artykuł|dokument|pismo|notatk|zapisk|fotografi|zdjęci|taśm|nagrani|rejestr|książk|księg|folder|teczk|document|letter|clipping|article|photo|tape|recording|journal|diary/iu.test(
+      text
+    )
+  ) {
+    return 'handout';
+  }
+
+  // Świadek / rozmowa / zeznanie
+  if (
+    /mówi|twierdzi|zeznaje|powiedział|powiedziała|relacjonuje|świadek|świadk|wywiad|rozmow|zeznan|słowa|informator|claims|testified|said|witness|interview|statement|hearsay/i.test(
+      text
+    )
+  ) {
+    return 'testimony';
+  }
+
+  // Dedukcja / wniosek
+  if (
+    /dedukcj|wniosek|wniosk|analiz|wynika z|pomysł|hipotez|zrozumiał|połączył|deduces|concludes|hypothesis|insight|realizes/i.test(
+      text
+    )
+  ) {
+    return 'deduction';
+  }
+
+  // Domyślnie zaobserwowane (oględziny, ślad fizyczny, zmysły)
+  return 'observed';
+}
 
 // Wykrywanie wpisów dziennika (AI TAGS)
 export function extractJournalTags(text: string): JournalTagEntry[] {
@@ -85,8 +245,14 @@ export function synthesizeClueFact(title: string, rawContent: string): string {
     return title ? `${title.trim()}.` : '';
   }
 
+  // 0. Jeśli treść zawiera metadane oddzielone pipe (| M|I|C|E, | źródło:...), bierzemy samą treść faktu
+  let text = rawContent;
+  if (text.includes('|')) {
+    text = text.split('|')[0].trim();
+  }
+
   // 1. Usuń tagi strukturalne AI (np. [TAG: ...], [DZIENNIK:...], [/DZIENNIK])
-  let text = rawContent
+  text = text
     .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP)[^\]]*\]/gi, '')
     .trim();
 

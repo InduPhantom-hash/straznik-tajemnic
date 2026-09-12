@@ -4,6 +4,8 @@ import {
   extractJournalTags,
   extractNpcTags,
   synthesizeClueFact,
+  parseClueProvenance,
+  inferClueProvenance,
   ExtractedNpcTag,
 } from '@/lib/parsers/journal-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
@@ -16,6 +18,7 @@ import type {
   InvestigatorDossier,
   NpcDossierEntry,
   ClueEntry,
+  ClueProvenance,
   LocationDossierEntry,
 } from '@/lib/journal/dossier-types';
 
@@ -205,32 +208,73 @@ export function processCharacterJournalAndDossier(
     let rawContent = tag.content;
     let explicitMiceType: import('@/lib/journal/dossier-types').MiceQuotientType | undefined;
     let miceObjective: string | undefined;
+    let explicitProvenance: ClueProvenance | undefined;
+    let cleanClueTitle = tag.title.trim();
+
+    // Sprawdź czy w tytule nie podano proweniencji (np. [DZIENNIK:trop:Tytuł|zeznanie])
+    if (isClue && cleanClueTitle.includes('|')) {
+      const titleParts = cleanClueTitle.split('|').map((p) => p.trim());
+      cleanClueTitle = titleParts[0];
+      for (let i = 1; i < titleParts.length; i++) {
+        const prov = parseClueProvenance(titleParts[i]);
+        if (prov) explicitProvenance = prov;
+      }
+    }
 
     if (isClue && tag.content.includes('|')) {
       const parts = tag.content.split('|').map((p) => p.trim());
       rawContent = parts[0] || tag.content;
-      const mToken = (parts[1] || '').toLowerCase();
-      if (['m', 'milieu', 'otoczenie', 'przestrzen'].includes(mToken)) {
-        explicitMiceType = 'milieu';
-      } else if (['i', 'inquiry', 'sledztwo', 'pytanie'].includes(mToken)) {
-        explicitMiceType = 'inquiry';
-      } else if (['c', 'character', 'postac', 'tozsamosc'].includes(mToken)) {
-        explicitMiceType = 'character';
-      } else if (['e', 'event', 'zagrozenie', 'wydarzenie', 'zdarzenie'].includes(mToken)) {
-        explicitMiceType = 'event';
-      }
-      if (parts[2]) {
-        miceObjective = parts[2];
+
+      // Iteruj po kolejnych segmentach pipe (elastyczna kolejność tokenów proweniencji i M.I.C.E.)
+      for (let i = 1; i < parts.length; i++) {
+        const part = parts[i];
+        if (!part) continue;
+
+        // 1. Sprawdź proweniencję
+        const detectedProv = parseClueProvenance(part);
+        if (detectedProv) {
+          explicitProvenance = detectedProv;
+          continue;
+        }
+
+        // 2. Sprawdź M.I.C.E.
+        const pLower = part.toLowerCase();
+        if (['m', 'milieu', 'otoczenie', 'przestrzen'].includes(pLower)) {
+          explicitMiceType = 'milieu';
+          continue;
+        }
+        if (['i', 'inquiry', 'sledztwo', 'pytanie'].includes(pLower)) {
+          explicitMiceType = 'inquiry';
+          continue;
+        }
+        if (['c', 'character', 'postac', 'tozsamosc'].includes(pLower)) {
+          explicitMiceType = 'character';
+          continue;
+        }
+        if (['e', 'event', 'zagrozenie', 'wydarzenie', 'zdarzenie'].includes(pLower)) {
+          explicitMiceType = 'event';
+          continue;
+        }
+
+        // 3. Sprawdź czy to nie unieważnienie (np. zastępuje: ...)
+        if (/(?:zastępuje|unieważnia|obala|supersedes|refutes):/i.test(part)) {
+          continue;
+        }
+
+        // 4. Fallback na miceObjective
+        if (!miceObjective) {
+          miceObjective = part;
+        }
       }
     }
 
     const fact = isClue
-      ? synthesizeClueFact(tag.title, rawContent)
+      ? synthesizeClueFact(cleanClueTitle, rawContent)
       : tag.content;
 
     // Aktualizuj poszlaki w dossier
-    if (isClue && tag.title) {
-      const lowerTitle = tag.title.toLowerCase().trim();
+    if (isClue && cleanClueTitle) {
+      const lowerTitle = cleanClueTitle.toLowerCase().trim();
       const existingClue = dossier.clues.find(
         (c) => c.title.toLowerCase().trim() === lowerTitle
       );
@@ -242,23 +286,28 @@ export function processCharacterJournalAndDossier(
         dossier.clues.forEach((c) => {
           if (c.title.toLowerCase().trim() === supersededTarget || c.title.toLowerCase().includes(supersededTarget)) {
             c.status = 'superseded';
-            c.supersededBy = tag.title.trim();
+            c.supersededBy = cleanClueTitle.trim();
             changed = true;
           }
         });
       }
 
+      const resolvedCategory = inferClueCategory({ title: cleanClueTitle, content: rawContent });
+      const resolvedProvenance =
+        explicitProvenance || inferClueProvenance(cleanClueTitle, rawContent, resolvedCategory);
+
       if (!existingClue) {
-        const isKey = /klucz|core|key|główn/i.test(`${tag.title} ${tag.content}`);
-        const resolvedMiceType = explicitMiceType || inferClueMiceType(tag.title, fact);
+        const isKey = /klucz|core|key|główn/i.test(`${cleanClueTitle} ${tag.content}`);
+        const resolvedMiceType = explicitMiceType || inferClueMiceType(cleanClueTitle, fact);
         const newClue: ClueEntry = {
           id: `clue-${messageId}-${index}`,
-          title: tag.title.trim(),
+          title: cleanClueTitle,
           description: fact,
-          category: inferClueCategory({ title: tag.title, content: rawContent }),
+          category: resolvedCategory,
           status: 'confirmed',
           discoveryStatus: 'discovered',
           epistemicLayer: 'player_clue',
+          provenance: resolvedProvenance,
           isKeyClue: isKey,
           miceType: resolvedMiceType,
           miceObjective,
@@ -271,6 +320,15 @@ export function processCharacterJournalAndDossier(
         // Aktualizacja istniejącej poszlaki
         if (existingClue.description !== fact && fact) {
           existingClue.description = fact;
+          existingClue.timestamp = Date.now();
+          changed = true;
+        }
+        if (explicitProvenance && existingClue.provenance !== explicitProvenance) {
+          existingClue.provenance = explicitProvenance;
+          existingClue.timestamp = Date.now();
+          changed = true;
+        } else if (!existingClue.provenance && resolvedProvenance) {
+          existingClue.provenance = resolvedProvenance;
           existingClue.timestamp = Date.now();
           changed = true;
         }
