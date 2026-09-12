@@ -35,6 +35,7 @@ import type { CampaignMemoryScope } from '@/core/memory/types';
 import { getCampaignContextEngine } from '@/core/memory/context-engine';
 import type { RevealedMemoryFact } from '@/core/memory/types';
 import { cleanResponseText, stripHiddenMemoryContent } from '@/lib/parsers/text-cleaner';
+import { beginAiGeneration } from '@/lib/desktop/generation-state';
 
 export interface CreateSseStreamOpts {
   providerStream: AsyncIterable<StreamChunk>;
@@ -87,6 +88,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
   } = opts;
 
   const encoder = new TextEncoder();
+  const endGeneration = beginAiGeneration();
 
   return new ReadableStream({
     async start(controller) {
@@ -281,6 +283,8 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
         controller.close();
       } catch (e) {
         controller.error(e);
+      } finally {
+        endGeneration();
       }
     },
   });

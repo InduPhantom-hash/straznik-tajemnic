@@ -77,11 +77,11 @@ describe('POST /api/desktop/cold-start', () => {
 
     expect(response.status).toBe(202);
     expect(mockedMkdir).toHaveBeenCalledWith(
-      expect.stringContaining('.desktop'),
+      expect.stringContaining('desktop'),
       { recursive: true }
     );
     expect(mockedWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining('cold-start-requested'),
+      expect.stringContaining('desktop/cold-start-requested'),
       expect.any(String),
       'utf8'
     );

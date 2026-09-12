@@ -6933,6 +6933,25 @@
     "fullResetHelp": "USUWA WSZYSTKO: postaci, sesje, historię czatu, ustawienia, notatki, cache. Operacja nieodwracalna!",
     "close": "❌ Zamknij"
   },
+  "UpdateSettings": {
+    "title": "Aktualizacje",
+    "description": "Sprawdź stabilne wydania aplikacji i zainstaluj je bez utraty zapisów ani pamięci kampanii.",
+    "currentVersion": "Bieżąca wersja: {version}",
+    "availableVersion": "Dostępna wersja: {version}",
+    "releaseNotes": "Opis zmian",
+    "devMode": "Tryb deweloperski pozwala sprawdzać wersję, ale nie modyfikuje repozytorium.",
+    "notConfigured": "Źródło aktualizacji nie jest skonfigurowane.",
+    "upToDate": "Masz najnowszą stabilną wersję.",
+    "checkNow": "Sprawdź teraz",
+    "checking": "Sprawdzanie…",
+    "starting": "Uruchamianie…",
+    "updateRestart": "Aktualizuj i uruchom ponownie",
+    "later": "Później",
+    "close": "Zamknij",
+    "notificationTitle": "Dostępna aktualizacja {version}",
+    "notificationDescription": "Możesz zainstalować ją teraz albo wrócić do niej później.",
+    "result": { "succeeded": "Aktualizacja zakończona pomyślnie", "rolled_back": "Aktualizacja nie powiodła się. Przywrócono poprzednią wersję", "failed": "Aktualizacja nie powiodła się" }
+  },
   "SessionZeroModal": {
     "headerKicker": "Zanim opadnie pierwsza mgła",
     "dialogTitle": "Sesja Zero",

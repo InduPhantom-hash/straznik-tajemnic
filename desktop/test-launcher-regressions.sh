@@ -66,6 +66,7 @@ for file in "${BUILD_ID_LAUNCHERS[@]}"; do
   assert_contains "$file" 'export RAG_DATA_DIR="$DATA_ROOT/rag"' "launcher nie ustawia zapisywalnej warstwy RAG"
   assert_contains "$file" '$(dirname "$0")/../..' "launcher nie rozwiązuje dokładnej ścieżki bundle .app"
   assert_contains "$file" 'DATA_ROOT="${ZEW_DATA_DIR:-$HOME/Library/Application Support/ZewCthulhu}"' "launcher nie respektuje kontrolowanego katalogu danych"
+  assert_contains "$file" 'export ZEW_UPDATE_MANIFEST_URL=' "launcher nie konfiguruje źródła stabilnych aktualizacji"
   if grep -Fq -- '"$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID"' "$REPO_ROOT/$file"; then
     echo "FAIL: launcher ma podwojnie zagniezdzona sciezke BUILD_ID ($file)"
     exit 1

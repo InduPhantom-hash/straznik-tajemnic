@@ -50,6 +50,13 @@ DATA_ROOT="${ZEW_DATA_DIR:-$HOME/Library/Application Support/ZewCthulhu}"
 export ZEW_DATA_DIR="$DATA_ROOT"
 export RAG_DATA_DIR="$DATA_ROOT/rag"
 export ZEW_APP_BUNDLE="$(cd "$(dirname "$0")/../.." && pwd)"
+export STRAZNIK_DESKTOP_UPDATE=1
+export ZEW_UPDATE_MANIFEST_URL="${ZEW_UPDATE_MANIFEST_URL:-https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest/download/update-manifest.json}"
+if [[ "$ZEW_APP_BUNDLE" == *.app ]]; then
+  export ZEW_DESKTOP_SELF_UPDATE=1
+else
+  export ZEW_DESKTOP_SELF_UPDATE=0
+fi
 
 RUNTIME_DIR="$DATA_ROOT/desktop"
 PROFILE_DIR="$RUNTIME_DIR/chrome-profile"
@@ -127,7 +134,7 @@ if ! curl -sf "$URL" >/dev/null 2>&1; then
     PORT=$PORT npm run build >>"$LOG" 2>&1
   fi
   echo "$(date) startuje serwer (next start)..." >>"$LOG"
-  STRAZNIK_DESKTOP_COLD_START=1 ZEW_APP_PORT=$PORT PORT=$PORT nohup npm start >>"$LOG" 2>&1 &
+  STRAZNIK_DESKTOP_COLD_START=1 STRAZNIK_DESKTOP_UPDATE=$STRAZNIK_DESKTOP_UPDATE ZEW_DESKTOP_SELF_UPDATE=$ZEW_DESKTOP_SELF_UPDATE ZEW_UPDATE_MANIFEST_URL="$ZEW_UPDATE_MANIFEST_URL" ZEW_APP_BUNDLE="$ZEW_APP_BUNDLE" ZEW_DATA_DIR="$ZEW_DATA_DIR" RAG_DATA_DIR="$RAG_DATA_DIR" ZEW_APP_PORT=$PORT PORT=$PORT nohup npm start >>"$LOG" 2>&1 &
   echo $! >"$PID_FILE"
   STARTED_SERVER=1
   # health-check ~30 s
