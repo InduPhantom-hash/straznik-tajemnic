@@ -138,6 +138,13 @@ Zasady architektury, inwarianty inżynieryjne i dev cheat-sheet znajdziesz w [`C
 
 Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/ui (Dark Art Déco 1920s) · Google Gemini API (BYOK) · lokalny RAG (Float32 binarny, cosine) · Jest + Playwright.
 
+## 🧪 Program Beta i Zgłaszanie Uwag
+
+Bierzesz udział w testach wersji Beta Strażnika Tajemnic AI? Wszelkie uwagi, błędy mechaniki CoC 7e, usterki audio czy sugestie możesz przekazywać na kilka wygodnych sposobów:
+1. **W aplikacji:** Kliknij **"Zgłoś uwagę lub błąd"** w menu bocznym (Pomoce Badacza) lub na ekranie powitalnym. Modal pozwala wysłać e-mail jednym kliknięciem, skopiować gotowy szablon Markdown pod GitHub Issue lub pobrać plik JSON z danymi diagnostycznymi.
+2. **Dedykowany e-mail:** Wyślij swoje spostrzeżenia bezpośrednio na adres: `issue@callofchtulhu.pl`.
+3. **GitHub Issues:** Otwórz zgłoszenie w oficjalnym rejestrze błędów [GitHub Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues).
+
 ## 📚 Dokumentacja
 
 | Dokument | Dla kogo |
@@ -277,6 +284,13 @@ System architecture, invariants, and developer guidelines are documented in [`CO
 ## 🔧 Technologies
 
 Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/ui (Dark Art Déco 1920s) · Google Gemini API (BYOK) · Local vector DB (Float32 binary, cosine similarity) · Jest + Playwright.
+
+## 🧪 Beta Program & Feedback Reporting
+
+Participating in the Beta testing of Keeper of Arcane Lore AI? You can report CoC 7e rules bugs, audio anomalies, and feature requests in several convenient ways:
+1. **In-app:** Click **"Report Issue or Feedback"** in the sidebar (Investigator Tools) or welcome dialog. The modal lets you dispatch an email with one click, copy a structured Markdown report for a GitHub Issue, or download a diagnostic JSON package.
+2. **Dedicated Email:** Send findings and session dumps directly to: `issue@callofchtulhu.pl`.
+3. **GitHub Issues:** Submit an issue in the official [GitHub Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues) tracker.
 
 ## 📚 Documentation
 

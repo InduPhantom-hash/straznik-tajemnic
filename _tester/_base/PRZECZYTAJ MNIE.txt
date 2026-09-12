@@ -44,3 +44,10 @@ COŚ NIE DZIAŁA?
   Folder ".silnik" obok - to wnętrze aplikacji. Nie musisz tam zaglądać.
 
   Kończysz grę? Po prostu zamknij okno gry.
+
+
+ZGŁASZANIE UWAG I BŁĘDÓW (PROGRAM BETA):
+  - W grze: kliknij "Zgłoś uwagę lub błąd" w lewym menu bocznym lub na ekranie powitalnym.
+  - Bezpośredni e-mail: wyślij opis i dane na dedykowany adres: issue@callofchtulhu.pl
+  - GitHub: https://github.com/InduPhantom-hash/straznik-tajemnic/issues
+

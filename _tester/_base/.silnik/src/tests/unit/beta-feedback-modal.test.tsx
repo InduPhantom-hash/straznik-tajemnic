@@ -23,6 +23,12 @@ jest.mock('next-intl', () => ({
       character: 'Aktywny Badacz',
       messagesCount: 'Wiadomości w sesji',
       audioStatus: 'Stan audio',
+      emailNotice: 'Wysyłka zgłoszeń na adres',
+      copyEmail: 'Kopiuj adres',
+      copiedEmail: 'Skopiowano adres!',
+      sendEmailButton: 'Wyślij e-mail (issue@callofchtulhu.pl)',
+      sendEmailSuccess: 'Otwarto klienta poczty e-mail!',
+      sendEmailSuccessDesc: 'Wiadomość zaadresowana do {email}.',
       copySuccess: 'Raport skopiowany do schowka!',
       copyButton: 'Kopiuj raport do schowka',
       downloadButton: 'Pobierz diagnostykę (.json)',
@@ -48,13 +54,19 @@ describe('BetaFeedbackModal', () => {
         writeText: jest.fn().mockResolvedValue(undefined),
       },
     });
+
+    // Mock fetch
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    }) as jest.Mock;
   });
 
   afterEach(() => {
     Object.assign(navigator, { clipboard: originalClipboard });
   });
 
-  it('renderuje formularz zgłoszenia i kategorie', () => {
+  it('renderuje formularz zgłoszenia, kategorie oraz informację o adresie e-mail issue@callofchtulhu.pl', () => {
     render(
       <BetaFeedbackModal
         open={true}
@@ -70,6 +82,8 @@ describe('BetaFeedbackModal', () => {
     expect(screen.getByText(/Błąd mechaniki CoC 7e/i)).toBeInTheDocument();
     expect(screen.getByText(/Dźwięk i audio/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Opisz krótko co się wydarzyło/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/issue@callofchtulhu\.pl/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: /Wyślij e-mail \(issue@callofchtulhu\.pl\)/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Kopiuj raport do schowka/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Pobierz diagnostykę \(\.json\)/i })).toBeInTheDocument();
   });
@@ -86,7 +100,70 @@ describe('BetaFeedbackModal', () => {
     expect(textarea).toHaveValue('Szum taśmy jest zbyt głośny w scenie 2');
   });
 
-  it('kopiuje sformatowany raport do schowka i wywołuje toast', async () => {
+  it('kopiuje dedykowany adres e-mail do schowka', async () => {
+    render(<BetaFeedbackModal open={true} onOpenChange={() => {}} />);
+
+    const copyEmailBtn = screen.getByRole('button', { name: /Kopiuj adres/i });
+    fireEvent.click(copyEmailBtn);
+
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('issue@callofchtulhu.pl');
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Skopiowano adres!',
+        description: 'issue@callofchtulhu.pl',
+      })
+    );
+  });
+
+  it('obsługuje kliknięcie Wyślij e-mail: przygotowuje mailto, kopiuje raport do schowka i wywołuje toast', async () => {
+    let clickedHref = '';
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        clickedHref = this.href;
+      });
+
+    render(
+      <BetaFeedbackModal
+        open={true}
+        onOpenChange={() => {}}
+        scenarioTitle="Cień nad Prabutami"
+        characterName="Piotr Wójcicki"
+        eraLabel="PRL"
+        messageCount={5}
+      />
+    );
+
+    const textarea = screen.getByPlaceholderText(/Opisz krótko co się wydarzyło/i);
+    fireEvent.change(textarea, { target: { value: 'Problem z rzutem na Bójkę' } });
+
+    const sendEmailBtn = screen.getByRole('button', { name: /Wyślij e-mail \(issue@callofchtulhu\.pl\)/i });
+    fireEvent.click(sendEmailBtn);
+
+    await waitFor(() => {
+      expect(clickSpy).toHaveBeenCalled();
+    });
+
+    expect(clickedHref).toContain('mailto:issue@callofchtulhu.pl');
+    expect(clickedHref).toContain('Cie%C5%84%20nad%20Prabutami');
+    expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
+    const copiedText = (navigator.clipboard.writeText as jest.Mock).mock.calls[0][0];
+    expect(copiedText).toContain('Problem z rzutem na Bójkę');
+    expect(copiedText).toContain('Piotr Wójcicki');
+
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Otwarto klienta poczty e-mail!',
+      })
+    );
+
+    clickSpy.mockRestore();
+  });
+
+  it('kopiuje sformatowany raport do schowka i wywołuje toast po kliknięciu Kopiuj raport', async () => {
     render(
       <BetaFeedbackModal
         open={true}
