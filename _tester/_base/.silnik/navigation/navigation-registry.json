@@ -388,6 +388,22 @@
         "pl": "Badanie tomów w czacie (CoC 7e RAW)",
         "en": "In-chat tome study (CoC 7e RAW)"
       }
+    },
+    {
+      "id": "beta-welcome-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Status wersji Beta",
+        "en": "Beta Version Status"
+      }
+    },
+    {
+      "id": "beta-feedback-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Zgłoś błąd / uwagę",
+        "en": "Report Issue / Feedback"
+      }
     }
   ],
   "actions": [
@@ -795,6 +811,33 @@
         "en": "Study tome"
       },
       "component": "src/components/chat/chat-window/components/tome-card.tsx"
+    },
+    {
+      "source": "home",
+      "target": "beta-welcome-modal",
+      "label": {
+        "pl": "Status wersji Beta",
+        "en": "Beta Version Status"
+      },
+      "component": "src/components/sidebar/CthulhuSidebar.tsx"
+    },
+    {
+      "source": "home",
+      "target": "beta-feedback-modal",
+      "label": {
+        "pl": "Zgłoś błąd / uwagę",
+        "en": "Report Issue / Feedback"
+      },
+      "component": "src/components/sidebar/CthulhuSidebar.tsx"
+    },
+    {
+      "source": "beta-welcome-modal",
+      "target": "beta-feedback-modal",
+      "label": {
+        "pl": "Zgłoś uwagę lub błąd",
+        "en": "Report Issue or Feedback"
+      },
+      "component": "src/components/dialogs/BetaWelcomeModal.tsx"
     }
   ]
 }

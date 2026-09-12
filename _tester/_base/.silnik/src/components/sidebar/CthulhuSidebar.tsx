@@ -21,6 +21,7 @@ import {
   Hourglass,
   Lock,
   Sparkles,
+  Bug,
 } from 'lucide-react';
 import type { SessionEndStatus } from '@/hooks/useChat';
 import NextImage from 'next/image';
@@ -93,6 +94,8 @@ interface CthulhuSidebarProps {
   registerOpenAdventureSelector?: (openFn: () => void) => void; // Rejestracja funkcji otwierającej AdventureSelector
   hideSidebarPanel?: boolean; // Welcome: ukryj wizualny panel (komponent zostaje zamontowany, by hostować modale + rejestrację)
   onOpenHelp?: () => void; // Otwiera kompendium wiedzy, bestiariusz i encyklopedię epoki
+  onOpenBetaStatus?: () => void; // Otwiera raport gotowości wersji Beta
+  onOpenBetaFeedback?: () => void; // Otwiera formularz zgłoszenia błędu / uwagi
   onAdventureSelect?: (adventure: AdventureContext) => void; // Callback: przygoda była wybrana
   // Custom Adventures
   customAdventures?: CustomAdventure[];
@@ -146,6 +149,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   registerOpenAdventureSelector,
   hideSidebarPanel,
   onOpenHelp,
+  onOpenBetaStatus,
+  onOpenBetaFeedback,
   onAdventureSelect,
   customAdventures,
   onUploadAdventure,
@@ -652,6 +657,28 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 >
                   <BookOpen className="w-4 h-4 mr-3 text-primary" />
                   {t('compendium')}
+                </Button>
+              )}
+              {onOpenBetaStatus && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  onClick={onOpenBetaStatus}
+                  title={t('betaStatusTitle')}
+                >
+                  <Sparkles className="w-4 h-4 mr-3 text-primary" />
+                  {t('betaStatus')}
+                </Button>
+              )}
+              {onOpenBetaFeedback && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  onClick={onOpenBetaFeedback}
+                  title={t('betaFeedbackTitle')}
+                >
+                  <Bug className="w-4 h-4 mr-3 text-primary" />
+                  {t('betaFeedback')}
                 </Button>
               )}
               <YouTubePlayer isTTSPlaying={isTTSPlaying} />

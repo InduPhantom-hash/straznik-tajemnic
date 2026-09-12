@@ -37,6 +37,8 @@ export interface WelcomeScreenProps {
   onLoadSave?: () => void;
   onOpenApiKeys?: () => void;
   onOpenHelp?: () => void;
+  onOpenBetaStatus?: () => void;
+  onOpenBetaFeedback?: () => void;
   onColdStart?: () => void;
   hasRules?: boolean;
   hasAdventure?: boolean;

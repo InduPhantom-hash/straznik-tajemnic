@@ -63,6 +63,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onLoadSave,
   onOpenApiKeys,
   onOpenHelp,
+  onOpenBetaStatus,
+  onOpenBetaFeedback,
   onColdStart,
   onPickPredefinedCharacter, // NOWE: gotowa postać
   hasRules = false,
@@ -374,6 +376,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             onLoadSave={onLoadSave}
             onOpenApiKeys={onOpenApiKeys}
             onOpenHelp={onOpenHelp}
+            onOpenBetaStatus={onOpenBetaStatus}
+            onOpenBetaFeedback={onOpenBetaFeedback}
             onColdStart={onColdStart}
             hasRules={hasRules}
             hasAdventure={hasAdventure}
