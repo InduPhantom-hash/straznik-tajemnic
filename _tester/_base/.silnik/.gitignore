@@ -143,3 +143,7 @@ desktop/*.iconset
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 graft/
+
+# Raporty crash i feedback z runtime
+/data/crash-reports/
+/data/feedback/

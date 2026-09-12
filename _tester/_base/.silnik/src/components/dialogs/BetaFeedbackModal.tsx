@@ -22,7 +22,11 @@ import {
   ChevronDown,
   ChevronRight,
   Info,
+  Mail,
 } from 'lucide-react';
+
+export const FEEDBACK_EMAIL =
+  process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || 'issue@callofchtulhu.pl';
 
 export type FeedbackCategory =
   | 'mechanics'
@@ -53,6 +57,8 @@ export function BetaFeedbackModal({
   const [description, setDescription] = useState('');
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [sentEmail, setSentEmail] = useState(false);
 
   const categories: Array<{ id: FeedbackCategory; label: string }> = [
     { id: 'mechanics', label: t('categoryMechanics') },
@@ -80,12 +86,8 @@ export function BetaFeedbackModal({
     };
   };
 
-  const handleCopyReport = async () => {
-    const diag = generateDiagnosticData();
-    const catLabel =
-      categories.find((c) => c.id === category)?.label || category;
-
-    const reportMarkdown = `### [BETA FEEDBACK] ${catLabel}
+  const buildReportMarkdown = (diag: ReturnType<typeof generateDiagnosticData>, catLabel: string) => {
+    return `### [BETA FEEDBACK] ${catLabel}
 
 **Opis problemu:**
 ${diag.userDescription || '*(Brak dodatkowego opisu)*'}
@@ -104,6 +106,86 @@ ${diag.userDescription || '*(Brak dodatkowego opisu)*'}
 
 </details>
 `;
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(FEEDBACK_EMAIL);
+        setCopiedEmail(true);
+        setTimeout(() => setCopiedEmail(false), 2000);
+        toast({
+          title: t('copiedEmail'),
+          description: FEEDBACK_EMAIL,
+        });
+      }
+    } catch (err) {
+      console.error('Błąd kopiowania adresu e-mail:', err);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    const diag = generateDiagnosticData();
+    const catLabel =
+      categories.find((c) => c.id === category)?.label || category;
+    const reportMarkdown = buildReportMarkdown(diag, catLabel);
+
+    // 1. Zapis w tle do API lokalnego
+    try {
+      fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category,
+          description: diag.userDescription,
+          diagnostics: diag,
+        }),
+      }).catch(() => {});
+    } catch {
+      // Ignoruj błąd zapisu w tle
+    }
+
+    // 2. Kopiowanie do schowka dla wygody
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(reportMarkdown);
+      }
+    } catch {
+      // Ignoruj błąd schowka
+    }
+
+    // 3. Wywołanie mailto
+    const subject = encodeURIComponent(`[Strażnik Beta] ${catLabel} - ${diag.scenario}`);
+    const body = encodeURIComponent(reportMarkdown);
+    const mailtoUrl = `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${body}`;
+
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      try {
+        const mailtoLink = document.createElement('a');
+        mailtoLink.href = mailtoUrl;
+        document.body.appendChild(mailtoLink);
+        mailtoLink.click();
+        mailtoLink.remove();
+      } catch {
+        window.location.href = mailtoUrl;
+      }
+    }
+
+    setSentEmail(true);
+    setTimeout(() => setSentEmail(false), 3000);
+
+    toast({
+      title: t('sendEmailSuccess'),
+      description: t('sendEmailSuccessDesc', { email: FEEDBACK_EMAIL }),
+    });
+  };
+
+  const handleCopyReport = async () => {
+    const diag = generateDiagnosticData();
+    const catLabel =
+      categories.find((c) => c.id === category)?.label || category;
+
+    const reportMarkdown = buildReportMarkdown(diag, catLabel);
 
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -199,6 +281,33 @@ ${diag.userDescription || '*(Brak dodatkowego opisu)*'}
             />
           </div>
 
+          {/* Pasek informacyjny o docelowym adresie e-mail */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded bg-black/50 border border-brass/25 text-xs">
+            <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+              <Mail className="w-4 h-4 text-brass shrink-0" />
+              <span className="truncate font-special-elite">
+                {t('emailNotice')}:{' '}
+                <strong className="text-brass font-mono select-all font-bold">
+                  {FEEDBACK_EMAIL}
+                </strong>
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={handleCopyEmail}
+              className="h-7 px-2 text-[11px] text-brass hover:text-foreground hover:bg-brass/10 shrink-0 self-end sm:self-auto"
+            >
+              {copiedEmail ? (
+                <Check className="w-3 h-3 mr-1 text-emerald-400" />
+              ) : (
+                <Copy className="w-3 h-3 mr-1" />
+              )}
+              {copiedEmail ? t('copiedEmail') : t('copyEmail')}
+            </Button>
+          </div>
+
           {/* Dane diagnostyczne - Zwijany panel */}
           <div className="border border-brass/20 rounded p-3 bg-black/40">
             <button
@@ -245,34 +354,56 @@ ${diag.userDescription || '*(Brak dodatkowego opisu)*'}
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-brass/20">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadDiagnostics}
-            className="w-full sm:w-auto text-xs border-brass/30 text-brass hover:bg-brass/10"
-          >
-            <Download className="w-3.5 h-3.5 mr-2" />
-            {t('downloadButton')}
-          </Button>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto order-2 sm:order-1">
             <Button
+              variant="outline"
               size="sm"
               onClick={handleCopyReport}
-              className="w-full sm:w-auto font-display uppercase tracking-wider text-xs bg-primary text-primary-foreground hover:brightness-110"
+              className="flex-1 sm:flex-none text-xs border-brass/30 text-brass hover:bg-brass/10"
             >
               {copied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 mr-2 text-emerald-300" />
+                  <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-300" />
                   Skopiowano!
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 mr-2" />
+                  <Copy className="w-3.5 h-3.5 mr-1.5" />
                   {t('copyButton')}
                 </>
               )}
             </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadDiagnostics}
+              className="flex-1 sm:flex-none text-xs border-brass/30 text-muted-foreground hover:text-foreground hover:bg-brass/10"
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              {t('downloadButton')}
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto order-1 sm:order-2">
+            <Button
+              size="sm"
+              onClick={handleSendEmail}
+              className="flex-1 sm:flex-none font-display uppercase tracking-wider text-xs bg-primary text-primary-foreground hover:brightness-110 shadow-sm"
+            >
+              {sentEmail ? (
+                <>
+                  <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-300" />
+                  Wysłano!
+                </>
+              ) : (
+                <>
+                  <Mail className="w-3.5 h-3.5 mr-1.5" />
+                  {t('sendEmailButton')}
+                </>
+              )}
+            </Button>
+
             <Button
               variant="ghost"
               size="sm"

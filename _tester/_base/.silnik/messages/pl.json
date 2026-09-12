@@ -36,7 +36,8 @@
     "inProgressItem4Desc": "Gotowe scenariusze działają od ręki; parser dowolnego pliku PDF wymaga własnego klucza API Gemini.",
     "dontShowAgain": "Nie pokazuj tego okna ponownie przy uruchomieniu",
     "enterGame": "Rozumiem, przejdź do gry",
-    "openFeedback": "Zgłoś uwagę lub błąd"
+    "openFeedback": "Zgłoś uwagę lub błąd",
+    "betaFeedbackHint": "Uwagi i błędy z testów przesyłaj w grze lub bezpośrednio na adres: issue@callofchtulhu.pl"
   },
   "BetaFeedback": {
     "title": "Zgłoś Uwagę lub Błąd (Beta Feedback)",
@@ -56,6 +57,12 @@
     "character": "Aktywny Badacz",
     "messagesCount": "Wiadomości w sesji",
     "audioStatus": "Stan audio",
+    "emailNotice": "Wysyłka zgłoszeń na adres",
+    "copyEmail": "Kopiuj adres",
+    "copiedEmail": "Skopiowano adres!",
+    "sendEmailButton": "Wyślij e-mail (issue@callofchtulhu.pl)",
+    "sendEmailSuccess": "Otwarto klienta poczty e-mail!",
+    "sendEmailSuccessDesc": "Wiadomość zaadresowana do {email}. Pełną treść raportu skopiowano także do Twojego schowka.",
     "copySuccess": "Raport diagnostyczny został skopiowany do schowka!",
     "copyButton": "Kopiuj raport do schowka (GitHub Issue)",
     "downloadButton": "Pobierz diagnostykę (.json)",

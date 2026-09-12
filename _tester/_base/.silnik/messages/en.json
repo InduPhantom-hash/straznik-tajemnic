@@ -36,7 +36,8 @@
     "inProgressItem4Desc": "Predefined scenarios work out of the box; arbitrary PDF parsing requires your own Gemini API key.",
     "dontShowAgain": "Do not show this screen again on startup",
     "enterGame": "I understand, enter game",
-    "openFeedback": "Report Issue or Feedback"
+    "openFeedback": "Report Issue or Feedback",
+    "betaFeedbackHint": "Send feedback and bug reports in-game or directly to: issue@callofchtulhu.pl"
   },
   "BetaFeedback": {
     "title": "Report Issue or Feedback (Beta)",
@@ -56,6 +57,12 @@
     "character": "Active Investigator",
     "messagesCount": "Messages in session",
     "audioStatus": "Audio status",
+    "emailNotice": "Send reports directly to",
+    "copyEmail": "Copy address",
+    "copiedEmail": "Address copied!",
+    "sendEmailButton": "Send Email (issue@callofchtulhu.pl)",
+    "sendEmailSuccess": "Email client opened!",
+    "sendEmailSuccessDesc": "Draft addressed to {email}. Full report content was also copied to your clipboard.",
     "copySuccess": "Diagnostic report copied to clipboard!",
     "copyButton": "Copy Report to Clipboard (GitHub Issue)",
     "downloadButton": "Download Diagnostics (.json)",

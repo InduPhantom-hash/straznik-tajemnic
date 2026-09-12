@@ -173,6 +173,11 @@ export function BetaWelcomeModal({
           </div>
         </div>
 
+        {/* Pasek wskazówki zgłoszeń z adresem e-mail */}
+        <div className="rounded p-2.5 bg-black/40 border border-brass/20 text-xs font-special-elite text-muted-foreground">
+          <span>{t('betaFeedbackHint')}</span>
+        </div>
+
         <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-brass/20">
           <div className="flex items-center space-x-2">
             <input

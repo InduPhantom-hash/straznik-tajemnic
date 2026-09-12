@@ -24,3 +24,7 @@ graft/
 
 # Lokalne analizy i zrzuty pomocnicze - nie należą do historii produktu.
 scratch/
+
+# Lokalne raporty awarii i feedbacku (generowane lokalnie w runtime)
+data/crash-reports/
+data/feedback/

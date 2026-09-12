@@ -34,6 +34,7 @@ jest.mock('next-intl', () => ({
       dontShowAgain: 'Nie pokazuj tego okna ponownie przy uruchomieniu',
       enterGame: 'Rozumiem, przejdź do gry',
       openFeedback: 'Zgłoś uwagę lub błąd',
+      betaFeedbackHint: 'Uwagi i błędy z testów przesyłaj w grze lub bezpośrednio na adres: issue@callofchtulhu.pl',
     };
     return messages[key] || key;
   },
@@ -45,13 +46,14 @@ describe('BetaWelcomeModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renderuje poprawnie sekcje gotowe i w budowie', () => {
+  it('renderuje poprawnie sekcje gotowe i w budowie oraz wskazówkę e-mail', () => {
     render(<BetaWelcomeModal open={true} onOpenChange={() => {}} />);
     expect(screen.getByText(/Strażnik Tajemnic AI – Wersja Grywalna/i)).toBeInTheDocument();
     expect(screen.getByText(/Moduły Gotowe do Gry/i)).toBeInTheDocument();
     expect(screen.getByText(/Moduły w Budowie/i)).toBeInTheDocument();
     expect(screen.getByText(/Karta Badacza CoC 7e RAW/i)).toBeInTheDocument();
     expect(screen.getByText(/Scenariusze i Handouty Strefy 11/i)).toBeInTheDocument();
+    expect(screen.getByText(/issue@callofchtulhu\.pl/i)).toBeInTheDocument();
   });
 
   it('zapisuje flagę w localStorage po zaznaczeniu dontShowAgain i kliknięciu enterGame', () => {
