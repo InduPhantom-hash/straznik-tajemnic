@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { CthulhuSidebar } from './CthulhuSidebar';
 
 jest.mock('../ui/youtube-player', () => ({
@@ -177,5 +177,36 @@ describe('CthulhuSidebar player tools', () => {
     expect(img).toBeInTheDocument();
     // 1980s filter
     expect(img).toHaveStyle({ filter: 'sepia(0.04) saturate(0.88) contrast(1.04) brightness(0.97)' });
+  });
+
+  it('renderuje Kompendium i Kulisy MG w sekcji Pomoce Badacza i obsługuje przełączanie', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockOpenHelp = jest.fn();
+
+    render(
+      <CthulhuSidebar
+        onOpenHelp={mockOpenHelp}
+      />
+    );
+
+    // Kompendium w Pomocach Badacza
+    const compendiumBtn = screen.getByTitle(/Otwórz kompendium wiedzy/i);
+    expect(compendiumBtn).toBeInTheDocument();
+    act(() => {
+      compendiumBtn.click();
+    });
+    expect(mockOpenHelp).toHaveBeenCalledTimes(1);
+
+    // Kulisy MG w Pomocach Badacza
+    const directorBtn = screen.getByTitle(/Przełącz widok kulis Mistrza Gry/i);
+    expect(directorBtn).toBeInTheDocument();
+    expect(directorBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(directorBtn).toHaveTextContent(/Wył/i);
+
+    act(() => {
+      directorBtn.click();
+    });
+    expect(directorBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(directorBtn).toHaveTextContent(/Wł/i);
   });
 });

@@ -22,6 +22,8 @@ import {
   Lock,
   Sparkles,
   Bug,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import type { SessionEndStatus } from '@/hooks/useChat';
 import NextImage from 'next/image';
@@ -183,6 +185,49 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   const [seenEquipmentCount, setSeenEquipmentCount] = useState<number>(
     () => activeCharacter?.equipment?.length ?? 0
   );
+
+  // Tryb reżyserski (Kulisy MG / BOP) w Pomocach Badacza
+  const [isDirectorMode, setIsDirectorMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('straznik_director_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleDirectorMode = () => {
+    const next = !isDirectorMode;
+    setIsDirectorMode(next);
+    try {
+      localStorage.setItem('straznik_director_mode', String(next));
+      window.dispatchEvent(
+        new CustomEvent('director-mode-changed', {
+          detail: { isDirectorMode: next },
+        })
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    const handleDirectorModeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isDirectorMode?: boolean }>;
+      if (typeof customEvent.detail?.isDirectorMode === 'boolean') {
+        setIsDirectorMode(customEvent.detail.isDirectorMode);
+      } else {
+        try {
+          setIsDirectorMode(localStorage.getItem('straznik_director_mode') === 'true');
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    window.addEventListener('director-mode-changed', handleDirectorModeChange);
+    return () => window.removeEventListener('director-mode-changed', handleDirectorModeChange);
+  }, []);
 
   // Portret do panelu postaci - dociągany z IndexedDB gdy portraitUrl pusty
   // (wyścig hydratacji po starcie/wczytaniu gry, IND-262). Wspólna logika z
@@ -659,6 +704,25 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                   {t('compendium')}
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                className={`w-full justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors ${
+                  isDirectorMode ? 'bg-brass/15 text-gold border border-brass/40' : ''
+                }`}
+                onClick={toggleDirectorMode}
+                title={t('directorModeTooltip')}
+                aria-pressed={isDirectorMode}
+              >
+                <span className="flex items-center">
+                  <Eye className={`w-4 h-4 mr-3 ${isDirectorMode ? 'text-gold' : 'text-primary'}`} />
+                  {t('directorMode')}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded font-mono ${
+                  isDirectorMode ? 'bg-gold/20 text-gold font-semibold' : 'text-muted-foreground'
+                }`}>
+                  {isDirectorMode ? t('on') : t('off')}
+                </span>
+              </Button>
               {onOpenBetaStatus && (
                 <Button
                   variant="ghost"

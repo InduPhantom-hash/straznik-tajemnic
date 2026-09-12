@@ -130,12 +130,31 @@ export const ChatWindow: FC<ChatWindowProps> = ({
       const next = !prev;
       try {
         localStorage.setItem('straznik_director_mode', String(next));
+        window.dispatchEvent(new CustomEvent('director-mode-changed', { detail: { isDirectorMode: next } }));
       } catch {
         // ignore localStorage errors (e.g. Safari private mode)
       }
       return next;
     });
   };
+
+  useEffect(() => {
+    const handleDirectorModeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isDirectorMode?: boolean }>;
+      if (typeof customEvent.detail?.isDirectorMode === 'boolean') {
+        setIsDirectorMode(customEvent.detail.isDirectorMode);
+      } else {
+        try {
+          setIsDirectorMode(localStorage.getItem('straznik_director_mode') === 'true');
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    window.addEventListener('director-mode-changed', handleDirectorModeChange);
+    return () => window.removeEventListener('director-mode-changed', handleDirectorModeChange);
+  }, []);
 
   // Inteligentny autoscroll
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
@@ -357,9 +376,6 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         title={adventureTitle}
         region={region}
         currentLocation={currentLocation}
-        onOpenHelp={onOpenHelp}
-        isDirectorMode={isDirectorMode}
-        onToggleDirectorMode={toggleDirectorMode}
       />
       {!hasStartedGame ? (
         <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">

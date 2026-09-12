@@ -4577,6 +4577,8 @@
     "investigatorTools": "Pomoce Badacza",
     "compendium": "Kompendium i Zasady",
     "compendiumTitle": "Otwórz kompendium wiedzy, bestiariusz i encyklopedię epoki",
+    "directorMode": "Kulisy MG",
+    "directorModeTooltip": "Przełącz widok kulis Mistrza Gry (BOP)",
     "betaStatus": "Status wersji Beta",
     "betaStatusTitle": "Sprawdź co działa w 100% wg reguł CoC 7e RAW, a co jest w budowie",
     "betaFeedback": "Zgłoś błąd / uwagę",

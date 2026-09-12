@@ -14,7 +14,6 @@
 
 import { CampaignClock } from '../../../ui/campaign-clock';
 import { useTranslations } from 'next-intl';
-import { Eye } from 'lucide-react';
 
 interface ChatHeaderProps {
   /** Tytuł wybranej przygody; gdy brak - domyślny scenariusz. */
@@ -26,21 +25,12 @@ interface ChatHeaderProps {
   region?: string;
   /** IND-267: konkretne MIEJSCE bohatera (z najnowszego [LOKACJA:]); część po "·". */
   currentLocation?: string;
-  /** Otwiera kompendium zasad, bestiariusz i encyklopedię epoki. */
-  onOpenHelp?: () => void;
-  /** Czy włączony jest tryb kulis MG / BOP */
-  isDirectorMode?: boolean;
-  /** Callback do przełączania trybu kulis MG / BOP */
-  onToggleDirectorMode?: () => void;
 }
 
 export function ChatHeader({
   title,
   region,
   currentLocation,
-  onOpenHelp,
-  isDirectorMode = false,
-  onToggleDirectorMode,
 }: ChatHeaderProps) {
   const t = useTranslations('ChatHeader');
   const defaultTitle = t('defaultTitle');
@@ -93,42 +83,7 @@ export function ChatHeader({
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        {onToggleDirectorMode && (
-          <button
-            type="button"
-            onClick={onToggleDirectorMode}
-            className={`flex items-center gap-1.5 font-special-elite text-xs border px-2.5 py-1 rounded transition-colors cursor-pointer shrink-0 ${
-              isDirectorMode
-                ? 'bg-brass/20 text-gold border-brass/80 shadow-sm'
-                : 'text-brass/70 hover:text-brass border-brass/30 hover:border-brass/70 bg-card/60'
-            }`}
-            title={t('directorModeTooltip')}
-            aria-pressed={isDirectorMode}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">{t('directorMode')}</span>
-          </button>
-        )}
-
-        {onOpenHelp && (
-          <button
-            type="button"
-            onClick={onOpenHelp}
-            className="flex items-center gap-1.5 font-special-elite text-xs text-brass hover:text-gold border border-brass/30 hover:border-brass/70 px-2.5 py-1 rounded bg-card/60 transition-colors cursor-pointer shrink-0"
-            title={t('compendiumTitle')}
-          >
-            <span aria-hidden="true">🕯️</span>
-            <span className="hidden md:inline">{t('compendium')}</span>
-          </button>
-        )}
-
-        {/* déco: brass-dzielnik */}
-        <span
-          aria-hidden="true"
-          className="hidden md:block h-7 w-px bg-brass/25"
-        />
-
+      <div className="flex shrink-0 items-center">
         {/* Campaign Clock - Integrated into main window header */}
         <CampaignClock compact className="hidden sm:flex shrink-0" />
       </div>
