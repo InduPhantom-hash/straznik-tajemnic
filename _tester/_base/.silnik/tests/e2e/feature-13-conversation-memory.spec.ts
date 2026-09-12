@@ -2,17 +2,16 @@
  * Feature #13 — Conversation Memory & Summaries (regresja smoke)
  *
  * Test regresyjny dla obszaru #13 audytowanego w Sesji 4 IND-42 (2026-05-07).
- * Pokrywa critical path: page renders → /api/chat parallel summary mock guard.
+ * Pokrywa critical path: page renders → /api/chat campaign context error guard.
  *
  * Strategia: mock fetch przez `page.route('** /api/**')` — zero kosztów Gemini/RAG.
  * Testy NIE wywołują prawdziwego /api/chat (tokeny + SSE + local RAG upsert).
  *
  * Pominięte (świadomie minimal scope, smoke zbiorczy na końcu cleanup serii per
  * memory feedback strategy):
- *  - Real saveConversationTurn → local RAG upsert (race + flakey w CI)
- *  - Real getOrGenerateSummary → Gemini Flash 2.0 call (tokeny + cost)
- *  - Cache hit/miss path (wymaga 80+ msgs context state)
- *  - Multi-user summaryCache regression (B5 finding — wymaga 2 instance test)
+ *  - Real CampaignContextEngine → ledger i campaign RAG upsert (race + flakey w CI)
+ *  - Real compactIfNeeded → Gemini call (tokeny + cost)
+ *  - Checkpoint hit/miss path (pokryty testem jednostkowym silnika)
  * Powód: scope sesji audytowej = SMOKE regresji (mock /api/chat trafia bez crash),
  * NIE pełna integracja conversation memory pipeline.
  *
@@ -59,7 +58,7 @@ test.describe('Feature #13: Conversation Memory & Summaries (regresja smoke)', (
         contentType: 'application/json',
         body: JSON.stringify({
           error: 'Mock summary generation error',
-          details: 'getOrGenerateSummary returned null after Gemini timeout',
+          details: 'CampaignContextEngine kept the original context after Gemini timeout',
         }),
       })
     );
@@ -75,8 +74,7 @@ test.describe('Feature #13: Conversation Memory & Summaries (regresja smoke)', (
         body: JSON.stringify({
           message: 'test long session message',
           character: null,
-          // Symulacja long session (> SUMMARIZATION_THRESHOLD=80) — jeden z
-          // triggerów dla getOrGenerateSummary parallel branch w route.ts:217
+          // Symulacja długiej sesji dla ścieżki CampaignContextEngine.
           messages: Array(85)
             .fill(null)
             .map((_, i) => ({

@@ -5,6 +5,8 @@ import { parseAIResponse } from '@/lib/response-parser';
 import { logApiEvent } from '@/lib/telemetry';
 import type { ParsedResponse } from '@/lib/parsers/types';
 import type { StreamChunk } from '@/lib/ai-providers/types';
+import { getCampaignContextEngine } from '@/core/memory/context-engine';
+import { conversationMemory } from '@/lib/vector-db/conversation-memory';
 
 Object.assign(globalThis, {
   TextDecoder,
@@ -21,7 +23,7 @@ jest.mock('@/lib/telemetry', () => ({
 }));
 
 jest.mock('@/lib/vector-db/conversation-memory', () => ({
-  conversationMemory: { saveConversationTurn: jest.fn() },
+  conversationMemory: { saveConversationTurn: jest.fn().mockResolvedValue({ success: true }) },
 }));
 
 jest.mock('@/lib/director-state', () => ({
@@ -30,6 +32,11 @@ jest.mock('@/lib/director-state', () => ({
 
 jest.mock('@/lib/user-usage', () => ({
   recordUserUsage: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockRecordCompletedTurn = jest.fn();
+jest.mock('@/core/memory/context-engine', () => ({
+  getCampaignContextEngine: jest.fn(() => ({ recordCompletedTurn: mockRecordCompletedTurn })),
 }));
 
 function parsedResponse(rawText: string): ParsedResponse {
@@ -71,6 +78,8 @@ describe('createSseStream', () => {
   beforeEach(() => {
     jest.mocked(parseAIResponse).mockImplementation(parsedResponse);
     jest.mocked(logApiEvent).mockClear();
+    jest.mocked(conversationMemory.saveConversationTurn).mockClear();
+    mockRecordCompletedTurn.mockClear();
   });
 
   it.each([
@@ -130,6 +139,113 @@ describe('createSseStream', () => {
       );
     }
   );
+
+  it('records only revealed narration and structured revealed facts', async () => {
+    jest.mocked(parseAIResponse).mockReturnValue({
+      ...parsedResponse('raw'),
+      events: [{ type: 'location', title: 'Hotel', description: 'Hol hotelowy', timestamp: new Date().toISOString() }],
+      journalEntries: [{ type: 'clue', title: 'List', content: 'Elias wskazał Londyn.' }],
+    });
+    const stream = createSseStream({
+      providerStream: streamChunks('Widzisz list. [SEKRETY_MG]Kultysta żyje.[/SEKRETY_MG]'),
+      getUsage: async () => null,
+      getFinishReason: () => 'STOP',
+      sessionId: 'run-one',
+      message: 'Czytam list.',
+      modelId: 'gemini-test',
+      traceId: 'trace-memory',
+      timer: { elapsed: () => 1 },
+      embeddingDim: 768,
+      ragVersion: 'v1',
+      userId: 'local',
+      assistantMessageId: 'assistant-one',
+      memoryScope: {
+        schemaVersion: 1,
+        campaignDefinitionId: 'masks-of-nyarlathotep',
+        playthroughId: 'run-one',
+        adventureId: 'peru',
+        kind: 'official',
+      },
+    });
+    await readStream(stream);
+    expect(getCampaignContextEngine).toHaveBeenCalled();
+    expect(mockRecordCompletedTurn).toHaveBeenCalledWith(expect.objectContaining({
+      assistantText: 'Widzisz list.',
+      facts: expect.arrayContaining([
+        expect.objectContaining({ kind: 'location', text: 'Hotel: Hol hotelowy' }),
+        expect.objectContaining({ kind: 'clue', text: 'List: Elias wskazał Londyn.' }),
+      ]),
+    }));
+    expect(conversationMemory.saveConversationTurn).toHaveBeenCalledWith(expect.objectContaining({
+      aiResponse: 'Widzisz list.',
+    }));
+  });
+
+  it('does not derive campaign facts from a hidden secret block', async () => {
+    jest.mocked(parseAIResponse).mockImplementation((text) => ({
+      ...parsedResponse(text),
+      events: text.includes('Tajna krypta')
+        ? [{ type: 'location', title: 'Krypta', description: 'Tajna krypta', timestamp: new Date().toISOString() }]
+        : [],
+    }));
+    const stream = createSseStream({
+      providerStream: streamChunks('Drzwi są zamknięte. [SEKRETY_MG][LOKACJA: Krypta: Tajna krypta][/SEKRETY_MG]'),
+      getUsage: async () => null,
+      getFinishReason: () => 'STOP',
+      sessionId: 'run-one',
+      message: 'Oglądam drzwi.',
+      modelId: 'gemini-test',
+      traceId: 'trace-hidden-fact',
+      timer: { elapsed: () => 1 },
+      embeddingDim: 768,
+      ragVersion: 'v1',
+      userId: 'local',
+      assistantMessageId: 'assistant-hidden-fact',
+      memoryScope: {
+        schemaVersion: 1,
+        campaignDefinitionId: 'masks-of-nyarlathotep',
+        playthroughId: 'run-one',
+        adventureId: 'peru',
+        kind: 'official',
+      },
+    });
+    await readStream(stream);
+    expect(mockRecordCompletedTurn).toHaveBeenCalledWith(expect.objectContaining({
+      assistantText: 'Drzwi są zamknięte.',
+      facts: [],
+    }));
+  });
+
+  it('records the full player utterance even when the provider returns no text', async () => {
+    const stream = createSseStream({
+      providerStream: streamChunks(),
+      getUsage: async () => null,
+      getFinishReason: () => 'STOP',
+      sessionId: 'run-one',
+      message: 'Przeszukuję pusty pokój bardzo dokładnie.',
+      modelId: 'gemini-test',
+      traceId: 'trace-empty-response',
+      timer: { elapsed: () => 1 },
+      embeddingDim: 768,
+      ragVersion: 'v1',
+      userId: 'local',
+      assistantMessageId: 'assistant-empty',
+      userMessageId: 'user-empty',
+      memoryScope: {
+        schemaVersion: 1,
+        campaignDefinitionId: 'masks-of-nyarlathotep',
+        playthroughId: 'run-one',
+        adventureId: 'peru',
+        kind: 'official',
+      },
+    });
+    await readStream(stream);
+    expect(mockRecordCompletedTurn).toHaveBeenCalledWith(expect.objectContaining({
+      userMessageId: 'user-empty',
+      userText: 'Przeszukuję pusty pokój bardzo dokładnie.',
+      assistantText: '',
+    }));
+  });
 
   it('emituje wyłącznie wzbogacony, zaufany atak wręcz w metadanych', async () => {
     jest.mocked(parseAIResponse).mockReturnValue({

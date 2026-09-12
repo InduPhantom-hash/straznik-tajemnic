@@ -49,6 +49,7 @@ function entryToVector(
     id: entry.chunkId,
     values: entry.embedding,
     metadata,
+    text: entry.text,
   };
 }
 
@@ -65,7 +66,8 @@ function entryToVector(
  */
 export async function indexChunk(
   entry: MemoryIndexEntry,
-  sessionId: string
+  sessionId: string,
+  namespace = LOCAL_RAG_NAMESPACES.session(sessionId)
 ): Promise<boolean> {
   if (!localVectorStore.initialized) {
     console.log('⚠️ Lokalny RAG nie jest gotowy, pomijam indeksowanie');
@@ -82,7 +84,6 @@ export async function indexChunk(
 
   try {
     const vector = entryToVector(entry, sessionId);
-    const namespace = LOCAL_RAG_NAMESPACES.session(sessionId);
     await localVectorStore.upsert(namespace, [vector]);
     console.log(`💾 Indexed chunk ${entry.chunkId} in local RAG`);
     return true;

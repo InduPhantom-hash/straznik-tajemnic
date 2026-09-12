@@ -32,8 +32,9 @@ import type { Character, NPC } from '@/lib/types';
 import { enrichMeleeAttackReferences } from '@/lib/combat/npc-combat-profile';
 import type { RagMeta } from './run-rag-summary';
 import type { CampaignMemoryScope } from '@/core/memory/types';
-import { getCampaignMemoryLedgerStore } from '@/core/memory/ledger-store';
-import { cleanResponseText } from '@/lib/parsers/text-cleaner';
+import { getCampaignContextEngine } from '@/core/memory/context-engine';
+import type { RevealedMemoryFact } from '@/core/memory/types';
+import { cleanResponseText, stripHiddenMemoryContent } from '@/lib/parsers/text-cleaner';
 
 export interface CreateSseStreamOpts {
   providerStream: AsyncIterable<StreamChunk>;
@@ -55,6 +56,7 @@ export interface CreateSseStreamOpts {
   /** IND-168 Faza 6: userId konta (Clerk) dla licznika zużycia per-konto */
   userId: string;
   assistantMessageId?: string;
+  userMessageId?: string;
   characters?: Character[];
   npcs?: NPC[];
   combatMechanicsEnabled?: boolean;
@@ -77,6 +79,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
     ragVersion,
     userId,
     assistantMessageId,
+    userMessageId,
     characters = [],
     npcs = [],
     combatMechanicsEnabled = false,
@@ -222,29 +225,54 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
         }
 
         // Conversation memory persist (fire-and-forget local RAG)
+        const revealedResponse = stripHiddenMemoryContent(fullText);
+        const revealedNarrative = cleanResponseText(revealedResponse);
         if (sessionId && fullText) {
           conversationMemory
             .saveConversationTurn({
               userMessage: message,
-              aiResponse: fullText,
+              aiResponse: memoryScope ? revealedNarrative : fullText,
               sessionId,
               characterName: character?.name,
+              memoryScope,
+              messageId: assistantMessageId ?? traceId,
             })
             .catch(() => {});
         }
 
-        if (memoryScope && fullText) {
+        if (memoryScope && message) {
           try {
-            const revealedNarrative = cleanResponseText(fullText);
-            if (revealedNarrative) {
-              getCampaignMemoryLedgerStore().recordConversationTurn({
+              const revealedParsed = parseAIResponse(revealedResponse);
+              const facts: RevealedMemoryFact[] = [];
+              for (const event of revealedParsed.events) {
+                const kind = event.type === 'npc'
+                  ? 'npc'
+                  : event.type === 'location'
+                    ? 'location'
+                    : ['combat', 'sanity', 'death'].includes(event.type)
+                      ? 'consequence'
+                      : 'clue';
+                facts.push({ kind, text: `${event.title}: ${event.description}` });
+              }
+              for (const entry of revealedParsed.journalEntries) {
+                const kind = entry.type === 'npc'
+                  ? 'npc'
+                  : entry.type === 'location'
+                    ? 'location'
+                    : ['combat', 'sanity', 'death'].includes(entry.type)
+                      ? 'consequence'
+                      : 'clue';
+                facts.push({ kind, text: `${entry.title}: ${entry.content}` });
+              }
+              getCampaignContextEngine().recordCompletedTurn({
                 scope: memoryScope,
                 sessionId: sessionId ?? memoryScope.playthroughId,
                 messageId: assistantMessageId ?? traceId,
+                userMessageId,
                 userText: message,
                 assistantText: revealedNarrative,
+                facts,
               });
-            }
           } catch (error) {
             console.warn('Campaign memory ledger write failed:', error);
           }

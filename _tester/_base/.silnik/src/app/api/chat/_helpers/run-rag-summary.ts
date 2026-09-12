@@ -4,26 +4,23 @@
  * Uruchamia 2 operacje równolegle (OPT-09):
  *   1. RAG retrieval (retrievalService.retrieve) - semantic search z sessions/{id}
  *      + adventures/{id} + rules namespaces, graceful fallback przy błędzie.
- *   2. Mid-session summary (getOrGenerateSummary) - warunkowy, tylko gdy
- *      totalMsgCount > SUMMARIZATION_THRESHOLD + sessionId + apiKey dostępne,
- *      graceful fallback przy błędzie.
+ *   2. CampaignContextEngine - budowa aktywnej historii, kompresja zależna od
+ *      limitu modelu i retrieval trwałej pamięci kampanii.
  *
  * Side effects (controlled):
  *   - embeddingService.initialize(geminiKey) gdy geminiKey present
  *   - console.warn dla RAG failure
  *   - console.log dla RAG success metrics
  *
- * Dependencies (mockowalne przez jest): retrievalService, getOrGenerateSummary,
- * embeddingService, SUMMARIZATION_THRESHOLD.
+ * Dependencies (mockowalne przez jest): retrievalService, CampaignContextEngine,
+ * embeddingService.
  */
 
 import { embeddingService } from '@/lib/embedding-service';
 import { retrievalService } from '@/lib/vector-db/retrieval-service';
-import {
-  getOrGenerateSummary,
-  SUMMARIZATION_THRESHOLD,
-} from '@/lib/conversation-summarizer';
 import type { Message } from '@/lib/types';
+import { getCampaignContextEngine } from '@/core/memory/context-engine';
+import type { CampaignMemoryScope } from '@/core/memory/types';
 
 export interface RunRAGAndSummaryOpts {
   message: string;
@@ -42,6 +39,8 @@ export interface RunRAGAndSummaryOpts {
   adventureId?: string;
   /** Język promptu RAG (domyślnie 'pl') */
   locale?: 'pl' | 'en';
+  modelId: string;
+  memoryScope: CampaignMemoryScope | null;
 }
 
 /**
@@ -69,6 +68,8 @@ export interface RunRAGAndSummaryResult {
   ragSection: string;
   summarySection: string | null;
   ragMeta: RagMeta | null;
+  contextMessages: Message[];
+  campaignMemorySection: string;
 }
 
 export async function runRAGAndSummary(
@@ -83,6 +84,8 @@ export async function runRAGAndSummary(
     adventureSource,
     adventureId,
     locale,
+    modelId,
+    memoryScope,
   } = opts;
 
   // OPT-09: embedding service init (idempotent, no-op gdy już zainicjalizowany)
@@ -103,18 +106,18 @@ export async function runRAGAndSummary(
       return null;
     });
 
-  // Mid-session summary parallel z RAG (warunkowo)
-  const totalMsgCount = messages?.length || 0;
-  const summaryPromise =
-    totalMsgCount > SUMMARIZATION_THRESHOLD && sessionId && apiKey
-      ? getOrGenerateSummary(messages ?? [], sessionId, apiKey).catch(
-          () => null
-        )
-      : Promise.resolve(null);
+  const contextPromise = getCampaignContextEngine().prepareContext({
+    messages,
+    query: message,
+    modelId,
+    apiKey,
+    scope: memoryScope,
+    locale: locale ?? 'pl',
+  });
 
-  const [retrieval, summarySection] = await Promise.all([
+  const [retrieval, campaignContext] = await Promise.all([
     ragPromise,
-    summaryPromise,
+    contextPromise,
   ]);
 
   let ragSection = '';
@@ -144,5 +147,11 @@ export async function runRAGAndSummary(
     };
   }
 
-  return { ragSection, summarySection, ragMeta };
+  return {
+    ragSection,
+    summarySection: campaignContext.summarySection,
+    ragMeta,
+    contextMessages: campaignContext.messages,
+    campaignMemorySection: campaignContext.memorySection,
+  };
 }

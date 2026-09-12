@@ -16,6 +16,8 @@ import { embeddingService } from '../embedding-service';
 import { indexingService } from './indexing-service';
 import { timeManager } from '../time-manager';
 import { COC_LOCATIONS, COC_MECHANICS, COC_MYTHOS } from '../data/coc-glossary';
+import type { CampaignMemoryScope } from '@/core/memory/types';
+import { LOCAL_RAG_NAMESPACES } from './vector-types';
 
 // ============================================================================
 // TYPES
@@ -33,6 +35,8 @@ export interface ConversationTurn {
   gameTimestamp?: string;
   /** Imię postaci gracza */
   characterName?: string;
+  memoryScope?: CampaignMemoryScope | null;
+  messageId?: string;
 }
 
 /** Wynik zapisu tury */
@@ -207,7 +211,9 @@ class ConversationMemoryService {
       const gameTimestamp = turn.gameTimestamp || timeManager.formatForPrompt();
 
       // Unikalny ID tury
-      const chunkId = `conv-${turn.sessionId}-${Date.now()}`;
+      const chunkId = turn.messageId
+        ? `${turn.messageId}:assistant`
+        : `conv-${turn.sessionId}-${Date.now()}`;
 
       // IND-75: Embedding generation z retry (transient Gemini API errors)
       const entry = await retryWithBackoff(
@@ -233,7 +239,13 @@ class ConversationMemoryService {
 
       // Lokalny zapis z retry, aby przejściowy błąd dysku nie gubił tury.
       const indexed = await retryWithBackoff(
-        () => indexingService.indexChunk(entry, turn.sessionId),
+        () => indexingService.indexChunk(
+          entry,
+          turn.sessionId,
+          turn.memoryScope
+            ? LOCAL_RAG_NAMESPACES.campaign(turn.memoryScope.playthroughId)
+            : LOCAL_RAG_NAMESPACES.session(turn.sessionId)
+        ),
         (result) => result === true
       );
 

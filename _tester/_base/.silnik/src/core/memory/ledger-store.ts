@@ -5,6 +5,8 @@ import { getWritableDataDir } from '@/lib/paths';
 import type {
   CampaignMemoryScope,
   CampaignMemorySearchResult,
+  CampaignCompressionCheckpoint,
+  CampaignCompressionFailureState,
   MemoryLedgerEntry,
   MemoryLedgerKind,
   MemoryLedgerRole,
@@ -75,7 +77,28 @@ export class CampaignMemoryLedgerStore {
       );
       CREATE INDEX IF NOT EXISTS idx_memory_scope_sequence
         ON memory_entries(playthrough_id, sequence_no DESC);
+      CREATE TABLE IF NOT EXISTS compression_checkpoints (
+        id TEXT PRIMARY KEY,
+        playthrough_id TEXT NOT NULL,
+        version INTEGER NOT NULL,
+        source_start_sequence INTEGER NOT NULL,
+        source_end_sequence INTEGER NOT NULL,
+        source_message_ids_json TEXT NOT NULL DEFAULT '[]',
+        summary TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_compression_scope_version
+        ON compression_checkpoints(playthrough_id, version DESC);
+      CREATE TABLE IF NOT EXISTS compression_failures (
+        playthrough_id TEXT PRIMARY KEY,
+        failure_count INTEGER NOT NULL,
+        retry_after TEXT
+      );
     `);
+    const checkpointColumns = this.db.pragma('table_info(compression_checkpoints)') as Array<{ name: string }>;
+    if (!checkpointColumns.some((column) => column.name === 'source_message_ids_json')) {
+      this.db.exec("ALTER TABLE compression_checkpoints ADD COLUMN source_message_ids_json TEXT NOT NULL DEFAULT '[]'");
+    }
     this.ensureFts();
   }
 
@@ -307,6 +330,101 @@ export class CampaignMemoryLedgerStore {
       ORDER BY sequence_no ASC, rowid ASC
     `).all(scope.playthroughId) as LedgerRow[];
     return rows.map((row) => this.toEntry(row, scope));
+  }
+
+  getLatestCheckpoint(playthroughId: string): CampaignCompressionCheckpoint | null {
+    const row = this.db.prepare(`
+      SELECT * FROM compression_checkpoints
+      WHERE playthrough_id = ? ORDER BY version DESC LIMIT 1
+    `).get(playthroughId) as {
+      id: string;
+      playthrough_id: string;
+      version: number;
+      source_start_sequence: number;
+      source_end_sequence: number;
+      source_message_ids_json: string;
+      summary: string;
+      created_at: string;
+    } | undefined;
+    if (!row) return null;
+    const failure = this.getCompressionFailure(playthroughId);
+    return {
+      id: row.id,
+      playthroughId: row.playthrough_id,
+      version: row.version,
+      sourceStartSequence: row.source_start_sequence,
+      sourceEndSequence: row.source_end_sequence,
+      sourceMessageIds: parseJsonArray(row.source_message_ids_json),
+      summary: row.summary,
+      createdAt: row.created_at,
+      failureCount: failure.failureCount,
+      retryAfter: failure.retryAfter,
+    };
+  }
+
+  saveCheckpoint(input: Omit<CampaignCompressionCheckpoint, 'failureCount' | 'retryAfter'>): void {
+    this.db.transaction(() => {
+      this.db.prepare(`
+        INSERT OR IGNORE INTO compression_checkpoints (
+          id, playthrough_id, version, source_start_sequence,
+          source_end_sequence, source_message_ids_json, summary, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        input.id,
+        input.playthroughId,
+        input.version,
+        input.sourceStartSequence,
+        input.sourceEndSequence,
+        JSON.stringify(input.sourceMessageIds),
+        input.summary,
+        input.createdAt
+      );
+      const sourceIds = new Set(input.sourceMessageIds);
+      if (sourceIds.size > 0) {
+        const candidates = this.db.prepare(`
+          SELECT id, source_message_ids_json FROM memory_entries WHERE playthrough_id = ?
+        `).all(input.playthroughId) as Array<{ id: string; source_message_ids_json: string }>;
+        const entryIds = candidates
+          .filter((entry) => parseJsonArray(entry.source_message_ids_json).some((id) => sourceIds.has(id)))
+          .map((entry) => entry.id);
+        if (entryIds.length > 0) {
+          const placeholders = entryIds.map(() => '?').join(', ');
+          this.db.prepare(`UPDATE memory_entries SET active = 0 WHERE id IN (${placeholders})`).run(...entryIds);
+        }
+      }
+      this.clearCompressionFailure(input.playthroughId);
+    })();
+  }
+
+  getCompressionFailure(playthroughId: string): CampaignCompressionFailureState {
+    const row = this.db.prepare(`
+      SELECT failure_count, retry_after FROM compression_failures WHERE playthrough_id = ?
+    `).get(playthroughId) as { failure_count: number; retry_after: string | null } | undefined;
+    return {
+      playthroughId,
+      failureCount: row?.failure_count ?? 0,
+      retryAfter: row?.retry_after ?? null,
+    };
+  }
+
+  recordCompressionFailure(playthroughId: string, now = Date.now()): CampaignCompressionFailureState {
+    const previous = this.getCompressionFailure(playthroughId);
+    const failureCount = previous.failureCount + 1;
+    const delays = [60, 300, 900];
+    const delaySeconds = delays[Math.min(failureCount - 1, delays.length - 1)];
+    const retryAfter = new Date(now + delaySeconds * 1000).toISOString();
+    this.db.prepare(`
+      INSERT INTO compression_failures(playthrough_id, failure_count, retry_after)
+      VALUES (?, ?, ?)
+      ON CONFLICT(playthrough_id) DO UPDATE SET
+        failure_count = excluded.failure_count,
+        retry_after = excluded.retry_after
+    `).run(playthroughId, failureCount, retryAfter);
+    return { playthroughId, failureCount, retryAfter };
+  }
+
+  clearCompressionFailure(playthroughId: string): void {
+    this.db.prepare('DELETE FROM compression_failures WHERE playthrough_id = ?').run(playthroughId);
   }
 
   close(): void {

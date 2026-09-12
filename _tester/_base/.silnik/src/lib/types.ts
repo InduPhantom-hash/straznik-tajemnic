@@ -96,6 +96,7 @@ export interface MemoryIndexEntry {
   realTimestamp: string; // ISO timestamp zapisu
   tags: string[]; // ['NPC:Jackson', 'LOC:London', 'PLOT:Ritual']
   messageRange: { start: number; end: number };
+  text?: string;
 }
 
 /** Pełny indeks pamięci - ładowany do pamięci serwera przy starcie sesji */

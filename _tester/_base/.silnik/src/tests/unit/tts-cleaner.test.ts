@@ -54,6 +54,12 @@ describe('text-cleaner (TTS)', () => {
     const cleaned = cleanResponseText(raw);
     expect(cleaned).toBe('Nagle pada strzał! Widzisz stare zdjęcie na biurku: Co robisz?');
   });
+
+  it('usuwa cały blok sekretów także z tagiem bez dwukropka', () => {
+    const raw = 'Widzisz otwarte drzwi. [SEKRETY_MG]Kultysta jest za zasłoną.[/SEKRETY_MG] Co robisz?';
+    expect(cleanResponseText(raw)).toBe('Widzisz otwarte drzwi. Co robisz?');
+    expect(stripMultilineArtifacts(raw)).not.toContain('Kultysta');
+  });
 });
 
 import { resolveNpcVoice } from '@/lib/npc-voice-mapping';
