@@ -264,6 +264,39 @@ describe('Dossier Migration & Anti-cRPG Normalization (CoC 7e RAW)', () => {
       expect(enriched.investigatorDossier).toBeDefined();
       expect(enriched.investigatorDossier.clues.length).toBe(1);
       expect(enriched.investigatorDossier.clues[0].title).toBe('Ślady błota');
+      expect(enriched.investigatorDossier.clues[0].provenance).toBe('observed');
+    });
+
+    it('uzupełnia brakujące pole provenance w istniejącym dossier ze starego zapisu gry', () => {
+      const legacySaveChar = {
+        id: 'char_legacy',
+        name: 'Harvey Walters',
+        investigatorDossier: {
+          clues: [
+            {
+              id: 'c_legacy_1',
+              title: 'Wycinek z prasy',
+              description: 'Gazeta z 1920 roku opisująca rytuał.',
+              category: 'document' as const,
+              status: 'confirmed' as const,
+            },
+            {
+              id: 'c_legacy_2',
+              title: 'Rozmowa z kustoszem',
+              description: 'Świadek twierdzi, że księga została skradziona w nocy.',
+              category: 'testimony' as const,
+              status: 'confirmed' as const,
+            },
+          ],
+          npcs: [],
+          locations: [],
+          notes: [],
+        },
+      };
+
+      const result = ensureCharacterDossier(legacySaveChar);
+      expect(result.investigatorDossier.clues[0].provenance).toBe('handout');
+      expect(result.investigatorDossier.clues[1].provenance).toBe('testimony');
     });
   });
 });

@@ -15,99 +15,36 @@ export function parseClueProvenance(segment: string): ClueProvenance | undefined
 
   // 1. Observed / Zaobserwowane
   if (
-    [
-      'observed',
-      'observation',
-      'obserwacja',
-      'obserwacje',
-      'zaobserwowane',
-      'spostrzeżenie',
-      'spostrzezenie',
-      'widok',
-      'naoczne',
-      'naoczny',
-      'oględziny',
-      'ogledziny',
-    ].includes(s)
+    /(?:^|[^\p{L}])(?:observed|observation|obserwacja|obserwacje|zaobserwowane|spostrzeżenie|spostrzezenie|widok|naoczne|naoczny|oględziny|ogledziny)(?:[^\p{L}]|$)/iu.test(
+      s
+    )
   ) {
     return 'observed';
   }
 
   // 2. Testimony / Usłyszane / Zeznanie
   if (
-    [
-      'testimony',
-      'statement',
-      'witness',
-      'hearsay',
-      'interview',
-      'zeznanie',
-      'zeznania',
-      'usłyszane',
-      'uslyszane',
-      'świadek',
-      'swiadek',
-      'świadectwo',
-      'swiadectwo',
-      'wywiad',
-      'relacja',
-      'rozmowa',
-    ].includes(s)
+    /(?:^|[^\p{L}])(?:testimony|statement|witness|hearsay|interview|zeznanie|zeznania|usłyszane|uslyszane|świadek|swiadek|świadectwo|swiadectwo|wywiad|relacja|rozmowa)(?:[^\p{L}]|$)/iu.test(
+      s
+    )
   ) {
     return 'testimony';
   }
 
   // 3. Deduction / Dedukcja
   if (
-    [
-      'deduction',
-      'insight',
-      'inference',
-      'conclusion',
-      'hypothesis',
-      'dedukcja',
-      'wniosek',
-      'wnioskowanie',
-      'analiza',
-      'pomysł',
-      'pomysl',
-      'hipoteza',
-    ].includes(s)
+    /(?:^|[^\p{L}])(?:deduction|insight|inference|conclusion|hypothesis|dedukcja|wniosek|wnioskowanie|analiza|pomysł|pomysl|hipoteza)(?:[^\p{L}]|$)/iu.test(
+      s
+    )
   ) {
     return 'deduction';
   }
 
   // 4. Handout / Dokument
   if (
-    [
-      'handout',
-      'document',
-      'letter',
-      'clipping',
-      'record',
-      'file',
-      'tape',
-      'photo',
-      'photograph',
-      'dokument',
-      'list',
-      'wycinek',
-      'gazeta',
-      'prasa',
-      'artykuł',
-      'artykul',
-      'pismo',
-      'fotografia',
-      'zdjęcie',
-      'zdjecie',
-      'akta',
-      'notatka',
-      'notatki',
-      'zapiski',
-      'rejestr',
-      'taśma',
-      'tasma',
-    ].includes(s)
+    /(?:^|[^\p{L}])(?:handout|document|letter|clipping|record|file|tape|photo|photograph|dokument|list|wycinek|gazeta|prasa|artykuł|artykul|pismo|fotografia|zdjęcie|zdjecie|akta|notatka|notatki|zapiski|rejestr|taśma|tasma)(?:[^\p{L}]|$)/iu.test(
+      s
+    )
   ) {
     return 'handout';
   }
@@ -129,34 +66,34 @@ export function inferClueProvenance(
 
   const text = `${title} ${content}`.toLowerCase();
 
-  // Handout / dokumenty
+  // Świadek / rozmowa / zeznanie (przed handoutem, aby zeznania specjalistów nie kolidowały ze słowem 'list')
   if (
-    /(?:^|[^\p{L}])(?:akt|akta|aktach|aktów|file|book)(?:[^\p{L}]|$)|list|dziennik|wycinek|gazet|artykuł|dokument|pismo|notatk|zapisk|fotografi|zdjęci|taśm|nagrani|rejestr|książk|księg|folder|teczk|document|letter|clipping|article|photo|tape|recording|journal|diary/iu.test(
-      text
-    )
-  ) {
-    return 'handout';
-  }
-
-  // Świadek / rozmowa / zeznanie
-  if (
-    /mówi|twierdzi|zeznaje|powiedział|powiedziała|relacjonuje|świadek|świadk|wywiad|rozmow|zeznan|słowa|informator|claims|testified|said|witness|interview|statement|hearsay/i.test(
+    /(?:^|[^\p{L}])(?:mówi|mówił|mówiła|mówią|said|claims)(?:[^\p{L}]|$)|twierdzi|zeznaje|powiedział|powiedziała|relacjonuje|świadek|świadk|wywiad|rozmow|zeznan|słowa|informator|testified|witness|interview|statement|hearsay/iu.test(
       text
     )
   ) {
     return 'testimony';
   }
 
+  // Handout / dokumenty - zabezpieczone granice słów dla krótkich/kolizyjnych rdzeni (list, akt, file, tape itp.)
+  if (
+    /(?:^|[^\p{L}])(?:akt|akta|aktach|aktów|file|book|list|listu|listem|liście|listy|listów|letter|letters|tape|tapes|photo|photos|prasa|prasy|prasie)(?:[^\p{L}]|$)|dziennik|wycinek|gazet|artykuł|dokument|pismo|notatk|zapisk|fotografi|zdjęci|taśm|nagrani|rejestr|książk|księg|folder|teczk|document|clipping|article|recording|journal|diary/iu.test(
+      text
+    )
+  ) {
+    return 'handout';
+  }
+
   // Dedukcja / wniosek
   if (
-    /dedukcj|wniosek|wniosk|analiz|wynika z|pomysł|hipotez|zrozumiał|połączył|deduces|concludes|hypothesis|insight|realizes/i.test(
+    /dedukcj|wniosek|wniosk|analiz|wynika z|pomysł|hipotez|zrozumiał|połączył|deduces|concludes|hypothesis|insight|realizes/iu.test(
       text
     )
   ) {
     return 'deduction';
   }
 
-  // Domyślnie zaobserwowane (oględziny, ślad fizyczny, zmysły)
+  // Domyślnie zaobserwowane (oględziny, ślad fizyczny, zmysły, forensic)
   return 'observed';
 }
 
@@ -245,18 +182,17 @@ export function synthesizeClueFact(title: string, rawContent: string): string {
     return title ? `${title.trim()}.` : '';
   }
 
-  // 0. Jeśli treść zawiera metadane oddzielone pipe (| M|I|C|E, | źródło:...), bierzemy samą treść faktu
-  let text = rawContent;
+  // 1. Usuń tagi strukturalne AI (np. [TAG: ...], [DZIENNIK:...], [/DZIENNIK])
+  let text = rawContent
+    .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP)[^\]]*\]/gi, '')
+    .trim();
+
+  // 2. Jeśli treść zawiera metadane oddzielone pipe (| M|I|C|E, | źródło:...), bierzemy samą treść faktu
   if (text.includes('|')) {
     text = text.split('|')[0].trim();
   }
 
-  // 1. Usuń tagi strukturalne AI (np. [TAG: ...], [DZIENNIK:...], [/DZIENNIK])
-  text = text
-    .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP)[^\]]*\]/gi, '')
-    .trim();
-
-  // 2. Usuń prefiksy typu "Poszlaka:", "Wskazówka:", "Fakt:", "Odkryto:", "Clue:", "Fact:"
+  // 3. Usuń prefiksy typu "Poszlaka:", "Wskazówka:", "Fakt:", "Odkryto:", "Clue:", "Fact:"
   text = text.replace(/^(?:poszlaka|wskazówka|fakt|odkryto|notatka|trop|clue|discovery|fact|note)\s*:\s*/i, '');
 
   // 3. Usuń formatowanie Markdown (**bold**, *italic*, cytaty, listy)

@@ -249,6 +249,8 @@ export function SessionJournal({
           investigatorInsight: c.investigatorInsight,
           clueCategory: c.category,
           provenance: c.provenance,
+          miceType: c.miceType,
+          miceObjective: c.miceObjective,
           clueStatus: c.status,
           isKeyClue: c.isKeyClue,
           linkedNodeIds: c.linkedNodeIds,
@@ -362,7 +364,9 @@ export function SessionJournal({
               investigatorInsight: updated.investigatorInsight,
               status: updated.clueStatus || c.status,
               category: updated.clueCategory || c.category,
-              provenance: updated.provenance !== undefined ? updated.provenance : c.provenance,
+              provenance: 'provenance' in updated ? updated.provenance : c.provenance,
+              miceType: 'miceType' in updated ? updated.miceType : c.miceType,
+              miceObjective: updated.miceObjective !== undefined ? updated.miceObjective : c.miceObjective,
             }
           : c
       );

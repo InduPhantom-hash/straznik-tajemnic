@@ -313,5 +313,61 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
       expect(clue?.provenance).toBe('handout');
       expect(clue?.miceType).toBe('inquiry');
     });
+
+    it('inferClueProvenance nie myli balistyki i zeznań specjalistów z handoutami (zabezpieczenie rdzenia "list")', () => {
+      // "balistyka" zawiera "list", ale jest badaniem fizycznym/oględzinami (observed)
+      expect(
+        inferClueProvenance('Ekspertyza balistyczna', 'Ślad prochu na naboju wskazuje kaliber .38')
+      ).toBe('observed');
+
+      // "specjalista" zawiera "list", ale kontekst to zeznanie świadka (testimony)
+      expect(
+        inferClueProvenance(
+          'Zeznanie specjalisty',
+          'Świadek, wybitny specjalista kryminalistyki, zeznaje że widział uciekającego podejrzanego.'
+        )
+      ).toBe('testimony');
+
+      // "zamówienie" zawiera "mówi", ale bez zeznań/rozmowy nie powinno być testimony
+      expect(
+        inferClueProvenance('Stare zamówienie', 'W piwnicy leżą zakurzone skrzynie z węglem z 1920 roku.')
+      ).toBe('observed');
+    });
+
+    it('parseClueProvenance rozpoznaje frazy wielowyrazowe z prefiksem źródło:', () => {
+      expect(parseClueProvenance('źródło: zeznania świadka')).toBe('testimony');
+      expect(parseClueProvenance('źródło: obserwacja miejsca zbrodni')).toBe('observed');
+      expect(parseClueProvenance('źródło: dedukcja po teście INT')).toBe('deduction');
+      expect(parseClueProvenance('source: document from archive')).toBe('handout');
+    });
+
+    it('appendJournalFromText rozpoznaje proweniencję z 4. segmentu tagu z dwukropkiem i nie zaśmieca inGameDate', () => {
+      const raw =
+        '[DZIENNIK:trop:Ślad prochu:obserwacja]Ślad prochu wokół rany postrzałowej.[/DZIENNIK]';
+      const updated = appendJournalFromText(baseCharacter, raw, 'msg_prov_colon');
+
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Ślad prochu');
+      expect(clue).toBeDefined();
+      expect(clue?.provenance).toBe('observed');
+      expect(clue?.inGameDate).toBeUndefined();
+
+      const journalEntry = updated.journal?.find((j) => j.title === 'Ślad prochu');
+      expect(journalEntry?.inGameDate).toBeUndefined();
+    });
+
+    it('appendJournalFromText oczyszcza tytuł poszlaki z metadanych pipe zarówno w dossier, jak i w kronice', () => {
+      const raw =
+        '[DZIENNIK:trop:Dziwny zapach | zeznanie]Świadek poczuł zapach siarki przy kominku.[/DZIENNIK]';
+      const updated = appendJournalFromText(baseCharacter, raw, 'msg_prov_clean_title');
+
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Dziwny zapach');
+      expect(clue).toBeDefined();
+      expect(clue?.title).toBe('Dziwny zapach');
+      expect(clue?.provenance).toBe('testimony');
+
+      // Tytuł w kronice nie może zawierać śmieci "| zeznanie"
+      const journalEntry = updated.journal?.find((j) => j.title.includes('Dziwny zapach'));
+      expect(journalEntry?.title).toBe('Dziwny zapach');
+    });
   });
 });
