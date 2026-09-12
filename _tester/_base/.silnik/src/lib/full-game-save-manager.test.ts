@@ -4,6 +4,50 @@ import { FullGameSaveManager } from './full-game-save-manager';
 import type { WorldSetupBundleV1 } from './world-setup';
 
 describe('FullGameSaveManager duet persistence', () => {
+  it('writes save version 2.1.0 and preserves campaign memory identity', () => {
+    const campaignMemory = {
+      schemaVersion: 1 as const,
+      campaignDefinitionId: 'masks-of-nyarlathotep',
+      playthroughId: 'run-one',
+      adventureId: 'masks-of-nyarlathotep',
+      kind: 'official' as const,
+    };
+    const save = FullGameSaveManager.createFullSave({
+      name: 'Campaign memory',
+      userId: 'local',
+      messages: [],
+      gameSettings: { aiSettings: {} as AISettings },
+      characters: [],
+      campaigns: [],
+      campaignMemory,
+      npcs: [],
+      locations: [],
+    });
+
+    expect(save.version).toBe('2.1.0');
+    expect(FullGameSaveManager.decompressSave(JSON.stringify(save))?.campaignMemory)
+      .toEqual(campaignMemory);
+  });
+
+  it('loads a 2.0.0 save without campaign memory and without dropping data', () => {
+    const save = FullGameSaveManager.createFullSave({
+      name: 'Legacy 2.0 campaign',
+      userId: 'local',
+      messages: [],
+      gameSettings: { aiSettings: {} as AISettings },
+      characters: [],
+      campaigns: [],
+      npcs: [],
+      locations: [],
+    });
+    save.version = '2.0.0';
+    delete save.campaignMemory;
+    const restored = FullGameSaveManager.decompressSave(JSON.stringify(save));
+    expect(restored?.version).toBe('2.0.0');
+    expect(restored?.name).toBe('Legacy 2.0 campaign');
+    expect(restored?.campaignMemory).toBeUndefined();
+  });
+
   it('keeps explicit player-to-character assignments in the save payload', () => {
     const hotSeatConfig: HotSeatConfig = {
       enabled: true,

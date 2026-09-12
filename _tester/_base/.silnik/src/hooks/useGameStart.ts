@@ -28,6 +28,10 @@ import {
   type WorldSetupBundleV1,
 } from '@/lib/world-setup';
 import { initializeAdventureNpcVoices } from '@/lib/npc-voice-mapping';
+import {
+  createCampaignMemoryScope,
+  storeCampaignMemoryScope,
+} from '@/core/memory/campaign-scope';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -641,6 +645,10 @@ export function useGameStart({
 
     const introPrompt = buildIntroPrompt();
     const assistantMessageId = `gm-intro-${crypto.randomUUID()}`;
+    const memoryScope = adventureContext
+      ? createCampaignMemoryScope(adventureContext)
+      : null;
+    if (memoryScope) storeCampaignMemoryScope(memoryScope);
 
     // Bug data: ustaw zegar na erę przygody (modern->2024, classic->1925,
     // gaslight->1890) PRZED openingiem. Świeży start nadpisuje stary czas z
@@ -718,6 +726,7 @@ export function useGameStart({
           characters: (characters || []).map((c) => sanitizeCharacterForApi(c)),
           hotSeatConfig: resolvedHotSeat,
           adventureContext: adventureContext,
+          memoryScope,
           eraContext: loadStoredWorldSetup()?.eraContext,
           locale,
           isGameStart: true,

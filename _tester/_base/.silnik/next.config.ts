@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '100mb',
     },
   },
-  serverExternalPackages: ['pdf-parse'],
+  serverExternalPackages: ['pdf-parse', 'better-sqlite3'],
   async headers() {
     return [
       {
