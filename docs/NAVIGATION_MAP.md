@@ -52,6 +52,8 @@ graph TD
     combat_card["Obrona w walce wręcz w czacie (CoC 7e RAW) / In-chat melee combat defense (CoC 7e RAW)"]
     spell_card["Rzucanie zaklęć w czacie (CoC 7e RAW) / In-chat spell casting (CoC 7e RAW)"]
     tome_card["Badanie tomów w czacie (CoC 7e RAW) / In-chat tome study (CoC 7e RAW)"]
+    beta_welcome_modal["Status wersji Beta / Beta Version Status"]
+    beta_feedback_modal["Zgłoś błąd / uwagę / Report Issue / Feedback"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -98,6 +100,9 @@ graph TD
     game -->|Obrona w walce / Combat defense| combat_card
     game -->|Rzucanie zaklęcia / Cast spell| spell_card
     game -->|Badanie tomu / Study tome| tome_card
+    home -->|Status wersji Beta / Beta Version Status| beta_welcome_modal
+    home -->|Zgłoś błąd / uwagę / Report Issue / Feedback| beta_feedback_modal
+    beta_welcome_modal -->|Zgłoś uwagę lub błąd / Report Issue or Feedback| beta_feedback_modal
 ```
 
 ## Routy
@@ -165,6 +170,9 @@ graph TD
 | Aktywna sesja | Obrona w walce / Combat defense | Obrona w walce wręcz w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/combat-card.tsx` |
 | Aktywna sesja | Rzucanie zaklęcia / Cast spell | Rzucanie zaklęć w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/spell-card.tsx` |
 | Aktywna sesja | Badanie tomu / Study tome | Badanie tomów w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/tome-card.tsx` |
+| Strona główna | Status wersji Beta / Beta Version Status | Status wersji Beta | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Strona główna | Zgłoś błąd / uwagę / Report Issue / Feedback | Zgłoś błąd / uwagę | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Status wersji Beta | Zgłoś uwagę lub błąd / Report Issue or Feedback | Zgłoś błąd / uwagę | `src/components/dialogs/BetaWelcomeModal.tsx` |
 
 ## Zasady aktualizacji
 
