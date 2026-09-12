@@ -43,6 +43,9 @@ fi
 cd "$GAME_DIR"
 APP_VERSION="$(node -p "require('./package.json').version")"
 
+echo "[0/5] Cold-Start Smoke Gate (Bramka Pierwszych 10 Sekund)..."
+npm test -- src/tests/smoke/cold-start-state.test.ts --silent
+
 echo "[1/5] Production build..."
 if [ "$REBUILD" = "1" ] || [ ! -f .next/BUILD_ID ]; then
   npm run build
