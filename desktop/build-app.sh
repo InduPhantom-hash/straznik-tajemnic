@@ -4,7 +4,7 @@
 # i instaluje do ~/Applications + fizyczna kopia na biurku. Uruchom po kazdej zmianie kodu
 # ktora ma trafic do wersji "Graj".
 #
-# Uzycie: bash desktop/build-app.sh [--rebuild]
+# Uzycie: bash desktop/build-app.sh [--rebuild] [--output KATALOG] [--no-desktop-copy]
 #   --rebuild  wymusza ponowny `npm run build` nawet gdy .next istnieje.
 
 set -e
@@ -13,7 +13,23 @@ APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"          # korzen repo (worktree pub
 DESKTOP_DIR="$APP_DIR/desktop"
 APP_NAME="Straznik Tajemnic AI"
 APPS_DIR="$HOME/Applications"
-APP_BUNDLE="$APPS_DIR/$APP_NAME.app"
+OUTPUT_DIR="$APPS_DIR"
+COPY_TO_DESKTOP=1
+REBUILD=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --rebuild) REBUILD=1 ;;
+    --output)
+      shift
+      [ "$#" -gt 0 ] || { echo "Brak katalogu po --output" >&2; exit 2; }
+      OUTPUT_DIR="$1"
+      ;;
+    --no-desktop-copy) COPY_TO_DESKTOP=0 ;;
+    *) echo "Nieznany argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+APP_BUNDLE="$OUTPUT_DIR/$APP_NAME.app"
 DESK_APP="$HOME/Desktop/$APP_NAME.app"
 
 # Wykryj katalog node (zaszyty w launcherze, bo .app nie dziedziczy PATH).
@@ -25,9 +41,10 @@ if [ -f "$APP_DIR/_tester/_base/.silnik/package.json" ]; then
 fi
 
 cd "$GAME_DIR"
+APP_VERSION="$(node -p "require('./package.json').version")"
 
 echo "[1/5] Production build..."
-if [ "${1:-}" = "--rebuild" ] || [ ! -f .next/BUILD_ID ]; then
+if [ "$REBUILD" = "1" ] || [ ! -f .next/BUILD_ID ]; then
   npm run build
 else
   echo "  build istnieje (.next/BUILD_ID) - pomijam. Wymus: bash desktop/build-app.sh --rebuild"
@@ -37,7 +54,7 @@ echo "[2/5] Ikona..."
 bash "$DESKTOP_DIR/make-icon.sh" "$DESKTOP_DIR" || echo "  ikona pominieta - .app dostanie domyslna"
 
 echo "[3/5] Skladanie $APP_NAME.app ..."
-mkdir -p "$APPS_DIR"
+mkdir -p "$OUTPUT_DIR"
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 
@@ -66,8 +83,8 @@ cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
   <key>CFBundleIconFile</key><string>icon</string>
   <key>CFBundleIdentifier</key><string>com.aios.straznik-tajemnic-ai</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>4.0-local</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>$APP_VERSION</string>
+  <key>CFBundleVersion</key><string>$APP_VERSION</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>NSHighResolutionCapable</key><true/>
 </dict>
@@ -88,13 +105,18 @@ fi
 touch "$APP_BUNDLE"
 
 echo "[4/5] Kopia aplikacji na biurku..."
-rm -rf "$DESK_APP"
-ditto "$APP_BUNDLE" "$DESK_APP"
+if [ "$COPY_TO_DESKTOP" = "1" ]; then
+  rm -rf "$DESK_APP"
+  ditto "$APP_BUNDLE" "$DESK_APP"
+else
+  echo "  pominieta (--no-desktop-copy)"
+fi
 
 echo "[5/5] Gotowe."
 echo ""
 echo "  Aplikacja : $APP_BUNDLE"
-echo "  Na biurku : $DESK_APP"
+if [ "$COPY_TO_DESKTOP" = "1" ]; then echo "  Na biurku : $DESK_APP"; fi
+echo "  Wersja    : $APP_VERSION"
 echo "  Node      : $NODE_BIN_DIR"
 echo ""
 echo "  Uruchom: dwuklik ikony na biurku  albo  open \"$APP_BUNDLE\""

@@ -1,0 +1,52 @@
+name: macOS stable release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: _tester/_base/.silnik/package-lock.json
+
+      - name: Verify tag and package version
+        working-directory: _tester/_base/.silnik
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+
+      - name: Install dependencies
+        working-directory: _tester/_base/.silnik
+        run: npm ci
+
+      - name: Build application bundle
+        run: bash desktop/build-app.sh --rebuild --output "$RUNNER_TEMP/release" --no-desktop-copy
+
+      - name: Package application
+        run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/release/Straznik Tajemnic AI.app" "$RUNNER_TEMP/release/straznik-tajemnic-macos.zip"
+
+      - name: Create update manifest
+        run: >-
+          node desktop/create-update-manifest.mjs
+          "$RUNNER_TEMP/release/straznik-tajemnic-macos.zip"
+          "$RUNNER_TEMP/release/update-manifest.json"
+          "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/straznik-tajemnic-macos.zip"
+          "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          prerelease: false
+          files: |
+            ${{ runner.temp }}/release/straznik-tajemnic-macos.zip
+            ${{ runner.temp }}/release/update-manifest.json

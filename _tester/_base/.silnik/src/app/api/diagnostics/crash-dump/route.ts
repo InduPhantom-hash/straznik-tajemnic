@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import os from 'node:os';
+import { getWritableDataDir } from '@/lib/paths';
 
 interface CrashDumpPayload {
   error: string;
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     };
 
     // 1. Zapis do katalogu danych aplikacji: data/crash-reports/
-    const dataDir = join(process.cwd(), 'data', 'crash-reports');
+    const dataDir = join(getWritableDataDir(), 'crash-reports');
     await fs.mkdir(dataDir, { recursive: true });
     const reportPath = join(dataDir, `crash-${safeTimestamp}.json`);
     await fs.writeFile(reportPath, JSON.stringify(sanitizedReport, null, 2), 'utf-8');

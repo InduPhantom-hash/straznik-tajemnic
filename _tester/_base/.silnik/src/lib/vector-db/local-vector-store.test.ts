@@ -22,19 +22,26 @@ function vector(id: string, values: number[]): UpsertVector {
 describe('LocalVectorStore', () => {
   let directory: string;
   const previousDataDir = process.env.RAG_DATA_DIR;
+  const previousBundledDataDir = process.env.RAG_BUNDLED_DATA_DIR;
+  let bundledDirectory: string;
 
   beforeEach(() => {
     directory = fs.mkdtempSync(path.join(os.tmpdir(), 'straznik-rag-test-'));
+    bundledDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'straznik-rag-bundled-'));
     process.env.RAG_DATA_DIR = directory;
+    process.env.RAG_BUNDLED_DATA_DIR = bundledDirectory;
   });
 
   afterEach(() => {
     fs.rmSync(directory, { recursive: true, force: true });
+    fs.rmSync(bundledDirectory, { recursive: true, force: true });
   });
 
   afterAll(() => {
     if (previousDataDir === undefined) delete process.env.RAG_DATA_DIR;
     else process.env.RAG_DATA_DIR = previousDataDir;
+    if (previousBundledDataDir === undefined) delete process.env.RAG_BUNDLED_DATA_DIR;
+    else process.env.RAG_BUNDLED_DATA_DIR = previousBundledDataDir;
   });
 
   it('zapisuje JSON atomowo i odczytuje go po wyczyszczeniu cache', async () => {
@@ -48,6 +55,18 @@ describe('LocalVectorStore', () => {
     await expect(store.query('rules', [1, 0])).resolves.toEqual([
       expect.objectContaining({ id: 'old', score: 1 }),
     ]);
+  });
+
+  it('czyta statyczny indeks z bundla, ale zapisuje nadpisania wyłącznie do warstwy zapisywalnej', async () => {
+    writeBinaryNamespace(bundledDirectory, 'rules', [vector('bundled', [1, 0])]);
+    const store = new LocalVectorStore();
+    await expect(store.query('rules', [1, 0])).resolves.toEqual([
+      expect.objectContaining({ id: 'bundled' }),
+    ]);
+
+    await store.upsert('campaigns/run-1', [vector('memory', [0, 1])]);
+    expect(fs.existsSync(path.join(directory, 'campaigns__run-1.json'))).toBe(true);
+    expect(fs.existsSync(path.join(bundledDirectory, 'campaigns__run-1.json'))).toBe(false);
   });
 
   it('zastępuje namespace bez pozostawienia starych rekordów', async () => {

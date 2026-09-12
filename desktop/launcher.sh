@@ -46,14 +46,33 @@ if [ ! -x "$NODE_BIN_DIR/node" ]; then
 fi
 export PATH="$NODE_BIN_DIR:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-RUNTIME_DIR="$GAME_DIR/.desktop"
+DATA_ROOT="${ZEW_DATA_DIR:-$HOME/Library/Application Support/ZewCthulhu}"
+export ZEW_DATA_DIR="$DATA_ROOT"
+export RAG_DATA_DIR="$DATA_ROOT/rag"
+export ZEW_APP_BUNDLE="$(cd "$(dirname "$0")/../.." && pwd)"
+
+RUNTIME_DIR="$DATA_ROOT/desktop"
 PROFILE_DIR="$RUNTIME_DIR/chrome-profile"
 PID_FILE="$RUNTIME_DIR/server.pid"
 COLD_START_FLAG="$RUNTIME_DIR/cold-start-requested"
-LOG="$HOME/Library/Logs/straznik-tajemnic-ai.log"
+LOG="${ZEW_LOG_FILE:-$HOME/Library/Logs/straznik-tajemnic-ai.log}"
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
-mkdir -p "$RUNTIME_DIR" "$PROFILE_DIR"
+mkdir -p "$RUNTIME_DIR" "$PROFILE_DIR" "$ZEW_DATA_DIR" "$RAG_DATA_DIR" "$DATA_ROOT/updates"
+
+# Jednorazowa migracja danych z wcześniejszych bundli, które zapisywały do runtime/data.
+MIGRATION_MARKER="$DATA_ROOT/.bundle-data-migrated-v1"
+if [ ! -f "$MIGRATION_MARKER" ]; then
+  for name in saves sessions results usage pricing gm-instructions journals memory; do
+    if [ -d "$GAME_DIR/data/$name" ] && [ ! -e "$DATA_ROOT/$name" ]; then
+      ditto "$GAME_DIR/data/$name" "$DATA_ROOT/$name"
+    fi
+  done
+  if [ -d "$GAME_DIR/.desktop/chrome-profile" ] && [ ! -e "$PROFILE_DIR/Default" ]; then
+    ditto "$GAME_DIR/.desktop/chrome-profile" "$PROFILE_DIR"
+  fi
+  touch "$MIGRATION_MARKER"
+fi
 cd "$GAME_DIR" || { echo "$(date) BLAD: brak katalogu $GAME_DIR" >>"$LOG"; exit 1; }
 rm -f "$COLD_START_FLAG"
 

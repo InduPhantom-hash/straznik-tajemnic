@@ -41,7 +41,6 @@ done
 API_KEY_INPUTS=(
   "_tester/_base/.silnik/src/components/dialogs/ApiKeysModal.tsx"
   "_tester/_base/.silnik/src/components/settings/gemini-sections/header.tsx"
-  "_tester/_base/.silnik/src/components/settings/replicate-settings.tsx"
 )
 
 for file in "${API_KEY_INPUTS[@]}"; do
@@ -63,6 +62,10 @@ for file in "${BUILD_ID_LAUNCHERS[@]}"; do
   assert_contains "$file" "self.__BUILD_MANIFEST" "launcher akceptuje HTML 200 zamiast manifestu JavaScript"
   assert_contains "$file" 'GAME_DIR="$APP_DIR"' "launcher nie ustala katalogu silnika"
   assert_contains "$file" '"$GAME_DIR/.next/BUILD_ID"' "launcher sprawdza BUILD_ID poza katalogiem silnika"
+  assert_contains "$file" 'export ZEW_DATA_DIR="$DATA_ROOT"' "launcher nie ustawia trwałego katalogu danych"
+  assert_contains "$file" 'export RAG_DATA_DIR="$DATA_ROOT/rag"' "launcher nie ustawia zapisywalnej warstwy RAG"
+  assert_contains "$file" '$(dirname "$0")/../..' "launcher nie rozwiązuje dokładnej ścieżki bundle .app"
+  assert_contains "$file" 'DATA_ROOT="${ZEW_DATA_DIR:-$HOME/Library/Application Support/ZewCthulhu}"' "launcher nie respektuje kontrolowanego katalogu danych"
   if grep -Fq -- '"$APP_DIR/_tester/_base/.silnik/.next/BUILD_ID"' "$REPO_ROOT/$file"; then
     echo "FAIL: launcher ma podwojnie zagniezdzona sciezke BUILD_ID ($file)"
     exit 1

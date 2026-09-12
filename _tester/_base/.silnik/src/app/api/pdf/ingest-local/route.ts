@@ -21,12 +21,17 @@ import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
 import { detectRulebookProfile } from '@/lib/pdf/rulebook-fingerprint';
 import fs from 'fs';
 import path from 'path';
+import { getWritableDataDir } from '@/lib/paths';
 
 export const maxDuration = 300; // 5 min - duże podręczniki (setki stron)
 export const runtime = 'nodejs';
 
 const MAX_PDF_BYTES = 500 * 1024 * 1024; // 500 MB (spójnie z /api/upload-pdf)
 const MIN_TEXT_LENGTH = 100;
+
+function writableRagDirectory(): string {
+  return process.env.RAG_DATA_DIR || path.join(getWritableDataDir(), 'rag');
+}
 
 export async function POST(request: NextRequest) {
   const start = Date.now();
@@ -152,7 +157,7 @@ export async function POST(request: NextRequest) {
     if (type === 'rules') {
       try {
         rulebookProfile = detectRulebookProfile(pdfText);
-        const ragDir = path.join(process.cwd(), 'data', 'rag');
+        const ragDir = writableRagDirectory();
         if (!fs.existsSync(ragDir)) {
           fs.mkdirSync(ragDir, { recursive: true });
         }
@@ -175,7 +180,7 @@ export async function POST(request: NextRequest) {
         extractedAdventure = await extractAdventureEntities(pdfText, fileName, geminiApiKey);
         
         // Zapisz wyekstrahowaną strukturę lokalnie w data/adventures/
-        const dataDir = path.join(process.cwd(), 'data', 'adventures');
+        const dataDir = path.join(getWritableDataDir(), 'adventures');
         if (!fs.existsSync(dataDir)) {
           fs.mkdirSync(dataDir, { recursive: true });
         }
@@ -225,7 +230,12 @@ export async function GET(request: NextRequest) {
     let rulebookProfile = null;
     if (type === 'rules') {
       try {
-        const profilePath = path.join(process.cwd(), 'data', 'rag', 'rules-profile.json');
+        const writableProfilePath = path.join(writableRagDirectory(), 'rules-profile.json');
+        const bundledProfilePath = path.join(
+          process.env.RAG_BUNDLED_DATA_DIR || path.join(process.cwd(), 'data', 'rag'),
+          'rules-profile.json'
+        );
+        const profilePath = fs.existsSync(writableProfilePath) ? writableProfilePath : bundledProfilePath;
         if (fs.existsSync(profilePath)) {
           rulebookProfile = JSON.parse(fs.readFileSync(profilePath, 'utf-8'));
         }
