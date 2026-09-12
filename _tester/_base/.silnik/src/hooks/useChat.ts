@@ -1173,6 +1173,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             ),
             npcs: loadNpcSnapshot(),
             assistantMessageId,
+            userMessageId: userMessage.id,
             adventureContext,
             memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),

@@ -343,6 +343,7 @@ class LocalVectorStore {
         id: v.id,
         score,
         metadata: v.metadata,
+        text: v.text,
       });
     }
 

@@ -53,6 +53,12 @@ export interface CampaignCompressionCheckpoint {
   retryAfter: string | null;
 }
 
+export interface CampaignCompressionFailureState {
+  playthroughId: string;
+  failureCount: number;
+  retryAfter: string | null;
+}
+
 export interface CampaignMemorySearchResult {
   id: string;
   text: string;

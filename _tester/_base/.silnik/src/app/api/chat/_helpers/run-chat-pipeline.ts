@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadAISettings, getGameMasterPrompt } from '@/lib/ai-settings';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import { getContextLimit } from '@/lib/model-registry';
-import { getOptimizedMessages } from '@/lib/context-optimizer';
 import { Character, Message, type GameTime, type NPC } from '@/lib/types';
 import type { CombatResolution } from '@/lib/combat/combat-resolver';
 import { extractCommand, handleCommand } from '@/lib/command-handler';
@@ -217,6 +216,7 @@ export async function runChatPipeline({
     directorEvent,
     mechanicsContext,
     assistantMessageId,
+    userMessageId,
     locale: requestedLocale,
     adventureId: explicitAdventureId,
     memoryScope: requestedMemoryScope,
@@ -261,6 +261,7 @@ export async function runChatPipeline({
       combat?: { resolutions?: CombatResolution[] };
     };
     assistantMessageId?: string;
+    userMessageId?: string;
     locale?: 'pl' | 'en';
     memoryScope?: CampaignMemoryScope;
   };
@@ -300,10 +301,8 @@ export async function runChatPipeline({
     });
   }
 
-  const contextMemory =
-    aiSettings.gameMasterNarration.behavior.contextMemory || 1000;
-  const recentMessages = getOptimizedMessages(messages, contextMemory);
-  const gameContext = detectGameContext(message, recentMessages, character);
+  const detectionMessages = messages?.slice(-100) ?? [];
+  const gameContext = detectGameContext(message, detectionMessages, character);
   // IND-194: pełny path z przekazanym aiSettings (zmergowany z clientAISettings, lin 120).
   // Wcześniej getOptimizedGameMasterPrompt/getGameMasterPrompt re-czytały loadAISettings()
   // serwerowo → pusta localStorage → mainPrompt (.md gracza) gubiony. Teraz mainPrompt dociera.
@@ -420,7 +419,13 @@ export async function runChatPipeline({
           adventureContext?.id ||
           pdfMemory?.adventureId ||
           (clientAISettings as { adventureId?: string } | undefined)?.adventureId;
-        const { ragSection, summarySection, ragMeta } = await runRAGAndSummary({
+        const {
+          ragSection,
+          summarySection,
+          ragMeta,
+          contextMessages,
+          campaignMemorySection,
+        } = await runRAGAndSummary({
           message,
           messages,
           sessionId,
@@ -430,8 +435,18 @@ export async function runChatPipeline({
           adventureSource: adventureContext?.sourceBookId,
           adventureId: effectiveAdventureId,
           locale,
+          modelId,
+          memoryScope,
         });
-        return { ragUserId, sessionId, ragSection, summarySection, ragMeta };
+        return {
+          ragUserId,
+          sessionId,
+          ragSection,
+          summarySection,
+          ragMeta,
+          contextMessages,
+          campaignMemorySection,
+        };
       })(),
       // Etap 3: dane immersyjne (astronomia, gazety, ceny epoki) - rownolegle z cache i RAG.
       fetchImmersionContext({
@@ -439,8 +454,15 @@ export async function runChatPipeline({
         eraContext,
       }),
     ]);
-  const { ragUserId, sessionId, ragSection, summarySection, ragMeta } =
-    ragResult;
+  const {
+    ragUserId,
+    sessionId,
+    ragSection,
+    summarySection,
+    ragMeta,
+    contextMessages,
+    campaignMemorySection,
+  } = ragResult;
 
   // === BUDUJ KONTEKST (additionalContext) - IND-71 micro 1/3 ===
   // C1: recap przy wznowieniu zapisanej gry (isGameStart + istnieje historia rozmowy).
@@ -457,7 +479,7 @@ export async function runChatPipeline({
     gameContext,
     resolvedCachedContent,
     sessionId,
-    ragSection,
+    ragSection: `${ragSection}${campaignMemorySection}`,
     summarySection,
     // Realne handouty przygody (DriveThruRPG) - MG dostaje markdown obrazów do pokazania.
     handoutsSection: buildHandoutsContext(adventureContext?.handouts),
@@ -597,7 +619,7 @@ export async function runChatPipeline({
 
   const streamArgs = {
     systemPrompt,
-    messages: recentMessages.map((msg: { role: string; content: string }) => ({
+    messages: contextMessages.map((msg: { role: string; content: string }) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     })),
@@ -683,6 +705,7 @@ export async function runChatPipeline({
     // zużycia per-konto; user-usage normalizuje puste -> 'local'.
     userId: ragUserId,
     assistantMessageId,
+    userMessageId,
     characters,
     npcs: npcs ?? [],
     combatMechanicsEnabled,

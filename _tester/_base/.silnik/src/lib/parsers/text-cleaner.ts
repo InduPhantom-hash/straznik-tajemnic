@@ -5,6 +5,13 @@
 // też `\n`, więc multiline tagi są zachowane.
 const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
 
+/** Removes blocks that are never allowed to enter campaign memory. */
+export function stripHiddenMemoryContent(text: string): string {
+  return text
+    .replace(/\[(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
+    .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '');
+}
+
 /**
  * Czyści tekst odpowiedzi AI z artefaktów technicznych, przygotowując go do TTS
  */
@@ -12,7 +19,7 @@ export function cleanResponseText(text: string): string {
   if (!text) return '';
 
   return (
-    text
+    stripHiddenMemoryContent(text)
       // Prefiksy AI
       .replace(
         /^(A|AI|Assistant|MG|GM|Mistrz Gry|Game Master):\s*(Assistant:\s*)?/gi,
@@ -68,8 +75,6 @@ export function cleanResponseText(text: string): string {
       .replace(/\[(?:WYNIK_POŚCIGU|WYNIK_POSCIGU|CHASE_RESULT):[^\]]*\]/gi, '')
       .replace(/\[(?:WYNIK_ZAGROŻENIA|WYNIK_ZAGROZENIA|HAZARD_RESULT):[^\]]*\]/gi, '')
       .replace(/\[SANITY:[^\]]*\]/gi, '')
-      .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
-      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
       .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\]/gi, '')
       .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\]/gi, '')
       .replace(/\[\/(?:OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
@@ -118,8 +123,8 @@ export function stripMultilineArtifacts(text: string): string {
     text
       .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
-      .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
-      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?(?:\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]|$)/gi, '')
+      .replace(/\[(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
       // każdy [TAG:...] (spans \n), odporny na zagnieżdżony [...]
       .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')

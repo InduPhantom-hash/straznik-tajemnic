@@ -401,6 +401,7 @@ class EmbeddingService {
       realTimestamp: new Date().toISOString(),
       tags,
       messageRange,
+      text: chunkText,
     };
 
     return entry;

@@ -21,6 +21,7 @@ export interface QueryResult {
   id: string;
   score: number;
   metadata: VectorMetadata;
+  text?: string;
 }
 
 export const LOCAL_RAG_NAMESPACES = {
@@ -31,5 +32,6 @@ export const LOCAL_RAG_NAMESPACES = {
   MYTHOS: 'mythos',
   CUSTOM: 'custom',
   session: (id: string) => `sessions/${id}`,
+  campaign: (playthroughId: string) => `campaigns/${playthroughId}`,
   adventure: (id: string) => `adventures/${id}`,
 } as const;
