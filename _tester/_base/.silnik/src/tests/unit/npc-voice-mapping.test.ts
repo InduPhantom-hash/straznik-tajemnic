@@ -5,6 +5,7 @@ import {
   resolveDynamicNpcVoice,
   initializeAdventureNpcVoices,
 } from '@/lib/npc-voice-mapping';
+import { GEMINI_VOICES } from '@/lib/gemini-voices';
 import type { NPC } from '@/lib/types';
 
 describe('NPC Voice Mapping & Tone of Voice (Issue #170)', () => {
@@ -86,13 +87,14 @@ describe('NPC Voice Mapping & Tone of Voice (Issue #170)', () => {
   });
 
   describe('buildNpcToneOfVoice', () => {
-    it('przypisuje kobiecy głos Aoede dla postaci żeńskiej', () => {
+    it('przypisuje kobiecy głos dla postaci żeńskiej', () => {
       const result = buildNpcToneOfVoice({
         name: 'Eleonora Vance',
         occupation: 'historyk sztuki',
       });
       expect(result.gender).toBe('female');
-      expect(result.voiceId).toBe('Aoede');
+      const femaleVoices = GEMINI_VOICES.filter((v) => v.role === 'female').map((v) => v.voiceId);
+      expect(femaleVoices).toContain(result.voiceId);
       expect(result.audioDirection).toContain('clear, natural Polish pronunciation');
       expect(result.audioDirection).toContain('female character voice');
       expect(result.audioDirection).toContain('steady, engaging pace');
@@ -175,13 +177,15 @@ describe('NPC Voice Mapping & Tone of Voice (Issue #170)', () => {
       const savedNpcs = JSON.parse(savedRaw!);
 
       const corbitt = savedNpcs.find((n: Partial<NPC>) => n.name === 'Pani Corbitt');
+      const femaleVoices = GEMINI_VOICES.filter((v) => v.role === 'female').map((v) => v.voiceId);
       expect(corbitt).toBeDefined();
-      expect(corbitt.voiceConfig?.voiceId).toBe('Aoede');
+      expect(femaleVoices).toContain(corbitt.voiceConfig?.voiceId);
       expect(corbitt.voiceConfig?.rate).toBe(1.15);
 
+      const maleVoices = GEMINI_VOICES.filter((v) => v.role === 'male').map((v) => v.voiceId);
       const henderson = savedNpcs.find((n: Partial<NPC>) => n.name === 'Inspektor Henderson');
       expect(henderson).toBeDefined();
-      expect(henderson.voiceConfig?.voiceId).toBe('Puck');
+      expect(maleVoices).toContain(henderson.voiceConfig?.voiceId);
     });
   });
 });

@@ -30,6 +30,12 @@ export interface AdventureHandout {
   title: string;
   /** Ścieżka publiczna obrazu, np. '/handouts/cienie-tatr/pociag_do_szalenstwa-mapa-walimia.png'. */
   image: string;
+  /** Opcjonalna ścieżka do nagrania audio lektora/rekwizytu (np. '/audio/handouts/cien-nad-prabutami/tasma-sb-elblag.mp3'). */
+  audioUrl?: string;
+  /** Opcjonalny typ handoutu dla renderera tekstu w czacie */
+  handoutType?: 'newspaper' | 'letter' | 'telegram' | 'report' | 'diary' | 'book';
+  /** Opcjonalna transkrypcja lub tekst do przeczytania */
+  textContent?: string;
 }
 
 export interface AdventureContext {
@@ -86,6 +92,8 @@ export interface AdventureContext {
   externalLinks?: Array<{ label: string; url: string }>;
   /** Czy scenariusz jest częścią autorskiej serii Strefa 11 */
   isStrefa11?: boolean;
+  /** Predefiniowane handouty fabularne (dokumenty, mapy, taśmy audio) */
+  handouts?: AdventureHandout[];
 }
 
 // ============================================================================
@@ -121,6 +129,37 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
       { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
     ],
+    handouts: [
+      {
+        slug: 'clue-photo-prabuty-1947',
+        title: 'Fotografia z ruin w Prabutach (1947)',
+        image: '/handouts/cien-nad-prabutami/clue-photo-prabuty.webp',
+        handoutType: 'newspaper',
+        textContent: 'Czarno-biała fotografia przedstawiająca ruiny kościoła w Prabutach z odręczną notatką o. Klimuszki: „To nie światło słoneczne przenikało przez sklepienie...”.',
+      },
+      {
+        slug: 'clue-sb-file-klin',
+        title: 'Teczka SB: Kryptonim KLIN',
+        image: '/handouts/cien-nad-prabutami/clue-sb-file-klin.webp',
+        handoutType: 'report',
+        textContent: 'Ściśle tajny meldunek Departamentu IV MSW z 1973 r. dotyczący inwigilacji franciszkanina z Elbląga i anomalnych zjawisk elektromagnetycznych w celi klasztornej.',
+      },
+      {
+        slug: 'clue-herbal-recipe-152',
+        title: 'Rękopis receptury ziołowej nr 152',
+        image: '/handouts/cien-nad-prabutami/clue-herbal-recipe-152.webp',
+        handoutType: 'letter',
+        textContent: 'Zapis proporcji ziół z dopiskiem: „Pić przed snem, by uciszyć głosy czwartego wymiaru”.',
+      },
+      {
+        slug: 'audio-sb-wiretap-elblag',
+        title: 'Taśma szpulowa ZK-140: Podsłuch celi w Elblągu',
+        image: '/handouts/cien-nad-prabutami/clue-sb-file-klin.webp',
+        audioUrl: '/audio/handouts/cien-nad-prabutami/tasma-sb-elblag.mp3',
+        handoutType: 'report',
+        textContent: 'Nagranie operacyjne SB: szum taśmy szpulowej, modlitwa i nagły trzask pękającego szkła pod wpływem nieznanej energii.',
+      },
+    ],
   },
   {
     id: 'tajemnica-pendnika-lagiewki',
@@ -149,6 +188,30 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
       { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
+    ],
+    handouts: [
+      {
+        slug: 'clue-mi-go-cylinder-notes',
+        title: 'Kalka techniczna: Nieliniowe przekładnie wirnika',
+        image: '/handouts/tajemnica-pendnika-lagiewki/clue-mi-go-cylinder-notes.webp',
+        handoutType: 'report',
+        textContent: 'Rysunek techniczny mechanizmu pędnika ze schematem rotacji mas, w którym linie zbiegają się w punkcie poza trójwymiarową przestrzenią.',
+      },
+      {
+        slug: 'clue-aor-classified-file',
+        title: 'Raport AOR: Poufna notatka wstrzymania pokazów',
+        image: '/handouts/tajemnica-pendnika-lagiewki/clue-aor-classified-file.webp',
+        handoutType: 'report',
+        textContent: 'Poufne pismo Urzędu Ochrony Państwa / AOR nakazujące natychmiastowe zamrożenie publicznych testów zderzeniowych Fiata 126p w Kowarach.',
+      },
+      {
+        slug: 'audio-broken-brakes-log',
+        title: 'Nagranie magnetofonowe: Próba zderzeniowa Kowary 1996',
+        image: '/handouts/tajemnica-pendnika-lagiewki/clue-aor-classified-file.webp',
+        audioUrl: '/audio/handouts/tajemnica-pendnika-lagiewki/proba-zderzeniowa-kowary.mp3',
+        handoutType: 'report',
+        textContent: 'Dźwięk silnika Malucha rozpędzanego na rampie, potężne uderzenie w barierę i nienaturalny, głuchy rezonans wirnika pochłaniającego wektor pędu.',
+      },
     ],
   },
   {
@@ -179,6 +242,30 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
       { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
     ],
+    handouts: [
+      {
+        slug: 'clue-dry-cross-barn',
+        title: 'Polaroid: Odwrócony krzyż na ścianie stodoły (1983)',
+        image: '/handouts/tajemnica-dzieci-z-traszyna/clue-dry-cross-barn.webp',
+        handoutType: 'newspaper',
+        textContent: 'Wyblakła fotografia polaroidowa z nadpalonym od pioruna zarysem odwróconego krzyża na deskach traszyńskiej stodoły.',
+      },
+      {
+        slug: 'clue-key-book-apparatus',
+        title: 'Szkic aparatu: Modlitewnik spięty kluczem',
+        image: '/handouts/tajemnica-dzieci-z-traszyna/clue-key-book-apparatus.webp',
+        handoutType: 'diary',
+        textContent: 'Rysunek dziecięcego seansu: stary klucz włożony między karty Ewangelii, podtrzymywany palcami dwóch osób.',
+      },
+      {
+        slug: 'audio-stilon-c60-interview',
+        title: 'Kaseta Stilon C-60: Wywiad z przerażonym dzieckiem (1983)',
+        image: '/handouts/tajemnica-dzieci-z-traszyna/clue-key-book-apparatus.webp',
+        audioUrl: '/audio/handouts/tajemnica-dzieci-z-traszyna/wywiad-dziecko-1983.mp3',
+        handoutType: 'diary',
+        textContent: 'Zaszumione nagranie z polskiej kasety Stilon C-60: drżący dziecięcy głos opisujący cień unoszący się pod powałą stodoły.',
+      },
+    ],
   },
   {
     id: 'przybysz-z-matriksa-glogow',
@@ -207,6 +294,30 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
       { label: 'Wikipedia (Nie do wiary)', url: 'https://pl.wikipedia.org/wiki/Nie_do_wiary' },
       { label: 'Filmweb (Serial Nie do wiary)', url: 'https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405' },
       { label: 'Oficjalny Player.pl TVN', url: 'https://player.pl' },
+    ],
+    handouts: [
+      {
+        slug: 'clue-vhs-tape-glogow',
+        title: 'Zrzut klatki CRT: Sygnał z nocy 14 listopada',
+        image: '/handouts/przybysz-z-matriksa-glogow/clue-vhs-tape-glogow.webp',
+        handoutType: 'report',
+        textContent: 'Paski zakłóceń kineskopu i zamglona postać z przyszłości mówiąca o wygaszeniu sygnału w Twierdzy Głogów.',
+      },
+      {
+        slug: 'clue-military-bunker-map',
+        title: 'Plan podziemi Twierdzy Głogów (Sektor X-11)',
+        image: '/handouts/przybysz-z-matriksa-glogow/clue-military-bunker-map.webp',
+        handoutType: 'report',
+        textContent: 'Wojskowa mapa kazamatów z naniesionym czerwonym ołówkiem zalanym tunelem prowadzącym pod dno Odry.',
+      },
+      {
+        slug: 'audio-vhs-broadcast-anomaly',
+        title: 'Taśma VHS: Przechwycona audycja z przyszłości',
+        image: '/handouts/przybysz-z-matriksa-glogow/clue-vhs-tape-glogow.webp',
+        audioUrl: '/audio/handouts/przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3',
+        handoutType: 'report',
+        textContent: 'Trzask włączanego pasma telewizyjnego, pisk modemu i syntetyczny, obcy głos nadający ciągi współrzędnych czasowych.',
+      },
     ],
   },
 ];

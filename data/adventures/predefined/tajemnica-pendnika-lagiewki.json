@@ -58,5 +58,29 @@
       "npcs": ["Agenci Agencji Ochrony Rządu"],
       "availableClues": ["clue-aor-classified-file"]
     }
+  ],
+  "handouts": [
+    {
+      "slug": "clue-mi-go-cylinder-notes",
+      "title": "Kalka techniczna: Nieliniowe przekładnie wirnika",
+      "image": "/handouts/tajemnica-pendnika-lagiewki/clue-mi-go-cylinder-notes.webp",
+      "handoutType": "report",
+      "textContent": "Rysunek techniczny mechanizmu pędnika ze schematem rotacji mas, w którym linie zbiegają się w punkcie poza trójwymiarową przestrzenią."
+    },
+    {
+      "slug": "clue-aor-classified-file",
+      "title": "Raport AOR: Poufna notatka wstrzymania pokazów",
+      "image": "/handouts/tajemnica-pendnika-lagiewki/clue-aor-classified-file.webp",
+      "handoutType": "report",
+      "textContent": "Poufne pismo Urzędu Ochrony Państwa / AOR nakazujące natychmiastowe zamrożenie publicznych testów zderzeniowych Fiata 126p w Kowarach."
+    },
+    {
+      "slug": "audio-broken-brakes-log",
+      "title": "Nagranie magnetofonowe: Próba zderzeniowa Kowary 1996",
+      "image": "/handouts/tajemnica-pendnika-lagiewki/clue-aor-classified-file.webp",
+      "audioUrl": "/audio/handouts/tajemnica-pendnika-lagiewki/proba-zderzeniowa-kowary.mp3",
+      "handoutType": "report",
+      "textContent": "Dźwięk silnika Malucha rozpędzanego na rampie, potężne uderzenie w barierę i nienaturalny, głuchy rezonans wirnika pochłaniającego wektor pędu."
+    }
   ]
 }

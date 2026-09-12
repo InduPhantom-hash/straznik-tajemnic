@@ -58,5 +58,36 @@
       "npcs": ["Generał Edward Majewski"],
       "availableClues": ["clue-sb-file-klin"]
     }
+  ],
+  "handouts": [
+    {
+      "slug": "clue-photo-prabuty-1947",
+      "title": "Fotografia z ruin w Prabutach (1947)",
+      "image": "/handouts/cien-nad-prabutami/clue-photo-prabuty.webp",
+      "handoutType": "newspaper",
+      "textContent": "Czarno-biała fotografia przedstawiająca ruiny kościoła w Prabutach z odręczną notatką o. Klimuszki: „To nie światło słoneczne przenikało przez sklepienie...”."
+    },
+    {
+      "slug": "clue-sb-file-klin",
+      "title": "Teczka SB: Kryptonim KLIN",
+      "image": "/handouts/cien-nad-prabutami/clue-sb-file-klin.webp",
+      "handoutType": "report",
+      "textContent": "Ściśle tajny meldunek Departamentu IV MSW z 1973 r. dotyczący inwigilacji franciszkanina z Elbląga i anomalnych zjawisk elektromagnetycznych w celi klasztornej."
+    },
+    {
+      "slug": "clue-herbal-recipe-152",
+      "title": "Rękopis receptury ziołowej nr 152",
+      "image": "/handouts/cien-nad-prabutami/clue-herbal-recipe-152.webp",
+      "handoutType": "letter",
+      "textContent": "Zapis proporcji ziół z dopiskiem: „Pić przed snem, by uciszyć głosy czwartego wymiaru”."
+    },
+    {
+      "slug": "audio-sb-wiretap-elblag",
+      "title": "Taśma szpulowa ZK-140: Podsłuch celi w Elblągu",
+      "image": "/handouts/cien-nad-prabutami/clue-sb-file-klin.webp",
+      "audioUrl": "/audio/handouts/cien-nad-prabutami/tasma-sb-elblag.mp3",
+      "handoutType": "report",
+      "textContent": "Nagranie operacyjne SB: szum taśmy szpulowej, modlitwa i nagły trzask pękającego szkła pod wpływem nieznanej energii."
+    }
   ]
 }
