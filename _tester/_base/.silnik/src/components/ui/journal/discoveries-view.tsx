@@ -784,35 +784,40 @@ export function DiscoveriesView({
                           })}
                         </div>
                       </div>
-
-                      {/* Epistemiczna proweniencja poszlaki (LIMIT / anty-zapaść wektorowa) */}
-                      <div className="text-xs font-special-elite font-bold flex items-center gap-1.5 mt-2 flex-wrap">
-                        <span>{t('provenanceLabel')}</span>
-                        <div className="flex gap-1 flex-wrap">
-                          {(['observed', 'testimony', 'deduction', 'handout'] as ClueProvenance[]).map((prov) => {
-                            const isCurrent = selectedEntry.provenance === prov;
-                            const icon = prov === 'observed' ? '👁️' : prov === 'testimony' ? '👂' : prov === 'deduction' ? '💡' : '📜';
-                            return (
-                              <button
-                                key={prov}
-                                type="button"
-                                onClick={() => handleProvenanceChange(prov)}
-                                className={cn(
-                                  'px-1.5 py-0.5 rounded border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer',
-                                  isCurrent
-                                    ? 'bg-[#bfa15f] text-[#120905] border-[#bfa15f]'
-                                    : 'bg-transparent text-[#2c241b]/60 border-[#2c241b]/30 hover:bg-[#2c241b]/10'
-                                )}
-                                title={t('changeProvenanceTooltip')}
-                              >
-                                <span>{icon}</span>
-                                <span>{t(`provenance_${prov}`)}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
                     </>
+                  )}
+
+                  {/* Epistemiczna proweniencja poszlaki / akt sprawy (LIMIT / anty-zapaść wektorowa) */}
+                  {(activeCategory === 'quests' ||
+                    activeCategory === 'case' ||
+                    selectedEntry.provenance ||
+                    selectedEntry.clueStatus) && (
+                    <div className="text-xs font-special-elite font-bold flex items-center gap-1.5 mt-2 flex-wrap">
+                      <span>{t('provenanceLabel')}</span>
+                      <div className="flex gap-1 flex-wrap">
+                        {(['observed', 'testimony', 'deduction', 'handout'] as ClueProvenance[]).map((prov) => {
+                          const isCurrent = selectedEntry.provenance === prov;
+                          const icon = prov === 'observed' ? '👁️' : prov === 'testimony' ? '👂' : prov === 'deduction' ? '💡' : '📜';
+                          return (
+                            <button
+                              key={prov}
+                              type="button"
+                              onClick={() => handleProvenanceChange(prov)}
+                              className={cn(
+                                'px-1.5 py-0.5 rounded border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer',
+                                isCurrent
+                                  ? 'bg-[#bfa15f] text-[#120905] border-[#bfa15f]'
+                                  : 'bg-transparent text-[#2c241b]/60 border-[#2c241b]/30 hover:bg-[#2c241b]/10'
+                              )}
+                              title={t('changeProvenanceTooltip')}
+                            >
+                              <span>{icon}</span>
+                              <span>{t(`provenance_${prov}`)}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
 
                   {/* 2. SELEKTOR RELACJI DLA POSTACI (NPC) */}
@@ -934,21 +939,24 @@ export function DiscoveriesView({
                 {activeCategory === 'characters' &&
                   (selectedEntry.physiologicalDetail || selectedEntry.sociologicalStatus) && (
                     <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#bfa15f]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
-                      <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1">
-                        {t('observationTitle')}
+                      <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1 flex items-center gap-1.5">
+                        <span>🔍</span>
+                        <span>{t('observationTitle')}</span>
                       </div>
-                      {selectedEntry.physiologicalDetail && (
-                        <div>
-                          <span className="font-bold text-[#3a2818]">{t('observationPhysiological')}: </span>
-                          <span className="italic">{selectedEntry.physiologicalDetail}</span>
-                        </div>
-                      )}
-                      {selectedEntry.sociologicalStatus && (
-                        <div>
-                          <span className="font-bold text-[#3a2818]">{t('observationSociological')}: </span>
-                          <span>{selectedEntry.sociologicalStatus}</span>
-                        </div>
-                      )}
+                      <div className="space-y-1 pt-0.5">
+                        {selectedEntry.physiologicalDetail && (
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-[#8a6d3b] select-none text-[10px] mt-0.5">•</span>
+                            <span className="italic text-[#2c241b] leading-relaxed">{selectedEntry.physiologicalDetail}</span>
+                          </div>
+                        )}
+                        {selectedEntry.sociologicalStatus && (
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-[#8a6d3b] select-none text-[10px] mt-0.5">•</span>
+                            <span className="text-[#2c241b] leading-relaxed">{selectedEntry.sociologicalStatus}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 

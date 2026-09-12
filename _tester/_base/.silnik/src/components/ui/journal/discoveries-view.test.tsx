@@ -254,4 +254,64 @@ describe('DiscoveriesView', () => {
       provenance: undefined,
     });
   });
+
+  it('formatuje obserwacje NPC jako estetyczne punkty detektywistyczne bez surowych etykiet tagów', () => {
+    const npcEntry = {
+      id: 'npc_marian',
+      title: 'Marian Wolski',
+      content: 'Starszy archiwista taśmoteki o ziemistej cerze',
+      type: 'npc' as const,
+      physiologicalDetail: 'Przetarty wełniany sweter, pożółkłe palce',
+      sociologicalStatus: 'Zastraszony dokumentalista unikający kontaktu wzrokowego',
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[npcEntry]}
+        onEditEntry={jest.fn()}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^Postacie/i }));
+
+    // Nagłówek obserwacji
+    expect(screen.getByText(/RYSOPIS I OBSERWACJA ŚLEDCZA/i)).toBeInTheDocument();
+    // Treść punktora
+    expect(screen.getByText('Przetarty wełniany sweter, pożółkłe palce')).toBeInTheDocument();
+    expect(screen.getByText('Zastraszony dokumentalista unikający kontaktu wzrokowego')).toBeInTheDocument();
+
+    // Surowe etykiety formularza/tagów NIE mogą wyciekać do widoku
+    expect(screen.queryByText(/Cechy fizyczne i manieryzm/i)).toBeNull();
+    expect(screen.queryByText(/Pozycja społeczna i zawód/i)).toBeNull();
+  });
+
+  it('wyświetla selektor proweniencji w widoku Akt Sprawy (kategoria case)', () => {
+    const onEdit = jest.fn();
+    const caseEntry = {
+      id: 'case_intro',
+      title: 'Początek śledztwa',
+      content: 'Warszawa, redakcja na Woronicza.',
+      type: 'case' as const,
+      provenance: 'handout' as const,
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[caseEntry]}
+        onEditEntry={onEdit}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Akta Sprawy/i }));
+    expect(screen.getByText('PROWENIENCJA:')).toBeInTheDocument();
+
+    // Zmiana proweniencji na Zaobserwowane
+    fireEvent.click(screen.getByRole('button', { name: /Zaobserwowane/i }));
+    expect(onEdit).toHaveBeenCalledWith({
+      ...caseEntry,
+      provenance: 'observed',
+    });
+  });
 });

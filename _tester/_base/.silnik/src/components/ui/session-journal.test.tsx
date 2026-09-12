@@ -547,6 +547,58 @@ describe('SessionJournal', () => {
     expect(screen.getAllByText('Początek śledztwa')[0]).toBeInTheDocument();
     expect(screen.getAllByText(/archiwista przekazał mi nieocenzurowaną teczkę/i)[0]).toBeInTheDocument();
   });
+
+  it('przypisuje i wyświetla proweniencję wpisu Początek śledztwa w Aktach Sprawy oraz umożliwia jej zmianę', () => {
+    const onUpdateCharacter = jest.fn();
+    const charWithIntro: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      investigatorDossier: {
+        clues: [],
+        npcs: [],
+        locations: [],
+        notes: [],
+      },
+      journal: [
+        {
+          id: 'journal-start-1',
+          title: 'Początek śledztwa',
+          content: 'Warszawa, redakcja na Woronicza. Marian przynosi nieoficjalną kopertę.',
+          type: 'case',
+          timestamp: new Date(),
+          tags: [],
+          isBookmarked: false,
+        },
+      ],
+    };
+
+    render(
+      <SessionJournal
+        character={charWithIntro}
+        onUpdateCharacter={onUpdateCharacter}
+        onClose={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Akta Sprawy/i }));
+    // Odznaka proweniencji Handout jest widoczna (koperta -> handout)
+    expect(screen.getAllByText(/Handout/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/PROWENIENCJA:/i)).toBeInTheDocument();
+
+    // Zmiana proweniencji na Usłyszane (testimony)
+    const testimonyBtn = screen.getByRole('button', { name: /Usłyszane/i });
+    fireEvent.click(testimonyBtn);
+
+    expect(onUpdateCharacter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        journal: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'journal-start-1',
+            provenance: 'testimony',
+          }),
+        ]),
+      })
+    );
+  });
 });
 
 

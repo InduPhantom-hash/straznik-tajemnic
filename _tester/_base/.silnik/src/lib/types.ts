@@ -225,6 +225,8 @@ export interface JournalEntry {
   imageUrl?: string;
   imagePrompt?: string;
   imageStatus?: 'pending' | 'completed' | 'failed' | 'idle';
+  /** Epistemiczna proweniencja poszlaki / wpisu śledczego (obserwacja, zeznanie, dedukcja, handout) */
+  provenance?: import('./journal/dossier-types').ClueProvenance;
 }
 
 export * from './journal/dossier-types';
