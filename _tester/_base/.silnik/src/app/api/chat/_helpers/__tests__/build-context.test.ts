@@ -444,6 +444,97 @@ describe('buildActiveInvestigationSection (Issue #68 - Memory Loop)', () => {
     expect(section).not.toContain('Fałszywe alibi lokaja');
     expect(section).not.toContain('Ślady kół powozu');
   });
+
+  it('wstrzykuje etykiety proweniencji [Zaobserwowane], [Zeznanie], [Dedukcja], [Handout] (PL/EN)', () => {
+    const character = {
+      id: 'c_prov',
+      name: 'Detektyw Pierce',
+      investigatorDossier: {
+        clues: [
+          {
+            id: 'c1',
+            title: 'Plamy krwi',
+            description: 'Zaschnięta krew na podłodze.',
+            provenance: 'observed',
+            status: 'confirmed',
+          },
+          {
+            id: 'c2',
+            title: 'Relacja świadka',
+            description: 'Krzyki o północy.',
+            provenance: 'testimony',
+            status: 'confirmed',
+          },
+          {
+            id: 'c3',
+            title: 'Analiza trucizny',
+            description: 'Związki arszeniku w herbacie.',
+            provenance: 'deduction',
+            status: 'confirmed',
+          },
+          {
+            id: 'c4',
+            title: 'List z pogróżkami',
+            description: 'Anonim wysłany z Bostonu.',
+            provenance: 'handout',
+            status: 'confirmed',
+          },
+        ],
+        notes: [],
+        npcs: [],
+        locations: [],
+      },
+    } as unknown as Character;
+
+    const sectionPl = buildActiveInvestigationSection({ character, locale: 'pl' });
+    expect(sectionPl).toContain('- **Plamy krwi** [Zaobserwowane]: Zaschnięta krew na podłodze.');
+    expect(sectionPl).toContain('- **Relacja świadka** [Zeznanie]: Krzyki o północy.');
+    expect(sectionPl).toContain('- **Analiza trucizny** [Dedukcja]: Związki arszeniku w herbacie.');
+    expect(sectionPl).toContain('- **List z pogróżkami** [Handout]: Anonim wysłany z Bostonu.');
+
+    const sectionEn = buildActiveInvestigationSection({ character, locale: 'en' });
+    expect(sectionEn).toContain('- **Plamy krwi** [Observed]: Zaschnięta krew na podłodze.');
+    expect(sectionEn).toContain('- **Relacja świadka** [Testimony]: Krzyki o północy.');
+    expect(sectionEn).toContain('- **Analiza trucizny** [Deduction]: Związki arszeniku w herbacie.');
+    expect(sectionEn).toContain('- **List z pogróżkami** [Handout]: Anonim wysłany z Bostonu.');
+  });
+
+  it('stosuje Context Stuffing: nie obcina poszlak do 5 i nie skraca opisu do 100 znaków', () => {
+    const longFact =
+      'Dokładny raport z oględzin miejsca zbrodni zawierający szczegółowe pomiary odcisków butów w błocie, analizę trajektorii pocisku oraz wzmiankę o zapachu ozonu unoszącym się w powietrzu.';
+    expect(longFact.length).toBeGreaterThan(150);
+
+    const cluesList = Array.from({ length: 8 }, (_, i) => ({
+      id: `clue_${i}`,
+      title: `Poszlaka nr ${i + 1}`,
+      description: `Fakt poszlaki nr ${i + 1}: ${longFact}`,
+      status: 'confirmed',
+      provenance: 'observed' as const,
+      timestamp: 1000 + i,
+    }));
+
+    const character = {
+      id: 'c_stuffing',
+      name: 'Detektyw Pierce',
+      investigatorDossier: {
+        clues: cluesList,
+        notes: [],
+        npcs: [],
+        locations: [],
+      },
+    } as unknown as Character;
+
+    const section = buildActiveInvestigationSection({ character, locale: 'pl' });
+
+    // Wszystkie 8 poszlak jest obecnych (brak limitu do 5 dla dossier)
+    for (let i = 1; i <= 8; i++) {
+      expect(section).toContain(`Poszlaka nr ${i}`);
+    }
+
+    // Pełny opis nie został ucięty wielokropkiem (...)
+    expect(section).toContain(longFact);
+    expect(section).not.toContain('...');
+  });
 });
 
 describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => {

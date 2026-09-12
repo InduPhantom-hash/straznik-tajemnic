@@ -248,6 +248,7 @@ export function SessionJournal({
           timestamp: c.timestamp,
           investigatorInsight: c.investigatorInsight,
           clueCategory: c.category,
+          provenance: c.provenance,
           clueStatus: c.status,
           isKeyClue: c.isKeyClue,
           linkedNodeIds: c.linkedNodeIds,
@@ -361,6 +362,7 @@ export function SessionJournal({
               investigatorInsight: updated.investigatorInsight,
               status: updated.clueStatus || c.status,
               category: updated.clueCategory || c.category,
+              provenance: updated.provenance !== undefined ? updated.provenance : c.provenance,
             }
           : c
       );

@@ -10,6 +10,7 @@ export type ClueStatus = 'unconfirmed' | 'confirmed' | 'disproven' | 'superseded
 
 export type ClueDiscoveryStatus = 'unrevealed' | 'discovered' | 'verified';
 export type EpistemicLayerType = 'keeper_truth' | 'player_clue';
+export type ClueProvenance = 'observed' | 'testimony' | 'deduction' | 'handout';
 
 /**
  * Wektor dramatyczny M.I.C.E. Quotient (Orson Scott Card / Mary Robinette Kowal):
@@ -30,6 +31,8 @@ export interface ClueEntry {
   discoveryStatus?: ClueDiscoveryStatus;
   /** Warstwa epistemiczna: obiektywna prawda MG vs wiedza badacza */
   epistemicLayer?: EpistemicLayerType;
+  /** Epistemiczna proweniencja / źródło poznawcze poszlaki (LIMIT / anty-zapaść wektorowa) */
+  provenance?: ClueProvenance;
   /** Identyfikator poszlaki unieważniającej (Arcanum Benchmark 2026: Fact Supersession) */
   supersededBy?: string;
   sourceNpc?: string;

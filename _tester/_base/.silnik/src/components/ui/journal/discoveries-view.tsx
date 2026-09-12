@@ -27,6 +27,7 @@ import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
 import type { Character, NPC, Location } from '@/lib/types';
 import type {
   ClueCategory,
+  ClueProvenance,
   ClueStatus,
   NpcRelationshipStatus,
   LocationSearchStatus,
@@ -59,6 +60,8 @@ export interface DiscoveryEntry {
   // Pola Dossier CoC 7e RAW:
   clueCategory?: ClueCategory;
   clueStatus?: ClueStatus;
+  /** Epistemiczna proweniencja poszlaki (obserwacja / zeznanie / dedukcja / handout) */
+  provenance?: ClueProvenance;
   isKeyClue?: boolean;
   linkedNodeIds?: string[];
   alternativeClueTrails?: string[];
@@ -300,6 +303,18 @@ export function DiscoveriesView({
     [onEditEntry, selectedEntry]
   );
 
+  // Zmiana proweniencji poszlaki (obserwacja / zeznanie / dedukcja / handout)
+  const handleProvenanceChange = useCallback(
+    (prov: ClueProvenance) => {
+      if (!selectedEntry) return;
+      onEditEntry({
+        ...selectedEntry,
+        provenance: selectedEntry.provenance === prov ? undefined : prov,
+      });
+    },
+    [onEditEntry, selectedEntry]
+  );
+
   // Zmiana wektora dramatycznego M.I.C.E. Quotient (Card / Kowal)
   const handleMiceTypeChange = useCallback(
     (miceType: MiceQuotientType) => {
@@ -463,6 +478,25 @@ export function DiscoveriesView({
                             : t('clueCategoryOccult')}
                     </span>
                   )}
+                  {entry.provenance && (
+                    <span
+                      className="text-[9px] font-mono px-1 py-0.5 rounded bg-[#1e140d] text-[#e0cfb8] border border-[#bfa15f]/30 flex items-center gap-0.5"
+                      title={t(`provenance_${entry.provenance}`)}
+                    >
+                      <span>
+                        {entry.provenance === 'observed'
+                          ? '👁️'
+                          : entry.provenance === 'testimony'
+                            ? '👂'
+                            : entry.provenance === 'deduction'
+                              ? '💡'
+                              : '📜'}
+                      </span>
+                      <span className="capitalize">
+                        {t(`provenance_${entry.provenance}`)}
+                      </span>
+                    </span>
+                  )}
                   {entry.miceType && (
                     <span
                       className={cn(
@@ -565,6 +599,22 @@ export function DiscoveriesView({
                       )}
                     >
                       M.I.C.E. [{selectedEntry.miceType.toUpperCase()[0]}]
+                    </span>
+                  )}
+                  {selectedEntry.provenance && (
+                    <span
+                      className="bg-[#24150c] text-[#f4ebd0] border border-[#bfa15f]/50 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm font-mono"
+                    >
+                      <span>
+                        {selectedEntry.provenance === 'observed'
+                          ? '👁️'
+                          : selectedEntry.provenance === 'testimony'
+                            ? '👂'
+                            : selectedEntry.provenance === 'deduction'
+                              ? '💡'
+                              : '📜'}
+                      </span>
+                      <span>{t(`provenance_${selectedEntry.provenance}`)}</span>
                     </span>
                   )}
                 </div>
@@ -729,6 +779,34 @@ export function DiscoveriesView({
                                     : mType === 'character'
                                       ? t('miceTypeCharacter')
                                       : t('miceTypeEvent')}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Epistemiczna proweniencja poszlaki (LIMIT / anty-zapaść wektorowa) */}
+                      <div className="text-xs font-special-elite font-bold flex items-center gap-1.5 mt-2 flex-wrap">
+                        <span>{t('provenanceLabel')}</span>
+                        <div className="flex gap-1 flex-wrap">
+                          {(['observed', 'testimony', 'deduction', 'handout'] as ClueProvenance[]).map((prov) => {
+                            const isCurrent = selectedEntry.provenance === prov;
+                            const icon = prov === 'observed' ? '👁️' : prov === 'testimony' ? '👂' : prov === 'deduction' ? '💡' : '📜';
+                            return (
+                              <button
+                                key={prov}
+                                type="button"
+                                onClick={() => handleProvenanceChange(prov)}
+                                className={cn(
+                                  'px-1.5 py-0.5 rounded border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer',
+                                  isCurrent
+                                    ? 'bg-[#bfa15f] text-[#120905] border-[#bfa15f]'
+                                    : 'bg-transparent text-[#2c241b]/60 border-[#2c241b]/30 hover:bg-[#2c241b]/10'
+                                )}
+                                title={t('changeProvenanceTooltip')}
+                              >
+                                <span>{icon}</span>
+                                <span>{t(`provenance_${prov}`)}</span>
                               </button>
                             );
                           })}

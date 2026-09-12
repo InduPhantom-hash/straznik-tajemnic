@@ -7,6 +7,7 @@
 import {
   ClueCategory,
   ClueEntry,
+  ClueProvenance,
   ClueStatus,
   InvestigatorDossier,
   LocationDossierEntry,
@@ -19,6 +20,7 @@ import {
   isNpcDossierEntry,
   isPlayerNoteEntry,
 } from './dossier-types';
+import { inferClueProvenance } from '../parsers/journal-parser';
 
 interface LegacyObjective {
   id?: string;
@@ -38,6 +40,7 @@ interface LegacyEntryLike {
   hypothesisStatus?: 'unverified' | 'confirmed' | 'disproven';
   objectives?: LegacyObjective[];
   investigatorInsight?: string;
+  provenance?: ClueProvenance;
   inGameDate?: string;
   date?: string;
   timestamp?: number | string | Date;
@@ -291,6 +294,7 @@ export function migrateLegacyJournalToDossier(
         description: appendObjectivesToDescription(entry.content || '', entry.objectives),
         category: inferClueCategory(entry),
         status: inferClueStatus(entry),
+        provenance: entry.provenance || inferClueProvenance(entry.title || '', entry.content || '', inferClueCategory(entry)),
         sourceNpc: entry.metadata?.npcName,
         foundLocation: entry.metadata?.locationName,
         inGameDate,

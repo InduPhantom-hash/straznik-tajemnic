@@ -2,6 +2,8 @@ import {
   extractJournalTags,
   synthesizeClueFact,
   extractNpcTags,
+  parseClueProvenance,
+  inferClueProvenance,
 } from './journal-parser';
 import { extractLatestTagLocation } from './event-parser';
 import { appendJournalFromText, appendJournalToParty } from '../journal/apply-journal-tags';
@@ -202,5 +204,114 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
     expect(oldClue?.status).toBe('superseded');
     expect(oldClue?.supersededBy).toBe('Zdemaskowanie dozorcy');
     expect(newClue?.status).toBe('confirmed');
+  });
+
+  describe('Epistemic Clue Provenance', () => {
+    it('parseClueProvenance rozpoznaje słowa kluczowe PL i EN oraz prefiksy źródła', () => {
+      expect(parseClueProvenance('observed')).toBe('observed');
+      expect(parseClueProvenance('zaobserwowane')).toBe('observed');
+      expect(parseClueProvenance('oględziny')).toBe('observed');
+      expect(parseClueProvenance('źródło: naoczne')).toBe('observed');
+      expect(parseClueProvenance('source: observation')).toBe('observed');
+
+      expect(parseClueProvenance('testimony')).toBe('testimony');
+      expect(parseClueProvenance('zeznanie')).toBe('testimony');
+      expect(parseClueProvenance('usłyszane')).toBe('testimony');
+      expect(parseClueProvenance('źródło: świadek')).toBe('testimony');
+      expect(parseClueProvenance('proweniencja: rozmowa')).toBe('testimony');
+
+      expect(parseClueProvenance('deduction')).toBe('deduction');
+      expect(parseClueProvenance('dedukcja')).toBe('deduction');
+      expect(parseClueProvenance('wniosek')).toBe('deduction');
+      expect(parseClueProvenance('źródło: analiza')).toBe('deduction');
+
+      expect(parseClueProvenance('handout')).toBe('handout');
+      expect(parseClueProvenance('dokument')).toBe('handout');
+      expect(parseClueProvenance('wycinek')).toBe('handout');
+      expect(parseClueProvenance('source: letter')).toBe('handout');
+
+      expect(parseClueProvenance('nieznane_zrodlo')).toBeUndefined();
+      expect(parseClueProvenance('')).toBeUndefined();
+    });
+
+    it('inferClueProvenance automatycznie wnioskuje proweniencję z treści i kategorii', () => {
+      // Kategoria dokument -> handout
+      expect(inferClueProvenance('Notatki', 'Tajemnicze formuły', 'document')).toBe('handout');
+      // Kategoria testimony -> testimony
+      expect(inferClueProvenance('Relacja', 'Twierdzi, że uciekł', 'testimony')).toBe('testimony');
+
+      // Słowa kluczowe dokumentów
+      expect(
+        inferClueProvenance('Dziennik Corbitta', 'Zapiski z 1890 roku')
+      ).toBe('handout');
+      expect(
+        inferClueProvenance('Wycinek z Boston Globe', 'Artykuł o zniknięciu')
+      ).toBe('handout');
+
+      // Słowa kluczowe zeznań
+      expect(
+        inferClueProvenance('Dozorca', 'Twierdzi, że słyszał kroki na piętrze')
+      ).toBe('testimony');
+      expect(
+        inferClueProvenance('Rozmowa z barmanem', 'Świadek powiedział o dziwnym kliencie')
+      ).toBe('testimony');
+
+      // Słowa kluczowe dedukcji
+      expect(
+        inferClueProvenance('Hipoteza', 'Analiza wskazuje na truciznę')
+      ).toBe('deduction');
+      expect(
+        inferClueProvenance('Wniosek śledczego', 'Badacz połączył fakty i wywnioskował motyw')
+      ).toBe('deduction');
+
+      // Domyślna obserwacja fizyczna
+      expect(
+        inferClueProvenance('Ślady pazurów', 'Głębokie rysy na dębowych drzwiach piwnicy')
+      ).toBe('observed');
+    });
+
+    it('appendJournalFromText zapisuje jawną proweniencję z tagu DZIENNIK', () => {
+      const raw =
+        '[DZIENNIK:trop:Ślady pazurów]Głębokie bruzdy na futrynie | zaobserwowane | M[/DZIENNIK]';
+      const updated = appendJournalFromText(baseCharacter, raw, 'msg_prov_1');
+
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Ślady pazurów');
+      expect(clue).toBeDefined();
+      expect(clue?.provenance).toBe('observed');
+      expect(clue?.miceType).toBe('milieu');
+      expect(clue?.description).toBe('Głębokie bruzdy na futrynie.');
+    });
+
+    it('appendJournalFromText zapisuje proweniencję z prefiksem źródło:', () => {
+      const raw =
+        '[DZIENNIK:trop:Zeznanie Dozorcy]Widział postać w czarnym płaszczu | źródło: zeznanie | I[/DZIENNIK]';
+      const updated = appendJournalFromText(baseCharacter, raw, 'msg_prov_2');
+
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Zeznanie Dozorcy');
+      expect(clue).toBeDefined();
+      expect(clue?.provenance).toBe('testimony');
+      expect(clue?.miceType).toBe('inquiry');
+    });
+
+    it('appendJournalFromText stosuje heurystykę inferClueProvenance gdy brak jawnej proweniencji', () => {
+      const raw =
+        '[DZIENNIK:trop:Wycinek z Boston Globe]Artykuł o niewyjaśnionym zgonie w Bostonie.[/DZIENNIK]';
+      const updated = appendJournalFromText(baseCharacter, raw, 'msg_prov_3');
+
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Wycinek z Boston Globe');
+      expect(clue).toBeDefined();
+      expect(clue?.provenance).toBe('handout');
+    });
+
+    it('appendJournalFromText obsługuje angielskie tagi JOURNAL z proweniencją', () => {
+      const raw =
+        '[JOURNAL:clue:Corbitt Journal]Written in archaic Latin cipher | handout | inquiry[/JOURNAL]';
+      const updated = appendJournalFromText(baseCharacter, raw, 'msg_prov_en');
+
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Corbitt Journal');
+      expect(clue).toBeDefined();
+      expect(clue?.provenance).toBe('handout');
+      expect(clue?.miceType).toBe('inquiry');
+    });
   });
 });
