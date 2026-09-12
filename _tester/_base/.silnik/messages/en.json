@@ -4577,6 +4577,8 @@
     "investigatorTools": "Investigator Tools",
     "compendium": "Compendium & Rules",
     "compendiumTitle": "Open rules compendium, bestiary and epoch encyclopedia",
+    "directorMode": "Director Mode",
+    "directorModeTooltip": "Toggle Director's Notes (BOP)",
     "betaStatus": "Beta Version Status",
     "betaStatusTitle": "Check what works 100% per CoC 7e RAW rules vs what is in development",
     "betaFeedback": "Report Issue / Feedback",

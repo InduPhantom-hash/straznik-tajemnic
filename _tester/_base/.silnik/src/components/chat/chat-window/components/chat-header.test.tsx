@@ -38,45 +38,17 @@ describe('ChatHeader', () => {
     expect(screen.getByTestId('campaign-clock')).toBeInTheDocument();
   });
 
-  it('renders compendium button and invokes onOpenHelp on click', () => {
-    const handleOpenHelp = jest.fn();
+  it('renders campaign clock in header without action buttons', () => {
     render(
       <ChatHeader
         title="Tajemnica Czarnego Sarkofagu"
-        onOpenHelp={handleOpenHelp}
+        region="Arkham"
+        currentLocation="Uniwersytet Miskatonic"
       />
     );
 
-    const compendiumBtn = screen.getByRole('button', { name: /kompendium/i });
-    expect(compendiumBtn).toBeInTheDocument();
-    compendiumBtn.click();
-    expect(handleOpenHelp).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders director mode button when onToggleDirectorMode is provided and toggles state', () => {
-    const handleToggleDirector = jest.fn();
-    const { rerender } = render(
-      <ChatHeader
-        title="Tajemnica Czarnego Sarkofagu"
-        isDirectorMode={false}
-        onToggleDirectorMode={handleToggleDirector}
-      />
-    );
-
-    const directorBtn = screen.getByRole('button', { name: /kulisy mg/i });
-    expect(directorBtn).toBeInTheDocument();
-    expect(directorBtn).toHaveAttribute('aria-pressed', 'false');
-
-    directorBtn.click();
-    expect(handleToggleDirector).toHaveBeenCalledTimes(1);
-
-    rerender(
-      <ChatHeader
-        title="Tajemnica Czarnego Sarkofagu"
-        isDirectorMode={true}
-        onToggleDirectorMode={handleToggleDirector}
-      />
-    );
-    expect(directorBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('campaign-clock')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /kompendium/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /kulisy mg/i })).not.toBeInTheDocument();
   });
 });
