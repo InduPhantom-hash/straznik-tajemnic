@@ -19,6 +19,8 @@ interface BottomLinksProps {
   onOpenApiKeys?: () => void;
   onOpenRulebook?: () => void;
   onOpenHelp?: () => void;
+  onOpenBetaStatus?: () => void;
+  onOpenBetaFeedback?: () => void;
   onColdStart?: () => void;
 }
 
@@ -27,12 +29,14 @@ export const BottomLinks: FC<BottomLinksProps> = ({
   onOpenApiKeys,
   onOpenRulebook,
   onOpenHelp,
+  onOpenBetaStatus,
+  onOpenBetaFeedback,
   onColdStart,
 }) => {
   const t = useTranslations('BottomLinks');
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!onLoadSave && !onOpenApiKeys && !onOpenRulebook && !onOpenHelp && !onColdStart) return null;
+  if (!onLoadSave && !onOpenApiKeys && !onOpenRulebook && !onOpenHelp && !onOpenBetaStatus && !onOpenBetaFeedback && !onColdStart) return null;
 
   return (
     <div className="flex flex-col items-center gap-3 z-20 mt-4">
@@ -65,6 +69,16 @@ export const BottomLinks: FC<BottomLinksProps> = ({
           {onOpenHelp && (
             <button type="button" onClick={onOpenHelp} className={GHOST_BTN}>
               {t('compendium')}
+            </button>
+          )}
+          {onOpenBetaStatus && (
+            <button type="button" onClick={onOpenBetaStatus} className={GHOST_BTN}>
+              {t('betaStatus')}
+            </button>
+          )}
+          {onOpenBetaFeedback && (
+            <button type="button" onClick={onOpenBetaFeedback} className={GHOST_BTN}>
+              {t('betaFeedback')}
             </button>
           )}
           {onColdStart && (

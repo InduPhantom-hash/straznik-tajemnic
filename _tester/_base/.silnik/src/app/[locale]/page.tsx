@@ -136,6 +136,24 @@ const PredefinedCharactersSelector = dynamic(
     ssr: false,
   }
 );
+const BetaWelcomeModal = dynamic(
+  () =>
+    import('@/components/dialogs/BetaWelcomeModal').then((mod) => ({
+      default: mod.BetaWelcomeModal,
+    })),
+  {
+    ssr: false,
+  }
+);
+const BetaFeedbackModal = dynamic(
+  () =>
+    import('@/components/dialogs/BetaFeedbackModal').then((mod) => ({
+      default: mod.BetaFeedbackModal,
+    })),
+  {
+    ssr: false,
+  }
+);
 
 
 export default function Home() {
@@ -221,9 +239,21 @@ export default function Home() {
   const [showApiKeysModal, setShowApiKeysModal] = useState(false);
   const [showRulebookModal, setShowRulebookModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showBetaWelcomeModal, setShowBetaWelcomeModal] = useState(false);
+  const [showBetaFeedbackModal, setShowBetaFeedbackModal] = useState(false);
   const rulesStatus = useRulesStatus();
   
   const [languageSelectionRequired, setLanguageSelectionRequired] = useState<boolean | null>(null);
+
+  // Beta Welcome Modal: auto-open na starcie, jeśli gracz nie zaznaczył "Nie pokazuj ponownie"
+  useEffect(() => {
+    if (typeof window !== 'undefined' && languageSelectionRequired === false) {
+      const dismissed = localStorage.getItem('straznik_beta_welcome_dismissed');
+      if (dismissed !== 'true') {
+        setShowBetaWelcomeModal(true);
+      }
+    }
+  }, [languageSelectionRequired]);
   const [rulesOnboardingCompleted, setRulesOnboardingCompleted] = useState<boolean | null>(null);
   
   const [pendingNewAdventure, setPendingNewAdventure] = useState(false);
@@ -920,6 +950,8 @@ export default function Home() {
           adventureContext={adventureContext}
           hideSidebarPanel={!hasStartedGame}
           onOpenHelp={() => setShowHelpModal(true)}
+          onOpenBetaStatus={() => setShowBetaWelcomeModal(true)}
+          onOpenBetaFeedback={() => setShowBetaFeedbackModal(true)}
           activeCharacter={charMgmt.activeCharacter || undefined}
           characters={charMgmt.characters}
           onCharacterSwitch={charMgmt.handleCharacterSwitch}
@@ -1083,6 +1115,22 @@ export default function Home() {
                 isOpen={showHelpModal}
                 onClose={() => setShowHelpModal(false)}
               />
+              <BetaWelcomeModal
+                open={showBetaWelcomeModal}
+                onOpenChange={setShowBetaWelcomeModal}
+                onOpenFeedback={() => {
+                  setShowBetaWelcomeModal(false);
+                  setShowBetaFeedbackModal(true);
+                }}
+              />
+              <BetaFeedbackModal
+                open={showBetaFeedbackModal}
+                onOpenChange={setShowBetaFeedbackModal}
+                scenarioTitle={adventureContext?.title}
+                characterName={charMgmt.activeCharacter?.name}
+                eraLabel={adventureContext?.eraLabel}
+                messageCount={chat.messages.length}
+              />
             </>
           )}
 
@@ -1170,6 +1218,8 @@ export default function Home() {
           }}
           onUploadRules={() => setShowRulebookModal(true)}
           onOpenHelp={() => setShowHelpModal(true)}
+          onOpenBetaStatus={() => setShowBetaWelcomeModal(true)}
+          onOpenBetaFeedback={() => setShowBetaFeedbackModal(true)}
           onSelectAdventure={() => openAdventureSelectorRef.current?.()}
           onSessionZero={() => openSessionZeroRef.current?.()}
           hasAdventure={!!adventureContext}
