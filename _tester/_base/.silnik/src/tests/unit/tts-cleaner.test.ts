@@ -47,6 +47,13 @@ describe('text-cleaner (TTS)', () => {
     const cleaned = cleanResponseText(raw);
     expect(cleaned).toBe('Na zewnątrz szaleje burza. Co robisz?');
   });
+
+  it('usuwa tagi SFX, nagrań audio oraz linki obrazów markdown z tekstu TTS', () => {
+    const raw =
+      'Nagle pada strzał! [SFX: gunshot] Widzisz stare zdjęcie na biurku:\n![Fotografia z ruin](/handouts/cien-nad-prabutami/clue-photo-prabuty.webp)\n[AUDIO: /audio/handouts/tasma.mp3]\nCo robisz?';
+    const cleaned = cleanResponseText(raw);
+    expect(cleaned).toBe('Nagle pada strzał! Widzisz stare zdjęcie na biurku: Co robisz?');
+  });
 });
 
 import { resolveNpcVoice } from '@/lib/npc-voice-mapping';

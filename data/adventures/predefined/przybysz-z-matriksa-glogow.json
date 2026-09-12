@@ -51,5 +51,29 @@
       "npcs": ["Dominika Szymańska (Programistka)"],
       "availableClues": ["clue-military-bunker-map"]
     }
+  ],
+  "handouts": [
+    {
+      "slug": "clue-vhs-tape-glogow",
+      "title": "Zrzut klatki CRT: Sygnał z nocy 14 listopada",
+      "image": "/handouts/przybysz-z-matriksa-glogow/clue-vhs-tape-glogow.webp",
+      "handoutType": "report",
+      "textContent": "Paski zakłóceń kineskopu i zamglona postać z przyszłości mówiąca o wygaszeniu sygnału w Twierdzy Głogów."
+    },
+    {
+      "slug": "clue-military-bunker-map",
+      "title": "Plan podziemi Twierdzy Głogów (Sektor X-11)",
+      "image": "/handouts/przybysz-z-matriksa-glogow/clue-military-bunker-map.webp",
+      "handoutType": "report",
+      "textContent": "Wojskowa mapa kazamatów z naniesionym czerwonym ołówkiem zalanym tunelem prowadzącym pod dno Odry."
+    },
+    {
+      "slug": "audio-vhs-broadcast-anomaly",
+      "title": "Taśma VHS: Przechwycona audycja z przyszłości",
+      "image": "/handouts/przybysz-z-matriksa-glogow/clue-vhs-tape-glogow.webp",
+      "audioUrl": "/audio/handouts/przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3",
+      "handoutType": "report",
+      "textContent": "Trzask włączanego pasma telewizyjnego, pisk modemu i syntetyczny, obcy głos nadający ciągi współrzędnych czasowych."
+    }
   ]
 }

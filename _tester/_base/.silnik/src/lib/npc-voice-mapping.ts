@@ -437,20 +437,32 @@ export function inferRoleFromNPC(npc: NpcVoiceInput): GeminiVoiceRole {
   const text = npcSearchText(npc);
   if (matchesAny(text, MONSTER_KEYWORDS)) return 'monster';
 
+  const gender = inferGenderFromNPC(npc);
+  // Kobiety ZAWSZE otrzymują głosy żeńskie (role 'old' w Gemini to wyłącznie głosy męskie Gacrux/Algenib)
+  if (gender === 'female') return 'female';
+
   const age = inferAgeFromNPC(npc);
   if (age) return age;
 
-  const gender = inferGenderFromNPC(npc);
   if (gender) return gender;
 
   return 'narrator';
+}
+
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
 }
 
 /**
  * Główne API: zwraca voiceId dla NPC.
  *
  * Jeśli NPC ma override w `voiceConfig.voiceId` → użyj go.
- * Inaczej: infer role + zwróć pierwszy voice z catalogu pasujący do roli.
+ * Inaczej: infer role + zwróć zróżnicowany deterministycznie głos z catalogu dla danej roli.
  * Fallback: DEFAULT_GEMINI_VOICE.
  */
 export function getVoiceForNPC(npc: NpcVoiceInput): string {
@@ -459,11 +471,13 @@ export function getVoiceForNPC(npc: NpcVoiceInput): string {
     return npc.voiceConfig.voiceId;
   }
 
-  // 2. Heurystyka
+  // 2. Heurystyka - dobór głosu z puli danej roli na podstawie hasha imienia/zawodu
   const role = inferRoleFromNPC(npc);
   const voicesOfRole = GEMINI_VOICES.filter((v) => v.role === role);
   if (voicesOfRole.length > 0) {
-    return voicesOfRole[0].voiceId;
+    const seed = npc.name || npc.occupation || '';
+    const index = seed ? hashString(seed) % voicesOfRole.length : 0;
+    return voicesOfRole[index].voiceId;
   }
 
   // 3. Fallback (nie powinno się zdarzyć - każda rola ma min. 1 voice w catalogu)
@@ -568,8 +582,7 @@ export function buildNpcToneOfVoice(
   const gender = inferGenderFromNPC(npc) || 'male';
   const role = inferRoleFromNPC(npc);
   const voiceId =
-    npc.voiceConfig?.voiceId ||
-    (gender === 'female' ? 'Aoede' : getVoiceForNPC(npc));
+    npc.voiceConfig?.voiceId || getVoiceForNPC(npc);
 
   const occupation = npc.occupation || '';
   const personality = npc.personality || '';

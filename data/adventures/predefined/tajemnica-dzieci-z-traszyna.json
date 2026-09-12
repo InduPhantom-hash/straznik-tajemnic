@@ -51,5 +51,29 @@
       "npcs": ["Tomasz Nowicki (Egzorcysta)"],
       "availableClues": ["clue-exorcist-notes"]
     }
+  ],
+  "handouts": [
+    {
+      "slug": "clue-dry-cross-barn",
+      "title": "Polaroid: Odwrócony krzyż na ścianie stodoły (1983)",
+      "image": "/handouts/tajemnica-dzieci-z-traszyna/clue-dry-cross-barn.webp",
+      "handoutType": "newspaper",
+      "textContent": "Wyblakła fotografia polaroidowa z nadpalonym od pioruna zarysem odwróconego krzyża na deskach traszyńskiej stodoły."
+    },
+    {
+      "slug": "clue-key-book-apparatus",
+      "title": "Szkic aparatu: Modlitewnik spięty kluczem",
+      "image": "/handouts/tajemnica-dzieci-z-traszyna/clue-key-book-apparatus.webp",
+      "handoutType": "diary",
+      "textContent": "Rysunek dziecięcego seansu: stary klucz włożony między karty Ewangelii, podtrzymywany palcami dwóch osób."
+    },
+    {
+      "slug": "audio-stilon-c60-interview",
+      "title": "Kaseta Stilon C-60: Wywiad z przerażonym dzieckiem (1983)",
+      "image": "/handouts/tajemnica-dzieci-z-traszyna/clue-key-book-apparatus.webp",
+      "audioUrl": "/audio/handouts/tajemnica-dzieci-z-traszyna/wywiad-dziecko-1983.mp3",
+      "handoutType": "diary",
+      "textContent": "Zaszumione nagranie z polskiej kasety Stilon C-60: drżący dziecięcy głos opisujący cień unoszący się pod powałą stodoły."
+    }
   ]
 }

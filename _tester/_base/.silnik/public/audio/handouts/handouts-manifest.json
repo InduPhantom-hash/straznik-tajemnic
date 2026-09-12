@@ -34,5 +34,45 @@
     "elevenVoiceId": "TxGEqnHWrfWFTfGW9XjX",
     "text": "Czy to nagrywa? Proszę... one nie mają twarzy, a mimo to na mnie patrzą. Zstępują ze wzgórz za każdym razem, gdy mgła opada nad rzekę Miskatonic... Doktórze, niech pan nie gasi lampy!",
     "outputFilename": "arkham_phonograph_record.mp3"
+  },
+  {
+    "id": "strefa11_prabuty_wiretap",
+    "title": "Taśma szpulowa ZK-140: Podsłuch celi w Elblągu (1973)",
+    "scenario": "cien-nad-prabutami",
+    "mediaType": "reel_tape",
+    "voiceType": "sb_officer",
+    "elevenVoiceId": "pNInz6obpgDQGcFmaJgB",
+    "text": "Meldunek z podsłuchu celi ojca Czesława Klimuszki w Elblągu, 12 października 1973. Godzina dwudziesta trzecia zero zero. W celi słychać jednostajną modlitwę, a potem... gwałtowny pisk aparatury pomiarowej. Rejestrujemy nagły skok pola elektromagnetycznego. Szyby w oknach zaczynają drżeć. On rozmawia z kimś, kogo tam nie ma...",
+    "outputFilename": "cien-nad-prabutami/tasma-sb-elblag.mp3"
+  },
+  {
+    "id": "strefa11_kowary_crash",
+    "title": "Nagranie magnetofonowe: Próba zderzeniowa Kowary (1996)",
+    "scenario": "tajemnica-pendnika-lagiewki",
+    "mediaType": "cassette_log",
+    "voiceType": "excited_engineer",
+    "elevenVoiceId": "VR6AewLTigWG4xSOukaG",
+    "text": "Uwaga, próba zderzeniowa numer cztery. Kowary, Zakład Doświadczalny, 18 maja 1996. Fiat 126p rozpędzony do pięćdziesięciu kilometrów na godzinę uderza czołowo w betonowy blok z zamontowanym zderzakiem Łągiewki. Trzy, dwa, jeden... Jezus Maria! Widzicie to?! Żadnego odrzutu! Samochód stoi jak wryty! Wirnik pochłonął sto procent energii kinetycznej... ale te wskaźniki... skąd wzięła się ta anomalia grawitacyjna?!",
+    "outputFilename": "tajemnica-pendnika-lagiewki/proba-zderzeniowa-kowary.mp3"
+  },
+  {
+    "id": "strefa11_traszyn_interview",
+    "title": "Kaseta Stilon C-60: Wywiad z przerażonym dzieckiem (1983)",
+    "scenario": "tajemnica-dzieci-z-traszyna",
+    "mediaType": "audio_interview",
+    "voiceType": "terrified_child",
+    "elevenVoiceId": "TxGEqnHWrfWFTfGW9XjX",
+    "text": "Proszę pana... myśmy tylko włożyli ten stary klucz w książeczkę do nabożeństwa... Tak jak babcia mówiła. Trzymaliśmy go we dwójkę na palcach. I wtedy ten klucz zaczął się sam obracać. Zrobiło się strasznie zimno, a z desek stodoły zaczęła kapać ta czarna maź... I wtedy ten cień spod dachu zawołał nas po imieniu...",
+    "outputFilename": "tajemnica-dzieci-z-traszyna/wywiad-dziecko-1983.mp3"
+  },
+  {
+    "id": "strefa11_glogow_broadcast",
+    "title": "Taśma VHS: Przechwycona audycja z przyszłości (2001)",
+    "scenario": "przybysz-z-matriksa-glogow",
+    "mediaType": "vhs_signal",
+    "voiceType": "synthetic_prophet",
+    "elevenVoiceId": "ErXwobaYiN019PkySvjV",
+    "text": "Do wszystkich węzłów podsieci Dolnego Śląska. Jeśli odbieracie tę transmisję na kanale trzydziestym siódmym, oznacza to, że anomalia w Twierdzy Głogów została naruszona. Rok 2001 nie jest początkiem nowego wieku. To pętla. Odłączcie kable zasilające zanim serwery w kazamatach zaczną retransmitować sygnał zza horyzontu...",
+    "outputFilename": "przybysz-z-matriksa-glogow/sygnal-vhs-glogow.mp3"
   }
 ]

@@ -77,6 +77,9 @@ export function cleanResponseText(text: string): string {
       .replace(/\[\/(?:DZIENNIK|JOURNAL)\]/gi, '')
       .replace(/\[EKSPOZYCJA:[^\]]*\]/gi, '')
       .replace(/\[KLIMAT:[^\]]*\]/gi, '')
+      .replace(/\[(?:SFX|DŹWIĘK|DZWIEK):[^\]]*\]/gi, '')
+      .replace(/\[(?:AUDIO|NAGRANIE):[^\]]*\]/gi, '')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
       // Catch-all: dowolny [TAG...], z wyjątkiem oficjalnych tagów audio Gemini TTS ([whispers], [trembling] itp.)
       .replace(/\[(?!(?:whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow)\])[^\]]*\]/gi, '')
       // Markdown removal
@@ -116,7 +119,8 @@ export function stripMultilineArtifacts(text: string): string {
       .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
       .replace(/\[(?:OBSERWACJA|OBSERVATION):[^\]]*\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
-      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS):[^\]]*\][\s\S]*?(?:\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]|$)/gi, '')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
       // każdy [TAG:...] (spans \n), odporny na zagnieżdżony [...]
       .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')

@@ -805,13 +805,18 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
         for (const sentenceItem of newSentences) {
           const { raw, clean, startIndex, endIndex } = sentenceItem;
-          // Detekcja SFX dla bieżącego zdania
+          // Detekcja SFX dla bieżącego zdania: najpierw jawny tag [SFX: id], potem wzorce słowne
           let sentenceSfxId: string | undefined;
-          for (const sfxEntry of SFX_PATTERNS) {
-            const rx = new RegExp(sfxEntry.pattern.source, sfxEntry.pattern.flags);
-            if (rx.test(clean)) {
-              sentenceSfxId = sfxEntry.presetId;
-              break;
+          const explicitSfxMatch = raw.match(/\[(?:SFX|DŹWIĘK|DZWIEK):\s*([a-zA-Z0-9_-]+)\]/i);
+          if (explicitSfxMatch) {
+            sentenceSfxId = explicitSfxMatch[1].toLowerCase();
+          } else {
+            for (const sfxEntry of SFX_PATTERNS) {
+              const rx = new RegExp(sfxEntry.pattern.source, sfxEntry.pattern.flags);
+              if (rx.test(clean)) {
+                sentenceSfxId = sfxEntry.presetId;
+                break;
+              }
             }
           }
 
@@ -826,11 +831,26 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           // trimStart() bo sentence regex może zwrócić zdanie z wiodącą spacją.
           // cleanResponseText kasuje „” przed regexem - cytaty tu nie są potrzebne.
           // Wymagamy wielkiej litery na początku imienia (anty-false-match: 1920s:, próg: itp).
-          const markerMatch = clean
+          let markerMatch = clean
             .trimStart()
             .match(
               /^(@)?([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):\s*([\s\S]*?)$/
             );
+
+          // Alternatywna detekcja dla polskiego stylu dialogu: „kwestia” – mówi Imię / – kwestia – rzekł Imię
+          if (!markerMatch) {
+            const trailingSpeakerMatch = raw.match(
+              /(?:^|[\s—–-])[„"«—–-]([^"”»—–-]+)[”"»—–-]?\s*[—–-]\s*(?:mówi|rzekł|odparł|krzyknął|szepnął|pyta|powiedział|zawołał)\s+([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+)/i
+            );
+            if (trailingSpeakerMatch) {
+              markerMatch = [
+                raw,
+                '',
+                trailingSpeakerMatch[2].trim(),
+                trailingSpeakerMatch[1].trim(),
+              ] as unknown as RegExpMatchArray;
+            }
+          }
           let voiceId: string | undefined;
           let audioDirection: string | undefined;
           let textForQueue = clean;
@@ -1009,11 +1029,16 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               : paragraphs[i];
           const cleanParagraph = removeDidaskalia(rawParagraph).trim();
           let paraSfxId: string | undefined;
-          for (const sfxEntry of SFX_PATTERNS) {
-            const rx = new RegExp(sfxEntry.pattern.source, sfxEntry.pattern.flags);
-            if (rx.test(cleanParagraph)) {
-              paraSfxId = sfxEntry.presetId;
-              break;
+          const explicitParaSfxMatch = rawParagraph.match(/\[(?:SFX|DŹWIĘK|DZWIEK):\s*([a-zA-Z0-9_-]+)\]/i);
+          if (explicitParaSfxMatch) {
+            paraSfxId = explicitParaSfxMatch[1].toLowerCase();
+          } else {
+            for (const sfxEntry of SFX_PATTERNS) {
+              const rx = new RegExp(sfxEntry.pattern.source, sfxEntry.pattern.flags);
+              if (rx.test(cleanParagraph)) {
+                paraSfxId = sfxEntry.presetId;
+                break;
+              }
             }
           }
           if (cleanParagraph && /[\p{L}\p{N}]/u.test(cleanParagraph)) {

@@ -113,7 +113,11 @@ CODE_MAP.md
 /public/game-saves/
 # Realne handouty (mapy/dokumenty z legalnych materiałów DriveThruRPG) - duże,
 # objęte prawem autorskim, regenerowalne skryptem scripts/extract-handouts.mjs
-/public/handouts/
+/public/handouts/*
+!/public/handouts/cien-nad-prabutami/
+!/public/handouts/tajemnica-pendnika-lagiewki/
+!/public/handouts/tajemnica-dzieci-z-traszyna/
+!/public/handouts/przybysz-z-matriksa-glogow/
 /data/gm-instructions/
 # RAG lokalny: wektory podrecznika/przygod/sesji (user wgrywa swoj PDF, nie commitowac)
 /data/rag/
