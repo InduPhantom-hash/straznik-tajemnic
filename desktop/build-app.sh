@@ -26,6 +26,9 @@ fi
 
 cd "$GAME_DIR"
 
+echo "[0/5] Cold-Start Smoke Gate (Bramka Pierwszych 10 Sekund)..."
+npm test -- src/tests/smoke/cold-start-state.test.ts --silent
+
 echo "[1/5] Production build..."
 if [ "${1:-}" = "--rebuild" ] || [ ! -f .next/BUILD_ID ]; then
   npm run build
