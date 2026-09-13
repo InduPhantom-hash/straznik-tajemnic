@@ -6,7 +6,7 @@ import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { getEraImageFilter } from '@/lib/era-visual-style';
-import { Loader2, X, Maximize2, Minimize2, Play, Pause, RotateCcw, Volume2, Disc, Radio, MessageSquare, Layers, Sparkles } from 'lucide-react';
+import { Loader2, X, Maximize2, Minimize2, Play, Pause, RotateCcw, Volume2, Disc, Radio, MessageSquare, Layers } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { DiegeticDocumentViewer } from './diegetic-document-viewer';
 import { inferDocumentType } from '@/lib/acquired-equipment';
@@ -137,6 +137,11 @@ export function EquipmentDetailDialog({
 
   const locale = useLocale();
 
+  const synthesizedFact = useMemo(() => {
+    if (!item) return '';
+    return synthesizeClueFact(item.name, item.readableContent || item.description || '');
+  }, [item?.name, item?.readableContent, item?.description]);
+
   if (!item) return null;
 
   // Naprawiony warunek czytelności: tylko dokumenty lub przedmioty z jawnym
@@ -222,10 +227,6 @@ export function EquipmentDetailDialog({
     }
     onClose();
   };
-
-  const synthesizedFact = useMemo(() => {
-    return synthesizeClueFact(item.name, item.readableContent || item.description || '');
-  }, [item.name, item.readableContent, item.description]);
 
   return (
     <DialogPrimitive.Root open={Boolean(item)} onOpenChange={(open) => !open && onClose()}>
