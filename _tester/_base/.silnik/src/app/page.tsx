@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Campaign, AdventureContext, Message, Character } from '@/lib/types';
 import {
@@ -45,6 +45,7 @@ import { buildPredefinedEquipment } from '@/lib/immersion/predefined-equipment';
 import { resolveGameEraContext } from '@/lib/era';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import type { RandomEvent } from '@/lib/random-event-generator';
+import { getSessionCharacters } from '@/lib/hot-seat/session-party';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -146,13 +147,29 @@ export default function Home() {
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
   const [pendingDirectorEvent, setPendingDirectorEvent] = useState<RandomEvent | null>(null);
 
-  // IND-246: Hot Seat przed useChat - useChat wysyła hotSeat.config do /api/chat.
+  const [hasStartedGame, setHasStartedGame] = useState(false);
   const hotSeat = useHotSeat(charMgmt.characters);
+
+  const sessionCharacters = useMemo(
+    () =>
+      getSessionCharacters(
+        charMgmt.characters,
+        hotSeat.config,
+        hasStartedGame,
+        charMgmt.activeCharacter
+      ),
+    [
+      charMgmt.characters,
+      hotSeat.config,
+      hasStartedGame,
+      charMgmt.activeCharacter,
+    ]
+  );
 
   const chat = useChat({
     pdfMemory: pdf.pdfMemory,
     activeCharacter: charMgmt.activeCharacter,
-    characters: charMgmt.characters,
+    characters: sessionCharacters,
     setCharacters: charMgmt.setCharacters,
     setActiveCharacter: charMgmt.setActiveCharacter,
     voiceEnabled: tts.voiceEnabled,
@@ -196,13 +213,6 @@ export default function Home() {
   const openSessionZeroRef = useRef<(() => void) | null>(null);
   const openAdventureSelectorRef = useRef<(() => void) | null>(null);
 
-  // Game State
-  // Hydration-safe: SSR i PIERWSZY render klienta = false (brak dostępu do
-  // localStorage przy hydratacji). Realne wartości dociągane po mount w
-  // useEffect niżej. Czytanie localStorage w useState initializer dawało
-  // SSR(false) != klient(localStorage) -> hydration mismatch na CthulhuSidebar
-  // (className hideSidebarPanel) i WelcomeScreen.
-  const [hasStartedGame, setHasStartedGame] = useState(false);
   const [sessionZeroCompleted, setSessionZeroCompleted] = useState(false);
   const [pendingGameStart, setPendingGameStart] = useState(false);
 
@@ -222,7 +232,7 @@ export default function Home() {
     adventureTitle: adventureContext?.title,
     setActiveCharacter: charMgmt.setActiveCharacter,
     setCharacters: charMgmt.setCharacters,
-    characters: charMgmt.characters,
+    characters: sessionCharacters,
   });
 
   // IND-273 T3: proaktywny self-check klucza/modeli Gemini. onInvalidKey
@@ -242,7 +252,7 @@ export default function Home() {
     setHasStartedGame,
     runHealthCheck,
     activeCharacter: charMgmt.activeCharacter,
-    characters: charMgmt.characters,
+    characters: sessionCharacters,
     setActiveCharacter: charMgmt.setActiveCharacter,
     setCharacters: charMgmt.setCharacters,
     pdfMemory: pdf.pdfMemory,
@@ -350,9 +360,10 @@ export default function Home() {
   const [showPredefinedSelector, setShowPredefinedSelector] = useState(false);
 
   const handleSelectPredefinedCharacter = useCallback((character: Character) => {
-    const stamped = {
+    const stamped: Character = {
       ...character,
-      id: `${character.id}_${Date.now()}` // zrób unikalne ID per instancja postaci
+      id: `${character.id}_${Date.now()}`,
+      sourcePresetId: character.sourcePresetId || character.id,
     };
     
     // Obsługa Hot Seat
@@ -362,8 +373,13 @@ export default function Home() {
       localStorage.removeItem('hotSeatCreatingPlayerName');
     }
 
-    const existingCharacters = [...charMgmt.characters];
-    existingCharacters.push(stamped);
+    const withoutPreset = charMgmt.characters.filter(
+      (c) =>
+        c.sourcePresetId !== character.id &&
+        c.sourcePresetId !== character.sourcePresetId &&
+        c.id !== character.id
+    );
+    const existingCharacters = [...withoutPreset, stamped];
     
     // Zapisz przez charMgmt i zaktualizuj aktywnego badacza
     charMgmt.setCharacters(existingCharacters);
@@ -513,7 +529,11 @@ export default function Home() {
         if (mode === 'hot-seat') {
           stamped.playerName = 'Gracz 1';
         }
-        const updatedList = [...charMgmt.characters, stamped];
+        // Deduplikacja: zastąp wcześniejszy klon tego samego presetu zamiast mnożyć wpisy
+        const withoutPreset1 = charMgmt.characters.filter(
+          (c) => c.sourcePresetId !== preset.id && c.id !== preset.id
+        );
+        const updatedList = [...withoutPreset1, stamped];
 
         if (mode === 'hot-seat') {
           // dobierz drugą postać (płci przeciwnej do wybranej lub przekazaną)
@@ -532,8 +552,11 @@ export default function Home() {
               sourcePresetId: preset2.id,
               playerName: 'Gracz 2',
             };
-            updatedList.push(stamped2);
-            charMgmt.setCharacters(updatedList);
+            const finalWithoutPreset2 = updatedList.filter(
+              (c) => c.sourcePresetId !== preset2?.id && c.id !== preset2?.id
+            );
+            finalWithoutPreset2.push(stamped2);
+            charMgmt.setCharacters(finalWithoutPreset2);
             charMgmt.setActiveCharacter(stamped);
             
             hotSeat.restoreConfig({
@@ -545,7 +568,7 @@ export default function Home() {
               activePlayerIndex: 0,
               allowInterruptions: true,
               showPlayerIndicator: true,
-            }, updatedList);
+            }, finalWithoutPreset2);
           }
         } else {
           charMgmt.setCharacters(updatedList);
@@ -769,7 +792,7 @@ export default function Home() {
           adventureContext={adventureContext}
           hideSidebarPanel={!hasStartedGame}
           activeCharacter={charMgmt.activeCharacter || undefined}
-          characters={charMgmt.characters}
+          characters={sessionCharacters}
           onCharacterSwitch={charMgmt.handleCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
@@ -974,7 +997,7 @@ export default function Home() {
         isAudioPaused={tts.isAudioPaused}
         isTTSEnabled={tts.isTTSEnabled}
         activeCharacter={charMgmt.activeCharacter}
-        characters={charMgmt.characters}
+        characters={sessionCharacters}
         onJournalRoll={(roll, justification) => {
           const c = charMgmt.activeCharacter;
           if (!c) return;
