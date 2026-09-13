@@ -42,6 +42,7 @@ describe('canonical commit and recoverable retry', () => {
   it('recovers the exact failed turn after losing the in-process retry map', () => {
     const token = retainFailedTurn(turn);
     jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const freshModule: typeof import('./commit-turn') = require('./commit-turn');
       expect(freshModule.retryMemoryTurn(token).status).toBe('saved');
     });
