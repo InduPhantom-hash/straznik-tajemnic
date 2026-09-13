@@ -5717,7 +5717,17 @@
     "loreTitle": "Opis przedmiotu",
     "documentPreviewTitle": "Treść dokumentu",
     "expandDocument": "Powiększ dokument",
-    "collapseDocument": "Zwiń do widoku przedmiotu"
+    "collapseDocument": "Zwiń do widoku przedmiotu",
+    "quoteToChat": "Pytaj o to na czacie",
+    "tripleNatureTitle": "Potrójny Byt Handoutu (CoC 7e RAW)",
+    "physicalItemBadge": "Rekwizyt w ekwipunku",
+    "diegeticReaderBadge": "Czytnik diegetyczny",
+    "dossierFactBadge": "Fakt w Dossier",
+    "dossierClueSynced": "Zsynchronizowano",
+    "dossierClueTitle": "Syntetyczny fakt Dossier",
+    "inventoryFallback": "Ekwipunek",
+    "readerStatusReady": "Gotowy",
+    "readerStatusToExamine": "Do zbadania"
   },
   "CharacterManager": {
     "noCharactersToExport": "Brak postaci do eksportu",
@@ -6761,7 +6771,16 @@
     "miceTypeInquiry": "[I] Śledztwo (Inquiry)",
     "miceTypeCharacter": "[C] Postać (Character)",
     "miceTypeEvent": "[E] Zdarzenie (Event)",
-    "changeMiceTooltip": "Zmień wektor dramatyczny poszlaki (M.I.C.E. Quotient)"
+    "changeMiceTooltip": "Zmień wektor dramatyczny poszlaki (M.I.C.E. Quotient)",
+    "tierOneFact": "Syntetyczny Fakt (One-Glance)",
+    "tierTwoContent": "Pełna Treść / Czytnik Diegetyczny",
+    "tierThreeInsight": "Wniosek Badacza / Dedukcja",
+    "openDiegeticReader": "Otwórz czytnik diegetyczny",
+    "hideDiegeticReader": "Zwiń czytnik diegetyczny",
+    "inEquipmentBadge": "W ekwipunku",
+    "physicalProp": "Fizyczny rekwizyt",
+    "diegeticReaderBadge": "Czytnik diegetyczny",
+    "tripleEntityTitle": "Potrójny Byt Handoutu (CoC 7e RAW)"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",
@@ -7501,7 +7520,12 @@
     "miceCharacterDesc": "Konflikt wewnętrzny, lęki, manipulacje, moralność i relacje",
     "miceEvent": "[E] Zagrożenie i Zdarzenia",
     "miceEventDesc": "Zachwianie równowagi, powstrzymanie rytuału, wyścig z czasem",
-    "miceLifoHint": "Zasada domykania LIFO: wątki zagnieżdżone w śledztwie zamykają się w odwrotnej kolejności do ich otwarcia (Event -> Inquiry -> Milieu)."
+    "miceLifoHint": "Zasada domykania LIFO: wątki zagnieżdżone w śledztwie zamykają się w odwrotnej kolejności do ich otwarcia (Event -> Inquiry -> Milieu).",
+    "deadEndNotice": "Wyzwalany wyłącznie w sytuacji impasu fabularnego (Dead End) — pycha pcha śledztwo naprzód.",
+    "deadEndBadge": "Martwy punkt (Dead End)",
+    "cooldownActive": "Cooldown testu aktywny",
+    "cooldownNotice": "Zgodnie z CoC 7e RAW badacz musi odczekać lub zmienić podejście przed ponowną próbą syntezy.",
+    "noPushedRollOrLuck": "Brak możliwości forsowania rzutu ani wydawania Szczęścia (RAW)"
   },
   "Hazards": {
     "dialogTitle": "Zagrożenia Środowiskowe i Trucizny",

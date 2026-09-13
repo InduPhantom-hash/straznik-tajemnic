@@ -5717,7 +5717,17 @@
     "loreTitle": "Item description",
     "documentPreviewTitle": "Document content",
     "expandDocument": "Expand document",
-    "collapseDocument": "Collapse to item details"
+    "collapseDocument": "Collapse to item details",
+    "quoteToChat": "Ask about this in chat",
+    "tripleNatureTitle": "Triple Entity of Handout (CoC 7e RAW)",
+    "physicalItemBadge": "Inventory Prop",
+    "diegeticReaderBadge": "Diegetic Reader",
+    "dossierFactBadge": "Fact in Dossier",
+    "dossierClueSynced": "Synchronized",
+    "dossierClueTitle": "Dossier Fact",
+    "inventoryFallback": "Inventory",
+    "readerStatusReady": "Ready",
+    "readerStatusToExamine": "To examine"
   },
   "CharacterManager": {
     "noCharactersToExport": "No characters to export",
@@ -6761,7 +6771,16 @@
     "miceTypeInquiry": "[I] Inquiry",
     "miceTypeCharacter": "[C] Character",
     "miceTypeEvent": "[E] Event",
-    "changeMiceTooltip": "Change dramatic vector of this clue (M.I.C.E. Quotient)"
+    "changeMiceTooltip": "Change dramatic vector of this clue (M.I.C.E. Quotient)",
+    "tierOneFact": "Synthesized Fact (One-Glance)",
+    "tierTwoContent": "Full Content / Diegetic Reader",
+    "tierThreeInsight": "Investigator Insight / Deduction",
+    "openDiegeticReader": "Open Diegetic Reader",
+    "hideDiegeticReader": "Hide Diegetic Reader",
+    "inEquipmentBadge": "In Inventory",
+    "physicalProp": "Physical Prop",
+    "diegeticReaderBadge": "Diegetic Reader",
+    "tripleEntityTitle": "Triple Entity of Handout (CoC 7e RAW)"
   },
   "LocationManager": {
     "title": "📍 Location Manager",
@@ -7501,7 +7520,12 @@
     "miceCharacterDesc": "Internal conflict, fears, deception, morality and relationships",
     "miceEvent": "[E] Event & Threat",
     "miceEventDesc": "Status quo disruption, halting rituals, beating the clock",
-    "miceLifoHint": "LIFO Nesting Rule: nested plot threads should close in reverse order of opening (Event -> Inquiry -> Milieu)."
+    "miceLifoHint": "LIFO Nesting Rule: nested plot threads should close in reverse order of opening (Event -> Inquiry -> Milieu).",
+    "deadEndNotice": "Triggered only during narrative dead ends to push the investigation forward.",
+    "deadEndBadge": "Narrative Dead End",
+    "cooldownActive": "Idea Roll Cooldown Active",
+    "cooldownNotice": "Under CoC 7e RAW, the investigator must wait or try a new approach before re-attempting synthesis.",
+    "noPushedRollOrLuck": "No Pushed Rolls or Luck Expenditure allowed (RAW)"
   },
   "Hazards": {
     "dialogTitle": "Environmental Hazards & Poisons",

@@ -43,7 +43,10 @@ import {
   buildIdeaRollPrompt,
   buildQuoteToInputText,
   inferMiceType,
+  getIdeaRollCooldown,
+  setIdeaRollCooldown,
   type IdeaRollResult,
+  type IdeaRollCooldownState,
 } from "@/lib/journal/idea-roll-service";
 import { fetchWithApiKeys } from "@/lib/api-keys-service";
 import { collectSSEText } from "@/lib/sse-parser";
@@ -90,22 +93,59 @@ export function IdeaRollModal({
   const [isDeducing, setIsDeducing] = useState(false);
   const [savedToTarget, setSavedToTarget] = useState(false);
   const [savedToChronicle, setSavedToChronicle] = useState(false);
+  const [cooldownState, setCooldownState] = useState<IdeaRollCooldownState>({
+    isCoolingDown: false,
+    remainingSeconds: 0,
+  });
 
   const intValue = character.int || 50;
 
   useEffect(() => {
     if (open) {
-      setRollResult(null);
-      setInsightText("");
+      const cd = getIdeaRollCooldown(character.id, targetSubject?.id);
+      setCooldownState(cd);
+      if (cd.isCoolingDown && cd.lastResult) {
+        setRollResult(cd.lastResult);
+        if (cd.lastInsight) {
+          setInsightText(cd.lastInsight);
+        } else {
+          const fallback = cd.lastResult.isSuccess
+            ? t("fallbackSuccess", { name: character.name })
+            : t("fallbackFailure", { name: character.name });
+          setInsightText(fallback);
+          setIdeaRollCooldown(character.id, targetSubject?.id, cd.lastResult, fallback);
+        }
+      } else {
+        setRollResult(null);
+        setInsightText("");
+      }
       setIsRolling(false);
       setIsDeducing(false);
       setSavedToTarget(false);
       setSavedToChronicle(false);
       setSelectedMiceLens(targetSubject ? inferMiceType(targetSubject) : "inquiry");
     }
-  }, [open, targetSubject?.id]);
+  }, [open, character.id, targetSubject?.id]);
+
+  useEffect(() => {
+    if (!cooldownState.isCoolingDown) return;
+    const interval = setInterval(() => {
+      const cd = getIdeaRollCooldown(character.id, targetSubject?.id);
+      setCooldownState(cd);
+      if (!cd.isCoolingDown) {
+        clearInterval(interval);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownState.isCoolingDown, character.id, targetSubject?.id]);
 
   const handleRoll = useCallback(async () => {
+    const currentCd = getIdeaRollCooldown(character.id, targetSubject?.id);
+    if (currentCd.isCoolingDown) {
+      setCooldownState(currentCd);
+      return;
+    }
+
     setIsRolling(true);
     setSavedToTarget(false);
     setSavedToChronicle(false);
@@ -117,8 +157,16 @@ export function IdeaRollModal({
       selectedMiceLens,
     });
     setRollResult(result);
+    setIdeaRollCooldown(character.id, targetSubject?.id, result);
+    setCooldownState({
+      isCoolingDown: true,
+      remainingSeconds: 180,
+      lastResult: result,
+      timestamp: Date.now(),
+    });
 
     setIsDeducing(true);
+    let finalInsight = "";
     try {
       const prompt = buildIdeaRollPrompt(
         result,
@@ -136,32 +184,30 @@ export function IdeaRollModal({
       if (response.ok) {
         const fullText = await collectSSEText(response);
         if (fullText && fullText.trim()) {
-          setInsightText(fullText.trim());
+          finalInsight = fullText.trim();
         } else {
-          setInsightText(
-            result.isSuccess
-              ? t("fallbackSuccess", { name: character.name })
-              : t("fallbackFailure", { name: character.name })
-          );
+          finalInsight = result.isSuccess
+            ? t("fallbackSuccess", { name: character.name })
+            : t("fallbackFailure", { name: character.name });
         }
       } else {
-        setInsightText(
-          result.isSuccess
-            ? t("fallbackSuccess", { name: character.name })
-            : t("fallbackFailure", { name: character.name })
-        );
-      }
-    } catch {
-      setInsightText(
-        result.isSuccess
+        finalInsight = result.isSuccess
           ? t("fallbackSuccess", { name: character.name })
-          : t("fallbackFailure", { name: character.name })
-      );
+          : t("fallbackFailure", { name: character.name });
+      }
+      setInsightText(finalInsight);
+      setIdeaRollCooldown(character.id, targetSubject?.id, result, finalInsight);
+    } catch {
+      finalInsight = result.isSuccess
+        ? t("fallbackSuccess", { name: character.name })
+        : t("fallbackFailure", { name: character.name });
+      setInsightText(finalInsight);
+      setIdeaRollCooldown(character.id, targetSubject?.id, result, finalInsight);
     } finally {
       setIsDeducing(false);
       setIsRolling(false);
     }
-  }, [character, targetSubject, contextClues, locale, t]);
+  }, [character, targetSubject, contextClues, locale, selectedMiceLens, t]);
 
   const handleSaveTarget = () => {
     if (!insightText.trim()) return;
@@ -190,7 +236,15 @@ export function IdeaRollModal({
           ? "Zastanawiam się nad dotychczasowymi faktami: "
           : "Reflecting upon the known facts: ");
 
-    onQuoteToInput?.(textToQuote);
+    if (onQuoteToInput) {
+      onQuoteToInput(textToQuote);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("straznik:quote-to-input", {
+          detail: { text: textToQuote },
+        })
+      );
+    }
     onOpenChange(false);
   };
 
@@ -215,6 +269,10 @@ export function IdeaRollModal({
           <DialogDescription className="text-muted-foreground text-xs font-serif italic">
             {t("headerDescription")}
           </DialogDescription>
+          <div className="flex items-center gap-1.5 bg-amber-950/40 border border-amber-600/40 text-amber-200 px-2.5 py-1 rounded text-[11px] font-serif font-semibold mt-1">
+            <span>⚠️</span>
+            <span>{t("deadEndNotice")}</span>
+          </div>
         </DialogHeader>
 
         {/* Kontekst badanego elementu */}
@@ -299,28 +357,42 @@ export function IdeaRollModal({
 
         {/* Panel rzutu lub wynik */}
         {!rollResult ? (
-          <div className="text-center py-5 border-y border-brass/20 my-2">
-            <Button
-              onClick={handleRoll}
-              disabled={isRolling}
-              className="bg-brass text-background hover:bg-brass-light border border-brass/60 px-8 py-3 rounded-lg text-sm font-serif font-bold shadow-lg transition-all cursor-pointer"
-            >
-              <Dices className="h-5 w-5 mr-2 text-background" />
-              {t("rollButton")}
-            </Button>
-            <p className="text-[11px] text-muted-foreground italic mt-2.5 max-w-md mx-auto font-serif">
-              {t("rawRuleHint")}
-            </p>
-            <p className="text-[10px] text-brass/80 italic mt-1 font-serif">
-              {t("miceLifoHint")}
-            </p>
+          <div className="text-center py-5 border-y border-brass/20 my-2 space-y-2">
+            {cooldownState.isCoolingDown ? (
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 bg-destructive/15 border border-destructive/40 text-destructive-foreground px-4 py-2 rounded-md text-xs font-serif font-bold">
+                  <span>⏳ {t("cooldownActive")}</span>
+                  <span className="font-mono">({cooldownState.remainingSeconds}s)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground italic max-w-md mx-auto font-serif">
+                  {t("cooldownNotice")}
+                </p>
+              </div>
+            ) : (
+              <>
+                <Button
+                  onClick={handleRoll}
+                  disabled={isRolling}
+                  className="bg-brass text-background hover:bg-brass-light border border-brass/60 px-8 py-3 rounded-lg text-sm font-serif font-bold shadow-lg transition-all cursor-pointer"
+                >
+                  <Dices className="h-5 w-5 mr-2 text-background" />
+                  {t("rollButton")}
+                </Button>
+                <p className="text-[11px] text-muted-foreground italic mt-2.5 max-w-md mx-auto font-serif">
+                  {t("rawRuleHint")}
+                </p>
+                <p className="text-[10px] text-brass/80 italic mt-1 font-serif">
+                  {t("miceLifoHint")}
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3 my-2">
             {/* Wynik kości */}
             <div
               className={cn(
-                "p-3 rounded-lg border flex items-center justify-between",
+                "p-3 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3",
                 rollResult.isSuccess
                   ? "bg-primary/15 border-primary/50 text-foreground"
                   : "bg-destructive/15 border-destructive/50 text-foreground"
@@ -329,7 +401,7 @@ export function IdeaRollModal({
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-mono font-bold text-brass">{rollResult.roll}</span>
                 <div>
-                  <div className="font-bold text-sm flex items-center gap-1.5">
+                  <div className="font-bold text-sm flex items-center gap-1.5 flex-wrap">
                     <span>{rollResult.outcomeEmoji}</span>
                     <span>{rollResult.outcomeLabel}</span>
                     <span className="text-[10px] uppercase font-mono font-bold px-1.5 py-0.5 rounded border ml-1.5 bg-input/60 border-border text-foreground">
@@ -341,14 +413,10 @@ export function IdeaRollModal({
                   </span>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleRoll}
-                disabled={isDeducing}
-                className="text-xs text-brass hover:text-brass-light flex items-center gap-1 underline disabled:opacity-50 font-serif cursor-pointer"
-              >
-                <RotateCcw className="h-3 w-3" /> {t("reroll")}
-              </button>
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-brass/80 border border-brass/30 bg-background/60 px-2.5 py-1 rounded self-stretch sm:self-auto justify-center">
+                <span className="text-destructive font-bold">🚫</span>
+                <span>{t("noPushedRollOrLuck")}</span>
+              </div>
             </div>
 
             {/* Treść dedukcji AI */}

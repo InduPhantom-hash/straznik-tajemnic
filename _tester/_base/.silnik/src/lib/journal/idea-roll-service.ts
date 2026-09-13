@@ -54,6 +54,86 @@ export interface IdeaRollResult {
   subjectTitle?: string;
   /** Aktywna soczewka M.I.C.E. użyta do wnioskowania */
   miceLens: MiceQuotientType;
+  /** Bezwzględna blokada forsowania rzutu (CoC 7e RAW s. 199) */
+  canPushRoll: false;
+  /** Bezwzględna blokada wydawania Szczęścia na Test Pomysłu (CoC 7e RAW s. 199) */
+  canSpendLuck: false;
+  /** Mechanizm wywoływany wyłącznie przy impasie śledczym (Dead End) */
+  isDeadEndOnly: true;
+}
+
+export const IDEA_ROLL_COOLDOWN_MS = 180_000; // 3 minuty cooldownu antyspamowego
+
+export interface IdeaRollCooldownState {
+  isCoolingDown: boolean;
+  remainingSeconds: number;
+  lastResult?: IdeaRollResult;
+  lastInsight?: string;
+  timestamp?: number;
+}
+
+export function getIdeaRollCooldownKey(characterId: string, subjectId?: string): string {
+  return `idea_roll_cooldown_${characterId}_${subjectId || 'general'}`;
+}
+
+export function getIdeaRollCooldown(
+  characterId: string,
+  subjectId?: string,
+  cooldownMs: number = IDEA_ROLL_COOLDOWN_MS
+): IdeaRollCooldownState {
+  if (typeof window === 'undefined') {
+    return { isCoolingDown: false, remainingSeconds: 0 };
+  }
+  try {
+    const raw = localStorage.getItem(getIdeaRollCooldownKey(characterId, subjectId));
+    if (!raw) return { isCoolingDown: false, remainingSeconds: 0 };
+    const data = JSON.parse(raw);
+    const elapsed = Date.now() - (data.timestamp || 0);
+    if (elapsed < cooldownMs) {
+      const remainingSeconds = Math.ceil((cooldownMs - elapsed) / 1000);
+      return {
+        isCoolingDown: true,
+        remainingSeconds,
+        lastResult: data.result,
+        lastInsight: data.insight,
+        timestamp: data.timestamp,
+      };
+    }
+  } catch {
+    // Ignore storage parse error
+  }
+  return { isCoolingDown: false, remainingSeconds: 0 };
+}
+
+export function setIdeaRollCooldown(
+  characterId: string,
+  subjectId: string | undefined,
+  result: IdeaRollResult,
+  insight?: string
+): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = getIdeaRollCooldownKey(characterId, subjectId);
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        timestamp: Date.now(),
+        result,
+        insight,
+      })
+    );
+  } catch {
+    // Ignore storage error
+  }
+}
+
+export function clearIdeaRollCooldown(characterId: string, subjectId?: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(getIdeaRollCooldownKey(characterId, subjectId));
+  } catch {
+    // Ignore
+  }
 }
 
 /**
@@ -101,6 +181,9 @@ export function executeIdeaRoll(params: IdeaRollExecutionParams): IdeaRollResult
     characterName: character.name,
     subjectTitle: targetSubject?.title,
     miceLens,
+    canPushRoll: false,
+    canSpendLuck: false,
+    isDeadEndOnly: true,
   };
 }
 
@@ -204,17 +287,19 @@ export function buildQuoteToInputText(
   const isPl = locale === "pl";
   const cleanTitle = title.trim();
 
-  switch (type) {
+  switch (type.toLowerCase()) {
     case "npc":
     case "character":
     case "characters":
     case "suspect":
+    case "encyclopedia_character":
       return isPl
         ? "Pytam " + cleanTitle + " o "
         : "I ask " + cleanTitle + " about ";
 
     case "location":
     case "places":
+    case "encyclopedia_location":
       return isPl
         ? "Sprawdzam dokładniej " + cleanTitle + " pod kątem "
         : "I thoroughly investigate " + cleanTitle + " for ";
@@ -222,6 +307,18 @@ export function buildQuoteToInputText(
     case "item":
     case "items":
     case "artifact":
+    case "encyclopedia_item":
+    case "weapon":
+    case "tool":
+    case "armor":
+    case "medical":
+    case "occult":
+    case "personal":
+    case "gear":
+    case "equipment":
+    case "prop":
+    case "rekwizyt":
+    case "object":
       return isPl
         ? "Badam " + cleanTitle + ", zwracając uwagę na "
         : "I examine " + cleanTitle + ", paying attention to ";
@@ -229,14 +326,30 @@ export function buildQuoteToInputText(
     case "clue":
     case "evidence":
     case "document":
+    case "discovery":
+    case "handout":
       if (extra?.sourceNpc) {
         return isPl
           ? "Pytam " + extra.sourceNpc + " o dowód: \"" + cleanTitle + "\""
           : "I ask " + extra.sourceNpc + " regarding the clue: \"" + cleanTitle + "\"";
       }
+      if (extra?.foundLocation) {
+        return isPl
+          ? "Analizuję powiązania poszlaki: \"" + cleanTitle + "\" odnalezionej w " + extra.foundLocation + " z "
+          : "I analyze connections regarding clue: \"" + cleanTitle + "\" found at " + extra.foundLocation + " with ";
+      }
       return isPl
         ? "Analizuję powiązania poszlaki: \"" + cleanTitle + "\" z "
         : "I analyze connections regarding clue: \"" + cleanTitle + "\" with ";
+
+    case "case":
+    case "case_file":
+    case "objective":
+    case "mission":
+    case "quest":
+      return isPl
+        ? "Wracam do sprawy: \"" + cleanTitle + "\" w kwestii "
+        : "Returning to case: \"" + cleanTitle + "\" regarding ";
 
     case "note":
     default:

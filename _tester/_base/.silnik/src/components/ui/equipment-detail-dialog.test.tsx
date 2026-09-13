@@ -154,4 +154,41 @@ describe('EquipmentDetailDialog', () => {
     expect(screen.getByText('Obrażenia')).toBeInTheDocument();
     expect(screen.getByText('1d10')).toBeInTheDocument();
   });
+
+  it('wyświetla sekcję Potrójnego Bytu Handoutu i umożliwia akcję Quote-to-Input', () => {
+    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
+    const onClose = jest.fn();
+    const documentItem: EquipmentItem = {
+      id: 'doc-1',
+      name: 'List od profesora',
+      category: 'document',
+      readableContent: 'Drogi przyjacielu, niebezpieczeństwo w piwnicy jest realne.',
+      condition: 'used',
+    };
+
+    render(
+      <EquipmentDetailDialog
+        item={documentItem}
+        onClose={onClose}
+      />
+    );
+
+    // Potrójny Byt Handoutu
+    expect(screen.getByText(/Potrójny Byt Handoutu/i)).toBeInTheDocument();
+    expect(screen.getByText(/1\. Rekwizyt w ekwipunku/i)).toBeInTheDocument();
+    expect(screen.getByText(/2\. Czytnik diegetyczny/i)).toBeInTheDocument();
+    expect(screen.getByText(/3\. Fakt w Dossier/i)).toBeInTheDocument();
+
+    // Quote-to-Chat
+    const quoteBtn = screen.getByRole('button', { name: /Pytaj o to na czacie/i });
+    fireEvent.click(quoteBtn);
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'straznik:quote-to-input',
+      })
+    );
+    expect(onClose).toHaveBeenCalled();
+    dispatchSpy.mockRestore();
+  });
 });

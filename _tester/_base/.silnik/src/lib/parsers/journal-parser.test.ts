@@ -2,6 +2,7 @@ import {
   extractJournalTags,
   synthesizeClueFact,
   extractNpcTags,
+  extractItemTags,
   parseClueProvenance,
   inferClueProvenance,
 } from './journal-parser';
@@ -368,6 +369,149 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
       // Tytuł w kronice nie może zawierać śmieci "| zeznanie"
       const journalEntry = updated.journal?.find((j) => j.title.includes('Dziwny zapach'));
       expect(journalEntry?.title).toBe('Dziwny zapach');
+    });
+  });
+
+  describe('extractItemTags & Potrójny Byt Handoutów', () => {
+    it('ekstrahuje tagi przedmiotów z formatów [PRZEDMIOT:], [ITEM:] i [DZIENNIK:przedmiot:]', () => {
+      const raw =
+        'Na stole leży list. [PRZEDMIOT: List Wilcoxa: Rękopis pokryty pismem w języku starogreckim] ' +
+        'W szufladzie znaleziono bilet. [ITEM: Bilet kolejowy | dokument | nowy | Bilet na pociąg do Bostonu] ' +
+        'Obok leży stary klucz. [DZIENNIK:przedmiot:Złoty klucz]Ciężki mosiężny klucz do krypty.[/DZIENNIK]';
+
+      const items = extractItemTags(raw);
+      expect(items).toHaveLength(3);
+      expect(items[0]).toEqual({
+        name: 'List Wilcoxa',
+        description: 'Rękopis pokryty pismem w języku starogreckim',
+        category: undefined,
+        who: undefined,
+      });
+      expect(items[1].name).toBe('Bilet kolejowy');
+      expect(items[1].category).toBe('dokument');
+      expect(items[2].name).toBe('Złoty klucz');
+      expect(items[2].description).toBe('Ciężki mosiężny klucz do krypty.');
+    });
+
+    it('appendJournalFromText automatycznie tworzy poszlakę z proweniencją handout dla dokumentów', () => {
+      const baseChar: Character = {
+        id: 'char_handout_test',
+        name: 'Thomas Malone',
+        str: 50, dex: 50, con: 50, app: 50, pow: 50, edu: 50, siz: 50, int: 70, luck: 50, hp: 10, san: 50,
+        skills: {}, developmentHistory: [], notes: '',
+      } as unknown as Character;
+
+      const raw =
+        'Odnaleziono ważny dokument. [PRZEDMIOT: Dziennik Corbitta: Zapiski w języku łacińskim ukryte pod deskami podłogi.]';
+      const updated = appendJournalFromText(baseChar, raw, 'msg_handout_item');
+
+      // Sprawdź wpis w kronice (typ 'item' dla fizycznego rekwizytu)
+      const journalItem = updated.journal?.find((j) => j.title === 'Dziennik Corbitta');
+      expect(journalItem).toBeDefined();
+      expect(journalItem?.type).toBe('item');
+
+      // Sprawdź syntetyczny fakt w dossier z proweniencją handout
+      const clue = updated.investigatorDossier?.clues.find((c) => c.title === 'Dziennik Corbitta');
+      expect(clue).toBeDefined();
+      expect(clue?.provenance).toBe('handout');
+      expect(clue?.category).toBe('document');
+      expect(clue?.status).toBe('confirmed');
+      expect(clue?.description).toContain('Zapiski w języku łacińskim');
+
+      // Sprawdź fizyczny rekwizyt w ekwipunku postaci (Potrójny Byt Handoutu)
+      const eqItem = updated.equipment?.find((e) => e.name === 'Dziennik Corbitta');
+      expect(eqItem).toBeDefined();
+      expect(eqItem?.category).toBe('document');
+      expect(eqItem?.isReadable).toBe(true);
+      expect(eqItem?.readableContent).toContain('Zapiski w języku łacińskim');
+    });
+
+    it('appendJournalFromText dodaje również zwykłe przedmioty do ekwipunku i normalizuje kategorie', () => {
+      const baseChar: Character = {
+        id: 'char_eq_test',
+        name: 'Harvey Walters',
+        str: 50, dex: 50, con: 50, app: 50, pow: 50, edu: 50, siz: 50, int: 75, luck: 50, hp: 10, san: 50,
+        skills: {}, developmentHistory: [], notes: '',
+        equipment: [],
+      } as unknown as Character;
+
+      const raw =
+        'Na stole leży broń i bilet. [PRZEDMIOT: Rewolwer Colt | broń | Niezawodny rewolwer kaliber .38] ' +
+        '[ITEM: Bilet kolejowy | dokument | Bilet na pociąg do Arkham]';
+      const updated = appendJournalFromText(baseChar, raw, 'msg_eq_test');
+
+      expect(updated.equipment).toHaveLength(2);
+      const gun = updated.equipment?.find((e) => e.name === 'Rewolwer Colt');
+      expect(gun).toBeDefined();
+      expect(gun?.category).toBe('weapon');
+      expect(gun?.description).toBe('Niezawodny rewolwer kaliber .38');
+
+      const ticket = updated.equipment?.find((e) => e.name === 'Bilet kolejowy');
+      expect(ticket).toBeDefined();
+      expect(ticket?.category).toBe('document');
+      expect(ticket?.isReadable).toBe(true);
+
+      // Idempotencja: ponowne przetworzenie nie duplikuje przedmiotów
+      const updatedAgain = appendJournalFromText(updated, raw, 'msg_eq_test_retry');
+      expect(updatedAgain.equipment).toHaveLength(2);
+    });
+
+    it('appendJournalFromText tworzy fizyczny rekwizyt w ekwipunku również dla poszlak będących handoutami (Potrójny Byt)', () => {
+      const baseChar: Character = {
+        id: 'char_clue_handout_test',
+        name: 'Edward Carnby',
+        str: 50, dex: 50, con: 50, app: 50, pow: 50, edu: 50, siz: 50, int: 70, luck: 50, hp: 10, san: 50,
+        skills: {}, developmentHistory: [], notes: '',
+        equipment: [],
+      } as unknown as Character;
+
+      const raw =
+        'Na biurku leży [DZIENNIK:trop:List od adwokata | dokument]Panie Walters, proszę o pilny kontakt w sprawie spadku Corbitta.[/DZIENNIK] ' +
+        'oraz [DZIENNIK:clue:Wycinek z Arkham Advertiser | handout]Artykuł o tajemniczym pożarze w dokach Bostonu.[/DZIENNIK]';
+      const updated = appendJournalFromText(baseChar, raw, 'msg_clue_handout');
+
+      // 1. Sprawdź syntetyczne fakty w dossier
+      expect(updated.investigatorDossier?.clues).toHaveLength(2);
+      const letterClue = updated.investigatorDossier?.clues.find((c) => c.title === 'List od adwokata');
+      expect(letterClue).toBeDefined();
+      expect(letterClue?.provenance).toBe('handout');
+      expect(letterClue?.category).toBe('document');
+
+      // 2. Sprawdź fizyczne rekwizyty w ekwipunku postaci (Potrójny Byt Handoutu z tagów poszlak!)
+      expect(updated.equipment).toHaveLength(2);
+      const letterEq = updated.equipment?.find((e) => e.name === 'List od adwokata');
+      expect(letterEq).toBeDefined();
+      expect(letterEq?.category).toBe('document');
+      expect(letterEq?.isReadable).toBe(true);
+      expect(letterEq?.readableContent).toContain('proszę o pilny kontakt w sprawie spadku Corbitta');
+
+      const clippingEq = updated.equipment?.find((e) => e.name === 'Wycinek z Arkham Advertiser');
+      expect(clippingEq).toBeDefined();
+      expect(clippingEq?.category).toBe('document');
+      expect(clippingEq?.isReadable).toBe(true);
+      expect(clippingEq?.readableContent).toContain('tajemniczym pożarze w dokach');
+
+      // 3. Sprawdź zachowanie pełnej treści w kronice (Tier 2 Full Content)
+      const journalLetter = updated.journal?.find((j) => j.title === 'List od adwokata');
+      expect(journalLetter?.content).toContain('Panie Walters, proszę o pilny kontakt w sprawie spadku Corbitta.');
+    });
+
+    it('extractItemTags poprawnie parsuje stan (condition) oraz pipe w tytule tagów DZIENNIK:przedmiot', () => {
+      const raw =
+        '[PRZEDMIOT: Rewolwer Colt | broń | damaged | Rdzawy rewolwer z zaciętym bębnem] ' +
+        '[DZIENNIK:przedmiot:Stara mapa | dokument | new]Świeżo sporządzona mapa podziemi.[/DZIENNIK]';
+      const items = extractItemTags(raw);
+
+      expect(items).toHaveLength(2);
+      expect(items[0].name).toBe('Rewolwer Colt');
+      expect(items[0].category).toBe('broń');
+      expect(items[0].condition).toBe('damaged');
+      expect(items[0].description).toBe('Rdzawy rewolwer z zaciętym bębnem');
+
+      expect(items[1].name).toBe('Stara mapa');
+      expect(items[1].category).toBe('dokument');
+      expect(items[1].condition).toBe('new');
+      expect(items[1].description).toBe('Świeżo sporządzona mapa podziemi.');
     });
   });
 });

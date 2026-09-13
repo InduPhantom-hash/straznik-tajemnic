@@ -2,7 +2,7 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import {
   MapPin,
@@ -20,11 +20,15 @@ import {
   Eye,
   MessageSquare,
   FolderLock,
+  BookOpen,
+  Layers,
 } from 'lucide-react';
+import { DiegeticDocumentViewer } from '@/components/ui/diegetic-document-viewer';
+import { synthesizeClueFact } from '@/lib/parsers/journal-parser';
 import { findEquipmentTemplate, resolveCatalogAsset } from '@/lib/equipment-catalog';
 import { findEntityVisualReference } from '@/lib/journal/entity-visual-resolver';
 import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
-import type { Character, NPC, Location } from '@/lib/types';
+import type { Character, NPC, Location, EquipmentItem } from '@/lib/types';
 import type {
   ClueCategory,
   ClueProvenance,
@@ -178,12 +182,14 @@ export function DiscoveriesView({
   onQuoteToInput,
 }: DiscoveriesViewProps) {
   const t = useTranslations('DiscoveriesView');
+  const locale = useLocale() as 'pl' | 'en';
   const [activeCategory, setActiveCategory] = useState<DiscoveryCategory>('places');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [isEditingInsight, setIsEditingInsight] = useState(false);
   const [insightText, setInsightText] = useState('');
   const [localFastFilter, setLocalFastFilter] = useState('');
   const [isFullscreenImageOpen, setIsFullscreenImageOpen] = useState(false);
+  const [showDiegeticReader, setShowDiegeticReader] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Obsługa klawisza Escape dla modala pełnoekranowego
@@ -202,6 +208,7 @@ export function DiscoveriesView({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
+    setShowDiegeticReader(false);
   }, [selectedEntryId, activeCategory]);
 
   const categoryConfig = CATEGORIES.find((c) => c.key === activeCategory)!;
@@ -239,21 +246,92 @@ export function DiscoveriesView({
   // Liczniki per kategoria (bez filtra wyszukiwania)
   const counts = useMemo(() => {
     const result: Record<DiscoveryCategory, number> = { case: 0, places: 0, characters: 0, items: 0, quests: 0 };
-    for (const entry of entries) {
-      if (entry.clueCategory === 'document') {
-        result.items++;
-      }
-      for (const cat of CATEGORIES) {
-        if (cat.types.includes(entry.type)) {
-          result[cat.key]++;
-          break;
+    for (const cat of CATEGORIES) {
+      result[cat.key] = entries.filter((e) => {
+        if (cat.key === 'items' && e.clueCategory === 'document') {
+          return true;
         }
-      }
+        return cat.types.includes(e.type);
+      }).length;
     }
     return result;
   }, [entries]);
 
   const selectedEntry = categoryEntries.find((e) => e.id === selectedEntryId) || categoryEntries[0] || null;
+
+  const matchingEquipment = useMemo(() => {
+    if (!selectedEntry || !activeCharacter?.equipment) return null;
+    const normTitle = (selectedEntry.title || '').toLowerCase().trim();
+    return (
+      activeCharacter.equipment.find(
+        (eq) => eq.id === selectedEntry.id || (eq.name && eq.name.toLowerCase().trim() === normTitle)
+      ) || null
+    );
+  }, [selectedEntry, activeCharacter?.equipment]);
+
+  const isDocumentOrHandout = useMemo(() => {
+    if (!selectedEntry) return false;
+    return (
+      selectedEntry.clueCategory === 'document' ||
+      selectedEntry.provenance === 'handout' ||
+      selectedEntry.type === 'document' ||
+      selectedEntry.type === 'handout' ||
+      Boolean(
+        matchingEquipment &&
+          (matchingEquipment.category === 'document' ||
+            matchingEquipment.isReadable ||
+            !!matchingEquipment.readableContent)
+      )
+    );
+  }, [selectedEntry, matchingEquipment]);
+
+  const effectiveEquipmentItem: EquipmentItem | null = useMemo(() => {
+    if (
+      matchingEquipment &&
+      (matchingEquipment.category === 'document' ||
+        matchingEquipment.isReadable ||
+        !!matchingEquipment.readableContent)
+    ) {
+      return matchingEquipment;
+    }
+    if (!selectedEntry || !isDocumentOrHandout) return null;
+    return {
+      id: selectedEntry.id,
+      name: selectedEntry.title,
+      category: 'document',
+      description: selectedEntry.content,
+      readableContent: selectedEntry.content,
+      isReadable: true,
+      imageUrl: selectedEntry.imageUrl,
+    };
+  }, [matchingEquipment, selectedEntry, isDocumentOrHandout]);
+
+  const synthesizedFact = useMemo(() => {
+    if (!selectedEntry) return '';
+    return synthesizeClueFact(selectedEntry.title, selectedEntry.content || '');
+  }, [selectedEntry]);
+
+  const handleQuoteToChat = useCallback(() => {
+    if (!selectedEntry) return;
+    const quoteText = buildQuoteToInputText(
+      selectedEntry.type,
+      selectedEntry.title,
+      {
+        sourceNpc: selectedEntry.sourceNpc,
+        foundLocation: selectedEntry.foundLocation,
+      },
+      locale
+    );
+    if (onQuoteToInput) {
+      onQuoteToInput(quoteText);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent('straznik:quote-to-input', {
+          detail: { text: quoteText },
+        })
+      );
+    }
+  }, [selectedEntry, onQuoteToInput, locale]);
 
   // Rozwiązywanie obrazu dla wybranego wpisu
   const resolvedVisual = useMemo(() => {
@@ -442,9 +520,18 @@ export function DiscoveriesView({
                 )}
               >
                 <div className="flex items-start justify-between gap-1">
-                  <div className="font-bold text-sm leading-snug truncate flex-1">
-                    {entry.isKeyClue && <span className="text-[#bfa15f] mr-1">⭐</span>}
-                    {entry.title}
+                  <div className="font-bold text-sm leading-snug truncate flex-1 flex items-center gap-1">
+                    {entry.isKeyClue && <span className="text-[#bfa15f]">⭐</span>}
+                    <span className="truncate">{entry.title}</span>
+                    {activeCharacter?.equipment?.some(
+                      (eq) =>
+                        eq.id === entry.id ||
+                        (eq.name && eq.name.toLowerCase().trim() === (entry.title || '').toLowerCase().trim())
+                    ) && (
+                      <span className="text-[10px] shrink-0" title={t('inEquipmentBadge')}>
+                        👜
+                      </span>
+                    )}
                   </div>
                   {entry.clueStatus && (
                     <span
@@ -620,9 +707,27 @@ export function DiscoveriesView({
                 </div>
 
                 <div className="flex justify-between items-start gap-4">
-                  <h3 className="text-3xl font-special-elite font-bold text-[#1a140f] leading-tight flex-1">
-                    {selectedEntry.title}
-                  </h3>
+                  <div className="flex-1">
+                    <h3 className="text-3xl font-special-elite font-bold text-[#1a140f] leading-tight">
+                      {selectedEntry.title}
+                    </h3>
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleQuoteToChat}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#2c241b] hover:bg-[#3a2518] text-[#f4ebd0] border border-[#bfa15f]/60 font-special-elite text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer"
+                        title={t('quoteToChatTitle')}
+                      >
+                        <MessageSquare className="h-3.5 w-3.5 text-[#bfa15f]" />
+                        <span>{t('quoteToChatAction')}</span>
+                      </button>
+                      {matchingEquipment && (
+                        <span className="bg-[#24150c] text-[#bfa15f] border border-[#bfa15f]/50 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm font-mono">
+                          👜 {t('inEquipmentBadge')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Narzędzia akt */}
                   <div className="flex gap-1.5 opacity-60 hover:opacity-100 transition-opacity shrink-0">
@@ -648,25 +753,7 @@ export function DiscoveriesView({
                     )}
                     <button
                       type="button"
-                      onClick={() => {
-                        const quoteText = buildQuoteToInputText(
-                          selectedEntry.type,
-                          selectedEntry.title,
-                          {
-                            sourceNpc: selectedEntry.sourceNpc,
-                            foundLocation: selectedEntry.foundLocation,
-                          }
-                        );
-                        if (onQuoteToInput) {
-                          onQuoteToInput(quoteText);
-                        } else {
-                          window.dispatchEvent(
-                            new CustomEvent('straznik:quote-to-input', {
-                              detail: { text: quoteText },
-                            })
-                          );
-                        }
-                      }}
+                      onClick={handleQuoteToChat}
                       className="p-1.5 text-[#2c241b] hover:bg-[#2c241b]/10 rounded transition-colors"
                       title={t('quoteToChatTitle')}
                     >
@@ -980,49 +1067,135 @@ export function DiscoveriesView({
                 )}
               </div>
 
-              {/* Zdjęcie (Pionowy Polaroid Retro - klikalny podgląd) */}
-              {selectedEntry.imageStatus === 'pending' ? (
-                <div className="float-right w-48 sm:w-52 ml-6 mb-4 h-56 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
-                  <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs font-special-elite italic">{t('imagePending')}</span>
-                </div>
-              ) : resolvedVisual ? (
-                <div className="float-right w-48 sm:w-52 ml-6 mb-4 relative z-10 group">
-                  <div
-                    onClick={() => setIsFullscreenImageOpen(true)}
-                    className="bg-[#fcfbf9] p-2.5 pb-6 shadow-[2px_4px_12px_rgba(0,0,0,0.35)] transform rotate-2 border border-[#e2ded5] cursor-pointer hover:rotate-0 hover:scale-105 transition-all"
-                  >
-                    <div className="w-full aspect-[3/4] overflow-hidden bg-[#1a140f] border border-[#d1c2ab] relative">
-                      <SafeImage
-                        src={resolvedVisual.imageUrl}
-                        alt={selectedEntry.title}
-                        className="w-full h-full object-cover object-top mix-blend-multiply sepia-[0.2]"
-                      />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
-                        <Eye className="h-6 w-6 drop-shadow" />
+              {/* Potrójny Byt Handoutów (CoC 7e RAW): Rekwizyt + Czytnik + Fakt */}
+                {isDocumentOrHandout && (
+                  <div className="mt-4 mb-2 p-3.5 bg-[#1b120c] border border-[#bfa15f]/40 rounded text-[#f4ebd0] shadow-md space-y-2 clear-both">
+                    <div className="flex items-center justify-between border-b border-[#bfa15f]/30 pb-1.5">
+                      <span className="font-special-elite text-xs uppercase tracking-wider text-[#bfa15f] flex items-center gap-1.5 font-bold">
+                        <Layers className="w-3.5 h-3.5 text-[#bfa15f]" />
+                        {t('tripleEntityTitle')}
+                      </span>
+                      <span className="text-[10px] font-mono text-[#bfa15f]/70 uppercase">CoC 7e RAW</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-special-elite pt-1">
+                      <div className="p-1.5 rounded bg-[#24170f] border border-[#bfa15f]/30 text-[#f4ebd0]">
+                        <span className="block font-bold">👜 1. {t('physicalProp')}</span>
+                        <span className="text-[9px] text-[#bfa15f]">
+                          {matchingEquipment ? t('inEquipmentBadge') : t('clueCategoryDocument')}
+                        </span>
+                      </div>
+                      <div className="p-1.5 rounded bg-[#24170f] border border-[#bfa15f]/30 text-[#f4ebd0]">
+                        <span className="block font-bold">📖 2. {t('diegeticReaderBadge')}</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowDiegeticReader((prev) => !prev)}
+                          className="text-[9px] text-[#bfa15f] underline hover:text-[#f4ebd0] cursor-pointer block mx-auto"
+                        >
+                          {showDiegeticReader ? t('hideDiegeticReader') : t('openDiegeticReader')}
+                        </button>
+                      </div>
+                      <div className="p-1.5 rounded bg-[#24170f] border border-[#bfa15f]/30 text-[#f4ebd0]">
+                        <span className="block font-bold">📋 3. {t('tierOneFact')}</span>
+                        <span className="text-[9px] text-[#bfa15f]">{t('clueStatusConfirmed')}</span>
                       </div>
                     </div>
-                    <div className="mt-2 text-center font-special-elite text-[9px] text-black/60 italic truncate px-1">
-                      {t('attachmentPrefix', { title: selectedEntry.title })}
-                    </div>
                   </div>
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[#2c241b]/50 text-2xl rotate-45 z-20 pointer-events-none">
-                    📎
-                  </div>
-                </div>
-              ) : null}
+                )}
 
-              {/* Treść Akt (Maszyna do pisania) */}
-              <div className="text-base leading-relaxed text-[#1a140f] whitespace-pre-wrap font-special-elite">
-                {selectedEntry.content}
+              {/* TRÓJSTOPNIOWE NOTATKI / THREE-TIER NOTES */}
+
+              {/* TIER 1: Syntetyczny Fakt (One-Glance Digest) */}
+              <div className="my-4 p-3.5 bg-[#f0e6d5] border-l-4 border-[#bfa15f] border-y border-r border-[#d1c2ab] rounded-r shadow-sm clear-both">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a4428] font-bold mb-1 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-[#bfa15f]" />
+                    {t('tierOneFact')}
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#2c241b] text-[#f4ebd0] font-mono">
+                    Tier 1: One-Glance
+                  </span>
+                </div>
+                <p className="font-serif italic text-sm text-[#1a140f] leading-snug">
+                  &ldquo;{synthesizedFact}&rdquo;
+                </p>
               </div>
 
-              {/* Sekcja: Wnioski Badacza / Dedukcja */}
+              {/* TIER 2: Pełna Treść / Czytnik Diegetyczny */}
+              <div className="my-4 space-y-2">
+                <div className="flex items-center justify-between border-b border-[#2c241b]/20 pb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#5a4428] font-bold flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-[#8c7353]" />
+                    <span>Tier 2: {t('tierTwoContent')}</span>
+                  </span>
+                  {effectiveEquipmentItem && (
+                    <button
+                      type="button"
+                      onClick={() => setShowDiegeticReader((prev) => !prev)}
+                      className="flex items-center gap-1.5 text-xs font-special-elite text-[#5a4428] hover:text-[#1a140f] bg-[#e4d8c6] hover:bg-[#d9cbb2] border border-[#8c7353]/40 px-2.5 py-0.5 rounded transition-colors cursor-pointer"
+                    >
+                      <BookOpen className="h-3.5 w-3.5 text-[#8c7353]" />
+                      <span>{showDiegeticReader ? t('hideDiegeticReader') : t('openDiegeticReader')}</span>
+                    </button>
+                  )}
+                </div>
+
+                {showDiegeticReader && effectiveEquipmentItem && (
+                  <div className="my-3 border-2 border-[#8c7353]/60 rounded p-3 bg-[#fcfbf9] shadow-inner">
+                    <DiegeticDocumentViewer
+                      item={effectiveEquipmentItem}
+                      character={activeCharacter}
+                      isExpanded={false}
+                    />
+                  </div>
+                )}
+
+                {/* Zdjęcie (Pionowy Polaroid Retro - klikalny podgląd) */}
+                {selectedEntry.imageStatus === 'pending' ? (
+                  <div className="float-right w-48 sm:w-52 ml-6 mb-4 h-56 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner transform rotate-2">
+                    <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs font-special-elite italic">{t('imagePending')}</span>
+                  </div>
+                ) : resolvedVisual ? (
+                  <div className="float-right w-48 sm:w-52 ml-6 mb-4 relative z-10 group">
+                    <div
+                      onClick={() => setIsFullscreenImageOpen(true)}
+                      className="bg-[#fcfbf9] p-2.5 pb-6 shadow-[2px_4px_12px_rgba(0,0,0,0.35)] transform rotate-2 border border-[#e2ded5] cursor-pointer hover:rotate-0 hover:scale-105 transition-all"
+                    >
+                      <div className="w-full aspect-[3/4] overflow-hidden bg-[#1a140f] border border-[#d1c2ab] relative">
+                        <SafeImage
+                          src={resolvedVisual.imageUrl}
+                          alt={selectedEntry.title}
+                          className="w-full h-full object-cover object-top mix-blend-multiply sepia-[0.2]"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                          <Eye className="h-6 w-6 drop-shadow" />
+                        </div>
+                      </div>
+                      <div className="mt-2 text-center font-special-elite text-[9px] text-black/60 italic truncate px-1">
+                        {t('attachmentPrefix', { title: selectedEntry.title })}
+                      </div>
+                    </div>
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[#2c241b]/50 text-2xl rotate-45 z-20 pointer-events-none">
+                      📎
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Treść Akt (Maszyna do pisania) */}
+                <div className="text-base leading-relaxed text-[#1a140f] whitespace-pre-wrap font-special-elite">
+                  {selectedEntry.content}
+                </div>
+              </div>
+
+              {/* TIER 3: Sekcja: Wnioski Badacza / Dedukcja */}
               {isEditingInsight ? (
                 <div className="bg-[#d9cbb2] border-2 border-[#8c7353] p-4 my-4 rounded shadow-sm text-[#1f1712] clear-both">
                   <div className="flex items-center gap-2 font-special-elite font-bold text-xs tracking-wider uppercase text-[#5a4428] mb-2">
                     <Search className="h-4 w-4 text-[#8c7353]" />
                     <span>{t('insightHeading')}</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#8c7353] text-[#f4ebd0] normal-case">
+                      Tier 3: {t('tierThreeInsight')}
+                    </span>
                   </div>
                   <textarea
                     value={insightText}
@@ -1060,6 +1233,9 @@ export function DiscoveriesView({
                     <div className="flex items-center gap-2 font-special-elite font-bold text-xs tracking-wider uppercase text-[#5a4428]">
                       <Search className="h-4 w-4 text-[#8c7353]" />
                       <span>{t('insightHeading')}</span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#8c7353] text-[#f4ebd0] normal-case">
+                        Tier 3: {t('tierThreeInsight')}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {onTriggerIdeaRoll && (
