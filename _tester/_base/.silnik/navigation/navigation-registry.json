@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-13T21:13:56.365Z",
+  "updatedAt": "2026-09-14T00:10:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -251,6 +251,14 @@
       "label": {
         "pl": "Dziennik sesji i akta śledcze",
         "en": "Session journal and investigator dossier"
+      }
+    },
+    {
+      "id": "idea-roll-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Test Pomysłu CoC 7e RAW (Idea Roll)",
+        "en": "Idea Roll CoC 7e RAW"
       }
     },
     {
@@ -622,6 +630,15 @@
         "en": "Journal"
       },
       "component": "src/components/sidebar/CthulhuSidebar.tsx"
+    },
+    {
+      "source": "journal",
+      "target": "idea-roll-modal",
+      "label": {
+        "pl": "Test Pomysłu (INT)",
+        "en": "Idea Roll (INT)"
+      },
+      "component": "src/components/ui/session-journal.tsx"
     },
     {
       "source": "game",
