@@ -191,6 +191,20 @@ export function setIdeaRollCooldown(
 export function clearIdeaRollCooldown(characterId: string, subjectId?: string, locationId?: string): void {
   if (typeof window === 'undefined') return;
   try {
+    if (!subjectId && !locationId) {
+      const prefix = `idea_roll_cooldown_${characterId}`;
+      const toRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefix)) {
+          toRemove.push(k);
+        }
+      }
+      for (const k of toRemove) {
+        localStorage.removeItem(k);
+      }
+      return;
+    }
     localStorage.removeItem(getIdeaRollCooldownKey(characterId, subjectId));
     if (locationId) {
       localStorage.removeItem(getIdeaRollCooldownKey(characterId, undefined, locationId));
@@ -297,7 +311,7 @@ export function buildIdeaRollPrompt(
     return [
       "Jesteś bezstronnym silnikiem regułowym Call of Cthulhu 7e (CoC 7e RAW) dla mechaniki \"Test Pomysłu\" (Idea Roll na cechę Inteligencja).",
       "Badacz: " + result.characterName + " (Inteligencja INT: " + result.targetValue + "%)",
-      "Wynik rzutu D100: " + result.roll + " -> " + result.outcomeLabel + " (" + (result.isSuccess ? "SUKCES" : "PORAŻKA Z KOMPLIKACJĄ") + ")",
+      "Wynik rzutu D100: " + result.roll + " -> " + result.outcomeLabel + " (" + (result.isSuccess ? "SUKCES" : result.outcome === "fumble" ? "KATASTROFALNA PORAŻKA (PECH)" : "PORAŻKA Z KOMPLIKACJĄ") + ")",
       "",
       subjectHeader,
       "",
@@ -313,7 +327,9 @@ export function buildIdeaRollPrompt(
       "- Bezwzględny zakaz forsowania rzutu (Pushed roll) oraz zakaz wydawania punktów Szczęścia (Luck).",
       result.isSuccess
         ? "1. [SUKCES]: Badacz doznaje olśnienia w wybranej soczewce M.I.C.E. Połącz logicznie co najmniej dwa fakty ze śledztwa. Wskaż badaczowi jasny, bezpieczny wniosek lub logiczny następny krok."
-        : "1. [PORAŻKA]: Zgodnie z zasadą Fail-Forward badacz I TAK otrzymuje niezbędną wskazówkę, ale ZA CENĘ POWAŻNEJ KOMPLIKACJI narracyjnej (np. bezpośrednie niebezpieczeństwo, zasadzka, alarm, wpadka, utrata cennego czasu lub krytycznych zasobów).",
+        : result.outcome === "fumble"
+          ? "1. [KATASTROFALNA PORAŻKA / FUMBLE (Pech)]: Zgodnie z zasadą Fail-Forward badacz I TAK otrzymuje niezbędną wskazówkę posuwającą śledztwo, ale ZA CENĘ KATASTROFALNEJ KOMPLIKACJI (np. bezpośrednia zasadzka, natychmiastowe zagrożenie życia, drastyczna utrata Poczytalności, zniszczenie schronienia lub natychmiastowe aresztowanie)."
+          : "1. [PORAŻKA]: Zgodnie z zasadą Fail-Forward badacz I TAK otrzymuje niezbędną wskazówkę, ale ZA CENĘ POWAŻNEJ KOMPLIKACJI narracyjnej (np. bezpośrednie niebezpieczeństwo, zasadzka, alarm, wpadka, utrata cennego czasu lub krytycznych zasobów).",
       "2. Sformatuj odpowiedź w 2-3 zwięzłych, nastrojowych zdaniach maszyny do pisania (styl Lovecrafta/akt policyjnych).",
       "3. Zwróć wyłącznie treść dedukcji - zero wstępów, zero nagłówków, zero tagów technicznych.",
     ].join("\n");
@@ -322,7 +338,7 @@ export function buildIdeaRollPrompt(
   return [
     "You are the objective Call of Cthulhu 7e rules engine (CoC 7e RAW) for the \"Idea Roll\" mechanic (INT test).",
     "Investigator: " + result.characterName + " (Intelligence INT: " + result.targetValue + "%)",
-    "D100 Roll: " + result.roll + " -> " + result.outcomeLabel + " (" + (result.isSuccess ? "SUCCESS" : "FAILURE WITH COMPLICATION") + ")",
+    "D100 Roll: " + result.roll + " -> " + result.outcomeLabel + " (" + (result.isSuccess ? "SUCCESS" : result.outcome === "fumble" ? "CATASTROPHIC FAILURE (FUMBLE)" : "FAILURE WITH COMPLICATION") + ")",
     "",
     subjectHeader,
     "",
@@ -338,7 +354,9 @@ export function buildIdeaRollPrompt(
     "- Strict prohibition against pushed rolls and spending Luck points.",
     result.isSuccess
       ? "1. [SUCCESS]: Investigator experiences a breakthrough along the selected M.I.C.E. lens. Logically connect at least two clues and present a clear deduction or next lead."
-      : "1. [FAILURE]: Under RAW Fail-Forward rules, the investigator STILL gets the vital hint to proceed, BUT AT THE COST of a significant complication (immediate danger, ambush, alarm, hostile encounter, loss of precious time or resources).",
+      : result.outcome === "fumble"
+        ? "1. [CATASTROPHIC FAILURE / FUMBLE]: Under RAW Fail-Forward rules, the investigator STILL gets the vital lead to proceed, BUT AT THE COST OF A CATASTROPHIC COMPLICATION (e.g. deadly ambush, immediate life danger, drastic Sanity loss, destruction of shelter, or arrest)."
+        : "1. [FAILURE]: Under RAW Fail-Forward rules, the investigator STILL gets the vital hint to proceed, BUT AT THE COST of a significant complication (immediate danger, ambush, alarm, hostile encounter, loss of precious time or resources).",
     "2. Format the response in 2-3 concise typewriter-style sentences (Lovecraftian/police file tone).",
     "3. Output only the pure deduction text - no headers, no intros, no technical tags.",
   ].join("\n");

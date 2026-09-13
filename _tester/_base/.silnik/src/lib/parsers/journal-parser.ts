@@ -105,15 +105,14 @@ export function extractJournalTags(text: string): JournalTagEntry[] {
   // [DZIENNIK:typ:tytuł]treść[/DZIENNIK] or [JOURNAL:type:title]body[/JOURNAL]
   // Duet adds an optional @name owner prefix.
   const journalPattern =
-    /\[(?:DZIENNIK|JOURNAL):(?:@([^:\]\n]+?):)?([a-z]+):([^\]:\n]+)(?::([^\]]+))?\]([\s\S]*?)\[\/(?:DZIENNIK|JOURNAL)\]/gi;
+    /\[(?:DZIENNIK|JOURNAL):(?:@([^:\]\n]+?):)?([a-z]+):([^\]\n]+)\]([\s\S]*?)\[\/(?:DZIENNIK|JOURNAL)\]/gi;
 
   let match;
   while ((match = journalPattern.exec(text)) !== null) {
     const who = match[1]?.trim();
     const typeStr = match[2].toLowerCase().trim();
-    const title = match[3].trim();
-    const inGameDate = match[4]?.trim();
-    const content = match[5].trim();
+    const headerRest = match[3].trim();
+    const content = match[4].trim();
 
     // Mapowanie typów
     const typeMap: Record<string, JournalTagEntry['type']> = {
@@ -159,26 +158,59 @@ export function extractJournalTags(text: string): JournalTagEntry[] {
 
     const type = typeMap[typeStr] || 'note';
 
+    let title = '';
+    let inGameDate: string | undefined;
     let sourceNpc: string | undefined;
     let foundLocation: string | undefined;
 
-    const checkSegments = (str: string) => {
-      if (!str || !str.includes('|')) return;
-      const parts = str.split('|').map((p) => p.trim());
-      for (const p of parts) {
-        const npcMatch = p.match(/^(?:świadek|swiadek|witness|npc|źródło_npc|zrodlo_npc)\s*:\s*(.+)$/i);
-        if (npcMatch) {
-          sourceNpc = npcMatch[1].trim();
-        }
-        const locMatch = p.match(/^(?:lokacja|location|miejsce|place)\s*:\s*(.+)$/i);
-        if (locMatch) {
-          foundLocation = locMatch[1].trim();
-        }
+    const parseSegment = (part: string) => {
+      if (!part) return;
+      const npcMatch = part.match(/^(?:świadek|swiadek|witness|npc|źródło_npc|zrodlo_npc)\s*:\s*(.+)$/i);
+      if (npcMatch) {
+        sourceNpc = npcMatch[1].trim();
+        return;
+      }
+      const locMatch = part.match(/^(?:lokacja|location|miejsce|place)\s*:\s*(.+)$/i);
+      if (locMatch) {
+        foundLocation = locMatch[1].trim();
+        return;
+      }
+      const dateMatch = part.match(/^(?:data|date|czas|time|ingamedate)\s*:\s*(.+)$/i);
+      if (dateMatch) {
+        inGameDate = dateMatch[1].trim();
+        return;
       }
     };
 
-    checkSegments(title);
-    checkSegments(content);
+    // Obsługa nagłówka z pipe'ami lub tradycyjnym dwukropkiem z datą
+    if (type === 'item') {
+      title = headerRest;
+    } else {
+      const headerParts = headerRest.split('|').map((p) => p.trim());
+      const firstPart = headerParts[0] || '';
+      if (firstPart.includes(':')) {
+        const colonIndex = firstPart.indexOf(':');
+        title = firstPart.slice(0, colonIndex).trim();
+        const possibleDate = firstPart.slice(colonIndex + 1).trim();
+        if (possibleDate) {
+          inGameDate = possibleDate;
+        }
+      } else {
+        title = firstPart;
+      }
+
+      for (let i = 1; i < headerParts.length; i++) {
+        parseSegment(headerParts[i]);
+      }
+    }
+
+    // Przetwórz ewentualne segmenty pipe w treści
+    if (content.includes('|')) {
+      const contentParts = content.split('|').map((p) => p.trim());
+      for (let i = 1; i < contentParts.length; i++) {
+        parseSegment(contentParts[i]);
+      }
+    }
 
     if (title && content) {
       entries.push({
