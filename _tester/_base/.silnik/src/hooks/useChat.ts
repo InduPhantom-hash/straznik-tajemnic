@@ -84,7 +84,6 @@ import {
   type CombatDefenseWeaponOption,
 } from '@/lib/combat/weapon-context';
 import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
-import { notifyMemoryCommit } from '@/core/memory/commit-client';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 const ACTIVE_CHASE_STORAGE_KEY = 'zew_active_chase_state';
@@ -1237,7 +1236,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
-            notifyMemoryCommit(metadata,locale);
             if (
               Array.isArray(metadata.pendingMeleeAttacks) &&
               metadata.pendingMeleeAttacks.length > 0 &&
@@ -1918,7 +1916,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
-            notifyMemoryCommit(metadata,locale);
             if (metadata.finishReason) {
               setMessages((prev) =>
                 prev.map((msg) =>
