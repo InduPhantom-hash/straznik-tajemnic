@@ -132,6 +132,7 @@ export function SessionJournal({
     title: string;
     description?: string;
     type?: string;
+    foundLocationId?: string;
   } | undefined>(undefined);
 
   // Obsługa klawisza Escape do zamykania Dziennika
@@ -265,7 +266,9 @@ export function SessionJournal({
           isKeyClue: c.isKeyClue,
           linkedNodeIds: c.linkedNodeIds,
           sourceNpc: c.sourceNpc,
+          sourceNpcId: c.sourceNpcId,
           foundLocation: c.foundLocation,
+          foundLocationId: c.foundLocationId,
           questStatus:
             c.status === 'confirmed'
               ? 'completed'
@@ -294,6 +297,8 @@ export function SessionJournal({
           occupation: n.occupation,
           relationshipStatus: n.relationshipStatus,
           foundLocation: n.location,
+          foundLocationId: n.locationId,
+          relatedClueIds: n.relatedClueIds,
           physiologicalDetail: n.physiologicalDetail,
           sociologicalStatus: n.sociologicalStatus,
           // psychologicalAgenda jest poufną wiedzą MG i nie trafia do widoku gracza
@@ -318,6 +323,7 @@ export function SessionJournal({
           searchStatus: l.searchStatus,
           addressOrRegion: l.addressOrRegion,
           discoveredClueIds: l.discoveredClueIds,
+          npcIds: l.npcIds,
           lockedRoomMystery: l.lockedRoomMystery,
         });
       });
@@ -980,6 +986,7 @@ export function SessionJournal({
                   title: entry.title,
                   description: entry.content,
                   type: entry.type,
+                  foundLocationId: entry.foundLocationId,
                 });
                 setShowIdeaModal(true);
               }}
@@ -1065,7 +1072,7 @@ export function SessionJournal({
                             <button
                               type="button"
                               onClick={() => {
-                                const quoteText = buildQuoteToInputText('clue', entry.title, undefined, locale as 'pl' | 'en');
+                                const quoteText = buildQuoteToInputText(entry.type || 'clue', entry.title, undefined, locale as 'pl' | 'en');
                                 if (onQuoteToInput) {
                                   onQuoteToInput(quoteText);
                                 } else {
@@ -1298,6 +1305,7 @@ export function SessionJournal({
         onOpenChange={setShowIdeaModal}
         character={character}
         targetSubject={ideaTargetSubject}
+        currentLocationId={ideaTargetSubject?.foundLocationId || character.investigatorDossier?.locations?.[0]?.id}
         contextClues={entries.map((e) => ({
           title: e.title,
           description: e.content,

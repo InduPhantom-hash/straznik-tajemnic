@@ -14,11 +14,11 @@ import {
   NpcDossierEntry,
   NpcRelationshipStatus,
   PlayerNoteEntry,
-  createEmptyDossier,
   isClueEntry,
   isLocationDossierEntry,
   isNpcDossierEntry,
   isPlayerNoteEntry,
+  linkClueNpcLocation,
 } from './dossier-types';
 import { inferClueProvenance } from '../parsers/journal-parser';
 
@@ -225,6 +225,14 @@ export function migrateLegacyJournalToDossier(
               ? 'suspicious'
               : 'unknown';
 
+        let npcLocation = entry.metadata?.locationName;
+        for (const tag of tags) {
+          const lowerTag = tag.toLowerCase();
+          if (lowerTag.startsWith('lokacja:') || lowerTag.startsWith('location:') || lowerTag.startsWith('miejsce:')) {
+            npcLocation = npcLocation || tag.substring(tag.indexOf(':') + 1).trim();
+          }
+        }
+
         const npc: NpcDossierEntry = {
           id: baseId,
           name: entry.metadata?.npcName || entry.title || 'Nieznany NPC',
@@ -232,6 +240,7 @@ export function migrateLegacyJournalToDossier(
           firstImpression: entry.content || '',
           keyInformation: entry.investigatorInsight,
           relationshipStatus: relationship,
+          location: npcLocation,
           avatarUrl: entry.imageUrl || entry.metadata?.imageUrl,
           tags,
           inGameDate,
@@ -310,6 +319,17 @@ export function migrateLegacyJournalToDossier(
     if (!clueIds.has(baseId) && !result.clues.some((clue) =>
       entry.id && clue.sourceJournalEntryId === entry.id
     )) {
+      let sourceNpc = entry.metadata?.npcName;
+      let foundLocation = entry.metadata?.locationName;
+      for (const tag of tags) {
+        const lowerTag = tag.toLowerCase();
+        if (lowerTag.startsWith('świadek:') || lowerTag.startsWith('witness:') || lowerTag.startsWith('npc:')) {
+          sourceNpc = sourceNpc || tag.substring(tag.indexOf(':') + 1).trim();
+        } else if (lowerTag.startsWith('lokacja:') || lowerTag.startsWith('location:') || lowerTag.startsWith('miejsce:')) {
+          foundLocation = foundLocation || tag.substring(tag.indexOf(':') + 1).trim();
+        }
+      }
+
       const clue: ClueEntry = {
         id: baseId,
         title: entry.title || 'Nieopisana poszlaka',
@@ -317,8 +337,8 @@ export function migrateLegacyJournalToDossier(
         category: inferClueCategory(entry),
         status: inferClueStatus(entry),
         provenance: entry.provenance || inferClueProvenance(entry.title || '', entry.content || '', inferClueCategory(entry)),
-        sourceNpc: entry.metadata?.npcName,
-        foundLocation: entry.metadata?.locationName,
+        sourceNpc,
+        foundLocation,
         inGameDate,
         timestamp,
         investigatorInsight: entry.investigatorInsight,
@@ -332,6 +352,7 @@ export function migrateLegacyJournalToDossier(
     }
   });
 
+  linkClueNpcLocation(result);
   return result;
 }
 
@@ -363,6 +384,8 @@ export function ensureCharacterDossier<T extends { journal?: unknown[]; investig
     const baseDossier = cluesUpdated
       ? { ...character.investigatorDossier, clues }
       : character.investigatorDossier;
+
+    linkClueNpcLocation(baseDossier);
 
     // Jeśli postać ma też wpisy w journal, dołącz ewentualne brakujące
     if (Array.isArray(character.journal) && character.journal.length > 0) {

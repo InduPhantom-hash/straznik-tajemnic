@@ -35,6 +35,7 @@ graph TD
     equipment["Ekwipunek / Equipment"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
     journal["Dziennik sesji i akta śledcze / Session journal and investigator dossier"]
+    idea_roll_modal["Test Pomysłu CoC 7e RAW (Idea Roll) / Idea Roll CoC 7e RAW"]
     dice["Rzuty kośćmi / Dice rolls"]
     gm_tools["Narzędzia MG / GM tools"]
     development["Faza rozwoju / Development phase"]
@@ -79,6 +80,7 @@ graph TD
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
     game -->|Dziennik / Journal| journal
+    journal -->|Test Pomysłu (INT) / Idea Roll (INT)| idea_roll_modal
     game -->|Rzuć kośćmi / Roll dice| dice
     game -->|Narzędzia MG / GM tools| gm_tools
     game -->|Faza rozwoju (po sesji) / Development phase (after session)| development
@@ -149,6 +151,7 @@ graph TD
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji i akta śledcze | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Dziennik sesji i akta śledcze | Test Pomysłu (INT) / Idea Roll (INT) | Test Pomysłu CoC 7e RAW (Idea Roll) | `src/components/ui/session-journal.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |

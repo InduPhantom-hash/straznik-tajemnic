@@ -287,5 +287,45 @@ describe("Idea Roll Service (CoC 7e RAW)", () => {
       clearIdeaRollCooldown("char-1", "subj-test");
       expect(getIdeaRollCooldown("char-1", "subj-test").isCoolingDown).toBe(false);
     });
+
+    it("zarządza cooldownem opartym o lokację (locationId)", () => {
+      clearIdeaRollCooldown("char-1", "subj-clue", "loc-arkham");
+      clearIdeaRollCooldown("char-1");
+
+      expect(getIdeaRollCooldown("char-1", "subj-clue", IDEA_ROLL_COOLDOWN_MS, "loc-arkham").isCoolingDown).toBe(false);
+
+      const rollResult = executeIdeaRoll({
+        character: mockCharacter,
+        fixedRoll: 45,
+      });
+
+      setIdeaRollCooldown("char-1", "subj-clue", rollResult, "Notatka z biblioteki", "loc-arkham");
+
+      const cd = getIdeaRollCooldown("char-1", "subj-clue", IDEA_ROLL_COOLDOWN_MS, "loc-arkham");
+      expect(cd.isCoolingDown).toBe(true);
+      expect(cd.remainingSeconds).toBeGreaterThan(0);
+
+      clearIdeaRollCooldown("char-1", "subj-clue", "loc-arkham");
+      clearIdeaRollCooldown("char-1");
+      expect(getIdeaRollCooldown("char-1", "subj-clue", IDEA_ROLL_COOLDOWN_MS, "loc-arkham").isCoolingDown).toBe(false);
+    });
+
+    it("zarządza globalnym anty-spam cooldownem badacza", () => {
+      clearIdeaRollCooldown("char-1");
+      const rollResult = executeIdeaRoll({
+        character: mockCharacter,
+        fixedRoll: 60,
+      });
+
+      // Ustawienie cooldownu na konkretny temat ustawia też globalny cooldown badacza
+      setIdeaRollCooldown("char-1", "subj-alpha", rollResult, "Odkrycie Alpha");
+
+      // Sprawdzenie innego tematu subj-beta powinno zwrócić cooldown przez globalną blokadę
+      const cdBeta = getIdeaRollCooldown("char-1", "subj-beta");
+      expect(cdBeta.isCoolingDown).toBe(true);
+
+      clearIdeaRollCooldown("char-1");
+      expect(getIdeaRollCooldown("char-1", "subj-beta").isCoolingDown).toBe(false);
+    });
   });
 });
