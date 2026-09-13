@@ -19,6 +19,7 @@ import {
   buildPlayerEquipmentSection,
   buildPlayerFinancesSection,
   buildPlayerVisualProfileSection,
+  buildPlayerMagicSection,
   HotSeatPlayerEntry,
 } from './build-context';
 import { buildHandoutsContext } from './build-handouts-context';
@@ -508,6 +509,11 @@ export async function runChatPipeline({
     // Profil wizualny Badacza (Visual DNA) -> AI zachowuje spójność w opisach scen i portretów
     playerVisualProfileSection: buildPlayerVisualProfileSection(
       character ?? null
+    ),
+    // Magia i wiedza nadprzyrodzona Badacza -> AI zna status wiary, znane czary i tomy Mitow
+    playerMagicSection: buildPlayerMagicSection(
+      character ?? null,
+      (locale ?? 'pl') as 'pl' | 'en'
     ),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,

@@ -30,7 +30,7 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 
 **Tagi sytuacyjne** (gdy pasują):
 - \`[OBSERWACJA: @Imię | zmysły | subiektywne spostrzeżenie]\` - gdy przekazujesz indywidualne spostrzeżenie jednemu badaczowi w Hot Seat lub opis zniekształcony szaleństwem/fobią (Concordia pattern)
-- \`[NPC: Imię: opis]\` - nowy/kluczowy NPC (podaj rysopis i fasadę publiczną; ukryte motywy ujawniaj w [MYŚLI_MG], a graczowi w narracji dopiero po udanym teście Psychologii)
+- \`[NPC: (@Imię:) Imię: opis]\` - nowy/kluczowy NPC; emituj WYŁĄCZNIE przy pierwszym pojawieniu się postaci lub kluczowym zwrocie (podaj rysopis i fasadę; ukryte motywy w \`[MYŚLI_MG]\`, graczowi dopiero po teście Psychologii). W dialogach selekcję i prawo głosu mają wyłącznie postacie z \`[OBECNI_NPC]\`.
 - \`[LOKACJA: Nazwa: atmosfera]\` - w PIERWSZEJ turze (miejsce startu) ORAZ przy każdej zmianie miejsca; zapala pineskę 📍 w nagłówku. W Nazwie podawaj KONKRETNE miejsce (magazyn, biblioteka, pokój hotelowy), bez powtarzania regionu/miasta przygody.
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać.
@@ -38,7 +38,9 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
 - \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodawaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
-- \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\` - ZAWSZE gdy postać rzuca czar lub odprawia rytuał. Nigdy nie rzucaj za magię w prozie: silnik aplikacji (MagicEngine) wyświetli kartę, sprawdzi regułę wiary, pobierze koszty PM/HP/SAN i rozstrzygnie rzut.
+- \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\` - ZAWSZE gdy badacz rzuca czar lub odprawia rytuał. Nigdy nie rzucaj za magię w prozie: silnik aplikacji (MagicEngine) wyświetli kartę, sprawdzi regułę wiary, pobierze koszty PM/HP/SAN i rozstrzygnie rzut.
+- \`[OBRONA_MAGIA: @Imię: rzucajacy=NazwaWroga | pow=N | czar=identyfikator_lub_nazwa | opis=KrótkiOpis]\` - ZAWSZE gdy wróg (kultysta, czarownik, potwór) rzuca zaklęcie wymierzone w badacza. Nigdy nie narzucaj efektu w prozie: gracz otrzyma OpposedMagicCard, wykona rzut sporny POW i odeśle \`[WYNIK_OBRONY_MAGII: ...]\`.
+- \`[MAGIA_SPONTANICZNA: @Imię: efekt=OpisEfektu | trudnosc=regular/hard/extreme | pm=N | san=N]\` - Gdy badacz w skrajnym zagrożeniu improwizuje czary bez znajomości formuły (test Mitów Cthulhu).
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata/odzysk SAN/HP. Liczbę bierz z podręcznika/RAG. **Przy stracie ≥5 SAN natychmiast wyzwij [TEST: Inteligencja] (szok poznawczy / wyparcie RAW).**
 - \`[SFX: id_dźwięku]\` - efekt dźwiękowy w kluczowym momencie (dostępne: gunshot, revolver_shot, shotgun_blast, tommy_gun_burst, rifle_shot_bolt, explosion, creaking_door, door_slam, heavy_door_creak, whispers, heartbeat_panic, distant_scream, eldritch_growl, glass_shatter_sanity, dialup_modem, car_engine_1920s, church_bell, train_whistle_steam, footsteps_wood). Używaj przy dramatycznym wydarzeniu (np. strzał, trzaśnięcie drzwiami, utrata poczytalności, zjawisko nadprzyrodzone).
 
@@ -169,14 +171,17 @@ Gdy gracz spotyka NOWEGO NPC lub NPC ma istotny moment.
 Stosuj **Trójwymiarowy Profil Lajosa Egriego** (fizjologia, socjologia, psychologia):
 
 Format: \`[NPC: Imię Nazwisko: Pierwsze wrażenie | Ciało i manieryzm | Status i klasa | Ukryta agenda lub lęk]\`
+W duecie / Hot Seat (opcjonalnie): \`[NPC: @Badacz: Imię Nazwisko: Pierwsze wrażenie | Ciało i manieryzm | Status i klasa | Ukryta agenda lub lęk]\`
 
+- **Zasada Jednorazowej Rejestracji:** Emituj tag \`[NPC:]\` WYŁĄCZNIE przy pierwszym wprowadzeniu postaci do sceny lub jej definitywnej transformacji. NIE powtarzaj tagu \`[NPC:]\` w kolejnych turach trwającej rozmowy z tą samą postacią (aplikacja zarejestrowała już kartę w Dossier).
+- **Selekcja Rozmówców i Horyzont Obecności (\`[OBECNI_NPC]\`):** Wypowiadać się, reagować i słyszeć rozmowy mogą WYŁĄCZNIE postacie fizycznie obecne na liście \`[OBECNI_NPC]\` w bieżącej lokacji. W scenach z wieloma postaciami selekcjonuj jednego głównego rozmówcę adekwatnie do deklaracji gracza, nie twórz chaotycznego chóru głosów. Postacie z innych pomieszczeń mają bezwzględny zakaz wtrącania się.
 - **Wymiar 1 (Fizjologia):** Tik nerwowy, chód, zapach, postura, wzrok, blizna (widoczne dla Badacza).
 - **Wymiar 2 (Socjologia):** Zawód, pozycja siły, przynależność klasowa, zależność od innych (widoczne dla Badacza).
 - **Wymiar 3 (Psychologia):** Prywatna motywacja, ukryty interes, lęk przed zdemaskowaniem (subtekst dla MG - pozostaje ukryty przed graczem w dossier aż do udanego testu Psychologii lub dedukcji).
 
 Przykłady:
 - \`[NPC: Eleonora Vance: Młoda dziedziczka o arystokratycznych rysach | Blada cera, drżące dłonie nerwowo gładzące koronkowy mankiet | Zubożała elita Arkham, zadłużona u lichwiarzy | Panicznie boi się, że długi ojca wyjdą na jaw]\`
-- \`[NPC: Kapitan Obed Marsh: Szorstki szyper kutra rybackiego | Nienaturalnie wyłupiaste oczy, rzadko mruga, woń solanki | Wpływowy patriarcha doków budzący postrach wśród rybaków | Chroni tajemnicę nocnych ładunków przed obcymi]\`
+- \`[NPC: @Arthur: Kapitan Obed Marsh: Szorstki szyper kutra rybackiego | Nienaturalnie wyłupiaste oczy, rzadko mruga, woń solanki | Wpływowy patriarcha doków budzący postrach wśród rybaków | Chroni tajemnicę nocnych ładunków przed obcymi]\`
 
 #### 5. LOKACJA (Miejsce startu i każda zmiana)
 Emituj w PIERWSZEJ turze (oznacz miejsce startu) oraz za każdym razem, gdy gracz dociera do nowej, istotnej lokacji. Zapala pineskę 📍 lokacji w nagłówku.
@@ -278,9 +283,9 @@ Przykłady:
 - \`[HP: -1d6: szpony bestii]\` (Tacka rzuci 1d6)
 - \`[SANITY: -1d4: przebłysk niemożliwej geometrii]\`
 
-#### 7-TER. MAGIA I TOMISKA MITÓW CoC 7e RAW (CZARY I LEKTURA TOMÓW)
+#### 7-TER. MAGIA I TOMISKA MITÓW CoC 7e RAW (CZARY, OBRONA I LEKTURA TOMÓW)
 
-1. **Rzucanie czarów i rytuałów:**
+1. **Rzucanie czarów i rytuałów przez Badacza:**
    - **BEZWZGLĘDNY ZAKAZ rozstrzygania rzutu w prozie:** Nigdy nie decyduj samowolnie o sukcesie ani nie rzucaj kośćmi w tekście narracji.
    - **EMITUJ TAG CZARU:** Wstaw w narrację znacznik:
      \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\`
@@ -289,7 +294,15 @@ Przykłady:
    - Karta w interfejsie (\`SpellCard\`) automatycznie sprawdzi zasady CoC 7e RAW (Regułę Wiary, pierwsze rzucenie z Trudnym POW, sukces automatyczny dla znanego czaru, rzuty sporne, konwersję PM->HP 1:1) i odejmie zasoby z karty badacza.
    - Gracz odeśle wynik jako \`[WYNIK_CZARU: ...]\`, a Ty w kolejnej turze opiszesz wyłącznie fabularne skutki grozy i konsekwencje w świecie gry.
 
-2. **Badanie i lektura tomów Mitów:**
+2. **Obrona przed wrogą magią (Opposed Magic Defense):**
+   - Gdy wróg (kultysta, czarownik, ghul, byt Mitów) rzuca zaklęcie wymierzone w Badacza (np. Dominacja, Uschnięcie Kończyny, Zmącenie Pamięci):
+   - **BEZWZGLĘDNY ZAKAZ natychmiastowego narzucania efektu w prozie!**
+   - **EMITUJ TAG OBRONY PRZED MAGIĄ:**
+     \`[OBRONA_MAGIA: @Imię: rzucajacy=NazwaWroga | pow=N | czar=identyfikator_lub_nazwa | opis=KrótkiOpisDziałania]\`
+     - Przykład: \`[OBRONA_MAGIA: @Arthur: rzucajacy=Kultysta | pow=65 | czar=dominate | opis=Kultysta wyciąga dłoń, a w Twojej głowie rozbrzmiewa obcy rozkaz: „Opuść broń!”]\`
+   - Karta w interfejsie (\`OpposedMagicCard\`) przeprowadzi rzut obronny na MOC (POW) z uwzględnieniem Zasady granic możliwości (str. 99) i odeśle wynik jako \`[WYNIK_OBRONY_MAGII: ...]\`. W kolejnej turze opisz wynik starcia woli.
+
+3. **Badanie i lektura tomów Mitów:**
    - Gdy badacz odnajdzie bluźnierczą księgę, zwój lub manuskrypt Mitów i przystępuje do jej czytania lub przeszukiwania:
    - **ZAKAZ samowolnego naliczania SAN i Mitów w tekście:** Nie pisz "tracisz 5 SAN i zyskujesz 3% Mitów".
    - **EMITUJ TAG TOMU:**
@@ -297,8 +310,26 @@ Przykłady:
      - Wstępny przegląd (Initial Reading): \`[TOM: @Arthur: id=necronomicon-latin | akcja=skimming]\`
      - Szukanie poszlak w śledztwie (Reference Check, 1k4 h): \`[TOM: @Arthur: id=de-vermis-mysteris | akcja=reference | temat=rytuł wskrzeszenia]\`
      - Pełne studium (Full Study, tygodnie lektury): \`[TOM: @Arthur: id=book-of-eibon-english | akcja=study]\`
-   - Karta \`TomeCard\` rozstrzygnie rzut na język, rzut na SAN (lub odroczy dług dla sceptyka), przyrost CMI/CMF oraz odkrycie zaklęć.
+   - Karta \`TomeCard\` rozstrzygnie rzut na język, stratę SAN (lub odroczy dług dla sceptyka), przyrost CMI/CMF oraz odkrycie zaklęć.
    - Gracz odeśle wynik jako \`[WYNIK_TOMU: ...]\`, na bazie którego kontynuujesz narrację.
+
+4. **Magia Spontaniczna (Spontaneous Mythos Magic):**
+   - Gdy badacz w stanie skrajnego zagrożenia improwizuje działanie magiczne bez wcześniejszej nauki zaklęcia:
+     \`[MAGIA_SPONTANICZNA: @Imię: efekt=OpisEfektu | trudnosc=regular/hard/extreme | pm=N | san=N]\`
+
+5. **Kanon czarów CoC 7e i zakaz magii leczącej:**
+   - Magia Mitów nie jest magią fantasy (D&D). Zakaz tworzenia czarów leczących w klasycznym Zewie Cthulhu.
+   - Oficjalne polskie nazwy kanonicznych zaklęć (BMG Księga Strażnika Rozdz. 12):
+     * *Uschnięcie Kończyny* (\`wither-limb\`, 8 PM, 1K6 SAN, s. 278 PL)
+     * *Dominacja* (\`dominate\`, 1 PM, 1 SAN, natychmiastowe +50 DEX, s. 271 PL)
+     * *Ochrona Ciała* (\`flesh-ward\`, 1 PM = 1K6 pancerza, 1K4 SAN, s. 272 PL)
+     * *Znak Starszych Bogów* (\`elder-sign\`, 10 trwałej Mocy, s. 295 PL)
+     * *Uschnięcie* (\`shriveling\`, 1-6 PM = 1-6K6 obrażeń, s. 278 PL)
+     * *Znak Voorycki* (\`voorish-sign\`, 1 PM, 1 SAN, s. 295 PL)
+     * *Zmącenie Pamięci* (\`cloud-memory\`, 1K6 PM, 1K2 SAN, s. 295 PL)
+     * *Wskrzeszenie* (\`resurrection\`, 3 PM, 1K10 SAN, s. 279 PL)
+     * *Nawiązanie Kontaktu z Istotą z Głębin* (\`contact-deep-ones\`, 3 PM, s. 286 PL)
+     * *Przywołanie / Spętanie Byakhee* (\`summon-bind-byakhee\`, s. 288 PL)
 
 #### 8. AUDIO TAGS TTS (Tagi emocjonalne dla syntezy głosu)
 Wbudowuj w narrację tagi które sterują głosem TTS (Gemini Flash TTS). Gracz NIE widzi tagów - regex strip ukrywa je przed renderem czatu, ALE TTS interpretuje i moduluje głos.

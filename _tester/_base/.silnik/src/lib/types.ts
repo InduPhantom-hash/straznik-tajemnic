@@ -165,6 +165,7 @@ export interface Message {
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
+  opposedMagicEvents?: OpposedMagicEventData[]; // Obrona przed wrogą magią CoC 7e RAW [OBRONA_MAGIA:...]
   tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
   chaseState?: ChaseState; // Pościg i tor przeszkód CoC 7e RAW [POŚCIG:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
@@ -380,6 +381,7 @@ export interface EquipmentItem {
   readableContent?: string; // Wygenerowana lub predefiniowana tresc diegetyczna dokumentu
   readableContentStatus?: 'none' | 'generating' | 'ready' | 'error'; // Status asynchronicznego generowania
   documentType?: DocumentSubType; // Dedykowany podtyp rekwizytu diegetycznego
+  isStoryItem?: boolean; // Czy przedmiot jest kluczowym rekwizytem fabularnym śledztwa (Story Item)
 }
 
 // === SYSTEM ROZWOJU POSTACI (CoC 7e) ===
@@ -509,7 +511,8 @@ export interface Character {
 
   // Ekonomia CoC 7e (RAW) - zamożność wynika z umiejętności "Majętność" (Credit Rating).
   // Spending Level/Cash/Assets wyliczane z CR przez lib/economy/credit-rating.ts;
-  // poniższe pola to opcjonalne override'y wpisane ręcznie na karcie.
+  // poniższe pola to opcjonalne override'y wpisane ręcznie na karcie lub wyliczone z presetu.
+  creditRating?: number; // Wartość Majętności (Credit Rating 0-99)
   cash?: number; // Gotówka pod ręką ($ / zł)
   spendingLevel?: number; // Dzienny limit wydatków bez księgowania (CoC 7e RAW)
   assets?: string; // Opisowy majątek (np. "Dom w Arkham, samochód")
@@ -1075,6 +1078,17 @@ export interface SpellCastEventData {
   alias?: string;
   targetName?: string;
   targetPow?: number;
+  description?: string;
+}
+
+export interface OpposedMagicEventData {
+  id: string;
+  attackerName: string;
+  attackerPow: number;
+  spellId?: string;
+  spellName?: string;
+  characterName?: string;
+  characterId?: string;
   description?: string;
 }
 

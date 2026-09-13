@@ -12,8 +12,24 @@ export interface MagicSourceRef {
   title: string;
   edition: '7e';
   page: number;
+  pagePl?: number;
+  pageEn?: number;
   pdfPage?: number;
   language: 'pl' | 'en';
+}
+
+export interface CatastropheEffect {
+  id: number;
+  tier: 'minor' | 'major';
+  name: { pl: string; en: string };
+  description: { pl: string; en: string };
+  mechanicalEffect?: { pl: string; en: string };
+}
+
+export interface CastingCatastrophe {
+  costMultiplier: number;
+  mpDeficitPaidWithHp: number;
+  effect: CatastropheEffect;
 }
 
 export type SpellCategory =
@@ -170,6 +186,7 @@ export interface CastingResolution {
     isPushed?: boolean;
     pushedFailedCatastrophe?: boolean;
   };
+  catastrophe?: CastingCatastrophe;
   opposedRoll?: {
     casterRoll: number;
     casterSuccessLevel: number; // 0=fail, 1=regular, 2=hard, 3=extreme, 4=critical
@@ -240,6 +257,7 @@ export interface FullStudyRequest {
   investigatorMythos: number;
   studyCount: number; // która to pełna lektura (0 dla pierwszej)
   belief: 'skeptic' | 'believer';
+  allowSanSaveHouseRule?: boolean; // opcjonalny house rule Setha Skorkowsky'ego
 }
 
 export interface FullStudyResolution {
@@ -327,6 +345,88 @@ export interface SpontaneousMagicResolution {
     hpDelta: number;
     sanDelta: number;
   };
+  message: {
+    pl: string;
+    en: string;
+  };
+  gmNarrativeContext: string;
+}
+
+// === OBRONA PRZED WROGĄ MAGIĄ (OPPOSED MAGIC DEFENSE - CoC 7e RAW) ===
+
+export interface OpposedMagicEventData {
+  id: string;
+  attackerName: string;
+  attackerPow: number;
+  spellId?: string;
+  spellName?: string;
+  characterName?: string;
+  characterId?: string;
+  description?: string;
+}
+
+export interface OpposedDefenseRequest {
+  attackerName: string;
+  attackerPow: number;
+  spellId?: string;
+  spellName?: string;
+  defenderId: string;
+  defenderName: string;
+  defenderPow: number;
+  defenderHp?: number;
+  defenderSan?: number;
+}
+
+export interface OpposedDefenseResolution {
+  success: boolean; // czy obrona się powiodła (obrońca odparł czar)
+  attackerName: string;
+  attackerPow: number;
+  defenderName: string;
+  defenderPow: number;
+  spellId?: string;
+  spellName?: string;
+  attackerRoll: number;
+  attackerSuccessLevel: number;
+  attackerOutcome?: RollOutcome;
+  defenderRoll: number;
+  defenderSuccessLevel: number;
+  defenderOutcome?: RollOutcome;
+  winner: 'attacker' | 'defender' | 'tie';
+  defenderPowImprovementEligible: boolean;
+  ruleOfLimitsApplied?: boolean;
+  statChanges: {
+    hpDelta: number;
+    sanDelta: number;
+    mpDelta: number;
+  };
+  message: {
+    pl: string;
+    en: string;
+  };
+  gmNarrativeContext: string;
+}
+
+// === NAUKA ZAKLĘĆ Z TOMU (LEARN SPELL FROM TOME - CoC 7e RAW str. 196) ===
+
+export interface LearnSpellFromTomeRequest {
+  investigatorName: string;
+  investigatorInt: number;
+  tomeId: string;
+  spellId: string;
+  isPush?: boolean;
+}
+
+export interface LearnSpellFromTomeResolution {
+  success: boolean;
+  weeksSpent: number;
+  intRoll: {
+    roll: number;
+    threshold: number;
+    outcome?: RollOutcome;
+    success: boolean;
+    isPushed?: boolean;
+  };
+  spellLearned: boolean;
   message: {
     pl: string;
     en: string;

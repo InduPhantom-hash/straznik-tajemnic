@@ -1,4 +1,4 @@
-import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference, SpellCastEventData, TomeStudyEventData } from './types';
+import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference, SpellCastEventData, TomeStudyEventData, OpposedMagicEventData } from './types';
 import { COMBAT_END_PATTERNS, COMBAT_START_PATTERNS, DAMAGE_PLAYER_PATTERNS, SANITY_PATTERNS } from './patterns';
 
 // Wykrywanie walki
@@ -523,4 +523,51 @@ export function extractTomeStudyEvents(text: string): TomeStudyEventData[] {
     }
 
     return tomeEvents;
+}
+
+// Wykrywanie obrony przed wrogą magią CoC 7e RAW (Issue #318)
+export function extractOpposedMagicEvents(text: string): OpposedMagicEventData[] {
+    const opposedEvents: OpposedMagicEventData[] = [];
+    const pattern = /\[(?:OBRONA_MAGIA|MAGIA_OBRONA|OPPOSED_MAGIC):\s*(?:@([^:\]]+):\s*)?([^\]]+)\]/gi;
+
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        const characterName = match[1]?.trim();
+        const content = match[2]?.trim() || '';
+        const parts = content.split('|').map((p) => p.trim());
+
+        const kv: Record<string, string> = {};
+        const positional: string[] = [];
+
+        for (const part of parts) {
+            const eqIdx = part.indexOf('=');
+            if (eqIdx !== -1) {
+                const k = part.slice(0, eqIdx).trim().toLowerCase();
+                const v = part.slice(eqIdx + 1).trim();
+                kv[k] = v;
+            } else {
+                positional.push(part);
+            }
+        }
+
+        const attackerName = kv.rzucajacy || kv.attacker || kv.caster || kv.wrog || positional[0] || 'Kultysta';
+        const rawPow = kv.pow || kv.moc || kv.attackerpow || positional[1];
+        const attackerPow = rawPow ? parseInt(rawPow, 10) : 50;
+
+        const spellId = (kv.czar || kv.spell || kv.id || positional[2] || '').trim().toLowerCase();
+        const spellName = kv.alias || kv.nazwa || kv.name || positional[3] || spellId;
+        const description = kv.opis || kv.desc || kv.description || (positional.length > 4 ? positional[4] : undefined);
+
+        opposedEvents.push({
+            id: crypto.randomUUID(),
+            attackerName,
+            attackerPow: Number.isFinite(attackerPow) ? attackerPow : 50,
+            spellId: spellId || undefined,
+            spellName: spellName || undefined,
+            characterName,
+            description,
+        });
+    }
+
+    return opposedEvents;
 }

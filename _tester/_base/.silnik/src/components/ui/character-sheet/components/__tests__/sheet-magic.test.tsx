@@ -80,7 +80,7 @@ describe('SheetMagic (Wiedza Tajemna, Tomy i Zaklęcia w Karcie Postaci)', () =>
 
     // Znane zaklęcie
     expect(screen.getByText(/Pieśń Bólu/i)).toBeInTheDocument();
-    expect(screen.getByText(/Uwiąd Kończyny/i)).toBeInTheDocument();
+    expect(screen.getByText(/Uschnięcie Kończyny/i)).toBeInTheDocument();
     expect(screen.getByText(/Opanowane/i)).toBeInTheDocument();
     expect(screen.getByText(/Głębsza Magia odblokowana/i)).toBeInTheDocument();
   });

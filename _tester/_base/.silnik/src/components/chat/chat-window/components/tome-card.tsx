@@ -118,7 +118,7 @@ export function TomeCard({
 
   // Stan badania tomu u badacza
   const tomeStudy = reader?.magic?.tomeStudies?.[effectiveTome.id];
-  const isSkeptic = reader?.magic?.belief === 'skeptic';
+  const isSkeptic = (reader?.magic?.belief ?? 'skeptic') === 'skeptic';
   const deferredSan = reader?.magic?.deferredSanLoss ?? 0;
   const initialDone = Boolean(tomeStudy?.initialReadingDone);
   const studyCount = tomeStudy?.studyCount ?? 0;
@@ -184,7 +184,7 @@ export function TomeCard({
           tomeId: effectiveTome.id,
           investigatorLanguageSkill: languageSkill,
           languageDifficulty: effectiveTome.languageDifficulty,
-          belief: reader.magic?.belief ?? 'believer',
+          belief: reader.magic?.belief ?? 'skeptic',
         },
         effectiveTome
       );
@@ -232,7 +232,7 @@ export function TomeCard({
 
         const updatedMagic: NonNullable<typeof reader.magic> = {
           schemaVersion: reader.magic?.schemaVersion ?? 1,
-          belief: reader.magic?.belief ?? 'believer',
+          belief: reader.magic?.belief ?? 'skeptic',
           deferredSanLoss: (reader.magic?.deferredSanLoss ?? 0) + res.deferredSanLoss,
           knownSpells: updatedSpells,
           tomeStudies: {
@@ -308,7 +308,7 @@ export function TomeCard({
           investigatorSan: reader.san ?? 50,
           investigatorMythos: currentMythos,
           studyCount,
-          belief: reader.magic?.belief ?? 'believer',
+          belief: reader.magic?.belief ?? 'skeptic',
         },
         effectiveTome
       );
@@ -337,7 +337,7 @@ export function TomeCard({
         const currentTomes = reader.magic?.tomeStudies ?? {};
         const updatedMagic: NonNullable<typeof reader.magic> = {
           schemaVersion: reader.magic?.schemaVersion ?? 1,
-          belief: reader.magic?.belief ?? 'believer',
+          belief: reader.magic?.belief ?? 'skeptic',
           deferredSanLoss: (reader.magic?.deferredSanLoss ?? 0) + res.deferredSanLoss,
           knownSpells: reader.magic?.knownSpells ?? {},
           tomeStudies: {
