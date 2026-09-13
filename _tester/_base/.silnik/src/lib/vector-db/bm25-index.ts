@@ -19,7 +19,9 @@
 // TYPES
 // ============================================================================
 
-export interface BM25Document {
+import { documentKey, type DocumentProvenance } from './vector-types';
+
+export interface BM25Document extends DocumentProvenance {
   /** Unikalny ID dokumentu (= chunk ID z magazynu wektorów) */
   id: string;
   /** Pełny tekst dokumentu */
@@ -34,7 +36,8 @@ export interface BM25Document {
   tags: string[];
 }
 
-export interface BM25Result {
+export interface BM25Result extends DocumentProvenance {
+  text: string;
   id: string;
   score: number;
   namespace: string;
@@ -129,16 +132,17 @@ class BM25Index {
    * Dodaj dokument do indeksu.
    */
   addDocument(doc: BM25Document): void {
+    const key = documentKey(doc.namespace, doc.id);
     // Usuń stary wpis (jeśli re-indeksujemy)
-    if (this.documents.has(doc.id)) {
-      this.removeDocument(doc.id);
+    if (this.documents.has(key)) {
+      this.removeDocument(key);
     }
 
     const tokens = tokenize(doc.text);
 
-    this.documents.set(doc.id, doc);
-    this.docLengths.set(doc.id, tokens.length);
-    this.docTokens.set(doc.id, tokens);
+    this.documents.set(key, doc);
+    this.docLengths.set(key, tokens.length);
+    this.docTokens.set(key, tokens);
 
     // Zbuduj inverted index i term frequency
     const termCounts = new Map<string, number>();
@@ -151,10 +155,10 @@ class BM25Index {
       if (!this.invertedIndex.has(term)) {
         this.invertedIndex.set(term, new Set());
       }
-      this.invertedIndex.get(term)!.add(doc.id);
+      this.invertedIndex.get(term)!.add(key);
 
       // Term frequency
-      this.termFreq.set(`${doc.id}:${term}`, count);
+      this.termFreq.set(`${key}:${term}`, count);
     }
 
     // Aktualizuj średnią długość
@@ -166,15 +170,16 @@ class BM25Index {
    */
   addDocuments(docs: BM25Document[]): void {
     for (const doc of docs) {
+      const key = documentKey(doc.namespace, doc.id);
       // Inline bez recalc (robimy na końcu)
-      if (this.documents.has(doc.id)) {
-        this.removeDocument(doc.id);
+      if (this.documents.has(key)) {
+        this.removeDocument(key);
       }
 
       const tokens = tokenize(doc.text);
-      this.documents.set(doc.id, doc);
-      this.docLengths.set(doc.id, tokens.length);
-      this.docTokens.set(doc.id, tokens);
+      this.documents.set(key, doc);
+      this.docLengths.set(key, tokens.length);
+      this.docTokens.set(key, tokens);
 
       const termCounts = new Map<string, number>();
       for (const token of tokens) {
@@ -185,8 +190,8 @@ class BM25Index {
         if (!this.invertedIndex.has(term)) {
           this.invertedIndex.set(term, new Set());
         }
-        this.invertedIndex.get(term)!.add(doc.id);
-        this.termFreq.set(`${doc.id}:${term}`, count);
+        this.invertedIndex.get(term)!.add(key);
+        this.termFreq.set(`${key}:${term}`, count);
       }
     }
 
@@ -273,6 +278,7 @@ class BM25Index {
       namespaces?: string[];
       topK?: number;
       minScore?: number;
+      filter?: (doc: BM25Document) => boolean;
     } = {},
   ): BM25Result[] {
     const { namespaces, topK = 10, minScore = 0 } = options;
@@ -321,8 +327,10 @@ class BM25Index {
 
       const doc = this.documents.get(docId);
       if (!doc) continue;
+      if (options.filter && !options.filter(doc)) continue;
 
       results.push({
+        ...doc,
         id: doc.id,
         score,
         namespace: doc.namespace,

@@ -13,7 +13,7 @@ import type { WorldSetupBundleV1 } from './world-setup';
 import { isWorldSetupBundle } from './world-setup';
 import { ensureCharacterDossier } from './journal/dossier-migration';
 import type { ChaseState } from './chase/chase-engine';
-import type { CampaignMemoryScope } from '@/core/memory/types';
+import type { CampaignMemoryScope, CampaignMemorySnapshot } from '@/core/memory/types';
 
 // Lokalnie zdefiniowany interfejs Message (podzbiór @/lib/types Message -
 // pola istotne dla save'a). finishReason/continuationRequested odtwarzają
@@ -91,6 +91,7 @@ export interface FullGameSave {
   activeCampaignId?: string;
   /** Tożsamość trwałej pamięci kampanii. Brak w save'ach sprzed 2.1.0. */
   campaignMemory?: CampaignMemoryScope;
+  memorySnapshot?: CampaignMemorySnapshot;
 
   // === NPC ===
   npcs: NPC[];
@@ -176,6 +177,7 @@ export class FullGameSaveManager {
     campaigns: Campaign[];
     activeCampaignId?: string;
     campaignMemory?: CampaignMemoryScope;
+    memorySnapshot?: CampaignMemorySnapshot;
     npcs: NPC[];
     locations: Location[];
     currentLocationId?: string;
@@ -225,6 +227,7 @@ export class FullGameSaveManager {
       campaigns: data.campaigns,
       activeCampaignId: data.activeCampaignId,
       campaignMemory: data.campaignMemory,
+      memorySnapshot: data.memorySnapshot,
 
       // NPC
       npcs: data.npcs,

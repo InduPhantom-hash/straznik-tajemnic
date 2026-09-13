@@ -14,6 +14,7 @@ import { timeManager } from '@/lib/time-manager';
 import { trackEvent } from '@/lib/posthog';
 import { resetSessionTokens } from '@/lib/ai-settings/cost-control';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
+import { notifyMemoryCommit } from '@/core/memory/commit-client';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 import { persistentMediaCache } from '@/lib/persistent-media-cache';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
@@ -727,6 +728,7 @@ export function useGameStart({
           hotSeatConfig: resolvedHotSeat,
           adventureContext: adventureContext,
           memoryScope,
+          assistantMessageId,
           eraContext: loadStoredWorldSetup()?.eraContext,
           locale,
           isGameStart: true,
@@ -831,6 +833,7 @@ export function useGameStart({
           }
         },
         onMetadata: (metadata) => {
+          notifyMemoryCommit(metadata,locale);
           // finishReason z metadanych (MAX_TOKENS = urwane intro) musi trafić
           // na wiadomość - bez tego przycisk "Kontynuuj narrację" nie wie, że
           // intro jest częściowe.

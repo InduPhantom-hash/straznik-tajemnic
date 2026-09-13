@@ -203,7 +203,8 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
     const newClue = charWithClue2.investigatorDossier?.clues.find((c) => c.title === 'Zdemaskowanie dozorcy');
 
     expect(oldClue?.status).toBe('superseded');
-    expect(oldClue?.supersededBy).toBe('Zdemaskowanie dozorcy');
+    expect(oldClue?.supersededBy).toBe(newClue?.id);
+    expect(charWithClue2.investigatorDossier?.clues).toHaveLength(2);
     expect(newClue?.status).toBe('confirmed');
   });
 

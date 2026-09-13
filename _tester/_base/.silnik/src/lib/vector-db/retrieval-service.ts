@@ -12,6 +12,9 @@
  */
 
 import { embeddingService, cosineSimilarity } from '../embedding-service';
+import { isDocumentModelUseBlocked } from '../document-model-policy';
+import type { CampaignMemoryScope } from '@/core/memory/types';
+import type { DocumentProvenance } from './vector-types';
 import { LOCAL_RAG_NAMESPACES, type QueryResult } from './vector-types';
 import { localVectorStore } from './local-vector-store';
 import { bm25Index } from './bm25-index';
@@ -26,7 +29,8 @@ import {
 // ============================================================================
 
 /** Pojedynczy wynik retrieval z informacją o źródle */
-export interface RetrievalResult {
+export interface RetrievalResult extends DocumentProvenance {
+  text?: string;
   id: string;
   score: number;
   source: 'semantic' | 'bm25' | 'local' | 'hybrid';
@@ -39,6 +43,8 @@ export interface RetrievalResult {
 
 /** Konfiguracja zapytania retrieval */
 export interface RetrievalQuery {
+  memoryScope?: CampaignMemoryScope;
+  queryEmbedding?: number[] | null;
   /** Tekst zapytania gracza */
   query: string;
   /** ID aktywnej sesji (dla namespace sessions/{id}) */
@@ -173,6 +179,12 @@ class RetrievalService {
    * 5. Formatowanie kontekstu RAG
    */
   async retrieve(params: RetrievalQuery): Promise<RetrievalResponse> {
+    // Neither full chunks nor legacy "summaries" (often verbatim prefixes)
+    // are eligible. Do not open indexes, embed queries or use legacy fallback.
+    // Canonical campaign memory is retrieved independently by run-rag-summary.
+    if (isDocumentModelUseBlocked()) return {
+      promptSection: '', results: [], source: 'none', durationMs: 0,
+    };
     const start = Date.now();
     const {
       query,

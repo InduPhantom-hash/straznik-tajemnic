@@ -21,8 +21,11 @@ import {
   LOCAL_RAG_NAMESPACES,
   type UpsertVector,
   type VectorMetadata,
+  type DocumentProvenance,
 } from './vector-types';
 import { localVectorStore } from './local-vector-store';
+import { embeddingSignature } from './embedding-signature';
+import { isDocumentModelUseBlocked } from '../document-model-policy';
 
 // ============================================================================
 // KONWERSJA MemoryIndexEntry → Wektor
@@ -36,6 +39,7 @@ function entryToVector(
   sessionId: string
 ): UpsertVector {
   const metadata: VectorMetadata = {
+    // Legacy embeddings have no model provenance. Keep them unsigned.
     contentType: 'session',
     summary: entry.summary,
     gameTimestamp: entry.gameTimestamp || '',
@@ -157,7 +161,7 @@ export async function indexTexts(
   items: Array<{
     id: string;
     text: string;
-    metadata: {
+    metadata: DocumentProvenance & {
       contentType: string;
       summary: string;
       gameTimestamp?: string;
@@ -169,6 +173,7 @@ export async function indexTexts(
   onProgress?: (current: number, total: number) => void,
   options: { replaceNamespace?: boolean; apiKey?: string } = {}
 ): Promise<{ indexed: number; failed: number; indexedIds: string[] }> {
+  if (isDocumentModelUseBlocked()) return { indexed: 0, failed: items.length, indexedIds: [] };
   if (!localVectorStore.initialized) {
     console.warn('⚠️ Lokalny RAG nie jest gotowy, pomijam indeksowanie');
     return { indexed: 0, failed: 0, indexedIds: [] };
@@ -179,18 +184,22 @@ export async function indexTexts(
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
+    const signature = embeddingSignature();
+    const expectedDim = getEmbeddingDimensions();
     const embedding = await embeddingService.generateEmbedding(
       item.text,
       'RETRIEVAL_DOCUMENT',
       options.apiKey
     );
 
-    if (embedding) {
+    if (embedding && embedding.length === expectedDim && signature === embeddingSignature()) {
       vectors.push({
         id: item.id,
         values: embedding,
         text: item.text, // pełny tekst chunka - lokalny store trzyma go dla BM25
         metadata: {
+          ...item.metadata,
+          embeddingSignature: signature,
           contentType: item.metadata.contentType,
           summary: item.metadata.summary,
           gameTimestamp: item.metadata.gameTimestamp || '',

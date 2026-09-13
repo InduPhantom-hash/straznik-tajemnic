@@ -8,6 +8,9 @@ import { resolveEraContext } from '@/lib/era';
 import type { WorldSetupBundleV1 } from '@/lib/world-setup';
 import { toast } from '@/components/ui/use-toast';
 
+const restoredScope = { schemaVersion: 1, campaignDefinitionId: 'scenario:test',
+  playthroughId: 'run-restored', adventureId: 'test', kind: 'scenario' };
+
 jest.mock('@/lib/character-cloud-sync', () => ({
   persistCharacters: jest.fn(),
 }));
@@ -21,9 +24,11 @@ describe('useFullSave - status urwanej narracji', () => {
     jest.clearAllMocks();
     localStorage.clear();
     window.alert = jest.fn();
+    Object.defineProperty(crypto, 'randomUUID', { configurable: true, value: jest.fn(() => 'restore-request') });
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ scope: restoredScope }) });
   });
 
-  it('odtwarza finishReason i continuationRequested podczas pełnego loadu', () => {
+  it('odtwarza finishReason i continuationRequested podczas pełnego loadu', async () => {
     const setMessages = jest.fn();
     const save = FullGameSaveManager.createFullSave({
       name: 'Partial',
@@ -58,11 +63,12 @@ describe('useFullSave - status urwanej narracji', () => {
       })
     );
 
-    act(() => result.current.handleLoadFullSave(save));
+    await act(async () => { await result.current.handleLoadFullSave(save); });
 
     expect(setMessages).toHaveBeenCalledTimes(1);
     const loaded = setMessages.mock.calls[0][0] as Message[];
     expect(loaded[0]).toMatchObject({
+      id: 'assistant-partial',
       role: 'assistant',
       content: 'Urwany fragment',
       finishReason: 'MAX_TOKENS',
@@ -72,7 +78,7 @@ describe('useFullSave - status urwanej narracji', () => {
     expect(persistCharacters).toHaveBeenCalledWith([]);
   });
 
-  it('odtwarza worldSetup do kanonicznego magazynu klienta', () => {
+  it('odtwarza worldSetup do kanonicznego magazynu klienta', async () => {
     const worldSetup: WorldSetupBundleV1 = {
       schemaVersion: 1,
       id: 'world-save',
@@ -123,7 +129,7 @@ describe('useFullSave - status urwanej narracji', () => {
       })
     );
 
-    act(() => result.current.handleLoadFullSave(save));
+    await act(async () => { await result.current.handleLoadFullSave(save); });
 
     expect(JSON.parse(localStorage.getItem('world_setup_v1') || '{}')).toMatchObject({
       id: 'world-save',
@@ -131,7 +137,7 @@ describe('useFullSave - status urwanej narracji', () => {
     });
   });
 
-  it('migrates characters to ensure valid investigatorDossier and triggers toast instead of alert', () => {
+  it('migrates characters to ensure valid investigatorDossier and triggers toast instead of alert', async () => {
     const setCharacters = jest.fn();
     const character: Partial<Character> = {
       id: 'char-legacy',
@@ -173,7 +179,7 @@ describe('useFullSave - status urwanej narracji', () => {
       })
     );
 
-    act(() => result.current.handleLoadFullSave(save));
+    await act(async () => { await result.current.handleLoadFullSave(save); });
 
     expect(setCharacters).toHaveBeenCalledTimes(1);
     const loadedChars = setCharacters.mock.calls[0][0] as Character[];
@@ -186,5 +192,31 @@ describe('useFullSave - status urwanej narracji', () => {
         title: 'Wczytano: Legacy Dossier Save',
       })
     );
+  });
+
+  it('keeps existing state while restoring and after failure; retries with the same request', async () => {
+    const options = { setMessages: jest.fn(), setCharacters: jest.fn(), setActiveCharacter: jest.fn(),
+      setCampaigns: jest.fn(), setPdfMemory: jest.fn(), setActiveGameState: jest.fn(),
+      setAiSettings: jest.fn(), stopCurrentAudio: jest.fn(), clearDeclarations: jest.fn() };
+    const save = FullGameSaveManager.createFullSave({ name: 'Earlier', userId: 'local', messages: [],
+      gameSettings: { aiSettings: defaultAISettings }, characters: [], campaigns: [], npcs: [], locations: [] });
+    localStorage.setItem('gm_npcs', '["future"]');
+    localStorage.setItem('gm_locations', '["future"]');
+    let resolve!: (value: unknown) => void;
+    (fetch as jest.Mock).mockImplementationOnce(() => new Promise((done) => { resolve = done; }));
+    const { result } = renderHook(() => useFullSave(options));
+    let pending!: Promise<boolean>;
+    act(() => { pending = result.current.handleLoadFullSave(save); });
+    expect(options.setMessages).not.toHaveBeenCalled();
+    await act(async () => { resolve({ ok: false, json: async () => ({ error: 'Disk error' }) }); expect(await pending).toBe(false); });
+    for (const setter of Object.values(options)) expect(setter).not.toHaveBeenCalled();
+    expect(localStorage.getItem('gm_npcs')).toBe('["future"]');
+    await act(async () => { expect(await result.current.handleLoadFullSave(save)).toBe(true); });
+    const requests = (fetch as jest.Mock).mock.calls.map((call) => JSON.parse(call[1].body));
+    expect(requests[0].requestId).toBe(requests[1].requestId);
+    expect(options.setAiSettings).toHaveBeenCalledWith(expect.objectContaining({ sessionId: 'run-restored' }));
+    expect(localStorage.getItem('gm_npcs')).toBe('[]');
+    expect(localStorage.getItem('gm_locations')).toBe('[]');
+    expect(JSON.parse(localStorage.getItem('zew-campaign-memory-scope')!)).toEqual(restoredScope);
   });
 });

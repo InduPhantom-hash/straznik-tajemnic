@@ -9,6 +9,20 @@ import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
 
 describe('buildAdditionalContext', () => {
+  it.each(['pl', 'en'] as const)('drops source channels without dropping campaign memory (%s)', (locale) => {
+    const opts = {
+      timePromptSection: 'TIME', gmProtocol: 'PROTOCOL', resolvedCachedContent: null,
+      gameContext: { mode: 'investigation' as const, hasNPCs: false, recentSANLoss: false, findingDocument: false, inDarkness: false, nightTime: false },
+      gameContextPrompt: 'SYNTHETIC_DOCUMENT_CONTEXT', handoutsSection: 'SYNTHETIC_HANDOUT',
+      truthAnchor: { culprit: 'SYNTHETIC_CULPRIT', immutableFacts: ['SYNTHETIC_FACT'] },
+      ragSection: 'CANONICAL_CAMPAIGN_EVENT', locale,
+    };
+    const result = buildAdditionalContext(opts).join('\n');
+    expect(result).not.toContain('SYNTHETIC_');
+    expect(result).toContain('CANONICAL_CAMPAIGN_EVENT');
+    expect(opts.gameContextPrompt).toBe('SYNTHETIC_DOCUMENT_CONTEXT');
+    expect(opts.truthAnchor.culprit).toBe('SYNTHETIC_CULPRIT');
+  });
   it('should include directorEventSection if provided', () => {
     const dummyGameContext: GameContext = {
       mode: 'investigation',
@@ -322,7 +336,7 @@ describe('buildActiveInvestigationSection (Issue #68 - Memory Loop)', () => {
     });
 
     expect(section).toContain('## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA');
-    expect(section).toContain('**Kluczowe potwierdzone poszlaki:**');
+    expect(section).toContain('**Ujawnione poszlaki (uwzględnij status):**');
     expect(section).toContain('- **Dziennik Westona**: Wskazuje na spotkanie w Magazynie nr 7.');
     expect(section).toContain('- **Ślady stóp przy nabrzeżu**: Nietypowy kształt płetwiastych stóp w błocie.');
     expect(section).toContain('**Wnioski i hipotezy badacza:**');
@@ -356,7 +370,7 @@ describe('buildActiveInvestigationSection (Issue #68 - Memory Loop)', () => {
     });
 
     expect(section).toContain('## ACTIVE INVESTIGATION & INVESTIGATOR KNOWLEDGE');
-    expect(section).toContain('**Key confirmed clues:**');
+    expect(section).toContain('**Revealed clues (status matters):**');
     expect(section).toContain('- **Bloody Key**: Opens room 302 at the hotel.');
   });
 
@@ -650,7 +664,7 @@ describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => 
     expect(presenceSection).toContain('STRICT RULE: ONLY NPCs explicitly listed');
   });
 
-  it('wstrzykuje Zamkniętą Kopertę (truthAnchor) chroniącą przed uleganiem hipotezom gracza', () => {
+  it('nie przekazuje niezweryfikowanej koperty scenariusza do modelu', () => {
     const result = buildAdditionalContext({
       timePromptSection: 'Time Prompt',
       gmProtocol: 'Protocol',
@@ -667,11 +681,9 @@ describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => 
     });
 
     const truthSection = result.find((s) => s.includes('NIEZMIENNA PRAWDA ŚLEDZTWA (ZAMKNIĘTA KOPERTA)'));
-    expect(truthSection).toBeDefined();
-    expect(truthSection).toContain('- Prawdziwy sprawca: Doktor Henry Armitage');
-    expect(truthSection).toContain('- Motyw zbrodni: Pozyskanie księgi Necronomicon');
-    expect(truthSection).toContain('- Narzędzie / metoda: Arszenik w herbacie');
-    expect(truthSection).toContain('ŚCIŚLE ZAKAZANA RETROSPEKTYWNA KONFIRMACJA');
+    expect(truthSection).toBeUndefined();
+    expect(result.join('\n')).not.toContain('Doktor Henry Armitage');
+    expect(result.join('\n')).not.toContain('Ślady błota pochodzą z cmentarza');
   });
 
   describe('Concordia Pattern: MakeObservation & Epistemic Fog of War', () => {
@@ -734,7 +746,7 @@ describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => 
       expect(observationSection).toContain('AKTYWNE ZNIEKSZTAŁCENIA POCZYTALNOŚCI BOHATERÓW');
     });
 
-    it('zbiera nieodkryte poszlaki od wszystkich postaci i zachowuje truthAnchor', () => {
+    it('zachowuje stan postaci, ale pomija niezweryfikowaną kopertę dokumentu', () => {
       const result = buildAdditionalContext({
         timePromptSection: 'Time Prompt',
         gmProtocol: 'Protocol',
@@ -774,7 +786,7 @@ describe('Arcanum RPGs Benchmark 2026: Scene Presence & Sealed Envelope', () => 
       expect(observationSection).toBeDefined();
       expect(observationSection).toContain('Zakrwawiony sztylet');
       expect(observationSection).toContain('Szyfr kultu');
-      expect(observationSection).toContain('Sekretny dziennik');
+      expect(observationSection).not.toContain('Sekretny dziennik');
     });
   });
 

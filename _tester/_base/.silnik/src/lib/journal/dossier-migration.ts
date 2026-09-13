@@ -307,7 +307,9 @@ export function migrateLegacyJournalToDossier(
       return;
     }
 
-    if (!clueIds.has(baseId)) {
+    if (!clueIds.has(baseId) && !result.clues.some((clue) =>
+      entry.id && clue.sourceJournalEntryId === entry.id
+    )) {
       const clue: ClueEntry = {
         id: baseId,
         title: entry.title || 'Nieopisana poszlaka',

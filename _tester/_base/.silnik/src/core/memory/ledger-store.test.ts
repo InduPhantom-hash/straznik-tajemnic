@@ -106,6 +106,61 @@ describe('CampaignMemoryLedgerStore', () => {
     expect(store.search(otherScope, 'Elias')).toHaveLength(0);
   });
 
+  it('binds a playthrough to its campaign but preserves previous chapters', () => {
+    store.recordConversationTurn({ scope: { ...scope, adventureId: 'peru' }, sessionId: 's', messageId: 'a', userText: 'list', assistantText: 'Elias jest w Peru.' });
+    const nextChapter = { ...scope, adventureId: 'london' };
+    expect(store.search(nextChapter, 'Elias')).toHaveLength(1);
+    expect(store.list(nextChapter)[0].scope.adventureId).toBe('peru');
+    expect(() => store.list({ ...scope, campaignDefinitionId: 'other' })).toThrow('Campaign scope conflict');
+  });
+
+  it('rolls back canonical entries and index jobs when a transaction fails', () => {
+    const raw = new Database(filePath);
+    raw.exec("CREATE TRIGGER reject_test_fact BEFORE INSERT ON memory_entries WHEN new.memory_kind = 'clue' BEGIN SELECT RAISE(ABORT, 'test disk failure'); END");
+    raw.close();
+    expect(() => store.recordConversationTurn({ scope, sessionId: 's', messageId: 'a', userText: 'list', assistantText: 'Elias', facts: [{ kind: 'clue', text: 'Elias' }] })).toThrow('test disk failure');
+    expect(store.list(scope)).toEqual([]);
+    expect(store.pendingIndexEntries(scope)).toEqual([]);
+  });
+
+  it('keeps pending index jobs through restart and rejects altered retries', () => {
+    const turn = { scope, sessionId: 's', messageId: 'a', userText: 'list', assistantText: 'Elias' };
+    store.recordConversationTurn(turn);
+    expect(() => store.recordConversationTurn({ ...turn, assistantText: 'Inna odpowiedź' })).toThrow('content conflict');
+    const completed = store.pendingIndexEntries(scope)[0].id;
+    store.finishIndexJob(completed, true);
+    store.close();
+    store = new CampaignMemoryLedgerStore(filePath);
+    expect(store.pendingIndexEntries(scope).map(e => e.id)).toEqual([`${scope.playthroughId}::a:assistant`]);
+    expect(store.recordConversationTurn(turn)).toBe(0);
+  });
+
+  it('forks a historical snapshot without later facts and retries restore idempotently', () => {
+    store.recordConversationTurn({ scope, sessionId: 's', messageId: 'a', userMessageId: 'u', userText: 'Czytam', assistantText: 'Alibi', facts: [{ kind: 'clue', entityId: 'alibi', text: 'Alibi', status: 'confirmed' }] });
+    store.recordConversationTurn({ scope, sessionId: 's', messageId: 'b', userText: 'Sprawdzam', assistantText: 'Przyznanie', facts: [{ kind: 'clue', entityId: 'alibi', text: 'Alibi', status: 'disproven' }] });
+    const snapshot = store.createSnapshot(scope, [{ id: 'u', role: 'user', content: 'Czytam' }, { id: 'a', role: 'assistant', content: 'Alibi' }]);
+    expect(snapshot.entries).toHaveLength(3);
+    const restored = store.restoreSnapshot(snapshot, 'load-one');
+    expect(restored.playthroughId).not.toBe(scope.playthroughId);
+    expect(store.restoreSnapshot(snapshot, 'load-one')).toEqual(restored);
+    expect(store.restoreSnapshot(snapshot, 'load-two').playthroughId).not.toBe(restored.playthroughId);
+    expect(store.list(restored).map(e => e.status).filter(Boolean)).toEqual(['confirmed']);
+    expect(store.search(restored, 'Przyznanie')).toEqual([]);
+    expect(store.pendingIndexEntries(restored)).toHaveLength(3);
+    expect(() => store.restoreSnapshot({ ...snapshot, entries: [] }, 'load-one')).toThrow('Restore request conflict');
+  });
+
+  it('refuses an incomplete save instead of silently dropping an uncommitted response', () => {
+    store.recordConversationTurn({ scope, sessionId: 's', messageId: 'a', userText: 'Czytam', assistantText: 'List' });
+    expect(() => store.createSnapshot(scope, [{ id: 'a', role: 'assistant', content: 'List' }, { id: 'b', role: 'assistant', content: 'Niezapisana odpowiedź' }])).toThrow('not been committed');
+  });
+
+  it('uses the commit cleaner when comparing raw chat to a snapshot', () => {
+    store.recordConversationTurn({ scope, sessionId: 's', messageId: 'a', userText: 'Czytam', assistantText: 'List' });
+    expect(store.createSnapshot(scope, [{ id: 'a', role: 'assistant', content: 'List [GM_THOUGHTS]Ukryty plan[/GM_THOUGHTS]' }]).entries).toHaveLength(2);
+    expect(() => store.createSnapshot(scope, [{ id: 'a', role: 'assistant', content: 'Zmieniony list' }])).toThrow('conflicts');
+  });
+
   it('accepts natural multi-word questions without disabling FTS', () => {
     store.recordConversationTurn({
       scope,

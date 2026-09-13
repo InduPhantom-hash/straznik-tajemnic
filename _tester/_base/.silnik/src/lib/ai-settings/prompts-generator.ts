@@ -1,4 +1,5 @@
 import { AISettings } from './types';
+import { isDocumentModelUseBlocked } from '../document-model-policy';
 import { loadAISettings, saveAISettings } from './storage';
 import { getLovecraftStylePrompt } from '../lovecraft-style-guide';
 import { getGMProtocolPrompt } from '../prompts/gm-protocol';
@@ -34,7 +35,9 @@ export const getGameMasterPrompt = (
   if (!narration.enabled) return '';
 
   // Bazowy prompt użytkownika
-  let prompt = narration.prompts.mainPrompt || '';
+  // Imported and previously saved text has no verified rights provenance.
+  // Keep settings intact on disk, but do not forward their source text.
+  let prompt = isDocumentModelUseBlocked() ? '' : narration.prompts.mainPrompt || '';
 
   // === ROLE LOCK - Zabezpieczenie przed zmianą roli ===
   prompt += locale === 'en'
@@ -98,7 +101,7 @@ export const getOptimizedGameMasterPrompt = (
 
   if (!narration.enabled) return '';
 
-  const rawPrompt = narration.prompts.mainPrompt || '';
+  const rawPrompt = isDocumentModelUseBlocked() ? '' : narration.prompts.mainPrompt || '';
   if (!rawPrompt) return '';
 
   // Use precomputed context if provided, otherwise detect

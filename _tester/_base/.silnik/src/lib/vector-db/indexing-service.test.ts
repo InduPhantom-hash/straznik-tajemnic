@@ -29,34 +29,14 @@ const items = [
   },
 ];
 
-describe('indexTexts', () => {
+describe('indexTexts document policy', () => {
   beforeEach(() => jest.clearAllMocks());
-
-  it('nie zastępuje namespace po częściowym błędzie embeddingów', async () => {
-    mockedEmbedding.mockResolvedValueOnce([1, 0]).mockResolvedValueOnce(null);
-
-    await expect(
-      indexTexts(items, 'rules', undefined, { replaceNamespace: true })
-    ).resolves.toEqual({ indexed: 0, failed: 2, indexedIds: [] });
-    expect(localVectorStore.replaceNamespace).not.toHaveBeenCalled();
-    expect(localVectorStore.upsert).not.toHaveBeenCalled();
-  });
-
-  it('atomowo zastępuje namespace po kompletnym zestawie embeddingów', async () => {
+  it.each([true, false])('blocks embedding and preserves existing indexes (replace=%s)', async (replaceNamespace) => {
     mockedEmbedding.mockResolvedValue([1, 0]);
-
-    const result = await indexTexts(items, 'rules', undefined, {
-      replaceNamespace: true,
-    });
-
-    expect(result).toMatchObject({ indexed: 2, failed: 0 });
-    expect(localVectorStore.replaceNamespace).toHaveBeenCalledWith(
-      'rules',
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'one' }),
-        expect.objectContaining({ id: 'two' }),
-      ])
-    );
+    await expect(indexTexts(items, 'rules', undefined, { replaceNamespace }))
+      .resolves.toEqual({ indexed: 0, failed: 2, indexedIds: [] });
+    expect(mockedEmbedding).not.toHaveBeenCalled();
+    expect(localVectorStore.replaceNamespace).not.toHaveBeenCalled();
     expect(localVectorStore.upsert).not.toHaveBeenCalled();
   });
 });

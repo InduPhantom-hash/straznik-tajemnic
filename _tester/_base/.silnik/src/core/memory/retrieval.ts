@@ -2,90 +2,91 @@ import { embeddingService } from '@/lib/embedding-service';
 import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 import { LOCAL_RAG_NAMESPACES } from '@/lib/vector-db/vector-types';
 import { getCampaignMemoryLedgerStore, type CampaignMemoryLedgerStore } from './ledger-store';
-import type { CampaignMemoryScope, CampaignMemorySearchResult } from './types';
-
-const MAX_RESULTS = 8;
-const MAX_TOKENS = 1200;
-const RRF_K = 60;
+import { embeddingSignature } from './index-queue';
+import type { CampaignMemoryScope, CampaignMemorySearchResult, MemoryLedgerEntry } from './types';
 
 export interface CampaignMemoryRetrieval {
-  results: Array<CampaignMemorySearchResult & { sources: Array<'fts' | 'like' | 'semantic'> }>;
-  promptSection: string;
-  source: 'hybrid' | 'semantic' | 'fts' | 'like' | 'none';
+  results: Array<CampaignMemorySearchResult & {sources:Array<'fts'|'like'|'semantic'>}>;
+  promptSection:string;
+  source:'hybrid'|'semantic'|'fts'|'like'|'none';
+}
+export interface MemoryRetrievalOptions {
+  queryEmbedding?:number[]|null;
+  locale?:'pl'|'en';
+  recipientIds?:string[];
+  sceneEntityIds?:string[];
 }
 
-function estimateTokens(value: string): number {
-  return Math.ceil(value.length / 4);
+/** The archive flag describes compression, never whether a fact remains true. */
+export function currentMemoryEntries(entries:MemoryLedgerEntry[]):MemoryLedgerEntry[] {
+  const latest = new Map<string,MemoryLedgerEntry>();
+  for (const entry of entries) if(entry.entityId) {
+    const key = JSON.stringify([entry.entityId,[...(entry.recipients??[])].sort()]);
+    const old = latest.get(key);
+    if (!old || old.sequence < entry.sequence) latest.set(key,entry);
+  }
+  const obsoleteMessages = new Set<string>();
+  for (const entry of entries) if(entry.entityId) {
+    const current = latest.get(JSON.stringify([entry.entityId,[...(entry.recipients??[])].sort()]));
+    if(current?.id !== entry.id) entry.sourceMessageIds.forEach(id=>obsoleteMessages.add(id));
+  }
+  return entries.filter(e=>e.entityId
+    ? latest.get(JSON.stringify([e.entityId,[...(e.recipients??[])].sort()]))?.id === e.id
+    : e.kind !== 'conversation' || !e.sourceMessageIds.some(id=>obsoleteMessages.has(id)));
 }
 
-export async function searchCampaignMemory(
-  scope: CampaignMemoryScope,
-  query: string,
-  ledger: CampaignMemoryLedgerStore = getCampaignMemoryLedgerStore()
-): Promise<CampaignMemoryRetrieval> {
-  const lexical = ledger.search(scope, query, 20);
-  let semantic: Array<{ id: string; text: string; score: number }> = [];
-  try {
-    const embedding = await embeddingService.generateEmbedding(query, 'RETRIEVAL_QUERY');
-    if (embedding) {
-      const hits = await localVectorStore.query(
-        LOCAL_RAG_NAMESPACES.campaign(scope.playthroughId),
-        embedding,
-        20
-      );
-      semantic = hits
-        .filter((hit): hit is typeof hit & { text: string } => Boolean(hit.text))
-        .map((hit) => ({ id: hit.id, text: hit.text, score: hit.score }));
-    }
-  } catch (error) {
-    console.warn('Campaign semantic retrieval unavailable; using ledger search:', error);
+export async function searchCampaignMemory(scope:CampaignMemoryScope,query:string,
+  ledger:CampaignMemoryLedgerStore=getCampaignMemoryLedgerStore(),options:MemoryRetrievalOptions={}):Promise<CampaignMemoryRetrieval> {
+  const en=options.locale==='en';
+  const audience=new Set(options.recipientIds??[]);
+  const entries = ledger.list(scope);
+  const forbiddenMessages = new Set(entries.filter(e => e.kind !== 'conversation' &&
+    e.recipients?.length && !e.recipients.some(id => audience.has(id))).flatMap(e => e.sourceMessageIds));
+  const allowed=currentMemoryEntries(entries).filter(e=>
+    (!e.recipients?.length || e.recipients.some(id=>audience.has(id))) &&
+    (e.kind !== 'conversation' || !e.sourceMessageIds.some(id => forbiddenMessages.has(id))));
+  const canonical=new Map(allowed.map(e=>[e.id,e]));
+  const lexical=ledger.search(scope,query,80).filter(e=>canonical.has(e.id));
+  const embedding=options.queryEmbedding!==undefined?options.queryEmbedding:
+    await embeddingService.generateEmbedding(query,'RETRIEVAL_QUERY').catch(()=>null);
+  let semantic:MemoryLedgerEntry[]=[];
+  if(embedding) {
+    try {
+      const hits=await localVectorStore.query(LOCAL_RAG_NAMESPACES.campaign(scope.playthroughId),embedding,40,
+        {embeddingSignature:embeddingSignature(),campaignDefinitionId:scope.campaignDefinitionId});
+      semantic=hits.flatMap(hit=>{const e=canonical.get(hit.id);return e?[e]:[];});
+    } catch { /* Lexical index remains authoritative. */ }
   }
-
-  const byId = new Map<string, CampaignMemorySearchResult & { rrf: number; sources: Array<'fts' | 'like' | 'semantic'> }>();
-  lexical.forEach((entry, index) => {
-    byId.set(entry.id, { ...entry, rrf: 1 / (RRF_K + index + 1), sources: [entry.source] });
-  });
-  semantic.forEach((entry, index) => {
-    const existing = byId.get(entry.id);
-    if (existing) {
-      existing.rrf += 1 / (RRF_K + index + 1);
-      existing.sources.push('semantic');
-    } else {
-      byId.set(entry.id, {
-        id: entry.id,
-        text: entry.text,
-        score: entry.score,
-        kind: 'conversation',
-        role: 'assistant',
-        sequence: 0,
-        tags: [],
-        source: lexical[0]?.source ?? 'fts',
-        rrf: 1 / (RRF_K + index + 1),
-        sources: ['semantic'],
-      });
-    }
-  });
-
-  const selected: CampaignMemoryRetrieval['results'] = [];
-  let tokens = 0;
-  for (const candidate of [...byId.values()].sort((a, b) => b.rrf - a.rrf)) {
-    const cost = estimateTokens(candidate.text) + 12;
-    if (selected.length >= MAX_RESULTS || tokens + cost > MAX_TOKENS) continue;
-    const { rrf: _rrf, ...result } = candidate;
-    selected.push(result);
-    tokens += cost;
+  const ranked=new Map<string,{entry:MemoryLedgerEntry;rrf:number;sources:Array<'fts'|'like'|'semantic'>}>();
+  function add(e:MemoryLedgerEntry,rank:number,source:'fts'|'like'|'semantic') {
+    const previous=ranked.get(e.id);
+    if(previous) {previous.rrf+=1/(61+rank);if(!previous.sources.includes(source))previous.sources.push(source);}
+    else ranked.set(e.id,{entry:e,rrf:1/(61+rank),sources:[source]});
   }
-
-  const source: CampaignMemoryRetrieval['source'] =
-    lexical.length > 0 && semantic.length > 0
-      ? 'hybrid'
-      : semantic.length > 0
-        ? 'semantic'
-        : lexical.length > 0
-          ? lexical[0].source
-          : 'none';
-  const promptSection = selected.length > 0
-    ? `\n## PAMIĘĆ KAMPANII — WYŁĄCZNIE UJAWNIONE FAKTY\n${selected.map((entry) => `- ${entry.text}`).join('\n')}`
-    : '';
-  return { results: selected, promptSection, source };
+  lexical.forEach((e,i)=>add(canonical.get(e.id)!,i,e.source));
+  semantic.forEach((e,i)=>add(e,i,'semantic'));
+  const entities=new Set(options.sceneEntityIds??[]);
+  for(const {entry} of [...ranked.values()].slice(0,8)) if(entry.entityId)entities.add(entry.entityId);
+  ledger.related(scope,[...entities],8).forEach((e,i)=>{if(canonical.has(e.id)&&!ranked.has(e.id))add(e,80+i,'fts');});
+  // Corrections are context constraints even when the query matches old wording.
+  allowed.filter(e=>e.status==='disproven'||e.status==='superseded').slice(-8)
+    .forEach((e,i)=>{if(!ranked.has(e.id))add(e,80+i,'fts');});
+  const scene=new Set(options.sceneEntityIds??[]);
+  const priority=(e:MemoryLedgerEntry)=>e.status==='superseded'||e.status==='disproven'?2:e.entityId&&scene.has(e.entityId)?1:0;
+  const ordered=[...ranked.values()].sort((a,b)=>priority(b.entry)-priority(a.entry)||b.rrf-a.rrf||b.entry.sequence-a.entry.sequence);
+  const results:CampaignMemoryRetrieval['results']=[];
+  const heading=en?'CAMPAIGN MEMORY: REVEALED EVIDENCE':'PAMIĘĆ KAMPANII: UJAWNIONE INFORMACJE';
+  let promptSection=`\n## ${heading}\n`;
+  for(const {entry:e,rrf,sources} of ordered) {
+    const statusLabels = { confirmed: 'potwierdzone', unconfirmed: 'niepotwierdzone', disproven: 'obalone', superseded: 'zastąpione' };
+    const label=e.role==='user'?(en?'player declaration, not confirmation':'deklaracja gracza, nie potwierdzenie'):
+      e.status ? (en ? e.status : statusLabels[e.status]) : (en?'past narration':'wcześniejsza narracja');
+    const line=`- [${label}; ${e.sourceMessageIds.join(', ')}] ${e.text}\n`;
+    if(results.length>=8||Math.ceil((promptSection.length+line.length)/4)>1200)continue;
+    results.push({...e,score:rrf,source:lexical.find(x=>x.id===e.id)?.source??'fts',sources});
+    promptSection+=line;
+  }
+  const hasSemantic=results.some(e=>e.sources.includes('semantic'));
+  const hasLexical=results.some(e=>e.sources.some(s=>s!=='semantic'));
+  return {results,promptSection:results.length?promptSection:'',source:!results.length?'none':hasSemantic&&hasLexical?'hybrid':hasSemantic?'semantic':lexical[0]?.source??'fts'};
 }

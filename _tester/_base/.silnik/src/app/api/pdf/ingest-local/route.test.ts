@@ -1,10 +1,18 @@
-import type { NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import { pdfIndexingService } from '@/lib/vector-db/pdf-indexing-service';
 import { POST } from './route';
 
 jest.mock('next/server', () => ({
+  NextRequest: class {
+    headers: Headers;
+    json = jest.fn();
+    formData = jest.fn();
+    constructor(_url: string, init: { headers: Record<string, string> }) {
+      this.headers = new Headers(init.headers);
+    }
+  },
   NextResponse: {
     json: (body: unknown, init?: { status?: number }) => ({
       status: init?.status ?? 200,
@@ -29,100 +37,20 @@ jest.mock('@/lib/vector-db/local-vector-store', () => ({
   },
 }));
 
-const mockedParser = jest.mocked(pdfParserService.parsePDFBuffer);
-const mockedIndexer = jest.mocked(pdfIndexingService.indexPdf);
-
-function pdfFile(size?: number): File {
-  const file = new File(['%PDF-1.7 test'], 'rules.pdf', {
-    type: 'application/pdf',
-  });
-  Object.defineProperty(file, 'arrayBuffer', {
-    value: async () => Buffer.from('%PDF-1.7 test'),
-  });
-  if (size !== undefined) Object.defineProperty(file, 'size', { value: size });
-  return file;
-}
-
-function request(file: File, apiKey: string | null = 'key', type = 'rules') {
-  return {
-    headers: { get: () => apiKey },
-    formData: async () => ({
-      get: (name: string) =>
-        name === 'file' ? file : name === 'type' ? type : null,
-    }),
-  } as unknown as NextRequest;
-}
-
-describe('POST /api/pdf/ingest-local', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    delete process.env.GEMINI_API_KEY;
-    mockedParser.mockResolvedValue({
-      text: 'x'.repeat(500),
-      pages: 1,
-      metadata: {},
-      size: 100,
+describe('POST /api/pdf/ingest-local document policy', () => {
+  beforeEach(() => jest.clearAllMocks());
+  it.each(['pl', 'en'])('blocks local and remote processing (%s)', async (locale) => {
+    const request = new NextRequest('http://localhost/api/synthetic', {
+      headers: { 'x-locale': locale },
     });
-    mockedIndexer.mockResolvedValue({
-      success: true,
-      indexed: 1,
-      failed: 0,
-      totalChunks: 1,
-      namespace: 'rules',
-      durationMs: 10,
-    });
-  });
-
-  it('działa pomyślnie w 100% lokalnie bez wymogu klucza Gemini', async () => {
-    const response = await POST(request(pdfFile(), null));
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      success: true,
-      indexed: 1,
-    });
-  });
-
-  it('odrzuca typ inny niż PDF', async () => {
-    const file = new File(['text'], 'notes.txt', { type: 'text/plain' });
-    expect((await POST(request(file))).status).toBe(400);
-  });
-
-  it('odrzuca plik powyżej 500 MB', async () => {
-    expect((await POST(request(pdfFile(500 * 1024 * 1024 + 1)))).status).toBe(
-      400
-    );
-  });
-
-  it('odrzuca PDF bez dostatecznej warstwy tekstowej', async () => {
-    mockedParser.mockResolvedValueOnce({
-      text: 'krótki',
-      pages: 1,
-      metadata: {},
-      size: 100,
-    });
-    expect((await POST(request(pdfFile()))).status).toBe(422);
-    expect(mockedIndexer).not.toHaveBeenCalled();
-  });
-
-  it('indeksuje zasady lokalnie z clearBefore', async () => {
-    const response = await POST(request(pdfFile()));
-
-    expect(response.status).toBe(200);
-    expect(embeddingService.initialize).toHaveBeenCalledWith('key');
-    expect(mockedIndexer).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'rules', clearBefore: true })
-    );
-    await expect(response.json()).resolves.toMatchObject({
-      success: true,
-      namespace: 'rules',
-    });
-  });
-
-  it('dodaje przygodę bez czyszczenia istniejącego namespace', async () => {
-    await POST(request(pdfFile(), 'key', 'adventure'));
-    expect(mockedIndexer).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'adventure', clearBefore: false })
-    );
+    const formData = jest.spyOn(request, 'formData');
+    const response = await POST(request);
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({ code: 'DOCUMENT_MODEL_USE_BLOCKED' });
+    expect(formData).not.toHaveBeenCalled();
+    expect(embeddingService.initialize).not.toHaveBeenCalled();
+    expect(pdfParserService.parsePDFBuffer).not.toHaveBeenCalled();
+    expect(pdfIndexingService.indexPdf).not.toHaveBeenCalled();
   });
 });
 

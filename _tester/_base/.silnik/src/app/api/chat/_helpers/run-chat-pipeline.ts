@@ -413,7 +413,7 @@ export async function runChatPipeline({
         const ragUserId = await resolveUserId('');
         const sessionId = scopeSessionId(
           ragUserId,
-          clientAISettings?.sessionId ?? memoryScope?.playthroughId
+          memoryScope?.playthroughId ?? clientAISettings?.sessionId
         );
         const effectiveAdventureId =
           explicitAdventureId ||
@@ -438,6 +438,8 @@ export async function runChatPipeline({
           locale,
           modelId,
           memoryScope,
+          recipientIds:character?.id ? [character.id] : [],
+          sceneEntityIds:(character?.investigatorDossier?.locations??[]).filter(l=>l.name===currentLocation).map(l=>l.id),
         });
         return {
           ragUserId,
@@ -607,13 +609,15 @@ export async function runChatPipeline({
 
   // IND-275 T1: limity okna kontekstowego z model-registry (getContextLimit).
   const contextLimit = getContextLimit(modelId);
-  const safeLimit = Math.floor(contextLimit * 0.8);
-
-  if (totalEstTokens > safeLimit) {
-    console.warn(
-      `⚠️ Pre-flight: ~${totalEstTokens} tokens exceeds 80% of ${contextLimit}. Trimming context.`
-    );
+  const safeLimit = Math.floor(contextLimit * 0.9) - aiSettings.geminiSettings.maxOutputTokens;
+  let fixedTokens = totalEstTokens + estimateTokens(message);
+  // Drop retrieved documents before sacrificing conversation or mechanics.
+  if (fixedTokens + contextMessages.reduce((n,m)=>n+estimateTokens(m.content)+8,0) > safeLimit && ragSection) {
+    for(let i=0;i<additionalContext.length;i++) additionalContext[i]=additionalContext[i].replace(ragSection,'');
+    fixedTokens=additionalContext.reduce((n,c)=>n+estimateTokens(c),0)+estimateTokens(systemPrompt)+fileAttachments.length*10000+estimateTokens(message);
   }
+  const { fitContext } = await import('@/core/memory/context-engine');
+  const boundedHistory = fitContext({messages:contextMessages,summarySection:null,compacted:false},safeLimit-fixedTokens).messages;
 
   // === STREAMING via Provider === - IND-183 micro 5/5
   const chatGeminiOptions = buildGeminiOptions({
@@ -625,7 +629,7 @@ export async function runChatPipeline({
 
   const streamArgs = {
     systemPrompt,
-    messages: contextMessages.map((msg: { role: string; content: string }) => ({
+    messages: boundedHistory.map((msg: { role: string; content: string }) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     })),

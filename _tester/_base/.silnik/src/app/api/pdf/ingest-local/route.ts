@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { pdfIndexingService } from '@/lib/vector-db/pdf-indexing-service';
 import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
@@ -34,6 +35,10 @@ function writableRagDirectory(): string {
 }
 
 export async function POST(request: NextRequest) {
+  if (isDocumentModelUseBlocked()) return NextResponse.json(
+    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+    { status: 403 }
+  );
   const start = Date.now();
   try {
     // Klucz Gemini (opcjonalny fallback): lokalny RAG używa wbudowanego modelu ONNX (BGE-M3).

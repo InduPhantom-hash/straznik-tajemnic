@@ -165,14 +165,9 @@ class LocalVectorStore {
    * Kolejkuje zadanie modyfikujące stan (zapis/usuwanie) w celu uniknięcia wyścigów I/O.
    */
   private async enqueueWrite(task: () => Promise<void> | void): Promise<void> {
-    const nextTask = this.writeQueue.then(async () => {
-      try {
-        await task();
-      } catch (e) {
-        console.error('❌ LocalVectorStore write error:', e);
-      }
-    });
-    this.writeQueue = nextTask;
+    const nextTask = this.writeQueue.then(task);
+    // Recover the queue for subsequent tasks, but return this operation's failure.
+    this.writeQueue = nextTask.catch(() => {});
     return nextTask;
   }
 
@@ -272,8 +267,8 @@ class LocalVectorStore {
         });
       }
       const merged = Array.from(byId.values());
-      this.setCache(namespace, merged);
       this.persist(namespace, merged);
+      this.setCache(namespace, merged);
     });
   }
 
@@ -364,6 +359,10 @@ class LocalVectorStore {
     }
 
     return heap.toSortedArray();
+  }
+
+  async getDocuments(namespace: string): Promise<Array<{id: string; text?: string; metadata: VectorMetadata}>> {
+    return this.load(namespace).map(({id,text,metadata})=>({id,text,metadata}));
   }
 
   /** Wyszukiwanie równoległe w wielu namespace, posortowane globalnie. */

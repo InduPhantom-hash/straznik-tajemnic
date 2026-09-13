@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { googleCloudStorageService } from '@/lib/google-cloud-storage-service-fixed';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import {
@@ -16,6 +17,10 @@ export const maxDuration = 300; // 5 minut timeout
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  if (isDocumentModelUseBlocked()) return NextResponse.json(
+    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+    { status: 403 }
+  );
   try {
     console.log('📥 Received request to /api/pdf/parse');
 

@@ -132,7 +132,7 @@ interface FullGameSaveModalProps {
   };
 
   // Callback po wczytaniu
-  onLoad?: (save: FullGameSave) => void;
+  onLoad?: (save: FullGameSave) => void | boolean | Promise<void | boolean>;
 
   // Callback po UDANYM zapisie (np. powrót do kreatora dla "Nowej przygody")
   onSaved?: () => void;
@@ -353,7 +353,7 @@ export function FullGameSaveModal({
       if (response.ok) {
         const data = await response.json();
         if (onLoad) {
-          onLoad(data.save);
+          if (await onLoad(data.save) === false) return;
         }
         onClose();
       } else {
@@ -428,7 +428,7 @@ export function FullGameSaveModal({
     try {
       const save = await FullGameSaveManager.importFromFile(file);
       if (save && onLoad) {
-        onLoad(save);
+        if (await onLoad(save) === false) return;
         onClose();
       } else {
         toast({

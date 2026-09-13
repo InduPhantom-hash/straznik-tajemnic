@@ -47,6 +47,8 @@ import { buildOrganizationPromptSection } from '@/lib/data/investigator-organiza
 import type { DocumentType } from '@/types/adventure';
 import type { ClueProvenance } from '@/lib/journal/dossier-types';
 import { inferClueProvenance } from '@/lib/parsers/journal-parser';
+import { isPublicCurrentClue } from '@/core/memory/revealed-facts';
+import { isDocumentModelUseBlocked } from '@/lib/document-model-policy';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -417,9 +419,9 @@ export function buildActiveInvestigationSection(
 
   // Znajdź listę badaczy (wszystkie postacie z drużyny lub główny badacz)
   const char = opts.character || opts.characters?.[0];
-  const targetChars = opts.characters && opts.characters.length > 0
-    ? opts.characters
-    : (char ? [char] : []);
+  const targetChars = opts.character ? [opts.character] : opts.characters ?? [];
+  const excluded = new Set((opts.characters ?? targetChars).flatMap(c =>
+    (c.investigatorDossier?.clues ?? []).filter(clue=>!isPublicCurrentClue(clue)).map(clue=>clue.title.trim().toLowerCase())));
 
   // 1. ZBIERZ POSZLAKI (Context Stuffing: pełna lista aktywnych faktów śledczych z dossier)
   const clues: { title: string; fact: string; provenance?: ClueProvenance }[] = [];
@@ -430,7 +432,7 @@ export function buildActiveInvestigationSection(
     if (cChar?.investigatorDossier?.clues && cChar.investigatorDossier.clues.length > 0) {
       // Sortuj: kluczowe poszlaki najpierw, potem najnowsze
       const sorted = [...cChar.investigatorDossier.clues]
-        .filter((c) => c.status !== 'superseded' && c.status !== 'disproven')
+        .filter(isPublicCurrentClue)
         .sort((a, b) => {
           if (a.isKeyClue && !b.isKeyClue) return -1;
           if (!a.isKeyClue && b.isKeyClue) return 1;
@@ -442,7 +444,7 @@ export function buildActiveInvestigationSection(
         if (!seenClueKeys.has(key)) {
           seenClueKeys.add(key);
           const fact = (c.description || c.investigatorInsight || '').trim();
-          clues.push({ title: c.title.trim(), fact, provenance: c.provenance });
+          clues.push({ title: `${c.status === 'unconfirmed' ? (isEn ? '[unconfirmed] ' : '[niepotwierdzona] ') : ''}${c.title.trim()}`, fact, provenance: c.provenance });
         }
       }
     }
@@ -458,7 +460,7 @@ export function buildActiveInvestigationSection(
 
         for (const j of journalClues) {
           const key = j.title.toLowerCase().trim();
-          if (!seenClueKeys.has(key)) {
+          if (!seenClueKeys.has(key) && !excluded.has(key)) {
             seenClueKeys.add(key);
             const prov = j.provenance || inferClueProvenance(j.title, j.content);
             clues.push({ title: j.title.trim(), fact: j.content.trim(), provenance: prov });
@@ -474,7 +476,7 @@ export function buildActiveInvestigationSection(
   if (clues.length < 5 && directorState) {
     if (directorState.clueFacts && directorState.clueFacts.length > 0) {
       for (const cf of directorState.clueFacts) {
-        if (cf.status === 'superseded' || cf.status === 'refuted') continue;
+        if (cf.status === 'superseded' || cf.status === 'refuted' || excluded.has(cf.title.trim().toLowerCase())) continue;
         const key = cf.title.toLowerCase().trim();
         if (!seenClueKeys.has(key)) {
           seenClueKeys.add(key);
@@ -486,7 +488,7 @@ export function buildActiveInvestigationSection(
     } else if (directorState.discoveredClues && directorState.discoveredClues.length > 0) {
       for (const title of directorState.discoveredClues.slice(-5)) {
         const key = title.toLowerCase().trim();
-        if (!seenClueKeys.has(key)) {
+        if (!seenClueKeys.has(key) && !excluded.has(key)) {
           seenClueKeys.add(key);
           const prov = inferClueProvenance(title, '');
           clues.push({ title, fact: '', provenance: prov });
@@ -520,7 +522,7 @@ export function buildActiveInvestigationSection(
     for (const cChar of targetChars) {
       if (cChar?.investigatorDossier?.clues) {
         for (const c of cChar.investigatorDossier.clues) {
-          if (c.investigatorInsight && !seenHypo.has(c.investigatorInsight.toLowerCase())) {
+          if (isPublicCurrentClue(c) && c.investigatorInsight && !seenHypo.has(c.investigatorInsight.toLowerCase())) {
             seenHypo.add(c.investigatorInsight.toLowerCase());
             hypotheses.push(c.investigatorInsight.trim());
             if (hypotheses.length >= 2) break;
@@ -548,7 +550,7 @@ export function buildActiveInvestigationSection(
     activeLead = directorState.narrativeGoal.trim();
   } else if (char?.investigatorDossier?.clues) {
     const unconfirmedKey = char.investigatorDossier.clues.find(
-      (c) => c.status === 'unconfirmed' || c.isKeyClue
+      (c) => isPublicCurrentClue(c) && (c.status === 'unconfirmed' || c.isKeyClue)
     );
     if (unconfirmedKey) {
       activeLead = unconfirmedKey.title;
@@ -570,8 +572,8 @@ export function buildActiveInvestigationSection(
   // Formatowanie poszlak (Context Stuffing: pełne fakty z etykietą proweniencji bez obcinania do 100 znaków)
   if (clues.length > 0) {
     const cluesHeader = isEn
-      ? '**Key confirmed clues:**'
-      : '**Kluczowe potwierdzone poszlaki:**';
+      ? '**Revealed clues (status matters):**'
+      : '**Ujawnione poszlaki (uwzględnij status):**';
     lines.push(cluesHeader);
     for (const c of clues) {
       let provLabel = '';
@@ -719,6 +721,11 @@ export interface BuildAdditionalContextOpts {
 export function buildAdditionalContext(
   opts: BuildAdditionalContextOpts
 ): string[] {
+  // These legacy channels may hold extracted document text from old saves.
+  // Do not mutate the save or treat a renamed document as campaign-event memory.
+  if (isDocumentModelUseBlocked()) {
+    opts = { ...opts, gameContextPrompt: undefined, truthAnchor: undefined, handoutsSection: undefined };
+  }
   const {
     timePromptSection,
     gmProtocol,
