@@ -28,3 +28,8 @@ export {
   categorizeItem,
   estimateWeight,
 } from './item-helpers';
+export {
+  determineInitialBelief,
+  initializeCharacterFinances,
+  buildCharacterWithDefaults,
+} from './character-builder';
