@@ -583,7 +583,6 @@ describe('SessionJournal', () => {
     // Odznaka proweniencji Handout jest widoczna (koperta -> handout)
     expect(screen.getAllByText(/Handout/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/PROWENIENCJA:/i)).toBeInTheDocument();
-
     // Zmiana proweniencji na Usłyszane (testimony)
     const testimonyBtn = screen.getByRole('button', { name: /Usłyszane/i });
     fireEvent.click(testimonyBtn);
@@ -599,6 +598,99 @@ describe('SessionJournal', () => {
       })
     );
   });
+
+  it('włącza fizyczne przedmioty i dokumenty z ekwipunku postaci do widoku Akt Śledczych', () => {
+    const charWithEquipment: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      equipment: [
+        {
+          id: 'eq-letter-1',
+          name: 'List od Wilcoxa',
+          category: 'document',
+          readableContent: 'Drogi profesorze, rzeźba w glinie nie jest ludzkim dziełem.',
+          condition: 'used',
+        },
+      ],
+      investigatorDossier: {
+        clues: [],
+        npcs: [],
+        locations: [],
+        notes: [],
+      },
+    };
+
+    render(
+      <SessionJournal
+        character={charWithEquipment}
+        onUpdateCharacter={jest.fn()}
+        onClose={jest.fn()}
+      />
+    );
+
+    // Przejdź do Przedmiotów
+    fireEvent.click(screen.getByRole('button', { name: /Przedmioty/i }));
+
+    expect(screen.getAllByText('List od Wilcoxa')[0]).toBeInTheDocument();
+    expect(screen.getByText(/Potrójny Byt Handoutu/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tier 1: One-Glance/i)).toBeInTheDocument();
+  });
+
+  it('zapisuje wniosek badacza (Tier 3 insight) dla przedmiotu z ekwipunku, tworząc wpis w dossier.clues', () => {
+    const handleUpdateCharacter = jest.fn();
+    const charWithEquipment: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      equipment: [
+        {
+          id: 'eq-journal-corbitt',
+          name: 'Dziennik Corbitta',
+          category: 'document',
+          readableContent: 'Zapiski o rytuałach...',
+          condition: 'used',
+        },
+      ],
+      investigatorDossier: {
+        clues: [],
+        npcs: [],
+        locations: [],
+        notes: [],
+      },
+    };
+
+    render(
+      <SessionJournal
+        character={charWithEquipment}
+        onUpdateCharacter={handleUpdateCharacter}
+        onClose={jest.fn()}
+      />
+    );
+
+    // Przejdź do Przedmiotów
+    fireEvent.click(screen.getByRole('button', { name: /Przedmioty/i }));
+    expect(screen.getAllByText('Dziennik Corbitta')[0]).toBeInTheDocument();
+
+    // Kliknij dodanie wniosku
+    const addInsightBtn = screen.getByRole('button', { name: /Dodaj wniosek badacza/i });
+    fireEvent.click(addInsightBtn);
+
+    // Wpisz wniosek badacza
+    const textarea = screen.getByPlaceholderText(/Wpisz dedukcję/i);
+    fireEvent.change(textarea, { target: { value: 'Sekretna komnata znajduje się za piwniczną ścianą.' } });
+
+    // Kliknij zapisz
+    const saveBtn = screen.getByRole('button', { name: /Zapisz/i });
+    fireEvent.click(saveBtn);
+
+    expect(handleUpdateCharacter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        investigatorDossier: expect.objectContaining({
+          clues: expect.arrayContaining([
+            expect.objectContaining({
+              title: 'Dziennik Corbitta',
+              investigatorInsight: 'Sekretna komnata znajduje się za piwniczną ścianą.',
+            }),
+          ]),
+        }),
+      })
+    );
+  });
 });
-
-

@@ -29,7 +29,7 @@ import {
   migrateLegacyJournalToDossier,
 } from '@/lib/journal/dossier-migration';
 import type { InvestigatorDossier, ClueProvenance } from '@/lib/journal/dossier-types';
-import { inferClueProvenance } from '@/lib/parsers/journal-parser';
+import { inferClueProvenance, synthesizeClueFact } from '@/lib/parsers/journal-parser';
 import type { DiscoveryEntry } from './journal/discoveries-view';
 
 // Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
@@ -238,10 +238,19 @@ export function SessionJournal({
         seenIds.add(c.id);
         const normTitle = (c.title || '').toLowerCase().trim();
         if (normTitle) seenTitles.add(normTitle);
+
+        const matchingJournal = entries.find(
+          (e) => e.id === c.sourceJournalEntryId || (e.title && e.title.toLowerCase().trim() === normTitle)
+        );
+        const fullContent =
+          matchingJournal && matchingJournal.content && matchingJournal.content.length > (c.description?.length || 0)
+            ? matchingJournal.content
+            : c.description;
+
         list.push({
           id: c.id,
           title: c.title,
-          content: c.description,
+          content: fullContent,
           type: 'clue',
           tags: c.tags,
           imageUrl: c.imageUrl,
@@ -358,27 +367,92 @@ export function SessionJournal({
       }
     });
 
+    // Potrójny Byt Handoutów: włączenie fizycznych przedmiotów i dokumentów z ekwipunku postaci
+    if (Array.isArray(character.equipment)) {
+      character.equipment.forEach((eqItem) => {
+        const normTitle = (eqItem.name || '').toLowerCase().trim();
+        if (seenIds.has(eqItem.id) || (normTitle && seenTitles.has(normTitle))) {
+          // Jeśli wpis już istnieje, dopełnij ewentualny brak grafiki, proweniencji lub pełnej treści
+          const existing = list.find(
+            (item) => item.id === eqItem.id || (item.title || '').toLowerCase().trim() === normTitle
+          );
+          if (existing) {
+            if (!existing.imageUrl && eqItem.imageUrl) existing.imageUrl = eqItem.imageUrl;
+            if (eqItem.category === 'document' || eqItem.isReadable || eqItem.readableContent) {
+              existing.clueCategory = 'document';
+              if (!existing.provenance) existing.provenance = 'handout';
+            }
+            const fullContent = eqItem.readableContent || eqItem.description;
+            if (fullContent && fullContent.length > (existing.content?.length || 0)) {
+              existing.content = fullContent;
+            }
+          }
+          return;
+        }
+
+        seenIds.add(eqItem.id);
+        if (normTitle) seenTitles.add(normTitle);
+
+        const isDoc = eqItem.category === 'document' || eqItem.isReadable === true || !!eqItem.readableContent;
+        const fact = synthesizeClueFact(eqItem.name, eqItem.readableContent || eqItem.description || '');
+
+        list.push({
+          id: eqItem.id,
+          title: eqItem.name,
+          content: eqItem.readableContent || eqItem.description || fact,
+          type: isDoc ? 'document' : 'item',
+          tags: eqItem.category ? [eqItem.category] : ['item'],
+          imageUrl: eqItem.imageUrl,
+          clueCategory: isDoc ? 'document' : undefined,
+          provenance: isDoc ? 'handout' : undefined,
+          clueStatus: 'confirmed',
+          questStatus: 'completed',
+        });
+      });
+    }
+
     return list;
-  }, [dossier, entries]);
+  }, [dossier, entries, character.equipment]);
 
   const handleEditDiscoveryEntry = useCallback(
     (updated: DiscoveryEntry) => {
       const currentDossier = ensureCharacterDossier(character).investigatorDossier;
-      const updatedClues = currentDossier.clues.map((c) =>
-        c.id === updated.id
-          ? {
-              ...c,
-              title: updated.title,
-              description: updated.content,
-              investigatorInsight: updated.investigatorInsight,
-              status: updated.clueStatus || c.status,
-              category: updated.clueCategory || c.category,
-              provenance: 'provenance' in updated ? updated.provenance : c.provenance,
-              miceType: 'miceType' in updated ? updated.miceType : c.miceType,
-              miceObjective: updated.miceObjective !== undefined ? updated.miceObjective : c.miceObjective,
-            }
-          : c
-      );
+      const normUpdatedTitle = (updated.title || '').toLowerCase().trim();
+      let clueFound = false;
+      const updatedClues = currentDossier.clues.map((c) => {
+        if (c.id === updated.id || (normUpdatedTitle && c.title.toLowerCase().trim() === normUpdatedTitle)) {
+          clueFound = true;
+          return {
+            ...c,
+            title: updated.title,
+            description: updated.content,
+            investigatorInsight: updated.investigatorInsight,
+            status: updated.clueStatus || c.status,
+            category: updated.clueCategory || c.category,
+            provenance: 'provenance' in updated ? updated.provenance : c.provenance,
+            miceType: 'miceType' in updated ? updated.miceType : c.miceType,
+            miceObjective: updated.miceObjective !== undefined ? updated.miceObjective : c.miceObjective,
+          };
+        }
+        return c;
+      });
+
+      if (!clueFound && updated.investigatorInsight) {
+        // Nowy wpis w dossier dla przedmiotu/handoutu z wnioskiem badacza
+        updatedClues.push({
+          id: `clue-${Date.now()}-${updated.id}`,
+          title: updated.title,
+          description: updated.content,
+          category: updated.clueCategory || 'document',
+          status: updated.clueStatus || 'confirmed',
+          discoveryStatus: 'discovered',
+          epistemicLayer: 'player_clue',
+          provenance: updated.provenance || 'handout',
+          investigatorInsight: updated.investigatorInsight,
+          timestamp: Date.now(),
+        });
+      }
+
       const updatedNpcs = currentDossier.npcs.map((n) =>
         n.id === updated.id
           ? {
@@ -410,6 +484,19 @@ export function SessionJournal({
         lastUpdated: new Date().toISOString(),
       };
 
+      const updatedEquipment = Array.isArray(character.equipment)
+        ? character.equipment.map((eq) => {
+            if (eq.id === updated.id || (normUpdatedTitle && (eq.name || '').toLowerCase().trim() === normUpdatedTitle)) {
+              return {
+                ...eq,
+                description: updated.content || eq.description,
+                readableContent: eq.isReadable ? (updated.content || eq.readableContent) : eq.readableContent,
+              };
+            }
+            return eq;
+          })
+        : character.equipment;
+
       const hasJournalEntry = entries.some((e) => e.id === updated.id);
       if (hasJournalEntry) {
         const updatedJournalEntries = entries.map((e) =>
@@ -431,11 +518,13 @@ export function SessionJournal({
         onUpdateCharacter({
           ...character,
           journal: updatedJournalEntries as unknown as JournalEntry[],
+          equipment: updatedEquipment,
           investigatorDossier: newDossier,
         });
       } else {
         onUpdateCharacter({
           ...character,
+          equipment: updatedEquipment,
           investigatorDossier: newDossier,
         });
       }

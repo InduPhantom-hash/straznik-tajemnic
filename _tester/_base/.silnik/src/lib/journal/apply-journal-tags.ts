@@ -1,12 +1,14 @@
-import type { Character, JournalEntry } from '@/lib/types';
+import type { Character, JournalEntry, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import type { JournalTagEntry } from '@/lib/parsers/types';
 import {
   extractJournalTags,
   extractNpcTags,
+  extractItemTags,
   synthesizeClueFact,
   parseClueProvenance,
   inferClueProvenance,
   ExtractedNpcTag,
+  ExtractedItemTag,
 } from '@/lib/parsers/journal-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import { resolveCharacterByName } from '@/lib/character/match-by-name';
@@ -14,6 +16,8 @@ import {
   ensureCharacterDossier,
   inferClueCategory,
 } from '@/lib/journal/dossier-migration';
+import { createEquipmentItem } from '@/lib/equipment-data';
+import { safeResolveVisualEra } from '@/lib/equipment-catalog';
 import type {
   InvestigatorDossier,
   NpcDossierEntry,
@@ -21,6 +25,24 @@ import type {
   ClueProvenance,
   LocationDossierEntry,
 } from '@/lib/journal/dossier-types';
+
+/**
+ * Normalizuje kategorię przedmiotu z języka polskiego lub angielskiego do EquipmentCategory.
+ */
+export function normalizeEquipmentCategory(rawCategory?: string, isHandout?: boolean): EquipmentCategory {
+  if (!rawCategory && isHandout) return 'document';
+  if (!rawCategory) return 'personal';
+  const c = rawCategory.toLowerCase().trim();
+  if (['dokument', 'document', 'list', 'letter', 'pismo', 'bilet', 'ticket', 'newspaper', 'gazeta'].includes(c)) return 'document';
+  if (['bron', 'broń', 'weapon', 'pistolet', 'gun', 'knife', 'nóż', 'noz'].includes(c)) return 'weapon';
+  if (['narzedzie', 'narzędzie', 'tool', 'narzedzia', 'narzędzia'].includes(c)) return 'tool';
+  if (['artefakt', 'artifact', 'amulet', 'relic'].includes(c)) return 'artifact';
+  if (['ochrona', 'pancerz', 'armor'].includes(c)) return 'armor';
+  if (['medycyna', 'medyczny', 'medical', 'apteczka', 'first_aid'].includes(c)) return 'medical';
+  if (['okultyzm', 'okultystyczny', 'occult'].includes(c)) return 'occult';
+  if (['personal', 'osobisty', 'osobiste'].includes(c)) return 'personal';
+  return isHandout ? 'document' : 'personal';
+}
 
 /**
  * Most między parserem tagów MG a dziennikiem postaci i aktami śledczymi (Investigator Dossier).
@@ -95,7 +117,8 @@ export function processCharacterJournalAndDossier(
   tags: JournalTagEntry[],
   npcTags: ExtractedNpcTag[],
   locationEntry: JournalEntry | null,
-  messageId: string
+  messageId: string,
+  itemTags: ExtractedItemTag[] = []
 ): { character: Character; changed: boolean } {
   const charWithDossier = ensureCharacterDossier(character);
   const dossier: InvestigatorDossier = {
@@ -108,6 +131,7 @@ export function processCharacterJournalAndDossier(
 
   const existingJournal = [...(charWithDossier.journal ?? [])];
   const existingJournalIds = new Set(existingJournal.map((e) => e.id));
+  const existingEquipment: EquipmentItem[] = [...(charWithDossier.equipment ?? [])];
   let changed = false;
 
   // 1. Obsługa NPC (zarówno z [NPC: Imię: opis], jak i [DZIENNIK:npc:Imię])
@@ -203,10 +227,123 @@ export function processCharacterJournalAndDossier(
     }
   }
 
+  // 1.5. Obsługa przedmiotów i handoutów (Zero-Effort Ledger & Potrójny Byt Handoutów)
+  const combinedItems = [...itemTags];
+  for (const t of tags) {
+    if (t.type === 'item' && t.title && t.content) {
+      if (!combinedItems.some((i) => i.name.toLowerCase().trim() === t.title.toLowerCase().trim())) {
+        combinedItems.push({
+          name: t.title.trim(),
+          description: t.content.trim(),
+          who: t.who,
+        });
+      }
+    }
+  }
+
+  for (const item of combinedItems) {
+    const normName = item.name.trim();
+    if (!normName) continue;
+    const lowerName = normName.toLowerCase();
+    const jId = `journal-${messageId}-item-${lowerName.replace(/[^a-z0-9]/g, '-')}`;
+
+    if (!existingJournalIds.has(jId)) {
+      existingJournal.push({
+        id: jId,
+        timestamp: new Date(),
+        type: 'item',
+        title: normName,
+        content: item.description,
+        tags: item.category ? [item.category] : [],
+        isBookmarked: false,
+      });
+      existingJournalIds.add(jId);
+      changed = true;
+    }
+
+    // Jeśli przedmiot jest dokumentem, listem, wycinkiem, gazetą, zdjęciem, taśmą lub księgą (Handout)
+    // automatycznie generujemy potrójny byt: fizyczny rekwizyt w ekwipunku + czytnik + fakt w dossier!
+    const isHandout =
+      item.category === 'document' ||
+      item.category === 'dokument' ||
+      /dokument|list|wycinek|gazet|artykuł|pismo|fotografi|zdjęci|taśm|nagrani|książk|księg|pamiętnik|dziennik|notatk|raport|telegram|akt|akta|świadectwo|certyfikat|bilet|przepustk|document|letter|clipping|newspaper|article|photo|tape|recording|book|tome|diary|journal|notes|report|telegram|file|certificate|pass/i.test(
+        `${normName} ${item.description} ${item.category || ''}`
+      );
+
+    // 2. Fizyczny rekwizyt w ekwipunku postaci (Karta Postaci / Torba / Kieszeń - Zero-Effort Ledger)
+    const existingEqIndex = existingEquipment.findIndex(
+      (eq) => (eq.name || '').toLowerCase().trim() === lowerName
+    );
+
+    const normCategory = normalizeEquipmentCategory(item.category, isHandout);
+
+    if (existingEqIndex === -1) {
+      const era = safeResolveVisualEra(character.era || '1920s');
+      const baseEq = createEquipmentItem(
+        {
+          name: normName,
+          category: normCategory,
+          description: item.description,
+        },
+        'found',
+        era
+      );
+      const newEqItem: EquipmentItem = {
+        ...baseEq,
+        category: isHandout ? 'document' : baseEq.category,
+        condition: item.condition || baseEq.condition || 'used',
+        isReadable: isHandout ? true : baseEq.isReadable,
+        readableContent: isHandout ? item.description : baseEq.readableContent,
+        readableContentStatus: isHandout ? 'ready' : baseEq.readableContentStatus,
+      };
+      existingEquipment.push(newEqItem);
+      changed = true;
+    } else if (isHandout) {
+      const existingEq = existingEquipment[existingEqIndex];
+      if (!existingEq.readableContent && item.description) {
+        existingEquipment[existingEqIndex] = {
+          ...existingEq,
+          isReadable: true,
+          readableContent: item.description,
+          readableContentStatus: 'ready',
+        };
+        changed = true;
+      }
+    }
+
+    // 3. Syntetyczny 1-zdaniowy fakt śledczy w Dossier (Dossier Clue)
+
+    if (isHandout) {
+      const existingClue = dossier.clues.find(
+        (c) => c.title.toLowerCase().trim() === lowerName
+      );
+      const fact = synthesizeClueFact(normName, item.description);
+      if (!existingClue) {
+        dossier.clues.push({
+          id: `clue-${messageId}-handout-${lowerName.replace(/[^a-z0-9]/g, '-')}`,
+          title: normName,
+          description: fact,
+          category: 'document',
+          status: 'confirmed',
+          discoveryStatus: 'discovered',
+          epistemicLayer: 'player_clue',
+          provenance: 'handout',
+          timestamp: Date.now(),
+          sourceJournalEntryId: jId,
+        });
+        changed = true;
+      } else if (!existingClue.provenance) {
+        existingClue.provenance = 'handout';
+        existingClue.timestamp = Date.now();
+        changed = true;
+      }
+    }
+  }
+
   // 2. Obsługa pozostałych tagów dziennika (w tym poszlak z syntezą 1-zdaniową i wektorem M.I.C.E.)
   tags.forEach((tag, index) => {
-    // Tagi typu 'npc' zostały już obsłużone powyżej
-    if (tag.type === 'npc') return;
+    // Tagi typu 'npc' oraz 'item' zostały już obsłużone powyżej
+    if (tag.type === 'npc' || tag.type === 'item') return;
 
     const isClue = tag.type === 'clue' || tag.type === 'discovery';
     let rawContent = tag.content;
@@ -348,9 +485,56 @@ export function processCharacterJournalAndDossier(
           changed = true;
         }
       }
+
+      // Potrójny Byt Handoutów: jeśli poszlaka jest dokumentem/handoutem, dołącz rekwizyt fizyczny do ekwipunku postaci
+      const isClueHandout =
+        resolvedProvenance === 'handout' ||
+        resolvedCategory === 'document' ||
+        /dokument|list|wycinek|gazet|artykuł|pismo|fotografi|zdjęci|taśm|nagrani|książk|księg|pamiętnik|dziennik|notatk|raport|telegram|akt|akta|świadectwo|certyfikat|bilet|przepustk|document|letter|clipping|newspaper|article|photo|tape|recording|book|tome|diary|journal|notes|report|telegram|file|certificate|pass/i.test(
+          `${cleanClueTitle} ${rawContent}`
+        );
+
+      if (isClueHandout) {
+        const lowerClueName = cleanClueTitle.toLowerCase().trim();
+        const existingEqIndex = existingEquipment.findIndex(
+          (eq) => (eq.name || '').toLowerCase().trim() === lowerClueName
+        );
+        if (existingEqIndex === -1) {
+          const era = safeResolveVisualEra(character.era || '1920s');
+          const baseEq = createEquipmentItem(
+            {
+              name: cleanClueTitle,
+              category: 'document',
+              description: rawContent,
+            },
+            'found',
+            era
+          );
+          const newEqItem: EquipmentItem = {
+            ...baseEq,
+            category: 'document',
+            isReadable: true,
+            readableContent: rawContent,
+            readableContentStatus: 'ready',
+          };
+          existingEquipment.push(newEqItem);
+          changed = true;
+        } else {
+          const existingEq = existingEquipment[existingEqIndex];
+          if (!existingEq.readableContent && rawContent) {
+            existingEquipment[existingEqIndex] = {
+              ...existingEq,
+              isReadable: true,
+              readableContent: rawContent,
+              readableContentStatus: 'ready',
+            };
+            changed = true;
+          }
+        }
+      }
     }
 
-    // Dopisz wpis do kroniki
+    // Dopisz wpis do kroniki (z zachowaniem pełnej treści narracyjnej w content)
     const jId = `journal-${messageId}-${index}`;
     const mappedType = ['sprawa', 'case', 'cel'].includes(tag.type)
       ? 'case'
@@ -441,6 +625,7 @@ export function processCharacterJournalAndDossier(
     character: {
       ...charWithDossier,
       journal: existingJournal,
+      equipment: existingEquipment,
       investigatorDossier: dossier,
     },
     changed: true,
@@ -448,7 +633,7 @@ export function processCharacterJournalAndDossier(
 }
 
 /**
- * Ekstrahuje tagi [DZIENNIK:], [NPC:] oraz [LOKACJA:] z tekstu odpowiedzi MG,
+ * Ekstrahuje tagi [DZIENNIK:], [NPC:], [PRZEDMIOT:] oraz [LOKACJA:] z tekstu odpowiedzi MG,
  * aktualizuje dossier i dopisuje brakujące wpisy do `character.journal`.
  */
 export function appendJournalFromText(
@@ -458,9 +643,10 @@ export function appendJournalFromText(
 ): Character {
   const tags = extractJournalTags(rawText);
   const npcTags = extractNpcTags(rawText);
+  const itemTags = extractItemTags(rawText);
   const locationEntry = buildLocationEntryFromText(rawText, messageId);
 
-  if (tags.length === 0 && npcTags.length === 0 && !locationEntry) {
+  if (tags.length === 0 && npcTags.length === 0 && itemTags.length === 0 && !locationEntry) {
     return character;
   }
 
@@ -469,7 +655,8 @@ export function appendJournalFromText(
     tags,
     npcTags,
     locationEntry,
-    messageId
+    messageId,
+    itemTags
   );
 
   return result.character;
@@ -487,15 +674,17 @@ export function appendJournalToParty(
 ): { characters: Character[]; activeCharacter: Character; changed: boolean } {
   const tags = extractJournalTags(rawText);
   const npcTags = extractNpcTags(rawText);
+  const itemTags = extractItemTags(rawText);
   const locationEntry = buildLocationEntryFromText(rawText, messageId);
 
-  if (tags.length === 0 && npcTags.length === 0 && !locationEntry) {
+  if (tags.length === 0 && npcTags.length === 0 && itemTags.length === 0 && !locationEntry) {
     return { characters, activeCharacter, changed: false };
   }
 
   // Mapuj tagi na postacie
   const tagsByChar = new Map<string, JournalTagEntry[]>();
   const npcTagsByChar = new Map<string, ExtractedNpcTag[]>();
+  const itemTagsByChar = new Map<string, ExtractedItemTag[]>();
 
   tags.forEach((tag) => {
     const target = resolveCharacterByName(characters, tag.who, activeCharacter);
@@ -511,17 +700,25 @@ export function appendJournalToParty(
     npcTagsByChar.set(target.id, list);
   });
 
+  itemTags.forEach((item) => {
+    const target = resolveCharacterByName(characters, item.who, activeCharacter);
+    const list = itemTagsByChar.get(target.id) ?? [];
+    list.push(item);
+    itemTagsByChar.set(target.id, list);
+  });
+
   let changedAny = false;
   const apply = (c: Character): Character => {
     const cTags = tagsByChar.get(c.id) ?? [];
     const cNpcs = npcTagsByChar.get(c.id) ?? [];
+    const cItems = itemTagsByChar.get(c.id) ?? [];
     const cLoc = c.id === activeCharacter.id ? locationEntry : null;
 
-    if (cTags.length === 0 && cNpcs.length === 0 && !cLoc) {
+    if (cTags.length === 0 && cNpcs.length === 0 && cItems.length === 0 && !cLoc) {
       return c;
     }
 
-    const res = processCharacterJournalAndDossier(c, cTags, cNpcs, cLoc, messageId);
+    const res = processCharacterJournalAndDossier(c, cTags, cNpcs, cLoc, messageId, cItems);
     if (res.changed) changedAny = true;
     return res.character;
   };

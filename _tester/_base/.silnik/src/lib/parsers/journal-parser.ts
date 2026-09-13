@@ -283,3 +283,93 @@ export function extractNpcTags(text: string): ExtractedNpcTag[] {
 
   return npcs;
 }
+
+export interface ExtractedItemTag {
+  name: string;
+  description: string;
+  category?: string;
+  condition?: 'new' | 'used' | 'damaged' | 'broken';
+  who?: string;
+}
+
+function parseItemCondition(str?: string): 'new' | 'used' | 'damaged' | 'broken' | undefined {
+  if (!str) return undefined;
+  const s = str.toLowerCase().trim();
+  if (['new', 'nowy', 'idealny'].includes(s)) return 'new';
+  if (['used', 'używany', 'noszony'].includes(s)) return 'used';
+  if (['damaged', 'uszkodzony', 'zniszczony', 'nadpalony', 'poplamiony'].includes(s)) return 'damaged';
+  if (['broken', 'zepsuty', 'połamany', 'rozbity'].includes(s)) return 'broken';
+  return undefined;
+}
+
+/**
+ * Ekstrahuje tagi przedmiotów z surowego tekstu odpowiedzi MG:
+ * - [PRZEDMIOT: Nazwa: Opis] lub [PRZEDMIOT: Nazwa | kategoria | stan | opis]
+ * - [ITEM: Name: Description] lub [ITEM: Name | category | condition | description]
+ * - [DZIENNIK:przedmiot:Nazwa]Opis[/DZIENNIK]
+ */
+export function extractItemTags(text: string): ExtractedItemTag[] {
+  const items: ExtractedItemTag[] = [];
+  const seen = new Set<string>();
+
+  // 1. [PRZEDMIOT: ...] i [ITEM: ...]
+  const standaloneItemPattern =
+    /\[(?:PRZEDMIOT|ITEM):(?:@([^:\]\n]+?):)?\s*([^:\]\n|]+)(?:[:|]\s*([^\]]+))?\]/gi;
+  let match;
+  while ((match = standaloneItemPattern.exec(text)) !== null) {
+    const who = match[1]?.trim();
+    const name = match[2].trim();
+    const rawRest = match[3]?.trim() || '';
+    const key = name.toLowerCase();
+    if (name && !seen.has(key)) {
+      seen.add(key);
+      let category: string | undefined;
+      let condition: 'new' | 'used' | 'damaged' | 'broken' | undefined;
+      let description = rawRest;
+      if (rawRest.includes('|')) {
+        const parts = rawRest.split('|').map((p) => p.trim());
+        category = parts[0];
+        if (parts.length >= 3) {
+          condition = parseItemCondition(parts[1]);
+          description = condition ? parts.slice(2).join(' - ') : parts.slice(1).join(' - ');
+        } else {
+          condition = parseItemCondition(parts[1]);
+          description = condition ? parts[0] : (parts.slice(1).join(' - ') || parts[0]);
+        }
+      }
+      items.push({ name, description, category, condition, who });
+    }
+  }
+
+  // 2. [DZIENNIK:przedmiot:Nazwa]Opis[/DZIENNIK]
+  const journalTags = extractJournalTags(text);
+  for (const tag of journalTags) {
+    if (tag.type === 'item' && tag.title && tag.content) {
+      let name = tag.title.trim();
+      let category: string | undefined;
+      let condition: 'new' | 'used' | 'damaged' | 'broken' | undefined;
+      if (name.includes('|')) {
+        const parts = name.split('|').map((p) => p.trim());
+        name = parts[0];
+        category = parts[1];
+        if (parts.length >= 3) {
+          condition = parseItemCondition(parts[2]);
+        }
+      }
+      const key = name.toLowerCase().trim();
+      if (name && !seen.has(key)) {
+        seen.add(key);
+        items.push({
+          name,
+          description: tag.content.trim(),
+          category,
+          condition,
+          who: tag.who,
+        });
+      }
+    }
+  }
+
+  return items;
+}
+

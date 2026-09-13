@@ -9,6 +9,10 @@ import {
   executeIdeaRoll,
   buildIdeaRollPrompt,
   buildQuoteToInputText,
+  getIdeaRollCooldown,
+  setIdeaRollCooldown,
+  clearIdeaRollCooldown,
+  IDEA_ROLL_COOLDOWN_MS,
 } from "@/lib/journal/idea-roll-service";
 import type { Character } from "@/lib/types";
 
@@ -212,6 +216,76 @@ describe("Idea Roll Service (CoC 7e RAW)", () => {
         .toBe("Nawiązuję do notatki \"Rozkład przypływów\": ");
       expect(buildQuoteToInputText("note", "Tide schedule", undefined, "en"))
         .toBe("Regarding note \"Tide schedule\": ");
+    });
+
+    it("buduje poprawne szablony dla broni, narzędzi, spraw i haseł encyklopedii (PL i EN)", () => {
+      // Bronie i narzędzia
+      expect(buildQuoteToInputText("weapon", "Rewolwer Colt .38", undefined, "pl"))
+        .toBe("Badam Rewolwer Colt .38, zwracając uwagę na ");
+      expect(buildQuoteToInputText("tool", "Latarka elektryczna", undefined, "en"))
+        .toBe("I examine Latarka elektryczna, paying attention to ");
+
+      // Sprawy i cele
+      expect(buildQuoteToInputText("case", "Zaginięcie w Bostonie", undefined, "pl"))
+        .toBe("Wracam do sprawy: \"Zaginięcie w Bostonie\" w kwestii ");
+      expect(buildQuoteToInputText("case_file", "Boston Disappearance", undefined, "en"))
+        .toBe("Returning to case: \"Boston Disappearance\" regarding ");
+
+      // Encyklopedia
+      expect(buildQuoteToInputText("encyclopedia_character", "Profesor Armitage", undefined, "pl"))
+        .toBe("Pytam Profesor Armitage o ");
+      expect(buildQuoteToInputText("encyclopedia_location", "Biblioteka Miskatonic", undefined, "en"))
+        .toBe("I thoroughly investigate Biblioteka Miskatonic for ");
+      expect(buildQuoteToInputText("handout", "Wycinek z Arkham Advertiser", undefined, "pl"))
+        .toBe("Analizuję powiązania poszlaki: \"Wycinek z Arkham Advertiser\" z ");
+
+      // Sprzęt / ekwipunek fabularny
+      expect(buildQuoteToInputText("gear", "Lupa powiększająca", undefined, "pl"))
+        .toBe("Badam Lupa powiększająca, zwracając uwagę na ");
+      expect(buildQuoteToInputText("prop", "Klucz francuski", undefined, "en"))
+        .toBe("I examine Klucz francuski, paying attention to ");
+
+      // Poszlaka z lokalizacją znalezienia
+      expect(buildQuoteToInputText("clue", "Stary pamiętnik", { foundLocation: "Strych Corbitta" }, "pl"))
+        .toBe("Analizuję powiązania poszlaki: \"Stary pamiętnik\" odnalezionej w Strych Corbitta z ");
+      expect(buildQuoteToInputText("clue", "Old diary", { foundLocation: "Corbitt Attic" }, "en"))
+        .toBe("I analyze connections regarding clue: \"Old diary\" found at Corbitt Attic with ");
+    });
+  });
+
+  describe("Rygor CoC 7e RAW (No Pushed Roll, No Luck, Dead End only, Cooldown)", () => {
+    it("zawsze wymusza canPushRoll=false, canSpendLuck=false oraz isDeadEndOnly=true", () => {
+      const res = executeIdeaRoll({
+        character: mockCharacter,
+        fixedRoll: 40,
+      });
+
+      expect(res.canPushRoll).toBe(false);
+      expect(res.canSpendLuck).toBe(false);
+      expect(res.isDeadEndOnly).toBe(true);
+    });
+
+    it("zarządza cooldownem per badacz i temat oraz zachowuje ostatnią dedukcję (insight)", () => {
+      clearIdeaRollCooldown("char-1", "subj-test");
+
+      expect(getIdeaRollCooldown("char-1", "subj-test").isCoolingDown).toBe(false);
+
+      const rollResult = executeIdeaRoll({
+        character: mockCharacter,
+        fixedRoll: 50,
+      });
+
+      setIdeaRollCooldown("char-1", "subj-test", rollResult, "Ślady wskazują na sekretne przejście.");
+
+      const cd = getIdeaRollCooldown("char-1", "subj-test");
+      expect(cd.isCoolingDown).toBe(true);
+      expect(cd.remainingSeconds).toBeGreaterThan(0);
+      expect(cd.remainingSeconds).toBeLessThanOrEqual(Math.ceil(IDEA_ROLL_COOLDOWN_MS / 1000));
+      expect(cd.lastResult?.roll).toBe(50);
+      expect(cd.lastInsight).toBe("Ślady wskazują na sekretne przejście.");
+
+      clearIdeaRollCooldown("char-1", "subj-test");
+      expect(getIdeaRollCooldown("char-1", "subj-test").isCoolingDown).toBe(false);
     });
   });
 });

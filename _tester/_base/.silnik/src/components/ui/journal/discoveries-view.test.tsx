@@ -314,4 +314,131 @@ describe('DiscoveriesView', () => {
       provenance: 'observed',
     });
   });
+
+  it('wyświetla strukturę Trójstopniowych Notatek (Tier 1: One-Glance, Tier 2: Treść, Tier 3: Wniosek)', () => {
+    const entry = {
+      id: 'tier_test',
+      title: 'Stary list Armitage',
+      content: 'W piwnicy uniwersytetu ukryto kopię Necronomiconu. Tekst ostrzega przed rytuałem.',
+      type: 'clue',
+      investigatorInsight: 'List wskazuje jednoznacznie na bibliotekę Miskatonic.',
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[entry]}
+        onEditEntry={jest.fn()}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    // Przełącz na Poszlaki i Ślady
+    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
+
+    // Tier 1: Syntetyczny Fakt (One-Glance)
+    expect(screen.getByText(/Syntetyczny Fakt \(One-Glance\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tier 1: One-Glance/i)).toBeInTheDocument();
+
+    // Tier 2: Pełna Treść
+    expect(screen.getByText(/Tier 2: Pełna Treść/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/W piwnicy uniwersytetu ukryto kopię Necronomiconu/i)[0]).toBeInTheDocument();
+
+    // Tier 3: Wniosek Badacza / Dedukcja
+    expect(screen.getAllByText(/Tier 3: Wniosek Badacza/i)[0]).toBeInTheDocument();
+    expect(screen.getByText('List wskazuje jednoznacznie na bibliotekę Miskatonic.')).toBeInTheDocument();
+  });
+
+  it('wyświetla Potrójny Byt Handoutu dla dokumentów i umożliwia przełączenie czytnika diegetycznego', () => {
+    const handoutEntry = {
+      id: 'handout_corbitt',
+      title: 'Dziennik Corbitta',
+      content: 'Zapiski z 1860 roku opisujące rytuały w piwnicy.',
+      type: 'document',
+      clueCategory: 'document' as const,
+      provenance: 'handout' as const,
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[handoutEntry]}
+        onEditEntry={jest.fn()}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    // Przełącz na Przedmioty
+    fireEvent.click(screen.getByRole('button', { name: /Przedmioty/i }));
+
+    // Potrójny Byt Handoutu
+    expect(screen.getByText(/Potrójny Byt Handoutu/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fizyczny rekwizyt/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Czytnik diegetyczny/i)[0]).toBeInTheDocument();
+
+    // Przełączanie czytnika
+    const toggleReaderBtn = screen.getAllByRole('button', { name: /Otwórz czytnik diegetyczny/i })[0];
+    expect(toggleReaderBtn).toBeInTheDocument();
+    fireEvent.click(toggleReaderBtn);
+
+    // Po otwarciu pojawia się przycisk zwinięcia
+    expect(screen.getAllByRole('button', { name: /Zwiń czytnik diegetyczny/i })[0]).toBeInTheDocument();
+  });
+
+  it('obsługuje interakcję Quote-to-Input wywołując onQuoteToInput', () => {
+    const onQuote = jest.fn();
+    const entry = {
+      id: 'quote_test',
+      title: 'Ślady pazurów',
+      content: 'Głębokie bruzdy na futrynie drzwi.',
+      type: 'clue',
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[entry]}
+        onEditEntry={jest.fn()}
+        onDeleteEntry={jest.fn()}
+        onQuoteToInput={onQuote}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
+
+    const quoteBtn = screen.getByRole('button', { name: /Pytaj o to na czacie/i });
+    fireEvent.click(quoteBtn);
+
+    expect(onQuote).toHaveBeenCalledWith(expect.stringContaining('Ślady pazurów'));
+  });
+
+  it('emituje zdarzenie straznik:quote-to-input gdy onQuoteToInput nie został przekazany', () => {
+    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
+    const entry = {
+      id: 'quote_event_test',
+      title: 'Stary medalion',
+      content: 'Mosiężny medalion ze znakiem Starszych Bogów.',
+      type: 'item',
+    };
+
+    render(
+      <DiscoveriesView
+        entries={[entry]}
+        onEditEntry={jest.fn()}
+        onDeleteEntry={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Przedmioty/i }));
+
+    const quoteBtn = screen.getByRole('button', { name: /Pytaj o to na czacie/i });
+    fireEvent.click(quoteBtn);
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'straznik:quote-to-input',
+        detail: expect.objectContaining({
+          text: expect.stringContaining('Stary medalion'),
+        }),
+      })
+    );
+    dispatchSpy.mockRestore();
+  });
 });
