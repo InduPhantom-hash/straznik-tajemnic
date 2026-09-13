@@ -5,6 +5,9 @@
 // też `\n`, więc multiline tagi są zachowane.
 const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
 
+export const GEMINI_TTS_EMOTION_TAGS =
+  'whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|sarcastically|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow';
+
 /** Removes blocks that are never allowed to enter campaign memory. */
 export function stripHiddenMemoryContent(text: string): string {
   return text
@@ -86,7 +89,7 @@ export function cleanResponseText(text: string): string {
       .replace(/\[(?:AUDIO|NAGRANIE):[^\]]*\]/gi, '')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
       // Catch-all: dowolny [TAG...], z wyjątkiem oficjalnych tagów audio Gemini TTS ([whispers], [trembling] itp.)
-      .replace(/\[(?!(?:whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow)\])[^\]]*\]/gi, '')
+      .replace(new RegExp(`\\[(?!(?:${GEMINI_TTS_EMOTION_TAGS})\\])[^\\]]*\\]`, 'gi'), '')
       // Markdown removal
       .replace(/\*\*/g, '')
       .replace(/\*([^*]+?)\*/g, '$1')
@@ -123,11 +126,15 @@ export function stripMultilineArtifacts(text: string): string {
     text
       .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
+      // Zamknięte bloki OBSERWACJA i SEKRETY_MG (z opcjonalnym nagłówkiem po dwukropku)
       .replace(/\[(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
       .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')
+      // Niezamknięte bloki OBSERWACJA i SEKRETY_MG podczas streamingu (|$ na końcu)
+      .replace(/\[(?:OBSERWACJA|OBSERVATION)\][\s\S]*$/gi, '')
+      .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)\][\s\S]*$/gi, '')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-      // każdy [TAG:...] (spans \n), odporny na zagnieżdżony [...]
-      .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'g'), '')
+      // każdy [TAG:...], odporny na zagnieżdżony [...], z ochroną dozwolonych tagów emocji lektora
+      .replace(new RegExp(`\\[(?!(?:${GEMINI_TTS_EMOTION_TAGS})\\])${NESTED_TAG_BODY}\\]`, 'gi'), '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')
   ); // multiline JSON {"..."}
 }

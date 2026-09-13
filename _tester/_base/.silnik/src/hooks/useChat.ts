@@ -84,6 +84,7 @@ import {
   type CombatDefenseWeaponOption,
 } from '@/lib/combat/weapon-context';
 import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
+import { notifyMemoryCommit } from '@/core/memory/commit-client';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 const ACTIVE_CHASE_STORAGE_KEY = 'zew_active_chase_state';
@@ -409,6 +410,8 @@ interface UseChatOptions {
   ) => Promise<void>;
   // M6 sesja 146: generateMultiVoice DROPPED per D3.
   addToQueue: (text: string, messageId?: string) => void;
+  /** Issue #79: Natychmiastowe ucięcie lektora TTS przy wysłaniu nowej akcji gracza */
+  stopCurrentAudio?: () => void;
   onSkillResults?: (results: SkillTestResult[]) => void;
   adventureContext?: AdventureContext | null;
   aiSettings?: AISettings | null;
@@ -436,6 +439,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     voiceEnabled,
     isTTSEnabled,
     generateVoiceForMessage,
+    stopCurrentAudio,
     onSkillResults,
     adventureContext,
     hotSeatConfig,
@@ -925,6 +929,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         activeCharacter: Character | null;
       }
     ) => {
+      // Issue #79 (Decyzja 1A): Natychmiast ucisz lektora i przerwij wiszące odtwarzanie TTS
+      stopCurrentAudio?.();
+
       // Retro Cheat Interceptor (0 ms, 0 tokenów, wykonanie lokalne)
       if (isCheatCommand(message)) {
         const currentGameTime = timeManager.getTime();
@@ -1230,6 +1237,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
+            notifyMemoryCommit(metadata,locale);
             if (
               Array.isArray(metadata.pendingMeleeAttacks) &&
               metadata.pendingMeleeAttacks.length > 0 &&
@@ -1910,6 +1918,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
+            notifyMemoryCommit(metadata,locale);
             if (metadata.finishReason) {
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -1952,6 +1961,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       voiceEnabled,
       isTTSEnabled,
       generateVoiceForMessage,
+      stopCurrentAudio,
     ]
   );
 

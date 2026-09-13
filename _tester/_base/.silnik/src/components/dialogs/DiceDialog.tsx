@@ -50,6 +50,7 @@ import {
   meetsDifficulty,
 } from '@/lib/dice-utils';
 import { Sparkles } from 'lucide-react';
+import { getSharedAudioContext } from '@/lib/audio/audio-context';
 
 // === INTERFACES ===
 
@@ -73,11 +74,8 @@ interface DiceDialogProps {
 // FEATURE:#6 - Dźwięk rzutu kością (ulepszona implementacja z noise + clicks)
 const playDiceSound = () => {
   try {
-    const audioContext = new (
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext
-    )();
+    const audioContext = getSharedAudioContext();
+    if (!audioContext) return;
 
     // Create noise for the rolling/rattling effect
     const bufferSize = audioContext.sampleRate * 0.4; // 400ms of noise
@@ -120,6 +118,16 @@ const playDiceSound = () => {
 
     noiseSource.start(audioContext.currentTime);
     noiseSource.stop(audioContext.currentTime + 0.4);
+
+    noiseSource.onended = () => {
+      try {
+        noiseSource.disconnect();
+        filter.disconnect();
+        gainNode.disconnect();
+      } catch {
+        // Audio node cleanup failure ignored
+      }
+    };
   } catch {
     // Audio not supported
   }

@@ -209,6 +209,7 @@ export default function Home() {
     generateVoiceForMessage: tts.generateVoiceForMessage,
     
     addToQueue: tts.addToQueue,
+    stopCurrentAudio: tts.stopCurrentAudio,
     adventureContext,
     aiSettings,
     onSkillResults: skillMarking.processSkillResults,
