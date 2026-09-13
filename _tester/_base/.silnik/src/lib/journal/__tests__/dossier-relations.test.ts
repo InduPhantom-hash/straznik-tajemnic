@@ -46,10 +46,10 @@ describe('Dossier Bidirectional Relations (Fact <-> NPC <-> Location)', () => {
     experience: { totalXP: 0, availableXP: 0, earnedThisSession: 0, maxEarnedThisSession: 10 },
     developmentHistory: [],
     investigatorDossier: {
-      caseTitle: 'Sprawa w Bostonie',
       clues: [],
       npcs: [],
       locations: [],
+      notes: [],
     },
   });
 
@@ -82,6 +82,7 @@ describe('Dossier Bidirectional Relations (Fact <-> NPC <-> Location)', () => {
         clues: [clue],
         npcs: [npc],
         locations: [location],
+        notes: [],
       };
 
       const changed = linkClueNpcLocation(dossier);
@@ -136,6 +137,7 @@ describe('Dossier Bidirectional Relations (Fact <-> NPC <-> Location)', () => {
         clues: [clue],
         npcs: [npc],
         locations: [location],
+        notes: [],
       };
 
       const changed = linkClueNpcLocation(dossier);
@@ -204,24 +206,28 @@ Profesor pokazuje nam zniszczone woluminy.
           id: 'legacy-loc',
           title: 'Zaułek Rybacki',
           content: 'Mroczny zaułek portowy',
-          type: 'encyclopedia_location',
-          timestamp: Date.now(),
+          type: 'location',
+          timestamp: new Date(),
+          tags: [],
+          isBookmarked: false,
         },
         {
           id: 'legacy-npc',
           title: 'Stary Rybak Zadok',
           content: 'Miejscowy pijak',
-          type: 'encyclopedia_character',
-          timestamp: Date.now(),
+          type: 'npc',
+          timestamp: new Date(),
           tags: ['lokacja: Zaułek Rybacki'],
+          isBookmarked: false,
         },
         {
           id: 'legacy-clue',
           title: 'Złoty Medalion Dagon',
           content: 'Przedziwny medalion z głębin',
           type: 'clue',
-          timestamp: Date.now(),
+          timestamp: new Date(),
           tags: ['świadek: Stary Rybak Zadok', 'lokacja: Zaułek Rybacki'],
+          isBookmarked: false,
         },
       ];
 

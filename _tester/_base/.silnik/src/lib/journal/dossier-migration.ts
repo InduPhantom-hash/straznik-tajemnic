@@ -14,7 +14,6 @@ import {
   NpcDossierEntry,
   NpcRelationshipStatus,
   PlayerNoteEntry,
-  createEmptyDossier,
   isClueEntry,
   isLocationDossierEntry,
   isNpcDossierEntry,

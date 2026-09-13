@@ -292,7 +292,7 @@ describe("Idea Roll Service (CoC 7e RAW)", () => {
       clearIdeaRollCooldown("char-1", "subj-clue", "loc-arkham");
       clearIdeaRollCooldown("char-1");
 
-      expect(getIdeaRollCooldown("char-1", "subj-clue", "loc-arkham").isCoolingDown).toBe(false);
+      expect(getIdeaRollCooldown("char-1", "subj-clue", IDEA_ROLL_COOLDOWN_MS, "loc-arkham").isCoolingDown).toBe(false);
 
       const rollResult = executeIdeaRoll({
         character: mockCharacter,
@@ -301,13 +301,13 @@ describe("Idea Roll Service (CoC 7e RAW)", () => {
 
       setIdeaRollCooldown("char-1", "subj-clue", rollResult, "Notatka z biblioteki", "loc-arkham");
 
-      const cd = getIdeaRollCooldown("char-1", "subj-clue", "loc-arkham");
+      const cd = getIdeaRollCooldown("char-1", "subj-clue", IDEA_ROLL_COOLDOWN_MS, "loc-arkham");
       expect(cd.isCoolingDown).toBe(true);
       expect(cd.remainingSeconds).toBeGreaterThan(0);
 
       clearIdeaRollCooldown("char-1", "subj-clue", "loc-arkham");
       clearIdeaRollCooldown("char-1");
-      expect(getIdeaRollCooldown("char-1", "subj-clue", "loc-arkham").isCoolingDown).toBe(false);
+      expect(getIdeaRollCooldown("char-1", "subj-clue", IDEA_ROLL_COOLDOWN_MS, "loc-arkham").isCoolingDown).toBe(false);
     });
 
     it("zarządza globalnym anty-spam cooldownem badacza", () => {

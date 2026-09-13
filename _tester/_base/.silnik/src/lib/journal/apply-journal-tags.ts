@@ -2,9 +2,6 @@ import type { Character, JournalEntry, EquipmentItem, EquipmentCategory } from '
 import type { JournalTagEntry } from '@/lib/parsers/types';
 import { parseRevealedTags,parseRevealedClue,findReplacedClue,resolveRevealedRecipient,revealedEntityId } from '@/core/memory/revealed-facts';
 import {
-  extractJournalTags,
-  extractNpcTags,
-  extractItemTags,
   synthesizeClueFact,
   parseClueProvenance,
   inferClueProvenance,
@@ -12,7 +9,6 @@ import {
   ExtractedItemTag,
 } from '@/lib/parsers/journal-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
-import { resolveCharacterByName } from '@/lib/character/match-by-name';
 import {
   ensureCharacterDossier,
   inferClueCategory,
