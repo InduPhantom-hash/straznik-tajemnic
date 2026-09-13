@@ -308,7 +308,14 @@ export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
   for (const clue of dossier.clues || []) {
     // A. Źródłowy NPC
     if (clue.sourceNpc && !clue.sourceNpcId) {
-      const match = npcsByName.get(clue.sourceNpc.trim().toLowerCase());
+      const sLower = clue.sourceNpc.trim().toLowerCase();
+      let match = npcsByName.get(sLower);
+      if (!match) {
+        const fuzzy = (dossier.npcs || []).filter(
+          (n) => n.name && (n.name.toLowerCase().includes(sLower) || sLower.includes(n.name.toLowerCase()))
+        );
+        if (fuzzy.length === 1) match = fuzzy[0];
+      }
       if (match) {
         clue.sourceNpcId = match.id;
         changed = true;
@@ -334,7 +341,14 @@ export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
 
     // B. Lokacja znalezienia
     if (clue.foundLocation && !clue.foundLocationId) {
-      const match = locationsByName.get(clue.foundLocation.trim().toLowerCase());
+      const lLower = clue.foundLocation.trim().toLowerCase();
+      let match = locationsByName.get(lLower);
+      if (!match) {
+        const fuzzy = (dossier.locations || []).filter(
+          (l) => l.name && (l.name.toLowerCase().includes(lLower) || lLower.includes(l.name.toLowerCase()))
+        );
+        if (fuzzy.length === 1) match = fuzzy[0];
+      }
       if (match) {
         clue.foundLocationId = match.id;
         changed = true;
@@ -362,7 +376,14 @@ export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
   // 2. Postacie NPC: połącz z Lokacją
   for (const npc of dossier.npcs || []) {
     if (npc.location && !npc.locationId) {
-      const match = locationsByName.get(npc.location.trim().toLowerCase());
+      const lLower = npc.location.trim().toLowerCase();
+      let match = locationsByName.get(lLower);
+      if (!match) {
+        const fuzzy = (dossier.locations || []).filter(
+          (l) => l.name && (l.name.toLowerCase().includes(lLower) || lLower.includes(l.name.toLowerCase()))
+        );
+        if (fuzzy.length === 1) match = fuzzy[0];
+      }
       if (match) {
         npc.locationId = match.id;
         changed = true;
@@ -386,12 +407,12 @@ export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
       }
     }
 
-    // Sprawdź czy relatedClueIds są dwustronnie zsynchronizowane
+    // Sprawdź czy relatedClueIds są dwustronnie zsynchronizowane (bez niszczenia istniejących referencji)
     if (Array.isArray(npc.relatedClueIds)) {
       for (const cId of npc.relatedClueIds) {
         const clue = dossier.clues?.find((c) => c.id === cId);
         if (clue) {
-          if (clue.sourceNpcId !== npc.id) {
+          if (!clue.sourceNpcId || !npcsById.has(clue.sourceNpcId)) {
             clue.sourceNpcId = npc.id;
             clue.sourceNpc = npc.name;
             changed = true;
@@ -401,13 +422,13 @@ export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
     }
   }
 
-  // 3. Lokacje: połącz z poszlakami i postaciami
+  // 3. Lokacje: połącz z poszlakami i postaciami (bez niszczenia istniejących referencji)
   for (const loc of dossier.locations || []) {
     if (Array.isArray(loc.discoveredClueIds)) {
       for (const cId of loc.discoveredClueIds) {
         const clue = dossier.clues?.find((c) => c.id === cId);
         if (clue) {
-          if (clue.foundLocationId !== loc.id) {
+          if (!clue.foundLocationId || !locationsById.has(clue.foundLocationId)) {
             clue.foundLocationId = loc.id;
             clue.foundLocation = loc.name;
             changed = true;
@@ -420,7 +441,7 @@ export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
       for (const nId of loc.npcIds) {
         const npc = dossier.npcs?.find((n) => n.id === nId);
         if (npc) {
-          if (npc.locationId !== loc.id) {
+          if (!npc.locationId || !locationsById.has(npc.locationId)) {
             npc.locationId = loc.id;
             npc.location = loc.name;
             changed = true;

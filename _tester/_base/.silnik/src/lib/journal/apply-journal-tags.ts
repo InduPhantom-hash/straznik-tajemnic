@@ -428,7 +428,16 @@ export function processCharacterJournalAndDossier(
           continue;
         }
 
-        // 4. Fallback na miceObjective
+        // 4. Ignoruj metadane relacji (świadek, lokacja, data, status)
+        if (
+          /^(?:świadek|swiadek|witness|npc|źródło_npc|zrodlo_npc)\s*:/i.test(part) ||
+          /^(?:lokacja|location|miejsce|place)\s*:/i.test(part) ||
+          /^(?:data|date|czas|time|status)\s*:/i.test(part)
+        ) {
+          continue;
+        }
+
+        // 5. Fallback na miceObjective
         if (!miceObjective) {
           miceObjective = part;
         }
