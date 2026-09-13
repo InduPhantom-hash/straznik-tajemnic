@@ -209,4 +209,36 @@ describe('CthulhuSidebar player tools', () => {
     expect(directorBtn).toHaveAttribute('aria-pressed', 'true');
     expect(directorBtn).toHaveTextContent(/Wł/i);
   });
+
+  it('nie renderuje dropdownu wyboru postaci ani licznika gdy sesja ma tylko 1 postać (tryb Solo)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar = { id: 'char_1', name: 'Helena Krawczyk', skills: {} } as never;
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar}
+        characters={[mockChar]}
+      />
+    );
+
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByText('1/1')).not.toBeInTheDocument();
+    expect(screen.getByText('Helena Krawczyk')).toBeInTheDocument();
+  });
+
+  it('renderuje dropdown wyboru postaci i licznik gdy sesja ma co najmniej 2 postacie (Hot Seat / Duet)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar1 = { id: 'char_1', name: 'Helena Krawczyk', occupation: 'Producent', skills: {} } as never;
+    const mockChar2 = { id: 'char_2', name: 'Ryszard Kaczmarek', occupation: 'Oficer', skills: {} } as never;
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar1}
+        characters={[mockChar1, mockChar2]}
+      />
+    );
+
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+  });
 });

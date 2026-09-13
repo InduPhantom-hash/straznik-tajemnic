@@ -383,14 +383,14 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                 <CardTitle className="text-sm font-special-elite text-foreground">
                   {t('characters')}
                 </CardTitle>
-                {activeCharacter && characters && (
+                {activeCharacter && characters && characters.length > 1 && (
                   <span className="text-xs font-mono text-muted-foreground">
                     {characters.findIndex((c) => c.id === activeCharacter.id) + 1}/{characters.length}
                   </span>
                 )}
               </div>
-              {/* Character Selector Dropdown - pełna szerokość, czytelne imię i profesja */}
-              {characters && characters.length > 0 && (
+              {/* Character Selector Dropdown - widoczny tylko gdy w sesji bierze udział więcej niż 1 postać */}
+              {characters && characters.length > 1 && (
                 <div className="relative w-full">
                   <select
                     value={activeCharacter?.id || ''}

@@ -178,8 +178,8 @@ export const DeskTools: FC<DeskToolsProps> = ({
                         </div>
                     </div>
 
-                    {/* Quick Switcher */}
-                    {characters && characters.length > 0 && (
+                    {/* Quick Switcher - widoczny tylko gdy w sesji bierze udział więcej niż 1 postać */}
+                    {characters && characters.length > 1 && (
                         <select
                             className="mt-3 w-full bg-transparent border-none text-sm font-bold cursor-pointer hover:bg-black/5 p-1 rounded -ml-1"
                             value={activeCharacter.id}
