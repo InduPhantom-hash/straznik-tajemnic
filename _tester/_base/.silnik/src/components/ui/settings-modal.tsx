@@ -27,6 +27,7 @@ import { GeminiSettings } from '../settings/gemini-settings';
 // M3 sesja 146: ElevenLabsSettings DROPPED per D2.
 import { QualityPresets } from '../settings/quality-presets';
 import { TTSSettings } from '../settings/tts-settings';
+import { UpdateSettings } from '../settings/update-settings';
 
 interface SettingsModalProps {
   open?: boolean;
@@ -85,6 +86,7 @@ export function SettingsModal({
 
           {/* IND-273 T6: widoczny panel zdrowia klucza/modeli */}
           <HealthStatusPanel />
+          <UpdateSettings />
 
           {/* IND-265 A: progressive disclosure - zaawansowane ustawienia w
               zwiniętej harmonijce, by nie przytłaczać gracza, którego to nie obchodzi.
@@ -259,4 +261,3 @@ export function SettingsModal({
     </Dialog>
   );
 }
-

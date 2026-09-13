@@ -6933,6 +6933,25 @@
     "fullResetHelp": "DELETES EVERYTHING: characters, sessions, chat history, settings, notes, cache. This operation is irreversible!",
     "close": "❌ Close"
   },
+  "UpdateSettings": {
+    "title": "Updates",
+    "description": "Check stable app releases and install them without losing saves or campaign memory.",
+    "currentVersion": "Current version: {version}",
+    "availableVersion": "Available version: {version}",
+    "releaseNotes": "Release notes",
+    "devMode": "Development mode can check versions but never modifies the repository.",
+    "notConfigured": "The update source is not configured.",
+    "upToDate": "You have the latest stable version.",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "starting": "Starting…",
+    "updateRestart": "Update and restart",
+    "later": "Later",
+    "close": "Close",
+    "notificationTitle": "Update {version} is available",
+    "notificationDescription": "Install it now or return to it later.",
+    "result": { "succeeded": "Update completed successfully", "rolled_back": "The update failed. The previous version was restored", "failed": "The update failed" }
+  },
   "SessionZeroModal": {
     "headerKicker": "Before the first fog lifts",
     "dialogTitle": "Session Zero",

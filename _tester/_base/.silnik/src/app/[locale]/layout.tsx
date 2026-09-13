@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import { DesktopUpdateNotifier } from '@/components/desktop-update-notifier';
 
 export const metadata: Metadata = {
   title: 'Strażnik Tajemnic | Pradawna Wiedza',
@@ -39,6 +40,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <PHProvider>
         {children}
+        <DesktopUpdateNotifier />
         {/* IND-234: nieblokujące toasty (zastępują alert()) */}
         <Toaster />
       </PHProvider>
