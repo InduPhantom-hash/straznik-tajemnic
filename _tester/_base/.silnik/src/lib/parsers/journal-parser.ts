@@ -159,6 +159,27 @@ export function extractJournalTags(text: string): JournalTagEntry[] {
 
     const type = typeMap[typeStr] || 'note';
 
+    let sourceNpc: string | undefined;
+    let foundLocation: string | undefined;
+
+    const checkSegments = (str: string) => {
+      if (!str || !str.includes('|')) return;
+      const parts = str.split('|').map((p) => p.trim());
+      for (const p of parts) {
+        const npcMatch = p.match(/^(?:świadek|swiadek|witness|npc|źródło_npc|zrodlo_npc)\s*:\s*(.+)$/i);
+        if (npcMatch) {
+          sourceNpc = npcMatch[1].trim();
+        }
+        const locMatch = p.match(/^(?:lokacja|location|miejsce|place)\s*:\s*(.+)$/i);
+        if (locMatch) {
+          foundLocation = locMatch[1].trim();
+        }
+      }
+    };
+
+    checkSegments(title);
+    checkSegments(content);
+
     if (title && content) {
       entries.push({
         type,
@@ -166,6 +187,8 @@ export function extractJournalTags(text: string): JournalTagEntry[] {
         content,
         inGameDate,
         who,
+        sourceNpc,
+        foundLocation,
       });
     }
   }

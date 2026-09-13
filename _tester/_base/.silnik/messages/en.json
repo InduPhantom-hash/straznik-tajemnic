@@ -6794,7 +6794,13 @@
     "inEquipmentBadge": "In Inventory",
     "physicalProp": "Physical Prop",
     "diegeticReaderBadge": "Diegetic Reader",
-    "tripleEntityTitle": "Triple Entity of Handout (CoC 7e RAW)"
+    "tripleEntityTitle": "Triple Entity of Handout (CoC 7e RAW)",
+    "relatedCluesHeading": "Related clues in dossier",
+    "npcsPresentHeading": "NPCs present at location",
+    "locationLink": "Go to location",
+    "npcLink": "Go to character",
+    "clueLink": "Go to clue",
+    "clickToQuoteFact": "Click to quote fact to chat (Quote-to-Input)"
   },
   "LocationManager": {
     "title": "📍 Location Manager",

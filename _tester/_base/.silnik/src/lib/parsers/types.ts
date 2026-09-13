@@ -100,6 +100,10 @@ export interface JournalTagEntry {
   inGameDate?: string;
   /** Duet/Hot Seat: imię z prefiksu [DZIENNIK:@Imię:...] - właściciel wpisu (do mapowania na postać). */
   who?: string;
+  /** Opcjonalny świadek / źródłowy NPC poszlaki */
+  sourceNpc?: string;
+  /** Opcjonalna lokacja odnalezienia poszlaki */
+  foundLocation?: string;
 }
 
 // === SYSTEM ROZWOJU COC 7E ===

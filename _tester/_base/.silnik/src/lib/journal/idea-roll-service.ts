@@ -62,7 +62,8 @@ export interface IdeaRollResult {
   isDeadEndOnly: true;
 }
 
-export const IDEA_ROLL_COOLDOWN_MS = 180_000; // 3 minuty cooldownu antyspamowego
+export const IDEA_ROLL_COOLDOWN_MS = 180_000; // 3 minuty cooldownu antyspamowego per temat/scena
+export const IDEA_ROLL_GLOBAL_COOLDOWN_MS = 60_000; // 1 minuta globalnego cooldownu per badacz
 
 export interface IdeaRollCooldownState {
   isCoolingDown: boolean;
@@ -70,34 +71,87 @@ export interface IdeaRollCooldownState {
   lastResult?: IdeaRollResult;
   lastInsight?: string;
   timestamp?: number;
+  reason?: 'subject' | 'location' | 'global';
 }
 
-export function getIdeaRollCooldownKey(characterId: string, subjectId?: string): string {
+export function getIdeaRollCooldownKey(characterId: string, subjectId?: string, locationId?: string): string {
+  if (locationId) {
+    return `idea_roll_cooldown_${characterId}_loc_${locationId}`;
+  }
   return `idea_roll_cooldown_${characterId}_${subjectId || 'general'}`;
+}
+
+export function getIdeaRollGlobalCooldownKey(characterId: string): string {
+  return `idea_roll_cooldown_${characterId}_global`;
 }
 
 export function getIdeaRollCooldown(
   characterId: string,
   subjectId?: string,
-  cooldownMs: number = IDEA_ROLL_COOLDOWN_MS
+  cooldownMs: number = IDEA_ROLL_COOLDOWN_MS,
+  locationId?: string
 ): IdeaRollCooldownState {
   if (typeof window === 'undefined') {
     return { isCoolingDown: false, remainingSeconds: 0 };
   }
   try {
-    const raw = localStorage.getItem(getIdeaRollCooldownKey(characterId, subjectId));
-    if (!raw) return { isCoolingDown: false, remainingSeconds: 0 };
-    const data = JSON.parse(raw);
-    const elapsed = Date.now() - (data.timestamp || 0);
-    if (elapsed < cooldownMs) {
-      const remainingSeconds = Math.ceil((cooldownMs - elapsed) / 1000);
-      return {
-        isCoolingDown: true,
-        remainingSeconds,
-        lastResult: data.result,
-        lastInsight: data.insight,
-        timestamp: data.timestamp,
-      };
+    // 1. Sprawdź cooldown tematu
+    const key = getIdeaRollCooldownKey(characterId, subjectId);
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const data = JSON.parse(raw);
+      const elapsed = Date.now() - (data.timestamp || 0);
+      if (elapsed < cooldownMs) {
+        const remainingSeconds = Math.ceil((cooldownMs - elapsed) / 1000);
+        return {
+          isCoolingDown: true,
+          remainingSeconds,
+          lastResult: data.result,
+          lastInsight: data.insight,
+          timestamp: data.timestamp,
+          reason: 'subject',
+        };
+      }
+    }
+
+    // 2. Sprawdź cooldown lokacji/sceny (ochrona przed spamem w tej samej lokacji)
+    if (locationId) {
+      const locKey = getIdeaRollCooldownKey(characterId, undefined, locationId);
+      const locRaw = localStorage.getItem(locKey);
+      if (locRaw) {
+        const locData = JSON.parse(locRaw);
+        const elapsed = Date.now() - (locData.timestamp || 0);
+        if (elapsed < cooldownMs) {
+          const remainingSeconds = Math.ceil((cooldownMs - elapsed) / 1000);
+          return {
+            isCoolingDown: true,
+            remainingSeconds,
+            lastResult: locData.result,
+            lastInsight: locData.insight,
+            timestamp: locData.timestamp,
+            reason: 'location',
+          };
+        }
+      }
+    }
+
+    // 3. Sprawdź globalny cooldown badacza (ochrona przed spamem przy zmianie tematu)
+    const globalKey = getIdeaRollGlobalCooldownKey(characterId);
+    const globalRaw = localStorage.getItem(globalKey);
+    if (globalRaw) {
+      const globalData = JSON.parse(globalRaw);
+      const elapsed = Date.now() - (globalData.timestamp || 0);
+      if (elapsed < IDEA_ROLL_GLOBAL_COOLDOWN_MS) {
+        const remainingSeconds = Math.ceil((IDEA_ROLL_GLOBAL_COOLDOWN_MS - elapsed) / 1000);
+        return {
+          isCoolingDown: true,
+          remainingSeconds,
+          lastResult: globalData.result,
+          lastInsight: globalData.insight,
+          timestamp: globalData.timestamp,
+          reason: 'global',
+        };
+      }
     }
   } catch {
     // Ignore storage parse error
@@ -109,28 +163,39 @@ export function setIdeaRollCooldown(
   characterId: string,
   subjectId: string | undefined,
   result: IdeaRollResult,
-  insight?: string
+  insight?: string,
+  locationId?: string
 ): void {
   if (typeof window === 'undefined') return;
   try {
+    const payload = JSON.stringify({
+      timestamp: Date.now(),
+      result,
+      insight,
+    });
+
     const key = getIdeaRollCooldownKey(characterId, subjectId);
-    localStorage.setItem(
-      key,
-      JSON.stringify({
-        timestamp: Date.now(),
-        result,
-        insight,
-      })
-    );
+    localStorage.setItem(key, payload);
+
+    if (locationId) {
+      const locKey = getIdeaRollCooldownKey(characterId, undefined, locationId);
+      localStorage.setItem(locKey, payload);
+    }
+
+    localStorage.setItem(getIdeaRollGlobalCooldownKey(characterId), payload);
   } catch {
     // Ignore storage error
   }
 }
 
-export function clearIdeaRollCooldown(characterId: string, subjectId?: string): void {
+export function clearIdeaRollCooldown(characterId: string, subjectId?: string, locationId?: string): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(getIdeaRollCooldownKey(characterId, subjectId));
+    if (locationId) {
+      localStorage.removeItem(getIdeaRollCooldownKey(characterId, undefined, locationId));
+    }
+    localStorage.removeItem(getIdeaRollGlobalCooldownKey(characterId));
   } catch {
     // Ignore
   }
@@ -244,9 +309,11 @@ export function buildIdeaRollPrompt(
       cluesContext,
       "",
       "ZASADY WERDYKTU (CoC 7e RAW s. 199-201):",
+      "- Test Pomysłu jest wzywany WYŁĄCZNIE w sytuacji impasu śledczego (Dead End).",
+      "- Bezwzględny zakaz forsowania rzutu (Pushed roll) oraz zakaz wydawania punktów Szczęścia (Luck).",
       result.isSuccess
         ? "1. [SUKCES]: Badacz doznaje olśnienia w wybranej soczewce M.I.C.E. Połącz logicznie co najmniej dwa fakty ze śledztwa. Wskaż badaczowi jasny, bezpieczny wniosek lub logiczny następny krok."
-        : "1. [PORAŻKA]: Zgodnie z RAW badacz RÓWNIEŻ otrzymuje niezbędną wskazówkę, ale ZA CENĘ POWAŻNEJ KOMPLIKACJI narracyjnej (np. utrata cennego czasu, hałas ściągający uwagę wroga, nieopatrzne zdradzenie swojej obecności, nieprzyjemna konfrontacja).",
+        : "1. [PORAŻKA]: Zgodnie z zasadą Fail-Forward badacz I TAK otrzymuje niezbędną wskazówkę, ale ZA CENĘ POWAŻNEJ KOMPLIKACJI narracyjnej (np. bezpośrednie niebezpieczeństwo, zasadzka, alarm, wpadka, utrata cennego czasu lub krytycznych zasobów).",
       "2. Sformatuj odpowiedź w 2-3 zwięzłych, nastrojowych zdaniach maszyny do pisania (styl Lovecrafta/akt policyjnych).",
       "3. Zwróć wyłącznie treść dedukcji - zero wstępów, zero nagłówków, zero tagów technicznych.",
     ].join("\n");
@@ -267,9 +334,11 @@ export function buildIdeaRollPrompt(
     cluesContext,
     "",
     "RULES DIRECTIVE (CoC 7e RAW pp. 199-201):",
+    "- The Idea Roll is called ONLY during an investigative deadlock (Dead End).",
+    "- Strict prohibition against pushed rolls and spending Luck points.",
     result.isSuccess
       ? "1. [SUCCESS]: Investigator experiences a breakthrough along the selected M.I.C.E. lens. Logically connect at least two clues and present a clear deduction or next lead."
-      : "1. [FAILURE]: Under RAW, the investigator STILL gets the vital hint to proceed, BUT AT THE COST of a significant complication (lost time, raised alarm, hostile encounter, unwanted attention).",
+      : "1. [FAILURE]: Under RAW Fail-Forward rules, the investigator STILL gets the vital hint to proceed, BUT AT THE COST of a significant complication (immediate danger, ambush, alarm, hostile encounter, loss of precious time or resources).",
     "2. Format the response in 2-3 concise typewriter-style sentences (Lovecraftian/police file tone).",
     "3. Output only the pure deduction text - no headers, no intros, no technical tags.",
   ].join("\n");

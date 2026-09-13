@@ -6794,7 +6794,13 @@
     "inEquipmentBadge": "W ekwipunku",
     "physicalProp": "Fizyczny rekwizyt",
     "diegeticReaderBadge": "Czytnik diegetyczny",
-    "tripleEntityTitle": "Potrójny Byt Handoutu (CoC 7e RAW)"
+    "tripleEntityTitle": "Potrójny Byt Handoutu (CoC 7e RAW)",
+    "relatedCluesHeading": "Powiązane poszlaki w dossier",
+    "npcsPresentHeading": "Obecne postacie w lokacji",
+    "locationLink": "Przejdź do lokacji",
+    "npcLink": "Przejdź do postaci",
+    "clueLink": "Przejdź do poszlaki",
+    "clickToQuoteFact": "Kliknij, aby zacytować fakt na czacie (Quote-to-Input)"
   },
   "LocationManager": {
     "title": "📍 Menedżer Lokacji",

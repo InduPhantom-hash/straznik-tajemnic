@@ -68,6 +68,8 @@ export interface IdeaRollModalProps {
     type?: string;
     miceType?: MiceQuotientType;
   }>;
+  /** Identyfikator bieżącej lokacji badacza (dla ochrony przed spamem per scena/miejsce) */
+  currentLocationId?: string;
   onSaveInsightToTarget?: (insight: string) => void;
   onSaveInsightToChronicle?: (title: string, insight: string) => void;
   onQuoteToInput?: (text: string) => void;
@@ -79,6 +81,7 @@ export function IdeaRollModal({
   character,
   targetSubject,
   contextClues = [],
+  currentLocationId,
   onSaveInsightToTarget,
   onSaveInsightToChronicle,
   onQuoteToInput,
@@ -102,7 +105,7 @@ export function IdeaRollModal({
 
   useEffect(() => {
     if (open) {
-      const cd = getIdeaRollCooldown(character.id, targetSubject?.id);
+      const cd = getIdeaRollCooldown(character.id, targetSubject?.id, undefined, currentLocationId);
       setCooldownState(cd);
       if (cd.isCoolingDown && cd.lastResult) {
         setRollResult(cd.lastResult);
@@ -113,7 +116,7 @@ export function IdeaRollModal({
             ? t("fallbackSuccess", { name: character.name })
             : t("fallbackFailure", { name: character.name });
           setInsightText(fallback);
-          setIdeaRollCooldown(character.id, targetSubject?.id, cd.lastResult, fallback);
+          setIdeaRollCooldown(character.id, targetSubject?.id, cd.lastResult, fallback, currentLocationId);
         }
       } else {
         setRollResult(null);
@@ -125,22 +128,22 @@ export function IdeaRollModal({
       setSavedToChronicle(false);
       setSelectedMiceLens(targetSubject ? inferMiceType(targetSubject) : "inquiry");
     }
-  }, [open, character.id, targetSubject?.id]);
+  }, [open, character.id, targetSubject?.id, currentLocationId]);
 
   useEffect(() => {
     if (!cooldownState.isCoolingDown) return;
     const interval = setInterval(() => {
-      const cd = getIdeaRollCooldown(character.id, targetSubject?.id);
+      const cd = getIdeaRollCooldown(character.id, targetSubject?.id, undefined, currentLocationId);
       setCooldownState(cd);
       if (!cd.isCoolingDown) {
         clearInterval(interval);
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [cooldownState.isCoolingDown, character.id, targetSubject?.id]);
+  }, [cooldownState.isCoolingDown, character.id, targetSubject?.id, currentLocationId]);
 
   const handleRoll = useCallback(async () => {
-    const currentCd = getIdeaRollCooldown(character.id, targetSubject?.id);
+    const currentCd = getIdeaRollCooldown(character.id, targetSubject?.id, undefined, currentLocationId);
     if (currentCd.isCoolingDown) {
       setCooldownState(currentCd);
       return;
@@ -157,7 +160,7 @@ export function IdeaRollModal({
       selectedMiceLens,
     });
     setRollResult(result);
-    setIdeaRollCooldown(character.id, targetSubject?.id, result);
+    setIdeaRollCooldown(character.id, targetSubject?.id, result, undefined, currentLocationId);
     setCooldownState({
       isCoolingDown: true,
       remainingSeconds: 180,
@@ -196,18 +199,18 @@ export function IdeaRollModal({
           : t("fallbackFailure", { name: character.name });
       }
       setInsightText(finalInsight);
-      setIdeaRollCooldown(character.id, targetSubject?.id, result, finalInsight);
+      setIdeaRollCooldown(character.id, targetSubject?.id, result, finalInsight, currentLocationId);
     } catch {
       finalInsight = result.isSuccess
         ? t("fallbackSuccess", { name: character.name })
         : t("fallbackFailure", { name: character.name });
       setInsightText(finalInsight);
-      setIdeaRollCooldown(character.id, targetSubject?.id, result, finalInsight);
+      setIdeaRollCooldown(character.id, targetSubject?.id, result, finalInsight, currentLocationId);
     } finally {
       setIsDeducing(false);
       setIsRolling(false);
     }
-  }, [character, targetSubject, contextClues, locale, selectedMiceLens, t]);
+  }, [character, targetSubject, contextClues, locale, selectedMiceLens, currentLocationId, t]);
 
   const handleSaveTarget = () => {
     if (!insightText.trim()) return;

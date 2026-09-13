@@ -70,7 +70,11 @@ export interface DiscoveryEntry {
   linkedNodeIds?: string[];
   alternativeClueTrails?: string[];
   sourceNpc?: string;
+  sourceNpcId?: string;
   foundLocation?: string;
+  foundLocationId?: string;
+  relatedClueIds?: string[];
+  npcIds?: string[];
   /** Wektor dramatyczny M.I.C.E. Quotient */
   miceType?: MiceQuotientType;
   /** Kluczowe pytanie lub cel w ramach wektora M.I.C.E. */
@@ -333,6 +337,74 @@ export function DiscoveriesView({
     }
   }, [selectedEntry, onQuoteToInput, locale]);
 
+  const navigateToNpc = useCallback((nameOrId: string) => {
+    const target = entries.find(
+      (e) =>
+        (e.type === 'npc' || e.type === 'character' || e.type === 'encyclopedia_character') &&
+        (e.id === nameOrId || e.title.toLowerCase().trim() === nameOrId.toLowerCase().trim())
+    );
+    if (target) {
+      setActiveCategory('characters');
+      setSelectedEntryId(target.id);
+    }
+  }, [entries]);
+
+  const navigateToLocation = useCallback((nameOrId: string) => {
+    const target = entries.find(
+      (e) =>
+        (e.type === 'location' || e.type === 'places' || e.type === 'encyclopedia_location') &&
+        (e.id === nameOrId || e.title.toLowerCase().trim() === nameOrId.toLowerCase().trim())
+    );
+    if (target) {
+      setActiveCategory('places');
+      setSelectedEntryId(target.id);
+    }
+  }, [entries]);
+
+  const navigateToClue = useCallback((id: string) => {
+    const target = entries.find((e) => e.id === id);
+    if (target) {
+      const matchedCategory = CATEGORIES.find((c) => c.types.includes(target.type));
+      if (matchedCategory) {
+        setActiveCategory(matchedCategory.key);
+      } else {
+        setActiveCategory(target.clueCategory === 'document' ? 'items' : 'quests');
+      }
+      setSelectedEntryId(target.id);
+    }
+  }, [entries]);
+
+  // Powiązane poszlaki dla postaci (NPC)
+  const relatedCluesForSelectedNpc = useMemo(() => {
+    if (!selectedEntry || activeCategory !== 'characters' || !selectedEntry.relatedClueIds?.length) {
+      return [];
+    }
+    return entries.filter((e) => selectedEntry.relatedClueIds?.includes(e.id));
+  }, [selectedEntry, activeCategory, entries]);
+
+  // Postacie obecne w danej lokacji (Place)
+  const residentNpcsForSelectedLocation = useMemo(() => {
+    if (!selectedEntry || activeCategory !== 'places' || !selectedEntry.npcIds?.length) {
+      return [];
+    }
+    return entries.filter(
+      (e) =>
+        (e.type === 'npc' || e.type === 'character' || e.type === 'encyclopedia_character') &&
+        selectedEntry.npcIds?.includes(e.id)
+    );
+  }, [selectedEntry, activeCategory, entries]);
+
+  // Poszlaki odkryte w danej lokacji (Place)
+  const discoveredCluesForSelectedLocation = useMemo(() => {
+    if (!selectedEntry || activeCategory !== 'places') {
+      return [];
+    }
+    const ids = selectedEntry.discoveredClueIds || [];
+    return entries.filter(
+      (e) => ids.includes(e.id) || e.foundLocationId === selectedEntry.id
+    );
+  }, [selectedEntry, activeCategory, entries]);
+
   // Rozwiązywanie obrazu dla wybranego wpisu
   const resolvedVisual = useMemo(() => {
     if (!selectedEntry) return null;
@@ -533,19 +605,47 @@ export function DiscoveriesView({
                       </span>
                     )}
                   </div>
-                  {entry.clueStatus && (
+                  <div className="flex items-center gap-1 shrink-0">
                     <span
-                      className={cn(
-                        'w-2 h-2 rounded-full mt-1 shrink-0',
-                        entry.clueStatus === 'confirmed'
-                          ? 'bg-[#73a15c]'
-                          : entry.clueStatus === 'disproven'
-                            ? 'bg-[#a84d4d]'
-                            : 'bg-[#bfa15f]'
-                      )}
-                      title={entry.clueStatus}
-                    />
-                  )}
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const quoteText = buildQuoteToInputText(
+                          entry.type,
+                          entry.title,
+                          { sourceNpc: entry.sourceNpc, foundLocation: entry.foundLocation },
+                          locale
+                        );
+                        if (onQuoteToInput) {
+                          onQuoteToInput(quoteText);
+                        } else {
+                          window.dispatchEvent(
+                            new CustomEvent('straznik:quote-to-input', {
+                              detail: { text: quoteText },
+                            })
+                          );
+                        }
+                      }}
+                      className="p-1 rounded text-[#8c7353] hover:text-[#f4ebd0] hover:bg-[#3a2518] transition-colors cursor-pointer"
+                      title={t('quoteToChatTitle')}
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                    </span>
+                    {entry.clueStatus && (
+                      <span
+                        className={cn(
+                          'w-2 h-2 rounded-full shrink-0',
+                          entry.clueStatus === 'confirmed'
+                            ? 'bg-[#73a15c]'
+                            : entry.clueStatus === 'disproven'
+                              ? 'bg-[#a84d4d]'
+                              : 'bg-[#bfa15f]'
+                        )}
+                        title={entry.clueStatus}
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div className="text-[11px] mt-1 line-clamp-1 opacity-70">
@@ -997,15 +1097,31 @@ export function DiscoveriesView({
                 {/* Dodatkowe metadane: Źródło, Zawód, Rejon */}
                 <div className="flex flex-wrap gap-4 mt-2 text-xs font-special-elite text-[#2c241b]/80">
                   {selectedEntry.sourceNpc && (
-                    <div>
+                    <div className="flex items-center gap-1.5">
                       <span className="font-bold">{t('witnessLabel')} </span>
-                      <span>{selectedEntry.sourceNpc}</span>
+                      <button
+                        type="button"
+                        onClick={() => navigateToNpc(selectedEntry.sourceNpcId || selectedEntry.sourceNpc!)}
+                        className="text-[#5a4428] hover:text-[#1a140f] underline flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+                        title={t('npcLink')}
+                      >
+                        <Users className="w-3 h-3 text-[#8c7353]" />
+                        <span>{selectedEntry.sourceNpc}</span>
+                      </button>
                     </div>
                   )}
                   {selectedEntry.foundLocation && (
-                    <div>
+                    <div className="flex items-center gap-1.5">
                       <span className="font-bold">{t('locationLabel')} </span>
-                      <span>{selectedEntry.foundLocation}</span>
+                      <button
+                        type="button"
+                        onClick={() => navigateToLocation(selectedEntry.foundLocationId || selectedEntry.foundLocation!)}
+                        className="text-[#5a4428] hover:text-[#1a140f] underline flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+                        title={t('locationLink')}
+                      >
+                        <MapPin className="w-3 h-3 text-[#8c7353]" />
+                        <span>{selectedEntry.foundLocation}</span>
+                      </button>
                     </div>
                   )}
                   {selectedEntry.occupation && (
@@ -1047,6 +1163,35 @@ export function DiscoveriesView({
                     </div>
                   )}
 
+                {/* Powiązane poszlaki postaci (Clues related to this NPC) */}
+                {activeCategory === 'characters' && relatedCluesForSelectedNpc.length > 0 && (
+                  <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#bfa15f]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#8c7353]" />
+                      <span>{t('relatedCluesHeading')} ({relatedCluesForSelectedNpc.length})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {relatedCluesForSelectedNpc.map((clue) => (
+                        <button
+                          key={clue.id}
+                          type="button"
+                          onClick={() => navigateToClue(clue.id)}
+                          className="px-2 py-1 bg-[#d9cbb2] hover:bg-[#cbbba2] border border-[#8c7353]/50 rounded text-xs font-special-elite text-[#1a140f] flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title={t('clueLink')}
+                        >
+                          <span>🔍</span>
+                          <span className="font-semibold underline">{clue.title}</span>
+                          {clue.clueStatus && (
+                            <span className="text-[9px] text-[#5a4428] font-mono">
+                              [{t(`clueStatus_${clue.clueStatus}` as Parameters<typeof t>[0])}]
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Zagadka Zamkniętego Pokoju (John Dickson Carr - The Hollow Man) */}
                 {activeCategory === 'places' && selectedEntry.lockedRoomMystery && (
                   <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#8a1c1c]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
@@ -1063,6 +1208,62 @@ export function DiscoveriesView({
                         <span>{selectedEntry.lockedRoomMystery.investigationHint}</span>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Obecne postacie w lokacji (Resident NPCs) */}
+                {activeCategory === 'places' && residentNpcsForSelectedLocation.length > 0 && (
+                  <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#bfa15f]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-[#8c7353]" />
+                      <span>{t('npcsPresentHeading')} ({residentNpcsForSelectedLocation.length})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {residentNpcsForSelectedLocation.map((npc) => (
+                        <button
+                          key={npc.id}
+                          type="button"
+                          onClick={() => navigateToNpc(npc.id)}
+                          className="px-2 py-1 bg-[#d9cbb2] hover:bg-[#cbbba2] border border-[#8c7353]/50 rounded text-xs font-special-elite text-[#1a140f] flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title={t('npcLink')}
+                        >
+                          <span>👤</span>
+                          <span className="font-semibold underline">{npc.title}</span>
+                          {npc.occupation && (
+                            <span className="text-[9px] text-[#5a4428]">({npc.occupation})</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Poszlaki odkryte w tej lokacji (Discovered Clues in Location) */}
+                {activeCategory === 'places' && discoveredCluesForSelectedLocation.length > 0 && (
+                  <div className="mt-3 p-3 bg-[#e8deca]/60 border border-[#bfa15f]/40 rounded text-xs font-special-elite space-y-1.5 text-[#2c241b]">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-[#5a4428] border-b border-[#bfa15f]/30 pb-1 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#8c7353]" />
+                      <span>{t('relatedCluesHeading')} ({discoveredCluesForSelectedLocation.length})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {discoveredCluesForSelectedLocation.map((clue) => (
+                        <button
+                          key={clue.id}
+                          type="button"
+                          onClick={() => navigateToClue(clue.id)}
+                          className="px-2 py-1 bg-[#d9cbb2] hover:bg-[#cbbba2] border border-[#8c7353]/50 rounded text-xs font-special-elite text-[#1a140f] flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title={t('clueLink')}
+                        >
+                          <span>🔍</span>
+                          <span className="font-semibold underline">{clue.title}</span>
+                          {clue.clueStatus && (
+                            <span className="text-[9px] text-[#5a4428] font-mono">
+                              [{t(`clueStatus_${clue.clueStatus}` as Parameters<typeof t>[0])}]
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1104,16 +1305,26 @@ export function DiscoveriesView({
 
               {/* TRÓJSTOPNIOWE NOTATKI / THREE-TIER NOTES */}
 
-              {/* TIER 1: Syntetyczny Fakt (One-Glance Digest) */}
-              <div className="my-4 p-3.5 bg-[#f0e6d5] border-l-4 border-[#bfa15f] border-y border-r border-[#d1c2ab] rounded-r shadow-sm clear-both">
+              {/* TIER 1: Syntetyczny Fakt (One-Glance Digest) - Klikalny do cytowania na czacie (Quote-to-Input) */}
+              <div
+                onClick={handleQuoteToChat}
+                title={t('clickToQuoteFact')}
+                className="my-4 p-3.5 bg-[#f0e6d5] hover:bg-[#ebdcc7] border-l-4 border-[#bfa15f] border-y border-r border-[#d1c2ab] rounded-r shadow-sm clear-both cursor-pointer transition-colors group select-none"
+              >
                 <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a4428] font-bold mb-1 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5 text-[#bfa15f]" />
                     {t('tierOneFact')}
                   </span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#2c241b] text-[#f4ebd0] font-mono">
-                    Tier 1: One-Glance
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#2c241b] text-[#f4ebd0] font-mono">
+                      Tier 1: One-Glance
+                    </span>
+                    <span className="text-[10px] text-[#8c7353] group-hover:text-[#1a140f] flex items-center gap-1 font-special-elite font-bold transition-colors">
+                      <MessageSquare className="h-3.5 w-3.5 text-[#8c7353] group-hover:text-[#1a140f]" />
+                      <span>{t('clickToQuoteFact')}</span>
+                    </span>
+                  </div>
                 </div>
                 <p className="font-serif italic text-sm text-[#1a140f] leading-snug">
                   &ldquo;{synthesizedFact}&rdquo;

@@ -84,6 +84,8 @@ export interface NpcDossierEntry {
   inGameDate?: string;
   timestamp?: number;
   sourceJournalEntryId?: string;
+  /** Identyfikatory poszlak powiązanych z tą postacią / przez nią przekazanych */
+  relatedClueIds?: string[];
 
   // === Trójwymiarowy profil postaci według Lajosa Egriego (The Art of Dramatic Writing) ===
   /** Wymiar fizjologiczny: cecha wyglądu, tik, manieryzm fizyczny, postawa */
@@ -119,6 +121,8 @@ export interface LocationDossierEntry {
   addressOrRegion?: string;
   searchStatus: LocationSearchStatus;
   discoveredClueIds?: string[];
+  /** Identyfikatory postaci powiązanych z tą lokacją lub w niej przebywających */
+  npcIds?: string[];
   description?: string;
   tags?: string[];
   imageUrl?: string;
@@ -275,4 +279,156 @@ export function isSceneDossierEntry(item: unknown): item is SceneDossierEntry {
     typeof s.act === 'number' &&
     Array.isArray(s.beats)
   );
+}
+
+/**
+ * Uszczelnia relacje dwukierunkowe w Aktach Śledczych (Fact <-> NPC <-> Location).
+ * Chroni przed gubieniem referencji i powiązań między poszlakami, postaciami a lokacjami.
+ * Zwraca true, jeśli zaktualizowano jakiekolwiek referencje.
+ */
+export function linkClueNpcLocation(dossier: InvestigatorDossier): boolean {
+  if (!dossier) return false;
+  let changed = false;
+
+  const npcsByName = new Map<string, NpcDossierEntry>();
+  const npcsById = new Map<string, NpcDossierEntry>();
+  for (const n of dossier.npcs || []) {
+    if (n.name) npcsByName.set(n.name.trim().toLowerCase(), n);
+    if (n.id) npcsById.set(n.id, n);
+  }
+
+  const locationsByName = new Map<string, LocationDossierEntry>();
+  const locationsById = new Map<string, LocationDossierEntry>();
+  for (const l of dossier.locations || []) {
+    if (l.name) locationsByName.set(l.name.trim().toLowerCase(), l);
+    if (l.id) locationsById.set(l.id, l);
+  }
+
+  // 1. Poszlaki: połącz z NPC i Lokacjami
+  for (const clue of dossier.clues || []) {
+    // A. Źródłowy NPC
+    if (clue.sourceNpc && !clue.sourceNpcId) {
+      const match = npcsByName.get(clue.sourceNpc.trim().toLowerCase());
+      if (match) {
+        clue.sourceNpcId = match.id;
+        changed = true;
+      }
+    } else if (clue.sourceNpcId && !clue.sourceNpc) {
+      const match = npcsById.get(clue.sourceNpcId);
+      if (match) {
+        clue.sourceNpc = match.name;
+        changed = true;
+      }
+    }
+
+    if (clue.sourceNpcId) {
+      const npc = npcsById.get(clue.sourceNpcId);
+      if (npc) {
+        if (!npc.relatedClueIds) npc.relatedClueIds = [];
+        if (!npc.relatedClueIds.includes(clue.id)) {
+          npc.relatedClueIds.push(clue.id);
+          changed = true;
+        }
+      }
+    }
+
+    // B. Lokacja znalezienia
+    if (clue.foundLocation && !clue.foundLocationId) {
+      const match = locationsByName.get(clue.foundLocation.trim().toLowerCase());
+      if (match) {
+        clue.foundLocationId = match.id;
+        changed = true;
+      }
+    } else if (clue.foundLocationId && !clue.foundLocation) {
+      const match = locationsById.get(clue.foundLocationId);
+      if (match) {
+        clue.foundLocation = match.name;
+        changed = true;
+      }
+    }
+
+    if (clue.foundLocationId) {
+      const loc = locationsById.get(clue.foundLocationId);
+      if (loc) {
+        if (!loc.discoveredClueIds) loc.discoveredClueIds = [];
+        if (!loc.discoveredClueIds.includes(clue.id)) {
+          loc.discoveredClueIds.push(clue.id);
+          changed = true;
+        }
+      }
+    }
+  }
+
+  // 2. Postacie NPC: połącz z Lokacją
+  for (const npc of dossier.npcs || []) {
+    if (npc.location && !npc.locationId) {
+      const match = locationsByName.get(npc.location.trim().toLowerCase());
+      if (match) {
+        npc.locationId = match.id;
+        changed = true;
+      }
+    } else if (npc.locationId && !npc.location) {
+      const match = locationsById.get(npc.locationId);
+      if (match) {
+        npc.location = match.name;
+        changed = true;
+      }
+    }
+
+    if (npc.locationId) {
+      const loc = locationsById.get(npc.locationId);
+      if (loc) {
+        if (!loc.npcIds) loc.npcIds = [];
+        if (!loc.npcIds.includes(npc.id)) {
+          loc.npcIds.push(npc.id);
+          changed = true;
+        }
+      }
+    }
+
+    // Sprawdź czy relatedClueIds są dwustronnie zsynchronizowane
+    if (Array.isArray(npc.relatedClueIds)) {
+      for (const cId of npc.relatedClueIds) {
+        const clue = dossier.clues?.find((c) => c.id === cId);
+        if (clue) {
+          if (clue.sourceNpcId !== npc.id) {
+            clue.sourceNpcId = npc.id;
+            clue.sourceNpc = npc.name;
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Lokacje: połącz z poszlakami i postaciami
+  for (const loc of dossier.locations || []) {
+    if (Array.isArray(loc.discoveredClueIds)) {
+      for (const cId of loc.discoveredClueIds) {
+        const clue = dossier.clues?.find((c) => c.id === cId);
+        if (clue) {
+          if (clue.foundLocationId !== loc.id) {
+            clue.foundLocationId = loc.id;
+            clue.foundLocation = loc.name;
+            changed = true;
+          }
+        }
+      }
+    }
+
+    if (Array.isArray(loc.npcIds)) {
+      for (const nId of loc.npcIds) {
+        const npc = dossier.npcs?.find((n) => n.id === nId);
+        if (npc) {
+          if (npc.locationId !== loc.id) {
+            npc.locationId = loc.id;
+            npc.location = loc.name;
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  return changed;
 }

@@ -19,12 +19,13 @@ import {
 } from '@/lib/journal/dossier-migration';
 import { createEquipmentItem } from '@/lib/equipment-data';
 import { safeResolveVisualEra } from '@/lib/equipment-catalog';
-import type {
-  InvestigatorDossier,
-  NpcDossierEntry,
-  ClueEntry,
-  ClueProvenance,
-  LocationDossierEntry,
+import {
+  linkClueNpcLocation,
+  type InvestigatorDossier,
+  type NpcDossierEntry,
+  type ClueEntry,
+  type ClueProvenance,
+  type LocationDossierEntry,
 } from '@/lib/journal/dossier-types';
 
 /**
@@ -178,6 +179,12 @@ export function processCharacterJournalAndDossier(
         }
       }
 
+      if (locationEntry && !existing.location) {
+        existing.location = locationEntry.title;
+        existing.locationId = revealedEntityId('location', messageId, locationEntry.title);
+        npcUpdated = true;
+      }
+
       if (npcUpdated) {
         existing.timestamp = Date.now();
         dossier.npcs[existingNpcIndex] = { ...existing };
@@ -207,6 +214,8 @@ export function processCharacterJournalAndDossier(
         sociologicalStatus,
         psychologicalAgenda,
         relationshipStatus: 'unknown',
+        location: locationEntry ? locationEntry.title : undefined,
+        locationId: locationEntry ? revealedEntityId('location', messageId, locationEntry.title) : undefined,
         timestamp: Date.now(),
       };
       dossier.npcs.push(newNpc);
@@ -329,14 +338,24 @@ export function processCharacterJournalAndDossier(
           discoveryStatus: 'discovered',
           epistemicLayer: 'player_clue',
           provenance: 'handout',
+          foundLocation: locationEntry?.title,
+          foundLocationId: locationEntry ? revealedEntityId('location', messageId, locationEntry.title) : undefined,
           timestamp: Date.now(),
           sourceJournalEntryId: jId,
         });
         changed = true;
-      } else if (!existingClue.provenance) {
-        existingClue.provenance = 'handout';
-        existingClue.timestamp = Date.now();
-        changed = true;
+      } else {
+        if (!existingClue.provenance) {
+          existingClue.provenance = 'handout';
+          existingClue.timestamp = Date.now();
+          changed = true;
+        }
+        if (!existingClue.foundLocation && locationEntry) {
+          existingClue.foundLocation = locationEntry.title;
+          existingClue.foundLocationId = revealedEntityId('location', messageId, locationEntry.title);
+          existingClue.timestamp = Date.now();
+          changed = true;
+        }
       }
     }
   }
@@ -445,6 +464,66 @@ export function processCharacterJournalAndDossier(
       const resolvedProvenance =
         explicitProvenance || inferClueProvenance(cleanClueTitle, rawContent, resolvedCategory);
 
+      // Uszczelnianie relacji: wykrywanie powiązanego NPC i Lokacji
+      let sourceNpc = tag.sourceNpc;
+      let sourceNpcId: string | undefined;
+      let foundLocation = tag.foundLocation;
+      let foundLocationId: string | undefined;
+
+      // 1. Ustalanie źródłowego NPC
+      if (!sourceNpc) {
+        if (combinedNpcs.length === 1) {
+          sourceNpc = combinedNpcs[0].name;
+        } else if (resolvedProvenance === 'testimony' && combinedNpcs.length > 0) {
+          sourceNpc = combinedNpcs[0].name;
+        } else {
+          const allCandidateNpcs = [
+            ...combinedNpcs.map((n) => ({ name: n.name, id: revealedEntityId('npc', messageId, n.name) })),
+            ...dossier.npcs,
+          ];
+          const textToScan = `${cleanClueTitle} ${rawContent}`.toLowerCase();
+          const matchedCandidate = allCandidateNpcs.find(
+            (n) => n.name && textToScan.includes(n.name.toLowerCase().trim())
+          );
+          if (matchedCandidate) {
+            sourceNpc = matchedCandidate.name;
+            sourceNpcId = matchedCandidate.id;
+          }
+        }
+      }
+
+      if (sourceNpc && !sourceNpcId) {
+        const m = dossier.npcs.find((n) => n.name.toLowerCase().trim() === sourceNpc!.toLowerCase().trim())
+          || combinedNpcs.find((n) => n.name.toLowerCase().trim() === sourceNpc!.toLowerCase().trim());
+        if (m) {
+          sourceNpcId = 'id' in m && m.id ? m.id : revealedEntityId('npc', messageId, m.name);
+        }
+      }
+
+      // 2. Ustalanie lokacji odnalezienia
+      if (!foundLocation) {
+        if (locationEntry) {
+          foundLocation = locationEntry.title;
+          foundLocationId = revealedEntityId('location', messageId, locationEntry.title);
+        } else {
+          const textToScan = `${cleanClueTitle} ${rawContent}`.toLowerCase();
+          const matchedLoc = dossier.locations.find(
+            (l) => l.name && textToScan.includes(l.name.toLowerCase().trim())
+          );
+          if (matchedLoc) {
+            foundLocation = matchedLoc.name;
+            foundLocationId = matchedLoc.id;
+          }
+        }
+      }
+
+      if (foundLocation && !foundLocationId) {
+        const m = dossier.locations.find((l) => l.name.toLowerCase().trim() === foundLocation!.toLowerCase().trim());
+        if (m) {
+          foundLocationId = m.id;
+        }
+      }
+
       if (!existingClue) {
         const isKey = /klucz|core|key|główn/i.test(`${cleanClueTitle} ${tag.content}`);
         const resolvedMiceType = explicitMiceType || inferClueMiceType(cleanClueTitle, fact);
@@ -457,6 +536,10 @@ export function processCharacterJournalAndDossier(
           discoveryStatus: 'discovered',
           epistemicLayer: 'player_clue',
           provenance: resolvedProvenance,
+          sourceNpc,
+          sourceNpcId,
+          foundLocation,
+          foundLocationId,
           isKeyClue: isKey,
           miceType: resolvedMiceType,
           miceObjective,
@@ -481,6 +564,18 @@ export function processCharacterJournalAndDossier(
           changed = true;
         } else if (!existingClue.provenance && resolvedProvenance) {
           existingClue.provenance = resolvedProvenance;
+          existingClue.timestamp = Date.now();
+          changed = true;
+        }
+        if (!existingClue.sourceNpc && sourceNpc) {
+          existingClue.sourceNpc = sourceNpc;
+          existingClue.sourceNpcId = sourceNpcId;
+          existingClue.timestamp = Date.now();
+          changed = true;
+        }
+        if (!existingClue.foundLocation && foundLocation) {
+          existingClue.foundLocation = foundLocation;
+          existingClue.foundLocationId = foundLocationId;
           existingClue.timestamp = Date.now();
           changed = true;
         }
@@ -616,6 +711,11 @@ export function processCharacterJournalAndDossier(
       existingJournalIds.add(locationEntry.id);
       changed = true;
     }
+  }
+
+  // 4. Uszczelnienie relacji dwukierunkowych (Fact <-> NPC <-> Location)
+  if (linkClueNpcLocation(dossier)) {
+    changed = true;
   }
 
   if (!changed) return { character, changed: false };
