@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { Campaign, AdventureContext, Message, Character } from '@/lib/types';
@@ -56,6 +56,7 @@ import type { RandomEvent } from '@/lib/random-event-generator';
 import { resolveGameEraContext } from '@/lib/era';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import { timeManager } from '@/lib/time-manager';
+import { getSessionCharacters } from '@/lib/hot-seat/session-party';
 
 
 const ChatWindow = dynamic(
@@ -196,12 +197,29 @@ export default function Home() {
     useState<RandomEvent | null>(null);
 
   
+  const [hasStartedGame, setHasStartedGame] = useState(false);
   const hotSeat = useHotSeat(charMgmt.characters);
+
+  const sessionCharacters = useMemo(
+    () =>
+      getSessionCharacters(
+        charMgmt.characters,
+        hotSeat.config,
+        hasStartedGame,
+        charMgmt.activeCharacter
+      ),
+    [
+      charMgmt.characters,
+      hotSeat.config,
+      hasStartedGame,
+      charMgmt.activeCharacter,
+    ]
+  );
 
   const chat = useChat({
     pdfMemory: pdf.pdfMemory,
     activeCharacter: charMgmt.activeCharacter,
-    characters: charMgmt.characters,
+    characters: sessionCharacters,
     setCharacters: charMgmt.setCharacters,
     setActiveCharacter: charMgmt.setActiveCharacter,
     voiceEnabled: tts.voiceEnabled,
@@ -269,7 +287,6 @@ export default function Home() {
   
   
   
-  const [hasStartedGame, setHasStartedGame] = useState(false);
   const [sessionZeroCompleted, setSessionZeroCompleted] = useState(false);
   const [pendingGameStart, setPendingGameStart] = useState(false);
 
@@ -292,7 +309,7 @@ export default function Home() {
     adventureContext: adventureContext?.title,
     setActiveCharacter: charMgmt.setActiveCharacter,
     setCharacters: charMgmt.setCharacters,
-    characters: charMgmt.characters,
+    characters: sessionCharacters,
   });
 
   
@@ -319,7 +336,7 @@ export default function Home() {
     setHasStartedGame,
     runHealthCheck,
     activeCharacter: charMgmt.activeCharacter,
-    characters: charMgmt.characters,
+    characters: sessionCharacters,
     setActiveCharacter: charMgmt.setActiveCharacter,
     setCharacters: charMgmt.setCharacters,
     pdfMemory: pdf.pdfMemory,
@@ -428,22 +445,26 @@ export default function Home() {
 
   const handleSelectPredefinedCharacter = useCallback(
     (character: Character) => {
-      const stamped = {
+      const stamped: Character = {
         ...character,
         id: `${character.id}_${Date.now()}`,
+        sourcePresetId: character.sourcePresetId || character.id,
       };
 
-      
       const targetPlayer = localStorage.getItem('hotSeatCreatingPlayerName');
       if (targetPlayer) {
         stamped.playerName = targetPlayer;
         localStorage.removeItem('hotSeatCreatingPlayerName');
       }
 
-      const existingCharacters = [...charMgmt.characters];
-      existingCharacters.push(stamped);
+      const withoutPreset = charMgmt.characters.filter(
+        (c) =>
+          c.sourcePresetId !== character.id &&
+          c.sourcePresetId !== character.sourcePresetId &&
+          c.id !== character.id
+      );
+      const existingCharacters = [...withoutPreset, stamped];
 
-      
       charMgmt.setCharacters(existingCharacters);
       charMgmt.setActiveCharacter(stamped);
 
@@ -603,7 +624,11 @@ export default function Home() {
         if (mode === 'hot-seat') {
           stamped.playerName = t('player1Name');
         }
-        const updatedList = [...charMgmt.characters, stamped];
+        // Deduplikacja: zastąp wcześniejszy klon tego samego presetu zamiast mnożyć wpisy
+        const withoutPreset1 = charMgmt.characters.filter(
+          (c) => c.sourcePresetId !== foundPreset?.id && c.id !== foundPreset?.id
+        );
+        const updatedList = [...withoutPreset1, stamped];
 
         if (mode === 'hot-seat') {
           
@@ -627,8 +652,11 @@ export default function Home() {
               sourcePresetId: preset2.id,
               playerName: t('player2Name'),
             };
-            updatedList.push(stamped2);
-            charMgmt.setCharacters(updatedList);
+            const finalWithoutPreset2 = updatedList.filter(
+              (c) => c.sourcePresetId !== preset2?.id && c.id !== preset2?.id
+            );
+            finalWithoutPreset2.push(stamped2);
+            charMgmt.setCharacters(finalWithoutPreset2);
             charMgmt.setActiveCharacter(stamped);
 
             hotSeat.restoreConfig(
@@ -656,7 +684,7 @@ export default function Home() {
                 allowInterruptions: true,
                 showPlayerIndicator: true,
               },
-              updatedList
+              finalWithoutPreset2
             );
           }
         } else {
@@ -954,7 +982,7 @@ export default function Home() {
           onOpenBetaStatus={() => setShowBetaWelcomeModal(true)}
           onOpenBetaFeedback={() => setShowBetaFeedbackModal(true)}
           activeCharacter={charMgmt.activeCharacter || undefined}
-          characters={charMgmt.characters}
+          characters={sessionCharacters}
           onCharacterSwitch={charMgmt.handleCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
@@ -1202,7 +1230,7 @@ export default function Home() {
           isAudioPaused={tts.isAudioPaused}
           isTTSEnabled={tts.isTTSEnabled}
           activeCharacter={charMgmt.activeCharacter}
-          characters={charMgmt.characters}
+          characters={sessionCharacters}
           onJournalRoll={(roll, justification) => {
             const c = charMgmt.activeCharacter;
             if (!c) return;

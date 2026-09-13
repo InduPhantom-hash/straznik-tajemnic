@@ -1,5 +1,5 @@
-import type { EquipmentCategory, HazardEventData, HazardType, SpellCastEventData, TomeStudyEventData } from '../types';
-export type { HazardEventData, HazardType, SpellCastEventData, TomeStudyEventData };
+import type { EquipmentCategory, HazardEventData, HazardType, OpposedMagicEventData, SpellCastEventData, TomeStudyEventData } from '../types';
+export type { HazardEventData, HazardType, OpposedMagicEventData, SpellCastEventData, TomeStudyEventData };
 
 export type EquipmentEventAction = 'use' | 'remove' | 'add';
 
@@ -162,6 +162,7 @@ export interface ParsedResponse {
   skillResults: SkillTestResult[];
   hazardEvents?: HazardEventData[];
   spellCastEvents?: SpellCastEventData[];
+  opposedMagicEvents?: OpposedMagicEventData[];
   tomeStudyEvents?: TomeStudyEventData[];
   meleeAttacks: MeleeAttackReference[];
   equipmentEvents: EquipmentEvent[];

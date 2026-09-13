@@ -318,7 +318,7 @@ describe('MessageCard - czary i rytuały (Issue #252)', () => {
     );
 
     expect(screen.getByText('Pieśń Bólu')).toBeInTheDocument();
-    expect(screen.getByText('Uwiąd Kończyny')).toBeInTheDocument();
+    expect(screen.getByText('Uschnięcie Kończyny')).toBeInTheDocument();
 
     const castBtn = screen.getByRole('button', { name: /Rzuć zaklęcie/i });
     fireEvent.click(castBtn);
@@ -397,6 +397,53 @@ describe('MessageCard - czary i rytuały (Issue #252)', () => {
 
     expect(screen.getByText(/Badanie tomu zakończone/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Wstępny przegląd/i })).not.toBeInTheDocument();
+  });
+
+  it('renderuje kartę obrony przed wrogą magią (OpposedMagicCard) i pozwala na rzut obronny', () => {
+    const onSendOpposedMagicResult = jest.fn();
+    const opposedMessage: Message = {
+      id: 'msg-opposed-1',
+      role: 'assistant',
+      content: 'Wrogi czarownik rzuca zaklęcie!',
+      timestamp: new Date(),
+      opposedMagicEvents: [
+        {
+          id: 'opposed-1',
+          attackerName: 'Kultysta Silas',
+          attackerPow: 65,
+          spellId: 'dominate',
+          spellName: 'Dominacja',
+          characterName: 'Alice',
+          description: 'Kultysta próbuje przełamać Twoją wolę.',
+        },
+      ],
+    };
+
+    const { rerender } = render(
+      <MessageCard
+        {...baseProps}
+        message={opposedMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        onSendOpposedMagicResult={onSendOpposedMagicResult}
+      />
+    );
+
+    expect(screen.getByText(/Wroga Magia: Starcie Woli/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Broń się siłą woli/i })).toBeInTheDocument();
+
+    // Po rozstrzygnięciu (id w resolvedOpposedMagicIds)
+    rerender(
+      <MessageCard
+        {...baseProps}
+        message={opposedMessage}
+        activeCharacter={alice}
+        characters={[alice]}
+        resolvedOpposedMagicIds={new Set(['opposed-1'])}
+      />
+    );
+
+    expect(screen.getByText(/Starcie woli rozstrzygnięte/i)).toBeInTheDocument();
   });
 });
 

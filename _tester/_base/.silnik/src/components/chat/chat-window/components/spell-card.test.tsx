@@ -37,7 +37,7 @@ describe('SpellCard - rzucanie zaklęć i rytuałów Fiction First CoC 7e RAW', 
 
     // Tytuł diegetyczny i kanoniczny
     expect(screen.getByText(/Pieśń Bólu/i)).toBeInTheDocument();
-    expect(screen.getByText(/Uwiąd Kończyny/i)).toBeInTheDocument();
+    expect(screen.getByText(/Uschnięcie Kończyny/i)).toBeInTheDocument();
 
     // Bilans zasobów Pre-flight
     expect(screen.getByText(/14 PM/i)).toBeInTheDocument();

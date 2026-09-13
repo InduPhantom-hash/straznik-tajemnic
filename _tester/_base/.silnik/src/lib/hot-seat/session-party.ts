@@ -1,18 +1,28 @@
 import type { Character, HotSeatConfig } from '@/lib/types';
 
-/** Zwraca roster widoczny w grze, zachowując kolejność graczy Hot Seat. */
+/** Zwraca listę postaci biorących czynny udział w sesji gry. */
 export function getSessionCharacters(
   characters: Character[],
   config: HotSeatConfig,
-  sessionStarted: boolean
+  sessionStarted: boolean,
+  activeCharacter?: Character | null
 ): Character[] {
-  if (!sessionStarted || !config.enabled) return characters;
-  const byId = new Map(
-    characters.map((character) => [character.id, character])
-  );
-  return config.players
-    .map((player) => byId.get(player.characterId))
-    .filter((character): character is Character => !!character);
+  if (!sessionStarted) return characters;
+
+  if (config.enabled) {
+    const byId = new Map(
+      characters.map((character) => [character.id, character])
+    );
+    return config.players
+      .map((player) => byId.get(player.characterId))
+      .filter((character): character is Character => !!character);
+  }
+
+  // W trybie Solo po starcie sesji bierze udział WYŁĄCZNIE aktywna postać gracza
+  if (activeCharacter) {
+    return [activeCharacter];
+  }
+  return characters.length > 0 ? [characters[0]] : [];
 }
 
 export function findPlayerIndexForCharacter(

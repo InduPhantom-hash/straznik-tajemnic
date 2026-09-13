@@ -1,3 +1,4 @@
+import { getSpellDefinition, getTomeDefinition } from '@/lib/magic';
 /**
  * buildAdditionalContext - pure function dla sekcji 8 route.ts (IND-71 micro 1/3).
  *
@@ -294,6 +295,122 @@ export interface BuildActiveInvestigationOpts {
  *
  * Zachowuje 100% symetrię językową (PL + EN).
  */
+
+/**
+ * Sekcja magii postaci gracza (Wierzący/Sceptyk, Punkty Magii, znane zaklęcia, tomy).
+ * Zapobiega zmyślaniu czarów i halucynacjom reguł w narracji AI (Issue #318).
+ */
+export function buildPlayerMagicSection(
+  character: Character | null | undefined,
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  if (!character) return '';
+
+  const maxMp = Math.floor((character.pow ?? 50) / 5);
+  const currentMp = character.mp ?? maxMp;
+  const belief = character.magic?.belief ?? 'believer';
+  const isBeliever = belief === 'believer';
+
+  const knownSpellsMap = character.magic?.knownSpells ?? {};
+  const spellEntries = Object.values(knownSpellsMap);
+
+  const tomeStudiesMap = character.magic?.tomeStudies ?? {};
+  const tomeEntries = Object.values(tomeStudiesMap);
+
+  const isPl = locale === 'pl';
+  const lines: string[] = [];
+
+  if (isPl) {
+    lines.push(`\n## MAGIA I WIEDZA NADPRZYRODZONA BADACZA (${character.name})`);
+    lines.push(
+      `- **Status wiary:** ${
+        isBeliever
+          ? 'Wierzący (może rzucać poznane czary, pełna strata SAN przy kontakcie z Mitami)'
+          : 'Sceptyk (ZAKAZ rzucania czarów! Odłożona strata SAN do momentu załamania racjonalizmu)'
+      }`
+    );
+    lines.push(`- **Punkty Magii (PM):** ${currentMp} / ${maxMp} (regeneracja: 1 PM na godzinę)`);
+
+    if (spellEntries.length > 0) {
+      lines.push(`- **Znane zaklęcia:**`);
+      for (const s of spellEntries) {
+        const def = getSpellDefinition(s.spellId);
+        const name = def?.namePl ?? s.spellId;
+        const aliasStr = s.knownAlias ? ` (znane jako: „${s.knownAlias}”)` : '';
+        const castStatus = s.isFirstCastDone
+          ? 'opanowane (sukces automatyczny bez rzutu kością)'
+          : 'wymaga pierwszego rzucenia (Trudny test POW)';
+        lines.push(
+          `  * **${name}**${aliasStr} - status: ${castStatus}${s.deeperUnlocked ? ' [Głębsza Magia odblokowana]' : ''}`
+        );
+      }
+    } else {
+      lines.push(`- **Znane zaklęcia:** Brak poznanych zaklęć.`);
+    }
+
+    if (tomeEntries.length > 0) {
+      lines.push(`- **Przestudiowane tomy Mitów:**`);
+      for (const t of tomeEntries) {
+        const def = getTomeDefinition(t.tomeId);
+        const title = def?.titlePl ?? t.tomeId;
+        const status =
+          t.studyCount > 0
+            ? `pełne studium (${t.studyCount}x)`
+            : 'wstępny przegląd (skimming)';
+        lines.push(`  * **${title}** - status: ${status}`);
+      }
+    }
+
+    lines.push(
+      `- **DYREKTYWA DLA STRAŻNIKA TAJEMNIC:** NIGDY nie rozstrzygaj rzucania magii ani obrony w prozie narracyjnej! Gdy badacz rzuca czar, wyemituj tag \`[CZAR:...]\`. Gdy wróg rzuca czar na badacza, wyemituj tag obrony \`[OBRONA_MAGIA: @${character.name}: rzucajacy=... | pow=... | czar=... | opis=...]\`. Zakaz rzucania zaklęć spoza listy znanych czarów bez procedury Magii Spontanicznej (\`[MAGIA_SPONTANICZNA:...]\`).`
+    );
+  } else {
+    lines.push(`\n## INVESTIGATOR MAGIC & SUPERNATURAL LORE (${character.name})`);
+    lines.push(
+      `- **Belief Status:** ${
+        isBeliever
+          ? 'Believer (can cast learned spells, full SAN loss upon Mythos contact)'
+          : 'Skeptic (FORBIDDEN to cast spells! Deferred SAN loss until rationalism breaks)'
+      }`
+    );
+    lines.push(`- **Magic Points (MP):** ${currentMp} / ${maxMp} (regains 1 MP per hour)`);
+
+    if (spellEntries.length > 0) {
+      lines.push(`- **Known Spells:**`);
+      for (const s of spellEntries) {
+        const def = getSpellDefinition(s.spellId);
+        const name = def?.nameEn ?? s.spellId;
+        const aliasStr = s.knownAlias ? ` (known as: "${s.knownAlias}")` : '';
+        const castStatus = s.isFirstCastDone
+          ? 'mastered (automatic success without die roll)'
+          : 'requires first cast (Hard POW test)';
+        lines.push(
+          `  * **${name}**${aliasStr} - status: ${castStatus}${s.deeperUnlocked ? ' [Deeper Magic unlocked]' : ''}`
+        );
+      }
+    } else {
+      lines.push(`- **Known Spells:** None.`);
+    }
+
+    if (tomeEntries.length > 0) {
+      lines.push(`- **Studied Mythos Tomes:**`);
+      for (const t of tomeEntries) {
+        const def = getTomeDefinition(t.tomeId);
+        const title = def?.titleEn ?? t.tomeId;
+        const status =
+          t.studyCount > 0 ? `full study (${t.studyCount}x)` : 'skimming';
+        lines.push(`  * **${title}** - status: ${status}`);
+      }
+    }
+
+    lines.push(
+      `- **KEEPER DIRECTIVE:** NEVER resolve spellcasting or magic defense in prose! When investigator casts a spell, emit \`[CZAR:...]\`. When enemy casts magic on investigator, emit \`[OBRONA_MAGIA: @${character.name}: rzucajacy=... | pow=... | czar=... | opis=...]\`. Casting unknown spells without Spontaneous Magic (\`[MAGIA_SPONTANICZNA:...]\`) is forbidden.`
+    );
+  }
+
+  return lines.join('\n');
+}
+
 export function buildActiveInvestigationSection(
   opts: BuildActiveInvestigationOpts
 ): string {
@@ -545,6 +662,10 @@ export interface BuildAdditionalContextOpts {
   playerFinancesSection?: string;
   /** Stały profil fizyczny Badacza (Visual DNA) */
   playerVisualProfileSection?: string;
+  /** Magia i wiedza nadprzyrodzona postaci gracza (status wiary, znane zaklęcia, tomy) */
+  playerMagicSection?: string;
+  /** Opcjonalna tablica wiadomości czatu */
+  messages?: Array<{ role: string; content: string }>;
   sessionId?: string;
   ragSection?: string;
   summarySection?: string | null;
@@ -726,6 +847,11 @@ export function buildAdditionalContext(
   // Sytuacja finansowa i Zamożność - AI zna poziom wydatków i gotówkę wg CoC 7e RAW.
   if (playerFinancesSection) {
     additionalContext.push(playerFinancesSection);
+  }
+
+  // Magia i wiedza nadprzyrodzona Badacza - AI zna status wiary, czary i tomy.
+  if (opts.playerMagicSection) {
+    additionalContext.push(opts.playerMagicSection);
   }
 
   // Wstrzykiwanie Ustawy Przygody na podstawie tonu (dynamiczne pacingi z debaty)

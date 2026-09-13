@@ -23,6 +23,7 @@ import { SkillTestCard } from './skill-test-card';
 import { HazardCard } from './hazard-card';
 import { SpellCard } from './spell-card';
 import { TomeCard } from './tome-card';
+import { OpposedMagicCard } from './opposed-magic-card';
 import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
@@ -66,6 +67,8 @@ interface MessageCardProps {
   resolvedSpellIds?: ReadonlySet<string>;
   onSendTomeResult?: (message: string) => void;
   resolvedTomeIds?: ReadonlySet<string>;
+  onSendOpposedMagicResult?: (message: string) => void;
+  resolvedOpposedMagicIds?: ReadonlySet<string>;
   onSendCombatResult?: (message: string) => void;
   resolvedCombatIds?: ReadonlySet<string>;
   onCombatDefense?: (
@@ -111,6 +114,8 @@ export function MessageCard({
   resolvedSpellIds,
   onSendTomeResult,
   resolvedTomeIds,
+  onSendOpposedMagicResult,
+  resolvedOpposedMagicIds,
   onSendCombatResult,
   resolvedCombatIds,
   onCombatDefense,
@@ -409,6 +414,23 @@ export function MessageCard({
                     completed={resolvedTomeIds?.has(tomeEvent.id)}
                     onCharacterUpdate={onCharacterUpdate}
                     onSendChat={onSendTomeResult}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Obrona przed wrogą magią CoC 7e RAW (Issue #318) */}
+            {message.opposedMagicEvents && message.opposedMagicEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.opposedMagicEvents.map((opposedEvent) => (
+                  <OpposedMagicCard
+                    key={opposedEvent.id}
+                    opposedEvent={opposedEvent}
+                    activeCharacter={activeCharacter}
+                    characters={characters}
+                    completed={resolvedOpposedMagicIds?.has(opposedEvent.id)}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onSendChat={onSendOpposedMagicResult}
                   />
                 ))}
               </div>

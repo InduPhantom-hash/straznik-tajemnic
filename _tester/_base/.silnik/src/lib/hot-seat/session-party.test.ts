@@ -47,6 +47,14 @@ describe('session party', () => {
     expect(getSessionCharacters(characters, config, false)).toHaveLength(3);
   });
 
+  it('w trybie Solo po starcie gry zwraca wyłącznie aktywną postać gracza', () => {
+    const soloConfig = { ...config, enabled: false, players: [] };
+    const active = characters[1];
+    expect(getSessionCharacters(characters, soloConfig, true, active)).toEqual([
+      active,
+    ]);
+  });
+
   it('mapuje wybór postaci na właściwego gracza', () => {
     expect(findPlayerIndexForCharacter(config, 'margaret')).toBe(1);
   });

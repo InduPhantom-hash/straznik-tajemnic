@@ -1,11 +1,14 @@
 import type {
   CastingRequest,
   CastingResolution,
+  CastingCatastrophe,
   SpontaneousMagicRequest,
   SpontaneousMagicResolution,
   SpellDefinition,
+  OpposedDefenseRequest,
+  OpposedDefenseResolution,
 } from './types';
-import { getSpellDefinition } from './catalog';
+import { getSpellDefinition, getCatastropheEffect } from './catalog';
 import { IMagicDiceRoller, StandardMagicDiceRoller } from './dice-roller';
 import { evaluateSkillCheck, meetsDifficulty, RollOutcome } from '@/lib/dice-utils';
 
@@ -210,13 +213,42 @@ export class MagicEngine {
 
     // 4. Zaklęcie udane (lub porażka forsowania z katastrofą)
     let totalSanCost = rawSanCost;
+    let totalPowCost = rawPowCost;
+    let catastropheData: CastingCatastrophe | undefined;
     let catastropheText = '';
 
     if (firstCastRollData?.pushedFailedCatastrophe) {
-      // Katastrofa forsowania: dodatkowy mnożnik lub koszt
-      const catastropheMult = this.roller.rollFormula('1k4');
-      totalSanCost = rawSanCost + catastropheMult;
-      catastropheText = ` [KATASTROFA FORSOWANIA: Zaklęcie wyrwało się z rąk badacza! Dodatkowa utrata ${catastropheMult} SAN i zwrócenie uwagi bytu Mitów!]`;
+      // Katastrofa forsowania wg CoC 7e RAW (str. 197-198):
+      // 1. Pełny koszt zaklęcia mnożony przez kość 1K6
+      const costMultiplier = Math.max(1, this.roller.rollFormula('1k6'));
+      const multipliedMp = rawMpCost * costMultiplier;
+      const multipliedSan = rawSanCost * costMultiplier;
+      const multipliedPow = rawPowCost * costMultiplier;
+
+      // 2. Pobranie PM i pokrycie niedoboru z HP (1:1 RAW)
+      if (request.casterMp >= multipliedMp) {
+        mpPaid = multipliedMp;
+        hpFromMp = 0;
+      } else {
+        mpPaid = request.casterMp;
+        hpFromMp = multipliedMp - request.casterMp;
+      }
+
+      totalSanCost = multipliedSan;
+      totalPowCost = multipliedPow;
+
+      // 3. Losowanie skutku z oficjalnej tabeli 1K8 katastrof (pomniejszych lub większych)
+      const tier: 'minor' | 'major' = (rawPowCost > 0) ? 'major' : 'minor';
+      const catRoll = Math.max(1, Math.min(8, this.roller.rollFormula('1k8')));
+      const effect = getCatastropheEffect(tier, catRoll);
+
+      catastropheData = {
+        costMultiplier,
+        mpDeficitPaidWithHp: hpFromMp,
+        effect,
+      };
+
+      catastropheText = ` [KATASTROFA FORSOWANIA: Mnożnik kosztu 1K6 = ×${costMultiplier}! Koszt całkowity: ${multipliedMp} PM (${hpFromMp > 0 ? `niedobór ${hpFromMp} PM pobrano z HP! ` : ''}), ${multipliedSan} SAN${multipliedPow > 0 ? `, ${multipliedPow} POW` : ''}. Skutek: ${effect.name.pl}]`;
     }
 
     // 5. Test sporny POW (Opposed POW) jeśli zaklęcie tego wymaga
@@ -232,7 +264,12 @@ export class MagicEngine {
       const targetOutcome = evaluateSkillCheck(targetRoll, request.target.pow);
 
       let winner: 'caster' | 'target' | 'tie' = 'caster';
-      if (casterRank > targetRank) {
+      // Zasada granic możliwości CoC 7e RAW (str. 99): różnica 100+
+      if (request.target.pow >= request.casterPow + 100) {
+        winner = 'target';
+      } else if (request.casterPow >= request.target.pow + 100) {
+        winner = 'caster';
+      } else if (casterRank > targetRank) {
         winner = 'caster';
       } else if (casterRank < targetRank) {
         winner = 'target';
@@ -273,19 +310,20 @@ export class MagicEngine {
       isFirstCast,
       hardPowThreshold: isFirstCast ? hardPowThreshold : undefined,
       firstCastRoll: firstCastRollData,
+      catastrophe: catastropheData,
       opposedRoll: opposedRollData,
       deeperUnlockedNow,
       costPaid: {
         mp: mpPaid,
         hpFromMp,
         san: totalSanCost,
-        powPermanent: rawPowCost,
+        powPermanent: totalPowCost,
       },
       statChanges: {
         mpDelta: -mpPaid,
         hpDelta: -hpFromMp,
         sanDelta: -totalSanCost,
-        powDelta: -rawPowCost,
+        powDelta: -totalPowCost,
       },
       characterUpdates: {
         isFirstCastDone: true,
@@ -294,12 +332,12 @@ export class MagicEngine {
       message: {
         pl: isFirstCast
           ? `Ukończono pierwsze rzucenie zaklęcia „${spell.namePl}” (sukces Trudnego POW). Od teraz zaklęcie rzucane jest automatycznie bez rzutu kością.${catastropheText}`
-          : `Rzucono zaklęcie „${spell.namePl}”. Sukces automatyczny CoC 7e RAW (koszt: ${mpPaid} PM, ${hpFromMp > 0 ? `${hpFromMp} HP, ` : ''}${totalSanCost} SAN${rawPowCost > 0 ? `, ${rawPowCost} POW trwale` : ''}).`,
+          : `Rzucono zaklęcie „${spell.namePl}”. Sukces automatyczny CoC 7e RAW (koszt: ${mpPaid} PM, ${hpFromMp > 0 ? `${hpFromMp} HP, ` : ''}${totalSanCost} SAN${totalPowCost > 0 ? `, ${totalPowCost} POW trwale` : ''}).`,
         en: isFirstCast
           ? `Completed first casting of "${spell.nameEn}" (Hard POW passed). From now on, casting succeeds automatically without a die roll.${catastropheText}`
-          : `Cast "${spell.nameEn}". CoC 7e RAW automatic success (cost: ${mpPaid} MP, ${hpFromMp > 0 ? `${hpFromMp} HP, ` : ''}${totalSanCost} SAN${rawPowCost > 0 ? `, ${rawPowCost} POW permanent` : ''}).`,
+          : `Cast "${spell.nameEn}". CoC 7e RAW automatic success (cost: ${mpPaid} MP, ${hpFromMp > 0 ? `${hpFromMp} HP, ` : ''}${totalSanCost} SAN${totalPowCost > 0 ? `, ${totalPowCost} POW permanent` : ''}).`,
       },
-      gmNarrativeContext: `Zaklęcie ${spell.namePl} (${spell.diegeticNames.pl[0] ?? spell.namePl}) zadziałało. Rzucający: ${request.casterName}. Wydano ${mpPaid} PM${hpFromMp > 0 ? ` oraz ${hpFromMp} z własnej krwi (HP)` : ''}, utracono ${totalSanCost} SAN${rawPowCost > 0 ? `, trwale oddano ${rawPowCost} POW` : ''}.${opposedRollData ? ` Wynik starcia woli z ${request.target?.name}: ${opposedRollData.winner}.` : ''}${deeperUnlockedNow ? ' W stanie szaleństwa badacz pojął Głębszą Magię tego zaklęcia!' : ''}`,
+      gmNarrativeContext: `Zaklęcie ${spell.namePl} (${spell.diegeticNames.pl[0] ?? spell.namePl}) zadziałało. Rzucający: ${request.casterName}. Wydano ${mpPaid} PM${hpFromMp > 0 ? ` oraz ${hpFromMp} z własnej krwi (HP)` : ''}, utracono ${totalSanCost} SAN${totalPowCost > 0 ? `, trwale oddano ${totalPowCost} POW` : ''}.${opposedRollData ? ` Wynik starcia woli z ${request.target?.name}: ${opposedRollData.winner}.` : ''}${deeperUnlockedNow ? ' W stanie szaleństwa badacz pojął Głębszą Magię tego zaklęcia!' : ''}${catastropheData ? ` Katastrofa: ${catastropheData.effect.name.pl}.` : ''}`,
     };
 
     return resolution;
@@ -374,6 +412,106 @@ export class MagicEngine {
           : `Spontaneous magic failed (Cthulhu Mythos roll: ${roll}/${request.casterMythos}). Energy dissipated without effect.`,
       },
       gmNarrativeContext: `Próba rzucenia magii spontanicznej przez ${request.casterName}. Intencja: "${request.desiredEffect}". Wynik testu Mitów: ${success ? 'SUKCES' : 'PORAŻKA'}.`,
+    };
+  }
+
+  /**
+   * Obrona przed wrogą magią (Opposed Magic Defense - CoC 7e RAW s. 99, 101, 267).
+   * Rzut sporny MOC (POW) napastnika przeciwko MOC (POW) obrońcy.
+   * Uwzględnia Zasadę granic możliwości (KS s. 99): cel o POW wyższej o 100+ uniemożliwia sukces.
+   * Przy równym poziomie sukcesu wygrywa wyższa cecha bazowa.
+   * Przy równym poziomie sukcesu i równej cesze, obrona powstrzymuje narzucenie woli (obrońca wygrywa remis).
+   */
+  resolveOpposedDefense(request: OpposedDefenseRequest): OpposedDefenseResolution {
+    const attackerRoll = this.roller.rollD100();
+    const defenderRoll = this.roller.rollD100();
+
+    const attackerSuccessLevel = getSuccessRank(attackerRoll, request.attackerPow);
+    const defenderSuccessLevel = getSuccessRank(defenderRoll, request.defenderPow);
+
+    const attackerOutcome = evaluateSkillCheck(attackerRoll, request.attackerPow);
+    const defenderOutcome = evaluateSkillCheck(defenderRoll, request.defenderPow);
+
+    let winner: 'attacker' | 'defender' | 'tie' = 'defender';
+    let ruleOfLimitsApplied = false;
+
+    // Zasada granic możliwości CoC 7e RAW (str. 99): różnica 100+
+    if (request.attackerPow >= request.defenderPow + 100) {
+      winner = 'attacker';
+      ruleOfLimitsApplied = true;
+    } else if (request.defenderPow >= request.attackerPow + 100) {
+      winner = 'defender';
+      ruleOfLimitsApplied = true;
+    } else if (defenderSuccessLevel > attackerSuccessLevel) {
+      winner = 'defender';
+    } else if (attackerSuccessLevel > defenderSuccessLevel) {
+      winner = 'attacker';
+    } else {
+      // Remis w poziomach sukcesu -> wygrywa wyższa cecha bazowa
+      if (request.defenderPow > request.attackerPow) {
+        winner = 'defender';
+      } else if (request.attackerPow > request.defenderPow) {
+        winner = 'attacker';
+      } else {
+        // Remis poziomu sukcesu i cech bazowych -> w obronie przed narzuceniem woli wygrywa obrońca (odparcie czaru)
+        winner = 'defender';
+      }
+    }
+
+    const success = winner === 'defender';
+    const defenderPowImprovementEligible = success && defenderSuccessLevel > attackerSuccessLevel;
+
+    const spellTitle =
+      request.spellName ??
+      (request.spellId ? getSpellDefinition(request.spellId)?.namePl : undefined) ??
+      'Wroga Magia';
+
+    let messagePl = '';
+    let messageEn = '';
+
+    if (ruleOfLimitsApplied) {
+      if (winner === 'attacker') {
+        messagePl = `Zasada granic możliwości (CoC 7e RAW s. 99): Siła woli napastnika (${request.attackerPow}) przewyższa obrońcę (${request.defenderPow}) o ponad 100 punktów. Obrona przed czarem „${spellTitle}” jest niemożliwa!`;
+        messageEn = `Rule of limits (CoC 7e RAW p. 99): Attacker's willpower (${request.attackerPow}) exceeds defender's (${request.defenderPow}) by 100+ points. Defense against "${spellTitle}" is impossible!`;
+      } else {
+        messagePl = `Zasada granic możliwości (CoC 7e RAW s. 99): Siła woli obrońcy (${request.defenderPow}) przewyższa napastnika (${request.attackerPow}) o ponad 100 punktów. Zaklęcie „${spellTitle}” nie wywiera wpływu!`;
+        messageEn = `Rule of limits (CoC 7e RAW p. 99): Defender's willpower (${request.defenderPow}) exceeds attacker's (${request.attackerPow}) by 100+ points. Spell "${spellTitle}" has no effect!`;
+      }
+    } else if (success) {
+      messagePl = `Obrona przed magią powiodła się! ${request.defenderName} odparł(a) zaklęcie „${spellTitle}” rzucone przez ${request.attackerName} (rzut obrońcy: ${defenderRoll}/${request.defenderPow} vs rzut napastnika: ${attackerRoll}/${request.attackerPow}).${defenderPowImprovementEligible ? ' Sukces w starciu z silniejszą wolą kwalifikuje MOC do rozwoju pod koniec sesji.' : ''}`;
+      messageEn = `Magic defense succeeded! ${request.defenderName} repelled spell "${spellTitle}" cast by ${request.attackerName} (defender roll: ${defenderRoll}/${request.defenderPow} vs attacker roll: ${attackerRoll}/${request.attackerPow}).${defenderPowImprovementEligible ? ' Overcoming stronger will qualifies POW for improvement check at session end.' : ''}`;
+    } else {
+      messagePl = `Obrona przed magią nie powiodła się! ${request.attackerName} przełamał(a) wolę obrońcy zaklęciem „${spellTitle}” (rzut napastnika: ${attackerRoll}/${request.attackerPow} vs rzut obrońcy: ${defenderRoll}/${request.defenderPow}).`;
+      messageEn = `Magic defense failed! ${request.attackerName} overcame defender's will with spell "${spellTitle}" (attacker roll: ${attackerRoll}/${request.attackerPow} vs defender roll: ${defenderRoll}/${request.defenderPow}).`;
+    }
+
+    return {
+      success,
+      attackerName: request.attackerName,
+      attackerPow: request.attackerPow,
+      defenderName: request.defenderName,
+      defenderPow: request.defenderPow,
+      spellId: request.spellId,
+      spellName: spellTitle,
+      attackerRoll,
+      attackerSuccessLevel,
+      attackerOutcome,
+      defenderRoll,
+      defenderSuccessLevel,
+      defenderOutcome,
+      winner,
+      defenderPowImprovementEligible,
+      ruleOfLimitsApplied,
+      statChanges: {
+        hpDelta: 0,
+        sanDelta: 0,
+        mpDelta: 0,
+      },
+      message: {
+        pl: messagePl,
+        en: messageEn,
+      },
+      gmNarrativeContext: `Starcie woli (Opposed POW): ${request.defenderName} broni się przed zaklęciem ${spellTitle} rzuconym przez ${request.attackerName}. Rzut obrońcy: ${defenderRoll} (sukces ${defenderSuccessLevel}), rzut napastnika: ${attackerRoll} (sukces ${attackerSuccessLevel}). Zwycięzca: ${winner === 'defender' ? request.defenderName : request.attackerName}.${defenderPowImprovementEligible ? ' Badacz uzyskał prawo do testu rozwoju Mocy.' : ''}`,
     };
   }
 }
