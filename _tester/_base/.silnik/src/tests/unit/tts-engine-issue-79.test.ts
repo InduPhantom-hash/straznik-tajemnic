@@ -114,9 +114,14 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
   });
 
   describe('2. Singleton AudioContext (getSharedAudioContext)', () => {
+    interface MockAudioContext {
+      state: string;
+      resume: jest.Mock;
+      close: jest.Mock;
+    }
     let mockResume: jest.Mock;
     let mockClose: jest.Mock;
-    let mockContextInstance: any;
+    let mockContextInstance: MockAudioContext;
 
     beforeEach(() => {
       resetSharedAudioContextForTesting();
@@ -128,7 +133,7 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
         close: mockClose,
       };
 
-      (window as any).AudioContext = jest.fn(() => mockContextInstance);
+      (window as unknown as { AudioContext: unknown }).AudioContext = jest.fn(() => mockContextInstance);
     });
 
     afterEach(() => {
@@ -142,7 +147,7 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
 
       expect(ctx1).toBe(ctx2);
       expect(ctx2).toBe(ctx3);
-      expect((window as any).AudioContext).toHaveBeenCalledTimes(1);
+      expect((window as unknown as { AudioContext: jest.Mock }).AudioContext).toHaveBeenCalledTimes(1);
     });
 
     it('wywołuje resume() jeśli stan AudioContext to suspended', () => {
@@ -156,25 +161,25 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
     it('tworzy nową instancję jeśli poprzedni kontekst został zamknięty (closed)', () => {
       const ctx1 = getSharedAudioContext();
       expect(ctx1).toBeDefined();
-      expect((window as any).AudioContext).toHaveBeenCalledTimes(1);
+      expect((window as unknown as { AudioContext: jest.Mock }).AudioContext).toHaveBeenCalledTimes(1);
 
       // Symulacja zamknięcia kontekstu
       mockContextInstance.state = 'closed';
 
-      const newMockInstance = {
+      const newMockInstance: MockAudioContext = {
         state: 'running',
         resume: jest.fn().mockResolvedValue(undefined),
         close: jest.fn().mockResolvedValue(undefined),
       };
-      (window as any).AudioContext = jest.fn(() => newMockInstance);
+      (window as unknown as { AudioContext: unknown }).AudioContext = jest.fn(() => newMockInstance);
 
       const ctx2 = getSharedAudioContext();
-      expect(ctx2).toBe(newMockInstance);
-      expect((window as any).AudioContext).toHaveBeenCalledTimes(1);
+      expect(ctx2).toBe(newMockInstance as unknown as AudioContext);
+      expect((window as unknown as { AudioContext: jest.Mock }).AudioContext).toHaveBeenCalledTimes(1);
     });
 
     it('zwraca null i nie rzuca błędu gdy konstruktor AudioContext rzuci wyjątek', () => {
-      (window as any).AudioContext = jest.fn(() => {
+      (window as unknown as { AudioContext: unknown }).AudioContext = jest.fn(() => {
         throw new Error('NotAllowedError');
       });
       const ctx = getSharedAudioContext();
@@ -403,9 +408,9 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
     });
 
     it('generationIdRef chroni przed odtworzeniem przerwanych zapytań (eliminacja zjawiska ducha lektora)', async () => {
-      let resolveSlowFetch: ((value: any) => void) | null = null;
+      let resolveSlowFetch: ((value: Response) => void) | null = null;
       global.fetch = jest.fn().mockImplementation(() => {
-        return new Promise((resolve) => {
+        return new Promise<Response>((resolve) => {
           resolveSlowFetch = resolve;
         });
       });
@@ -441,7 +446,6 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
     });
 
     it('stopCurrentAudio() przerywające odtwarzanie nie psuje indeksu segmentu kolejnej wiadomości', async () => {
-      let resolvePlayPromise: (() => void) | null = null;
       class ControllableAudio {
         src = '';
         volume = 1;
@@ -449,7 +453,7 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
         paused = false;
         play = jest.fn().mockImplementation(() => {
           return new Promise<void>((res) => {
-            resolvePlayPromise = res;
+            res();
           });
         });
         pause = jest.fn();
