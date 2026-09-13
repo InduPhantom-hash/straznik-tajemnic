@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import FullGameSaveManager, {
   FullGameSave,
 } from '@/lib/full-game-save-manager';
 import { resolveUserId } from '@/lib/auth-user';
 import { generateTraceId, startTimer, logApiEvent } from '@/lib/telemetry';
 import { getWritableDataDir } from '@/lib/paths';
+import { isCampaignMemoryScope } from '@/core/memory/campaign-scope';
+import { getCampaignMemoryLedgerStore } from '@/core/memory/ledger-store';
 
 // WERSJA LOKALNA (zew-app-local): save'y gry trzymane na dysku zamiast w
 // Google Cloud Storage. Struktura: data/saves/{userId}/{saveId}/
@@ -120,11 +123,20 @@ function getSaveDir(userId: string, saveId: string): string {
   );
 }
 
+function atomicWrite(file: string, content: string): void {
+  const temporary = `${file}.${randomUUID()}.tmp`;
+  try {
+    fs.writeFileSync(temporary, content, { encoding: 'utf-8', flag: 'wx' });
+    fs.renameSync(temporary, file);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
+}
+
 function writeMeta(dir: string, meta: SaveMeta): void {
-  fs.writeFileSync(
+  atomicWrite(
     path.join(dir, 'meta.json'),
-    JSON.stringify(meta, null, 2),
-    'utf-8'
+    JSON.stringify(meta, null, 2)
   );
 }
 
@@ -176,12 +188,23 @@ export async function POST(request: NextRequest) {
 
     const userId = await resolveUserId(fullSave.userId || 'local');
     fullSave.userId = userId;
+    // The regular save endpoint always captures committed server memory.
+    // File imports restore their embedded snapshot through /api/memory/restore.
+    delete fullSave.memorySnapshot;
+    if (fullSave.campaignMemory !== undefined) {
+      if (!isCampaignMemoryScope(fullSave.campaignMemory)) {
+        return NextResponse.json({ error: 'Nieprawidłowy zakres pamięci' }, { status: 400 });
+      }
+      fullSave.memorySnapshot = getCampaignMemoryLedgerStore().createSnapshot(
+        fullSave.campaignMemory, fullSave.messages
+      );
+    }
 
     const dir = getSaveDir(userId, fullSave.id);
     fs.mkdirSync(dir, { recursive: true });
 
     const saveJson = FullGameSaveManager.compressSave(fullSave);
-    fs.writeFileSync(path.join(dir, 'save.json'), saveJson, 'utf-8');
+    atomicWrite(path.join(dir, 'save.json'), saveJson);
 
     const saveSize = FullGameSaveManager.getSaveSize(fullSave);
     const localPath = path.join(
@@ -426,11 +449,24 @@ export async function PUT(request: NextRequest) {
       ...updateData,
       lastUpdated: new Date().toISOString(),
     };
+    // Metadata-only edits retain the saved point in time.
+    if ('messages' in updateData || 'campaignMemory' in updateData) {
+      delete updatedSave.memorySnapshot;
+      if (updatedSave.campaignMemory !== undefined) {
+        if (!isCampaignMemoryScope(updatedSave.campaignMemory)) {
+          return NextResponse.json({ error: 'Nieprawidłowy zakres pamięci' }, { status: 400 });
+        }
+        updatedSave.memorySnapshot = getCampaignMemoryLedgerStore().createSnapshot(
+          updatedSave.campaignMemory, updatedSave.messages
+        );
+      }
+    } else {
+      updatedSave.memorySnapshot = fullSave.memorySnapshot;
+    }
 
-    fs.writeFileSync(
+    atomicWrite(
       savePath,
-      FullGameSaveManager.compressSave(updatedSave),
-      'utf-8'
+      FullGameSaveManager.compressSave(updatedSave)
     );
 
     const saveSize = FullGameSaveManager.getSaveSize(updatedSave);

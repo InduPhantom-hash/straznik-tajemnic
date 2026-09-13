@@ -5,7 +5,7 @@ import { parseAIResponse } from '@/lib/response-parser';
 import { logApiEvent } from '@/lib/telemetry';
 import type { ParsedResponse } from '@/lib/parsers/types';
 import type { StreamChunk } from '@/lib/ai-providers/types';
-import { getCampaignContextEngine } from '@/core/memory/context-engine';
+import { commitMemoryTurn } from '@/core/memory/commit-turn';
 import { conversationMemory } from '@/lib/vector-db/conversation-memory';
 
 Object.assign(globalThis, {
@@ -35,8 +35,9 @@ jest.mock('@/lib/user-usage', () => ({
 }));
 
 const mockRecordCompletedTurn = jest.fn();
-jest.mock('@/core/memory/context-engine', () => ({
-  getCampaignContextEngine: jest.fn(() => ({ recordCompletedTurn: mockRecordCompletedTurn })),
+jest.mock('@/core/memory/commit-turn', () => ({
+  commitMemoryTurn: (turn:unknown) => mockRecordCompletedTurn(turn),
+  retainFailedTurn:jest.fn(()=>'retry-token'),
 }));
 
 function parsedResponse(rawText: string): ParsedResponse {
@@ -80,6 +81,22 @@ describe('createSseStream', () => {
     jest.mocked(logApiEvent).mockClear();
     jest.mocked(conversationMemory.saveConversationTurn).mockClear();
     mockRecordCompletedTurn.mockClear();
+  });
+
+  it('reports failed durable memory while retaining the streamed narration and a retry token', async () => {
+    mockRecordCompletedTurn.mockImplementationOnce(() => { throw new Error('disk failure'); });
+    const stream = createSseStream({
+      providerStream: streamChunks('Narration survives.'), getUsage: async () => null,
+      getFinishReason: () => 'STOP', sessionId: 'run-one', message: 'Look',
+      modelId: 'gemini-test', traceId: 'trace-test', timer: { elapsed: () => 0 },
+      ragVersion: 'v1', embeddingDim: 768, userId: 'local', assistantMessageId: 'assistant-failure',
+      memoryScope: { schemaVersion: 1, campaignDefinitionId: 'c', playthroughId: 'run-one', adventureId: 'a', kind: 'custom' },
+    });
+    const output = await readStream(stream);
+    expect(output).toContain('Narration survives.');
+    expect(output).toContain('"status":"failed"');
+    expect(output).toContain('"retryToken":"retry-token"');
+    expect(output).not.toContain('"status":"saved"');
   });
 
   it.each([
@@ -147,7 +164,7 @@ describe('createSseStream', () => {
       journalEntries: [{ type: 'clue', title: 'List', content: 'Elias wskazał Londyn.' }],
     });
     const stream = createSseStream({
-      providerStream: streamChunks('Widzisz list. [SEKRETY_MG]Kultysta żyje.[/SEKRETY_MG]'),
+      providerStream: streamChunks('Widzisz list. [LOKACJA: Hotel: Hol hotelowy] [DZIENNIK:clue:List]Elias wskazał Londyn.[/DZIENNIK] [SEKRETY_MG]Kultysta żyje.[/SEKRETY_MG]'),
       getUsage: async () => null,
       getFinishReason: () => 'STOP',
       sessionId: 'run-one',
@@ -168,17 +185,14 @@ describe('createSseStream', () => {
       },
     });
     await readStream(stream);
-    expect(getCampaignContextEngine).toHaveBeenCalled();
     expect(mockRecordCompletedTurn).toHaveBeenCalledWith(expect.objectContaining({
       assistantText: 'Widzisz list.',
       facts: expect.arrayContaining([
         expect.objectContaining({ kind: 'location', text: 'Hotel: Hol hotelowy' }),
-        expect.objectContaining({ kind: 'clue', text: 'List: Elias wskazał Londyn.' }),
+        expect.objectContaining({ kind: 'clue', text: 'Elias wskazał Londyn.' }),
       ]),
     }));
-    expect(conversationMemory.saveConversationTurn).toHaveBeenCalledWith(expect.objectContaining({
-      aiResponse: 'Widzisz list.',
-    }));
+    expect(conversationMemory.saveConversationTurn).not.toHaveBeenCalled();
   });
 
   it('does not derive campaign facts from a hidden secret block', async () => {

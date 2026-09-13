@@ -13,6 +13,8 @@
 
 // Minimal shape z pdfMemory (file URIs + mime types + adventureId).
 // Pełny PdfMemory z @/hooks/usePdfMemory ma więcej pól (parsed metadata, local indexing status).
+import { isDocumentModelUseBlocked } from '@/lib/document-model-policy';
+
 export interface PdfMemoryAttachments {
   rulesGeminiFileUri?: string;
   rulesGeminiMimeType?: string;
@@ -46,6 +48,8 @@ const RULE_LOOKUP_REGEX =
 export function buildPdfStrategy(
   opts: BuildPdfStrategyOpts
 ): BuildPdfStrategyResult {
+  // Also blocks stale file URIs restored from older saves.
+  if (isDocumentModelUseBlocked()) return { pdfStrategy: 'rag', fileAttachments: [] };
   const hasPdfFiles = !!(
     opts.pdfMemory?.rulesGeminiFileUri || opts.pdfMemory?.adventureGeminiFileUri
   );

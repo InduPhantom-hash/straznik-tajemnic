@@ -1,4 +1,5 @@
 'use client';
+import { notifyMemoryCommit } from '@/core/memory/commit-client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type {
@@ -1236,6 +1237,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
+            notifyMemoryCommit(metadata, locale);
             if (
               Array.isArray(metadata.pendingMeleeAttacks) &&
               metadata.pendingMeleeAttacks.length > 0 &&
@@ -1916,6 +1918,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             }
           },
           onMetadata: (metadata) => {
+            notifyMemoryCommit(metadata, locale);
             if (metadata.finishReason) {
               setMessages((prev) =>
                 prev.map((msg) =>

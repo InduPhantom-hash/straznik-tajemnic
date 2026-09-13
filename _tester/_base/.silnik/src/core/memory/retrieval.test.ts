@@ -6,6 +6,7 @@ import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 
 jest.mock('@/lib/embedding-service', () => ({
   embeddingService: { generateEmbedding: jest.fn() },
+  getEmbeddingDimensions:jest.fn(()=>1024),
 }));
 jest.mock('@/lib/vector-db/local-vector-store', () => ({
   localVectorStore: { query: jest.fn() },
@@ -27,13 +28,15 @@ describe('searchCampaignMemory', () => {
         kind: 'clue', role: 'assistant', sequence: 3, tags: ['LOC:Londyn'], source: 'fts',
       }]),
     } as unknown as CampaignMemoryLedgerStore;
+    ledger.list=jest.fn(()=>ledger.search(scope,'').map(e=>({...e,scope,sessionId:'s',sourceMessageIds:['turn-1'],revealedAt:'',active:true})));
+    ledger.related=jest.fn(()=>[]);
     (embeddingService.generateEmbedding as jest.Mock).mockResolvedValue([1, 0]);
     (localVectorStore.query as jest.Mock).mockResolvedValue([{
       id: 'turn-1:assistant', score: 0.9, text: 'Ujawniony list wskazuje Londyn.', metadata: {},
     }]);
 
     const result = await searchCampaignMemory(scope, 'list', ledger);
-    expect(localVectorStore.query).toHaveBeenCalledWith('campaigns/run-a', [1, 0], 20);
+    expect(localVectorStore.query).toHaveBeenCalledWith('campaigns/run-a', [1, 0], 40,expect.objectContaining({campaignDefinitionId:scope.campaignDefinitionId}));
     expect(result.source).toBe('hybrid');
     expect(result.results).toHaveLength(1);
     expect(result.results[0].sources).toEqual(['fts', 'semantic']);
@@ -46,6 +49,8 @@ describe('searchCampaignMemory', () => {
         kind: 'decision', role: 'user', sequence: 4, tags: [], source: 'like',
       }]),
     } as unknown as CampaignMemoryLedgerStore;
+    ledger.list=jest.fn(()=>ledger.search(scope,'').map(e=>({...e,scope,sessionId:'s',sourceMessageIds:['turn-2'],revealedAt:'',active:true})));
+    ledger.related=jest.fn(()=>[]);
     (embeddingService.generateEmbedding as jest.Mock).mockResolvedValue(null);
     const result = await searchCampaignMemory(scope, 'Elias', ledger);
     expect(result.source).toBe('like');

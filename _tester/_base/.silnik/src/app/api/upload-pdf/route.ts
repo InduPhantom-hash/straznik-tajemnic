@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { googleCloudStorageService } from '@/lib/google-cloud-storage-service-fixed';
 import fs from 'fs';
 import path from 'path';
@@ -10,6 +11,10 @@ import path from 'path';
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 
 export async function POST(request: NextRequest) {
+  if (isDocumentModelUseBlocked()) return NextResponse.json(
+    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+    { status: 403 }
+  );
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;

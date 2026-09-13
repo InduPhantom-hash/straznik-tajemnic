@@ -56,65 +56,14 @@ describe('chunkText', () => {
   });
 });
 
-describe('pdfIndexingService', () => {
+describe('pdfIndexingService document policy', () => {
   beforeEach(() => jest.clearAllMocks());
-
-  it('zastępuje namespace rules, ale nie czyści adventures', async () => {
-    mockedIndexTexts.mockImplementation(async (items) => ({
-      indexed: items.length,
-      failed: 0,
-      indexedIds: items.map((item) => item.id),
-    }));
-
-    const rules = await pdfIndexingService.indexPdf({
-      text: longParagraph('Walka', 500),
-      type: 'rules',
-      fileName: 'rules.pdf',
-      clearBefore: true,
-    });
-
-    expect(rules.namespace).toBe('rules');
-    expect(mockedIndexTexts).toHaveBeenCalledWith(
-      expect.any(Array),
-      'rules',
-      expect.any(Function),
-      { replaceNamespace: true }
-    );
-    expect(bm25Index.clearNamespace).toHaveBeenCalledWith('rules');
-
-    const adventure = await pdfIndexingService.indexPdf({
-      text: longParagraph('Scena', 500),
-      type: 'adventure',
-      fileName: 'adventure.pdf',
-      clearBefore: false,
-    });
-
-    expect(adventure.namespace).toBe('adventures');
-    expect(mockedIndexTexts).toHaveBeenLastCalledWith(
-      expect.any(Array),
-      'adventures',
-      expect.any(Function),
-      { replaceNamespace: false }
-    );
-    expect(bm25Index.clearNamespace).toHaveBeenCalledTimes(1);
-  });
-
-  it('nie aktualizuje BM25 po niekompletnym reindeksie', async () => {
-    mockedIndexTexts.mockResolvedValue({
-      indexed: 0,
-      failed: 1,
-      indexedIds: [],
-    });
-
+  it.each(['rules', 'adventure'] as const)('blocks %s documents without changing existing indexes', async (type) => {
     const result = await pdfIndexingService.indexPdf({
-      text: longParagraph('Zasady', 500),
-      type: 'rules',
-      fileName: 'rules.pdf',
-      clearBefore: true,
+      text: longParagraph('Synthetic', 500), type, fileName: 'synthetic.pdf', clearBefore: true,
     });
-
-    expect(result).toMatchObject({ success: false, indexed: 0, failed: 1 });
-    expect(result.error).toContain('Poprzedni indeks pozostał bez zmian');
+    expect(result).toMatchObject({ success: false, indexed: 0, error: 'DOCUMENT_MODEL_USE_BLOCKED' });
+    expect(mockedIndexTexts).not.toHaveBeenCalled();
     expect(bm25Index.clearNamespace).not.toHaveBeenCalled();
     expect(bm25Index.addDocuments).not.toHaveBeenCalled();
   });

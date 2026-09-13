@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { GoogleGenAI } from '@google/genai';
 import type {
   AdventureGraph,
@@ -252,6 +253,10 @@ const validateGraph = (raw: unknown): AdventureGraph | null => {
 };
 
 export async function POST(request: NextRequest) {
+  if (isDocumentModelUseBlocked()) return NextResponse.json(
+    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+    { status: 403 }
+  );
   try {
     const body = await request.json();
     const { geminiFileUri, fileName, geminiMimeType } = body;

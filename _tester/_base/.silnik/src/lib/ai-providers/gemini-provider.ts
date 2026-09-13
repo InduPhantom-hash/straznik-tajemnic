@@ -30,6 +30,7 @@ import type {
 } from './types';
 import { DEFAULT_GEMINI_MODEL, DEFAULT_GEMINI_MODEL_FALLBACK } from './constants';
 import * as Sentry from '@sentry/nextjs';
+import { assertDocumentModelUseAllowed } from '@/lib/document-model-policy';
 
 /** Mapowanie string-owych progów bezpieczeństwa (z UI) na enum SDK Gemini */
 const HARM_THRESHOLD_MAP: Record<string, HarmBlockThreshold> = {
@@ -97,6 +98,7 @@ export class GeminiChatProvider implements IChatProvider {
     const opts = request.geminiOptions;
     const thinkingLevel = opts?.thinkingLevel ?? request.thinkingLevel;
     const fileAttachments = opts?.fileAttachments ?? request.fileAttachments;
+    if (fileAttachments?.length) assertDocumentModelUseAllowed();
     const additionalContext =
       opts?.additionalContext ?? request.additionalContext;
 

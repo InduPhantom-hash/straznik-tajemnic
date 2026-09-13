@@ -20,7 +20,17 @@ export type MemoryLedgerKind =
   | 'consequence'
   | 'summary';
 
-export interface MemoryLedgerEntry {
+export interface MemoryFactMetadata {
+  entityId?: string;
+  status?: 'confirmed' | 'unconfirmed' | 'disproven' | 'superseded';
+  recipients?: string[];
+  sourceJournalEntryId?: string;
+  supersededBy?: string;
+  relatedEntityIds?: string[];
+  provenance?: string;
+}
+
+export interface MemoryLedgerEntry extends MemoryFactMetadata {
   id: string;
   scope: CampaignMemoryScope;
   sessionId: string;
@@ -34,7 +44,7 @@ export interface MemoryLedgerEntry {
   active: boolean;
 }
 
-export interface RevealedMemoryFact {
+export interface RevealedMemoryFact extends MemoryFactMetadata {
   kind: Exclude<MemoryLedgerKind, 'conversation' | 'summary'>;
   text: string;
   tags?: string[];
@@ -51,6 +61,23 @@ export interface CampaignCompressionCheckpoint {
   createdAt: string;
   failureCount: number;
   retryAfter: string | null;
+  sourceHash?: string;
+  locale?: 'pl' | 'en';
+  modelId?: string;
+}
+
+export interface CampaignMemorySnapshot {
+  schemaVersion: 1;
+  scope: CampaignMemoryScope;
+  revision: number;
+  entries: MemoryLedgerEntry[];
+  checkpoints: CampaignCompressionCheckpoint[];
+}
+
+export interface MemoryCommit {
+  messageId: string;
+  status: 'saved' | 'failed';
+  revision?: number;
 }
 
 export interface CampaignCompressionFailureState {
@@ -59,7 +86,7 @@ export interface CampaignCompressionFailureState {
   retryAfter: string | null;
 }
 
-export interface CampaignMemorySearchResult {
+export interface CampaignMemorySearchResult extends MemoryFactMetadata {
   id: string;
   text: string;
   score: number;

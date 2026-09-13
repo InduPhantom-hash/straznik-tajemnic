@@ -3,6 +3,10 @@ import path from 'node:path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 
+// The standalone CLI must obey the same fail-closed document policy as the app.
+// Stop before loading credentials, reading source documents or invoking a model.
+throw new Error('DOCUMENT_MODEL_USE_BLOCKED');
+
 dotenv.config({
   path: process.env.MYTHOS_ENV_FILE || path.join(process.cwd(), '../../../.env.local'),
 });

@@ -1,10 +1,11 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { CampaignContextEngine } from './context-engine';
+import { CampaignContextEngine, CampaignContextBudgetError } from './context-engine';
 import { CampaignMemoryLedgerStore } from './ledger-store';
 import type { CampaignMemoryScope } from './types';
 import { getGeminiClient } from '@/lib/gemini-client-pool';
+import { searchCampaignMemory } from './retrieval';
 
 jest.mock('@/lib/gemini-client-pool', () => ({ getGeminiClient: jest.fn() }));
 jest.mock('./retrieval', () => ({
@@ -39,6 +40,7 @@ describe('CampaignContextEngine', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     ledger.close();
     fs.rmSync(dir, { recursive: true, force: true });
   });
@@ -148,6 +150,7 @@ describe('CampaignContextEngine', () => {
     }));
     (getGeminiClient as jest.Mock).mockReturnValue({ models: { generateContent } });
     const engine = new CampaignContextEngine(ledger);
+    const saved = jest.spyOn(ledger, 'saveCheckpoint');
     const initial = messages(12);
     await engine.compactIfNeeded({
       messages: initial,
@@ -159,6 +162,8 @@ describe('CampaignContextEngine', () => {
     });
     const checkpoint = ledger.getLatestCheckpoint(scope.playthroughId);
     expect(checkpoint).not.toBeNull();
+    // Persistence of the new optional fields belongs to the ledger workstream.
+    jest.spyOn(ledger, 'getLatestCheckpoint').mockReturnValue({ ...checkpoint!, ...saved.mock.calls[0][0] });
 
     const expanded = messages(14);
     const reused = await engine.compactIfNeeded({
@@ -172,6 +177,110 @@ describe('CampaignContextEngine', () => {
 
     expect(generateContent).toHaveBeenCalledTimes(1);
     expect(reused.messages.map((message) => message.id)).toContain(`m-${checkpoint!.sourceEndSequence + 1}`);
+    const covered = new Set(checkpoint!.sourceMessageIds);
+    expect(reused.messages.map((message) => message.id)).toEqual(expanded.filter((message) => !covered.has(message.id)).map((message) => message.id));
+  });
+
+  const base = { modelId: 'test', apiKey: 'key', scope, locale: 'pl' as const, contextLimitOverride: 600 };
+
+  async function checkpointFixture() {
+    const generateContent = jest.fn(async () => ({ text: JSON.stringify({ events: ['A door was found.'] }) }));
+    (getGeminiClient as jest.Mock).mockReturnValue({ models: { generateContent } });
+    const engine = new CampaignContextEngine(ledger);
+    const initial = messages(12);
+    const save = jest.spyOn(ledger, 'saveCheckpoint');
+    await engine.compactIfNeeded({ ...base, messages: initial });
+    const checkpoint = { ...ledger.getLatestCheckpoint(scope.playthroughId)!, ...save.mock.calls[0][0] };
+    const read = jest.spyOn(ledger, 'getLatestCheckpoint').mockReturnValue(checkpoint);
+    return { engine, initial, checkpoint, read, generateContent, save };
+  }
+
+  it.each(['edited text', 'id', 'role', 'locale', 'model', 'rewind', 'legacy checkpoint', 'different playthrough'])(
+    'rejects checkpoint reuse after %s', async (change) => {
+      const fixture = await checkpointFixture();
+      const input = { ...base, messages: fixture.initial.map((message) => ({ ...message })), locale: 'pl' as 'pl' | 'en' };
+      const index = fixture.checkpoint.sourceStartSequence;
+      if (change === 'edited text') input.messages[index].content += ' changed';
+      if (change === 'id') input.messages[index].id = 'replacement';
+      if (change === 'role') input.messages[index].role = input.messages[index].role === 'user' ? 'assistant' : 'user';
+      if (change === 'locale') input.locale = 'en';
+      if (change === 'model') input.modelId = 'other-model';
+      if (change === 'rewind') input.messages = input.messages.slice(0, 10);
+      if (change === 'legacy checkpoint') fixture.read.mockReturnValue({ ...fixture.checkpoint, sourceHash: undefined, locale: undefined, modelId: undefined });
+      if (change === 'different playthrough') fixture.read.mockReturnValue({ ...fixture.checkpoint, playthroughId: 'another-run' });
+      await fixture.engine.compactIfNeeded(input);
+      expect(fixture.generateContent).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('hashes full source content beyond any summary-sized prefix', async () => {
+    const fixture = await checkpointFixture();
+    expect(fixture.checkpoint.sourceHash).toMatch(/^[a-f0-9]{64}$/);
+    const input = fixture.initial.map((message) => ({ ...message }));
+    input[3].content += 'z'.repeat(8000);
+    await fixture.engine.compactIfNeeded({ ...base, messages: input, contextLimitOverride: 10000 });
+    // Directly verify the hash input independently, including order, IDs and roles.
+    const { createHash } = await import('crypto');
+    const { cleanResponseText } = await import('@/lib/parsers/text-cleaner');
+    const range = fixture.initial.slice(fixture.checkpoint.sourceStartSequence, fixture.checkpoint.sourceEndSequence + 1);
+    expect(fixture.checkpoint.sourceHash).toBe(createHash('sha256').update(JSON.stringify(range.map((message) => ({
+      id: message.id, role: message.role,
+      content: message.role === 'assistant' ? cleanResponseText(message.content) : message.content,
+    })))).digest('hex'));
+  });
+
+  it('ignores changes confined to cleaned hidden assistant content', async () => {
+    const fixture = await checkpointFixture();
+    const input = fixture.initial.map((message) => ({ ...message }));
+    input[3].content = '[SEKRETY_MG]Hidden fact[/SEKRETY_MG]' + input[3].content;
+    await fixture.engine.compactIfNeeded({ ...base, messages: input });
+    expect(fixture.generateContent).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([false, true])('bounds outbound context on compressor failure (cooldown=%s) without changing history', async (cooldown) => {
+    const generateContent = jest.fn(async () => { throw new Error('offline'); });
+    (getGeminiClient as jest.Mock).mockReturnValue({ models: { generateContent } });
+    if (cooldown) ledger.recordCompressionFailure(scope.playthroughId);
+    const input = messages(12);
+    const before = JSON.stringify(input);
+    const result = await new CampaignContextEngine(ledger).compactIfNeeded({ ...base, messages: input, availableContextTokens: 150 });
+    expect(JSON.stringify(input)).toBe(before);
+    expect(result.messages.slice(-2)).toEqual(input.slice(-2));
+    expect(result.messages.reduce((sum, message) => sum + Math.ceil(message.content.length / 4) + 8, 0)).toBeLessThanOrEqual(150);
+    expect(ledger.getLatestCheckpoint(scope.playthroughId)).toBeNull();
+    expect(generateContent).toHaveBeenCalledTimes(cooldown ? 0 : 1);
+  });
+
+  it('rejects protected input before calling the compressor', async () => {
+    await expect(new CampaignContextEngine(ledger).compactIfNeeded({ ...base, messages: messages(12), availableContextTokens: 20 }))
+      .rejects.toMatchObject({ name: 'CampaignContextBudgetError', code: 'CAMPAIGN_CONTEXT_BUDGET_EXCEEDED', availableTokens: 20 });
+    expect(getGeminiClient).not.toHaveBeenCalled();
+    expect(ledger.getCompressionFailure(scope.playthroughId).failureCount).toBe(0);
+  });
+
+  it('enforces the same preflight without a campaign scope', async () => {
+    await expect(new CampaignContextEngine(ledger).compactIfNeeded({ ...base, scope: null, messages: messages(2), availableContextTokens: 1 }))
+      .rejects.toBeInstanceOf(CampaignContextBudgetError);
+  });
+
+  it('uses the explicit remaining budget without reserving the margin twice', async () => {
+    const input = messages(4, 20);
+    const exact = input.reduce((sum, message) => sum + Math.ceil(message.content.length / 4) + 8, 0);
+    const result = await new CampaignContextEngine(ledger).compactIfNeeded({ ...base, messages: input, availableContextTokens: exact });
+    expect(result.messages).toEqual(input);
+    expect(getGeminiClient).not.toHaveBeenCalled();
+  });
+
+  it.each([null, [0.1, 0.2]])('forwards queryEmbedding=%s and locale in the fourth retrieval argument', async (queryEmbedding) => {
+    await new CampaignContextEngine(ledger).prepareContext({ ...base, messages: [], query: 'door', queryEmbedding });
+    expect(searchCampaignMemory).toHaveBeenCalledWith(scope, 'door', ledger, { queryEmbedding, locale: 'pl' });
+  });
+
+  it('includes retrieved memory in the outbound token budget', async () => {
+    (searchCampaignMemory as jest.Mock).mockResolvedValueOnce({ results: [], source: 'fts', promptSection: '\n## Memory\n- ' + 'x'.repeat(400) });
+    const result = await new CampaignContextEngine(ledger).prepareContext({ ...base, messages: messages(2, 20), query: 'door', availableContextTokens: 40 });
+    expect(result.memorySection).toBe('');
+    expect(result.messages).toHaveLength(2);
   });
 
   it('never sends hidden GM content to the compressor or stores it in a checkpoint', async () => {

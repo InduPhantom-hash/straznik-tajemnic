@@ -20,6 +20,7 @@ describe('FullGameSaveManager duet persistence', () => {
       characters: [],
       campaigns: [],
       campaignMemory,
+      memorySnapshot: { schemaVersion: 1, scope: campaignMemory, revision: 4, entries: [], checkpoints: [] },
       npcs: [],
       locations: [],
     });
@@ -27,6 +28,8 @@ describe('FullGameSaveManager duet persistence', () => {
     expect(save.version).toBe('2.1.0');
     expect(FullGameSaveManager.decompressSave(JSON.stringify(save))?.campaignMemory)
       .toEqual(campaignMemory);
+    expect(FullGameSaveManager.decompressSave(FullGameSaveManager.compressSave(save))?.memorySnapshot)
+      .toEqual(save.memorySnapshot);
   });
 
   it('loads a 2.0.0 save without campaign memory and without dropping data', () => {

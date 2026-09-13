@@ -38,6 +38,16 @@ describe('GeminiChatProvider.finishReason', () => {
     mockGenerateContentStream.mockReset();
   });
 
+  it.each(['legacy', 'options'] as const)('blocks %s document attachments before any SDK request', async (location) => {
+    const fileAttachments = [{ fileUri: 'https://example.invalid/synthetic.pdf', mimeType: 'application/pdf' }];
+    const provider = new GeminiChatProvider('synthetic-key', 'gemini-test');
+    const withDocument: ChatCompletionRequest = location === 'legacy'
+      ? { ...request, fileAttachments }
+      : { ...request, geminiOptions: { fileAttachments } };
+    await expect(provider.chat(withDocument)).rejects.toThrow('DOCUMENT_MODEL_USE_BLOCKED');
+    expect(mockGenerateContentStream).not.toHaveBeenCalled();
+  });
+
   it('udostępnia MAX_TOKENS dopiero po skonsumowaniu częściowej odpowiedzi', async () => {
     mockGenerateContentStream.mockResolvedValue(
       streamResponse([

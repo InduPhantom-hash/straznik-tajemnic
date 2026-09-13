@@ -6,6 +6,19 @@ import { getLovecraftStylePrompt } from '../lovecraft-style-guide';
 
 describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () => {
   describe('getGameMasterPrompt', () => {
+    it.each(['pl', 'en'] as const)('does not forward previously saved mainPrompt in %s', (locale) => {
+      const settings = {
+        ...defaultAISettings,
+        gameMasterNarration: {
+          ...defaultAISettings.gameMasterNarration,
+          prompts: { ...defaultAISettings.gameMasterNarration.prompts, mainPrompt: 'SYNTHETIC_IMPORTED_SOURCE', isDefaultPrompt: true },
+        },
+      };
+      const prompt = getGameMasterPrompt(settings, locale);
+      expect(prompt).not.toContain('SYNTHETIC_IMPORTED_SOURCE');
+      expect(prompt.length).toBeGreaterThan(0);
+      expect(settings.gameMasterNarration.prompts.mainPrompt).toBe('SYNTHETIC_IMPORTED_SOURCE');
+    });
     it('zawiera wymóg [LNG-01] dotyczący obowiązkowego systemu metrycznego', () => {
       const prompt = getGameMasterPrompt(defaultAISettings);
 

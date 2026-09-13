@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { AdventureStructure } from '@/types/adventure';
+import { assertDocumentModelUseAllowed } from '@/lib/document-model-policy';
 
 /**
  * Moduł Ekstraktora Encji Przygody korzystający z Gemini 3.6 Flash
@@ -9,6 +10,7 @@ export async function extractAdventureEntities(
   fileName: string,
   apiKey: string
 ): Promise<AdventureStructure> {
+  assertDocumentModelUseAllowed();
   const genAI = new GoogleGenerativeAI(apiKey);
 
   // Używamy opublikowanego 21 lipca 2026 r. modelu gemini-3.6-flash z JSON schema

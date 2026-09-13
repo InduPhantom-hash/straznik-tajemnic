@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { createPartFromUri } from '@google/genai';
 import { getGeminiClient } from '@/lib/gemini-client-pool';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
@@ -70,6 +71,10 @@ async function withRetry<T>(
 }
 
 export async function POST(request: NextRequest) {
+  if (isDocumentModelUseBlocked()) return NextResponse.json(
+    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+    { status: 403 }
+  );
   try {
     const body = await request.json();
     const { pdfFileUri, fileName, type, qualityPreset } = body;

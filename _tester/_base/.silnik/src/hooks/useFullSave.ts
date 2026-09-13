@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { Message, Character, Campaign, HotSeatConfig } from '@/lib/types';
 import type { FullGameSave } from '@/lib/full-game-save-manager';
 import { normalizePdfMemory, type PdfMemory } from './usePdfMemory';
@@ -14,7 +14,7 @@ import { ensureCharacterDossier } from '@/lib/journal/dossier-migration';
 import { toast } from '@/components/ui/use-toast';
 import {
   clearCampaignMemoryScope,
-  createCampaignMemoryScope,
+  isCampaignMemoryScope,
   storeCampaignMemoryScope,
 } from '@/core/memory/campaign-scope';
 
@@ -43,7 +43,7 @@ export interface UseFullSaveReturn {
   saveModalMode: 'save' | 'load';
   setSaveModalMode: React.Dispatch<React.SetStateAction<'save' | 'load'>>;
   sessionStartTime: string;
-  handleLoadFullSave: (save: FullGameSave) => void;
+  handleLoadFullSave: (save: FullGameSave) => Promise<boolean>;
   handleStartNewGame: () => void;
 }
 
@@ -82,14 +82,40 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
   const [showFullSaveModal, setShowFullSaveModal] = useState(false);
   const [saveModalMode, setSaveModalMode] = useState<'save' | 'load'>('save');
   const [sessionStartTime] = useState<string>(new Date().toISOString());
+  const restoreRequest = useRef<{ save: FullGameSave; requestId: string } | null>(null);
+  const loading = useRef(false);
 
   const handleLoadFullSave = useCallback(
-    (save: FullGameSave) => {
+    async (save: FullGameSave): Promise<boolean> => {
+      if (loading.current) return false;
+      loading.current = true;
       try {
+        if (restoreRequest.current?.save !== save) {
+          restoreRequest.current = { save, requestId: crypto.randomUUID() };
+        }
+        const response = await fetch('/api/memory/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId: restoreRequest.current.requestId,
+            snapshot: save.memorySnapshot,
+            scope: save.campaignMemory,
+            messages: save.messages,
+            characters: save.characters,
+            activeCharacterId: save.activeCharacterId,
+            id: save.id,
+            name: save.name,
+          }),
+        });
+        const restored = await response.json();
+        if (!response.ok || !isCampaignMemoryScope(restored.scope)) {
+          throw new Error(restored.error || 'Nie udało się odtworzyć pamięci');
+        }
+        const campaignMemory = restored.scope;
         clearDeclarations?.();
         // Wczytaj wiadomości
         const loadedMessages: Message[] = save.messages.map((msg, idx) => ({
-          id: `loaded_${idx}`,
+          id: msg.id || `loaded_${idx}`,
           role: msg.role,
           content: msg.content,
           timestamp: new Date(msg.timestamp),
@@ -101,12 +127,18 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           // przeżyć pełny load, inaczej przycisk "Kontynuuj narrację" znikał.
           finishReason: msg.finishReason,
           continuationRequested: msg.continuationRequested,
+          mechanicsContext: msg.mechanicsContext,
         }));
         setMessages(loadedMessages);
 
         // Wczytaj ustawienia AI
         if (save.gameSettings?.aiSettings) {
-          const loadedSettings = save.gameSettings.aiSettings;
+          const loadedSettings = {
+            ...save.gameSettings.aiSettings,
+            sessionId: campaignMemory.playthroughId,
+            costControl: save.gameSettings.aiSettings.costControl
+              ? { ...save.gameSettings.aiSettings.costControl } : undefined,
+          } as AISettings & { sessionId: string };
           // Guard: stare/puste save'y (zapisane bez ustawień AI) mogą nie mieć
           // `costControl` - bez tego przypisanie .sessionCost rzucało wyjątkiem.
           if (
@@ -134,14 +166,7 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           })
         );
         setCharacters(migratedCharacters);
-        if (save.activeCharacterId) {
-          const activeChar = migratedCharacters.find(
-            (c) => c.id === save.activeCharacterId
-          );
-          if (activeChar) {
-            setActiveCharacter(activeChar);
-          }
-        }
+        setActiveCharacter(migratedCharacters.find((c) => c.id === save.activeCharacterId) ?? null);
         // Postacie niosą portrety inline (~MB base64). Pisanie ich wprost do
         // localStorage przekraczało quota i wywalało CAŁE wczytywanie. Przez
         // `persistCharacters`: obrazy wycinane do IndexedDB, roster lekki,
@@ -169,34 +194,20 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           clearStoredWorldSetup();
         }
 
-        const campaignMemory =
-          save.campaignMemory ??
-          createCampaignMemoryScope({
-            id:
-              save.worldSetup?.scenarioId ??
-              save.activeCampaignId ??
-              save.id,
-            title:
-              save.worldSetup?.adventureTitle ??
-              save.campaigns.find((campaign) => campaign.id === save.activeCampaignId)?.name ??
-              save.name,
-            isCustom: !save.activeCampaignId,
-            isCampaign: Boolean(save.activeCampaignId),
-          });
         storeCampaignMemoryScope(campaignMemory);
 
         // Przywróć listę NPC oraz lokacji z pliku zapisu do pamięci podręcznej
-        if (save.npcs && Array.isArray(save.npcs) && save.npcs.length > 0) {
+        if (Array.isArray(save.npcs)) {
           safeSetItem('gm_npcs', JSON.stringify(save.npcs));
         }
-        if (save.locations && Array.isArray(save.locations) && save.locations.length > 0) {
+        if (Array.isArray(save.locations)) {
           safeSetItem('gm_locations', JSON.stringify(save.locations));
         }
 
         // Aktualizuj activeGameState
         setActiveGameState({
           currentCharacter: save.activeCharacterId
-            ? save.characters.find((c) => c.id === save.activeCharacterId) ||
+            ? migratedCharacters.find((c) => c.id === save.activeCharacterId) ||
               null
             : null,
           campaign: save.activeCampaignId
@@ -211,6 +222,8 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           title: `Wczytano: ${save.name}`,
           description: `Wiadomości: ${save.messages.length} · Postacie: ${save.characters.length} · Kampanie: ${save.campaigns.length}`,
         });
+        restoreRequest.current = null;
+        return true;
       } catch (error) {
         console.error("Błąd podczas wczytywania save'u:", error);
         toast({
@@ -218,6 +231,9 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           description: error instanceof Error ? error.message : "Wystąpił błąd podczas wczytywania save'u",
           variant: 'destructive',
         });
+        return false;
+      } finally {
+        loading.current = false;
       }
     },
     [

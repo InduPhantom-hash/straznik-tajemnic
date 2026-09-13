@@ -13,6 +13,8 @@
  */
 
 import { indexingService } from './indexing-service';
+import { isDocumentModelUseBlocked, DOCUMENT_MODEL_USE_BLOCKED } from '../document-model-policy';
+import { createHash } from 'node:crypto';
 import { LOCAL_RAG_NAMESPACES } from './vector-types';
 import { localVectorStore } from './local-vector-store';
 import { bm25Index } from './bm25-index';
@@ -22,6 +24,7 @@ import { bm25Index } from './bm25-index';
 // ============================================================================
 
 export interface PdfChunk {
+  documentId: string;
   /** Unikalny ID chunka: {type}-{fileHash}-{index} */
   id: string;
   /** Tekst chunka */
@@ -116,14 +119,15 @@ const SEPARATORS = [
 export function chunkText(
   text: string,
   type: 'rules' | 'adventure',
-  fileName: string
+  _fileName: string
 ): PdfChunk[] {
   if (!text || text.length < MIN_CHUNK_SIZE) {
     return [];
   }
 
   // Generuj hash pliku (prosty, deterministyczny)
-  const fileHash = simpleHash(fileName);
+  const fileHash = createHash('sha256').update(text).digest('hex');
+  const documentId = `${type}-${fileHash}`;
   const chunks: PdfChunk[] = [];
   let offset = 0;
 
@@ -144,6 +148,7 @@ export function chunkText(
       offset + CHUNK_SIZE >= text.length
     ) {
       chunks.push({
+        documentId,
         id: `${type}-${fileHash}-${chunks.length}`,
         text: chunkText,
         index: chunks.length,
@@ -196,20 +201,6 @@ function findBestSplitPoint(
 
   // Ostateczność - tnij na maxEnd
   return maxEnd;
-}
-
-/**
- * Prosty hash stringa (deterministyczny, nie kryptograficzny).
- * Zwraca 8-znakowy hex.
- */
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(16).padStart(8, '0').slice(0, 8);
 }
 
 // ============================================================================
@@ -330,6 +321,10 @@ class PdfIndexingService {
     request: PdfIndexingRequest,
     onProgress?: (progress: PdfIndexingProgress) => void
   ): Promise<PdfIndexingResult> {
+    if (isDocumentModelUseBlocked()) return {
+      success: false, indexed: 0, failed: 0, totalChunks: 0,
+      namespace: '', durationMs: 0, error: DOCUMENT_MODEL_USE_BLOCKED,
+    };
     const start = Date.now();
 
     if (!localVectorStore.initialized) {
@@ -401,6 +396,9 @@ class PdfIndexingService {
           tags: extractChunkTags(chunk.text, request.type),
           sourceFile: request.fileName,
           chunkIndex: chunk.index,
+          documentId: chunk.documentId,
+          startOffset: chunk.startOffset,
+          endOffset: chunk.endOffset,
         },
       }));
 
@@ -409,6 +407,7 @@ class PdfIndexingService {
         id: item.id,
         text: item.text,
         metadata: {
+          ...item.metadata,
           contentType: item.metadata.contentType,
           summary: item.metadata.summary,
           tags: item.metadata.tags,
@@ -455,6 +454,7 @@ class PdfIndexingService {
       const bm25Docs = items
         .filter((item) => indexedIds.has(item.id))
         .map((item) => ({
+          ...item.metadata,
           id: item.id,
           text: item.text,
           namespace,

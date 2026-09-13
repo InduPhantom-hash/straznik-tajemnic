@@ -1,4 +1,5 @@
 {
+  "CampaignMemory": {"failed":"This turn could not be saved to memory", "retry":"Retry save", "saved":"Turn memory saved", "description":"The reply remains in chat. Retrying the save does not generate narration again."},
   "Welcome": {
     "title": "Select language",
     "subtitle": "Choose Language",

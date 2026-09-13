@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import {
   uploadNativePDFToGemini,
@@ -26,6 +27,10 @@ export const runtime = 'nodejs';
 const MAX_PDF_BYTES = 500 * 1024 * 1024; // 500 MB (spójnie z /api/pdf/ingest-local)
 
 export async function POST(request: NextRequest) {
+  if (isDocumentModelUseBlocked()) return NextResponse.json(
+    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+    { status: 403 }
+  );
   try {
     // Klucz BYOK (nagłówek z localStorage gracza) lub env fallback - wymagany do
     // uploadu pliku do Gemini File API. Wzorzec 1:1 z ingest-local:33 / tts/gemini:207.

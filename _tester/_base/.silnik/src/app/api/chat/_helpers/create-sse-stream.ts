@@ -32,9 +32,9 @@ import type { Character, NPC } from '@/lib/types';
 import { enrichMeleeAttackReferences } from '@/lib/combat/npc-combat-profile';
 import type { RagMeta } from './run-rag-summary';
 import type { CampaignMemoryScope } from '@/core/memory/types';
-import { getCampaignContextEngine } from '@/core/memory/context-engine';
-import type { RevealedMemoryFact } from '@/core/memory/types';
-import { cleanResponseText, stripHiddenMemoryContent } from '@/lib/parsers/text-cleaner';
+import { commitMemoryTurn, retainFailedTurn } from '@/core/memory/commit-turn';
+import { extractRevealedTurn } from '@/core/memory/revealed-facts';
+import type { MemoryCommit } from '@/core/memory/types';
 import { beginAiGeneration } from '@/lib/desktop/generation-state';
 
 export interface CreateSseStreamOpts {
@@ -136,6 +136,19 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
 
         const usage = await getUsage();
         const finishReason = getFinishReason();
+        let memoryCommit: (MemoryCommit & {retryToken?:string}) | undefined;
+        if (memoryScope) {
+          const revealed = extractRevealedTurn(fullText,assistantMessageId ?? traceId,characters,character);
+          const turn = {scope:memoryScope,sessionId:sessionId ?? memoryScope.playthroughId,
+            messageId:assistantMessageId ?? traceId,userMessageId,userText:message,
+            assistantText:revealed.narrative,facts:revealed.facts,
+            recipientIds:character ? [character.id] : undefined};
+          try { memoryCommit = commitMemoryTurn(turn); }
+          catch (error) {
+            console.warn('Campaign memory ledger write failed:',error);
+            memoryCommit = {messageId:turn.messageId,status:'failed',retryToken:retainFailedTurn(turn)};
+          }
+        }
 
         // Telemetry namespace dla PostHog client-side emit (spawn task 2026-05-22).
         // Client (useChat.onMetadata) odbiera te pola → trackEvent('ai_request_completed').
@@ -173,6 +186,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
             : null,
           finishReason,
           telemetry,
+          memoryCommit,
         };
 
         controller.enqueue(
@@ -227,57 +241,17 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
         }
 
         // Conversation memory persist (fire-and-forget local RAG)
-        const revealedResponse = stripHiddenMemoryContent(fullText);
-        const revealedNarrative = cleanResponseText(revealedResponse);
-        if (sessionId && fullText) {
+        if (!memoryScope && sessionId && fullText) {
           conversationMemory
             .saveConversationTurn({
               userMessage: message,
-              aiResponse: memoryScope ? revealedNarrative : fullText,
+              aiResponse: extractRevealedTurn(fullText,assistantMessageId ?? traceId).narrative,
               sessionId,
               characterName: character?.name,
               memoryScope,
               messageId: assistantMessageId ?? traceId,
             })
             .catch(() => {});
-        }
-
-        if (memoryScope && message) {
-          try {
-              const revealedParsed = parseAIResponse(revealedResponse);
-              const facts: RevealedMemoryFact[] = [];
-              for (const event of revealedParsed.events) {
-                const kind = event.type === 'npc'
-                  ? 'npc'
-                  : event.type === 'location'
-                    ? 'location'
-                    : ['combat', 'sanity', 'death'].includes(event.type)
-                      ? 'consequence'
-                      : 'clue';
-                facts.push({ kind, text: `${event.title}: ${event.description}` });
-              }
-              for (const entry of revealedParsed.journalEntries) {
-                const kind = entry.type === 'npc'
-                  ? 'npc'
-                  : entry.type === 'location'
-                    ? 'location'
-                    : ['combat', 'sanity', 'death'].includes(entry.type)
-                      ? 'consequence'
-                      : 'clue';
-                facts.push({ kind, text: `${entry.title}: ${entry.content}` });
-              }
-              getCampaignContextEngine().recordCompletedTurn({
-                scope: memoryScope,
-                sessionId: sessionId ?? memoryScope.playthroughId,
-                messageId: assistantMessageId ?? traceId,
-                userMessageId,
-                userText: message,
-                assistantText: revealedNarrative,
-                facts,
-              });
-          } catch (error) {
-            console.warn('Campaign memory ledger write failed:', error);
-          }
         }
 
         controller.close();

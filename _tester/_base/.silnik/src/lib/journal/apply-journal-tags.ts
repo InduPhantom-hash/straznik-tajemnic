@@ -1,5 +1,6 @@
 import type { Character, JournalEntry, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import type { JournalTagEntry } from '@/lib/parsers/types';
+import { parseRevealedTags,parseRevealedClue,findReplacedClue,resolveRevealedRecipient,revealedEntityId } from '@/core/memory/revealed-facts';
 import {
   extractJournalTags,
   extractNpcTags,
@@ -199,7 +200,7 @@ export function processCharacterJournalAndDossier(
       }
 
       const newNpc: NpcDossierEntry = {
-        id: `npc-${lowerName.replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
+        id: revealedEntityId('npc',messageId,normName),
         name: normName,
         firstImpression,
         physiologicalDetail,
@@ -433,14 +434,11 @@ export function processCharacterJournalAndDossier(
       // Wykrywanie unieważniania starszych poszlak
       const supersedesMatch = tag.content.match(/(?:zastępuje|unieważnia|obala|supersedes|refutes):\s*([^|\n\]]+)/i);
       const supersededTarget = supersedesMatch ? supersedesMatch[1].trim().toLowerCase() : null;
-      if (supersededTarget) {
-        dossier.clues.forEach((c) => {
-          if (c.title.toLowerCase().trim() === supersededTarget || c.title.toLowerCase().includes(supersededTarget)) {
-            c.status = 'superseded';
-            c.supersededBy = cleanClueTitle.trim();
-            changed = true;
-          }
-        });
+      const replaced = findReplacedClue(dossier.clues,supersededTarget ?? undefined);
+      if (replaced && replaced !== existingClue) {
+        replaced.status = parseRevealedClue(tag).replacementStatus;
+        replaced.supersededBy = existingClue?.id ?? `clue-${messageId}-${index}`;
+        changed = true;
       }
 
       const resolvedCategory = inferClueCategory({ title: cleanClueTitle, content: rawContent });
@@ -455,7 +453,7 @@ export function processCharacterJournalAndDossier(
           title: cleanClueTitle,
           description: fact,
           category: resolvedCategory,
-          status: 'confirmed',
+          status: parseRevealedClue(tag).status,
           discoveryStatus: 'discovered',
           epistemicLayer: 'player_clue',
           provenance: resolvedProvenance,
@@ -470,6 +468,8 @@ export function processCharacterJournalAndDossier(
         changed = true;
       } else {
         // Aktualizacja istniejącej poszlaki
+        const explicitStatus=parseRevealedClue(tag).explicitStatus;
+        if(explicitStatus && existingClue.status!==explicitStatus) {existingClue.status=explicitStatus;changed=true;}
         if (existingClue.description !== fact && fact) {
           existingClue.description = fact;
           existingClue.timestamp = Date.now();
@@ -601,7 +601,7 @@ export function processCharacterJournalAndDossier(
       }
 
       dossier.locations.push({
-        id: `location-${lowerLoc.replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
+        id: revealedEntityId('location',messageId,locationEntry.title),
         name: locationEntry.title,
         description: locDesc,
         searchStatus: 'partially_searched',
@@ -641,10 +641,9 @@ export function appendJournalFromText(
   rawText: string,
   messageId: string
 ): Character {
-  const tags = extractJournalTags(rawText);
-  const npcTags = extractNpcTags(rawText);
-  const itemTags = extractItemTags(rawText);
-  const locationEntry = buildLocationEntryFromText(rawText, messageId);
+  const parsed = parseRevealedTags(rawText);
+  const {journalTags:tags,npcTags,itemTags}=parsed;
+  const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
 
   if (tags.length === 0 && npcTags.length === 0 && itemTags.length === 0 && !locationEntry) {
     return character;
@@ -672,10 +671,9 @@ export function appendJournalToParty(
   rawText: string,
   messageId: string
 ): { characters: Character[]; activeCharacter: Character; changed: boolean } {
-  const tags = extractJournalTags(rawText);
-  const npcTags = extractNpcTags(rawText);
-  const itemTags = extractItemTags(rawText);
-  const locationEntry = buildLocationEntryFromText(rawText, messageId);
+  const parsed = parseRevealedTags(rawText);
+  const {journalTags:tags,npcTags,itemTags}=parsed;
+  const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
 
   if (tags.length === 0 && npcTags.length === 0 && itemTags.length === 0 && !locationEntry) {
     return { characters, activeCharacter, changed: false };
@@ -687,21 +685,24 @@ export function appendJournalToParty(
   const itemTagsByChar = new Map<string, ExtractedItemTag[]>();
 
   tags.forEach((tag) => {
-    const target = resolveCharacterByName(characters, tag.who, activeCharacter);
+    const target = resolveRevealedRecipient(characters, tag.who, activeCharacter);
+    if(!target)return;
     const list = tagsByChar.get(target.id) ?? [];
     list.push(tag);
     tagsByChar.set(target.id, list);
   });
 
   npcTags.forEach((npc) => {
-    const target = resolveCharacterByName(characters, npc.who, activeCharacter);
+    const target = resolveRevealedRecipient(characters, npc.who, activeCharacter);
+    if(!target)return;
     const list = npcTagsByChar.get(target.id) ?? [];
     list.push(npc);
     npcTagsByChar.set(target.id, list);
   });
 
   itemTags.forEach((item) => {
-    const target = resolveCharacterByName(characters, item.who, activeCharacter);
+    const target = resolveRevealedRecipient(characters, item.who, activeCharacter);
+    if(!target)return;
     const list = itemTagsByChar.get(target.id) ?? [];
     list.push(item);
     itemTagsByChar.set(target.id, list);

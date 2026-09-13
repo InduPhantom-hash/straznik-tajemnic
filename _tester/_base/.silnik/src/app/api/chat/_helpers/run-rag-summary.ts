@@ -21,6 +21,7 @@ import { retrievalService } from '@/lib/vector-db/retrieval-service';
 import type { Message } from '@/lib/types';
 import { getCampaignContextEngine } from '@/core/memory/context-engine';
 import type { CampaignMemoryScope } from '@/core/memory/types';
+import { drainMemoryIndex } from '@/core/memory/index-queue';
 
 export interface RunRAGAndSummaryOpts {
   message: string;
@@ -41,6 +42,8 @@ export interface RunRAGAndSummaryOpts {
   locale?: 'pl' | 'en';
   modelId: string;
   memoryScope: CampaignMemoryScope | null;
+  recipientIds?:string[];
+  sceneEntityIds?:string[];
 }
 
 /**
@@ -93,6 +96,8 @@ export async function runRAGAndSummary(
     embeddingService.initialize(geminiKey);
   }
 
+  const queryEmbedding = await embeddingService.generateEmbedding(message,'RETRIEVAL_QUERY').catch(()=>null);
+  if(memoryScope) void drainMemoryIndex(memoryScope).catch(()=>{});
   const ragPromise = retrievalService
     .retrieve({
       query: message,
@@ -100,6 +105,7 @@ export async function runRAGAndSummary(
       adventureSource,
       adventureId,
       locale,
+      memoryScope:memoryScope??undefined,queryEmbedding,
     })
     .catch((ragErr) => {
       console.warn('⚠️ RAG retrieval failed:', ragErr);
@@ -113,6 +119,7 @@ export async function runRAGAndSummary(
     apiKey,
     scope: memoryScope,
     locale: locale ?? 'pl',
+    queryEmbedding,recipientIds:opts.recipientIds,sceneEntityIds:opts.sceneEntityIds,
   });
 
   const [retrieval, campaignContext] = await Promise.all([

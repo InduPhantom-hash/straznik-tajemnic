@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
+import { createHash, randomUUID } from 'crypto';
 import { getWritableDataDir } from '@/lib/paths';
+import { isCampaignMemoryScope } from './campaign-scope';
+import { validateMemorySnapshot } from './snapshot';
+import { extractRevealedTurn } from './revealed-facts';
 import type {
   CampaignMemoryScope,
   CampaignMemorySearchResult,
@@ -11,6 +15,8 @@ import type {
   MemoryLedgerKind,
   MemoryLedgerRole,
   RevealedMemoryFact,
+  CampaignMemorySnapshot,
+  MemoryFactMetadata,
 } from './types';
 
 const DB_FILE = 'campaign-memory.sqlite3';
@@ -29,6 +35,7 @@ type LedgerRow = {
   source_message_ids_json: string;
   revealed_at: string;
   active: number;
+  fact_json: string;
 };
 
 function parseJsonArray(value: string): string[] {
@@ -49,7 +56,17 @@ export class CampaignMemoryLedgerStore {
     this.db = new Database(filePath);
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
+    const version = this.db.pragma('user_version', { simple: true }) as number;
+    if (version > 2) { this.db.close(); throw new Error('Unsupported memory schema'); }
+    if (version < 2 && this.db.prepare("SELECT 1 FROM sqlite_master WHERE name = 'memory_entries'").get()) {
+      // VACUUM INTO produces a consistent snapshot including committed WAL pages.
+      this.db.prepare('VACUUM INTO ?').run(`${filePath}.before-v2-${randomUUID()}.backup`);
+    }
     this.initializeSchema();
+    if (version < 2) {
+      this.db.exec('INSERT OR IGNORE INTO memory_index_jobs(entry_id) SELECT id FROM memory_entries');
+      this.rebuildFts();
+    }
   }
 
   private initializeSchema(): void {
@@ -94,12 +111,45 @@ export class CampaignMemoryLedgerStore {
         failure_count INTEGER NOT NULL,
         retry_after TEXT
       );
+      CREATE TABLE IF NOT EXISTS memory_runs (
+        playthrough_id TEXT PRIMARY KEY, campaign_definition_id TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS memory_turns (
+        playthrough_id TEXT NOT NULL, message_id TEXT NOT NULL, content_hash TEXT NOT NULL,
+        PRIMARY KEY(playthrough_id, message_id)
+      );
+      CREATE TABLE IF NOT EXISTS memory_index_jobs (
+        entry_id TEXT PRIMARY KEY, attempts INTEGER NOT NULL DEFAULT 0,
+        retry_at INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS memory_restores (
+        request_id TEXT PRIMARY KEY, snapshot_hash TEXT NOT NULL, scope_json TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS memory_links (
+        entry_id TEXT NOT NULL, entity_id TEXT NOT NULL,
+        PRIMARY KEY(entry_id, entity_id)
+      );
     `);
+    const entryColumns = this.db.pragma('table_info(memory_entries)') as Array<{name: string}>;
+    if (!entryColumns.some(c => c.name === 'fact_json')) {
+      this.db.exec("ALTER TABLE memory_entries ADD COLUMN fact_json TEXT NOT NULL DEFAULT '{}'");
+    }
     const checkpointColumns = this.db.pragma('table_info(compression_checkpoints)') as Array<{ name: string }>;
     if (!checkpointColumns.some((column) => column.name === 'source_message_ids_json')) {
       this.db.exec("ALTER TABLE compression_checkpoints ADD COLUMN source_message_ids_json TEXT NOT NULL DEFAULT '[]'");
     }
+    for (const column of ['source_hash', 'locale', 'model_id']) {
+      if (!checkpointColumns.some(c => c.name === column)) this.db.exec(`ALTER TABLE compression_checkpoints ADD COLUMN ${column} TEXT`);
+    }
+    this.db.exec(`INSERT OR IGNORE INTO memory_runs SELECT playthrough_id, campaign_definition_id FROM memory_entries GROUP BY playthrough_id`);
     this.ensureFts();
+    this.db.pragma('user_version = 2');
+  }
+
+  assertScope(scope: CampaignMemoryScope): void {
+    if (!isCampaignMemoryScope(scope) || !/^[a-zA-Z0-9_-]{1,160}$/.test(scope.playthroughId)) throw new Error('Invalid memory scope');
+    const run = this.db.prepare('SELECT campaign_definition_id FROM memory_runs WHERE playthrough_id = ?').get(scope.playthroughId) as {campaign_definition_id:string} | undefined;
+    if (run && run.campaign_definition_id !== scope.campaignDefinitionId) throw new Error('Campaign scope conflict');
   }
 
   private ensureFts(): void {
@@ -144,12 +194,16 @@ export class CampaignMemoryLedgerStore {
   }
 
   append(entry: MemoryLedgerEntry): boolean {
+    this.assertScope(entry.scope);
+    this.db.prepare('INSERT OR IGNORE INTO memory_runs VALUES (?, ?)').run(entry.scope.playthroughId, entry.scope.campaignDefinitionId);
+    const {entityId, status, recipients, sourceJournalEntryId, supersededBy, relatedEntityIds, provenance} = entry;
+    const fact: MemoryFactMetadata = {entityId, status, recipients, sourceJournalEntryId, supersededBy, relatedEntityIds, provenance};
     const insert = () => this.db.prepare(`
       INSERT OR IGNORE INTO memory_entries (
         id, playthrough_id, campaign_definition_id, adventure_id, memory_kind,
         session_id, sequence_no, role, text, tags_json,
-        source_message_ids_json, revealed_at, active
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        source_message_ids_json, revealed_at, active, fact_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       entry.id,
       entry.scope.playthroughId,
@@ -163,7 +217,8 @@ export class CampaignMemoryLedgerStore {
       JSON.stringify(entry.tags),
       JSON.stringify(entry.sourceMessageIds),
       entry.revealedAt,
-      entry.active ? 1 : 0
+      entry.active ? 1 : 0,
+      JSON.stringify(fact)
     );
     let result: Database.RunResult;
     try {
@@ -183,6 +238,12 @@ export class CampaignMemoryLedgerStore {
       console.warn('Campaign memory FTS write failed, preserving canonical ledger:', error);
       result = insert();
     }
+    if (result.changes > 0) {
+      this.db.prepare('INSERT OR IGNORE INTO memory_index_jobs(entry_id) VALUES (?)').run(entry.id);
+      for (const entity of new Set([entityId, supersededBy, ...(relatedEntityIds ?? [])].filter((id): id is string => Boolean(id)))) {
+        this.db.prepare('INSERT OR IGNORE INTO memory_links VALUES (?, ?)').run(entry.id, entity);
+      }
+    }
     return result.changes > 0;
   }
 
@@ -200,12 +261,23 @@ export class CampaignMemoryLedgerStore {
     sessionId: string;
     messageId: string;
     userMessageId?: string;
+    recipientIds?: string[];
     userText: string;
     assistantText: string;
     revealedAt?: string;
     facts?: RevealedMemoryFact[];
   }): number {
     return this.db.transaction(() => {
+      this.assertScope(input.scope);
+      const hash = createHash('sha256').update(JSON.stringify([input.userText,input.assistantText])).digest('hex');
+      const previous = this.db.prepare('SELECT content_hash FROM memory_turns WHERE playthrough_id = ? AND message_id = ?').get(input.scope.playthroughId,input.messageId) as {content_hash:string} | undefined;
+      if (previous) {
+        if (previous.content_hash !== hash) throw new Error('Memory turn content conflict');
+        return 0;
+      }
+      const prefix = `${input.scope.playthroughId}::${input.messageId}`;
+      const legacy = this.db.prepare('SELECT 1 FROM memory_entries WHERE playthrough_id = ? AND id IN (?, ?)').get(input.scope.playthroughId,`${input.messageId}:user`,`${prefix}:user`);
+      if (legacy) return 0;
       const nextSequence = (
         this.db.prepare(
           'SELECT COALESCE(MAX(sequence_no), 0) + 1 AS next_sequence FROM memory_entries WHERE playthrough_id = ?'
@@ -213,7 +285,7 @@ export class CampaignMemoryLedgerStore {
       ).next_sequence;
       const revealedAt = input.revealedAt ?? new Date().toISOString();
       const entries: MemoryLedgerEntry[] = [{
-        id: `${input.messageId}:user`,
+        id: `${prefix}:user`,
         scope: input.scope,
         sessionId: input.sessionId,
         sequence: nextSequence,
@@ -224,10 +296,11 @@ export class CampaignMemoryLedgerStore {
         sourceMessageIds: [input.userMessageId ?? `${input.messageId}:user`],
         revealedAt,
         active: true,
+        recipients: input.recipientIds,
       }];
       if (input.assistantText.trim()) {
         entries.push({
-          id: `${input.messageId}:assistant`,
+          id: `${prefix}:assistant`,
           scope: input.scope,
           sessionId: input.sessionId,
           sequence: nextSequence + entries.length,
@@ -238,13 +311,15 @@ export class CampaignMemoryLedgerStore {
           sourceMessageIds: [input.messageId],
           revealedAt,
           active: true,
+          recipients: input.recipientIds,
         });
       }
       for (const [index, fact] of (input.facts ?? []).entries()) {
         const text = fact.text.trim();
         if (!text) continue;
         entries.push({
-          id: `${input.messageId}:${fact.kind}:${index}`,
+          ...fact,
+          id: `${prefix}:${fact.kind}:${index}`,
           scope: input.scope,
           sessionId: input.sessionId,
           sequence: nextSequence + entries.length,
@@ -259,11 +334,13 @@ export class CampaignMemoryLedgerStore {
       }
       let inserted = 0;
       for (const entry of entries) inserted += this.append(entry) ? 1 : 0;
+      this.db.prepare('INSERT INTO memory_turns VALUES (?, ?, ?)').run(input.scope.playthroughId,input.messageId,hash);
       return inserted;
     })();
   }
 
   search(scope: CampaignMemoryScope, query: string, limit = 20): CampaignMemorySearchResult[] {
+    this.assertScope(scope);
     const trimmed = query.trim();
     if (!trimmed) return [];
 
@@ -275,10 +352,10 @@ export class CampaignMemoryLedgerStore {
           SELECT e.*, bm25(memory_entries_fts) AS rank
           FROM memory_entries_fts
           JOIN memory_entries e ON e.rowid = memory_entries_fts.rowid
-          WHERE memory_entries_fts MATCH ? AND e.playthrough_id = ?
+          WHERE memory_entries_fts MATCH ? AND e.playthrough_id = ? AND e.campaign_definition_id = ?
           ORDER BY rank ASC, e.sequence_no DESC
           LIMIT ?
-        `).all(ftsQuery, scope.playthroughId, limit) as Array<LedgerRow & { rank: number }>;
+        `).all(ftsQuery, scope.playthroughId, scope.campaignDefinitionId, limit) as Array<LedgerRow & { rank: number }>;
         return rows.map((row) => this.toSearchResult(row, 1 / (1 + Math.max(0, row.rank)), 'fts'));
       } catch (error) {
         this.ftsAvailable = false;
@@ -292,10 +369,10 @@ export class CampaignMemoryLedgerStore {
     const patterns = likeTokens.map((token) => `%${token.replace(/[\\%_]/g, '\\$&')}%`);
     const rows = this.db.prepare(`
       SELECT * FROM memory_entries
-      WHERE playthrough_id = ? AND (${clauses})
+      WHERE playthrough_id = ? AND campaign_definition_id = ? AND (${clauses})
       ORDER BY sequence_no DESC
       LIMIT ?
-    `).all(scope.playthroughId, ...patterns, limit) as LedgerRow[];
+    `).all(scope.playthroughId, scope.campaignDefinitionId, ...patterns, limit) as LedgerRow[];
     return rows.map((row, index) => this.toSearchResult(row, 1 / (index + 1), 'like'));
   }
 
@@ -324,12 +401,111 @@ export class CampaignMemoryLedgerStore {
   }
 
   list(scope: CampaignMemoryScope): MemoryLedgerEntry[] {
+    this.assertScope(scope);
     const rows = this.db.prepare(`
       SELECT * FROM memory_entries
-      WHERE playthrough_id = ?
+      WHERE playthrough_id = ? AND campaign_definition_id = ?
       ORDER BY sequence_no ASC, rowid ASC
-    `).all(scope.playthroughId) as LedgerRow[];
+    `).all(scope.playthroughId,scope.campaignDefinitionId) as LedgerRow[];
     return rows.map((row) => this.toEntry(row, scope));
+  }
+
+  revision(scope: CampaignMemoryScope): number {
+    this.assertScope(scope);
+    return (this.db.prepare('SELECT COALESCE(MAX(sequence_no),0) AS revision FROM memory_entries WHERE playthrough_id = ? AND campaign_definition_id = ?').get(scope.playthroughId,scope.campaignDefinitionId) as {revision:number}).revision;
+  }
+
+  getEntry(scope: CampaignMemoryScope, id: string): MemoryLedgerEntry | null {
+    this.assertScope(scope);
+    const row = this.db.prepare('SELECT * FROM memory_entries WHERE playthrough_id = ? AND campaign_definition_id = ? AND id = ?').get(scope.playthroughId,scope.campaignDefinitionId,id) as LedgerRow | undefined;
+    return row ? this.toEntry(row,scope) : null;
+  }
+
+  related(scope: CampaignMemoryScope, entityIds: string[], limit = 8): MemoryLedgerEntry[] {
+    this.assertScope(scope);
+    const ids = [...new Set(entityIds)].slice(0,32);
+    if (!ids.length) return [];
+    const rows = this.db.prepare(`SELECT DISTINCT e.* FROM memory_entries e JOIN memory_links l ON l.entry_id = e.id
+      WHERE e.playthrough_id = ? AND e.campaign_definition_id = ? AND l.entity_id IN (${ids.map(()=>'?').join(',')})
+      ORDER BY e.sequence_no DESC LIMIT ?`).all(scope.playthroughId,scope.campaignDefinitionId,...ids,limit) as LedgerRow[];
+    return rows.map(row=>this.toEntry(row,scope));
+  }
+
+  pendingIndexEntries(scope: CampaignMemoryScope, limit = 16): MemoryLedgerEntry[] {
+    this.assertScope(scope);
+    const rows = this.db.prepare(`SELECT e.* FROM memory_entries e JOIN memory_index_jobs j ON e.id = j.entry_id
+      WHERE e.playthrough_id = ? AND e.campaign_definition_id = ? AND j.retry_at <= ?
+      ORDER BY e.sequence_no LIMIT ?`).all(scope.playthroughId,scope.campaignDefinitionId,Date.now(),limit) as LedgerRow[];
+    return rows.map(row=>this.toEntry(row,scope));
+  }
+
+  ensureIndexSignature(scope: CampaignMemoryScope, signature: string): void {
+    this.assertScope(scope);
+    const key = `embedding:${scope.playthroughId}`;
+    this.db.transaction(() => {
+      const previous = this.db.prepare('SELECT value FROM memory_meta WHERE key = ?').get(key) as { value: string } | undefined;
+      if (previous?.value === signature) return;
+      this.db.prepare(`INSERT OR IGNORE INTO memory_index_jobs(entry_id)
+        SELECT id FROM memory_entries WHERE playthrough_id = ? AND campaign_definition_id = ?`)
+        .run(scope.playthroughId, scope.campaignDefinitionId);
+      this.setMeta(key, signature);
+    })();
+  }
+
+  finishIndexJob(id: string, success: boolean): void {
+    if (success) this.db.prepare('DELETE FROM memory_index_jobs WHERE entry_id = ?').run(id);
+    else this.db.prepare('UPDATE memory_index_jobs SET attempts = attempts + 1, retry_at = ? WHERE entry_id = ?').run(Date.now()+60_000,id);
+  }
+
+  createSnapshot(scope: CampaignMemoryScope, messages: Array<{id:string;role:string;content:string}>): CampaignMemorySnapshot {
+    const entries = this.list(scope);
+    const byMessage = new Map(messages.map(message=>[message.id,message]));
+    const committedMessages = new Set(entries.filter(entry => entry.kind === 'conversation')
+      .flatMap(entry => entry.sourceMessageIds));
+    for (const message of messages) {
+      if (message.role === 'assistant' && extractRevealedTurn(message.content, message.id).narrative.trim()
+        && !committedMessages.has(message.id)) {
+        throw new Error('Save contains a response that has not been committed to memory');
+      }
+    }
+    let cutoff = 0;
+    for (const entry of entries) {
+      if (entry.kind !== 'conversation') continue;
+      for (const id of entry.sourceMessageIds) {
+        const message = byMessage.get(id);
+        if (!message) continue;
+        const text = message.role === 'assistant' ? extractRevealedTurn(message.content, message.id).narrative : message.content;
+        if (message.role !== entry.role || text.trim() !== entry.text.trim()) throw new Error('Save history conflicts with committed memory');
+        cutoff = Math.max(cutoff,entry.sequence);
+      }
+    }
+    // Include structured records from the selected turn, but never later turns.
+    const selected = entries.filter(entry=>entry.sequence <= cutoff ||
+      (entry.kind !== 'conversation' && (!entry.sourceMessageIds.length || entry.sourceMessageIds.some(id=>byMessage.has(id)))));
+    const checkpoint = this.getLatestCheckpoint(scope.playthroughId);
+    return {schemaVersion:1,scope,revision:Math.max(0,...selected.map(e=>e.sequence)),entries:selected,
+      checkpoints:checkpoint && checkpoint.sourceMessageIds.every(id=>byMessage.has(id)) ? [checkpoint] : []};
+  }
+
+  restoreSnapshot(snapshot: CampaignMemorySnapshot, requestId: string): CampaignMemoryScope {
+    validateMemorySnapshot(snapshot);
+    if (!/^[a-zA-Z0-9_-]{1,160}$/.test(requestId)) throw new Error('Invalid restore request');
+    const hash = createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+    return this.db.transaction(()=>{
+      const previous = this.db.prepare('SELECT * FROM memory_restores WHERE request_id = ?').get(requestId) as {snapshot_hash:string;scope_json:string} | undefined;
+      if (previous) {
+        if (previous.snapshot_hash !== hash) throw new Error('Restore request conflict');
+        return JSON.parse(previous.scope_json) as CampaignMemoryScope;
+      }
+      const scope = {...snapshot.scope,playthroughId:`run-${randomUUID()}`};
+      this.db.prepare('INSERT INTO memory_runs VALUES (?, ?)').run(scope.playthroughId,scope.campaignDefinitionId);
+      for (const entry of snapshot.entries) this.append({...entry,
+        id:`${scope.playthroughId}::${createHash('sha256').update(entry.id).digest('hex')}`,
+        scope:{...scope,adventureId:entry.scope.adventureId},sessionId:scope.playthroughId});
+      for (const checkpoint of snapshot.checkpoints) this.saveCheckpoint({...checkpoint,id:`${scope.playthroughId}::${checkpoint.id}`,playthroughId:scope.playthroughId});
+      this.db.prepare('INSERT INTO memory_restores VALUES (?, ?, ?)').run(requestId,hash,JSON.stringify(scope));
+      return scope;
+    })();
   }
 
   getLatestCheckpoint(playthroughId: string): CampaignCompressionCheckpoint | null {
@@ -345,6 +521,9 @@ export class CampaignMemoryLedgerStore {
       source_message_ids_json: string;
       summary: string;
       created_at: string;
+      source_hash: string | null;
+      locale: 'pl' | 'en' | null;
+      model_id: string | null;
     } | undefined;
     if (!row) return null;
     const failure = this.getCompressionFailure(playthroughId);
@@ -359,6 +538,9 @@ export class CampaignMemoryLedgerStore {
       createdAt: row.created_at,
       failureCount: failure.failureCount,
       retryAfter: failure.retryAfter,
+      sourceHash: row.source_hash ?? undefined,
+      locale: row.locale ?? undefined,
+      modelId: row.model_id ?? undefined,
     };
   }
 
@@ -367,8 +549,8 @@ export class CampaignMemoryLedgerStore {
       this.db.prepare(`
         INSERT OR IGNORE INTO compression_checkpoints (
           id, playthrough_id, version, source_start_sequence,
-          source_end_sequence, source_message_ids_json, summary, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          source_end_sequence, source_message_ids_json, summary, created_at, source_hash, locale, model_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         input.id,
         input.playthroughId,
@@ -377,7 +559,8 @@ export class CampaignMemoryLedgerStore {
         input.sourceEndSequence,
         JSON.stringify(input.sourceMessageIds),
         input.summary,
-        input.createdAt
+        input.createdAt,
+        input.sourceHash ?? null, input.locale ?? null, input.modelId ?? null
       );
       const sourceIds = new Set(input.sourceMessageIds);
       if (sourceIds.size > 0) {
@@ -433,8 +616,9 @@ export class CampaignMemoryLedgerStore {
 
   private toEntry(row: LedgerRow, scope: CampaignMemoryScope): MemoryLedgerEntry {
     return {
+      ...JSON.parse(row.fact_json || '{}') as MemoryFactMetadata,
       id: row.id,
-      scope,
+      scope: {...scope, adventureId: row.adventure_id, campaignDefinitionId: row.campaign_definition_id},
       sessionId: row.session_id,
       sequence: row.sequence_no,
       role: row.role,
@@ -453,6 +637,7 @@ export class CampaignMemoryLedgerStore {
     source: 'fts' | 'like'
   ): CampaignMemorySearchResult {
     return {
+      ...JSON.parse(row.fact_json || '{}') as MemoryFactMetadata,
       id: row.id,
       text: row.text,
       score,

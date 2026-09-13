@@ -10,6 +10,7 @@
  */
 
 import { getGeminiClient } from './gemini-client-pool';
+import { assertDocumentModelUseAllowed } from './document-model-policy';
 
 interface GeminiFileInfo {
   fileUri: string;
@@ -49,6 +50,7 @@ export async function uploadTextFileToGemini(
   mimeType: string = 'text/plain',
   apiKey?: string
 ): Promise<string> {
+  assertDocumentModelUseAllowed();
   try {
     console.log(`📤 Uploading text file to Gemini: ${displayName} (${textContent.length} chars)`);
 
@@ -109,6 +111,7 @@ export async function uploadPDFTextToGemini(
   fileName: string,
   apiKey?: string
 ): Promise<string> {
+  assertDocumentModelUseAllowed();
   // Używamy text/plain dla sparsowanego tekstu PDF
   return uploadTextFileToGemini(
     textContent,
@@ -133,6 +136,7 @@ export async function uploadNativePDFToGemini(
   fileName: string,
   apiKey?: string
 ): Promise<string> {
+  assertDocumentModelUseAllowed();
   try {
     const displayName = `pdf-native-${fileName}`;
 

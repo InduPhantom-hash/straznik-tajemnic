@@ -1,4 +1,5 @@
 {
+  "CampaignMemory": {"failed":"Nie udało się zapisać pamięci tej tury", "retry":"Ponów zapis", "saved":"Pamięć tury zapisana", "description":"Odpowiedź pozostała w czacie. Ponowienie zapisu nie uruchamia narracji ponownie."},
   "Welcome": {
     "title": "Wybierz język",
     "subtitle": "Choose Language",

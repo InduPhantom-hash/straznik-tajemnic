@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isDocumentModelUseBlocked, documentPolicyError } from '@/lib/document-model-policy';
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import {
@@ -51,6 +52,12 @@ function parseSetupJson(text: string): Record<string, unknown> {
 }
 
 export async function POST(request: NextRequest) {
+  // This route consumes source adventureText, including text retained by old saves.
+  if (isDocumentModelUseBlocked()) {
+    return NextResponse.json(documentPolicyError(
+      request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'
+    ), { status: 403 });
+  }
   try {
     const body: SetupRequest = await request.json();
     const { adventureText, characters, eraContext } = body;
