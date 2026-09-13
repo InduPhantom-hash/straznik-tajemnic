@@ -130,11 +130,46 @@ const STREAMING_SEGMENT_TARGET_CHARS = 100;
  *
  * Czysta (poza hookiem) - worker ma deps `[]`, więc parametry przez stałe modułowe.
  */
+/**
+ * Zwalnia deterministycznie zasoby elementu HTMLAudioElement (pause, src = '', load).
+ */
+export function releaseAudioElement(audio: HTMLAudioElement | null): void {
+  if (!audio) return;
+  try {
+    audio.onended = null;
+    audio.onerror = null;
+    audio.onplay = null;
+    audio.onpause = null;
+    audio.pause();
+    audio.src = '';
+    audio.load();
+  } catch {
+    // Graceful degradation w środowiskach bez pełnej implementacji Audio (jsdom)
+  }
+}
+
+/**
+ * IND-191: fetch TTS z ponowieniem. Zwraca `audioUrl` albo `null` (segment niemy -
+ * świadoma degradacja zamiast bezpowrotnej utraty audio bez próby ratunku).
+ *
+ * - 429 → honoruj `Retry-After` (capped MAX_RETRY_WAIT_MS) → ponów segment.
+ * - !ok (500/503) → krótki backoff → ponów.
+ * - network throw → backoff → ponów.
+ * - sukces → `result.success && result.audioUrl`.
+ *
+ * Czysta (poza hookiem) - worker ma deps `[]`, więc parametry przez stałe modułowe.
+ */
 async function fetchTtsWithRetry(
   url: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  options?: {
+    signal?: AbortSignal;
+    onRateLimited?: (retryAfterSec: number) => void;
+  }
 ): Promise<string | null> {
+  const { signal, onRateLimited } = options || {};
   for (let attempt = 0; attempt <= MAX_TTS_RETRIES; attempt++) {
+    if (signal?.aborted) return null;
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -142,23 +177,42 @@ async function fetchTtsWithRetry(
         // Bez tego /api/tts/gemini zwraca 401 po przejściu na header-only (Faza A).
         headers: { 'Content-Type': 'application/json', ...getApiKeyHeaders() },
         body: JSON.stringify(payload),
+        signal,
       });
+
+      if (signal?.aborted) return null;
 
       // Rate-limit: czekaj Retry-After (capped) i ponów. Po wyczerpaniu → segment niemy.
       if (response.status === 429) {
+        const retryAfterHeader = response.headers?.get?.('Retry-After') || '';
+        const retryAfter = parseInt(retryAfterHeader, 10);
+        if (Number.isFinite(retryAfter) && onRateLimited) {
+          onRateLimited(retryAfter);
+        }
+
         if (attempt < MAX_TTS_RETRIES) {
-          const retryAfter = parseInt(
-            response.headers?.get?.('Retry-After') || '',
-            10
-          );
           const waitMs = Number.isFinite(retryAfter)
             ? Math.min(retryAfter * 1000, MAX_RETRY_WAIT_MS)
             : TRANSIENT_RETRY_WAIT_MS;
-          await new Promise((r) => setTimeout(r, waitMs));
+          await new Promise((r) => {
+            let onAbort: (() => void) | undefined;
+            const timer = setTimeout(() => {
+              if (signal && onAbort) signal.removeEventListener('abort', onAbort);
+              r(null);
+            }, waitMs);
+            if (signal) {
+              onAbort = () => {
+                clearTimeout(timer);
+                r(null);
+              };
+              signal.addEventListener('abort', onAbort, { once: true });
+            }
+          });
+          if (signal?.aborted) return null;
           continue;
         }
         console.warn(
-          `🔇 TTS: 429 rate-limit - segment pominięty po ${MAX_TTS_RETRIES} próbach`
+          `⚠️ TTS: wyczerpano ponowienia rate-limit (429). Pomiń segment.`
         );
         return null;
       }
@@ -166,11 +220,25 @@ async function fetchTtsWithRetry(
       // Inny błąd HTTP (500/503): krótki backoff i ponów.
       if (response.ok === false) {
         if (attempt < MAX_TTS_RETRIES) {
-          await new Promise((r) => setTimeout(r, TRANSIENT_RETRY_WAIT_MS));
+          await new Promise((r) => {
+            let onAbort: (() => void) | undefined;
+            const timer = setTimeout(() => {
+              if (signal && onAbort) signal.removeEventListener('abort', onAbort);
+              r(null);
+            }, TRANSIENT_RETRY_WAIT_MS);
+            if (signal) {
+              onAbort = () => {
+                clearTimeout(timer);
+                r(null);
+              };
+              signal.addEventListener('abort', onAbort, { once: true });
+            }
+          });
+          if (signal?.aborted) return null;
           continue;
         }
         console.warn(
-          `🔇 TTS: błąd ${response.status} - segment pominięty po ${MAX_TTS_RETRIES} próbach`
+          `⚠️ TTS: błąd HTTP ${response.status}. Pomiń segment.`
         );
         return null;
       }
@@ -178,9 +246,26 @@ async function fetchTtsWithRetry(
       const result = await response.json();
       if (result.success && result.audioUrl) return result.audioUrl;
       return null;
-    } catch (e) {
+    } catch (e: unknown) {
+      if (signal?.aborted || (e instanceof Error && e.name === 'AbortError')) {
+        return null;
+      }
       if (attempt < MAX_TTS_RETRIES) {
-        await new Promise((r) => setTimeout(r, TRANSIENT_RETRY_WAIT_MS));
+        await new Promise((r) => {
+          let onAbort: (() => void) | undefined;
+          const timer = setTimeout(() => {
+            if (signal && onAbort) signal.removeEventListener('abort', onAbort);
+            r(null);
+          }, TRANSIENT_RETRY_WAIT_MS);
+          if (signal) {
+            onAbort = () => {
+              clearTimeout(timer);
+              r(null);
+            };
+            signal.addEventListener('abort', onAbort, { once: true });
+          }
+        });
+        if (signal?.aborted) return null;
         continue;
       }
       console.warn('🔇 TTS: błąd sieci - segment pominięty', e);
@@ -201,9 +286,14 @@ export function removeDidaskalia(text: string): string {
 export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
-  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
+  const [currentAudio, setCurrentAudioState] = useState<HTMLAudioElement | null>(
     null
   );
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const setCurrentAudio = useCallback((audio: HTMLAudioElement | null) => {
+    currentAudioRef.current = audio;
+    setCurrentAudioState(audio);
+  }, []);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const [isAudioPaused, setIsAudioPaused] = useState(false);
   const [isInitialBuffering, setIsInitialBuffering] = useState(false);
@@ -242,7 +332,12 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     processing: false,
   });
 
-  // Refs do zarządzania kolejkowaniem
+  // Refs do zarządzania kolejkowaniem i wyścigami asynchronicznymi
+  const generationIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentPlayResolverRef = useRef<(() => void) | null>(null);
+  const isFreeTierThrottledRef = useRef(false);
+
   const queueRef = useRef<string[]>([]);
   // Faza 2 sesji 147: queue trzyma `{text, voiceId?}` zamiast string.
   // voiceId override pochodzi z multi-voice parser (ULTRA preset).
@@ -305,24 +400,30 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const lastKnownMoodRef = useRef<string | undefined>(undefined);
   const lastKnownSanLossRef = useRef<number | undefined>(undefined);
 
-  useEffect(() => {
-    console.log('🔊 TTS: Hook MOUNTED');
-    return () => console.log('🔊 TTS: Hook UNMOUNTED');
-  }, []);
-
   const stopCurrentAudio = useCallback(
     (preserveBuffering = false) => {
       console.log('🔊 TTS: STOP called. Resetting state.');
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        setCurrentAudio(null);
+      generationIdRef.current++;
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
       }
-      // Zatrzymaj wszystkie prekładowane audio
+
+      if (currentPlayResolverRef.current) {
+        currentPlayResolverRef.current();
+        currentPlayResolverRef.current = null;
+      }
+
+      if (currentAudioRef.current) {
+        releaseAudioElement(currentAudioRef.current);
+        currentAudioRef.current = null;
+        setCurrentAudioState(null);
+      }
+      // Zatrzymaj i zwolnij wszystkie prekładowane audio
       preloadedAudioRef.current.forEach((audio) => {
         if (!audio) return; // tombstone (null) - brak audio do zatrzymania
-        audio.pause();
-        audio.currentTime = 0;
+        releaseAudioElement(audio);
       });
       preloadedAudioRef.current.clear();
       queueRef.current = [];
@@ -363,8 +464,16 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       setIsAudioPaused(false);
       setQueueStatus({ queueLength: 0, totalCharacters: 0, processing: false });
     },
-    [currentAudio]
+    []
   );
+
+  useEffect(() => {
+    console.log('🔊 TTS: Hook MOUNTED');
+    return () => {
+      console.log('🔊 TTS: Hook UNMOUNTED');
+      stopCurrentAudio();
+    };
+  }, [stopCurrentAudio]);
 
   // Reaktywne wyciszenie przy wyłączeniu lektora w runtime
   useEffect(() => {
@@ -374,16 +483,17 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   }, [voiceEnabled, isTTSEnabled, stopCurrentAudio]);
 
   const toggleAudioPause = useCallback(() => {
-    if (currentAudio) {
-      if (currentAudio.paused) {
-        currentAudio.play().catch(console.error);
+    const audio = currentAudioRef.current;
+    if (audio) {
+      if (audio.paused) {
+        audio.play().catch(console.error);
         setIsAudioPaused(false);
       } else {
-        currentAudio.pause();
+        audio.pause();
         setIsAudioPaused(true);
       }
     }
-  }, [currentAudio]);
+  }, []);
 
   // Worker przetwarzający kolejkę
   const runQueueWorker = useCallback(async () => {
@@ -393,6 +503,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
     try {
       while (pendingQueueRef.current.length > 0) {
+        const currentGen = generationIdRef.current;
         // Przenieś z pending do głównej kolejki przetwarzania
         const item = pendingQueueRef.current.shift();
         if (!item) continue;
@@ -432,16 +543,45 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             }
           }
 
+          if (generationIdRef.current !== currentGen) {
+            console.log(`🔊 TTS Worker: Segment ${index} unieważniony (stara generacja)`);
+            break;
+          }
+
           if (!audioUrl) {
+            if (!abortControllerRef.current || abortControllerRef.current.signal.aborted) {
+              abortControllerRef.current = new AbortController();
+            }
+            const signal = abortControllerRef.current.signal;
+
             // IND-191: fetch z retry (429 honoruje Retry-After, transient backoff).
             // Issue #162 + #200: przekazujemy audioDirection jako instrukcję reżyserską dla Gemini TTS
-            audioUrl = await fetchTtsWithRetry('/api/tts/gemini', {
-              text,
-              voice: effectiveVoice,
-              model: geminiModel,
-              languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
-              audioDirection,
-            });
+            audioUrl = await fetchTtsWithRetry(
+              '/api/tts/gemini',
+              {
+                text,
+                voice: effectiveVoice,
+                model: geminiModel,
+                languageCode: locale === 'en' ? 'en-US' : 'pl-PL',
+                audioDirection,
+              },
+              {
+                signal,
+                onRateLimited: (retryAfterSec) => {
+                  if (retryAfterSec > 10) {
+                    console.warn(
+                      `⚠️ [TTS] Wykryto rate-limit 429 z Retry-After=${retryAfterSec}s > 10s. Aktywacja bezpiecznika 15 RPM (agregacja akapitowa).`
+                    );
+                    isFreeTierThrottledRef.current = true;
+                  }
+                },
+              }
+            );
+
+            if (generationIdRef.current !== currentGen || signal.aborted) {
+              console.log(`🔊 TTS Worker: Segment ${index} odrzucony po fetch (stara generacja lub anulowano)`);
+              break;
+            }
 
             if (audioUrl && persistentMediaCache.isAvailable()) {
               persistentMediaCache
@@ -452,6 +592,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
                 })
                 .catch(() => {});
             }
+          }
+
+          if (generationIdRef.current !== currentGen) {
+            break;
           }
 
           if (audioUrl) {
@@ -535,7 +679,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         finishInitialBufferingRef.current();
       }
     }
-  }, []); // Removed 'playFromBuffer' from deps to avoid circular dependency mechanism, relying on ref stability
+  }, [locale]);
 
   const playbackIndexRef = useRef(0);
 
@@ -548,12 +692,13 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     )
       return;
     isPlayingQueueRef.current = true;
+    const currentGen = generationIdRef.current;
 
     try {
       while (true) {
-        if (isAwaitingInitialPlayRef.current) {
+        if (isAwaitingInitialPlayRef.current || generationIdRef.current !== currentGen) {
           console.log(
-            '🔇 TTS Player: Awaiting initial play (CTA gate active). Halting playback.'
+            '🔇 TTS Player: Awaiting initial play or aborted. Halting playback.'
           );
           break;
         }
@@ -583,10 +728,11 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
           // Czekamy na worker
           await new Promise((r) => setTimeout(r, 100));
+          if (generationIdRef.current !== currentGen) break;
           continue;
         }
 
-        if (isAwaitingInitialPlayRef.current) {
+        if (isAwaitingInitialPlayRef.current || generationIdRef.current !== currentGen) {
           break;
         }
 
@@ -608,21 +754,46 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         setCurrentAudio(audio);
 
         await new Promise<void>((resolve) => {
-          audio.onended = () => resolve();
-          audio.onerror = () => resolve();
-          audio.play().catch(() => resolve());
+          let resolved = false;
+          const safeResolve = () => {
+            if (resolved) return;
+            resolved = true;
+            currentPlayResolverRef.current = null;
+            resolve();
+          };
+          currentPlayResolverRef.current = safeResolve;
+          audio.onended = safeResolve;
+          audio.onerror = safeResolve;
+          audio.play().catch(safeResolve);
         });
 
-        // Posprzątaj i idź do następnego
+        // Jeśli odtwarzanie zostało przerwane (nowa akcja gracza / zmiana generacji),
+        // nie modyfikuj playbackIndexRef ani preloadedAudioRef nowego pokolenia
+        if (generationIdRef.current !== currentGen) {
+          releaseAudioElement(audio);
+          break;
+        }
+
+        // Posprzątaj bieżący audio po odtworzeniu
+        releaseAudioElement(audio);
+        if (currentAudioRef.current === audio) {
+          setCurrentAudio(null);
+        }
+
         preloadedAudioRef.current.delete(currentIndex);
         playbackIndexRef.current++;
       }
     } finally {
-      isPlayingQueueRef.current = false;
-      setCurrentAudio(null);
+      if (generationIdRef.current === currentGen) {
+        isPlayingQueueRef.current = false;
+        if (currentAudioRef.current) {
+          releaseAudioElement(currentAudioRef.current);
+          setCurrentAudio(null);
+        }
+      }
       console.log('🏁 TTS Player: Sequence finished');
     }
-  }, []);
+  }, [setCurrentAudio]);
 
   const finishInitialBuffering = useCallback(() => {
     if (bufferTimeoutRef.current) {
@@ -825,6 +996,9 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           const between = stripped.slice(prevSentenceEndRef.current, startIndex);
           if (between.includes('\n')) {
             activeNpcSpeakerRef.current = null;
+            if (isFreeTierThrottledRef.current) {
+              closeRun();
+            }
           }
 
           // Marker: legacy `@Imię: dialog` lub `Imię: „dialog”` (gm-protocol).
@@ -851,6 +1025,14 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               ] as unknown as RegExpMatchArray;
             }
           }
+
+          // Filtr prefiksów technicznych NPC (Raport policji:, Wskazówka:, Uwaga:)
+          const TECHNICAL_NPC_PREFIXES =
+            /^(?:Raport policji|Wskazówka|Wskazowka|Uwaga|Notatka|System|Komentarz|Status|Wskazówki|Wskazowki)\b/i;
+          if (markerMatch && TECHNICAL_NPC_PREFIXES.test(markerMatch[2].trim())) {
+            markerMatch = null;
+          }
+
           let voiceId: string | undefined;
           let audioDirection: string | undefined;
           let textForQueue = clean;
@@ -927,15 +1109,23 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           // Pierwsze zdanie narracji wypychamy wcześnie (>= EARLY_FIRST_SEGMENT_MIN_CHARS).
           // Kolejne segmenty zamykamy sukcesywnie po osiągnięciu >= STREAMING_SEGMENT_TARGET_CHARS,
           // dzięki czemu worker TTS generuje kolejne zdania w tle podczas pisania tekstu przez AI.
+          // Bezpiecznik 15 RPM (Decyzja 2A): przy dławieniu scalaj zdania w pełne akapity (zamykaj na \n)
           if (!flush) {
-            const currentRunLength = openRunRef.current.texts.join(' ').length;
-            const threshold = !hasDispatchedFirstSegmentRef.current
-              ? EARLY_FIRST_SEGMENT_MIN_CHARS
-              : STREAMING_SEGMENT_TARGET_CHARS;
+            if (!isFreeTierThrottledRef.current) {
+              const currentRunLength = openRunRef.current.texts.join(' ').length;
+              const threshold = !hasDispatchedFirstSegmentRef.current
+                ? EARLY_FIRST_SEGMENT_MIN_CHARS
+                : STREAMING_SEGMENT_TARGET_CHARS;
 
-            if (currentRunLength >= threshold) {
-              closeRun();
-              hasDispatchedFirstSegmentRef.current = true;
+              if (currentRunLength >= threshold) {
+                closeRun();
+                hasDispatchedFirstSegmentRef.current = true;
+              }
+            } else {
+              // Bezpiecznik 15 RPM: zamykaj run dopiero na granicy akapitu (\n)
+              if (raw.includes('\n')) {
+                closeRun();
+              }
             }
           }
 

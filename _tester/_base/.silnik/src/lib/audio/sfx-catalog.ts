@@ -89,10 +89,33 @@ export const SFX_CATALOG: Record<string, SFXDefinition> = {
 };
 
 /**
+ * Zwalnia deterministycznie zasoby elementu HTMLAudioElement (pause, src = '', load).
+ */
+export function releaseSFXAudioElement(audio: HTMLAudioElement | null): void {
+  if (!audio) return;
+  try {
+    audio.onended = null;
+    audio.onerror = null;
+    audio.pause();
+    audio.src = '';
+    audio.load();
+  } catch {
+    // Ignoruj błędy w środowiskach bez pełnej implementacji Audio (np. jsdom)
+  }
+}
+
+/**
  * Globalny odtwarzacz SFX offline z kalibracją głośności.
  */
 let currentSFXAudio: HTMLAudioElement | null = null;
 const lastPlayedTimestamps: Record<string, number> = {};
+
+export function stopCurrentSFX(): void {
+  if (currentSFXAudio) {
+    releaseSFXAudioElement(currentSFXAudio);
+    currentSFXAudio = null;
+  }
+}
 
 export function playSFX(presetId: string, customVolumeMultiplier: number = 1.0): void {
   if (typeof window === 'undefined') return;
@@ -113,22 +136,34 @@ export function playSFX(presetId: string, customVolumeMultiplier: number = 1.0):
   lastPlayedTimestamps[presetId] = now;
 
   try {
+    // Zwolnij poprzedni SFX jeśli istnieje
+    if (currentSFXAudio) {
+      if (currentSFXAudio.paused || sfxDef.category === 'weapons' || sfxDef.category === 'combat') {
+        releaseSFXAudioElement(currentSFXAudio);
+        currentSFXAudio = null;
+      }
+    }
+
     const audio = new Audio(sfxDef.file);
     const targetVolume = Math.min(1.0, Math.max(0.05, sfxDef.volume * customVolumeMultiplier));
     audio.volume = targetVolume;
-    
-    // Jeśli gra już inny SFX o niższym priorytecie lub stary, nie przerywaj gwałtownie, chyba że to broń/wybuch
-    if (currentSFXAudio && !currentSFXAudio.paused) {
-      if (sfxDef.category === 'weapons' || sfxDef.category === 'combat') {
-        currentSFXAudio.pause();
+
+    const cleanupThisAudio = () => {
+      releaseSFXAudioElement(audio);
+      if (currentSFXAudio === audio) {
+        currentSFXAudio = null;
       }
-    }
-    
+    };
+    audio.onended = cleanupThisAudio;
+    audio.onerror = cleanupThisAudio;
+
     currentSFXAudio = audio;
+
     const playPromise = audio.play();
     if (playPromise !== undefined && typeof playPromise.catch === 'function') {
       playPromise.catch((err) => {
         console.warn(`[SFX] Błąd odtwarzania ${presetId}:`, err);
+        cleanupThisAudio();
       });
     }
     console.log(`🔊 [SFX] Odtworzono: ${presetId} (plik: ${sfxDef.file}, vol: ${(targetVolume * 100).toFixed(0)}%)`);

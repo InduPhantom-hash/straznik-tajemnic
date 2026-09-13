@@ -1035,6 +1035,7 @@ class PersistentMediaCache {
 
   /**
    * Generate a cache key for TTS based on text and voice config
+   * Uses 64-bit FNV-1a hash over the entire text to avoid collision on long passages.
    */
   generateTtsCacheKey(
     text: string,
@@ -1042,8 +1043,8 @@ class PersistentMediaCache {
     pitch?: number,
     rate?: number
   ): string {
-    const normalized = text.trim().toLowerCase().substring(0, 200);
-    const hash = this.simpleHash(normalized);
+    const normalized = text.trim().toLowerCase();
+    const hash = this.fnv1a64(normalized);
     return `${voiceId}_${pitch || 0}_${rate || 1}_${hash}`;
   }
 
@@ -1051,18 +1052,19 @@ class PersistentMediaCache {
    * Generate a cache key for SFX based on prompt
    */
   generateSfxCacheKey(prompt: string): string {
-    const normalized = prompt.trim().toLowerCase().substring(0, 200);
-    return this.simpleHash(normalized);
+    const normalized = prompt.trim().toLowerCase();
+    return this.fnv1a64(normalized);
   }
 
-  private simpleHash(str: string): string {
-    let hash = 0;
+  private fnv1a64(str: string): string {
+    let hash = BigInt('0xcbf29ce484222325');
+    const prime = BigInt('0x100000001b3');
+    const mask = BigInt('0xffffffffffffffff');
     for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash;
+      hash ^= BigInt(str.charCodeAt(i));
+      hash = (hash * prime) & mask;
     }
-    return Math.abs(hash).toString(36);
+    return hash.toString(16).padStart(16, '0');
   }
 }
 

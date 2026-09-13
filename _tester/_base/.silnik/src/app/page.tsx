@@ -160,6 +160,7 @@ export default function Home() {
     generateVoiceForMessage: tts.generateVoiceForMessage,
     // M6 sesja 146: generateMultiVoice DROPPED per D3.
     addToQueue: tts.addToQueue,
+    stopCurrentAudio: tts.stopCurrentAudio,
     adventureContext,
     aiSettings,
     onSkillResults: skillMarking.processSkillResults,
