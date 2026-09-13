@@ -138,9 +138,10 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       expect(result.message.pl).toContain('koszty (8 PM, 4 SAN) zostały poniesione');
     });
 
-    it('porażka forsowania pierwszego rzucenia (Pushed Roll) wyzwala zaklęcie z katastrofą', () => {
-      // Hard POW dla 60 wynosi 30. Wstrzykujemy rzut 55 (porażka forsowania) oraz 3 dla katastrofy.
-      const roller = new DeterministicMagicDiceRoller({ d100: [55], formula: [3] });
+    it('porażka forsowania pierwszego rzucenia (Pushed Roll) wyzwala zaklęcie z katastrofą (koszt x 1K6, PM->HP 1:1, tabela 1K8)', () => {
+      // Hard POW dla 60 wynosi 30. Wstrzykujemy rzut 55 (porażka forsowania).
+      // W formule: koszt SAN (1k6 = 3), mnożnik katastrofy (1k6 = 2), rzut w tabeli katastrof (1k8 = 4).
+      const roller = new DeterministicMagicDiceRoller({ d100: [55], formula: [3, 2, 4] });
       const engine = new MagicEngine(roller);
 
       const request: CastingRequest = {
@@ -161,6 +162,17 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       expect(result.success).toBe(true);
       expect(result.firstCastRoll?.isPushed).toBe(true);
       expect(result.firstCastRoll?.pushedFailedCatastrophe).toBe(true);
+      expect(result.catastrophe).toBeDefined();
+      expect(result.catastrophe?.costMultiplier).toBe(2);
+      expect(result.catastrophe?.effect).toBeDefined();
+      // Koszt bazowy 8 PM * 2 = 16 PM. Posiadał 12 PM -> 12 PM pobrano, 4 PM pokryte z HP!
+      expect(result.costPaid.mp).toBe(12);
+      expect(result.costPaid.hpFromMp).toBe(4);
+      // Koszt SAN: 3 * 2 = 6 SAN
+      expect(result.costPaid.san).toBe(6);
+      expect(result.statChanges.mpDelta).toBe(-12);
+      expect(result.statChanges.hpDelta).toBe(-4);
+      expect(result.statChanges.sanDelta).toBe(-6);
       expect(result.message.pl).toContain('KATASTROFA FORSOWANIA');
       expect(result.characterUpdates.isFirstCastDone).toBe(true);
     });
@@ -258,7 +270,7 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
   });
 
   describe('Rzuty sporne Mocy (Opposed POW - Seth Skorkowsky & RAW)', () => {
-    it('rozstrzyga starcie woli w zaklęciu Zdominowanie i kwalifikuje do rozwoju POW', () => {
+    it('rozstrzyga starcie woli w zaklęciu Dominacja i kwalifikuje do rozwoju POW', () => {
       // Caster POW: 70, rzut: 12 (Extreme success).
       // Target POW: 60, rzut: 50 (Regular success).
       const roller = new DeterministicMagicDiceRoller({ d100: [12, 50] });
@@ -281,6 +293,51 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       expect(result.success).toBe(true);
       expect(result.opposedRoll?.winner).toBe('caster');
       expect(result.opposedRoll?.casterPowImprovementEligible).toBe(true);
+    });
+
+    it('rozstrzyga obronę badacza przed wrogą magią (Opposed Defense) i kwalifikuje do rozwoju POW', () => {
+      // Attacker POW: 65, rzut: 45 (Regular success).
+      // Defender POW: 60, rzut: 20 (Hard success).
+      const roller = new DeterministicMagicDiceRoller({ d100: [45, 20] });
+      const engine = new MagicEngine(roller);
+
+      const result = engine.resolveOpposedDefense({
+        attackerName: 'Kultysta Silas',
+        attackerPow: 65,
+        defenderId: 'inv-1',
+        defenderName: 'Harvey Walters',
+        defenderPow: 60,
+        spellId: 'dominate',
+        spellName: 'Dominacja',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.winner).toBe('defender');
+      expect(result.defenderSuccessLevel).toBe(2); // Hard
+      expect(result.attackerSuccessLevel).toBe(1); // Regular
+      expect(result.defenderPowImprovementEligible).toBe(true);
+      expect(result.message.pl).toContain('Obrona przed magią powiodła się');
+    });
+
+    it('zastosowuje Zasadę Granic Możliwości (str. 99) gdy różnica POW wynosi 100+', () => {
+      const roller = new DeterministicMagicDiceRoller({ d100: [95, 5] });
+      const engine = new MagicEngine(roller);
+
+      const result = engine.resolveOpposedDefense({
+        attackerName: 'Przedwieczny Cthulhu',
+        attackerPow: 180,
+        defenderId: 'inv-1',
+        defenderName: 'Harvey Walters',
+        defenderPow: 60, // różnica 120 (>= 100)
+        spellId: 'dominate',
+        spellName: 'Dominacja',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.winner).toBe('attacker');
+      expect(result.ruleOfLimitsApplied).toBe(true);
+      expect(result.message.pl).toContain('Zasada granic możliwości');
+      expect(result.message.pl).toContain('Obrona przed czarem „Dominacja” jest niemożliwa');
     });
   });
 
@@ -328,9 +385,9 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       expect(result.mythosRating).toBe(48);
     });
 
-    it('pełne studium (Full Study) wykonuje rzut obronny SAN i podwaja czas przy kolejnym czytaniu', () => {
-      // De Vermis Mysteriis: fullStudy: 48 tygodni, MR: 36, cmf: 8, sanCost: 1k10.
-      // Rzut SAN (d100): 40 vs SAN 50 (sukces - strata zmniejszona o połowę). Koszt 1k10 = 6 -> strata 3 SAN.
+    it('pełne studium (Full Study) pobiera pełny koszt SAN CoC 7e RAW i podwaja czas przy kolejnym czytaniu', () => {
+      // De Vermis Mysteriis: fullStudy: 48 tygodni, MR: 36, cmf: 8, sanCost: 2k6 (Tabela XI).
+      // Rzut SAN (d100): 40 vs SAN 50. Koszt 2k6 = 6. W CoC 7e RAW pełne 6 SAN jest pobierane!
       const roller = new DeterministicMagicDiceRoller({ d100: [40], formula: [6] });
       const tomeEngine = new TomeEngine(roller);
 
@@ -345,10 +402,66 @@ describe('Magia i Tomiska CoC 7e RAW & Poradniki MG (Issue #252)', () => {
       const result = tomeEngine.resolveFullStudy(request);
       expect(result.weeksRequired).toBe(96);
       expect(result.sanRoll.success).toBe(true);
-      expect(result.sanLoss).toBe(3); // 6 / 2 = 3
+      expect(result.sanLoss).toBe(6); // Pełna strata RAW (brak fałszywego rzutu obronnego!)
       expect(result.cmfGained).toBe(6); // 36 - 30 = 6 (limit MR!)
       expect(result.mythosCappedAtMr).toBe(true);
       expect(result.message.pl).toContain('osiągnięto limit MR 36');
+    });
+
+    it('pełne studium z opcjonalnym house rule Setha Skorkowsky\'ego zmniejsza stratę SAN o połowę przy sukcesie', () => {
+      const roller = new DeterministicMagicDiceRoller({ d100: [40], formula: [6] });
+      const tomeEngine = new TomeEngine(roller);
+
+      const request: FullStudyRequest = {
+        tomeId: 'de-vermis-mysteris',
+        investigatorSan: 50,
+        investigatorMythos: 30,
+        studyCount: 0,
+        belief: 'believer',
+        allowSanSaveHouseRule: true, // jawna flaga house rule
+      };
+
+      const result = tomeEngine.resolveFullStudy(request);
+      expect(result.sanLoss).toBe(3); // 6 / 2 = 3
+    });
+
+    it('nauka zaklęcia z tomu wymaga 2K6 tygodni i Trudnego testu Inteligencji (str. 196)', () => {
+      // 2k6 = 7 tygodni. Rzut INT (d100): 30 vs Trudny INT (70 / 2 = 35) -> sukces.
+      const roller = new DeterministicMagicDiceRoller({ formula: [7], d100: [30] });
+      const tomeEngine = new TomeEngine(roller);
+
+      const result = tomeEngine.learnSpellFromTome({
+        investigatorName: 'Harvey Walters',
+        investigatorInt: 70,
+        tomeId: 'de-vermis-mysteris',
+        spellId: 'wither-limb',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.spellLearned).toBe(true);
+      expect(result.weeksSpent).toBe(7);
+      expect(result.intRoll.threshold).toBe(35);
+      expect(result.intRoll.roll).toBe(30);
+      expect(result.message.pl).toContain('pomyślnie opanował(a) zaklęcie');
+    });
+
+    it('porażka forsowania nauki zaklęcia uniemożliwia dalszą naukę z tego tomu (str. 196)', () => {
+      // 2k6 = 5 tygodni. Rzut INT: 45 vs Trudny INT (60 / 2 = 30) -> porażka.
+      const roller = new DeterministicMagicDiceRoller({ formula: [5], d100: [45] });
+      const tomeEngine = new TomeEngine(roller);
+
+      const result = tomeEngine.learnSpellFromTome({
+        investigatorName: 'Harvey Walters',
+        investigatorInt: 60,
+        tomeId: 'de-vermis-mysteris',
+        spellId: 'wither-limb',
+        isPush: true,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.spellLearned).toBe(false);
+      expect(result.intRoll.isPushed).toBe(true);
+      expect(result.message.pl).toContain('nie może ponownie uczyć się tego zaklęcia z tego tomu');
     });
   });
 });

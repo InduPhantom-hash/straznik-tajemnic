@@ -2,6 +2,7 @@ import {
   extractSkillTests,
   extractHazardEvents,
   extractSpellCastEvents,
+  extractOpposedMagicEvents,
   extractTomeStudyEvents,
   extractSkillResults,
   extractMeleeAttackReferences,
@@ -228,6 +229,48 @@ describe('extractTomeStudyEvents (CoC 7e RAW & Poradniki MG)', () => {
   it('ignoruje tagi bez identyfikatora tomu', () => {
     const tomes = extractTomeStudyEvents('[TOM: ]');
     expect(tomes).toHaveLength(0);
+  });
+});
+
+describe('extractOpposedMagicEvents (CoC 7e RAW s. 99)', () => {
+  it('parsuje tag z kluczami, adresatem i parametrami starcia', () => {
+    const [opposed] = extractOpposedMagicEvents(
+      '[OBRONA_MAGIA: @Harvey Walters: rzucajacy=Kultysta Silas | pow=65 | czar=dominate | nazwa=Dominacja | opis=Kultysta próbuje przełamać Twój umysł]'
+    );
+
+    expect(opposed).toBeDefined();
+    expect(opposed.characterName).toBe('Harvey Walters');
+    expect(opposed.attackerName).toBe('Kultysta Silas');
+    expect(opposed.attackerPow).toBe(65);
+    expect(opposed.spellId).toBe('dominate');
+    expect(opposed.spellName).toBe('Dominacja');
+    expect(opposed.description).toBe('Kultysta próbuje przełamać Twój umysł');
+  });
+
+  it('parsuje składnię pozycyjną obrony przed magią', () => {
+    const [opposed] = extractOpposedMagicEvents(
+      '[OBRONA_MAGIA: Czarnoksiężnik | 70 | wither-limb | Uschnięcie Kończyny | Złowrogi rytuał]'
+    );
+
+    expect(opposed).toBeDefined();
+    expect(opposed.attackerName).toBe('Czarnoksiężnik');
+    expect(opposed.attackerPow).toBe(70);
+    expect(opposed.spellId).toBe('wither-limb');
+    expect(opposed.spellName).toBe('Uschnięcie Kończyny');
+    expect(opposed.description).toBe('Złowrogi rytuał');
+  });
+
+  it('obsługuje tag angielski [OPPOSED_MAGIC:...]', () => {
+    const [opposed] = extractOpposedMagicEvents(
+      '[OPPOSED_MAGIC: @Arthur: attacker=Sorcerer | pow=80 | spell=Dominate | name=Dominate]'
+    );
+
+    expect(opposed).toBeDefined();
+    expect(opposed.characterName).toBe('Arthur');
+    expect(opposed.attackerName).toBe('Sorcerer');
+    expect(opposed.attackerPow).toBe(80);
+    expect(opposed.spellId).toBe('dominate');
+    expect(opposed.spellName).toBe('Dominate');
   });
 });
 

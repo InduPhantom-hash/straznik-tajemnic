@@ -88,40 +88,55 @@ export function SheetMagic({ character, onCharacterUpdate }: SheetMagicProps) {
       </h3>
 
       {/* Pasek statusu wiary i długu psychicznego */}
-      <div className="p-3 rounded-sm bg-card/60 border border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">{t('sheetBeliefLabel')}</span>
-          {isSkeptic ? (
-            <Badge variant="outline" className="border-amber-500/50 text-amber-400 font-mono">
-              <ShieldAlert className="w-3 h-3 mr-1 inline" />
-              {t('sheetBeliefSkeptic')}
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="border-purple-500/50 text-purple-300 font-mono">
-              <Brain className="w-3 h-3 mr-1 inline" />
-              {t('sheetBeliefBeliever')}
-            </Badge>
+      <div className="p-3 rounded-sm bg-card/60 border border-border/60 flex flex-col gap-2 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">{t('sheetBeliefLabel')}</span>
+            {isSkeptic ? (
+              <Badge
+                variant="outline"
+                className="border-amber-500/50 text-amber-400 font-mono cursor-help"
+                title={t('beliefTooltipSkeptic')}
+              >
+                <ShieldAlert className="w-3 h-3 mr-1 inline" />
+                {t('sheetBeliefSkeptic')}
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="border-purple-500/50 text-purple-300 font-mono cursor-help"
+                title={t('beliefTooltipBeliever')}
+              >
+                <Brain className="w-3 h-3 mr-1 inline" />
+                {t('sheetBeliefBeliever')}
+              </Badge>
+            )}
+          </div>
+
+          {deferredSan > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-destructive font-mono flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {t('sheetDeferredSan')} -{deferredSan} SAN
+              </span>
+              {isSkeptic && onCharacterUpdate && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleConvertBelief}
+                  className="text-[11px] h-6 border-destructive/50 text-destructive hover:bg-destructive/10"
+                >
+                  {t('btnConvertBelief')}
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
-        {deferredSan > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-destructive font-mono flex items-center gap-1">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {t('sheetDeferredSan')} -{deferredSan} SAN
-            </span>
-            {isSkeptic && onCharacterUpdate && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleConvertBelief}
-                className="text-[11px] h-6 border-destructive/50 text-destructive hover:bg-destructive/10"
-              >
-                {t('btnConvertBelief')}
-              </Button>
-            )}
-          </div>
-        )}
+        {/* Diegetyczne objaśnienie reguły CoC 7e RAW */}
+        <p className="text-[11px] font-serif italic text-muted-foreground/80 leading-relaxed border-t border-border/40 pt-1.5">
+          {isSkeptic ? t('beliefTooltipSkeptic') : t('beliefTooltipBeliever')}
+        </p>
       </div>
 
       {/* Lista przestudiowanych tomów */}

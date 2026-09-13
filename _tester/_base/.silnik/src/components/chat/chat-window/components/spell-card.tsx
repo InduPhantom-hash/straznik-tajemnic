@@ -78,6 +78,7 @@ export function SpellCard({
   // Znajdź definicję zaklęcia w katalogu
   const spell: SpellDefinition | undefined =
     getSpellDefinition(spellEvent.spellId) || findSpellByAnyName(spellEvent.spellId);
+  const isUnknownSpell = !spell;
 
   // Jeśli brak w katalogu, utwórz definicję awaryjną na podstawie danych zdarzenia
   const effectiveSpell: SpellDefinition = spell || {
@@ -90,30 +91,30 @@ export function SpellCard({
       en: [spellEvent.alias || spellEvent.spellId],
     },
     category: 'other',
-    mpCost: 5,
-    sanCost: '1k4',
+    mpCost: 0,
+    sanCost: '0',
     castingTime: {
       type: 'rounds',
       rounds: 1,
       value: { pl: '1 runda', en: '1 round' },
     },
-    range: { pl: 'Dotyk', en: 'Touch' },
-    duration: { pl: 'Chwilowy', en: 'Instantaneous' },
+    range: { pl: 'Nieznany', en: 'Unknown' },
+    duration: { pl: 'Nieznany', en: 'Unknown' },
     description: {
-      pl: spellEvent.description || 'Tajemna inkantacja z zapisków Mitów.',
-      en: spellEvent.description || 'Occult incantation from Mythos records.',
+      pl: spellEvent.description || 'Nieznana inkantacja spoza rejestru Mitów Cthulhu.',
+      en: spellEvent.description || 'Unknown incantation outside Cthulhu Mythos records.',
     },
     source: {
       sourceId: 'custom',
-      title: 'Zapiski Mitów Cthulhu',
+      title: 'Nieznany rejestr',
       edition: '7e',
-      page: 1,
+      page: 0,
       language: 'pl',
     },
     definitionVersion: 1,
   };
 
-  const isSkeptic = caster?.magic?.belief === 'skeptic';
+  const isSkeptic = (caster?.magic?.belief ?? 'skeptic') === 'skeptic';
   const knownEntry = caster?.magic?.knownSpells?.[effectiveSpell.id];
   const isFirstCast = !knownEntry?.isFirstCastDone;
   const casterPow = caster?.pow ?? 50;
@@ -158,7 +159,7 @@ export function SpellCard({
   };
 
   const handleCast = (isPush = false) => {
-    if (!caster || (isResolved && !isPush) || isCasting) return;
+    if (!caster || isUnknownSpell || (isResolved && !isPush) || isCasting) return;
     if (isSkeptic) return;
     if (!isPush && !hasEnoughMp && !allowHpConversion) return;
 
@@ -173,7 +174,7 @@ export function SpellCard({
           casterMp: caster.mp,
           casterHp: caster.hp,
           casterSan: caster.san,
-          belief: caster.magic?.belief ?? 'believer',
+          belief: caster.magic?.belief ?? 'skeptic',
           spellId: effectiveSpell.id,
           isFirstCastOverride: isFirstCast,
           isPush,
@@ -216,7 +217,7 @@ export function SpellCard({
 
         const updatedMagic: NonNullable<typeof caster.magic> = {
           schemaVersion: caster.magic?.schemaVersion ?? 1,
-          belief: caster.magic?.belief ?? 'believer',
+          belief: caster.magic?.belief ?? 'skeptic',
           deferredSanLoss: caster.magic?.deferredSanLoss ?? 0,
           knownSpells: {
             ...currentKnownSpells,
@@ -265,7 +266,7 @@ export function SpellCard({
               {effectiveSpell.source && (
                 <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground hidden sm:inline-flex">
                   <BookOpen className="w-3 h-3 mr-1 inline" />
-                  {effectiveSpell.source.title}, s. {effectiveSpell.source.page}
+                  {effectiveSpell.source.title}, s. {effectiveSpell.source.pagePl ?? effectiveSpell.source.page} PL{effectiveSpell.source.pageEn ? ` / ${effectiveSpell.source.pageEn} EN` : ''}
                 </Badge>
               )}
             </div>
@@ -325,6 +326,13 @@ export function SpellCard({
         {/* Stan 1: Przed rzuceniem – Bilans zasobów i stawki */}
         {!isResolved && (
           <div className="space-y-3">
+            {isUnknownSpell && (
+              <div className="flex items-center gap-2 p-3 rounded border border-amber-500/50 bg-amber-500/10 text-amber-300 text-xs font-serif">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+                <span>{t('unknownSpellWarning')}</span>
+              </div>
+            )}
+
             {/* Siatka zasobów (Pre-flight cost preview) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
               {/* PM */}
@@ -471,7 +479,12 @@ export function SpellCard({
             <div className="flex justify-end pt-1">
               <Button
                 onClick={() => handleCast(false)}
-                disabled={isSkeptic || (!hasEnoughMp && !allowHpConversion) || isCasting}
+                disabled={
+                  isUnknownSpell ||
+                  isSkeptic ||
+                  (!hasEnoughMp && !allowHpConversion) ||
+                  isCasting
+                }
                 className="bg-purple-700 hover:bg-purple-600 text-white font-serif text-xs gap-2 shadow-deco px-5 py-2.5"
               >
                 <Sparkles className="w-4 h-4" />
@@ -598,6 +611,29 @@ export function SpellCard({
               {!resolution.firstCastRoll && !resolution.opposedRoll && (
                 <div className="p-2.5 rounded border border-border/40 bg-card/40 text-muted-foreground text-xs font-serif">
                   {t('automaticSuccessSummary')}
+                </div>
+              )}
+
+              {/* Katastrofa forsowania CoC 7e RAW */}
+              {resolution.catastrophe && (
+                <div className="p-3 rounded border border-rose-600/60 bg-rose-950/40 text-rose-200 text-xs font-serif space-y-1.5 shadow-deco">
+                  <div className="flex items-center gap-2 font-bold text-rose-300">
+                    <Skull className="w-4 h-4 text-rose-500 animate-pulse" />
+                    <span>
+                      {t('catastropheTitle')}: {resolution.catastrophe.effect.name[locale]}
+                    </span>
+                    <Badge variant="destructive" className="ml-auto text-[10px]">
+                      ×{resolution.catastrophe.costMultiplier} 1K6
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-rose-200/90">
+                    {resolution.catastrophe.effect.description[locale]}
+                  </p>
+                  {resolution.catastrophe.mpDeficitPaidWithHp > 0 && (
+                    <p className="text-[11px] text-amber-300 font-mono">
+                      🩸 {t('catastropheHpPaid', { hp: resolution.catastrophe.mpDeficitPaidWithHp })}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

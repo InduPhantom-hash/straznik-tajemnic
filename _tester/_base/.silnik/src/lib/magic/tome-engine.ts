@@ -6,9 +6,11 @@ import type {
   ReferenceCheckRequest,
   ReferenceCheckResolution,
   BeliefConversionResolution,
+  LearnSpellFromTomeRequest,
+  LearnSpellFromTomeResolution,
   TomeDefinition,
 } from './types';
-import { getTomeDefinition } from './catalog';
+import { getTomeDefinition, getSpellDefinition } from './catalog';
 import { IMagicDiceRoller, StandardMagicDiceRoller } from './dice-roller';
 import { evaluateSkillCheck, meetsDifficulty } from '@/lib/dice-utils';
 
@@ -91,9 +93,11 @@ export class TomeEngine {
   }
 
   /**
-   * Pełne studium tomiska (Full Study).
+   * Pełne studium tomiska (Full Study - Rozdział 9 i 11 CoC 7e RAW).
    * - Trwa tygodnie (każda kolejna lektura trwa 2x dłużej: 14 -> 28 -> 56 tyg).
-   * - Rzut obronny na SAN: sukces zapobiega lub minimalizuje stratę SAN.
+   * - W czystym RAW CoC 7e (str. 193): czytanie księgi zawsze wiąże się ze stratą Poczytalności;
+   *   brak rzutu obronnego na zmniejszenie straty o połowę. Pełny wylosowany koszt SAN jest pobierany.
+   *   (Opcjonalny house-rule Setha Skorkowsky'ego uwzględniany tylko przy allowSanSaveHouseRule = true).
    * - CMF przyznawane aż do limitu Mythos Rating (MR).
    */
   resolveFullStudy(
@@ -107,14 +111,17 @@ export class TomeEngine {
 
     const weeksRequired = tome.fullStudy.weeks * Math.pow(2, request.studyCount);
 
-    // Rzut obronny na SAN przy pełnym studium (Księga Strażnika s. 227 & Seth Skorkowsky)
+    // Rzut na SAN (obiekt sanRoll zachowany dla kompatybilności UI i ewentualnego house rule)
     const sanRoll = this.roller.rollD100();
     const sanSuccess = sanRoll <= request.investigatorSan;
     const sanOutcome = evaluateSkillCheck(sanRoll, request.investigatorSan);
 
     const fullSanCost = this.roller.rollFormula(tome.fullStudy.sanCost);
-    // Sukces rzutu na SAN zmniejsza stratę o połowę (min. 1) lub do minimum
-    const actualSanLoss = sanSuccess ? Math.max(1, Math.floor(fullSanCost / 2)) : fullSanCost;
+    // W czystym CoC 7e RAW brak rzutu na zmniejszenie straty o połowę (Księga Strażnika str. 193)
+    const actualSanLoss =
+      request.allowSanSaveHouseRule && sanSuccess
+        ? Math.max(1, Math.floor(fullSanCost / 2))
+        : fullSanCost;
 
     const isSkeptic = request.belief === 'skeptic';
     const sanLoss = isSkeptic ? 0 : actualSanLoss;
@@ -149,9 +156,71 @@ export class TomeEngine {
       cmfGained,
       mythosCappedAtMr,
       message: {
-        pl: `Ukończono pełne studium tomu „${tome.titlePl}” (${weeksRequired} tygodni). Rzut obronny SAN: ${sanRoll} vs ${request.investigatorSan} (${sanSuccess ? 'sukces' : 'porażka'}). Strata SAN: ${sanLoss} (odłożona: ${deferredSanLoss}). Zysk Mitów: +${cmfGained} CMF${mythosCappedAtMr ? ` (osiągnięto limit MR ${tome.fullStudy.mr})` : ''}.`,
-        en: `Completed full study of "${tome.titleEn}" (${weeksRequired} weeks). SAN save: ${sanRoll} vs ${request.investigatorSan} (${sanSuccess ? 'passed' : 'failed'}). SAN loss: ${sanLoss} (deferred: ${deferredSanLoss}). Mythos gained: +${cmfGained} CMF${mythosCappedAtMr ? ` (capped at MR ${tome.fullStudy.mr})` : ''}.`,
+        pl: `Ukończono pełne studium tomu „${tome.titlePl}” (${weeksRequired} tygodni). Koszt Poczytalności CoC 7e RAW: -${sanLoss} SAN (odłożona: ${deferredSanLoss}). Zysk Mitów: +${cmfGained} CMF${mythosCappedAtMr ? ` (osiągnięto limit MR ${tome.fullStudy.mr})` : ''}.`,
+        en: `Completed full study of "${tome.titleEn}" (${weeksRequired} weeks). CoC 7e RAW Sanity cost: -${sanLoss} SAN (deferred: ${deferredSanLoss}). Mythos gained: +${cmfGained} CMF${mythosCappedAtMr ? ` (capped at MR ${tome.fullStudy.mr})` : ''}.`,
       },
+    };
+  }
+
+  /**
+   * Nauka zaklęcia z tomu (Learn Spell from Tome - CoC 7e RAW str. 196).
+   * - Wymaga 2K6 tygodni poświęconego czasu.
+   * - Wymaga udanego Trudnego testu Inteligencji (INT / 2).
+   * - Jeśli test się nie powiedzie, gracz może forsować rzut.
+   * - Porażka forsowania oznacza, że badacz nie może uczyć się tego zaklęcia z tego tomu,
+   *   dopóki jego Inteligencja nie wzrośnie (str. 196).
+   */
+  learnSpellFromTome(
+    request: LearnSpellFromTomeRequest,
+    tomeDef?: TomeDefinition
+  ): LearnSpellFromTomeResolution {
+    const tome = tomeDef ?? getTomeDefinition(request.tomeId);
+    const spell = getSpellDefinition(request.spellId);
+
+    const tomeTitlePl = tome?.titlePl ?? request.tomeId;
+    const tomeTitleEn = tome?.titleEn ?? request.tomeId;
+    const spellNamePl = spell?.namePl ?? request.spellId;
+    const spellNameEn = spell?.nameEn ?? request.spellId;
+
+    const weeksSpent = this.roller.rollFormula('2k6');
+    const hardIntThreshold = Math.floor(request.investigatorInt / 2);
+    const roll = this.roller.rollD100();
+    const outcome = evaluateSkillCheck(roll, hardIntThreshold);
+    const passed = roll <= hardIntThreshold;
+
+    const isPush = Boolean(request.isPush);
+    const success = passed;
+
+    let messagePl = '';
+    let messageEn = '';
+
+    if (success) {
+      messagePl = `${request.investigatorName} pomyślnie opanował(a) zaklęcie „${spellNamePl}” z tomu „${tomeTitlePl}” po ${weeksSpent} tygodniach nauki (Trudny test INT: ${roll} vs ${hardIntThreshold}).`;
+      messageEn = `${request.investigatorName} successfully learned spell "${spellNameEn}" from tome "${tomeTitleEn}" after ${weeksSpent} weeks of study (Hard INT check: ${roll} vs ${hardIntThreshold}).`;
+    } else if (isPush) {
+      messagePl = `Forsowanie nauki zaklęcia „${spellNamePl}” z tomu „${tomeTitlePl}” zakończyło się porażką (rzut: ${roll} vs Trudny INT ${hardIntThreshold}). Zgodnie z RAW CoC 7e badacz nie może ponownie uczyć się tego zaklęcia z tego tomu, dopóki jego INT nie wzrośnie.`;
+      messageEn = `Pushing study of spell "${spellNameEn}" from tome "${tomeTitleEn}" failed (roll: ${roll} vs Hard INT ${hardIntThreshold}). Per CoC 7e RAW the investigator cannot attempt to learn this spell from this tome again until their INT increases.`;
+    } else {
+      messagePl = `Nauka zaklęcia „${spellNamePl}” z tomu „${tomeTitlePl}” nie powiodła się po ${weeksSpent} tygodniach nauki (rzut: ${roll} vs Trudny INT ${hardIntThreshold}). Możesz forsować test lub ponowić naukę.`;
+      messageEn = `Learning spell "${spellNameEn}" from tome "${tomeTitleEn}" failed after ${weeksSpent} weeks of study (roll: ${roll} vs Hard INT ${hardIntThreshold}). You may push the roll or study again.`;
+    }
+
+    return {
+      success,
+      weeksSpent,
+      intRoll: {
+        roll,
+        threshold: hardIntThreshold,
+        outcome,
+        success,
+        isPushed: isPush,
+      },
+      spellLearned: success,
+      message: {
+        pl: messagePl,
+        en: messageEn,
+      },
+      gmNarrativeContext: `Próba nauki zaklęcia ${spellNamePl} z tomu ${tomeTitlePl} przez ${request.investigatorName}. Czas: ${weeksSpent} tyg. Rzut INT: ${roll}/${hardIntThreshold} (${success ? 'SUKCES' : 'PORAŻKA'}${isPush ? ' - FORSOWANIE' : ''}).`,
     };
   }
 
