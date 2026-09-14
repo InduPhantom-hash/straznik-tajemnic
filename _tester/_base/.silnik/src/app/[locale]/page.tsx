@@ -889,7 +889,7 @@ export default function Home() {
     setAiSettings(settings);
     setVoiceFeatureAvailable(true);
     
-    const ttsEnabled = !!settings.voiceSettings?.enabled;
+    const ttsEnabled = settings.voiceSettings?.enabled !== false;
     tts.setVoiceEnabled(ttsEnabled);
     tts.setIsTTSEnabled(ttsEnabled);
   }, []);
@@ -898,7 +898,7 @@ export default function Home() {
   useEffect(() => {
     const unsubscribeSettings = settingsEmitter.subscribe((newSettings) => {
       setAiSettings(newSettings);
-      const newTtsEnabled = !!newSettings.voiceSettings?.enabled;
+      const newTtsEnabled = newSettings.voiceSettings?.enabled !== false;
       tts.setVoiceEnabled(newTtsEnabled);
       tts.setIsTTSEnabled(newTtsEnabled);
     });

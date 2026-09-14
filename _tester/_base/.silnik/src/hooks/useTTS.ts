@@ -284,7 +284,7 @@ export function removeDidaskalia(text: string): string {
 }
 
 export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
   const [currentAudio, setCurrentAudioState] = useState<HTMLAudioElement | null>(
     null
@@ -294,7 +294,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
     currentAudioRef.current = audio;
     setCurrentAudioState(audio);
   }, []);
-  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [isAudioPaused, setIsAudioPaused] = useState(false);
   const [isInitialBuffering, setIsInitialBuffering] = useState(false);
   // Reaktywny stan isNarratorOnly (Issue #172: przełącznik trybu lektora / słuchowiska)
