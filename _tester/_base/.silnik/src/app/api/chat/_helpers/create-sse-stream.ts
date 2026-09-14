@@ -176,6 +176,8 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           illustrations: parsed.illustrations,
           skillTests: parsed.skillTests,
           pendingMeleeAttacks: melee.attacks,
+          opposedMagicEvents: parsed.opposedMagicEvents || [],
+          opposedMeleeEvents: parsed.opposedMeleeEvents || [],
           equipmentEvents: parsed.equipmentEvents || [],
           timeUpdate: parsed.timeUpdate,
           costData: usage

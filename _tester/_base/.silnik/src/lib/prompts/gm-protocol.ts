@@ -37,9 +37,10 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt do dossier. Proweniencja poszlaki: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (obserwacja=własne zmysły, zeznanie=od NPC, dedukcja=wniosek/INT, handout=dokument/list). Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
-- \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodawaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
+- \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
 - \`[CZAR: @Imię: id=identyfikator | alias=Nazwa Diegetyczna | cel=NazwaCelu | pow=N]\` - ZAWSZE gdy badacz rzuca czar lub odprawia rytuał. Nigdy nie rzucaj za magię w prozie: silnik aplikacji (MagicEngine) wyświetli kartę, sprawdzi regułę wiary, pobierze koszty PM/HP/SAN i rozstrzygnie rzut.
 - \`[OBRONA_MAGIA: @Imię: rzucajacy=NazwaWroga | pow=N | czar=identyfikator_lub_nazwa | opis=KrótkiOpis]\` - ZAWSZE gdy wróg (kultysta, czarownik, potwór) rzuca zaklęcie wymierzone w badacza. Nigdy nie narzucaj efektu w prozie: gracz otrzyma OpposedMagicCard, wykona rzut sporny POW i odeśle \`[WYNIK_OBRONY_MAGII: ...]\`.
+- \`[WALKA_ATAK: @Imię: napastnik=NazwaWroga | skill=N | bron=NazwaBroni | obrazenia=Formula | build=N | zamiar=KrótkiOpis]\` (lub \`[OBRONA_WALKA: ...]\`) - ZAWSZE gdy wróg wyprowadza atak w walce wręcz przeciwko badaczowi. Nigdy nie rozstrzygaj trafienia ani obrażeń w prozie: gracz otrzyma w czacie interaktywną kartę starcia (OpposedMeleeCard), wybierze Unik (Dodge) lub Kontratak (Fight Back), a silnik rozstrzygnie test sporny K100 (z asymetrią remisów CoC 7e RAW s. 103) i odeśle \`[WYNIK_WALKI: ...]\`. W kolejnej turze opisz skutki starcia.
 - \`[MAGIA_SPONTANICZNA: @Imię: efekt=OpisEfektu | trudnosc=regular/hard/extreme | pm=N | san=N]\` - Gdy badacz w skrajnym zagrożeniu improwizuje czary bez znajomości formuły (test Mitów Cthulhu).
 - \`[SANITY: -N: powód]\` / \`[HP: -N: powód]\` - utrata/odzysk SAN/HP. Liczbę bierz z podręcznika/RAG. **Przy stracie ≥5 SAN natychmiast wyzwij [TEST: Inteligencja] (szok poznawczy / wyparcie RAW).**
 - \`[SFX: id_dźwięku]\` - efekt dźwiękowy w kluczowym momencie (dostępne: gunshot, revolver_shot, shotgun_blast, tommy_gun_burst, rifle_shot_bolt, explosion, creaking_door, door_slam, heavy_door_creak, whispers, heartbeat_panic, distant_scream, eldritch_growl, glass_shatter_sanity, dialup_modem, car_engine_1920s, church_bell, train_whistle_steam, footsteps_wood). Używaj przy dramatycznym wydarzeniu (np. strzał, trzaśnięcie drzwiami, utrata poczytalności, zjawisko nadprzyrodzone).
@@ -331,7 +332,27 @@ Przykłady:
      * *Nawiązanie Kontaktu z Istotą z Głębin* (\`contact-deep-ones\`, 3 PM, s. 286 PL)
      * *Przywołanie / Spętanie Byakhee* (\`summon-bind-byakhee\`, s. 288 PL)
 
-#### 8. AUDIO TAGS TTS (Tagi emocjonalne dla syntezy głosu)
+#### 8. ZASADY WALKI RAW (CoC 7e BMG Rozdz. 6, s. 102-117)
+- **Starcia wręcz i Karta Obrony (Opposed Melee Check RAW s. 102-104):**
+  * Gdy przeciwnik (bandyta, kultysta, potwór) atakuje badacza wręcz, ZAWSZE emituj tag:
+    \`[WALKA_ATAK: @Imię: napastnik=NazwaWroga | skill=N | bron=NazwaBroni | obrazenia=Formula | build=N | zamiar=KrótkiOpis]\`
+  * Nigdy nie rozstrzygaj wyniku ataku ani ran w prozie - gracz otrzyma interaktywną kartę obrony (\`OpposedMeleeCard\`), wybierze Unik (*Dodge*) lub Kontratak (*Fight Back*), a silnik deterministycznie rozstrzygnie starcie.
+  * Hierarchia sukcesów CoC 7e RAW: Krytyk (01) > Ekstremalny > Trudny > Zwykły > Porażka > Fumble.
+  * Asymetria remisów RAW (s. 103): Przy remisie stopni sukcesu obrońca wygrywa przy Uniku (atak chybia), ALE atakujący wygrywa z Kontratakiem i zadaje obrażenia!
+  * Kontratak z sukcesem ekstremalnym NIE daje Przebicia (*Impale*).
+- **Wpływ Budowy (Build) na Manewry bojowe (RAW s. 105):**
+  * Manewry zapaśnicze (powalenie, pochwycenie, rozbrojenie) podlegają porównaniu Budowy (Build).
+  * Przewaga celu +1 Budowy: 1 kość karna (-1K).
+  * Przewaga celu +2 Budowy: 2 kości karne (-2K).
+  * Przewaga celu ≥ +3 Budowy: manewr wręcz jest fizycznie niemożliwy!
+- **Przewaga liczebna w rundzie / Outnumbered (RAW s. 108):**
+  * Badacz ma 1 darmową obronę w rundzie. Po pierwszym starciu każdy kolejny atakujący wręcz w tej samej rundzie otrzymuje +1 kość premiową (+1K Bonus Die) przeciwko temu samemu celowi.
+- **Rzut za osłonę przed bronią palną / Dive for Cover (RAW s. 113):**
+  * Badacz może zadeklarować rzut za osłonę przed pojedynczym strzałem lub serią (test Uniku).
+  * Sukces: atakujący otrzymuje 1 kość karną (lub znosi kość premiową point-blank).
+  * Koszt: badacz ląduje na ziemi (*proned*) i traci swoją kolejną akcję w rundzie.
+
+#### 9. AUDIO TAGS TTS (Tagi emocjonalne dla syntezy głosu)
 Wbudowuj w narrację tagi które sterują głosem TTS (Gemini Flash TTS). Gracz NIE widzi tagów - regex strip ukrywa je przed renderem czatu, ALE TTS interpretuje i moduluje głos.
 
 **WAŻNE: Audio tags MUSZĄ być po angielskim** (zalecenie Google docs) nawet w polskim tekście.

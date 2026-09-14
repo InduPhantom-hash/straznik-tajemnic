@@ -11,6 +11,7 @@ import type {
   HotSeatPlayer,
   JournalEntry,
   NPC,
+  OpposedMeleeEventData,
 } from '@/lib/types';
 import {
   createChaseState,
@@ -34,6 +35,8 @@ import {
   extractSkillResults,
   extractSpellCastEvents,
   extractTomeStudyEvents,
+  extractOpposedMagicEvents,
+  extractOpposedMeleeEvents,
   stripMeleeAttackTags,
 } from '@/lib/parsers/mechanics-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
@@ -1271,6 +1274,19 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 ) ?? null
               );
             }
+            if (
+              Array.isArray(metadata.opposedMeleeEvents) &&
+              metadata.opposedMeleeEvents.length > 0
+            ) {
+              const opposedMelee = metadata.opposedMeleeEvents as OpposedMeleeEventData[];
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, opposedMeleeEvents: opposedMelee }
+                    : msg
+                )
+              );
+            }
             // finishReason z metadanych (MAX_TOKENS/STOP) trafia na wiadomość -
             // steruje przyciskiem "Kontynuuj narrację" i logiką urwanych scen.
             if (metadata.finishReason) {
@@ -1572,12 +1588,21 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           );
         }
 
-        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252), pościgi
+        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252), obrona (Faza 4), pościgi
         const hazardEvents = extractHazardEvents(fullText);
         const spellCastEvents = extractSpellCastEvents(fullText);
         const tomeStudyEvents = extractTomeStudyEvents(fullText);
+        const opposedMagicEvents = extractOpposedMagicEvents(fullText);
+        const opposedMeleeEvents = extractOpposedMeleeEvents(fullText);
         const currentChase = activeChaseStateRef.current;
-        if (hazardEvents.length > 0 || spellCastEvents.length > 0 || tomeStudyEvents.length > 0 || currentChase) {
+        if (
+          hazardEvents.length > 0 ||
+          spellCastEvents.length > 0 ||
+          tomeStudyEvents.length > 0 ||
+          opposedMagicEvents.length > 0 ||
+          opposedMeleeEvents.length > 0 ||
+          currentChase
+        ) {
           setMessages((prev) =>
             prev.map((message) =>
               message.id === assistantMessageId
@@ -1586,6 +1611,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
                     ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),
                     ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
+                    ...(opposedMagicEvents.length > 0 ? { opposedMagicEvents } : {}),
+                    ...(opposedMeleeEvents.length > 0 ? { opposedMeleeEvents } : {}),
                     ...(currentChase ? { chaseState: currentChase } : {}),
                   }
                 : message

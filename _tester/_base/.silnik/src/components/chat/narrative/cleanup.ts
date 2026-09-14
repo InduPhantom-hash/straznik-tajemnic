@@ -58,7 +58,7 @@ export function cleanupContent(content: string): string {
     .replace(/\[LOKACJA:[^\]]*\]/gi, '')
     .replace(/\[PRZEDMIOT:[^\]]*\]/gi, '')
     .replace(/\[ZDOBYTY_PRZEDMIOT:[^\]]*\]/gi, '')
-    .replace(/\[WALKA:[^\]]*\]/gi, '')
+    .replace(/\[(?:WALKA|WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|OPPOSED_MELEE|MELEE_DEFENSE|DIVE_FOR_COVER|RZUT_ZA_OSŁONĘ|RZUT_ZA_OSLONE):[^\]]*\]/gi, '')
     .replace(/\[(?:ATAK_WRĘCZ|ATAK_WRECZ|MELEE_ATTACK):[^\]]*\]/gi, '')
     .replace(/\[(?:WYNIK_WALKI|COMBAT_RESULT):[^\]]*\]/gi, '')
     .replace(/\[(?:OBRONA|DEFENSE):[^\]]*\]/gi, '')

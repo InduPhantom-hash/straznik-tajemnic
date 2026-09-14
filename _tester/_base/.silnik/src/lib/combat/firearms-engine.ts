@@ -67,6 +67,7 @@ export interface DiveForCoverResult {
   targetIsProne: boolean;
   targetLosesNextAction: boolean;
   cancelledBonusDie: boolean;
+  imposesPenaltyDie: boolean;
 }
 
 export interface SingleShotDamageResult {
@@ -246,14 +247,17 @@ export function checkMalfunction(
 }
 
 /**
- * Rozliczenie rzucenia się za osłonę (Dive for Cover) CoC 7e RAW:
- * - Cel może rzucić się za osłonę w reakcji na strzał z przyłożenia (point-blank).
+ * Rozliczenie rzucenia się za osłonę (Dive for Cover) CoC 7e RAW (s. 113):
+ * - Cel może rzucić się za osłonę przed pojedynczym atakiem broni palnej lub serią (test Uniku).
  * - Niezależnie od wyniku testu Uniku cel ląduje na ziemi (Prone) i traci kolejną akcję w tej rundzie.
- * - Jeśli test Uniku (Dodge) jest udany (regular lub wyżej): znosi kość premiową (+1K) strzelca.
+ * - Jeśli test Uniku (Dodge) jest udany:
+ *   * Na dystansie point-blank: znosi kość premiową (+1K) strzelca.
+ *   * Na pozostałych dystansach: nakłada 1 kość karną (-1K) na rzut strzelca.
  */
 export function resolveDiveForCover(
   dodgeRoll: number,
-  dodgeSkill: number
+  dodgeSkill: number,
+  distanceCategory?: FirearmDistanceCategory
 ): DiveForCoverResult {
   const outcome = evaluateSkillCheck(dodgeRoll, dodgeSkill);
   const success =
@@ -262,12 +266,15 @@ export function resolveDiveForCover(
     outcome === 'extreme' ||
     outcome === 'critical';
 
+  const isPointBlank = distanceCategory === 'point_blank';
+
   return {
     success,
     outcome,
     targetIsProne: true,
     targetLosesNextAction: true,
-    cancelledBonusDie: success,
+    cancelledBonusDie: success && (distanceCategory === undefined || isPointBlank),
+    imposesPenaltyDie: success && distanceCategory !== undefined && !isPointBlank,
   };
 }
 
@@ -296,15 +303,20 @@ export function calculateFirearmNetDice(params: {
   let bonusDice = extraBonusDice;
   let penaltyDice = extraPenaltyDice;
 
-  // 1. Zasięg
+  // 1. Zasięg & Dive for Cover (RAW s. 113)
   if (distanceCategory === 'point_blank') {
     if (!targetDivingForCoverSuccess) {
       bonusDice += 1;
     }
-  } else if (distanceCategory === 'long_range') {
-    penaltyDice += 1;
-  } else if (distanceCategory === 'extreme_range') {
-    penaltyDice += 2;
+  } else {
+    if (targetDivingForCoverSuccess) {
+      penaltyDice += 1;
+    }
+    if (distanceCategory === 'long_range') {
+      penaltyDice += 1;
+    } else if (distanceCategory === 'extreme_range') {
+      penaltyDice += 2;
+    }
   }
 
   // 2. Wielokrotne strzały pojedyncze

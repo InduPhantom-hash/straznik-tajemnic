@@ -166,6 +166,7 @@ export interface Message {
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
   opposedMagicEvents?: OpposedMagicEventData[]; // Obrona przed wrogą magią CoC 7e RAW [OBRONA_MAGIA:...]
+  opposedMeleeEvents?: OpposedMeleeEventData[]; // Obrona przed atakiem wręcz CoC 7e RAW [WALKA_ATAK:...] / [OBRONA_WALKA:...]
   tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
   chaseState?: ChaseState; // Pościg i tor przeszkód CoC 7e RAW [POŚCIG:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
@@ -1090,6 +1091,22 @@ export interface OpposedMagicEventData {
   characterName?: string;
   characterId?: string;
   description?: string;
+}
+
+export interface OpposedMeleeEventData {
+  id: string;
+  attackerName: string;
+  attackerSkill: number;
+  attackerBuild?: number;
+  weaponName?: string;
+  damageFormula?: string;
+  damageBonus?: string;
+  damageClass?: 'impaling' | 'non_impaling';
+  characterName?: string;
+  characterId?: string;
+  description?: string;
+  intent?: string;
+  isOutnumbered?: boolean;
 }
 
 export interface TomeStudyEventData {
