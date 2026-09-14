@@ -438,7 +438,7 @@ export function inferRoleFromNPC(npc: NpcVoiceInput): GeminiVoiceRole {
   if (matchesAny(text, MONSTER_KEYWORDS)) return 'monster';
 
   const gender = inferGenderFromNPC(npc);
-  // Kobiety ZAWSZE otrzymują głosy żeńskie (role 'old' w Gemini to wyłącznie głosy męskie Gacrux/Algenib)
+  // Kobiety ZAWSZE otrzymują głosy z puli żeńskiej
   if (gender === 'female') return 'female';
 
   const age = inferAgeFromNPC(npc);

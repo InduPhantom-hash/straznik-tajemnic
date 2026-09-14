@@ -57,7 +57,7 @@ export type GeminiModelId =
 export const DEFAULT_CHAT_MODEL = 'gemini-3.8-flash' as const;
 
 /** Sprawdzony, stabilny produkcyjnie model fallbacku (gdy alias rzuci 503/404). */
-export const DEFAULT_CHAT_MODEL_FALLBACK = 'gemini-2.5-flash' as const;
+export const DEFAULT_CHAT_MODEL_FALLBACK = 'gemini-3.6-flash' as const;
 
 /** Wariant Lite dla low-cost endpointów (equipment/scene summary). */
 export const DEFAULT_CHAT_MODEL_LITE = 'gemini-flash-lite-latest' as const;
@@ -83,7 +83,7 @@ export interface PresetModelInfo {
 export const PRESET_MODELS: Record<PresetKey, PresetModelInfo> = {
   low: { chatModel: 'gemini-flash-lite-latest', ttsVoice: null },
   mid: { chatModel: 'gemini-flash-latest', ttsVoice: 'Charon' },
-  high: { chatModel: 'gemini-3.8-flash', ttsVoice: 'Charon' },
+  high: { chatModel: 'gemini-3.8-flash', ttsVoice: 'Algenib' },
   ultra: { chatModel: 'gemini-3.1-pro-preview', ttsVoice: 'Gacrux' },
 };
 

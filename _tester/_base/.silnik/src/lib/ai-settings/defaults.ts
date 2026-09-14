@@ -43,8 +43,8 @@ export const defaultAISettings: AISettings = {
     provider: 'gemini', // M3 sesja 146: default Gemini (drop OpenAI per D2)
     narratorOnly: false, // Włączone słuchowisko (multi-voice NPC: różne głosy i emocje)
     volume: 85,
-    speed: 0.92, // Domyślnie 0.92x - spokojne, wyważone tempo dłuższej narracji
-    voiceId: 'Charon', // Neutralny, naturalny głos narratora
+    speed: 1.0, // Domyślnie 1.0x - naturalne tempo narracji
+    voiceId: 'Algenib', // Szorstki, nastrojowy głos narratora (stary marynarz, kultysta)
   },
 
   // === IMAGE GENERATION (IND-91 rename) ===
