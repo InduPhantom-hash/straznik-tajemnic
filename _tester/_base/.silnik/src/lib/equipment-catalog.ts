@@ -1011,7 +1011,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'weapon.leather-whip-shared',
     name: "Skórzany bicz",
-    aliases: ["Braided Kangaroo Leather Bullwhip", "Bicz skórzany", "Bat"],
+    aliases: ["Braided Kangaroo Leather Bullwhip", "Bicz skórzany", "Bat skórzany", "Bicz"],
     category: 'weapon',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -1286,12 +1286,32 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     value: 1200,
   },
   {
+    id: 'tool.batteries-aa',
+    name: "Zapasowe baterie (R6/AA)",
+    aliases: [
+      "Zapasowe baterie",
+      "Baterie AA",
+      "Baterie R6",
+      "Baterie alkaliczne",
+      "Alkaline Batteries",
+      "AA Batteries",
+      "Baterie do latarki",
+      "Zestaw baterii alkalicznych",
+      "tool.batteries-aa",
+    ],
+    category: 'tool',
+    visualTreatment: 'mundane',
+    availableIn: ALL_ERAS,
+    value: 2,
+    weight: 0.2,
+  },
+  {
     id: 'tool.brick-cellphone-prl',
     name: "Telefon komórkowy (wielki)",
     aliases: ["Vintage 1980s Brick Cellphone", "Telefon komórkowy (cegła)"],
     category: 'tool',
     visualTreatment: 'mundane',
-    availableIn: ['prl-1970s', '1980s'],
+    availableIn: ['prl-1970s', '1980s', '1990s', '2000s'],
     assetPaths: { 'prl-1970s': '/equipment/catalog/brick-cellphone-prl.webp', shared: '/equipment/catalog/brick-cellphone-prl.webp' },
     value: 500,
   },
@@ -1868,30 +1888,69 @@ function normalize(value: string): string {
     .toLocaleLowerCase('pl-PL');
 }
 
+function matchesPhraseBoundary(text: string, phrase: string): boolean {
+  if (!text || !phrase) return false;
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(?:^|[^a-z0-9])${escaped}(?:[^a-z0-9]|$)`, 'i');
+  return regex.test(text);
+}
+
 export function findEquipmentTemplate(
-  nameOrId: string | undefined
+  nameOrId: string | undefined,
+  expectedCategory?: EquipmentCategory
 ): EquipmentTemplate | undefined {
   if (!nameOrId) return undefined;
   const needle = normalize(nameOrId);
 
   // 1. Ścisłe dopasowanie po ID, nazwie lub aliasie
-  const exact = EQUIPMENT_CATALOG.find(
+  const exactMatches = EQUIPMENT_CATALOG.filter(
     (template) =>
       template.id === nameOrId ||
       normalize(template.name) === needle ||
       template.aliases.some((alias) => normalize(alias) === needle)
   );
-  if (exact) return exact;
+  if (exactMatches.length > 0) {
+    if (expectedCategory) {
+      const catMatch = exactMatches.find((t) => t.category === expectedCategory);
+      if (catMatch) return catMatch;
+    }
+    return exactMatches[0];
+  }
 
-  // 2. Elastyczne dopasowanie zawierania (fuzzy substring matching dla polskich nazw)
-  return EQUIPMENT_CATALOG.find((template) => {
+  // 2. Elastyczne dopasowanie po pełnych słowach / granicach fraz (word boundary)
+  const candidates = EQUIPMENT_CATALOG.filter((template) => {
+    // Blokada kategorii: jeśli poszukujemy narzędzia/dokumentu, ignorujemy szablony broni
+    if (expectedCategory && expectedCategory !== 'weapon' && template.category === 'weapon') {
+      return false;
+    }
+    if (expectedCategory && expectedCategory === 'weapon' && template.category !== 'weapon') {
+      return false;
+    }
+
     const normName = normalize(template.name);
-    if (needle.includes(normName) || normName.includes(needle)) return true;
+    if (matchesPhraseBoundary(needle, normName) || matchesPhraseBoundary(normName, needle)) {
+      return true;
+    }
+
     return template.aliases.some((alias) => {
       const normAlias = normalize(alias);
-      return normAlias.length >= 3 && (needle.includes(normAlias) || normAlias.includes(needle));
+      if (normAlias.length < 3) return false;
+      return (
+        matchesPhraseBoundary(needle, normAlias) ||
+        matchesPhraseBoundary(normAlias, needle)
+      );
     });
   });
+
+  if (candidates.length > 0) {
+    if (expectedCategory) {
+      const catMatch = candidates.find((t) => t.category === expectedCategory);
+      if (catMatch) return catMatch;
+    }
+    return candidates[0];
+  }
+
+  return undefined;
 }
 
 export function resolveCatalogAsset(
@@ -1913,8 +1972,26 @@ export function applyCatalogTemplate(
   era: EquipmentVisualEra | string = '1920s'
 ): EquipmentItem {
   if (item.visualSource === 'generated') return item;
-  const template = findEquipmentTemplate(item.templateId ?? item.name);
+  const template = findEquipmentTemplate(item.templateId ?? item.name, item.category);
   if (!template) return item;
+
+  const needle = normalize(item.templateId ?? item.name);
+  const isExactNameOrIdMatch =
+    template.id === (item.templateId ?? item.name) ||
+    normalize(template.name) === needle ||
+    template.aliases.some((a) => normalize(a) === needle);
+
+  // Bezwzględna ochrona kategorii dla dopasowań elastycznych/rozmytych:
+  // Tylko ścisłe dopasowanie po nazwie/ID/aliasie może zmienić kategorię (np. 'Skórzany bicz' na 'weapon').
+  // Dopasowanie rozmyte nigdy nie przekształca narzędzia/dokumentu w broń ani odwrotnie.
+  if (!isExactNameOrIdMatch) {
+    if (item.category && item.category !== 'weapon' && template.category === 'weapon') {
+      return item;
+    }
+    if (item.category && item.category === 'weapon' && template.category !== 'weapon') {
+      return item;
+    }
+  }
 
   const visualEra = safeResolveVisualEra(era);
   // Zabezpieczenie epokowe: jeśli szablon nie jest dostępny w tej epoce, nie narzucaj go
@@ -1930,13 +2007,19 @@ export function applyCatalogTemplate(
     item.imageUrl.includes('/equipment/predefined/') ||
     item.visualSource === 'fallback';
 
+  const resolvedCategory =
+    isExactNameOrIdMatch || !item.category || item.category === 'personal'
+      ? template.category
+      : item.category;
+
   return {
     ...item,
     templateId: template.id,
-    category: template.category,
+    category: resolvedCategory,
     description: item.description || template.description,
     modifiers: item.modifiers ?? template.modifiers,
     value: item.value ?? template.value,
+    weight: item.weight ?? template.weight,
     visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'catalog'),
     visualTreatment: template.visualTreatment,
     imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset),

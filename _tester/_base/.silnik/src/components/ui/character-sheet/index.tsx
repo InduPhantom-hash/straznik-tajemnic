@@ -21,8 +21,9 @@
  * Blob.download).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { hydrateCharacterImages } from '@/lib/character-image-store';
+import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
 import {
   Dialog,
   DialogContent,
@@ -88,6 +89,25 @@ export function CharacterSheet({
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
   const [isTherapyOpen, setIsTherapyOpen] = useState(false);
   const [isMedicalCareOpen, setIsMedicalCareOpen] = useState(false);
+
+  const resolvedEraContext = useMemo<ResolvedEraContext | null>(() => {
+    if (eraContext && typeof eraContext === 'object' && 'effectiveYear' in eraContext) {
+      return eraContext as unknown as ResolvedEraContext;
+    }
+    try {
+      const advSaved = typeof window !== 'undefined' ? localStorage.getItem('adventure_context') : null;
+      const adventureContext = advSaved ? JSON.parse(advSaved) : null;
+      if (adventureContext) {
+        return resolveGameEraContext({ adventure: adventureContext });
+      }
+      if (typeof eraContext === 'string') {
+        return resolveGameEraContext({ adventure: { era: eraContext } });
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  }, [eraContext]);
 
   // Portret + miniatury ekwipunku są offloadowane do IndexedDB (IND-262/271),
   // więc `character.portraitUrl` / `item.imageUrl` bywają puste (widoczne tylko
@@ -263,7 +283,7 @@ export function CharacterSheet({
               {/* SEKCJA 7: EKWIPUNEK (broń + wyposażenie) */}
               <SheetEquipment
                 character={display}
-                eraContext={eraContext}
+                eraContext={resolvedEraContext}
                 onItemClick={(item) => setSelectedItem(item)}
               />
 
@@ -280,6 +300,7 @@ export function CharacterSheet({
           <EquipmentDetailDialog
             item={selectedItem}
             onClose={() => setSelectedItem(null)}
+            eraContext={resolvedEraContext}
             onUpdateItem={(updatedItem) => {
               setSelectedItem(updatedItem);
               if (onCharacterUpdate && character) {
