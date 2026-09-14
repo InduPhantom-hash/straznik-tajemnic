@@ -1,4 +1,4 @@
-import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference, SpellCastEventData, TomeStudyEventData, OpposedMagicEventData } from './types';
+import { CombatState, ParsedEvent, SkillTestData, SkillTestResult, SkillTestModifier, HazardEventData, HazardType, MeleeAttackReference, SpellCastEventData, TomeStudyEventData, OpposedMagicEventData, OpposedMeleeEventData } from './types';
 import { COMBAT_END_PATTERNS, COMBAT_START_PATTERNS, DAMAGE_PLAYER_PATTERNS, SANITY_PATTERNS } from './patterns';
 
 // Wykrywanie walki
@@ -92,12 +92,21 @@ export function extractMeleeAttackReferences(text: string): MeleeAttackReference
 
 /** Removes complete combat control tags and hides a trailing partial tag while SSE streams. */
 export function stripMeleeAttackTags(text: string): string {
-  const withoutComplete = text.replace(/\[ATAK_WRĘCZ:\s*[^\]]*\]/gi, '');
+  const withoutComplete = text
+    .replace(/\[(?:ATAK_WRĘCZ|ATAK_WRECZ|WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|OPPOSED_MELEE|MELEE_ATTACK):\s*[^\]]*\]/gi, '');
   const openBracket = withoutComplete.lastIndexOf('[');
   if (openBracket < 0) return withoutComplete.trimEnd();
   const trailing = withoutComplete.slice(openBracket).toLocaleUpperCase('pl-PL');
-  const marker = '[ATAK_WRĘCZ:';
-  if (marker.startsWith(trailing) || trailing.startsWith(marker)) {
+  const markers = [
+    '[ATAK_WRĘCZ:',
+    '[ATAK_WRECZ:',
+    '[WALKA_ATAK:',
+    '[OBRONA_WALKA:',
+    '[ATAK_WALKA:',
+    '[OPPOSED_MELEE:',
+    '[MELEE_ATTACK:',
+  ];
+  if (markers.some((marker) => marker.startsWith(trailing) || trailing.startsWith(marker))) {
     return withoutComplete.slice(0, openBracket).trimEnd();
   }
   return withoutComplete.trimEnd();
@@ -570,4 +579,70 @@ export function extractOpposedMagicEvents(text: string): OpposedMagicEventData[]
     }
 
     return opposedEvents;
+}
+
+// Wykrywanie ataku wręcz i karty starcia CoC 7e RAW (Faza 4 - Issue #361)
+export function extractOpposedMeleeEvents(text: string): OpposedMeleeEventData[] {
+    const meleeEvents: OpposedMeleeEventData[] = [];
+    const pattern = /\[(?:WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|OPPOSED_MELEE|MELEE_DEFENSE):\s*(?:@([^:\]]+):\s*)?([^\]]+)\]/gi;
+
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+        let characterName = match[1]?.trim();
+        const content = match[2]?.trim() || '';
+        const parts = content.split('|').map((p) => p.trim());
+
+        const kv: Record<string, string> = {};
+        const positional: string[] = [];
+
+        for (const part of parts) {
+            const eqIdx = part.indexOf('=');
+            if (eqIdx !== -1) {
+                const k = part.slice(0, eqIdx).trim().toLowerCase();
+                const v = part.slice(eqIdx + 1).trim();
+                kv[k] = v;
+            } else {
+                positional.push(part);
+            }
+        }
+
+        if (!characterName && kv.cel) {
+            characterName = kv.cel.replace(/^@/, '').trim();
+        } else if (!characterName && kv.target) {
+            characterName = kv.target.replace(/^@/, '').trim();
+        }
+
+        const attackerName = kv.napastnik || kv.attacker || kv.wrog || kv.npc || positional[0] || 'Przeciwnik';
+        const rawSkill = kv.skill || kv.umiejetnosc || kv.umiejętność || kv.wartosc || kv.wartość || positional[1];
+        const attackerSkill = rawSkill ? parseInt(rawSkill, 10) : 50;
+
+        const weaponName = kv.bron || kv.broń || kv.weapon || positional[2] || 'Bijatyka / Cios';
+        const damageFormula = kv.obrazenia || kv.obrażenia || kv.dmg || kv.damage || positional[3] || '1d3';
+        const rawBuild = kv.build || kv.budowa || positional[4];
+        const attackerBuild = rawBuild ? parseInt(rawBuild, 10) : 0;
+        const damageBonus = kv.db || kv.damagebonus || kv.bonus || undefined;
+        const isImpaling =
+            kv.damageclass === 'impaling' ||
+            kv.krojaca === 'true' ||
+            kv.klujaca === 'true' ||
+            /sztylet|noż|nóż|dagger|knife|miecz|sword|włócznia|spear/i.test(weaponName);
+        const damageClass: 'impaling' | 'non_impaling' = isImpaling ? 'impaling' : 'non_impaling';
+        const intent = kv.zamiar || kv.intent || kv.opis || kv.desc || (positional.length > 5 ? positional[5] : undefined);
+
+        meleeEvents.push({
+            id: crypto.randomUUID(),
+            attackerName,
+            attackerSkill: Number.isFinite(attackerSkill) ? attackerSkill : 50,
+            attackerBuild: Number.isFinite(attackerBuild) ? attackerBuild : 0,
+            weaponName,
+            damageFormula,
+            damageBonus,
+            damageClass,
+            characterName: characterName?.replace(/^@/, '').trim() || undefined,
+            intent,
+            description: intent,
+        });
+    }
+
+    return meleeEvents;
 }

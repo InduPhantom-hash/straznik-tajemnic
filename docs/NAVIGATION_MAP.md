@@ -99,7 +99,7 @@ graph TD
     rulebook_modal -->|Gotowe, przejdź do gry / Ready, proceed to game| home
     character_sheet -->|Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery| sanity_therapy_modal
     character_sheet -->|Rekonwalescencja i opieka medyczna / Convalescence and medical care| medical_care_modal
-    game -->|Obrona w walce / Combat defense| combat_card
+    game -->|Obrona w walce wręcz / Melee combat defense| combat_card
     game -->|Rzucanie zaklęcia / Cast spell| spell_card
     game -->|Badanie tomu / Study tome| tome_card
     home -->|Status wersji Beta / Beta Version Status| beta_welcome_modal
@@ -170,7 +170,7 @@ graph TD
 | Podręcznik zasad | Gotowe, przejdź do gry / Ready, proceed to game | Strona główna | `src/app/[locale]/page.tsx` |
 | Karta badacza (Dark Art Déco CoC 7e RAW) | Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery | Terapia i rekonwalescencja psychiczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
 | Karta badacza (Dark Art Déco CoC 7e RAW) | Rekonwalescencja i opieka medyczna / Convalescence and medical care | Rekonwalescencja i opieka medyczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
-| Aktywna sesja | Obrona w walce / Combat defense | Obrona w walce wręcz w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/combat-card.tsx` |
+| Aktywna sesja | Obrona w walce wręcz / Melee combat defense | Obrona w walce wręcz w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/opposed-melee-card.tsx` |
 | Aktywna sesja | Rzucanie zaklęcia / Cast spell | Rzucanie zaklęć w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/spell-card.tsx` |
 | Aktywna sesja | Badanie tomu / Study tome | Badanie tomów w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/tome-card.tsx` |
 | Strona główna | Status wersji Beta / Beta Version Status | Status wersji Beta | `src/components/sidebar/CthulhuSidebar.tsx` |

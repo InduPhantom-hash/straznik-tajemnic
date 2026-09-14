@@ -29,6 +29,7 @@ import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
 import { ChaseCard } from './chase-card';
 import { CombatCard } from './combat-card';
+import { OpposedMeleeCard } from './opposed-melee-card';
 import type { Character, Message } from '@/lib/types';
 import type { ChaseManeuverType, ChaseState } from '@/lib/chase/chase-engine';
 import type { PendingMeleeAttack, DefenseChoice, ManeuverType } from '@/lib/combat/combat-resolver';
@@ -465,6 +466,23 @@ export function MessageCard({
                   completed={!isLastMessage || message.chaseState.status !== 'ongoing'}
                   onManeuverSelect={onChaseManeuver}
                 />
+              </div>
+            )}
+
+            {/* Obrona przed atakiem wręcz CoC 7e RAW (Faza 4 - OpposedMeleeCard) */}
+            {message.opposedMeleeEvents && message.opposedMeleeEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.opposedMeleeEvents.map((opposedMelee) => (
+                  <OpposedMeleeCard
+                    key={opposedMelee.id}
+                    opposedEvent={opposedMelee}
+                    activeCharacter={activeCharacter}
+                    characters={characters}
+                    completed={resolvedCombatIds?.has(opposedMelee.id)}
+                    onCharacterUpdate={onCharacterUpdate}
+                    onSendChat={onSendCombatResult}
+                  />
+                ))}
               </div>
             )}
 
