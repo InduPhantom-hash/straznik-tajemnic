@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.4",
-  "updatedAt": "2026-09-14T00:10:00.000Z",
+  "updatedAt": "2026-09-14T09:10:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -806,10 +806,10 @@
       "source": "game",
       "target": "combat-card",
       "label": {
-        "pl": "Obrona w walce",
-        "en": "Combat defense"
+        "pl": "Obrona w walce wręcz",
+        "en": "Melee combat defense"
       },
-      "component": "src/components/chat/chat-window/components/combat-card.tsx"
+      "component": "src/components/chat/chat-window/components/opposed-melee-card.tsx"
     },
     {
       "source": "game",
