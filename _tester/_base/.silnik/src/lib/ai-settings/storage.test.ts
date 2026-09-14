@@ -89,8 +89,8 @@ describe('loadAISettings session mechanics migration', () => {
     expect(loadAISettings().sessionZero?.mechanics).toBeUndefined();
   });
 
-  it('Issue #305: domyślnie lektor (TTS) jest wyłączony w defaultAISettings oraz loadAISettings', () => {
-    expect(defaultAISettings.voiceSettings.enabled).toBe(false);
-    expect(loadAISettings().voiceSettings.enabled).toBe(false);
+  it('Issue #366: domyślnie lektor (TTS) jest włączony w defaultAISettings oraz loadAISettings', () => {
+    expect(defaultAISettings.voiceSettings.enabled).toBe(true);
+    expect(loadAISettings().voiceSettings.enabled).toBe(true);
   });
 });
