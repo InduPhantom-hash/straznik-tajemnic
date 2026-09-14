@@ -93,7 +93,7 @@ export function extractMeleeAttackReferences(text: string): MeleeAttackReference
 /** Removes complete combat control tags and hides a trailing partial tag while SSE streams. */
 export function stripMeleeAttackTags(text: string): string {
   const withoutComplete = text
-    .replace(/\[(?:ATAK_WRĘCZ|ATAK_WRECZ|WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|OPPOSED_MELEE|MELEE_ATTACK):\s*[^\]]*\]/gi, '');
+    .replace(/\[(?:ATAK_WRĘCZ|ATAK_WRECZ|WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|OPPOSED_MELEE|MELEE_ATTACK|MELEE_DEFENSE):\s*[^\]]*\]/gi, '');
   const openBracket = withoutComplete.lastIndexOf('[');
   if (openBracket < 0) return withoutComplete.trimEnd();
   const trailing = withoutComplete.slice(openBracket).toLocaleUpperCase('pl-PL');
@@ -105,6 +105,7 @@ export function stripMeleeAttackTags(text: string): string {
     '[ATAK_WALKA:',
     '[OPPOSED_MELEE:',
     '[MELEE_ATTACK:',
+    '[MELEE_DEFENSE:',
   ];
   if (markers.some((marker) => marker.startsWith(trailing) || trailing.startsWith(marker))) {
     return withoutComplete.slice(0, openBracket).trimEnd();
@@ -629,6 +630,21 @@ export function extractOpposedMeleeEvents(text: string): OpposedMeleeEventData[]
         const damageClass: 'impaling' | 'non_impaling' = isImpaling ? 'impaling' : 'non_impaling';
         const intent = kv.zamiar || kv.intent || kv.opis || kv.desc || (positional.length > 5 ? positional[5] : undefined);
 
+        const targetCharName = characterName?.replace(/^@/, '').trim() || undefined;
+        const normalizedTarget = (targetCharName || 'active').toLowerCase();
+        const previousAttacksOnTarget = meleeEvents.filter(
+            (e) => (e.characterName?.toLowerCase() || 'active') === normalizedTarget
+        ).length;
+        const isExplicitOutnumbered =
+            kv.outnumbered === 'true' ||
+            kv.outnumbered === '1' ||
+            kv.przewaga === 'true' ||
+            kv.przewaga === '1' ||
+            kv.osaczony === 'true' ||
+            kv.osaczony === 'tak' ||
+            kv.osaczony === '1';
+        const isOutnumbered = isExplicitOutnumbered || previousAttacksOnTarget >= 1;
+
         meleeEvents.push({
             id: crypto.randomUUID(),
             attackerName,
@@ -638,11 +654,82 @@ export function extractOpposedMeleeEvents(text: string): OpposedMeleeEventData[]
             damageFormula,
             damageBonus,
             damageClass,
-            characterName: characterName?.replace(/^@/, '').trim() || undefined,
+            characterName: targetCharName,
             intent,
             description: intent,
+            isOutnumbered: isOutnumbered ? true : undefined,
         });
     }
 
     return meleeEvents;
 }
+
+/**
+ * Parsuje znaczniki ostatecznego kresu postaci [GAME_OVER: DEAD | INSANE: powód | ...]
+ * Format: [GAME_OVER: @Imię | typ=DEAD/INSANE | powod=... | naglowek=... | tresc=... | lokacja=...]
+ */
+export function extractGameOverEvents(text: string): import('@/lib/types').GameOverEventData[] {
+    const events: import('@/lib/types').GameOverEventData[] = [];
+    const pattern = /\[(?:GAME_OVER|KONIEC_GRY):\s*([^\]]+)\]/gi;
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(text)) !== null) {
+        const rawContent = match[1].trim();
+        const parts = rawContent.split('|').map((p) => p.trim());
+        const kv: Record<string, string> = {};
+        const positional: string[] = [];
+
+        for (const part of parts) {
+            const eqIndex = part.indexOf('=');
+            if (eqIndex > 0) {
+                const key = part.slice(0, eqIndex).trim().toLowerCase();
+                const value = part.slice(eqIndex + 1).trim();
+                kv[key] = value;
+            } else {
+                positional.push(part);
+            }
+        }
+
+        let characterName = kv.cel || kv.postac || kv.imie || kv.name || kv.who;
+        if (!characterName && positional.length > 0 && positional[0].startsWith('@')) {
+            characterName = positional[0].replace(/^@/, '');
+        }
+
+        const rawType = (kv.typ || kv.type || (positional.length > 0 && !positional[0].startsWith('@') ? positional[0] : positional[1]) || 'death').toLowerCase();
+        const type: import('@/lib/types').GameOverType = rawType.includes('insan') || rawType.includes('obled') || rawType.includes('szalen') ? 'permanent_insanity' : 'death';
+
+        const reason = kv.powod || kv.reason || kv.opis || (positional.length > 1 && !positional[1].startsWith('@') ? positional[1] : positional[2]) || 'Tragiczny finał śledztwa';
+        const location = kv.lokacja || kv.miejsce || kv.location;
+        const date = kv.data || kv.date;
+
+        const headline = kv.naglowek || kv.tytul || kv.headline || (type === 'death' ? 'TRAGICZNY ZGON W ARKHAM' : 'NOWY PACJENT W ARKHAM SANITARIUM');
+        const body = kv.tresc || kv.artykul || kv.body || reason;
+
+        const newspaperSnippet = type === 'death' ? { headline, body } : undefined;
+        const sanitariumRecord = type === 'permanent_insanity' ? {
+            admissionNo: kv.nr_akt || kv.nr || `AS-${Math.floor(1000 + Math.random() * 9000)}`,
+            physicianName: kv.lekarz || 'dr Eric Harden',
+            diagnosis: reason,
+            lastWords: kv.ostatnie_slowa || kv.last_words || 'Tekeli-li! Tekeli-li!'
+        } : undefined;
+
+        events.push({
+            id: crypto.randomUUID(),
+            type,
+            characterName: characterName?.replace(/^@/, '').trim() || 'Badacz',
+            reason,
+            location,
+            date,
+            newspaperSnippet,
+            sanitariumRecord
+        });
+    }
+
+    return events;
+}
+
+/** Usuwa znaczniki GAME_OVER z tekstu czatu */
+export function stripGameOverTags(text: string): string {
+    return text.replace(/\[(?:GAME_OVER|KONIEC_GRY):\s*[^\]]*\]/gi, '').trimEnd();
+}
+
