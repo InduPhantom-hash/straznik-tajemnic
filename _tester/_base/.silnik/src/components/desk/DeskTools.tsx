@@ -2,7 +2,8 @@
 
 import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent, FC } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
 import { Settings, User, BookOpen, Dices, Package, FileText, Users } from 'lucide-react';
 import { CthulhuLogo } from '../ui/cthulhu-logo';
 import { CharacterDialog } from '../dialogs/CharacterDialog';
@@ -101,6 +102,13 @@ export const DeskTools: FC<DeskToolsProps> = ({
   const [showAdventureSelector, setShowAdventureSelector] = useState(false);
   const [adventureContext, setAdventureContext] = useState<AdventureContext | null>(null);
   const [unseenJournalCount, setUnseenJournalCount] = useState(0);
+
+  const resolvedEraContext = useMemo(() => {
+    if (adventureContext) {
+      return resolveGameEraContext({ adventure: adventureContext });
+    }
+    return null;
+  }, [adventureContext]);
 
   useEffect(() => {
     if (!activeCharacter) return;
@@ -309,9 +317,9 @@ export const DeskTools: FC<DeskToolsProps> = ({
 
       {openDialog === "settings" && <SettingsModal open={true} onClose={() => setOpenDialog(null)} />}
       <CharacterDialog open={openDialog === "character"} onOpenChange={o => !o && setOpenDialog(null)} activeCharacter={activeCharacter} characters={characters} onCharacterSwitch={onCharacterSwitch} onCharacterCreate={onCharacterCreate} onCharacterManage={onCharacterManage} />
-      <CharacterSheet open={openDialog === "character"} onOpenChange={o => !o && setOpenDialog(null)} character={activeCharacter} onCharacterUpdate={onUpdateCharacter} characters={characters} onCharacterChange={onCharacterSwitch} />
+      <CharacterSheet open={openDialog === "character"} onOpenChange={o => !o && setOpenDialog(null)} character={activeCharacter} onCharacterUpdate={onUpdateCharacter} characters={characters} onCharacterChange={onCharacterSwitch} eraContext={resolvedEraContext} />
       {openDialog === "journal" && activeCharacter && onUpdateCharacter && <SessionJournal character={activeCharacter} onUpdateCharacter={onUpdateCharacter} onClose={() => setOpenDialog(null)} />}
-      {openDialog === "equipment" && activeCharacter && onUpdateCharacter && <EquipmentModal open={true} onOpenChange={o => !o && setOpenDialog(null)} character={activeCharacter} onCharacterUpdate={onUpdateCharacter} era={adventureContext?.yearRange?.split('-')[0] || '1920s'} adventureTheme={adventureContext?.title} />}
+      {openDialog === "equipment" && activeCharacter && onUpdateCharacter && <EquipmentModal open={true} onOpenChange={o => !o && setOpenDialog(null)} character={activeCharacter} onCharacterUpdate={onUpdateCharacter} era={adventureContext?.yearRange?.split('-')[0] || '1920s'} adventureTheme={adventureContext?.title} eraContext={resolvedEraContext} />}
       <DiceDialog open={openDialog === "dice"} onOpenChange={o => !o && setOpenDialog(null)} activeCharacter={activeCharacter} onRollSendToChat={handleSendMessage} />
       <SessionZeroModal open={showSessionZero} onClose={() => setShowSessionZero(false)} adventureContext={adventureContext || undefined} activeCharacter={activeCharacter} onCharacterUpdate={onUpdateCharacter} onComplete={() => onSessionZeroComplete && onSessionZeroComplete()} />
       <AdventureSelector open={showAdventureSelector} onClose={() => setShowAdventureSelector(false)} onSelect={a => { setAdventureContext(a); localStorage.setItem('adventure_context', JSON.stringify(a)); if (onAdventureSelect) onAdventureSelect(a); setShowAdventureSelector(false); setTimeout(() => setShowSessionZero(true), 300); }} customAdventures={customAdventures} onUploadAdventure={onUploadAdventure} onDeleteAdventure={onDeleteAdventure} isUploading={isUploadingAdventure} />
