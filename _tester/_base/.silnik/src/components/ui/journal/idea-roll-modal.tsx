@@ -50,6 +50,8 @@ import {
 } from "@/lib/journal/idea-roll-service";
 import { fetchWithApiKeys } from "@/lib/api-keys-service";
 import { collectSSEText } from "@/lib/sse-parser";
+import { PhysicalDiceScene } from "@/components/dice/physical-dice-scene";
+import { traceForD100 } from "@/lib/dice-roll-trace";
 
 export interface IdeaRollModalProps {
   open: boolean;
@@ -93,6 +95,7 @@ export function IdeaRollModal({
   const [rollResult, setRollResult] = useState<IdeaRollResult | null>(null);
   const [insightText, setInsightText] = useState("");
   const [isRolling, setIsRolling] = useState(false);
+  const [isDiceAnimating, setIsDiceAnimating] = useState(false);
   const [isDeducing, setIsDeducing] = useState(false);
   const [savedToTarget, setSavedToTarget] = useState(false);
   const [savedToChronicle, setSavedToChronicle] = useState(false);
@@ -123,6 +126,7 @@ export function IdeaRollModal({
         setInsightText("");
       }
       setIsRolling(false);
+      setIsDiceAnimating(false);
       setIsDeducing(false);
       setSavedToTarget(false);
       setSavedToChronicle(false);
@@ -150,6 +154,7 @@ export function IdeaRollModal({
     }
 
     setIsRolling(true);
+    setIsDiceAnimating(true);
     setSavedToTarget(false);
     setSavedToChronicle(false);
 
@@ -160,6 +165,7 @@ export function IdeaRollModal({
       selectedMiceLens,
     });
     setRollResult(result);
+    window.setTimeout(() => setIsDiceAnimating(false), 720);
     setIdeaRollCooldown(character.id, targetSubject?.id, result, undefined, currentLocationId);
     setCooldownState({
       isCoolingDown: true,
@@ -403,6 +409,13 @@ export function IdeaRollModal({
             >
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-mono font-bold text-brass">{rollResult.roll}</span>
+                <div className="w-full sm:w-44 shrink-0">
+                  <PhysicalDiceScene
+                    dice={traceForD100(rollResult.roll, "idea-roll").dice}
+                    rolling={isDiceAnimating}
+                    label="d100"
+                  />
+                </div>
                 <div>
                   <div className="font-bold text-sm flex items-center gap-1.5 flex-wrap">
                     <span>{rollResult.outcomeEmoji}</span>

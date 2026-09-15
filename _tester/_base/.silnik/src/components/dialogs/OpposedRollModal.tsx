@@ -24,6 +24,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForD100Bonus } from '@/lib/dice-roll-trace';
 import {
   Swords,
   Dices,
@@ -73,7 +75,6 @@ export interface OpposedRollModalProps {
   onComplete?: (resolution: OpposedRollResolution) => void;
 }
 
-const ANIM_TICK_MS = 50;
 const ANIM_DURATION_MS = 650;
 
 function getOutcomeColor(outcome: RollOutcome): string {
@@ -138,47 +139,26 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
   const opponentThresholds = calculateOpposedThresholds(data.opponentSkillValue);
 
   const startRoll = () => {
-    setPhase('rolling');
+    if (phase !== 'ready') return;
     clearTimers();
-
-    const startTime = Date.now();
-    const interval = setInterval(() => {
-      setAnimPlayerVal(Math.floor(Math.random() * 100) + 1);
-      setAnimOpponentVal(Math.floor(Math.random() * 100) + 1);
-
-      if (Date.now() - startTime >= ANIM_DURATION_MS) {
-        clearInterval(interval);
-
-        const sideAConfig: OpposedRollSideConfig = {
-          name: data.playerName,
-          skillName: data.playerSkillName,
-          skillValue: data.playerSkillValue,
-          bonusDice: playerBonus,
-          isPlayer: true,
-          characterId: data.characterId,
-        };
-
-        const sideBConfig: OpposedRollSideConfig = {
-          name: data.opponentName,
-          skillName: data.opponentSkillName,
-          skillValue: data.opponentSkillValue,
-          bonusDice: opponentBonus,
-          isPlayer: false,
-        };
-
-        const res = rollAndResolveOpposed(sideAConfig, sideBConfig);
-        setResolution(res);
-        setAnimPlayerVal(res.sideA.total);
-        setAnimOpponentVal(res.sideB.total);
-        setPhase('done');
-
-        if (onComplete) {
-          onComplete(res);
-        }
-      }
-    }, ANIM_TICK_MS);
-
-    timersRef.current.push(interval as unknown as ReturnType<typeof setTimeout>);
+    const sideAConfig: OpposedRollSideConfig = {
+      name: data.playerName, skillName: data.playerSkillName, skillValue: data.playerSkillValue,
+      bonusDice: playerBonus, isPlayer: true, characterId: data.characterId,
+    };
+    const sideBConfig: OpposedRollSideConfig = {
+      name: data.opponentName, skillName: data.opponentSkillName, skillValue: data.opponentSkillValue,
+      bonusDice: opponentBonus, isPlayer: false,
+    };
+    // Resolve once before the visual phase. No decorative Math.random calls are
+    // allowed to consume the game's RNG sequence or alter either side's result.
+    const res = rollAndResolveOpposed(sideAConfig, sideBConfig);
+    setResolution(res);
+    setAnimPlayerVal(res.sideA.total);
+    setAnimOpponentVal(res.sideB.total);
+    onComplete?.(res);
+    setPhase('rolling');
+    const settle = setTimeout(() => setPhase('done'), ANIM_DURATION_MS);
+    timersRef.current.push(settle);
   };
 
   const handleSendToChat = () => {
@@ -340,6 +320,15 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                         k10: [{resolution.sideA.tensResults.join(', ')}] + {resolution.sideA.unitsResult}
                       </span>
                     )}
+                    {resolution && (
+                      <div className="mt-3 w-full">
+                        <PhysicalDiceScene
+                          dice={traceForD100Bonus(resolution.sideA.total, resolution.sideA.tensResults, resolution.sideA.unitsResult, resolution.sideA.bonusDice, 'opposed-player').dice}
+                          rolling={phase === 'rolling'}
+                          label={data.playerName}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -437,6 +426,15 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
                       <span className="text-[10px] text-muted-foreground font-mono mt-0.5">
                         k10: [{resolution.sideB.tensResults.join(', ')}] + {resolution.sideB.unitsResult}
                       </span>
+                    )}
+                    {resolution && (
+                      <div className="mt-3 w-full">
+                        <PhysicalDiceScene
+                          dice={traceForD100Bonus(resolution.sideB.total, resolution.sideB.tensResults, resolution.sideB.unitsResult, resolution.sideB.bonusDice, 'opposed-opponent').dice}
+                          rolling={phase === 'rolling'}
+                          label={data.opponentName}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>

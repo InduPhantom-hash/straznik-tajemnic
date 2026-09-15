@@ -16,6 +16,22 @@ export function roll(dice: number, sides: number): number {
   return sum;
 }
 
+/** Individual dice are retained for presentation; the existing scalar helpers
+ * below deliberately keep their public behaviour for game-state callers. */
+export function rollWithResults(dice: number, sides: number): number[] {
+  return Array.from({ length: dice }, () => Math.floor(Math.random() * sides) + 1);
+}
+
+export function roll3d6x5WithResults() {
+  const results = rollWithResults(3, 6);
+  return { results, modifier: 0, total: results.reduce((sum, value) => sum + value, 0) * 5 };
+}
+
+export function roll2d6plus6x5WithResults() {
+  const results = rollWithResults(2, 6);
+  return { results, modifier: 6, total: (results.reduce((sum, value) => sum + value, 0) + 6) * 5 };
+}
+
 export const roll3d6x5 = () => roll(3, 6) * 5;
 export const roll2d6plus6x5 = () => (roll(2, 6) + 6) * 5;
 

@@ -6,6 +6,8 @@ import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
 import { Progress } from './progress';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForD100 } from '@/lib/dice-roll-trace';
 
 // === TYPY ===
 
@@ -101,6 +103,8 @@ export function ChaseSystem({
   const [log, setLog] = useState<string[]>([]);
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [showResult, setShowResult] = useState<'escaped' | 'caught' | null>(null);
+  const [visibleRoll, setVisibleRoll] = useState<number | null>(null);
+  const [isDiceAnimating, setIsDiceAnimating] = useState(false);
 
   const TRACK_LENGTH = 20; // Długość toru pościgu
   const ESCAPE_DISTANCE = 5; // Dystans potrzebny do ucieczki
@@ -138,6 +142,12 @@ export function ChaseSystem({
   const addLog = useCallback((message: string) => {
     setLog(prev => [...prev, `[R${currentRound}] ${message}`]);
   }, [currentRound]);
+
+  const presentPlayerRoll = useCallback((roll: number) => {
+    setVisibleRoll(roll);
+    setIsDiceAnimating(true);
+    window.setTimeout(() => setIsDiceAnimating(false), 720);
+  }, []);
 
   // Losowa komplikacja
   const generateComplication = useCallback(() => {
@@ -215,6 +225,7 @@ export function ChaseSystem({
     
     if (option.difficulty > 0) {
       const roll = Math.floor(Math.random() * 100) + 1;
+      presentPlayerRoll(roll);
       const success = roll <= option.difficulty;
       
       if (success) {
@@ -252,7 +263,7 @@ export function ChaseSystem({
     setTimeout(() => {
       enemyTurn();
     }, 500);
-  }, [addLog, t]);
+  }, [addLog, t, presentPlayerRoll]);
 
   // Tura przeciwnika (AI)
   const enemyTurn = useCallback(() => {
@@ -293,6 +304,7 @@ export function ChaseSystem({
   // Podstawowe akcje gracza
   const sprintAction = useCallback(() => {
     const roll = Math.floor(Math.random() * 100) + 1;
+    presentPlayerRoll(roll);
     const success = roll <= player.con;
     
     if (success) {
@@ -304,7 +316,7 @@ export function ChaseSystem({
     }
     
     setTimeout(() => enemyTurn(), 500);
-  }, [player, addLog, enemyTurn, t]);
+  }, [player, addLog, enemyTurn, t, presentPlayerRoll]);
 
   const normalRun = useCallback(() => {
     setPlayer(prev => ({ ...prev, position: prev.position + player.speed }));
@@ -314,6 +326,7 @@ export function ChaseSystem({
 
   const tryToHide = useCallback(() => {
     const roll = Math.floor(Math.random() * 100) + 1;
+    presentPlayerRoll(roll);
     const success = roll <= 40; // Bazowa szansa na ukrycie
     
     if (success) {
@@ -323,7 +336,7 @@ export function ChaseSystem({
       addLog(t('hideFailure', { roll }));
       setTimeout(() => enemyTurn(), 500);
     }
-  }, [addLog, enemyTurn, t]);
+  }, [addLog, enemyTurn, t, presentPlayerRoll]);
 
   // Renderowanie toru pościgu
   const renderTrack = () => {
@@ -418,6 +431,13 @@ export function ChaseSystem({
         </CardHeader>
         
         <CardContent className="space-y-4">
+          {visibleRoll !== null && (
+            <PhysicalDiceScene
+              dice={traceForD100(visibleRoll, 'chase').dice}
+              rolling={isDiceAnimating}
+              label="d100"
+            />
+          )}
           {/* Tor pościgu */}
           <div className="bg-black/30 p-4 rounded-lg">
             <div className="text-center mb-2 text-sm text-muted-foreground">

@@ -57,7 +57,6 @@ interface RollTestModalProps {
   onSpendLuck?: (amount: number, characterId?: string) => void;
 }
 
-const ANIM_TICK_MS = 60;
 const ANIM_DURATION_MS = 700;
 
 /**
@@ -159,15 +158,9 @@ export const RollTestModal: FC<RollTestModalProps> = ({
     );
 
     // Animacja: migające losowe liczby, potem ustalenie wyniku.
-    const interval = setInterval(() => {
-      setAnimValue(Math.floor(Math.random() * 100) + 1);
-    }, ANIM_TICK_MS);
-    timersRef.current.push(
-      interval as unknown as ReturnType<typeof setTimeout>
-    );
+    setAnimValue(diceResult.total);
 
     const settle = setTimeout(() => {
-      clearInterval(interval);
       setAnimValue(diceResult.total);
       setBreakdown({
         tensResults: diceResult.tensResults,

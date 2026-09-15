@@ -41,6 +41,8 @@ import {
   FileText,
   DollarSign,
 } from 'lucide-react';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForD100 } from '@/lib/dice-roll-trace';
 
 export interface MedicalCareModalProps {
   isOpen: boolean;
@@ -67,6 +69,7 @@ export function MedicalCareModal({
   const [timeSkipResult, setTimeSkipResult] = useState<TimeSkipRecoveryResult | null>(null);
   const [firstAidResult, setFirstAidResult] = useState<FirstAidResult | null>(null);
   const [medicineResult, setMedicineResult] = useState<MedicineResult | null>(null);
+  const [isDiceAnimating, setIsDiceAnimating] = useState(false);
 
   const maxHp = getMaxHp(character);
   const threshold = getMajorWoundThreshold(character);
@@ -96,6 +99,8 @@ export function MedicalCareModal({
     if (isCombatOrChaseActive) return;
     const res = applyFirstAid(character, firstAidSkill);
     setFirstAidResult(res);
+    setIsDiceAnimating(true);
+    window.setTimeout(() => setIsDiceAnimating(false), 720);
     onCharacterUpdate(res.nextCharacter);
   };
 
@@ -103,6 +108,8 @@ export function MedicalCareModal({
     if (isCombatOrChaseActive) return;
     const res = applyMedicine(character, medicineSkill);
     setMedicineResult(res);
+    setIsDiceAnimating(true);
+    window.setTimeout(() => setIsDiceAnimating(false), 720);
     onCharacterUpdate(res.nextCharacter);
   };
 
@@ -274,7 +281,7 @@ export function MedicalCareModal({
               <div className="pt-2">
                 <Button
                   onClick={handleExecuteTimeSkip}
-                  disabled={isCombatOrChaseActive}
+                  disabled={isCombatOrChaseActive || isDiceAnimating}
                   className="w-full bg-[#7a221d] hover:bg-[#b3322c] text-white font-special-elite tracking-wider py-2"
                 >
                   <HeartPulse className="h-4 w-4 mr-2" />
@@ -407,7 +414,7 @@ export function MedicalCareModal({
                 </div>
                 <Button
                   onClick={handleFirstAid}
-                  disabled={isCombatOrChaseActive}
+                  disabled={isCombatOrChaseActive || isDiceAnimating}
                   variant="outline"
                   className="w-full border-brass/40 text-brass hover:bg-brass/20 font-special-elite"
                 >
@@ -419,6 +426,7 @@ export function MedicalCareModal({
                       <span>Rzut: {firstAidResult.roll} vs {firstAidResult.targetSkill}</span>
                       <span>{firstAidResult.outcome.toUpperCase()}</span>
                     </div>
+                    <PhysicalDiceScene dice={traceForD100(firstAidResult.roll, 'first-aid').dice} rolling={isDiceAnimating} label="d100" />
                     <p className="text-muted-foreground">{firstAidResult.narrativeSummary.pl}</p>
                   </div>
                 )}
@@ -450,6 +458,7 @@ export function MedicalCareModal({
                       <span>Rzut: {medicineResult.roll} vs {medicineResult.targetSkill}</span>
                       <span>{medicineResult.outcome.toUpperCase()}</span>
                     </div>
+                    <PhysicalDiceScene dice={traceForD100(medicineResult.roll, 'medicine').dice} rolling={isDiceAnimating} label="d100" />
                     <p className="text-muted-foreground">{medicineResult.narrativeSummary.pl}</p>
                   </div>
                 )}

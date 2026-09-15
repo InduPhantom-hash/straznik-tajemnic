@@ -51,6 +51,8 @@ import {
 } from '@/lib/dice-utils';
 import { Sparkles } from 'lucide-react';
 import { getSharedAudioContext } from '@/lib/audio/audio-context';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForD100, traceForD100Bonus, type DiceRollTrace } from '@/lib/dice-roll-trace';
 
 // === INTERFACES ===
 
@@ -170,6 +172,8 @@ export const DiceDialog: FC<DiceDialogProps> = ({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [historyRolls, setHistoryRolls] = useState<DiceRoll[]>([]);
+  const [visibleTrace, setVisibleTrace] = useState<DiceRollTrace | null>(null);
+  const [isDiceAnimating, setIsDiceAnimating] = useState(false);
 
   // Load history on mount
   useEffect(() => {
@@ -220,9 +224,18 @@ export const DiceDialog: FC<DiceDialogProps> = ({
   // === HANDLERS ===
 
   // Quick roll d100
+  const playTrace = (trace: DiceRollTrace) => {
+    // Wynik oraz historia są zapisywane przed animacją. Zamknięcie tacki nie może
+    // więc unieważnić wylosowanej wartości, a przycisk nie losuje drugi raz.
+    setVisibleTrace(trace);
+    setIsDiceAnimating(true);
+    window.setTimeout(() => setIsDiceAnimating(false), 720);
+  };
+
   const handleQuickD100 = () => {
-    const result =
-      bonusDice !== 0 ? rollD100WithBonus(bonusDice).total : rollD100();
+    if (isDiceAnimating) return;
+    const detailed = bonusDice !== 0 ? rollD100WithBonus(bonusDice) : null;
+    const result = detailed?.total ?? rollD100();
 
     const roll: DiceRoll = {
       id: crypto.randomUUID(),
@@ -236,16 +249,19 @@ export const DiceDialog: FC<DiceDialogProps> = ({
     };
 
     addRoll(roll);
+    playTrace(detailed
+      ? traceForD100Bonus(detailed.total, detailed.tensResults, detailed.unitsResult, bonusDice, 'dice-dialog')
+      : traceForD100(result, 'dice-dialog'));
     setBonusDice(0);
   };
 
   // Skill check (virtual)
   const handleSkillCheck = () => {
     const target = parseInt(skillValue);
-    if (isNaN(target) || target < 1 || target > 100) return;
+    if (isDiceAnimating || isNaN(target) || target < 1 || target > 100) return;
 
-    const result =
-      bonusDice !== 0 ? rollD100WithBonus(bonusDice).total : rollD100();
+    const detailed = bonusDice !== 0 ? rollD100WithBonus(bonusDice) : null;
+    const result = detailed?.total ?? rollD100();
 
     const roll = createSkillRoll(
       selectedSkill || 'Test',
@@ -258,6 +274,9 @@ export const DiceDialog: FC<DiceDialogProps> = ({
     );
 
     addRoll(roll);
+    playTrace(detailed
+      ? traceForD100Bonus(detailed.total, detailed.tensResults, detailed.unitsResult, bonusDice, 'dice-dialog-skill')
+      : traceForD100(result, 'dice-dialog-skill'));
     setBonusDice(0);
   };
 
@@ -513,6 +532,12 @@ export const DiceDialog: FC<DiceDialogProps> = ({
                   )}
               </div>
 
+              {visibleTrace && (
+                <div className="relative mb-4 w-full max-w-md">
+                  <PhysicalDiceScene dice={visibleTrace.dice} rolling={isDiceAnimating} label={t('diceTray')} />
+                </div>
+              )}
+
               {/* romby + wynik */}
               <div className="relative flex items-center justify-center w-[170px] h-[170px] mb-2">
                 <div className="absolute inset-0 border border-primary/50 rotate-45 animate-emerald-pulse" />
@@ -724,6 +749,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <Button
                 onClick={handleQuickD100}
+                disabled={isDiceAnimating}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-[0.12em]"
               >
                 <Dices className="w-4 h-4 mr-2" />
@@ -732,6 +758,7 @@ export const DiceDialog: FC<DiceDialogProps> = ({
               {selectedSkill && skillValue && (
                 <Button
                   onClick={handleSkillCheck}
+                  disabled={isDiceAnimating}
                   variant="secondary"
                   className="font-display uppercase tracking-[0.12em]"
                 >

@@ -53,6 +53,19 @@ import {
   type PoisonResolution,
 } from '@/lib/hazards-engine';
 import type { HazardEventData } from '@/lib/types';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForDice, type PhysicalDieType } from '@/lib/dice-roll-trace';
+
+function DamageDiceScene({ formula, results }: { formula: string; results: number[] }) {
+  const sides = Number(formula.match(/d(3|4|6|8|10|12|20)\b/i)?.[1]);
+  if (!results.length || !sides) return null;
+  return (
+    <PhysicalDiceScene
+      dice={traceForDice(`d${sides}` as PhysicalDieType, results, results.reduce((sum, value) => sum + value, 0), 'hazard-damage').dice}
+      label={formula}
+    />
+  );
+}
 
 export interface HazardDialogProps {
   open: boolean;
@@ -329,6 +342,7 @@ export function HazardDialog({
                     {isApplied ? t('applied') : t('applyToCharacter')}
                   </Button>
                 </div>
+                <DamageDiceScene formula={fallResult.damageFormula} results={fallResult.damageDiceResults} />
               </Card>
             )}
           </TabsContent>
@@ -422,6 +436,10 @@ export function HazardDialog({
                     {isApplied ? t('applied') : t('applyToCharacter')}
                   </Button>
                 </div>
+                <DamageDiceScene
+                  formula={fireResult?.damageFormula || acidResult?.damageFormula || ''}
+                  results={fireResult?.damageDiceResults ?? acidResult?.damageDiceResults ?? []}
+                />
               </Card>
             )}
           </TabsContent>
@@ -488,6 +506,7 @@ export function HazardDialog({
                     {isApplied ? t('applied') : t('applyToCharacter')}
                   </Button>
                 </div>
+                <DamageDiceScene formula={suffocationResult.damageFormula} results={suffocationResult.damageDiceResults} />
                 {suffocationResult.deathAtZero && (
                   <p className="text-xs font-medium text-destructive">
                     {t('deathAtZeroNotice')}
@@ -558,6 +577,7 @@ export function HazardDialog({
                     {isApplied ? t('applied') : t('applyToCharacter')}
                   </Button>
                 </div>
+                <DamageDiceScene formula={poisonResult.damageFormulaUsed} results={poisonResult.damageDiceResults} />
               </Card>
             )}
           </TabsContent>

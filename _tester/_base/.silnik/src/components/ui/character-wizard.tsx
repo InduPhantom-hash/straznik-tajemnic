@@ -53,6 +53,8 @@ import {
 import {
   roll3d6x5,
   roll2d6plus6x5,
+  roll3d6x5WithResults,
+  roll2d6plus6x5WithResults,
   half,
   fifth,
   calculateDerived as libCalculateDerived,
@@ -64,6 +66,8 @@ import {
   categorizeItem,
   estimateWeight,
 } from '@/lib/character';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForDice, type DiceRollTrace } from '@/lib/dice-roll-trace';
 
 // ============================================================================
 // DANE REKOMENDACJI
@@ -121,16 +125,16 @@ type StatKey = (typeof STAT_KEYS)[number];
  * Spójne z generateRandomStats w @/lib/character/dice (jedno źródło logiki rzutu
  * - tutaj tylko etykieta wzoru i wybór funkcji per pojedynczą cechę).
  */
-const STAT_DICE: Record<StatKey, { label: string; roll: () => number }> = {
-  str: { label: '3K6×5', roll: roll3d6x5 },
-  con: { label: '3K6×5', roll: roll3d6x5 },
-  siz: { label: '2K6+6×5', roll: roll2d6plus6x5 },
-  dex: { label: '3K6×5', roll: roll3d6x5 },
-  app: { label: '3K6×5', roll: roll3d6x5 },
-  int: { label: '2K6+6×5', roll: roll2d6plus6x5 },
-  pow: { label: '3K6×5', roll: roll3d6x5 },
-  edu: { label: '2K6+6×5', roll: roll2d6plus6x5 },
-  luck: { label: '3K6×5', roll: roll3d6x5 },
+const STAT_DICE: Record<StatKey, { label: string; roll: () => number; detailed: () => { results: number[]; modifier: number; total: number } }> = {
+  str: { label: '3K6×5', roll: roll3d6x5, detailed: roll3d6x5WithResults },
+  con: { label: '3K6×5', roll: roll3d6x5, detailed: roll3d6x5WithResults },
+  siz: { label: '2K6+6×5', roll: roll2d6plus6x5, detailed: roll2d6plus6x5WithResults },
+  dex: { label: '3K6×5', roll: roll3d6x5, detailed: roll3d6x5WithResults },
+  app: { label: '3K6×5', roll: roll3d6x5, detailed: roll3d6x5WithResults },
+  int: { label: '2K6+6×5', roll: roll2d6plus6x5, detailed: roll2d6plus6x5WithResults },
+  pow: { label: '3K6×5', roll: roll3d6x5, detailed: roll3d6x5WithResults },
+  edu: { label: '2K6+6×5', roll: roll2d6plus6x5, detailed: roll2d6plus6x5WithResults },
+  luck: { label: '3K6×5', roll: roll3d6x5, detailed: roll3d6x5WithResults },
 };
 
 /** Stan losowania jednej cechy: czy rzucono i czy zużyto jednorazowy przerzut. */
@@ -367,6 +371,8 @@ export function CharacterWizardV2({
   const [statRolls, setStatRolls] = useState<StatRollMap>(() =>
     createStatRollMap()
   );
+  const [visibleDiceTrace, setVisibleDiceTrace] = useState<DiceRollTrace | null>(null);
+  const [isDiceAnimating, setIsDiceAnimating] = useState(false);
 
   // Zarządzanie karami wieku i testami rozwoju WYK (CoC 7e RAW)
   const initialAgeBracket =
@@ -417,13 +423,18 @@ export function CharacterWizardV2({
   // 1C: pierwszy rzut dla jednej cechy. Oznacza ją jako rzuconą.
   const rollSingleStat = useCallback(
     (stat: StatKey) => {
-      applyStatValue(stat, STAT_DICE[stat].roll());
+      if (isDiceAnimating) return;
+      const detail = STAT_DICE[stat].detailed();
+      applyStatValue(stat, detail.total);
+      setVisibleDiceTrace(traceForDice('d6', detail.results, detail.total, `character-${stat}`, detail.modifier));
+      setIsDiceAnimating(true);
+      window.setTimeout(() => setIsDiceAnimating(false), 720);
       setStatRolls((prev) => ({
         ...prev,
         [stat]: { ...prev[stat], rolled: true },
       }));
     },
-    [applyStatValue]
+    [applyStatValue, isDiceAnimating]
   );
 
   // 1D: jednorazowy przerzut cechy - dozwolony tylko po pierwszym rzucie i tylko
@@ -432,13 +443,18 @@ export function CharacterWizardV2({
     (stat: StatKey) => {
       const current = statRolls[stat];
       if (!current.rolled || current.rerollUsed) return;
-      applyStatValue(stat, STAT_DICE[stat].roll());
+      if (isDiceAnimating) return;
+      const detail = STAT_DICE[stat].detailed();
+      applyStatValue(stat, detail.total);
+      setVisibleDiceTrace(traceForDice('d6', detail.results, detail.total, `character-${stat}-reroll`, detail.modifier));
+      setIsDiceAnimating(true);
+      window.setTimeout(() => setIsDiceAnimating(false), 720);
       setStatRolls((prev) => ({
         ...prev,
         [stat]: { ...prev[stat], rerollUsed: true },
       }));
     },
-    [statRolls, applyStatValue]
+    [statRolls, applyStatValue, isDiceAnimating]
   );
 
   // 1C: skrót "rzuć wszystkie naraz" - losuje TYLKO cechy jeszcze nierzucone.
@@ -1909,6 +1925,16 @@ export function CharacterWizardV2({
           })}
         </div>
 
+        {visibleDiceTrace && statMethod === 'roll' && (
+          <div className="mx-auto w-full max-w-md" aria-live="polite">
+            <PhysicalDiceScene
+              dice={visibleDiceTrace.dice}
+              rolling={isDiceAnimating}
+              label={visibleDiceTrace.source}
+            />
+          </div>
+        )}
+
         {/* Główne cechy */}
         {/*
           Highlight zielonych rekomendacji POMINIĘTY na kroku Cechy: brak danych
@@ -1950,6 +1976,7 @@ export function CharacterWizardV2({
                       <Button
                         type="button"
                         onClick={() => rollSingleStat(stat)}
+                        disabled={isDiceAnimating}
                         size="sm"
                         className="w-full font-display font-semibold uppercase tracking-[0.1em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 text-xs px-2 py-1.5"
                       >
@@ -1959,6 +1986,7 @@ export function CharacterWizardV2({
                       <Button
                         type="button"
                         onClick={() => rerollSingleStat(stat)}
+                        disabled={isDiceAnimating}
                         size="sm"
                         variant="outline"
                         className="w-full font-display uppercase tracking-[0.1em] border-brass/50 text-foreground hover:border-brass text-xs px-2 py-1.5"

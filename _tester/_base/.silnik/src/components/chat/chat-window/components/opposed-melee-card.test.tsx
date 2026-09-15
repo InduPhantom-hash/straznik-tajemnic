@@ -4,6 +4,10 @@ import { OpposedMeleeCard } from './opposed-melee-card';
 import type { Character, OpposedMeleeEventData } from '@/lib/types';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 
+jest.mock('@/components/dice/physical-dice-scene', () => ({
+  PhysicalDiceScene: () => <div data-testid="physical-dice-scene" />,
+}));
+
 describe('OpposedMeleeCard - Karta obrony Badacza w walce wręcz CoC 7e RAW', () => {
   const baseDefender: Character = {
     ...PREDEFINED_CHARACTERS[0],

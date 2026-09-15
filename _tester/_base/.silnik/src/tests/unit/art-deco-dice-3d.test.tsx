@@ -4,6 +4,10 @@ import {
   type ArtDecoDiceBreakdown,
 } from '@/components/dialogs/ArtDecoDice3D';
 
+jest.mock('@/components/dice/physical-dice-scene', () => ({
+  PhysicalDiceScene: ({ dice }: { dice: Array<{ value: number }> }) => <div>{dice.map((die) => die.value).join(',')}</div>,
+}));
+
 // Mock next-intl
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, params?: Record<string, unknown>) => {
@@ -54,8 +58,8 @@ describe('ArtDecoDice3D (CoC 7e RAW)', () => {
     const tensDie = screen.getByTestId('tens-die');
     const unitsDie = screen.getByTestId('units-die');
 
-    expect(tensDie.querySelector('.animate-dice-tumble-tens')).toBeInTheDocument();
-    expect(unitsDie.querySelector('.animate-dice-tumble-units')).toBeInTheDocument();
+    expect(tensDie).toHaveClass('animate-dice-tumble-tens');
+    expect(unitsDie).toHaveClass('animate-dice-tumble-units');
   });
 
   it('renders extra tumbling die during rolling phase when bonus dice exist', () => {

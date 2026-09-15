@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { trackEvent } from '@/lib/posthog';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForD100, traceForDice, type DiceRollTrace, type PhysicalDieType } from '@/lib/dice-roll-trace';
 
 export interface DiceRoll {
   id: string;
@@ -93,6 +95,7 @@ export function DiceSystem({
   };
   const [rollHistory, setRollHistory] = useState<DiceRoll[]>([]);
   const [isRolling, setIsRolling] = useState(false);
+  const [visibleTrace, setVisibleTrace] = useState<DiceRollTrace | null>(null);
   const [selectedDice, setSelectedDice] = useState('d100');
   const [diceCount, setDiceCount] = useState(1);
   const [skillTest, setSkillTest] = useState<SkillTest | null>(null);
@@ -220,10 +223,17 @@ export function DiceSystem({
   };
 
   const handleRoll = async () => {
+    if (isRolling) return;
     setIsRolling(true);
     playDiceSound(); // Play dice rolling sound effect
     try {
       const roll = rollDice(selectedDice, diceCount, skillTest || null);
+      setVisibleTrace(
+        selectedDice === 'd100'
+          ? { dice: roll.result.flatMap((value, index) => traceForD100(value, 'dice-system').dice.map(die => ({ ...die, id: `${die.id}-${index}` }))), total: roll.total, modifier: 0, source: 'dice-system' }
+          : traceForDice(selectedDice as PhysicalDieType, roll.result, roll.total, 'dice-system')
+      );
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 720));
       setRollHistory((prev) => [roll, ...prev.slice(0, 9)]);
       onRollComplete(roll);
 
@@ -425,6 +435,7 @@ export function DiceSystem({
                       ? t('rolling')
                       : t('rollButton', { count: diceCount, dice: selectedDice })}
                   </button>
+                  {visibleTrace && <PhysicalDiceScene dice={visibleTrace.dice} rolling={isRolling} label={t('rollButton', { count: diceCount, dice: selectedDice })} />}
                 </div>
               </div>
 

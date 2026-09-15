@@ -108,6 +108,9 @@ export interface DamageBreakdown {
   isImpale: boolean;
   isMajorWound: boolean;
   breakdown: string;
+  /** Exact physical dice consumed by this resolution; empty for injected test rollers. */
+  diceResults: number[];
+  diceFormula: string;
 }
 
 export interface MeleeResolutionResult {
@@ -253,6 +256,8 @@ export function calculateMeleeDamage(params: {
   rawDamage: number;
   isImpale: boolean;
   breakdown: string;
+  diceResults: number[];
+  diceFormula: string;
 } {
   const {
     weaponDamageFormula: rawWeaponDamageFormula,
@@ -260,7 +265,7 @@ export function calculateMeleeDamage(params: {
     damageType = 'blunt',
     outcome,
     isCounterattack = false,
-    rollFn = (f: string) => rollDiceFormula(f)?.total ?? 0,
+    rollFn,
   } = params;
 
   const weaponDamageFormula = normalizeDiceFormula(rawWeaponDamageFormula);
@@ -270,6 +275,13 @@ export function calculateMeleeDamage(params: {
 
   const isExtreme = outcome === 'extreme' || outcome === 'critical';
   const isPiercing = damageType === 'impaling';
+  const diceResults: number[] = [];
+  const rollFormula = (formula: string) => {
+    if (rollFn) return rollFn(formula);
+    const result = rollDiceFormula(formula);
+    if (result) diceResults.push(...result.results);
+    return result?.total ?? 0;
+  };
 
   // W kontrataku RAW CoC 7e sukces ekstremalny NIE daje Przebicia (Impale),
   // lecz zadaje zwykłe/maksymalne obrażenia bez dodatkowej kości broni.
@@ -279,12 +291,14 @@ export function calculateMeleeDamage(params: {
 
     if (isPiercing) {
       // Przebicie (Impale): max broni + max DB + dodatkowy rzut kością broni
-      const extraWeaponRoll = rollFn(weaponDamageFormula);
+      const extraWeaponRoll = rollFormula(weaponDamageFormula);
       const total = maxWeapon + maxDb + extraWeaponRoll;
       return {
         rawDamage: total,
         isImpale: true,
         breakdown: `Impale: max(${maxWeapon}) + maxDB(${maxDb}) + roll(${extraWeaponRoll}) = ${total}`,
+        diceResults,
+        diceFormula: weaponDamageFormula,
       };
     } else {
       // Broń tępa: max broni + max DB
@@ -293,18 +307,22 @@ export function calculateMeleeDamage(params: {
         rawDamage: total,
         isImpale: false,
         breakdown: `Extreme Blunt: max(${maxWeapon}) + maxDB(${maxDb}) = ${total}`,
+        diceResults,
+        diceFormula: weaponDamageFormula,
       };
     }
   }
 
   // Zwykłe obrażenia
-  const weaponRoll = rollFn(weaponDamageFormula);
-  const dbRoll = damageBonusFormula ? rollFn(damageBonusFormula) : 0;
+  const weaponRoll = rollFormula(weaponDamageFormula);
+  const dbRoll = damageBonusFormula ? rollFormula(damageBonusFormula) : 0;
   const total = Math.max(1, weaponRoll + dbRoll);
   return {
     rawDamage: total,
     isImpale: false,
     breakdown: `Roll: ${weaponRoll}${damageBonusFormula ? ` + DB(${dbRoll})` : ''} = ${total}`,
+    diceResults,
+    diceFormula: weaponDamageFormula,
   };
 }
 
@@ -527,6 +545,8 @@ export function resolveMeleeEngagement(
           isImpale: dmgCalc.isImpale,
           isMajorWound: majorWound.isMajorWound,
           breakdown: dmgCalc.breakdown,
+          diceResults: dmgCalc.diceResults,
+          diceFormula: dmgCalc.diceFormula,
         },
         logKey: 'attackerHitsDodger',
         logParams: {
@@ -583,6 +603,8 @@ export function resolveMeleeEngagement(
           isImpale: dmgCalc.isImpale,
           isMajorWound: majorWound.isMajorWound,
           breakdown: dmgCalc.breakdown,
+          diceResults: dmgCalc.diceResults,
+          diceFormula: dmgCalc.diceFormula,
         },
         logKey: 'fightBackAttackerWinsTie',
         logParams: {
@@ -624,6 +646,8 @@ export function resolveMeleeEngagement(
           isImpale: dmgCalc.isImpale,
           isMajorWound: majorWound.isMajorWound,
           breakdown: dmgCalc.breakdown,
+          diceResults: dmgCalc.diceResults,
+          diceFormula: dmgCalc.diceFormula,
         },
         logKey: 'fightBackAttackerOutranks',
         logParams: {
@@ -665,6 +689,8 @@ export function resolveMeleeEngagement(
           isImpale: false, // Kontratak nie daje impale
           isMajorWound: majorWound.isMajorWound,
           breakdown: dmgCalc.breakdown,
+          diceResults: dmgCalc.diceResults,
+          diceFormula: dmgCalc.diceFormula,
         },
         logKey: 'fightBackDefenderStrikes',
         logParams: {
@@ -712,6 +738,8 @@ export function resolveMeleeEngagement(
               convention
             ).isMajorWound,
             breakdown: dmgCalc.breakdown,
+            diceResults: dmgCalc.diceResults,
+            diceFormula: dmgCalc.diceFormula,
           },
           logKey: 'maneuverBlockedByBuild',
           logParams: {
@@ -771,6 +799,8 @@ export function resolveMeleeEngagement(
             convention
           ).isMajorWound,
           breakdown: dmgCalc.breakdown,
+          diceResults: dmgCalc.diceResults,
+          diceFormula: dmgCalc.diceFormula,
         },
         logKey: 'attackerOvercomesManeuver',
         logParams: {

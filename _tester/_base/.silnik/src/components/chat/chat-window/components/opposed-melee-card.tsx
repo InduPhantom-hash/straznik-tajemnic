@@ -39,6 +39,8 @@ import {
 import { rollD100, rollD100WithBonus, type RollOutcome } from '@/lib/dice-utils';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import type { Character, OpposedMeleeEventData } from '@/lib/types';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForDice, type PhysicalDieType } from '@/lib/dice-roll-trace';
 
 export interface OpposedMeleeCardProps {
   opposedEvent?: OpposedMeleeEventData;
@@ -71,6 +73,8 @@ interface OpposedMeleeResolutionState {
   winner: 'attacker' | 'defender' | 'none';
   damageDealtTo: 'attacker' | 'defender' | 'none';
   effectiveDamage: number;
+  damageDiceResults?: number[];
+  damageDiceFormula?: string;
   defenderHpBefore: number;
   defenderHpAfter: number;
   attackerHpBefore: number;
@@ -175,6 +179,8 @@ export function OpposedMeleeCard({
       winner: resolution.winner,
       damageDealtTo: resolution.damageDealtTo,
       effectiveDamage: resolution.damage?.effectiveDamage ?? 0,
+      damageDiceResults: resolution.damage?.diceResults,
+      damageDiceFormula: resolution.damage?.diceFormula,
       defenderHpBefore: resolution.defenderHealth?.hpBefore ?? defender.hp,
       defenderHpAfter: resolution.defenderHealth?.hpAfter ?? defender.hp,
       attackerHpBefore: resolution.attackerHpBefore,
@@ -319,6 +325,8 @@ export function OpposedMeleeCard({
       winner: engagement.winner,
       damageDealtTo: engagement.damageDealtTo,
       effectiveDamage: damageDealt,
+      damageDiceResults: engagement.damage?.diceResults,
+      damageDiceFormula: engagement.damage?.diceFormula,
       defenderHpBefore,
       defenderHpAfter,
       attackerHpBefore,
@@ -343,7 +351,7 @@ export function OpposedMeleeCard({
   };
 
   return (
-    <Card className="my-3 overflow-hidden border border-brass/50 bg-card/95 text-foreground shadow-deco backdrop-blur-sm">
+    <Card data-testid="opposed-melee-card" className="my-3 overflow-hidden border border-brass/50 bg-card/95 text-foreground shadow-deco backdrop-blur-sm">
       {/* Nagłówek klimatyczny Dark Art Déco */}
       <div className="border-b border-brass/20 bg-gradient-to-r from-brass/15 via-background/40 to-brass/10 px-4 py-3">
         <div className="flex items-center justify-between gap-3">
@@ -629,6 +637,17 @@ export function OpposedMeleeCard({
                   </Badge>
                 </div>
               )}
+              {resultState.damageDiceResults?.length ? (
+                <PhysicalDiceScene
+                  dice={traceForDice(
+                    `d${Number(resultState.damageDiceFormula?.match(/d(3|4|6|8|10|12|20)\b/i)?.[1])}` as PhysicalDieType,
+                    resultState.damageDiceResults,
+                    resultState.damageDiceResults.reduce((sum, value) => sum + value, 0),
+                    'opposed-melee-damage'
+                  ).dice}
+                  label={resultState.damageDiceFormula ?? 'damage'}
+                />
+              ) : null}
 
               {/* Alerty stanów krytycznych */}
               {resultState.isMajorWound && (

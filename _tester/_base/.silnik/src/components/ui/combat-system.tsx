@@ -21,6 +21,8 @@ import {
   calculateMultipleShotsPenalty,
 } from '@/lib/combat/firearms-engine';
 import { rollWithBonusPenalty } from './combat-utils';
+import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
+import { traceForDice, type PhysicalDieType } from '@/lib/dice-roll-trace';
 
 
 export interface Combatant {
@@ -100,9 +102,24 @@ export interface CombatAction {
   criticalFailure?: boolean;
   damage?: number;
   damageRoll?: string;
+  damageDiceResults?: number[];
+  damageDiceFormula?: string;
   majorWound?: boolean;
   description: string;
   timestamp: Date;
+}
+
+function CombatDamageDice({ formula, results }: { formula?: string; results?: number[] }) {
+  const sides = Number(formula?.match(/d(3|4|6|8|10|12|20)\b/i)?.[1]);
+  if (!results?.length || !sides) return null;
+  return (
+    <div className="mt-2 max-w-xs">
+      <PhysicalDiceScene
+        dice={traceForDice(`d${sides}` as PhysicalDieType, results, results.reduce((sum, value) => sum + value, 0), 'combat-damage').dice}
+        label={formula ?? 'damage'}
+      />
+    </div>
+  );
 }
 
 // === MANEWRY WALKI (CoC 7e Fighting Maneuvers) ===
@@ -488,6 +505,8 @@ export function CombatSystem({
       const updatedTargetDefenses = defensesUsed + 1;
       let damage = 0;
       let damageRoll = '';
+      let damageDiceResults: number[] | undefined;
+      let damageDiceFormula: string | undefined;
       let majorWound = false;
 
       let nextCombatants = combatants.map((c) =>
@@ -500,6 +519,8 @@ export function CombatSystem({
         damage = resolution.damage.effectiveDamage;
         majorWound = resolution.damage.isMajorWound;
         damageRoll = resolution.damage.breakdown;
+        damageDiceResults = resolution.damage.diceResults;
+        damageDiceFormula = resolution.damage.diceFormula;
 
         const newHp = Math.max(0, target.hp - damage);
         nextCombatants = nextCombatants.map((c) =>
@@ -517,6 +538,8 @@ export function CombatSystem({
         damage = resolution.damage.effectiveDamage;
         majorWound = resolution.damage.isMajorWound;
         damageRoll = `Kontratak: ${resolution.damage.breakdown}`;
+        damageDiceResults = resolution.damage.diceResults;
+        damageDiceFormula = resolution.damage.diceFormula;
 
         const newHp = Math.max(0, attacker.hp - damage);
         nextCombatants = nextCombatants.map((c) =>
@@ -547,6 +570,8 @@ export function CombatSystem({
         criticalFailure: resolution.attackerOutcome === 'fumble',
         damage,
         damageRoll,
+        damageDiceResults,
+        damageDiceFormula,
         majorWound,
         description: t('attackDescription', {
           attacker: attacker.name,
@@ -631,6 +656,8 @@ export function CombatSystem({
 
     let damage = 0;
     let damageRoll = '';
+    let damageDiceResults: number[] | undefined;
+    let damageDiceFormula: string | undefined;
     let majorWound = false;
 
     if (shotResolution.isMalfunction) {
@@ -644,6 +671,8 @@ export function CombatSystem({
       damage = shotResolution.damage.effectiveDamage;
       majorWound = shotResolution.damage.isMajorWound;
       damageRoll = shotResolution.damage.breakdown;
+      damageDiceResults = shotResolution.damage.diceResults;
+      damageDiceFormula = shotResolution.damage.diceFormula;
 
       if (shotResolution.damage.isImpale) {
         damageRoll += ` ${t('impaleNotice')}`;
@@ -693,6 +722,8 @@ export function CombatSystem({
       criticalFailure,
       damage,
       damageRoll,
+      damageDiceResults,
+      damageDiceFormula,
       majorWound,
       description: t('attackDescription', {
         attacker: attacker.name,
@@ -1011,6 +1042,7 @@ export function CombatSystem({
                                 damage: action.damage,
                                 roll: action.damageRoll ?? '',
                               })}
+                              <CombatDamageDice formula={action.damageDiceFormula} results={action.damageDiceResults} />
                             </div>
                           )}
                         </div>
