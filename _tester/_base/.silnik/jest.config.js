@@ -3,6 +3,9 @@ module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
+    // R3F/three are browser-only ESM dependencies. The browser behaviour is
+    // covered by Playwright; unit suites need the semantic tray, not WebGL.
+    '^@/components/dice/physical-dice-scene$': '<rootDir>/src/tests/mocks/physical-dice-scene.tsx',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
     '^@/core/(.*)$': '<rootDir>/src/core/$1',

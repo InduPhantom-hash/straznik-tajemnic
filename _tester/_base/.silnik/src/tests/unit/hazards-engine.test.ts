@@ -55,6 +55,15 @@ describe('hazards-engine CoC 7e RAW', () => {
     expect(resolveAcidDamage('immersion', 5).damageFormula).toBe('1d6');
   });
 
+  it('zwraca pojedyncze kości obrażeń wyłącznie dla rzeczywistego rzutu', () => {
+    const random = jest.spyOn(Math, 'random').mockReturnValue(0);
+    expect(resolveFallingDamage(6, { surface: 'normal', skipJumpCheck: true }).damageDiceResults).toEqual([1, 1]);
+    expect(resolveFireDamage('major', 2).damageDiceResults).toEqual([1, 1]);
+    expect(resolveAcidDamage('splash').damageDiceResults).toEqual([1]);
+    random.mockRestore();
+    expect(resolveAcidDamage('splash', 2).damageDiceResults).toEqual([]);
+  });
+
   describe('uduszenie i tonięcie', () => {
     it('testuje CON co rundę do pierwszej porażki', () => {
       const success = resolveSuffocationRound(60, 1, { kind: 'smoke', fixedRoll: 40 });

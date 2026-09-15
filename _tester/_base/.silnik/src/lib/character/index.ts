@@ -8,6 +8,8 @@ export {
   roll,
   roll3d6x5,
   roll2d6plus6x5,
+  roll3d6x5WithResults,
+  roll2d6plus6x5WithResults,
   half,
   fifth,
   generateRandomStats,

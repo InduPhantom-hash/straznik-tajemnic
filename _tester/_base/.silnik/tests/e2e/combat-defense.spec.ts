@@ -103,6 +103,14 @@ for (const locale of ['pl', 'en'] as const) {
     if (await rulebookDialog.isVisible()) {
       await rulebookDialog.getByRole('button', { name: 'Zamknij' }).click();
     }
+    const betaDialog = page.getByRole('dialog').filter({
+      hasText: locale === 'pl' ? 'Strażnik Tajemnic AI – Wersja Grywalna' : 'Keeper of Secrets AI – Playable Beta',
+    });
+    if (await betaDialog.isVisible()) {
+      await betaDialog.getByRole('button', {
+        name: locale === 'pl' ? 'Rozumiem, przejdź do gry' : 'I understand, enter game',
+      }).click();
+    }
     const input = page.getByPlaceholder(
       locale === 'pl' ? 'Wpisz wiadomość do Mistrza Gry...' : 'Write a message to the Game Master...'
     );
@@ -110,22 +118,27 @@ for (const locale of ['pl', 'en'] as const) {
     await input.fill(locale === 'pl' ? 'Czekam na ruch kultysty.' : 'I wait for the cultist.');
     await input.press('Enter');
 
-    const dialog = page.getByRole('dialog').filter({
-      hasText: locale === 'pl' ? 'Obrona w walce wręcz' : 'Melee Combat Defense',
-    });
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText(locale === 'pl' ? 'Obrona w walce wręcz' : 'Melee Combat Defense');
+    const card = page.getByTestId('opposed-melee-card');
+    await expect(card).toBeVisible();
+    await expect(card).toContainText(locale === 'pl' ? 'Nagłe starcie wręcz' : 'Close Melee Engagement');
     await expect(page.getByText('[ATAK_WRĘCZ:', { exact: false })).toHaveCount(0);
-    await expect(dialog.getByRole('button', { name: locale === 'pl' ? 'Unik' : 'Dodge' })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: locale === 'pl' ? 'Wykonaj kontratak' : 'Fight Back' })).toBeVisible();
+    await expect(card.getByRole('button', { name: locale === 'pl' ? 'Wykonaj zwinny unik' : 'Perform Nimble Dodge' })).toBeVisible();
+    await expect(card.getByRole('button', { name: locale === 'pl' ? 'Wejdź w zwarcie i kontratakuj' : 'Counterattack' })).toBeVisible();
     await page.screenshot({ path: `test-results/combat-defense-${locale}.png`, fullPage: true });
 
-    await dialog.getByRole('button', { name: locale === 'pl' ? 'Unik' : 'Dodge' }).click();
-    await expect(dialog).toHaveCount(0);
+    await card.getByRole('button', { name: locale === 'pl' ? 'Wykonaj zwinny unik' : 'Perform Nimble Dodge' }).click();
+    await expect(card).toContainText(locale === 'pl' ? 'Starcie rozstrzygnięte' : 'Engagement Resolved');
     await expect(page.getByText(locale === 'pl'
       ? 'Anna odskakuje, a walka płynie dalej.'
       : 'Anna slips aside and the fight flows on.')).toBeVisible();
     expect(chatCalls).toBe(2);
-    expect(await page.evaluate(() => localStorage.getItem('combat_round_journal_v1'))).toBeNull();
+    const combatJournal = await page.evaluate(() => {
+      const raw = localStorage.getItem('combat_round_journal_v1');
+      return raw ? JSON.parse(raw) : null;
+    });
+    expect(combatJournal).toMatchObject({
+      phase: 'resolving',
+      attacks: [{ eventId: 'assistant-e2e:melee:0' }],
+    });
   });
 }

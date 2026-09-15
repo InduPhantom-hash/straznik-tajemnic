@@ -39,6 +39,13 @@ const LEGACY_POISON_SEVERITY: Record<string, PoisonSeverity> = {
   tlenek_węgla: 'strong',
 };
 
+/** Preserve the actual dice for the presentation layer. Fixed values are test
+ * inputs, not invented physical dice, so they correctly carry an empty pool. */
+function rollDamageFormula(formula: string, fixedDamage?: number) {
+  if (fixedDamage !== undefined) return { total: fixedDamage, results: [] as number[] };
+  return rollDiceFormula(formula) ?? { total: 0, results: [] as number[] };
+}
+
 export function normalizePoisonSeverity(value?: string, legacyPotency?: number): PoisonSeverity | null {
   const normalized = value?.trim().toLowerCase().replace(/\s+/g, '_');
   if (normalized === 'mild' || normalized === 'lagodna' || normalized === 'łagodna') return 'mild';
@@ -62,6 +69,7 @@ export interface FallingResolution {
   jumpRoll?: { total: number; skillValue: number; outcome: RollOutcome; diceReduced: number };
   effectiveDiceCount: number;
   damageRolled: number;
+  damageDiceResults: number[];
   finalDamage: number;
   isTerminal: boolean;
 }
@@ -94,9 +102,10 @@ export function resolveFallingDamage(
 
   const effectiveDiceCount = Math.max(0, baseDiceCount - diceReduced);
   const damageFormula = effectiveDiceCount > 0 ? `${effectiveDiceCount}d${damageDie}` : '0';
-  const damageRolled = effectiveDiceCount === 0
-    ? 0
-    : options.fixedDamageRoll ?? rollDiceFormula(damageFormula)?.total ?? 0;
+  const damage = effectiveDiceCount === 0
+    ? { total: 0, results: [] as number[] }
+    : rollDamageFormula(damageFormula, options.fixedDamageRoll);
+  const damageRolled = damage.total;
 
   return {
     heightMeters: cleanHeight,
@@ -107,6 +116,7 @@ export function resolveFallingDamage(
     jumpRoll,
     effectiveDiceCount,
     damageRolled,
+    damageDiceResults: damage.results,
     finalDamage: damageRolled,
     isTerminal: cleanHeight >= 30,
   };
@@ -117,6 +127,7 @@ export interface FireResolution {
   rounds: number;
   damageFormula: string;
   damageRolled: number;
+  damageDiceResults: number[];
   ignoresArmor: true;
   descriptionKey: string;
 }
@@ -130,9 +141,12 @@ export function resolveFireDamage(
   const severe = intensity === 'major' || intensity === 'inferno';
   const perRoundDice = severe ? '1d10' : '1d6';
   let damageRolled = fixedDamage ?? 0;
+  const damageDiceResults: number[] = [];
   if (fixedDamage === undefined) {
     for (let round = 0; round < safeRounds; round += 1) {
-      damageRolled += rollDiceFormula(perRoundDice)?.total ?? 0;
+      const damage = rollDamageFormula(perRoundDice);
+      damageRolled += damage.total;
+      damageDiceResults.push(...damage.results);
     }
   }
   return {
@@ -140,6 +154,7 @@ export function resolveFireDamage(
     rounds: safeRounds,
     damageFormula: `${safeRounds}x(${perRoundDice})`,
     damageRolled,
+    damageDiceResults,
     ignoresArmor: true,
     descriptionKey: severe ? 'fireSevere' : 'fireModerate',
   };
@@ -149,15 +164,18 @@ export interface AcidResolution {
   potency: AcidPotency;
   damageFormula: '1d3' | '1d6';
   damageRolled: number;
+  damageDiceResults: number[];
   ignoresArmor: true;
 }
 
 export function resolveAcidDamage(potency: AcidPotency, fixedDamage?: number): AcidResolution {
   const damageFormula = potency === 'splash' ? '1d3' : '1d6';
+  const damage = rollDamageFormula(damageFormula, fixedDamage);
   return {
     potency,
     damageFormula,
-    damageRolled: fixedDamage ?? rollDiceFormula(damageFormula)?.total ?? 0,
+    damageRolled: damage.total,
+    damageDiceResults: damage.results,
     ignoresArmor: true,
   };
 }
@@ -170,6 +188,7 @@ export interface SuffocationResolution {
   conRoll: { total: number; outcome: RollOutcome; success: boolean } | null;
   damageFormula: '1d3' | '1d6';
   damageTaken: number;
+  damageDiceResults: number[];
   conFailed: boolean;
   deathAtZero: boolean;
 }
@@ -201,9 +220,10 @@ export function resolveSuffocationRound(
     conFailed = !success;
   }
 
-  const damageTaken = conFailed
-    ? options.fixedDamage ?? rollDiceFormula(damageFormula)?.total ?? 0
-    : 0;
+  const damage = conFailed
+    ? rollDamageFormula(damageFormula, options.fixedDamage)
+    : { total: 0, results: [] as number[] };
+  const damageTaken = damage.total;
   const deathAtZero = options.currentHp !== undefined && damageTaken >= Math.max(0, options.currentHp);
 
   return {
@@ -214,6 +234,7 @@ export function resolveSuffocationRound(
     conRoll,
     damageFormula,
     damageTaken,
+    damageDiceResults: damage.results,
     conFailed,
     deathAtZero,
   };
@@ -224,6 +245,7 @@ export interface PoisonResolution {
   conValue: number;
   conRoll: { total: number; outcome: RollOutcome; extremeSuccess: boolean };
   fullDamage: number;
+  damageDiceResults: number[];
   damageTaken: number;
   damageFormulaUsed: string;
   halvedByExtremeCon: boolean;
@@ -239,12 +261,14 @@ export function resolvePoisonEffect(
   const total = options.fixedRoll ?? rollD100WithBonus(0).total;
   const outcome = evaluateSkillCheck(total, safeCon);
   const extremeSuccess = outcome === 'critical' || outcome === 'extreme';
-  const fullDamage = options.fixedDamage ?? rollDiceFormula(poison.damageFormula)?.total ?? 0;
+  const damage = rollDamageFormula(poison.damageFormula, options.fixedDamage);
+  const fullDamage = damage.total;
   return {
     poison,
     conValue: safeCon,
     conRoll: { total, outcome, extremeSuccess },
     fullDamage,
+    damageDiceResults: damage.results,
     damageTaken: extremeSuccess ? Math.floor(fullDamage / 2) : fullDamage,
     damageFormulaUsed: poison.damageFormula,
     halvedByExtremeCon: extremeSuccess,

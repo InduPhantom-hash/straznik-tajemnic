@@ -37,6 +37,15 @@ for (const locale of ['pl', 'en'] as const) {
     await page.addInitScript(seedChaseUi(), locale);
     await page.route('**/api/**', mockApi);
     await page.goto(`/${locale}`);
+    await page.waitForTimeout(500);
+    const betaDialog = page.getByRole('dialog').filter({
+      hasText: locale === 'pl' ? 'Strażnik Tajemnic AI – Wersja Grywalna' : 'Keeper of Secrets AI – Playable Beta',
+    });
+    if (await betaDialog.isVisible()) {
+      await betaDialog.getByRole('button', {
+        name: locale === 'pl' ? 'Rozumiem, przejdź do gry' : 'I understand, enter game',
+      }).click();
+    }
 
     const input = page.getByPlaceholder(
       locale === 'pl' ? 'Wpisz wiadomość do Mistrza Gry...' : 'Write a message to the Game Master...'

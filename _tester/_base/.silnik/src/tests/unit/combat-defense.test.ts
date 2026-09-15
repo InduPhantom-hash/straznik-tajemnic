@@ -253,6 +253,18 @@ describe('combat-resolver (CoC 7e RAW)', () => {
       expect(dmg.isImpale).toBe(false);
       expect(dmg.rawDamage).toBe(10);
     });
+
+    it('zachowuje rzeczywiste wyniki kości obrażeń dla sceny', () => {
+      const random = jest.spyOn(Math, 'random').mockReturnValue(0);
+      const dmg = calculateMeleeDamage({
+        weaponDamageFormula: '2d6',
+        outcome: 'regular',
+      });
+      random.mockRestore();
+      expect(dmg.diceFormula).toBe('2d6');
+      expect(dmg.diceResults).toEqual([1, 1]);
+      expect(dmg.rawDamage).toBe(2);
+    });
   });
 
   describe('Przewaga liczebna (Outnumbered)', () => {

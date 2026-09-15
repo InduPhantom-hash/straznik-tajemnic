@@ -76,6 +76,8 @@ export interface SingleShotDamageResult {
   isImpale: boolean;
   isMajorWound: boolean;
   breakdown: string;
+  diceResults: number[];
+  diceFormula: string;
 }
 
 export interface BurstBulletHit {
@@ -359,8 +361,15 @@ export function calculateSingleShotDamage(params: {
     targetArmor = 0,
     targetMaxHp = 10,
     convention = 'classic',
-    rollFn = (f: string) => rollDiceFormula(f)?.total ?? 0,
+    rollFn,
   } = params;
+  const diceResults: number[] = [];
+  const rollFormula = (formula: string) => {
+    if (rollFn) return rollFn(formula);
+    const result = rollDiceFormula(formula);
+    if (result) diceResults.push(...result.results);
+    return result?.total ?? 0;
+  };
 
   if (outcome === 'fail' || outcome === 'fumble') {
     return {
@@ -369,6 +378,8 @@ export function calculateSingleShotDamage(params: {
       isImpale: false,
       isMajorWound: false,
       breakdown: 'Miss',
+      diceResults,
+      diceFormula: damageFormula,
     };
   }
 
@@ -376,7 +387,7 @@ export function calculateSingleShotDamage(params: {
 
   if (isExtreme) {
     const maxDamage = getMaxDiceValue(damageFormula);
-    const extraRoll = Math.max(1, rollFn(damageFormula));
+    const extraRoll = Math.max(1, rollFormula(damageFormula));
     const rawDamage = maxDamage + extraRoll;
     const effectiveDamage = Math.max(0, rawDamage - targetArmor);
     const majorWoundCheck = checkMajorWound(
@@ -393,10 +404,12 @@ export function calculateSingleShotDamage(params: {
       breakdown: `Impale: max(${maxDamage}) + roll(${extraRoll}) = ${rawDamage}${
         targetArmor > 0 ? ` - armor(${targetArmor}) = ${effectiveDamage}` : ''
       }`,
+      diceResults,
+      diceFormula: damageFormula,
     };
   }
 
-  const rawDamage = Math.max(1, rollFn(damageFormula));
+  const rawDamage = Math.max(1, rollFormula(damageFormula));
   const effectiveDamage = Math.max(0, rawDamage - targetArmor);
   const majorWoundCheck = checkMajorWound(
     effectiveDamage,
@@ -412,6 +425,8 @@ export function calculateSingleShotDamage(params: {
     breakdown: `Roll: ${rawDamage}${
       targetArmor > 0 ? ` - armor(${targetArmor}) = ${effectiveDamage}` : ''
     }`,
+    diceResults,
+    diceFormula: damageFormula,
   };
 }
 
@@ -594,6 +609,8 @@ export function resolveFirearmShot(
       isImpale: dmg.isImpale,
       isMajorWound: dmg.isMajorWound,
       breakdown: dmg.breakdown,
+      diceResults: dmg.diceResults,
+      diceFormula: dmg.diceFormula,
     },
     diveForCover: diveResult,
     logKey: dmg.isImpale ? 'firearmImpaleHit' : 'firearmRegularHit',
