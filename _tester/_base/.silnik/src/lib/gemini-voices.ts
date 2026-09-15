@@ -45,7 +45,7 @@ export const GEMINI_VOICES: readonly GeminiVoice[] = [
     voiceId: 'Kore',
     name: 'Kore',
     characteristic: 'Firm',
-    description: 'Stabilny narrator — dobry domyślny',
+    description: 'Stanowcza kobieca narratorka — dobry domyślny',
     role: 'narrator',
   },
   {
@@ -94,7 +94,7 @@ export const GEMINI_VOICES: readonly GeminiVoice[] = [
     voiceId: 'Zephyr',
     name: 'Zephyr',
     characteristic: 'Bright',
-    description: 'Jasny ton narratorski',
+    description: 'Jasna kobieca narratorka',
     role: 'narrator',
   },
   // === MĘŻCZYŹNI ===
@@ -154,6 +154,20 @@ export const GEMINI_VOICES: readonly GeminiVoice[] = [
     description: 'Luźny męski (NPC bywalcy)',
     role: 'male',
   },
+  {
+    voiceId: 'Pulcherrima',
+    name: 'Pulcherrima',
+    characteristic: 'Forward',
+    description: 'Zdecydowany męski',
+    role: 'male',
+  },
+  {
+    voiceId: 'Sadachbia',
+    name: 'Sadachbia',
+    characteristic: 'Lively',
+    description: 'Żywy męski',
+    role: 'male',
+  },
   // === KOBIETY ===
   {
     voiceId: 'Sulafat',
@@ -198,13 +212,6 @@ export const GEMINI_VOICES: readonly GeminiVoice[] = [
     role: 'female',
   },
   {
-    voiceId: 'Pulcherrima',
-    name: 'Pulcherrima',
-    characteristic: 'Forward',
-    description: 'Asertywna kobieca',
-    role: 'female',
-  },
-  {
     voiceId: 'Vindemiatrix',
     name: 'Vindemiatrix',
     characteristic: 'Gentle',
@@ -226,19 +233,12 @@ export const GEMINI_VOICES: readonly GeminiVoice[] = [
     description: 'Młoda energiczna',
     role: 'young',
   },
-  {
-    voiceId: 'Sadachbia',
-    name: 'Sadachbia',
-    characteristic: 'Lively',
-    description: 'Młoda żywa',
-    role: 'young',
-  },
   // === STARZY / MROCZNI ===
   {
     voiceId: 'Gacrux',
     name: 'Gacrux',
     characteristic: 'Mature',
-    description: 'Dojrzały męski (starszy NPC, profesor)',
+    description: 'Dojrzała kobieca (starsza dama, badaczka)',
     role: 'old',
   },
   {
