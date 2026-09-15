@@ -335,6 +335,26 @@ export function applySanityDelta(
     next.mythosExceedsSanity = true;
   }
 
+  // Jeśli postać była już na krawędzi otchłani (Fail-Forward już wykorzystane), każda kolejna utrata SAN oznacza Permanent Insanity
+  if (next.edgeOfTheAbyss && effectiveLoss > 0) {
+    const actualLoss = next.san;
+    next.san = 0;
+    next.dailySanLoss = (next.dailySanLoss ?? 0) + actualLoss;
+    next.insanityState = 'permanent';
+    events.push({
+      type: 'permanent_insanity',
+      characterId: next.id,
+      characterName: next.name,
+      loss: actualLoss,
+      reason,
+      message: {
+        pl: `${next.name} przekracza ostateczną granicę i popada w nieodwracalny obłęd (Permanent Insanity).`,
+        en: `${next.name} crosses the final threshold and collapses into permanent insanity.`
+      }
+    });
+    return { nextCharacter: next, events };
+  }
+
   // Odejmij punkty
   const prevSan = next.san;
   next.san = Math.max(0, prevSan - effectiveLoss);
