@@ -96,6 +96,8 @@ const MIN_CHUNK_SIZE = 200;
 
 /** Separatory do inteligentnego podziału tekstu (priorytet malejący) */
 const SEPARATORS = [
+  '\n<!-- Strona ', // Granica strony wygenerowana przez unpdf
+  '\n# ', // Nagłówek H1 (rozdziały)
   '\n## ', // Nagłówek H2 (główne sekcje)
   '\n### ', // Nagłówek H3 (podsekcje)
   '\n#### ', // Nagłówek H4
@@ -172,22 +174,43 @@ export function chunkText(
   return chunks;
 }
 
+/** Separatory strukturalne (strony i nagłówki), dla których szukamy podziału w całym oknie chunka */
+const STRUCTURAL_SEPARATORS = [
+  '\n<!-- Strona ',
+  '\n# ',
+  '\n## ',
+  '\n### ',
+  '\n#### ',
+];
+
 /**
  * Znajduje najlepszy punkt podziału w okolicy `maxEnd`.
- * Szuka separatorów w kolejności priorytetu, cofając się max CHUNK_OVERLAP znaków.
+ * Szuka separatorów strukturalnych w całym dopuszczalnym oknie lub separatorów zdań w strefie overlapu.
  */
 function findBestSplitPoint(
   text: string,
   start: number,
   maxEnd: number
 ): number {
+  // 1. Sprawdź separatory strukturalne (strona, rozdziały H1-H4) w oknie [start + MIN_CHUNK_SIZE, maxEnd]
+  const structuralSearchStart = start + MIN_CHUNK_SIZE;
+  if (maxEnd > structuralSearchStart) {
+    const structuralRegion = text.slice(structuralSearchStart, maxEnd);
+    for (const sep of STRUCTURAL_SEPARATORS) {
+      const idx = structuralRegion.lastIndexOf(sep);
+      if (idx !== -1) {
+        // Tnij DOKŁADNIE przed nową sekcją/stroną (czyli przed znakiem \n)
+        return structuralSearchStart + idx;
+      }
+    }
+  }
+
+  // 2. Standardowe separatory tekstu (paragrafy, zdania) w strefie overlapu
   const searchStart = Math.max(start + MIN_CHUNK_SIZE, maxEnd - CHUNK_OVERLAP);
+  const searchRegion = text.slice(searchStart, maxEnd);
 
   for (const sep of SEPARATORS) {
-    // Szukaj ostatniego wystąpienia separatora w zakresie [searchStart, maxEnd]
-    const searchRegion = text.slice(searchStart, maxEnd);
     const lastIndex = searchRegion.lastIndexOf(sep);
-
     if (lastIndex !== -1) {
       return searchStart + lastIndex + sep.length;
     }

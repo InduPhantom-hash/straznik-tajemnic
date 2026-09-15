@@ -54,6 +54,23 @@ describe('chunkText', () => {
       expect(first[index].endOffset).toBeGreaterThan(first[index].startOffset);
     }
   });
+
+  it('priorytetyzuje podział na znacznikach stron unpdf i nagłówkach Markdown', () => {
+    const text = [
+      '<!-- Strona 1 -->\n',
+      '# Rozdział I: Zasady Podstawowe\n',
+      longParagraph('Wprowadzenie do reguł', 1200),
+      '\n<!-- Strona 2 -->\n',
+      '## Sekcja 1.1: Testy Poczytalności\n',
+      longParagraph('Zasady rzutów na poczytalność', 1200),
+    ].join('');
+
+    const chunks = chunkText(text, 'rules', 'coc7e.pdf');
+    expect(chunks.length).toBeGreaterThanOrEqual(2);
+    // Pierwszy chunk powinien ciąć przed drugą stroną lub nagłówkiem
+    expect(chunks[0].text).toContain('Rozdział I');
+    expect(chunks[1].text).toContain('Sekcja 1.1');
+  });
 });
 
 describe('pdfIndexingService document policy', () => {
