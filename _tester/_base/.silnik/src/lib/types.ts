@@ -305,6 +305,7 @@ export interface EquipmentTemplate {
   modifiers?: EquipmentModifiers;
   combatProfile?: EquipmentCombatProfile;
   value?: number;
+  weight?: number;
 }
 
 export type CombatDamageClass = 'impaling' | 'non_impaling';
