@@ -30,6 +30,7 @@ import { cleanMarkdown } from '@/lib/utils';
 import { ChaseCard } from './chase-card';
 import { CombatCard } from './combat-card';
 import { OpposedMeleeCard } from './opposed-melee-card';
+import { GameOverCard } from './game-over-card';
 import type { Character, Message } from '@/lib/types';
 import type { ChaseManeuverType, ChaseState } from '@/lib/chase/chase-engine';
 import type { PendingMeleeAttack, DefenseChoice, ManeuverType } from '@/lib/combat/combat-resolver';
@@ -470,21 +471,31 @@ export function MessageCard({
             )}
 
             {/* Obrona przed atakiem wręcz CoC 7e RAW (Faza 4 - OpposedMeleeCard) */}
-            {message.opposedMeleeEvents && message.opposedMeleeEvents.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {message.opposedMeleeEvents.map((opposedMelee) => (
-                  <OpposedMeleeCard
-                    key={opposedMelee.id}
-                    opposedEvent={opposedMelee}
-                    activeCharacter={activeCharacter}
-                    characters={characters}
-                    completed={resolvedCombatIds?.has(opposedMelee.id)}
-                    onCharacterUpdate={onCharacterUpdate}
-                    onSendChat={onSendCombatResult}
-                  />
-                ))}
-              </div>
-            )}
+            {message.opposedMeleeEvents && message.opposedMeleeEvents.length > 0 && (() => {
+              const defensesCountByTarget: Record<string, number> = {};
+              return (
+                <div className="mt-3 space-y-2">
+                  {message.opposedMeleeEvents.map((opposedMelee) => {
+                    const targetKey = (opposedMelee.characterId || opposedMelee.characterName || 'active').toLowerCase();
+                    const defensesUsed = defensesCountByTarget[targetKey] ?? 0;
+                    defensesCountByTarget[targetKey] = defensesUsed + 1;
+
+                    return (
+                      <OpposedMeleeCard
+                        key={opposedMelee.id}
+                        opposedEvent={opposedMelee}
+                        activeCharacter={activeCharacter}
+                        characters={characters}
+                        completed={resolvedCombatIds?.has(opposedMelee.id)}
+                        defensesUsedThisRound={defensesUsed}
+                        onCharacterUpdate={onCharacterUpdate}
+                        onSendChat={onSendCombatResult}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })()}
 
             {/* Bliskie starcie wręcz CoC 7e RAW (Issue #302 - Fiction First w czacie) */}
             {message.pendingMeleeAttacks && message.pendingMeleeAttacks.length > 0 && (
@@ -497,6 +508,21 @@ export function MessageCard({
                     characters={characters}
                     completed={resolvedCombatIds?.has(attack.eventId)}
                     onCharacterUpdate={onCharacterUpdate}
+                    onSendChat={onSendCombatResult}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Ostateczny kres postaci i diegetyczny epilog CoC 7e RAW (Issue #372) */}
+            {message.gameOverEvents && message.gameOverEvents.length > 0 && (
+              <div className="mt-3 space-y-3">
+                {message.gameOverEvents.map((gameOver) => (
+                  <GameOverCard
+                    key={gameOver.id}
+                    gameOverEvent={gameOver}
+                    activeCharacter={activeCharacter}
+                    characters={characters}
                     onSendChat={onSendCombatResult}
                   />
                 ))}

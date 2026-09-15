@@ -12,7 +12,7 @@ import { DiegeticDocumentViewer } from './diegetic-document-viewer';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 import { EquipmentImagePlaceholder } from './equipment-image-placeholder';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
-import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
+import { resolveGameEraContext, formatEraCurrency, type ResolvedEraContext } from '@/lib/era';
 import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
 import { synthesizeClueFact } from '@/lib/parsers/journal-parser';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -39,9 +39,12 @@ function formatUsd(amount: number): string {
  * lub premia, jeśli AI/szablon je nadał. Pusta lista → przedmiot czysto fabularny.
  */
 export function getItemMechanics(
-  item: EquipmentItem
+  item: EquipmentItem,
+  eraContext?: ResolvedEraContext | null
 ): { label: string; value: string }[] {
   const rows: { label: string; value: string }[] = [];
+  const isMetric = eraContext?.regionProfile === 'PL' || eraContext?.countryCode === 'PL';
+
   if (isWeapon(item)) {
     rows.push({ label: 'combatTest', value: inferWeaponSkill(item) });
     // Dopełnij obrażenia/zasięg, gdy broń nie ma ich w modifiers (np. broń z
@@ -51,13 +54,33 @@ export function getItemMechanics(
         ? null
         : inferWeaponDamage(item);
     const damage = item.modifiers?.damage ?? inferred?.damage;
-    const range = item.modifiers?.range ?? inferred?.range;
+    let range = item.modifiers?.range ?? inferred?.range;
     if (damage) rows.push({ label: 'damage', value: damage });
-    if (range) rows.push({ label: 'range', value: range });
+    if (range) {
+      if (isMetric) {
+        range = range
+          .replace(/(\d+)\s*(?:yards|yardów|jardów|jard)/i, '$1 m')
+          .replace(/touch/i, 'dotyk')
+          .replace(/point blank/i, 'przyłożenie');
+      }
+      rows.push({ label: 'range', value: range });
+    }
     if (item.modifiers?.attacks) rows.push({ label: 'attacks', value: String(item.modifiers.attacks) });
     if (item.modifiers?.capacity) rows.push({ label: 'capacity', value: String(item.modifiers.capacity) });
     if (item.modifiers?.malfunction) rows.push({ label: 'malfunction', value: String(item.modifiers.malfunction) });
   }
+
+  // Waga przedmiotu (diegetyczny wgląd w ekwipunek CoC 7e RAW)
+  if (item.weight != null && item.weight > 0) {
+    if (isMetric) {
+      const kg = Math.round(item.weight * 0.45359237 * 10) / 10;
+      const displayKg = kg < 0.1 ? '< 0.1' : String(kg);
+      rows.push({ label: 'weight', value: `${displayKg} kg` });
+    } else {
+      rows.push({ label: 'weight', value: `${item.weight} lbs` });
+    }
+  }
+
   if (item.modifiers?.skill)
     rows.push({ label: 'skill', value: item.modifiers.skill });
   if (item.modifiers?.bonus)
@@ -84,6 +107,7 @@ export function EquipmentDetailDialog({
     combatTest: t('mechanicCombatTest'),
     damage: t('mechanicDamage'),
     range: t('mechanicRange'),
+    weight: t('mechanicWeight'),
     skill: t('mechanicSkill'),
     bonus: t('mechanicBonus'),
     attacks: t('mechanicAttacks'),
@@ -208,7 +232,7 @@ export function EquipmentDetailDialog({
     }
   };
 
-  const mechanics = getItemMechanics(item);
+  const mechanics = getItemMechanics(item, resolvedEraContext);
   const hasImage = !!item.imageUrl && !item.mapUrl && !item.isMap;
   const hasMap = !!(item.mapUrl || (item.imageUrl && item.isMap));
   const categoryLabel = CATEGORY_LABELS[item.category] || item.category;
@@ -350,7 +374,7 @@ export function EquipmentDetailDialog({
                       </h3>
                       {item.value != null && item.value > 0 && (
                         <div className="mt-1.5 font-special-elite text-sm text-brass/80">
-                          {t('valueLabel', { value: formatUsd(item.value) })}
+                          {t('valueLabel', { value: formatEraCurrency(item.value, resolvedEraContext) })}
                         </div>
                       )}
                     </div>

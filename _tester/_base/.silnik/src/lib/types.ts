@@ -167,6 +167,7 @@ export interface Message {
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
   opposedMagicEvents?: OpposedMagicEventData[]; // Obrona przed wrogą magią CoC 7e RAW [OBRONA_MAGIA:...]
   opposedMeleeEvents?: OpposedMeleeEventData[]; // Obrona przed atakiem wręcz CoC 7e RAW [WALKA_ATAK:...] / [OBRONA_WALKA:...]
+  gameOverEvents?: GameOverEventData[]; // Ostateczny kres postaci i epilog CoC 7e RAW [GAME_OVER:...]
   tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
   chaseState?: ChaseState; // Pościg i tor przeszkód CoC 7e RAW [POŚCIG:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
@@ -305,6 +306,7 @@ export interface EquipmentTemplate {
   modifiers?: EquipmentModifiers;
   combatProfile?: EquipmentCombatProfile;
   value?: number;
+  weight?: number;
 }
 
 export type CombatDamageClass = 'impaling' | 'non_impaling';
@@ -462,6 +464,7 @@ export interface Character {
   hp: number; // Punkty Życia
   san: number; // Punkty Rozsądku
   mp: number; // Punkty Magii
+  armor?: number; // Pancerz / ochrona (redukcja obrażeń RAW)
 
   // Umiejętności zawodowe (według CoC7)
   // Wspiera zarówno stary format (number) jak i nowy (SkillData) dla wstecznej kompatybilności
@@ -548,12 +551,15 @@ export interface Character {
   mythosExceedsSanity?: boolean; // Gdy Mity Cthulhu > SAN (redukcja strat SAN o 50%)
   creatureSanLoss?: Record<string, number>; // Skumulowana utrata SAN per typ potwora (max cap)
   usedDowntimeRecovery?: boolean; // Czy w bieżącej przerwie śledczej wykorzystano próbę ukojenia (CoC 7e RAW)
+  edgeOfTheAbyss?: boolean; // Czy postać jest na krawędzi otchłani (wykorzystany bufor ocalenia przy 0 SAN)
+  lastFrenzySanBoost?: number; // Wartość otrzymanego zastrzyku SAN przy obłąkańczym transie
 
   // === MECHANIKA ZDROWIA I CIĘŻKICH RAN (CoC 7e RAW s. 119-123) ===
   hasMajorWound?: boolean; // Czy postać ma aktywną Ciężką Ranę (utrata >= 1/2 maxHP w jednym ataku)
   isDying?: boolean; // Czy postać umiera (0 HP z Ciężką Raną)
   isUnconscious?: boolean; // Czy postać jest nieprzytomna (0 HP lub porażka CON po Ciężkiej Ranie)
   isDead?: boolean; // Śmierć natychmiastowa; hp=0 bez tej flagi oznacza unconscious/dying.
+  deathSavesUsed?: number; // Liczba wykorzystanych ocalen narracyjnych (np. uwięzienie / niewola)
   scars?: string[]; // Trwałe blizny i pamiątki po Ciężkich Ranach (tabela trafień CoC 7e / Seth Skorkowsky)
   healthRecoveryState?: {
     daysElapsed: number; // Suma dni spędzonych na rekonwalescencji
@@ -1122,3 +1128,26 @@ export interface TomeStudyEventData {
 
 // === SYSTEM MIAR (Issue #191) ===
 export type MeasurementSystem = 'metric' | 'imperial';
+
+// === SYSTEM GAME OVER I EPILOGU CoC 7e RAW (Issue #372) ===
+export type GameOverType = 'death' | 'permanent_insanity';
+
+export interface GameOverEventData {
+  id: string;
+  type: GameOverType;
+  characterName: string;
+  characterId?: string;
+  reason: string;
+  location?: string;
+  date?: string;
+  newspaperSnippet?: {
+    headline: string;
+    body: string;
+  };
+  sanitariumRecord?: {
+    admissionNo: string;
+    physicianName: string;
+    diagnosis: string;
+    lastWords: string;
+  };
+}

@@ -91,7 +91,7 @@ export const QUALITY_PRESETS = {
   high: {
     name: 'HIGH COST',
     description:
-      'Gemini 3.8 Flash (High) + lektor Charon (słuchowisko) + obrazy Imagen (~$0.50/sesja)',
+      'Gemini 3.8 Flash (High) + lektor Algenib (słuchowisko) + obrazy Imagen (~$0.50/sesja)',
     settings: {
       // === GEMINI SETTINGS ===
       model: 'gemini-3.8-flash' as const, // Gemini 3.8 Flash z Thinking Level High
@@ -114,10 +114,10 @@ export const QUALITY_PRESETS = {
       // === GEMINI TTS SŁUCHOWISKO ===
       ttsEnabled: true,
       ttsProvider: 'gemini' as const,
-      ttsVoice: 'Charon',
+      ttsVoice: 'Algenib',
       narratorOnly: false,
       volume: 85,
-      speed: 0.92,
+      speed: 1.0,
 
       // === IMAGE SETTINGS ===
       imagesEnabled: true,

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-14T18:47:00.000Z",
+  "updatedAt": "2026-09-15T10:30:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -411,6 +411,14 @@
       "label": {
         "pl": "Zgłoś błąd / uwagę",
         "en": "Report Issue / Feedback"
+      }
+    },
+    {
+      "id": "game-over-card",
+      "kind": "state",
+      "label": {
+        "pl": "Kres postaci i diegetyczny epilog (CoC 7e RAW)",
+        "en": "Investigator end and diegetic epilogue (CoC 7e RAW)"
       }
     }
   ],
@@ -855,6 +863,15 @@
         "en": "Report Issue or Feedback"
       },
       "component": "src/components/dialogs/BetaWelcomeModal.tsx"
+    },
+    {
+      "source": "game",
+      "target": "game-over-card",
+      "label": {
+        "pl": "Kres postaci i epilog",
+        "en": "Investigator end and epilogue"
+      },
+      "component": "src/components/chat/chat-window/components/game-over-card.tsx"
     }
   ]
 }

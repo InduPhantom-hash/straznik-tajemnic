@@ -49,6 +49,7 @@ import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { isCatalogEquipment, migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
+import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
 function formatUsd(amount: number): string {
@@ -63,6 +64,7 @@ interface EquipmentModalProps {
   onCharacterUpdate: (character: Character) => void;
   era?: string;
   adventureTheme?: string;
+  eraContext?: ResolvedEraContext | null;
   /** B2: pełem roster - włącza przełącznik postaci (czyj ekwipunek) w duecie. */
   characters?: Character[];
   /** B2: zmiana aktywnej postaci (reuse onCharacterSwitch z page) - panel pokazuje ekwipunek wybranego. */
@@ -76,11 +78,13 @@ export function EquipmentModal({
   onCharacterUpdate,
   era = '1920s',
   adventureTheme,
+  eraContext: propEraContext,
   characters = [],
   onCharacterChange,
 }: EquipmentModalProps) {
   const t = useTranslations('EquipmentModal');
   const messages = useMessages();
+  const locale = useLocale();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<
     EquipmentCategory | 'all'
@@ -89,6 +93,20 @@ export function EquipmentModal({
   // Klik w kafelek → modal detalu (read-only; przedmioty nabywane/tracone
   // kontekstowo w narracji, nie ręcznie - dlatego bez edycji/usuwania).
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
+
+  const resolvedEraContext = useMemo(() => {
+    if (propEraContext) return propEraContext;
+    try {
+      const advSaved = typeof window !== 'undefined' ? localStorage.getItem('adventure_context') : null;
+      const adventureContext = advSaved ? JSON.parse(advSaved) : null;
+      if (adventureContext) {
+        return resolveGameEraContext({ adventure: adventureContext });
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  }, [propEraContext]);
 
   const visualEra = useMemo(
     () => safeResolveVisualEra(era || character.era),
@@ -202,13 +220,17 @@ export function EquipmentModal({
   );
 
   // Ekonomia CoC 7e (RAW): zamożność z Credit Rating, NIE suma $ per-przedmiot.
-  const finances = deriveFinances(character, {
-    era,
-    country:
-      adventureTheme?.includes('Polska') || adventureTheme?.includes('Poland')
-        ? 'Polska'
-        : undefined,
-  });
+  const finances = deriveFinances(
+    character,
+    resolvedEraContext ?? {
+      era,
+      country:
+        adventureTheme?.includes('Polska') || adventureTheme?.includes('Poland')
+          ? 'Polska'
+          : undefined,
+    },
+    (locale === 'en' ? 'en' : 'pl') as 'pl' | 'en'
+  );
 
   // Déco: rozdziel broń od reszty wyposażenia (układ kolumnowy wg makiety 21).
   const weaponItems = filteredEquipment.filter(
@@ -520,6 +542,7 @@ export function EquipmentModal({
           <EquipmentDetailDialog
             item={selectedItem}
             era={era}
+            eraContext={resolvedEraContext}
             onClose={() => setSelectedItem(null)}
             onUpdateItem={(updatedItem) => {
               setSelectedItem(updatedItem);

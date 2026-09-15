@@ -57,6 +57,7 @@ import {
 import { AdventureContext, CustomAdventure } from '@/lib/adventures-data';
 import { useResolvedPortrait } from '@/hooks/useResolvedPortrait';
 import { getEraImageFilter } from '@/lib/era-visual-style';
+import { resolveGameEraContext } from '@/lib/era';
 import { mergeAdventureJournalEntries } from '@/lib/journal/shared-adventure-journal';
 import type { AISettings } from '@/lib/ai-settings';
 
@@ -179,6 +180,12 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   const [adventureContext, setAdventureContext] =
     useState<AdventureContext | null>(null);
   const effectiveAdventureContext = adventureContextProp ?? adventureContext;
+  const resolvedEraContext = useMemo(() => {
+    if (effectiveAdventureContext) {
+      return resolveGameEraContext({ adventure: effectiveAdventureContext });
+    }
+    return null;
+  }, [effectiveAdventureContext]);
 
   // System notyfikacji - nowe pozycje w dzienniku i ekwipunku
   const [unseenJournalCount, setUnseenJournalCount] = useState(0);
@@ -850,6 +857,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         onCharacterUpdate={onUpdateCharacter}
         characters={characters}
         onCharacterChange={(character) => setInspectedCharacterId(character.id)}
+        eraContext={resolvedEraContext}
       />
 
       {openDialog === 'journal' && activeCharacter && onUpdateCharacter && (
@@ -911,6 +919,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
             '1920s'
           }
           adventureTheme={effectiveAdventureContext?.title}
+          eraContext={resolvedEraContext}
           characters={characters}
           onCharacterChange={(character) =>
             setInspectedCharacterId(character.id)

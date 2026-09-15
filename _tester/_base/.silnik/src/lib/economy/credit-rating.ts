@@ -429,7 +429,7 @@ function isPolishContext(
   }
 
   const s = text.toLowerCase();
-  if (/\b(pl|pol|polska|poland|polski|polskie|ii rp|iirp)\b/i.test(s)) {
+  if (/\b(pl|pol|polska|poland|polski|polskie|ii rp|iirp|prl)\b/i.test(s)) {
     return true;
   }
 
@@ -446,6 +446,9 @@ function isPolishContext(
     s.includes('łagiew') ||
     s.includes('lagiew') ||
     s.includes('traszyn') ||
+    s.includes('lublin') ||
+    s.includes('lubelszczyzn') ||
+    s.includes('prl') ||
     s.includes('zł') ||
     s.includes('pln')
   );
@@ -712,10 +715,18 @@ export function deriveFinances(
   const creditRating = getCreditRating(character);
   const effectiveContext =
     eraContext ??
-    (character?.currency || character?.era
+    (character
       ? {
           currency: character.currency,
           era: character.era,
+          country:
+            character.residence?.includes('Polska') ||
+            character.birthplace?.includes('Polska') ||
+            character.residence?.includes('Poland') ||
+            character.birthplace?.includes('Poland')
+              ? 'Polska'
+              : undefined,
+          location: character.residence || character.birthplace,
         }
       : null);
   const info = getWealthInfo(creditRating, effectiveContext, locale);
