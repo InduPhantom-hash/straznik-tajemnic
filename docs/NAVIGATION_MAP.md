@@ -55,6 +55,7 @@ graph TD
     tome_card["Badanie tomów w czacie (CoC 7e RAW) / In-chat tome study (CoC 7e RAW)"]
     beta_welcome_modal["Status wersji Beta / Beta Version Status"]
     beta_feedback_modal["Zgłoś błąd / uwagę / Report Issue / Feedback"]
+    game_over_card["Kres postaci i diegetyczny epilog (CoC 7e RAW) / Investigator end and diegetic epilogue (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -105,6 +106,7 @@ graph TD
     home -->|Status wersji Beta / Beta Version Status| beta_welcome_modal
     home -->|Zgłoś błąd / uwagę / Report Issue / Feedback| beta_feedback_modal
     beta_welcome_modal -->|Zgłoś uwagę lub błąd / Report Issue or Feedback| beta_feedback_modal
+    game -->|Kres postaci i epilog / Investigator end and epilogue| game_over_card
 ```
 
 ## Routy
@@ -176,6 +178,7 @@ graph TD
 | Strona główna | Status wersji Beta / Beta Version Status | Status wersji Beta | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Strona główna | Zgłoś błąd / uwagę / Report Issue / Feedback | Zgłoś błąd / uwagę | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Status wersji Beta | Zgłoś uwagę lub błąd / Report Issue or Feedback | Zgłoś błąd / uwagę | `src/components/dialogs/BetaWelcomeModal.tsx` |
+| Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (CoC 7e RAW) | `src/components/chat/chat-window/components/game-over-card.tsx` |
 
 ## Zasady aktualizacji
 

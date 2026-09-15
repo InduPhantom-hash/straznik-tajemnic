@@ -168,6 +168,7 @@ export interface ParsedResponse {
   spellCastEvents?: SpellCastEventData[];
   opposedMagicEvents?: OpposedMagicEventData[];
   opposedMeleeEvents?: OpposedMeleeEventData[];
+  gameOverEvents?: import('@/lib/types').GameOverEventData[];
   tomeStudyEvents?: TomeStudyEventData[];
   meleeAttacks: MeleeAttackReference[];
   equipmentEvents: EquipmentEvent[];

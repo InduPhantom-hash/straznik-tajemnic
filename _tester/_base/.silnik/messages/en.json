@@ -8015,6 +8015,33 @@
     "impossibleAction": "Physically impossible action",
     "checkRequired": "Rule check required",
     "autoSuccess": "Routine action (auto-success)"
+  },
+  "GameOverCard": {
+    "newspaperHeader": "Crime Chronicle · The Arkham Advertiser",
+    "sanitariumHeader": "Arkham Sanitarium · Closed Ward",
+    "defaultInvestigator": "Investigator of Mysteries",
+    "defaultDeathHeadline": "TRAGIC DISCOVERY IN THE MISKATONIC VALLEY",
+    "defaultDeathBody": "Essex County Police report the recovery of {name}'s remains. Circumstances of death ({reason}) near {location} indicate foul play or an inexplicable disaster. Inquest remains inconclusive.",
+    "policeInquestOngoing": "Police inquest in progress",
+    "caseFiledInArchives": "Case dossier consigned to city archives",
+    "attendingPhysician": "Attending Physician",
+    "clinicalDiagnosis": "Clinical Diagnosis",
+    "recordedObsession": "Recorded Delirium / Final Words",
+    "sanitariumPrognosis": "Prognosis: Irreversible cognitive collapse. Barred from all external contact.",
+    "chooseFateHeader": "Investigator's Final End — What is your decree?",
+    "optionFinishTitle": "Close the Investigation Chronicle",
+    "optionFinishLore": "The case remains unsolved. Shadows engulf Arkham, and the truth of blasphemous rites is buried with the investigator. Triumph of the Shadow.",
+    "buttonFinish": "Seal the Dossier (Defeat)",
+    "optionContinueTitle": "Pass the Torch (New Investigator)",
+    "optionContinueLore": "The legacy and trunk containing the accumulated Dossier pass to a partner, confidant, or kin. The investigation endures; the clues are not lost!",
+    "selectSuccessorLabel": "Select an ally to inherit the case",
+    "newInvestigatorPrompt": "New investigator connected to the fallen",
+    "newInvestigatorDefault": "New Guardian of the Case",
+    "buttonContinue": "Continue the Case (Inherit Dossier)",
+    "decisionRecorded": "The decree has been recorded. The chronicle is sealed.",
+    "finishDeclarationDeath": "[DECLARATION: Investigation concluded. Investigator {name} perished in pursuit of truth. Evil has triumphed.]",
+    "finishDeclarationInsane": "[DECLARATION: Investigation concluded. {name}'s mind shattered under cosmic dread. Committed to Arkham Sanitarium.]",
+    "continueDeclaration": "[DECLARATION: {successor} inherits the Dossier and legacy of {previous}. The investigation continues!]"
   }
 }
 

@@ -13,6 +13,7 @@ export type SanityEventType =
   | 'temporary_insanity'
   | 'indefinite_insanity'
   | 'bout_of_madness'
+  | 'edge_of_the_abyss'
   | 'permanent_insanity'
   | 'sanity_restored';
 
@@ -342,8 +343,37 @@ export function applySanityDelta(
   // Akumuluj stratę dzienną
   next.dailySanLoss = (next.dailySanLoss ?? 0) + actualLoss;
 
-  // 1. Sprawdzenie progu 0 SAN -> Trwały Obłęd (Permanent Insanity)
+  // 1. Sprawdzenie progu 0 SAN -> Fail-Forward "Na krawędzi otchłani" (Issue #372)
   if (next.san <= 0) {
+    if (!next.edgeOfTheAbyss) {
+      // Pierwsza tarcza ocalenia: Obłąkańczy Trans / Zastrzyk Adrenaliny
+      next.edgeOfTheAbyss = true;
+      const boostRoll = rollDiceFormula('1d10');
+      const sanBoost = boostRoll ? boostRoll.total : Math.floor(Math.random() * 10) + 1;
+      next.san = sanBoost;
+      next.lastFrenzySanBoost = sanBoost;
+      next.insanityState = 'indefinite';
+      next.underlyingInsanity = true;
+
+      const bout = rollBoutOfMadness('real_time', options?.forceBoutIndex);
+      next.activeBoutOfMadness = bout;
+
+      events.push({
+        type: 'edge_of_the_abyss',
+        characterId: next.id,
+        characterName: next.name,
+        loss: actualLoss,
+        reason,
+        bout,
+        message: {
+          pl: `${next.name} staje na krawędzi otchłani obłędu! Umysł pęka, lecz pierwotny instynkt i szał walki dają ostatni zastrzyk ${sanBoost} PP w stanie amoku. Każda kolejna utrata Poczytalności będzie nieodwracalna.`,
+          en: `${next.name} stands on the edge of the abyss! The mind shatters, but raw adrenaline and frenzy grant a final surge of ${sanBoost} SAN in a state of delirium. Any further Sanity loss will be irreversible.`
+        }
+      });
+      return { nextCharacter: next, events };
+    }
+
+    // Jeśli postać była już na krawędzi otchłani -> Trwały Obłęd (Permanent Insanity)
     next.insanityState = 'permanent';
     events.push({
       type: 'permanent_insanity',
@@ -352,8 +382,8 @@ export function applySanityDelta(
       loss: actualLoss,
       reason,
       message: {
-        pl: `${next.name} traci ostatnie punkty Poczytalności i popada w nieodwracalny obłęd (Permanent Insanity).`,
-        en: `${next.name} loses their final Sanity points and collapses into permanent insanity.`
+        pl: `${next.name} przekracza ostateczną granicę i popada w nieodwracalny obłęd (Permanent Insanity).`,
+        en: `${next.name} crosses the final threshold and collapses into permanent insanity.`
       }
     });
     return { nextCharacter: next, events };
