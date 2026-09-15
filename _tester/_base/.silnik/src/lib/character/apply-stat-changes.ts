@@ -20,6 +20,7 @@ import type { Character } from '@/lib/types';
 import { rollDiceFormula } from '@/lib/dice-utils';
 import { resolveCharacterByName } from './match-by-name';
 import { applySanityDelta, type SanityEvent } from '@/lib/sanity/sanity-engine';
+import { generateHitLocationScar } from '@/lib/health/recovery-tracker';
 
 export type { SanityEvent };
 
@@ -132,6 +133,19 @@ export function applyStatChangesFromText(
       if (next.hasMajorWound) {
         next.isDying = true;
       }
+      // Tarcza ocalenia Fail-Forward przy 0 HP (Seth Skorkowsky style, Issue #372)
+      if ((next.deathSavesUsed ?? 0) === 0) {
+        next.deathSavesUsed = 1;
+        const scar = generateHitLocationScar();
+        const scarList = next.scars ? [...next.scars] : [];
+        if (!scarList.includes(scar.descriptionPl)) {
+          scarList.push(scar.descriptionPl);
+        }
+        next.scars = scarList;
+      } else {
+        // Po wyczerpaniu tarczy ocalenia kolejna utrata HP przy 0 oznacza zgon
+        next.isDead = true;
+      }
     } else if (next.hp > 0 && next.isDying) {
       next.isDying = false;
     }
@@ -231,6 +245,19 @@ export function applyStatChangesToParty(
         next.isUnconscious = true;
         if (next.hasMajorWound) {
           next.isDying = true;
+        }
+        // Tarcza ocalenia Fail-Forward przy 0 HP (Seth Skorkowsky style, Issue #372)
+        if ((next.deathSavesUsed ?? 0) === 0) {
+          next.deathSavesUsed = 1;
+          const scar = generateHitLocationScar();
+          const scarList = next.scars ? [...next.scars] : [];
+          if (!scarList.includes(scar.descriptionPl)) {
+            scarList.push(scar.descriptionPl);
+          }
+          next.scars = scarList;
+        } else {
+          // Po wyczerpaniu tarczy ocalenia kolejna utrata HP przy 0 oznacza zgon
+          next.isDead = true;
         }
       } else if (next.hp > 0 && next.isDying) {
         next.isDying = false;

@@ -284,6 +284,25 @@ Przykłady:
 - \`[HP: -1d6: szpony bestii]\` (Tacka rzuci 1d6)
 - \`[SANITY: -1d4: przebłysk niemożliwej geometrii]\`
 
+8. **TARCZA OCALENIA PRZY 0 HP (FAIL-FORWARD & UWIĘZIENIE - RAW & Seth Skorkowsky):**
+   - Gdy badacz spada do 0 HP, **NIE uśmiercaj go od razu w prozie**! W grze 1-4 sesji gracz ma silną więź z postacią.
+   - Zastosuj zasadę Fail-Forward: postać traci przytomność, a kolejna scena to dramatyczne przebudzenie w opałach (np. badacz budzi się skrępowany w piwnicy kultu, lochu, zakrwawiony w rynsztoku lub na ostrym dyżurze szpitalnym).
+   - Konsekwencje: utrata cennego czasu w śledztwie, przepadek części wyposażenia oraz trwała pamiątka w postaci blizny.
+   - Dopiero gdy badacz po raz kolejny znajdzie się w sytuacji śmiertelnej lub dozna egzekucji/obrażeń równych max HP w jednym ciosie, ogłoś ostateczny zgon za pomocą tagu \`[GAME_OVER: ...]\`.
+
+9. **TARCZA OCALENIA PRZY 0 SAN (OBŁĄKAŃCZY TRANS / NA KRAWĘDZI OTCHŁANI):**
+   - Gdy Poczytalność spada do 0 SAN, umysł pęka, ale pierwotny amok i adrenalina trzymają badacza przy życiu (postać zyskuje jednorazowy zastrzyk 1k10 SAN w stanie obłędu).
+   - Opisz scenę jako halucynacyjny trans, widzenie prawdziwej geometrii Mitów lub wściekłą furię.
+   - Ostateczny obłęd i wycofanie postaci następuje dopiero przy kolejnej utracie SAN.
+
+10. **OSTATECZNY KRES POSTACI (TAG [GAME_OVER:...]):**
+    - Gdy postać definitywnie umiera lub popada w nieodwracalny obłęd (Permanent Insanity), wstaw na końcu odpowiedzi tag:
+      \`[GAME_OVER: @Imię | typ=DEAD/INSANE | powod=OpisPrzyczyny | naglowek=TytułArtykułuLubDiagnozy | tresc=PodsumowanieLosuBadacza]\`
+    - Przykład zgonu: \`[GAME_OVER: @Arthur | typ=DEAD | powod=Śmiertelny cios szponem ghula w kryptach | naglowek=TRAGICZNE ODKRYCIE NA CMENTARZU W ARKHAM | tresc=Ciało znanego badacza odnaleziono o świcie w pobliżu krypty rodu Pickmanów.]\`
+    - Przykład obłędu: \`[GAME_OVER: @Arthur | typ=INSANE | powod=Kontakt wzrokowy z manifestacją Yog-Sothotha | naglowek=PRZYJĘCIE DO ODDZIAŁU ZAMKNIĘTEGO | tresc=Pacjent powtarza nieustannie te same sylaby, kreśląc krwią na ścianie nieludzkie symbole.]\`
+    - Tag wstrzymuje czat i otwiera diegetyczny ekran nekrologu/karty szpitalnej z podwójnym wyborem dla gracza.
+
+
 #### 7-TER. MAGIA I TOMISKA MITÓW CoC 7e RAW (CZARY, OBRONA I LEKTURA TOMÓW)
 
 1. **Rzucanie czarów i rytuałów przez Badacza:**

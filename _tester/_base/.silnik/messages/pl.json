@@ -4859,6 +4859,7 @@
     "bufferingNarrator": "Buforowanie głosu lektora (3-4 zdania)...",
     "chronicleDossier": "Akta Śledztwa",
     "defaultChronicleIntro": "W cieniu zapomnianych ulic i zakurzonych archiwów kryją się sekrety, których ludzki umysł nie powinien zgłębiać. Zbliża się godzina konfrontacji z nieznanym...",
+    "defaultChronicleHook": "Dźwięki kroków na korytarzu cichną. Przed Tobą leżą nierozwiązane akta sprawy...",
     "enterAdventure": "Rozpocznij Przygodę",
     "enterGame": "Wejdź do Gry",
     "chronicleReady": "Kronika spisana. Gotowy do wejścia.",
@@ -8013,6 +8014,33 @@
     "impossibleAction": "Akcja niemożliwa fizycznie",
     "checkRequired": "Wymagany test zasad",
     "autoSuccess": "Akcja rutynowa (sukces automatyczny)"
+  },
+  "GameOverCard": {
+    "newspaperHeader": "Kronika Kryminalna · The Arkham Advertiser",
+    "sanitariumHeader": "Arkham Sanitarium · Oddział Zamknięty",
+    "defaultInvestigator": "Badacz Tajemnic",
+    "defaultDeathHeadline": "TRAGICZNE ZNALEZISKO W DOLINIE MISKATONIC",
+    "defaultDeathBody": "Policja hrabstwa Essex informuje o odnalezieniu ciała {name}. Okoliczności zgonu ({reason}) w rejonie {location} wskazują na brutalne morderstwo lub niewytłumaczalny wypadek. Śledztwo utknęło w martwym punkcie.",
+    "policeInquestOngoing": "Śledztwo policyjne w toku",
+    "caseFiledInArchives": "Akta przekazane do archiwum miejskiego",
+    "attendingPhysician": "Lekarz prowadzący",
+    "clinicalDiagnosis": "Rozpoznanie kliniczne",
+    "recordedObsession": "Zanotowany majak / Ostatnie słowa",
+    "sanitariumPrognosis": "Rokowania: Trwałe uszkodzenie funkcji poznawczych. Zakaz kontaktu ze światem zewnętrznym.",
+    "chooseFateHeader": "Ostateczny Kres Badacza — Co czynisz dalej?",
+    "optionFinishTitle": "Zakończ Kronikę Śledztwa",
+    "optionFinishLore": "Sprawa pozostaje nierozwiązana. Ciemność pochłania Arkham, a prawda o bluźnierczych rytuałach zostaje pogrzebana wraz z badaczem. Triumf Cienia.",
+    "buttonFinish": "Zamknij Akta Sprawy (Porażka)",
+    "optionContinueTitle": "Przekaż Płomień (Nowy Badacz)",
+    "optionContinueLore": "Spuścizna i kufer z zebranym Dossier trafiają w ręce powiernika, wspólnika lub krewnego. Śledztwo trwa dalej, poszlaki nie przepadły!",
+    "selectSuccessorLabel": "Wybierz sojusznika do przejęcia sprawy",
+    "newInvestigatorPrompt": "Nowy badacz powiązany ze zmarłym",
+    "newInvestigatorDefault": "Nowy Powiernik Śledztwa",
+    "buttonContinue": "Kontynuuj Śledztwo (Przejęcie Akt)",
+    "decisionRecorded": "Decyzja została zarejestrowana. Kronika została zaktualizowana.",
+    "finishDeclarationDeath": "[DEKLARACJA: Śledztwo zakończone. Badacz {name} poniósł śmierć w imię prawdy. Zło zatriumfowało.]",
+    "finishDeclarationInsane": "[DEKLARACJA: Śledztwo zakończone. Umysł {name} pękł pod ciężarem kosmicznej grozy. Zamknięcie w Arkham Sanitarium.]",
+    "continueDeclaration": "[DEKLARACJA: {successor} przejmuje Dossier i spuściznę po {previous}. Śledztwo jest kontynuowane!]"
   }
 }
 
