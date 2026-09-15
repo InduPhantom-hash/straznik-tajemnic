@@ -98,7 +98,8 @@
     "react-day-picker": "^9.10.0",
     "react-dom": "^19.2.5",
     "tailwind-merge": "^3.3.1",
-    "three": "^0.186.0"
+    "three": "^0.186.0",
+    "unpdf": "^1.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

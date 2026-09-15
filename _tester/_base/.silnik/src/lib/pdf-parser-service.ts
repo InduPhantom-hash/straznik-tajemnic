@@ -1,8 +1,11 @@
-/** PDF Parser Service - backendowa ekstrakcja tekstu bez magazynu chmurowego. */
+/** PDF Parser Service - backendowa ekstrakcja tekstu bez magazynu chmurowego z użyciem silnika unpdf (WASM). */
+
+import { extractText, getMeta } from 'unpdf';
 
 export interface ParsedPDFData {
   text: string;
   pages: number;
+  pagesText?: string[];
   metadata: {
     title?: string;
     author?: string;
@@ -18,7 +21,7 @@ export interface ParsedPDFData {
 
 class PDFParserService {
   /**
-   * Parsuje PDF buffer do tekstu
+   * Parsuje PDF buffer do tekstu z wykorzystaniem unpdf (WebAssembly)
    */
   async parsePDFBuffer(buffer: Buffer): Promise<ParsedPDFData> {
     try {
@@ -33,7 +36,7 @@ class PDFParserService {
       );
 
       // ISO 32000 dopuszcza śmieci przed nagłówkiem, ale %PDF- powinien znaleźć
-      // się w pierwszych 1024 bajtach. Odrzucamy inne formaty przed pdf-parse.
+      // się w pierwszych 1024 bajtach. Odrzucamy inne formaty przed parserem.
       const headerRegion = buffer.subarray(0, Math.min(buffer.length, 1024));
       if (!headerRegion.includes(Buffer.from('%PDF-'))) {
         throw new Error(
@@ -41,36 +44,22 @@ class PDFParserService {
         );
       }
 
-      // Dynamiczny import pdf-parse (unikamy problemów z Next.js build)
-      let pdfParse;
-      try {
-        pdfParse = (await import('pdf-parse')).default;
-        console.log('✅ pdf-parse module loaded successfully');
-      } catch (importError) {
-        console.error('❌ Failed to import pdf-parse:', importError);
-        throw new Error(
-          `Brak wymaganego modułu pdf-parse: ${importError instanceof Error ? importError.message : 'Unknown error'}`
-        );
-      }
+      console.log('🔄 Rozpoczynanie parsowania PDF przez silnik unpdf (WASM)...');
+      const uint8Array = new Uint8Array(buffer);
 
-      // Parsuj PDF używając pdf-parse
-      console.log('🔄 Starting PDF parsing...');
-      let data;
+      let textResult;
       try {
-        data = await pdfParse(buffer, {
-          max: 0, // Brak limitu stron
-        });
-        console.log(`✅ PDF parsed successfully: ${data.numpages} pages`);
+        textResult = await extractText(uint8Array, { mergePages: false });
       } catch (parseError) {
-        console.error('❌ pdf-parse error:', parseError);
+        console.error('❌ unpdf extraction error:', parseError);
         const errorMessage =
           parseError instanceof Error ? parseError.message : String(parseError);
 
-        // Sprawdź typ błędu
         const normalizedError = errorMessage.toLowerCase();
         if (
           normalizedError.includes('invalid pdf') ||
-          normalizedError.includes('invalid')
+          normalizedError.includes('invalid') ||
+          normalizedError.includes('bad xref')
         ) {
           throw new Error(
             'Nieprawidłowy format PDF - plik może być uszkodzony lub w nieobsługiwanym formacie'
@@ -87,59 +76,64 @@ class PDFParserService {
         }
       }
 
-      // Sprawdź czy parsowanie zwróciło jakiekolwiek dane
-      if (!data) {
-        throw new Error('PDF nie zawiera danych');
+      let metaResult: Awaited<ReturnType<typeof getMeta>> | null = null;
+      try {
+        metaResult = await getMeta(uint8Array);
+      } catch (metaErr) {
+        console.warn('⚠️ Nie udało się pobrać metadanych PDF (kontynuacja bez metadanych):', metaErr);
       }
 
-      if (!data.text || data.text.trim().length === 0) {
-        console.warn(
-          '⚠️ PDF parsed but contains no text - may be image-only PDF'
-        );
-        // Nie rzucamy błędu - zwracamy pusty tekst
+      const pagesList = Array.isArray(textResult.text)
+        ? textResult.text
+        : [textResult.text || ''];
+
+      const totalPages = textResult.totalPages || pagesList.length || 0;
+
+      // Zbuduj jednolity tekst z wyraźnymi separatorami stron dla lepszego podziału
+      const fullText = pagesList
+        .map((pageContent, idx) => {
+          const trimmed = pageContent ? pageContent.trim() : '';
+          return trimmed ? `<!-- Strona ${idx + 1} -->\n${trimmed}` : '';
+        })
+        .filter(Boolean)
+        .join('\n\n');
+
+      if (!fullText || fullText.trim().length === 0) {
+        console.warn('⚠️ PDF sparsowany, lecz nie zawiera tekstu - prawdopodobnie skan tylko ze zdjęciami');
       }
 
-      const textLength = data.text ? data.text.trim().length : 0;
+      const textLength = fullText.trim().length;
       console.log(
-        `📊 PDF text extracted: ${textLength} characters from ${data.numpages || 0} pages`
+        `📊 PDF sparsowany pomyślnie przez unpdf: ${textLength} znaków ze stron: ${totalPages}`
       );
 
+      const info = (metaResult?.info || {}) as Record<string, unknown>;
+
       return {
-        text: data.text ? data.text.trim() : '',
-        pages: data.numpages || 0,
+        text: fullText.trim(),
+        pages: totalPages,
+        pagesText: pagesList,
         metadata: {
-          title: data.info?.Title,
-          author: data.info?.Author,
-          subject: data.info?.Subject,
-          keywords: data.info?.Keywords,
-          creator: data.info?.Creator,
-          producer: data.info?.Producer,
-          creationDate: data.info?.CreationDate
-            ? new Date(data.info.CreationDate)
-            : undefined,
-          modificationDate: data.info?.ModDate
-            ? new Date(data.info.ModDate)
-            : undefined,
+          title: typeof info.Title === 'string' ? info.Title : undefined,
+          author: typeof info.Author === 'string' ? info.Author : undefined,
+          subject: typeof info.Subject === 'string' ? info.Subject : undefined,
+          keywords: typeof info.Keywords === 'string' ? info.Keywords : undefined,
+          creator: typeof info.Creator === 'string' ? info.Creator : undefined,
+          producer: typeof info.Producer === 'string' ? info.Producer : undefined,
+          creationDate: info.CreationDate ? new Date(String(info.CreationDate)) : undefined,
+          modificationDate: info.ModDate ? new Date(String(info.ModDate)) : undefined,
         },
         size: buffer.length,
       };
     } catch (error) {
-      console.error('❌ Error parsing PDF:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined,
-      });
+      console.error('❌ Błąd parsowania PDF:', error);
 
-      // Rzuć błąd z bardziej szczegółowym komunikatem
       if (error instanceof Error) {
-        // Jeśli błąd już ma szczegółowy komunikat, użyj go
         if (
           error.message.includes('Nieprawidłowy') ||
           error.message.includes('chroniony hasłem') ||
           error.message.includes('uszkodzony') ||
-          error.message.includes('Brak wymaganego modułu') ||
-          error.message.includes('nie zawiera tekstu')
+          error.message.includes('Brak nagłówka')
         ) {
           throw error;
         }
@@ -179,10 +173,8 @@ class PDFParserService {
       return text;
     }
 
-    // Usuń nadmiarowe spacje i znaki nowej linii
     let compressed = text.replace(/\s+/g, ' ').trim();
 
-    // Jeśli nadal za długi, skróć
     if (compressed.length > maxLength) {
       compressed = compressed.substring(0, maxLength) + '...';
     }
