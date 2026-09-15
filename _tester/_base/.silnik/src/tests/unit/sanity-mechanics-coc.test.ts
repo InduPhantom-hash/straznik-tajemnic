@@ -178,13 +178,19 @@ describe('Sanity & Madness Engine (CoC 7e RAW)', () => {
   });
 
   describe('Próg 0 SAN i Nieodwracalny Obłęd', () => {
-    it('spadek SAN do 0 oznacza Permanent Insanity', () => {
+    it('spadek SAN do 0 aktywuje Krawędź Otchłani, a kolejna utrata oznacza Permanent Insanity', () => {
+      // 1. Pierwsza utrata poniżej 0 SAN odpala tarczę Fail-Forward (Edge of the Abyss)
       const c = createMockCharacter({ san: 3 });
-      const { nextCharacter, events } = applySanityDelta(c, -5, 'ujrzenie Azathotha');
-      expect(nextCharacter.san).toBe(0);
-      expect(nextCharacter.insanityState).toBe('permanent');
-      expect(events.length).toBe(1);
-      expect(events[0].type).toBe('permanent_insanity');
+      const firstRes = applySanityDelta(c, -5, 'ujrzenie Azathotha');
+      expect(firstRes.nextCharacter.edgeOfTheAbyss).toBe(true);
+      expect(firstRes.nextCharacter.san).toBeGreaterThan(0);
+      expect(firstRes.events[0].type).toBe('edge_of_the_abyss');
+
+      // 2. Kolejna utrata SAN przy aktywnej krawędzi otchłani oznacza ostateczny i nieodwracalny obłęd
+      const secondRes = applySanityDelta(firstRes.nextCharacter, -5, 'dobicie psychiki');
+      expect(secondRes.nextCharacter.san).toBe(0);
+      expect(secondRes.nextCharacter.insanityState).toBe('permanent');
+      expect(secondRes.events[0].type).toBe('permanent_insanity');
     });
   });
 
