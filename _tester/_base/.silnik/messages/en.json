@@ -4850,6 +4850,14 @@
     "opponentValue": "Opponent value:",
     "opposedRollButton": "Roll opposed test"
   },
+  "DiceRollCard": {
+    "cardTitle": "Dice Roll",
+    "reroll": "Re-roll",
+    "rerollTooltip": "Roll the same dice formula again",
+    "trayLabel": "Dice roll tray: {formula}",
+    "diceBreakdown": "Dice breakdown",
+    "total": "Total"
+  },
   "TtsHardLoadingScreen": {
     "preparingSession": "The Keeper is preparing the session...",
     "generatingStory": "Chronicling the dark tale and tuning the narrator's voice...",

@@ -212,31 +212,32 @@ export function resolveOutnumberedBonus(defensesUsedThisRound: number): {
 }
 
 /**
- * Parsuje maksymalną wartość z formuły kości (np. "1d6+2" -> 6+2=8, "1d4" -> 4).
+ * Parsuje maksymalną wartość z formuły kości (np. "1d6+2" -> 6+2=8, "1d4" -> 4, "-1" -> -1).
  */
 export function getMaxDiceValue(formula: string): number {
   if (!formula || !formula.trim()) return 0;
   const cleaned = normalizeDiceFormula(formula);
-  const match = cleaned.match(/^(\d*)d(\d+)(?:([+-])(\d+))?$/i);
+  const match = cleaned.match(/^([+-])?(\d*)d(\d+)(?:([+-])(\d+))?$/i);
   if (!match) {
     const num = parseInt(cleaned, 10);
     return isNaN(num) ? 0 : num;
   }
-  const count = match[1] ? parseInt(match[1], 10) : 1;
-  const sides = parseInt(match[2], 10);
-  const sign = match[3];
-  const mod = match[4] ? parseInt(match[4], 10) : 0;
+  const mainSign = match[1] === '-' ? -1 : 1;
+  const count = match[2] ? parseInt(match[2], 10) : 1;
+  const sides = parseInt(match[3], 10);
+  const sign = match[4];
+  const mod = match[5] ? parseInt(match[5], 10) : 0;
 
   let total = count * sides;
   if (sign === '+') total += mod;
   if (sign === '-') total -= mod;
-  return Math.max(0, total);
+  return total * mainSign;
 }
 
 /** Kanoniczny zapis formuły kości. Niepoprawne dane są odrzucane, nie dają 0. */
 export function normalizeDiceFormula(formula: string): string {
   const normalized = formula.trim().replace(/k/gi, 'd').replace(/\s+/g, '');
-  if (!/^(?:\d*d\d+(?:[+-]\d+)?|[+-]?\d+)$/i.test(normalized)) {
+  if (!/^[+-]?(?:\d*d\d+(?:[+-]\d+)?|\d+)$/i.test(normalized)) {
     throw new Error('invalid_dice_formula');
   }
   return normalized;
@@ -259,6 +260,15 @@ export function calculateMeleeDamage(params: {
   diceResults: number[];
   diceFormula: string;
 } {
+  const defaultRollFn = (f: string): number => {
+    const trimmed = f.trim();
+    const directNum = parseInt(trimmed, 10);
+    if (!isNaN(directNum) && (trimmed === String(directNum) || trimmed === `+${directNum}`)) {
+      return directNum;
+    }
+    return rollDiceFormula(trimmed)?.total ?? (isNaN(directNum) ? 0 : directNum);
+  };
+
   const {
     weaponDamageFormula: rawWeaponDamageFormula,
     damageBonusFormula: rawDamageBonusFormula = '',
@@ -268,9 +278,11 @@ export function calculateMeleeDamage(params: {
     rollFn,
   } = params;
 
+  const effectiveRollFn = rollFn || defaultRollFn;
+
   const weaponDamageFormula = normalizeDiceFormula(rawWeaponDamageFormula);
   const damageBonusFormula = rawDamageBonusFormula
-    ? normalizeDiceFormula(rawDamageBonusFormula.replace(/^\+/, ''))
+    ? normalizeDiceFormula(rawDamageBonusFormula)
     : '';
 
   const isExtreme = outcome === 'extreme' || outcome === 'critical';
@@ -280,7 +292,7 @@ export function calculateMeleeDamage(params: {
     if (rollFn) return rollFn(formula);
     const result = rollDiceFormula(formula);
     if (result) diceResults.push(...result.results);
-    return result?.total ?? 0;
+    return result?.total ?? effectiveRollFn(formula);
   };
 
   // W kontrataku RAW CoC 7e sukces ekstremalny NIE daje Przebicia (Impale),
@@ -292,7 +304,7 @@ export function calculateMeleeDamage(params: {
     if (isPiercing) {
       // Przebicie (Impale): max broni + max DB + dodatkowy rzut kością broni
       const extraWeaponRoll = rollFormula(weaponDamageFormula);
-      const total = maxWeapon + maxDb + extraWeaponRoll;
+      const total = Math.max(1, maxWeapon + maxDb + extraWeaponRoll);
       return {
         rawDamage: total,
         isImpale: true,
@@ -302,7 +314,7 @@ export function calculateMeleeDamage(params: {
       };
     } else {
       // Broń tępa: max broni + max DB
-      const total = maxWeapon + maxDb;
+      const total = Math.max(1, maxWeapon + maxDb);
       return {
         rawDamage: total,
         isImpale: false,
@@ -749,6 +761,21 @@ export function resolveMeleeEngagement(
           },
         };
       }
+
+      // Atakujący spudłował, ale manewr obrońcy jest fizycznie niemożliwy (różnica Budowy >= 3)
+      return {
+        winner: 'none',
+        defenseChoice,
+        attackerOutcome,
+        defenderOutcome,
+        isTie,
+        damageDealtTo: 'none',
+        logKey: 'maneuverBlockedByBuild',
+        logParams: {
+          defender: defenderName,
+          attacker: attackerName,
+        },
+      };
     }
 
     // W manewrze przy remisie wygrywa obrońca (RAW)

@@ -4850,6 +4850,14 @@
     "opponentValue": "Wartość przeciwnika:",
     "opposedRollButton": "Rzuć test przeciwstawny"
   },
+  "DiceRollCard": {
+    "cardTitle": "Rzut kośćmi",
+    "reroll": "Przetocz",
+    "rerollTooltip": "Rzuć ponownie tymi samymi kośćmi",
+    "trayLabel": "Tacka rzutu kośćmi: {formula}",
+    "diceBreakdown": "Rozbicie kości",
+    "total": "Suma"
+  },
   "TtsHardLoadingScreen": {
     "preparingSession": "Strażnik Tajemnic przygotowuje sesję...",
     "generatingStory": "Trwa spisywanie mrocznej kroniki i dostrajanie głosu...",

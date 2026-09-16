@@ -101,6 +101,7 @@ export interface FirearmBurstResult {
   totalRawDamage: number;
   totalEffectiveDamage: number;
   isMajorWound: boolean;
+  diveForCover?: DiveForCoverResult;
   breakdown: string;
   logKey: string;
   logParams: Record<string, string | number>;
@@ -492,17 +493,21 @@ export function resolveFirearmShot(
     };
   }
 
-  // 2. Dive for Cover (tylko przy point-blank)
+  // 2. Dive for Cover (RAW s. 113)
   let diveResult: DiveForCoverResult | undefined;
-  if (distanceCategory === 'point_blank' && isTargetDivingForCover) {
-    diveResult = resolveDiveForCover(targetDodgeRoll, targetDodgeSkill);
+  if (isTargetDivingForCover) {
+    diveResult = resolveDiveForCover(
+      targetDodgeRoll,
+      targetDodgeSkill,
+      distanceCategory
+    );
   }
 
   // 3. Bilans kości
   const diceNet = calculateFirearmNetDice({
     distanceCategory,
     shotNumberInRound,
-    targetDivingForCoverSuccess: diveResult?.cancelledBonusDie,
+    targetDivingForCoverSuccess: diveResult?.success,
   });
 
   // 4. Zacięcie broni (Malfunction)
@@ -643,6 +648,10 @@ export function resolveFirearmBurst(params: {
   targetMaxHp?: number;
   convention?: CombatConvention;
   rollFn?: (formula: string) => number;
+  isTargetDivingForCover?: boolean;
+  targetDodgeSkill?: number;
+  targetDodgeRoll?: number;
+  distanceCategory?: FirearmDistanceCategory;
 }): FirearmBurstResult {
   const {
     shooterName,
@@ -657,9 +666,23 @@ export function resolveFirearmBurst(params: {
     targetMaxHp = 10,
     convention = 'classic',
     rollFn = (f: string) => rollDiceFormula(f)?.total ?? 0,
+    isTargetDivingForCover = false,
+    targetDodgeSkill = 25,
+    targetDodgeRoll = 50,
+    distanceCategory = 'base_range',
   } = params;
 
-  // 1. Zacięcie broni
+  // 1. Dive for Cover (RAW s. 113)
+  let diveResult: DiveForCoverResult | undefined;
+  if (isTargetDivingForCover) {
+    diveResult = resolveDiveForCover(
+      targetDodgeRoll,
+      targetDodgeSkill,
+      distanceCategory
+    );
+  }
+
+  // 2. Zacięcie broni
   const isMalfunction = checkMalfunction(roll, malfunctionThreshold);
   if (isMalfunction) {
     return {
@@ -675,6 +698,7 @@ export function resolveFirearmBurst(params: {
       totalRawDamage: 0,
       totalEffectiveDamage: 0,
       isMajorWound: false,
+      diveForCover: diveResult,
       breakdown: `Malfunction on roll ${roll} (threshold ${malfunctionThreshold})`,
       logKey: 'burstMalfunction',
       logParams: {
@@ -708,6 +732,7 @@ export function resolveFirearmBurst(params: {
       totalRawDamage: 0,
       totalEffectiveDamage: 0,
       isMajorWound: false,
+      diveForCover: diveResult,
       breakdown: `Burst miss (roll ${roll} > ${skillValue})`,
       logKey: 'burstMiss',
       logParams: {
@@ -774,6 +799,7 @@ export function resolveFirearmBurst(params: {
     totalRawDamage,
     totalEffectiveDamage,
     isMajorWound: majorWoundCheck.isMajorWound,
+    diveForCover: diveResult,
     breakdown: `Burst ${bulletsHit}/${burstSize} hits: ${hits
       .map((h) => h.breakdown)
       .join(', ')} = ${totalEffectiveDamage} dmg`,

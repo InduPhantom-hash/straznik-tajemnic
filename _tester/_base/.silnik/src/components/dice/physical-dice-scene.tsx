@@ -1,127 +1,274 @@
 'use client';
 
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState, type FC } from 'react';
 import * as THREE from 'three';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Group } from 'three';
 import type { DiceRollTraceDie } from '@/lib/dice-roll-trace';
+import { PhysicalDiceSimulator } from '@/lib/dice-physics/dice-simulator';
+import { playDiceClatter } from '@/lib/dice-physics/dice-audio';
 
-function d10Trapezohedron() {
-  // Ten kite-shaped facets around alternating equatorial vertices form the
-  // familiar RPG d10 silhouette; it is deliberately not a decagonal prism.
-  const vertices = [0, 0, 1.16, 0, 0, -1.16];
-  for (let index = 0; index < 10; index++) {
-    const angle = (index / 10) * Math.PI * 2;
-    vertices.push(Math.cos(angle) * .82, Math.sin(angle) * .82, index % 2 ? -.22 : .22);
-  }
-  const indices: number[] = [];
-  for (let index = 0; index < 10; index++) {
-    const current = 2 + index;
-    const next = 2 + ((index + 1) % 10);
-    indices.push(0, current, 1, 0, 1, next);
-  }
-  const shape = new THREE.BufferGeometry();
-  shape.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  shape.setIndex(indices);
-  shape.computeVertexNormals();
-  // The two polar tips must be vertical in the tray. Looking down the polar
-  // axis makes a perfectly valid d10 read as a star instead of its familiar
-  // kite-faced, elongated silhouette.
-  shape.rotateX(Math.PI / 2);
-  return shape;
+export interface PhysicalDiceSceneProps {
+  dice: DiceRollTraceDie[];
+  rolling?: boolean;
+  label?: string;
 }
 
-function geometry(type: DiceRollTraceDie['type']) {
-  if (type === 'd3') return new THREE.CylinderGeometry(.72, .72, .55, 3);
-  if (type === 'd4') return new THREE.TetrahedronGeometry(.82);
-  if (type === 'd6') return new THREE.BoxGeometry(1, 1, 1);
-  if (type === 'd8') return new THREE.OctahedronGeometry(.82);
-  if (type === 'd10') return d10Trapezohedron();
-  if (type === 'd12') return new THREE.DodecahedronGeometry(.82);
-  return new THREE.IcosahedronGeometry(.86);
-}
-
-function dieLabel(die: DiceRollTraceDie) {
-  if ((die.role === 'tens' || die.role === 'bonus' || die.role === 'penalty') && die.value === 0) return '00';
-  return String(die.value);
-}
-
-function DieValue({ die }: { die: DiceRollTraceDie }) {
-  const texture = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 192;
-    canvas.height = 192;
-    const context = canvas.getContext('2d');
-    if (!context) return new THREE.CanvasTexture(canvas);
-    context.beginPath();
-    context.arc(96, 96, 68, 0, Math.PI * 2);
-    context.fillStyle = die.role === 'units' ? '#0b382f' : '#4a2d10';
-    context.fill();
-    context.lineWidth = 6;
-    context.strokeStyle = '#d7ae55';
-    context.stroke();
-    context.fillStyle = '#f7e7bc';
-    context.font = 'bold 76px Georgia';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(dieLabel(die), 96, 101);
-    return new THREE.CanvasTexture(canvas);
-  }, [die]);
-
-  useEffect(() => () => texture.dispose(), [texture]);
-  return <sprite position={[0, 0, .92]} scale={[.72, .72, 1]}>
-    <spriteMaterial map={texture} transparent opacity={die.selected === false ? .28 : 1} depthTest={false} />
-  </sprite>;
-}
-
-function Die({ die, index, diceCount, rolling }: { die: DiceRollTraceDie; index: number; diceCount: number; rolling: boolean }) {
-  const ref = useRef<Group>(null);
-  const shape = useMemo(() => geometry(die.type), [die.type]);
-  const lastRolling = useRef(rolling);
-  const startRotation = useRef(new THREE.Euler());
-  const settleAt = useRef(0);
-  const columns = Math.min(5, diceCount);
-  const rows = Math.ceil(diceCount / columns);
-  const x = (index % columns - (columns - 1) / 2) * 1.25;
-  const baseY = ((rows - 1) / 2 - Math.floor(index / columns)) * 1.15;
-  useEffect(() => () => shape.dispose(), [shape]);
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const time = clock.getElapsedTime();
-    if (rolling) {
-      ref.current.rotation.set(time * 9 + index * .7, time * 7 + index, time * 5 + index * .4);
-      ref.current.position.y = baseY + Math.abs(Math.sin(time * 13 + index)) * .72;
-    } else {
-      if (lastRolling.current) {
-        startRotation.current.copy(ref.current.rotation);
-        settleAt.current = time;
+/**
+ * Authentic 3D Art Déco physical dice tray powered by Three.js & CANNON-ES.
+ * Features:
+ * - Real polyhedra with chamfered edges (d4, d6, d8, d10, d12, d20, d100).
+ * - Genuine Art Déco engraved numerals directly on face textures.
+ * - Anton Natarov / Teal deterministic physics (the die physically rolls,
+ *   bounces off walls, and naturally comes to rest showing the exact CoC 7e RAW result).
+ * - Procedural clatter sound effect via Web Audio API.
+ * - Accessible, high-contrast fallback for non-WebGL / prefers-reduced-motion environments.
+ */
+function disposeMesh(m: THREE.Mesh): void {
+  m.geometry?.dispose();
+  if (Array.isArray(m.material)) {
+    for (const mat of m.material) {
+      if ('map' in mat && mat.map) {
+        (mat.map as THREE.Texture).dispose();
       }
-      const progress = Math.min(1, (time - settleAt.current) / .32);
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      ref.current.rotation.set(
-        THREE.MathUtils.lerp(startRotation.current.x, 0, easeOut),
-        THREE.MathUtils.lerp(startRotation.current.y, 0, easeOut),
-        THREE.MathUtils.lerp(startRotation.current.z, 0, easeOut),
-      );
-      ref.current.position.y = baseY + (1 - easeOut) * .14;
+      mat.dispose();
     }
-    lastRolling.current = rolling;
-  });
-  return <group ref={ref} position={[x, baseY, 0]}>
-    <mesh geometry={shape}><meshStandardMaterial color={die.role === 'units' ? '#176054' : '#a77a2b'} metalness={.55} roughness={.3} transparent opacity={die.selected === false ? .28 : 1} /></mesh>
-    <DieValue die={die} />
-  </group>;
+  } else if (m.material) {
+    const mat = m.material as THREE.Material & { map?: THREE.Texture };
+    if (mat.map) {
+      mat.map.dispose();
+    }
+    mat.dispose();
+  }
 }
 
-export function PhysicalDiceScene({ dice, rolling = false, label = 'Tacka kości' }: { dice: DiceRollTraceDie[]; rolling?: boolean; label?: string }) {
-  const [webgl, setWebgl] = useState(false);
-  const [reduced, setReduced] = useState(false);
+export const PhysicalDiceScene: FC<PhysicalDiceSceneProps> = ({
+  dice,
+  rolling = false,
+  label = 'Tacka na kości 3D',
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [webgl, setWebgl] = useState<boolean>(false);
+  const [reduced, setReduced] = useState<boolean>(false);
+  const [sceneReady, setSceneReady] = useState<boolean>(false);
+
   useEffect(() => {
-    const canvas = document.createElement('canvas');
-    setWebgl(Boolean(window.WebGLRenderingContext && canvas.getContext('webgl')));
-    setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (typeof window === 'undefined') return;
+    try {
+      const canvas = document.createElement('canvas');
+      const hasGl = Boolean(
+        window.WebGLRenderingContext &&
+          (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+      );
+      setWebgl(hasGl);
+      setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch {
+      setWebgl(false);
+    }
   }, []);
-  if (!webgl || reduced) return <div data-testid="physical-dice-fallback" role="img" aria-label={label} className="flex min-h-24 flex-wrap justify-center gap-2 rounded border border-brass/35 bg-[#0d0b08] p-3">{dice.map(d => <span key={d.id} className="rounded border border-brass/40 px-3 py-2 text-brass">{d.role === 'tens' || d.role === 'bonus' || d.role === 'penalty' ? String(d.value).padStart(2, '0') : d.value}</span>)}</div>;
-  const visibleDice = dice.slice(0, 10);
-  return <div data-testid="physical-dice-scene" role="img" aria-label={label} className="h-44 overflow-hidden rounded border border-brass/35"><Canvas camera={{ position: [0, 0, 5.2], fov: 38 }}><color attach="background" args={['#0d0b08']} /><ambientLight intensity={.8} /><directionalLight position={[3, 4, 5]} intensity={2} />{visibleDice.map((die, index) => <Die key={die.id} die={die} index={index} diceCount={visibleDice.length} rolling={rolling} />)}</Canvas></div>;
-}
+
+  // Three.js & CANNON simulation runtime
+  const simRef = useRef<PhysicalDiceSimulator | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const meshesRef = useRef<THREE.Mesh[]>([]);
+  const prevRollingRef = useRef<boolean>(rolling);
+
+  useEffect(() => {
+    if (!webgl || reduced || !containerRef.current) return;
+    const container = containerRef.current;
+    let width = container.clientWidth || 320;
+    let height = container.clientHeight || 190;
+
+    // 1. Scene setup
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
+
+    // 2. Camera setup looking down at the tray (Z-axis towards camera)
+    const aspect = width / height;
+    const cameraZ = 340;
+    const fov = 26;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, 1, 2000);
+    camera.position.set(0, 0, cameraZ);
+    camera.lookAt(0, 0, 0);
+    cameraRef.current = camera;
+
+    const radFov = (fov * Math.PI) / 180;
+    const worldHeight = 2 * Math.tan(radFov / 2) * cameraZ;
+    const worldWidth = worldHeight * aspect;
+
+    // 3. Renderer setup
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      rendererRef.current = renderer;
+      container.appendChild(renderer.domElement);
+    } catch {
+      setWebgl(false);
+      return;
+    }
+
+    // 4. Lighting: Dark Art Déco mood lighting with warm spotlights
+    const ambientLight = new THREE.AmbientLight(0xfff5e6, 1.2);
+    scene.add(ambientLight);
+
+    const mainSpot = new THREE.SpotLight(0xffecd1, 3.2);
+    mainSpot.position.set(-worldWidth * 0.35, worldHeight * 0.45, 300);
+    mainSpot.target.position.set(0, 0, 0);
+    mainSpot.castShadow = true;
+    mainSpot.shadow.bias = -0.001;
+    scene.add(mainSpot);
+    scene.add(mainSpot.target);
+
+    const rimLight = new THREE.DirectionalLight(0xb59a57, 1.4);
+    rimLight.position.set(worldWidth * 0.35, -worldHeight * 0.35, 200);
+    scene.add(rimLight);
+
+    // 5. Felt Tray Floor Plane
+    const floorGeo = new THREE.PlaneGeometry(worldWidth * 1.5, worldHeight * 1.5);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0x09140e, // deep dark green velvet
+      roughness: 0.85,
+      metalness: 0.1,
+    });
+    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    floorMesh.position.set(0, 0, -0.5);
+    floorMesh.receiveShadow = true;
+    scene.add(floorMesh);
+
+    // 6. Initialize Simulator with actual visible world dimensions
+    const sim = new PhysicalDiceSimulator(worldWidth, worldHeight);
+    simRef.current = sim;
+
+    // 7. Animation Frame Loop
+    let animId: number;
+    let lastTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      animId = requestAnimationFrame(animate);
+      const dt = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      sim.step(dt);
+      renderer.render(scene, camera);
+    };
+    animId = requestAnimationFrame(animate);
+
+    // 8. Resize Observer
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const cr = entry.contentRect;
+        if (cr.width > 0 && cr.height > 0) {
+          width = cr.width;
+          height = cr.height;
+          const newAspect = width / height;
+          camera.aspect = newAspect;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+          const rFov = (camera.fov * Math.PI) / 180;
+          const wH = 2 * Math.tan(rFov / 2) * camera.position.z;
+          const wW = wH * newAspect;
+          sim.updateBoundaries(wW, wH);
+        }
+      }
+    });
+    ro.observe(container);
+    setSceneReady(true);
+
+    // 9. Cleanup
+    return () => {
+      setSceneReady(false);
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+      sim.clear();
+      for (const m of meshesRef.current) {
+        scene.remove(m);
+        disposeMesh(m);
+      }
+      scene.remove(floorMesh);
+      floorGeo.dispose();
+      floorMat.dispose();
+
+      if (renderer.domElement && renderer.domElement.parentNode) {
+        renderer.domElement.parentNode.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+      simRef.current = null;
+      sceneRef.current = null;
+      cameraRef.current = null;
+      rendererRef.current = null;
+      meshesRef.current = [];
+    };
+  }, [webgl, reduced]); // Re-run if webgl availability toggles
+
+  // React to rolling prop change or dice update
+  useEffect(() => {
+    if (!sceneReady) return;
+    const sim = simRef.current;
+    const scene = sceneRef.current;
+    if (!sim || !scene) return;
+
+    // Clean up existing meshes
+    for (const m of meshesRef.current) {
+      scene.remove(m);
+      disposeMesh(m);
+    }
+
+    const visibleDice = dice.slice(0, 10);
+    const meshes = sim.initDice(visibleDice);
+    meshesRef.current = meshes;
+    for (const m of meshes) {
+      scene.add(m);
+    }
+
+    if (rolling) {
+      sim.startRoll();
+      playDiceClatter(visibleDice.length);
+    } else {
+      sim.layoutStatic();
+    }
+    prevRollingRef.current = rolling;
+  }, [dice, rolling, sceneReady]);
+
+  // Non-WebGL or Reduced Motion Accessible Fallback
+  if (!webgl || reduced) {
+    return (
+      <div
+        data-testid="physical-dice-fallback"
+        role="img"
+        aria-label={label}
+        className="flex min-h-24 flex-wrap items-center justify-center gap-2.5 rounded border border-brass/35 bg-[#0d0b08] p-3.5"
+      >
+        {dice.map((d) => (
+          <span
+            key={d.id}
+            className={`rounded border px-3 py-1.5 font-bold font-serif shadow-sm ${
+              d.role === 'units'
+                ? 'border-emerald-600/70 bg-emerald-950/60 text-emerald-300'
+                : d.role === 'tens' || d.role === 'bonus' || d.role === 'penalty'
+                  ? 'border-brass/70 bg-black/80 text-brass'
+                  : 'border-brass/40 bg-zinc-900/80 text-foreground'
+            } ${d.selected === false ? 'opacity-35 line-through' : ''}`}
+          >
+            {d.role === 'tens' || d.role === 'bonus' || d.role === 'penalty'
+              ? String(d.value).padStart(2, '0')
+              : d.value}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      data-testid="physical-dice-scene"
+      role="img"
+      aria-label={label}
+      className="relative h-56 sm:h-64 w-full overflow-hidden rounded border border-brass/35 shadow-[inset_0_0_30px_rgba(0,0,0,0.9)] bg-[radial-gradient(ellipse_at_center,_#0f1c15_0%,_#070d0a_65%,_#030504_100%)]"
+    />
+  );
+};

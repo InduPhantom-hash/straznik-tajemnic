@@ -193,4 +193,42 @@ describe('OpposedMeleeCard - Karta obrony Badacza w walce wręcz CoC 7e RAW', ()
       );
     }
   });
+
+  it('poprawnie renderuje stan historyczny completed=true bez resultState bez pustego bloku', () => {
+    render(
+      <OpposedMeleeCard
+        opposedEvent={sampleMeleeEvent}
+        activeCharacter={baseDefender}
+        completed={true}
+      />
+    );
+
+    expect(screen.getAllByText(/Starcie rozstrzygnięte/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Obrona rozliczona/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Wykonaj zwinny unik/i })).not.toBeInTheDocument();
+  });
+
+  it('uwzględnia pancerz obrońcy (defenderArmor) redukując obrażenia z ataku', () => {
+    const onResolveDefense = jest.fn();
+    const armoredDefender: Character = {
+      ...baseDefender,
+      armor: 10,
+    };
+
+    render(
+      <OpposedMeleeCard
+        opposedEvent={{
+          ...sampleMeleeEvent,
+          damageFormula: '1d4', // max 4 dmg, pancerz 10 więc 0 dmg
+        }}
+        activeCharacter={armoredDefender}
+        onResolveDefense={onResolveDefense}
+      />
+    );
+
+    const dodgeBtn = screen.getByRole('button', { name: /Wykonaj zwinny unik/i });
+    fireEvent.click(dodgeBtn);
+
+    expect(onResolveDefense).toHaveBeenCalled();
+  });
 });

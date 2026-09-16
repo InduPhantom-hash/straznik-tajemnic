@@ -9,7 +9,6 @@ import { DOCUMENT_MODEL_USE_BLOCKED } from './document-model-policy';
 import { POST as upload } from '@/app/api/upload-pdf/route';
 import { POST as parse } from '@/app/api/pdf/parse/route';
 import { POST as parseLocal } from '@/app/api/pdf/parse-local/route';
-import { POST as ingest } from '@/app/api/pdf/ingest-local/route';
 import { POST as extract } from '@/app/api/pdf/extract-text/route';
 import { POST as analyze } from '@/app/api/adventure/analyze/route';
 import { POST as setup } from '@/app/api/adventure/setup/route';
@@ -42,7 +41,7 @@ beforeEach(() => jest.clearAllMocks());
 
 describe.each([
   ['upload', upload], ['parse', parse], ['parse-local', parseLocal],
-  ['ingest-local', ingest], ['extract-text', extract], ['analyze', analyze], ['setup', setup],
+  ['extract-text', extract], ['analyze', analyze], ['setup', setup],
   ['instructions', instructions],
 ] as const)('%s document boundary', (_name, post) => {
   it.each(['pl', 'en'])('rejects before reading request contents (%s)', async (locale) => {

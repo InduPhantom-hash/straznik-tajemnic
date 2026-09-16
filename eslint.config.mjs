@@ -12,6 +12,21 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      // Anti-Slop: Twardy strażnik Bezpiecznika CPI (blokada kamuflażu typów przez AI)
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/consistent-type-assertions": [
+        "warn",
+        { assertionStyle: "as", objectLiteralTypeAssertions: "never" },
+      ],
+      "@typescript-eslint/ban-ts-comment": [
+        "error",
+        { "ts-expect-error": "allow-with-description", "ts-ignore": true },
+      ],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",

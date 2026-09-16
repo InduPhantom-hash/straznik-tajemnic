@@ -57,8 +57,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Użyj stabilnego modelu do testu połączenia
-      const testModels = ['gemini-2.0-flash', 'gemini-2.5-flash'];
+      // 1. Szybka ścieżka: sprawdzone modele generacji 3.x
+      const testModels = [
+        'gemini-3.8-flash',
+        'gemini-3.6-flash',
+        'gemini-3.1-flash-lite',
+      ];
       let lastError: Error | null = null;
 
       for (const modelName of testModels) {
@@ -80,9 +84,45 @@ export async function POST(request: NextRequest) {
             modelError instanceof Error
               ? modelError
               : new Error(String(modelError));
-          console.log(`⚠️ Model ${modelName} nie działa, próbuję następny...`);
+          console.log(`⚠️ Model ${modelName} nie działa, próbuję kolejny...`);
           continue;
         }
+      }
+
+      // 2. Samonaprawa (odporność na przyszłe wycofania modeli przez Google):
+      // Pobierz żywą listę z API i przetestuj najnowszy model wspierający generateContent.
+      try {
+        const pager = await client.models.list();
+        const available: string[] = [];
+        for await (const m of pager) {
+          const name = (m.name ?? '').replace(/^models\//, '');
+          if (!name || name.includes('tts') || name.includes('image') || name.includes('embedding') || name.includes('transcribe')) {
+            continue;
+          }
+          available.push(name);
+        }
+        // Sprawdzaj od najnowszych
+        available.reverse();
+
+        for (const candidate of available) {
+          try {
+            const dynamicRes = await client.models.generateContent({
+              model: candidate,
+              contents: 'Hello',
+            });
+            const dynamicText = dynamicRes.text ?? '';
+            return NextResponse.json({
+              success: true,
+              response: 'Połączenie z Gemini API działa poprawnie (wykryto dynamicznie)',
+              model: candidate,
+              testResponse: dynamicText.substring(0, 50) + '...',
+            });
+          } catch {
+            continue;
+          }
+        }
+      } catch (listErr) {
+        console.warn('⚠️ Dynamic model discovery failed:', listErr);
       }
 
       // Jeśli wszystkie modele nie zadziałały, zwróć błąd

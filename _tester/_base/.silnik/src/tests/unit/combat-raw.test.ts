@@ -4,11 +4,14 @@ import {
   resolveOutnumberedBonus,
   calculateMeleeDamage,
   getMaxDiceValue,
+  normalizeDiceFormula,
   OUTCOME_RANKS,
 } from '@/lib/combat/combat-resolver';
 import {
   resolveDiveForCover,
   calculateFirearmNetDice,
+  resolveFirearmShot,
+  resolveFirearmBurst,
 } from '@/lib/combat/firearms-engine';
 import {
   extractOpposedMeleeEvents,
@@ -164,6 +167,51 @@ describe('CoC 7e RAW Combat Engine - Purystyczna Mechanika (Faza 4)', () => {
       expect(resDiff4.allowed).toBe(false);
       expect(resDiff4.reason).toBe('buildDifferenceTooGreat');
     });
+
+    it('gdy manewr jest zablokowany przez Budowę (diff >= 3), obrońca NIE MOŻE wykonać manewru nawet gdy napastnik spudłuje', () => {
+      const result = resolveMeleeEngagement({
+        attackerName: 'Potwór',
+        defenderName: 'Badacz',
+        attackerRoll: 85,
+        attackerSkill: 50, // Fail
+        defenderRoll: 20,
+        defenderSkill: 50, // Hard
+        defenseChoice: 'maneuver',
+        attackerBuild: 4,
+        defenderBuild: 0,
+      });
+
+      expect(result.winner).toBe('none');
+      expect(result.maneuverApplied).toBeUndefined();
+      expect(result.logKey).toBe('maneuverBlockedByBuild');
+    });
+
+    it('obsługuje ujemny Damage Bonus (-1, -2, -1d4) oraz ze znakiem plus (+1d4) bez błędów', () => {
+      expect(normalizeDiceFormula('+1d4')).toBe('+1d4');
+      expect(normalizeDiceFormula('-1d4')).toBe('-1d4');
+      expect(normalizeDiceFormula('-1')).toBe('-1');
+
+      expect(getMaxDiceValue('-1')).toBe(-1);
+      expect(getMaxDiceValue('+1d4')).toBe(4);
+
+      // Obrażenia z ujemnym modyfikatorem cechy
+      const dmgNeg = calculateMeleeDamage({
+        weaponDamageFormula: '1d3',
+        damageBonusFormula: '-1',
+        outcome: 'regular',
+        rollFn: (f) => (f === '1d3' ? 3 : -1),
+      });
+      expect(dmgNeg.rawDamage).toBe(2); // 3 - 1 = 2
+
+      // Zawsze min. 1 obrażeń przy trafieniu
+      const dmgFloor = calculateMeleeDamage({
+        weaponDamageFormula: '1d3',
+        damageBonusFormula: '-2',
+        outcome: 'regular',
+        rollFn: (f) => (f === '1d3' ? 1 : -2),
+      });
+      expect(dmgFloor.rawDamage).toBe(1);
+    });
   });
 
   describe('3. Przewaga liczebna w rundzie (Outnumbered, s. 108)', () => {
@@ -249,6 +297,47 @@ describe('CoC 7e RAW Combat Engine - Purystyczna Mechanika (Faza 4)', () => {
       expect(netRange.penaltyDice).toBe(1);
       expect(netRange.netDice).toBe(-1);
     });
+
+    it('resolveFirearmShot z udanym Dive for Cover na dalszym dystansie nakłada 1 kość karną na strzelca', () => {
+      const shot = resolveFirearmShot({
+        shooterName: 'Kultysta',
+        targetName: 'Harvey',
+        weaponName: '.38 Revolver',
+        skillValue: 50,
+        roll: 45,
+        damageFormula: '1d10',
+        distanceYards: 10,
+        baseRangeYards: 15, // base_range
+        isTargetDivingForCover: true,
+        targetDodgeRoll: 20,
+        targetDodgeSkill: 50, // Hard success on dodge
+      });
+
+      expect(shot.diveForCover).toBeDefined();
+      expect(shot.diveForCover?.success).toBe(true);
+      expect(shot.diveForCover?.imposesPenaltyDie).toBe(true);
+      expect(shot.penaltyDice).toBe(1);
+      expect(shot.netDice).toBe(-1);
+    });
+
+    it('resolveFirearmBurst obsługuje Dive for Cover i zwraca stan padnięcia za osłonę', () => {
+      const burst = resolveFirearmBurst({
+        shooterName: 'Gangster',
+        targetName: 'Harvey',
+        weaponName: 'Tommy Gun',
+        skillValue: 50,
+        roll: 40,
+        damageFormula: '1d10',
+        isTargetDivingForCover: true,
+        targetDodgeRoll: 15,
+        targetDodgeSkill: 50,
+      });
+
+      expect(burst.diveForCover).toBeDefined();
+      expect(burst.diveForCover?.success).toBe(true);
+      expect(burst.diveForCover?.targetIsProne).toBe(true);
+      expect(burst.diveForCover?.targetLosesNextAction).toBe(true);
+    });
   });
 
   describe('5. Parser i sanitizacja tagów [WALKA_ATAK:...]', () => {
@@ -263,6 +352,21 @@ describe('CoC 7e RAW Combat Engine - Purystyczna Mechanika (Faza 4)', () => {
       expect(events[0].attackerBuild).toBe(1);
       expect(events[0].damageClass).toBe('impaling');
       expect(events[0].intent).toBe('Pchnięcie w serce');
+    });
+
+    it('extractOpposedMeleeEvents rozpoznaje tagi outnumbered oraz drugiego napastnika na ten sam cel w wypowiedzi', () => {
+      const textExplicit = '[WALKA_ATAK: napastnik=Bandyta | skill=50 | outnumbered=true]';
+      const eventsExplicit = extractOpposedMeleeEvents(textExplicit);
+      expect(eventsExplicit[0].isOutnumbered).toBe(true);
+
+      const textMultiple = `
+        [WALKA_ATAK: @Harvey: napastnik=Zbir 1 | skill=50]
+        [WALKA_ATAK: @Harvey: napastnik=Zbir 2 | skill=55]
+      `;
+      const eventsMultiple = extractOpposedMeleeEvents(textMultiple);
+      expect(eventsMultiple).toHaveLength(2);
+      expect(eventsMultiple[0].isOutnumbered).toBeUndefined();
+      expect(eventsMultiple[1].isOutnumbered).toBe(true);
     });
 
     it('extractOpposedMeleeEvents poprawnie parsuje tag pozycyjny [OBRONA_WALKA:...]', () => {
@@ -284,10 +388,13 @@ describe('CoC 7e RAW Combat Engine - Purystyczna Mechanika (Faza 4)', () => {
       expect(events[0].attackerName).toBe('Mafiozo');
     });
 
-    it('stripMeleeAttackTags usuwa tagi walki bez pozostawiania śladów', () => {
+    it('stripMeleeAttackTags usuwa tagi walki bez pozostawiania śladów (w tym MELEE_DEFENSE)', () => {
       const text = 'Uważaj! [WALKA_ATAK: napastnik=Zbój | skill=50] Cios nadchodzi!';
       const cleaned = stripMeleeAttackTags(text);
       expect(cleaned).toBe('Uważaj!  Cios nadchodzi!');
+
+      const textDefense = 'Uważaj! [MELEE_DEFENSE: Kultysta | 50] Blok.';
+      expect(stripMeleeAttackTags(textDefense)).toBe('Uważaj!  Blok.');
     });
 
     it('sanitizeMechanicalTags oraz cleanupContent usuwają tagi WALKA_ATAK i OBRONA_WALKA z narracji prezentowanej graczowi i TTS', () => {

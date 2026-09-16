@@ -10,6 +10,16 @@ export type {
   PendingMeleeAttack,
 };
 import type { CharacterMagicState } from './magic/types';
+import type { DiceRollTrace } from './dice-roll-trace';
+
+export interface DiceRollEventData {
+  id: string;
+  formula: string;
+  trace: DiceRollTrace;
+  characterName?: string;
+  label?: string;
+  timestamp?: string;
+}
 
 // === WIADOMOŚĆ CZATU ===
 // Przeniesiona z page.tsx dla centralizacji typów
@@ -163,6 +173,7 @@ export interface Message {
   // hydrują generatedImages z cache → obrazy "wracają na miejsce".
   generatedImageCacheIds?: string[];
   skillTests?: SkillTestData[]; // Tacka testów [TEST:...] (skillValue dociągnięte z karty postaci)
+  diceRollEvents?: DiceRollEventData[]; // Bezpośrednie rzuty kośćmi [DICE:...] z fizyczną animacją 3D
   hazardEvents?: HazardEventData[]; // Zagrożenia środowiskowe CoC 7e RAW [ZAGROŻENIE:...]
   spellCastEvents?: SpellCastEventData[]; // Rzucanie czarów CoC 7e RAW [CZAR:...]
   opposedMagicEvents?: OpposedMagicEventData[]; // Obrona przed wrogą magią CoC 7e RAW [OBRONA_MAGIA:...]

@@ -20,6 +20,7 @@ import { Card, CardContent } from '../../../ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar';
 import { NarrativeFormatter } from '../../NarrativeFormatter';
 import { SkillTestCard } from './skill-test-card';
+import { DiceRollCard } from './dice-roll-card';
 import { HazardCard } from './hazard-card';
 import { SpellCard } from './spell-card';
 import { TomeCard } from './tome-card';
@@ -326,6 +327,15 @@ export function MessageCard({
                     onRoll={onRollTest}
                     completed={completedTestIds?.has(test.id)}
                   />
+                ))}
+              </div>
+            )}
+
+            {/* Bezpośredni rzut kośćmi 3D [DICE:...] */}
+            {message.diceRollEvents && message.diceRollEvents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {message.diceRollEvents.map((diceEvent) => (
+                  <DiceRollCard key={diceEvent.id} event={diceEvent} />
                 ))}
               </div>
             )}
