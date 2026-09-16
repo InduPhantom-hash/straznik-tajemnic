@@ -317,7 +317,7 @@ export function useGameStart({
         prompt += `- Koncept: ${activeCharacter.characterConcept}\n`;
       if (activeCharacter.background)
         prompt += `- Historia: ${activeCharacter.background}\n`;
-      prompt += `--- KONIEC KONTEKSTU ---\n\n**WAŻNE:** NIE CYTUJ i NIE POWTARZAJ powyższych informacji o mojej postaci na początku odpowiedzi. Użyj ich TYLKO "w tle" (jako swojej wiedzy Mistrza Gry), aby poprowadzić narrację.\n\n`;
+      prompt += `--- KONIEC KONTEKSTU ---\n\n**WAŻNE:** NIE CYTUJ i NIE POWTARZAJ powyższych informacji o mojej postaci na początku odpowiedzi. Użyj ich TYLKO "w tle" (jako swojej wiedzy Strażnika Tajemnic), aby poprowadzić narrację.\n\n`;
     }
 
     if (adventureContext) {
@@ -501,8 +501,8 @@ export function useGameStart({
     setStartProgress(15);
     setStartStatus(
       locale === 'en'
-        ? 'Initializing session parameters...'
-        : 'Inicjalizacja parametrów sesji...'
+        ? 'Breaking the seals of the chronicle...'
+        : 'Otwieranie pieczęci kroniki...'
     );
 
     // Autostart muzyki w tle (YouTubePlayer nasłuchuje 'zew:start-music').
@@ -523,8 +523,8 @@ export function useGameStart({
     setStartProgress(30);
     setStartStatus(
       locale === 'en'
-        ? 'Preparing world and era settings...'
-        : 'Przygotowywanie założeń świata i epoki...'
+        ? "Consulting the era's maps and archives..."
+        : 'Sprawdzanie map i archiwów epoki...'
     );
 
     const eraContext = resolveGameEraContext({ adventure: adventureContext });
@@ -627,8 +627,8 @@ export function useGameStart({
     setStartProgress(55);
     setStartStatus(
       locale === 'en'
-        ? 'Verifying investigator sheet and equipment...'
-        : 'Weryfikacja karty Badacza i ekwipunku...'
+        ? "Inspecting the investigator's gear and resolve..."
+        : 'Weryfikacja ekwipunku i stanu umysłu badacza...'
     );
 
     // IND-57: zeruj licznik tokenów bieżącej sesji (totalTokens zostaje - career counter)
@@ -711,8 +711,8 @@ export function useGameStart({
       setStartProgress(75);
       setStartStatus(
         locale === 'en'
-          ? 'Connecting with the Game Master...'
-          : 'Nawiązywanie kontaktu z Mistrzem Gry...'
+          ? 'Tuning into the ether (contacting the Keeper)...'
+          : 'Słuchanie szumów z eteru (kontakt ze Strażnikiem)...'
       );
       const response = await fetchWithRetry('/api/chat', {
         method: 'POST',
@@ -752,8 +752,8 @@ export function useGameStart({
       setStartProgress(75);
       setStartStatus(
         locale === 'en'
-          ? 'Generating opening scene...'
-          : 'Generowanie sceny otwierającej...'
+          ? 'Crossing the threshold of the unknown (chronicling the scene)...'
+          : 'Przekraczanie progu nieznanego (spisywanie sceny)...'
       );
 
       // Dodaj pustą wiadomość asystenta do strumieniowania
