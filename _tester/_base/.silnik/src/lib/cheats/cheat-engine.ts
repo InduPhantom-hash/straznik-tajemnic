@@ -3,12 +3,13 @@
  * Retro Silnik Kodow i Testow Mechanik (Cheat Engine 90s/00s) dla Call of Cthulhu 7e.
  */
 
-import type { Character, Message, SpellCastEventData, TomeStudyEventData, PendingMeleeAttack } from '@/lib/types';
+import type { Character, Message, SpellCastEventData, TomeStudyEventData, PendingMeleeAttack, DiceRollEventData } from '@/lib/types';
 import type { SkillTestData, HazardEventData } from '@/lib/parsers/types';
 import { extractHazardEvents } from '@/lib/parsers/mechanics-parser';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { createEquipmentItem } from '@/lib/equipment-data';
 import { rollDiceFormula } from '@/lib/dice-utils';
+import { traceForFormula } from '@/lib/dice-roll-trace';
 
 export interface CheatSuggestion {
   command: string;
@@ -59,11 +60,56 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
   {
     command: 'DICE',
     template: '[DICE: 1d100]',
-    labelPl: 'Rzut Kością',
-    labelEn: 'Dice Roll',
+    labelPl: 'Rzut Procentowy k100',
+    labelEn: 'Percentile d100 Roll',
     category: 'dice',
-    descriptionPl: 'Rzuca dowolną formułą kości (np. 1d100, 2d6+3, 1d10).',
-    descriptionEn: 'Rolls any dice formula (e.g. 1d100, 2d6+3, 1d10).',
+    descriptionPl: 'Rzut d100 na parze kości dziesiątek i jedności (test umiejętności/cech).',
+    descriptionEn: 'd100 roll with tens and units dice (skill/stat test).',
+  },
+  {
+    command: 'DICE_MELEE',
+    template: '[DICE: 1d6 | Walka wręcz]',
+    labelPl: 'Obrażenia: Walka Wręcz (1d6)',
+    labelEn: 'Damage: Melee Combat (1d6)',
+    category: 'combat',
+    descriptionPl: 'Rzut obrażeń broni obuchowej, pałki lub walki wręcz z bonusem.',
+    descriptionEn: 'Damage roll for blunt weapons, clubs, or unarmed brawl.',
+  },
+  {
+    command: 'DICE_FIREARM',
+    template: '[DICE: 1d10 | Rewolwer .38]',
+    labelPl: 'Obrażenia: Broń Palna (1d10)',
+    labelEn: 'Damage: Handgun .38 (1d10)',
+    category: 'combat',
+    descriptionPl: 'Standardowy rzut obrażeń pistoletu policyjnego lub rewolweru .38.',
+    descriptionEn: 'Standard damage roll for police pistol or .38 revolver.',
+  },
+  {
+    command: 'DICE_HEAVY',
+    template: '[DICE: 2d6+3 | Strzelba / Shotgun]',
+    labelPl: 'Obrażenia: Strzelba (2d6+3)',
+    labelEn: 'Damage: Shotgun (2d6+3)',
+    category: 'combat',
+    descriptionPl: 'Ciężkie obrażenia z bliskiego zasięgu (dubeltówka, strzelba śrutowa).',
+    descriptionEn: 'Heavy close-range damage (12-gauge shotgun blast).',
+  },
+  {
+    command: 'DICE_SANITY',
+    template: '[DICE: 1d6 | Utrata Poczytalności]',
+    labelPl: 'Utrata SAN: Szok Mitów (1d6)',
+    labelEn: 'SAN Loss: Mythos Shock (1d6)',
+    category: 'stats',
+    descriptionPl: 'Rzut utraty Poczytalności przy spotkaniu z potworem lub widoku makabry.',
+    descriptionEn: 'Sanity loss roll when encountering horrors or witnessing macabre.',
+  },
+  {
+    command: 'DICE_MYTHOS',
+    template: '[DICE: 1d20 | Bestia Mitów]',
+    labelPl: 'Obrażenia: Bestia Mitów (1d20)',
+    labelEn: 'Damage: Mythos Creature (1d20)',
+    category: 'combat',
+    descriptionPl: 'Krytyczne obrażenia od potężnych istot Mitów Cthulhu.',
+    descriptionEn: 'Critical damage from powerful Mythos monstrosities.',
   },
   {
     command: 'HP',
@@ -247,17 +293,33 @@ const CHEAT_COMMAND_SET = new Set([
   'CAST',
   'TOM',
   'STUDY',
+  'KOSTKI',
+  'K',
 ]);
 
 export function isCheatCommand(text: string): boolean {
   const trimmed = text.trim();
-  if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
-    return false;
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.startsWith('/dice') ||
+    lower.startsWith('/kostki') ||
+    lower.startsWith('/k ') ||
+    lower.startsWith('/roll')
+  ) {
+    return true;
   }
-  const content = trimmed.slice(1, -1).trim();
-  const colonIndex = content.indexOf(':');
-  const command = (colonIndex === -1 ? content : content.slice(0, colonIndex)).trim().toUpperCase();
-  return CHEAT_COMMAND_SET.has(command);
+  if (trimmed.startsWith('[')) {
+    const endBracket = trimmed.indexOf(']');
+    if (endBracket !== -1) {
+      const inside = trimmed.slice(1, endBracket).trim();
+      const colonIndex = inside.indexOf(':');
+      const command = (colonIndex === -1 ? inside : inside.slice(0, colonIndex)).trim().toUpperCase();
+      if (CHEAT_COMMAND_SET.has(command)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export function filterCheatSuggestions(input: string): CheatSuggestion[] {
@@ -295,11 +357,37 @@ export function executeCheatCommand(
     return { isCheat: false };
   }
 
-  const content = trimmed.slice(1, -1).trim();
-  const colonIndex = content.indexOf(':');
-  const command = (colonIndex === -1 ? content : content.slice(0, colonIndex)).trim().toUpperCase();
-  const argsString = colonIndex === -1 ? '' : content.slice(colonIndex + 1).trim();
-  const args = argsString ? argsString.split('|').map((a) => a.trim()) : [];
+  let command = '';
+  let args: string[] = [];
+  let tail = '';
+
+  if (trimmed.startsWith('/')) {
+    const spaceIdx = trimmed.indexOf(' ');
+    const slashCmd = (spaceIdx === -1 ? trimmed.slice(1) : trimmed.slice(1, spaceIdx)).toUpperCase();
+    if (slashCmd === 'DICE' || slashCmd === 'KOSTKI' || slashCmd === 'K' || slashCmd === 'ROLL') {
+      command = 'DICE';
+      const remainder = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1).trim();
+      if (remainder.includes('|')) {
+        args = remainder.split('|').map((a) => a.trim());
+      } else {
+        const formulaMatch = remainder.match(/^([+-]?\s*(?:\d+)?(?:d|k)\d+(?:\s*[+-]\s*(?:\d+)?(?:d|k)\d+|\s*[+-]\s*\d+)*)(?:\s+(.+))?$/i);
+        if (formulaMatch && formulaMatch[2]) {
+          args = [formulaMatch[1].trim(), formulaMatch[2].trim()];
+        } else {
+          args = remainder ? [remainder] : [];
+        }
+      }
+    }
+  } else if (trimmed.startsWith('[')) {
+    const endBracket = trimmed.indexOf(']');
+    const inside = (endBracket === -1 ? trimmed.slice(1) : trimmed.slice(1, endBracket)).trim();
+    tail = endBracket !== -1 ? trimmed.slice(endBracket + 1).trim() : '';
+
+    const colonIndex = inside.indexOf(':');
+    command = (colonIndex === -1 ? inside : inside.slice(0, colonIndex)).trim().toUpperCase();
+    const argsString = colonIndex === -1 ? '' : inside.slice(colonIndex + 1).trim();
+    args = argsString ? argsString.split('|').map((a) => a.trim()) : [];
+  }
 
   const now = new Date();
 
@@ -415,9 +503,39 @@ export function executeCheatCommand(
     };
   }
 
-  if (command === 'DICE') {
-    const formula = args[0] || '1d100';
-    const roll = rollDiceFormula(formula) ?? { results: [50], total: 50 };
+  if (command === 'DICE' || command === 'KOSTKI' || command === 'K' || command.startsWith('DICE_')) {
+    const DICE_PRESETS: Record<string, { formula: string; labelPl: string; labelEn: string }> = {
+      DICE_MELEE: { formula: '1d6', labelPl: 'Walka wręcz', labelEn: 'Melee Combat' },
+      DICE_FIREARM: { formula: '1d10', labelPl: 'Rewolwer .38', labelEn: 'Handgun .38' },
+      DICE_HEAVY: { formula: '2d6+3', labelPl: 'Strzelba / Shotgun', labelEn: 'Shotgun' },
+      DICE_SANITY: { formula: '1d6', labelPl: 'Utrata Poczytalności', labelEn: 'Sanity Loss' },
+      DICE_MYTHOS: { formula: '1d20', labelPl: 'Bestia Mitów', labelEn: 'Mythos Beast' },
+    };
+
+    const preset = DICE_PRESETS[command];
+    let formula = args[0] || preset?.formula || '1d100';
+    let label = args[1] || (preset ? (isPl ? preset.labelPl : preset.labelEn) : undefined);
+    if (tail) {
+      const pipeIdx = tail.indexOf('|');
+      if (pipeIdx !== -1) {
+        formula = tail.slice(0, pipeIdx).trim();
+        label = tail.slice(pipeIdx + 1).trim();
+      } else {
+        formula = tail;
+      }
+    }
+    const trace = traceForFormula(formula, 'cheat-dice');
+    const rollEvent: DiceRollEventData = {
+      id: 'dice_' + Date.now(),
+      formula,
+      label,
+      trace,
+      characterName: character?.name,
+      timestamp: now.toISOString(),
+    };
+
+    const displayTitle = label ? `${formula} (${label})` : formula;
+
     return {
       isCheat: true,
       rawCommand: trimmed,
@@ -425,10 +543,12 @@ export function executeCheatCommand(
         id: 'cheat_msg_' + Date.now(),
         role: 'assistant',
         content: isPl
-          ? '🎲 **Rzut Kością (' + formula + '):** Wynik = **' + roll.total + '** (kości: [' + roll.results.join(', ') + '])'
-          : '🎲 **Dice Roll (' + formula + '):** Result = **' + roll.total + '** (dice: [' + roll.results.join(', ') + '])',
+          ? `🎲 **Rzut Kością [${displayTitle}]:** Wynik = **${trace.total}**`
+          : `🎲 **Dice Roll [${displayTitle}]:** Result = **${trace.total}**`,
+        diceRollEvents: [rollEvent],
         timestamp: now,
       },
+      toastMessage: isPl ? `Rzut kością: ${displayTitle}` : `Dice roll: ${displayTitle}`,
     };
   }
 

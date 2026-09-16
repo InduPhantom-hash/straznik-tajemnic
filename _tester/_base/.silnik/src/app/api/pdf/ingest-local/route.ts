@@ -20,6 +20,7 @@ import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
 import { detectRulebookProfile } from '@/lib/pdf/rulebook-fingerprint';
+import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 import fs from 'fs';
 import path from 'path';
 import { getWritableDataDir } from '@/lib/paths';
@@ -35,10 +36,6 @@ function writableRagDirectory(): string {
 }
 
 export async function POST(request: NextRequest) {
-  if (isDocumentModelUseBlocked()) return NextResponse.json(
-    documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
-    { status: 403 }
-  );
   const start = Date.now();
   try {
     // Klucz Gemini (opcjonalny fallback): lokalny RAG używa wbudowanego modelu ONNX (BGE-M3).
@@ -50,6 +47,8 @@ export async function POST(request: NextRequest) {
     let type: 'rules' | 'adventure' = 'rules';
     let clearBefore = false;
     let adventureId: string | undefined;
+
+    let pdfPagesCount = 1;
 
     const contentType = request.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -110,6 +109,7 @@ export async function POST(request: NextRequest) {
       try {
         const parsed = await pdfParserService.parsePDFBuffer(buffer);
         pdfText = parsed.text;
+        pdfPagesCount = parsed.pages || 1;
         console.log(
           `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
         );
@@ -138,6 +138,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Doktryna Clean Room Engine (BYOB / Zero-Cytowań):
+    // Podręcznik gracza jest analizowany wyłącznie lokalnie na urządzeniu w RAM (detekcja reguł i profilu).
+    // Chroniony autorsko tekst książki NIE trafia do zewnętrznych ani lokalnych modeli AI.
+    if (type === 'rules') {
+      const rulebookProfile = detectRulebookProfile(pdfText);
+      const ragDir = writableRagDirectory();
+      if (!fs.existsSync(ragDir)) {
+        fs.mkdirSync(ragDir, { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(ragDir, 'rules-profile.json'),
+        JSON.stringify(rulebookProfile, null, 2),
+        'utf-8'
+      );
+      console.log(`📜 Profil podręcznika wykryty i zapisany: ${rulebookProfile.profile} (${rulebookProfile.title})`);
+
+      // Zapisujemy w lokalnym store wskaźniki gotowości per strona (doktryna Zero-Cytowań: text jest undefined, brak cytatów autorskich)
+      const syntheticVectors = Array.from({ length: pdfPagesCount }, (_, i) => ({
+        id: `rules-page-${i + 1}`,
+        values: [0],
+        metadata: {
+          contentType: 'rule-page',
+          summary: `Strona ${i + 1} podręcznika ${rulebookProfile.title}`,
+          sourceFile: fileName,
+          chunkIndex: i,
+          gameTimestamp: '',
+          realTimestamp: new Date().toISOString(),
+          tags: `RULE:${rulebookProfile.profile}`,
+          sessionId: '',
+          messageRange: '',
+        },
+      }));
+
+      await localVectorStore.replaceNamespace('rules', syntheticVectors);
+
+      return NextResponse.json({
+        success: true,
+        indexed: pdfPagesCount,
+        failed: 0,
+        totalChunks: pdfPagesCount,
+        namespace: 'rules',
+        durationMs: Date.now() - start,
+        rulebookProfile,
+      });
+    }
+
+    // Dla pozostałych dokumentów (np. adventure) obowiązuje polityka ochrony przed wysyłaniem do modeli
+    if (isDocumentModelUseBlocked()) {
+      return NextResponse.json(
+        documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
+        { status: 403 }
+      );
+    }
+
     // Embedding service na kluczu gracza; indeksowanie idzie do data/rag/ (lokalnie).
     embeddingService.initialize(geminiApiKey);
 
@@ -155,26 +209,6 @@ export async function POST(request: NextRequest) {
         { ...result, error: result.error || 'Indeksowanie nie powiodło się' },
         { status: 500 }
       );
-    }
-
-    // Jeśli typ to 'rules', wykonaj detekcję profilu CoC 7e i zapisz metadane
-    let rulebookProfile = null;
-    if (type === 'rules') {
-      try {
-        rulebookProfile = detectRulebookProfile(pdfText);
-        const ragDir = writableRagDirectory();
-        if (!fs.existsSync(ragDir)) {
-          fs.mkdirSync(ragDir, { recursive: true });
-        }
-        fs.writeFileSync(
-          path.join(ragDir, 'rules-profile.json'),
-          JSON.stringify(rulebookProfile, null, 2),
-          'utf-8'
-        );
-        console.log(`📜 Profil podręcznika wykryty i zapisany: ${rulebookProfile.profile} (${rulebookProfile.title})`);
-      } catch (profileErr) {
-        console.warn('⚠️ Nie udało się zapisać profilu podręcznika:', profileErr);
-      }
     }
 
     // Jeśli typ to 'adventure' i dostępny jest klucz Gemini, wykonaj rozszerzoną ekstrakcję struktur
@@ -199,7 +233,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ...result,
-      rulebookProfile,
+      rulebookProfile: null,
       extractedAdventure,
     });
   } catch (error) {

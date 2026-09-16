@@ -11,7 +11,7 @@ import {
 const sha = 'a'.repeat(64);
 const manifest = {
   schemaVersion: 1,
-  version: '0.9.5',
+  version: '0.9.6',
   channel: 'stable',
   bundleId: 'com.aios.straznik-tajemnic-ai',
   minimumMacOSVersion: '11.0',
@@ -31,8 +31,8 @@ describe('desktop update service', () => {
   });
 
   it('accepts only stable V1 manifests with HTTPS and the expected bundle ID', () => {
-    expect(validateManifest(manifest)?.version).toBe('0.9.5');
-    expect(validateManifest({ ...manifest, version: '0.9.5-beta.1' })).toBeNull();
+    expect(validateManifest(manifest)?.version).toBe('0.9.6');
+    expect(validateManifest({ ...manifest, version: '0.9.6-beta.1' })).toBeNull();
     expect(validateManifest({ ...manifest, bundleId: 'evil.bundle' })).toBeNull();
     expect(validateManifest({ ...manifest, minimumMacOSVersion: 'latest' })).toBeNull();
     expect(validateManifest({ ...manifest, package: { ...manifest.package, url: 'http://example.com/app.zip' } })).toBeNull();
@@ -53,7 +53,7 @@ describe('desktop update service', () => {
       json: async () => manifest,
     })) as unknown as typeof fetch;
     const result = await checkForDesktopUpdate(fetcher);
-    expect(result).toMatchObject({ available: true, currentVersion: '0.9.4', canSelfUpdate: false });
+    expect(result).toMatchObject({ available: true, currentVersion: '0.9.5', canSelfUpdate: false });
   });
 
   it('returns a durable idle status when no worker result exists', async () => {

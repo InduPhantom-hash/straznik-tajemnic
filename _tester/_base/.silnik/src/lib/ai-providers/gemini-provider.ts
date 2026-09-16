@@ -274,27 +274,51 @@ export class GeminiChatProvider implements IChatProvider {
       }
     }
 
-    // EAGER pierwsze wywołanie z automatycznym fallbackiem na wypadek 404/503 (model wycofany lub przeciążony)
-    let firstResponse: Awaited<ReturnType<typeof streamOnce>>;
-    try {
-      firstResponse = await streamOnce(activeModel, config);
-    } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      const isUnavailable =
-        errMsg.includes('404') ||
-        errMsg.includes('not found') ||
-        errMsg.includes('no longer available') ||
-        errMsg.includes('503');
+    // Kaskada fallbacku (activeModel -> 3.6 -> 3.1-flash-lite -> flash-lite-latest)
+    const fallbackChain = Array.from(
+      new Set([
+        activeModel,
+        DEFAULT_GEMINI_MODEL_FALLBACK,
+        'gemini-3.1-flash-lite',
+        'gemini-flash-lite-latest',
+      ])
+    );
 
-      if (isUnavailable && activeModel !== DEFAULT_GEMINI_MODEL_FALLBACK) {
-        console.warn(
-          `⚠️ Model "${activeModel}" niedostępny (${errMsg}). Przełączam na sprawdzony fallback "${DEFAULT_GEMINI_MODEL_FALLBACK}".`
-        );
-        activeModel = DEFAULT_GEMINI_MODEL_FALLBACK;
+    let firstResponse: Awaited<ReturnType<typeof streamOnce>> | undefined;
+    let lastError: unknown;
+
+    for (const candidate of fallbackChain) {
+      try {
+        if (candidate !== activeModel) {
+          console.warn(
+            `⚠️ Przełączam model na sprawdzony fallback "${candidate}"...`
+          );
+        }
+        activeModel = candidate;
         firstResponse = await streamOnce(activeModel, config);
-      } else {
-        throw err;
+        break;
+      } catch (err: unknown) {
+        lastError = err;
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isUnavailable =
+          errMsg.includes('404') ||
+          errMsg.includes('not found') ||
+          errMsg.includes('no longer available') ||
+          errMsg.includes('503') ||
+          errMsg.includes('high demand') ||
+          errMsg.includes('UNAVAILABLE');
+
+        if (!isUnavailable) {
+          throw err;
+        }
+        console.warn(
+          `⚠️ Model "${candidate}" niedostępny (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
+        );
       }
+    }
+
+    if (!firstResponse) {
+      throw lastError || new Error('Wszystkie modele w kaskadzie awaryjnej zawiodły');
     }
 
     // IND-199: guard pustej odpowiedzi. gemini-2.5-flash potrafi wyczerpać budżet na

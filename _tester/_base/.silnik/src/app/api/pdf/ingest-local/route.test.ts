@@ -34,22 +34,51 @@ jest.mock('@/lib/vector-db/pdf-indexing-service', () => ({
 jest.mock('@/lib/vector-db/local-vector-store', () => ({
   localVectorStore: {
     getNamespaceCount: jest.fn(),
+    replaceNamespace: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
 describe('POST /api/pdf/ingest-local document policy', () => {
   beforeEach(() => jest.clearAllMocks());
-  it.each(['pl', 'en'])('blocks local and remote processing (%s)', async (locale) => {
+
+  it.each(['pl', 'en'])('blocks adventure documents (%s)', async (locale) => {
     const request = new NextRequest('http://localhost/api/synthetic', {
-      headers: { 'x-locale': locale },
+      headers: { 'x-locale': locale, 'content-type': 'application/json' },
     });
-    const formData = jest.spyOn(request, 'formData');
+    jest.spyOn(request, 'json').mockResolvedValueOnce({
+      text: 'Synthetic adventure text that definitely meets the minimum length requirement of 100 characters for document indexing in this endpoint...',
+      type: 'adventure',
+    });
+
     const response = await POST(request);
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toMatchObject({ code: 'DOCUMENT_MODEL_USE_BLOCKED' });
-    expect(formData).not.toHaveBeenCalled();
     expect(embeddingService.initialize).not.toHaveBeenCalled();
-    expect(pdfParserService.parsePDFBuffer).not.toHaveBeenCalled();
+    expect(pdfIndexingService.indexPdf).not.toHaveBeenCalled();
+  });
+
+  it('allows local rules ingestion in clean room mode (zero citations to LLM)', async () => {
+    const sampleRulesText =
+      'Call of Cthulhu 7th Edition Księga Strażnika. Poczytalność (Sanity), Walka (Combat), Umiejętności i rzuty kośćmi k100.';
+
+    const request = new NextRequest('http://localhost/api/synthetic', {
+      headers: { 'content-type': 'application/json' },
+    });
+    jest.spyOn(request, 'json').mockResolvedValueOnce({
+      text: sampleRulesText,
+      type: 'rules',
+      fileName: 'core_rules.pdf',
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.rulebookProfile).toBeDefined();
+    expect(body.namespace).toBe('rules');
+    expect(localVectorStore.replaceNamespace).toHaveBeenCalled();
+    // Zero cytowań do LLM: embedding service i zdalne indeksowanie nie są wywoływane
+    expect(embeddingService.initialize).not.toHaveBeenCalled();
     expect(pdfIndexingService.indexPdf).not.toHaveBeenCalled();
   });
 });

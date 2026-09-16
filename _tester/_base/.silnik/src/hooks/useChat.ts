@@ -1046,6 +1046,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             acquiredItems: execRes.assistantMessage.acquiredItems,
             generatedImages: execRes.assistantMessage.generatedImages,
             pendingMeleeAttacks: execRes.assistantMessage.pendingMeleeAttacks,
+            diceRollEvents: execRes.assistantMessage.diceRollEvents,
           };
           setMessages((prev) => [...prev, assistantMsg]);
         }

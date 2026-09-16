@@ -172,4 +172,47 @@ describe('Cheat Engine (Retro Kodów CoC 7e)', () => {
     expect(plAliasRes.assistantMessage?.hazardEvents?.[0].type).toBe('acid');
     expect(plAliasRes.assistantMessage?.hazardEvents?.[0].acidPotency).toBe('immersion');
   });
+
+  it('wykonuje komendę [DICE] i /dice generując zdarzenie rzutu kośćmi 3D oraz wspierając formuły złożone', () => {
+    // 1. Prosty rzut 1d100
+    const d100Res = executeCheatCommand('[DICE: 1d100]', mockCharacter, 'pl');
+    expect(d100Res.isCheat).toBe(true);
+    expect(d100Res.assistantMessage?.diceRollEvents).toBeDefined();
+    expect(d100Res.assistantMessage?.diceRollEvents?.[0].formula).toBe('1d100');
+    expect(d100Res.assistantMessage?.diceRollEvents?.[0].trace.dice.length).toBe(2); // tens + units
+
+    // 2. Przypadek gracza: [DICE: 1d100] 2d6 +3d12 (dopisanie za szablonem)
+    const userScreenshotRes = executeCheatCommand('[DICE: 1d100] 2d6 +3d12', mockCharacter, 'pl');
+    expect(userScreenshotRes.isCheat).toBe(true);
+    expect(userScreenshotRes.assistantMessage?.diceRollEvents).toBeDefined();
+    expect(userScreenshotRes.assistantMessage?.diceRollEvents?.[0].formula).toBe('2d6 +3d12');
+    expect(userScreenshotRes.assistantMessage?.diceRollEvents?.[0].trace.dice.length).toBe(5); // 2 d6 + 3 d12
+
+    // 3. Ukośnik /dice 3k6 + 5
+    const slashRes = executeCheatCommand('/dice 3k6 + 5', mockCharacter, 'pl');
+    expect(slashRes.isCheat).toBe(true);
+    expect(slashRes.assistantMessage?.diceRollEvents).toBeDefined();
+    expect(slashRes.assistantMessage?.diceRollEvents?.[0].formula).toBe('3k6 + 5');
+    expect(slashRes.assistantMessage?.diceRollEvents?.[0].trace.dice.length).toBe(3); // 3 d6
+    expect(slashRes.assistantMessage?.diceRollEvents?.[0].trace.modifier).toBe(5);
+
+    // 4. Ukośnik z etykietą po spacji: /dice 2d6+3 Strzelba
+    const labeledRes = executeCheatCommand('/dice 2d6+3 Strzelba', mockCharacter, 'pl');
+    expect(labeledRes.isCheat).toBe(true);
+    expect(labeledRes.assistantMessage?.diceRollEvents?.[0].formula).toBe('2d6+3');
+    expect(labeledRes.assistantMessage?.diceRollEvents?.[0].label).toBe('Strzelba');
+    expect(labeledRes.assistantMessage?.content).toContain('Strzelba');
+
+    // 5. Presety DICE_FIREARM i DICE_SANITY
+    const firearmRes = executeCheatCommand('[DICE_FIREARM]', mockCharacter, 'pl');
+    expect(firearmRes.isCheat).toBe(true);
+    expect(firearmRes.assistantMessage?.diceRollEvents?.[0].formula).toBe('1d10');
+    expect(firearmRes.assistantMessage?.diceRollEvents?.[0].label).toBe('Rewolwer .38');
+
+    const sanityRes = executeCheatCommand('[DICE_SANITY]', mockCharacter, 'en');
+    expect(sanityRes.isCheat).toBe(true);
+    expect(sanityRes.assistantMessage?.diceRollEvents?.[0].formula).toBe('1d6');
+    expect(sanityRes.assistantMessage?.diceRollEvents?.[0].label).toBe('Sanity Loss');
+  });
 });
+

@@ -48,3 +48,75 @@ export function traceForD100Bonus(total: number, tens: number[], units: number, 
     ],
   };
 }
+
+export function traceForFormula(formula: string, source = 'formula'): DiceRollTrace {
+  const clean = formula.toLowerCase().replace(/k/g, 'd').trim();
+  const regex = /([+-]?\s*(?:\d+)?d\d+|[+-]?\s*\d+)/g;
+  const matches = clean.match(regex);
+
+  if (!matches) {
+    const raw = Math.floor(Math.random() * 100) + 1;
+    return traceForD100(raw, source);
+  }
+
+  const dice: DiceRollTraceDie[] = [];
+  let modifier = 0;
+  let total = 0;
+  let dieIdx = 0;
+
+  for (let token of matches) {
+    token = token.replace(/\s+/g, '');
+    if (!token) continue;
+
+    if (token.includes('d')) {
+      const sign = token.startsWith('-') ? -1 : 1;
+      const unsigned = token.replace(/^[+-]/, '');
+      const parts = unsigned.split('d');
+      const count = parts[0] === '' ? 1 : Math.min(10, Math.max(1, parseInt(parts[0], 10)));
+      const sides = parseInt(parts[1], 10);
+
+      if (sides === 100) {
+        for (let c = 0; c < count; c++) {
+          const raw = Math.floor(Math.random() * 100) + 1;
+          const val = raw === 100 ? 0 : raw;
+          const tens = Math.floor(val / 10) * 10;
+          const units = val % 10;
+          dice.push({ id: `tens-${dieIdx}`, type: 'd10', value: tens, role: 'tens', selected: true });
+          dice.push({ id: `units-${dieIdx}`, type: 'd10', value: units, role: 'units', selected: true });
+          total += sign * raw;
+          dieIdx++;
+        }
+      } else {
+        let dieType: PhysicalDieType = 'd6';
+        if (sides <= 3) dieType = 'd3';
+        else if (sides <= 4) dieType = 'd4';
+        else if (sides <= 6) dieType = 'd6';
+        else if (sides <= 8) dieType = 'd8';
+        else if (sides <= 10) dieType = 'd10';
+        else if (sides <= 12) dieType = 'd12';
+        else dieType = 'd20';
+
+        for (let c = 0; c < count; c++) {
+          const val = Math.floor(Math.random() * sides) + 1;
+          dice.push({ id: `${dieType}-${dieIdx++}`, type: dieType, value: val, role: 'die', selected: true });
+          total += sign * val;
+        }
+      }
+    } else {
+      const modVal = parseInt(token, 10);
+      if (!isNaN(modVal)) {
+        modifier += modVal;
+        total += modVal;
+      }
+    }
+  }
+
+  return {
+    dice,
+    total,
+    modifier,
+    formula,
+    source,
+  };
+}
+

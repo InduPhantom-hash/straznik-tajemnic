@@ -7,7 +7,7 @@
  * Estetyka: Dark Art Déco Fiction First.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ import {
 } from '@/lib/combat/weapon-context';
 import { rollD100, rollD100WithBonus, type RollOutcome } from '@/lib/dice-utils';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
+import { findEquipmentTemplate } from '@/lib/equipment-catalog';
 import type { Character, OpposedMeleeEventData } from '@/lib/types';
 import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
 import { traceForDice, type PhysicalDieType } from '@/lib/dice-roll-trace';
@@ -104,6 +105,14 @@ export function OpposedMeleeCard({
   const [isResolved, setIsResolved] = useState<boolean>(completed || Boolean(resolution));
   const [selectedManeuver, setSelectedManeuver] = useState<ManeuverType>('knockdown');
 
+  useEffect(() => {
+    if (completed) {
+      setIsResolved(true);
+    }
+  }, [completed]);
+
+  const effectiveResolved = isResolved || completed || Boolean(resolution);
+
   // Normalizacja danych wejściowych (z opposedEvent lub attack)
   const attackerName = opposedEvent?.attackerName || attack?.attacker.name || 'Wrogi Przeciwnik';
   const attackerSkill = opposedEvent?.attackerSkill ?? attack?.attacker.attackSkill ?? 50;
@@ -163,6 +172,20 @@ export function OpposedMeleeCard({
   const defenderBuild = defender?.build ?? 0;
   const maneuverCheck = checkManeuverFeasibility(defenderBuild, attackerBuild);
 
+  const defenderArmor = useMemo(() => {
+    if (!defender) return 0;
+    let armor = defender.armor ?? 0;
+    for (const item of defender.equipment ?? []) {
+      if (!item.templateId || item.condition === 'broken') continue;
+      const template = findEquipmentTemplate(item.templateId);
+      const profile = template?.combatProfile;
+      if (profile?.kind === 'armor' && typeof profile.armorValue === 'number') {
+        armor = Math.max(armor, profile.armorValue);
+      }
+    }
+    return armor;
+  }, [defender]);
+
   // Przewaga liczebna (Outnumbered RAW s. 108)
   const isOpposedOutnumbered = Boolean(opposedEvent?.isOutnumbered);
   const outnumbered = resolveOutnumberedBonus(isOpposedOutnumbered ? 1 : defensesUsedThisRound);
@@ -210,7 +233,8 @@ export function OpposedMeleeCard({
   };
 
   const handleExecuteDefense = (choice: DefenseChoice) => {
-    if (!defender || isResolved || disabled || !canAct) return;
+    if (!defender || effectiveResolved || disabled || !canAct) return;
+    if (choice === 'maneuver' && !maneuverCheck.allowed) return;
 
     // Rzuty K100 CoC 7e RAW:
     // Jeśli obrońca jest outnumbered (przewaga liczebna), napastnik ma kość premiową (+1K)
@@ -243,7 +267,7 @@ export function OpposedMeleeCard({
       defenderWeaponFormula: selectedWeapon?.damageFormula ?? '1d3',
       defenderDamageBonusFormula: defender.damageBonus ?? '0',
       defenderDamageType: selectedWeapon?.damageType ?? 'blunt',
-      defenderArmor: 0,
+      defenderArmor,
       attackerArmor: attack?.attacker.armor ?? 0,
       defenderMaxHp: defender.maxHp ?? defender.hp,
       attackerMaxHp: attack?.attacker.maxHp ?? attack?.attacker.hp ?? 10,
@@ -364,7 +388,7 @@ export function OpposedMeleeCard({
               CoC 7e RAW s. 102
             </Badge>
           </div>
-          {isResolved ? (
+          {effectiveResolved ? (
             <Badge className="border-emerald-500/40 bg-emerald-500/20 font-mono text-xs text-emerald-300">
               <CheckCircle2 className="mr-1 h-3 w-3" />
               {t('statusResolved')}
@@ -394,7 +418,7 @@ export function OpposedMeleeCard({
         </div>
 
         {/* Ostrzeżenie o przewadze liczebnej */}
-        {outnumbered.isOutnumbered && !isResolved && (
+        {outnumbered.isOutnumbered && !effectiveResolved && (
           <div className="mt-2 flex items-start gap-2 rounded border border-destructive/40 bg-destructive/10 p-2.5 text-xs text-destructive-foreground">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <span>{t('outnumberedWarning')}</span>
@@ -404,7 +428,7 @@ export function OpposedMeleeCard({
 
       <CardContent className="space-y-4 p-4">
         {/* Stan 1: Opcje obrony (gdy starcie czeka na decyzję) */}
-        {!isResolved && (
+        {!effectiveResolved && (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {/* Opcja 1: Zwinny Unik (Dodge) */}
             <div className="flex flex-col justify-between rounded-lg border border-sky-500/30 bg-sky-950/20 p-3.5 transition-all hover:border-sky-500/60">
@@ -557,7 +581,7 @@ export function OpposedMeleeCard({
         )}
 
         {/* Stan 2: Wizualizacja rozstrzygnięcia, kości K100 i obrażeń */}
-        {isResolved && resultState && (
+        {effectiveResolved && resultState && (
           <div className="space-y-3 rounded-lg border border-brass/30 bg-background/60 p-4">
             {/* Werdykt starcia */}
             <div className="flex items-center gap-2 font-display text-sm font-semibold">
@@ -661,6 +685,17 @@ export function OpposedMeleeCard({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Stan 3: Wizualizacja rozstrzygnięcia historycznego (bez szczegółów rzutu w sesji) */}
+        {effectiveResolved && !resultState && (
+          <div className="rounded-lg border border-brass/20 bg-background/40 p-4 text-center text-xs text-muted-foreground font-serif">
+            <div className="flex items-center justify-center gap-2 text-emerald-400 mb-1">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="font-semibold">{t('defenseResolved')}</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">{t('rulebookTieReminder')}</p>
           </div>
         )}
       </CardContent>
