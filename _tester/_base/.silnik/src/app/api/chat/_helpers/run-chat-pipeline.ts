@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadAISettings, getGameMasterPrompt } from '@/lib/ai-settings';
 import { DEFAULT_GEMINI_MODEL } from '@/lib/ai-providers/constants';
 import { getContextLimit } from '@/lib/model-registry';
-import { Character, Message, type GameTime, type NPC } from '@/lib/types';
+import { Character, Message, type GameTime, type NPC, type GuardrailState } from '@/lib/types';
+import {
+  extractPutativeEvent,
+  adjudicatePutativeEvent,
+  updateGuardrailState,
+} from '@/lib/concordia/event-resolution';
 import type { CombatResolution } from '@/lib/combat/combat-resolver';
 import { extractCommand, handleCommand } from '@/lib/command-handler';
 import { detectGameContext } from '@/lib/prompt-section-parser';
@@ -221,12 +226,14 @@ export async function runChatPipeline({
     locale: requestedLocale,
     adventureId: explicitAdventureId,
     memoryScope: requestedMemoryScope,
+    guardrailState: requestedGuardrailState,
   } = body as {
     message: string;
     adventureId?: string;
     character?: Character | null;
     characters?: Character[];
     messages?: Message[];
+    guardrailState?: GuardrailState;
     pdfMemory?: PdfMemoryAttachments | null;
     npcs?: NPC[];
     currentLocation?: string;
@@ -476,9 +483,24 @@ export async function runChatPipeline({
   const activeTone =
     aiSettings.sessionZero?.tone || adventureContext?.tone || 'purist';
 
+  // Guardrail state & strike counter with decay (Issue #380)
+  const defaultActor = character?.name || characters?.[0]?.name || 'Badacz';
+  const putativeForGuardrail = extractPutativeEvent(message, defaultActor, currentLocation);
+  const adjForGuardrail = adjudicatePutativeEvent(putativeForGuardrail, {
+    character: character ?? characters?.[0] ?? null,
+    locale: (requestedLocale ?? 'pl') as 'pl' | 'en',
+  });
+
+  const updatedGuardrailState = updateGuardrailState(
+    requestedGuardrailState,
+    Boolean(adjForGuardrail.guardrailViolation),
+    adjForGuardrail.guardrailViolation
+  );
+
   const additionalContext = buildAdditionalContext({
     timePromptSection,
     gmProtocol,
+    guardrailState: updatedGuardrailState,
     gameContext,
     resolvedCachedContent,
     sessionId,

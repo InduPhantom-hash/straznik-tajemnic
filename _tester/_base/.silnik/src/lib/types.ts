@@ -179,6 +179,7 @@ export interface Message {
   opposedMagicEvents?: OpposedMagicEventData[]; // Obrona przed wrogą magią CoC 7e RAW [OBRONA_MAGIA:...]
   opposedMeleeEvents?: OpposedMeleeEventData[]; // Obrona przed atakiem wręcz CoC 7e RAW [WALKA_ATAK:...] / [OBRONA_WALKA:...]
   gameOverEvents?: GameOverEventData[]; // Ostateczny kres postaci i epilog CoC 7e RAW [GAME_OVER:...]
+  refereeVetoEvents?: RefereeVetoEventData[]; // Twarde weto sędziego i guardrails [WETO_SEDZIEGO:...]
   tomeStudyEvents?: TomeStudyEventData[]; // Badanie tomów Mitów CoC 7e RAW [TOM:...]
   chaseState?: ChaseState; // Pościg i tor przeszkód CoC 7e RAW [POŚCIG:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
@@ -687,6 +688,7 @@ export interface GameSession {
   status: 'active' | 'paused' | 'completed';
   campaignId?: string; // NOWE: ID kampanii
   participants: string[]; // NOWE: Lista graczy w sesji
+  guardrailState?: GuardrailState; // Stan guardrails immersji i strike counter (Issue #380)
 }
 
 // NPC dla menedżera GM
@@ -1162,3 +1164,18 @@ export interface GameOverEventData {
     lastWords: string;
   };
 }
+
+// === GUARDRAILS & PROTOKÓŁ SERIOUS SAM (Issue #380) ===
+export interface GuardrailState {
+  strikeCount: number; // 0, 1, 2, 3
+  turnsSinceLastViolation: number; // licznik do decay (>=3 resetuje strike o 1)
+  lastViolationType?: 'anachronism' | 'obscene' | 'injection' | 'impossible';
+}
+
+export interface RefereeVetoEventData {
+  id: string;
+  type?: 'anachronism' | 'obscene' | 'injection' | 'impossible';
+  reason: string;
+  suggestedAlternatives?: string[];
+}
+

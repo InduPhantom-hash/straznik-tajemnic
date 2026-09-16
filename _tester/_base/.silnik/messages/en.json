@@ -8050,6 +8050,19 @@
     "finishDeclarationDeath": "[DECLARATION: Investigation concluded. Investigator {name} perished in pursuit of truth. Evil has triumphed.]",
     "finishDeclarationInsane": "[DECLARATION: Investigation concluded. {name}'s mind shattered under cosmic dread. Committed to Arkham Sanitarium.]",
     "continueDeclaration": "[DECLARATION: {successor} inherits the Dossier and legacy of {previous}. The investigation continues!]"
+  },
+  "RefereeCard": {
+    "veto_title": "Referee Intervention",
+    "badge": "Game Veto",
+    "badge_anachronism": "Era Anachronism (1920s)",
+    "badge_obscene": "Unacceptable Action",
+    "badge_injection": "Frame Violation",
+    "badge_impossible": "Physically Impossible (RAW)",
+    "time_frozen": "Game time stands still - Your action was vetoed by the Referee.",
+    "era_restriction": "Action violates 1920s historical reality or physical boundaries.",
+    "suggested_actions": "Period-accurate alternatives (click to select):",
+    "quote_tooltip": "Click to insert into message input",
+    "easter_egg_obituary_title": "Serious Sam Protocol: Ripped Fabric of Reality"
   }
 }
 

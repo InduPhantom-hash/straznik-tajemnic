@@ -14,7 +14,8 @@
  * @module concordia/event-resolution
  */
 
-import type { Character, NPC } from '../types';
+import type { Character, NPC, GuardrailState } from '../types';
+export type { GuardrailState } from '../types';
 import { isWeapon, inferWeaponSkill, isMeleeWeapon } from '../combat/weapon-context';
 
 export type AdjudicationPlausibility = 'plausible' | 'implausible' | 'impossible';
@@ -67,6 +68,8 @@ export interface AdjudicationResult {
     | 'auto_success'
     | 'refused_by_referee';
   confidence: number;
+  guardrailViolation?: 'anachronism' | 'obscene' | 'injection' | 'impossible';
+  suggestedEraAlternatives?: string[];
 }
 
 export interface RealEvent {
@@ -120,9 +123,9 @@ const SELF_SUCCESS_PATTERNS: RegExp[] = [
 ];
 
 /**
- * Akcje niemożliwe fizycznie i anachroniczne (Twarde Weto Sędziego CoC 7e RAW s. 94, 218).
+ * Akcje niemożliwe fizycznie i nadludzkie (Twarde Weto Sędziego CoC 7e RAW s. 94, 218).
  */
-const IMPOSSIBLE_PATTERNS: RegExp[] = [
+export const IMPOSSIBLE_PATTERNS: RegExp[] = [
   /(?:unoszę\s+się\s+w\s+powietrzu|lewituj|latam\s+(?:bez\s+sprzętu|nad|po|jak)|teleportuj)/i,
   /(?:strzelam\s+laser|promienie\s+z\s+oczu|lasery?\s+z\s+oczu|siłą\s+woli\s+rozrywam)/i,
   /(?:podnoszę|unoszę|dźwigam|zatrzymuj[ęe]).*(?:lokomotyw|pociąg|czołg|kamienic|budynek|wieżowiec|10\s*[- ]?ton|wielotonow|głaz.*(?:10|ton))/i,
@@ -130,6 +133,165 @@ const IMPOSSIBLE_PATTERNS: RegExp[] = [
   /(?:unikam\s+serii\s+z\s+km.*biegnąc\s+po\s+ścianie)/i,
   /(?:levitate|teleport|shoot\s+lasers|lift.*(?:locomotive|10\s*ton|tank)|catch\s+bullets\s+with\s+teeth)/i,
 ];
+
+/**
+ * Wzorce anachronizmów technologicznych i współczesnych pojęć (Twarde Weto Sędziego CoC 7e RAW s. 94, 218).
+ */
+export const ANACHRONISM_PATTERNS: RegExp[] = [
+  // Smartfony, telefony komórkowe, tablety, laptopy
+  /(?:smartfon|smartphon|iphone|ajfon|telefon(?:u|em)?\s+komórkow|komórk[aęeioóy]|komork[aęeioóy]|android(?:a)?|tablet(?:em)?|ipad(?:a)?|laptop(?:em)?|komputer(?:em)?|smartwatch(?:em)?)/i,
+  /(?:dzwoni[ęe]\s+z\s+komórki|wyciągam\s+(?:komórkę|telefon\s+komórkowy|smartfon|iphone)|sprawdzam\s+w\s+telefonie)/i,
+  /(?:cell\s*phone|mobile\s*phone|smartphone)/i,
+  // Internet, Wi-Fi, wyszukiwarki, social media
+  /(?:wi[- ]?fi|hotspot|bluetooth|internet(?:u|em|zie)?|sieci\s+internetowej|przeglądark|google|googluj|wygoogl|wikipedia|tik\s*tok|instagram|facebook|social\s*media|tweeter|twitter|reddit|discord|youtube)/i,
+  /(?:sprawdzam\s+w\s+(?:google|internecie|wikipedii)|wrzucam\s+(?:posta|filmik|na\s+tiktoka|na\s+insta))/i,
+  /(?:browse\s+the\s+web|search\s+online|google\s+it)/i,
+  // Współczesny handel, płatności, transport
+  /(?:żabk[aęeioóy]|zabk[aęeioóy]|do\s+żabki|do\s+zabki|w\s+żabce|w\s+zabce|po\s+hot[- ]?doga|hot[- ]?dog\s+z\s+żabki|supermarket|hipermarket|biedronk[aęeioóy]|lidl[a]?)/i,
+  /(?:blik|blikiem|płacę\s+blikiem|płatność\s+zbliżeniow|karta\s+zbliżeniow|karta\s+płatnicz)/i,
+  /(?:uber(?:a|em)?|zamawiam\s+ubera|bolt(?:a|em)?|zamawiam\s+bolta|carsharing|taxi\s+z\s+aplikacji)/i,
+  // Nowoczesne pojazdy, drony, uzbrojenie cyfrowe
+  /(?:tesla|tesl[ęeioóy]|samochód\s+elektryczn|dron[a-z]*|quadcopter|gps|nawigacj[aęeioóy]\s+gps|noktowizor\s+cyfrow|taser|paralizator)/i,
+];
+
+/**
+ * Wzorce zachowań obscenicznych, wulgarnego trollingu i defekacji publicznej.
+ */
+export const OBSCENE_PATTERNS: RegExp[] = [
+  /(?:robi[ęe]\s+kup[ęe]|robić\s+kup[ęe]|stawiam\s+kloca|zrzucam\s+kloca|(?:\b|^|\s)(?:sram|srasz|srać|nasrać|wysrać|zesrać|sranie|defekacj[a-ząćęłńóśźż]*|defekuj[a-ząćęłńóśźż]*)(?:\b|$|\s))/i,
+  /(?:robi[ęe]\s+siku|(?:\b|^|\s)sika[mć]|oddaj[ęe]\s+mocz|(?:\b|^|\s)(?:szczam|szczasz|szczać|zeszczam|zeszczać)(?:\b|$|\s))/i,
+  /(?:obnażam\s+się|zdejmuję\s+spodnie\s+i\s+(?:pokazuję|wypinam)|biegam\s+nago|pokazuję\s+(?:penisa|fiuta|tyłek|gołą\s+dupę))/i,
+  /(?:defecat|poop\s+on\s+the\s+floor|shit\s+on\s+the\s+floor|urinate\s+in\s+public|pee\s+on\s+the\s+floor|strip\s+naked|expose\s+myself\s+indecently)/i,
+];
+
+/**
+ * Wzorce prompt injection, wycieków instrukcji i łamania jailbreak.
+ */
+export const PROMPT_INJECTION_PATTERNS: RegExp[] = [
+  /(?:ignore\s+(?:all\s+)?previous\s+instructions|disregard\s+(?:all\s+)?prior\s+instructions)/i,
+  /(?:zignoruj\s+(?:wszystkie\s+)?(?:poprzednie|wcześniejsze)\s+instrukcje|zapomnij\s+(?:wszystkie\s+)?(?:poprzednie\s+)?polecenia)/i,
+  /(?:reveal\s+system\s+prompt|show\s+(?:your\s+)?system\s+prompt|print\s+(?:the\s+)?system\s+prompt)/i,
+  /(?:pokaż\s+prompt\s+systemowy|ujawnij\s+instrukcje\s+systemowe|wypisz\s+prompt)/i,
+  /(?:output\s+raw\s+json|format\s+as\s+system\s+json|return\s+developer\s+instructions)/i,
+  /(?:jesteś\s+teraz\s+dan|act\s+as\s+dan|tryb\s+dan|uncensored\s+mode|bypass\s+guardrails)/i,
+];
+
+/**
+ * Sugerowane alternatywy z realiów lat 20. XX wieku (Quote-to-Input).
+ */
+export const ERA_ALTERNATIVES: {
+  telecom: { pl: string[]; en: string[] };
+  shopping: { pl: string[]; en: string[] };
+  transport: { pl: string[]; en: string[] };
+  research: { pl: string[]; en: string[] };
+  decorum: { pl: string[]; en: string[] };
+  meta: { pl: string[]; en: string[] };
+  general: { pl: string[]; en: string[] };
+} = {
+  telecom: {
+    pl: [
+      'Użyj telegrafu na poczcie miejskiej',
+      'Zadzwoń z budki telefonicznej przez centralę',
+      'Wyślij posłańca z ekspresowym telegramem',
+    ],
+    en: [
+      'Use the municipal telegraph at the post office',
+      'Call from a public telephone booth via operator',
+      'Send a messenger boy with an urgent telegram',
+    ],
+  },
+  shopping: {
+    pl: [
+      'Odwiedź lokalny sklep kolonialny',
+      'Zajrzyj do całodobowego szynku po zapasy',
+      'Kup prowiant na miejskim bazarze',
+    ],
+    en: [
+      'Visit a local dry goods and colonial store',
+      'Stop by an all-night tavern for provisions',
+      'Buy groceries at the municipal marketplace',
+    ],
+  },
+  transport: {
+    pl: [
+      'Złap miejską dorożkę (dryndę)',
+      'Wynajmij żółtą taksówkę Ford T',
+      'Wsiądź w tramwaj miejski lub pociąg (banę)',
+    ],
+    en: [
+      'Hail a horse-drawn cab',
+      'Hire a yellow Ford Model T taxi',
+      'Board the municipal streetcar or train',
+    ],
+  },
+  research: {
+    pl: [
+      'Przeszukaj archiwum Arkham Advertiser',
+      'Skorzystaj z Biblioteki Uniwersytetu Miskatonic',
+      'Zasięgnij języka w lokalnej kawiarni',
+    ],
+    en: [
+      'Search the Arkham Advertiser newspaper archives',
+      'Consult the Miskatonic University Library catalogs',
+      'Inquire discreetly at a local cafe',
+    ],
+  },
+  decorum: {
+    pl: [
+      'Zachowaj zimną krew i opanuj nerwy',
+      'Odszukaj toaletę w pobliskim lokalu',
+    ],
+    en: [
+      'Keep your composure and steady your nerves',
+      'Find a washroom in a nearby establishment',
+    ],
+  },
+  meta: {
+    pl: [
+      'Skup się na bezpośrednim otoczeniu i poszlakach',
+      'Zbadaj pomieszczenie pod kątem ukrytych wskazówek',
+    ],
+    en: [
+      'Focus on your immediate surroundings and clues',
+      'Inspect the room carefully for hidden details',
+    ],
+  },
+  general: {
+    pl: [
+      'Zbadaj okolicę tradycyjnymi metodami z epoki',
+      'Zasięgnij rady miejscowych mieszkańców',
+    ],
+    en: [
+      'Investigate the surroundings using period-accurate methods',
+      'Ask local residents for guidance',
+    ],
+  },
+};
+
+export function getEraAlternatives(text: string, isEn: boolean = false): string[] {
+  const lower = text.toLowerCase();
+  const lang = isEn ? 'en' : 'pl';
+
+  if (/(?:telefon|komórk|komork|smartfon|iphone|android|zadzwon|call|phone)/i.test(lower)) {
+    return ERA_ALTERNATIVES.telecom[lang];
+  }
+  if (/(?:żabk|zabk|sklep|market|kupuj|zakup|hot[- ]?dog|grocery|store)/i.test(lower)) {
+    return ERA_ALTERNATIVES.shopping[lang];
+  }
+  if (/(?:uber|bolt|taxi|samochód|tesla|car|drive)/i.test(lower)) {
+    return ERA_ALTERNATIVES.transport[lang];
+  }
+  if (/(?:google|internet|wifi|szukaj|informacj|search|web|wikipedia)/i.test(lower)) {
+    return ERA_ALTERNATIVES.research[lang];
+  }
+  if (/(?:kupa|kupy|kupę|sika|szcza|nago|obnaż|poop|pee|shit|naked)/i.test(lower)) {
+    return ERA_ALTERNATIVES.decorum[lang];
+  }
+  if (/(?:instrukcj|prompt|system|dan|ignore)/i.test(lower)) {
+    return ERA_ALTERNATIVES.meta[lang];
+  }
+  return ERA_ALTERNATIVES.general[lang];
+}
 
 /**
  * Rutynowe czynności codzienne bez presji i bez ryzyka (autosukces dozwolony).
@@ -416,6 +578,66 @@ export function adjudicatePutativeEvent(
     };
   }
 
+  // 1B. PROMPT INJECTION / SYSTEM MANIPULATION
+  for (const injPattern of PROMPT_INJECTION_PATTERNS) {
+    if (injPattern.test(text) || injPattern.test(rawLower)) {
+      return {
+        eventId: event.id,
+        plausibility: 'impossible',
+        plausibilityReason: isEn
+          ? 'System intrusion or prompt manipulation attempt rejected (The Keeper maintains narrative integrity).'
+          : 'Próba manipulacji instrukcjami systemowymi odrzucona (Strażnik chroni integralność narracji).',
+        category: 'mundane',
+        requiresCheck: false,
+        isAutosuccessAllowed: false,
+        suggestedOutcome: 'blocked_impossible',
+        guardrailViolation: 'injection',
+        suggestedEraAlternatives: getEraAlternatives(text, isEn),
+        confidence: 1.0,
+      };
+    }
+  }
+
+  // 1C. OBSCENICZNOŚCI / PUBLICZNA DEFEKACJA / GRIEFING
+  for (const obsPattern of OBSCENE_PATTERNS) {
+    if (obsPattern.test(text) || obsPattern.test(rawLower)) {
+      return {
+        eventId: event.id,
+        plausibility: 'impossible',
+        plausibilityReason: isEn
+          ? 'Obscene or disruptive action strictly rejected by Referee (CoC 7e decorum and reality).'
+          : 'Wulgarne lub obsceniczne zachowanie odrzucone przez Sędziego (etykieta epoki i powaga śledztwa CoC 7e).',
+        category: 'mundane',
+        requiresCheck: false,
+        isAutosuccessAllowed: false,
+        suggestedOutcome: 'blocked_impossible',
+        guardrailViolation: 'obscene',
+        suggestedEraAlternatives: getEraAlternatives(text, isEn),
+        confidence: 1.0,
+      };
+    }
+  }
+
+  // 1D. ANACHRONIZMY TECHNOLOGICZNE I WSPÓŁCZESNE POJĘCIA
+  for (const anachPattern of ANACHRONISM_PATTERNS) {
+    if (anachPattern.test(text) || anachPattern.test(rawLower)) {
+      return {
+        eventId: event.id,
+        plausibility: 'impossible',
+        plausibilityReason: isEn
+          ? 'Anachronistic technology or concept not existing in the 1920s (Referee Veto CoC 7e RAW p. 94, 218).'
+          : 'Technologia lub pojęcie anachroniczne, nieistniejące w realiach lat 20. XX w. (Twarde Weto Sędziego CoC 7e RAW s. 94, 218).',
+        category: 'physical',
+        requiresCheck: false,
+        isAutosuccessAllowed: false,
+        suggestedOutcome: 'blocked_impossible',
+        guardrailViolation: 'anachronism',
+        suggestedEraAlternatives: getEraAlternatives(text, isEn),
+        confidence: 0.99,
+      };
+    }
+  }
+
   // 2. AKCJA NIEMOŻLIWA FIZYCZNIE / SĘDZIA RAW (VETO)
   for (const impPattern of IMPOSSIBLE_PATTERNS) {
     if (impPattern.test(text) || impPattern.test(rawLower)) {
@@ -429,6 +651,8 @@ export function adjudicatePutativeEvent(
         requiresCheck: false,
         isAutosuccessAllowed: false,
         suggestedOutcome: 'blocked_impossible',
+        guardrailViolation: 'impossible',
+        suggestedEraAlternatives: getEraAlternatives(text, isEn),
         confidence: 0.98,
       };
     }
@@ -883,15 +1107,20 @@ export function resolveToRealEvent(
     };
   }
 
-  // 2. TWARDE WETO SĘDZIEGO (AKCJA NIEMOŻLIWA)
+  // 2. TWARDE WETO SĘDZIEGO (AKCJA NIEMOŻLIWA / GUARDRAIL)
   if (adjudication.suggestedOutcome === 'blocked_impossible') {
+    const alternativesStr = (adjudication.suggestedEraAlternatives || []).join('; ');
+    const vetoTag = adjudication.guardrailViolation
+      ? `[WETO_SEDZIEGO: typ=${adjudication.guardrailViolation} | powod=${adjudication.plausibilityReason || 'Ograniczenie epoki'} | alternatywy=${alternativesStr}]`
+      : '';
+
     const groundedFact = isEn
       ? `The investigator (${event.actorName}) attempts: "${event.actionAttempt}", but it is physically or situationally impossible [${adjudication.plausibilityReason || 'Physical limitation / missing gear'}]. The action does not occur.`
       : `Badacz (${event.actorName}) próbuje podjąć akcję: "${event.actionAttempt}", lecz jest to fizycznie lub sytuacyjnie niemożliwe [${adjudication.plausibilityReason || 'Ograniczenie fizyczne / brak sprzętu'}]. Akcja nie dochodzi do skutku.`;
 
     const mechanicalDirective = isEn
-      ? `STRICT REFEREE VETO (CoC 7e RAW): Firmly and diegetically explain in 1-2 concise sentences why this cannot be done. Do not call for a roll. Do not advance game clock. End with [What do you do?].`
-      : `TWARDE WETO SĘDZIEGO (CoC 7e RAW): Wyjaśnij krótko i diegetycznie w 1-2 zdaniach z pozycji Sędziego dlaczego akcja jest niemożliwa. Nie wzywaj testu kością. Czas gry nie upływa. Zakończ pytaniem [Co robisz?].`;
+      ? `STRICT REFEREE VETO (CoC 7e RAW): Firmly and diegetically explain in 1-2 concise sentences why this cannot be done. ${vetoTag ? `You MUST emit the exact referee veto tag: ${vetoTag}. ` : ''}Do not call for a roll. Do not advance game clock. ${alternativesStr ? `Offer suggested period alternatives: ${alternativesStr}. ` : ''}End with [What do you do?].`
+      : `TWARDE WETO SĘDZIEGO (CoC 7e RAW): Wyjaśnij krótko i diegetycznie w 1-2 zdaniach z pozycji Sędziego dlaczego akcja jest niemożliwa. ${vetoTag ? `MUSISZ wyemitować oficjalny tag: ${vetoTag}. ` : ''}Nie wzywaj testu kością. Czas gry NIE upływa. ${alternativesStr ? `Zaproponuj alternatywy z epoki: ${alternativesStr}. ` : ''}Zakończ pytaniem [Co robisz?].`;
 
     return {
       id,
@@ -1018,7 +1247,7 @@ export function buildConcordiaEventResolutionDirective(
       '2. ANTI-AUTOSUCCESS INVARIANT:\n' +
       '   - The player message was a Putative Event (intention), NOT an established fact.\n' +
       '   - If Event Status is CHECK_REQUIRED: Never narrate that the investigator opened the door, subdued the foe, or uncovered the secret. Narrate the attempt and call for the dice test!\n' +
-      '   - If Event Status is BLOCKED: State the physical/historical barrier diegetically and prompt [What do you do?].\n' +
+      '   - If Event Status is BLOCKED: State the physical/historical barrier diegetically and prompt [What do you do?]. If [WETO_SEDZIEGO:...] is present in the directive, you MUST emit it verbatim!\n' +
       '   - If Event Status is ESTABLISHED: Action succeeds normally as a routine action.'
     );
   } else {
@@ -1034,7 +1263,7 @@ export function buildConcordiaEventResolutionDirective(
       '2. ŻELAZNY ZAKAZ AUTOSUKCESU (INWARIANT CONCORDIA):\n' +
       '   - Wypowiedź gracza w czacie to wyłącznie deklaracja intencji (Putative Event), a NIE dokonany fakt.\n' +
       '   - Gdy Status Zdarzenia to CHECK_REQUIRED: Pod żadnym pozorem nie opisuj samowolnego sukcesu akcji! Opisz wyłącznie podjęcie próby i wyzwij odpowiedni [TEST: ...].\n' +
-      '   - Gdy Status Zdarzenia to BLOCKED: Zastosuj Twarde Weto Sędziego CoC 7e RAW (odmów wykonania niemożliwej akcji w 1-2 zdaniach) i zakończ pytaniem [Co robisz?].\n' +
+      '   - Gdy Status Zdarzenia to BLOCKED: Zastosuj Twarde Weto Sędziego CoC 7e RAW (odmów wykonania niemożliwej akcji w 1-2 zdaniach, wyemituj tag [WETO_SEDZIEGO:...] jeśli jest w dyrektywie) i zakończ pytaniem [Co robisz?]. Czas gry NIE upływa.\n' +
       '   - Gdy Status Zdarzenia to ESTABLISHED: Akcja rutynowa lub dialog powiodły się zwyczajnie w fikcji.'
     );
   }
@@ -1088,3 +1317,31 @@ export function adjudicateEventPipeline(
     directive,
   };
 }
+
+/**
+ * Aktualizuje ukryty licznik strike'ów z mechanizmem decay (spadek o 1 po 3 czystych turach).
+ */
+export function updateGuardrailState(
+  currentState: GuardrailState | undefined,
+  hasViolation: boolean,
+  violationType?: 'anachronism' | 'obscene' | 'injection' | 'impossible'
+): GuardrailState {
+  const state: GuardrailState = currentState
+    ? { ...currentState }
+    : { strikeCount: 0, turnsSinceLastViolation: 0 };
+
+  if (hasViolation) {
+    state.strikeCount = Math.min(3, state.strikeCount + 1);
+    state.turnsSinceLastViolation = 0;
+    state.lastViolationType = violationType;
+  } else {
+    state.turnsSinceLastViolation += 1;
+    if (state.turnsSinceLastViolation >= 3) {
+      state.strikeCount = Math.max(0, state.strikeCount - 1);
+      state.turnsSinceLastViolation = 0;
+    }
+  }
+
+  return state;
+}
+

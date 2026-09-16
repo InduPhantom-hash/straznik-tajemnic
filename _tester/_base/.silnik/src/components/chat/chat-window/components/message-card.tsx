@@ -32,6 +32,7 @@ import { ChaseCard } from './chase-card';
 import { CombatCard } from './combat-card';
 import { OpposedMeleeCard } from './opposed-melee-card';
 import { GameOverCard } from './game-over-card';
+import { RefereeVetoCard } from './referee-veto-card';
 import type { Character, Message } from '@/lib/types';
 import type { ChaseManeuverType, ChaseState } from '@/lib/chase/chase-engine';
 import type { PendingMeleeAttack, DefenseChoice, ManeuverType } from '@/lib/combat/combat-resolver';
@@ -519,6 +520,18 @@ export function MessageCard({
                     completed={resolvedCombatIds?.has(attack.eventId)}
                     onCharacterUpdate={onCharacterUpdate}
                     onSendChat={onSendCombatResult}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Twarde weto sędziego i guardrails CoC 7e RAW (Issue #380) */}
+            {message.refereeVetoEvents && message.refereeVetoEvents.length > 0 && (
+              <div className="mt-3 space-y-3">
+                {message.refereeVetoEvents.map((veto) => (
+                  <RefereeVetoCard
+                    key={veto.id}
+                    veto={veto}
                   />
                 ))}
               </div>
