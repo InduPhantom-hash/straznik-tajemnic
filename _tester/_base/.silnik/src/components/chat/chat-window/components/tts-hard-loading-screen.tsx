@@ -64,13 +64,25 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   const location = region || adventureContext?.location || adventureContext?.country;
   const eraLabel = eraContext?.effectiveYear ? String(eraContext.effectiveYear) : undefined;
 
-  // Wprowadzenie fabularne: hook > description > default
-  const storyHook = useMemo(() => {
-    if (adventureContext?.hook) return adventureContext.hook;
-    if (adventureContext?.description) return adventureContext.description;
-    if (adventureDescription) return adventureDescription;
+  // Zróżnicowane treści: Dossier (lewa) vs Meldunek operacyjny / Hook (prawa)
+  const storyDossier = useMemo(() => {
+    const rawDesc = adventureContext?.description?.trim() || adventureDescription?.trim();
+    if (rawDesc) return rawDesc;
     return t('defaultChronicleIntro');
-  }, [adventureContext?.hook, adventureContext?.description, adventureDescription, t]);
+  }, [adventureContext?.description, adventureDescription, t]);
+
+  const storyHook = useMemo(() => {
+    const rawHook = adventureContext?.hook?.trim();
+    const normalizedDossier = storyDossier.trim().toLowerCase();
+
+    // Jeśli podano unikalny hook różniący się od lewej karty Dossier
+    if (rawHook && rawHook.toLowerCase() !== normalizedDossier) {
+      return rawHook;
+    }
+
+    // Bezpieczny fallback zapobiegający duplikacji tekstów między kartami
+    return t('defaultChronicleHook');
+  }, [adventureContext?.hook, storyDossier, t]);
 
   const themes = useMemo(() => {
     return adventureContext?.themes || [];
@@ -167,7 +179,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
 
               <div className="relative pl-3 border-l-2 border-gold/40 my-2">
                 <p className="font-special-elite text-sm md:text-base text-foreground/90 leading-relaxed max-h-56 overflow-y-auto pr-2">
-                  {storyHook}
+                  {storyDossier}
                 </p>
               </div>
             </div>
@@ -202,7 +214,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               </div>
 
               <div className="relative pl-3 border-l-2 border-gold/40">
-                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed">
+                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed max-h-56 overflow-y-auto pr-2">
                   {storyHook}
                 </p>
               </div>

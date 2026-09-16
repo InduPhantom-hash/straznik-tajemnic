@@ -6,12 +6,12 @@
   "era": "1990s",
   "setting": "Polska, Przełom Lat 90. (Kowary - Karkonosze - Warszawa)",
   "startingLocation": "Warsztat i Pracownia Lucjana Łągiewki, Kowary, Dolny Śląsk",
-  "summary": "Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki – konstruktora-samouka z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas zderzeń. Kiedy wynalazca tworzy 'Pędnik' – silnik łamiący znane prawa fizyki i działający bez przyczepności w próżni i wodzie – w jego kowarskim warsztacie pojawiają się tajni agenci Agencji Ochrony Rządu. Odkrycie Łągiewki to nie prosty patent, lecz próba oswojenia kinetycznej technologii Mi-Go z Gór Szaleństwa.",
+  "summary": "Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki - konstruktora-samouka z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas zderzeń. Kiedy wynalazca tworzy 'Pędnik' - silnik łamiący znane prawa fizyki i działający bez przyczepności w próżni i wodzie - w jego kowarskim warsztacie pojawiają się tajni agenci Agencji Ochrony Rządu. Odkrycie Łągiewki to nie prosty patent, lecz próba oswojenia kinetycznej technologii Mi-Go z Gór Szaleństwa.",
   "clues": [
     {
       "id": "clue-kinetic-absorber-model",
       "name": "Model Wirnika Kinetycznego",
-      "description": "Miniaturowy pochłaniacz wirnikowy. Uderzający w niego ciężar nie rozbija postawionego obok szklanego kieliszka – cała energia zostaje odgięta w inny wymiar kinetyczny."
+      "description": "Miniaturowy pochłaniacz wirnikowy. Uderzający w niego ciężar nie rozbija postawionego obok szklanego kieliszka - cała energia zostaje odgięta w inny wymiar kinetyczny."
     },
     {
       "id": "clue-broken-brakes-log",
