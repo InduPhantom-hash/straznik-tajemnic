@@ -8050,6 +8050,19 @@
     "finishDeclarationDeath": "[DEKLARACJA: Śledztwo zakończone. Badacz {name} poniósł śmierć w imię prawdy. Zło zatriumfowało.]",
     "finishDeclarationInsane": "[DEKLARACJA: Śledztwo zakończone. Umysł {name} pękł pod ciężarem kosmicznej grozy. Zamknięcie w Arkham Sanitarium.]",
     "continueDeclaration": "[DEKLARACJA: {successor} przejmuje Dossier i spuściznę po {previous}. Śledztwo jest kontynuowane!]"
+  },
+  "RefereeCard": {
+    "veto_title": "Interwencja Sędziego",
+    "badge": "Weto Gry",
+    "badge_anachronism": "Anachronizm Epoki (lata 20.)",
+    "badge_obscene": "Działanie Niedopuszczalne",
+    "badge_injection": "Naruszenie Ram Gry",
+    "badge_impossible": "Fizycznie Niemożliwe (RAW)",
+    "time_frozen": "Czas gry stoi w miejscu - Twoje działanie zostało cofnięte przez Sędziego.",
+    "era_restriction": "Akcja narusza realia historyczne lat 20. XX wieku lub granice fizyczne.",
+    "suggested_actions": "Historyczne alternatywy z epoki (kliknij, aby wybrać):",
+    "quote_tooltip": "Kliknij, aby wstawić do pola odpowiedzi",
+    "easter_egg_obituary_title": "Protokół Serious Sam: Rozerwana Tkanka Rzeczywistości"
   }
 }
 

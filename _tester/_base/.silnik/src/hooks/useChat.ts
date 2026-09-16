@@ -12,6 +12,7 @@ import type {
   JournalEntry,
   NPC,
   OpposedMeleeEventData,
+  GuardrailState,
 } from '@/lib/types';
 import {
   createChaseState,
@@ -37,8 +38,11 @@ import {
   extractTomeStudyEvents,
   extractOpposedMagicEvents,
   extractOpposedMeleeEvents,
+  extractRefereeVetoEvents,
+  extractGameOverEvents,
   stripMeleeAttackTags,
 } from '@/lib/parsers/mechanics-parser';
+import { updateGuardrailState } from '@/lib/concordia/event-resolution';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import { fetchWithApiKeys, hasRequiredKeys } from '@/lib/api-keys-service';
 import { timeManager } from '@/lib/time-manager';
@@ -539,6 +543,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const [lastImageTime, setLastImageTime] = useState(0);
 
   const activeChaseStateRef = useRef<ChaseState | null>(activeChaseState);
+  const guardrailStateRef = useRef<GuardrailState>({
+    strikeCount: 0,
+    turnsSinceLastViolation: 0,
+  });
 
   useEffect(() => {
     activeChaseStateRef.current = activeChaseState;
@@ -557,6 +565,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     if (messages.length === 0) {
       setIsSessionEnded(false);
       setSessionEndStatus('idle');
+      guardrailStateRef.current = { strikeCount: 0, turnsSinceLastViolation: 0 };
     }
   }, [messages.length]);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
@@ -1202,6 +1211,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 }
               : undefined,
             mechanicsContext: resolvedMechanicsContext,
+            guardrailState: guardrailStateRef.current,
           }),
         });
 
@@ -1589,12 +1599,14 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           );
         }
 
-        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252), obrona (Faza 4), pościgi
+        // Zagrożenia środowiskowe CoC 7e RAW (Issue #60), czary i tomy (Issue #252), obrona (Faza 4), pościgi, weto sędziego (Issue #380) i kres postaci
         const hazardEvents = extractHazardEvents(fullText);
         const spellCastEvents = extractSpellCastEvents(fullText);
         const tomeStudyEvents = extractTomeStudyEvents(fullText);
         const opposedMagicEvents = extractOpposedMagicEvents(fullText);
         const opposedMeleeEvents = extractOpposedMeleeEvents(fullText);
+        const refereeVetoEvents = extractRefereeVetoEvents(fullText);
+        const gameOverEvents = extractGameOverEvents(fullText);
         const currentChase = activeChaseStateRef.current;
         if (
           hazardEvents.length > 0 ||
@@ -1602,6 +1614,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           tomeStudyEvents.length > 0 ||
           opposedMagicEvents.length > 0 ||
           opposedMeleeEvents.length > 0 ||
+          refereeVetoEvents.length > 0 ||
+          gameOverEvents.length > 0 ||
           currentChase
         ) {
           setMessages((prev) =>
@@ -1614,6 +1628,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
                     ...(opposedMagicEvents.length > 0 ? { opposedMagicEvents } : {}),
                     ...(opposedMeleeEvents.length > 0 ? { opposedMeleeEvents } : {}),
+                    ...(refereeVetoEvents.length > 0 ? { refereeVetoEvents } : {}),
+                    ...(gameOverEvents.length > 0 ? { gameOverEvents } : {}),
                     ...(currentChase ? { chaseState: currentChase } : {}),
                   }
                 : message
@@ -1623,6 +1639,32 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             setActiveChaseState(null);
             activeChaseStateRef.current = null;
           }
+        }
+
+        // Aktualizacja stanu guardrails i strike countera (Issue #380)
+        if (refereeVetoEvents.length > 0) {
+          guardrailStateRef.current = updateGuardrailState(
+            guardrailStateRef.current,
+            true,
+            refereeVetoEvents[0].type
+          );
+        } else if (
+          gameOverEvents.some(
+            (e) =>
+              e.reason?.includes('Serious Sam') ||
+              e.newspaperSnippet?.headline?.includes('ROZERWANA TKANKA')
+          )
+        ) {
+          guardrailStateRef.current = {
+            strikeCount: 3,
+            turnsSinceLastViolation: 0,
+            lastViolationType: 'impossible',
+          };
+        } else {
+          guardrailStateRef.current = updateGuardrailState(
+            guardrailStateRef.current,
+            false
+          );
         }
 
         // IND-267: śledzenie lokacji. Najnowszy [LOKACJA:] z narracji MG zasila pineskę 📍
@@ -1922,6 +1964,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             currentLocation: currentLocationRef.current,
             aiSettings: options.aiSettings,
             locale,
+            guardrailState: guardrailStateRef.current,
           }),
         });
 

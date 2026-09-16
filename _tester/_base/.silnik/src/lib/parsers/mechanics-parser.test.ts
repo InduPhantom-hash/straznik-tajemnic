@@ -7,6 +7,8 @@ import {
   extractSkillResults,
   extractMeleeAttackReferences,
   stripMeleeAttackTags,
+  extractRefereeVetoEvents,
+  stripRefereeVetoTags,
 } from './mechanics-parser';
 
 describe('ATAK_WRĘCZ', () => {
@@ -273,4 +275,41 @@ describe('extractOpposedMagicEvents (CoC 7e RAW s. 99)', () => {
     expect(opposed.spellName).toBe('Dominate');
   });
 });
+
+describe('extractRefereeVetoEvents & stripRefereeVetoTags (CoC 7e RAW & Issue #380)', () => {
+  it('parsuje poprawnie tag weta sędziego z kluczami, typem i alternatywami', () => {
+    const text = '[WETO_SEDZIEGO: typ=anachronizm | powod=Smartfony nie istniały w 1920 r. | alternatywy=Telefon naścienny z korbką; Telegraf; Posłaniec]';
+    const [veto] = extractRefereeVetoEvents(text);
+
+    expect(veto).toBeDefined();
+    expect(veto.type).toBe('anachronism');
+    expect(veto.reason).toBe('Smartfony nie istniały w 1920 r.');
+    expect(veto.suggestedAlternatives).toEqual([
+      'Telefon naścienny z korbką',
+      'Telegraf',
+      'Posłaniec',
+    ]);
+  });
+
+  it('parsuje angielski tag [REFEREE_VETO:...]', () => {
+    const text = '[REFEREE_VETO: type=impossible | reason=Cannot dodge bullets point blank | alternatives=Take cover; Drop prone]';
+    const [veto] = extractRefereeVetoEvents(text);
+
+    expect(veto).toBeDefined();
+    expect(veto.type).toBe('impossible');
+    expect(veto.reason).toBe('Cannot dodge bullets point blank');
+    expect(veto.suggestedAlternatives).toEqual([
+      'Take cover',
+      'Drop prone',
+    ]);
+  });
+
+  it('czyści tagi weta z surowego tekstu narracji', () => {
+    const raw = 'Próbujesz wyciągnąć telefon. [WETO_SEDZIEGO: typ=anachronizm | powod=Brak technologii] Co robisz dalej?';
+    const cleaned = stripRefereeVetoTags(raw);
+
+    expect(cleaned).toBe('Próbujesz wyciągnąć telefon.  Co robisz dalej?');
+  });
+});
+
 

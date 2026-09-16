@@ -733,3 +733,67 @@ export function stripGameOverTags(text: string): string {
     return text.replace(/\[(?:GAME_OVER|KONIEC_GRY):\s*[^\]]*\]/gi, '').trimEnd();
 }
 
+/**
+ * Parsuje znaczniki weta sędziego i guardrails immersji [WETO_SEDZIEGO: typ=... | powod=... | alternatywy=...]
+ * Format: [WETO_SEDZIEGO: typ=anachronizm/obscen/injection/impossible | powod=... | alternatywy=opcja1; opcja2]
+ */
+export function extractRefereeVetoEvents(text: string): import('@/lib/types').RefereeVetoEventData[] {
+  const events: import('@/lib/types').RefereeVetoEventData[] = [];
+  const pattern = /\[(?:WETO_SEDZIEGO|WETO|REFEREE_VETO):\s*([^\]]+)\]/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    const rawContent = match[1].trim();
+    const parts = rawContent.split('|').map((p) => p.trim());
+    const kv: Record<string, string> = {};
+    const positional: string[] = [];
+
+    for (const part of parts) {
+      const eqIndex = part.indexOf('=');
+      if (eqIndex > 0) {
+        const key = part.slice(0, eqIndex).trim().toLowerCase();
+        const value = part.slice(eqIndex + 1).trim();
+        kv[key] = value;
+      } else {
+        positional.push(part);
+      }
+    }
+
+    const rawType = (kv.typ || kv.type || positional[0] || 'anachronism').toLowerCase();
+    let type: 'anachronism' | 'obscene' | 'injection' | 'impossible' = 'anachronism';
+    if (rawType.includes('obscen') || rawType.includes('wulg') || rawType.includes('grief')) {
+      type = 'obscene';
+    } else if (rawType.includes('inject') || rawType.includes('prompt') || rawType.includes('instrukcj')) {
+      type = 'injection';
+    } else if (rawType.includes('imposs') || rawType.includes('niemoz')) {
+      type = 'impossible';
+    }
+
+    const reason =
+      kv.powod ||
+      kv.reason ||
+      kv.opis ||
+      (positional.length > 1 ? positional[1] : 'Ograniczenie realiów epoki lat 20. XX w.');
+
+    const rawAlternatives = kv.alternatywy || kv.alternatives || kv.sugestie || (positional.length > 2 ? positional[2] : '');
+    const suggestedAlternatives = rawAlternatives
+      ? rawAlternatives.split(/[;,]/).map((s) => s.trim()).filter(Boolean)
+      : undefined;
+
+    events.push({
+      id: crypto.randomUUID(),
+      type,
+      reason,
+      suggestedAlternatives,
+    });
+  }
+
+  return events;
+}
+
+/** Usuwa znaczniki WETO_SEDZIEGO z tekstu czatu */
+export function stripRefereeVetoTags(text: string): string {
+  return text.replace(/\[(?:WETO_SEDZIEGO|WETO|REFEREE_VETO):\s*[^\]]*\]/gi, '').trimEnd();
+}
+
+

@@ -26,7 +26,7 @@ import {
   getDirectorState,
 } from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
-import type { Character, NPC } from '@/lib/types';
+import type { Character, NPC, GuardrailState } from '@/lib/types';
 import { getSkillValue } from '@/lib/types';
 import { buildLocationEraGuidanceSection } from '@/lib/location-era-validator';
 import { isWeapon } from '@/lib/combat/weapon-context';
@@ -716,6 +716,8 @@ export interface BuildAdditionalContextOpts {
   playerMessage?: string;
   /** Bezpośrednia dyrektywa Adjudykacji Zdarzeń (Concordia EventResolution) */
   eventResolutionDirective?: string;
+  /** Stan guardrails immersji i strike counter (Issue #380) */
+  guardrailState?: GuardrailState;
 }
 
 export function buildAdditionalContext(
@@ -1115,6 +1117,48 @@ export function buildAdditionalContext(
     });
     if (eventResolution?.directive) {
       additionalContext.push(eventResolution.directive);
+    }
+
+    // Drabina eskalacji guardrails & ukryty strike counter (Issue #380)
+    const isEn = opts.locale === 'en';
+    const violation = eventResolution?.adjudication?.guardrailViolation;
+    const strike = opts.guardrailState?.strikeCount ?? (violation ? 1 : 0);
+    const charName = activeChar?.name || playerCharacterName || (isEn ? 'Investigator' : 'Badacz');
+
+    if (strike > 0) {
+      additionalContext.push(`\n[GUARDRAIL_LEVEL: ${strike}]`);
+    }
+
+    if (violation && strike === 2) {
+      const level2Directive = isEn
+        ? `\n## GUARDRAILS LEVEL 2: COGNITIVE SHOCK & ELDRITCH COLD (CoC 7e RAW)\n` +
+          `The player has repeated an immersion-breaking action (${violation}: ${eventResolution.adjudication.plausibilityReason || 'anachronism'}).\n` +
+          `1. YOU MUST emit the tag: [SANITY: -1k4: cognitive shock, spacetime distortion anomaly].\n` +
+          `2. Describe surrounding NPCs reacting with deep shock, outrage, or panic.\n` +
+          `3. Describe an unnatural, biting cold filling the room, and sickening oily smoke crawling from the sharp corners of walls (harbinger of the Hounds of Tindalos / Cthulhu).\n` +
+          `4. End with [What do you do?]. Game time does NOT advance.`
+        : `\n## GUARDRAILS POZIOM 2: SZOK POZNAWCZY I CHŁÓD Z INNEGO WYMIARU (CoC 7e RAW)\n` +
+          `Gracz powtórzył działanie niszczące immersję (${violation}: ${eventResolution.adjudication.plausibilityReason || 'anachronizm'}).\n` +
+          `1. MUSISZ wyemitować tag: [SANITY: -1k4: szok poznawczy, zaburzenie czasoprzestrzeni].\n` +
+          `2. Opisz zgorszenie, oburzenie lub panikę obecnych postaci niezależnych (NPC).\n` +
+          `3. Opisz nienaturalny, lodowaty chłód wypełniający pomieszczenie oraz siny, gryzący dym sączący się z ostrych kątów ścian i mebli (zwiastun nadejścia Ogarów z Tindalos / Cthulhu).\n` +
+          `4. Zakończ pytaniem [Co robisz?]. Czas gry NIE upływa.`;
+      additionalContext.push(level2Directive);
+    } else if (violation && strike >= 3) {
+      const level3Directive = isEn
+        ? `\n## GUARDRAILS LEVEL 3: SERIOUS SAM PROTOCOL (INSTANT ANNIHILATION)\n` +
+          `The player has persistently broken reality 3 times. The Serious Sam Protocol is triggered!\n` +
+          `1. Spacetime violently ruptures with a deafening screech of non-Euclidean angles. Cthulhu or the Hounds of Tindalos descend and INSTANTLY annihilate the investigator without any roll!\n` +
+          `2. YOU MUST emit the exact game over tag:\n` +
+          `   [GAME_OVER: @${charName} | typ=DEAD | powod=Anihilacja czasoprzestrzenna przez Wielkiego Przedwiecznego (Protokół Serious Sam) | naglowek=ROZERWANA TKANKA RZECZYWISTOŚCI | tresc=Niewyjaśniony fenomen czasoprzestrzenny wstrząsnął Arkham. Na miejscu odnaleziono jedynie zwęglone szczątki i ślady nieludzkiego śluzu. Świadkowie w "The Arkham Advertiser" donoszą o zstąpieniu koszmaru z gwiazd.]\n` +
+          `3. Describe this instantaneous, inescapable doom in full Lovecraftian horror. Game Over.`
+        : `\n## GUARDRAILS POZIOM 3: PROTOKÓŁ SERIOUS SAM (NATYCHMIASTOWA ANIHILACJA)\n` +
+          `Gracz trzykrotnie naruszył realia świata gry. Uruchomiony zostaje Protokół Serious Sam!\n` +
+          `1. Czasoprzestrzeń pęka z ogłuszającym hukiem nieludzkiej geometrii. Cthulhu lub Ogary z Tindalos zstępują i NATYCHMIAST bezwzględnie anihilują badacza bez żadnych rzutów obronnych!\n` +
+          `2. MUSISZ wyemitować oficjalny tag ostatecznego kresu:\n` +
+          `   [GAME_OVER: @${charName} | typ=DEAD | powod=Anihilacja czasoprzestrzenna przez Wielkiego Przedwiecznego (Protokół Serious Sam) | naglowek=ROZERWANA TKANKA RZECZYWISTOŚCI | tresc=Niewyjaśniony fenomen czasoprzestrzenny wstrząsnął Arkham. Na miejscu odnaleziono jedynie zwęglone szczątki i ślady nieludzkiego śluzu. Świadkowie w "The Arkham Advertiser" donoszą o zstąpieniu koszmaru z gwiazd.]\n` +
+          `3. Opisz ten moment z bezlitosną lovecraftowską grozą. Koniec gry.`;
+      additionalContext.push(level3Directive);
     }
   }
 

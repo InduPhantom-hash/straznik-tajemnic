@@ -1,6 +1,6 @@
 import { ParsedResponse, ParsedEvent, NPCPosition } from './types';
 import { extractNPCs, extractLocations, extractItems } from './event-parser';
-import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractSpellCastEvents, extractOpposedMagicEvents, extractOpposedMeleeEvents, extractTomeStudyEvents, extractMeleeAttackReferences } from './mechanics-parser';
+import { detectCombat, detectSanity, extractSkillTests, extractSkillResults, extractHazardEvents, extractSpellCastEvents, extractOpposedMagicEvents, extractOpposedMeleeEvents, extractTomeStudyEvents, extractMeleeAttackReferences, extractRefereeVetoEvents } from './mechanics-parser';
 import { extractDialogues } from './dialogue-parser';
 import { extractImages, detectSFX } from './media-parser';
 import { extractJournalTags } from './journal-parser';
@@ -221,6 +221,9 @@ export function parseAIResponse(responseText: string): ParsedResponse {
         });
     }
 
+    // NOWE: Ekstrakcja weta sędziego i guardrails CoC 7e RAW (Issue #380)
+    const refereeVetoEvents = extractRefereeVetoEvents(responseText);
+
     return {
         events,
         combat,
@@ -238,6 +241,7 @@ export function parseAIResponse(responseText: string): ParsedResponse {
         meleeAttacks,
         equipmentEvents,
         timeUpdate,
+        refereeVetoEvents,
         gmMetadata: (gmMeta.thoughts || gmMeta.mood || gmMeta.narrativeGoal) ? gmMeta : undefined,
         rawText: responseText,
     };
