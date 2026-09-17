@@ -50,6 +50,7 @@ import { SheetEquipment } from './components/sheet-equipment';
 import { SheetRelations } from './components/sheet-relations';
 import { SheetBiography } from './components/sheet-biography';
 import { SheetMagic } from './components/sheet-magic';
+import { SheetPulpTalents } from './components/sheet-pulp-talents';
 import { SanityTherapyModal } from '@/components/dialogs/SanityTherapyModal';
 import { MedicalCareModal } from '@/components/dialogs/MedicalCareModal';
 
@@ -258,6 +259,7 @@ export function CharacterSheet({
                 maxMp={maxMp}
                 inlineEdit={inlineEdit}
                 onOpenMedicalCare={() => setIsMedicalCareOpen(true)}
+                onCharacterUpdate={onCharacterUpdate}
               />
 
               {/* SEKCJA 6: RELACJE I CECHY PSYCHOLOGICZNE (conditional) */}
@@ -276,6 +278,9 @@ export function CharacterSheet({
                 build={build}
                 move={move}
               />
+
+              {/* SEKCJA PULP CTHULHU: ARCHETYP I TALENTY */}
+              <SheetPulpTalents character={display} />
 
               {/* SEKCJA 5: UMIEJĘTNOŚCI */}
               <SheetSkills character={display} skillLabels={skillLabels} />

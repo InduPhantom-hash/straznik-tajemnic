@@ -32,6 +32,10 @@ export interface GameContext {
   nightTime: boolean;
   /** War-room: gracze planują w kółko bez ruchu (anti-wzorzec z korpusu actual-play). */
   isStuck?: boolean;
+  /** Wariant reguł: klasyczny CoC 7e RAW vs Pulp Cthulhu RAW */
+  rulesetVariant?: 'classic' | 'pulp';
+  /** Ton sesji */
+  tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
 }
 
 // Section definitions with keywords and priorities

@@ -127,18 +127,24 @@ export function getMaxHp(character: Character): number {
   if (typeof character.maxHp === 'number' && character.maxHp > 0) {
     return character.maxHp;
   }
-  // CoC 7e RAW: (CON + SIZ) / 10
+  const isPulp = character.rulesetVariant === 'pulp';
+  const divisor = isPulp ? 5 : 10;
+  // CoC 7e RAW: (CON + SIZ) / 10, Pulp: (CON + SIZ) / 5
   if (typeof character.con === 'number' && typeof character.siz === 'number') {
-    return Math.floor((character.con + character.siz) / 10);
+    return Math.floor((character.con + character.siz) / divisor);
   }
   return character.hp || 10;
 }
 
 /**
- * Zwraca próg Ciężkiej Rany (Major Wound Threshold: połowa maksymalnych PŻ).
+ * Zwraca próg Ciężkiej Rany (Major Wound Threshold: połowa maksymalnych PŻ, w pulpie = pełne maxHp).
  */
 export function getMajorWoundThreshold(character: Character): number {
-  return Math.floor(getMaxHp(character) / 2);
+  const maxHp = getMaxHp(character);
+  if (character.rulesetVariant === 'pulp') {
+    return maxHp;
+  }
+  return Math.floor(maxHp / 2);
 }
 
 /**
@@ -389,7 +395,12 @@ export function advanceDailyRest(
 ): { character: Character; hpGained: number; narrativeSummary: { pl: string; en: string } } {
   const maxHp = getMaxHp(character);
   const hpBefore = character.hp;
-  const newHp = Math.min(maxHp, hpBefore + days);
+  const isPulp = character.rulesetVariant === 'pulp';
+  const hasRapidRecovery = character.pulpTalents?.some(
+    (t) => t === 'rapid_recovery' || t.toLowerCase().includes('regeneracj')
+  );
+  const ratePerDay = isPulp ? (hasRapidRecovery ? 3 : 2) : 1;
+  const newHp = Math.min(maxHp, hpBefore + days * ratePerDay);
   const hpGained = newHp - hpBefore;
 
   const nextCharacter: Character = {
@@ -440,6 +451,33 @@ export function advanceTimeSkipRecovery(
 
   const days = daysByPeriod[period];
   const initialHp = character.hp;
+  const maxHp = getMaxHp(character);
+
+  // Wariant Pulp Cthulhu RAW: brak tygodniowych rzutów na Ciężką Ranę, regeneracja dzienna (2 PŻ/dzień)
+  if (character.rulesetVariant === 'pulp') {
+    const dailyResult = advanceDailyRest(character, days);
+    const nextChar: Character = {
+      ...dailyResult.character,
+      hasMajorWound: false,
+    };
+    return {
+      period,
+      daysAdvanced: days,
+      facility,
+      initialHp,
+      finalHp: nextChar.hp,
+      hpGained: dailyResult.hpGained,
+      hpLost: 0,
+      totalCost: 0,
+      wasMajorWoundCleared: !!character.hasMajorWound,
+      weeklyLogs: [],
+      narrativeSummary: {
+        pl: `Odpoczynek pulpowy (${days} dni): badacz zregenerował ${dailyResult.hpGained} PŻ (obecnie ${nextChar.hp}/${maxHp}). Rany zagoiły się w filmowym tempie.`,
+        en: `Pulp recovery (${days} days): investigator recovered ${dailyResult.hpGained} HP (now ${nextChar.hp}/${maxHp}). Wounds healed at cinematic speed.`,
+      },
+      nextCharacter: nextChar,
+    };
+  }
 
   // Wariant 1: Postać NIE ma Ciężkiej Rany
   if (!character.hasMajorWound) {
@@ -605,17 +643,24 @@ export function advanceTimeSkipRecovery(
 export function applyFirstAid(
   character: Character,
   firstAidSkill: number,
-  options?: { forceRoll?: number }
+  options?: { forceRoll?: number; forceHpGain?: number }
 ): FirstAidResult {
   const roll = options?.forceRoll !== undefined ? options.forceRoll : Math.floor(Math.random() * 100) + 1;
   const outcome = evaluateSkillCheck(roll, firstAidSkill);
   const maxHp = getMaxHp(character);
+  const isPulp = character.rulesetVariant === 'pulp';
 
   let hpGained = 0;
   let stabilized = false;
 
   if (outcome !== 'fail' && outcome !== 'fumble') {
-    hpGained = 1;
+    if (options?.forceHpGain !== undefined) {
+      hpGained = options.forceHpGain;
+    } else if (isPulp) {
+      hpGained = Math.floor(Math.random() * 4) + 1; // 1k4 w Pulp Cthulhu RAW
+    } else {
+      hpGained = 1;
+    }
     stabilized = character.isDying === true;
   }
 
@@ -628,11 +673,11 @@ export function applyFirstAid(
   };
 
   const pl = hpGained > 0
-    ? `Pierwsza Pomoc powiodła się (${roll} vs ${firstAidSkill})! Opatrzono ranę (+1 PŻ).${stabilized ? ' Umierający badacz został ustabilizowany!' : ''}`
+    ? `Pierwsza Pomoc powiodła się (${roll} vs ${firstAidSkill})! Opatrzono ranę (+${hpGained} PŻ).${stabilized ? ' Umierający badacz został ustabilizowany!' : ''}`
     : `Pierwsza Pomoc nie przyniosła skutku (${roll} vs ${firstAidSkill}). Opatrunek nie powstrzymał krwawienia.`;
 
   const en = hpGained > 0
-    ? `First Aid succeeded (${roll} vs ${firstAidSkill})! Wound dressed (+1 HP).${stabilized ? ' The dying investigator has been stabilized!' : ''}`
+    ? `First Aid succeeded (${roll} vs ${firstAidSkill})! Wound dressed (+${hpGained} HP).${stabilized ? ' The dying investigator has been stabilized!' : ''}`
     : `First Aid failed (${roll} vs ${firstAidSkill}). The dressing failed to stop the bleeding.`;
 
   return {
@@ -649,7 +694,7 @@ export function applyFirstAid(
 
 /**
  * Zabieg Medycyny (Medicine - CoC 7e RAW s. 122).
- * Takes 1 hour. Heals 1d3 HP (or 2d3 on extreme).
+ * Takes 1 hour. Heals 1d3 HP (or 2d3 on extreme). In Pulp: 1d4+1 HP (or 2d4+2 on extreme).
  */
 export function applyMedicine(
   character: Character,
@@ -659,15 +704,28 @@ export function applyMedicine(
   const roll = options?.forceRoll !== undefined ? options.forceRoll : Math.floor(Math.random() * 100) + 1;
   const outcome = evaluateSkillCheck(roll, medicineSkill);
   const maxHp = getMaxHp(character);
+  const isPulp = character.rulesetVariant === 'pulp';
 
   let hpGained = 0;
   let stabilized = false;
 
   if (outcome === 'critical' || outcome === 'extreme') {
-    hpGained = options?.forceHpGain !== undefined ? options.forceHpGain : Math.floor(Math.random() * 3) + 1 + Math.floor(Math.random() * 3) + 1;
+    if (options?.forceHpGain !== undefined) {
+      hpGained = options.forceHpGain;
+    } else if (isPulp) {
+      hpGained = Math.floor(Math.random() * 4) + 1 + Math.floor(Math.random() * 4) + 1 + 2;
+    } else {
+      hpGained = Math.floor(Math.random() * 3) + 1 + Math.floor(Math.random() * 3) + 1;
+    }
     stabilized = true;
   } else if (outcome === 'hard' || outcome === 'regular') {
-    hpGained = options?.forceHpGain !== undefined ? options.forceHpGain : Math.floor(Math.random() * 3) + 1;
+    if (options?.forceHpGain !== undefined) {
+      hpGained = options.forceHpGain;
+    } else if (isPulp) {
+      hpGained = Math.floor(Math.random() * 4) + 1 + 1;
+    } else {
+      hpGained = Math.floor(Math.random() * 3) + 1;
+    }
     stabilized = true;
   }
 

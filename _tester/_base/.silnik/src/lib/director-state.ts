@@ -300,11 +300,16 @@ export function buildDynamicScenePacingInjection(
 
   // 3. Pacing i kadencja (z Matrycy 4 Biegów)
   let pacingSummary = '';
+  const isPulpTone = tone === 'pulp';
   if (gameContext) {
     if (gameContext.recentSANLoss) {
-      pacingSummary = isEn
-        ? 'GEAR 4 (THE VOID): 40-90 words. Silence after shock, cold terse sentences, sensory void.'
-        : 'BIEG 4 (PUSTKA): 40-90 słów. Cisza po szoku, chłodne zdania, somatyczna pustka.';
+      pacingSummary = isPulpTone
+        ? (isEn
+            ? 'GEAR 3 (ADRENALINE RUSH): 30-70 words. Sanity loss triggers heroic rage, reckless bravado, or sudden action mania.'
+            : 'BIEG 3 (SZOK ADRENALINY): 30-70 słów. Utrata Poczytalności wyzwala heroiczny szał, brawurowy zryw lub nagłą manię walki.')
+        : (isEn
+            ? 'GEAR 4 (THE VOID): 40-90 words. Silence after shock, cold terse sentences, sensory void.'
+            : 'BIEG 4 (PUSTKA): 40-90 słów. Cisza po szoku, chłodne zdania, somatyczna pustka.');
     } else if (gameContext.mode === 'combat') {
       pacingSummary = isEn
         ? 'GEAR 3 (HARD MOVE): 30-70 words. Terse, pure action, immediate threat strikes.'
@@ -324,9 +329,13 @@ export function buildDynamicScenePacingInjection(
     }
 
     if (gameContext.isStuck) {
-      const stuckNote = isEn
-        ? ' [STALL / DEAD-END: Players are trapped in planning/inaction. Inject an immediate external catalyst or sudden threat.]'
-        : ' [IMPÁS / MARTWY PUNKT: Gracze tkwią w planowaniu bez ruchu. Wprowadź natychmiastowy bodziec zewnętrzny lub bezpośrednie zagrożenie.]';
+      const stuckNote = isPulpTone
+        ? (isEn
+            ? " [CHANDLER'S LAW: Heroes stalling. Apply Chandler's Law: a man bursts in with a gun, sudden attack, or explosion.]"
+            : ' [PRAWO CHANDLERA: Gracze tkwią w miejscu. Zastosuj Prawo Chandlera: facet z rewolwerem, nagły atak lub wybuch.]')
+        : (isEn
+            ? ' [STALL / DEAD-END: Players are trapped in planning/inaction. Inject an immediate external catalyst or sudden threat.]'
+            : ' [IMPÁS / MARTWY PUNKT: Gracze tkwią w planowaniu bez ruchu. Wprowadź natychmiastowy bodziec zewnętrzny lub bezpośrednie zagrożenie.]');
       pacingSummary += stuckNote;
     }
   } else {
@@ -347,6 +356,14 @@ export function buildDynamicScenePacingInjection(
       : 'Konwencja Pulp: filmowy rozmach, dynamiczny impet, podwyższona odporność badaczy.';
   }
 
+  const footerText = isPulpTone
+    ? (isEn
+        ? 'Pulp Cthulhu RAW: Promote heroism, Rule of Cool, cinematic momentum, and investigator agency.'
+        : 'Pulp Cthulhu RAW: Promuj heroizm, Rule of Cool, filmowy impet i sprawczość Bohaterów.')
+    : (isEn
+        ? 'CoC 7e RAW: Enforce horror, fail-forward, and inescapable consequences.'
+        : 'Rygor CoC 7e RAW: Wymuś grozę, zasadę fail-forward i nieuchronne konsekwencje.');
+
   if (isEn) {
     const lines = [
       '[GM DIRECTIVE: DYNAMIC SCENE & PACING INJECTION]',
@@ -355,7 +372,7 @@ export function buildDynamicScenePacingInjection(
     if (goal) lines.push(`Scene Goal: ${goal}`);
     lines.push(`Pacing & Cadence: ${pacingSummary}`);
     if (toneInstruction) lines.push(`Tone: ${toneInstruction}`);
-    lines.push('CoC 7e RAW: Enforce horror, fail-forward, and inescapable consequences.');
+    lines.push(footerText);
     lines.push('[/GM DIRECTIVE]');
     return lines.join('\n');
   } else {
@@ -366,7 +383,7 @@ export function buildDynamicScenePacingInjection(
     if (goal) lines.push(`Cel narracyjny: ${goal}`);
     lines.push(`Pacing i kadencja: ${pacingSummary}`);
     if (toneInstruction) lines.push(`Ton: ${toneInstruction}`);
-    lines.push('Rygor CoC 7e RAW: Wymuś grozę, zasadę fail-forward i nieuchronne konsekwencje.');
+    lines.push(footerText);
     lines.push('[/PRZYPOMNIENIE DLA MG]');
     return lines.join('\n');
   }

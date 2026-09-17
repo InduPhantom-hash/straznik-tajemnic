@@ -54,7 +54,8 @@ export function deriveStats(character: Character): DerivedStats {
     edu: character.edu ?? 50,
   };
 
-  const calculatedHp = Math.floor((stats.con + stats.siz) / 10);
+  const hpDivisor = character.rulesetVariant === 'pulp' ? 5 : 10;
+  const calculatedHp = Math.floor((stats.con + stats.siz) / hpDivisor);
   const calculatedMp = Math.floor(stats.pow / 5);
 
   const mythosValue = getSkillValue(

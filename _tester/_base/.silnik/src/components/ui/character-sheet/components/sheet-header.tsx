@@ -101,10 +101,20 @@ export function SheetHeader({ character }: SheetHeaderProps) {
           {character.name}
         </div>
         <div className="font-special-elite text-[14px] text-brass tracking-[0.18em] uppercase mt-1.5">
+          {character.archetype ? (
+            <span className="text-primary font-semibold">{character.archetype} · </span>
+          ) : null}
           {character.occupation || '-'}
           {character.age ? ` · ${t('age', { age: character.age })}` : ''}
           {gender ? ` · ${gender}` : ''}
         </div>
+        {character.rulesetVariant === 'pulp' && (
+          <div className="mt-1">
+            <span className="inline-block border border-primary/40 bg-primary/10 text-primary text-[11px] font-special-elite px-2 py-0.5 tracking-wider uppercase">
+              Pulp Cthulhu
+            </span>
+          </div>
+        )}
         {place && (
           <div className="font-serif italic text-[15px] text-muted-foreground mt-1.5">
             {place}

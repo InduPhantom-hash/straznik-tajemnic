@@ -180,6 +180,9 @@ function createStatRollMap(): StatRollMap {
 
 interface WizardState {
   step: number;
+  rulesetVariant?: 'classic' | 'pulp';
+  archetype?: string;
+  pulpTalents?: string[];
   // Krok 1
   stats: CharacterStats;
   /**
@@ -269,8 +272,12 @@ export function CharacterWizardV2({
   // Z `char` (re-roll) - seed koncepcji/historii, statystyki rozdawane od nowa
   // (krok 1, cechy bazowe; zawód wybierany ponownie w kroku 2).
   const buildInitialState = (char?: Character): WizardState => {
+    const initialRuleset = char?.rulesetVariant || (adventureContext?.tone === 'pulp' || adventureContext?.rulesetVariant === 'pulp' ? 'pulp' : 'classic');
     const base: WizardState = {
       step: 1,
+      rulesetVariant: initialRuleset,
+      archetype: char?.archetype,
+      pulpTalents: char?.pulpTalents ? [...char.pulpTalents] : undefined,
       stats: {
         str: 50,
         con: 50,
@@ -284,14 +291,7 @@ export function CharacterWizardV2({
       },
       statMethod: 'roll',
       age: 25,
-      derived: {
-        hp: 10,
-        san: 50,
-        mp: 10,
-        damageBonus: '0',
-        build: 0,
-        movement: 8,
-      },
+      derived: libCalculateDerived({ str: 50, con: 50, siz: 50, dex: 50, app: 50, int: 50, pow: 50, edu: 50, luck: 50 }, 25, initialRuleset),
       occupationId: null,
       occupationPoints: 0,
       skills: getInitialSkills(50, 50), // Dynamiczne wartości Język Ojczysty i Unik
@@ -398,9 +398,9 @@ export function CharacterWizardV2({
   // calculateDerived useCallback wrapper zachowuje stable reference dla useEffect deps.
 
   const calculateDerived = useCallback(
-    (stats: CharacterStats, age: number): DerivedStats =>
-      libCalculateDerived(stats, age),
-    []
+    (stats: CharacterStats, age: number, ruleset?: 'classic' | 'pulp'): DerivedStats =>
+      libCalculateDerived(stats, age, ruleset ?? state.rulesetVariant ?? 'classic'),
+    [state.rulesetVariant]
   );
 
   // Zapisuje nową wartość JEDNEJ cechy + przelicza cechy pochodne i dynamiczne
@@ -410,7 +410,7 @@ export function CharacterWizardV2({
     (stat: StatKey, value: number) => {
       setState((prev) => {
         const stats = { ...prev.stats, [stat]: value };
-        const derived = calculateDerived(stats, prev.age);
+        const derived = calculateDerived(stats, prev.age, prev.rulesetVariant);
         const skills = { ...prev.skills };
         if (stat === 'edu') skills[NATIVE_LANGUAGE_SKILL] = stats.edu;
         if (stat === 'dex') skills.Unik = Math.floor(stats.dex / 2);
@@ -1596,6 +1596,9 @@ export function CharacterWizardV2({
         equipmentItems.length > 0
           ? withEquipmentDefaults(equipmentItems)
           : undefined,
+      rulesetVariant: state.rulesetVariant,
+      archetype: state.archetype,
+      pulpTalents: state.pulpTalents,
     };
 
     // Re-roll: scal NOWE statystyki z istniejącą postacią. Zachowuje id, dziennik,
@@ -1603,6 +1606,9 @@ export function CharacterWizardV2({
     const finalCharacter: Character = initialCharacter
       ? {
           ...initialCharacter,
+          rulesetVariant: state.rulesetVariant ?? initialCharacter.rulesetVariant,
+          archetype: state.archetype ?? initialCharacter.archetype,
+          pulpTalents: state.pulpTalents ?? initialCharacter.pulpTalents,
           str: state.stats.str,
           con: state.stats.con,
           siz: state.stats.siz,

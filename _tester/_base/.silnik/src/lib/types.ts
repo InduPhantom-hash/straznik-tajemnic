@@ -981,6 +981,7 @@ export interface AdventureContext {
   location?: string;
   country?: string;
   tone?: 'purist' | 'pulp' | 'noir';
+  rulesetVariant?: 'classic' | 'pulp';
   themes?: string[];
 
   // Content
@@ -1179,5 +1180,47 @@ export interface RefereeVetoEventData {
   type?: 'anachronism' | 'obscene' | 'injection' | 'impossible';
   reason: string;
   suggestedAlternatives?: string[];
+}
+
+// === KONWENCJA PULP CTHULHU (RAW & Pulpometr) ===
+export type PulpLevel = 'low' | 'medium' | 'high' | 'apex';
+
+export interface PulpArchetypeDefinition {
+  id: string;
+  name: {
+    pl: string;
+    en: string;
+  };
+  description: {
+    pl: string;
+    en: string;
+  };
+  /** Cechy kluczowe do wyboru premii +20 (np. ['dex', 'app'] lub ['str']) */
+  coreCharacteristics: string[];
+  coreCharacteristicBonus: number; // Zwykle 20
+  bonusSkills: string[]; // Lista umiejętności, na które rozdziela się 100 pkt
+  bonusSkillPoints: number; // Zwykle 100
+  suggestedOccupations?: string[];
+  suggestedTalents?: string[];
+  suggestedTraits?: string[];
+}
+
+export type PulpTalentCategory = 'physical' | 'mental' | 'combat' | 'miscellaneous';
+
+export interface PulpTalentDefinition {
+  id: string;
+  name: {
+    pl: string;
+    en: string;
+  };
+  category: PulpTalentCategory;
+  description: {
+    pl: string;
+    en: string;
+  };
+  benefitSummary?: {
+    pl: string;
+    en: string;
+  };
 }
 

@@ -1036,6 +1036,8 @@ export default function Home() {
         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}
         onAddDeclaration={chat.addDeclaration}
         onPassDeclaration={chat.passDeclaration}
+        currentPlayerName={chat.currentPlayerName}
+        isTurnReady={chat.isTurnReady}
         onSendTurn={chat.sendTurn}
         onSwitchPlayer={hotSeat.switchPlayer}
         onDisableHotSeat={hotSeat.disableHotSeat}

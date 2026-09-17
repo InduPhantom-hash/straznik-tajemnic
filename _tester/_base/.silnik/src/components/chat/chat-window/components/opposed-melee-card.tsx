@@ -253,6 +253,8 @@ export function OpposedMeleeCard({
         ? selectedWeapon?.skillValue ?? brawlSkill
         : brawlSkill;
 
+    const convention = defender.rulesetVariant === 'pulp' ? 'pulp' : 'classic';
+
     const engagement = resolveMeleeEngagement({
       attackerName,
       defenderName: defender.name,
@@ -274,6 +276,7 @@ export function OpposedMeleeCard({
       maneuverType: choice === 'maneuver' ? selectedManeuver : undefined,
       attackerBuild,
       defenderBuild,
+      convention,
     });
 
     const damageDealt = engagement.damage?.effectiveDamage ?? 0;
@@ -293,6 +296,7 @@ export function OpposedMeleeCard({
         damage: damageDealt,
         hadMajorWound: defender.hasMajorWound,
         conRoll,
+        convention,
       });
       defenderHpAfter = healthState.hpAfter;
       hasMajorWound = healthState.hasMajorWound;
