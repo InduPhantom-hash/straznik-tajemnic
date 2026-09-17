@@ -62,7 +62,7 @@ export async function buildCampaignKitZip(
 </head>
 <body>
   <h1>Graf Śledztwa (Clue Web) &mdash; ${adventure.title}</h1>
-  <p><em>Zew Cthulhu 7ed &bull; Pakiet Mistrza Gry</em></p>
+  <p><em>Strażnik Tajemnic AI &bull; Pakiet Mistrza Gry d100</em></p>
   <div class="mermaid">
 ${clueWebMermaid}
   </div>
@@ -107,7 +107,7 @@ ${clueWebMermaid}
 function generateScenarioMarkdown(adventure: AdventureContext, options: CampaignKitOptions): string {
   const lines: string[] = [
     `# ${adventure.title}`,
-    `*Zew Cthulhu 7ed &bull; Podręcznik Prowadzenia (Campaign Kit)*`,
+    `*Strażnik Tajemnic AI &bull; Podręcznik Prowadzenia d100 (Campaign Kit)*`,
     '',
     `**Epoka:** ${adventure.eraLabel || adventure.era} | **Rok:** ${adventure.yearRange} | **Lokalizacja:** ${adventure.location} (${adventure.country})`,
     `**Ton:** ${adventure.tone || 'purist'} | **Trudność:** ${adventure.difficulty || 'normal'} | **Liczba sesji:** ${adventure.estimatedSessions || '1-2 sesje'}`,

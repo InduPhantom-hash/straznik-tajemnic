@@ -20,6 +20,8 @@ import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
 import { detectRulebookProfile } from '@/lib/pdf/rulebook-fingerprint';
+import { generateSemanticOverlay } from '@/lib/pdf/semantic-overlay-engine';
+import { registerOverlay, loadCapabilities } from '@/lib/pdf/capabilities-manager';
 import { localVectorStore } from '@/lib/vector-db/local-vector-store';
 import fs from 'fs';
 import path from 'path';
@@ -154,6 +156,17 @@ export async function POST(request: NextRequest) {
       );
       console.log(`📜 Profil podręcznika wykryty i zapisany: ${rulebookProfile.profile} (${rulebookProfile.title})`);
 
+      // Generujemy modularną nakładkę semantyczną DLC i rejestrujemy w capabilities.json
+      const overlay = generateSemanticOverlay(pdfText, rulebookProfile, fileName);
+      const capabilities = registerOverlay(overlay);
+      console.log(`🧩 Nakładka DLC zarejestrowana: ${overlay.id} (tagi: ${overlay.tags.join(', ')})`);
+
+      // Tagi dla wektorów syntetycznych (np. RULE:core-d100, TAG:NPC, TAG:CZARY itp.)
+      const semanticTags = overlay.tags.map((t) => `TAG:${t}`).join(',');
+      const combinedTags = semanticTags
+        ? `RULE:${rulebookProfile.profile},${semanticTags}`
+        : `RULE:${rulebookProfile.profile}`;
+
       // Zapisujemy w lokalnym store wskaźniki gotowości per strona (doktryna Zero-Cytowań: text jest undefined, brak cytatów autorskich)
       const syntheticVectors = Array.from({ length: pdfPagesCount }, (_, i) => ({
         id: `rules-page-${i + 1}`,
@@ -165,7 +178,7 @@ export async function POST(request: NextRequest) {
           chunkIndex: i,
           gameTimestamp: '',
           realTimestamp: new Date().toISOString(),
-          tags: `RULE:${rulebookProfile.profile}`,
+          tags: combinedTags,
           sessionId: '',
           messageRange: '',
         },
@@ -181,6 +194,8 @@ export async function POST(request: NextRequest) {
         namespace: 'rules',
         durationMs: Date.now() - start,
         rulebookProfile,
+        overlay,
+        capabilities,
       });
     }
 
@@ -288,6 +303,7 @@ export async function GET(request: NextRequest) {
       type,
       recordCount,
       rulebookProfile,
+      capabilities: loadCapabilities(),
     });
   } catch (error) {
     console.error('Błąd GET ingest-local:', error);

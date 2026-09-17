@@ -14,7 +14,7 @@ import { DEFAULT_GEMINI_MODEL } from './ai-providers/constants';
 
 const SUMMARY_MODEL = DEFAULT_GEMINI_MODEL; // Tani, szybki model (SSOT: ai-providers/constants)
 
-const SUMMARY_SYSTEM_PROMPT = `Jesteś asystentem do streszczania sesji RPG Call of Cthulhu.
+const SUMMARY_SYSTEM_PROMPT = `Jesteś asystentem do streszczania sesji RPG d100 Weird Fiction.
 
 ZADANIE: Streść poniższą część sesji w 3-5 zdaniach.
 
