@@ -18,12 +18,12 @@ interface Source {
 const SOURCES: Source[] = [
   {
     name: 'Black Monk',
-    desc: 'Polski wydawca Zew Cthulhu 7e - podręczniki PDF/druk oraz sekcja darmowych materiałów (startery).',
+    desc: 'Dystrybucja materiałów RPG d100 - podręczniki PDF/druk oraz sekcja darmowych starterów.',
     url: 'https://blackmonk.pl',
   },
   {
     name: 'DriveThruRPG',
-    desc: 'Oryginały Call of Cthulhu 7e (EN) w PDF od Chaosium.',
+    desc: 'Oficjalne podręczniki i przygody RPG d100 w PDF (DriveThruRPG).',
     url: 'https://www.drivethrurpg.com',
   },
 ];
@@ -73,10 +73,10 @@ export function StepContentSources({
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-brass mt-0.5 shrink-0" />
             <p className="text-xs text-foreground/90">
-              Projekt fanowski, niezwiązany i niewspierany przez Chaosium Inc.
+              Niezależny silnik emulatora śledztwa d100. Niewspierany i niezwiązany z Chaosium Inc.
               ani Black Monk. <em>Call of Cthulhu</em> / <em>Zew Cthulhu</em> to
               znaki towarowe Chaosium Inc. Korzystaj wyłącznie z własnych,
-              legalnie nabytych egzemplarzy.
+              legalnie nabytych egzemplarzy (BYOB).
             </p>
           </div>
         </CardContent>

@@ -272,7 +272,7 @@ export function exportTimelineToMarkdown(events: TimelineEvent[], sessionName?: 
   const sorted = [...events].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   const now = new Date();
 
-  let md = `# 📜 ${sessionName || 'Sesja Zew Cthulhu'}\n\n`;
+  let md = `# 📜 ${sessionName || 'Sesja Śledcza · Strażnik Tajemnic AI'}\n\n`;
   md += `> Wygenerowano: ${now.toLocaleDateString('pl-PL')} ${now.toLocaleTimeString('pl-PL')}\n\n`;
   md += `---\n\n`;
 

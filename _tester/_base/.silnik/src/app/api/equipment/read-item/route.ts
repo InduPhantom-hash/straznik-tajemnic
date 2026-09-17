@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       .map((h: { role: string; content: string }) => `${h.role === 'user' ? 'Gracz' : 'MG'}: ${h.content.slice(0, 150)}`)
       .join('\n');
 
-    const prompt = `Jesteś Mistrzem Gry w systemie Call of Cthulhu 7e.
+    const prompt = `Jesteś Mistrzem Gry w systemie RPG d100 Weird Fiction.
 Twoim zadaniem jest napisanie RZECZYWISTEJ TREŚCI dokumentu, który badacz właśnie czyta w grze.
 Dokument: ${item.name}
 Opis przedmiotu: ${item.description || 'brak dodatkowego opisu'}

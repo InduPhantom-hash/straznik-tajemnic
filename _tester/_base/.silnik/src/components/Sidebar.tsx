@@ -14,7 +14,7 @@ export const Sidebar = () => {
   return (
     <aside className="w-64 flex-shrink-0 bg-card border-r border-border flex flex-col">
       <div className="h-16 flex items-center justify-center border-b border-border">
-        <h1 className="text-2xl font-mono text-foreground">Zew Cthulhu</h1>
+        <h1 className="text-2xl font-mono text-foreground">Strażnik Tajemnic</h1>
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navItems.map((item) => (

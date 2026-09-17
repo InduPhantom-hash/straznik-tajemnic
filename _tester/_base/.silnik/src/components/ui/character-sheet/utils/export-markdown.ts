@@ -235,8 +235,8 @@ export function exportCharacterToMarkdown(
   }
 
   md += isEn
-    ? `---\n*Exported from Call of Cthulhu App - ${new Date().toLocaleString('en-US')}*\n`
-    : `---\n*Eksportowano z Zew Cthulhu App - ${new Date().toLocaleString('pl-PL')}*\n`;
+    ? `---\n*Exported from Keeper of Secrets AI - ${new Date().toLocaleString('en-US')}*\n`
+    : `---\n*Eksportowano ze Strażnika Tajemnic AI - ${new Date().toLocaleString('pl-PL')}*\n`;
 
   // Pobierz plik
   const suffix = isEn ? '_sheet.md' : '_karta.md';
