@@ -25,6 +25,14 @@ export interface GeneratedImage {
   };
 }
 
+export interface ApiKeyValidationResult {
+  valid: boolean;
+  code?: 'AUTH_FAILED' | 'PERMISSION_DENIED' | 'QUOTA_EXCEEDED' | 'MODEL_NOT_FOUND' | 'NETWORK_ERROR' | 'UNKNOWN';
+  error?: string;
+  details?: string;
+  status?: number;
+}
+
 class GeminiService {
   private isInitialized = false;
 
@@ -323,17 +331,20 @@ class GeminiService {
     return `Stwórz ${intensityPrompts[intensity as keyof typeof intensityPrompts]} ${stylePrompts[style as keyof typeof stylePrompts]}: ${description}. Wizja powinna być surrealistyczna, przedstawiająca surrealistyczne, kosmiczne elementy w stylu Lovecrafta.`;
   }
 
-  // Sprawdź status API
-  async checkAPIStatus(apiKey?: string): Promise<boolean> {
+  // Szczegółowa walidacja klucza API ze statusem i kodem błędu
+  async validateApiKey(apiKey?: string): Promise<ApiKeyValidationResult> {
     try {
       console.log('🔍 Testing Gemini API connection...');
-      // IND-30: Klucz priorytetowo z argumentu (live form state w UI) -> fallback do
-      // localStorage (loadAISettings) -> endpoint robi ostatni fallback do env.
-      // Przed sesją 21 czytaliśmy tylko localStorage — formularz wpisany przez usera
-      // nie był testowany dopóki nie zapisał Settings, co dawało "zielony status"
-      // dla niepoprawnego klucza wpisanego ad-hoc.
-      // SSR safety: loadAISettings() ma guard `typeof window !== 'undefined'` (storage.ts:18).
       const effectiveKey = apiKey ?? loadAISettings().geminiApiKey;
+      if (!effectiveKey || effectiveKey.trim() === '') {
+        return {
+          valid: false,
+          code: 'AUTH_FAILED',
+          error: 'Brak klucza API Gemini',
+          details: 'Wprowadź klucz API, aby przetestować połączenie.',
+        };
+      }
+
       const response = await fetch('/api/chat-test', {
         method: 'POST',
         headers: {
@@ -351,20 +362,39 @@ class GeminiService {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ API test failed with status:', response.status);
         console.error('❌ Error details:', errorData);
-        return false;
+        return {
+          valid: false,
+          code: errorData.code || (response.status === 401 ? 'AUTH_FAILED' : response.status === 403 ? 'PERMISSION_DENIED' : response.status === 429 ? 'QUOTA_EXCEEDED' : 'UNKNOWN'),
+          error: errorData.error || `Błąd ${response.status}`,
+          details: errorData.details,
+          status: response.status,
+        };
       }
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       console.log('✅ API response:', data);
 
-      // Sprawdź czy odpowiedź zawiera sukces lub brak błędu
       const isSuccess = data.success === true || (!data.error && data.response);
       console.log('🎯 Test result:', isSuccess ? 'SUCCESS' : 'FAILED');
-      return isSuccess;
+      return {
+        valid: isSuccess,
+        details: data.response,
+        status: response.status,
+      };
     } catch (error) {
       console.error('❌ API status check failed:', error);
-      return false;
+      return {
+        valid: false,
+        code: 'NETWORK_ERROR',
+        error: error instanceof Error ? error.message : 'Błąd sieci',
+      };
     }
+  }
+
+  // Sprawdź status API (kompatybilność wsteczna)
+  async checkAPIStatus(apiKey?: string): Promise<boolean> {
+    const result = await this.validateApiKey(apiKey);
+    return result.valid;
   }
 }
 
