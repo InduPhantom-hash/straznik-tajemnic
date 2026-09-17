@@ -123,10 +123,11 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       // Wymogi protokołu (pełny i kompaktowy)
       expect(fullProtocol).toMatch(/TWARDE WETO SĘDZIEGO/i);
       expect(fullProtocol).toMatch(/THE REFEREE STANCE/i);
-      expect(fullProtocol).toMatch(/BEZWZGLĘDNY ZAKAZ.*\[TEST:\]/i);
+      expect(compactProtocol).toMatch(/BEZWZGLĘDNY ZAKAZ.*\[TEST:\]/i);
+      expect(fullProtocol).toMatch(/WETO_SEDZIEGO/i);
       expect(fullProtocol).toMatch(/Nie możesz tego zrobić/i);
       expect(compactProtocol).toMatch(/TWARDE WETO SĘDZIEGO/i);
-      expect(compactProtocol).toMatch(/Nie możesz tego zrobić/i);
+      expect(compactProtocol).toMatch(/WETO_SEDZIEGO/i);
 
       // Twarde granice CoC 7e RAW skatalogowane w protokole
       expect(fullProtocol).toMatch(/Budowie \(Build\) wyższej o 3/i);
