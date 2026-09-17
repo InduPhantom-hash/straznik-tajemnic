@@ -50,9 +50,17 @@ export const ERA_RULE_PROFILES: EraRuleProfile[] = [
       'powerbank',
       'komputer osobisty',
     ],
-    sources: [PENDING_SOURCE],
-    confidence: 'medium',
-    approvalStatus: 'draft',
+    sources: [
+      {
+        id: 'keeper-rulebook-7e',
+        title: 'Księga Strażnika, Zew Cthulhu 7. edycja, Black Monk Games (s. 43-45, 107, 206-226, 447-449)',
+        url: 'internal://coc7e-keeper-rulebook-black-monk',
+        kind: 'primary',
+        verificationStatus: 'verified',
+      },
+    ],
+    confidence: 'high',
+    approvalStatus: 'approved',
   },
   {
     id: 'pl-1973',

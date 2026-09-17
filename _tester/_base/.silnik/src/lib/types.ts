@@ -976,6 +976,8 @@ export interface AdventureContext {
   era?: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   eraLabel?: string;
   yearRange?: string;
+  /** Jawny rok bieżącej akcji (nadrzędny wobec yearRange przy ustalaniu daty sceny) */
+  activeSceneYear?: number;
   location?: string;
   country?: string;
   tone?: 'purist' | 'pulp' | 'noir';

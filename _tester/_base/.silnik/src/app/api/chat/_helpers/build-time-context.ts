@@ -23,11 +23,7 @@
  */
 
 import { timeManager } from '@/lib/time-manager';
-import { getEraPromptInjection } from '@/lib/era-presets';
 import { getAtmosphereDirective } from '@/lib/time-atmosphere';
-import type { GameEra } from '@/lib/types';
-
-import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import { buildEraNarrativeRules, type ResolvedEraContext } from '@/lib/era';
 
 // Helper przyjmuje wyłącznie kanoniczny kontekst epoki.
@@ -43,23 +39,8 @@ export interface BuildTimeContextResult {
 export function buildTimeContext(
   opts: BuildTimeContextOpts
 ): BuildTimeContextResult {
-  const rawEra = String(opts.eraContext.effectiveYear);
-
-  const profile = resolveEraVisualProfile(rawEra);
-  const gameEra: GameEra =
-    profile === '1930s'
-      ? '1920s'
-      : profile === '1950s'
-        ? '1940s'
-        : profile === '1980s'
-          ? 'prl-1970s'
-          : (profile as GameEra);
-
   const timeContext = timeManager.formatForPrompt();
-  const eraRules = [
-    buildEraNarrativeRules(opts.eraContext),
-    getEraPromptInjection(gameEra),
-  ].join('\n\n');
+  const eraRules = buildEraNarrativeRules(opts.eraContext);
 
 
   const weather = timeManager.getWeather();
