@@ -36,10 +36,12 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
   const [keys, setKeys] = useState<ApiKeys>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [saved, setSaved] = useState(false);
-  // IND-206 BYOK: walidacja "czy klucz żyje" przez /api/chat-test (reuse checkAPIStatus).
+  // Walidacja klucza Gemini (bramka autoryzacji)
   const [geminiValidation, setGeminiValidation] = useState<
     'idle' | 'checking' | 'valid' | 'invalid'
   >('idle');
+  const [validationErrorCode, setValidationErrorCode] = useState<string | null>(null);
+  const [validationErrorDetails, setValidationErrorDetails] = useState<string | null>(null);
 
   // Załaduj zapisane klucze przy otwarciu
   useEffect(() => {
@@ -47,6 +49,8 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
       setKeys(getApiKeys());
       setSaved(false);
       setGeminiValidation('idle');
+      setValidationErrorCode(null);
+      setValidationErrorDetails(null);
     }
   }, [open]);
 
@@ -54,26 +58,58 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
     setKeys((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
     // Zmiana klucza unieważnia poprzedni wynik walidacji.
-    if (key === 'GEMINI_API_KEY') setGeminiValidation('idle');
-  };
-
-  // IND-206 BYOK: testowe wywołanie Gemini ("Hello") przez istniejący /api/chat-test.
-  // Klucz idzie w body do serwera (jak przy każdej narracji - zero nowej ekspozycji);
-  // endpoint nie loguje ani nie persystuje klucza.
-  const handleValidateGemini = async () => {
-    const key = keys.GEMINI_API_KEY?.trim();
-    if (!key) return;
-    setGeminiValidation('checking');
-    try {
-      const { geminiService } = await import('@/lib/gemini-service');
-      const ok = await geminiService.checkAPIStatus(key);
-      setGeminiValidation(ok ? 'valid' : 'invalid');
-    } catch {
-      setGeminiValidation('invalid');
+    if (key === 'GEMINI_API_KEY') {
+      setGeminiValidation('idle');
+      setValidationErrorCode(null);
+      setValidationErrorDetails(null);
     }
   };
 
-  const handleSave = () => {
+  // Testowe wywołanie Gemini przez /api/chat-test z precyzyjną diagnozą błędu
+  const handleValidateGemini = async (keyOverride?: string): Promise<boolean> => {
+    const key = (keyOverride ?? keys.GEMINI_API_KEY)?.trim();
+    if (!key) {
+      setGeminiValidation('invalid');
+      setValidationErrorCode('AUTH_FAILED');
+      return false;
+    }
+    setGeminiValidation('checking');
+    setValidationErrorCode(null);
+    setValidationErrorDetails(null);
+    try {
+      const { geminiService } = await import('@/lib/gemini-service');
+      const res = await geminiService.validateApiKey(key);
+      if (res.valid) {
+        setGeminiValidation('valid');
+        return true;
+      } else {
+        setGeminiValidation('invalid');
+        setValidationErrorCode(res.code || 'UNKNOWN');
+        setValidationErrorDetails(res.details || null);
+        return false;
+      }
+    } catch {
+      setGeminiValidation('invalid');
+      setValidationErrorCode('NETWORK_ERROR');
+      return false;
+    }
+  };
+
+  const handleSave = async () => {
+    const key = keys.GEMINI_API_KEY?.trim();
+    if (!key) return;
+
+    // Twarda bramka: jeśli klucz jest invalid, nie zezwalaj na zapis
+    if (geminiValidation === 'invalid') return;
+
+    // Jeśli klucz nie był jeszcze walidowany (idle), uruchom walidację przed zapisem
+    if (geminiValidation === 'idle') {
+      const ok = await handleValidateGemini(key);
+      if (!ok) {
+        return; // Blokada zapisu przy nieudanym teście
+      }
+    }
+
     saveApiKeys(keys);
     setSaved(true);
     setTimeout(() => {
@@ -83,10 +119,6 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
 
   const toggleShowKey = (key: string) => {
     setShowKeys((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const isKeySet = (key: keyof ApiKeys) => {
-    return keys[key] && keys[key]!.trim() !== '';
   };
 
   return (
@@ -130,8 +162,11 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
                 <Badge variant="destructive" className="text-[14px] px-1 py-0">
                   {t('requiredBadge')}
                 </Badge>
-                {isKeySet('GEMINI_API_KEY') && (
+                {geminiValidation === 'valid' && (
                   <Check className="w-4 h-4 text-green-500" />
+                )}
+                {geminiValidation === 'invalid' && (
+                  <AlertCircle className="w-4 h-4 text-red-400" />
                 )}
               </Label>
               <a
@@ -170,36 +205,55 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
 
             <p className="text-xs text-muted-foreground">{t('geminiHint')}</p>
 
-            {/* IND-206 BYOK: walidacja klucza Gemini "czy żyje" */}
-            <div className="flex items-center gap-2 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleValidateGemini}
-                disabled={
-                  !keys.GEMINI_API_KEY?.trim() ||
-                  geminiValidation === 'checking'
-                }
-              >
-                {geminiValidation === 'checking' ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    {t('checking')}
-                  </>
-                ) : (
-                  t('checkKey')
+            {/* Walidacja klucza Gemini "czy żyje" */}
+            <div className="flex flex-col gap-2 pt-1">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleValidateGemini()}
+                  disabled={
+                    !keys.GEMINI_API_KEY?.trim() ||
+                    geminiValidation === 'checking'
+                  }
+                >
+                  {geminiValidation === 'checking' ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      {t('checking')}
+                    </>
+                  ) : (
+                    t('checkKey')
+                  )}
+                </Button>
+                {geminiValidation === 'valid' && (
+                  <span className="text-xs text-green-500 flex items-center gap-1 font-medium">
+                    <Check className="w-3.5 h-3.5" /> {t('keyWorks')}
+                  </span>
                 )}
-              </Button>
-              {geminiValidation === 'valid' && (
-                <span className="text-xs text-green-500 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> {t('keyWorks')}
-                </span>
-              )}
+              </div>
+
               {geminiValidation === 'invalid' && (
-                <span className="text-xs text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {t('keyInvalid')}
-                </span>
+                <div className="text-xs text-red-400 flex flex-col gap-0.5 bg-red-950/20 border border-red-900/30 rounded p-2">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    {validationErrorCode === 'AUTH_FAILED'
+                      ? t('authFailed')
+                      : validationErrorCode === 'PERMISSION_DENIED'
+                        ? t('permissionDenied')
+                        : validationErrorCode === 'QUOTA_EXCEEDED'
+                          ? t('quotaExceeded')
+                          : validationErrorCode === 'NETWORK_ERROR'
+                            ? t('networkError')
+                            : t('keyInvalid')}
+                  </span>
+                  {validationErrorDetails && (
+                    <span className="text-[11px] text-muted-foreground pl-5.5 font-mono">
+                      {validationErrorDetails}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -240,9 +294,18 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
           <Button
             className="flex-1 bg-primary hover:bg-primary/90"
             onClick={handleSave}
-            disabled={!keys.GEMINI_API_KEY?.trim()}
+            disabled={
+              !keys.GEMINI_API_KEY?.trim() ||
+              geminiValidation === 'invalid' ||
+              geminiValidation === 'checking'
+            }
           >
-            {saved ? (
+            {geminiValidation === 'checking' ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {t('validating')}
+              </>
+            ) : saved ? (
               <>
                 <Check className="w-4 h-4 mr-2" />
                 {t('saved')}

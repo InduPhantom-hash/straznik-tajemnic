@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
 
       let errorMessage = 'Test połączenia nie powiódł się';
       let errorDetails = '';
+      let errorCode = 'UNKNOWN';
 
       if (testError instanceof Error) {
         errorDetails = testError.message;
@@ -146,33 +147,50 @@ export async function POST(request: NextRequest) {
           testError.message.includes('401') ||
           testError.message.includes('400') ||
           testError.message.includes('INVALID_ARGUMENT') ||
-          testError.message.includes('PERMISSION_DENIED')
+          testError.message.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+          testError.message.includes('UNAUTHENTICATED') ||
+          testError.message.includes('API_KEY_INVALID')
         ) {
+          errorCode = 'AUTH_FAILED';
           errorMessage = 'Nieprawidłowy klucz API Gemini';
           errorDetails =
-            'Podany klucz API nie przeszedł pomyślnie autoryzacji w Google AI Studio.';
+            'Podany klucz API nie przeszedł autoryzacji w Google AI Studio (błąd 401/400). Upewnij się, że klucz jest poprawny, kompletny i nie został unieważniony.';
           statusCode = 401;
         } else if (
+          testError.message.includes('PERMISSION_DENIED') ||
+          testError.message.includes('SERVICE_DISABLED') ||
+          testError.message.includes('403')
+        ) {
+          errorCode = 'PERMISSION_DENIED';
+          errorMessage = 'Brak uprawnień do Gemini API';
+          errorDetails =
+            'Klucz API nie ma uprawnień do Generative Language API lub usługa jest wyłączona w projekcie Google Cloud (błąd 403).';
+          statusCode = 403;
+        } else if (
           testError.message.includes('quota') ||
+          testError.message.includes('RESOURCE_EXHAUSTED') ||
           testError.message.includes('429')
         ) {
+          errorCode = 'QUOTA_EXCEEDED';
           errorMessage = 'Przekroczono limit zapytań';
           errorDetails =
-            'Spróbuj ponownie za chwilę lub sprawdź limity na https://makersuite.google.com';
+            'Przekroczono limit zapytań Gemini API (błąd 429). Sprawdź limity w Google AI Studio.';
           statusCode = 429;
         } else if (
           testError.message.includes('model') ||
           testError.message.includes('404')
         ) {
+          errorCode = 'MODEL_NOT_FOUND';
           errorMessage = 'Model nie jest dostępny';
           errorDetails =
-            'Sprawdź czy wybrany model Gemini jest dostępny w Twoim regionie';
+            'Sprawdź czy wybrany model Gemini jest dostępny w Twoim regionie (błąd 404).';
           statusCode = 404;
         }
 
         return NextResponse.json(
           {
             success: false,
+            code: errorCode,
             error: errorMessage,
             details: errorDetails,
             timestamp: new Date().toISOString(),
@@ -189,6 +207,7 @@ export async function POST(request: NextRequest) {
 
     let errorMessage = 'Wystąpił błąd podczas generowania odpowiedzi';
     let errorDetails = '';
+    let errorCode = 'UNKNOWN';
 
     if (error instanceof Error) {
       console.error('Typ błędu:', error.name);
@@ -196,21 +215,37 @@ export async function POST(request: NextRequest) {
       console.error('Stack trace:', error.stack);
 
       // Szczegółowe informacje o błędzie dla użytkownika
-      if (error.message.includes('API key')) {
+      if (
+        error.message.includes('API key') ||
+        error.message.includes('401') ||
+        error.message.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+        error.message.includes('UNAUTHENTICATED')
+      ) {
+        errorCode = 'AUTH_FAILED';
         errorMessage = 'Problem z kluczem API Gemini';
         errorDetails =
-          'Błąd konfiguracji API. Skontaktuj się z pomocą techniczną';
+          'Błąd autoryzacji w Google AI Studio. Upewnij się, że klucz jest poprawny.';
+      } else if (
+        error.message.includes('PERMISSION_DENIED') ||
+        error.message.includes('403')
+      ) {
+        errorCode = 'PERMISSION_DENIED';
+        errorMessage = 'Brak uprawnień do API Gemini';
+        errorDetails = 'Brak uprawnień w projekcie Google Cloud (kod 403).';
       } else if (
         error.message.includes('quota') ||
-        error.message.includes('limit')
+        error.message.includes('limit') ||
+        error.message.includes('429')
       ) {
+        errorCode = 'QUOTA_EXCEEDED';
         errorMessage = 'Przekroczono limit zapytań do API Gemini';
         errorDetails =
-          'Spróbuj ponownie za chwilę lub sprawdź limity na https://makersuite.google.com';
+          'Spróbuj ponownie za chwilę lub sprawdź limity w Google AI Studio.';
       } else if (
         error.message.includes('network') ||
         error.message.includes('fetch')
       ) {
+        errorCode = 'NETWORK_ERROR';
         errorMessage = 'Problem z połączeniem do API Gemini';
         errorDetails = 'Sprawdź połączenie z internetem';
       } else {
@@ -220,6 +255,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
+        success: false,
+        code: errorCode,
         error: errorMessage,
         details: errorDetails,
         timestamp: new Date().toISOString(),
