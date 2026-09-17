@@ -81,10 +81,10 @@ async function runIngest() {
     const cleanContent = cleanWikitext(text);
     if (cleanContent.length < 100) continue;
 
-    const categoryInfo = determineCategory(title, text);
-    categoriesCount[categoryInfo.id] = (categoriesCount[categoryInfo.id] || 0) + 1;
-
     const isPublicDomainLovecraft = isOriginalLovecraftWork(text, title);
+    if (!isPublicDomainLovecraft) continue;
+
+    categoriesCount[categoryInfo.id] = (categoriesCount[categoryInfo.id] || 0) + 1;
     const entryId = `mythos_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
 
     wikiEntries.push({

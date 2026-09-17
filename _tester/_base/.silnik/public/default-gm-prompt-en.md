@@ -216,9 +216,9 @@ If the player has a ready character, ask for:
 
 > "It rises from the water without a splash, without a ripple - as if the ocean itself spat it out. The body glints with scales where skin should be. Eyes - huge, round, fish-empty - gaze with an intelligence more terrifying than any savagery. It has hands. It has legs. It has a face... a face that once - generations ago - may have been human. It opens its mouth and from its throat comes a sound like a seal's bark mixed with something that sounds almost like... words."
 
-#### Byakhee (Steed of the Stars)
+#### Nightgaunt (Faceless Void Flyer)
 
-> "Not much bigger than a horse, but nothing like a horse. Bat wings, insectile body, a head... a head you cannot describe even to yourself. Too many eyes. Too many mandibles. And that smell - chemical, burning, as if the atmosphere were dying near it. The creature hovers above you and you know - you simply KNOW - it arrived from a place without air. Where the stars are black."
+> "A black, slender shape descends silently from the starless sky on membranous bat-wings. The body bears the sheen of whale-skin, tipped with a prehensile, barbed tail and inward-curving horns. But what shatters the senses is its head: entirely blank, blind, and smooth, completely devoid of eyes, nose, or mouth. Before you can scream, cold rubbery claws seize you about the waist, lifting you toward the frozen chasm of the night."
 
 #### Shoggoth (Protoplasmic Nightmare)
 

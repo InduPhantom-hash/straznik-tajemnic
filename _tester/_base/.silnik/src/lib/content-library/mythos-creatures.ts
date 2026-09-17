@@ -1,6 +1,6 @@
 // ============================================================
-// MYTHOS CREATURES - Bestiariusz istot Mitów Cthulhu
-// Based on Call of Cthulhu 7th Edition Keeper's Rulebook
+// MYTHOS CREATURES - Bestiariusz istot weird fiction & kosmicznego horroru
+// Profile statystyk d100 oparte na domenie publicznej H.P. Lovecrafta
 // ============================================================
 
 import { MythosCreature } from './types';
@@ -171,44 +171,43 @@ export const MYTHOS_CREATURES: MythosCreature[] = [
         illustrationTags: ['amorphous', 'black mass', 'countless eyes', 'tentacles', 'cosmic horror']
     },
     {
-        id: 'byakhee',
-        name: 'Byakhee',
-        alternativeNames: ['Kosmiczny służący', 'Wierzchowiec Hastura'],
+        id: 'nightgaunt',
+        name: 'Nocne Widmo (Nightgaunt)',
+        alternativeNames: ['Beztwarzowy skrzydlaty', 'Sługa Nodensa'],
         type: 'servitor',
-        sanLoss: '1/1d6',
+        sanLoss: '0/1d6',
         combatStats: {
-            str: 90, con: 50, siz: 90, dex: 95, int: 25, pow: 50,
-            hp: 14, mp: 10, armor: 2, movement: 13,
+            str: 70, con: 60, siz: 70, dex: 65, int: 45, pow: 50,
+            hp: 13, mp: 10, armor: 2, movement: 7,
             attacks: [
-                { name: 'Ugryzienie', skill: 45, damage: '1d6+1d4', attacksPerRound: 1 },
-                { name: 'Pazury', skill: 55, damage: '1d6+1d4', attacksPerRound: 2 },
-                { name: 'Wysysanie krwi', skill: 45, damage: '1d6 HP/rundę', attacksPerRound: 1, description: 'Po trafieniu ugryzeniem — przyczepia się i wysysa krew co rundę. Wyrwanie się = test STR' }
+                { name: 'Pazury', skill: 45, damage: '1d6', attacksPerRound: 2 },
+                { name: 'Chwyt i uniesienie', skill: 40, damage: 'unieruchomienie', attacksPerRound: 1, description: 'Chwyta ofiarę i wznosi się z nią w powietrze, by zrzucić ją z wysokości.' }
             ],
-            specialAbilities: ['Lot — MOV 24 w powietrzu', 'Przetrwanie w próżni kosmicznej', 'Może służyć jako wierzchowiec'],
-            dodgeValue: 47
+            specialAbilities: ['Cichy lot — MOV 12 w powietrzu', 'Brak twarzy i zmysłów wzroku (echolokacja)', 'Zrzucenie z wysokości'],
+            dodgeValue: 32
         },
         firstGlimpse: [
-            'Na tle gwiazd pojawia się sylwetka - skrzydła jak u nietoperza, ale za duże.',
-            'Dźwięk jak szyb wiatrem... ale nie ma wiatru. Coś nadlatuje.',
-            'Łopota skrzydeł z ciemności, i zapach - chemiczny, kosmiczny, błędny.'
+            'Czarny, gumowaty kształt z bezszelestnym łopotem błoniastych skrzydeł.',
+            'Sylwetka z rogami i kolczastym ogonem, całkowicie pozbawiona rysów twarzy.',
+            'Chłód nocy i nagły podmuch powietrza, jakby wielki nietoperz opadł z nieba.'
         ],
         fullDescription: [
-            'Wielkości konia, ze skrzydłami jak u nietoperza. Twarz przypomina insekta - bez żuchwy, z ogromnymi fasetowymi oczami.',
-            'Ciało pokryte prążkowaną, ciemną skórą. Może przetrwać w kosmicznej próżni.',
-            'Służy jako wierzchowiec dla tych, którzy znają rytuał przyzwania.'
+            'Humanoidalna, smukła istota o czarnej, gładkiej, wielorybiej skórze. Wielkie skrzydła nietoperza, zakrzywione do wewnątrz rogi i długi, kolczasty ogon.',
+            'Najbardziej upiorna jest jej głowa — całkowicie gładka, ślepa i niema, bez nosa, oczu ani ust.',
+            'Porusza się w absolutnej ciszy, nie wydając najmniejszego dźwięku.'
         ],
         atmospheric: [
-            'W bezchmurną noc słyszysz łopotanie skrzydeł - wysoko, bardzo wysoko.',
-            'Jeden z kultysynów patrzy w niebo i uśmiecha się. "Nadchodzi mój pojazd."',
-            'Między gwiazdami porusza się ciemność - kształt, który nie powinien latać.'
+            'Cienie na szczytach skał wydają się odrywać i szybować ku dolinie.',
+            'Żadnego krzyku, żadnego ostrzeżenia — tylko zimne, gumowate dłonie zaciskające się na ramionach.',
+            'Wicher nad przepaścią niesie ze sobą poczucie bycia obserwowanym przez coś bez oczu.'
         ],
         behaviors: [
-            'Służy jako wierzchowiec przez kosmiczną pustkę',
-            'Może pić krew - przyjemność, nie konieczność',
-            'Przybywają na wezwanie tych, którzy znają stare pieśni'
+            'Porywa intruzów i unosi ich w bezdenne otchłanie',
+            'Służy Starszym Bogom i Nodensowi',
+            'Nigdy nie wydaje głosu ani nie wchodzi w dialog'
         ],
-        associatedCults: ['Wyznawcy Hastura', 'Kult Żółtego Znaku'],
-        illustrationTags: ['winged creature', 'bat-like wings', 'insectoid face', 'space', 'dark silhouette']
+        associatedCults: ['Kult Nodensa', 'Strażnicy Płaskowyżu Leng'],
+        illustrationTags: ['faceless', 'bat wings', 'horns', 'rubber skin', 'silent flight', 'abyss']
     },
 
     // ============================================================
@@ -586,9 +585,9 @@ export const MYTHOS_CREATURES: MythosCreature[] = [
         illustrationTags: ['yellow robes', 'pale mask', 'Carcosa', 'alien stars', 'mist', 'cosmic horror']
     },
     {
-        id: 'ithaqua',
-        name: 'Ithaqua (Kroczyściel)',
-        alternativeNames: ['Chodzący po Wietrze', 'Wendigo', 'Lodowy Bóg'],
+        id: 'wendigo',
+        name: 'Wendigo (Chodzący po Wietrze)',
+        alternativeNames: ['Duch Arktycznego Wichru', 'Pożeracz z Północy', 'Wędrowiec Pustkowi'],
         type: 'great_old_one',
         sanLoss: '1d6/1d20',
         combatStats: {
@@ -599,36 +598,36 @@ export const MYTHOS_CREATURES: MythosCreature[] = [
                 { name: 'Lodowy podmuch', skill: 90, damage: '4d6 (mróz)', attacksPerRound: 1, description: 'Stożkowy atak lodowatym wiatrem na wszystkich w promieniu 10m' }
             ],
             specialAbilities: [
-                'Lot — MOV 100 w powietrze',
-                'Kontrola pogody — burze śnieżne, temperatury do -60°C',
-                'Porywanie ofiar w arktyczną pustkę',
-                'Zamrożone ofiary stają się wiecznymi sługami'
+                'Lot — MOV 100 w powietrzu',
+                'Kontrola pogody — arktyczne burze śnieżne, spadek temperatury do -60°C',
+                'Porywanie ofiar w lodowatą stratosferę',
+                'Zimowy obłęd i psychoza wendigo'
             ],
             dodgeValue: 60
         },
         firstGlimpse: [
-            'Wiatr wyje jak tuzin wilków. Temperatura spada — dziesięć, dwadzieścia stopni w minutę.',
-            'W zamieci widzisz kształt — gigantyczny, na dwóch nogach, z oczami jak czerwone węgle.',
-            'Znajdujesz ciało wmrożone w lód — dwa metry nad ziemią. Twarz — czysta groza.'
+            'Wiatr wyje jak stado wilków. Temperatura spada gwałtownie o kilkadziesiąt stopni.',
+            'W gęstej zadymce widać olbrzymią sylwetkę z płonącymi czerwienią ślepiami.',
+            'Znajdujesz porzucony ekwipunek i ślady nieludzko wielkich stóp urywające się w śniegu.'
         ],
         fullDescription: [
-            'Gigantyczna, humanoidalna postać o wzroście kilkudziesięciu metrów. Ciało z lodu i wiatru.',
-            'Oczy żarzą się na czerwono. Każdy krok podnosi zamieć. Temperatura spada do arktycznych poziomów.',
-            'Dwunożny, z gigantycznymi ramionami. Poniżej kolan — mgła i lodowy wicher.'
+            'Kolosalna, upiorna manifestacja arktycznej zamieci i głodu, wysoka na kilkadziesiąt metrów.',
+            'Ślepia goreją jak zarzewie ogniska w śnieżnej bieli. Każdy podmuch wiatru mrozi krew w żyłach.',
+            'Ciało zdaje się utkane ze skręconego lodu, szronu i wyjącego wichru.'
         ],
         atmospheric: [
-            'Trapper nie wrócił. Znaleziono jego obóz — zamrożony jesienny posiłek, ciepłe jeszcze ognisko. I ślady OGROMNYCH stóp w śniegu.',
-            'Zamiecie o tej porze roku? Meteorolodzy nie potrafią tego wytłumaczyć.',
-            'Eskimoskie legendy mówią o Chodzącym po Wietrze. Mówią, żeby nie patrzeć w niebo podczas burzy.'
+            'Traperzy z północy milkną na sam dźwięk nietypowego szumu w koronach sosen.',
+            'Termometr pęka od nagłego mrozu, gdy na zewnątrz niebo przesłania biała ściana lodu.',
+            'W wyciu wichury słychać nieludzki, wabiący głos wzywający po imieniu tych, którzy zgubili drogę.'
         ],
         behaviors: [
-            'Poluje w arktycznych regionach',
-            'Porywa ludzi i wynosi ich na wielką wysokość',
-            'Zamraża ofiary żywcem, czyniąc je wiecznymi sługami'
+            'Nawiedza bezkresne lasy północy i tundrę',
+            'Porywa wędrowców, unosząc ich ponad chmury',
+            'Sprowadza nieprzeniknione burze śnieżne odcinające od cywilizacji'
         ],
-        weaknesses: ['Ogień i ciepło osłabiają', 'Rzadko pojawia się poza arktycznymi regionami'],
-        associatedCults: ['Kulty eskimoskie', 'Wyznawcy na północy Kanady i Syberii'],
-        illustrationTags: ['ice giant', 'blizzard', 'red eyes', 'arctic', 'wind', 'frozen horror']
+        weaknesses: ['Ogień i ciepło osłabiają manifestację', 'Rzadko opuszcza strefy wiecznej zmarzliny'],
+        associatedCults: ['Kulty arktyczne', 'Wygłodniali wygnańcy z tajgi'],
+        illustrationTags: ['wendigo', 'blizzard', 'red eyes', 'arctic horror', 'frozen waste', 'wind spirit']
     },
     {
         id: 'dagon',

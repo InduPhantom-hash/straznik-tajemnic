@@ -128,28 +128,7 @@ describe('buildAdditionalContext', () => {
       )
     ).toBe(false);
 
-    // 2. W kampanii stowarzyszenie jest wstrzykiwane
-    const resultFromCampaign = buildAdditionalContext({
-      timePromptSection: 'Time Prompt',
-      gmProtocol: 'Protocol',
-      gameContext: dummyGameContext,
-      resolvedCachedContent: null,
-      isCampaign: true,
-      characters: [
-        {
-          id: 'char-1',
-          name: 'Jan Kowalski',
-          organizationId: 'the-cleaners',
-        } as unknown as Character,
-      ],
-      locale: 'pl',
-    });
-    expect(
-      resultFromCampaign.some((s) =>
-        s.includes('STOWARZYSZENIE BADACZY I MECENAT: CZYŚCICIELE')
-      )
-    ).toBe(true);
-
+    // 2. W kampanii sekcja organizacji jest wstrzykiwana z jawnego parametru
     const resultFromOpt = buildAdditionalContext({
       timePromptSection: 'Time Prompt',
       gmProtocol: 'Protocol',
@@ -159,6 +138,15 @@ describe('buildAdditionalContext', () => {
       organizationSection: 'CUSTOM_ORGANIZATION_SECTION',
     });
     expect(resultFromOpt).toContain('CUSTOM_ORGANIZATION_SECTION');
+
+    const resultWithoutOpt = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      isCampaign: true,
+    });
+    expect(resultWithoutOpt).not.toContain('CUSTOM_ORGANIZATION_SECTION');
   });
 });
 
