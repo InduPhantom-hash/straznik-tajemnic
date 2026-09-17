@@ -175,7 +175,7 @@ export function SessionZeroModal({
       treasuredItem: '',
     },
     eraFilter: 'historical_realia',
-    rulesetVariant: (adventureContext as any)?.rulesetVariant || (suggestedTone === 'pulp' ? 'pulp' : 'classic'),
+    rulesetVariant: adventureContext?.rulesetVariant || (suggestedTone === 'pulp' ? 'pulp' : 'classic'),
     pulpLevel: suggestedTone === 'pulp' ? 'medium' : undefined,
   });
 

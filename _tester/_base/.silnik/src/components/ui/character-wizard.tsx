@@ -272,7 +272,7 @@ export function CharacterWizardV2({
   // Z `char` (re-roll) - seed koncepcji/historii, statystyki rozdawane od nowa
   // (krok 1, cechy bazowe; zawód wybierany ponownie w kroku 2).
   const buildInitialState = (char?: Character): WizardState => {
-    const initialRuleset = char?.rulesetVariant || (adventureContext?.tone === 'pulp' || (adventureContext as any)?.rulesetVariant === 'pulp' ? 'pulp' : 'classic');
+    const initialRuleset = char?.rulesetVariant || (adventureContext?.tone === 'pulp' || adventureContext?.rulesetVariant === 'pulp' ? 'pulp' : 'classic');
     const base: WizardState = {
       step: 1,
       rulesetVariant: initialRuleset,

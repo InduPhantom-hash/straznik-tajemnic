@@ -48,6 +48,7 @@ export interface AdventureContext {
   location: string;
   country: string;
   tone: 'purist' | 'pulp' | 'noir';
+  rulesetVariant?: 'classic' | 'pulp';
   themes: string[];
   suggestedOccupations: string[];
   suggestedArchetypes: string[];

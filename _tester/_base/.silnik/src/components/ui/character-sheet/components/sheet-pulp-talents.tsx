@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import type { Character } from '@/lib/types';
 import { getPulpTalent } from '@/lib/data/character/pulp-talents';
 import { getPulpArchetype } from '@/lib/data/character/pulp-archetypes';
@@ -17,7 +17,6 @@ export interface SheetPulpTalentsProps {
 }
 
 export function SheetPulpTalents({ character }: SheetPulpTalentsProps) {
-  const t = useTranslations('CharacterSheet');
   const locale = useLocale() as 'pl' | 'en';
   const isEn = locale === 'en';
 
