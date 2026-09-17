@@ -1172,7 +1172,14 @@
       },
       "luck": {
         "abbr": "SZC",
-        "full": "Szczęście"
+        "full": "Szczęście",
+        "pulpActions": "Akcje Pulpowego Szczęścia",
+        "adrenalineTitle": "Zastrzyk adrenaliny!",
+        "adrenalineDesc": "Wydano 20 Szczęścia. Zregenerowano +{heal} PŻ (pozostało {luckLeft} SZC).",
+        "adrenalineBtn": "Zastrzyk adrenaliny (-20 SZC, +1k6+1 PŻ)",
+        "unjamTitle": "Odblokowanie broni!",
+        "unjamDesc": "Wydano 10 Szczęścia na natychmiastowe usunięcie zacięcia (pozostało {luckLeft} SZC).",
+        "unjamBtn": "Odblokuj broń (-10 SZC)"
       }
     },
     "skillFirearms": "Broń Palna",
@@ -6999,6 +7006,17 @@
     "tonePuristDescription": "Kruchość badaczy, wysokie ryzyko obłędu i śmierci, bezradność wobec Przedwiecznych.",
     "tonePulpName": "Awanturniczy (Pulp Cthulhu)",
     "tonePulpDescription": "Bohaterowie twardsi i zdeterminowani, dynamiczna akcja, szanse na heroiczne starcia.",
+    "pulpLevelSectionLabel": "Pulpometr (Poziom Pulpy RAW)",
+    "pulpLevelSectionHelp": "Określa stopień heroizmu, odporność badaczy i dostęp do nadzwyczajnych talentów.",
+    "pulpDisclaimer": "Wariant inspirowany zasadami kina nowej przygody d100. Rekomendujemy posiadanie oficjalnego podręcznika Pulp Cthulhu.",
+    "pulpLevelDaringName": "Śmiały (Daring)",
+    "pulpLevelDaringDesc": "Lżejsze wzmocnienie, 1 talent, klasyczna śmiertelność.",
+    "pulpLevelHeroicName": "Bohaterski (Heroic - RAW)",
+    "pulpLevelHeroicDesc": "Standard Pulp Cthulhu: podwojone PŻ, archetypy, 2 talenty, Oszukanie Śmierci.",
+    "pulpLevelPulpName": "Pulpowy (Pulp)",
+    "pulpLevelPulpDesc": "3-4 talenty, szeroki dostęp do dziwnej nauki i mocy psychicznych.",
+    "pulpLevelApexName": "Awanturniczy (Apex / Disreputable)",
+    "pulpLevelApexDesc": "Szalone talenty, ignorowanie ograniczeń amunicji, widowiskowe kino akcji.",
     "toneNoirName": "Detektywistyczny / Noir",
     "toneNoirDescription": "Duszna atmosfera moralnej szarości, cynizm, nacisk na dedukcję, sieć powiązań i tajemnic.",
     "narrativeModeLabel": "Tryb narracji",

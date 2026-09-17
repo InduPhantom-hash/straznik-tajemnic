@@ -7,7 +7,7 @@
  * kluczowych reguł i ustalając profil silnika bez przechowywania zastrzeżonych treści.
  */
 
-export type RulebookProfile = 'starter-d100' | 'core-d100' | 'custom-d100' | 'unknown';
+export type RulebookProfile = 'starter-d100' | 'core-d100' | 'custom-d100' | 'pulp-d100' | 'unknown';
 
 export interface RulebookFingerprintResult {
   profile: RulebookProfile;
@@ -156,11 +156,24 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
     sample.includes('nawiedzony dom') ||
     sample.includes('the haunting');
 
+  const isPulpIndicator =
+    sample.includes('pulp cthulhu') ||
+    sample.includes('pulpowe archetypy') ||
+    sample.includes('pulp talents') ||
+    sample.includes('pulpomet');
+
   let profile: RulebookProfile = 'custom-d100';
   let title = '';
   let confidence = 0.7;
 
-  if (isCoreIndicator && !isStarterIndicator) {
+  if (isPulpIndicator) {
+    profile = 'pulp-d100';
+    title =
+      detectedLanguage === 'pl'
+        ? 'Pulp Cthulhu 7e: Księga Zasad (Pulp Ruleset)'
+        : 'Pulp Cthulhu 7e: Rulebook';
+    confidence = 0.95;
+  } else if (isCoreIndicator && !isStarterIndicator) {
     profile = 'core-d100';
     title =
       detectedLanguage === 'pl'

@@ -43,9 +43,11 @@ export function getMovement(
 
 export function calculateDerived(
   stats: CharacterStats,
-  age: number
+  age: number,
+  rulesetVariant: 'classic' | 'pulp' = 'classic'
 ): DerivedStats {
-  const hp = Math.floor((stats.con + stats.siz) / 10);
+  const hpDivisor = rulesetVariant === 'pulp' ? 5 : 10;
+  const hp = Math.floor((stats.con + stats.siz) / hpDivisor);
   const san = stats.pow;
   const mp = Math.floor(stats.pow / 5);
   const { damageBonus, build } = getDamageAndBuild(stats.str, stats.siz);

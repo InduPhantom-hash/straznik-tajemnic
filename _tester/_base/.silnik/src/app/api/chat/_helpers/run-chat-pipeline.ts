@@ -25,6 +25,7 @@ import {
   buildPlayerFinancesSection,
   buildPlayerVisualProfileSection,
   buildPlayerMagicSection,
+  buildPlayerPulpSection,
   HotSeatPlayerEntry,
 } from './build-context';
 import { buildHandoutsContext } from './build-handouts-context';
@@ -538,6 +539,11 @@ export async function runChatPipeline({
     playerMagicSection: buildPlayerMagicSection(
       character ?? null,
       (locale ?? 'pl') as 'pl' | 'en'
+    ),
+    // Profil pulpowy badacza (Pulp Cthulhu RAW) -> AI zna archetyp, talenty i podwyższoną odporność
+    playerPulpSection: buildPlayerPulpSection(
+      character ?? characters?.[0] ?? null,
+      (requestedLocale ?? 'pl') as 'pl' | 'en'
     ),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,

@@ -82,24 +82,33 @@ const VOID_CONFIG: PacingConfig = {
   directiveEn: 'GEAR 4 (THE VOID / POST-SHOCK): 40-90 words. Silence after shock, somatic body reflexes, vacuum variable (missing element), cold sentences.',
 };
 
+const PULP_SANITY_RUSH_CONFIG: PacingConfig = {
+  gear: 'hard_move',
+  tempo: 'fast',
+  wordRange: [30, 70],
+  directivePl: 'BIEG 3 (SZOK ADRENALINY / PULP SANITY RUSH): 30-70 słów. Utrata Poczytalności wyzwala heroiczny szał, brawurowy zryw lub nagłą manię walki. Czyste działanie pod wpływem adrenaliny!',
+  directiveEn: 'GEAR 3 (ADRENALINE RUSH / PULP SANITY RUSH): 30-70 words. Sanity loss triggers heroic rage, reckless bravado, or sudden action mania. Pure adrenaline-fueled momentum!',
+};
+
 /**
  * Generuje dyrektywę tempa narracji na podstawie kontekstu gry i Matrycy 4 Biegów.
  *
  * Modyfikatory:
- * - recentSANLoss → Bieg 4 (Pustka / The Void)
+ * - recentSANLoss → Bieg 4 (Pustka / The Void) lub Bieg 3 (Pulp Sanity Rush w pulpie)
  * - nightTime → +15% do limitu słów
- * - isStuck → War-room bodziec zewnętrzny
+ * - isStuck → War-room bodziec zewnętrzny / Prawo Chandlera w pulpie
  */
 export function getPacingDirective(
   context: GameContext,
   locale: 'pl' | 'en' = 'pl'
 ): string {
   const isEn = locale === 'en';
+  const isPulp = context.rulesetVariant === 'pulp' || context.tone === 'pulp';
   let config = PACING_MAP[context.mode];
 
-  // Horror reveal po utracie SAN -> przeskocz natychmiast na Bieg 4 (Pustka)
+  // Horror reveal po utracie SAN -> przeskocz natychmiast na Bieg 4 (Pustka) lub Bieg 3 (Pulp Sanity Rush)
   if (context.recentSANLoss) {
-    config = VOID_CONFIG;
+    config = isPulp ? PULP_SANITY_RUSH_CONFIG : VOID_CONFIG;
   }
 
   const min = config.wordRange[0];
@@ -125,9 +134,13 @@ export function getPacingDirective(
     : `**PACING NARRACJI I BIEG KADENCJI:** ${rangeStr}${antiMonotony}${failForward}`;
 
   if (context.isStuck) {
-    const stuckNote = isEn
-      ? `\n**PACING - WAR-ROOM STALL:** Players are trapped in planning without taking action. Inject an immediate external catalyst: a sudden threat tied to their bonds/motivation, or a startling ambient event. Force an immediate decision under pressure.`
-      : `\n**TEMPO - WAR-ROOM (Uchwała III):** Gracze grzęzną w planowaniu bez ruchu. Wprowadź natychmiastowy bodziec zewnętrzny: bezpośrednie zagrożenie powiązane z więzią postaci lub nagłe zjawisko otoczenia. Wymuś decyzję pod presją czasu.`;
+    const stuckNote = isPulp
+      ? (isEn
+          ? `\n**PACING - CHANDLER'S LAW (Pulp Cthulhu RAW):** The heroes are stalling or over-planning. Apply Chandler's Law immediately: a man bursts through the door with a gun, cult assassins attack, or an explosion rocks the room. Force immediate action under fire!`
+          : `\n**TEMPO - PRAWO CHANDLERA (Pulp Cthulhu RAW):** Badacze tkwią w martwym punkcie lub debacie bez akcji. Zastosuj natychmiast Prawo Chandlera: do pokoju wpada facet z rewolwerem, atakują zabójcy kultu lub następuje eksplozja. Wymuś natychmiastową reakcję pod ostrzałem!`)
+      : (isEn
+          ? `\n**PACING - WAR-ROOM STALL:** Players are trapped in planning without taking action. Inject an immediate external catalyst: a sudden threat tied to their bonds/motivation, or a startling ambient event. Force an immediate decision under pressure.`
+          : `\n**TEMPO - WAR-ROOM (Uchwała III):** Gracze grzęzną w planowaniu bez ruchu. Wprowadź natychmiastowy bodziec zewnętrzny: bezpośrednie zagrożenie powiązane z więzią postaci lub nagłe zjawisko otoczenia. Wymuś decyzję pod presją czasu.`);
     return base + stuckNote;
   }
 

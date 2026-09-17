@@ -175,6 +175,8 @@ export function SessionZeroModal({
       treasuredItem: '',
     },
     eraFilter: 'historical_realia',
+    rulesetVariant: (adventureContext as any)?.rulesetVariant || (suggestedTone === 'pulp' ? 'pulp' : 'classic'),
+    pulpLevel: suggestedTone === 'pulp' ? 'medium' : undefined,
   });
 
   const partyCharacters = useMemo(
@@ -680,12 +682,15 @@ Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
                     <button
                       key={tn.id}
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const isPulp = tn.id === 'pulp';
                         setSettings({
                           ...settings,
                           tone: tn.id as SessionZeroSettings['tone'],
-                        })
-                      }
+                          rulesetVariant: isPulp ? 'pulp' : 'classic',
+                          pulpLevel: isPulp ? (settings.pulpLevel || 'medium') : undefined,
+                        });
+                      }}
                       className={`relative p-4 text-left transition-all cursor-pointer ${
                         isSelected
                           ? 'border border-primary bg-primary/10 shadow-[0_0_14px_rgba(13,148,136,0.22)]'
@@ -708,6 +713,49 @@ Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
                   );
                 })}
               </div>
+
+              {/* Pulpometr (RAW Pulp Cthulhu Level) */}
+              {settings.tone === 'pulp' && (
+                <div className="mt-4 p-4 border border-primary/35 bg-[#121815] space-y-3 animate-in fade-in duration-200">
+                  <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-primary">
+                    <span>⚡</span>
+                    {t('pulpLevelSectionLabel')}
+                    <HelpIcon content={t('pulpLevelSectionHelp')} />
+                  </Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    {[
+                      { id: 'low', name: t('pulpLevelDaringName'), desc: t('pulpLevelDaringDesc') },
+                      { id: 'medium', name: t('pulpLevelHeroicName'), desc: t('pulpLevelHeroicDesc') },
+                      { id: 'high', name: t('pulpLevelPulpName'), desc: t('pulpLevelPulpDesc') },
+                      { id: 'apex', name: t('pulpLevelApexName'), desc: t('pulpLevelApexDesc') },
+                    ].map((lvl) => {
+                      const isLevelSelected = (settings.pulpLevel || 'medium') === lvl.id;
+                      return (
+                        <button
+                          key={lvl.id}
+                          type="button"
+                          onClick={() => setSettings({ ...settings, pulpLevel: lvl.id as SessionZeroSettings['pulpLevel'] })}
+                          className={`p-3 text-left transition-all cursor-pointer ${
+                            isLevelSelected
+                              ? 'border border-primary bg-primary/20 shadow-[0_0_10px_rgba(13,148,136,0.3)]'
+                              : 'border border-primary/20 bg-[#161a18] hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="font-display text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
+                            {lvl.name}
+                          </div>
+                          <div className="font-serif text-xs italic text-muted-foreground">
+                            {lvl.desc}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="font-serif text-xs italic text-muted-foreground/80 border-t border-primary/20 pt-2">
+                    ℹ️ {t('pulpDisclaimer')}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Tryb narracji */}

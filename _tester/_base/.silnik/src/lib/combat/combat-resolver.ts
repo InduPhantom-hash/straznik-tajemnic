@@ -372,16 +372,34 @@ export function applyCombatDamage(params: {
   hadMajorWound?: boolean;
   convention?: CombatConvention;
   conRoll?: number;
+  isMook?: boolean;
 }): CombatHealthState {
   const hpBefore = Math.max(0, params.hp);
   const maxHp = Math.max(1, params.maxHp);
   const effectiveDamage = Math.max(0, params.damage);
+  const convention = params.convention ?? 'classic';
+  const isPulp = convention === 'pulp';
+
+  // Eliminacja pachołków (Mooks / Szeregowe popychadła - Pulp Cthulhu RAW s. 67):
+  // Popychadła padają bez ducha po otrzymaniu obrażeń > 50% maxHp lub 1-hit KO.
+  if (params.isMook && isPulp && (effectiveDamage >= Math.ceil(maxHp / 2) || effectiveDamage >= hpBefore)) {
+    return {
+      hpBefore,
+      hpAfter: 0,
+      hasMajorWound: false,
+      conCheck: undefined,
+      isUnconscious: true,
+      isDying: false,
+      isDead: false,
+    };
+  }
+
   const hpAfter = Math.max(0, hpBefore - effectiveDamage);
-  const instantDeath = effectiveDamage >= maxHp;
+  const instantDeath = isPulp ? effectiveDamage >= maxHp * 2 : effectiveDamage >= maxHp;
   const wound = checkMajorWound(
     effectiveDamage,
     maxHp,
-    params.convention ?? 'classic'
+    convention
   );
   const hasMajorWound = Boolean(params.hadMajorWound) || wound.isMajorWound;
   const conCheck =
@@ -392,7 +410,18 @@ export function applyCombatDamage(params: {
         }
       : undefined;
   const conFailed = conCheck ? !isSuccessOutcome(conCheck.outcome) : false;
-  const isDying = !instantDeath && hpAfter === 0 && hasMajorWound;
+
+  // Poprawny warunek Umierania przy 0 PŻ:
+  // W CoC 7e: 0 PŻ + Ciężka Rana = Umierający.
+  // W Pulpie: badacz przy 0 PŻ jest tylko nieprzytomny; stan Umierania nadawany jest TYLKO
+  // gdy cios zadał obrażenia >= 50% maxHp (lub >= maxHp).
+  const isDying =
+    !instantDeath &&
+    hpAfter === 0 &&
+    (isPulp
+      ? effectiveDamage >= Math.floor(maxHp / 2) || hasMajorWound
+      : hasMajorWound);
+
   const isUnconscious = instantDeath || hpAfter === 0 || conFailed;
 
   return {

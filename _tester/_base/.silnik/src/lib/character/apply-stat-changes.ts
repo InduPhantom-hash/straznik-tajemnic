@@ -124,14 +124,22 @@ export function applyStatChangesFromText(
   if (hpDelta !== 0) {
     next.hp = clampStat(character.hp + hpDelta, character.maxHp);
     const maxHp = character.maxHp || character.hp || 10;
-    const threshold = Math.floor(maxHp / 2);
-    if (hpDelta <= -threshold) {
+    const isPulp = character.rulesetVariant === 'pulp';
+    const majorWoundThreshold = isPulp ? maxHp : Math.floor(maxHp / 2);
+    if (hpDelta <= -majorWoundThreshold) {
       next.hasMajorWound = true;
     }
     if (next.hp <= 0) {
       next.isUnconscious = true;
-      if (next.hasMajorWound) {
-        next.isDying = true;
+      if (isPulp) {
+        const dyingThreshold = Math.floor(maxHp / 2);
+        if (-hpDelta >= dyingThreshold || next.hasMajorWound) {
+          next.isDying = true;
+        }
+      } else {
+        if (next.hasMajorWound) {
+          next.isDying = true;
+        }
       }
       // Tarcza ocalenia Fail-Forward przy 0 HP (Seth Skorkowsky style, Issue #372)
       if ((next.deathSavesUsed ?? 0) === 0) {
@@ -237,14 +245,22 @@ export function applyStatChangesToParty(
     if (hpD !== 0) {
       next.hp = clampStat(c.hp + hpD, c.maxHp);
       const maxHp = c.maxHp || c.hp || 10;
-      const threshold = Math.floor(maxHp / 2);
-      if (hpD <= -threshold) {
+      const isPulp = c.rulesetVariant === 'pulp';
+      const majorWoundThreshold = isPulp ? maxHp : Math.floor(maxHp / 2);
+      if (hpD <= -majorWoundThreshold) {
         next.hasMajorWound = true;
       }
       if (next.hp <= 0) {
         next.isUnconscious = true;
-        if (next.hasMajorWound) {
-          next.isDying = true;
+        if (isPulp) {
+          const dyingThreshold = Math.floor(maxHp / 2);
+          if (-hpD >= dyingThreshold || next.hasMajorWound) {
+            next.isDying = true;
+          }
+        } else {
+          if (next.hasMajorWound) {
+            next.isDying = true;
+          }
         }
         // Tarcza ocalenia Fail-Forward przy 0 HP (Seth Skorkowsky style, Issue #372)
         if ((next.deathSavesUsed ?? 0) === 0) {

@@ -240,6 +240,63 @@ export function calculateEffectiveSanLoss(
 }
 
 /**
+ * Redukuje stratę Poczytalności kosztem punktów Szczęścia (Pulp Cthulhu RAW, s. 65).
+ * - Standardowo w Pulpie: 2 punkty Szczęścia za 1 punkt redukcji straty SAN (do 50% redukcji).
+ * - Z talentem 'Nerwy ze Stali' (iron_nerves): 1 punkt Szczęścia za 1 punkt redukcji straty SAN (1:1).
+ */
+export function reduceSanityLossWithLuck(
+  character: Character,
+  rawSanLoss: number,
+  luckPointsToSpend?: number
+): {
+  reducedLoss: number;
+  luckSpent: number;
+  hasIronNerves: boolean;
+  nextCharacter: Character;
+} {
+  if (rawSanLoss <= 0) {
+    return { reducedLoss: 0, luckSpent: 0, hasIronNerves: false, nextCharacter: character };
+  }
+
+  const currentLuck = character.luck ?? 0;
+  const hasIronNerves = Boolean(
+    character.pulpTalents?.some(
+      (t) => t === 'iron_nerves' || t.toLowerCase().includes('nerwy ze stali')
+    )
+  );
+
+  const luckRatio = hasIronNerves ? 1 : 2;
+  const maxSanReduction = hasIronNerves ? rawSanLoss : Math.floor(rawSanLoss / 2);
+
+  if (maxSanReduction <= 0) {
+    return { reducedLoss: rawSanLoss, luckSpent: 0, hasIronNerves, nextCharacter: character };
+  }
+
+  const maxLuckNeeded = maxSanReduction * luckRatio;
+  const availableLuck =
+    luckPointsToSpend !== undefined
+      ? Math.min(currentLuck, luckPointsToSpend)
+      : currentLuck;
+
+  const actualLuckSpent = Math.min(maxLuckNeeded, availableLuck);
+  const actualSanReduction = Math.floor(actualLuckSpent / luckRatio);
+  const finalLuckSpent = actualSanReduction * luckRatio;
+
+  const reducedLoss = Math.max(0, rawSanLoss - actualSanReduction);
+  const nextCharacter: Character = {
+    ...character,
+    luck: Math.max(0, currentLuck - finalLuckSpent),
+  };
+
+  return {
+    reducedLoss,
+    luckSpent: finalLuckSpent,
+    hasIronNerves,
+    nextCharacter,
+  };
+}
+
+/**
  * Losuje lub wybiera Atak Szaleństwa z oficjalnej tabeli CoC 7e.
  */
 export function rollBoutOfMadness(

@@ -14,6 +14,10 @@ import {
   HelpCircle,
   Activity,
 } from 'lucide-react';
+import {
+  checkMajorWound as resolverCheckMajorWound,
+  type CombatConvention,
+} from '@/lib/combat/combat-resolver';
 
 // === KOŚCI PREMIOWE/KARNE (CoC7) ===
 
@@ -122,19 +126,21 @@ export function checkMajorWound(
   damage: number,
   maxHP: number,
   currentHP: number,
-  conValue: number
+  conValue: number,
+  convention: CombatConvention = 'classic'
 ): MajorWoundResult {
+  const wound = resolverCheckMajorWound(damage, maxHP, convention);
+  const isMajorWound = wound.isMajorWound;
   const halfMaxHP = Math.floor(maxHP / 2);
-  const isMajorWound = damage >= halfMaxHP;
 
   const result: MajorWoundResult = {
     isMajorWound,
     damageDealt: damage,
     halfMaxHP,
-    conTestRequired: isMajorWound,
+    conTestRequired: wound.conTestRequired,
   };
 
-  if (isMajorWound) {
+  if (wound.conTestRequired) {
     // Automatyczny test KON
     const roll = Math.floor(Math.random() * 100) + 1;
     const success = roll <= conValue;
