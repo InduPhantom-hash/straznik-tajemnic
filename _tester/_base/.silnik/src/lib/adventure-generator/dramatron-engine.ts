@@ -918,14 +918,14 @@ export class DramatronEngine {
       if (!ai) return fallback;
 
       const systemPrompt = `
-Jesteś Głównym Reżyserem Śledztwa (DeepMind Dramatron Engine) dla oficjalnego systemu Call of Cthulhu 7th Edition (RAW).
+Jesteś Głównym Reżyserem Śledztwa (DeepMind Dramatron Engine) dla silnika gry d100 Weird Fiction RPG (RAW).
 Twoim zadaniem jest wygenerować kompletną intrygę kryminalno-okultystyczną w oparciu o 5-etapową hierarchiczną dekompozycję fabularną:
 
 1. PREMISE: Logline, esencja kosmicznego horroru, pradawne bóstwo/byt, tło historyczne epoki.
 2. CAST (Lajos Egri 3D): Postacie z 3 wymiarami (fizjologia, socjologia, psychologia), publiczną maską i mrocznym sekretem.
 3. CLUE WEB (Alexandrian Three-Clue Rule & M.I.C.E.): Minimum 3 poszlaki na każdy kluczowy węzeł wnioskowania (forensic, testimony, document, occult), wektory dramatyczne (milieu, inquiry, character, event), niezmienna Kotwica Prawdy (Sealed Envelope).
 4. LOCATIONS (John Dickson Carr): Topografia, progi zmysłowe, anomalie oraz minimum jedna klasyczna zagadka zamkniętego pokoju.
-5. SCENES (4 Akty Obłędu): 1. Wprowadzenie, 2. Śledztwo, 3. Konfrontacja, 4. Kulminacja. Każda scena z beatami akcji, testami umiejętności CoC 7e i kosztami SAN.
+5. SCENES (4 Akty Obłędu): 1. Wprowadzenie, 2. Śledztwo, 3. Konfrontacja, 4. Kulminacja. Każda scena z beatami akcji, testami umiejętności d100 i kosztami SAN.
 
 Zwróć ZAWSZE wyłącznie poprawny format JSON zgodny ze strukturą DramatronAdventure.
 Język odpowiedzi: ${input.locale === 'en' ? 'English' : 'Polski'}.

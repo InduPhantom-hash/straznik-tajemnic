@@ -50,6 +50,7 @@ import type { ClueProvenance } from '@/lib/journal/dossier-types';
 import { inferClueProvenance } from '@/lib/parsers/journal-parser';
 import { isPublicCurrentClue } from '@/core/memory/revealed-facts';
 import { isDocumentModelUseBlocked } from '@/lib/document-model-policy';
+import { getSystemCapabilitiesPromptSection } from '@/lib/pdf/capabilities-manager';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -1076,6 +1077,10 @@ export function buildAdditionalContext(
   if (summarySection) additionalContext.push(summarySection);
   // Realne handouty przygody (DriveThruRPG) - MG dostaje markdown obrazów do wstawienia.
   if (handoutsSection) additionalContext.push(handoutsSection);
+
+  // Modularne nakładki semantyczne DLC (odblokowane reguły, pościgi, magia, bestie)
+  const capabilitiesSection = getSystemCapabilitiesPromptSection(opts.locale);
+  if (capabilitiesSection) additionalContext.push(capabilitiesSection);
 
   // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen) - wzbogacają narrację.
   if (opts.immersionSection) additionalContext.push(opts.immersionSection);

@@ -446,7 +446,7 @@ class ContextCollector {
    */
   async extractWithAI(response: string): Promise<ExtractedData> {
     try {
-      const prompt = `Przeanalizuj poniższą odpowiedź MG w grze RPG Zew Cthulhu i wyodrębnij:
+      const prompt = `Przeanalizuj poniższą odpowiedź MG w grze RPG d100 Weird Fiction i wyodrębnij:
 1. NPC - imiona, krótkie opisy, cechy
 2. Lokacje - nazwy, opisy
 3. Fakty fabularne - kluczowe informacje

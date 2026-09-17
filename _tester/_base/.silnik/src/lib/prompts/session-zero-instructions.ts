@@ -58,7 +58,7 @@ export const DIFFICULTY_INSTRUCTIONS: Record<string, string> = {
 
   normal: `
 ## POZIOM TRUDNOŚCI: NORMALNY
-- Stosuj standardowe zasady Call of Cthulhu 7e
+- Stosuj standardowe zasady silnika d100 Weird Fiction RPG
 - Porażki mają realne konsekwencje
 - AI jest neutralny - nie pomaga ani nie szkodzi nadmiernie
 - Świat reaguje logicznie na działania postaci`,
@@ -164,7 +164,7 @@ export const DIFFICULTY_INSTRUCTIONS_EN: Record<string, string> = {
 
   normal: `
 ## DIFFICULTY LEVEL: NORMAL
-- Apply standard Call of Cthulhu 7e rules
+- Apply standard d100 Weird Fiction RPG rules
 - Failures have real consequences
 - The AI is neutral - neither over-assisting nor excessively cruel
 - The world reacts logically to investigator actions`,

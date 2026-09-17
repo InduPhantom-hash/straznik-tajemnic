@@ -335,7 +335,7 @@ export function SessionZeroModal({
     setInterviewError(null);
     try {
       const prompt = `
-Przygotuj propozycję uzupełnienia postaci do gry Call of Cthulhu 7e.
+Przygotuj propozycję uzupełnienia postaci do gry d100 Weird Fiction RPG.
 Zwróć wyłącznie poprawny JSON bez markdownu w formacie:
 {"summary":"...","investigatorHook":"...","keyConnection":"...","importantPlace":"...","treasuredItem":"...","characterConcept":"...","backstory":"..."}
 

@@ -81,7 +81,7 @@ export async function extractAdventureEntities(
   // Ograniczenie długości tekstu dla bezpieczeństwa kontekstu (pierwsze ~100k znaków to z reguły pełny opis scenariusza)
   const trimmedText = pdfText.slice(0, 100000);
 
-  const prompt = `Przeanalizuj poniższy scenariusz przygody RPG (Call of Cthulhu / Zew Cthulhu) z pliku "${fileName}" i wyekstrahuj ustrukturyzowane dane w postaci JSON.
+  const prompt = `Przeanalizuj poniższy scenariusz przygody RPG d100 Weird Fiction z pliku "${fileName}" i wyekstrahuj ustrukturyzowane dane w postaci JSON.
 
 Kluczowe wytyczne:
 1. Zidentyfikuj postacie (NPC) i podziel ich opis na:
