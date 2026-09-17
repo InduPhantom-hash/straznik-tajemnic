@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       ? `Jest to KLUCZOWY bohater niezależny dla fabuły. Musi mieć zdefiniowany głęboki cel, motywację opartą na jego psychice/pragnieniach, ewentualne ukryte powiązania z intrygą oraz unikalny sznyt zachowania (np. tiki nerwowe, niezwykły ubiór np. burleska, nienaturalny spokój).`
       : `Jest to bohater EPIZODYCZNY (postać tła, np. gazeciarz, przechodzień, kelner). Nie twórz dla niego głębokiego tła ani skomplikowanej przeszłości. Skup się wyłącznie na jego zmysłowym zarysie i 1-2 cechach charakterystycznych.`;
 
-    const prompt = `Jesteś generatorem barwnych postaci (NPC) do gry RPG Call of Cthulhu (era: ${era}).
+    const prompt = `Jesteś generatorem barwnych postaci (NPC) do gry RPG d100 Weird Fiction (era: ${era}).
 Przygoda: ${adventureTitle || 'Tajemnicza sprawa'}
 Aktualne miejsce spotkania / kontekst: ${locationContext || 'Miasteczko'}
 

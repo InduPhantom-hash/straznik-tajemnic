@@ -8,7 +8,7 @@ export const AppHeader: FC = () => {
   return (
     <div className="h-20 flex items-center justify-center border-b border-border/50 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent backdrop-blur-sm">
       <h1 className="text-3xl font-mono font-bold text-foreground tracking-wide drop-shadow-sm">
-        Zew Cthulhu
+        Strażnik Tajemnic
       </h1>
     </div>
   );

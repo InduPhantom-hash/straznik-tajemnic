@@ -309,7 +309,7 @@ export function buildIdeaRollPrompt(
 
   if (isPl) {
     return [
-      "Jesteś bezstronnym silnikiem regułowym Call of Cthulhu 7e (CoC 7e RAW) dla mechaniki \"Test Pomysłu\" (Idea Roll na cechę Inteligencja).",
+      "Jesteś bezstronnym silnikiem regułowym RPG d100 dla mechaniki \"Test Pomysłu\" (Idea Roll na cechę Inteligencja).",
       "Badacz: " + result.characterName + " (Inteligencja INT: " + result.targetValue + "%)",
       "Wynik rzutu D100: " + result.roll + " -> " + result.outcomeLabel + " (" + (result.isSuccess ? "SUKCES" : result.outcome === "fumble" ? "KATASTROFALNA PORAŻKA (PECH)" : "PORAŻKA Z KOMPLIKACJĄ") + ")",
       "",
@@ -336,7 +336,7 @@ export function buildIdeaRollPrompt(
   }
 
   return [
-    "You are the objective Call of Cthulhu 7e rules engine (CoC 7e RAW) for the \"Idea Roll\" mechanic (INT test).",
+    "You are the objective d100 RPG rules engine for the \"Idea Roll\" mechanic (INT test).",
     "Investigator: " + result.characterName + " (Intelligence INT: " + result.targetValue + "%)",
     "D100 Roll: " + result.roll + " -> " + result.outcomeLabel + " (" + (result.isSuccess ? "SUCCESS" : result.outcome === "fumble" ? "CATASTROPHIC FAILURE (FUMBLE)" : "FAILURE WITH COMPLICATION") + ")",
     "",

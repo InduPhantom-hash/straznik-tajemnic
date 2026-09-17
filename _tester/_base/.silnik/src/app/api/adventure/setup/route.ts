@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       ? mythosReferences.map((entry) => `- ${entry.term}: ${entry.shortDefinition}`).join('\n')
       : 'Brak trafnych, lokalnych odniesień Mythos.';
 
-    const prompt = `Jesteś zaawansowanym projektantem scenariuszy Call of Cthulhu RPG. Twoim zadaniem jest stworzenie nieliniowego setupu przygody w oparciu o dostarczony tekst scenariusza i karty badaczy.
+    const prompt = `Jesteś zaawansowanym projektantem scenariuszy śledczych RPG d100 Weird Fiction. Twoim zadaniem jest stworzenie nieliniowego setupu przygody w oparciu o dostarczony tekst scenariusza i karty badaczy.
 
 ${eraRules}
 

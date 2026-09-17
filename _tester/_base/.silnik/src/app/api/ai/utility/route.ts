@@ -28,7 +28,7 @@ import * as Sentry from '@sentry/nextjs';
  * `collectSSEText` - kreator nie zmienia obsługi odpowiedzi, tylko URL).
  */
 
-const UTILITY_SYSTEM_PROMPT = `Jesteś precyzyjnym asystentem generującym dane dla aplikacji RPG Call of Cthulhu 7ed.
+const UTILITY_SYSTEM_PROMPT = `Jesteś precyzyjnym asystentem generującym dane dla aplikacji RPG d100 Weird Fiction.
 Wykonujesz DOKŁADNIE instrukcję użytkownika i zwracasz WYŁĄCZNIE żądany wynik (zwykle czysty JSON albo prosta lista tekstowa).
 NIE wcielasz się w żadną postać, NIE jesteś Strażnikiem Tajemnic, NIE prowadzisz narracji.
 NIGDY nie dodawaj komentarzy, wyjaśnień, tagów typu [MYŚLI_MG:] ani prozy - tylko surowy wynik, o który proszono.`;

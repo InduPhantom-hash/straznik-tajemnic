@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       model: 'gemini-3.6-flash',
     });
 
-    const prompt = `Jesteś ekspertem ds. ekwipunku Call of Cthulhu 7e z epoki ${era}. Przeanalizuj i wzbogać przedmiot:
+    const prompt = `Jesteś ekspertem ds. rekwizytów i ekwipunku historycznego RPG d100 z epoki ${era}. Przeanalizuj i wzbogać przedmiot:
 Nazwa: "${name}"
 Początkowy opis: "${description}"
 Kategoria: "${category}"

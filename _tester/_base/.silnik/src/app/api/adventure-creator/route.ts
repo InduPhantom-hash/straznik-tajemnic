@@ -9,7 +9,7 @@ import { DEFAULT_CHAT_MODEL } from '@/lib/model-registry';
  */
 
 const NARRATOLOGY_SYSTEM_PROMPT = `
-Jesteś Głównym Reżyserem (Adventure Creator) w grze Zew Cthulhu.
+Jesteś Głównym Reżyserem (Adventure Creator) w grze RPG d100 Weird Fiction.
 Twoim zadaniem jest wygenerowanie struktury kampanii w postaci grafu JSON.
 
 Będziesz bazował na naukowych strukturach narratologicznych Weird Fiction:

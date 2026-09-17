@@ -1,5 +1,10 @@
 {
-  "CampaignMemory": {"failed":"This turn could not be saved to memory", "retry":"Retry save", "saved":"Turn memory saved", "description":"The reply remains in chat. Retrying the save does not generate narration again."},
+  "CampaignMemory": {
+    "failed": "This turn could not be saved to memory",
+    "retry": "Retry save",
+    "saved": "Turn memory saved",
+    "description": "The reply remains in chat. Retrying the save does not generate narration again."
+  },
   "Welcome": {
     "title": "Select language",
     "subtitle": "Choose Language",
@@ -12,7 +17,7 @@
   "BetaWelcome": {
     "badge": "Beta Version v0.9.3",
     "title": "Keeper of Secrets AI – Playable Beta",
-    "subtitle": "Readiness status: what works 100% according to Call of Cthulhu 7e RAW rules vs work in progress.",
+    "subtitle": "Readiness status: what works 100% according to d100 RAW rules vs work in progress.",
     "readySectionTitle": "Ready Modules (100% CoC 7e RAW)",
     "readySectionDesc": "Fully tested and compliant with Chaosium official rules:",
     "inProgressSectionTitle": "Modules in Progress (Experimental Phase)",
@@ -88,7 +93,7 @@
     "bookRequiredTitle": "CoC 7e Rulebook Required",
     "bookRequiredDesc": "The application operates as a clean rule emulator (BYOB). To unlock gameplay, upload your legally acquired rulebook (Starter Rules or Keeper Rulebook).",
     "starterOrCoreAccepted": "Supported formats: Free Quick-Start Rules or full CoC 7e Keeper Rulebook (PDF).",
-    "legalDisclaimerNotice": "Strażnik Tajemnic AI is open-source software and contains no proprietary Call of Cthulhu / Chaosium Inc. text or tables. All rules are processed strictly locally from the user's file."
+    "legalDisclaimerNotice": "Keeper of Secrets AI is open-source software and contains no proprietary Call of Cthulhu / Chaosium Inc. text or tables. All rules are processed strictly locally from the user's file (BYOB)."
   },
   "CostControl": {
     "title": "Cost Control",
@@ -274,10 +279,10 @@
     "noAdditionalContext": "No additional context - generate creatively.",
     "noSpecificEra": "Do not assume a specific era without a year and country.",
     "prompts": {
-      "backstory": "Generate UNIQUE character data for Call of Cthulhu.\n\n{adventure}\n\nCHARACTER: {gender}, {age} years old, occupation: {occupation}.\nINSPIRATION: personality {personality}; background {background}; motivation {motivation}; seed #{seed}.\nReturn ONLY JSON with name, birthplace, description, ideology, importantPeople, significantPlaces, personalItems, traits, and keyConnection. Use English.",
+      "backstory": "Generate UNIQUE character data for a d100 Weird Fiction RPG.\n\n{adventure}\n\nCHARACTER: {gender}, {age} years old, occupation: {occupation}.\nINSPIRATION: personality {personality}; background {background}; motivation {motivation}; seed #{seed}.\nReturn ONLY JSON with name, birthplace, description, ideology, importantPeople, significantPlaces, personalItems, traits, and keyConnection. Use English.",
       "biography": "Using the following character sheet, write a coherent atmospheric biography in 2-3 third-person paragraphs.\n\n{adventure}\nName: {name}\nGender: {gender}\nAge: {age}\nOccupation: {occupation}\nBirthplace: {birthplace}\nAppearance: {appearance}\nIdeology: {ideology}\nImportant people: {people}\nSignificant places: {places}\nPersonal items: {items}\nTraits: {traits}\nKey connection: {connection}\n\nReturn only the biography, with no heading or commentary.",
-      "field": "You generate a character-background field for Call of Cthulhu 7e.\nCharacter context:\n{context}{adventure}\n\nGenerate {field}. Return only the field value, without quotation marks, prefixes, or explanations. Use 1-3 sentences. Style: {style}. Use English.",
-      "skills": "You are an expert character builder for Call of Cthulhu 7ed.\n\nCHARACTER CONTEXT:\n{context}\n\nOCCUPATION: {occupation}\nOCCUPATIONAL SKILLS: {occSkills}\n{archetypeBlock}\n\nNOTE: Recommended skills (archetype + occupation) have ALREADY been allocated deterministically: {recommended}. Do not touch them.\nYour task: distribute the REMAINING pool across OTHER skills (flavorful, fitting the character background) to make the investigator well-rounded.\n\nREMAINING POINTS TO DISTRIBUTE: {remaining}\nPER-SKILL LIMIT: {limit}% (creation maximum)\n\nSKILL LIST WITH BASE VALUES:\n{skillsList}\n\nCRITICAL REQUIREMENTS:\n1. Distribute EXACTLY {remaining} points - no more, no less!\n2. Do NOT allocate to recommended skills (already done): {recommendedTop}\n3. Pick skills fitting the character (background, description, traits)\n4. Each skill may reach at most {limit}%\n5. Spread points across fitting skills\n\nExample: if Library has base 20% and you want 60%, you add 40 points.\n\nReply ONLY with plain JSON, no markdown:\n{\"skills\": {\"SkillName\": newValue, ...}}\n\nInclude ONLY skills you add points to (new value > base).\nTHE SUM OF ADDED POINTS MUST BE EXACTLY {remaining}!"
+      "field": "You generate a character-background field for a d100 Weird Fiction RPG.\nCharacter context:\n{context}{adventure}\n\nGenerate {field}. Return only the field value, without quotation marks, prefixes, or explanations. Use 1-3 sentences. Style: {style}. Use English.",
+      "skills": "You are an expert character builder for a d100 Weird Fiction RPG.\n\nCHARACTER CONTEXT:\n{context}\n\nOCCUPATION: {occupation}\nOCCUPATIONAL SKILLS: {occSkills}\n{archetypeBlock}\n\nNOTE: Recommended skills (archetype + occupation) have ALREADY been allocated deterministically: {recommended}. Do not touch them.\nYour task: distribute the REMAINING pool across OTHER skills (flavorful, fitting the character background) to make the investigator well-rounded.\n\nREMAINING POINTS TO DISTRIBUTE: {remaining}\nPER-SKILL LIMIT: {limit}% (creation maximum)\n\nSKILL LIST WITH BASE VALUES:\n{skillsList}\n\nCRITICAL REQUIREMENTS:\n1. Distribute EXACTLY {remaining} points - no more, no less!\n2. Do NOT allocate to recommended skills (already done): {recommendedTop}\n3. Pick skills fitting the character (background, description, traits)\n4. Each skill may reach at most {limit}%\n5. Spread points across fitting skills\n\nExample: if Library has base 20% and you want 60%, you add 40 points.\n\nReply ONLY with plain JSON, no markdown:\n{\"skills\": {\"SkillName\": newValue, ...}}\n\nInclude ONLY skills you add points to (new value > base).\nTHE SUM OF ADDED POINTS MUST BE EXACTLY {remaining}!"
     },
     "toasts": {
       "apiError": "API error",
@@ -368,7 +373,7 @@
     "rerollOnce": "Reroll (1×)",
     "rerollUsed": "reroll used",
     "lowStatHintTitle": "A low score is not a flaw.",
-    "lowStatHintBody": "An investigator with a frail body or a fragile mind is often more interesting than someone good at everything - their shortcomings drive the story and hard choices. In Call of Cthulhu ordinary people face horror beyond their strength; imperfection is part of the mood, not an obstacle.",
+    "lowStatHintBody": "An investigator with a frail body or a fragile mind is often more interesting than someone good at everything - their shortcomings drive the story and hard choices. In weird fiction stories ordinary people face horror beyond their strength; imperfection is part of the mood, not an obstacle.",
     "ageLabel": "Age: {age}",
     "physPenalty": "-{count} (STR/CON/DEX)",
     "appPenalty": "-{count} APP",
@@ -658,17 +663,17 @@
       "next": "Next"
     },
     "sources": {
-      "blackMonk": "Polish publisher of Call of Cthulhu 7e - PDF/print rulebooks and free materials (starters).",
-      "driveThru": "Original Call of Cthulhu 7e PDFs from Chaosium.",
+      "blackMonk": "Distributor of d100 RPG materials - PDF/print rulebooks and free starter materials.",
+      "driveThru": "Official d100 RPG PDFs from official digital distributors.",
       "description": "Keeper of Secrets is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
-      "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies.",
+      "disclaimer": "Independent d100 investigative engine. Not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies (BYOB).",
       "back": "Back",
       "next": "I have a rulebook, next"
     },
     "upload": {
       "httpError": "HTTP error {status}",
       "unknownError": "Unknown error",
-      "starterText": "Call of Cthulhu 7e Rules. The core rule is a K100 (d100) roll against a character's skill or characteristic. A roll equal to or below the value is a success. A roll of 01 is an Extreme Success (Critical), while 100 is a Fumble. Insanity and Combat use dedicated tables and Sanity (SAN) tests.",
+      "starterText": "d100 Core Rules. The core rule is a K100 (d100) roll against a character's skill or characteristic. A roll equal to or below the value is a success. A roll of 01 is an Extreme Success (Critical), while 100 is a Fumble. Insanity and Combat use dedicated tables and Sanity (SAN) tests.",
       "starterFailed": "Could not initialize starter rules",
       "connectionError": "Connection error",
       "description": "Upload your rules PDF. The file is processed on your device and stored as local rules memory - it is not sent to any cloud. A large rulebook may take a few minutes to index.",
@@ -685,7 +690,7 @@
     "gm": {
       "title": "Welcome to Keeper of Secrets",
       "quote": "“That is not dead which can eternal lie, and with strange aeons even death may die.”",
-      "description": "I am your Virtual Game Master. I will guide you through the dark corners of Lovecraftian horror, resolve Call of Cthulhu 7e dice rolls, and paint a world of madness and mystery before you.",
+      "description": "I am your Virtual Game Master. I will guide you through the dark corners of Weird Fiction horror, resolve d100 dice rolls, and paint a world of madness and mystery before you.",
       "quickTitle": "Quick Start (Quick Setup)",
       "quickDescription": "Choose a predefined Polish adventure and a ready Investigator.",
       "manualTitle": "Full Menu (Manual Setup)",
@@ -1060,7 +1065,7 @@
   "CharacterSheet": {
     "title": "Investigator Sheet",
     "dialogTitle": "Character sheet",
-    "dialogDescription": "Complete Call of Cthulhu investigator sheet.",
+    "dialogDescription": "Complete d100 investigator sheet.",
     "selectCharacterPrompt": "Choose a character to view their sheet.",
     "sheetDescription": "Investigator characteristics, skills, status and biography.",
     "exportMarkdown": "Export MD",
@@ -4607,7 +4612,7 @@
     "journalRequiresCharacter": "The journal is tied to a character. Select or create a character to open it.",
     "newCharacter": "New character",
     "cancel": "Cancel",
-    "rulebookEdition": "Call of Cthulhu 7ed",
+    "rulebookEdition": "d100 Weird Fiction",
     "newBadge": "NEW",
     "hpAbbr": "HP",
     "sanAbbr": "SAN",
@@ -4655,17 +4660,17 @@
     "next": "Next"
   },
   "StepContentSources": {
-    "blackMonk": "Polish publisher of Call of Cthulhu 7e - PDF/print rulebooks and free materials (starters).",
-    "driveThru": "Original Call of Cthulhu 7e PDFs from Chaosium.",
+    "blackMonk": "Distributor of d100 RPG materials - PDF/print rulebooks and free starter materials.",
+    "driveThru": "Official d100 RPG PDFs from official digital distributors.",
     "description": "Keeper of Secrets is an <strong>engine</strong> - it does not include any rulebook. Bring your own: download a free starter or buy a full edition from a legal source, then upload your PDF in the next step. It stays only on your disk.",
-    "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies.",
+    "disclaimer": "Independent d100 investigative engine. Not affiliated with or endorsed by Chaosium Inc. or Black Monk. <coc>Call of Cthulhu</coc> / <zew>Zew Cthulhu</zew> are Chaosium Inc. trademarks. Use only legally acquired copies (BYOB).",
     "back": "Back",
     "next": "I have a rulebook, next"
   },
   "StepUploadRulebook": {
     "httpError": "HTTP error {status}",
     "unknownError": "Unknown error",
-    "starterText": "Call of Cthulhu 7e Rules. The core rule is a K100 (d100) roll against a character's skill or characteristic. A roll equal to or below the value is a success. A roll of 01 is an Extreme Success (Critical), while 100 is a Fumble. Insanity and Combat use dedicated tables and Sanity (SAN) tests.",
+    "starterText": "d100 Core Rules. The core rule is a K100 (d100) roll against a character's skill or characteristic. A roll equal to or below the value is a success. A roll of 01 is an Extreme Success (Critical), while 100 is a Fumble. Insanity and Combat use dedicated tables and Sanity (SAN) tests.",
     "starterFailed": "Could not initialize starter rules",
     "connectionError": "Connection error",
     "description": "Upload your rules PDF. The file is processed on your device and stored as local rules memory - it is not sent to any cloud. A large rulebook may take a few minutes to index.",
@@ -4682,7 +4687,7 @@
   "StepWelcomeGM": {
     "title": "Welcome to Keeper of Secrets",
     "quote": "“That is not dead which can eternal lie, and with strange aeons even death may die.”",
-    "description": "I am your Virtual Game Master. I will guide you through the dark corners of Lovecraftian horror, resolve Call of Cthulhu 7e dice rolls, and paint a world of madness and mystery before you.",
+    "description": "I am your Virtual Game Master. I will guide you through the dark corners of Weird Fiction horror, resolve d100 dice rolls, and paint a world of madness and mystery before you.",
     "quickTitle": "Quick Start (Quick Setup)",
     "quickDescription": "Choose a predefined Polish adventure and a ready Investigator.",
     "manualTitle": "Full Menu (Manual Setup)",
@@ -4803,7 +4808,7 @@
   },
   "Footer": {
     "title": "Keeper of Secrets",
-    "subtitle": "Virtual Game Master for Call of Cthulhu, 7th edition",
+    "subtitle": "Virtual Game Master for d100 Weird Fiction RPG",
     "copyright": "© {year} · Created by Phantom"
   },
   "Header": {
@@ -5170,7 +5175,7 @@
   "DevelopmentPhaseCard": {
     "title": "INVESTIGATOR DEVELOPMENT PHASE (CoC 7e)",
     "successfulTests": "{count} successful tests [✓]",
-    "introPre": "According to the Call of Cthulhu rules (7th edition), after the session the investigator tests the skills they used successfully. Each skill has a chance to grow by",
+    "introPre": "According to d100 rules, after the session the investigator tests the skills they used successfully. Each skill has a chance to grow by",
     "introAccent": "+1D10%",
     "introPost": ".",
     "skillsToTest": "Skills up for a development test:",
@@ -5293,7 +5298,7 @@
     "emptySelection": "Select an entry from the list on the left to view details and definitions."
   },
   "HelpAssistantTab": {
-    "systemPrompt": "You are the Help Assistant in the Call of Cthulhu 7e RPG game. Answer the player's question about rules, mechanics or epoch lore concisely and concretely: {query}",
+    "systemPrompt": "You are the Help Assistant in the d100 Weird Fiction RPG game. Answer the player's question about rules, mechanics or epoch lore concisely and concretely: {query}",
     "requestFailed": "Failed to get an answer from the Assistant.",
     "noAnswer": "No answer.",
     "unknownError": "An unknown error occurred.",
@@ -5302,7 +5307,7 @@
     "nanoAfterDownload": "AI Nano (download required)",
     "nanoError": "AI Nano unavailable",
     "introLabel": "Help RAG Assistant:",
-    "introText": "Ask a question about Call of Cthulhu 7th edition mechanics or the realities of the epoch. The Assistant will give a concise answer without affecting your session's narrative.",
+    "introText": "Ask a question about d100 mechanics or the realities of the epoch. The Assistant will give a concise answer without affecting your session's narrative.",
     "inputPlaceholder": "e.g. How does a Push Roll work?",
     "askButton": "Ask a Question",
     "searchingButton": "Searching...",
@@ -6025,7 +6030,7 @@
     "imageGenerateFailed": "Failed to generate image. Try again.",
     "titleEyebrow": "{name} · equipment",
     "title": "Equipment & Finances",
-    "descriptionA11y": "List of {name}'s items and weapons plus financial status (Credit Rating) per Call of Cthulhu 7e rules.",
+    "descriptionA11y": "List of {name}'s items and weapons plus financial status (Credit Rating) per d100 rules.",
     "weaponsTab": "⚔️ Weapons ({count})",
     "gearTab": "🎒 Gear ({count})",
     "financesTab": "💵 Finances",
@@ -6355,7 +6360,7 @@
     "noSpecialEffects": "No special effects",
     "eyebrow": "Keeper of Secrets · Development",
     "title": "Character Development: {name}",
-    "subtitle": "Development system consistent with Call of Cthulhu 7e rules",
+    "subtitle": "Development system consistent with d100 investigative rules",
     "tabOverview": "📊 Overview",
     "tabSkills": "🎯 Skills",
     "tabTrauma": "🧠 Trauma",
@@ -6374,7 +6379,7 @@
     "investigationsLabel": "Investigations:",
     "favoriteSkillsTitle": "🎯 Most Developed Skills",
     "historyTitle": "📜 Development History",
-    "rulesTitle": "📖 Development Rules (Call of Cthulhu 7e)",
+    "rulesTitle": "📖 Development Rules (d100 Investigative RPG)",
     "rule1": "Skills are marked automatically after a <strong>successful test without spending Luck</strong>.",
     "rule2": "In the Development Phase you roll <strong>D100</strong> for each marked skill.",
     "rule3": "Success (D100 > current value) = gain of <strong>1D10</strong> points.",
@@ -6589,7 +6594,7 @@
     "zoomIn": "Zoom in",
     "resetView": "Reset view",
     "cancelConnecting": "Cancel string connection",
-    "ideaRollButtonTitle": "Perform an Idea Roll (INT) according to Call of Cthulhu 7th Edition rules",
+    "ideaRollButtonTitle": "Perform an Idea Roll (INT) according to d100 investigative rules",
     "deductionButton": "Flash of Insight (INT)",
     "newNote": "New note",
     "closeDrawer": "Close drawer",
@@ -6609,7 +6614,7 @@
     "deductionWithSkillForObject": "Deduction ({skill}): {title}",
     "flashWithSkillForInvestigator": "Flash of Insight ({skill}): {name}",
     "intSkillLabel": "Intelligence (Idea)",
-    "promptRole": "You are the Game Master (Keeper of Arcane Lore) in Call of Cthulhu 7th Edition.",
+    "promptRole": "You are the Game Master (Keeper of Secrets) in a d100 Weird Fiction RPG.",
     "promptInvestigatorLine": "Investigator: {name} (Occupation: {occupation})",
     "promptDefaultOccupation": "Investigator",
     "promptSkillLine": "Tested skill / characteristic: {skill} ({target}%)",
@@ -6987,7 +6992,11 @@
     "close": "Close",
     "notificationTitle": "Update {version} is available",
     "notificationDescription": "Install it now or return to it later.",
-    "result": { "succeeded": "Update completed successfully", "rolled_back": "The update failed. The previous version was restored", "failed": "The update failed" }
+    "result": {
+      "succeeded": "Update completed successfully",
+      "rolled_back": "The update failed. The previous version was restored",
+      "failed": "The update failed"
+    }
   },
   "SessionZeroModal": {
     "headerKicker": "Before the first fog lifts",
@@ -7523,7 +7532,7 @@
   },
   "RulebookModal": {
     "title": "CoC 7e Rulebook",
-    "description": "Upload the official Call of Cthulhu 7th Edition rulebook (PDF). The file will be processed and indexed locally on your device - it never leaves your machine.",
+    "description": "Upload an official rulebook (PDF). The file will be processed and indexed locally on your device - it never leaves your machine.",
     "privacyLabel": "Privacy & Local Processing:",
     "privacyDescription": "Your PDF is parsed directly on your computer and stored in the local knowledge base (data/rag/rules). Required for Keeper mechanics and skill rolls.",
     "requiredBadge": "Required",
@@ -7544,12 +7553,12 @@
     "statusChunks": "{count} rule chunks in local index",
     "sourcesTitle": "Where to legally acquire the rulebook?",
     "sourcesDesc": "Strażnik Tajemnic is an engine and does not contain rulebook content. Download a free starter or purchase the full edition:",
-    "disclaimer": "Fan project, not affiliated with or endorsed by Chaosium Inc. or Black Monk. Call of Cthulhu is a trademark of Chaosium Inc. Use only legally acquired copies."
+    "disclaimer": "Independent d100 investigative engine. Not affiliated with or endorsed by Chaosium Inc. or Black Monk. Call of Cthulhu is a trademark of Chaosium Inc. Use only legally acquired copies (BYOB)."
   },
   "IdeaRoll": {
     "headerSubtitle": "CoC 7e RAW Mechanics (pp. 199-201)",
     "headerTitle": "Idea Roll (INT Test)",
-    "headerDescription": "According to Call of Cthulhu 7e rules, the Idea Roll serves to push the investigation forward when investigators hit a dead end.",
+    "headerDescription": "According to d100 investigative rules, the Idea Roll serves to push the investigation forward when investigators hit a dead end.",
     "subjectLabel": "FOCUSED ELEMENT:",
     "generalInvestigationLabel": "ANALYSIS SCOPE:",
     "generalDeductionTitle": "General investigation - synthesis of known clues",
@@ -7803,7 +7812,7 @@
   },
   "AdventureBuilder": {
     "modalTitle": "Adventure Builder & Campaign Kit",
-    "modalSubtitle": "Call of Cthulhu 7e · Mystery Builder, Multi-format Importer & Campaign Kit Generator",
+    "modalSubtitle": "d100 Mystery Builder · Multi-format Importer & Campaign Kit Generator",
     "rolePlayerBadge": "Investigator Mode",
     "roleKeeperBadge": "Keeper of Secrets Mode",
     "chooseRolePrompt": "Choose your goal before building:",
@@ -7950,7 +7959,7 @@
     "hideLoreGuide": "Hide rules",
     "showLoreGuide": "Show rules",
     "spellLoreTitle": "Mysteries of Mythos Casting CoC 7e RAW",
-    "spellLorePhilosophy": "Magic in Call of Cthulhu is not fantasy spellcasting. It is a blasphemous forcing of alien geometry upon reality, paid with one's mind, flesh, and soul.",
+    "spellLorePhilosophy": "Magic in weird fiction is not fantasy spellcasting. It is a blasphemous forcing of alien geometry upon reality, paid with one's mind, flesh, and soul.",
     "spellLoreFirstCast": "First casting: The investigator's mind has no established pathways for Mythos energy. Requires a Hard Power roll (Hard POW ≤ 1/2). If successful, the formula is seared into memory permanently.",
     "spellLoreSubsequent": "Subsequent castings: Mastered spells succeed automatically without a dice roll (provided resources are available).",
     "spellLorePush": "Pushed roll: First cast failure still burns resources! You may push the roll, but a pushed failure means the spell works, yet triggers an irreversible CATASTROPHE.",
@@ -8083,4 +8092,3 @@
     "easter_egg_obituary_title": "Serious Sam Protocol: Ripped Fabric of Reality"
   }
 }
-

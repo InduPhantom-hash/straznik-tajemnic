@@ -18,7 +18,7 @@ import { classifyDocumentAsCampaign } from '@/lib/data/official-campaigns';
  * Wspiera wykrywanie WIELU przygód w jednym PDF
  */
 
-const ANALYSIS_PROMPT = `Przeanalizuj ten dokument do gry fabularnej RPG "Zew Cthulhu" (Call of Cthulhu 7ed).
+const ANALYSIS_PROMPT = `Przeanalizuj ten dokument do gry fabularnej RPG d100 Weird Fiction.
 
 **KROK 1: KLASYFIKACJA TYPU DOKUMENTU (documentType)**
 Określ, z jakim rodzajem materiału mamy do czynienia:
@@ -130,7 +130,7 @@ const validateLorebookData = (
     id: `lore-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     title,
     documentType: docType as 'setting' | 'compendium',
-    regionOrTheme: String(rawObj.regionOrTheme || 'Świat Zewu Cthulhu'),
+    regionOrTheme: String(rawObj.regionOrTheme || 'Świat Mitów i Weird Fiction'),
     summary: String(rawObj.summary || 'Księga wiedzy i tła fabularnego.'),
     factions: Array.isArray(rawObj.factions)
       ? rawObj.factions.map((f: Record<string, unknown>, idx: number) => ({
