@@ -189,5 +189,125 @@ describe('Diegetic Prose Cleaner & Tag Sanitizer (SillyTavern Adaptation)', () =
       expect(output).toContain('Cisza zalega w korytarzu.');
       expect(output).toContain('Słychać powolne kroki.');
     });
+
+    it('stripMultilineArtifacts usuwa niezamknięty blok Depth Injection podczas streamingu', () => {
+      const input =
+        'Korytarz spowity jest mgłą.\n[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]\nAtmosfera sceny: Mrok i chłód, które dopiero się strumieniują...';
+      const output = stripMultilineArtifacts(input);
+      expect(output).toContain('Korytarz spowity jest mgłą.');
+      expect(output).not.toContain('PRZYPOMNIENIE DLA MG');
+      expect(output).not.toContain('Atmosfera sceny:');
+      expect(output).not.toContain('strumieniują');
+    });
+
+    it('cleanResponseText oczyszcza tagi GUARDRAIL_LEVEL, WETO_SEDZIEGO oraz GAME_OVER przed syntezą TTS', () => {
+      const input =
+        'MG: [GUARDRAIL_LEVEL: 2] [WETO_SEDZIEGO: typ=anachronizm | powod=smartfon] Nie posiadasz takiego urządzenia. [GAME_OVER: @Badacz | typ=DEAD | powod=szok] Słyszysz kroki.';
+      const output = cleanResponseText(input);
+      expect(output).not.toContain('GUARDRAIL');
+      expect(output).not.toContain('WETO');
+      expect(output).not.toContain('GAME_OVER');
+      expect(output).not.toContain('MG:');
+      expect(output).toContain('Nie posiadasz takiego urządzenia.');
+      expect(output).toContain('Słyszysz kroki.');
+    });
+
+    it('sanitizeMechanicalTags wycina tagi z tolerancją spacji wokół dwukropka oraz paddingu nawiasów', () => {
+      const input =
+        'Zaglądasz pod szafę. [ TEST : Spostrzegawczość ] [ DZIENNIK : trop : stary list ] [ / DZIENNIK ] [ NPC : Lord Vance ] [ GUARDRAIL_LEVEL : 1 ] Nic tam nie ma.';
+      const output = sanitizeMechanicalTags(input);
+      expect(output).not.toContain('TEST');
+      expect(output).not.toContain('DZIENNIK');
+      expect(output).not.toContain('Lord Vance');
+      expect(output).not.toContain('GUARDRAIL');
+      expect(output).toContain('Zaglądasz pod szafę.');
+      expect(output).toContain('Nic tam nie ma.');
+    });
+
+    it('sanitizeMechanicalTags usuwa halucynowane tagi z dwukropkiem przez regułę catch-all', () => {
+      const input =
+        'Stoisz w bramie. [UNKNOWN_RPG_TAG: dane] [HALUCYNACJA_MG: losowe] [Co robisz?]';
+      const output = sanitizeMechanicalTags(input);
+      expect(output).not.toContain('UNKNOWN_RPG_TAG');
+      expect(output).not.toContain('HALUCYNACJA_MG');
+      expect(output).toContain('Stoisz w bramie.');
+      expect(output).toContain('[Co robisz?]');
+    });
+
+    it('sanitizeDiegeticProse czyści rozszerzone nagłówki formularzy karty postaci', () => {
+      const input =
+        'Osobowość i cechy: Zawsze ostrożny i podejrzliwy.\nKluczowa osoba: Wujek z Bostonu.\nWażne miejsce: Biblioteka Miskatonic.\nCenne posiadanie: Złoty zegarek po ojcu.\nIdeologia i przekonania: Tylko nauka wyjaśni świat.\nFobie i manie: Paniczny lęk przed szczurami.\n- Czas ruszać w drogę - mówi spokojnie.';
+      const output = sanitizeDiegeticProse(input);
+      expect(output).not.toContain('Osobowość i cechy:');
+      expect(output).not.toContain('Kluczowa osoba:');
+      expect(output).not.toContain('Ważne miejsce:');
+      expect(output).not.toContain('Cenne posiadanie:');
+      expect(output).not.toContain('Ideologia i przekonania:');
+      expect(output).not.toContain('Fobie i manie:');
+      expect(output).toContain('Zawsze ostrożny i podejrzliwy.');
+      expect(output).toContain('Wujek z Bostonu.');
+      expect(output).toContain('Biblioteka Miskatonic.');
+      expect(output).toContain('Złoty zegarek po ojcu.');
+      expect(output).toContain('Tylko nauka wyjaśni świat.');
+      expect(output).toContain('Paniczny lęk przed szczurami.');
+      expect(output).toContain('- Czas ruszać w drogę - mówi spokojnie.');
+    });
+
+    it('sanitizeDiegeticProse normalizuje dialogi z cudzysłowami typograficznymi (“ ”)', () => {
+      const input =
+        '“Gdzie są klucze?” - zapytał badacz.\n“Uważajcie na cienie!”';
+      const output = sanitizeDiegeticProse(input, { normalizeDialogues: true });
+      expect(output).toContain('- Gdzie są klucze? - zapytał badacz.');
+      expect(output).toContain('- Uważajcie na cienie!');
+    });
+
+    it('sanitizeDiegeticProse normalizuje dialogi z pojedynczymi cudzysłowami typograficznymi (‘ ’)', () => {
+      const input =
+        '‘Gdzie podziały się akta?’ - zapytał detektyw.\n‘Uciekajmy stąd!’';
+      const output = sanitizeDiegeticProse(input, { normalizeDialogues: true });
+      expect(output).toContain('- Gdzie podziały się akta? - zapytał detektyw.');
+      expect(output).toContain('- Uciekajmy stąd!');
+    });
+
+    it('stripMultilineArtifacts nie usuwa prozy fabularnej gdy niezamknięty blok dyrektywy jest na początku tekstu', () => {
+      const input =
+        '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]\nAtmosfera sceny: Mrok i chłód.\nPacing i kadencja: BIEG 3 (PRZEŁAMANIE): 30-70 słów.\n\nKorytarz spowity jest gęstą mgłą. Słyszysz kroki.';
+      const output = stripMultilineArtifacts(input);
+      expect(output).not.toContain('PRZYPOMNIENIE DLA MG');
+      expect(output).not.toContain('Atmosfera sceny:');
+      expect(output).toContain('Korytarz spowity jest gęstą mgłą. Słyszysz kroki.');
+    });
+
+    it('sanitizeDiegeticProse usuwa niezamknięte bloki dyrektyw z nagłówkami bez wycieku do prozy gracza', () => {
+      const input =
+        '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]\nAtmosfera sceny: Narastająca groza\nPacing i kadencja: Bieg 3\n\nDeszcz bębni o parapet. Co robisz?';
+      const output = sanitizeDiegeticProse(input);
+      expect(output).not.toContain('PRZYPOMNIENIE DLA MG');
+      expect(output).not.toContain('Atmosfera sceny:');
+      expect(output).not.toContain('Pacing i kadencja:');
+      expect(output).toBe('Deszcz bębni o parapet. Co robisz?');
+    });
+
+    it('sanitizeMechanicalTags usuwa bloki dyrektyw gdy tag zamykający zawiera powtórzony tytuł lub parametry', () => {
+      const input =
+        'Zegar bije północ. [PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]Atmosfera: Dread[/PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING] Ktoś puka do drzwi.';
+      const output = sanitizeMechanicalTags(input);
+      expect(output).not.toContain('PRZYPOMNIENIE DLA MG');
+      expect(output).not.toContain('Atmosfera: Dread');
+      expect(output).toContain('Zegar bije północ.');
+      expect(output).toContain('Ktoś puka do drzwi.');
+    });
+
+    it('sanitizeDiegeticProse czyści etykiety Dossier (Pierwsze wrażenie, Poszlaka, Pochodzenie)', () => {
+      const input =
+        'Pierwsze wrażenie: Nerwowy i małomówny.\nPoszlaka: Zardzewiały klucz do krypty.\nPochodzenie: Odnaleziony w gabinecie.\n- Weź ten klucz - rzekł starzec.';
+      const output = sanitizeDiegeticProse(input);
+      expect(output).not.toContain('Pierwsze wrażenie:');
+      expect(output).not.toContain('Poszlaka:');
+      expect(output).not.toContain('Pochodzenie:');
+      expect(output).toContain('Nerwowy i małomówny.');
+      expect(output).toContain('Zardzewiały klucz do krypty.');
+      expect(output).toContain('- Weź ten klucz - rzekł starzec.');
+    });
   });
 });
