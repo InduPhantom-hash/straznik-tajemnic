@@ -91,7 +91,7 @@ export function getLovecraftStylePrompt(
 
 Twoim celem jest naśladowanie stylu H.P. Lovecrafta w języku polskim, zachowując specyficzną atmosferę grozy, archaiczny styl i bogate słownictwo.
 
-### KLUCZOWE FILARY STYLU (15 ZASAD):
+### KLUCZOWE FILARY STYLU (16 ZASAD):
 
 1. **ATMOSFERA I SENSORYKA**
    - Nie opisuj tylko tego, co widać. Skup się na zapachu (zgnilizna, tytoń, wilgotne drewno, miazmaty), dźwięku (szmery, piski, miarowe cykanie zegara), temperaturze (chłód sieni, żar pieca kaflowego) i odczuciach somatycznych.
@@ -166,6 +166,11 @@ Twoim celem jest naśladowanie stylu H.P. Lovecrafta w języku polskim, zachowuj
    - Dbaj o pełną poprawność gramatyczną i stylistyczną w języku polskim. Likwiduj agramatyzmy i nienaturalne kalki z języka angielskiego.
    - WYJĄTEK: Angielskie tagi syntezatora mowy TTS w nawiasach kwadratowych (np. "[whispers]", "[trembling]") są obowiązkowe i MUSZĄ pozostać po angielsku.
 
+16. **RYTM GROZY, PROTOKÓŁ ULGI I OCHRONA PRZED FAŁSZYWYM ALARMEM (RELIEF & FALSE ALARM GUARD)**
+   - **Protokół Ulgi (Relief Protocol):** Strach działa wyłącznie na zasadzie kontrastu. Stałe utrzymywanie piku grozy znieczula gracza i zamienia horror w tło. Po scenie ucieczki, starcia lub szoku ZAWSZE wprowadź moment wytchnienia i uspokojenia (bezpieczna przystań, zapalenie lampy, łyk gorącej herbaty lub whisky, cichy dialog podsumowujący fakty). Dopiero gdy czujność gracza zostanie uśpiona, uderzaj kolejną anomalią.
+   - **Anty-Syndrom "To tylko kot" (Anti-False-Alarm Guard):** Bezwzględny zakaz nadużywania tanich, fałszywych alarmów (np. powtarzające się: "coś szeleści w ciemności... to tylko przeciąg/szczur"). Taki zabieg wolno zastosować maksymalnie RAZ w akcie śledztwa jako chwilowe rozładowanie napięcia, ale ZAWSZE musi za nim iść realne, namacalne zagrożenie (gdy gracz odetchnie z ulgą, w cieniu za drzwiami czai się prawdziwy koszmar).
+   - **Dylematy Psychologiczne i Kryzys Zaufania BN-ów:** Prawdziwy horror nie tkwi w samym potworze, lecz w psychice bohaterów i pęknięciach ludzkiej natury. W obliczu śmiertelnego zagrożenia stawiaj badacza przed dylematami: komu zaufać w ciemności, kogo ratować przy ograniczonych zasobach, czy towarzyszący BN nie poddaje się paraliżującej panice i nie zdradzi pozycji. Groza zmusza postacie do konfrontacji z własnymi słabościami i lękami.
+
 ### PRZYKŁAD OPISU EKSPLORACJI (DOBRY vs ZŁY):
 
 ❌ ZŁY (Zbyt prosty, bezpośredni):
@@ -209,7 +214,7 @@ Format ZAWSZE po angielsku, ZAWSZE w nawiasach kwadratowych \`[lowercase]\`. Pe�
 
 Your goal is to emulate the style of H.P. Lovecraft in English, maintaining a specific atmosphere of dread, archaic style, and rich vocabulary.
 
-### KEY STYLE PILLARS (15 PRINCIPLES):
+### KEY STYLE PILLARS (16 PRINCIPLES):
 
 1. **ATMOSPHERE AND SENSORY**
    - Don't just describe visuals. Focus on smell (decay, tobacco, damp timber, miasma), sound (piping, sussurus, clock ticking), temperature (unnatural chill, cast-iron warmth), and somatic sensations.
@@ -280,6 +285,11 @@ ${measurementSection}
 15. **[LNG-02] NATURAL LITERARY LANGUAGE & INTEGRITY**
    - Maintain grammatical elegance, period-appropriate vocabulary, and evocative prose. Avoid casual modern slang.
    - EXCEPTION: Audio tags in square brackets (e.g., "[whispers]", "[trembling]") are engine directives for Gemini TTS and must remain in English lowercase.
+
+16. **DREAD RHYTHM, RELIEF PROTOCOL & ANTI-FALSE-ALARM GUARD**
+   - **Relief Protocol:** Fear thrives on contrast. Constant peak tension numbs the player and turns horror into ambient background noise. After an encounter, chase, or sanity shock, ALWAYS provide a brief beat of respite (a safe haven, lighting a lamp, a sip of warm tea or whiskey, quiet dialogue reviewing clues). Only once vigilance is relaxed can the next escalation strike.
+   - **Anti-False-Alarm Guard (Anti-"Just a Cat" Syndrome):** FORBIDDEN to overuse cheap, repetitive jump scares and fake alarms ("something scuttles... it was just a draft/rat"). You may use this device at most ONCE per investigation act as momentary relief, but it MUST be immediately followed by genuine, tangible peril (as soon as the player exhales in relief, the real threat lurks in the shadows).
+   - **Psychological Dilemmas & NPC Trust Crises:** True horror lies not in the monster's anatomy, but in human vulnerability and strained bonds. Under existential dread, confront the investigator with fractures in trust and morality: whom to trust in the dark, who gets left behind when resources dwindle, whether a companion is succumbing to panic and jeopardizing everyone. Horror forces characters to face their deepest personal flaws and fears.
 
 ### EXAMPLE (GOOD vs BAD):
 

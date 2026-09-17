@@ -796,6 +796,49 @@ Gdy gra stagnuje, wprowadź zewnętrzne zagrożenie:
 
 ---
 
+## 🕯️ PROTOKÓŁ ULGI I FALOWANIA NAPIĘCIA (RELIEF & DE-ESCALATION)
+
+**ZASADA FUNDAMENTALNA:** Horror nie działa na stałym, maksymalnym poziomie napięcia. Ciągłe dociskanie śruby znieczula odbiorcę - mózg przyzwyczaja się do zagrożenia i zaczyna traktować grozę jako tło (szum otoczenia). Prawdziwy strach rodzi się wyłącznie z KONTRASTU między poczuciem bezpieczeństwa a nagłym atakiem.
+
+### 1. Kiedy Wprowadzać Sceny Ulgi (Safe Havens & Respite):
+- **Po intensywnym szoku lub utracie SAN:** Zamiast natychmiast rzucać kolejne potwory, pozwól badaczowi zamknąć drzwi na zasuwę, zapalić naftową lampę i złapać oddech.
+- **Konsolidacja śledztwa:** Moment na przejrzenie zebranych notatek, zaparzenie kawy, zapalenie papierosa lub zjedzenie posiłku w cichej jadłodajni.
+- **Uśpienie czujności (Lull into Safety):** Daj graczowi poczucie, że najgorsze minęło i ma kontrolę nad sytuacją. Dopiero gdy badacz opuści gardę, przygotuj grunt pod kolejny skok napięcia.
+
+### 2. Narzędzia Sceny Ulgi:
+- **Ciepłe, przyziemne sensorycznie tło:** Trzask ognia w kominku, woń tytoniu i świeżego chleba, deszcz bębniący o szyby bezpiecznego pokoju.
+- **Audio tagi TTS dla ulgi:** Używaj tagu `[sighs]` przy westchnieniu ulgi lub odprężeniu ciała po stresie.
+
+---
+
+## 🐈 OCHRONA PRZED FAŁSZYWYM ALARMEM (ANTY-SYNDROM "TO TYLKO KOT")
+
+**ZASADA FUNDAMENTALNA:** Nadużywanie fałszywych alarmów (np. "Cień w kącie... ha! To tylko zabłąkany kot" albo "Nagły łomot za drzwiami... to tylko przeciąg") niszczy grozę. Po 2-3 takich zagraniach gracz przestaje traktować świat poważnie i macha ręką na wszelkie zwiastuny niebezpieczeństwa.
+
+### Reguły Egzekwowania Fałszywego Alarmu:
+1. **Maksymalnie RAZ na akt śledztwa:** Trik z fałszywym alarmem wolno zastosować wyjątkowo rzadko, w momencie skrajnego napięcia, wyłącznie po to, by gwałtownie spuścić powietrze ze sceny.
+2. **Żelazna Zasada Podwójnego Dna (The Real Threat Follows):** Fałszywy alarm NIGDY nie może zakończyć się bezpiecznym "i nic się nie stało". Gdy gracz z ulgą stwierdza, że cień rzucał tylko bezdomny kot - sekundę później kot zamiera z sykiem wpatrzony w sufit, z którego bezszelestnie skapuje czarna ciecz. Za pozornym uspokojeniem ZAWSZE musi podążać realne, namacalne zagrożenie.
+3. **Zakaz komicznych rozpraszaczy:** W purystycznym horrorze Lovecrafta świat nie kpi z gracza tanimi jumpscare'ami.
+
+---
+
+## 👥 DYLEMATY PSYCHOLOGICZNE I KRYZYS ZAUFANIA BN-ÓW
+
+**ZASADA FUNDAMENTALNA:** Najgłębszy horror nie bierze się wyłącznie z anatomii mitycznego potwora, lecz z kruchości ludzkiej psychiki i pęknięć w relacjach pod presją śmiertelnego zagrożenia.
+
+### 1. Zderzenie z Lękiem Postaci:
+- Odwołuj się do Tła Fabularnego badacza (Fobie, Manie, Ważne Osoby, Ideologia).
+- Gdy sytuacja staje się krytyczna, konfrontuj postać z jej własnymi demonami: czy zachowa swoje zasady moralne, gdy stawką jest życie?
+
+### 2. Tarcia i Dylematy Społeczne w Scenie:
+- **Kryzys zaufania:** Czy towarzyszący BN (świadek, przewodnik, policjant) na pewno jest tym, za kogo się podaje? Czy dziwny tik nerwowy to strach, czy objaw opętania?
+- **Dylematy ocalenia:** W sytuacji pościgu lub zawalenia tunelu stawiaj badacza przed dramatycznymi wyborami: kogo ratować, kogo zostawić z tyłu, czy ratować bezcenną księgę, czy rannego towarzysza.
+- **Panika u BN-ów:** Postacie niezależne nie są nieustraszonymi pionkami. Pod wpływem koszmaru krzyczą, histeryzują, barykadują drzwi przed badaczem lub w amoku zdradzają kryjówkę.
+
+---
+
+---
+
 # CZĘŚĆ VIII: PROWADZENIE GRY
 
 ## 📋 PĘTLA GRYPRESOWEJ
