@@ -70,6 +70,43 @@ describe('resolveEraContext', () => {
     });
   });
 
+  it('preferuje activeSceneYear nad rokiem początkowym z yearRange (rozwiązanie problemu Traszyna)', () => {
+    const result = resolveEraContext({
+      adventure: {
+        yearRange: '1983-1999',
+        activeSceneYear: 1999,
+        country: 'Polska',
+      },
+    });
+
+    expect(result).toMatchObject({
+      effectiveYear: 1999,
+      countryCode: 'PL',
+      regionProfile: 'PL',
+      source: 'scenario-range',
+    });
+  });
+
+  it('odrzuca semantycznie niepoprawne daty (np. 31 lutego)', () => {
+    expectEraError(
+      () =>
+        resolveEraContext({
+          sceneDate: '2001-02-31',
+          adventure: { country: 'Polska' },
+        }),
+      'INVALID_YEAR'
+    );
+
+    expectEraError(
+      () =>
+        resolveEraContext({
+          sceneDate: { year: 2024, month: 4, day: 31 },
+          adventure: { country: 'Polska' },
+        }),
+      'INVALID_YEAR'
+    );
+  });
+
   it('ignoruje legacy era i eraLabel jako źródła roku', () => {
     expectEraError(
       () =>

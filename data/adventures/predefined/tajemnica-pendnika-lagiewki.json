@@ -4,6 +4,8 @@
   "documentType": "scenario",
   "isCampaign": false,
   "era": "1990s",
+  "yearRange": "1995-1999",
+  "activeSceneYear": 1996,
   "setting": "Polska, Przełom Lat 90. (Kowary - Karkonosze - Warszawa)",
   "startingLocation": "Warsztat i Pracownia Lucjana Łągiewki, Kowary, Dolny Śląsk",
   "summary": "Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki - konstruktora-samouka z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas zderzeń. Kiedy wynalazca tworzy 'Pędnik' - silnik łamiący znane prawa fizyki i działający bez przyczepności w próżni i wodzie - w jego kowarskim warsztacie pojawiają się tajni agenci Agencji Ochrony Rządu. Odkrycie Łągiewki to nie prosty patent, lecz próba oswojenia kinetycznej technologii Mi-Go z Gór Szaleństwa.",

@@ -24,6 +24,8 @@ import { getPacingDirective } from '@/lib/pacing-controller';
 import {
   getDirectorPromptSection,
   getDirectorState,
+  buildDynamicScenePacingInjection,
+  type DynamicScenePacingParams,
 } from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character, NPC, GuardrailState } from '@/lib/types';
@@ -642,6 +644,87 @@ export interface HotSeatPlayerEntry {
   characterName?: string;
 }
 
+export {
+  buildDynamicScenePacingInjection,
+  type DynamicScenePacingParams,
+};
+
+export interface DepthInjectionMessage {
+  role: string;
+  content: string;
+}
+
+/**
+ * Sprawdza czy wiadomość jest dyrektywą Depth Injection / Author's Note.
+ */
+export function isDepthInjectionMessage(msg: DepthInjectionMessage): boolean {
+  if (!msg || typeof msg.content !== 'string') return false;
+  return (
+    msg.content.includes('[PRZYPOMNIENIE DLA MG') ||
+    msg.content.includes('[GM DIRECTIVE') ||
+    msg.content.includes('DYNAMIC SCENE & PACING INJECTION') ||
+    msg.content.includes('[NOTATKA AUTORA') ||
+    msg.content.includes("[AUTHOR'S NOTE") ||
+    msg.content.includes('[AUTHORS NOTE')
+  );
+}
+
+/**
+ * Wstrzykuje dyrektywę Depth Injection (Author's Note) do tablicy wiadomości czatu
+ * na zadanej głębokości (domyślnie 2-3 wiadomości przed końcem okna kontekstowego).
+ * W strefie najwyższej uwagi modelu (SillyTavern Adaptation - Issue #349).
+ * Zastępuje wcześniejsze dyrektywy, aby nie kumulować sprzecznych instrukcji pacingu.
+ */
+export function injectDepthInjection<T extends DepthInjectionMessage>(
+  messages: T[],
+  injection: string,
+  depth: number = 3,
+  role: string = 'system'
+): T[] {
+  if (!injection || !injection.trim()) {
+    return messages ? [...messages] : [];
+  }
+  const cleanMessages = (messages || []).filter(
+    (m) => !isDepthInjectionMessage(m)
+  );
+  if (cleanMessages.length === 0) {
+    return [{ role, content: injection } as T];
+  }
+  const copy = [...cleanMessages];
+  const targetIndex = Math.max(0, copy.length - Math.max(0, depth));
+  copy.splice(targetIndex, 0, { role, content: injection } as T);
+  return copy;
+}
+
+/**
+ * Wstrzykuje dyrektywę Depth Injection bezpośrednio do tablicy in-place.
+ * Zastępuje wcześniejsze dyrektywy, aby nie kumulować sprzecznych instrukcji pacingu.
+ */
+export function injectDepthInjectionInPlace<T extends DepthInjectionMessage>(
+  messages: T[],
+  injection: string,
+  depth: number = 3,
+  role: string = 'system'
+): T[] {
+  if (!messages) return [];
+  if (!injection || !injection.trim()) {
+    return messages;
+  }
+  // Usuń ewentualne wcześniejsze wstrzyknięcia z poprzednich tur
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (isDepthInjectionMessage(messages[i])) {
+      messages.splice(i, 1);
+    }
+  }
+  if (messages.length === 0) {
+    messages.push({ role, content: injection } as T);
+    return messages;
+  }
+  const targetIndex = Math.max(0, messages.length - Math.max(0, depth));
+  messages.splice(targetIndex, 0, { role, content: injection } as T);
+  return messages;
+}
+
 export interface BuildAdditionalContextOpts {
   timePromptSection: string;
   gmProtocol: string;
@@ -664,8 +747,14 @@ export interface BuildAdditionalContextOpts {
   playerVisualProfileSection?: string;
   /** Magia i wiedza nadprzyrodzona postaci gracza (status wiary, znane zaklęcia, tomy) */
   playerMagicSection?: string;
-  /** Opcjonalna tablica wiadomości czatu */
+  /** Opcjonalna tablica wiadomości czatu do Depth Injection (SillyTavern Adaptation - Issue #349) */
   messages?: Array<{ role: string; content: string }>;
+  /** Głębokość wstrzykiwania Depth Injection od końca (domyślnie 3 = 2-3 wiadomości przed końcem okna) */
+  depthInjectionDepth?: number;
+  /** Opcjonalna gotowa dyrektywa dynamicznej sceny i pacingu (Author's Note) */
+  dynamicSceneInjection?: string;
+  /** Czy wymusić wstrzyknięcie dyrektywy także do additionalContext */
+  injectIntoAdditionalContext?: boolean;
   sessionId?: string;
   ragSection?: string;
   summarySection?: string | null;
@@ -890,6 +979,30 @@ export function buildAdditionalContext(
   if (sessionId) {
     const directorSection = getDirectorPromptSection(sessionId);
     if (directorSection) additionalContext.push(directorSection);
+  }
+
+  // SillyTavern Adaptation (Issue #349): Dynamic Scene & Pacing Injection (Author's Note / Depth Injection)
+  const scenePacingInjection =
+    opts.dynamicSceneInjection ??
+    (gameContext
+      ? buildDynamicScenePacingInjection({
+          sessionId,
+          gameContext,
+          tone: opts.tone,
+          locale: opts.locale,
+        })
+      : '');
+
+  if (scenePacingInjection) {
+    if (opts.messages && opts.messages.length > 0) {
+      const depth = opts.depthInjectionDepth ?? 3;
+      injectDepthInjectionInPlace(opts.messages, scenePacingInjection, depth);
+      if (opts.injectIntoAdditionalContext) {
+        additionalContext.push(scenePacingInjection);
+      }
+    } else {
+      additionalContext.push(scenePacingInjection);
+    }
   }
 
   // Issue #68: Dwukierunkowa pętla pamięci - wstrzykiwanie sekcji ## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA

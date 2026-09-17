@@ -225,14 +225,18 @@ Wygeneruj 1-2 główne konflikty, asymetryczne haczyki oraz spójność dla dru�
       typeof setupAsymmetry.duetCohesion === 'object'
         ? (setupAsymmetry.duetCohesion as Record<string, unknown>)
         : {};
+    const isApprovedEra = manifest?.approvalStatus === 'approved';
     const phaseResults: SetupPhaseResult[] = [
       {
         phase: 'era',
-        status: 'passed',
+        status: isApprovedEra ? 'passed' : 'degraded',
         critical: true,
         retryable: false,
         durationMs: 0,
         estimatedCostUsd: 0,
+        message: isApprovedEra
+          ? undefined
+          : 'Użyto reguł bazowych epoki (baseline guardrails); brak w pełni zatwierdzonego manifestu szczegółowego.',
         completedAt: new Date().toISOString(),
       },
       {

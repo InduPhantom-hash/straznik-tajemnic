@@ -48,7 +48,8 @@ function extractYear(value: string | undefined): number | null {
 
 function formatDateParts(parts: EraDateParts): string | null {
   if (parts.month == null || parts.day == null) return null;
-  if (parts.month < 1 || parts.month > 12 || parts.day < 1 || parts.day > 31) {
+  const daysInMonth = new Date(parts.year, parts.month, 0).getDate();
+  if (parts.month < 1 || parts.month > 12 || parts.day < 1 || parts.day > daysInMonth) {
     throw new EraResolutionError(
       'INVALID_YEAR',
       `Nieprawidłowa data sceny: ${parts.year}-${parts.month}-${parts.day}`
@@ -73,6 +74,20 @@ function resolveSceneDate(
   }
 
   if (typeof value === 'string') {
+    const isoMatch = value.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+    if (isoMatch) {
+      const year = assertYear(Number.parseInt(isoMatch[1], 10), 'sceneDate');
+      const month = Number.parseInt(isoMatch[2], 10);
+      const day = Number.parseInt(isoMatch[3], 10);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      if (month < 1 || month > 12 || day < 1 || day > daysInMonth) {
+        throw new EraResolutionError(
+          'INVALID_YEAR',
+          `Nieprawidłowa data sceny: ${isoMatch[0]}`
+        );
+      }
+      return { year, date: isoMatch[0] };
+    }
     const year = extractYear(value);
     if (year == null) {
       throw new EraResolutionError(
@@ -80,8 +95,7 @@ function resolveSceneDate(
         `Data sceny nie zawiera czterocyfrowego roku: ${value}`
       );
     }
-    const isoDate = value.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0] ?? null;
-    return { year, date: isoDate };
+    return { year, date: null };
   }
 
   const year = assertYear(value.year, 'sceneDate.year');
@@ -122,6 +136,9 @@ export function resolveEraContext(
   input: ResolveEraContextInput
 ): ResolvedEraContext {
   const scene = resolveSceneDate(input.sceneDate);
+  const activeSceneYear = input.adventure?.activeSceneYear != null
+    ? assertYear(input.adventure.activeSceneYear, 'adventure.activeSceneYear')
+    : null;
   const scenarioYear = extractYear(input.adventure?.yearRange);
 
   let effectiveYear: number;
@@ -138,6 +155,9 @@ export function resolveEraContext(
     effectiveYear = scene.year;
     sceneDate = scene.date;
     source = 'scene-time';
+  } else if (activeSceneYear != null) {
+    effectiveYear = activeSceneYear;
+    source = 'scenario-range';
   } else if (scenarioYear != null) {
     effectiveYear = scenarioYear;
     source = 'scenario-range';

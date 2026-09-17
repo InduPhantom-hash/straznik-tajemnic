@@ -1,6 +1,7 @@
 import { getEraHardGuardrails } from './baseline';
 import type { GameTime } from '@/lib/types';
 import { getEraTechnologyGuardrails } from '@/lib/era-visual-style';
+import { findEraManifest } from './manifests';
 import { findEraRuleProfiles } from './registry';
 import { resolveEraContext } from './resolve-era-context';
 import type {
@@ -104,6 +105,31 @@ export function buildEraNarrativeRules(context: ResolvedEraContext): string {
     }
   }
 
+  const approvedManifest = findEraManifest(
+    context.effectiveYear,
+    context.countryCode,
+    context.regionProfile
+  );
+
+  const manifestDetails: string[] = [];
+  if (approvedManifest && approvedManifest.approvalStatus === 'approved') {
+    if (approvedManifest.economicBackground.length > 0) {
+      manifestDetails.push(`Ekonomia i waluta: ${approvedManifest.economicBackground.slice(0, 2).join(' ')}`);
+    }
+    if (approvedManifest.socialAndClassStructure.length > 0) {
+      manifestDetails.push(`Społeczeństwo: ${approvedManifest.socialAndClassStructure.slice(0, 2).join(' ')}`);
+    }
+    if (approvedManifest.law.length > 0) {
+      manifestDetails.push(`Prawo i służby: ${approvedManifest.law.slice(0, 2).join(' ')}`);
+    }
+    if (approvedManifest.periodKnowledgeAndLimits.length > 0) {
+      manifestDetails.push(`Kryminalistyka i wiedza epoki: ${approvedManifest.periodKnowledgeAndLimits.join(' ')}`);
+    }
+    if (approvedManifest.presentismRisks.length > 0) {
+      manifestDetails.push(`Zasada anty-prezentyzmu: ${approvedManifest.presentismRisks.join(' ')}`);
+    }
+  }
+
   return [
     `**KANONICZNY KONTEKST EPOKI:** rok ${context.effectiveYear}, kraj ${context.countryCode}, profil regionalny ${context.regionProfile}.`,
     'Rok jest nadrzędny wobec etykiet classic, modern, prl i eraLabel.',
@@ -113,6 +139,7 @@ export function buildEraNarrativeRules(context: ResolvedEraContext): string {
       : `Stosuj realia regionu ${context.regionProfile}; nie zastępuj ich rekwizytami z innego kraju.`,
     getEraTechnologyGuardrails(context),
     ...guardrailLines,
+    ...manifestDetails,
     approvedDetails.length > 0
       ? `Zatwierdzone reguły: ${approvedDetails.join('; ')}.`
       : 'Brak zatwierdzonego profilu szczegółowego: trzymaj się powyższych ograniczeń i opisuj tylko realia potrzebne w bieżącej scenie.',

@@ -12,6 +12,7 @@
 
 import type { JournalTagEntry } from './parsers/types';
 import { synthesizeClueFact } from './parsers/journal-parser';
+import type { GameContext } from './prompt-section-parser';
 
 // === INTERFEJSY ===
 
@@ -214,4 +215,159 @@ export function getDirectorPromptSection(sessionId: string): string | null {
   }
 
   return parts.join('\n');
+}
+
+export interface DynamicScenePacingParams {
+  sessionId?: string;
+  gameContext?: GameContext;
+  atmosphere?: string;
+  mood?: string;
+  narrativeGoal?: string;
+  tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
+  locale?: 'pl' | 'en';
+}
+
+/**
+ * Dynamic Scene & Pacing Injection (SillyTavern Adaptation - Issue #349)
+ *
+ * Generuje dyrektywę dla MG o bieżącej atmosferze i tempie sceny,
+ * przeznaczoną do wstrzyknięcia 2-3 wiadomości przed końcem okna kontekstowego.
+ */
+export function buildDynamicScenePacingInjection(
+  params: DynamicScenePacingParams
+): string {
+  const { sessionId, gameContext, tone = 'purist', locale = 'pl' } = params;
+  const isEn = locale === 'en';
+  const state = sessionId ? getDirectorState(sessionId) : null;
+
+  // 1. Atmosfera / Nastrój sceny
+  let atmosphere = params.atmosphere || params.mood;
+  if (!atmosphere && state && state.moodProgression.length > 0) {
+    const validMoods = state.moodProgression.filter(Boolean);
+    if (validMoods.length > 0) {
+      atmosphere = validMoods[validMoods.length - 1];
+    }
+  }
+  if (!atmosphere && gameContext) {
+    if (gameContext.recentSANLoss) {
+      atmosphere = isEn
+        ? 'rising paranoia, somatic shock, and fractured reality'
+        : 'narastająca paranoja, szok somatyczny i pękający racjonalizm';
+    } else if (gameContext.mode === 'combat') {
+      atmosphere = isEn
+        ? 'direct mortal danger, brutal physical clash, and desperation'
+        : 'bezpośrednie zagrożenie życia, brutalne starcie i walka o przetrwanie';
+    } else if (gameContext.mode === 'chase') {
+      atmosphere = isEn
+        ? 'imminent chase, breathless flight, and relentless pursuers'
+        : 'zbliżający się pościg, zadyszka i bezwzględni prześladowcy na karku';
+    } else if (gameContext.mode === 'ritual') {
+      atmosphere = isEn
+        ? 'ceremonial dread, acousmatic chanting, and unnatural creeping cold'
+        : 'ceremonialna groza, akuzmatyczne inkantacje i nienaturalny chłód';
+    } else if (gameContext.mode === 'social') {
+      atmosphere = isEn
+        ? 'dual masks, psychological tension, suspicion, and hidden agendas'
+        : 'podwójna maska, napięcie psychologiczne, podejrzliwość i skrywana agenda';
+    } else if (gameContext.mode === 'investigation') {
+      atmosphere = isEn
+        ? 'methodical deduction, eerie quiet, and tangible material clues'
+        : 'metodyczna dedukcja, niepokojąca cisza i namacalne ślady w przestrzeni';
+    } else if (gameContext.mode === 'exploration') {
+      atmosphere = isEn
+        ? 'oppressive uncertainty, shadow play, and claustrophobic isolation'
+        : 'duszna niepewność, gra cieni i klaustrofobiczne osamotnienie';
+    } else if (gameContext.mode === 'dream') {
+      atmosphere = isEn
+        ? 'derealization, contradictory geometry, and hypnotic decay'
+        : 'odrealnienie, sprzeczna geometria i hipnotyczny rozpad praw fizyki';
+    }
+  }
+  if (!atmosphere) {
+    atmosphere = isEn
+      ? 'gathering darkness, heavy suspense, and creeping dread'
+      : 'gęstniejący mrok, duszne zawieszenie i narastający niepokój';
+  }
+
+  // 2. Cel narracyjny / Reżyserski plan
+  let goal = params.narrativeGoal;
+  if (!goal && state) {
+    const validPlans = state.currentPlans.filter(Boolean);
+    goal =
+      state.narrativeGoal ||
+      (validPlans.length > 0 ? validPlans[validPlans.length - 1] : '');
+  }
+
+  // 3. Pacing i kadencja (z Matrycy 4 Biegów)
+  let pacingSummary = '';
+  if (gameContext) {
+    if (gameContext.recentSANLoss) {
+      pacingSummary = isEn
+        ? 'GEAR 4 (THE VOID): 40-90 words. Silence after shock, cold terse sentences, sensory void.'
+        : 'BIEG 4 (PUSTKA): 40-90 słów. Cisza po szoku, chłodne zdania, somatyczna pustka.';
+    } else if (gameContext.mode === 'combat') {
+      pacingSummary = isEn
+        ? 'GEAR 3 (HARD MOVE): 30-70 words. Terse, pure action, immediate threat strikes.'
+        : 'BIEG 3 (PRZEŁAMANIE): 30-70 słów. Krótkie zdania, czysta akcja, natychmiastowy cios świata.';
+    } else if (gameContext.mode === 'chase') {
+      pacingSummary = isEn
+        ? 'GEAR 3 (CHASE): 30-70 words. Relentless momentum, obstacles, racing pulse.'
+        : 'BIEG 3 (POŚCIG): 30-70 słów. Bezwzględny pęd, nagłe przeszkody, przyspieszony oddech.';
+    } else if (gameContext.mode === 'social') {
+      pacingSummary = isEn
+        ? 'GEAR 1 (STACCATO): 20-60 words. Sharp dialogue exchange, dual masks, no backdrop re-descriptions.'
+        : 'BIEG 1 (PING-PONG): 20-60 słów. Cięta replika, podwójna maska, zero re-deskrypcji tła.';
+    } else {
+      pacingSummary = isEn
+        ? 'GEAR 2 (ESTABLISHING SHOT): 60-150 words. Sensory details, tangible clues, eerie anomaly.'
+        : 'BIEG 2 (SZEROKI KADR): 60-150 słów. Detale zmysłowe, materialne poszlaki, niepokojący detal.';
+    }
+
+    if (gameContext.isStuck) {
+      const stuckNote = isEn
+        ? ' [STALL / DEAD-END: Players are trapped in planning/inaction. Inject an immediate external catalyst or sudden threat.]'
+        : ' [IMPÁS / MARTWY PUNKT: Gracze tkwią w planowaniu bez ruchu. Wprowadź natychmiastowy bodziec zewnętrzny lub bezpośrednie zagrożenie.]';
+      pacingSummary += stuckNote;
+    }
+  } else {
+    pacingSummary = isEn
+      ? 'Dynamic Cadence: adjust sentence length to scene tension.'
+      : 'Zmienna kadencja: dostosuj długość zdań do napięcia w scenie.';
+  }
+
+  // 4. Tone modifiers
+  let toneInstruction = '';
+  if (tone === 'noir') {
+    toneInstruction = isEn
+      ? 'Noir Convention: slow-burn pacing, mutual distrust, resource scarcity.'
+      : 'Konwencja Noir: powolne tempo, wzajemna nieufność, brak gotowych środków obrony.';
+  } else if (tone === 'pulp') {
+    toneInstruction = isEn
+      ? 'Pulp Convention: energetic momentum, cinematic action, larger-than-life danger.'
+      : 'Konwencja Pulp: filmowy rozmach, dynamiczny impet, podwyższona odporność badaczy.';
+  }
+
+  if (isEn) {
+    const lines = [
+      '[GM DIRECTIVE: DYNAMIC SCENE & PACING INJECTION]',
+      `Atmosphere: ${atmosphere}`,
+    ];
+    if (goal) lines.push(`Scene Goal: ${goal}`);
+    lines.push(`Pacing & Cadence: ${pacingSummary}`);
+    if (toneInstruction) lines.push(`Tone: ${toneInstruction}`);
+    lines.push('CoC 7e RAW: Enforce horror, fail-forward, and inescapable consequences.');
+    lines.push('[/GM DIRECTIVE]');
+    return lines.join('\n');
+  } else {
+    const lines = [
+      '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]',
+      `Atmosfera sceny: ${atmosphere}`,
+    ];
+    if (goal) lines.push(`Cel narracyjny: ${goal}`);
+    lines.push(`Pacing i kadencja: ${pacingSummary}`);
+    if (toneInstruction) lines.push(`Ton: ${toneInstruction}`);
+    lines.push('Rygor CoC 7e RAW: Wymuś grozę, zasadę fail-forward i nieuchronne konsekwencje.');
+    lines.push('[/PRZYPOMNIENIE DLA MG]');
+    return lines.join('\n');
+  }
 }
