@@ -44,6 +44,7 @@ export interface AdventureContext {
   era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
   eraLabel: string;
   yearRange: string;
+  activeSceneYear?: number;
   location: string;
   country: string;
   tone: 'purist' | 'pulp' | 'noir';
@@ -107,6 +108,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     era: 'prl',
     eraLabel: 'PRL - lata 70.',
     yearRange: '1973-1974',
+    activeSceneYear: 1973,
     location: 'Warszawa - Elbląg - Prabuty',
     country: 'Polska',
     tone: 'noir',
@@ -167,6 +169,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     era: 'custom',
     eraLabel: 'Lata 90.',
     yearRange: '1995-1999',
+    activeSceneYear: 1996,
     location: 'Kowary - Karkonosze',
     country: 'Polska',
     tone: 'pulp',
@@ -220,6 +223,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     era: 'custom',
     eraLabel: 'Lata 90. (Y2K)',
     yearRange: '1983-1999',
+    activeSceneYear: 1999,
     location: 'Traszyn k. Lublina',
     country: 'Polska',
     tone: 'purist',
@@ -273,6 +277,7 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     era: 'modern',
     eraLabel: 'Przełom Tysiącleci',
     yearRange: '2001',
+    activeSceneYear: 2001,
     location: 'Głogów - Legnica',
     country: 'Polska',
     tone: 'noir',

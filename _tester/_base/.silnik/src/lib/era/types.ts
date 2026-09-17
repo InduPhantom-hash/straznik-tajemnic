@@ -29,6 +29,7 @@ export interface EraDateParts {
 
 export interface EraAdventureInput {
   yearRange?: string;
+  activeSceneYear?: number;
   country?: string;
   /** Pole legacy. Może służyć do prezentacji, ale resolver nie czerpie z niego roku. */
   era?: string;

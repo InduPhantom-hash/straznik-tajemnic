@@ -20,7 +20,7 @@ import { persistentMediaCache } from '@/lib/persistent-media-cache';
 import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 import { sanitizeCharacterForApi } from '@/lib/chat-history-sanitizer';
 import { getEraVehicleVisualDescription } from '@/lib/era-visual-style';
-import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
+import { resolveGameEraContext, findEraManifest, type ResolvedEraContext } from '@/lib/era';
 import {
   hasBlockingSetupFailure,
   isWorldSetupBundle,
@@ -77,6 +77,13 @@ function createPresetWorldSetup(
     factions: conflict.factions.map((faction) => ({ ...faction })),
   }));
 
+  const manifest = findEraManifest(
+    eraContext.effectiveYear,
+    eraContext.countryCode,
+    eraContext.regionProfile
+  );
+  const isApproved = manifest?.approvalStatus === 'approved';
+
   return {
     schemaVersion: 1,
     id: `preset_${adventure.id ?? 'adventure'}_${Date.now()}`,
@@ -85,7 +92,7 @@ function createPresetWorldSetup(
     createdAt,
     canonRevision: 1,
     eraContext,
-    eraManifestId: null,
+    eraManifestId: manifest?.id ?? null,
     adventureGraph: {
       source: 'preset',
       conflicts,
@@ -112,20 +119,25 @@ function createPresetWorldSetup(
       graph: adventure.graph,
     }),
     supplementalInformation: [],
-    sources: [],
-    knowledgeGaps: [
-      'Szybka przygoda używa lokalnego kanonu. Opcjonalny research historyczny nie blokuje startu.',
-    ],
+    sources: manifest?.sources ?? [],
+    knowledgeGaps: isApproved
+      ? []
+      : [
+          'Szybka przygoda używa lokalnego kanonu. Opcjonalny research historyczny nie blokuje startu.',
+        ],
     exceptions: [],
     phaseResults: [
       {
         phase: 'era',
-        status: 'passed',
+        status: isApproved ? 'passed' : 'degraded',
         critical: true,
         retryable: false,
         durationMs: 0,
         estimatedCostUsd: 0,
         completedAt: createdAt,
+        message: isApproved
+          ? undefined
+          : 'Gotowy scenariusz używa kanonu bazowego; brak w pełni zatwierdzonego manifestu szczegółowego.',
       },
       {
         phase: 'adventure-graph',
