@@ -45,7 +45,6 @@ import {
 } from '@/lib/concordia/make-observation';
 import { adjudicateEventPipeline } from '@/lib/concordia/event-resolution';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
-import { buildOrganizationPromptSection } from '@/lib/data/investigator-organizations';
 import type { DocumentType } from '@/types/adventure';
 import type { ClueProvenance } from '@/lib/journal/dossier-types';
 import { inferClueProvenance } from '@/lib/parsers/journal-parser';
@@ -948,23 +947,8 @@ export function buildAdditionalContext(
     opts.isCampaign || opts.adventureDocumentType === 'campaign'
   );
 
-  if (isCampaignContext) {
-    if (opts.organizationSection) {
-      additionalContext.push(opts.organizationSection);
-    } else {
-      const activeCharWithOrg = characters?.find(
-        (c) => c.organizationId || c.investigatorSociety
-      );
-      const orgId =
-        activeCharWithOrg?.organizationId ||
-        activeCharWithOrg?.investigatorSociety;
-      if (orgId) {
-        const orgSection = buildOrganizationPromptSection(orgId, opts.locale);
-        if (orgSection) {
-          additionalContext.push(orgSection);
-        }
-      }
-    }
+  if (isCampaignContext && opts.organizationSection) {
+    additionalContext.push(opts.organizationSection);
   }
 
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.

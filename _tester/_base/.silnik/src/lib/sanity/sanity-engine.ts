@@ -1,7 +1,6 @@
 /**
- * Silnik Mechaniki Poczytalności i Szaleństwa (Call of Cthulhu 7e RAW)
- * Zgodny z "Księgą Strażnika CoC 7e" (Rozdział 8, s. 171-186 i s. 469-470)
- * oraz audytem /aios-vibe-coder (Issue #48).
+ * Silnik Mechaniki Poczytalności i Szaleństwa (d100 Weird Fiction RPG / Clean Room)
+ * Oparty na psychologii traumy klinicznej, objawach dysocjacyjnych i motywach grozy.
  */
 
 import type { Character, ActiveBoutOfMadness } from '@/lib/types';
@@ -36,170 +35,170 @@ export interface BoutDefinition {
   description: { pl: string; en: string };
 }
 
-/** Tabela VII: Ataki szaleństwa w czasie rzeczywistym (1K10 rund) - CoC 7e s. 470 */
+/** Tabela objawów szaleństwa w czasie rzeczywistym (1K10 rund) - proceduralny silnik traumy d100 */
 export const BOUTS_REAL_TIME: BoutDefinition[] = [
   {
     type: 'amnesia',
-    title: { pl: 'Amnezja', en: 'Amnesia' },
+    title: { pl: 'Amnezja dysocjacyjna', en: 'Dissociative Amnesia' },
     description: {
-      pl: 'Badacz nie pamięta wydarzeń od ostatniego bezpiecznego miejsca. Wydaje mu się, że przed chwilą jadł śniadanie.',
-      en: 'The investigator has no memory of events since last in safety. It seems as though they were just eating breakfast.'
+      pl: 'Nagła luka pamięciowa. Świadomość cofa się do ostatniej bezpiecznej chwili, wymazując szokujące zdarzenia.',
+      en: 'Acute dissociative amnesia. Consciousness retreats to the last safe memory, repressing the traumatic shock.'
     }
   },
   {
     type: 'psychosomatic',
-    title: { pl: 'Choroba psychosomatyczna', en: 'Psychosomatic condition' },
+    title: { pl: 'Zapaść psychosomatyczna', en: 'Psychosomatic Reaction' },
     description: {
-      pl: 'Badacz doznaje nagłej ślepoty, głuchoty lub utraty czucia w kończynach na tle nerwowym.',
-      en: 'The investigator suffers hysterical blindness, deafness, or numbness of limbs.'
+      pl: 'Reakcja konwersyjna. Paraliżujący szok odcina zmysły – nagła ślepota histeryczna, głuchota lub utrata czucia w dłoniach.',
+      en: 'Severe conversion reaction. Neurological shutdown triggers hysterical blindness, sensory deafness, or limb numbness.'
     }
   },
   {
     type: 'violence',
-    title: { pl: 'Przemoc i szał', en: 'Violence' },
+    title: { pl: 'Furia obronna i szał', en: 'Violent Fury' },
     description: {
-      pl: 'Czerwona mgła szału: badacz rzuca się z furią na otoczenie, sojuszników i wrogów.',
-      en: 'A red haze of rage: the investigator erupts into physical aggression against enemies and allies alike.'
+      pl: 'Mózg przechodzi w prymitywny tryb walki o przetrwanie, atakując bezładnie wszystko w zasięgu rąk.',
+      en: 'Berserk panic response. Instinctive fight mode triggers uncontrolled violent aggression against anything in reach.'
     }
   },
   {
     type: 'paranoia',
-    title: { pl: 'Ciężka paranoja', en: 'Paranoia' },
+    title: { pl: 'Ostry zespół prześladowczy', en: 'Severe Paranoia' },
     description: {
-      pl: 'Wszyscy chcą go zabić! Nikomu nie można ufać, wszystko jest spiskiem i złudzeniem.',
-      en: 'Severe paranoia: everyone is out to get them, no one can be trusted, everything is an illusion.'
+      pl: 'Każde spojrzenie, szept i cień wydają się śmiertelnym spiskiem wrogich sił.',
+      en: 'Acute persecutory delusion. Every shadow, whisper, and bystander feels part of an inescapable hostile conspiracy.'
     }
   },
   {
     type: 'significant_person',
-    title: { pl: 'Urojenie: Ważna osoba', en: 'Delusion: Significant Person' },
+    title: { pl: 'Projekcja tożsamości', en: 'Identity Projection' },
     description: {
-      pl: 'Badacz bierze kogoś obcego za kluczową osobę ze swojej przeszłości i rozpoczyna z nią interakcję.',
-      en: 'The investigator mistakes someone nearby for a significant person from their backstory.'
+      pl: 'W obcej twarzy badacz widzi postać ze swojej przeszłości i kurczowo szuka u niej ratunku lub prawdy.',
+      en: 'Identity projection. The investigator projects a key figure from their past onto a bystander, desperately pleading for clarity.'
     }
   },
   {
     type: 'fainting',
-    title: { pl: 'Omdlenie', en: 'Fainting' },
+    title: { pl: 'Omdlenie wazowagalne', en: 'Vasovagal Syncope' },
     description: {
-      pl: 'Umysł odmawia posłuszeństwa – badacz osuwa się bez przytomności na ziemię.',
-      en: 'The investigator collapses to the floor unconscious.'
+      pl: 'Przeciążenie układu nerwowego odcina przytomność – bezwładny upadek na ziemię.',
+      en: 'Vasovagal syncope. Sensory overload causes blood pressure to plummet, collapsing the investigator into unconsciousness.'
     }
   },
   {
     type: 'fleeing',
-    title: { pl: 'Paniczna ucieczka', en: 'Panicked flight' },
+    title: { pl: 'Paniczna ucieczka', en: 'Blind Panic Flight' },
     description: {
-      pl: 'Niepohamowany przymus ucieczki wszelkimi dostępnymi środkami jak najdalej stąd.',
-      en: 'An overwhelming urge to flee as far away as possible by any available means.'
+      pl: 'Zwierzęcy odruch bezwarunkowy każe biec na oślep, byle dalej od źródła koszmaru.',
+      en: 'Blind panic flight. Overwhelming survival reflex drives the investigator to run blindly away from the terror.'
     }
   },
   {
     type: 'hysteria',
-    title: { pl: 'Atak histerii', en: 'Hysteria' },
+    title: { pl: 'Dławiący afekt histeryczny', en: 'Hysterical Fit' },
     description: {
-      pl: 'Niekontrolowany wybuch płaczu, śmiechu lub obłąkańczego krzyku paraliżujący racjonalne działanie.',
-      en: 'Uncontrollable crying, laughing, or screaming that overwhelms rational action.'
+      pl: 'Płacz, spazmatyczny śmiech i krzyki paraliżują mowę oraz logiczne myślenie.',
+      en: 'Severe emotional catharsis. Spasmodic laughter, weeping, and shouting completely shatter rational coherence.'
     }
   },
   {
     type: 'phobia',
-    title: { pl: 'Ostry epizod fobii', en: 'Phobic episode' },
+    title: { pl: 'Wstrząs fobiczny', en: 'Phobic Episode' },
     description: {
-      pl: 'Badacz doznaje natychmiastowego lęku fobicznego i widzi bodziec fobii nawet tam, gdzie go nie ma.',
-      en: 'The investigator gains a phobia or hallucinates its presence, imposing a penalty die.'
+      pl: 'Umysł kojarzy grozę z przypadkowym elementem otoczenia, wywołując paniczny lęk przed nim.',
+      en: 'Acute phobic fixation. The trauma instantly binds terror to an environmental stimulus, provoking uncontrollable dread.'
     }
   },
   {
     type: 'mania',
-    title: { pl: 'Epizod maniakalny', en: 'Manic episode' },
+    title: { pl: 'Kompulsywny rytuał', en: 'Compulsive Ritual' },
     description: {
-      pl: 'Badacz ulega natrętnemu, obłąkańczemu przymusowi wykonania określonej czynności.',
-      en: 'The investigator gives in to a compulsive manic ritual.'
+      pl: 'Natrętna potrzeba powtarzania określonej czynności fizycznej jako jedynej ochrony przed rozpadem umysłu.',
+      en: 'Compulsive displacement ritual. An irresistible urge to perform repetitive physical actions to fend off mental breakdown.'
     }
   }
 ];
 
-/** Tabela X: Ataki szaleństwa – Podsumowanie (1K10 godzin) - CoC 7e s. 470 */
+/** Tabela objawów szaleństwa w podsumowaniu (1K10 godzin) - proceduralny silnik traumy d100 */
 export const BOUTS_SUMMARY: BoutDefinition[] = [
   {
     type: 'amnesia',
-    title: { pl: 'Długotrwała amnezja', en: 'Extended Amnesia' },
+    title: { pl: 'Przedłużona fuga dysocjacyjna', en: 'Extended Dissociative Fugue' },
     description: {
-      pl: 'Badacz odzyskuje świadomość w obcym miejscu, nie pamiętając ostatnich godzin ani tego, co robił.',
-      en: 'The investigator comes to hours later in an unfamiliar place with no memory of what happened.'
+      pl: 'Badacz odzyskuje kontrolę po wielu godzinach w nieznanym miejscu, z białą plamą w pamięci.',
+      en: 'Prolonged dissociative fugue. The investigator snaps back to reality hours later in an unfamiliar location with zero recollection.'
     }
   },
   {
     type: 'robbery',
-    title: { pl: 'Okradziony / Splądrowany', en: 'Robbed / Stripped' },
+    title: { pl: 'Ograbienie w letargu', en: 'Exploited in Stupor' },
     description: {
-      pl: 'Badacz budzi się ograbiony ze swoich cennych rzeczy lub bez odzieży.',
-      en: 'The investigator regains awareness having been robbed or stripped of valuables.'
+      pl: 'Podczas stanu bezradności badacz padł ofiarą rabunku, tracąc kosztowności lub ubranie.',
+      en: 'Exploited in stupor. While wandering in a daze, the investigator was robbed or stripped of valuables and equipment.'
     }
   },
   {
     type: 'violence_aftermath',
-    title: { pl: 'Skutki szału', en: 'Aftermath of Violence' },
+    title: { pl: 'Ślady niepamiętanego starcia', en: 'Aftermath of Violence' },
     description: {
-      pl: 'Badacz odzyskuje kontrolę z zakrwawionymi dłońmi lub w areszcie policyjnym.',
-      en: 'The investigator comes round with bloodied knuckles or locked in a jail cell.'
+      pl: 'Przebudzenie z potłuczonymi dłońmi, w zniszczonym ubraniu lub pod kluczem strażników.',
+      en: 'Aftermath of unremembered conflict. Awakening with bruised knuckles, torn clothes, or behind lock and key in a cell.'
     }
   },
   {
     type: 'delirium',
-    title: { pl: 'Paranoiczne majaczenie', en: 'Delirium & Paranoia' },
+    title: { pl: 'Barykada paranoiczna', en: 'Paranoid Barricade' },
     description: {
-      pl: 'Godziny spędzone w kryjówce, w przekonaniu o wszechobecnym pościgu i podsłuchach.',
-      en: 'Hours spent barricaded in hiding, convinced spies and cultists lurk everywhere.'
+      pl: 'Długie godziny spędzone w ciemnej kryjówce na nasłuchiwaniu urojonych kroków za drzwiami.',
+      en: 'Paranoid barricade. Hours spent concealed in total darkness, obsessively listening for imaginary footsteps outside.'
     }
   },
   {
     type: 'wandering',
-    title: { pl: 'Błędna wędrówka', en: 'Aimless Wandering' },
+    title: { pl: 'Błędny trans', en: 'Aimless Wandering' },
     description: {
-      pl: 'Badacz w transie przeszedł wiele kilometrów, budząc się w rowie lub na nieznanej stacji kolejowej.',
-      en: 'The investigator spent hours wandering aimlessly, waking up miles away.'
+      pl: 'Przemierzenie bez celu wielu mil wzdłuż torów, ulic lub bagien aż do fizycznego wyczerpania.',
+      en: 'Aimless fugue state. Miles traversed through streets, tracks, or fields in an exhaustion-inducing hypnotic trance.'
     }
   },
   {
     type: 'institutionalized',
-    title: { pl: 'Izolacja / Przytułek', en: 'Institutionalized' },
+    title: { pl: 'Izolacja sanitarna', en: 'Protective Custody' },
     description: {
-      pl: 'Świadkowie uznali badacza za obłąkanego i wezwali sanitariuszy lub policję.',
-      en: 'Witnesses found the investigator raving and committed them to observation.'
+      pl: 'Przerażeni świadkowie wezwali lekarzy lub straż – badacz budzi się skrępowany pod obserwacją.',
+      en: 'Protective custody. Alarmed bystanders called authorities, leaving the investigator confined under medical observation.'
     }
   },
   {
     type: 'fleeing_transit',
-    title: { pl: 'Ucieczka pociągiem / statkiem', en: 'Flight in Transit' },
+    title: { pl: 'Ucieczka za horyzont', en: 'Distant Transit' },
     description: {
-      pl: 'Badacz dochodzi do siebie w pociągu lub samochodzie, jadąc setki kilometrów od miejsca zdarzenia.',
-      en: 'The investigator comes round aboard a departing train or passenger vessel.'
+      pl: 'Powrót świadomości w wagonie dalekobieżnym lub ładowni statku płynącego w nieznane.',
+      en: 'Distant transit. Consciousness re-emerges inside a long-distance rail carriage or a cargo vessel far from the origin.'
     }
   },
   {
     type: 'nervous_breakdown',
-    title: { pl: 'Załamanie nerwowe', en: 'Nervous Breakdown' },
+    title: { pl: 'Głęboki stupor katatoniczny', en: 'Catatonic Stupor' },
     description: {
-      pl: 'Długotrwały stupor i apatię przerywają nagłe ataki paniki.',
-      en: 'Prolonged emotional collapse and stupor punctuated by panic.'
+      pl: 'Odrętwienie emocjonalne przerywane drżeniem mięśni i falami cichego szlochu.',
+      en: 'Catatonic stupor. Prolonged emotional shutdown interrupted only by tremors and bouts of silent weeping.'
     }
   },
   {
     type: 'entrenched_phobia',
-    title: { pl: 'Utrwalona fobia', en: 'Entrenched Phobia' },
+    title: { pl: 'Utrwalona trauma fobiczna', en: 'Entrenched Phobia' },
     description: {
-      pl: 'Umysł badacza zakotwiczył głęboki lęk przed nowym bodźcem ze sceny grozy.',
-      en: 'A deep-seated phobia forms around a key element of the traumatic encounter.'
+      pl: 'Trwałe skrzywienie percepcji – dany widok lub dźwięk natychmiast wywołuje poty i drżenie.',
+      en: 'Entrenched phobic trauma. Permanent cognitive association where a specific trigger instantly induces panic and cold sweats.'
     }
   },
   {
     type: 'entrenched_mania',
-    title: { pl: 'Utrwalona mania', en: 'Entrenched Mania' },
+    title: { pl: 'Natrętny nawyk ochronny', en: 'Obsessive Ritual' },
     description: {
-      pl: 'Badacz zyskuje obsesyjny rytuał bezpieczeństwa, który musi powtarzać.',
-      en: 'The investigator adopts a bizarre obsessive habit or fixation.'
+      pl: 'Wykształcenie dziwacznego nawyku lub przesądu, bez którego badacz nie jest w stanie zasnąć.',
+      en: 'Obsessive protective ritual. Development of a compulsive ritual or talismanic fixation indispensable for peace of mind.'
     }
   }
 ];

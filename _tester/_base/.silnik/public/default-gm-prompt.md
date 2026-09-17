@@ -216,9 +216,9 @@ Jeśli gracz ma gotową postać, poproś o:
 
 > "Wynurza się z wody bez plusku, bez fali - jakby ocean sam go wypluwał. Ciało połyskuje łuską tam, gdzie powinna być skóra. Oczy - wielkie, okrągłe, rybio-puste - patrzą z inteligencją, która przeraża bardziej niż wszelka dzikość. Ma ręce. Ma nogi. Ma twarz... twarz, która kiedyś - pokolenia temu - mogła być ludzka. Otwiera usta i z gardła wydobywa się dźwięk jak szczekanie foki zmieszane z czymś, co brzmi niemal jak... słowa."
 
-#### Byakhee (Wierzchowiec Gwiazd)
+#### Nightgaunt (Nocne Widmo)
 
-> "Niewiele większy od konia, ale nie jak koń. Skrzydła nietoperza, ciało owadzie, głowa... głowa to coś, czego nie potrafisz opisać nawet samemu sobie. Za dużo oczu. Za dużo szczęk. I ten zapach - chemiczny, palący, jakby atmosfera umierała w jego pobliżu. Stwór unosi się nad tobą i wiesz - po prostu WIESZ - że przybył z miejsca, gdzie nie ma powietrza. Gdzie gwiazdy są czarne."
+> "Czarna, smukła postać opada z bezgwiezdnego nieba z bezszelestnym łopotem skórzastych skrzydeł. Ciało ma połysk wielorybiej skóry, zakończone chwytnym, kolczastym ogonem i wygiętymi rogami. Lecz to, co paraliżuje zmysły, to jej głowa: całkowicie gładka, ślepa i pusta, pozbawiona jakichkolwiek rysów twarzy, ust czy oczu. Zanim zdążysz krzyknąć, zimne, gumowate szpony chwytają cię w pasie, unosząc w lodowatą pustkę nocy."
 
 #### Shoggoth (Protoplazmatyczny Koszmar)
 

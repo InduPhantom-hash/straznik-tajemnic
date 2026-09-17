@@ -7,40 +7,40 @@
     {
       "id": "great_old_ones",
       "title": "Wielcy Przedwieczni i Bóstwa",
-      "fileCount": 2245
+      "fileCount": 1330
     },
     {
       "id": "grimoires",
       "title": "Księgi i Arkanum",
-      "fileCount": 1965
+      "fileCount": 1260
     },
     {
       "id": "creatures",
       "title": "Stwory i Istoty",
-      "fileCount": 1627
+      "fileCount": 1036
     },
     {
       "id": "characters",
       "title": "Postacie i Badacze",
-      "fileCount": 921
+      "fileCount": 690
     },
     {
       "id": "stories",
       "title": "Opowiadania i Mitologia",
-      "fileCount": 130
+      "fileCount": 73
     },
     {
       "id": "locations",
       "title": "Mroczne Lokacje",
-      "fileCount": 120
+      "fileCount": 80
     },
     {
       "id": "general_mythos",
       "title": "general_mythos",
-      "fileCount": 16
+      "fileCount": 15
     }
   ],
-  "updatedAt": "2026-07-26T15:02:36.515Z",
-  "totalArticles": 7024,
+  "updatedAt": "2026-09-17T14:50:14.858Z",
+  "totalArticles": 4484,
   "licenseNotice": "Treść haseł udostępniana na licencji Creative Commons Attribution-ShareAlike (CC-BY-SA 3.0/4.0). Źródło: The H.P. Lovecraft Wiki na Fandom.com. Twórczość H.P. Lovecrafta w Domenie Publicznej."
 }

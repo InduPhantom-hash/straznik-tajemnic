@@ -170,7 +170,7 @@ const ERA_PRESETS: Record<DramatronEra, EraPresetArchetype> = {
     defaultYear: '1895',
     defaultLocation: 'Londyn, Whitechapel & Mayfair',
     defaultCountry: 'Wielka Brytania',
-    mythosEntities: ['Nyarlathotep / Czarny Faraon', 'Ithaqua / Wędrowiec Wiatru'],
+    mythosEntities: ['Nyarlathotep / Czarny Faraon', 'Wendigo / Wędrowiec Wiatru'],
     anomalies: ['Kłęby smogu o zapachu siarki i mirry wywołujące paraliż senny', 'Mechaniczne organy grające melodię w pustym kościele'],
     culprits: [
       {
