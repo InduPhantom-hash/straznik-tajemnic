@@ -36,7 +36,7 @@ const MUNDANE_EXCLUSIONS_PATTERN =
 
 // Broń długa (karabin/strzelba) - sprawdzane PRZED krótką, bo "hunting rifle" itp.
 const LONG_GUN_PATTERN =
-  /\b(rifle|shotgun|carbine|musket|sztucer|dubeltów|ur\.?\s*35|chauchat)\b|karabin|strzelb/i;
+  /\b(rifle|shotgun|carbine|musket|ur\.?\s*35|chauchat)\b|karabin|strzelb|dubeltów|sztucer/i;
 // Broń palna krótka (pistolety/rewolwery) + typowe kalibry 1920s i modele II RP.
 const HANDGUN_PATTERN =
   /\b(revolver|automatic|pistol|handgun|luger|colt|nagant|browning|vis|mauser|parabellum|mors|reichsrevolver|\.32|\.38|\.45)\b|rewolwer|pistolet/i;
