@@ -376,12 +376,21 @@ export interface EquipmentItem {
   // Metadane
   weight?: number; // Waga w funtach
   value?: number; // Wartość w dolarach 1920s
-  condition?: 'new' | 'used' | 'damaged' | 'broken';
+  condition?: 'new' | 'used' | 'damaged' | 'broken' | 'working' | 'depleted';
   source?: 'starting' | 'acquired' | 'found';
   obtainedAt?: Date;
   quantity?: number; // Liczba sztuk / dawek dla przedmiotów zużywalnych
   maxQuantity?: number; // Pojemność maksymalna (np. 5 dawek)
   isConsumable?: boolean; // Czy przedmiot zużywa się przy użyciu
+
+  // Mechanika zużycia i amunicji (CoC 7e RAW)
+  currentAmmo?: number; // Aktualna amunicja w komorze / bębenku
+  maxAmmo?: number; // Maksymalna pojemność magazynka
+  charges?: number; // Aktualne ładunki (np. apteczka, zapałki)
+  maxCharges?: number; // Maksymalna liczba ładunków
+  isJammed?: boolean; // Czy broń uległa zacięciu
+  actionDeclaration?: string; // Gotowa deklaracja Quote-to-Input dla czatu
+  suggestedAction?: 'shoot' | 'reload' | 'first_aid' | 'read' | 'study' | 'use_in_scene';
 
   // Obraz i Multimedia
   imageUrl?: string;
