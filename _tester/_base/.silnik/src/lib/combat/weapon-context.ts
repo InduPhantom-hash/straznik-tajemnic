@@ -30,20 +30,24 @@ const SKILL_FIREARM_HANDGUN = 'Broń Palna'; // baza 20%
 const SKILL_FIREARM_LONG = 'Broń Palna (Karabin)'; // baza 25%
 const SKILL_MELEE = 'Walka Wręcz'; // baza 25% (broń biała + bijatyka)
 
+// Wykluczenia przedmiotów codziennego użytku i narzędzi (nigdy nie traktowane jako broń)
+const MUNDANE_EXCLUSIONS_PATTERN =
+  /\b(bateri[aeiouy]|bateryj|battery|batteries|latark[aeiouy]|flashlight|lantern|lampa|naftow|aparat|kamera|zapałk[aeiouy]|matchbox|matches|telefon|phone|notes|notebook|pióro|długopis|pen|zegarek|watch|portfel|wallet|ubrani[ae]|płaszcz|coat|herbata|tea|kawa|coffee|pudełko|box|butelk[ae]|bottle|termos|koc|blanket|lornetk[ae]|binoculars|klucz[eey]?|key|paszport|passport|bilet|ticket|dokument|document|książk[ae]|book|gazet[ae]|newspaper|opatrun|bandaż|bandage|apteczk[ae]|morphin|morfin|adrenalin|strzykawk[ae])\b/i;
+
 // Broń długa (karabin/strzelba) - sprawdzane PRZED krótką, bo "hunting rifle" itp.
 const LONG_GUN_PATTERN =
-  /rifle|shotgun|carbine|musket|karabin|strzelb|sztucer|dubeltów|ur\.?\s*35|chauchat/i;
+  /\b(rifle|shotgun|carbine|musket|sztucer|dubeltów|ur\.?\s*35|chauchat)\b|karabin|strzelb/i;
 // Broń palna krótka (pistolety/rewolwery) + typowe kalibry 1920s i modele II RP.
 const HANDGUN_PATTERN =
-  /revolver|automatic|pistol|handgun|rewolwer|pistolet|\.32|\.38|\.45|luger|colt|nagant|browning|vis|mauser|parabellum|mors|reichsrevolver/i;
+  /\b(revolver|automatic|pistol|handgun|luger|colt|nagant|browning|vis|mauser|parabellum|mors|reichsrevolver|\.32|\.38|\.45)\b|rewolwer|pistolet/i;
 // Broń biała (do jawnego rozpoznania broni po nazwie, gdy brak kategorii/obrażeń).
 const MELEE_WEAPON_PATTERN =
-  /knife|nóż|noz|dagger|sztylet|machete|maczet|club|baton|pałk|palk|kij|cudgel|axe|topór|topor|siekier|hammer|młot|mlot|sword|miecz|szabla|bagnet|bayonet/i;
+  /\b(knife|dagger|machete|club|baton|cudgel|axe|hammer|sword|bayonet)\b|nóż|noz|sztylet|maczet|pałk|palk|kij|topór|topor|siekier|młot|mlot|miecz|szabla|bagnet/i;
 
 // Podtypy broni palnej / białej dla doboru domyślnych obrażeń (RAW, spójne z equipment-data).
 const SHOTGUN_PATTERN = /shotgun|strzelb|dubeltów/i;
-const CLUB_PATTERN = /club|baton|pałk|palk|kij|cudgel|hammer|młot|mlot/i;
-const KNIFE_PATTERN = /knife|nóż|noz|dagger|sztylet|bagnet|bayonet/i;
+const CLUB_PATTERN = /\b(club|baton|cudgel|hammer)\b|pałk|palk|kij|młot|mlot/i;
+const KNIFE_PATTERN = /\b(knife|dagger|bayonet)\b|nóż|noz|sztylet|bagnet/i;
 
 export interface CombatDefenseWeaponOption {
   id: string;
@@ -95,8 +99,14 @@ export function getCombatDefenseWeapons(
  * `item.name`. Pozwala rozpoznać broń, której generator nie dostał z szablonu i zapisał
  * jako `category: 'personal'` bez `modifiers` (np. „Rewolwer .38" z OCCUPATION_EQUIPMENT).
  */
-export function looksLikeWeapon(item: { name: string }): boolean {
+export function looksLikeWeapon(item: { name: string; category?: string }): boolean {
+  if (item.category && ['tool', 'medical', 'document', 'artifact', 'occult'].includes(item.category)) {
+    return false;
+  }
   const name = item.name.toLowerCase();
+  if (MUNDANE_EXCLUSIONS_PATTERN.test(name)) {
+    return false;
+  }
   return (
     LONG_GUN_PATTERN.test(name) ||
     HANDGUN_PATTERN.test(name) ||
@@ -107,14 +117,16 @@ export function looksLikeWeapon(item: { name: string }): boolean {
 /**
  * Czy przedmiot jest bronią. Broń = kategoria 'weapon' LUB ma formułę obrażeń
  * (np. zaimprowizowana broń z `modifiers.damage` nadana przez AI/narrację) LUB jej
- * nazwa wygląda na broń (`looksLikeWeapon`).
+ * nazwa wygląda na broń (`looksLikeWeapon`), pod warunkiem że nie jest zdefiniowana
+ * jako narzędzie, apteczka, dokument ani artefakt.
  */
 export function isWeapon(item: EquipmentItem): boolean {
-  return (
-    item.category === 'weapon' ||
-    Boolean(item.modifiers?.damage) ||
-    looksLikeWeapon(item)
-  );
+  if (item.category === 'weapon') return true;
+  if (Boolean(item.modifiers?.damage)) return true;
+  if (item.category && ['tool', 'medical', 'document', 'artifact', 'occult'].includes(item.category)) {
+    return false;
+  }
+  return looksLikeWeapon(item);
 }
 
 /**

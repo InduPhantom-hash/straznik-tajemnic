@@ -65,9 +65,22 @@ export function getItemMechanics(
       }
       rows.push({ label: 'range', value: range });
     }
+    if (typeof item.currentAmmo === 'number') {
+      const maxA = item.maxAmmo ?? (item.modifiers?.capacity ? Number(item.modifiers.capacity) : 6);
+      rows.push({ label: 'currentAmmo', value: `${item.currentAmmo} / ${maxA}` });
+    }
     if (item.modifiers?.attacks) rows.push({ label: 'attacks', value: String(item.modifiers.attacks) });
     if (item.modifiers?.capacity) rows.push({ label: 'capacity', value: String(item.modifiers.capacity) });
     if (item.modifiers?.malfunction) rows.push({ label: 'malfunction', value: String(item.modifiers.malfunction) });
+  }
+
+  if (typeof item.charges === 'number') {
+    const maxC = item.maxCharges ?? 3;
+    rows.push({ label: 'charges', value: `${item.charges} / ${maxC}` });
+  }
+
+  if (item.condition) {
+    rows.push({ label: 'condition', value: item.condition });
   }
 
   // Waga przedmiotu (diegetyczny wgląd w ekwipunek CoC 7e RAW)
@@ -102,11 +115,16 @@ export function EquipmentDetailDialog({
     used: t('conditionUsed'),
     damaged: t('conditionDamaged'),
     broken: t('conditionBroken'),
+    working: t('conditionWorking'),
+    depleted: t('conditionDepleted'),
   };
   const mechanicLabels: Record<string, string> = {
     combatTest: t('mechanicCombatTest'),
     damage: t('mechanicDamage'),
     range: t('mechanicRange'),
+    currentAmmo: t('mechanicCurrentAmmo'),
+    charges: t('mechanicCharges'),
+    condition: t('mechanicCondition'),
     weight: t('mechanicWeight'),
     skill: t('mechanicSkill'),
     bonus: t('mechanicBonus'),
@@ -239,7 +257,9 @@ export function EquipmentDetailDialog({
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
 
   const handleQuoteToChat = () => {
-    const quoteText = buildQuoteToInputText(item.category, item.name, undefined, locale as 'pl' | 'en');
+    const quoteText =
+      item.actionDeclaration ||
+      buildQuoteToInputText(item.category, item.name, undefined, locale as 'pl' | 'en');
     if (onQuoteToInput) {
       onQuoteToInput(quoteText);
     } else {
@@ -251,6 +271,17 @@ export function EquipmentDetailDialog({
     }
     onClose();
   };
+
+  const actionButtonText =
+    item.suggestedAction === 'shoot'
+      ? t('actionShoot')
+      : item.suggestedAction === 'first_aid'
+      ? t('actionFirstAid')
+      : item.suggestedAction === 'read'
+      ? t('actionRead')
+      : item.suggestedAction === 'study'
+      ? t('actionStudy')
+      : t('quoteToChat');
 
   return (
     <DialogPrimitive.Root open={Boolean(item)} onOpenChange={(open) => !open && onClose()}>
@@ -382,10 +413,10 @@ export function EquipmentDetailDialog({
                       type="button"
                       onClick={handleQuoteToChat}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-brass/10 hover:bg-brass/20 text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider transition-all shrink-0 cursor-pointer shadow-sm self-start"
-                      title={t('quoteToChat')}
+                      title={actionButtonText}
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">{t('quoteToChat')}</span>
+                      <span className="hidden sm:inline">{actionButtonText}</span>
                     </button>
                   </div>
                 </div>

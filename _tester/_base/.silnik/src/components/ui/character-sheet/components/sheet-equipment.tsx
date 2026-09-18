@@ -119,7 +119,20 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
   };
   const equipment = character.equipment ?? [];
   const weapons = equipment.filter(isWeapon);
-  const gear = equipment.filter((item) => !isWeapon(item));
+  const medical = equipment.filter((item) => !isWeapon(item) && item.category === 'medical');
+  const tools = equipment.filter((item) => !isWeapon(item) && (item.category === 'tool' || item.category === 'armor'));
+  const documents = equipment.filter((item) => !isWeapon(item) && item.category === 'document');
+  const occult = equipment.filter((item) => !isWeapon(item) && (item.category === 'artifact' || item.category === 'occult'));
+  const personal = equipment.filter(
+    (item) =>
+      !isWeapon(item) &&
+      item.category !== 'medical' &&
+      item.category !== 'document' &&
+      item.category !== 'artifact' &&
+      item.category !== 'occult' &&
+      item.category !== 'tool' &&
+      item.category !== 'armor'
+  );
 
   const damageBonus = character.damageBonus?.trim();
   const hasDb =
@@ -242,6 +255,12 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                     {w.modifiers?.range && (
                       <span className="flex items-center gap-1">🎯 {t('range')}: <strong className="text-foreground">{w.modifiers.range}</strong></span>
                     )}
+                    {typeof w.currentAmmo === 'number' && (
+                      <span className="flex items-center gap-1">🔫 {t('ammo')}: <strong className="text-foreground">{w.currentAmmo} / {w.maxAmmo ?? w.modifiers?.capacity ?? 6}</strong></span>
+                    )}
+                    {w.isJammed && (
+                      <span className="flex items-center gap-1 text-[#d9685f] font-bold">⚠️ {t('jammed')}</span>
+                    )}
                     {w.modifiers?.malfunction && (
                       <span className="flex items-center gap-1">⚙️ {t('malfunction')}: <strong className="text-foreground">{w.modifiers.malfunction}</strong></span>
                     )}
@@ -253,14 +272,178 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
         </div>
       )}
 
-      {/* WYPOSAŻENIE - pozostałe przedmioty (kafle déco) */}
-      {gear.length > 0 && (
-        <div>
+      {/* MEDYCYNA I LECZENIE */}
+      {medical.length > 0 && (
+        <div className="mb-4">
           <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
-            🎒 {t('gear')}
+            🩹 {t('categoryMedical')}
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {gear.map((item) => {
+            {medical.map((item) => {
+              const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onItemClick?.(item)}
+                  className="cursor-pointer flex items-center gap-4 border border-brass/25 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
+                >
+                  <ItemThumbnail item={item} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
+                        {item.name}
+                      </span>
+                      {typeof item.charges === 'number' && (
+                        <span className="flex-none font-special-elite text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                          🩹 {t('charges')}: {item.charges}/{item.maxCharges ?? 3}
+                        </span>
+                      )}
+                    </div>
+                    {gearLore && (
+                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                        {gearLore}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* NARZĘDZIA I REKWIZYTY */}
+      {tools.length > 0 && (
+        <div className="mb-4">
+          <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
+            🔦 {t('categoryTools')}
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {tools.map((item) => {
+              const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              const isDepleted = item.condition === 'depleted';
+              const isBroken = item.condition === 'broken';
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onItemClick?.(item)}
+                  className="cursor-pointer flex items-center gap-4 border border-brass/25 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
+                >
+                  <ItemThumbnail item={item} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
+                        {item.name}
+                      </span>
+                      {item.condition && (
+                        <span className={`flex-none font-special-elite text-xs px-1.5 py-0.5 rounded border ${
+                          isDepleted || isBroken
+                            ? 'text-[#d9685f] bg-[#d9685f]/10 border-[#d9685f]/20'
+                            : 'text-brass/80 bg-brass/10 border-brass/20'
+                        }`}>
+                          {isDepleted ? t('conditionDepleted') : isBroken ? t('conditionBroken') : t('conditionWorking')}
+                        </span>
+                      )}
+                    </div>
+                    {gearLore && (
+                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                        {gearLore}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* DOKUMENTY I AKTA */}
+      {documents.length > 0 && (
+        <div className="mb-4">
+          <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
+            📜 {t('categoryDocuments')}
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {documents.map((item) => {
+              const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onItemClick?.(item)}
+                  className="cursor-pointer flex items-center gap-4 border border-brass/25 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-brass/45 transition-all duration-200"
+                >
+                  <ItemThumbnail item={item} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
+                        {item.name}
+                      </span>
+                      {item.isReadable && (
+                        <span className="flex-none font-special-elite text-xs text-brass bg-brass/10 px-1.5 py-0.5 rounded border border-brass/20">
+                          📜 {t('categoryDocuments')}
+                        </span>
+                      )}
+                    </div>
+                    {gearLore && (
+                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                        {gearLore}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ARTEFAKTY I OKULTYZM */}
+      {occult.length > 0 && (
+        <div className="mb-4">
+          <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
+            🔮 {t('categoryOccult')}
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {occult.map((item) => {
+              const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onItemClick?.(item)}
+                  className="cursor-pointer flex items-center gap-4 border border-[#8e4a96]/40 bg-[#181410] hover:bg-[#1f1a14]/60 p-4 rounded-sm hover:border-[#8e4a96]/70 transition-all duration-200"
+                >
+                  <ItemThumbnail item={item} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-serif text-lg text-foreground font-medium truncate leading-tight">
+                        {item.name}
+                      </span>
+                      <span className="flex-none font-special-elite text-xs text-[#b870c2] bg-[#8e4a96]/15 px-1.5 py-0.5 rounded border border-[#8e4a96]/30">
+                        {t('occultItemBadge')}
+                      </span>
+                    </div>
+                    {gearLore && (
+                      <div className="font-serif italic text-xs text-muted-foreground/85 tracking-[0.02em] mt-1.5 line-clamp-2 leading-relaxed">
+                        {gearLore}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* PRZEDMIOTY OSOBISTE */}
+      {personal.length > 0 && (
+        <div>
+          <h4 className="font-special-elite text-[14px] text-brass/70 uppercase tracking-[0.16em] mb-2">
+            🎒 {t('categoryPersonal')}
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {personal.map((item) => {
               const gearLore = item.description?.trim() || generateItemLore(item.name, locale);
               return (
                 <div

@@ -1297,11 +1297,16 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
       "AA Batteries",
       "Baterie do latarki",
       "Zestaw baterii alkalicznych",
+      "Baterie",
+      "Bateria",
+      "Bateria AA",
+      "Akumulatorki",
       "tool.batteries-aa",
     ],
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
+    assetPaths: { shared: '/equipment/catalog/flashlight-1920s.webp' },
     value: 2,
     weight: 0.2,
   },
@@ -1918,8 +1923,13 @@ export function findEquipmentTemplate(
   }
 
   // 2. Elastyczne dopasowanie po pełnych słowach / granicach fraz (word boundary)
+  const isMundaneNeedle = /\b(bateri[aeiouy]|bateryj|battery|batteries|latark[aeiouy]|flashlight|lantern|lampa|naftow|zapałk[aeiouy]|matches|telefon|phone|notes|pióro|herbata|tea|kawa|coffee|zegarek|portfel|płaszcz|ubranie|koc|apteczk[ae]|bandaż|morfina)\b/i.test(needle);
+
   const candidates = EQUIPMENT_CATALOG.filter((template) => {
-    // Blokada kategorii: jeśli poszukujemy narzędzia/dokumentu, ignorujemy szablony broni
+    // Blokada kategorii: jeśli poszukujemy narzędzia/dokumentu lub fraza wskazuje na przedmiot codzienny, ignorujemy szablony broni
+    if (isMundaneNeedle && template.category === 'weapon') {
+      return false;
+    }
     if (expectedCategory && expectedCategory !== 'weapon' && template.category === 'weapon') {
       return false;
     }
@@ -2012,6 +2022,9 @@ export function applyCatalogTemplate(
       ? template.category
       : item.category;
 
+  const defaultCapacity = template.modifiers?.capacity ? Number(template.modifiers.capacity) : 6;
+  const isFirearm = resolvedCategory === 'weapon' && Boolean(template.modifiers?.range || template.modifiers?.capacity);
+
   return {
     ...item,
     templateId: template.id,
@@ -2023,6 +2036,33 @@ export function applyCatalogTemplate(
     visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'catalog'),
     visualTreatment: template.visualTreatment,
     imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset),
+    currentAmmo: item.currentAmmo ?? (isFirearm ? (item.maxAmmo ?? defaultCapacity) : undefined),
+    maxAmmo: item.maxAmmo ?? (isFirearm ? defaultCapacity : undefined),
+    charges: item.charges ?? (resolvedCategory === 'medical' ? (item.quantity ?? 3) : undefined),
+    maxCharges: item.maxCharges ?? (resolvedCategory === 'medical' ? 3 : undefined),
+    condition: item.condition ?? (resolvedCategory === 'tool' ? 'working' : 'new'),
+    suggestedAction:
+      item.suggestedAction ??
+      (resolvedCategory === 'weapon'
+        ? 'shoot'
+        : resolvedCategory === 'medical'
+        ? 'first_aid'
+        : resolvedCategory === 'document'
+        ? 'read'
+        : resolvedCategory === 'artifact' || resolvedCategory === 'occult'
+        ? 'study'
+        : 'use_in_scene'),
+    actionDeclaration:
+      item.actionDeclaration ??
+      (resolvedCategory === 'weapon'
+        ? `Mierzę z ${item.name} i pociągam za spust.`
+        : resolvedCategory === 'medical'
+        ? `Wyciągam ${item.name} i opatruję ranę.`
+        : resolvedCategory === 'document'
+        ? `Uważnie przeglądam dokument: ${item.name}.`
+        : resolvedCategory === 'artifact' || resolvedCategory === 'occult'
+        ? `Przystępuję do badania artefaktu: ${item.name}.`
+        : `Używam rekwizytu: ${item.name}.`),
   };
 }
 
