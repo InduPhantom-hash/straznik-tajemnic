@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
+import { Skull, Zap } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
 import {
@@ -1649,7 +1650,7 @@ export function CharacterWizardV2({
   // RENDEROWANIE KROKÓW
   // ============================================================================
 
-  // Nagłówek kroku w stylu déco: tytuł (Cinzel złoty) + opis (Cormorant italic)
+  // Nagłówek kroku w stylu déco: zwięzły tytuł + opis
   // + opcjonalna akcja po prawej stronie.
   const StepHeading = ({
     title,
@@ -1660,18 +1661,18 @@ export function CharacterWizardV2({
     subtitle?: string;
     action?: ReactNode;
   }) => (
-    <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="flex items-start justify-between gap-4 mb-3 flex-shrink-0">
       <div>
-        <div className="font-display font-semibold uppercase tracking-[0.1em] text-2xl text-brass">
+        <div className="font-display font-semibold uppercase tracking-[0.08em] text-lg text-brass">
           {title}
         </div>
         {subtitle && (
-          <div className="font-serif italic text-[17px] text-muted-foreground mt-0.5">
+          <div className="font-serif italic text-sm text-muted-foreground mt-0.5">
             {subtitle}
           </div>
         )}
       </div>
-      {action && <div className="flex gap-3 flex-shrink-0">{action}</div>}
+      {action && <div className="flex gap-2 flex-shrink-0">{action}</div>}
     </div>
   );
 
@@ -1703,6 +1704,70 @@ export function CharacterWizardV2({
             })}
           </p>
         )}
+
+        {/* Odziedziczona konwencja z opcją zmiany */}
+        <div className="flex items-center justify-between border border-brass/30 bg-[#120f0c] px-4 py-2.5 rounded-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              Konwencja reguł:
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-display text-xs uppercase font-semibold tracking-wider text-brass">
+              {state.rulesetVariant === 'pulp' ? (
+                <>
+                  <Zap className="h-3.5 w-3.5 text-primary" />
+                  Pulp Cthulhu
+                </>
+              ) : (
+                <>
+                  <Skull className="h-3.5 w-3.5 text-brass" />
+                  Klasyczny CoC 7e
+                </>
+              )}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setState((prev) => ({
+                  ...prev,
+                  rulesetVariant: 'classic',
+                  derived: calculateDerived(prev.stats, prev.age, 'classic'),
+                }));
+              }}
+              className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border ${
+                state.rulesetVariant === 'classic'
+                  ? 'border-brass bg-brass/20 text-brass font-bold'
+                  : 'border-brass/20 text-muted-foreground hover:text-brass hover:bg-brass/5'
+              }`}
+            >
+              <span className="flex items-center gap-1">
+                <Skull className="h-3 w-3" />
+                Klasyk
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setState((prev) => ({
+                  ...prev,
+                  rulesetVariant: 'pulp',
+                  derived: calculateDerived(prev.stats, prev.age, 'pulp'),
+                }));
+              }}
+              className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border ${
+                state.rulesetVariant === 'pulp'
+                  ? 'border-primary bg-primary/20 text-primary font-bold shadow-[0_0_8px_rgba(13,148,136,0.3)]'
+                  : 'border-brass/20 text-muted-foreground hover:text-primary hover:bg-primary/5'
+              }`}
+            >
+              <span className="flex items-center gap-1">
+                <Zap className="h-3 w-3" />
+                Pulp
+              </span>
+            </button>
+          </div>
+        </div>
 
         {/* Siatka archetypów */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -3498,74 +3563,57 @@ export function CharacterWizardV2({
         <span className="pointer-events-none absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-brass/55" />
         <span className="pointer-events-none absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-brass/55" />
 
-        {/* Header - tytuł ekranu + stepper */}
-        <div className="px-8 pt-7 pb-4 flex-shrink-0 border-b border-brass/20">
-          <div className="flex justify-end -mt-2 -mr-4 mb-1">
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-brass h-7 w-7 p-0"
-            >
-              ✕
-            </Button>
-          </div>
-          <div className="text-center mb-1">
-            <div className="font-special-elite uppercase tracking-[0.2em] text-xs text-brass/80">
-              {t('wizardEyebrow')}
-            </div>
-            <h2 className="mt-1 font-display-decorative uppercase tracking-[0.1em] text-2xl text-foreground">
-              {t('wizardTitle')}
+        {/* Header - kompaktowy zintegrowany pasek Deco ze stepperem */}
+        <div className="px-6 py-3 flex-shrink-0 border-b border-brass/20 bg-[#120f0c] flex items-center justify-between gap-4">
+          {/* Lewa strona: Krok i tytuł */}
+          <div className="flex items-center gap-2.5">
+            <span className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary font-bold">
+              {t('stepOf', { current: state.step, total: TOTAL_STEPS })}
+            </span>
+            <span className="text-brass/40 font-serif">·</span>
+            <h2 className="font-display text-base sm:text-lg font-bold uppercase tracking-[0.08em] text-foreground">
+              {stepNames[state.step - 1]}
             </h2>
           </div>
 
-          {/* Stepper */}
-          <div className="flex items-center justify-between mt-6 px-2">
+          {/* Środek: Ministepper */}
+          <div className="hidden md:flex items-center gap-1.5">
             {stepNames.map((name, idx) => {
               const stepNo = idx + 1;
               const done = stepNo < state.step;
               const active = stepNo === state.step;
               return (
-                <Fragment key={idx}>
-                  <div className="flex flex-col items-center gap-2 w-[120px]">
-                    <div
-                      className={`flex items-center justify-center font-display ${
-                        active
-                          ? 'w-[42px] h-[42px] font-bold text-[17px] border border-brass/30 bg-primary text-[#04110f] shadow-[0_0_18px_rgba(13,148,136,.5)] animate-emerald-pulse'
-                          : done
-                            ? 'w-[38px] h-[38px] text-[15px] border border-brass/30 bg-primary/[0.12] text-brass/80'
-                            : 'w-[38px] h-[38px] text-[15px] border border-brass/40 text-muted-foreground'
-                      }`}
-                    >
-                      {done ? '✓' : stepNo}
-                    </div>
-                    <div
-                      className={`font-special-elite text-xs uppercase tracking-[0.1em] text-center ${
-                        active
-                          ? 'text-brass/80'
-                          : done
-                            ? 'text-muted-foreground'
-                            : 'text-muted-foreground/70'
-                      }`}
-                    >
-                      {name}
-                    </div>
-                  </div>
-                  {idx < stepNames.length - 1 && (
-                    <div
-                      className={`flex-1 h-px -mx-2 mb-[22px] ${
-                        stepNo < state.step ? 'bg-primary' : 'bg-brass/25'
-                      }`}
-                    />
-                  )}
-                </Fragment>
+                <div
+                  key={idx}
+                  title={`${stepNo}. ${name}`}
+                  className={`flex items-center justify-center font-display text-xs transition-all ${
+                    active
+                      ? 'h-6 px-2.5 border border-primary bg-primary text-[#04110f] font-bold shadow-[0_0_10px_rgba(13,148,136,.4)]'
+                      : done
+                        ? 'h-6 w-6 border border-brass/40 bg-primary/10 text-primary font-semibold'
+                        : 'h-6 w-6 border border-brass/20 text-muted-foreground/60'
+                  }`}
+                >
+                  {done ? '✓' : active ? `${stepNo}. ${name}` : stepNo}
+                </div>
               );
             })}
           </div>
+
+          {/* Prawa strona: Przycisk zamknięcia */}
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-brass hover:bg-brass/10 h-8 w-8 p-0 rounded-full border border-brass/30 flex items-center justify-center"
+            title={t('close') || 'Zamknij'}
+          >
+            ✕
+          </Button>
         </div>
 
         {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6 flex flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 flex flex-col">
           {renderCurrentStep()}
         </div>
 

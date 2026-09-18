@@ -6358,7 +6358,9 @@
     "loreFactionsCount": "Factions: {count}",
     "loreLocationsCount": "Locations: {count}",
     "loreEntitiesCount": "Beasts / Spells: {count}",
-    "openBuilderButton": "Adventure Builder & Campaign Kit (New)"
+    "openBuilderButton": "Adventure Builder & GM Pack (In Development)",
+    "loreBuilderButton": "Lorebook & Compendium Builder (In Development)",
+    "uploadLorebookButton": "Upload Lorebook / Compendium (PDF)"
   },
   "CharacterDevelopmentPanel": {
     "defaultTraumaDescription": "Trauma of type {type}",
@@ -7144,9 +7146,9 @@
     "eraFilterSectionLabel": "Historical Realia",
     "eraFilterSectionHelp": "The selected adventure's manifest defines its year, region, conventions, technology, and historical materials.",
     "eraFilterHistoricalName": "Period realia",
-    "eraFilterHistoricalDesc": "Use the selected adventure's historical manifest while keeping contemporary care around sensitive topics.",
+    "eraFilterHistoricalDesc": "Full fidelity to historical realities, period language, customs, and social divisions without contemporary censorship or anachronisms.",
     "eraFilterModernName": "Modern Sensibilities",
-    "eraFilterModernDesc": "Focuses on cosmic dread and investigation, avoiding period prejudices of the 1920s.",
+    "eraFilterModernDesc": "Softens period prejudices, focusing purely on cosmic horror and investigation.",
     "defaultLineViolenceChildren": "Violence against children",
     "defaultLineSexualViolence": "Sexual violence",
     "defaultVeilTortures": "Torture (fade to black)",
