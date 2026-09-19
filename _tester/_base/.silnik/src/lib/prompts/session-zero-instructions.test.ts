@@ -149,6 +149,8 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptPl).toContain('Ważne Miejsce: Gabinet w Arkham');
     expect(promptPl).toContain('Cenny Przedmiot: Zegarek kieszonkowy ojca');
     expect(promptPl).toContain('## FILTR EPOKI: REALIA HISTORYCZNE');
+    expect(promptPl).toContain('Pełna wierność realiom historycznym: autentyczne struktury społeczne');
+    expect(promptPl).toContain('bez współczesnej cenzury, moralizatorstwa i bez anachronizmów');
 
     const promptEn = buildSessionZeroInstructions(
       {
@@ -159,7 +161,7 @@ describe('buildSessionZeroInstructions', () => {
           importantPlace: 'Arkham Study',
           treasuredItem: 'Father pocket watch',
         },
-        eraFilter: 'modern_sensibilities',
+        eraFilter: 'historical_realia',
       },
       'en'
     );
@@ -169,7 +171,19 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptEn).toContain('Key Connection (Important Person - SAN recovery): Sister Clara in Boston');
     expect(promptEn).toContain('Significant Location: Arkham Study');
     expect(promptEn).toContain('Treasured Possession: Father pocket watch');
-    expect(promptEn).toContain('## ERA FILTER: MODERN SENSIBILITIES');
+    expect(promptEn).toContain('## ERA FILTER: HISTORICAL REALIA');
+    expect(promptEn).toContain('Full fidelity to historical realities: period-accurate social structures');
+    expect(promptEn).toContain('without contemporary censorship, moralizing, or anachronisms');
+
+    const promptModern = buildSessionZeroInstructions(
+      {
+        ...rawSettings,
+        eraFilter: 'modern_sensibilities',
+      },
+      'pl'
+    );
+    expect(promptModern).toContain('## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ');
+    expect(promptModern).toContain('łagodząc uprzedzenia i dyskryminację epoki');
   });
 
   it('normalizes legacy tone noir to purist instructions in PL and EN', () => {

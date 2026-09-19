@@ -694,7 +694,9 @@ export function AdventureSelector({
                   {t('attachedLorebooksLabel')}
                 </h4>
                 <span className="font-special-elite text-xs text-muted-foreground">
-                  ({selectedAdventure.attachedLorebookIds?.length || 0} podpięte)
+                  {t('attachedLorebooksCount', {
+                    count: selectedAdventure.attachedLorebookIds?.length || 0,
+                  })}
                 </span>
               </div>
 
