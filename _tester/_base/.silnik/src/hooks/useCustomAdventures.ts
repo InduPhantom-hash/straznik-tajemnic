@@ -26,6 +26,7 @@ export interface UseCustomAdventuresReturn {
   uploadProgress: number; // Postęp 0-100
   loadingStatus: string; // Opis aktualnego etapu
   uploadError: string | null;
+  clearUploadError: () => void;
   uploadAdventure: (file: File) => Promise<CustomAdventure | null>;
   deleteAdventure: (id: string) => Promise<void>;
   setActiveAdventure: (id: string | null) => void;
@@ -64,194 +65,90 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
 
 
 
-  // Upload nowej przygody
+  const clearUploadError = useCallback(() => {
+    setUploadError(null);
+  }, []);
+
+  // Upload nowej przygody - w 100% lokalny (doktryna Clean Room Engine / Zero-Cytowań)
   const uploadAdventure = useCallback(
     async (file: File): Promise<CustomAdventure | null> => {
       setIsLoading(true);
       setUploadError(null);
-      setUploadProgress(10);
-      setLoadingStatus('Wczytywanie pliku PDF i przesyłanie do pamięci podręcznej...');
+      setUploadProgress(15);
+      setLoadingStatus('Wczytywanie pliku PDF i przetwarzanie lokalne...');
 
       try {
-        console.log(`📤 Uploading adventure PDF: ${file.name}`);
+        console.log(`📤 Przetwarzanie przygody PDF w trybie lokalnym: ${file.name}`);
 
-        // Nagłówki BYOK (X-Gemini-Api-Key z localStorage gracza). Wymagane przez
-        // parse-local i analyze - bez nich endpointy zwracają 401.
-        const apiKeyHeaders = getApiKeyHeaders();
-
-        // Krok 1+2 (GCS-free): wgraj PDF → Gemini File API. Wersja publiczna nie ma
-        // Google Cloud Storage; parse-local parsuje plik w pamięci serwera i wgrywa
-        // go do Gemini File API na kluczu gracza, zapisując adventureGeminiFileUri
-        // do pdf-memory (gameplay attachuje przez buildPdfStrategy).
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', 'adventure');
         formData.append('fileName', file.name);
 
-        const parseResponse = await fetch('/api/pdf/parse-local', {
+        setUploadProgress(40);
+        setLoadingStatus('Lokalne parsowanie, czankowanie i tagowanie semantyczne...');
+
+        const ingestResponse = await fetch('/api/pdf/ingest-local', {
           method: 'POST',
-          headers: apiKeyHeaders,
+          headers: getApiKeyHeaders(),
           body: formData,
         });
 
-        if (!parseResponse.ok) {
-          const errorData = await parseResponse.json().catch(() => ({}));
-          // 401 = brak/zły klucz BYOK - pokaż czytelny komunikat (nie połykaj po cichu).
-          if (parseResponse.status === 401) {
-            throw new Error(
-              errorData.error ||
-                'Brak klucza Gemini - wklej swój klucz Google AI Studio w ustawieniach.'
-            );
-          }
+        if (!ingestResponse.ok) {
+          const errorData = await ingestResponse.json().catch(() => ({}));
           throw new Error(
             errorData.error ||
-              `Wgrywanie przygody nie powiodło się: ${parseResponse.status}`
+              `Lokalne przetwarzanie przygody nie powiodło się: ${ingestResponse.status}`
           );
         }
 
-        setUploadProgress(40);
-        setLoadingStatus('Przetwarzanie dokumentu i przygotowywanie struktury tekstu...');
+        setUploadProgress(75);
+        setLoadingStatus('Generowanie grafu śledztwa i indeksowanie wektorów syntetycznych...');
 
-        const parseResult = await parseResponse.json();
-        if (!parseResult.success || !parseResult.geminiFileUri) {
+        const ingestResult = await ingestResponse.json();
+        if (!ingestResult.success || (!ingestResult.adventure && !ingestResult.adventures?.length)) {
           throw new Error(
-            parseResult.error || 'Wgrywanie przygody nie powiodło się'
+            ingestResult.error || 'Nie udało się wygenerować struktury przygody z pliku PDF.'
           );
         }
 
-        console.log(
-          `✅ PDF wgrany do Gemini File API:`,
-          parseResult.geminiFileUri
-        );
+        const rawAdventures: CustomAdventure[] = ingestResult.adventures || [ingestResult.adventure];
 
-        setUploadProgress(60);
-        setLoadingStatus('Gemini analizuje klimat, postacie i lokacje scenariusza...');
+        // Zapewniamy kompletność pól CustomAdventure
+        const newAdventures: CustomAdventure[] = rawAdventures.map((adv, index) => ({
+          ...adv,
+          id: adv.id || `custom-${Date.now()}-${index}`,
+          title: adv.title || `${file.name.replace('.pdf', '')} - Przygoda ${index + 1}`,
+          era: adv.era || 'classic',
+          eraLabel: adv.eraLabel || 'Klasyczne lata 20.',
+          yearRange: adv.yearRange || '1920-1929',
+          location: adv.location || 'Arkham / Massachusetts',
+          country: adv.country || 'USA',
+          tone: adv.tone || 'purist',
+          themes: adv.themes?.length ? adv.themes : ['tajemnica', 'śledztwo'],
+          suggestedOccupations: adv.suggestedOccupations?.length
+            ? adv.suggestedOccupations
+            : ['detektyw', 'dziennikarz'],
+          suggestedArchetypes: adv.suggestedArchetypes?.length
+            ? adv.suggestedArchetypes
+            : ['investigator'],
+          hook: adv.hook || `Śledztwo w sprawie "${adv.title || 'bez nazwy'}" czeka na odkrycie.`,
+          description: adv.description || '',
+          estimatedSessions: adv.estimatedSessions || '2-3',
+          playerCount: adv.playerCount || '1-4',
+          difficulty: adv.difficulty || 'normal',
+          isCustom: true,
+          pdfUrl: '',
+          geminiFileUri: '',
+          fileName: file.name,
+          uploadedAt: new Date().toISOString(),
+          isAnalyzed: true,
+          graph: adv.graph || { npcs: [], locations: [], clues: [], connections: [] },
+          documentType: adv.documentType || 'scenario',
+          lorebookData: adv.lorebookData,
+          attachedLorebookIds: adv.attachedLorebookIds || [],
+        }));
 
-        // Krok 3: Analiza przez Gemini AI (metadane przygody). Nagłówek BYOK.
-        console.log(`🔍 Analyzing adventure with Gemini AI...`);
-        const analyzeResponse = await fetch('/api/adventure/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...apiKeyHeaders },
-          body: JSON.stringify({
-            geminiFileUri: parseResult.geminiFileUri,
-            // mimeType faktycznie wgranego pliku - analyze użyje go w fileData.mimeType.
-            // Bez tego analyze zakłada text/plain i dla natywnego PDF dostaje 500.
-            geminiMimeType: parseResult.geminiMimeType,
-            fileName: file.name,
-          }),
-        });
-
-        // 401 z analizy = brak/zły klucz BYOK - twardy błąd (nie cichy fallback do
-        // metadanych domyślnych). Inne błędy analizy dalej degradują gracefully niżej.
-        if (analyzeResponse.status === 401) {
-          const errData = await analyzeResponse.json().catch(() => ({}));
-          throw new Error(
-            errData.error ||
-              'Brak klucza Gemini - wklej swój klucz Google AI Studio w ustawieniach.'
-          );
-        }
-        if (!analyzeResponse.ok) {
-          const errData = await analyzeResponse.json().catch(() => ({}));
-          throw new Error(
-            errData.error ||
-              `Analiza przygody nie powiodła się: ${analyzeResponse.status}`
-          );
-        }
-
-        setUploadProgress(90);
-        setLoadingStatus('Pobieranie historycznej pogody (Open-Meteo) i map (OpenHistoricalMap)...');
-
-        const analyzeResult = await analyzeResponse.json();
-        // IND-134 (sesja 148): typed jako Partial<AdventureContext> + pageStart.
-        // Shape z /api/adventure/analyze (Gemini), pola opcjonalne bo każde z `?.` fallback w map() lin ~195-235.
-        let adventuresData: Array<
-          Partial<AdventureContext> & { pageStart?: number | null }
-        > = [];
-
-        if (!analyzeResult.success) {
-          throw new Error(analyzeResult.error || 'Analiza przygody nie powiodła się');
-        }
-        if (
-          analyzeResult.multipleAdventures &&
-          Array.isArray(analyzeResult.adventures)
-        ) {
-          adventuresData = analyzeResult.adventures;
-          console.log(`✅ Detected ${adventuresData.length} adventures in PDF`);
-        } else if (analyzeResult.adventure) {
-          adventuresData = [analyzeResult.adventure];
-          console.log(`✅ Adventure analyzed:`, analyzeResult.adventure.title);
-        }
-
-        if (adventuresData.length === 0) {
-          throw new Error('Analiza PDF nie zwróciła żadnej przygody.');
-        }
-        for (const [index, adventureData] of adventuresData.entries()) {
-          if (!adventureData.yearRange?.match(/\b\d{4}\b/)) {
-            throw new Error(`Przygoda ${index + 1} nie ma ustalonego roku.`);
-          }
-          if (
-            !adventureData.country?.trim() ||
-            /^(unknown|nieznany|nieznane)$/i.test(adventureData.country.trim())
-          ) {
-            throw new Error(`Przygoda ${index + 1} nie ma ustalonego kraju.`);
-          }
-        }
-
-        // Tworzenie CustomAdventure dla KAŻDEJ wykrytej przygody
-        const newAdventures: CustomAdventure[] = adventuresData.map(
-          (adventureData, index) => ({
-            id: `custom-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`,
-            title:
-              adventureData?.title ||
-              `${file.name.replace('.pdf', '')} - Przygoda ${index + 1}`,
-            era: adventureData?.era || 'custom',
-            eraLabel:
-              adventureData?.eraLabel ||
-              `${adventureData.yearRange}, ${adventureData.country}`,
-            yearRange: adventureData.yearRange!,
-            location: adventureData?.location || 'Nieznana lokalizacja',
-            country: adventureData.country!,
-            tone: adventureData?.tone || 'purist',
-            themes: adventureData?.themes || ['tajemnica'],
-            suggestedOccupations: adventureData?.suggestedOccupations || [
-              'detektyw',
-            ],
-            suggestedArchetypes: adventureData?.suggestedArchetypes || [
-              'investigator',
-            ],
-            hook:
-              adventureData?.hook ||
-              (adventureData?.description
-                ? adventureData.description
-                    .split('.')
-                    .slice(0, 2)
-                    .join('.')
-                    .trim() + '.'
-                : `Przygoda "${adventureData?.title || 'bez nazwy'}" czeka na odkrycie.`),
-            description: adventureData?.description || '',
-            estimatedSessions: adventureData?.estimatedSessions || '2-3',
-            playerCount: adventureData?.playerCount || '1-4',
-            difficulty: adventureData?.difficulty || 'normal',
-            isCustom: true,
-            // parse-local (GCS-free) nie zwraca pdfUrl - plik żyje tylko w Gemini
-            // File API (geminiFileUri). Pusty string jest falsy → deleteAdventure
-            // pomija nieistniejące GCS delete.
-            pdfUrl: parseResult.pdfUrl || '',
-            geminiFileUri: parseResult.geminiFileUri,
-            fileName: file.name,
-            uploadedAt: new Date().toISOString(),
-            isAnalyzed: true,
-            // Rozkład na czynniki pierwsze (postacie/miejsca/zdarzenia/przedmioty/
-            // stwory) - kontekst dla MG/AI. Zapisywany razem z przygodą (IndexedDB).
-            graph: adventureData?.graph || { npcs: [], locations: [], clues: [], connections: [] },
-            documentType: adventureData?.documentType || 'scenario',
-            lorebookData: adventureData?.lorebookData,
-            attachedLorebookIds: [],
-          })
-        );
-
-
-        // Aby uniknąć wyścigów (race condition) przy równoległych uploadach:
-        // dociągamy najświeższy stan bezpośrednio przed zapisem.
         const freshState = await loadCustomAdventures();
         const updatedAdventures = [...freshState.adventures, ...newAdventures];
 
@@ -261,45 +158,15 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
           activeId: freshState.activeId || activeAdventureId,
         });
 
-        // [Dodano z Code Review]: Uruchomienie tła dla Pre-bufferingu i RAG
-        // Wykonujemy w tle, nie blokujemy UI
-        if (newAdventures.length > 0) {
-          console.log('🤖 Rozpoczynam tło: RAG indexing i TTS pre-buffering...');
-          newAdventures.forEach(adv => {
-            // RAG Indexing Background Call (uruchamiane w tle)
-            fetch('/api/adventure/index', {
-              method: 'POST',
-              body: JSON.stringify({ adventureId: adv.id, graph: adv.graph })
-            }).catch(e => console.warn('RAG indexing background failed', e));
-
-            // TTS Pre-buffer dla hooka/sceny wprowadzającej
-            if (adv.hook) {
-              fetch('/api/tts', {
-                method: 'POST',
-                body: JSON.stringify({ text: adv.hook, voice: 'narrator' })
-              }).catch(e => console.warn('TTS pre-buffering failed', e));
-            }
-          });
-        }
-
         console.log(
-          `📚 Added ${newAdventures.length} adventure(s): ${newAdventures.map((a) => `"${a.title}"`).join(', ')}`
+          `📚 Dodano ${newAdventures.length} przygodę(y): ${newAdventures.map((a) => `"${a.title}"`).join(', ')}`
         );
 
-        // Informuj użytkownika o wynikach
-        if (newAdventures.length > 1) {
-          alert(
-            `✅ Wykryto ${newAdventures.length} przygód w pliku "${file.name}":\n\n${newAdventures.map((a, i) => `${i + 1}. ${a.title}`).join('\n')}\n\nWszystkie zostały dodane do listy.`
-          );
-        } else {
-          alert(`✅ Wczytano przygodę: "${newAdventures[0].title}"`);
-        }
-
         setUploadProgress(100);
-        setLoadingStatus('Zakończono wczytywanie przygody.');
-        return newAdventures[0]; // Zwracamy pierwszą przygodę dla kompatybilności
+        setLoadingStatus('Zakończono pomyślnie wczytywanie przygody.');
+        return newAdventures[0];
       } catch (error) {
-        console.error('❌ Adventure upload error:', error);
+        console.error('❌ Błąd lokalnego wczytywania przygody:', error);
         const errorMsg =
           error instanceof Error ? error.message : 'Nieznany błąd';
         setUploadError(errorMsg);
@@ -464,6 +331,7 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
     uploadProgress,
     loadingStatus,
     uploadError,
+    clearUploadError,
     uploadAdventure,
     deleteAdventure,
     setActiveAdventure,

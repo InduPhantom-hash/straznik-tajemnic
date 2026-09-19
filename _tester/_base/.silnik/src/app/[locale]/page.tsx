@@ -1039,6 +1039,8 @@ export default function Home() {
           isUploadingAdventure={customAdventures.isLoading}
           uploadProgressAdventure={customAdventures.uploadProgress}
           loadingStatusAdventure={customAdventures.loadingStatus}
+          uploadErrorAdventure={customAdventures.uploadError}
+          onClearUploadErrorAdventure={customAdventures.clearUploadError}
 
           hotSeatConfig={hotSeat.config}
           onSwitchPlayer={handleSwitchPlayer}

@@ -6332,6 +6332,8 @@
     "processingBook": "Processing the book of secrets...",
     "aiAnalyzing": "The AI is analyzing the adventure and automatically filling in details...",
     "uploadHint": "e.g. the free starter downloaded from Black Monk",
+    "uploadErrorTitle": "Adventure Processing Error",
+    "dismiss": "Dismiss",
     "strefa11Header": "Original Scenarios (Inspired by the \"Strefa 11\" / \"Nie do wiary\" TV show - TVN)",
     "strefa11Desc": "Polish RPG adventure scenarios set in communist-era Poland and the 1990s/2000s. Each adventure comes with ready, balanced Investigator characters.",
     "learnMore": "Learn more:",

@@ -188,5 +188,28 @@ describe('AdventureSelector', () => {
     fireEvent.click(screen.getByText(scenarioWithAttached.title));
     expect(screen.getByText('(1 attached)')).toBeInTheDocument();
   });
+
+  it('renders upload error alert when uploadError is provided', () => {
+    const onClear = jest.fn();
+    render(
+      <AdventureSelector
+        open
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+        uploadError="Nie udało się wygenerować struktury przygody z pliku PDF."
+        onClearUploadError={onClear}
+        onUploadAdventure={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Błąd przetwarzania przygody/i)).toBeInTheDocument();
+    expect(
+      screen.getByText('Nie udało się wygenerować struktury przygody z pliku PDF.')
+    ).toBeInTheDocument();
+
+    const dismissButtons = screen.getAllByRole('button', { name: /Zamknij/i });
+    fireEvent.click(dismissButtons[0]);
+    expect(onClear).toHaveBeenCalled();
+  });
 });
 

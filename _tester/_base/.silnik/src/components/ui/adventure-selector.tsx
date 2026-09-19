@@ -34,6 +34,7 @@ import {
   Library,
   BookmarkCheck,
   Lock,
+  AlertCircle,
 } from 'lucide-react';
 
 import { AdventureDetailsModal } from './adventure-details-modal';
@@ -55,6 +56,8 @@ interface AdventureSelectorProps {
   isUploading?: boolean;
   uploadProgress?: number;
   loadingStatus?: string;
+  uploadError?: string | null;
+  onClearUploadError?: () => void;
 }
 
 export function AdventureSelector({
@@ -68,6 +71,8 @@ export function AdventureSelector({
   isUploading = false,
   uploadProgress = 0,
   loadingStatus = '',
+  uploadError = null,
+  onClearUploadError,
 }: AdventureSelectorProps) {
   const t = useTranslations('AdventureSelector');
   const tStyles = useTranslations('AdventureStyles');
@@ -406,6 +411,28 @@ export function AdventureSelector({
               {/* Sekcja uploadu PDF scenariusza */}
               {onUploadAdventure && (
                 <div className="space-y-3">
+                  {uploadError && (
+                    <div className="relative border border-destructive/60 bg-destructive/10 p-4 font-serif rounded-sm flex items-start justify-between gap-3 text-destructive-foreground">
+                      <div className="flex items-start gap-2.5">
+                        <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-destructive">
+                            {t('uploadErrorTitle')}
+                          </h4>
+                          <p className="text-xs text-foreground/90 mt-1 font-sans">{uploadError}</p>
+                        </div>
+                      </div>
+                      {onClearUploadError && (
+                        <button
+                          type="button"
+                          onClick={onClearUploadError}
+                          className="text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider px-2 py-1 border border-brass/20 hover:border-brass/50 rounded-sm transition-colors shrink-0"
+                        >
+                          {t('dismiss')}
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <input
                     ref={fileInputRef}
                     type="file"

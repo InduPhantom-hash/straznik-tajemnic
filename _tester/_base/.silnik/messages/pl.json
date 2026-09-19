@@ -6332,6 +6332,8 @@
     "processingBook": "Przetwarzanie księgi tajemnic...",
     "aiAnalyzing": "AI analizuje przygodę i automatycznie uzupełnia dane...",
     "uploadHint": "np. darmowy starter pobrany z Black Monk",
+    "uploadErrorTitle": "Błąd przetwarzania przygody",
+    "dismiss": "Zamknij",
     "strefa11Header": "Autorskie Scenariusze (Inspirowane programem \"Strefa 11\" / \"Nie do wiary\" - TVN)",
     "strefa11Desc": "Polskie scenariusze przygód RPG osadzone w realiach PRL i lat 90./2000. Każda przygoda posiada gotowe zbalansowane postacie Badaczy.",
     "learnMore": "Dowiedz się więcej:",
