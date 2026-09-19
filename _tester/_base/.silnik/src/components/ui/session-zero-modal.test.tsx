@@ -47,14 +47,27 @@ describe('SessionZeroModal', () => {
     );
   }
 
-  it('renders three steps and keeps the AI interview optional', () => {
+  it('renders three steps and displays the diegetic briefing document in step 2', () => {
     renderModal();
     expect(screen.getByText('Krok 1 z 3')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Rozmowa z AI/i }));
-    expect(screen.getByText('Rozmowa z AI')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Pomiń rozmowę' }));
+    fireEvent.click(screen.getByRole('button', { name: /Briefing śledczy/i }));
+    expect(screen.getByText('Krok 2 z 3')).toBeInTheDocument();
+    expect(screen.getByText('WESTERN UNION TELEGRAPH CO.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Dalej/i }));
     expect(screen.getByText('Krok 3 z 3')).toBeInTheDocument();
     expect(screen.getByText('Realia Historyczne')).toBeInTheDocument();
+  });
+
+  it('allows switching between telegram, letter and dossier in step 2', () => {
+    renderModal();
+    fireEvent.click(screen.getByRole('button', { name: /Briefing śledczy/i }));
+    expect(screen.getByText('WESTERN UNION TELEGRAPH CO.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'List Zlecający Śledztwo' }));
+    expect(screen.getByText(/Do rąk własnych Badacza/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Teczka Akt Śledczych' }));
+    expect(screen.getByText(/AKTA ŚLEDCZE N°/i)).toBeInTheDocument();
   });
 
   it('uses the selected adventure realia and preserves modern sensitivity', () => {
@@ -65,27 +78,23 @@ describe('SessionZeroModal', () => {
     expect(screen.getByText('Współczesna wrażliwość')).toBeInTheDocument();
   });
 
-  it('updates the character only after the AI proposal is approved', async () => {
-    fetchMock.mockResolvedValue({ ok: true });
-    collectMock.mockResolvedValue(JSON.stringify({
-      summary: 'Wchodzi w sprawę z osobistego długu.',
-      investigatorHook: 'Dawny dług wobec rodziny z Innsmouth.',
-      keyConnection: 'Siostra Clara', importantPlace: 'Gabinet w Arkham',
-      treasuredItem: 'Złoty zegarek', characterConcept: 'Detektyw z osobistą stawką.',
-      backstory: 'Weteran, który nie zostawia spraw bez odpowiedzi.',
-    }));
+  it('updates investigator hook in step 2 via suggested hook buttons and completes session zero', () => {
     renderModal();
-    fireEvent.click(screen.getByRole('button', { name: /Rozmowa z AI/i }));
-    for (const answer of ['Szukam prawdy.', 'Siostra Clara.', 'Zegarek ojca.']) {
-      fireEvent.change(screen.getByPlaceholderText('Napisz odpowiedź…'), { target: { value: answer } });
-      fireEvent.click(screen.getByRole('button', { name: 'Odpowiedz' }));
-    }
-    await waitFor(() => expect(screen.getByText('Propozycja do zatwierdzenia')).toBeInTheDocument());
-    expect(onCharacterUpdate).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Zatwierdź i zapisz' }));
-    expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      significantPerson: 'Siostra Clara', meaningfulLocation: 'Gabinet w Arkham',
-      treasuredPossession: 'Złoty zegarek',
-    }));
+    fireEvent.click(screen.getByRole('button', { name: /Briefing śledczy/i }));
+    fireEvent.click(screen.getByRole('button', { name: /\+ Spłata dawnego długu wdzięczności/i }));
+
+    const hookInput = screen.getByPlaceholderText('Dlaczego badacz podejmuje sprawę...');
+    expect(hookInput).toHaveValue('Spłata dawnego długu wdzięczności');
+
+    fireEvent.click(screen.getByRole('button', { name: /Dalej/i }));
+    expect(screen.getByText('Krok 3 z 3')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Zakończ i zapisz/i }));
+    expect(onComplete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        completed: true,
+        investigatorHook: 'Spłata dawnego długu wdzięczności',
+      })
+    );
   });
 });
