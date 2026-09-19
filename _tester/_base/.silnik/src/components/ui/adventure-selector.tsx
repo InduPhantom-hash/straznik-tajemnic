@@ -2,7 +2,7 @@
 
 import type { ChangeEvent, MouseEvent } from 'react';
 import { useMemo, useState, useRef } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,6 @@ import { Button } from './button';
 import { HelpIcon } from './tooltip';
 import {
   BUILT_IN_ADVENTURES,
-  STREFA_11_ADVENTURES,
-  CUSTOM_ADVENTURE_TEMPLATE,
   AdventureContext,
   CustomAdventure,
 } from '@/lib/adventures-data';
@@ -32,29 +30,17 @@ import {
   Info,
   MapPin,
   Clock,
-  Tv,
-  ExternalLink,
   Book,
   Library,
   BookmarkCheck,
+  Lock,
 } from 'lucide-react';
 
 import { AdventureDetailsModal } from './adventure-details-modal';
-import { AdventureBuilderModal } from '../adventures/AdventureBuilderModal';
-import { localizeStrefa11Adventure } from '@/lib/immersion/strefa-11-localization';
-import { Sparkles } from 'lucide-react';
-
-/**
- * Wgrywanie własnych przygód (PDF + formularz "bez PDF") + lista własnych przygód.
- * Wersja publiczna „Strażnik Tajemnic AI": gracz wnosi własny scenariusz, więc =true.
- */
-const ALLOW_CUSTOM_ADVENTURES = true;
 
 /**
  * Wbudowane scenariusze pokazujemy TYLKO w trybie pełnym/prywatnym
- * (NEXT_PUBLIC_LOCAL_MODE=true). W publicznej (LOCAL_MODE=false) gracz widzi
- * wyłącznie przygody wgrane przez siebie - nie ma dostępu do podręcznikowych
- * scenariuszy bez własnego egzemplarza (plan prawny + UX onboardingu).
+ * (NEXT_PUBLIC_LOCAL_MODE=true). W wersji publicznej gracz wnosi własny scenariusz.
  */
 const SHOW_BUILT_IN_ADVENTURES = process.env.NEXT_PUBLIC_LOCAL_MODE === 'true';
 
@@ -62,7 +48,6 @@ interface AdventureSelectorProps {
   open: boolean;
   onClose: () => void;
   onSelect: (adventure: AdventureContext) => void;
-  // Nowe propsy dla własnych przygód
   customAdventures?: CustomAdventure[];
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
@@ -86,19 +71,15 @@ export function AdventureSelector({
 }: AdventureSelectorProps) {
   const t = useTranslations('AdventureSelector');
   const tStyles = useTranslations('AdventureStyles');
-  const locale = useLocale();
-  const strefa11Adventures = useMemo(
-    () => STREFA_11_ADVENTURES.map((adventure) => localizeStrefa11Adventure(adventure, locale)),
-    [locale]
-  );
+
   const [activeTab, setActiveTab] = useState<'scenarios' | 'lorebooks'>('scenarios');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showCustomForm, setShowCustomForm] = useState(false);
-  const [showAdventureBuilder, setShowAdventureBuilder] = useState(false);
+  const [selectedExactYear, setSelectedExactYear] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [detailsAdventure, setDetailsAdventure] =
     useState<AdventureContext | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const loreFileInputRef = useRef<HTMLInputElement>(null);
 
   // Podział własnych materiałów na scenariusze śledcze i księgi wiedzy / kompendia
   const customScenarios = useMemo(
@@ -110,62 +91,27 @@ export function AdventureSelector({
     [customAdventures]
   );
 
-
-  // Custom adventure form state
-  const [customTitle, setCustomTitle] = useState('');
-  const [customLocation, setCustomLocation] = useState('');
-  const [customCountry, setCustomCountry] = useState('');
-  const [customEra, setCustomEra] = useState<
-    'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom'
-  >('classic');
-  const [customYear, setCustomYear] = useState('');
-  const [selectedExactYear, setSelectedExactYear] = useState('');
-  const [customDescription, setCustomDescription] = useState('');
-
   const handleSelect = (adventure: AdventureContext, openDetails = true) => {
-    if (adventure.id === 'custom') {
-      // Własna przygoda bez PDF - pokaż formularz
-      setShowCustomForm(true);
-      setSelectedId(adventure.id);
-    } else {
-      setSelectedId(adventure.id);
-      const years = adventure.yearRange?.match(/\b\d{4}\b/g) ?? [];
-      setSelectedExactYear(new Set(years).size === 1 ? (years[0] ?? '') : '');
-      if (openDetails) {
-        setDetailsAdventure(adventure);
-      }
+    setSelectedId(adventure.id);
+    const years = adventure.yearRange?.match(/\b\d{4}\b/g) ?? [];
+    setSelectedExactYear(new Set(years).size === 1 ? (years[0] ?? '') : '');
+    if (openDetails) {
+      setDetailsAdventure(adventure);
     }
   };
 
   const handleConfirm = () => {
-    if (showCustomForm) {
-      if (!/^\d{4}$/.test(customYear) || !customCountry.trim()) return;
-      const customAdventure: AdventureContext = {
-        ...CUSTOM_ADVENTURE_TEMPLATE,
-        title: customTitle || t('defaultTitle'),
-        location: customLocation || t('defaultLocation'),
-        country: customCountry.trim(),
-        era: customEra,
-        eraLabel: ERA_STYLES[customEra]
-          ? tStyles(ERA_STYLES[customEra].translationKey)
-          : t('defaultEraLabel'),
-        yearRange: customYear,
-        customDescription: customDescription,
-      };
-      onSelect(customAdventure);
-    } else if (selectedId) {
-      // Sprawdź w wbudowanych lub Strefa 11
-      const builtIn = BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
-        strefa11Adventures.find((a) => a.id === selectedId);
-      if (builtIn) {
-        onSelect(builtIn);
-      } else {
-        // Sprawdź w własnych
-        const custom = customAdventures.find((a) => a.id === selectedId);
-        if (custom) {
-          if (!/^\d{4}$/.test(selectedExactYear)) return;
-          onSelect({ ...custom, yearRange: selectedExactYear });
-        }
+    if (selectedId) {
+      const selected =
+        customAdventures.find((a) => a.id === selectedId) ||
+        (SHOW_BUILT_IN_ADVENTURES ? BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) : null);
+      if (selected) {
+        if (selected.isCustom && !/^\d{4}$/.test(selectedExactYear)) return;
+        const finalAdventure =
+          selected.isCustom && selectedExactYear
+            ? { ...selected, yearRange: selectedExactYear }
+            : selected;
+        onSelect(finalAdventure);
       }
     }
     onClose();
@@ -178,11 +124,15 @@ export function AdventureSelector({
     const newAdventure = await onUploadAdventure(file);
     if (newAdventure) {
       setSelectedId(newAdventure.id);
+      const years = newAdventure.yearRange?.match(/\b\d{4}\b/g) ?? [];
+      setSelectedExactYear(new Set(years).size === 1 ? (years[0] ?? '') : '');
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (loreFileInputRef.current) {
+      loreFileInputRef.current.value = '';
     }
   };
 
@@ -191,13 +141,10 @@ export function AdventureSelector({
     e.preventDefault();
     if (!onDeleteAdventure) return;
 
-    // Blur aktywnego elementu i użyj window.confirm z opóźnieniem
-    // To zapobiega zamknięciu dialogu przez focus management w Radix
     const target = e.currentTarget as HTMLElement;
     target.blur();
     document.body.focus();
 
-    // Dłuższe opóźnienie dla stabilności
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const confirmed = window.confirm(t('deleteConfirm'));
@@ -214,10 +161,8 @@ export function AdventureSelector({
 
   const selectedAdventure = selectedId
     ? BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
-      strefa11Adventures.find((a) => a.id === selectedId) ||
       customAdventures.find((a) => a.id === selectedId)
     : null;
-  const manualFormReady = /^\d{4}$/.test(customYear) && Boolean(customCountry.trim());
   const selectedCustomReady =
     !selectedAdventure?.isCustom || /^\d{4}$/.test(selectedExactYear);
 
@@ -422,513 +367,393 @@ export function AdventureSelector({
           </div>
 
           {/* Pasek zakładek Dark Art Déco: Scenariusze vs Lorebooki */}
-          {!showCustomForm && (
-            <div className="mt-4 flex items-center justify-center gap-2 border-b border-brass/25 pb-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab('scenarios')}
-                className={`flex items-center gap-2 px-4 py-2 font-display text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
-                  activeTab === 'scenarios'
-                    ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-[0_0_12px_rgba(13,148,136,0.2)]'
-                    : 'text-muted-foreground hover:text-brass hover:bg-brass/5'
-                }`}
-              >
-                <Library className="h-4 w-4" />
-                {t('tabScenarios')}
-                <span className="font-special-elite text-xs text-brass/70">
-                  ({(SHOW_BUILT_IN_ADVENTURES ? BUILT_IN_ADVENTURES.length : 0) + strefa11Adventures.length + customScenarios.length})
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('lorebooks')}
-                className={`flex items-center gap-2 px-4 py-2 font-display text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
-                  activeTab === 'lorebooks'
-                    ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-[0_0_12px_rgba(13,148,136,0.2)]'
-                    : 'text-muted-foreground hover:text-brass hover:bg-brass/5'
-                }`}
-              >
-                <Book className="h-4 w-4" />
-                {t('tabLorebooks')}
-                <span className="font-special-elite text-xs text-brass/70">
-                  ({customLorebooks.length})
-                </span>
-              </button>
-            </div>
-          )}
+          <div className="mt-4 flex items-center justify-center gap-2 border-b border-brass/25 pb-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab('scenarios')}
+              className={`flex items-center gap-2 px-4 py-2 font-display text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
+                activeTab === 'scenarios'
+                  ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-[0_0_12px_rgba(13,148,136,0.2)]'
+                  : 'text-muted-foreground hover:text-brass hover:bg-brass/5'
+              }`}
+            >
+              <Library className="h-4 w-4" />
+              {t('tabScenarios')}
+              <span className="font-special-elite text-xs text-brass/70">
+                ({(SHOW_BUILT_IN_ADVENTURES ? BUILT_IN_ADVENTURES.length : 0) + customScenarios.length})
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('lorebooks')}
+              className={`flex items-center gap-2 px-4 py-2 font-display text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
+                activeTab === 'lorebooks'
+                  ? 'border-b-2 border-primary text-primary bg-primary/10 shadow-[0_0_12px_rgba(13,148,136,0.2)]'
+                  : 'text-muted-foreground hover:text-brass hover:bg-brass/5'
+              }`}
+            >
+              <Book className="h-4 w-4" />
+              {t('tabLorebooks')}
+              <span className="font-special-elite text-xs text-brass/70">
+                ({customLorebooks.length})
+              </span>
+            </button>
+          </div>
 
-          {!showCustomForm ? (
-            <>
-              {/* ZAKŁADKA 2: KSIĘGI WIEDZY I LOREBOOKI */}
-              {activeTab === 'lorebooks' && (
-                <div className="mt-4">
-                  <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
-                    <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-brass font-bold">
-                      <Book className="h-4 w-4 text-brass shrink-0" />
-                      {t('lorebooksTitle')}
-                    </div>
-                    <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
-                      Przewodniki regionalne (*Cienie Tatr*, *Horror nad Wartą*), bestiariusze (*Malleus Monstrorum*) oraz grymuary magii wzbogacają tło sesji i stanowią kompendium wiedzy dla Mistrza Gry.
-                    </p>
-                  </div>
+          {/* ZAKŁADKA 1: SCENARIUSZE ŚLEDCZE */}
+          {activeTab === 'scenarios' && (
+            <div className="mt-4 space-y-6">
+              {/* Sekcja uploadu PDF scenariusza */}
+              {onUploadAdventure && (
+                <div className="space-y-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  {!isUploading ? (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => fileInputRef.current?.click()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      className="group relative cursor-pointer border-2 border-dashed border-primary/50 bg-[#120f0c] hover:border-primary hover:bg-primary/5 p-6 text-center transition-all duration-300 rounded-sm"
+                    >
+                      <span className="pointer-events-none absolute left-2 top-2 h-2.5 w-2.5 border-l border-t border-primary/40 group-hover:border-primary" />
+                      <span className="pointer-events-none absolute right-2 top-2 h-2.5 w-2.5 border-r border-t border-primary/40 group-hover:border-primary" />
+                      <span className="pointer-events-none absolute bottom-2 left-2 h-2.5 w-2.5 border-b border-l border-primary/40 group-hover:border-primary" />
+                      <span className="pointer-events-none absolute bottom-2 right-2 h-2.5 w-2.5 border-b border-r border-primary/40 group-hover:border-primary" />
 
-                  {customLorebooks.length === 0 ? (
-                    <div className="border border-dashed border-brass/35 p-6 text-center">
-                      <p className="font-serif text-sm italic text-muted-foreground">
-                        {t('lorebooksEmpty')}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      {customLorebooks.map((lorebook) => (
-                        <AdventureCard
-                          key={lorebook.id}
-                          adventure={lorebook}
-                          isCustom
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ZAKŁADKA 1: SCENARIUSZE ŚLEDCZE */}
-              {activeTab === 'scenarios' && (
-                <>
-                  {/* Instrukcja trybu publicznego: brak gotowych scenariuszy */}
-                  {!SHOW_BUILT_IN_ADVENTURES && ALLOW_CUSTOM_ADVENTURES && (
-                    <div className="mt-4 flex items-start gap-3 border border-brass/40 bg-brass/10 p-3">
-                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-brass" />
-                      <div className="space-y-1 font-serif text-base italic leading-relaxed text-foreground/90">
-                        <p>
-                          {t.rich('publicModeInfo1', {
-                            strong: (chunks) => <strong>{chunks}</strong>,
-                          })}
-                        </p>
-                        <p>
-                          {t.rich('publicModeInfo2', {
-                            strong: (chunks) => <strong>{chunks}</strong>,
-                          })}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {t('publicModeInfo3')}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Własne scenariusze */}
-                  {ALLOW_CUSTOM_ADVENTURES && customScenarios.length > 0 && (
-                    <div className="mt-4">
-                      <h3 className="mb-3 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                        {t('yourAdventures')}
-                        <span className="font-special-elite text-[14px] tracking-[0.1em] text-muted-foreground">
-                          ({customScenarios.length})
-                        </span>
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        {customScenarios.map((adventure) => (
-                          <AdventureCard
-                            key={adventure.id}
-                            adventure={adventure}
-                            isCustom
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-
-              {/* Przycisk wgrania nowej przygody z klimatycznym mosiężnym paskiem postępu */}
-              {ALLOW_CUSTOM_ADVENTURES && (
-                <div className="mt-6 mb-4 space-y-3">
-                  <Button
-                    onClick={() => setShowAdventureBuilder(true)}
-                    variant="outline"
-                    className="w-full border-2 border-brass/60 bg-gradient-to-r from-[#1c1712] via-[#2a2219] to-[#1c1712] py-6 font-display font-semibold uppercase tracking-[0.16em] text-brass hover:text-foreground hover:border-brass hover:bg-brass/15 shadow-lg"
-                  >
-                    <Sparkles className="mr-2 h-5 w-5 text-brass" />
-                    {t('openBuilderButton')}
-                  </Button>
-
-                  {onUploadAdventure && (
-                    <>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      {!isUploading ? (
-                        <Button
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={isUploading}
-                          variant="outline"
-                          className="w-full border-2 border-dashed border-primary/45 py-4 font-display font-semibold uppercase tracking-[0.16em] text-primary/80 hover:text-primary hover:bg-primary/10"
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          {t('uploadButton')}
-                        </Button>
-                      ) : (
-                        <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
-                          {/* Rogi deco */}
-                          <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
-                          <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/50" />
-
-                          <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
-                            <span className="flex items-center gap-2">
-                               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                              {t('processingBook')}
-                            </span>
-                            <span>{uploadProgress}%</span>
-                          </div>
-
-                          {/* Klimatyczny pasek postępu (szmaragdowy/zielony z blaskiem) */}
-                          <div className="w-full h-3 border border-primary/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
-                            <div
-                              className="h-full bg-primary rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.6)] transition-all duration-500 ease-out"
-                              style={{ width: `${uploadProgress}%` }}
-                            />
-                          </div>
-
-                          <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
-                            {loadingStatus || t('aiAnalyzing')}
-                          </p>
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary shadow-[0_0_15px_rgba(13,148,136,0.2)]">
+                          <Upload className="h-6 w-6" />
                         </div>
-                      )}
-                      {!isUploading && (
-                        <p className="mt-1 text-center font-special-elite text-[13px] uppercase tracking-[0.1em] text-muted-foreground">
+                        <h3 className="font-display text-base font-semibold uppercase tracking-[0.14em] text-foreground">
+                          {t('uploadButton')}
+                        </h3>
+                        <p className="max-w-md font-serif text-sm italic text-muted-foreground">
                           {t('uploadHint')}
                         </p>
-                      )}
-                    </>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
+                      <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
+                      <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-brass/50" />
+
+                      <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          {t('processingBook')}
+                        </span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+
+                      <div className="w-full h-3 border border-primary/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
+                        <div
+                          className="h-full bg-primary rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.6)] transition-all duration-500 ease-out"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+
+                      <p className="text-center font-special-elite text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+                        {loadingStatus || t('aiAnalyzing')}
+                      </p>
+                    </div>
                   )}
+
+                  {/* Wyszarzony Kreator Przygód & Pakiet MG (W przygotowaniu) */}
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full border border-brass/30 bg-[#120f0c]/60 opacity-50 cursor-not-allowed py-3 font-display font-semibold uppercase tracking-[0.16em] text-muted-foreground flex items-center justify-center gap-2"
+                  >
+                    <Lock className="h-4 w-4 text-brass/50" />
+                    <span>{t('openBuilderButton')}</span>
+                  </Button>
                 </div>
               )}
 
-              {/* Wbudowane autorskie scenariusze inspirowane Strefą 11 oraz gotowe scenariusze (tylko w zakładce Scenariusze) */}
-              {activeTab === 'scenarios' && (
+              {/* Lista wgranych scenariuszy gracza */}
+              {customScenarios.length > 0 && (
                 <div>
-                  <div className="mb-4 p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
-                    <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-primary font-bold">
-                      <Tv className="h-4 w-4 text-primary shrink-0" />
-                      {t('strefa11Header')}
-                    </div>
-                    <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
-                      {t('strefa11Desc')}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-serif italic text-brass/80">
-                      <span className="inline-flex items-center gap-1 font-display uppercase tracking-wider text-brass font-semibold not-italic text-[11px]">
-                        <ExternalLink className="h-3.5 w-3.5 text-brass/70 shrink-0" />
-                        {t('learnMore')}
-                      </span>
-                      <a href="https://pl.wikipedia.org/wiki/Nie_do_wiary" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wikipedia ↗</a>
-                      <span>·</span>
-                      <a href="https://www.filmweb.pl/serial/Nie+do+wiary-1996-161405" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Filmweb ↗</a>
-                      <span>·</span>
-                      <a href="https://player.pl" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Player.pl (TVN) ↗</a>
-                    </div>
-                  </div>
-
-                  <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                    {t('strefa11SelectTitle')}
+                  <h3 className="mb-3 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                    {t('yourAdventures')}
+                    <span className="font-special-elite text-[14px] tracking-[0.1em] text-muted-foreground">
+                      ({customScenarios.length})
+                    </span>
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    {strefa11Adventures.map((adventure) => (
-                      <AdventureCard key={adventure.id} adventure={adventure} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {customScenarios.map((adventure) => (
+                      <AdventureCard
+                        key={adventure.id}
+                        adventure={adventure}
+                        isCustom
+                      />
                     ))}
                   </div>
+                </div>
+              )}
 
+              {/* Wbudowane scenariusze w trybie deweloperskim */}
+              {SHOW_BUILT_IN_ADVENTURES && BUILT_IN_ADVENTURES.length > 0 && (
+                <div>
                   <h3 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
                     {t('selectScenarioTitle')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Wbudowane scenariusze tylko w trybie pełnym/prywatnym */}
-                    {SHOW_BUILT_IN_ADVENTURES &&
-                      BUILT_IN_ADVENTURES.map((adventure) => (
-                        <AdventureCard key={adventure.id} adventure={adventure} />
-                      ))}
-
-                    {/* Własna przygoda bez PDF */}
-                    {ALLOW_CUSTOM_ADVENTURES && (
-                      <button
-                        onClick={() => handleSelect(CUSTOM_ADVENTURE_TEMPLATE, false)}
-                        className={`p-4 text-left transition-all duration-300 ${
-                          selectedId === 'custom'
-                            ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
-                            : 'border border-dashed border-brass/35 bg-[#1f1a14]/40 hover:border-brass/60'
-                        }`}
-                      >
-                        <div className="mb-2 flex items-center gap-3">
-                          <span className="text-3xl text-primary">✶</span>
-                          <div>
-                            <h3 className="font-display text-base font-semibold uppercase tracking-[0.06em] text-foreground">
-                              {t('customCardTitle')}
-                            </h3>
-                            <p className="font-special-elite text-[14px] uppercase tracking-[0.1em] text-muted-foreground">
-                              {t('customCardSubtitle')}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="font-serif text-base italic text-muted-foreground">
-                          {t('customCardDesc')}
-                        </p>
-                      </button>
-                    )}
+                    {BUILT_IN_ADVENTURES.map((adventure) => (
+                      <AdventureCard key={adventure.id} adventure={adventure} />
+                    ))}
                   </div>
                 </div>
               )}
-
-
-              {/* Szczegóły wybranej przygody */}
-              {selectedAdventure && !selectedAdventure.isCustom && (
-                <div className="relative mt-6 border border-brass/30 bg-card p-4">
-                  <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-                  <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
-                  <h4 className="mb-2 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                    {t('detailsTitle')}
-                    <HelpIcon content={t('detailsHelp')} />
-                  </h4>
-                  <p className="mb-3 font-serif text-base italic leading-relaxed text-foreground/90">
-                    {selectedAdventure.description}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-muted-foreground">
-                        {t('themesLabel')}{' '}
-                      </span>
-                      <span className="font-serif text-base italic text-foreground">
-                        {selectedAdventure.themes.slice(0, 4).join(', ')}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-muted-foreground">
-                        {t('suggestedOccupationsLabel')}{' '}
-                      </span>
-                      <span className="font-serif text-base italic text-foreground">
-                        {selectedAdventure.suggestedOccupations
-                          .slice(0, 3)
-                          .join(', ')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {selectedAdventure?.isCustom && (
-                <div className="relative mt-6 border border-brass/30 bg-card p-4">
-                  <label
-                    htmlFor="selected-exact-year"
-                    className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
-                  >
-                    {t('exactYearLabel')}
-                  </label>
-                  <input
-                    id="selected-exact-year"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={selectedExactYear}
-                    onChange={(event) =>
-                      setSelectedExactYear(event.target.value.replace(/\D/g, '').slice(0, 4))
-                    }
-                    placeholder={t('exactYearPlaceholder')}
-                    className="mt-2 w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                  />
-                  <p className="mt-2 font-serif text-sm italic text-muted-foreground">
-                    {t('exactYearRequired')}
-                  </p>
-                </div>
-              )}
-
-              {/* Podpinanie Lorebooków i Kompendiów do wybranej przygody */}
-              {selectedAdventure && customLorebooks.length > 0 && (
-
-                <div className="relative mt-6 border border-brass/30 bg-card p-4">
-                  <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-                  <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
-                  <div className="mb-3 flex items-center justify-between">
-                    <h4 className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
-                      <Book className="h-4 w-4 text-brass" />
-                      {t('attachedLorebooksLabel')}
-                    </h4>
-                    <span className="font-special-elite text-xs text-muted-foreground">
-                      ({selectedAdventure.attachedLorebookIds?.length || 0} podpięte)
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {customLorebooks.map((lorebook) => {
-                      const isAttached = Boolean(
-                        selectedAdventure.attachedLorebookIds?.includes(lorebook.id)
-                      );
-                      return (
-                        <div
-                          key={lorebook.id}
-                          className={`flex items-center justify-between p-3 border transition-colors ${
-                            isAttached
-                              ? 'border-brass/50 bg-brass/10'
-                              : 'border-brass/20 bg-[#120f0c]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-brass">
-                              {lorebook.documentType === 'compendium' ? '📜' : '🗺️'}
-                            </span>
-                            <div>
-                              <div className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-                                 {lorebook.title}
-                                 {isAttached && (
-                                   <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider bg-brass/20 text-brass px-1.5 py-0.2 border border-brass/40 rounded">
-                                     <BookmarkCheck className="h-3 w-3" />
-                                     {t('attachedBadge')}
-                                   </span>
-                                 )}
-                               </div>
-                              <div className="font-serif text-xs italic text-muted-foreground">
-                                {lorebook.lorebookData?.regionOrTheme || lorebook.location}
-                              </div>
-                            </div>
-                          </div>
-
-                          {selectedAdventure.isCustom && onToggleAttachLorebook && (
-                            <Button
-                              type="button"
-                              variant={isAttached ? 'destructive' : 'outline'}
-                              size="sm"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                await onToggleAttachLorebook(selectedAdventure.id, lorebook.id);
-                              }}
-                              className="font-display text-xs uppercase tracking-wider"
-                            >
-                              {isAttached ? t('detachLorebookButton') : t('attachLorebookButton')}
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-
-            /* Formularz własnej przygody (bez PDF) */
-            <div className="mt-4 space-y-4">
-              <div className="relative border border-brass/30 bg-card p-4">
-                <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
-                <p className="font-serif text-base italic text-brass">
-                  {t('formIntro')}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('adventureTitleLabel')}
-                </label>
-                <input
-                  type="text"
-                  value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
-                  placeholder={t('titlePlaceholder')}
-                  className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                />
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="custom-country"
-                  className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
-                >
-                  {t('countryLabel')}
-                </label>
-                <input
-                  id="custom-country"
-                  type="text"
-                  value={customCountry}
-                  onChange={(e) => setCustomCountry(e.target.value)}
-                  placeholder={t('countryPlaceholder')}
-                  className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('locationLabel')}
-                </label>
-                <input
-                  type="text"
-                  value={customLocation}
-                  onChange={(e) => setCustomLocation(e.target.value)}
-                  placeholder={t('locationPlaceholder')}
-                  className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                    {t('eraLabel')}
-                  </label>
-                  <select
-                    value={customEra}
-                    onChange={(e) =>
-                      setCustomEra(e.target.value as typeof customEra)
-                    }
-                    className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-special-elite text-sm text-foreground focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                  >
-                    <option value="classic">{t('eraClassic')}</option>
-                    <option value="gaslight">{t('eraGaslight')}</option>
-                    <option value="noir">{t('eraNoir')}</option>
-                    <option value="prl">{t('eraPrl')}</option>
-                    <option value="modern">{t('eraModern')}</option>
-                    <option value="custom">{t('eraCustom')}</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="custom-exact-year"
-                    className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
-                  >
-                    {t('exactYearLabel')}
-                  </label>
-                  <input
-                    id="custom-exact-year"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={customYear}
-                    onChange={(e) =>
-                      setCustomYear(e.target.value.replace(/\D/g, '').slice(0, 4))
-                    }
-                    placeholder={t('exactYearPlaceholder')}
-                    className="w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('assumptionsLabel')}
-                </label>
-                <textarea
-                  value={customDescription}
-                  onChange={(e) => setCustomDescription(e.target.value)}
-                  placeholder={t('assumptionsPlaceholder')}
-                  className="h-32 w-full resize-none border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                />
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowCustomForm(false)}
-                className="w-full font-display font-semibold uppercase tracking-[0.16em]"
-              >
-                {t('backToList')}
-              </Button>
             </div>
           )}
 
-          {/* Navigation */}
+          {/* ZAKŁADKA 2: KSIĘGI WIEDZY I LOREBOOKI */}
+          {activeTab === 'lorebooks' && (
+            <div className="mt-4 space-y-6">
+              <div className="p-4 border border-brass/40 bg-gradient-to-r from-[#1b1713] to-[#120f0c] rounded-md shadow-md">
+                <div className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.15em] text-brass font-bold">
+                  <Book className="h-4 w-4 text-brass shrink-0" />
+                  {t('lorebooksTitle')}
+                </div>
+                <p className="font-serif text-xs italic text-muted-foreground mt-1 leading-relaxed">
+                  Przewodniki regionalne, almanachy oraz kompendia magii wzbogacają tło sesji i stanowią zbiór faktów dla Mistrza Gry.
+                </p>
+              </div>
+
+              {/* Sekcja uploadu PDF lorebooka */}
+              {onUploadAdventure && (
+                <div className="space-y-3">
+                  <input
+                    ref={loreFileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  {!isUploading ? (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => loreFileInputRef.current?.click()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          loreFileInputRef.current?.click();
+                        }
+                      }}
+                      className="group relative cursor-pointer border-2 border-dashed border-brass/40 bg-[#120f0c] hover:border-brass hover:bg-brass/5 p-6 text-center transition-all duration-300 rounded-sm"
+                    >
+                      <span className="pointer-events-none absolute left-2 top-2 h-2.5 w-2.5 border-l border-t border-brass/30 group-hover:border-brass" />
+                      <span className="pointer-events-none absolute right-2 top-2 h-2.5 w-2.5 border-r border-t border-brass/30 group-hover:border-brass" />
+                      <span className="pointer-events-none absolute bottom-2 left-2 h-2.5 w-2.5 border-b border-l border-brass/30 group-hover:border-brass" />
+                      <span className="pointer-events-none absolute bottom-2 right-2 h-2.5 w-2.5 border-b border-r border-brass/30 group-hover:border-brass" />
+
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-brass/40 bg-brass/10 text-brass shadow-[0_0_15px_rgba(202,138,4,0.15)]">
+                          <Book className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-display text-base font-semibold uppercase tracking-[0.14em] text-foreground">
+                          {t('uploadLorebookButton')}
+                        </h3>
+                        <p className="max-w-md font-serif text-sm italic text-muted-foreground">
+                          {t('lorebooksEmpty')}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative border border-brass/40 bg-[#16130f] p-4 font-serif rounded-sm">
+                      <div className="flex justify-between items-center mb-2 text-sm font-semibold tracking-wider text-brass uppercase font-display">
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          {t('processingBook')}
+                        </span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full h-3 border border-primary/30 bg-[#0e0c0a] p-[1.5px] rounded-full overflow-hidden mb-2">
+                        <div
+                          className="h-full bg-primary rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.6)] transition-all duration-500 ease-out"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Wyszarzony Kreator Ksiąg Wiedzy (W przygotowaniu) */}
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full border border-brass/30 bg-[#120f0c]/60 opacity-50 cursor-not-allowed py-3 font-display font-semibold uppercase tracking-[0.16em] text-muted-foreground flex items-center justify-center gap-2"
+                  >
+                    <Lock className="h-4 w-4 text-brass/50" />
+                    <span>{t('loreBuilderButton')}</span>
+                  </Button>
+                </div>
+              )}
+
+              {/* Lista wgranych ksiąg lore */}
+              {customLorebooks.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {customLorebooks.map((lorebook) => (
+                    <AdventureCard
+                      key={lorebook.id}
+                      adventure={lorebook}
+                      isCustom
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-dashed border-brass/35 p-6 text-center">
+                  <p className="font-serif text-sm italic text-muted-foreground">
+                    {t('lorebooksEmpty')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Szczegóły wybranej przygody */}
+          {selectedAdventure && !selectedAdventure.isCustom && (
+            <div className="relative mt-6 border border-brass/30 bg-card p-4">
+              <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
+              <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
+              <h4 className="mb-2 flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                {t('detailsTitle')}
+                <HelpIcon content={t('detailsHelp')} />
+              </h4>
+              <p className="mb-3 font-serif text-base italic leading-relaxed text-foreground/90">
+                {selectedAdventure.description}
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-muted-foreground">
+                    {t('themesLabel')}{' '}
+                  </span>
+                  <span className="font-serif text-base italic text-foreground">
+                    {selectedAdventure.themes.slice(0, 4).join(', ')}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-special-elite text-[14px] uppercase tracking-[0.12em] text-muted-foreground">
+                    {t('suggestedOccupationsLabel')}{' '}
+                  </span>
+                  <span className="font-serif text-base italic text-foreground">
+                    {selectedAdventure.suggestedOccupations.slice(0, 3).join(', ')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wymóg dokładnego roku dla scenariuszy z zakresem lat */}
+          {selectedAdventure?.isCustom && (
+            <div className="relative mt-6 border border-brass/30 bg-card p-4">
+              <label
+                htmlFor="selected-exact-year"
+                className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
+              >
+                {t('exactYearLabel')}
+              </label>
+              <input
+                id="selected-exact-year"
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={selectedExactYear}
+                onChange={(event) =>
+                  setSelectedExactYear(event.target.value.replace(/\D/g, '').slice(0, 4))
+                }
+                placeholder={t('exactYearPlaceholder')}
+                className="mt-2 w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
+              />
+              <p className="mt-2 font-serif text-sm italic text-muted-foreground">
+                {t('exactYearRequired')}
+              </p>
+            </div>
+          )}
+
+          {/* Podpinanie Lorebooków do wybranej przygody */}
+          {selectedAdventure && customLorebooks.length > 0 && (
+            <div className="relative mt-6 border border-brass/30 bg-card p-4">
+              <span className="absolute left-2 top-2 h-3 w-3 border-l-[1.5px] border-t-[1.5px] border-brass/50" />
+              <span className="absolute bottom-2 right-2 h-3 w-3 border-b-[1.5px] border-r-[1.5px] border-brass/50" />
+              <div className="mb-3 flex items-center justify-between">
+                <h4 className="flex items-center gap-2 font-display text-xs font-semibold uppercase tracking-[0.24em] text-brass">
+                  <Book className="h-4 w-4 text-brass" />
+                  {t('attachedLorebooksLabel')}
+                </h4>
+                <span className="font-special-elite text-xs text-muted-foreground">
+                  ({selectedAdventure.attachedLorebookIds?.length || 0} podpięte)
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {customLorebooks.map((lorebook) => {
+                  const isAttached = Boolean(
+                    selectedAdventure.attachedLorebookIds?.includes(lorebook.id)
+                  );
+                  return (
+                    <div
+                      key={lorebook.id}
+                      className={`flex items-center justify-between p-3 border transition-colors ${
+                        isAttached
+                          ? 'border-brass/50 bg-brass/10'
+                          : 'border-brass/20 bg-[#120f0c]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-brass">
+                          {lorebook.documentType === 'compendium' ? '📜' : '🗺️'}
+                        </span>
+                        <div>
+                          <div className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+                            {lorebook.title}
+                            {isAttached && (
+                              <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider bg-brass/20 text-brass px-1.5 py-0.5 border border-brass/40 rounded">
+                                <BookmarkCheck className="h-3 w-3" />
+                                {t('attachedBadge')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-serif text-xs italic text-muted-foreground">
+                            {lorebook.lorebookData?.regionOrTheme || lorebook.location}
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectedAdventure.isCustom && onToggleAttachLorebook && (
+                        <Button
+                          type="button"
+                          variant={isAttached ? 'destructive' : 'outline'}
+                          size="sm"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            await onToggleAttachLorebook(selectedAdventure.id, lorebook.id);
+                          }}
+                          className="font-display text-xs uppercase tracking-wider"
+                        >
+                          {isAttached ? t('detachLorebookButton') : t('attachLorebookButton')}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Nawigacja i stopka */}
           <div className="mt-6 flex justify-between border-t border-brass/20 pt-4">
             <Button
               variant="outline"
@@ -939,14 +764,10 @@ export function AdventureSelector({
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={
-                showCustomForm
-                  ? !manualFormReady
-                  : !selectedId || !selectedCustomReady
-              }
+              disabled={!selectedId || !selectedCustomReady}
               className="font-display font-semibold uppercase tracking-[0.16em]"
             >
-              {showCustomForm ? t('useThisAdventure') : t('chooseAndContinue')}
+              {t('chooseAndContinue')}
             </Button>
           </div>
         </DialogContent>
@@ -956,15 +777,6 @@ export function AdventureSelector({
         open={!!detailsAdventure}
         onClose={() => setDetailsAdventure(null)}
         onChoose={(adventure) => handleSelect(adventure, false)}
-      />
-      <AdventureBuilderModal
-        open={showAdventureBuilder}
-        onClose={() => setShowAdventureBuilder(false)}
-        onAdventureCreated={(createdAdventure) => {
-          setShowAdventureBuilder(false);
-          onSelect(createdAdventure);
-          onClose();
-        }}
       />
     </>
   );

@@ -14,6 +14,7 @@ import { Label } from './label';
 import { Input } from './input';
 import { Textarea } from './textarea';
 import { HelpIcon } from './tooltip';
+import { Skull, Zap } from 'lucide-react';
 import { fetchWithApiKeys } from '@/lib/api-keys-service';
 import { collectSSEText } from '@/lib/sse-parser';
 import {
@@ -41,26 +42,11 @@ interface SessionZeroModalProps {
 const TONES = [
   {
     id: 'purist',
-    icon: '🐙',
+    icon: Skull,
   },
   {
     id: 'pulp',
-    icon: '💥',
-  },
-] as const;
-
-const NARRATIVE_MODES = [
-  {
-    id: 'full_rpg',
-    icon: '🎲',
-  },
-  {
-    id: 'story_priority',
-    icon: '📖',
-  },
-  {
-    id: 'pure_narrative',
-    icon: '✨',
+    icon: Zap,
   },
 ] as const;
 
@@ -701,7 +687,7 @@ Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
                         <span className="absolute left-2 top-2 h-3 w-3 border-l-2 border-t-2 border-primary/60" />
                       )}
                       <div className="mb-2 flex items-center gap-2">
-                        <span className="text-2xl">{tn.icon}</span>
+                        <tn.icon className="h-5 w-5 text-brass shrink-0" />
                         <span className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
                           {toneNames[tn.id]}
                         </span>
@@ -756,50 +742,6 @@ Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
                   </p>
                 </div>
               )}
-            </div>
-
-            {/* Tryb narracji */}
-            <div className="space-y-4">
-              <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                {t('narrativeModeLabel')}
-                <HelpIcon content={t('narrativeModeHelp')} />
-              </Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {NARRATIVE_MODES.map((mode) => {
-                  const isSelected = settings.narrativeMode === mode.id;
-                  return (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          narrativeMode:
-                            mode.id as SessionZeroSettings['narrativeMode'],
-                        })
-                      }
-                      className={`relative p-4 text-left transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border border-primary bg-primary/10 shadow-[0_0_14px_rgba(13,148,136,0.22)]'
-                          : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
-                      }`}
-                    >
-                      {isSelected && (
-                        <span className="absolute left-2 top-2 h-3 w-3 border-l-2 border-t-2 border-primary/60" />
-                      )}
-                      <div className="mb-2 flex items-center gap-2">
-                        <span className="text-2xl">{mode.icon}</span>
-                        <span className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
-                          {narrativeModeNames[mode.id]}
-                        </span>
-                      </div>
-                      <p className="font-serif text-sm italic text-muted-foreground">
-                        {narrativeModeDescriptions[mode.id]}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           </div>
         );

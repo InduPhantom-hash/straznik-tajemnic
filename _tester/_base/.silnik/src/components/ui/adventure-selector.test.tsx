@@ -55,32 +55,35 @@ describe('AdventureSelector', () => {
     expect(marker).not.toHaveClass('absolute');
   });
 
-  it('uses English Strefa 11 copy throughout selection and confirmation', () => {
+  it('uses English copy throughout selection and confirmation', () => {
     process.env.NEXT_INTL_TEST_LOCALE = 'en';
     const onSelect = jest.fn();
 
-    render(<AdventureSelector open onClose={jest.fn()} onSelect={onSelect} />);
+    render(
+      <AdventureSelector
+        open
+        onClose={jest.fn()}
+        onSelect={onSelect}
+        customAdventures={[adventure]}
+        onUploadAdventure={jest.fn()}
+      />
+    );
 
-    const title = "Shadow over Prabuty: Father Klimuszko's Vision";
-    expect(screen.getByText(title)).toBeInTheDocument();
-    expect(screen.getByText(/People's Poland - 1970s/)).toBeInTheDocument();
-    expect(screen.getByText(/Player\.pl \(TVN\)/)).toBeInTheDocument();
-    expect(screen.queryByText(/Official Player\.pl TVN/)).not.toBeInTheDocument();
-    expect(screen.queryByText('Cień nad Prabutami: Widzenie Ojca Klimuszki')).not.toBeInTheDocument();
-    expect(screen.queryByText(/Łatwy/)).not.toBeInTheDocument();
+    expect(screen.getByText(adventure.title)).toBeInTheDocument();
+    expect(screen.getByText(/Upload adventure \(PDF\)/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText(title));
-    expect(screen.getAllByText(/The investigators are recruited by Helena Krawczyk/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("People's Poland - 1970s").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByText(adventure.title));
+    const closeButtons = screen.getAllByRole('button', { name: /close/i });
+    fireEvent.click(closeButtons[closeButtons.length - 1]);
 
-    fireEvent.click(screen.getByRole('button', { name: /close/i }));
-    fireEvent.click(screen.getByRole('button', { name: /choose and continue/i }));
+    const confirm = screen.getByRole('button', { name: /choose and continue/i });
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: 'cien-nad-prabutami',
-        title,
-        hook: expect.stringContaining('Investigating Father Klimuszko'),
+        id: adventure.id,
+        title: adventure.title,
       })
     );
   });
@@ -124,7 +127,7 @@ describe('AdventureSelector', () => {
     );
   });
 
-  it('renders integrated details button on card and opens modal without external link duplicates', () => {
+  it('renders integrated details button on card and opens modal', () => {
     render(
       <AdventureSelector
         open
@@ -133,9 +136,6 @@ describe('AdventureSelector', () => {
         customAdventures={[adventure]}
       />
     );
-
-    // Linki zewnętrzne istnieją wyłącznie w banerze głównym Strefy 11 (dokładnie 1 wystąpienie, brak duplikatów na kartach)
-    expect(screen.getAllByText('Wikipedia ↗')).toHaveLength(1);
 
     // Zintegrowany przycisk otwierania szczegółów wewnątrz kafelka
     const infoButtons = screen.getAllByRole('button', { name: /więcej szczegółów/i });
@@ -148,3 +148,4 @@ describe('AdventureSelector', () => {
     expect(screen.getByText('Szczegóły scenariusza')).toBeInTheDocument();
   });
 });
+
