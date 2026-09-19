@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom';
+import enMessages from '../../../../messages/en.json';
+import plMessages from '../../../../messages/pl.json';
 import {
   distributePhysPenalty,
   applyTeenPenalty,
@@ -111,6 +113,31 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
       expect(getWealthInfo(60).key).toBe('wealthy');
       expect(getWealthInfo(95).key).toBe('rich');
       expect(getWealthInfo(99).key).toBe('superrich');
+    });
+  });
+
+  describe('CharacterWizard i18n and conventions', () => {
+    it('defines localized ruleset conventions and close button in PL and EN', () => {
+      const pl = (plMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+      const en = (enMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+
+      expect(pl.rulesetConventionLabel).toBe('Konwencja reguł:');
+      expect(en.rulesetConventionLabel).toBe('Rules convention:');
+
+      expect(pl.rulesetClassic).toBe('Klasyczny CoC 7e');
+      expect(en.rulesetClassic).toBe('Classic CoC 7e');
+
+      expect(pl.rulesetPulp).toBe('Pulp Cthulhu');
+      expect(en.rulesetPulp).toBe('Pulp Cthulhu');
+
+      expect(pl.rulesetClassicShort).toBe('Klasyk');
+      expect(en.rulesetClassicShort).toBe('Classic');
+
+      expect(pl.rulesetPulpShort).toBe('Pulp');
+      expect(en.rulesetPulpShort).toBe('Pulp');
+
+      expect(pl.close).toBe('Zamknij');
+      expect(en.close).toBe('Close');
     });
   });
 });

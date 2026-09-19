@@ -1709,18 +1709,18 @@ export function CharacterWizardV2({
         <div className="flex items-center justify-between border border-brass/30 bg-[#120f0c] px-4 py-2.5 rounded-sm">
           <div className="flex items-center gap-2">
             <span className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              Konwencja reguł:
+              {t('rulesetConventionLabel')}
             </span>
             <span className="inline-flex items-center gap-1.5 font-display text-xs uppercase font-semibold tracking-wider text-brass">
               {state.rulesetVariant === 'pulp' ? (
                 <>
                   <Zap className="h-3.5 w-3.5 text-primary" />
-                  Pulp Cthulhu
+                  {t('rulesetPulp')}
                 </>
               ) : (
                 <>
                   <Skull className="h-3.5 w-3.5 text-brass" />
-                  Klasyczny CoC 7e
+                  {t('rulesetClassic')}
                 </>
               )}
             </span>
@@ -1743,7 +1743,7 @@ export function CharacterWizardV2({
             >
               <span className="flex items-center gap-1">
                 <Skull className="h-3 w-3" />
-                Klasyk
+                {t('rulesetClassicShort')}
               </span>
             </button>
             <button
@@ -1763,7 +1763,7 @@ export function CharacterWizardV2({
             >
               <span className="flex items-center gap-1">
                 <Zap className="h-3 w-3" />
-                Pulp
+                {t('rulesetPulpShort')}
               </span>
             </button>
           </div>
@@ -3606,7 +3606,7 @@ export function CharacterWizardV2({
             variant="ghost"
             size="sm"
             className="text-muted-foreground hover:text-brass hover:bg-brass/10 h-8 w-8 p-0 rounded-full border border-brass/30 flex items-center justify-center"
-            title={t('close') || 'Zamknij'}
+            title={t('close')}
           >
             ✕
           </Button>

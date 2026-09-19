@@ -147,5 +147,46 @@ describe('AdventureSelector', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Szczegóły scenariusza')).toBeInTheDocument();
   });
+
+  it('localizes attached lorebooks count in PL and EN', () => {
+    const lorebook: CustomAdventure = {
+      ...adventure,
+      id: 'lorebook-arkham',
+      title: 'Przewodnik po Arkham',
+      documentType: 'setting',
+    };
+    const scenarioWithAttached: CustomAdventure = {
+      ...adventure,
+      id: 'scenario-with-attached',
+      attachedLorebookIds: ['lorebook-arkham'],
+    };
+
+    // PL
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const { unmount } = render(
+      <AdventureSelector
+        open
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+        customAdventures={[scenarioWithAttached, lorebook]}
+      />
+    );
+    fireEvent.click(screen.getByText(scenarioWithAttached.title));
+    expect(screen.getByText('(1 podpięte)')).toBeInTheDocument();
+    unmount();
+
+    // EN
+    process.env.NEXT_INTL_TEST_LOCALE = 'en';
+    render(
+      <AdventureSelector
+        open
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+        customAdventures={[scenarioWithAttached, lorebook]}
+      />
+    );
+    fireEvent.click(screen.getByText(scenarioWithAttached.title));
+    expect(screen.getByText('(1 attached)')).toBeInTheDocument();
+  });
 });
 
