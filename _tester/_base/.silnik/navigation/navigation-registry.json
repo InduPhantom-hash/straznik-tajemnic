@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-19T17:50:00.000Z",
+  "updatedAt": "2026-09-19T18:07:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -193,8 +193,8 @@
       "id": "session-zero",
       "kind": "modal",
       "label": {
-        "pl": "Sesja Zero",
-        "en": "Session Zero"
+        "pl": "Sesja Zero (Briefing śledczy)",
+        "en": "Session Zero (Investigative Briefing)"
       }
     },
     {
