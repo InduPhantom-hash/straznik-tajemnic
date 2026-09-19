@@ -13,6 +13,8 @@
  * uciekają do "kluczy-widm" spoza `BASE_SKILLS`.
  */
 
+import { BASE_SKILLS } from '../data/character/skills';
+
 export interface DistributeRecommendedInput {
   /** Znormalizowane nazwy umiejętności (archetyp ∪ zawód) - patrz buildRecommendedSkills. */
   recommendedSkills: readonly string[];
@@ -101,3 +103,93 @@ export function distributeRecommendedSkillPoints(
 
   return { skills, pointsUsed, remainingPoints };
 }
+
+export interface FillRemainingInput {
+  /** Aktualna mapa umiejętności */
+  skills: Record<string, number>;
+  /** Pula punktów do dopełnienia */
+  remainingPoints: number;
+  /** Umiejętności priorytetowe (np. wybrane przez AI lub zawód) */
+  prioritySkills?: readonly string[];
+  /** Wartość bazowa umiejętności */
+  getBaseValue: (skill: string) => number;
+  /** Maksymalna wartość umiejętności */
+  getMaxValue: (skill: string) => number;
+}
+
+export interface FillRemainingResult {
+  skills: Record<string, number>;
+  pointsUsed: number;
+  remainingPoints: number;
+}
+
+/**
+ * Deterministycznie dopełnia brakujące punkty umiejętności (np. po niedoszacowaniu przez AI).
+ * Zero Math.random - czysty round-robin najpierw po prioritySkills, a potem po alfabetycznej liście BASE_SKILLS.
+ */
+export function fillRemainingSkillPoints(
+  input: FillRemainingInput
+): FillRemainingResult {
+  const { prioritySkills, getBaseValue, getMaxValue } = input;
+  const skills: Record<string, number> = { ...input.skills };
+  let remaining = Math.max(0, Math.floor(input.remainingPoints));
+  let pointsUsed = 0;
+
+  if (remaining <= 0) {
+    return { skills, pointsUsed, remainingPoints: 0 };
+  }
+
+  const EXCLUDED_SKILLS = new Set(['Majętność', 'Mity Cthulhu']);
+
+  const runRounds = (targetSkills: string[]) => {
+    let progressed = true;
+    while (remaining > 0 && progressed) {
+      progressed = false;
+      const open = targetSkills.filter((s) => {
+        if (EXCLUDED_SKILLS.has(s)) return false;
+        const base = getBaseValue(s);
+        const current = skills[s] ?? base;
+        return current < getMaxValue(s);
+      });
+
+      if (open.length === 0) break;
+
+      const share = Math.max(1, Math.floor(remaining / open.length));
+      for (const s of open) {
+        if (remaining <= 0) break;
+        const base = getBaseValue(s);
+        const max = getMaxValue(s);
+        const current = skills[s] ?? base;
+        if (current >= max) continue;
+
+        const room = max - current;
+        const add = Math.min(share, room, remaining);
+        if (add <= 0) continue;
+
+        skills[s] = current + add;
+        remaining -= add;
+        pointsUsed += add;
+        progressed = true;
+      }
+    }
+  };
+
+  // 1. Priorytetowe umiejętności (posortowane alfabetycznie dla pełnego determinizmu)
+  if (prioritySkills && prioritySkills.length > 0) {
+    const sortedPriority = Array.from(new Set(prioritySkills))
+      .filter((s) => !EXCLUDED_SKILLS.has(s))
+      .sort((a, b) => a.localeCompare(b, 'pl'));
+    runRounds(sortedPriority);
+  }
+
+  // 2. Jeśli punkty wciąż zostały: wszystkie pozostałe umiejętności bazowe (alfabetycznie)
+  if (remaining > 0) {
+    const allBase = Object.keys(BASE_SKILLS)
+      .filter((s) => !EXCLUDED_SKILLS.has(s))
+      .sort((a, b) => a.localeCompare(b, 'pl'));
+    runRounds(allBase);
+  }
+
+  return { skills, pointsUsed, remainingPoints: remaining };
+}
+
