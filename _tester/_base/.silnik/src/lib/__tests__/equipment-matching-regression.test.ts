@@ -78,4 +78,49 @@ describe('Equipment Matching Regression (Issue #365)', () => {
     expect(docs.templateId).toBe('document.letter');
     expect(isWeapon(docs)).toBe(false);
   });
+
+  it('inicjalizuje amunicję, ładunki i akcje diegetyczne przy aplikowaniu szablonu', () => {
+    const revolver = applyCatalogTemplate(
+      {
+        id: 'eq_revolver_test',
+        name: 'Rewolwer Colt Police Positive .38',
+        category: 'weapon' as const,
+      },
+      '1920s'
+    );
+    expect(revolver.category).toBe('weapon');
+    expect(isWeapon(revolver)).toBe(true);
+    expect(revolver.currentAmmo).toBe(6);
+    expect(revolver.maxAmmo).toBe(6);
+    expect(revolver.suggestedAction).toBe('shoot');
+    expect(revolver.actionDeclaration).toContain('Rewolwer Colt Police Positive .38');
+
+    const medKit = applyCatalogTemplate(
+      {
+        id: 'eq_firstaid_test',
+        name: 'Apteczka pierwszej pomocy',
+        category: 'medical' as const,
+      },
+      '1920s'
+    );
+    expect(medKit.category).toBe('medical');
+    expect(isWeapon(medKit)).toBe(false);
+    expect(medKit.charges).toBe(3);
+    expect(medKit.maxCharges).toBe(3);
+    expect(medKit.suggestedAction).toBe('first_aid');
+    expect(medKit.actionDeclaration).toContain('Apteczka pierwszej pomocy');
+
+    const flashlight = applyCatalogTemplate(
+      {
+        id: 'eq_flash_test',
+        name: 'Latarka',
+        category: 'tool' as const,
+      },
+      '1920s'
+    );
+    expect(flashlight.category).toBe('tool');
+    expect(isWeapon(flashlight)).toBe(false);
+    expect(flashlight.condition).toBe('working');
+    expect(flashlight.suggestedAction).toBe('use_in_scene');
+  });
 });
