@@ -110,6 +110,7 @@ CODE_MAP.md
 /data/saves/
 /data/sessions/
 /data/results/
+/data/adventures/
 /public/game-saves/
 # Realne handouty (mapy/dokumenty z legalnych materiałów DriveThruRPG) - duże,
 # objęte prawem autorskim, regenerowalne skryptem scripts/extract-handouts.mjs

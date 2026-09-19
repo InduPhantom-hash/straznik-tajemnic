@@ -23,6 +23,8 @@ import { detectRulebookProfile } from '@/lib/pdf/rulebook-fingerprint';
 import { generateSemanticOverlay } from '@/lib/pdf/semantic-overlay-engine';
 import { registerOverlay, loadCapabilities } from '@/lib/pdf/capabilities-manager';
 import { localVectorStore } from '@/lib/vector-db/local-vector-store';
+import { buildLocalCustomAdventure } from '@/lib/pdf/adventure-local-builder';
+import { LOCAL_RAG_NAMESPACES } from '@/lib/vector-db/vector-types';
 import fs from 'fs';
 import path from 'path';
 import { getWritableDataDir } from '@/lib/paths';
@@ -199,58 +201,75 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Dla pozostałych dokumentów (np. adventure) obowiązuje polityka ochrony przed wysyłaniem do modeli
+    if (type === 'adventure') {
+      const rulebookProfile = detectRulebookProfile(pdfText);
+      const overlay = generateSemanticOverlay(pdfText, rulebookProfile, fileName);
+      const adventure = buildLocalCustomAdventure(
+        pdfText,
+        rulebookProfile,
+        overlay,
+        fileName,
+        pdfPagesCount,
+        adventureId
+      );
+
+      // Zapisujemy wyekstrahowaną strukturę lokalnie w katalogu data/adventures/
+      const dataDir = path.join(getWritableDataDir(), 'adventures');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      const filePath = path.join(dataDir, `${adventure.id}.json`);
+      fs.writeFileSync(filePath, JSON.stringify(adventure, null, 2), 'utf-8');
+      console.log(`💾 Zapisano ustrukturyzowane dane przygody: ${filePath}`);
+
+      // Tagi dla wektorów syntetycznych (np. ADVENTURE:custom-123, TAG:NPC, TAG:LOKACJA itp.)
+      const semanticTags = overlay.tags.map((t) => `TAG:${t}`).join(',');
+      const combinedTags = semanticTags
+        ? `ADVENTURE:${adventure.id},${semanticTags}`
+        : `ADVENTURE:${adventure.id}`;
+
+      // Zapisujemy w lokalnym store wskaźniki gotowości per strona (doktryna Zero-Cytowań: text jest undefined, brak cytatów autorskich)
+      const syntheticVectors = Array.from({ length: pdfPagesCount }, (_, i) => ({
+        id: `adv-${adventure.id}-p${i + 1}`,
+        values: [0],
+        metadata: {
+          contentType: 'adventure-page',
+          summary: `Strona ${i + 1} scenariusza ${adventure.title}`,
+          sourceFile: fileName,
+          chunkIndex: i,
+          gameTimestamp: '',
+          realTimestamp: new Date().toISOString(),
+          tags: combinedTags,
+          sessionId: '',
+          messageRange: '',
+        },
+      }));
+
+      const targetNamespace = LOCAL_RAG_NAMESPACES.adventure(adventure.id);
+      await localVectorStore.replaceNamespace(targetNamespace, syntheticVectors);
+
+      return NextResponse.json({
+        success: true,
+        indexed: pdfPagesCount,
+        failed: 0,
+        totalChunks: pdfPagesCount,
+        namespace: targetNamespace,
+        durationMs: Date.now() - start,
+        adventure,
+        adventures: [adventure],
+        multipleAdventures: false,
+        rulebookProfile,
+        overlay,
+      });
+    }
+
+    // Dla pozostałych nieznanych typów dokumentów obowiązuje polityka ochrony przed wysyłaniem do modeli
     if (isDocumentModelUseBlocked()) {
       return NextResponse.json(
         documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
         { status: 403 }
       );
     }
-
-    // Embedding service na kluczu gracza; indeksowanie idzie do data/rag/ (lokalnie).
-    embeddingService.initialize(geminiApiKey);
-
-    const result = await pdfIndexingService.indexPdf({
-      text: pdfText,
-      type,
-      fileName,
-      clearBefore,
-      apiKey: geminiApiKey,
-      adventureId,
-    });
-
-    if (!result.success) {
-      return NextResponse.json(
-        { ...result, error: result.error || 'Indeksowanie nie powiodło się' },
-        { status: 500 }
-      );
-    }
-
-    // Jeśli typ to 'adventure' i dostępny jest klucz Gemini, wykonaj rozszerzoną ekstrakcję struktur
-    let extractedAdventure = null;
-    if (type === 'adventure' && geminiApiKey) {
-      try {
-        console.log('🤖 Rozpoczynanie ekstrakcji ustrukturyzowanej przygody przez Gemini 3.6 Flash...');
-        extractedAdventure = await extractAdventureEntities(pdfText, fileName, geminiApiKey);
-        
-        // Zapisz wyekstrahowaną strukturę lokalnie w data/adventures/
-        const dataDir = path.join(getWritableDataDir(), 'adventures');
-        if (!fs.existsSync(dataDir)) {
-          fs.mkdirSync(dataDir, { recursive: true });
-        }
-        const filePath = path.join(dataDir, `${extractedAdventure.adventureId}.json`);
-        fs.writeFileSync(filePath, JSON.stringify(extractedAdventure, null, 2), 'utf-8');
-        console.log(`💾 Zapisano ustrukturyzowane dane przygody: ${filePath}`);
-      } catch (extError) {
-        console.warn('⚠️ Ekstrakcja przygody przez Gemini 3.6 Flash nie powiodła się, kontynuowanie samego RAG:', extError);
-      }
-    }
-
-    return NextResponse.json({
-      ...result,
-      rulebookProfile: null,
-      extractedAdventure,
-    });
   } catch (error) {
     console.error('❌ ingest-local API error:', error);
     return NextResponse.json(
