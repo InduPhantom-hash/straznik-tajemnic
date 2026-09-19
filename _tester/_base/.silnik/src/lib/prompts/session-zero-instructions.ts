@@ -312,6 +312,13 @@ export function buildSessionZeroInstructions(
       : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nKorzystaj z manifestu historycznego wybranej przygody dla realiów materialnych, łagodząc uprzedzenia i dyskryminację epoki. Skup się wyłącznie na kosmicznej grozie, tajemnicy i śledztwie.`;
   }
 
+  let briefingInstructions = '';
+  if (sessionZero.briefing) {
+    briefingInstructions = isEn
+      ? `\n\n## DIEGETIC BRIEFING & CASE DISPATCH (STRONG START)\nThe investigator received this preliminary dispatch/briefing: "${sessionZero.briefing}". Open the story by grounding the scene with the investigator having read or just received this dispatch (e.g., courier on the doorstep, train arriving at the station, holding the telegram). Never contradict this briefing.`
+      : `\n\n## BRIEFING ŚLEDCZY I DEPESZA STARTOWA (STRONG START)\nBadacz otrzymał następującą depeszę/odprawę wstępną: "${sessionZero.briefing}". Rozpocznij opowieść, osadzając pierwszą scenę w kontekście przeczytania lub odebrania tej depeszy (np. posłaniec na progu, pociąg wjeżdżający na stację, telegram w dłoni). Nigdy nie zaprzeczaj treści tego briefingu.`;
+  }
+
   const difficultySection =
     sessionZero.difficulty && diffMap[sessionZero.difficulty]
       ? `\n${diffMap[sessionZero.difficulty]}`
@@ -321,6 +328,6 @@ export function buildSessionZeroInstructions(
 
   return `
 ${toneMap[effectiveTone] || ''}${difficultySection}
-${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}
+${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${briefingInstructions}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}
 ${safetyInstructions}`;
 }

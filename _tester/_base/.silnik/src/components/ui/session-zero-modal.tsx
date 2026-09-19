@@ -15,8 +15,6 @@ import { Input } from './input';
 import { Textarea } from './textarea';
 import { HelpIcon } from './tooltip';
 import { Skull, Zap } from 'lucide-react';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
-import { collectSSEText } from '@/lib/sse-parser';
 import {
   saveAISettings,
   loadAISettings,
@@ -196,48 +194,12 @@ export function SessionZeroModal({
 
   const [newLine, setNewLine] = useState('');
   const [newVeil, setNewVeil] = useState('');
-  const [briefingDocType] = useState<BriefingDocType>('telegram');
-  const [interviewMessages, setInterviewMessages] = useState<
-    Array<{ role: 'assistant' | 'user'; content: string }>
-  >([]);
-  const [interviewInput, setInterviewInput] = useState('');
-  const [interviewQuestionIndex, setInterviewQuestionIndex] = useState(0);
-  const [interviewAnswers, setInterviewAnswers] = useState<string[]>([]);
-  const [interviewProposal, setInterviewProposal] = useState<{
-    summary: string;
-    investigatorHook?: string;
-    keyConnection?: string;
-    importantPlace?: string;
-    treasuredItem?: string;
-    characterConcept?: string;
-    backstory?: string;
-  } | null>(null);
-  const [interviewLoading, setInterviewLoading] = useState(false);
-  const [interviewError, setInterviewError] = useState<string | null>(null);
-
-  const interviewQuestions = useMemo(
-    () => [
-      t('interviewQuestionMotivation', {
-        name: activeCharacter?.name || t('interviewInvestigatorFallback'),
-        adventure: adventureContext?.title || t('interviewAdventureFallback'),
-      }),
-      t('interviewQuestionConnection'),
-      t('interviewQuestionAnchor'),
-    ],
-    [activeCharacter?.name, adventureContext?.title, t]
-  );
+  const [briefingDocType, setBriefingDocType] = useState<BriefingDocType>('telegram');
 
   useEffect(() => {
     if (open) {
       setStep(1);
-      setInterviewQuestionIndex(0);
-      setInterviewAnswers([]);
-      setInterviewProposal(null);
-      setInterviewInput('');
-      setInterviewError(null);
-      setInterviewMessages([
-        { role: 'assistant', content: interviewQuestions[0] },
-      ]);
+      setBriefingDocType('telegram');
 
       const aiSettings = loadAISettings();
       const loaded = (aiSettings.sessionZero || {}) as Partial<SessionZeroSettings> & {
@@ -315,120 +277,6 @@ export function SessionZeroModal({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, adventureContext, activeCharacter]);
-
-  const buildInterviewProposal = async (answers: string[]) => {
-    setInterviewLoading(true);
-    setInterviewError(null);
-    try {
-      const prompt = `
-Przygotuj propozycję uzupełnienia postaci do gry d100 Weird Fiction RPG.
-Zwróć wyłącznie poprawny JSON bez markdownu w formacie:
-{"summary":"...","investigatorHook":"...","keyConnection":"...","importantPlace":"...","treasuredItem":"...","characterConcept":"...","backstory":"..."}
-
-Przygoda: ${adventureContext?.title || 'nie wybrano'}
-Opis przygody: ${adventureContext?.description || ''}
-Miejsce i czas: ${adventureContext?.location || ''}, ${adventureContext?.yearRange || ''}
-Postać: ${activeCharacter?.name || ''}; zawód: ${activeCharacter?.occupation || ''}; koncept: ${activeCharacter?.characterConcept || ''}; tło: ${activeCharacter?.background || activeCharacter?.backstory || ''}
-Dotychczasowe ważne dane: osoba=${activeCharacter?.significantPerson || ''}; miejsce=${activeCharacter?.meaningfulLocation || ''}; przedmiot=${activeCharacter?.treasuredPossession || ''}
-
-Odpowiedzi gracza:
-1. ${answers[0] || ''}
-2. ${answers[1] || ''}
-3. ${answers[2] || ''}
-
-Nie zmieniaj statystyk, umiejętności, zawodu ani ekwipunku. Pisz konkretnie, bez dopisywania faktów nieobecnych w odpowiedziach.
-Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
-`.trim();
-      const response = await fetchWithApiKeys('/api/ai/utility', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, json: true, responseMimeType: 'application/json' }),
-      });
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        throw new Error(body?.error || t('interviewError'));
-      }
-      const raw = await collectSSEText(response);
-      const cleaned = raw.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
-      const proposal = JSON.parse(cleaned) as {
-        summary?: string;
-        investigatorHook?: string;
-        keyConnection?: string;
-        importantPlace?: string;
-        treasuredItem?: string;
-        characterConcept?: string;
-        backstory?: string;
-      };
-      setInterviewProposal({
-        summary: proposal.summary || t('interviewProposalFallback'),
-        investigatorHook: proposal.investigatorHook,
-        keyConnection: proposal.keyConnection,
-        importantPlace: proposal.importantPlace,
-        treasuredItem: proposal.treasuredItem,
-        characterConcept: proposal.characterConcept,
-        backstory: proposal.backstory,
-      });
-      setInterviewMessages((messages) => [
-        ...messages,
-        { role: 'assistant', content: t('interviewProposalReady') },
-      ]);
-    } catch (error) {
-      setInterviewError(error instanceof Error ? error.message : t('interviewError'));
-    } finally {
-      setInterviewLoading(false);
-    }
-  };
-
-  const submitInterviewAnswer = async () => {
-    const answer = interviewInput.trim();
-    if (!answer || interviewLoading || interviewProposal) return;
-    const nextAnswers = [...interviewAnswers, answer];
-    setInterviewAnswers(nextAnswers);
-    setInterviewInput('');
-    setInterviewMessages((messages) => [
-      ...messages,
-      { role: 'user', content: answer },
-    ]);
-    if (interviewQuestionIndex < interviewQuestions.length - 1) {
-      const nextIndex = interviewQuestionIndex + 1;
-      setInterviewQuestionIndex(nextIndex);
-      setInterviewMessages((messages) => [
-        ...messages,
-        { role: 'assistant', content: interviewQuestions[nextIndex] },
-      ]);
-    } else {
-      await buildInterviewProposal(nextAnswers);
-    }
-  };
-
-  const acceptInterviewProposal = () => {
-    if (!interviewProposal) return;
-    setSettings((current) => ({
-      ...current,
-      investigatorHook: interviewProposal.investigatorHook || current.investigatorHook,
-      anchors: {
-        ...current.anchors,
-        keyConnection: interviewProposal.keyConnection || current.anchors?.keyConnection,
-        importantPlace: interviewProposal.importantPlace || current.anchors?.importantPlace,
-        treasuredItem: interviewProposal.treasuredItem || current.anchors?.treasuredItem,
-      },
-    }));
-    if (activeCharacter && onCharacterUpdate) {
-      onCharacterUpdate({
-        ...activeCharacter,
-        characterConcept: interviewProposal.characterConcept || activeCharacter.characterConcept,
-        backstory: interviewProposal.backstory || activeCharacter.backstory,
-        significantPerson: interviewProposal.keyConnection || activeCharacter.significantPerson,
-        meaningfulLocation: interviewProposal.importantPlace || activeCharacter.meaningfulLocation,
-        treasuredPossession: interviewProposal.treasuredItem || activeCharacter.treasuredPossession,
-      });
-    }
-    setInterviewMessages((messages) => [
-      ...messages,
-      { role: 'assistant', content: t('interviewAccepted') },
-    ]);
-    setInterviewProposal(null);
-  };
 
   const handleComplete = () => {
     const completedSettings: SessionZeroSettings = {
@@ -758,283 +606,103 @@ Język odpowiedzi: ${locale === 'en' ? 'English' : 'Polish'}.
               </p>
             </div>
 
-            <div className="border border-primary/35 bg-[#101817] p-4 text-sm text-foreground/90">
-              <p>{t('interviewIntro')}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{t('interviewOptionalHint')}</p>
-            </div>
-
-            <div className="max-h-80 space-y-3 overflow-y-auto border border-brass/25 bg-black/25 p-4">
-              {interviewMessages.map((message, index) => (
-                <div
-                  key={`${message.role}-${index}`}
-                  className={`max-w-[92%] border p-3 text-sm ${
-                    message.role === 'assistant'
-                      ? 'border-brass/25 bg-[#17130e] text-foreground'
-                      : 'ml-auto border-primary/30 bg-primary/10 text-primary-foreground'
-                  }`}
-                >
-                  <div className="mb-1 text-[10px] font-special-elite uppercase tracking-wider text-muted-foreground">
-                    {message.role === 'assistant' ? t('interviewAssistantName') : t('interviewPlayerName')}
-                  </div>
-                  {message.content}
+            {/* Wybór formatu dokumentu odprawy */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <Label className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                  {t('docTypeSelectorLabel')}
+                </Label>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={briefingDocType === 'telegram' ? 'default' : 'outline'}
+                    onClick={() => setBriefingDocType('telegram')}
+                    className="font-special-elite text-xs"
+                  >
+                    {t('docTypeTelegram')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={briefingDocType === 'letter' ? 'default' : 'outline'}
+                    onClick={() => setBriefingDocType('letter')}
+                    className="font-special-elite text-xs"
+                  >
+                    {t('docTypeLetter')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={briefingDocType === 'dossier' ? 'default' : 'outline'}
+                    onClick={() => setBriefingDocType('dossier')}
+                    className="font-special-elite text-xs"
+                  >
+                    {t('docTypeDossier')}
+                  </Button>
                 </div>
-              ))}
+              </div>
+
+              {renderBriefingDocument()}
             </div>
 
-            {!interviewProposal && (
-              <div className="space-y-2">
-                <Textarea
-                  value={interviewInput}
-                  onChange={(event) => setInterviewInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      void submitInterviewAnswer();
+            {/* Opcjonalny Haczyk Wejścia Badacza */}
+            <div className="border border-brass/25 bg-black/25 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
+                  {t('hookSectionLabel')}
+                  <HelpIcon content={t('hookSectionHelp')} />
+                </Label>
+                {adventureContext?.hook && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-[11px] font-special-elite text-muted-foreground hover:text-brass"
+                    onClick={() => {
+                      setSettings((current) => ({
+                        ...current,
+                        investigatorHook: adventureContext.hook || '',
+                      }));
+                    }}
+                  >
+                    {t('restoreOriginalHook')}
+                  </Button>
+                )}
+              </div>
+              <Input
+                value={settings.investigatorHook || ''}
+                onChange={(e) =>
+                  setSettings((current) => ({
+                    ...current,
+                    investigatorHook: e.target.value,
+                  }))
+                }
+                placeholder={t('hookPlaceholder')}
+                className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
+              />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  { key: 'hookJob', text: t('hookJob') },
+                  { key: 'hookFamily', text: t('hookFamily') },
+                  { key: 'hookAcademic', text: t('hookAcademic') },
+                  { key: 'hookDebt', text: t('hookDebt') },
+                  { key: 'hookAccident', text: t('hookAccident') },
+                ].map(({ key, text }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() =>
+                      setSettings((current) => ({
+                        ...current,
+                        investigatorHook: text,
+                      }))
                     }
-                  }}
-                  placeholder={t('interviewInputPlaceholder')}
-                  rows={3}
-                  disabled={interviewLoading}
-                />
-                <div className="flex flex-wrap justify-between gap-2">
-                  <Button type="button" variant="outline" onClick={() => setStep(3)}>
-                    {t('interviewSkip')}
-                  </Button>
-                  <Button type="button" onClick={() => void submitInterviewAnswer()} disabled={!interviewInput.trim() || interviewLoading}>
-                    {interviewLoading ? t('interviewPreparing') : t('interviewSend')}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {interviewError && (
-              <div className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                {interviewError}
-              </div>
-            )}
-
-            {interviewProposal && (
-              <div className="space-y-3 border border-primary/45 bg-primary/10 p-4">
-                <h3 className="font-display text-sm uppercase tracking-wider text-primary">
-                  {t('interviewProposalTitle')}
-                </h3>
-                <p className="text-sm text-foreground/90">{interviewProposal.summary}</p>
-                <div className="grid gap-2 text-xs md:grid-cols-2">
-                  {[
-                    [t('hookSectionLabel'), interviewProposal.investigatorHook],
-                    [t('keyConnectionLabel'), interviewProposal.keyConnection],
-                    [t('importantPlaceLabel'), interviewProposal.importantPlace],
-                    [t('treasuredItemLabel'), interviewProposal.treasuredItem],
-                  ].map(([label, value]) => value && (
-                    <div key={label} className="border border-brass/20 bg-black/25 p-2">
-                      <span className="block text-brass/70">{label}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" onClick={acceptInterviewProposal}>
-                    {t('interviewAccept')}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setInterviewProposal(null)}>
-                    {t('interviewEditAgain')}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      case 99:
-        return (
-          <div className="space-y-6">
-            <div>
-              <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
-                {t('step3Header')}
-              </div>
-              <p className="mt-1 font-serif text-lg italic text-muted-foreground">
-                {t('step3Intro')}
-              </p>
-              {activeCharacter?.name && (
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-brass/10 border border-brass/30 text-xs font-special-elite text-brass/90">
-                  <span>⚓</span>
-                  <span>{t('importedFromCharacter', { name: activeCharacter.name })}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Diegetyczna Kartoteka Powiązań Badacza */}
-            <div className="relative border border-brass/35 bg-[#14100c] p-6 shadow-md space-y-6">
-              {/* Kątowniki Art Déco */}
-              <span className="absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-brass/50" />
-              <span className="absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-brass/50" />
-              <span className="absolute left-1.5 bottom-1.5 h-3 w-3 border-l-2 border-b-2 border-brass/50" />
-              <span className="absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 border-brass/50" />
-
-              {/* Nagłówek Kartoteki */}
-              <div className="border-b border-brass/20 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rotate-45 bg-brass" />
-                  <span className="font-display text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] text-gold">
-                    {t('anchorsDossierHeader')}
-                  </span>
-                </div>
-                <p className="text-[11px] font-serif italic text-muted-foreground mt-0.5">
-                  {t('anchorsDossierSub')}
-                </p>
-              </div>
-
-              {/* 1. Ważna Osoba */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('keyConnectionLabel')}
-                  <HelpIcon content={t('keyConnectionHelp')} />
-                </Label>
-                <Input
-                  value={settings.anchors?.keyConnection || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      anchors: {
-                        ...settings.anchors,
-                        keyConnection: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder={t('keyConnectionPlaceholder')}
-                  className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
-                />
-                {/* Sugestie ważnych osób */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {SUGGESTED_KEY_CONNECTIONS.map((key) => {
-                    const val = t(key);
-                    const isSelected = settings.anchors?.keyConnection === val;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() =>
-                          setSettings({
-                            ...settings,
-                            anchors: {
-                              ...settings.anchors,
-                              keyConnection: val,
-                            },
-                          })
-                        }
-                        className={`px-2 py-1 font-special-elite text-[11px] tracking-wider border rounded-none transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
-                            : 'border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass'
-                        }`}
-                      >
-                        + {val}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 2. Znaczące Miejsce */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('importantPlaceLabel')}
-                  <HelpIcon content={t('importantPlaceHelp')} />
-                </Label>
-                <Input
-                  value={settings.anchors?.importantPlace || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      anchors: {
-                        ...settings.anchors,
-                        importantPlace: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder={t('importantPlacePlaceholder')}
-                  className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
-                />
-                {/* Sugestie miejsc */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {SUGGESTED_IMPORTANT_PLACES.map((key) => {
-                    const val = t(key);
-                    const isSelected = settings.anchors?.importantPlace === val;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() =>
-                          setSettings({
-                            ...settings,
-                            anchors: {
-                              ...settings.anchors,
-                              importantPlace: val,
-                            },
-                          })
-                        }
-                        className={`px-2 py-1 font-special-elite text-[11px] tracking-wider border rounded-none transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
-                            : 'border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass'
-                        }`}
-                      >
-                        + {val}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 3. Cenny Przedmiot */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 font-special-elite text-xs uppercase tracking-[0.16em] text-brass">
-                  {t('treasuredItemLabel')}
-                  <HelpIcon content={t('treasuredItemHelp')} />
-                </Label>
-                <Input
-                  value={settings.anchors?.treasuredItem || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      anchors: {
-                        ...settings.anchors,
-                        treasuredItem: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder={t('treasuredItemPlaceholder')}
-                  className="font-special-elite text-sm bg-black/40 border-brass/30 focus:border-brass text-foreground rounded-none"
-                />
-                {/* Sugestie cennych przedmiotów */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {SUGGESTED_TREASURED_ITEMS.map((key) => {
-                    const val = t(key);
-                    const isSelected = settings.anchors?.treasuredItem === val;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() =>
-                          setSettings({
-                            ...settings,
-                            anchors: {
-                              ...settings.anchors,
-                              treasuredItem: val,
-                            },
-                          })
-                        }
-                        className={`px-2 py-1 font-special-elite text-[11px] tracking-wider border rounded-none transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_8px_rgba(13,148,136,0.25)]'
-                            : 'border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass'
-                        }`}
-                      >
-                        + {val}
-                      </button>
-                    );
-                  })}
-                </div>
+                    className="px-2 py-1 font-special-elite text-[11px] tracking-wider border border-brass/20 bg-black/30 text-muted-foreground hover:border-brass/50 hover:text-brass transition-all cursor-pointer rounded-none"
+                  >
+                    + {text}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

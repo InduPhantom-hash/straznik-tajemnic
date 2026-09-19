@@ -186,18 +186,26 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptModern).toContain('łagodząc uprzedzenia i dyskryminację epoki');
   });
 
-  it('normalizes legacy tone noir to purist instructions in PL and EN', () => {
-    const noirSettings: SessionZeroSettings = {
+  it('generates diegetic briefing and Strong Start instructions when briefing is present', () => {
+    const briefingSettings: SessionZeroSettings = {
       ...baseSettings,
-      tone: 'noir',
+      briefing: 'Pilny telegram od prof. Armitage: przyjedź natychmiast do Arkham.',
     };
 
-    const promptPl = buildSessionZeroInstructions(noirSettings, 'pl');
-    expect(promptPl).toContain('## STYL NARRACJI: PURYSTYCZNY');
-    expect(promptPl).not.toContain('## STYL NARRACJI: NOIR');
+    const promptPl = buildSessionZeroInstructions(briefingSettings, 'pl');
+    expect(promptPl).toContain('## BRIEFING ŚLEDCZY I DEPESZA STARTOWA (STRONG START)');
+    expect(promptPl).toContain('Pilny telegram od prof. Armitage: przyjedź natychmiast do Arkham.');
+    expect(promptPl).toContain('posłaniec na progu, pociąg wjeżdżający na stację, telegram w dłoni');
 
-    const promptEn = buildSessionZeroInstructions(noirSettings, 'en');
-    expect(promptEn).toContain('## NARRATIVE STYLE: PURIST');
-    expect(promptEn).not.toContain('## NARRATIVE STYLE: NOIR');
+    const promptEn = buildSessionZeroInstructions(
+      {
+        ...briefingSettings,
+        briefing: 'Urgent telegram from Prof. Armitage: come to Arkham at once.',
+      },
+      'en'
+    );
+    expect(promptEn).toContain('## DIEGETIC BRIEFING & CASE DISPATCH (STRONG START)');
+    expect(promptEn).toContain('Urgent telegram from Prof. Armitage: come to Arkham at once.');
+    expect(promptEn).toContain('courier on the doorstep, train arriving at the station, holding the telegram');
   });
 });
