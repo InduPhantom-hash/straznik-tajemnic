@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
-import { Skull, Zap } from 'lucide-react';
+import { Skull, Zap, Sparkles } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
 import {
@@ -34,7 +34,10 @@ import {
   buildRecommendedSkills,
   normalizeSkillName,
 } from '@/lib/character/normalize-skill-name';
-import { distributeRecommendedSkillPoints } from '@/lib/character/distribute-skill-points';
+import {
+  distributeRecommendedSkillPoints,
+  fillRemainingSkillPoints,
+} from '@/lib/character/distribute-skill-points';
 import { toast } from '@/components/ui/use-toast';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import {
@@ -562,11 +565,16 @@ export function CharacterWizardV2({
     const selectedArchetype = CHARACTER_ARCHETYPES.find(
       (a) => a.id === selectedArchetypeId
     );
-    // Majętność jest już opłacona z puli (creditRating punktów) - AI rozdziela
-    // RESZTĘ punktów między pozostałe umiejętności (RAW: koszt Credit Rating
-    // pomniejsza pulę dostępną na inne umiejętności).
-    const totalPoints =
-      state.occupationPoints + state.interestPoints - state.creditRating;
+    // Majętność jest już opłacona z puli zawodowej (creditRating punktów) -
+    // punkty zawodowe (RAW) idą deterministycznie na umiejętności zawodowe i archetypu.
+    // Punkty zainteresowań (interestPoints = INT × 2) są ZAWSZE dedykowane AI,
+    // by zgodnie z tłem i opisem postaci rozdało je na hobby/umiejętności poboczne.
+    const occupationalPool = Math.max(
+      0,
+      state.occupationPoints - state.creditRating
+    );
+    const interestPool = Math.max(0, state.interestPoints);
+    const totalPoints = occupationalPool + interestPool;
     const occupationalSkills = selectedOcc?.skills || [];
 
     // Mapowanie archetypów na kluczowe umiejętności (module-level ARCHETYPE_SKILL_MAP)
@@ -591,12 +599,13 @@ export function CharacterWizardV2({
     const resolveMaxValue = (skill: string): number =>
       SKILL_LIMIT_EXCEPTIONS.includes(skill) ? 99 : SKILL_CREATION_LIMIT;
 
-    // KROK 1 (DETERMINISTYCZNY): zaspokój rekomendowane NAJPIERW, równo do
-    // limitu 75%, zużywając pulę. Dopiero RESZTĘ oddamy AI/losowo niżej.
+    // KROK 1 (DETERMINISTYCZNY): zaspokój rekomendowane NAJPIERW z puli zawodowej,
+    // równo do limitu 75%. Resztę z puli zawodowej + pełną pulę zainteresowań (INT × 2)
+    // przekazujemy do AI na umiejętności pasujące do tła postaci.
     const deterministic = distributeRecommendedSkillPoints({
       recommendedSkills,
       currentSkills: state.skills,
-      totalPoints,
+      totalPoints: occupationalPool,
       getBaseValue: resolveBaseValue,
       getMaxValue: resolveMaxValue,
     });
@@ -607,11 +616,10 @@ export function CharacterWizardV2({
       recommendedFloor[skill] =
         deterministic.skills[skill] ?? resolveBaseValue(skill);
     }
-    // Punkty pozostałe do rozdania przez AI (na pozostałe umiejętności).
-    const remainingForAI = deterministic.remainingPoints;
+    // Punkty pozostałe do rozdania przez AI: niewykorzystane zawodowe + cała pula zainteresowań.
+    const remainingForAI = deterministic.remainingPoints + interestPool;
 
-    // Jeśli rekomendowane umiejętności zaspokoiły całą pulę w 100% (np. zawód z wieloma umiejętnościami):
-    // Zatwierdź natychmiast deterministyczny przydział bez zbędnego i błędogennego zapytania do AI o 0 punktów.
+    // Jeśli łączna pula do rozdania wynosi 0 (np. postać o skrajnych cechach bez punktów):
     if (remainingForAI <= 0) {
       setState((prev) => ({
         ...prev,
@@ -789,13 +797,22 @@ export function CharacterWizardV2({
       // rekomendowanych (KROK 1). AI dokłada na pozostałe, nie ruszając ich.
       let pointsUsed = deterministic.pointsUsed;
       const newSkills = { ...deterministic.skills };
+      const touchedSkills: string[] = [];
 
       for (const [rawSkillName, rawValue] of Object.entries(skillsMap)) {
         const numValue =
           typeof rawValue === 'number' ? rawValue : Number(rawValue);
         if (isNaN(numValue) || numValue <= 0) continue;
 
-        const skillName = normalizeSkillName(rawSkillName) || rawSkillName;
+        const skillName = normalizeSkillName(rawSkillName);
+        if (
+          !skillName ||
+          skillName === CREDIT_RATING_SKILL ||
+          skillName === 'Mity Cthulhu'
+        ) {
+          continue; // Ignoruj nieznane umiejętności, Majętność i Mity Cthulhu
+        }
+
         let baseValue = BASE_SKILLS[skillName] || 0;
         if (skillName === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
         if (skillName === 'Unik') baseValue = Math.floor(state.stats.dex / 2);
@@ -816,102 +833,25 @@ export function CharacterWizardV2({
         if (clampedValue > previousValue) {
           pointsUsed += clampedValue - previousValue;
           newSkills[skillName] = clampedValue;
+          touchedSkills.push(skillName);
         }
       }
 
       // Sprawdź czy nie przekroczono limitu
       if (pointsUsed <= totalPoints) {
-        // === NOWE: Dopełnij pozostałe punkty automatycznie ===
-        let remainingPoints = totalPoints - pointsUsed;
-
+        // Dopełnij brakujące punkty deterministycznie (np. gdy AI rozdało mniej niż remainingForAI)
+        const remainingPoints = totalPoints - pointsUsed;
         if (remainingPoints > 0) {
-          // Znajdź umiejętności zawodowe które można jeszcze podnieść
-          const upgradableSkills = occupationalSkills.filter((skillName) => {
-            const skillKey = skillName.replace(/\s*\(\d*\).*$/, '').trim(); // Usuń "(2)" itp.
-            if (skillKey === 'Dowolna' || skillKey === CREDIT_RATING_SKILL)
-              return false;
-
-            let baseValue = BASE_SKILLS[skillKey] || 1;
-            if (skillKey === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
-            if (skillKey === 'Unik')
-              baseValue = Math.floor(state.stats.dex / 2);
-
-            const currentValue = newSkills[skillKey] || baseValue;
-            const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
-              ? 99
-              : SKILL_CREATION_LIMIT;
-
-            return currentValue < maxValue;
+          const fillResult = fillRemainingSkillPoints({
+            skills: newSkills,
+            remainingPoints,
+            prioritySkills:
+              touchedSkills.length > 0 ? touchedSkills : recommendedSkills,
+            getBaseValue: resolveBaseValue,
+            getMaxValue: resolveMaxValue,
           });
-
-          // Rozdziel pozostałe punkty między umiejętności zawodowe
-          while (remainingPoints > 0 && upgradableSkills.length > 0) {
-            for (const skillName of upgradableSkills) {
-              if (remainingPoints <= 0) break;
-
-              const skillKey = skillName.replace(/\s*\(\d*\).*$/, '').trim();
-              let baseValue = BASE_SKILLS[skillKey] || 1;
-              if (skillKey === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
-              if (skillKey === 'Unik')
-                baseValue = Math.floor(state.stats.dex / 2);
-
-              const currentValue = newSkills[skillKey] || baseValue;
-              const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
-                ? 99
-                : SKILL_CREATION_LIMIT;
-
-              if (currentValue < maxValue) {
-                const increment = Math.min(
-                  remainingPoints,
-                  10,
-                  maxValue - currentValue
-                );
-                newSkills[skillKey] = currentValue + increment;
-                remainingPoints -= increment;
-                pointsUsed += increment;
-              }
-            }
-
-            // Jeśli wszystkie zawodowe mają max, rozdziel do innych umiejętności
-            if (remainingPoints > 0) {
-              const anySkillOptions = Object.keys(BASE_SKILLS).filter(
-                (skillKey) => {
-                  if (skillKey === CREDIT_RATING_SKILL) return false;
-                  const currentValue =
-                    newSkills[skillKey] || BASE_SKILLS[skillKey] || 1;
-                  const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
-                    ? 99
-                    : SKILL_CREATION_LIMIT;
-                  return currentValue < maxValue;
-                }
-              );
-
-              if (anySkillOptions.length === 0) break; // Wszystko na max
-
-              const randomSkill =
-                anySkillOptions[
-                  Math.floor(Math.random() * anySkillOptions.length)
-                ];
-              const baseValue = BASE_SKILLS[randomSkill] || 1;
-              const currentValue = newSkills[randomSkill] || baseValue;
-              const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(randomSkill)
-                ? 99
-                : SKILL_CREATION_LIMIT;
-
-              const increment = Math.min(
-                remainingPoints,
-                10,
-                maxValue - currentValue
-              );
-              if (increment > 0) {
-                newSkills[randomSkill] = currentValue + increment;
-                remainingPoints -= increment;
-                pointsUsed += increment;
-              } else {
-                break; // Nie da się więcej
-              }
-            }
-          }
+          pointsUsed += fillResult.pointsUsed;
+          Object.assign(newSkills, fillResult.skills);
         }
 
         setState((prev) => ({
@@ -2870,8 +2810,13 @@ export function CharacterWizardV2({
               onClick={autoDistributeSkillsAI}
               disabled={isDistributingSkills || totalPointsAvailable === 0}
               size="sm"
-              className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5"
+              className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 flex items-center gap-2"
             >
+              <Sparkles
+                className={`w-4 h-4 text-[#04110f] ${
+                  isDistributingSkills ? 'animate-spin' : ''
+                }`}
+              />
               {isDistributingSkills
                 ? t('distributing')
                 : t('distributeWithAi')}
