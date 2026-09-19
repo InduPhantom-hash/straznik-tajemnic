@@ -2,7 +2,6 @@ import {
   detectEraAndYears,
   detectLocationAndCountry,
   detectToneAndOccupations,
-  buildAdventureGraph,
   buildLocalCustomAdventure,
   slugifyText,
 } from './adventure-local-builder';

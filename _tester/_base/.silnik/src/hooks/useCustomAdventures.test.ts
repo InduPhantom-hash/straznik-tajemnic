@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
+import type { CustomAdventure } from '@/lib/adventures-data';
 import { useCustomAdventures } from './useCustomAdventures';
 
 // Mock storage
@@ -59,7 +60,7 @@ describe('useCustomAdventures', () => {
       type: 'application/pdf',
     });
 
-    let uploaded: any;
+    let uploaded: CustomAdventure | null = null;
     await act(async () => {
       uploaded = await result.current.uploadAdventure(file);
     });
@@ -71,8 +72,9 @@ describe('useCustomAdventures', () => {
       })
     );
 
-    expect(uploaded).toBeDefined();
-    expect(uploaded?.title).toBe('Cień nad Innsmouth');
+    const target = uploaded as CustomAdventure | null;
+    expect(target).toBeDefined();
+    expect(target?.title).toBe('Cień nad Innsmouth');
     expect(result.current.uploadError).toBeNull();
   });
 
