@@ -193,3 +193,119 @@ export function fillRemainingSkillPoints(
   return { skills, pointsUsed, remainingPoints: remaining };
 }
 
+export interface CalculateSkillPointsUsageInput {
+  /** Aktualna mapa umiejętności (np. state.skills) */
+  skills: Record<string, number>;
+  /** Znormalizowane nazwy umiejętności rekomendowanych / zawodowych */
+  recommendedSkills: ReadonlySet<string> | readonly string[];
+  /** Aktualna Majętność (Credit Rating), która pobiera z puli zawodowej */
+  creditRating: number;
+  /** Dostępne punkty zawodowe (z formuły zawodu) */
+  occupationPoints: number;
+  /** Dostępne punkty zainteresowań (INT × 2) */
+  interestPoints: number;
+  /** Funkcja zwracająca wartość bazową danej umiejętności */
+  getBaseValue: (skill: string) => number;
+}
+
+export interface SkillPointsUsage {
+  /** Punkty wydane na umiejętności zawodowe (z puli zawodowej, bez Majętności) */
+  occupationSkillPointsUsed: number;
+  /** Łączne punkty zawodowe zużyte (umiejętności zawodowe + Majętność) */
+  occupationPointsUsed: number;
+  /** Punkty zawodowe pozostałe do wydania (occupationPoints - occupationPointsUsed) */
+  occupationPointsRemaining: number;
+  /** Punkty wydane na umiejętności z puli zainteresowań (hobby oraz ewentualny nadmiar z zawodowych) */
+  interestPointsUsed: number;
+  /** Punkty zainteresowań pozostałe do wydania (interestPoints - interestPointsUsed) */
+  interestPointsRemaining: number;
+  /** Łączna suma punktów wydanych (zawodowe + zainteresowań + Majętność) */
+  totalPointsUsed: number;
+  /** Łączna pula dostępna (occupationPoints + interestPoints) */
+  totalPointsAvailable: number;
+  /** Czy przekroczono limit punktów zawodowych */
+  isOccupationOverLimit: boolean;
+  /** Czy przekroczono limit punktów zainteresowań */
+  isInterestOverLimit: boolean;
+  /** Czy przekroczono łączny limit punktów */
+  isTotalOverLimit: boolean;
+}
+
+/**
+ * Deterministycznie rozlicza zużycie punktów na dwie niezależne pule CoC 7e RAW:
+ * 1. Pula zawodowa: finansuje Majętność (Credit Rating) oraz umiejętności zawodowe (rekomendowane).
+ * 2. Pula zainteresowań (INT × 2): finansuje umiejętności poboczne/hobby oraz nadmiar punktów z umiejętności zawodowych.
+ */
+export function calculateSkillPointsUsage(
+  input: CalculateSkillPointsUsageInput
+): SkillPointsUsage {
+  const {
+    skills,
+    recommendedSkills,
+    creditRating,
+    occupationPoints,
+    interestPoints,
+    getBaseValue,
+  } = input;
+
+  const recSet =
+    recommendedSkills instanceof Set
+      ? recommendedSkills
+      : new Set(recommendedSkills);
+
+  const occupationalBudget = Math.max(0, occupationPoints);
+  const interestBudget = Math.max(0, interestPoints);
+  const cleanCreditRating = Math.max(0, creditRating || 0);
+
+  // Pula zawodowa netto dostępna na same umiejętności po opłaceniu Majętności
+  const occupationalSkillsPool = Math.max(0, occupationalBudget - cleanCreditRating);
+
+  let rawOccupationalPoints = 0;
+  let rawInterestPoints = 0;
+
+  for (const [skillName, value] of Object.entries(skills)) {
+    if (skillName === 'Majętność' || skillName === 'Mity Cthulhu') {
+      continue;
+    }
+    const baseValue = getBaseValue(skillName);
+    const added = Math.max(0, (value || 0) - baseValue);
+    if (added === 0) continue;
+
+    if (recSet.has(skillName)) {
+      rawOccupationalPoints += added;
+    } else {
+      rawInterestPoints += added;
+    }
+  }
+
+  // Umiejętności zawodowe pokrywane są w pierwszej kolejności z puli zawodowej
+  const occSkillPointsFromOccPool = Math.min(
+    occupationalSkillsPool,
+    rawOccupationalPoints
+  );
+  // Nadmiar ponad pulę zawodową przelewa się na pulę zainteresowań (RAW)
+  const occOverflow = rawOccupationalPoints - occSkillPointsFromOccPool;
+
+  const occupationPointsUsed = occSkillPointsFromOccPool + cleanCreditRating;
+  const interestPointsUsed = rawInterestPoints + occOverflow;
+
+  const totalPointsUsed = occupationPointsUsed + interestPointsUsed;
+  const totalPointsAvailable = occupationalBudget + interestBudget;
+
+  const occupationPointsRemaining = occupationalBudget - occupationPointsUsed;
+  const interestPointsRemaining = interestBudget - interestPointsUsed;
+
+  return {
+    occupationSkillPointsUsed: occSkillPointsFromOccPool,
+    occupationPointsUsed,
+    occupationPointsRemaining,
+    interestPointsUsed,
+    interestPointsRemaining,
+    totalPointsUsed,
+    totalPointsAvailable,
+    isOccupationOverLimit: occupationPointsRemaining < 0,
+    isInterestOverLimit: interestPointsRemaining < 0,
+    isTotalOverLimit: totalPointsUsed > totalPointsAvailable,
+  };
+}
+

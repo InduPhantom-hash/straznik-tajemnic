@@ -139,5 +139,28 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
       expect(pl.close).toBe('Zamknij');
       expect(en.close).toBe('Close');
     });
+
+    it('defines split skill counters i18n keys in PL and EN (Issue #411)', () => {
+      const pl = (plMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+      const en = (enMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+
+      expect(pl.occupationPointsTitle).toBe('Punkty zawodowe');
+      expect(en.occupationPointsTitle).toBe('Occupation points');
+
+      expect(pl.interestPointsTitle).toBe('Punkty zainteresowań');
+      expect(en.interestPointsTitle).toBe('Personal interest points');
+
+      expect(pl.pointsSpentRatio).toBe('Wydano: {used} / {available} pkt');
+      expect(en.pointsSpentRatio).toBe('Spent: {used} / {available} pts');
+
+      expect(pl.pointsRemainingShort).toBe('Pozostało');
+      expect(en.pointsRemainingShort).toBe('Remaining');
+
+      expect(pl.creditRatingIncluded).toBe('(w tym Majętność: {count} pkt)');
+      expect(en.creditRatingIncluded).toBe('(incl. Credit Rating: {count} pts)');
+
+      expect(pl.hobbiesAndExcess).toBe('hobby i umiejętności poboczne');
+      expect(en.hobbiesAndExcess).toBe('hobbies & personal interests');
+    });
   });
 });
