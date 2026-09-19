@@ -37,6 +37,7 @@ import {
 import {
   distributeRecommendedSkillPoints,
   fillRemainingSkillPoints,
+  calculateSkillPointsUsage,
 } from '@/lib/character/distribute-skill-points';
 import { toast } from '@/components/ui/use-toast';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
@@ -536,20 +537,47 @@ export function CharacterWizardV2({
     const newValue = Math.max(baseValue, Math.min(maxValue, value));
     const diff = newValue - (state.skills[skillName] || baseValue);
 
-    // Sprawdź limit punktów. Majętność (creditRating) także zjada z puli (RAW),
-    // więc wliczamy ją do wydanych punktów.
-    const totalUsed =
-      state.occupationPointsUsed +
-      state.interestPointsUsed +
-      state.creditRating +
-      diff;
-    const totalAvailable = state.occupationPoints + state.interestPoints;
-    if (totalUsed > totalAvailable) return;
+    const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
+    const archetypeSkills = selectedArchetypeId
+      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
+      : [];
+    const occupationalSkills = selectedOcc?.skills || [];
+    const recommended = buildRecommendedSkills(
+      archetypeSkills,
+      occupationalSkills
+    );
+
+    const resolveBaseValue = (s: string): number => {
+      if (s === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
+      if (s === 'Unik') return Math.floor(state.stats.dex / 2);
+      return BASE_SKILLS[s] || 1;
+    };
+
+    const nextSkills = { ...state.skills, [skillName]: newValue };
+    const nextUsage = calculateSkillPointsUsage({
+      skills: nextSkills,
+      recommendedSkills: recommended,
+      creditRating: state.creditRating,
+      occupationPoints: state.occupationPoints,
+      interestPoints: state.interestPoints,
+      getBaseValue: resolveBaseValue,
+    });
+
+    // Jeśli zmiana zwiększa wartość i przekracza limity: blokujemy
+    if (
+      diff > 0 &&
+      (nextUsage.isTotalOverLimit ||
+        nextUsage.isInterestOverLimit ||
+        nextUsage.isOccupationOverLimit)
+    ) {
+      return;
+    }
 
     setState((prev) => ({
       ...prev,
-      skills: { ...prev.skills, [skillName]: newValue },
-      occupationPointsUsed: prev.occupationPointsUsed + diff,
+      skills: nextSkills,
+      occupationPointsUsed: nextUsage.occupationPointsUsed,
+      interestPointsUsed: nextUsage.interestPointsUsed,
     }));
   };
 
@@ -621,10 +649,19 @@ export function CharacterWizardV2({
 
     // Jeśli łączna pula do rozdania wynosi 0 (np. postać o skrajnych cechach bez punktów):
     if (remainingForAI <= 0) {
+      const zeroUsage = calculateSkillPointsUsage({
+        skills: deterministic.skills,
+        recommendedSkills,
+        creditRating: state.creditRating,
+        occupationPoints: state.occupationPoints,
+        interestPoints: state.interestPoints,
+        getBaseValue: resolveBaseValue,
+      });
       setState((prev) => ({
         ...prev,
         skills: deterministic.skills,
-        occupationPointsUsed: deterministic.pointsUsed,
+        occupationPointsUsed: zeroUsage.occupationPointsUsed,
+        interestPointsUsed: zeroUsage.interestPointsUsed,
       }));
       toast({
         variant: 'success',
@@ -854,10 +891,20 @@ export function CharacterWizardV2({
           Object.assign(newSkills, fillResult.skills);
         }
 
+        const finalUsage = calculateSkillPointsUsage({
+          skills: newSkills,
+          recommendedSkills,
+          creditRating: state.creditRating,
+          occupationPoints: state.occupationPoints,
+          interestPoints: state.interestPoints,
+          getBaseValue: resolveBaseValue,
+        });
+
         setState((prev) => ({
           ...prev,
           skills: newSkills,
-          occupationPointsUsed: pointsUsed,
+          occupationPointsUsed: finalUsage.occupationPointsUsed,
+          interestPointsUsed: finalUsage.interestPointsUsed,
         }));
         // Sukces - pokaż krótki komunikat
         toast({
@@ -903,10 +950,20 @@ export function CharacterWizardV2({
           pointsUsed -= reduction;
         }
 
+        const finalUsageAfterReduction = calculateSkillPointsUsage({
+          skills: newSkills,
+          recommendedSkills,
+          creditRating: state.creditRating,
+          occupationPoints: state.occupationPoints,
+          interestPoints: state.interestPoints,
+          getBaseValue: resolveBaseValue,
+        });
+
         setState((prev) => ({
           ...prev,
           skills: newSkills,
-          occupationPointsUsed: pointsUsed,
+          occupationPointsUsed: finalUsageAfterReduction.occupationPointsUsed,
+          interestPointsUsed: finalUsageAfterReduction.interestPointsUsed,
         }));
         toast({
           variant: 'success',
@@ -1327,12 +1384,32 @@ export function CharacterWizardV2({
       return !!state.occupationId;
     }
     if (state.step === 4) {
-      const totalAvailable = state.occupationPoints + state.interestPoints;
-      const totalUsed =
-        state.occupationPointsUsed +
-        state.interestPointsUsed +
-        state.creditRating;
-      return totalUsed <= totalAvailable;
+      const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
+      const archetypeSkills = selectedArchetypeId
+        ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
+        : [];
+      const occupationalSkills = selectedOcc?.skills || [];
+      const recommended = buildRecommendedSkills(
+        archetypeSkills,
+        occupationalSkills
+      );
+      const usage = calculateSkillPointsUsage({
+        skills: state.skills,
+        recommendedSkills: recommended,
+        creditRating: state.creditRating,
+        occupationPoints: state.occupationPoints,
+        interestPoints: state.interestPoints,
+        getBaseValue: (s: string) => {
+          if (s === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
+          if (s === 'Unik') return Math.floor(state.stats.dex / 2);
+          return BASE_SKILLS[s] || 1;
+        },
+      });
+      return (
+        !usage.isOccupationOverLimit &&
+        !usage.isInterestOverLimit &&
+        !usage.isTotalOverLimit
+      );
     }
     return true;
   };
@@ -2791,14 +2868,20 @@ export function CharacterWizardV2({
     const recommendedSkills = new Set<string>(
       buildRecommendedSkills(archetypeSkills, occupationalSkills)
     );
-    // Majętność (Credit Rating) to umiejętność zawodowa wg CoC 7e RAW: baza 0%,
-    // a każdy punkt podniesienia kosztuje z puli punktów zawodowych. Dlatego
-    // wliczamy creditRating do wydanych punktów - inaczej gracz dostaje
-    // maksymalną Majętność za darmo (bez kosztu wobec umiejętności).
-    const totalPointsUsed =
-      state.occupationPointsUsed +
-      state.interestPointsUsed +
-      state.creditRating;
+    const resolveBaseValue = (s: string): number => {
+      if (s === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
+      if (s === 'Unik') return Math.floor(state.stats.dex / 2);
+      return BASE_SKILLS[s] || 1;
+    };
+
+    const usage = calculateSkillPointsUsage({
+      skills: state.skills,
+      recommendedSkills,
+      creditRating: state.creditRating,
+      occupationPoints: state.occupationPoints,
+      interestPoints: state.interestPoints,
+      getBaseValue: resolveBaseValue,
+    });
 
     return (
       <div className="space-y-4">
@@ -2870,31 +2953,159 @@ export function CharacterWizardV2({
           </div>
         </div>
 
-        {/* Licznik punktów */}
-        <div className="flex items-center gap-3 border border-brass/30 bg-[#1f1a14] px-4 py-2">
-          <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-            {t('pointsRemaining')}
-          </span>
-          <div className="text-lg font-bold">
-            <span
-              className={`font-display ${
-                totalPointsUsed <= totalPointsAvailable
-                  ? 'text-brass/80'
-                  : 'text-destructive'
-              }`}
-            >
-              {totalPointsAvailable - totalPointsUsed}
-            </span>
-            <span className="text-muted-foreground text-sm ml-2">
-              {t('pointsSpent', {
-                used: totalPointsUsed,
-                available: totalPointsAvailable,
-              })}
-            </span>
-            {totalPointsUsed > totalPointsAvailable && (
-              <span className="text-destructive text-sm ml-2">
-                {t('overLimit')}
+        {/* Rozdzielone liczniki punktów CoC 7e RAW (Issue #411) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Kafelek 1: Punkty zawodowe */}
+          <div
+            className={`border p-4 transition-colors ${
+              usage.isOccupationOverLimit
+                ? 'border-destructive/60 bg-destructive/10'
+                : 'border-brass/30 bg-[#1f1a14]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-xs uppercase tracking-[0.12em] text-brass font-semibold">
+                  ★ {t('occupationPointsTitle')}
+                </span>
+                <span className="font-serif italic text-xs text-muted-foreground">
+                  ({selectedOcc ? selectedOcc.formula : t('occupationUnknown')})
+                </span>
+              </div>
+              <span className="font-special-elite text-xs text-muted-foreground">
+                {t('pointsSpentRatio', {
+                  used: usage.occupationPointsUsed,
+                  available: state.occupationPoints,
+                })}
               </span>
+            </div>
+
+            <div className="flex items-baseline justify-between mb-2">
+              <div>
+                <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground font-special-elite mr-2">
+                  {t('pointsRemainingShort')}:
+                </span>
+                <span
+                  className={`font-display text-2xl font-bold ${
+                    usage.isOccupationOverLimit
+                      ? 'text-destructive'
+                      : 'text-brass/90'
+                  }`}
+                >
+                  {usage.occupationPointsRemaining}
+                </span>
+                <span className="font-special-elite text-xs text-muted-foreground ml-1">
+                  pkt
+                </span>
+              </div>
+              {state.creditRating > 0 && (
+                <span className="font-serif italic text-xs text-muted-foreground">
+                  {t('creditRatingIncluded', { count: state.creditRating })}
+                </span>
+              )}
+            </div>
+
+            {/* Pasek postępu - Pula zawodowa (złoty mosiądz) */}
+            <div className="w-full bg-[#100d0a] h-2 border border-brass/20 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  usage.isOccupationOverLimit
+                    ? 'bg-destructive'
+                    : 'bg-gradient-to-r from-brass/60 to-brass'
+                }`}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(
+                      0,
+                      (usage.occupationPointsUsed /
+                        (state.occupationPoints || 1)) *
+                        100
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+            {usage.isOccupationOverLimit && (
+              <div className="text-destructive text-xs mt-1.5 font-special-elite">
+                {t('overLimit')}
+              </div>
+            )}
+          </div>
+
+          {/* Kafelek 2: Punkty zainteresowań */}
+          <div
+            className={`border p-4 transition-colors ${
+              usage.isInterestOverLimit
+                ? 'border-destructive/60 bg-destructive/10'
+                : 'border-brass/30 bg-[#1f1a14]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-xs uppercase tracking-[0.12em] text-teal-400 font-semibold">
+                  ✦ {t('interestPointsTitle')}
+                </span>
+                <span className="font-serif italic text-xs text-muted-foreground">
+                  ({t('intFormulaShort', { value: state.stats.int })})
+                </span>
+              </div>
+              <span className="font-special-elite text-xs text-muted-foreground">
+                {t('pointsSpentRatio', {
+                  used: usage.interestPointsUsed,
+                  available: state.interestPoints,
+                })}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between mb-2">
+              <div>
+                <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground font-special-elite mr-2">
+                  {t('pointsRemainingShort')}:
+                </span>
+                <span
+                  className={`font-display text-2xl font-bold ${
+                    usage.isInterestOverLimit
+                      ? 'text-destructive'
+                      : 'text-teal-300'
+                  }`}
+                >
+                  {usage.interestPointsRemaining}
+                </span>
+                <span className="font-special-elite text-xs text-muted-foreground ml-1">
+                  pkt
+                </span>
+              </div>
+              <span className="font-serif italic text-xs text-muted-foreground">
+                {t('hobbiesAndExcess')}
+              </span>
+            </div>
+
+            {/* Pasek postępu - Pula zainteresowań (szmaragd / teal) */}
+            <div className="w-full bg-[#100d0a] h-2 border border-brass/20 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  usage.isInterestOverLimit
+                    ? 'bg-destructive'
+                    : 'bg-gradient-to-r from-teal-700 to-teal-400'
+                }`}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(
+                      0,
+                      (usage.interestPointsUsed /
+                        (state.interestPoints || 1)) *
+                        100
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+            {usage.isInterestOverLimit && (
+              <div className="text-destructive text-xs mt-1.5 font-special-elite">
+                {t('overLimit')}
+              </div>
             )}
           </div>
         </div>
@@ -2926,19 +3137,33 @@ export function CharacterWizardV2({
                     selectedOcc.creditMin,
                     Math.min(selectedOcc.creditMax, v)
                   );
-                  // 2) Majętność płaci z puli - nie pozwól wydać więcej niż
+                  // 2) Majętność płaci z puli zawodowej - nie pozwól wydać więcej niż
                   //    zostało po punktach już wydanych na umiejętności.
                   const spentOnSkills =
-                    state.occupationPointsUsed + state.interestPointsUsed;
+                    usage.occupationSkillPointsUsed + usage.interestPointsUsed;
                   const maxAffordable = totalPointsAvailable - spentOnSkills;
                   const clamped = Math.max(
                     selectedOcc.creditMin,
                     Math.min(inRange, maxAffordable)
                   );
+                  const nextSkills = {
+                    ...state.skills,
+                    [CREDIT_RATING_SKILL]: clamped,
+                  };
+                  const nextUsage = calculateSkillPointsUsage({
+                    skills: nextSkills,
+                    recommendedSkills,
+                    creditRating: clamped,
+                    occupationPoints: state.occupationPoints,
+                    interestPoints: state.interestPoints,
+                    getBaseValue: resolveBaseValue,
+                  });
                   setState((prev) => ({
                     ...prev,
                     creditRating: clamped,
-                    skills: { ...prev.skills, [CREDIT_RATING_SKILL]: clamped },
+                    skills: nextSkills,
+                    occupationPointsUsed: nextUsage.occupationPointsUsed,
+                    interestPointsUsed: nextUsage.interestPointsUsed,
                   }));
                 }}
                 className="w-24 bg-[#16130f] border border-brass/30 px-3 py-2 text-center font-display text-2xl font-bold text-foreground focus:outline-none"
