@@ -14,9 +14,40 @@ import { getGeminiClient } from '@/lib/gemini-client-pool';
  *  - apiKey priorytet → fallback do GEMINI_API_KEY env → 500 jeśli oba puste
  *  - brak testConnection → 400 (chat flow usunięty)
  */
+async function probeGeminiTier(apiKey: string): Promise<'free' | 'paid'> {
+  try {
+    const probeRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: '1x1 test' }],
+            },
+          ],
+          generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+        }),
+      }
+    );
+
+    if (probeRes.ok) {
+      return 'paid';
+    }
+
+    // 429 z limitem 0 lub błędy uprawnień = darmowy Free Tier
+    return 'free';
+  } catch (err) {
+    console.warn('⚠️ Gemini tier probe failed, fallback to free tier:', err);
+    return 'free';
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { testConnection, apiKey } = await request.json();
+    const { testConnection, apiKey, checkTier = true } = await request.json();
 
     // BYOK: Test połączenia z UI Settings testuje wyłącznie wpisany klucz (bez cichego fallbacku do .env.local).
     // Jeśli apiKey nie został podany w body, zwracamy 400.
@@ -72,11 +103,13 @@ export async function POST(request: NextRequest) {
             contents: 'Hello',
           });
           const testText = testResult.text ?? '';
+          const tier = checkTier ? await probeGeminiTier(effectiveKey) : 'free';
 
           return NextResponse.json({
             success: true,
             response: 'Połączenie z Gemini API działa poprawnie',
             model: modelName,
+            tier,
             testResponse: testText.substring(0, 50) + '...',
           });
         } catch (modelError) {
@@ -111,10 +144,12 @@ export async function POST(request: NextRequest) {
               contents: 'Hello',
             });
             const dynamicText = dynamicRes.text ?? '';
+            const tier = checkTier ? await probeGeminiTier(effectiveKey) : 'free';
             return NextResponse.json({
               success: true,
               response: 'Połączenie z Gemini API działa poprawnie (wykryto dynamicznie)',
               model: candidate,
+              tier,
               testResponse: dynamicText.substring(0, 50) + '...',
             });
           } catch {

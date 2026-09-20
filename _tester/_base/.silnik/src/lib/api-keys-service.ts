@@ -5,9 +5,14 @@
  * Klucze są przechowywane lokalnie i przesyłane do API przez nagłówki HTTP
  */
 
+export type GeminiTier = 'free' | 'paid';
+
 export interface ApiKeys {
   // Wymagany - AI Game Master, TTS (Pro/Flash), analiza obrazów
   GEMINI_API_KEY?: string;
+
+  // Wykryty plan konta Google Gemini (darmowy Free Tier vs płatny Pay-As-You-Go)
+  GEMINI_TIER?: GeminiTier;
 
   // M5+M6 sesja 146: ELEVENLABS_API_KEY DROPPED per D2.
 
@@ -39,11 +44,16 @@ export function saveApiKeys(keys: ApiKeys): void {
 
   // Sanityzuj i filtruj puste wartości
   const filtered: ApiKeys = {};
-  for (const [k, v] of Object.entries(keys)) {
-    const clean = sanitizeApiKey(v);
+  const stringKeys = ['GEMINI_API_KEY', 'REPLICATE_API_TOKEN', 'VERTEX_AI_API_KEY', 'VERTEX_AI_PROJECT_ID'] as const;
+  for (const key of stringKeys) {
+    const val = keys[key];
+    const clean = sanitizeApiKey(val);
     if (clean) {
-      filtered[k as keyof ApiKeys] = clean;
+      filtered[key] = clean;
     }
+  }
+  if (keys.GEMINI_TIER === 'free' || keys.GEMINI_TIER === 'paid') {
+    filtered.GEMINI_TIER = keys.GEMINI_TIER;
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
@@ -65,11 +75,15 @@ export function getApiKeys(): ApiKeys {
     if (!stored) return {};
     const parsed = JSON.parse(stored) as Record<string, unknown>;
     const sanitized: ApiKeys = {};
-    for (const [k, v] of Object.entries(parsed)) {
-      const clean = sanitizeApiKey(v);
+    const stringKeys = ['GEMINI_API_KEY', 'REPLICATE_API_TOKEN', 'VERTEX_AI_API_KEY', 'VERTEX_AI_PROJECT_ID'] as const;
+    for (const key of stringKeys) {
+      const clean = sanitizeApiKey(parsed[key]);
       if (clean) {
-        sanitized[k as keyof ApiKeys] = clean;
+        sanitized[key] = clean;
       }
+    }
+    if (parsed.GEMINI_TIER === 'free' || parsed.GEMINI_TIER === 'paid') {
+      sanitized.GEMINI_TIER = parsed.GEMINI_TIER;
     }
     return sanitized;
   } catch {
@@ -83,6 +97,31 @@ export function getApiKeys(): ApiKeys {
 export function hasRequiredKeys(): boolean {
   const keys = getApiKeys();
   return !!(keys.GEMINI_API_KEY && keys.GEMINI_API_KEY.trim() !== '');
+}
+
+/**
+ * Zwraca wykryty poziom konta Gemini ('free' | 'paid').
+ * Domyślnie 'free' (tryb bezpieczny, oszczędzający limity API i bez błędów mediów).
+ */
+export function getGeminiTier(): GeminiTier {
+  const keys = getApiKeys();
+  return keys.GEMINI_TIER === 'paid' ? 'paid' : 'free';
+}
+
+/**
+ * Ustawia i zapisuje poziom konta Gemini
+ */
+export function setGeminiTier(tier: GeminiTier): void {
+  const keys = getApiKeys();
+  keys.GEMINI_TIER = tier;
+  saveApiKeys(keys);
+}
+
+/**
+ * Zwraca informację, czy aktywny jest tryb czystego tekstu (konto darmowe bez bilingu na multimedia).
+ */
+export function isPureTextMode(): boolean {
+  return getGeminiTier() === 'free';
 }
 
 /**
@@ -106,6 +145,7 @@ export function getApiKeyHeaders(): Record<string, string> {
   if (gemini) {
     headers['X-Gemini-Api-Key'] = gemini;
   }
+  headers['X-Gemini-Tier'] = getGeminiTier();
   // M5 sesja 146: ELEVENLABS_API_KEY header DROPPED per D2.
   const replicate = sanitizeApiKey(keys.REPLICATE_API_TOKEN);
   if (replicate) {

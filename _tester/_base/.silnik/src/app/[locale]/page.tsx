@@ -176,6 +176,17 @@ export default function Home() {
       return null;
     });
 
+  const handleAdventureSelect = useCallback((adv: AdventureContext | null) => {
+    setAdventureContext(adv);
+    if (typeof window !== 'undefined') {
+      if (adv) {
+        localStorage.setItem('adventure_context', JSON.stringify(adv));
+      } else {
+        localStorage.removeItem('adventure_context');
+      }
+    }
+  }, []);
+
   const [aiSettings, setAiSettings] = useState<AISettings | null>(null);
 
   const pdf = usePdfMemory({
@@ -492,6 +503,17 @@ export default function Home() {
       setShowRulebookModal(true);
       return;
     }
+    if (!adventureContext) {
+      toast({
+        title: locale === 'en' ? 'Select an Adventure' : 'Wybierz scenariusz',
+        description:
+          locale === 'en'
+            ? 'Please select an adventure before starting the game.'
+            : 'Przed rozpoczęciem gry musisz wybrać scenariusz przygody.',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (hotSeat.config.enabled) {
       const players = hotSeat.config.players;
 
@@ -514,16 +536,28 @@ export default function Home() {
         toast({
           title: t('hotSeatNotReady'),
           description,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+      
+      hotSeat.bindCharactersByPlayerName(charMgmt.characters);
+    } else {
+      if (!charMgmt.activeCharacter) {
+        toast({
+          title: locale === 'en' ? 'Select an Investigator' : 'Wybierz badacza',
+          description:
+            locale === 'en'
+              ? 'Please create or select an investigator before starting the game.'
+              : 'Przed rozpoczęciem gry musisz wybrać lub stworzyć badacza.',
           variant: 'destructive',
         });
         return;
       }
-
-      
-      hotSeat.bindCharactersByPlayerName(charMgmt.characters);
     }
     handleStartGame();
-  }, [hotSeat, charMgmt.characters, handleStartGame, t, rulesStatus.hasRules]);
+  }, [hotSeat, charMgmt.characters, charMgmt.activeCharacter, handleStartGame, t, rulesStatus.hasRules, adventureContext, locale]);
 
   
   
@@ -1031,7 +1065,7 @@ export default function Home() {
           registerOpenAdventureSelector={(fn) => {
             openAdventureSelectorRef.current = fn;
           }}
-          onAdventureSelect={setAdventureContext}
+          onAdventureSelect={handleAdventureSelect}
           customAdventures={customAdventures.customAdventures}
           onUploadAdventure={customAdventures.uploadAdventure}
           onDeleteAdventure={customAdventures.deleteAdventure}

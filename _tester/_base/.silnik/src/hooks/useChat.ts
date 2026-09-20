@@ -44,7 +44,11 @@ import {
 } from '@/lib/parsers/mechanics-parser';
 import { updateGuardrailState } from '@/lib/concordia/event-resolution';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
-import { fetchWithApiKeys, hasRequiredKeys } from '@/lib/api-keys-service';
+import {
+  fetchWithApiKeys,
+  hasRequiredKeys,
+  isPureTextMode,
+} from '@/lib/api-keys-service';
 import { timeManager } from '@/lib/time-manager';
 import { parseSSEStream, createSseParseErrorHandler } from '@/lib/sse-parser';
 import { trackEvent } from '@/lib/posthog';
@@ -674,6 +678,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
   const generateImages = useCallback(
     async (illustrations: ImageToGenerate[], messageId: string) => {
+      if (isPureTextMode()) {
+        return;
+      }
       const generatedUrls: string[] = [];
       const generatedTypes: (
         | 'portrait'

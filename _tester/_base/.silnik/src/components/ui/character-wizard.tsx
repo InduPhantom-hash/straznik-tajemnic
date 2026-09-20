@@ -1,14 +1,16 @@
 'use client';
 
 import { SafeImage } from '@/components/ui/safe-image';
-import { Fragment, useState, useCallback, type ReactNode } from 'react';
+import { Fragment, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
+import { Badge } from './badge';
 import { HelpIcon } from './tooltip';
-import { Skull, Zap, Sparkles, Users } from 'lucide-react';
+import { Skull, Zap, Sparkles, Users, RotateCcw } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
+import { PregenCharacterSelector } from './pregen-character-selector';
 import {
   Character,
   EquipmentItem,
@@ -20,7 +22,7 @@ import {
   CHARACTER_ARCHETYPES,
   getAdventureContextPrompt,
 } from '@/lib/adventures-data';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, isPureTextMode } from '@/lib/api-keys-service';
 import {
   findEquipmentByName,
   createEquipmentItem,
@@ -54,6 +56,7 @@ import {
   SKILL_LIMIT_EXCEPTIONS,
   AGE_MODIFIERS,
   FIELD_PROMPTS,
+  PULP_ARCHETYPES,
 } from '@/lib/data/character';
 import {
   roll3d6x5,
@@ -102,6 +105,43 @@ const ARCHETYPE_SKILL_MAP: Record<string, string[]> = {
   healer: ['Medycyna', 'Pierwsza Pomoc', 'Psychologia', 'Nauka (Biologia)'],
   custom: [],
 };
+
+const PULP_ARCHETYPE_ICONS: Record<string, string> = {
+  outsider: '🌲',
+  adventurer: '🧭',
+  cold_blooded: '🧊',
+  crusader: '🛡️',
+  bon_vivant: '🥂',
+  rogue: '🃏',
+  femme_fatale: '💄',
+  fixer: '🤝',
+  hunter: '🏹',
+  dreamer: '💭',
+  mystic: '🔮',
+  egghead: '💡',
+  explorer: '🗺️',
+  beefcake: '🏋️',
+  sidekick: '👥',
+  seeker: '🔍',
+  daredevil: '🏎️',
+  hard_boiled: '🕵️',
+  scholar: '📚',
+  heavy: '🥊',
+  swashbuckler: '⚔️',
+  grease_monkey: '🔧',
+};
+
+function getArchetypeSkills(
+  archetypeId: string | null,
+  rulesetVariant: 'classic' | 'pulp' = 'classic'
+): string[] {
+  if (!archetypeId) return [];
+  if (rulesetVariant === 'pulp') {
+    const found = PULP_ARCHETYPES.find((a) => a.id === archetypeId);
+    return found?.bonusSkills || [];
+  }
+  return ARCHETYPE_SKILL_MAP[archetypeId] || [];
+}
 
 /** Stabilne identyfikatory umiejętności specjalnych (dane aplikacji, nie UI). */
 const NATIVE_LANGUAGE_SKILL = 'J\u0119zyk Ojczysty';
@@ -229,6 +269,18 @@ interface WizardState {
   equipment: string;
 }
 
+interface WizardArchetype {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  suggestedOccupations: string[];
+  suggestedTraits: string[];
+  suggestedMotivations: string[];
+  bonusSkills: string[];
+  coreCharacteristics: string[];
+}
+
 interface Props {
   onCharacterCreated: (character: Character) => void;
   onClose: () => void;
@@ -350,10 +402,65 @@ export function CharacterWizardV2({
     buildInitialState(initialCharacter)
   );
 
+  const availablePregens = adventureContext?.investigatorRequirements?.pregenCharacters;
+  const [showPregenSelector, setShowPregenSelector] = useState<boolean>(() => {
+    return Boolean(!initialCharacter && availablePregens && availablePregens.length > 0);
+  });
+
   // Stan dla wybranego archetypu postaci
   const [selectedArchetypeId, setSelectedArchetypeId] = useState<string | null>(
-    null
+    () => {
+      if (initialCharacter?.archetype) {
+        const classic = CHARACTER_ARCHETYPES.find(
+          (a) => a.id === initialCharacter.archetype || a.name === initialCharacter.archetype
+        );
+        if (classic) return classic.id;
+        const pulp = PULP_ARCHETYPES.find(
+          (a) =>
+            a.id === initialCharacter.archetype ||
+            a.name.pl === initialCharacter.archetype ||
+            a.name.en === initialCharacter.archetype
+        );
+        if (pulp) return pulp.id;
+      }
+      return null;
+    }
   );
+
+  const activeArchetypes = useMemo(() => {
+    if (state.rulesetVariant === 'pulp') {
+      return PULP_ARCHETYPES.map((a) => ({
+        id: a.id,
+        name: a.name[locale === 'en' ? 'en' : 'pl'] || a.name.pl,
+        icon: PULP_ARCHETYPE_ICONS[a.id] || '⚡',
+        description: a.description[locale === 'en' ? 'en' : 'pl'] || a.description.pl,
+        suggestedOccupations: a.suggestedOccupations,
+        suggestedTraits: a.suggestedTraits,
+        suggestedMotivations: [] as string[],
+        bonusSkills: a.bonusSkills,
+        coreCharacteristics: a.coreCharacteristics,
+      }));
+    }
+    return CHARACTER_ARCHETYPES.map((a) => {
+      const localizedName = dynamicT.has?.(`archetypes.${a.id}.name`)
+        ? dynamicT(`archetypes.${a.id}.name`)
+        : a.name;
+      const localizedDesc = dynamicT.has?.(`archetypes.${a.id}.description`)
+        ? dynamicT(`archetypes.${a.id}.description`)
+        : a.description;
+      return {
+        id: a.id,
+        name: localizedName,
+        icon: a.icon,
+        description: localizedDesc,
+        suggestedOccupations: a.suggestedOccupations,
+        suggestedTraits: a.suggestedTraits,
+        suggestedMotivations: a.suggestedMotivations || [],
+        bonusSkills: ARCHETYPE_SKILL_MAP[a.id] || [],
+        coreCharacteristics: [] as string[],
+      };
+    });
+  }, [state.rulesetVariant, locale, dynamicT]);
 
   // Stan wyszukiwarki i filtra profesji (Krok 3)
   const [occupationSearchQuery, setOccupationSearchQuery] = useState('');
@@ -544,9 +651,10 @@ export function CharacterWizardV2({
     const diff = newValue - (state.skills[skillName] || baseValue);
 
     const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
-    const archetypeSkills = selectedArchetypeId
-      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-      : [];
+    const archetypeSkills = getArchetypeSkills(
+      selectedArchetypeId,
+      state.rulesetVariant
+    );
     const occupationalSkills = selectedOcc?.skills || [];
     const recommended = buildRecommendedSkills(
       archetypeSkills,
@@ -589,6 +697,19 @@ export function CharacterWizardV2({
 
   // Stan dla automatycznego rozdzielania punktów
   const [isDistributingSkills, setIsDistributingSkills] = useState(false);
+  // Stan dla modala potwierdzenia resetu punktów
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isResetConfirmOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsResetConfirmOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isResetConfirmOpen]);
 
   // Funkcja AI do automatycznego rozdzielania punktów umiejętności
   const autoDistributeSkillsAI = async () => {
@@ -596,7 +717,7 @@ export function CharacterWizardV2({
     setIsDistributingSkills(true);
 
     const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
     // Majętność jest już opłacona z puli zawodowej (creditRating punktów) -
@@ -611,10 +732,11 @@ export function CharacterWizardV2({
     const totalPoints = occupationalPool + interestPool;
     const occupationalSkills = selectedOcc?.skills || [];
 
-    // Mapowanie archetypów na kluczowe umiejętności (module-level ARCHETYPE_SKILL_MAP)
-    const archetypeSkills = selectedArchetypeId
-      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-      : [];
+    // Mapowanie archetypów na kluczowe umiejętności
+    const archetypeSkills = getArchetypeSkills(
+      selectedArchetypeId,
+      state.rulesetVariant
+    );
 
     // JEDNO źródło prawdy dla rekomendowanych (highlight ★ ORAZ przydział):
     // archetyp ∪ zawód, specjalizacje znormalizowane (`Nauka (Biologia)` →
@@ -998,8 +1120,8 @@ export function CharacterWizardV2({
   const [showPortraitZoom, setShowPortraitZoom] = useState(false);
 
   const generatePortrait = async () => {
-    // Zabezpieczenie: nie uruchamiaj jeśli już trwa generowanie
-    if (state.isGeneratingPortrait) {
+    // Zabezpieczenie: nie uruchamiaj w trybie tekstowym lub gdy już trwa generowanie
+    if (isPureTextMode() || state.isGeneratingPortrait) {
       return;
     }
 
@@ -1391,9 +1513,10 @@ export function CharacterWizardV2({
     }
     if (state.step === 4) {
       const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
-      const archetypeSkills = selectedArchetypeId
-        ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-        : [];
+      const archetypeSkills = getArchetypeSkills(
+        selectedArchetypeId,
+        state.rulesetVariant
+      );
       const occupationalSkills = selectedOcc?.skills || [];
       const recommended = buildRecommendedSkills(
         archetypeSkills,
@@ -1520,7 +1643,7 @@ export function CharacterWizardV2({
     }
 
     // Znajdź wybrany archetyp
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
 
@@ -1701,15 +1824,15 @@ export function CharacterWizardV2({
 
   // NOWY KROK: Koncepcja postaci - wybór archetypu
   const renderStepConcept = () => {
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
-    const archetypeDetails = t.raw('archetypeDetails') as Record<string, {
+    const archetypeDetails = (t.raw('archetypeDetails') || {}) as Record<string, {
       suggestedOccupations: string[];
       suggestedTraits: string[];
       suggestedMotivations: string[];
     }>;
-    const selectedDetails = selectedArchetype
+    const selectedDetails = selectedArchetype && archetypeDetails[selectedArchetype.id]
       ? archetypeDetails[selectedArchetype.id]
       : undefined;
 
@@ -1748,78 +1871,96 @@ export function CharacterWizardV2({
         )}
 
         {/* Odziedziczona konwencja z opcją zmiany */}
-        <div className="flex items-center justify-between border border-brass/30 bg-[#120f0c] px-4 py-2.5 rounded-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              {t('rulesetConventionLabel')}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-display text-xs uppercase font-semibold tracking-wider text-brass">
-              {state.rulesetVariant === 'pulp' ? (
-                <>
-                  <Zap className="h-3.5 w-3.5 text-primary" />
-                  {t('rulesetPulp')}
-                </>
-              ) : (
-                <>
-                  <Skull className="h-3.5 w-3.5 text-brass" />
-                  {t('rulesetClassic')}
-                </>
-              )}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => {
-                setState((prev) => ({
-                  ...prev,
-                  rulesetVariant: 'classic',
-                  derived: calculateDerived(prev.stats, prev.age, 'classic'),
-                }));
-              }}
-              className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border ${
-                state.rulesetVariant === 'classic'
-                  ? 'border-brass bg-brass/20 text-brass font-bold'
-                  : 'border-brass/20 text-muted-foreground hover:text-brass hover:bg-brass/5'
-              }`}
-            >
-              <span className="flex items-center gap-1">
-                <Skull className="h-3 w-3" />
-                {t('rulesetClassicShort')}
+        <div className="flex flex-col gap-2 border border-brass/30 bg-[#120f0c] px-4 py-3 rounded-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                {t('rulesetConventionLabel')}
               </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setState((prev) => ({
-                  ...prev,
-                  rulesetVariant: 'pulp',
-                  derived: calculateDerived(prev.stats, prev.age, 'pulp'),
-                }));
-              }}
-              className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border ${
-                state.rulesetVariant === 'pulp'
-                  ? 'border-primary bg-primary/20 text-primary font-bold shadow-[0_0_8px_rgba(13,148,136,0.3)]'
-                  : 'border-brass/20 text-muted-foreground hover:text-primary hover:bg-primary/5'
-              }`}
-            >
-              <span className="flex items-center gap-1">
-                <Zap className="h-3 w-3" />
-                {t('rulesetPulpShort')}
+              <span className="inline-flex items-center gap-1.5 font-display text-xs uppercase font-semibold tracking-wider text-brass">
+                {state.rulesetVariant === 'pulp' ? (
+                  <>
+                    <Zap className="h-3.5 w-3.5 text-primary" />
+                    {t('rulesetPulp')}
+                  </>
+                ) : (
+                  <>
+                    <Skull className="h-3.5 w-3.5 text-brass" />
+                    {t('rulesetClassic')}
+                  </>
+                )}
               </span>
-            </button>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedArchetypeId(null);
+                  setState((prev) => ({
+                    ...prev,
+                    archetype: '',
+                    rulesetVariant: 'classic',
+                    derived: calculateDerived(prev.stats, prev.age, 'classic'),
+                  }));
+                }}
+                className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border cursor-pointer ${
+                  state.rulesetVariant === 'classic'
+                    ? 'border-brass bg-brass/20 text-brass font-bold'
+                    : 'border-brass/20 text-muted-foreground hover:text-brass hover:bg-brass/5'
+                }`}
+              >
+                <span className="flex items-center gap-1">
+                  <Skull className="h-3 w-3" />
+                  {t('rulesetClassicShort')}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedArchetypeId(null);
+                  setState((prev) => ({
+                    ...prev,
+                    archetype: '',
+                    rulesetVariant: 'pulp',
+                    derived: calculateDerived(prev.stats, prev.age, 'pulp'),
+                  }));
+                }}
+                className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border cursor-pointer ${
+                  state.rulesetVariant === 'pulp'
+                    ? 'border-primary bg-primary/20 text-primary font-bold shadow-[0_0_8px_rgba(13,148,136,0.3)]'
+                    : 'border-brass/20 text-muted-foreground hover:text-primary hover:bg-primary/5'
+                }`}
+              >
+                <span className="flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  {t('rulesetPulpShort')}
+                </span>
+              </button>
+            </div>
           </div>
+          <p className="font-serif italic text-xs text-muted-foreground/90 border-t border-brass/15 pt-2">
+            {state.rulesetVariant === 'pulp'
+              ? t('rulesetPulpExplanation')
+              : t('rulesetClassicExplanation')}
+          </p>
         </div>
 
         {/* Siatka archetypów */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {CHARACTER_ARCHETYPES.map((archetype) => {
+          {activeArchetypes.map((archetype) => {
             const isSelected = selectedArchetypeId === archetype.id;
             return (
               <button
                 key={archetype.id}
-                onClick={() => setSelectedArchetypeId(archetype.id)}
-                className={`p-4 border text-left transition-all duration-200 ${
+                type="button"
+                onClick={() => {
+                  setSelectedArchetypeId(archetype.id);
+                  setState((prev) => ({
+                    ...prev,
+                    archetype: archetype.name,
+                  }));
+                }}
+                className={`p-4 border text-left transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'border-brass/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
                     : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
@@ -1827,10 +1968,10 @@ export function CharacterWizardV2({
               >
                 <div className="text-2xl mb-2">{archetype.icon}</div>
                 <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
-                  {dynamicT.has?.(`archetypes.${archetype.id}.name`) ? dynamicT(`archetypes.${archetype.id}.name`) : archetype.name}
+                  {archetype.name}
                 </h4>
                 <p className="font-serif italic text-sm text-muted-foreground line-clamp-2 mt-1">
-                  {dynamicT.has?.(`archetypes.${archetype.id}.description`) ? dynamicT(`archetypes.${archetype.id}.description`) : archetype.description}
+                  {archetype.description}
                 </p>
               </button>
             );
@@ -1841,10 +1982,10 @@ export function CharacterWizardV2({
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
           <div className="border border-brass/30 bg-[#0e1413] p-4">
             <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
-              {selectedArchetype.icon} {dynamicT(`archetypes.${selectedArchetype.id}.name`)}
+              {selectedArchetype.icon} {selectedArchetype.name}
             </h4>
             <p className="font-serif italic text-sm text-muted-foreground mb-3">
-              {dynamicT(`archetypes.${selectedArchetype.id}.description`)}
+              {selectedArchetype.description}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div>
@@ -1852,7 +1993,7 @@ export function CharacterWizardV2({
                   {t('suggestedOccupations')}
                 </span>
                 <div className="text-foreground">
-                  {(selectedDetails?.suggestedOccupations || selectedArchetype.suggestedOccupations)
+                  {((selectedDetails?.suggestedOccupations || selectedArchetype?.suggestedOccupations) || [])
                     .slice(0, 3)
                     .join(', ')}
                 </div>
@@ -1862,17 +2003,25 @@ export function CharacterWizardV2({
                   {t('traits')}
                 </span>
                 <div className="text-foreground">
-                  {(selectedDetails?.suggestedTraits || selectedArchetype.suggestedTraits).join(', ')}
+                  {((selectedDetails?.suggestedTraits || selectedArchetype?.suggestedTraits) || []).join(', ')}
                 </div>
               </div>
               <div>
                 <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                  {t('motivations')}
+                  {selectedArchetype?.suggestedMotivations?.length
+                    ? t('motivations')
+                    : state.rulesetVariant === 'pulp'
+                      ? (locale === 'en' ? 'Core characteristics:' : 'Cechy kluczowe:')
+                      : t('motivations')}
                 </span>
                 <div className="text-foreground">
-                  {(selectedDetails?.suggestedMotivations || selectedArchetype.suggestedMotivations)
-                    .slice(0, 2)
-                    .join(', ')}
+                  {(selectedArchetype?.suggestedMotivations?.length ?? 0) > 0
+                    ? (selectedDetails?.suggestedMotivations || selectedArchetype?.suggestedMotivations || [])
+                        .slice(0, 2)
+                        .join(', ')
+                    : (selectedArchetype?.coreCharacteristics?.length ?? 0) > 0
+                      ? (selectedArchetype?.coreCharacteristics || []).map((c: string) => c.toUpperCase()).join(', ')
+                      : '—'}
                 </div>
               </div>
             </div>
@@ -2614,7 +2763,7 @@ export function CharacterWizardV2({
     const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
     // Zielone rekomendacje: zawody sugerowane przez wybrany archetyp
     // (suggestedOccupations zawiera id zawodów, zgodne z occ.id).
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
     const scenarioSuggestedOccs = [
@@ -2632,8 +2781,22 @@ export function CharacterWizardV2({
       )
     ).map((o) => o.id);
 
+    const archetypeSuggestedOccs = (selectedArchetype?.suggestedOccupations || []).map((s) =>
+      s.toLowerCase().trim()
+    );
+    const archetypeMatchingOccIds = OCCUPATIONS.filter((o) =>
+      archetypeSuggestedOccs.some(
+        (s) =>
+          o.name.toLowerCase().includes(s) ||
+          o.id.toLowerCase().includes(s) ||
+          s.includes(o.name.toLowerCase()) ||
+          s.includes(o.id.toLowerCase())
+      )
+    ).map((o) => o.id);
+
     const recommendedOccupationIds = new Set([
       ...(selectedArchetype?.suggestedOccupations || []),
+      ...archetypeMatchingOccIds,
       ...scenarioMatchingOccIds,
     ]);
 
@@ -2909,9 +3072,10 @@ export function CharacterWizardV2({
     const totalPointsAvailable = state.occupationPoints + state.interestPoints;
     // Zielone rekomendacje umiejętności: znormalizowany zbiór (archetyp ∪ zawód)
     // identyczny z autoDistributeSkillsAI (buildRecommendedSkills).
-    const archetypeSkills = selectedArchetypeId
-      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-      : [];
+    const archetypeSkills = getArchetypeSkills(
+      selectedArchetypeId,
+      state.rulesetVariant
+    );
     const occupationalSkills = selectedOcc?.skills || [];
     const recommendedSkills = new Set<string>(
       buildRecommendedSkills(archetypeSkills, occupationalSkills)
@@ -2931,27 +3095,135 @@ export function CharacterWizardV2({
       getBaseValue: resolveBaseValue,
     });
 
+    const defaultCreditMin = selectedOcc?.creditMin ?? 0;
+    const hasSkillPointsAllocated = Object.entries(state.skills).some(
+      ([skillName, value]) => {
+        if (skillName === CREDIT_RATING_SKILL || skillName === 'Mity Cthulhu') return false;
+        return (value || 0) > resolveBaseValue(skillName);
+      }
+    );
+    const hasCreditRatingAllocated = (state.creditRating ?? 0) > defaultCreditMin;
+    const canReset = hasSkillPointsAllocated || hasCreditRatingAllocated;
+
+    const handleResetSkills = () => {
+      const initialSkills = getInitialSkills(state.stats.edu, state.stats.dex);
+      const resetSkills = {
+        ...initialSkills,
+        [CREDIT_RATING_SKILL]: defaultCreditMin,
+      };
+
+      const nextUsage = calculateSkillPointsUsage({
+        skills: resetSkills,
+        recommendedSkills,
+        creditRating: defaultCreditMin,
+        occupationPoints: state.occupationPoints,
+        interestPoints: state.interestPoints,
+        getBaseValue: resolveBaseValue,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        skills: resetSkills,
+        creditRating: defaultCreditMin,
+        occupationPointsUsed: nextUsage.occupationPointsUsed,
+        interestPointsUsed: nextUsage.interestPointsUsed,
+      }));
+      setIsResetConfirmOpen(false);
+    };
+
     return (
       <div className="space-y-4">
+        {isResetConfirmOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-skills-title"
+            data-testid="reset-skills-confirm-dialog"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+            onClick={() => setIsResetConfirmOpen(false)}
+          >
+            <div
+              className="relative bg-[#14110c] border-2 border-brass/50 p-6 max-w-md w-full shadow-[0_0_30px_rgba(0,0,0,.8)] space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Narożniki déco */}
+              <span className="pointer-events-none absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/70" />
+              <span className="pointer-events-none absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-brass/70" />
+              <span className="pointer-events-none absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-brass/70" />
+              <span className="pointer-events-none absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/70" />
+
+              <div className="space-y-2 text-center">
+                <h3
+                  id="reset-skills-title"
+                  className="font-display font-bold uppercase tracking-[0.1em] text-lg text-brass"
+                >
+                  {t('resetSkillsConfirmTitle')}
+                </h3>
+                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed">
+                  {t('resetSkillsConfirmDesc', { creditMin: defaultCreditMin })}
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2 border-t border-brass/20">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="reset-skills-cancel-btn"
+                  onClick={() => setIsResetConfirmOpen(false)}
+                  className="font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground border-brass/30 hover:border-brass/60 hover:text-brass px-4 py-2"
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  data-testid="reset-skills-confirm-btn"
+                  onClick={handleResetSkills}
+                  className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2 flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  {t('resetSkillsConfirmAction')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <StepHeading
           title={t('stepSkillsTitle')}
           subtitle={t('stepSkillsSubtitle')}
           action={
-            <Button
-              onClick={autoDistributeSkillsAI}
-              disabled={isDistributingSkills || totalPointsAvailable === 0}
-              size="sm"
-              className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 flex items-center gap-2"
-            >
-              <Sparkles
-                className={`w-4 h-4 text-[#04110f] ${
-                  isDistributingSkills ? 'animate-spin' : ''
-                }`}
-              />
-              {isDistributingSkills
-                ? t('distributing')
-                : t('distributeWithAi')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={() => setIsResetConfirmOpen(true)}
+                disabled={!canReset || isDistributingSkills}
+                variant="outline"
+                size="sm"
+                data-testid="reset-skills-button"
+                className="font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground bg-transparent border-brass/30 hover:border-brass/60 hover:text-brass px-3.5 py-2.5 flex items-center gap-2 disabled:opacity-40"
+              >
+                <RotateCcw className="w-4 h-4" />
+                {t('resetSkills')}
+              </Button>
+              <Button
+                type="button"
+                onClick={autoDistributeSkillsAI}
+                disabled={isDistributingSkills || totalPointsAvailable === 0}
+                size="sm"
+                className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 flex items-center gap-2"
+              >
+                <Sparkles
+                  className={`w-4 h-4 text-[#04110f] ${
+                    isDistributingSkills ? 'animate-spin' : ''
+                  }`}
+                />
+                {isDistributingSkills
+                  ? t('distributing')
+                  : t('distributeWithAi')}
+              </Button>
+            </div>
           }
         />
 
@@ -3223,7 +3495,7 @@ export function CharacterWizardV2({
         )}
 
         {/* Lista umiejętności */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[45vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
           {Object.entries(state.skills)
             .filter(([name]) => name !== CREDIT_RATING_SKILL)
             .map(([skillName, value]) => {
@@ -3321,7 +3593,7 @@ export function CharacterWizardV2({
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
             {t('fullName')}
@@ -3398,7 +3670,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, ideology: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('ideologyPlaceholder')}
           />
         </div>
@@ -3420,7 +3692,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, importantPeople: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('importantPeoplePlaceholder')}
           />
         </div>
@@ -3445,7 +3717,7 @@ export function CharacterWizardV2({
                 significantPlaces: e.target.value,
               }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('significantPlacesPlaceholder')}
           />
         </div>
@@ -3467,7 +3739,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, personalItems: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('personalItemsPlaceholder')}
           />
         </div>
@@ -3489,7 +3761,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, traits: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('traitsPlaceholder')}
           />
         </div>
@@ -3511,7 +3783,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, keyConnection: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none"
             placeholder={t('keyConnectionPlaceholder')}
           />
         </div>
@@ -3540,7 +3812,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, backstory: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] focus:outline-none leading-relaxed font-serif"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] 2xl:min-h-[280px] focus:outline-none leading-relaxed font-serif"
             placeholder={t('fullHistoryPlaceholder')}
           />
         </div>
@@ -3600,29 +3872,43 @@ export function CharacterWizardV2({
                     👤
                   </div>
                 )}
-                <div className="flex-1 space-y-2 text-center sm:text-left">
-                  <Button
-                    onClick={generatePortrait}
-                    disabled={state.isGeneratingPortrait}
-                    size="sm"
-                    className={
-                      state.portraitUrl
-                        ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
-                        : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
-                    }
-                  >
-                    {state.isGeneratingPortrait
-                      ? t('generating')
-                      : state.portraitUrl
-                        ? `🔄 ${t('generateAnotherPortrait')}`
-                        : `🎨 ${t('generateAiPortrait')}`}
-                  </Button>
-                  <p className="font-serif italic text-xs text-muted-foreground leading-snug">
-                    {state.portraitUrl
-                      ? t('replacePortraitHint')
-                      : t('portraitGenerationHint')}
-                  </p>
-                </div>
+                {isPureTextMode() ? (
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
+                    <Badge
+                      variant="outline"
+                      className="font-mono text-[11px] text-amber-400 border-amber-500/40 bg-amber-950/20 px-2.5 py-1"
+                    >
+                      📜 {t('pureTextDossierBadge')}
+                    </Badge>
+                    <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                      {t('pureTextDossierHint')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
+                    <Button
+                      onClick={generatePortrait}
+                      disabled={state.isGeneratingPortrait}
+                      size="sm"
+                      className={
+                        state.portraitUrl
+                          ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
+                          : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
+                      }
+                    >
+                      {state.isGeneratingPortrait
+                        ? t('generating')
+                        : state.portraitUrl
+                          ? `🔄 ${t('generateAnotherPortrait')}`
+                          : `🎨 ${t('generateAiPortrait')}`}
+                    </Button>
+                    <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                      {state.portraitUrl
+                        ? t('replacePortraitHint')
+                        : t('portraitGenerationHint')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -3769,11 +4055,11 @@ export function CharacterWizardV2({
   return (
     <div
       data-testid="character-wizard"
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black z-50 p-0 flex flex-col w-screen h-screen overflow-hidden"
     >
       <div
         data-testid="character-wizard-modal"
-        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[80vw] h-[78vh] max-h-[85vh] overflow-hidden flex flex-col"
+        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] w-full h-full max-w-none max-h-none overflow-hidden flex flex-col"
       >
         {/* Narożniki déco */}
         <span className="pointer-events-none absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-brass/55" />

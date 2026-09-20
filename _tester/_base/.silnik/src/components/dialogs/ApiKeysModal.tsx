@@ -24,7 +24,13 @@ import {
   EyeOff,
   Loader2,
 } from 'lucide-react';
-import { ApiKeys, saveApiKeys, getApiKeys } from '@/lib/api-keys-service';
+import {
+  ApiKeys,
+  saveApiKeys,
+  getApiKeys,
+  getGeminiTier,
+  type GeminiTier,
+} from '@/lib/api-keys-service';
 
 interface ApiKeysModalProps {
   open: boolean;
@@ -42,11 +48,14 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
   >('idle');
   const [validationErrorCode, setValidationErrorCode] = useState<string | null>(null);
   const [validationErrorDetails, setValidationErrorDetails] = useState<string | null>(null);
+  const [geminiTier, setGeminiTierState] = useState<GeminiTier>('free');
 
   // Załaduj zapisane klucze przy otwarciu
   useEffect(() => {
     if (open) {
-      setKeys(getApiKeys());
+      const loaded = getApiKeys();
+      setKeys(loaded);
+      setGeminiTierState(getGeminiTier());
       setSaved(false);
       setGeminiValidation('idle');
       setValidationErrorCode(null);
@@ -65,33 +74,38 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
     }
   };
 
-  // Testowe wywołanie Gemini przez /api/chat-test z precyzyjną diagnozą błędu
-  const handleValidateGemini = async (keyOverride?: string): Promise<boolean> => {
+  // Testowe wywołanie Gemini przez /api/chat-test z precyzyjną diagnozą błędu i detekcją tieru
+  const handleValidateGemini = async (
+    keyOverride?: string
+  ): Promise<{ valid: boolean; tier: GeminiTier }> => {
     const key = (keyOverride ?? keys.GEMINI_API_KEY)?.trim();
     if (!key) {
       setGeminiValidation('invalid');
       setValidationErrorCode('AUTH_FAILED');
-      return false;
+      return { valid: false, tier: 'free' };
     }
     setGeminiValidation('checking');
     setValidationErrorCode(null);
     setValidationErrorDetails(null);
     try {
       const { geminiService } = await import('@/lib/gemini-service');
-      const res = await geminiService.validateApiKey(key);
+      const res = await geminiService.validateApiKey(key, { checkTier: true });
       if (res.valid) {
+        const detectedTier: GeminiTier = res.tier === 'paid' ? 'paid' : 'free';
+        setGeminiTierState(detectedTier);
+        setKeys((prev) => ({ ...prev, GEMINI_TIER: detectedTier }));
         setGeminiValidation('valid');
-        return true;
+        return { valid: true, tier: detectedTier };
       } else {
         setGeminiValidation('invalid');
         setValidationErrorCode(res.code || 'UNKNOWN');
         setValidationErrorDetails(res.details || null);
-        return false;
+        return { valid: false, tier: 'free' };
       }
     } catch {
       setGeminiValidation('invalid');
       setValidationErrorCode('NETWORK_ERROR');
-      return false;
+      return { valid: false, tier: 'free' };
     }
   };
 
@@ -99,18 +113,17 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
     const key = keys.GEMINI_API_KEY?.trim();
     if (!key) return;
 
-    // Twarda bramka: jeśli klucz jest invalid, nie zezwalaj na zapis
-    if (geminiValidation === 'invalid') return;
-
-    // Jeśli klucz nie był jeszcze walidowany (idle), uruchom walidację przed zapisem
-    if (geminiValidation === 'idle') {
-      const ok = await handleValidateGemini(key);
-      if (!ok) {
-        return; // Blokada zapisu przy nieudanym teście
+    let finalTier = geminiTier;
+    // Jeśli klucz nie został jeszcze pomyślnie zwalidowany, uruchom walidację
+    if (geminiValidation !== 'valid') {
+      const validationRes = await handleValidateGemini(key);
+      if (!validationRes.valid) {
+        return; // Blokada zapisu przy błędnym kluczu
       }
+      finalTier = validationRes.tier;
     }
 
-    saveApiKeys(keys);
+    saveApiKeys({ ...keys, GEMINI_TIER: finalTier });
     setSaved(true);
     setTimeout(() => {
       onOpenChange(false);
@@ -205,57 +218,55 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
 
             <p className="text-xs text-muted-foreground">{t('geminiHint')}</p>
 
-            {/* Walidacja klucza Gemini "czy żyje" */}
-            <div className="flex flex-col gap-2 pt-1">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleValidateGemini()}
-                  disabled={
-                    !keys.GEMINI_API_KEY?.trim() ||
-                    geminiValidation === 'checking'
-                  }
-                >
-                  {geminiValidation === 'checking' ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      {t('checking')}
-                    </>
-                  ) : (
-                    t('checkKey')
-                  )}
-                </Button>
+            {/* Komunikat o stanie walidacji klucza Gemini */}
+            {(geminiValidation === 'valid' || geminiValidation === 'invalid') && (
+              <div className="flex flex-col gap-2 pt-1">
                 {geminiValidation === 'valid' && (
-                  <span className="text-xs text-green-500 flex items-center gap-1 font-medium">
-                    <Check className="w-3.5 h-3.5" /> {t('keyWorks')}
-                  </span>
+                  <div className="flex flex-col gap-1.5 p-2.5 rounded border border-border/40 bg-card/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-green-500 flex items-center gap-1 font-medium">
+                        <Check className="w-3.5 h-3.5" /> {t('keyWorks')}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={
+                          geminiTier === 'paid'
+                            ? 'text-emerald-400 border-emerald-500/40 bg-emerald-950/30 text-[11px] font-mono'
+                            : 'text-amber-400 border-amber-500/40 bg-amber-950/30 text-[11px] font-mono'
+                        }
+                      >
+                        {geminiTier === 'paid' ? t('paidTierBadge') : t('freeTierBadge')}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-normal">
+                      {geminiTier === 'paid' ? t('paidTierDesc') : t('freeTierDesc')}
+                    </p>
+                  </div>
+                )}
+
+                {geminiValidation === 'invalid' && (
+                  <div className="text-xs text-red-400 flex flex-col gap-0.5 bg-red-950/20 border border-red-900/30 rounded p-2">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                      {validationErrorCode === 'AUTH_FAILED'
+                        ? t('authFailed')
+                        : validationErrorCode === 'PERMISSION_DENIED'
+                          ? t('permissionDenied')
+                          : validationErrorCode === 'QUOTA_EXCEEDED'
+                            ? t('quotaExceeded')
+                            : validationErrorCode === 'NETWORK_ERROR'
+                              ? t('networkError')
+                              : t('keyInvalid')}
+                    </span>
+                    {validationErrorDetails && (
+                      <span className="text-[11px] text-muted-foreground pl-5.5 font-mono">
+                        {validationErrorDetails}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
-
-              {geminiValidation === 'invalid' && (
-                <div className="text-xs text-red-400 flex flex-col gap-0.5 bg-red-950/20 border border-red-900/30 rounded p-2">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                    {validationErrorCode === 'AUTH_FAILED'
-                      ? t('authFailed')
-                      : validationErrorCode === 'PERMISSION_DENIED'
-                        ? t('permissionDenied')
-                        : validationErrorCode === 'QUOTA_EXCEEDED'
-                          ? t('quotaExceeded')
-                          : validationErrorCode === 'NETWORK_ERROR'
-                            ? t('networkError')
-                            : t('keyInvalid')}
-                  </span>
-                  {validationErrorDetails && (
-                    <span className="text-[11px] text-muted-foreground pl-5.5 font-mono">
-                      {validationErrorDetails}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Instrukcja */}
@@ -296,7 +307,6 @@ export const ApiKeysModal: FC<ApiKeysModalProps> = ({ open, onOpenChange }) => {
             onClick={handleSave}
             disabled={
               !keys.GEMINI_API_KEY?.trim() ||
-              geminiValidation === 'invalid' ||
               geminiValidation === 'checking'
             }
           >

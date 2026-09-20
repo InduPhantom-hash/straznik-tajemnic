@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { SessionZeroModal } from './session-zero-modal';
 import type { Character } from '@/lib/types';
 import type { AdventureContext } from '@/lib/adventures-data';
@@ -13,8 +13,6 @@ jest.mock('@/lib/ai-settings', () => ({
 }));
 
 describe('SessionZeroModal', () => {
-  const fetchMock = fetchWithApiKeys as jest.Mock;
-  const collectMock = collectSSEText as jest.Mock;
   const onClose = jest.fn();
   const onComplete = jest.fn();
   const onCharacterUpdate = jest.fn();
@@ -41,60 +39,77 @@ describe('SessionZeroModal', () => {
 
   function renderModal() {
     return render(
-      <SessionZeroModal open onClose={onClose} onComplete={onComplete}
-        onCharacterUpdate={onCharacterUpdate} adventureContext={adventure}
-        activeCharacter={character} />
+      <SessionZeroModal
+        open
+        onClose={onClose}
+        onComplete={onComplete}
+        onCharacterUpdate={onCharacterUpdate}
+        adventureContext={adventure}
+        activeCharacter={character}
+      />
     );
   }
 
-  it('renders three steps and displays the diegetic briefing document in step 2', () => {
+  it('renders single-screen view without multi-step wizard or summary', () => {
     renderModal();
-    expect(screen.getByText('Krok 1 z 3')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Briefing śledczy/i }));
-    expect(screen.getByText('Krok 2 z 3')).toBeInTheDocument();
-    expect(screen.getByText('WESTERN UNION TELEGRAPH CO.')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Dalej/i }));
-    expect(screen.getByText('Krok 3 z 3')).toBeInTheDocument();
+    expect(screen.getByText('Sesja Zero')).toBeInTheDocument();
+    expect(screen.queryByText(/Krok 1 z 2/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Krok 2 z 2/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Sesja Zero ukończona/i)).not.toBeInTheDocument();
+
+    expect(screen.getByText('🚫 Granice narracyjne i realia historyczne')).toBeInTheDocument();
     expect(screen.getByText('Realia Historyczne')).toBeInTheDocument();
-  });
-
-  it('allows switching between telegram, letter and dossier in step 2', () => {
-    renderModal();
-    fireEvent.click(screen.getByRole('button', { name: /Briefing śledczy/i }));
-    expect(screen.getByText('WESTERN UNION TELEGRAPH CO.')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'List Zlecający Śledztwo' }));
-    expect(screen.getByText(/Do rąk własnych Badacza/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Teczka Akt Śledczych' }));
-    expect(screen.getByText(/AKTA ŚLEDCZE N°/i)).toBeInTheDocument();
-  });
-
-  it('uses the selected adventure realia and preserves modern sensitivity', () => {
-    renderModal();
-    fireEvent.click(screen.getByRole('button', { name: /Granice i realia/i }));
-    expect(screen.getByText('Realia Historyczne')).toBeInTheDocument();
-    expect(screen.getAllByText('Realia epoki').length).toBeGreaterThan(0);
+    expect(screen.getByText('Realia epoki')).toBeInTheDocument();
     expect(screen.getByText('Współczesna wrażliwość')).toBeInTheDocument();
   });
 
-  it('updates investigator hook in step 2 via suggested hook buttons and completes session zero', () => {
+  it('starts with empty lines and veils and offers formerly default topics as suggestions', () => {
     renderModal();
-    fireEvent.click(screen.getByRole('button', { name: /Briefing śledczy/i }));
-    fireEvent.click(screen.getByRole('button', { name: /\+ Spłata dawnego długu wdzięczności/i }));
 
-    const hookInput = screen.getByPlaceholderText('Dlaczego badacz podejmuje sprawę...');
-    expect(hookInput).toHaveValue('Spłata dawnego długu wdzięczności');
+    // Suggested lines should have former defaults at the beginning
+    expect(screen.getByText('+ Przemoc wobec dzieci')).toBeInTheDocument();
+    expect(screen.getByText('+ Przemoc seksualna')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Dalej/i }));
-    expect(screen.getByText('Krok 3 z 3')).toBeInTheDocument();
+    // Suggested veils should have former defaults at the beginning
+    expect(screen.getByText('+ Tortury (fade to black)')).toBeInTheDocument();
+    expect(screen.getByText('+ Szczegółowe obrażenia ciała')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Zakończ i zapisz/i }));
+    // Adding topic by clicking suggestion
+    fireEvent.click(screen.getByText('+ Przemoc wobec dzieci'));
+    expect(screen.getByText('✓ Przemoc wobec dzieci')).toBeInTheDocument();
+
+    // Now it is in the active lines pills
+    const removeButtons = screen.getAllByRole('button', { name: '×' });
+    expect(removeButtons.length).toBe(1);
+
+    // Clicking remove removes it
+    fireEvent.click(removeButtons[0]);
+    expect(screen.queryByRole('button', { name: '×' })).not.toBeInTheDocument();
+  });
+
+  it('completes session zero and forwards configured settings', () => {
+    renderModal();
+
+    // Switch era filter
+    fireEvent.click(screen.getByText('Współczesna wrażliwość'));
+
+    // Save
+    fireEvent.click(screen.getByRole('button', { name: /Zapisz ustalenia/i }));
     expect(onComplete).toHaveBeenCalledWith(
       expect.objectContaining({
         completed: true,
-        investigatorHook: 'Spłata dawnego długu wdzięczności',
+        eraFilter: 'modern_sensibilities',
+        lines: [],
+        veils: [],
       })
     );
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('cancels session zero when clicking cancel', () => {
+    renderModal();
+    fireEvent.click(screen.getByRole('button', { name: /Anuluj/i }));
+    expect(onClose).toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
   });
 });

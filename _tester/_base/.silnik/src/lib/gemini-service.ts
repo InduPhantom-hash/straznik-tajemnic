@@ -30,6 +30,7 @@ export interface ApiKeyValidationResult {
   code?: 'AUTH_FAILED' | 'PERMISSION_DENIED' | 'QUOTA_EXCEEDED' | 'MODEL_NOT_FOUND' | 'NETWORK_ERROR' | 'UNKNOWN';
   error?: string;
   details?: string;
+  tier?: 'free' | 'paid';
   status?: number;
 }
 
@@ -332,7 +333,7 @@ class GeminiService {
   }
 
   // Szczegółowa walidacja klucza API ze statusem i kodem błędu
-  async validateApiKey(apiKey?: string): Promise<ApiKeyValidationResult> {
+  async validateApiKey(apiKey?: string, options?: { checkTier?: boolean }): Promise<ApiKeyValidationResult> {
     try {
       console.log('🔍 Testing Gemini API connection...');
       const effectiveKey = apiKey ?? loadAISettings().geminiApiKey;
@@ -353,6 +354,7 @@ class GeminiService {
         body: JSON.stringify({
           testConnection: true,
           apiKey: effectiveKey,
+          checkTier: options?.checkTier ?? true,
         }),
       });
 
@@ -379,6 +381,7 @@ class GeminiService {
       return {
         valid: isSuccess,
         details: data.response,
+        tier: data.tier || 'free',
         status: response.status,
       };
     } catch (error) {
