@@ -42,6 +42,7 @@ describe('LanguageSelectionContent', () => {
     // Lovecraft Epitaph & Tribute
     expect(screen.getByText(/„I AM PROVIDENCE” \(Jestem Providence\)/i)).toBeInTheDocument();
     expect(screen.getByText(/W hołdzie twórczości H\.P\. Lovecrafta/i)).toBeInTheDocument();
+    expect(screen.getByText(/In tribute to the work of H\.P\. Lovecraft/i)).toBeInTheDocument();
   });
 
   it('calls onSelectLanguage with "pl" and "metric" when clicking Polski button', () => {
