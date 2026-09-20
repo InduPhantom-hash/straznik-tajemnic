@@ -5,7 +5,7 @@
  *
  * Optymalizacja pamięciowa (Issue #419):
  *  - Schemat IndexedDB podniesiony do v2 ze składowaniem per-rekord (`key: adv.id`).
- *  - Kompresja ciężkich struktur (`graph`, `fullNarrativeSummary`, `lorebookData`)
+ *  - Kompresja ciężkich struktur (`graph`, `fullNarrativeSummary`, `lorebookData`, `puzzles`, `handouts`)
  *    za pomocą standardowego browserowego `CompressionStream('gzip')` i `DecompressionStream('gzip')`
  *    (lub fallbacku JSON przy braku wsparcia strumieni kompresji).
  *  - 100% wsteczna kompatybilność: legacy rekord `'default'` z v1 jest automatycznie i
@@ -13,6 +13,8 @@
  *  - W localStorage trzymana jest wyłącznie ultralekka kopia metadanych (id, title, era,
  *    eraLabel, yearRange, location, country, isCustom, fileName) bez ciężkich grafów,
  *    gwarantując bezpieczeństwo przed przekroczeniem limitu pamięci (DOM QuotaExceededError).
+ *  - Bezpieczna hydratacja: odczyt z localStorage / fallbacku automatycznie uzupełnia
+ *    wymagane pola (themes, graph, hook, etc.) zapobiegając crashom UI.
  */
 
 import type { CustomAdventure } from './adventures-data';
@@ -35,6 +37,7 @@ export interface HeavyAdventureData {
   fullNarrativeSummary?: string;
   lorebookData?: unknown;
   puzzles?: unknown[];
+  handouts?: unknown[];
   [key: string]: unknown;
 }
 
@@ -81,21 +84,31 @@ export interface StoredLeanAdventures {
   isLeanBackup?: boolean;
 }
 
+interface GlobalStreamEnvironment {
+  CompressionStream?: typeof CompressionStream;
+  DecompressionStream?: typeof DecompressionStream;
+  ReadableStream?: typeof ReadableStream;
+  TextEncoder?: typeof TextEncoder;
+  TextDecoder?: typeof TextDecoder;
+}
+
 function isIndexedDBAvailable(): boolean {
   return typeof indexedDB !== 'undefined';
 }
 
 export function getCompressionStream(): typeof CompressionStream | undefined {
   if (typeof CompressionStream !== 'undefined') return CompressionStream;
-  if (typeof window !== 'undefined' && (window as any).CompressionStream) {
-    return (window as any).CompressionStream;
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as GlobalStreamEnvironment;
+    if (win.CompressionStream) return win.CompressionStream;
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).CompressionStream) {
-    return (globalThis as any).CompressionStream;
+  if (typeof globalThis !== 'undefined') {
+    const gt = globalThis as unknown as GlobalStreamEnvironment;
+    if (gt.CompressionStream) return gt.CompressionStream;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const streamWeb = require('stream/web');
+    const streamWeb = require('stream/web') as GlobalStreamEnvironment;
     if (streamWeb?.CompressionStream) return streamWeb.CompressionStream;
   } catch {}
   return undefined;
@@ -103,15 +116,17 @@ export function getCompressionStream(): typeof CompressionStream | undefined {
 
 export function getDecompressionStream(): typeof DecompressionStream | undefined {
   if (typeof DecompressionStream !== 'undefined') return DecompressionStream;
-  if (typeof window !== 'undefined' && (window as any).DecompressionStream) {
-    return (window as any).DecompressionStream;
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as GlobalStreamEnvironment;
+    if (win.DecompressionStream) return win.DecompressionStream;
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).DecompressionStream) {
-    return (globalThis as any).DecompressionStream;
+  if (typeof globalThis !== 'undefined') {
+    const gt = globalThis as unknown as GlobalStreamEnvironment;
+    if (gt.DecompressionStream) return gt.DecompressionStream;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const streamWeb = require('stream/web');
+    const streamWeb = require('stream/web') as GlobalStreamEnvironment;
     if (streamWeb?.DecompressionStream) return streamWeb.DecompressionStream;
   } catch {}
   return undefined;
@@ -119,15 +134,17 @@ export function getDecompressionStream(): typeof DecompressionStream | undefined
 
 export function getReadableStream(): typeof ReadableStream | undefined {
   if (typeof ReadableStream !== 'undefined') return ReadableStream;
-  if (typeof window !== 'undefined' && (window as any).ReadableStream) {
-    return (window as any).ReadableStream;
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as GlobalStreamEnvironment;
+    if (win.ReadableStream) return win.ReadableStream;
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).ReadableStream) {
-    return (globalThis as any).ReadableStream;
+  if (typeof globalThis !== 'undefined') {
+    const gt = globalThis as unknown as GlobalStreamEnvironment;
+    if (gt.ReadableStream) return gt.ReadableStream;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const streamWeb = require('stream/web');
+    const streamWeb = require('stream/web') as GlobalStreamEnvironment;
     if (streamWeb?.ReadableStream) return streamWeb.ReadableStream;
   } catch {}
   return undefined;
@@ -135,34 +152,38 @@ export function getReadableStream(): typeof ReadableStream | undefined {
 
 export function getTextEncoder(): typeof TextEncoder {
   if (typeof TextEncoder !== 'undefined') return TextEncoder;
-  if (typeof window !== 'undefined' && (window as any).TextEncoder) {
-    return (window as any).TextEncoder;
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as GlobalStreamEnvironment;
+    if (win.TextEncoder) return win.TextEncoder;
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).TextEncoder) {
-    return (globalThis as any).TextEncoder;
+  if (typeof globalThis !== 'undefined') {
+    const gt = globalThis as unknown as GlobalStreamEnvironment;
+    if (gt.TextEncoder) return gt.TextEncoder;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const util = require('util');
+    const util = require('util') as { TextEncoder?: typeof TextEncoder };
     if (util?.TextEncoder) return util.TextEncoder;
   } catch {}
-  return (global as any).TextEncoder;
+  return (global as unknown as { TextEncoder: typeof TextEncoder }).TextEncoder;
 }
 
 export function getTextDecoder(): typeof TextDecoder {
   if (typeof TextDecoder !== 'undefined') return TextDecoder;
-  if (typeof window !== 'undefined' && (window as any).TextDecoder) {
-    return (window as any).TextDecoder;
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as GlobalStreamEnvironment;
+    if (win.TextDecoder) return win.TextDecoder;
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).TextDecoder) {
-    return (globalThis as any).TextDecoder;
+  if (typeof globalThis !== 'undefined') {
+    const gt = globalThis as unknown as GlobalStreamEnvironment;
+    if (gt.TextDecoder) return gt.TextDecoder;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const util = require('util');
+    const util = require('util') as { TextDecoder?: typeof TextDecoder };
     if (util?.TextDecoder) return util.TextDecoder;
   } catch {}
-  return (global as any).TextDecoder;
+  return (global as unknown as { TextDecoder: typeof TextDecoder }).TextDecoder;
 }
 
 export function isCompressionStreamSupported(): boolean {
@@ -176,15 +197,24 @@ export function isCompressionStreamSupported(): boolean {
 }
 
 export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64');
+  }
   let binary = '';
   const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  const CHUNK_SIZE = 0x8000;
+  for (let i = 0; i < len; i += CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, Math.min(i + CHUNK_SIZE, len));
+    binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
   return btoa(binary);
 }
 
 export function base64ToUint8Array(base64: string): Uint8Array {
+  if (typeof Buffer !== 'undefined') {
+    const buf = Buffer.from(base64, 'base64');
+    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+  }
   const binary = atob(base64);
   const len = binary.length;
   const bytes = new Uint8Array(len);
@@ -213,11 +243,13 @@ export async function compressPayload(data: unknown): Promise<Uint8Array | null>
     const encodedData = encoder.encode(jsonString);
 
     const stream = new RS({
-      start(controller: any) {
+      start(controller: ReadableStreamDefaultController<Uint8Array>) {
         controller.enqueue(encodedData);
         controller.close();
       },
-    }).pipeThrough(new CS('gzip'));
+    }).pipeThrough(
+      new CS('gzip') as unknown as ReadableWritablePair<Uint8Array, Uint8Array>
+    );
 
     const reader = stream.getReader();
     const chunks: Uint8Array[] = [];
@@ -284,14 +316,24 @@ export async function decompressPayload<T = unknown>(
 
   try {
     const inputBytes =
-      payload instanceof Uint8Array ? payload : new Uint8Array(payload as ArrayBuffer);
+      payload instanceof Uint8Array
+        ? payload
+        : ArrayBuffer.isView(payload)
+        ? new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength)
+        : payload instanceof ArrayBuffer
+        ? new Uint8Array(payload)
+        : null;
+
+    if (!inputBytes) return null;
 
     const stream = new RS({
-      start(controller: any) {
+      start(controller: ReadableStreamDefaultController<Uint8Array>) {
         controller.enqueue(inputBytes);
         controller.close();
       },
-    }).pipeThrough(new DCS('gzip'));
+    }).pipeThrough(
+      new DCS('gzip') as unknown as ReadableWritablePair<Uint8Array, Uint8Array>
+    );
 
     const reader = stream.getReader();
     const chunks: Uint8Array[] = [];
@@ -316,33 +358,41 @@ export async function decompressPayload<T = unknown>(
 }
 
 /**
- * Wyodrębnia ciężkie struktury (graf, syntezę narracyjną, lorebook, zagadki) z przygody
+ * Wyodrębnia ciężkie struktury (graf, syntezę narracyjną, lorebook, zagadki, wycinki handoutów) z przygody
+ * i tworzy prawdziwie oczyszczony obiekt bazy leanAdv.
  */
 export function extractHeavyData(adv: CustomAdventure): {
   leanAdv: CustomAdventure;
   heavyData: HeavyAdventureData;
   hasHeavy: boolean;
 } {
-  const { graph, ...rest } = adv;
   const anyAdv = adv as unknown as Record<string, unknown>;
+  const {
+    graph,
+    lorebookData,
+    puzzles,
+    handouts,
+    ...rest
+  } = anyAdv;
+
   const fullNarrativeSummary =
-    typeof anyAdv.fullNarrativeSummary === 'string'
-      ? anyAdv.fullNarrativeSummary
+    typeof rest.fullNarrativeSummary === 'string'
+      ? (rest.fullNarrativeSummary as string)
       : undefined;
-  const lorebookData = adv.lorebookData;
-  const puzzles = adv.puzzles;
+  delete rest.fullNarrativeSummary;
 
   const heavyData: HeavyAdventureData = {};
   let hasHeavy = false;
 
   if (
     graph &&
-    (graph.locations?.length ||
-      graph.npcs?.length ||
-      graph.clues?.length ||
-      graph.connections?.length)
+    typeof graph === 'object' &&
+    ((graph as AdventureGraph).locations?.length ||
+      (graph as AdventureGraph).npcs?.length ||
+      (graph as AdventureGraph).clues?.length ||
+      (graph as AdventureGraph).connections?.length)
   ) {
-    heavyData.graph = graph;
+    heavyData.graph = graph as AdventureGraph;
     hasHeavy = true;
   }
 
@@ -356,17 +406,85 @@ export function extractHeavyData(adv: CustomAdventure): {
     hasHeavy = true;
   }
 
-  if (puzzles && puzzles.length > 0) {
+  if (Array.isArray(puzzles) && puzzles.length > 0) {
     heavyData.puzzles = puzzles;
     hasHeavy = true;
   }
 
-  const leanAdv: CustomAdventure = {
+  if (Array.isArray(handouts) && handouts.length > 0) {
+    heavyData.handouts = handouts;
+    hasHeavy = true;
+  }
+
+  const leanAdv = {
     ...rest,
     graph: { npcs: [], locations: [], clues: [], connections: [] },
-  };
+  } as unknown as CustomAdventure;
 
   return { leanAdv, heavyData, hasHeavy };
+}
+
+/**
+ * Uzupełnia brakujące pola w ultralekkiej kopii metadanych, gwarantując bezpieczne
+ * uruchomienie komponentów UI i promptów AI bez błędów undefined.
+ */
+export function hydrateLeanAdventure(raw: Partial<CustomAdventure>): CustomAdventure {
+  const era = raw.era || 'classic';
+  return {
+    id: raw.id || `custom-${Date.now()}`,
+    title: raw.title || 'Niezatytułowana przygoda',
+    era,
+    eraLabel:
+      raw.eraLabel ||
+      (era === 'gaslight'
+        ? 'Wiktoriańska Anglia'
+        : era === 'prl'
+        ? 'Polska Rzeczpospolita Ludowa'
+        : era === 'noir'
+        ? 'Lata 30. / Noir'
+        : era === 'modern'
+        ? 'Współczesność'
+        : 'Klasyczne lata 20.'),
+    yearRange: raw.yearRange || '1920-1929',
+    location: raw.location || 'Arkham / Massachusetts',
+    country: raw.country || 'USA',
+    tone: raw.tone || 'purist',
+    themes:
+      Array.isArray(raw.themes) && raw.themes.length > 0
+        ? raw.themes
+        : ['tajemnica', 'śledztwo'],
+    suggestedOccupations:
+      Array.isArray(raw.suggestedOccupations) && raw.suggestedOccupations.length > 0
+        ? raw.suggestedOccupations
+        : ['detektyw', 'dziennikarz'],
+    suggestedArchetypes:
+      Array.isArray(raw.suggestedArchetypes) && raw.suggestedArchetypes.length > 0
+        ? raw.suggestedArchetypes
+        : ['investigator'],
+    hook: raw.hook || `Śledztwo w sprawie "${raw.title || 'tajemnicy'}" czeka na odkrycie.`,
+    description: raw.description || '',
+    estimatedSessions: raw.estimatedSessions || '2-3',
+    playerCount: raw.playerCount || '1-4',
+    difficulty: raw.difficulty || 'normal',
+    isCustom: true,
+    pdfUrl: raw.pdfUrl || '',
+    geminiFileUri: raw.geminiFileUri || '',
+    fileName: raw.fileName || '',
+    uploadedAt: raw.uploadedAt || new Date().toISOString(),
+    isAnalyzed: raw.isAnalyzed ?? true,
+    graph:
+      raw.graph && typeof raw.graph === 'object'
+        ? raw.graph
+        : { npcs: [], locations: [], clues: [], connections: [] },
+    documentType: raw.documentType || 'scenario',
+    lorebookData: raw.lorebookData,
+    attachedLorebookIds: raw.attachedLorebookIds || [],
+    ...(typeof (raw as Record<string, unknown>).fullNarrativeSummary === 'string'
+      ? { fullNarrativeSummary: (raw as Record<string, unknown>).fullNarrativeSummary as string }
+      : {}),
+    ...(raw.puzzles ? { puzzles: raw.puzzles } : {}),
+    ...(raw.handouts ? { handouts: raw.handouts } : {}),
+  };
 }
 
 /**
@@ -376,7 +494,7 @@ export async function reconstructAdventure(
   record: StoredAdventureRecord | CustomAdventure
 ): Promise<CustomAdventure> {
   if (!('adventure' in record)) {
-    return record as CustomAdventure;
+    return hydrateLeanAdventure(record as CustomAdventure);
   }
 
   const rec = record as StoredAdventureRecord;
@@ -389,8 +507,10 @@ export async function reconstructAdventure(
   }
 
   const base = rec.adventure || ({} as CustomAdventure);
+  const hydrated = hydrateLeanAdventure(base);
+
   return {
-    ...base,
+    ...hydrated,
     ...(heavyData?.graph ? { graph: heavyData.graph } : {}),
     ...(heavyData?.fullNarrativeSummary
       ? { fullNarrativeSummary: heavyData.fullNarrativeSummary }
@@ -400,6 +520,9 @@ export async function reconstructAdventure(
       : {}),
     ...(heavyData?.puzzles
       ? { puzzles: heavyData.puzzles as CustomAdventure['puzzles'] }
+      : {}),
+    ...(heavyData?.handouts
+      ? { handouts: heavyData.handouts as CustomAdventure['handouts'] }
       : {}),
   };
 }
@@ -459,7 +582,7 @@ async function createAdventureRecord(
 
   return {
     id: adv.id,
-    adventure: adv,
+    adventure: leanAdv,
     isCompressed: false,
     updatedAt: Date.now(),
   };
@@ -479,23 +602,15 @@ async function readFromIndexedDB(): Promise<StoredAdventures | null> {
       };
     });
 
-    if (legacyRecord && Array.isArray(legacyRecord.adventures) && legacyRecord.adventures.length > 0) {
+    if (legacyRecord && Array.isArray(legacyRecord.adventures)) {
       console.log(
         `🔄 Migracja IndexedDB v1 -> v2: konwersja ${legacyRecord.adventures.length} przygód do modelu per-rekord...`
       );
 
-      // Migrujemy dane do nowego formatu
+      // Migrujemy dane do nowego formatu (writeToIndexedDB automatycznie usuwa 'default')
       await writeToIndexedDB({
         adventures: legacyRecord.adventures,
         activeId: legacyRecord.activeId ?? null,
-      });
-
-      // Usuwamy legacy rekord 'default'
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(STORE, 'readwrite');
-        const req = tx.objectStore(STORE).delete(LEGACY_RECORD_KEY);
-        req.onerror = () => reject(req.error);
-        req.onsuccess = () => resolve();
       });
 
       return {
@@ -515,20 +630,37 @@ async function readFromIndexedDB(): Promise<StoredAdventures | null> {
     });
 
     if (metaRecord && Array.isArray(metaRecord.adventureIds)) {
-      const adventures: CustomAdventure[] = [];
+      const total = metaRecord.adventureIds.length;
+      if (total === 0) {
+        return {
+          adventures: [],
+          activeId: metaRecord.activeId ?? null,
+        };
+      }
 
-      for (const id of metaRecord.adventureIds) {
-        const rawRec = await new Promise<StoredAdventureRecord | CustomAdventure | null>(
-          (resolve, reject) => {
-            const tx = db.transaction(STORE, 'readonly');
-            const req = tx.objectStore(STORE).get(id);
-            req.onerror = () => reject(req.error);
+      // Pobieramy wszystkie rekordy w JEDNEJ transakcji dla maksymalnej wydajności
+      const rawRecords = await new Promise<(StoredAdventureRecord | CustomAdventure | null)[]>(
+        (resolve, reject) => {
+          const tx = db.transaction(STORE, 'readonly');
+          const store = tx.objectStore(STORE);
+          const results: (StoredAdventureRecord | CustomAdventure | null)[] = new Array(total);
+          let completed = 0;
+
+          for (let i = 0; i < total; i++) {
+            const req = store.get(metaRecord.adventureIds[i]);
             req.onsuccess = () => {
-              resolve((req.result as StoredAdventureRecord | CustomAdventure) || null);
+              results[i] = (req.result as StoredAdventureRecord | CustomAdventure) || null;
+              completed++;
+              if (completed === total) resolve(results);
             };
+            req.onerror = () => reject(req.error);
           }
-        );
+          tx.onerror = () => reject(tx.error);
+        }
+      );
 
+      const adventures: CustomAdventure[] = [];
+      for (const rawRec of rawRecords) {
         if (rawRec) {
           const adv = await reconstructAdventure(rawRec);
           adventures.push(adv);
@@ -542,13 +674,13 @@ async function readFromIndexedDB(): Promise<StoredAdventures | null> {
     }
 
     // 3. Fallback: jeśli __meta__ brak, ale są pojedyncze rekordy w store
-    const allRecords = await new Promise<any[]>((resolve, reject) => {
+    const allRecords = await new Promise<StoredAdventureRecord[]>((resolve, reject) => {
       const tx = db.transaction(STORE, 'readonly');
       const store = tx.objectStore(STORE);
       if (typeof store.getAll === 'function') {
         const req = store.getAll();
         req.onerror = () => reject(req.error);
-        req.onsuccess = () => resolve(req.result || []);
+        req.onsuccess = () => resolve((req.result as StoredAdventureRecord[]) || []);
       } else {
         resolve([]);
       }
@@ -637,6 +769,68 @@ async function writeToIndexedDB(data: StoredAdventures): Promise<void> {
   }
 }
 
+function toLeanMeta(adv: CustomAdventure): LeanAdventureMeta {
+  return {
+    id: adv.id,
+    title: adv.title,
+    era: adv.era,
+    eraLabel: adv.eraLabel,
+    yearRange: adv.yearRange,
+    location: adv.location,
+    country: adv.country,
+    isCustom: Boolean(adv.isCustom),
+    fileName: adv.fileName || '',
+    tone: adv.tone,
+    documentType: adv.documentType,
+    uploadedAt: adv.uploadedAt,
+    isAnalyzed: adv.isAnalyzed,
+  };
+}
+
+function updateLocalStorageRecord(adv: CustomAdventure): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as StoredLeanAdventures) : null;
+    const adventures =
+      parsed && Array.isArray(parsed.adventures) ? parsed.adventures : [];
+    const idx = adventures.findIndex((a) => a.id === adv.id);
+    const lean = toLeanMeta(adv);
+    if (idx >= 0) {
+      adventures[idx] = lean;
+    } else {
+      adventures.push(lean);
+    }
+    const payload: StoredLeanAdventures = {
+      adventures,
+      activeId: parsed?.activeId ?? null,
+      isLeanBackup: true,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (err) {
+    console.warn('updateLocalStorageRecord failed', err);
+  }
+}
+
+function removeLocalStorageRecord(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as StoredLeanAdventures) : null;
+    if (!parsed || !Array.isArray(parsed.adventures)) return;
+    const adventures = parsed.adventures.filter((a) => a.id !== id);
+    const activeId = parsed.activeId === id ? null : parsed.activeId;
+    const payload: StoredLeanAdventures = {
+      adventures,
+      activeId,
+      isLeanBackup: true,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (err) {
+    console.warn('removeLocalStorageRecord failed', err);
+  }
+}
+
 /**
  * Zapisuje pojedynczy rekord przygody w IndexedDB (dla szybkiej aktualizacji)
  */
@@ -669,6 +863,8 @@ export async function saveAdventureRecord(adv: CustomAdventure): Promise<void> {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+
+    updateLocalStorageRecord(adv);
   } catch (err) {
     console.warn('saveAdventureRecord failed:', err);
   }
@@ -724,6 +920,8 @@ export async function deleteAdventureRecord(id: string): Promise<void> {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+
+    removeLocalStorageRecord(id);
   } catch (err) {
     console.warn(`deleteAdventureRecord(${id}) failed:`, err);
   }
@@ -747,8 +945,9 @@ function readFromLocalStorage(): StoredAdventures | null {
       return null;
     }
     const obj = parsed as StoredAdventures;
+    const adventures = obj.adventures.map((a) => hydrateLeanAdventure(a));
     return {
-      adventures: obj.adventures,
+      adventures,
       activeId: typeof obj.activeId === 'string' ? obj.activeId : null,
     };
   } catch (error) {
@@ -767,21 +966,7 @@ function readFromLocalStorage(): StoredAdventures | null {
 function writeToLocalStorage(data: StoredAdventures): void {
   if (typeof window === 'undefined') return;
   try {
-    const leanAdventures: LeanAdventureMeta[] = data.adventures.map((adv) => ({
-      id: adv.id,
-      title: adv.title,
-      era: adv.era,
-      eraLabel: adv.eraLabel,
-      yearRange: adv.yearRange,
-      location: adv.location,
-      country: adv.country,
-      isCustom: Boolean(adv.isCustom),
-      fileName: adv.fileName || '',
-      tone: adv.tone,
-      documentType: adv.documentType,
-      uploadedAt: adv.uploadedAt,
-      isAnalyzed: adv.isAnalyzed,
-    }));
+    const leanAdventures: LeanAdventureMeta[] = data.adventures.map(toLeanMeta);
 
     const leanPayload: StoredLeanAdventures = {
       adventures: leanAdventures,
@@ -797,20 +982,32 @@ function writeToLocalStorage(data: StoredAdventures): void {
 
 /**
  * Load custom adventures. IndexedDB primary, localStorage fallback.
- * 1-time migration: jeśli IndexedDB pusty a localStorage ma dane → kopiuj.
+ * 1-time migration: jeśli IndexedDB pusty a localStorage ma dane (stary format) → kopiuj.
  */
 export async function loadCustomAdventures(): Promise<StoredAdventures> {
   const empty: StoredAdventures = { adventures: [], activeId: null };
 
   const fromIDB = await readFromIndexedDB();
   if (fromIDB) {
+    // Mirror do localStorage dla offline/fallback resilience
+    writeToLocalStorage(fromIDB);
     return fromIDB;
   }
 
   const fromLS = readFromLocalStorage();
   if (fromLS) {
-    // Migracja jednorazowa do IndexedDB (nie blokujemy zwrotu danych)
-    void writeToIndexedDB(fromLS);
+    // Migracja jednorazowa do IndexedDB TYLKO gdy localStorage zawierał stare pełne dane (nie lean backup)
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+    let isLean = false;
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as StoredLeanAdventures;
+        isLean = Boolean(parsed?.isLeanBackup);
+      } catch {}
+    }
+    if (!isLean) {
+      void writeToIndexedDB(fromLS);
+    }
     return fromLS;
   }
 
@@ -853,7 +1050,7 @@ export function parseImportJSON(json: string): StoredAdventures | null {
     }
     const obj = parsed as StoredAdventures;
     return {
-      adventures: obj.adventures,
+      adventures: obj.adventures.map((a) => hydrateLeanAdventure(a)),
       activeId: typeof obj.activeId === 'string' ? obj.activeId : null,
     };
   } catch {

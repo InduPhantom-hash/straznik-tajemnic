@@ -37,7 +37,8 @@ class PDFParserService {
 
       // ISO 32000 dopuszcza śmieci przed nagłówkiem, ale %PDF- powinien znaleźć
       // się w pierwszych 1024 bajtach. Odrzucamy inne formaty przed parserem.
-      const headerRegion = buffer.subarray(0, Math.min(buffer.length, 1024));
+      const bufferLength = buffer.length;
+      const headerRegion = buffer.subarray(0, Math.min(bufferLength, 1024));
       if (!headerRegion.includes(Buffer.from('%PDF-'))) {
         throw new Error(
           'Nieprawidłowy format PDF - brak nagłówka %PDF w pierwszych 1024 bajtach'
@@ -134,7 +135,7 @@ class PDFParserService {
           creationDate: info.CreationDate ? new Date(String(info.CreationDate)) : undefined,
           modificationDate: info.ModDate ? new Date(String(info.ModDate)) : undefined,
         },
-        size: buffer.length,
+        size: bufferLength,
       };
     } catch (error) {
       console.error('❌ Błąd parsowania PDF:', error);
