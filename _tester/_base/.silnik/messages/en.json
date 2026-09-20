@@ -4940,10 +4940,10 @@
     "step1Post": "and sign in with your Google account",
     "step2Pre": "Click",
     "step3Pre": "Copy the key, paste it above and click",
-    "checkKeyQuoted": "\"Test key\"",
+    "checkKeyQuoted": "\"Verify & Save Key\"",
     "cancel": "Cancel",
     "saved": "Saved!",
-    "saveKeys": "Save keys"
+    "saveKeys": "Verify & Save Key"
   },
   "CharacterDialog": {
     "manageTitle": "Character Management",
