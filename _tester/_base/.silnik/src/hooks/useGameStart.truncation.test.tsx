@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useGameStart } from './useGameStart';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, getApiKeyHeaders } from '@/lib/api-keys-service';
 import { parseSSEStream } from '@/lib/sse-parser';
 import type { Message } from '@/lib/types';
 import { defaultAISettings } from '@/lib/ai-settings/defaults';
@@ -216,8 +216,7 @@ describe('useGameStart - finishReason intra', () => {
   });
 
   it('przekazuje nagłówki klucza API do preflightu i w razie błędu 401 emituje open-api-keys-modal oraz zew:stop-music', async () => {
-    const apiKeysService = require('@/lib/api-keys-service');
-    apiKeysService.getApiKeyHeaders.mockReturnValueOnce({
+    jest.mocked(getApiKeyHeaders).mockReturnValueOnce({
       'X-Gemini-Api-Key': 'test-gemini-key',
     });
 
