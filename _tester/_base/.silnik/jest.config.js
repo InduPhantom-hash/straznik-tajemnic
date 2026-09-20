@@ -12,6 +12,8 @@ module.exports = {
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/hooks$': '<rootDir>/src/hooks/index.ts',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
+    '^@/i18n/(.*)$': '<rootDir>/src/i18n/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
     // IND-19: @google/genai exports only ESM (.mjs) which Jest (CJS) cannot parse via requireActual.
     // Point Jest to the CJS build so jest.mock factories can spread real enums.
     '^@google/genai$': '<rootDir>/node_modules/@google/genai/dist/index.cjs',

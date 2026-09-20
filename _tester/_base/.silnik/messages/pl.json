@@ -12,7 +12,10 @@
     "playEn": "Play in English",
     "units": "System miar",
     "metric": "Metryczny (m, kg)",
-    "imperial": "Imperialny (ft, lbs)"
+    "imperial": "Imperialny (ft, lbs)",
+    "warningBadge": "18+ • MATURE AUDIENCE",
+    "warningTitle": "Ostrzeżenie o zawartości",
+    "warningText": "Gra porusza tematy drażliwe, kontrowersyjne, szaleństwo oraz sceny brutalne i grozę. Doświadczenie przeznaczone jest dla osób pełnoletnich."
   },
   "BetaWelcome": {
     "badge": "Wersja Beta v0.9.3",
