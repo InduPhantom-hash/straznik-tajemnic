@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-20T08:00:00.000Z",
+  "updatedAt": "2026-09-20T08:22:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -173,8 +173,8 @@
         "en": "Character wizard"
       },
       "description": {
-        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, rozdzielone liczniki punktów CoC 7e RAW)",
-        "en": "Multi-step character creation wizard (Master-Detail occupation layout, split CoC 7e RAW skill points)"
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, rozdzielone liczniki punktów CoC 7e RAW, dedykowany selektor gotowych Badaczy pregen)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout, split CoC 7e RAW skill points, dedicated pregen investigator selector)"
       }
     },
     {
