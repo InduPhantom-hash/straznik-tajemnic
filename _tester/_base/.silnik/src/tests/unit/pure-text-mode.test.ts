@@ -70,4 +70,25 @@ describe('Tryb Czystego Tekstu (Pure Text Mode) i detekcja Tieru Gemini', () => 
 
     expect(result).toBeDefined();
   });
+
+  it('buildImageInstructions uwzględnia settings.pureTextMode priorytetowo', () => {
+    setGeminiTier('paid');
+    const forcedPureText = {
+      imageGenerationEnabled: true,
+      pureTextMode: true,
+    } as AISettings;
+    const instructions = buildImageInstructions(forcedPureText);
+    expect(instructions).toContain('## TRYB NARRACJI: CZYSTA PROZA (TRYB TEKSTOWY)');
+
+    setGeminiTier('free');
+    const forcedPaidImages = {
+      imageGenerationEnabled: true,
+      pureTextMode: false,
+      sessionZero: { narrativeMode: 'full_rpg' },
+      replicateSettings: { imageFrequency: 'normal', maxImagesPerMessage: 1 },
+    } as AISettings;
+    const paidInstructions = buildImageInstructions(forcedPaidImages);
+    expect(paidInstructions).toContain('## GENEROWANIE ILUSTRACJI');
+  });
 });
+

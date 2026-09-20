@@ -229,6 +229,8 @@ export interface AISettings {
   // IND-91: rename legacy `replicateEnabled` → `imageGenerationEnabled`
   // Flag is provider-agnostic - toggles all image providers.
   imageGenerationEnabled: boolean;
+  /** Tryb czystego tekstu (konto darmowe Gemini bez bilingu na multimedia) */
+  pureTextMode?: boolean;
   replicateSettings: {
     style: 'realistic' | 'artistic' | 'horror' | 'vintage';
     quality: 'low' | 'medium' | 'high' | 'ultra';

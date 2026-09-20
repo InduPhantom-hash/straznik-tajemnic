@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Serwis do przechowywania kluczy API w localStorage
  * Klucze są przechowywane lokalnie i przesyłane do API przez nagłówki HTTP
@@ -121,6 +119,7 @@ export function setGeminiTier(tier: GeminiTier): void {
  * Zwraca informację, czy aktywny jest tryb czystego tekstu (konto darmowe bez bilingu na multimedia).
  */
 export function isPureTextMode(): boolean {
+  if (typeof window === 'undefined') return false;
   return getGeminiTier() === 'free';
 }
 

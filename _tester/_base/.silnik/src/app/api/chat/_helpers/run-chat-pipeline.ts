@@ -298,6 +298,10 @@ export async function runChatPipeline({
 
   // Ustawienia i Prompty - IND-183 micro 1/5
   const aiSettings = resolveSettings(loadAISettings(), clientAISettings);
+  const tierHeader = request.headers.get('X-Gemini-Tier')?.trim();
+  if (tierHeader) {
+    aiSettings.pureTextMode = tierHeader === 'free';
+  }
   const combatMechanicsEnabled =
     aiSettings.sessionZero?.mechanics?.schemaVersion === 1 &&
     aiSettings.sessionZero.mechanics.enabled === true &&
@@ -597,7 +601,7 @@ export async function runChatPipeline({
           facade: firstNpc.description?.slice(0, 120) || firstNpc.occupation || 'Tajemniczy nieznajomy',
           flaw: 'Nawykowa podejrzliwość wobec obcych',
           hiddenAgenda: firstNpc.agenda || 'Chroni swoje interesy i sekrety',
-          resistanceLevel: (firstNpc.disposition === 'hostile' ? 'hostile' : firstNpc.disposition === 'suspicious' ? 'suspicious' : 'guarded') as any,
+          resistanceLevel: firstNpc.disposition === 'hostile' ? 'hostile' : firstNpc.disposition === 'suspicious' ? 'suspicious' : 'guarded',
           fearOrLeverage: 'Groźba skandalu lub zdemaskowania',
         } : undefined,
       });

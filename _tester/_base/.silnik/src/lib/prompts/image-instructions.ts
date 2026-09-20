@@ -35,8 +35,16 @@ export function resolveImageLevel(
   return Math.max(0, Math.min(3, base + shift));
 }
 
-export function buildImageInstructions(settings: AISettings): string {
-  if (!settings.imageGenerationEnabled || isPureTextMode()) {
+export function buildImageInstructions(
+  settings: AISettings,
+  pureTextOverride?: boolean
+): string {
+  const isPureText =
+    pureTextOverride ??
+    settings.pureTextMode ??
+    (typeof window !== 'undefined' ? isPureTextMode() : false);
+
+  if (!settings.imageGenerationEnabled || isPureText) {
     return `
 
 ## TRYB NARRACJI: CZYSTA PROZA (TRYB TEKSTOWY)
