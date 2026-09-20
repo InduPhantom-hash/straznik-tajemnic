@@ -3494,7 +3494,7 @@ export function CharacterWizardV2({
         )}
 
         {/* Lista umiejętności */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[45vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
           {Object.entries(state.skills)
             .filter(([name]) => name !== CREDIT_RATING_SKILL)
             .map(([skillName, value]) => {
@@ -3592,7 +3592,7 @@ export function CharacterWizardV2({
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
             {t('fullName')}
@@ -3669,7 +3669,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, ideology: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('ideologyPlaceholder')}
           />
         </div>
@@ -3691,7 +3691,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, importantPeople: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('importantPeoplePlaceholder')}
           />
         </div>
@@ -3716,7 +3716,7 @@ export function CharacterWizardV2({
                 significantPlaces: e.target.value,
               }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('significantPlacesPlaceholder')}
           />
         </div>
@@ -3738,7 +3738,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, personalItems: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('personalItemsPlaceholder')}
           />
         </div>
@@ -3760,7 +3760,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, traits: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('traitsPlaceholder')}
           />
         </div>
@@ -3782,7 +3782,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, keyConnection: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none"
             placeholder={t('keyConnectionPlaceholder')}
           />
         </div>
@@ -3811,7 +3811,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, backstory: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] focus:outline-none leading-relaxed font-serif"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] 2xl:min-h-[280px] focus:outline-none leading-relaxed font-serif"
             placeholder={t('fullHistoryPlaceholder')}
           />
         </div>
