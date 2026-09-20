@@ -59,7 +59,7 @@ export function detectEraAndYears(text: string): {
     const prlYear = years.find((y) => y >= 1950 && y <= 1989) || 1974;
     return {
       era: 'prl',
-      eraLabel: `PRL - lata 70. (${prlYear})`,
+      eraLabel: 'PRL - lata 70.',
       yearRange: `${prlYear}`,
       activeSceneYear: prlYear,
     };
@@ -71,7 +71,7 @@ export function detectEraAndYears(text: string): {
     const y = twentiesYear || 1925;
     return {
       era: 'classic',
-      eraLabel: `Klasyczne lata 20. (${y})`,
+      eraLabel: 'Klasyczne lata 20.',
       yearRange: `${y}`,
       activeSceneYear: y,
     };
@@ -83,7 +83,7 @@ export function detectEraAndYears(text: string): {
     const y = thirtiesYear || 1933;
     return {
       era: 'noir',
-      eraLabel: `Lata 30. / Noir (${y})`,
+      eraLabel: 'Lata 30. / Noir',
       yearRange: `${y}`,
       activeSceneYear: y,
     };
@@ -95,7 +95,7 @@ export function detectEraAndYears(text: string): {
     const y = gaslightYear || 1895;
     return {
       era: 'gaslight',
-      eraLabel: `Wiktoriańska / Gaslight (${y})`,
+      eraLabel: 'Wiktoriańska / Gaslight',
       yearRange: `${y}`,
       activeSceneYear: y,
     };
@@ -107,7 +107,7 @@ export function detectEraAndYears(text: string): {
     const y = modernYear || 2024;
     return {
       era: 'modern',
-      eraLabel: `Czasy współczesne (${y})`,
+      eraLabel: y >= 1990 && y <= 1999 ? 'Lata 90.' : 'Czasy współczesne',
       yearRange: `${y}`,
       activeSceneYear: y,
     };
@@ -117,7 +117,7 @@ export function detectEraAndYears(text: string): {
   const fallbackYear = years[0] || 1925;
   return {
     era: 'classic',
-    eraLabel: `Klasyczne lata 20. (${fallbackYear})`,
+    eraLabel: 'Klasyczne lata 20.',
     yearRange: `${fallbackYear}`,
     activeSceneYear: fallbackYear,
   };
@@ -132,18 +132,28 @@ export function detectLocationAndCountry(
 ): { location: string; country: string } {
   const sample = text.slice(0, 60000);
 
+  // Syberia / Rosja
+  if (/syberi|siktja|jakucj|tajg/i.test(sample)) {
+    return { location: 'Syberia (Siktja)', country: 'Rosja' };
+  }
+
   // Polskie lokacje
   if (
-    /warszaw|krakow|lwow|poznan|gdansk|wilno|zakopan|tatr|prabut|wroclaw|lodz|szczecin|baltyk|polsce|polska/i.test(
+    /warszaw|krakow|lwow|poznan|gdansk|wilno|zakopan|tatr|prabut|wroclaw|lodz|szczecin|baltyk|katowic|slask|wodzislaw|rybnik|brwinow|czestochow|walim|riese|sowi|polsce|polska/i.test(
       sample
     )
   ) {
     let loc = 'Polska';
-    if (/warszaw/i.test(sample)) loc = 'Warszawa';
-    else if (/krakow/i.test(sample)) loc = 'Kraków';
+    if (/warszaw|polonia\s+palace/i.test(sample)) loc = 'Warszawa';
+    else if (/krakow|gorc|beskid/i.test(sample)) loc = 'Kraków i Gorce';
     else if (/tatr|zakopan/i.test(sample)) loc = 'Tatry i Zakopane';
+    else if (/poznan|warta|fort\s+iii/i.test(sample)) loc = 'Poznań';
+    else if (/brwinow/i.test(sample)) loc = 'Brwinów (pod Warszawą)';
+    else if (/czestochow|sokol|jura/i.test(sample)) loc = 'Częstochowa i Sokole Góry';
+    else if (/katowic|slask|wodzislaw|syryni|pszow/i.test(sample)) loc = 'Górny Śląsk (Katowice / Wodzisław)';
+    else if (/walim|riese|sowi/i.test(sample)) loc = 'Dolny Śląsk (Walim / Góry Sowie)';
     else if (/prabut/i.test(sample)) loc = 'Prabuty';
-    else if (/gdansk|baltyk/i.test(sample)) loc = 'Gdańsk i Wybrzeże';
+    else if (/gdansk|trojmiast|sopot|gdyni|baltyk|falowiec|westerplatte/i.test(sample)) loc = 'Gdańsk i Trójmiasto';
     return { location: loc, country: 'Polska' };
   }
 
@@ -174,7 +184,7 @@ export function detectLocationAndCountry(
 
   // Fallback bazowany na języku dokumentu
   if (detectedLanguage === 'pl') {
-    return { location: 'Polska / Europa Środkowa', country: 'Polska' };
+    return { location: 'Polska', country: 'Polska' };
   }
 
   return { location: 'Arkham / Massachusetts', country: 'USA' };
@@ -352,16 +362,378 @@ export function buildAdventureGraph(
 }
 
 /**
- * Buduje gotowy obiekt CustomAdventure w 100% lokalnie
+ * Ekstrahuje poszczególne scenariusze z tomu antologii na podstawie spisu treści i nagłówków rozdziałów.
  */
-export function buildLocalCustomAdventure(
+export function parseScenariosFromAnthologyText(
+  pdfText: string,
+  fileName: string
+): Array<{ num: string; title: string; rawTitle: string; textSlice: string }> {
+  // Podział na strony
+  const pages = pdfText.split(/<!--\s*Strona\s*\d+\s*-->|\f/);
+  const samplePages = pages.length > 1 ? pages : [pdfText];
+
+  // Szukamy stron spisu treści (zazwyczaj strony 2-6)
+  let tocText = '';
+  for (let p = 0; p < Math.min(samplePages.length, 8); p++) {
+    if (/spis\s+tre[sś]ci|table\s+of\s+contents/i.test(samplePages[p])) {
+      tocText = samplePages[p];
+      if (p + 1 < samplePages.length && !/rozdzia[lł]\s+1\b/i.test(samplePages[p + 1])) {
+        tocText += '\n' + samplePages[p + 1];
+      }
+      break;
+    }
+  }
+
+  if (!tocText) {
+    tocText = samplePages.slice(0, 6).join('\n');
+  }
+
+  const lines = tocText.split('\n').map((l) => l.trim()).filter(Boolean);
+  const scenariosMeta: Array<{ num: string; title: string; rawTitle: string }> = [];
+  const seenNumbers = new Set<string>();
+
+  const isIgnoredTitle = (t: string) =>
+    /wstęp|wstep|przedmowa|wprowadzenie|dodatki|dodatek|karty badaczy|zasady|indeks|o autorach|statystyki|pomocnicze|tabele/i.test(t);
+
+  // Wzorzec A: ROZDZIAŁ X \n TYTUŁ (np. Horror nad Wartą)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const chMatch = line.match(/^(?:ROZDZIAŁ|SCENARIUSZ|CHAPTER|SCENARIO)\s*(\d+|[IVXLCDM]+)$/i);
+    if (chMatch && i + 1 < lines.length) {
+      const num = chMatch[1];
+      if (seenNumbers.has(num)) continue;
+
+      const nextLine = lines[i + 1];
+      const titleClean = nextLine.replace(/\s+\d+$/, '').replace(/[\.·…]+$/, '').trim();
+
+      if (
+        titleClean &&
+        titleClean.length >= 3 &&
+        titleClean.length <= 60 &&
+        !titleClean.endsWith('-') &&
+        !/^[a-z]/.test(titleClean) &&
+        !isIgnoredTitle(titleClean)
+      ) {
+        seenNumbers.add(num);
+        const formatted = titleClean
+          .toLowerCase()
+          .split(' ')
+          .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
+          .join(' ');
+        scenariosMeta.push({
+          num,
+          title: formatted,
+          rawTitle: titleClean,
+        });
+      }
+    }
+  }
+
+  // Wzorzec B: Linijka spisu treści: TYTUŁ ... STRONA (np. Cienie Tatr)
+  if (scenariosMeta.length < 2) {
+    seenNumbers.clear();
+    scenariosMeta.length = 0;
+    let idx = 1;
+    for (const line of lines) {
+      const m = line.match(/^(.*?)(?:[\.·…\s]{2,}|\s+)(\d+)$/);
+      if (m) {
+        const titleClean = m[1].replace(/[\.·…]+$/, '').trim();
+        if (
+          titleClean &&
+          titleClean.length >= 3 &&
+          titleClean.length <= 60 &&
+          !isIgnoredTitle(titleClean) &&
+          !/spis\s+tre/i.test(titleClean)
+        ) {
+          const formatted = titleClean
+            .toLowerCase()
+            .split(' ')
+            .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
+            .join(' ');
+          scenariosMeta.push({
+            num: String(idx++),
+            title: formatted,
+            rawTitle: titleClean,
+          });
+        }
+      }
+    }
+  }
+
+  if (scenariosMeta.length < 2) return [];
+
+  // Szukamy pozycji rozdziałów w pełnym tekście (omijamy pierwsze 8% lub 25000 znaków na spis treści)
+  const bodyTextStartIndex = Math.min(25000, Math.floor(pdfText.length * 0.08));
+  const bodyText = pdfText.slice(bodyTextStartIndex);
+
+  const scenarioPositions: Array<{ num: string; title: string; rawTitle: string; pos: number }> = [];
+  for (const s of scenariosMeta) {
+    const pattern = new RegExp(`(?:ROZDZIAŁ\\s*${s.num}[\\s\\S]{0,30})?${s.rawTitle.replace(/\s+/g, '\\s+')}`, 'i');
+    const match = bodyText.match(pattern);
+    const pos = match && typeof match.index === 'number' ? match.index : bodyText.indexOf(s.rawTitle);
+    scenarioPositions.push({
+      ...s,
+      pos: pos !== -1 ? bodyTextStartIndex + pos : -1,
+    });
+  }
+
+  scenarioPositions.sort((a, b) => (a.pos !== -1 ? a.pos : 0) - (b.pos !== -1 ? b.pos : 0));
+
+  const result: Array<{ num: string; title: string; rawTitle: string; textSlice: string }> = [];
+  for (let i = 0; i < scenarioPositions.length; i++) {
+    const s = scenarioPositions[i];
+    const startIdx = s.pos !== -1 ? s.pos : 0;
+    const endIdx =
+      i + 1 < scenarioPositions.length && scenarioPositions[i + 1].pos !== -1
+        ? scenarioPositions[i + 1].pos
+        : pdfText.length;
+
+    const slice = pdfText.slice(startIdx, endIdx);
+    result.push({
+      num: s.num,
+      title: s.title,
+      rawTitle: s.rawTitle,
+      textSlice: slice,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Buduje listę obiektów CustomAdventure w 100% lokalnie (z dekompozycją antologii i obsługą lorebooków).
+ */
+export function buildLocalCustomAdventures(
   pdfText: string,
   fingerprint: RulebookFingerprintResult,
   overlay: OverlayDescriptor,
   fileName: string,
   pdfPagesCount: number,
   existingAdventureId?: string
-): CustomAdventure {
+): CustomAdventure[] {
+  const cleanFileName = fileName.toLowerCase();
+
+  // 1. Antologia z wieloma scenariuszami
+  const isAnthology =
+    fingerprint.profile === 'scenario_anthology' ||
+    cleanFileName.includes('antologia') ||
+    (cleanFileName.includes('cienie') && cleanFileName.includes('tatr')) ||
+    (cleanFileName.includes('horror') && cleanFileName.includes('warta'));
+
+  if (isAnthology) {
+    const detectedScenarios = parseScenariosFromAnthologyText(pdfText, fileName);
+    if (detectedScenarios.length >= 2) {
+      const sourceTitle =
+        cleanFileName.includes('horror') && cleanFileName.includes('warta')
+          ? 'Horror nad Wartą'
+          : cleanFileName.includes('cienie') && cleanFileName.includes('tatr')
+            ? 'Cienie Tatr'
+            : fingerprint.title || fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
+
+      return detectedScenarios.map((scen, idx) => {
+        const id =
+          existingAdventureId && idx === 0
+            ? existingAdventureId
+            : `custom-${Date.now()}-${idx + 1}-${slugifyText(scen.title)}`;
+
+        const eraInfo = detectEraAndYears(scen.textSlice);
+        const locationInfo = detectLocationAndCountry(scen.textSlice, fingerprint.detectedLanguage);
+        const toneInfo = detectToneAndOccupations(scen.textSlice);
+        const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+
+        // Ekstrakcja otwierającego akapitu scenariusza
+        const paragraphs = scen.textSlice
+          .split('\n\n')
+          .map((p) => p.trim())
+          .filter(
+            (p) =>
+              p.length > 50 &&
+              !/jakub orłowski|rozdział|spis treści|autorzy:|redakcja:/i.test(p) &&
+              !p.startsWith('<!--')
+          );
+        const dramaticOpening = paragraphs[0]?.replace(/\s+/g, ' ').slice(0, 240);
+        const hook = dramaticOpening
+          ? `${dramaticOpening}...`
+          : `Śledztwo w regionie ${locationInfo.location} (${eraInfo.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez Badaczy.`;
+
+        const description = `Scenariusz "${scen.title}" z antologii "${sourceTitle}". Miejsce akcji: ${locationInfo.location}, czas: ${eraInfo.eraLabel} (${eraInfo.yearRange}).`;
+
+        return {
+          id,
+          title: scen.title,
+          era: eraInfo.era,
+          eraLabel: eraInfo.eraLabel,
+          yearRange: eraInfo.yearRange,
+          activeSceneYear: eraInfo.activeSceneYear,
+          location: locationInfo.location,
+          country: locationInfo.country,
+          tone: toneInfo.tone,
+          themes: toneInfo.themes,
+          suggestedOccupations: toneInfo.suggestedOccupations,
+          suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
+          hook,
+          description,
+          estimatedSessions: '2-3',
+          playerCount: '1-4',
+          difficulty: 'normal',
+          isCustom: true,
+          pdfUrl: '',
+          geminiFileUri: '',
+          fileName,
+          uploadedAt: new Date().toISOString(),
+          isAnalyzed: true,
+          documentType: 'scenario',
+          isCampaign: false,
+          graph,
+          source: sourceTitle,
+          sourceCategory: 'anthology',
+          sourceBookId: slugifyText(sourceTitle),
+          attachedLorebookIds: [],
+        };
+      });
+    }
+  }
+
+  // 2. Starter d100 z wbudowaną przygodą
+  if (fingerprint.profile === 'starter-d100' || cleanFileName.includes('starter')) {
+    const id = existingAdventureId || `custom-${Date.now()}-starter-scenariusz`;
+    const isHaunting = /nawiedzony\s+dom|haunting|corbitt/i.test(pdfText);
+    const scenTitle = isHaunting ? 'Nawiedzony dom' : 'Przygoda ze Startera d100';
+    const eraInfo: { era: 'classic'; eraLabel: string; yearRange: string; activeSceneYear: number } = {
+      era: 'classic',
+      eraLabel: 'Klasyczne lata 20.',
+      yearRange: '1924',
+      activeSceneYear: 1924,
+    };
+    const locationInfo = { location: 'Boston / Massachusetts', country: 'USA' };
+    const toneInfo = detectToneAndOccupations(pdfText);
+    const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+
+    const hook = isHaunting
+      ? 'Pan Knott wynajmuje Badaczy do zbadania starej posiadłości Corbitta w Bostonie, w której poprzedni lokatorzy popadli w obłęd lub zginęli w niewyjaśnionych okolicznościach.'
+      : 'Wprowadzający scenariusz śledczy dla początkujących Badaczy, badających niepokojące zdarzenia powiązane z Mitami Cthulhu.';
+
+    const description = `Scenariusz wprowadzający wyekstrahowany ze Startera d100. Klasyczne śledztwo w Bostonie w realiach lat 20. XX wieku.`;
+
+    return [
+      {
+        id,
+        title: scenTitle,
+        era: eraInfo.era,
+        eraLabel: eraInfo.eraLabel,
+        yearRange: eraInfo.yearRange,
+        activeSceneYear: eraInfo.activeSceneYear,
+        location: locationInfo.location,
+        country: locationInfo.country,
+        tone: toneInfo.tone,
+        themes: toneInfo.themes,
+        suggestedOccupations: toneInfo.suggestedOccupations,
+        suggestedArchetypes: ['investigator', 'scholar', 'action'],
+        hook,
+        description,
+        estimatedSessions: '1-2',
+        playerCount: '1-4',
+        difficulty: 'easy',
+        isCustom: true,
+        pdfUrl: '',
+        geminiFileUri: '',
+        fileName,
+        uploadedAt: new Date().toISOString(),
+        isAnalyzed: true,
+        documentType: 'scenario',
+        isCampaign: false,
+        graph,
+        source: 'Starter d100',
+        sourceCategory: 'starter',
+        sourceBookId: 'starter-d100',
+        recommendedForBeginners: true,
+        attachedLorebookIds: [],
+      },
+    ];
+  }
+
+  // 3. Grymuar, Bestiariusz lub Rozszerzenie Settingowe (Lorebook / Compendium)
+  if (
+    fingerprint.profile === 'grimoire' ||
+    fingerprint.profile === 'bestiary' ||
+    fingerprint.profile === 'setting_expansion'
+  ) {
+    const docType: DocumentType =
+      fingerprint.profile === 'setting_expansion' ? 'setting' : 'compendium';
+    const id = existingAdventureId || `custom-${Date.now()}-${slugifyText(fingerprint.title || fileName)}`;
+    const eraInfo = detectEraAndYears(pdfText);
+    const locationInfo = detectLocationAndCountry(pdfText, fingerprint.detectedLanguage);
+    const toneInfo = detectToneAndOccupations(pdfText);
+
+    let hook = '';
+    let description = '';
+
+    if (fingerprint.profile === 'grimoire') {
+      hook = 'Oficjalny grymuar wiedzy tajemnej zawierający zaklęcia, rytuały, koszty Poczytalności oraz reguły głębokiej magii dla Mistrza Gry.';
+      description = `Księga wiedzy magicznej wyekstrahowana z pliku "${fileName}". Służy jako referencyjny zbiór zaklęć i formuł dla Mistrza Gry.`;
+    } else if (fingerprint.profile === 'bestiary') {
+      hook = 'Kompendium plugawych istot, potworów i bóstw Mitów Cthulhu wraz z profilami bojowymi, modyfikatorami poczytalności i cechami dla Mistrza Gry.';
+      description = `Bestiariusz wyekstrahowany z pliku "${fileName}". Służy jako kompendium istot i monstualnych zagrożeń dla Mistrza Gry.`;
+    } else {
+      hook = `Przewodnik regionalny i tło historyczne rozszerzające świat gry o nowe lokacje (${locationInfo.location}) i realia epoki.`;
+      description = `Suplement settingowy wyekstrahowany z pliku "${fileName}". Wzbogaca świat gry i realia historyczne.`;
+    }
+
+    return [
+      {
+        id,
+        title: fingerprint.title || fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim(),
+        era: eraInfo.era,
+        eraLabel: eraInfo.eraLabel,
+        yearRange: eraInfo.yearRange,
+        activeSceneYear: eraInfo.activeSceneYear,
+        location: locationInfo.location,
+        country: locationInfo.country,
+        tone: toneInfo.tone,
+        themes: toneInfo.themes,
+        suggestedOccupations: toneInfo.suggestedOccupations,
+        suggestedArchetypes: ['scholar', 'mystic', 'investigator'],
+        hook,
+        description,
+        estimatedSessions: '-',
+        playerCount: '1-4',
+        difficulty: 'normal',
+        isCustom: true,
+        pdfUrl: '',
+        geminiFileUri: '',
+        fileName,
+        uploadedAt: new Date().toISOString(),
+        isAnalyzed: true,
+        documentType: docType,
+        isCampaign: false,
+        source: fingerprint.title || fileName.replace(/\.pdf$/i, ''),
+        sourceCategory: 'core',
+        sourceBookId: slugifyText(fingerprint.title || fileName),
+        attachedLorebookIds: [],
+        lorebookData: {
+          id: `lore-${id}`,
+          title: fingerprint.title || fileName.replace(/\.pdf$/i, ''),
+          documentType: docType,
+          regionOrTheme: fingerprint.profile === 'grimoire' ? 'Zaklęcia i Rytuały' : fingerprint.profile === 'bestiary' ? 'Bestiariusz i Bóstwa' : locationInfo.location,
+          summary: description,
+          factions: overlay.entities.npcs?.map((n, i) => ({
+            id: `fac-${i + 1}`,
+            name: n.name,
+            influence: 'Lokalna obecność w regionie',
+            agenda: n.role || 'Nieznane dążenia',
+          })) || [],
+          compendiumEntities: overlay.entities.spells?.map((s, i) => ({
+            id: `ent-${i + 1}`,
+            name: s.name,
+            category: 'spell' as const,
+            summary: s.description || 'Zaklęcie z grymuaru',
+          })) || [],
+        },
+      },
+    ];
+  }
+
+  // 4. Pojedynczy scenariusz / One-Shot domyślny
   const titleClean =
     fingerprint.title && fingerprint.title !== 'Nieznany dokument'
       ? fingerprint.title
@@ -373,46 +745,67 @@ export function buildLocalCustomAdventure(
   const toneInfo = detectToneAndOccupations(pdfText);
   const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
 
-  // Określenie typu dokumentu
   let documentType: DocumentType = 'scenario';
   if (fingerprint.profile === 'mega_campaign') {
     documentType = 'campaign';
-  } else if (fingerprint.profile === 'setting_expansion') {
-    documentType = 'setting';
-  } else if (fingerprint.profile === 'bestiary' || fingerprint.profile === 'grimoire') {
-    documentType = 'compendium';
   }
 
-  const hook = `Śledztwo w regionie ${locationInfo.location} (${eraInfo.eraLabel}). Wątki tajemniczych zdarzeń i mrocznych kultów czekają na zbadanie przez dociekliwych Badaczy.`;
+  const hook = `Śledztwo w regionie ${locationInfo.location} (${eraInfo.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez dociekliwych Badaczy.`;
   const description = `Autorski scenariusz d100 wyekstrahowany w trybie lokalnym z pliku "${fileName}". Dokument zawiera ${pdfPagesCount} stron, ${graph.npcs.length} kluczowych postaci dramatu oraz ${graph.clues.length} zidentyfikowanych poszlak i rekwizytów.`;
 
-  return {
-    id,
-    title: titleClean,
-    era: eraInfo.era,
-    eraLabel: eraInfo.eraLabel,
-    yearRange: eraInfo.yearRange,
-    activeSceneYear: eraInfo.activeSceneYear,
-    location: locationInfo.location,
-    country: locationInfo.country,
-    tone: toneInfo.tone,
-    themes: toneInfo.themes,
-    suggestedOccupations: toneInfo.suggestedOccupations,
-    suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
-    hook,
-    description,
-    estimatedSessions: documentType === 'campaign' ? '10+' : '2-3',
-    playerCount: '1-4',
-    difficulty: 'normal',
-    isCustom: true,
-    pdfUrl: '',
-    geminiFileUri: '',
+  return [
+    {
+      id,
+      title: titleClean,
+      era: eraInfo.era,
+      eraLabel: eraInfo.eraLabel,
+      yearRange: eraInfo.yearRange,
+      activeSceneYear: eraInfo.activeSceneYear,
+      location: locationInfo.location,
+      country: locationInfo.country,
+      tone: toneInfo.tone,
+      themes: toneInfo.themes,
+      suggestedOccupations: toneInfo.suggestedOccupations,
+      suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
+      hook,
+      description,
+      estimatedSessions: documentType === 'campaign' ? '10+' : '2-3',
+      playerCount: '1-4',
+      difficulty: 'normal',
+      isCustom: true,
+      pdfUrl: '',
+      geminiFileUri: '',
+      fileName,
+      uploadedAt: new Date().toISOString(),
+      isAnalyzed: true,
+      documentType,
+      isCampaign: documentType === 'campaign',
+      graph,
+      source: titleClean,
+      sourceCategory: 'custom',
+      attachedLorebookIds: [],
+    },
+  ];
+}
+
+/**
+ * Buduje gotowy obiekt CustomAdventure w 100% lokalnie (wrapper dla pierwszego scenariusza)
+ */
+export function buildLocalCustomAdventure(
+  pdfText: string,
+  fingerprint: RulebookFingerprintResult,
+  overlay: OverlayDescriptor,
+  fileName: string,
+  pdfPagesCount: number,
+  existingAdventureId?: string
+): CustomAdventure {
+  const adventures = buildLocalCustomAdventures(
+    pdfText,
+    fingerprint,
+    overlay,
     fileName,
-    uploadedAt: new Date().toISOString(),
-    isAnalyzed: true,
-    documentType,
-    isCampaign: documentType === 'campaign',
-    graph,
-    attachedLorebookIds: [],
-  };
+    pdfPagesCount,
+    existingAdventureId
+  );
+  return adventures[0];
 }
