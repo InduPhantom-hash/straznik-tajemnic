@@ -5,6 +5,8 @@ import { EquipmentItem, Character } from '@/lib/types';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 import { User, FileText, Stamp, Award, Shield, Volume2, Play, Pause, RotateCcw } from 'lucide-react';
 import type { ResolvedEraContext } from '@/lib/era';
+import { DocumentViewer, type PaperAgingFilter } from './document-viewer';
+import { AudioReelPlayer } from './audio-reel-player';
 
 interface DiegeticDocumentViewerProps {
   item: EquipmentItem;
@@ -320,57 +322,26 @@ export const DiegeticDocumentViewer: ReactFC<DiegeticDocumentViewerProps> = ({
         {content}
       </div>
 
-      {item.audioUrl && (
-        <div className="mt-4 pt-3 border-t border-[#d3c29e] flex items-center justify-between gap-3 bg-[#e0d2b4]/60 px-3 py-2 rounded-sm border border-[#c2b18f]">
-          <audio
-            ref={audioRef}
-            src={item.audioUrl}
-            onEnded={() => setIsPlaying(false)}
-            preload="none"
+      {item.imageUrl && (
+        <div className="my-4">
+          <DocumentViewer
+            imageUrl={item.imageUrl}
+            title={item.name}
+            initialFilter={year >= 1945 ? 'prl-1970' : 'vintage-1920'}
+            docTypeLabel={docType}
+            evidenceFact={item.readableContent ? item.readableContent.slice(0, 140) : item.description}
           />
-          <div className="flex items-center gap-2 text-xs font-special-elite text-[#4a3b2b]">
-            <Volume2 className={`w-4 h-4 text-[#8b5a2b] ${isPlaying ? 'animate-pulse' : ''}`} />
-            <span className="font-semibold">{t('listenRecording')}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                if (!audioRef.current) return;
-                audioRef.current.currentTime = 0;
-                audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-              }}
-              className="p-1 text-[#5c4a37] hover:text-[#2c1d11] transition-colors rounded hover:bg-[#d9c7a7] cursor-pointer"
-              title="Od początku"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!audioRef.current) return;
-                if (isPlaying) {
-                  audioRef.current.pause();
-                  setIsPlaying(false);
-                } else {
-                  audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-                }
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-special-elite bg-[#8b5a2b] hover:bg-[#724922] text-brass rounded-sm transition-all cursor-pointer active:scale-95 shadow"
-            >
-              {isPlaying ? (
-                <>
-                  <Pause className="w-3.5 h-3.5" />
-                  <span>{t('stopRecording')}</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>{t('listenRecording')}</span>
-                </>
-              )}
-            </button>
-          </div>
+        </div>
+      )}
+
+      {item.audioUrl && (
+        <div className="mt-4">
+          <AudioReelPlayer
+            audioUrl={item.audioUrl}
+            title={item.name}
+            transcript={content}
+            reelType={year >= 1960 ? 'cassette' : year < 1930 ? 'gramophone' : 'reel_to_reel'}
+          />
         </div>
       )}
     </div>
