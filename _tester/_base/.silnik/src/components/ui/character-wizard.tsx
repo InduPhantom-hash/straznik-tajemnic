@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
 import { HelpIcon } from './tooltip';
-import { Skull, Zap, Sparkles } from 'lucide-react';
+import { Skull, Zap, Sparkles, Users } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
 import {
@@ -278,6 +278,12 @@ export function CharacterWizardV2({
   // (krok 1, cechy bazowe; zawód wybierany ponownie w kroku 2).
   const buildInitialState = (char?: Character): WizardState => {
     const initialRuleset = char?.rulesetVariant || (adventureContext?.tone === 'pulp' || adventureContext?.rulesetVariant === 'pulp' ? 'pulp' : 'classic');
+    const minReqAge = adventureContext?.investigatorRequirements?.minAge ?? 15;
+    const maxReqAge = adventureContext?.investigatorRequirements?.maxAge ?? 90;
+    const initialAge = char?.age
+      ? Math.min(Math.max(char.age, minReqAge), maxReqAge)
+      : Math.min(Math.max(25, minReqAge), maxReqAge);
+
     const base: WizardState = {
       step: 1,
       rulesetVariant: initialRuleset,
@@ -295,8 +301,8 @@ export function CharacterWizardV2({
         luck: 50,
       },
       statMethod: 'roll',
-      age: 25,
-      derived: libCalculateDerived({ str: 50, con: 50, siz: 50, dex: 50, app: 50, int: 50, pow: 50, edu: 50, luck: 50 }, 25, initialRuleset),
+      age: initialAge,
+      derived: libCalculateDerived({ str: 50, con: 50, siz: 50, dex: 50, app: 50, int: 50, pow: 50, edu: 50, luck: 50 }, initialAge, initialRuleset),
       occupationId: null,
       occupationPoints: 0,
       skills: getInitialSkills(50, 50), // Dynamiczne wartości Język Ojczysty i Unik
@@ -324,7 +330,7 @@ export function CharacterWizardV2({
     if (!char) return base;
     return {
       ...base,
-      age: char.age ?? base.age,
+      age: initialAge,
       name: char.name ?? '',
       gender: char.gender ?? '',
       birthplace: char.birthplace ?? '',
@@ -1722,6 +1728,25 @@ export function CharacterWizardV2({
           </p>
         )}
 
+        {adventureContext?.investigatorRequirements && (
+          <div className="border border-amber-500/40 bg-amber-950/25 p-3 rounded-sm flex items-start gap-3">
+            <Users className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs">
+              <span className="font-display uppercase tracking-wider font-semibold text-amber-200">
+                Wymogi scenariusza dotyczące Badaczy
+              </span>
+              <p className="text-amber-100/90 font-serif leading-relaxed">
+                {adventureContext.investigatorRequirements.summary}
+              </p>
+              {adventureContext.investigatorRequirements.minAge !== undefined && (
+                <p className="font-mono text-amber-300/80">
+                  Dozwolony wiek: {adventureContext.investigatorRequirements.minAge} - {adventureContext.investigatorRequirements.maxAge || 90} lat.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Odziedziczona konwencja z opcją zmiany */}
         <div className="flex items-center justify-between border border-brass/30 bg-[#120f0c] px-4 py-2.5 rounded-sm">
           <div className="flex items-center gap-2">
@@ -1865,9 +1890,11 @@ export function CharacterWizardV2({
   };
 
   const renderStep1 = () => {
-    const ageModifier = AGE_MODIFIERS.find(
-      (m) => state.age >= m.min && state.age <= m.max
-    );
+    const minReqAge = adventureContext?.investigatorRequirements?.minAge ?? 15;
+    const maxReqAge = adventureContext?.investigatorRequirements?.maxAge ?? 90;
+    const ageModifier =
+      AGE_MODIFIERS.find((m) => state.age >= m.min && state.age <= m.max) ||
+      (state.age < 15 ? AGE_MODIFIERS[0] : AGE_MODIFIERS[1]);
 
     // CoC 7e: metoda "Rozdziel punkty" ma budżet sumy = 460 punktów na 8 cech
     // (zestaw 40/50/50/50/60/60/70/80). Szczęście jest losowane osobno (3K6×5)
@@ -2162,15 +2189,15 @@ export function CharacterWizardV2({
           </label>
           <input
             type="range"
-            min={15}
-            max={90}
+            min={minReqAge}
+            max={maxReqAge}
             value={state.age}
             onChange={(e) => {
               const age = parseInt(e.target.value);
               const derived = calculateDerived(state.stats, age);
-              const newBracket = AGE_MODIFIERS.find(
-                (m) => age >= m.min && age <= m.max
-              );
+              const newBracket =
+                AGE_MODIFIERS.find((m) => age >= m.min && age <= m.max) ||
+                (age < 15 ? AGE_MODIFIERS[0] : AGE_MODIFIERS[1]);
               if (newBracket && newBracket.key !== currentAgeBracketKey) {
                 setCurrentAgeBracketKey(newBracket.key);
                 setPerformedEduChecks(0);
@@ -2181,6 +2208,11 @@ export function CharacterWizardV2({
             }}
             className="w-full"
           />
+          {adventureContext?.investigatorRequirements?.minAge !== undefined && (
+            <p className="mt-1.5 font-mono text-[11px] text-amber-400/90">
+              Wymóg scenariusza: wiek Badacza ograniczony do {minReqAge}-{maxReqAge} lat.
+            </p>
+          )}
           {ageModifier && (
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
@@ -2585,9 +2617,25 @@ export function CharacterWizardV2({
     const selectedArchetype = CHARACTER_ARCHETYPES.find(
       (a) => a.id === selectedArchetypeId
     );
-    const recommendedOccupationIds = new Set(
-      selectedArchetype?.suggestedOccupations || []
-    );
+    const scenarioSuggestedOccs = [
+      ...(adventureContext?.investigatorRequirements?.requiredOccupations || []),
+      ...(adventureContext?.suggestedOccupations || []),
+    ].map((o) => o.toLowerCase().trim());
+
+    const scenarioMatchingOccIds = OCCUPATIONS.filter((o) =>
+      scenarioSuggestedOccs.some(
+        (s) =>
+          o.name.toLowerCase().includes(s) ||
+          o.id.toLowerCase().includes(s) ||
+          s.includes(o.name.toLowerCase()) ||
+          s.includes(o.id.toLowerCase())
+      )
+    ).map((o) => o.id);
+
+    const recommendedOccupationIds = new Set([
+      ...(selectedArchetype?.suggestedOccupations || []),
+      ...scenarioMatchingOccIds,
+    ]);
 
     const startingEquipmentList = selectedOcc
       ? getStartingEquipmentForOccupation(selectedOcc.id)

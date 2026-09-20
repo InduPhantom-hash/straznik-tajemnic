@@ -120,25 +120,38 @@ describe('AdventureSelector', () => {
     );
   });
 
-  it('renders integrated details button on card and opens modal', () => {
+  it('renders difficulty stars, sessions count, and selects card directly on click', () => {
+    const advWithStars: CustomAdventure = {
+      ...adventure,
+      difficultyStars: 3,
+      estimatedSessions: '2',
+      investigatorRequirements: {
+        summary: 'Wymagany wiek 10-15 lat',
+        minAge: 10,
+        maxAge: 15,
+      },
+    };
+
     render(
       <AdventureSelector
         open
         onClose={jest.fn()}
         onSelect={jest.fn()}
-        customAdventures={[adventure]}
+        customAdventures={[advWithStars]}
       />
     );
 
-    // Zintegrowany przycisk otwierania szczegółów wewnątrz kafelka
-    const infoButtons = screen.getAllByRole('button', { name: /więcej szczegółów/i });
-    expect(infoButtons.length).toBeGreaterThan(0);
+    // Karta wyświetla liczbę sesji, poziom trudności z legendy oraz wymogi badaczy
+    expect(screen.getByText(/2 sesje/i)).toBeInTheDocument();
+    expect(screen.getByText('Średni')).toBeInTheDocument();
+    expect(screen.getByText(/Wymagany wiek 10-15 lat/i)).toBeInTheDocument();
 
-    fireEvent.click(infoButtons[0]);
+    // Kliknięcie w kartę bezpośrednio ją zaznacza
+    const selectButton = screen.getByRole('button', { name: /^wybierz$/i });
+    expect(selectButton).toBeInTheDocument();
+    fireEvent.click(selectButton);
 
-    // Otwarcie modala z tytułem i opisem
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Szczegóły scenariusza')).toBeInTheDocument();
+    expect(screen.getAllByText('Wybrano').length).toBeGreaterThan(0);
   });
 
   it('localizes attached lorebooks count in PL and EN', () => {

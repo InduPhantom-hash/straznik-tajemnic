@@ -198,5 +198,55 @@ Akcja rozgrywa się w Poznaniu w roku 1925. Tajemnicze morderstwo.
       expect(adventures[0].yearRange).toBe('1925');
       expect(adventures[0].eraLabel).toBe('Klasyczne lata 20.');
     });
+
+    it('extracts difficulty stars, circled sessions, investigator requirements, puzzles, and handouts from scenario body', () => {
+      const text = `
+ROZDZIAŁ 1
+JAK DOROŚLI WE MGLE
+
+LEGENDA OZNACZENIA SCENARIUSZY
+Stopień trudności: Trudny 
+Liczba sesji: ➍
+
+CZAS I MIEJSCE AKCJI
+Listopad 1938 roku, okolice Zakopanego.
+
+TWORZENIE BADACZY
+W tym scenariuszu gracze wcielają się w postacie dzieci w wieku 10-15 lat.
+Zaleca się, aby byli to uczniowie miejscowej szkoły.
+
+ZAGADKA Z MAPĄ
+Zlokalizowanie miejsca ukrycia ofiar porwań poprzez triangulację promieni od punktów zaginięć.
+
+POMOC DLA GRACZY #1 - Mapa rejonu Tatr
+POMOC DLA GRACZY #2 - Wycinek z Gazety Podhalańskiej
+      `;
+
+      const profile = detectRulebookProfile(text, 'Cienie_Tatr.pdf');
+      const adventures = buildLocalCustomAdventures(
+        text,
+        profile,
+        dummyOverlay,
+        'Cienie_Tatr.pdf',
+        45
+      );
+
+      expect(adventures.length).toBe(1);
+      const adv = adventures[0];
+      expect(adv.difficultyStars).toBe(4);
+      expect(adv.difficulty).toBe('hard');
+      expect(adv.estimatedSessions).toBe('4');
+      expect(adv.yearRange).toBe('1938');
+      expect(adv.activeSceneYear).toBe(1938);
+      expect(adv.eraLabel).toBe('Lata 30.');
+      expect(adv.investigatorRequirements).toBeDefined();
+      expect(adv.investigatorRequirements?.minAge).toBe(10);
+      expect(adv.investigatorRequirements?.maxAge).toBe(15);
+      expect(adv.puzzles).toBeDefined();
+      expect(adv.puzzles?.length).toBe(1);
+      expect(adv.puzzles?.[0].title).toBe('Zagadka z mapą');
+      expect(adv.handouts).toBeDefined();
+      expect(adv.handouts?.length).toBeGreaterThanOrEqual(2);
+    });
   });
 });

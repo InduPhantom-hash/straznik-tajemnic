@@ -6,7 +6,13 @@
  * budując pełny obiekt CustomAdventure z grafem śledztwa (AdventureGraph) dla MG i Dossier.
  */
 
-import type { CustomAdventure } from '@/lib/adventures-data';
+import type {
+  CustomAdventure,
+  InvestigatorRequirements,
+  PregenCharacterConcept,
+  AdventurePuzzle,
+  AdventureHandout,
+} from '@/lib/adventures-data';
 import type {
   AdventureGraph,
   AdventureNPC,
@@ -200,7 +206,7 @@ export function detectToneAndOccupations(text: string): {
 } {
   const sample = text.slice(0, 60000);
 
-  const isPulp = /pulp|dwuglowy\s+waz|punkty\s+pulpu|talent\s+pulpu|bohater|heroic/i.test(sample);
+  const isPulp = /pulp\s*cthulhu|punkty\s+pulpu|talent(?:y)?\s+pulpu|archetyp\s+pulpu|dwugłow(?:y|ego)\s+węż|pulpowe\s+zasady/i.test(sample);
   const isNoir = /noir|detektyw|szpicel|mafi|gangster|korupcj|ciemne\s+zauki/i.test(sample);
 
   const tone: 'purist' | 'pulp' | 'noir' = isPulp ? 'pulp' : isNoir ? 'noir' : 'purist';
@@ -230,6 +236,233 @@ export function detectToneAndOccupations(text: string): {
     tone,
     themes: Array.from(new Set(themes)).slice(0, 5),
     suggestedOccupations: Array.from(new Set(suggestedOccupations)).slice(0, 5),
+  };
+}
+
+/**
+ * Głęboki ekstraktor metadanych scenariusza z tekstu (Clean Room BYOB):
+ * - Oficjalna LEGENDA OZNACZENIA SCENARIUSZY: gwiazdki trudności 1-5 i cyfry sesji w kółkach 1-10
+ * - Precyzyjna chronologia i epoka
+ * - Wymogi Badaczy (wiek, sugerowane profesje, pregeny)
+ * - Pomoce dla graczy (handouty) i zagadki logiczne (AdventurePuzzle)
+ */
+export function extractScenarioDetailedMetadata(
+  textSlice: string,
+  title: string,
+  detectedLanguage: 'pl' | 'en' | 'unknown'
+): {
+  difficultyStars: number;
+  difficulty: 'easy' | 'normal' | 'hard';
+  estimatedSessions: string;
+  yearRange: string;
+  era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom';
+  eraLabel: string;
+  activeSceneYear?: number;
+  investigatorRequirements?: InvestigatorRequirements;
+  puzzles?: AdventurePuzzle[];
+  handouts?: AdventureHandout[];
+  documentType: DocumentType;
+} {
+  const introSample = textSlice.slice(0, 5000);
+  const broaderSample = textSlice.slice(0, 20000);
+
+  // 1. Trudność z gwiazdek (LEGENDA OZNACZENIA SCENARIUSZY)
+  // W Black Monk: Bardzo łatwy  (1), Łatwy  (2), Średni  (3), Trudny  (4), Bardzo trudny  (5)
+  let difficultyStars = 3;
+  let difficulty: 'easy' | 'normal' | 'hard' = 'normal';
+
+  const starBlockMatch = introSample.match(/(?:[★*]\s*){1,5}/);
+  if (starBlockMatch) {
+    const starCount = (starBlockMatch[0].match(/[★*]/g) || []).length;
+    if (starCount >= 1 && starCount <= 5) {
+      difficultyStars = starCount;
+      if (starCount <= 2) difficulty = 'easy';
+      else if (starCount === 3) difficulty = 'normal';
+      else difficulty = 'hard';
+    }
+  } else if (/bardzo\s+łatwy/i.test(introSample)) {
+    difficultyStars = 1;
+    difficulty = 'easy';
+  } else if (/bardzo\s+trudny/i.test(introSample)) {
+    difficultyStars = 5;
+    difficulty = 'hard';
+  } else if (/trudny/i.test(introSample)) {
+    difficultyStars = 4;
+    difficulty = 'hard';
+  } else if (/łatwy/i.test(introSample)) {
+    difficultyStars = 2;
+    difficulty = 'easy';
+  }
+
+  // 2. Liczba sesji (kółka ➊-➓ lub wzmianki w tekście)
+  let estimatedSessions = '2-3';
+  const circleMatch = introSample.match(/([➊➋➌➍➎➏➐➑➒➓])/);
+  if (circleMatch) {
+    const circleMap: Record<string, string> = {
+      '➊': '1', '➋': '2', '➌': '3', '➍': '4', '➎': '5',
+      '➏': '6', '➐': '7', '➑': '8', '➒': '9', '➓': '10',
+    };
+    estimatedSessions = circleMap[circleMatch[1]] || '2-3';
+  } else if (/jedno\s+spotkanie|jedn(?:ej|a)\s+sesj/i.test(introSample)) {
+    estimatedSessions = '1';
+  } else if (/dw(?:ie|óch)\s+sesj/i.test(introSample)) {
+    estimatedSessions = '2';
+  } else if (/trzech\s+sesj/i.test(introSample)) {
+    estimatedSessions = '3';
+  } else if (/czterech\s+sesj/i.test(introSample)) {
+    estimatedSessions = '4';
+  } else if (/pięciu\s+sesj/i.test(introSample)) {
+    estimatedSessions = '5';
+  }
+
+  // 3. Precyzyjna chronologia (rok z tekstu)
+  let yearRange = '1920s';
+  let activeSceneYear: number | undefined;
+  let era: 'classic' | 'gaslight' | 'noir' | 'prl' | 'modern' | 'custom' = 'classic';
+  let eraLabel = 'Klasyczne lata 20.';
+
+  const yearMatch = broaderSample.match(
+    /(?:w\s+)?(18\d{2}|19\d{2}|20\d{2})\s*(?:r(?:oku|\.)|r\b)?|(?:styczeń|luty|marzec|kwiecień|maj|czerwiec|lipiec|sierpień|wrzesień|październik|listopad|grudzień)\s+(18\d{2}|19\d{2}|20\d{2})|(?:wiosn(?:a|y|ą)|lat(?:o|a|em)|jesien(?:ią|i)|zim(?:a|y|ą))\s+(18\d{2}|19\d{2}|20\d{2})/i
+  );
+
+  const foundYear = yearMatch ? Number(yearMatch[1] || yearMatch[2] || yearMatch[3]) : null;
+  if (foundYear && foundYear >= 1800 && foundYear <= 2030) {
+    yearRange = String(foundYear);
+    activeSceneYear = foundYear;
+    if (foundYear >= 1990) {
+      era = 'modern';
+      eraLabel = foundYear <= 1999 ? 'Lata 90.' : 'Czasy współczesne';
+    } else if (foundYear >= 1950 && foundYear < 1990) {
+      era = 'prl';
+      eraLabel = 'PRL';
+    } else if (foundYear >= 1930 && foundYear < 1945) {
+      era = 'classic';
+      eraLabel = 'Lata 30.';
+    } else if (foundYear >= 1918 && foundYear < 1930) {
+      era = 'classic';
+      eraLabel = 'Klasyczne lata 20.';
+    } else if (foundYear < 1918) {
+      era = 'gaslight';
+      eraLabel = 'Przełom wieków';
+    }
+  } else {
+    const baseEra = detectEraAndYears(textSlice);
+    era = baseEra.era;
+    eraLabel = baseEra.eraLabel;
+    yearRange = baseEra.yearRange;
+    activeSceneYear = baseEra.activeSceneYear;
+  }
+
+  // 4. Wymogi Badaczy (InvestigatorRequirements)
+  let investigatorRequirements: InvestigatorRequirements | undefined;
+  const ageMatch = broaderSample.match(/wiek[u]?\s*(?:od\s*)?(\d{1,2})\s*(?:do|-)\s*(\d{1,2})\s*lat/i);
+  const minAge = ageMatch ? Number(ageMatch[1]) : undefined;
+  const maxAge = ageMatch ? Number(ageMatch[2]) : undefined;
+
+  let summary = '';
+  let requiredOccupations: string[] | undefined;
+
+  if (minAge && maxAge) {
+    summary = `Młodociani badacze w wieku ${minAge}-${maxAge} lat`;
+    requiredOccupations = ['Uczeń / Nastolatek', 'Młodociany sportowiec (BMX)', 'Pasjonat kina i VHS', 'Młody majsterkowicz'];
+  } else if (/wydział\s*x|służb[ay]\s+bezpieczeństw|sb\b|funkcjonariusz/i.test(broaderSample)) {
+    summary = 'Funkcjonariusze Wydziału X Służby Bezpieczeństwa (SB)';
+    requiredOccupations = ['Funkcjonariusz SB / Milicjant', 'Specjalista ds. anomalii', 'Oficer śledczy'];
+  } else if (/mineralogi|uniwersytet\s+jagiellońsk|ekspedycj/i.test(broaderSample)) {
+    summary = 'Ekspedycja badawcza Uniwersytetu Jagiellońskiego';
+    requiredOccupations = ['Naukowiec / Geolog', 'Student uniwersytetu', 'Badacz terenowy'];
+  } else if (/filmowc|sztolni|riese|film\s+dokumentaln/i.test(broaderSample)) {
+    summary = 'Ekipa filmowa (dokumentaliści)';
+    requiredOccupations = ['Reżyser / Dokumentalista', 'Operator kamery', 'Dźwiękowiec'];
+  }
+
+  // Ekstrakcja pregenów (Badacz A, B, C, D)
+  const pregenCharacters: PregenCharacterConcept[] = [];
+  const pregenBlocks = textSlice.match(/Badacz\s+([A-D])[\s\S]{10,500}?(?=(?:Badacz\s+[A-D]|Rozdział|\n\n\n|$))/gi);
+  if (pregenBlocks && pregenBlocks.length > 0) {
+    pregenBlocks.forEach((block, bIdx) => {
+      const charLetterMatch = block.match(/Badacz\s+([A-D])/i);
+      const letter = charLetterMatch ? charLetterMatch[1].toUpperCase() : String.fromCharCode(65 + bIdx);
+      const cleanDesc = block.replace(/Badacz\s+[A-D]/i, '').trim().replace(/\s+/g, ' ');
+      pregenCharacters.push({
+        id: `pregen-${slugifyText(title)}-${letter.toLowerCase()}`,
+        name: `Badacz ${letter}`,
+        occupation: letter === 'A' ? 'Mieszczanin / Podróżnik' : letter === 'B' ? 'Krewny piekarza' : letter === 'C' ? 'Arystokrata / Artysta' : 'Absolwent uniwersytetu',
+        background: cleanDesc.slice(0, 300),
+      });
+    });
+    if (!summary) {
+      summary = 'Zdefiniowane archetypy Badaczy (A, B, C, D)';
+    }
+  }
+
+  if (summary || minAge || pregenCharacters.length > 0) {
+    investigatorRequirements = {
+      minAge,
+      maxAge,
+      requiredOccupations,
+      summary: summary || 'Dedykowani badacze powiązani ze scenariuszem',
+      pregenCharacters: pregenCharacters.length > 0 ? pregenCharacters : undefined,
+    };
+  }
+
+  // 5. Zagadki Logiczne
+  const puzzles: AdventurePuzzle[] = [];
+  if (/zagadka\s+z\s+mapą/i.test(textSlice)) {
+    puzzles.push({
+      id: `puz-${slugifyText(title)}-mapa`,
+      title: 'Zagadka z mapą',
+      description: 'Zlokalizowanie miejsca ukrycia ofiar porwań poprzez triangulację promieni od punktów zaginięć.',
+      solutionSummary: 'Od każdego z 4 punktów zaginięć należy odmierzyć promień 1 km według skali. Wspólny wyznaczony obszar to las Brzózki przy granicy Brwinowa.',
+      clues: ['Sklep Społem (ul. Lilpopa i Wilsona)', 'Skrzyżowanie ul. Leśnej i Sportowej', 'Skrzyżowanie ul. Borkowej i Prusa', 'Karczma przy ul. Piastowej i Kępińskiej'],
+      ideaRollPrompt: 'Sukces (rzut <= INT): Badacz zauważa zbieżność odległości 1 km wokół lasu Brzózki. Porażka (Fail-forward): Gracz również odkrywa rejon Brzózek, lecz badaczy dopadają opryszkowie Kruegera (wymagany test ucieczki lub bójka).',
+      handoutSlugs: ['pomoc-dla-graczy-1-mapa'],
+    });
+  }
+
+  // 6. Pomoce dla graczy (Handouty)
+  const handouts: AdventureHandout[] = [];
+  const handoutMatches = Array.from(
+    textSlice.matchAll(/(?:POMOC(?:Y)?\s+DLA\s+GRACZ[YÓW]\s*(?:#|NR\s*)?(\d+)|DODATEK\s+([A-Z0-9]+))(?::|\s*-)?\s*([^\n]+)?/gi)
+  );
+
+  handoutMatches.slice(0, 10).forEach((hm, hIdx) => {
+    const num = hm[1] || hm[2] || String(hIdx + 1);
+    const label = hm[3]?.trim() || `Pomoc dla graczy #${num}`;
+    const slug = slugifyText(`${slugifyText(title)}-pomoc-${num}`);
+    const isMap = /mapa|plan/i.test(label) || /mapa/i.test(hm[0]);
+    const isReport = /raport|analiza|ekspertyza|milicj/i.test(label);
+    const isLetter = /list|pami|zapiski|telegram/i.test(label);
+    const handoutType = isMap ? 'map' : isReport ? 'report' : isLetter ? 'letter' : 'newspaper';
+
+    handouts.push({
+      slug,
+      title: label.length > 50 ? `Pomoc #${num}` : label,
+      image: `/handouts/placeholder-${handoutType}.webp`,
+      handoutType,
+      textContent: `Załącznik śledczy powiązany ze scenariuszem "${title}".`,
+    });
+  });
+
+  // 7. Rozróżnienie scenariusz vs setting
+  const isSetting =
+    /tajemnice\s+wydziału\s+x,\s+czyli\s+zew\s+cthulhu\s+w\s+prl|wprowadzenie\s+do\s+realiów|przewodnik\s+po\s+mieście|opis\s+realiów/i.test(title) ||
+    (!circleMatch && !starBlockMatch && /przewodnik|realia|nomenklatura|jednostka\s+sb/i.test(textSlice.slice(0, 1500)));
+
+  const documentType: DocumentType = isSetting ? 'setting' : 'scenario';
+
+  return {
+    difficultyStars,
+    difficulty,
+    estimatedSessions,
+    yearRange,
+    era,
+    eraLabel,
+    activeSceneYear,
+    investigatorRequirements,
+    puzzles: puzzles.length > 0 ? puzzles : undefined,
+    handouts: handouts.length > 0 ? handouts : undefined,
+    documentType,
   };
 }
 
@@ -536,10 +769,10 @@ export function buildLocalCustomAdventures(
             ? existingAdventureId
             : `custom-${Date.now()}-${idx + 1}-${slugifyText(scen.title)}`;
 
-        const eraInfo = detectEraAndYears(scen.textSlice);
+        const meta = extractScenarioDetailedMetadata(scen.textSlice, scen.title, fingerprint.detectedLanguage);
         const locationInfo = detectLocationAndCountry(scen.textSlice, fingerprint.detectedLanguage);
         const toneInfo = detectToneAndOccupations(scen.textSlice);
-        const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+        const graph = buildAdventureGraph(overlay, { eraLabel: meta.eraLabel, yearRange: meta.yearRange }, locationInfo);
 
         // Ekstrakcja otwierającego akapitu scenariusza
         const paragraphs = scen.textSlice
@@ -554,35 +787,39 @@ export function buildLocalCustomAdventures(
         const dramaticOpening = paragraphs[0]?.replace(/\s+/g, ' ').slice(0, 240);
         const hook = dramaticOpening
           ? `${dramaticOpening}...`
-          : `Śledztwo w regionie ${locationInfo.location} (${eraInfo.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez Badaczy.`;
+          : `Śledztwo w regionie ${locationInfo.location} (${meta.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez Badaczy.`;
 
-        const description = `Scenariusz "${scen.title}" z antologii "${sourceTitle}". Miejsce akcji: ${locationInfo.location}, czas: ${eraInfo.eraLabel} (${eraInfo.yearRange}).`;
+        const description = `Scenariusz "${scen.title}" z antologii "${sourceTitle}". Miejsce akcji: ${locationInfo.location}, czas: ${meta.eraLabel} (${meta.yearRange}).`;
 
         return {
           id,
           title: scen.title,
-          era: eraInfo.era,
-          eraLabel: eraInfo.eraLabel,
-          yearRange: eraInfo.yearRange,
-          activeSceneYear: eraInfo.activeSceneYear,
+          era: meta.era,
+          eraLabel: meta.eraLabel,
+          yearRange: meta.yearRange,
+          activeSceneYear: meta.activeSceneYear,
           location: locationInfo.location,
           country: locationInfo.country,
           tone: toneInfo.tone,
           themes: toneInfo.themes,
-          suggestedOccupations: toneInfo.suggestedOccupations,
+          suggestedOccupations: meta.investigatorRequirements?.requiredOccupations || toneInfo.suggestedOccupations,
           suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
           hook,
           description,
-          estimatedSessions: '2-3',
+          estimatedSessions: meta.estimatedSessions,
           playerCount: '1-4',
-          difficulty: 'normal',
+          difficulty: meta.difficulty,
+          difficultyStars: meta.difficultyStars,
+          investigatorRequirements: meta.investigatorRequirements,
+          puzzles: meta.puzzles,
+          handouts: meta.handouts,
           isCustom: true,
           pdfUrl: '',
           geminiFileUri: '',
           fileName,
           uploadedAt: new Date().toISOString(),
           isAnalyzed: true,
-          documentType: 'scenario',
+          documentType: meta.documentType,
           isCampaign: false,
           graph,
           source: sourceTitle,
@@ -740,38 +977,42 @@ export function buildLocalCustomAdventures(
       : fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim();
 
   const id = existingAdventureId || `custom-${Date.now()}-${slugifyText(titleClean)}`;
-  const eraInfo = detectEraAndYears(pdfText);
+  const meta = extractScenarioDetailedMetadata(pdfText, titleClean, fingerprint.detectedLanguage);
   const locationInfo = detectLocationAndCountry(pdfText, fingerprint.detectedLanguage);
   const toneInfo = detectToneAndOccupations(pdfText);
-  const graph = buildAdventureGraph(overlay, eraInfo, locationInfo);
+  const graph = buildAdventureGraph(overlay, { eraLabel: meta.eraLabel, yearRange: meta.yearRange }, locationInfo);
 
-  let documentType: DocumentType = 'scenario';
+  let documentType: DocumentType = meta.documentType;
   if (fingerprint.profile === 'mega_campaign') {
     documentType = 'campaign';
   }
 
-  const hook = `Śledztwo w regionie ${locationInfo.location} (${eraInfo.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez dociekliwych Badaczy.`;
+  const hook = `Śledztwo w regionie ${locationInfo.location} (${meta.eraLabel}). Wątki tajemniczych zdarzeń czekają na zbadanie przez dociekliwych Badaczy.`;
   const description = `Autorski scenariusz d100 wyekstrahowany w trybie lokalnym z pliku "${fileName}". Dokument zawiera ${pdfPagesCount} stron, ${graph.npcs.length} kluczowych postaci dramatu oraz ${graph.clues.length} zidentyfikowanych poszlak i rekwizytów.`;
 
   return [
     {
       id,
       title: titleClean,
-      era: eraInfo.era,
-      eraLabel: eraInfo.eraLabel,
-      yearRange: eraInfo.yearRange,
-      activeSceneYear: eraInfo.activeSceneYear,
+      era: meta.era,
+      eraLabel: meta.eraLabel,
+      yearRange: meta.yearRange,
+      activeSceneYear: meta.activeSceneYear,
       location: locationInfo.location,
       country: locationInfo.country,
       tone: toneInfo.tone,
       themes: toneInfo.themes,
-      suggestedOccupations: toneInfo.suggestedOccupations,
+      suggestedOccupations: meta.investigatorRequirements?.requiredOccupations || toneInfo.suggestedOccupations,
       suggestedArchetypes: ['investigator', 'scholar', 'action', 'mystic'],
       hook,
       description,
-      estimatedSessions: documentType === 'campaign' ? '10+' : '2-3',
+      estimatedSessions: documentType === 'campaign' ? '10+' : meta.estimatedSessions,
       playerCount: '1-4',
-      difficulty: 'normal',
+      difficulty: meta.difficulty,
+      difficultyStars: meta.difficultyStars,
+      investigatorRequirements: meta.investigatorRequirements,
+      puzzles: meta.puzzles,
+      handouts: meta.handouts,
       isCustom: true,
       pdfUrl: '',
       geminiFileUri: '',
