@@ -141,8 +141,8 @@
         "en": "Adventure selector"
       },
       "description": {
-        "pl": "Wybór scenariusza lub lorebooka z podziałem na zakładki i dołączaniem ksiąg tła",
-        "en": "Scenario or lorebook selector with tabbed view and sourcebook attachment"
+        "pl": "Wybór scenariusza lub lorebooka z dekompozycją antologii, kafelkami Dark Art Déco i dołączaniem ksiąg tła",
+        "en": "Scenario or lorebook selector with anthology decomposition, Dark Art Deco cards and sourcebook attachment"
       }
     },
     {
