@@ -183,6 +183,9 @@ export function LanguageSelectionContent({
         <p className="font-special-elite text-[10px] sm:text-xs text-muted-foreground/75 uppercase tracking-[0.18em] mt-0.5">
           W hołdzie twórczości H.P. Lovecrafta (1890–1937) &bull; Słynne epitafium wyryte na nagrobku pisarza
         </p>
+        <p className="font-special-elite text-[9px] sm:text-[11px] text-muted-foreground/60 uppercase tracking-[0.15em] mt-0.5 italic">
+          In tribute to the work of H.P. Lovecraft (1890–1937) &bull; Famous epitaph engraved on the author&apos;s gravestone
+        </p>
       </div>
     </div>
   );
