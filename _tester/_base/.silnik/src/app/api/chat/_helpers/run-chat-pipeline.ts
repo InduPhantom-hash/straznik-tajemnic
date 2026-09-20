@@ -601,7 +601,7 @@ export async function runChatPipeline({
           facade: firstNpc.description?.slice(0, 120) || firstNpc.occupation || 'Tajemniczy nieznajomy',
           flaw: 'Nawykowa podejrzliwość wobec obcych',
           hiddenAgenda: firstNpc.agenda || 'Chroni swoje interesy i sekrety',
-          resistanceLevel: (firstNpc.disposition === 'hostile' ? 'hostile' : firstNpc.disposition === 'suspicious' ? 'suspicious' : 'guarded') as any,
+          resistanceLevel: firstNpc.disposition === 'hostile' ? 'hostile' : firstNpc.disposition === 'suspicious' ? 'suspicious' : 'guarded',
           fearOrLeverage: 'Groźba skandalu lub zdemaskowania',
         } : undefined,
       });
