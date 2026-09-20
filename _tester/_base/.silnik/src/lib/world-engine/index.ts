@@ -1,4 +1,13 @@
-import type { NPCEntity, SensoryContext, SettingFriction, ClueNode, WorldEngineDirectives } from './types';
+import type {
+  NPCEntity,
+  SensoryContext,
+  SettingFriction,
+  ClueNode,
+  GeographyContext,
+  OccultContext,
+  WorldEngineDirectives,
+} from './types';
+
 
 /**
  * 1. NPCEngine - zarządza fasadą, skazą, ukrytą intencją i prawem głosu postaci
