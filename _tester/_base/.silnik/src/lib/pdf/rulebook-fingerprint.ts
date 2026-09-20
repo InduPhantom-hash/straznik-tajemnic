@@ -65,7 +65,7 @@ function stripDiacritics(str: string): string {
 /**
  * Analizuje tekst podręcznika PDF i wykrywa jego profil systemowy oraz plan ekstrakcji semantycznej.
  */
-export function detectRulebookProfile(text: string): RulebookFingerprintResult {
+export function detectRulebookProfile(text: string, fileName: string = ''): RulebookFingerprintResult {
   const emptyPlan: SemanticExtractionPlan = {
     detectedCategories: [],
     estimatedEntities: {
@@ -99,8 +99,10 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
     };
   }
 
+  const cleanFileName = stripDiacritics((fileName || '').toLowerCase());
   const rawSample = text.slice(0, 150000).toLowerCase();
   const sample = stripDiacritics(rawSample);
+  const normalizedSample = sample.replace(/\s+/g, ' ');
   const textLength = text.length;
 
   // 1. Detekcja języka dokumentu
@@ -257,30 +259,35 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
 
   // 3. Rozpoznawanie profilu podręcznika / suplementu
 
-  // A. Bestiariusz (np. Malleus Monstrorum, Petersen's Field Guide)
+  // A. Grymuar Magii (np. The Grand Grimoire, Wielki Grymuar Magii Mitów Cthulhu)
+  const isGrimoireIndicator =
+    cleanFileName.includes('grymuar') ||
+    cleanFileName.includes('grimoire') ||
+    normalizedSample.includes('wielki grymuar') ||
+    normalizedSample.includes('grand grimoire') ||
+    (hasSpells && (sample.includes('czas rzucania') || sample.includes('casting time') || sample.includes('gleboka magia') || sample.includes('deep magic')));
+
+  // B. Bestiariusz (np. Malleus Monstrorum, Petersen's Field Guide)
   const isBestiaryIndicator =
-    (sample.includes('malleus monstrorum') ||
-      sample.includes('field guide to lovecraftian') ||
-      (hasCreatures && (sample.includes('bostwa') || sample.includes('deities')))) &&
+    !isGrimoireIndicator &&
+    (cleanFileName.includes('malleus') ||
+      cleanFileName.includes('bestiariusz') ||
+      cleanFileName.includes('field guide') ||
+      normalizedSample.includes('malleus monstrorum') ||
+      normalizedSample.includes('field guide to lovecraftian') ||
+      normalizedSample.includes('bestiariusz mitow') ||
+      (hasCreatures && (sample.includes('bostwa') || sample.includes('deities')) && !hasSpells && !hasCombatRules && !hasChaseRules)) &&
     !hasChaseRules &&
     !hasInvestigatorCreation;
 
-  // B. Grymuar Magii (np. The Grand Grimoire)
-  const isGrimoireIndicator =
-    (sample.includes('wielki grymuar') ||
-      sample.includes('grand grimoire') ||
-      (hasSpells && (sample.includes('czas rzucania') || sample.includes('casting time')))) &&
-    !hasCombatRules &&
-    !hasChaseRules;
-
   // C. Podręcznik Badacza (Investigator Handbook)
   const isInvestigatorHandbookIndicator =
-    (sample.includes('podrecznik badacza') || sample.includes('investigator handbook')) &&
+    (cleanFileName.includes('podrecznik badacza') || cleanFileName.includes('investigator handbook') || sample.includes('podrecznik badacza') || sample.includes('investigator handbook')) &&
     !sample.includes('ksiega straznika') &&
     !sample.includes('keeper rulebook');
 
   // D. Pulp Cthulhu
-  const isPulpIndicator = hasPulpTalents;
+  const isPulpIndicator = hasPulpTalents || cleanFileName.includes('pulp');
 
   // E. Setting / Epoka (np. Down Darker Trails, Gaslight, Dark Ages, Berlin)
   const isSettingIndicator =
@@ -293,6 +300,9 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
 
   // F. Mega-Kampania (np. Maski Nyarlathotepa, Horror w Orient Expressie, Czas Żniw, Dwa Węże)
   const isMegaCampaignIndicator =
+    cleanFileName.includes('nyarlathotep') ||
+    cleanFileName.includes('orient express') ||
+    cleanFileName.includes('czas zniw') ||
     sample.includes('maski nyarlathotepa') ||
     sample.includes('masks of nyarlathotep') ||
     sample.includes('horror w orient expressie') ||
@@ -308,20 +318,27 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
 
   // G. Antologia / Zbiór scenariuszy (np. Cienie Tatr, Horror nad Wartą, Wrota Mroku, Posiadłości Szaleństwa)
   const isAnthologyIndicator =
-    sample.includes('cienie tatr') ||
-    sample.includes('horror nad warta') ||
-    sample.includes('wrota mroku') ||
-    sample.includes('doors to darkness') ||
-    sample.includes('posiadlosci szalenstwa') ||
-    sample.includes('mansions of madness') ||
-    sample.includes('nameless horrors') ||
-    sample.includes('zbior scenariuszy') ||
-    sample.includes('antologia scenariuszy') ||
-    sample.includes('collection of scenarios') ||
-    (sample.includes('scenariusz 1') && sample.includes('scenariusz 2'));
+    (cleanFileName.includes('cienie') && cleanFileName.includes('tatr')) ||
+    (cleanFileName.includes('horror') && cleanFileName.includes('warta')) ||
+    cleanFileName.includes('antologia') ||
+    normalizedSample.includes('cienie tatr') ||
+    normalizedSample.includes('horror nad warta') ||
+    normalizedSample.includes('wrota mroku') ||
+    normalizedSample.includes('doors to darkness') ||
+    normalizedSample.includes('posiadlosci szalenstwa') ||
+    normalizedSample.includes('mansions of madness') ||
+    normalizedSample.includes('nameless horrors') ||
+    normalizedSample.includes('zbior scenariuszy') ||
+    normalizedSample.includes('antologia scenariuszy') ||
+    normalizedSample.includes('collection of scenarios') ||
+    (sample.includes('scenariusz 1') && sample.includes('scenariusz 2')) ||
+    (sample.includes('rozdział 1') && sample.includes('rozdział 2') && (sample.includes('spis treści') || sample.includes('spis tresci'))) ||
+    (sample.includes('rozdział 1') && sample.includes('rozdział 2') && sample.includes('scenariusz'));
 
   // H. Starter (Zasady Skrócone / Quick-Start)
   const isStarterIndicator =
+    cleanFileName.includes('starter') ||
+    cleanFileName.includes('quick-start') ||
     sample.includes('zasady skrocone') ||
     sample.includes('quick-start') ||
     sample.includes('starter') ||
@@ -359,19 +376,23 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
   let confidence = 0.7;
   let adventureType: 'one_shot' | 'scenario_anthology' | 'mega_campaign' | undefined = undefined;
 
-  if (isBestiaryIndicator) {
-    profile = 'bestiary';
-    title =
-      detectedLanguage === 'pl'
-        ? 'Bestiariusz Mitów d100 (Monster Manual / Bestiary)'
-        : 'd100 Mythos Bestiary (Monster Manual)';
-    confidence = 0.95;
-  } else if (isGrimoireIndicator) {
+  if (isGrimoireIndicator) {
     profile = 'grimoire';
     title =
-      detectedLanguage === 'pl'
-        ? 'Wielki Grymuar Magii d100 (Grimoire of Magic)'
-        : 'd100 Grimoire of Arcane Magic';
+      cleanFileName.includes('wielki') || sample.includes('wielki grymuar')
+        ? 'Wielki Grymuar Magii Mitów Cthulhu'
+        : detectedLanguage === 'pl'
+          ? 'Grymuar Magii d100'
+          : 'Grimoire of Arcane Magic';
+    confidence = 0.95;
+  } else if (isBestiaryIndicator) {
+    profile = 'bestiary';
+    title =
+      cleanFileName.includes('malleus') || sample.includes('malleus monstrorum')
+        ? 'Malleus Monstrorum: Bestiariusz Mitów Cthulhu'
+        : detectedLanguage === 'pl'
+          ? 'Bestiariusz Mitów d100'
+          : 'd100 Mythos Bestiary';
     confidence = 0.95;
   } else if (isMegaCampaignIndicator) {
     profile = 'mega_campaign';
@@ -383,10 +404,16 @@ export function detectRulebookProfile(text: string): RulebookFingerprintResult {
     adventureType = 'mega_campaign';
   } else if (isAnthologyIndicator) {
     profile = 'scenario_anthology';
-    title =
-      detectedLanguage === 'pl'
-        ? 'Antologia Scenariuszy d100 (Scenario Collection)'
-        : 'd100 Scenario Anthology';
+    if (cleanFileName.includes('horror') && cleanFileName.includes('warta')) {
+      title = 'Horror nad Wartą';
+    } else if (cleanFileName.includes('cienie') && cleanFileName.includes('tatr')) {
+      title = 'Cienie Tatr';
+    } else {
+      title =
+        detectedLanguage === 'pl'
+          ? 'Antologia Scenariuszy d100'
+          : 'd100 Scenario Anthology';
+    }
     confidence = 0.92;
     adventureType = 'scenario_anthology';
   } else if (isInvestigatorHandbookIndicator) {

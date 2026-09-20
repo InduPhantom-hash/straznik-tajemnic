@@ -150,7 +150,21 @@ function writeToLocalStorage(data: StoredAdventures): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.warn('localStorage write failed (quota?)', error);
+    console.warn('localStorage write failed (quota?), retrying with stripped payload', error);
+    try {
+      // Fallback: usuwamy ciężkie grafy ze stripowanej kopii dla localStorage
+      const stripped = {
+        activeId: data.activeId,
+        adventures: data.adventures.map((a) => ({
+          ...a,
+          graph: undefined,
+          fullNarrativeSummary: undefined,
+        })),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stripped));
+    } catch (fallbackError) {
+      console.warn('localStorage stripped write also failed, relying solely on IndexedDB', fallbackError);
+    }
   }
 }
 

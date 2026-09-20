@@ -73,8 +73,6 @@ describe('AdventureSelector', () => {
     expect(screen.getByText(/Upload adventure \(PDF\)/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByText(adventure.title));
-    const closeButtons = screen.getAllByRole('button', { name: /close/i });
-    fireEvent.click(closeButtons[closeButtons.length - 1]);
 
     const confirm = screen.getByRole('button', { name: /choose and continue/i });
     expect(confirm).toBeEnabled();
@@ -88,7 +86,7 @@ describe('AdventureSelector', () => {
     );
   });
 
-  it('requires one exact year before confirming a custom scenario range', () => {
+  it('confirms a custom scenario directly without asking for exact year', () => {
     const onSelect = jest.fn();
     const rangedAdventure: CustomAdventure = {
       ...adventure,
@@ -106,22 +104,17 @@ describe('AdventureSelector', () => {
     );
 
     fireEvent.click(screen.getByText(rangedAdventure.title));
-    const closeButtons = screen.getAllByRole('button', { name: /close|zamknij/i });
-    fireEvent.click(closeButtons[closeButtons.length - 1]);
+
+    expect(screen.queryByLabelText('Dokładny rok')).not.toBeInTheDocument();
 
     const confirm = screen.getByRole('button', { name: /wybierz i kontynuuj/i });
-    expect(confirm).toBeDisabled();
-
-    fireEvent.change(screen.getByLabelText('Dokładny rok'), {
-      target: { value: '1974' },
-    });
     expect(confirm).toBeEnabled();
     fireEvent.click(confirm);
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'custom-range',
-        yearRange: '1974',
+        yearRange: '1973-1974',
         country: 'Polska',
       })
     );
