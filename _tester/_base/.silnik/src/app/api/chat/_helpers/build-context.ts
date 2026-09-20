@@ -849,6 +849,8 @@ export interface BuildAdditionalContextOpts {
   eventResolutionDirective?: string;
   /** Stan guardrails immersji i strike counter (Issue #380) */
   guardrailState?: GuardrailState;
+  /** Dyrektywy 5 modularnych silników świata (NPCEngine, Sensory, Graph, Friction, Mystery) */
+  worldEngineDirectives?: string;
 }
 
 export function buildAdditionalContext(
@@ -1332,6 +1334,11 @@ export function buildAdditionalContext(
           `3. Opisz ten moment z bezlitosną lovecraftowską grozą. Koniec gry.`;
       additionalContext.push(level3Directive);
     }
+  }
+
+  // Dyrektywy 5 modularnych silników świata (Issue #444)
+  if (opts.worldEngineDirectives) {
+    additionalContext.push(opts.worldEngineDirectives);
   }
 
   return additionalContext;

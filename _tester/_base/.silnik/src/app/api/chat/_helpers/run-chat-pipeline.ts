@@ -58,6 +58,7 @@ import {
   isCampaignMemoryScope,
 } from '@/core/memory/campaign-scope';
 import type { CampaignMemoryScope } from '@/core/memory/types';
+import { WorldEngineDirector } from '@/lib/world-engine';
 
 function isChaseState(value: unknown): value is ChaseState {
   if (!value || typeof value !== 'object') return false;
@@ -579,6 +580,28 @@ export async function runChatPipeline({
       return vbg;
     })(),
     playerMessage: message,
+    worldEngineDirectives: (() => {
+      const director = new WorldEngineDirector();
+      // Pobierz aktywnego NPC jeśli obecny w lokacji
+      const firstNpc = npcs && npcs.length > 0 ? npcs[0] : undefined;
+      return director.compileDirectives({
+        locale: (locale ?? 'pl') as 'pl' | 'en',
+        sensory: {
+          primarySense: 'olfactory',
+          secondarySense: 'auditory',
+          gritDetails: [currentLocation ? `Ślady zużycia i atmosfera miejsca: ${currentLocation}` : 'Patyna czasu i retro-ziarno epoki'],
+        },
+        activeNPC: firstNpc ? {
+          id: firstNpc.id,
+          name: firstNpc.name,
+          facade: firstNpc.description?.slice(0, 120) || firstNpc.occupation || 'Tajemniczy nieznajomy',
+          flaw: 'Nawykowa podejrzliwość wobec obcych',
+          hiddenAgenda: firstNpc.agenda || 'Chroni swoje interesy i sekrety',
+          resistanceLevel: (firstNpc.disposition === 'hostile' ? 'hostile' : firstNpc.disposition === 'suspicious' ? 'suspicious' : 'guarded') as any,
+          fearOrLeverage: 'Groźba skandalu lub zdemaskowania',
+        } : undefined,
+      });
+    })(),
   });
 
   if (isChaseState(mechanicsContext?.chase)) {
