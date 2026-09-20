@@ -11,6 +11,11 @@ export type {
 };
 import type { CharacterMagicState } from './magic/types';
 import type { DiceRollTrace } from './dice-roll-trace';
+import type {
+  InvestigatorRequirements,
+  AdventurePuzzle,
+  AdventureHandout,
+} from '@/lib/adventures-data';
 
 export interface DiceRollEventData {
   id: string;
@@ -996,6 +1001,13 @@ export interface AdventureContext {
   // Content
   hook?: string;
   description?: string;
+  difficulty?: 'easy' | 'normal' | 'hard';
+  difficultyStars?: number;
+  estimatedSessions?: string;
+  suggestedOccupations?: string[];
+  investigatorRequirements?: InvestigatorRequirements;
+  puzzles?: AdventurePuzzle[];
+  handouts?: AdventureHandout[];
 
   // Files
   geminiFileUri?: string;

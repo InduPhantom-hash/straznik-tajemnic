@@ -37,9 +37,8 @@ import {
   Lock,
   AlertCircle,
   Check,
+  Users,
 } from 'lucide-react';
-
-import { AdventureDetailsModal } from './adventure-details-modal';
 
 /**
  * Wbudowane scenariusze pokazujemy TYLKO w trybie pełnym/prywatnym
@@ -82,8 +81,6 @@ export function AdventureSelector({
   const [activeTab, setActiveTab] = useState<'scenarios' | 'lorebooks'>('scenarios');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [detailsAdventure, setDetailsAdventure] =
-    useState<AdventureContext | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loreFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,11 +94,8 @@ export function AdventureSelector({
     [customAdventures]
   );
 
-  const handleSelect = (adventure: AdventureContext, openDetails = false) => {
+  const handleSelect = (adventure: AdventureContext) => {
     setSelectedId(adventure.id);
-    if (openDetails) {
-      setDetailsAdventure(adventure);
-    }
   };
 
   const handleConfirm = () => {
@@ -200,14 +194,23 @@ export function AdventureSelector({
       return `${era} (${years})`;
     }, [adventure.eraLabel, adventure.yearRange]);
 
+    // 1-5 gwiazdek trudności wg oficjalnej legendy Black Monk / Chaosium
+    const starsCount =
+      adventure.difficultyStars ||
+      (adventure.difficulty === 'easy' ? 2 : adventure.difficulty === 'hard' ? 4 : 3);
+    const difficultyLabel = useMemo(() => {
+      if (adventure.difficultyStars === 1) return 'Bardzo łatwy';
+      if (adventure.difficultyStars === 2) return 'Łatwy';
+      if (adventure.difficultyStars === 3) return 'Średni';
+      if (adventure.difficultyStars === 4) return 'Trudny';
+      if (adventure.difficultyStars === 5) return 'Bardzo trudny';
+      return tStyles(diffStyle.translationKey);
+    }, [adventure.difficultyStars, adventure.difficulty, diffStyle, tStyles]);
+
     return (
       <div
         onClick={() => {
-          if (isLorebook) {
-            setDetailsAdventure(adventure);
-          } else {
-            handleSelect(adventure, false);
-          }
+          handleSelect(adventure);
         }}
         className={`group relative p-4 text-left cursor-pointer transition-all duration-300 select-none rounded-sm ${
           isSelected && !isLorebook
@@ -292,17 +295,48 @@ export function AdventureSelector({
           )}
         </div>
 
-        {/* Haczyk narracyjny - zarys fabuły (czytelny font, wysoki kontrast, 2-3 linijki) */}
+        {/* Haczyk narracyjny - zarys fabuły */}
         <p className="mb-3 line-clamp-3 font-sans text-sm text-foreground/85 leading-relaxed">
           {adventure.hook || adventure.description?.slice(0, 180)}
         </p>
+
+        {/* Wymogi Badaczy (jeśli scenariusz definiuje np. wiek, postacie pregen) */}
+        {adventure.investigatorRequirements && (
+          <div className="mb-2.5 inline-flex items-center gap-1.5 text-xs font-serif bg-amber-950/40 text-amber-200 border border-amber-500/30 px-2.5 py-1 rounded-sm w-full">
+            <Users className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-amber-300 shrink-0">
+              Wymogi:
+            </span>
+            <span className="line-clamp-1">{adventure.investigatorRequirements.summary}</span>
+          </div>
+        )}
+
+        {/* Zagadki i Handouty */}
+        {(adventure.puzzles?.length || adventure.handouts?.length) ? (
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] font-mono">
+            {adventure.puzzles && adventure.puzzles.length > 0 && (
+              <span className="inline-flex items-center gap-1 bg-purple-950/30 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded">
+                <span>🧩 Zagadka: {adventure.puzzles[0].title}</span>
+              </span>
+            )}
+            {adventure.handouts && adventure.handouts.length > 0 && (
+              <span className="inline-flex items-center gap-1 bg-emerald-950/30 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">
+                <span>📜 {adventure.handouts.length} pomocy dla graczy</span>
+              </span>
+            )}
+          </div>
+        ) : null}
 
         {/* Footer */}
         <div className="flex items-center justify-between font-display text-xs uppercase tracking-wider text-muted-foreground border-t border-brass/20 pt-2.5 mt-auto">
           {!isLorebook ? (
             <span className="inline-flex items-center gap-1 text-brass/80">
               <Clock className="h-3.5 w-3.5 text-brass/70 shrink-0" />
-              {t('sessionsCount', { count: adventure.estimatedSessions || '2-3' })}
+              <span>
+                {adventure.estimatedSessions
+                  ? `${adventure.estimatedSessions} ${adventure.estimatedSessions === '1' ? 'sesja' : 'sesje'}`
+                  : t('sessionsCount', { count: '2-3' })}
+              </span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-brass/80">
@@ -313,26 +347,14 @@ export function AdventureSelector({
 
           <div className="flex items-center gap-2.5">
             {!isLorebook && (
-              <span className={`inline-flex items-center gap-1 ${diffStyle.color}`}>
-                <DiffIcon className="h-3.5 w-3.5 shrink-0" />
-                {tStyles(diffStyle.translationKey)}
+              <span className={`inline-flex items-center gap-1.5 ${diffStyle.color}`}>
+                <span className="text-amber-400 font-mono tracking-tighter text-sm">
+                  {'★'.repeat(starsCount)}
+                  {'☆'.repeat(Math.max(0, 5 - starsCount))}
+                </span>
+                <span>{difficultyLabel}</span>
               </span>
             )}
-
-            {/* Przycisk szczegółów */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDetailsAdventure(adventure);
-              }}
-              className="inline-flex items-center gap-1 px-2 py-1 text-brass/80 hover:text-primary hover:bg-primary/10 border border-brass/25 hover:border-primary/50 rounded transition-colors"
-              title={t('moreDetails')}
-              aria-label={t('moreDetails')}
-            >
-              <Info className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold">{t('moreDetails')}</span>
-            </button>
 
             {/* Przycisk wyboru dla scenariuszy */}
             {!isLorebook && (
@@ -342,7 +364,7 @@ export function AdventureSelector({
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSelect(adventure, false);
+                  handleSelect(adventure);
                 }}
                 className={`h-7 px-3 text-xs font-display uppercase tracking-wider transition-all ${
                   isSelected
@@ -820,12 +842,6 @@ export function AdventureSelector({
           </div>
         </DialogContent>
       </Dialog>
-      <AdventureDetailsModal
-        adventure={detailsAdventure}
-        open={!!detailsAdventure}
-        onClose={() => setDetailsAdventure(null)}
-        onChoose={(adventure) => handleSelect(adventure, false)}
-      />
     </>
   );
 }

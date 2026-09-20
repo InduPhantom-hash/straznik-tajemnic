@@ -12,7 +12,10 @@
     "playEn": "Play in English",
     "units": "Measurement System",
     "metric": "Metric (m, kg)",
-    "imperial": "Imperial (ft, lbs)"
+    "imperial": "Imperial (ft, lbs)",
+    "warningBadge": "18+ • MATURE AUDIENCE",
+    "warningTitle": "Content Warning",
+    "warningText": "This game contains sensitive themes, controversial topics, madness, depictions of violence, and horror. Intended for mature audiences."
   },
   "BetaWelcome": {
     "badge": "Beta Version v0.9.3",
