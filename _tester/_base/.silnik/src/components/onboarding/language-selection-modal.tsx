@@ -110,16 +110,7 @@ export function LanguageSelectionContent({
               </div>
             </div>
           </div>
-
           <div className="mt-5 pt-3 border-t border-brass/20 w-full flex flex-col gap-2">
-=======
-            <p className="font-special-elite text-xs sm:text-sm text-muted-foreground tracking-[0.04em] w-full mt-1.5 leading-relaxed">
-              Play using official Chaosium terminology and your preferred measurement system.
-            </p>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-brass/20 w-full flex flex-col gap-2">
->>>>>>> main
             <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-sans uppercase tracking-wider text-brass/80">
               <span>UNITS / SYSTEM:</span>
               <span className="font-mono text-[10px] text-muted-foreground">SELECT BEFORE START</span>
