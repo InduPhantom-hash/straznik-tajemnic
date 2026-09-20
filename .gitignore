@@ -28,3 +28,7 @@ scratch/
 # Lokalne raporty awarii i feedbacku (generowane lokalnie w runtime)
 data/crash-reports/
 data/feedback/
+
+# Izolowane katalogi robocze agenta (Git Worktrees)
+.worktrees/
+
