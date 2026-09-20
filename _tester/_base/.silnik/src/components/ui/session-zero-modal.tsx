@@ -228,12 +228,15 @@ export function SessionZeroModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent size="screen" className="flex flex-col h-screen max-h-screen">
-        <DialogHeader className="text-center sm:text-center shrink-0 pt-6 px-6">
+      <DialogContent
+        size="wide"
+        className="w-[88vw] max-w-6xl h-[84vh] max-h-[88vh] border-brass/50 bg-card text-foreground shadow-deco backdrop-blur-md p-0 overflow-hidden flex flex-col"
+      >
+        <DialogHeader className="text-center sm:text-center shrink-0 pt-6 px-6 border-b border-brass/20 pb-4 bg-card/60">
           <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-primary">
             {t('headerKicker')}
           </div>
-          <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-3xl font-black uppercase tracking-[0.12em] text-foreground">
+          <DialogTitle className="mt-1 justify-center text-center font-display-decorative text-2xl md:text-3xl font-black uppercase tracking-[0.12em] text-foreground">
             {t('dialogTitle')}
           </DialogTitle>
           <DialogDescription className="text-center font-serif text-base italic text-muted-foreground">
@@ -241,7 +244,7 @@ export function SessionZeroModal({
           </DialogDescription>
 
           {/* Separator déco */}
-          <div className="mt-4 flex items-center gap-4 max-w-4xl mx-auto w-full">
+          <div className="mt-3 flex items-center gap-4 max-w-2xl mx-auto w-full">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gold" />
             <span className="h-2 w-2 rotate-45 bg-brass" />
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold" />
@@ -249,7 +252,7 @@ export function SessionZeroModal({
         </DialogHeader>
 
         {/* Główna zawartość */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 max-w-5xl mx-auto w-full space-y-8">
+        <div className="flex-1 overflow-y-auto px-6 py-6 w-full space-y-6">
           <div>
             <div className="font-display text-xl font-semibold uppercase tracking-[0.1em] text-brass">
               {t('boundariesHeader')}
@@ -525,7 +528,7 @@ export function SessionZeroModal({
 
         {/* Dolna belka nawigacji */}
         <div className="shrink-0 px-6 py-4 border-t border-brass/30 bg-card/95 backdrop-blur-md z-30 shadow-[0_-8px_20px_rgba(0,0,0,0.4)]">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="w-full flex items-center justify-between">
             <Button
               variant="outline"
               onClick={onClose}
