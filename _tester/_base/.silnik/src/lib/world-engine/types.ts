@@ -36,10 +36,27 @@ export interface SettingFriction {
   ambientDetail: string; // Wydarzenie w tle (strajk, kłótnia, gazeciarz)
 }
 
+export interface GeographyContext {
+  terrainOrChokepoint: string; // Przełęcz, bród, brama miejska, cieśnina
+  economicConstraint: string; // Kto kontroluje sól/żelazo/węgiel, co jedzą mieszkańcy
+  undergroundOrigin?: 'cellars' | 'sewers' | 'catacombs' | 'mines'; // Geneza podziemi
+  waterwayLogic?: string; // Spływ rzeki ku morzu, brak nienaturalnych rozszczepień
+}
+
+export interface OccultContext {
+  magicType: 'hard' | 'soft_weird'; // Zrozumiałe reguły dedukcji vs nieprzenikniony kosmiczny horror
+  somaticCost: string; // Krwawienie z nosa, drżenie mięśni, migrena, chłód kości
+  cultTier?: 'outer_sympathizers' | 'inner_initiated' | 'core_zealots'; // Stopień wtajemniczenia kultu
+  cosmicTaboo?: string; // Prawo wyższego wymiaru, którego naruszenie grozi anomalną reakcją
+}
+
 export interface WorldEngineDirectives {
   npcDirective?: string;
   sensoryDirective?: string;
   graphDirective?: string;
   frictionDirective?: string;
   mysteryDirective?: string;
+  geographyDirective?: string;
+  occultDirective?: string;
 }
+

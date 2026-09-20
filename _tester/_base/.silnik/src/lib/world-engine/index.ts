@@ -65,6 +65,38 @@ export class MysteryClueEngine {
 }
 
 /**
+ * 6. GeographyEngine - prawa hydrologii, wąskie gardła handlowe, pionowość i podziemia
+ */
+export class GeographyEngine {
+  formatDirective(context: GeographyContext, locale: 'pl' | 'en' = 'pl'): string {
+    const under = context.undergroundOrigin ? ` | Podziemia: ${context.undergroundOrigin}` : '';
+    const water = context.waterwayLogic ? ` | Woda: ${context.waterwayLogic}` : '';
+    if (locale === 'en') {
+      const underEn = context.undergroundOrigin ? ` | Underground origin: ${context.undergroundOrigin}` : '';
+      const waterEn = context.waterwayLogic ? ` | Water logic: ${context.waterwayLogic}` : '';
+      return `[GEOGRAPHY_DIRECTIVE: Chokepoint/Terrain: ${context.terrainOrChokepoint} | Economic constraint: ${context.economicConstraint}${underEn}${waterEn}]`;
+    }
+    return `[GEOGRAFIA_DYREKTYWA: Przewężenie/Teren: ${context.terrainOrChokepoint} | Presja ekonomiczna: ${context.economicConstraint}${under}${water}]`;
+  }
+}
+
+/**
+ * 7. OccultEngine - prawa ograniczeń Sandersona, somatyczne koszty magii i stopnie kultu
+ */
+export class OccultEngine {
+  formatDirective(context: OccultContext, locale: 'pl' | 'en' = 'pl'): string {
+    const cult = context.cultTier ? ` | Krąg kultu: ${context.cultTier}` : '';
+    const taboo = context.cosmicTaboo ? ` | Tabu: ${context.cosmicTaboo}` : '';
+    if (locale === 'en') {
+      const cultEn = context.cultTier ? ` | Cult tier: ${context.cultTier}` : '';
+      const tabooEn = context.cosmicTaboo ? ` | Taboo: ${context.cosmicTaboo}` : '';
+      return `[OCCULT_DIRECTIVE: System: ${context.magicType} | Somatic price: ${context.somaticCost}${cultEn}${tabooEn}]`;
+    }
+    return `[OKULTYZM_DYREKTYWA: Natura magii: ${context.magicType} | Koszt somatyczny: ${context.somaticCost}${cult}${taboo}]`;
+  }
+}
+
+/**
  * Master World Engine Orchestrator
  */
 export class WorldEngineDirector {
@@ -73,6 +105,8 @@ export class WorldEngineDirector {
   private graphEngine = new NarrativeGraphEngine();
   private frictionEngine = new PlotFrictionEngine();
   private mysteryEngine = new MysteryClueEngine();
+  private geographyEngine = new GeographyEngine();
+  private occultEngine = new OccultEngine();
 
   compileDirectives(params: {
     activeNPC?: NPCEntity;
@@ -80,6 +114,8 @@ export class WorldEngineDirector {
     graph?: { branch: string; bottleneck: string };
     friction?: SettingFriction;
     clue?: ClueNode;
+    geography?: GeographyContext;
+    occult?: OccultContext;
     locale?: 'pl' | 'en';
   }): string {
     const locale = params.locale || 'pl';
@@ -100,6 +136,12 @@ export class WorldEngineDirector {
     if (params.clue) {
       lines.push(this.mysteryEngine.formatDirective(params.clue, locale));
     }
+    if (params.geography) {
+      lines.push(this.geographyEngine.formatDirective(params.geography, locale));
+    }
+    if (params.occult) {
+      lines.push(this.occultEngine.formatDirective(params.occult, locale));
+    }
 
     if (lines.length === 0) return '';
 
@@ -110,3 +152,4 @@ export class WorldEngineDirector {
     return `\n\n${header}\n${lines.join('\n')}\n`;
   }
 }
+
