@@ -110,8 +110,9 @@ export async function POST(request: NextRequest) {
       clearBefore = type === 'rules' || (type === 'adventure' && !!adventureId);
 
       // Parse PDF w pamięci (pdf-parse na buforze - GCS-free).
-      const arrayBuffer = await file.arrayBuffer();
+      let arrayBuffer: ArrayBuffer | null = await file.arrayBuffer();
       let buffer: Buffer | null = Buffer.from(arrayBuffer);
+      arrayBuffer = null;
 
       try {
         const parsed = await pdfParserService.parsePDFBuffer(buffer);

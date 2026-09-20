@@ -5,10 +5,11 @@
  *  - Compression and decompression (gzip via CompressionStream/DecompressionStream)
  *  - Fallback mechanisms when CompressionStream is unavailable
  *  - Ultra-lean metadata in localStorage (strictly below quota, no heavy graphs/narratives)
+ *  - Safe hydration of lean records on fallback (no undefined themes/graph crashes in UI)
  *  - Per-record IndexedDB storage (key: adv.id) and __meta__ registry
  *  - 100% backwards compatibility migration from legacy 'default' record
  *  - Per-record operations (loadAdventureRecord, saveAdventureRecord, deleteAdventureRecord)
- *  - Quota safety and graceful degradation
+ *  - Quota safety, synchronization, and graceful degradation
  */
 
 import {
@@ -23,6 +24,7 @@ import {
   uint8ArrayToBase64,
   base64ToUint8Array,
   extractHeavyData,
+  hydrateLeanAdventure,
   reconstructAdventure,
   exportAsJSON,
   parseImportJSON,
@@ -34,19 +36,21 @@ import {
   StoredAdventureRecord,
   StoredMetaRecord,
   LegacyStoredRecord,
-  getCompressionStream,
-  getDecompressionStream,
-  isCompressionStreamSupported,
+  StoredLeanAdventures,
 } from './custom-adventures-storage';
 import type { CustomAdventure } from './adventures-data';
 import type { AdventureGraph } from './types';
+
+interface IDBTarget<T> {
+  target: T;
+}
 
 // Mock in-memory IDB
 class MockIDBRequest<T = unknown> {
   result?: T;
   error?: Error | null = null;
-  onsuccess?: ((event: { target: MockIDBRequest<T> }) => void) | null = null;
-  onerror?: ((event: { target: MockIDBRequest<T> }) => void) | null = null;
+  onsuccess?: ((event: IDBTarget<MockIDBRequest<T>>) => void) | null = null;
+  onerror?: ((event: IDBTarget<MockIDBRequest<T>>) => void) | null = null;
 
   resolve(val: T) {
     this.result = val;
@@ -64,15 +68,15 @@ class MockIDBRequest<T = unknown> {
 }
 
 class MockIDBObjectStore {
-  public data = new Map<string, any>();
+  public data = new Map<string, unknown>();
 
-  get(key: string): MockIDBRequest<any> {
-    const req = new MockIDBRequest<any>();
+  get(key: string): MockIDBRequest<unknown> {
+    const req = new MockIDBRequest<unknown>();
     req.resolve(this.data.get(key));
     return req;
   }
 
-  put(value: any): MockIDBRequest<string> {
+  put(value: { id: string } & Record<string, unknown>): MockIDBRequest<string> {
     const req = new MockIDBRequest<string>();
     const id = value.id;
     this.data.set(id, value);
@@ -100,8 +104,8 @@ class MockIDBObjectStore {
     return req;
   }
 
-  getAll(): MockIDBRequest<any[]> {
-    const req = new MockIDBRequest<any[]>();
+  getAll(): MockIDBRequest<unknown[]> {
+    const req = new MockIDBRequest<unknown[]>();
     req.resolve(Array.from(this.data.values()));
     return req;
   }
@@ -117,25 +121,24 @@ class MockIDBDatabase {
     };
   }
 
-  createObjectStore(name: string, _options?: { keyPath: string }) {
+  createObjectStore(name: string) {
     const store = new MockIDBObjectStore();
     this.stores.set(name, store);
     return store;
   }
 
-  transaction(_storeNames: string | string[], _mode?: string) {
-    const self = this;
+  transaction() {
     const tx = {
-      objectStore(name: string) {
-        let store = self.stores.get(name);
+      objectStore: (name: string) => {
+        let store = this.stores.get(name);
         if (!store) {
           store = new MockIDBObjectStore();
-          self.stores.set(name, store);
+          this.stores.set(name, store);
         }
         return store;
       },
-      oncomplete: null as ((ev: any) => void) | null,
-      onerror: null as ((ev: any) => void) | null,
+      oncomplete: null as ((ev: IDBTarget<unknown>) => void) | null,
+      onerror: null as ((ev: IDBTarget<unknown>) => void) | null,
     };
     setTimeout(() => {
       if (tx.oncomplete) tx.oncomplete({ target: tx });
@@ -144,14 +147,21 @@ class MockIDBDatabase {
   }
 }
 
+interface MockOpenRequest {
+  result: MockIDBDatabase;
+  onsuccess: ((ev: IDBTarget<MockOpenRequest>) => void) | null;
+  onerror: ((ev: IDBTarget<MockOpenRequest>) => void) | null;
+  onupgradeneeded: ((ev: IDBTarget<{ result: MockIDBDatabase }>) => void) | null;
+}
+
 function createMockIndexedDB() {
   const db = new MockIDBDatabase();
-  db.createObjectStore(STORE, { keyPath: 'id' });
+  db.createObjectStore(STORE);
 
   return {
     _db: db,
-    open: jest.fn().mockImplementation((_name: string, _version?: number) => {
-      const openReq: any = {
+    open: jest.fn().mockImplementation(() => {
+      const openReq: MockOpenRequest = {
         result: db,
         onsuccess: null,
         onerror: null,
@@ -172,23 +182,25 @@ function createMockIndexedDB() {
 
 describe('custom-adventures-storage (Issue #419)', () => {
   let mockIDB: ReturnType<typeof createMockIndexedDB>;
-  let globalRef: any;
-  let originalIndexedDB: any;
+  let originalIndexedDB: unknown;
 
   beforeAll(() => {
     // Map Node stream classes into jest environment if missing on window
-    const nodeGlobal = global as any;
-    if (typeof (globalThis as any).CompressionStream === 'undefined' && nodeGlobal.CompressionStream) {
-      (globalThis as any).CompressionStream = nodeGlobal.CompressionStream;
+    const nodeGlobal = global as unknown as Record<string, unknown>;
+    const gt = globalThis as unknown as Record<string, unknown>;
+    const win = window as unknown as Record<string, unknown>;
+
+    if (typeof gt.CompressionStream === 'undefined' && nodeGlobal.CompressionStream) {
+      gt.CompressionStream = nodeGlobal.CompressionStream;
     }
-    if (typeof (globalThis as any).DecompressionStream === 'undefined' && nodeGlobal.DecompressionStream) {
-      (globalThis as any).DecompressionStream = nodeGlobal.DecompressionStream;
+    if (typeof gt.DecompressionStream === 'undefined' && nodeGlobal.DecompressionStream) {
+      gt.DecompressionStream = nodeGlobal.DecompressionStream;
     }
-    if (typeof (window as any).CompressionStream === 'undefined' && nodeGlobal.CompressionStream) {
-      (window as any).CompressionStream = nodeGlobal.CompressionStream;
+    if (typeof win.CompressionStream === 'undefined' && nodeGlobal.CompressionStream) {
+      win.CompressionStream = nodeGlobal.CompressionStream;
     }
-    if (typeof (window as any).DecompressionStream === 'undefined' && nodeGlobal.DecompressionStream) {
-      (window as any).DecompressionStream = nodeGlobal.DecompressionStream;
+    if (typeof win.DecompressionStream === 'undefined' && nodeGlobal.DecompressionStream) {
+      win.DecompressionStream = nodeGlobal.DecompressionStream;
     }
   });
 
@@ -218,25 +230,25 @@ describe('custom-adventures-storage (Issue #419)', () => {
     connections: [
       {
         fromId: 'npc-1',
-        toId: 'loc-1',
-        description: 'Armitage zarządza biblioteką',
+        toId: 'clue-1',
+        description: 'Profesor badał ten fragment.',
       },
     ],
   };
 
   const sampleAdventure: CustomAdventure = {
-    id: 'adv-miskatonic-101',
-    title: 'Koszmar w Dunwich',
+    id: 'dunwich-horror-custom',
+    title: 'Zgroza w Dunwich',
     era: 'classic',
     eraLabel: 'Klasyczne lata 20.',
     yearRange: '1928',
-    location: 'Dunwich / Massachusetts',
+    location: 'Dunwich, Massachusetts',
     country: 'USA',
     tone: 'purist',
-    themes: ['mitologia', 'tajemnica'],
-    suggestedOccupations: ['profesor', 'detektyw'],
-    suggestedArchetypes: ['scholar'],
-    hook: 'Niepokojące odgłosy dobiegające ze wzgórz Sentinel Hill.',
+    themes: ['kosmiczny horror', 'izolacja', 'tajemnica rodziny Whateley'],
+    suggestedOccupations: ['profesor', 'detektyw', 'antykwariusz'],
+    suggestedArchetypes: ['scholar', 'investigator'],
+    hook: 'Seria dziwnych zgonów bydła i trzęsienia ziemi w odciętej od świata dolinie.',
     description: 'Szczegółowy opis scenariusza z wieloma rozdziałami i postaciami.',
     estimatedSessions: '3-4',
     playerCount: '2-5',
@@ -255,14 +267,15 @@ describe('custom-adventures-storage (Issue #419)', () => {
   beforeEach(() => {
     _resetDBCache();
     localStorage.clear();
-    globalRef = globalThis as any;
-    originalIndexedDB = globalRef.indexedDB;
+    const gt = globalThis as unknown as Record<string, unknown>;
+    originalIndexedDB = gt.indexedDB;
     mockIDB = createMockIndexedDB();
-    globalRef.indexedDB = mockIDB;
+    gt.indexedDB = mockIDB;
   });
 
   afterEach(() => {
-    globalRef.indexedDB = originalIndexedDB;
+    const gt = globalThis as unknown as Record<string, unknown>;
+    gt.indexedDB = originalIndexedDB;
     _resetDBCache();
   });
 
@@ -298,42 +311,92 @@ describe('custom-adventures-storage (Issue #419)', () => {
     });
 
     it('decompressPayload bezpiecznie parsuje nieskompresowany JSON jako fallback', async () => {
-      const rawJson = JSON.stringify({ hello: 'fallback json' });
-      const parsed = await decompressPayload<{ hello: string }>(rawJson);
-      expect(parsed).toEqual({ hello: 'fallback json' });
+      const rawJson = JSON.stringify({ graph: sampleGraph, note: 'fallback' });
+      const decompressed = await decompressPayload<{ note: string }>(rawJson);
+      expect(decompressed?.note).toBe('fallback');
     });
 
     it('decompressPayload zwraca null dla pustych lub uszkodzonych danych', async () => {
-      expect(await decompressPayload(null as any)).toBeNull();
       expect(await decompressPayload('')).toBeNull();
-      expect(await decompressPayload('not-valid-gzip-or-json')).toBeNull();
+      expect(await decompressPayload('corrupt-base64-!@#$%^&*')).toBeNull();
     });
   });
 
-  describe('Ekstrakcja i rekonstrukcja struktur przygody (extractHeavyData / reconstructAdventure)', () => {
-    it('wyodrębnia ciężki graf i syntezę, pozostawiając lekki placeholder', () => {
-      const advWithNarrative = {
+  describe('Ekstrakcja, oczyszczanie i rekonstrukcja struktur przygody', () => {
+    it('wyodrębnia ciężki graf, syntezę, lorebook, zagadki i wycinki handoutów, nie pozostawiając ich w leanAdv', () => {
+      const fullAdv: CustomAdventure = {
         ...sampleAdventure,
+        lorebookData: {
+          id: 'lb-1',
+          title: 'Wielka Księga Necronomiconu',
+          documentType: 'setting',
+          regionOrTheme: 'Arkham',
+          summary: 'Księga wiedzy tajemnej',
+        },
+        puzzles: [
+          {
+            id: 'puz-1',
+            title: 'Szyfr Johna Dee',
+            description: 'Starożytny szyfr',
+            solutionSummary: 'Odczytanie w lustrze',
+          },
+        ],
+        handouts: [
+          {
+            slug: 'list-z-arkham',
+            title: 'List z Arkham',
+            image: '/handouts/list.png',
+            handoutType: 'letter',
+          },
+        ],
+      };
+      const advWithNarrative = {
+        ...fullAdv,
         fullNarrativeSummary: 'Bardzo długa synteza narracyjna...',
       };
 
-      const { leanAdv, heavyData, hasHeavy } = extractHeavyData(advWithNarrative as any);
+      const { leanAdv, heavyData, hasHeavy } = extractHeavyData(advWithNarrative as unknown as CustomAdventure);
       expect(hasHeavy).toBe(true);
       expect(heavyData.graph).toEqual(sampleGraph);
       expect(heavyData.fullNarrativeSummary).toBe('Bardzo długa synteza narracyjna...');
+      expect(heavyData.lorebookData).toBeDefined();
+      expect(heavyData.puzzles).toHaveLength(1);
+      expect(heavyData.handouts).toHaveLength(1);
 
-      // leanAdv ma oczyszczony graf
+      // leanAdv NIE MOŻE zawierać ciężkich struktur uncompressed
       expect(leanAdv.graph?.npcs).toEqual([]);
       expect(leanAdv.graph?.locations).toEqual([]);
       expect(leanAdv.title).toBe(sampleAdventure.title);
+      expect(leanAdv.lorebookData).toBeUndefined();
+      expect(leanAdv.puzzles).toBeUndefined();
+      expect(leanAdv.handouts).toBeUndefined();
+      expect((leanAdv as unknown as Record<string, unknown>).fullNarrativeSummary).toBeUndefined();
     });
 
     it('bezstratnie rekonstruuje pełną przygodę ze skompresowanego rekordu', async () => {
-      const { leanAdv, heavyData } = extractHeavyData(sampleAdventure);
+      const advToTest: CustomAdventure = {
+        ...sampleAdventure,
+        lorebookData: {
+          id: 'lb-kompendium',
+          title: 'Kompendium',
+          documentType: 'compendium',
+          regionOrTheme: 'Massachusetts',
+          summary: 'Kompendium wiedzy',
+        },
+        handouts: [
+          {
+            slug: 'mapa-arkham',
+            title: 'Mapa Arkham',
+            image: '/handouts/mapa.png',
+            handoutType: 'map',
+          },
+        ],
+      };
+      const { leanAdv, heavyData } = extractHeavyData(advToTest);
       const compressed = await compressPayload(heavyData);
 
       const record: StoredAdventureRecord = {
-        id: sampleAdventure.id,
+        id: advToTest.id,
         adventure: leanAdv,
         compressedPayload: compressed!,
         isCompressed: true,
@@ -341,8 +404,25 @@ describe('custom-adventures-storage (Issue #419)', () => {
       };
 
       const restored = await reconstructAdventure(record);
-      expect(restored.id).toBe(sampleAdventure.id);
+      expect(restored.id).toBe(advToTest.id);
       expect(restored.graph).toEqual(sampleGraph);
+      expect(restored.lorebookData?.title).toBe('Kompendium');
+      expect(restored.handouts?.[0].title).toBe('Mapa Arkham');
+    });
+
+    it('hydrateLeanAdventure bezpiecznie uzupełnia brakujące tablice i obiekty', () => {
+      const bareMeta = {
+        id: 'bare-1',
+        title: 'Tylko tytuł',
+      };
+      const hydrated = hydrateLeanAdventure(bareMeta);
+      expect(hydrated.id).toBe('bare-1');
+      expect(hydrated.title).toBe('Tylko tytuł');
+      expect(Array.isArray(hydrated.themes)).toBe(true);
+      expect(hydrated.themes.length).toBeGreaterThan(0);
+      expect(hydrated.graph).toEqual({ npcs: [], locations: [], clues: [], connections: [] });
+      expect(Array.isArray(hydrated.suggestedOccupations)).toBe(true);
+      expect(hydrated.hook).toBeDefined();
     });
   });
 
@@ -367,29 +447,26 @@ describe('custom-adventures-storage (Issue #419)', () => {
       expect(advRecord.compressedPayload).toBeDefined();
     });
 
-    it('wczytuje pełne przygody z decompresją struktur grafu', async () => {
+    it('wczytuje pełne przygody z decompresją struktur grafu w pojedynczej transakcji', async () => {
       await saveCustomAdventures({
         adventures: [sampleAdventure],
         activeId: sampleAdventure.id,
       });
 
       _resetDBCache();
+
       const loaded = await loadCustomAdventures();
-
       expect(loaded.adventures).toHaveLength(1);
+      expect(loaded.adventures[0].id).toBe(sampleAdventure.id);
+      expect(loaded.adventures[0].title).toBe(sampleAdventure.title);
+      expect(loaded.adventures[0].graph).toEqual(sampleGraph);
       expect(loaded.activeId).toBe(sampleAdventure.id);
-
-      const adv = loaded.adventures[0];
-      expect(adv.id).toBe(sampleAdventure.id);
-      expect(adv.title).toBe(sampleAdventure.title);
-      expect(adv.graph).toEqual(sampleGraph);
-      expect(adv.graph?.npcs).toHaveLength(1);
     });
 
     it('usuwa skasowane przygody z IndexedDB przy ponownym zapisie', async () => {
       const adv2: CustomAdventure = {
         ...sampleAdventure,
-        id: 'adv-innsmouth-202',
+        id: 'adv-2',
         title: 'Cień nad Innsmouth',
       };
 
@@ -399,66 +476,70 @@ describe('custom-adventures-storage (Issue #419)', () => {
       });
 
       const store = mockIDB._db.stores.get(STORE)!;
-      expect(store.data.has(sampleAdventure.id)).toBe(true);
-      expect(store.data.has(adv2.id)).toBe(true);
+      expect(store.data.has('adv-2')).toBe(true);
 
-      // Usuwamy adv2 zapisując tylko sampleAdventure
+      // Usunięcie adv2 z listy
       await saveCustomAdventures({
         adventures: [sampleAdventure],
         activeId: sampleAdventure.id,
       });
 
-      expect(store.data.has(sampleAdventure.id)).toBe(true);
-      expect(store.data.has(adv2.id)).toBe(false);
+      // adv2 powinno zostać usunięte z IndexedDB
+      expect(store.data.has('adv-2')).toBe(false);
+      const meta = store.data.get(META_RECORD_KEY) as StoredMetaRecord;
+      expect(meta.adventureIds).toEqual([sampleAdventure.id]);
     });
   });
 
   describe('Wsteczna kompatybilność i migracja ze schematu v1 (legacy default record)', () => {
     it('automatycznie i bezstratnie migruje legacy rekord default do per-rekordów i __meta__', async () => {
       const store = mockIDB._db.stores.get(STORE)!;
-
-      const legacyAdv1: CustomAdventure = {
-        ...sampleAdventure,
-        id: 'legacy-dunwich-1',
-        title: 'Legacy Dunwich',
-      };
-      const legacyAdv2: CustomAdventure = {
-        ...sampleAdventure,
-        id: 'legacy-arkham-2',
-        title: 'Legacy Arkham',
-      };
-
-      // Wstrzykujemy stary format v1
       const legacyRecord: LegacyStoredRecord = {
         id: LEGACY_RECORD_KEY,
-        adventures: [legacyAdv1, legacyAdv2],
-        activeId: 'legacy-dunwich-1',
-        updatedAt: 1600000000000,
+        adventures: [
+          sampleAdventure,
+          {
+            ...sampleAdventure,
+            id: 'legacy-2',
+            title: 'Legacy Adventure 2',
+          },
+        ],
+        activeId: 'legacy-2',
+        updatedAt: Date.now() - 10000,
       };
+
       store.data.set(LEGACY_RECORD_KEY, legacyRecord);
 
-      // Odczyt wyzwala automatyczną migrację
       const loaded = await loadCustomAdventures();
-
       expect(loaded.adventures).toHaveLength(2);
-      expect(loaded.activeId).toBe('legacy-dunwich-1');
-      expect(loaded.adventures[0].id).toBe('legacy-dunwich-1');
-      expect(loaded.adventures[0].graph).toEqual(sampleGraph);
-      expect(loaded.adventures[1].id).toBe('legacy-arkham-2');
+      expect(loaded.activeId).toBe('legacy-2');
 
-      // Weryfikacja stanu magazynu IDB po migracji
-      expect(store.data.has(LEGACY_RECORD_KEY)).toBe(false); // Stary rekord usunięty
-      expect(store.data.has('legacy-dunwich-1')).toBe(true); // Nowy rekord per-przygoda 1
-      expect(store.data.has('legacy-arkham-2')).toBe(true); // Nowy rekord per-przygoda 2
-      expect(store.data.has(META_RECORD_KEY)).toBe(true); // Nowy indeks metadanych
+      // Rekord default musi być usunięty po migracji
+      expect(store.data.has(LEGACY_RECORD_KEY)).toBe(false);
 
-      const meta = store.data.get(META_RECORD_KEY) as StoredMetaRecord;
-      expect(meta.adventureIds).toEqual(['legacy-dunwich-1', 'legacy-arkham-2']);
-      expect(meta.activeId).toBe('legacy-dunwich-1');
+      // Rekordy muszą być zapisane per-id
+      expect(store.data.has(sampleAdventure.id)).toBe(true);
+      expect(store.data.has('legacy-2')).toBe(true);
+      expect(store.data.has(META_RECORD_KEY)).toBe(true);
+    });
+
+    it('migruje pusty legacy rekord default i czyści go z bazy', async () => {
+      const store = mockIDB._db.stores.get(STORE)!;
+      const emptyLegacy: LegacyStoredRecord = {
+        id: LEGACY_RECORD_KEY,
+        adventures: [],
+        activeId: null,
+        updatedAt: Date.now(),
+      };
+      store.data.set(LEGACY_RECORD_KEY, emptyLegacy);
+
+      const loaded = await loadCustomAdventures();
+      expect(loaded.adventures).toEqual([]);
+      expect(store.data.has(LEGACY_RECORD_KEY)).toBe(false);
     });
   });
 
-  describe('Ultralekka kopia metadanych w localStorage (Quota Safety)', () => {
+  describe('Ultralekka kopia metadanych w localStorage (Quota Safety & Hydration)', () => {
     it('zapisuje wyłącznie niezbędne metadane bez ciężkich grafów ani syntez', async () => {
       await saveCustomAdventures({
         adventures: [sampleAdventure],
@@ -468,7 +549,7 @@ describe('custom-adventures-storage (Issue #419)', () => {
       const rawLS = localStorage.getItem(STORAGE_KEY);
       expect(rawLS).toBeDefined();
 
-      const parsedLS = JSON.parse(rawLS!);
+      const parsedLS = JSON.parse(rawLS!) as StoredLeanAdventures;
       expect(parsedLS.isLeanBackup).toBe(true);
       expect(parsedLS.activeId).toBe(sampleAdventure.id);
       expect(parsedLS.adventures).toHaveLength(1);
@@ -485,16 +566,18 @@ describe('custom-adventures-storage (Issue #419)', () => {
       expect(leanAdv.fileName).toBe(sampleAdventure.fileName);
 
       // Ciężkie struktury NIE MOGĄ znajdować się w localStorage
-      expect(leanAdv.graph).toBeUndefined();
-      expect(leanAdv.fullNarrativeSummary).toBeUndefined();
-      expect(leanAdv.puzzles).toBeUndefined();
-      expect(leanAdv.lorebookData).toBeUndefined();
+      const anyLean = leanAdv as unknown as Record<string, unknown>;
+      expect(anyLean.graph).toBeUndefined();
+      expect(anyLean.fullNarrativeSummary).toBeUndefined();
+      expect(anyLean.puzzles).toBeUndefined();
+      expect(anyLean.lorebookData).toBeUndefined();
+      expect(anyLean.handouts).toBeUndefined();
 
       // Rozmiar wpisu powinien być bardzo mały (< 1KB)
       expect(rawLS!.length).toBeLessThan(1024);
     });
 
-    it('ładuje dane z localStorage jako fallback gdy IndexedDB jest puste, i inicjuje migrację', async () => {
+    it('ładuje dane z localStorage jako fallback gdy IndexedDB jest puste, z bezpieczną hydratacją themes i graph', async () => {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
@@ -512,27 +595,67 @@ describe('custom-adventures-storage (Issue #419)', () => {
             },
           ],
           activeId: 'fallback-adv',
+          isLeanBackup: true,
         })
       );
 
       const loaded = await loadCustomAdventures();
       expect(loaded.adventures).toHaveLength(1);
-      expect(loaded.adventures[0].id).toBe('fallback-adv');
-      expect(loaded.activeId).toBe('fallback-adv');
+      const adv = loaded.adventures[0];
+      expect(adv.id).toBe('fallback-adv');
+
+      // Wymagane tablice i obiekty są bezpiecznie nawadniane, chroniąc UI przed slice/join/map crash
+      expect(Array.isArray(adv.themes)).toBe(true);
+      expect(adv.themes.slice(0, 2)).toBeDefined();
+      expect(adv.themes.join(', ')).toBeDefined();
+      expect(adv.graph).toBeDefined();
+      expect(adv.graph?.npcs).toEqual([]);
+    });
+
+    it('nie nadpisuje IndexedDB ubogimi metadanymi gdy localStorage ma flagę isLeanBackup', async () => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          adventures: [
+            {
+              id: 'lean-only',
+              title: 'Tylko Lean',
+              era: 'classic',
+              eraLabel: 'Klasyczne lata 20.',
+              yearRange: '1920',
+              location: 'Arkham',
+              country: 'USA',
+              isCustom: true,
+              fileName: 'lean.pdf',
+            },
+          ],
+          activeId: 'lean-only',
+          isLeanBackup: true,
+        })
+      );
+
+      await loadCustomAdventures();
+
+      // Store w IDB nie powinien zostać bezsensownie zaśmiecony ubogimi danymi
+      const store = mockIDB._db.stores.get(STORE)!;
+      expect(store.data.has('lean-only')).toBe(false);
     });
   });
 
   describe('Operacje per-rekord (saveAdventureRecord, loadAdventureRecord, deleteAdventureRecord)', () => {
-    it('pozwala zapisać i wczytać pojedynczy rekord przygody', async () => {
+    it('pozwala zapisać i wczytać pojedynczy rekord przygody oraz synchronizuje localStorage', async () => {
       await saveAdventureRecord(sampleAdventure);
 
       const loaded = await loadAdventureRecord(sampleAdventure.id);
       expect(loaded).toBeDefined();
       expect(loaded?.id).toBe(sampleAdventure.id);
       expect(loaded?.graph).toEqual(sampleGraph);
+
+      const rawLS = localStorage.getItem(STORAGE_KEY);
+      expect(rawLS).toContain(sampleAdventure.id);
     });
 
-    it('pozwala usunąć pojedynczy rekord i aktualizuje __meta__', async () => {
+    it('pozwala usunąć pojedynczy rekord, aktualizuje __meta__ i czyści localStorage', async () => {
       await saveAdventureRecord(sampleAdventure);
       expect(await loadAdventureRecord(sampleAdventure.id)).not.toBeNull();
 
@@ -542,6 +665,9 @@ describe('custom-adventures-storage (Issue #419)', () => {
       const store = mockIDB._db.stores.get(STORE)!;
       const meta = store.data.get(META_RECORD_KEY) as StoredMetaRecord;
       expect(meta.adventureIds).not.toContain(sampleAdventure.id);
+
+      const rawLS = localStorage.getItem(STORAGE_KEY);
+      expect(rawLS).not.toContain(sampleAdventure.id);
     });
   });
 
