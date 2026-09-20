@@ -192,6 +192,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tier = request.headers.get('X-Gemini-Tier')?.trim();
+    if (tier === 'free') {
+      logImagen(200, 'success', { costUsd: 0 });
+      return NextResponse.json({
+        success: false,
+        code: 'PURE_TEXT_MODE_ACTIVE',
+        error: 'Tryb czystego tekstu aktywny (konto darmowe bez bilingu)',
+      });
+    }
+
     let activeModel: string = DEFAULT_IMAGE_MODEL;
     console.log(`🎨 Generuję obraz przez Gemini (${activeModel})...`);
 

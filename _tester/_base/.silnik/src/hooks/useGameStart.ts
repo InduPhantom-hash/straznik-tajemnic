@@ -7,7 +7,11 @@ import {
   HotSeatPlayer,
 } from '@/lib/types';
 import type { AISettings } from '@/lib/ai-settings/types';
-import { fetchWithApiKeys, getApiKeyHeaders } from '@/lib/api-keys-service';
+import {
+  fetchWithApiKeys,
+  getApiKeyHeaders,
+  isPureTextMode,
+} from '@/lib/api-keys-service';
 import { toast } from '@/components/ui/use-toast';
 import { parseSSEStream, createSseParseErrorHandler } from '@/lib/sse-parser';
 import { timeManager } from '@/lib/time-manager';
@@ -403,7 +407,7 @@ export function useGameStart({
    */
   const generateIntroImage = useCallback(
     async (messageId: string) => {
-      if (aiSettings?.imageGenerationEnabled === false) return;
+      if (aiSettings?.imageGenerationEnabled === false || isPureTextMode()) return;
       try {
         if (!adventureContext) {
           throw new Error('Brak kontekstu przygody dla obrazu intro.');

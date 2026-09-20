@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { Character, EquipmentItem, AdventureContext, EquipmentVisualEra } from '@/lib/types';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, isPureTextMode } from '@/lib/api-keys-service';
 import {
   buildEquipmentImagePrompt,
   isCharacterBoundEquipment,
@@ -57,6 +57,7 @@ async function generateOneThumbnail(
   adventureTheme?: string,
   character?: Character | null
 ): Promise<GeneratedEquipmentImage | null> {
+  if (isPureTextMode()) return null;
   try {
     const prompt = buildEquipmentImagePrompt(
       item,

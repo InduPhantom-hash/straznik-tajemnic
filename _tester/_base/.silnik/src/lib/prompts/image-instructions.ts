@@ -1,4 +1,5 @@
 import { AISettings } from '../ai-settings/types';
+import { isPureTextMode } from '../api-keys-service';
 
 /**
  * OPT-03: Shared image instructions builder - single source of truth.
@@ -35,8 +36,14 @@ export function resolveImageLevel(
 }
 
 export function buildImageInstructions(settings: AISettings): string {
-  if (!settings.imageGenerationEnabled) {
-    return '';
+  if (!settings.imageGenerationEnabled || isPureTextMode()) {
+    return `
+
+## TRYB NARRACJI: CZYSTA PROZA (TRYB TEKSTOWY)
+Grasz w trybie czystego tekstu / literatury weird fiction (konto bez bilingu na multimedia).
+ABSOLUTNY ZAKAZ generowania tagów multimedialnych: [LOKACJA:], [PORTRET:], [PRZEDMIOT:], [POTWÓR:], [ZJAWISKO:], [SCENA:], [ILUSTRACJA:], [SFX:].
+Zamiast tego skup się na plastycznych, literackich opisach zmysłowych w prozie: faktury, zapachy, światłocień, dźwięki otoczenia, mroczna atmosfera epoki.
+`;
   }
 
   const narrativeMode = settings.sessionZero?.narrativeMode || 'full_rpg';
