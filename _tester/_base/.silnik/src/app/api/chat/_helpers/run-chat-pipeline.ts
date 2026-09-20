@@ -298,6 +298,10 @@ export async function runChatPipeline({
 
   // Ustawienia i Prompty - IND-183 micro 1/5
   const aiSettings = resolveSettings(loadAISettings(), clientAISettings);
+  const tierHeader = request.headers.get('X-Gemini-Tier')?.trim();
+  if (tierHeader) {
+    aiSettings.pureTextMode = tierHeader === 'free';
+  }
   const combatMechanicsEnabled =
     aiSettings.sessionZero?.mechanics?.schemaVersion === 1 &&
     aiSettings.sessionZero.mechanics.enabled === true &&
