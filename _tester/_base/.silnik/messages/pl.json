@@ -4940,10 +4940,10 @@
     "step1Post": "i zaloguj się kontem Google",
     "step2Pre": "Kliknij",
     "step3Pre": "Skopiuj klucz, wklej powyżej i kliknij",
-    "checkKeyQuoted": "„Sprawdź klucz”",
+    "checkKeyQuoted": "„Sprawdź i zapisz klucz”",
     "cancel": "Anuluj",
     "saved": "Zapisano!",
-    "saveKeys": "Zapisz klucze"
+    "saveKeys": "Sprawdź i zapisz klucz"
   },
   "CharacterDialog": {
     "manageTitle": "Zarządzanie Postaciami",
