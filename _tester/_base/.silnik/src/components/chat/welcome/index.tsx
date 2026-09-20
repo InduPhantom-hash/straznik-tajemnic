@@ -277,7 +277,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
           id="start-mode-cards-container"
           className={cn(
             'flex flex-col md:flex-row gap-6 w-full justify-center items-center z-20 mt-2',
-            isManualMode ? 'w-[80vw] max-w-none' : 'max-w-5xl'
+            isManualMode ? 'w-full max-w-none px-2 md:px-4' : 'max-w-5xl'
           )}
         >
           {!hasKey ? (
