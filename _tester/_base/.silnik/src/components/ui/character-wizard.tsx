@@ -9,6 +9,7 @@ import { HelpIcon } from './tooltip';
 import { Skull, Zap, Sparkles, Users } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
+import { PregenCharacterSelector } from './pregen-character-selector';
 import {
   Character,
   EquipmentItem,
@@ -349,6 +350,11 @@ export function CharacterWizardV2({
   const [state, setState] = useState<WizardState>(() =>
     buildInitialState(initialCharacter)
   );
+
+  const availablePregens = adventureContext?.investigatorRequirements?.pregenCharacters;
+  const [showPregenSelector, setShowPregenSelector] = useState<boolean>(() => {
+    return Boolean(!initialCharacter && availablePregens && availablePregens.length > 0);
+  });
 
   // Stan dla wybranego archetypu postaci
   const [selectedArchetypeId, setSelectedArchetypeId] = useState<string | null>(

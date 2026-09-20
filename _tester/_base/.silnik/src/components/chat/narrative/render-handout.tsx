@@ -13,6 +13,8 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Section, HandoutType } from './types';
 import { Volume2, Play, Pause, RotateCcw } from 'lucide-react';
+import { AudioReelPlayer } from '@/components/ui/audio-reel-player';
+import { DocumentViewer } from '@/components/ui/document-viewer';
 
 export function HandoutAudioPlayer({ audioUrl }: { audioUrl: string }) {
   const t = useTranslations('NarrativeFormatter');
@@ -91,8 +93,22 @@ export function renderHandout(section: Section, key: number): ReactNode {
       <pre className={`whitespace-pre-wrap ${styles.content}`}>
         {section.content}
       </pre>
+      {section.imageUrl && (
+        <div className="mt-3">
+          <DocumentViewer
+            imageUrl={section.imageUrl}
+            title={styles.header || 'Rekwizyt'}
+            docTypeLabel={section.handoutType}
+          />
+        </div>
+      )}
       {section.audioUrl && (
-        <HandoutAudioPlayer audioUrl={section.audioUrl} />
+        <div className="mt-3">
+          <AudioReelPlayer
+            audioUrl={section.audioUrl}
+            transcript={section.content}
+          />
+        </div>
       )}
     </div>
   );

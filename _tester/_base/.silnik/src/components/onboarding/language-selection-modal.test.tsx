@@ -28,8 +28,8 @@ describe('LanguageSelectionContent', () => {
     // Titles and bilingual descriptions
     expect(screen.getByText(/ZANIM ROZPOCZNIE SIĘ ŚLEDZTWO/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/WYBIERZ JĘZYK/i);
-    expect(screen.getByText(/Ten wybór ustawia język gry i narracji/i)).toBeInTheDocument();
-    expect(screen.getByText(/This choice sets the game and narrative language/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ten wybór ustala język rozgrywki/i)).toBeInTheDocument();
+    expect(screen.getByText(/This choice sets the game, dialogue/i)).toBeInTheDocument();
 
     // 18+ Mature Warning Frame
     const warningFrame = screen.getByRole('note', { name: /content warning 18\+/i });
@@ -38,12 +38,16 @@ describe('LanguageSelectionContent', () => {
     expect(screen.getByText(/Ostrzeżenie o zawartości \/ Content Warning/i)).toBeInTheDocument();
     expect(screen.getByText(/Gra porusza tematy drażliwe, kontrowersyjne/i)).toBeInTheDocument();
     expect(screen.getByText(/This game contains sensitive themes/i)).toBeInTheDocument();
+
+    // Lovecraft Epitaph & Tribute
+    expect(screen.getByText(/„I AM PROVIDENCE” \(Jestem Providence\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/W hołdzie twórczości H\.P\. Lovecrafta/i)).toBeInTheDocument();
   });
 
   it('calls onSelectLanguage with "pl" and "metric" when clicking Polski button', () => {
     render(<LanguageSelectionContent onSelectLanguage={mockOnSelectLanguage} />);
 
-    const plButton = screen.getByRole('button', { name: /^polski$/i });
+    const plButton = screen.getByTestId('btn-language-pl');
     fireEvent.click(plButton);
 
     expect(mockOnSelectLanguage).toHaveBeenCalledTimes(1);
@@ -54,7 +58,7 @@ describe('LanguageSelectionContent', () => {
     render(<LanguageSelectionContent onSelectLanguage={mockOnSelectLanguage} />);
 
     // Default for EN is imperial
-    const enButton = screen.getByRole('button', { name: /^english$/i });
+    const enButton = screen.getByTestId('btn-language-en');
     fireEvent.click(enButton);
     expect(mockOnSelectLanguage).toHaveBeenCalledWith('en', 'imperial');
 
@@ -85,7 +89,7 @@ describe('LanguageSelectionModal', () => {
   it('stores selections in localStorage and triggers callback when language is selected', () => {
     render(<LanguageSelectionModal open={true} onSelected={mockOnSelected} />);
 
-    const plButton = screen.getByRole('button', { name: /^polski$/i });
+    const plButton = screen.getByTestId('btn-language-pl');
     fireEvent.click(plButton);
 
     expect(localStorage.getItem('language_selected')).toBe('pl');
