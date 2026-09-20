@@ -39,25 +39,24 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   const [shouldRender, setShouldRender] = useState(isActive);
   const [isVisible, setIsVisible] = useState(isActive);
 
-  // Autostart muzyki YouTube w tle przy pojawieniu się ekranu (Issue #157)
-  useEffect(() => {
-    if (isVisible && typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('zew:start-music'));
-    }
-  }, [isVisible]);
-
-  // Płynna animacja wejścia i wyjścia kurtyny
+  // Natychmiastowe zsynchronizowanie stanu po zmianie isActive (Issue #429)
   useEffect(() => {
     if (isActive) {
       setShouldRender(true);
-      const animTimer = setTimeout(() => setIsVisible(true), 20);
-      return () => clearTimeout(animTimer);
+      setIsVisible(true);
     } else {
       setIsVisible(false);
       const timer = setTimeout(() => setShouldRender(false), 500);
       return () => clearTimeout(timer);
     }
   }, [isActive]);
+
+  // Autostart muzyki YouTube w tle przy pojawieniu się ekranu (Issue #157)
+  useEffect(() => {
+    if (isVisible && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zew:start-music'));
+    }
+  }, [isVisible]);
 
   // Dynamiczne dane przygody
   const title = adventureTitle || adventureContext?.title || t('chronicleDossier');

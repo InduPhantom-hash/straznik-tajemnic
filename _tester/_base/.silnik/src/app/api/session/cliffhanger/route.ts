@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       .map((m) => `${m.role === 'assistant' ? 'MG' : 'Gracz'}: ${m.content}`)
       .join('\n\n');
 
-    const prompt = `Jesteś Mistrzem Gry (Strażnikiem Tajemnic) w mrocznym świecie Call of Cthulhu. Prowadzisz grę dla gracza o imieniu: ${characterName || 'Badacz'}. Przygoda: ${adventureTitle || 'Nieznana przygoda'}.
+    const prompt = `Jesteś Mistrzem Gry (Strażnikiem Tajemnic) w świecie śledczym RPG d100 Weird Fiction. Prowadzisz grę dla gracza o imieniu: ${characterName || 'Badacz'}. Przygoda: ${adventureTitle || 'Nieznana przygoda'}.
 Sesja właśnie dobiega końca. Twoim zadaniem jest uciąć akcję w piku emocjonalnym (NAGLE), stawiając jasne, niepokojące pytanie dramaturgiczne lub opisując niespodziewane, niepokojące wydarzenie, które zawiesza akcję w próżni.
 
 ZASADY:

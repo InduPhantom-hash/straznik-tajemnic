@@ -324,7 +324,7 @@ Ale nigdy im nie ufaj. Głód jest silniejszy od umów."`,
             sanLoss: '1d10',
             cthulhuMythosGain: '+11% Wiedzy Mitów Cthulhu',
             spellsContained: [
-                'Przyzwanie Byakhee',
+                'Spętanie Cienia',
                 'Sabat Czarownic',
                 'Formuła Nieśmiertelności',
                 'Kontakt z Hasturem'
@@ -356,54 +356,47 @@ I powrócę, i powrócę, i powrócę znowu.
         illustrationTags: ['ouroboros worm', 'witch sabbath', 'medieval occult', 'dark ritual']
     },
     {
-        id: 'revelations-of-glaaki',
-        name: 'Objawienia Glaaki',
-        originalTitle: 'Revelations of Glaaki',
-        author: 'Nieznany (dyktowane przez wyznawców)',
+        id: 'pnakotic-manuscripts',
+        name: 'Manuskrypty Pnakotyczne',
+        originalTitle: 'Pnakotic Manuscripts',
+        author: 'Nieznany (pochodzenie przedludzkie / Wielka Rasa)',
         language: 'english',
-        era: 'XIX wiek (ciągłe dodawanie)',
+        era: 'Przedludzka starożytność (tłumaczenie XV w.)',
         rarity: 'unique',
         studyTime: {
-            initial: '2 tygodnie',
-            full: '40 tygodni',
+            initial: '4 tygodnie',
+            full: '45 tygodni',
             hoursPerDay: 4
         },
         effects: {
-            sanLoss: '2d6',
-            cthulhuMythosGain: '+12% Wiedzy Mitów Cthulhu',
+            sanLoss: '1d8',
+            cthulhuMythosGain: '+10% Wiedzy Mitów Cthulhu',
             spellsContained: [
-                'Przyzwanie Glaaki',
-                'Służba Nieśmiertelna',
-                'Kontakt z Y\'golonac',
-                'Zielona Dekadencja'
+                'Kontakt ze Starszym Znakiem',
+                'Pamięć Wielkiej Rasy',
+                'Zesłanie Cienia w Przeszłość'
             ]
         },
-        physicalDescription: 'Dwanaście tomów w różnej jakości opraw - od profesjonalnych do ręcznie szyty. Wszystkie pisane różnymi charakterami pisma, ale tą samą "inspiracją". Niektóre strony są poplamione zielonkawą substancją.',
-        reputation: 'Dzieło pisane przez pokolenia wyznawców Glaaki - istoty zamieszkującej jeziora w Anglii. Każdy tom dodaje nowa wiedzę.',
+        physicalDescription: 'Masywny wolumin oprawiony w zszarzałą skórę nieznanego zwierzęcia. Karty pergaminowe o dziwnej, chłodnej fakturze, zapisane gęstym, archaicznym pismem z geometrycznymi diagramami czasoprzestrzennymi.',
+        reputation: 'Najstarszy znany zbiór ludzkiej i przedludzkiej wiedzy, spisany częściowo w pradawnym mieście Pnakotus w epoce, gdy kontynenty miały zupełnie inny kształt.',
         fragments: [
             {
-                id: 'glaaki-1',
-                title: 'O Zielonych Sługach',
-                content: `"Pan jeziora wybiera swoich. 
-Kolec jego ciała przenika ofiarę.
-Zielona substancja przepływa i przemienia.
-
-Sługa wstaje - nie żywy, nie martwy.
-Służy wiecznie, dopóki Słońce go nie spali.
-Bo światło dnia jest wrogiem Zmienionych.
-
-Nie płacz za nimi. Są szczęśliwi.
-W służbie jest spokój. W służbie jest cel.
-Czy nie tego wszyscy szukamy?"`,
-                sanCost: '0/1d4',
+                id: 'pnakotic-1',
+                title: 'O Wędrówce Świadomości',
+                content: `"Czas nie jest linią, lecz wielowymiarową tkaniną.
+Umysły Wielkich wędrują przez eony, zamieszkując ciała istot
+zrodzonych miliony lat po ich własnym zmierzchu.
+Gdy gwiazdy zajmą swe pierwotne pozycje,
+to co śpi w głębinach Pnakotus, otworzy oczy raz jeszcze."`,
+                sanCost: '1/1d4',
                 revealedSecrets: [
-                    'Glaaki mieszka w jeziorze w Anglii',
-                    'Jego ofiary stają się nieśmiertelnymi sługami',
-                    'Słudzy nie znoszą światła słonecznego'
+                    'Przed ludzkością Ziemię zamieszkiwały zaawansowane cywilizacje',
+                    'Umysł może podróżować w czasie poprzez odpowiednie skupienie woli',
+                    'Miasto Pnakotus spoczywa pogrzebane pod piaskami Wielkiej Pustyni Piaszczystej'
                 ]
             }
         ],
-        illustrationTags: ['lake monster', 'green substance', 'undead servants', 'twelve volumes']
+        illustrationTags: ['ancient manuscript', 'prehuman glyphs', 'yithian lore', 'parchment', 'cosmic history']
     }
 ];
 

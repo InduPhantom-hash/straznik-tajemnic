@@ -20,7 +20,14 @@ import { embeddingService } from '@/lib/embedding-service';
 import { pdfParserService } from '@/lib/pdf-parser-service';
 import { extractAdventureEntities } from '@/lib/pdf/adventure-extractor';
 import { detectRulebookProfile } from '@/lib/pdf/rulebook-fingerprint';
+import { generateSemanticOverlay } from '@/lib/pdf/semantic-overlay-engine';
+import { registerOverlay, loadCapabilities } from '@/lib/pdf/capabilities-manager';
 import { localVectorStore } from '@/lib/vector-db/local-vector-store';
+import {
+  buildLocalCustomAdventures,
+  buildLocalCustomAdventure,
+} from '@/lib/pdf/adventure-local-builder';
+import { LOCAL_RAG_NAMESPACES } from '@/lib/vector-db/vector-types';
 import fs from 'fs';
 import path from 'path';
 import { getWritableDataDir } from '@/lib/paths';
@@ -142,7 +149,7 @@ export async function POST(request: NextRequest) {
     // Podręcznik gracza jest analizowany wyłącznie lokalnie na urządzeniu w RAM (detekcja reguł i profilu).
     // Chroniony autorsko tekst książki NIE trafia do zewnętrznych ani lokalnych modeli AI.
     if (type === 'rules') {
-      const rulebookProfile = detectRulebookProfile(pdfText);
+      const rulebookProfile = detectRulebookProfile(pdfText, fileName);
       const ragDir = writableRagDirectory();
       if (!fs.existsSync(ragDir)) {
         fs.mkdirSync(ragDir, { recursive: true });
@@ -153,6 +160,17 @@ export async function POST(request: NextRequest) {
         'utf-8'
       );
       console.log(`📜 Profil podręcznika wykryty i zapisany: ${rulebookProfile.profile} (${rulebookProfile.title})`);
+
+      // Generujemy modularną nakładkę semantyczną DLC i rejestrujemy w capabilities.json
+      const overlay = generateSemanticOverlay(pdfText, rulebookProfile, fileName);
+      const capabilities = registerOverlay(overlay);
+      console.log(`🧩 Nakładka DLC zarejestrowana: ${overlay.id} (tagi: ${overlay.tags.join(', ')})`);
+
+      // Tagi dla wektorów syntetycznych (np. RULE:core-d100, TAG:NPC, TAG:CZARY itp.)
+      const semanticTags = overlay.tags.map((t) => `TAG:${t}`).join(',');
+      const combinedTags = semanticTags
+        ? `RULE:${rulebookProfile.profile},${semanticTags}`
+        : `RULE:${rulebookProfile.profile}`;
 
       // Zapisujemy w lokalnym store wskaźniki gotowości per strona (doktryna Zero-Cytowań: text jest undefined, brak cytatów autorskich)
       const syntheticVectors = Array.from({ length: pdfPagesCount }, (_, i) => ({
@@ -165,7 +183,7 @@ export async function POST(request: NextRequest) {
           chunkIndex: i,
           gameTimestamp: '',
           realTimestamp: new Date().toISOString(),
-          tags: `RULE:${rulebookProfile.profile}`,
+          tags: combinedTags,
           sessionId: '',
           messageRange: '',
         },
@@ -181,61 +199,86 @@ export async function POST(request: NextRequest) {
         namespace: 'rules',
         durationMs: Date.now() - start,
         rulebookProfile,
+        overlay,
+        capabilities,
       });
     }
 
-    // Dla pozostałych dokumentów (np. adventure) obowiązuje polityka ochrony przed wysyłaniem do modeli
+    if (type === 'adventure') {
+      const rulebookProfile = detectRulebookProfile(pdfText, fileName);
+      const overlay = generateSemanticOverlay(pdfText, rulebookProfile, fileName);
+      const adventures = buildLocalCustomAdventures(
+        pdfText,
+        rulebookProfile,
+        overlay,
+        fileName,
+        pdfPagesCount,
+        adventureId
+      );
+
+      // Zapisujemy wyekstrahowaną strukturę lokalnie w katalogu data/adventures/
+      const dataDir = path.join(getWritableDataDir(), 'adventures');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      for (const adv of adventures) {
+        const filePath = path.join(dataDir, `${adv.id}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(adv, null, 2), 'utf-8');
+        console.log(`💾 Zapisano ustrukturyzowane dane przygody: ${filePath}`);
+      }
+
+      // Rejestrujemy wektory syntetyczne per przygoda (doktryna Zero-Cytowań)
+      for (const adv of adventures) {
+        const semanticTags = overlay.tags.map((t) => `TAG:${t}`).join(',');
+        const combinedTags = semanticTags
+          ? `ADVENTURE:${adv.id},${semanticTags}`
+          : `ADVENTURE:${adv.id}`;
+
+        const syntheticVectors = Array.from({ length: pdfPagesCount }, (_, i) => ({
+          id: `adv-${adv.id}-p${i + 1}`,
+          values: [0],
+          metadata: {
+            contentType: 'adventure-page',
+            summary: `Strona ${i + 1} scenariusza ${adv.title}`,
+            sourceFile: fileName,
+            chunkIndex: i,
+            gameTimestamp: '',
+            realTimestamp: new Date().toISOString(),
+            tags: combinedTags,
+            sessionId: '',
+            messageRange: '',
+          },
+        }));
+
+        const targetNamespace = LOCAL_RAG_NAMESPACES.adventure(adv.id);
+        await localVectorStore.replaceNamespace(targetNamespace, syntheticVectors);
+      }
+
+      const primaryAdv = adventures[0];
+      const targetNamespace = LOCAL_RAG_NAMESPACES.adventure(primaryAdv.id);
+
+      return NextResponse.json({
+        success: true,
+        indexed: pdfPagesCount,
+        failed: 0,
+        totalChunks: pdfPagesCount,
+        namespace: targetNamespace,
+        durationMs: Date.now() - start,
+        adventure: primaryAdv,
+        adventures,
+        multipleAdventures: adventures.length > 1,
+        rulebookProfile,
+        overlay,
+      });
+    }
+
+    // Dla pozostałych nieznanych typów dokumentów obowiązuje polityka ochrony przed wysyłaniem do modeli
     if (isDocumentModelUseBlocked()) {
       return NextResponse.json(
         documentPolicyError(request.headers.get('x-locale') || request.headers.get('accept-language') || 'pl'),
         { status: 403 }
       );
     }
-
-    // Embedding service na kluczu gracza; indeksowanie idzie do data/rag/ (lokalnie).
-    embeddingService.initialize(geminiApiKey);
-
-    const result = await pdfIndexingService.indexPdf({
-      text: pdfText,
-      type,
-      fileName,
-      clearBefore,
-      apiKey: geminiApiKey,
-      adventureId,
-    });
-
-    if (!result.success) {
-      return NextResponse.json(
-        { ...result, error: result.error || 'Indeksowanie nie powiodło się' },
-        { status: 500 }
-      );
-    }
-
-    // Jeśli typ to 'adventure' i dostępny jest klucz Gemini, wykonaj rozszerzoną ekstrakcję struktur
-    let extractedAdventure = null;
-    if (type === 'adventure' && geminiApiKey) {
-      try {
-        console.log('🤖 Rozpoczynanie ekstrakcji ustrukturyzowanej przygody przez Gemini 3.6 Flash...');
-        extractedAdventure = await extractAdventureEntities(pdfText, fileName, geminiApiKey);
-        
-        // Zapisz wyekstrahowaną strukturę lokalnie w data/adventures/
-        const dataDir = path.join(getWritableDataDir(), 'adventures');
-        if (!fs.existsSync(dataDir)) {
-          fs.mkdirSync(dataDir, { recursive: true });
-        }
-        const filePath = path.join(dataDir, `${extractedAdventure.adventureId}.json`);
-        fs.writeFileSync(filePath, JSON.stringify(extractedAdventure, null, 2), 'utf-8');
-        console.log(`💾 Zapisano ustrukturyzowane dane przygody: ${filePath}`);
-      } catch (extError) {
-        console.warn('⚠️ Ekstrakcja przygody przez Gemini 3.6 Flash nie powiodła się, kontynuowanie samego RAG:', extError);
-      }
-    }
-
-    return NextResponse.json({
-      ...result,
-      rulebookProfile: null,
-      extractedAdventure,
-    });
   } catch (error) {
     console.error('❌ ingest-local API error:', error);
     return NextResponse.json(
@@ -288,6 +331,7 @@ export async function GET(request: NextRequest) {
       type,
       recordCount,
       rulebookProfile,
+      capabilities: loadCapabilities(),
     });
   } catch (error) {
     console.error('Błąd GET ingest-local:', error);

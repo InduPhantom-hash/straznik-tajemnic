@@ -1,5 +1,4 @@
 import type { SessionZeroSettings } from '../ai-settings/types';
-import { buildOrganizationPromptSection } from '../data/investigator-organizations';
 
 type SessionZeroPromptSettings = Pick<
   SessionZeroSettings,
@@ -59,7 +58,7 @@ export const DIFFICULTY_INSTRUCTIONS: Record<string, string> = {
 
   normal: `
 ## POZIOM TRUDNOŚCI: NORMALNY
-- Stosuj standardowe zasady Call of Cthulhu 7e
+- Stosuj standardowe zasady silnika d100 Weird Fiction RPG
 - Porażki mają realne konsekwencje
 - AI jest neutralny - nie pomaga ani nie szkodzi nadmiernie
 - Świat reaguje logicznie na działania postaci`,
@@ -165,7 +164,7 @@ export const DIFFICULTY_INSTRUCTIONS_EN: Record<string, string> = {
 
   normal: `
 ## DIFFICULTY LEVEL: NORMAL
-- Apply standard Call of Cthulhu 7e rules
+- Apply standard d100 Weird Fiction RPG rules
 - Failures have real consequences
 - The AI is neutral - neither over-assisting nor excessively cruel
 - The world reacts logically to investigator actions`,
@@ -305,12 +304,19 @@ export function buildSessionZeroInstructions(
   let eraFilterInstructions = '';
   if (sessionZero.eraFilter === 'historical_realia') {
     eraFilterInstructions = isEn
-      ? `\n\n## ERA FILTER: HISTORICAL REALIA\nUse the selected adventure's historical manifest: period-accurate social realities, conventions, technology, language, and constraints for its exact year and region. Maintain solemn investigative horror.`
-      : `\n\n## FILTR EPOKI: REALIA HISTORYCZNE\nKorzystaj z manifestu historycznego wybranej przygody: realia społeczne, obyczaje, technologia, język i ograniczenia właściwe dokładnemu rokowi oraz regionowi. Zachowaj powagę opowieści.`;
+      ? `\n\n## ERA FILTER: HISTORICAL REALIA\nFull fidelity to historical realities: period-accurate social structures, customs, mentality, technology, vocabulary, and social divisions for its exact year and region, without contemporary censorship, moralizing, or anachronisms. Maintain solemn, atmospheric investigative horror.`
+      : `\n\n## FILTR EPOKI: REALIA HISTORYCZNE\nPełna wierność realiom historycznym: autentyczne struktury społeczne, obyczaje, mentalność, technologia, słownictwo i podziały epoki właściwe dokładnemu rokowi oraz regionowi, bez współczesnej cenzury, moralizatorstwa i bez anachronizmów. Zachowaj powagę i gęsty klimat śledczego horroru.`;
   } else if (sessionZero.eraFilter === 'modern_sensibilities') {
     eraFilterInstructions = isEn
-      ? `\n\n## ERA FILTER: MODERN SENSIBILITIES\nUse the selected adventure's historical manifest for material reality, but do not reproduce period prejudice or discrimination as entertainment. Preserve contemporary table sensitivity.`
-      : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nKorzystaj z manifestu historycznego wybranej przygody dla realiów materialnych, ale nie odtwarzaj uprzedzeń ani dyskryminacji epoki jako rozrywki. Zachowaj współczesną wrażliwość przy stole.`;
+      ? `\n\n## ERA FILTER: MODERN SENSIBILITIES\nUse the selected adventure's historical manifest for material reality, but soften period prejudice and social discrimination. Focus purely on cosmic horror, mystery, and investigation.`
+      : `\n\n## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ\nKorzystaj z manifestu historycznego wybranej przygody dla realiów materialnych, łagodząc uprzedzenia i dyskryminację epoki. Skup się wyłącznie na kosmicznej grozie, tajemnicy i śledztwie.`;
+  }
+
+  let briefingInstructions = '';
+  if (sessionZero.briefing) {
+    briefingInstructions = isEn
+      ? `\n\n## DIEGETIC BRIEFING & CASE DISPATCH (STRONG START)\nThe investigator received this preliminary dispatch/briefing: "${sessionZero.briefing}". Open the story by grounding the scene with the investigator having read or just received this dispatch (e.g., courier on the doorstep, train arriving at the station, holding the telegram). Never contradict this briefing.`
+      : `\n\n## BRIEFING ŚLEDCZY I DEPESZA STARTOWA (STRONG START)\nBadacz otrzymał następującą depeszę/odprawę wstępną: "${sessionZero.briefing}". Rozpocznij opowieść, osadzając pierwszą scenę w kontekście przeczytania lub odebrania tej depeszy (np. posłaniec na progu, pociąg wjeżdżający na stację, telegram w dłoni). Nigdy nie zaprzeczaj treści tego briefingu.`;
   }
 
   const difficultySection =
@@ -318,16 +324,10 @@ export function buildSessionZeroInstructions(
       ? `\n${diffMap[sessionZero.difficulty]}`
       : '';
 
-  let organizationInstructions = '';
-  const orgId = sessionZero.organizationId || sessionZero.investigatorSociety;
-  if (orgId && sessionZero.isCampaign) {
-    organizationInstructions = `\n${buildOrganizationPromptSection(orgId, locale)}`;
-  }
-
   const effectiveTone = sessionZero.tone === 'noir' ? 'purist' : sessionZero.tone;
 
   return `
 ${toneMap[effectiveTone] || ''}${difficultySection}
-${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}${organizationInstructions}
+${modeMap[sessionZero.narrativeMode] || modeMap['full_rpg']}${briefingInstructions}${hookInstructions}${anchorsInstructions}${eraFilterInstructions}
 ${safetyInstructions}`;
 }

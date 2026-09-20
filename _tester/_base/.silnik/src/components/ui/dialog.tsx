@@ -33,7 +33,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
  * - `sm`    - drobne potwierdzenia (domyślny, ~max-w-lg, treść w grid).
  * - `lg`    - średni modal (~max-w-3xl) z przewijaniem.
  * - `wide`  - standard 75-80% okna (80vw / h-[78vh] / max-h-[85vh] + przewijanie).
- * - `screen`- standard 75-80% okna (80vw / h-[78vh] / max-h-[85vh]), flex-col z wewnętrznym przewijaniem.
+ * - `screen`- pełny ekran 100% okna (100vw / 100vh), flex-col z wewnętrznym przewijaniem.
  */
 const dialogContentVariants = cva(
   'fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] border border-brass/30 bg-card shadow-deco duration-200 data-[state=open]:animate-modal-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 sm:rounded-lg',
@@ -42,9 +42,9 @@ const dialogContentVariants = cva(
       size: {
         sm: 'grid w-full max-w-lg gap-4 p-6',
         lg: 'grid w-full max-w-3xl max-h-[86vh] gap-4 overflow-y-auto p-6',
-        wide: 'grid w-[80vw] h-[78vh] max-h-[85vh] gap-4 overflow-y-auto p-6',
+        wide: 'grid w-[80vw] 2xl:w-[85vw] h-[78vh] 2xl:h-[84vh] max-h-[85vh] 2xl:max-h-[88vh] gap-4 overflow-y-auto p-6',
         screen:
-          'deco-corners flex h-[78vh] max-h-[85vh] w-[80vw] flex-col overflow-hidden p-0',
+          'deco-corners fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 h-screen max-h-screen w-screen max-w-none flex flex-col overflow-hidden p-0 sm:rounded-none rounded-none border-none',
       },
     },
     defaultVariants: {

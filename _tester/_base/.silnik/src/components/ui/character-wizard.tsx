@@ -1,13 +1,16 @@
 'use client';
 
 import { SafeImage } from '@/components/ui/safe-image';
-import { Fragment, useState, useCallback, type ReactNode } from 'react';
+import { Fragment, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
+import { Badge } from './badge';
 import { HelpIcon } from './tooltip';
+import { Skull, Zap, Sparkles, Users, RotateCcw } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
+import { PregenCharacterSelector } from './pregen-character-selector';
 import {
   Character,
   EquipmentItem,
@@ -19,7 +22,7 @@ import {
   CHARACTER_ARCHETYPES,
   getAdventureContextPrompt,
 } from '@/lib/adventures-data';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, isPureTextMode } from '@/lib/api-keys-service';
 import {
   findEquipmentByName,
   createEquipmentItem,
@@ -33,7 +36,11 @@ import {
   buildRecommendedSkills,
   normalizeSkillName,
 } from '@/lib/character/normalize-skill-name';
-import { distributeRecommendedSkillPoints } from '@/lib/character/distribute-skill-points';
+import {
+  distributeRecommendedSkillPoints,
+  fillRemainingSkillPoints,
+  calculateSkillPointsUsage,
+} from '@/lib/character/distribute-skill-points';
 import { toast } from '@/components/ui/use-toast';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import {
@@ -49,6 +56,7 @@ import {
   SKILL_LIMIT_EXCEPTIONS,
   AGE_MODIFIERS,
   FIELD_PROMPTS,
+  PULP_ARCHETYPES,
 } from '@/lib/data/character';
 import {
   roll3d6x5,
@@ -97,6 +105,43 @@ const ARCHETYPE_SKILL_MAP: Record<string, string[]> = {
   healer: ['Medycyna', 'Pierwsza Pomoc', 'Psychologia', 'Nauka (Biologia)'],
   custom: [],
 };
+
+const PULP_ARCHETYPE_ICONS: Record<string, string> = {
+  outsider: '🌲',
+  adventurer: '🧭',
+  cold_blooded: '🧊',
+  crusader: '🛡️',
+  bon_vivant: '🥂',
+  rogue: '🃏',
+  femme_fatale: '💄',
+  fixer: '🤝',
+  hunter: '🏹',
+  dreamer: '💭',
+  mystic: '🔮',
+  egghead: '💡',
+  explorer: '🗺️',
+  beefcake: '🏋️',
+  sidekick: '👥',
+  seeker: '🔍',
+  daredevil: '🏎️',
+  hard_boiled: '🕵️',
+  scholar: '📚',
+  heavy: '🥊',
+  swashbuckler: '⚔️',
+  grease_monkey: '🔧',
+};
+
+function getArchetypeSkills(
+  archetypeId: string | null,
+  rulesetVariant: 'classic' | 'pulp' = 'classic'
+): string[] {
+  if (!archetypeId) return [];
+  if (rulesetVariant === 'pulp') {
+    const found = PULP_ARCHETYPES.find((a) => a.id === archetypeId);
+    return found?.bonusSkills || [];
+  }
+  return ARCHETYPE_SKILL_MAP[archetypeId] || [];
+}
 
 /** Stabilne identyfikatory umiejętności specjalnych (dane aplikacji, nie UI). */
 const NATIVE_LANGUAGE_SKILL = 'J\u0119zyk Ojczysty';
@@ -180,6 +225,9 @@ function createStatRollMap(): StatRollMap {
 
 interface WizardState {
   step: number;
+  rulesetVariant?: 'classic' | 'pulp';
+  archetype?: string;
+  pulpTalents?: string[];
   // Krok 1
   stats: CharacterStats;
   /**
@@ -219,6 +267,18 @@ interface WizardState {
   isGeneratingNarrative: boolean;
   // Krok 5
   equipment: string;
+}
+
+interface WizardArchetype {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  suggestedOccupations: string[];
+  suggestedTraits: string[];
+  suggestedMotivations: string[];
+  bonusSkills: string[];
+  coreCharacteristics: string[];
 }
 
 interface Props {
@@ -269,8 +329,18 @@ export function CharacterWizardV2({
   // Z `char` (re-roll) - seed koncepcji/historii, statystyki rozdawane od nowa
   // (krok 1, cechy bazowe; zawód wybierany ponownie w kroku 2).
   const buildInitialState = (char?: Character): WizardState => {
+    const initialRuleset = char?.rulesetVariant || (adventureContext?.tone === 'pulp' || adventureContext?.rulesetVariant === 'pulp' ? 'pulp' : 'classic');
+    const minReqAge = adventureContext?.investigatorRequirements?.minAge ?? 15;
+    const maxReqAge = adventureContext?.investigatorRequirements?.maxAge ?? 90;
+    const initialAge = char?.age
+      ? Math.min(Math.max(char.age, minReqAge), maxReqAge)
+      : Math.min(Math.max(25, minReqAge), maxReqAge);
+
     const base: WizardState = {
       step: 1,
+      rulesetVariant: initialRuleset,
+      archetype: char?.archetype,
+      pulpTalents: char?.pulpTalents ? [...char.pulpTalents] : undefined,
       stats: {
         str: 50,
         con: 50,
@@ -283,15 +353,8 @@ export function CharacterWizardV2({
         luck: 50,
       },
       statMethod: 'roll',
-      age: 25,
-      derived: {
-        hp: 10,
-        san: 50,
-        mp: 10,
-        damageBonus: '0',
-        build: 0,
-        movement: 8,
-      },
+      age: initialAge,
+      derived: libCalculateDerived({ str: 50, con: 50, siz: 50, dex: 50, app: 50, int: 50, pow: 50, edu: 50, luck: 50 }, initialAge, initialRuleset),
       occupationId: null,
       occupationPoints: 0,
       skills: getInitialSkills(50, 50), // Dynamiczne wartości Język Ojczysty i Unik
@@ -319,7 +382,7 @@ export function CharacterWizardV2({
     if (!char) return base;
     return {
       ...base,
-      age: char.age ?? base.age,
+      age: initialAge,
       name: char.name ?? '',
       gender: char.gender ?? '',
       birthplace: char.birthplace ?? '',
@@ -339,10 +402,65 @@ export function CharacterWizardV2({
     buildInitialState(initialCharacter)
   );
 
+  const availablePregens = adventureContext?.investigatorRequirements?.pregenCharacters;
+  const [showPregenSelector, setShowPregenSelector] = useState<boolean>(() => {
+    return Boolean(!initialCharacter && availablePregens && availablePregens.length > 0);
+  });
+
   // Stan dla wybranego archetypu postaci
   const [selectedArchetypeId, setSelectedArchetypeId] = useState<string | null>(
-    null
+    () => {
+      if (initialCharacter?.archetype) {
+        const classic = CHARACTER_ARCHETYPES.find(
+          (a) => a.id === initialCharacter.archetype || a.name === initialCharacter.archetype
+        );
+        if (classic) return classic.id;
+        const pulp = PULP_ARCHETYPES.find(
+          (a) =>
+            a.id === initialCharacter.archetype ||
+            a.name.pl === initialCharacter.archetype ||
+            a.name.en === initialCharacter.archetype
+        );
+        if (pulp) return pulp.id;
+      }
+      return null;
+    }
   );
+
+  const activeArchetypes = useMemo(() => {
+    if (state.rulesetVariant === 'pulp') {
+      return PULP_ARCHETYPES.map((a) => ({
+        id: a.id,
+        name: a.name[locale === 'en' ? 'en' : 'pl'] || a.name.pl,
+        icon: PULP_ARCHETYPE_ICONS[a.id] || '⚡',
+        description: a.description[locale === 'en' ? 'en' : 'pl'] || a.description.pl,
+        suggestedOccupations: a.suggestedOccupations,
+        suggestedTraits: a.suggestedTraits,
+        suggestedMotivations: [] as string[],
+        bonusSkills: a.bonusSkills,
+        coreCharacteristics: a.coreCharacteristics,
+      }));
+    }
+    return CHARACTER_ARCHETYPES.map((a) => {
+      const localizedName = dynamicT.has?.(`archetypes.${a.id}.name`)
+        ? dynamicT(`archetypes.${a.id}.name`)
+        : a.name;
+      const localizedDesc = dynamicT.has?.(`archetypes.${a.id}.description`)
+        ? dynamicT(`archetypes.${a.id}.description`)
+        : a.description;
+      return {
+        id: a.id,
+        name: localizedName,
+        icon: a.icon,
+        description: localizedDesc,
+        suggestedOccupations: a.suggestedOccupations,
+        suggestedTraits: a.suggestedTraits,
+        suggestedMotivations: a.suggestedMotivations || [],
+        bonusSkills: ARCHETYPE_SKILL_MAP[a.id] || [],
+        coreCharacteristics: [] as string[],
+      };
+    });
+  }, [state.rulesetVariant, locale, dynamicT]);
 
   // Stan wyszukiwarki i filtra profesji (Krok 3)
   const [occupationSearchQuery, setOccupationSearchQuery] = useState('');
@@ -398,9 +516,9 @@ export function CharacterWizardV2({
   // calculateDerived useCallback wrapper zachowuje stable reference dla useEffect deps.
 
   const calculateDerived = useCallback(
-    (stats: CharacterStats, age: number): DerivedStats =>
-      libCalculateDerived(stats, age),
-    []
+    (stats: CharacterStats, age: number, ruleset?: 'classic' | 'pulp'): DerivedStats =>
+      libCalculateDerived(stats, age, ruleset ?? state.rulesetVariant ?? 'classic'),
+    [state.rulesetVariant]
   );
 
   // Zapisuje nową wartość JEDNEJ cechy + przelicza cechy pochodne i dynamiczne
@@ -410,7 +528,7 @@ export function CharacterWizardV2({
     (stat: StatKey, value: number) => {
       setState((prev) => {
         const stats = { ...prev.stats, [stat]: value };
-        const derived = calculateDerived(stats, prev.age);
+        const derived = calculateDerived(stats, prev.age, prev.rulesetVariant);
         const skills = { ...prev.skills };
         if (stat === 'edu') skills[NATIVE_LANGUAGE_SKILL] = stats.edu;
         if (stat === 'dex') skills.Unik = Math.floor(stats.dex / 2);
@@ -532,25 +650,66 @@ export function CharacterWizardV2({
     const newValue = Math.max(baseValue, Math.min(maxValue, value));
     const diff = newValue - (state.skills[skillName] || baseValue);
 
-    // Sprawdź limit punktów. Majętność (creditRating) także zjada z puli (RAW),
-    // więc wliczamy ją do wydanych punktów.
-    const totalUsed =
-      state.occupationPointsUsed +
-      state.interestPointsUsed +
-      state.creditRating +
-      diff;
-    const totalAvailable = state.occupationPoints + state.interestPoints;
-    if (totalUsed > totalAvailable) return;
+    const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
+    const archetypeSkills = getArchetypeSkills(
+      selectedArchetypeId,
+      state.rulesetVariant
+    );
+    const occupationalSkills = selectedOcc?.skills || [];
+    const recommended = buildRecommendedSkills(
+      archetypeSkills,
+      occupationalSkills
+    );
+
+    const resolveBaseValue = (s: string): number => {
+      if (s === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
+      if (s === 'Unik') return Math.floor(state.stats.dex / 2);
+      return BASE_SKILLS[s] || 1;
+    };
+
+    const nextSkills = { ...state.skills, [skillName]: newValue };
+    const nextUsage = calculateSkillPointsUsage({
+      skills: nextSkills,
+      recommendedSkills: recommended,
+      creditRating: state.creditRating,
+      occupationPoints: state.occupationPoints,
+      interestPoints: state.interestPoints,
+      getBaseValue: resolveBaseValue,
+    });
+
+    // Jeśli zmiana zwiększa wartość i przekracza limity: blokujemy
+    if (
+      diff > 0 &&
+      (nextUsage.isTotalOverLimit ||
+        nextUsage.isInterestOverLimit ||
+        nextUsage.isOccupationOverLimit)
+    ) {
+      return;
+    }
 
     setState((prev) => ({
       ...prev,
-      skills: { ...prev.skills, [skillName]: newValue },
-      occupationPointsUsed: prev.occupationPointsUsed + diff,
+      skills: nextSkills,
+      occupationPointsUsed: nextUsage.occupationPointsUsed,
+      interestPointsUsed: nextUsage.interestPointsUsed,
     }));
   };
 
   // Stan dla automatycznego rozdzielania punktów
   const [isDistributingSkills, setIsDistributingSkills] = useState(false);
+  // Stan dla modala potwierdzenia resetu punktów
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isResetConfirmOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsResetConfirmOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isResetConfirmOpen]);
 
   // Funkcja AI do automatycznego rozdzielania punktów umiejętności
   const autoDistributeSkillsAI = async () => {
@@ -558,20 +717,26 @@ export function CharacterWizardV2({
     setIsDistributingSkills(true);
 
     const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
-    // Majętność jest już opłacona z puli (creditRating punktów) - AI rozdziela
-    // RESZTĘ punktów między pozostałe umiejętności (RAW: koszt Credit Rating
-    // pomniejsza pulę dostępną na inne umiejętności).
-    const totalPoints =
-      state.occupationPoints + state.interestPoints - state.creditRating;
+    // Majętność jest już opłacona z puli zawodowej (creditRating punktów) -
+    // punkty zawodowe (RAW) idą deterministycznie na umiejętności zawodowe i archetypu.
+    // Punkty zainteresowań (interestPoints = INT × 2) są ZAWSZE dedykowane AI,
+    // by zgodnie z tłem i opisem postaci rozdało je na hobby/umiejętności poboczne.
+    const occupationalPool = Math.max(
+      0,
+      state.occupationPoints - state.creditRating
+    );
+    const interestPool = Math.max(0, state.interestPoints);
+    const totalPoints = occupationalPool + interestPool;
     const occupationalSkills = selectedOcc?.skills || [];
 
-    // Mapowanie archetypów na kluczowe umiejętności (module-level ARCHETYPE_SKILL_MAP)
-    const archetypeSkills = selectedArchetypeId
-      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-      : [];
+    // Mapowanie archetypów na kluczowe umiejętności
+    const archetypeSkills = getArchetypeSkills(
+      selectedArchetypeId,
+      state.rulesetVariant
+    );
 
     // JEDNO źródło prawdy dla rekomendowanych (highlight ★ ORAZ przydział):
     // archetyp ∪ zawód, specjalizacje znormalizowane (`Nauka (Biologia)` →
@@ -590,12 +755,13 @@ export function CharacterWizardV2({
     const resolveMaxValue = (skill: string): number =>
       SKILL_LIMIT_EXCEPTIONS.includes(skill) ? 99 : SKILL_CREATION_LIMIT;
 
-    // KROK 1 (DETERMINISTYCZNY): zaspokój rekomendowane NAJPIERW, równo do
-    // limitu 75%, zużywając pulę. Dopiero RESZTĘ oddamy AI/losowo niżej.
+    // KROK 1 (DETERMINISTYCZNY): zaspokój rekomendowane NAJPIERW z puli zawodowej,
+    // równo do limitu 75%. Resztę z puli zawodowej + pełną pulę zainteresowań (INT × 2)
+    // przekazujemy do AI na umiejętności pasujące do tła postaci.
     const deterministic = distributeRecommendedSkillPoints({
       recommendedSkills,
       currentSkills: state.skills,
-      totalPoints,
+      totalPoints: occupationalPool,
       getBaseValue: resolveBaseValue,
       getMaxValue: resolveMaxValue,
     });
@@ -606,16 +772,24 @@ export function CharacterWizardV2({
       recommendedFloor[skill] =
         deterministic.skills[skill] ?? resolveBaseValue(skill);
     }
-    // Punkty pozostałe do rozdania przez AI (na pozostałe umiejętności).
-    const remainingForAI = deterministic.remainingPoints;
+    // Punkty pozostałe do rozdania przez AI: niewykorzystane zawodowe + cała pula zainteresowań.
+    const remainingForAI = deterministic.remainingPoints + interestPool;
 
-    // Jeśli rekomendowane umiejętności zaspokoiły całą pulę w 100% (np. zawód z wieloma umiejętnościami):
-    // Zatwierdź natychmiast deterministyczny przydział bez zbędnego i błędogennego zapytania do AI o 0 punktów.
+    // Jeśli łączna pula do rozdania wynosi 0 (np. postać o skrajnych cechach bez punktów):
     if (remainingForAI <= 0) {
+      const zeroUsage = calculateSkillPointsUsage({
+        skills: deterministic.skills,
+        recommendedSkills,
+        creditRating: state.creditRating,
+        occupationPoints: state.occupationPoints,
+        interestPoints: state.interestPoints,
+        getBaseValue: resolveBaseValue,
+      });
       setState((prev) => ({
         ...prev,
         skills: deterministic.skills,
-        occupationPointsUsed: deterministic.pointsUsed,
+        occupationPointsUsed: zeroUsage.occupationPointsUsed,
+        interestPointsUsed: zeroUsage.interestPointsUsed,
       }));
       toast({
         variant: 'success',
@@ -788,13 +962,22 @@ export function CharacterWizardV2({
       // rekomendowanych (KROK 1). AI dokłada na pozostałe, nie ruszając ich.
       let pointsUsed = deterministic.pointsUsed;
       const newSkills = { ...deterministic.skills };
+      const touchedSkills: string[] = [];
 
       for (const [rawSkillName, rawValue] of Object.entries(skillsMap)) {
         const numValue =
           typeof rawValue === 'number' ? rawValue : Number(rawValue);
         if (isNaN(numValue) || numValue <= 0) continue;
 
-        const skillName = normalizeSkillName(rawSkillName) || rawSkillName;
+        const skillName = normalizeSkillName(rawSkillName);
+        if (
+          !skillName ||
+          skillName === CREDIT_RATING_SKILL ||
+          skillName === 'Mity Cthulhu'
+        ) {
+          continue; // Ignoruj nieznane umiejętności, Majętność i Mity Cthulhu
+        }
+
         let baseValue = BASE_SKILLS[skillName] || 0;
         if (skillName === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
         if (skillName === 'Unik') baseValue = Math.floor(state.stats.dex / 2);
@@ -815,108 +998,41 @@ export function CharacterWizardV2({
         if (clampedValue > previousValue) {
           pointsUsed += clampedValue - previousValue;
           newSkills[skillName] = clampedValue;
+          touchedSkills.push(skillName);
         }
       }
 
       // Sprawdź czy nie przekroczono limitu
       if (pointsUsed <= totalPoints) {
-        // === NOWE: Dopełnij pozostałe punkty automatycznie ===
-        let remainingPoints = totalPoints - pointsUsed;
-
+        // Dopełnij brakujące punkty deterministycznie (np. gdy AI rozdało mniej niż remainingForAI)
+        const remainingPoints = totalPoints - pointsUsed;
         if (remainingPoints > 0) {
-          // Znajdź umiejętności zawodowe które można jeszcze podnieść
-          const upgradableSkills = occupationalSkills.filter((skillName) => {
-            const skillKey = skillName.replace(/\s*\(\d*\).*$/, '').trim(); // Usuń "(2)" itp.
-            if (skillKey === 'Dowolna' || skillKey === CREDIT_RATING_SKILL)
-              return false;
-
-            let baseValue = BASE_SKILLS[skillKey] || 1;
-            if (skillKey === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
-            if (skillKey === 'Unik')
-              baseValue = Math.floor(state.stats.dex / 2);
-
-            const currentValue = newSkills[skillKey] || baseValue;
-            const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
-              ? 99
-              : SKILL_CREATION_LIMIT;
-
-            return currentValue < maxValue;
+          const fillResult = fillRemainingSkillPoints({
+            skills: newSkills,
+            remainingPoints,
+            prioritySkills:
+              touchedSkills.length > 0 ? touchedSkills : recommendedSkills,
+            getBaseValue: resolveBaseValue,
+            getMaxValue: resolveMaxValue,
           });
-
-          // Rozdziel pozostałe punkty między umiejętności zawodowe
-          while (remainingPoints > 0 && upgradableSkills.length > 0) {
-            for (const skillName of upgradableSkills) {
-              if (remainingPoints <= 0) break;
-
-              const skillKey = skillName.replace(/\s*\(\d*\).*$/, '').trim();
-              let baseValue = BASE_SKILLS[skillKey] || 1;
-              if (skillKey === NATIVE_LANGUAGE_SKILL) baseValue = state.stats.edu;
-              if (skillKey === 'Unik')
-                baseValue = Math.floor(state.stats.dex / 2);
-
-              const currentValue = newSkills[skillKey] || baseValue;
-              const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
-                ? 99
-                : SKILL_CREATION_LIMIT;
-
-              if (currentValue < maxValue) {
-                const increment = Math.min(
-                  remainingPoints,
-                  10,
-                  maxValue - currentValue
-                );
-                newSkills[skillKey] = currentValue + increment;
-                remainingPoints -= increment;
-                pointsUsed += increment;
-              }
-            }
-
-            // Jeśli wszystkie zawodowe mają max, rozdziel do innych umiejętności
-            if (remainingPoints > 0) {
-              const anySkillOptions = Object.keys(BASE_SKILLS).filter(
-                (skillKey) => {
-                  if (skillKey === CREDIT_RATING_SKILL) return false;
-                  const currentValue =
-                    newSkills[skillKey] || BASE_SKILLS[skillKey] || 1;
-                  const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(skillKey)
-                    ? 99
-                    : SKILL_CREATION_LIMIT;
-                  return currentValue < maxValue;
-                }
-              );
-
-              if (anySkillOptions.length === 0) break; // Wszystko na max
-
-              const randomSkill =
-                anySkillOptions[
-                  Math.floor(Math.random() * anySkillOptions.length)
-                ];
-              const baseValue = BASE_SKILLS[randomSkill] || 1;
-              const currentValue = newSkills[randomSkill] || baseValue;
-              const maxValue = SKILL_LIMIT_EXCEPTIONS.includes(randomSkill)
-                ? 99
-                : SKILL_CREATION_LIMIT;
-
-              const increment = Math.min(
-                remainingPoints,
-                10,
-                maxValue - currentValue
-              );
-              if (increment > 0) {
-                newSkills[randomSkill] = currentValue + increment;
-                remainingPoints -= increment;
-                pointsUsed += increment;
-              } else {
-                break; // Nie da się więcej
-              }
-            }
-          }
+          pointsUsed += fillResult.pointsUsed;
+          Object.assign(newSkills, fillResult.skills);
         }
+
+        const finalUsage = calculateSkillPointsUsage({
+          skills: newSkills,
+          recommendedSkills,
+          creditRating: state.creditRating,
+          occupationPoints: state.occupationPoints,
+          interestPoints: state.interestPoints,
+          getBaseValue: resolveBaseValue,
+        });
 
         setState((prev) => ({
           ...prev,
           skills: newSkills,
-          occupationPointsUsed: pointsUsed,
+          occupationPointsUsed: finalUsage.occupationPointsUsed,
+          interestPointsUsed: finalUsage.interestPointsUsed,
         }));
         // Sukces - pokaż krótki komunikat
         toast({
@@ -962,10 +1078,20 @@ export function CharacterWizardV2({
           pointsUsed -= reduction;
         }
 
+        const finalUsageAfterReduction = calculateSkillPointsUsage({
+          skills: newSkills,
+          recommendedSkills,
+          creditRating: state.creditRating,
+          occupationPoints: state.occupationPoints,
+          interestPoints: state.interestPoints,
+          getBaseValue: resolveBaseValue,
+        });
+
         setState((prev) => ({
           ...prev,
           skills: newSkills,
-          occupationPointsUsed: pointsUsed,
+          occupationPointsUsed: finalUsageAfterReduction.occupationPointsUsed,
+          interestPointsUsed: finalUsageAfterReduction.interestPointsUsed,
         }));
         toast({
           variant: 'success',
@@ -994,8 +1120,8 @@ export function CharacterWizardV2({
   const [showPortraitZoom, setShowPortraitZoom] = useState(false);
 
   const generatePortrait = async () => {
-    // Zabezpieczenie: nie uruchamiaj jeśli już trwa generowanie
-    if (state.isGeneratingPortrait) {
+    // Zabezpieczenie: nie uruchamiaj w trybie tekstowym lub gdy już trwa generowanie
+    if (isPureTextMode() || state.isGeneratingPortrait) {
       return;
     }
 
@@ -1386,12 +1512,33 @@ export function CharacterWizardV2({
       return !!state.occupationId;
     }
     if (state.step === 4) {
-      const totalAvailable = state.occupationPoints + state.interestPoints;
-      const totalUsed =
-        state.occupationPointsUsed +
-        state.interestPointsUsed +
-        state.creditRating;
-      return totalUsed <= totalAvailable;
+      const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
+      const archetypeSkills = getArchetypeSkills(
+        selectedArchetypeId,
+        state.rulesetVariant
+      );
+      const occupationalSkills = selectedOcc?.skills || [];
+      const recommended = buildRecommendedSkills(
+        archetypeSkills,
+        occupationalSkills
+      );
+      const usage = calculateSkillPointsUsage({
+        skills: state.skills,
+        recommendedSkills: recommended,
+        creditRating: state.creditRating,
+        occupationPoints: state.occupationPoints,
+        interestPoints: state.interestPoints,
+        getBaseValue: (s: string) => {
+          if (s === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
+          if (s === 'Unik') return Math.floor(state.stats.dex / 2);
+          return BASE_SKILLS[s] || 1;
+        },
+      });
+      return (
+        !usage.isOccupationOverLimit &&
+        !usage.isInterestOverLimit &&
+        !usage.isTotalOverLimit
+      );
     }
     return true;
   };
@@ -1496,7 +1643,7 @@ export function CharacterWizardV2({
     }
 
     // Znajdź wybrany archetyp
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
 
@@ -1596,6 +1743,9 @@ export function CharacterWizardV2({
         equipmentItems.length > 0
           ? withEquipmentDefaults(equipmentItems)
           : undefined,
+      rulesetVariant: state.rulesetVariant,
+      archetype: state.archetype,
+      pulpTalents: state.pulpTalents,
     };
 
     // Re-roll: scal NOWE statystyki z istniejącą postacią. Zachowuje id, dziennik,
@@ -1603,6 +1753,9 @@ export function CharacterWizardV2({
     const finalCharacter: Character = initialCharacter
       ? {
           ...initialCharacter,
+          rulesetVariant: state.rulesetVariant ?? initialCharacter.rulesetVariant,
+          archetype: state.archetype ?? initialCharacter.archetype,
+          pulpTalents: state.pulpTalents ?? initialCharacter.pulpTalents,
           str: state.stats.str,
           con: state.stats.con,
           siz: state.stats.siz,
@@ -1643,7 +1796,7 @@ export function CharacterWizardV2({
   // RENDEROWANIE KROKÓW
   // ============================================================================
 
-  // Nagłówek kroku w stylu déco: tytuł (Cinzel złoty) + opis (Cormorant italic)
+  // Nagłówek kroku w stylu déco: zwięzły tytuł + opis
   // + opcjonalna akcja po prawej stronie.
   const StepHeading = ({
     title,
@@ -1654,32 +1807,32 @@ export function CharacterWizardV2({
     subtitle?: string;
     action?: ReactNode;
   }) => (
-    <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="flex items-start justify-between gap-4 mb-3 flex-shrink-0">
       <div>
-        <div className="font-display font-semibold uppercase tracking-[0.1em] text-2xl text-brass">
+        <div className="font-display font-semibold uppercase tracking-[0.08em] text-lg text-brass">
           {title}
         </div>
         {subtitle && (
-          <div className="font-serif italic text-[17px] text-muted-foreground mt-0.5">
+          <div className="font-serif italic text-sm text-muted-foreground mt-0.5">
             {subtitle}
           </div>
         )}
       </div>
-      {action && <div className="flex gap-3 flex-shrink-0">{action}</div>}
+      {action && <div className="flex gap-2 flex-shrink-0">{action}</div>}
     </div>
   );
 
   // NOWY KROK: Koncepcja postaci - wybór archetypu
   const renderStepConcept = () => {
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
-    const archetypeDetails = t.raw('archetypeDetails') as Record<string, {
+    const archetypeDetails = (t.raw('archetypeDetails') || {}) as Record<string, {
       suggestedOccupations: string[];
       suggestedTraits: string[];
       suggestedMotivations: string[];
     }>;
-    const selectedDetails = selectedArchetype
+    const selectedDetails = selectedArchetype && archetypeDetails[selectedArchetype.id]
       ? archetypeDetails[selectedArchetype.id]
       : undefined;
 
@@ -1698,15 +1851,116 @@ export function CharacterWizardV2({
           </p>
         )}
 
+        {adventureContext?.investigatorRequirements && (
+          <div className="border border-amber-500/40 bg-amber-950/25 p-3 rounded-sm flex items-start gap-3">
+            <Users className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs">
+              <span className="font-display uppercase tracking-wider font-semibold text-amber-200">
+                Wymogi scenariusza dotyczące Badaczy
+              </span>
+              <p className="text-amber-100/90 font-serif leading-relaxed">
+                {adventureContext.investigatorRequirements.summary}
+              </p>
+              {adventureContext.investigatorRequirements.minAge !== undefined && (
+                <p className="font-mono text-amber-300/80">
+                  Dozwolony wiek: {adventureContext.investigatorRequirements.minAge} - {adventureContext.investigatorRequirements.maxAge || 90} lat.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Odziedziczona konwencja z opcją zmiany */}
+        <div className="flex flex-col gap-2 border border-brass/30 bg-[#120f0c] px-4 py-3 rounded-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-special-elite text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                {t('rulesetConventionLabel')}
+              </span>
+              <span className="inline-flex items-center gap-1.5 font-display text-xs uppercase font-semibold tracking-wider text-brass">
+                {state.rulesetVariant === 'pulp' ? (
+                  <>
+                    <Zap className="h-3.5 w-3.5 text-primary" />
+                    {t('rulesetPulp')}
+                  </>
+                ) : (
+                  <>
+                    <Skull className="h-3.5 w-3.5 text-brass" />
+                    {t('rulesetClassic')}
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedArchetypeId(null);
+                  setState((prev) => ({
+                    ...prev,
+                    archetype: '',
+                    rulesetVariant: 'classic',
+                    derived: calculateDerived(prev.stats, prev.age, 'classic'),
+                  }));
+                }}
+                className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border cursor-pointer ${
+                  state.rulesetVariant === 'classic'
+                    ? 'border-brass bg-brass/20 text-brass font-bold'
+                    : 'border-brass/20 text-muted-foreground hover:text-brass hover:bg-brass/5'
+                }`}
+              >
+                <span className="flex items-center gap-1">
+                  <Skull className="h-3 w-3" />
+                  {t('rulesetClassicShort')}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedArchetypeId(null);
+                  setState((prev) => ({
+                    ...prev,
+                    archetype: '',
+                    rulesetVariant: 'pulp',
+                    derived: calculateDerived(prev.stats, prev.age, 'pulp'),
+                  }));
+                }}
+                className={`px-2.5 py-1 text-xs font-display uppercase tracking-wider transition-colors border cursor-pointer ${
+                  state.rulesetVariant === 'pulp'
+                    ? 'border-primary bg-primary/20 text-primary font-bold shadow-[0_0_8px_rgba(13,148,136,0.3)]'
+                    : 'border-brass/20 text-muted-foreground hover:text-primary hover:bg-primary/5'
+                }`}
+              >
+                <span className="flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  {t('rulesetPulpShort')}
+                </span>
+              </button>
+            </div>
+          </div>
+          <p className="font-serif italic text-xs text-muted-foreground/90 border-t border-brass/15 pt-2">
+            {state.rulesetVariant === 'pulp'
+              ? t('rulesetPulpExplanation')
+              : t('rulesetClassicExplanation')}
+          </p>
+        </div>
+
         {/* Siatka archetypów */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {CHARACTER_ARCHETYPES.map((archetype) => {
+          {activeArchetypes.map((archetype) => {
             const isSelected = selectedArchetypeId === archetype.id;
             return (
               <button
                 key={archetype.id}
-                onClick={() => setSelectedArchetypeId(archetype.id)}
-                className={`p-4 border text-left transition-all duration-200 ${
+                type="button"
+                onClick={() => {
+                  setSelectedArchetypeId(archetype.id);
+                  setState((prev) => ({
+                    ...prev,
+                    archetype: archetype.name,
+                  }));
+                }}
+                className={`p-4 border text-left transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'border-brass/50 bg-[#0e1413] shadow-[0_0_14px_rgba(13,148,136,.18)]'
                     : 'border-brass/28 bg-[#16130f] hover:border-brass/50'
@@ -1714,10 +1968,10 @@ export function CharacterWizardV2({
               >
                 <div className="text-2xl mb-2">{archetype.icon}</div>
                 <h4 className="font-display uppercase tracking-[0.08em] text-base text-foreground">
-                  {dynamicT.has?.(`archetypes.${archetype.id}.name`) ? dynamicT(`archetypes.${archetype.id}.name`) : archetype.name}
+                  {archetype.name}
                 </h4>
                 <p className="font-serif italic text-sm text-muted-foreground line-clamp-2 mt-1">
-                  {dynamicT.has?.(`archetypes.${archetype.id}.description`) ? dynamicT(`archetypes.${archetype.id}.description`) : archetype.description}
+                  {archetype.description}
                 </p>
               </button>
             );
@@ -1728,10 +1982,10 @@ export function CharacterWizardV2({
         {selectedArchetype && selectedArchetype.id !== 'custom' && (
           <div className="border border-brass/30 bg-[#0e1413] p-4">
             <h4 className="font-display uppercase tracking-[0.1em] text-sm text-brass/80 mb-2 flex items-center gap-2">
-              {selectedArchetype.icon} {dynamicT(`archetypes.${selectedArchetype.id}.name`)}
+              {selectedArchetype.icon} {selectedArchetype.name}
             </h4>
             <p className="font-serif italic text-sm text-muted-foreground mb-3">
-              {dynamicT(`archetypes.${selectedArchetype.id}.description`)}
+              {selectedArchetype.description}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div>
@@ -1739,7 +1993,7 @@ export function CharacterWizardV2({
                   {t('suggestedOccupations')}
                 </span>
                 <div className="text-foreground">
-                  {(selectedDetails?.suggestedOccupations || selectedArchetype.suggestedOccupations)
+                  {((selectedDetails?.suggestedOccupations || selectedArchetype?.suggestedOccupations) || [])
                     .slice(0, 3)
                     .join(', ')}
                 </div>
@@ -1749,17 +2003,25 @@ export function CharacterWizardV2({
                   {t('traits')}
                 </span>
                 <div className="text-foreground">
-                  {(selectedDetails?.suggestedTraits || selectedArchetype.suggestedTraits).join(', ')}
+                  {((selectedDetails?.suggestedTraits || selectedArchetype?.suggestedTraits) || []).join(', ')}
                 </div>
               </div>
               <div>
                 <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-                  {t('motivations')}
+                  {selectedArchetype?.suggestedMotivations?.length
+                    ? t('motivations')
+                    : state.rulesetVariant === 'pulp'
+                      ? (locale === 'en' ? 'Core characteristics:' : 'Cechy kluczowe:')
+                      : t('motivations')}
                 </span>
                 <div className="text-foreground">
-                  {(selectedDetails?.suggestedMotivations || selectedArchetype.suggestedMotivations)
-                    .slice(0, 2)
-                    .join(', ')}
+                  {(selectedArchetype?.suggestedMotivations?.length ?? 0) > 0
+                    ? (selectedDetails?.suggestedMotivations || selectedArchetype?.suggestedMotivations || [])
+                        .slice(0, 2)
+                        .join(', ')
+                    : (selectedArchetype?.coreCharacteristics?.length ?? 0) > 0
+                      ? (selectedArchetype?.coreCharacteristics || []).map((c: string) => c.toUpperCase()).join(', ')
+                      : '—'}
                 </div>
               </div>
             </div>
@@ -1777,9 +2039,11 @@ export function CharacterWizardV2({
   };
 
   const renderStep1 = () => {
-    const ageModifier = AGE_MODIFIERS.find(
-      (m) => state.age >= m.min && state.age <= m.max
-    );
+    const minReqAge = adventureContext?.investigatorRequirements?.minAge ?? 15;
+    const maxReqAge = adventureContext?.investigatorRequirements?.maxAge ?? 90;
+    const ageModifier =
+      AGE_MODIFIERS.find((m) => state.age >= m.min && state.age <= m.max) ||
+      (state.age < 15 ? AGE_MODIFIERS[0] : AGE_MODIFIERS[1]);
 
     // CoC 7e: metoda "Rozdziel punkty" ma budżet sumy = 460 punktów na 8 cech
     // (zestaw 40/50/50/50/60/60/70/80). Szczęście jest losowane osobno (3K6×5)
@@ -2074,15 +2338,15 @@ export function CharacterWizardV2({
           </label>
           <input
             type="range"
-            min={15}
-            max={90}
+            min={minReqAge}
+            max={maxReqAge}
             value={state.age}
             onChange={(e) => {
               const age = parseInt(e.target.value);
               const derived = calculateDerived(state.stats, age);
-              const newBracket = AGE_MODIFIERS.find(
-                (m) => age >= m.min && age <= m.max
-              );
+              const newBracket =
+                AGE_MODIFIERS.find((m) => age >= m.min && age <= m.max) ||
+                (age < 15 ? AGE_MODIFIERS[0] : AGE_MODIFIERS[1]);
               if (newBracket && newBracket.key !== currentAgeBracketKey) {
                 setCurrentAgeBracketKey(newBracket.key);
                 setPerformedEduChecks(0);
@@ -2093,6 +2357,11 @@ export function CharacterWizardV2({
             }}
             className="w-full"
           />
+          {adventureContext?.investigatorRequirements?.minAge !== undefined && (
+            <p className="mt-1.5 font-mono text-[11px] text-amber-400/90">
+              Wymóg scenariusza: wiek Badacza ograniczony do {minReqAge}-{maxReqAge} lat.
+            </p>
+          )}
           {ageModifier && (
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
@@ -2494,12 +2763,42 @@ export function CharacterWizardV2({
     const selectedOcc = OCCUPATIONS.find((o) => o.id === state.occupationId);
     // Zielone rekomendacje: zawody sugerowane przez wybrany archetyp
     // (suggestedOccupations zawiera id zawodów, zgodne z occ.id).
-    const selectedArchetype = CHARACTER_ARCHETYPES.find(
+    const selectedArchetype = activeArchetypes.find(
       (a) => a.id === selectedArchetypeId
     );
-    const recommendedOccupationIds = new Set(
-      selectedArchetype?.suggestedOccupations || []
+    const scenarioSuggestedOccs = [
+      ...(adventureContext?.investigatorRequirements?.requiredOccupations || []),
+      ...(adventureContext?.suggestedOccupations || []),
+    ].map((o) => o.toLowerCase().trim());
+
+    const scenarioMatchingOccIds = OCCUPATIONS.filter((o) =>
+      scenarioSuggestedOccs.some(
+        (s) =>
+          o.name.toLowerCase().includes(s) ||
+          o.id.toLowerCase().includes(s) ||
+          s.includes(o.name.toLowerCase()) ||
+          s.includes(o.id.toLowerCase())
+      )
+    ).map((o) => o.id);
+
+    const archetypeSuggestedOccs = (selectedArchetype?.suggestedOccupations || []).map((s) =>
+      s.toLowerCase().trim()
     );
+    const archetypeMatchingOccIds = OCCUPATIONS.filter((o) =>
+      archetypeSuggestedOccs.some(
+        (s) =>
+          o.name.toLowerCase().includes(s) ||
+          o.id.toLowerCase().includes(s) ||
+          s.includes(o.name.toLowerCase()) ||
+          s.includes(o.id.toLowerCase())
+      )
+    ).map((o) => o.id);
+
+    const recommendedOccupationIds = new Set([
+      ...(selectedArchetype?.suggestedOccupations || []),
+      ...archetypeMatchingOccIds,
+      ...scenarioMatchingOccIds,
+    ]);
 
     const startingEquipmentList = selectedOcc
       ? getStartingEquipmentForOccupation(selectedOcc.id)
@@ -2773,38 +3072,158 @@ export function CharacterWizardV2({
     const totalPointsAvailable = state.occupationPoints + state.interestPoints;
     // Zielone rekomendacje umiejętności: znormalizowany zbiór (archetyp ∪ zawód)
     // identyczny z autoDistributeSkillsAI (buildRecommendedSkills).
-    const archetypeSkills = selectedArchetypeId
-      ? ARCHETYPE_SKILL_MAP[selectedArchetypeId] || []
-      : [];
+    const archetypeSkills = getArchetypeSkills(
+      selectedArchetypeId,
+      state.rulesetVariant
+    );
     const occupationalSkills = selectedOcc?.skills || [];
     const recommendedSkills = new Set<string>(
       buildRecommendedSkills(archetypeSkills, occupationalSkills)
     );
-    // Majętność (Credit Rating) to umiejętność zawodowa wg CoC 7e RAW: baza 0%,
-    // a każdy punkt podniesienia kosztuje z puli punktów zawodowych. Dlatego
-    // wliczamy creditRating do wydanych punktów - inaczej gracz dostaje
-    // maksymalną Majętność za darmo (bez kosztu wobec umiejętności).
-    const totalPointsUsed =
-      state.occupationPointsUsed +
-      state.interestPointsUsed +
-      state.creditRating;
+    const resolveBaseValue = (s: string): number => {
+      if (s === NATIVE_LANGUAGE_SKILL) return state.stats.edu;
+      if (s === 'Unik') return Math.floor(state.stats.dex / 2);
+      return BASE_SKILLS[s] || 1;
+    };
+
+    const usage = calculateSkillPointsUsage({
+      skills: state.skills,
+      recommendedSkills,
+      creditRating: state.creditRating,
+      occupationPoints: state.occupationPoints,
+      interestPoints: state.interestPoints,
+      getBaseValue: resolveBaseValue,
+    });
+
+    const defaultCreditMin = selectedOcc?.creditMin ?? 0;
+    const hasSkillPointsAllocated = Object.entries(state.skills).some(
+      ([skillName, value]) => {
+        if (skillName === CREDIT_RATING_SKILL || skillName === 'Mity Cthulhu') return false;
+        return (value || 0) > resolveBaseValue(skillName);
+      }
+    );
+    const hasCreditRatingAllocated = (state.creditRating ?? 0) > defaultCreditMin;
+    const canReset = hasSkillPointsAllocated || hasCreditRatingAllocated;
+
+    const handleResetSkills = () => {
+      const initialSkills = getInitialSkills(state.stats.edu, state.stats.dex);
+      const resetSkills = {
+        ...initialSkills,
+        [CREDIT_RATING_SKILL]: defaultCreditMin,
+      };
+
+      const nextUsage = calculateSkillPointsUsage({
+        skills: resetSkills,
+        recommendedSkills,
+        creditRating: defaultCreditMin,
+        occupationPoints: state.occupationPoints,
+        interestPoints: state.interestPoints,
+        getBaseValue: resolveBaseValue,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        skills: resetSkills,
+        creditRating: defaultCreditMin,
+        occupationPointsUsed: nextUsage.occupationPointsUsed,
+        interestPointsUsed: nextUsage.interestPointsUsed,
+      }));
+      setIsResetConfirmOpen(false);
+    };
 
     return (
       <div className="space-y-4">
+        {isResetConfirmOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-skills-title"
+            data-testid="reset-skills-confirm-dialog"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+            onClick={() => setIsResetConfirmOpen(false)}
+          >
+            <div
+              className="relative bg-[#14110c] border-2 border-brass/50 p-6 max-w-md w-full shadow-[0_0_30px_rgba(0,0,0,.8)] space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Narożniki déco */}
+              <span className="pointer-events-none absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/70" />
+              <span className="pointer-events-none absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-brass/70" />
+              <span className="pointer-events-none absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-brass/70" />
+              <span className="pointer-events-none absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/70" />
+
+              <div className="space-y-2 text-center">
+                <h3
+                  id="reset-skills-title"
+                  className="font-display font-bold uppercase tracking-[0.1em] text-lg text-brass"
+                >
+                  {t('resetSkillsConfirmTitle')}
+                </h3>
+                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed">
+                  {t('resetSkillsConfirmDesc', { creditMin: defaultCreditMin })}
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2 border-t border-brass/20">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="reset-skills-cancel-btn"
+                  onClick={() => setIsResetConfirmOpen(false)}
+                  className="font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground border-brass/30 hover:border-brass/60 hover:text-brass px-4 py-2"
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  data-testid="reset-skills-confirm-btn"
+                  onClick={handleResetSkills}
+                  className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2 flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  {t('resetSkillsConfirmAction')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <StepHeading
           title={t('stepSkillsTitle')}
           subtitle={t('stepSkillsSubtitle')}
           action={
-            <Button
-              onClick={autoDistributeSkillsAI}
-              disabled={isDistributingSkills || totalPointsAvailable === 0}
-              size="sm"
-              className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5"
-            >
-              {isDistributingSkills
-                ? t('distributing')
-                : t('distributeWithAi')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={() => setIsResetConfirmOpen(true)}
+                disabled={!canReset || isDistributingSkills}
+                variant="outline"
+                size="sm"
+                data-testid="reset-skills-button"
+                className="font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground bg-transparent border-brass/30 hover:border-brass/60 hover:text-brass px-3.5 py-2.5 flex items-center gap-2 disabled:opacity-40"
+              >
+                <RotateCcw className="w-4 h-4" />
+                {t('resetSkills')}
+              </Button>
+              <Button
+                type="button"
+                onClick={autoDistributeSkillsAI}
+                disabled={isDistributingSkills || totalPointsAvailable === 0}
+                size="sm"
+                className="font-display font-semibold uppercase tracking-[0.14em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-4 py-2.5 flex items-center gap-2"
+              >
+                <Sparkles
+                  className={`w-4 h-4 text-[#04110f] ${
+                    isDistributingSkills ? 'animate-spin' : ''
+                  }`}
+                />
+                {isDistributingSkills
+                  ? t('distributing')
+                  : t('distributeWithAi')}
+              </Button>
+            </div>
           }
         />
 
@@ -2854,31 +3273,159 @@ export function CharacterWizardV2({
           </div>
         </div>
 
-        {/* Licznik punktów */}
-        <div className="flex items-center gap-3 border border-brass/30 bg-[#1f1a14] px-4 py-2">
-          <span className="font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground">
-            {t('pointsRemaining')}
-          </span>
-          <div className="text-lg font-bold">
-            <span
-              className={`font-display ${
-                totalPointsUsed <= totalPointsAvailable
-                  ? 'text-brass/80'
-                  : 'text-destructive'
-              }`}
-            >
-              {totalPointsAvailable - totalPointsUsed}
-            </span>
-            <span className="text-muted-foreground text-sm ml-2">
-              {t('pointsSpent', {
-                used: totalPointsUsed,
-                available: totalPointsAvailable,
-              })}
-            </span>
-            {totalPointsUsed > totalPointsAvailable && (
-              <span className="text-destructive text-sm ml-2">
-                {t('overLimit')}
+        {/* Rozdzielone liczniki punktów CoC 7e RAW (Issue #411) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Kafelek 1: Punkty zawodowe */}
+          <div
+            className={`border p-4 transition-colors ${
+              usage.isOccupationOverLimit
+                ? 'border-destructive/60 bg-destructive/10'
+                : 'border-brass/30 bg-[#1f1a14]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-xs uppercase tracking-[0.12em] text-brass font-semibold">
+                  ★ {t('occupationPointsTitle')}
+                </span>
+                <span className="font-serif italic text-xs text-muted-foreground">
+                  ({selectedOcc ? selectedOcc.formula : t('occupationUnknown')})
+                </span>
+              </div>
+              <span className="font-special-elite text-xs text-muted-foreground">
+                {t('pointsSpentRatio', {
+                  used: usage.occupationPointsUsed,
+                  available: state.occupationPoints,
+                })}
               </span>
+            </div>
+
+            <div className="flex items-baseline justify-between mb-2">
+              <div>
+                <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground font-special-elite mr-2">
+                  {t('pointsRemainingShort')}:
+                </span>
+                <span
+                  className={`font-display text-2xl font-bold ${
+                    usage.isOccupationOverLimit
+                      ? 'text-destructive'
+                      : 'text-brass/90'
+                  }`}
+                >
+                  {usage.occupationPointsRemaining}
+                </span>
+                <span className="font-special-elite text-xs text-muted-foreground ml-1">
+                  pkt
+                </span>
+              </div>
+              {state.creditRating > 0 && (
+                <span className="font-serif italic text-xs text-muted-foreground">
+                  {t('creditRatingIncluded', { count: state.creditRating })}
+                </span>
+              )}
+            </div>
+
+            {/* Pasek postępu - Pula zawodowa (złoty mosiądz) */}
+            <div className="w-full bg-[#100d0a] h-2 border border-brass/20 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  usage.isOccupationOverLimit
+                    ? 'bg-destructive'
+                    : 'bg-gradient-to-r from-brass/60 to-brass'
+                }`}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(
+                      0,
+                      (usage.occupationPointsUsed /
+                        (state.occupationPoints || 1)) *
+                        100
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+            {usage.isOccupationOverLimit && (
+              <div className="text-destructive text-xs mt-1.5 font-special-elite">
+                {t('overLimit')}
+              </div>
+            )}
+          </div>
+
+          {/* Kafelek 2: Punkty zainteresowań */}
+          <div
+            className={`border p-4 transition-colors ${
+              usage.isInterestOverLimit
+                ? 'border-destructive/60 bg-destructive/10'
+                : 'border-brass/30 bg-[#1f1a14]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-xs uppercase tracking-[0.12em] text-teal-400 font-semibold">
+                  ✦ {t('interestPointsTitle')}
+                </span>
+                <span className="font-serif italic text-xs text-muted-foreground">
+                  ({t('intFormulaShort', { value: state.stats.int })})
+                </span>
+              </div>
+              <span className="font-special-elite text-xs text-muted-foreground">
+                {t('pointsSpentRatio', {
+                  used: usage.interestPointsUsed,
+                  available: state.interestPoints,
+                })}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between mb-2">
+              <div>
+                <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground font-special-elite mr-2">
+                  {t('pointsRemainingShort')}:
+                </span>
+                <span
+                  className={`font-display text-2xl font-bold ${
+                    usage.isInterestOverLimit
+                      ? 'text-destructive'
+                      : 'text-teal-300'
+                  }`}
+                >
+                  {usage.interestPointsRemaining}
+                </span>
+                <span className="font-special-elite text-xs text-muted-foreground ml-1">
+                  pkt
+                </span>
+              </div>
+              <span className="font-serif italic text-xs text-muted-foreground">
+                {t('hobbiesAndExcess')}
+              </span>
+            </div>
+
+            {/* Pasek postępu - Pula zainteresowań (szmaragd / teal) */}
+            <div className="w-full bg-[#100d0a] h-2 border border-brass/20 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  usage.isInterestOverLimit
+                    ? 'bg-destructive'
+                    : 'bg-gradient-to-r from-teal-700 to-teal-400'
+                }`}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(
+                      0,
+                      (usage.interestPointsUsed /
+                        (state.interestPoints || 1)) *
+                        100
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+            {usage.isInterestOverLimit && (
+              <div className="text-destructive text-xs mt-1.5 font-special-elite">
+                {t('overLimit')}
+              </div>
             )}
           </div>
         </div>
@@ -2910,19 +3457,33 @@ export function CharacterWizardV2({
                     selectedOcc.creditMin,
                     Math.min(selectedOcc.creditMax, v)
                   );
-                  // 2) Majętność płaci z puli - nie pozwól wydać więcej niż
+                  // 2) Majętność płaci z puli zawodowej - nie pozwól wydać więcej niż
                   //    zostało po punktach już wydanych na umiejętności.
                   const spentOnSkills =
-                    state.occupationPointsUsed + state.interestPointsUsed;
+                    usage.occupationSkillPointsUsed + usage.interestPointsUsed;
                   const maxAffordable = totalPointsAvailable - spentOnSkills;
                   const clamped = Math.max(
                     selectedOcc.creditMin,
                     Math.min(inRange, maxAffordable)
                   );
+                  const nextSkills = {
+                    ...state.skills,
+                    [CREDIT_RATING_SKILL]: clamped,
+                  };
+                  const nextUsage = calculateSkillPointsUsage({
+                    skills: nextSkills,
+                    recommendedSkills,
+                    creditRating: clamped,
+                    occupationPoints: state.occupationPoints,
+                    interestPoints: state.interestPoints,
+                    getBaseValue: resolveBaseValue,
+                  });
                   setState((prev) => ({
                     ...prev,
                     creditRating: clamped,
-                    skills: { ...prev.skills, [CREDIT_RATING_SKILL]: clamped },
+                    skills: nextSkills,
+                    occupationPointsUsed: nextUsage.occupationPointsUsed,
+                    interestPointsUsed: nextUsage.interestPointsUsed,
                   }));
                 }}
                 className="w-24 bg-[#16130f] border border-brass/30 px-3 py-2 text-center font-display text-2xl font-bold text-foreground focus:outline-none"
@@ -2934,7 +3495,7 @@ export function CharacterWizardV2({
         )}
 
         {/* Lista umiejętności */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[45vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
           {Object.entries(state.skills)
             .filter(([name]) => name !== CREDIT_RATING_SKILL)
             .map(([skillName, value]) => {
@@ -3032,7 +3593,7 @@ export function CharacterWizardV2({
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block font-special-elite text-xs uppercase tracking-[0.1em] text-muted-foreground mb-1">
             {t('fullName')}
@@ -3109,7 +3670,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, ideology: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('ideologyPlaceholder')}
           />
         </div>
@@ -3131,7 +3692,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, importantPeople: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('importantPeoplePlaceholder')}
           />
         </div>
@@ -3156,7 +3717,7 @@ export function CharacterWizardV2({
                 significantPlaces: e.target.value,
               }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('significantPlacesPlaceholder')}
           />
         </div>
@@ -3178,7 +3739,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, personalItems: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('personalItemsPlaceholder')}
           />
         </div>
@@ -3200,7 +3761,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, traits: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none focus:border-brass/30"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none focus:border-brass/30"
             placeholder={t('traitsPlaceholder')}
           />
         </div>
@@ -3222,7 +3783,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, keyConnection: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 focus:outline-none"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-3 py-2 text-foreground h-24 2xl:h-36 focus:outline-none"
             placeholder={t('keyConnectionPlaceholder')}
           />
         </div>
@@ -3251,7 +3812,7 @@ export function CharacterWizardV2({
             onChange={(e) =>
               setState((prev) => ({ ...prev, backstory: e.target.value }))
             }
-            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] focus:outline-none leading-relaxed font-serif"
+            className="w-full bg-[#0a0c0f] border border-brass/30 px-4 py-3 text-foreground min-h-[200px] 2xl:min-h-[280px] focus:outline-none leading-relaxed font-serif"
             placeholder={t('fullHistoryPlaceholder')}
           />
         </div>
@@ -3311,29 +3872,43 @@ export function CharacterWizardV2({
                     👤
                   </div>
                 )}
-                <div className="flex-1 space-y-2 text-center sm:text-left">
-                  <Button
-                    onClick={generatePortrait}
-                    disabled={state.isGeneratingPortrait}
-                    size="sm"
-                    className={
-                      state.portraitUrl
-                        ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
-                        : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
-                    }
-                  >
-                    {state.isGeneratingPortrait
-                      ? t('generating')
-                      : state.portraitUrl
-                        ? `🔄 ${t('generateAnotherPortrait')}`
-                        : `🎨 ${t('generateAiPortrait')}`}
-                  </Button>
-                  <p className="font-serif italic text-xs text-muted-foreground leading-snug">
-                    {state.portraitUrl
-                      ? t('replacePortraitHint')
-                      : t('portraitGenerationHint')}
-                  </p>
-                </div>
+                {isPureTextMode() ? (
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
+                    <Badge
+                      variant="outline"
+                      className="font-mono text-[11px] text-amber-400 border-amber-500/40 bg-amber-950/20 px-2.5 py-1"
+                    >
+                      📜 {t('pureTextDossierBadge')}
+                    </Badge>
+                    <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                      {t('pureTextDossierHint')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
+                    <Button
+                      onClick={generatePortrait}
+                      disabled={state.isGeneratingPortrait}
+                      size="sm"
+                      className={
+                        state.portraitUrl
+                          ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
+                          : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
+                      }
+                    >
+                      {state.isGeneratingPortrait
+                        ? t('generating')
+                        : state.portraitUrl
+                          ? `🔄 ${t('generateAnotherPortrait')}`
+                          : `🎨 ${t('generateAiPortrait')}`}
+                    </Button>
+                    <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                      {state.portraitUrl
+                        ? t('replacePortraitHint')
+                        : t('portraitGenerationHint')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -3480,11 +4055,11 @@ export function CharacterWizardV2({
   return (
     <div
       data-testid="character-wizard"
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black z-50 p-0 flex flex-col w-screen h-screen overflow-hidden"
     >
       <div
         data-testid="character-wizard-modal"
-        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] border border-brass/30 shadow-[0_30px_90px_rgba(0,0,0,.6)] w-[80vw] h-[78vh] max-h-[85vh] overflow-hidden flex flex-col"
+        className="relative bg-gradient-to-br from-[#14110c] to-[#0a0c0f] w-full h-full max-w-none max-h-none overflow-hidden flex flex-col"
       >
         {/* Narożniki déco */}
         <span className="pointer-events-none absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-brass/55" />
@@ -3492,74 +4067,57 @@ export function CharacterWizardV2({
         <span className="pointer-events-none absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-brass/55" />
         <span className="pointer-events-none absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-brass/55" />
 
-        {/* Header - tytuł ekranu + stepper */}
-        <div className="px-8 pt-7 pb-4 flex-shrink-0 border-b border-brass/20">
-          <div className="flex justify-end -mt-2 -mr-4 mb-1">
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-brass h-7 w-7 p-0"
-            >
-              ✕
-            </Button>
-          </div>
-          <div className="text-center mb-1">
-            <div className="font-special-elite uppercase tracking-[0.2em] text-xs text-brass/80">
-              {t('wizardEyebrow')}
-            </div>
-            <h2 className="mt-1 font-display-decorative uppercase tracking-[0.1em] text-2xl text-foreground">
-              {t('wizardTitle')}
+        {/* Header - kompaktowy zintegrowany pasek Deco ze stepperem */}
+        <div className="px-6 py-3 flex-shrink-0 border-b border-brass/20 bg-[#120f0c] flex items-center justify-between gap-4">
+          {/* Lewa strona: Krok i tytuł */}
+          <div className="flex items-center gap-2.5">
+            <span className="font-special-elite text-xs uppercase tracking-[0.2em] text-primary font-bold">
+              {t('stepOf', { current: state.step, total: TOTAL_STEPS })}
+            </span>
+            <span className="text-brass/40 font-serif">·</span>
+            <h2 className="font-display text-base sm:text-lg font-bold uppercase tracking-[0.08em] text-foreground">
+              {stepNames[state.step - 1]}
             </h2>
           </div>
 
-          {/* Stepper */}
-          <div className="flex items-center justify-between mt-6 px-2">
+          {/* Środek: Ministepper */}
+          <div className="hidden md:flex items-center gap-1.5">
             {stepNames.map((name, idx) => {
               const stepNo = idx + 1;
               const done = stepNo < state.step;
               const active = stepNo === state.step;
               return (
-                <Fragment key={idx}>
-                  <div className="flex flex-col items-center gap-2 w-[120px]">
-                    <div
-                      className={`flex items-center justify-center font-display ${
-                        active
-                          ? 'w-[42px] h-[42px] font-bold text-[17px] border border-brass/30 bg-primary text-[#04110f] shadow-[0_0_18px_rgba(13,148,136,.5)] animate-emerald-pulse'
-                          : done
-                            ? 'w-[38px] h-[38px] text-[15px] border border-brass/30 bg-primary/[0.12] text-brass/80'
-                            : 'w-[38px] h-[38px] text-[15px] border border-brass/40 text-muted-foreground'
-                      }`}
-                    >
-                      {done ? '✓' : stepNo}
-                    </div>
-                    <div
-                      className={`font-special-elite text-xs uppercase tracking-[0.1em] text-center ${
-                        active
-                          ? 'text-brass/80'
-                          : done
-                            ? 'text-muted-foreground'
-                            : 'text-muted-foreground/70'
-                      }`}
-                    >
-                      {name}
-                    </div>
-                  </div>
-                  {idx < stepNames.length - 1 && (
-                    <div
-                      className={`flex-1 h-px -mx-2 mb-[22px] ${
-                        stepNo < state.step ? 'bg-primary' : 'bg-brass/25'
-                      }`}
-                    />
-                  )}
-                </Fragment>
+                <div
+                  key={idx}
+                  title={`${stepNo}. ${name}`}
+                  className={`flex items-center justify-center font-display text-xs transition-all ${
+                    active
+                      ? 'h-6 px-2.5 border border-primary bg-primary text-[#04110f] font-bold shadow-[0_0_10px_rgba(13,148,136,.4)]'
+                      : done
+                        ? 'h-6 w-6 border border-brass/40 bg-primary/10 text-primary font-semibold'
+                        : 'h-6 w-6 border border-brass/20 text-muted-foreground/60'
+                  }`}
+                >
+                  {done ? '✓' : active ? `${stepNo}. ${name}` : stepNo}
+                </div>
               );
             })}
           </div>
+
+          {/* Prawa strona: Przycisk zamknięcia */}
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-brass hover:bg-brass/10 h-8 w-8 p-0 rounded-full border border-brass/30 flex items-center justify-center"
+            title={t('close')}
+          >
+            ✕
+          </Button>
         </div>
 
         {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6 flex flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 flex flex-col">
           {renderCurrentStep()}
         </div>
 

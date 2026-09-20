@@ -24,6 +24,8 @@ import { getPacingDirective } from '@/lib/pacing-controller';
 import {
   getDirectorPromptSection,
   getDirectorState,
+  buildDynamicScenePacingInjection,
+  type DynamicScenePacingParams,
 } from '@/lib/director-state';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character, NPC, GuardrailState } from '@/lib/types';
@@ -43,12 +45,12 @@ import {
 } from '@/lib/concordia/make-observation';
 import { adjudicateEventPipeline } from '@/lib/concordia/event-resolution';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
-import { buildOrganizationPromptSection } from '@/lib/data/investigator-organizations';
 import type { DocumentType } from '@/types/adventure';
 import type { ClueProvenance } from '@/lib/journal/dossier-types';
 import { inferClueProvenance } from '@/lib/parsers/journal-parser';
 import { isPublicCurrentClue } from '@/core/memory/revealed-facts';
 import { isDocumentModelUseBlocked } from '@/lib/document-model-policy';
+import { getSystemCapabilitiesPromptSection } from '@/lib/pdf/capabilities-manager';
 
 /**
  * Buduje sekcję promptu z umiejętnościami postaci (nazwa + wartość %), by AI wzywało
@@ -71,6 +73,46 @@ export function buildPlayerSkillsSection(
     `Jeśli akcja nie pasuje do żadnej, wybierz najbliższą z listy albo test cechy ` +
     `(np. Inteligencja, Spostrzegawczość) - NIGDY nie wymyślaj nazwy spoza karty.`
   );
+}
+
+/**
+ * Buduje sekcję promptu dla postaci gracza w konwencji Pulp Cthulhu (RAW).
+ * Wstrzykuje wybrany archetyp, pulpowe talenty, odporność i zasady pulpowego Szczęścia.
+ */
+export function buildPlayerPulpSection(
+  character: Character | null | undefined,
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  if (!character || character.rulesetVariant !== 'pulp') {
+    return '';
+  }
+
+  const isEn = locale === 'en';
+  const archetype = character.archetype ? character.archetype : '';
+  const talents =
+    character.pulpTalents && character.pulpTalents.length > 0
+      ? character.pulpTalents.join(', ')
+      : '';
+
+  if (isEn) {
+    let section = `\n## INVESTIGATOR PULP PROFILE (Pulp Cthulhu RAW)\n`;
+    section += `- **Ruleset Variant:** Pulp Cthulhu (High-action heroic horror)\n`;
+    if (archetype) section += `- **Pulp Archetype:** ${archetype}\n`;
+    if (talents) section += `- **Pulp Talents:** ${talents}\n`;
+    section += `- **Durability & Health:** Max HP calculated as (CON+SIZ)/5. Investigator remains conscious longer, recovers 2 HP/day naturally, and avoids Major Wounds unless dealt full max HP damage in a single blow.\n`;
+    section += `- **Pulp Luck Economy:** Can spend Luck 2:1 to halve Sanity loss (1:1 with Iron Nerves), 20 Luck for an adrenaline heal (1d6+1 HP), 10 Luck to unjam weapons, and all Luck (min 30) to Cheat Death.\n`;
+    section += `Narrative guideline: Reflect the investigator's archetype and unique talents in your descriptions. Honor heroic agency and dynamic action.`;
+    return section;
+  } else {
+    let section = `\n## PROFIL PULPOWY BADACZA (Pulp Cthulhu RAW)\n`;
+    section += `- **Wariant zasad:** Pulp Cthulhu (heroiczny horror akcji)\n`;
+    if (archetype) section += `- **Archetyp pulpowy:** ${archetype}\n`;
+    if (talents) section += `- **Pulpowe talenty:** ${talents}\n`;
+    section += `- **Żywotność i Odporność:** Maksymalne Punkty Wytrzymałości liczone ze wzoru (KON+BUD)/5. Badacz jest twardszy, regeneruje 2 PW dziennie, a Ciężką Ranę odnosi tylko przy ciosie za pełne maxHP.\n`;
+    section += `- **Pulpowa Ekonomia Szczęścia:** Gracz może wydawać Szczęście w stosunku 2:1 na zmniejszenie straty Poczytalności o połowę (1:1 z talentem Nerwy ze Stali), 20 SZC na zastrzyk adrenaliny (1k6+1 PW), 10 SZC na odblokowanie zaciętej broni oraz wszystkie punkty (min. 30) na Oszukanie Śmierci (Cheat Death).\n`;
+    section += `Wytyczna reżyserska: Uwzględniaj archetyp i talenty postaci w opisach świata. Pamiętaj o heroicznym profilu bohatera i nagradzaj śmiałe deklaracje akcji.`;
+    return section;
+  }
 }
 
 /**
@@ -642,6 +684,87 @@ export interface HotSeatPlayerEntry {
   characterName?: string;
 }
 
+export {
+  buildDynamicScenePacingInjection,
+  type DynamicScenePacingParams,
+};
+
+export interface DepthInjectionMessage {
+  role: string;
+  content: string;
+}
+
+/**
+ * Sprawdza czy wiadomość jest dyrektywą Depth Injection / Author's Note.
+ */
+export function isDepthInjectionMessage(msg: DepthInjectionMessage): boolean {
+  if (!msg || typeof msg.content !== 'string') return false;
+  return (
+    msg.content.includes('[PRZYPOMNIENIE DLA MG') ||
+    msg.content.includes('[GM DIRECTIVE') ||
+    msg.content.includes('DYNAMIC SCENE & PACING INJECTION') ||
+    msg.content.includes('[NOTATKA AUTORA') ||
+    msg.content.includes("[AUTHOR'S NOTE") ||
+    msg.content.includes('[AUTHORS NOTE')
+  );
+}
+
+/**
+ * Wstrzykuje dyrektywę Depth Injection (Author's Note) do tablicy wiadomości czatu
+ * na zadanej głębokości (domyślnie 2-3 wiadomości przed końcem okna kontekstowego).
+ * W strefie najwyższej uwagi modelu (SillyTavern Adaptation - Issue #349).
+ * Zastępuje wcześniejsze dyrektywy, aby nie kumulować sprzecznych instrukcji pacingu.
+ */
+export function injectDepthInjection<T extends DepthInjectionMessage>(
+  messages: T[],
+  injection: string,
+  depth: number = 3,
+  role: string = 'system'
+): T[] {
+  if (!injection || !injection.trim()) {
+    return messages ? [...messages] : [];
+  }
+  const cleanMessages = (messages || []).filter(
+    (m) => !isDepthInjectionMessage(m)
+  );
+  if (cleanMessages.length === 0) {
+    return [{ role, content: injection } as T];
+  }
+  const copy = [...cleanMessages];
+  const targetIndex = Math.max(0, copy.length - Math.max(0, depth));
+  copy.splice(targetIndex, 0, { role, content: injection } as T);
+  return copy;
+}
+
+/**
+ * Wstrzykuje dyrektywę Depth Injection bezpośrednio do tablicy in-place.
+ * Zastępuje wcześniejsze dyrektywy, aby nie kumulować sprzecznych instrukcji pacingu.
+ */
+export function injectDepthInjectionInPlace<T extends DepthInjectionMessage>(
+  messages: T[],
+  injection: string,
+  depth: number = 3,
+  role: string = 'system'
+): T[] {
+  if (!messages) return [];
+  if (!injection || !injection.trim()) {
+    return messages;
+  }
+  // Usuń ewentualne wcześniejsze wstrzyknięcia z poprzednich tur
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (isDepthInjectionMessage(messages[i])) {
+      messages.splice(i, 1);
+    }
+  }
+  if (messages.length === 0) {
+    messages.push({ role, content: injection } as T);
+    return messages;
+  }
+  const targetIndex = Math.max(0, messages.length - Math.max(0, depth));
+  messages.splice(targetIndex, 0, { role, content: injection } as T);
+  return messages;
+}
+
 export interface BuildAdditionalContextOpts {
   timePromptSection: string;
   gmProtocol: string;
@@ -664,8 +787,16 @@ export interface BuildAdditionalContextOpts {
   playerVisualProfileSection?: string;
   /** Magia i wiedza nadprzyrodzona postaci gracza (status wiary, znane zaklęcia, tomy) */
   playerMagicSection?: string;
-  /** Opcjonalna tablica wiadomości czatu */
+  /** Profil pulpowy badacza (archetyp, talenty, żywotność, pulpowe szczęście) */
+  playerPulpSection?: string;
+  /** Opcjonalna tablica wiadomości czatu do Depth Injection (SillyTavern Adaptation - Issue #349) */
   messages?: Array<{ role: string; content: string }>;
+  /** Głębokość wstrzykiwania Depth Injection od końca (domyślnie 3 = 2-3 wiadomości przed końcem okna) */
+  depthInjectionDepth?: number;
+  /** Opcjonalna gotowa dyrektywa dynamicznej sceny i pacingu (Author's Note) */
+  dynamicSceneInjection?: string;
+  /** Czy wymusić wstrzyknięcie dyrektywy także do additionalContext */
+  injectIntoAdditionalContext?: boolean;
   sessionId?: string;
   ragSection?: string;
   summarySection?: string | null;
@@ -817,23 +948,8 @@ export function buildAdditionalContext(
     opts.isCampaign || opts.adventureDocumentType === 'campaign'
   );
 
-  if (isCampaignContext) {
-    if (opts.organizationSection) {
-      additionalContext.push(opts.organizationSection);
-    } else {
-      const activeCharWithOrg = characters?.find(
-        (c) => c.organizationId || c.investigatorSociety
-      );
-      const orgId =
-        activeCharWithOrg?.organizationId ||
-        activeCharWithOrg?.investigatorSociety;
-      if (orgId) {
-        const orgSection = buildOrganizationPromptSection(orgId, opts.locale);
-        if (orgSection) {
-          additionalContext.push(orgSection);
-        }
-      }
-    }
+  if (isCampaignContext && opts.organizationSection) {
+    additionalContext.push(opts.organizationSection);
   }
 
   // Umiejętności postaci - AI ma wzywać testy WYŁĄCZNIE nazwami z tej listy.
@@ -856,6 +972,11 @@ export function buildAdditionalContext(
     additionalContext.push(opts.playerMagicSection);
   }
 
+  // Profil pulpowy badacza (archetyp, talenty, żywotność, pulpowe szczęście)
+  if (opts.playerPulpSection) {
+    additionalContext.push(opts.playerPulpSection);
+  }
+
   // Wstrzykiwanie Ustawy Przygody na podstawie tonu (dynamiczne pacingi z debaty)
   const sessionTone = opts.tone || 'purist';
   if (sessionTone === 'noir') {
@@ -867,12 +988,35 @@ export function buildAdditionalContext(
       `4. SZALEŃSTWO: Przy stracie Poczytalności narzucaj traumę, fobie i luki w pamięci bezpośrednio w opisie zachowania badacza (jako wyjątek od sprawczości). Nigdy nie pisz o punktach ani mechanice w narracji.`
     );
   } else if (sessionTone === 'pulp') {
-    additionalContext.push(
-      `\n## USTAWA O PRZYGODZIE PULP CTHULHU\n` +
-      `1. Prowadź grę w stylu Pulp/Wild Science (dynamiczna akcja, pościgi, anomalie). Badacze są twardsi i rany goją się szybciej.\n` +
-      `2. CIĘCIA MONTAŻOWE: Pomijaj zbędne przejścia i od razu wrzucaj badaczy w centrum akcji nowej lokacji, chyba że gracz zadeklarował konkretną czynność w trakcie drogi.\n` +
-      `3. SZALEŃSTWO: Utrata poczytalności wywołuje widowiskowy, filmowy szał lub nagłe popadnięcie w nietypową fobię opisaną sensorycznie. Brak mechanicznego języka w narracji.`
-    );
+    if (opts.locale === 'en') {
+      additionalContext.push(
+        `\n## PULP CTHULHU ADVENTURE CODE (RAW & CINEMATIC ACTION)\n` +
+        `1. HEROIC AGENCY: Investigators are larger-than-life heroes, not helpless victims. Reward initiative, audacity, and bold plans. Give them room to fight back against the horrors.\n` +
+        `2. CHANDLER'S LAW: Whenever pacing drags or the investigation stalls, don't hesitate - have a man burst through the door with a smoking gun, a cult ambush, or a ticking explosion.\n` +
+        `3. THE BEAST AT THE CLIMAX: Mythos horrors and cosmic abominations don't get wasted in background alleys; they are reserved for climactic finales and epic set-piece showdowns.\n` +
+        `4. MOOKS & MINIONS: Low-tier cultists, thugs, and henchmen drop fast from a single solid hit (>50% HP) or a cinematic takedown.\n` +
+        `5. VILLAINOUS DRAMA: Masterminds have flair, grand monologues, and getaway schemes. They sacrifice mooks to escape for future encounters.\n` +
+        `6. RULE OF COOL: If an action is cinematic, audacious, and fits pulp serial energy, enable it or grant a bonus die rather than strictly saying no.\n` +
+        `7. CHEAT DEATH: A dying hero can spend all their Luck (min 30) to miraculously survive through sheer fortune or a timely environmental twist.\n` +
+        `8. WEIRD SCIENCE & ANOMALIES: Ray-guns, ether detectors, and occult technology spark erratic surges, ozone smells, and electric crackles.\n` +
+        `9. CINEMATIC INSANITY: Sanity loss translates into adrenaline rushes, temporary combat manias, obsessive bravado, or sensory phobias rather than passive catatonia.\n` +
+        `10. PULP CLIFFHANGERS: Cut scenes on dramatic cliffhangers and urgent dilemmas that compel immediate hero intervention.`
+      );
+    } else {
+      additionalContext.push(
+        `\n## USTAWA O PRZYGODZIE PULP CTHULHU (RAW & FILMOWY ROZMACH)\n` +
+        `1. SPRAWCZOŚĆ BOHATERÓW: Gracze to herosi, nie bezbronne ofiary. Promuj inicjatywę, odwagę i brawurowe pomysły. Badacze mają narzędzia, by walczyć i stawiać czoła koszmarom.\n` +
+        `2. PRAWO CHANDLERA: Gdy tempo siada lub śledztwo grzęźnie w martwym punkcie, nie czekaj - natychmiast wrzuć do pokoju faceta z rewolwerem, zamachowca kultu lub wybuchającą pułapkę.\n` +
+        `3. POTWÓR NA KOŃCU: Monstra i mityczne aberracje nie giną od razu w zaułkach tła; ujawniają się jako punkt kulminacyjny (Grand Finale) lub bossowie sekwencji.\n` +
+        `4. PACHOŁKI I MIĘSO ARMATNIE: Pospolici kultyści, zbiry i poplecznicy (Mooks) padają jak kaczki od jednego solidnego trafienia (>50% PŻ) lub spektakularnego ciosu.\n` +
+        `5. ZŁOCZYŃCY Z KLASĄ ("UWAŻAJ MISTRZU"): Główni arcywrogowie mają swoje dramatyczne monologi, plany dominacji i asów w rękawie; zawsze poświęcają pachołków, by uciec na późniejsze starcie.\n` +
+        `6. ZASADA RULE OF COOL: Jeśli deklaracja gracza jest widowiskowa, filmowa i pasuje do pulpowego kina akcji, pozwól na nią lub nagródź ułatwieniem (kością premiową), a nie sztywnym zakazem.\n` +
+        `7. OSZUKANIE ŚMIERCI (CHEAT DEATH): Postać gracza na skraju zagłady może zużyć całe Szczęście (min. 30), by cudownie przetrwać zbiegiem okoliczności w ostatniej sekundzie.\n` +
+        `8. WEIRD SCIENCE I ANOMALIE: Dziwaczna technologia, promienie śmierci, prototypy i anomalie eteru to chleb powszedni - reaguj na nie fascynacją i nagłymi przepięciami otoczenia.\n` +
+        `9. SZALEŃSTWO I SZALONE TALENTY: Utrata Poczytalności to nie paraliżujący stupor, lecz wybuch adrenaliny, heroiczny szał, obsesyjny monolog lub nagła, barwna fobia sensoryczna.\n` +
+        `10. FILMOWE CLIFFHANGERY: Kończ intensywne sceny i rozdziały dynamicznymi zawieszeniami akcji, stawiając badaczy przed natychmiastowym wyborem lub zagrożeniem.`
+      );
+    }
   } else if (sessionTone === 'purist') {
     additionalContext.push(
       `\n## USTAWA O PRZYGODZIE KLASYCZNEJ (LOVECRAFTIAN)\n` +
@@ -892,6 +1036,30 @@ export function buildAdditionalContext(
     if (directorSection) additionalContext.push(directorSection);
   }
 
+  // SillyTavern Adaptation (Issue #349): Dynamic Scene & Pacing Injection (Author's Note / Depth Injection)
+  const scenePacingInjection =
+    opts.dynamicSceneInjection ??
+    (gameContext
+      ? buildDynamicScenePacingInjection({
+          sessionId,
+          gameContext,
+          tone: opts.tone,
+          locale: opts.locale,
+        })
+      : '');
+
+  if (scenePacingInjection) {
+    if (opts.messages && opts.messages.length > 0) {
+      const depth = opts.depthInjectionDepth ?? 3;
+      injectDepthInjectionInPlace(opts.messages, scenePacingInjection, depth);
+      if (opts.injectIntoAdditionalContext) {
+        additionalContext.push(scenePacingInjection);
+      }
+    } else {
+      additionalContext.push(scenePacingInjection);
+    }
+  }
+
   // Issue #68: Dwukierunkowa pętla pamięci - wstrzykiwanie sekcji ## AKTYWNE ŚLEDZTWO I WIEDZA BADACZA
   const activeInvestigationChar =
     (playerCharacterName ? characters?.find((c) => c.name === playerCharacterName) : undefined) ??
@@ -909,6 +1077,10 @@ export function buildAdditionalContext(
   if (summarySection) additionalContext.push(summarySection);
   // Realne handouty przygody (DriveThruRPG) - MG dostaje markdown obrazów do wstawienia.
   if (handoutsSection) additionalContext.push(handoutsSection);
+
+  // Modularne nakładki semantyczne DLC (odblokowane reguły, pościgi, magia, bestie)
+  const capabilitiesSection = getSystemCapabilitiesPromptSection(opts.locale);
+  if (capabilitiesSection) additionalContext.push(capabilitiesSection);
 
   // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen) - wzbogacają narrację.
   if (opts.immersionSection) additionalContext.push(opts.immersionSection);

@@ -848,6 +848,8 @@ export default function Home() {
           isUploadingAdventure={customAdventures.isLoading}
           uploadProgressAdventure={customAdventures.uploadProgress}
           loadingStatusAdventure={customAdventures.loadingStatus}
+          uploadErrorAdventure={customAdventures.uploadError}
+          onClearUploadErrorAdventure={customAdventures.clearUploadError}
 
           hotSeatConfig={hotSeat.config}
           onSwitchPlayer={handleSwitchPlayer}
@@ -1036,6 +1038,8 @@ export default function Home() {
         playersAwaitingDeclaration={chat.playersAwaitingDeclaration}
         onAddDeclaration={chat.addDeclaration}
         onPassDeclaration={chat.passDeclaration}
+        currentPlayerName={chat.currentPlayerName}
+        isTurnReady={chat.isTurnReady}
         onSendTurn={chat.sendTurn}
         onSwitchPlayer={hotSeat.switchPlayer}
         onDisableHotSeat={hotSeat.disableHotSeat}

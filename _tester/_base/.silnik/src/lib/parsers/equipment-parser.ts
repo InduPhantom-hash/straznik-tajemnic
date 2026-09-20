@@ -37,7 +37,16 @@ export function extractEquipmentEvents(text: string): EquipmentEvent[] {
     let action: EquipmentEventAction | null = null;
     if (rawAction === 'zuzyj' || rawAction === 'zużyj' || rawAction === 'uzyj' || rawAction === 'użyj' || rawAction === 'use') {
       action = 'use';
-    } else if (rawAction === 'usun' || rawAction === 'usuń' || rawAction === 'remove' || rawAction === 'delete') {
+    } else if (
+      rawAction === 'usun' ||
+      rawAction === 'usuń' ||
+      rawAction === 'remove' ||
+      rawAction === 'delete' ||
+      rawAction === 'stracono' ||
+      rawAction === 'utracono' ||
+      rawAction === 'zgubiono' ||
+      rawAction === 'lost'
+    ) {
       action = 'remove';
     } else if (rawAction === 'dodaj' || rawAction === 'add') {
       action = 'add';

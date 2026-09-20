@@ -25,10 +25,11 @@ import {
   buildPlayerFinancesSection,
   buildPlayerVisualProfileSection,
   buildPlayerMagicSection,
+  buildPlayerPulpSection,
   HotSeatPlayerEntry,
 } from './build-context';
 import { buildHandoutsContext } from './build-handouts-context';
-import type { AdventureHandout } from '@/lib/adventures-data';
+import type { AdventureHandout, AdventurePuzzle } from '@/lib/adventures-data';
 import type { DocumentType } from '@/types/adventure';
 import { buildGeminiOptions } from './build-gemini-options';
 import { buildPdfStrategy, PdfMemoryAttachments } from './build-pdf-strategy';
@@ -249,6 +250,7 @@ export async function runChatPipeline({
       documentType?: DocumentType;
       isCampaign?: boolean;
       handouts?: AdventureHandout[];
+      puzzles?: AdventurePuzzle[];
       tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
       truthAnchor?: {
         culprit?: string;
@@ -506,8 +508,8 @@ export async function runChatPipeline({
     sessionId,
     ragSection: `${ragSection}${campaignMemorySection}`,
     summarySection,
-    // Realne handouty przygody (DriveThruRPG) - MG dostaje markdown obrazów do pokazania.
-    handoutsSection: buildHandoutsContext(adventureContext?.handouts),
+    // Realne handouty przygody (DriveThruRPG) i zagadki śledcze (RAW) - MG dostaje markdown obrazów oraz instrukcje Idea Roll.
+    handoutsSection: buildHandoutsContext(adventureContext?.handouts, adventureContext?.puzzles),
     sessionRecapSection,
     skipContext,
     gameContextPrompt,
@@ -538,6 +540,11 @@ export async function runChatPipeline({
     playerMagicSection: buildPlayerMagicSection(
       character ?? null,
       (locale ?? 'pl') as 'pl' | 'en'
+    ),
+    // Profil pulpowy badacza (Pulp Cthulhu RAW) -> AI zna archetyp, talenty i podwyższoną odporność
+    playerPulpSection: buildPlayerPulpSection(
+      character ?? characters?.[0] ?? null,
+      (requestedLocale ?? 'pl') as 'pl' | 'en'
     ),
     // Etap 3: dane immersyjne (astronomia, gazety epoki, przelicznik cen)
     immersionSection,

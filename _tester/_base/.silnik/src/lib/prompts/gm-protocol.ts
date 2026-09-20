@@ -353,7 +353,6 @@ Przykłady:
      * *Zmącenie Pamięci* (\`cloud-memory\`, 1K6 PM, 1K2 SAN, s. 295 PL)
      * *Wskrzeszenie* (\`resurrection\`, 3 PM, 1K10 SAN, s. 279 PL)
      * *Nawiązanie Kontaktu z Istotą z Głębin* (\`contact-deep-ones\`, 3 PM, s. 286 PL)
-     * *Przywołanie / Spętanie Byakhee* (\`summon-bind-byakhee\`, s. 288 PL)
 
 #### 8. ZASADY WALKI RAW (CoC 7e BMG Rozdz. 6, s. 102-117)
 - **Starcia wręcz i Karta Obrony (Opposed Melee Check RAW s. 102-104):**

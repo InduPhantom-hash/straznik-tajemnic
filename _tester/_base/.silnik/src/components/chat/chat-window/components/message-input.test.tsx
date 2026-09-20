@@ -153,4 +153,58 @@ describe('MessageInput - detekcja anachronizmów i dymek Art Déco', () => {
     expect(alert).toHaveTextContent('Realia roku 1973');
     expect(alert).toHaveTextContent('prywatny detektyw');
   });
+
+  describe('tryb duetu i przycisk Wyślij turę', () => {
+    it('przycisk "Wyślij turę" jest zablokowany, gdy isTurnReady=false', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+      const onAddDeclaration = jest.fn();
+      const onSendTurn = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={0}
+          isDuet={true}
+          onAddDeclaration={onAddDeclaration}
+          onSendTurn={onSendTurn}
+          isTurnReady={false}
+        />
+      );
+
+      const sendTurnBtn = screen.getByRole('button', { name: /Wyślij turę/i });
+      expect(sendTurnBtn).toBeInTheDocument();
+      expect(sendTurnBtn).toBeDisabled();
+    });
+
+    it('przycisk "Wyślij turę" jest aktywny i klikalny, gdy isTurnReady=true', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+      const onAddDeclaration = jest.fn();
+      const onSendTurn = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={0}
+          isDuet={true}
+          onAddDeclaration={onAddDeclaration}
+          onSendTurn={onSendTurn}
+          isTurnReady={true}
+        />
+      );
+
+      const sendTurnBtn = screen.getByRole('button', { name: /Wyślij turę/i });
+      expect(sendTurnBtn).toBeInTheDocument();
+      expect(sendTurnBtn).toBeEnabled();
+
+      fireEvent.click(sendTurnBtn);
+      expect(onSendTurn).toHaveBeenCalledTimes(1);
+    });
+  });
 });
+

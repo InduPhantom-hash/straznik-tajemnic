@@ -27,7 +27,7 @@ graph TD
     predefined_characters["Gotowe postacie / Predefined characters"]
     character_wizard["Kreator postaci / Character wizard"]
     hot_seat["Wybór trybu gry / Play mode"]
-    session_zero["Sesja Zero / Session Zero"]
+    session_zero["Sesja Zero (Briefing śledczy) / Session Zero (Investigative Briefing)"]
     loading_screen["Ekran ładowania (Dark Art Déco) / Loading screen (Dark Art Déco)"]
     game["Aktywna sesja / Active session"]
     api_keys["Klucze API / API keys"]
@@ -144,10 +144,10 @@ graph TD
 | Ręczne ustawianie gry | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Gotowa postać / Predefined character | Gotowe postacie | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Stwórz postać / Create character | Kreator postaci | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
-| Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero | `src/components/ui/predefined-characters-selector.tsx` |
+| Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero (Briefing śledczy) | `src/components/ui/predefined-characters-selector.tsx` |
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
-| Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero | `src/components/ui/hot-seat-setup.tsx` |
-| Sesja Zero | Zatwierdź i przygotuj sesję / Confirm and prepare session | Ekran ładowania (Dark Art Déco) | `src/components/ui/session-zero-modal.tsx` |
+| Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero (Briefing śledczy) | `src/components/ui/hot-seat-setup.tsx` |
+| Sesja Zero (Briefing śledczy) | Zatwierdź i przygotuj sesję / Confirm and prepare session | Ekran ładowania (Dark Art Déco) | `src/components/ui/session-zero-modal.tsx` |
 | Ekran ładowania (Dark Art Déco) | Rozpocznij przygodę (bramka CTA) / Begin adventure (CTA gate) | Aktywna sesja | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |

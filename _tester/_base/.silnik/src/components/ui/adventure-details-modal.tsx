@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Dialog,
@@ -16,7 +17,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from './accordion';
-import { MapPin, Clock, ScrollText, Lock } from 'lucide-react';
+import { MapPin, Clock, ScrollText, Lock, BookOpen } from 'lucide-react';
 import type { AdventureContext } from '@/lib/adventures-data';
 import {
   TONE_STYLES,
@@ -49,20 +50,39 @@ export function AdventureDetailsModal({
 }: AdventureDetailsModalProps) {
   const t = useTranslations('AdventureDetailsModal');
   const tStyles = useTranslations('AdventureStyles');
-  if (!adventure) return null;
 
-  const toneStyle = TONE_STYLES[adventure.tone] || TONE_STYLES.purist;
-  const eraStyle = ERA_STYLES[adventure.era] || ERA_STYLES.custom;
+  const toneStyle = TONE_STYLES[adventure?.tone || 'purist'] || TONE_STYLES.purist;
+  const eraStyle = ERA_STYLES[adventure?.era || 'custom'] || ERA_STYLES.custom;
   const diffStyle =
-    DIFFICULTY_STYLES[adventure.difficulty] || DIFFICULTY_STYLES.normal;
+    DIFFICULTY_STYLES[adventure?.difficulty || 'normal'] || DIFFICULTY_STYLES.normal;
 
   const ToneIcon = toneStyle.icon;
   const EraIcon = eraStyle.icon;
 
   const displayHook =
-    adventure.hook?.trim() ||
-    adventure.description?.split('.')[0]?.trim() + '.' ||
+    adventure?.hook?.trim() ||
+    adventure?.description?.split('.')[0]?.trim() + '.' ||
     '';
+
+  // Czyste formatowanie lokacji bez duplikatów (np. "Polska, Polska")
+  const displayLocation = useMemo(() => {
+    if (!adventure?.location) return '-';
+    const loc = adventure.location.trim();
+    const country = adventure.country?.trim() || '';
+    if (!country || loc.toLowerCase().includes(country.toLowerCase())) return loc;
+    return `${loc}, ${country}`;
+  }, [adventure?.location, adventure?.country]);
+
+  // Czyste formatowanie epoki bez duplikatów lat
+  const displayEra = useMemo(() => {
+    if (!adventure) return '-';
+    const era = tStyles(eraStyle.translationKey);
+    const years = adventure.yearRange?.trim() || '';
+    if (!years || era.includes(years)) return era;
+    return `${era} (${years})`;
+  }, [adventure, eraStyle, tStyles]);
+
+  if (!adventure) return null;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -89,6 +109,14 @@ export function AdventureDetailsModal({
             <DialogTitle className="mx-auto mt-1 max-w-5xl break-words font-display text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-[0.08em] text-foreground text-center leading-tight drop-shadow-md">
               {adventure.title}
             </DialogTitle>
+            {adventure.source && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/15 border border-brass/40 text-amber-200 text-xs font-mono tracking-wider uppercase rounded-sm">
+                  <BookOpen className="h-3.5 w-3.5 text-brass" />
+                  Tom źródłowy: {adventure.source}
+                </span>
+              </div>
+            )}
             <DialogDescription className="sr-only">
               {adventure.title}
             </DialogDescription>
@@ -134,10 +162,9 @@ export function AdventureDetailsModal({
                 </span>
                 <div
                   className="font-serif text-lg sm:text-xl font-bold text-foreground"
-                  title={`${adventure.location}${adventure.country ? `, ${adventure.country}` : ''}`}
+                  title={displayLocation}
                 >
-                  {adventure.location || '-'}
-                  {adventure.country ? `, ${adventure.country}` : ''}
+                  {displayLocation}
                 </div>
               </div>
             </div>
@@ -155,12 +182,7 @@ export function AdventureDetailsModal({
                   <HelpIcon content={tStyles(eraStyle.descriptionKey)} />
                 </div>
                 <div className="font-serif text-lg sm:text-xl font-bold text-foreground">
-                  <span>{tStyles(eraStyle.translationKey)}</span>
-                  {adventure.yearRange && (
-                    <span className="text-muted-foreground font-normal text-base ml-2">
-                      ({adventure.yearRange})
-                    </span>
-                  )}
+                  {displayEra}
                 </div>
               </div>
             </div>

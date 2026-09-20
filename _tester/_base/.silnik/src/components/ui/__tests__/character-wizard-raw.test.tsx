@@ -1,4 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import '@testing-library/jest-dom';
+import enMessages from '../../../../messages/en.json';
+import plMessages from '../../../../messages/pl.json';
 import {
   distributePhysPenalty,
   applyTeenPenalty,
@@ -111,6 +115,99 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
       expect(getWealthInfo(60).key).toBe('wealthy');
       expect(getWealthInfo(95).key).toBe('rich');
       expect(getWealthInfo(99).key).toBe('superrich');
+    });
+  });
+
+  describe('CharacterWizard i18n and conventions', () => {
+    it('defines localized ruleset conventions and close button in PL and EN', () => {
+      const pl = (plMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+      const en = (enMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+
+      expect(pl.rulesetConventionLabel).toBe('Konwencja reguł:');
+      expect(en.rulesetConventionLabel).toBe('Rules convention:');
+
+      expect(pl.rulesetClassic).toBe('Klasyczny');
+      expect(en.rulesetClassic).toBe('Classic');
+
+      expect(pl.rulesetPulp).toBe('Pulp');
+      expect(en.rulesetPulp).toBe('Pulp');
+
+      expect(pl.rulesetClassicShort).toBe('Klasyczny');
+      expect(en.rulesetClassicShort).toBe('Classic');
+
+      expect(pl.rulesetPulpShort).toBe('Pulp');
+      expect(en.rulesetPulpShort).toBe('Pulp');
+
+      expect(pl.rulesetClassicExplanation).toBeDefined();
+      expect(en.rulesetClassicExplanation).toBeDefined();
+      expect(pl.rulesetPulpExplanation).toBeDefined();
+      expect(en.rulesetPulpExplanation).toBeDefined();
+
+      expect(pl.close).toBe('Zamknij');
+      expect(en.close).toBe('Close');
+    });
+
+    it('defines split skill counters i18n keys in PL and EN (Issue #411)', () => {
+      const pl = (plMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+      const en = (enMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+
+      expect(pl.occupationPointsTitle).toBe('Punkty zawodowe');
+      expect(en.occupationPointsTitle).toBe('Occupation points');
+
+      expect(pl.interestPointsTitle).toBe('Punkty zainteresowań');
+      expect(en.interestPointsTitle).toBe('Personal interest points');
+
+      expect(pl.pointsSpentRatio).toBe('Wydano: {used} / {available} pkt');
+      expect(en.pointsSpentRatio).toBe('Spent: {used} / {available} pts');
+
+      expect(pl.pointsRemainingShort).toBe('Pozostało');
+      expect(en.pointsRemainingShort).toBe('Remaining');
+
+      expect(pl.creditRatingIncluded).toBe('(w tym Majętność: {count} pkt)');
+      expect(en.creditRatingIncluded).toBe('(incl. Credit Rating: {count} pts)');
+
+      expect(pl.hobbiesAndExcess).toBe('hobby i umiejętności poboczne');
+      expect(en.hobbiesAndExcess).toBe('hobbies & personal interests');
+    });
+
+    it('defines reset skills button and confirmation modal i18n keys in PL and EN (Issue #433)', () => {
+      const pl = (plMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+      const en = (enMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+
+      expect(pl.resetSkills).toBe('Resetuj punkty');
+      expect(en.resetSkills).toBe('Reset points');
+
+      expect(pl.resetSkillsConfirmTitle).toBe('Zresetować przydział punktów?');
+      expect(en.resetSkillsConfirmTitle).toBe('Reset skill allocation?');
+
+      expect(pl.resetSkillsConfirmDesc).toContain('{creditMin}');
+      expect(en.resetSkillsConfirmDesc).toContain('{creditMin}');
+
+      expect(pl.resetSkillsConfirmAction).toBe('Zresetuj punkty');
+      expect(en.resetSkillsConfirmAction).toBe('Reset points');
+
+      expect(pl.cancel).toBe('Anuluj');
+      expect(en.cancel).toBe('Cancel');
+    });
+
+    it('enforces 2K responsiveness and no artificial max-h in Step 4 and Step 5 (Issue #435)', () => {
+      const wizardPath = path.resolve(__dirname, '../character-wizard.tsx');
+      const wizardCode = fs.readFileSync(wizardPath, 'utf8');
+
+      // Step 4 skills grid should use 2xl:grid-cols-4 and not have max-h-[45vh]
+      expect(wizardCode).not.toContain('max-h-[45vh]');
+      expect(wizardCode).toContain('2xl:grid-cols-4');
+
+      // Step 5 biography should not restrict grid to max-h-[60vh]
+      expect(wizardCode).not.toContain('max-h-[60vh]');
+      expect(wizardCode).toContain('2xl:h-36');
+      expect(wizardCode).toContain('2xl:min-h-[280px]');
+
+      // dialog.tsx wide variant responsiveness
+      const dialogPath = path.resolve(__dirname, '../dialog.tsx');
+      const dialogCode = fs.readFileSync(dialogPath, 'utf8');
+      expect(dialogCode).toContain('2xl:w-[85vw]');
+      expect(dialogCode).toContain('2xl:h-[84vh]');
     });
   });
 });

@@ -20,7 +20,8 @@
 import type { CSSProperties } from 'react';
 import type { Character } from '@/lib/types';
 import type { UseInlineEditReturn } from '../hooks/use-inline-edit';
-import { Check, Edit2, X, AlertTriangle, HeartPulse } from 'lucide-react';
+import { Check, Edit2, X, AlertTriangle, HeartPulse, Zap } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
 
 export interface StatBarsProps {
@@ -30,6 +31,7 @@ export interface StatBarsProps {
   maxMp: number;
   inlineEdit: UseInlineEditReturn;
   onOpenMedicalCare?: () => void;
+  onCharacterUpdate?: (character: Character) => void;
 }
 
 /** Konfiguracja koloru paska per stan (déco palette). */
@@ -172,6 +174,7 @@ export function StatBars({
   maxMp,
   inlineEdit,
   onOpenMedicalCare,
+  onCharacterUpdate,
 }: StatBarsProps) {
   const t = useTranslations('CharacterSheet');
 
@@ -222,6 +225,55 @@ export function StatBars({
         max={99}
         inlineEdit={inlineEdit}
       />
+      {character.rulesetVariant === 'pulp' && (
+        <div className="mt-1 flex flex-col gap-1.5 p-2.5 bg-[#121614] border border-primary/25">
+          <div className="flex items-center gap-1.5 font-special-elite text-[11px] text-primary uppercase tracking-wider">
+            <Zap className="h-3.5 w-3.5 text-primary" />
+            <span>{t('vitals.luck.pulpActions')}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!onCharacterUpdate || (character.luck ?? 50) < 20 || (character.hp ?? maxHp) >= maxHp}
+              onClick={() => {
+                if (!onCharacterUpdate) return;
+                const curLuck = character.luck ?? 50;
+                const curHp = character.hp ?? maxHp;
+                if (curLuck < 20 || curHp >= maxHp) return;
+                const heal = Math.floor(Math.random() * 6) + 1 + 1; // 1k6+1
+                const newHp = Math.min(maxHp, curHp + heal);
+                const newLuck = curLuck - 20;
+                onCharacterUpdate({ ...character, hp: newHp, luck: newLuck });
+                toast({
+                  title: t('vitals.luck.adrenalineTitle'),
+                  description: t('vitals.luck.adrenalineDesc', { heal, luckLeft: newLuck }),
+                });
+              }}
+              className="flex-1 min-w-[130px] font-special-elite text-[11px] py-1.5 px-2 border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center"
+            >
+              💉 {t('vitals.luck.adrenalineBtn')}
+            </button>
+            <button
+              type="button"
+              disabled={!onCharacterUpdate || (character.luck ?? 50) < 10}
+              onClick={() => {
+                if (!onCharacterUpdate) return;
+                const curLuck = character.luck ?? 50;
+                if (curLuck < 10) return;
+                const newLuck = curLuck - 10;
+                onCharacterUpdate({ ...character, luck: newLuck });
+                toast({
+                  title: t('vitals.luck.unjamTitle'),
+                  description: t('vitals.luck.unjamDesc', { luckLeft: newLuck }),
+                });
+              }}
+              className="flex-1 min-w-[130px] font-special-elite text-[11px] py-1.5 px-2 border border-brass/40 bg-brass/10 hover:bg-brass/20 text-brass disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center"
+            >
+              ⚙️ {t('vitals.luck.unjamBtn')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -91,7 +91,7 @@ const SEED_TEMPLATES: SurpriseAdventureSeed[] = [
         {
           id: 'clue-3',
           name: 'Znak w wosku pieczętnym',
-          description: 'Kawałek laku z odciśniętym symbolem trzech splecionych pętli (Żółty Znak).'
+          description: 'Kawałek laku z odciśniętym niepokojącym, wijącym się hieroglifem (Żółty Znak z Carcosy).'
         }
       ],
       connections: [

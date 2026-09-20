@@ -45,10 +45,11 @@ export function exportCharacterToMarkdown(
     pow: character.pow ?? 50,
     edu: character.edu ?? 50,
   };
+  const hpDivisor = character.rulesetVariant === 'pulp' ? 5 : 10;
   const maxHp =
     typeof character.maxHp === 'number' && character.maxHp > 0
       ? character.maxHp
-      : Math.floor((stats.con + stats.siz) / 10);
+      : Math.floor((stats.con + stats.siz) / hpDivisor);
   const maxMp =
     typeof character.maxMp === 'number' && character.maxMp > 0
       ? character.maxMp
@@ -71,6 +72,13 @@ export function exportCharacterToMarkdown(
 
   let md = `# ${character.name}\n\n`;
   if (isEn) {
+    if (character.rulesetVariant === 'pulp') {
+      md += `**Ruleset:** Pulp Cthulhu  \n`;
+      if (character.archetype) md += `**Pulp Archetype:** ${character.archetype}  \n`;
+      if (character.pulpTalents && character.pulpTalents.length > 0) {
+        md += `**Pulp Talents:** ${character.pulpTalents.join(', ')}  \n`;
+      }
+    }
     md += `**Occupation:** ${character.occupation || '-'}  \n`;
     md += `**Age:** ${character.age || '-'}  \n`;
     md += `**Gender:** ${character.gender === 'male' ? 'Male' : character.gender === 'female' ? 'Female' : '-'}  \n\n`;
@@ -91,6 +99,13 @@ export function exportCharacterToMarkdown(
     md += `- **Build:** ${character.build ?? 0}\n`;
     md += `- **Move:** ${character.move ?? 8}\n\n`;
   } else {
+    if (character.rulesetVariant === 'pulp') {
+      md += `**Wariant reguł:** Pulp Cthulhu  \n`;
+      if (character.archetype) md += `**Archetyp pulpowy:** ${character.archetype}  \n`;
+      if (character.pulpTalents && character.pulpTalents.length > 0) {
+        md += `**Pulpowe talenty:** ${character.pulpTalents.join(', ')}  \n`;
+      }
+    }
     md += `**Zawód:** ${character.occupation || '-'}  \n`;
     md += `**Wiek:** ${character.age || '-'}  \n`;
     md += `**Płeć:** ${character.gender === 'male' ? 'Mężczyzna' : character.gender === 'female' ? 'Kobieta' : '-'}  \n\n`;
@@ -220,8 +235,8 @@ export function exportCharacterToMarkdown(
   }
 
   md += isEn
-    ? `---\n*Exported from Call of Cthulhu App - ${new Date().toLocaleString('en-US')}*\n`
-    : `---\n*Eksportowano z Zew Cthulhu App - ${new Date().toLocaleString('pl-PL')}*\n`;
+    ? `---\n*Exported from Keeper of Secrets AI - ${new Date().toLocaleString('en-US')}*\n`
+    : `---\n*Eksportowano ze Strażnika Tajemnic AI - ${new Date().toLocaleString('pl-PL')}*\n`;
 
   // Pobierz plik
   const suffix = isEn ? '_sheet.md' : '_karta.md';

@@ -338,4 +338,58 @@ describe('ManualSetupPanel', () => {
     fireEvent.click(s0BtnEnabled);
     expect(onSessionZero).toHaveBeenCalledTimes(1);
   });
+
+  it('blokuje wszystkie przyciski interaktywne podczas startu gry (isStarting === true)', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const onBack = jest.fn();
+    const onSelectAdventure = jest.fn();
+    const onCreateCharacter = jest.fn();
+    const onPickPredefinedCharacter = jest.fn();
+    const onPickCharacter = jest.fn();
+    const onSessionZero = jest.fn();
+    const onChoosePlayMode = jest.fn();
+
+    render(
+      <ManualSetupPanel
+        onBack={onBack}
+        onSelectAdventure={onSelectAdventure}
+        onCreateCharacter={onCreateCharacter}
+        onPickPredefinedCharacter={onPickPredefinedCharacter}
+        onPickCharacter={onPickCharacter}
+        onSessionZero={onSessionZero}
+        onChoosePlayMode={onChoosePlayMode}
+        onStartGame={jest.fn()}
+        hasAdventure={true}
+        adventureTitle="Zew Cthulhu"
+        hasCharacter={true}
+        activeCharacter={mockCharacter}
+        hasSavedCharacters={true}
+        isStarting={true}
+        startProgress={40}
+      />
+    );
+
+    // Przycisk powrotu
+    const backBtn = screen.getByRole('button', { name: /Wróć do wyboru trybu/i });
+    expect(backBtn).toBeDisabled();
+
+    // Przycisk zmiany trybu
+    const modeBtn = screen.getByRole('button', { name: /Zmień tryb/i });
+    expect(modeBtn).toBeDisabled();
+
+    // Przycisk wyboru / zmiany przygody
+    const advBtn = screen.getByRole('button', { name: /Zmień przygodę/i });
+    expect(advBtn).toBeDisabled();
+
+    // Przyciski postaci
+    expect(screen.getByRole('button', { name: /Zmień postać/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Stwórz nową/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Z katalogu/i })).toBeDisabled();
+
+    // Przycisk Sesji Zero
+    expect(screen.getByRole('button', { name: /Uruchom Sesję Zero/i })).toBeDisabled();
+
+    // Główny przycisk startu
+    expect(screen.getByRole('button', { name: /Przygotowywanie sesji.../i })).toBeDisabled();
+  });
 });

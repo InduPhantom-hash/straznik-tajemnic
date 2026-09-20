@@ -4,6 +4,10 @@ import {
   buildPlayerFinancesSection,
   buildPlayerVisualProfileSection,
   buildActiveInvestigationSection,
+  injectDepthInjection,
+  injectDepthInjectionInPlace,
+  isDepthInjectionMessage,
+  buildDynamicScenePacingInjection,
 } from '../build-context';
 import type { GameContext } from '@/lib/prompt-section-parser';
 import type { Character } from '@/lib/types';
@@ -124,28 +128,7 @@ describe('buildAdditionalContext', () => {
       )
     ).toBe(false);
 
-    // 2. W kampanii stowarzyszenie jest wstrzykiwane
-    const resultFromCampaign = buildAdditionalContext({
-      timePromptSection: 'Time Prompt',
-      gmProtocol: 'Protocol',
-      gameContext: dummyGameContext,
-      resolvedCachedContent: null,
-      isCampaign: true,
-      characters: [
-        {
-          id: 'char-1',
-          name: 'Jan Kowalski',
-          organizationId: 'the-cleaners',
-        } as unknown as Character,
-      ],
-      locale: 'pl',
-    });
-    expect(
-      resultFromCampaign.some((s) =>
-        s.includes('STOWARZYSZENIE BADACZY I MECENAT: CZYŚCICIELE')
-      )
-    ).toBe(true);
-
+    // 2. W kampanii sekcja organizacji jest wstrzykiwana z jawnego parametru
     const resultFromOpt = buildAdditionalContext({
       timePromptSection: 'Time Prompt',
       gmProtocol: 'Protocol',
@@ -155,6 +138,15 @@ describe('buildAdditionalContext', () => {
       organizationSection: 'CUSTOM_ORGANIZATION_SECTION',
     });
     expect(resultFromOpt).toContain('CUSTOM_ORGANIZATION_SECTION');
+
+    const resultWithoutOpt = buildAdditionalContext({
+      timePromptSection: 'Time Prompt',
+      gmProtocol: 'Protocol',
+      gameContext: dummyGameContext,
+      resolvedCachedContent: null,
+      isCampaign: true,
+    });
+    expect(resultWithoutOpt).not.toContain('CUSTOM_ORGANIZATION_SECTION');
   });
 });
 
@@ -871,6 +863,151 @@ Progi: Zwykły ≤50 | Trudny ≤25 | Ekstremalny ≤10
       expect(eventResolutionSection).toBeDefined();
       expect(eventResolutionSection).toContain('INWARIANT DOMKNIĘCIA RZUTU (ZAKAZ ZAPĘTLANIA TESTÓW)');
       expect(eventResolutionSection).toContain('BEZWZGLĘDNY ZAKAZ ponownego emitowania tagu [TEST:]');
+    });
+  });
+
+  describe('Author\'s Note & Depth Injection (SillyTavern Adaptation - Issue #349)', () => {
+    const dummyGameContext: GameContext = {
+      mode: 'combat',
+      hasNPCs: true,
+      recentSANLoss: false,
+      findingDocument: false,
+      inDarkness: false,
+      nightTime: false,
+    };
+
+    it('injectDepthInjection wstrzykuje dyrektywę dokładnie 3 wiadomości przed końcem', () => {
+      const messages = [
+        { role: 'user', content: 'Wiadomość 1' },
+        { role: 'assistant', content: 'Wiadomość 2' },
+        { role: 'user', content: 'Wiadomość 3' },
+        { role: 'assistant', content: 'Wiadomość 4' },
+        { role: 'user', content: 'Wiadomość 5' },
+        { role: 'assistant', content: 'Wiadomość 6' },
+      ];
+
+      const injection = '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]\nAtmosfera: Strach\n[/PRZYPOMNIENIE DLA MG]';
+      const result = injectDepthInjection(messages, injection, 3);
+
+      expect(result).toHaveLength(7);
+      // Indeks wstawienia: 6 - 3 = 3
+      expect(result[3].content).toBe(injection);
+      expect(result[3].role).toBe('system');
+      // 3 wiadomości pozostają za wstrzyknięciem (indeksy 4, 5, 6)
+      expect(result[4].content).toBe('Wiadomość 4');
+      expect(result[5].content).toBe('Wiadomość 5');
+      expect(result[6].content).toBe('Wiadomość 6');
+      // Oryginalna tablica nie została zmodyfikowana
+      expect(messages).toHaveLength(6);
+    });
+
+    it('injectDepthInjection wstawia na początek gdy historia jest krótsza niż depth', () => {
+      const messages = [
+        { role: 'user', content: 'Jedyna wiadomość' },
+      ];
+      const injection = '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]';
+      const result = injectDepthInjection(messages, injection, 3);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].content).toBe(injection);
+      expect(result[1].content).toBe('Jedyna wiadomość');
+    });
+
+    it('injectDepthInjectionInPlace modyfikuje tablicę w miejscu', () => {
+      const messages = [
+        { role: 'user', content: 'A' },
+        { role: 'assistant', content: 'B' },
+      ];
+      injectDepthInjectionInPlace(messages, 'INJECTION', 2, 'user');
+      expect(messages).toHaveLength(3);
+      expect(messages[0].content).toBe('INJECTION');
+      expect(messages[0].role).toBe('user');
+    });
+
+    it('buildAdditionalContext wstrzykuje dyrektywę do przekazanej tablicy messages (Depth Injection)', () => {
+      const messages = [
+        { role: 'user', content: 'Start' },
+        { role: 'assistant', content: 'Odpowiedź MG' },
+        { role: 'user', content: 'Akcja gracza' },
+        { role: 'assistant', content: 'Dalsza narracja' },
+      ];
+
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        messages,
+        depthInjectionDepth: 2,
+        locale: 'pl',
+      });
+
+      // messages powinno mieć wstrzykniętą notatkę na indeksie 4 - 2 = 2
+      expect(messages).toHaveLength(5);
+      expect(messages[2].content).toContain('[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]');
+      expect(messages[2].content).toContain('BIEG 3 (PRZEŁAMANIE): 30-70 słów');
+      expect(messages[3].content).toBe('Akcja gracza');
+      expect(messages[4].content).toBe('Dalsza narracja');
+    });
+
+    it('buildAdditionalContext wstrzykuje dyrektywę do additionalContext gdy brak historii wiadomości', () => {
+      const result = buildAdditionalContext({
+        timePromptSection: 'Time',
+        gmProtocol: 'Protocol',
+        gameContext: dummyGameContext,
+        resolvedCachedContent: null,
+        locale: 'en',
+      });
+
+      const hasDepthInjection = result.some((s) =>
+        s.includes('[GM DIRECTIVE: DYNAMIC SCENE & PACING INJECTION]') &&
+        s.includes('GEAR 3 (HARD MOVE): 30-70 words') &&
+        s.includes('CoC 7e RAW: Enforce horror, fail-forward')
+      );
+      expect(hasDepthInjection).toBe(true);
+    });
+
+    it('injectDepthInjection nie wstawia pustej wiadomości gdy injection jest pusty lub sam biały znak', () => {
+      const messages = [
+        { role: 'user', content: 'Wiadomość 1' },
+        { role: 'assistant', content: 'Odpowiedź 1' },
+      ];
+      const res1 = injectDepthInjection(messages, '');
+      expect(res1).toHaveLength(2);
+      expect(res1).toEqual(messages);
+
+      const res2 = injectDepthInjection(messages, '   ');
+      expect(res2).toHaveLength(2);
+
+      const msgsInPlace = [...messages];
+      injectDepthInjectionInPlace(msgsInPlace, '');
+      expect(msgsInPlace).toHaveLength(2);
+    });
+
+    it('injectDepthInjection zastępuje poprzednią dyrektywę z wcześniejszej tury zamiast kumulować duplikaty', () => {
+      const messages = [
+        { role: 'user', content: 'Tura 1' },
+        { role: 'assistant', content: 'Narracja 1' },
+        { role: 'user', content: 'Tura 2' },
+        { role: 'assistant', content: 'Narracja 2' },
+      ];
+
+      // Tura 1: wstrzyknięcie pierwszej dyrektywy
+      const turn1 = injectDepthInjection(messages, '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]\nAtmosfera: Mrok 1\n[/PRZYPOMNIENIE DLA MG]', 2);
+      expect(turn1).toHaveLength(5);
+      expect(turn1.filter(isDepthInjectionMessage)).toHaveLength(1);
+
+      // Nowa wypowiedź gracza w Turze 2
+      turn1.push({ role: 'user', content: 'Tura 3' });
+      expect(turn1).toHaveLength(6);
+
+      // Tura 2: ponowne wstrzyknięcie nowej dyrektywy pacingu
+      const turn2 = injectDepthInjection(turn1, '[PRZYPOMNIENIE DLA MG: DYNAMICZNA SCENA I PACING]\nAtmosfera: Walka 2\n[/PRZYPOMNIENIE DLA MG]', 2);
+      // Nadal dokładnie JEDNA dyrektywa w całej historii, zaktualizowana i umieszczona na nowej głębokości
+      expect(turn2.filter(isDepthInjectionMessage)).toHaveLength(1);
+      const activeDirective = turn2.find(isDepthInjectionMessage);
+      expect(activeDirective?.content).toContain('Walka 2');
+      expect(activeDirective?.content).not.toContain('Mrok 1');
     });
   });
 });

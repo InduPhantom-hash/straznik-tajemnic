@@ -59,7 +59,7 @@ class CharacterImportExportSystem {
       character: this.prepareCharacterForExport(character, options),
       metadata: {
         appVersion: this.APP_VERSION,
-        creator: 'Zew Cthulhu App 2.0',
+        creator: 'Strażnik Tajemnic AI',
         campaign: options.campaign,
         notes: options.notes,
       },
@@ -150,8 +150,8 @@ class CharacterImportExportSystem {
   ): string {
     let text = '';
 
-    text += `=== KARTA POSTACI - ZEW CTHULHU 7. EDYCJA ===\n`;
-    text += `Eksport z: Zew Cthulhu App 2.0\n`;
+    text += `=== KARTA BADACZA - STRAŻNIK TAJEMNIC AI ===\n`;
+    text += `Eksport z: Strażnik Tajemnic AI\n`;
     text += `Data eksportu: ${new Date().toLocaleDateString('pl-PL')}\n\n`;
 
     text += `PODSTAWOWE INFORMACJE:\n`;
@@ -311,7 +311,7 @@ class CharacterImportExportSystem {
       ),
       metadata: {
         appVersion: this.APP_VERSION,
-        creator: 'Zew Cthulhu App 2.0',
+        creator: 'Strażnik Tajemnic AI',
         count: characters.length,
         campaign: options.campaign,
         notes: options.notes,

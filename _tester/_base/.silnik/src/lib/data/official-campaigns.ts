@@ -33,6 +33,7 @@ export interface OfficialCampaign {
     pl: string;
     en: string;
   };
+  rulesetVariant?: 'classic' | 'pulp';
   aliases: string[];
 }
 
@@ -157,6 +158,7 @@ export const OFFICIAL_CAMPAIGNS: OfficialCampaign[] = [
       pl: 'Pulpowa kampania dookoła świata przeciwko spiskowi Wężoludzi, prowadzona pod szyldem medycznej fundacji Caduceus.',
       en: 'High-octane Pulp Cthulhu campaign spanning the globe against the Serpent People, operating under the Caduceus Foundation.',
     },
+    rulesetVariant: 'pulp',
     aliases: [
       'dwuglowy waz',
       'dwugłowy wąż',

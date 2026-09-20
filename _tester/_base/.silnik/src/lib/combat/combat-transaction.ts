@@ -185,6 +185,7 @@ export function resolveCombatJournalEvent(params: {
   const defenderRoll = deterministicPercentile(eventSeed, 'defender');
   const attackerHpBefore = currentNpcHp(attack, params.journal.resolutions);
   let damageIndex = 0;
+  const convention = defender.rulesetVariant === 'pulp' ? 'pulp' : 'classic';
   const engagement = resolveMeleeEngagement({
     attackerName: attack.attacker.name,
     defenderName: defender.name,
@@ -209,6 +210,7 @@ export function resolveCombatJournalEvent(params: {
     maneuverType: params.maneuverType,
     attackerBuild: attack.attacker.build,
     defenderBuild: defender.build ?? 0,
+    convention,
     rollFn: (formula) =>
       deterministicFormulaRoll(eventSeed, `damage:${damageIndex++}`, formula),
   });
@@ -225,6 +227,7 @@ export function resolveCombatJournalEvent(params: {
       damage: engagement.damage.effectiveDamage,
       hadMajorWound: defender.hasMajorWound,
       conRoll,
+      convention,
     });
     nextDefender = {
       ...defender,

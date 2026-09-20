@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     // Domyślny prompt do analizy obrazu w kontekście RPG
     const analysisPrompt =
       prompt ||
-      `Opisz ten obraz w kontekście gry Call of Cthulhu.
+      `Opisz ten obraz w kontekście śledztwa RPG d100 Weird Fiction.
 Skup się na:
 - Wyglądzie postaci (jeśli to portret)
 - Atmosferze i nastroju

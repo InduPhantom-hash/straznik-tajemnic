@@ -108,6 +108,8 @@ interface CthulhuSidebarProps {
   isUploadingAdventure?: boolean;
   uploadProgressAdventure?: number;
   loadingStatusAdventure?: string;
+  uploadErrorAdventure?: string | null;
+  onClearUploadErrorAdventure?: () => void;
 
   // Hot Seat config - potrzebny dla wspólnego dziennika (sharedJournal)
   hotSeatConfig?: HotSeatConfig;
@@ -162,6 +164,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
   isUploadingAdventure,
   uploadProgressAdventure = 0,
   loadingStatusAdventure = '',
+  uploadErrorAdventure = null,
+  onClearUploadErrorAdventure,
 
   hotSeatConfig,
   aiSettings,
@@ -979,6 +983,8 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
         isUploading={isUploadingAdventure}
         uploadProgress={uploadProgressAdventure}
         loadingStatus={loadingStatusAdventure}
+        uploadError={uploadErrorAdventure}
+        onClearUploadError={onClearUploadErrorAdventure}
       />
 
       <HandoutGenerator

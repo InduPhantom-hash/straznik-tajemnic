@@ -69,7 +69,7 @@ const US_1920S_SOURCE = {
 export const US_1920S_APPROVED_MANIFEST: EraManifestV1 = {
   schemaVersion: 1,
   id: 'us-1920s',
-  title: 'USA 1920s (Classic Call of Cthulhu 7e RAW)',
+  title: 'USA 1920s (Classic d100 Weird Fiction RAW)',
   validFrom: 1920,
   validTo: 1929,
   exactYearRequired: false,

@@ -14,12 +14,24 @@ import { SafeImage } from '@/components/ui/safe-image';
  */
 
 import type { ReactNode } from 'react';
+import { isPureTextMode } from '@/lib/api-keys-service';
 
 export function renderNarrativeWithImages(
   content: string,
   key: number,
   onImageClick?: (imgUrl: string, allImages: string[]) => void
 ): ReactNode {
+  if (isPureTextMode()) {
+    const cleanText = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '').trim();
+    return (
+      <p
+        key={key}
+        className="text-foreground leading-relaxed whitespace-pre-wrap"
+      >
+        {cleanText}
+      </p>
+    );
+  }
   // Regex do wykrywania obrazów Markdown: ![alt text](url)
   const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
 

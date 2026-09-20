@@ -163,5 +163,22 @@ describe('System Prompt - Wymogi jakości językowej [LNG-01] & [LNG-02]', () =>
       expect(promptEn).toContain('Detail Level (MINIMAL)');
       expect(promptEn).toContain('Creativity (CONSERVATIVE)');
     });
+
+    it('wymusza Filar 16 (Protokół Ulgi, Ochrona przed fałszywym alarmem i dylematy BN) w obu językach [Issue #398]', () => {
+      const stylePl = getLovecraftStylePrompt('pl');
+      const styleEn = getLovecraftStylePrompt('en');
+
+      expect(stylePl).toContain('16 ZASAD');
+      expect(stylePl).toMatch(/RYTM GROZY, PROTOKÓŁ ULGI I OCHRONA PRZED FAŁSZYWYM ALARMEM/i);
+      expect(stylePl).toMatch(/Protokół Ulgi \(Relief Protocol\)/i);
+      expect(stylePl).toMatch(/Anty-Syndrom "To tylko kot"/i);
+      expect(stylePl).toMatch(/Dylematy Psychologiczne i Kryzys Zaufania BN-ów/i);
+
+      expect(styleEn).toContain('16 PRINCIPLES');
+      expect(styleEn).toMatch(/DREAD RHYTHM, RELIEF PROTOCOL & ANTI-FALSE-ALARM GUARD/i);
+      expect(styleEn).toMatch(/Relief Protocol/i);
+      expect(styleEn).toMatch(/Anti-False-Alarm Guard/i);
+      expect(styleEn).toMatch(/Psychological Dilemmas & NPC Trust Crises/i);
+    });
   });
 });

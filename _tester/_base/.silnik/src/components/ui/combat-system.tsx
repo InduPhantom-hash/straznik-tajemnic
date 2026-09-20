@@ -15,6 +15,8 @@ import {
 import {
   resolveMeleeEngagement,
   resolveOutnumberedBonus,
+  checkMajorWound as resolverCheckMajorWound,
+  type CombatConvention,
 } from '@/lib/combat/combat-resolver';
 import {
   resolveFirearmShot,
@@ -47,6 +49,8 @@ export interface Combatant {
   build?: number;
   brawlSkill?: number;
   dodgeSkill?: number;
+  convention?: 'classic' | 'pulp';
+  rulesetVariant?: 'classic' | 'pulp';
 }
 
 export interface Weapon {
@@ -183,7 +187,8 @@ export const COMBAT_MANEUVERS: CombatManeuver[] = [
 export function checkMajorWound(
   damage: number,
   maxHp: number,
-  con: number
+  con: number,
+  convention: CombatConvention = 'classic'
 ): {
   isMajorWound: boolean;
   conTestRequired: boolean;
@@ -191,9 +196,17 @@ export function checkMajorWound(
   conTestPassed?: boolean;
   effect: string;
 } {
-  const threshold = Math.floor(maxHp / 2);
-  if (damage < threshold) {
+  const wound = resolverCheckMajorWound(damage, maxHp, convention);
+  if (!wound.isMajorWound) {
     return { isMajorWound: false, conTestRequired: false, effect: '' };
+  }
+
+  if (!wound.conTestRequired) {
+    return {
+      isMajorWound: true,
+      conTestRequired: false,
+      effect: 'majorWoundPassed',
+    };
   }
 
   const conRoll = rollD100();
@@ -647,6 +660,7 @@ export function CombatSystem({
       malfunctionThreshold,
       targetArmor: target.armor,
       targetMaxHp: target.maxHp,
+      convention: target.convention ?? (target.rulesetVariant === 'pulp' || attacker.rulesetVariant === 'pulp' ? 'pulp' : 'classic'),
     });
 
     const success = shotResolution.hit;

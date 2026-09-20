@@ -149,6 +149,8 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptPl).toContain('Ważne Miejsce: Gabinet w Arkham');
     expect(promptPl).toContain('Cenny Przedmiot: Zegarek kieszonkowy ojca');
     expect(promptPl).toContain('## FILTR EPOKI: REALIA HISTORYCZNE');
+    expect(promptPl).toContain('Pełna wierność realiom historycznym: autentyczne struktury społeczne');
+    expect(promptPl).toContain('bez współczesnej cenzury, moralizatorstwa i bez anachronizmów');
 
     const promptEn = buildSessionZeroInstructions(
       {
@@ -159,7 +161,7 @@ describe('buildSessionZeroInstructions', () => {
           importantPlace: 'Arkham Study',
           treasuredItem: 'Father pocket watch',
         },
-        eraFilter: 'modern_sensibilities',
+        eraFilter: 'historical_realia',
       },
       'en'
     );
@@ -169,21 +171,41 @@ describe('buildSessionZeroInstructions', () => {
     expect(promptEn).toContain('Key Connection (Important Person - SAN recovery): Sister Clara in Boston');
     expect(promptEn).toContain('Significant Location: Arkham Study');
     expect(promptEn).toContain('Treasured Possession: Father pocket watch');
-    expect(promptEn).toContain('## ERA FILTER: MODERN SENSIBILITIES');
+    expect(promptEn).toContain('## ERA FILTER: HISTORICAL REALIA');
+    expect(promptEn).toContain('Full fidelity to historical realities: period-accurate social structures');
+    expect(promptEn).toContain('without contemporary censorship, moralizing, or anachronisms');
+
+    const promptModern = buildSessionZeroInstructions(
+      {
+        ...rawSettings,
+        eraFilter: 'modern_sensibilities',
+      },
+      'pl'
+    );
+    expect(promptModern).toContain('## FILTR EPOKI: WSPÓŁCZESNA WRAŻLIWOŚĆ');
+    expect(promptModern).toContain('łagodząc uprzedzenia i dyskryminację epoki');
   });
 
-  it('normalizes legacy tone noir to purist instructions in PL and EN', () => {
-    const noirSettings: SessionZeroSettings = {
+  it('generates diegetic briefing and Strong Start instructions when briefing is present', () => {
+    const briefingSettings: SessionZeroSettings = {
       ...baseSettings,
-      tone: 'noir',
+      briefing: 'Pilny telegram od prof. Armitage: przyjedź natychmiast do Arkham.',
     };
 
-    const promptPl = buildSessionZeroInstructions(noirSettings, 'pl');
-    expect(promptPl).toContain('## STYL NARRACJI: PURYSTYCZNY');
-    expect(promptPl).not.toContain('## STYL NARRACJI: NOIR');
+    const promptPl = buildSessionZeroInstructions(briefingSettings, 'pl');
+    expect(promptPl).toContain('## BRIEFING ŚLEDCZY I DEPESZA STARTOWA (STRONG START)');
+    expect(promptPl).toContain('Pilny telegram od prof. Armitage: przyjedź natychmiast do Arkham.');
+    expect(promptPl).toContain('posłaniec na progu, pociąg wjeżdżający na stację, telegram w dłoni');
 
-    const promptEn = buildSessionZeroInstructions(noirSettings, 'en');
-    expect(promptEn).toContain('## NARRATIVE STYLE: PURIST');
-    expect(promptEn).not.toContain('## NARRATIVE STYLE: NOIR');
+    const promptEn = buildSessionZeroInstructions(
+      {
+        ...briefingSettings,
+        briefing: 'Urgent telegram from Prof. Armitage: come to Arkham at once.',
+      },
+      'en'
+    );
+    expect(promptEn).toContain('## DIEGETIC BRIEFING & CASE DISPATCH (STRONG START)');
+    expect(promptEn).toContain('Urgent telegram from Prof. Armitage: come to Arkham at once.');
+    expect(promptEn).toContain('courier on the doorstep, train arriving at the station, holding the telegram');
   });
 });

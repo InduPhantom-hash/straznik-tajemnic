@@ -29,4 +29,15 @@ export {
   getRandomIIRPSurname,
   getRandomIIRPCharacterName,
 } from './names-iirp';
+export {
+  PULP_ARCHETYPES,
+  getPulpArchetype,
+  getAllPulpArchetypes,
+} from './pulp-archetypes';
+export {
+  PULP_TALENTS,
+  getPulpTalent,
+  getPulpTalentsByCategory,
+  getAllPulpTalents,
+} from './pulp-talents';
 

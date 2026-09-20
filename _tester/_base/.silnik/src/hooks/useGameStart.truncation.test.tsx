@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useGameStart } from './useGameStart';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, getApiKeyHeaders } from '@/lib/api-keys-service';
 import { parseSSEStream } from '@/lib/sse-parser';
 import type { Message } from '@/lib/types';
 import { defaultAISettings } from '@/lib/ai-settings/defaults';
@@ -8,6 +8,7 @@ import type { WorldSetupBundleV1 } from '@/lib/world-setup';
 
 jest.mock('@/lib/api-keys-service', () => ({
   fetchWithApiKeys: jest.fn(),
+  getApiKeyHeaders: jest.fn(() => ({})),
 }));
 
 jest.mock('@/lib/sse-parser', () => ({
@@ -214,6 +215,79 @@ describe('useGameStart - finishReason intra', () => {
     expect(localStorage.getItem('has_started_game')).toBeNull();
   });
 
+  it('przekazuje nagłówki klucza API do preflightu i w razie błędu 401 emituje open-api-keys-modal oraz zew:stop-music', async () => {
+    jest.mocked(getApiKeyHeaders).mockReturnValueOnce({
+      'X-Gemini-Api-Key': 'test-gemini-key',
+    });
+
+    jest.mocked(fetchWithApiKeys).mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: async () => ({
+        error: 'Wklej swój klucz Google AI Studio w ustawieniach',
+        code: 'BYOK_KEY_MISSING',
+      }),
+    } as Response);
+
+    const openModalListener = jest.fn();
+    const stopMusicListener = jest.fn();
+    window.addEventListener('open-api-keys-modal', openModalListener);
+    window.addEventListener('zew:stop-music', stopMusicListener);
+
+    let messages: Message[] = [];
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
+      messages = typeof update === 'function' ? update(messages) : update;
+    };
+    const setHasStartedGame = jest.fn();
+    const props: Parameters<typeof useGameStart>[0] = {
+      setHasStartedGame,
+      activeCharacter: null,
+      characters: [],
+      setActiveCharacter: jest.fn(),
+      setCharacters: jest.fn(),
+      pdfMemory: {},
+      adventureContext: {
+        id: 'custom',
+        title: 'Własna przygoda',
+        isCustom: true,
+        yearRange: '1973',
+      },
+      hotSeatConfig: { enabled: false, players: [] },
+      setMessages,
+      tts: {
+        voiceEnabled: false,
+        isTTSEnabled: false,
+        generateVoiceForMessage: jest.fn().mockResolvedValue(undefined),
+        addToQueue: jest.fn(),
+        startInitialBuffering: jest.fn(),
+        stopCurrentAudio: jest.fn(),
+      },
+      aiSettings: { ...defaultAISettings, imageGenerationEnabled: false },
+    };
+
+    const { result } = renderHook(() => useGameStart(props));
+    await act(async () => result.current.handleStartGame());
+
+    expect(fetchWithApiKeys).toHaveBeenCalledWith(
+      '/api/adventure/setup',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'X-Gemini-Api-Key': 'test-gemini-key',
+        }),
+      })
+    );
+    expect(openModalListener).toHaveBeenCalled();
+    expect(stopMusicListener).toHaveBeenCalled();
+    expect(setHasStartedGame).toHaveBeenCalledWith(false);
+
+    window.removeEventListener('open-api-keys-modal', openModalListener);
+    window.removeEventListener('zew:stop-music', stopMusicListener);
+  });
+
   it('wstrzymuje wejście do gry aż do zakończenia całego strumienia SSE (Issue #123)', async () => {
     let hasStartedDuringStream = false;
     const setHasStartedGame = jest.fn((val: boolean) => {
@@ -412,5 +486,160 @@ describe('useGameStart - finishReason intra', () => {
     expect(playInitialNarration).toHaveBeenCalledTimes(1);
     expect(setHasStartedGame).toHaveBeenCalledWith(true);
     expect(result.current.isReadyToEnter).toBe(false);
+  });
+
+  it('uruchamia scenariusz custom z gotowym grafem lokalnie przez createPresetWorldSetup bez wywoływania API preflightu', async () => {
+    let messages: Message[] = [];
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
+      messages = typeof update === 'function' ? update(messages) : update;
+    };
+    const setHasStartedGame = jest.fn();
+    const props: Parameters<typeof useGameStart>[0] = {
+      setHasStartedGame,
+      activeCharacter: null,
+      characters: [],
+      setActiveCharacter: jest.fn(),
+      setCharacters: jest.fn(),
+      pdfMemory: {},
+      adventureContext: {
+        id: 'custom-czarny-jak-wegiel',
+        title: 'Czarny Jak Węgiel',
+        isCustom: true,
+        yearRange: '1925',
+        graph: {
+          npcs: [
+            {
+              id: 'npc-1',
+              name: 'Główny Informator',
+              description: 'Świadek',
+            },
+          ],
+          locations: [
+            {
+              id: 'loc-1',
+              name: 'Zakopane',
+              description: 'Tatry',
+            },
+          ],
+          clues: [],
+          connections: [],
+        },
+      },
+      hotSeatConfig: { enabled: false, players: [] },
+      setMessages,
+      tts: {
+        voiceEnabled: false,
+        isTTSEnabled: false,
+        generateVoiceForMessage: jest.fn().mockResolvedValue(undefined),
+        addToQueue: jest.fn(),
+        startInitialBuffering: jest.fn(),
+        stopCurrentAudio: jest.fn(),
+      },
+      aiSettings: { ...defaultAISettings, imageGenerationEnabled: false },
+    };
+
+    jest
+      .mocked(fetchWithApiKeys)
+      .mockResolvedValueOnce({ ok: true } as Response);
+    jest
+      .mocked(parseSSEStream)
+      .mockImplementation(async (_response, callbacks) => {
+        callbacks?.onText?.('Mgła nad Tatrami...');
+        return 'Mgła nad Tatrami...';
+      });
+
+    const { result } = renderHook(() => useGameStart(props));
+    await act(async () => result.current.handleStartGame());
+
+    // Wywołano wyłącznie /api/chat (pominięto preflight /api/adventure/setup)
+    expect(fetchWithApiKeys).toHaveBeenCalledTimes(1);
+    expect(fetchWithApiKeys).toHaveBeenCalledWith(
+      '/api/chat',
+      expect.anything()
+    );
+    const stored = JSON.parse(localStorage.getItem('world_setup_v1') || '{}');
+    expect(stored.scenarioId).toBe('custom-czarny-jak-wegiel');
+    expect(stored.adventureTitle).toBe('Czarny Jak Węgiel');
+    expect(stored.npcs).toHaveLength(1);
+    expect(stored.locations).toHaveLength(1);
+  });
+
+  it('bezpiecznie przełącza na lokalny setup świata, gdy preflight zwraca DOCUMENT_MODEL_USE_BLOCKED', async () => {
+    // Pierwsze wywołanie: preflight /api/adventure/setup
+    jest.mocked(fetchWithApiKeys).mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      json: async () => ({
+        success: false,
+        code: 'DOCUMENT_MODEL_USE_BLOCKED',
+        error: 'Dokumenty nie są wysyłane do AI.',
+      }),
+    } as Response);
+
+    // Drugie wywołanie: /api/chat po przełączeniu na preset
+    jest.mocked(fetchWithApiKeys).mockResolvedValueOnce({
+      ok: true,
+    } as Response);
+    jest
+      .mocked(parseSSEStream)
+      .mockImplementation(async (_response, callbacks) => {
+        callbacks?.onText?.('Wprowadzenie...');
+        return 'Wprowadzenie...';
+      });
+
+    let messages: Message[] = [];
+    const setMessages: Parameters<typeof useGameStart>[0]['setMessages'] = (
+      update
+    ) => {
+      messages = typeof update === 'function' ? update(messages) : update;
+    };
+    const setHasStartedGame = jest.fn();
+    const props: Parameters<typeof useGameStart>[0] = {
+      setHasStartedGame,
+      activeCharacter: null,
+      characters: [],
+      setActiveCharacter: jest.fn(),
+      setCharacters: jest.fn(),
+      pdfMemory: {},
+      adventureContext: {
+        id: 'custom-bare',
+        title: 'Własny scenariusz bez grafu',
+        isCustom: true,
+        yearRange: '1920',
+      },
+      hotSeatConfig: { enabled: false, players: [] },
+      setMessages,
+      tts: {
+        voiceEnabled: false,
+        isTTSEnabled: false,
+        generateVoiceForMessage: jest.fn().mockResolvedValue(undefined),
+        addToQueue: jest.fn(),
+        startInitialBuffering: jest.fn(),
+        stopCurrentAudio: jest.fn(),
+      },
+      aiSettings: { ...defaultAISettings, imageGenerationEnabled: false },
+    };
+
+    const { result } = renderHook(() => useGameStart(props));
+    await act(async () => result.current.handleStartGame());
+
+    // Wywołano preflight (1), a po 403 DOCUMENT_MODEL_USE_BLOCKED nastąpił fallback i przejście do /api/chat (2)
+    expect(fetchWithApiKeys).toHaveBeenCalledTimes(2);
+    expect(fetchWithApiKeys).toHaveBeenNthCalledWith(
+      1,
+      '/api/adventure/setup',
+      expect.anything()
+    );
+    expect(fetchWithApiKeys).toHaveBeenNthCalledWith(
+      2,
+      '/api/chat',
+      expect.anything()
+    );
+    const stored = JSON.parse(localStorage.getItem('world_setup_v1') || '{}');
+    expect(stored.scenarioId).toBe('custom-bare');
+    expect(stored.adventureTitle).toBe('Własny scenariusz bez grafu');
   });
 });

@@ -214,5 +214,53 @@ describe('Cheat Engine (Retro Kodów CoC 7e)', () => {
     expect(sanityRes.assistantMessage?.diceRollEvents?.[0].formula).toBe('1d6');
     expect(sanityRes.assistantMessage?.diceRollEvents?.[0].label).toBe('Sanity Loss');
   });
+
+  it('poprawnie wyzwala kody rekwizytów: czytnik dokumentów (HANDOUT_DOC / DOKUMENT)', () => {
+    expect(isCheatCommand('[HANDOUT_DOC]')).toBe(true);
+    expect(isCheatCommand('[DOKUMENT]')).toBe(true);
+    expect(isCheatCommand('[DOC]')).toBe(true);
+    expect(isCheatCommand('[SKAN]')).toBe(true);
+
+    const docRes = executeCheatCommand('[HANDOUT_DOC]', mockCharacter, 'pl');
+    expect(docRes.isCheat).toBe(true);
+    expect(docRes.assistantMessage?.content).toContain('[OBRAZ: /equipment/catalog/letter-shared.webp]');
+    expect(docRes.characterUpdates?.equipment).toHaveLength(1);
+    expect(docRes.characterUpdates?.equipment?.[0].name).toBe('Zapiski z Archiwum');
+
+    const prlRes = executeCheatCommand('[DOKUMENT: prl]', mockCharacter, 'pl');
+    expect(prlRes.isCheat).toBe(true);
+    expect(prlRes.assistantMessage?.content).toContain('[OBRAZ: /equipment/catalog/contacts-notebook-prl.webp]');
+    expect(prlRes.assistantMessage?.content).toContain('RAPORT SŁUŻBOWY: PROTOKÓŁ NR 14/77');
+    expect(prlRes.characterUpdates?.equipment?.[0].name).toBe('Protokół MO nr 14/77');
+  });
+
+  it('poprawnie wyzwala kody rekwizytów: odtwarzacz taśm (HANDOUT_AUDIO / TASMA)', () => {
+    expect(isCheatCommand('[HANDOUT_AUDIO]')).toBe(true);
+    expect(isCheatCommand('[TASMA]')).toBe(true);
+    expect(isCheatCommand('[TAŚMA]')).toBe(true);
+    expect(isCheatCommand('[MAGNETOFON]')).toBe(true);
+
+    const audioRes = executeCheatCommand('[HANDOUT_AUDIO]', mockCharacter, 'pl');
+    expect(audioRes.isCheat).toBe(true);
+    expect(audioRes.assistantMessage?.content).toContain('[AUDIO: /audio/handouts/starter_friend_letter.mp3]');
+    expect(audioRes.characterUpdates?.equipment).toHaveLength(1);
+    expect(audioRes.characterUpdates?.equipment?.[0].name).toBe('Taśma szpulowa: Zeznanie');
+
+    const corbittRes = executeCheatCommand('[TASMA: corbitt]', mockCharacter, 'pl');
+    expect(corbittRes.isCheat).toBe(true);
+    expect(corbittRes.assistantMessage?.content).toContain('[AUDIO: /audio/handouts/corbitt_journal.mp3]');
+    expect(corbittRes.characterUpdates?.equipment?.[0].name).toBe('Płyta gramofonowa Corbitta');
+  });
+
+  it('poprawnie wyzwala pakiet obu rekwizytów (HANDOUTS / REKWIZYTY)', () => {
+    expect(isCheatCommand('[HANDOUTS]')).toBe(true);
+    expect(isCheatCommand('[REKWIZYTY]')).toBe(true);
+
+    const comboRes = executeCheatCommand('[HANDOUTS]', mockCharacter, 'pl');
+    expect(comboRes.isCheat).toBe(true);
+    expect(comboRes.assistantMessage?.content).toContain('[OBRAZ: /equipment/catalog/letter-shared.webp]');
+    expect(comboRes.assistantMessage?.content).toContain('[AUDIO: /audio/handouts/starter_friend_letter.mp3]');
+    expect(comboRes.characterUpdates?.equipment).toHaveLength(2);
+  });
 });
 

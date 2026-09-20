@@ -33,9 +33,41 @@ export interface AdventureHandout {
   /** Opcjonalna ścieżka do nagrania audio lektora/rekwizytu (np. '/audio/handouts/cien-nad-prabutami/tasma-sb-elblag.mp3'). */
   audioUrl?: string;
   /** Opcjonalny typ handoutu dla renderera tekstu w czacie */
-  handoutType?: 'newspaper' | 'letter' | 'telegram' | 'report' | 'diary' | 'book';
+  handoutType?: 'newspaper' | 'letter' | 'telegram' | 'report' | 'diary' | 'book' | 'map';
   /** Opcjonalna transkrypcja lub tekst do przeczytania */
   textContent?: string;
+}
+
+/** Gotowa postać (pregen) wyekstrahowana ze scenariusza */
+export interface PregenCharacterConcept {
+  id: string;
+  name: string;
+  gender?: 'male' | 'female' | 'other';
+  age?: number;
+  occupation?: string;
+  background?: string;
+  skills?: string[];
+  stats?: Record<string, number>;
+}
+
+/** Ograniczenia i wytyczne dotyczące Badaczy dla danej przygody */
+export interface InvestigatorRequirements {
+  minAge?: number;
+  maxAge?: number;
+  requiredOccupations?: string[];
+  summary?: string;
+  pregenCharacters?: PregenCharacterConcept[];
+}
+
+/** Zagadka logiczna / dedukcyjna w scenariuszu */
+export interface AdventurePuzzle {
+  id: string;
+  title: string;
+  description: string;
+  handoutSlugs?: string[];
+  solutionSummary: string;
+  clues?: string[];
+  ideaRollPrompt?: string;
 }
 
 export interface AdventureContext {
@@ -48,6 +80,7 @@ export interface AdventureContext {
   location: string;
   country: string;
   tone: 'purist' | 'pulp' | 'noir';
+  rulesetVariant?: 'classic' | 'pulp';
   themes: string[];
   suggestedOccupations: string[];
   suggestedArchetypes: string[];
@@ -56,6 +89,12 @@ export interface AdventureContext {
   estimatedSessions: string;
   playerCount: string;
   difficulty: 'easy' | 'normal' | 'hard';
+  /** Poziom trudności w gwiazdkach 1-5 (zgodnie z oficjalną legendą Black Monk CoC 7e) */
+  difficultyStars?: number;
+  /** Wymagania dotyczące badaczy (wiek, dozwolone profesje, gotowe postacie) */
+  investigatorRequirements?: InvestigatorRequirements;
+  /** Zagadki logiczne w scenariuszu powiązane z rekwizytami i Testem Pomysłu (Idea Roll) */
+  puzzles?: AdventurePuzzle[];
   isCustom?: boolean;
   pdfUrl?: string;
   customDescription?: string; // Opis założeń przygody od użytkownika (dla AI)
@@ -76,7 +115,7 @@ export interface AdventureContext {
   /** Nazwa zbioru źródłowego do wyświetlenia (np. nazwa antologii lub podręcznika). */
   source?: string;
   /** Kategoria źródła do grupowania w UI. */
-  sourceCategory?: 'core' | 'anthology' | 'oneshot' | 'custom';
+  sourceCategory?: 'core' | 'anthology' | 'oneshot' | 'custom' | 'starter';
   /**
    * Slug książki źródłowej. MUSI pokrywać się z tagiem `source:<slug>` zapisanym
    * przez reindex (scripts/reindex-pdfs.ts) - dzięki temu MG przy aktywnej

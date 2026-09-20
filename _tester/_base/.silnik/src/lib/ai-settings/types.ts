@@ -1,5 +1,6 @@
 // IND-275 T1: union ID modeli Gemini scentralizowany w model-registry.
 import type { GeminiModelId } from '../model-registry';
+import type { PulpLevel } from '../types';
 
 export type SessionZeroEra =
   | 'classic'
@@ -61,6 +62,10 @@ export interface SessionZeroSettings {
   isCampaign?: boolean;
   organizationId?: string;
   investigatorSociety?: string;
+  /** Wariant zasad (klasyczny CoC 7e RAW vs Pulp Cthulhu RAW) */
+  rulesetVariant?: 'classic' | 'pulp';
+  /** Poziom pulpy wg Pulpometru (str. 7-10) */
+  pulpLevel?: PulpLevel;
   /** Kontekst wszystkich postaci w sesji Hot Seat; playerName pozostaje polem legacy. */
   players?: SessionZeroPlayerContext[];
 }

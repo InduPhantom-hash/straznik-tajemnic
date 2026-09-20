@@ -126,7 +126,7 @@ describe("Idea Roll Service (CoC 7e RAW)", () => {
         "pl"
       );
 
-      expect(prompt).toContain("Jesteś bezstronnym silnikiem regułowym Call of Cthulhu 7e");
+      expect(prompt).toContain("Jesteś bezstronnym silnikiem regułowym RPG d100");
       expect(prompt).toContain("Francis Thurston");
       expect(prompt).toContain("Inteligencja INT: 70%");
       expect(prompt).toContain("SUKCES");
@@ -163,7 +163,7 @@ describe("Idea Roll Service (CoC 7e RAW)", () => {
         "en"
       );
 
-      expect(prompt).toContain("You are the objective Call of Cthulhu 7e rules engine");
+      expect(prompt).toContain("You are the objective d100 RPG rules engine");
       expect(prompt).toContain("SUCCESS");
       expect(prompt).toContain("Investigator experiences a breakthrough");
     });

@@ -11,6 +11,11 @@ export type {
 };
 import type { CharacterMagicState } from './magic/types';
 import type { DiceRollTrace } from './dice-roll-trace';
+import type {
+  InvestigatorRequirements,
+  AdventurePuzzle,
+  AdventureHandout,
+} from '@/lib/adventures-data';
 
 export interface DiceRollEventData {
   id: string;
@@ -376,12 +381,21 @@ export interface EquipmentItem {
   // Metadane
   weight?: number; // Waga w funtach
   value?: number; // Wartość w dolarach 1920s
-  condition?: 'new' | 'used' | 'damaged' | 'broken';
+  condition?: 'new' | 'used' | 'damaged' | 'broken' | 'working' | 'depleted';
   source?: 'starting' | 'acquired' | 'found';
   obtainedAt?: Date;
   quantity?: number; // Liczba sztuk / dawek dla przedmiotów zużywalnych
   maxQuantity?: number; // Pojemność maksymalna (np. 5 dawek)
   isConsumable?: boolean; // Czy przedmiot zużywa się przy użyciu
+
+  // Mechanika zużycia i amunicji (CoC 7e RAW)
+  currentAmmo?: number; // Aktualna amunicja w komorze / bębenku
+  maxAmmo?: number; // Maksymalna pojemność magazynka
+  charges?: number; // Aktualne ładunki (np. apteczka, zapałki)
+  maxCharges?: number; // Maksymalna liczba ładunków
+  isJammed?: boolean; // Czy broń uległa zacięciu
+  actionDeclaration?: string; // Gotowa deklaracja Quote-to-Input dla czatu
+  suggestedAction?: 'shoot' | 'reload' | 'first_aid' | 'read' | 'study' | 'use_in_scene';
 
   // Obraz i Multimedia
   imageUrl?: string;
@@ -981,11 +995,19 @@ export interface AdventureContext {
   location?: string;
   country?: string;
   tone?: 'purist' | 'pulp' | 'noir';
+  rulesetVariant?: 'classic' | 'pulp';
   themes?: string[];
 
   // Content
   hook?: string;
   description?: string;
+  difficulty?: 'easy' | 'normal' | 'hard';
+  difficultyStars?: number;
+  estimatedSessions?: string;
+  suggestedOccupations?: string[];
+  investigatorRequirements?: InvestigatorRequirements;
+  puzzles?: AdventurePuzzle[];
+  handouts?: AdventureHandout[];
 
   // Files
   geminiFileUri?: string;
@@ -1179,5 +1201,47 @@ export interface RefereeVetoEventData {
   type?: 'anachronism' | 'obscene' | 'injection' | 'impossible';
   reason: string;
   suggestedAlternatives?: string[];
+}
+
+// === KONWENCJA PULP CTHULHU (RAW & Pulpometr) ===
+export type PulpLevel = 'low' | 'medium' | 'high' | 'apex';
+
+export interface PulpArchetypeDefinition {
+  id: string;
+  name: {
+    pl: string;
+    en: string;
+  };
+  description: {
+    pl: string;
+    en: string;
+  };
+  /** Cechy kluczowe do wyboru premii +20 (np. ['dex', 'app'] lub ['str']) */
+  coreCharacteristics: string[];
+  coreCharacteristicBonus: number; // Zwykle 20
+  bonusSkills: string[]; // Lista umiejętności, na które rozdziela się 100 pkt
+  bonusSkillPoints: number; // Zwykle 100
+  suggestedOccupations?: string[];
+  suggestedTalents?: string[];
+  suggestedTraits?: string[];
+}
+
+export type PulpTalentCategory = 'physical' | 'mental' | 'combat' | 'miscellaneous';
+
+export interface PulpTalentDefinition {
+  id: string;
+  name: {
+    pl: string;
+    en: string;
+  };
+  category: PulpTalentCategory;
+  description: {
+    pl: string;
+    en: string;
+  };
+  benefitSummary?: {
+    pl: string;
+    en: string;
+  };
 }
 

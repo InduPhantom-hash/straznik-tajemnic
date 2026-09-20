@@ -55,7 +55,7 @@ describe('SpellCard - rzucanie zaklęć i rytuałów Fiction First CoC 7e RAW', 
     fireEvent.click(guideToggle);
 
     expect(screen.getByText(/Tajemnice Inkantacji CoC 7e RAW/i)).toBeInTheDocument();
-    expect(screen.getByText(/Magia w Zewie Cthulhu to nie rzucanie czarów fantasy/i)).toBeInTheDocument();
+    expect(screen.getByText(/Magia w Weird Fiction nie jest czarodziejstwem fantasy/i)).toBeInTheDocument();
   });
 
   it('rozstrzyga pierwsze rzucenie zaklęcia z sukcesem i pojedynek woli, wyświetlając kości K100 i poziomy sukcesu', () => {

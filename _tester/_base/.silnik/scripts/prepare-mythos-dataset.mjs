@@ -19,6 +19,7 @@ for (const row of raw) {
   const id = clean(row.id); const term = clean(row.term); const fullContent = clean(row.fullContent);
   const fingerprint = crypto.createHash('sha256').update(`${term}\n${fullContent}`).digest('hex');
   if (!id || !term || fullContent.length < 80) { rejected.push({ id: id || null, reason: 'missing_required_content' }); continue; }
+  if (row.isPublicDomain !== true) { rejected.push({ id: id || null, reason: 'non_public_domain' }); continue; }
   if (ids.has(id) || content.has(fingerprint)) { rejected.push({ id, reason: 'duplicate' }); continue; }
   ids.add(id); content.add(fingerprint);
   records.push({ id, term, category: clean(row.category) || 'general_mythos', categoryTitle: clean(row.categoryTitle) || 'Mythos', shortDefinition: clean(row.shortDefinition) || fullContent.slice(0, 360), fullContent, tags: [...new Set((Array.isArray(row.tags) ? row.tags : []).map(clean).filter((tag) => tag.length >= 2 && tag.length <= 80))], sourceUrl: urlFor(term), sourceAttribution: clean(row.sourceAttribution) || 'The H.P. Lovecraft Wiki (Fandom)', license: clean(row.license) || 'CC-BY-SA 3.0 / 4.0', isPublicDomain: row.isPublicDomain === true, modified: true, datasetVersion: manifestSource.updatedAt || 'unknown' });

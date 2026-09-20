@@ -41,18 +41,31 @@ jest.mock('@/lib/vector-db/local-vector-store', () => ({
 describe('POST /api/pdf/ingest-local document policy', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it.each(['pl', 'en'])('blocks adventure documents (%s)', async (locale) => {
+  it('allows local adventure ingestion in clean room mode (zero citations to LLM)', async () => {
+    const sampleAdventureText =
+      'Cień nad Prabutami. Rok 1925, Arkham. Jackson Elias, lat 38, pisarz i badacz. Rekwizyt 1: Tajemniczy list z Kairu opisujący mroczny kult.';
+
     const request = new NextRequest('http://localhost/api/synthetic', {
-      headers: { 'x-locale': locale, 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json' },
     });
     jest.spyOn(request, 'json').mockResolvedValueOnce({
-      text: 'Synthetic adventure text that definitely meets the minimum length requirement of 100 characters for document indexing in this endpoint...',
+      text: sampleAdventureText,
       type: 'adventure',
+      fileName: 'przygoda.pdf',
     });
 
     const response = await POST(request);
-    expect(response.status).toBe(403);
-    await expect(response.json()).resolves.toMatchObject({ code: 'DOCUMENT_MODEL_USE_BLOCKED' });
+    expect(response).toBeDefined();
+    if (!response) return;
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.adventure).toBeDefined();
+    expect(body.adventure.title).toBeDefined();
+    expect(body.adventure.graph).toBeDefined();
+    expect(localVectorStore.replaceNamespace).toHaveBeenCalled();
+    // Zero cytowań do LLM: embedding service i zdalne indeksowanie nie są wywoływane
     expect(embeddingService.initialize).not.toHaveBeenCalled();
     expect(pdfIndexingService.indexPdf).not.toHaveBeenCalled();
   });
@@ -71,6 +84,9 @@ describe('POST /api/pdf/ingest-local document policy', () => {
     });
 
     const response = await POST(request);
+    expect(response).toBeDefined();
+    if (!response) return;
+
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.success).toBe(true);

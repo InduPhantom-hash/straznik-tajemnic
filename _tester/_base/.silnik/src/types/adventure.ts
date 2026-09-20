@@ -3,6 +3,12 @@
  */
 
 export type DocumentType = 'scenario' | 'campaign' | 'setting' | 'compendium';
+export type {
+  InvestigatorRequirements,
+  PregenCharacterConcept,
+  AdventurePuzzle,
+  AdventureHandout,
+} from '@/lib/adventures-data';
 
 export interface AdventureNPC {
   id: string;
