@@ -65,6 +65,36 @@ describe('PredefinedCharactersSelector', () => {
     );
   });
 
+  it('renderuje wszystkie 46 aktywnych portretów z przypisanymi lokalnymi plikami WebP', () => {
+    const activeCharacters = [
+      ...PREDEFINED_CHARACTERS,
+      ...STREFA_11_CHARACTERS,
+    ];
+
+    expect(activeCharacters).toHaveLength(46);
+
+    render(
+      <PredefinedCharactersSelector
+        isOpen
+        onClose={jest.fn()}
+        onSelectCharacter={jest.fn()}
+        characters={activeCharacters}
+        filterByEra={false}
+      />
+    );
+
+    expect(screen.getAllByRole('img')).toHaveLength(activeCharacters.length);
+
+    activeCharacters.forEach((character) => {
+      const portrait = screen.getByAltText(character.name);
+
+      expect(portrait).toHaveAttribute('src', character.portraitUrl);
+      expect(portrait.getAttribute('src')).toMatch(
+        /^\/portraits\/predefined\/.+\.webp$/
+      );
+    });
+  });
+
   it('passes an equipment array when an English preset is selected', () => {
     const onSelectCharacter = jest.fn();
     const previousLocale = process.env.NEXT_INTL_TEST_LOCALE;
