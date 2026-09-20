@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import '@testing-library/jest-dom';
 import enMessages from '../../../../messages/en.json';
 import plMessages from '../../../../messages/pl.json';
@@ -186,6 +188,26 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
 
       expect(pl.cancel).toBe('Anuluj');
       expect(en.cancel).toBe('Cancel');
+    });
+
+    it('enforces 2K responsiveness and no artificial max-h in Step 4 and Step 5 (Issue #435)', () => {
+      const wizardPath = path.resolve(__dirname, '../character-wizard.tsx');
+      const wizardCode = fs.readFileSync(wizardPath, 'utf8');
+
+      // Step 4 skills grid should use 2xl:grid-cols-4 and not have max-h-[45vh]
+      expect(wizardCode).not.toContain('max-h-[45vh]');
+      expect(wizardCode).toContain('2xl:grid-cols-4');
+
+      // Step 5 biography should not restrict grid to max-h-[60vh]
+      expect(wizardCode).not.toContain('max-h-[60vh]');
+      expect(wizardCode).toContain('2xl:h-36');
+      expect(wizardCode).toContain('2xl:min-h-[280px]');
+
+      // dialog.tsx wide variant responsiveness
+      const dialogPath = path.resolve(__dirname, '../dialog.tsx');
+      const dialogCode = fs.readFileSync(dialogPath, 'utf8');
+      expect(dialogCode).toContain('2xl:w-[85vw]');
+      expect(dialogCode).toContain('2xl:h-[84vh]');
     });
   });
 });
