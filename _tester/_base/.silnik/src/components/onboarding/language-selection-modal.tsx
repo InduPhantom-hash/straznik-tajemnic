@@ -63,23 +63,20 @@ export function LanguageSelectionContent({
         {/* Kafel: Polski */}
         <div className="deco-corners relative flex flex-col items-start justify-between p-5 sm:p-6 border border-brass/50 bg-gradient-to-br from-[#1a1610]/95 to-[#100d09]/95 shadow-[0_0_30px_rgba(201,162,39,0.08)] backdrop-blur-sm hover:border-brass/70 hover:shadow-[0_0_40px_rgba(201,162,39,0.18)] transition-all text-left">
           <div className="w-full">
-            <div className="flex items-center gap-4 w-full mb-2">
+            <div className="flex items-center gap-4 w-full">
               <Globe className="w-8 h-8 sm:w-9 sm:h-9 text-primary transition-transform shrink-0" />
               <div>
                 <h2 className="font-display font-bold text-xl sm:text-2xl text-foreground uppercase tracking-[0.08em] text-brass">
                   POLSKI
                 </h2>
-                <span className="font-serif text-xs text-brass/80 italic">
+                <span className="font-serif text-xs sm:text-sm text-brass/80 italic">
                   Pełna narracja po polsku
                 </span>
               </div>
             </div>
-            <p className="font-special-elite text-xs sm:text-sm text-muted-foreground tracking-[0.04em] w-full mt-1.5 leading-relaxed">
-              Zagraj z domyślnym systemem metrycznym (metry, kilogramy) i polskim kanonem terminologicznym.
-            </p>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-brass/20 w-full flex flex-col gap-2">
+          <div className="mt-5 pt-3 border-t border-brass/20 w-full flex flex-col gap-2">
             <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-sans uppercase tracking-wider text-brass/80">
               <span>SYSTEM MIAR:</span>
               <span className="font-mono text-[10px] text-muted-foreground">DOMYŚLNY</span>
@@ -101,23 +98,20 @@ export function LanguageSelectionContent({
         {/* Kafel: English */}
         <div className="deco-corners relative flex flex-col items-start justify-between p-5 sm:p-6 border border-brass/50 bg-gradient-to-br from-[#1a1610]/95 to-[#100d09]/95 shadow-[0_0_30px_rgba(201,162,39,0.08)] backdrop-blur-sm hover:border-brass/70 hover:shadow-[0_0_40px_rgba(201,162,39,0.18)] transition-all text-left">
           <div className="w-full">
-            <div className="flex items-center gap-4 w-full mb-2">
+            <div className="flex items-center gap-4 w-full">
               <Compass className="w-8 h-8 sm:w-9 sm:h-9 text-primary transition-transform shrink-0" />
               <div>
                 <h2 className="font-display font-bold text-xl sm:text-2xl text-foreground uppercase tracking-[0.08em] text-brass">
                   ENGLISH
                 </h2>
-                <span className="font-serif text-xs text-brass/80 italic">
+                <span className="font-serif text-xs sm:text-sm text-brass/80 italic">
                   Complete English narration
                 </span>
               </div>
             </div>
-            <p className="font-special-elite text-xs sm:text-sm text-muted-foreground tracking-[0.04em] w-full mt-1.5 leading-relaxed">
-              Play using official Chaosium terminology and your preferred measurement system.
-            </p>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-brass/20 w-full flex flex-col gap-2">
+          <div className="mt-5 pt-3 border-t border-brass/20 w-full flex flex-col gap-2">
             <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-sans uppercase tracking-wider text-brass/80">
               <span>UNITS / SYSTEM:</span>
               <span className="font-mono text-[10px] text-muted-foreground">SELECT BEFORE START</span>
