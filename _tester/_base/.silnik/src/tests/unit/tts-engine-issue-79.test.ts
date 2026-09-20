@@ -30,6 +30,7 @@ jest.mock('@/lib/ai-settings', () => ({
 
 jest.mock('@/lib/api-keys-service', () => ({
   getApiKeyHeaders: jest.fn(() => ({})),
+  isPureTextMode: jest.fn(() => false),
 }));
 
 describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {

@@ -6,6 +6,7 @@ import { useEquipmentThumbnails } from './useEquipmentThumbnails';
 
 jest.mock('@/lib/api-keys-service', () => ({
   fetchWithApiKeys: jest.fn(),
+  isPureTextMode: jest.fn(() => false),
 }));
 
 jest.mock('@/lib/character-cloud-sync', () => ({

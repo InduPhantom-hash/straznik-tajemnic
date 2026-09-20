@@ -7,12 +7,15 @@ import {
   saveApiKeys,
 } from '@/lib/api-keys-service';
 import { buildImageInstructions } from '@/lib/prompts/image-instructions';
-import { extractImages } from '@/lib/parsers/media-parser';
 import { renderNarrativeWithImages } from '@/components/chat/narrative/render-narrative-with-images';
 import type { AISettings } from '@/lib/ai-settings/types';
 
 describe('Tryb Czystego Tekstu (Pure Text Mode) i detekcja Tieru Gemini', () => {
   beforeEach(() => {
+    clearApiKeys();
+  });
+
+  afterEach(() => {
     clearApiKeys();
   });
 
@@ -58,23 +61,6 @@ describe('Tryb Czystego Tekstu (Pure Text Mode) i detekcja Tieru Gemini', () => 
 
     expect(instructions).toContain('## GENEROWANIE ILUSTRACJI');
     expect(instructions).toContain('### JAK GENEROWAĆ (DEDYKOWANE TAGI FABULARNE):');
-  });
-
-  it('extractImages w trybie darmowym zwraca pustą tablicę ([]), zapobiegając wywołaniom API', () => {
-    setGeminiTier('free');
-    const textWithTags = 'Wchodzicie do mrocznego pokoju. [LOKACJA: Dark basement] Na ścianie wisi dziwny obraz. [OBRAZ: Eldritch horror]';
-    const images = extractImages(textWithTags);
-
-    expect(images).toEqual([]);
-  });
-
-  it('extractImages w trybie płatnym wyciąga tagi obrazów', () => {
-    setGeminiTier('paid');
-    const textWithTags = 'Wchodzicie do mrocznego pokoju. [LOKACJA: Dark basement]';
-    const images = extractImages(textWithTags);
-
-    expect(images.length).toBe(1);
-    expect(images[0].type).toBe('location');
   });
 
   it('renderNarrativeWithImages w trybie darmowym usuwa tagi markdown obrazów i renderuje czysty tekst', () => {

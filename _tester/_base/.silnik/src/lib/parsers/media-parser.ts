@@ -1,12 +1,8 @@
 import { ImageRequest, ImageType, SFXRequest, CombatState } from './types';
 import { SFX_PATTERNS } from './patterns';
-import { isPureTextMode } from '../api-keys-service';
 
 // Wykrywanie ilustracji z dedykowaną taksonomią fabularną (Issue #114)
 export function extractImages(text: string): ImageRequest[] {
-    if (isPureTextMode()) {
-        return [];
-    }
     const images: ImageRequest[] = [];
 
     // Pattern: Tagi w nawiasach kwadratowych - rozszerzona taksonomia:
