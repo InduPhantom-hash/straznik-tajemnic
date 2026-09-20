@@ -4,8 +4,11 @@ import {
   NarrativeGraphEngine,
   PlotFrictionEngine,
   MysteryClueEngine,
+  GeographyEngine,
+  OccultEngine,
   WorldEngineDirector,
 } from '@/lib/world-engine';
+
 
 describe('World Engine Suite', () => {
   it('NPCEngine formats directive with facade, flaw, agenda and resistance', () => {
@@ -78,6 +81,38 @@ describe('World Engine Suite', () => {
     expect(directive).toContain('Koszt Fail-Forward przy porażce: time');
   });
 
+  it('GeographyEngine formats chokepoint and economic constraints', () => {
+    const engine = new GeographyEngine();
+    const directive = engine.formatDirective({
+      terrainOrChokepoint: 'Wąska przełęcz pod Innsmouth',
+      economicConstraint: 'Przemyt nafty i monopol rodu Marshów',
+      undergroundOrigin: 'sewers',
+      waterwayLogic: 'Rzeka Manuxet zbiega ku oceanowi',
+    }, 'pl');
+
+    expect(directive).toContain('GEOGRAFIA_DYREKTYWA');
+    expect(directive).toContain('Przewężenie/Teren: Wąska przełęcz pod Innsmouth');
+    expect(directive).toContain('Presja ekonomiczna: Przemyt nafty i monopol rodu Marshów');
+    expect(directive).toContain('Podziemia: sewers');
+    expect(directive).toContain('Woda: Rzeka Manuxet zbiega ku oceanowi');
+  });
+
+  it('OccultEngine formats magic system limits and somatic cost', () => {
+    const engine = new OccultEngine();
+    const directive = engine.formatDirective({
+      magicType: 'soft_weird',
+      somaticCost: 'Krwawienie z nosa i metaliczny posmak popiołu',
+      cultTier: 'inner_initiated',
+      cosmicTaboo: 'Nie wymawiaj imienia Hastura przy pełni',
+    }, 'pl');
+
+    expect(directive).toContain('OKULTYZM_DYREKTYWA');
+    expect(directive).toContain('Natura magii: soft_weird');
+    expect(directive).toContain('Koszt somatyczny: Krwawienie z nosa i metaliczny posmak popiołu');
+    expect(directive).toContain('Krąg kultu: inner_initiated');
+    expect(directive).toContain('Tabu: Nie wymawiaj imienia Hastura przy pełni');
+  });
+
   it('WorldEngineDirector compiles all active engines into coherent prompt block', () => {
     const director = new WorldEngineDirector();
     const compiled = director.compileDirectives({
@@ -94,11 +129,22 @@ describe('World Engine Suite', () => {
         resistanceLevel: 'guarded',
         fearOrLeverage: 'Wzmianka o bagnie',
       },
+      geography: {
+        terrainOrChokepoint: 'Most nad Miskatonic',
+        economicConstraint: 'Kontrola spławu drewna',
+      },
+      occult: {
+        magicType: 'soft_weird',
+        somaticCost: 'Pękanie naczynek w oku',
+      },
       locale: 'pl',
     });
 
     expect(compiled).toContain('## DYREKTYWY SILNIKA ŚWIATA (SYSTEMY RUNTIME)');
     expect(compiled).toContain('Inspektor Legrasse');
     expect(compiled).toContain('SENSORY_DYREKTYWA');
+    expect(compiled).toContain('GEOGRAFIA_DYREKTYWA');
+    expect(compiled).toContain('OKULTYZM_DYREKTYWA');
   });
 });
+
