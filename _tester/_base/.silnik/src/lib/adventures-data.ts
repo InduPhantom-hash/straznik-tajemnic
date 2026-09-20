@@ -77,7 +77,7 @@ export interface AdventureContext {
   /** Nazwa zbioru źródłowego do wyświetlenia (np. nazwa antologii lub podręcznika). */
   source?: string;
   /** Kategoria źródła do grupowania w UI. */
-  sourceCategory?: 'core' | 'anthology' | 'oneshot' | 'custom';
+  sourceCategory?: 'core' | 'anthology' | 'oneshot' | 'custom' | 'starter';
   /**
    * Slug książki źródłowej. MUSI pokrywać się z tagiem `source:<slug>` zapisanym
    * przez reindex (scripts/reindex-pdfs.ts) - dzięki temu MG przy aktywnej

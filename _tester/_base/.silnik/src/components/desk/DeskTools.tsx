@@ -60,8 +60,11 @@ interface DeskToolsProps {
   onUploadAdventure?: (file: File) => Promise<CustomAdventure | null>;
   onDeleteAdventure?: (id: string) => Promise<void>;
   isUploadingAdventure?: boolean;
+  uploadProgressAdventure?: number;
+  loadingStatusAdventure?: string;
   uploadErrorAdventure?: string | null;
   onClearUploadErrorAdventure?: () => void;
+  onToggleAttachLorebook?: (adventureId: string, lorebookId: string) => Promise<void>;
 }
 
 export const DeskTools: FC<DeskToolsProps> = ({
@@ -98,8 +101,11 @@ export const DeskTools: FC<DeskToolsProps> = ({
   onUploadAdventure,
   onDeleteAdventure,
   isUploadingAdventure,
+  uploadProgressAdventure,
+  loadingStatusAdventure,
   uploadErrorAdventure = null,
   onClearUploadErrorAdventure,
+  onToggleAttachLorebook,
 }) => {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [showSessionZero, setShowSessionZero] = useState(false);
@@ -326,7 +332,26 @@ export const DeskTools: FC<DeskToolsProps> = ({
       {openDialog === "equipment" && activeCharacter && onUpdateCharacter && <EquipmentModal open={true} onOpenChange={o => !o && setOpenDialog(null)} character={activeCharacter} onCharacterUpdate={onUpdateCharacter} era={adventureContext?.yearRange?.split('-')[0] || '1920s'} adventureTheme={adventureContext?.title} eraContext={resolvedEraContext} />}
       <DiceDialog open={openDialog === "dice"} onOpenChange={o => !o && setOpenDialog(null)} activeCharacter={activeCharacter} onRollSendToChat={handleSendMessage} />
       <SessionZeroModal open={showSessionZero} onClose={() => setShowSessionZero(false)} adventureContext={adventureContext || undefined} activeCharacter={activeCharacter} onCharacterUpdate={onUpdateCharacter} onComplete={() => onSessionZeroComplete && onSessionZeroComplete()} />
-      <AdventureSelector open={showAdventureSelector} onClose={() => setShowAdventureSelector(false)} onSelect={a => { setAdventureContext(a); localStorage.setItem('adventure_context', JSON.stringify(a)); if (onAdventureSelect) onAdventureSelect(a); setShowAdventureSelector(false); setTimeout(() => setShowSessionZero(true), 300); }} customAdventures={customAdventures} onUploadAdventure={onUploadAdventure} onDeleteAdventure={onDeleteAdventure} isUploading={isUploadingAdventure} uploadError={uploadErrorAdventure} onClearUploadError={onClearUploadErrorAdventure} />
+      <AdventureSelector
+        open={showAdventureSelector}
+        onClose={() => setShowAdventureSelector(false)}
+        onSelect={(a) => {
+          setAdventureContext(a);
+          localStorage.setItem('adventure_context', JSON.stringify(a));
+          if (onAdventureSelect) onAdventureSelect(a);
+          setShowAdventureSelector(false);
+          setTimeout(() => setShowSessionZero(true), 300);
+        }}
+        customAdventures={customAdventures}
+        onUploadAdventure={onUploadAdventure}
+        onDeleteAdventure={onDeleteAdventure}
+        onToggleAttachLorebook={onToggleAttachLorebook}
+        isUploading={isUploadingAdventure}
+        uploadProgress={uploadProgressAdventure}
+        loadingStatus={loadingStatusAdventure}
+        uploadError={uploadErrorAdventure}
+        onClearUploadError={onClearUploadErrorAdventure}
+      />
     </>
   );
 };

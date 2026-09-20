@@ -31,10 +31,12 @@ import {
   MapPin,
   Clock,
   Book,
+  BookOpen,
   Library,
   BookmarkCheck,
   Lock,
   AlertCircle,
+  Check,
 } from 'lucide-react';
 
 import { AdventureDetailsModal } from './adventure-details-modal';
@@ -79,7 +81,6 @@ export function AdventureSelector({
 
   const [activeTab, setActiveTab] = useState<'scenarios' | 'lorebooks'>('scenarios');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedExactYear, setSelectedExactYear] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [detailsAdventure, setDetailsAdventure] =
     useState<AdventureContext | null>(null);
@@ -96,10 +97,8 @@ export function AdventureSelector({
     [customAdventures]
   );
 
-  const handleSelect = (adventure: AdventureContext, openDetails = true) => {
+  const handleSelect = (adventure: AdventureContext, openDetails = false) => {
     setSelectedId(adventure.id);
-    const years = adventure.yearRange?.match(/\b\d{4}\b/g) ?? [];
-    setSelectedExactYear(new Set(years).size === 1 ? (years[0] ?? '') : '');
     if (openDetails) {
       setDetailsAdventure(adventure);
     }
@@ -111,12 +110,7 @@ export function AdventureSelector({
         customAdventures.find((a) => a.id === selectedId) ||
         (SHOW_BUILT_IN_ADVENTURES ? BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) : null);
       if (selected) {
-        if (selected.isCustom && !/^\d{4}$/.test(selectedExactYear)) return;
-        const finalAdventure =
-          selected.isCustom && selectedExactYear
-            ? { ...selected, yearRange: selectedExactYear }
-            : selected;
-        onSelect(finalAdventure);
+        onSelect(selected);
       }
     }
     onClose();
@@ -129,8 +123,6 @@ export function AdventureSelector({
     const newAdventure = await onUploadAdventure(file);
     if (newAdventure) {
       setSelectedId(newAdventure.id);
-      const years = newAdventure.yearRange?.match(/\b\d{4}\b/g) ?? [];
-      setSelectedExactYear(new Set(years).size === 1 ? (years[0] ?? '') : '');
     }
 
     if (fileInputRef.current) {
@@ -168,16 +160,16 @@ export function AdventureSelector({
     ? BUILT_IN_ADVENTURES.find((a) => a.id === selectedId) ||
       customAdventures.find((a) => a.id === selectedId)
     : null;
-  const selectedCustomReady =
-    !selectedAdventure?.isCustom || /^\d{4}$/.test(selectedExactYear);
 
   // Komponent karty przygody (DRY)
   const AdventureCard = ({
     adventure,
     isCustom = false,
+    isLorebook = false,
   }: {
     adventure: AdventureContext | CustomAdventure;
     isCustom?: boolean;
+    isLorebook?: boolean;
   }) => {
     const toneStyle = TONE_STYLES[adventure.tone] || TONE_STYLES.purist;
     const eraStyle = ERA_STYLES[adventure.era] || ERA_STYLES.custom;
@@ -191,77 +183,104 @@ export function AdventureSelector({
     const EraIcon = eraStyle.icon;
     const DiffIcon = diffStyle.icon;
 
+    // Czyste formatowanie lokacji bez duplikatów (np. "Polska, Polska")
+    const displayLocation = useMemo(() => {
+      const loc = adventure.location?.trim() || '';
+      const country = adventure.country?.trim() || '';
+      if (!loc) return country || 'Nieznana lokacja';
+      if (!country || loc.toLowerCase().includes(country.toLowerCase())) return loc;
+      return `${loc}, ${country}`;
+    }, [adventure.location, adventure.country]);
+
+    // Czyste formatowanie epoki i lat bez duplikatów (np. "(1981) (1981)")
+    const displayEra = useMemo(() => {
+      const era = adventure.eraLabel?.trim() || 'Klasyczna';
+      const years = adventure.yearRange?.trim() || '';
+      if (!years || era.includes(years)) return era;
+      return `${era} (${years})`;
+    }, [adventure.eraLabel, adventure.yearRange]);
+
     return (
       <div
-        role="button"
-        tabIndex={0}
-        onClick={() => handleSelect(adventure)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleSelect(adventure);
+        onClick={() => {
+          if (isLorebook) {
+            setDetailsAdventure(adventure);
+          } else {
+            handleSelect(adventure, false);
           }
         }}
-        className={`group relative p-4 text-left cursor-pointer transition-all duration-300 select-none ${
-          isSelected
-            ? 'border border-primary bg-[#0e1413] shadow-[0_0_18px_rgba(13,148,136,0.22)]'
-            : 'border border-brass/28 bg-[#16130f] hover:border-brass/55'
+        className={`group relative p-4 text-left cursor-pointer transition-all duration-300 select-none rounded-sm ${
+          isSelected && !isLorebook
+            ? 'border-2 border-primary bg-[#0f1715] shadow-[0_0_22px_rgba(13,148,136,0.3)] ring-1 ring-primary/60'
+            : 'border border-brass/30 bg-[#16130f] hover:border-brass/65 hover:bg-[#1a1612]'
         } ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
       >
-        {/* Narożnik déco (lewy-górny) */}
+        {/* Narożniki déco */}
         <span
-          className={`pointer-events-none absolute left-1.5 top-1.5 h-2.5 w-2.5 border-l-[1.5px] border-t-[1.5px] ${
-            isSelected ? 'border-primary' : 'border-brass/45'
+          className={`pointer-events-none absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 ${
+            isSelected && !isLorebook ? 'border-primary' : 'border-brass/45'
+          }`}
+        />
+        <span
+          className={`pointer-events-none absolute right-1.5 bottom-1.5 h-3 w-3 border-r-2 border-b-2 ${
+            isSelected && !isLorebook ? 'border-primary' : 'border-brass/45'
           }`}
         />
 
-        {/* Header */}
-        <div className="mb-2 flex items-start justify-between gap-2">
-          <h3 
-            className="pr-2 font-display text-lg font-semibold leading-tight tracking-[0.06em] text-foreground"
+        {/* Źródło / Tom zbioru jeśli dotyczy */}
+        {adventure.source && (
+          <div className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-mono font-medium uppercase tracking-wider text-amber-300/90 bg-amber-950/30 px-2 py-0.5 rounded border border-amber-500/30">
+            <BookOpen className="h-3 w-3 text-amber-400 shrink-0" />
+            <span>Z tomu: {adventure.source}</span>
+          </div>
+        )}
+
+        {/* Header: Tytuł w naturalnym casing + wskaźnik wyboru / typ */}
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <h3
+            className="font-display text-lg font-bold text-amber-100 leading-snug tracking-wide group-hover:text-white transition-colors"
             title={adventure.title}
           >
             {adventure.title}
           </h3>
+
           <div className="flex shrink-0 items-center gap-2">
-            {adventure.documentType && adventure.documentType !== 'scenario' && (
+            {isLorebook && adventure.documentType && (
               <span className="inline-flex items-center gap-1 border border-brass/40 bg-brass/10 px-2 py-0.5 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-brass">
                 <Book className="h-3 w-3 text-brass" />
                 {adventure.documentType === 'setting' ? t('docTypeSetting') : t('docTypeCompendium')}
               </span>
             )}
-            <span
-              className={`inline-flex items-center gap-1.5 border border-brass/35 px-2 py-0.5 font-display text-xs uppercase tracking-[0.08em] ${toneStyle.color}`}
-            >
-              <ToneIcon className="h-3 w-3 shrink-0" />
-              {tStyles(toneStyle.translationKey)}
-            </span>
-            {isSelected && (
+            {!isLorebook && (
+              <span
+                className={`inline-flex items-center gap-1.5 border border-brass/35 px-2 py-0.5 font-display text-xs uppercase tracking-[0.08em] ${toneStyle.color}`}
+              >
+                <ToneIcon className="h-3 w-3 shrink-0" />
+                {tStyles(toneStyle.translationKey)}
+              </span>
+            )}
+            {isSelected && !isLorebook && (
               <span
                 aria-label={t('selectedAria')}
-                className="flex h-6 w-6 rotate-45 items-center justify-center bg-primary shadow-[0_0_12px_rgba(13,148,136,0.5)]"
+                className="flex items-center gap-1 bg-primary/20 text-primary border border-primary px-2 py-0.5 text-xs font-display font-semibold uppercase tracking-wider shadow-[0_0_12px_rgba(13,148,136,0.3)] rounded-sm"
               >
-                <span
-                  aria-hidden="true"
-                  className="-rotate-45 text-sm text-[#04110f]"
-                >
-                  ✓
-                </span>
+                <Check className="h-3.5 w-3.5" />
+                <span>Wybrano</span>
               </span>
             )}
           </div>
         </div>
 
-        {/* Meta info */}
-        <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-sm italic text-muted-foreground">
+        {/* Meta info: Epoka i Czysta Lokacja */}
+        <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-serif text-sm text-muted-foreground">
           <span className={`inline-flex items-center gap-1 ${eraStyle.color}`}>
             <EraIcon className="h-3.5 w-3.5 shrink-0 text-brass/70" />
-            {adventure.eraLabel} ({adventure.yearRange})
+            {displayEra}
           </span>
           <span className="text-brass/40 not-italic">·</span>
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-1 text-foreground/90">
             <MapPin className="h-3.5 w-3.5 text-brass/70 shrink-0" />
-            {adventure.location}
+            {displayLocation}
           </span>
           {adventure.lorebookData?.regionOrTheme && (
             <>
@@ -273,33 +292,41 @@ export function AdventureSelector({
           )}
         </div>
 
-        {/* Hook - klimatyczna zajawka (2 linijki) */}
-        <p className="mb-3 line-clamp-2 font-serif text-base italic leading-relaxed text-foreground/80">
-          {adventure.hook}
+        {/* Haczyk narracyjny - zarys fabuły (czytelny font, wysoki kontrast, 2-3 linijki) */}
+        <p className="mb-3 line-clamp-3 font-sans text-sm text-foreground/85 leading-relaxed">
+          {adventure.hook || adventure.description?.slice(0, 180)}
         </p>
 
-
         {/* Footer */}
-        <div className="flex items-center justify-between font-display text-xs uppercase tracking-wider text-muted-foreground border-t border-brass/15 pt-2.5">
-          <span className="inline-flex items-center gap-1 text-brass/80">
-            <Clock className="h-3.5 w-3.5 text-brass/70 shrink-0" />
-            {t('sessionsCount', { count: adventure.estimatedSessions })}
-          </span>
-
-          <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1 ${diffStyle.color}`}>
-              <DiffIcon className="h-3.5 w-3.5 shrink-0" />
-              {tStyles(diffStyle.translationKey)}
+        <div className="flex items-center justify-between font-display text-xs uppercase tracking-wider text-muted-foreground border-t border-brass/20 pt-2.5 mt-auto">
+          {!isLorebook ? (
+            <span className="inline-flex items-center gap-1 text-brass/80">
+              <Clock className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+              {t('sessionsCount', { count: adventure.estimatedSessions || '2-3' })}
             </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-brass/80">
+              <Book className="h-3.5 w-3.5 text-brass/70 shrink-0" />
+              <span>Kompendium wiedzy</span>
+            </span>
+          )}
 
-            {/* Dyskretna zintegrowana akcja szczegółów */}
+          <div className="flex items-center gap-2.5">
+            {!isLorebook && (
+              <span className={`inline-flex items-center gap-1 ${diffStyle.color}`}>
+                <DiffIcon className="h-3.5 w-3.5 shrink-0" />
+                {tStyles(diffStyle.translationKey)}
+              </span>
+            )}
+
+            {/* Przycisk szczegółów */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setDetailsAdventure(adventure);
               }}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 text-brass/70 hover:text-primary hover:bg-brass/10 rounded transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 text-brass/80 hover:text-primary hover:bg-primary/10 border border-brass/25 hover:border-primary/50 rounded transition-colors"
               title={t('moreDetails')}
               aria-label={t('moreDetails')}
             >
@@ -307,13 +334,33 @@ export function AdventureSelector({
               <span className="text-[11px] font-semibold">{t('moreDetails')}</span>
             </button>
 
-            {/* Przycisk usuwania dla własnych przygód */}
+            {/* Przycisk wyboru dla scenariuszy */}
+            {!isLorebook && (
+              <Button
+                type="button"
+                variant={isSelected ? 'default' : 'outline'}
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelect(adventure, false);
+                }}
+                className={`h-7 px-3 text-xs font-display uppercase tracking-wider transition-all ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(13,148,136,0.4)]'
+                    : 'border-brass/35 text-brass hover:text-foreground hover:border-brass'
+                }`}
+              >
+                {isSelected ? 'Wybrano' : 'Wybierz'}
+              </Button>
+            )}
+
+            {/* Przycisk usuwania dla własnych materiałów */}
             {isCustom && onDeleteAdventure && (
               <button
                 type="button"
                 onClick={(e) => handleDelete(adventure.id, e)}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-1 text-destructive hover:text-red-300 transition-colors p-0.5"
+                className="inline-flex items-center gap-1 text-destructive/80 hover:text-red-300 transition-colors p-1 ml-1"
                 title={t('deleteAdventureTitle')}
                 aria-label={t('deleteButton')}
               >
@@ -327,13 +374,11 @@ export function AdventureSelector({
           </div>
         </div>
 
-        {/* PDF Badge for custom adventures */}
+        {/* PDF Badge dla własnych plików */}
         {isCustom && customAdv.fileName && (
-          <div className="mt-2 flex items-center gap-1 font-serif text-sm italic text-primary">
-            <FileText className="h-3.5 w-3.5 shrink-0" />
-            <span className="max-w-[200px] truncate">
-              {customAdv.fileName}
-            </span>
+          <div className="mt-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground/80">
+            <FileText className="h-3 w-3 shrink-0 text-brass/60" />
+            <span className="max-w-[240px] truncate">{customAdv.fileName}</span>
           </div>
         )}
       </div>
@@ -636,6 +681,7 @@ export function AdventureSelector({
                       key={lorebook.id}
                       adventure={lorebook}
                       isCustom
+                      isLorebook
                     />
                   ))}
                 </div>
@@ -680,33 +726,6 @@ export function AdventureSelector({
                   </span>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Wymóg dokładnego roku dla scenariuszy z zakresem lat */}
-          {selectedAdventure?.isCustom && (
-            <div className="relative mt-6 border border-brass/30 bg-card p-4">
-              <label
-                htmlFor="selected-exact-year"
-                className="font-special-elite text-xs uppercase tracking-[0.16em] text-brass"
-              >
-                {t('exactYearLabel')}
-              </label>
-              <input
-                id="selected-exact-year"
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                value={selectedExactYear}
-                onChange={(event) =>
-                  setSelectedExactYear(event.target.value.replace(/\D/g, '').slice(0, 4))
-                }
-                placeholder={t('exactYearPlaceholder')}
-                className="mt-2 w-full border border-brass/30 bg-[#0e0c08] px-4 py-3 font-serif text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
-              />
-              <p className="mt-2 font-serif text-sm italic text-muted-foreground">
-                {t('exactYearRequired')}
-              </p>
             </div>
           )}
 
@@ -793,7 +812,7 @@ export function AdventureSelector({
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={!selectedId || !selectedCustomReady}
+              disabled={!selectedId}
               className="font-display font-semibold uppercase tracking-[0.16em]"
             >
               {t('chooseAndContinue')}
