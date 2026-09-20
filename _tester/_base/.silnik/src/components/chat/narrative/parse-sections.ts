@@ -23,6 +23,45 @@ export function parseIntoSections(content: string): Section[] {
     const line = lines[i];
     const trimmedLine = line.trim();
 
+    // Wykryj koniec lub kontynuację aktywnego handoutu
+    if (inHandout) {
+      if (isHandoutEnd(trimmedLine)) {
+        handoutBuffer.push(line);
+        const joined = handoutBuffer.join('\n');
+        const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
+        const imageMatch = joined.match(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*([^\]]+)\]/i);
+        let cleanedContent = joined;
+        if (audioMatch) {
+          cleanedContent = cleanedContent.replace(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*[^\]]+\]/gi, '');
+        }
+        if (imageMatch) {
+          cleanedContent = cleanedContent.replace(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*[^\]]+\]/gi, '');
+        }
+        cleanedContent = cleanedContent.trim();
+        sections.push({
+          type: 'handout',
+          content: cleanedContent,
+          handoutType: handoutType,
+          audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
+          imageUrl: imageMatch ? imageMatch[1].trim() : undefined,
+        });
+        inHandout = false;
+        handoutBuffer = [];
+        continue;
+      }
+
+      // Jeśli początkowy typ to 'note' (np. od ramki ASCII), spróbuj doprecyzować z nagłówka
+      if (handoutType === 'note') {
+        const detected = detectHandoutType(trimmedLine);
+        if (detected !== 'note') {
+          handoutType = detected;
+        }
+      }
+
+      handoutBuffer.push(line);
+      continue;
+    }
+
     // Wykryj początek handoutu (ASCII art borders, nagłówki prasowe, etc.)
     if (isHandoutStart(trimmedLine)) {
       // Zapisz poprzednią sekcję
@@ -33,29 +72,6 @@ export function parseIntoSections(content: string): Section[] {
       handoutType = detectHandoutType(trimmedLine);
       handoutBuffer = [line];
       currentSection = null;
-      continue;
-    }
-
-    // Wykryj koniec handoutu
-    if (inHandout && isHandoutEnd(trimmedLine)) {
-      handoutBuffer.push(line);
-      const joined = handoutBuffer.join('\n');
-      const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
-      const cleanedContent = audioMatch ? joined.replace(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*[^\]]+\]/gi, '').trim() : joined;
-      sections.push({
-        type: 'handout',
-        content: cleanedContent,
-        handoutType: handoutType,
-        audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
-      });
-      inHandout = false;
-      handoutBuffer = [];
-      continue;
-    }
-
-    // Kontynuuj handout
-    if (inHandout) {
-      handoutBuffer.push(line);
       continue;
     }
 
@@ -163,12 +179,21 @@ export function parseIntoSections(content: string): Section[] {
   if (handoutBuffer.length > 0) {
     const joined = handoutBuffer.join('\n');
     const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
-    const cleanedContent = audioMatch ? joined.replace(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*[^\]]+\]/gi, '').trim() : joined;
+    const imageMatch = joined.match(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*([^\]]+)\]/i);
+    let cleanedContent = joined;
+    if (audioMatch) {
+      cleanedContent = cleanedContent.replace(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*[^\]]+\]/gi, '');
+    }
+    if (imageMatch) {
+      cleanedContent = cleanedContent.replace(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*[^\]]+\]/gi, '');
+    }
+    cleanedContent = cleanedContent.trim();
     sections.push({
       type: 'handout',
       content: cleanedContent,
       handoutType: handoutType,
       audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
+      imageUrl: imageMatch ? imageMatch[1].trim() : undefined,
     });
   }
 
@@ -188,10 +213,10 @@ function isHandoutStart(line: string): boolean {
     return false;
   // ASCII art borders
   if (line.match(/^[━═─╔╗╚╝┌┐└┘│║╠╣╦╩╬+=\-_*~]{5,}$/)) return true;
-  // Nagłówki prasowe
+  // Nagłówki prasowe i multimedialne
   if (
     line.match(
-      /^📰|^📜|^✉️|^📋|^📧|^TELEGRAM|^KURIER|^DZIENNIK|^ARKHAM ADVERTISER/i
+      /^📰|^📜|^✉️|^📋|^📧|^TELEGRAM|^KURIER|^DZIENNIK|^ARKHAM ADVERTISER|^🎙️|^📼|^📻|^🗺️/i
     )
   )
     return true;
@@ -214,7 +239,7 @@ export function detectHandoutType(line: string): HandoutType {
     return 'newspaper';
   if (line.match(/✉️|LIST|LETTER|DEAR|DROGI|SZANOWN/i)) return 'letter';
   if (line.match(/📧|TELEGRAM|WESTERN UNION|STOP\s|URG/i)) return 'telegram';
-  if (line.match(/📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ/i)) return 'report';
+  if (line.match(/📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ|🎙️|📼|📻|NAGRANIE|TAŚMA|TASMA|RECORDING|AUDIO|MAGNETOFON|🗺️|MAPA|PLAN|MAP/i)) return 'report';
   if (line.match(/📜|KSIĘGA|NECRONOMICON|TOME|MANUSCR/i)) return 'book';
   return 'note';
 }
