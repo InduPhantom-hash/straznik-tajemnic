@@ -124,17 +124,22 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
       expect(pl.rulesetConventionLabel).toBe('Konwencja reguł:');
       expect(en.rulesetConventionLabel).toBe('Rules convention:');
 
-      expect(pl.rulesetClassic).toBe('Klasyczny CoC 7e');
-      expect(en.rulesetClassic).toBe('Classic CoC 7e');
+      expect(pl.rulesetClassic).toBe('Klasyczny');
+      expect(en.rulesetClassic).toBe('Classic');
 
-      expect(pl.rulesetPulp).toBe('Pulp Cthulhu');
-      expect(en.rulesetPulp).toBe('Pulp Cthulhu');
+      expect(pl.rulesetPulp).toBe('Pulp');
+      expect(en.rulesetPulp).toBe('Pulp');
 
-      expect(pl.rulesetClassicShort).toBe('Klasyk');
+      expect(pl.rulesetClassicShort).toBe('Klasyczny');
       expect(en.rulesetClassicShort).toBe('Classic');
 
       expect(pl.rulesetPulpShort).toBe('Pulp');
       expect(en.rulesetPulpShort).toBe('Pulp');
+
+      expect(pl.rulesetClassicExplanation).toBeDefined();
+      expect(en.rulesetClassicExplanation).toBeDefined();
+      expect(pl.rulesetPulpExplanation).toBeDefined();
+      expect(en.rulesetPulpExplanation).toBeDefined();
 
       expect(pl.close).toBe('Zamknij');
       expect(en.close).toBe('Close');
@@ -161,6 +166,26 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
 
       expect(pl.hobbiesAndExcess).toBe('hobby i umiejętności poboczne');
       expect(en.hobbiesAndExcess).toBe('hobbies & personal interests');
+    });
+
+    it('defines reset skills button and confirmation modal i18n keys in PL and EN (Issue #433)', () => {
+      const pl = (plMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+      const en = (enMessages as unknown as { CharacterWizard: Record<string, string> }).CharacterWizard;
+
+      expect(pl.resetSkills).toBe('Resetuj punkty');
+      expect(en.resetSkills).toBe('Reset points');
+
+      expect(pl.resetSkillsConfirmTitle).toBe('Zresetować przydział punktów?');
+      expect(en.resetSkillsConfirmTitle).toBe('Reset skill allocation?');
+
+      expect(pl.resetSkillsConfirmDesc).toContain('{creditMin}');
+      expect(en.resetSkillsConfirmDesc).toContain('{creditMin}');
+
+      expect(pl.resetSkillsConfirmAction).toBe('Zresetuj punkty');
+      expect(en.resetSkillsConfirmAction).toBe('Reset points');
+
+      expect(pl.cancel).toBe('Anuluj');
+      expect(en.cancel).toBe('Cancel');
     });
   });
 });
