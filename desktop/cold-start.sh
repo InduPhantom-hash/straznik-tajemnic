@@ -36,18 +36,22 @@ cd "$APP_DIR" || exit 1
 TS="$(date +%Y%m%d-%H%M%S)"
 PROFILE_DIR="$APP_DIR/.desktop/chrome-profile"
 APP_PORT="${ZEW_APP_PORT:-4040}"
+ALT_PORT=4050
+ZEW_DATA_ROOT="${ZEW_DATA_DIR:-$HOME/Library/Application Support/ZewCthulhu}"
+ZEW_PROFILE_DIR="$ZEW_DATA_ROOT/desktop/chrome-profile"
 
 log "=== START  APP_DIR=$APP_DIR  \$0=$0  CWD=$(pwd) ==="
 
 # --- KROK 0: ubij dzialajaca gre PRZED czyszczeniem (sedno fixu) ---
-SRV_PIDS="$(lsof -ti :$APP_PORT 2>/dev/null || true)"
+SRV_PIDS="$(lsof -ti :$APP_PORT :$ALT_PORT 2>/dev/null || true)"
 if [ -n "$SRV_PIDS" ]; then
-  log "KROK 0: serwer $APP_PORT dziala (PID: $(echo "$SRV_PIDS" | tr '\n' ' ')) - zatrzymuje"
+  log "KROK 0: serwery gier ($APP_PORT, $ALT_PORT) dzialaja (PID: $(echo "$SRV_PIDS" | tr '\n' ' ')) - zatrzymuje"
   echo "$SRV_PIDS" | xargs kill 2>/dev/null || true
 fi
-if pgrep -f "user-data-dir=$PROFILE_DIR" >/dev/null 2>&1; then
+if pgrep -f "user-data-dir=" | grep -E "($PROFILE_DIR|$ZEW_PROFILE_DIR)" >/dev/null 2>&1; then
   log "KROK 0: okno gry (Chrome) dziala - zamykam"
   pkill -f "user-data-dir=$PROFILE_DIR" 2>/dev/null || true
+  pkill -f "user-data-dir=$ZEW_PROFILE_DIR" 2>/dev/null || true
 fi
 # Czekaj az Chrome/serwer zwolnia pliki i pamiec (max ~10s).
 for _ in $(seq 1 20); do
@@ -77,9 +81,9 @@ rm -rf _tester/_base/.silnik/data/saves/local _tester/_base/.silnik/data/session
 log "usunieto: save'y, sesje, wyniki, licznik kosztow"
 
 # --- 3. Profil Chrome launchera (localStorage/IndexedDB: czat, postacie, ustawienia) ---
-rm -rf "$PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
+rm -rf "$PROFILE_DIR" "$ZEW_PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
 sleep 0.5
-rm -rf "$PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
+rm -rf "$PROFILE_DIR" "$ZEW_PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
 log "rm profilu: OK (czat, postacie, ustawienia wyczyszczone we wszystkich lokalizacjach)"
 
 # --- 4. Pamiec NPC RAG (ZOSTAW rules/adventures/mythos!) ---
