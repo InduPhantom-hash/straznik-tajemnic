@@ -152,6 +152,9 @@ export function useCustomAdventures(): UseCustomAdventuresReturn {
         const freshState = await loadCustomAdventures();
         const updatedAdventures = [...freshState.adventures, ...newAdventures];
 
+        setUploadProgress(90);
+        setLoadingStatus('Optymalizacja struktur grafu i pamięci...');
+
         setCustomAdventures(updatedAdventures);
         await saveCustomAdventures({
           adventures: updatedAdventures,

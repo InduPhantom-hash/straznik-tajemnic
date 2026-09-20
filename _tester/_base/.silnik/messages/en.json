@@ -6407,6 +6407,7 @@
     "uploadButton": "Upload adventure (PDF)",
     "processingBook": "Processing the book of secrets...",
     "aiAnalyzing": "The AI is analyzing the adventure and automatically filling in details...",
+    "optimizingMemory": "Optimizing graph structures and memory...",
     "uploadHint": "e.g. the free starter downloaded from Black Monk",
     "uploadErrorTitle": "Adventure Processing Error",
     "dismiss": "Dismiss",
