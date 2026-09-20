@@ -82,7 +82,10 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-2 font-display text-xs uppercase tracking-[0.16em] text-brass/80 hover:text-brass transition-colors mb-6 cursor-pointer group"
+        disabled={isStarting}
+        className={`inline-flex items-center gap-2 font-display text-xs uppercase tracking-[0.16em] text-brass/80 hover:text-brass transition-colors mb-6 group ${
+          isStarting ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+        }`}
       >
         <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
         <span>{t('backToMode')}</span>
@@ -128,7 +131,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                 type="button"
                 variant="outline"
                 onClick={onChoosePlayMode}
-                className="font-display uppercase tracking-[0.1em] text-xs border-brass/40 hover:border-brass hover:bg-brass/10 text-brass shrink-0"
+                disabled={isStarting}
+                className="font-display uppercase tracking-[0.1em] text-xs border-brass/40 hover:border-brass hover:bg-brass/10 text-brass shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {t('changeMode')}
               </Button>
@@ -176,7 +180,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
               type="button"
               variant="outline"
               onClick={onSelectAdventure}
-              className="font-display uppercase tracking-[0.1em] text-xs border-brass/40 hover:border-brass hover:bg-brass/10 text-brass shrink-0"
+              disabled={isStarting}
+              className="font-display uppercase tracking-[0.1em] text-xs border-brass/40 hover:border-brass hover:bg-brass/10 text-brass shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {hasAdventure ? t('changeAdv') : t('selectAdv')}
             </Button>
@@ -228,7 +233,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onPickPredefinedCharacter()}
-                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                      disabled={isStarting}
+                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-1.5" />
                       {t('changeChar')}
@@ -239,7 +245,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onCreateCharacter()}
-                    className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                    disabled={isStarting}
+                    className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                     {t('createNew')}
@@ -250,7 +257,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onPickCharacter()}
-                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                      disabled={isStarting}
+                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
                       {t('fromCatalog')}
@@ -269,7 +277,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onCreateCharacter()}
-                    className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                    disabled={isStarting}
+                    className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                     {t('createNewChar')}
@@ -280,7 +289,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onPickPredefinedCharacter()}
-                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                      disabled={isStarting}
+                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-1.5" />
                       {t('selectPremade')}
@@ -292,7 +302,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onPickCharacter()}
-                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                      disabled={isStarting}
+                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
                       {t('fromCatalog')}
@@ -360,7 +371,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               variant="outline"
                               size="sm"
                               onClick={() => onPickPredefinedCharacter(slot.playerName)}
-                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                              disabled={isStarting}
+                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <UserCheck className="w-3.5 h-3.5 mr-1.5" />
                               {t('changeChar')}
@@ -371,7 +383,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={() => onCreateCharacter(slot.playerName)}
-                            className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                            disabled={isStarting}
+                            className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                             {t('createNew')}
@@ -382,7 +395,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               variant="outline"
                               size="sm"
                               onClick={() => onPickCharacter(slot.playerName)}
-                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                              disabled={isStarting}
+                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
                               {t('fromCatalog')}
@@ -396,7 +410,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={() => onCreateCharacter(slot.playerName)}
-                            className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                            disabled={isStarting}
+                            className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                             {t('createNew')}
@@ -407,7 +422,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               variant="outline"
                               size="sm"
                               onClick={() => onPickPredefinedCharacter(slot.playerName)}
-                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                              disabled={isStarting}
+                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <UserCheck className="w-3.5 h-3.5 mr-1.5" />
                               {t('selectPremadeShort')}
@@ -419,7 +435,8 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                               variant="outline"
                               size="sm"
                               onClick={() => onPickCharacter(slot.playerName)}
-                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass"
+                              disabled={isStarting}
+                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
                               {t('fromCatalog')}
@@ -464,7 +481,7 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onSessionZero}
-                disabled={!isReady}
+                disabled={!isReady || isStarting}
                 className="font-display uppercase tracking-[0.1em] text-xs border-brass/30 hover:border-brass text-brass shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                 title={!isReady ? t('sessionZeroRequiresSetup') : undefined}
               >
