@@ -74,7 +74,7 @@ import {
   cleanResponseText,
   stripMultilineArtifacts,
 } from '@/lib/parsers/text-cleaner';
-import { getApiKeyHeaders } from '@/lib/api-keys-service';
+import { getApiKeyHeaders, isPureTextMode } from '@/lib/api-keys-service';
 
 /**
  * IND-196: model Gemini TTS dobierany wg ROLI mówcy, nie długości zdania.
@@ -817,7 +817,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
   const addToQueue = useCallback(
     (fullRawText: string, messageId?: string, flush: boolean = false) => {
-      if (!voiceEnabled || !isTTSEnabled || !fullRawText) return;
+      if (!voiceEnabled || !isTTSEnabled || !fullRawText || isPureTextMode()) return;
 
       // Jeśli to zupełnie nowa wiadomość (inny ID), zresetuj postęp i audio
       if (messageId && currentMessageIdRef.current !== messageId) {
@@ -1355,7 +1355,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
   const generateVoiceForMessage = useCallback(
     async (message: Message) => {
-      if (!voiceEnabled || !isTTSEnabled || message.role !== 'assistant')
+      if (!voiceEnabled || !isTTSEnabled || message.role !== 'assistant' || isPureTextMode())
         return;
       addToQueue(message.content, message.id, true);
     },

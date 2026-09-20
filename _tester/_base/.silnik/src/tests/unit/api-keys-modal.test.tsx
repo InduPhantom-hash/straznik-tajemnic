@@ -18,6 +18,10 @@ jest.mock('next-intl', () => ({
       checking: 'Sprawdzam…',
       checkKey: 'Sprawdź klucz',
       keyWorks: 'Klucz działa',
+      paidTierBadge: 'Plan płatny (Pełny: Obraz + Głos)',
+      paidTierDesc: 'Klucz API posiada aktywny biling w Google AI Studio',
+      freeTierBadge: 'Plan darmowy (Tryb Tekstowy: Czysta Proza)',
+      freeTierDesc: 'Darmowe konto Google AI Studio',
       keyInvalid: 'Klucz nieprawidłowy lub limit przekroczony',
       authFailed: 'Google odrzuciło klucz (kod 401: nieprawidłowy, ucięty lub unieważniony)',
       permissionDenied: 'Brak uprawnień do Gemini API w projekcie Google Cloud (kod 403)',
@@ -37,6 +41,7 @@ jest.mock('next-intl', () => ({
 jest.mock('@/lib/api-keys-service', () => ({
   saveApiKeys: jest.fn(),
   getApiKeys: jest.fn(() => ({})),
+  getGeminiTier: jest.fn(() => 'free'),
 }));
 
 // Mock gemini-service
@@ -82,7 +87,7 @@ describe('ApiKeysModal - Twarda bramka walidacji i zintegrowany zapis w 1 klikni
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(geminiService.validateApiKey).toHaveBeenCalledWith('AQ.InvalidKey');
+      expect(geminiService.validateApiKey).toHaveBeenCalledWith('AQ.InvalidKey', { checkTier: true });
       expect(
         screen.getByText('Google odrzuciło klucz (kod 401: nieprawidłowy, ucięty lub unieważniony)')
       ).toBeInTheDocument();
@@ -105,6 +110,7 @@ describe('ApiKeysModal - Twarda bramka walidacji i zintegrowany zapis w 1 klikni
     jest.useFakeTimers();
     (geminiService.validateApiKey as jest.Mock).mockResolvedValue({
       valid: true,
+      tier: 'free',
       details: 'Połączenie działa poprawnie',
     });
 
@@ -118,8 +124,12 @@ describe('ApiKeysModal - Twarda bramka walidacji i zintegrowany zapis w 1 klikni
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(geminiService.validateApiKey).toHaveBeenCalledWith('AQ.ValidKey123');
-      expect(apiKeysService.saveApiKeys).toHaveBeenCalledWith({ GEMINI_API_KEY: 'AQ.ValidKey123' });
+      expect(geminiService.validateApiKey).toHaveBeenCalledWith('AQ.ValidKey123', { checkTier: true });
+      expect(apiKeysService.saveApiKeys).toHaveBeenCalledWith({
+        GEMINI_API_KEY: 'AQ.ValidKey123',
+        GEMINI_TIER: 'free',
+      });
+      expect(screen.getByText('Plan darmowy (Tryb Tekstowy: Czysta Proza)')).toBeInTheDocument();
     });
 
     // W etykiecie pojawia się zielony ptaszek
@@ -130,6 +140,37 @@ describe('ApiKeysModal - Twarda bramka walidacji i zintegrowany zapis w 1 klikni
     jest.advanceTimersByTime(1000);
     expect(onOpenChangeMock).toHaveBeenCalledWith(false);
 
+    jest.useRealTimers();
+  });
+
+  it('wykrywa plan płatny (Pay-As-You-Go) i zapisuje GEMINI_TIER = paid', async () => {
+    jest.useFakeTimers();
+    (geminiService.validateApiKey as jest.Mock).mockResolvedValue({
+      valid: true,
+      tier: 'paid',
+      details: 'Połączenie i generowanie obrazów działa poprawnie',
+    });
+
+    const onOpenChangeMock = jest.fn();
+    render(<ApiKeysModal open={true} onOpenChange={onOpenChangeMock} />);
+
+    const input = screen.getByLabelText(/Google Gemini API Key/i);
+    fireEvent.change(input, { target: { value: 'AQ.PaidKey777' } });
+
+    const saveButton = screen.getByRole('button', { name: /Sprawdź i zapisz klucz/i });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(geminiService.validateApiKey).toHaveBeenCalledWith('AQ.PaidKey777', { checkTier: true });
+      expect(apiKeysService.saveApiKeys).toHaveBeenCalledWith({
+        GEMINI_API_KEY: 'AQ.PaidKey777',
+        GEMINI_TIER: 'paid',
+      });
+      expect(screen.getByText('Plan płatny (Pełny: Obraz + Głos)')).toBeInTheDocument();
+    });
+
+    jest.advanceTimersByTime(1000);
+    expect(onOpenChangeMock).toHaveBeenCalledWith(false);
     jest.useRealTimers();
   });
 

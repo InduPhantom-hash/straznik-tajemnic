@@ -5,6 +5,7 @@ import { Fragment, useState, useEffect, useCallback, useMemo, type ReactNode } f
 import { useTranslations, useLocale } from 'next-intl';
 import * as Sentry from '@sentry/nextjs';
 import { Button } from './button';
+import { Badge } from './badge';
 import { HelpIcon } from './tooltip';
 import { Skull, Zap, Sparkles, Users, RotateCcw } from 'lucide-react';
 import { ImageLightbox } from './image-lightbox';
@@ -21,7 +22,7 @@ import {
   CHARACTER_ARCHETYPES,
   getAdventureContextPrompt,
 } from '@/lib/adventures-data';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, isPureTextMode } from '@/lib/api-keys-service';
 import {
   findEquipmentByName,
   createEquipmentItem,
@@ -1119,8 +1120,8 @@ export function CharacterWizardV2({
   const [showPortraitZoom, setShowPortraitZoom] = useState(false);
 
   const generatePortrait = async () => {
-    // Zabezpieczenie: nie uruchamiaj jeśli już trwa generowanie
-    if (state.isGeneratingPortrait) {
+    // Zabezpieczenie: nie uruchamiaj w trybie tekstowym lub gdy już trwa generowanie
+    if (isPureTextMode() || state.isGeneratingPortrait) {
       return;
     }
 
@@ -3871,29 +3872,43 @@ export function CharacterWizardV2({
                     👤
                   </div>
                 )}
-                <div className="flex-1 space-y-2 text-center sm:text-left">
-                  <Button
-                    onClick={generatePortrait}
-                    disabled={state.isGeneratingPortrait}
-                    size="sm"
-                    className={
-                      state.portraitUrl
-                        ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
-                        : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
-                    }
-                  >
-                    {state.isGeneratingPortrait
-                      ? t('generating')
-                      : state.portraitUrl
-                        ? `🔄 ${t('generateAnotherPortrait')}`
-                        : `🎨 ${t('generateAiPortrait')}`}
-                  </Button>
-                  <p className="font-serif italic text-xs text-muted-foreground leading-snug">
-                    {state.portraitUrl
-                      ? t('replacePortraitHint')
-                      : t('portraitGenerationHint')}
-                  </p>
-                </div>
+                {isPureTextMode() ? (
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
+                    <Badge
+                      variant="outline"
+                      className="font-mono text-[11px] text-amber-400 border-amber-500/40 bg-amber-950/20 px-2.5 py-1"
+                    >
+                      📜 {t('pureTextDossierBadge')}
+                    </Badge>
+                    <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                      {t('pureTextDossierHint')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
+                    <Button
+                      onClick={generatePortrait}
+                      disabled={state.isGeneratingPortrait}
+                      size="sm"
+                      className={
+                        state.portraitUrl
+                          ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
+                          : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
+                      }
+                    >
+                      {state.isGeneratingPortrait
+                        ? t('generating')
+                        : state.portraitUrl
+                          ? `🔄 ${t('generateAnotherPortrait')}`
+                          : `🎨 ${t('generateAiPortrait')}`}
+                    </Button>
+                    <p className="font-serif italic text-xs text-muted-foreground leading-snug">
+                      {state.portraitUrl
+                        ? t('replacePortraitHint')
+                        : t('portraitGenerationHint')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

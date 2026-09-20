@@ -17,6 +17,7 @@ jest.mock('@/lib/ai-settings', () => ({
 
 jest.mock('@/lib/api-keys-service', () => ({
   getApiKeyHeaders: jest.fn(() => ({})),
+  isPureTextMode: jest.fn(() => false),
 }));
 
 describe('useTTS First-Chunk Streaming & Buffering', () => {
