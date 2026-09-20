@@ -274,6 +274,60 @@ export const CHEAT_REGISTRY: CheatSuggestion[] = [
     descriptionEn: 'Adds revolver, flashlight, lockpicks, notebook and medkit.',
   },
   {
+    command: 'HANDOUT_DOC',
+    template: '[HANDOUT_DOC]',
+    labelPl: 'Czytnik Dokumentów (Deep Zoom / Sepia)',
+    labelEn: 'Document Viewer (Deep Zoom / Aging)',
+    category: 'items',
+    descriptionPl: 'Otwiera interaktywny skan rekwizytu (OpenSeadragon) z lupą i filtrami lat 20./PRL.',
+    descriptionEn: 'Opens interactive document viewer (OpenSeadragon) with deep zoom and 1920s/PRL filters.',
+  },
+  {
+    command: 'HANDOUT_AUDIO',
+    template: '[HANDOUT_AUDIO]',
+    labelPl: 'Odtwarzacz Taśm (WaveSurfer / Szpule)',
+    labelEn: 'Audio Tape Player (WaveSurfer / Reels)',
+    category: 'items',
+    descriptionPl: 'Uruchamia diegetyczny odtwarzacz szpulowy z falą dźwiękową i transkrypcją.',
+    descriptionEn: 'Launches diegetic reel player with audio waveform visualization and transcript.',
+  },
+  {
+    command: 'HANDOUTS',
+    template: '[HANDOUTS]',
+    labelPl: 'Komplet Rekwizytów (Dokument + Audio)',
+    labelEn: 'Full Handouts Pack (Doc + Audio)',
+    category: 'items',
+    descriptionPl: 'Wyzwala jednocześnie czytnik dokumentów (skan) oraz odtwarzacz taśm szpulowych.',
+    descriptionEn: 'Triggers both interactive document viewer and reel tape player in chat.',
+  },
+  {
+    command: 'DOKUMENT',
+    template: '[DOKUMENT]',
+    labelPl: 'Czytnik Dokumentów (Alias PL)',
+    labelEn: 'Document Viewer (PL Alias)',
+    category: 'items',
+    descriptionPl: 'Polski alias dla [HANDOUT_DOC] (opcje: [DOKUMENT: prl], [DOKUMENT: mapa], [DOKUMENT: 1920]).',
+    descriptionEn: 'Polish alias for [HANDOUT_DOC] (options: [DOKUMENT: prl], [DOKUMENT: mapa], [DOKUMENT: 1920]).',
+  },
+  {
+    command: 'TASMA',
+    template: '[TASMA]',
+    labelPl: 'Odtwarzacz Taśmy Szpulowej (Alias PL)',
+    labelEn: 'Audio Reel Player (PL Alias)',
+    category: 'items',
+    descriptionPl: 'Polski alias dla [HANDOUT_AUDIO] (opcje: [TASMA: corbitt], [TASMA: radio], [TASMA: gramofon]).',
+    descriptionEn: 'Polish alias for [HANDOUT_AUDIO] (options: [TASMA: corbitt], [TASMA: radio], [TASMA: gramofon]).',
+  },
+  {
+    command: 'REKWIZYTY',
+    template: '[REKWIZYTY]',
+    labelPl: 'Zestaw Rekwizytów Śledczych (Alias PL)',
+    labelEn: 'Investigator Handouts Set (PL Alias)',
+    category: 'items',
+    descriptionPl: 'Polski alias dla [HANDOUTS] (dokument ze skanem i nagranie dźwiękowe).',
+    descriptionEn: 'Polish alias for [HANDOUTS] (scanned document and audio recording).',
+  },
+  {
     command: 'HELP',
     template: '[HELP]',
     labelPl: 'Ściąga Kodów Retro',
@@ -295,6 +349,12 @@ const CHEAT_COMMAND_SET = new Set([
   'STUDY',
   'KOSTKI',
   'K',
+  'DOC',
+  'SKAN',
+  'TAŚMA',
+  'MAGNETOFON',
+  'AUDIO',
+  'NAGRANIE',
 ]);
 
 export function isCheatCommand(text: string): boolean {
@@ -939,6 +999,244 @@ export function executeCheatCommand(
         generatedImages: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'],
         timestamp: now,
       },
+    };
+  }
+
+  if (
+    command === 'HANDOUT_DOC' ||
+    command === 'DOKUMENT' ||
+    command === 'DOC' ||
+    command === 'SKAN'
+  ) {
+    const rawArg = (args[0] || '').toLowerCase().trim();
+    let imageUrl = '/equipment/catalog/letter-shared.webp';
+    let docTitle = isPl ? '📜 DOKUMENT ŚLEDCZY: ZAPISKI Z ARCHIWUM' : '📜 INVESTIGATOR DOCUMENT: ARCHIVE NOTES';
+    let docDesc = isPl
+      ? 'Poufne notatki odnalezione w prywatnej skrytce bankowej w Arkham.\nNa marginesie widoczne są odręczne dopiski wykonane atramentem żelazowo-galusowym.'
+      : 'Confidential notes discovered in a private bank vault in Arkham.\nHandwritten annotations in iron-gall ink are visible along the margin.';
+    let itemName = isPl ? 'Zapiski z Archiwum' : 'Archive Notes';
+    let itemDesc = isPl ? 'Tajemniczy dokument ze skanem i odręcznymi notatkami.' : 'Mysterious document with handwritten annotations.';
+
+    if (rawArg.includes('prl') || rawArg.includes('1970') || rawArg.includes('milicja') || rawArg.includes('raport') || rawArg.includes('akta')) {
+      imageUrl = '/equipment/catalog/contacts-notebook-prl.webp';
+      docTitle = isPl ? '📋 RAPORT SŁUŻBOWY: PROTOKÓŁ NR 14/77' : '📋 OFFICIAL REPORT: DOSSIER NO. 14/77';
+      docDesc = isPl
+        ? 'Odpis maszynowy ze śledztwa w sprawie incydentu w magazynach portowych.\nPieczęć nagłówkowa i adnotacja: DO UŻYTKU WEWNĘTRZNEGO.'
+        : 'Typewritten transcript from the harbor warehouse investigation.\nOfficial stamp and annotation: FOR INTERNAL USE ONLY.';
+      itemName = isPl ? 'Protokół MO nr 14/77' : 'Police Dossier No. 14/77';
+      itemDesc = isPl ? 'Maszynopis z pieczęcią milicyjną i spisem kontaktów.' : 'Typewritten report with official police seal.';
+    } else if (rawArg.includes('map') || rawArg.includes('plan')) {
+      imageUrl = '/equipment/catalog/map-shared.webp';
+      docTitle = isPl ? '🗺️ PLAN SYTUACYJNY: OKOLICE POSIADŁOŚCI' : '🗺️ SITUATION MAP: ESTATE SURROUNDINGS';
+      docDesc = isPl
+        ? 'Odręcznie sporządzona mapa topograficzna hrabstwa z zaznaczonymi traktami i bagnami.'
+        : 'Hand-drawn topographic map of the county with marked trails and marshlands.';
+      itemName = isPl ? 'Plan sytuacyjny okolicy' : 'Area Situation Map';
+      itemDesc = isPl ? 'Topograficzna mapa ze szlakami i punktami orientacyjnymi.' : 'Topographic map with marked trails and landmarks.';
+    } else if (rawArg.includes('foto') || rawArg.includes('photo') || rawArg.includes('zdj')) {
+      imageUrl = '/equipment/catalog/photo-shared.webp';
+      docTitle = isPl ? '📷 FOTOGRAFIA DOWODOWA: MIEJSCE ZDARZENIA' : '📷 EVIDENCE PHOTO: CRIME SCENE';
+      docDesc = isPl
+        ? 'Archiwalna odbitka srebrowa z miejsca zdarzenia. Na odwrocie zapisano datę i tajemnicze inicjały.'
+        : 'Archival silver gelatin print from the crime scene. Date and initials recorded on the reverse.';
+      itemName = isPl ? 'Fotografia dowodowa' : 'Evidence Photograph';
+      itemDesc = isPl ? 'Czarno-biała odbitka ze śladami na miejscu zbrodni.' : 'Black and white photograph showing crime scene details.';
+    } else if (rawArg.includes('scroll') || rawArg.includes('pergamin') || rawArg.includes('zwoj') || rawArg.includes('zwój')) {
+      imageUrl = '/equipment/catalog/latin-scroll-vellum.webp';
+      docTitle = isPl ? '📜 ŁACIŃSKI ZWÓJ PERGAMINOWY' : '📜 LATIN VELLUM SCROLL';
+      docDesc = isPl
+        ? 'Prastary zwój pergaminowy pokryty wyblakłą łaciną i tajemnymi diagramami astronomicznymi.'
+        : 'Ancient vellum scroll covered with faded Latin script and esoteric celestial diagrams.';
+      itemName = isPl ? 'Łaciński zwój pergaminowy' : 'Latin Vellum Scroll';
+      itemDesc = isPl ? 'Prastary manuskrypt ze skanem pergaminu.' : 'Ancient manuscript scroll.';
+    } else if (args[0] && (args[0].startsWith('/') || args[0].startsWith('http') || args[0].includes('.'))) {
+      imageUrl = args[0].trim();
+      docTitle = isPl ? '📜 DOKUMENT ŚLEDCZY' : '📜 INVESTIGATOR DOCUMENT';
+      docDesc = isPl ? 'Odnaleziony rekwizyt archiwalny ze skanem dowodowym.' : 'Archival evidence prop with document scan.';
+      itemName = isPl ? 'Dokument śledczy' : 'Investigator Document';
+      itemDesc = isPl ? 'Rekwizyt ze skanem dokumentu.' : 'Prop with document scan.';
+    }
+
+    const content = [
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      docTitle,
+      '',
+      docDesc,
+      '',
+      `[OBRAZ: ${imageUrl}]`,
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    ].join('\n');
+
+    const item = createEquipmentItem({
+      name: itemName,
+      category: 'document',
+      description: itemDesc,
+      imageUrl,
+    });
+
+    const existingEquipment = character?.equipment || [];
+
+    return {
+      isCheat: true,
+      rawCommand: trimmed,
+      assistantMessage: {
+        id: 'cheat_msg_' + Date.now(),
+        role: 'assistant',
+        content,
+        timestamp: now,
+      },
+      characterUpdates: {
+        equipment: [...existingEquipment, item],
+      },
+      toastMessage: isPl ? 'Wywołano czytnik dokumentów i dodano rekwizyt do ekwipunku' : 'Document viewer triggered and prop added to inventory',
+    };
+  }
+
+  if (
+    command === 'HANDOUT_AUDIO' ||
+    command === 'TASMA' ||
+    command === 'TAŚMA' ||
+    command === 'MAGNETOFON' ||
+    command === 'AUDIO' ||
+    command === 'NAGRANIE'
+  ) {
+    const rawArg = (args[0] || '').toLowerCase().trim();
+    let audioUrl = '/audio/handouts/starter_friend_letter.mp3';
+    let audioTitle = isPl ? '🎙️ NAGRANIE DŹWIĘKOWE: TAŚMA SZPULOWA NR 1' : '🎙️ AUDIO RECORDING: REEL TAPE NO. 1';
+    let transcript = isPl
+      ? '[00:02] Trzask włącznika magnetofonu i niski szum przesuwającej się taśmy szpulowej...\n[00:06] "Jeśli to nagranie trafiło w twoje ręce, oznacza to, że stało się najgorsze..."\n[00:14] "Nie ufaj nikomu w porcie. Oni wiedzą, co zostało wyłowione z zatoki."\n[00:22] "Klucz do skrytki jest ukryty pod podłogą w gabinecie. Strzeż go!"'
+      : '[00:02] Click of the recorder switch and low hiss of magnetic tape...\n[00:06] "If this recording reached you, the worst has already happened..."\n[00:14] "Trust no one at the docks. They know what was retrieved from the bay."\n[00:22] "The vault key is hidden under the study floorboards. Guard it well!"';
+    let itemName = isPl ? 'Taśma szpulowa: Zeznanie' : 'Reel Tape: Testimony';
+    let itemDesc = isPl ? 'Szpula magnetofonowa 1/4 cala z nagranym ostrzeżeniem.' : '1/4 inch magnetic reel tape containing recorded warning.';
+
+    if (rawArg.includes('corbitt') || rawArg.includes('dziennik') || rawArg.includes('journal')) {
+      audioUrl = '/audio/handouts/corbitt_journal.mp3';
+      audioTitle = isPl ? '🎙️ NAGRANIE DŹWIĘKOWE: DZIENNIK CORBITTA' : '🎙️ AUDIO RECORDING: CORBITT JOURNAL';
+      transcript = isPl
+        ? '[00:02] Skrzypienie igły na woskowej płycie fonografu...\n[00:07] "Dzień dwudziesty trzeci. Głosy w ścianach nie cichną nawet w południe..."\n[00:16] "Corbitt... jego ciało nigdy nie opuściło tej piwnicy. On czeka w ciemności."'
+        : '[00:02] Phonograph needle scratching across the wax cylinder...\n[00:07] "Day twenty-three. The voices in the walls do not cease even at noon..."\n[00:16] "Corbitt... his body never left that basement. He waits in the darkness."';
+      itemName = isPl ? 'Płyta gramofonowa Corbitta' : 'Corbitt Phonograph Record';
+      itemDesc = isPl ? 'Krucha płyta z monologiem badacza zjawisk nadprzyrodzonych.' : 'Fragile phonograph disc with an occult investigator recording.';
+    } else if (rawArg.includes('radio') || rawArg.includes('boston') || rawArg.includes('audycja')) {
+      audioUrl = '/audio/handouts/boston_globe_radio.mp3';
+      audioTitle = isPl ? '📻 AUDYCJA RADIOWA: KOMUNIKAT BOSTON GLOBE' : '📻 RADIO BROADCAST: BOSTON GLOBE BULLETIN';
+      transcript = isPl
+        ? '[00:02] Pisk modulacji radiowej i trzaski eteru krótkofalowego...\n[00:08] "Tu rozgłośnia Boston Globe. Nadajemy komunikat specjalny dla okolic Arkham..."\n[00:17] "Policja stanowa ostrzega mieszkańców przed zbliżaniem się do wzgórz Sentinel..."'
+        : '[00:02] Radio tuning whistle and shortwave static crackle...\n[00:08] "This is Boston Globe Radio with an emergency broadcast for the Arkham area..."\n[00:17] "State police warn residents to keep away from Sentinel Hill..."';
+      itemName = isPl ? 'Nagranie audycji radiowej' : 'Radio Broadcast Recording';
+      itemDesc = isPl ? 'Zapis audycji ostrzegawczej z odbiornika lampowego.' : 'Recording of an emergency vacuum-tube radio bulletin.';
+    } else if (rawArg.includes('gramofon') || rawArg.includes('arkham') || rawArg.includes('plyta') || rawArg.includes('płyta')) {
+      audioUrl = '/audio/handouts/arkham_phonograph_record.mp3';
+      audioTitle = isPl ? '🎙️ PŁYTA SZELAKOWA: ARCHIWUM MISKATONIC' : '🎙️ SHELLAC RECORD: MISKATONIC ARCHIVES';
+      transcript = isPl
+        ? '[00:03] Monotonny szum płyty szelakowej 78 RPM...\n[00:09] "Rejestracja fonograficzna z archiwum Uniwersytetu Miskatonic, 1928 rok..."\n[00:18] "Słowa inkantacji wywołują drżenie membrany... słuchajcie na własną odpowiedzialność."'
+        : '[00:03] Monotonous hiss of a 78 RPM shellac record...\n[00:09] "Phonograph archive recording from Miskatonic University, 1928..."\n[00:18] "The words of the chant rattle the diaphragm... listen at your own risk."';
+      itemName = isPl ? 'Płyta szelakowa Miskatonic' : 'Miskatonic Shellac Record';
+      itemDesc = isPl ? 'Archiwalna płyta gramofonowa 78 RPM z pieczęcią uniwersytetu.' : 'Archival 78 RPM record bearing the university seal.';
+    } else if (args[0] && (args[0].startsWith('/') || args[0].startsWith('http') || args[0].includes('.'))) {
+      audioUrl = args[0].trim();
+      audioTitle = isPl ? '🎙️ NAGRANIE DŹWIĘKOWE' : '🎙️ AUDIO RECORDING';
+      transcript = `[00:01] ${isPl ? 'Odtwarzanie ścieżki dźwiękowej...' : 'Playing audio track...'}`;
+      itemName = isPl ? 'Nagranie dźwiękowe' : 'Audio Recording';
+      itemDesc = isPl ? 'Taśma z zarejestrowanym materiałem audio.' : 'Tape with recorded audio material.';
+    }
+
+    const content = [
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      audioTitle,
+      '',
+      transcript,
+      '',
+      `[AUDIO: ${audioUrl}]`,
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    ].join('\n');
+
+    const item = createEquipmentItem({
+      name: itemName,
+      category: 'tool',
+      description: itemDesc,
+    });
+
+    const existingEquipment = character?.equipment || [];
+
+    return {
+      isCheat: true,
+      rawCommand: trimmed,
+      assistantMessage: {
+        id: 'cheat_msg_' + Date.now(),
+        role: 'assistant',
+        content,
+        timestamp: now,
+      },
+      characterUpdates: {
+        equipment: [...existingEquipment, item],
+      },
+      toastMessage: isPl ? 'Uruchomiono odtwarzacz taśm i dodano szpulę do ekwipunku' : 'Audio reel player triggered and tape added to inventory',
+    };
+  }
+
+  if (
+    command === 'HANDOUTS' ||
+    command === 'REKWIZYTY'
+  ) {
+    const docTitle = isPl ? '📜 DOKUMENT ŚLEDCZY: ZAPISKI Z ARCHIWUM' : '📜 INVESTIGATOR DOCUMENT: ARCHIVE NOTES';
+    const docDesc = isPl
+      ? 'Poufne notatki odnalezione w prywatnej skrytce bankowej w Arkham.\nNa marginesie widoczne są odręczne dopiski wykonane atramentem żelazowo-galusowym.'
+      : 'Confidential notes discovered in a private bank vault in Arkham.\nHandwritten annotations in iron-gall ink are visible along the margin.';
+    const imageUrl = '/equipment/catalog/letter-shared.webp';
+
+    const audioTitle = isPl ? '🎙️ NAGRANIE DŹWIĘKOWE: TAŚMA SZPULOWA NR 1' : '🎙️ AUDIO RECORDING: REEL TAPE NO. 1';
+    const transcript = isPl
+      ? '[00:02] Trzask włącznika magnetofonu i niski szum przesuwającej się taśmy szpulowej...\n[00:06] "Jeśli to nagranie trafiło w twoje ręce, oznacza to, że stało się najgorsze..."\n[00:14] "Nie ufaj nikomu w porcie. Oni wiedzą, co zostało wyłowione z zatoki."\n[00:22] "Klucz do skrytki jest ukryty pod podłogą w gabinecie. Strzeż go!"'
+      : '[00:02] Click of the recorder switch and low hiss of magnetic tape...\n[00:06] "If this recording reached you, the worst has already happened..."\n[00:14] "Trust no one at the docks. They know what was retrieved from the bay."\n[00:22] "The vault key is hidden under the study floorboards. Guard it well!"';
+    const audioUrl = '/audio/handouts/starter_friend_letter.mp3';
+
+    const content = [
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      docTitle,
+      '',
+      docDesc,
+      '',
+      `[OBRAZ: ${imageUrl}]`,
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      '',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      audioTitle,
+      '',
+      transcript,
+      '',
+      `[AUDIO: ${audioUrl}]`,
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    ].join('\n');
+
+    const docItem = createEquipmentItem({
+      name: isPl ? 'Zapiski z Archiwum' : 'Archive Notes',
+      category: 'document',
+      description: isPl ? 'Tajemniczy dokument ze skanem i odręcznymi notatkami.' : 'Mysterious document with handwritten annotations.',
+      imageUrl,
+    });
+
+    const audioItem = createEquipmentItem({
+      name: isPl ? 'Taśma szpulowa: Zeznanie' : 'Reel Tape: Testimony',
+      category: 'tool',
+      description: isPl ? 'Szpula magnetofonowa 1/4 cala z nagranym ostrzeżeniem.' : '1/4 inch magnetic reel tape containing recorded warning.',
+    });
+
+    const existingEquipment = character?.equipment || [];
+
+    return {
+      isCheat: true,
+      rawCommand: trimmed,
+      assistantMessage: {
+        id: 'cheat_msg_' + Date.now(),
+        role: 'assistant',
+        content,
+        timestamp: now,
+      },
+      characterUpdates: {
+        equipment: [...existingEquipment, docItem, audioItem],
+      },
+      toastMessage: isPl ? 'Wywołano zestaw rekwizytów (dokument i nagranie audio)' : 'Triggered full handouts pack (document and audio recording)',
     };
   }
 
