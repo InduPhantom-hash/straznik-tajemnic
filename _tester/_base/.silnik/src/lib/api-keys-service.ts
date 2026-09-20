@@ -44,17 +44,16 @@ export function saveApiKeys(keys: ApiKeys): void {
 
   // Sanityzuj i filtruj puste wartości
   const filtered: ApiKeys = {};
-  for (const [k, v] of Object.entries(keys)) {
-    if (k === 'GEMINI_TIER') {
-      if (v === 'free' || v === 'paid') {
-        filtered.GEMINI_TIER = v;
-      }
-      continue;
-    }
-    const clean = sanitizeApiKey(v);
+  const stringKeys = ['GEMINI_API_KEY', 'REPLICATE_API_TOKEN', 'VERTEX_AI_API_KEY', 'VERTEX_AI_PROJECT_ID'] as const;
+  for (const key of stringKeys) {
+    const val = keys[key];
+    const clean = sanitizeApiKey(val);
     if (clean) {
-      filtered[k as keyof ApiKeys] = clean as any;
+      filtered[key] = clean;
     }
+  }
+  if (keys.GEMINI_TIER === 'free' || keys.GEMINI_TIER === 'paid') {
+    filtered.GEMINI_TIER = keys.GEMINI_TIER;
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
@@ -76,17 +75,15 @@ export function getApiKeys(): ApiKeys {
     if (!stored) return {};
     const parsed = JSON.parse(stored) as Record<string, unknown>;
     const sanitized: ApiKeys = {};
-    for (const [k, v] of Object.entries(parsed)) {
-      if (k === 'GEMINI_TIER') {
-        if (v === 'free' || v === 'paid') {
-          sanitized.GEMINI_TIER = v;
-        }
-        continue;
-      }
-      const clean = sanitizeApiKey(v);
+    const stringKeys = ['GEMINI_API_KEY', 'REPLICATE_API_TOKEN', 'VERTEX_AI_API_KEY', 'VERTEX_AI_PROJECT_ID'] as const;
+    for (const key of stringKeys) {
+      const clean = sanitizeApiKey(parsed[key]);
       if (clean) {
-        sanitized[k as keyof ApiKeys] = clean as any;
+        sanitized[key] = clean;
       }
+    }
+    if (parsed.GEMINI_TIER === 'free' || parsed.GEMINI_TIER === 'paid') {
+      sanitized.GEMINI_TIER = parsed.GEMINI_TIER;
     }
     return sanitized;
   } catch {
