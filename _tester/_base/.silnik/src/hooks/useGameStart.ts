@@ -7,7 +7,8 @@ import {
   HotSeatPlayer,
 } from '@/lib/types';
 import type { AISettings } from '@/lib/ai-settings/types';
-import { fetchWithApiKeys } from '@/lib/api-keys-service';
+import { fetchWithApiKeys, getApiKeyHeaders } from '@/lib/api-keys-service';
+import { toast } from '@/components/ui/use-toast';
 import { parseSSEStream, createSseParseErrorHandler } from '@/lib/sse-parser';
 import { timeManager } from '@/lib/time-manager';
 // M6 sesja 146: DialogueLine import DROPPED per D3 (multi-voice odchodzi).
@@ -33,6 +34,7 @@ import {
   createCampaignMemoryScope,
   storeCampaignMemoryScope,
 } from '@/core/memory/campaign-scope';
+import { isDocumentModelUseBlocked } from '@/lib/document-model-policy';
 
 /**
  * Zadanie 6 (hardening demo-safe): chwilowy blip sieci ≠ crash startu gry.
@@ -107,8 +109,24 @@ function createPresetWorldSetup(
       secret: n.secret,
       statsSummary: n.statsSummary,
     })),
-    locations: adventure.location ? [{ name: adventure.location }] : [],
-    items: [],
+    locations: [
+      ...((adventure.graph?.locations ?? []).map((l) => ({
+        id: l.id,
+        name: l.name,
+        description: l.description,
+        atmosphere: l.atmosphere,
+      }))),
+      ...(adventure.location &&
+      !(adventure.graph?.locations ?? []).some((l) => l.name === adventure.location)
+        ? [{ name: adventure.location }]
+        : []),
+    ],
+    items: (adventure.graph?.clues ?? []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      isRedHerring: c.isRedHerring,
+    })),
     events: [],
     openingScene: { location: adventure.location ?? '' },
     nearestBranches: conflicts,
@@ -432,7 +450,10 @@ export function useGameStart({
 
         const response = await fetchWithRetry('/api/imagen', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getApiKeyHeaders(),
+          },
           body: JSON.stringify({
             prompt: imagePrompt,
             style: 'location',
@@ -525,10 +546,35 @@ export function useGameStart({
     }
 
     if (!adventureContext) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('zew:stop-music'));
+      }
       isStartingRef.current = false;
       setIsStarting(false);
       setStartProgress(0);
       setStartStatus('');
+      const title =
+        locale === 'en' ? 'Select an Adventure' : 'Wybierz scenariusz';
+      const description =
+        locale === 'en'
+          ? 'Please select an adventure before starting the game.'
+          : 'Przed rozpoczęciem gry musisz wybrać scenariusz przygody.';
+      toast({
+        variant: 'destructive',
+        title,
+        description,
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('zew:toast', {
+            detail: {
+              variant: 'destructive',
+              title,
+              description,
+            },
+          })
+        );
+      }
       return;
     }
 
@@ -542,9 +588,16 @@ export function useGameStart({
     const eraContext = resolveGameEraContext({ adventure: adventureContext });
     // Inicjalizacja profili Tone of Voice postaci z przygody na etapie setupu
     initializeAdventureNpcVoices(adventureContext);
-    if (!adventureContext.isCustom) {
-      // Gotowe przygody mają lokalny kanon. Nie mogą wymagać odpowiedzi AI ani
-      // dodatkowego kosztu tylko po to, aby wejść do pierwszej sceny.
+    const hasStructuredGraph = Boolean(
+      adventureContext.graph &&
+      ((adventureContext.graph.npcs && adventureContext.graph.npcs.length > 0) ||
+       (adventureContext.graph.locations && adventureContext.graph.locations.length > 0))
+    );
+
+    if (!adventureContext.isCustom || hasStructuredGraph) {
+      // Gotowe przygody oraz scenariusze wyekstrahowane lokalnie (posiadające graf postaci i lokacji)
+      // mają lokalny kanon. Nie mogą wymagać odpowiedzi AI ani dodatkowego kosztu/bramki online,
+      // a także nie mogą naruszać document-model-policy (Clean Room).
       storeWorldSetup(createPresetWorldSetup(adventureContext, eraContext));
     } else {
       setStartProgress(40);
@@ -564,7 +617,10 @@ export function useGameStart({
         });
         const preflightResponse = await fetchWithRetry('/api/adventure/setup', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getApiKeyHeaders(),
+          },
           body: JSON.stringify({
             adventureText: preflightSource,
             scenarioId: adventureContext.id,
@@ -588,32 +644,87 @@ export function useGameStart({
 
         if (!preflightResponse.ok) {
           const errorBody = await preflightResponse.json().catch(() => ({}));
-          const serverMessage =
-            (errorBody as { error?: string }).error ||
-            preflightResponse.statusText;
-          throw new Error(
-            `Preflight ${preflightResponse.status}: ${serverMessage}`
-          );
+          const errorCode = (errorBody as { code?: string }).code;
+          if (errorCode === 'DOCUMENT_MODEL_USE_BLOCKED') {
+            // Bezpieczny fallback Clean Room: gdy polityka blokuje wysyłkę do AI,
+            // używamy lokalnego setupu świata zamiast uniemożliwiać grę.
+            storeWorldSetup(createPresetWorldSetup(adventureContext, eraContext));
+          } else {
+            const serverMessage =
+              (errorBody as { error?: string }).error ||
+              preflightResponse.statusText;
+            throw new Error(
+              `Preflight ${preflightResponse.status}: ${serverMessage}`
+            );
+          }
+        } else {
+          const preflightPayload = (await preflightResponse.json()) as {
+            worldSetup?: unknown;
+          };
+          if (!isWorldSetupBundle(preflightPayload.worldSetup)) {
+            throw new Error(
+              'Preflight nie zwrócił poprawnego WorldSetupBundleV1.'
+            );
+          }
+          if (hasBlockingSetupFailure(preflightPayload.worldSetup.phaseResults)) {
+            throw new Error('Preflight wykrył krytyczny błąd setupu.');
+          }
+          storeWorldSetup(preflightPayload.worldSetup);
         }
-
-        const preflightPayload = (await preflightResponse.json()) as {
-          worldSetup?: unknown;
-        };
-        if (!isWorldSetupBundle(preflightPayload.worldSetup)) {
-          throw new Error(
-            'Preflight nie zwrócił poprawnego WorldSetupBundleV1.'
-          );
-        }
-        if (hasBlockingSetupFailure(preflightPayload.worldSetup.phaseResults)) {
-          throw new Error('Preflight wykrył krytyczny błąd setupu.');
-        }
-        storeWorldSetup(preflightPayload.worldSetup);
       } catch (error) {
         console.error('World preflight failed:', error);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('zew:stop-music'));
+        }
         setIsStarting(false);
         setStartProgress(0);
         setStartStatus('');
         setHasStartedGame(false);
+
+        const errorStr = error instanceof Error ? error.message : String(error);
+        const isAuthError =
+          errorStr.includes('401') ||
+          errorStr.includes('BYOK_KEY') ||
+          errorStr.includes('API key');
+
+        if (isAuthError && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
+        }
+
+        const toastTitle = isAuthError
+          ? locale === 'en'
+            ? 'Gemini API Key Required'
+            : 'Wymagany klucz Gemini API'
+          : locale === 'en'
+            ? 'World Setup Failed'
+            : 'Błąd konfiguracji świata';
+
+        const toastDescription = isAuthError
+          ? locale === 'en'
+            ? 'The Gemini API key is missing or invalid. Please enter a valid key in settings.'
+            : 'Brak klucza Gemini API lub klucz jest nieprawidłowy. Wprowadź poprawny klucz w ustawieniach.'
+          : locale === 'en'
+            ? 'The adventure cannot start because world preparation failed. Check your settings and try again.'
+            : 'Nie można rozpocząć przygody, ponieważ przygotowanie świata nie powiodło się. Sprawdź ustawienia i spróbuj ponownie.';
+
+        toast({
+          variant: 'destructive',
+          title: toastTitle,
+          description: toastDescription,
+        });
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('zew:toast', {
+              detail: {
+                variant: 'destructive',
+                title: toastTitle,
+                description: toastDescription,
+              },
+            })
+          );
+        }
+
         setMessages([
           {
             id: `world-preflight-error-${crypto.randomUUID()}`,
@@ -728,7 +839,10 @@ export function useGameStart({
       );
       const response = await fetchWithRetry('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getApiKeyHeaders(),
+        },
         body: JSON.stringify({
           message: introPrompt,
           messages: [],
@@ -945,6 +1059,9 @@ export function useGameStart({
       }
     } catch (error) {
       console.error('Game start intro failed:', error);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('zew:stop-music'));
+      }
       tts.cancelInitialBuffering?.();
       setIsStarting(false);
       setIsReadyToEnter(false);
@@ -967,6 +1084,14 @@ export function useGameStart({
         window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
       }
 
+      const toastTitle = isAuthError
+        ? locale === 'en'
+          ? 'Gemini API Key Required'
+          : 'Wymagany klucz Gemini API'
+        : locale === 'en'
+          ? 'Game Start Failed'
+          : 'Błąd uruchamiania gry';
+
       const friendly = isAuthError
         ? locale === 'en'
           ? '⚠️ The Gemini API key is invalid or expired. Enter a valid key in Settings (key icon in menu) and try again.'
@@ -978,6 +1103,24 @@ export function useGameStart({
           : locale === 'en'
             ? '⚠️ The game could not start. Check your connection and API key, then try again.'
             : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
+      toast({
+        variant: 'destructive',
+        title: toastTitle,
+        description: friendly,
+      });
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('zew:toast', {
+            detail: {
+              variant: 'destructive',
+              title: toastTitle,
+              description: friendly,
+            },
+          })
+        );
+      }
+
       const errorMsg: Message = {
         id: `gm-intro-error-${crypto.randomUUID()}`,
         role: 'assistant',
