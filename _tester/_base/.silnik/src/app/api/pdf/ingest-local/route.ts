@@ -111,16 +111,23 @@ export async function POST(request: NextRequest) {
 
       // Parse PDF w pamięci (pdf-parse na buforze - GCS-free).
       const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      let buffer: Buffer | null = Buffer.from(arrayBuffer);
 
       try {
         const parsed = await pdfParserService.parsePDFBuffer(buffer);
         pdfText = parsed.text;
         pdfPagesCount = parsed.pages || 1;
+        // Natychmiastowe czyszczenie bufora i tablicy stron po ekstrakcji tekstu
+        buffer = null;
+        if (parsed.pagesText) {
+          parsed.pagesText.length = 0;
+          delete parsed.pagesText;
+        }
         console.log(
           `📄 PDF sparsowany lokalnie: ${parsed.pages} stron, ${pdfText.length} znaków ("${fileName}")`
         );
       } catch (parseError) {
+        buffer = null;
         return NextResponse.json(
           {
             success: false,

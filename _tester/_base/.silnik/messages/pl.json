@@ -6407,6 +6407,7 @@
     "uploadButton": "Wgraj przygodę (PDF)",
     "processingBook": "Przetwarzanie księgi tajemnic...",
     "aiAnalyzing": "AI analizuje przygodę i automatycznie uzupełnia dane...",
+    "optimizingMemory": "Optymalizacja struktur grafu i pamięci...",
     "uploadHint": "np. darmowy starter pobrany z Black Monk",
     "uploadErrorTitle": "Błąd przetwarzania przygody",
     "dismiss": "Zamknij",

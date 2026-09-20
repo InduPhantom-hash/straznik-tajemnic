@@ -45,12 +45,13 @@ class PDFParserService {
       }
 
       console.log('🔄 Rozpoczynanie parsowania PDF przez silnik unpdf (WASM)...');
-      const uint8Array = new Uint8Array(buffer);
+      let uint8Array: Uint8Array | null = new Uint8Array(buffer);
 
-      let textResult;
+      let textResult: { text?: string | string[]; totalPages?: number } | null = null;
       try {
         textResult = await extractText(uint8Array, { mergePages: false });
       } catch (parseError) {
+        uint8Array = null;
         console.error('❌ unpdf extraction error:', parseError);
         const errorMessage =
           parseError instanceof Error ? parseError.message : String(parseError);
@@ -83,11 +84,15 @@ class PDFParserService {
         console.warn('⚠️ Nie udało się pobrać metadanych PDF (kontynuacja bez metadanych):', metaErr);
       }
 
-      const pagesList = Array.isArray(textResult.text)
-        ? textResult.text
-        : [textResult.text || ''];
+      // Natychmiastowe zwolnienie pamięci WASM / TypedArray po ekstrakcji
+      uint8Array = null;
 
-      const totalPages = textResult.totalPages || pagesList.length || 0;
+      let pagesList: string[] | null = Array.isArray(textResult?.text)
+        ? textResult.text
+        : [textResult?.text || ''];
+
+      const totalPages = textResult?.totalPages || pagesList.length || 0;
+      textResult = null;
 
       // Zbuduj jednolity tekst z wyraźnymi separatorami stron dla lepszego podziału
       const fullText = pagesList
@@ -108,11 +113,17 @@ class PDFParserService {
       );
 
       const info = (metaResult?.info || {}) as Record<string, unknown>;
+      metaResult = null;
+
+      // Kopia stron do wyniku i natychmiastowe wyczyszczenie tablicy roboczej
+      const finalPagesText = [...pagesList];
+      pagesList.length = 0;
+      pagesList = null;
 
       return {
         text: fullText.trim(),
         pages: totalPages,
-        pagesText: pagesList,
+        pagesText: finalPagesText,
         metadata: {
           title: typeof info.Title === 'string' ? info.Title : undefined,
           author: typeof info.Author === 'string' ? info.Author : undefined,
@@ -156,9 +167,11 @@ class PDFParserService {
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      let buffer: Buffer | null = Buffer.from(arrayBuffer);
 
-      return await this.parsePDFBuffer(buffer);
+      const result = await this.parsePDFBuffer(buffer);
+      buffer = null;
+      return result;
     } catch (error) {
       console.error('Error parsing PDF from URL:', error);
       throw error;
