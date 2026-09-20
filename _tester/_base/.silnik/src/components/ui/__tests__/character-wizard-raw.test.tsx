@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import '@testing-library/jest-dom';
 import enMessages from '../../../../messages/en.json';
 import plMessages from '../../../../messages/pl.json';
@@ -189,8 +191,6 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
     });
 
     it('enforces 2K responsiveness and no artificial max-h in Step 4 and Step 5 (Issue #435)', () => {
-      const fs = require('fs');
-      const path = require('path');
       const wizardPath = path.resolve(__dirname, '../character-wizard.tsx');
       const wizardCode = fs.readFileSync(wizardPath, 'utf8');
 
