@@ -18,7 +18,6 @@ import {
   CustomAdventure,
 } from '@/lib/adventures-data';
 import {
-  TONE_STYLES,
   ERA_STYLES,
   DIFFICULTY_STYLES,
 } from '@/lib/data/adventure-styles';
@@ -165,7 +164,6 @@ export function AdventureSelector({
     isCustom?: boolean;
     isLorebook?: boolean;
   }) => {
-    const toneStyle = TONE_STYLES[adventure.tone] || TONE_STYLES.purist;
     const eraStyle = ERA_STYLES[adventure.era] || ERA_STYLES.custom;
     const diffStyle =
       DIFFICULTY_STYLES[adventure.difficulty] || DIFFICULTY_STYLES.normal;
@@ -173,7 +171,6 @@ export function AdventureSelector({
     const isDeleting = deletingId === adventure.id;
     const customAdv = adventure as CustomAdventure;
 
-    const ToneIcon = toneStyle.icon;
     const EraIcon = eraStyle.icon;
     const DiffIcon = diffStyle.icon;
 
@@ -252,14 +249,6 @@ export function AdventureSelector({
               <span className="inline-flex items-center gap-1 border border-brass/40 bg-brass/10 px-2 py-0.5 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-brass">
                 <Book className="h-3 w-3 text-brass" />
                 {adventure.documentType === 'setting' ? t('docTypeSetting') : t('docTypeCompendium')}
-              </span>
-            )}
-            {!isLorebook && (
-              <span
-                className={`inline-flex items-center gap-1.5 border border-brass/35 px-2 py-0.5 font-display text-xs uppercase tracking-[0.08em] ${toneStyle.color}`}
-              >
-                <ToneIcon className="h-3 w-3 shrink-0" />
-                {tStyles(toneStyle.translationKey)}
               </span>
             )}
             {isSelected && !isLorebook && (
