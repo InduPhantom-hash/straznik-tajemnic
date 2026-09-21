@@ -10,11 +10,23 @@ jest.mock('@/lib/api-keys-service', () => ({
   getApiKeyHeaders: jest.fn(() => ({ 'X-Gemini-Api-Key': 'mock-key' })),
 }));
 
+interface MockMediaRecorderInstance {
+  start: jest.Mock;
+  stop: jest.Mock;
+  state: string;
+  ondataavailable: ((event: { data: Blob }) => void) | null;
+  onstop: (() => void) | null;
+}
+
+interface MockStream {
+  getTracks: jest.Mock<Array<{ stop: jest.Mock }>, []>;
+}
+
 describe('usePushToTalk', () => {
-  let mockMediaRecorder: any;
-  let mockStream: any;
-  let originalMediaRecorder: any;
-  let originalMediaDevices: any;
+  let mockMediaRecorder: MockMediaRecorderInstance;
+  let mockStream: MockStream;
+  let originalMediaRecorder: typeof MediaRecorder | undefined;
+  let originalMediaDevices: MediaDevices | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -25,19 +37,22 @@ describe('usePushToTalk', () => {
 
     mockMediaRecorder = {
       start: jest.fn(),
-      stop: jest.fn(function (this: any) {
+      stop: jest.fn(function (this: MockMediaRecorderInstance) {
         if (this.onstop) this.onstop();
       }),
       state: 'recording',
-      ondataavailable: null as any,
-      onstop: null as any,
+      ondataavailable: null,
+      onstop: null,
     };
 
-    originalMediaRecorder = (global as any).MediaRecorder;
+    originalMediaRecorder = global.MediaRecorder;
     originalMediaDevices = navigator.mediaDevices;
 
-    (global as any).MediaRecorder = jest.fn(() => mockMediaRecorder);
-    (global as any).MediaRecorder.isTypeSupported = jest.fn(() => true);
+    const mockRecorderConstructor = jest.fn(() => mockMediaRecorder) as unknown as typeof MediaRecorder & {
+      isTypeSupported: jest.Mock<boolean, [string]>;
+    };
+    mockRecorderConstructor.isTypeSupported = jest.fn((_type: string) => true);
+    global.MediaRecorder = mockRecorderConstructor as unknown as typeof MediaRecorder;
 
     Object.defineProperty(navigator, 'mediaDevices', {
       value: {
@@ -47,7 +62,7 @@ describe('usePushToTalk', () => {
       configurable: true,
     });
 
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({
@@ -55,11 +70,13 @@ describe('usePushToTalk', () => {
         text: 'Wchodzę do biblioteki.',
         segments: [{ speaker: 'Speaker 1', text: 'Wchodzę do biblioteki.' }],
       }),
-    });
+    }) as unknown as typeof fetch;
   });
 
   afterEach(() => {
-    (global as any).MediaRecorder = originalMediaRecorder;
+    if (originalMediaRecorder) {
+      global.MediaRecorder = originalMediaRecorder;
+    }
     Object.defineProperty(navigator, 'mediaDevices', {
       value: originalMediaDevices,
       writable: true,
