@@ -301,6 +301,12 @@
     "activeEngraving": "Active Engraving",
     "pureTextEngravingNotice": "Stylized 1920s noir woodcut assigned to investigator's occupation.",
     "close": "Close",
+    "skillsFilterAll": "All",
+    "skillsFilterOccupational": "Occupational",
+    "skillsFilterInvested": "Invested",
+    "skillsFilterEmptyTitle": "No skills in this view",
+    "skillsFilterEmptyDesc": "No skills match the selected filter criteria.",
+    "skillsFilterShowAll": "Show all skills",
     "retroArchetypes": {
       "detective": "Detective",
       "journalist": "Journalist",
