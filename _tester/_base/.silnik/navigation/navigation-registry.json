@@ -414,6 +414,14 @@
       }
     },
     {
+      "id": "retro-portrait-gallery-modal",
+      "kind": "modal",
+      "label": {
+        "pl": "Kolekcja rycin noir z lat 20.",
+        "en": "1920s Noir Engravings Collection"
+      }
+    },
+    {
       "id": "game-over-card",
       "kind": "state",
       "label": {
@@ -872,7 +880,16 @@
         "en": "Investigator end and epilogue"
       },
       "component": "src/components/chat/chat-window/components/game-over-card.tsx"
+    },
+    {
+      "source": "character-new",
+      "target": "retro-portrait-gallery-modal",
+      "label": {
+        "pl": "Wybierz rycinę z epoki",
+        "en": "Choose period engraving"
+      },
+      "component": "src/components/ui/character-wizard.tsx"
     }
   ],
-  "lastUpdated": "2026-09-15T11:54:39.431Z"
+  "lastUpdated": "2026-09-21T08:17:00.000Z"
 }

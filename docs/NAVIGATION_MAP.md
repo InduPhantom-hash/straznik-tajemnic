@@ -55,6 +55,7 @@ graph TD
     tome_card["Badanie tomów w czacie (CoC 7e RAW) / In-chat tome study (CoC 7e RAW)"]
     beta_welcome_modal["Status wersji Beta / Beta Version Status"]
     beta_feedback_modal["Zgłoś błąd / uwagę / Report Issue / Feedback"]
+    retro_portrait_gallery_modal["Kolekcja rycin noir z lat 20. / 1920s Noir Engravings Collection"]
     game_over_card["Kres postaci i diegetyczny epilog (CoC 7e RAW) / Investigator end and diegetic epilogue (CoC 7e RAW)"]
 
     welcome -->|Polski / Polish| home
@@ -107,6 +108,7 @@ graph TD
     home -->|Zgłoś błąd / uwagę / Report Issue / Feedback| beta_feedback_modal
     beta_welcome_modal -->|Zgłoś uwagę lub błąd / Report Issue or Feedback| beta_feedback_modal
     game -->|Kres postaci i epilog / Investigator end and epilogue| game_over_card
+    character_new -->|Wybierz rycinę z epoki / Choose period engraving| retro_portrait_gallery_modal
 ```
 
 ## Routy
@@ -179,6 +181,7 @@ graph TD
 | Strona główna | Zgłoś błąd / uwagę / Report Issue / Feedback | Zgłoś błąd / uwagę | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Status wersji Beta | Zgłoś uwagę lub błąd / Report Issue or Feedback | Zgłoś błąd / uwagę | `src/components/dialogs/BetaWelcomeModal.tsx` |
 | Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (CoC 7e RAW) | `src/components/chat/chat-window/components/game-over-card.tsx` |
+| Nowa postać | Wybierz rycinę z epoki / Choose period engraving | Kolekcja rycin noir z lat 20. | `src/components/ui/character-wizard.tsx` |
 
 ## Zasady aktualizacji
 
