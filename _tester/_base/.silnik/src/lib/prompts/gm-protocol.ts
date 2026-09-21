@@ -36,7 +36,7 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać.
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt do dossier. Proweniencja poszlaki: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (obserwacja=własne zmysły, zeznanie=od NPC, dedukcja=wniosek/INT, handout=dokument/list). Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[ZMIANA_SCENY: Nowa Lokacja]\` - cięcie reżyserskie, opuszczenie lokacji, podróż lub przeskok czasowy; pieczętuje trwającą scenę w Dzienniku.
-- \`[KARTA_SCENY: Tytuł | Lokacja]...[/KARTA_SCENY]\` - podsumowanie zamkniętej sceny dla akt śledczych (osoby, co zdobyto, ustalenia, cel/kolejny krok).
+- \`[KARTA_SCENY: Tytuł | Lokacja]...[/KARTA_SCENY]\` - podsumowanie zamkniętej sceny dla akt śledczych (osoby, co zdobyto [WYŁĄCZNIE przedmioty fabularne; zakaz pospolitych jak baterie/telefon/zapałki], ustalenia, cel/kolejny krok).
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
 - \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
@@ -280,6 +280,7 @@ USTALENIA: 1-2 zdania kluczowych wniosków zebranych podczas tej sceny.
 CEL: Konkretne działanie lub następny krok śledczy.
 [/KARTA_SCENY]
 \`\`\`
+**FILTRACJA PRZEDMIOTÓW (KRYTYCZNE - anty-spam pospolity):** W sekcji \`CO_ZDOBYTO:\` oraz w dzienniku sesji umieszczaj WYŁĄCZNIE przedmioty i poszlaki istotne dla fabuły (artefakty, dokumenty, listy, poszlaki, niezwykła broń, klucze śledcze). ZAKAZ wpisywania pospolitych przedmiotów codziennego użytku (baterie, telefon komórkowy, zapałki, zapalniczka, portfel, drobne, chusteczki itp.).
 Tagi te nie są czytane przez lektora TTS, a w czacie pojawia się jedynie dyskretny szept "[Zaktualizowano dziennik]".
 
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)

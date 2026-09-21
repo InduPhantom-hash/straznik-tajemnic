@@ -1,38 +1,20 @@
 'use client';
 
-import { SafeImage } from '@/components/ui/safe-image';
-import type { FormEvent } from 'react';
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
-import { Button } from './button';
-import { Textarea } from './textarea';
-import { cn } from '@/lib/utils';
+import { useState, useMemo, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
-  Search,
-  Plus,
-  Trash2,
-  Edit3,
-  X,
   BookOpen,
-  CheckCircle2,
-  Circle,
-  Download,
-  Lightbulb,
+  X,
   MessageSquare,
+  Users,
+  Scroll,
+  Search,
+  Compass,
 } from 'lucide-react';
-import { DiscoveriesView } from './journal/discoveries-view';
-import { IdeaRollModal } from './journal/idea-roll-modal';
-import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
-import type { JournalEntry, JournalEventType, Character } from '@/lib/types';
-import {
-  ensureCharacterDossier,
-  migrateLegacyJournalToDossier,
-} from '@/lib/journal/dossier-migration';
-import type { InvestigatorDossier, ClueProvenance } from '@/lib/journal/dossier-types';
-import { inferClueProvenance, synthesizeClueFact } from '@/lib/parsers/journal-parser';
-import type { DiscoveryEntry } from './journal/discoveries-view';
+import { cn } from '@/lib/utils';
+import { filterPlotItems } from '@/lib/journal/item-filter';
+import type { JournalEntry, JournalEventType, Character, SceneCaseCard } from '@/lib/types';
 
-// Ponieważ w nowym dzienniku PoE używamy szerszych typów zakładek
 export type JournalEntryType =
   | 'case'
   | 'quest'
@@ -40,7 +22,8 @@ export type JournalEntryType =
   | 'location'
   | 'npc'
   | 'item'
-  | 'note';
+  | 'note'
+  | 'scene';
 
 export interface QuestObjective {
   id: string;
@@ -51,7 +34,6 @@ export interface QuestObjective {
   gameHour?: number;
 }
 
-// Rozszerzenie typu JournalEntry na potrzeby nowego systemu misji i zakładek
 export interface ExtendedJournalEntry extends Omit<
   JournalEntry,
   'type' | 'isBookmarked' | 'timestamp'
@@ -67,10 +49,10 @@ export interface ExtendedJournalEntry extends Omit<
   gameHour?: number;
 }
 
-interface SessionJournalProps {
+export interface SessionJournalProps {
   character: Character;
-  onUpdateCharacter: (character: Character) => void;
-  onClose: () => void;
+  onUpdateCharacter?: (character: Character) => void;
+  onClose?: () => void;
   currentInGameDate?: string;
   sharedJournal?: JournalEntry[];
   onUpdateSharedJournal?: (journal: JournalEntry[]) => void;
@@ -79,71 +61,28 @@ interface SessionJournalProps {
   onQuoteToInput?: (text: string) => void;
 }
 
+export interface SealedScene {
+  id: string;
+  sceneNumber: number;
+  location: string;
+  title: string;
+  inGameDate?: string;
+  timestamp?: string | Date;
+  people: string[];
+  findings: string[];
+  keyTakeaways: string[];
+  nextStep?: string;
+}
+
 export function SessionJournal({
   character,
-  onUpdateCharacter,
   onClose,
   currentInGameDate,
   sharedJournal,
-  onUpdateSharedJournal,
   participantNames = [],
   onQuoteToInput,
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
-  const locale = useLocale();
-  const categories = [
-    t('categoryEvents'),
-    t('categoryDiscoveries'),
-    t('categoryEncounters'),
-    t('categoryCombat'),
-    t('categoryResearch'),
-    t('categoryDreams'),
-    t('categoryVisions'),
-    t('categoryNotes'),
-    t('categoryOther'),
-  ];
-
-  const defaultTags = [
-    t('tagCthulhu'),
-    t('tagCult'),
-    t('tagNightmares'),
-    t('tagResearch'),
-    t('tagCombat'),
-    t('tagSecrets'),
-    t('tagNpc'),
-    t('tagLocations'),
-    t('tagArtifacts'),
-    t('tagSpells'),
-  ];
-
-  const [activeTab, setActiveTab] = useState<JournalEntryType>('npc');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<ExtendedJournalEntry | null>(
-    null
-  );
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
-  const [encyclopediaSubTab, setEncyclopediaSubTab] = useState<
-    'location' | 'character' | 'item'
-  >('character');
-  const [showIdeaModal, setShowIdeaModal] = useState(false);
-  const [ideaTargetSubject, setIdeaTargetSubject] = useState<{
-    id: string;
-    title: string;
-    description?: string;
-    type?: string;
-    foundLocationId?: string;
-  } | undefined>(undefined);
-  const [expandedSceneIds, setExpandedSceneIds] = useState<Set<string>>(new Set());
-
-  const toggleSceneExpanded = useCallback((id: string) => {
-    setExpandedSceneIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
 
   // Obsługa klawisza Escape do zamykania Dziennika
   useEffect(() => {
@@ -158,2122 +97,405 @@ export function SessionJournal({
 
   const isShared = sharedJournal !== undefined;
 
-  // Duet czyta scalony dziennik przygody, solo zachowuje dziennik postaci.
+  // Pobranie wpisów dziennika (duet lub solo)
   const entries = useMemo(() => {
-    const rawEntries = (sharedJournal ??
-      character.journal ??
-      []) as unknown as ExtendedJournalEntry[];
-    return rawEntries.map((entry) => ({
-      ...entry,
-      type: entry.type || 'journal', // Domyślnie starsze wpisy stają się częścią kroniki
-    })) as ExtendedJournalEntry[];
+    return (sharedJournal ?? character.journal ?? []) as unknown as ExtendedJournalEntry[];
   }, [character.journal, sharedJournal]);
 
-  const updateCharacterJournal = useCallback(
-    (newEntries: ExtendedJournalEntry[]) => {
-      if (onUpdateSharedJournal) {
-        onUpdateSharedJournal(newEntries as unknown as JournalEntry[]);
-        return;
-      }
-      onUpdateCharacter({
-        ...character,
-        journal: newEntries as unknown as JournalEntry[],
-      });
-    },
-    [character, onUpdateCharacter, onUpdateSharedJournal]
-  );
+  // Ekstrakcja i deduplikacja zapieczętowanych kart scen
+  const sealedScenes = useMemo<SealedScene[]>(() => {
+    const map = new Map<string, SealedScene>();
 
-  const addEntry = (entry: Omit<ExtendedJournalEntry, 'id' | 'timestamp'>) => {
-    const newEntry: ExtendedJournalEntry = {
-      ...entry,
-      id: `journal_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-      timestamp: new Date(),
-      inGameDate: entry.inGameDate || currentInGameDate,
-    };
-    const updatedEntries = [newEntry, ...entries];
-    updateCharacterJournal(updatedEntries);
-    setShowAddForm(false);
-  };
-
-  const updateEntry = (updatedEntry: ExtendedJournalEntry) => {
-    const updatedEntries = entries.map((entry) =>
-      entry.id === updatedEntry.id
-        ? { ...updatedEntry, updatedAt: new Date() }
-        : entry
-    );
-    updateCharacterJournal(updatedEntries);
-    setEditingEntry(null);
-  };
-
-  const deleteEntry = (id: string) => {
-    if (!confirm(t('deleteEntryConfirm')))
-      return;
-    const updatedEntries = entries.filter((entry) => entry.id !== id);
-    updateCharacterJournal(updatedEntries);
-
-    const currentDossier = ensureCharacterDossier(character).investigatorDossier;
-    const newDossier: InvestigatorDossier = {
-      ...currentDossier,
-      clues: currentDossier.clues.filter((c) => c.id !== id),
-      npcs: currentDossier.npcs.filter((n) => n.id !== id),
-      locations: currentDossier.locations.filter((l) => l.id !== id),
-      notes: currentDossier.notes.filter((p) => p.id !== id),
-      lastUpdated: new Date().toISOString(),
-    };
-    onUpdateCharacter({
-      ...character,
-      journal: updatedEntries as unknown as JournalEntry[],
-      investigatorDossier: newDossier,
-    });
-    if (selectedQuestId === id) {
-      setSelectedQuestId(null);
-    }
-  };
-
-  // Stan Akt Śledczych (Investigator's Dossier CoC 7e RAW)
-  const dossier = useMemo(() => {
-    if (isShared && sharedJournal) {
-      return migrateLegacyJournalToDossier(sharedJournal, character.investigatorDossier);
-    }
-    return ensureCharacterDossier(character).investigatorDossier;
-  }, [character, isShared, sharedJournal]);
-
-  // Scalona lista odkryć i akt śledczych dla widoku DiscoveriesView
-  const dossierDiscoveryEntries = useMemo(() => {
-    const list: DiscoveryEntry[] = [];
-    const seenIds = new Set<string>();
-    const seenTitles = new Set<string>();
-
-    if (Array.isArray(dossier.clues)) {
-      dossier.clues.forEach((c) => {
-        seenIds.add(c.id);
-        const normTitle = (c.title || '').toLowerCase().trim();
-        if (normTitle) seenTitles.add(normTitle);
-
-        const matchingJournal = entries.find(
-          (e) => e.id === c.sourceJournalEntryId || (e.title && e.title.toLowerCase().trim() === normTitle)
-        );
-        const fullContent =
-          matchingJournal && matchingJournal.content && matchingJournal.content.length > (c.description?.length || 0)
-            ? matchingJournal.content
-            : c.description;
-
-        list.push({
-          id: c.id,
-          title: c.title,
-          content: fullContent,
-          type: 'clue',
-          tags: c.tags,
-          imageUrl: c.imageUrl,
-          inGameDate: c.inGameDate,
-          timestamp: c.timestamp,
-          investigatorInsight: c.investigatorInsight,
-          clueCategory: c.category,
-          provenance: c.provenance,
-          miceType: c.miceType,
-          miceObjective: c.miceObjective,
-          clueStatus: c.status,
-          isKeyClue: c.isKeyClue,
-          linkedNodeIds: c.linkedNodeIds,
-          sourceNpc: c.sourceNpc,
-          sourceNpcId: c.sourceNpcId,
-          foundLocation: c.foundLocation,
-          foundLocationId: c.foundLocationId,
-          questStatus:
-            c.status === 'confirmed'
-              ? 'completed'
-              : c.status === 'disproven'
-                ? 'failed'
-                : 'active',
+    // 1. Karty scen z character.sceneCards
+    if (Array.isArray(character.sceneCards)) {
+      character.sceneCards.forEach((sc: SceneCaseCard, idx: number) => {
+        const id = sc.id || `sc-card-${sc.sceneNumber ?? idx + 1}`;
+        map.set(id, {
+          id,
+          sceneNumber: sc.sceneNumber ?? idx + 1,
+          location: sc.location || 'Nieznana lokacja',
+          title: sc.title || `Scena #${sc.sceneNumber ?? idx + 1}`,
+          inGameDate: sc.inGameDate,
+          timestamp: sc.timestamp,
+          people: Array.isArray(sc.people) ? sc.people : [],
+          findings: Array.isArray(sc.findings) ? sc.findings : [],
+          keyTakeaways: Array.isArray(sc.keyTakeaways) ? sc.keyTakeaways : [],
+          nextStep: sc.nextStep,
         });
       });
     }
 
-    if (Array.isArray(dossier.npcs)) {
-      dossier.npcs.forEach((n) => {
-        seenIds.add(n.id);
-        const normName = (n.name || '').toLowerCase().trim();
-        if (normName) seenTitles.add(normName);
-        list.push({
-          id: n.id,
-          title: n.name,
-          content: n.firstImpression || n.notes || '',
-          type: 'npc',
-          tags: n.tags,
-          imageUrl: n.avatarUrl,
-          inGameDate: n.inGameDate,
-          timestamp: n.timestamp,
-          investigatorInsight: n.keyInformation,
-          occupation: n.occupation,
-          relationshipStatus: n.relationshipStatus,
-          foundLocation: n.location,
-          foundLocationId: n.locationId,
-          relatedClueIds: n.relatedClueIds,
-          physiologicalDetail: n.physiologicalDetail,
-          sociologicalStatus: n.sociologicalStatus,
-          // psychologicalAgenda jest poufną wiedzą MG i nie trafia do widoku gracza
-        });
-      });
-    }
-
-    if (Array.isArray(dossier.locations)) {
-      dossier.locations.forEach((l) => {
-        seenIds.add(l.id);
-        const normLoc = (l.name || '').toLowerCase().trim();
-        if (normLoc) seenTitles.add(normLoc);
-        list.push({
-          id: l.id,
-          title: l.name,
-          content: l.description || '',
-          type: 'location',
-          tags: l.tags,
-          imageUrl: l.imageUrl,
-          inGameDate: l.inGameDate,
-          timestamp: l.timestamp,
-          searchStatus: l.searchStatus,
-          addressOrRegion: l.addressOrRegion,
-          discoveredClueIds: l.discoveredClueIds,
-          npcIds: l.npcIds,
-          lockedRoomMystery: l.lockedRoomMystery,
-        });
-      });
-    }
-
-    entries.forEach((e) => {
-      const normTitle = (e.title || '').toLowerCase().trim();
-      // Twarda deduplikacja po ID lub znormalizowanym tytule
-      if (seenIds.has(e.id) || (normTitle && seenTitles.has(normTitle))) {
-        return;
-      }
-
-      const isCaseIntro =
-        e.type === 'case' ||
-        normTitle === 'początek śledztwa' ||
-        normTitle === 'beginning the investigation' ||
-        normTitle === 'beginning of the investigation';
-
-      if (
-        isCaseIntro ||
-        ['quest', 'npc', 'location', 'item', 'document', 'handout', 'discovery', 'clue', 'case'].includes(e.type)
-      ) {
-        seenIds.add(e.id);
-        if (normTitle) seenTitles.add(normTitle);
-        const eProv = (e as unknown as Record<string, unknown>).provenance as ClueProvenance | undefined;
-        const resolvedProv =
-          eProv ||
-          (isCaseIntro || e.type === 'clue' || e.type === 'discovery' || e.type === 'case'
-            ? inferClueProvenance(e.title, e.content)
-            : undefined);
-
-        list.push({
-          id: e.id,
-          title: e.title,
-          content: e.content,
-          type: isCaseIntro ? 'case' : e.type,
-          tags: e.tags,
-          imageUrl: (e as unknown as Record<string, string>).imageUrl,
-          imageStatus: (e as unknown as Record<string, string>).imageStatus,
-          inGameDate: e.inGameDate,
-          timestamp: e.timestamp ? new Date(e.timestamp).getTime() : undefined,
-          questStatus: e.questStatus,
-          objectives: e.objectives,
-          investigatorInsight: e.investigatorInsight,
-          provenance: resolvedProv,
-        });
-      }
-    });
-
-    // Potrójny Byt Handoutów: włączenie fizycznych przedmiotów i dokumentów z ekwipunku postaci
-    if (Array.isArray(character.equipment)) {
-      character.equipment.forEach((eqItem) => {
-        const normTitle = (eqItem.name || '').toLowerCase().trim();
-        if (seenIds.has(eqItem.id) || (normTitle && seenTitles.has(normTitle))) {
-          // Jeśli wpis już istnieje, dopełnij ewentualny brak grafiki, proweniencji lub pełnej treści
-          const existing = list.find(
-            (item) => item.id === eqItem.id || (item.title || '').toLowerCase().trim() === normTitle
-          );
-          if (existing) {
-            if (!existing.imageUrl && eqItem.imageUrl) existing.imageUrl = eqItem.imageUrl;
-            if (eqItem.category === 'document' || eqItem.isReadable || eqItem.readableContent) {
-              existing.clueCategory = 'document';
-              if (!existing.provenance) existing.provenance = 'handout';
-            }
-            const fullContent = eqItem.readableContent || eqItem.description;
-            if (fullContent && fullContent.length > (existing.content?.length || 0)) {
-              existing.content = fullContent;
-            }
-          }
-          return;
+    // 2. Karty ze scalonego dziennika przygody
+    entries.forEach((entry, idx) => {
+      if (entry.sceneData) {
+        const sd = entry.sceneData;
+        const id = sd.id || entry.id;
+        if (!map.has(id)) {
+          map.set(id, {
+            id,
+            sceneNumber: sd.sceneNumber ?? idx + 1,
+            location: sd.location || 'Nieznana lokacja',
+            title: sd.title || entry.title || `Scena #${sd.sceneNumber ?? idx + 1}`,
+            inGameDate: sd.inGameDate || entry.inGameDate,
+            timestamp: sd.timestamp || entry.timestamp,
+            people: Array.isArray(sd.people) ? sd.people : [],
+            findings: Array.isArray(sd.findings) ? sd.findings : [],
+            keyTakeaways: Array.isArray(sd.keyTakeaways)
+              ? sd.keyTakeaways
+              : entry.content
+                ? [entry.content]
+                : [],
+            nextStep: sd.nextStep,
+          });
         }
+      } else if (entry.type === 'scene') {
+        const id = entry.id;
+        if (!map.has(id)) {
+          const takeaways = entry.content
+            ? entry.content.split('\n').map((s) => s.trim()).filter(Boolean)
+            : [];
+          map.set(id, {
+            id,
+            sceneNumber: map.size + 1,
+            location: entry.metadata?.locationName || entry.title || 'Nieznana lokacja',
+            title: entry.title,
+            inGameDate: entry.inGameDate,
+            timestamp: entry.timestamp,
+            people: entry.metadata?.npcName ? [entry.metadata.npcName] : [],
+            findings: [],
+            keyTakeaways: takeaways,
+            nextStep: undefined,
+          });
+        }
+      }
+    });
 
-        seenIds.add(eqItem.id);
-        if (normTitle) seenTitles.add(normTitle);
-
-        const isDoc = eqItem.category === 'document' || eqItem.isReadable === true || !!eqItem.readableContent;
-        const fact = synthesizeClueFact(eqItem.name, eqItem.readableContent || eqItem.description || '');
-
-        list.push({
-          id: eqItem.id,
-          title: eqItem.name,
-          content: eqItem.readableContent || eqItem.description || fact,
-          type: isDoc ? 'document' : 'item',
-          tags: eqItem.category ? [eqItem.category] : ['item'],
-          imageUrl: eqItem.imageUrl,
-          clueCategory: isDoc ? 'document' : undefined,
-          provenance: isDoc ? 'handout' : undefined,
-          clueStatus: 'confirmed',
-          questStatus: 'completed',
-        });
-      });
-    }
+    const list = Array.from(map.values());
+    // Chronologicznie od najnowszej na samej górze
+    list.sort((a, b) => {
+      if (b.sceneNumber !== a.sceneNumber) {
+        return b.sceneNumber - a.sceneNumber;
+      }
+      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return timeB - timeA;
+    });
 
     return list;
-  }, [dossier, entries, character.equipment]);
+  }, [character.sceneCards, entries]);
 
-  const handleEditDiscoveryEntry = useCallback(
-    (updated: DiscoveryEntry) => {
-      const currentDossier = ensureCharacterDossier(character).investigatorDossier;
-      const normUpdatedTitle = (updated.title || '').toLowerCase().trim();
-      let clueFound = false;
-      const updatedClues = currentDossier.clues.map((c) => {
-        if (c.id === updated.id || (normUpdatedTitle && c.title.toLowerCase().trim() === normUpdatedTitle)) {
-          clueFound = true;
-          return {
-            ...c,
-            title: updated.title,
-            description: updated.content,
-            investigatorInsight: updated.investigatorInsight,
-            status: updated.clueStatus || c.status,
-            category: updated.clueCategory || c.category,
-            provenance: 'provenance' in updated ? updated.provenance : c.provenance,
-            miceType: 'miceType' in updated ? updated.miceType : c.miceType,
-            miceObjective: updated.miceObjective !== undefined ? updated.miceObjective : c.miceObjective,
-          };
-        }
-        return c;
-      });
+  // Domyślnie wybrana jest najnowsza scena (pierwsza na liście)
+  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
 
-      if (!clueFound && updated.investigatorInsight) {
-        // Nowy wpis w dossier dla przedmiotu/handoutu z wnioskiem badacza
-        updatedClues.push({
-          id: `clue-${Date.now()}-${updated.id}`,
-          title: updated.title,
-          description: updated.content,
-          category: updated.clueCategory || 'document',
-          status: updated.clueStatus || 'confirmed',
-          discoveryStatus: 'discovered',
-          epistemicLayer: 'player_clue',
-          provenance: updated.provenance || 'handout',
-          investigatorInsight: updated.investigatorInsight,
-          timestamp: Date.now(),
-        });
-      }
-
-      const updatedNpcs = currentDossier.npcs.map((n) =>
-        n.id === updated.id
-          ? {
-              ...n,
-              name: updated.title,
-              firstImpression: updated.content,
-              keyInformation: updated.investigatorInsight,
-              relationshipStatus: updated.relationshipStatus || n.relationshipStatus,
-              occupation: updated.occupation || n.occupation,
-            }
-          : n
-      );
-      const updatedLocations = currentDossier.locations.map((l) =>
-        l.id === updated.id
-          ? {
-              ...l,
-              name: updated.title,
-              description: updated.content,
-              searchStatus: updated.searchStatus || l.searchStatus,
-            }
-          : l
-      );
-
-      const newDossier: InvestigatorDossier = {
-        ...currentDossier,
-        clues: updatedClues,
-        npcs: updatedNpcs,
-        locations: updatedLocations,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      const updatedEquipment = Array.isArray(character.equipment)
-        ? character.equipment.map((eq) => {
-            if (eq.id === updated.id || (normUpdatedTitle && (eq.name || '').toLowerCase().trim() === normUpdatedTitle)) {
-              return {
-                ...eq,
-                description: updated.content || eq.description,
-                readableContent: eq.isReadable ? (updated.content || eq.readableContent) : eq.readableContent,
-              };
-            }
-            return eq;
-          })
-        : character.equipment;
-
-      const hasJournalEntry = entries.some((e) => e.id === updated.id);
-      if (hasJournalEntry) {
-        const updatedJournalEntries = entries.map((e) =>
-          e.id === updated.id
-            ? {
-                ...e,
-                title: updated.title,
-                content: updated.content,
-                investigatorInsight: updated.investigatorInsight,
-                questStatus: updated.questStatus,
-                provenance: 'provenance' in updated ? updated.provenance : e.provenance,
-                updatedAt: new Date(),
-              }
-            : e
-        );
-        if (onUpdateSharedJournal) {
-          onUpdateSharedJournal(updatedJournalEntries as unknown as JournalEntry[]);
-        }
-        onUpdateCharacter({
-          ...character,
-          journal: updatedJournalEntries as unknown as JournalEntry[],
-          equipment: updatedEquipment,
-          investigatorDossier: newDossier,
-        });
-      } else {
-        onUpdateCharacter({
-          ...character,
-          equipment: updatedEquipment,
-          investigatorDossier: newDossier,
-        });
-      }
-    },
-    [character, entries, onUpdateCharacter, onUpdateSharedJournal]
-  );
-
-  // Śledzenie nieprzeczytanych wpisów w konkretnych zakładkach
-  const journalSeenKey = isShared
-    ? `unseen_journal_detail_${[...participantNames].sort().join('_')}`
-    : character
-      ? `unseen_detail_${character.id}`
-      : null;
-
-  const unseenCounts = useMemo(() => {
-    if (!journalSeenKey) return { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
-    const stored = localStorage.getItem(journalSeenKey);
-    const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
-    
-    // Liczymy wpisy każdego typu
-    const questCount = entries.filter(e => e.type === 'quest').length;
-    const journalCount = entries.filter(e => e.type === 'journal').length;
-    const encyclopediaCount = entries.filter(e => 
-      ['npc', 'location', 'item'].includes(e.type)
-    ).length;
-    const noteCount = entries.filter(e => e.type === 'note').length;
-
-    return {
-      quest: Math.max(0, questCount - (seenData.quest || 0)),
-      journal: Math.max(0, journalCount - (seenData.journal || 0)),
-      encyclopedia: Math.max(0, encyclopediaCount - (seenData.encyclopedia || 0)),
-      note: Math.max(0, noteCount - (seenData.note || 0)),
-    };
-  }, [entries, journalSeenKey]);
-
-  // Resetowanie powiadomień dla danej zakładki po jej aktywacji
-  const markTabAsSeen = useCallback((tab: JournalEntryType) => {
-    if (!journalSeenKey) return;
-    const stored = localStorage.getItem(journalSeenKey);
-    const seenData = stored ? JSON.parse(stored) : { quest: 0, journal: 0, encyclopedia: 0, note: 0 };
-    
-    const questCount = entries.filter(e => e.type === 'quest').length;
-    const journalCount = entries.filter(e => e.type === 'journal').length;
-    const encyclopediaCount = entries.filter(e => 
-      ['npc', 'location', 'item'].includes(e.type)
-    ).length;
-    const noteCount = entries.filter(e => e.type === 'note').length;
-
-    if (tab === 'quest') seenData.quest = questCount;
-    else if (tab === 'journal') seenData.journal = journalCount;
-    else if (tab === 'npc' || tab === 'location' || tab === 'item') {
-      seenData.encyclopedia = encyclopediaCount;
+  const activeSceneCard = useMemo(() => {
+    if (selectedSceneId) {
+      const found = sealedScenes.find((s) => s.id === selectedSceneId);
+      if (found) return found;
     }
-    else if (tab === 'note') seenData.note = noteCount;
+    return sealedScenes[0] || null;
+  }, [sealedScenes, selectedSceneId]);
 
-    localStorage.setItem(journalSeenKey, JSON.stringify(seenData));
-  }, [entries, journalSeenKey]);
-
-  // Uruchomienie resetu dla domyślnej zakładki przy otwarciu
-  useState(() => {
-    markTabAsSeen(activeTab);
-  });
-
-  const handleTabChange = (tab: JournalEntryType) => {
-    setActiveTab(tab);
-    markTabAsSeen(tab);
-    if (tab === 'quest') {
-      setSelectedQuestId(null);
+  // Cytowanie do czatu
+  const handleQuoteToInput = (text: string) => {
+    if (onQuoteToInput) {
+      onQuoteToInput(text);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent('straznik:quote-to-input', {
+          detail: { text },
+        })
+      );
     }
+    onClose?.();
   };
 
-  // Filtrowanie wpisów według wyszukiwania i typu
-  const filteredEntries = useMemo(() => {
-    return entries.filter((entry) => {
-      // Dopasowanie do zakładki
-      if (activeTab === 'quest' && entry.type !== 'quest') return false;
-      if (activeTab === 'journal' && entry.type !== 'journal' && entry.type !== 'scene') return false;
-      if (activeTab === 'note') {
-        if (entry.type !== 'note') return false;
-        const normTitle = (entry.title || '').toLowerCase().trim();
-        if (
-          normTitle === 'początek śledztwa' ||
-          normTitle === 'beginning the investigation' ||
-          normTitle === 'beginning of the investigation'
-        ) {
-          return false;
-        }
-      }
-      if (activeTab === 'npc') {
-        if (
-          entry.type !== 'npc' &&
-          entry.type !== 'location' &&
-          entry.type !== 'item'
-        ) {
-          return false;
-        }
-
-        // Sprawdzamy podzakładkę encyklopedii
-        if (
-          encyclopediaSubTab === 'character' &&
-          entry.type !== 'npc'
-        )
-          return false;
-        if (
-          encyclopediaSubTab === 'location' &&
-          entry.type !== 'location'
-        )
-          return false;
-        if (encyclopediaSubTab === 'item' && entry.type !== 'item')
-          return false;
-      }
-
-      // Dopasowanie do wyszukiwania
-      if (!searchQuery) return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        entry.title.toLowerCase().includes(query) ||
-        entry.content.toLowerCase().includes(query) ||
-        (entry.tags &&
-          entry.tags.some((tag) => tag.toLowerCase().includes(query)))
-      );
-    });
-  }, [entries, activeTab, encyclopediaSubTab, searchQuery]);
-
-  const activeQuests = useMemo(
-    () =>
-      filteredEntries.filter(
-        (e) => e.questStatus === 'active' || !e.questStatus
-      ),
-    [filteredEntries]
-  );
-  const completedQuests = useMemo(
-    () => filteredEntries.filter((e) => e.questStatus === 'completed'),
-    [filteredEntries]
-  );
-  const failedQuests = useMemo(
-    () => filteredEntries.filter((e) => e.questStatus === 'failed'),
-    [filteredEntries]
-  );
-
-  const selectedQuest = useMemo(() => {
-    return (
-      filteredEntries.find((e) => e.id === selectedQuestId) ||
-      filteredEntries[0]
-    );
-  }, [filteredEntries, selectedQuestId]);
-
-  // Eksport Dziennika i Akt Śledczych do pliku Markdown (Investigator's Dossier CoC 7e RAW)
-  const exportToMarkdown = useCallback(() => {
-    const owner = isShared ? participantNames.join(' i ') : character.name;
-    let md = owner
-      ? t('mdDossierTitleOwner', { owner })
-      : t('mdDossierTitle');
-    md += t('mdExportLine', { date: new Date().toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US') });
-
-    // 1. Akta Poszlak i Śladów (Dossier Clues)
-    const currentDossier = ensureCharacterDossier(character).investigatorDossier;
-    if (currentDossier.clues.length > 0) {
-      md += t('mdCluesSection');
-      currentDossier.clues.forEach((c) => {
-        const catLabel =
-          c.category === 'forensic'
-            ? t('clueCategoryForensic')
-            : c.category === 'document'
-              ? t('clueCategoryDocument')
-              : c.category === 'testimony'
-                ? t('clueCategoryTestimony')
-                : t('clueCategoryOccult');
-        const statusLabel =
-          c.status === 'confirmed'
-            ? t('clueStatusConfirmed')
-            : c.status === 'disproven'
-              ? t('clueStatusDisproven')
-              : t('clueStatusUnconfirmed');
-
-        md += `### ${c.isKeyClue ? '⭐ ' : ''}${c.title}\n`;
-        md += t('mdClueCategoryLine', {
-          category: catLabel,
-          status: statusLabel,
-        });
-        if (c.sourceNpc || c.foundLocation) {
-          const src = [c.sourceNpc, c.foundLocation].filter(Boolean).join(', ');
-          md += t('mdClueSourceLine', { source: src });
-        }
-        if (c.inGameDate) {
-          md += `*${t('recordDate', { date: c.inGameDate })}*\n`;
-        }
-        md += `\n${c.description}\n\n`;
-        if (c.investigatorInsight) {
-          md += t('mdInsightLine', { insight: c.investigatorInsight });
-        }
-        md += `---\n\n`;
-      });
-    }
-
-    // 2. Teczka Osób (Dossier NPCs)
-    if (currentDossier.npcs.length > 0) {
-      md += t('mdNpcSection');
-      currentDossier.npcs.forEach((n) => {
-        const relMap: Record<string, string> = {
-          friendly: t('npcRelFriendly'),
-          neutral: t('npcRelNeutral'),
-          hostile: t('npcRelHostile'),
-          suspicious: t('npcRelSuspicious'),
-          deceased: t('npcRelDeceased'),
-          unknown: t('npcRelUnknown'),
-        };
-        md += `### 👤 ${n.name}\n`;
-        md += t('mdNpcRelationLine', {
-          relation: relMap[n.relationshipStatus] || n.relationshipStatus,
-          occupation: n.occupation || '-',
-        });
-        if (n.location) {
-          md += `*Lokalizacja: ${n.location}*\n`;
-        }
-        if (n.firstImpression) {
-          md += `\n${n.firstImpression}\n\n`;
-        }
-        if (n.keyInformation) {
-          md += t('mdInsightLine', { insight: n.keyInformation });
-        }
-        md += `---\n\n`;
-      });
-    }
-
-    // 3. Atlas Miejsc (Dossier Locations)
-    if (currentDossier.locations.length > 0) {
-      md += t('mdLocationsSection');
-      currentDossier.locations.forEach((l) => {
-        const searchStatusMap: Record<string, string> = {
-          unvisited: t('locStatusUnvisited'),
-          partially_searched: t('locStatusPartiallySearched'),
-          thoroughly_searched: t('locStatusThoroughlySearched'),
-        };
-        md += `### 📍 ${l.name}\n`;
-        md += t('mdLocationStatusLine', {
-          status: searchStatusMap[l.searchStatus] || l.searchStatus,
-        });
-        if (l.addressOrRegion) {
-          md += `*${l.addressOrRegion}*\n`;
-        }
-        if (l.description) {
-          md += `\n${l.description}\n\n`;
-        }
-        md += `---\n\n`;
-      });
-    }
-
-    // 4. Wycinki i Dokumenty (Handouts)
-    const handouts = entries.filter((e) =>
-      ['item', 'document', 'handout', 'discovery'].includes(e.type)
-    );
-    if (handouts.length > 0) {
-      md += t('mdHandoutsSection');
-      handouts.forEach((h) => {
-        md += `### 📜 ${h.title}\n\n`;
-        md += `${h.content}\n\n`;
-        if (h.investigatorInsight) {
-          md += t('mdInsightLine', { insight: h.investigatorInsight });
-        }
-        md += `---\n\n`;
-      });
-    }
-
-    // 5. Notatki Terenowe Badacza (Notes)
-    const notes = entries.filter((e) => e.type === 'note');
-    if (notes.length > 0) {
-      md += t('mdNotesSection');
-      notes.forEach((e) => {
-        md += `### 📝 ${e.title}\n`;
-        const formattedNoteDate = e.timestamp
-          ? new Date(e.timestamp).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US')
-          : '';
-        md += t('mdSavedLine', { date: formattedNoteDate });
-        md += `${e.content}\n\n`;
-        md += `---\n\n`;
-      });
-    }
-
-    // 6. Kronika Wydarzeń (Chronicle)
-    const journalEntries = entries.filter((e) => e.type === 'journal');
-    if (journalEntries.length > 0) {
-      md += t('mdChronicleSection');
-      journalEntries.forEach((e) => {
-        md += `### ${e.title}\n`;
-        const formattedDate =
-          e.inGameDate ||
-          (e.timestamp
-            ? new Date(e.timestamp).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US')
-            : '');
-        md += t('mdDateLine', { date: formattedDate });
-        md += `${e.content}\n\n`;
-        if (e.tags && e.tags.length > 0) {
-          md += t('mdTagsLine', { tags: e.tags.map((tag) => `#${tag}`).join(', ') });
-        }
-        md += `---\n\n`;
-      });
-    }
-
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute(
-      'download',
-      isShared
-        ? 'akta_sledcze_duet.md'
-        : `akta_sledcze_${character.name.replace(/\s+/g, '_').toLowerCase()}.md`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, [character, entries, isShared, locale, participantNames, t]);
+  // Trwająca aktywna scena do paska statusu
+  const ongoingLocation =
+    character.activeScene?.location ||
+    (sealedScenes.length > 0 ? sealedScenes[0].location : null);
 
   return (
     <div
       data-testid="session-journal"
-      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 sm:p-6"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose?.();
-        }
-      }}
+      className="fixed inset-0 w-full h-full z-50 flex flex-col bg-[#0b0805] text-[#e8dfcf] select-none overflow-hidden"
     >
-      {/* RPG-styled Container - Standard 75-80% powierzchni ekranu & Dark Art Déco */}
-      <div
-        className="bg-gradient-to-b from-[#18130e] via-[#120e0a] to-[#0a0805] border border-brass/50 shadow-2xl w-[80vw] h-[78vh] max-h-[85vh] flex flex-col overflow-hidden text-foreground relative rounded-sm"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Narożniki déco */}
-        <span className="pointer-events-none absolute left-2.5 top-2.5 h-5 w-5 border-l-2 border-t-2 border-brass/70 z-20" />
-        <span className="pointer-events-none absolute right-2.5 top-2.5 h-5 w-5 border-r-2 border-t-2 border-brass/70 z-20" />
-        <span className="pointer-events-none absolute bottom-2.5 left-2.5 h-5 w-5 border-l-2 border-b-2 border-brass/70 z-20" />
-        <span className="pointer-events-none absolute bottom-2.5 right-2.5 h-5 w-5 border-r-2 border-b-2 border-brass/70 z-20" />
+      {/* Narożniki ozdobne Dark Art Déco */}
+      <span className="pointer-events-none absolute left-3 top-3 h-5 w-5 border-l-2 border-t-2 border-brass/60 z-30" />
+      <span className="pointer-events-none absolute right-3 top-3 h-5 w-5 border-r-2 border-t-2 border-brass/60 z-30" />
+      <span className="pointer-events-none absolute bottom-3 left-3 h-5 w-5 border-l-2 border-b-2 border-brass/60 z-30" />
+      <span className="pointer-events-none absolute bottom-3 right-3 h-5 w-5 border-r-2 border-b-2 border-brass/60 z-30" />
 
-        {/* Nagłówek i Główne Zakładki */}
-        <div className="bg-[#140f0b] border-b border-brass/30 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
-          <div className="flex items-center gap-3 shrink-0">
-            <BookOpen className="h-6 w-6 text-brass shrink-0" />
-            <div>
-              <div className="font-special-elite text-[10px] uppercase tracking-[0.24em] text-primary/90">
-                {t('titleEyebrow')}
-              </div>
-              <h2 className="font-display uppercase tracking-[0.14em] text-xl text-foreground drop-shadow-sm whitespace-nowrap">
-                {t('title')}
-              </h2>
+      {/* 1. Czysty Nagłówek (Header) */}
+      <header className="bg-gradient-to-r from-[#140e09] via-[#1a130c] to-[#140e09] border-b border-brass/30 px-6 py-3 flex items-center justify-between gap-4 shrink-0 shadow-md relative z-10">
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-6 w-6 text-brass shrink-0" />
+          <div>
+            <div className="font-special-elite text-[10px] uppercase tracking-[0.22em] text-brass/80">
+              {t('titleEyebrow')}
+            </div>
+            <h1 className="font-display uppercase tracking-[0.14em] text-lg lg:text-xl text-foreground drop-shadow-sm whitespace-nowrap">
+              {t('titleFull')}
+            </h1>
+            <div className="text-xs font-serif text-muted-foreground flex items-center gap-2">
+              <span>{t('investigatorLabel', { name: character.name })}</span>
+              {(currentInGameDate || character.activeScene?.inGameDate) && (
+                <>
+                  <span className="text-brass/40">•</span>
+                  <span className="text-brass/75">
+                    {currentInGameDate || character.activeScene?.inGameDate}
+                  </span>
+                </>
+              )}
               {isShared && participantNames.length > 0 && (
-                <p className="text-xs font-special-elite tracking-wider text-brass/80">
-                  {t('sharedWith', { names: participantNames.join(' i ') })}
-                </p>
+                <>
+                  <span className="text-brass/40">•</span>
+                  <span className="text-emerald-400/90 font-mono text-[11px]">
+                    {t('sharedWith', { names: participantNames.join(' i ') })}
+                  </span>
+                </>
               )}
             </div>
           </div>
-
-          {/* Zakładki na górze - Styl Akt / Segregatora Dark Art Déco */}
-          <div className="flex gap-1.5 items-center self-center md:self-end translate-y-[1px] mt-2 md:mt-0 shrink-0">
-            <button
-              data-testid="btn-discoveries"
-              onClick={() => handleTabChange('npc')}
-              className={cn(
-                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
-                (activeTab === 'npc' || activeTab === 'location' || activeTab === 'item' || activeTab === 'quest')
-                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
-              )}
-            >
-              🔍 {t('tabDiscoveries')}
-              {(unseenCounts.encyclopedia + unseenCounts.quest) > 0 && (
-                <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
-                  {unseenCounts.encyclopedia + unseenCounts.quest}
-                </span>
-              )}
-            </button>
-            <button
-              data-testid="btn-timeline"
-              onClick={() => handleTabChange('journal')}
-              className={cn(
-                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
-                activeTab === 'journal'
-                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
-              )}
-            >
-              {t('tabChronicle')}
-              {unseenCounts.journal > 0 && (
-                <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
-                  {unseenCounts.journal}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => handleTabChange('note')}
-              className={cn(
-                'px-4 lg:px-5 py-2 text-xs font-display uppercase tracking-[0.14em] transition-all relative flex items-center gap-2 border-x border-t shrink-0',
-                activeTab === 'note'
-                  ? 'bg-[#1a1510] text-brass border-brass/60 border-b-transparent z-10 font-bold shadow-[0_-4px_10px_rgba(0,0,0,0.5)]'
-                  : 'bg-[#100c08] text-muted-foreground/70 border-brass/25 hover:text-brass hover:bg-brass/5'
-              )}
-            >
-              {t('tabNotes')}
-              {unseenCounts.note > 0 && (
-                <span className="bg-[#bfa15f] text-[#120905] text-[10px] font-bold font-mono rounded-full px-1.5 min-w-[18px] h-4 flex items-center justify-center border border-[#120905]">
-                  {unseenCounts.note}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Narzędzia i Przyciski */}
-          <div className="flex gap-2 items-center shrink-0">
-            <Button
-              onClick={() => setShowAddForm(true)}
-              className="bg-[#1f1a14] hover:bg-[#2a2219] text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider"
-            >
-              <Plus className="h-4 w-4 mr-1 text-brass" /> {t('addNoteButton')}
-            </Button>
-            <Button
-              onClick={exportToMarkdown}
-              className="bg-[#1f1a14] hover:bg-[#2a2219] text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider"
-            >
-              <Download className="h-4 w-4 mr-1 text-brass" /> {t('exportMdButton')}
-            </Button>
-            {onClose && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                className="ml-2 flex h-9 w-9 items-center justify-center rounded-full border border-brass/40 bg-[#120f0c] text-muted-foreground transition-all hover:border-brass/80 hover:text-brass hover:scale-105 shrink-0"
-                title={t('closeTooltip')}
-                aria-label={t('closeAriaLabel')}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden relative bg-gradient-to-br from-[#16120d] via-[#120e09] to-[#0a0805] text-foreground journal-scroll">
-          {/* 1. SEKCJA AKT ŚLEDCZYCH (Dossier CoC 7e RAW) */}
-          {(activeTab === 'quest' || activeTab === 'npc' || activeTab === 'location' || activeTab === 'item') && (
-            <DiscoveriesView
-              activeCharacter={character}
-              entries={dossierDiscoveryEntries}
-              onEditEntry={(entry) => {
-                handleEditDiscoveryEntry(entry);
-              }}
-              onDeleteEntry={deleteEntry}
-              onTriggerIdeaRoll={(entry) => {
-                setIdeaTargetSubject({
-                  id: entry.id,
-                  title: entry.title,
-                  description: entry.content,
-                  type: entry.type,
-                  foundLocationId: entry.foundLocationId,
-                });
-                setShowIdeaModal(true);
-              }}
-              onQuoteToInput={(text) => {
-                if (onQuoteToInput) {
-                  onQuoteToInput(text);
-                } else {
-                  window.dispatchEvent(
-                    new CustomEvent('straznik:quote-to-input', {
-                      detail: { text },
-                    })
-                  );
-                }
-                onClose?.();
-              }}
-            />
-          )}
+        {/* Przycisk zamknięcia X (z obsługą Esc) */}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-brass/40 bg-[#120f0c] text-muted-foreground transition-all hover:border-brass/80 hover:text-brass hover:scale-105 shrink-0"
+            title={t('closeTooltip')}
+            aria-label={t('closeAriaLabel')}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </header>
 
-          {/* 2. SEKCJA KRONIKI */}
-          {activeTab === 'journal' && (
-            <div data-testid="session-timeline" className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c] space-y-6">
-              <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex justify-between items-center border-b border-emerald-900/30 pb-2">
-                  <h3 className="text-xl font-serif font-bold text-emerald-100">
-                    {t('chronologyTitle')}
-                  </h3>
-                  <span className="text-sm text-[#8a7667]">
-                    {t('entriesCount', { count: filteredEntries.length })}
-                  </span>
-                </div>
+      {/* 2. Dyskretny pasek statusu trwającej sceny */}
+      <div className="bg-[#0e0a07] border-b border-brass/20 px-6 py-2 flex items-center justify-between gap-4 text-xs shrink-0">
+        <div className="flex items-center gap-2.5">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span className="font-mono uppercase tracking-wider text-brass/90">
+            {ongoingLocation
+              ? t('currentLocationStatus', { location: ongoingLocation })
+              : t('statusInvestigationOngoing')}
+          </span>
+        </div>
+        {character.activeScene && (
+          <span className="text-[11px] font-mono text-muted-foreground hidden sm:inline">
+            Scena #{character.activeScene.sceneNumber} {t('activeSceneBadge')}
+          </span>
+        )}
+      </div>
 
-                <div className="relative border-l-2 border-emerald-500/40 pl-6 ml-4 space-y-6">
-                  {/* Trwająca scena (zbierana na żywo) */}
-                  {character.activeScene && (
-                    <div className="relative mb-6">
-                      <span className="absolute -left-[31px] top-2 bg-emerald-500 border-4 border-background rounded-full h-4 w-4 animate-pulse"></span>
-                      <div className="bg-[#1a140d] border border-brass/60 rounded-lg p-4 shadow-lg">
-                        <div className="flex items-center justify-between border-b border-brass/20 pb-2 mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40">
-                              {t('activeSceneBadge')}
-                            </span>
-                            <h4 className="text-lg font-serif font-bold text-[#f4ebd0]">
-                              {character.activeScene.location}
-                            </h4>
-                          </div>
-                          <span className="text-xs text-brass/70 font-mono">
-                            Scena #{character.activeScene.sceneNumber}
+      {/* 3. Główna przestrzeń: Układ Kroniki Scen (100% wysokości i szerokości) */}
+      <main className="flex-1 flex overflow-hidden relative">
+        {sealedScenes.length === 0 ? (
+          /* Empty State - Dziennik milczy */
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
+            <div className="w-16 h-16 rounded-full border border-brass/40 bg-brass/10 flex items-center justify-center mb-4 text-brass shadow-[0_0_20px_rgba(191,161,95,0.15)]">
+              <Compass className="h-8 w-8" />
+            </div>
+            <h2 className="font-display text-xl uppercase tracking-[0.16em] text-foreground mb-2">
+              {t('emptyScenesTitle')}
+            </h2>
+            <p className="font-serif italic text-muted-foreground max-w-lg leading-relaxed text-sm">
+              {t('emptyScenesDescription')}
+            </p>
+          </div>
+        ) : (
+          /* Dwukolumnowy układ Kroniki Scen */
+          <>
+            {/* Lewa kolumna: Lista Scen (najnowsza u góry) */}
+            <aside className="w-80 lg:w-96 shrink-0 border-r border-brass/25 bg-[#0e0a07] flex flex-col overflow-hidden">
+              <div className="px-4 py-3 border-b border-brass/15 bg-[#140f0a] flex items-center justify-between shrink-0">
+                <span className="font-display text-xs uppercase tracking-[0.18em] text-brass/90 font-bold">
+                  {t('sceneListTitle')} ({sealedScenes.length})
+                </span>
+                <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                  Najnowsze na górze
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto journal-scroll p-3 space-y-2">
+                {sealedScenes.map((scene) => {
+                  const isSelected = activeSceneCard?.id === scene.id;
+                  return (
+                    <div
+                      key={scene.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedSceneId(scene.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          setSelectedSceneId(scene.id);
+                        }
+                      }}
+                      className={cn(
+                        'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
+                        isSelected
+                          ? 'bg-gradient-to-r from-brass/20 via-brass/15 to-transparent border-brass/80 shadow-[inset_0_0_12px_rgba(191,161,95,0.15),0_0_10px_rgba(191,161,95,0.1)] text-[#f4ebd0]'
+                          : 'bg-[#140f0b]/70 border-brass/15 hover:border-brass/50 hover:bg-brass/10 hover:shadow-[0_0_12px_rgba(191,161,95,0.15)] text-[#d4c8b8]'
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-[11px] bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0">
+                          Scena #{scene.sceneNumber}
+                        </span>
+                        {scene.inGameDate && (
+                          <span className="text-[11px] text-brass/70 font-mono shrink-0">
+                            📅 {scene.inGameDate}
                           </span>
-                        </div>
-
-                        <p className="text-xs text-muted-foreground italic mb-3">
-                          {t('activeSceneSealingHint')}
-                        </p>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                          <div className="bg-[#120905]/80 p-2.5 rounded border border-brass/10">
-                            <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
-                              <span>👥</span> {t('sceneCardPeople')}
-                            </span>
-                            {character.activeScene.people.length > 0 ? (
-                              <div className="flex flex-wrap gap-1">
-                                {character.activeScene.people.map((person, pIdx) => (
-                                  <span
-                                    key={pIdx}
-                                    className="text-xs bg-card/60 text-[#e6d7b8] px-2 py-0.5 rounded border border-brass/20"
-                                  >
-                                    {person}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground italic">
-                                {t('sceneCardEmptyPeople')}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="bg-[#120905]/80 p-2.5 rounded border border-brass/10">
-                            <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
-                              <span>🔍</span> {t('sceneCardFindings')}
-                            </span>
-                            {character.activeScene.findings.length > 0 ? (
-                              <div className="flex flex-wrap gap-1">
-                                {character.activeScene.findings.map((item, fIdx) => (
-                                  <span
-                                    key={fIdx}
-                                    className="text-xs bg-card/60 text-[#e6d7b8] px-2 py-0.5 rounded border border-brass/20"
-                                  >
-                                    {item}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground italic">
-                                {t('sceneCardEmptyFindings')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {filteredEntries.map((entry) => {
-                    const isExpanded =
-                      expandedSceneIds.has(entry.id) ||
-                      (Boolean(entry.sceneData) && !expandedSceneIds.has(`collapsed-${entry.id}`));
-
-                    return (
-                    <div key={entry.id} className="relative">
-                      {/* Oś czasu */}
-                      <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-background rounded-full h-4 w-4"></span>
-
-                      {entry.sceneData ? (
-                        <div className="bg-[#120905] border border-brass/40 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
-                          <div
-                            className="flex justify-between items-start cursor-pointer select-none"
-                            onClick={() => {
-                              if (isExpanded) {
-                                toggleSceneExpanded(`collapsed-${entry.id}`);
-                              } else {
-                                toggleSceneExpanded(entry.id);
-                              }
-                            }}
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs bg-brass/20 text-brass font-mono px-2 py-0.5 rounded border border-brass/40">
-                                  Scena #{entry.sceneData.sceneNumber}
-                                </span>
-                                <h4 className="text-lg font-serif font-bold text-[#f4ebd0] flex items-center gap-2">
-                                  {entry.sceneData.title || entry.title}
-                                </h4>
-                              </div>
-                              <div className="text-xs text-[#8a7667] mt-1 flex gap-3">
-                                <span>📍 {entry.sceneData.location}</span>
-                                {entry.sceneData.inGameDate && (
-                                  <span>📅 {entry.sceneData.inGameDate}</span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {entry.sceneData.nextStep && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const quoteText = entry.sceneData!.nextStep!;
-                                    if (onQuoteToInput) {
-                                      onQuoteToInput(quoteText);
-                                    } else {
-                                      window.dispatchEvent(
-                                        new CustomEvent('straznik:quote-to-input', {
-                                          detail: { text: quoteText },
-                                        })
-                                      );
-                                    }
-                                    onClose?.();
-                                  }}
-                                  className="p-1 text-emerald-300 hover:bg-emerald-900/60 rounded transition-colors"
-                                  title={t('quoteToChatTitle')}
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                </button>
-                              )}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteEntry(entry.id);
-                                }}
-                                className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                              <span className="text-brass/70 text-xs font-mono ml-1">
-                                {isExpanded ? '▲' : '▼'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {isExpanded && (
-                            <div className="mt-4 pt-3 border-t border-brass/20 space-y-3">
-                              {/* 1 i 2: Osoby i Co Zdobyto */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="bg-[#18120c] p-2.5 rounded border border-brass/10">
-                                  <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
-                                    <span>👥</span> {t('sceneCardPeople')}
-                                  </span>
-                                  {entry.sceneData.people.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1">
-                                      {entry.sceneData.people.map((p, idx) => (
-                                        <span
-                                          key={idx}
-                                          className="text-xs bg-black/40 text-[#f4ebd0] px-2 py-0.5 rounded border border-brass/20"
-                                        >
-                                          {p}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground italic">
-                                      {t('sceneCardEmptyPeople')}
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="bg-[#18120c] p-2.5 rounded border border-brass/10">
-                                  <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
-                                    <span>🔍</span> {t('sceneCardFindings')}
-                                  </span>
-                                  {entry.sceneData.findings.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1">
-                                      {entry.sceneData.findings.map((f, idx) => (
-                                        <span
-                                          key={idx}
-                                          className="text-xs bg-black/40 text-[#f4ebd0] px-2 py-0.5 rounded border border-brass/20"
-                                        >
-                                          {f}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground italic">
-                                      {t('sceneCardEmptyFindings')}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* 3: Kluczowe ustalenia */}
-                              <div className="bg-[#18120c] p-3 rounded border border-brass/10">
-                                <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
-                                  <span>📜</span> {t('sceneCardTakeaways')}
-                                </span>
-                                <ul className="space-y-1 text-sm text-[#e6d7b8] font-serif list-disc list-inside">
-                                  {entry.sceneData.keyTakeaways.map((takeaway, idx) => (
-                                    <li key={idx} className="leading-relaxed">
-                                      {takeaway}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-
-                              {/* 4: Cel i kolejny krok */}
-                              {entry.sceneData.nextStep && (
-                                <div className="bg-brass/10 p-3 rounded border border-brass/30 flex items-start justify-between gap-3">
-                                  <div>
-                                    <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1">
-                                      <span>🎯</span> {t('sceneCardNextStep')}
-                                    </span>
-                                    <p className="text-sm font-serif italic text-[#f4ebd0]">
-                                      {entry.sceneData.nextStep}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const quoteText = entry.sceneData!.nextStep!;
-                                      if (onQuoteToInput) {
-                                        onQuoteToInput(quoteText);
-                                      } else {
-                                        window.dispatchEvent(
-                                          new CustomEvent('straznik:quote-to-input', {
-                                            detail: { text: quoteText },
-                                          })
-                                        );
-                                      }
-                                      onClose?.();
-                                    }}
-                                    className="text-xs px-2.5 py-1 rounded border border-brass/40 hover:bg-brass/20 text-brass whitespace-nowrap flex-shrink-0"
-                                  >
-                                    {t('quoteToChatTitle')}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                      <div className="bg-[#120905] border border-emerald-900/30 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="text-lg font-serif font-bold text-emerald-100 flex items-center gap-2">
-                              {entry.title}
-                              {entry.isAutoGenerated && (
-                                <span className="text-[10px] bg-emerald-900/70 text-emerald-100 border border-emerald-500/30 px-1.5 py-0.5 rounded uppercase font-sans">
-                                  {t('autoBadge')}
-                                </span>
-                              )}
-                            </h4>
-                            <div className="text-xs text-[#8a7667] mt-0.5 flex gap-3">
-                              <span>
-                                📅{' '}
-                                {entry.inGameDate ||
-                                  (entry.timestamp
-                                    ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
-                                    : '')}
-                              </span>
-                              {entry.gameDay && (
-                                <span>{t('gameDayLabel', { day: entry.gameDay })}</span>
-                              )}
-                              {entry.category && (
-                                <span>{t('categoryLabel', { category: entry.category })}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIdeaTargetSubject({
-                                  id: entry.id,
-                                  title: entry.title,
-                                  description: entry.content,
-                                  type: 'chronicle',
-                                });
-                                setShowIdeaModal(true);
-                              }}
-                              className="p-1 text-brass hover:bg-brass/10 rounded transition-colors"
-                              title={t('ideaRollTooltip')}
-                            >
-                              <Lightbulb className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const quoteText = buildQuoteToInputText(entry.type || 'clue', entry.title, undefined, locale as 'pl' | 'en');
-                                if (onQuoteToInput) {
-                                  onQuoteToInput(quoteText);
-                                } else {
-                                  window.dispatchEvent(
-                                    new CustomEvent('straznik:quote-to-input', {
-                                      detail: { text: quoteText },
-                                    })
-                                  );
-                                }
-                                onClose?.();
-                              }}
-                              className="p-1 text-emerald-300 hover:bg-emerald-900/60 rounded transition-colors"
-                              title={t('quoteToChatTitle')}
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-emerald-100 hover:bg-emerald-900/60 rounded transition-colors"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {entry.imageStatus === 'pending' ? (
-                          <div className="mt-3 my-2 h-44 rounded border border-emerald-500/30 bg-card p-4 flex flex-col items-center justify-center gap-2 text-emerald-400">
-                            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs font-serif italic">{t('paintingIllustration')}</span>
-                          </div>
-                        ) : entry.imageUrl ? (
-                          <div className="mt-3 my-2 max-h-48 overflow-hidden rounded border border-emerald-500/30 bg-card p-1">
-                            <SafeImage
-                              src={entry.imageUrl}
-                              alt={entry.title}
-                              className="w-full h-44 object-cover object-top rounded"
-                            />
-                          </div>
-                        ) : null}
-                        <p className="text-sm mt-2 whitespace-pre-wrap font-serif text-foreground">
-                          {entry.content}
-                        </p>
-
-                        {entry.tags && entry.tags.length > 0 && (
-                          <div className="flex gap-1 mt-2.5 flex-wrap">
-                            {entry.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[11px] bg-emerald-900/60 text-emerald-100 px-2 py-0.5 rounded border border-emerald-500/30"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
                         )}
                       </div>
-                    )}
+
+                      <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
+                        {scene.title}
+                      </h3>
+
+                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                        <span className="shrink-0">📍</span>
+                        <span className="truncate">{scene.location}</span>
+                      </div>
                     </div>
                   );
                 })}
+              </div>
+            </aside>
 
-                  {filteredEntries.length === 0 && (
-                    <div className="text-center py-12 text-[#8a7667] italic font-serif">
-                      {t('emptyChronicle')}
-                    </div>
+            {/* Prawa strona: Karta Sceny w 4 czystych blokach */}
+            {activeSceneCard && (
+              <section className="flex-1 overflow-y-auto journal-scroll p-6 lg:p-8 bg-[#110d09] flex flex-col space-y-6">
+                {/* Nagłówek wybranej karty */}
+                <div className="border-b border-brass/25 pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs bg-brass/25 text-brass font-mono uppercase px-2.5 py-0.5 rounded border border-brass/50 font-bold">
+                      Scena #{activeSceneCard.sceneNumber}
+                    </span>
+                    <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
+                      <span>📍</span> {activeSceneCard.location}
+                    </span>
+                    {activeSceneCard.inGameDate && (
+                      <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
+                        <span>📅</span> {activeSceneCard.inGameDate}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="font-display text-xl lg:text-2xl text-foreground uppercase tracking-wide">
+                    {activeSceneCard.title}
+                  </h2>
+                </div>
+
+                {/* BLOK 1: Przebieg i kluczowe ustalenia */}
+                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
+                    <Scroll className="h-4 w-4" />
+                    <span>{t('blockEventsAndFindings')}</span>
+                  </div>
+                  {activeSceneCard.keyTakeaways.length > 0 ? (
+                    <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
+                      {activeSceneCard.keyTakeaways.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      Brak szczegółowych ustaleń dla tej sceny.
+                    </p>
                   )}
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* 4. SEKCJA NOTATEK */}
-          {activeTab === 'note' && (
-            <div className="flex-1 overflow-y-auto journal-scroll p-6 bg-[#18120c]">
-              <div className="max-w-4xl mr-auto grid grid-cols-1 md:grid-cols-2 gap-5">
-                {filteredEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="bg-[#f0e6d2] border-[8px] border-[#f0e6d2] border-b-[24px] hover:scale-[1.02] hover:-rotate-1 transition-transform shadow-xl rounded-sm p-0 flex flex-col justify-between min-h-[220px] group relative text-[#2a1b12]"
-                    style={{ transform: `rotate(${((entry.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 5) - 2)}deg)` }}
-                  >
-                    {/* Przypinka */}
-                    <div className="absolute -top-[16px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#8a1c1c] shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.5),2px_2px_4px_rgba(0,0,0,0.4)] z-10 border border-[#4a0c0c]">
-                      <div className="absolute top-[2px] left-[2px] w-1.5 h-1.5 rounded-full bg-white/40"></div>
+                {/* BLOK 2: Spotkane osoby */}
+                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
+                    <Users className="h-4 w-4" />
+                    <span>{t('blockPeople')}</span>
+                  </div>
+                  {activeSceneCard.people.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {activeSceneCard.people.map((person, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-black/50 border border-brass/30 text-brass/90 text-xs px-2.5 py-1 rounded-sm font-serif"
+                        >
+                          {person}
+                        </span>
+                      ))}
                     </div>
-                    
-                    <div className="h-full flex flex-col">
-                      {entry.imageStatus === 'pending' ? (
-                        <div className="h-40 bg-[#d8cbb5] p-4 flex flex-col items-center justify-center gap-2 text-[#5c4a3d] border border-[#d8cbb5] shadow-inner mb-3">
-                          <div className="w-5 h-5 border-2 border-[#5c4a3d] border-t-transparent rounded-full animate-spin"></div>
-                          <span className="text-xs font-serif italic">{t('summoningNote')}</span>
-                        </div>
-                      ) : entry.imageUrl ? (
-                        <div className="h-40 overflow-hidden bg-[#111] mb-3 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
-                          <SafeImage
-                            src={entry.imageUrl}
-                            alt={entry.title}
-                            className="w-full h-full object-cover object-top mix-blend-multiply sepia-[0.3]"
-                          />
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      {t('sceneCardEmptyPeople')}
+                    </p>
+                  )}
+                </div>
+
+                {/* BLOK 3: Zdobyte kluczowe przedmioty i poszlaki (filtrowane przez item-filter) */}
+                {(() => {
+                  const filteredFindings = filterPlotItems(activeSceneCard.findings);
+                  return (
+                    <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
+                      <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
+                        <Search className="h-4 w-4" />
+                        <span>{t('blockKeyItemsAndClues')}</span>
+                      </div>
+                      {filteredFindings.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {filteredFindings.map((item, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs px-2.5 py-1 rounded-sm font-mono tracking-wide"
+                            >
+                              🔍 {item}
+                            </span>
+                          ))}
                         </div>
                       ) : (
-                        <div className="h-4 bg-[#e6d9c3] mb-3 shadow-inner opacity-50"></div>
-                      )}
-                      
-                      <div className="px-2 flex-1 flex flex-col">
-                        <div className="flex justify-between items-start pb-1 mb-2">
-                          <h4 className="font-serif font-bold text-lg text-[#2a1b12] leading-snug underline decoration-1 underline-offset-4 decoration-[#8a7667]/40">
-                            {entry.title}
-                          </h4>
-                          <div className="flex gap-1 flex-none ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIdeaTargetSubject({
-                                  id: entry.id,
-                                  title: entry.title,
-                                  description: entry.content,
-                                  type: 'note',
-                                });
-                                setShowIdeaModal(true);
-                              }}
-                              className="p-1 text-[#8c7353] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
-                              title={t('ideaRollTooltip')}
-                            >
-                              <Lightbulb className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const quoteText = buildQuoteToInputText('note', entry.title, undefined, locale as 'pl' | 'en');
-                                if (onQuoteToInput) {
-                                  onQuoteToInput(quoteText);
-                                } else {
-                                  window.dispatchEvent(
-                                    new CustomEvent('straznik:quote-to-input', {
-                                      detail: { text: quoteText },
-                                    })
-                                  );
-                                }
-                                onClose?.();
-                              }}
-                              className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
-                              title={t('quoteToChatTitle')}
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditingEntry(entry)}
-                              className="p-1 text-[#5c4a3d] hover:text-[#2a1b12] hover:bg-[#d8cbb5] rounded transition-colors"
-                              title={t('editNoteTitle')}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteEntry(entry.id)}
-                              className="p-1 text-[#8a1c1c]/70 hover:text-[#8a1c1c] hover:bg-[#ffcccc] rounded transition-colors"
-                              title={t('deleteNoteTitle')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm font-serif italic leading-relaxed text-[#4a3525] whitespace-pre-wrap flex-1 pb-2">
-                          {entry.content}
+                        <p className="text-sm font-serif italic text-muted-foreground">
+                          {t('sceneCardEmptyFindings')}
                         </p>
-
-                        <div className="text-[10px] text-[#5c4a3d]/80 pt-2 flex justify-between items-end font-special-elite absolute bottom-[-18px] left-2 right-2">
-                          <span>
-                            {entry.inGameDate ||
-                              (entry.timestamp
-                                ? new Date(entry.timestamp).toLocaleDateString('pl-PL')
-                                : '')}
-                          </span>
-                          {entry.tags && entry.tags.length > 0 && (
-                            <div className="flex gap-1 flex-wrap justify-end">
-                              {entry.tags.slice(0, 2).map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="text-[9px] uppercase tracking-wider"
-                                >
-                                  #{tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      )}
                     </div>
+                  );
+                })()}
+
+                {/* BLOK 4: Cel / Następny krok śledztwa */}
+                <div className="bg-gradient-to-r from-brass/15 via-brass/10 to-transparent border border-brass/40 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-2">
+                    <span>🎯</span>
+                    <span>{t('blockNextStep')}</span>
                   </div>
-                ))}
-
-                {filteredEntries.length === 0 && (
-                  <div className="col-span-full text-center py-16 text-[#8a7667] italic font-serif">
-                    {t('emptyNotes')}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Formularze dialogowe */}
-      {showAddForm && (
-        <AddEntryForm
-          onAdd={addEntry}
-          onCancel={() => setShowAddForm(false)}
-          categories={categories}
-          defaultTags={defaultTags}
-          initialType={activeTab}
-        />
-      )}
-
-      {editingEntry && (
-        <EditEntryForm
-          entry={editingEntry}
-          onUpdate={updateEntry}
-          onCancel={() => setEditingEntry(null)}
-        />
-      )}
-
-      {/* Modal Testu Pomysłu (Idea Roll INT CoC 7e RAW) */}
-      <IdeaRollModal
-        open={showIdeaModal}
-        onOpenChange={setShowIdeaModal}
-        character={character}
-        targetSubject={ideaTargetSubject}
-        currentLocationId={ideaTargetSubject?.foundLocationId || character.investigatorDossier?.locations?.[0]?.id}
-        contextClues={entries.map((e) => ({
-          title: e.title,
-          description: e.content,
-          type: e.type,
-        }))}
-        onSaveInsightToTarget={(insight) => {
-          if (ideaTargetSubject?.id) {
-            handleEditDiscoveryEntry({
-              id: ideaTargetSubject.id,
-              title: ideaTargetSubject.title,
-              content: ideaTargetSubject.description || '',
-              type: ideaTargetSubject.type || 'clue',
-              investigatorInsight: insight,
-            });
-          }
-        }}
-        onSaveInsightToChronicle={(title, insight) => {
-          addEntry({
-            title,
-            content: insight,
-            type: 'journal',
-            tags: ['test-pomysłu', 'dedukcja'],
-            investigatorInsight: insight,
-          });
-        }}
-        onQuoteToInput={(text) => {
-          if (onQuoteToInput) {
-            onQuoteToInput(text);
-          } else {
-            window.dispatchEvent(
-              new CustomEvent('straznik:quote-to-input', {
-                detail: { text },
-              })
-            );
-          }
-          setShowIdeaModal(false);
-          onClose?.();
-        }}
-      />
-    </div>
-  );
-}
-
-// ============================================================================
-// FORMULARZE POMOCNICZE
-// ============================================================================
-
-interface AddEntryFormProps {
-  onAdd: (entry: Omit<ExtendedJournalEntry, 'id' | 'timestamp'>) => void;
-  onCancel: () => void;
-  categories: string[];
-  defaultTags: string[];
-  initialType: JournalEntryType;
-}
-
-function AddEntryForm({
-  onAdd,
-  onCancel,
-  categories,
-  defaultTags,
-  initialType,
-}: AddEntryFormProps) {
-  const t = useTranslations('SessionJournal');
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    category: categories[0],
-    tags: [] as string[],
-    isAutoGenerated: false,
-    type: (['quest', 'journal', 'npc', 'location', 'item', 'note'].includes(initialType)
-      ? initialType
-      : 'note') as JournalEntryType,
-    gameDay: 1,
-    gameHour: 12,
-    questStatus: 'active' as 'active' | 'completed' | 'failed',
-    objectives: [] as QuestObjective[],
-    investigatorInsight: '',
-  });
-  const [newTag, setNewTag] = useState('');
-  const [newObjective, setNewObjective] = useState('');
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (formData.title.trim() && formData.content.trim()) {
-      onAdd(formData);
-    }
-  };
-
-  const addTag = (tag: string) => {
-    if (tag.trim() && !formData.tags.includes(tag.trim())) {
-      setFormData({ ...formData, tags: [...formData.tags, tag.trim()] });
-      setNewTag('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter((tag) => tag !== tagToRemove),
-    });
-  };
-
-  const addObjective = () => {
-    if (newObjective.trim()) {
-      const obj: QuestObjective = {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
-        description: newObjective.trim(),
-        completed: false,
-        gameDay: formData.gameDay,
-        gameHour: formData.gameHour,
-      };
-      setFormData({ ...formData, objectives: [...formData.objectives, obj] });
-      setNewObjective('');
-    }
-  };
-
-  const removeObjective = (id: string) => {
-    setFormData({
-      ...formData,
-      objectives: formData.objectives.filter((o) => o.id !== id),
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-2 border-brass/40 rounded-lg p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-foreground font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-brass/20 pb-3 mb-5">
-          <h3 className="text-xl font-bold text-emerald-100">
-            {t('addFormTitle')}
-          </h3>
-          <button
-            onClick={onCancel}
-            className="text-[#a29182] hover:text-emerald-100"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('entryTypeLabel')}
-            </label>
-            <select
-              value={formData.type}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  type: e.target.value as JournalEntryType,
-                })
-              }
-              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-            >
-              <option value="quest">{t('typeQuest')}</option>
-              <option value="journal">{t('typeJournal')}</option>
-              <option value="npc">
-                {t('typeNpc')}
-              </option>
-              <option value="location">
-                {t('typeLocation')}
-              </option>
-              <option value="item">
-                {t('typeItem')}
-              </option>
-              <option value="note">{t('typeNote')}</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                {t('campaignDayLabel')}
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.gameDay}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    gameDay: parseInt(e.target.value) || 1,
-                  })
-                }
-                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                {t('hourLabel')}
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="23"
-                value={formData.gameHour}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    gameHour: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {formData.type === 'quest' && (
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                {t('questStatusLabel')}
-              </label>
-              <select
-                value={formData.questStatus}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    questStatus: e.target.value as
-                      | 'active'
-                      | 'completed'
-                      | 'failed',
-                  })
-                }
-                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              >
-                <option value="active">{t('statusActive')}</option>
-                <option value="completed">{t('statusCompleted')}</option>
-                <option value="failed">{t('statusFailed')}</option>
-              </select>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('titleLabel')}
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none placeholder:text-muted-foreground"
-              placeholder={t('titlePlaceholder')}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('contentLabel')}
-            </label>
-            <Textarea
-              value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
-              className="min-h-32 bg-input text-foreground border-brass/30 focus-visible:ring-brass placeholder:text-muted-foreground"
-              placeholder={t('contentPlaceholder')}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-brass font-serif">
-              {t('insightLabel')}
-            </label>
-            <Textarea
-              value={formData.investigatorInsight}
-              onChange={(e) =>
-                setFormData({ ...formData, investigatorInsight: e.target.value })
-              }
-              className="min-h-20 bg-input text-foreground border-brass/30 focus-visible:ring-brass placeholder:text-muted-foreground italic font-serif"
-              placeholder={t('insightPlaceholder')}
-            />
-          </div>
-
-          {formData.type === 'quest' && (
-            <div className="border border-brass/20 p-4 rounded-md bg-card/60 space-y-3">
-              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-brass/20 pb-1">
-                {t('objectivesLabel')}
-              </label>
-              <div className="space-y-2">
-                {formData.objectives.map((obj, i) => (
-                  <div
-                    key={obj.id}
-                    className="flex justify-between items-center bg-input p-2 rounded border border-brass/20 text-sm"
-                  >
-                    <span className="truncate">
-                      {i + 1}. {obj.description}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeObjective(obj.id)}
-                      className="text-[#942c2c] hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newObjective}
-                  onChange={(e) => setNewObjective(e.target.value)}
-                  placeholder={t('objectivePlaceholder')}
-                  className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-sm text-foreground outline-none focus:border-brass"
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && (e.preventDefault(), addObjective())
-                  }
-                />
-                <Button
-                  type="button"
-                  onClick={addObjective}
-                  className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
-                >
-                  {t('addObjectiveButton')}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('tagsLabel')}
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {formData.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-900/50/60 text-emerald-100 border border-emerald-500/25"
-                >
-                  #{tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 text-[#a29182] hover:text-red-400"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none placeholder:text-muted-foreground"
-                placeholder={t('tagPlaceholder')}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
-                }
-              />
-              <Button
-                type="button"
-                onClick={() => addTag(newTag)}
-                className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
-              >
-                +
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {defaultTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => addTag(tag)}
-                  className="px-2 py-0.5 text-xs bg-input hover:bg-[#1a110a] text-muted-foreground rounded border border-brass/20"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-3 border-t border-emerald-900/30">
-            <Button
-              type="submit"
-              className="flex-1 py-3 bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40"
-              disabled={!formData.title.trim() || !formData.content.trim()}
-            >
-              {t('saveEntryButton')}
-            </Button>
-            <Button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
-            >
-              {t('cancelButton')}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-interface EditEntryFormProps {
-  entry: ExtendedJournalEntry;
-  onUpdate: (entry: ExtendedJournalEntry) => void;
-  onCancel: () => void;
-}
-
-function EditEntryForm({ entry, onUpdate, onCancel }: EditEntryFormProps) {
-  const t = useTranslations('SessionJournal');
-  const [formData, setFormData] = useState(entry);
-  const [newTag, setNewTag] = useState('');
-  const [newObjective, setNewObjective] = useState('');
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (formData.title.trim() && formData.content.trim()) {
-      onUpdate(formData);
-    }
-  };
-
-  const addTag = (tag: string) => {
-    if (tag.trim() && !formData.tags.includes(tag.trim())) {
-      setFormData({ ...formData, tags: [...formData.tags, tag.trim()] });
-      setNewTag('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter((tag) => tag !== tagToRemove),
-    });
-  };
-
-  const addObjective = () => {
-    if (newObjective.trim()) {
-      const obj: QuestObjective = {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
-        description: newObjective.trim(),
-        completed: false,
-        gameDay: formData.gameDay,
-        gameHour: formData.gameHour,
-      };
-      setFormData({
-        ...formData,
-        objectives: [...(formData.objectives || []), obj],
-      });
-      setNewObjective('');
-    }
-  };
-
-  const removeObjective = (id: string) => {
-    setFormData({
-      ...formData,
-      objectives: (formData.objectives || []).filter((o) => o.id !== id),
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1c120c] border-2 border-brass/40 rounded-lg p-6 w-[90vw] max-w-[800px] max-h-[90vh] overflow-y-auto journal-scroll text-foreground font-serif shadow-2xl">
-        <div className="flex justify-between items-center border-b border-brass/20 pb-3 mb-5">
-          <h3 className="text-xl font-bold text-emerald-100">
-            {t('editFormTitle')}
-          </h3>
-          <button
-            onClick={onCancel}
-            className="text-[#a29182] hover:text-emerald-100"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('entryTypeLabel')}
-            </label>
-            <select
-              value={formData.type}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  type: e.target.value as JournalEntryType,
-                })
-              }
-              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-            >
-              <option value="quest">{t('typeQuest')}</option>
-              <option value="journal">{t('typeJournal')}</option>
-              <option value="npc">
-                {t('typeNpc')}
-              </option>
-              <option value="location">
-                {t('typeLocation')}
-              </option>
-              <option value="item">
-                {t('typeItem')}
-              </option>
-              <option value="note">{t('typeNote')}</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                {t('campaignDayLabel')}
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.gameDay || 1}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    gameDay: parseInt(e.target.value) || 1,
-                  })
-                }
-                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                {t('hourLabel')}
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="23"
-                value={formData.gameHour || 0}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    gameHour: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {formData.type === 'quest' && (
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-                {t('questStatusLabel')}
-              </label>
-              <select
-                value={formData.questStatus || 'active'}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    questStatus: e.target.value as
-                      | 'active'
-                      | 'completed'
-                      | 'failed',
-                  })
-                }
-                className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              >
-                <option value="active">{t('statusActive')}</option>
-                <option value="completed">{t('statusCompleted')}</option>
-                <option value="failed">{t('statusFailed')}</option>
-              </select>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('titleLabel')}
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="w-full p-2.5 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('contentLabel')}
-            </label>
-            <Textarea
-              value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
-              className="min-h-32 bg-input text-foreground border-brass/30 focus-visible:ring-brass"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-brass font-serif">
-              {t('insightLabel')}
-            </label>
-            <Textarea
-              value={formData.investigatorInsight || ''}
-              onChange={(e) =>
-                setFormData({ ...formData, investigatorInsight: e.target.value })
-              }
-              className="min-h-20 bg-input text-foreground border-brass/30 focus-visible:ring-brass placeholder:text-muted-foreground italic font-serif"
-              placeholder={t('insightPlaceholder')}
-            />
-          </div>
-
-          {formData.type === 'quest' && (
-            <div className="border border-brass/20 p-4 rounded-md bg-card/60 space-y-3">
-              <label className="block text-sm font-serif font-bold text-emerald-100 border-b border-brass/20 pb-1">
-                {t('objectivesLabel')}
-              </label>
-              <div className="space-y-2">
-                {(formData.objectives || []).map((obj, i) => (
-                  <div
-                    key={obj.id}
-                    className="flex justify-between items-center bg-input p-2 rounded border border-brass/20 text-sm"
-                  >
-                    <span className="truncate">
-                      {i + 1}. {obj.description}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeObjective(obj.id)}
-                      className="text-[#942c2c] hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newObjective}
-                  onChange={(e) => setNewObjective(e.target.value)}
-                  placeholder={t('objectivePlaceholder')}
-                  className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-sm text-foreground outline-none"
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && (e.preventDefault(), addObjective())
-                  }
-                />
-                <Button
-                  type="button"
-                  onClick={addObjective}
-                  className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
-                >
-                  {t('addButton')}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5 text-emerald-100">
-              {t('tagsLabel')}
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {formData.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-900/50/60 text-emerald-100 border border-emerald-500/25"
-                >
-                  #{tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 text-[#a29182] hover:text-red-400"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                className="flex-1 p-2 bg-input border border-brass/30 rounded-md text-foreground focus:border-brass focus:outline-none"
-                placeholder={t('tagPlaceholder')}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && (e.preventDefault(), addTag(newTag))
-                }
-              />
-              <Button
-                type="button"
-                onClick={() => addTag(newTag)}
-                className="bg-emerald-900/60 hover:bg-emerald-800/70 text-emerald-100"
-              >
-                +
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-3 border-t border-emerald-900/30">
-            <Button
-              type="submit"
-              className="flex-1 py-3 bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-100 border border-emerald-500/40"
-              disabled={!formData.title.trim() || !formData.content.trim()}
-            >
-              {t('saveChangesButton')}
-            </Button>
-            <Button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 py-3 bg-[#38261c] hover:bg-[#4d3527] text-[#a29182]"
-            >
-              {t('cancelButton')}
-            </Button>
-          </div>
-        </form>
-      </div>
+                  {activeSceneCard.nextStep ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                      <p className="font-serif italic text-sm text-[#f4ebd0] leading-relaxed flex-1">
+                        {activeSceneCard.nextStep}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleQuoteToInput(activeSceneCard.nextStep!)}
+                        className="bg-[#241a10] hover:bg-brass hover:text-black text-brass border border-brass/50 font-special-elite text-xs uppercase tracking-wider px-3.5 py-2 rounded-sm flex items-center gap-2 shrink-0 transition-all shadow-sm"
+                        title={t('quoteToChatTitle')}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{t('quoteToChatButton')}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      {t('noNextStep')}
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </main>
     </div>
   );
 }
