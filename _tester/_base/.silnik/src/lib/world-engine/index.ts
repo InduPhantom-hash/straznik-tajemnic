@@ -5,7 +5,6 @@ import type {
   ClueNode,
   GeographyContext,
   OccultContext,
-  WorldEngineDirectives,
 } from './types';
 
 
@@ -161,4 +160,6 @@ export class WorldEngineDirector {
     return `\n\n${header}\n${lines.join('\n')}\n`;
   }
 }
+
+export * from './adapter';
 

@@ -7,7 +7,9 @@ import {
   GeographyEngine,
   OccultEngine,
   WorldEngineDirector,
+  buildWorldEngineDirectives,
 } from '@/lib/world-engine';
+import type { Character, NPC } from '@/lib/types';
 
 
 describe('World Engine Suite', () => {
@@ -145,6 +147,119 @@ describe('World Engine Suite', () => {
     expect(compiled).toContain('SENSORY_DYREKTYWA');
     expect(compiled).toContain('GEOGRAFIA_DYREKTYWA');
     expect(compiled).toContain('OKULTYZM_DYREKTYWA');
+  });
+
+  describe('buildWorldEngineDirectives Adapter', () => {
+    it('activates all 7 engines when full context with occult theme is provided', () => {
+      const output = buildWorldEngineDirectives({
+        locale: 'pl',
+        currentLocation: 'Piwnica pod dokami w Arkham',
+        npcs: [
+          {
+            id: 'npc-1',
+            name: 'Kapitan Zadok Allen',
+            description: 'Stary rybak o przekrwionych oczach',
+            occupation: 'Marynarz',
+            disposition: 'suspicious',
+            agenda: 'Ostrzega przed zakonem Dagona',
+          } as unknown as NPC,
+        ],
+        adventureContext: {
+          title: 'Cień nad Innsmouth',
+          location: 'Innsmouth',
+          themes: ['mit cthulhu', 'okultyzm'],
+          graph: {
+            nodes: [
+              { id: 'n1', label: 'Doki', isBottleneck: false },
+              { id: 'n2', label: 'Rafa Diabelska', isBottleneck: true },
+            ],
+          },
+          conflicts: [
+            {
+              description: 'Napięcie między mieszkańcami a kultem',
+              stakes: 'Przemoc i zmowa milczenia',
+            },
+          ],
+          setupAsymmetry: {
+            rumors: ['Mówią, że w nocy morze świeci nienaturalnym blaskiem'],
+          },
+          puzzles: [
+            {
+              id: 'p1',
+              title: 'Dziwny medalion z głębin',
+              description: 'Nieznany stop złota',
+              solution: 'Symbol kultu głębinowców',
+            },
+          ],
+        },
+        eraContext: {
+          countryCode: 'US',
+          effectiveYear: 1928,
+        },
+      });
+
+      expect(output).toContain('## DYREKTYWY SILNIKA ŚWIATA (SYSTEMY RUNTIME)');
+      expect(output).toContain('[SENSORY_DYREKTYWA:');
+      expect(output).toContain('[NPC_DYREKTYWA: Kapitan Zadok Allen');
+      expect(output).toContain('[GRAF_DYREKTYWA:');
+      expect(output).toContain('Rafa Diabelska');
+      expect(output).toContain('[TARCIE_DYREKTYWA:');
+      expect(output).toContain('Mówią, że w nocy morze świeci');
+      expect(output).toContain('[ZAGADKA_DYREKTYWA:');
+      expect(output).toContain('Dziwny medalion z głębin');
+      expect(output).toContain('[GEOGRAFIA_DYREKTYWA:');
+      expect(output).toContain('Podziemia: cellars');
+      expect(output).toContain('Woda: Naturalny spływ wód');
+      expect(output).toContain('[OKULTYZM_DYREKTYWA:');
+      expect(output).toContain('Natura magii: soft_weird');
+    });
+
+    it('suppresses OccultEngine in ordinary non-occult scenes to prevent horror slop', () => {
+      const output = buildWorldEngineDirectives({
+        locale: 'pl',
+        currentLocation: 'Biblioteka Uniwersytetu Miskatonic',
+        adventureContext: {
+          title: 'Kradzież w archiwum',
+          location: 'Arkham',
+          themes: ['śledztwo kryminalne', 'zagadka'],
+        },
+        character: {
+          id: 'char-1',
+          name: 'Francis Morgan',
+        } as unknown as Character,
+        playerMessage: 'Dzień dobry, szukam rocznika gazety z 1922 roku.',
+      });
+
+      expect(output).toContain('## DYREKTYWY SILNIKA ŚWIATA (SYSTEMY RUNTIME)');
+      expect(output).toContain('[SENSORY_DYREKTYWA:');
+      expect(output).toContain('[GEOGRAFIA_DYREKTYWA:');
+      expect(output).not.toContain('OKULTYZM_DYREKTYWA');
+    });
+
+    it('formats directives cleanly in English when requested', () => {
+      const output = buildWorldEngineDirectives({
+        locale: 'en',
+        currentLocation: 'Abandoned Harbor Warehouse',
+        npcs: [
+          {
+            id: 'npc-en',
+            name: 'Silas Marsh',
+            occupation: 'Smuggler',
+            disposition: 'hostile',
+          } as unknown as NPC,
+        ],
+        adventureContext: {
+          location: 'Innsmouth',
+          themes: ['cosmic horror'],
+        },
+      });
+
+      expect(output).toContain('## WORLD ENGINE DIRECTIVES (IN-FLIGHT RUNTIME)');
+      expect(output).toContain('[SENSORY_DIRECTIVE:');
+      expect(output).toContain('[NPC_DIRECTIVE: Silas Marsh');
+      expect(output).toContain('[GEOGRAPHY_DIRECTIVE:');
+      expect(output).toContain('[OCCULT_DIRECTIVE:');
+    });
   });
 });
 
