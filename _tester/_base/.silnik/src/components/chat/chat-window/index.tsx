@@ -48,6 +48,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   toggleAudioPause,
   isAudioPaused = false,
   isTTSEnabled,
+  pushToTalkEnabled,
   activeCharacter,
   characters = [],
   onJournalRoll,
@@ -559,6 +560,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             }
             sceneNpcs={sceneNpcs}
             currentLocation={currentLocation}
+            pushToTalkEnabled={pushToTalkEnabled}
           />
         </>
       )}

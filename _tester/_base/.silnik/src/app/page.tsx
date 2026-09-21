@@ -998,6 +998,7 @@ export default function Home() {
         toggleAudioPause={tts.toggleAudioPause}
         isAudioPaused={tts.isAudioPaused}
         isTTSEnabled={tts.isTTSEnabled}
+        pushToTalkEnabled={Boolean(aiSettings?.pushToTalkEnabled ?? aiSettings?.voiceSettings?.pushToTalkEnabled)}
         activeCharacter={charMgmt.activeCharacter}
         characters={sessionCharacters}
         onJournalRoll={(roll, justification) => {

@@ -62,6 +62,11 @@ export const loadAISettings = (): AISettings => {
             parsedSettings.imageGenerationEnabled ??
             parsedSettings.replicateEnabled ??
             defaultAISettings.imageGenerationEnabled,
+          pushToTalkEnabled:
+            parsedSettings.pushToTalkEnabled ??
+            parsedSettings.voiceSettings?.pushToTalkEnabled ??
+            defaultAISettings.pushToTalkEnabled ??
+            false,
           geminiSettings: {
             ...defaultAISettings.geminiSettings,
             ...parsedSettings.geminiSettings,
@@ -69,6 +74,11 @@ export const loadAISettings = (): AISettings => {
           voiceSettings: {
             ...defaultAISettings.voiceSettings,
             ...parsedSettings.voiceSettings,
+            pushToTalkEnabled:
+              parsedSettings.voiceSettings?.pushToTalkEnabled ??
+              parsedSettings.pushToTalkEnabled ??
+              defaultAISettings.voiceSettings?.pushToTalkEnabled ??
+              false,
             // Migracja legacy providerów chmurowych (google/azure/openai) na gemini
             ...(parsedSettings.voiceSettings?.provider === 'azure' ||
             parsedSettings.voiceSettings?.provider === 'google' ||

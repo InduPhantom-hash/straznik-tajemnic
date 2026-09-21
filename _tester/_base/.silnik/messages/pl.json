@@ -5622,7 +5622,10 @@
     "modeLabel": "Format narracji",
     "modeHelp": "Wybierz sposób odczytywania wypowiedzi. Słuchowisko przypisuje postaciom unikalne głosy i emocje. Audiobook czyta całość jednym wybranym lektorem.",
     "modeRadioDrama": "Słuchowisko",
-    "modeAudiobook": "Jednolity lektor"
+    "modeAudiobook": "Jednolity lektor",
+    "pushToTalkTitle": "Transkrypcja mowy (Push-to-Talk)",
+    "pushToTalkDescription": "Dyktowanie deklaracji badacza przez mikrofon z rozpoznawaniem mowy Gemini.",
+    "pushToTalkHelp": "Włącza kontrolkę mikrofonu w oknie czatu oraz skrót spacji (Hold-to-Talk) do dyktowania wypowiedzi i deklaracji."
   },
   "TtsGeminiSettings": {
     "voicePickerTitle": "Wybór głosu",

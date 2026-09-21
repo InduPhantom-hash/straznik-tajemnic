@@ -45,7 +45,11 @@ export const defaultAISettings: AISettings = {
     volume: 85,
     speed: 1.0, // Domyślnie 1.0x - naturalne tempo narracji
     voiceId: 'Algenib', // Szorstki, nastrojowy głos narratora (stary marynarz, kultysta)
+    pushToTalkEnabled: false, // Domyślnie wyłączona transkrypcja mowy (Issue #280)
   },
+
+  // === PUSH-TO-TALK / TRANSCRIPTION (Issue #280) ===
+  pushToTalkEnabled: false,
 
   // === IMAGE GENERATION (IND-91 rename) ===
   imageGenerationEnabled: true,

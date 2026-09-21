@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-21T16:05:00.000Z",
+  "updatedAt": "2026-09-21T16:25:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -904,5 +904,5 @@
       "component": "src/components/ui/character-wizard.tsx"
     }
   ],
-  "lastUpdated": "2026-09-21T16:05:00.000Z"
+  "lastUpdated": "2026-09-21T16:25:00.000Z"
 }

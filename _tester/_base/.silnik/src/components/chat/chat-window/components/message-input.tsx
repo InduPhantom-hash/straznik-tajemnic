@@ -17,6 +17,7 @@ import { detectAnachronism } from '@/lib/era';
 import { filterCheatSuggestions, type CheatSuggestion } from '@/lib/cheats/cheat-engine';
 import { CheatAutocompletePopup } from './cheat-autocomplete-popup';
 import { usePushToTalk } from '@/hooks/usePushToTalk';
+import { useSettingsSelector } from '@/hooks/use-settings-subscription';
 
 import { Button } from '../../../ui/button';
 import { Textarea } from '../../../ui/textarea';
@@ -68,6 +69,8 @@ interface MessageInputProps {
   investigators?: Array<string | { name?: string; characterName?: string; playerName?: string }>;
   sceneNpcs?: string[];
   currentLocation?: string;
+  /** Czy funkcja Push-to-Talk jest aktywna (domyślnie false z Ustawień). */
+  pushToTalkEnabled?: boolean;
 }
 
 export function MessageInput({
@@ -97,6 +100,7 @@ export function MessageInput({
   investigators = [],
   sceneNpcs = [],
   currentLocation,
+  pushToTalkEnabled,
 }: MessageInputProps) {
   const t = useTranslations('MessageInput');
   const tAnachronism = useTranslations('Anachronism');
@@ -262,6 +266,12 @@ export function MessageInput({
     }, 50);
   }, []);
 
+  const settingsPushToTalk = useSettingsSelector((s) =>
+    Boolean(s.pushToTalkEnabled ?? s.voiceSettings?.pushToTalkEnabled)
+  );
+  const effectivePushToTalkEnabled =
+    pushToTalkEnabled !== undefined ? pushToTalkEnabled : settingsPushToTalk;
+
   const {
     isRecording,
     isTranscribing,
@@ -274,7 +284,7 @@ export function MessageInput({
     sceneNpcs,
     location: currentLocation,
     language: locale,
-    disabled: isSessionEnded || sessionEndStatus === 'ended' || isLoading,
+    disabled: !effectivePushToTalkEnabled || isSessionEnded || sessionEndStatus === 'ended' || isLoading,
     onFocusInput: focusTextarea,
     tMicPermissionDenied: t('micPermissionDenied'),
     tMicPermissionDeniedTitle: t('micPermissionDeniedTitle'),
@@ -412,7 +422,7 @@ export function MessageInput({
         </div>
       )}
       {/* Push-to-Talk: Optyczny stan nagrywania i retro fala audio Art Déco */}
-      {isRecording && (
+      {effectivePushToTalkEnabled && isRecording && (
         <div
           data-testid="ptt-recording-indicator"
           className="max-w-4xl mx-auto mb-2 px-3.5 py-1.5 rounded-md border border-brass/40 bg-card text-brass text-xs font-special-elite flex items-center justify-between shadow-inner animate-in fade-in duration-200"
@@ -448,7 +458,7 @@ export function MessageInput({
           placeholder={
             isSessionEnded
               ? `🔒 ${t('sessionEndedPlaceholder')}`
-              : isRecording
+              : (effectivePushToTalkEnabled && isRecording)
                 ? `🎙️ ${isHoldMode ? t('recordingHold') : t('recordingToggle')}...`
                 : duetActive
                   ? t('declarationPlaceholder', {
@@ -498,26 +508,28 @@ export function MessageInput({
         />
         <div className="flex items-center gap-2 pb-0.5">
           {/* Przycisk mikrofonu Push-to-Talk (Hold-to-Talk spacja / Toggle kliknięcie) */}
-          <Button
-            type="button"
-            onClick={toggleRecording}
-            disabled={isSessionEnded || sessionEndStatus === 'ended' || isLoading || isTranscribing}
-            variant="outline"
-            className={`h-[52px] px-3.5 border-brass/40 text-brass hover:bg-brass/10 hover:border-brass transition-all relative ${
-              isRecording
-                ? 'border-brass bg-brass/20 text-gold ring-1 ring-brass/50 animate-pulse'
-                : ''
-            }`}
-            title={t('micTitle')}
-            aria-label={t('micTitle')}
-            data-testid="ptt-mic-button"
-          >
-            {isTranscribing ? (
-              <Loader2 className="w-4 h-4 animate-spin text-brass" />
-            ) : (
-              <Mic className={`w-4 h-4 ${isRecording ? 'text-gold' : 'text-brass'}`} />
-            )}
-          </Button>
+          {effectivePushToTalkEnabled && (
+            <Button
+              type="button"
+              onClick={toggleRecording}
+              disabled={isSessionEnded || sessionEndStatus === 'ended' || isLoading || isTranscribing}
+              variant="outline"
+              className={`h-[52px] px-3.5 border-brass/40 text-brass hover:bg-brass/10 hover:border-brass transition-all relative ${
+                isRecording
+                  ? 'border-brass bg-brass/20 text-gold ring-1 ring-brass/50 animate-pulse'
+                  : ''
+              }`}
+              title={t('micTitle')}
+              aria-label={t('micTitle')}
+              data-testid="ptt-mic-button"
+            >
+              {isTranscribing ? (
+                <Loader2 className="w-4 h-4 animate-spin text-brass" />
+              ) : (
+                <Mic className={`w-4 h-4 ${isRecording ? 'text-gold' : 'text-brass'}`} />
+              )}
+            </Button>
+          )}
 
           <Button
             onClick={submitInput}

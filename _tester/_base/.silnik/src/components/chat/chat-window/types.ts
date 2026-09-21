@@ -55,6 +55,8 @@ export interface ChatWindowProps {
   toggleAudioPause?: () => void;
   isAudioPaused?: boolean;
   isTTSEnabled: boolean;
+  /** Czy Push-to-Talk / transkrypcja mowy jest włączona w Ustawieniach (domyślnie false). */
+  pushToTalkEnabled?: boolean;
 
   // Character
   activeCharacter: Character | null;

@@ -93,4 +93,24 @@ describe('loadAISettings session mechanics migration', () => {
     expect(defaultAISettings.voiceSettings.enabled).toBe(true);
     expect(loadAISettings().voiceSettings.enabled).toBe(true);
   });
+
+  it('Issue #280: domyślnie Push-to-Talk (transkrypcja mowy) jest wyłączona w defaultAISettings oraz loadAISettings', () => {
+    expect(defaultAISettings.pushToTalkEnabled).toBe(false);
+    expect(defaultAISettings.voiceSettings.pushToTalkEnabled).toBe(false);
+    expect(loadAISettings().pushToTalkEnabled).toBe(false);
+    expect(loadAISettings().voiceSettings.pushToTalkEnabled).toBe(false);
+  });
+
+  it('Issue #280: poprawnie wczytuje włączone Push-to-Talk z localStorage', () => {
+    localStorage.setItem(
+      'ai_settings',
+      JSON.stringify({
+        pushToTalkEnabled: true,
+      })
+    );
+
+    const loaded = loadAISettings();
+    expect(loaded.pushToTalkEnabled).toBe(true);
+    expect(loaded.voiceSettings.pushToTalkEnabled).toBe(true);
+  });
 });

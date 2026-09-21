@@ -5622,7 +5622,10 @@
     "modeLabel": "Narration format",
     "modeHelp": "Choose how dialogue is voiced. Radio drama assigns unique voices and emotions to characters. Audiobook reads everything with a single selected voice.",
     "modeRadioDrama": "Radio drama",
-    "modeAudiobook": "Single voice"
+    "modeAudiobook": "Single voice",
+    "pushToTalkTitle": "Speech Transcription (Push-to-Talk)",
+    "pushToTalkDescription": "Dictate investigator declarations via microphone using Gemini speech recognition.",
+    "pushToTalkHelp": "Enables the microphone control in the chat window and spacebar shortcut (Hold-to-Talk) for dictating actions and declarations."
   },
   "TtsGeminiSettings": {
     "voicePickerTitle": "Voice selection",

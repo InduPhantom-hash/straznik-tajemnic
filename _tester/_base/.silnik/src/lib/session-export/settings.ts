@@ -28,6 +28,10 @@ export function formatSettingsSection(settings: AISettings): string {
     md += `- **Głośność:** ${settings.voiceSettings.volume}%\n`;
     md += `- **Tylko narrator:** ${settings.voiceSettings.narratorOnly ? 'Tak' : 'Nie'}\n`;
   }
+  const pttEnabled = Boolean(
+    settings.pushToTalkEnabled ?? settings.voiceSettings?.pushToTalkEnabled
+  );
+  md += `- **Transkrypcja mowy (Push-to-Talk):** ${pttEnabled ? 'Tak' : 'Nie'}\n`;
   md += `\n`;
 
   // Obrazy

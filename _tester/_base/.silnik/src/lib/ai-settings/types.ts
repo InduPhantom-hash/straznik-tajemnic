@@ -219,7 +219,12 @@ export interface AISettings {
       style?: number; // 0.0-1.0 (ekspresja aktorska)
       use_speaker_boost?: boolean;
     };
+    // === Push-to-Talk / Transkrypcja mowy (Issue #280, domyślnie false) ===
+    pushToTalkEnabled?: boolean;
   };
+
+  /** Globalny przełącznik Push-to-Talk / transkrypcji mowy (Issue #280, domyślnie false) */
+  pushToTalkEnabled?: boolean;
 
   // === ELEVENLABS API KEY (BYOK) ===
   // 2026-07-25: przywrócone dla presetów HIGH/ULTRA (słuchowisko radiowe)

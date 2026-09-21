@@ -290,6 +290,43 @@ describe('usePushToTalk', () => {
     expect(result.current.isRecording).toBe(false);
   });
 
+  it('ignoruje spację i nie rozpoczyna nagrywania gdy disabled jest true', async () => {
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess: jest.fn(),
+        disabled: true,
+      })
+    );
+
+    const bodyDiv = document.createElement('div');
+    document.body.appendChild(bodyDiv);
+
+    await act(async () => {
+      const spaceDown = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
+      Object.defineProperty(spaceDown, 'target', { value: bodyDiv });
+      window.dispatchEvent(spaceDown);
+    });
+
+    expect(result.current.isRecording).toBe(false);
+    expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+  });
+
+  it('startRecording nie uruchamia nagrywania ani getUserMedia gdy disabled jest true', async () => {
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess: jest.fn(),
+        disabled: true,
+      })
+    );
+
+    await act(async () => {
+      await result.current.startRecording(false);
+    });
+
+    expect(result.current.isRecording).toBe(false);
+    expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+  });
+
   it('używa spersonalizowanego / przetłumaczonego tytułu toastu błędu mikrofonu', async () => {
     (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValueOnce(
       new Error('NotAllowedError')

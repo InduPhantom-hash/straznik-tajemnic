@@ -238,7 +238,7 @@ describe('MessageInput - detekcja anachronizmów i dymek Art Déco', () => {
   });
 
   describe('Push-to-Talk kontrolka mikrofonu', () => {
-    it('renderuje przycisk mikrofonu w stylu Dark Art Déco', () => {
+    it('domyślnie ukrywa przycisk mikrofonu gdy pushToTalkEnabled jest wyłączone (Issue #280)', () => {
       const handleSendMessage = jest.fn();
       const setNewMessage = jest.fn();
 
@@ -248,6 +248,42 @@ describe('MessageInput - detekcja anachronizmów i dymek Art Déco', () => {
           setNewMessage={setNewMessage}
           handleSendMessage={handleSendMessage}
           messagesCount={0}
+        />
+      );
+
+      const micBtn = screen.queryByTestId('ptt-mic-button');
+      expect(micBtn).not.toBeInTheDocument();
+    });
+
+    it('ukrywa przycisk mikrofonu gdy pushToTalkEnabled jest jawnie false', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={0}
+          pushToTalkEnabled={false}
+        />
+      );
+
+      const micBtn = screen.queryByTestId('ptt-mic-button');
+      expect(micBtn).not.toBeInTheDocument();
+    });
+
+    it('renderuje przycisk mikrofonu w stylu Dark Art Déco gdy pushToTalkEnabled jest włączone', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={0}
+          pushToTalkEnabled={true}
         />
       );
 

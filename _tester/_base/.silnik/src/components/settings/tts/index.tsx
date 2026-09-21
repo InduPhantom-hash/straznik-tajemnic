@@ -151,6 +151,49 @@ export function TTSSettings({
             </div>
           </div>
 
+          {/* Sekcja Push-to-Talk / Transkrypcja mowy (Issue #280) */}
+          <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass">
+                  {t('pushToTalkTitle')}
+                </div>
+                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed mt-1 m-0">
+                  {t('pushToTalkDescription')}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0 ml-4">
+                <span
+                  className={`font-special-elite uppercase text-[14px] tracking-[0.1em] ${
+                    Boolean(settings.pushToTalkEnabled ?? settings.voiceSettings?.pushToTalkEnabled)
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {Boolean(settings.pushToTalkEnabled ?? settings.voiceSettings?.pushToTalkEnabled)
+                    ? t('stateEnabled')
+                    : t('stateDisabled')}
+                </span>
+                <Switch
+                  checked={Boolean(settings.pushToTalkEnabled ?? settings.voiceSettings?.pushToTalkEnabled)}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      pushToTalkEnabled: checked,
+                      voiceSettings: {
+                        ...settings.voiceSettings,
+                        pushToTalkEnabled: checked,
+                      },
+                    })
+                  }
+                  data-testid="ptt-settings-toggle"
+                  aria-label={t('pushToTalkTitle')}
+                />
+                <HelpIcon content={t('pushToTalkHelp')} />
+              </div>
+            </div>
+          </div>
+
           <div className="relative border border-brass/22 bg-[#16130f] p-5 flex flex-col gap-3">
             <div className="font-special-elite uppercase text-[14px] tracking-[0.16em] text-brass">
               {t('diagnosticsTitle')}
