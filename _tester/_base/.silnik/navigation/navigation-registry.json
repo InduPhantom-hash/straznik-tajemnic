@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-20T17:43:00.000Z",
+  "updatedAt": "2026-09-21T11:36:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -653,6 +653,15 @@
       "label": {
         "pl": "Test Pomysłu (INT)",
         "en": "Idea Roll (INT)"
+      },
+      "component": "src/components/ui/session-journal.tsx"
+    },
+    {
+      "source": "journal",
+      "target": "game",
+      "label": {
+        "pl": "Cytuj cel ze sceny do pola wiadomości",
+        "en": "Quote scene objective to message input"
       },
       "component": "src/components/ui/session-journal.tsx"
     },

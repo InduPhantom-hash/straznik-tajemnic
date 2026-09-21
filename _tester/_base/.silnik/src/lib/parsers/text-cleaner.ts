@@ -38,6 +38,10 @@ export function sanitizeMechanicalTags(text: string): string {
     .replace(/\[\s*(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?\[\s*\/\s*(?:DZIENNIK|JOURNAL)[^\]]*\]/gi, '')
     .replace(/\[\s*(?:DZIENNIK|JOURNAL)\s*:[^\]]*\]/gi, '')
     .replace(/\[\s*\/\s*(?:DZIENNIK|JOURNAL)[^\]]*\]/gi, '')
+    // Sceny i Karta Akt (Issue #402)
+    .replace(/\[\s*(?:KARTA_SCENY|SCENE_CARD):?[^\]]*\][\s\S]*?\[\s*\/\s*(?:KARTA_SCENY|SCENE_CARD)[^\]]*\]/gi, '')
+    .replace(/\[\s*(?:ZMIANA_SCENY|SCENE_CHANGE)\s*:[^\]]*\]/gi, '')
+    .replace(/\[\s*\/\s*(?:KARTA_SCENY|SCENE_CARD)[^\]]*\]/gi, '')
     // Bloki obserwacji i sekretów MG
     .replace(/\[\s*(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\s*\/\s*(?:OBSERWACJA|OBSERVATION)[^\]]*\]/gi, '')
     .replace(/\[\s*(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\s*\/\s*(?:SEKRETY_MG|KEEPER_SECRETS)[^\]]*\]/gi, '')
@@ -246,6 +250,8 @@ export function stripMultilineArtifacts(text: string): string {
     text
       .replace(/```(?:json|javascript|typescript)?\s*[\s\S]*?(?:```|$)/gi, '') // code fences
       .replace(/\[(?:DZIENNIK|JOURNAL):[^\]]*\][\s\S]*?(?:\[\/(?:DZIENNIK|JOURNAL)\]|$)/gi, '') // blok dziennika z treścią
+      .replace(/\[(?:KARTA_SCENY|SCENE_CARD):?[^\]]*\][\s\S]*?(?:\[\/(?:KARTA_SCENY|SCENE_CARD)\]|$)/gi, '') // blok karty sceny
+      .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE):[^\]]*\]/gi, '') // tag zmiany sceny
       // Zamknięte bloki OBSERWACJA i SEKRETY_MG (z opcjonalnym nagłówkiem po dwukropku)
       .replace(/\[(?:OBSERWACJA|OBSERVATION)(?::[^\]]*)?\][\s\S]*?\[\/(?:OBSERWACJA|OBSERVATION)\]/gi, '')
       .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)(?::[^\]]*)?\][\s\S]*?\[\/(?:SEKRETY_MG|KEEPER_SECRETS)\]/gi, '')

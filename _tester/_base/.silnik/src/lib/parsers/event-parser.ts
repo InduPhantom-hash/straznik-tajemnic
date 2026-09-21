@@ -19,7 +19,7 @@ export function extractLatestTagLocation(
   let match;
   let last: { name: string; description: string } | null = null;
   while ((match = regex.exec(text)) !== null) {
-    last = { name: match[1].trim(), description: match[2].trim() };
+    last = { name: match[1].trim(), description: (match[2] || '').trim() };
   }
   return last;
 }

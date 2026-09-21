@@ -88,7 +88,18 @@ export function renderSection(
         </div>
       );
 
-    case 'whisper':
+    case 'whisper': {
+      const isJournalUpdated = /zaktualizowano dziennik|journal updated/i.test(section.content);
+      if (isJournalUpdated) {
+        return (
+          <div
+            key={key}
+            className="my-1.5 text-xs text-brass/75 font-serif italic tracking-wide select-none"
+          >
+            {section.content}
+          </div>
+        );
+      }
       return (
         <div
           key={key}
@@ -97,6 +108,7 @@ export function renderSection(
           ℹ️ {section.content}
         </div>
       );
+    }
 
     case 'perspective':
       return renderPerspective(section, key, playerColors);

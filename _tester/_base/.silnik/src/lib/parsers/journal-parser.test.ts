@@ -5,6 +5,8 @@ import {
   extractItemTags,
   parseClueProvenance,
   inferClueProvenance,
+  extractSceneChangeTag,
+  extractSceneCardTag,
 } from './journal-parser';
 import { extractLatestTagLocation } from './event-parser';
 import { appendJournalFromText, appendJournalToParty } from '../journal/apply-journal-tags';
@@ -513,6 +515,170 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
       expect(items[1].category).toBe('dokument');
       expect(items[1].condition).toBe('new');
       expect(items[1].description).toBe('Świeżo sporządzona mapa podziemi.');
+    });
+  });
+});
+
+describe('Reżyseria scen i Karta Akt Śledczych (Issue #402)', () => {
+  describe('extractSceneChangeTag', () => {
+    it('parsuje prosty tag zmiany sceny w języku polskim', () => {
+      const text = 'Wychodzicie na deszczową ulicę. [ZMIANA_SCENY: Szpital św. Marii] Deszcz przybiera na sile.';
+      const res = extractSceneChangeTag(text);
+      expect(res).not.toBeNull();
+      expect(res?.newLocation).toBe('Szpital św. Marii');
+      expect(res?.transitionType).toBeUndefined();
+    });
+
+    it('parsuje tag z parametrem typu przejścia', () => {
+      const text = 'Wsiadacie do powozu. [ZMIANA_SCENY: Pociąg do Bostonu | typ=podróż] Koła stukają miarowo.';
+      const res = extractSceneChangeTag(text);
+      expect(res).not.toBeNull();
+      expect(res?.newLocation).toBe('Pociąg do Bostonu');
+      expect(res?.transitionType).toBe('podróż');
+    });
+
+    it('parsuje angielski wariant SCENE_CHANGE', () => {
+      const text = 'You leave the manor. [SCENE_CHANGE: Miskatonic Library] Shadows lengthen.';
+      const res = extractSceneChangeTag(text);
+      expect(res).not.toBeNull();
+      expect(res?.newLocation).toBe('Miskatonic Library');
+    });
+
+    it('zwraca null gdy w tekście brak tagu', () => {
+      expect(extractSceneChangeTag('Zwykły opis bez zmiany sceny.')).toBeNull();
+    });
+  });
+
+  describe('extractSceneCardTag', () => {
+    it('parsuje pełną wieloliniową Kartę Akt Śledczych', () => {
+      const raw = `
+        Koniec przeszukania.
+        [KARTA_SCENY: Przeszukanie Gabinetu | Dom Corbitta]
+        OSOBY: Eleonora Vance, Lokaj Barnaba
+        CO_ZDOBYTO: Mosiężny klucz, Dziennik Westona
+        USTALENIA: Weston nie uciekł dobrowolnie, został uprowadzony przed północą.
+        CEL: Sprawdzić Magazyn nr 7 w dokach.
+        [/KARTA_SCENY]
+      `;
+      const card = extractSceneCardTag(raw);
+      expect(card).not.toBeNull();
+      expect(card?.title).toBe('Przeszukanie Gabinetu');
+      expect(card?.location).toBe('Dom Corbitta');
+      expect(card?.people).toEqual(['Eleonora Vance', 'Lokaj Barnaba']);
+      expect(card?.findings).toEqual(['Mosiężny klucz', 'Dziennik Westona']);
+      expect(card?.keyTakeaways).toEqual([
+        'Weston nie uciekł dobrowolnie, został uprowadzony przed północą.',
+      ]);
+      expect(card?.nextStep).toBe('Sprawdzić Magazyn nr 7 w dokach.');
+    });
+
+    it('parsuje wariant angielski SCENE_CARD z synonimami kluczy', () => {
+      const raw = `
+        [SCENE_CARD: Vault Breach]
+        PEOPLE: Dr. Armitage
+        FINDINGS: Ripped page
+        SUMMARY: The ward was broken from inside.
+        NEXT_STEP: Interview the night guard.
+        [/SCENE_CARD]
+      `;
+      const card = extractSceneCardTag(raw);
+      expect(card).not.toBeNull();
+      expect(card?.title).toBe('Vault Breach');
+      expect(card?.people).toEqual(['Dr. Armitage']);
+      expect(card?.findings).toEqual(['Ripped page']);
+      expect(card?.keyTakeaways).toEqual(['The ward was broken from inside.']);
+      expect(card?.nextStep).toBe('Interview the night guard.');
+    });
+  });
+
+  describe('Integracja cyklu życia sceny w appendJournalFromText', () => {
+    const baseChar: Character = {
+      id: 'char_scene_test',
+      name: 'Thomas Malone',
+      str: 50, dex: 50, con: 50, app: 50, pow: 50, edu: 50, siz: 50, int: 70, luck: 50, hp: 10, san: 50,
+      skills: {}, developmentHistory: [], notes: '',
+      journal: [],
+      equipment: [],
+      sceneCards: [],
+    } as unknown as Character;
+
+    it('akumuluje tropy i postacie w trwającej scenie, a po ZMIANA_SCENY pieczętuje Kartę Akt', () => {
+      // 1. Tura 1: Otwarcie sceny i pierwszy trop
+      const tura1 =
+        '[LOKACJA: Gabinet Profesora: Kurz i porozrzucane papiery] ' +
+        '[NPC: Eleonora Vance: Córka profesora] ' +
+        '[DZIENNIK:trop:Zakrwawiony nóż | obserwacja]Nóż rytualny ukryty pod dywanem.[/DZIENNIK]';
+      const poTurze1 = appendJournalFromText(baseChar, tura1, 'msg_t1');
+
+      expect(poTurze1.activeScene).toBeDefined();
+      expect(poTurze1.activeScene?.location).toBe('Gabinet Profesora');
+      expect(poTurze1.activeScene?.people).toContain('Eleonora Vance');
+      expect(poTurze1.activeScene?.findings).toContain('Zakrwawiony nóż');
+      expect(poTurze1.sceneCards).toHaveLength(0);
+
+      // 2. Tura 2: Zmiana sceny - automatyczne zapieczętowanie karty
+      const tura2 =
+        'Opuszczacie dom w pośpiechu. [ZMIANA_SCENY: Doki w Bostonie] Zimny wiatr znad oceanu smaga wasze twarze.';
+      const poTurze2 = appendJournalFromText(poTurze1, tura2, 'msg_t2');
+
+      // Powinna powstać zapieczętowana karta
+      expect(poTurze2.sceneCards).toHaveLength(1);
+      const sealed = poTurze2.sceneCards![0];
+      expect(sealed.location).toBe('Gabinet Profesora');
+      expect(sealed.people).toContain('Eleonora Vance');
+      expect(sealed.findings.some((f) => f.includes('Zakrwawiony nóż'))).toBe(true);
+
+      // Wpis w dzienniku typu 'scene'
+      const sceneEntry = poTurze2.journal?.find((j) => j.type === 'scene');
+      expect(sceneEntry).toBeDefined();
+      expect(sceneEntry?.sceneData).toBeDefined();
+      expect(sceneEntry?.sceneData?.location).toBe('Gabinet Profesora');
+
+      // Nowa trwająca scena w Dokach
+      expect(poTurze2.activeScene?.location).toBe('Doki w Bostonie');
+      expect(poTurze2.activeScene?.findings).toHaveLength(0);
+    });
+
+    it('pieczętuje scenę natychmiast z jawnego tagu [KARTA_SCENY]', () => {
+      const turn = `
+        Zabezpieczacie ślady.
+        [KARTA_SCENY: Zakończenie Przeszukania | Piwnica]
+        OSOBY: Thomas Malone
+        CO_ZDOBYTO: Stary medalion
+        USTALENIA: W piwnicy odprawiano bluźniercze rytuały.
+        CEL: Znaleźć tłumacza inskrypcji.
+        [/KARTA_SCENY]
+      `;
+      const updated = appendJournalFromText(baseChar, turn, 'msg_explicit_card');
+
+      expect(updated.sceneCards).toHaveLength(1);
+      const card = updated.sceneCards![0];
+      expect(card.title).toBe('Zakończenie Przeszukania');
+      expect(card.location).toBe('Piwnica');
+      expect(card.keyTakeaways).toEqual(['W piwnicy odprawiano bluźniercze rytuały.']);
+      expect(card.nextStep).toBe('Znaleźć tłumacza inskrypcji.');
+
+      const entry = updated.journal?.find((j) => j.type === 'scene');
+      expect(entry).toBeDefined();
+      expect(entry?.title).toBe('Zakończenie Przeszukania');
+    });
+
+    it('appendJournalToParty synchronizuje karty scen dla całej drużyny', () => {
+      const charA = { ...baseChar, id: 'char_a', name: 'Badacz A' };
+      const charB = { ...baseChar, id: 'char_b', name: 'Badacz B' };
+
+      const turn =
+        '[LOKACJA: Magazyn nr 7] ' +
+        '[DZIENNIK:trop:Skrzynie z symbolem]Skrzynie oznakowane okiem w trójkącie.[/DZIENNIK] ' +
+        '[ZMIANA_SCENY: Ratusz Miejski]';
+
+      const party = appendJournalToParty([charA, charB], charA, turn, 'msg_party_scene');
+      expect(party.characters[0].sceneCards).toHaveLength(1);
+      expect(party.characters[1].sceneCards).toHaveLength(1);
+      expect(party.characters[0].sceneCards![0].location).toBe('Magazyn nr 7');
+      expect(party.characters[1].sceneCards![0].location).toBe('Magazyn nr 7');
+      expect(party.characters[0].activeScene?.location).toBe('Ratusz Miejski');
+      expect(party.characters[1].activeScene?.location).toBe('Ratusz Miejski');
     });
   });
 });

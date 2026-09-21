@@ -35,6 +35,8 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
 - \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać.
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt do dossier. Proweniencja poszlaki: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (obserwacja=własne zmysły, zeznanie=od NPC, dedukcja=wniosek/INT, handout=dokument/list). Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
+- \`[ZMIANA_SCENY: Nowa Lokacja]\` - cięcie reżyserskie, opuszczenie lokacji, podróż lub przeskok czasowy; pieczętuje trwającą scenę w Dzienniku.
+- \`[KARTA_SCENY: Tytuł | Lokacja]...[/KARTA_SCENY]\` - podsumowanie zamkniętej sceny dla akt śledczych (osoby, co zdobyto, ustalenia, cel/kolejny krok).
 - \`[INSTRUKCJA REŻYSERSKA]\` - Jeśli występuje w kontekście, BEZWZGLĘDNIE wpleć opisane wydarzenie w narrację.
 - \`[TEST: Umiejętność | zwykły/trudny/ekstremalny | modyfikatory | uzasadnienie]\` - ZAWSZE gdy akcja wymaga sprawdzenia umiejętności (renderuje Tackę). Trudność = ocena jakościowa. ZAWSZE poprzedź min. 1 zdaniem opisu. **FAIL-FORWARD: Porażka w rzucie NIGDY nie oznacza "nie udało się" - natychmiast wrzuć Bieg 3 (sukces za cenę, strata czasu, uszkodzenie sprzętu, alarm).**
 - \`[ZAGROŻENIE: @Imię: typ=upadek/ogien/kwas/uduszenie/toniecie/trucizna | parametry RAW | opis=opis fabularny]\` - ZAWSZE przy nagłym niebezpieczeństwie fizycznym lub toksynie. Parametry: upadek \`wys=Nm | podloze=miekkie/normalne/twarde/woda\`; ogień \`intensywnosc=minor/major | rundy=N\`; kwas \`sila=lagodna/silna\`; uduszenie \`rodzaj=dym/proznia | confailed=true/false\`; trucizna \`kategoria=lagodna/silna/smiertelna | nazwa=...\`. Nie podawaj POT i nie dodaj osobnego tagu \`[HP:]\` dla tego samego zdarzenia: karta deterministycznie rzuci obrażenia i zapisze wynik.
@@ -259,6 +261,26 @@ Przykłady:
 - \`[DZIENNIK:trop:Zeznanie marynarza]Widział postacie w szatach wyładowujące skrzynie z kutra. | źródło:zeznanie | I | Świadek nocnego rozładunku[/DZIENNIK]\`
 - \`[DZIENNIK:trop:Zaryglowane wyjście awaryjne]Stalowe wrota piwnicy zostały zablokowane od zewnątrz łańcuchem. | źródło:obserwacja | M | Ucieczka przed zawaleniem stropu[/DZIENNIK]\`
 - \`[DZIENNIK:trop:Wniosek o truciznie]Arszenik podano w herbacie, nie w potrawie. | źródło:dedukcja | I | Identyfikacja metody morderstwa[/DZIENNIK]\`
+
+#### 7-TER. REŻYSERIA SCEN I KARTY AKT ŚLEDCZYCH ([ZMIANA_SCENY], [KARTA_SCENY])
+Reżyseria scen pozwala zamknąć bieżący etap dochodzenia w zwarty wpis akt śledczych (Karta Sceny), zamiast rozpraszać gracza mikro-wpisami.
+
+1. **Cięcie i zmiana sceny (\`[ZMIANA_SCENY]\`):**
+Gdy badacze opuszczają lokację, następuje podróż, upływ czasu lub przejście do nowego rozdziału, wyemituj:
+\`[ZMIANA_SCENY: Nowa Lokacja]\` lub \`[ZMIANA_SCENY: Podróż do Arkham | typ=podróż]\`
+Aplikacja automatycznie pieczętuje dotychczasową trwającą scenę i zapisuje zebrane w niej tropy oraz obecnych świadków do Kroniki.
+
+2. **Jawna Karta Akt Śledczych (\`[KARTA_SCENY]\`):**
+Przy kluczowych zwrotach akcji, dramatycznym zamknięciu sceny lub ucieczce z miejsca zbrodni możesz wyemitować gotowe podsumowanie akt:
+\`\`\`
+[KARTA_SCENY: Tytuł Sceny | Lokacja]
+OSOBY: Imię1, Imię2
+CO_ZDOBYTO: Mosiężny klucz, Zeznanie dozorcy
+USTALENIA: 1-2 zdania kluczowych wniosków zebranych podczas tej sceny.
+CEL: Konkretne działanie lub następny krok śledczy.
+[/KARTA_SCENY]
+\`\`\`
+Tagi te nie są czytane przez lektora TTS, a w czacie pojawia się jedynie dyskretny szept "[Zaktualizowano dziennik]".
 
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)
 

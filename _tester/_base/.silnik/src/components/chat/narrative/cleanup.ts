@@ -83,6 +83,10 @@ export function cleanupContent(content: string): string {
     // clock-debt: znacznik czasu [AKTUALNY CZAS: ...] przesuwa zegar gry
     // (parsowany przez extractTimeUpdate), ale nie pokazujemy go w czacie
     .replace(/\[AKTUALNY CZAS:[^\]]*\]/gi, '')
+    // Sceny i Karta Akt (Issue #402): zamiana na subtelne powiadomienie wielkości [Co robisz?]
+    .replace(/\[(?:KARTA_SCENY|SCENE_CARD):?[^\]]*\][\s\S]*?\[\/(?:KARTA_SCENY|SCENE_CARD)\]/gi, '\n\n[Zaktualizowano dziennik]\n\n')
+    .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE):[^\]]*\]/gi, '\n\n[Zaktualizowano dziennik]\n\n')
+    .replace(/(?:\[Zaktualizowano dziennik\]\s*)+/gi, '[Zaktualizowano dziennik]\n\n')
     // Pogoda - znacznik [POGODA: ...] aktualizuje pogodę w czasie rzeczywistym
     .replace(new RegExp(`\\[POGODA:${NESTED_TAG_BODY}\\]`, 'gi'), (fullMatch) => {
       const match = fullMatch.match(/\[POGODA:\s*([^\]]+)\]/i);
@@ -171,6 +175,11 @@ export function cleanupContent(content: string): string {
   // tekst zamiast przycisku. Przenieś do osobnej linii, by trafił do whisper.
   cleanContent = cleanContent.replace(
     /(\S)[ \t]*(\[Co robi(?:sz|cie)\?\])/gi,
+    '$1\n\n$2'
+  );
+
+  cleanContent = cleanContent.replace(
+    /(\S)[ \t]*(\[(?:Zaktualizowano dziennik|Journal updated)\])/gi,
     '$1\n\n$2'
   );
 

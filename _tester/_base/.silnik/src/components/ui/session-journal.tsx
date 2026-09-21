@@ -134,6 +134,16 @@ export function SessionJournal({
     type?: string;
     foundLocationId?: string;
   } | undefined>(undefined);
+  const [expandedSceneIds, setExpandedSceneIds] = useState<Set<string>>(new Set());
+
+  const toggleSceneExpanded = useCallback((id: string) => {
+    setExpandedSceneIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   // Obsługa klawisza Escape do zamykania Dziennika
   useEffect(() => {
@@ -607,7 +617,7 @@ export function SessionJournal({
     return entries.filter((entry) => {
       // Dopasowanie do zakładki
       if (activeTab === 'quest' && entry.type !== 'quest') return false;
-      if (activeTab === 'journal' && entry.type !== 'journal') return false;
+      if (activeTab === 'journal' && entry.type !== 'journal' && entry.type !== 'scene') return false;
       if (activeTab === 'note') {
         if (entry.type !== 'note') return false;
         const normTitle = (entry.title || '').toLowerCase().trim();
@@ -1019,11 +1029,255 @@ export function SessionJournal({
                 </div>
 
                 <div className="relative border-l-2 border-emerald-500/40 pl-6 ml-4 space-y-6">
-                  {filteredEntries.map((entry) => (
+                  {/* Trwająca scena (zbierana na żywo) */}
+                  {character.activeScene && (
+                    <div className="relative mb-6">
+                      <span className="absolute -left-[31px] top-2 bg-emerald-500 border-4 border-background rounded-full h-4 w-4 animate-pulse"></span>
+                      <div className="bg-[#1a140d] border border-brass/60 rounded-lg p-4 shadow-lg">
+                        <div className="flex items-center justify-between border-b border-brass/20 pb-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40">
+                              {t('activeSceneBadge')}
+                            </span>
+                            <h4 className="text-lg font-serif font-bold text-[#f4ebd0]">
+                              {character.activeScene.location}
+                            </h4>
+                          </div>
+                          <span className="text-xs text-brass/70 font-mono">
+                            Scena #{character.activeScene.sceneNumber}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground italic mb-3">
+                          {t('activeSceneSealingHint')}
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div className="bg-[#120905]/80 p-2.5 rounded border border-brass/10">
+                            <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
+                              <span>👥</span> {t('sceneCardPeople')}
+                            </span>
+                            {character.activeScene.people.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {character.activeScene.people.map((person, pIdx) => (
+                                  <span
+                                    key={pIdx}
+                                    className="text-xs bg-card/60 text-[#e6d7b8] px-2 py-0.5 rounded border border-brass/20"
+                                  >
+                                    {person}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">
+                                {t('sceneCardEmptyPeople')}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="bg-[#120905]/80 p-2.5 rounded border border-brass/10">
+                            <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
+                              <span>🔍</span> {t('sceneCardFindings')}
+                            </span>
+                            {character.activeScene.findings.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {character.activeScene.findings.map((item, fIdx) => (
+                                  <span
+                                    key={fIdx}
+                                    className="text-xs bg-card/60 text-[#e6d7b8] px-2 py-0.5 rounded border border-brass/20"
+                                  >
+                                    {item}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">
+                                {t('sceneCardEmptyFindings')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {filteredEntries.map((entry) => {
+                    const isExpanded =
+                      expandedSceneIds.has(entry.id) ||
+                      (Boolean(entry.sceneData) && !expandedSceneIds.has(`collapsed-${entry.id}`));
+
+                    return (
                     <div key={entry.id} className="relative">
                       {/* Oś czasu */}
                       <span className="absolute -left-[31px] top-1 bg-[#bfa15f] border-4 border-background rounded-full h-4 w-4"></span>
 
+                      {entry.sceneData ? (
+                        <div className="bg-[#120905] border border-brass/40 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
+                          <div
+                            className="flex justify-between items-start cursor-pointer select-none"
+                            onClick={() => {
+                              if (isExpanded) {
+                                toggleSceneExpanded(`collapsed-${entry.id}`);
+                              } else {
+                                toggleSceneExpanded(entry.id);
+                              }
+                            }}
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs bg-brass/20 text-brass font-mono px-2 py-0.5 rounded border border-brass/40">
+                                  Scena #{entry.sceneData.sceneNumber}
+                                </span>
+                                <h4 className="text-lg font-serif font-bold text-[#f4ebd0] flex items-center gap-2">
+                                  {entry.sceneData.title || entry.title}
+                                </h4>
+                              </div>
+                              <div className="text-xs text-[#8a7667] mt-1 flex gap-3">
+                                <span>📍 {entry.sceneData.location}</span>
+                                {entry.sceneData.inGameDate && (
+                                  <span>📅 {entry.sceneData.inGameDate}</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {entry.sceneData.nextStep && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const quoteText = entry.sceneData!.nextStep!;
+                                    if (onQuoteToInput) {
+                                      onQuoteToInput(quoteText);
+                                    } else {
+                                      window.dispatchEvent(
+                                        new CustomEvent('straznik:quote-to-input', {
+                                          detail: { text: quoteText },
+                                        })
+                                      );
+                                    }
+                                    onClose?.();
+                                  }}
+                                  className="p-1 text-emerald-300 hover:bg-emerald-900/60 rounded transition-colors"
+                                  title={t('quoteToChatTitle')}
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteEntry(entry.id);
+                                }}
+                                className="p-1 text-[#ff6b6b] hover:bg-[#2b1010] rounded transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                              <span className="text-brass/70 text-xs font-mono ml-1">
+                                {isExpanded ? '▲' : '▼'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="mt-4 pt-3 border-t border-brass/20 space-y-3">
+                              {/* 1 i 2: Osoby i Co Zdobyto */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="bg-[#18120c] p-2.5 rounded border border-brass/10">
+                                  <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
+                                    <span>👥</span> {t('sceneCardPeople')}
+                                  </span>
+                                  {entry.sceneData.people.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {entry.sceneData.people.map((p, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="text-xs bg-black/40 text-[#f4ebd0] px-2 py-0.5 rounded border border-brass/20"
+                                        >
+                                          {p}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground italic">
+                                      {t('sceneCardEmptyPeople')}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="bg-[#18120c] p-2.5 rounded border border-brass/10">
+                                  <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
+                                    <span>🔍</span> {t('sceneCardFindings')}
+                                  </span>
+                                  {entry.sceneData.findings.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {entry.sceneData.findings.map((f, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="text-xs bg-black/40 text-[#f4ebd0] px-2 py-0.5 rounded border border-brass/20"
+                                        >
+                                          {f}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground italic">
+                                      {t('sceneCardEmptyFindings')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 3: Kluczowe ustalenia */}
+                              <div className="bg-[#18120c] p-3 rounded border border-brass/10">
+                                <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1.5">
+                                  <span>📜</span> {t('sceneCardTakeaways')}
+                                </span>
+                                <ul className="space-y-1 text-sm text-[#e6d7b8] font-serif list-disc list-inside">
+                                  {entry.sceneData.keyTakeaways.map((takeaway, idx) => (
+                                    <li key={idx} className="leading-relaxed">
+                                      {takeaway}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* 4: Cel i kolejny krok */}
+                              {entry.sceneData.nextStep && (
+                                <div className="bg-brass/10 p-3 rounded border border-brass/30 flex items-start justify-between gap-3">
+                                  <div>
+                                    <span className="text-xs font-semibold text-brass flex items-center gap-1.5 mb-1">
+                                      <span>🎯</span> {t('sceneCardNextStep')}
+                                    </span>
+                                    <p className="text-sm font-serif italic text-[#f4ebd0]">
+                                      {entry.sceneData.nextStep}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const quoteText = entry.sceneData!.nextStep!;
+                                      if (onQuoteToInput) {
+                                        onQuoteToInput(quoteText);
+                                      } else {
+                                        window.dispatchEvent(
+                                          new CustomEvent('straznik:quote-to-input', {
+                                            detail: { text: quoteText },
+                                          })
+                                        );
+                                      }
+                                      onClose?.();
+                                    }}
+                                    className="text-xs px-2.5 py-1 rounded border border-brass/40 hover:bg-brass/20 text-brass whitespace-nowrap flex-shrink-0"
+                                  >
+                                    {t('quoteToChatTitle')}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
                       <div className="bg-[#120905] border border-emerald-900/30 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
                           <div>
@@ -1135,8 +1389,10 @@ export function SessionJournal({
                           </div>
                         )}
                       </div>
+                    )}
                     </div>
-                  ))}
+                  );
+                })}
 
                   {filteredEntries.length === 0 && (
                     <div className="text-center py-12 text-[#8a7667] italic font-serif">
