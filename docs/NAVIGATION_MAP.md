@@ -41,7 +41,7 @@ graph TD
     development["Faza rozwoju / Development phase"]
     save_game["Zapis gry / Save game"]
     load_game["Wczytanie gry / Load game"]
-    help["Pomoc i zasady / Help and rules"]
+    help["Kompendium Badacza / Investigator's Compendium"]
     new_adventure_confirm["Potwierdzenie nowej przygody / New adventure confirmation"]
     full_reset["Pełny reset / Full reset"]
     reset_settings_confirm["Reset parametrów / Reset settings"]
@@ -89,7 +89,7 @@ graph TD
     game -->|Faza rozwoju (po sesji) / Development phase (after session)| development
     game -->|Zapisz grę / Save game| save_game
     game -->|Wczytaj grę / Load game| load_game
-    game -->|Pomoc / Help| help
+    game -->|Kompendium Badacza / Investigator's Compendium| help
     game -->|Ustawienia / Settings| settings
     game -->|Nowa przygoda / New adventure| new_adventure_confirm
     settings -->|Pełny reset / Full reset| full_reset
@@ -137,7 +137,7 @@ graph TD
 | Strona główna | Szybka przygoda / Quick adventure | Szybka przygoda | `src/components/chat/welcome/components/start-mode-cards.tsx` |
 | Strona główna | Ustaw ręcznie / Set up manually | Ręczne ustawianie gry | `src/components/chat/welcome/components/start-mode-cards.tsx` |
 | Strona główna | Wczytaj zapis / Load save | Wczytanie gry | `src/components/chat/welcome/components/bottom-links.tsx` |
-| Strona główna | Kompendium / Compendium | Pomoc i zasady | `src/components/chat/welcome/components/bottom-links.tsx` |
+| Strona główna | Kompendium / Compendium | Kompendium Badacza | `src/components/chat/welcome/components/bottom-links.tsx` |
 | Strona główna | Klucze API / API keys | Klucze API | `src/components/chat/welcome/index.tsx` |
 | Szybka przygoda | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/ui/quick-setup-modal.tsx` |
 | Szybka przygoda | Rozpocznij przygodę / Start adventure | Strona główna | `src/components/ui/quick-setup-modal.tsx` |
@@ -163,7 +163,7 @@ graph TD
 | Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Zapisz grę / Save game | Zapis gry | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Wczytaj grę / Load game | Wczytanie gry | `src/components/desk/DeskTools.tsx` |
-| Aktywna sesja | Pomoc / Help | Pomoc i zasady | `src/components/help-modal/HelpModal.tsx` |
+| Aktywna sesja | Kompendium Badacza / Investigator's Compendium | Kompendium Badacza | `src/components/compendium-modal/CompendiumModal.tsx` |
 | Aktywna sesja | Ustawienia / Settings | Ustawienia | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Nowa przygoda / New adventure | Potwierdzenie nowej przygody | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ustawienia | Pełny reset / Full reset | Pełny reset | `src/components/ui/settings-modal.tsx` |
