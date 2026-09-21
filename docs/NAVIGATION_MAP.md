@@ -34,7 +34,7 @@ graph TD
     character_sheet["Karta badacza (Dark Art Déco CoC 7e RAW) / Investigator sheet (Dark Art Déco CoC 7e RAW)"]
     equipment["Ekwipunek / Equipment"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
-    journal["Dziennik sesji i akta śledcze / Session journal and investigator dossier"]
+    journal["Dziennik sesji i kronika śledztwa / Session journal and investigation chronicle"]
     idea_roll_modal["Test Pomysłu CoC 7e RAW (Idea Roll) / Idea Roll CoC 7e RAW"]
     dice["Rzuty kośćmi / Dice rolls"]
     gm_tools["Narzędzia MG / GM tools"]
@@ -82,7 +82,6 @@ graph TD
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
     game -->|Dziennik / Journal| journal
-    journal -->|Test Pomysłu (INT) / Idea Roll (INT)| idea_roll_modal
     journal -->|Cytuj cel ze sceny do pola wiadomości / Quote scene objective to message input| game
     game -->|Rzuć kośćmi / Roll dice| dice
     game -->|Narzędzia MG / GM tools| gm_tools
@@ -155,9 +154,8 @@ graph TD
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
-| Aktywna sesja | Dziennik / Journal | Dziennik sesji i akta śledcze | `src/components/sidebar/CthulhuSidebar.tsx` |
-| Dziennik sesji i akta śledcze | Test Pomysłu (INT) / Idea Roll (INT) | Test Pomysłu CoC 7e RAW (Idea Roll) | `src/components/ui/session-journal.tsx` |
-| Dziennik sesji i akta śledcze | Cytuj cel ze sceny do pola wiadomości / Quote scene objective to message input | Aktywna sesja | `src/components/ui/session-journal.tsx` |
+| Aktywna sesja | Dziennik / Journal | Dziennik sesji i kronika śledztwa | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Dziennik sesji i kronika śledztwa | Cytuj cel ze sceny do pola wiadomości / Quote scene objective to message input | Aktywna sesja | `src/components/ui/session-journal.tsx` |
 | Aktywna sesja | Rzuć kośćmi / Roll dice | Rzuty kośćmi | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Narzędzia MG / GM tools | Narzędzia MG | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Faza rozwoju (po sesji) / Development phase (after session) | Faza rozwoju | `src/components/sidebar/CthulhuSidebar.tsx` |

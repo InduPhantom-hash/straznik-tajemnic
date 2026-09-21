@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-21T12:38:00.000Z",
+  "updatedAt": "2026-09-21T21:15:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -249,8 +249,8 @@
       "id": "journal",
       "kind": "modal",
       "label": {
-        "pl": "Dziennik sesji i akta śledcze",
-        "en": "Session journal and investigator dossier"
+        "pl": "Dziennik sesji i kronika śledztwa",
+        "en": "Session journal and investigation chronicle"
       }
     },
     {
@@ -646,15 +646,6 @@
         "en": "Journal"
       },
       "component": "src/components/sidebar/CthulhuSidebar.tsx"
-    },
-    {
-      "source": "journal",
-      "target": "idea-roll-modal",
-      "label": {
-        "pl": "Test Pomysłu (INT)",
-        "en": "Idea Roll (INT)"
-      },
-      "component": "src/components/ui/session-journal.tsx"
     },
     {
       "source": "journal",
