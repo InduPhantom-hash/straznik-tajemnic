@@ -1125,6 +1125,8 @@ export function CharacterWizardV2({
   const [showPortraitZoom, setShowPortraitZoom] = useState(false);
   // Modal wyboru retro-ryciny z epoki (Issue #442)
   const [showRetroPortraitPicker, setShowRetroPortraitPicker] = useState(false);
+  // Filtr widoku umiejętności w Kroku 4 (Issue #414)
+  const [skillFilter, setSkillFilter] = useState<'all' | 'occupational' | 'invested'>('all');
 
   const generatePortrait = async () => {
     // Zabezpieczenie: nie uruchamiaj w trybie tekstowym lub gdy już trwa generowanie
@@ -3510,82 +3512,178 @@ export function CharacterWizardV2({
           </div>
         )}
 
-        {/* Lista umiejętności */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
-          {Object.entries(state.skills)
-            .filter(([name]) => name !== CREDIT_RATING_SKILL)
-            .map(([skillName, value]) => {
-              const baseValue = BASE_SKILLS[skillName] || 0;
-              const pointsAdded = value - baseValue;
-              const isRecommended = recommendedSkills.has(skillName);
-              return (
+        {/* Obliczenia i filtrowanie umiejętności (Issue #414) */}
+        {(() => {
+          const allSkillsList = Object.entries(state.skills).filter(
+            ([name]) => name !== CREDIT_RATING_SKILL
+          );
+
+          const totalCount = allSkillsList.length;
+          const occupationalCount = allSkillsList.filter(([name]) =>
+            recommendedSkills.has(name)
+          ).length;
+          const investedCount = allSkillsList.filter(
+            ([name, val]) => val > (BASE_SKILLS[name] || 0)
+          ).length;
+
+          const filteredSkills = allSkillsList.filter(([name, val]) => {
+            if (skillFilter === 'occupational') {
+              return recommendedSkills.has(name);
+            }
+            if (skillFilter === 'invested') {
+              return val > (BASE_SKILLS[name] || 0);
+            }
+            return true;
+          });
+
+          return (
+            <div className="space-y-4">
+              {/* Pasek przełączników filtrowania Deco */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border border-brass/25 bg-[#120f0c] p-2.5 shadow-sm">
+                <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSkillFilter('all')}
+                    data-testid="skills-filter-all"
+                    className={`px-3.5 py-1.5 text-xs font-display uppercase tracking-[0.12em] transition-all border ${
+                      skillFilter === 'all'
+                        ? 'border-brass bg-brass/20 text-brass font-bold shadow-[0_0_12px_rgba(201,162,39,0.2)] ring-1 ring-brass/50'
+                        : 'border-brass/25 bg-[#0a0f0e] text-muted-foreground hover:border-brass/45 hover:text-foreground'
+                    }`}
+                  >
+                    {t('skillsFilterAll')}{' '}
+                    <span className="font-mono text-[11px] opacity-85">({totalCount})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSkillFilter('occupational')}
+                    data-testid="skills-filter-occupational"
+                    className={`px-3.5 py-1.5 text-xs font-display uppercase tracking-[0.12em] transition-all border ${
+                      skillFilter === 'occupational'
+                        ? 'border-brass bg-brass/20 text-brass font-bold shadow-[0_0_12px_rgba(201,162,39,0.2)] ring-1 ring-brass/50'
+                        : 'border-brass/25 bg-[#0a0f0e] text-muted-foreground hover:border-brass/45 hover:text-foreground'
+                    }`}
+                  >
+                    ★ {t('skillsFilterOccupational')}{' '}
+                    <span className="font-mono text-[11px] opacity-85">({occupationalCount})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSkillFilter('invested')}
+                    data-testid="skills-filter-invested"
+                    className={`px-3.5 py-1.5 text-xs font-display uppercase tracking-[0.12em] transition-all border ${
+                      skillFilter === 'invested'
+                        ? 'border-brass bg-brass/20 text-brass font-bold shadow-[0_0_12px_rgba(201,162,39,0.2)] ring-1 ring-brass/50'
+                        : 'border-brass/25 bg-[#0a0f0e] text-muted-foreground hover:border-brass/45 hover:text-foreground'
+                    }`}
+                  >
+                    ✦ {t('skillsFilterInvested')}{' '}
+                    <span className="font-mono text-[11px] opacity-85">({investedCount})</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Siatka umiejętności lub Pusty Stan (Empty State) */}
+              {filteredSkills.length === 0 ? (
                 <div
-                  key={skillName}
-                  className={`border p-4 ${
-                    isRecommended
-                      ? 'ring-1 ring-primary border-brass/50 bg-primary/10'
-                      : 'border-brass/28 bg-[#16130f]'
-                  }`}
+                  data-testid="skills-filter-empty-state"
+                  className="border border-brass/30 bg-[#16130f] p-8 text-center space-y-3"
                 >
-                  {/* Nazwa umiejętności */}
-                  <div className="flex items-center gap-1 mb-2">
-                    <span className="font-special-elite text-base uppercase tracking-[0.08em] text-foreground truncate">
-                      {skillName}
-                    </span>
-                    {isRecommended && (
-                      <span
-                        className="text-brass/80"
-                        title={t('recommendedByArchetypeOrOccupation')}
-                      >
-                        ★
-                      </span>
-                    )}
-                    <HelpIcon
-                      content={
-                        SKILL_DESCRIPTIONS[skillName] ||
-                        t('baseValue', { value: baseValue })
-                      }
-                      position="right"
-                    />
+                  <div className="font-display uppercase tracking-[0.12em] text-brass text-base font-semibold">
+                    {t('skillsFilterEmptyTitle')}
                   </div>
-                  {/* Wartości */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={value}
-                        disabled={skillName === 'Mity Cthulhu'}
-                        onChange={(e) =>
-                          updateSkill(skillName, parseInt(e.target.value) || 0)
-                        }
-                        className={`w-16 bg-[#0a0c0f] border border-brass/30 px-2 py-1.5 text-center font-display text-lg font-bold text-foreground focus:outline-none focus:border-brass/30 ${
-                          skillName === 'Mity Cthulhu'
-                            ? 'opacity-50 cursor-not-allowed'
-                            : ''
+                  <p className="font-serif italic text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    {t('skillsFilterEmptyDesc')}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSkillFilter('all')}
+                    className="font-display font-semibold uppercase tracking-[0.14em] text-brass/90 border-brass/35 hover:border-brass hover:bg-brass/15 px-4 py-2 text-xs mt-2"
+                  >
+                    {t('skillsFilterShowAll')}
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+                  {filteredSkills.map(([skillName, value]) => {
+                    const baseValue = BASE_SKILLS[skillName] || 0;
+                    const pointsAdded = value - baseValue;
+                    const isRecommended = recommendedSkills.has(skillName);
+                    return (
+                      <div
+                        key={skillName}
+                        data-testid={`skill-card-${skillName}`}
+                        className={`border p-4 ${
+                          isRecommended
+                            ? 'ring-1 ring-primary border-brass/50 bg-primary/10'
+                            : 'border-brass/28 bg-[#16130f]'
                         }`}
-                        min={baseValue}
-                        max={skillName === 'Mity Cthulhu' ? 0 : 99}
-                      />
-                      <div className="font-special-elite text-xs text-muted-foreground">
-                        <div>
-                          {t('baseShort')}{' '}
-                          <span className="text-brass/80">{baseValue}</span>
+                      >
+                        {/* Nazwa umiejętności */}
+                        <div className="flex items-center gap-1 mb-2">
+                          <span className="font-special-elite text-base uppercase tracking-[0.08em] text-foreground truncate">
+                            {skillName}
+                          </span>
+                          {isRecommended && (
+                            <span
+                              className="text-brass/80"
+                              title={t('recommendedByArchetypeOrOccupation')}
+                            >
+                              ★
+                            </span>
+                          )}
+                          <HelpIcon
+                            content={
+                              SKILL_DESCRIPTIONS[skillName] ||
+                              t('baseValue', { value: baseValue })
+                            }
+                            position="right"
+                          />
                         </div>
-                        <div className="text-foreground">
-                          {half(value)}/{fifth(value)}
+                        {/* Wartości */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={value}
+                              disabled={skillName === 'Mity Cthulhu'}
+                              onChange={(e) =>
+                                updateSkill(skillName, parseInt(e.target.value) || 0)
+                              }
+                              className={`w-16 bg-[#0a0c0f] border border-brass/30 px-2 py-1.5 text-center font-display text-lg font-bold text-foreground focus:outline-none focus:border-brass/30 ${
+                                skillName === 'Mity Cthulhu'
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
+                              }`}
+                              min={baseValue}
+                              max={skillName === 'Mity Cthulhu' ? 0 : 99}
+                            />
+                            <div className="font-special-elite text-xs text-muted-foreground">
+                              <div>
+                                {t('baseShort')}{' '}
+                                <span className="text-brass/80">{baseValue}</span>
+                              </div>
+                              <div className="text-foreground">
+                                {half(value)}/{fifth(value)}
+                              </div>
+                            </div>
+                          </div>
+                          {pointsAdded > 0 && (
+                            <span className="font-special-elite text-xs text-brass/80">
+                              +{t('pointsAdded', { count: pointsAdded })}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    {pointsAdded > 0 && (
-                      <span className="font-special-elite text-xs text-brass/80">
-                        +{t('pointsAdded', { count: pointsAdded })}
-                      </span>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-        </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     );
   };

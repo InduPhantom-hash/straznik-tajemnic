@@ -301,6 +301,12 @@
     "activeEngraving": "Aktualna rycina",
     "pureTextEngravingNotice": "Stylizowany drzeworyt noir z lat 20. przypisany do zawodu badacza.",
     "close": "Zamknij",
+    "skillsFilterAll": "Wszystkie",
+    "skillsFilterOccupational": "Zawodowe",
+    "skillsFilterInvested": "Rozwinięte",
+    "skillsFilterEmptyTitle": "Brak umiejętności w tym widoku",
+    "skillsFilterEmptyDesc": "Żadna umiejętność nie spełnia wybranego kryterium filtra.",
+    "skillsFilterShowAll": "Pokaż wszystkie umiejętności",
     "retroArchetypes": {
       "detective": "Detektyw",
       "journalist": "Dziennikarz",

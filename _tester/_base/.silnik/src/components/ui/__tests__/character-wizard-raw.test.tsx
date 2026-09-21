@@ -209,5 +209,34 @@ describe('Character Wizard CoC 7e RAW Mechanics', () => {
       expect(dialogCode).toContain('2xl:w-[85vw]');
       expect(dialogCode).toContain('2xl:h-[84vh]');
     });
+
+    it('defines skill filter keys in PL and EN and testids in wizard code (Issue #414)', () => {
+      const plPath = path.resolve(__dirname, '../../../../messages/pl.json');
+      const enPath = path.resolve(__dirname, '../../../../messages/en.json');
+      const pl = JSON.parse(fs.readFileSync(plPath, 'utf8'));
+      const en = JSON.parse(fs.readFileSync(enPath, 'utf8'));
+
+      const requiredKeys = [
+        'skillsFilterAll',
+        'skillsFilterOccupational',
+        'skillsFilterInvested',
+        'skillsFilterEmptyTitle',
+        'skillsFilterEmptyDesc',
+        'skillsFilterShowAll',
+      ];
+
+      for (const key of requiredKeys) {
+        expect(pl.CharacterWizard[key]).toBeTruthy();
+        expect(en.CharacterWizard[key]).toBeTruthy();
+      }
+
+      const wizardPath = path.resolve(__dirname, '../character-wizard.tsx');
+      const wizardCode = fs.readFileSync(wizardPath, 'utf8');
+      expect(wizardCode).toContain('data-testid="skills-filter-all"');
+      expect(wizardCode).toContain('data-testid="skills-filter-occupational"');
+      expect(wizardCode).toContain('data-testid="skills-filter-invested"');
+      expect(wizardCode).toContain('data-testid="skills-filter-empty-state"');
+    });
   });
 });
+
