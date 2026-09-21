@@ -10,9 +10,57 @@ import type {
   ClueNode,
 } from './types';
 
+interface AdapterAdventureConflictFaction {
+  name?: string;
+  goal?: string;
+}
+
+interface AdapterAdventureConflict {
+  tensionType?: 'class' | 'belief' | 'institutional';
+  description?: string;
+  resource?: string;
+  stakes?: string;
+  factions?: AdapterAdventureConflictFaction[];
+}
+
+interface AdapterAdventurePuzzle {
+  id?: string;
+  title?: string;
+  description?: string;
+  solution?: string;
+  solutionSummary?: string;
+}
+
+interface AdapterGraphNode {
+  id?: string;
+  label?: string;
+  name?: string;
+  type?: string;
+  isBottleneck?: boolean;
+}
+
+interface AdapterAdventureGraph {
+  nodes?: AdapterGraphNode[];
+  locations?: Array<{ name?: string }>;
+}
+
 export interface WorldEngineAdapterParams {
   locale?: 'pl' | 'en';
-  adventureContext?: any;
+  adventureContext?: {
+    title?: string;
+    location?: string;
+    themes?: string[];
+    conflicts?: AdapterAdventureConflict[];
+    setupAsymmetry?: {
+      rumors?: string[];
+    };
+    puzzles?: AdapterAdventurePuzzle[];
+    graph?: AdapterAdventureGraph;
+    truthAnchor?: {
+      culprit?: string;
+      immutableFacts?: string[];
+    };
+  } | null;
   currentLocation?: string | null;
   npcs?: NPC[] | null;
   character?: Character | null;
@@ -116,17 +164,17 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
 
   // 3. NarrativeGraphEngine (03) - zbieżność gałęzi i wąskie gardła
   let graphDirectiveParam: { branch: string; bottleneck: string } | undefined;
-  const graph = params.adventureContext?.graph as any;
+  const graph = params.adventureContext?.graph;
   if (graph) {
     const currentBranch = currentLocation || (locale === 'en' ? 'Active Investigation' : 'Bieżący trop');
     let bottleneckTarget = params.adventureContext?.title || (locale === 'en' ? 'Climax Scene' : 'Punkt kulminacyjny');
 
     if (Array.isArray(graph.nodes) && graph.nodes.length > 0) {
       const bottleneckNode = graph.nodes.find(
-        (n: any) => n.isBottleneck || n.type === 'bottleneck' || n.type === 'climax'
+        (n) => n.isBottleneck || n.type === 'bottleneck' || n.type === 'climax'
       );
       if (bottleneckNode?.label || bottleneckNode?.name) {
-        bottleneckTarget = bottleneckNode.label || bottleneckNode.name;
+        bottleneckTarget = bottleneckNode.label || bottleneckNode.name || bottleneckTarget;
       }
     } else if (Array.isArray(graph.locations) && graph.locations.length > 0) {
       bottleneckTarget = graph.locations[graph.locations.length - 1]?.name || bottleneckTarget;
@@ -140,13 +188,13 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
 
   // 4. PlotFrictionEngine (04) - tarcia społeczne i plotki
   let frictionParam: SettingFriction | undefined;
-  const conflicts = params.adventureContext?.conflicts as any[] | undefined;
-  const rumors = params.adventureContext?.setupAsymmetry?.rumors as string[] | undefined;
+  const conflicts = params.adventureContext?.conflicts;
+  const rumors = params.adventureContext?.setupAsymmetry?.rumors;
 
   if (conflicts && conflicts.length > 0) {
     const primaryConflict = conflicts[0];
     const factionsStr = Array.isArray(primaryConflict.factions)
-      ? primaryConflict.factions.map((f: any) => f.name || f.goal).filter(Boolean).join(' vs ')
+      ? primaryConflict.factions.map((f) => f.name || f.goal).filter(Boolean).join(' vs ')
       : '';
     const desc = primaryConflict.description || primaryConflict.resource || factionsStr || 'Napięcie w społeczności';
 
@@ -154,7 +202,7 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
       tensionType: primaryConflict.tensionType || 'class',
       description: desc,
       activeRumor: rumors && rumors.length > 0 ? rumors[0] : (locale === 'en' ? 'Locals whisper about strange occurrences' : 'Miejscowi szepczą o dziwnych zajściach'),
-      ambientDetail: primaryConflict.ambientDetail || primaryConflict.resource || (locale === 'en' ? 'Tense glances and guarded remarks' : 'Napięte spojrzenia i ostrożne półsłówka'),
+      ambientDetail: primaryConflict.stakes || primaryConflict.resource || (locale === 'en' ? 'Tense glances and guarded remarks' : 'Napięte spojrzenia i ostrożne półsłówka'),
     };
   } else if (rumors && rumors.length > 0) {
     frictionParam = {
@@ -167,7 +215,7 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
 
   // 5. MysteryClueEngine (05) - reguła 3 poszlak i fail-forward
   let clueParam: ClueNode | undefined;
-  const puzzles = params.adventureContext?.puzzles as any[] | undefined;
+  const puzzles = params.adventureContext?.puzzles;
   const truthAnchor = params.adventureContext?.truthAnchor;
 
   if (puzzles && puzzles.length > 0) {
@@ -190,7 +238,6 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
   }
 
   // 6. GeographyEngine (06) - uwarunkowania terenu, ekonomii, podziemi i wód
-  let geographyParam: GeographyContext | undefined;
   const region = params.adventureContext?.location || (locale === 'en' ? 'Investigative District' : 'Dystrykt śledztwa');
   const chokepoint = currentLocation ? `${currentLocation} (${region})` : region;
   const countryCode = params.eraContext?.countryCode || 'US';
@@ -198,7 +245,7 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     ? (locale === 'en' ? 'Railroad access, fuel monopoly and Prohibition supply bottlenecks' : 'Monopol naftowy, kolejowe węzły przeładunkowe i ograniczenia Prohibicji')
     : (locale === 'en' ? 'Strict police permits and transport checkpoints' : 'Kordon policyjny, reglamentacja i koszty przemieszczania się');
 
-  geographyParam = {
+  const geographyParam: GeographyContext = {
     terrainOrChokepoint: chokepoint,
     economicConstraint,
     undergroundOrigin: detectUndergroundOrigin(currentLocation),

@@ -5,7 +5,6 @@ import type {
   ClueNode,
   GeographyContext,
   OccultContext,
-  WorldEngineDirectives,
 } from './types';
 
 

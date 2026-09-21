@@ -9,6 +9,7 @@ import {
   WorldEngineDirector,
   buildWorldEngineDirectives,
 } from '@/lib/world-engine';
+import type { Character, NPC } from '@/lib/types';
 
 
 describe('World Engine Suite', () => {
@@ -161,7 +162,7 @@ describe('World Engine Suite', () => {
             occupation: 'Marynarz',
             disposition: 'suspicious',
             agenda: 'Ostrzega przed zakonem Dagona',
-          } as any,
+          } as unknown as NPC,
         ],
         adventureContext: {
           title: 'Cień nad Innsmouth',
@@ -172,19 +173,15 @@ describe('World Engine Suite', () => {
               { id: 'n1', label: 'Doki', isBottleneck: false },
               { id: 'n2', label: 'Rafa Diabelska', isBottleneck: true },
             ],
-            edges: [],
-          } as any,
+          },
           conflicts: [
             {
-              id: 'c1',
-              name: 'Konflikt rybaków z zakonem',
               description: 'Napięcie między mieszkańcami a kultem',
               stakes: 'Przemoc i zmowa milczenia',
-            } as any,
+            },
           ],
           setupAsymmetry: {
             rumors: ['Mówią, że w nocy morze świeci nienaturalnym blaskiem'],
-            characterHooks: [],
           },
           puzzles: [
             {
@@ -192,7 +189,7 @@ describe('World Engine Suite', () => {
               title: 'Dziwny medalion z głębin',
               description: 'Nieznany stop złota',
               solution: 'Symbol kultu głębinowców',
-            } as any,
+            },
           ],
         },
         eraContext: {
@@ -229,8 +226,7 @@ describe('World Engine Suite', () => {
         character: {
           id: 'char-1',
           name: 'Francis Morgan',
-          spells: [],
-        } as any,
+        } as unknown as Character,
         playerMessage: 'Dzień dobry, szukam rocznika gazety z 1922 roku.',
       });
 
@@ -250,7 +246,7 @@ describe('World Engine Suite', () => {
             name: 'Silas Marsh',
             occupation: 'Smuggler',
             disposition: 'hostile',
-          } as any,
+          } as unknown as NPC,
         ],
         adventureContext: {
           location: 'Innsmouth',
