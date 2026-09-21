@@ -109,6 +109,7 @@ export function SessionJournal({
     // 1. Karty scen z character.sceneCards
     if (Array.isArray(character.sceneCards)) {
       character.sceneCards.forEach((sc: SceneCaseCard, idx: number) => {
+        if (sc.isSealed === false) return;
         const id = sc.id || `sc-card-${sc.sceneNumber ?? idx + 1}`;
         map.set(id, {
           id,
@@ -128,6 +129,7 @@ export function SessionJournal({
     // 2. Karty ze scalonego dziennika przygody
     entries.forEach((entry, idx) => {
       if (entry.sceneData) {
+        if (entry.sceneData.isSealed === false) return;
         const sd = entry.sceneData;
         const id = sd.id || entry.id;
         if (!map.has(id)) {
@@ -293,7 +295,7 @@ export function SessionJournal({
       </div>
 
       {/* 3. Główna przestrzeń: Układ Kroniki Scen (100% wysokości i szerokości) */}
-      <main className="flex-1 flex overflow-hidden relative">
+      <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {sealedScenes.length === 0 ? (
           /* Empty State - Dziennik milczy */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
@@ -311,7 +313,7 @@ export function SessionJournal({
           /* Dwukolumnowy układ Kroniki Scen */
           <>
             {/* Lewa kolumna: Lista Scen (najnowsza u góry) */}
-            <aside className="w-80 lg:w-96 shrink-0 border-r border-brass/25 bg-[#0e0a07] flex flex-col overflow-hidden">
+            <aside className="w-full md:w-80 lg:w-96 shrink-0 border-b md:border-b-0 md:border-r border-brass/25 bg-[#0e0a07] flex flex-col max-h-48 md:max-h-none overflow-hidden">
               <div className="px-4 py-3 border-b border-brass/15 bg-[#140f0a] flex items-center justify-between shrink-0">
                 <span className="font-display text-xs uppercase tracking-[0.18em] text-brass/90 font-bold">
                   {t('sceneListTitle')} ({sealedScenes.length})
@@ -330,6 +332,7 @@ export function SessionJournal({
                       role="button"
                       tabIndex={0}
                       onClick={() => setSelectedSceneId(scene.id)}
+                      onMouseEnter={() => setSelectedSceneId(scene.id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           setSelectedSceneId(scene.id);
