@@ -18,6 +18,20 @@ describe('item-filter', () => {
     expect(isPlotRelevantItem('grzebień')).toBe(false);
   });
 
+  it('odfiltrowuje odmienione gramatycznie formy pospolitych przedmiotów (przypadki i liczba mnoga)', () => {
+    expect(isPlotRelevantItem('Paczka zapałek')).toBe(false);
+    expect(isPlotRelevantItem('Garść zapałek')).toBe(false);
+    expect(isPlotRelevantItem('Komplet baterii')).toBe(false);
+    expect(isPlotRelevantItem('Zapas baterii')).toBe(false);
+    expect(isPlotRelevantItem('Paczka chusteczek')).toBe(false);
+    expect(isPlotRelevantItem('Niedopałek papierosa')).toBe(false);
+    expect(isPlotRelevantItem('Zawartość portfela')).toBe(false);
+    expect(isPlotRelevantItem('Garść bilonu')).toBe(false);
+    expect(isPlotRelevantItem('Dwa ołówki')).toBe(false);
+    expect(isPlotRelevantItem('Klucze do mieszkania')).toBe(false);
+    expect(isPlotRelevantItem('Klucz od domu')).toBe(false);
+  });
+
   it('zachowuje przedmioty istotne dla fabuły i poszlaki', () => {
     expect(isPlotRelevantItem('Mosiężny klucz')).toBe(true);
     expect(isPlotRelevantItem('List od Wilcoxa')).toBe(true);
@@ -26,6 +40,8 @@ describe('item-filter', () => {
     expect(isPlotRelevantItem('Stara fotografia')).toBe(true);
     expect(isPlotRelevantItem('Zeznanie dozorcy')).toBe(true);
     expect(isPlotRelevantItem('Dziennik Corbitta')).toBe(true);
+    expect(isPlotRelevantItem('Magiczny zegarek kieszonkowy')).toBe(true);
+    expect(isPlotRelevantItem('Klucz do krypty')).toBe(true);
   });
 
   it('przedmiot pospolity z silnym znacznikiem fabularnym jest uznawany za istotny', () => {
@@ -361,5 +377,53 @@ describe('SessionJournal', () => {
     expect(screen.getByText('Brak nowych poszlak ani rekwizytów')).toBeInTheDocument();
     expect(screen.getByText('Brak szczegółowych ustaleń dla tej sceny.')).toBeInTheDocument();
     expect(screen.getByText('Brak zdefiniowanego kolejnego kroku.')).toBeInTheDocument();
+  });
+
+  it('umożliwia przełączenie na inną scenę po najechaniu myszą (mouseEnter) na liście', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene1, sampleScene2],
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    // Domyślnie widać Scenę #2
+    expect(
+      screen.getByText('Profesor przetłumaczył inskrypcję z taśmy.')
+    ).toBeInTheDocument();
+
+    // Najedź kursorem myszy na Scenę 1
+    const scene1Item = screen.getByText('Wizyta w archiwum TVP');
+    fireEvent.mouseEnter(scene1Item);
+
+    // Karta Sceny 1 jest teraz natychmiast wyświetlona w prawym panelu
+    expect(
+      screen.getByText('Wrona przekazał zapieczętowaną teczkę z nagraniem.')
+    ).toBeInTheDocument();
+  });
+
+  it('ignoruje niezapieczętowane sceny (isSealed: false)', () => {
+    const unsealedScene: SceneCaseCard = {
+      id: 'unsealed-scene',
+      sceneNumber: 99,
+      location: 'Tymczasowe miejsce',
+      title: 'Scena w toku',
+      timestamp: '2026-09-21T15:00:00Z',
+      people: [],
+      findings: [],
+      keyTakeaways: [],
+      isSealed: false,
+    };
+
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene1, unsealedScene],
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    // Scena niezapieczętowana nie pojawia się w liście Kroniki Scen
+    expect(screen.queryByText('Scena w toku')).toBeNull();
+    expect(screen.getAllByText('Wizyta w archiwum TVP').length).toBeGreaterThanOrEqual(1);
   });
 });

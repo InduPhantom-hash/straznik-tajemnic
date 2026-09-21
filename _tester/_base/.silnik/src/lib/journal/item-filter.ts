@@ -19,49 +19,49 @@ function wordPattern(expr: string): RegExp {
  */
 const MUNDANE_PATTERNS: RegExp[] = [
   // Zasilanie i elektronika codziennego użytku
-  wordPattern('baterie|bateria|akumulatorek|akumulatorki|battery|batteries'),
+  wordPattern('bateri[a-ząćęłńóśźż]*|akumulator[a-ząćęłńóśźż]*|battery|batteries'),
   wordPattern(
-    'telefon(\\s+komórkowy)?|komórka|smartfon|cellphone|cell\\s*phone|mobile(\\s*phone)?|smart\\s*phone'
+    'telefon[a-ząćęłńóśźż]*(\\s+komórkow[a-ząćęłńóśźż]*)?|komórk[a-ząćęłńóśźż]*|smartfon[a-ząćęłńóśźż]*|cellphone[s]?|cell\\s*phone[s]?|mobile(\\s*phone[s]?)?|smart\\s*phone[s]?'
   ),
-  wordPattern('ładowark[aieę]|charger'),
-  wordPattern('powerbank|power\\s*bank'),
-  wordPattern('kabel\\s+usb|usb\\s+cable'),
+  wordPattern('ładowark[a-ząćęłńóśźż]*|charger[s]?'),
+  wordPattern('powerbank[a-ząćęłńóśźż]*|power\\s*bank[s]?'),
+  wordPattern('kabl[a-ząćęłńóśźż]*\\s+usb|usb\\s+cable[s]?'),
 
   // Ogień i palenie (pospolite)
-  wordPattern('zapałk[iaieę]|pudełko\\s+zapałek|matches|matchbox'),
-  wordPattern('zapalniczk[aieę]|lighter'),
-  wordPattern('papieros[yów]?|paczka\\s+papierosów|cigarettes?|pack\\s+of\\s+cigarettes'),
-  wordPattern('cygar[oa]|cigars?|tabaka|snuff'),
-  wordPattern('popielniczk[aieę]|ashtray'),
+  wordPattern('zapałk[a-ząćęłńóśźż]*|zapałek|matches|matchbox(es)?'),
+  wordPattern('zapalniczk[a-ząćęłńóśźż]*|lighter[s]?'),
+  wordPattern('papieros[a-ząćęłńóśźż]*|cigarettes?|pack\\s+of\\s+cigarettes'),
+  wordPattern('cygar[a-ząćęłńóśźż]*|cigars?|tabak[a-ząćęłńóśźż]*|snuff'),
+  wordPattern('popielniczk[a-ząćęłńóśźż]*|ashtray[s]?'),
 
   // Finanse i drobiazgi kieszonkowe
-  wordPattern('portfel|portmonetk[aieę]|wallet|billfold|purse'),
-  wordPattern('drobne(\\s+monety)?|bilon|loose\\s+change|pocket\\s+change'),
-  wordPattern('gotówka|pieniądze|cash'),
+  wordPattern('portfel[a-ząćęłńóśźż]*|portmonetk[a-ząćęłńóśźż]*|wallet[s]?|billfold[s]?|purse[s]?'),
+  wordPattern('drobne(\\s+monety)?|bilon[a-ząćęłńóśźż]*|loose\\s+change|pocket\\s+change'),
+  wordPattern('gotówk[a-ząćęłńóśźż]*|pieni[aą]dz[a-ząćęłńóśźż]*|cash'),
 
   // Higiena i kosmetyka codzienna
-  wordPattern('chusteczk[iaieę](\\s+higieniczne)?|tissues?|handkerchief'),
-  wordPattern('grzebie[ńn]|grzebyk|comb|hairbrush'),
-  wordPattern('lusterko(\\s+kieszonkowe)?|pocket\\s+mirror'),
-  wordPattern('mydł[oa]|soap'),
-  wordPattern('pomadk[aieę]|lipstick|balsam\\s+do\\s+ust|lip\\s+balm'),
-  wordPattern('szmink[aieę]|nail\\s+file|pilniczek'),
+  wordPattern('chusteczk[a-ząćęłńóśźż]*|chusteczek|tissues?|handkerchief[s]?'),
+  wordPattern('grzebie[ńn][a-ząćęłńóśźż]*|grzebyk[a-ząćęłńóśźż]*|comb[s]?|hairbrush(es)?'),
+  wordPattern('lusterk[a-ząćęłńóśźż]*|pocket\\s+mirror[s]?'),
+  wordPattern('myd[łl][a-ząćęłńóśźż]*|soap[s]?'),
+  wordPattern('pomadk[a-ząćęłńóśźż]*|lipstick[s]?|balsam[a-ząćęłńóśźż]*\\s+do\\s+ust|lip\\s+balm[s]?'),
+  wordPattern('szmink[a-ząćęłńóśźż]*|nail\\s+file[s]?|pilniczek|pilniczk[a-ząćęłńóśźż]*'),
 
   // Pospolite przybory biurowe bez cech poszlaki
-  wordPattern('zwykły\\s+(ołówek|długopis)|gumka\\s+do\\s+ścierania|eraser'),
-  wordPattern('ołówek|długopis|pencil|ballpoint\\s*pen'),
+  wordPattern('zwykły\\s+(ołówek|długopis)|gumk[a-ząćęłńóśźż]*\\s+do\\s+ścierania|eraser[s]?'),
+  wordPattern('ołówk[a-ząćęłńóśźż]*|ołówek|długopis[a-ząćęłńóśźż]*|pencils?|pens?|ballpoint\\s*pens?'),
 
   // Pospolite słodycze i przekąski
-  wordPattern('guma\\s+do\\s+żucia|chewing\\s+gum|bubble\\s+gum'),
-  wordPattern('cukierk[iaieę]|dropsy|candies|candy'),
+  wordPattern('gum[a-ząćęłńóśźż]*\\s+do\\s+żucia|chewing\\s+gum|bubble\\s+gum'),
+  wordPattern('cukierk[a-ząćęłńóśźż]*|cukierków|drops[a-ząćęłńóśźż]*|candies|candy'),
 
   // Pospolite klucze domowe/samochodowe (nie-śledcze)
-  wordPattern('klucze?\\s+do\\s+(mieszkania|domu|garażu|pokoju|auta|samochodu)'),
+  wordPattern('klucz[a-ząćęłńóśźż]*\\s+(do|od)\\s+(mieszkania|domu|garażu|pokoju|auta|samochodu)'),
   wordPattern('house\\s+keys?|car\\s+keys?'),
 
   // Pospolite elementy garderoby i drobiazgi
-  wordPattern('sznurówk[iaieę]|shoelaces?'),
-  wordPattern('zegarek\\s+(na\\s+rękę|kwarcowy|kieszonkowy)|wrist\\s*watch'),
+  wordPattern('sznurówk[a-ząćęłńóśźż]*|sznurówek|shoelaces?'),
+  wordPattern('zegark[a-ząćęłńóśźż]*|zegarek(\\s+(na\\s+rękę|kwarcowy|kieszonkowy))?|wrist\\s*watch(es)?'),
 ];
 
 /**
@@ -72,18 +72,19 @@ const MUNDANE_PATTERNS: RegExp[] = [
 const PLOT_SIGNIFICANCE_OVERRIDE_PATTERNS: RegExp[] = [
   wordPattern('zakrwawion[a-ząćęłńóśźż]*|bloody|blood-stained'),
   wordPattern('tajemnicz[a-ząćęłńóśźż]*|mysterious|enigmatic'),
-  wordPattern('starożytn[a-ząćęłńóśźż]*|starodawn[a-ząćęłńóśźż]*|ancient|antyk|antique'),
+  wordPattern('starożytn[a-ząćęłńóśźż]*|starodawn[a-ząćęłńóśźż]*|ancient|antyk|antique[s]?'),
   wordPattern('okultystyczn[a-ząćęłńóśźż]*|rytualn[a-ząćęłńóśźż]*|occult|ritual|eldritch'),
-  wordPattern('zaszyfrowan[a-ząćęłńóśźż]*|kodowan[a-ząćęłńóśźż]*|szyfr[a-ząćęłńóśźż]*|encrypted|cipher'),
-  wordPattern('magniczn[a-ząćęłńóśźż]*|dziwn[a-ząćęłńóśźż]*|strange|bizarre|alien'),
-  wordPattern('dowód|poszlak[a-ząćęłńóśźż]*|ślad|evidence|clue'),
-  wordPattern('handout|zeznanie|dokument|list|rękopis|akt[a]?|manuscript|letter'),
-  wordPattern('artefakt|relikt|amulet|talizman|idol|artifact|relic'),
-  wordPattern('symbol|insygnia|pieczęć|sigil|seal'),
-  wordPattern('trucizn[a-ząćęłńóśźż]*|jad|poison|venom|arszenik|arsenic'),
-  wordPattern('mosiężn[a-ząćęłńóśźż]*|srebrn[a-ząćęłńóśźż]*|złot[a-ząćęłńóśźż]*|brass|silver|golden'),
-  wordPattern('cthulhu|mythos|mity|arkham|miskatonic'),
-  wordPattern('klucz\\s+do\\s+(krypty|grobowca|sewisu|kaplicy|sejfu|lochów|tajemnic)'),
+  wordPattern('zaszyfrowan[a-ząćęłńóśźż]*|kodowan[a-ząćęłńóśźż]*|szyfr[a-ząćęłńóśźż]*|encrypted|cipher[s]?'),
+  wordPattern('magiczn[a-ząćęłńóśźż]*|magia|magii|magic|dziwn[a-ząćęłńóśźż]*|strange|bizarre|alien'),
+  wordPattern('dowód|dowod[a-ząćęłńóśźż]*|poszlak[a-ząćęłńóśźż]*|ślad[a-ząćęłńóśźż]*|evidence|clue[s]?'),
+  wordPattern('handout[s]?|zeznani[a-ząćęłńóśźż]*|dokument[a-ząćęłńóśźż]*|list[a-ząćęłńóśźż]*|rękopis[a-ząćęłńóśźż]*|akta|aktów|manuscript[s]?|letter[s]?'),
+  wordPattern('artefakt[a-ząćęłńóśźż]*|relikt[a-ząćęłńóśźż]*|amulet[a-ząćęłńóśźż]*|talizman[a-ząćęłńóśźż]*|idol[a-ząćęłńóśźż]*|artifact[s]?|relic[s]?'),
+  wordPattern('znak[a-ząćęłńóśźż]*|symbol[a-ząćęłńóśźż]*|insygni[a-ząćęłńóśźż]*|pieczęć|pieczęci[a-ząćęłńóśźż]*|sigil[s]?|seal[s]?'),
+  wordPattern('trucizn[a-ząćęłńóśźż]*|jad[a-ząćęłńóśźż]*|poison[s]?|venom|arszenik|arsenic'),
+  wordPattern('mosiężn[a-ząćęłńóśźż]*|srebrn[a-ząćęłńóśźż]*|złot[a-ząćęłńóśźż]*|brass|silver|golden?'),
+  wordPattern('cthulhu|mythos|mity|arkham|miskatonic|innsmouth'),
+  wordPattern('grimuar[a-ząćęłńóśźż]*|grimoire[s]?'),
+  wordPattern('klucz[a-ząćęłńóśźż]*\\s+(do|od)\\s+(krypty|grobowca|skarbca|serwisu|kaplicy|sejfu|lochów|tajemnic|piwnicy|mauzoleum)'),
 ];
 
 /**
