@@ -22,6 +22,7 @@ export function formatJournalSection(journal: JournalEntry[]): string {
     journal: '📖',
     item: '📦',
     case: '📁',
+    scene: '🎬',
   };
 
   // Sortuj chronologicznie
@@ -44,7 +45,23 @@ export function formatJournalSection(journal: JournalEntry[]): string {
     if (entry.inGameDate) md += ` | *W grze: ${entry.inGameDate}*`;
     md += `\n\n`;
 
-    md += `${entry.content}\n`;
+    if (entry.sceneData) {
+      const sd = entry.sceneData;
+      if (sd.people && sd.people.length > 0) {
+        md += `**👥 Osoby:** ${sd.people.join(', ')}\n\n`;
+      }
+      if (sd.findings && sd.findings.length > 0) {
+        md += `**🔍 Co zdobyto:** ${sd.findings.join(', ')}\n\n`;
+      }
+      if (sd.keyTakeaways && sd.keyTakeaways.length > 0) {
+        md += `**📜 Kluczowe ustalenia:**\n${sd.keyTakeaways.map((t) => `- ${t}`).join('\n')}\n\n`;
+      }
+      if (sd.nextStep) {
+        md += `**🎯 Kolejny krok:** ${sd.nextStep}\n\n`;
+      }
+    } else {
+      md += `${entry.content}\n`;
+    }
 
     // Metadata
     if (entry.metadata) {

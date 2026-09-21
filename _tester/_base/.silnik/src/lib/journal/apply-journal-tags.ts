@@ -1,12 +1,16 @@
-import type { Character, JournalEntry, EquipmentItem, EquipmentCategory } from '@/lib/types';
+import type { Character, JournalEntry, EquipmentItem, EquipmentCategory, SceneCaseCard, ActiveSceneState } from '@/lib/types';
 import type { JournalTagEntry } from '@/lib/parsers/types';
 import { parseRevealedTags,parseRevealedClue,findReplacedClue,resolveRevealedRecipient,revealedEntityId } from '@/core/memory/revealed-facts';
 import {
   synthesizeClueFact,
   parseClueProvenance,
   inferClueProvenance,
+  extractSceneChangeTag,
+  extractSceneCardTag,
   ExtractedNpcTag,
   ExtractedItemTag,
+  ExtractedSceneChange,
+  ExtractedSceneCard,
 } from '@/lib/parsers/journal-parser';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import {
@@ -116,7 +120,10 @@ export function processCharacterJournalAndDossier(
   npcTags: ExtractedNpcTag[],
   locationEntry: JournalEntry | null,
   messageId: string,
-  itemTags: ExtractedItemTag[] = []
+  itemTags: ExtractedItemTag[] = [],
+  sceneChange: ExtractedSceneChange | null = null,
+  sceneCard: ExtractedSceneCard | null = null,
+  sharedLocationName?: string
 ): { character: Character; changed: boolean } {
   const charWithDossier = ensureCharacterDossier(character);
   const dossier: InvestigatorDossier = {
@@ -130,6 +137,30 @@ export function processCharacterJournalAndDossier(
   const existingJournal = [...(charWithDossier.journal ?? [])];
   const existingJournalIds = new Set(existingJournal.map((e) => e.id));
   const existingEquipment: EquipmentItem[] = [...(charWithDossier.equipment ?? [])];
+  const existingSceneCards: SceneCaseCard[] = [...(charWithDossier.sceneCards ?? [])];
+
+  const currentLocName = locationEntry ? locationEntry.title : (sharedLocationName || 'Aktualna lokacja');
+
+  let activeScene: ActiveSceneState = charWithDossier.activeScene
+    ? {
+        ...charWithDossier.activeScene,
+        location:
+          charWithDossier.activeScene.location === 'Aktualna lokacja' && (locationEntry?.title || sharedLocationName)
+            ? (locationEntry?.title || sharedLocationName!)
+            : charWithDossier.activeScene.location,
+        people: [...(charWithDossier.activeScene.people || [])],
+        findings: [...(charWithDossier.activeScene.findings || [])],
+        notes: [...(charWithDossier.activeScene.notes || [])],
+      }
+    : {
+        sceneNumber: existingSceneCards.length + 1,
+        location: currentLocName,
+        startedAt: new Date().toISOString(),
+        people: [],
+        findings: [],
+        notes: [],
+      };
+
   let changed = false;
 
   // 1. Obsługa NPC (zarówno z [NPC: Imię: opis], jak i [DZIENNIK:npc:Imię])
@@ -150,6 +181,11 @@ export function processCharacterJournalAndDossier(
     const normName = npc.name.trim();
     if (!normName) continue;
     const lowerName = normName.toLowerCase();
+
+    if (!activeScene.people.includes(normName)) {
+      activeScene.people.push(normName);
+      changed = true;
+    }
 
     const existingNpcIndex = dossier.npcs.findIndex(
       (n) => n.name.toLowerCase().trim() === lowerName
@@ -251,6 +287,11 @@ export function processCharacterJournalAndDossier(
     const normName = item.name.trim();
     if (!normName) continue;
     const lowerName = normName.toLowerCase();
+
+    if (!activeScene.findings.includes(normName)) {
+      activeScene.findings.push(normName);
+      changed = true;
+    }
     const jId = `journal-${messageId}-item-${lowerName.replace(/[^a-z0-9]/g, '-')}`;
 
     if (!existingJournalIds.has(jId)) {
@@ -447,6 +488,19 @@ export function processCharacterJournalAndDossier(
     const fact = isClue
       ? synthesizeClueFact(cleanClueTitle, rawContent)
       : tag.content;
+
+    if (isClue && cleanClueTitle) {
+      if (!activeScene.findings.includes(cleanClueTitle.trim())) {
+        activeScene.findings.push(cleanClueTitle.trim());
+        changed = true;
+      }
+    } else if (!isClue && tag.content) {
+      const trimmedContent = tag.content.trim();
+      if (!activeScene.notes.includes(trimmedContent)) {
+        activeScene.notes.push(trimmedContent);
+        changed = true;
+      }
+    }
 
     // Aktualizuj poszlaki w dossier
     if (isClue && cleanClueTitle) {
@@ -723,6 +777,78 @@ export function processCharacterJournalAndDossier(
     changed = true;
   }
 
+  // 5. Obsługa zakończenia i pieczętowania sceny (Issue #402)
+  if (sceneCard || sceneChange) {
+    const cardId = `scene-card-${messageId}`;
+    if (!existingSceneCards.some((sc) => sc.id === cardId)) {
+      const cardTitle = sceneCard?.title || activeScene.location || `Scena ${activeScene.sceneNumber}`;
+      const cardLoc = sceneCard?.location || (locationEntry ? locationEntry.title : (sharedLocationName || activeScene.location));
+      const sealedTakeaways =
+        sceneCard?.keyTakeaways && sceneCard.keyTakeaways.length > 0
+          ? sceneCard.keyTakeaways
+          : activeScene.notes.length > 0
+          ? activeScene.notes
+          : ['Zbadano lokację i zabezpieczono zebrane poszlaki.'];
+
+      const sealedPeople =
+        sceneCard?.people && sceneCard.people.length > 0
+          ? sceneCard.people
+          : activeScene.people;
+
+      const sealedFindings =
+        sceneCard?.findings && sceneCard.findings.length > 0
+          ? sceneCard.findings
+          : activeScene.findings;
+
+      const nextStep =
+        sceneCard?.nextStep ||
+        (sceneChange?.newLocation ? `Udać się do: ${sceneChange.newLocation}` : undefined);
+
+      const sealedCard: SceneCaseCard = {
+        id: cardId,
+        sceneNumber: activeScene.sceneNumber,
+        location: cardLoc,
+        title: cardTitle,
+        inGameDate: sceneCard?.inGameDate || activeScene.inGameDate || locationEntry?.inGameDate,
+        timestamp: new Date().toISOString(),
+        people: sealedPeople,
+        findings: sealedFindings,
+        keyTakeaways: sealedTakeaways,
+        nextStep,
+        isSealed: true,
+      };
+
+      existingSceneCards.push(sealedCard);
+
+      const journalSceneId = `journal-scene-${messageId}`;
+      if (!existingJournalIds.has(journalSceneId)) {
+        existingJournal.push({
+          id: journalSceneId,
+          timestamp: new Date(),
+          inGameDate: sealedCard.inGameDate,
+          type: 'scene',
+          title: sceneCard?.title || `Scena #${sealedCard.sceneNumber}: ${sealedCard.location}`,
+          content: sealedCard.keyTakeaways.join('\n'),
+          tags: ['scena', 'akta-sprawy'],
+          isBookmarked: false,
+          sceneData: sealedCard,
+        });
+        existingJournalIds.add(journalSceneId);
+      }
+
+      // Nowa aktywna scena po przejściu
+      activeScene = {
+        sceneNumber: sealedCard.sceneNumber + 1,
+        location: sceneChange?.newLocation || 'Nowa lokacja',
+        startedAt: new Date().toISOString(),
+        people: [],
+        findings: [],
+        notes: [],
+      };
+      changed = true;
+    }
+  }
+
   if (!changed) return { character, changed: false };
 
   dossier.lastUpdated = new Date().toISOString();
@@ -732,14 +858,16 @@ export function processCharacterJournalAndDossier(
       journal: existingJournal,
       equipment: existingEquipment,
       investigatorDossier: dossier,
+      sceneCards: existingSceneCards,
+      activeScene,
     },
     changed: true,
   };
 }
 
 /**
- * Ekstrahuje tagi [DZIENNIK:], [NPC:], [PRZEDMIOT:] oraz [LOKACJA:] z tekstu odpowiedzi MG,
- * aktualizuje dossier i dopisuje brakujące wpisy do `character.journal`.
+ * Ekstrahuje tagi [DZIENNIK:], [NPC:], [PRZEDMIOT:], [LOKACJA:], [ZMIANA_SCENY:] oraz [KARTA_SCENY:]
+ * z tekstu odpowiedzi MG, aktualizuje dossier, sceny i dopisuje wpisy do `character.journal`.
  */
 export function appendJournalFromText(
   character: Character,
@@ -749,8 +877,17 @@ export function appendJournalFromText(
   const parsed = parseRevealedTags(rawText);
   const {journalTags:tags,npcTags,itemTags}=parsed;
   const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
+  const sceneChange = extractSceneChangeTag(rawText);
+  const sceneCard = extractSceneCardTag(rawText);
 
-  if (tags.length === 0 && npcTags.length === 0 && itemTags.length === 0 && !locationEntry) {
+  if (
+    tags.length === 0 &&
+    npcTags.length === 0 &&
+    itemTags.length === 0 &&
+    !locationEntry &&
+    !sceneChange &&
+    !sceneCard
+  ) {
     return character;
   }
 
@@ -760,7 +897,9 @@ export function appendJournalFromText(
     npcTags,
     locationEntry,
     messageId,
-    itemTags
+    itemTags,
+    sceneChange,
+    sceneCard
   );
 
   return result.character;
@@ -779,8 +918,17 @@ export function appendJournalToParty(
   const parsed = parseRevealedTags(rawText);
   const {journalTags:tags,npcTags,itemTags}=parsed;
   const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
+  const sceneChange = extractSceneChangeTag(rawText);
+  const sceneCard = extractSceneCardTag(rawText);
 
-  if (tags.length === 0 && npcTags.length === 0 && itemTags.length === 0 && !locationEntry) {
+  if (
+    tags.length === 0 &&
+    npcTags.length === 0 &&
+    itemTags.length === 0 &&
+    !locationEntry &&
+    !sceneChange &&
+    !sceneCard
+  ) {
     return { characters, activeCharacter, changed: false };
   }
 
@@ -820,11 +968,28 @@ export function appendJournalToParty(
     const cItems = itemTagsByChar.get(c.id) ?? [];
     const cLoc = c.id === activeCharacter.id ? locationEntry : null;
 
-    if (cTags.length === 0 && cNpcs.length === 0 && cItems.length === 0 && !cLoc) {
+    if (
+      cTags.length === 0 &&
+      cNpcs.length === 0 &&
+      cItems.length === 0 &&
+      !cLoc &&
+      !sceneChange &&
+      !sceneCard
+    ) {
       return c;
     }
 
-    const res = processCharacterJournalAndDossier(c, cTags, cNpcs, cLoc, messageId, cItems);
+    const res = processCharacterJournalAndDossier(
+      c,
+      cTags,
+      cNpcs,
+      cLoc,
+      messageId,
+      cItems,
+      sceneChange,
+      sceneCard,
+      locationEntry?.title
+    );
     if (res.changed) changedAny = true;
     return res.character;
   };

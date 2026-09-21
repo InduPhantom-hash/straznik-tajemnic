@@ -211,7 +211,35 @@ export type JournalEventType =
   | 'item'
   | 'quest'
   | 'journal'
-  | 'case';
+  | 'case'
+  | 'scene';
+
+// Karta Akt Śledczych po zamknięciu sceny (Issue #402)
+export interface SceneCaseCard {
+  id: string;
+  sceneNumber: number;
+  location: string;
+  title: string;
+  inGameDate?: string;
+  timestamp: string;
+  people: string[]; // 👥 Osoby (Kogo spotkano)
+  findings: string[]; // 🔍 Co zdobyto (poszlaki/przedmioty z miniaturami)
+  keyTakeaways: string[]; // 📜 Kluczowe ustalenia (1-2 zdania syntezy)
+  nextStep?: string; // 🎯 Cel i kolejny krok śledztwa
+  isSealed: boolean;
+}
+
+// Stan aktywnej, niezamkniętej sceny (zbierany na żywo w trakcie rozgrywki)
+export interface ActiveSceneState {
+  sceneNumber: number;
+  location: string;
+  title?: string;
+  inGameDate?: string;
+  startedAt: string;
+  people: string[];
+  findings: string[];
+  notes: string[];
+}
 
 // Wpis dziennika sesji
 export interface JournalEntry {
@@ -226,6 +254,8 @@ export interface JournalEntry {
   content: string;
   tags: string[];
   isBookmarked: boolean;
+  /** Dane ustrukturyzowanej Karty Akt Śledczych (dla type: 'scene') */
+  sceneData?: SceneCaseCard;
   /** Wniosek Badacza / Dedukcja postaci (np. z rzutu na INT / Pomysł lub sukcesu śledczego) */
   investigatorInsight?: string;
   metadata?: {
@@ -550,6 +580,8 @@ export interface Character {
   era?: string; // Era ekonomiczna (np. '1920s-us', '1920s-pl', 'modern-pl', 'modern-us')
 
   journal?: JournalEntry[];
+  sceneCards?: SceneCaseCard[]; // Karty Akt Śledczych zamkniętych scen (Issue #402)
+  activeScene?: ActiveSceneState; // Stan bieżącej, trwającej sceny (Issue #402)
   investigatorBoard?: InvestigatorBoardState;
   investigatorDossier?: InvestigatorDossier;
 

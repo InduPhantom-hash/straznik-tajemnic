@@ -237,9 +237,9 @@ export function synthesizeClueFact(title: string, rawContent: string): string {
     return title ? `${title.trim()}.` : '';
   }
 
-  // 1. Usuń tagi strukturalne AI (np. [TAG: ...], [DZIENNIK:...], [/DZIENNIK])
+  // 1. Usuń tagi strukturalne AI (np. [TAG: ...], [DZIENNIK:...], [/DZIENNIK], [ZMIANA_SCENY:...])
   let text = rawContent
-    .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP)[^\]]*\]/gi, '')
+    .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP|ZMIANA_SCENY|SCENE_CHANGE|KARTA_SCENY|SCENE_CARD)[^\]]*\]/gi, '')
     .trim();
 
   // 2. Jeśli treść zawiera metadane oddzielone pipe (| M|I|C|E, | źródło:...), bierzemy samą treść faktu
@@ -426,5 +426,160 @@ export function extractItemTags(text: string): ExtractedItemTag[] {
   }
 
   return items;
+}
+
+export interface ExtractedSceneChange {
+  newLocation: string;
+  transitionType?: string;
+}
+
+export interface ExtractedSceneCard {
+  title: string;
+  location?: string;
+  inGameDate?: string;
+  people: string[];
+  findings: string[];
+  keyTakeaways: string[];
+  nextStep?: string;
+}
+
+/**
+ * Wykrywa tag zmiany sceny lub cięcia montażowego:
+ * [ZMIANA_SCENY: Lokacja] lub [ZMIANA_SCENY: typ=montaż | lokacja=Boston Globe]
+ * lub [SCENE_CHANGE: Location]
+ */
+export function extractSceneChangeTag(text: string): ExtractedSceneChange | null {
+  if (!text) return null;
+  const match = text.match(/\[(?:ZMIANA_SCENY|SCENE_CHANGE):\s*([^\]]+)\]/i);
+  if (!match) return null;
+
+  const raw = match[1].trim();
+  let newLocation = raw;
+  let transitionType: string | undefined;
+
+  if (raw.includes('|')) {
+    const parts = raw.split('|').map((p) => p.trim());
+    for (const part of parts) {
+      const typeMatch = part.match(/^(?:typ|type)\s*=\s*(.+)$/i);
+      const locMatch = part.match(/^(?:lokacja|location|miejsce)\s*=\s*(.+)$/i);
+      if (typeMatch) transitionType = typeMatch[1].trim();
+      else if (locMatch) newLocation = locMatch[1].trim();
+      else if (!newLocation || newLocation === raw) newLocation = part;
+    }
+  }
+
+  return { newLocation, transitionType };
+}
+
+/**
+ * Wykrywa i parsuje ustrukturyzowany blok Karty Akt Śledczych po zakończeniu sceny:
+ * [KARTA_SCENY: Tytuł / Lokacja]
+ * OSOBY: ...
+ * CO_ZDOBYTO: ...
+ * USTALENIA: ...
+ * CEL: ...
+ * [/KARTA_SCENY]
+ */
+export function extractSceneCardTag(text: string): ExtractedSceneCard | null {
+  if (!text) return null;
+  const cardMatch = text.match(
+    /\[(?:KARTA_SCENY|SCENE_CARD):?\s*([^\]]*)\]([\s\S]*?)\[\/(?:KARTA_SCENY|SCENE_CARD)\]/i
+  );
+  if (!cardMatch) return null;
+
+  const header = cardMatch[1].trim();
+  const body = cardMatch[2].trim();
+
+  let title = header || 'Akta Sceny';
+  let location: string | undefined;
+  let inGameDate: string | undefined;
+  const people: string[] = [];
+  const findings: string[] = [];
+  const keyTakeaways: string[] = [];
+  let nextStep: string | undefined;
+
+  if (header.includes('|')) {
+    const parts = header.split('|').map((p) => p.trim());
+    title = parts[0] || title;
+    location = parts[1];
+  }
+
+  const lines = body.split('\n');
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // Osoby
+    const peopleMatch = line.match(/^(?:OSOBY|PEOPLE|POSTACIE|ŚWIADKOWIE)\s*:\s*(.+)$/i);
+    if (peopleMatch) {
+      const split = peopleMatch[1].split(/[,;]/).map((p) => p.trim()).filter(Boolean);
+      people.push(...split);
+      continue;
+    }
+
+    // Co zdobyto
+    const findingsMatch = line.match(
+      /^(?:CO_ZDOBYTO|ZDOBYTO|FINDINGS|PRZEDMIOTY|POSZLAKI|ITEMS|DOWODY)\s*:\s*(.+)$/i
+    );
+    if (findingsMatch) {
+      const split = findingsMatch[1].split(/[,;]/).map((p) => p.trim()).filter(Boolean);
+      findings.push(...split);
+      continue;
+    }
+
+    // Ustalenia
+    const takeawaysMatch = line.match(
+      /^(?:USTALENIA|KLUCZOWE_USTALENIA|TAKEAWAYS|KEY_TAKEAWAYS|WNIOSKI|FAKTY|SUMMARY)\s*:\s*(.+)$/i
+    );
+    if (takeawaysMatch) {
+      const split = takeawaysMatch[1].split(/(?:\. |\n|;)/).map((p) => p.trim()).filter(Boolean);
+      keyTakeaways.push(...split);
+      continue;
+    }
+
+    // Cel / Kolejny krok
+    const nextStepMatch = line.match(
+      /^(?:CEL|KOLEJNY_KROK|NEXT_STEP|CEL_SLEDZTWA|NASTĘPNY_KROK|NASTEPNY_KROK)\s*:\s*(.+)$/i
+    );
+    if (nextStepMatch) {
+      nextStep = nextStepMatch[1].trim();
+      continue;
+    }
+
+    // Data w grze
+    const dateMatch = line.match(/^(?:DATA|DATE|CZAS|INGAMEDATE)\s*:\s*(.+)$/i);
+    if (dateMatch) {
+      inGameDate = dateMatch[1].trim();
+      continue;
+    }
+
+    // Fallback: jeśli linia to punkt listy (np. "- ...") a nie ma prefiksu
+    if (line.startsWith('-') || line.startsWith('•')) {
+      const clean = line.replace(/^[-•*]\s*/, '').trim();
+      if (clean) keyTakeaways.push(clean);
+    }
+  }
+
+  return {
+    title,
+    location,
+    inGameDate,
+    people,
+    findings,
+    keyTakeaways,
+    nextStep,
+  };
+}
+
+/**
+ * Czyści surowy tekst wiadomości z tagów sceny i karty akt,
+ * aby nie wyciekały do widoku czatu ani TTS.
+ */
+export function cleanSceneTagsFromText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\[(?:KARTA_SCENY|SCENE_CARD)[^\]]*\][\s\S]*?(?:\[\/(?:KARTA_SCENY|SCENE_CARD)\]|$)/gi, '')
+    .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE)[^\]]*\]/gi, '')
+    .trim();
 }
 
