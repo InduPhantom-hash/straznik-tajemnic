@@ -1081,14 +1081,15 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           } else {
             // Kwestia Narratora (lub wymuszony tryb Audiobook / narratorOnly) - modulacja SAN i nastrojem
             voiceId = settingsForQueue.voiceSettings?.voiceId || 'Kore';
+            textForQueue = markerMatch ? markerMatch[3].trim() || clean : clean;
             audioDirection = buildAudioDirection({
               isNpc: false,
               san,
               maxSan,
               mood: currentMood,
               recentSanLoss: currentSanLoss,
+              sentenceText: textForQueue,
             });
-            textForQueue = markerMatch ? markerMatch[3].trim() || clean : clean;
           }
 
           // Zmiana mówcy lub zmiana dyrektywy zamyka bieżący run; ten sam voiceId + direction
@@ -1232,9 +1233,17 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             }
           }
           if (cleanParagraph && /[\p{L}\p{N}]/u.test(cleanParagraph)) {
+            const paragraphAudioDirection = buildAudioDirection({
+              isNpc: false,
+              san,
+              maxSan,
+              mood: currentMood,
+              recentSanLoss: currentSanLoss,
+              sentenceText: cleanParagraph,
+            });
             pendingItems.push({
               text: cleanParagraph,
-              audioDirection: narratorAudioDirection,
+              audioDirection: paragraphAudioDirection,
               speedMultiplier: paragraphSpeedMultiplier,
               sfxPresetId: paraSfxId,
             });

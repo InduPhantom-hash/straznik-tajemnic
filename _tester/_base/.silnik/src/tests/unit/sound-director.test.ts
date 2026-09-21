@@ -1,11 +1,12 @@
 import {
   buildAudioDirection,
+  classifySentencePacing,
   extractMoodFromText,
   extractSanLossFromText,
   getActiveCharacterSan,
 } from '@/lib/audio/sound-director';
 
-describe('Sound Director Service (Issue #162)', () => {
+describe('Sound Director Service (Issue #162 + Issue #463)', () => {
   beforeEach(() => {
     // Czyszczenie localStorage przed każdym testem
     if (typeof window !== 'undefined') {
@@ -14,10 +15,10 @@ describe('Sound Director Service (Issue #162)', () => {
   });
 
   describe('buildAudioDirection - Kwestie Narratora', () => {
-    it('zwraca naturalny, wciągający ton z nutą grozy przy stabilnej poczytalności i braku nastroju', () => {
+    it('zwraca dynamiczny, wciągający ton lektora audiobooka przy stabilnej poczytalności i braku nastroju', () => {
       const direction = buildAudioDirection({ san: 75, maxSan: 80 });
-      expect(direction).toContain('natural, calm, and steady narrator voice');
-      expect(direction).toContain('calm, and steady narrator voice');
+      expect(direction).toContain('engaging, articulate, and confident audiobook narrator voice');
+      expect(direction).toContain('dynamic pacing, and crisp diction');
       expect(direction).not.toContain('slow');
     });
 
@@ -43,7 +44,7 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         mood: 'klaustrofobiczny i duszny',
       });
-      expect(direction).toContain('hushed, tense, and uneasy cadence');
+      expect(direction).toContain('tense, dark, and uneasy cadence');
       expect(direction).toContain('captivating pace');
       expect(direction).not.toContain('slow');
     });
@@ -54,7 +55,7 @@ describe('Sound Director Service (Issue #162)', () => {
         maxSan: 80,
         mood: 'tajemniczy',
       });
-      expect(direction).toContain('tense, nervous, and suspenseful storytelling voice');
+      expect(direction).toContain('tense, suspenseful, and engaging storytelling voice');
       expect(direction).toContain('natural pace');
     });
 
@@ -85,6 +86,61 @@ describe('Sound Director Service (Issue #162)', () => {
         mood: 'fałszywy spokój w salonie',
       });
       expect(direction).toContain('calm, crisp, but subtly eerie and watchful tone');
+    });
+  });
+
+  describe('buildAudioDirection - Punktowa Modulacja Zdań (Issue #463)', () => {
+    it('rozpoznaje zdanie szeptu przy bezpośrednim szoku lub paraliżującym lęku', () => {
+      const direction = buildAudioDirection({
+        san: 65,
+        maxSan: 80,
+        mood: 'tajemniczy',
+        sentenceText: 'Wstrzymujesz oddech w absolutnej ciszy, czując jak coś przemyka tuż obok.',
+      });
+      expect(direction).toContain('urgent, tense, and paranoid whisper');
+      expect(direction).toContain('cosmic dread');
+    });
+
+    it('rozpoznaje zdanie zrywu akcji / starcia przy ucieczce i nagłym ataku', () => {
+      const direction = buildAudioDirection({
+        san: 65,
+        maxSan: 80,
+        mood: 'tajemniczy',
+        sentenceText: 'Gwałtownie rzuca się na ciebie, a wystrzał rozbija szybę w oknie!',
+      });
+      expect(direction).toContain('fast-paced, urgent, and intense cadence');
+      expect(direction).toContain('sharp, punchy diction');
+    });
+
+    it('rozpoznaje zdanie złowrogiej kulminacji i makabrycznego odkrycia', () => {
+      const direction = buildAudioDirection({
+        san: 65,
+        maxSan: 80,
+        mood: 'tajemniczy',
+        sentenceText: 'Na kamiennym stole leżą zmasakrowane zwłoki, a obok wyryto pradawny symbol.',
+      });
+      expect(direction).toContain('measured, ominous, and deliberate voice of dark revelation');
+    });
+
+    it('zwraca dynamiczny ton bazowy dla neutralnego opisu w mrocznej scenie', () => {
+      const direction = buildAudioDirection({
+        san: 65,
+        maxSan: 80,
+        mood: 'klaustrofobiczny, mroczny',
+        sentenceText: 'Podnosisz starą mosiężną lampę i oświetlasz regał z zakurzonymi książkami.',
+      });
+      expect(direction).toContain('clear Polish with a deep, atmospheric, and claustrophobic cadence');
+      expect(direction).not.toContain('whisper');
+      expect(direction).not.toContain('slow');
+    });
+  });
+
+  describe('classifySentencePacing', () => {
+    it('klasyfikuje kategorie zdań zgodnie z dramatyzmem', () => {
+      expect(classifySentencePacing('Wstrzymujesz oddech na palcach.')).toBe('whisper');
+      expect(classifySentencePacing('Kultysta nagle rzuca się z nożem!')).toBe('action');
+      expect(classifySentencePacing('Odkrywasz rozczłonkowane ciało badacza.')).toBe('revelation');
+      expect(classifySentencePacing('Przeglądasz rejestr gości hotelowych.')).toBe('baseline');
     });
   });
 
