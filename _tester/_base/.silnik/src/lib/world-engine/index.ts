@@ -162,3 +162,5 @@ export class WorldEngineDirector {
   }
 }
 
+export * from './adapter';
+
