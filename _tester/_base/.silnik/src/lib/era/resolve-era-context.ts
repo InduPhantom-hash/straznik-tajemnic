@@ -189,6 +189,12 @@ export function resolveEraContext(
   }
 
   const region = resolveEraRegion(country);
+  const measurementSystem =
+    region.regionProfile === 'PL' || region.countryCode === 'PL'
+      ? 'metric'
+      : region.regionProfile === 'US' || region.regionProfile === 'GB'
+        ? 'imperial'
+        : 'metric';
 
   return {
     schemaVersion: ERA_CONTEXT_SCHEMA_VERSION,
@@ -196,6 +202,7 @@ export function resolveEraContext(
     effectiveYear,
     countryCode: region.countryCode,
     regionProfile: region.regionProfile,
+    measurementSystem,
     source,
     rulesVersion,
     ...(customProfileId ? { customProfileId } : {}),

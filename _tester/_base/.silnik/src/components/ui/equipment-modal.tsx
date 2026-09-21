@@ -49,7 +49,7 @@ import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
 import { isCatalogEquipment, migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
-import { resolveGameEraContext, type ResolvedEraContext } from '@/lib/era';
+import { resolveGameEraContext, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
 
 /** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
 function formatUsd(amount: number): string {
@@ -390,6 +390,7 @@ export function EquipmentModal({
                     onOpenDetail={setSelectedItem}
                     era={era}
                     character={character}
+                    eraContext={resolvedEraContext}
                   />
                 ))}
               </div>
@@ -566,6 +567,7 @@ interface ItemCardProps {
   onOpenDetail: (item: EquipmentItem) => void;
   era: string;
   character: Character;
+  eraContext?: ResolvedEraContext | null;
 }
 
 /** Ikona kategorii przedmiotu (Lucide) - placeholder gdy brak wygenerowanego obrazu AI. */
@@ -736,6 +738,7 @@ function WeaponCard({
   onOpenDetail,
   era,
   character,
+  eraContext,
 }: ItemCardProps) {
   const t = useTranslations('EquipmentModal');
   const conditionLabels: Record<string, string> = {
@@ -758,7 +761,19 @@ function WeaponCard({
   const damageBonus = character.damageBonus?.trim();
   const hasDb = Boolean(damageBonus) && damageBonus !== '0' && damageBonus !== '-';
   const effectiveDamage = melee && hasDb && damage ? `${damage} ${damageBonus}` : damage;
-  const range = item.modifiers?.range ?? inferred?.range;
+  const rawRange = item.modifiers?.range ?? inferred?.range;
+
+  const measurementSystem =
+    eraContext?.measurementSystem ??
+    (eraContext?.regionProfile === 'PL' ||
+    eraContext?.countryCode === 'PL' ||
+    era?.toLowerCase().includes('pl') ||
+    character?.era?.toLowerCase().includes('pl')
+      ? 'metric'
+      : 'imperial');
+  const range = rawRange
+    ? formatWeaponRange(rawRange, measurementSystem, locale === 'en' ? 'en' : 'pl')
+    : rawRange;
 
   const template = findEquipmentByName(item.name);
   const malfunction = item.modifiers?.malfunction ?? template?.modifiers?.malfunction;

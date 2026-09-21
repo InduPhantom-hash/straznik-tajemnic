@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { formatWeaponRange } from '@/lib/era';
 import { SafeImage } from '@/components/ui/safe-image';
 import {
   Package,
@@ -87,6 +88,7 @@ export function WizardEquipmentView({
   era = '1920s',
 }: WizardEquipmentViewProps) {
   const t = useTranslations('CharacterWizard');
+  const locale = useLocale();
   const [selectedItem, setSelectedItem] = useState<EquipmentItem | null>(null);
 
   const effectiveEra = useMemo(
@@ -234,7 +236,14 @@ export function WizardEquipmentView({
             {items.map((item) => {
               const hasImage = Boolean(item.imageUrl && !item.imageUrl.endsWith('.svg'));
               const damage = item.modifiers?.damage;
-              const range = item.modifiers?.range;
+              const rawRange = item.modifiers?.range;
+              const measurementSystem =
+                locale === 'pl' || era?.toLowerCase().includes('pl')
+                  ? 'metric'
+                  : 'imperial';
+              const range = rawRange
+                ? formatWeaponRange(rawRange, measurementSystem, locale === 'en' ? 'en' : 'pl')
+                : null;
               const weaponSkill = isWeapon(item) ? inferWeaponSkill(item) : null;
               const skillModifier = item.modifiers?.skill;
               const bonusModifier = item.modifiers?.bonus;

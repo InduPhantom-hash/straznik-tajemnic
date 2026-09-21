@@ -4,6 +4,8 @@ export const ERA_RULES_SUPPORTED_TO = 2026;
 
 export type EraRegionProfile = 'PL' | 'US' | 'GB' | 'GLOBAL';
 
+export type MeasurementSystem = 'metric' | 'imperial';
+
 export type EraContextSource =
   | 'scene-time'
   | 'scenario-range'
@@ -16,6 +18,7 @@ export interface ResolvedEraContext {
   effectiveYear: number;
   countryCode: string;
   regionProfile: EraRegionProfile;
+  measurementSystem?: MeasurementSystem;
   source: EraContextSource;
   rulesVersion: string;
   customProfileId?: string;

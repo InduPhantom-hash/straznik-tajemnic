@@ -8,6 +8,7 @@ import type {
   EraAdventureInput,
   EraCustomProfile,
   EraUserSelection,
+  MeasurementSystem,
   ResolveEraContextInput,
   ResolvedEraContext,
 } from './types';
@@ -150,17 +151,23 @@ export function formatEraForPrompt(context: ResolvedEraContext): string {
   return `${context.effectiveYear}, ${context.countryCode}, profil ${context.regionProfile}`;
 }
 
+export interface FormatEraCurrencyOptions {
+  convertPpp?: boolean;
+}
+
 export function formatEraCurrency(
   amount: number,
-  context: ResolvedEraContext
+  context: ResolvedEraContext,
+  options: FormatEraCurrencyOptions = {}
 ): string {
+  const { convertPpp = true } = options;
+  const isSmallBaseAmount = amount > 0 && amount <= 500;
+
   if (context.regionProfile === 'PL') {
     const year = context.effectiveYear;
     // Okres PRL oraz transformacji przed denominacją 1995 r. (PLZ: stare złote - tysiące/miliony)
     if (year >= 1950 && year < 1995) {
-      // Jeśli podana kwota to np. mała liczba (skala nowozłotowa np. 10 zł), przeliczamy na rząd wielkości cen PRL/transformacji
-      // W latach 70./80. i na początku 90. chleb lub gazeta kosztowały od dziesiątek do tysięcy/milionów złotych
-      const isSmallBaseAmount = amount > 0 && amount <= 500;
+      // Jeśli podana kwota to mała liczba (skala bazowa CoC 7e), przeliczamy na rząd wielkości cen PRL/transformacji
       const displayAmount = isSmallBaseAmount
         ? (year >= 1989 ? amount * 10000 : amount * 100)
         : amount;
@@ -171,24 +178,104 @@ export function formatEraCurrency(
     }
     // Polska po denominacji 1 stycznia 1995 r. (PLN: nowe złote)
     if (year >= 1995) {
-      const formatted = amount.toLocaleString('pl-PL', {
-        maximumFractionDigits: amount < 1 ? 2 : 0,
+      const displayAmount =
+        convertPpp && isSmallBaseAmount ? amount * 50 : amount;
+      const formatted = displayAmount.toLocaleString('pl-PL', {
+        maximumFractionDigits: displayAmount < 1 ? 2 : 0,
       });
       return `${formatted} zł`;
     }
     // Okres II Rzeczypospolitej (reforma Grabskiego 1924 r. i lata międzywojenne) oraz wcześniejszy
-    const formatted = amount.toLocaleString('pl-PL', {
-      maximumFractionDigits: amount < 1 ? 2 : 0,
+    // 1 USD (1920s) = ~5.18 zł w II RP
+    const displayAmount =
+      convertPpp && isSmallBaseAmount ? Math.round(amount * 5.18) : amount;
+    const formatted = displayAmount.toLocaleString('pl-PL', {
+      maximumFractionDigits: displayAmount < 1 ? 2 : 0,
     });
     return `${formatted} zł`;
+  }
+
+  if (context.regionProfile === 'GB') {
+    // Wiktoriańska Anglia (Gaslight 1890s) / Wielka Brytania: 1 GBP (£) = ~5 USD (1920s)
+    const gbpAmount =
+      convertPpp && isSmallBaseAmount ? amount / 5 : amount;
+    if (gbpAmount < 1 && gbpAmount > 0) {
+      const shillings = Math.round(gbpAmount * 20);
+      return `${shillings}s`;
+    }
+    const formatted = Math.round(gbpAmount).toLocaleString('en-GB');
+    return `£${formatted}`;
+  }
+
+  if (context.regionProfile === 'US') {
+    const year = context.effectiveYear;
+    if (year >= 1990 && convertPpp && isSmallBaseAmount) {
+      const displayAmount = amount * 15;
+      const formatted = displayAmount.toLocaleString('en-US', {
+        maximumFractionDigits: 0,
+      });
+      return `$${formatted}`;
+    }
+    const formatted = amount.toLocaleString('en-US', {
+      maximumFractionDigits: amount < 1 ? 2 : 0,
+    });
+    return `$${formatted}`;
   }
 
   const formatted = amount.toLocaleString('en-US', {
     maximumFractionDigits: amount < 1 ? 2 : 0,
   });
-  if (context.regionProfile === 'US') return `$${formatted}`;
-  if (context.regionProfile === 'GB') return `£${formatted}`;
   return `${formatted} jednostek wartości`;
+}
+
+export function formatWeaponRange(
+  range: string | undefined | null,
+  measurementSystem: MeasurementSystem = 'metric',
+  locale: 'pl' | 'en' = 'pl'
+): string {
+  if (!range) return '';
+  let formatted = range.trim();
+
+  if (measurementSystem === 'metric') {
+    formatted = formatted.replace(
+      /(\d+(?:\/\d+)*)\s*(?:yards|yardów|jardów|jard)\b/gi,
+      '$1 m'
+    );
+  } else {
+    if (locale === 'pl') {
+      formatted = formatted.replace(
+        /(\d+(?:\/\d+)*)\s*(?:yards|yardów|jardów|jard)\b/gi,
+        '$1 jardów'
+      );
+      formatted = formatted.replace(
+        /(\d+(?:\/\d+)*)\s*(?:m|metrów|metry|metra)\b/gi,
+        '$1 jardów'
+      );
+    } else {
+      formatted = formatted.replace(
+        /(\d+(?:\/\d+)*)\s*(?:yards|yardów|jardów|jard)\b/gi,
+        '$1 yards'
+      );
+      formatted = formatted.replace(
+        /(\d+(?:\/\d+)*)\s*(?:m|metrów|metry|metra)\b/gi,
+        '$1 yards'
+      );
+    }
+  }
+
+  if (locale === 'pl') {
+    formatted = formatted
+      .replace(/\btouch\b/gi, 'dotyk')
+      .replace(/\bpoint blank\b/gi, 'przyłożenie')
+      .replace(/\bor up to\b/gi, 'lub do');
+  } else {
+    formatted = formatted
+      .replace(/\bdotyk\b/gi, 'touch')
+      .replace(/\bprzyłożenie\b/gi, 'point blank')
+      .replace(/\blub do\b/gi, 'or up to');
+  }
+
+  return formatted;
 }
 
 

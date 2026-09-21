@@ -21,6 +21,8 @@ import type { Character, EquipmentItem } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 import { findEquipmentByName } from '@/lib/equipment-data';
 import { findEquipmentTemplate } from '@/lib/equipment-catalog';
+import type { ResolvedEraContext } from '@/lib/era/types';
+import { formatWeaponRange } from '@/lib/era/runtime';
 import type { WeaponDamageType } from './combat-resolver';
 import { buildFirearmPromptGuidance } from './firearms-engine';
 
@@ -184,7 +186,11 @@ export function isMeleeWeapon(item: { name: string }): boolean {
  * (lub "baza" gdy postać jej nie ma), formuła obrażeń i zasięg. Broń biała sygnalizuje
  * doliczenie DB postaci.
  */
-export function buildPlayerWeaponContext(character: Character | null): string {
+export function buildPlayerWeaponContext(
+  character: Character | null,
+  eraContext?: ResolvedEraContext | null,
+  locale: 'pl' | 'en' = 'pl'
+): string {
   if (!character) return '';
   const weapons = (character.equipment ?? []).filter(isWeapon);
   if (weapons.length === 0) return '';
@@ -192,6 +198,10 @@ export function buildPlayerWeaponContext(character: Character | null): string {
   const damageBonus = character.damageBonus?.trim();
   const hasDb =
     Boolean(damageBonus) && damageBonus !== '0' && damageBonus !== '-';
+
+  const measurementSystem =
+    eraContext?.measurementSystem ??
+    (eraContext?.countryCode === 'PL' ? 'metric' : 'imperial');
 
   const lines = weapons.map((w) => {
     const skill = inferWeaponSkill(w);
@@ -206,7 +216,10 @@ export function buildPlayerWeaponContext(character: Character | null): string {
     const melee = isMeleeWeapon(w);
     const damageStr = melee && hasDb ? `${damage} ${damageBonus}` : damage;
     const rangeVal = w.modifiers?.range ?? inferred?.range;
-    const range = rangeVal ? `, zasięg ${rangeVal}` : '';
+    const formattedRange = rangeVal
+      ? formatWeaponRange(rangeVal, measurementSystem, locale)
+      : '';
+    const range = formattedRange ? `, zasięg ${formattedRange}` : '';
     const template = findEquipmentByName(w.name);
     const malfunctionVal =
       w.modifiers?.malfunction ?? template?.modifiers?.malfunction ?? 100;

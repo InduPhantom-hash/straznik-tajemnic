@@ -8,6 +8,8 @@ import {
   deriveFinances,
   CREDIT_RATING_TIERS_1920S_US,
   CREDIT_RATING_TIERS_1920S_PL,
+  CREDIT_RATING_TIERS_PRL_1970S,
+  CREDIT_RATING_TIERS_1890S_UK,
   CREDIT_RATING_TIERS_MODERN_PL,
   CREDIT_RATING_TIERS_MODERN_US,
 } from './credit-rating';
@@ -24,6 +26,10 @@ describe('Credit Rating & Economy Engine (CoC 7e RAW)', () => {
       expect(resolveEconomyEra('1920s-pl')).toBe('1920s-pl');
       expect(resolveEconomyEra('iirp')).toBe('1920s-pl');
       expect(resolveEconomyEra('poland-1920s')).toBe('1920s-pl');
+      expect(resolveEconomyEra('prl-1970s')).toBe('prl-1970s');
+      expect(resolveEconomyEra('prl')).toBe('prl-1970s');
+      expect(resolveEconomyEra('1890s-uk')).toBe('1890s-uk');
+      expect(resolveEconomyEra('gaslight')).toBe('1890s-uk');
       expect(resolveEconomyEra('modern-pl')).toBe('modern-pl');
       expect(resolveEconomyEra('modern-us')).toBe('modern-us');
       expect(resolveEconomyEra('classic')).toBe('1920s-us');
@@ -93,8 +99,12 @@ describe('Credit Rating & Economy Engine (CoC 7e RAW)', () => {
       // Polish scenario locations from Strefa 11
       expect(resolveEconomyEra({ location: 'Głogów' })).toBe('1920s-pl');
       expect(resolveEconomyEra({ location: 'Łagiewki' })).toBe('1920s-pl');
-      expect(resolveEconomyEra({ location: 'Traszyn', yearRange: '1983' })).toBe('modern-pl');
-      expect(resolveEconomyEra({ location: 'Prabuty', yearRange: '1983' })).toBe('modern-pl');
+      expect(resolveEconomyEra({ location: 'Traszyn', yearRange: '1983' })).toBe('prl-1970s');
+      expect(resolveEconomyEra({ location: 'Prabuty', yearRange: '1983' })).toBe('prl-1970s');
+
+      // Gaslight 1890s UK
+      expect(resolveEconomyEra({ location: 'London', yearRange: '1895' })).toBe('1890s-uk');
+      expect(resolveEconomyEra({ country: 'Great Britain', era: 'gaslight' })).toBe('1890s-uk');
     });
   });
 
@@ -114,6 +124,18 @@ describe('Credit Rating & Economy Engine (CoC 7e RAW)', () => {
     it('formats Modern Polish amounts correctly (zł)', () => {
       expect(formatEconomyAmount(10, 'PLN', 'modern-pl')).toBe('10 zł');
       expect(formatEconomyAmount(1000000, 'PLN', 'modern-pl')).toMatch(/1[,\s]000[,\s]000 zł/);
+    });
+
+    it('formats Gaslight Victorian GBP amounts correctly (£ and shillings)', () => {
+      expect(formatEconomyAmount(0.5, 'GBP', '1890s-uk')).toBe('10s');
+      expect(formatEconomyAmount(0.05, 'GBP', '1890s-uk')).toBe('1s');
+      expect(formatEconomyAmount(5, 'GBP', '1890s-uk')).toBe('£5');
+      expect(formatEconomyAmount(1000, 'GBP', '1890s-uk')).toMatch(/£1[,\s]?000/);
+    });
+
+    it('formats PRL amounts correctly (PLZ)', () => {
+      expect(formatEconomyAmount(200, 'PLZ', 'prl-1970s')).toBe('200 zł');
+      expect(formatEconomyAmount(50000, 'PLZ', 'prl-1970s')).toMatch(/50[,\s]?000 zł/);
     });
 
     it('formats negative amounts correctly', () => {
@@ -278,6 +300,49 @@ describe('Credit Rating & Economy Engine (CoC 7e RAW)', () => {
     });
   });
 
+  describe('getWealthInfo for Victorian England (Gaslight 1890s UK)', () => {
+    it('handles Penniless, Average and Wealthy in Victorian GBP and shillings', () => {
+      const penniless = getWealthInfo(0, '1890s-uk');
+      expect(penniless.id).toBe('penniless');
+      expect(penniless.spending).toBe('1s');
+      expect(penniless.currency).toBe('GBP');
+      expect(penniless.currencySymbol).toBe('£');
+
+      const avg = getWealthInfo(20, '1890s-uk');
+      expect(avg.id).toBe('average');
+      expect(avg.spending).toBe('10s');
+      expect(avg.cash).toBe('£10');
+      expect(avg.assets).toBe('£200');
+
+      const wealthy = getWealthInfo(50, '1890s-uk');
+      expect(wealthy.id).toBe('wealthy');
+      expect(wealthy.spending).toBe('£5');
+      expect(wealthy.cash).toBe('£100');
+      expect(wealthy.assets).toMatch(/£5[,\s]?000/);
+    });
+  });
+
+  describe('getWealthInfo for PRL Poland (prl-1970s)', () => {
+    it('handles Penniless, Average and Wealthy in PRL PLZ', () => {
+      const penniless = getWealthInfo(0, 'prl-1970s');
+      expect(penniless.id).toBe('penniless');
+      expect(penniless.spending).toBe('20 zł');
+      expect(penniless.currency).toBe('PLZ');
+      expect(penniless.currencySymbol).toBe('zł');
+
+      const avg = getWealthInfo(25, 'prl-1970s');
+      expect(avg.id).toBe('average');
+      expect(avg.spending).toBe('200 zł');
+      expect(avg.cash).toMatch(/2[,\s]?500 zł/);
+      expect(avg.assets).toMatch(/62[,\s]?500 zł/);
+
+      const wealthy = getWealthInfo(60, 'prl-1970s');
+      expect(wealthy.id).toBe('wealthy');
+      expect(wealthy.spending).toMatch(/1[,\s]?000 zł/);
+      expect(wealthy.cash).toMatch(/30[,\s]?000 zł/);
+    });
+  });
+
   describe('deriveFinances helper', () => {
     const baseCharacter: Character = {
       id: 'test-char',
@@ -374,6 +439,8 @@ describe('Credit Rating & Economy Engine (CoC 7e RAW)', () => {
     it('exposes complete sets of credit rating tiers for all eras', () => {
       expect(CREDIT_RATING_TIERS_1920S_US).toHaveLength(6);
       expect(CREDIT_RATING_TIERS_1920S_PL).toHaveLength(6);
+      expect(CREDIT_RATING_TIERS_PRL_1970S).toHaveLength(6);
+      expect(CREDIT_RATING_TIERS_1890S_UK).toHaveLength(6);
       expect(CREDIT_RATING_TIERS_MODERN_PL).toHaveLength(6);
       expect(CREDIT_RATING_TIERS_MODERN_US).toHaveLength(6);
     });

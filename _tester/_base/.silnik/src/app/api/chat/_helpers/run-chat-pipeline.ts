@@ -525,7 +525,11 @@ export async function runChatPipeline({
     playerCharacterName: character?.name,
     tone: activeTone as 'purist' | 'pulp' | 'noir' | 'neutral',
     // Uzbrojenie postaci -> AI prowadzi walke narracyjnie znajac bron + umiejetnosc + obrazenia
-    playerWeaponsSection: buildPlayerWeaponContext(character ?? null),
+    playerWeaponsSection: buildPlayerWeaponContext(
+      character ?? null,
+      eraContext,
+      (locale ?? 'pl') as 'pl' | 'en'
+    ),
     // Lista umiejetnosci postaci -> AI wzywa testy nazwami z karty (eliminuje Tacke 0%)
     playerSkillsSection: buildPlayerSkillsSection(character ?? null),
     // Ekwipunek uzytkowy postaci -> AI wie co badacz ma przy sobie (narzedzia, medykamenty, dokumenty)
