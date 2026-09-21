@@ -153,10 +153,10 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
           )}
         </div>
 
-        {/* 2-kolumnowy panel główny: Lewa = Akta Śledztwa, Prawa = Wycinek prasowy epoki */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 text-left">
+        {/* 2-kolumnowy panel główny: Lewa = Akta Śledztwa, Prawa = Meldunek operacyjny / Telegram */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 text-left items-stretch">
           {/* Lewa kolumna: Dossier Przygody (7 kolumn) */}
-          <div className="lg:col-span-7 border border-brass/45 bg-card/90 rounded-lg p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between">
+          <div className="lg:col-span-7 border border-brass/45 bg-card/90 rounded-lg p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between h-full min-h-[320px] md:min-h-[360px]">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brass to-transparent" />
 
             <div>
@@ -172,12 +172,12 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 )}
               </div>
 
-              <h3 className="font-display text-xl md:text-3xl font-bold text-foreground tracking-wide mb-4 italic leading-tight">
-                „{title}”
+              <h3 className="font-display text-2xl md:text-3xl font-bold text-gold tracking-wide mb-4 not-italic leading-tight">
+                {title}
               </h3>
 
-              <div className="relative pl-3 border-l-2 border-gold/40 my-2">
-                <p className="font-special-elite text-sm md:text-base text-foreground/90 leading-relaxed max-h-56 overflow-y-auto pr-2">
+              <div className="relative pl-4 border-l-2 border-gold/40 my-2">
+                <p className="font-special-elite text-base md:text-lg text-foreground/95 leading-relaxed max-h-60 overflow-y-auto pr-2">
                   {storyDossier}
                 </p>
               </div>
@@ -191,7 +191,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 {themes.map((theme, i) => (
                   <span
                     key={i}
-                    className="px-2.5 py-1 rounded text-xs font-special-elite bg-brass/15 border border-brass/40 text-brass shadow-sm"
+                    className="px-3 py-1 rounded text-xs md:text-sm font-special-elite bg-brass/20 border border-brass/50 text-brass shadow-sm tracking-wide"
                   >
                     {theme}
                   </span>
@@ -200,34 +200,48 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
             )}
           </div>
 
-          {/* Prawa kolumna: bezspoilerowy hook wybranej przygody */}
-          <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/90 to-[#0c0d09]/95 rounded-lg p-5 md:p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+          {/* Prawa kolumna: Meldunek operacyjny / Telegram do badaczy */}
+          <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/95 via-[#0e100c]/95 to-[#070806]/98 rounded-lg p-6 md:p-7 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between h-full min-h-[320px] md:min-h-[360px]">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brass/30 via-gold/60 to-brass/30" />
 
             <div>
-              <div className="flex items-center justify-between border-b border-brass/20 pb-2.5 mb-3">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-brass/90 font-semibold">
+              <div className="flex items-center justify-between border-b border-brass/20 pb-3 mb-4">
+                <span className="text-xs font-mono uppercase tracking-widest text-brass/90 font-semibold">
                   {t('hookHeader')}
                 </span>
                 <span className="w-2 h-2 rounded-full bg-gold/70 animate-pulse" />
               </div>
 
-              <div className="relative pl-3 border-l-2 border-gold/40">
-                <p className="font-serif italic text-sm text-muted-foreground leading-relaxed max-h-56 overflow-y-auto pr-2">
+              <div className="relative pl-4 py-2 border-l-2 border-brass/50 bg-black/20 rounded-r-md my-auto">
+                <p className="font-serif italic text-base md:text-lg text-brass/90 leading-relaxed max-h-60 overflow-y-auto pr-2">
                   {storyHook}
                 </p>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+            <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-xs font-mono text-muted-foreground">
               <span>{t('spoilerFree')}</span>
-              <span className="text-brass/60">{t('confidential')}</span>
+              <span className="text-brass/70 font-semibold tracking-wider">{t('confidential')}</span>
             </div>
           </div>
         </div>
 
-        {/* Pasek Postępu Art Déco (0-100%) - powiększony i wyrazisty */}
-        <div className="w-full max-w-3xl mx-auto space-y-2.5">
+        {/* Pasek Postępu Art Déco (0-100%) - spójny moduł ze zintegrowanym stanem */}
+        <div className="w-full max-w-3xl mx-auto space-y-3">
+          <div className="flex items-center justify-between text-sm md:text-base font-special-elite text-brass tracking-[0.08em] px-2">
+            <span className="flex items-center gap-2.5 truncate text-left">
+              {!isCompleted && (
+                <Loader2 className="w-4 h-4 animate-spin text-gold shrink-0" />
+              )}
+              <span className="truncate text-foreground/95">
+                {isCompleted ? t('chronicleReady') : startStatus || t('generatingStory')}
+              </span>
+            </span>
+            <span className="font-mono text-gold font-bold ml-3 shrink-0 text-sm md:text-base">
+              {displayProgress}%
+            </span>
+          </div>
+
           <div className="w-full h-4 bg-black/90 rounded-full border-2 border-brass/60 overflow-hidden relative shadow-[inset_0_2px_6px_rgba(0,0,0,0.95)] p-[1.5px]">
             <div
               data-testid="loading-screen-progress-bar"
@@ -237,25 +251,11 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               <div className="absolute inset-0 bg-white/25 animate-pulse" />
             </div>
           </div>
-
-          <div className="flex items-center justify-between text-xs md:text-sm font-special-elite text-brass tracking-[0.08em] px-2">
-            <span className="flex items-center gap-2.5 truncate text-left">
-              {!isCompleted && (
-                <span className="inline-block w-2 h-2 rounded-full bg-gold animate-ping shrink-0" />
-              )}
-              <span className="truncate text-foreground/90">
-                {isCompleted ? t('chronicleReady') : startStatus || t('generatingStory')}
-              </span>
-            </span>
-            <span className="font-mono text-gold font-bold ml-2 shrink-0 text-sm">
-              {displayProgress}%
-            </span>
-          </div>
         </div>
 
-        {/* Dolna strefa Hero CTA: Spinner podczas ładowania LUB wielki przycisk wejścia po 100% */}
+        {/* Dolna strefa Hero CTA: Pojawia się po osiągnięciu 100% (brak zduplikowanego napisu statusowego) */}
         <div className="pt-2 flex flex-col items-center justify-center min-h-[84px]">
-          {isCompleted ? (
+          {isCompleted && (
             <div className="flex flex-col items-center gap-2.5 animate-in fade-in zoom-in-95 duration-300">
               <button
                 type="button"
@@ -270,11 +270,6 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               <p className="text-xs font-special-elite text-gold/90 tracking-widest uppercase animate-pulse">
                 {t('awaitingAccept')}
               </p>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2.5 text-muted-foreground text-xs md:text-sm font-special-elite tracking-wider">
-              <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin text-gold" />
-              <span>{t('bufferingNarrator')}</span>
             </div>
           )}
         </div>

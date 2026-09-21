@@ -57,7 +57,7 @@ describe('TTSHardLoadingScreen (Issue #177 & Issue #364)', () => {
     );
 
     expect(screen.getByTestId('tts-hard-loading-screen')).toBeInTheDocument();
-    expect(screen.getByText('„Cień nad Prabutami”')).toBeInTheDocument();
+    expect(screen.getByText('Cień nad Prabutami')).toBeInTheDocument();
     expect(screen.getByText('Strażnik Tajemnic przygotowuje sesję...')).toBeInTheDocument();
     expect(screen.getByText('Naukowa weryfikacja fenomenów o. Klimuszki uderza w tajne operacje SB i anomalię w Prabutach.')).toBeInTheDocument();
     expect(screen.getByText('Weryfikacja fenomenów o. Klimuszki prowadzi do tajnych teczek i anomalii wymiarowej.')).toBeInTheDocument();
@@ -66,7 +66,8 @@ describe('TTSHardLoadingScreen (Issue #177 & Issue #364)', () => {
     expect(screen.getByText('BEZ SPOILERÓW')).toBeInTheDocument();
     expect(screen.queryByText(/192[0-9]/)).not.toBeInTheDocument();
     expect(screen.getByText('45%')).toBeInTheDocument();
-    expect(screen.getByText('Wsłuchiwanie się w głos z zaświatów...')).toBeInTheDocument();
+    expect(screen.queryByText('Wsłuchiwanie się w głos z zaświatów...')).not.toBeInTheDocument();
+    expect(screen.getByText('Trwa spisywanie mrocznej kroniki i dostrajanie głosu...')).toBeInTheDocument();
   });
 
   it('wyświetla hero CTA po osiągnięciu 100% i obsługuje kliknięcie potwierdzenia', () => {
