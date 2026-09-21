@@ -30,6 +30,8 @@ export type CreditRatingTierId =
 export type EconomyEra =
   | '1920s-us'
   | '1920s-pl'
+  | 'prl-1970s'
+  | '1890s-uk'
   | 'modern-pl'
   | 'modern-us';
 
@@ -403,10 +405,184 @@ export const CREDIT_RATING_TIERS_MODERN_US: CreditRatingTier[] = [
   },
 ];
 
+/** Tabela Majętności CoC 7e RAW: Wiktoriańska Anglia (Gaslight 1890s, GBP £ / s / d) */
+export const CREDIT_RATING_TIERS_1890S_UK: CreditRatingTier[] = [
+  {
+    id: 'penniless',
+    key: 'pauper',
+    label: 'Żebrak / Nędzarz',
+    labelEn: 'Penniless',
+    min: 0,
+    max: 0,
+    spendingLevel: 0.05, // 1 szyling (1s)
+    cashMultiplier: null,
+    assetsMultiplier: null,
+    fixedCash: 0.1, // 2 szylingi
+    fixedAssets: 0,
+    livingConditionsPl: 'Przybysz w przytułku (workhouse), noclegownie we wschodnim Londynie (East End)',
+    livingConditionsEn: 'Workhouse inmate, doss-houses in East End London',
+  },
+  {
+    id: 'poor',
+    key: 'poor',
+    label: 'Biedny',
+    labelEn: 'Poor',
+    min: 1,
+    max: 9,
+    spendingLevel: 0.1, // 2 szylingi
+    cashMultiplier: 0.2,
+    assetsMultiplier: 2,
+    livingConditionsPl: 'Wynajmowana izba w robotniczym zaułku; omnibus konny, pieszo',
+    livingConditionsEn: 'Rented room in working-class slums; horse omnibus, walking',
+  },
+  {
+    id: 'average',
+    key: 'average',
+    label: 'Przeciętny',
+    labelEn: 'Average',
+    min: 10,
+    max: 49,
+    spendingLevel: 0.5, // 10 szylingów (10s)
+    cashMultiplier: 0.5,
+    assetsMultiplier: 10,
+    livingConditionsPl: 'Skromny dom szeregowy na przedmieściach; dorożki hansom cab, kolej 2. i 3. klasy',
+    livingConditionsEn: 'Modest suburban terrace; hansom cabs, 2nd/3rd class rail',
+  },
+  {
+    id: 'wealthy',
+    key: 'wealthy',
+    label: 'Zamożny',
+    labelEn: 'Wealthy',
+    min: 50,
+    max: 89,
+    spendingLevel: 5,
+    cashMultiplier: 2,
+    assetsMultiplier: 100,
+    livingConditionsPl: 'Kamienica w Kensington lub Mayfair, służąca i lokaj; powóz brougham, 1. klasa',
+    livingConditionsEn: 'Townhouse in Kensington or Mayfair, domestic servants; brougham carriage, 1st class',
+  },
+  {
+    id: 'rich',
+    key: 'rich',
+    label: 'Bogaty',
+    labelEn: 'Rich',
+    min: 90,
+    max: 98,
+    spendingLevel: 25,
+    cashMultiplier: 10,
+    assetsMultiplier: 500,
+    livingConditionsPl: 'Wiejska rezydencja rodowa, stangret, członkostwo w klubach dżentelmeńskich w Pall Mall',
+    livingConditionsEn: 'Country estate, livery coach, gentleman club membership in Pall Mall',
+  },
+  {
+    id: 'superrich',
+    key: 'superrich',
+    label: 'Krezus',
+    labelEn: 'Super rich',
+    min: 99,
+    max: 99,
+    spendingLevel: 500,
+    cashMultiplier: null,
+    assetsMultiplier: null,
+    fixedCash: 10000,
+    fixedAssets: 1000000,
+    livingConditionsPl: 'Arystokracja parów królestwa, olbrzymie latyfundia, bankierzy z City',
+    livingConditionsEn: 'Peerage of the Realm, vast landed estates, City merchant bankers',
+  },
+];
+
+/** Tabela Majętności CoC 7e: Polska w okresie PRL (lata 70./80., złote PLZ) */
+export const CREDIT_RATING_TIERS_PRL_1970S: CreditRatingTier[] = [
+  {
+    id: 'penniless',
+    key: 'pauper',
+    label: 'Margines / Bez grosza',
+    labelEn: 'Penniless',
+    min: 0,
+    max: 0,
+    spendingLevel: 20,
+    cashMultiplier: null,
+    assetsMultiplier: null,
+    fixedCash: 50,
+    fixedAssets: 0,
+    livingConditionsPl: 'Meliny, noclegownie, tułaczka po dworcach PKP, zbieranie butelek',
+    livingConditionsEn: 'Squats, night shelters, homeless around train stations',
+  },
+  {
+    id: 'poor',
+    key: 'poor',
+    label: 'Niezamożny robotnik',
+    labelEn: 'Poor',
+    min: 1,
+    max: 9,
+    spendingLevel: 50,
+    cashMultiplier: 50,
+    assetsMultiplier: 500,
+    livingConditionsPl: 'Sublokatorski pokój, hotel robotniczy; tramwaje, autobusy PKS',
+    livingConditionsEn: 'Rented corner in workers hostel; local trams, PKS buses',
+  },
+  {
+    id: 'average',
+    key: 'average',
+    label: 'Przeciętny obywatel',
+    labelEn: 'Average',
+    min: 10,
+    max: 49,
+    spendingLevel: 200,
+    cashMultiplier: 100,
+    assetsMultiplier: 2500,
+    livingConditionsPl: 'Mieszkanie spółdzielcze w bloku z wielkiej płyty (M-3); Polski Fiat 126p (Maluch) lub Syrena',
+    livingConditionsEn: 'Prefab panel cooperative flat (M-3); Polski Fiat 126p or Syrena',
+  },
+  {
+    id: 'wealthy',
+    key: 'wealthy',
+    label: 'Uprzywilejowany / Prywatna inicjatywa',
+    labelEn: 'Wealthy',
+    min: 50,
+    max: 89,
+    spendingLevel: 1000,
+    cashMultiplier: 500,
+    assetsMultiplier: 25000,
+    livingConditionsPl: 'Willa w dobrej dzielnicy, dygnitarz / badylarz; Polski Fiat 125p lub Łada, zakupy w Pewexie',
+    livingConditionsEn: 'Private villa, nomenklatura / private grower; Polski Fiat 125p, Pewex shop purchases',
+  },
+  {
+    id: 'rich',
+    key: 'rich',
+    label: 'Bogaty / Dewizowiec',
+    labelEn: 'Rich',
+    min: 90,
+    max: 98,
+    spendingLevel: 5000,
+    cashMultiplier: 2000,
+    assetsMultiplier: 100000,
+    livingConditionsPl: 'Luksusowa posiadłość, prywatny import; zachodnie auto (Mercedes, Volvo), bony PeKaO i dewizy',
+    livingConditionsEn: 'Luxury mansion, western vehicle (Mercedes, Volvo), PeKaO foreign currency coupons',
+  },
+  {
+    id: 'superrich',
+    key: 'superrich',
+    label: 'Krezus',
+    labelEn: 'Super rich',
+    min: 99,
+    max: 99,
+    spendingLevel: 50000,
+    cashMultiplier: null,
+    assetsMultiplier: null,
+    fixedCash: 500000,
+    fixedAssets: 50000000,
+    livingConditionsPl: 'Najwyższy krąg nomenklatury i handlu zagranicznego; zagraniczne konta i rezydencje rządowe',
+    livingConditionsEn: 'Top party elite and foreign trade bosses; foreign currency accounts and government villas',
+  },
+];
+
 /** Mapa tabel progów majątkowych per era */
 export const ECONOMY_TIERS_BY_ERA: Record<EconomyEra, CreditRatingTier[]> = {
   '1920s-us': CREDIT_RATING_TIERS_1920S_US,
   '1920s-pl': CREDIT_RATING_TIERS_1920S_PL,
+  'prl-1970s': CREDIT_RATING_TIERS_PRL_1970S,
+  '1890s-uk': CREDIT_RATING_TIERS_1890S_UK,
   'modern-pl': CREDIT_RATING_TIERS_MODERN_PL,
   'modern-us': CREDIT_RATING_TIERS_MODERN_US,
 };
@@ -455,7 +631,67 @@ function isPolishContext(
 }
 
 /**
- * Sprawdza, czy ciąg wskazuje na erę współczesną (po 1950 r., np. lata 80., 90., XXI wiek).
+ * Sprawdza, czy kontekst wskazuje na wiktoriańską Anglię (Cthulhu by Gaslight 1890s).
+ */
+function isGaslightUkContext(text: string): boolean {
+  const s = text.toLowerCase();
+  if (
+    s.includes('gaslight') ||
+    s.includes('1890s-uk') ||
+    s.includes('1890s-gb') ||
+    s.includes('wiktoria') ||
+    s.includes('victorian')
+  ) {
+    return true;
+  }
+
+  const isUk =
+    /\b(uk|gb|england|anglia|britain|brytania|london|londyn)\b/i.test(s) ||
+    s.includes('wielka brytania') ||
+    s.includes('great britain');
+
+  if (isUk) {
+    if (s.includes('188') || s.includes('189') || s.includes('190') || s.includes('1890')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Sprawdza, czy kontekst wskazuje na Polskę w okresie PRL (1944-1989, stare złote PLZ).
+ */
+function isPrlContext(text: string): boolean {
+  const s = text.toLowerCase();
+  if (
+    s.includes('prl') ||
+    s.includes('prl-1970s') ||
+    s.includes('plz') ||
+    s.includes('pekao') ||
+    s.includes('pewex')
+  ) {
+    return true;
+  }
+
+  const matches = s.match(/\b19\d{2}\b/g);
+  if (matches) {
+    for (const m of matches) {
+      const year = parseInt(m, 10);
+      if (year >= 1944 && year < 1990) return true;
+    }
+  }
+
+  return (
+    s.includes('197') ||
+    s.includes('198') ||
+    s.includes('196') ||
+    s.includes('195')
+  );
+}
+
+/**
+ * Sprawdza, czy ciąg wskazuje na erę współczesną (po 1990 r. lub słowa kluczowe).
  */
 function isModernContext(text: string): boolean {
   const s = text.toLowerCase();
@@ -473,7 +709,7 @@ function isModernContext(text: string): boolean {
   if (matches) {
     for (const m of matches) {
       const year = parseInt(m, 10);
-      if (year >= 1950) return true;
+      if (year >= 1990) return true;
     }
   }
 
@@ -481,11 +717,7 @@ function isModernContext(text: string): boolean {
     s.includes('2000') ||
     s.includes('201') ||
     s.includes('202') ||
-    s.includes('199') ||
-    s.includes('198') ||
-    s.includes('197') ||
-    s.includes('196') ||
-    s.includes('195')
+    s.includes('199')
   );
 }
 
@@ -502,6 +734,12 @@ export function resolveEconomyEra(
     if (s === '1920s-pl' || s === '1920s-poland' || s === 'iirp' || s === 'pl-1920s' || s === 'poland-1920s') {
       return '1920s-pl';
     }
+    if (s === 'prl-1970s' || s === 'prl' || s === '1970s-pl' || s === 'pl-prl') {
+      return 'prl-1970s';
+    }
+    if (s === '1890s-uk' || s === 'gaslight' || s === 'gaslight-1890s' || s === '1890s-gb') {
+      return '1890s-uk';
+    }
     if (s === 'modern-pl' || s === 'pl-modern') {
       return 'modern-pl';
     }
@@ -512,13 +750,18 @@ export function resolveEconomyEra(
       return '1920s-us';
     }
 
-    const isPoland = isPolishContext(s);
-    const isModern = isModernContext(s);
-
-    if (isPoland) {
-      return isModern ? 'modern-pl' : '1920s-pl';
+    if (isGaslightUkContext(s)) {
+      return '1890s-uk';
     }
-    if (isModern) {
+
+    const isPoland = isPolishContext(s);
+    if (isPoland) {
+      if (isPrlContext(s)) return 'prl-1970s';
+      if (isModernContext(s)) return 'modern-pl';
+      return '1920s-pl';
+    }
+
+    if (isModernContext(s)) {
       return 'modern-us';
     }
     return '1920s-us';
@@ -534,14 +777,18 @@ export function resolveEconomyEra(
     .join(' ')
     .toLowerCase();
 
-  const isPoland = isPolishContext(combined, context);
-  const isModern = isModernContext(combined);
-
-  if (isPoland) {
-    return isModern ? 'modern-pl' : '1920s-pl';
+  if (isGaslightUkContext(combined)) {
+    return '1890s-uk';
   }
 
-  if (isModern) {
+  const isPoland = isPolishContext(combined, context);
+  if (isPoland) {
+    if (isPrlContext(combined)) return 'prl-1970s';
+    if (isModernContext(combined)) return 'modern-pl';
+    return '1920s-pl';
+  }
+
+  if (isModernContext(combined)) {
     return 'modern-us';
   }
 
@@ -553,11 +800,27 @@ export function resolveEconomyEra(
  */
 export function formatEconomyAmount(
   amount: number,
-  currency: 'USD' | 'PLN',
+  currency: 'USD' | 'PLN' | 'GBP' | 'PLZ',
   era: EconomyEra,
   locale: 'pl' | 'en' = 'pl'
 ): string {
-  if (currency === 'PLN') {
+  if (currency === 'PLZ' || era === 'prl-1970s') {
+    const formatted = Math.round(amount).toLocaleString('pl-PL');
+    return `${formatted} zł`;
+  }
+
+  if (currency === 'GBP' || era === '1890s-uk') {
+    if (amount < 1 && amount > 0) {
+      const shillings = Math.round(amount * 20);
+      return `${shillings}s`;
+    }
+    const formatted = amount.toLocaleString('en-GB', {
+      maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    });
+    return `£${formatted}`;
+  }
+
+  if (currency === 'PLN' || era === '1920s-pl' || era === 'modern-pl') {
     if (era === '1920s-pl' && amount < 1 && amount > 0) {
       const grosze = Math.round(amount * 100);
       return `${grosze} gr`;
@@ -619,7 +882,7 @@ export interface DynamicWealthInfo {
   assetsAmount: number;
   spendingAmount: number;
   livingConditions: string;
-  currency: 'USD' | 'PLN';
+  currency: 'USD' | 'PLN' | 'GBP' | 'PLZ';
   currencySymbol: string;
   era: EconomyEra;
 }
@@ -636,9 +899,18 @@ export function getWealthInfo(
   const era = resolveEconomyEra(eraContext);
   const tiers = ECONOMY_TIERS_BY_ERA[era];
   const tier = tiers.find((t) => cr >= t.min && cr <= t.max) ?? tiers[0];
-  const currency: 'USD' | 'PLN' =
-    era === '1920s-pl' || era === 'modern-pl' ? 'PLN' : 'USD';
-  const currencySymbol = currency === 'PLN' ? 'zł' : '$';
+  let currency: 'USD' | 'PLN' | 'GBP' | 'PLZ' = 'USD';
+  let currencySymbol = '$';
+  if (era === '1890s-uk') {
+    currency = 'GBP';
+    currencySymbol = '£';
+  } else if (era === 'prl-1970s') {
+    currency = 'PLZ';
+    currencySymbol = 'zł';
+  } else if (era === '1920s-pl' || era === 'modern-pl') {
+    currency = 'PLN';
+    currencySymbol = 'zł';
+  }
 
   const cashAmount =
     tier.cashMultiplier !== null
@@ -694,7 +966,7 @@ export interface CharacterFinances {
   cash: number; // character.cash override LUB wyliczone z CR
   assets: number; // wyliczone z CR (kwota)
   assetsDescription?: string; // character.assets (opisowy override, np. "Dom w Arkham")
-  currency: 'USD' | 'PLN';
+  currency: 'USD' | 'PLN' | 'GBP' | 'PLZ';
   currencySymbol: string;
   formattedSpendingLevel: string;
   formattedCash: string;
@@ -725,7 +997,16 @@ export function deriveFinances(
             character.residence?.includes('Poland') ||
             character.birthplace?.includes('Poland')
               ? 'Polska'
-              : undefined,
+              : character.residence?.includes('London') ||
+                character.birthplace?.includes('London') ||
+                character.residence?.includes('Londyn') ||
+                character.birthplace?.includes('Londyn') ||
+                character.residence?.includes('England') ||
+                character.birthplace?.includes('Anglia') ||
+                character.residence?.includes('UK') ||
+                character.birthplace?.includes('UK')
+                ? 'UK'
+                : undefined,
           location: character.residence || character.birthplace,
         }
       : null);

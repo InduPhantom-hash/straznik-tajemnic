@@ -185,7 +185,7 @@ describe('EquipmentModal catalog images', () => {
     expect(screen.getByText('Colt M1911 .45')).toBeInTheDocument();
     expect(screen.getByText('Broń Palna 65%')).toBeInTheDocument();
     expect(screen.getByText('1d10+2')).toBeInTheDocument();
-    expect(screen.getByText('15 yards')).toBeInTheDocument();
+    expect(screen.getByText('15 jardów')).toBeInTheDocument();
     expect(screen.getByText('1 (3)')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
     expect(screen.getByText('100')).toBeInTheDocument();

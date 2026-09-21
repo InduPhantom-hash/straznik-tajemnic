@@ -576,8 +576,8 @@ export interface Character {
   cash?: number; // Gotówka pod ręką ($ / zł)
   spendingLevel?: number; // Dzienny limit wydatków bez księgowania (CoC 7e RAW)
   assets?: string; // Opisowy majątek (np. "Dom w Arkham, samochód")
-  currency?: 'USD' | 'PLN'; // Waluta postaci (np. zł dla II RP / Współczesnej Polski, $ dla USA)
-  era?: string; // Era ekonomiczna (np. '1920s-us', '1920s-pl', 'modern-pl', 'modern-us')
+  currency?: 'USD' | 'PLN' | 'GBP' | 'PLZ' | string; // Waluta postaci (np. zł dla II RP / Współczesnej Polski, $ dla USA, £ dla Gaslight, PLZ dla PRL)
+  era?: string; // Era ekonomiczna (np. '1920s-us', '1920s-pl', 'prl-1970s', '1890s-uk', 'modern-pl', 'modern-us')
 
   journal?: JournalEntry[];
   sceneCards?: SceneCaseCard[]; // Karty Akt Śledczych zamkniętych scen (Issue #402)

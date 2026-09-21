@@ -12,7 +12,7 @@ import { DiegeticDocumentViewer } from './diegetic-document-viewer';
 import { inferDocumentType } from '@/lib/acquired-equipment';
 import { EquipmentImagePlaceholder } from './equipment-image-placeholder';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
-import { resolveGameEraContext, formatEraCurrency, type ResolvedEraContext } from '@/lib/era';
+import { resolveGameEraContext, formatEraCurrency, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
 import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
 import { synthesizeClueFact } from '@/lib/parsers/journal-parser';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -40,10 +40,16 @@ function formatUsd(amount: number): string {
  */
 export function getItemMechanics(
   item: EquipmentItem,
-  eraContext?: ResolvedEraContext | null
+  eraContext?: ResolvedEraContext | null,
+  locale: string = 'pl'
 ): { label: string; value: string }[] {
   const rows: { label: string; value: string }[] = [];
-  const isMetric = eraContext?.regionProfile === 'PL' || eraContext?.countryCode === 'PL';
+  const measurementSystem =
+    eraContext?.measurementSystem ??
+    (eraContext?.regionProfile === 'PL' || eraContext?.countryCode === 'PL'
+      ? 'metric'
+      : 'imperial');
+  const isMetric = measurementSystem === 'metric';
 
   if (isWeapon(item)) {
     rows.push({ label: 'combatTest', value: inferWeaponSkill(item) });
@@ -54,16 +60,11 @@ export function getItemMechanics(
         ? null
         : inferWeaponDamage(item);
     const damage = item.modifiers?.damage ?? inferred?.damage;
-    let range = item.modifiers?.range ?? inferred?.range;
+    const range = item.modifiers?.range ?? inferred?.range;
     if (damage) rows.push({ label: 'damage', value: damage });
     if (range) {
-      if (isMetric) {
-        range = range
-          .replace(/(\d+)\s*(?:yards|yardów|jardów|jard)/i, '$1 m')
-          .replace(/touch/i, 'dotyk')
-          .replace(/point blank/i, 'przyłożenie');
-      }
-      rows.push({ label: 'range', value: range });
+      const loc = locale === 'en' ? 'en' : 'pl';
+      rows.push({ label: 'range', value: formatWeaponRange(range, measurementSystem, loc) });
     }
     if (typeof item.currentAmmo === 'number') {
       const maxA = item.maxAmmo ?? (item.modifiers?.capacity ? Number(item.modifiers.capacity) : 6);
@@ -250,7 +251,7 @@ export function EquipmentDetailDialog({
     }
   };
 
-  const mechanics = getItemMechanics(item, resolvedEraContext);
+  const mechanics = getItemMechanics(item, resolvedEraContext, locale);
   const hasImage = !!item.imageUrl && !item.mapUrl && !item.isMap;
   const hasMap = !!(item.mapUrl || (item.imageUrl && item.isMap));
   const categoryLabel = CATEGORY_LABELS[item.category] || item.category;

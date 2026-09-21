@@ -22,6 +22,7 @@ import {
   inferWeaponSkill,
   isMeleeWeapon,
 } from '@/lib/combat/weapon-context';
+import { formatWeaponRange } from '@/lib/era';
 import {
   Package,
   Sword,
@@ -253,7 +254,18 @@ export function SheetEquipment({ character, eraContext, onItemClick }: SheetEqui
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-special-elite text-sm text-muted-foreground/90 tracking-[0.04em] pt-2 border-t border-[#b3322c]/15">
                     <span className="flex items-center gap-1">⚔️ {t('damage')}: <strong className="text-foreground">{damageStr}</strong></span>
                     {w.modifiers?.range && (
-                      <span className="flex items-center gap-1">🎯 {t('range')}: <strong className="text-foreground">{w.modifiers.range}</strong></span>
+                      <span className="flex items-center gap-1">
+                        🎯 {t('range')}:{' '}
+                        <strong className="text-foreground">
+                          {formatWeaponRange(
+                            w.modifiers.range,
+                            character.currency === 'PLN' || character.currency === 'PLZ' || character.era?.includes('pl') || locale === 'pl'
+                              ? 'metric'
+                              : 'imperial',
+                            locale === 'en' ? 'en' : 'pl'
+                          )}
+                        </strong>
+                      </span>
                     )}
                     {typeof w.currentAmmo === 'number' && (
                       <span className="flex items-center gap-1">🔫 {t('ammo')}: <strong className="text-foreground">{w.currentAmmo} / {w.maxAmmo ?? w.modifiers?.capacity ?? 6}</strong></span>
