@@ -1,5 +1,5 @@
 import { defaultAISettings } from './defaults';
-import { loadAISettings } from './storage';
+import { loadAISettings, isAIFeatureAvailable, resetAISettings } from './storage';
 
 const sessionZero = {
   era: 'classic' as const,
@@ -112,5 +112,47 @@ describe('loadAISettings session mechanics migration', () => {
     const loaded = loadAISettings();
     expect(loaded.pushToTalkEnabled).toBe(true);
     expect(loaded.voiceSettings.pushToTalkEnabled).toBe(true);
+  });
+
+  it('Issue #280: normalizuje pushToTalkEnabled gdy tylko voiceSettings.pushToTalkEnabled było zapisane', () => {
+    localStorage.setItem(
+      'ai_settings',
+      JSON.stringify({
+        voiceSettings: {
+          pushToTalkEnabled: true,
+        },
+      })
+    );
+
+    const loaded = loadAISettings();
+    expect(loaded.pushToTalkEnabled).toBe(true);
+    expect(loaded.voiceSettings.pushToTalkEnabled).toBe(true);
+  });
+
+  it('Issue #280: isAIFeatureAvailable zwraca false domyślnie i true po włączeniu pushToTalkEnabled', () => {
+    expect(isAIFeatureAvailable('pushToTalkEnabled')).toBe(false);
+
+    localStorage.setItem(
+      'ai_settings',
+      JSON.stringify({
+        pushToTalkEnabled: true,
+      })
+    );
+    expect(isAIFeatureAvailable('pushToTalkEnabled')).toBe(true);
+  });
+
+  it('Issue #280: resetAISettings przywraca pushToTalkEnabled na false', () => {
+    localStorage.setItem(
+      'ai_settings',
+      JSON.stringify({
+        pushToTalkEnabled: true,
+      })
+    );
+    expect(loadAISettings().pushToTalkEnabled).toBe(true);
+
+    const reset = resetAISettings();
+    expect(reset.pushToTalkEnabled).toBe(false);
+    expect(reset.voiceSettings.pushToTalkEnabled).toBe(false);
+    expect(loadAISettings().pushToTalkEnabled).toBe(false);
   });
 });

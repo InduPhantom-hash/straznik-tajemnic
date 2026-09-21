@@ -61,4 +61,46 @@ describe('TTSSettings - przełącznik Push-to-Talk', () => {
     const pttToggle = screen.getByTestId('ptt-settings-toggle');
     expect(pttToggle).toHaveAttribute('aria-checked', 'true');
   });
+
+  it('po wyłączeniu przełącznika wywołuje setSettings z pushToTalkEnabled: false', () => {
+    const setSettings = jest.fn();
+    const enabledSettings = {
+      ...defaultAISettings,
+      pushToTalkEnabled: true,
+      voiceSettings: {
+        ...defaultAISettings.voiceSettings,
+        pushToTalkEnabled: true,
+      },
+    };
+
+    render(<TTSSettings {...defaultProps} settings={enabledSettings} setSettings={setSettings} />);
+
+    const pttToggle = screen.getByTestId('ptt-settings-toggle');
+    fireEvent.click(pttToggle);
+
+    expect(setSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pushToTalkEnabled: false,
+        voiceSettings: expect.objectContaining({
+          pushToTalkEnabled: false,
+        }),
+      })
+    );
+  });
+
+  it('renderuje stan aktywny gdy tylko voiceSettings.pushToTalkEnabled jest true', () => {
+    const legacyVoiceSettings = {
+      ...defaultAISettings,
+      pushToTalkEnabled: undefined,
+      voiceSettings: {
+        ...defaultAISettings.voiceSettings,
+        pushToTalkEnabled: true,
+      },
+    };
+
+    render(<TTSSettings {...defaultProps} settings={legacyVoiceSettings} />);
+
+    const pttToggle = screen.getByTestId('ptt-settings-toggle');
+    expect(pttToggle).toHaveAttribute('aria-checked', 'true');
+  });
 });

@@ -55,6 +55,12 @@ export const loadAISettings = (): AISettings => {
         // IND-91: tolerant migration `replicateEnabled` → `imageGenerationEnabled`.
         // Legacy `replicateEnabled=false` mapuje na nowy `imageGenerationEnabled=false`
         // żeby user który wyłączył obrazy w v3.x dalej miał je wyłączone.
+        const effectivePushToTalk =
+          parsedSettings.pushToTalkEnabled ??
+          parsedSettings.voiceSettings?.pushToTalkEnabled ??
+          defaultAISettings.pushToTalkEnabled ??
+          false;
+
         return {
           ...defaultAISettings,
           ...parsedSettings,
@@ -62,11 +68,7 @@ export const loadAISettings = (): AISettings => {
             parsedSettings.imageGenerationEnabled ??
             parsedSettings.replicateEnabled ??
             defaultAISettings.imageGenerationEnabled,
-          pushToTalkEnabled:
-            parsedSettings.pushToTalkEnabled ??
-            parsedSettings.voiceSettings?.pushToTalkEnabled ??
-            defaultAISettings.pushToTalkEnabled ??
-            false,
+          pushToTalkEnabled: effectivePushToTalk,
           geminiSettings: {
             ...defaultAISettings.geminiSettings,
             ...parsedSettings.geminiSettings,
@@ -74,11 +76,7 @@ export const loadAISettings = (): AISettings => {
           voiceSettings: {
             ...defaultAISettings.voiceSettings,
             ...parsedSettings.voiceSettings,
-            pushToTalkEnabled:
-              parsedSettings.voiceSettings?.pushToTalkEnabled ??
-              parsedSettings.pushToTalkEnabled ??
-              defaultAISettings.voiceSettings?.pushToTalkEnabled ??
-              false,
+            pushToTalkEnabled: effectivePushToTalk,
             // Migracja legacy providerów chmurowych (google/azure/openai) na gemini
             ...(parsedSettings.voiceSettings?.provider === 'azure' ||
             parsedSettings.voiceSettings?.provider === 'google' ||
@@ -160,6 +158,10 @@ export const isAIFeatureAvailable = (feature: keyof AISettings): boolean => {
       return settings.voiceSettings.enabled;
     case 'gameMasterNarration':
       return settings.gameMasterNarration.enabled;
+    case 'pushToTalkEnabled':
+      return Boolean(
+        settings.pushToTalkEnabled ?? settings.voiceSettings?.pushToTalkEnabled
+      );
     default:
       return false;
   }

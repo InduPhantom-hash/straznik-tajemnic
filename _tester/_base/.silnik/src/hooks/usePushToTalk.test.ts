@@ -327,6 +327,22 @@ describe('usePushToTalk', () => {
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
   });
 
+  it('toggleRecording nie uruchamia nagrywania ani getUserMedia gdy disabled jest true', async () => {
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess: jest.fn(),
+        disabled: true,
+      })
+    );
+
+    await act(async () => {
+      result.current.toggleRecording();
+    });
+
+    expect(result.current.isRecording).toBe(false);
+    expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+  });
+
   it('używa spersonalizowanego / przetłumaczonego tytułu toastu błędu mikrofonu', async () => {
     (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValueOnce(
       new Error('NotAllowedError')
