@@ -163,4 +163,57 @@ describe('POST /api/transcribe', () => {
     expect(data.text).toBe('Sprawdzam zamek w drzwiach.');
     expect(data.model).toBe('gemini-2.5-flash');
   });
+
+  it('poprawnie parsuje JSON otoczony tekstem i blokiem markdown', async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      text: 'Oto wynik transkrypcji:\n```json\n{\n  "text": "Szukam śladów na piasku.",\n  "segments": [{"speaker": "Speaker 1", "text": "Szukam śladów na piasku."}]\n}\n```\nMam nadzieję, że pomogłem.',
+    });
+
+    const fd = new FormData();
+    fd.append('audio', new Blob(['audio sample'], { type: 'audio/webm' }));
+    const req = mockFormDataRequest(fd, 'valid-key');
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.text).toBe('Szukam śladów na piasku.');
+    expect(data.segments[0].text).toBe('Szukam śladów na piasku.');
+  });
+
+  it('zwraca 400 gdy rozmiar pliku audio przekracza limit 25 MB', async () => {
+    const hugeBlob = {
+      size: 26 * 1024 * 1024,
+      type: 'audio/webm',
+    };
+    Object.setPrototypeOf(hugeBlob, Blob.prototype);
+
+    const fd = {
+      get: (key: string) => (key === 'audio' ? hugeBlob : null),
+    } as unknown as FormData;
+    const req = mockFormDataRequest(fd, 'valid-key');
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toContain('limit rozmiaru');
+  });
+
+  it('obsługuje response.text jako metodę funkcji (kompatybilność wsteczna SDK)', async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      text: () => JSON.stringify({
+        text: 'Zaglądam przez witrynę.',
+        segments: [{ speaker: 'Speaker 1', text: 'Zaglądam przez witrynę.' }],
+      }),
+    });
+
+    const fd = new FormData();
+    fd.append('audio', new Blob(['audio sample'], { type: 'audio/webm' }));
+    const req = mockFormDataRequest(fd, 'valid-key');
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.text).toBe('Zaglądam przez witrynę.');
+  });
 });

@@ -114,6 +114,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const MAX_AUDIO_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+    if (audioBlob.size > MAX_AUDIO_SIZE_BYTES) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Plik audio przekracza dopuszczalny limit rozmiaru (25 MB)',
+        },
+        { status: 400 }
+      );
+    }
+
     const mode = (formData.get('mode')?.toString() || 'solo') as 'solo' | 'duet';
     const language = formData.get('language')?.toString() || 'pl';
     const rawInvestigators = formData.get('investigators');
@@ -219,7 +230,14 @@ Zwróć WYŁĄCZNIE obiekt JSON (bez znaczników markdown ani dodatkowego koment
             responseMimeType: 'application/json',
           },
         });
-        rawText = response.text || '';
+        if (!response) {
+          throw new Error(`Empty response from model ${model}`);
+        }
+        const extractedText =
+          typeof response.text === 'function'
+            ? (response as unknown as { text: () => string }).text()
+            : response.text || '';
+        rawText = extractedText;
         usedModel = model;
         lastError = null;
         break;
@@ -241,17 +259,20 @@ Zwróć WYŁĄCZNIE obiekt JSON (bez znaczników markdown ani dodatkowego koment
       );
     }
 
-    // Parsowanie odpowiedzi JSON
+    // Parsowanie odpowiedzi JSON (odporne na bloki markdown i komentarze poboczne)
     let parsed: TranscribeResponseBody;
     try {
-      const cleanJson = rawText
-        .replace(/^```json\s*/i, '')
-        .replace(/^```\s*/i, '')
-        .replace(/```\s*$/i, '')
-        .trim();
-      parsed = JSON.parse(cleanJson) as TranscribeResponseBody;
+      const jsonBlockMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      const innerContent = jsonBlockMatch ? jsonBlockMatch[1].trim() : rawText.trim();
+      let jsonStringToParse = innerContent;
+      const firstBrace = innerContent.indexOf('{');
+      const lastBrace = innerContent.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonStringToParse = innerContent.slice(firstBrace, lastBrace + 1);
+      }
+      parsed = JSON.parse(jsonStringToParse) as TranscribeResponseBody;
     } catch {
-      // Fallback: jeśli model nie sformatował czystego JSON-a
+      // Fallback: jeśli model nie sformatował poprawnego JSON-a
       parsed = {
         text: rawText.trim(),
         segments: [{ speaker: 'Speaker 1', text: rawText.trim() }],

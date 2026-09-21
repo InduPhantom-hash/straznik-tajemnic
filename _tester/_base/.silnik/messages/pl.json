@@ -4623,8 +4623,11 @@
     "recordingHoldHint": "Puść Spację, aby zakończyć",
     "recordingToggleHint": "Kliknij mikrofon, aby zakończyć",
     "micPermissionDenied": "Brak uprawnień do mikrofonu. Zezwól na dostęp w przeglądarce.",
+    "micPermissionDeniedTitle": "Dostęp do mikrofonu",
     "apiKeyMissing": "Brak klucza API Gemini. Wklej klucz w Ustawieniach.",
+    "apiKeyMissingTitle": "Klucz API Gemini",
     "transcribeError": "Błąd rozpoznawania mowy. Spróbuj ponownie lub wpisz tekst ręcznie.",
+    "transcribeErrorTitle": "Rozpoznawanie mowy",
     "swapRoles": "Odwróć role",
     "swapRolesTitle": "Zamień przypisanie kwestii między badaczami"
   },

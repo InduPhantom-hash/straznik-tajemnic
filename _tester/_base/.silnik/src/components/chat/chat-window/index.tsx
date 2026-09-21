@@ -251,6 +251,41 @@ export const ChatWindow: FC<ChatWindowProps> = ({
     return ids;
   }, [messages]);
 
+  const sceneNpcs = useMemo(() => {
+    const set = new Set<string>();
+    if (adventureContext?.graph?.npcs) {
+      for (const n of adventureContext.graph.npcs) {
+        if (n.name?.trim()) set.add(n.name.trim());
+      }
+    }
+    if (adventureContext?.truthAnchor?.culprit?.trim()) {
+      set.add(adventureContext.truthAnchor.culprit.trim());
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = window.localStorage.getItem('gm_npcs');
+        if (saved) {
+          const parsed = JSON.parse(saved) as Array<{ name?: string }>;
+          for (const item of parsed) {
+            if (item.name?.trim()) set.add(item.name.trim());
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    for (const msg of messages.slice(-15)) {
+      const match = msg.content?.match(/^([A-ZŁŻŚĆŃÓĄĘ][\wŁżśćńóąęŻŚĆŃÓĄĘłż ]+?):/);
+      if (match && match[1]) {
+        const name = match[1].trim();
+        if (!name.startsWith('Raport') && !name.startsWith('Wskazów') && !name.startsWith('Uwaga')) {
+          set.add(name);
+        }
+      }
+    }
+    return Array.from(set);
+  }, [adventureContext?.graph?.npcs, adventureContext?.truthAnchor?.culprit, messages]);
+
   const diceTest: RollTestData | null = useMemo(
     () =>
       activeSkillTest
@@ -522,6 +557,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                 ? [{ name: activeCharacter.name, characterName: activeCharacter.name }]
                 : [])
             }
+            sceneNpcs={sceneNpcs}
             currentLocation={currentLocation}
           />
         </>

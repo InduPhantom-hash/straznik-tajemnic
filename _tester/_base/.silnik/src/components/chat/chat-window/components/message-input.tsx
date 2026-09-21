@@ -277,8 +277,11 @@ export function MessageInput({
     disabled: isSessionEnded || sessionEndStatus === 'ended' || isLoading,
     onFocusInput: focusTextarea,
     tMicPermissionDenied: t('micPermissionDenied'),
+    tMicPermissionDeniedTitle: t('micPermissionDeniedTitle'),
     tApiKeyMissing: t('apiKeyMissing'),
+    tApiKeyMissingTitle: t('apiKeyMissingTitle'),
     tTranscribeError: t('transcribeError'),
+    tTranscribeErrorTitle: t('transcribeErrorTitle'),
   });
 
   return (

@@ -327,6 +327,7 @@ export function swapDeclarations(
       playerName: players[0].name,
       characterName:
         characters.find((c) => c.id === players[0].characterId)?.name ||
+        d1?.characterName ||
         d2.characterName,
       text: d2.text,
     });
@@ -337,6 +338,7 @@ export function swapDeclarations(
       playerName: players[1].name,
       characterName:
         characters.find((c) => c.id === players[1].characterId)?.name ||
+        d2?.characterName ||
         d1.characterName,
       text: d1.text,
     });
@@ -2173,27 +2175,46 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       const players = hotSeatConfig?.players ?? [];
       if (players.length === 0) return;
       const nextDeclarations: PendingDeclaration[] = [];
-      if (players[0] && player1Text.trim()) {
-        const char1 = characters.find((c) => c.id === players[0].characterId)?.name;
-        nextDeclarations.push({
-          playerId: players[0].id,
-          playerName: players[0].name,
-          characterName: char1,
-          text: player1Text.trim(),
-        });
+      const p1Trimmed = player1Text.trim();
+      const p2Trimmed = player2Text.trim();
+
+      if (players[0]) {
+        if (p1Trimmed) {
+          const char1 =
+            characters.find((c) => c.id === players[0].characterId)?.name ||
+            (activeCharacter?.id === players[0].characterId ? activeCharacter.name : undefined);
+          nextDeclarations.push({
+            playerId: players[0].id,
+            playerName: players[0].name,
+            characterName: char1,
+            text: p1Trimmed,
+          });
+        } else {
+          const existing = pendingDeclarations.find((d) => d.playerId === players[0].id);
+          if (existing) nextDeclarations.push(existing);
+        }
       }
-      if (players[1] && player2Text.trim()) {
-        const char2 = characters.find((c) => c.id === players[1].characterId)?.name;
-        nextDeclarations.push({
-          playerId: players[1].id,
-          playerName: players[1].name,
-          characterName: char2,
-          text: player2Text.trim(),
-        });
+
+      if (players[1]) {
+        if (p2Trimmed) {
+          const char2 =
+            characters.find((c) => c.id === players[1].characterId)?.name ||
+            (activeCharacter?.id === players[1].characterId ? activeCharacter.name : undefined);
+          nextDeclarations.push({
+            playerId: players[1].id,
+            playerName: players[1].name,
+            characterName: char2,
+            text: p2Trimmed,
+          });
+        } else {
+          const existing = pendingDeclarations.find((d) => d.playerId === players[1].id);
+          if (existing) nextDeclarations.push(existing);
+        }
       }
+
       setPendingDeclarations(nextDeclarations);
     },
-    [hotSeatConfig?.players, characters]
+    [hotSeatConfig?.players, characters, activeCharacter, pendingDeclarations]
   );
 
   const swapDuetDeclarations = useCallback(() => {

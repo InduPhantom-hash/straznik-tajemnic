@@ -82,6 +82,15 @@ describe('usePushToTalk', () => {
       expect(isEditableTarget(select)).toBe(true);
       expect(isEditableTarget(editableDiv)).toBe(true);
       expect(isEditableTarget(roleTextbox)).toBe(true);
+
+      // Elementy zagnieżdżone w edytowalnych
+      const nestedSpan = document.createElement('span');
+      editableDiv.appendChild(nestedSpan);
+      expect(isEditableTarget(nestedSpan)).toBe(true);
+
+      const nestedInRole = document.createElement('span');
+      roleTextbox.appendChild(nestedInRole);
+      expect(isEditableTarget(nestedInRole)).toBe(true);
     });
 
     it('zwraca false dla zwykłych elementów UI', () => {
@@ -216,5 +225,76 @@ describe('usePushToTalk', () => {
     });
 
     expect(result.current.isRecording).toBe(false);
+  });
+
+  it('zwalnia nagrywanie Hold-to-Talk na keyup nawet jeśli target zdarzenia przeniósł się na pole edycyjne', async () => {
+    const { result } = renderHook(() => usePushToTalk({ onTranscriptionSuccess: jest.fn() }));
+
+    const bodyDiv = document.createElement('div');
+    document.body.appendChild(bodyDiv);
+
+    // Start wciśnięciem spacji na divie
+    await act(async () => {
+      const spaceDown = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
+      Object.defineProperty(spaceDown, 'target', { value: bodyDiv });
+      window.dispatchEvent(spaceDown);
+    });
+
+    expect(result.current.isRecording).toBe(true);
+    expect(result.current.isHoldMode).toBe(true);
+
+    // Zwolnienie spacji w momencie gdy focus/target przeniósł się na textarea
+    const input = document.createElement('textarea');
+    document.body.appendChild(input);
+
+    await act(async () => {
+      const spaceUp = new KeyboardEvent('keyup', { code: 'Space', bubbles: true });
+      Object.defineProperty(spaceUp, 'target', { value: input });
+      window.dispatchEvent(spaceUp);
+    });
+
+    // Nagrywanie MUSI zostać bezwzględnie przerwane (brak zacięcia mikrofonu)
+    expect(result.current.isRecording).toBe(false);
+  });
+
+  it('ignoruje spację gdy aktywnym elementem dokumentu jest pole tekstowe', async () => {
+    const { result } = renderHook(() => usePushToTalk({ onTranscriptionSuccess: jest.fn() }));
+
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.focus();
+
+    await act(async () => {
+      const spaceDown = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
+      Object.defineProperty(spaceDown, 'target', { value: input });
+      window.dispatchEvent(spaceDown);
+    });
+
+    expect(result.current.isRecording).toBe(false);
+  });
+
+  it('używa spersonalizowanego / przetłumaczonego tytułu toastu błędu mikrofonu', async () => {
+    (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValueOnce(
+      new Error('NotAllowedError')
+    );
+
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess: jest.fn(),
+        tMicPermissionDeniedTitle: 'Microphone Access',
+        tMicPermissionDenied: 'Permission was denied by browser.',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startRecording(false);
+    });
+
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Microphone Access',
+        description: 'Permission was denied by browser.',
+      })
+    );
   });
 });

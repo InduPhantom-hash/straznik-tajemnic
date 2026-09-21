@@ -28,23 +28,33 @@ export interface UsePushToTalkOptions {
   disabled?: boolean;
   onFocusInput?: () => void;
   tMicPermissionDenied?: string;
+  tMicPermissionDeniedTitle?: string;
   tApiKeyMissing?: string;
+  tApiKeyMissingTitle?: string;
   tTranscribeError?: string;
+  tTranscribeErrorTitle?: string;
 }
 
 export function isEditableTarget(el: EventTarget | null): boolean {
   if (!el || !(el instanceof HTMLElement)) return false;
-  const tag = el.tagName.toLowerCase();
-  return (
-    tag === 'input' ||
-    tag === 'textarea' ||
-    tag === 'select' ||
-    el.isContentEditable === true ||
-    el.contentEditable === 'true' ||
-    el.getAttribute('contenteditable') === 'true' ||
-    el.getAttribute('contenteditable') === '' ||
-    el.getAttribute('role') === 'textbox'
-  );
+  let curr: HTMLElement | null = el;
+  while (curr) {
+    const tag = curr.tagName.toLowerCase();
+    if (
+      tag === 'input' ||
+      tag === 'textarea' ||
+      tag === 'select' ||
+      curr.isContentEditable === true ||
+      curr.contentEditable === 'true' ||
+      curr.getAttribute('contenteditable') === 'true' ||
+      curr.getAttribute('contenteditable') === '' ||
+      curr.getAttribute('role') === 'textbox'
+    ) {
+      return true;
+    }
+    curr = curr.parentElement;
+  }
+  return false;
 }
 
 export function usePushToTalk({
@@ -57,8 +67,11 @@ export function usePushToTalk({
   disabled = false,
   onFocusInput,
   tMicPermissionDenied = 'Brak uprawnień do mikrofonu. Zezwól na dostęp w przeglądarce.',
+  tMicPermissionDeniedTitle = 'Dostęp do mikrofonu',
   tApiKeyMissing = 'Brak klucza API Gemini. Wklej klucz w Ustawieniach.',
+  tApiKeyMissingTitle = 'Klucz API Gemini',
   tTranscribeError = 'Błąd rozpoznawania mowy. Spróbuj ponownie lub wpisz tekst ręcznie.',
+  tTranscribeErrorTitle = 'Rozpoznawanie mowy',
 }: UsePushToTalkOptions) {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -109,7 +122,7 @@ export function usePushToTalk({
         if (response.status === 401 || data.code === 'BYOK_KEY_MISSING') {
           toast({
             variant: 'destructive',
-            title: 'Klucz API Gemini',
+            title: tApiKeyMissingTitle,
             description: tApiKeyMissing,
           });
           onFocusInput?.();
@@ -120,7 +133,7 @@ export function usePushToTalk({
           console.error('[usePushToTalk] Transcribe error:', data);
           toast({
             variant: 'destructive',
-            title: 'Rozpoznawanie mowy',
+            title: tTranscribeErrorTitle,
             description: data.error || tTranscribeError,
           });
           onFocusInput?.();
@@ -139,7 +152,7 @@ export function usePushToTalk({
         console.error('[usePushToTalk] Network/Transcribe failure:', err);
         toast({
           variant: 'destructive',
-          title: 'Błąd mikrofonu',
+          title: tTranscribeErrorTitle,
           description: tTranscribeError,
         });
         onFocusInput?.();
@@ -156,7 +169,9 @@ export function usePushToTalk({
       onTranscriptionSuccess,
       onFocusInput,
       tApiKeyMissing,
+      tApiKeyMissingTitle,
       tTranscribeError,
+      tTranscribeErrorTitle,
     ]
   );
 
@@ -171,8 +186,10 @@ export function usePushToTalk({
       mediaRecorderRef.current.state !== 'inactive'
     ) {
       mediaRecorderRef.current.stop();
+    } else {
+      cleanupStream();
     }
-  }, []);
+  }, [cleanupStream]);
 
   const startRecording = useCallback(
     async (isHold: boolean = false) => {
@@ -184,7 +201,7 @@ export function usePushToTalk({
       ) {
         toast({
           variant: 'destructive',
-          title: 'Mikrofon niedostępny',
+          title: tMicPermissionDeniedTitle,
           description: tMicPermissionDenied,
         });
         onFocusInput?.();
@@ -251,7 +268,7 @@ export function usePushToTalk({
 
         toast({
           variant: 'destructive',
-          title: 'Dostęp do mikrofonu',
+          title: tMicPermissionDeniedTitle,
           description: tMicPermissionDenied,
         });
         onFocusInput?.();
@@ -264,6 +281,7 @@ export function usePushToTalk({
       sendAudioForTranscription,
       onFocusInput,
       tMicPermissionDenied,
+      tMicPermissionDeniedTitle,
     ]
   );
 
@@ -280,10 +298,13 @@ export function usePushToTalk({
     if (disabled || typeof window === 'undefined') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl =
+        typeof document !== 'undefined' ? document.activeElement : null;
       if (
         e.code === 'Space' &&
         !e.repeat &&
         !isEditableTarget(e.target) &&
+        !isEditableTarget(activeEl) &&
         !disabled
       ) {
         e.preventDefault();
@@ -292,7 +313,7 @@ export function usePushToTalk({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !isEditableTarget(e.target)) {
+      if (e.code === 'Space') {
         if (isRecordingRef.current && isHoldModeRef.current) {
           e.preventDefault();
           stopRecording();

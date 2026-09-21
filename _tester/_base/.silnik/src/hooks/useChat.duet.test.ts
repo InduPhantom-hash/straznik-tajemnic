@@ -84,6 +84,33 @@ describe('duet turn helpers', () => {
     expect(p2Declaration?.text).toBe('Nasłuchuję');
     expect(p2Declaration?.characterName).toBe('Prof. William Dyer');
   });
+
+  it('zachowuje tożsamość postaci badaczy gdy tablica characters jest pusta lub pominięta', () => {
+    const swapped = swapDeclarations(declarations, players, []);
+    expect(swapped).toHaveLength(2);
+    const p1Declaration = swapped.find((d) => d.playerId === 'p1');
+    const p2Declaration = swapped.find((d) => d.playerId === 'p2');
+
+    // Aga (p1) zachowuje postać Margaret Sullivan, dostaje tekst Rozglądam się
+    expect(p1Declaration?.playerName).toBe('Aga');
+    expect(p1Declaration?.characterName).toBe('Margaret Sullivan');
+    expect(p1Declaration?.text).toBe('Rozglądam się');
+
+    // Phantom (p2) zachowuje postać Prof. William Dyer, dostaje tekst Nasłuchuję
+    expect(p2Declaration?.playerName).toBe('Phantom');
+    expect(p2Declaration?.characterName).toBe('Prof. William Dyer');
+    expect(p2Declaration?.text).toBe('Nasłuchuję');
+  });
+
+  it('dwukrotne odwrócenie ról przywraca stan pierwotny', () => {
+    const round1 = swapDeclarations(declarations, players);
+    const round2 = swapDeclarations(round1, players);
+
+    expect(round2.find((d) => d.playerId === 'p1')?.text).toBe('Nasłuchuję');
+    expect(round2.find((d) => d.playerId === 'p1')?.characterName).toBe('Margaret Sullivan');
+    expect(round2.find((d) => d.playerId === 'p2')?.text).toBe('Rozglądam się');
+    expect(round2.find((d) => d.playerId === 'p2')?.characterName).toBe('Prof. William Dyer');
+  });
 });
 
 describe('resolveSkillTestValues - duet', () => {
