@@ -12,6 +12,11 @@ import { ImageLightbox } from './image-lightbox';
 import { WizardEquipmentView } from './wizard-equipment-view';
 import { PregenCharacterSelector } from './pregen-character-selector';
 import {
+  RETRO_PORTRAITS,
+  getRetroPortraitForOccupation,
+  isRetroPortraitUrl,
+} from '@/lib/data/character/retro-portraits';
+import {
   Character,
   EquipmentItem,
   EquipmentCategory,
@@ -1118,6 +1123,8 @@ export function CharacterWizardV2({
 
   // Powiększenie portretu (lightbox) - klik na miniaturę otwiera pełny widok.
   const [showPortraitZoom, setShowPortraitZoom] = useState(false);
+  // Modal wyboru retro-ryciny z epoki (Issue #442)
+  const [showRetroPortraitPicker, setShowRetroPortraitPicker] = useState(false);
 
   const generatePortrait = async () => {
     // Zabezpieczenie: nie uruchamiaj w trybie tekstowym lub gdy już trwa generowanie
@@ -1566,11 +1573,20 @@ export function CharacterWizardV2({
         state.stats
       );
       const interestPoints = state.stats.int * 2;
+      const defaultPortrait = getRetroPortraitForOccupation(state.occupationId).svgPath;
       setState((prev) => ({
         ...prev,
         occupationPoints,
         interestPoints,
+        portraitUrl: (!prev.portraitUrl || isRetroPortraitUrl(prev.portraitUrl)) ? defaultPortrait : prev.portraitUrl,
         step: 4,
+      }));
+    } else if (state.step === 4) {
+      const defaultPortrait = getRetroPortraitForOccupation(state.occupationId).svgPath;
+      setState((prev) => ({
+        ...prev,
+        portraitUrl: prev.portraitUrl || defaultPortrait,
+        step: 5,
       }));
     } else {
       setState((prev) => ({
@@ -1686,7 +1702,7 @@ export function CharacterWizardV2({
       skills: state.skills,
       occupation: occupation?.name || t('unknown'),
       age: state.age,
-      portraitUrl: state.portraitUrl || undefined,
+      portraitUrl: state.portraitUrl || getRetroPortraitForOccupation(state.occupationId).svgPath,
       // === NOWE: Dedykowane pola biografii ===
       gender:
         state.gender === 'male'
@@ -3839,39 +3855,32 @@ export function CharacterWizardV2({
                 🎨 {t('characterPortrait')}
               </label>
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                {state.portraitUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowPortraitZoom(true)}
-                    title={t('enlargePortrait')}
-                    className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-brass/50 overflow-hidden cursor-zoom-in group p-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-                  >
-                    <SafeImage
-                      src={state.portraitUrl}
-                      alt={t('portrait')}
-                      className="w-full h-full object-cover"
-                    />
-                    <span
-                      className="pointer-events-none absolute inset-0"
-                      style={{
-                        boxShadow: 'inset 0 0 70px 16px rgba(0,0,0,.7)',
-                      }}
-                    />
-                    <span className="pointer-events-none absolute bottom-1 right-1 text-brass/90 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 px-1 rounded">
-                      🔍
-                    </span>
-                  </button>
-                ) : (
-                  <div
-                    className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-dashed border-brass/40 flex items-center justify-center text-muted-foreground text-3xl"
-                    style={{
-                      backgroundImage:
-                        'repeating-linear-gradient(45deg, rgba(201,162,39,.03) 0, rgba(201,162,39,.03) 9px, transparent 9px, transparent 18px)',
-                    }}
-                  >
-                    👤
-                  </div>
-                )}
+                {(() => {
+                  const activePortrait = state.portraitUrl || getRetroPortraitForOccupation(state.occupationId).svgPath;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setShowPortraitZoom(true)}
+                      title={t('enlargePortrait')}
+                      className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 border border-brass/50 overflow-hidden cursor-zoom-in group p-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)] bg-[#0a0f0e]"
+                    >
+                      <SafeImage
+                        src={activePortrait}
+                        alt={t('portrait')}
+                        className="w-full h-full object-cover"
+                      />
+                      <span
+                        className="pointer-events-none absolute inset-0"
+                        style={{
+                          boxShadow: 'inset 0 0 70px 16px rgba(0,0,0,.7)',
+                        }}
+                      />
+                      <span className="pointer-events-none absolute bottom-1 right-1 text-brass/90 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 px-1 rounded">
+                        🔍
+                      </span>
+                    </button>
+                  );
+                })()}
                 {isPureTextMode() ? (
                   <div className="flex-1 space-y-2 text-center sm:text-left">
                     <Badge
@@ -3881,31 +3890,51 @@ export function CharacterWizardV2({
                       📜 {t('pureTextDossierBadge')}
                     </Badge>
                     <p className="font-serif italic text-xs text-muted-foreground leading-snug">
-                      {t('pureTextDossierHint')}
+                      {t('pureTextEngravingNotice')}
                     </p>
+                    <Button
+                      type="button"
+                      onClick={() => setShowRetroPortraitPicker(true)}
+                      size="sm"
+                      className="w-full sm:w-auto font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.08] border border-brass/45 hover:bg-brass/20 px-3 py-2 text-xs"
+                    >
+                      🏛️ {t('changeRetroEngraving')}
+                    </Button>
                   </div>
                 ) : (
                   <div className="flex-1 space-y-2 text-center sm:text-left">
-                    <Button
-                      onClick={generatePortrait}
-                      disabled={state.isGeneratingPortrait}
-                      size="sm"
-                      className={
-                        state.portraitUrl
-                          ? 'w-full font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
-                          : 'w-full font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
-                      }
-                    >
-                      {state.isGeneratingPortrait
-                        ? t('generating')
-                        : state.portraitUrl
-                          ? `🔄 ${t('generateAnotherPortrait')}`
-                          : `🎨 ${t('generateAiPortrait')}`}
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        onClick={generatePortrait}
+                        disabled={state.isGeneratingPortrait}
+                        size="sm"
+                        className={
+                          state.portraitUrl && !isRetroPortraitUrl(state.portraitUrl)
+                            ? 'flex-1 font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.04] border border-brass/45 hover:bg-brass/10 px-3 py-2 text-xs'
+                            : 'flex-1 font-display font-semibold uppercase tracking-[0.12em] text-[#04110f] bg-primary border border-brass/30 hover:brightness-110 shadow-[0_0_16px_rgba(13,148,136,.3)] px-3 py-2 text-xs'
+                        }
+                      >
+                        {state.isGeneratingPortrait
+                          ? t('generating')
+                          : state.portraitUrl && !isRetroPortraitUrl(state.portraitUrl)
+                            ? `🔄 ${t('generateAnotherPortrait')}`
+                            : `🎨 ${t('generateAiPortrait')}`}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setShowRetroPortraitPicker(true)}
+                        size="sm"
+                        className="font-display font-semibold uppercase tracking-[0.12em] text-brass bg-brass/[0.06] border border-brass/40 hover:bg-brass/15 px-3 py-2 text-xs"
+                      >
+                        🏛️ {isRetroPortraitUrl(state.portraitUrl) ? t('changeRetroEngraving') : t('chooseRetroEngraving')}
+                      </Button>
+                    </div>
                     <p className="font-serif italic text-xs text-muted-foreground leading-snug">
-                      {state.portraitUrl
+                      {state.portraitUrl && !isRetroPortraitUrl(state.portraitUrl)
                         ? t('replacePortraitHint')
-                        : t('portraitGenerationHint')}
+                        : isRetroPortraitUrl(state.portraitUrl)
+                          ? t('pureTextEngravingNotice')
+                          : t('portraitGenerationHint')}
                     </p>
                   </div>
                 )}
@@ -4014,6 +4043,119 @@ export function CharacterWizardV2({
             alt={t('characterPortrait')}
             onClose={() => setShowPortraitZoom(false)}
           />
+        )}
+
+        {showRetroPortraitPicker && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="retro-portrait-gallery-title"
+            data-testid="retro-portrait-gallery-dialog"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-6 animate-in fade-in duration-150"
+            onClick={() => setShowRetroPortraitPicker(false)}
+          >
+            <div
+              className="relative bg-[#0e1413] border-2 border-brass/50 p-6 max-w-4xl w-full max-h-[90vh] shadow-[0_0_40px_rgba(0,0,0,.9)] flex flex-col space-y-4 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Narożniki déco */}
+              <span className="pointer-events-none absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-brass/70" />
+              <span className="pointer-events-none absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-brass/70" />
+              <span className="pointer-events-none absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-brass/70" />
+              <span className="pointer-events-none absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-brass/70" />
+
+              {/* Nagłówek */}
+              <div className="flex items-start justify-between border-b border-brass/20 pb-3">
+                <div className="space-y-1">
+                  <h3
+                    id="retro-portrait-gallery-title"
+                    className="font-display font-bold uppercase tracking-[0.1em] text-lg sm:text-xl text-brass flex items-center gap-2"
+                  >
+                    🏛️ {t('retroEngravingGalleryTitle')}
+                  </h3>
+                  <p className="font-serif italic text-xs sm:text-sm text-muted-foreground">
+                    {t('retroEngravingGallerySubtitle')}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRetroPortraitPicker(false)}
+                  className="text-brass/70 hover:text-brass hover:bg-brass/10 -mr-2"
+                  aria-label={t('close')}
+                >
+                  ✕
+                </Button>
+              </div>
+
+              {/* Siatka 12 rycin */}
+              <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 py-2">
+                {RETRO_PORTRAITS.map((archetype) => {
+                  const isCurrent =
+                    state.portraitUrl === archetype.svgPath ||
+                    (!state.portraitUrl &&
+                      getRetroPortraitForOccupation(state.occupationId).svgPath === archetype.svgPath);
+
+                  const localizedTitle =
+                    locale === 'en' ? archetype.titleEn : archetype.titlePl;
+                  const localizedDesc =
+                    locale === 'en' ? archetype.descriptionEn : archetype.descriptionPl;
+
+                  return (
+                    <button
+                      key={archetype.id}
+                      type="button"
+                      data-testid={`retro-portrait-card-${archetype.id}`}
+                      onClick={() => {
+                        setState((prev) => ({ ...prev, portraitUrl: archetype.svgPath }));
+                        setShowRetroPortraitPicker(false);
+                      }}
+                      className={`group relative flex flex-col items-center text-left p-2.5 transition-all border ${
+                        isCurrent
+                          ? 'border-brass bg-brass/15 shadow-[0_0_15px_rgba(201,162,39,0.25)] ring-1 ring-brass/60'
+                          : 'border-brass/25 bg-[#0a0f0e]/90 hover:border-brass/60 hover:bg-brass/[0.07]'
+                      }`}
+                    >
+                      <div className="relative w-full aspect-square border border-brass/30 overflow-hidden bg-black/60 mb-2">
+                        <SafeImage
+                          src={archetype.svgPath}
+                          alt={localizedTitle}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        />
+                        {isCurrent && (
+                          <span className="absolute top-1 right-1 font-mono text-[9px] uppercase tracking-wider text-black bg-brass px-1.5 py-0.5 font-bold shadow">
+                            {t('activeEngraving')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="w-full space-y-0.5">
+                        <div className="font-display text-xs sm:text-sm font-semibold uppercase tracking-wider text-brass group-hover:text-brass/90 truncate">
+                          {localizedTitle}
+                        </div>
+                        <p className="font-serif italic text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-2 leading-tight">
+                          {localizedDesc}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Stopka */}
+              <div className="flex justify-end pt-3 border-t border-brass/20">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRetroPortraitPicker(false)}
+                  className="font-display font-semibold uppercase tracking-[0.14em] text-brass/80 border-brass/30 hover:border-brass hover:text-brass px-4 py-2 text-xs"
+                >
+                  {t('close')}
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );

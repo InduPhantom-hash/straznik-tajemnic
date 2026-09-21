@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" id="retro-svg-drifter" data-archetype="drifter">
+  
+  <defs>
+    <radialGradient id="bg-grad" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#182422" />
+      <stop offset="60%" stop-color="#0e1514" />
+      <stop offset="100%" stop-color="#050807" />
+    </radialGradient>
+    <radialGradient id="inner-glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#0d9488" stop-opacity="0.25" />
+      <stop offset="60%" stop-color="#083832" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="brass-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fae084" />
+      <stop offset="35%" stop-color="#c9a227" />
+      <stop offset="70%" stop-color="#e5c158" />
+      <stop offset="100%" stop-color="#7a5f11" />
+    </linearGradient>
+    <pattern id="hatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#c9a227" stroke-width="0.8" />
+    </pattern>
+    <clipPath id="cameo-clip">
+      <circle cx="256" cy="235" r="150" />
+    </clipPath>
+  </defs>
+
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bg-grad)" />
+  <rect width="512" height="512" fill="url(#hatch)" opacity="0.15" />
+
+  <!-- Outer Art Déco Border -->
+  <rect x="20" y="20" width="472" height="472" fill="none" stroke="url(#brass-grad)" stroke-width="2" />
+  <rect x="28" y="28" width="456" height="456" fill="none" stroke="#8c6f17" stroke-width="1" stroke-dasharray="8 4" opacity="0.6" />
+  <rect x="36" y="36" width="440" height="440" fill="none" stroke="url(#brass-grad)" stroke-width="1.5" />
+
+  <!-- Corner Chevrons -->
+  <!-- Top Left -->
+  <path d="M 20 50 L 50 20 M 20 65 L 65 20 M 20 80 L 80 20" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="36,36 56,36 36,56" fill="#c9a227" opacity="0.3" />
+  <rect x="34" y="34" width="6" height="6" fill="#fae084" />
+
+  <!-- Top Right -->
+  <path d="M 492 50 L 462 20 M 492 65 L 447 20 M 492 80 L 432 20" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="476,36 456,36 476,56" fill="#c9a227" opacity="0.3" />
+  <rect x="472" y="34" width="6" height="6" fill="#fae084" />
+
+  <!-- Bottom Left -->
+  <path d="M 20 462 L 50 492 M 20 447 L 65 492 M 20 432 L 80 492" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="36,476 56,476 36,456" fill="#c9a227" opacity="0.3" />
+  <rect x="34" y="472" width="6" height="6" fill="#fae084" />
+
+  <!-- Bottom Right -->
+  <path d="M 492 462 L 462 492 M 492 447 L 447 492 M 492 432 L 432 492" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="476,476 456,476 476,456" fill="#c9a227" opacity="0.3" />
+  <rect x="472" y="472" width="6" height="6" fill="#fae084" />
+
+  <!-- Top Sunburst Crest -->
+  <path d="M 236 36 L 256 16 L 276 36 Z" fill="url(#brass-grad)" />
+  <circle cx="256" cy="30" r="4" fill="#fae084" />
+  <line x1="200" y1="36" x2="312" y2="36" stroke="url(#brass-grad)" stroke-width="2" />
+  <line x1="220" y1="28" x2="292" y2="28" stroke="#fae084" stroke-width="1" />
+
+  <!-- Inner Cameo Circle -->
+  <circle cx="256" cy="235" r="162" fill="#070c0b" stroke="url(#brass-grad)" stroke-width="3" />
+  <circle cx="256" cy="235" r="154" fill="none" stroke="#8c6f17" stroke-width="1" stroke-dasharray="4 3" opacity="0.7" />
+  <circle cx="256" cy="235" r="150" fill="url(#inner-glow)" opacity="0.6" />
+
+  <!-- Bottom Nameplate Cartouche -->
+  <g transform="translate(0, 420)">
+    <path d="M 130 0 L 382 0 L 396 22 L 382 44 L 130 44 L 116 22 Z" fill="#091210" stroke="url(#brass-grad)" stroke-width="2" />
+    <path d="M 136 6 L 376 6 L 386 22 L 376 38 L 136 38 L 126 22 Z" fill="none" stroke="#c9a227" stroke-width="1" opacity="0.5" />
+    <circle cx="126" cy="22" r="3" fill="#fae084" />
+    <circle cx="386" cy="22" r="3" fill="#fae084" />
+    <text x="256" y="27" text-anchor="middle" font-family="'Cinzel', 'Playfair Display', 'Georgia', serif" font-size="14" font-weight="bold" fill="#fae084" letter-spacing="4" text-transform="uppercase">Włóczęga</text>
+  </g>
+
+  <g clip-path="url(#cameo-clip)">
+    
+      <!-- Distant Railroad Tracks Vanishing -->
+      <line x1="210" y1="280" x2="256" y2="210" stroke="#fae084" stroke-width="1.5" opacity="0.3" />
+      <line x1="302" y1="280" x2="256" y2="210" stroke="#fae084" stroke-width="1.5" opacity="0.3" />
+      <line x1="230" y1="250" x2="282" y2="250" stroke="#c9a227" stroke-width="1.5" opacity="0.4" />
+      <line x1="220" y1="265" x2="292" y2="265" stroke="#c9a227" stroke-width="1.5" opacity="0.4" />
+
+      <!-- Newsboy / Slouch Cap -->
+      <path d="M 200 170 Q 256 135 312 170 Q 330 175 320 182 Q 256 172 190 182 Q 185 175 200 170 Z" fill="#090e0d" stroke="url(#brass-grad)" stroke-width="2" />
+      <circle cx="256" cy="185" r="28" fill="#0e1715" stroke="url(#brass-grad)" stroke-width="1.5" />
+      <!-- Stubble / Scruffy beard texture -->
+      <path d="M 235 195 Q 256 225 277 195" fill="none" stroke="#fae084" stroke-width="1" stroke-dasharray="2 2" />
+
+      <!-- Patchwork Overcoat -->
+      <path d="M 170 340 L 205 230 L 256 250 L 307 230 L 342 340 Z" fill="#0d1413" stroke="url(#brass-grad)" stroke-width="2" />
+      <!-- Patches -->
+      <rect x="195" y="270" width="20" height="22" fill="#182420" stroke="#fae084" stroke-width="1" stroke-dasharray="2 2" />
+      <rect x="295" y="285" width="22" height="18" fill="#182420" stroke="#fae084" stroke-width="1" stroke-dasharray="2 2" />
+
+      <!-- Walking Stick with Bindle (Hobo Sack) -->
+      <line x1="140" y1="330" x2="280" y2="180" stroke="url(#brass-grad)" stroke-width="4" stroke-linecap="round" />
+      <circle cx="210" cy="235" r="22" fill="#1f2c28" stroke="#fae084" stroke-width="2" />
+      <path d="M 205 215 Q 210 205 218 215" fill="none" stroke="#fae084" stroke-width="2" />
+    
+  </g>
+</svg>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" id="retro-svg-antiquarian" data-archetype="antiquarian">
+  
+  <defs>
+    <radialGradient id="bg-grad" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#182422" />
+      <stop offset="60%" stop-color="#0e1514" />
+      <stop offset="100%" stop-color="#050807" />
+    </radialGradient>
+    <radialGradient id="inner-glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#0d9488" stop-opacity="0.25" />
+      <stop offset="60%" stop-color="#083832" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="brass-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fae084" />
+      <stop offset="35%" stop-color="#c9a227" />
+      <stop offset="70%" stop-color="#e5c158" />
+      <stop offset="100%" stop-color="#7a5f11" />
+    </linearGradient>
+    <pattern id="hatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#c9a227" stroke-width="0.8" />
+    </pattern>
+    <clipPath id="cameo-clip">
+      <circle cx="256" cy="235" r="150" />
+    </clipPath>
+  </defs>
+
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bg-grad)" />
+  <rect width="512" height="512" fill="url(#hatch)" opacity="0.15" />
+
+  <!-- Outer Art Déco Border -->
+  <rect x="20" y="20" width="472" height="472" fill="none" stroke="url(#brass-grad)" stroke-width="2" />
+  <rect x="28" y="28" width="456" height="456" fill="none" stroke="#8c6f17" stroke-width="1" stroke-dasharray="8 4" opacity="0.6" />
+  <rect x="36" y="36" width="440" height="440" fill="none" stroke="url(#brass-grad)" stroke-width="1.5" />
+
+  <!-- Corner Chevrons -->
+  <!-- Top Left -->
+  <path d="M 20 50 L 50 20 M 20 65 L 65 20 M 20 80 L 80 20" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="36,36 56,36 36,56" fill="#c9a227" opacity="0.3" />
+  <rect x="34" y="34" width="6" height="6" fill="#fae084" />
+
+  <!-- Top Right -->
+  <path d="M 492 50 L 462 20 M 492 65 L 447 20 M 492 80 L 432 20" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="476,36 456,36 476,56" fill="#c9a227" opacity="0.3" />
+  <rect x="472" y="34" width="6" height="6" fill="#fae084" />
+
+  <!-- Bottom Left -->
+  <path d="M 20 462 L 50 492 M 20 447 L 65 492 M 20 432 L 80 492" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="36,476 56,476 36,456" fill="#c9a227" opacity="0.3" />
+  <rect x="34" y="472" width="6" height="6" fill="#fae084" />
+
+  <!-- Bottom Right -->
+  <path d="M 492 462 L 462 492 M 492 447 L 447 492 M 492 432 L 432 492" stroke="url(#brass-grad)" stroke-width="1.5" fill="none" />
+  <polygon points="476,476 456,476 476,456" fill="#c9a227" opacity="0.3" />
+  <rect x="472" y="472" width="6" height="6" fill="#fae084" />
+
+  <!-- Top Sunburst Crest -->
+  <path d="M 236 36 L 256 16 L 276 36 Z" fill="url(#brass-grad)" />
+  <circle cx="256" cy="30" r="4" fill="#fae084" />
+  <line x1="200" y1="36" x2="312" y2="36" stroke="url(#brass-grad)" stroke-width="2" />
+  <line x1="220" y1="28" x2="292" y2="28" stroke="#fae084" stroke-width="1" />
+
+  <!-- Inner Cameo Circle -->
+  <circle cx="256" cy="235" r="162" fill="#070c0b" stroke="url(#brass-grad)" stroke-width="3" />
+  <circle cx="256" cy="235" r="154" fill="none" stroke="#8c6f17" stroke-width="1" stroke-dasharray="4 3" opacity="0.7" />
+  <circle cx="256" cy="235" r="150" fill="url(#inner-glow)" opacity="0.6" />
+
+  <!-- Bottom Nameplate Cartouche -->
+  <g transform="translate(0, 420)">
+    <path d="M 130 0 L 382 0 L 396 22 L 382 44 L 130 44 L 116 22 Z" fill="#091210" stroke="url(#brass-grad)" stroke-width="2" />
+    <path d="M 136 6 L 376 6 L 386 22 L 376 38 L 136 38 L 126 22 Z" fill="none" stroke="#c9a227" stroke-width="1" opacity="0.5" />
+    <circle cx="126" cy="22" r="3" fill="#fae084" />
+    <circle cx="386" cy="22" r="3" fill="#fae084" />
+    <text x="256" y="27" text-anchor="middle" font-family="'Cinzel', 'Playfair Display', 'Georgia', serif" font-size="14" font-weight="bold" fill="#fae084" letter-spacing="4" text-transform="uppercase">Antykwariusz</text>
+  </g>
+
+  <g clip-path="url(#cameo-clip)">
+    
+      <!-- Ancient Folio & Dusty Shelves Silhouette -->
+      <path d="M 170 140 L 170 240 M 150 140 L 150 240" stroke="#253530" stroke-width="2" opacity="0.3" />
+
+      <!-- Antiquarian Bust -->
+      <circle cx="256" cy="180" r="30" fill="#0e1715" stroke="url(#brass-grad)" stroke-width="2" />
+      <!-- Jeweler's Monocle / Loupe on Right Eye -->
+      <circle cx="268" cy="178" r="9" fill="#0d9488" fill-opacity="0.3" stroke="#fae084" stroke-width="2" />
+      <path d="M 276 178 Q 295 190 290 220" fill="none" stroke="#fae084" stroke-width="1.5" />
+
+      <!-- Velvet Smoking Jacket / Tweed Waistcoat -->
+      <path d="M 175 340 L 205 230 L 256 250 L 307 230 L 337 340 Z" fill="#0e1715" stroke="url(#brass-grad)" stroke-width="2" />
+
+      <!-- Celestial Astrolabe / Ornate Clockwork Gears on Left -->
+      <circle cx="195" cy="275" r="28" fill="none" stroke="url(#brass-grad)" stroke-width="2" />
+      <circle cx="195" cy="275" r="18" fill="none" stroke="#fae084" stroke-width="1" stroke-dasharray="3 3" />
+      <line x1="195" y1="247" x2="195" y2="303" stroke="url(#brass-grad)" stroke-width="1.5" />
+      <line x1="167" y1="275" x2="223" y2="275" stroke="url(#brass-grad)" stroke-width="1.5" />
+
+      <!-- Ancient Tome with Brass Corner Mounts on Right -->
+      <rect x="290" y="260" width="46" height="60" rx="3" fill="#1b120c" stroke="url(#brass-grad)" stroke-width="2" transform="rotate(10 290 260)" />
+      <polygon points="290,260 302,260 290,272" fill="#fae084" />
+      <polygon points="334,268 334,280 322,268" fill="#fae084" />
+    
+  </g>
+</svg>
