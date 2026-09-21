@@ -266,9 +266,9 @@ Przykłady:
 Reżyseria scen pozwala zamknąć bieżący etap dochodzenia w zwarty wpis akt śledczych (Karta Sceny), zamiast rozpraszać gracza mikro-wpisami.
 
 1. **Cięcie i zmiana sceny (\`[ZMIANA_SCENY]\`):**
-Gdy badacze opuszczają lokację, następuje podróż, upływ czasu lub przejście do nowego rozdziału, wyemituj:
+Gdy badacze opuszczają lokację lub następuje zmiana miejsca akcji, podróż, upływ czasu lub przejście do nowego rozdziału, wyemituj:
 \`[ZMIANA_SCENY: Nowa Lokacja]\` lub \`[ZMIANA_SCENY: Podróż do Arkham | typ=podróż]\`
-Aplikacja automatycznie pieczętuje dotychczasową trwającą scenę i zapisuje zebrane w niej tropy oraz obecnych świadków do Kroniki.
+**Przypomnienie dla MG:** Gdy badacz opuszcza lokację lub następuje zmiana miejsca akcji, Strażnik powinien wyemitować \`[ZMIANA_SCENY: Nowa Lokacja]\` obok \`[LOKACJA: ...]\`. Aplikacja automatycznie pieczętuje dotychczasową trwającą scenę i zapisuje zebrane w niej tropy oraz obecnych świadków do Kroniki.
 
 2. **Jawna Karta Akt Śledczych (\`[KARTA_SCENY]\`):**
 Przy kluczowych zwrotach akcji, dramatycznym zamknięciu sceny lub ucieczce z miejsca zbrodni możesz wyemitować gotowe podsumowanie akt:
