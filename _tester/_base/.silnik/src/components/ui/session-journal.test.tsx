@@ -1,696 +1,365 @@
-import { useState } from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
-import type { Character, JournalEntry } from '@/lib/types';
+import { fireEvent, render, screen } from '@testing-library/react';
+import type { Character, JournalEntry, SceneCaseCard } from '@/lib/types';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
-import {
-  mergeAdventureJournalEntries,
-  synchronizeAdventureJournal,
-} from '@/lib/journal/shared-adventure-journal';
+import { isPlotRelevantItem, filterPlotItems } from '@/lib/journal/item-filter';
 import { SessionJournal } from './session-journal';
+
+describe('item-filter', () => {
+  it('odfiltrowuje pospolite przedmioty codziennego użytku', () => {
+    expect(isPlotRelevantItem('Baterie')).toBe(false);
+    expect(isPlotRelevantItem('baterie AA')).toBe(false);
+    expect(isPlotRelevantItem('telefon komórkowy')).toBe(false);
+    expect(isPlotRelevantItem('smartfon')).toBe(false);
+    expect(isPlotRelevantItem('Pudełko zapałek')).toBe(false);
+    expect(isPlotRelevantItem('zapalniczka')).toBe(false);
+    expect(isPlotRelevantItem('Portfel')).toBe(false);
+    expect(isPlotRelevantItem('Drobne monety')).toBe(false);
+    expect(isPlotRelevantItem('Chusteczki higieniczne')).toBe(false);
+    expect(isPlotRelevantItem('grzebień')).toBe(false);
+  });
+
+  it('zachowuje przedmioty istotne dla fabuły i poszlaki', () => {
+    expect(isPlotRelevantItem('Mosiężny klucz')).toBe(true);
+    expect(isPlotRelevantItem('List od Wilcoxa')).toBe(true);
+    expect(isPlotRelevantItem('Zakrwawiony nóż')).toBe(true);
+    expect(isPlotRelevantItem('Amulet Cthulhu')).toBe(true);
+    expect(isPlotRelevantItem('Stara fotografia')).toBe(true);
+    expect(isPlotRelevantItem('Zeznanie dozorcy')).toBe(true);
+    expect(isPlotRelevantItem('Dziennik Corbitta')).toBe(true);
+  });
+
+  it('przedmiot pospolity z silnym znacznikiem fabularnym jest uznawany za istotny', () => {
+    expect(isPlotRelevantItem('Zakrwawiona chusteczka')).toBe(true);
+    expect(isPlotRelevantItem('Zaszyfrowany telefon')).toBe(true);
+    expect(isPlotRelevantItem('Tajemnicze zapałki z symbolem')).toBe(true);
+  });
+
+  it('filterPlotItems poprawnie oczyszcza listę przedmiotów', () => {
+    const rawItems = [
+      'Baterie',
+      'Mosiężny klucz',
+      'telefon komórkowy',
+      'List od Wilcoxa',
+      'Zapałki',
+      'Zakrwawiony medalion',
+    ];
+    const filtered = filterPlotItems(rawItems);
+    expect(filtered).toEqual([
+      'Mosiężny klucz',
+      'List od Wilcoxa',
+      'Zakrwawiony medalion',
+    ]);
+  });
+});
 
 describe('SessionJournal', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('oznacza scalony dziennik jako wspólny Dziennik Sesji', () => {
-    render(
-      <SessionJournal
-        character={PREDEFINED_CHARACTERS[0]}
-        onUpdateCharacter={jest.fn()}
-        onUpdateSharedJournal={jest.fn()}
-        sharedJournal={[]}
-        participantNames={['Aga', 'Jakub']}
-        onClose={jest.fn()}
-      />
-    );
+  const sampleScene1: SceneCaseCard = {
+    id: 'scene-card-1',
+    sceneNumber: 1,
+    location: 'Woronicza, Warszawa',
+    title: 'Wizyta w archiwum TVP',
+    inGameDate: '14 stycznia 1973',
+    timestamp: '2026-09-21T10:00:00Z',
+    people: ['Tadeusz Wrona', 'Marian Konieczny'],
+    findings: ['Baterie', 'Teczka ze skradzioną taśmą', 'Zapałki'],
+    keyTakeaways: [
+      'Wrona przekazał zapieczętowaną teczkę z nagraniem.',
+      'Służba Bezpieczeństwa interesuje się blokiem na Ursynowie.',
+    ],
+    nextStep: 'Skontaktować się z profesorem w Bibliotece Uniwersyteckiej.',
+    isSealed: true,
+  };
 
-    expect(screen.getByText('DZIENNIK SESJI')).toBeTruthy();
-    expect(screen.getByText('Wspólny dla: Aga i Jakub')).toBeTruthy();
-  });
+  const sampleScene2: SceneCaseCard = {
+    id: 'scene-card-2',
+    sceneNumber: 2,
+    location: 'Biblioteka Uniwersytecka',
+    title: 'Spotkanie z profesorem',
+    inGameDate: '14 stycznia 1973, 16:30',
+    timestamp: '2026-09-21T14:00:00Z',
+    people: ['Prof. Janusz Kaczmarek'],
+    findings: ['Starożytny manuskrypt', 'Telefon komórkowy'],
+    keyTakeaways: [
+      'Profesor przetłumaczył inskrypcję z taśmy.',
+      'Rytuał ma nastąpić podczas zaćmienia.',
+    ],
+    nextStep: 'Przeszukać piwnicę kamienicy przy Mokotowskiej.',
+    isSealed: true,
+  };
 
-  it('synchronizuje dodanie, edycję i usunięcie wpisu tylko uczestnikom przygody', () => {
-    const adventureJournalId = 'adventure-current';
-    const outsideEntry: JournalEntry = {
-      id: 'outside-entry',
-      timestamp: new Date('2026-07-17T16:00:00Z'),
-      adventureJournalId: 'adventure-outside',
-      type: 'note',
-      title: 'Prywatna notatka',
-      content: 'Nie należy do bieżącej przygody.',
-      tags: [],
-      isBookmarked: false,
-    };
-    const first: Character = {
+  it('renderuje 100% modal na pełnym ekranie z Dark Art Déco oraz nagłówkiem', () => {
+    const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
-      id: 'margaret',
-      name: 'Margaret Sullivan',
-      playerName: 'Aga',
-      journal: [],
+      name: 'Edward Carnby',
+      sceneCards: [sampleScene1],
     };
-    const second: Character = {
-      ...PREDEFINED_CHARACTERS[1],
-      id: 'dyer',
-      name: 'Prof. William Dyer',
-      playerName: 'Jakub',
-      journal: [],
-    };
-    const outside: Character = {
-      ...PREDEFINED_CHARACTERS[2],
-      id: 'outside',
-      journal: [outsideEntry],
-    };
-    let latestCharacters = [first, second, outside];
 
-    function Harness() {
-      const [characters, setCharacters] = useState<Character[]>([
-        first,
-        second,
-        outside,
-      ]);
-      latestCharacters = characters;
-      const participants = characters.slice(0, 2);
-      const sharedJournal = mergeAdventureJournalEntries(
-        participants,
-        adventureJournalId
-      );
-
-      return (
-        <SessionJournal
-          character={characters[0]}
-          onUpdateCharacter={jest.fn()}
-          sharedJournal={sharedJournal}
-          onUpdateSharedJournal={(journal) =>
-            setCharacters((current) =>
-              synchronizeAdventureJournal(
-                current,
-                [first.id, second.id],
-                journal,
-                adventureJournalId
-              )
-            )
-          }
-          participantNames={['Aga', 'Jakub']}
-          onClose={jest.fn()}
-        />
-      );
-    }
-
-    render(<Harness />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Notatki' }));
-    fireEvent.click(screen.getByRole('button', { name: /Dodaj notatkę/i }));
-    fireEvent.change(
-      screen.getByPlaceholderText('np. Śledztwo w Domu Corbitów'),
-      { target: { value: 'Ślad w bibliotece' } }
-    );
-    fireEvent.change(
-      screen.getByPlaceholderText(
-        'Zapisz szczegóły przygody lub informacje o postaci/przedmiocie...'
-      ),
-      { target: { value: 'Na regale znaleźliśmy ukryty symbol.' } }
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Zapisz wpis' }));
-
-    expect(latestCharacters[0].journal).toHaveLength(1);
-    expect(latestCharacters[1].journal).toEqual(latestCharacters[0].journal);
-    expect(latestCharacters[0].journal?.[0]).toMatchObject({
-      adventureJournalId,
-      title: 'Ślad w bibliotece',
-      content: 'Na regale znaleźliśmy ukryty symbol.',
-    });
-    const addedEntryId = latestCharacters[0].journal?.[0].id;
-    expect(addedEntryId).toBeDefined();
-    expect(latestCharacters[2]).toBe(outside);
-    expect(latestCharacters[2].journal).toEqual([outsideEntry]);
-
-    const addedTitle = screen.getByText('Ślad w bibliotece');
-    const noteHeader = addedTitle.parentElement;
-    expect(noteHeader).not.toBeNull();
-    fireEvent.click(
-      screen.getByTitle('Edytuj notatkę')
-    );
-
-    const editDialog = screen.getByText('Edytuj wpis w księdze przygód')
-      .parentElement?.parentElement;
-    expect(editDialog).not.toBeNull();
-    const editTextboxes = within(editDialog as HTMLElement).getAllByRole(
-      'textbox'
-    );
-    fireEvent.change(editTextboxes[0], {
-      target: { value: 'Ślad w bibliotece - rozwiązany' },
-    });
-    fireEvent.change(editTextboxes[1], {
-      target: { value: 'Symbol wskazuje wejście do podziemi.' },
-    });
-    fireEvent.click(
-      within(editDialog as HTMLElement).getByRole('button', {
-        name: 'Zapisz zmiany',
-      })
-    );
-
-    expect(latestCharacters[0].journal).toHaveLength(1);
-    expect(latestCharacters[1].journal).toEqual(latestCharacters[0].journal);
-    expect(latestCharacters[0].journal?.[0]).toMatchObject({
-      id: addedEntryId,
-      adventureJournalId,
-      title: 'Ślad w bibliotece - rozwiązany',
-      content: 'Symbol wskazuje wejście do podziemi.',
-    });
-    expect(latestCharacters[1].journal?.[0].id).toBe(addedEntryId);
-    expect(latestCharacters[0].journal?.[0].updatedAt).toBeInstanceOf(Date);
-    expect(latestCharacters[2]).toBe(outside);
-
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const editedTitle = screen.getByText('Ślad w bibliotece - rozwiązany');
-    const editedHeader = editedTitle.parentElement;
-    expect(editedHeader).not.toBeNull();
-    fireEvent.click(
-      screen.getByTitle('Usuń notatkę')
-    );
-
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
-    expect(confirmSpy).toHaveBeenCalledWith(
-      'Czy na pewno chcesz usunąć ten wpis z księgi przygód?'
-    );
-    expect(latestCharacters[0].journal).toHaveLength(0);
-    expect(latestCharacters[1].journal).toHaveLength(0);
-    expect(latestCharacters[2]).toBe(outside);
-    expect(latestCharacters[2].journal).toEqual([outsideEntry]);
-  });
-
-  it('domyślnie wyświetla Akta Śledcze (Dossier) i nie zawiera Tablicy Badacza', () => {
     render(
       <SessionJournal
-        character={PREDEFINED_CHARACTERS[0]}
-        onUpdateCharacter={jest.fn()}
+        character={character}
+        currentInGameDate="14 stycznia 1973"
         onClose={jest.fn()}
       />
     );
 
-    const discoveriesTabButton = screen.getByTestId('btn-discoveries');
-    expect(discoveriesTabButton).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /Tablica Badacza/i })).toBeNull();
+    const journal = screen.getByTestId('session-journal');
+    expect(journal).toBeInTheDocument();
+    expect(journal.className).toContain('fixed inset-0 w-full h-full');
+
+    expect(
+      screen.getByText('DZIENNIK SESJI / KRONIKA ŚLEDZTWA')
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Badacz: Edward Carnby/i)).toBeInTheDocument();
   });
 
-  it('wywołuje onClose po kliknięciu przycisku zamykania X oraz po wciśnięciu Escape', () => {
-    const handleClose = jest.fn();
-    render(
-      <SessionJournal
-        character={PREDEFINED_CHARACTERS[0]}
-        onUpdateCharacter={jest.fn()}
-        onClose={handleClose}
-      />
-    );
+  it('nie renderuje usuniętych elementów (Dodaj notatkę, Eksport MD, zakładek Dossier/Kronika/Notatki)', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene1],
+    };
 
-    const closeButton = screen.getByRole('button', { name: 'Zamknij dziennik' });
-    expect(closeButton).toBeTruthy();
-    fireEvent.click(closeButton);
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    expect(screen.queryByRole('button', { name: /Dodaj notatkę/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Eksport MD/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Akta Śledcze/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Kronika/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Notatki/i })).toBeNull();
+    expect(screen.queryByPlaceholderText(/Wyszukaj frazę/i)).toBeNull();
+  });
+
+  it('zamyka okno przyciskiem X oraz klawiszem Escape', () => {
+    const handleClose = jest.fn();
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+    };
+
+    render(<SessionJournal character={character} onClose={handleClose} />);
+
+    const closeBtn = screen.getByRole('button', { name: 'Zamknij dziennik' });
+    fireEvent.click(closeBtn);
     expect(handleClose).toHaveBeenCalledTimes(1);
 
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(handleClose).toHaveBeenCalledTimes(2);
   });
 
-  it('renderuje widok Akt Śledczych z poszlakami, statusem CoC 7e i umożliwia zmianę statusu', () => {
-    const onUpdate = jest.fn();
-    const testCharacter: Character = {
+  it('wyświetla dyskretny pasek statusu z bieżącą lokacją aktywnej sceny', () => {
+    const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
-      id: 'investigator_test',
-      name: 'Edward Carnby',
-      investigatorDossier: {
-        clues: [
-          {
-            id: 'clue-1',
-            title: 'Krwawy Ślad w piwnicy',
-            description: 'Świeża krew na kamiennej posadzce.',
-            category: 'forensic',
-            status: 'unconfirmed',
-            isKeyClue: true,
-            sourceNpc: 'Inspektor Legrasse',
-            foundLocation: 'Kamienica Corbitta',
-          },
-        ],
-        npcs: [
-          {
-            id: 'npc-1',
-            name: 'Thomas Malone',
-            occupation: 'Detektyw',
-            firstImpression: 'Zmęczony życiem człowiek.',
-            relationshipStatus: 'friendly',
-          },
-        ],
-        locations: [
-          {
-            id: 'loc-1',
-            name: 'Zaułek Red Hook',
-            searchStatus: 'partially_searched',
-            description: 'Mroczne zaułki Brooklynu.',
-          },
-        ],
-        notes: [],
-        lastUpdated: new Date().toISOString(),
-      },
-    };
-
-    render(
-      <SessionJournal
-        character={testCharacter}
-        onUpdateCharacter={onUpdate}
-        onClose={jest.fn()}
-      />
-    );
-
-    // Przejdź do zakładki Odkrycia / Akta Śledcze
-    const discoveriesTab = screen.getByTestId('btn-discoveries');
-    fireEvent.click(discoveriesTab);
-
-    // Kliknij teczkę Poszlaki (dawne Misje)
-    const cluesCategoryBtn = screen.getByRole('button', { name: /Poszlaki i Ślady/i });
-    fireEvent.click(cluesCategoryBtn);
-
-    // Poszlaka powinna być widoczna na liście i w podglądzie akt
-    expect(screen.getAllByText('Krwawy Ślad w piwnicy')[0]).toBeInTheDocument();
-    expect(screen.getByText('ŚWIADEK:')).toBeInTheDocument();
-    expect(screen.getByText('Inspektor Legrasse')).toBeInTheDocument();
-    expect(screen.getByText('KLUCZOWA POSZLAKA')).toBeInTheDocument();
-
-    // Zmień status poszlaki na Potwierdzona
-    const confirmBtn = screen.getByRole('button', { name: 'Potwierdzona' });
-    fireEvent.click(confirmBtn);
-
-    expect(onUpdate).toHaveBeenCalled();
-    const updatedChar = onUpdate.mock.calls[0][0] as Character;
-    expect(updatedChar.investigatorDossier?.clues[0].status).toBe('confirmed');
-  });
-
-  it('filtruje akta śledcze w czasie rzeczywistym za pomocą szybkiego filtra FTS', () => {
-    const testCharacter: Character = {
-      ...PREDEFINED_CHARACTERS[0],
-      id: 'investigator_test',
-      name: 'Edward Carnby',
-      investigatorDossier: {
-        clues: [
-          {
-            id: 'clue-1',
-            title: 'Krwawy Ślad w piwnicy',
-            description: 'Świeża krew na kamiennej posadzce.',
-            category: 'forensic',
-            status: 'unconfirmed',
-          },
-          {
-            id: 'clue-2',
-            title: 'List z Arkham Sanitarium',
-            description: 'Tajemnicza korespondencja lekarza.',
-            category: 'document',
-            status: 'unconfirmed',
-          },
-        ],
-        npcs: [],
-        locations: [],
+      activeScene: {
+        sceneNumber: 3,
+        location: 'Podziemia Kamienicy',
+        startedAt: '2026-09-21T18:00:00Z',
+        people: [],
+        findings: [],
         notes: [],
       },
     };
 
-    render(
-      <SessionJournal
-        character={testCharacter}
-        onUpdateCharacter={jest.fn()}
-        onClose={jest.fn()}
-      />
-    );
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
 
-    fireEvent.click(screen.getByTestId('btn-discoveries'));
-    fireEvent.click(screen.getByRole('button', { name: /Poszlaki i Ślady/i }));
-
-    expect(screen.getAllByText('Krwawy Ślad w piwnicy')[0]).toBeInTheDocument();
-    expect(screen.getAllByText('List z Arkham Sanitarium')[0]).toBeInTheDocument();
-
-    // Filtruj po słowie "Sanitarium"
-    const filterInput = screen.getByPlaceholderText('Szybki filtr FTS (np. nazwisko, poszlaka)...');
-    fireEvent.change(filterInput, { target: { value: 'Sanitarium' } });
-
-    expect(screen.queryByText('Krwawy Ślad w piwnicy')).not.toBeInTheDocument();
-    expect(screen.getAllByText('List z Arkham Sanitarium')[0]).toBeInTheDocument();
+    expect(
+      screen.getByText(/Bieżąca lokacja: Podziemia Kamienicy \| W toku śledztwa/i)
+    ).toBeInTheDocument();
   });
 
-  it('eksportuje akta śledcze w klimatycznym formacie CoC 7e Markdown', () => {
-    const testCharacter: Character = {
+  it('wyświetla klimatyczny komunikat empty state, gdy nie ma jeszcze żadnych zapieczętowanych scen', () => {
+    const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
-      id: 'investigator_test',
-      name: 'Harvey Walters',
-      investigatorDossier: {
-        clues: [
-          {
-            id: 'clue-1',
-            title: 'Dziwny Idol z Bagien',
-            description: 'Zielonkawy kamień o bluźnierczych kształtach.',
-            category: 'occult',
-            status: 'confirmed',
-            investigatorInsight: 'Pochodzi z kultu Cthulhu.',
-          },
-        ],
-        npcs: [
-          {
-            id: 'npc-1',
-            name: 'Profesor Angell',
-            occupation: 'Archeolog',
-            firstImpression: 'Uczony badacz mitów.',
-            relationshipStatus: 'friendly',
-          },
-        ],
-        locations: [
-          {
-            id: 'loc-1',
-            name: 'Muzeum Providence',
-            searchStatus: 'thoroughly_searched',
-            description: 'Bogata kolekcja starożytności.',
-          },
-        ],
-        notes: [],
-      },
-    };
-
-    let exportedBlobContent = '';
-    const originalCreateObjectURL = window.URL.createObjectURL;
-    window.URL.createObjectURL = jest.fn((blob: Blob) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        exportedBlobContent = reader.result as string;
-      };
-      reader.readAsText(blob);
-      return 'mock-url';
-    });
-
-    render(
-      <SessionJournal
-        character={testCharacter}
-        onUpdateCharacter={jest.fn()}
-        onClose={jest.fn()}
-      />
-    );
-
-    const exportBtn = screen.getByRole('button', { name: /Eksport MD/i });
-    fireEvent.click(exportBtn);
-
-    expect(window.URL.createObjectURL).toHaveBeenCalled();
-    const createdBlob = (window.URL.createObjectURL as jest.Mock).mock.calls[0][0] as Blob;
-    expect(createdBlob).toBeInstanceOf(Blob);
-
-    window.URL.createObjectURL = originalCreateObjectURL;
-  });
-
-  it('eliminuje duplikaty postaci i lokacji pomiędzy investigatorDossier a character.journal', () => {
-    const charWithDuplicates: Character = {
-      ...PREDEFINED_CHARACTERS[0],
-      investigatorDossier: {
-        clues: [],
-        npcs: [
-          {
-            id: 'npc-tadeusz-wrona-1725',
-            name: 'Tadeusz Wrona',
-            firstImpression: 'Zgarbiony urzędnik w znoszonej kamizelce',
-            relationshipStatus: 'neutral',
-          },
-        ],
-        locations: [
-          {
-            id: 'loc-pokoj-redakcyjny-1725',
-            name: 'Pokój redakcyjny na Woronicza',
-            description: 'Duszny pokój z meblami z płyty paździerzowej',
-            searchStatus: 'partially_searched',
-          },
-        ],
-        notes: [],
-      },
-      journal: [
-        {
-          id: 'journal-msg1-npc-tadeusz-wrona',
-          title: 'Tadeusz Wrona',
-          content: 'Zgarbiony urzędnik',
-          type: 'npc',
-          timestamp: new Date(),
-          tags: [],
-          isBookmarked: false,
-        },
-        {
-          id: 'location-msg1',
-          title: 'Pokój redakcyjny na Woronicza',
-          content: 'Duszny pokój',
-          type: 'location',
-          timestamp: new Date(),
-          tags: [],
-          isBookmarked: false,
-        },
-      ],
-    };
-
-    render(
-      <SessionJournal
-        character={charWithDuplicates}
-        onUpdateCharacter={jest.fn()}
-        onClose={jest.fn()}
-      />
-    );
-
-    // Miejsca (domyślna kategoria w DiscoveriesView)
-    const locationItems = screen.getAllByText('Pokój redakcyjny na Woronicza');
-    expect(locationItems.length).toBeLessThanOrEqual(2);
-
-    // Przełącz na Postacie
-    fireEvent.click(screen.getByRole('button', { name: /Postacie/i }));
-    const npcItems = screen.getAllByText('Tadeusz Wrona');
-    expect(npcItems.length).toBeLessThanOrEqual(2);
-  });
-
-  it('nie ujawnia ukrytej motywacji/lęku NPC ani żargonu scenopisarskiego graczowi', () => {
-    const charWithSecret: Character = {
-      ...PREDEFINED_CHARACTERS[0],
-      investigatorDossier: {
-        clues: [],
-        npcs: [
-          {
-            id: 'npc-tadeusz-wrona',
-            name: 'Tadeusz Wrona',
-            firstImpression: 'Zgarbiony urzędnik',
-            physiologicalDetail: 'Nerwowo przygryza dolną wargę',
-            sociologicalStatus: 'Archiwista taśm TVP',
-            psychologicalAgenda: 'Panicznie boi się utraty posady i wizyt panów z Rakowieckiej',
-            relationshipStatus: 'neutral',
-          },
-        ],
-        locations: [],
-        notes: [],
-      },
+      sceneCards: [],
       journal: [],
     };
 
-    render(
-      <SessionJournal
-        character={charWithSecret}
-        onUpdateCharacter={jest.fn()}
-        onClose={jest.fn()}
-      />
-    );
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Postacie/i }));
-
-    // Obserwacje są widoczne
-    expect(screen.getByText('Rysopis i obserwacja śledcza')).toBeInTheDocument();
-    expect(screen.getByText('Nerwowo przygryza dolną wargę')).toBeInTheDocument();
-    expect(screen.getByText('Archiwista taśm TVP')).toBeInTheDocument();
-
-    // Ukryte motywacje i żargon MG są całkowicie niewidoczne dla gracza
-    expect(screen.queryByText(/Panicznie boi się utraty posady/i)).toBeNull();
-    expect(screen.queryByText(/Lajos Egri/i)).toBeNull();
-    expect(screen.queryByText(/Ukryta motywacja/i)).toBeNull();
+    expect(screen.getByText('Dziennik śledztwa milczy')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Żadna scena nie została jeszcze zapieczętowana\. Postępuj w dochodzeniu/i
+      )
+    ).toBeInTheDocument();
   });
 
-  it('odfiltrowuje wpis Początek śledztwa z zakładki Notatki i przenosi do Akt Sprawy', () => {
-    const charWithIntro: Character = {
+  it('układa sceny chronologicznie w lewej kolumnie z najnowszą na samej górze', () => {
+    const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
-      investigatorDossier: {
-        clues: [],
-        npcs: [],
-        locations: [],
-        notes: [],
-      },
-      journal: [
-        {
-          id: 'journal-start-1',
-          title: 'Początek śledztwa',
-          content: 'Warszawa, 14 stycznia 1973. W redakcji na Woronicza archiwista przekazał mi nieocenzurowaną teczkę.',
-          type: 'note',
-          timestamp: new Date(),
-          tags: [],
-          isBookmarked: false,
-        },
-      ],
+      sceneCards: [sampleScene1, sampleScene2], // Scena 1 i Scena 2
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    const sceneBadges = screen.getAllByText(/Scena #\d/);
+    // Pierwsza na liście w sidebarze powinna być Scena #2
+    expect(sceneBadges[0].textContent).toContain('Scena #2');
+
+    // Scena 2 i Scena 1 są widoczne
+    expect(screen.getAllByText('Spotkanie z profesorem').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Wizyta w archiwum TVP').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('wyświetla najnowszą kartę w 4 czystych blokach i filtruje pospolite przedmioty z bloku 3', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene1, sampleScene2],
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    // Domyślnie wybrana jest najnowsza scena (Scena #2)
+    // Blok 1: Przebieg i kluczowe ustalenia
+    expect(screen.getByText('Przebieg i kluczowe ustalenia')).toBeInTheDocument();
+    expect(
+      screen.getByText('Profesor przetłumaczył inskrypcję z taśmy.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Rytuał ma nastąpić podczas zaćmienia.')
+    ).toBeInTheDocument();
+
+    // Blok 2: Spotkane osoby
+    expect(screen.getByText('Spotkane osoby')).toBeInTheDocument();
+    expect(screen.getByText('Prof. Janusz Kaczmarek')).toBeInTheDocument();
+
+    // Blok 3: Zdobyte kluczowe przedmioty i poszlaki
+    expect(
+      screen.getByText('Zdobyte kluczowe przedmioty i poszlaki')
+    ).toBeInTheDocument();
+    // Pospolity "Telefon komórkowy" został odfiltrowany:
+    expect(screen.queryByText(/Telefon komórkowy/i)).toBeNull();
+    // Istotny manuskrypt jest widoczny:
+    expect(screen.getByText(/Starożytny manuskrypt/i)).toBeInTheDocument();
+
+    // Blok 4: Cel / Następny krok śledztwa
+    expect(screen.getByText('Cel / Następny krok śledztwa')).toBeInTheDocument();
+    expect(
+      screen.getByText('Przeszukać piwnicę kamienicy przy Mokotowskiej.')
+    ).toBeInTheDocument();
+  });
+
+  it('umożliwia przełączenie na inną scenę po kliknięciu na liście', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene1, sampleScene2],
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    // Kliknij Scenę 1
+    const scene1Item = screen.getByText('Wizyta w archiwum TVP');
+    fireEvent.click(scene1Item);
+
+    // Karta Sceny 1 jest teraz widoczna
+    expect(
+      screen.getByText('Wrona przekazał zapieczętowaną teczkę z nagraniem.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Tadeusz Wrona')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Teczka ze skradzioną taśmą/i)
+    ).toBeInTheDocument();
+
+    // Baterie i zapałki zostały odfiltrowane:
+    expect(screen.queryByText(/Baterie/i)).toBeNull();
+    expect(screen.queryByText(/Zapałki/i)).toBeNull();
+  });
+
+  it('obsługuje Quote-to-Input dla celu/następnego kroku śledztwa', () => {
+    const onQuote = jest.fn();
+    const onClose = jest.fn();
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene2],
     };
 
     render(
       <SessionJournal
-        character={charWithIntro}
-        onUpdateCharacter={jest.fn()}
-        onClose={jest.fn()}
+        character={character}
+        onQuoteToInput={onQuote}
+        onClose={onClose}
       />
     );
 
-    // W zakładce Notatki wpis nie zaśmieca prywatnego notesu
-    fireEvent.click(screen.getByRole('button', { name: /^Notatki/i }));
-    expect(screen.queryByText('Początek śledztwa')).toBeNull();
-    expect(screen.getByText(/Notes śledczy jest pusty/i)).toBeInTheDocument();
+    const quoteBtn = screen.getByRole('button', {
+      name: /Zacytuj i pytaj na czacie/i,
+    });
+    fireEvent.click(quoteBtn);
 
-    // W Aktach Śledczych jest dostępny w kategorii Akta Sprawy
-    fireEvent.click(screen.getByTestId('btn-discoveries'));
-    fireEvent.click(screen.getByRole('button', { name: /Akta Sprawy/i }));
-    expect(screen.getAllByText('Początek śledztwa')[0]).toBeInTheDocument();
-    expect(screen.getAllByText(/archiwista przekazał mi nieocenzurowaną teczkę/i)[0]).toBeInTheDocument();
+    expect(onQuote).toHaveBeenCalledWith(
+      'Przeszukać piwnicę kamienicy przy Mokotowskiej.'
+    );
+    expect(onClose).toHaveBeenCalled();
   });
 
-  it('przypisuje i wyświetla proweniencję wpisu Początek śledztwa w Aktach Sprawy oraz umożliwia jej zmianę', () => {
-    const onUpdateCharacter = jest.fn();
-    const charWithIntro: Character = {
+  it('poprawnie integruje scalony dziennik duetowy z nazwami uczestników', () => {
+    const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
-      investigatorDossier: {
-        clues: [],
-        npcs: [],
-        locations: [],
-        notes: [],
-      },
-      journal: [
-        {
-          id: 'journal-start-1',
-          title: 'Początek śledztwa',
-          content: 'Warszawa, redakcja na Woronicza. Marian przynosi nieoficjalną kopertę.',
-          type: 'case',
-          timestamp: new Date(),
-          tags: [],
-          isBookmarked: false,
-        },
-      ],
     };
+
+    const sharedEntries: JournalEntry[] = [
+      {
+        id: 'shared-scene-1',
+        timestamp: new Date(),
+        type: 'scene',
+        title: 'Wspólne odkrycie w krypcie',
+        content: 'Odnaleziono grobowiec.',
+        tags: ['scena'],
+        isBookmarked: false,
+        sceneData: {
+          id: 'shared-card-1',
+          sceneNumber: 1,
+          location: 'Krypta pod kościołem',
+          title: 'Wspólne odkrycie w krypcie',
+          timestamp: '2026-09-21T10:00:00Z',
+          people: ['Ojciec Thomas'],
+          findings: ['Srebrny krzyż z runami'],
+          keyTakeaways: ['Krypta została otwarta od zewnątrz.'],
+          nextStep: 'Zapytać kościelnego o nocne hałasy.',
+          isSealed: true,
+        },
+      },
+    ];
 
     render(
       <SessionJournal
-        character={charWithIntro}
-        onUpdateCharacter={onUpdateCharacter}
+        character={character}
+        sharedJournal={sharedEntries}
+        participantNames={['Aga', 'Jakub']}
         onClose={jest.fn()}
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Akta Sprawy/i }));
-    // Odznaka proweniencji Handout jest widoczna (koperta -> handout)
-    expect(screen.getAllByText(/Handout/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/PROWENIENCJA:/i)).toBeInTheDocument();
-    // Zmiana proweniencji na Usłyszane (testimony)
-    const testimonyBtn = screen.getByRole('button', { name: /Usłyszane/i });
-    fireEvent.click(testimonyBtn);
-
-    expect(onUpdateCharacter).toHaveBeenCalledWith(
-      expect.objectContaining({
-        journal: expect.arrayContaining([
-          expect.objectContaining({
-            id: 'journal-start-1',
-            provenance: 'testimony',
-          }),
-        ]),
-      })
-    );
+    expect(screen.getByText('Wspólny dla: Aga i Jakub')).toBeInTheDocument();
+    expect(screen.getAllByText('Wspólne odkrycie w krypcie')[0]).toBeInTheDocument();
+    expect(screen.getByText('Ojciec Thomas')).toBeInTheDocument();
+    expect(screen.getByText(/Srebrny krzyż z runami/i)).toBeInTheDocument();
   });
 
-  it('włącza fizyczne przedmioty i dokumenty z ekwipunku postaci do widoku Akt Śledczych', () => {
-    const charWithEquipment: Character = {
-      ...PREDEFINED_CHARACTERS[0],
-      equipment: [
-        {
-          id: 'eq-letter-1',
-          name: 'List od Wilcoxa',
-          category: 'document',
-          readableContent: 'Drogi profesorze, rzeźba w glinie nie jest ludzkim dziełem.',
-          condition: 'used',
-        },
-      ],
-      investigatorDossier: {
-        clues: [],
-        npcs: [],
-        locations: [],
-        notes: [],
-      },
+  it('obsługuje scenę z pustymi blokami (brak osób, brak poszlak, brak kolejnego kroku)', () => {
+    const minimalScene: SceneCaseCard = {
+      id: 'scene-minimal',
+      sceneNumber: 1,
+      location: 'Opuszczona chatka',
+      title: 'Pusta chatka w lesie',
+      timestamp: '2026-09-21T12:00:00Z',
+      people: [],
+      findings: [],
+      keyTakeaways: [],
+      isSealed: true,
     };
 
-    render(
-      <SessionJournal
-        character={charWithEquipment}
-        onUpdateCharacter={jest.fn()}
-        onClose={jest.fn()}
-      />
-    );
-
-    // Przejdź do Przedmiotów
-    fireEvent.click(screen.getByRole('button', { name: /Przedmioty/i }));
-
-    expect(screen.getAllByText('List od Wilcoxa')[0]).toBeInTheDocument();
-    expect(screen.getByText(/Potrójny Byt Handoutu/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tier 1: One-Glance/i)).toBeInTheDocument();
-  });
-
-  it('zapisuje wniosek badacza (Tier 3 insight) dla przedmiotu z ekwipunku, tworząc wpis w dossier.clues', () => {
-    const handleUpdateCharacter = jest.fn();
-    const charWithEquipment: Character = {
+    const character: Character = {
       ...PREDEFINED_CHARACTERS[0],
-      equipment: [
-        {
-          id: 'eq-journal-corbitt',
-          name: 'Dziennik Corbitta',
-          category: 'document',
-          readableContent: 'Zapiski o rytuałach...',
-          condition: 'used',
-        },
-      ],
-      investigatorDossier: {
-        clues: [],
-        npcs: [],
-        locations: [],
-        notes: [],
-      },
+      sceneCards: [minimalScene],
     };
 
-    render(
-      <SessionJournal
-        character={charWithEquipment}
-        onUpdateCharacter={handleUpdateCharacter}
-        onClose={jest.fn()}
-      />
-    );
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
 
-    // Przejdź do Przedmiotów
-    fireEvent.click(screen.getByRole('button', { name: /Przedmioty/i }));
-    expect(screen.getAllByText('Dziennik Corbitta')[0]).toBeInTheDocument();
-
-    // Kliknij dodanie wniosku
-    const addInsightBtn = screen.getByRole('button', { name: /Dodaj wniosek badacza/i });
-    fireEvent.click(addInsightBtn);
-
-    // Wpisz wniosek badacza
-    const textarea = screen.getByPlaceholderText(/Wpisz dedukcję/i);
-    fireEvent.change(textarea, { target: { value: 'Sekretna komnata znajduje się za piwniczną ścianą.' } });
-
-    // Kliknij zapisz
-    const saveBtn = screen.getByRole('button', { name: /Zapisz/i });
-    fireEvent.click(saveBtn);
-
-    expect(handleUpdateCharacter).toHaveBeenCalledWith(
-      expect.objectContaining({
-        investigatorDossier: expect.objectContaining({
-          clues: expect.arrayContaining([
-            expect.objectContaining({
-              title: 'Dziennik Corbitta',
-              investigatorInsight: 'Sekretna komnata znajduje się za piwniczną ścianą.',
-            }),
-          ]),
-        }),
-      })
-    );
+    expect(screen.getByText('Brak nowych osób')).toBeInTheDocument();
+    expect(screen.getByText('Brak nowych poszlak ani rekwizytów')).toBeInTheDocument();
+    expect(screen.getByText('Brak szczegółowych ustaleń dla tej sceny.')).toBeInTheDocument();
+    expect(screen.getByText('Brak zdefiniowanego kolejnego kroku.')).toBeInTheDocument();
   });
 });
