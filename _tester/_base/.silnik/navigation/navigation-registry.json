@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-21T12:38:00.000Z",
+  "updatedAt": "2026-09-21T16:05:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -211,6 +211,10 @@
       "label": {
         "pl": "Aktywna sesja",
         "en": "Active session"
+      },
+      "description": {
+        "pl": "Główny pulpit aktywnej sesji z oknem narracji czatu, Push-to-Talk / Hold-to-Talk, obsługą deklaracji w trybie Duet i pulpitem badacza",
+        "en": "Main active session desk with chat narrative window, Push-to-Talk / Hold-to-Talk, Duet mode declaration handling, and investigator desk"
       }
     },
     {
@@ -900,5 +904,5 @@
       "component": "src/components/ui/character-wizard.tsx"
     }
   ],
-  "lastUpdated": "2026-09-21T09:00:00.000Z"
+  "lastUpdated": "2026-09-21T16:05:00.000Z"
 }

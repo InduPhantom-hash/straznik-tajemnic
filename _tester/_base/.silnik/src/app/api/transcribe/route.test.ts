@@ -1,4 +1,5 @@
-import { POST, DEFAULT_TRANSCRIBE_MODEL } from './route';
+import { POST } from './route';
+import { DEFAULT_TRANSCRIBE_MODEL } from '@/lib/audio/transcription';
 import { GoogleGenAI } from '@google/genai';
 import type { NextRequest } from 'next/server';
 

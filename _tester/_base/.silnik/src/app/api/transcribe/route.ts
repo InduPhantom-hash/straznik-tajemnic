@@ -1,21 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiClient } from '@/lib/gemini-client-pool';
 import { buildCustomVocabulary } from '@/lib/audio/cthulhu-vocabulary';
+import {
+  DEFAULT_TRANSCRIBE_MODEL,
+  FALLBACK_TRANSCRIBE_MODELS,
+  type TranscribeSegment,
+  type TranscribeResponseBody,
+} from '@/lib/audio/transcription';
 
 export const runtime = 'nodejs';
-
-export const DEFAULT_TRANSCRIBE_MODEL = 'gemini-3.5-transcribe';
-export const FALLBACK_TRANSCRIBE_MODELS = ['gemini-2.5-flash', 'gemini-3.5-flash'];
-
-interface TranscribeSegment {
-  speaker: string;
-  text: string;
-}
-
-interface TranscribeResponseBody {
-  text: string;
-  segments?: TranscribeSegment[];
-}
 
 /**
  * Bezpiecznie parsuje pole tekstowe jako JSON lub listę stringów
