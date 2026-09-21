@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { Character, JournalEntry, SceneCaseCard } from '@/lib/types';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import { isPlotRelevantItem, filterPlotItems } from '@/lib/journal/item-filter';
+import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
 import { SessionJournal } from './session-journal';
 
 describe('item-filter', () => {
@@ -425,5 +426,166 @@ describe('SessionJournal', () => {
     // Scena niezapieczętowana nie pojawia się w liście Kroniki Scen
     expect(screen.queryByText('Scena w toku')).toBeNull();
     expect(screen.getAllByText('Wizyta w archiwum TVP').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renderuje aktywną scenę w toku, gdy brak zapieczętowanych scen (brak pustego stanu "Dziennik milczy")', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [],
+      journal: [],
+      activeScene: {
+        sceneNumber: 1,
+        location: 'Sanatorium w Arkham',
+        startedAt: '2026-09-21T18:00:00Z',
+        people: ['Dr Hardstrom'],
+        findings: ['Klucz do izolatki', 'Telefon komórkowy'],
+        notes: ['Dziwne odgłosy na piętrze'],
+      },
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    // Brak pustego stanu "Dziennik śledztwa milczy"
+    expect(screen.queryByText('Dziennik śledztwa milczy')).toBeNull();
+
+    // Na liście pojawia się aktywna scena z plakietką "W toku"
+    expect(screen.getAllByText('W toku').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Sanatorium w Arkham').length).toBeGreaterThanOrEqual(2);
+
+    // Prawy panel renderuje 4 bloki aktywnej sceny
+    // Blok 1: Ustalenia
+    expect(screen.getByText('Dziwne odgłosy na piętrze')).toBeInTheDocument();
+    // Blok 2: Spotkane osoby
+    expect(screen.getByText('Dr Hardstrom')).toBeInTheDocument();
+    // Blok 3: Poszlaki z filtracją przedmiotów pospolitych
+    expect(screen.getAllByText(/Klucz do izolatki/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/Telefon komórkowy/i)).toBeNull();
+    // Blok 4: Cel / Następny krok
+    expect(
+      screen.getByText(/Kontynuuj badanie lokacji: Sanatorium w Arkham/i)
+    ).toBeInTheDocument();
+  });
+
+  it('umożliwia przełączanie między sceną w toku a scenami zapieczętowanymi', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [sampleScene1],
+      activeScene: {
+        sceneNumber: 2,
+        location: 'Podziemia Kamienicy',
+        startedAt: '2026-09-21T19:00:00Z',
+        people: ['Tajemniczy kultysta'],
+        findings: ['Mosiężny klucz'],
+        notes: ['Ślady stóp prowadzą do ołtarza'],
+      },
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    // Domyślnie wybrana jest bieżąca scena w toku (Scena #2)
+    expect(screen.getByText('Ślady stóp prowadzą do ołtarza')).toBeInTheDocument();
+    expect(screen.getByText('Tajemniczy kultysta')).toBeInTheDocument();
+
+    // Kliknij na zapieczętowaną Scenę 1
+    const scene1Item = screen.getByText('Wizyta w archiwum TVP');
+    fireEvent.click(scene1Item);
+
+    // Karta Sceny 1 jest teraz widoczna
+    expect(
+      screen.getByText('Wrona przekazał zapieczętowaną teczkę z nagraniem.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Marian Konieczny')).toBeInTheDocument();
+
+    // Kliknij z powrotem na scenę w toku
+    const ongoingItem = screen.getByText('Podziemia Kamienicy');
+    fireEvent.click(ongoingItem);
+
+    // Znów widać scenę w toku
+    expect(screen.getByText('Ślady stóp prowadzą do ołtarza')).toBeInTheDocument();
+    expect(screen.getByText('Tajemniczy kultysta')).toBeInTheDocument();
+  });
+
+  it('wyświetla pusty stan tylko gdy brak jakichkolwiek danych (brak zapieczętowanych scen i brak aktywnej sceny)', () => {
+    const character: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [],
+      journal: [],
+      activeScene: undefined,
+    };
+
+    render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+    expect(screen.getByText('Dziennik śledztwa milczy')).toBeInTheDocument();
+  });
+});
+
+describe('apply-journal-tags automatic sealing on location change (Issue #471)', () => {
+  it('automatycznie pieczętuje dotychczasową scenę i rozpoczyna nową przy zmianie [LOKACJA: ...]', () => {
+    const initialChar: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [],
+      journal: [],
+      activeScene: {
+        sceneNumber: 1,
+        location: 'Kawiarnia Rozdroże',
+        startedAt: '2026-09-21T12:00:00Z',
+        people: ['Kelner Jan'],
+        findings: ['Notatnik z adresem'],
+        notes: ['Świadek wspomniał o nocnym kursie'],
+      },
+    };
+
+    const narration = `
+Dotarłeś pod wskazany adres w starych dokach. Wiatr wieje od zatoki.
+[LOKACJA: Opuszczony Magazyn nr 7: Mroczna hala pełna skrzyń i zapachu stęchłego rybnego truchła.]
+[NPC: Stróż nocny: Starszy człowiek z latarnią naftową]
+[PRZEDMIOT: Zakrwawiony hak: Ciężki hak rzeźnicki]
+[DZIENNIK:trop:Ślady wleczenia]Wyraźne ślady wleczenia ciężkiego ciała w stronę rampy wyładunkowej.[/DZIENNIK]
+`;
+
+    const updated = appendJournalFromText(initialChar, narration, 'msg-123');
+
+    // Dotychczasowa scena (Kawiarnia) została zapieczętowana
+    expect(updated.sceneCards).toBeDefined();
+    expect(updated.sceneCards?.length).toBe(1);
+    const sealed = updated.sceneCards![0];
+    expect(sealed.location).toBe('Kawiarnia Rozdroże');
+    expect(sealed.isSealed).toBe(true);
+    expect(sealed.people).toContain('Kelner Jan');
+    expect(sealed.findings).toContain('Notatnik z adresem');
+    expect(sealed.keyTakeaways).toContain('Świadek wspomniał o nocnym kursie');
+    expect(sealed.nextStep).toContain('Opuszczony Magazyn nr 7');
+
+    // Rozpoczęto nową scenę dla nowej lokacji
+    expect(updated.activeScene).toBeDefined();
+    expect(updated.activeScene?.sceneNumber).toBe(2);
+    expect(updated.activeScene?.location).toBe('Opuszczony Magazyn nr 7');
+    // Nowe osoby, przedmioty i poszlaki z tej samej tury trafiły do nowej sceny!
+    expect(updated.activeScene?.people).toContain('Stróż nocny');
+    expect(updated.activeScene?.findings).toContain('Zakrwawiony hak');
+    expect(updated.activeScene?.findings).toContain('Ślady wleczenia');
+  });
+
+  it('nie pieczętuje sceny gdy lokacja jest taka sama lub gdy aktywna lokacja to "Aktualna lokacja"', () => {
+    const startChar: Character = {
+      ...PREDEFINED_CHARACTERS[0],
+      sceneCards: [],
+      journal: [],
+      activeScene: {
+        sceneNumber: 1,
+        location: 'Aktualna lokacja',
+        startedAt: '2026-09-21T12:00:00Z',
+        people: [],
+        findings: [],
+        notes: [],
+      },
+    };
+
+    const narration = `[LOKACJA: Gabinet Profesora Westona: Pokój z zaryglowanymi oknami]`;
+    const updated = appendJournalFromText(startChar, narration, 'msg-001');
+
+    // Pierwsza lokacja nie pieczętuje pustej sceny
+    expect(updated.sceneCards?.length || 0).toBe(0);
+    expect(updated.activeScene?.location).toBe('Gabinet Profesora Westona');
   });
 });

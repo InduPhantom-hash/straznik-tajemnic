@@ -12,7 +12,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { filterPlotItems } from '@/lib/journal/item-filter';
+import { filterPlotItems, isPlotRelevantItem } from '@/lib/journal/item-filter';
 import type { JournalEntry, JournalEventType, Character, SceneCaseCard } from '@/lib/types';
 
 export type JournalEntryType =
@@ -186,16 +186,122 @@ export function SessionJournal({
     return list;
   }, [character.sceneCards, entries]);
 
-  // Domyślnie wybrana jest najnowsza scena (pierwsza na liście)
+  // Ekstrakcja i synteza trwającej sceny w toku (Issue #471)
+  const ongoingSceneCard = useMemo<SealedScene | null>(() => {
+    const as = character.activeScene;
+    if (!as) {
+      return null;
+    }
+
+    const keyTakeaways: string[] = [];
+    const seenTakeaways = new Set<string>();
+
+    const addTakeaway = (text?: string | null) => {
+      if (!text) return;
+      const clean = text.trim();
+      if (!clean || seenTakeaways.has(clean.toLowerCase())) return;
+      seenTakeaways.add(clean.toLowerCase());
+      keyTakeaways.push(clean);
+    };
+
+    if (Array.isArray(as.notes)) {
+      as.notes.forEach(addTakeaway);
+    }
+    if (Array.isArray(as.findings)) {
+      as.findings.forEach((f) => {
+        if (isPlotRelevantItem(f)) {
+          addTakeaway(f);
+        }
+      });
+    }
+
+    entries.forEach((e) => {
+      if (e.type === 'scene') return;
+      const isRelatedLocation = Boolean(
+        as.location &&
+        as.location !== 'Aktualna lokacja' &&
+        (
+          e.metadata?.locationName?.toLowerCase() === as.location.toLowerCase() ||
+          e.title?.toLowerCase().includes(as.location.toLowerCase())
+        )
+      );
+
+      if (isRelatedLocation || e.type === 'clue' || e.type === 'discovery' || e.type === 'note') {
+        const text = e.content || e.title;
+        addTakeaway(text);
+      }
+    });
+
+    let nextStep: string | undefined;
+    if (Array.isArray(as.notes)) {
+      const explicitNext = as.notes.find((n) =>
+        /^(?:cel|zadanie|kolejny krok|następny krok|next step):/i.test(n)
+      );
+      if (explicitNext) {
+        nextStep = explicitNext
+          .replace(/^(?:cel|zadanie|kolejny krok|następny krok|next step):\s*/i, '')
+          .trim();
+      }
+    }
+    if (!nextStep) {
+      nextStep =
+        as.location && as.location !== 'Aktualna lokacja'
+          ? `Kontynuuj badanie lokacji: ${as.location}`
+          : t('ongoingNextStepDefault');
+    }
+
+    const allFindings = [...(Array.isArray(as.findings) ? as.findings : [])];
+    entries.forEach((e) => {
+      if (e.type === 'item' && e.title && !allFindings.includes(e.title)) {
+        allFindings.push(e.title);
+      }
+    });
+
+    return {
+      id: 'active-ongoing-scene',
+      sceneNumber: as.sceneNumber || sealedScenes.length + 1,
+      location: as.location || 'Aktualna lokacja',
+      title: as.title || t('activeSceneHeader'),
+      inGameDate: as.inGameDate || currentInGameDate,
+      timestamp: as.startedAt || new Date().toISOString(),
+      people: Array.isArray(as.people) ? as.people : [],
+      findings: allFindings,
+      keyTakeaways,
+      nextStep,
+    };
+  }, [character.activeScene, currentInGameDate, entries, sealedScenes.length, t]);
+
+  // Pusty stan ("Dziennik śledztwa milczy") pojawia się TYLKO wtedy, gdy nie ma ani zapieczętowanych scen, ani żadnych wpisów/ustaleń w aktywnej scenie
+  const hasActiveSceneContent = Boolean(
+    ongoingSceneCard &&
+    (
+      ongoingSceneCard.findings.length > 0 ||
+      ongoingSceneCard.people.length > 0 ||
+      ongoingSceneCard.keyTakeaways.length > 0 ||
+      (ongoingSceneCard.location &&
+        ongoingSceneCard.location.trim() !== '' &&
+        ongoingSceneCard.location !== 'Aktualna lokacja')
+    )
+  );
+
+  const isEmpty = sealedScenes.length === 0 && !hasActiveSceneContent;
+
+  // Domyślnie wybrana jest bieżąca scena (lub najnowsza zapieczętowana, jeśli brak aktywnej)
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
 
   const activeSceneCard = useMemo(() => {
     if (selectedSceneId) {
+      if (ongoingSceneCard && selectedSceneId === ongoingSceneCard.id) {
+        return ongoingSceneCard;
+      }
       const found = sealedScenes.find((s) => s.id === selectedSceneId);
       if (found) return found;
     }
+    if (ongoingSceneCard) {
+      return ongoingSceneCard;
+    }
     return sealedScenes[0] || null;
-  }, [sealedScenes, selectedSceneId]);
+  }, [ongoingSceneCard, sealedScenes, selectedSceneId]);
 
   // Cytowanie do czatu
   const handleQuoteToInput = (text: string) => {
@@ -296,7 +402,7 @@ export function SessionJournal({
 
       {/* 3. Główna przestrzeń: Układ Kroniki Scen (100% wysokości i szerokości) */}
       <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {sealedScenes.length === 0 ? (
+        {isEmpty ? (
           /* Empty State - Dziennik milczy */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
             <div className="w-16 h-16 rounded-full border border-brass/40 bg-brass/10 flex items-center justify-center mb-4 text-brass shadow-[0_0_20px_rgba(191,161,95,0.15)]">
@@ -316,7 +422,7 @@ export function SessionJournal({
             <aside className="w-full md:w-80 lg:w-96 shrink-0 border-b md:border-b-0 md:border-r border-brass/25 bg-[#0e0a07] flex flex-col max-h-48 md:max-h-none overflow-hidden">
               <div className="px-4 py-3 border-b border-brass/15 bg-[#140f0a] flex items-center justify-between shrink-0">
                 <span className="font-display text-xs uppercase tracking-[0.18em] text-brass/90 font-bold">
-                  {t('sceneListTitle')} ({sealedScenes.length})
+                  {t('sceneListTitle')} ({sealedScenes.length + (ongoingSceneCard ? 1 : 0)})
                 </span>
                 <span className="text-[10px] font-mono text-muted-foreground uppercase">
                   Najnowsze na górze
@@ -324,6 +430,53 @@ export function SessionJournal({
               </div>
 
               <div className="flex-1 overflow-y-auto journal-scroll p-3 space-y-2">
+                {/* 1. Bieżąca scena (W toku) na samej górze listy scen */}
+                {ongoingSceneCard && (
+                  <div
+                    key={ongoingSceneCard.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedSceneId(ongoingSceneCard.id)}
+                    onMouseEnter={() => setSelectedSceneId(ongoingSceneCard.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setSelectedSceneId(ongoingSceneCard.id);
+                      }
+                    }}
+                    className={cn(
+                      'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
+                      activeSceneCard?.id === ongoingSceneCard.id
+                        ? 'bg-gradient-to-r from-emerald-950/40 via-brass/15 to-transparent border-emerald-500/80 shadow-[inset_0_0_12px_rgba(16,185,129,0.15),0_0_10px_rgba(16,185,129,0.1)] text-[#f4ebd0]'
+                        : 'bg-[#140f0b]/70 border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-950/20 hover:shadow-[0_0_12px_rgba(16,185,129,0.15)] text-[#d4c8b8]'
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-2.5 w-2.5 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span className="text-[11px] bg-emerald-950/60 text-emerald-400 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/40 shrink-0 font-bold">
+                          Scena #{ongoingSceneCard.sceneNumber}
+                        </span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono uppercase px-1.5 py-0.5 rounded border border-emerald-500/30 shrink-0 tracking-wider font-bold">
+                        {t('ongoingBadge')}
+                      </span>
+                    </div>
+
+                    <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-emerald-300 transition-colors">
+                      {ongoingSceneCard.title}
+                    </h3>
+
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                      <span className="shrink-0">📍</span>
+                      <span className="truncate text-brass/90">{ongoingSceneCard.location}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Zapieczętowane sceny chronologicznie */}
                 {sealedScenes.map((scene) => {
                   const isSelected = activeSceneCard?.id === scene.id;
                   return (
@@ -376,9 +529,19 @@ export function SessionJournal({
                 {/* Nagłówek wybranej karty */}
                 <div className="border-b border-brass/25 pb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs bg-brass/25 text-brass font-mono uppercase px-2.5 py-0.5 rounded border border-brass/50 font-bold">
-                      Scena #{activeSceneCard.sceneNumber}
-                    </span>
+                    {activeSceneCard.id === ongoingSceneCard?.id ? (
+                      <span className="text-xs bg-emerald-950/60 text-emerald-300 font-mono uppercase px-2.5 py-0.5 rounded border border-emerald-500/50 font-bold flex items-center gap-1.5">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Scena #{activeSceneCard.sceneNumber} • {t('ongoingBadge')}
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-brass/25 text-brass font-mono uppercase px-2.5 py-0.5 rounded border border-brass/50 font-bold">
+                        Scena #{activeSceneCard.sceneNumber}
+                      </span>
+                    )}
                     <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
                       <span>📍</span> {activeSceneCard.location}
                     </span>
@@ -409,7 +572,9 @@ export function SessionJournal({
                     </ul>
                   ) : (
                     <p className="text-sm font-serif italic text-muted-foreground">
-                      Brak szczegółowych ustaleń dla tej sceny.
+                      {activeSceneCard.id === ongoingSceneCard?.id
+                        ? t('ongoingEmptyFindings')
+                        : 'Brak szczegółowych ustaleń dla tej sceny.'}
                     </p>
                   )}
                 </div>

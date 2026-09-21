@@ -162,6 +162,91 @@ export function processCharacterJournalAndDossier(
       };
 
   let changed = false;
+  let sceneSealedThisMessage = false;
+
+  // Automatyczne pieczętowanie poprzedniej sceny przy zmianie lokacji (Issue #471)
+  const prevLocation = activeScene.location?.trim();
+  const isLocationChange = Boolean(
+    locationEntry &&
+    prevLocation &&
+    prevLocation !== '' &&
+    prevLocation !== 'Aktualna lokacja' &&
+    locationEntry.title.trim().toLowerCase() !== prevLocation.toLowerCase()
+  );
+
+  if (isLocationChange) {
+    const cardId = sceneCard ? `scene-card-${messageId}` : `scene-card-auto-${messageId}`;
+    if (!existingSceneCards.some((sc) => sc.id === cardId)) {
+      const cardTitle =
+        sceneCard?.title || activeScene.title || activeScene.location || `Scena ${activeScene.sceneNumber}`;
+      const sealedTakeaways =
+        sceneCard?.keyTakeaways && sceneCard.keyTakeaways.length > 0
+          ? sceneCard.keyTakeaways
+          : activeScene.notes.length > 0
+            ? activeScene.notes
+            : ['Zbadano lokację i zabezpieczono zebrane poszlaki.'];
+
+      const sealedPeople =
+        sceneCard?.people && sceneCard.people.length > 0
+          ? sceneCard.people
+          : activeScene.people;
+
+      const sealedFindings =
+        sceneCard?.findings && sceneCard.findings.length > 0
+          ? sceneCard.findings
+          : activeScene.findings;
+
+      const nextStep =
+        sceneCard?.nextStep ||
+        (sceneChange?.newLocation
+          ? `Udać się do: ${sceneChange.newLocation}`
+          : `Udać się do: ${locationEntry!.title}`);
+
+      const sealedCard: SceneCaseCard = {
+        id: cardId,
+        sceneNumber: activeScene.sceneNumber,
+        location: activeScene.location,
+        title: cardTitle,
+        inGameDate: sceneCard?.inGameDate || activeScene.inGameDate || charWithDossier.activeScene?.inGameDate,
+        timestamp: new Date().toISOString(),
+        people: [...sealedPeople],
+        findings: [...sealedFindings],
+        keyTakeaways: [...sealedTakeaways],
+        nextStep,
+        isSealed: true,
+      };
+
+      existingSceneCards.push(sealedCard);
+
+      const journalSceneId = `journal-scene-${messageId}`;
+      if (!existingJournalIds.has(journalSceneId)) {
+        existingJournal.push({
+          id: journalSceneId,
+          timestamp: new Date(),
+          inGameDate: sealedCard.inGameDate,
+          type: 'scene',
+          title: sceneCard?.title || `Scena #${sealedCard.sceneNumber}: ${sealedCard.location}`,
+          content: sealedCard.keyTakeaways.join('\n'),
+          tags: ['scena', 'akta-sprawy'],
+          isBookmarked: false,
+          sceneData: sealedCard,
+        });
+        existingJournalIds.add(journalSceneId);
+      }
+
+      activeScene = {
+        sceneNumber: sealedCard.sceneNumber + 1,
+        location: locationEntry!.title,
+        startedAt: new Date().toISOString(),
+        inGameDate: locationEntry!.inGameDate || activeScene.inGameDate,
+        people: [],
+        findings: [],
+        notes: [],
+      };
+      changed = true;
+      sceneSealedThisMessage = true;
+    }
+  }
 
   // 1. Obsługa NPC (zarówno z [NPC: Imię: opis], jak i [DZIENNIK:npc:Imię])
   const combinedNpcs = [...npcTags];
@@ -778,11 +863,11 @@ export function processCharacterJournalAndDossier(
   }
 
   // 5. Obsługa zakończenia i pieczętowania sceny (Issue #402)
-  if (sceneCard || sceneChange) {
+  if ((sceneCard || sceneChange) && !sceneSealedThisMessage) {
     const cardId = `scene-card-${messageId}`;
     if (!existingSceneCards.some((sc) => sc.id === cardId)) {
       const cardTitle = sceneCard?.title || activeScene.location || `Scena ${activeScene.sceneNumber}`;
-      const cardLoc = sceneCard?.location || (locationEntry ? locationEntry.title : (sharedLocationName || activeScene.location));
+      const cardLoc = sceneCard?.location || activeScene.location;
       const sealedTakeaways =
         sceneCard?.keyTakeaways && sceneCard.keyTakeaways.length > 0
           ? sceneCard.keyTakeaways
