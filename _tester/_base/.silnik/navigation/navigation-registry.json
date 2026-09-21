@@ -305,8 +305,8 @@
       "id": "help",
       "kind": "modal",
       "label": {
-        "pl": "Pomoc i zasady",
-        "en": "Help and rules"
+        "pl": "Kompendium Badacza",
+        "en": "Investigator's Compendium"
       }
     },
     {
@@ -714,10 +714,10 @@
       "source": "game",
       "target": "help",
       "label": {
-        "pl": "Pomoc",
-        "en": "Help"
+        "pl": "Kompendium Badacza",
+        "en": "Investigator's Compendium"
       },
-      "component": "src/components/help-modal/HelpModal.tsx"
+      "component": "src/components/compendium-modal/CompendiumModal.tsx"
     },
     {
       "source": "game",

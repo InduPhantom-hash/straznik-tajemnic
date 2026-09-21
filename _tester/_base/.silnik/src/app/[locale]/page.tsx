@@ -119,10 +119,10 @@ const RulebookModal = dynamic(
     ssr: false,
   }
 );
-const HelpModal = dynamic(
+const CompendiumModal = dynamic(
   () =>
-    import('@/components/help-modal/HelpModal').then((mod) => ({
-      default: mod.HelpModal,
+    import('@/components/compendium-modal/CompendiumModal').then((mod) => ({
+      default: mod.CompendiumModal,
     })),
   {
     ssr: false,
@@ -1176,7 +1176,7 @@ export default function Home() {
                 onUploaded={handleRulebookUploaded}
                 rulesCount={rulesStatus.rulesCount}
               />
-              <HelpModal
+              <CompendiumModal
                 isOpen={showHelpModal}
                 onClose={() => setShowHelpModal(false)}
               />
