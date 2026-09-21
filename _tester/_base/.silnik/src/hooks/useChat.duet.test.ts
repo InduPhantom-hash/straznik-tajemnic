@@ -4,6 +4,7 @@ import {
   composeTurnFromDeclarations,
   isTurnReady,
   resolveSkillTestValues,
+  swapDeclarations,
 } from './useChat';
 
 const players: HotSeatPlayer[] = [
@@ -64,6 +65,24 @@ describe('duet turn helpers', () => {
     expect(composeTurnFromDeclarations(declarations)).toContain(
       'Phantom (@Prof. William Dyer): Rozglądam się'
     );
+  });
+
+  it('odwraca role i przypisanie kwestii między badaczami ("Odwróć role")', () => {
+    const characters = [
+      makeCharacter('margaret', 'Margaret Sullivan', 60),
+      makeCharacter('dyer', 'Prof. William Dyer', 45),
+    ];
+    const swapped = swapDeclarations(declarations, players, characters);
+    expect(swapped).toHaveLength(2);
+    // Badacz 1 (Aga) ma teraz tekst Badacza 2 (Rozglądam się)
+    const p1Declaration = swapped.find((d) => d.playerId === 'p1');
+    expect(p1Declaration?.text).toBe('Rozglądam się');
+    expect(p1Declaration?.characterName).toBe('Margaret Sullivan');
+
+    // Badacz 2 (Phantom) ma teraz tekst Badacza 1 (Nasłuchuję)
+    const p2Declaration = swapped.find((d) => d.playerId === 'p2');
+    expect(p2Declaration?.text).toBe('Nasłuchuję');
+    expect(p2Declaration?.characterName).toBe('Prof. William Dyer');
   });
 });
 

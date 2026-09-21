@@ -4616,7 +4616,17 @@
     "pass": "Pass",
     "sendTurnTitle": "Combine both declarations into one turn and send it to the Game Master",
     "sendTurn": "Send turn",
-    "summarizeScene": "Summarize the latest scene to the journal"
+    "summarizeScene": "Summarize the latest scene to the journal",
+    "micTitle": "Push-to-Talk (hold Space outside input or click to toggle)",
+    "recordingHold": "Recording (Hold-to-Talk)",
+    "recordingToggle": "Continuous Recording",
+    "recordingHoldHint": "Release Space to finish",
+    "recordingToggleHint": "Click microphone to finish",
+    "micPermissionDenied": "Microphone permission denied. Allow access in your browser settings.",
+    "apiKeyMissing": "Gemini API key is missing. Add your key in Settings.",
+    "transcribeError": "Speech recognition error. Try again or type manually.",
+    "swapRoles": "Swap roles",
+    "swapRolesTitle": "Swap utterance assignment between investigators"
   },
   "Sidebar": {
     "appName": "Guardian of Secrets AI",

@@ -96,6 +96,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   currentPlayerName,
   isTurnReady,
   onSendTurn,
+  onAssignDuetDeclarations,
+  onSwapDuetDeclarations,
   onOpenCharacterSheet,
   onConfirmAcquiredItem,
   onDismissAcquiredItem,
@@ -501,6 +503,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             currentPlayerName={currentPlayerName}
             isTurnReady={isTurnReady}
             onSendTurn={onSendTurn}
+            onAssignDuetDeclarations={onAssignDuetDeclarations}
+            onSwapDuetDeclarations={onSwapDuetDeclarations}
             isLoading={isLoading}
             onSwitchPlayer={onSwitchPlayer}
             onDisableHotSeat={onDisableHotSeat}
@@ -512,6 +516,13 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             isSessionEnded={isSessionEnded}
             sessionEndStatus={sessionEndStatus}
             eraContext={eraContext}
+            investigators={
+              characters?.map((c) => ({ name: c.name, characterName: c.name })) ||
+              (activeCharacter
+                ? [{ name: activeCharacter.name, characterName: activeCharacter.name }]
+                : [])
+            }
+            currentLocation={currentLocation}
           />
         </>
       )}

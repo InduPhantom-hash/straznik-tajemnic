@@ -144,6 +144,8 @@ export interface ChatWindowProps {
   currentPlayerName?: string;
   isTurnReady?: boolean;
   onSendTurn?: () => void;
+  onAssignDuetDeclarations?: (player1Text: string, player2Text: string) => void;
+  onSwapDuetDeclarations?: () => void;
   onOpenCharacterSheet?: (character: Character) => void;
   /** Potwierdza lub odrzuca kartę [ZDOBYTY_PRZEDMIOT] w narracji MG. */
   onConfirmAcquiredItem?: (

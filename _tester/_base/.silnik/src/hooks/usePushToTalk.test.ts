@@ -1,0 +1,220 @@
+import { renderHook, act } from '@testing-library/react';
+import { usePushToTalk, isEditableTarget } from './usePushToTalk';
+import { toast } from '@/components/ui/use-toast';
+
+jest.mock('@/components/ui/use-toast', () => ({
+  toast: jest.fn(),
+}));
+
+jest.mock('@/lib/api-keys-service', () => ({
+  getApiKeyHeaders: jest.fn(() => ({ 'X-Gemini-Api-Key': 'mock-key' })),
+}));
+
+describe('usePushToTalk', () => {
+  let mockMediaRecorder: any;
+  let mockStream: any;
+  let originalMediaRecorder: any;
+  let originalMediaDevices: any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockStream = {
+      getTracks: jest.fn(() => [{ stop: jest.fn() }]),
+    };
+
+    mockMediaRecorder = {
+      start: jest.fn(),
+      stop: jest.fn(function (this: any) {
+        if (this.onstop) this.onstop();
+      }),
+      state: 'recording',
+      ondataavailable: null as any,
+      onstop: null as any,
+    };
+
+    originalMediaRecorder = (global as any).MediaRecorder;
+    originalMediaDevices = navigator.mediaDevices;
+
+    (global as any).MediaRecorder = jest.fn(() => mockMediaRecorder);
+    (global as any).MediaRecorder.isTypeSupported = jest.fn(() => true);
+
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: jest.fn().mockResolvedValue(mockStream),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        text: 'Wchodzę do biblioteki.',
+        segments: [{ speaker: 'Speaker 1', text: 'Wchodzę do biblioteki.' }],
+      }),
+    });
+  });
+
+  afterEach(() => {
+    (global as any).MediaRecorder = originalMediaRecorder;
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: originalMediaDevices,
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  describe('isEditableTarget', () => {
+    it('poprawnie wykrywa elementy edytowalne', () => {
+      const input = document.createElement('input');
+      const textarea = document.createElement('textarea');
+      const select = document.createElement('select');
+      const editableDiv = document.createElement('div');
+      editableDiv.contentEditable = 'true';
+      const roleTextbox = document.createElement('div');
+      roleTextbox.setAttribute('role', 'textbox');
+
+      expect(isEditableTarget(input)).toBe(true);
+      expect(isEditableTarget(textarea)).toBe(true);
+      expect(isEditableTarget(select)).toBe(true);
+      expect(isEditableTarget(editableDiv)).toBe(true);
+      expect(isEditableTarget(roleTextbox)).toBe(true);
+    });
+
+    it('zwraca false dla zwykłych elementów UI', () => {
+      const div = document.createElement('div');
+      const button = document.createElement('button');
+      const body = document.body;
+
+      expect(isEditableTarget(div)).toBe(false);
+      expect(isEditableTarget(button)).toBe(false);
+      expect(isEditableTarget(body)).toBe(false);
+      expect(isEditableTarget(null)).toBe(false);
+    });
+  });
+
+  it('uruchamia nagrywanie w trybie toggle i wysyła audio po zatrzymaniu', async () => {
+    const onTranscriptionSuccess = jest.fn();
+    const onFocusInput = jest.fn();
+
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess,
+        onFocusInput,
+        mode: 'solo',
+      })
+    );
+
+    expect(result.current.isRecording).toBe(false);
+
+    // Włącz nagrywanie
+    await act(async () => {
+      result.current.toggleRecording();
+    });
+
+    expect(result.current.isRecording).toBe(true);
+    expect(result.current.isHoldMode).toBe(false);
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
+
+    // Wyłącz nagrywanie
+    await act(async () => {
+      result.current.toggleRecording();
+    });
+
+    expect(result.current.isRecording).toBe(false);
+    expect(mockMediaRecorder.stop).toHaveBeenCalled();
+
+    // Symuluj ondataavailable i onstop
+    await act(async () => {
+      if (mockMediaRecorder.ondataavailable) {
+        mockMediaRecorder.ondataavailable({
+          data: new Blob(['audio-data'], { type: 'audio/webm' }),
+        });
+      }
+      if (mockMediaRecorder.onstop) {
+        mockMediaRecorder.onstop();
+      }
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/transcribe',
+      expect.objectContaining({
+        method: 'POST',
+      })
+    );
+    expect(onTranscriptionSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Wchodzę do biblioteki.',
+      })
+    );
+    expect(onFocusInput).toHaveBeenCalled();
+  });
+
+  it('obsługuje błąd braku uprawnień mikrofonu wyświetlając toast i zwracając fokus', async () => {
+    (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValueOnce(
+      new Error('Permission denied')
+    );
+
+    const onTranscriptionSuccess = jest.fn();
+    const onFocusInput = jest.fn();
+
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess,
+        onFocusInput,
+      })
+    );
+
+    await act(async () => {
+      await result.current.startRecording(false);
+    });
+
+    expect(result.current.isRecording).toBe(false);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: 'destructive',
+      })
+    );
+    expect(onFocusInput).toHaveBeenCalled();
+  });
+
+  it('reaguje na spację poza elementami edytowalnymi jako Hold-to-Talk', async () => {
+    const onTranscriptionSuccess = jest.fn();
+    const { result } = renderHook(() =>
+      usePushToTalk({
+        onTranscriptionSuccess,
+      })
+    );
+
+    // KeyDown: Space na divie
+    const targetDiv = document.createElement('div');
+    document.body.appendChild(targetDiv);
+
+    await act(async () => {
+      const spaceDown = new KeyboardEvent('keydown', {
+        code: 'Space',
+        bubbles: true,
+      });
+      Object.defineProperty(spaceDown, 'target', { value: targetDiv });
+      window.dispatchEvent(spaceDown);
+    });
+
+    expect(result.current.isRecording).toBe(true);
+    expect(result.current.isHoldMode).toBe(true);
+
+    // KeyUp: zwolnienie Spacji
+    await act(async () => {
+      const spaceUp = new KeyboardEvent('keyup', {
+        code: 'Space',
+        bubbles: true,
+      });
+      Object.defineProperty(spaceUp, 'target', { value: targetDiv });
+      window.dispatchEvent(spaceUp);
+    });
+
+    expect(result.current.isRecording).toBe(false);
+  });
+});

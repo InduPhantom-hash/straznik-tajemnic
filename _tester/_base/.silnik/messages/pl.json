@@ -4616,7 +4616,17 @@
     "pass": "Pasuję",
     "sendTurnTitle": "Złóż obie deklaracje w jedną turę i wyślij do Mistrza Gry",
     "sendTurn": "Wyślij turę",
-    "summarizeScene": "Podsumuj ostatnią scenę do dziennika"
+    "summarizeScene": "Podsumuj ostatnią scenę do dziennika",
+    "micTitle": "Push-to-Talk (przytrzymaj Spację poza polem lub kliknij, aby włączyć/wyłączyć)",
+    "recordingHold": "Nagrywanie (Hold-to-Talk)",
+    "recordingToggle": "Nagrywanie ciągłe",
+    "recordingHoldHint": "Puść Spację, aby zakończyć",
+    "recordingToggleHint": "Kliknij mikrofon, aby zakończyć",
+    "micPermissionDenied": "Brak uprawnień do mikrofonu. Zezwól na dostęp w przeglądarce.",
+    "apiKeyMissing": "Brak klucza API Gemini. Wklej klucz w Ustawieniach.",
+    "transcribeError": "Błąd rozpoznawania mowy. Spróbuj ponownie lub wpisz tekst ręcznie.",
+    "swapRoles": "Odwróć role",
+    "swapRolesTitle": "Zamień przypisanie kwestii między badaczami"
   },
   "Sidebar": {
     "appName": "Strażnik Tajemnic AI",

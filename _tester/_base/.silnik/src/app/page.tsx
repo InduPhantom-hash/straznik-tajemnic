@@ -1041,6 +1041,8 @@ export default function Home() {
         currentPlayerName={chat.currentPlayerName}
         isTurnReady={chat.isTurnReady}
         onSendTurn={chat.sendTurn}
+        onAssignDuetDeclarations={chat.assignDuetDeclarations}
+        onSwapDuetDeclarations={chat.swapDuetDeclarations}
         onSwitchPlayer={hotSeat.switchPlayer}
         onDisableHotSeat={hotSeat.disableHotSeat}
         onStartGame={handleStartGameGuarded}

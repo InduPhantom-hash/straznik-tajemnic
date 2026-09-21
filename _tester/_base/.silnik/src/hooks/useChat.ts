@@ -306,6 +306,44 @@ export function composeTurnFromDeclarations(
     .join(' ; ');
 }
 
+/**
+ * Zamienia przypisanie kwestii między dwoma badaczami w buforze tury duetu
+ * ("Odwróć role" po transkrypcji mowy / diarizacji).
+ */
+export function swapDeclarations(
+  declarations: PendingDeclaration[],
+  players: HotSeatPlayer[],
+  characters: Character[] = []
+): PendingDeclaration[] {
+  if (players.length < 2) return declarations;
+  const d1 = declarations.find((d) => d.playerId === players[0].id);
+  const d2 = declarations.find((d) => d.playerId === players[1].id);
+  if (!d1 && !d2) return declarations;
+
+  const next: PendingDeclaration[] = [];
+  if (d2) {
+    next.push({
+      playerId: players[0].id,
+      playerName: players[0].name,
+      characterName:
+        characters.find((c) => c.id === players[0].characterId)?.name ||
+        d2.characterName,
+      text: d2.text,
+    });
+  }
+  if (d1) {
+    next.push({
+      playerId: players[1].id,
+      playerName: players[1].name,
+      characterName:
+        characters.find((c) => c.id === players[1].characterId)?.name ||
+        d1.characterName,
+      text: d1.text,
+    });
+  }
+  return next;
+}
+
 export interface PdfMemory {
   rulesUrl?: string;
   rulesTextUrl?: string;
@@ -365,6 +403,10 @@ export interface UseChatReturn {
   clearDeclarations: () => void;
   /** Składa bufor w jedną wiadomość i wysyła do MG (przycisk "Wyślij turę"). */
   sendTurn: () => void;
+  /** Przypisuje kwestie obu badaczy do bufora tury (np. po diarizacji mowy). */
+  assignDuetDeclarations?: (player1Text: string, player2Text: string) => void;
+  /** Zamienia przypisane kwestie między badaczami ("Odwróć role"). */
+  swapDuetDeclarations?: () => void;
   confirmAcquiredItem: (
     messageId: string,
     proposalId: string,
@@ -2126,6 +2168,40 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     void handleSendMessage(composed);
   }, [pendingDeclarations, handleSendMessage, hotSeatConfig?.players]);
 
+  const assignDuetDeclarations = useCallback(
+    (player1Text: string, player2Text: string) => {
+      const players = hotSeatConfig?.players ?? [];
+      if (players.length === 0) return;
+      const nextDeclarations: PendingDeclaration[] = [];
+      if (players[0] && player1Text.trim()) {
+        const char1 = characters.find((c) => c.id === players[0].characterId)?.name;
+        nextDeclarations.push({
+          playerId: players[0].id,
+          playerName: players[0].name,
+          characterName: char1,
+          text: player1Text.trim(),
+        });
+      }
+      if (players[1] && player2Text.trim()) {
+        const char2 = characters.find((c) => c.id === players[1].characterId)?.name;
+        nextDeclarations.push({
+          playerId: players[1].id,
+          playerName: players[1].name,
+          characterName: char2,
+          text: player2Text.trim(),
+        });
+      }
+      setPendingDeclarations(nextDeclarations);
+    },
+    [hotSeatConfig?.players, characters]
+  );
+
+  const swapDuetDeclarations = useCallback(() => {
+    const players = hotSeatConfig?.players ?? [];
+    if (players.length < 2) return;
+    setPendingDeclarations((prev) => swapDeclarations(prev, players, characters));
+  }, [hotSeatConfig?.players, characters]);
+
   // Gracze, którzy jeszcze nie zadeklarowali w tej turze (podpowiedź w UI).
   const playersAwaitingDeclaration = isDuet
     ? options
@@ -2344,6 +2420,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     isTurnReady: turnReady,
     clearDeclarations,
     sendTurn,
+    assignDuetDeclarations,
+    swapDuetDeclarations,
     confirmAcquiredItem,
     dismissAcquiredItem,
     isSessionEnded,

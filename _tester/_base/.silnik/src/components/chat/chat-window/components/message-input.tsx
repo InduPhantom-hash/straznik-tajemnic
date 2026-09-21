@@ -9,13 +9,14 @@
  * Textarea onKeyDown: Enter (bez shift) wysyła wiadomość + reset newMessage.
  */
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Loader2, Users, Check, Clock } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, BookOpen, Loader2, Users, Check, Clock, Mic, ArrowLeftRight } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import type { ResolvedEraContext, AnachronismDetection } from '@/lib/era';
 import { detectAnachronism } from '@/lib/era';
 import { filterCheatSuggestions, type CheatSuggestion } from '@/lib/cheats/cheat-engine';
 import { CheatAutocompletePopup } from './cheat-autocomplete-popup';
+import { usePushToTalk } from '@/hooks/usePushToTalk';
 
 import { Button } from '../../../ui/button';
 import { Textarea } from '../../../ui/textarea';
@@ -47,6 +48,10 @@ interface MessageInputProps {
   isTurnReady?: boolean;
   /** Składa bufor w turę i wysyła do MG ("Wyślij turę"). */
   onSendTurn?: () => void;
+  /** Przypisuje kwestie obu badaczy do bufora (diarizacja mowy). */
+  onAssignDuetDeclarations?: (player1Text: string, player2Text: string) => void;
+  /** Zamienia przypisanie kwestii między badaczami ("Odwróć role"). */
+  onSwapDuetDeclarations?: () => void;
   isLoading?: boolean;
   // === Przełącznik graczy (przeniesiony z sidebaru) ===
   /** Przełącza aktywnego gracza Hot Seat (index w tablicy players). */
@@ -59,6 +64,10 @@ interface MessageInputProps {
   sessionEndStatus?: 'idle' | 'awaiting_player_closure' | 'ended';
   /** Kontekst kanoniczny epoki sceny dla reguł i detekcji anachronizmów. */
   eraContext?: ResolvedEraContext | null;
+  /** Dynamiczny kontekst sesji dla słownika transkrypcji */
+  investigators?: Array<string | { name?: string; characterName?: string; playerName?: string }>;
+  sceneNpcs?: string[];
+  currentLocation?: string;
 }
 
 export function MessageInput({
@@ -76,6 +85,8 @@ export function MessageInput({
   currentPlayerName,
   isTurnReady = false,
   onSendTurn,
+  onAssignDuetDeclarations,
+  onSwapDuetDeclarations,
   isLoading = false,
   onSwitchPlayer,
   onDisableHotSeat,
@@ -83,6 +94,9 @@ export function MessageInput({
   isSessionEnded = false,
   sessionEndStatus = 'idle',
   eraContext,
+  investigators = [],
+  sceneNpcs = [],
+  currentLocation,
 }: MessageInputProps) {
   const t = useTranslations('MessageInput');
   const tAnachronism = useTranslations('Anachronism');
@@ -185,6 +199,88 @@ export function MessageInput({
     setIsDismissed(false);
   };
 
+  const handleTranscriptionSuccess = useCallback(
+    (result: {
+      text: string;
+      segments?: Array<{ speaker: string; text: string }>;
+      mode: 'solo' | 'duet';
+    }) => {
+      if (duetActive || isDuet) {
+        const segs = result.segments || [];
+        const seg1 =
+          segs.find((s) => s.speaker.toLowerCase().includes('1'))?.text ||
+          segs[0]?.text ||
+          '';
+        const seg2 =
+          segs.find((s) => s.speaker.toLowerCase().includes('2'))?.text ||
+          segs[1]?.text ||
+          '';
+
+        if (seg1 && seg2) {
+          if (onAssignDuetDeclarations) {
+            onAssignDuetDeclarations(seg1, seg2);
+          } else if (onAddDeclaration) {
+            onAddDeclaration(seg1);
+          }
+        } else {
+          const text = seg1 || seg2 || result.text;
+          if (text) {
+            if (onAddDeclaration) {
+              onAddDeclaration(text);
+            } else {
+              setNewMessage(
+                newMessage.trim() ? `${newMessage.trim()} ${text}` : text
+              );
+            }
+          }
+        }
+      } else {
+        const text = result.text.trim();
+        if (text) {
+          setNewMessage(
+            newMessage.trim() ? `${newMessage.trim()} ${text}` : text
+          );
+        }
+      }
+
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          const len = textareaRef.current.value.length;
+          textareaRef.current.setSelectionRange(len, len);
+        }
+      }, 50);
+    },
+    [duetActive, isDuet, onAssignDuetDeclarations, onAddDeclaration, setNewMessage]
+  );
+
+  const focusTextarea = useCallback(() => {
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 50);
+  }, []);
+
+  const {
+    isRecording,
+    isTranscribing,
+    isHoldMode,
+    toggleRecording,
+  } = usePushToTalk({
+    onTranscriptionSuccess: handleTranscriptionSuccess,
+    mode: isDuet ? 'duet' : 'solo',
+    investigators,
+    sceneNpcs,
+    location: currentLocation,
+    language: locale,
+    disabled: isSessionEnded || sessionEndStatus === 'ended' || isLoading,
+    onFocusInput: focusTextarea,
+    tMicPermissionDenied: t('micPermissionDenied'),
+    tApiKeyMissing: t('apiKeyMissing'),
+    tTranscribeError: t('transcribeError'),
+  });
+
   return (
     <div className="relative px-4 py-3 bg-card border-t border-brass/30">
       {/* déco: złota linia akcentu nad paskiem wpisywania */}
@@ -237,6 +333,19 @@ export function MessageInput({
               </button>
             );
           })}
+          {/* Przycisk szybkiej zamiany ról w duecie ("Odwróć role") */}
+          {pendingDeclarations.length >= 2 && onSwapDuetDeclarations && (
+            <button
+              type="button"
+              onClick={onSwapDuetDeclarations}
+              className="inline-flex items-center gap-1.5 rounded-full border border-brass/40 bg-card px-2.5 py-1 text-brass hover:border-brass hover:bg-brass/10 hover:text-gold transition-colors cursor-pointer text-xs font-special-elite"
+              title={t('swapRolesTitle')}
+              data-testid="swap-roles-button"
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5 text-brass" />
+              <span>{t('swapRoles')}</span>
+            </button>
+          )}
           {/* Przycisk zamknięcia trybu Hot Seat */}
           {onDisableHotSeat && (
             <button
@@ -299,6 +408,34 @@ export function MessageInput({
           />
         </div>
       )}
+      {/* Push-to-Talk: Optyczny stan nagrywania i retro fala audio Art Déco */}
+      {isRecording && (
+        <div
+          data-testid="ptt-recording-indicator"
+          className="max-w-4xl mx-auto mb-2 px-3.5 py-1.5 rounded-md border border-brass/40 bg-card text-brass text-xs font-special-elite flex items-center justify-between shadow-inner animate-in fade-in duration-200"
+        >
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+            </span>
+            <div className="flex items-center gap-0.5 h-3.5 px-1" aria-hidden="true">
+              <span className="w-0.5 h-1.5 bg-brass animate-pulse rounded-full" />
+              <span className="w-0.5 h-3 bg-brass animate-pulse delay-75 rounded-full" />
+              <span className="w-0.5 h-2 bg-brass animate-pulse delay-150 rounded-full" />
+              <span className="w-0.5 h-3.5 bg-brass animate-pulse delay-100 rounded-full" />
+              <span className="w-0.5 h-2 bg-brass animate-pulse delay-200 rounded-full" />
+            </div>
+            <span className="text-foreground tracking-wide font-medium">
+              {isHoldMode ? t('recordingHold') : t('recordingToggle')}
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground uppercase tracking-widest">
+            {isHoldMode ? t('recordingHoldHint') : t('recordingToggleHint')}
+          </span>
+        </div>
+      )}
+
       <div className="flex items-end gap-2 max-w-4xl mx-auto">
         <Textarea
           ref={textareaRef}
@@ -308,14 +445,20 @@ export function MessageInput({
           placeholder={
             isSessionEnded
               ? `🔒 ${t('sessionEndedPlaceholder')}`
-              : duetActive
-                ? t('declarationPlaceholder', {
-                    player: currentPlayerName ? `${currentPlayerName}: ` : '',
-                  })
-                : t('messagePlaceholder')
+              : isRecording
+                ? `🎙️ ${isHoldMode ? t('recordingHold') : t('recordingToggle')}...`
+                : duetActive
+                  ? t('declarationPlaceholder', {
+                      player: currentPlayerName ? `${currentPlayerName}: ` : '',
+                    })
+                  : t('messagePlaceholder')
           }
           rows={2}
-          className="min-h-[52px] max-h-[112px] resize-y font-special-elite border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`min-h-[52px] max-h-[112px] resize-y font-special-elite shadow-[0_0_14px_hsl(var(--primary)/0.12)] focus-visible:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+            isRecording
+              ? 'border-brass/70 ring-1 ring-brass/40 shadow-[0_0_16px_hsl(var(--primary)/0.25)]'
+              : 'border-primary/40'
+          }`}
           onKeyDown={(e) => {
             if (showCheatPopup && cheatSuggestions.length > 0) {
               if (e.key === 'ArrowDown') {
@@ -351,6 +494,28 @@ export function MessageInput({
           }}
         />
         <div className="flex items-center gap-2 pb-0.5">
+          {/* Przycisk mikrofonu Push-to-Talk (Hold-to-Talk spacja / Toggle kliknięcie) */}
+          <Button
+            type="button"
+            onClick={toggleRecording}
+            disabled={isSessionEnded || sessionEndStatus === 'ended' || isLoading || isTranscribing}
+            variant="outline"
+            className={`h-[52px] px-3.5 border-brass/40 text-brass hover:bg-brass/10 hover:border-brass transition-all relative ${
+              isRecording
+                ? 'border-brass bg-brass/20 text-gold ring-1 ring-brass/50 animate-pulse'
+                : ''
+            }`}
+            title={t('micTitle')}
+            aria-label={t('micTitle')}
+            data-testid="ptt-mic-button"
+          >
+            {isTranscribing ? (
+              <Loader2 className="w-4 h-4 animate-spin text-brass" />
+            ) : (
+              <Mic className={`w-4 h-4 ${isRecording ? 'text-gold' : 'text-brass'}`} />
+            )}
+          </Button>
+
           <Button
             onClick={submitInput}
             disabled={isSessionEnded || !newMessage.trim() || isLoading}

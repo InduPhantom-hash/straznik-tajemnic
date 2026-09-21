@@ -205,6 +205,57 @@ describe('MessageInput - detekcja anachronizmów i dymek Art Déco', () => {
       fireEvent.click(sendTurnBtn);
       expect(onSendTurn).toHaveBeenCalledTimes(1);
     });
+
+    it('wyświetla przycisk "Odwróć role", gdy są co najmniej 2 deklaracje w buforze', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+      const onAddDeclaration = jest.fn();
+      const onSwapDuetDeclarations = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={0}
+          isDuet={true}
+          onAddDeclaration={onAddDeclaration}
+          onSwapDuetDeclarations={onSwapDuetDeclarations}
+          pendingDeclarations={[
+            { playerId: 'p1', playerName: 'Badacz 1', text: 'Sprawdzam drzwi' },
+            { playerId: 'p2', playerName: 'Badacz 2', text: 'Świecę latarką' },
+          ]}
+        />
+      );
+
+      const swapBtn = screen.getByTestId('swap-roles-button');
+      expect(swapBtn).toBeInTheDocument();
+      expect(swapBtn).toHaveTextContent('Odwróć role');
+
+      fireEvent.click(swapBtn);
+      expect(onSwapDuetDeclarations).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Push-to-Talk kontrolka mikrofonu', () => {
+    it('renderuje przycisk mikrofonu w stylu Dark Art Déco', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={0}
+        />
+      );
+
+      const micBtn = screen.getByTestId('ptt-mic-button');
+      expect(micBtn).toBeInTheDocument();
+      expect(micBtn).toHaveAttribute('title');
+      expect(micBtn.className).toContain('border-brass');
+    });
   });
 });
 
