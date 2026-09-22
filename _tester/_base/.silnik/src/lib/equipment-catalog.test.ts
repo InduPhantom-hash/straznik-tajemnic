@@ -571,4 +571,26 @@ describe('equipment catalog', () => {
     expect(detector?.imageUrl).toBe('/equipment/catalog/diy-emf-detector-prl.webp');
     expect(detector?.visualSource).toBe('catalog');
   });
+
+  it('mapuje "Dokumenty tożsamości" oraz formy pojedyncze do personal.badge (wallet-shared.webp), a nie do document.letter', () => {
+    const template = findEquipmentTemplate('Dokumenty tożsamości');
+    expect(template).toBeDefined();
+    expect(template?.id).toBe('personal.badge');
+    expect(template?.id).not.toBe('document.letter');
+
+    expect(findEquipmentTemplate('Dokument tożsamości')?.id).toBe('personal.badge');
+    expect(findEquipmentTemplate('Dowód tożsamości')?.id).toBe('personal.badge');
+    expect(findEquipmentTemplate('Dowód osobisty')?.id).toBe('personal.badge');
+
+    const applied = applyCatalogTemplate(
+      {
+        id: 'eq_id_test',
+        name: 'Dokumenty tożsamości',
+        category: 'document',
+      },
+      '1920s'
+    );
+    expect(applied.templateId).toBe('personal.badge');
+    expect(applied.imageUrl).toBe('/equipment/catalog/wallet-shared.webp');
+  });
 });

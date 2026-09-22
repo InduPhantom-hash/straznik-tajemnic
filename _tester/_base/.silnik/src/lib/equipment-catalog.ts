@@ -284,7 +284,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'document.letter',
     name: "List",
-    aliases: ["Letter", "Dokumenty i bilety", "Dokumenty podróżne", "Koperty na dowody", "Dokumenty", "Papiery wartościowe", "Teczka z aktami", "Dokumenty tożsamości", "Fałszywe dokumenty", "Zalita woskiem koperta", "document.letter-shared"],
+    aliases: ["Letter", "Dokumenty i bilety", "Dokumenty podróżne", "Koperty na dowody", "Dokumenty", "Papiery wartościowe", "Teczka z aktami", "Fałszywe dokumenty", "Zalita woskiem koperta", "document.letter-shared"],
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
@@ -324,7 +324,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'personal.badge',
     name: "Odznaka służbowa",
-    aliases: ["Odznaka", "Police Badge", "Zniszczona odznaka", "Legitymacja służbowa", "Odznaka detektywa", "Odznaka policyjna", "Legitymacja", "Legitymacja prasowa", "Legitymacja prasowa gazety"],
+    aliases: ["Odznaka", "Police Badge", "Zniszczona odznaka", "Legitymacja służbowa", "Odznaka detektywa", "Odznaka policyjna", "Legitymacja", "Legitymacja prasowa", "Legitymacja prasowa gazety", "Dokumenty tożsamości", "Dokument tożsamości", "Dowód tożsamości", "Dowód osobisty"],
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,

@@ -6,15 +6,12 @@ import { EquipmentItem, Character } from '@/lib/types';
 import { inferWeaponSkill, inferWeaponDamage, isWeapon } from '@/lib/combat/weapon-context';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { getEraImageFilter } from '@/lib/era-visual-style';
-import { Loader2, X, Maximize2, Minimize2, Play, Pause, RotateCcw, Volume2, Disc, Radio, MessageSquare, Layers } from 'lucide-react';
+import { Loader2, X, Maximize2, Minimize2, Play, Pause, RotateCcw, Disc } from 'lucide-react';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
 import { DiegeticDocumentViewer } from './diegetic-document-viewer';
-import { inferDocumentType } from '@/lib/acquired-equipment';
 import { EquipmentImagePlaceholder } from './equipment-image-placeholder';
 import { CATEGORY_LABELS } from '@/lib/equipment-data';
 import { resolveGameEraContext, formatEraCurrency, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
-import { buildQuoteToInputText } from '@/lib/journal/idea-roll-service';
-import { synthesizeClueFact } from '@/lib/parsers/journal-parser';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
 
@@ -25,12 +22,6 @@ interface EquipmentDetailDialogProps {
   eraContext?: ResolvedEraContext | null;
   onUpdateItem?: (updatedItem: EquipmentItem) => void;
   onQuoteToInput?: (text: string) => void;
-}
-
-/** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
-function formatUsd(amount: number): string {
-  if (amount < 1 && amount > 0) return `$${amount.toFixed(2)}`;
-  return `$${amount.toLocaleString('en-US')}`;
 }
 
 /**
@@ -108,7 +99,6 @@ export function EquipmentDetailDialog({
   era,
   eraContext: propEraContext,
   onUpdateItem,
-  onQuoteToInput,
 }: EquipmentDetailDialogProps) {
   const t = useTranslations('EquipmentDetailDialog');
   const conditionLabels: Record<string, string> = {
@@ -180,16 +170,8 @@ export function EquipmentDetailDialog({
 
   const locale = useLocale();
 
-  const synthesizedFact = useMemo(() => {
-    if (!item) return '';
-    return synthesizeClueFact(item.name, item.readableContent || item.description || '');
-  }, [item?.name, item?.readableContent, item?.description]);
-
   if (!item) return null;
 
-  // Naprawiony warunek czytelności: tylko dokumenty lub przedmioty z jawnym
-  // isReadable=true + gotową treścią (nie wyświetlamy "Przeczytaj" dla artefaktów/okultyzmu)
-  const isDocument = item.category === 'document' || (item.isReadable === true && !!item.readableContent);
   const canRequestRead = item.category === 'document' || item.isReadable === true || Boolean(item.readableContent);
 
   const handleReadItem = async () => {
@@ -257,33 +239,6 @@ export function EquipmentDetailDialog({
   const categoryLabel = CATEGORY_LABELS[item.category] || item.category;
   const effectiveLore = item.description?.trim() || generateItemLore(item.name, locale);
 
-  const handleQuoteToChat = () => {
-    const quoteText =
-      item.actionDeclaration ||
-      buildQuoteToInputText(item.category, item.name, undefined, locale as 'pl' | 'en');
-    if (onQuoteToInput) {
-      onQuoteToInput(quoteText);
-    } else {
-      window.dispatchEvent(
-        new CustomEvent('straznik:quote-to-input', {
-          detail: { text: quoteText },
-        })
-      );
-    }
-    onClose();
-  };
-
-  const actionButtonText =
-    item.suggestedAction === 'shoot'
-      ? t('actionShoot')
-      : item.suggestedAction === 'first_aid'
-      ? t('actionFirstAid')
-      : item.suggestedAction === 'read'
-      ? t('actionRead')
-      : item.suggestedAction === 'study'
-      ? t('actionStudy')
-      : t('quoteToChat');
-
   return (
     <DialogPrimitive.Root open={Boolean(item)} onOpenChange={(open) => !open && onClose()}>
       <DialogPrimitive.Portal>
@@ -292,7 +247,7 @@ export function EquipmentDetailDialog({
         />
         <DialogPrimitive.Content
           className={cn(
-            'fixed left-[50%] top-[50%] z-[100] translate-x-[-50%] translate-y-[-50%] flex flex-col bg-[#120e0a] border-2 border-brass/60 overflow-hidden shadow-2xl focus:outline-none pointer-events-auto transition-all duration-200 w-[80vw] h-[78vh] max-h-[85vh]'
+            'fixed inset-0 z-[100] w-screen h-screen max-h-none flex flex-col bg-[#120e0a] border-2 border-brass/60 overflow-hidden shadow-2xl focus:outline-none pointer-events-auto transition-all duration-200'
           )}
         >
           <DialogPrimitive.Title className="sr-only">
@@ -390,7 +345,7 @@ export function EquipmentDetailDialog({
               {/* === PRAWA KOLUMNA: Informacje === */}
               <div className="flex-1 flex flex-col min-h-0 overflow-y-auto p-6 md:p-8 md:pl-6">
                 {/* Nagłówek: kategoria + nazwa */}
-                <div className="mb-4">
+                <div className="mb-4 pr-12">
                   <div className="font-special-elite text-[10px] uppercase tracking-[0.3em] text-brass/70 mb-1.5">
                     {categoryLabel}
                     {item.condition && (
@@ -410,15 +365,6 @@ export function EquipmentDetailDialog({
                         </div>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleQuoteToChat}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-brass/10 hover:bg-brass/20 text-brass border border-brass/40 font-special-elite text-xs uppercase tracking-wider transition-all shrink-0 cursor-pointer shadow-sm self-start"
-                      title={actionButtonText}
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">{actionButtonText}</span>
-                    </button>
                   </div>
                 </div>
 
@@ -548,36 +494,7 @@ export function EquipmentDetailDialog({
                   </div>
                 )}
 
-                {/* Potrójny Byt Handoutów (CoC 7e RAW): Ekwipunek + Czytnik + Fakt w Dossier */}
-                {(canRequestRead || item.audioUrl || item.category === 'document') && (
-                  <div className="mb-4 p-3.5 bg-[#0e0b08] border border-brass/35 rounded-sm space-y-2">
-                    <div className="flex items-center justify-between border-b border-brass/20 pb-1.5">
-                      <span className="font-special-elite text-xs uppercase tracking-wider text-brass flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-brass" />
-                        {t('tripleNatureTitle')}
-                      </span>
-                      <span className="text-[10px] font-mono text-brass/70 uppercase">CoC 7e RAW</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-special-elite pt-1">
-                      <div className="p-1.5 rounded bg-brass/10 border border-brass/20 text-brass">
-                        <span className="block font-bold">👜 1. {t('physicalItemBadge')}</span>
-                        <span className="text-[9px] text-muted-foreground">{conditionLabels[item.condition || 'used'] || t('inventoryFallback')}</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-brass/10 border border-brass/20 text-brass">
-                        <span className="block font-bold">📜 2. {t('diegeticReaderBadge')}</span>
-                        <span className="text-[9px] text-muted-foreground">{item.readableContent ? t('readerStatusReady') : t('readerStatusToExamine')}</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-brass/10 border border-brass/20 text-brass">
-                        <span className="block font-bold">📋 3. {t('dossierFactBadge')}</span>
-                        <span className="text-[9px] text-muted-foreground">{t('dossierClueSynced')}</span>
-                      </div>
-                    </div>
-                    <div className="p-2 bg-black/40 border border-brass/20 rounded text-xs font-serif italic text-foreground/90">
-                      <span className="font-bold text-brass not-italic mr-1 text-[11px] uppercase font-mono">{t('dossierClueTitle')}:</span>
-                      &ldquo;{synthesizedFact}&rdquo;
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Mechanika / zastosowanie CoC 7e */}
                 {mechanics.length > 0 && (

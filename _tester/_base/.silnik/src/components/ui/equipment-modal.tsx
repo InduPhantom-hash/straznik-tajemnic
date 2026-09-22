@@ -28,7 +28,7 @@ import {
   Newspaper
 } from 'lucide-react';
 import { EquipmentDetailDialog } from './equipment-detail-dialog';
-import { Character, EquipmentItem, EquipmentCategory, EquipmentVisualEra } from '@/lib/types';
+import { Character, EquipmentItem, EquipmentCategory } from '@/lib/types';
 import { CATEGORY_LABELS, findEquipmentByName } from '@/lib/equipment-data';
 import {
   buildEquipmentImagePrompt,
@@ -40,7 +40,6 @@ import { inferDocumentType } from '@/lib/acquired-equipment';
 import {
   inferWeaponSkill,
   inferWeaponDamage,
-  isWeapon,
   isMeleeWeapon,
 } from '@/lib/combat/weapon-context';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
@@ -48,14 +47,8 @@ import { useMessages, useTranslations, useLocale } from 'next-intl';
 import { generateItemLore } from '@/lib/character/item-helpers';
 import { localizeSystemEquipment } from '@/lib/i18n/preset-translation';
 import { getEraImageFilter } from '@/lib/era-visual-style';
-import { isCatalogEquipment, migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
+import { migrateEquipmentCatalog, safeResolveVisualEra } from '@/lib/equipment-catalog';
 import { resolveGameEraContext, formatWeaponRange, type ResolvedEraContext } from '@/lib/era';
-
-/** Formatuje kwotę w dolarach 1920s (separatory tysięcy, grosze tylko gdy < $1). */
-function formatUsd(amount: number): string {
-  if (amount < 1 && amount > 0) return `$${amount.toFixed(2)}`;
-  return `$${amount.toLocaleString('en-US')}`;
-}
 
 interface EquipmentModalProps {
   open: boolean;
@@ -215,13 +208,25 @@ export function EquipmentModal({
   // (fire-and-forget po starcie gry w useGameStart). Drugi useEffect w modalu
   // powodował wyścig stanów (closure vs. functional update) i kasowanie imageUrl.
 
-  const [activeTab, setActiveTab] = useState<'weapon' | 'gear' | 'finances'>(
-    'weapon'
-  );
+  const [activeTab, setActiveTab] = useState<'weapon' | 'gear'>('weapon');
 
-  // Ekonomia CoC 7e (RAW): zamożność z Credit Rating, NIE suma $ per-przedmiot.
+  // Ekonomia CoC 7e (RAW): zamożność z Credit Rating (character.creditRating lub skills['Majętność']).
+  const characterWithCreditRating = useMemo(() => {
+    if (!character) return character;
+    if (character.creditRating != null) {
+      return {
+        ...character,
+        skills: {
+          ...character.skills,
+          'Majętność': character.creditRating,
+        },
+      };
+    }
+    return character;
+  }, [character]);
+
   const finances = deriveFinances(
-    character,
+    characterWithCreditRating,
     resolvedEraContext ?? {
       era,
       country:
@@ -244,19 +249,44 @@ export function EquipmentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="equipment-modal"
-        size="wide"
-        className="w-[80vw] h-[78vh] max-h-[85vh] overflow-hidden flex flex-col p-6 sm:p-8 bg-gradient-to-b from-[#16120d] via-[#100c08] to-background border-brass/50 shadow-2xl"
+        size="screen"
+        className="w-screen h-screen max-w-none max-h-none inset-0 translate-x-0 translate-y-0 fixed overflow-hidden flex flex-col p-6 sm:p-8 bg-gradient-to-b from-[#16120d] via-[#100c08] to-background border-brass/50 shadow-2xl rounded-none sm:rounded-none"
       >
-        <DialogHeader className="flex flex-row items-center justify-between gap-3 pr-12">
-          <DialogTitle className="font-display uppercase tracking-[0.12em] text-foreground flex items-center gap-3">
-            <Package className="w-5 h-5 text-brass" />
-            <span>
-              <span className="block font-special-elite text-xs font-normal normal-case tracking-[0.24em] text-primary">
-                {t('titleEyebrow', { name: character.name })}
+        <DialogHeader className="flex flex-col md:flex-row md:items-center justify-between gap-3 pr-12">
+          <div className="flex items-center gap-3">
+            <DialogTitle className="font-display uppercase tracking-[0.12em] text-foreground flex items-center gap-3">
+              <Package className="w-5 h-5 text-brass" />
+              <span>
+                <span className="block font-special-elite text-xs font-normal normal-case tracking-[0.24em] text-primary">
+                  {t('titleEyebrow', { name: character.name })}
+                </span>
+                {t('title')}
               </span>
-              {t('title')}
-            </span>
-          </DialogTitle>
+            </DialogTitle>
+          </div>
+
+          {/* Kompaktowy 1-liniowy pasek finansów CoC 7e RAW */}
+          <div
+            data-testid="equipment-finance-bar"
+            className="flex flex-wrap items-center gap-x-4 gap-y-1 font-special-elite text-xs text-muted-foreground border border-brass/30 bg-[#120f0c] px-3.5 py-1.5 shadow-sm"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-brass/70 uppercase tracking-wider">{t('cashLabel')}:</span>
+              <span className="font-bold text-foreground">{finances.formattedCash}</span>
+            </div>
+            <span className="text-brass/40 select-none">•</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-brass/70 uppercase tracking-wider">{t('assetsLabel')}:</span>
+              <span className="font-bold text-foreground">{finances.assetsDescription || finances.formattedAssets}</span>
+            </div>
+            <span className="text-brass/40 select-none">•</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-brass/70 uppercase tracking-wider">{t('livingStandard')}:</span>
+              <span className="font-bold text-foreground">{finances.tierLabel}</span>
+              <span className="text-primary text-[11px]">({t('dailySpending', { amount: finances.formattedSpendingLevel })})</span>
+            </div>
+          </div>
+
           {/* IND-235 a11y: opis dla czytników ekranu (aria-describedby) */}
           <DialogDescription className="sr-only">
             {t('descriptionA11y', { name: character.name })}
@@ -334,45 +364,33 @@ export function EquipmentModal({
             >
               {t('gearTab', { count: gearItems.length })}
             </button>
-            <button
-              onClick={() => setActiveTab('finances')}
-              className={`px-5 py-2 font-display uppercase tracking-[0.16em] text-xs font-semibold transition-all ${
-                activeTab === 'finances'
-                  ? 'bg-primary text-[#04110f]'
-                  : 'text-brass/70 hover:text-brass'
-              }`}
-            >
-              {t('financesTab')}
-            </button>
           </div>
 
-          {activeTab !== 'finances' && (
-            <div className="flex gap-2">
-              <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brass/60" />
-                <Input
-                  placeholder={t('searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 font-special-elite bg-[#120f0c] border-brass/30 focus:border-brass/70 text-foreground"
-                />
-              </div>
-              <select
-                value={filterCategory}
-                onChange={(e) =>
-                  setFilterCategory(e.target.value as EquipmentCategory | 'all')
-                }
-                className="bg-[#120f0c] border border-brass/30 rounded-none px-3 py-2 text-sm font-special-elite text-foreground"
-              >
-                <option value="all">{t('allFilter')}</option>
-                {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+          <div className="flex gap-2">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brass/60" />
+              <Input
+                placeholder={t('searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 font-special-elite bg-[#120f0c] border-brass/30 focus:border-brass/70 text-foreground"
+              />
             </div>
-          )}
+            <select
+              value={filterCategory}
+              onChange={(e) =>
+                setFilterCategory(e.target.value as EquipmentCategory | 'all')
+              }
+              className="bg-[#120f0c] border border-brass/30 rounded-none px-3 py-2 text-sm font-special-elite text-foreground"
+            >
+              <option value="all">{t('allFilter')}</option>
+              {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Zawartość zakładek */}
@@ -433,110 +451,7 @@ export function EquipmentModal({
             </div>
           )}
 
-          {/* === KARTA: FINANSE === */}
-          {activeTab === 'finances' && (
-            <div className="max-w-4xl mx-auto py-2">
-              <div className="border border-brass/40 bg-gradient-to-br from-[#16120c] via-[#120e09] to-[#0a0805] p-6 md:p-8 shadow-2xl relative">
-                {/* Narożniki Deco */}
-                <span className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-brass/80 pointer-events-none" />
-                <span className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-brass/80 pointer-events-none" />
-                <span className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-brass/80 pointer-events-none" />
-                <span className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-brass/80 pointer-events-none" />
 
-                {/* Nagłówek bankowy */}
-                <div className="text-center mb-6 pb-4 border-b border-brass/30">
-                  <div className="font-special-elite text-xs uppercase tracking-[0.3em] text-brass/80 mb-1">
-                    {t('bankHeader')}
-                  </div>
-                  <h3 className="font-display uppercase tracking-[0.16em] text-2xl text-foreground">
-                    {t('financialDossierTitle', { name: character.name })}
-                  </h3>
-                  <p className="font-serif italic text-sm text-muted-foreground/80 mt-1">
-                    {t('financialDossierSubtitle')}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Kolumna 1: Zamożność & Poziom Życia */}
-                  <div className="space-y-4">
-                    <div className="border border-brass/30 bg-[#100c08] p-5 relative">
-                      <div className="font-special-elite text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                        {t('livingStandard')}
-                      </div>
-                      <div className="font-display text-2xl md:text-3xl text-brass font-bold tracking-wide">
-                        {finances.tierLabel}
-                      </div>
-                      <div className="mt-2 font-special-elite text-sm text-primary tracking-wide">
-                        {t('dailySpending', { amount: finances.formattedSpendingLevel })}
-                      </div>
-                      <p className="mt-3 font-serif italic text-xs text-muted-foreground/75 leading-relaxed">
-                        {t('dailySpendingExplainer')}
-                      </p>
-                      {finances.livingConditions && (
-                        <p className="mt-2 font-serif text-xs text-brass/85 leading-snug">
-                          🏠 {finances.livingConditions}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3">
-                      <span className="font-serif text-base text-foreground">
-                        {t('creditRatingLabel')}
-                      </span>
-                      <span className="font-display text-2xl text-brass font-bold">
-                        {finances.creditRating}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Kolumna 2: Bilans Gotówki i Aktywów */}
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3.5">
-                      <div>
-                        <div className="font-serif text-base text-foreground">
-                          {t('cashLabel')}
-                        </div>
-                        <div className="font-special-elite text-xs text-muted-foreground">
-                          {t('cashSubtitle')}
-                        </div>
-                      </div>
-                      <span className="font-display text-2xl text-foreground font-bold">
-                        {finances.formattedCash}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3.5">
-                      <div>
-                        <div className="font-serif text-base text-foreground">
-                          {t('assetsLabel')}
-                        </div>
-                        <div className="font-special-elite text-xs text-muted-foreground">
-                          {t('assetsSubtitle')}
-                        </div>
-                      </div>
-                      <span className="font-display text-2xl text-foreground font-bold">
-                        {finances.assetsDescription || finances.formattedAssets}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center border border-brass/25 bg-[#14100b] px-4 py-3.5">
-                      <span className="font-serif text-base text-foreground">
-                        {t('itemCountLabel')}
-                      </span>
-                      <span className="font-display text-xl text-brass font-bold">
-                        {equipment.length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Nota prawna / regułowa */}
-                <div className="mt-6 pt-4 border-t border-brass/20 text-center font-serif italic text-xs text-muted-foreground/70">
-                  {t('financesFlavor')}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {selectedItem && (

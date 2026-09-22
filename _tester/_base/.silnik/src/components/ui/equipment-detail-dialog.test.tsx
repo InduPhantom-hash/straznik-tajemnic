@@ -155,8 +155,7 @@ describe('EquipmentDetailDialog', () => {
     expect(screen.getByText('1d10')).toBeInTheDocument();
   });
 
-  it('wyświetla sekcję Potrójnego Bytu Handoutu i umożliwia akcję Quote-to-Input', () => {
-    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
+  it('nie wyświetla technicznego bloku Potrójnego Bytu Handoutu ani zdublowanego przycisku czytania/akcji', () => {
     const onClose = jest.fn();
     const documentItem: EquipmentItem = {
       id: 'doc-1',
@@ -173,22 +172,13 @@ describe('EquipmentDetailDialog', () => {
       />
     );
 
-    // Potrójny Byt Handoutu
-    expect(screen.getByText(/Potrójny Byt Handoutu/i)).toBeInTheDocument();
-    expect(screen.getByText(/1\. Rekwizyt w ekwipunku/i)).toBeInTheDocument();
-    expect(screen.getByText(/2\. Czytnik diegetyczny/i)).toBeInTheDocument();
-    expect(screen.getByText(/3\. Fakt w Dossier/i)).toBeInTheDocument();
+    // Potrójny Byt Handoutów nie powinien być renderowany
+    expect(screen.queryByText(/Potrójny Byt Handoutu/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/1\. Rekwizyt w ekwipunku/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/2\. Czytnik diegetyczny/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/3\. Fakt w Dossier/i)).not.toBeInTheDocument();
 
-    // Quote-to-Chat
-    const quoteBtn = screen.getByRole('button', { name: /Pytaj o to na czacie/i });
-    fireEvent.click(quoteBtn);
-
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'straznik:quote-to-input',
-      })
-    );
-    expect(onClose).toHaveBeenCalled();
-    dispatchSpy.mockRestore();
+    // Zdublowany przycisk w nagłówku nie powinien być renderowany
+    expect(screen.queryByRole('button', { name: /Pytaj o to na czacie/i })).not.toBeInTheDocument();
   });
 });
