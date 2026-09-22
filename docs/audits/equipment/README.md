@@ -1,95 +1,35 @@
-# Audyt wyposażenia startowego i assetów
+# Audyt wyposażenia startowego i assetów (Issue #469)
 
-Data baseline: 2026-09-01.
+Data baseline: 2026-09-22.
 
-## Wynik maszynowy (po wdrożeniu Issue #324)
+## Wynik maszynowy audytu semantyki i spójności epokowej
 
-- Aktywne presety: 46.
-- Wszystkie instancje przedmiotów startowych: 264.
-- Unikalne nazwy po normalizacji: 133.
-- Wzorce katalogowe w `EQUIPMENT_CATALOG`: 150.
-- Lokalne katalogowe WebP na dysku (w 100% zmapowane w kodzie): 110 (komplet Partii 1-4 z `catalog-manifest-all.json`).
-- Wzorce katalogu z przypisanym WebP: 128 (w tym warianty epokowe i uniwersalne).
-- Szablony katalogowe oczekujące na dedykowany render (fallback SVG): 22.
-- Pokrycie presetów badaczy przez katalog: 100% (wszystkie 264 przedmioty w 46 presetach posiadają deterministyczny szablon, aliasy PL/EN, zasady CoC 7e RAW oraz rozstrzygają się do lokalnych grafik WebP - 0 fallbacków SVG).
-- Integralność językowa: 100% (110/110 pozycji z manifestu dopasowuje się po angielskich nazwach nameEn w findEquipmentTemplate).
-- Odporność epokowa: safeResolveVisualEra normalizuje epoki złożone (classic, gaslight, 1920s-us, 1920s-pl, noir, pulp, 1946) do kanonicznych profili wizualnych bez utraty dopasowania.
-- Przedmioty startowe bez istniejącego lokalnego obrazu lub ikony: 0.
-- Przedmioty startowe oznaczone jako generowane: 0.
-- Martwe odwołania do plików: 0 (usunięto `laptop-modern.webp`, zastąpiono `heavy-laptop-wifi-1990s.webp`).
+- Wszystkie przeskanowane instancje: 830.
+- Instancje przedmiotów z 46 aktywnych presetów: 264.
+- Unikalne sloty przedmiot-epoka: 573.
+- Poprawne, dedykowane lokalne WebP: 448.
+- Przedmioty używające bezpiecznego lokalnego fallbacku ikony kategorii SVG: 125.
+- Wykryte i naprawione błędy semantyczne oraz anachronizmy: 0.
+- Gotowe prompty studyjne OpenAI przygotowane pod wykonanie w Herdr: 29.
 
-## Naprawiony P0 kosztu
+## Naprawione krytyczne błędy semantyczne (Issue #469)
 
-- `buildPredefinedEquipment` używa lokalnego WebP, a przy jego braku ikony kategorii.
-- Surowe wyposażenie 16 presetów Strefy 11 otrzymuje `source: starting`, ikonę kategorii i `visualSource: fallback`.
-- `useEquipmentThumbnails` pomija katalog, wyposażenie startowe i fallbacki.
-- Generator pozostaje dostępny dla niekatalogowych przedmiotów znalezionych lub utworzonych w fabule.
+1. **Dokumenty tożsamości:**
+   - Poprzednio: alias `Dokumenty tożsamości` przypisany do `document.letter` (zalakowana koperta `letter-shared.webp`).
+   - Teraz: wydzielony szablon `document.id-card` z bezpiecznym fallbackiem do `/equipment/predefined/document.svg`, dopóki nie powstaną dedykowane rendery epokowe.
+2. **Aparat fotograficzny w PRL:**
+   - Poprzednio: `tool.camera` posiadał `shared: camera-1920s.webp`, co wymuszało miechowy aparat z lat 20. dla bohaterów z PRL i lat 90.
+   - Teraz: usunięto fałszywy `shared`. W 1920s aparat rozstrzyga się do `camera-1920s.webp`, w modern do `dslr-camera-modern.webp`, a w PRL czysto do ikony `/equipment/predefined/tool.svg` w oczekiwaniu na render `camera-prl.webp` (Zenit/Zorka).
+3. **Zapasowe baterie AA:**
+   - Poprzednio: baterie posiadały `shared: flashlight-1920s.webp` (wyświetlały latarkę).
+   - Teraz: usunięto fałszywy `shared`, czysty fallback do ikony narzędzia SVG do czasu wygenerowania dedykowanego WebP.
 
-## Zawody
+## Kolejka do wygenerowania przez OpenAI w Herdr (Partia 5 + nowe warianty epokowe)
 
-- `OCCUPATION_EQUIPMENT` zawiera 30 zestawów zawodowych oraz `default`.
-- Kreator postaci udostępnia 29 identyfikatorów zawodów, nie 30.
-- Wszystkie 29 identyfikatorów ma jawne mapowanie. Pięć wcześniejszych fallbacków otrzymało własne zestawy: `athlete`, `drifter`, `hacker`, `spy`, `tribe_member`.
-- Aliasy `police_detective` i `private_investigator` prowadzą do właściwych, oddzielnych zestawów.
+Wykaz wszystkich gotowych promptów studyjnych (format 1:1, noir / dark museum / art deco, bez rąk, bez tekstu) znajduje się w:
+- `docs/audits/equipment/equipment-audit-matrix.json` (sekcja `queuedPrompts`)
+- `docs/audits/equipment/review-era-consistency.html` (interaktywny arkusz kontaktowy z przyciskami kopiowania promptu)
 
-Zakresem runtime pozostaje 29 zawodów kreatora. Nie dodajemy trzydziestego zawodu tylko po to, aby zgadzała się liczba ze starym planem.
-
-## Źródło zasad
-
-Użytkownik wskazał prywatny lokalny PDF `ZewCthulhu_KsiegaStraznika_v.1.3-kopia.pdf`. Plik ma 490 stron, wersję 1.3 i SHA-256 `b463b904d4c2e9d69e08a4268691bed1a3d83e1f157a01e8dce42ef7e6cc795c`.
-
-Zweryfikowane zakresy:
-
-- zawody i przedziały Majętności: strony drukowane 44-45,
-- gotówka, dobytek i poziom wydatków: strony drukowane 50 i 107,
-- wyposażenie lat 20. i współczesne: strony drukowane 447-450,
-- broń i jej mechanika: strony drukowane 452-457.
-
-Podręcznik nie definiuje zamkniętego zestawu przedmiotów startowych dla każdej profesji. Zakresy Majętności i mechanika są warstwą reguł. Zestawy zawodowe są naszą deterministyczną warstwą projektową i nie mogą być opisywane jako RAW.
-
-Repo zapisuje wyłącznie własne dane strukturalne, własne opisy, hash i numery stron. Nie zapisuje tekstu ani obrazów z PDF-u.
-
-## Naprawione mapowanie zawodów
-
-- Wszystkie 29 identyfikatorów kreatora mają jawne mapowanie.
-- `police_detective` prowadzi do zestawu detektywa policyjnego.
-- `private_investigator` prowadzi do zestawu prywatnego detektywa.
-- `athlete`, `drifter`, `hacker`, `spy` i `tribe_member` nie spadają już do `default`.
-- Przedział Majętności prywatnego detektywa poprawiono z 9-50 na 9-30.
-- Endpoint wyposażenia startowego wymaga jawnej epoki i nie uruchamia Gemini. AI nie może zmienić ceny ani mechaniki.
-
-## Kolejka katalogu do prerenderowania (Partia 5 - 22 przedmioty)
-
-Po wdrożeniu 110 grafik z Partii 1-4, w katalogu `EQUIPMENT_CATALOG` pozostają 22 przedmioty używające lokalnego fallbacku SVG (`CATEGORY_FALLBACK_ASSETS`):
-
-1. `tool.thermometer` – Termometr (`tool`)
-2. `tool.photo-tripod` – Statyw fotograficzny (`tool`)
-3. `tool.photo-plates` – Klisza fotograficzna (`tool`)
-4. `tool.trowel-brush` – Pędzel i kielnia archeologiczna (`tool`)
-5. `tool.lab-equipment` – Sprzęt laboratoryjny (`tool`)
-6. `tool.typewriter` – Maszyna do pisania (`tool`)
-7. `document.source-books` – Książki źródłowe (`document`)
-8. `document.library-card` – Karta biblioteczna (`document`)
-9. `document.bible` – Biblia / modlitewnik (`document`)
-10. `document.music-sheets` – Nuty i partytury (`document`)
-11. `document.script` – Scenariusz teatralny (`document`)
-12. `weapon.police-baton` – Pałka policyjna (`weapon`)
-13. `personal.car-keys` – Kluczyki do samochodu (`personal`)
-14. `personal.art-pencils` – Ołówki i węgiel rysunkowy (`personal`)
-15. `personal.palette-brushes` – Paleta i pędzle malarskie (`personal`)
-16. `personal.sports-gear` – Strój sportowy (`personal`)
-17. `personal.sports-bag` – Torba sportowa (`personal`)
-18. `personal.towel` – Ręcznik bawełniany (`personal`)
-19. `personal.musical-instrument` – Instrument muzyczny (`personal`)
-20. `personal.makeup-kit` – Zestaw do charakteryzacji (`personal`)
-21. `personal.overalls` – Kombinezon roboczy (`personal`)
-22. `personal.blanket` – Wełniany koc (`personal`)
-
-Artefakty Mythos i unikalne dokumenty fabularne pozostają poza katalogiem statycznym (generowane w locie przez MG lub z portretu Flux Kontext).
-
-## Bramka akceptacji
-
-- Mechanika, cena i Majętność: weryfikacja względem wskazanych stron prywatnego PDF-u.
-- Alias i `templateId`: test jednoznaczności.
-- WebP: arkusz kontaktowy i akceptacja PO.
-- Brak WebP: lokalna ikona kategorii, bez API.
+Łącznie przygotowano **29 precyzyjnych promptów**, w tym:
+- 22 szablony ogólne z Partii 5 (termometr, statyw, klisze, maszyna do pisania, książki źródłowe, biblia itd.)
+- 7 dedykowanych wariantów epokowych z Issue #469 (Dowód PRL, Legitymacja 1920s, ID modern, Paszport 1890s, Aparat PRL Zenit, Aparat 1890s, Baterie AA).

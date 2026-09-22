@@ -75,7 +75,7 @@ describe('Equipment Matching Regression (Issue #365)', () => {
       '1990s'
     );
     expect(docs.category).toBe('document');
-    expect(docs.templateId).toBe('document.letter');
+    expect(docs.templateId).toBe('document.id-card');
     expect(isWeapon(docs)).toBe(false);
   });
 
