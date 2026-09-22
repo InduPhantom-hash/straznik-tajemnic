@@ -506,6 +506,7 @@ function generateContactSheetHtml(items, stats) {
 
   const itemsHtml = items
     .map((item, idx) => {
+      const cardKey = `item_${idx}__${(item.templateId ?? item.name).replace(/[^a-zA-Z0-9_-]/g, '_')}__${item.visualEra}`;
       const isMissing = item.status === 'FALLBACK_ICON';
       const isIssue = item.status === 'SEMANTIC_MISMATCH' || item.status === 'ANACHRONISM';
       const statusBadgeClass = isIssue
@@ -536,7 +537,32 @@ function generateContactSheetHtml(items, stats) {
         : '';
 
       return `
-      <div class="card ${isIssue ? 'card-issue' : isMissing ? 'card-missing' : 'card-ok'}" data-status="${item.status}" data-era="${item.visualEra}">
+      <div class="card ${isIssue ? 'card-issue' : isMissing ? 'card-missing' : 'card-ok'}"
+           id="${cardKey}"
+           data-card-key="${cardKey}"
+           data-name="${escapeHtml(item.name)}"
+           data-name-en="${escapeHtml(item.nameEn)}"
+           data-category="${item.category}"
+           data-template-id="${item.templateId ?? ''}"
+           data-era="${item.visualEra}"
+           data-asset="${item.resolvedAsset}"
+           data-status="${item.status}">
+        
+        <div class="card-flag-bar">
+          <label class="flag-toggle-label">
+            <input type="checkbox" class="flag-checkbox" onchange="onToggleFlag('${cardKey}', this.checked)" />
+            <span class="flag-text">🚩 Oznacz do poprawy</span>
+          </label>
+        </div>
+
+        <div class="flag-note-container" id="note-container-${cardKey}">
+          <input type="text"
+                 class="flag-note-input"
+                 id="note-input-${cardKey}"
+                 placeholder="Wpisz powód / uwagi do poprawy (opcjonalnie)..."
+                 oninput="onUpdateNote('${cardKey}', this.value)" />
+        </div>
+
         <div class="card-media">
           <img src="../../../public${item.resolvedAsset}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='../../../public/equipment/predefined/${item.category}.svg'" />
           <span class="badge ${statusBadgeClass}">${statusLabel}</span>
@@ -575,14 +601,109 @@ function generateContactSheetHtml(items, stats) {
       --success: #238636;
       --warning: #d29922;
       --error: #da3633;
+      --flag-red: #ff4d4d;
+      --flag-bg: rgba(218, 54, 51, 0.12);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding: 2rem;
+      padding: 0 0 4rem 0;
       line-height: 1.5;
+    }
+    
+    /* Sticky PO Toolbar */
+    .po-sticky-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(12, 13, 16, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid var(--gold);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+    .po-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .po-toolbar-title {
+      font-weight: 700;
+      color: var(--gold);
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .po-counter-badge {
+      background: var(--flag-bg);
+      border: 1px solid var(--flag-red);
+      color: var(--flag-red);
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .po-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .po-action-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid transparent;
+    }
+    .btn-filter-flagged {
+      background: #251618;
+      color: #ff9999;
+      border-color: #552222;
+    }
+    .btn-filter-flagged.active {
+      background: var(--flag-red);
+      color: #000;
+      border-color: var(--flag-red);
+    }
+    .btn-copy {
+      background: var(--gold);
+      color: #000;
+    }
+    .btn-copy:hover {
+      background: #e0ba6e;
+    }
+    .btn-export {
+      background: #1f242c;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-export:hover {
+      background: #2c333e;
+    }
+    .btn-clear {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border);
+    }
+    .btn-clear:hover {
+      background: #241416;
+      color: var(--flag-red);
+      border-color: var(--flag-red);
+    }
+
+    .main-container {
+      padding: 2rem;
     }
     header {
       border-bottom: 1px solid var(--border);
@@ -624,7 +745,7 @@ function generateContactSheetHtml(items, stats) {
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 0.75rem;
       margin-bottom: 2rem;
       align-items: center;
       background: var(--card-bg);
@@ -660,7 +781,7 @@ function generateContactSheetHtml(items, stats) {
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
       gap: 1.5rem;
     }
     .card {
@@ -670,7 +791,7 @@ function generateContactSheetHtml(items, stats) {
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      transition: transform 0.15s ease, border-color 0.15s ease;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .card:hover {
       transform: translateY(-2px);
@@ -683,6 +804,67 @@ function generateContactSheetHtml(items, stats) {
     .card-missing {
       border-color: var(--warning);
     }
+    
+    /* Manual Flagging Style */
+    .card.card-flagged {
+      border-color: var(--flag-red) !important;
+      box-shadow: 0 0 20px rgba(255, 77, 77, 0.45) !important;
+      background: #1a1012 !important;
+    }
+    .card-flag-bar {
+      background: #101317;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card.card-flagged .card-flag-bar {
+      background: rgba(218, 54, 51, 0.2);
+      border-color: rgba(218, 54, 51, 0.4);
+    }
+    .flag-toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      user-select: none;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .card.card-flagged .flag-toggle-label {
+      color: var(--flag-red);
+    }
+    .flag-checkbox {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+      accent-color: var(--flag-red);
+    }
+    .flag-note-container {
+      display: none;
+      padding: 0.5rem 1rem;
+      background: #201114;
+      border-bottom: 1px solid rgba(218, 54, 51, 0.3);
+    }
+    .card.card-flagged .flag-note-container {
+      display: block;
+    }
+    .flag-note-input {
+      width: 100%;
+      background: #0d0607;
+      border: 1px solid rgba(218, 54, 51, 0.4);
+      color: #ffcccc;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .flag-note-input:focus {
+      outline: none;
+      border-color: var(--flag-red);
+    }
+
     .card-media {
       position: relative;
       background: #000;
@@ -791,66 +973,207 @@ function generateContactSheetHtml(items, stats) {
       line-height: 1.4;
       font-style: italic;
     }
+    
+    /* Toast Alert */
+    .toast-msg {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--gold);
+      color: #000;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Arkusz Kontaktowy Ekwipunku (Issue #469)</h1>
-    <p>Audyt spójności historycznej, pokrycia assetów i detekcja anachronizmów per epoka (CoC 7e RAW).</p>
-    
-    <div class="kpi-bar">
-      <div class="kpi-card">
-        <div class="kpi-value">${stats.uniqueAuditedSlots}</div>
-        <div class="kpi-label">Audytowane sloty</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value">${stats.okWebpCount}</div>
-        <div class="kpi-label">Poprawne WebP</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" style="color: var(--warning);">${stats.fallbackIconCount}</div>
-        <div class="kpi-label">Fallback ikony SVG</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" style="color: var(--error);">${stats.semanticMismatches + stats.anachronisms}</div>
-        <div class="kpi-label">Wykryte błędy</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value">${stats.readyPromptsCount}</div>
-        <div class="kpi-label">Gotowe prompty Herdr</div>
-      </div>
+  <!-- Sticky Review Toolbar -->
+  <div class="po-sticky-toolbar">
+    <div class="po-toolbar-left">
+      <span class="po-toolbar-title">Arkusz Weryfikacji PO</span>
+      <span class="po-counter-badge">🚩 Zgłoszone do poprawy: <strong id="flagged-count">0</strong></span>
+      <button class="po-action-btn btn-filter-flagged" id="btn-toggle-flagged" onclick="toggleFilterOnlyFlagged()">
+        Pokaż tylko oznaczone (<span id="flagged-btn-count">0</span>)
+      </button>
     </div>
-  </header>
-
-  <div class="controls">
-    <button class="filter-btn active" onclick="filterItems('ALL')">Wszystkie</button>
-    <button class="filter-btn" onclick="filterItems('SEMANTIC_MISMATCH')">Błędy i Anachronizmy</button>
-    <button class="filter-btn" onclick="filterItems('FALLBACK_ICON')">Czeka na Render (Ikona)</button>
-    <button class="filter-btn" onclick="filterItems('OK_WEBP')">Zgodne WebP</button>
-    <button class="filter-btn" onclick="filterEra('prl-1970s')">Epoka PRL</button>
-    <button class="filter-btn" onclick="filterEra('1920s')">Lata 20.</button>
-    <button class="filter-btn" onclick="filterEra('modern')">Współczesność</button>
-    <input type="text" class="search-input" placeholder="Szukaj przedmiotu, ID lub epoki..." oninput="searchItems(this.value)">
+    <div class="po-toolbar-right">
+      <button class="po-action-btn btn-copy" onclick="copyFlaggedToClipboard()">
+        📋 Kopiuj listę do schowka
+      </button>
+      <button class="po-action-btn btn-export" onclick="exportFlaggedJson()">
+        💾 Pobierz JSON
+      </button>
+      <button class="po-action-btn btn-clear" onclick="clearAllFlags()">
+        🗑️ Wyczyść
+      </button>
+    </div>
   </div>
 
-  <div class="grid" id="items-grid">
-    ${itemsHtml}
+  <div class="main-container">
+    <header>
+      <h1>Arkusz Kontaktowy Ekwipunku (Issue #469)</h1>
+      <p>Audyt spójności historycznej, pokrycia assetów i detekcja anachronizmów per epoka (CoC 7e RAW). Zaznacz pozycje, które budzą Twoje wątpliwości lub wymagają korekty.</p>
+      
+      <div class="kpi-bar">
+        <div class="kpi-card">
+          <div class="kpi-value">${stats.uniqueAuditedSlots}</div>
+          <div class="kpi-label">Audytowane sloty</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${stats.okWebpCount}</div>
+          <div class="kpi-label">Poprawne WebP</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" style="color: var(--warning);">${stats.fallbackIconCount}</div>
+          <div class="kpi-label">Fallback ikony SVG</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" style="color: var(--error);">${stats.semanticMismatches + stats.anachronisms}</div>
+          <div class="kpi-label">Wykryte błędy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${stats.readyPromptsCount}</div>
+          <div class="kpi-label">Gotowe prompty Herdr</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="controls">
+      <button class="filter-btn active" onclick="filterItems('ALL')">Wszystkie</button>
+      <button class="filter-btn" onclick="filterItems('SEMANTIC_MISMATCH')">Błędy i Anachronizmy</button>
+      <button class="filter-btn" onclick="filterItems('FALLBACK_ICON')">Czeka na Render (Ikona)</button>
+      <button class="filter-btn" onclick="filterItems('OK_WEBP')">Zgodne WebP</button>
+      <button class="filter-btn" onclick="filterEra('prl-1970s')">Epoka PRL</button>
+      <button class="filter-btn" onclick="filterEra('1920s')">Lata 20.</button>
+      <button class="filter-btn" onclick="filterEra('modern')">Współczesność</button>
+      <input type="text" class="search-input" placeholder="Szukaj przedmiotu, ID lub epoki..." oninput="searchItems(this.value)">
+    </div>
+
+    <div class="grid" id="items-grid">
+      ${itemsHtml}
+    </div>
   </div>
+
+  <div class="toast-msg" id="toast">Skopiowano listę do schowka!</div>
 
   <script>
+    const STORAGE_KEY = 'equipment_audit_po_flags_v1';
     let currentStatus = 'ALL';
     let currentEra = 'ALL';
     let searchQuery = '';
+    let filterOnlyFlagged = false;
+    let flaggedStore = {};
+
+    function loadFlags() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        flaggedStore = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        flaggedStore = {};
+      }
+      updateUIFromFlags();
+    }
+
+    function saveFlags() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(flaggedStore));
+      } catch (e) {
+        console.error('Błąd zapisu localStorage', e);
+      }
+      updateCounters();
+    }
+
+    function onToggleFlag(cardKey, isChecked) {
+      const card = document.getElementById(cardKey);
+      if (!card) return;
+
+      if (isChecked) {
+        const itemData = {
+          cardKey,
+          name: card.getAttribute('data-name'),
+          nameEn: card.getAttribute('data-name-en'),
+          category: card.getAttribute('data-category'),
+          templateId: card.getAttribute('data-template-id'),
+          era: card.getAttribute('data-era'),
+          asset: card.getAttribute('data-asset'),
+          status: card.getAttribute('data-status'),
+          note: flaggedStore[cardKey]?.note || '',
+          flaggedAt: new Date().toISOString(),
+        };
+        flaggedStore[cardKey] = itemData;
+        card.classList.add('card-flagged');
+      } else {
+        delete flaggedStore[cardKey];
+        card.classList.remove('card-flagged');
+      }
+      saveFlags();
+    }
+
+    function onUpdateNote(cardKey, note) {
+      if (flaggedStore[cardKey]) {
+        flaggedStore[cardKey].note = note;
+        saveFlags();
+      }
+    }
+
+    function updateUIFromFlags() {
+      Object.keys(flaggedStore).forEach(cardKey => {
+        const card = document.getElementById(cardKey);
+        if (card) {
+          card.classList.add('card-flagged');
+          const chk = card.querySelector('.flag-checkbox');
+          if (chk) chk.checked = true;
+          const noteInput = document.getElementById('note-input-' + cardKey);
+          if (noteInput && flaggedStore[cardKey].note) {
+            noteInput.value = flaggedStore[cardKey].note;
+          }
+        }
+      });
+      updateCounters();
+    }
+
+    function updateCounters() {
+      const count = Object.keys(flaggedStore).length;
+      document.getElementById('flagged-count').textContent = count;
+      document.getElementById('flagged-btn-count').textContent = count;
+    }
+
+    function toggleFilterOnlyFlagged() {
+      filterOnlyFlagged = !filterOnlyFlagged;
+      const btn = document.getElementById('btn-toggle-flagged');
+      if (filterOnlyFlagged) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+      applyFilters();
+    }
 
     function applyFilters() {
       const cards = document.querySelectorAll('.card');
       cards.forEach(card => {
+        const cardKey = card.getAttribute('data-card-key');
         const status = card.getAttribute('data-status');
         const era = card.getAttribute('data-era');
         const text = card.textContent.toLowerCase();
+        const isFlagged = Boolean(flaggedStore[cardKey]);
 
         let visible = true;
+
+        if (filterOnlyFlagged && !isFlagged) {
+          visible = false;
+        }
+
         if (currentStatus === 'SEMANTIC_MISMATCH') {
           if (status !== 'SEMANTIC_MISMATCH' && status !== 'ANACHRONISM') visible = false;
         } else if (currentStatus !== 'ALL' && status !== currentStatus) {
@@ -885,6 +1208,69 @@ function generateContactSheetHtml(items, stats) {
       searchQuery = query.toLowerCase();
       applyFilters();
     }
+
+    function showToast(text) {
+      const t = document.getElementById('toast');
+      t.textContent = text;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    function copyFlaggedToClipboard() {
+      const list = Object.values(flaggedStore);
+      if (list.length === 0) {
+        alert('Nie zaznaczono jeszcze żadnych pozycji do poprawy.');
+        return;
+      }
+
+      let md = '### 🚩 Pozycje ekwipunku zgłoszone do poprawy przez PO (Łącznie: ' + list.length + '):\n\n';
+      list.forEach((item, idx) => {
+        md += (idx + 1) + '. **' + item.name + '** (' + item.nameEn + ')\n';
+        md += '   - Epoka: \\x60' + item.era + '\\x60 | Kategoria: \\x60' + item.category + '\\x60 | ID: \\x60' + (item.templateId || 'brak') + '\\x60\\n';
+        md += '   - Aktualny asset: \\x60' + item.asset + '\\x60\\n';
+        if (item.note && item.note.trim()) {
+          md += '   - ✍️ Uwagi PO: **' + item.note.trim() + '**\\n';
+        }
+        md += '\\n';
+      });
+
+      navigator.clipboard.writeText(md).then(() => {
+        showToast('Skopiowano ' + list.length + ' pozycji do schowka!');
+      });
+    }
+
+    function exportFlaggedJson() {
+      const list = Object.values(flaggedStore);
+      if (list.length === 0) {
+        alert('Brak zaznaczonych pozycji.');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'korekty-ekwipunku-po.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllFlags() {
+      if (confirm('Czy na pewno chcesz usunąć wszystkie zaznaczenia?')) {
+        flaggedStore = {};
+        saveFlags();
+        document.querySelectorAll('.card').forEach(c => {
+          c.classList.remove('card-flagged');
+          const chk = c.querySelector('.flag-checkbox');
+          if (chk) chk.checked = false;
+        });
+        document.querySelectorAll('.flag-note-input').forEach(i => i.value = '');
+        applyFilters();
+        showToast('Wyczyszczono wszystkie zaznaczenia.');
+      }
+    }
+
+    // Start
+    window.addEventListener('DOMContentLoaded', loadFlags);
   </script>
 
 </body>
