@@ -399,26 +399,34 @@ describe('equipment catalog', () => {
     expect(safeResolveVisualEra('unknown-era-xyz')).toBe('1920s');
   });
 
-  it('gwarantuje deterministyczne przypisanie WebP dla 100% z 264 przedmiotów w 46 presetach (0 fallbacków SVG)', () => {
+  it('gwarantuje deterministyczne przypisanie assetów lokalnych (WebP lub ikony kategorii SVG) dla 100% z 264 przedmiotów w 46 presetach', () => {
     const allPresets = [...PREDEFINED_CHARACTERS, ...STREFA_11_CHARACTERS];
     expect(allPresets).toHaveLength(46);
 
     let totalItems = 0;
-    const nonWebpItems: string[] = [];
+    const missingAssetItems: string[] = [];
+    const missingDiskFiles: string[] = [];
 
     allPresets.forEach((character) => {
       const items = character.equipment ?? [];
       items.forEach((item) => {
         totalItems++;
         const applied = applyCatalogTemplate(item, character.era);
-        if (!applied.imageUrl || !applied.imageUrl.endsWith('.webp')) {
-          nonWebpItems.push(`${item.name} (${character.name}, era: ${character.era}) -> ${applied.imageUrl}`);
+        if (!applied.imageUrl) {
+          missingAssetItems.push(`${item.name} (${character.name}, era: ${character.era}) -> brak imageUrl`);
+        } else {
+          const relativeAssetPath = applied.imageUrl.replace(/^\//, '');
+          const diskPath = join(process.cwd(), 'public', relativeAssetPath);
+          if (!existsSync(diskPath)) {
+            missingDiskFiles.push(`${character.name} -> ${item.name}: ${diskPath}`);
+          }
         }
       });
     });
 
     expect(totalItems).toBe(264);
-    expect(nonWebpItems).toEqual([]);
+    expect(missingAssetItems).toEqual([]);
+    expect(missingDiskFiles).toEqual([]);
   });
 
   it('znajduje szablony po angielskich nazwach (nameEn) dla wszystkich 110 wpisów manifestu', () => {
@@ -461,12 +469,11 @@ describe('equipment catalog', () => {
     );
   });
 
-  it('gwarantuje, że wszystkie postacie Strefy 11 mają bezpośrednio w obiektach equipment lokalne grafiki .webp (0 fallbacków SVG)', () => {
+  it('gwarantuje, że wszystkie postacie Strefy 11 mają bezpośrednio w obiektach equipment poprawne lokalne assety (WebP lub fallback ikony)', () => {
     expect(STREFA_11_CHARACTERS.length).toBe(16);
 
     let totalItems = 0;
-    const nonWebpItems: string[] = [];
-    const svgFallbackItems: string[] = [];
+    const missingAssetItems: string[] = [];
     const missingDiskFiles: string[] = [];
 
     STREFA_11_CHARACTERS.forEach((character) => {
@@ -475,19 +482,9 @@ describe('equipment catalog', () => {
 
       items.forEach((item) => {
         totalItems++;
-        if (!item.imageUrl || !item.imageUrl.endsWith('.webp')) {
-          nonWebpItems.push(
-            `${character.name} (${character.era}) -> ${item.name}: ${item.imageUrl}`
-          );
-        }
-        if (
-          !item.imageUrl ||
-          item.imageUrl.endsWith('.svg') ||
-          item.imageUrl.includes('/equipment/predefined/') ||
-          item.visualSource !== 'catalog'
-        ) {
-          svgFallbackItems.push(
-            `${character.name} (${character.era}) -> ${item.name}: ${item.imageUrl} (visualSource: ${item.visualSource})`
+        if (!item.imageUrl) {
+          missingAssetItems.push(
+            `${character.name} (${character.era}) -> ${item.name}: brak imageUrl`
           );
         }
         if (item.imageUrl) {
@@ -501,9 +498,44 @@ describe('equipment catalog', () => {
     });
 
     expect(totalItems).toBe(27);
-    expect(nonWebpItems).toEqual([]);
-    expect(svgFallbackItems).toEqual([]);
+    expect(missingAssetItems).toEqual([]);
     expect(missingDiskFiles).toEqual([]);
+  });
+
+  it('naprawia błąd Issue #469: Dokumenty tożsamości mapują się na document.id-card zamiast listu w kopercie', () => {
+    const idTemplate = findEquipmentTemplate('Dokumenty tożsamości');
+    expect(idTemplate?.id).toBe('document.id-card');
+    expect(idTemplate?.category).toBe('document');
+
+    const letterTemplate = findEquipmentTemplate('List');
+    expect(letterTemplate?.aliases).not.toContain('Dokumenty tożsamości');
+
+    const item = applyCatalogTemplate(
+      { id: 'test_doc', name: 'Dokumenty tożsamości', category: 'document' },
+      'prl-1970s'
+    );
+    expect(item.templateId).toBe('document.id-card');
+    // Nie może używać letter-shared.webp (koperta lakowa)
+    expect(item.imageUrl).not.toBe('/equipment/catalog/letter-shared.webp');
+    expect(item.imageUrl).toBe('/equipment/predefined/document.svg');
+  });
+
+  it('naprawia błąd Issue #469: Aparat fotograficzny w PRL nie używa anachronistycznego aparatu z 1920s', () => {
+    const camera = findEquipmentTemplate('Aparat fotograficzny');
+    expect(camera?.id).toBe('tool.camera');
+
+    // W epoce 1920s ma dedykowany render
+    expect(resolveCatalogAsset(camera, '1920s')).toBe('/equipment/catalog/camera-1920s.webp');
+
+    // W epoce PRL nie zwraca aparatu z 1920s - czeka na camera-prl.webp i używa bezpiecznej ikony kategorii
+    expect(resolveCatalogAsset(camera, 'prl-1970s')).toBeUndefined();
+
+    const appliedPrl = applyCatalogTemplate(
+      { id: 'test_cam_prl', name: 'Aparat fotograficzny', category: 'tool' },
+      'prl-1970s'
+    );
+    expect(appliedPrl.imageUrl).not.toBe('/equipment/catalog/camera-1920s.webp');
+    expect(appliedPrl.imageUrl).toBe('/equipment/predefined/tool.svg');
   });
 
   it('obsługuje tool.electronics-case-prl w epoce 2000s oraz modern bez odrzucania szablonu', () => {
@@ -572,15 +604,15 @@ describe('equipment catalog', () => {
     expect(detector?.visualSource).toBe('catalog');
   });
 
-  it('mapuje "Dokumenty tożsamości" oraz formy pojedyncze do personal.badge (wallet-shared.webp), a nie do document.letter', () => {
+  it('mapuje "Dokumenty tożsamości" oraz formy pojedyncze do document.id-card, a nie do document.letter', () => {
     const template = findEquipmentTemplate('Dokumenty tożsamości');
     expect(template).toBeDefined();
-    expect(template?.id).toBe('personal.badge');
+    expect(template?.id).toBe('document.id-card');
     expect(template?.id).not.toBe('document.letter');
 
-    expect(findEquipmentTemplate('Dokument tożsamości')?.id).toBe('personal.badge');
-    expect(findEquipmentTemplate('Dowód tożsamości')?.id).toBe('personal.badge');
-    expect(findEquipmentTemplate('Dowód osobisty')?.id).toBe('personal.badge');
+    expect(findEquipmentTemplate('Dokument tożsamości')?.id).toBe('document.id-card');
+    expect(findEquipmentTemplate('Dowód tożsamości')?.id).toBe('document.id-card');
+    expect(findEquipmentTemplate('Dowód osobisty')?.id).toBe('document.id-card');
 
     const applied = applyCatalogTemplate(
       {
@@ -590,7 +622,7 @@ describe('equipment catalog', () => {
       },
       '1920s'
     );
-    expect(applied.templateId).toBe('personal.badge');
-    expect(applied.imageUrl).toBe('/equipment/catalog/wallet-shared.webp');
+    expect(applied.templateId).toBe('document.id-card');
+    expect(applied.imageUrl).toBe('/equipment/predefined/document.svg');
   });
 });
