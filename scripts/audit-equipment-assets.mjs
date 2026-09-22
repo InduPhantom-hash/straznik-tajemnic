@@ -538,7 +538,7 @@ function generateContactSheetHtml(items, stats) {
       return `
       <div class="card ${isIssue ? 'card-issue' : isMissing ? 'card-missing' : 'card-ok'}" data-status="${item.status}" data-era="${item.visualEra}">
         <div class="card-media">
-          <img src="../../..${item.resolvedAsset}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='/equipment/predefined/${item.category}.svg'" />
+          <img src="../../../public${item.resolvedAsset}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='../../../public/equipment/predefined/${item.category}.svg'" />
           <span class="badge ${statusBadgeClass}">${statusLabel}</span>
         </div>
         <div class="card-body">
