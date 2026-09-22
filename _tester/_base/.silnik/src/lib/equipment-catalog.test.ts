@@ -603,4 +603,26 @@ describe('equipment catalog', () => {
     expect(detector?.imageUrl).toBe('/equipment/catalog/diy-emf-detector-prl.webp');
     expect(detector?.visualSource).toBe('catalog');
   });
+
+  it('mapuje "Dokumenty tożsamości" oraz formy pojedyncze do document.id-card, a nie do document.letter', () => {
+    const template = findEquipmentTemplate('Dokumenty tożsamości');
+    expect(template).toBeDefined();
+    expect(template?.id).toBe('document.id-card');
+    expect(template?.id).not.toBe('document.letter');
+
+    expect(findEquipmentTemplate('Dokument tożsamości')?.id).toBe('document.id-card');
+    expect(findEquipmentTemplate('Dowód tożsamości')?.id).toBe('document.id-card');
+    expect(findEquipmentTemplate('Dowód osobisty')?.id).toBe('document.id-card');
+
+    const applied = applyCatalogTemplate(
+      {
+        id: 'eq_id_test',
+        name: 'Dokumenty tożsamości',
+        category: 'document',
+      },
+      '1920s'
+    );
+    expect(applied.templateId).toBe('document.id-card');
+    expect(applied.imageUrl).toBe('/equipment/predefined/document.svg');
+  });
 });

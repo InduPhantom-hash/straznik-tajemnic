@@ -301,6 +301,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     aliases: [
       "Identity Documents",
       "Dokumenty tożsamości",
+      "Dokument tożsamości",
       "Dowód tożsamości",
       "Dowód osobisty",
       "Legitymacja",
@@ -352,7 +353,7 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'personal.badge',
     name: "Odznaka służbowa",
-    aliases: ["Odznaka", "Police Badge", "Zniszczona odznaka", "Legitymacja służbowa", "Odznaka detektywa", "Odznaka policyjna", "Legitymacja", "Legitymacja prasowa", "Legitymacja prasowa gazety"],
+    aliases: ["Odznaka", "Police Badge", "Zniszczona odznaka", "Legitymacja służbowa", "Odznaka detektywa", "Odznaka policyjna", "Legitymacja prasowa", "Legitymacja prasowa gazety"],
     category: 'personal',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,

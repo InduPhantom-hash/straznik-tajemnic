@@ -237,7 +237,7 @@ describe('EquipmentModal catalog images', () => {
     expect(screen.getByText('Dokument')).toBeInTheDocument();
   });
 
-  it('prezentuje rejestr majątkowy Arkham First National Bank w zakładce Finanse', () => {
+  it('prezentuje kompaktowy pasek finansów w nagłówku i nie wyświetla osobnej zakładki Finanse', () => {
     const character = {
       id: 'investigator-finances',
       name: 'Francis Morgan',
@@ -258,18 +258,40 @@ describe('EquipmentModal catalog images', () => {
       />
     );
 
-    // Przełącz na finanse
-    const financesTab = screen.getByRole('button', { name: /Finanse/i });
-    fireEvent.click(financesTab);
+    // Osobna zakładka Finanse została usunięta
+    expect(screen.queryByRole('button', { name: /Finanse/i })).not.toBeInTheDocument();
 
-    expect(
-      screen.getByText(/Arkham First National Bank · Rejestr Majątkowy/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Bilans Finansowy: Francis Morgan/i)
-    ).toBeInTheDocument();
-    expect(screen.getByText('45%')).toBeInTheDocument();
-    expect(screen.getByText(/Wydatki do tej kwoty nie wymagają odnotowywania/i)).toBeInTheDocument();
+    // Finanse są prezentowane w kompaktowym 1-liniowym pasku w nagłówku
+    const financeBar = screen.getByTestId('equipment-finance-bar');
+    expect(financeBar).toBeInTheDocument();
+    expect(financeBar).toHaveTextContent(/Gotówka:/i);
+    expect(financeBar).toHaveTextContent(/Majątek:/i);
+    expect(financeBar).toHaveTextContent(/Poziom życia:/i);
+  });
+
+  it('prezentuje finanse na podstawie character.creditRating nawet gdy skills nie zawiera Majętności', () => {
+    const character = {
+      id: 'investigator-cr-only',
+      name: 'Harvey Walters',
+      creditRating: 50,
+      equipment: [],
+    } as unknown as Character;
+
+    render(
+      <EquipmentModal
+        open
+        onOpenChange={jest.fn()}
+        character={character}
+        onCharacterUpdate={jest.fn()}
+        era="1920s"
+      />
+    );
+
+    const financeBar = screen.getByTestId('equipment-finance-bar');
+    expect(financeBar).toBeInTheDocument();
+    // Credit rating 50 w 1920s to "Zamożny" (gotówka $250, aktywa $25,000)
+    expect(financeBar).toHaveTextContent(/Zamożny/i);
+    expect(financeBar).toHaveTextContent(/\$250/i);
   });
 
   it('nie zawiera etykiety ani sekcji "Wygląd:" w całym oknie ekwipunku', () => {
