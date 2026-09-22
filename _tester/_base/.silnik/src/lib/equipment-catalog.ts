@@ -143,7 +143,11 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { '1920s': '/equipment/catalog/camera-1920s.webp', shared: '/equipment/catalog/camera-1920s.webp' },
+    assetPaths: {
+      '1920s': '/equipment/catalog/camera-1920s.webp',
+      'modern': '/equipment/catalog/dslr-camera-modern.webp',
+      // W epoce PRL i 1890s brak dedykowanego renderu -> czysty fallback do ikony kategorii SVG
+    },
     value: 30,
   },
   {
@@ -284,11 +288,35 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
   {
     id: 'document.letter',
     name: "List",
-    aliases: ["Letter", "Dokumenty i bilety", "Dokumenty podróżne", "Koperty na dowody", "Dokumenty", "Papiery wartościowe", "Teczka z aktami", "Dokumenty tożsamości", "Fałszywe dokumenty", "Zalita woskiem koperta", "document.letter-shared"],
+    aliases: ["Letter", "Dokumenty i bilety", "Dokumenty podróżne", "Koperty na dowody", "Dokumenty", "Papiery wartościowe", "Teczka z aktami", "Fałszywe dokumenty", "Zalita woskiem koperta", "document.letter-shared"],
     category: 'document',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
     assetPaths: { shared: '/equipment/catalog/letter-shared.webp' },
+    value: 1,
+  },
+  {
+    id: 'document.id-card',
+    name: "Dokumenty tożsamości",
+    aliases: [
+      "Identity Documents",
+      "Dokumenty tożsamości",
+      "Dowód tożsamości",
+      "Dowód osobisty",
+      "Legitymacja",
+      "Dokumenty osobiste",
+      "Portfel z dokumentami",
+      "ID Card",
+      "Identity Papers",
+      "document.id-card-shared"
+    ],
+    category: 'document',
+    visualTreatment: 'mundane',
+    availableIn: ALL_ERAS,
+    assetPaths: {
+      // Dedykowane rendery w kolejce Herdr OpenAI (id-card-prl, id-card-1920s, id-card-modern).
+      // Brak 'shared' gwarantuje, że dopóki render nie istnieje, używana jest bezpieczna ikona kategorii SVG.
+    },
     value: 1,
   },
   {
@@ -1306,7 +1334,10 @@ export const EQUIPMENT_CATALOG: EquipmentTemplate[] = [
     category: 'tool',
     visualTreatment: 'mundane',
     availableIn: ALL_ERAS,
-    assetPaths: { shared: '/equipment/catalog/flashlight-1920s.webp' },
+    assetPaths: {
+      // W kolejce Herdr OpenAI (batteries-aa.webp).
+      // Brak fałszywego shared: latarki z 1920s - czysty fallback do ikony kategorii SVG.
+    },
     value: 2,
     weight: 0.2,
   },
@@ -2032,10 +2063,9 @@ export function applyCatalogTemplate(
     description: item.description || template.description,
     modifiers: item.modifiers ?? template.modifiers,
     value: item.value ?? template.value,
-    weight: item.weight ?? template.weight,
-    visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'catalog'),
+    visualSource: catalogAsset ? 'catalog' : (item.visualSource ?? 'fallback'),
     visualTreatment: template.visualTreatment,
-    imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset),
+    imageUrl: isSvgOrFallback && catalogAsset ? catalogAsset : (item.imageUrl ?? catalogAsset ?? CATEGORY_FALLBACK_ASSETS[resolvedCategory]),
     currentAmmo: item.currentAmmo ?? (isFirearm ? (item.maxAmmo ?? defaultCapacity) : undefined),
     maxAmmo: item.maxAmmo ?? (isFirearm ? defaultCapacity : undefined),
     charges: item.charges ?? (resolvedCategory === 'medical' ? (item.quantity ?? 3) : undefined),
