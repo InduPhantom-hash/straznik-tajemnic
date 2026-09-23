@@ -22,13 +22,15 @@ function withTraceId(request: NextRequest): NextResponse {
 
 export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) return withTraceId(request);
+  if (request.nextUrl.pathname.startsWith('/fonts/')) return NextResponse.next();
   if (request.nextUrl.pathname === '/welcome') return NextResponse.next();
   return intlMiddleware(request);
 }
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|fonts|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff|woff2|ttf|eot|mp3|wav)$).*)',
     '/(api|trpc)(.*)',
   ],
 };
+

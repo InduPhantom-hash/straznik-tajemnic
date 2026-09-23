@@ -47,4 +47,30 @@ describe('Self-Hosted Fonts (Issue #480)', () => {
     expect(layoutContent).not.toContain('fonts.gstatic.com');
     expect(layoutContent).toContain("import './fonts.css';");
   });
+
+  it('src/middleware.ts musi wykluczać pliki i ścieżkę fontów z przechwytywania przez next-intl (Issue #493)', () => {
+    const middlewarePath = path.join(rootDir, 'src/middleware.ts');
+    expect(fs.existsSync(middlewarePath)).toBe(true);
+    const middlewareContent = fs.readFileSync(middlewarePath, 'utf8');
+
+    // Sprawdź czy matcher zawiera woff i woff2 oraz fonts
+    expect(middlewareContent).toMatch(/woff2/);
+    expect(middlewareContent).toMatch(/fonts/);
+
+    // Sprawdź czy regex matcher faktycznie NIE dopasowuje plików fontów
+    const matcherRegexMatch = middlewareContent.match(/'(\/\(\(\?!api[^']+\)\.\*\))'/);
+    const rawPattern = matcherRegexMatch ? matcherRegexMatch[1] : null;
+    expect(rawPattern).not.toBeNull();
+
+    if (rawPattern) {
+      const regex = new RegExp(`^${rawPattern}$`);
+      expect(regex.test('/fonts/special-elite-400-normal-latin.woff2')).toBe(false);
+      expect(regex.test('/fonts/cinzel-400-normal-latin.woff2')).toBe(false);
+      expect(regex.test('/fonts/cormorant-garamond-400-normal-latin.woff2')).toBe(false);
+    }
+
+    // Sprawdź czy funkcja middleware ma bezpośredni bypass dla /fonts/
+    expect(middlewareContent).toContain("pathname.startsWith('/fonts/')");
+  });
 });
+
