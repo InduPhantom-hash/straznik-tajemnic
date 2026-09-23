@@ -96,6 +96,18 @@ fs.writeFileSync(path, JSON.stringify(prefs));
 
 echo "=== $(date) launcher start (port $PORT) ===" >>"$LOG"
 
+SUPERVISOR_SCRIPT=""
+if [ -f "$APP_DIR/desktop/supervisor.mjs" ]; then
+  SUPERVISOR_SCRIPT="$APP_DIR/desktop/supervisor.mjs"
+elif [ -f "$GAME_DIR/desktop/supervisor.mjs" ]; then
+  SUPERVISOR_SCRIPT="$GAME_DIR/desktop/supervisor.mjs"
+fi
+
+if [ -n "$SUPERVISOR_SCRIPT" ]; then
+  echo "$(date) przekazuje kontrole do desktop/supervisor.mjs" >>"$LOG"
+  exec node "$SUPERVISOR_SCRIPT"
+fi
+
 # --- 1. Zapewnij serwer ---
 # Serwer uruchomiony starym launcherem nie ma flagi potrzebnej trasie API.
 # Zastap go tutaj, zanim otworzymy okno gry.
