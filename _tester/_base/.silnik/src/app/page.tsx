@@ -199,6 +199,7 @@ export default function Home() {
     setActiveGameState: charMgmt.setActiveGameState,
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
+    currentLocale: 'pl',
   });
 
   // UI STATE
@@ -880,6 +881,7 @@ export default function Home() {
                 save.saveModalMode === 'save'
                   ? {
                       messages: chat.messages,
+                      locale: 'pl',
                       aiSettings: aiSettings || loadAISettings(),
                       equipmentVisualEra: resolveEraVisualProfile(resolvedEraContext || '1920s'),
                       characters: charMgmt.characters,

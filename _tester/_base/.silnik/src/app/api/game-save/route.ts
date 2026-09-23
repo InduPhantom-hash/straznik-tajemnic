@@ -452,6 +452,12 @@ export async function PUT(request: NextRequest) {
       ...updateData,
       lastUpdated: new Date().toISOString(),
     };
+    if ('locale' in updateData) {
+      updatedSave.locale =
+        updateData.locale === 'pl' || updateData.locale === 'en'
+          ? updateData.locale
+          : undefined;
+    }
     // Metadata-only edits retain the saved point in time.
     if ('messages' in updateData || 'campaignMemory' in updateData) {
       delete updatedSave.memorySnapshot;

@@ -360,5 +360,95 @@ describe('FullGameSaveManager duet persistence', () => {
       expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 'fr' as unknown as 'en' })).toBe(false);
       expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 123 as unknown as 'pl' })).toBe(false);
     });
+
+    it('sanitizes invalid locale in createFullSave and migrateLegacySave to undefined', () => {
+      const saveInvalid = FullGameSaveManager.createFullSave({
+        name: 'Invalid Locale Save',
+        userId: 'local',
+        locale: 'de' as unknown as 'pl',
+        messages: [],
+        gameSettings: { aiSettings: {} as AISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+      expect(saveInvalid.locale).toBeUndefined();
+      expect(FullGameSaveManager.validateSave(saveInvalid)).toBe(true);
+
+      const migratedCorrupt = FullGameSaveManager.migrateLegacySave({
+        name: 'Corrupt Legacy',
+        userId: 'local',
+        locale: 'fr' as unknown as 'pl',
+        messages: [],
+      });
+      expect(migratedCorrupt?.locale).toBeUndefined();
+      expect(FullGameSaveManager.validateSave(migratedCorrupt!)).toBe(true);
+    });
+
+    it('re-validates and normalizes locale when decompressing saves with invalid locale', () => {
+      const corruptCompressed = JSON.stringify({
+        id: 'save_corrupt_1',
+        name: 'Corrupt Compressed Save',
+        version: '2.1.0',
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        userId: 'local',
+        locale: 'de',
+        messages: [],
+        images: [],
+        descriptions: [],
+        gameSettings: { aiSettings: {} },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+        activeGameState: {},
+        pdfMemory: {},
+        gmTools: {},
+        notes: '',
+        sessionMetadata: {
+          startTime: '',
+          endTime: '',
+          duration: 0,
+          messageCount: 0,
+          imageCount: 0,
+          sessionCost: 0,
+        },
+      });
+
+      const decompressed = FullGameSaveManager.decompressSave(corruptCompressed);
+      expect(decompressed).not.toBeNull();
+      expect(decompressed?.locale).toBeUndefined();
+      expect(FullGameSaveManager.validateSave(decompressed!)).toBe(true);
+    });
+
+    it('sanitizes locale in addToSavesList and getSavesList', () => {
+      localStorage.clear();
+      const baseSave = FullGameSaveManager.createFullSave({
+        id: 'save_list_test',
+        name: 'List test',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: {} as AISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      FullGameSaveManager.addToSavesList(baseSave);
+      const saves = FullGameSaveManager.getSavesList();
+      expect(saves).toHaveLength(1);
+      expect(saves[0].locale).toBe('en');
+
+      // Test with artificially corrupted locale on save object
+      const corruptedObject = { ...baseSave, id: 'save_list_corrupt', locale: 'de' as unknown as 'pl' };
+      FullGameSaveManager.addToSavesList(corruptedObject);
+      const updatedSaves = FullGameSaveManager.getSavesList();
+      expect(updatedSaves).toHaveLength(2);
+      expect(updatedSaves[0].locale).toBeUndefined();
+    });
   });
 });

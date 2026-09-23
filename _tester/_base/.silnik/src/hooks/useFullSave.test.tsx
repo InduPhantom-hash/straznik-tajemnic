@@ -396,5 +396,75 @@ describe('useFullSave - status urwanej narracji', () => {
       expect(localStorage.getItem('language_selected')).toBe('en');
       expect(router.replace).toHaveBeenCalledWith('/', { locale: 'en' });
     });
+
+    it('synchronizes NEXT_LOCALE cookie when save.locale switches', async () => {
+      const router = { replace: jest.fn() };
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Cookie Sync Save',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      localStorage.setItem('language_selected', 'pl');
+      document.cookie = 'NEXT_LOCALE=pl;path=/';
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          currentLocale: 'pl',
+          router,
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(localStorage.getItem('language_selected')).toBe('en');
+      expect(document.cookie).toContain('NEXT_LOCALE=en');
+      expect(router.replace).toHaveBeenCalledWith('/', { locale: 'en' });
+    });
+
+    it('safely ignores invalid save.locale and does not pollute localStorage or invoke router', async () => {
+      const router = { replace: jest.fn() };
+      const baseSave = FullGameSaveManager.createFullSave({
+        name: 'Invalid Locale Save',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      // Artificially corrupt the save object's locale
+      const corruptedSave = { ...baseSave, locale: 'de' as unknown as 'en' };
+      localStorage.setItem('language_selected', 'pl');
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          currentLocale: 'pl',
+          router,
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(corruptedSave);
+        expect(success).toBe(true);
+      });
+
+      expect(localStorage.getItem('language_selected')).toBe('pl');
+      expect(router.replace).not.toHaveBeenCalled();
+    });
   });
 });

@@ -204,7 +204,10 @@ export class FullGameSaveManager {
       createdAt: now,
       lastUpdated: now,
       userId: data.userId,
-      locale: data.locale,
+      locale:
+        data.locale === 'pl' || data.locale === 'en'
+          ? data.locale
+          : undefined,
 
       // Historia
       messages: data.messages,
@@ -332,7 +335,10 @@ export class FullGameSaveManager {
       userId: save.userId,
       messageCount: save.sessionMetadata.messageCount,
       imageCount: save.sessionMetadata.imageCount,
-      locale: save.locale,
+      locale:
+        save.locale === 'pl' || save.locale === 'en'
+          ? save.locale
+          : undefined,
     };
 
     // Usuń stary save o tym samym ID (jeśli istnieje)
@@ -419,7 +425,10 @@ export class FullGameSaveManager {
       return this.createFullSave({
         name: legacy.name || 'Zmigrowana sesja',
         userId: legacy.userId || 'local',
-        locale: legacy.locale,
+        locale:
+          legacy.locale === 'pl' || legacy.locale === 'en'
+            ? legacy.locale
+            : undefined,
         messages: legacy.messages || [],
         gameSettings: {
           aiSettings: legacy.aiSettings || ({} as AISettings),
@@ -456,7 +465,11 @@ export class FullGameSaveManager {
 
       if (!this.validateSave(save)) {
         // Spróbuj migracji
-        return this.migrateLegacySave(save);
+        const migrated = this.migrateLegacySave(save);
+        if (migrated && this.validateSave(migrated)) {
+          return migrated;
+        }
+        return null;
       }
 
       return save;
