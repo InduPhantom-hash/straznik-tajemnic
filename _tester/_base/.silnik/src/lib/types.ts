@@ -1035,6 +1035,10 @@ export interface AdventureContext {
   // Content
   hook?: string;
   description?: string;
+  /** Bezspoilerowe wprowadzenie dla Badacza (na ekran przygotowania sesji / ładowania) */
+  investigatorIntro?: string;
+  /** Ciekawostki i reguły świata z epoki dla Badacza (kontekst historyczno-społeczny) */
+  settingTrivia?: string[];
   difficulty?: 'easy' | 'normal' | 'hard';
   difficultyStars?: number;
   estimatedSessions?: string;
