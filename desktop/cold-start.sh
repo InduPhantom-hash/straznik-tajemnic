@@ -48,21 +48,25 @@ if [ -n "$SRV_PIDS" ]; then
   log "KROK 0: serwery gier ($APP_PORT, $ALT_PORT) dzialaja (PID: $(echo "$SRV_PIDS" | tr '\n' ' ')) - zatrzymuje"
   echo "$SRV_PIDS" | xargs kill 2>/dev/null || true
 fi
-if pgrep -f "user-data-dir=" | grep -E "($PROFILE_DIR|$ZEW_PROFILE_DIR)" >/dev/null 2>&1; then
-  log "KROK 0: okno gry (Chrome) dziala - zamykam"
-  pkill -f "user-data-dir=$PROFILE_DIR" 2>/dev/null || true
-  pkill -f "user-data-dir=$ZEW_PROFILE_DIR" 2>/dev/null || true
+CHROME_PIDS="$(pgrep -fl "user-data-dir=.*(chrome-profile|ZewCthulhu)" 2>/dev/null | awk '{print $1}' || true)"
+if [ -n "$CHROME_PIDS" ]; then
+  log "KROK 0: okno gry (Chrome) dziala (PID: $(echo "$CHROME_PIDS" | tr '\n' ' ')) - zamykam"
+  echo "$CHROME_PIDS" | xargs kill 2>/dev/null || true
 fi
+pkill -f "user-data-dir=.*chrome-profile" 2>/dev/null || true
+pkill -f "user-data-dir=.*ZewCthulhu" 2>/dev/null || true
+
 # Czekaj az Chrome/serwer zwolnia pliki i pamiec (max ~10s).
 for _ in $(seq 1 20); do
-  if pgrep -f "user-data-dir=$PROFILE_DIR" >/dev/null 2>&1 || lsof -ti :$APP_PORT >/dev/null 2>&1; then
+  if pgrep -fl "user-data-dir=.*(chrome-profile|ZewCthulhu)" >/dev/null 2>&1 || lsof -ti :$APP_PORT :$ALT_PORT >/dev/null 2>&1; then
     sleep 0.5
   else
     break
   fi
 done
-# Dobij port gdyby wisial.
-lsof -ti :$APP_PORT 2>/dev/null | xargs kill -9 2>/dev/null || true
+# Dobij procesy i porty gdyby wisialy.
+pgrep -fl "user-data-dir=.*(chrome-profile|ZewCthulhu)" 2>/dev/null | awk '{print $1}' | xargs kill -9 2>/dev/null || true
+lsof -ti :$APP_PORT :$ALT_PORT 2>/dev/null | xargs kill -9 2>/dev/null || true
 log "KROK 0: gra zatrzymana (serwer + okno)"
 
 # --- 1. Auto-backup save'ow (tylko gdy cos jest) ---
@@ -75,10 +79,11 @@ else
   log "brak save'ow do backupu"
 fi
 
-# --- 2. Dane sesji gracza (dysk) ---
-rm -rf data/saves/local data/sessions data/results public/game-saves data/usage 2>/dev/null || true
-rm -rf _tester/_base/.silnik/data/saves/local _tester/_base/.silnik/data/sessions _tester/_base/.silnik/data/results _tester/_base/.silnik/data/usage 2>/dev/null || true
-log "usunieto: save'y, sesje, wyniki, licznik kosztow"
+# --- 2. Dane sesji gracza (dysk + Application Support) ---
+rm -rf data/saves/local data/sessions data/results public/game-saves data/usage data/pricing 2>/dev/null || true
+rm -rf _tester/_base/.silnik/data/saves/local _tester/_base/.silnik/data/sessions _tester/_base/.silnik/data/results _tester/_base/.silnik/data/usage _tester/_base/.silnik/data/pricing 2>/dev/null || true
+rm -rf "$ZEW_DATA_ROOT/saves" "$ZEW_DATA_ROOT/sessions" "$ZEW_DATA_ROOT/results" "$ZEW_DATA_ROOT/usage" "$ZEW_DATA_ROOT/pricing" "$ZEW_DATA_ROOT/campaigns" 2>/dev/null || true
+log "usunieto: save'y, sesje, wyniki, licznik kosztow (repo + $ZEW_DATA_ROOT)"
 
 # --- 3. Profil Chrome launchera (localStorage/IndexedDB: czat, postacie, ustawienia) ---
 rm -rf "$PROFILE_DIR" "$ZEW_PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
@@ -86,10 +91,13 @@ sleep 0.5
 rm -rf "$PROFILE_DIR" "$ZEW_PROFILE_DIR" "$APP_DIR/.desktop/chrome-profile" "$APP_DIR/_tester/_base/.silnik/.desktop/chrome-profile" 2>/dev/null || true
 log "rm profilu: OK (czat, postacie, ustawienia wyczyszczone we wszystkich lokalizacjach)"
 
-# --- 4. Pamiec NPC RAG (ZOSTAW rules/adventures/mythos!) ---
-rm -f data/rag/npcs.* data/rag/world-state.* 2>/dev/null || true
-log "usunieto: pamiec NPC (RAG npcs + world-state)"
-log "ZOSTAWIONO: baze wiedzy RAG (rules/adventures/mythos)"
+# --- 4. Baza podręcznika zasad i pamięć RAG (czyste BYOB) ---
+# Usuwamy zaindeksowane zasady i kampanie, aby po resecie gra wymagała wgrania własnego PDF
+rm -f data/rag/rules.* data/rag/rules-profile.json data/rag/capabilities.json data/rag/campaigns__* data/rag/npcs.* data/rag/world-state.* 2>/dev/null || true
+rm -f _tester/_base/.silnik/data/rag/rules.* _tester/_base/.silnik/data/rag/rules-profile.json _tester/_base/.silnik/data/rag/capabilities.json _tester/_base/.silnik/data/rag/campaigns__* _tester/_base/.silnik/data/rag/npcs.* _tester/_base/.silnik/data/rag/world-state.* 2>/dev/null || true
+rm -f "$ZEW_DATA_ROOT/rag/rules.*" "$ZEW_DATA_ROOT/rag/rules-profile.json" "$ZEW_DATA_ROOT/rag/capabilities.json" "$ZEW_DATA_ROOT/rag/campaigns__*" "$ZEW_DATA_ROOT/rag/npcs.*" "$ZEW_DATA_ROOT/rag/world-state.*" 2>/dev/null || true
+log "usunieto: baze zasad BYOB (rules.*, profile), kampanie i pamiec NPC"
+log "ZOSTAWIONO: oficjalne bazy wiedzy scenariuszy i mitow (adventures/mythos)"
 
 # --- 5. Auto-rebuild silnika (gwarancja aktualnego kodu) ---
 SILNIK_DIR="$APP_DIR/_tester/_base/.silnik"

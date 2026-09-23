@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Character,
   Message,
@@ -55,8 +55,8 @@ function isNetworkBlip(error: unknown): boolean {
 async function fetchWithRetry(
   url: string,
   options: Parameters<typeof fetchWithApiKeys>[1],
-  retries = 2,
-  backoffMs = 300
+  retries = 3,
+  backoffMs = 1000
 ): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -274,6 +274,16 @@ export function useGameStart({
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('zew:confirm-enter-game'));
     }
+  }, []);
+
+  // Cichy pre-warmup tras API w tle podczas menu głównego (kompilacja JIT tras Next.js)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const warmupTimer = setTimeout(() => {
+      fetch('/api/chat-test', { method: 'GET' }).catch(() => {});
+      fetch('/api/health/gemini', { method: 'GET' }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(warmupTimer);
   }, []);
 
   // IND-271: kolejka auto-generacji miniatur ekwipunku w tle (fire-and-forget

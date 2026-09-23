@@ -236,20 +236,28 @@ export async function runSupervisor(options = {}) {
     STRAZNIK_DESKTOP_COLD_START: '1'
   };
 
+  let serverStdio = 'ignore';
+  try {
+    const logFd = fs.openSync(paths.logFile, 'a');
+    serverStdio = ['ignore', logFd, logFd];
+  } catch (err) {
+    log(`Nie udało się otworzyć pliku logów serwera: ${err.message}`);
+  }
+
   // Uruchomienie jako osobna grupa procesów (detached)
   if (process.platform === 'win32') {
     serverProcess = spawn('cmd.exe', ['/c', 'npm', 'start'], {
       cwd: paths.gameDir,
       env,
       detached: false,
-      stdio: 'ignore'
+      stdio: serverStdio
     });
   } else {
     serverProcess = spawn('npm', ['start'], {
       cwd: paths.gameDir,
       env,
       detached: true,
-      stdio: 'ignore'
+      stdio: serverStdio
     });
   }
 
