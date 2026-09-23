@@ -1,6 +1,5 @@
-/* Fonty (Cinzel, Cinzel Decorative, Cormorant Garamond, Special Elite) ladowane przez
-   <link> w src/app/layout.tsx - @import url() do Google Fonts jest wycinany przez
-   Tailwind/PostCSS przy buildzie. NIE przywracac tu @import. */
+/* Fonty (Cinzel, Cinzel Decorative, Cormorant Garamond, Special Elite) ładowane lokalnie
+   przez src/app/fonts.css (tryb Offline-First, assety w public/fonts/). */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
