@@ -3,7 +3,7 @@
 import { SafeImage } from '@/components/ui/safe-image';
 import type { ChangeEvent } from 'react';
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   X,
   Save,
@@ -63,6 +63,7 @@ interface SaveMeta {
   formattedSize: string;
   messageCount: number;
   imageCount: number;
+  locale?: 'pl' | 'en';
   // Bogata karta katalogu (makieta .agent/design/15) - opcjonalne.
   characterName?: string;
   thumbnail?: string;
@@ -127,6 +128,7 @@ interface FullGameSaveModalProps {
     locations: Location[];
     currentLocationId?: string;
     pdfMemory?: PdfMemory;
+    locale?: 'pl' | 'en';
     notes?: string;
     sessionStartTime?: string;
   };
@@ -147,6 +149,8 @@ export function FullGameSaveModal({
   onSaved,
 }: FullGameSaveModalProps) {
   const t = useTranslations('FullGameSaveModal');
+  const rawLocale = useLocale();
+  const currentLocale: 'pl' | 'en' = rawLocale === 'en' ? 'en' : 'pl';
   const [saveName, setSaveName] = useState('');
   const [saveNotes, setSaveNotes] = useState('');
   const [saveImages, setSaveImages] = useState(true);
@@ -283,6 +287,7 @@ export function FullGameSaveModal({
         id: saveId,
         name: saveName,
         userId,
+        locale: currentData?.locale ?? currentLocale,
         messages: safeMessages,
         images,
         gameSettings: {

@@ -47,7 +47,11 @@ export interface UseFullSaveReturn {
   handleStartNewGame: () => void;
 }
 
-interface UseFullSaveOptions {
+export interface FullSaveRouterLike {
+  replace: (pathname: string, options?: { locale?: 'pl' | 'en' }) => void;
+}
+
+export interface UseFullSaveOptions {
   equipmentVisualEra?: EquipmentVisualEra;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
@@ -62,6 +66,9 @@ interface UseFullSaveOptions {
     characters: Character[]
   ) => boolean;
   clearDeclarations?: () => void;
+  currentLocale?: 'pl' | 'en';
+  router?: FullSaveRouterLike;
+  pathname?: string;
 }
 
 export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
@@ -77,6 +84,9 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
     restoreHotSeatConfig,
     clearDeclarations,
     equipmentVisualEra,
+    currentLocale,
+    router,
+    pathname,
   } = options;
 
   const [showFullSaveModal, setShowFullSaveModal] = useState(false);
@@ -217,6 +227,20 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
           players: [],
         });
 
+        // Auto-synchronizacja języka przy wczytywaniu zapisu (Issue #490)
+        const activeLocale =
+          currentLocale ||
+          (typeof window !== 'undefined'
+            ? (localStorage.getItem('language_selected') as 'pl' | 'en' | null) || 'pl'
+            : 'pl');
+
+        if (save.locale && save.locale !== activeLocale) {
+          safeSetItem('language_selected', save.locale);
+          if (router) {
+            router.replace(pathname || '/', { locale: save.locale });
+          }
+        }
+
         console.log(`✅ Wczytano save: ${save.name}`);
         toast({
           title: `Wczytano: ${save.name}`,
@@ -247,6 +271,9 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
       restoreHotSeatConfig,
       clearDeclarations,
       equipmentVisualEra,
+      currentLocale,
+      router,
+      pathname,
     ]
   );
 

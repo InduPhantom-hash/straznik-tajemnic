@@ -16,7 +16,7 @@ export { usePdfMemory } from './usePdfMemory';
 export type { PdfMemory, UsePdfMemoryReturn } from './usePdfMemory';
 
 export { useFullSave } from './useFullSave';
-export type { UseFullSaveReturn } from './useFullSave';
+export type { UseFullSaveReturn, UseFullSaveOptions, FullSaveRouterLike } from './useFullSave';
 
 // Re-export istniejących hooków
 export {

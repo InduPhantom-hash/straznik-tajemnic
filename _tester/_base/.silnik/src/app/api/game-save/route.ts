@@ -30,6 +30,7 @@ interface SaveMeta {
   size: number;
   formattedSize: string;
   localPath: string;
+  locale?: 'pl' | 'en';
   // === Bogata karta katalogu (makieta .agent/design/15) - wszystko opcjonalne,
   // by stare meta.json bez tych pól wciąż się parsowały. ===
   characterName?: string;
@@ -226,6 +227,7 @@ export async function POST(request: NextRequest) {
       size: saveSize,
       formattedSize: FullGameSaveManager.formatSize(saveSize),
       localPath,
+      locale: fullSave.locale,
       ...buildRichMeta(fullSave),
     });
 
@@ -315,6 +317,7 @@ export async function GET(request: NextRequest) {
                 size,
                 formattedSize: FullGameSaveManager.formatSize(size),
                 localPath: savePath,
+                locale: fullSave.locale,
                 ...buildRichMeta(fullSave),
               });
             }
@@ -481,6 +484,7 @@ export async function PUT(request: NextRequest) {
       size: saveSize,
       formattedSize: FullGameSaveManager.formatSize(saveSize),
       localPath: path.join('data', 'saves', userIdStr, saveId, 'save.json'),
+      locale: updatedSave.locale,
       ...buildRichMeta(updatedSave),
     });
 

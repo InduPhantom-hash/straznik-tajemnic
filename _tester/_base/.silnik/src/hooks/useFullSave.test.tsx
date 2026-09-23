@@ -219,4 +219,182 @@ describe('useFullSave - status urwanej narracji', () => {
     expect(localStorage.getItem('gm_locations')).toBe('[]');
     expect(JSON.parse(localStorage.getItem('zew-campaign-memory-scope')!)).toEqual(restoredScope);
   });
+
+  describe('locale auto-synchronization (Issue #490 / TASK-I18N-02)', () => {
+    const baseOptions = {
+      setMessages: jest.fn(),
+      setCharacters: jest.fn(),
+      setActiveCharacter: jest.fn(),
+      setCampaigns: jest.fn(),
+      setPdfMemory: jest.fn(),
+      setActiveGameState: jest.fn(),
+      setAiSettings: jest.fn(),
+      stopCurrentAudio: jest.fn(),
+    };
+
+    it('synchronizes locale and calls router.replace when save.locale differs from currentLocale', async () => {
+      const router = { replace: jest.fn() };
+      const save = FullGameSaveManager.createFullSave({
+        name: 'English Session',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      localStorage.setItem('language_selected', 'pl');
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          currentLocale: 'pl',
+          router,
+          pathname: '/adventures/strefa-11',
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(localStorage.getItem('language_selected')).toBe('en');
+      expect(router.replace).toHaveBeenCalledTimes(1);
+      expect(router.replace).toHaveBeenCalledWith('/adventures/strefa-11', { locale: 'en' });
+    });
+
+    it('does not call router.replace when save.locale matches active currentLocale', async () => {
+      const router = { replace: jest.fn() };
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Matching Polish Session',
+        userId: 'local',
+        locale: 'pl',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      localStorage.setItem('language_selected', 'pl');
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          currentLocale: 'pl',
+          router,
+          pathname: '/',
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(router.replace).not.toHaveBeenCalled();
+      expect(localStorage.getItem('language_selected')).toBe('pl');
+    });
+
+    it('preserves current locale and does not call router.replace for legacy saves without locale', async () => {
+      const router = { replace: jest.fn() };
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Legacy Save',
+        userId: 'local',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+      delete save.locale;
+
+      localStorage.setItem('language_selected', 'pl');
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          currentLocale: 'pl',
+          router,
+          pathname: '/play',
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(router.replace).not.toHaveBeenCalled();
+      expect(localStorage.getItem('language_selected')).toBe('pl');
+    });
+
+    it('updates localStorage safely when router is not provided in options', async () => {
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Save without router',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      localStorage.setItem('language_selected', 'pl');
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          currentLocale: 'pl',
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(localStorage.getItem('language_selected')).toBe('en');
+    });
+
+    it('falls back to localStorage language_selected when currentLocale option is omitted', async () => {
+      const router = { replace: jest.fn() };
+      const save = FullGameSaveManager.createFullSave({
+        name: 'Fallback locale save',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: defaultAISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      localStorage.setItem('language_selected', 'pl');
+
+      const { result } = renderHook(() =>
+        useFullSave({
+          ...baseOptions,
+          router,
+        })
+      );
+
+      await act(async () => {
+        const success = await result.current.handleLoadFullSave(save);
+        expect(success).toBe(true);
+      });
+
+      expect(localStorage.getItem('language_selected')).toBe('en');
+      expect(router.replace).toHaveBeenCalledWith('/', { locale: 'en' });
+    });
+  });
 });
