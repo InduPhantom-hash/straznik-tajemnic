@@ -47,6 +47,11 @@ echo "[0/5] Cold-Start Smoke Gate (Bramka Pierwszych 10 Sekund)..."
 npm test -- src/tests/smoke/cold-start-state.test.ts --silent
 
 echo "[1/5] Production build..."
+if [ "$REBUILD" = "1" ]; then
+  echo "  [rebuild] Czyszczenie profilu Chrome i danych sesji gracza..."
+  bash "$DESKTOP_DIR/cold-start.sh" || true
+fi
+
 if [ "$REBUILD" = "1" ] || [ ! -f .next/BUILD_ID ]; then
   npm run build
 else
@@ -72,6 +77,10 @@ rsync -a --delete \
   --exclude 'data/results' \
   --exclude 'data/usage' \
   --exclude 'data/pricing' \
+  --exclude 'data/rag/rules*' \
+  --exclude 'data/rag/rules-profile.json' \
+  --exclude 'data/rag/capabilities.json' \
+  --exclude 'data/rag/campaigns__*' \
   "$GAME_DIR/" "$PACKAGE_RUNTIME/"
 rsync -a --delete "$DESKTOP_DIR/" "$PACKAGE_RUNTIME/desktop/"
 
