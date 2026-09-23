@@ -228,14 +228,22 @@ export function useFullSave(options: UseFullSaveOptions): UseFullSaveReturn {
         });
 
         // Auto-synchronizacja języka przy wczytywaniu zapisu (Issue #490)
-        const activeLocale =
-          currentLocale ||
-          (typeof window !== 'undefined'
-            ? (localStorage.getItem('language_selected') as 'pl' | 'en' | null) || 'pl'
-            : 'pl');
+        const activeLocale: 'pl' | 'en' =
+          currentLocale === 'en' || currentLocale === 'pl'
+            ? currentLocale
+            : typeof window !== 'undefined' &&
+              localStorage.getItem('language_selected') === 'en'
+            ? 'en'
+            : 'pl';
 
-        if (save.locale && save.locale !== activeLocale) {
+        if (
+          (save.locale === 'pl' || save.locale === 'en') &&
+          save.locale !== activeLocale
+        ) {
           safeSetItem('language_selected', save.locale);
+          if (typeof document !== 'undefined') {
+            document.cookie = `NEXT_LOCALE=${save.locale};path=/;max-age=31536000;SameSite=Lax`;
+          }
           if (router) {
             router.replace(pathname || '/', { locale: save.locale });
           }
