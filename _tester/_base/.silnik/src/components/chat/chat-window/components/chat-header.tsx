@@ -25,12 +25,15 @@ interface ChatHeaderProps {
   region?: string;
   /** IND-267: konkretne MIEJSCE bohatera (z najnowszego [LOKACJA:]); część po "·". */
   currentLocation?: string;
+  /** Issue #477: czy bieżąca lokacja została już wyczerpana badawczo (bramkowanie lokacji). */
+  isLocationExhausted?: boolean;
 }
 
 export function ChatHeader({
   title,
   region,
   currentLocation,
+  isLocationExhausted,
 }: ChatHeaderProps) {
   const t = useTranslations('ChatHeader');
   const defaultTitle = t('defaultTitle');
@@ -72,13 +75,22 @@ export function ChatHeader({
       <div className="min-w-0 flex-1 flex justify-end">
         {location && (
           <span
-            className="flex min-w-0 items-center gap-1 font-special-elite text-sm text-brass/90"
+            className="flex min-w-0 items-center gap-1.5 font-special-elite text-sm text-brass/90"
             title={location}
           >
             <span aria-hidden="true" className="shrink-0">
               📍
             </span>
             <span className="truncate">{location}</span>
+            {isLocationExhausted && (
+              <span
+                className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm shrink-0"
+                title={t('locationExhaustedTooltip')}
+              >
+                <span>✓</span>
+                <span>{t('locationExhausted')}</span>
+              </span>
+            )}
           </span>
         )}
       </div>

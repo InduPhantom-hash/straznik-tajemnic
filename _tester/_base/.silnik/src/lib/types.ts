@@ -227,6 +227,7 @@ export interface SceneCaseCard {
   keyTakeaways: string[]; // 📜 Kluczowe ustalenia (1-2 zdania syntezy)
   nextStep?: string; // 🎯 Cel i kolejny krok śledztwa
   isSealed: boolean;
+  isLocationExhausted?: boolean; // Czy lokacja została wyczerpana z poszlak (bramkowanie)
 }
 
 // Stan aktywnej, niezamkniętej sceny (zbierany na żywo w trakcie rozgrywki)
@@ -239,6 +240,7 @@ export interface ActiveSceneState {
   people: string[];
   findings: string[];
   notes: string[];
+  isLocationExhausted?: boolean; // Czy lokacja została wyczerpana z poszlak (bramkowanie)
 }
 
 // Wpis dziennika sesji

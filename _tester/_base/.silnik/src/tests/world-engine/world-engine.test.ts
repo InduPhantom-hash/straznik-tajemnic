@@ -56,6 +56,39 @@ describe('World Engine Suite', () => {
     expect(directive).toContain('Spotkanie na cmentarzu o północy');
   });
 
+  it('NarrativeGraphEngine generuje dyrektywę redukcji zmiennych (Anchor Framing - Mechanika 9)', () => {
+    const engine = new NarrativeGraphEngine();
+    const directive = engine.formatDirective(
+      'Piwnica kościoła św. Judy',
+      'Krypta pod ołtarzem',
+      'pl',
+      {
+        knownAnchors: ['Piwnica kościoła św. Judy', 'Znaleziony stary klucz z mosiądzu'],
+        investigativeQuestion: 'Do których drzwi pasuje mosiężny klucz?',
+      }
+    );
+
+    expect(directive).toContain('KOTWICE_SCENY: Oprzyj otwarcie na min. 2 znanych stałych (Piwnica kościoła św. Judy, Znaleziony stary klucz z mosiądzu)');
+    expect(directive).toContain('W sekcji [Co robisz?] zadaj precyzyjne pytanie: "Do których drzwi pasuje mosiężny klucz?"');
+  });
+
+  it('MysteryClueEngine generuje dyrektywę bramkowania lokacji [LOKACJA_WYCZERPANA] gdy lokacja jest zbadana (Mechanika 7)', () => {
+    const engine = new MysteryClueEngine();
+    const directive = engine.formatDirective({
+      id: 'clue-exhausted',
+      summary: 'Wszystkie szuflady zostały przejrzane',
+      targetRevelationId: 'Brak dalszych poszlak',
+      sources: ['observation'],
+      failForwardCost: 'time',
+      isLocationExhausted: true,
+      locationName: 'Gabinet dziekana',
+    }, 'pl');
+
+    expect(directive).toContain('BRAMKOWANIE LOKACJI: Lokacja wyczerpana');
+    expect(directive).toContain('[LOKACJA_WYCZERPANA]');
+    expect(directive).toContain('oznajmij diegetycznie, że dalsze przeszukiwanie nie przyniesie faktów');
+  });
+
   it('PlotFrictionEngine injects societal tension and active rumors', () => {
     const engine = new PlotFrictionEngine();
     const directive = engine.formatDirective({

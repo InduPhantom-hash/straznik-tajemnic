@@ -67,11 +67,23 @@ Wkraczasz do gabinetu.`;
     expect(nonDirectorNodes.length).toBeLessThan(nodes.length);
   });
 
-  it('wycina tagi [OBSERWACJA] i [SEKRETY_MG] z czatu (Concordia MakeObservation pattern)', () => {
-    const input = `[OBSERWACJA: @Arthur | wzrok | Cienie w kącie pokoju zdają się poruszać wbrew źródłu światła]
-[SEKRETY_MG: Prawdziwy kultysta ukrył księgę w skrytce za obrazem]
-Wkraczasz do cichego gabinetu profesora.`;
-    expect(cleanupContent(input)).toBe('Wkraczasz do cichego gabinetu profesora.');
+  it('zamienia tag [LOKACJA_WYCZERPANA] oraz [LOCATION_EXHAUSTED] na whisper w czacie', () => {
+    const inputPl = 'Przeszukujesz szuflady, ale nic więcej tu nie ma.\n\n[LOKACJA_WYCZERPANA]\n\n[Co robisz?]';
+    const outputPl = cleanupContent(inputPl);
+    expect(outputPl).toContain('[Lokacja zbadana wyczerpująco]');
+    expect(outputPl).not.toContain('[LOKACJA_WYCZERPANA]');
+
+    const inputEn = 'You search the shelves thoroughly.\n\n[LOCATION_EXHAUSTED: Archives]\n\n[What do you do?]';
+    const outputEn = cleanupContent(inputEn);
+    expect(outputEn).toContain('[Lokacja zbadana wyczerpująco]');
+    expect(outputEn).not.toContain('[LOCATION_EXHAUSTED');
+  });
+
+  it('nie usuwa tagu [NOTATKA_BADACZA] z narracji aby parser sekcji mógł utworzyć Sticky Note', () => {
+    const input = '[NOTATKA_BADACZA: Kto: Dr Armitage | Dotyczy: Przekład z łaciny | Trop: Ostrzeżenie przed formułą]\n📰 KURIER ARKHAM\nWczorajszej nocy doszło do włamania.';
+    const output = cleanupContent(input);
+    expect(output).toContain('[NOTATKA_BADACZA:');
   });
 });
+
 

@@ -8,7 +8,45 @@
  * Helpers (isHandoutStart/isHandoutEnd/detectHandoutType) prywatne dla modułu.
  */
 
-import type { Section, HandoutType } from './types';
+import type { Section, HandoutType, StickyNote } from './types';
+
+export function parseStickyNote(raw: string): { stickyNote?: StickyNote; cleaned: string } {
+  const match = raw.match(/\[(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE):\s*([\s\S]*?)\]/i);
+  if (!match) {
+    return { cleaned: raw };
+  }
+
+  const body = match[1].trim();
+  const delimiter = body.includes('|') ? '|' : '\n';
+  const parts = body.split(delimiter);
+  let who = '';
+  let about = '';
+  let clue = '';
+
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+
+    const ktoMatch = trimmed.match(/^(?:Kto|Nadawca|Autor|Who|Author|Sender):\s*(.+)$/i);
+    const dotyczyMatch = trimmed.match(/^(?:Dotyczy|Temat|Czego dotyczy|About|Subject|Topic):\s*(.+)$/i);
+    const tropMatch = trimmed.match(/^(?:Trop|Zagrożenie|Zagrozenie|Wskazówka|Wskazowka|Klucz|Clue|Threat|Lead):\s*(.+)$/i);
+
+    if (ktoMatch) who = ktoMatch[1].trim();
+    else if (dotyczyMatch) about = dotyczyMatch[1].trim();
+    else if (tropMatch) clue = tropMatch[1].trim();
+    else {
+      if (!who) who = trimmed;
+      else if (!about) about = trimmed;
+      else if (!clue) clue = trimmed;
+    }
+  }
+
+  const cleaned = raw.replace(/\[(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE):\s*[\s\S]*?\]/gi, '').trim();
+  return {
+    stickyNote: { who, about, clue },
+    cleaned,
+  };
+}
 
 export function parseIntoSections(content: string): Section[] {
   const sections: Section[] = [];
@@ -25,8 +63,14 @@ export function parseIntoSections(content: string): Section[] {
 
     // Wykryj koniec lub kontynuację aktywnego handoutu
     if (inHandout) {
-      if (isHandoutEnd(trimmedLine)) {
-        handoutBuffer.push(line);
+      const isInitialStickyOnly =
+        handoutBuffer.length === 1 &&
+        /^\[?(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)/i.test(handoutBuffer[0].trim());
+
+      if (!isInitialStickyOnly && (isHandoutEnd(trimmedLine) || isHandoutTerminator(trimmedLine))) {
+        if (isHandoutEnd(trimmedLine)) {
+          handoutBuffer.push(line);
+        }
         const joined = handoutBuffer.join('\n');
         const audioMatch = joined.match(/\[(?:AUDIO|NAGRANIE|DŹWIĘK|DZWIEK):\s*([^\]]+)\]/i);
         const imageMatch = joined.match(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*([^\]]+)\]/i);
@@ -37,16 +81,21 @@ export function parseIntoSections(content: string): Section[] {
         if (imageMatch) {
           cleanedContent = cleanedContent.replace(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*[^\]]+\]/gi, '');
         }
-        cleanedContent = cleanedContent.trim();
+        const { stickyNote, cleaned } = parseStickyNote(cleanedContent);
+        cleanedContent = cleaned.trim();
         sections.push({
           type: 'handout',
           content: cleanedContent,
           handoutType: handoutType,
+          stickyNote,
           audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
           imageUrl: imageMatch ? imageMatch[1].trim() : undefined,
         });
         inHandout = false;
         handoutBuffer = [];
+        if (!isHandoutEnd(trimmedLine)) {
+          i--; // ponów parsowanie linii jako start nowej sekcji
+        }
         continue;
       }
 
@@ -187,11 +236,13 @@ export function parseIntoSections(content: string): Section[] {
     if (imageMatch) {
       cleanedContent = cleanedContent.replace(/\[(?:IMAGE|OBRAZ|SKAN|FOTO|GRAFIKA):\s*[^\]]+\]/gi, '');
     }
-    cleanedContent = cleanedContent.trim();
+    const { stickyNote, cleaned } = parseStickyNote(cleanedContent);
+    cleanedContent = cleaned.trim();
     sections.push({
       type: 'handout',
       content: cleanedContent,
       handoutType: handoutType,
+      stickyNote,
       audioUrl: audioMatch ? audioMatch[1].trim() : undefined,
       imageUrl: imageMatch ? imageMatch[1].trim() : undefined,
     });
@@ -211,6 +262,10 @@ function isHandoutStart(line: string): boolean {
     )
   )
     return false;
+  // Sticky Note / Notatka badacza przed rekwizytem (Mechanika 6)
+  if (/^\[?(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)\s*:/i.test(line)) {
+    return true;
+  }
   // ASCII art borders
   if (line.match(/^[━═─╔╗╚╝┌┐└┘│║╠╣╦╩╬+=\-_*~]{5,}$/)) return true;
   // Nagłówki prasowe i multimedialne
@@ -223,6 +278,10 @@ function isHandoutStart(line: string): boolean {
   // Bloki kodu markdown
   if (line.startsWith('```')) return true;
   return false;
+}
+
+function isHandoutTerminator(line: string): boolean {
+  return /^\[(Co robi(?:sz|cie)\?|RZUT|TEST|WYNIK|Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched)/i.test(line);
 }
 
 function isHandoutEnd(line: string): boolean {

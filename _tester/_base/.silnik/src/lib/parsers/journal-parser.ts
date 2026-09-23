@@ -239,7 +239,7 @@ export function synthesizeClueFact(title: string, rawContent: string): string {
 
   // 1. Usuń tagi strukturalne AI (np. [TAG: ...], [DZIENNIK:...], [/DZIENNIK], [ZMIANA_SCENY:...])
   let text = rawContent
-    .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP|ZMIANA_SCENY|SCENE_CHANGE|KARTA_SCENY|SCENE_CARD)[^\]]*\]/gi, '')
+    .replace(/\[\/?(?:DZIENNIK|JOURNAL|NPC|LOKACJA|LOCATION|PRZEDMIOT|ITEM|TEST|SANITY|HP|ZMIANA_SCENY|SCENE_CHANGE|KARTA_SCENY|SCENE_CARD|LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED|NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)[^\]]*\]/gi, '')
     .trim();
 
   // 2. Jeśli treść zawiera metadane oddzielone pipe (| M|I|C|E, | źródło:...), bierzemy samą treść faktu
@@ -472,6 +472,18 @@ export function extractSceneChangeTag(text: string): ExtractedSceneChange | null
 }
 
 /**
+ * Wykrywa tag wyczerpania lokacji (bramkowanie śledztwa / anty-pixel-hunting):
+ * [LOKACJA_WYCZERPANA: Lokacja] lub [LOKACJA_WYCZERPANA]
+ * lub [LOCATION_EXHAUSTED: Location]
+ */
+export function extractLocationExhaustedTag(text: string): { locationName?: string } | null {
+  if (!text) return null;
+  const match = text.match(/\[(?:LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED)(?::\s*([^\]]+))?\]/i);
+  if (!match) return null;
+  return { locationName: match[1]?.trim() };
+}
+
+/**
  * Wykrywa i parsuje ustrukturyzowany blok Karty Akt Śledczych po zakończeniu sceny:
  * [KARTA_SCENY: Tytuł / Lokacja]
  * OSOBY: ...
@@ -580,6 +592,8 @@ export function cleanSceneTagsFromText(text: string): string {
   return text
     .replace(/\[(?:KARTA_SCENY|SCENE_CARD)[^\]]*\][\s\S]*?(?:\[\/(?:KARTA_SCENY|SCENE_CARD)\]|$)/gi, '')
     .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE)[^\]]*\]/gi, '')
+    .replace(/\[(?:LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED)[^\]]*\]/gi, '')
+    .replace(/\[(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)[^\]]*\]/gi, '')
     .trim();
 }
 

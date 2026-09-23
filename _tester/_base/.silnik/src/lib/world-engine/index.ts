@@ -37,14 +37,25 @@ export class SensoryEngine {
 }
 
 /**
- * 3. NarrativeGraphEngine - dba o strukturę Branch-and-Bottleneck oraz unikanie deadlocków
+ * 3. NarrativeGraphEngine - dba o strukturę Branch-and-Bottleneck, redukcję zmiennych i unikanie deadlocków
  */
 export class NarrativeGraphEngine {
-  formatDirective(currentBranch: string, bottleneckTarget: string, locale: 'pl' | 'en' = 'pl'): string {
+  formatDirective(
+    currentBranch: string,
+    bottleneckTarget: string,
+    locale: 'pl' | 'en' = 'pl',
+    framing?: { knownAnchors?: string[]; investigativeQuestion?: string }
+  ): string {
+    const framingPart = framing?.knownAnchors && framing.knownAnchors.length >= 2
+      ? (locale === 'en'
+          ? ` | ANCHOR_FRAMING: Ground opening in 2+ known anchors (${framing.knownAnchors.join(', ')}). In [What do you do?] ask explicit question: "${framing.investigativeQuestion || 'Which lead do you follow?'}" (prevent cognitive void).`
+          : ` | KOTWICE_SCENY: Oprzyj otwarcie na min. 2 znanych stałych (${framing.knownAnchors.join(', ')}). W sekcji [Co robisz?] zadaj precyzyjne pytanie: "${framing.investigativeQuestion || 'Za którym tropem podążasz?'}" (zakaz próżni poznawczej).`)
+      : '';
+
     if (locale === 'en') {
-      return `[GRAPH_DIRECTIVE: Current branch: "${currentBranch}" -> All roads converge at: "${bottleneckTarget}". Keep agency, advance investigation time.]`;
+      return `[GRAPH_DIRECTIVE: Current branch: "${currentBranch}" -> All roads converge at: "${bottleneckTarget}". Keep agency, advance investigation time.${framingPart}]`;
     }
-    return `[GRAF_DYREKTYWA: Aktualna gałąź: "${currentBranch}" -> Zbiega się w: "${bottleneckTarget}". Zachowaj sprawczość, przesuwaj czas śledztwa.]`;
+    return `[GRAF_DYREKTYWA: Aktualna gałąź: "${currentBranch}" -> Zbiega się w: "${bottleneckTarget}". Zachowaj sprawczość, przesuwaj czas śledztwa.${framingPart}]`;
   }
 }
 
@@ -61,14 +72,20 @@ export class PlotFrictionEngine {
 }
 
 /**
- * 5. MysteryClueEngine - reguła 3 poszlak, Fail-Forward i Sealed Envelope
+ * 5. MysteryClueEngine - reguła 3 poszlak, Fail-Forward i bramkowanie lokacji (anty-pixel-hunting)
  */
 export class MysteryClueEngine {
   formatDirective(clue: ClueNode, locale: 'pl' | 'en' = 'pl'): string {
+    const exhaustionPart = clue.isLocationExhausted
+      ? (locale === 'en'
+          ? ' | LOCATION GATING: Location exhausted. Emit [LOKACJA_WYCZERPANA] and diegetically state that further searching yields no more facts.'
+          : ' | BRAMKOWANIE LOKACJI: Lokacja wyczerpana. Wyemituj [LOKACJA_WYCZERPANA] i oznajmij diegetycznie, że dalsze przeszukiwanie nie przyniesie faktów.')
+      : '';
+
     if (locale === 'en') {
-      return `[MYSTERY_DIRECTIVE: Active clue: "${clue.summary}" | Target: ${clue.targetRevelationId} | Fail-Forward cost if test fails: ${clue.failForwardCost} (never block progress)]`;
+      return `[MYSTERY_DIRECTIVE: Active clue: "${clue.summary}" | Target: ${clue.targetRevelationId} | Fail-Forward cost if test fails: ${clue.failForwardCost} (never block progress)${exhaustionPart}]`;
     }
-    return `[ZAGADKA_DYREKTYWA: Aktywna poszlaka: "${clue.summary}" | Cel: ${clue.targetRevelationId} | Koszt Fail-Forward przy porażce: ${clue.failForwardCost} (zakaz blokowania poszlaki)]`;
+    return `[ZAGADKA_DYREKTYWA: Aktywna poszlaka: "${clue.summary}" | Cel: ${clue.targetRevelationId} | Koszt Fail-Forward przy porażce: ${clue.failForwardCost} (zakaz blokowania poszlaki)${exhaustionPart}]`;
   }
 }
 
@@ -119,7 +136,7 @@ export class WorldEngineDirector {
   compileDirectives(params: {
     activeNPC?: NPCEntity;
     sensory?: SensoryContext;
-    graph?: { branch: string; bottleneck: string };
+    graph?: { branch: string; bottleneck: string; framing?: { knownAnchors?: string[]; investigativeQuestion?: string } };
     friction?: SettingFriction;
     clue?: ClueNode;
     geography?: GeographyContext;
@@ -136,7 +153,7 @@ export class WorldEngineDirector {
       lines.push(this.npcEngine.formatDirective(params.activeNPC, locale));
     }
     if (params.graph) {
-      lines.push(this.graphEngine.formatDirective(params.graph.branch, params.graph.bottleneck, locale));
+      lines.push(this.graphEngine.formatDirective(params.graph.branch, params.graph.bottleneck, locale, params.graph.framing));
     }
     if (params.friction) {
       lines.push(this.frictionEngine.formatDirective(params.friction, locale));

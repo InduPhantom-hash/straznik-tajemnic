@@ -7,6 +7,7 @@ import {
   inferClueProvenance,
   extractSceneChangeTag,
   extractSceneCardTag,
+  extractLocationExhaustedTag,
   ExtractedNpcTag,
   ExtractedItemTag,
   ExtractedSceneChange,
@@ -123,7 +124,8 @@ export function processCharacterJournalAndDossier(
   itemTags: ExtractedItemTag[] = [],
   sceneChange: ExtractedSceneChange | null = null,
   sceneCard: ExtractedSceneCard | null = null,
-  sharedLocationName?: string
+  sharedLocationName?: string,
+  locationExhausted?: { locationName?: string } | null
 ): { character: Character; changed: boolean } {
   const charWithDossier = ensureCharacterDossier(character);
   const dossier: InvestigatorDossier = {
@@ -151,6 +153,7 @@ export function processCharacterJournalAndDossier(
         people: [...(charWithDossier.activeScene.people || [])],
         findings: [...(charWithDossier.activeScene.findings || [])],
         notes: [...(charWithDossier.activeScene.notes || [])],
+        isLocationExhausted: charWithDossier.activeScene.isLocationExhausted || false,
       }
     : {
         sceneNumber: existingSceneCards.length + 1,
@@ -159,10 +162,36 @@ export function processCharacterJournalAndDossier(
         people: [],
         findings: [],
         notes: [],
+        isLocationExhausted: false,
       };
 
   let changed = false;
   let sceneSealedThisMessage = false;
+
+  // Bramkowanie lokacji (anty-pixel-hunting) - oznaczenie w aktywnej scenie i dossier
+  if (locationExhausted) {
+    activeScene.isLocationExhausted = true;
+    const targetLocName = locationExhausted.locationName || activeScene.location;
+    if (targetLocName && targetLocName !== 'Aktualna lokacja') {
+      const locIdx = dossier.locations.findIndex(
+        (l) => l.name.toLowerCase() === targetLocName.toLowerCase()
+      );
+      if (locIdx >= 0) {
+        dossier.locations[locIdx] = {
+          ...dossier.locations[locIdx],
+          searchStatus: 'thoroughly_searched',
+        };
+      } else {
+        dossier.locations.push({
+          id: `loc-${messageId}`,
+          name: targetLocName,
+          searchStatus: 'thoroughly_searched',
+          timestamp: Date.now(),
+        });
+      }
+    }
+    changed = true;
+  }
 
   // Automatyczne pieczętowanie poprzedniej sceny przy zmianie lokacji (Issue #471)
   const prevLocation = activeScene.location?.trim();
@@ -214,6 +243,7 @@ export function processCharacterJournalAndDossier(
         keyTakeaways: [...sealedTakeaways],
         nextStep,
         isSealed: true,
+        isLocationExhausted: activeScene.isLocationExhausted || false,
       };
 
       existingSceneCards.push(sealedCard);
@@ -242,6 +272,7 @@ export function processCharacterJournalAndDossier(
         people: [],
         findings: [],
         notes: [],
+        isLocationExhausted: false,
       };
       changed = true;
       sceneSealedThisMessage = true;
@@ -901,6 +932,7 @@ export function processCharacterJournalAndDossier(
         keyTakeaways: sealedTakeaways,
         nextStep,
         isSealed: true,
+        isLocationExhausted: activeScene.isLocationExhausted || false,
       };
 
       existingSceneCards.push(sealedCard);
@@ -929,6 +961,7 @@ export function processCharacterJournalAndDossier(
         people: [],
         findings: [],
         notes: [],
+        isLocationExhausted: false,
       };
       changed = true;
     }
@@ -964,6 +997,7 @@ export function appendJournalFromText(
   const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
   const sceneChange = extractSceneChangeTag(rawText);
   const sceneCard = extractSceneCardTag(rawText);
+  const locationExhausted = extractLocationExhaustedTag(rawText);
 
   if (
     tags.length === 0 &&
@@ -971,7 +1005,8 @@ export function appendJournalFromText(
     itemTags.length === 0 &&
     !locationEntry &&
     !sceneChange &&
-    !sceneCard
+    !sceneCard &&
+    !locationExhausted
   ) {
     return character;
   }
@@ -984,7 +1019,9 @@ export function appendJournalFromText(
     messageId,
     itemTags,
     sceneChange,
-    sceneCard
+    sceneCard,
+    undefined,
+    locationExhausted
   );
 
   return result.character;
@@ -1005,6 +1042,7 @@ export function appendJournalToParty(
   const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
   const sceneChange = extractSceneChangeTag(rawText);
   const sceneCard = extractSceneCardTag(rawText);
+  const locationExhausted = extractLocationExhaustedTag(rawText);
 
   if (
     tags.length === 0 &&
@@ -1012,7 +1050,8 @@ export function appendJournalToParty(
     itemTags.length === 0 &&
     !locationEntry &&
     !sceneChange &&
-    !sceneCard
+    !sceneCard &&
+    !locationExhausted
   ) {
     return { characters, activeCharacter, changed: false };
   }
@@ -1059,7 +1098,8 @@ export function appendJournalToParty(
       cItems.length === 0 &&
       !cLoc &&
       !sceneChange &&
-      !sceneCard
+      !sceneCard &&
+      !locationExhausted
     ) {
       return c;
     }
@@ -1073,7 +1113,8 @@ export function appendJournalToParty(
       cItems,
       sceneChange,
       sceneCard,
-      locationEntry?.title
+      locationEntry?.title,
+      locationExhausted
     );
     if (res.changed) changedAny = true;
     return res.character;

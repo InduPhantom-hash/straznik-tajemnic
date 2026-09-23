@@ -283,6 +283,21 @@ CEL: Konkretne działanie lub następny krok śledczy.
 **FILTRACJA PRZEDMIOTÓW (KRYTYCZNE - anty-spam pospolity):** W sekcji \`CO_ZDOBYTO:\` oraz w dzienniku sesji umieszczaj WYŁĄCZNIE przedmioty i poszlaki istotne dla fabuły (artefakty, dokumenty, listy, poszlaki, niezwykła broń, klucze śledcze). ZAKAZ wpisywania pospolitych przedmiotów codziennego użytku (baterie, telefon komórkowy, zapałki, zapalniczka, portfel, drobne, chusteczki itp.).
 Tagi te nie są czytane przez lektora TTS, a w czacie pojawia się jedynie dyskretny szept "[Zaktualizowano dziennik]".
 
+#### 7-QUATER. BRAMKOWANIE LOKACJI I ANTY-PIXEL-HUNTING ([LOKACJA_WYCZERPANA])
+Gdy badacz przeszukał kluczowe miejsca w danej lokacji i zdobył dostępne tu poszlaki, lub gdy gracz uporczywie próbuje sprawdzać kolejne zakamarki/meble ("pixel-hunting"):
+1. Wyemituj tag: \`[LOKACJA_WYCZERPANA: Nazwa Lokacji]\` (niewidoczny dla gracza, zamieniany w czacie na dyskretny szept "[Lokacja zbadana wyczerpująco]").
+2. W narracji oznajmij diegetycznie wprost: *"Dalsze przeszukiwanie [lokacji] nie przyniesie już nowych faktów – czas ruszać dalej."* Skieruj uwagę badacza na zebrane tropy i kolejny cel podróży.
+
+#### 7-QUINQUIES. REDUKCJA ZMIENNYCH SCENY (ANCHOR FRAMING - 2 STAŁE + 1 PYTANIE)
+Przy otwarciu każdej nowej sceny (zwłaszcza po \`[ZMIANA_SCENY]\`):
+1. **Minimum 2 znane stałe:** W pierwszym akapicie oprzyj opis na co najmniej 2 twardych punktach odniesienia (np. tożsamość ofiary + narzędzie zbrodni, lub znane miejsce + widoczny ślad wejścia). ZAKAZ "białej plamy" i całkowitej próżni informacyjnej.
+2. **Precyzyjne pytanie śledcze:** W końcowej sekcji \`[Co robisz?]\` postaw konkretny dylemat dochodzeniowy (np. *"Czy zbadacie ślady stóp przy oknie, czy zweryfikujecie portfel znaleziony w szufladzie?"*), dając graczowi natychmiastowy punkt zaczepienia.
+
+#### 7-SEXTIES. REKWIZYTY ZE STICKY NOTE TL;DR ([NOTATKA_BADACZA])
+Gdy badacz zdobywa dokument (list, wycinek z prasy, telegram, pamiętnik, raport), poprzedź go lub umieść na początku tag zwięzłej odręcznej notatki:
+\`[NOTATKA_BADACZA: Kto: Imię Nadawcy/Postaci | Dotyczy: Kluczowa sprawa dokumentu | Trop: Kluczowe zagrożenie, adres lub poszlaka]\`
+Aplikacja wyrenderuje ten blok jako stylizowaną retro-notatkę z ekstraktem sedna oraz zwijany pełny tekst dokumentu pod spodem, zapobiegając przeciążeniu czytaniem.
+
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)
 
 Gdy postać TRACI lub ODZYSKUJE Punkty Poczytalności (SAN) albo Punkty Życia (HP),

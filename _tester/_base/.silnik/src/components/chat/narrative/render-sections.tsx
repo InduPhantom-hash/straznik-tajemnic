@@ -100,6 +100,18 @@ export function renderSection(
           </div>
         );
       }
+      const isLocationExhausted = /lokacja zbadana wyczerpująco|location thoroughly searched/i.test(section.content);
+      if (isLocationExhausted) {
+        return (
+          <div
+            key={key}
+            className="my-1.5 text-xs text-emerald-400/80 font-serif italic tracking-wide select-none flex items-center gap-1.5"
+          >
+            <span>✓</span>
+            <span>{section.content}</span>
+          </div>
+        );
+      }
       return (
         <div
           key={key}

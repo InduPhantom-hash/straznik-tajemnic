@@ -87,6 +87,9 @@ export function cleanupContent(content: string): string {
     .replace(/\[(?:KARTA_SCENY|SCENE_CARD):?[^\]]*\][\s\S]*?\[\/(?:KARTA_SCENY|SCENE_CARD)\]/gi, '\n\n[Zaktualizowano dziennik]\n\n')
     .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE):[^\]]*\]/gi, '\n\n[Zaktualizowano dziennik]\n\n')
     .replace(/(?:\[Zaktualizowano dziennik\]\s*)+/gi, '[Zaktualizowano dziennik]\n\n')
+    // Bramkowanie lokacji (Issue #477 / Mechanika 7): diegetyczne powiadomienie o wyczerpaniu lokacji
+    .replace(/\[(?:LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED):?[^\]]*\]/gi, '\n\n[Lokacja zbadana wyczerpująco]\n\n')
+    .replace(/(?:\[Lokacja zbadana wyczerpująco\]\s*)+/gi, '[Lokacja zbadana wyczerpująco]\n\n')
     // Pogoda - znacznik [POGODA: ...] aktualizuje pogodę w czasie rzeczywistym
     .replace(new RegExp(`\\[POGODA:${NESTED_TAG_BODY}\\]`, 'gi'), (fullMatch) => {
       const match = fullMatch.match(/\[POGODA:\s*([^\]]+)\]/i);
@@ -133,7 +136,7 @@ export function cleanupContent(content: string): string {
     // to domyka asymetrię display vs lektor. NESTED_TAG_BODY: też gdy halucynowany
     // tag ma w środku zagnieżdżony [...].
     .replace(
-      new RegExp(`\\[[A-ZŁŚŻŹĆŃ_]{3,}\\s*:${NESTED_TAG_BODY}\\]`, 'g'),
+      new RegExp(`\\[(?!(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)\\b)[A-ZŁŚŻŹĆŃ_]{3,}\\s*:${NESTED_TAG_BODY}\\]`, 'g'),
       ''
     )
     .trim();
@@ -179,7 +182,7 @@ export function cleanupContent(content: string): string {
   );
 
   cleanContent = cleanContent.replace(
-    /(\S)[ \t]*(\[(?:Zaktualizowano dziennik|Journal updated)\])/gi,
+    /(\S)[ \t]*(\[(?:Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched)\])/gi,
     '$1\n\n$2'
   );
 

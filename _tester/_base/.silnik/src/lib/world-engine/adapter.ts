@@ -8,6 +8,7 @@ import type {
   OccultContext,
   SettingFriction,
   ClueNode,
+  SceneFramingContext,
 } from './types';
 
 interface AdapterAdventureConflictFaction {
@@ -163,7 +164,14 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
   }
 
   // 3. NarrativeGraphEngine (03) - zbieżność gałęzi i wąskie gardła
-  let graphDirectiveParam: { branch: string; bottleneck: string } | undefined;
+  const puzzles = params.adventureContext?.puzzles;
+  const truthAnchor = params.adventureContext?.truthAnchor;
+
+  let graphDirectiveParam: {
+    branch: string;
+    bottleneck: string;
+    framing?: SceneFramingContext;
+  } | undefined;
   const graph = params.adventureContext?.graph;
   if (graph) {
     const currentBranch = currentLocation || (locale === 'en' ? 'Active Investigation' : 'Bieżący trop');
@@ -180,9 +188,21 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
       bottleneckTarget = graph.locations[graph.locations.length - 1]?.name || bottleneckTarget;
     }
 
+    const knownAnchors: string[] = [];
+    if (currentLocation) knownAnchors.push(currentLocation);
+    if (truthAnchor?.immutableFacts && truthAnchor.immutableFacts.length > 0) {
+      knownAnchors.push(truthAnchor.immutableFacts[0]);
+    } else if (puzzles && puzzles.length > 0 && puzzles[0].title) {
+      knownAnchors.push(puzzles[0].title);
+    }
+    const investigativeQuestion = puzzles && puzzles.length > 0
+      ? (locale === 'en' ? `What is the significance of ${puzzles[0].title}?` : `Jakie jest znaczenie: ${puzzles[0].title}?`)
+      : (truthAnchor?.culprit ? (locale === 'en' ? `Who is connected to ${truthAnchor.culprit}?` : `Kto jest powiązany ze sprawą?`) : undefined);
+
     graphDirectiveParam = {
       branch: currentBranch,
       bottleneck: bottleneckTarget,
+      framing: knownAnchors.length >= 2 ? { knownAnchors, investigativeQuestion } : undefined,
     };
   }
 
@@ -213,10 +233,15 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     };
   }
 
-  // 5. MysteryClueEngine (05) - reguła 3 poszlak i fail-forward
+  // 5. MysteryClueEngine (05) - reguła 3 poszlak, fail-forward i bramkowanie lokacji
   let clueParam: ClueNode | undefined;
-  const puzzles = params.adventureContext?.puzzles;
-  const truthAnchor = params.adventureContext?.truthAnchor;
+
+  const isLocExhausted = Boolean(
+    params.character?.activeScene?.isLocationExhausted ||
+    (currentLocation && params.character?.investigatorDossier?.locations?.some(
+      (l: { name?: string; searchStatus?: string }) => l.name?.toLowerCase() === currentLocation.toLowerCase() && l.searchStatus === 'thoroughly_searched'
+    ))
+  );
 
   if (puzzles && puzzles.length > 0) {
     const firstPuzzle = puzzles[0];
@@ -226,6 +251,8 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
       targetRevelationId: firstPuzzle.solutionSummary || firstPuzzle.solution || (locale === 'en' ? 'Truth discovery' : 'Odkrycie prawdy'),
       sources: ['observation', 'deduction'],
       failForwardCost: 'time',
+      isLocationExhausted: isLocExhausted,
+      locationName: currentLocation || undefined,
     };
   } else if (truthAnchor?.immutableFacts && truthAnchor.immutableFacts.length > 0) {
     clueParam = {
@@ -234,6 +261,8 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
       targetRevelationId: truthAnchor.culprit || (locale === 'en' ? 'Culprit Identity' : 'Tożsamość sprawcy'),
       sources: ['observation', 'testimony'],
       failForwardCost: 'danger',
+      isLocationExhausted: isLocExhausted,
+      locationName: currentLocation || undefined,
     };
   }
 
