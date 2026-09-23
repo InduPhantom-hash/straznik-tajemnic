@@ -376,6 +376,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         title={adventureTitle}
         region={region}
         currentLocation={currentLocation}
+        isLocationExhausted={activeCharacter?.activeScene?.isLocationExhausted}
       />
       {!hasStartedGame ? (
         <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">

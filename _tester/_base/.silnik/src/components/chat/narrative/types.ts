@@ -23,13 +23,21 @@ export type HandoutType =
   | 'book'
   | 'note';
 
+export interface StickyNote {
+  who: string;
+  about: string;
+  clue: string;
+}
+
 export interface Section {
   type: SectionType;
   content: string;
   speaker?: string;
   handoutType?: HandoutType;
+  stickyNote?: StickyNote;
   audioUrl?: string; // Opcjonalny URL nagrania audio / pliku dźwiękowego
   imageUrl?: string; // Opcjonalny URL skanu / ryciny / fotografii
   characterName?: string; // dla type='perspective' - imię postaci kierowanej
   characterColor?: string; // opcjonalny kolor ramki
 }
+

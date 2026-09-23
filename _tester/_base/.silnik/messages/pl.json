@@ -1269,7 +1269,9 @@
     "compendiumTitle": "Otwórz kompendium zasad, bestiariusz i encyklopedię epoki",
     "directorMode": "Kulisy MG",
     "directorModeTooltip": "Przełącz widok kulis Mistrza Gry (BOP)",
-    "scrollToBottom": "Przewiń na dół"
+    "scrollToBottom": "Przewiń na dół",
+    "locationExhausted": "Przeszukana",
+    "locationExhaustedTooltip": "Lokacja została zbadana wyczerpująco. Brak dalszych poszlak w tym miejscu."
   },
   "PredefinedCharacters": {
     "eyebrow": "Gotowi badacze",
@@ -5754,7 +5756,14 @@
     "play": "Odsłuchaj",
     "pause": "Pauza",
     "restart": "Od początku",
-    "directorNotesTitle": "Kulisy Mistrza Gry (BOP)"
+    "directorNotesTitle": "Kulisy Mistrza Gry (BOP)",
+    "stickyNoteTitle": "Odręczna Notatka Badacza",
+    "stickyNoteWho": "Kto / Źródło:",
+    "stickyNoteAbout": "Dotyczy:",
+    "stickyNoteClue": "Kluczowy trop / Zagrożenie:",
+    "expandDocument": "Rozwiń pełną treść dokumentu",
+    "collapseDocument": "Zwiń treść dokumentu",
+    "locationExhaustedWhisper": "Lokacja zbadana wyczerpująco"
   },
   "DiegeticDocumentViewer": {
     "noContent": "Brak zapisanej treści...",
@@ -7512,6 +7521,7 @@
     "titleFull": "DZIENNIK SESJI / KRONIKA ŚLEDZTWA",
     "currentLocationStatus": "Bieżąca lokacja: {location} | W toku śledztwa",
     "statusInvestigationOngoing": "W toku śledztwa",
+    "locationExhaustedBadge": "Przeszukana wyczerpująco",
     "sceneListTitle": "Kronika Scen",
     "sceneNumber": "Scena #{number}",
     "blockEventsAndFindings": "Przebieg i kluczowe ustalenia",

@@ -27,6 +27,13 @@ export interface ClueNode {
   targetRevelationId: string;
   sources: Array<'observation' | 'testimony' | 'deduction' | 'handout'>;
   failForwardCost: 'time' | 'equipment' | 'danger' | 'social';
+  isLocationExhausted?: boolean; // Czy lokacja została wyczerpana z poszlak (bramkowanie)
+  locationName?: string;
+}
+
+export interface SceneFramingContext {
+  knownAnchors: string[]; // Minimum 2 twarde punkty odniesienia
+  investigativeQuestion?: string; // Precyzyjne pytanie śledcze na ten etap
 }
 
 export interface SettingFriction {
@@ -58,5 +65,6 @@ export interface WorldEngineDirectives {
   mysteryDirective?: string;
   geographyDirective?: string;
   occultDirective?: string;
+  anchorFramingDirective?: string;
 }
 

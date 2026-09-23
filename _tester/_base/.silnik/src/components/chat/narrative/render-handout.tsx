@@ -12,7 +12,7 @@ import { useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Section, HandoutType } from './types';
-import { Volume2, Play, Pause, RotateCcw } from 'lucide-react';
+import { Volume2, Play, Pause, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioReelPlayer } from '@/components/ui/audio-reel-player';
 import { DocumentViewer } from '@/components/ui/document-viewer';
 
@@ -82,36 +82,91 @@ export function HandoutAudioPlayer({ audioUrl }: { audioUrl: string }) {
   );
 }
 
-export function renderHandout(section: Section, key: number): ReactNode {
+function HandoutCard({ section }: { section: Section }) {
+  const t = useTranslations('NarrativeFormatter');
   const styles = getHandoutStyles(section.handoutType);
+  const [isExpanded, setIsExpanded] = useState(!section.stickyNote);
 
   return (
-    <div key={key} className={`my-4 font-mono text-sm ${styles.container}`}>
-      {styles.header && (
-        <div className={styles.headerClass}>{styles.header}</div>
-      )}
-      <pre className={`whitespace-pre-wrap ${styles.content}`}>
-        {section.content}
-      </pre>
-      {section.imageUrl && (
-        <div className="mt-3">
-          <DocumentViewer
-            imageUrl={section.imageUrl}
-            title={styles.header || 'Rekwizyt'}
-            docTypeLabel={section.handoutType}
-          />
+    <div className={`my-4 font-mono text-sm ${styles.container}`}>
+      {section.stickyNote && (
+        <div className="mb-3 p-3.5 rounded bg-[#201811] border border-brass/50 shadow-md font-sans text-xs">
+          <div className="flex items-center justify-between gap-2 mb-2.5 pb-1.5 border-b border-brass/30">
+            <div className="flex items-center gap-1.5 text-gold font-display font-bold text-xs uppercase tracking-wider">
+              <span aria-hidden="true" className="select-none">📌</span>
+              <span>{t('stickyNoteTitle')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="inline-flex items-center gap-1 text-[11px] font-special-elite text-brass hover:text-gold transition-colors py-0.5 px-2 rounded bg-brass/10 hover:bg-brass/20 border border-brass/30 cursor-pointer select-none active:scale-95"
+            >
+              <span>{isExpanded ? t('collapseDocument') : t('expandDocument')}</span>
+              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          </div>
+          <div className="space-y-1.5 font-serif">
+            {section.stickyNote.who && (
+              <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 text-[#d8cfc0]">
+                <span className="font-semibold text-brass/90 min-w-[90px] shrink-0 font-sans text-[11px] uppercase tracking-wide">
+                  {t('stickyNoteWho')}
+                </span>
+                <span className="font-medium text-[#f3ede2]">{section.stickyNote.who}</span>
+              </div>
+            )}
+            {section.stickyNote.about && (
+              <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 text-[#d8cfc0]">
+                <span className="font-semibold text-brass/90 min-w-[90px] shrink-0 font-sans text-[11px] uppercase tracking-wide">
+                  {t('stickyNoteAbout')}
+                </span>
+                <span>{section.stickyNote.about}</span>
+              </div>
+            )}
+            {section.stickyNote.clue && (
+              <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
+                <span className="font-semibold text-amber-400 min-w-[90px] shrink-0 font-sans text-[11px] uppercase tracking-wide">
+                  {t('stickyNoteClue')}
+                </span>
+                <span className="text-amber-200 font-semibold">{section.stickyNote.clue}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
-      {section.audioUrl && (
-        <div className="mt-3">
-          <AudioReelPlayer
-            audioUrl={section.audioUrl}
-            transcript={section.content}
-          />
-        </div>
+
+      {isExpanded && (
+        <>
+          {styles.header && (
+            <div className={styles.headerClass}>{styles.header}</div>
+          )}
+          <pre className={`whitespace-pre-wrap ${styles.content}`}>
+            {section.content}
+          </pre>
+          {section.imageUrl && (
+            <div className="mt-3">
+              <DocumentViewer
+                imageUrl={section.imageUrl}
+                title={styles.header || 'Rekwizyt'}
+                docTypeLabel={section.handoutType}
+              />
+            </div>
+          )}
+          {section.audioUrl && (
+            <div className="mt-3">
+              <AudioReelPlayer
+                audioUrl={section.audioUrl}
+                transcript={section.content}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
+}
+
+export function renderHandout(section: Section, key: number): ReactNode {
+  return <HandoutCard key={key} section={section} />;
 }
 
 export function getHandoutStyles(type?: HandoutType): {

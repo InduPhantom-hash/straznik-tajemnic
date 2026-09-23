@@ -392,6 +392,12 @@ export function SessionJournal({
               ? t('currentLocationStatus', { location: ongoingLocation })
               : t('statusInvestigationOngoing')}
           </span>
+          {character.activeScene?.isLocationExhausted && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm shrink-0">
+              <span>✓</span>
+              <span>{t('locationExhaustedBadge')}</span>
+            </span>
+          )}
         </div>
         {character.activeScene && (
           <span className="text-[11px] font-mono text-muted-foreground hidden sm:inline">
@@ -544,6 +550,12 @@ export function SessionJournal({
                     )}
                     <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
                       <span>📍</span> {activeSceneCard.location}
+                      {activeSceneCard.id === ongoingSceneCard?.id && character.activeScene?.isLocationExhausted && (
+                        <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 rounded shadow-sm">
+                          <span>✓</span>
+                          <span>{t('locationExhaustedBadge')}</span>
+                        </span>
+                      )}
                     </span>
                     {activeSceneCard.inGameDate && (
                       <span className="text-xs text-brass/80 font-mono flex items-center gap-1">

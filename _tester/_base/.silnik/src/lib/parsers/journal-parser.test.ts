@@ -7,6 +7,7 @@ import {
   inferClueProvenance,
   extractSceneChangeTag,
   extractSceneCardTag,
+  extractLocationExhaustedTag,
 } from './journal-parser';
 import { extractLatestTagLocation } from './event-parser';
 import { appendJournalFromText, appendJournalToParty } from '../journal/apply-journal-tags';
@@ -680,5 +681,22 @@ describe('Reżyseria scen i Karta Akt Śledczych (Issue #402)', () => {
       expect(party.characters[0].activeScene?.location).toBe('Ratusz Miejski');
       expect(party.characters[1].activeScene?.location).toBe('Ratusz Miejski');
     });
+
+    it('extractLocationExhaustedTag i appendJournalFromText oznaczają lokację jako wyczerpaną (Mechanika 7)', () => {
+      const tag1 = extractLocationExhaustedTag('Przeszukano wszystko.\n[LOKACJA_WYCZERPANA]');
+      expect(tag1).toBeDefined();
+
+      const tag2 = extractLocationExhaustedTag('[LOCATION_EXHAUSTED: Archiwum]');
+      expect(tag2).toBeDefined();
+      expect(tag2?.locationName).toBe('Archiwum');
+
+      const turn = '[LOKACJA: Gabinet Profesora] [LOKACJA_WYCZERPANA] Dalsze przeszukiwanie nic nie da.';
+      const updated = appendJournalFromText(baseChar, turn, 'msg_exhausted');
+      expect(updated.activeScene?.isLocationExhausted).toBe(true);
+
+      const loc = updated.investigatorDossier?.locations?.find((l) => l.name === 'Gabinet Profesora');
+      expect(loc?.searchStatus).toBe('thoroughly_searched');
+    });
   });
 });
+

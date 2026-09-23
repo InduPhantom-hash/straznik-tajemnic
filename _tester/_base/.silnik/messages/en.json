@@ -1269,7 +1269,9 @@
     "compendiumTitle": "Open rules compendium, bestiary and epoch encyclopedia",
     "directorMode": "Director Mode",
     "directorModeTooltip": "Toggle Director's Notes (BOP)",
-    "scrollToBottom": "Scroll to bottom"
+    "scrollToBottom": "Scroll to bottom",
+    "locationExhausted": "Searched",
+    "locationExhaustedTooltip": "Location has been thoroughly searched. No further clues remain here."
   },
   "PredefinedCharacters": {
     "eyebrow": "Ready investigators",
@@ -5754,7 +5756,14 @@
     "play": "Play",
     "pause": "Pause",
     "restart": "Restart",
-    "directorNotesTitle": "Director's Notes (BOP)"
+    "directorNotesTitle": "Director's Notes (BOP)",
+    "stickyNoteTitle": "Investigator's Handwritten Note",
+    "stickyNoteWho": "Who / Source:",
+    "stickyNoteAbout": "Subject:",
+    "stickyNoteClue": "Key Clue / Threat:",
+    "expandDocument": "Expand full document content",
+    "collapseDocument": "Collapse document content",
+    "locationExhaustedWhisper": "Location thoroughly searched"
   },
   "DiegeticDocumentViewer": {
     "noContent": "No saved content...",
@@ -7512,6 +7521,7 @@
     "titleFull": "SESSION JOURNAL / INVESTIGATION CHRONICLE",
     "currentLocationStatus": "Current location: {location} | Investigation in progress",
     "statusInvestigationOngoing": "Investigation in progress",
+    "locationExhaustedBadge": "Thoroughly Searched",
     "sceneListTitle": "Scene Chronicle",
     "sceneNumber": "Scene #{number}",
     "blockEventsAndFindings": "Events & Key Findings",

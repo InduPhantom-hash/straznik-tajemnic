@@ -51,4 +51,17 @@ describe('ChatHeader', () => {
     expect(screen.queryByRole('button', { name: /kompendium/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /kulisy mg/i })).not.toBeInTheDocument();
   });
+
+  it('renders location exhausted badge when isLocationExhausted is true', () => {
+    render(
+      <ChatHeader
+        title="Tajemnica Biblioteki"
+        currentLocation="Gabinet Profesora"
+        isLocationExhausted={true}
+      />
+    );
+
+    expect(screen.getByText('✓')).toBeInTheDocument();
+    expect(screen.getByText('Przeszukana')).toBeInTheDocument();
+  });
 });
