@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Loader2, Play, Scroll, MapPin, Sparkles, Compass } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
+import { Loader2, Play, Scroll, MapPin, Sparkles, Compass, BookOpen } from 'lucide-react';
 import type { AdventureContext } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era';
+import { getSettingTrivia, getSafeDossierIntro } from '@/lib/era/setting-trivia';
 
 export interface TTSHardLoadingScreenProps {
   isBuffering?: boolean;
@@ -34,6 +35,8 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   adventureContext,
 }) => {
   const t = useTranslations('TtsHardLoadingScreen');
+  const rawLocale = useLocale?.() || 'pl';
+  const locale = rawLocale === 'en' ? 'en' : 'pl';
 
   const isActive = isStarting || isBuffering || isReadyToEnter;
   const [shouldRender, setShouldRender] = useState(isActive);
@@ -63,29 +66,21 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   const location = region || adventureContext?.location || adventureContext?.country;
   const eraLabel = eraContext?.effectiveYear ? String(eraContext.effectiveYear) : undefined;
 
-  // Zróżnicowane treści: Dossier (lewa) vs Meldunek operacyjny / Hook (prawa)
+  // Lewy panel: Bezspoilerowe Dossier dla Badacza (Issue #482)
   const storyDossier = useMemo(() => {
-    const rawDesc = adventureContext?.description?.trim() || adventureDescription?.trim();
-    if (rawDesc) return rawDesc;
-    return t('defaultChronicleIntro');
-  }, [adventureContext?.description, adventureDescription, t]);
-
-  const storyHook = useMemo(() => {
-    const rawHook = adventureContext?.hook?.trim();
-    const normalizedDossier = storyDossier.trim().toLowerCase();
-
-    // Jeśli podano unikalny hook różniący się od lewej karty Dossier
-    if (rawHook && rawHook.toLowerCase() !== normalizedDossier) {
-      return rawHook;
+    if (adventureContext) {
+      return getSafeDossierIntro(adventureContext, t('defaultChronicleIntro'));
     }
+    if (adventureDescription?.trim()) {
+      return adventureDescription.trim();
+    }
+    return t('defaultChronicleIntro');
+  }, [adventureContext, adventureDescription, t]);
 
-    // Bezpieczny fallback zapobiegający duplikacji tekstów między kartami
-    return t('defaultChronicleHook');
-  }, [adventureContext?.hook, storyDossier, t]);
-
-  const themes = useMemo(() => {
-    return adventureContext?.themes || [];
-  }, [adventureContext?.themes]);
+  // Prawy panel: Realia Epoki i Świata (Issue #482)
+  const settingTrivia = useMemo(() => {
+    return getSettingTrivia(adventureContext, eraContext, locale);
+  }, [adventureContext, eraContext, locale]);
 
   const handleConfirm = () => {
     if (onConfirmEnterGame) {
@@ -104,14 +99,13 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   return (
     <div
       data-testid="tts-hard-loading-screen"
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#070806]/98 backdrop-blur-2xl overflow-y-auto overflow-x-hidden transition-opacity duration-500 ease-out px-4 py-6 md:p-8 select-none ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050604]/98 backdrop-blur-2xl overflow-y-auto overflow-x-hidden transition-opacity duration-500 ease-out px-4 py-6 md:p-8 select-none ${
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >
-      {/* Tło Dark Art Déco: głęboki radialny mosiężny glow, winieta i delikatne promienie */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,74,0.14)_0%,rgba(14,16,12,0.88)_50%,rgba(7,8,6,0.99)_100%)] pointer-events-none" />
-      <div className="absolute inset-0 shadow-[inset_0_0_160px_rgba(0,0,0,0.96)] pointer-events-none" />
-      <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#c9a94a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+      {/* Tło Dark Art Déco: głęboki radialny mosiężny glow i winieta gabinetowa */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,74,0.12)_0%,rgba(14,16,12,0.92)_55%,rgba(5,6,4,0.99)_100%)] pointer-events-none" />
+      <div className="absolute inset-0 shadow-[inset_0_0_180px_rgba(0,0,0,0.98)] pointer-events-none" />
 
       {/* Zewnętrzne geometryczne narożniki Art Déco */}
       <div className="absolute top-5 left-5 w-16 h-16 border-t-2 border-l-2 border-brass/50 pointer-events-none hidden sm:block">
@@ -130,7 +124,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
       <div className="w-full max-w-5xl text-center space-y-6 md:space-y-8 relative z-10 my-auto">
         {/* Górny badge statusu i geolokalizacja */}
         <div className="space-y-2.5">
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black/70 border border-brass/50 text-xs font-special-elite text-brass tracking-[0.14em] uppercase shadow-[0_0_20px_rgba(201,169,74,0.2)]">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-black/80 border border-brass/60 text-xs font-special-elite text-brass tracking-[0.16em] uppercase shadow-[0_0_20px_rgba(201,169,74,0.2)]">
             <Compass className="w-4 h-4 text-brass animate-spin-slow" />
             <span>{t('preparingSession')}</span>
           </div>
@@ -140,12 +134,12 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               {location && (
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-gold" />
-                  <span className="text-foreground">{location}</span>
+                  <span className="text-foreground font-semibold">{location}</span>
                 </span>
               )}
               {location && eraLabel && <span className="text-brass/50 font-bold">·</span>}
               {eraLabel && (
-                <span className="px-2 py-0.5 rounded bg-brass/10 border border-brass/30 text-brass font-bold">
+                <span className="px-2.5 py-0.5 bg-brass/10 border border-brass/40 text-brass font-bold">
                   {eraLabel}
                 </span>
               )}
@@ -153,10 +147,16 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
           )}
         </div>
 
-        {/* 2-kolumnowy panel główny: Lewa = Akta Śledztwa, Prawa = Meldunek operacyjny / Telegram */}
+        {/* 2-kolumnowy panel główny: Lewa = Akta Śledztwa (bez spoilerów i bez tagów), Prawa = Realia Epoki i Świata */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 text-left items-stretch">
-          {/* Lewa kolumna: Dossier Przygody (7 kolumn) */}
-          <div className="lg:col-span-7 border border-brass/45 bg-card/90 rounded-lg p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between h-full min-h-[320px] md:min-h-[360px]">
+          {/* Lewa kolumna: Dossier Przygody (7 kolumn) - Dark Art Déco z narożnikami */}
+          <div className="lg:col-span-7 border border-brass/50 bg-card/95 p-6 md:p-8 shadow-[0_0_45px_rgba(0,0,0,0.95)] relative overflow-hidden backdrop-blur-lg flex flex-col justify-between h-full min-h-[340px]">
+            {/* Wewnętrzne narożniki Art Déco */}
+            <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-brass/70" />
+            <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-brass/70" />
+            <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-brass/70" />
+            <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-brass/70" />
+
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brass to-transparent" />
 
             <div>
@@ -183,52 +183,66 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
               </div>
             </div>
 
-            {themes.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-brass/20">
-                <span className="text-xs font-mono text-brass/80 mr-1 uppercase tracking-wider">
-                  {t('themesLabel')}
-                </span>
-                {themes.map((theme, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1 rounded text-xs md:text-sm font-special-elite bg-brass/20 border border-brass/50 text-brass shadow-sm tracking-wide"
-                  >
-                    {theme}
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Dolna belka lewej karty: subtelny status śledztwa zamiast zbędnych tagów motywów */}
+            <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-xs font-mono text-muted-foreground">
+              <span className="text-brass/70 tracking-wider uppercase font-semibold">
+                {t('investigationStatus')}
+              </span>
+              <span className="text-muted-foreground/80 tracking-widest">
+                {t('confidential')}
+              </span>
+            </div>
           </div>
 
-          {/* Prawa kolumna: Meldunek operacyjny / Telegram do badaczy */}
-          <div className="lg:col-span-5 border border-brass/35 bg-gradient-to-b from-[#141510]/95 via-[#0e100c]/95 to-[#070806]/98 rounded-lg p-6 md:p-7 shadow-[0_0_35px_rgba(0,0,0,0.85)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between h-full min-h-[320px] md:min-h-[360px]">
+          {/* Prawa kolumna: Realia Epoki i Świata (5 kolumn) - Dark Art Déco z narożnikami */}
+          <div className="lg:col-span-5 border border-brass/50 bg-gradient-to-b from-[#141611]/95 via-[#0e100c]/95 to-[#070806]/98 p-6 md:p-7 shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden backdrop-blur-md flex flex-col justify-between h-full min-h-[340px]">
+            {/* Wewnętrzne narożniki Art Déco */}
+            <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-brass/70" />
+            <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-brass/70" />
+            <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-brass/70" />
+            <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-brass/70" />
+
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brass/30 via-gold/60 to-brass/30" />
 
             <div>
-              <div className="flex items-center justify-between border-b border-brass/20 pb-3 mb-4">
-                <span className="text-xs font-mono uppercase tracking-widest text-brass/90 font-semibold">
-                  {t('hookHeader')}
+              <div className="flex items-center justify-between border-b border-brass/25 pb-3 mb-2">
+                <span className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-brass/95 font-bold">
+                  <BookOpen className="w-3.5 h-3.5 text-gold" />
+                  {t('settingTriviaHeader')}
                 </span>
                 <span className="w-2 h-2 rounded-full bg-gold/70 animate-pulse" />
               </div>
 
-              <div className="relative pl-4 py-2 border-l-2 border-brass/50 bg-black/20 rounded-r-md my-auto">
-                <p className="font-serif italic text-base md:text-lg text-brass/90 leading-relaxed max-h-60 overflow-y-auto pr-2">
-                  {storyHook}
+              {settingTrivia.subtitle && (
+                <p className="text-xs font-serif italic text-gold/80 mb-4 tracking-wide">
+                  {settingTrivia.subtitle}
                 </p>
+              )}
+
+              <div className="space-y-3.5 my-auto max-h-60 overflow-y-auto pr-2">
+                {settingTrivia.facts.map((fact, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5 text-xs md:text-sm text-foreground/90 font-serif leading-relaxed">
+                    <span className="text-gold font-bold select-none mt-0.5 shrink-0">◆</span>
+                    <p>{fact}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between text-xs font-mono text-muted-foreground">
-              <span>{t('spoilerFree')}</span>
-              <span className="text-brass/70 font-semibold tracking-wider">{t('confidential')}</span>
+              <span className="text-gold/90 font-semibold tracking-wider">
+                {t('spoilerFree')}
+              </span>
+              <span className="text-brass/70 font-semibold tracking-wider">
+                {t('periodKnowledgeBadge')}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Pasek Postępu Art Déco (0-100%) - spójny moduł ze zintegrowanym stanem */}
+        {/* Pasek Postępu Art Déco (0-100%) - geometryczny z mosiężną ramką */}
         <div className="w-full max-w-3xl mx-auto space-y-3">
-          <div className="flex items-center justify-between text-sm md:text-base font-special-elite text-brass tracking-[0.08em] px-2">
+          <div className="flex items-center justify-between text-sm md:text-base font-special-elite text-brass tracking-[0.08em] px-1">
             <span className="flex items-center gap-2.5 truncate text-left">
               {!isCompleted && (
                 <Loader2 className="w-4 h-4 animate-spin text-gold shrink-0" />
@@ -242,18 +256,18 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
             </span>
           </div>
 
-          <div className="w-full h-4 bg-black/90 rounded-full border-2 border-brass/60 overflow-hidden relative shadow-[inset_0_2px_6px_rgba(0,0,0,0.95)] p-[1.5px]">
+          <div className="w-full h-4 bg-black/95 border border-brass/70 relative shadow-[inset_0_2px_8px_rgba(0,0,0,0.95)] p-[2px]">
             <div
               data-testid="loading-screen-progress-bar"
-              className="h-full bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] rounded-full transition-all duration-500 ease-out relative shadow-[0_0_20px_rgba(201,169,74,0.6)]"
+              className="h-full bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] transition-all duration-500 ease-out relative shadow-[0_0_20px_rgba(201,169,74,0.6)]"
               style={{ width: `${displayProgress}%` }}
             >
-              <div className="absolute inset-0 bg-white/25 animate-pulse" />
+              <div className="absolute inset-0 bg-white/20 animate-pulse" />
             </div>
           </div>
         </div>
 
-        {/* Dolna strefa Hero CTA: Pojawia się po osiągnięciu 100% (brak zduplikowanego napisu statusowego) */}
+        {/* Dolna strefa Hero CTA: Pojawia się po osiągnięciu 100% */}
         <div className="pt-2 flex flex-col items-center justify-center min-h-[84px]">
           {isCompleted && (
             <div className="flex flex-col items-center gap-2.5 animate-in fade-in zoom-in-95 duration-300">
@@ -261,7 +275,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 type="button"
                 onClick={handleConfirm}
                 data-testid="loading-screen-enter-cta"
-                className="group relative px-10 py-4 bg-gradient-to-r from-[#997a38] via-[#f0cc66] to-[#997a38] hover:from-[#b38f42] hover:via-[#ffde7a] hover:to-[#b38f42] text-background font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] rounded-md border-2 border-gold shadow-[0_0_35px_rgba(201,169,74,0.55)] hover:shadow-[0_0_55px_rgba(201,169,74,0.9)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
+                className="group relative px-10 py-4 bg-gradient-to-r from-[#997a38] via-[#f0cc66] to-[#997a38] hover:from-[#b38f42] hover:via-[#ffde7a] hover:to-[#b38f42] text-background font-display font-bold text-base md:text-lg uppercase tracking-[0.22em] border-2 border-gold shadow-[0_0_35px_rgba(201,169,74,0.55)] hover:shadow-[0_0_55px_rgba(201,169,74,0.9)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
               >
                 <Play className="w-5 h-5 fill-background text-background transition-transform group-hover:scale-125" />
                 <span>{t('enterAdventure')}</span>

@@ -86,6 +86,10 @@ export interface AdventureContext {
   suggestedArchetypes: string[];
   hook: string;
   description: string;
+  /** Bezspoilerowe wprowadzenie dla Badacza (na ekran przygotowania sesji / ładowania) */
+  investigatorIntro?: string;
+  /** Ciekawostki i reguły świata z epoki dla Badacza (kontekst historyczno-społeczny) */
+  settingTrivia?: string[];
   estimatedSessions: string;
   playerCount: string;
   difficulty: 'easy' | 'normal' | 'hard';
@@ -156,6 +160,12 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     suggestedArchetypes: ['investigator', 'scholar', 'mystic', 'action'],
     hook: 'Weryfikacja fenomenów ojca Klimuszki doprowadza badaczy do tajnych teczek SB i anomalii wymiarowej w Prabutach.',
     description: 'Badacze zostają zaangażowani przez redaktorkę Helenę Krawczyk z programu „Sygnały Nieznanego” po Międzynarodowym Kongresie Psychotronicznym w Pradze. Ich zadaniem jest naukowa weryfikacja niezwykłych fenomenów ojca Klimuszki - franciszkanina z Elbląga, który odnajduje zaginionych na podstawie fotografii. Śledztwo szybko uderza w tajne operacje Służby Bezpieczeństwa oraz ujawnia przerażającą prawdę o wojennej traumie z 1941 roku i czwartym wymiarze czasu.',
+    investigatorIntro: 'Badacze zostają zaangażowani przez redaktorkę Helenę Krawczyk z programu „Sygnały Nieznanego” po Międzynarodowym Kongresie Psychotronicznym w Pradze. Ich zadaniem jest naukowa weryfikacja niezwykłych fenomenów ojca Klimuszki - franciszkanina z Elbląga, który odnajduje zaginionych na podstawie fotografii. Śledztwo szybko uderza w tajne operacje Służby Bezpieczeństwa oraz niewyjaśnione zdarzenia w ruinach kościoła w Prabutach.',
+    settingTrivia: [
+      'W PRL lat 70. każde nieoficjalne zgromadzenie i badania nad parapsychologią znajdowały się pod ścisłą obserwacją Departamentu IV MSW i Służby Bezpieczeństwa.',
+      'Obywatele i Badacze poruszający się po kraju musieli posiadać dowód tożsamości, a telefony stacjonarne były rzadkością i podlegały kontroli podsłuchowej.',
+      'Prasa i telewizja (np. program „Sygnały Nieznanego”) działały pod nadzorem Głównego Urzędu Kontroli Prasy, Publikacji i Widowisk (cenzury).',
+    ],
     estimatedSessions: '1-2',
     playerCount: '1-4',
     difficulty: 'easy',
@@ -217,6 +227,12 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     suggestedArchetypes: ['scholar', 'investigator', 'action'],
     hook: 'Zderzak Łągiewki eliminuje przeciążenia zderzeń, lecz jego Pędnik łamie prawa fizyki, czerpiąc z zakazanej technologii Mi-Go.',
     description: 'Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki - konstruktora z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas kolizji. Kiedy wynalazca tworzy „Pędnik” - silnik łamiący znane prawa fizyki i działający bez przyczepności w próżni - w warsztacie zjawiają się tajni agenci AOR. Odkrycie Łągiewki to próba okiełznania kinetycznej technologii Mi-Go z Gór Szaleństwa.',
+    investigatorIntro: 'Badacze trafiają na ślad niekonwencjonalnych odkryć Lucjana Łągiewki - konstruktora z Kowar, którego zderzaki kinetyczne i pochłaniacze wirnikowe eliminują przeciążenia podczas kolizji. Kiedy wynalazca tworzy prototyp silnika działającego bez przyczepności w próżni, w warsztacie zjawiają się tajemniczy agenci, a demonstracje zostają nagle wstrzymane.',
+    settingTrivia: [
+      'W Polsce lat 90. rodzący się wolny rynek sprzyjał powstawaniu prywatnych warsztatów prototypowych z dala od wielkich instytutów badawczych.',
+      'Po transformacji ustrojowej nowo utworzony Urząd Ochrony Państwa (UOP) przejął nadzór nad strategicznymi technologiami podwójnego zastosowania.',
+      'Telefonia komórkowa dopiero raczkowała (Centertel), a podstawą łączności w terenie były budki telefoniczne na karty magnetyczne i CB-radio.',
+    ],
     estimatedSessions: '2-3',
     playerCount: '1-4',
     difficulty: 'normal',
@@ -271,6 +287,11 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     suggestedArchetypes: ['mystic', 'healer', 'investigator'],
     hook: 'W 1983 roku troje dzieci w stodole wywołało ducha. Po 16 latach byt powraca z uderzeniem pioruna i wypalonym odwróconym krzyżem.',
     description: 'Badacze zostają wezwani przez lokalnego parapsychologa i bioenergoterapeutę Tomasza Nowickiego do odciętej od świata wsi Traszyn na Lubelszczyźnie. W 1983 roku troje dzieci przeprowadziło w starej stodole seans z książką i kluczem. Po 16 latach nieznany byt powraca, wywołując nocne paraliże, manifestacje zjaw i zjawisko suchego odwróconego krzyża na deskach stodoły po uderzeniu pioruna. Badacze stają w obliczu pradawnego bytu z krain podziemi.',
+    investigatorIntro: 'Badacze zostają wezwani przez bioenergoterapeutę Tomasza Nowickiego do odciętej od świata wsi Traszyn na Lubelszczyźnie. W 1983 roku troje dzieci przeprowadziło w starej stodole seans z książką i kluczem. Po 16 latach nieznany byt powraca, wywołując nocne paraliże, manifestacje zjaw i zjawisko suchego odwróconego krzyża na deskach stodoły po uderzeniu pioruna.',
+    settingTrivia: [
+      'Na polskiej wsi końca lat 90. lokalne wierzenia, relacje z proboszczem i wiejska solidarność były silniejsze niż zaufanie do instytucji państwowych.',
+      'Zjawiska paranormalne w latach 90. badały nieliczne kluby ufologiczne i radiesteci, cieszący się wówczas dużą uwagą mediów i prasy tematycznej.',
+    ],
     estimatedSessions: '2',
     playerCount: '1-4',
     difficulty: 'normal',
@@ -325,6 +346,12 @@ export const STREFA_11_ADVENTURES: AdventureContext[] = [
     suggestedArchetypes: ['scholar', 'investigator', 'action', 'mystic'],
     hook: 'Nagrania VHS radioamatora wykazują audycje z przyszłości i zakłócenia sygnału z nocy 14 listopada. Byt z podziemi manipuluje czasem.',
     description: 'Badacze trafiają do Głogowa po serii niewytłumaczalnych zjawisk rejestrowanych na kasetach VHS przez lokalnego radioamatora. Świadkowie zgłaszają nocne błyski światła, zaniki pamięci oraz audycje telewizyjne nadawane z przyszłości. Śledztwo prowadzi przez próby przejęcia taśm przez służby specjalne aż do opuszczonych podziemi Twierdzy Głogów, gdzie pradawny byt manipuluje falami czasu.',
+    investigatorIntro: 'Badacze trafiają do Głogowa po serii niewytłumaczalnych zjawisk rejestrowanych na kasetach VHS przez lokalnego radioamatora. Świadkowie zgłaszają nocne błyski światła, zaniki pamięci oraz audycje telewizyjne nadawane z przyszłości. Śledztwo prowadzi przez próby zabezpieczenia taśm aż do opuszczonych korytarzy Twierdzy Głogów.',
+    settingTrivia: [
+      'Na przełomie tysiącleci nośniki magnetyczne VHS i magnetowidy były podstawowym domowym archiwum wideo, podatnym na rozmagnesowanie i zakłócenia radiowe.',
+      'Krótkofalowcy i radioamatorzy prowadzili niezależne nasłuchy pasm eterowych, nierzadko rejestrując anomalie techniczne szybciej niż instytucje państwowe.',
+      'Opuszczone poradzieckie koszary i twierdze na Ziemiach Zachodnich po 1993 roku często nie posiadały aktualnych planów inżynieryjnych.',
+    ],
     estimatedSessions: '2-3',
     playerCount: '1-4',
     difficulty: 'hard',
