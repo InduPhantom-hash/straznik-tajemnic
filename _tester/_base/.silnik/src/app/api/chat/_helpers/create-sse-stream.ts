@@ -106,8 +106,35 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
           }
         }
 
-        // Parsuj pełną odpowiedź i wyślij metadane
-        const parsed = parseAIResponse(fullText);
+        // Parsuj pełną odpowiedź i wyślij metadane (z osłoną przed nieobsłużonym błędem)
+        let parsed;
+        try {
+          parsed = parseAIResponse(fullText);
+        } catch (parseErr) {
+          console.warn('⚠️ parseAIResponse failed on full text:', parseErr);
+          parsed = {
+            events: [],
+            combat: null,
+            dialogues: [],
+            illustrations: [],
+            sfx: [],
+            journalEntries: [],
+            skillTests: [],
+            skillResults: [],
+            hazardEvents: [],
+            spellCastEvents: [],
+            opposedMagicEvents: [],
+            opposedMeleeEvents: [],
+            tomeStudyEvents: [],
+            meleeAttacks: [],
+            equipmentEvents: [],
+            timeUpdate: null,
+            refereeVetoEvents: [],
+            gmMetadata: undefined,
+            rawText: fullText,
+          };
+        }
+
         const melee =
           combatMechanicsEnabled && assistantMessageId
             ? enrichMeleeAttackReferences({

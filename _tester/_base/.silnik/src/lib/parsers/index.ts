@@ -39,12 +39,15 @@ function extractTagNPCs(text: string): ParsedEvent[] {
     const regex = new RegExp(TAG_NPC_PATTERN.source, 'gi');
     let match;
     while ((match = regex.exec(text)) !== null) {
-        events.push({
-            type: 'npc',
-            title: match[1].trim(),
-            description: match[2].trim(),
-            timestamp: new Date().toISOString(),
-        });
+        const title = match[1]?.trim();
+        if (title) {
+            events.push({
+                type: 'npc',
+                title,
+                description: match[2]?.trim() || '',
+                timestamp: new Date().toISOString(),
+            });
+        }
     }
     return events;
 }
@@ -55,12 +58,15 @@ function extractTagLocations(text: string): ParsedEvent[] {
     const regex = new RegExp(TAG_LOCATION_PATTERN.source, 'gi');
     let match;
     while ((match = regex.exec(text)) !== null) {
-        events.push({
-            type: 'location',
-            title: match[1].trim(),
-            description: match[2].trim(),
-            timestamp: new Date().toISOString(),
-        });
+        const title = match[1]?.trim();
+        if (title) {
+            events.push({
+                type: 'location',
+                title,
+                description: match[2]?.trim() || '',
+                timestamp: new Date().toISOString(),
+            });
+        }
     }
     return events;
 }
@@ -71,12 +77,15 @@ function extractTagItems(text: string): ParsedEvent[] {
     const regex = new RegExp(TAG_ITEM_PATTERN.source, 'gi');
     let match;
     while ((match = regex.exec(text)) !== null) {
-        events.push({
-            type: 'item',
-            title: match[1].trim(),
-            description: match[2].trim(),
-            timestamp: new Date().toISOString(),
-        });
+        const title = match[1]?.trim();
+        if (title) {
+            events.push({
+                type: 'item',
+                title,
+                description: match[2]?.trim() || '',
+                timestamp: new Date().toISOString(),
+            });
+        }
     }
     return events;
 }
@@ -87,7 +96,7 @@ function extractTagCombat(text: string): { isActive: boolean; trigger?: 'start' 
     let match;
     let result: { isActive: boolean; trigger?: 'start' | 'end' } | null = null;
     while ((match = regex.exec(text)) !== null) {
-        const value = match[1].toUpperCase();
+        const value = match[1]?.toUpperCase();
         if (value === 'START') {
             result = { isActive: true, trigger: 'start' };
         } else if (value === 'KONIEC') {
@@ -101,11 +110,11 @@ function extractTagCombat(text: string): { isActive: boolean; trigger?: 'start' 
 function extractTagSanity(text: string): ParsedEvent | null {
     const regex = new RegExp(TAG_SANITY_PATTERN.source, 'gi');
     const match = regex.exec(text);
-    if (match) {
+    if (match && match[1]) {
         return {
             type: 'sanity',
-            title: `Utrata poczytalności: ${match[1]} pkt`,
-            description: match[2].trim(),
+            title: `Utrata poczytalności: ${match[1].trim()} pkt`,
+            description: match[2]?.trim() || '',
             timestamp: new Date().toISOString(),
         };
     }
@@ -118,15 +127,15 @@ export function extractGMMetadata(text: string): { thoughts?: string; mood?: str
 
     const thoughtsRegex = new RegExp(TAG_GM_THOUGHTS_PATTERN.source, 'gi');
     const thoughtsMatch = thoughtsRegex.exec(text);
-    if (thoughtsMatch) meta.thoughts = thoughtsMatch[1].trim();
+    if (thoughtsMatch?.[1]) meta.thoughts = thoughtsMatch[1].trim();
 
     const moodRegex = new RegExp(TAG_MOOD_PATTERN.source, 'gi');
     const moodMatch = moodRegex.exec(text);
-    if (moodMatch) meta.mood = moodMatch[1].trim();
+    if (moodMatch?.[1]) meta.mood = moodMatch[1].trim();
 
     const goalRegex = new RegExp(TAG_NARRATIVE_GOAL_PATTERN.source, 'gi');
     const goalMatch = goalRegex.exec(text);
-    if (goalMatch) meta.narrativeGoal = goalMatch[1].trim();
+    if (goalMatch?.[1]) meta.narrativeGoal = goalMatch[1].trim();
 
     return meta;
 }
@@ -137,7 +146,10 @@ function extractNPCPositions(text: string): NPCPosition[] {
     const regex = /\[NPC:\s*([^:\]]+)/gi;
     let match;
     while ((match = regex.exec(text)) !== null) {
-        positions.push({ name: match[1].trim(), charIndex: match.index });
+        const name = match[1]?.trim();
+        if (name) {
+            positions.push({ name, charIndex: match.index });
+        }
     }
     return positions;
 }
