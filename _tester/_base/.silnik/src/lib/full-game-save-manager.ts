@@ -44,6 +44,8 @@ export interface FullGameSave {
   createdAt: string;
   lastUpdated: string;
   userId: string;
+  /** Język sesji gry ('pl' | 'en'). Brak w save'ach sprzed wdrożenia #490. */
+  locale?: 'pl' | 'en';
 
   // === Historia sesji ===
   messages: Message[];
@@ -163,6 +165,7 @@ export class FullGameSaveManager {
      */
     id?: string;
     userId: string;
+    locale?: 'pl' | 'en';
     messages: Message[];
     images?: FullGameSave['images'];
     descriptions?: FullGameSave['descriptions'];
@@ -201,6 +204,7 @@ export class FullGameSaveManager {
       createdAt: now,
       lastUpdated: now,
       userId: data.userId,
+      locale: data.locale,
 
       // Historia
       messages: data.messages,
@@ -279,6 +283,7 @@ export class FullGameSaveManager {
       messageCount: number;
       imageCount: number;
       size?: number;
+      locale?: 'pl' | 'en';
     }>
   ) {
     if (typeof window !== 'undefined') {
@@ -298,6 +303,7 @@ export class FullGameSaveManager {
     messageCount: number;
     imageCount: number;
     size?: number;
+    locale?: 'pl' | 'en';
   }> {
     if (typeof window === 'undefined') return [];
 
@@ -326,6 +332,7 @@ export class FullGameSaveManager {
       userId: save.userId,
       messageCount: save.sessionMetadata.messageCount,
       imageCount: save.sessionMetadata.imageCount,
+      locale: save.locale,
     };
 
     // Usuń stary save o tym samym ID (jeśli istnieje)
@@ -381,6 +388,15 @@ export class FullGameSaveManager {
       return false;
     }
 
+    if (
+      candidate.locale !== undefined &&
+      candidate.locale !== 'pl' &&
+      candidate.locale !== 'en'
+    ) {
+      console.warn('Niepoprawne pole locale w save:', candidate.locale);
+      return false;
+    }
+
     return true;
   }
 
@@ -403,6 +419,7 @@ export class FullGameSaveManager {
       return this.createFullSave({
         name: legacy.name || 'Zmigrowana sesja',
         userId: legacy.userId || 'local',
+        locale: legacy.locale,
         messages: legacy.messages || [],
         gameSettings: {
           aiSettings: legacy.aiSettings || ({} as AISettings),

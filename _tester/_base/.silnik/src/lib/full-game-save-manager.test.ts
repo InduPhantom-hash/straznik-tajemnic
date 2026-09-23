@@ -263,4 +263,102 @@ describe('FullGameSaveManager duet persistence', () => {
     expect(loaded?.characters[0].investigatorDossier?.clues).toHaveLength(1);
     expect(loaded?.characters[0].investigatorDossier?.clues[0].title).toBe('Krwawy ślad');
   });
+
+  describe('locale field in FullGameSave (Issue #490)', () => {
+    it('serializes and deserializes locale during save/load round-trip', () => {
+      const saveEn = FullGameSaveManager.createFullSave({
+        name: 'English Save',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+        gameSettings: { aiSettings: {} as AISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      expect(saveEn.locale).toBe('en');
+      const loadedEn = FullGameSaveManager.decompressSave(
+        FullGameSaveManager.compressSave(saveEn)
+      );
+      expect(loadedEn?.locale).toBe('en');
+
+      const savePl = FullGameSaveManager.createFullSave({
+        name: 'Polish Save',
+        userId: 'local',
+        locale: 'pl',
+        messages: [],
+        gameSettings: { aiSettings: {} as AISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      expect(savePl.locale).toBe('pl');
+      const loadedPl = FullGameSaveManager.decompressSave(
+        FullGameSaveManager.compressSave(savePl)
+      );
+      expect(loadedPl?.locale).toBe('pl');
+    });
+
+    it('retains backward compatibility when locale is absent (legacy saves)', () => {
+      const saveLegacy = FullGameSaveManager.createFullSave({
+        name: 'Legacy Save Without Locale',
+        userId: 'local',
+        messages: [],
+        gameSettings: { aiSettings: {} as AISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      expect(saveLegacy.locale).toBeUndefined();
+      const loadedLegacy = FullGameSaveManager.decompressSave(
+        FullGameSaveManager.compressSave(saveLegacy)
+      );
+      expect(loadedLegacy?.locale).toBeUndefined();
+
+      const migrated = FullGameSaveManager.migrateLegacySave({
+        name: 'Old Format',
+        userId: 'local',
+        messages: [],
+      });
+      expect(migrated?.locale).toBeUndefined();
+
+      const migratedWithLocale = FullGameSaveManager.migrateLegacySave({
+        name: 'Old Format With Locale',
+        userId: 'local',
+        locale: 'en',
+        messages: [],
+      });
+      expect(migratedWithLocale?.locale).toBe('en');
+    });
+
+    it('validates locale correctly in validateSave', () => {
+      const baseSave = FullGameSaveManager.createFullSave({
+        name: 'Validation test',
+        userId: 'local',
+        messages: [],
+        gameSettings: { aiSettings: {} as AISettings },
+        characters: [],
+        campaigns: [],
+        npcs: [],
+        locations: [],
+      });
+
+      // undefined locale is valid (backward compat)
+      expect(FullGameSaveManager.validateSave({ ...baseSave, locale: undefined })).toBe(true);
+      // 'pl' and 'en' are valid
+      expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 'pl' })).toBe(true);
+      expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 'en' })).toBe(true);
+
+      // Other values are invalid
+      expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 'de' as unknown as 'pl' })).toBe(false);
+      expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 'fr' as unknown as 'en' })).toBe(false);
+      expect(FullGameSaveManager.validateSave({ ...baseSave, locale: 123 as unknown as 'pl' })).toBe(false);
+    });
+  });
 });

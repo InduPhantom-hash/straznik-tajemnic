@@ -20,6 +20,7 @@ import { HotSeatSetup } from '@/components/ui/hot-seat-setup';
 import { ChatLayout } from '@/components/chat/ChatLayout';
 import { CutscenePlayer } from '@/components/ui/cutscene-player';
 import { LanguageSelectionModal } from '@/components/onboarding/language-selection-modal';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { CharacterWizardV2 } from '@/components/ui/character-wizard';
 import { persistCharacters } from '@/lib/character-cloud-sync';
 
@@ -162,6 +163,8 @@ export default function Home() {
   
   const locale = useLocale();
   const gameLocale: 'pl' | 'en' = locale === 'en' ? 'en' : 'pl';
+  const router = useRouter();
+  const pathname = usePathname();
   
   const tts = useTTS(gameLocale);
   const charMgmt = useCharacterManagement();
@@ -260,6 +263,9 @@ export default function Home() {
     setActiveGameState: charMgmt.setActiveGameState,
     setAiSettings,
     stopCurrentAudio: tts.stopCurrentAudio,
+    currentLocale: gameLocale,
+    router,
+    pathname,
   });
 
   
@@ -1105,6 +1111,7 @@ export default function Home() {
                 save.saveModalMode === 'save'
                   ? {
                       messages: chat.messages,
+                      locale: gameLocale,
                       aiSettings: aiSettings || loadAISettings(),
                       equipmentVisualEra: resolveEraVisualProfile(resolvedEraContext || '1920s'),
                       characters: charMgmt.characters,
