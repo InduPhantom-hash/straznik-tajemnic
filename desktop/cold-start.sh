@@ -95,7 +95,7 @@ log "rm profilu: OK (czat, postacie, ustawienia wyczyszczone we wszystkich lokal
 # Usuwamy zaindeksowane zasady i kampanie, aby po resecie gra wymagała wgrania własnego PDF
 rm -f data/rag/rules.* data/rag/rules-profile.json data/rag/capabilities.json data/rag/campaigns__* data/rag/npcs.* data/rag/world-state.* 2>/dev/null || true
 rm -f _tester/_base/.silnik/data/rag/rules.* _tester/_base/.silnik/data/rag/rules-profile.json _tester/_base/.silnik/data/rag/capabilities.json _tester/_base/.silnik/data/rag/campaigns__* _tester/_base/.silnik/data/rag/npcs.* _tester/_base/.silnik/data/rag/world-state.* 2>/dev/null || true
-rm -f "$ZEW_DATA_ROOT/rag/rules.*" "$ZEW_DATA_ROOT/rag/rules-profile.json" "$ZEW_DATA_ROOT/rag/capabilities.json" "$ZEW_DATA_ROOT/rag/campaigns__*" "$ZEW_DATA_ROOT/rag/npcs.*" "$ZEW_DATA_ROOT/rag/world-state.*" 2>/dev/null || true
+rm -f "${ZEW_DATA_ROOT}/rag/"rules.* "${ZEW_DATA_ROOT}/rag/rules-profile.json" "${ZEW_DATA_ROOT}/rag/capabilities.json" "${ZEW_DATA_ROOT}/rag/"campaigns__* "${ZEW_DATA_ROOT}/rag/"npcs.* "${ZEW_DATA_ROOT}/rag/"world-state.* 2>/dev/null || true
 log "usunieto: baze zasad BYOB (rules.*, profile), kampanie i pamiec NPC"
 log "ZOSTAWIONO: oficjalne bazy wiedzy scenariuszy i mitow (adventures/mythos)"
 
