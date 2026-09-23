@@ -126,6 +126,27 @@ export function BetaWelcomeModal({
                   <span className="text-muted-foreground">{t('readyItem5Desc')}</span>
                 </div>
               </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <div>
+                  <strong className="text-foreground block">{t('readyItem6Title')}</strong>
+                  <span className="text-muted-foreground">{t('readyItem6Desc')}</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <div>
+                  <strong className="text-foreground block">{t('readyItem7Title')}</strong>
+                  <span className="text-muted-foreground">{t('readyItem7Desc')}</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <div>
+                  <strong className="text-foreground block">{t('readyItem8Title')}</strong>
+                  <span className="text-muted-foreground">{t('readyItem8Desc')}</span>
+                </div>
+              </li>
             </ul>
           </div>
 
@@ -160,13 +181,6 @@ export function BetaWelcomeModal({
                 <div>
                   <strong className="text-foreground block">{t('inProgressItem3Title')}</strong>
                   <span className="text-muted-foreground">{t('inProgressItem3Desc')}</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">🚧</span>
-                <div>
-                  <strong className="text-foreground block">{t('inProgressItem4Title')}</strong>
-                  <span className="text-muted-foreground">{t('inProgressItem4Desc')}</span>
                 </div>
               </li>
             </ul>

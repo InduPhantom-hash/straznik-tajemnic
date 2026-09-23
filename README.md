@@ -2,23 +2,23 @@
 
 <img src="docs/assets/06-banner-1500x500.png" alt="Strażnik Tajemnic AI / Keeper of Arcane Lore AI" width="820">
 
-# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.4)
+# 𓂀 Strażnik Tajemnic AI / Keeper of Arcane Lore AI (v0.9.5)
 
 **Nieoficjalny, fanowski Mistrz Gry AI do sesji RPG w klimacie lovecraftowskim.**  
 *An unofficial, fan-made AI Game Master for RPG sessions in the Lovecraftian setting.*
 
-> v0.9.4 jest w przygotowaniu do wydania na macOS. Aktualne publiczne wydanie: v0.9.3.<br>
-> v0.9.4 is in preparation for macOS release. Current public release: v0.9.3.
+> v0.9.5 jest stabilnym wydaniem na macOS. Pobierz paczkę ZIP poniżej.<br>
+> v0.9.5 is a stable release for macOS. Download the ZIP package below.
 
 ---
 
-[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v094) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v094)
+[🇵🇱 Wersja Polska](#-straznik-tajemnic-ai-v095) | [🇺🇸 English Version](#-keeper-of-arcane-lore-ai-v095)
 
 </div>
 
 ---
 
-# 🇵🇱 Strażnik Tajemnic AI (v0.9.4)
+# 🇵🇱 Strażnik Tajemnic AI (v0.9.5)
 
 Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, a save'y lądują na Twoim dysku. Nie potrzebujesz konta w aplikacji ani zewnętrznej bazy danych. Wszystko działa lokalnie na Twoim komputerze.
 
@@ -31,7 +31,7 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 
 ## ⬇️ Pobierz
 
-**[Pobierz paczkę macOS (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest)** - uruchom aplikację na macOS dwuklikiem. Paczka nie zawiera klucza API ani podręcznika: przy pierwszym starcie wklejasz **własny** klucz Gemini (`https://aistudio.google.com/apikey`) i wgrywasz **swój** PDF z zasadami.
+**[Pobierz paczkę macOS (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - uruchom aplikację na macOS dwuklikiem. Paczka nie zawiera klucza API ani podręcznika: przy pierwszym starcie wklejasz **własny** klucz Gemini (`https://aistudio.google.com/apikey`) i wgrywasz **swój** PDF z zasadami.
 
 > Wolisz uruchomić ze źródeł? Instrukcja niżej (**Szybki start**).
 
@@ -44,13 +44,18 @@ Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem -
 - **Gwarancja Zasad & Deterministyczna Mechanika (Bez Halucynacji AI):**
   - **Lokalny RAG Podręcznika:** Aplikacja automatycznie przeszukuje **Twój** podręcznik w lokalnym indeksie binarnym (`Float32`) na dysku i wstrzykuje dokładne reguły do zapytania. AI nie zmyśla zasad z głowy.
   - **Kodowane Rzuty k100 i Faza Rozwoju Postaci (CoC 7e RAW):** AI **nie rzuca kośćmi w czacie**. Rzuty na cechy, progi sukcesu (Zwykły, Trudny, Ekstremalny, Krytyk, Pech), testy Poczytalności (SAN), rzuty na Pomysł (Idea Roll) oraz Faza Rozwoju (automatyczne rzuty podbicia cech o 1k10) są liczone w 100% kodem TypeScript. AI otrzymuje twardy wynik i opisuje wyłącznie jego fabularne konsekwencje.
+  - **Puryzm Walki Wręcz CoC 7e RAW:** Karty starcia `OpposedMeleeCard`, przeciwstawne rzuty Uniku i Kontrataku, manewry bojowe, modyfikatory Budowy (Build), przewaga liczebna oraz zasada Dive for Cover.
   - **Kontrola Stanu Świata:** Filtry ciągłości narracyjnej pilnują faktów ze śledztwa, stanu lokacji, ran badaczy oraz statusu NPC.
+- **7 Silników Świata w Locie (World Engine Director):** Architektura dynamicznych wstrzyknięć narracyjnych bez zmian w UI: `NPCEngine` (fasada, skaza, opór), `SensoryEngine` (triada zmysłowa, Zmienna Próżni, somatyka), `NarrativeGraphEngine` (branch-and-bottleneck), `PlotFrictionEngine` (plotki 70/30, tarcie społeczne), `MysteryClueEngine` (zasada 3 poszlak, fail-forward), `GeographyEngine` (chokepoints, hydraulika, geneza podziemi) oraz `OccultEngine` (prawa Sandersona, cena somatyczna, stopnie kultu).
+- **Kompendium Badacza & Kodeks Zasad:** Pełne kompendium Dark Art Déco zintegrowane w bocznym pasku (Mini-Obsidian reguł CoC 7e RAW, leksykon istot Mitycznych oraz lokalna wyszukiwarka podręczników).
+- **Dziennik Śledztwa, Raporty Aktów i Licznik Poszlak:** Reżyseria scen, raporty aktów śledczych z wiodącą hipotezą roboczą (Quote-to-Input), dynamiczny licznik potwierdzonych poszlak oraz Rzut na Pomysł (Idea Roll RAW) z regułą Fail-Forward.
+- **Zunifikowane Epoki Ekonomiczne i Waluty:** 6 kanonicznych epok (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), tabele Credit Rating dla funtów wiktoriańskich (£/s/d) i złotych, dynamiczny przelicznik PPP cen oraz znormalizowany zasięg broni (`formatWeaponRange`).
+- **Uproszczony Ekwipunek i Finanse:** Pełnoekranowy widok Dark Art Déco, kompaktowy pasek majątku i poziomu życia w nagłówku, brak żargonu technicznego oraz deterministyczne grafiki przedmiotów SVG/WebP.
 - **Styl Wizualny Dark Art Déco 1920s:** Głęboka czerń węgla, mosiądz, mahoń, postarzane złoto, stylizowana typografia maszynopisu epoki (`Special Elite`) oraz eleganckie nagłówki `Cinzel`.
-- **Tablica Badacza & Akta Śledcze (Dossier):** Pulpit zebranych dowodów, notatek i poszlak z trwałą siatką koordynatów, mechanika Rzutu na Pomysł (Idea Roll RAW CoC 7e), detekcja powiązań oraz diegetyczny widok Akt Sprawy.
-- **Deterministyczny Ekwipunek:** Zestawy startowe i przedmioty katalogowe przydzielane przez kod na podstawie profesji i zamożności (Credit Rating), bez wymyślania cen i ekwipunku przez model.
+- **Samodzielny Launcher Desktopowy & 100% Tryb Offline:** Strażnik procesów (Desktop Process Supervisor - eliminacja procesów zombie przez kaskadowy `tree-kill`, dynamiczny przydział portów i Single Instance) oraz 100% self-hosted fonty WOFF2 (brak zewnętrznych zapytań sieciowych).
 - **Dynamiczne Pacing Narracji:** Silnik reguluje tempo, długość i gęstość opisów w zależności od poziomu poczytalności, fazy śledztwa i zagrożenia (Matryca 4 Biegów Kadencji).
 - **Tryb Szybka Przygoda:** Błyskawiczny start sesji z wyborem scenariusza i badacza w jednym kroku.
-- **30 Gotowych Postaci & Scenariusze Strefy 11:** Pełne biografie i powiązania dla 30 badaczy, w tym 16 dedykowanych postaci dla 4 autorskich polskich scenariuszy.
+- **30 Gotowych Postaci & Scenariusze Strefy 11:** Pełne biografie i powiązania dla 30 badaczy, w tym 16 dedykowanych postaci dla 4 autorskich polskich scenariuszy (audio MP3, grafiki WebP).
 - **AI Mistrz Gry:** Prowadzi narrację w stylu Lovecrafta z wykorzystaniem opisów sensorycznych (anomalie atmosferyczne, fizyczne odczucia chłodu i wilgoci).
 - **Sesja Zero & Linie i Zasłony:** Wbudowany kreator granic bezpieczeństwa pozwalający wykluczyć niechciane motywy ze stołu.
 - **Hot Seat:** Rozgrywka dla 1-2 graczy przy jednym laptopie, każdy z osobnym kolorem i postacią.
@@ -165,7 +170,7 @@ Kod: **MIT** (patrz [`LICENSE`](./LICENSE)). Projekt fanowski i niekomercyjny. S
 
 ---
 
-# 🇺🇸 Keeper of Arcane Lore AI (v0.9.4)
+# 🇺🇸 Keeper of Arcane Lore AI (v0.9.5)
 
 Run your _Call of Cthulhu 7e_ sessions solo or with a friend on a single laptop (Hot Seat). You provide your own Gemini API key, upload **your own** guidebook, and saves are stored on your local disk. The app does not require an account or external databases. Everything runs locally on your machine.
 
@@ -178,7 +183,7 @@ There comes a stage in life where gathering a full table for an RPG session is a
 
 ## ⬇️ Download
 
-**[Download the macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/latest)** - launch the app on macOS with a double-click. It does not include an API key or guidebook: during the first run, you paste your **own** Gemini key (`https://aistudio.google.com/apikey`) and upload **your** PDF guidebook.
+**[Download the macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - launch the app on macOS with a double-click. It does not include an API key or guidebook: during the first run, you paste your **own** Gemini key (`https://aistudio.google.com/apikey`) and upload **your** PDF guidebook.
 
 > Prefer running from source code? Follow the **Quick Start** guide below.
 
@@ -191,13 +196,18 @@ There comes a stage in life where gathering a full table for an RPG session is a
 - **Rules Guarantee & Deterministic Mechanics (No AI Hallucinations):**
   - **Local Rulebook RAG:** The application automatically searches **your** uploaded PDF stored in local binary `Float32` vectors on disk and injects exact rule context into the LLM prompt. The AI does not fabricate rules or stats.
   - **Hardcoded d100 Rolls & Character Development Phase (CoC 7e RAW):** The AI **never rolls dice in chat**. Skill checks, threshold calculations (Regular, Hard, Extreme, Critical, Fumble), Sanity (SAN) tests, Idea rolls, and post-session skill development are 100% computed in TypeScript code. The AI receives hard results and focuses solely on narrative outcomes.
+  - **CoC 7e RAW Melee Combat:** Opposed clash cards (`OpposedMeleeCard`), Dodge vs Counterattack resolution, combat maneuvers, Build modifiers, outnumbered disadvantage, and Dive for Cover mechanics.
   - **World State Control:** Narrative continuity filters prevent plot holes, forgotten clues, or broken investigator health states.
+- **7 Dynamic World Engines (World Engine Director):** Modular prompt runtime injecting deep world simulation without UI bloat: `NPCEngine` (facade, flaw, resistance), `SensoryEngine` (sensory triad, void variable, somatics), `NarrativeGraphEngine` (branch-and-bottleneck), `PlotFrictionEngine` (70/30 rumors, social friction), `MysteryClueEngine` (3-clue rule, fail-forward), `GeographyEngine` (chokepoints, hydrology, underworld genesis), and `OccultEngine` (Sanderson's laws, somatic cost, cult tiers).
+- **Investigator Compendium & Rulebook:** Comprehensive Dark Art Déco reference panel integrated into the sidebar (Mini-Obsidian for CoC 7e RAW rules, Mythos creature lore, and local rulebook search engine).
+- **Investigation Journal, Act Reports & Clue Counter:** Scene tracking, investigation act reports with working hypothesis synthesis (Quote-to-Input), active clue counter, and Idea Roll RAW with Fail-Forward rule.
+- **Unified Economic Eras & Currencies:** 6 canonical eras (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), Credit Rating thresholds for Victorian pounds (£/s/d) and historical currencies, dynamic PPP pricing converter, and standardized weapon range formatting (`formatWeaponRange`).
+- **Streamlined Equipment & Finances:** Full-screen Dark Art Déco modal, compact living standard and wealth header bar, removal of technical jargon, and deterministic SVG/WebP item graphics.
 - **Dark Art Déco 1920s Visual Design:** Charcoal black, brass, mahogany, aged gold accents, and vintage typewriter typography (`Special Elite`, `Cinzel`) across the entire interface.
-- **Investigator Board & Case Dossier (CoC 7e RAW):** Evidence desk and clue graph with coordinate persistence across saves, domain deduction engine (Idea Roll mechanics), false flags handling, diegetic document styling, and case dossier view.
-- **Deterministic Inventory:** Profession-based starting kits and catalog items selected deterministically by code based on Credit Rating, eliminating hallucinated items and prices.
+- **Standalone Desktop Launcher & 100% Offline Mode:** Pure Node.js Desktop Process Supervisor (eliminates zombie processes via cascading `tree-kill`, dynamic port fallback, and Single Instance enforcement) and 100% self-hosted WOFF2 fonts (zero external network tracking).
 - **Context-Aware Dynamic Pacing:** Narrative engine dynamically adjusts description pacing based on sanity thresholds, investigation stage, and action tension across 4 Cadence Gears.
 - **Quick Adventure Mode:** Instant session start with seamless scenario and investigator selection in one step.
-- **30 Predefined Characters & Zone 11 Scenarios:** 30 comprehensive investigator backstories (including 16 tailored characters for 4 custom Polish scenarios) with unified Single Source of Truth under Biography.
+- **30 Predefined Characters & Zone 11 Scenarios:** 30 comprehensive investigator backstories (including 16 tailored characters for 4 custom Polish scenarios with MP3 audio and WebP handouts).
 - **AI Game Master:** Leads the narrative in Lovecraft's style with sensory descriptions (atmospheric shifts, physical chill, and dread).
 - **Session Zero & Lines/Veils:** Safety tool to calibrate story boundaries at the table.
 - **Hot Seat:** 1-2 players sharing one screen, each with a unique investigator and color theme.
