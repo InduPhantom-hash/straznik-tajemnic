@@ -7,7 +7,7 @@ jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) => {
     const messages: Record<string, string> = {
       badge: 'Wersja Beta v0.9.5',
-      title: 'Strażnik Tajemnic AI – Wersja Grywalna',
+      title: 'Strażnik Tajemnic AI - Wersja Grywalna',
       subtitle: 'Raport gotowości',
       readySectionTitle: 'Moduły Gotowe do Gry (100% CoC 7e RAW)',
       readySectionDesc: 'W pełni przetestowane',
@@ -52,7 +52,7 @@ describe('BetaWelcomeModal', () => {
 
   it('renderuje poprawnie sekcje gotowe i w budowie oraz wskazówkę e-mail', () => {
     render(<BetaWelcomeModal open={true} onOpenChange={() => {}} />);
-    expect(screen.getByText(/Strażnik Tajemnic AI – Wersja Grywalna/i)).toBeInTheDocument();
+    expect(screen.getByText(/Strażnik Tajemnic AI - Wersja Grywalna/i)).toBeInTheDocument();
     expect(screen.getByText(/Moduły Gotowe do Gry/i)).toBeInTheDocument();
     expect(screen.getByText(/Moduły w Budowie/i)).toBeInTheDocument();
     expect(screen.getByText(/Karta Badacza CoC 7e RAW/i)).toBeInTheDocument();
