@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { filterPlotItems, isPlotRelevantItem } from '@/lib/journal/item-filter';
-import type { JournalEntry, JournalEventType, Character, SceneCaseCard } from '@/lib/types';
+import type { JournalEntry, JournalEventType, Character, SceneCaseCard, ActReport } from '@/lib/types';
 
 export type JournalEntryType =
   | 'case'
@@ -23,7 +23,8 @@ export type JournalEntryType =
   | 'npc'
   | 'item'
   | 'note'
-  | 'scene';
+  | 'scene'
+  | 'act_report';
 
 export interface QuestObjective {
   id: string;
@@ -59,6 +60,8 @@ export interface SessionJournalProps {
   participantNames?: string[];
   /** Callback cytowania poszlaki/tekstu do pola czatu (Quote-to-Input) */
   onQuoteToInput?: (text: string) => void;
+  /** Szacunkowa całkowita liczba wskazówek w scenariuszu (Mechanika 1) */
+  totalCluesEstimated?: number;
 }
 
 export interface SealedScene {
@@ -81,6 +84,7 @@ export function SessionJournal({
   sharedJournal,
   participantNames = [],
   onQuoteToInput,
+  totalCluesEstimated,
 }: SessionJournalProps) {
   const t = useTranslations('SessionJournal');
 
@@ -286,6 +290,81 @@ export function SessionJournal({
 
   const isEmpty = sealedScenes.length === 0 && !hasActiveSceneContent;
 
+  // Zakładka widoku: Sceny lub Raporty Aktów (Mechanika 8)
+  const [activeTab, setActiveTab] = useState<'scenes' | 'acts'>('scenes');
+
+  // Obliczenie unikalnych odkrytych wskazówek (Mechanika 1)
+  const discoveredClues = useMemo<string[]>(() => {
+    const set = new Set<string>();
+
+    if (character.investigatorDossier?.clues) {
+      character.investigatorDossier.clues.forEach((c) => {
+        if (c.title) {
+          set.add(c.title.trim().toLowerCase());
+        }
+      });
+    }
+
+    entries.forEach((e) => {
+      if (e.type === 'clue' || e.type === 'discovery') {
+        const title = e.title?.trim() || e.content?.trim();
+        if (title) {
+          set.add(title.toLowerCase());
+        }
+      }
+    });
+
+    sealedScenes.forEach((s) => {
+      s.findings.forEach((f) => {
+        if (f) set.add(f.trim().toLowerCase());
+      });
+    });
+    if (ongoingSceneCard) {
+      ongoingSceneCard.findings.forEach((f) => {
+        if (f) set.add(f.trim().toLowerCase());
+      });
+    }
+
+    return Array.from(set);
+  }, [character.investigatorDossier?.clues, entries, ongoingSceneCard, sealedScenes]);
+
+  // Ekstrakcja i deduplikacja Raportów Aktu (Mechanika 8)
+  const actReports = useMemo<ActReport[]>(() => {
+    const map = new Map<number, ActReport>();
+
+    if (Array.isArray(character.actReports)) {
+      character.actReports.forEach((r) => {
+        if (r && typeof r.actNumber === 'number') {
+          map.set(r.actNumber, r);
+        }
+      });
+    }
+
+    entries.forEach((e) => {
+      if (e.type === 'act_report' && e.actReportData) {
+        const ad = e.actReportData;
+        if (ad && typeof ad.actNumber === 'number' && !map.has(ad.actNumber)) {
+          map.set(ad.actNumber, ad);
+        }
+      }
+    });
+
+    const list = Array.from(map.values());
+    list.sort((a, b) => b.actNumber - a.actNumber);
+    return list;
+  }, [character.actReports, entries]);
+
+  const [selectedActReportId, setSelectedActReportId] = useState<string | null>(null);
+
+  const activeActReport = useMemo<ActReport | null>(() => {
+    if (actReports.length === 0) return null;
+    if (selectedActReportId) {
+      const found = actReports.find((r) => r.id === selectedActReportId);
+      if (found) return found;
+    }
+    return actReports[0];
+  }, [actReports, selectedActReportId]);
+
   // Domyślnie wybrana jest bieżąca scena (lub najnowsza zapieczętowana, jeśli brak aktywnej)
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
 
@@ -341,10 +420,26 @@ export function SessionJournal({
             <div className="font-special-elite text-[10px] uppercase tracking-[0.22em] text-brass/80">
               {t('titleEyebrow')}
             </div>
-            <h1 className="font-display uppercase tracking-[0.14em] text-lg lg:text-xl text-foreground drop-shadow-sm whitespace-nowrap">
-              {t('titleFull')}
-            </h1>
-            <div className="text-xs font-serif text-muted-foreground flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <h1 className="font-display uppercase tracking-[0.14em] text-lg lg:text-xl text-foreground drop-shadow-sm whitespace-nowrap">
+                {t('titleFull')}
+              </h1>
+              {/* Licznik wskazówek (Clue Counter - Mechanika 1) */}
+              <div
+                data-testid="clue-counter-badge"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brass/10 border border-brass/40 text-brass text-xs font-mono font-medium shadow-sm"
+                title={t('clueCounterTooltip')}
+              >
+                <span>🔍</span>
+                <span>{t('clueCounterLabel')}:</span>
+                <span className="font-bold text-[#f4ebd0]">
+                  {totalCluesEstimated && totalCluesEstimated > 0
+                    ? `${discoveredClues.length} / ${totalCluesEstimated}`
+                    : t('clueCountDiscovered', { count: discoveredClues.length })}
+                </span>
+              </div>
+            </div>
+            <div className="text-xs font-serif text-muted-foreground flex items-center gap-2 mt-0.5">
               <span>{t('investigatorLabel', { name: character.name })}</span>
               {(currentInGameDate || character.activeScene?.inGameDate) && (
                 <>
@@ -406,9 +501,9 @@ export function SessionJournal({
         )}
       </div>
 
-      {/* 3. Główna przestrzeń: Układ Kroniki Scen (100% wysokości i szerokości) */}
+      {/* 3. Główna przestrzeń: Układ Kroniki Scen i Raportów Aktów (100% wysokości i szerokości) */}
       <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {isEmpty ? (
+        {activeTab === 'scenes' && isEmpty ? (
           /* Empty State - Dziennik milczy */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
             <div className="w-16 h-16 rounded-full border border-brass/40 bg-brass/10 flex items-center justify-center mb-4 text-brass shadow-[0_0_20px_rgba(191,161,95,0.15)]">
@@ -420,117 +515,232 @@ export function SessionJournal({
             <p className="font-serif italic text-muted-foreground max-w-lg leading-relaxed text-sm">
               {t('emptyScenesDescription')}
             </p>
+            {actReports.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('acts')}
+                className="mt-6 px-4 py-2 bg-brass/20 hover:bg-brass/30 text-brass border border-brass/50 rounded text-xs font-mono uppercase tracking-wider transition-colors"
+              >
+                {t('tabActReports')} ({actReports.length}) &rarr;
+              </button>
+            )}
+          </div>
+        ) : activeTab === 'acts' && actReports.length === 0 ? (
+          /* Empty State - Brak raportów aktu */
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#140e09] via-[#0d0906] to-[#070503]">
+            <div className="w-16 h-16 rounded-full border border-brass/40 bg-brass/10 flex items-center justify-center mb-4 text-brass shadow-[0_0_20px_rgba(191,161,95,0.15)]">
+              <BookOpen className="h-8 w-8" />
+            </div>
+            <h2 className="font-display text-xl uppercase tracking-[0.16em] text-foreground mb-2">
+              {t('emptyActReportsTitle')}
+            </h2>
+            <p className="font-serif italic text-muted-foreground max-w-lg leading-relaxed text-sm mb-6">
+              {t('emptyActReportsDescription')}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleQuoteToInput(t('requestActSynthesisPrompt'))}
+                className="px-4 py-2.5 bg-gradient-to-r from-brass/25 via-brass/20 to-brass/15 hover:bg-brass hover:text-black text-brass border border-brass/60 rounded font-special-elite text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm"
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span>{t('requestActSynthesisButton')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('scenes')}
+                className="px-3.5 py-2.5 bg-transparent hover:bg-brass/10 text-muted-foreground hover:text-brass border border-brass/30 rounded text-xs font-mono uppercase tracking-wider transition-colors"
+              >
+                &larr; {t('tabScenes')}
+              </button>
+            </div>
           </div>
         ) : (
-          /* Dwukolumnowy układ Kroniki Scen */
+          /* Dwukolumnowy układ Kroniki Scen lub Raportów Aktów */
           <>
-            {/* Lewa kolumna: Lista Scen (najnowsza u góry) */}
+            {/* Lewa kolumna: Zakładki (Sceny / Raporty) + Lista */}
             <aside className="w-full md:w-80 lg:w-96 shrink-0 border-b md:border-b-0 md:border-r border-brass/25 bg-[#0e0a07] flex flex-col max-h-48 md:max-h-none overflow-hidden">
-              <div className="px-4 py-3 border-b border-brass/15 bg-[#140f0a] flex items-center justify-between shrink-0">
-                <span className="font-display text-xs uppercase tracking-[0.18em] text-brass/90 font-bold">
-                  {t('sceneListTitle')} ({sealedScenes.length + (ongoingSceneCard ? 1 : 0)})
-                </span>
-                <span className="text-[10px] font-mono text-muted-foreground uppercase">
-                  Najnowsze na górze
-                </span>
+              <div className="p-2 border-b border-brass/15 bg-[#140f0a] flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('scenes')}
+                  className={cn(
+                    'flex-1 py-1.5 px-2 rounded text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border',
+                    activeTab === 'scenes'
+                      ? 'bg-brass/25 border-brass/70 text-[#f4ebd0] font-bold shadow-sm'
+                      : 'bg-transparent border-transparent text-muted-foreground hover:text-brass hover:bg-brass/10'
+                  )}
+                >
+                  <Scroll className="h-3.5 w-3.5 text-brass" />
+                  <span>{t('tabScenes')} ({sealedScenes.length + (ongoingSceneCard ? 1 : 0)})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('acts')}
+                  className={cn(
+                    'flex-1 py-1.5 px-2 rounded text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border',
+                    activeTab === 'acts'
+                      ? 'bg-brass/25 border-brass/70 text-[#f4ebd0] font-bold shadow-sm'
+                      : 'bg-transparent border-transparent text-muted-foreground hover:text-brass hover:bg-brass/10'
+                  )}
+                >
+                  <BookOpen className="h-3.5 w-3.5 text-brass" />
+                  <span>{t('tabActReports')} ({actReports.length})</span>
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto journal-scroll p-3 space-y-2">
-                {/* 1. Bieżąca scena (W toku) na samej górze listy scen */}
-                {ongoingSceneCard && (
-                  <div
-                    key={ongoingSceneCard.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedSceneId(ongoingSceneCard.id)}
-                    onMouseEnter={() => setSelectedSceneId(ongoingSceneCard.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        setSelectedSceneId(ongoingSceneCard.id);
-                      }
-                    }}
-                    className={cn(
-                      'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
-                      activeSceneCard?.id === ongoingSceneCard.id
-                        ? 'bg-gradient-to-r from-emerald-950/40 via-brass/15 to-transparent border-emerald-500/80 shadow-[inset_0_0_12px_rgba(16,185,129,0.15),0_0_10px_rgba(16,185,129,0.1)] text-[#f4ebd0]'
-                        : 'bg-[#140f0b]/70 border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-950/20 hover:shadow-[0_0_12px_rgba(16,185,129,0.15)] text-[#d4c8b8]'
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="relative flex h-2.5 w-2.5 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                        </span>
-                        <span className="text-[11px] bg-emerald-950/60 text-emerald-400 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/40 shrink-0 font-bold">
-                          Scena #{ongoingSceneCard.sceneNumber}
-                        </span>
-                      </div>
-                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono uppercase px-1.5 py-0.5 rounded border border-emerald-500/30 shrink-0 tracking-wider font-bold">
-                        {t('ongoingBadge')}
-                      </span>
-                    </div>
-
-                    <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-emerald-300 transition-colors">
-                      {ongoingSceneCard.title}
-                    </h3>
-
-                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
-                      <span className="shrink-0">📍</span>
-                      <span className="truncate text-brass/90">{ongoingSceneCard.location}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 2. Zapieczętowane sceny chronologicznie */}
-                {sealedScenes.map((scene) => {
-                  const isSelected = activeSceneCard?.id === scene.id;
-                  return (
-                    <div
-                      key={scene.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedSceneId(scene.id)}
-                      onMouseEnter={() => setSelectedSceneId(scene.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          setSelectedSceneId(scene.id);
-                        }
-                      }}
-                      className={cn(
-                        'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
-                        isSelected
-                          ? 'bg-gradient-to-r from-brass/20 via-brass/15 to-transparent border-brass/80 shadow-[inset_0_0_12px_rgba(191,161,95,0.15),0_0_10px_rgba(191,161,95,0.1)] text-[#f4ebd0]'
-                          : 'bg-[#140f0b]/70 border-brass/15 hover:border-brass/50 hover:bg-brass/10 hover:shadow-[0_0_12px_rgba(191,161,95,0.15)] text-[#d4c8b8]'
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-[11px] bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0">
-                          Scena #{scene.sceneNumber}
-                        </span>
-                        {scene.inGameDate && (
-                          <span className="text-[11px] text-brass/70 font-mono shrink-0">
-                            📅 {scene.inGameDate}
-                          </span>
+                {activeTab === 'scenes' ? (
+                  <>
+                    {/* 1. Bieżąca scena (W toku) na samej górze listy scen */}
+                    {ongoingSceneCard && (
+                      <div
+                        key={ongoingSceneCard.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedSceneId(ongoingSceneCard.id)}
+                        onMouseEnter={() => setSelectedSceneId(ongoingSceneCard.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setSelectedSceneId(ongoingSceneCard.id);
+                          }
+                        }}
+                        className={cn(
+                          'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
+                          activeSceneCard?.id === ongoingSceneCard.id
+                            ? 'bg-gradient-to-r from-emerald-950/40 via-brass/15 to-transparent border-emerald-500/80 shadow-[inset_0_0_12px_rgba(16,185,129,0.15),0_0_10px_rgba(16,185,129,0.1)] text-[#f4ebd0]'
+                            : 'bg-[#140f0b]/70 border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-950/20 hover:shadow-[0_0_12px_rgba(16,185,129,0.15)] text-[#d4c8b8]'
                         )}
-                      </div>
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="relative flex h-2.5 w-2.5 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-[11px] bg-emerald-950/60 text-emerald-400 font-mono uppercase px-2 py-0.5 rounded border border-emerald-500/40 shrink-0 font-bold">
+                              Scena #{ongoingSceneCard.sceneNumber}
+                            </span>
+                          </div>
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono uppercase px-1.5 py-0.5 rounded border border-emerald-500/30 shrink-0 tracking-wider font-bold">
+                            {t('ongoingBadge')}
+                          </span>
+                        </div>
 
-                      <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
-                        {scene.title}
-                      </h3>
+                        <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-emerald-300 transition-colors">
+                          {ongoingSceneCard.title}
+                        </h3>
 
-                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
-                        <span className="shrink-0">📍</span>
-                        <span className="truncate">{scene.location}</span>
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                          <span className="shrink-0">📍</span>
+                          <span className="truncate text-brass/90">{ongoingSceneCard.location}</span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    )}
+
+                    {/* 2. Zapieczętowane sceny chronologicznie */}
+                    {sealedScenes.map((scene) => {
+                      const isSelected = activeSceneCard?.id === scene.id;
+                      return (
+                        <div
+                          key={scene.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelectedSceneId(scene.id)}
+                          onMouseEnter={() => setSelectedSceneId(scene.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              setSelectedSceneId(scene.id);
+                            }
+                          }}
+                          className={cn(
+                            'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
+                            isSelected
+                              ? 'bg-gradient-to-r from-brass/20 via-brass/15 to-transparent border-brass/80 shadow-[inset_0_0_12px_rgba(191,161,95,0.15),0_0_10px_rgba(191,161,95,0.1)] text-[#f4ebd0]'
+                              : 'bg-[#140f0b]/70 border-brass/15 hover:border-brass/50 hover:bg-brass/10 hover:shadow-[0_0_12px_rgba(191,161,95,0.15)] text-[#d4c8b8]'
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <span className="text-[11px] bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0">
+                              Scena #{scene.sceneNumber}
+                            </span>
+                            {scene.inGameDate && (
+                              <span className="text-[11px] text-brass/70 font-mono shrink-0">
+                                📅 {scene.inGameDate}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
+                            {scene.title}
+                          </h3>
+
+                          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                            <span className="shrink-0">📍</span>
+                            <span className="truncate">{scene.location}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  /* Lista Raportów Aktów */
+                  actReports.map((report) => {
+                    const isSelected = activeActReport?.id === report.id;
+                    return (
+                      <div
+                        key={report.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedActReportId(report.id)}
+                        onMouseEnter={() => setSelectedActReportId(report.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setSelectedActReportId(report.id);
+                          }
+                        }}
+                        className={cn(
+                          'p-3.5 rounded-sm border cursor-pointer transition-all duration-200 text-left relative group',
+                          isSelected
+                            ? 'bg-gradient-to-r from-brass/20 via-brass/15 to-transparent border-brass/80 shadow-[inset_0_0_12px_rgba(191,161,95,0.15),0_0_10px_rgba(191,161,95,0.1)] text-[#f4ebd0]'
+                            : 'bg-[#140f0b]/70 border-brass/15 hover:border-brass/50 hover:bg-brass/10 hover:shadow-[0_0_12px_rgba(191,161,95,0.15)] text-[#d4c8b8]'
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="text-[11px] bg-brass/20 text-brass font-mono uppercase px-2 py-0.5 rounded border border-brass/40 shrink-0 font-bold">
+                            Akt #{report.actNumber}
+                          </span>
+                          <span
+                            className={cn(
+                              'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded border shrink-0 tracking-wider font-bold',
+                              report.status === 'completed'
+                                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                                : 'bg-amber-950/60 text-amber-300 border-amber-500/40'
+                            )}
+                          >
+                            {report.status === 'completed' ? t('actStatusCompleted') : t('actStatusInProgress')}
+                          </span>
+                        </div>
+
+                        <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-brass transition-colors">
+                          {report.title}
+                        </h3>
+
+                        <div className="text-[11px] text-muted-foreground mt-1.5 flex items-center justify-between">
+                          <span>{t('entriesCount', { count: report.confirmedFacts.length })}</span>
+                          {report.inGameDate && (
+                            <span className="text-brass/70 font-mono">📅 {report.inGameDate}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </aside>
 
-            {/* Prawa strona: Karta Sceny w 4 czystych blokach */}
-            {activeSceneCard && (
+            {/* Prawa strona: Karta Sceny LUB Karta Raportu Aktu */}
+            {activeTab === 'scenes' && activeSceneCard && (
               <section className="flex-1 overflow-y-auto journal-scroll p-6 lg:p-8 bg-[#110d09] flex flex-col space-y-6">
                 {/* Nagłówek wybranej karty */}
                 <div className="border-b border-brass/25 pb-4">
@@ -670,6 +880,147 @@ export function SessionJournal({
                       {t('noNextStep')}
                     </p>
                   )}
+                </div>
+              </section>
+            )}
+
+            {/* Prawa strona: Karta Raportu Aktu */}
+            {activeTab === 'acts' && activeActReport && (
+              <section className="flex-1 overflow-y-auto journal-scroll p-6 lg:p-8 bg-[#110d09] flex flex-col space-y-6">
+                {/* Nagłówek Raportu Aktu */}
+                <div className="border-b border-brass/25 pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs bg-brass/25 text-brass font-mono uppercase px-2.5 py-0.5 rounded border border-brass/50 font-bold">
+                      Akt #{activeActReport.actNumber}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-xs font-mono uppercase px-2 py-0.5 rounded border font-semibold',
+                        activeActReport.status === 'completed'
+                          ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                          : 'bg-amber-950/60 text-amber-300 border-amber-500/40'
+                      )}
+                    >
+                      {activeActReport.status === 'completed'
+                        ? t('actStatusCompleted')
+                        : t('actStatusInProgress')}
+                    </span>
+                    {activeActReport.inGameDate && (
+                      <span className="text-xs text-brass/80 font-mono flex items-center gap-1">
+                        <span>📅</span> {activeActReport.inGameDate}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="font-display text-xl lg:text-2xl text-foreground uppercase tracking-wide">
+                    {activeActReport.title}
+                  </h2>
+                </div>
+
+                {/* BLOK 1: Co wiemy na pewno (Fakty bezsprzeczne) */}
+                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
+                    <Scroll className="h-4 w-4" />
+                    <span>{t('blockConfirmedFacts')}</span>
+                  </div>
+                  {activeActReport.confirmedFacts.length > 0 ? (
+                    <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
+                      {activeActReport.confirmedFacts.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      {t('emptyConfirmedFacts')}
+                    </p>
+                  )}
+                </div>
+
+                {/* BLOK 2: Podejrzani i motywy */}
+                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
+                    <Users className="h-4 w-4" />
+                    <span>{t('blockSuspects')}</span>
+                  </div>
+                  {activeActReport.suspects.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {activeActReport.suspects.map((person, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-black/50 border border-brass/30 text-brass/90 text-xs px-2.5 py-1 rounded-sm font-serif flex items-center gap-1"
+                        >
+                          <span>👤</span>
+                          <span>{person}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      {t('emptySuspects')}
+                    </p>
+                  )}
+                </div>
+
+                {/* BLOK 3: Białe plamy i luki w śledztwie */}
+                <div className="bg-[#16100b] border border-brass/30 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-3 pb-2 border-b border-brass/20">
+                    <Search className="h-4 w-4" />
+                    <span>{t('blockUnresolvedQuestions')}</span>
+                  </div>
+                  {activeActReport.unresolvedQuestions.length > 0 ? (
+                    <ul className="space-y-2 font-serif text-sm text-[#e8dfcf] leading-relaxed list-disc list-inside">
+                      {activeActReport.unresolvedQuestions.map((q, idx) => (
+                        <li key={idx} className="leading-relaxed">
+                          ❓ {q}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      {t('emptyUnresolvedQuestions')}
+                    </p>
+                  )}
+                </div>
+
+                {/* BLOK 4: Wiodąca hipoteza robocza */}
+                <div className="bg-gradient-to-r from-brass/15 via-brass/10 to-transparent border border-brass/40 rounded-sm p-4 lg:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-brass font-display text-xs uppercase tracking-[0.14em] mb-2">
+                    <span>💡</span>
+                    <span>{t('blockLeadHypothesis')}</span>
+                  </div>
+                  {activeActReport.leadHypothesis ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                      <p className="font-serif italic text-sm text-[#f4ebd0] leading-relaxed flex-1">
+                        {activeActReport.leadHypothesis}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleQuoteToInput(activeActReport.leadHypothesis!)}
+                        className="bg-[#241a10] hover:bg-brass hover:text-black text-brass border border-brass/50 font-special-elite text-xs uppercase tracking-wider px-3.5 py-2 rounded-sm flex items-center gap-2 shrink-0 transition-all shadow-sm"
+                        title={t('quoteToChatTitle')}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{t('quoteHypothesisButton')}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-serif italic text-muted-foreground">
+                      {t('noLeadHypothesis')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Dolny przycisk: prośba o aktualizację syntezy */}
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleQuoteToInput(t('requestActSynthesisPrompt'))}
+                    className="bg-[#1a130c] hover:bg-brass/20 text-brass/90 hover:text-brass border border-brass/40 font-mono text-xs px-3.5 py-2 rounded-sm flex items-center gap-2 transition-all shadow-sm"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span>{t('requestActSynthesisButton')}</span>
+                  </button>
                 </div>
               </section>
             )}

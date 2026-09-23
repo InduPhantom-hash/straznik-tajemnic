@@ -84,6 +84,18 @@ Wkraczasz do gabinetu.`;
     const output = cleanupContent(input);
     expect(output).toContain('[NOTATKA_BADACZA:');
   });
+
+  it('zamienia tag [RAPORT_AKTU] oraz [ACT_REPORT] na diegetyczny whisper w czacie (Mechanika 8)', () => {
+    const inputPl = 'Podsumowujecie dotychczasowe śledztwo.\n\n[RAPORT_AKTU: Akt 1: Początek]\nFAKTY:\n- Zbrodnia w dokach\n[/RAPORT_AKTU]\n\n[Co robisz?]';
+    const outputPl = cleanupContent(inputPl);
+    expect(outputPl).toContain('[Zaktualizowano raport aktu]');
+    expect(outputPl).not.toContain('[RAPORT_AKTU');
+
+    const inputEn = 'Investigation proceeds.\n\n[ACT_REPORT: Act 2: Coven]\nFACTS:\n- Book found\n[/ACT_REPORT]\n\n[What do you do?]';
+    const outputEn = cleanupContent(inputEn);
+    expect(outputEn).toContain('[Zaktualizowano raport aktu]');
+    expect(outputEn).not.toContain('[ACT_REPORT');
+  });
 });
 
 

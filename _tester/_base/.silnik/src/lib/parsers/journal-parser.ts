@@ -584,13 +584,143 @@ export function extractSceneCardTag(text: string): ExtractedSceneCard | null {
 }
 
 /**
- * Czyści surowy tekst wiadomości z tagów sceny i karty akt,
+ * Ekstrahuje tag mini-podsumowania etapowego i raportu aktu:
+ * [RAPORT_AKTU: Akt 1: Tytuł | Status: W toku]
+ * FAKTY:
+ * - Fakt 1
+ * PODEJRZANI:
+ * - Podejrzany 1
+ * LUKI:
+ * - Pytanie 1
+ * HIPOTEZA:
+ * Wiodąca robocza hipoteza
+ * [/RAPORT_AKTU]
+ *
+ * lub [ACT_REPORT: ...] ... [/ACT_REPORT]
+ */
+export function extractActReportTag(text: string): import('@/lib/types').ActReport | null {
+  if (!text) return null;
+  const match = text.match(
+    /\[(?:RAPORT_AKTU|ACT_REPORT):?\s*([^\]]*)\]([\s\S]*?)\[\/(?:RAPORT_AKTU|ACT_REPORT)\]/i
+  );
+  if (!match) return null;
+
+  const rawHeader = match[1].trim();
+  const body = match[2].trim();
+
+  let actNumber = 1;
+  let title = 'Raport Aktu';
+  let status: 'in_progress' | 'completed' = 'in_progress';
+  let inGameDate: string | undefined;
+
+  const headerParts = rawHeader ? rawHeader.split('|').map((p) => p.trim()) : [];
+  const mainPart = headerParts[0] || '';
+
+  const actMatch = mainPart.match(/(?:Akt|Act)\s*(\d+)[:\s-]*(.*)/i);
+  if (actMatch) {
+    actNumber = parseInt(actMatch[1], 10) || 1;
+    const rest = actMatch[2]?.trim();
+    if (rest) title = rest;
+  } else if (mainPart) {
+    title = mainPart;
+  }
+
+  for (let i = 1; i < headerParts.length; i++) {
+    const part = headerParts[i];
+    const statusMatch = part.match(/^(?:status)\s*:\s*(.+)$/i);
+    if (statusMatch) {
+      const s = statusMatch[1].toLowerCase().trim();
+      if (s.includes('zakończ') || s.includes('complet')) {
+        status = 'completed';
+      } else {
+        status = 'in_progress';
+      }
+      continue;
+    }
+    const dateMatch = part.match(/^(?:data|date|czas|ingamedate)\s*:\s*(.+)$/i);
+    if (dateMatch) {
+      inGameDate = dateMatch[1].trim();
+      continue;
+    }
+  }
+
+  const confirmedFacts: string[] = [];
+  const suspects: string[] = [];
+  const unresolvedQuestions: string[] = [];
+  let leadHypothesis: string | undefined;
+
+  type SectionType = 'facts' | 'suspects' | 'gaps' | 'hypothesis' | null;
+  let currentSection: SectionType = null;
+
+  const lines = body.split('\n');
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // Nagłówki sekcji
+    if (/^(?:FAKTY|FACTS|DOWODY|USTALENIA)\s*:/i.test(line)) {
+      currentSection = 'facts';
+      const inline = line.replace(/^(?:FAKTY|FACTS|DOWODY|USTALENIA)\s*:\s*/i, '').trim();
+      if (inline) confirmedFacts.push(inline);
+      continue;
+    }
+    if (/^(?:PODEJRZANI|SUSPECTS|OSOBY|PODEJRZANY)\s*:/i.test(line)) {
+      currentSection = 'suspects';
+      const inline = line.replace(/^(?:PODEJRZANI|SUSPECTS|OSOBY|PODEJRZANY)\s*:\s*/i, '').trim();
+      if (inline) suspects.push(inline);
+      continue;
+    }
+    if (/^(?:LUKI|BIAŁE_PLAMY|BIALE_PLAMY|GAPS|QUESTIONS|UNRESOLVED|PYTANIA)\s*:/i.test(line)) {
+      currentSection = 'gaps';
+      const inline = line.replace(/^(?:LUKI|BIAŁE_PLAMY|BIALE_PLAMY|GAPS|QUESTIONS|UNRESOLVED|PYTANIA)\s*:\s*/i, '').trim();
+      if (inline) unresolvedQuestions.push(inline);
+      continue;
+    }
+    if (/^(?:HIPOTEZA|HYPOTHESIS|LEAD_HYPOTHESIS|TEORIA)\s*:/i.test(line)) {
+      currentSection = 'hypothesis';
+      const inline = line.replace(/^(?:HIPOTEZA|HYPOTHESIS|LEAD_HYPOTHESIS|TEORIA)\s*:\s*/i, '').trim();
+      if (inline) leadHypothesis = inline;
+      continue;
+    }
+
+    const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
+    if (!cleanItem) continue;
+
+    if (currentSection === 'facts') {
+      confirmedFacts.push(cleanItem);
+    } else if (currentSection === 'suspects') {
+      suspects.push(cleanItem);
+    } else if (currentSection === 'gaps') {
+      unresolvedQuestions.push(cleanItem);
+    } else if (currentSection === 'hypothesis') {
+      leadHypothesis = leadHypothesis ? `${leadHypothesis} ${cleanItem}` : cleanItem;
+    }
+  }
+
+  const id = `act-report-${actNumber}-${Date.now()}`;
+
+  return {
+    id,
+    actNumber,
+    title,
+    inGameDate,
+    status,
+    confirmedFacts,
+    suspects,
+    unresolvedQuestions,
+    leadHypothesis,
+  };
+}
+
+/**
+ * Czyści surowy tekst wiadomości z tagów sceny, karty akt i raportu aktu,
  * aby nie wyciekały do widoku czatu ani TTS.
  */
 export function cleanSceneTagsFromText(text: string): string {
   if (!text) return '';
   return text
     .replace(/\[(?:KARTA_SCENY|SCENE_CARD)[^\]]*\][\s\S]*?(?:\[\/(?:KARTA_SCENY|SCENE_CARD)\]|$)/gi, '')
+    .replace(/\[(?:RAPORT_AKTU|ACT_REPORT)[^\]]*\][\s\S]*?(?:\[\/(?:RAPORT_AKTU|ACT_REPORT)\]|$)/gi, '')
     .replace(/\[(?:ZMIANA_SCENY|SCENE_CHANGE)[^\]]*\]/gi, '')
     .replace(/\[(?:LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED)[^\]]*\]/gi, '')
     .replace(/\[(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)[^\]]*\]/gi, '')

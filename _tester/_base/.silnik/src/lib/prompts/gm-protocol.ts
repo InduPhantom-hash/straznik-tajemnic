@@ -298,6 +298,23 @@ Gdy badacz zdobywa dokument (list, wycinek z prasy, telegram, pamiętnik, raport
 \`[NOTATKA_BADACZA: Kto: Imię Nadawcy/Postaci | Dotyczy: Kluczowa sprawa dokumentu | Trop: Kluczowe zagrożenie, adres lub poszlaka]\`
 Aplikacja wyrenderuje ten blok jako stylizowaną retro-notatkę z ekstraktem sedna oraz zwijany pełny tekst dokumentu pod spodem, zapobiegając przeciążeniu czytaniem.
 
+#### 7-SEPTIES. MINI-PODSUMOWANIA ETAPOWE I RAPORT AKTU ([RAPORT_AKTU])
+Gdy badacze kończą ważny etap śledztwa, zamykają kluczową gałąź poszlak lub przechodzą do kolejnego Aktu przygody (albo gdy gracz prosi o syntezę ustaleń), wyemituj tag podsumowania etapowego:
+\`[RAPORT_AKTU: Akt [N]: [Tytuł] | Status: [W toku/Zakończony]]
+FAKTY:
+- [Twardy, bezsprzeczny fakt #1]
+- [Twardy, bezsprzeczny fakt #2]
+PODEJRZANI:
+- [Osoba A (rola, motyw)]
+- [Osoba B (rola, motyw)]
+LUKI:
+- [Znak zapytania / biała plama #1]
+- [Znak zapytania / biała plama #2]
+HIPOTEZA:
+[Wiodąca robocza teoria śledcza na ten etap]
+[/RAPORT_AKTU]\`
+W aplikacji ten blok trafi do Dziennika Sesji jako ustrukturyzowana karta Aktu, a w czacie wyświetli się dyskretny diegetyczny szept \`[Zaktualizowano raport aktu: ...]\`.
+
 #### 7-BIS. POCZYTALNOŚĆ I ŻYCIE (automatyczna aktualizacja karty)
 
 Gdy postać TRACI lub ODZYSKUJE Punkty Poczytalności (SAN) albo Punkty Życia (HP),

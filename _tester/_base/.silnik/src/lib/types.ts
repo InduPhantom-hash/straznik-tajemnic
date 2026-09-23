@@ -212,7 +212,22 @@ export type JournalEventType =
   | 'quest'
   | 'journal'
   | 'case'
-  | 'scene';
+  | 'scene'
+  | 'act_report'; // 📑 Raport Aktu / Mini-podsumowanie etapowe (Mechanika 8)
+
+// Mini-podsumowanie etapowe i Raport Aktu (Mechanika 8 / Issue #481)
+export interface ActReport {
+  id: string;
+  actNumber: number;
+  title: string;
+  inGameDate?: string;
+  timestamp?: string | Date;
+  status?: 'in_progress' | 'completed';
+  confirmedFacts: string[]; // Co wiemy na pewno (fakty bezsprzeczne)
+  suspects: string[]; // Kto budzi największe podejrzenia
+  unresolvedQuestions: string[]; // Luki i białe plamy
+  leadHypothesis?: string; // Wiodąca robocza hipoteza śledcza
+}
 
 // Karta Akt Śledczych po zamknięciu sceny (Issue #402)
 export interface SceneCaseCard {
@@ -258,6 +273,8 @@ export interface JournalEntry {
   isBookmarked: boolean;
   /** Dane ustrukturyzowanej Karty Akt Śledczych (dla type: 'scene') */
   sceneData?: SceneCaseCard;
+  /** Dane ustrukturyzowanego Raportu Aktu (dla type: 'act_report') */
+  actReportData?: ActReport;
   /** Wniosek Badacza / Dedukcja postaci (np. z rzutu na INT / Pomysł lub sukcesu śledczego) */
   investigatorInsight?: string;
   metadata?: {
@@ -583,6 +600,7 @@ export interface Character {
 
   journal?: JournalEntry[];
   sceneCards?: SceneCaseCard[]; // Karty Akt Śledczych zamkniętych scen (Issue #402)
+  actReports?: ActReport[]; // Mini-podsumowania etapowe i raporty aktów (Mechanika 8 / Issue #481)
   activeScene?: ActiveSceneState; // Stan bieżącej, trwającej sceny (Issue #402)
   investigatorBoard?: InvestigatorBoardState;
   investigatorDossier?: InvestigatorDossier;

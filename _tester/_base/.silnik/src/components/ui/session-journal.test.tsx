@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import type { Character, JournalEntry, SceneCaseCard } from '@/lib/types';
+import type { Character, JournalEntry, SceneCaseCard, ActReport } from '@/lib/types';
 import { PREDEFINED_CHARACTERS } from '@/lib/immersion/predefined-characters';
 import { isPlotRelevantItem, filterPlotItems } from '@/lib/journal/item-filter';
 import { appendJournalFromText } from '@/lib/journal/apply-journal-tags';
@@ -587,5 +587,184 @@ Dotarłeś pod wskazany adres w starych dokach. Wiatr wieje od zatoki.
     // Pierwsza lokacja nie pieczętuje pustej sceny
     expect(updated.sceneCards?.length || 0).toBe(0);
     expect(updated.activeScene?.location).toBe('Gabinet Profesora Westona');
+  });
+
+  describe('Investigation Progress (Mechaniki 1 i 8)', () => {
+    const sampleSceneProgress: SceneCaseCard = {
+      id: 'scene-card-1',
+      sceneNumber: 1,
+      location: 'Woronicza, Warszawa',
+      title: 'Wizyta w archiwum TVP',
+      inGameDate: '14 stycznia 1973',
+      timestamp: '2026-09-21T10:00:00Z',
+      people: ['Tadeusz Wrona', 'Marian Konieczny'],
+      findings: ['Baterie', 'Teczka ze skradzioną taśmą', 'Zapałki'],
+      keyTakeaways: [
+        'Wrona przekazał zapieczętowaną teczkę z nagraniem.',
+        'Służba Bezpieczeństwa interesuje się blokiem na Ursynowie.',
+      ],
+      nextStep: 'Skontaktować się z profesorem w Bibliotece Uniwersyteckiej.',
+      isSealed: true,
+    };
+
+    const sampleActReport: ActReport = {
+      id: 'act-report-1',
+      actNumber: 1,
+      title: 'Śmierć w Bibliotece Miskatonic',
+      status: 'completed',
+      inGameDate: '15 stycznia 1928',
+      confirmedFacts: [
+        'Dr Armitage znalazł zwłoki asystenta o 6:00 rano',
+        'Księga Necronomicon została otwarta na 741. stronie',
+      ],
+      suspects: ['Wilbur Whateley', 'Profesor Rice'],
+      unresolvedQuestions: ['Kto dostarczył klucz do gabloty?'],
+      leadHypothesis: 'Morderca poszukiwał formuły odpędzenia Yog-Sothotha.',
+    };
+
+    it('wyświetla licznik wskazówek (Clue Counter) w nagłówku', () => {
+      const character: Character = {
+        ...PREDEFINED_CHARACTERS[0],
+        sceneCards: [sampleSceneProgress],
+        investigatorDossier: {
+          clues: [
+            {
+              id: 'c1',
+              title: 'Mosiężny klucz',
+              description: 'Znaleziony w bibliotece',
+              category: 'forensic',
+              status: 'confirmed',
+              epistemicLayer: 'player_clue',
+              timestamp: Date.now(),
+            },
+            {
+              id: 'c2',
+              title: 'Notatka z łaciny',
+              description: 'Fragment przekładu',
+              category: 'document',
+              status: 'confirmed',
+              epistemicLayer: 'player_clue',
+              timestamp: Date.now(),
+            },
+          ],
+          npcs: [],
+          locations: [],
+          notes: [],
+        },
+      };
+
+      const { rerender } = render(
+        <SessionJournal
+          character={character}
+          totalCluesEstimated={5}
+          onClose={jest.fn()}
+        />
+      );
+
+      const badge = screen.getByTestId('clue-counter-badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge.textContent).toContain('5');
+
+      // Bez totalCluesEstimated
+      rerender(
+        <SessionJournal
+          character={character}
+          onClose={jest.fn()}
+        />
+      );
+      expect(screen.getByTestId('clue-counter-badge')).toBeInTheDocument();
+      expect(screen.getByTestId('clue-counter-badge').textContent).toContain('odkrytych');
+    });
+
+    it('umożliwia przełączenie na Raporty Aktów i wyświetla kartę w 4 blokach Art Déco', () => {
+      const character: Character = {
+        ...PREDEFINED_CHARACTERS[0],
+        sceneCards: [sampleSceneProgress],
+        actReports: [sampleActReport],
+      };
+
+      render(<SessionJournal character={character} onClose={jest.fn()} />);
+
+      // Klikamy zakładkę Raporty Aktów
+      const tabButton = screen.getByRole('button', { name: /Raporty Aktów/i });
+      fireEvent.click(tabButton);
+
+      // Sprawdzamy nagłówek i 4 bloki
+      expect(screen.getAllByText('Śmierć w Bibliotece Miskatonic').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Akt #1').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Zakończony').length).toBeGreaterThanOrEqual(1);
+
+      // Blok 1: Fakty
+      expect(screen.getByText('Co wiemy na pewno (Fakty bezsprzeczne)')).toBeInTheDocument();
+      expect(
+        screen.getByText('Dr Armitage znalazł zwłoki asystenta o 6:00 rano')
+      ).toBeInTheDocument();
+
+      // Blok 2: Podejrzani
+      expect(screen.getByText('Podejrzani i motywy')).toBeInTheDocument();
+      expect(screen.getByText(/Wilbur Whateley/i)).toBeInTheDocument();
+
+      // Blok 3: Białe plamy
+      expect(screen.getByText('Białe plamy i luki w śledztwie')).toBeInTheDocument();
+      expect(screen.getByText(/Kto dostarczył klucz do gabloty\?/i)).toBeInTheDocument();
+
+      // Blok 4: Wiodąca hipoteza
+      expect(screen.getByText('Wiodąca hipoteza robocza')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Morderca poszukiwał formuły odpędzenia Yog-Sothotha\./i)
+      ).toBeInTheDocument();
+    });
+
+    it('obsługuje Quote-to-Input dla wiodącej hipotezy w raporcie aktu', () => {
+      const handleQuote = jest.fn();
+      const character: Character = {
+        ...PREDEFINED_CHARACTERS[0],
+        sceneCards: [sampleSceneProgress],
+        actReports: [sampleActReport],
+      };
+
+      render(
+        <SessionJournal
+          character={character}
+          onQuoteToInput={handleQuote}
+          onClose={jest.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Raporty Aktów/i }));
+
+      const quoteBtn = screen.getByRole('button', { name: /Zacytuj hipotezę na czacie/i });
+      fireEvent.click(quoteBtn);
+
+      expect(handleQuote).toHaveBeenCalledWith(sampleActReport.leadHypothesis);
+    });
+
+    it('wyświetla pusty stan raportów aktu z przyciskiem prośby o syntezę etapu', () => {
+      const handleQuote = jest.fn();
+      const character: Character = {
+        ...PREDEFINED_CHARACTERS[0],
+        sceneCards: [sampleSceneProgress],
+        actReports: [],
+      };
+
+      render(
+        <SessionJournal
+          character={character}
+          onQuoteToInput={handleQuote}
+          onClose={jest.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Raporty Aktów/i }));
+
+      expect(screen.getByText('Brak raportów aktu')).toBeInTheDocument();
+      const requestBtn = screen.getByRole('button', { name: /Poproś o syntezę etapu/i });
+      expect(requestBtn).toBeInTheDocument();
+
+      fireEvent.click(requestBtn);
+      expect(handleQuote).toHaveBeenCalledWith(
+        'Mistrzu Gry, podsumujmy dotychczasowe ustalenia i fakty tego etapu śledztwa.'
+      );
+    });
   });
 });
