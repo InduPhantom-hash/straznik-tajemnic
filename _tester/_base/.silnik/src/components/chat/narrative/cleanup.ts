@@ -90,6 +90,9 @@ export function cleanupContent(content: string): string {
     // Bramkowanie lokacji (Issue #477 / Mechanika 7): diegetyczne powiadomienie o wyczerpaniu lokacji
     .replace(/\[(?:LOKACJA_WYCZERPANA|LOCATION_EXHAUSTED):?[^\]]*\]/gi, '\n\n[Lokacja zbadana wyczerpująco]\n\n')
     .replace(/(?:\[Lokacja zbadana wyczerpująco\]\s*)+/gi, '[Lokacja zbadana wyczerpująco]\n\n')
+    // Mini-podsumowania etapowe i Raport Aktu (Mechanika 8 / Issue #481)
+    .replace(/\[(?:RAPORT_AKTU|ACT_REPORT):?[^\]]*\][\s\S]*?\[\/(?:RAPORT_AKTU|ACT_REPORT)\]/gi, '\n\n[Zaktualizowano raport aktu]\n\n')
+    .replace(/(?:\[Zaktualizowano raport aktu\]\s*)+/gi, '[Zaktualizowano raport aktu]\n\n')
     // Pogoda - znacznik [POGODA: ...] aktualizuje pogodę w czasie rzeczywistym
     .replace(new RegExp(`\\[POGODA:${NESTED_TAG_BODY}\\]`, 'gi'), (fullMatch) => {
       const match = fullMatch.match(/\[POGODA:\s*([^\]]+)\]/i);
@@ -182,7 +185,7 @@ export function cleanupContent(content: string): string {
   );
 
   cleanContent = cleanContent.replace(
-    /(\S)[ \t]*(\[(?:Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched)\])/gi,
+    /(\S)[ \t]*(\[(?:Zaktualizowano dziennik|Journal updated|Lokacja zbadana wyczerpująco|Location thoroughly searched|Zaktualizowano raport aktu|Act report updated)\])/gi,
     '$1\n\n$2'
   );
 

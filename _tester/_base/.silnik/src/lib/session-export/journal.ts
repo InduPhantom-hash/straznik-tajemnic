@@ -23,6 +23,7 @@ export function formatJournalSection(journal: JournalEntry[]): string {
     item: '📦',
     case: '📁',
     scene: '🎬',
+    act_report: '📑',
   };
 
   // Sortuj chronologicznie

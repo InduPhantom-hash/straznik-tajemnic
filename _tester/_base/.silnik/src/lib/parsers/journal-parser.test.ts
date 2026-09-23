@@ -8,6 +8,7 @@ import {
   extractSceneChangeTag,
   extractSceneCardTag,
   extractLocationExhaustedTag,
+  extractActReportTag,
 } from './journal-parser';
 import { extractLatestTagLocation } from './event-parser';
 import { appendJournalFromText, appendJournalToParty } from '../journal/apply-journal-tags';
@@ -696,6 +697,109 @@ describe('Reżyseria scen i Karta Akt Śledczych (Issue #402)', () => {
 
       const loc = updated.investigatorDossier?.locations?.find((l) => l.name === 'Gabinet Profesora');
       expect(loc?.searchStatus).toBe('thoroughly_searched');
+    });
+
+    it('extractActReportTag parsuje ustrukturyzowany raport aktu PL i EN (Mechanika 8)', () => {
+      const plText = `
+        Zakończyliście badanie biblioteki.
+        [RAPORT_AKTU: Akt 1: Śmierć w Bibliotece | Status: W toku | Data: 14 stycznia 1928]
+        FAKTY:
+        - Bibliotekarz został otruty cyjankiem
+        - Z sejfu zniknął egzemplarz De Vermis Mysteriis
+        PODEJRZANI:
+        - Asystent William (miał klucze do gabinetu)
+        - Lord Blackwood (widziany w zaułku)
+        LUKI:
+        - Kto wyłączył dzwonki alarmowe?
+        HIPOTEZA:
+        Kradzież zlecili czciciele Dagona przez podstawionego asystenta.
+        [/RAPORT_AKTU]
+      `;
+      const reportPl = extractActReportTag(plText);
+      expect(reportPl).toBeDefined();
+      expect(reportPl?.actNumber).toBe(1);
+      expect(reportPl?.title).toBe('Śmierć w Bibliotece');
+      expect(reportPl?.status).toBe('in_progress');
+      expect(reportPl?.inGameDate).toBe('14 stycznia 1928');
+      expect(reportPl?.confirmedFacts).toHaveLength(2);
+      expect(reportPl?.confirmedFacts[0]).toContain('Bibliotekarz został otruty');
+      expect(reportPl?.suspects).toHaveLength(2);
+      expect(reportPl?.suspects[0]).toContain('Asystent William');
+      expect(reportPl?.unresolvedQuestions).toEqual(['Kto wyłączył dzwonki alarmowe?']);
+      expect(reportPl?.leadHypothesis).toContain('czciciele Dagona');
+
+      const enText = `
+        [ACT_REPORT: Act 2: The Boston Coven | Status: Completed]
+        FACTS:
+        - The occult bookstore is a facade
+        SUSPECTS:
+        - Silas Marsh
+        QUESTIONS:
+        - Where is the basement entrance?
+        HYPOTHESIS:
+        The meeting takes place at midnight.
+        [/ACT_REPORT]
+      `;
+      const reportEn = extractActReportTag(enText);
+      expect(reportEn).toBeDefined();
+      expect(reportEn?.actNumber).toBe(2);
+      expect(reportEn?.title).toBe('The Boston Coven');
+      expect(reportEn?.status).toBe('completed');
+      expect(reportEn?.confirmedFacts).toHaveLength(1);
+      expect(reportEn?.suspects).toEqual(['Silas Marsh']);
+      expect(reportEn?.unresolvedQuestions).toEqual(['Where is the basement entrance?']);
+      expect(reportEn?.leadHypothesis).toBe('The meeting takes place at midnight.');
+    });
+
+    it('appendJournalFromText i appendJournalToParty zapisują raport aktu w profilu i synchronizują drużynę', () => {
+      const turn = `
+        [RAPORT_AKTU: Akt 1: Początek Koszmaru | Status: W toku]
+        FAKTY:
+        - Znaleziono ciało w dokach
+        PODEJRZANI:
+        - Obed Marsh
+        LUKI:
+        - Gdzie zniknęła łódź?
+        HIPOTEZA:
+        Świadek ukrywa się na bagnach.
+        [/RAPORT_AKTU]
+      `;
+      const updated = appendJournalFromText(baseChar, turn, 'msg_act_1');
+      expect(updated.actReports).toHaveLength(1);
+      expect(updated.actReports![0].actNumber).toBe(1);
+      expect(updated.actReports![0].title).toBe('Początek Koszmaru');
+
+      const journalEntry = updated.journal?.find((j) => j.type === 'act_report');
+      expect(journalEntry).toBeDefined();
+      expect(journalEntry?.actReportData?.actNumber).toBe(1);
+
+      // Aktualizacja tego samego aktu
+      const turnUpdate = `
+        [RAPORT_AKTU: Akt 1: Początek Koszmaru | Status: Zakończony]
+        FAKTY:
+        - Znaleziono ciało w dokach
+        - Odzyskano dziennik szypra
+        PODEJRZANI:
+        - Obed Marsh (aresztowany)
+        LUKI:
+        - Brak luk
+        HIPOTEZA:
+        Etap pierwszy zamknięty.
+        [/RAPORT_AKTU]
+      `;
+      const updatedTwice = appendJournalFromText(updated, turnUpdate, 'msg_act_1_update');
+      expect(updatedTwice.actReports).toHaveLength(1);
+      expect(updatedTwice.actReports![0].status).toBe('completed');
+      expect(updatedTwice.actReports![0].confirmedFacts).toHaveLength(2);
+
+      // Synchronizacja drużyny
+      const charA = { ...baseChar, id: 'char_a', name: 'Badacz A' };
+      const charB = { ...baseChar, id: 'char_b', name: 'Badacz B' };
+      const party = appendJournalToParty([charA, charB], charA, turn, 'msg_party_act');
+      expect(party.characters[0].actReports).toHaveLength(1);
+      expect(party.characters[1].actReports).toHaveLength(1);
+      expect(party.characters[0].actReports![0].actNumber).toBe(1);
+      expect(party.characters[1].actReports![0].actNumber).toBe(1);
     });
   });
 });

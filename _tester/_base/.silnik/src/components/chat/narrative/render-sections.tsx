@@ -112,6 +112,18 @@ export function renderSection(
           </div>
         );
       }
+      const isActReportUpdated = /zaktualizowano raport aktu|act report updated/i.test(section.content);
+      if (isActReportUpdated) {
+        return (
+          <div
+            key={key}
+            className="my-1.5 text-xs text-amber-400/85 font-serif italic tracking-wide select-none flex items-center gap-1.5"
+          >
+            <span>📑</span>
+            <span>{section.content}</span>
+          </div>
+        );
+      }
       return (
         <div
           key={key}
