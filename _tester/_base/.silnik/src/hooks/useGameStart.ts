@@ -982,7 +982,9 @@ export function useGameStart({
           // Generowanie obrazu intro na podstawie opisu pierwszej sceny lub wyemitowanego promptu
           if (!introImageTriggered && aiSettings?.imageGenerationEnabled !== false && !isPureTextMode()) {
             introImageTriggered = true;
-            const illustrations = metadata.illustrations as any[];
+            const illustrations = Array.isArray(metadata.illustrations)
+              ? (metadata.illustrations as Array<{ prompt?: string }>)
+              : undefined;
             const firstPrompt = illustrations?.[0]?.prompt;
             const sceneDesc = firstPrompt || streamedFullText;
             void generateIntroImage(assistantMessageId, sceneDesc);

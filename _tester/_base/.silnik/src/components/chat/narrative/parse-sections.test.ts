@@ -1,4 +1,4 @@
-import { parseIntoSections } from './parse-sections';
+import { parseIntoSections, detectHandoutType } from './parse-sections';
 
 describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
   it('poprawnie parsuje blok handoutu z obrazem [OBRAZ: ...]', () => {
@@ -128,8 +128,6 @@ describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
   });
 
   it('detectHandoutType nie traktuje słów SZANOWNY ani DROGI w zwykłym tekście jako listu', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { detectHandoutType } = require('./parse-sections');
     expect(detectHandoutType('Drogi przyjacielu, musimy porozmawiać')).toBe('note');
     expect(detectHandoutType('Szanowny Pan Jan podszedł do okna')).toBe('note');
     expect(detectHandoutType('✉️ POUFNY LIST')).toBe('letter');
