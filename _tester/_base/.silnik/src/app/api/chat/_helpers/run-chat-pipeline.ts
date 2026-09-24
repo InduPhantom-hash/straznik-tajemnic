@@ -58,7 +58,7 @@ import {
   isCampaignMemoryScope,
 } from '@/core/memory/campaign-scope';
 import type { CampaignMemoryScope } from '@/core/memory/types';
-import { buildWorldEngineDirectives } from '@/lib/world-engine';
+import { buildWorldEngineDirectives, dispatchWorldEngines } from '@/lib/world-engine';
 
 function isChaseState(value: unknown): value is ChaseState {
   if (!value || typeof value !== 'object') return false;
@@ -252,6 +252,7 @@ export async function runChatPipeline({
       isCampaign?: boolean;
       handouts?: AdventureHandout[];
       puzzles?: AdventurePuzzle[];
+      themes?: string[];
       tone?: 'purist' | 'pulp' | 'noir' | 'neutral';
       truthAnchor?: {
         culprit?: string;
@@ -408,6 +409,17 @@ export async function runChatPipeline({
   const messageCount = messages?.length || 0;
   const gmProtocol = getContextAwareGMProtocol(messageCount);
 
+  // === ISSUE #506: WORLD ENGINE DISPATCHER & RAG STAGING ===
+  const dispatcherDecision = dispatchWorldEngines({
+    playerMessage: message,
+    currentLocation,
+    npcs: (npcs ?? []).map((n) => ({ id: n.id, name: n.name })),
+    locations: (character?.investigatorDossier?.locations ?? []).map((l) => ({ id: l.id, name: l.name })),
+    puzzles: (adventureContext?.puzzles ?? []).map((p) => ({ id: p.id || '', title: p.title })),
+    adventureThemes: adventureContext?.themes,
+    hasOccultElements: Boolean(character?.magic?.knownSpells && Object.keys(character.magic.knownSpells).length > 0),
+  });
+
   // === R3 (latencja): trzy niezalezne galezi sieciowe ROWNOLEGLE ===
   // Cache promptu (OPT-26) NIE zalezy od sessionId; lancuch userId->sessionId->RAG
   // (OPT-09) NIE zalezy od cache. Immersja (Etap 3) NIE zalezy od zadnego z powyzszych.
@@ -452,8 +464,13 @@ export async function runChatPipeline({
           locale,
           modelId,
           memoryScope,
-          recipientIds:character?.id ? [character.id] : [],
-          sceneEntityIds:(character?.investigatorDossier?.locations??[]).filter(l=>l.name===currentLocation).map(l=>l.id),
+          recipientIds: dispatcherDecision.recipientIds.length > 0
+            ? dispatcherDecision.recipientIds
+            : (character?.id ? [character.id] : []),
+          sceneEntityIds: dispatcherDecision.sceneEntityIds.length > 0
+            ? dispatcherDecision.sceneEntityIds
+            : (character?.investigatorDossier?.locations ?? []).filter((l) => l.name === currentLocation).map((l) => l.id),
+          allowedNamespaces: dispatcherDecision.allowedNamespaces,
         });
         return {
           ragUserId,
@@ -596,6 +613,7 @@ export async function runChatPipeline({
       character: character ?? characters?.[0] ?? null,
       eraContext,
       playerMessage: message,
+      activeEngines: dispatcherDecision.activeEngines,
     }),
   });
 

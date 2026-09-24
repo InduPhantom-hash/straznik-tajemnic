@@ -1,6 +1,8 @@
 import type { Character, NPC } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era';
 import { WorldEngineDirector } from './index';
+import type { WorldEngineId } from './dispatcher';
+export * from './dispatcher';
 import type {
   NPCEntity,
   SensoryContext,
@@ -67,6 +69,7 @@ export interface WorldEngineAdapterParams {
   character?: Character | null;
   eraContext?: Partial<ResolvedEraContext> | { countryCode?: string; effectiveYear?: number } | null;
   playerMessage?: string | null;
+  activeEngines?: Partial<Record<WorldEngineId, boolean>> | null;
 }
 
 /**
@@ -296,14 +299,19 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     };
   }
 
+  const isEngineEnabled = (id: WorldEngineId): boolean => {
+    if (!params.activeEngines) return true;
+    return Boolean(params.activeEngines[id]);
+  };
+
   return director.compileDirectives({
     locale,
-    sensory,
-    activeNPC,
-    graph: graphDirectiveParam,
-    friction: frictionParam,
-    clue: clueParam,
-    geography: geographyParam,
-    occult: occultParam,
+    sensory: isEngineEnabled('sensory') ? sensory : undefined,
+    activeNPC: isEngineEnabled('npc') ? activeNPC : undefined,
+    graph: isEngineEnabled('graph') ? graphDirectiveParam : undefined,
+    friction: isEngineEnabled('friction') ? frictionParam : undefined,
+    clue: isEngineEnabled('clue') ? clueParam : undefined,
+    geography: isEngineEnabled('geography') ? geographyParam : undefined,
+    occult: isEngineEnabled('occult') ? occultParam : undefined,
   });
 }
