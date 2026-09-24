@@ -21,7 +21,7 @@ import {
   getActiveCharacterSan,
 } from '@/lib/audio/sound-director';
 import { SFX_PATTERNS } from '@/lib/parsers/patterns';
-import { playSFX } from '@/lib/audio/sfx-catalog';
+import { playSFX, SFX_ENABLED } from '@/lib/audio/sfx-catalog';
 import { persistentMediaCache } from '@/lib/persistent-media-cache';
 
 interface QueueItem {
@@ -744,11 +744,13 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         if ('preservesPitch' in audio) {
           (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
         }
-        // SFX trigger dla bieżącego segmentu lektora
+        // SFX trigger dla bieżącego segmentu lektora (Issue #504: wyłączone)
         const sfxId = sfxQueueRef.current.get(currentIndex);
         if (sfxId) {
           sfxQueueRef.current.delete(currentIndex);
-          playSFX(sfxId);
+          if (SFX_ENABLED) {
+            playSFX(sfxId);
+          }
         }
         setCurrentAudio(audio);
 

@@ -81,6 +81,7 @@ rsync -a --delete \
   --exclude 'data/rag/rules-profile.json' \
   --exclude 'data/rag/capabilities.json' \
   --exclude 'data/rag/campaigns__*' \
+  --exclude 'public/sounds/sfx' \
   "$GAME_DIR/" "$PACKAGE_RUNTIME/"
 rsync -a --delete "$DESKTOP_DIR/" "$PACKAGE_RUNTIME/desktop/"
 
