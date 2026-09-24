@@ -130,6 +130,20 @@ Konfiguracja w panelu **Ustawienia → Profil Jakości** (sesja ≈ 3h gry, domy
 
 *Jeden klucz Google AI Studio: Wszystkie komponenty (czat, lektor TTS, obrazy i embeddingi) działają w oparciu o to samo konto Google. Panel Ustawień na żywo zlicza zużyte tokeny i koszty sesji.*
 
+## 🖥️ Wymagania sprzętowe
+
+| Komponent | Wymagania minimalne | Wymagania rekomendowane |
+|---|---|---|
+| **System operacyjny** | macOS 12+ / Windows 10 (64-bit) / Ubuntu 22.04+ | macOS 14+ / Windows 11 (64-bit) |
+| **Procesor (CPU)** | Intel Core i3 / AMD Ryzen 3 (4 rdzenie, 2.0 GHz) z AVX2 | Apple Silicon (M1+) lub Intel Core i5 / Ryzen 5 (6+ rdzeni) |
+| **Pamięć RAM** | 8 GB RAM (aplikacja zużywa ~450 MB w szczycie) | 16 GB RAM |
+| **Karta graficzna (GPU)** | Zintegrowana (Intel UHD 620 / AMD Vega) | Zintegrowana Apple GPU lub dedykowana GTX 1050+ |
+| **Dysk** | 1.5 GB wolnego miejsca (SSD) | 2.0 GB wolnego miejsca (NVMe SSD) |
+| **Lokalny Silnik Decyzji** | Wbudowany mikromodel ONNX (CPU, zero konfiguracji, <30 ms) | Wbudowany mikromodel ONNX z akceleracją sprzętową (<5 ms) |
+| **Połączenie sieciowe** | Wymagane wyłącznie do narracji Gemini API (BYOK) | Szerokopasmowe połączenie internetowe |
+
+*Aplikacja posiada wbudowany bezpiecznik sprzętowy (timeout 100 ms): na starszych maszynach silnik automatycznie przełącza się na natywne heurystyki TypeScript bez żadnego lagu w interfejsie.*
+
 ## 🗺️ Rozwój projektu
 
 - Finalizacja audytu stylizacji Dark Art Déco 1920s w pozostałych widokach aplikacji.
@@ -281,6 +295,20 @@ Direct reflection of settings in **Settings → Quality Profile** (session ≈ 3
 | **ULTRA** | Gemini 3.1 Pro (High) | Multi-voice radio drama | Gemini Image HD | ~$1.00 - $1.50 USD |
 
 *Single Google AI Studio Key: All capabilities (chat, voice TTS, scene generation, and vector embeddings) operate under your single Google API key. The Settings panel tracks token consumption and estimated session costs live.*
+
+## 🖥️ System Requirements
+
+| Component | Minimum Requirements | Recommended Requirements |
+|---|---|---|
+| **Operating System** | macOS 12+ / Windows 10 (64-bit) / Ubuntu 22.04+ | macOS 14+ / Windows 11 (64-bit) |
+| **Processor (CPU)** | Intel Core i3 / AMD Ryzen 3 (4 cores, 2.0 GHz) with AVX2 | Apple Silicon (M1+) or Intel Core i5 / Ryzen 5 (6+ cores) |
+| **RAM** | 8 GB RAM (app uses ~450 MB peak) | 16 GB RAM |
+| **Graphics (GPU)** | Integrated (Intel UHD 620 / AMD Vega) | Integrated Apple GPU or dedicated GTX 1050+ |
+| **Storage** | 1.5 GB available space (SSD) | 2.0 GB available space (NVMe SSD) |
+| **Local Decision Engine** | Embedded ONNX micro-model (CPU, zero config, <30 ms) | Embedded ONNX micro-model with hardware acceleration (<5 ms) |
+| **Network** | Required only for Gemini narration API (BYOK) | Broadband Internet connection |
+
+*The app features an integrated hardware circuit breaker (100 ms timeout): on older systems, the engine automatically falls back to native TypeScript heuristics without UI stutter.*
 
 ## 🗺️ Roadmap
 
