@@ -44,6 +44,7 @@ export interface RunRAGAndSummaryOpts {
   memoryScope: CampaignMemoryScope | null;
   recipientIds?:string[];
   sceneEntityIds?:string[];
+  allowedNamespaces?:string[];
 }
 
 /**
@@ -106,6 +107,7 @@ export async function runRAGAndSummary(
       adventureId,
       locale,
       memoryScope:memoryScope??undefined,queryEmbedding,
+      namespaces: opts.allowedNamespaces,
     })
     .catch((ragErr) => {
       console.warn('⚠️ RAG retrieval failed:', ragErr);
