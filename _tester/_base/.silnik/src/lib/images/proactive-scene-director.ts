@@ -128,7 +128,7 @@ export function directSceneIllustrations(
 
     const isPortrait = role === 'character_portrait';
     const effectiveAspectRatio: CuratedSceneShot['aspectRatio'] = isPortrait
-      ? (req.aspectRatio || '3:4')
+      ? (req.aspectRatio || defaultAspectRatio)
       : '16:9';
 
     return {

@@ -311,8 +311,8 @@ describe('Dossier Migration & Anti-cRPG Normalization (CoC 7e RAW)', () => {
         investigatorDossier: createEmptyDossier(),
       };
 
-      const result = ensureCharacterDossier(charWithBadEquipment as any);
-      expect(result.equipment.map((e: any) => e.name)).toEqual([
+      const result = ensureCharacterDossier(charWithBadEquipment);
+      expect(result.equipment.map((e) => e.name)).toEqual([
         'Kalkulator naukowy',
         'Kalka techniczna z Zakładów R-1',
       ]);
@@ -355,6 +355,7 @@ describe('Dossier Migration & Anti-cRPG Normalization (CoC 7e RAW)', () => {
               atmosphericDetail: 'test',
               historicalEcho: 'test',
               strategicRole: 'test',
+              searchStatus: 'unvisited' as const,
               tags: [],
             },
           ],
@@ -362,7 +363,7 @@ describe('Dossier Migration & Anti-cRPG Normalization (CoC 7e RAW)', () => {
         },
       };
 
-      const result = ensureCharacterDossier(charWithLeaks as any);
+      const result = ensureCharacterDossier(charWithLeaks);
       expect(result.investigatorDossier.clues).toHaveLength(1);
       expect(result.investigatorDossier.clues[0].title).toBe('Kalka techniczna z Zakładów R-1');
       expect(result.investigatorDossier.locations).toHaveLength(0);

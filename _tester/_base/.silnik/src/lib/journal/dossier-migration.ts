@@ -401,24 +401,29 @@ export function migrateLegacyJournalToDossier(
   return result;
 }
 
-/**
- * Zapewnia, że obiekt postaci posiada zainicjalizowane i zaktualizowane akta śledcze.
- */
-export function ensureCharacterDossier<T extends { journal?: unknown[]; equipment?: any[]; investigatorDossier?: InvestigatorDossier }>(
+export function ensureCharacterDossier<
+  T extends {
+    journal?: unknown[];
+    equipment?: unknown[];
+    investigatorDossier?: InvestigatorDossier;
+  }
+>(
   character: T
 ): T & { investigatorDossier: InvestigatorDossier } {
   // Deduplikacja ekwipunku postaci i odfiltrowanie omyłkowych pozycji poszlak (np. postaci NPC lub wycieków promptów)
   if (Array.isArray(character.equipment)) {
     const seenEq = new Set<string>();
-    character.equipment = character.equipment.filter((item: any) => {
-      if (!item || !item.name) return false;
-      if (isVisualPromptLeak(item.name)) return false;
+    character.equipment = character.equipment.filter((item: unknown) => {
+      if (!item || typeof item !== 'object' || !('name' in item)) return false;
+      const itemName = (item as { name?: unknown }).name;
+      if (typeof itemName !== 'string' || !itemName) return false;
+      if (isVisualPromptLeak(itemName)) return false;
       const isPerson =
         /\b(uciekinier|świadek|swiadek|podejrzan|kierowca|mechanik|postać|postac|człowiek|czlowiek|mężczyzna|mezczyzna|kobieta|profesor|doktor|ofiara|kapłan|kaplan|strażnik|straznik|przechodzień|przechodzien|badacz|detektyw|konstruktor|inżynier|inzynier)\b/i.test(
-          item.name
+          itemName
         );
       if (isPerson) return false;
-      const norm = normalizeEntityTitle(item.name);
+      const norm = normalizeEntityTitle(itemName);
       if (norm && seenEq.has(norm)) return false;
       if (norm) seenEq.add(norm);
       return true;
