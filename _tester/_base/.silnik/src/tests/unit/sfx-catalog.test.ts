@@ -1,7 +1,18 @@
 import { SFX_PATTERNS } from '@/lib/parsers/patterns';
-import { SFX_CATALOG, playSFX } from '@/lib/audio/sfx-catalog';
+import { SFX_CATALOG, playSFX, SFX_ENABLED } from '@/lib/audio/sfx-catalog';
 
-describe('SFX Catalog & Detection Patterns (Issue #205)', () => {
+describe('SFX Catalog & Detection Patterns (Issue #205, Issue #504)', () => {
+  it('SFX_ENABLED jest ustawione na false (Issue #504 - odtwarzanie wyłączone)', () => {
+    expect(SFX_ENABLED).toBe(false);
+  });
+
+  it('playSFX jest całkowitym no-opem gdy SFX_ENABLED jest false', () => {
+    const audioSpy = jest.spyOn(global, 'Audio');
+    playSFX('creaking_door');
+    playSFX('gunshot');
+    expect(audioSpy).not.toHaveBeenCalled();
+    audioSpy.mockRestore();
+  });
   it('każdy wzorzec w SFX_PATTERNS wskazuje na istniejący preset w SFX_CATALOG', () => {
     for (const entry of SFX_PATTERNS) {
       const preset = SFX_CATALOG[entry.presetId];

@@ -106,7 +106,12 @@ export function releaseSFXAudioElement(audio: HTMLAudioElement | null): void {
 
 /**
  * Globalny odtwarzacz SFX offline z kalibracją głośności.
+ *
+ * Issue #504: Efekty dźwiękowe SFX są całkowicie wyłączone (infrastruktura
+ * ukryta w kodzie bez przełączników w UI, pliki MP3 odseparowane do assets/).
  */
+export const SFX_ENABLED = false;
+
 let currentSFXAudio: HTMLAudioElement | null = null;
 const lastPlayedTimestamps: Record<string, number> = {};
 
@@ -118,6 +123,7 @@ export function stopCurrentSFX(): void {
 }
 
 export function playSFX(presetId: string, customVolumeMultiplier: number = 1.0): void {
+  if (!SFX_ENABLED) return;
   if (typeof window === 'undefined') return;
 
   const sfxDef = SFX_CATALOG[presetId];
