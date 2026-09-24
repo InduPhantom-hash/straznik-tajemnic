@@ -70,6 +70,8 @@ export interface AdjudicationResult {
   confidence: number;
   guardrailViolation?: 'anachronism' | 'obscene' | 'injection' | 'impossible';
   suggestedEraAlternatives?: string[];
+  isSuspendedAtApex?: boolean;
+  apexMomentDescription?: string;
 }
 
 export interface RealEvent {
@@ -81,6 +83,8 @@ export interface RealEvent {
   status: 'established' | 'blocked' | 'check_required';
   mechanicalDirective: string;
   checkRequirement?: CheckRequirement;
+  isSuspendedAtApex?: boolean;
+  apexMomentDescription?: string;
   timestamp: number;
 }
 
@@ -291,6 +295,88 @@ export function getEraAlternatives(text: string, isEn: boolean = false): string[
     return ERA_ALTERNATIVES.meta[lang];
   }
   return ERA_ALTERNATIVES.general[lang];
+}
+
+/**
+ * Wzorce akcji o wysokiej stawce fizycznej/kinetycznej wymagających filmowego zawieszenia prozy w kulminacji
+ * (In Media Res Cliffhanger - Issue #507).
+ */
+export interface ApexRiskEvaluation {
+  isSuspendedAtApex: boolean;
+  apexMomentDescription?: string;
+  suggestedSkill?: string;
+}
+
+export const APEX_RISK_PATTERNS: Array<{
+  pattern: RegExp;
+  skill: string;
+  apexPl: string;
+  apexEn: string;
+}> = [
+  {
+    // Skoki, wspinaczka, ucieczka nad przepaścią
+    pattern: /(?:skacz[ęe]|skoczyć|przeskakuj[ęe]|zeskakuj[ęe]|wspinam|wdrapuj[ęe]|zwisam|rzucam\s+się\s+nad|jump|vault|leap|climb|scale)/i,
+    skill: 'Skakanie',
+    apexPl: 'ułamek sekundy lotu w powietrzu nad przepaścią / gdy stopy tracą kontakt z krawędzią',
+    apexEn: 'split-second in mid-air over the drop / feet losing contact with the ledge',
+  },
+  {
+    // Wyważanie, uderzenie siłowe w przeszkodę
+    pattern: /(?:wyważ|wyłam|forsuj.*drzwi|napieram\s+ramieniem|rozwalam\s+drzwi|uderzam\s+barkiem|break\s+down|smash.*door|ram\s+door)/i,
+    skill: 'Siła',
+    apexPl: 'moment zderzenia barku z deskami zaryglowanych drzwi',
+    apexEn: 'moment of shoulder impact against the barred wooden door',
+  },
+  {
+    // Wytrychy, otwieranie zamków pod presją czasu
+    pattern: /(?:wytrych|otwieram\s+zamek|otworzyć\s+zamek|dłubi[ęe]\s+w\s+zamku|manipuluj[ęe].*przy\s+zamku|pick\s+lock|lockpick)/i,
+    skill: 'Ślusarstwo',
+    apexPl: 'ułamek sekundy, gdy zapadka zamka stawia opór pod naciskiem wytrycha',
+    apexEn: 'split-second when the lock tumbler resists under tension tool pressure',
+  },
+  {
+    // Skradanie się tuż obok wroga / strażnika
+    pattern: /(?:przemykam|przekradam|czołgam|chowam\s+się\s+za|przesuwam\s+się\s+w\s+cieniu|sneak|creep|slip\s+past|skulk)/i,
+    skill: 'Ukrywanie się',
+    apexPl: 'ułamek sekundy, gdy badacz przemyka na granicy snopu światła lub wzroku wroga',
+    apexEn: "split-second when investigator slips past the edge of the guard's lantern cone",
+  },
+  {
+    // Uniki, odskok przed zabójczym ciosem
+    pattern: /(?:odskakuj[ęe]|uchylam\s+się|rzucam\s+się\s+na\s+ziemię|unikam\s+ciosu|dodge|dive\s+for\s+cover|duck)/i,
+    skill: 'Unik',
+    apexPl: 'ułamek sekundy, gdy cios lub pocisk pruje powietrze tuż obok ciała',
+    apexEn: 'split-second when the strike or bullet tears the air inches away',
+  },
+  {
+    // Strzał lub decydujący atak z zaskoczenia
+    pattern: /(?:pociągam\s+za\s+spust|naciskam\s+spust|strzelam\s+do|wyprowadzam\s+cios|zadaj[ęe]\s+pchnięcie|fire\s+at|shoot\s+at|strike\s+at|slash|stab)/i,
+    skill: 'Walka / Broń Palna',
+    apexPl: 'ułamek sekundy, gdy iglica uderza w spłonkę / gdy ostrze zmierza w stronę celu',
+    apexEn: 'split-second when the hammer strikes the cartridge primer / blade strikes toward target',
+  },
+];
+
+/**
+ * Ocenia czy akcja gracza posiada punkt kulminacji ryzyka wymagający zawieszenia narracji przed rzutem.
+ */
+export function evaluateActionApexRisk(
+  actionText: string,
+  locale: 'pl' | 'en' = 'pl'
+): ApexRiskEvaluation {
+  const isEn = locale === 'en';
+  for (const item of APEX_RISK_PATTERNS) {
+    if (item.pattern.test(actionText)) {
+      return {
+        isSuspendedAtApex: true,
+        apexMomentDescription: isEn ? item.apexEn : item.apexPl,
+        suggestedSkill: item.skill,
+      };
+    }
+  }
+  return {
+    isSuspendedAtApex: false,
+  };
 }
 
 /**
@@ -527,7 +613,7 @@ function checkFirearmEquipment(character: Character | null | undefined): {
  * Adjudykuje deklarację intencji gracza na podstawie reguł CoC 7e RAW,
  * ograniczeń fizycznych, ekwipunku postaci i otoczenia.
  */
-export function adjudicatePutativeEvent(
+function _adjudicatePutativeEventCore(
   event: PutativeEvent,
   context: AdjudicationContext = {}
 ): AdjudicationResult {
@@ -766,7 +852,7 @@ export function adjudicatePutativeEvent(
 
   // 6. WYWAŻANIE DRZWI / TEST SIŁY LUB KRZEPY
   const isForcingDoor =
-    /(?:wyważ|wyłam|forsuj.*drzwi|napieram\s+ramieniem|rozwalam\s+drzwi|rozbijam\s+kłódk|smash\s+door|break\s+down\s+door|force\s+open)/i.test(
+    /(?:wyważ|wyłam|forsuj.*drzwi|napieram\s+ramieniem|rozwalam\s+drzwi|rozbijam\s+kłódk|smash.*door|break\s+down.*door|force\s+open)/i.test(
       text
     );
   if (isForcingDoor) {
@@ -1055,6 +1141,28 @@ export function adjudicatePutativeEvent(
   };
 }
 
+/**
+ * Adjudykuje deklarację intencji gracza na podstawie reguł CoC 7e RAW,
+ * ograniczeń fizycznych, ekwipunku postaci i otoczenia.
+ * Automatycznie wzbogaca wynik o ocenę punktu kulminacji (Apex Risk - Issue #507).
+ */
+export function adjudicatePutativeEvent(
+  event: PutativeEvent,
+  context: AdjudicationContext = {}
+): AdjudicationResult {
+  const result = _adjudicatePutativeEventCore(event, context);
+  if (result.requiresCheck && result.suggestedOutcome === 'pending_check') {
+    const isEn = context.locale === 'en';
+    const candidateText = `${event.actionAttempt} ${event.rawText}`;
+    const apex = evaluateActionApexRisk(candidateText, isEn ? 'en' : 'pl');
+    if (apex.isSuspendedAtApex) {
+      result.isSuspendedAtApex = true;
+      result.apexMomentDescription = apex.apexMomentDescription;
+    }
+  }
+  return result;
+}
+
 // ----------------------------------------------------------------------------
 // RESOLVE TO REAL EVENT
 // ----------------------------------------------------------------------------
@@ -1160,6 +1268,8 @@ export function resolveToRealEvent(
       status: 'check_required',
       mechanicalDirective,
       checkRequirement: checkReq,
+      isSuspendedAtApex: adjudication.isSuspendedAtApex,
+      apexMomentDescription: adjudication.apexMomentDescription,
       timestamp: Date.now(),
     };
   }
@@ -1250,6 +1360,15 @@ export function buildConcordiaEventResolutionDirective(
       '   - If Event Status is BLOCKED: State the physical/historical barrier diegetically and prompt [What do you do?]. If [WETO_SEDZIEGO:...] is present in the directive, you MUST emit it verbatim!\n' +
       '   - If Event Status is ESTABLISHED: Action succeeds normally as a routine action.'
     );
+    if (realEvent.isSuspendedAtApex) {
+      lines.push(
+        '3. MID-NARRATION SUSPENSION [SUSPEND_AT_APEX]:\n' +
+        `   - Action Climax Point: ${realEvent.apexMomentDescription || 'The peak moment of physical/psychological risk'}.\n` +
+        '   - Cinematic In Media Res Cliffhanger: Describe sensory build-up (sound, sight of hazard, somatic tension), but CUT the narration at the climax point.\n' +
+        '   - Emit the exact check tag [TEST: ...] at this climax point.\n' +
+        '   - STRICT INVARIANT: DO NOT narrate the outcome (landing, opening, breaking, falling, hitting, missing)! Keep investigator suspended until player rolls.'
+      );
+    }
   } else {
     lines.push(
       `1. UGRUNTOWANY FAKT (REAL EVENT): ${realEvent.groundedFact}\n` +
@@ -1266,6 +1385,15 @@ export function buildConcordiaEventResolutionDirective(
       '   - Gdy Status Zdarzenia to BLOCKED: Zastosuj Twarde Weto Sędziego CoC 7e RAW (odmów wykonania niemożliwej akcji w 1-2 zdaniach, wyemituj tag [WETO_SEDZIEGO:...] jeśli jest w dyrektywie) i zakończ pytaniem [Co robisz?]. Czas gry NIE upływa.\n' +
       '   - Gdy Status Zdarzenia to ESTABLISHED: Akcja rutynowa lub dialog powiodły się zwyczajnie w fikcji.'
     );
+    if (realEvent.isSuspendedAtApex) {
+      lines.push(
+        '3. REŻYSERIA ZAWIESZENIA W PUNKCIE KULMINACJI [ZAWIESZENIE_KULMINACJI]:\n' +
+        `   - Punkt kulminacji ryzyka: ${realEvent.apexMomentDescription || 'Ułamek sekundy najwyższego ryzyka fizycznego/psychicznego'}.\n` +
+        '   - Filmowe zawieszenie narracji (In Media Res Cliffhanger): zbuduj sensoryczne napięcie (dźwięki, widok zagrożenia, somatyczne napięcie ciała), ale URWIJ narrację dokładnie w ułamku sekundy, w którym ważą się losy akcji.\n' +
+        '   - Wyemituj tag [TEST: ...] w tym punkcie kulminacji.\n' +
+        '   - ŻELAZNY INWARIANT: BEZWZGLĘDNY ZAKAZ opisywania finału akcji: NIE opisuj lądowania, upadku, trafienia, otwarcia zamka ani wyłamania drzwi! Zostaw badacza w zawieszeniu do momentu rzutu kością.'
+      );
+    }
   }
 
   return `\n${lines.join('\n')}\n`;
