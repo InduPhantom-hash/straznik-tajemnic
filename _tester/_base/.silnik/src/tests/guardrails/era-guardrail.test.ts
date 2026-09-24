@@ -2,23 +2,15 @@ import { TextDecoder, TextEncoder } from 'node:util';
 import { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import {
   evaluateEraGuardrail,
-  detectAnachronism,
-  detectEquipmentQuery,
-  detectWeaponSpecsQuery,
-  detectDiceRulesQuery,
-  buildAnachronismResponse,
-  buildEquipmentResponse,
-  buildWeaponSpecsResponse,
-  buildDiceRulesResponse,
 } from '@/lib/guardrails/era-guardrail';
 import { formatEquipment, handleCommand } from '@/lib/command-handler';
-import { parseSSEStream } from '@/lib/sse-parser';
-import type { Character, EquipmentItem } from '@/lib/types';
+import { parseSSEStream, type SSEMetadataEvent } from '@/lib/sse-parser';
+import type { Character } from '@/lib/types';
 
 Object.assign(globalThis, {
   TextDecoder,
   TextEncoder,
-  ReadableStream: (globalThis as any).ReadableStream ?? NodeReadableStream,
+  ReadableStream: (globalThis as unknown as { ReadableStream?: typeof NodeReadableStream }).ReadableStream ?? NodeReadableStream,
 });
 
 describe('Era Guardrail & Mechanical Fast-Gate (Issue #508)', () => {
@@ -505,7 +497,7 @@ describe('Era Guardrail & Mechanical Fast-Gate (Issue #508)', () => {
       } as unknown as Response;
 
       let streamedText = '';
-      let receivedMetadata: any = null;
+      let receivedMetadata: SSEMetadataEvent | null = null;
 
       const parsedText = await parseSSEStream(response, {
         onText: (text) => {
@@ -518,8 +510,9 @@ describe('Era Guardrail & Mechanical Fast-Gate (Issue #508)', () => {
 
       expect(parsedText).toBe(guardrailResult!.response);
       expect(streamedText).toBe(guardrailResult!.response);
-      expect(receivedMetadata?.guardrail).toBe(true);
-      expect(receivedMetadata?.guardrailCategory).toBe('equipment');
+      const meta = receivedMetadata as Record<string, unknown> | null;
+      expect(meta?.guardrail).toBe(true);
+      expect(meta?.guardrailCategory).toBe('equipment');
     });
   });
 });
