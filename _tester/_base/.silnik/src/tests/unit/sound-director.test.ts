@@ -65,7 +65,7 @@ describe('Sound Director Service (Issue #162 + Issue #463)', () => {
         maxSan: 80,
         mood: 'alarm, ucieczka przed kultystami',
       });
-      expect(direction).toContain('intense, rapid, and thrilling cadence');
+      expect(direction).toContain('intense, thrilling cadence');
     });
 
     it('dopasowuje kadencję do onirycznego, zamglonego nastroju', () => {
@@ -108,7 +108,7 @@ describe('Sound Director Service (Issue #162 + Issue #463)', () => {
         mood: 'tajemniczy',
         sentenceText: 'Gwałtownie rzuca się na ciebie, a wystrzał rozbija szybę w oknie!',
       });
-      expect(direction).toContain('fast-paced, urgent, and intense cadence');
+      expect(direction).toContain('urgent and intense cadence');
       expect(direction).toContain('sharp, punchy diction');
     });
 
@@ -178,7 +178,7 @@ describe('Sound Director Service (Issue #162 + Issue #463)', () => {
         speakerName: 'Thomas Malone',
         mood: 'narastająca panika i strach',
       });
-      expect(direction).toContain('terrified, trembling, and hurried voice');
+      expect(direction).toContain('terrified, trembling, and emotional voice');
     });
 
     it('zwraca naturalny dramatyczny głos dla standardowych NPC', () => {

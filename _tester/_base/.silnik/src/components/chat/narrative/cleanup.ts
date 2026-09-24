@@ -189,6 +189,24 @@ export function cleanupContent(content: string): string {
     '$1\n\n$2'
   );
 
+  // Auto-rozdzielanie dialogów i narracji podwójną nową linią (\n\n)
+  cleanContent = cleanContent.replace(
+    /([.!?])\s+([A-ZŁŚŻŹĆŃ][a-zA-Ząćęłńóśźż\s]{1,25}:\s*[\u201E\u201C\u201D\u0022«»])/g,
+    '$1\n\n$2'
+  );
+  cleanContent = cleanContent.replace(
+    /([^\n])\n([A-ZŁŚŻŹĆŃ][a-zA-Ząćęłńóśźż\s]{1,25}:\s*[\u201E\u201C\u201D\u0022«»])/g,
+    '$1\n\n$2'
+  );
+  cleanContent = cleanContent.replace(
+    /([^\n])\n([\u201E\u201C\u201D\u0022«»])/g,
+    '$1\n\n$2'
+  );
+  cleanContent = cleanContent.replace(
+    /([\u201E\u201C\u201D\u0022«»][^\n]*)\n([^\n\u201E\u201C\u201D\u0022«»\s])/g,
+    '$1\n\n$2'
+  );
+
   // Usuń nadmiarowe puste linie
   cleanContent = cleanContent.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
 

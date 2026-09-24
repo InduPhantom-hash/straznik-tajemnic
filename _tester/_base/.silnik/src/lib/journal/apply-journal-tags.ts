@@ -14,7 +14,12 @@ import {
   ExtractedSceneChange,
   ExtractedSceneCard,
 } from '@/lib/parsers/journal-parser';
-import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
+import {
+  extractLatestTagLocation,
+  isVisualPromptLeak,
+  sanitizeLocationName,
+} from '@/lib/parsers/event-parser';
+import { normalizeEntityTitle } from '@/lib/journal/entity-visual-resolver';
 import {
   ensureCharacterDossier,
   inferClueCategory,
@@ -258,7 +263,11 @@ export function processCharacterJournalAndDossier(
           timestamp: new Date(),
           inGameDate: sealedCard.inGameDate,
           type: 'scene',
-          title: sceneCard?.title || `Scena #${sealedCard.sceneNumber}: ${sealedCard.location}`,
+          title:
+            sceneCard?.title ||
+            (isVisualPromptLeak(sealedCard.location)
+              ? `Scena #${sealedCard.sceneNumber}`
+              : `Scena #${sealedCard.sceneNumber}: ${sanitizeLocationName(sealedCard.location)}`),
           content: sealedCard.keyTakeaways.join('\n'),
           tags: ['scena', 'akta-sprawy'],
           isBookmarked: false,
@@ -269,7 +278,7 @@ export function processCharacterJournalAndDossier(
 
       activeScene = {
         sceneNumber: sealedCard.sceneNumber + 1,
-        location: locationEntry!.title,
+        location: sanitizeLocationName(locationEntry!.title),
         startedAt: new Date().toISOString(),
         inGameDate: locationEntry!.inGameDate || activeScene.inGameDate,
         people: [],
@@ -466,13 +475,14 @@ export function processCharacterJournalAndDossier(
       );
 
     // 2. Fizyczny rekwizyt w ekwipunku postaci (Karta Postaci / Torba / Kieszeń - Zero-Effort Ledger)
+    const normItemTitle = normalizeEntityTitle(normName);
     const existingEqIndex = existingEquipment.findIndex(
-      (eq) => (eq.name || '').toLowerCase().trim() === lowerName
+      (eq) => normalizeEntityTitle(eq.name || '') === normItemTitle
     );
 
     const normCategory = normalizeEquipmentCategory(item.category, isHandout);
 
-    if (existingEqIndex === -1) {
+    if (existingEqIndex === -1 && !isVisualPromptLeak(normName)) {
       const era = safeResolveVisualEra(character.era || '1920s');
       const baseEq = createEquipmentItem(
         {
@@ -493,7 +503,7 @@ export function processCharacterJournalAndDossier(
       };
       existingEquipment.push(newEqItem);
       changed = true;
-    } else if (isHandout) {
+    } else if (existingEqIndex !== -1 && isHandout) {
       const existingEq = existingEquipment[existingEqIndex];
       if (!existingEq.readableContent && item.description) {
         existingEquipment[existingEqIndex] = {
@@ -507,10 +517,9 @@ export function processCharacterJournalAndDossier(
     }
 
     // 3. Syntetyczny 1-zdaniowy fakt śledczy w Dossier (Dossier Clue)
-
-    if (isHandout) {
+    if (isHandout && !isVisualPromptLeak(normName)) {
       const existingClue = dossier.clues.find(
-        (c) => c.title.toLowerCase().trim() === lowerName
+        (c) => normalizeEntityTitle(c.title) === normItemTitle
       );
       const fact = synthesizeClueFact(normName, item.description);
       if (!existingClue) {
@@ -523,7 +532,7 @@ export function processCharacterJournalAndDossier(
           discoveryStatus: 'discovered',
           epistemicLayer: 'player_clue',
           provenance: 'handout',
-          foundLocation: locationEntry?.title,
+          foundLocation: locationEntry?.title ? sanitizeLocationName(locationEntry.title) : undefined,
           foundLocationId: locationEntry ? revealedEntityId('location', messageId, locationEntry.title) : undefined,
           timestamp: Date.now(),
           sourceJournalEntryId: jId,
@@ -651,10 +660,10 @@ export function processCharacterJournalAndDossier(
     }
 
     // Aktualizuj poszlaki w dossier
-    if (isClue && cleanClueTitle) {
-      const lowerTitle = cleanClueTitle.toLowerCase().trim();
+    if (isClue && cleanClueTitle && !isVisualPromptLeak(cleanClueTitle)) {
+      const normClueTitle = normalizeEntityTitle(cleanClueTitle);
       const existingClue = dossier.clues.find(
-        (c) => c.title.toLowerCase().trim() === lowerTitle
+        (c) => normalizeEntityTitle(c.title) === normClueTitle
       );
 
       // Wykrywanie unieważniania starszych poszlak
@@ -789,17 +798,25 @@ export function processCharacterJournalAndDossier(
       }
 
       // Potrójny Byt Handoutów: jeśli poszlaka jest dokumentem/handoutem, dołącz rekwizyt fizyczny do ekwipunku postaci
-      const isClueHandout =
-        resolvedProvenance === 'handout' ||
-        resolvedCategory === 'document' ||
-        /dokument|list|wycinek|gazet|artykuł|pismo|fotografi|zdjęci|taśm|nagrani|książk|księg|pamiętnik|dziennik|notatk|raport|telegram|akt|akta|świadectwo|certyfikat|bilet|przepustk|document|letter|clipping|newspaper|article|photo|tape|recording|book|tome|diary|journal|notes|report|telegram|file|certificate|pass/i.test(
-          `${cleanClueTitle} ${rawContent}`
+      const isPersonEntity =
+        /\b(uciekinier|świadek|swiadek|podejrzan|kierowca|mechanik|postać|postac|człowiek|czlowiek|mężczyzna|mezczyzna|kobieta|profesor|doktor|ofiara|kapłan|kaplan|strażnik|straznik|przechodzień|przechodzien|badacz|detektyw|konstruktor|inżynier|inzynier|włamywacz|złodziej|goniec|policjant|oficer|żołnierz|zolnierz|ksiądz|ksadz|marynarz)\b/i.test(
+          cleanClueTitle
         );
 
+      const isTitleDocument =
+        /\b(dokument|list|wycinek|gazet|artykuł|pismo|fotografi|zdjęci|taśm|nagrani|książk|księg|pamiętnik|dziennik|notatk|raport|telegram|akt|akta|świadectwo|certyfikat|bilet|przepustk|kalka|mapa|plakat|afisz|document|letter|clipping|newspaper|article|photo|tape|recording|book|tome|diary|journal|notes|report|file|certificate|pass|map|blueprint)\b/i.test(
+          cleanClueTitle
+        );
+
+      const isClueHandout =
+        !isPersonEntity &&
+        !isVisualPromptLeak(cleanClueTitle) &&
+        (explicitProvenance === 'handout' ||
+          (isTitleDocument && (resolvedProvenance === 'handout' || resolvedCategory === 'document')));
+
       if (isClueHandout) {
-        const lowerClueName = cleanClueTitle.toLowerCase().trim();
         const existingEqIndex = existingEquipment.findIndex(
-          (eq) => (eq.name || '').toLowerCase().trim() === lowerClueName
+          (eq) => normalizeEntityTitle(eq.name || '') === normClueTitle
         );
         if (existingEqIndex === -1) {
           const era = safeResolveVisualEra(character.era || '1920s');
@@ -976,7 +993,11 @@ export function processCharacterJournalAndDossier(
           timestamp: new Date(),
           inGameDate: sealedCard.inGameDate,
           type: 'scene',
-          title: sceneCard?.title || `Scena #${sealedCard.sceneNumber}: ${sealedCard.location}`,
+          title:
+            sceneCard?.title ||
+            (isVisualPromptLeak(sealedCard.location)
+              ? `Scena #${sealedCard.sceneNumber}`
+              : `Scena #${sealedCard.sceneNumber}: ${sanitizeLocationName(sealedCard.location)}`),
           content: sealedCard.keyTakeaways.join('\n'),
           tags: ['scena', 'akta-sprawy'],
           isBookmarked: false,
@@ -988,7 +1009,7 @@ export function processCharacterJournalAndDossier(
       // Nowa aktywna scena po przejściu
       activeScene = {
         sceneNumber: sealedCard.sceneNumber + 1,
-        location: sceneChange?.newLocation || 'Nowa lokacja',
+        location: sanitizeLocationName(sceneChange?.newLocation || 'Nowa lokacja'),
         startedAt: new Date().toISOString(),
         people: [],
         findings: [],

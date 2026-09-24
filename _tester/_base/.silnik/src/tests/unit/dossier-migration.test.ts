@@ -298,5 +298,75 @@ describe('Dossier Migration & Anti-cRPG Normalization (CoC 7e RAW)', () => {
       expect(result.investigatorDossier.clues[0].provenance).toBe('handout');
       expect(result.investigatorDossier.clues[1].provenance).toBe('testimony');
     });
+
+    it('usuwa Uciekinier z warsztatu i deduplikuje ekwipunek postaci', () => {
+      const charWithBadEquipment = {
+        name: 'Dr Ewa',
+        equipment: [
+          { name: 'Kalkulator naukowy', category: 'tool' },
+          { name: 'Uciekinier z warsztatu', category: 'document' },
+          { name: 'Kalka techniczna z Zakładów R-1', category: 'personal' },
+          { name: 'Kalka techniczna z R-1', category: 'document' },
+        ],
+        investigatorDossier: createEmptyDossier(),
+      };
+
+      const result = ensureCharacterDossier(charWithBadEquipment);
+      expect(result.equipment.map((e) => e.name)).toEqual([
+        'Kalkulator naukowy',
+        'Kalka techniczna z Zakładów R-1',
+      ]);
+    });
+
+    it('odrzuca wycieki promptów wizualnych i deduplikuje poszlaki', () => {
+      const charWithLeaks = {
+        name: 'Dr Ewa',
+        equipment: [],
+        investigatorDossier: {
+          clues: [
+            {
+              id: 'c1',
+              title: 'Kalka techniczna z Zakładów R-1',
+              description: 'Opis kalki',
+              category: 'document' as const,
+              status: 'confirmed' as const,
+            },
+            {
+              id: 'c2',
+              title: 'Kalka techniczna z R-1',
+              description: 'Inny opis tej samej kalki',
+              category: 'document' as const,
+              status: 'confirmed' as const,
+            },
+            {
+              id: 'c3',
+              title: 'Scena #1: Kowary Mountain Cafe, 1990s authentic Poland, 35mm film photograph',
+              description: 'prompt leak',
+              category: 'document' as const,
+              status: 'confirmed' as const,
+            },
+          ],
+          npcs: [],
+          locations: [
+            {
+              id: 'loc1',
+              name: 'Kowary Mountain Cafe, 1990s authentic Poland, 35mm film photograph',
+              firstImpression: 'test',
+              atmosphericDetail: 'test',
+              historicalEcho: 'test',
+              strategicRole: 'test',
+              searchStatus: 'unvisited' as const,
+              tags: [],
+            },
+          ],
+          notes: [],
+        },
+      };
+
+      const result = ensureCharacterDossier(charWithLeaks);
+      expect(result.investigatorDossier.clues).toHaveLength(1);
+      expect(result.investigatorDossier.clues[0].title).toBe('Kalka techniczna z Zakładów R-1');
+      expect(result.investigatorDossier.locations).toHaveLength(0);
+    });
   });
 });

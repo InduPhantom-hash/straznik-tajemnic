@@ -67,7 +67,28 @@ export function parseIntoSections(content: string): Section[] {
         handoutBuffer.length === 1 &&
         /^\[?(?:NOTATKA_BADACZA|STICKY_NOTE|INVESTIGATOR_NOTE)/i.test(handoutBuffer[0].trim());
 
-      if (!isInitialStickyOnly && (isHandoutEnd(trimmedLine) || isHandoutTerminator(trimmedLine))) {
+      const isDialogueLine =
+        /^[\u201E\u201C\u201D\u0022].+?[\u201E\u201C\u201D\u0022](?:\s*[\u2014\u2013-]\s*.+)?$/.test(
+          trimmedLine
+        ) ||
+        /^.+?:\s*[\u201E\u201C\u201D\u0022].+?[\u201E\u201C\u201D\u0022]$/.test(
+          trimmedLine
+        ) ||
+        /^[\u201E\u201C\u201D\u0022]/.test(trimmedLine) ||
+        /^[\u2014\u2013-]\s*[\u201E\u201C\u201D\u0022]/.test(trimmedLine) ||
+        /^[A-ZŁŚŻŹĆŃ][a-zA-Ząćęłńóśźż\s]{1,30}:\s*$/.test(trimmedLine);
+
+      const isPerspective = /^@([^:]+):\s*(.*)$/.test(trimmedLine);
+      const isRollOrCheck = /^\[(RZUT|TEST|WYNIK)/i.test(trimmedLine);
+
+      if (
+        !isInitialStickyOnly &&
+        (isHandoutEnd(trimmedLine) ||
+          isHandoutTerminator(trimmedLine) ||
+          isDialogueLine ||
+          isPerspective ||
+          isRollOrCheck)
+      ) {
         if (isHandoutEnd(trimmedLine)) {
           handoutBuffer.push(line);
         }
@@ -271,7 +292,7 @@ function isHandoutStart(line: string): boolean {
   // Nagłówki prasowe i multimedialne
   if (
     line.match(
-      /^📰|^📜|^✉️|^📋|^📧|^TELEGRAM|^KURIER|^DZIENNIK|^ARKHAM ADVERTISER|^🎙️|^📼|^📻|^🗺️/i
+      /^📰|^📜|^✉️|^📋|^📧|^🎙️|^📼|^📻|^🗺️|^(?:ARKHAM ADVERTISER|THE NEW YORK TIMES|THE BOSTON GLOBE)\b|^(?:TELEGRAM|WESTERN UNION)\b(?:\s*:|\s+Z\s+DNIA|\s+NR|\s+STOP|\s*$)|^(?:KURIER|DZIENNIK)\s+(?:WARSZAWSKI|PORANNY|CODZIENNY|POLSKI|POWSZECHNY|LUBELSKI|WŁILEŃSKI|WILENSKI|POZNAŃSKI|POZNANSKI)\b|^(?:DZIENNIK|KURIER|TELEGRAM|RAPORT|LIST|DOKUMENT):\s*/i
     )
   )
     return true;
@@ -296,7 +317,7 @@ export function detectHandoutType(line: string): HandoutType {
   if (line.match(/📓|DIARY|JOURNAL|PAMIĘTNIK|NOTATNIK/i)) return 'diary';
   if (line.match(/📰|KURIER|DZIENNIK|ADVERTISER|NEWSPAPER|TIMES|GAZETTE/i))
     return 'newspaper';
-  if (line.match(/✉️|LIST|LETTER|DEAR|DROGI|SZANOWN/i)) return 'letter';
+  if (line.match(/✉️|\bLIST\b|\bLETTER\b/i)) return 'letter';
   if (line.match(/📧|TELEGRAM|WESTERN UNION|STOP\s|URG/i)) return 'telegram';
   if (line.match(/📋|RAPORT|REPORT|POLICE|POLICJA|PROTOKÓŁ|🎙️|📼|📻|NAGRANIE|TAŚMA|TASMA|RECORDING|AUDIO|MAGNETOFON|🗺️|MAPA|PLAN|MAP/i)) return 'report';
   if (line.match(/📜|KSIĘGA|NECRONOMICON|TOME|MANUSCR/i)) return 'book';

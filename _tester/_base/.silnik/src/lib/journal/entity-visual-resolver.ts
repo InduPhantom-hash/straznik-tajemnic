@@ -21,6 +21,24 @@ export function normalizeEntityName(name: string): string {
 }
 
 /**
+ * Normalizuje tytuł poszlaki lub przedmiotu (usuwa odmiany słów Zakłady/Zakładów, diakrytyki, interpunkcję)
+ * w celu agresywnego zapobiegania duplikatom (np. "Kalka techniczna z Zakładów R-1" vs "Kalka techniczna z R-1").
+ */
+export function normalizeEntityTitle(title: string): string {
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/ł/g, 'l')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\bzaklad(?:ow|y|ach|em|u)?\b/gi, '')
+    .replace(/\b(?:z|w|do|od|na|ze|we|o)\b/gi, '')
+    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Wyszukuje istniejący obraz referencyjny dla danej postaci / lokacji / przedmiotu z aktualnego stanu gry.
  */
 export function findEntityVisualReference(

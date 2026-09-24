@@ -96,6 +96,12 @@ Wkraczasz do gabinetu.`;
     expect(outputEn).toContain('[Zaktualizowano raport aktu]');
     expect(outputEn).not.toContain('[ACT_REPORT');
   });
+
+  it('automatycznie rozdziela dialogi i narracje podwójną nową linią', () => {
+    const input = 'Wszedłeś do pokoju i zamknąłeś drzwi.\nJanusz: „Musimy uważać na zbiega!”\nCisza zaległa w całym korytarzu.';
+    const output = cleanupContent(input);
+    expect(output).toBe('Wszedłeś do pokoju i zamknąłeś drzwi.\n\nJanusz: „Musimy uważać na zbiega!”\n\nCisza zaległa w całym korytarzu.');
+  });
 });
 
 

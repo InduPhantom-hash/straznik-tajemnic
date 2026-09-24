@@ -518,6 +518,28 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
       expect(items[1].condition).toBe('new');
       expect(items[1].description).toBe('Świeżo sporządzona mapa podziemi.');
     });
+
+    it('appendJournalFromText nie dodaje postaci (np. Uciekinier z warsztatu, Lucjan Łągiewka) do ekwipunku, nawet jeśli narracja wspomina o dokumentach', () => {
+      const baseChar: Character = {
+        id: 'char_npc_no_eq',
+        name: 'Edward Carnby',
+        str: 50, dex: 50, con: 50, app: 50, pow: 50, edu: 50, siz: 50, int: 70, luck: 50, hp: 10, san: 50,
+        skills: {}, developmentHistory: [], notes: '',
+        equipment: [],
+      } as unknown as Character;
+
+      const raw =
+        'Zauważasz podejrzanego. [DZIENNIK:trop:Uciekinier z warsztatu]Mężczyzna uciekający ze skórzaną teczką pełną akt i raportów.[/DZIENNIK]' +
+        ' Rozmawiasz z konstruktorem. [DZIENNIK:trop:Lucjan Łągiewka]Mężczyzna trzyma w rękach teczkę pełną planów i schematów.[/DZIENNIK]';
+      const updated = appendJournalFromText(baseChar, raw, 'msg_npc_clue');
+
+      expect(updated.investigatorDossier?.clues).toHaveLength(2);
+      expect(updated.investigatorDossier?.clues[0].title).toBe('Uciekinier z warsztatu');
+      expect(updated.investigatorDossier?.clues[1].title).toBe('Lucjan Łągiewka');
+
+      // Żadna postać nie może wylądować w ekwipunku!
+      expect(updated.equipment).toHaveLength(0);
+    });
   });
 });
 
