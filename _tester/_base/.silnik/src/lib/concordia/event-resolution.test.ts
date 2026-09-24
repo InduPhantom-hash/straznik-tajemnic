@@ -361,6 +361,45 @@ describe('Concordia EventResolution & Intent Adjudication', () => {
       const adj2 = adjudicatePutativeEvent(pe2, { character: dummyCharacter });
       expect(adj2.requiresCheck).toBe(true);
       expect(adj2.checkRequirement?.skillOrAttribute).toBe('Walka Wręcz (Bijatyka)');
+
+      const peCharge = extractPutativeEvent('Szarżuję z impetem na napastnika', 'Edward');
+      const adjCharge = adjudicatePutativeEvent(peCharge, { character: dummyCharacter });
+      expect(adjCharge.requiresCheck).toBe(true);
+      expect(adjCharge.checkRequirement?.skillOrAttribute).toBe('Walka Wręcz (Bijatyka)');
+    });
+
+    it('unifikuje i wymusza test Uniku dla prób uchylenia się lub odskoku (Dodge/Evade)', () => {
+      const peDodge1 = extractPutativeEvent('Robię szybki unik przed ciosem maczugi', 'Edward');
+      const adjDodge1 = adjudicatePutativeEvent(peDodge1, { character: dummyCharacter });
+      expect(adjDodge1.requiresCheck).toBe(true);
+      expect(adjDodge1.checkRequirement?.skillOrAttribute).toBe('Unik');
+      expect(adjDodge1.isAutosuccessAllowed).toBe(false);
+
+      const peDodge2 = extractPutativeEvent('Uchylam się przed uderzeniem i odskakuję w bok', 'Edward');
+      const adjDodge2 = adjudicatePutativeEvent(peDodge2, { character: dummyCharacter });
+      expect(adjDodge2.requiresCheck).toBe(true);
+      expect(adjDodge2.checkRequirement?.skillOrAttribute).toBe('Unik');
+      expect(adjDodge2.isAutosuccessAllowed).toBe(false);
+
+      const peDodgeEn = extractPutativeEvent('I quickly dodge the monster claw attack', 'Edward');
+      const adjDodgeEn = adjudicatePutativeEvent(peDodgeEn, { character: dummyCharacter, locale: 'en' });
+      expect(adjDodgeEn.requiresCheck).toBe(true);
+      expect(adjDodgeEn.checkRequirement?.skillOrAttribute).toBe('Unik');
+      expect(adjDodgeEn.isAutosuccessAllowed).toBe(false);
+
+      // Słowa zawierające podciąg "unik" (komunikat, unikalny) lub próba uniknięcia wykrycia nie są testem Uniku
+      const peRadio = extractPutativeEvent('Odczytuję komunikat radiowy ze stacji', 'Edward');
+      const adjRadio = adjudicatePutativeEvent(peRadio, { character: dummyCharacter });
+      expect(adjRadio.checkRequirement?.skillOrAttribute).not.toBe('Unik');
+
+      const peUnique = extractPutativeEvent('Przeglądam unikalne rękopisy na stole', 'Edward');
+      const adjUnique = adjudicatePutativeEvent(peUnique, { character: dummyCharacter });
+      expect(adjUnique.checkRequirement?.skillOrAttribute).not.toBe('Unik');
+
+      const peStealth = extractPutativeEvent('Próbuję uniknąć wykrycia i chowam się za skrzynią', 'Edward');
+      const adjStealth = adjudicatePutativeEvent(peStealth, { character: dummyCharacter });
+      expect(adjStealth.checkRequirement?.skillOrAttribute).not.toBe('Unik');
+      expect(adjStealth.checkRequirement?.skillOrAttribute).toBe('Skradanie');
     });
 
     it('identyfikuje akcje okultystyczne i Mity Cthulhu (zaklęcia, rytuały, Necronomicon)', () => {

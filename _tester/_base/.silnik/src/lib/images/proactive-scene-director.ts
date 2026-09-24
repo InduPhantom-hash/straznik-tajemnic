@@ -116,7 +116,7 @@ export function directSceneIllustrations(
       }
     } else if (req.type === 'item' || req.itemName) {
       role = 'clue_artifact';
-      defaultAspectRatio = '1:1';
+      defaultAspectRatio = '16:9';
     } else if (req.isMythos || req.type === 'monster' || req.type === 'vision') {
       role = 'mythos_horror';
       defaultAspectRatio = '16:9';
@@ -126,14 +126,19 @@ export function directSceneIllustrations(
     const sceneHint = role === 'character_portrait' ? 'portrait' : 'interior';
     const enrichedPrompt = enrichImagePromptWithEraProps(basePrompt, effectiveEraOrYear, sceneHint);
 
+    const isPortrait = role === 'character_portrait';
+    const effectiveAspectRatio: CuratedSceneShot['aspectRatio'] = isPortrait
+      ? (req.aspectRatio || '3:4')
+      : '16:9';
+
     return {
       request: {
         ...req,
         prompt: enrichedPrompt,
-        aspectRatio: req.aspectRatio || defaultAspectRatio,
+        aspectRatio: effectiveAspectRatio,
       },
       role,
-      aspectRatio: req.aspectRatio || defaultAspectRatio,
+      aspectRatio: effectiveAspectRatio,
       enrichedPrompt,
     };
   });

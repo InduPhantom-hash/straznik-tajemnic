@@ -416,7 +416,7 @@ export function useGameStart({
    * replicateEnabled=false, 401, 429, network, provider chain exhausted).
    */
   const generateIntroImage = useCallback(
-    async (messageId: string) => {
+    async (messageId: string, sceneDescription?: string) => {
       if (aiSettings?.imageGenerationEnabled === false || isPureTextMode()) return;
       try {
         if (!adventureContext) {
@@ -425,8 +425,6 @@ export function useGameStart({
         const eraContext = resolveGameEraContext({
           adventure: adventureContext,
         });
-        const locationContext =
-          adventureContext?.location || 'mysterious New England town';
         const rawEra = String(eraContext.effectiveYear);
         // Wyciągnij porę roku i aurę z aktualnego czasu gry i pogody
         const gameTime = typeof window !== 'undefined' ? timeManager.getTime() : null;
@@ -451,16 +449,29 @@ export function useGameStart({
           weatherAtmosphere = 'frost and snow dusting, freezing cold mist';
         }
 
-        // Pojazd tylko gdy scena/lokacja wyraźnie dotyczy podróży lub drogi
-        const isVehicleScene =
-          /\b(car|automobile|vehicle|drive|driving|road|highway|szosa|droga|parking)\b/i.test(
-            locationContext
-          );
-        const vehicleGuidance = isVehicleScene
-          ? `, ${getEraVehicleVisualDescription(rawEra)}`
-          : '';
+        let imagePrompt = '';
+        if (sceneDescription && sceneDescription.trim().length > 20) {
+          const cleanDesc = sceneDescription
+            .replace(/\[[A-Z_]+:[^\]]*\]/g, '')
+            .replace(/[#*`_]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 300);
+          imagePrompt = `Opening scene illustration: ${cleanDesc}, ${seasonAtmosphere}, ${weatherAtmosphere}, ${rawEra} period-accurate, atmospheric, cinematic, realistic, moody lighting.`;
+        } else {
+          const locationContext =
+            adventureContext?.location || 'mysterious New England town';
+          // Pojazd tylko gdy scena/lokacja wyraźnie dotyczy podróży lub drogi
+          const isVehicleScene =
+            /\b(car|automobile|vehicle|drive|driving|road|highway|szosa|droga|parking)\b/i.test(
+              locationContext
+            );
+          const vehicleGuidance = isVehicleScene
+            ? `, ${getEraVehicleVisualDescription(rawEra)}`
+            : '';
 
-        const imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${seasonAtmosphere}, ${weatherAtmosphere}, ${rawEra} period-accurate${vehicleGuidance}, realistic, cinematic, moody lighting.`;
+          imagePrompt = `Atmospheric establishing shot, ${locationContext}, ${seasonAtmosphere}, ${weatherAtmosphere}, ${rawEra} period-accurate${vehicleGuidance}, realistic, cinematic, moody lighting.`;
+        }
 
         const response = await fetchWithRetry('/api/imagen', {
           method: 'POST',
@@ -906,13 +917,6 @@ export function useGameStart({
           timestamp: new Date(),
         },
       ]);
-      // Obraz należy do tej samej wiadomości MG co intro. Uruchamiamy go po
-      // utworzeniu placeholdera, aby wynik nie utworzył osobnej karty czatu.
-      void generateIntroImage(assistantMessageId);
-
-      // Płynne przełączenie ekranu z panelu konfiguracji do czatu PO wyrenderowaniu
-      // całego wstępu (Issue #123). Gracz nie ogląda streamowania ściany tekstu,
-      // lecz wchodzi od razu do gotowej, sformatowanej sceny otwierającej.
       let hasTransitionedToGame = false;
       const transitionToGame = (immediate = false): Promise<void> => {
         if (hasTransitionedToGame) return Promise.resolve();
@@ -950,6 +954,7 @@ export function useGameStart({
       // połykany przez try/catch parsera, surfaced przez onParseError → Sentry
       // na każdym starcie gry). Ten sam fix co useChat.ts:293.
       let streamedFullText = '';
+      let introImageTriggered = false;
       const fullText = await parseSSEStream(response, {
         onText: (text) => {
           streamedFullText = text;
@@ -974,6 +979,15 @@ export function useGameStart({
         },
         onMetadata: (metadata) => {
           notifyMemoryCommit(metadata,locale);
+          // Generowanie obrazu intro na podstawie opisu pierwszej sceny lub wyemitowanego promptu
+          if (!introImageTriggered && aiSettings?.imageGenerationEnabled !== false && !isPureTextMode()) {
+            introImageTriggered = true;
+            const illustrations = metadata.illustrations as any[];
+            const firstPrompt = illustrations?.[0]?.prompt;
+            const sceneDesc = firstPrompt || streamedFullText;
+            void generateIntroImage(assistantMessageId, sceneDesc);
+          }
+
           // finishReason z metadanych (MAX_TOKENS = urwane intro) musi trafić
           // na wiadomość - bez tego przycisk "Kontynuuj narrację" nie wie, że
           // intro jest częściowe.
@@ -1020,6 +1034,11 @@ export function useGameStart({
           hook: 'useGameStart',
         }),
       });
+
+      if (!introImageTriggered && aiSettings?.imageGenerationEnabled !== false && !isPureTextMode()) {
+        introImageTriggered = true;
+        void generateIntroImage(assistantMessageId, fullText || streamedFullText);
+      }
 
       // Oczekiwanie na zbuforowanie głosu lektora przed wejściem gracza do sceny (Issue #142)
       if (tts.voiceEnabled && tts.isTTSEnabled && tts.waitForInitialBuffer) {

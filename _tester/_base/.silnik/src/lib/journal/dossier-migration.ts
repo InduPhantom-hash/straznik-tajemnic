@@ -21,6 +21,11 @@ import {
   linkClueNpcLocation,
 } from './dossier-types';
 import { inferClueProvenance } from '../parsers/journal-parser';
+import {
+  isVisualPromptLeak,
+  sanitizeLocationName,
+} from '@/lib/parsers/event-parser';
+import { normalizeEntityTitle } from '@/lib/journal/entity-visual-resolver';
 
 interface LegacyObjective {
   id?: string;
@@ -165,12 +170,38 @@ export function migrateLegacyJournalToDossier(
   legacyEntries?: unknown,
   existingDossier?: Partial<InvestigatorDossier> | null
 ): InvestigatorDossier {
+  const initialClues: ClueEntry[] = [];
+  if (Array.isArray(existingDossier?.clues)) {
+    const seenClueTitles = new Set<string>();
+    for (const c of existingDossier.clues) {
+      if (!isClueEntry(c)) continue;
+      if (isVisualPromptLeak(c.title) || isVisualPromptLeak(c.description)) continue;
+      const norm = normalizeEntityTitle(c.title);
+      if (norm && seenClueTitles.has(norm)) continue;
+      if (norm) seenClueTitles.add(norm);
+      initialClues.push(c);
+    }
+  }
+
+  const initialLocations: LocationDossierEntry[] = [];
+  if (Array.isArray(existingDossier?.locations)) {
+    const seenLocs = new Set<string>();
+    for (const l of existingDossier.locations) {
+      if (!isLocationDossierEntry(l)) continue;
+      if (isVisualPromptLeak(l.name) || isVisualPromptLeak(l.description)) continue;
+      const cleanName = sanitizeLocationName(l.name);
+      if (!cleanName) continue;
+      const lower = cleanName.toLowerCase();
+      if (seenLocs.has(lower)) continue;
+      seenLocs.add(lower);
+      initialLocations.push({ ...l, name: cleanName });
+    }
+  }
+
   const result: InvestigatorDossier = {
-    clues: Array.isArray(existingDossier?.clues) ? [...existingDossier.clues.filter(isClueEntry)] : [],
+    clues: initialClues,
     npcs: Array.isArray(existingDossier?.npcs) ? [...existingDossier.npcs.filter(isNpcDossierEntry)] : [],
-    locations: Array.isArray(existingDossier?.locations)
-      ? [...existingDossier.locations.filter(isLocationDossierEntry)]
-      : [],
+    locations: initialLocations,
     notes: Array.isArray(existingDossier?.notes) ? [...existingDossier.notes.filter(isPlayerNoteEntry)] : [],
     lastUpdated: existingDossier?.lastUpdated || new Date().toISOString(),
   };
@@ -304,6 +335,7 @@ export function migrateLegacyJournalToDossier(
 
     // 4. Poszlaki, dowody, dawne questy i odkrycia
     const isCaseIntro =
+      entryType === 'scene' ||
       entryType === 'case' ||
       entryType === 'case_file' ||
       entryType === 'objective' ||
@@ -316,9 +348,22 @@ export function migrateLegacyJournalToDossier(
       return;
     }
 
-    if (!clueIds.has(baseId) && !result.clues.some((clue) =>
-      entry.id && clue.sourceJournalEntryId === entry.id
-    )) {
+    if (
+      isVisualPromptLeak(entry.title || '') ||
+      isVisualPromptLeak(entry.content || '')
+    ) {
+      return;
+    }
+
+    const normEntryTitle = normalizeEntityTitle(entry.title || '');
+    if (
+      !clueIds.has(baseId) &&
+      !result.clues.some(
+        (clue) =>
+          (entry.id && clue.sourceJournalEntryId === entry.id) ||
+          (normEntryTitle && normalizeEntityTitle(clue.title) === normEntryTitle)
+      )
+    ) {
       let sourceNpc = entry.metadata?.npcName;
       let foundLocation = entry.metadata?.locationName;
       for (const tag of tags) {
@@ -359,9 +404,26 @@ export function migrateLegacyJournalToDossier(
 /**
  * Zapewnia, że obiekt postaci posiada zainicjalizowane i zaktualizowane akta śledcze.
  */
-export function ensureCharacterDossier<T extends { journal?: unknown[]; investigatorDossier?: InvestigatorDossier }>(
+export function ensureCharacterDossier<T extends { journal?: unknown[]; equipment?: any[]; investigatorDossier?: InvestigatorDossier }>(
   character: T
 ): T & { investigatorDossier: InvestigatorDossier } {
+  // Deduplikacja ekwipunku postaci i odfiltrowanie omyłkowych pozycji poszlak (np. postaci NPC lub wycieków promptów)
+  if (Array.isArray(character.equipment)) {
+    const seenEq = new Set<string>();
+    character.equipment = character.equipment.filter((item: any) => {
+      if (!item || !item.name) return false;
+      if (isVisualPromptLeak(item.name)) return false;
+      const isPerson =
+        /\b(uciekinier|świadek|swiadek|podejrzan|kierowca|mechanik|postać|postac|człowiek|czlowiek|mężczyzna|mezczyzna|kobieta|profesor|doktor|ofiara|kapłan|kaplan|strażnik|straznik|przechodzień|przechodzien|badacz|detektyw|konstruktor|inżynier|inzynier)\b/i.test(
+          item.name
+        );
+      if (isPerson) return false;
+      const norm = normalizeEntityTitle(item.name);
+      if (norm && seenEq.has(norm)) return false;
+      if (norm) seenEq.add(norm);
+      return true;
+    });
+  }
   if (
     character.investigatorDossier &&
     Array.isArray(character.investigatorDossier.clues) &&
@@ -369,21 +431,41 @@ export function ensureCharacterDossier<T extends { journal?: unknown[]; investig
     Array.isArray(character.investigatorDossier.locations) &&
     Array.isArray(character.investigatorDossier.notes)
   ) {
-    // Upewnij się, że poszlaki w istniejącym dossier mają uzupełnioną proweniencję
-    let cluesUpdated = false;
-    const clues = character.investigatorDossier.clues.map((c) => {
-      if (!c.provenance) {
-        cluesUpdated = true;
-        return {
-          ...c,
-          provenance: inferClueProvenance(c.title, c.description, c.category),
-        };
-      }
-      return c;
-    });
-    const baseDossier = cluesUpdated
-      ? { ...character.investigatorDossier, clues }
-      : character.investigatorDossier;
+    // Sanitizacja i deduplikacja istniejących poszlak w dossier
+    const seenClueTitles = new Set<string>();
+    const cleanedClues: ClueEntry[] = [];
+    for (const c of character.investigatorDossier.clues) {
+      if (!isClueEntry(c)) continue;
+      if (isVisualPromptLeak(c.title) || isVisualPromptLeak(c.description)) continue;
+      const norm = normalizeEntityTitle(c.title);
+      if (norm && seenClueTitles.has(norm)) continue;
+      if (norm) seenClueTitles.add(norm);
+      cleanedClues.push(
+        !c.provenance
+          ? { ...c, provenance: inferClueProvenance(c.title, c.description, c.category) }
+          : c
+      );
+    }
+
+    // Sanitizacja lokacji w dossier
+    const seenLocs = new Set<string>();
+    const cleanedLocations: LocationDossierEntry[] = [];
+    for (const l of character.investigatorDossier.locations) {
+      if (!isLocationDossierEntry(l)) continue;
+      if (isVisualPromptLeak(l.name) || isVisualPromptLeak(l.description)) continue;
+      const cleanName = sanitizeLocationName(l.name);
+      if (!cleanName) continue;
+      const lower = cleanName.toLowerCase();
+      if (seenLocs.has(lower)) continue;
+      seenLocs.add(lower);
+      cleanedLocations.push({ ...l, name: cleanName });
+    }
+
+    const baseDossier: InvestigatorDossier = {
+      ...character.investigatorDossier,
+      clues: cleanedClues,
+      locations: cleanedLocations,
+    };
 
     linkClueNpcLocation(baseDossier);
 

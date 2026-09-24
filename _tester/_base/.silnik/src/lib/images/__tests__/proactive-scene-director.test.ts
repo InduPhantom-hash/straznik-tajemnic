@@ -109,4 +109,21 @@ describe('ProactiveSceneDirector (DeepMind Proactive T2I)', () => {
 
     expect(result.shots.length).toBe(1);
   });
+
+  it('ustawia proporcję 16:9 dla kadrów scen i rekwizytów (clue_artifact) w czacie', () => {
+    const rawRequests: ImageRequest[] = [
+      { prompt: 'Pożółkły telegram z pieczęcią', type: 'item', itemName: 'Telegram' },
+      { prompt: 'Wnętrze gabinetu z widokiem na deszcz', type: 'scene' },
+    ];
+
+    const result = directSceneIllustrations(rawRequests, {
+      maxImagesPerMessage: 2,
+      imageFrequency: 'often',
+      effectiveEraOrYear: '1920s',
+    });
+
+    expect(result.shots.length).toBe(2);
+    expect(result.shots[0].aspectRatio).toBe('16:9');
+    expect(result.shots[1].aspectRatio).toBe('16:9');
+  });
 });

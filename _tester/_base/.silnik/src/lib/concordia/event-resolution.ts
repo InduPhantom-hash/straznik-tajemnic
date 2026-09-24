@@ -704,12 +704,42 @@ export function adjudicatePutativeEvent(
     };
   }
 
-  // 4. WALKA WRĘCZ / ATAK BEZPOŚREDNI
+  // 3-BIS. UNIK / EVASION / DODGE (Defensywa w walce / unikanie ataków / zagrożeń)
+  const isDetectionAvoidance = /(?:uniknąć|unikać|unikam)\s+(?:wykrycia|wzroku|spojrzenia|zdemaskowania|podejrzeń|ujawnienia)/i.test(
+    text
+  );
+  const isDodgePattern =
+    /(?:\b(?:unik|uniku|unikiem|uniki|unikam|unika|dodge|evade|evasion)\b|\b(?:robię|robić|wykonuję|wykonać|szybki)\s+unik\b|\buchyl(?:am|ić)\s+si[ęe]|\b(?:odskakuj|odskocz|uskakuj|uskocz)|\buniknąć\s+(?:ciosu|uderzenia|ataku|pocisku|strzału|obrażeń|zagrożenia|zmiażdżenia|trafienia|niebezpieczeństwa|szponów|pazurów|maczugi))/i;
+
+  const isDodgeOrEvade =
+    !isDetectionAvoidance &&
+    (isDodgePattern.test(text) || isDodgePattern.test(rawLower));
+
+  if (isDodgeOrEvade) {
+    return {
+      eventId: event.id,
+      plausibility: 'plausible',
+      category: 'combat',
+      requiresCheck: true,
+      checkRequirement: {
+        requiresCheck: true,
+        skillOrAttribute: 'Unik',
+        difficulty: 'regular',
+        opposed: false,
+        reason: isEn ? 'Dodge / evasion maneuver under threat' : 'Unik / próba uchylenia się przed zagrożeniem',
+      },
+      isAutosuccessAllowed: false,
+      suggestedOutcome: 'pending_check',
+      confidence: 0.94,
+    };
+  }
+
+  // 4. WALKA WRĘCZ / ATAK BEZPOŚREDNI / SZARŻA
   const isMeleeCombat =
-    /(?:walcz|bij[ęe]|bić|uderz|kopni[eę]|kopiąc|dźga[mć]|dźgnij|dusz[ęe]|wyprowadzam\s+cios|zadaj[ęe]\s+cios|ci[ęe]cie\s+nożem|atakuj|rzucam\s+się\s+na|punch|stab|slash|tackle|strike|brawl)/i.test(
+    /(?:walcz|bij[ęe]|bić|uderz|kopni[eę]|kopiąc|dźga[mć]|dźgnij|dusz[ęe]|wyprowadzam\s+cios|zadaj[ęe]\s+cios|ci[ęe]cie\s+nożem|atakuj|rzucam\s+się\s+na|szarż|szarża|charge|ruszam\s+do\s+ataku|punch|stab|slash|tackle|strike|brawl)/i.test(
       text
     ) ||
-    /(?:walcz|bij[ęe]|uderz|zadaj[ęe]\s+cios)/i.test(rawLower);
+    /(?:walcz|bij[ęe]|uderz|zadaj[ęe]\s+cios|szarż)/i.test(rawLower);
 
   if (isMeleeCombat) {
     return {

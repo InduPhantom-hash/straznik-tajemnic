@@ -390,8 +390,8 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     const payload = JSON.parse(fetchArgs[1].body);
 
     expect(payload.audioDirection).toBeDefined();
-    expect(payload.audioDirection).toContain('intense, rapid, and thrilling cadence');
-    expect(payload.audioDirection).toContain('dynamic, high-urgency momentum');
+    expect(payload.audioDirection).toContain('intense, thrilling cadence');
+    expect(payload.audioDirection).toContain('dynamic momentum');
   });
 
   it('Issue #78: odzyskuje audio z persistentMediaCache z pominięciem zapytania sieciowego fetch (Cache Hit)', async () => {

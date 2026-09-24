@@ -110,5 +110,53 @@ describe('parseIntoSections (Handouty, obrazy i nagrania audio)', () => {
     });
     expect(sections[0].content).toContain('POLICE DISCOVER STRANGE CULT');
   });
+
+  it('nie traktuje zwykłej prozy ze słowami Kurier, Telegram, Dziennik jako nagłówka handoutu', () => {
+    const text = [
+      'Kurier zapukał do drzwi i wręczył ci małą paczkę.',
+      'Janusz podszedł bliżej:',
+      'Janusz: „Co to jest?”',
+      '[Co robisz?]',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    expect(sections.some((s) => s.type === 'handout')).toBe(false);
+    expect(sections[0].type).toBe('narrative');
+    expect(sections[1].type).toBe('dialogue');
+    expect(sections[1].speaker).toBe('Janusz');
+    expect(sections[1].content).toBe('Co to jest?');
+  });
+
+  it('detectHandoutType nie traktuje słów SZANOWNY ani DROGI w zwykłym tekście jako listu', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { detectHandoutType } = require('./parse-sections');
+    expect(detectHandoutType('Drogi przyjacielu, musimy porozmawiać')).toBe('note');
+    expect(detectHandoutType('Szanowny Pan Jan podszedł do okna')).toBe('note');
+    expect(detectHandoutType('✉️ POUFNY LIST')).toBe('letter');
+    expect(detectHandoutType('LIST Z MISKATONIC')).toBe('letter');
+    expect(detectHandoutType('OFFICIAL LETTER')).toBe('letter');
+  });
+
+  it('nie połyka dialogów NPC wewnątrz listu lub niedomkniętego dokumentu', () => {
+    const text = [
+      'Otwierasz kopertę i czytasz:',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      '📜 DOKUMENT ŚLEDCZY: LIST DO ARCHIWUM',
+      'Spotkajmy się jutro o północy pod starym dębem.',
+      'Janusz: „Nie podoba mi się to, doktorze.”',
+      '[Co robisz?]',
+    ].join('\n');
+
+    const sections = parseIntoSections(text);
+    const handout = sections.find((s) => s.type === 'handout');
+    const dialogue = sections.find((s) => s.type === 'dialogue');
+
+    expect(handout).toBeDefined();
+    expect(handout?.content).toContain('Spotkajmy się jutro');
+    expect(handout?.content).not.toContain('Janusz:');
+
+    expect(dialogue).toBeDefined();
+    expect(dialogue?.content).toContain('Nie podoba mi się to, doktorze.');
+  });
 });
 

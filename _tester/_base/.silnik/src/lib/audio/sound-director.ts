@@ -113,7 +113,7 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
       return 'Read the following in a youthful, emotional, and expressive voice:';
     }
     if (mood && /panik|strach|groza|przeraż/i.test(mood)) {
-      return 'Read the following in a terrified, trembling, and hurried voice:';
+      return 'Read the following in a terrified, trembling, and emotional voice:';
     }
     if (npcGender === 'female') {
       if (npcOccupation && /profesor|nauk|badacz|lekarz|doktor/i.test(npcOccupation)) {
@@ -131,7 +131,7 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
       return 'Read the following in an urgent, tense, and paranoid whisper, reflecting sudden terror, breathless panic, and cosmic dread:';
     }
     if (pacing === 'action') {
-      return 'Read the following in a fast-paced, urgent, and intense cadence with sharp, punchy diction:';
+      return 'Read the following in an urgent and intense cadence with sharp, punchy diction:';
     }
     if (pacing === 'revelation') {
       return 'Read the following in a measured, ominous, and deliberate voice of dark revelation:';
@@ -149,7 +149,7 @@ export function buildAudioDirection(context?: SoundDirectorContext): string {
 
   // Sceny dynamicznej akcji, pościgu, walki i bezpośredniego zagrożenia w nastroju sceny
   if (mood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(mood)) {
-    return 'Read the following in an intense, rapid, and thrilling cadence with dynamic, high-urgency momentum and crisp diction:';
+    return 'Read the following in an intense, thrilling cadence with dynamic momentum and crisp diction:';
   }
 
   // Obniżona poczytalność (< 50%) - trzyma napięcie i atmosferę, ale zachowuje płynne tempo audiobooka

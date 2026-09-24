@@ -602,8 +602,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             const audio = new Audio(audioUrl);
             audio.volume = (currentSettings.voiceSettings?.volume || 75) / 100;
             const baseSpeed = currentSettings.voiceSettings?.speed || 0.92;
-            const targetSpeed = Math.min(2.0, Math.max(0.5, baseSpeed * (speedMultiplier || 1.0)));
-            audio.playbackRate = targetSpeed;
+            audio.playbackRate = baseSpeed;
             if ('preservesPitch' in audio) {
               (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
             }
@@ -611,7 +610,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             if (sfxPresetId) {
               sfxQueueRef.current.set(index, sfxPresetId);
             }
-            console.log(`✅ TTS Worker: Ready segment ${index} (speed=${targetSpeed.toFixed(2)}x)`);
+            console.log(`✅ TTS Worker: Ready segment ${index} (speed=${baseSpeed.toFixed(2)}x)`);
 
             if (isInitialBufferingRef.current) {
               const bufferedCount = preloadedAudioRef.current.size;
@@ -960,9 +959,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         const closeRun = () => {
           const run = openRunRef.current;
           if (run && run.texts.length > 0) {
-            // Issue #200: Jeśli scena jest dynamiczna (akcja/pościg/alarm), przyspiesz tempo o +25%
-            const isActionMood = currentMood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(currentMood);
-            const speedMultiplier = isActionMood ? 1.25 : 1.0;
+            // Issue #505: brak sztucznego przyspieszania HTML5 playbackRate - tempo moduluje wyłącznie prompt audio
+            const speedMultiplier = 1.0;
             pendingItems.push({
               text: run.texts.join(' '),
               voiceId: run.voiceId,
@@ -1204,8 +1202,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
         const completeCount = flush
           ? paragraphs.length
           : Math.max(0, paragraphs.length - 1);
-        const isActionMood = currentMood && /panik|alarm|walk|pościg|ucieczk|atak|starcie|zagrożeni/i.test(currentMood);
-        const paragraphSpeedMultiplier = isActionMood ? 1.25 : 1.0;
+        // Issue #505: brak sztucznego przyspieszania HTML5 playbackRate
+        const paragraphSpeedMultiplier = 1.0;
 
         for (
           let i = processedSentenceCountRef.current;

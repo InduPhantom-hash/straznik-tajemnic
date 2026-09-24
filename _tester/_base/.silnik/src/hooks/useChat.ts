@@ -43,7 +43,11 @@ import {
   stripMeleeAttackTags,
 } from '@/lib/parsers/mechanics-parser';
 import { updateGuardrailState } from '@/lib/concordia/event-resolution';
-import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
+import {
+  extractLatestTagLocation,
+  isVisualPromptLeak,
+  sanitizeLocationName,
+} from '@/lib/parsers/event-parser';
 import {
   fetchWithApiKeys,
   hasRequiredKeys,
@@ -570,6 +574,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setIsSessionEnded(false);
       setSessionEndStatus('idle');
       guardrailStateRef.current = { strikeCount: 0, turnsSinceLastViolation: 0 };
+      lastIllustratedLocationRef.current = '';
+      lastTrackedSceneRef.current = '';
+      sceneImageCountRef.current = 0;
     }
   }, [messages.length]);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
@@ -584,8 +591,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   // 2026-06-28: licznik obrazów per scena (scena = lokacja). Cap MAX_IMAGES_PER_SCENE
   // OGRANICZA serię obrazów w jednej lokacji; resetuje się przy zmianie lokacji.
   // `lastTrackedSceneRef` pamięta lokację, dla której liczymy, by wykryć zmianę sceny.
+  // `lastIllustratedLocationRef` zapobiega generowaniu duplikatów kadrów tej samej lokacji.
   const sceneImageCountRef = useRef(0);
   const lastTrackedSceneRef = useRef('');
+  const lastIllustratedLocationRef = useRef('');
   // Visual Belief Graph (DeepMind Proactive T2I)
   const visualBeliefGraphRef = useRef<VisualBeliefGraph>(new VisualBeliefGraph());
 
@@ -1408,6 +1417,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               if (sceneKey !== lastTrackedSceneRef.current) {
                 lastTrackedSceneRef.current = sceneKey;
                 sceneImageCountRef.current = 0;
+                lastIllustratedLocationRef.current = '';
               }
               const illustrationsList =
                 metadata.illustrations as unknown as ImageToGenerate[];
@@ -1447,8 +1457,29 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   beliefGraph: visualBeliefGraphRef.current,
                 });
 
-                if (directorResult.shots.length > 0) {
-                  const curatedImages: ImageToGenerate[] = directorResult.shots.map((s) => ({
+                // Zapobieganie powielaniu kadrów tej samej lokacji w kolejnych wiadomościach
+                const filteredShots = directorResult.shots.filter((s) => {
+                  const isLoc = s.role === 'establishing_location' || s.request.type === 'location';
+                  if (!isLoc) return true;
+                  const locName = (s.request.locationName || currentLocationRef.current || sceneKey || '').trim().toLowerCase();
+                  if (locName && lastIllustratedLocationRef.current && locName === lastIllustratedLocationRef.current) {
+                    return false;
+                  }
+                  return true;
+                });
+
+                if (filteredShots.length > 0) {
+                  filteredShots.forEach((s) => {
+                    const isLoc = s.role === 'establishing_location' || s.request.type === 'location';
+                    if (isLoc) {
+                      const locName = (s.request.locationName || currentLocationRef.current || sceneKey || '').trim().toLowerCase();
+                      if (locName) {
+                        lastIllustratedLocationRef.current = locName;
+                      }
+                    }
+                  });
+
+                  const curatedImages: ImageToGenerate[] = filteredShots.map((s) => ({
                     ...s.request,
                     prompt: s.enrichedPrompt,
                     aspectRatio: s.aspectRatio,
@@ -1474,8 +1505,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 ) as { title?: string } | undefined;
               const rawTitle = locEvent?.title;
               if (typeof rawTitle === 'string' && rawTitle.trim()) {
-                const name = rawTitle.replace(/^Lokacja:\s*/i, '').trim();
-                if (name) {
+                const name = sanitizeLocationName(rawTitle);
+                if (name && !isVisualPromptLeak(name)) {
                   currentLocationRef.current = name;
                   setCurrentLocation(name);
                 }
