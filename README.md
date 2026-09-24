@@ -20,63 +20,75 @@
 
 # 🇵🇱 Strażnik Tajemnic AI (v0.9.5)
 
-Prowadź sesje _Zew Cthulhu 7e_ solo lub przy jednym laptopie (Hot Seat). Wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, a save'y lądują na Twoim dysku. Nie potrzebujesz konta w aplikacji ani zewnętrznej bazy danych. Wszystko działa lokalnie na Twoim komputerze.
+Prowadź sesje śledczego RPG grozy w klimacie weird fiction solo lub przy jednym laptopie (Hot Seat). Wklejasz własny klucz Gemini, wgrywasz **swój** podręcznik, a zapisy stanu gry lądują na Twoim dysku. Nie potrzebujesz konta, subskrypcji ani zewnętrznej bazy danych. Wszystko działa lokalnie na Twoim komputerze.
+
+## ⚔️ Dlaczego Strażnik Tajemnic, a nie zwykły prompt w ChatGPT?
+
+Próba grania w RPG z domyślnym modelem językowym w oknie czatu szybko uderza w mur: sztuczna inteligencja zmyśla rzuty kośćmi, zapomina zebrane poszlaki po kilkunastu turach i daje graczowi taryfę ulgową. **Strażnik Tajemnic AI** rozwiązuje ten problem, rozdzielając literacką narrację od żelaznej mechaniki:
+
+| Wymiar rozgrywki | Zwykły prompt w ChatGPT / Claude | Dedykowany Strażnik Tajemnic AI |
+|---|---|---|
+| **Rzuty kośćmi** | Halucynowane w tekście ("Wyrzuciłeś 14..."), brak prawdziwego RNG | 100% kodowane rzuty k100 w TypeScript - AI dostaje twardy wynik z silnika |
+| **Pamięć śledztwa** | Gubi fakty, nazwiska NPC i wątki po zapełnieniu okna kontekstu | Dedykowany Dziennik Śledztwa, Raporty Aktów i Licznik Poszlak |
+| **Zasady i stawka** | Brak reguł, ciągłe ułatwianie gry, niechęć do ranienia badacza | Klasyczna mechanika d100 RAW: rany, obłęd, panika i bezwzględne starcia |
+| **Źródło wiedzy** | Uogólniona, rozmyta wiedza modelu z internetu | Twój własny podręcznik przeszukiwany lokalnym RAG (wektory Float32) |
+| **Prywatność i koszty** | Dane w chmurze korporacji, abonamenty rzędu $20 miesięcznie | 100% lokalne pliki na dysku, darmowy osobisty klucz API (model BYOK) |
 
 ## 👥 Dla kogo
 
-Przychodzi taki etap życia, że zebranie ekipy na sesję RPG graniczy z cudem - kalendarze się nie spinają, ludzie się rozjeżdżają, a ochota na granie zostaje. **Strażnik Tajemnic** sprawia, że nie musisz na nikogo czekać - bierze rolę Mistrza Gry na siebie, żebyś mógł przeżywać mroczne przygody w świecie Lovecrafta na własnej kanapie.
+Przychodzi taki etap życia, że zebranie stałej ekipy na sesję RPG graniczy z cudem: kalendarze się nie spinają, ludzie się rozjeżdżają, a chęć na dobrą opowieść zostaje. **Strażnik Tajemnic** sprawia, że nie musisz na nikogo czekać. Bierze rolę Mistrza Gry na siebie, żebyś mógł przeżywać mroczne śledztwa na własnej kanapie.
 
-- **Solo** - zagraj sam, kiedy tylko masz wolny wieczór. AI prowadzi narrację i pamięta NPC, wątki oraz konsekwencje przez całą kampanię.
-- **We dwoje (Hot Seat)** - jeden laptop, wspólny wieczór z grozą: każde z Was ma własną postać i kolor, a AI zwraca się do graczy po imieniu.
+- **Solo** - zagraj sam, kiedy tylko masz wolny wieczór. AI prowadzi narrację, pilnuje zasad i pamięta każdy Twój wybór przez całą kampanię.
+- **We dwoje (Hot Seat)** - jeden laptop, wspólny wieczór z grozą: każde z Was ma własną postać i unikalny kolor interfejsu, a AI zwraca się do graczy po imieniu.
 
 ## ⬇️ Pobierz
 
 **[Pobierz paczkę macOS (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - uruchom aplikację na macOS dwuklikiem. Paczka nie zawiera klucza API ani podręcznika: przy pierwszym starcie wklejasz **własny** klucz Gemini (`https://aistudio.google.com/apikey`) i wgrywasz **swój** PDF z zasadami.
 
-> Wolisz uruchomić ze źródeł? Instrukcja niżej (**Szybki start**).
+> Wolisz uruchomić ze źródeł? Sprawdź instrukcję poniżej (**Szybki start**).
 
 > [!IMPORTANT]
-> **Projekt fanowski, nieoficjalny (Doktryna Czystego Emulatora BYOB).** Nie jest powiązany z Chaosium Inc. ani Black Monk.
-> Aplikacja to **sam silnik emulatora** (model ScummVM / RetroArch) z **dwuskładnikowym blokerem sesji** (Klucz API + własny PDF z zasadami) - nie zawiera żadnego podręcznika ani zastrzeżonych tabel. Grasz na **własnym, legalnie nabytym** egzemplarzu (darmowy Starter lub Księga Strażnika). _Call of Cthulhu_ / _Zew Cthulhu_ to znaki towarowe Chaosium Inc. Szczegóły: [`NOTICE`](./NOTICE).
+> **Projekt fanowski, nieoficjalny (Doktryna Czystego Emulatora BYOB).** Nie jest powiązany z Chaosium Inc. ani Black Monk Games.
+> Aplikacja to **sam silnik emulatora** (model ScummVM / RetroArch) z **dwuskładnikowym blokerem sesji** (Klucz API + własny PDF z zasadami). Nie zawiera żadnego podręcznika ani zastrzeżonych tabel. Grasz na **własnym, legalnie nabytym** egzemplarzu (darmowy Starter d100 lub pełna Księga Zasad). _Call of Cthulhu_ / _Zew Cthulhu_ to znaki towarowe Chaosium Inc. Szczegóły: [`NOTICE`](./NOTICE).
 
 ## ✨ Co potrafi silnik
 
-- **Gwarancja Zasad & Deterministyczna Mechanika (Bez Halucynacji AI):**
-  - **Lokalny RAG Podręcznika:** Aplikacja automatycznie przeszukuje **Twój** podręcznik w lokalnym indeksie binarnym (`Float32`) na dysku i wstrzykuje dokładne reguły do zapytania. AI nie zmyśla zasad z głowy.
-  - **Kodowane Rzuty k100 i Faza Rozwoju Postaci (CoC 7e RAW):** AI **nie rzuca kośćmi w czacie**. Rzuty na cechy, progi sukcesu (Zwykły, Trudny, Ekstremalny, Krytyk, Pech), testy Poczytalności (SAN), rzuty na Pomysł (Idea Roll) oraz Faza Rozwoju (automatyczne rzuty podbicia cech o 1k10) są liczone w 100% kodem TypeScript. AI otrzymuje twardy wynik i opisuje wyłącznie jego fabularne konsekwencje.
-  - **Puryzm Walki Wręcz CoC 7e RAW:** Karty starcia `OpposedMeleeCard`, przeciwstawne rzuty Uniku i Kontrataku, manewry bojowe, modyfikatory Budowy (Build), przewaga liczebna oraz zasada Dive for Cover.
-  - **Kontrola Stanu Świata:** Filtry ciągłości narracyjnej pilnują faktów ze śledztwa, stanu lokacji, ran badaczy oraz statusu NPC.
-- **7 Silników Świata w Locie (World Engine Director):** Architektura dynamicznych wstrzyknięć narracyjnych bez zmian w UI: `NPCEngine` (fasada, skaza, opór), `SensoryEngine` (triada zmysłowa, Zmienna Próżni, somatyka), `NarrativeGraphEngine` (branch-and-bottleneck), `PlotFrictionEngine` (plotki 70/30, tarcie społeczne), `MysteryClueEngine` (zasada 3 poszlak, fail-forward), `GeographyEngine` (chokepoints, hydraulika, geneza podziemi) oraz `OccultEngine` (prawa Sandersona, cena somatyczna, stopnie kultu).
-- **Kompendium Badacza & Kodeks Zasad:** Pełne kompendium Dark Art Déco zintegrowane w bocznym pasku (Mini-Obsidian reguł CoC 7e RAW, leksykon istot Mitycznych oraz lokalna wyszukiwarka podręczników).
-- **Dziennik Śledztwa, Raporty Aktów i Licznik Poszlak:** Reżyseria scen, raporty aktów śledczych z wiodącą hipotezą roboczą (Quote-to-Input), dynamiczny licznik potwierdzonych poszlak oraz Rzut na Pomysł (Idea Roll RAW) z regułą Fail-Forward.
-- **Zunifikowane Epoki Ekonomiczne i Waluty:** 6 kanonicznych epok (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), tabele Credit Rating dla funtów wiktoriańskich (£/s/d) i złotych, dynamiczny przelicznik PPP cen oraz znormalizowany zasięg broni (`formatWeaponRange`).
-- **Uproszczony Ekwipunek i Finanse:** Pełnoekranowy widok Dark Art Déco, kompaktowy pasek majątku i poziomu życia w nagłówku, brak żargonu technicznego oraz deterministyczne grafiki przedmiotów SVG/WebP.
-- **Styl Wizualny Dark Art Déco 1920s:** Głęboka czerń węgla, mosiądz, mahoń, postarzane złoto, stylizowana typografia maszynopisu epoki (`Special Elite`) oraz eleganckie nagłówki `Cinzel`.
-- **Samodzielny Launcher Desktopowy & 100% Tryb Offline:** Strażnik procesów (Desktop Process Supervisor - eliminacja procesów zombie przez kaskadowy `tree-kill`, dynamiczny przydział portów i Single Instance) oraz 100% self-hosted fonty WOFF2 (brak zewnętrznych zapytań sieciowych).
-- **Dynamiczne Pacing Narracji:** Silnik reguluje tempo, długość i gęstość opisów w zależności od poziomu poczytalności, fazy śledztwa i zagrożenia (Matryca 4 Biegów Kadencji).
-- **Tryb Szybka Przygoda:** Błyskawiczny start sesji z wyborem scenariusza i badacza w jednym kroku.
-- **30 Gotowych Postaci & Scenariusze Strefy 11:** Pełne biografie i powiązania dla 30 badaczy, w tym 16 dedykowanych postaci dla 4 autorskich polskich scenariuszy (audio MP3, grafiki WebP).
-- **AI Mistrz Gry:** Prowadzi narrację w stylu Lovecrafta z wykorzystaniem opisów sensorycznych (anomalie atmosferyczne, fizyczne odczucia chłodu i wilgoci).
-- **Sesja Zero & Linie i Zasłony:** Wbudowany kreator granic bezpieczeństwa pozwalający wykluczyć niechciane motywy ze stołu.
-- **Hot Seat:** Rozgrywka dla 1-2 graczy przy jednym laptopie, każdy z osobnym kolorem i postacią.
-- **Lektor (TTS):** Głos Mistrza Gry czyta narrację w locie z natychmiastowym streamingiem audio (głosy Charon / Gacrux).
-- **Ilustracje scen (Gemini Image):** Generowane w locie obrazy lokacji, portrety NPC i przedmiotów przez `gemini-3.1-flash-image` (z podglądem w powiększonym lightboxie) - na tym samym kluczu Google AI Studio.
-- **Asystent RAG w Sidebarze:** Wyjaśnienia reguł z podręcznika w bocznym oknie podczas trwania przygody.
+Możliwości Strażnika Tajemnic łączą immersję literackiej opowieści z bezwzględną dyscypliną kodu.
+
+### 🎭 Doświadczenie przy stole (Dla Gracza)
+
+- **Śledztwo z Prawdziwą Stawką (Dziennik, Raporty Aktów i Licznik Poszlak):** Reżyseria scen dzieli przygodę na przejrzyste akty. Dziennik podsumowuje zebrane fakty, dynamiczny licznik pilnuje potwierdzonych tropów, a wiodąca hipoteza robocza pozwala jednym kliknięciem zacytować ustalenia prosto do pola akcji (Quote-to-Input). Gdy utkniesz, Rzut na Pomysł (Idea Roll RAW) posuwa akcję naprzód bez zatrzymywania fabuły (zasada Fail-Forward).
+- **Bezkompromisowa Walka Wręcz d100 (Starcia Przeciwstawne):** Karty starcia `OpposedMeleeCard`, przeciwstawne rzuty Uniku i Kontrataku, manewry bojowe, modyfikatory Budowy (Build), przewaga liczebna wrogów oraz rzuty padnij za osłonę (Dive for Cover). Walka jest śmiertelna i szybka.
+- **Kompendium Badacza & Kodeks Zasad:** Boczny pasek narzędzi w stylu Dark Art Déco zawierający podręczny Mini-Obsidian: kompendium reguł d100, leksykon mitologii weird fiction oraz lokalną wyszukiwarkę zagadnień z Twojego podręcznika.
+- **Ekwipunek i Finanse Epoki:** Pełnoekranowy widok ekwipunku bez żargonu technicznego, kompaktowy pasek poziomu życia i gotówki dostosowany do 6 kanonicznych epok (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), tabele zamożności (w tym funty wiktoriańskie £/s/d) oraz deterministyczne grafiki przedmiotów SVG/WebP.
+- **Klimatyczne Wprowadzenie i Wybór Języka Sesji:** Ostrzeżenie 18+ (Mature Audience / Content Warning) z dwujęzycznym epitafium H.P. Lovecrafta, powiększony modal wyboru języka wiążący sesję (ochrona przed mieszaniem języków w dialogach) oraz automatyczna synchronizacja języka zapisu.
+- **Stylistyka Dark Art Déco 1920s:** Głęboka czerń węgla, mosiądz, mahoń, postarzane złoto, typografia epoki (`Special Elite`, `Cinzel`) oraz 12 klimatycznych retro-rycin wektorowych SVG dla profesji badaczy.
+- **Lektor (TTS) i Ilustracje Scen w Locie:** Natychmiastowy streaming głosu Mistrza Gry (głosy Charon / Gacrux) oraz generowanie kadrów lokacji, portretów NPC i artefaktów przez `gemini-3.1-flash-image` z powiększeniem w lightboxie.
+- **Sesja Zero i Bezpieczeństwo przy Stole:** Narzędzie kalibracji granic opowieści (Linie i Zasłony) pozwalające wykluczyć niechciane motywy ze scenariusza.
+- **30 Gotowych Postaci i Tryb Szybka Przygoda:** Błyskawiczny start sesji z predefiniowanymi badaczami lub kreatorem postaci z filtrem umiejętności i kalkulacją współczynników d100.
+
+### ⚙️ Inżynieria pod maską (Architektura)
+
+- **Deterministyczna Matematyka d100 w TypeScript:** AI **nigdy nie rzuca kośćmi w oknie czatu**. Testy cech i umiejętności, kalkulacje progów sukcesu (Zwykły, Trudny, Ekstremalny, Sukces Krytyczny, Pech), testy Poczytalności (SAN) oraz Faza Rozwoju Postaci są w 100% obliczane kodem TypeScript. Model otrzymuje twardy wynik i opisuje wyłącznie jego fabularne następstwa.
+- **7 Dynamicznych Silników Świata w Locie (World Engine Director):** Architektura dynamicznych wstrzyknięć behawioralnych do promptu: `NPCEngine` (fasada, skaza, opór), `SensoryEngine` (triada zmysłowa, somatyka, Zmienna Próżni), `NarrativeGraphEngine` (struktura branch-and-bottleneck), `PlotFrictionEngine` (plotki 70/30, tarcie społeczne), `MysteryClueEngine` (zasada 3 poszlak, fail-forward), `GeographyEngine` (chokepoints, hydraulika podziemi) oraz `OccultEngine` (prawa magii Sandersona, cena somatyczna).
+- **Lokalny Mikromodel CPU i Guardrail Epoki (0 Tokenów, <30 ms):** Wbudowany dyspozytor klasyfikacyjny na CPU orkiestrujący silniki świata i odciążający prompt o >35% w turach spokojnych, połączony z lokalnym strażnikiem epoki (`era-guardrail.ts`), który odcina pytania techniczne i anachronizmy epoki w czasie <1 ms bez zużycia tokenów API.
+- **Lokalny RAG Podręcznika:** Aplikacja parsuje **Twój** plik PDF, tworzy binarny indeks wektorowy (`Float32`) na dysku i wstrzykuje właściwe reguły do kontekstu w locie. AI nie zmyśla tabel ani procedur.
+- **Samodzielny Launcher Desktopowy i 100% Tryb Offline:** Nadzorca procesów (Desktop Process Supervisor w czystym Node.js - eliminacja procesów zombie przez kaskadowy `tree-kill`, dynamiczny przydział portów, Single Instance) oraz 100% self-hosted fonty WOFF2 (brak jakichkolwiek zapytań do zewnętrznych CDN-ów).
 
 ## 📸 Zrzuty ekranu
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Menu główne"><br><sub><b>Menu główne</b> - stylizowany wybór trybu Solo, przygody, Sesji Zero i postaci w Dark Art Déco.</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/02-pierwsze-uruchomienie.png" alt="Pierwsze uruchomienie"><br><sub><b>Setup</b> - wklejanie klucza Gemini oraz podpinanie własnego podręcznika PDF.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Menu główne"><br><sub><b>Menu główne v0.9.5</b> - stylizowany wybór trybu Solo, Hot Seat, Sesji Zero i gotowych śledztw w Dark Art Déco.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/02-pierwsze-uruchomienie.png" alt="Pierwsze uruchomienie"><br><sub><b>Pierwszy start</b> - bezpieczne wklejanie klucza Gemini oraz podpinanie własnego podręcznika zasad PDF (BYOB).</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/03-sesja-zero-linie-zaslony.png" alt="Sesja Zero"><br><sub><b>Sesja Zero</b> - kalibracja granic narracyjnych (Linie i Zasłony).</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/04-scena-i-narracja-lovecrafta.png" alt="Ekran gry z AI"><br><sub><b>Ekran gry</b> - ilustracja, narracja Mistrza Gry oraz prawy panel kontrolny.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/03-sesja-zero-linie-zaslony.png" alt="Sesja Zero"><br><sub><b>Sesja Zero</b> - kalibracja granic narracyjnych oraz filtrów wrażliwości (Linie i Zasłony).</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/04-scena-i-narracja-lovecrafta.png" alt="Ekran gry z AI"><br><sub><b>Ekran śledztwa</b> - ilustracja lokacji w 16:9, narracja grozy, Dziennik Śledztwa i panel narzędzi Badacza.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/05-karta-postaci.png" alt="Karta badacza"><br><sub><b>Karta badacza</b> - charakterystyki CoC 7e, umiejętności, Faza Rozwoju i biografia.</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/06-ekwipunek-i-finanse.png" alt="Ekwipunek i finanse"><br><sub><b>Ekwipunek</b> - przedmioty fabularne, ikony oraz finanse postaci.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/05-karta-postaci.png" alt="Karta badacza"><br><sub><b>Karta badacza</b> - współczynniki d100, Faza Rozwoju Postaci, 12 retro-rycin SVG i filtr umiejętności.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/06-ekwipunek-i-finanse.png" alt="Ekwipunek i finanse"><br><sub><b>Ekwipunek v0.9.5</b> - pełnoekranowy widok przedmiotów, majątek epoki i stan zamożności bez żargonu.</sub></td>
   </tr>
 </table>
 
@@ -100,9 +112,9 @@ npm run dev
 ```
 
 Otwórz [http://localhost:3000](http://localhost:3000):
-1. **Wklej klucz Gemini** (jeden klucz do czatu, TTS i obrazów).
-2. **Wgraj swój PDF** z zasadami - apka utworzy lokalny indeks wektorowy na dysku (`data/rag/`).
-3. Wybierz przygodę, stwórz lub wybierz postać i ruszaj na sesję.
+1. **Wklej klucz Gemini** (jeden klucz do czatu, lektora TTS i generowania obrazów).
+2. **Wgraj swój PDF** z zasadami d100 - aplikacja utworzy lokalny indeks wektorowy na dysku (`data/rag/`).
+3. Wybierz scenariusz, stwórz lub wybierz postać i ruszaj na śledztwo.
 
 Pełna instrukcja: [`SETUP.md`](./SETUP.md). Podręcznik gracza: [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md). Wytyczne techniczne: [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
@@ -117,7 +129,7 @@ Tworzy `Strażnik Tajemnic AI.app` w `~/Applications` oraz alias na Biurku.
 
 Klucz Gemini wklejasz wprost w aplikacji przy pierwszym starcie lub w oknie Ustawień. Jeśli wolisz plik środowiskowy, skopiuj `.env.example` do `.env.local` w katalogu `_tester/_base/.silnik/`. Jedyna wymagana zmienna to `GEMINI_API_KEY`.
 
-## 🏚️ Profile Jakości & Szacowane Koszty
+## 🏚️ Profile Jakości i Szacowane Koszty
 
 Konfiguracja w panelu **Ustawienia → Profil Jakości** (sesja ≈ 3h gry, domyślnie **HIGH**):
 
@@ -128,7 +140,7 @@ Konfiguracja w panelu **Ustawienia → Profil Jakości** (sesja ≈ 3h gry, domy
 | **HIGH** ⭐ *(Domyślny)* | **Gemini 3.8 Flash (High)** | **Gemini TTS (Charon)** | **Gemini Image** | **~$0.40 - $0.50 USD** |
 | **ULTRA** | Gemini 3.1 Pro (High) | Multi-voice słuchowisko | Gemini Image HD | ~$1.00 - $1.50 USD |
 
-*Jeden klucz Google AI Studio: Wszystkie komponenty (czat, lektor TTS, obrazy i embeddingi) działają w oparciu o to samo konto Google. Panel Ustawień na żywo zlicza zużyte tokeny i koszty sesji.*
+*Jeden klucz Google AI Studio: Wszystkie komponenty (czat, lektor TTS, obrazy i embeddingi) działają w oparciu o to samo konto Google. Panel Ustawień na żywo zlicza zużyte tokeny i szacuje koszty sesji.*
 
 ## 🖥️ Wymagania sprzętowe
 
@@ -139,27 +151,26 @@ Konfiguracja w panelu **Ustawienia → Profil Jakości** (sesja ≈ 3h gry, domy
 | **Pamięć RAM** | 8 GB RAM (aplikacja zużywa ~450 MB w szczycie) | 16 GB RAM |
 | **Karta graficzna (GPU)** | Zintegrowana (Intel UHD 620 / AMD Vega) | Zintegrowana Apple GPU lub dedykowana GTX 1050+ |
 | **Dysk** | 1.5 GB wolnego miejsca (SSD) | 2.0 GB wolnego miejsca (NVMe SSD) |
-| **Lokalny Silnik Decyzji** | Wbudowany mikromodel ONNX (CPU, zero konfiguracji, <30 ms) | Wbudowany mikromodel ONNX z akceleracją sprzętową (<5 ms) |
-| **Połączenie sieciowe** | Wymagane wyłącznie do narracji Gemini API (BYOK) | Szerokopasmowe połączenie internetowe |
+| **Lokalny Silnik Decyzji** | Wbudowany mikromodel CPU (zero konfiguracji, <30 ms) | Wbudowany mikromodel CPU z akceleracją sprzętową (<5 ms) |
+| **Połączenie sieciowe** | Wymagane wyłącznie do zapytań Gemini API (BYOK) | Szerokopasmowe połączenie internetowe |
 
-*Aplikacja posiada wbudowany bezpiecznik sprzętowy (timeout 100 ms): na starszych maszynach silnik automatycznie przełącza się na natywne heurystyki TypeScript bez żadnego lagu w interfejsie.*
+*Aplikacja posiada wbudowany bezpiecznik sprzętowy (timeout 100 ms): na starszych maszynach silnik automatycznie przełącza się na natywne heurystyki TypeScript bez żadnego opóźnienia w interfejsie.*
 
 ## 🗺️ Rozwój projektu
 
-- Finalizacja audytu stylizacji Dark Art Déco 1920s w pozostałych widokach aplikacji.
-- Stabilizacja samodzielnej paczki macOS i lokalnych danych Mythos.
-- Deterministyczny katalog wyposażenia oraz audyt portretów badaczy.
-- Bezpieczny mechanizm sprawdzania aktualizacji na macOS.
+- **Szlif kluczowych fundamentów:** Dalsza ewolucja Kompendium Badacza, Ekwipunku i Dziennika Śledztwa - w wersji v0.9.5 zyskały one właściwy kierunek architektoniczny, lecz pozostają w fazie aktywnego szlifowania UX i dojrzałości.
+- **Paczka desktopowa i aktualizacje:** Dalsza stabilizacja środowiska uruchomieniowego macOS oraz bezpieczny mechanizm sprawdzania nowych wydań.
+- **Scenariusze i społeczność:** Przygotowanie narzędzi do wygodnego importu i edycji własnych śledztw społeczności.
 
 Zasady architektury, inwarianty inżynieryjne i dev cheat-sheet znajdziesz w [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## 🔧 Technologie
 
-Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/ui (Dark Art Déco 1920s) · Google Gemini API (BYOK) · lokalny RAG (Float32 binarny, cosine) · Jest + Playwright.
+Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/ui (Dark Art Déco 1920s) · Google Gemini API (BYOK) · lokalny RAG (Float32 binarny, podobieństwo cosinusowe) · Jest + Playwright.
 
 ## 🧪 Program Beta i Zgłaszanie Uwag
 
-Bierzesz udział w testach wersji Beta Strażnika Tajemnic AI? Wszelkie uwagi, błędy mechaniki CoC 7e, usterki audio czy sugestie możesz przekazywać na kilka wygodnych sposobów:
+Bierzesz udział w testach wersji Beta Strażnika Tajemnic AI? Wszelkie uwagi, spostrzeżenia do mechaniki d100, błędy audio czy sugestie możesz przekazywać na kilka wygodnych sposobów:
 1. **W aplikacji:** Kliknij **"Zgłoś uwagę lub błąd"** w menu bocznym (Pomoce Badacza) lub na ekranie powitalnym. Modal pozwala wysłać e-mail jednym kliknięciem, skopiować gotowy szablon Markdown pod GitHub Issue lub pobrać plik JSON z danymi diagnostycznymi.
 2. **Dedykowany e-mail:** Wyślij swoje spostrzeżenia bezpośrednio na adres: `issue@callofchtulhu.pl`.
 3. **GitHub Issues:** Otwórz zgłoszenie w oficjalnym rejestrze błędów [GitHub Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues).
@@ -186,63 +197,75 @@ Kod: **MIT** (patrz [`LICENSE`](./LICENSE)). Projekt fanowski i niekomercyjny. S
 
 # 🇺🇸 Keeper of Arcane Lore AI (v0.9.5)
 
-Run your _Call of Cthulhu 7e_ sessions solo or with a friend on a single laptop (Hot Seat). You provide your own Gemini API key, upload **your own** guidebook, and saves are stored on your local disk. The app does not require an account or external databases. Everything runs locally on your machine.
+Run your d100 investigative weird fiction RPG sessions solo or with a friend on a single laptop (Hot Seat). You provide your own Gemini API key, upload **your own** rulebook, and saves are stored on your local disk. The app requires no account, subscription, or external databases. Everything runs locally on your machine.
+
+## ⚔️ Why Keeper of Arcane Lore AI instead of a generic ChatGPT prompt?
+
+Trying to run a tabletop RPG with a standard chat prompt quickly hits a wall: generic AI models fabricate dice rolls, forget uncovered clues after a few turns, and constantly pull punches. **Keeper of Arcane Lore AI** solves this by strictly separating literary prose from hard-coded mechanics:
+
+| Aspect | Generic ChatGPT / Claude Prompt | Dedicated Keeper of Arcane Lore AI |
+|---|---|---|
+| **Dice Rolls** | Fabricated in chat ("You rolled 14..."), no genuine RNG | 100% deterministic d100 rolls in TypeScript - AI only receives hard outcomes |
+| **Investigation Memory** | Loses track of clues, NPC motives, and leads when context fills up | Dedicated Investigation Journal, Act Reports, and live Clue Counter |
+| **Rules & Stakes** | Inconsistent rulings, soft consequences, avoids harming characters | Classic d100 mechanics RAW: real wounds, sanity loss, panic, brutal opposed clashes |
+| **Knowledge Source** | Generic training data from the public web | Your own rulebook PDF queried via local binary RAG (Float32 vectors) |
+| **Privacy & Cost** | Cloud storage, recurring $20/month subscription | 100% local files on your machine, free personal API key (BYOK model) |
 
 ## 👥 Who is it for?
 
-There comes a stage in life where gathering a full table for an RPG session is a miracle - schedules clash, people move away, but the hunger for adventure remains. **Keeper of Arcane Lore AI** ensures you don't have to wait - it takes the role of the Game Master, allowing you to experience dark adventures in Lovecraft's world right from your couch.
+There comes a stage in life where gathering a full table for an RPG session is a miracle: schedules clash, people move away, but the hunger for a dark adventure remains. **Keeper of Arcane Lore AI** ensures you don't have to wait. It takes the role of the Game Master, allowing you to experience dark investigations right from your couch.
 
-- **Solo** - play alone whenever you have a free evening. The AI leads the narrative, remembers NPCs, plots, and consequences throughout the campaign.
+- **Solo** - play alone whenever you have a free evening. The AI leads the narrative, enforces the rules, and remembers your choices throughout the campaign.
 - **Coop (Hot Seat)** - one laptop, two players: each has their own character and interface color, and the AI addresses players by name.
 
 ## ⬇️ Download
 
-**[Download the macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - launch the app on macOS with a double-click. It does not include an API key or guidebook: during the first run, you paste your **own** Gemini key (`https://aistudio.google.com/apikey`) and upload **your** PDF guidebook.
+**[Download the macOS package (ZIP)](https://github.com/InduPhantom-hash/straznik-tajemnic/releases/tag/v0.9.5)** - launch the app on macOS with a double-click. It does not include an API key or rulebook: during the first run, you paste your **own** Gemini key (`https://aistudio.google.com/apikey`) and upload **your** PDF rulebook.
 
 > Prefer running from source code? Follow the **Quick Start** guide below.
 
 > [!IMPORTANT]
-> **Fan project, unofficial (Clean Room BYOB Emulator Doctrine).** Not affiliated with Chaosium Inc. or Black Monk.
-> The application is **only the emulator engine** (ScummVM / RetroArch model) equipped with a **Two-Factor Session Blocker** (API Key + your own PDF rulebook) - it contains no rulebooks or proprietary tables. You play using your **own, legally acquired** copy (free Quick-Start Rules or Keeper Rulebook). _Call of Cthulhu_ is a trademark of Chaosium Inc. Details: [`NOTICE`](./NOTICE).
+> **Fan project, unofficial (Clean Room BYOB Emulator Doctrine).** Not affiliated with Chaosium Inc. or Black Monk Games.
+> The application is **only the emulator engine** (ScummVM / RetroArch model) equipped with a **Two-Factor Session Blocker** (API Key + your own PDF rulebook). It contains no rulebooks or proprietary tables. You play using your **own, legally acquired** copy (free d100 Quick-Start Rules or Keeper Rulebook). _Call of Cthulhu_ is a trademark of Chaosium Inc. Details: [`NOTICE`](./NOTICE).
 
 ## ✨ Engine Features
 
-- **Rules Guarantee & Deterministic Mechanics (No AI Hallucinations):**
-  - **Local Rulebook RAG:** The application automatically searches **your** uploaded PDF stored in local binary `Float32` vectors on disk and injects exact rule context into the LLM prompt. The AI does not fabricate rules or stats.
-  - **Hardcoded d100 Rolls & Character Development Phase (CoC 7e RAW):** The AI **never rolls dice in chat**. Skill checks, threshold calculations (Regular, Hard, Extreme, Critical, Fumble), Sanity (SAN) tests, Idea rolls, and post-session skill development are 100% computed in TypeScript code. The AI receives hard results and focuses solely on narrative outcomes.
-  - **CoC 7e RAW Melee Combat:** Opposed clash cards (`OpposedMeleeCard`), Dodge vs Counterattack resolution, combat maneuvers, Build modifiers, outnumbered disadvantage, and Dive for Cover mechanics.
-  - **World State Control:** Narrative continuity filters prevent plot holes, forgotten clues, or broken investigator health states.
-- **7 Dynamic World Engines (World Engine Director):** Modular prompt runtime injecting deep world simulation without UI bloat: `NPCEngine` (facade, flaw, resistance), `SensoryEngine` (sensory triad, void variable, somatics), `NarrativeGraphEngine` (branch-and-bottleneck), `PlotFrictionEngine` (70/30 rumors, social friction), `MysteryClueEngine` (3-clue rule, fail-forward), `GeographyEngine` (chokepoints, hydrology, underworld genesis), and `OccultEngine` (Sanderson's laws, somatic cost, cult tiers).
-- **Investigator Compendium & Rulebook:** Comprehensive Dark Art Déco reference panel integrated into the sidebar (Mini-Obsidian for CoC 7e RAW rules, Mythos creature lore, and local rulebook search engine).
-- **Investigation Journal, Act Reports & Clue Counter:** Scene tracking, investigation act reports with working hypothesis synthesis (Quote-to-Input), active clue counter, and Idea Roll RAW with Fail-Forward rule.
-- **Unified Economic Eras & Currencies:** 6 canonical eras (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), Credit Rating thresholds for Victorian pounds (£/s/d) and historical currencies, dynamic PPP pricing converter, and standardized weapon range formatting (`formatWeaponRange`).
-- **Streamlined Equipment & Finances:** Full-screen Dark Art Déco modal, compact living standard and wealth header bar, removal of technical jargon, and deterministic SVG/WebP item graphics.
-- **Dark Art Déco 1920s Visual Design:** Charcoal black, brass, mahogany, aged gold accents, and vintage typewriter typography (`Special Elite`, `Cinzel`) across the entire interface.
-- **Standalone Desktop Launcher & 100% Offline Mode:** Pure Node.js Desktop Process Supervisor (eliminates zombie processes via cascading `tree-kill`, dynamic port fallback, and Single Instance enforcement) and 100% self-hosted WOFF2 fonts (zero external network tracking).
-- **Context-Aware Dynamic Pacing:** Narrative engine dynamically adjusts description pacing based on sanity thresholds, investigation stage, and action tension across 4 Cadence Gears.
-- **Quick Adventure Mode:** Instant session start with seamless scenario and investigator selection in one step.
-- **30 Predefined Characters & Zone 11 Scenarios:** 30 comprehensive investigator backstories (including 16 tailored characters for 4 custom Polish scenarios with MP3 audio and WebP handouts).
-- **AI Game Master:** Leads the narrative in Lovecraft's style with sensory descriptions (atmospheric shifts, physical chill, and dread).
-- **Session Zero & Lines/Veils:** Safety tool to calibrate story boundaries at the table.
-- **Hot Seat:** 1-2 players sharing one screen, each with a unique investigator and color theme.
-- **Voice (TTS):** Instant streaming narrative readout with Charon and Gacrux voice actors.
-- **Scene Illustrations (Gemini Image):** Real-time image generation via `gemini-3.1-flash-image` for locations, NPC portraits, and artifacts (with lightbox zoom) using the same Google AI Studio key.
-- **In-Game Help & RAG Assistant:** Instant rule explanations right in the sidebar during play.
+Keeper of Arcane Lore AI marries atmospheric literary storytelling with uncompromising code discipline.
+
+### 🎭 Tabletop Experience (For Players)
+
+- **High-Stakes Investigation (Journal, Act Reports & Clue Counter):** Scene pacing structures adventures into distinct acts. The Journal tracks established findings, the Clue Counter monitors confirmed leads, and the working hypothesis summary can be quoted directly into the action input with a single click (Quote-to-Input). When an investigation stalls, the Idea Roll RAW pushes the plot forward without halting gameplay (Fail-Forward rule).
+- **Brutal d100 Melee Combat (Opposed Clashes):** Opposed clash cards (`OpposedMeleeCard`), Dodge vs Counterattack resolution, combat maneuvers, Build modifiers, outnumbered penalties, and Dive for Cover reactions. Combat is deadly, fast, and decisive.
+- **Investigator Compendium & Rulebook:** Dark Art Déco reference panel integrated into the sidebar: Mini-Obsidian for d100 rules, Mythos creature lore, and a local semantic search engine for your rulebook.
+- **Era-Appropriate Equipment & Finances:** Full-screen equipment manager free of technical jargon, living standard and wealth header bar calibrated across 6 canonical eras (`1920s-us`, `1920s-pl`, `prl-1970s`, `1890s-uk`, `modern-pl`, `modern-us`), historical currency tables (including Victorian pounds £/s/d), and deterministic SVG/WebP item graphics.
+- **Atmospheric Introduction & Session-Bound Language:** Mature Audience / Content Warning modal featuring H.P. Lovecraft's bilingual epitaph, enlarged session-bound language selection (preventing mid-dialogue bilingual splits), and automatic save locale synchronization.
+- **Dark Art Déco 1920s Visual Design:** Charcoal black, brass, mahogany, aged gold accents, vintage typewriter typography (`Special Elite`, `Cinzel`), and 12 retro vector SVG investigator portraits.
+- **Voice (TTS) & Real-Time Scene Illustrations:** Low-latency Game Master streaming narration (Charon / Gacrux voices) and real-time generation of locations, NPC portraits, and artifacts via `gemini-3.1-flash-image` with lightbox zoom.
+- **Session Zero & Tabletop Safety:** Calibration tool to establish narrative boundaries (Lines & Veils), keeping unwanted themes away from the session.
+- **30 Predefined Characters & Quick Adventure Mode:** Instant session start with pre-generated investigators or full character creation featuring skill filters and d100 attribute calculation.
+
+### ⚙️ Under the Hood (Architecture)
+
+- **Deterministic d100 Mathematics in TypeScript:** The AI **never rolls dice in the chat prompt**. Skill checks, success threshold calculations (Regular, Hard, Extreme, Critical, Fumble), Sanity (SAN) tests, and Character Development Phase progressions are 100% computed in TypeScript. The LLM receives immutable results and strictly narrates outcomes.
+- **7 Dynamic World Engines (World Engine Director):** Modular prompt runtime injecting deep world simulation: `NPCEngine` (facade, flaw, resistance), `SensoryEngine` (sensory triad, somatics, void variable), `NarrativeGraphEngine` (branch-and-bottleneck structure), `PlotFrictionEngine` (70/30 rumors, social friction), `MysteryClueEngine` (3-clue rule, fail-forward), `GeographyEngine` (chokepoints, underworld hydrology), and `OccultEngine` (Sanderson's occult laws, somatic cost).
+- **Local CPU Micro-Model & Era Guardrail (0 Tokens, <30 ms):** Embedded CPU dispatch classifier orchestrating world engines and trimming system prompts by >35% in calm turns, paired with a local guardrail (`era-guardrail.ts`) deflecting rules inquiries and modern anachronisms in <1 ms without API token usage.
+- **Local Rulebook RAG:** The app parses **your** PDF, builds a local binary vector index (`Float32`) on disk, and injects exact rule excerpts into context on demand. The AI never invents rules or stat blocks.
+- **Standalone Desktop Launcher & 100% Offline Mode:** Pure Node.js Desktop Process Supervisor (eliminates zombie processes via cascading `tree-kill`, dynamic port fallback, Single Instance enforcement) and 100% self-hosted WOFF2 fonts (zero external network CDN calls).
 
 ## 📸 Screenshots
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Main menu"><br><sub><b>Main menu</b> - styled selection of Solo mode, custom scenarios, Session Zero and characters in Dark Art Déco.</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/02-pierwsze-uruchomienie.png" alt="First run setup"><br><sub><b>Setup</b> - Gemini API key setup and rulebook PDF upload.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/01-menu-glowne.png" alt="Main menu"><br><sub><b>Main menu v0.9.5</b> - styled selection of Solo mode, Hot Seat, custom scenarios, and Session Zero in Dark Art Déco.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/02-pierwsze-uruchomienie.png" alt="First run setup"><br><sub><b>First run setup</b> - secure Gemini API key input and personal PDF rulebook indexing (BYOB).</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/03-sesja-zero-linie-zaslony.png" alt="Session Zero"><br><sub><b>Session Zero</b> - safety boundaries calibration (Lines & Veils).</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/04-scena-i-narracja-lovecrafta.png" alt="Gameplay screen"><br><sub><b>Gameplay screen</b> - scene illustration, GM narrative and control sidebar.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/03-sesja-zero-linie-zaslony.png" alt="Session Zero"><br><sub><b>Session Zero</b> - narrative boundaries calibration and content filtering (Lines & Veils).</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/04-scena-i-narracja-lovecrafta.png" alt="Gameplay screen"><br><sub><b>Investigation screen</b> - 16:9 scene illustration, cosmic dread narrative, Journal, and Investigator tools.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/screenshots/05-karta-postaci.png" alt="Investigator sheet"><br><sub><b>Investigator sheet</b> - CoC 7e stats, skills, Development Phase and biography.</sub></td>
-    <td width="50%"><img src="docs/assets/screenshots/06-ekwipunek-i-finanse.png" alt="Equipment and finances"><br><sub><b>Equipment</b> - plot items, custom icons and character finances.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/05-karta-postaci.png" alt="Investigator sheet"><br><sub><b>Investigator sheet</b> - d100 statistics, Development Phase, 12 retro SVG portraits, and skill filters.</sub></td>
+    <td width="50%"><img src="docs/assets/screenshots/06-ekwipunek-i-finanse.png" alt="Equipment and finances"><br><sub><b>Equipment v0.9.5</b> - full-screen item manager, era wealth status, and living standards free of jargon.</sub></td>
   </tr>
 </table>
 
@@ -266,9 +289,9 @@ npm run dev
 ```
 
 Open **[http://localhost:3000](http://localhost:3000)**:
-1. **Paste your Gemini API key** (one key covers chat, TTS, and images).
-2. **Upload your PDF rulebook** - the app extracts text and builds a local binary vector index (`data/rag/`).
-3. Select an adventure, pick or create an investigator, and begin playing.
+1. **Paste your Gemini API key** (one key covers chat, TTS voice, and scene images).
+2. **Upload your d100 rulebook PDF** - the app extracts text and builds a local binary vector index (`data/rag/`).
+3. Select a scenario, pick or create an investigator, and begin playing.
 
 Full documentation: [`SETUP.md`](./SETUP.md), [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md), and [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
@@ -305,17 +328,16 @@ Direct reflection of settings in **Settings → Quality Profile** (session ≈ 3
 | **RAM** | 8 GB RAM (app uses ~450 MB peak) | 16 GB RAM |
 | **Graphics (GPU)** | Integrated (Intel UHD 620 / AMD Vega) | Integrated Apple GPU or dedicated GTX 1050+ |
 | **Storage** | 1.5 GB available space (SSD) | 2.0 GB available space (NVMe SSD) |
-| **Local Decision Engine** | Embedded ONNX micro-model (CPU, zero config, <30 ms) | Embedded ONNX micro-model with hardware acceleration (<5 ms) |
+| **Local Decision Engine** | Embedded CPU micro-model (zero config, <30 ms) | Embedded CPU micro-model with hardware acceleration (<5 ms) |
 | **Network** | Required only for Gemini narration API (BYOK) | Broadband Internet connection |
 
 *The app features an integrated hardware circuit breaker (100 ms timeout): on older systems, the engine automatically falls back to native TypeScript heuristics without UI stutter.*
 
 ## 🗺️ Roadmap
 
-- Finalize Dark Art Déco 1920s design audit across remaining secondary dialogs.
-- Stabilize standalone macOS application package and bundled Mythos datasets.
-- Deterministic equipment catalog expansion and investigator portrait audits.
-- Safe update verification mechanism for macOS.
+- **Polishing Core Pillars:** Continuous evolution of the Investigator Compendium, Equipment, and Investigation Journal - in v0.9.5 they gained their proper architectural foundation, but remain under active UX refinement and development.
+- **Desktop Packaging & Updates:** Further hardening of the macOS standalone runtime and a safe release update checker.
+- **Community Scenarios:** Tooling for streamlined import and editing of custom community investigations.
 
 System architecture, invariants, and developer guidelines are documented in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
@@ -325,7 +347,7 @@ Next.js 16 (App Router) · React 19 + TypeScript (strict) · Tailwind + shadcn/u
 
 ## 🧪 Beta Program & Feedback Reporting
 
-Participating in the Beta testing of Keeper of Arcane Lore AI? You can report CoC 7e rules bugs, audio anomalies, and feature requests in several convenient ways:
+Participating in the Beta testing of Keeper of Arcane Lore AI? You can report d100 mechanics observations, audio anomalies, and feature requests in several convenient ways:
 1. **In-app:** Click **"Report Issue or Feedback"** in the sidebar (Investigator Tools) or welcome dialog. The modal lets you dispatch an email with one click, copy a structured Markdown report for a GitHub Issue, or download a diagnostic JSON package.
 2. **Dedicated Email:** Send findings and session dumps directly to: `issue@callofchtulhu.pl`.
 3. **GitHub Issues:** Submit an issue in the official [GitHub Issues](https://github.com/InduPhantom-hash/straznik-tajemnic/issues) tracker.
@@ -346,7 +368,7 @@ Participating in the Beta testing of Keeper of Arcane Lore AI? You can report Co
 
 ## 📄 License
 
-Code: **MIT** (see [`LICENSE`](./LICENSE)). Non-commercial fan project.
+Code: **MIT** (see [`LICENSE`](./LICENSE)). Non-commercial fan project. The engine contains no rulebooks or proprietary content.
 
 ---
 
