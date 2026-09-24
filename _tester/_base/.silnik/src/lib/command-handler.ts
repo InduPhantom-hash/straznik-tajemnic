@@ -46,11 +46,50 @@ export function isCommandResponse(response: string, previousMessage?: string): b
  * @returns Sformatowany tekst z ekwipunkiem lub informacja o pustym ekwipunku
  */
 export function formatEquipment(character: Character | null): string {
-  // Ekwipunek - USUNIĘTY (do reimplementacji)
   if (!character) {
     return 'Nie masz aktywnej postaci.';
   }
-  return `**${character.name}** - Moduł ekwipunku jest w trakcie przebudowy i będzie dostępny wkrótce.`;
+
+  const items = character.equipment ?? [];
+  if (items.length === 0) {
+    return `**Ekwipunek: ${character.name}**\n\nTwój ekwipunek jest pusty.`;
+  }
+
+  let text = `**Ekwipunek: ${character.name}**\n\n`;
+  for (const item of items) {
+    let itemLine = `- **${item.name}**`;
+    const details: string[] = [];
+    if (item.quantity && item.quantity > 1) {
+      details.push(`ilość: ${item.quantity}`);
+    }
+    if (typeof item.currentAmmo === 'number') {
+      details.push(
+        `amunicja: ${item.currentAmmo}${item.maxAmmo ? `/${item.maxAmmo}` : ''}`
+      );
+    }
+    if (typeof item.charges === 'number') {
+      details.push(
+        `ładunki: ${item.charges}${item.maxCharges ? `/${item.maxCharges}` : ''}`
+      );
+    }
+    if (item.modifiers?.damage && item.modifiers?.range) {
+      details.push(
+        `obr: ${item.modifiers.damage}, zasięg: ${item.modifiers.range}`
+      );
+    } else if (item.modifiers?.damage) {
+      details.push(`obr: ${item.modifiers.damage}`);
+    } else if (item.modifiers?.range) {
+      details.push(`zasięg: ${item.modifiers.range}`);
+    }
+    if (details.length > 0) {
+      itemLine += ` (${details.join(', ')})`;
+    }
+    if (item.description) {
+      itemLine += ` – ${item.description}`;
+    }
+    text += `${itemLine}\n`;
+  }
+  return text.trimEnd();
 }
 
 /**

@@ -10,6 +10,7 @@ import {
 } from '@/lib/concordia/event-resolution';
 import type { CombatResolution } from '@/lib/combat/combat-resolver';
 import { extractCommand, handleCommand } from '@/lib/command-handler';
+import { evaluateEraGuardrail } from '@/lib/guardrails/era-guardrail';
 import { detectGameContext } from '@/lib/prompt-section-parser';
 import { GeminiChatProvider } from '@/lib/ai-providers';
 import { getContextAwareGMProtocol } from '@/lib/prompts/gm-protocol';
@@ -290,11 +291,100 @@ export async function runChatPipeline({
       character as Character | null
     );
     if (commandResponse !== null) {
+      const wantsJson =
+        request.headers.get('accept') === 'application/json' &&
+        !request.headers.get('accept')?.includes('text/event-stream');
+      if (!wantsJson) {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: 'text', content: commandResponse })}\n\n`
+              )
+            );
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: 'metadata' })}\n\n`)
+            );
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+            );
+            controller.close();
+          },
+        });
+        return new NextResponse(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
+        });
+      }
       return NextResponse.json({
         response: commandResponse,
         isCommand: true,
       });
     }
+  }
+
+  // Lokalna bramka Guardrail (Issue #508) - filtrowanie zapytań mechanicznych i anachronizmów epoki < 25 ms
+  const activeChar =
+    (character as Character | null) ??
+    (characters?.[0] as Character | null) ??
+    null;
+  const guardrailResult = evaluateEraGuardrail({
+    message,
+    character: activeChar,
+    eraContext: requestedEraContext,
+    locale,
+  });
+
+  if (guardrailResult) {
+    const wantsJson =
+      request.headers.get('accept') === 'application/json' &&
+      !request.headers.get('accept')?.includes('text/event-stream');
+    if (!wantsJson) {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ type: 'text', content: guardrailResult.response })}\n\n`
+            )
+          );
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                type: 'metadata',
+                guardrail: true,
+                guardrailCategory: guardrailResult.category,
+                guardrailExecutionTimeMs: guardrailResult.executionTimeMs,
+              })}\n\n`
+            )
+          );
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+          );
+          controller.close();
+        },
+      });
+      return new NextResponse(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      });
+    }
+
+    return NextResponse.json({
+      response: guardrailResult.response,
+      guardrail: true,
+      category: guardrailResult.category,
+      executionTimeMs: guardrailResult.executionTimeMs,
+      guardrailViolation:
+        guardrailResult.category === 'anachronism' ? 'anachronism' : undefined,
+    });
   }
 
   // Ustawienia i Prompty - IND-183 micro 1/5
