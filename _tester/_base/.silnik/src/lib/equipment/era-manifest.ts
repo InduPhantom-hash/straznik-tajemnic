@@ -154,13 +154,33 @@ const KNOWN_ERA_SPECIFIC_ASSETS: Record<string, TargetEra> = {
   'candles-1920s.webp': '1920s',
   'safety-helmet-industrial-1920s.webp': '1920s',
 
+  // 1930s
+  'flare-gun-1930s.webp': '1930s',
+  'magnifier-1930s.webp': '1930s',
+  'first-aid-1930s.webp': '1930s',
+  'matches-1930s.webp': '1930s',
+  'candles-1930s.webp': '1930s',
+  'safety-helmet-industrial-1930s.webp': '1930s',
+
   // 1940s
   'gasoline-lighter-1940s.webp': '1940s',
   'revolver-1940s.webp': '1940s',
   'trenchcoat-hat-noir.webp': '1940s',
+  'flare-gun-1940s.webp': '1940s',
+  'magnifier-1940s.webp': '1940s',
+  'first-aid-1940s.webp': '1940s',
+  'matches-1940s.webp': '1940s',
+  'candles-1940s.webp': '1940s',
+  'safety-helmet-industrial-1940s.webp': '1940s',
 
   // 1980s
   'microcassette-dictaphone.webp': '1980s',
+  'flare-gun-1980s.webp': '1980s',
+  'magnifier-1980s.webp': '1980s',
+  'first-aid-1980s.webp': '1980s',
+  'matches-1980s.webp': '1980s',
+  'candles-1980s.webp': '1980s',
+  'safety-helmet-industrial-1980s.webp': '1980s',
 
   // modern
   'pistol-glock-modern.webp': 'modern',
@@ -178,6 +198,12 @@ const KNOWN_ERA_SPECIFIC_ASSETS: Record<string, TargetEra> = {
   'encrypted-usb-modern.webp': 'modern',
   'tactical-vest-black.webp': 'modern',
   'rugged-hiking-backpack.webp': 'modern',
+  'flare-gun-modern.webp': 'modern',
+  'magnifier-modern.webp': 'modern',
+  'first-aid-modern.webp': 'modern',
+  'matches-modern.webp': 'modern',
+  'candles-modern.webp': 'modern',
+  'safety-helmet-industrial-modern.webp': 'modern',
   'rifle-hk416-modern.webp': 'modern',
   'adrenaline-syringes-modern.webp': 'modern',
   'medical-id-badge.webp': 'modern',

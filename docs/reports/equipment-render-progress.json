@@ -1,6 +1,6 @@
 {
   "totalTarget": 36,
-  "renderedCount": 9,
+  "renderedCount": 36,
   "rendered": {
     "1920s.weapon.flare-gun": {
       "filename": "flare-gun-1920s.webp",
@@ -29,30 +29,165 @@
     },
     "1920s.armor.safety-helmet-industrial": {
       "filename": "safety-helmet-industrial-1920s.webp",
-      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1920s.webp",
-      "timestamp": "2026-09-25T15:38:54.542Z"
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1920s.webp",
+      "exists": true
     },
     "1890s.weapon.flare-gun": {
       "filename": "flare-gun-1890s.webp",
-      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1890s.webp",
-      "timestamp": "2026-09-25T15:39:09.481Z"
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1890s.webp",
+      "exists": true
     },
     "1890s.tool.magnifier": {
       "filename": "magnifier-1890s.webp",
-      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1890s.webp",
-      "timestamp": "2026-09-25T15:39:23.595Z"
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1890s.webp",
+      "exists": true
     },
     "1890s.medical.first-aid": {
       "filename": "first-aid-1890s.webp",
-      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1890s.webp",
-      "timestamp": "2026-09-25T15:39:37.852Z"
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1890s.webp",
+      "exists": true
+    },
+    "1890s.personal.matches": {
+      "filename": "matches-1890s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/matches-1890s.webp",
+      "exists": true
+    },
+    "1890s.occult.candles": {
+      "filename": "candles-1890s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/candles-1890s.webp",
+      "exists": true
+    },
+    "1890s.armor.safety-helmet-industrial": {
+      "filename": "safety-helmet-industrial-1890s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1890s.webp",
+      "exists": true
+    },
+    "1930s.weapon.flare-gun": {
+      "filename": "flare-gun-1930s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1930s.webp",
+      "timestamp": "2026-09-25T16:23:49.836Z"
+    },
+    "1930s.tool.magnifier": {
+      "filename": "magnifier-1930s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1930s.webp",
+      "timestamp": "2026-09-25T16:24:05.519Z"
+    },
+    "1930s.medical.first-aid": {
+      "filename": "first-aid-1930s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1930s.webp",
+      "timestamp": "2026-09-25T16:24:20.823Z"
+    },
+    "1930s.personal.matches": {
+      "filename": "matches-1930s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/matches-1930s.webp",
+      "timestamp": "2026-09-25T16:24:34.888Z"
+    },
+    "1930s.occult.candles": {
+      "filename": "candles-1930s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/candles-1930s.webp",
+      "timestamp": "2026-09-25T16:24:49.960Z"
+    },
+    "1930s.armor.safety-helmet-industrial": {
+      "filename": "safety-helmet-industrial-1930s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1930s.webp",
+      "timestamp": "2026-09-25T16:25:05.478Z"
+    },
+    "1940s.weapon.flare-gun": {
+      "filename": "flare-gun-1940s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1940s.webp",
+      "timestamp": "2026-09-25T16:25:20.801Z"
+    },
+    "1940s.tool.magnifier": {
+      "filename": "magnifier-1940s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1940s.webp",
+      "timestamp": "2026-09-25T16:25:35.779Z"
+    },
+    "1940s.medical.first-aid": {
+      "filename": "first-aid-1940s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1940s.webp",
+      "timestamp": "2026-09-25T16:25:51.511Z"
+    },
+    "1940s.personal.matches": {
+      "filename": "matches-1940s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/matches-1940s.webp",
+      "timestamp": "2026-09-25T16:26:07.995Z"
+    },
+    "1940s.occult.candles": {
+      "filename": "candles-1940s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/candles-1940s.webp",
+      "timestamp": "2026-09-25T16:26:23.216Z"
+    },
+    "1940s.armor.safety-helmet-industrial": {
+      "filename": "safety-helmet-industrial-1940s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1940s.webp",
+      "timestamp": "2026-09-25T16:26:39.586Z"
+    },
+    "1980s.weapon.flare-gun": {
+      "filename": "flare-gun-1980s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1980s.webp",
+      "timestamp": "2026-09-25T16:26:55.286Z"
+    },
+    "1980s.tool.magnifier": {
+      "filename": "magnifier-1980s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1980s.webp",
+      "timestamp": "2026-09-25T16:27:10.792Z"
+    },
+    "1980s.medical.first-aid": {
+      "filename": "first-aid-1980s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1980s.webp",
+      "timestamp": "2026-09-25T16:27:26.208Z"
+    },
+    "1980s.personal.matches": {
+      "filename": "matches-1980s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/matches-1980s.webp",
+      "timestamp": "2026-09-25T16:27:42.474Z"
+    },
+    "1980s.occult.candles": {
+      "filename": "candles-1980s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/candles-1980s.webp",
+      "timestamp": "2026-09-25T16:27:58.157Z"
+    },
+    "1980s.armor.safety-helmet-industrial": {
+      "filename": "safety-helmet-industrial-1980s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1980s.webp",
+      "timestamp": "2026-09-25T16:28:12.313Z"
+    },
+    "modern.weapon.flare-gun": {
+      "filename": "flare-gun-modern.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-modern.webp",
+      "timestamp": "2026-09-25T16:28:26.544Z"
+    },
+    "modern.tool.magnifier": {
+      "filename": "magnifier-modern.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-modern.webp",
+      "timestamp": "2026-09-25T16:28:41.724Z"
+    },
+    "modern.medical.first-aid": {
+      "filename": "first-aid-modern.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-modern.webp",
+      "timestamp": "2026-09-25T16:28:57.243Z"
+    },
+    "modern.personal.matches": {
+      "filename": "matches-modern.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/matches-modern.webp",
+      "timestamp": "2026-09-25T16:29:13.261Z"
+    },
+    "modern.occult.candles": {
+      "filename": "candles-modern.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/candles-modern.webp",
+      "timestamp": "2026-09-25T16:29:29.090Z"
+    },
+    "modern.armor.safety-helmet-industrial": {
+      "filename": "safety-helmet-industrial-modern.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-modern.webp",
+      "timestamp": "2026-09-25T16:29:43.332Z"
     }
   },
   "failed": {},
-  "state": "rendering",
-  "lastRun": "2026-09-25T15:39:37.852Z",
-  "pendingCount": 31,
-  "currentJob": "1890s.medical.first-aid",
+  "state": "idle",
+  "lastRun": "2026-09-25T16:29:49.338Z",
+  "pendingCount": 24,
+  "currentJob": "modern.armor.safety-helmet-industrial",
   "waitRemainingSec": 900,
   "pausedAt": "2026-09-25T15:35:21.642Z"
 }
