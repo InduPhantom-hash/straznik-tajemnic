@@ -131,6 +131,12 @@ const KNOWN_ERA_SPECIFIC_ASSETS: Record<string, TargetEra> = {
   'oil-lantern-1890s.webp': '1890s',
   'rifle-lee-metford-1890s.webp': '1890s',
   'black-veil-hat.webp': '1890s',
+  'flare-gun-1890s.webp': '1890s',
+  'magnifier-1890s.webp': '1890s',
+  'first-aid-1890s.webp': '1890s',
+  'matches-1890s.webp': '1890s',
+  'candles-1890s.webp': '1890s',
+  'safety-helmet-industrial-1890s.webp': '1890s',
 
   // 1920s
   'revolver-colt38-1920s.webp': '1920s',
@@ -141,6 +147,12 @@ const KNOWN_ERA_SPECIFIC_ASSETS: Record<string, TargetEra> = {
   'pilot-goggles-1920s.webp': '1920s',
   'rifle-springfield-1920s.webp': '1920s',
   'nurse-cross-silver.webp': '1920s',
+  'flare-gun-1920s.webp': '1920s',
+  'magnifier-1920s.webp': '1920s',
+  'first-aid-1920s.webp': '1920s',
+  'matches-1920s.webp': '1920s',
+  'candles-1920s.webp': '1920s',
+  'safety-helmet-industrial-1920s.webp': '1920s',
 
   // 1940s
   'gasoline-lighter-1940s.webp': '1940s',

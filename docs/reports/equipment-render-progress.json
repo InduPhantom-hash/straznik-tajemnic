@@ -1,0 +1,58 @@
+{
+  "totalTarget": 36,
+  "renderedCount": 9,
+  "rendered": {
+    "1920s.weapon.flare-gun": {
+      "filename": "flare-gun-1920s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1920s.webp",
+      "exists": true
+    },
+    "1920s.tool.magnifier": {
+      "filename": "magnifier-1920s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1920s.webp",
+      "exists": true
+    },
+    "1920s.medical.first-aid": {
+      "filename": "first-aid-1920s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1920s.webp",
+      "exists": true
+    },
+    "1920s.personal.matches": {
+      "filename": "matches-1920s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/matches-1920s.webp",
+      "exists": true
+    },
+    "1920s.occult.candles": {
+      "filename": "candles-1920s.webp",
+      "path": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/candles-1920s.webp",
+      "exists": true
+    },
+    "1920s.armor.safety-helmet-industrial": {
+      "filename": "safety-helmet-industrial-1920s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/safety-helmet-industrial-1920s.webp",
+      "timestamp": "2026-09-25T15:38:54.542Z"
+    },
+    "1890s.weapon.flare-gun": {
+      "filename": "flare-gun-1890s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/flare-gun-1890s.webp",
+      "timestamp": "2026-09-25T15:39:09.481Z"
+    },
+    "1890s.tool.magnifier": {
+      "filename": "magnifier-1890s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/magnifier-1890s.webp",
+      "timestamp": "2026-09-25T15:39:23.595Z"
+    },
+    "1890s.medical.first-aid": {
+      "filename": "first-aid-1890s.webp",
+      "targetPath": "/Volumes/Karta/Developer/straznik-tajemnic/.worktrees/issue-503-era-assets/_tester/_base/.silnik/public/equipment/catalog/first-aid-1890s.webp",
+      "timestamp": "2026-09-25T15:39:37.852Z"
+    }
+  },
+  "failed": {},
+  "state": "rendering",
+  "lastRun": "2026-09-25T15:39:37.852Z",
+  "pendingCount": 31,
+  "currentJob": "1890s.medical.first-aid",
+  "waitRemainingSec": 900,
+  "pausedAt": "2026-09-25T15:35:21.642Z"
+}
