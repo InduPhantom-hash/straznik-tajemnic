@@ -612,6 +612,24 @@
       "component": "src/components/chat/chat-window/components/tts-hard-loading-screen.tsx"
     },
     {
+      "source": "loading-screen",
+      "target": "home",
+      "label": {
+        "pl": "Wróć do wyboru (błąd startu)",
+        "en": "Back to selection (start error)"
+      },
+      "component": "src/components/chat/chat-window/components/tts-hard-loading-screen.tsx"
+    },
+    {
+      "source": "loading-screen",
+      "target": "api-keys",
+      "label": {
+        "pl": "Ustawienia API (błąd startu)",
+        "en": "API settings (start error)"
+      },
+      "component": "src/components/chat/chat-window/components/tts-hard-loading-screen.tsx"
+    },
+    {
       "source": "game",
       "target": "character-sheet",
       "label": {

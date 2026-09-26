@@ -78,6 +78,8 @@ graph TD
     hot_seat -->|Rozpocznij tryb / Start mode| session_zero
     session_zero -->|Zatwierdź i przygotuj sesję / Confirm and prepare session| loading_screen
     loading_screen -->|Rozpocznij przygodę (bramka CTA) / Begin adventure (CTA gate)| game
+    loading_screen -->|Wróć do wyboru (błąd startu) / Back to selection (start error)| home
+    loading_screen -->|Ustawienia API (błąd startu) / API settings (start error)| api_keys
     game -->|Karta postaci / Character sheet| character_sheet
     game -->|Ekwipunek / Equipment| equipment
     equipment -->|Szczegóły przedmiotu / Equipment details| equipment_detail
@@ -151,6 +153,8 @@ graph TD
 | Wybór trybu gry | Rozpocznij tryb / Start mode | Sesja Zero (Briefing śledczy) | `src/components/ui/hot-seat-setup.tsx` |
 | Sesja Zero (Briefing śledczy) | Zatwierdź i przygotuj sesję / Confirm and prepare session | Ekran ładowania (Dark Art Déco) | `src/components/ui/session-zero-modal.tsx` |
 | Ekran ładowania (Dark Art Déco) | Rozpocznij przygodę (bramka CTA) / Begin adventure (CTA gate) | Aktywna sesja | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
+| Ekran ładowania (Dark Art Déco) | Wróć do wyboru (błąd startu) / Back to selection (start error) | Strona główna | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
+| Ekran ładowania (Dark Art Déco) | Ustawienia API (błąd startu) / API settings (start error) | Klucze API | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
