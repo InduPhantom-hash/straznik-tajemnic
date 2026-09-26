@@ -410,6 +410,7 @@ export const CthulhuSidebar: FC<CthulhuSidebarProps> = ({
                         (c) => c.id === e.target.value
                       );
                       if (selected && onCharacterSwitch) {
+                        setInspectedCharacterId(selected.id);
                         onCharacterSwitch(selected);
                       }
                     }}

@@ -57,7 +57,10 @@ import type { RandomEvent } from '@/lib/random-event-generator';
 import { resolveGameEraContext } from '@/lib/era';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import { timeManager } from '@/lib/time-manager';
-import { getSessionCharacters } from '@/lib/hot-seat/session-party';
+import {
+  getSessionCharacters,
+  findPlayerIndexForCharacter,
+} from '@/lib/hot-seat/session-party';
 
 
 const ChatWindow = dynamic(
@@ -581,6 +584,23 @@ export default function Home() {
     [hotSeat, charMgmt]
   );
 
+  const handleCharacterSwitch = useCallback(
+    (character: Character) => {
+      if (hotSeat.config.enabled) {
+        const playerIndex = findPlayerIndexForCharacter(
+          hotSeat.config,
+          character.id
+        );
+        if (playerIndex !== -1) {
+          handleSwitchPlayer(playerIndex);
+          return;
+        }
+      }
+      charMgmt.handleCharacterSwitch(character);
+    },
+    [hotSeat.config, handleSwitchPlayer, charMgmt]
+  );
+
   
   
   
@@ -1023,7 +1043,7 @@ export default function Home() {
           onOpenBetaFeedback={() => setShowBetaFeedbackModal(true)}
           activeCharacter={charMgmt.activeCharacter || undefined}
           characters={sessionCharacters}
-          onCharacterSwitch={charMgmt.handleCharacterSwitch}
+          onCharacterSwitch={handleCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
           onUpdateCharacter={charMgmt.handleUpdateCharacter}
