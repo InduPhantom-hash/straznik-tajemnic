@@ -88,7 +88,7 @@ Zgodnie z regułami Księgi Strażnika CoC 7e (s. 94, 218-219), Mistrz Gry ma dw
 W Zewie Cthulhu poziom `ekstremalny` (1/5 umiejętności) dotyczy wyłącznie zadań skrajnie trudnych, ale **nadal mieszczących się w granicach ludzkich możliwości**.
 Czynności wykraczające poza ludzką biologię, prawa fizyki, realia historyczne epoki lub twarde zasady mechaniczne w ogóle **nie podlegają testom kośćmi**. Zarządzanie rzutu na czynność niemożliwą jest błędem proceduralnym (sukces krytyczny `01` zmusza do zamiany horroru w farsę).
 
-### Twarde Granice CoC 7e RAW (Automatyczne Weto MG)
+### Twarde Granice d100 Weird Fiction (Automatyczne Weto MG)
 1. **Granice ludzkiej biologii (s. 94):** Skoki z wysokości bez szwanku, unikanie kul po strzale, podnoszenie wielotonowych obiektów.
 2. **Manewry w walce (s. 117-118):** Przeciwnik o Budowie (Build) wyższej o 3 lub więcej niż atakujący - manewr powalenia lub pochwycenia jest fizycznie niemożliwy.
 3. **Balistyka broni palnej (s. 125, 461):** Cele znajdujące się powyżej 4-krotności zasięgu bazowego broni - strzał jest fizycznie niemożliwy.
@@ -98,7 +98,7 @@ Czynności wykraczające poza ludzką biologię, prawa fizyki, realia historyczn
 
 ### Protokół Odpowiedzi Sędziowskiej w Czacie
 Gdy gracz przekombinowuje lub deklaruje czynność niemożliwą, model AI przerywa poetycki styl narracji i odpowiada krótko z pozycji Sędziego (1-2 zdania):
-> **Nie możesz tego zrobić. [Uzasadnienie: fizyka / reguły CoC 7e RAW / ograniczenia epoki / brak narzędzia]. Zadeklaruj inną akcję.**
+> **Nie możesz tego zrobić. [Uzasadnienie: fizyka / reguły d100 Weird Fiction / ograniczenia epoki / brak narzędzia]. Zadeklaruj inną akcję.**
 > `[Co robisz?]`
 
 Czas gry (`[AKTUALNY CZAS]`) w takiej turze nie przesuwa się.

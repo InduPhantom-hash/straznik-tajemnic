@@ -1276,7 +1276,7 @@ export function DiscoveriesView({
                         <Layers className="w-3.5 h-3.5 text-[#bfa15f]" />
                         {t('tripleEntityTitle')}
                       </span>
-                      <span className="text-[10px] font-mono text-[#bfa15f]/70 uppercase">CoC 7e RAW</span>
+                      <span className="text-[10px] font-mono text-[#bfa15f]/70 uppercase">d100 Weird Fiction</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-special-elite pt-1">
                       <div className="p-1.5 rounded bg-[#24170f] border border-[#bfa15f]/30 text-[#f4ebd0]">

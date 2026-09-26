@@ -99,7 +99,7 @@ export function DramatronReviewInspector({ dramatron }: DramatronReviewInspector
         </div>
 
         <Badge variant="outline" className="border-brass/40 text-brass text-[11px] font-special-elite shrink-0">
-          CoC 7e RAW &bull; Keeper Truth
+          d100 Weird Fiction &bull; Keeper Truth
         </Badge>
       </div>
 

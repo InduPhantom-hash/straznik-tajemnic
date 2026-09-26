@@ -389,7 +389,7 @@ export function OpposedMeleeCard({
               {t('cardTitle')}
             </span>
             <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground hidden sm:inline-flex">
-              CoC 7e RAW s. 102
+              d100 Weird Fiction s. 102
             </Badge>
           </div>
           {effectiveResolved ? (

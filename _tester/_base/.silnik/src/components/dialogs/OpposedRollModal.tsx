@@ -209,7 +209,7 @@ export const OpposedRollModal: React.FC<OpposedRollModalProps> = ({
               </div>
             </div>
             <Badge className="bg-brass/15 text-brass border-brass/30 font-mono text-xs">
-              CoC 7e RAW
+              d100 Weird Fiction
             </Badge>
           </div>
           {data.justification && (

@@ -21,7 +21,7 @@ Wprowadzenie opcjonalnego kontrolera fizycznego: zamiast klikać wirtualną tack
    - Struktura pakietu:
      - Bajt 0: Typ komunikatu (`0x03` = RollState, `0x02` = IAmARoll, `0x07` = BatteryLevel).
      - Bajt 1: Stan kości (`1` = handling, `2` = rolling, `3` = onFace, `4` = crooked).
-     - Bajt 2: Indeks ścianki (0-indexed; mapowany do kanonicznej wartości CoC 7e RAW).
+     - Bajt 2: Indeks ścianki (0-indexed; mapowany do kanonicznej wartości d100 Weird Fiction).
 
 2. **GoDice (Particula):**
    - Kości z akcelerometrem i detekcją orientacji.
@@ -50,7 +50,7 @@ Wprowadzenie opcjonalnego kontrolera fizycznego: zamiast klikać wirtualną tack
         ├─ d6 / d20 / inne: zachowanie identyfikatora i roli kości
         │
         ▼
-[Kalkulator Reguł CoC 7e RAW] (DiceDialog / OpposedMeleeCard / SkillTestResolver)
+[Kalkulator Reguł d100 Weird Fiction] (DiceDialog / OpposedMeleeCard / SkillTestResolver)
         │
         ▼ (W razie utraty połączenia lub braku wsparcia BLE)
 [Fallback: Wirtualna Tacka 3D] (PhysicalDiceScene - Three.js + CANNON-ES)
@@ -63,7 +63,7 @@ Wprowadzenie opcjonalnego kontrolera fizycznego: zamiast klikać wirtualną tack
 Zgodnie z inwariantami projektu:
 - Fizyczna kość BLE jest wyłącznie zewnętrznym czujnikiem (input device).
 - Silnik gry (`SmartDiceBridge` & CoC 7e calculators) autorytatywnie weryfikuje poprawność wartości (clamp 1..max, ochrona przed zaciętą kością w stanie `crooked` lub ujemnymi bajtami).
-- Modyfikatory, kości premiowe/karne, Szczęście (Luck) oraz progi sukcesu są kalkulowane niezmiennie przez reguły CoC 7e RAW.
+- Modyfikatory, kości premiowe/karne, Szczęście (Luck) oraz progi sukcesu są kalkulowane niezmiennie przez reguły d100 Weird Fiction.
 
 ---
 

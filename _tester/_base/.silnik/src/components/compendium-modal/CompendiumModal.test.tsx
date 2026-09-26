@@ -73,7 +73,7 @@ describe('CompendiumModal Component', () => {
     const rulesSubTabBtn = screen.getByRole('button', { name: /Kodeks Zasad/i });
     fireEvent.click(rulesSubTabBtn);
 
-    expect(screen.getByText(/Podręcznik Zasad Call of Cthulhu 7e RAW/i)).toBeInTheDocument();
+    expect(screen.getByText(/d100 Weird Fiction \(Zasady Kanoniczne\)/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Poziomy Sukcesu \(k100\)/i).length).toBeGreaterThanOrEqual(1);
   });
 

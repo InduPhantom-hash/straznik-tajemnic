@@ -21,10 +21,10 @@ Format oparty na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.3] - 2026-08-15
 
 ### ✨ Nowości i Ulepszenia
-- **Tablica Badacza CoC 7e RAW (Investigation Board):**
+- **Tablica Badacza d100 Weird Fiction (Investigation Board):**
   - Korkowa tablica dowodów ze sznurkami powiązań i pinezkami.
   - Pełna ochrona współrzędnych kart dowodów (X, Y) po zapisie i wczytaniu stanu gry (Save & Load).
-  - Wdrożenie mechaniki dedukcji domenowej CoC 7e RAW (Rzut na Pomysł / Idea Roll) oraz generowania wniosków (Investigator Insights).
+  - Wdrożenie mechaniki dedukcji domenowej d100 Weird Fiction (Rzut na Pomysł / Idea Roll) oraz generowania wniosków (Investigator Insights).
   - Obsługa fałszywych tropów (False Flags) i weryfikacji hipotez bez wycieków do Dziennika.
   - Nowy, diegetyczny styl dokumentów (bilety, telegramy, wycinki) oraz widok Akt Sprawy (Discoveries View).
 - **Moduł Ekwipunku i Ekonomia Majętności:**

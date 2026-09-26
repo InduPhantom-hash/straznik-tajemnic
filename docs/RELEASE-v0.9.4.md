@@ -8,10 +8,10 @@ W przygotowaniu. Ten dokument stanowi specyfikację zakresu wydania v0.9.4 oraz 
 ## Zawartość komunikatu wydaniowego
 
 ### Polski
-Wydanie **v0.9.4** wprowadza kompleksową standaryzację interfejsu w stylu **Dark Art Déco 1920s** (ciepła czerń węgla, mosiądz, postarzane złoto, typografia maszynopisu i brak surowych szarości), pełną implementację **Fazy Rozwoju Postaci CoC 7e RAW** (automatyczne oznaczanie użytych umiejętności, testy rozwoju po sesji i podbicia 1k10 punktów), deterministyczny dobór startowego wyposażenia według profesji i zamożności oraz zoptymalizowany lokalny silnik RAG oparty na binarnych wektorach Float32. Wydanie obejmuje wyłącznie samodzielną paczkę aplikacji na system macOS.
+Wydanie **v0.9.4** wprowadza kompleksową standaryzację interfejsu w stylu **Dark Art Déco 1920s** (ciepła czerń węgla, mosiądz, postarzane złoto, typografia maszynopisu i brak surowych szarości), pełną implementację **Fazy Rozwoju Postaci d100 Weird Fiction** (automatyczne oznaczanie użytych umiejętności, testy rozwoju po sesji i podbicia 1k10 punktów), deterministyczny dobór startowego wyposażenia według profesji i zamożności oraz zoptymalizowany lokalny silnik RAG oparty na binarnych wektorach Float32. Wydanie obejmuje wyłącznie samodzielną paczkę aplikacji na system macOS.
 
 ### English
-The **v0.9.4** release introduces a comprehensive **Dark Art Déco 1920s** design system standardization (charcoal black, brass, aged gold, vintage typewriter fonts), full implementation of the **CoC 7e RAW Character Development Phase** (automated skill usage tracking, post-session development checks, and 1d10 stat progression), deterministic profession-based starting equipment, and an optimized local vector RAG engine powered by binary Float32 files. This release is distributed exclusively as a standalone macOS package.
+The **v0.9.4** release introduces a comprehensive **Dark Art Déco 1920s** design system standardization (charcoal black, brass, aged gold, vintage typewriter fonts), full implementation of the **d100 Weird Fiction Character Development Phase** (automated skill usage tracking, post-session development checks, and 1d10 stat progression), deterministic profession-based starting equipment, and an optimized local vector RAG engine powered by binary Float32 files. This release is distributed exclusively as a standalone macOS package.
 
 ---
 
@@ -20,7 +20,7 @@ The **v0.9.4** release introduces a comprehensive **Dark Art Déco 1920s** desig
 1. **Design System Dark Art Déco 1920s (Epic #165):**
    - Usunięcie ponad 200 naruszeń surowego flat designu (`zinc-*`, `gray-*`, `text-white`) na rzecz semantycznych tokenów (`--card`, `--brass`, `--gold`, `--foreground`, `--primary`, `--destructive`).
    - Ujednolicony klimat w oknach dialogowych, modalu Fazy Rozwoju, panelu licznika tokenów, karcie badacza i tablicy dowodowej.
-2. **Faza Rozwoju Postaci CoC 7e RAW:**
+2. **Faza Rozwoju Postaci d100 Weird Fiction:**
    - Automatyczna rejestracja udanych testów umiejętności w trakcie sesji.
    - Narzędzie rozliczania postępów badacza po zakończeniu śledztwa (rzut k100 > aktualnej wartości umiejętności = podbicie o 1k10) zintegrowane z trwałym zapisem gry.
 3. **Deterministyczny Ekwipunek i Ekonomia:**

@@ -173,8 +173,8 @@
         "en": "Character wizard"
       },
       "description": {
-        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, rozdzielone liczniki punktów CoC 7e RAW, dedykowany selektor gotowych Badaczy pregen)",
-        "en": "Multi-step character creation wizard (Master-Detail occupation layout, split CoC 7e RAW skill points, dedicated pregen investigator selector)"
+        "pl": "Wieloetapowy kreator nowego badacza (układ Master-Detail dla zawodu, rozdzielone liczniki punktów d100 Weird Fiction, dedykowany selektor gotowych Badaczy pregen)",
+        "en": "Multi-step character creation wizard (Master-Detail occupation layout, split d100 Weird Fiction skill points, dedicated pregen investigator selector)"
       }
     },
     {
@@ -225,8 +225,8 @@
       "id": "character-sheet",
       "kind": "modal",
       "label": {
-        "pl": "Karta badacza (Dark Art Déco CoC 7e RAW)",
-        "en": "Investigator sheet (Dark Art Déco CoC 7e RAW)"
+        "pl": "Karta badacza (Dark Art Déco d100 Weird Fiction)",
+        "en": "Investigator sheet (Dark Art Déco d100 Weird Fiction)"
       }
     },
     {
@@ -257,8 +257,8 @@
       "id": "idea-roll-modal",
       "kind": "modal",
       "label": {
-        "pl": "Test Pomysłu CoC 7e RAW (Idea Roll)",
-        "en": "Idea Roll CoC 7e RAW"
+        "pl": "Test Pomysłu d100 Weird Fiction (Idea Roll)",
+        "en": "Idea Roll d100 Weird Fiction"
       }
     },
     {
@@ -345,56 +345,56 @@
       "id": "chase-card",
       "kind": "state",
       "label": {
-        "pl": "Pościg narracyjny i tor przeszkód w czacie (Fiction First CoC 7e RAW)",
-        "en": "In-chat narrative chase and hazard track (Fiction First CoC 7e RAW)"
+        "pl": "Pościg narracyjny i tor przeszkód w czacie (Fiction First d100 Weird Fiction)",
+        "en": "In-chat narrative chase and hazard track (Fiction First d100 Weird Fiction)"
       }
     },
     {
       "id": "hazard-card",
       "kind": "state",
       "label": {
-        "pl": "Zagrożenia środowiskowe i trucizny w czacie (CoC 7e RAW)",
-        "en": "In-chat environmental hazards and poisons (CoC 7e RAW)"
+        "pl": "Zagrożenia środowiskowe i trucizny w czacie (d100 Weird Fiction)",
+        "en": "In-chat environmental hazards and poisons (d100 Weird Fiction)"
       }
     },
     {
       "id": "sanity-therapy-modal",
       "kind": "modal",
       "label": {
-        "pl": "Terapia i rekonwalescencja psychiczna (CoC 7e RAW)",
-        "en": "Sanity therapy and recovery (CoC 7e RAW)"
+        "pl": "Terapia i rekonwalescencja psychiczna (d100 Weird Fiction)",
+        "en": "Sanity therapy and recovery (d100 Weird Fiction)"
       }
     },
     {
       "id": "medical-care-modal",
       "kind": "modal",
       "label": {
-        "pl": "Rekonwalescencja i opieka medyczna (CoC 7e RAW)",
-        "en": "Convalescence and medical care (CoC 7e RAW)"
+        "pl": "Rekonwalescencja i opieka medyczna (d100 Weird Fiction)",
+        "en": "Convalescence and medical care (d100 Weird Fiction)"
       }
     },
     {
       "id": "combat-card",
       "kind": "modal",
       "label": {
-        "pl": "Obrona w walce wręcz w czacie (CoC 7e RAW)",
-        "en": "In-chat melee combat defense (CoC 7e RAW)"
+        "pl": "Obrona w walce wręcz w czacie (d100 Weird Fiction)",
+        "en": "In-chat melee combat defense (d100 Weird Fiction)"
       }
     },
     {
       "id": "spell-card",
       "kind": "modal",
       "label": {
-        "pl": "Rzucanie zaklęć w czacie (CoC 7e RAW)",
-        "en": "In-chat spell casting (CoC 7e RAW)"
+        "pl": "Rzucanie zaklęć w czacie (d100 Weird Fiction)",
+        "en": "In-chat spell casting (d100 Weird Fiction)"
       }
     },
     {
       "id": "tome-card",
       "kind": "modal",
       "label": {
-        "pl": "Badanie tomów w czacie (CoC 7e RAW)",
-        "en": "In-chat tome study (CoC 7e RAW)"
+        "pl": "Badanie tomów w czacie (d100 Weird Fiction)",
+        "en": "In-chat tome study (d100 Weird Fiction)"
       }
     },
     {
@@ -425,8 +425,8 @@
       "id": "game-over-card",
       "kind": "state",
       "label": {
-        "pl": "Kres postaci i diegetyczny epilog (CoC 7e RAW)",
-        "en": "Investigator end and diegetic epilogue (CoC 7e RAW)"
+        "pl": "Kres postaci i diegetyczny epilog (d100 Weird Fiction)",
+        "en": "Investigator end and diegetic epilogue (d100 Weird Fiction)"
       }
     }
   ],

@@ -101,7 +101,7 @@ export function GameOverCard({
               {isDeath ? t('newspaperHeader') : t('sanitariumHeader')}
             </span>
             <Badge className="border-amber-700/50 bg-amber-950/40 font-mono text-[10px] text-amber-400">
-              CoC 7e RAW
+              d100 Weird Fiction
             </Badge>
           </div>
 

@@ -407,7 +407,7 @@ export function MedicalCareModal({
                   <span>{t('treatmentsFirstAidTitle')}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Doraźne opatrzenie świeżej rany w terenie (CoC 7e RAW s. 122). Przywraca dokładnie <strong>1 PŻ</strong> oraz stabilizuje umierającego badacza.
+                  Doraźne opatrzenie świeżej rany w terenie (d100 Weird Fiction s. 122). Przywraca dokładnie <strong>1 PŻ</strong> oraz stabilizuje umierającego badacza.
                 </p>
                 <div className="text-xs font-special-elite text-brass">
                   {t('skillValue')}: {firstAidSkill}%

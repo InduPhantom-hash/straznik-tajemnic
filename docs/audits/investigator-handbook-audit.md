@@ -36,10 +36,10 @@ Audyt weryfikuje szczegółowo, rozdział po rozdziale, zgodność silnika aplik
    - Podręcznik Badacza (s. 59-60) zawiera **112 wpisów zawodowych**: 88 unikalnych zawodów z własnymi blokami statystyk oraz 24 odnośniki referencyjne ("patrz...").
    - W silniku (`_tester/_base/.silnik/src/lib/data/character/occupations.ts`) zaimplementowano **29 zawodów**. Występują w nim podstawowe wersje profesji: `author` (Autor), `dilettante` (Diletant) oraz `antiquarian` (Antykwariusz).
    - W silniku brakuje **59 unikalnych zawodów** podręcznikowych (lub 83 pozycji licząc wszystkie warianty). Nie ma fundamentalnych archetypów lovecraftowskich i epokowych: *Alienisty*, *Agenta federalnego*, *Archeologa*, *Funkcjonariusza publicznego*, *Gangstera*, *Handlarza antykami* (odrębny wpis od Antykwariusza, s. 69), *Łowcy nagród*, *Odkrywcy*, *Oficera wojskowego*, *Okultysty*, *Poszukiwacza*, *Psychiatry*, *Sędziego* czy *Wspinacza wysokogórskiego*.
-   - W module `_tester/_base/.silnik/src/lib/random-character-generator.ts` zidentyfikowano zamakietowaną listę umiejętności z niekanonicznymi umiejętnościami spoza CoC 7e RAW (*Śledztwo*, *Bibliotekarstwo*, *Kredyt*, *Ocena*).
+   - W module `_tester/_base/.silnik/src/lib/random-character-generator.ts` zidentyfikowano zamakietowaną listę umiejętności z niekanonicznymi umiejętnościami spoza d100 Weird Fiction (*Śledztwo*, *Bibliotekarstwo*, *Kredyt*, *Ocena*).
 
 2. **Braki i błędy w rejestrze umiejętności (Rozdział 5):**
-   - W `_tester/_base/.silnik/src/lib/data/character/skills.ts` brakuje umiejętności CoC 7e RAW: *Obsługi Ciężkiego Sprzętu (01%)*, *Zręcznych Palców (10%)*, *Mitów Cthulhu (00%)*, *Psychoanalizy (01%)*, *Wiedzy o Naturze (10%)*, *Wiedzy Tajemnej (01%)*, a także pełnego podziału na specjalizacje *Broni Palnej* i *Walki Wręcz*.
+   - W `_tester/_base/.silnik/src/lib/data/character/skills.ts` brakuje umiejętności d100 Weird Fiction: *Obsługi Ciężkiego Sprzętu (01%)*, *Zręcznych Palców (10%)*, *Mitów Cthulhu (00%)*, *Psychoanalizy (01%)*, *Wiedzy o Naturze (10%)*, *Wiedzy Tajemnej (01%)*, a także pełnego podziału na specjalizacje *Broni Palnej* i *Walki Wręcz*.
    - Wykryto literówkę w kluczu: `Occultyzm: 5` zamiast `Okultyzm: 5`.
    - Rozbieżności w nazewnictwie względem podręcznika: *Przebranie* zamiast *Charakteryzacja*, *Skok* zamiast *Skakanie*, *Przetrwanie* zamiast *Sztuka Przetrwania*, *Biblioteka* zamiast *Korzystanie z Bibliotek*, *Orientacja* zamiast *Nawigacja*, *Komputery* zamiast *Korzystanie z Komputerów*.
 
@@ -105,7 +105,7 @@ Audyt weryfikuje szczegółowo, rozdział po rozdziale, zgodność silnika aplik
   - `_tester/_base/.silnik/src/components/ui/character-wizard.tsx`
 - **Ocena stanu obecnego:**
   - Wzory w `derived-stats.ts` są w 100% poprawne matematycznie względem RAW.
-  - **Luka w UI kreatora:** Kreator postaci w aplikacji wspiera wyłącznie losowanie rzutami kości. Brakuje wyboru metody *Puli Punktowej (460 pkt)* oraz *Quick-Fire*, które stanowią oficjalne reguły CoC 7e RAW dla graczy preferujących zbalansowane postacie.
+  - **Luka w UI kreatora:** Kreator postaci w aplikacji wspiera wyłącznie losowanie rzutami kości. Brakuje wyboru metody *Puli Punktowej (460 pkt)* oraz *Quick-Fire*, które stanowią oficjalne reguły d100 Weird Fiction dla graczy preferujących zbalansowane postacie.
   - **Błąd w `random-character-generator.ts`:** Generator losowy nie uwzględnia poprawnie modyfikatorów wieku dla cech fizycznych i EDU.
 
 ---
