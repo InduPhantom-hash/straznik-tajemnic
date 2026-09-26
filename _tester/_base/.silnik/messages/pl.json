@@ -4961,7 +4961,12 @@
     "awaitingAccept": "Kliknij, aby rozpocząć śledztwo",
     "themesLabel": "Motywy:",
     "eraLabel": "Epoka:",
-    "locationLabel": "Lokalizacja:"
+    "locationLabel": "Lokalizacja:",
+    "errorTitle": "Błąd uruchamiania gry",
+    "retryButton": "Spróbuj ponownie",
+    "cancelButton": "Wróć do wyboru",
+    "technicalDetails": "Szczegóły techniczne",
+    "openApiSettings": "Ustawienia API"
   },
   "ApiKeysModal": {
     "title": "Konfiguracja kluczy API",

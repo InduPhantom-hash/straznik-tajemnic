@@ -2,10 +2,24 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { Loader2, Play, Scroll, MapPin, Sparkles, Compass, BookOpen } from 'lucide-react';
+import {
+  Loader2,
+  Play,
+  Scroll,
+  MapPin,
+  Sparkles,
+  Compass,
+  BookOpen,
+  AlertTriangle,
+  RotateCcw,
+  ArrowLeft,
+  Key,
+  ChevronDown,
+} from 'lucide-react';
 import type { AdventureContext } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era';
 import { getSettingTrivia, getSafeDossierIntro } from '@/lib/era/setting-trivia';
+import type { GameStartError } from '@/hooks/useGameStart';
 
 export interface TTSHardLoadingScreenProps {
   isBuffering?: boolean;
@@ -19,6 +33,9 @@ export interface TTSHardLoadingScreenProps {
   region?: string;
   eraContext?: ResolvedEraContext | null;
   adventureContext?: AdventureContext | null;
+  startError?: GameStartError | null;
+  onRetry?: () => void;
+  onCancel?: () => void;
 }
 
 export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
@@ -33,12 +50,15 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
   region,
   eraContext,
   adventureContext,
+  startError,
+  onRetry,
+  onCancel,
 }) => {
   const t = useTranslations('TtsHardLoadingScreen');
   const rawLocale = useLocale?.() || 'pl';
   const locale = rawLocale === 'en' ? 'en' : 'pl';
 
-  const isActive = isStarting || isBuffering || isReadyToEnter;
+  const isActive = isStarting || isBuffering || isReadyToEnter || !!startError;
   const [shouldRender, setShouldRender] = useState(isActive);
   const [isVisible, setIsVisible] = useState(isActive);
 
@@ -93,7 +113,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
 
   if (!shouldRender) return null;
 
-  const isCompleted = isReadyToEnter || startProgress >= 100;
+  const isCompleted = !startError && (isReadyToEnter || startProgress >= 100);
   const displayProgress = Math.min(100, Math.max(startProgress, 5));
 
   return (
@@ -244,32 +264,117 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
         <div className="w-full max-w-3xl mx-auto space-y-3">
           <div className="flex items-center justify-between text-sm md:text-base font-special-elite text-brass tracking-[0.08em] px-1">
             <span className="flex items-center gap-2.5 truncate text-left">
-              {!isCompleted && (
+              {startError ? (
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 animate-bounce" />
+              ) : !isCompleted ? (
                 <Loader2 className="w-4 h-4 animate-spin text-gold shrink-0" />
-              )}
-              <span className="truncate text-foreground/95">
-                {isCompleted ? t('chronicleReady') : startStatus || t('generatingStory')}
+              ) : null}
+              <span className={`truncate ${startError ? 'text-red-300 font-semibold' : 'text-foreground/95'}`}>
+                {startError ? startError.title : isCompleted ? t('chronicleReady') : startStatus || t('generatingStory')}
               </span>
             </span>
-            <span className="font-mono text-gold font-bold ml-3 shrink-0 text-sm md:text-base">
-              {displayProgress}%
+            <span className={`font-mono font-bold ml-3 shrink-0 text-sm md:text-base ${startError ? 'text-red-400' : 'text-gold'}`}>
+              {startError ? t('errorTitle') : `${displayProgress}%`}
             </span>
           </div>
 
-          <div className="w-full h-4 bg-black/95 border border-brass/70 relative shadow-[inset_0_2px_8px_rgba(0,0,0,0.95)] p-[2px]">
+          <div
+            className={`w-full h-4 bg-black/95 border relative shadow-[inset_0_2px_8px_rgba(0,0,0,0.95)] p-[2px] ${
+              startError ? 'border-red-500/70 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : 'border-brass/70'
+            }`}
+          >
             <div
               data-testid="loading-screen-progress-bar"
-              className="h-full bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] transition-all duration-500 ease-out relative shadow-[0_0_20px_rgba(201,169,74,0.6)]"
-              style={{ width: `${displayProgress}%` }}
+              className={`h-full transition-all duration-500 ease-out relative ${
+                startError
+                  ? 'bg-gradient-to-r from-red-900 via-red-600 to-amber-700 shadow-[0_0_20px_rgba(220,38,38,0.7)]'
+                  : 'bg-gradient-to-r from-[#997a38] via-[#e5c158] to-[#997a38] shadow-[0_0_20px_rgba(201,169,74,0.6)]'
+              }`}
+              style={{ width: startError ? '100%' : `${displayProgress}%` }}
             >
               <div className="absolute inset-0 bg-white/20 animate-pulse" />
             </div>
           </div>
         </div>
 
-        {/* Dolna strefa Hero CTA: Pojawia się po osiągnięciu 100% */}
+        {/* Dolna strefa: Błąd lub Hero CTA */}
         <div className="pt-2 flex flex-col items-center justify-center min-h-[84px]">
-          {isCompleted && (
+          {startError ? (
+            <div
+              data-testid="loading-screen-error-container"
+              className="w-full max-w-2xl bg-black/90 border border-red-500/50 p-5 shadow-[0_0_35px_rgba(220,38,38,0.25)] relative text-left space-y-3.5 animate-in fade-in zoom-in-95 duration-300"
+            >
+              {/* Narożniki */}
+              <span className="pointer-events-none absolute left-1.5 top-1.5 h-3 w-3 border-l-2 border-t-2 border-red-400/70" />
+              <span className="pointer-events-none absolute right-1.5 top-1.5 h-3 w-3 border-r-2 border-t-2 border-red-400/70" />
+              <span className="pointer-events-none absolute bottom-1.5 left-1.5 h-3 w-3 border-b-2 border-l-2 border-red-400/70" />
+              <span className="pointer-events-none absolute bottom-1.5 right-1.5 h-3 w-3 border-b-2 border-r-2 border-red-400/70" />
+
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="space-y-1 flex-1">
+                  <h4 className="text-sm font-display font-bold uppercase tracking-wider text-red-200">
+                    {startError.title}
+                  </h4>
+                  <p className="text-xs font-serif text-foreground/90 leading-relaxed">
+                    {startError.userAdvice}
+                  </p>
+                </div>
+              </div>
+
+              {startError.technicalDetails && (
+                <details className="text-[11px] font-mono text-muted-foreground bg-black/60 border border-brass/20 p-2.5 rounded group">
+                  <summary className="cursor-pointer text-brass/80 hover:text-gold select-none font-semibold flex items-center justify-between">
+                    <span>{t('technicalDetails')}</span>
+                    <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <pre className="mt-2 text-red-300/80 whitespace-pre-wrap break-all max-h-28 overflow-y-auto leading-tight font-mono text-[10px]">
+                    {startError.technicalDetails}
+                  </pre>
+                </details>
+              )}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-brass/20">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  data-testid="loading-screen-cancel-btn"
+                  className="px-4 py-2 border border-brass/40 hover:border-brass bg-black/60 hover:bg-brass/10 text-xs font-display uppercase tracking-widest text-brass transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>{t('cancelButton')}</span>
+                </button>
+
+                <div className="flex items-center gap-2.5 ml-auto">
+                  {(startError.category === 'auth_error' || startError.category === 'server_overloaded' || startError.category === 'quota_exceeded') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
+                        }
+                      }}
+                      data-testid="loading-screen-api-settings-btn"
+                      className="px-3.5 py-2 border border-brass/30 hover:border-gold/60 bg-black/50 text-[11px] font-display uppercase tracking-wider text-gold hover:text-yellow-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Key className="w-3.5 h-3.5" />
+                      <span>{t('openApiSettings')}</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={onRetry}
+                    data-testid="loading-screen-retry-btn"
+                    className="px-6 py-2 bg-gradient-to-r from-red-900 via-amber-700 to-yellow-600 hover:brightness-110 border border-gold/70 text-foreground font-display font-bold text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(201,169,74,0.4)] flex items-center gap-2 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>{t('retryButton')}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : isCompleted ? (
             <div className="flex flex-col items-center gap-2.5 animate-in fade-in zoom-in-95 duration-300">
               <button
                 type="button"
@@ -285,7 +390,7 @@ export const TTSHardLoadingScreen: React.FC<TTSHardLoadingScreenProps> = ({
                 {t('awaitingAccept')}
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

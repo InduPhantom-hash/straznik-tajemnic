@@ -141,4 +141,46 @@ describe('TTSHardLoadingScreen (Issue #177, #364 & #482)', () => {
     expect(screen.getByText('Realia Epoki i Świata')).toBeInTheDocument();
     expect(screen.getByText('BEZ SPOILERÓW')).toBeInTheDocument();
   });
+
+  it('w stanie błędu (startError) wyświetla dwupoziomowy komunikat, przyciski retry/cancel i obsługuje kliknięcia', () => {
+    const handleRetry = jest.fn();
+    const handleCancel = jest.fn();
+
+    render(
+      <TTSHardLoadingScreen
+        isStarting={false}
+        startError={{
+          statusCode: 503,
+          category: 'server_overloaded',
+          title: 'Przeciążenie darmowych serwerów Gemini [Błąd 503]',
+          userAdvice: 'Serwery Google Gemini przeżywają chwilowe przeciążenie na darmowym planie Free Tier.',
+          technicalDetails: 'ApiError: 503 Service Unavailable - high demand',
+        }}
+        onRetry={handleRetry}
+        onCancel={handleCancel}
+      />
+    );
+
+    expect(screen.getByTestId('loading-screen-error-container')).toBeInTheDocument();
+    expect(screen.getAllByText('Przeciążenie darmowych serwerów Gemini [Błąd 503]')).toHaveLength(2);
+    expect(
+      screen.getByText('Serwery Google Gemini przeżywają chwilowe przeciążenie na darmowym planie Free Tier.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('ApiError: 503 Service Unavailable - high demand')).toBeInTheDocument();
+
+    const retryBtn = screen.getByTestId('loading-screen-retry-btn');
+    const cancelBtn = screen.getByTestId('loading-screen-cancel-btn');
+    const apiSettingsBtn = screen.getByTestId('loading-screen-api-settings-btn');
+
+    expect(retryBtn).toBeInTheDocument();
+    expect(cancelBtn).toBeInTheDocument();
+    expect(apiSettingsBtn).toBeInTheDocument();
+
+    fireEvent.click(retryBtn);
+    expect(handleRetry).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(cancelBtn);
+    expect(handleCancel).toHaveBeenCalledTimes(1);
+  });
 });
+

@@ -16,6 +16,7 @@ import type {
   Character,
   AdventureContext,
 } from '@/lib/types';
+import type { GameStartError } from '@/hooks/useGameStart';
 import type { DiceRoll } from '@/lib/dice-utils';
 import type { ResolvedEraContext } from '@/lib/era';
 import type { ChaseState } from '@/lib/chase/chase-engine';
@@ -128,6 +129,12 @@ export interface ChatWindowProps {
   onConfirmEnterGame?: () => void;
   /** Issue #157: Pełny kontekst wybranej przygody dla dynamicznej karty Art Déco */
   adventureContext?: AdventureContext | null;
+  /** Issue #520: Stan błędu startu gry dla TTSHardLoadingScreen */
+  startError?: GameStartError | null;
+  /** Issue #520: Ponowienie próby startu gry */
+  onRetryStartGame?: () => void;
+  /** Issue #520: Anulowanie startu gry i powrót do ekranu wyboru */
+  onCancelStartGame?: () => void;
 
   // === C4 (duet): bufor deklaracji + wysyłka tury ===
   /** Czy tryb dla dwojga (Hot Seat 2 graczy) - Enter dokłada deklarację zamiast wysyłać. */

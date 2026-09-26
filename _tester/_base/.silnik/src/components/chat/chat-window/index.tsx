@@ -88,6 +88,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onConfirmEnterGame,
   adventureContext,
   adventureDescription,
+  startError,
+  onRetryStartGame,
+  onCancelStartGame,
   isDuet = false,
   pendingDeclarations,
   playersAwaitingDeclaration,
@@ -371,6 +374,9 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         region={region}
         eraContext={eraContext}
         adventureContext={adventureContext}
+        startError={startError}
+        onRetry={onRetryStartGame}
+        onCancel={onCancelStartGame}
       />
       <ChatHeader
         title={adventureTitle}
