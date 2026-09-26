@@ -13,6 +13,7 @@ export interface DuetCharacterSlot {
     name: string;
     occupation: string;
     portraitUrl?: string;
+    sourcePresetId?: string;
   };
 }
 

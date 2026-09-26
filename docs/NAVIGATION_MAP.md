@@ -71,7 +71,7 @@ graph TD
     adventure_selector -->|Wybierz postać / Choose character| predefined_characters
     manual_setup -->|Wybierz tryb gry / Choose play mode| hot_seat
     manual_setup -->|Wybierz przygodę / Choose adventure| adventure_selector
-    manual_setup -->|Gotowa postać / Predefined character| predefined_characters
+    manual_setup -->|Katalog postaci / Character catalog| characters
     manual_setup -->|Stwórz postać / Create character| character_wizard
     predefined_characters -->|Wybierz badacza / Choose investigator| session_zero
     character_wizard -->|Zakończ i zapisz / Finish and save| manual_setup
@@ -146,7 +146,7 @@ graph TD
 | Wybór przygody | Wybierz postać / Choose character | Gotowe postacie | `src/components/ui/adventure-selector.tsx` |
 | Ręczne ustawianie gry | Wybierz tryb gry / Choose play mode | Wybór trybu gry | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Wybierz przygodę / Choose adventure | Wybór przygody | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
-| Ręczne ustawianie gry | Gotowa postać / Predefined character | Gotowe postacie | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
+| Ręczne ustawianie gry | Katalog postaci / Character catalog | Postacie | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Ręczne ustawianie gry | Stwórz postać / Create character | Kreator postaci | `src/components/chat/welcome/components/manual-setup-panel.tsx` |
 | Gotowe postacie | Wybierz badacza / Choose investigator | Sesja Zero (Briefing śledczy) | `src/components/ui/predefined-characters-selector.tsx` |
 | Kreator postaci | Zakończ i zapisz / Finish and save | Ręczne ustawianie gry | `src/components/ui/character-wizard.tsx` |
