@@ -66,15 +66,24 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
   startStatus = '',
 }) => {
   const t = useTranslations('ManualSetupPanel');
-  const isReady = Boolean(hasAdventure && hasCharacter);
+  const customActiveCharacter =
+    activeCharacter && !activeCharacter.sourcePresetId ? activeCharacter : null;
+  const customHasCharacter = isDuet
+    ? hasCharacter
+    : Boolean(hasCharacter && customActiveCharacter);
+  const isReady = Boolean(hasAdventure && customHasCharacter);
 
-  const displaySlots: DuetCharacterSlot[] =
+  const displaySlots: DuetCharacterSlot[] = (
     duetCharacterSlots && duetCharacterSlots.length > 0
       ? duetCharacterSlots
       : [
           { playerId: 'player1', playerName: t('player', { number: 1 }) },
           { playerId: 'player2', playerName: t('player', { number: 2 }) },
-        ];
+        ]
+  ).map((slot) => ({
+    ...slot,
+    character: slot.character?.sourcePresetId ? undefined : slot.character,
+  }));
 
   return (
     <div data-testid="manual-setup-panel" className="deco-corners relative w-full min-h-full mx-0 p-6 md:p-8 border border-brass/50 bg-gradient-to-br from-[#1a1610]/95 to-[#100d09]/95 shadow-[0_0_35px_rgba(201,162,39,0.1)] backdrop-blur-sm z-20 text-left my-0 flex flex-col justify-between">
@@ -205,38 +214,38 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
 
           {!isDuet ? (
             /* Tryb Solo */
-            hasCharacter && activeCharacter ? (
+            customHasCharacter && customActiveCharacter ? (
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-3 rounded bg-black/30 border border-brass/20">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded overflow-hidden border border-brass/50 bg-black/60 shrink-0">
                     <SafeImage
-                      src={activeCharacter.portraitUrl}
-                      alt={activeCharacter.name}
+                      src={customActiveCharacter.portraitUrl}
+                      alt={customActiveCharacter.name}
                       className="w-full h-full object-cover"
                       fallbackIcon={<User className="w-7 h-7 text-brass/50" />}
                     />
                   </div>
                   <div>
                     <div className="font-display font-bold text-base text-foreground">
-                      {activeCharacter.name}
+                      {customActiveCharacter.name}
                     </div>
                     <div className="font-special-elite text-xs text-muted-foreground">
-                      {activeCharacter.occupation || t('unknownOcc')}
-                      {activeCharacter.age ? ` (${t('age', { age: activeCharacter.age })})` : ''}
+                      {customActiveCharacter.occupation || t('unknownOcc')}
+                      {customActiveCharacter.age ? ` (${t('age', { age: customActiveCharacter.age })})` : ''}
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {onPickPredefinedCharacter && (
+                  {hasSavedCharacters && onPickCharacter && (
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => onPickPredefinedCharacter()}
+                      onClick={() => onPickCharacter()}
                       disabled={isStarting}
                       className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      <UserCheck className="w-3.5 h-3.5 mr-1.5" />
+                      <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
                       {t('changeChar')}
                     </Button>
                   )}
@@ -251,19 +260,6 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                     {t('createNew')}
                   </Button>
-                  {hasSavedCharacters && onPickCharacter && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onPickCharacter()}
-                      disabled={isStarting}
-                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
-                      {t('fromCatalog')}
-                    </Button>
-                  )}
                 </div>
               </div>
             ) : (
@@ -283,19 +279,6 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                     {t('createNewChar')}
                   </Button>
-                  {onPickPredefinedCharacter && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onPickPredefinedCharacter()}
-                      disabled={isStarting}
-                      className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                      {t('selectPremade')}
-                    </Button>
-                  )}
                   {hasSavedCharacters && onPickCharacter && (
                     <Button
                       type="button"
@@ -365,16 +348,16 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                     <div className="flex flex-wrap gap-2 shrink-0">
                       {slot.character ? (
                         <>
-                          {onPickPredefinedCharacter && (
+                          {hasSavedCharacters && onPickCharacter && (
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => onPickPredefinedCharacter(slot.playerName)}
+                              onClick={() => onPickCharacter(slot.playerName)}
                               disabled={isStarting}
                               className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
                             >
-                              <UserCheck className="w-3.5 h-3.5 mr-1.5" />
+                              <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
                               {t('changeChar')}
                             </Button>
                           )}
@@ -389,19 +372,6 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                             <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                             {t('createNew')}
                           </Button>
-                          {hasSavedCharacters && onPickCharacter && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onPickCharacter(slot.playerName)}
-                              disabled={isStarting}
-                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
-                              {t('fromCatalog')}
-                            </Button>
-                          )}
                         </>
                       ) : (
                         <>
@@ -416,19 +386,6 @@ export const ManualSetupPanel: FC<ManualSetupPanelProps> = ({
                             <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                             {t('createNew')}
                           </Button>
-                          {onPickPredefinedCharacter && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onPickPredefinedCharacter(slot.playerName)}
-                              disabled={isStarting}
-                              className="font-display uppercase tracking-[0.08em] text-xs border-brass/40 hover:border-brass text-brass disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-                              {t('selectPremadeShort')}
-                            </Button>
-                          )}
                           {hasSavedCharacters && onPickCharacter && (
                             <Button
                               type="button"

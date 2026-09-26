@@ -11,7 +11,7 @@
  */
 
 import type { FC } from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { WelcomeScreenProps } from './types';
 import { WELCOME_QUOTES, WELCOME_QUOTES_EN } from './data/quotes';
 import { useTypewriterSound } from './hooks/use-typewriter-sound';
@@ -201,6 +201,27 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
     };
   }, []);
 
+  // Filtrowanie autorskich postaci (bez sourcePresetId) dla trybu manualnego
+  const manualCustomCharacters = useMemo(
+    () => characters.filter((c) => !c.sourcePresetId),
+    [characters]
+  );
+  const manualHasSavedCharacters = manualCustomCharacters.length > 0;
+  const manualActiveCharacter =
+    activeCharacter && !activeCharacter.sourcePresetId ? activeCharacter : null;
+  const manualDuetSlots = useMemo(
+    () =>
+      duetCharacterSlots.map((slot) => ({
+        ...slot,
+        character: slot.character?.sourcePresetId ? undefined : slot.character,
+      })),
+    [duetCharacterSlots]
+  );
+  const manualHasCharacter = isDuet
+    ? manualDuetSlots.length > 0 &&
+      manualDuetSlots.every((s) => Boolean(s.character))
+    : Boolean(manualActiveCharacter);
+
   return (
     <div data-testid="welcome-screen" className="relative h-full w-full overflow-hidden bg-background">
       {/* === Warstwy tła (makieta karta 02) === */}
@@ -325,13 +346,12 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({
               hasAdventure={hasAdventure}
               adventureTitle={adventureTitle}
               onCreateCharacter={onCreateCharacter}
-              onPickPredefinedCharacter={onPickPredefinedCharacter}
               onPickCharacter={onPickCharacter}
-              hasCharacter={hasCharacter}
-              activeCharacter={activeCharacter}
-              hasSavedCharacters={hasSavedCharacters}
+              hasCharacter={manualHasCharacter}
+              activeCharacter={manualActiveCharacter}
+              hasSavedCharacters={manualHasSavedCharacters}
               isDuet={isDuet}
-              duetCharacterSlots={duetCharacterSlots}
+              duetCharacterSlots={manualDuetSlots}
               onSessionZero={onSessionZero}
               hasSessionZero={hasSessionZero}
               onStartGame={onStartGame}

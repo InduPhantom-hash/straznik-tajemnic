@@ -112,7 +112,6 @@ describe('ManualSetupPanel', () => {
 
   it('wyświetla postać w trybie Solo i pozwala rozpocząć grę, gdy wszystko wybrane', () => {
     const onStartGame = jest.fn();
-    const onPickPredefinedCharacter = jest.fn();
     const onCreateCharacter = jest.fn();
     const onPickCharacter = jest.fn();
 
@@ -121,7 +120,6 @@ describe('ManualSetupPanel', () => {
         onBack={jest.fn()}
         onSelectAdventure={jest.fn()}
         onCreateCharacter={onCreateCharacter}
-        onPickPredefinedCharacter={onPickPredefinedCharacter}
         onPickCharacter={onPickCharacter}
         onStartGame={onStartGame}
         hasAdventure={true}
@@ -136,13 +134,10 @@ describe('ManualSetupPanel', () => {
     expect(screen.getByText(/Detektyw/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Zmień postać/i }));
-    expect(onPickPredefinedCharacter).toHaveBeenCalledTimes(1);
+    expect(onPickCharacter).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByRole('button', { name: /Stwórz nową/i }));
     expect(onCreateCharacter).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByRole('button', { name: /Z katalogu/i }));
-    expect(onPickCharacter).toHaveBeenCalledTimes(1);
 
     const startBtn = screen.getByRole('button', { name: /Rozpocznij Grę/i });
     expect(startBtn).not.toBeDisabled();
@@ -152,7 +147,7 @@ describe('ManualSetupPanel', () => {
 
   it('renderuje sloty w trybie Duet i obsługuje akcje per gracz', () => {
     const onCreateCharacter = jest.fn();
-    const onPickPredefinedCharacter = jest.fn();
+    const onPickCharacter = jest.fn();
 
     const duetSlots = [
       {
@@ -175,7 +170,8 @@ describe('ManualSetupPanel', () => {
         onBack={jest.fn()}
         onSelectAdventure={jest.fn()}
         onCreateCharacter={onCreateCharacter}
-        onPickPredefinedCharacter={onPickPredefinedCharacter}
+        onPickCharacter={onPickCharacter}
+        hasSavedCharacters={true}
         onStartGame={jest.fn()}
         isDuet={true}
         duetCharacterSlots={duetSlots}
@@ -187,6 +183,10 @@ describe('ManualSetupPanel', () => {
     expect(screen.getByText('Elena Vance')).toBeInTheDocument();
     expect(screen.getByText('Tomek')).toBeInTheDocument();
     expect(screen.getByText('Brak przypisanej postaci')).toBeInTheDocument();
+
+    // Kliknij zmień dla Kasi -> otwiera katalog
+    fireEvent.click(screen.getByRole('button', { name: /Zmień postać/i }));
+    expect(onPickCharacter).toHaveBeenCalledWith('Kasia');
 
     // Kliknij stwórz dla Tomka
     const createButtons = screen.getAllByRole('button', { name: /Stwórz nową/i });
@@ -344,7 +344,6 @@ describe('ManualSetupPanel', () => {
     const onBack = jest.fn();
     const onSelectAdventure = jest.fn();
     const onCreateCharacter = jest.fn();
-    const onPickPredefinedCharacter = jest.fn();
     const onPickCharacter = jest.fn();
     const onSessionZero = jest.fn();
     const onChoosePlayMode = jest.fn();
@@ -354,7 +353,6 @@ describe('ManualSetupPanel', () => {
         onBack={onBack}
         onSelectAdventure={onSelectAdventure}
         onCreateCharacter={onCreateCharacter}
-        onPickPredefinedCharacter={onPickPredefinedCharacter}
         onPickCharacter={onPickCharacter}
         onSessionZero={onSessionZero}
         onChoosePlayMode={onChoosePlayMode}
@@ -384,12 +382,85 @@ describe('ManualSetupPanel', () => {
     // Przyciski postaci
     expect(screen.getByRole('button', { name: /Zmień postać/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Stwórz nową/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Z katalogu/i })).toBeDisabled();
 
     // Przycisk Sesji Zero
     expect(screen.getByRole('button', { name: /Uruchom Sesję Zero/i })).toBeDisabled();
 
     // Główny przycisk startu
     expect(screen.getByRole('button', { name: /Przygotowywanie sesji.../i })).toBeDisabled();
+  });
+
+  it('ignoruje i ukrywa postacie predefiniowane (sourcePresetId) - slot pozostaje pusty, a przycisk startu zablokowany', () => {
+    const predefinedCharacter: Character = {
+      ...mockCharacter,
+      id: 'predefined-ryszard',
+      name: 'Ryszard "Klucznik" Kaczmarek',
+      sourcePresetId: 'preset-klucznik',
+    };
+
+    render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onPickCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        hasAdventure={true}
+        adventureTitle="Zew Cthulhu"
+        hasCharacter={true}
+        activeCharacter={predefinedCharacter}
+        hasSavedCharacters={false}
+      />
+    );
+
+    // Nie wyświetla danych predefiniowanej postaci
+    expect(screen.queryByText('Ryszard "Klucznik" Kaczmarek')).not.toBeInTheDocument();
+    expect(screen.getByText(/Brak wybranego Badacza/i)).toBeInTheDocument();
+
+    // Dostępny tylko przycisk tworzenia nowej postaci (brak gotowców)
+    expect(screen.getByRole('button', { name: /Stwórz nową postać/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Wybierz gotową postać/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Wybierz z katalogu/i })).not.toBeInTheDocument();
+
+    // Przycisk startu gry musi być zablokowany
+    const startBtn = screen.getByRole('button', { name: /Rozpocznij Grę/i });
+    expect(startBtn).toBeDisabled();
+  });
+
+  it('ignoruje postacie predefiniowane w slotach trybu Duet', () => {
+    const duetSlots = [
+      {
+        playerId: 'p1',
+        playerName: 'Gracz 1',
+        character: {
+          id: 'predefined-1',
+          name: 'Janusz Kowalski',
+          occupation: 'Detektyw',
+          sourcePresetId: 'preset-1',
+        } as Character,
+      },
+      {
+        playerId: 'p2',
+        playerName: 'Gracz 2',
+      },
+    ];
+
+    render(
+      <ManualSetupPanel
+        onBack={jest.fn()}
+        onSelectAdventure={jest.fn()}
+        onCreateCharacter={jest.fn()}
+        onPickCharacter={jest.fn()}
+        onStartGame={jest.fn()}
+        isDuet={true}
+        duetCharacterSlots={duetSlots}
+      />
+    );
+
+    // Gotowiec został odfiltrowany ze slotu
+    expect(screen.queryByText('Janusz Kowalski')).not.toBeInTheDocument();
+    const noAssignedList = screen.getAllByText('Brak przypisanej postaci');
+    expect(noAssignedList.length).toBe(2);
+    expect(screen.queryByRole('button', { name: /Wybierz gotową/i })).not.toBeInTheDocument();
   });
 });

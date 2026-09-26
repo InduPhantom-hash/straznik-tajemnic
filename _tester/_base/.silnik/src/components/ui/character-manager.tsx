@@ -242,13 +242,15 @@ export function CharacterManager({
     URL.revokeObjectURL(url);
   };
 
-  // Filtrowanie postaci
-  const filteredCharacters = characters.filter(
-    (character) =>
-      character.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      character.playerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      character.occupation.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtrowanie postaci (ukrywamy postacie predefiniowane, aby katalog zawierał wyłącznie autorskich Badaczy)
+  const filteredCharacters = characters
+    .filter((character) => !character.sourcePresetId)
+    .filter(
+      (character) =>
+        character.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        character.playerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        character.occupation.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   // Inicjały do miniatury portretu (np. "dr Eleonora Vance" → "EV")
   const getInitials = (name: string): string => {
