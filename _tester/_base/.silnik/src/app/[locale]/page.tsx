@@ -352,6 +352,9 @@ export default function Home() {
     startStatus,
     isReadyToEnter,
     confirmEnterGame,
+    startError,
+    retryStartGame,
+    cancelStartGame,
   } = useGameStart({
     setHasStartedGame,
     runHealthCheck,
@@ -1363,6 +1366,9 @@ export default function Home() {
           startStatus={startStatus}
           isReadyToEnter={isReadyToEnter}
           onConfirmEnterGame={confirmEnterGame}
+          startError={startError}
+          onRetryStartGame={retryStartGame}
+          onCancelStartGame={cancelStartGame}
           adventureContext={adventureContext}
           pendingCombatAttack={chat.pendingCombatAttack}
           pendingCombatDefensesUsed={chat.pendingCombatDefensesUsed}

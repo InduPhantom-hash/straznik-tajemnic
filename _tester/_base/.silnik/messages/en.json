@@ -4961,7 +4961,12 @@
     "awaitingAccept": "Click to begin the investigation",
     "themesLabel": "Themes:",
     "eraLabel": "Era:",
-    "locationLabel": "Location:"
+    "locationLabel": "Location:",
+    "errorTitle": "Game Start Failed",
+    "retryButton": "Try Again",
+    "cancelButton": "Back to Selection",
+    "technicalDetails": "Technical Details",
+    "openApiSettings": "API Settings"
   },
   "ApiKeysModal": {
     "title": "API Keys Configuration",

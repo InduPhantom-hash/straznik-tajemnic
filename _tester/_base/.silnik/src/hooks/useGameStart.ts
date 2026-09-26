@@ -229,6 +229,14 @@ interface UseGameStartProps {
  * - Równoległe generowanie obrazu intro
  * - Strumieniowanie odpowiedzi AI z obsługą TTS
  */
+export interface GameStartError {
+  statusCode?: number;
+  category: 'server_overloaded' | 'quota_exceeded' | 'auth_error' | 'network_error' | 'general_error';
+  title: string;
+  userAdvice: string;
+  technicalDetails?: string;
+}
+
 export function useGameStart({
   setHasStartedGame,
   activeCharacter,
@@ -249,6 +257,7 @@ export function useGameStart({
   const [startProgress, setStartProgress] = useState(0);
   const [startStatus, setStartStatus] = useState('');
   const [isReadyToEnter, setIsReadyToEnter] = useState(false);
+  const [startError, setStartError] = useState<GameStartError | null>(null);
 
   const waitForPlayerConfirmation = useCallback((): Promise<void> => {
     // W środowisku testowym domyślnie przechodzimy bez blokowania, chyba że test jawnie tego żąda
@@ -555,6 +564,7 @@ export function useGameStart({
   const handleStartGame = useCallback(async () => {
     if (isStartingRef.current) return;
     isStartingRef.current = true;
+    setStartError(null);
     setIsStarting(true);
     setStartProgress(15);
     setStartStatus(
@@ -1102,73 +1112,86 @@ export function useGameStart({
       setIsReadyToEnter(false);
       setStartProgress(0);
       setStartStatus('');
-      setHasStartedGame(true);
       tts.stopCurrentAudio();
-      // Zadanie 6: po wyczerpaniu retry pokaż graczowi co się stało zamiast pustego
-      // ekranu - blip sieci dostaje wskazówkę "spróbuj ponownie", inny błąd ogólny.
-      // Usuwamy osierocony pusty placeholder assistantMessageId (jeśli istnieje
-      // i nie zdążył otrzymać treści) i ZASTĘPUJEMY go komunikatem błędu,
-      // zamiast doklejać drugi dymek obok pustego.
+
       const errorStr = error instanceof Error ? error.message : String(error);
-      const isAuthError =
-        errorStr.includes('401') ||
-        errorStr.includes('BYOK_KEY') ||
-        errorStr.includes('API key');
+
+      let statusCode: number | undefined;
+      const statusMatch = errorStr.match(/\b(400|401|403|429|500|502|503|504)\b/);
+      if (statusMatch) {
+        statusCode = parseInt(statusMatch[1], 10);
+      }
+
+      const is503 = statusCode === 503 || /503|high demand|overloaded|unavailable/i.test(errorStr);
+      const is429 = statusCode === 429 || /429|quota|resource_exhausted|rate limit/i.test(errorStr);
+      const isAuthError = statusCode === 401 || /401|byok_key|api key|unauthorized/i.test(errorStr);
+      const isNetwork = isNetworkBlip(error) || /network|failed to fetch|aborted|econnreset|enotfound/i.test(errorStr);
+
+      let category: GameStartError['category'] = 'general_error';
+      if (is503) {
+        category = 'server_overloaded';
+      } else if (is429) {
+        category = 'quota_exceeded';
+      } else if (isAuthError) {
+        category = 'auth_error';
+      } else if (isNetwork) {
+        category = 'network_error';
+      }
+
+      const errorTitle = locale === 'en'
+        ? category === 'server_overloaded'
+          ? 'Gemini Servers Overloaded [Error 503]'
+          : category === 'quota_exceeded'
+          ? 'API Quota Exceeded [Error 429]'
+          : category === 'auth_error'
+          ? 'Gemini API Key Required [Error 401]'
+          : category === 'network_error'
+          ? 'Network Connection Problem'
+          : 'Game Start Error'
+        : category === 'server_overloaded'
+          ? 'Przeciążenie darmowych serwerów Gemini [Błąd 503]'
+          : category === 'quota_exceeded'
+          ? 'Wyczerpano limit zapytań Gemini API [Błąd 429]'
+          : category === 'auth_error'
+          ? 'Wymagany poprawny klucz Gemini API [Błąd 401]'
+          : category === 'network_error'
+          ? 'Problem z połączeniem sieciowym'
+          : 'Błąd uruchamiania gry';
+
+      const userAdvice = locale === 'en'
+        ? category === 'server_overloaded'
+          ? 'Google Gemini servers are currently experiencing high demand on the free tier. Wait a minute and click "Try Again", or configure a Pay-as-you-go key in Settings.'
+          : category === 'quota_exceeded'
+          ? 'Your Gemini API quota has been exhausted. Wait for your quota to reset or provide a different API key in Settings.'
+          : category === 'auth_error'
+          ? 'The Gemini API key is missing, invalid or expired. Open API Settings to paste a valid key and try again.'
+          : category === 'network_error'
+          ? 'A network issue interrupted the connection to the Keeper. Check your internet connection and click "Try Again".'
+          : 'An unexpected issue occurred while chronicling the opening scene. Try again or check your API key.'
+        : category === 'server_overloaded'
+          ? 'Serwery Google Gemini przeżywają chwilowe przeciążenie na darmowym planie Free Tier. Odczekaj minutę i kliknij „Spróbuj ponownie” lub podepnij płatny klucz Pay-as-you-go w Ustawieniach.'
+          : category === 'quota_exceeded'
+          ? 'Limit zapytań dla Twojego klucza Gemini został wyczerpany. Odczekaj do odnowienia limitu lub podaj inny klucz w Ustawieniach.'
+          : category === 'auth_error'
+          ? 'Klucz Gemini API jest nieprawidłowy, wygasł lub nie został skonfigurowany. Otwórz Ustawienia API, wklej poprawny klucz i spróbuj ponownie.'
+          : category === 'network_error'
+          ? 'Przerwano połączenie ze Strażnikiem Tajemnic. Sprawdź połączenie z internetem i kliknij „Spróbuj ponownie”.'
+          : 'Wystąpił nieoczekiwany problem przy spisywaniu kroniki otwarcia. Spróbuj ponownie lub sprawdź swój klucz API.';
+
+      setStartError({
+        statusCode,
+        category,
+        title: errorTitle,
+        userAdvice,
+        technicalDetails: errorStr,
+      });
 
       if (isAuthError && typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('open-api-keys-modal'));
       }
 
-      const toastTitle = isAuthError
-        ? locale === 'en'
-          ? 'Gemini API Key Required'
-          : 'Wymagany klucz Gemini API'
-        : locale === 'en'
-          ? 'Game Start Failed'
-          : 'Błąd uruchamiania gry';
-
-      const friendly = isAuthError
-        ? locale === 'en'
-          ? '⚠️ The Gemini API key is invalid or expired. Enter a valid key in Settings (key icon in menu) and try again.'
-          : '⚠️ Klucz Gemini API jest nieprawidłowy lub wygasł. Wklej poprawny klucz w Ustawieniach (ikona klucza w menu) i spróbuj ponownie.'
-        : isNetworkBlip(error)
-          ? locale === 'en'
-            ? '⚠️ A temporary connection problem occurred while starting the game. Try Start Adventure again.'
-            : '⚠️ Chwilowy problem z połączeniem przy starcie gry - kliknij „Rozpocznij" jeszcze raz.'
-          : locale === 'en'
-            ? '⚠️ The game could not start. Check your connection and API key, then try again.'
-            : '⚠️ Nie udało się rozpocząć gry. Sprawdź połączenie i klucz API, po czym spróbuj ponownie.';
-      toast({
-        variant: 'destructive',
-        title: toastTitle,
-        description: friendly,
-      });
-
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(
-          new CustomEvent('zew:toast', {
-            detail: {
-              variant: 'destructive',
-              title: toastTitle,
-              description: friendly,
-            },
-          })
-        );
-      }
-
-      const errorMsg: Message = {
-        id: `gm-intro-error-${crypto.randomUUID()}`,
-        role: 'assistant',
-        content: friendly,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => {
-        // Usuń osierocony pusty dymek (content puste = nigdy nie dostał tekstu)
-        const cleaned = prev.filter(
-          (msg) => !(msg.id === assistantMessageId && !msg.content)
-        );
-        return [...cleaned, errorMsg];
-      });
+      // Usuń wszelkie puste lub częściowe dymki asystenta z czatu
+      setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
     } finally {
       isStartingRef.current = false;
       setIsStarting(false);
@@ -1193,6 +1216,22 @@ export function useGameStart({
     locale,
   ]);
 
+  const retryStartGame = useCallback(async () => {
+    setStartError(null);
+    await handleStartGame();
+  }, [handleStartGame]);
+
+  const cancelStartGame = useCallback(() => {
+    setStartError(null);
+    setIsStarting(false);
+    setIsReadyToEnter(false);
+    setStartProgress(0);
+    setStartStatus('');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zew:stop-music'));
+    }
+  }, []);
+
   return {
     handleStartGame,
     isStarting,
@@ -1200,5 +1239,8 @@ export function useGameStart({
     startStatus,
     isReadyToEnter,
     confirmEnterGame,
+    startError,
+    retryStartGame,
+    cancelStartGame,
   };
 }
