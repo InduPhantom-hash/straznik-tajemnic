@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.9.5",
-  "updatedAt": "2026-09-26T09:11:00.000Z",
+  "updatedAt": "2026-09-26T14:35:00.000Z",
   "locales": [
     "pl",
     "en"
@@ -550,10 +550,10 @@
     },
     {
       "source": "manual-setup",
-      "target": "predefined-characters",
+      "target": "characters",
       "label": {
-        "pl": "Gotowa postać",
-        "en": "Predefined character"
+        "pl": "Katalog postaci",
+        "en": "Character catalog"
       },
       "component": "src/components/chat/welcome/components/manual-setup-panel.tsx"
     },
