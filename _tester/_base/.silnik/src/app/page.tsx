@@ -45,7 +45,10 @@ import { buildPredefinedEquipment } from '@/lib/immersion/predefined-equipment';
 import { resolveGameEraContext } from '@/lib/era';
 import { resolveEraVisualProfile } from '@/lib/era-visual-style';
 import type { RandomEvent } from '@/lib/random-event-generator';
-import { getSessionCharacters } from '@/lib/hot-seat/session-party';
+import {
+  getSessionCharacters,
+  findPlayerIndexForCharacter,
+} from '@/lib/hot-seat/session-party';
 
 // Dynamic imports dla ciężkich komponentów
 const ChatWindow = dynamic(
@@ -454,6 +457,23 @@ export default function Home() {
     [hotSeat, charMgmt]
   );
 
+  const handleCharacterSwitch = useCallback(
+    (character: Character) => {
+      if (hotSeat.config.enabled) {
+        const playerIndex = findPlayerIndexForCharacter(
+          hotSeat.config,
+          character.id
+        );
+        if (playerIndex !== -1) {
+          handleSwitchPlayer(playerIndex);
+          return;
+        }
+      }
+      charMgmt.handleCharacterSwitch(character);
+    },
+    [hotSeat.config, handleSwitchPlayer, charMgmt]
+  );
+
   // === EFFECTS ===
   // IND-150: split 52-lin useEffect (7 odpowiedzialności) na 4 useEffects per SRP.
   // Każdy mount-only (deps []), nie pogarsza pre-existing react-hooks/exhaustive-deps.
@@ -794,7 +814,7 @@ export default function Home() {
           hideSidebarPanel={!hasStartedGame}
           activeCharacter={charMgmt.activeCharacter || undefined}
           characters={sessionCharacters}
-          onCharacterSwitch={charMgmt.handleCharacterSwitch}
+          onCharacterSwitch={handleCharacterSwitch}
           onCharacterCreate={handleCreateCharacterForDuet}
           onCharacterManage={charMgmt.handleCharacterManage}
           onUpdateCharacter={charMgmt.handleUpdateCharacter}

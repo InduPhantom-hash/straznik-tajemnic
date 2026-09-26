@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import { CthulhuSidebar } from './CthulhuSidebar';
 
 jest.mock('../ui/youtube-player', () => ({
@@ -241,4 +241,27 @@ describe('CthulhuSidebar player tools', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
     expect(screen.getByText('1/2')).toBeInTheDocument();
   });
+
+  it('wywołuje onCharacterSwitch po zmianie wyboru w dropdownie postaci', () => {
+    process.env.NEXT_INTL_TEST_LOCALE = 'pl';
+    const mockChar1 = { id: 'char_1', name: 'Helena Krawczyk', occupation: 'Producent', skills: {} } as never;
+    const mockChar2 = { id: 'char_2', name: 'Ryszard Kaczmarek', occupation: 'Oficer', skills: {} } as never;
+    const mockOnSwitch = jest.fn();
+
+    render(
+      <CthulhuSidebar
+        activeCharacter={mockChar1}
+        characters={[mockChar1, mockChar2]}
+        onCharacterSwitch={mockOnSwitch}
+      />
+    );
+
+    const select = screen.getByRole('combobox');
+    act(() => {
+      fireEvent.change(select, { target: { value: 'char_2' } });
+    });
+
+    expect(mockOnSwitch).toHaveBeenCalledWith(mockChar2);
+  });
 });
+
