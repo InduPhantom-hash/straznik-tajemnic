@@ -19,7 +19,7 @@ Kolejność najbliższych epików:
 - **Priorytet 1 (Etap 2):** Aktualizacja domyślnego modelu w API do `gemini-3.6-flash` / `gemini-3.8-flash` oraz zaktualizowanie szacunków kosztów gry. (🟢 ZREALIZOWANE)
 - **Priorytet 1b (Etap 2):** Lokalny pipeline przygody i izolacja namespace (`adventureId`) w lokalnym RAG. (🟢 ZREALIZOWANE)
 - **Priorytet 2 (Etap 3):** Immersja i dowody — przebudowa Dziennika na Tablicę Badacza, Akt Sprawy i Dedukcji Domenowej CoC 7e. (🟢 ZREALIZOWANE)
-- **Priorytet 2b (UI/UX):** Kompleksowy audyt i unifikacja stylu Dark Art Déco 1920s (Epic #165) oraz Faza Rozwoju Postaci CoC 7e RAW. (🟢 ZREALIZOWANE)
+- **Priorytet 2b (UI/UX):** Kompleksowy audyt i unifikacja stylu Dark Art Déco 1920s (Epic #165) oraz Faza Rozwoju Postaci d100 Weird Fiction. (🟢 ZREALIZOWANE)
 - **Priorytet 3 (Etap 0):** Bezpieczny system aktualizacji aplikacji i packaging macOS. (🟡 W TRAKCIE)
 - **Priorytet 4 (Etap 6 & Etap 5):** Lokalne dyktowanie wiadomości PL/EN oraz weryfikacja tłumaczeń. (🔵 TODO)
 
@@ -307,7 +307,7 @@ Przebudowa promptów systemowych, protokołu GM i pacing controllera w oparciu o
    - **Bieg 2: Szeroki Kadr (Establishing Shot):** Otwarcie nowej lokacji lub fazy śledztwa (70-150 słów). Plastyczny realizm topograficzny i fizyka progów.
    - **Bieg 3: Przełamanie / Cios (Hard Move):** Zagrożenie, walka, fail-forward (30-70 słów). Świat uderza bez pytania "co robisz?", stawiając badacza pod presją czasu.
    - **Bieg 4: Zawieszenie / Pustka (The Void):** Po szoku lub utracie SAN (40-90 słów). Cisza, somatyczne reakcje ciała, Zmienna Próżni (brakujący element otoczenia).
-2. **Fail-Forward (CoC 7e RAW):** Porażka w teście kości nie zatrzymuje fabuły ("nie udało się"). Natychmiast wrzuca Bieg 3: sukces za cenę, upływ cennego czasu, uszkodzenie sprzętu lub alarm ściągający wrogów.
+2. **Fail-Forward (d100 Weird Fiction):** Porażka w teście kości nie zatrzymuje fabuły ("nie udało się"). Natychmiast wrzuca Bieg 3: sukces za cenę, upływ cennego czasu, uszkodzenie sprzętu lub alarm ściągający wrogów.
 3. **Zasada Uczciwej Gry (Fair Play Mystery):** Wszystkie poszlaki muszą być materialne i obecne w prozie przed rewelacją. Zero Deus ex Machina; pełna retrospektywna spójność.
 4. **Progi Liminalne i Dźwięk Akuzmatyczny:** Przejście do nowej strefy wiąże się ze zmianą temperatury, oporu powietrza i akustyki; groza sygnalizowana najpierw dźwiękiem spoza kadru.
 5. **Podwójna Maska NPC:** Każda kluczowa postać ma fasadę publiczną oraz prywatną skazę/lęk przełamującą positive bias modeli LLM.

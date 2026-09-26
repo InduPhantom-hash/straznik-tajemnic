@@ -14,7 +14,7 @@ podmioty:
   - Black Monk Games
   - Seth Skorkowsky
   - Straznik Tajemnic AI
-ai_summary: Źródłowy audyt magii i tomów Mitów CoC 7e RAW, suplementów, poradników MG i korpusu sesji względem silnika, promptów i UI Strażnika Tajemnic (Issue 318).
+ai_summary: Źródłowy audyt magii i tomów Mitów d100 Weird Fiction, suplementów, poradników MG i korpusu sesji względem silnika, promptów i UI Strażnika Tajemnic (Issue 318).
 ---
 
 # Ponowna weryfikacja RAW, mechanik i promptów magii (Issue #318)
@@ -238,7 +238,7 @@ W oparciu o analizę kodu czatu i promptów zidentyfikowano następujące wektor
 
 W celu zachowania tożsamości *Strażnika Tajemnic AI* jako gry wiernej duchowi CoC 7e, podjęto następujące decyzje:
 
-1. **Purystyczne CoC 7e RAW jako fundament (Nadrzędna Zasada):**
+1. **Purystyczne d100 Weird Fiction jako fundament (Nadrzędna Zasada):**
    - Wszystkie reguły dotyczące rzucania czarów (pierwsze rzucenie Hard POW, automatyczny sukces kolejnych, reguła wiary, koszty PM/HP/POW, brak czarów leczących w podręczniku głównym) muszą bezwzględnie odpowiadać Księdze Strażnika v1.3.
 
 2. **Katastrofa Forsowania w pełnym rygorze RAW:**
@@ -303,7 +303,7 @@ Przed przystąpieniem do prac kodowych zatwierdza się następujący zakres zmia
      - `necronomicon-latin`: łacina, 1228 r., czas: 66 tyg., utrata PP: 2K10, WMC: +5, PMC: +11, WM: 48, strona PL 262.
 
 3. **`magic-engine.ts`:**
-   - Wdrożenie procedury katastrofy forsowania CoC 7e RAW (str. 197):
+   - Wdrożenie procedury katastrofy forsowania d100 Weird Fiction (str. 197):
      - Rzut 1K6 na mnożnik kosztu (`costMultiplier`).
      - `totalMpCost = baseMp * costMultiplier`.
      - `totalSanCost = baseSan * costMultiplier`.

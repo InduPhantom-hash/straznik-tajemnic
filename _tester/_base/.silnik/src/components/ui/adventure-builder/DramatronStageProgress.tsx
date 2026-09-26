@@ -44,7 +44,7 @@ export function DramatronStageProgress({
           {t('stagesHeader')}
         </span>
         <span className="text-[11px] font-special-elite text-muted-foreground">
-          DeepMind Dramatron &bull; CoC 7e RAW
+          DeepMind Dramatron &bull; d100 Weird Fiction
         </span>
       </div>
 

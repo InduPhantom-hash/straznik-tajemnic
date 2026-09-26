@@ -231,7 +231,7 @@ export function HazardDialog({
               </DialogTitle>
             </div>
             <Badge className="bg-brass/20 text-brass border-brass/40 text-xs font-mono">
-              CoC 7e RAW
+              d100 Weird Fiction
             </Badge>
           </div>
           <DialogDescription className="text-muted-foreground text-sm mt-1">

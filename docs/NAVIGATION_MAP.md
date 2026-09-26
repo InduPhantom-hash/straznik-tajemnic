@@ -31,11 +31,11 @@ graph TD
     loading_screen["Ekran ładowania (Dark Art Déco) / Loading screen (Dark Art Déco)"]
     game["Aktywna sesja / Active session"]
     api_keys["Klucze API / API keys"]
-    character_sheet["Karta badacza (Dark Art Déco CoC 7e RAW) / Investigator sheet (Dark Art Déco CoC 7e RAW)"]
+    character_sheet["Karta badacza (Dark Art Déco d100 Weird Fiction) / Investigator sheet (Dark Art Déco d100 Weird Fiction)"]
     equipment["Ekwipunek / Equipment"]
     equipment_detail["Szczegóły przedmiotu / Equipment detail"]
     journal["Dziennik sesji i kronika śledztwa / Session journal and investigation chronicle"]
-    idea_roll_modal["Test Pomysłu CoC 7e RAW (Idea Roll) / Idea Roll CoC 7e RAW"]
+    idea_roll_modal["Test Pomysłu d100 Weird Fiction (Idea Roll) / Idea Roll d100 Weird Fiction"]
     dice["Rzuty kośćmi / Dice rolls"]
     gm_tools["Narzędzia MG / GM tools"]
     development["Faza rozwoju / Development phase"]
@@ -46,17 +46,17 @@ graph TD
     full_reset["Pełny reset / Full reset"]
     reset_settings_confirm["Reset parametrów / Reset settings"]
     rulebook_modal["Podręcznik zasad / Rulebook"]
-    chase_card["Pościg narracyjny i tor przeszkód w czacie (Fiction First CoC 7e RAW) / In-chat narrative chase and hazard track (Fiction First CoC 7e RAW)"]
-    hazard_card["Zagrożenia środowiskowe i trucizny w czacie (CoC 7e RAW) / In-chat environmental hazards and poisons (CoC 7e RAW)"]
-    sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (CoC 7e RAW) / Sanity therapy and recovery (CoC 7e RAW)"]
-    medical_care_modal["Rekonwalescencja i opieka medyczna (CoC 7e RAW) / Convalescence and medical care (CoC 7e RAW)"]
-    combat_card["Obrona w walce wręcz w czacie (CoC 7e RAW) / In-chat melee combat defense (CoC 7e RAW)"]
-    spell_card["Rzucanie zaklęć w czacie (CoC 7e RAW) / In-chat spell casting (CoC 7e RAW)"]
-    tome_card["Badanie tomów w czacie (CoC 7e RAW) / In-chat tome study (CoC 7e RAW)"]
+    chase_card["Pościg narracyjny i tor przeszkód w czacie (Fiction First d100 Weird Fiction) / In-chat narrative chase and hazard track (Fiction First d100 Weird Fiction)"]
+    hazard_card["Zagrożenia środowiskowe i trucizny w czacie (d100 Weird Fiction) / In-chat environmental hazards and poisons (d100 Weird Fiction)"]
+    sanity_therapy_modal["Terapia i rekonwalescencja psychiczna (d100 Weird Fiction) / Sanity therapy and recovery (d100 Weird Fiction)"]
+    medical_care_modal["Rekonwalescencja i opieka medyczna (d100 Weird Fiction) / Convalescence and medical care (d100 Weird Fiction)"]
+    combat_card["Obrona w walce wręcz w czacie (d100 Weird Fiction) / In-chat melee combat defense (d100 Weird Fiction)"]
+    spell_card["Rzucanie zaklęć w czacie (d100 Weird Fiction) / In-chat spell casting (d100 Weird Fiction)"]
+    tome_card["Badanie tomów w czacie (d100 Weird Fiction) / In-chat tome study (d100 Weird Fiction)"]
     beta_welcome_modal["Status wersji Beta / Beta Version Status"]
     beta_feedback_modal["Zgłoś błąd / uwagę / Report Issue / Feedback"]
     retro_portrait_gallery_modal["Kolekcja rycin noir z lat 20. / 1920s Noir Engravings Collection"]
-    game_over_card["Kres postaci i diegetyczny epilog (CoC 7e RAW) / Investigator end and diegetic epilogue (CoC 7e RAW)"]
+    game_over_card["Kres postaci i diegetyczny epilog (d100 Weird Fiction) / Investigator end and diegetic epilogue (d100 Weird Fiction)"]
 
     welcome -->|Polski / Polish| home
     welcome -->|English / English| home
@@ -155,7 +155,7 @@ graph TD
 | Ekran ładowania (Dark Art Déco) | Rozpocznij przygodę (bramka CTA) / Begin adventure (CTA gate) | Aktywna sesja | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Ekran ładowania (Dark Art Déco) | Wróć do wyboru (błąd startu) / Back to selection (start error) | Strona główna | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
 | Ekran ładowania (Dark Art Déco) | Ustawienia API (błąd startu) / API settings (start error) | Klucze API | `src/components/chat/chat-window/components/tts-hard-loading-screen.tsx` |
-| Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco CoC 7e RAW) | `src/components/sidebar/CthulhuSidebar.tsx` |
+| Aktywna sesja | Karta postaci / Character sheet | Karta badacza (Dark Art Déco d100 Weird Fiction) | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Aktywna sesja | Ekwipunek / Equipment | Ekwipunek | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Ekwipunek | Szczegóły przedmiotu / Equipment details | Szczegóły przedmiotu | `src/components/ui/equipment-detail-dialog.tsx` |
 | Aktywna sesja | Dziennik / Journal | Dziennik sesji i kronika śledztwa | `src/components/sidebar/CthulhuSidebar.tsx` |
@@ -176,15 +176,15 @@ graph TD
 | Strona główna | Podręcznik zasad / Rulebook | Podręcznik zasad | `src/components/chat/welcome/components/bottom-links.tsx` |
 | Klucze API | Dalej do zasad / Continue to rules | Podręcznik zasad | `src/app/[locale]/page.tsx` |
 | Podręcznik zasad | Gotowe, przejdź do gry / Ready, proceed to game | Strona główna | `src/app/[locale]/page.tsx` |
-| Karta badacza (Dark Art Déco CoC 7e RAW) | Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery | Terapia i rekonwalescencja psychiczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
-| Karta badacza (Dark Art Déco CoC 7e RAW) | Rekonwalescencja i opieka medyczna / Convalescence and medical care | Rekonwalescencja i opieka medyczna (CoC 7e RAW) | `src/components/ui/character-sheet/index.tsx` |
-| Aktywna sesja | Obrona w walce wręcz / Melee combat defense | Obrona w walce wręcz w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/opposed-melee-card.tsx` |
-| Aktywna sesja | Rzucanie zaklęcia / Cast spell | Rzucanie zaklęć w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/spell-card.tsx` |
-| Aktywna sesja | Badanie tomu / Study tome | Badanie tomów w czacie (CoC 7e RAW) | `src/components/chat/chat-window/components/tome-card.tsx` |
+| Karta badacza (Dark Art Déco d100 Weird Fiction) | Terapia i rekonwalescencja psychiczna / Sanity therapy and recovery | Terapia i rekonwalescencja psychiczna (d100 Weird Fiction) | `src/components/ui/character-sheet/index.tsx` |
+| Karta badacza (Dark Art Déco d100 Weird Fiction) | Rekonwalescencja i opieka medyczna / Convalescence and medical care | Rekonwalescencja i opieka medyczna (d100 Weird Fiction) | `src/components/ui/character-sheet/index.tsx` |
+| Aktywna sesja | Obrona w walce wręcz / Melee combat defense | Obrona w walce wręcz w czacie (d100 Weird Fiction) | `src/components/chat/chat-window/components/opposed-melee-card.tsx` |
+| Aktywna sesja | Rzucanie zaklęcia / Cast spell | Rzucanie zaklęć w czacie (d100 Weird Fiction) | `src/components/chat/chat-window/components/spell-card.tsx` |
+| Aktywna sesja | Badanie tomu / Study tome | Badanie tomów w czacie (d100 Weird Fiction) | `src/components/chat/chat-window/components/tome-card.tsx` |
 | Strona główna | Status wersji Beta / Beta Version Status | Status wersji Beta | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Strona główna | Zgłoś błąd / uwagę / Report Issue / Feedback | Zgłoś błąd / uwagę | `src/components/sidebar/CthulhuSidebar.tsx` |
 | Status wersji Beta | Zgłoś uwagę lub błąd / Report Issue or Feedback | Zgłoś błąd / uwagę | `src/components/dialogs/BetaWelcomeModal.tsx` |
-| Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (CoC 7e RAW) | `src/components/chat/chat-window/components/game-over-card.tsx` |
+| Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (d100 Weird Fiction) | `src/components/chat/chat-window/components/game-over-card.tsx` |
 | Nowa postać | Wybierz rycinę z epoki / Choose period engraving | Kolekcja rycin noir z lat 20. | `src/components/ui/character-wizard.tsx` |
 
 ## Zasady aktualizacji

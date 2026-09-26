@@ -14,7 +14,7 @@ straznik-tajemnic/ (Git Root / Wrapper)
 │   ├── src/                     <-- Kod źródłowy (App Router, komponenty, lib)
 │   │   ├── app/                 <-- Ekrany i Route Handlers (/api/*)
 │   │   ├── components/          <-- Komponenty React (UI, dialogi, nawigacja)
-│   │   └── lib/                 <-- Logika domenowa (CoC 7e RAW, RAG, prompty MG)
+│   │   └── lib/                 <-- Logika domenowa (d100 Weird Fiction, RAG, prompty MG)
 │   ├── messages/                <-- Słowniki i18n: pl.json i en.json (100% symetrii!)
 │   ├── navigation/              <-- navigation-registry.json (rejestr 31 węzłów i modali)
 │   └── package.json             <-- Zależności, skrypty testowe i kompilacja

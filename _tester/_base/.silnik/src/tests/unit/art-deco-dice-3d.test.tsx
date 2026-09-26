@@ -122,7 +122,7 @@ describe('ArtDecoDice3D (CoC 7e RAW)', () => {
 
     const formula = screen.getByTestId('dice-formula');
     expect(formula).toHaveTextContent('100');
-    expect(formula).toHaveTextContent('CoC 7e RAW');
+    expect(formula).toHaveTextContent('d100 Weird Fiction');
   });
 
   it('correctly displays multiple tens dice with bonus/penalty breakdown', () => {

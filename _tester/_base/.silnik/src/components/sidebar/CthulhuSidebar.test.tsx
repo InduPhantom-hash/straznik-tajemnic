@@ -44,7 +44,7 @@ describe('CthulhuSidebar player tools', () => {
       />
     );
 
-    const lockedBtn = screen.getByTitle(/Faza Rozwoju według zasad CoC 7e jest dostępna dopiero po zakończeniu sesji/i);
+    const lockedBtn = screen.getByTitle(/Faza Rozwoju według zasad d100 Weird Fiction jest dostępna dopiero po zakończeniu sesji/i);
     expect(lockedBtn).toBeInTheDocument();
     expect(lockedBtn).toBeDisabled();
   });

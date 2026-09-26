@@ -54,7 +54,7 @@ describe('TomeCard - badanie i lektura tomów Mitów Fiction First CoC 7e RAW', 
     const guideToggle = screen.getByText(/Zasady badania ksiąg/i);
     fireEvent.click(guideToggle);
 
-    expect(screen.getByText(/Zasady Badania Ksiąg Mitów CoC 7e RAW/i)).toBeInTheDocument();
+    expect(screen.getByText(/Zasady Badania Ksiąg Mitów d100 Weird Fiction/i)).toBeInTheDocument();
     expect(screen.getByText(/CMI \(Cthulhu Mythos Initial\)/i)).toBeInTheDocument();
     expect(screen.getByText(/MR \(Mythos Rating\)/i)).toBeInTheDocument();
   });

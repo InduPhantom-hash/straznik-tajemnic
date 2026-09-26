@@ -238,7 +238,7 @@ export function CharacterSheet({
           {/* Nagłówek dokumentu (akta śledcze) */}
           <div className="flex justify-between items-start mb-2 font-special-elite text-[14px] text-muted-foreground/70 uppercase tracking-[0.24em]">
             <span>{t('caseFiles')}</span>
-            <span>CoC 7e</span>
+            <span>d100 Weird Fiction</span>
           </div>
 
           {/* Tytuł + separator déco */}

@@ -62,7 +62,7 @@ export const CheatAutocompletePopup: React.FC<CheatAutocompletePopupProps> = ({
       <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-brass/20 via-background to-brass/10 border-b border-brass/30 text-[11px] font-mono tracking-wider text-brass">
         <div className="flex items-center gap-1.5 font-bold">
           <Terminal className="w-3.5 h-3.5 text-brass animate-pulse" />
-          <span>{isPl ? 'TERMINAL KODÓW DEWELOPERSKICH (CoC 7e)' : 'DEVELOPER CHEAT CONSOLE (CoC 7e)'}</span>
+          <span>{isPl ? 'TERMINAL KODÓW DEWELOPERSKICH (d100 Weird Fiction)' : 'DEVELOPER CHEAT CONSOLE (d100 Weird Fiction)'}</span>
         </div>
         <div className="text-[10px] text-muted-foreground">
           ↑↓ {isPl ? 'Nawigacja' : 'Navigate'} · [Tab/Enter] {isPl ? 'Wybierz' : 'Select'} · [Esc] {isPl ? 'Zamknij' : 'Close'}

@@ -51,10 +51,10 @@ describe('SpellCard - rzucanie zaklęć i rytuałów Fiction First CoC 7e RAW', 
   it('rozwija mini-przewodnik zasad magii CoC 7e po kliknięciu', () => {
     render(<SpellCard spellEvent={spellEventWitherLimb} activeCharacter={baseCaster} />);
 
-    const guideToggle = screen.getByText(/Zasady magii CoC 7e/i);
+    const guideToggle = screen.getByText(/Zasady magii d100 Weird Fiction/i);
     fireEvent.click(guideToggle);
 
-    expect(screen.getByText(/Tajemnice Inkantacji CoC 7e RAW/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tajemnice Inkantacji d100 Weird Fiction/i)).toBeInTheDocument();
     expect(screen.getByText(/Magia w Weird Fiction nie jest czarodziejstwem fantasy/i)).toBeInTheDocument();
   });
 

@@ -68,7 +68,7 @@ describe('ChaseCard - tor pościgu w czacie', () => {
       />
     );
 
-    expect(screen.getByText('Pościg CoC 7e RAW')).toBeInTheDocument();
+    expect(screen.getByText('Pościg d100 Weird Fiction')).toBeInTheDocument();
     expect(screen.getByText('Runda 2/6')).toBeInTheDocument();
     expect(screen.getByText(/@Alice/)).toBeInTheDocument();
     expect(screen.getByText(/Pozostałe akcje: 2/)).toBeInTheDocument();

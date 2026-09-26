@@ -116,7 +116,7 @@ Na podstawie powyższych ustaleń zdefiniowano ścisły kontrakt wdrożeniowy:
 - Nie modyfikujemy integracji audio ani systemu map;
 - Nie zmieniamy struktury zapisu bazy danych scenariuszy.
 
-### D. Audyt Zero-Effort Ledger & CoC 7e RAW
+### D. Audyt Zero-Effort Ledger & d100 Weird Fiction
 - Pełna realizacja potrójnego bytu handoutu (ekwipunek + modal czytnika + wpis w Dossier);
 - Zero przymusu ręcznego notowania przez gracza;
 - Transparentny, natychmiastowy start śledztwa.

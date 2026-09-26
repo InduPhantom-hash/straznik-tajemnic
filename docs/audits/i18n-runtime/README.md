@@ -77,7 +77,7 @@ Weryfikacja skryptem `npm run i18n:check` wykazuje pełną, 100% symetrię drzew
 
 #### Analiza Podatności na Zmianę Języka / Odświeżenie
 1. **Utrata Danych po Przeładowaniu:** Jeśli gracz w trakcie wypełniania 5-krokowego kreatora zmieni język w adresie URL (np. wpisując `/en` zamiast `/pl`) lub nieumyślnie odświeży stronę (skrót Cmd+R / F5), następuje pełny unmount komponentu. Cały dotychczasowy postęp (wylosowane rzuty kośćmi, rozdysponowane punkty i opisy) ulega bezpowrotnemu skasowaniu.
-2. **Klucze Domenowe CoC 7e RAW a Lokalizacja:**  
+2. **Klucze Domenowe d100 Weird Fiction a Lokalizacja:**  
    W kodzie `character-wizard.tsx` nazwy umiejętności (`BASE_SKILLS`) oraz profesji (`OCCUPATIONS`) są zdefiniowane po polsku jako kanoniczne klucze domenowe:
    ```typescript
    // character-wizard.tsx:94-98

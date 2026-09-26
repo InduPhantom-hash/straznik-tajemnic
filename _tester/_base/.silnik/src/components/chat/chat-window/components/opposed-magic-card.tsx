@@ -183,7 +183,7 @@ export function OpposedMagicCard({
               </Badge>
               <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground hidden sm:inline-flex">
                 <Swords className="w-3 h-3 mr-1 inline" />
-                CoC 7e RAW s. 99
+                d100 Weird Fiction s. 99
               </Badge>
             </div>
           </div>

@@ -256,7 +256,7 @@ describe('MessageCard - pościg w czacie', () => {
       />
     );
 
-    expect(screen.getByText('Pościg CoC 7e RAW')).toBeInTheDocument();
+    expect(screen.getByText('Pościg d100 Weird Fiction')).toBeInTheDocument();
     expect(screen.getByText('Runda 1/6')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sprint naprzód/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Brawurowy skrót/i })).toBeInTheDocument();

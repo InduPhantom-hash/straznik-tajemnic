@@ -91,7 +91,7 @@ async function fetchWithRetry(
    - Przeprowadzono test zachowania aplikacji przy wyłączonej sieci:
      - **Karta Badacza:** 100% dostępna (dane trzymane w React State i `localStorage`).
      - **Ekwipunek i Finanse:** 100% dostępne w trybie odczytu i zarządzania przedmiotami.
-     - **Kompendium Wiedzy (Lorebook / Reguły CoC 7e RAW):** 100% sprawne (dane zindeksowane lokalnie w formacie JSON/binary wewnątrz aplikacji).
+     - **Kompendium Wiedzy (Lorebook / Reguły d100 Weird Fiction):** 100% sprawne (dane zindeksowane lokalnie w formacie JSON/binary wewnątrz aplikacji).
      - **Dziennik Sesji i Oś Czasu:** 100% sprawne.
 
 ### 3.3. Zalecenia dla Warstwy Degradacji i Timeoutów

@@ -2,7 +2,7 @@
 
 Data audytu: 2026-09-23  
 Status: Zrealizowany (PoC supervisora wdrożony)  
-Projekt: Strażnik Tajemnic AI (CoC 7e RAW)  
+Projekt: Strażnik Tajemnic AI (d100 Weird Fiction)  
 Autor: Inżynier Snajper / Antigravity AIOS  
 
 ---

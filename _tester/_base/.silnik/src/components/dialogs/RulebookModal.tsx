@@ -271,7 +271,7 @@ export const RulebookModal: FC<RulebookModalProps> = ({
                   <div className="flex items-center gap-2 text-foreground truncate mr-2">
                     <Loader2 className="w-4 h-4 animate-spin text-brass shrink-0" />
                     <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span className="truncate font-mono text-xs">{fileName || 'Podręcznik CoC 7e'}</span>
+                    <span className="truncate font-mono text-xs">{fileName || 'Podręcznik d100 Weird Fiction'}</span>
                   </div>
                   <span className="text-xs font-mono text-brass shrink-0">{progress}%</span>
                 </div>

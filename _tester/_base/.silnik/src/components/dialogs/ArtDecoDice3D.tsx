@@ -171,10 +171,10 @@ export const ArtDecoDice3D: FC<ArtDecoDice3DProps> = ({
               </span>
             </div>
 
-            {/* Przypis dla 00 + 0 = 100 wg reguł CoC 7e RAW */}
+            {/* Przypis dla 00 + 0 = 100 wg reguł d100 Weird Fiction */}
             {isRaw100 && (
               <p className="text-[11px] font-serif italic text-brass/90 tracking-wide">
-                ({t('diceSumRaw100')} - CoC 7e RAW)
+                ({t('diceSumRaw100')} - d100 Weird Fiction)
               </p>
             )}
 
