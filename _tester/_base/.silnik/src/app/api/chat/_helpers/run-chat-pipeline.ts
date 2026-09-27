@@ -327,7 +327,36 @@ export async function runChatPipeline({
     }
   }
 
-  // Lokalna bramka Guardrail (Issue #508) - filtrowanie zapytań mechanicznych i anachronizmów epoki < 25 ms
+  // route.ts importuje `body.gameTime` do singletona przed wejściem w pipeline.
+  // Kolejne tury muszą rozwiązywać epokę z aktualnego czasu sceny, nie z pierwszego
+  // roku szerokiego zakresu scenariusza.
+  const { timeManager } = await import('@/lib/time-manager');
+  const currentGameTime = timeManager.getTime();
+
+  let eraContext: ResolvedEraContext;
+  try {
+    eraContext = isResolvedEraContext(requestedEraContext)
+      ? requestedEraContext
+      : resolveGameEraContext({
+          gameTime: requestedGameTime ? currentGameTime : null,
+          adventure: adventureContext,
+        });
+    assertExactEraContext(eraContext);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          locale === 'en'
+            ? 'The exact year and country are required before narration can start.'
+            : 'Przed rozpoczęciem narracji wymagany jest dokładny rok i kraj.',
+        code: 'ERA_CONTEXT_REQUIRED',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 400 }
+    );
+  }
+
+  // Lokalna bramka Guardrail (Issue #508, Issue #528) - filtrowanie zapytań mechanicznych i anachronizmów epoki < 25 ms
   const activeChar =
     (character as Character | null) ??
     (characters?.[0] as Character | null) ??
@@ -335,7 +364,7 @@ export async function runChatPipeline({
   const guardrailResult = evaluateEraGuardrail({
     message,
     character: activeChar,
-    eraContext: requestedEraContext,
+    eraContext,
     locale,
   });
 
@@ -347,11 +376,7 @@ export async function runChatPipeline({
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         start(controller) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: 'text', content: guardrailResult.response })}\n\n`
-            )
-          );
+          // Wysyłamy metadata jako pierwsze zdarzenie, aby klient wiedział o flagach guardrail przed chunkami tekstu
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({
@@ -360,6 +385,11 @@ export async function runChatPipeline({
                 guardrailCategory: guardrailResult.category,
                 guardrailExecutionTimeMs: guardrailResult.executionTimeMs,
               })}\n\n`
+            )
+          );
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ type: 'text', content: guardrailResult.response })}\n\n`
             )
           );
           controller.enqueue(
@@ -457,35 +487,6 @@ export async function runChatPipeline({
 
   const modelId = aiSettings.geminiSettings.model || DEFAULT_GEMINI_MODEL;
   const provider = new GeminiChatProvider(apiKey, modelId);
-
-  // route.ts importuje `body.gameTime` do singletona przed wejściem w pipeline.
-  // Kolejne tury muszą rozwiązywać epokę z aktualnego czasu sceny, nie z pierwszego
-  // roku szerokiego zakresu scenariusza.
-  const { timeManager } = await import('@/lib/time-manager');
-  const currentGameTime = timeManager.getTime();
-
-  let eraContext: ResolvedEraContext;
-  try {
-    eraContext = isResolvedEraContext(requestedEraContext)
-      ? requestedEraContext
-      : resolveGameEraContext({
-          gameTime: requestedGameTime ? currentGameTime : null,
-          adventure: adventureContext,
-        });
-    assertExactEraContext(eraContext);
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          locale === 'en'
-            ? 'The exact year and country are required before narration can start.'
-            : 'Przed rozpoczęciem narracji wymagany jest dokładny rok i kraj.',
-        code: 'ERA_CONTEXT_REQUIRED',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 400 }
-    );
-  }
 
   // === TIME & ERA CONTEXT === - IND-183 micro 2/5
   const { timePromptSection, eraRules } = buildTimeContext({

@@ -91,13 +91,10 @@ export const ENCYCLOPEDIA_BASELINE = encyclopediaBaselineJson as unknown as Ency
  * Zwraca identyfikator epoki dla podanego roku.
  */
 export function resolveEpochIdByYear(year: number): string {
-  if (year <= 1899) return '1890s-gaslight';
-  if (year >= 1920 && year <= 1929) return '1920s-classic';
-  if (year >= 1930 && year <= 1938) return '1920s-classic'; // mapowanie do dwudziestolecia
-  if (year >= 1939 && year <= 1949) return '1940s-noir';
-  if (year >= 1950 && year <= 1959) return '1940s-noir';
-  if (year >= 1960 && year <= 1979) return '1970s-prl-coldwar';
-  if (year >= 1980 && year <= 1989) return '1970s-prl-coldwar';
+  if (year <= 1919) return '1890s-gaslight';
+  if (year >= 1920 && year <= 1938) return '1920s-classic';
+  if (year >= 1939 && year <= 1959) return '1940s-noir';
+  if (year >= 1960 && year <= 1989) return '1970s-prl-coldwar';
   if (year >= 1990 && year <= 2005) return '1990s-2000s';
   return 'modern';
 }
