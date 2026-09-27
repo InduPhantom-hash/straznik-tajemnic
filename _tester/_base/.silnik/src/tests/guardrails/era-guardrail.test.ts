@@ -6,6 +6,7 @@ import {
 import { formatEquipment, handleCommand } from '@/lib/command-handler';
 import { parseSSEStream, type SSEMetadataEvent } from '@/lib/sse-parser';
 import type { Character } from '@/lib/types';
+import type { ResolvedEraContext } from '@/lib/era/types';
 
 Object.assign(globalThis, {
   TextDecoder,
@@ -513,6 +514,69 @@ describe('Era Guardrail & Mechanical Fast-Gate (Issue #508)', () => {
       const meta = receivedMetadata as Record<string, unknown> | null;
       expect(meta?.guardrail).toBe(true);
       expect(meta?.guardrailCategory).toBe('equipment');
+    });
+  });
+
+  describe('9. Uniwersalna ciągła oś czasu i dynamiczny ResolvedEraContext (Issue #528)', () => {
+    const eraContext2001Pl: ResolvedEraContext = {
+      schemaVersion: 1,
+      sceneDate: '2001-01-14',
+      effectiveYear: 2001,
+      countryCode: 'PL',
+      regionProfile: 'PL',
+      measurementSystem: 'metric',
+      source: 'scenario-range',
+      rulesVersion: '1.0.0',
+    };
+
+    const eraContext1925Us: ResolvedEraContext = {
+      schemaVersion: 1,
+      sceneDate: '1925-05-12',
+      effectiveYear: 1925,
+      countryCode: 'US',
+      regionProfile: 'US',
+      measurementSystem: 'imperial',
+      source: 'scenario-range',
+      rulesVersion: '1.0.0',
+    };
+
+    it('nie blokuje wyszukiwania w internecie i Google w roku 2001 (np. Przybysz z Matriksa)', () => {
+      const result = evaluateEraGuardrail({
+        message: 'Otwieram laptopa i szukam w internecie oraz sprawdzam w Google',
+        character: mockCharacterWithGear,
+        eraContext: eraContext2001Pl,
+        locale: 'pl',
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('blokuje współczesne social media (TikTok) w 2001 roku, ale z odniesieniem do roku 2001 a nie lat 20.', () => {
+      const result = evaluateEraGuardrail({
+        message: 'Wrzucam nagranie na TikToka przez smartfona',
+        character: mockCharacterWithGear,
+        eraContext: eraContext2001Pl,
+        locale: 'pl',
+      });
+
+      expect(result).not.toBeNull();
+      expect(result?.blocked).toBe(true);
+      expect(result?.response).toContain('2001');
+      expect(result?.response).not.toContain('latach 20.');
+      expect(result?.response).not.toContain('Arkham Advertiser');
+    });
+
+    it('blokuje anachronizm w epoce klasycznej (1925) z poprawnym odniesieniem do lat 20.', () => {
+      const result = evaluateEraGuardrail({
+        message: 'Sprawdzam w Google na smartfonie',
+        character: mockCharacterWithGear,
+        eraContext: eraContext1925Us,
+        locale: 'pl',
+      });
+
+      expect(result).not.toBeNull();
+      expect(result?.blocked).toBe(true);
+      expect(result?.response).toContain('1925');
     });
   });
 });

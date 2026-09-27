@@ -60,6 +60,16 @@ describe('text-cleaner (TTS)', () => {
     expect(cleanResponseText(raw)).toBe('Widzisz otwarte drzwi. Co robisz?');
     expect(stripMultilineArtifacts(raw)).not.toContain('Kultysta');
   });
+
+  it('całkowicie wycisza komunikaty Guardraila (anachronizmy i zasady) przed lektorem TTS (Issue #528)', () => {
+    const rawAnach =
+      '**[STRAŻNIK TAJEMNIC — KOREKTA REALIZMU EPOKI]**\n\nPróbujesz skorzystać z anachronizmu: *smartfon*, który nie istnieje w realiach roku 2001.\n\n**Historyczne alternatywy w realiach epoki:**\n- budka telefoniczna\n\nZadeklaruj działanie zgodne z duchem i możliwościami roku 2001.';
+    expect(cleanResponseText(rawAnach)).toBe('');
+
+    const rawRules =
+      '**Zasady testów i rzutów kośćmi (Call of Cthulhu 7e RAW):**\n\nWszystkie testy cech...';
+    expect(cleanResponseText(rawRules)).toBe('');
+  });
 });
 
 import { resolveNpcVoice } from '@/lib/npc-voice-mapping';

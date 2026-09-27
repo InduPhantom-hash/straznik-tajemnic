@@ -152,6 +152,17 @@ export function sanitizeDiegeticProse(
 export function cleanResponseText(text: string): string {
   if (!text) return '';
 
+  // Wyciszenie komunikatów technicznych Guardraila przed syntezą mowy TTS (Issue #528)
+  if (
+    /\[(?:STRAŻNIK TAJEMNIC — KOREKTA REALIZMU EPOKI|KEEPER OF ARCANE LORE — ERA REALITY CHECK)\]/i.test(
+      text
+    ) ||
+    /Zasady testów i rzutów kośćmi|Skill Tests & Dice Rules/i.test(text) ||
+    /Zasięg i parametry broni|Weapons & Combat Ranges/i.test(text)
+  ) {
+    return '';
+  }
+
   const diegeticClean = sanitizeDiegeticProse(text, { normalizeDialogues: false });
 
   return (

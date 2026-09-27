@@ -1243,6 +1243,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           options.clearPendingDirectorEvent();
         }
 
+        let isGuardrailResponse = false;
         let streamedFullText = '';
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
@@ -1262,11 +1263,14 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   : msg
               )
             );
-            if (voiceEnabled && isTTSEnabled) {
+            if (voiceEnabled && isTTSEnabled && !isGuardrailResponse) {
               options.addToQueue(cleanText, assistantMessageId);
             }
           },
           onMetadata: (metadata) => {
+            if (metadata.guardrail) {
+              isGuardrailResponse = true;
+            }
             notifyMemoryCommit(metadata, locale);
             if (
               Array.isArray(metadata.pendingMeleeAttacks) &&
@@ -1385,7 +1389,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               );
             }
 
-            if (voiceEnabled && isTTSEnabled) {
+            if (voiceEnabled && isTTSEnabled && !isGuardrailResponse) {
               // M6 sesja 146: drop multi-voice branch per D3. Wszystkie wiadomości
               // (włącznie z scenami NPC dialogów) idą przez generateVoiceForMessage
               // sekwencyjnie, używając ustawionego ttsVoice.

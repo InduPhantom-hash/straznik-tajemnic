@@ -8,6 +8,7 @@
 
 import type { Character } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era/types';
+import { detectAnachronism as detectBaselineAnachronism } from '@/lib/era/anachronisms';
 import {
   isWeapon,
   inferWeaponSkill,
@@ -163,21 +164,53 @@ const DICE_RULES_QUERY_PATTERN =
 // 3. DETEKCJA I GENERATORY ODPOWIEDZI
 // ============================================================================
 
-export function detectAnachronism(text: string): {
+export function detectAnachronism(
+  text: string,
+  eraContext?: ResolvedEraContext | null,
+  locale: 'pl' | 'en' = 'pl'
+): {
   detected: boolean;
   group?: AnachronismPatternGroup;
   matchedText?: string;
+  term?: string;
+  alternatives?: string[];
 } {
-  for (const group of ANACHRONISM_GROUPS) {
-    const match = text.match(group.regex);
-    if (match) {
-      return {
-        detected: true,
-        group,
-        matchedText: match[0].trim(),
-      };
+  const year = eraContext?.effectiveYear ?? 1920;
+  const country = eraContext?.countryCode ?? 'US';
+
+  // 1. Sprawdź silnik reguł ciągłej osi czasu (Baseline)
+  const baselineResult = detectBaselineAnachronism(text, year, country, locale);
+  if (baselineResult && baselineResult.detected) {
+    const altText = baselineResult.alternative ?? '';
+    const splitAlts = altText
+      .split(/,\s*|\s+lub\s+|\s+or\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return {
+      detected: true,
+      term: baselineResult.term,
+      matchedText: baselineResult.term,
+      alternatives: splitAlts.length > 0 ? splitAlts : [altText],
+    };
+  }
+
+  // 2. Jeśli rok to lata 20. lub brak kontekstu epoki, sprawdź legacy ANACHRONISM_GROUPS dla kompatybilności
+  if (!eraContext || (year >= 1920 && year <= 1929)) {
+    for (const group of ANACHRONISM_GROUPS) {
+      const match = text.match(group.regex);
+      if (match) {
+        return {
+          detected: true,
+          group,
+          matchedText: match[0].trim(),
+          term: locale === 'en' ? group.labelEn : group.labelPl,
+          alternatives:
+            locale === 'en' ? group.alternativesEn : group.alternativesPl,
+        };
+      }
     }
   }
+
   return { detected: false };
 }
 
@@ -214,24 +247,42 @@ export function detectDiceRulesQuery(text: string): boolean {
 export function buildAnachronismResponse(
   label: string,
   alternatives: string[],
-  locale: 'pl' | 'en' = 'pl'
+  locale: 'pl' | 'en' = 'pl',
+  eraContext?: ResolvedEraContext | null
 ): string {
+  const year = eraContext?.effectiveYear ?? 1920;
+  const isTwenties = year >= 1920 && year <= 1929;
+
   if (locale === 'en') {
+    const eraMention = isTwenties
+      ? `the 1920s (year ${year})`
+      : `the year ${year}`;
+    const actionDemand = isTwenties
+      ? `Please declare an action matching the historical 1920s setting.`
+      : `Please declare an action matching the historical setting of ${year}.`;
+
     return (
       `**[KEEPER OF ARCANE LORE — ERA REALITY CHECK]**\n\n` +
-      `You are attempting to use an anachronism: *${label}*, which does not exist in the 1920s.\n\n` +
+      `You are attempting to use an anachronism: *${label}*, which does not exist in ${eraMention}.\n\n` +
       `**Era-appropriate alternatives:**\n` +
       alternatives.map((alt) => `- ${alt}`).join('\n') +
-      `\n\nPlease declare an action matching the historical setting.`
+      `\n\n${actionDemand}`
     );
   }
 
+  const eraMention = isTwenties
+    ? `w latach 20. XX wieku (rok ${year})`
+    : `w realiach roku ${year}`;
+  const actionDemand = isTwenties
+    ? `Zadeklaruj działanie zgodne z duchem i możliwościami lat 20.`
+    : `Zadeklaruj działanie zgodne z duchem i możliwościami roku ${year}.`;
+
   return (
     `**[STRAŻNIK TAJEMNIC — KOREKTA REALIZMU EPOKI]**\n\n` +
-    `Próbujesz skorzystać z anachronizmu: *${label}*, który nie istnieje w latach 20. XX wieku.\n\n` +
+    `Próbujesz skorzystać z anachronizmu: *${label}*, który nie istnieje ${eraMention}.\n\n` +
     `**Historyczne alternatywy w realiach epoki:**\n` +
     alternatives.map((alt) => `- ${alt}`).join('\n') +
-    `\n\nZadeklaruj działanie zgodne z duchem i możliwościami lat 20.`
+    `\n\n${actionDemand}`
   );
 }
 
@@ -259,7 +310,7 @@ export function buildWeaponSpecsResponse(
   character: Character | null,
   message: string,
   locale: 'pl' | 'en' = 'pl',
-  eraContext?: ResolvedEraContext | null
+  _eraContext?: ResolvedEraContext | null
 ): string {
   const isEn = locale === 'en';
   if (!character) {
@@ -363,20 +414,34 @@ export function evaluateEraGuardrail(
   }
 
   // 1. Sprawdź anachronizmy technologiczne
-  const anach = detectAnachronism(trimmed);
-  if (anach.detected && anach.group) {
-    const label = locale === 'en' ? anach.group.labelEn : anach.group.labelPl;
+  const anach = detectAnachronism(trimmed, options.eraContext, locale);
+  if (anach.detected) {
+    const label =
+      anach.term ??
+      (anach.group
+        ? locale === 'en'
+          ? anach.group.labelEn
+          : anach.group.labelPl
+        : 'anachronizm');
     const alternatives =
-      locale === 'en'
-        ? anach.group.alternativesEn
-        : anach.group.alternativesPl;
-    const response = buildAnachronismResponse(label, alternatives, locale);
+      anach.alternatives ??
+      (anach.group
+        ? locale === 'en'
+          ? anach.group.alternativesEn
+          : anach.group.alternativesPl
+        : []);
+    const response = buildAnachronismResponse(
+      label,
+      alternatives,
+      locale,
+      options.eraContext
+    );
     const executionTimeMs = performance.now() - startTime;
     return {
       blocked: true,
       category: 'anachronism',
       response,
-      matchedPattern: anach.matchedText,
+      matchedPattern: anach.matchedText ?? label,
       alternatives,
       executionTimeMs,
     };
