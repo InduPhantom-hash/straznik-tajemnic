@@ -9,6 +9,8 @@ interface YouTubePlayerProps {
 }
 
 const STORAGE_KEY = 'youtube_url';
+const VOLUME_STORAGE_KEY = 'youtube_volume';
+const DEFAULT_VOLUME = 15;
 
 // Domyślna playlista atmosferyczna - zaszyta na sztywno, ładuje się gdy gracz
 // nie wkleił własnego URL. Gracz może ją chwilowo podmienić (zapis do localStorage).
@@ -19,6 +21,9 @@ const DEFAULT_PLAYLIST_URL =
 interface YTPlayer {
   destroy(): void;
   setVolume(volume: number): void;
+  getVolume?(): number;
+  unMute?(): void;
+  isMuted?(): boolean;
   playVideo(): void;
   pauseVideo(): void;
   setShuffle(shuffle: boolean): void;
@@ -144,7 +149,18 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
   // zablokowane osadzanie). Wcześniej brak onError = kryptyczny overlay YT.
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(15); // Domyślnie cicho - muzyka w tle
+  const [volume, setVolume] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedVol = localStorage.getItem(VOLUME_STORAGE_KEY);
+      if (savedVol !== null) {
+        const parsed = parseInt(savedVol, 10);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+          return parsed;
+        }
+      }
+    }
+    return DEFAULT_VOLUME;
+  });
   const [currentTitle, setCurrentTitle] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
 
@@ -154,12 +170,20 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
   // żeby odpalić odtwarzanie w onReady.
   const pendingPlayRef = useRef(false);
 
-  // Załaduj zapisany URL albo domyślną playlistę (gdy gracz nic nie wpisał)
+  // Załaduj zapisany URL albo domyślną playlistę oraz zapisaną głośność
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_PLAYLIST_URL;
     const parsed = extractYouTubeContent(saved);
     if (parsed) setContent(parsed);
+
+    const savedVol = localStorage.getItem(VOLUME_STORAGE_KEY);
+    if (savedVol !== null) {
+      const parsedVol = parseInt(savedVol, 10);
+      if (!isNaN(parsedVol) && parsedVol >= 0 && parsedVol <= 100) {
+        setVolume(parsedVol);
+      }
+    }
   }, []);
 
   // Załaduj YouTube IFrame API
@@ -230,6 +254,13 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
       events: {
         onReady: (event: YTPlayerEvent) => {
           setIsReady(true);
+          try {
+            if (event.target.isMuted?.()) {
+              event.target.unMute?.();
+            }
+          } catch {
+            // Bezpieczny fallback
+          }
           event.target.setVolume(volume);
           if (content?.type === 'playlist') {
             event.target.setShuffle(true);
@@ -292,12 +323,14 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
     return () => window.removeEventListener('zew:stop-music', handleStopMusic);
   }, []);
 
-  // TTS - obniż głośność
+  // TTS - obniż głośność proporcjonalnie do poziomu ustawionego przez gracza
   useEffect(() => {
     if (!playerRef.current || !isReady) return;
 
     if (isTTSPlaying) {
-      playerRef.current.setVolume(10);
+      // Proporcjonalny ducking do ~30% wartości gracza (np. 80 -> 24, 15 -> 5)
+      const duckedVolume = Math.round(volume * 0.3);
+      playerRef.current.setVolume(duckedVolume);
     } else {
       playerRef.current.setVolume(volume);
     }
@@ -305,7 +338,19 @@ export function YouTubePlayer({ isTTSPlaying = false }: YouTubePlayerProps) {
 
   const handleVolumeChange = (newVolume: number) => {
     setVolume(newVolume);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(VOLUME_STORAGE_KEY, String(newVolume));
+      } catch {
+        // Ignoruj błąd zapisu w incognito/pełnym storage
+      }
+    }
     if (playerRef.current && isReady) {
+      try {
+        playerRef.current.unMute?.();
+      } catch {
+        // Bezpieczny fallback
+      }
       playerRef.current.setVolume(newVolume);
     }
   };
