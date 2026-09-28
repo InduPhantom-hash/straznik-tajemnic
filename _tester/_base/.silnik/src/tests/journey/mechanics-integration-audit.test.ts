@@ -208,6 +208,24 @@ W skrytce za obrazem ukryto stary, pożółkły dokument.
       expect(daggerOpt).toBeDefined();
       expect(daggerOpt?.damageFormula).toBe('1d4+1');
       expect(daggerOpt?.damageType).toBe('impaling');
+
+      // Broń z rozmytego dopasowania katalogowego (np. Nóż kuchenny ze skopiowanym templateId i modifiers: 1d4+2)
+      // NIE może nadpisywać bezpiecznego fallbacku RAW (1d4, impaling)
+      const fuzzyKitchenKnife: EquipmentItem = {
+        id: 'fuzzy_kitchen_knife',
+        name: 'Nóż kuchenny',
+        category: 'weapon',
+        templateId: 'weapon.knife',
+        modifiers: { damage: '1d4+2' },
+      };
+      pipeline.updateActiveCharacter({
+        equipment: [...pipeline.getActiveCharacter().equipment!, fuzzyKitchenKnife],
+      });
+      const optionsWithKitchenKnife = getCombatDefenseWeapons(pipeline.getActiveCharacter());
+      const kitchenKnifeOpt = optionsWithKitchenKnife.find((o) => o.id === 'fuzzy_kitchen_knife');
+      expect(kitchenKnifeOpt).toBeDefined();
+      expect(kitchenKnifeOpt?.damageFormula).toBe('1d4');
+      expect(kitchenKnifeOpt?.damageType).toBe('impaling');
     });
   });
 
@@ -516,6 +534,37 @@ Kustosz zamyka gwałtownie kronikę i żąda opuszczenia archiwum.
       expect(npc?.relationshipStatus).toBe('hostile');
       // Czysty token "wrogi" nie powinien zanieczyszczać keyInformation
       expect(npc?.keyInformation).not.toContain('; wrogi');
+
+      // 4. Imiona i nazwiska z łącznikiem (np. Jean-Paul, Maria Skłodowska-Curie) w tagach relacji
+      pipeline.feedGMResponse(`
+Spotykasz francuskiego marynarza oraz polską badaczkę.
+[RELACJA: Jean-Paul | wrogi]
+[RELACJA: Maria Skłodowska-Curie – przyjazna]
+      `.trim());
+
+      const npcs = pipeline.getActiveCharacter().investigatorDossier?.npcs ?? [];
+      const jeanPaul = npcs.find((n) => n.name === 'Jean-Paul');
+      expect(jeanPaul).toBeDefined();
+      expect(jeanPaul?.disposition).toBe('hostile');
+      expect(jeanPaul?.relationshipStatus).toBe('hostile');
+      // Upewnij się, że Jean-Paul nie został pocięty na "Jean"
+      expect(npcs.find((n) => n.name === 'Jean')).toBeUndefined();
+
+      const maria = npcs.find((n) => n.name === 'Maria Skłodowska-Curie');
+      expect(maria).toBeDefined();
+      expect(maria?.disposition).toBe('friendly');
+      expect(maria?.relationshipStatus).toBe('friendly');
+      expect(npcs.find((n) => n.name === 'Maria Skłodowska')).toBeUndefined();
+
+      // Aktualizacja NPC z łącznikiem w imieniu przez separator myślnikowy
+      pipeline.feedGMResponse(`
+Jean-Paul uspokaja się po okazaniu dokumentów portowych.
+[RELACJA: Jean-Paul - neutralny]
+      `.trim());
+
+      const updatedJean = pipeline.getActiveCharacter().investigatorDossier?.npcs?.find((n) => n.name === 'Jean-Paul');
+      expect(updatedJean?.disposition).toBe('neutral');
+      expect(updatedJean?.relationshipStatus).toBe('neutral');
     });
   });
 

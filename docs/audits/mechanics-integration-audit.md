@@ -41,7 +41,8 @@ Podczas implementacji scenariuszy testowych zidentyfikowano i wyeliminowano nast
 - **Problem:** Funkcja `createEquipmentItem` przy dodawaniu przedmiotów uruchamiała `applyCatalogTemplate`, które stosowało luźne dopasowanie prefiksów (fuzzy matching). Przykładowo "Nóż kuchenny" otrzymywał profil `weapon.knife` z obrażeniami `1d4+2` (właściwymi dla noża bojowego/myśliwskiego), a "Ciężka pałka" dopasowywała się do `weapon.police-baton` z typem `non_impaling`. W przypadku braku dokładnego szablonu zdobyta broń improwizowana nie miała gwarancji zgodności z zasadami CoC 7e RAW (tabela broni, Podręcznik Strażnika s. 401). Dodatkowo, broń niestandardowa z jawną formułą obrażeń (`modifiers.damage`, np. szabla ceremonialna `1d8`) nie mogła tracić swoich statystyk na rzecz domyślnego fallbacku `1d4`.
 - **Rozwiązanie w `_tester/_base/.silnik/src/lib/combat/weapon-context.ts`:**
   - Wprowadzono rozróżnienie idealnego szablonu (`isIdealCatalogTemplate`), który wymaga ścisłego dopasowania nazwy lub aliasu (`template.name.toLowerCase() === item.name.toLowerCase()`).
-  - Zapewniono priorytet dla jawnych formuł obrażeń nadanych przedmiotowi (`item.modifiers?.damage`), co zabezpiecza customowe bronie i artefakty.
+  - Rozróżniono modyfikatory nadane jawnie przez autora/scenariusz od modyfikatorów wstrzykniętych automatycznie przez rozmyty szablon katalogowy (`isCatalogInjectedFuzzyDamage`). Jeśli broń nie jest idealnym szablonem, a jej `modifiers.damage` pochodzi z rozmytego szablonu, ignorujemy go na rzecz właściwego fallbacku RAW (np. `1d4` impaling dla noża kuchennego zamiast `1d4+2`).
+  - Zapewniono pełny priorytet dla jawnych, autorskich formuł obrażeń (`item.modifiers?.damage`), co chroni niestandardowe bronie i artefakty (np. rytualny sztylet `1d4+1`, szabla `1d8`).
   - W przypadku braku ścisłego szablonu i braku jawnych modyfikatorów, moduł `weapon-context.ts` stosuje deterministyczny fallback RAW:
     - Noże (`KNIFE_PATTERN`): obrażenia `1d4`, typ kłuty (`impaling`).
     - Pałki / kije (`CLUB_PATTERN`): obrażenia `1d6`, typ obuchowy (`blunt`).
@@ -50,12 +51,12 @@ Podczas implementacji scenariuszy testowych zidentyfikowano i wyeliminowano nast
     - Pozostała broń improwizowana: obrażenia `1d4`, typ nieprzeszywający (`non_impaling`).
 
 ### B. Przetwarzanie nastawienia NPC z tagów narracyjnych (Pipe Syntax & Delimiter Resilience)
-- **Problem:** Tagi w formacie `[NPC: Grzegorz Brzęczyszczykiewicz | wrogi]` lub `[RELACJA: Grzegorz | wrogi]` były traktowane wyłącznie jako pojedyncza nazwa postaci, co powodowało tworzenie wpisu o nazwie z doklejoną treścią nastawienia albo ignorowanie statusu relacji. Z kolei zbyt agresywne parsowanie nastawienia groziło odrzuceniem pełnych zdań narracyjnych (np. `[NPC: Janusz: Podejrzliwy wobec symbolu, pokazuje tatuaż]`), gdyby potraktowano je jako czysty token relacji.
+- **Problem:** Tagi w formacie `[NPC: Grzegorz Brzęczyszczykiewicz | wrogi]` lub `[RELACJA: Grzegorz | wrogi]` były traktowane wyłącznie jako pojedyncza nazwa postaci, co powodowało tworzenie wpisu o nazwie z doklejoną treścią nastawienia albo ignorowanie statusu relacji. Z kolei zbyt agresywne parsowanie nastawienia groziło odrzuceniem pełnych zdań narracyjnych (np. `[NPC: Janusz: Podejrzliwy wobec symbolu, pokazuje tatuaż]`), gdyby potraktowano je jako czysty token relacji. Ponadto wykluczenie myślnika z nazwiska w separatorach tagów relacji ucinało imiona i nazwiska złożone (np. `Jean-Paul` dzielone na `Jean` i opis `Paul | wrogi`).
 - **Rozwiązanie w `_tester/_base/.silnik/src/lib/journal/apply-journal-tags.ts`:**
   - Wprowadzono parser `parseNpcDisposition` oraz predykat `isPureDispositionToken`, które ściśle odróżniają pojedyncze tokeny nastawienia od pełnych zdań opisowych.
   - Jeśli opis zawiera wyłącznie token relacji/nastawienia, aktualizowane są pola `disposition` i `relationshipStatus` w Dossier, bez zaśmiecania `keyInformation`.
   - Jeśli opis zawiera szerszą obserwację ze słowem kluczowym nastawienia, nastawienie jest aktualizowane, a pełny opis trafia do `keyInformation`.
-  - Dodano elastyczną obsługę separatorów (`|`, `:`, `-`, pauza, półpauza) oraz cudzysłowów w tagach `[RELACJA: ...]`, `[DISPOSITION: ...]` i `[NASTAWIENIE: ...]`.
+  - Wzorce tagów relacji (`dispPattern`) wymagają spacji wokół separatorów myślnikowych (` - `, ` – `, ` — `), dzięki czemu łączniki wewnątrz imion i nazwisk (np. `Jean-Paul`, `Maria Skłodowska-Curie`) są nienaruszone.
   - Rozdzielono aktualizację `disposition` i `relationshipStatus` na niezależne warunki, zapobiegając blokowaniu synchronizacji relacji.
 
 ### C. Zarządzanie czasem gry w potoku bezgłowym (`MockGMPipeline`)

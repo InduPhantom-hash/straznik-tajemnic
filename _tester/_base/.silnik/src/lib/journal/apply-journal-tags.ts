@@ -135,7 +135,9 @@ export function extractExtraNpcTags(rawText: string): ExtractedNpcTag[] {
   }
 
   // 2. Tagi relacji i nastawienia np. [RELACJA: Janusz Nowak | podejrzliwy] lub [RELACJA: Janusz Nowak - wrogi]
-  const dispPattern = /\[(?:DISPOSITION|NASTAWIENIE|RELACJA|RELATIONSHIP):\s*(?:@([^:|\]\n]+?):)?\s*([^|:\]\n-]+?)\s*[|:\-–—]\s*([^\]]+)\]/gi;
+  // Separator myślnikowy wymaga spacji (np. " - " lub " – "), by nie dzielić nazwisk z łącznikiem (np. "Jean-Paul", "Skłodowska-Curie").
+  const dispPattern =
+    /\[(?:DISPOSITION|NASTAWIENIE|RELACJA|RELATIONSHIP):\s*(?:@([^:|\]\n]+?):)?\s*([^|:\]\n]+?)\s*(?:[|:]|\s+[\-–—]\s*|\s*[\-–—]\s+)\s*([^\]]+)\]/gi;
   let dMatch: RegExpExecArray | null;
   while ((dMatch = dispPattern.exec(rawText)) !== null) {
     const who = dMatch[1]?.trim();

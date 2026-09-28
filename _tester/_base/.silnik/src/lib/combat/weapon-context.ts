@@ -121,7 +121,18 @@ export function getCombatDefenseWeapons(
       const skillValue = resolveTestValue(skillId, character) ?? 25;
       const name = item.name.toLowerCase();
 
-      let damageFormula = item.modifiers?.damage?.trim() || undefined;
+      // Jeśli modyfikator obrażeń pochodzi z nieidealnego (rozmytego) dopasowania katalogowego,
+      // ignorujemy go i stosujemy bezpieczny podręcznikowy fallback RAW (np. 1d4 dla noża kuchennego, a nie 1d4+2 z szablonu noża bojowego).
+      const isCatalogInjectedFuzzyDamage = Boolean(
+        !isIdealCatalogTemplate &&
+          template?.modifiers?.damage &&
+          item.modifiers?.damage?.trim() === template.modifiers.damage.trim()
+      );
+
+      let damageFormula =
+        !isCatalogInjectedFuzzyDamage && item.modifiers?.damage?.trim()
+          ? item.modifiers.damage.trim()
+          : undefined;
       let damageType: WeaponDamageType = 'non_impaling';
 
       if (!damageFormula) {
