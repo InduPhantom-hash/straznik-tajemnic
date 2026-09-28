@@ -60,7 +60,11 @@ export interface CombatDefenseWeaponOption {
   damageType: WeaponDamageType;
 }
 
-/** Tylko katalogowe profile mechaniczne, bez heurystyk nazw. */
+/**
+ * Zwraca listę broni białej dostępnych do obrony wręcz (Unik / Kontratak).
+ * Zawiera profil bez broni (unarmed), broń z katalogu oraz bezpieczny fallback RAW
+ * dla zdobytych broni białych bez szablonu katalogowego.
+ */
 export function getCombatDefenseWeapons(
   character: Character | null | undefined
 ): CombatDefenseWeaponOption[] {
@@ -78,20 +82,74 @@ export function getCombatDefenseWeapons(
   ];
 
   for (const item of character.equipment ?? []) {
-    if (!item.templateId || item.condition === 'broken') continue;
-    const template = findEquipmentTemplate(item.templateId);
+    if (item.condition === 'broken') continue;
+
+    // 1. Sprawdź profil w katalogu (po templateId lub nazwie)
+    // Szablon jest idealny tylko wtedy, gdy nazwa przedmiotu ściśle odpowiada szablonowi
+    const template = item.templateId
+      ? findEquipmentTemplate(item.templateId)
+      : findEquipmentTemplate(item.name);
     const profile = template?.combatProfile;
-    if (profile?.kind !== 'melee_weapon') continue;
-    const skillValue = resolveTestValue(profile.combatSkillId, character);
-    if (skillValue === null) continue;
-    options.push({
-      id: item.id,
-      name: item.name,
-      skillId: profile.combatSkillId,
-      skillValue,
-      damageFormula: profile.damageFormula,
-      damageType: profile.damageClass,
-    });
+
+    const isIdealCatalogTemplate = Boolean(
+      template &&
+        profile?.kind === 'melee_weapon' &&
+        (template.name.toLowerCase() === item.name.toLowerCase() ||
+          template.aliases.some((a) => a.toLowerCase() === item.name.toLowerCase()))
+    );
+
+    if (isIdealCatalogTemplate && profile && profile.kind === 'melee_weapon') {
+      const skillValue = resolveTestValue(profile.combatSkillId, character);
+      if (skillValue !== null) {
+        options.push({
+          id: item.id,
+          name: item.name,
+          skillId: profile.combatSkillId,
+          skillValue,
+          damageFormula: profile.damageFormula,
+          damageType: profile.damageClass,
+        });
+        continue;
+      }
+    }
+
+    // 2. Bezpieczny fallback RAW dla zdobytej broni białej bez idealnego szablonu w katalogu
+    if (isWeapon(item) && isMeleeWeapon(item)) {
+      const skillId = SKILL_MELEE;
+      const skillValue = resolveTestValue(skillId, character) ?? 25;
+      const name = item.name.toLowerCase();
+
+      let damageFormula = isIdealCatalogTemplate ? item.modifiers?.damage : undefined;
+      let damageType: WeaponDamageType = 'non_impaling';
+
+      if (!damageFormula) {
+        if (CLUB_PATTERN.test(name)) {
+          damageFormula = '1d6';
+          damageType = 'blunt';
+        } else if (KNIFE_PATTERN.test(name)) {
+          damageFormula = '1d4';
+          damageType = 'impaling';
+        } else {
+          damageFormula = '1d4';
+          damageType = 'non_impaling';
+        }
+      } else {
+        if (CLUB_PATTERN.test(name)) {
+          damageType = 'blunt';
+        } else if (KNIFE_PATTERN.test(name)) {
+          damageType = 'impaling';
+        }
+      }
+
+      options.push({
+        id: item.id,
+        name: item.name,
+        skillId,
+        skillValue,
+        damageFormula,
+        damageType,
+      });
+    }
   }
   return options;
 }
