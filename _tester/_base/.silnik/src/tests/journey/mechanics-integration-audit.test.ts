@@ -19,7 +19,7 @@ import {
 } from '@/lib/combat/weapon-context';
 import { RANDOM_EVENTS } from '@/lib/content-library/random-tables';
 import { recoverSanityFromAnchor } from '@/lib/sanity/sanity-recovery';
-import type { Character, EquipmentItem } from '@/lib/types';
+import type { EquipmentItem } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era/types';
 
 describe('Mechanics Integration Audit - CoC 7e RAW (Issue #537)', () => {
@@ -153,6 +153,7 @@ W skrytce za obrazem ukryto stary, pożółkły dokument.
       `.trim();
 
       const turn = pipeline.feedGMResponse(handoutGmResponse);
+      expect(turn.journalChanges.changed).toBe(true);
       const char = pipeline.getActiveCharacter();
 
       // 1. Rekwizyt fizyczny w ekwipunku z flagą czytnika
@@ -175,6 +176,38 @@ W skrytce za obrazem ukryto stary, pożółkły dokument.
       expect(dossierClue?.category).toBe('document');
       expect(dossierClue?.provenance).toBe('handout');
       expect(dossierClue?.status).toBe('confirmed');
+    });
+
+    it('1.6: Zachowanie jawnej formuły obrażeń (modifiers.damage) dla niestandardowej broni białej', () => {
+      const char = pipeline.getActiveCharacter();
+      const customSaber: EquipmentItem = {
+        id: 'ceremonial_saber',
+        name: 'Szabla ceremonialna',
+        category: 'weapon',
+        modifiers: { damage: '1d8' },
+      };
+      const customDagger: EquipmentItem = {
+        id: 'cult_dagger',
+        name: 'Sztylet rytualny kultu',
+        category: 'weapon',
+        modifiers: { damage: '1d4+1' },
+      };
+
+      pipeline.updateActiveCharacter({
+        equipment: [...(char.equipment ?? []), customSaber, customDagger],
+      });
+
+      const defenseOptions = getCombatDefenseWeapons(pipeline.getActiveCharacter());
+      const saberOpt = defenseOptions.find((o) => o.name === 'Szabla ceremonialna');
+      const daggerOpt = defenseOptions.find((o) => o.name === 'Sztylet rytualny kultu');
+
+      expect(saberOpt).toBeDefined();
+      expect(saberOpt?.damageFormula).toBe('1d8');
+      expect(saberOpt?.damageType).toBe('slashing');
+
+      expect(daggerOpt).toBeDefined();
+      expect(daggerOpt?.damageFormula).toBe('1d4+1');
+      expect(daggerOpt?.damageType).toBe('impaling');
     });
   });
 
@@ -450,6 +483,40 @@ Gdy pytasz o symbol na monecie, Janusz blednie i sięga pod ladę po strzelbę!
       expect(hostileNpc?.disposition).toBe('hostile');
       expect(hostileNpc?.relationshipStatus).toBe('hostile');
     });
+
+    it('3.4: Narracyjny opis NPC zawierający przymiotnik nastawienia aktualizuje disposition ORAZ trafia do keyInformation', () => {
+      // 1. Istniejący NPC
+      pipeline.feedGMResponse(`
+W archiwum miejskim spotykasz kustosza.
+[NPC: Edward Pickman: Starszy kustosz z siwą brodą]
+      `.trim());
+
+      let npc = pipeline.getActiveCharacter().investigatorDossier?.npcs?.find((n) => n.name === 'Edward Pickman');
+      expect(npc).toBeDefined();
+      expect(npc?.firstImpression).toBe('Starszy kustosz z siwą brodą');
+
+      // 2. Narracyjny update z przymiotnikiem "podejrzliwy" w całym zdaniu - NIE MOŻE zostać odrzucony jako pure disposition
+      pipeline.feedGMResponse(`
+Edward Pickman przygląda się twojej odznace.
+[NPC: Edward Pickman: Podejrzliwy wobec symbolu, pokazuje ukryty tatuaż na przedramieniu.]
+      `.trim());
+
+      npc = pipeline.getActiveCharacter().investigatorDossier?.npcs?.find((n) => n.name === 'Edward Pickman');
+      expect(npc?.disposition).toBe('suspicious');
+      expect(npc?.keyInformation).toContain('Podejrzliwy wobec symbolu, pokazuje ukryty tatuaż na przedramieniu.');
+
+      // 3. Tagi z separatorem myślnikowym / en-dash / em-dash np. [RELACJA: Edward Pickman - wrogi]
+      pipeline.feedGMResponse(`
+Kustosz zamyka gwałtownie kronikę i żąda opuszczenia archiwum.
+[RELACJA: Edward Pickman - wrogi]
+      `.trim());
+
+      npc = pipeline.getActiveCharacter().investigatorDossier?.npcs?.find((n) => n.name === 'Edward Pickman');
+      expect(npc?.disposition).toBe('hostile');
+      expect(npc?.relationshipStatus).toBe('hostile');
+      // Czysty token "wrogi" nie powinien zanieczyszczać keyInformation
+      expect(npc?.keyInformation).not.toContain('; wrogi');
+    });
   });
 
   // =========================================================================
@@ -496,6 +563,7 @@ Wkraczasz do opuszczonej willi Blackwoodów.
 Z korytarza wyłania się stary ogrodnik trzymający widły.
 [NPC: Thomas Ward | podejrzliwy]
       `);
+      expect(t2.turn).toBe(2);
       const npc2 = pipeline.getActiveCharacter().investigatorDossier?.npcs?.find(
         (n) => n.name === 'Thomas Ward'
       );
@@ -508,6 +576,7 @@ Zapada zmrok. Z oddali dobiega nieludzki skowyt.
 Thomas Ward widząc twoje opanowanie przestaje podejrzewać cię o złe zamiary.
 [NPC: Thomas Ward | przyjazny]
       `);
+      expect(t3.turn).toBe(3);
       expect(pipeline.isNight()).toBe(true);
       const npc3 = pipeline.getActiveCharacter().investigatorDossier?.npcs?.find(
         (n) => n.name === 'Thomas Ward'
