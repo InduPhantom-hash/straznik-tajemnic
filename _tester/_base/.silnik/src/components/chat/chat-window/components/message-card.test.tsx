@@ -111,6 +111,27 @@ describe('MessageCard - ręczna kontynuacja narracji', () => {
       Node.DOCUMENT_POSITION_FOLLOWING
     );
   });
+
+  it('stosuje dynamiczny filtr CSS odpowiadający danej epoce (getEraImageFilter)', () => {
+    const { container } = render(
+      <MessageCard
+        {...baseProps}
+        era="1890s"
+        message={{
+          ...baseMessage,
+          content: 'Wiktoriański kadr',
+          generatedImages: ['https://example.com/gaslight.jpg'],
+          generatedImageTypes: ['scene'],
+        }}
+      />
+    );
+
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveStyle({
+      filter: 'sepia(0.5) saturate(0.58) contrast(1.06) brightness(0.96)',
+    });
+  });
 });
 
 describe('MessageCard - zagrożenia', () => {

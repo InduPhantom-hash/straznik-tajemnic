@@ -65,6 +65,7 @@ import { resolveImageLevel } from '@/lib/prompts/image-instructions';
 import { VisualBeliefGraph } from '@/lib/images/visual-belief-graph';
 import { directSceneIllustrations } from '@/lib/images/proactive-scene-director';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
+import { extractNpcTags } from '@/lib/parsers/journal-parser';
 import { applyStatChangesToParty } from '@/lib/character/apply-stat-changes';
 import { applyEquipmentEventsToParty } from '@/lib/character/apply-equipment-events';
 import { toast } from '@/components/ui/use-toast';
@@ -672,7 +673,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     }
   }, [adventureContext?.location]);
 
-  // Visual Belief Graph: synchronizuj profil Badacza i epokę
+  // Visual Belief Graph: synchronizuj profil Badacza, NPC z Dossier i epokę
   useEffect(() => {
     const era =
       adventureContext?.yearRange ||
@@ -682,6 +683,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     visualBeliefGraphRef.current.setEffectiveYear(era);
     if (activeCharacter) {
       visualBeliefGraphRef.current.registerPlayer(activeCharacter, era);
+      if (activeCharacter.investigatorDossier?.npcs) {
+        for (const npc of activeCharacter.investigatorDossier.npcs) {
+          visualBeliefGraphRef.current.registerNPC(npc, era);
+        }
+      }
     }
   }, [activeCharacter, adventureContext?.era, adventureContext?.eraLabel, adventureContext?.yearRange]);
 
@@ -832,6 +838,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               void persistentMediaCache
                 .setNpcPortrait(img.portraitName, url)
                 .catch(() => {});
+              visualBeliefGraphRef.current.setPortrait(img.portraitName, url);
             }
           });
 
@@ -1399,6 +1406,12 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               );
             }
 
+            const era =
+              adventureContext?.yearRange ||
+              adventureContext?.eraLabel ||
+              adventureContext?.era ||
+              '1920s';
+
             if (
               options.aiSettings?.imageGenerationEnabled !== false &&
               metadata.illustrations &&
@@ -1446,11 +1459,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 // Zamiast naiwnego slice(0, 1), proaktywny reżyser ocenia wagę dramaturgiczną,
                 // dobiera 1-3 zbalansowane kadry (lokacja / NPC / poszlaka / Mity)
                 // i wzbogaca je o Visual Belief Graph.
-                const era =
-                  adventureContext?.yearRange ||
-                  adventureContext?.eraLabel ||
-                  adventureContext?.era ||
-                  '1920s';
                 const maxAllowed = options.aiSettings?.replicateSettings?.maxImagesPerMessage ?? 1;
                 const freq = options.aiSettings?.replicateSettings?.imageFrequency || 'normal';
 
@@ -1499,6 +1507,32 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             // (jeśli był) nadpisze to niżej przez extractLatestTagLocation.
             const parsed = metadata.parsedEvents;
             if (Array.isArray(parsed)) {
+              for (const e of parsed) {
+                if (e && typeof e === 'object') {
+                  const ev = e as { type?: string; title?: string; description?: string };
+                  if (ev.type === 'npc' && ev.title) {
+                    const rawName = ev.title.replace(/^Spotkano:\s*/i, '').trim();
+                    if (rawName) {
+                      visualBeliefGraphRef.current.registerNPC(
+                        {
+                          id: rawName.toLowerCase(),
+                          name: rawName,
+                          description: ev.description || '',
+                        },
+                        era
+                      );
+                    }
+                  } else if (ev.type === 'location' && ev.title) {
+                    const name = sanitizeLocationName(ev.title);
+                    if (name && !isVisualPromptLeak(name)) {
+                      visualBeliefGraphRef.current.updateLocation(name, {
+                        atmosphere: ev.description || undefined,
+                      });
+                    }
+                  }
+                }
+              }
+
               const locEvent = [...parsed]
                 .reverse()
                 .find(
@@ -1506,13 +1540,16 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     !!e &&
                     typeof e === 'object' &&
                     (e as { type?: string }).type === 'location'
-                ) as { title?: string } | undefined;
+                ) as { title?: string; description?: string } | undefined;
               const rawTitle = locEvent?.title;
               if (typeof rawTitle === 'string' && rawTitle.trim()) {
                 const name = sanitizeLocationName(rawTitle);
                 if (name && !isVisualPromptLeak(name)) {
                   currentLocationRef.current = name;
                   setCurrentLocation(name);
+                  visualBeliefGraphRef.current.updateLocation(name, {
+                    atmosphere: locEvent?.description || undefined,
+                  });
                 }
               }
             }
@@ -1532,6 +1569,25 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         // surowy (tagi czyszczone dopiero w renderze), więc niesie [DZIENNIK:].
         // appendJournalFromText jest idempotentne (dedup po messageId).
         if (activeCharacter) {
+          const currentEra =
+            adventureContext?.yearRange ||
+            adventureContext?.eraLabel ||
+            adventureContext?.era ||
+            '1920s';
+
+          // Rejestracja nowo napotkanych NPC z tagów [NPC:] / [DZIENNIK:npc:] w VisualBeliefGraph
+          const extractedNpcs = extractNpcTags(fullText);
+          for (const npcTag of extractedNpcs) {
+            visualBeliefGraphRef.current.registerNPC(
+              {
+                id: npcTag.name.toLowerCase(),
+                name: npcTag.name,
+                description: npcTag.description,
+              },
+              currentEra
+            );
+          }
+
           // Duet/Hot Seat: kieruj wpisy [DZIENNIK:] i zmiany SAN/HP do postaci
           // wskazanej prefiksem @Imię w tagu (fallback: aktywna postać). Najpierw
           // dziennik, potem staty - oba na tej samej liście postaci, jeden persist.
@@ -1542,6 +1598,11 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             fullText,
             assistantMessageId
           );
+          if (j.activeCharacter.investigatorDossier?.npcs) {
+            for (const npc of j.activeCharacter.investigatorDossier.npcs) {
+              visualBeliefGraphRef.current.registerNPC(npc, currentEra);
+            }
+          }
           const s = applyStatChangesToParty(
             j.characters,
             j.activeCharacter,
@@ -1717,6 +1778,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         if (latestLocation) {
           currentLocationRef.current = latestLocation.name;
           setCurrentLocation(latestLocation.name);
+          visualBeliefGraphRef.current.updateLocation(latestLocation.name, {
+            atmosphere: latestLocation.description || undefined,
+          });
         }
 
         // IND-230: Faza Rozwoju CoC. Po pełnym streamie wyłuskaj wyniki testów
