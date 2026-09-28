@@ -50,6 +50,8 @@ const MELEE_WEAPON_PATTERN =
 const SHOTGUN_PATTERN = /shotgun|strzelb|dubeltów/i;
 const CLUB_PATTERN = /\b(club|baton|cudgel|hammer)\b|pałk|palk|kij|młot|mlot/i;
 const KNIFE_PATTERN = /\b(knife|dagger|bayonet)\b|nóż|noz|sztylet|bagnet/i;
+const SWORD_PATTERN = /\b(sword|saber|sabre|rapier|blade)\b|miecz|szabl|rapier/i;
+const AXE_PATTERN = /\b(axe|hatchet)\b|topór|topor|siekier/i;
 
 export interface CombatDefenseWeaponOption {
   id: string;
@@ -119,7 +121,18 @@ export function getCombatDefenseWeapons(
       const skillValue = resolveTestValue(skillId, character) ?? 25;
       const name = item.name.toLowerCase();
 
-      let damageFormula = isIdealCatalogTemplate ? item.modifiers?.damage : undefined;
+      // Jeśli modyfikator obrażeń pochodzi z nieidealnego (rozmytego) dopasowania katalogowego,
+      // ignorujemy go i stosujemy bezpieczny podręcznikowy fallback RAW (np. 1d4 dla noża kuchennego, a nie 1d4+2 z szablonu noża bojowego).
+      const isCatalogInjectedFuzzyDamage = Boolean(
+        !isIdealCatalogTemplate &&
+          template?.modifiers?.damage &&
+          item.modifiers?.damage?.trim() === template.modifiers.damage.trim()
+      );
+
+      let damageFormula =
+        !isCatalogInjectedFuzzyDamage && item.modifiers?.damage?.trim()
+          ? item.modifiers.damage.trim()
+          : undefined;
       let damageType: WeaponDamageType = 'non_impaling';
 
       if (!damageFormula) {
@@ -129,6 +142,12 @@ export function getCombatDefenseWeapons(
         } else if (KNIFE_PATTERN.test(name)) {
           damageFormula = '1d4';
           damageType = 'impaling';
+        } else if (SWORD_PATTERN.test(name)) {
+          damageFormula = '1d8';
+          damageType = /rapier|sztylet|szpila/i.test(name) ? 'impaling' : 'slashing';
+        } else if (AXE_PATTERN.test(name)) {
+          damageFormula = '1d6+1';
+          damageType = 'slashing';
         } else {
           damageFormula = '1d4';
           damageType = 'non_impaling';
@@ -138,6 +157,10 @@ export function getCombatDefenseWeapons(
           damageType = 'blunt';
         } else if (KNIFE_PATTERN.test(name)) {
           damageType = 'impaling';
+        } else if (SWORD_PATTERN.test(name)) {
+          damageType = /rapier|sztylet|szpila/i.test(name) ? 'impaling' : 'slashing';
+        } else if (AXE_PATTERN.test(name)) {
+          damageType = 'slashing';
         }
       }
 

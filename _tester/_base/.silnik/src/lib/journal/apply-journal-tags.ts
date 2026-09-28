@@ -44,6 +44,21 @@ import {
  * - [NPC: Janusz Nowak | disposition: suspicious]
  * - [RELACJA: Janusz Nowak | wrogi]
  */
+export function isPureDispositionToken(raw?: string): boolean {
+  if (!raw) return false;
+  const s = raw.toLowerCase().trim();
+  // Usuń opcjonalny prefiks klucza: "disposition:", "nastawienie=", "relacja:", "relationship:"
+  const stripped = s
+    .replace(/^(?:disposition|nastawienie|relacja|relationship)\s*[:=-]\s*['"]?/i, '')
+    .replace(/['"]?\s*$/, '')
+    .trim();
+  // Usuń końcowe znaki interpunkcyjne
+  const clean = stripped.replace(/[.;!]+$/, '').trim();
+  const purePattern =
+    /^(?:friendly|przyjazn[yaeie]|pomocn[yaeie]|zaufan[yaeie]|hostile|wrog[iaeo]|agresywn[yaeie]|nieprzyjazn[yaeie]|suspicious|podejrzliw[yaeie]|nieufn[yaeie]|ostrożn[yaeie]|ostrozn[yaeie]|fanatical|fanatyczn[yaeie]|obłąkan[yaeie]|oblakan[yaeie]|oddany_kultu|neutral|neutraln[yaeie]|obojętn[yaeie]|obojetn[yaeie]|deceased|martw[yae]|nieżyw[yae]|niezyw[yae]|zmarł[yae]|zmarl[yae])$/i;
+  return purePattern.test(clean);
+}
+
 export function parseNpcDisposition(
   raw: string
 ): {
@@ -54,22 +69,22 @@ export function parseNpcDisposition(
   const s = raw.toLowerCase().trim();
 
   // Sprawdź czy są tokeny klucz-wartość, np. disposition=suspicious, relacja=wroga, nastawienie: przyjazny
-  const kvMatch = s.match(/(?:disposition|nastawienie|relacja|relationship)\s*[:=]\s*([a-ząćęłńóśźż_]+)/i);
+  const kvMatch = s.match(/(?:disposition|nastawienie|relacja|relationship)\s*[:=-]\s*['"]?([a-ząćęłńóśźż_\s]+?)['"]?(?:[;,|\]]|$)/i);
   const targetStr = kvMatch ? kvMatch[1].trim() : s;
 
-  if (/\b(friendly|przyjazn[yae]|pomocn[yae]|zaufan[yae])\b/.test(targetStr)) {
+  if (/\b(friendly|przyjazn[yaeie]|pomocn[yaeie]|zaufan[yaeie])\b/.test(targetStr)) {
     return { disposition: 'friendly', relationshipStatus: 'friendly' };
   }
-  if (/\b(hostile|wrog[ia]|agresywn[yae]|nieprzyjazn[yae])\b/.test(targetStr)) {
+  if (/\b(hostile|wrog[iaeo]|agresywn[yaeie]|nieprzyjazn[yaeie])\b/.test(targetStr)) {
     return { disposition: 'hostile', relationshipStatus: 'hostile' };
   }
-  if (/\b(suspicious|podejrzliw[yae]|nieufn[yae]|ostrożn[yae]|ostrozn[yae])\b/.test(targetStr)) {
+  if (/\b(suspicious|podejrzliw[yaeie]|nieufn[yaeie]|ostrożn[yaeie]|ostrozn[yaeie])\b/.test(targetStr)) {
     return { disposition: 'suspicious', relationshipStatus: 'suspicious' };
   }
-  if (/\b(fanatical|fanatyczn[yae]|obłąkan[yae]|oblakan[yae]|oddany_kultu)\b/.test(targetStr)) {
+  if (/\b(fanatical|fanatyczn[yaeie]|obłąkan[yaeie]|oblakan[yaeie]|oddany_kultu)\b/.test(targetStr)) {
     return { disposition: 'fanatical', relationshipStatus: 'fanatical' };
   }
-  if (/\b(neutral|neutraln[yae]|obojętn[yae]|obojetn[yae])\b/.test(targetStr)) {
+  if (/\b(neutral|neutraln[yaeie]|obojętn[yaeie]|obojetn[yaeie])\b/.test(targetStr)) {
     return { disposition: 'neutral', relationshipStatus: 'neutral' };
   }
   if (/\b(deceased|martw[yae]|nieżyw[yae]|niezyw[yae]|zmarł[yae]|zmarl[yae])\b/.test(targetStr)) {
@@ -78,22 +93,22 @@ export function parseNpcDisposition(
 
   // Sprawdź w całym tekście jeśli kvMatch nic nie dało
   if (kvMatch) {
-    if (/\b(friendly|przyjazn[yae]|pomocn[yae]|zaufan[yae])\b/.test(s)) {
+    if (/\b(friendly|przyjazn[yaeie]|pomocn[yaeie]|zaufan[yaeie])\b/.test(s)) {
       return { disposition: 'friendly', relationshipStatus: 'friendly' };
     }
-    if (/\b(hostile|wrog[ia]|agresywn[yae]|nieprzyjazn[yae])\b/.test(s)) {
+    if (/\b(hostile|wrog[iaeo]|agresywn[yaeie]|nieprzyjazn[yaeie])\b/.test(s)) {
       return { disposition: 'hostile', relationshipStatus: 'hostile' };
     }
-    if (/\b(suspicious|podejrzliw[yae]|nieufn[yae]|ostrożn[yae]|ostrozn[yae])\b/.test(s)) {
+    if (/\b(suspicious|podejrzliw[yaeie]|nieufn[yaeie]|ostrożn[yaeie]|ostrozn[yaeie])\b/.test(s)) {
       return { disposition: 'suspicious', relationshipStatus: 'suspicious' };
     }
-    if (/\b(fanatical|fanatyczn[yae]|obłąkan[yae]|oblakan[yae])\b/.test(s)) {
+    if (/\b(fanatical|fanatyczn[yaeie]|obłąkan[yaeie]|oblakan[yaeie]|oddany_kultu)\b/.test(s)) {
       return { disposition: 'fanatical', relationshipStatus: 'fanatical' };
     }
-    if (/\b(neutral|neutraln[yae]|obojętn[yae]|obojetn[yae])\b/.test(s)) {
+    if (/\b(neutral|neutraln[yaeie]|obojętn[yaeie]|obojetn[yaeie])\b/.test(s)) {
       return { disposition: 'neutral', relationshipStatus: 'neutral' };
     }
-    if (/\b(deceased|martw[yae]|nieżyw[yae]|niezyw[yae])\b/.test(s)) {
+    if (/\b(deceased|martw[yae]|nieżyw[yae]|niezyw[yae]|zmarł[yae]|zmarl[yae])\b/.test(s)) {
       return { relationshipStatus: 'deceased' };
     }
   }
@@ -119,8 +134,10 @@ export function extractExtraNpcTags(rawText: string): ExtractedNpcTag[] {
     }
   }
 
-  // 2. Tagi relacji i nastawienia np. [RELACJA: Janusz Nowak | podejrzliwy]
-  const dispPattern = /\[(?:DISPOSITION|NASTAWIENIE|RELACJA|RELATIONSHIP):\s*(?:@([^:|\]\n]+?):)?\s*([^|:\]\n]+)\s*[|:]\s*([^\]]+)\]/gi;
+  // 2. Tagi relacji i nastawienia np. [RELACJA: Janusz Nowak | podejrzliwy] lub [RELACJA: Janusz Nowak - wrogi]
+  // Separator myślnikowy wymaga spacji (np. " - " lub " – "), by nie dzielić nazwisk z łącznikiem (np. "Jean-Paul", "Skłodowska-Curie").
+  const dispPattern =
+    /\[(?:DISPOSITION|NASTAWIENIE|RELACJA|RELATIONSHIP):\s*(?:@([^:|\]\n]+?):)?\s*([^|:\]\n]+?)\s*(?:[|:]|\s+[\-–—]\s*|\s*[\-–—]\s+)\s*([^\]]+)\]/gi;
   let dMatch: RegExpExecArray | null;
   while ((dMatch = dispPattern.exec(rawText)) !== null) {
     const who = dMatch[1]?.trim();
@@ -455,37 +472,29 @@ export function processCharacterJournalAndDossier(
       let npcUpdated = false;
 
       // Aktualizacja nastawienia/relacji z tagu
-      if (parsedDisp?.disposition) {
-        if (existing.disposition !== parsedDisp.disposition) {
-          existing.disposition = parsedDisp.disposition;
-          existing.relationshipStatus = parsedDisp.relationshipStatus || (parsedDisp.disposition as NpcRelationshipStatus);
-          npcUpdated = true;
-        }
-      } else if (parsedDisp?.relationshipStatus) {
-        if (existing.relationshipStatus !== parsedDisp.relationshipStatus) {
-          existing.relationshipStatus = parsedDisp.relationshipStatus;
-          npcUpdated = true;
-        }
+      if (parsedDisp?.disposition && existing.disposition !== parsedDisp.disposition) {
+        existing.disposition = parsedDisp.disposition;
+        npcUpdated = true;
+      }
+      const targetRel = parsedDisp?.relationshipStatus || (parsedDisp?.disposition as NpcRelationshipStatus);
+      if (targetRel && existing.relationshipStatus !== targetRel) {
+        existing.relationshipStatus = targetRel;
+        npcUpdated = true;
       }
 
-      if (!existing.firstImpression && npc.description) {
+      const pureDisp = isPureDispositionToken(npc.description);
+      if (!existing.firstImpression && npc.description && !pureDisp) {
         existing.firstImpression = npc.description;
         npcUpdated = true;
-      } else if (npc.description) {
+      } else if (npc.description && !pureDisp) {
         // Dołącz nową informację, jeśli nie jest duplikatem ani czystym tokenem nastawienia
-        const isPureDisp =
-          parsedDisp &&
-          npc.description.trim().split('|').length === 1 &&
-          parseNpcDisposition(npc.description.trim()) !== null;
-        if (!isPureDisp) {
-          const snippet = npc.description.slice(0, 30).toLowerCase();
-          const currentKeyInfo = existing.keyInformation || '';
-          if (!currentKeyInfo.toLowerCase().includes(snippet)) {
-            existing.keyInformation = currentKeyInfo
-              ? `${currentKeyInfo}; ${npc.description}`
-              : npc.description;
-            npcUpdated = true;
-          }
+        const snippet = npc.description.slice(0, 30).toLowerCase();
+        const currentKeyInfo = existing.keyInformation || '';
+        if (!currentKeyInfo.toLowerCase().includes(snippet)) {
+          existing.keyInformation = currentKeyInfo
+            ? `${currentKeyInfo}; ${npc.description}`
+            : npc.description;
+          npcUpdated = true;
         }
       }
 
@@ -503,27 +512,27 @@ export function processCharacterJournalAndDossier(
     } else {
       // Nowy NPC: twórz nową kartę w dossier + JEDEN wpis w kronice
       // Ekstrakcja trójwymiarowości Egriego jeśli podana w formacie [opis | ciało | status | cel]
-      let firstImpression = npc.description;
+      let firstImpression = isPureDispositionToken(npc.description) ? undefined : npc.description;
       let physiologicalDetail: string | undefined;
       let sociologicalStatus: string | undefined;
       let psychologicalAgenda: string | undefined;
 
       if (npc.description.includes('|')) {
         const parts = npc.description.split('|').map((p) => p.trim());
-        firstImpression = parts[0] || npc.description;
+        firstImpression = isPureDispositionToken(parts[0]) ? undefined : (parts[0] || npc.description);
         if (parts.length >= 2) physiologicalDetail = parts[1];
         if (parts.length >= 3) sociologicalStatus = parts[2];
         if (parts.length >= 4) psychologicalAgenda = parts[3];
       }
 
       const newNpc: NpcDossierEntry = {
-        id: revealedEntityId('npc',messageId,normName),
+        id: revealedEntityId('npc', messageId, normName),
         name: normName,
         firstImpression,
         physiologicalDetail,
         sociologicalStatus,
         psychologicalAgenda,
-        relationshipStatus: parsedDisp?.relationshipStatus || 'unknown',
+        relationshipStatus: parsedDisp?.relationshipStatus || (parsedDisp?.disposition as NpcRelationshipStatus) || 'unknown',
         disposition: parsedDisp?.disposition,
         location: locationEntry ? locationEntry.title : undefined,
         locationId: locationEntry ? revealedEntityId('location', messageId, locationEntry.title) : undefined,
@@ -538,7 +547,7 @@ export function processCharacterJournalAndDossier(
           timestamp: new Date(),
           type: 'npc',
           title: normName,
-          content: firstImpression,
+          content: firstImpression || npc.description,
           tags: [],
           isBookmarked: false,
         });
