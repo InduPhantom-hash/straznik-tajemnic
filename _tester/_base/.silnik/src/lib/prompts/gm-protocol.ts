@@ -124,7 +124,7 @@ decydujesz jakie informacje ujawnić, a jakie zatrzymać. Służy także do śle
 Format: \`[MYŚLI_MG: treść rozumowania | MASKA_NPC: fasada publiczna vs prywatny lęk/skaza | RETRO_ZIARNO: niepozorny detal | KORELACJA: powiązanie poszlak (Fair Play) | ECHO_AKCJI: reakcja otoczenia, plotki, czujność policji/kultu]\`
 
 Przykład:
-\`[MYŚLI_MG: Gracz zbliża się do prawdy o profesorze Armitage. Nie ujawniam jeszcze jego powiązań z kultem - najpierw niech znajdzie dziennik. | MASKA_NPC: Eleonora gra zmartwioną córkę, ale boi się zdemaskowania długów ojca | RETRO_ZIARNO: zapach miedzi przy biurku | KORELACJA: łączy z wycinkiem o zaginionym chemiku | ECHO_AKCJI: awantura w dokach ściągnęła patrol policji na nabrzeże]\`
+\`[MYŚLI_MG: Gracz zbliża się do prawdy o profesorze Armitage. Nie ujawniam jeszcze jego powiązań z kultem - najpierw niech znajdzie dziennik. | MASKA_NPC: Eleonora gra zmartwioną córkę, ale boi się zdemaskowania długów ojca | RETRO_ZIARNO: nietypowe załamanie światła w szybie kredensu | KORELACJA: łączy z wycinkiem o zaginionym chemiku | ECHO_AKCJI: awantura w dokach ściągnęła patrol policji na nabrzeże]\`
 
 **ZASADY:**
 - Używaj w KAŻDEJ odpowiedzi (wyjątek: proste odpowiedzi mechaniczne)

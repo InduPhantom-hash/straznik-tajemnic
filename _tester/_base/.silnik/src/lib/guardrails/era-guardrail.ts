@@ -244,6 +244,17 @@ export function detectDiceRulesQuery(text: string): boolean {
   return DICE_RULES_QUERY_PATTERN.test(text);
 }
 
+export function isDiceRollResultMessage(text: string): boolean {
+  return (
+    text.includes('[🎯 Test:') ||
+    text.includes('[🎯 Rzut:') ||
+    text.includes('[🎯 Sukces') ||
+    text.includes('[🎯 Porażka') ||
+    /(?:^|\n)Wynik:\s*\d+/i.test(text) ||
+    /\(Rzut\s+(?:wirtualny|fizyczny)\)/i.test(text)
+  );
+}
+
 export function buildAnachronismResponse(
   label: string,
   alternatives: string[],
@@ -410,6 +421,12 @@ export function evaluateEraGuardrail(
 
   const trimmed = message.trim();
   if (trimmed.length === 0) {
+    return null;
+  }
+
+  // 0. Komunikaty systemowe z wynikami rzutów kośćmi (Issue #533)
+  // Nigdy nie blokuj zdarzeń rzutu kością - muszą natychmiast trafić do silnika narracji MG
+  if (isDiceRollResultMessage(trimmed)) {
     return null;
   }
 
