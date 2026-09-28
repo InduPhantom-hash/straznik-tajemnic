@@ -7,7 +7,7 @@ import { YouTubePlayer } from '../youtube-player';
 // 3. Proporcjonalny ducking podczas TTS (isTTSPlaying) zamiast sztywnego 10
 
 describe('YouTubePlayer volume controls', () => {
-  let mockPlayer: any;
+  let mockPlayer: Record<string, unknown>;
 
   beforeEach(() => {
     localStorage.clear();
@@ -30,11 +30,11 @@ describe('YouTubePlayer volume controls', () => {
         return mockPlayer;
       }),
       PlayerState: { PLAYING: 1 },
-    } as any;
+    } as unknown as typeof window.YT;
   });
 
   afterEach(() => {
-    delete (window as any).YT;
+    delete (window as { YT?: unknown }).YT;
   });
 
   it('odczytuje zapisaną głośność z localStorage lub przyjmuje domyślną', () => {
