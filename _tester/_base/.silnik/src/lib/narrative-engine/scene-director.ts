@@ -1,0 +1,339 @@
+/**
+ * Dynamiczny Reżyser Pacingu i Selektor Technik (Scene Director & Technique Dispatcher)
+ *
+ * Odpowiada za:
+ * 1. Hybrydową klasyfikację stanu sceny na CPU (reguły deklaracji gracza + pamięć poprzedniego stanu).
+ * 2. Dynamiczny dobór 1-2 technik z Kodeksu Technik MG (#535) z rotacją cooldownu (żadna technika 2 tury z rzędu).
+ * 3. Nastrojowe sugestie pacingu i dynamiki narracji (pozostawiając modelowi pełną swobodę objętościową).
+ *
+ * @module narrative-engine/scene-director
+ */
+
+import {
+  getTechniquesForSceneState,
+  getTechniqueDirective,
+  getTechnique,
+} from './techniques/playbook';
+import type {
+  TechniqueDefinition,
+  TechniqueId,
+  SceneState,
+  CadenceGear,
+  Locale,
+} from './techniques/types';
+
+export interface SceneContext {
+  playerMessage?: string | null;
+  previousSceneState?: SceneState | null;
+  isInCombat?: boolean;
+  hasChaseContext?: boolean;
+  hasSanityLossOrRoll?: boolean;
+  hasOccultElements?: boolean;
+  npcsPresent?: boolean;
+  currentLocation?: string | null;
+  locationChanged?: boolean;
+  turnIndex?: number;
+}
+
+export interface TechniqueSelectionParams {
+  sceneState: SceneState;
+  recentTechniqueIds?: TechniqueId[];
+  playerMessage?: string | null;
+  hasNPCInteraction?: boolean;
+  hasDirectDanger?: boolean;
+  isCosmicHorror?: boolean;
+  isLocationTransition?: boolean;
+}
+
+export interface SceneTechniqueSelection {
+  sceneState: SceneState;
+  cadenceGear: CadenceGear;
+  primaryTechnique: TechniqueDefinition;
+  secondaryTechnique?: TechniqueDefinition;
+  pacingMoodSuggestion: {
+    pl: string;
+    en: string;
+  };
+}
+
+/**
+ * Hybrydowa klasyfikacja stanu sceny na CPU
+ * Łączy natychmiastową analizę intencji gracza i flag mechanicznych z pamięcią poprzedniego stanu.
+ */
+export function determineSceneState(context: SceneContext): SceneState {
+  const rawMsg = (context.playerMessage ?? '').trim().toLowerCase();
+
+  // 1. Akcja fizyczna / walka / pościg (najwyższy priorytet mechaniczny)
+  if (context.isInCombat || context.hasChaseContext) {
+    return 'action';
+  }
+
+  const isActionIntent =
+    /\b(strzel|atakuj|bij|uderz|uciek|biegn|bieg|szarż|szarz|rzucam się|rzucam sie|walcz|zasłan|zaslan|unik|przeładow|przeladow|shoot|attack|hit|strike|flee|run|charge|fight|dodge|reload)[a-ząćęłńóśźż]*/i.test(
+      rawMsg
+    );
+  if (isActionIntent) {
+    return 'action';
+  }
+
+  // 2. Skok napięcia / zagrożenie bezpośrednie / utrata SAN
+  if (context.hasSanityLossOrRoll) {
+    return 'tension_spike';
+  }
+
+  const isPanicOrAmbush =
+    /\b(panik|krzyk|pułapk|pulapk|zasadzk|alarm|kryj się|kryj sie|pomocy|dopada mnie|wpadam w panikę|panic|scream|trap|ambush|alarm|help|take cover)[a-ząćęłńóśźż]*/i.test(
+      rawMsg
+    );
+  if (isPanicOrAmbush) {
+    return 'tension_spike';
+  }
+
+  // 3. Objawienie zgrozy kosmicznej / okultyzm
+  const isEldritchIntent =
+    /\b(dagon|cthulhu|bóstw|bostw|mack[ai]|anomali|nieeuklidesow|obłęd|obled|szaleństw|szalenstw|monstrum|potwór|potwor|rytuał|rytual|czar|inkantacj|eldritch|mythos|abyss|insanity|cosmic|entity|tentacle)[a-ząćęłńóśźż]*/i.test(
+      rawMsg
+    );
+  if (Boolean(context.hasOccultElements && isEldritchIntent)) {
+    return 'abyssal_reveal';
+  }
+
+  // 4. Dialog / interakcja z NPC
+  const isSocialIntent =
+    /\b(mówi|mowie|rozmawia|pyta|szept|krzycz|zagad|odpowiada|tłumacz|tlumacz|błaga|blaga|negocj|przekon|grozi|panie|pani|dzień dobry|dzien dobry|cześć|czesc|witam|wypytuj|talk|speak|ask|whisper|shout|tell|interrogate|greet|inquire)[a-ząćęłńóśźż]*/i.test(
+      rawMsg
+    );
+
+  if (context.npcsPresent && isSocialIntent) {
+    return 'dialogue';
+  }
+
+  // 5. Pamięć stanu z poprzedniej tury (Smooth Pacing Continuity)
+  if (context.previousSceneState === 'dialogue' && context.npcsPresent) {
+    // Jeśli gracz kontynuuje wypowiedź w obecności NPC bez deklaracji badania lub walki
+    const isInvestigativeOnly =
+      /\b(szukam|badam|przeszukuj|oglądam|ogladam|czytam|otwieram|search|inspect|examine|read|open)\b/i.test(
+        rawMsg
+      );
+    if (!isInvestigativeOnly) {
+      return 'dialogue';
+    }
+  }
+
+  if (context.previousSceneState === 'action' && !rawMsg) {
+    // Cisza w trakcie walki utrzymuje napięcie
+    return 'tension_spike';
+  }
+
+  // 6. Domyślny stan śledztwa i eksploracji
+  return 'investigation';
+}
+
+/**
+ * Zwraca sugestię nastroju sceny z zachowaniem pełnej swobody objętościowej modelu
+ */
+export function getPacingMoodSuggestion(state: SceneState): {
+  pl: string;
+  en: string;
+} {
+  switch (state) {
+    case 'action':
+      return {
+        pl: 'Nastrój akcji: dynamiczny rytm, wysoka presja bezpośredniego zagrożenia, ostre reakcje świata.',
+        en: 'Action mood: dynamic rhythm, high immediate threat pressure, sharp world reactions.',
+      };
+    case 'dialogue':
+      return {
+        pl: 'Nastrój dialogu: skupienie na intencji rozmówcy, tarciu społecznym i niewypowiedzianych sekretach NPC.',
+        en: 'Dialogue mood: focus on the speaker intent, social friction, and unspoken NPC secrets.',
+      };
+    case 'tension_spike':
+      return {
+        pl: 'Nastrój zagrożenia: narastający niepokój, niepewność i wyczekiwanie na zbliżający się cios.',
+        en: 'Tension spike mood: rising dread, uncertainty, and anticipation of the impending strike.',
+      };
+    case 'abyssal_reveal':
+      return {
+        pl: 'Nastrój grozy kosmicznej: zderzenie z nienazwanym, deficyt racjonalnych punktów odniesienia, chłód i pustka.',
+        en: 'Abyssal reveal mood: collision with the unnameable, deficit of rational reference points, coldness and the void.',
+      };
+    case 'investigation':
+    default:
+      return {
+        pl: 'Nastrój śledztwa: analityczna uwaga, wyrazisty detal otoczenia i logiczne łączenie poszlak.',
+        en: 'Investigation mood: analytical attentiveness, evocative environmental detail, and logical clue synthesis.',
+      };
+  }
+}
+
+/**
+ * Przypisuje dominujący bieg kadencji do stanu sceny
+ */
+export function getCadenceForSceneState(state: SceneState): CadenceGear {
+  switch (state) {
+    case 'action':
+      return 1; // Staccato
+    case 'dialogue':
+      return 1; // Ping-Pong
+    case 'tension_spike':
+      return 3; // Przełamanie / Cios
+    case 'abyssal_reveal':
+      return 4; // Zawieszenie / Pustka
+    case 'investigation':
+    default:
+      return 2; // Szeroki Kadr
+  }
+}
+
+/**
+ * Selekcjoner technik z puli stanu sceny z rotacją cooldownu (anty-powtórzenia)
+ */
+export function selectSceneTechniques(
+  params: TechniqueSelectionParams
+): SceneTechniqueSelection {
+  const candidateTechniques = getTechniquesForSceneState(params.sceneState);
+  const recentSet = new Set(params.recentTechniqueIds ?? []);
+
+  // 1. Filtruj kandydatów wolnych od natychmiastowego cooldownu
+  let available = candidateTechniques.filter((t) => !recentSet.has(t.id));
+
+  // Fallback: jeśli wszystkie techniki ze stanu były niedawno użyte, odblokuj pełną pulę
+  if (available.length === 0) {
+    available = candidateTechniques;
+  }
+
+  // 2. Punktacja heurystyczna w zależności od kontekstu deklaracji
+  const scored = available.map((tech) => {
+    let score = 1.0;
+    const rawMsg = (params.playerMessage ?? '').toLowerCase();
+
+    // Preferencje dla dialogu
+    if (params.sceneState === 'dialogue') {
+      if (tech.id === 'social_leverage' && /\b(chcę|daj|powiedz|żądam|pieniądze|informacj|want|give|tell|demand)\b/i.test(rawMsg)) {
+        score += 3.0;
+      }
+      if (tech.id === 'distinct_voice') {
+        score += 2.0;
+      }
+      if (tech.id === 'agenda_first') {
+        score += 2.5;
+      }
+    }
+
+    // Preferencje dla akcji
+    if (params.sceneState === 'action') {
+      if (tech.id === 'bang_hard_move' && params.hasDirectDanger) {
+        score += 3.0;
+      }
+      if (tech.id === 'cut_to_action') {
+        score += 2.5;
+      }
+      if (tech.id === 'referee_veto' && /\b(skaczę z dachu|zabijam jednym ciosem|nieśmierteln)\b/i.test(rawMsg)) {
+        score += 5.0;
+      }
+    }
+
+    // Preferencje dla śledztwa
+    if (params.sceneState === 'investigation') {
+      if (tech.id === 'threshold_shift' && params.isLocationTransition) {
+        score += 4.0;
+      }
+      if (tech.id === 'cognitive_anchor' && /\b(list|papier|biurko|szuflada|monogram|symbol|ślad)\b/i.test(rawMsg)) {
+        score += 3.0;
+      }
+      if (tech.id === 'three_clue_rule') {
+        score += 2.0;
+      }
+      if (tech.id === 'single_sensory_anchor') {
+        score += 1.5;
+      }
+    }
+
+    // Preferencje dla grozy kosmicznej
+    if (params.sceneState === 'abyssal_reveal') {
+      if (tech.id === 'vacuum_variable') {
+        score += 3.5;
+      }
+    }
+
+    // Preferencje dla skoku napięcia
+    if (params.sceneState === 'tension_spike') {
+      if (tech.id === 'soft_move') {
+        score += 2.5;
+      }
+      if (tech.id === 'vacuum_variable') {
+        score += 2.0;
+      }
+    }
+
+    return { tech, score };
+  });
+
+  // Sortuj malejąco wg trafności
+  scored.sort((a, b) => b.score - a.score);
+
+  const primaryTechnique = scored[0]?.tech ?? candidateTechniques[0];
+
+  // 3. Wybór techniki wspomagającej (Secondary) - z innej kategorii, jeśli dostępna
+  let secondaryTechnique: TechniqueDefinition | undefined;
+  for (let i = 1; i < scored.length; i++) {
+    const candidate = scored[i].tech;
+    if (candidate.category !== primaryTechnique.category) {
+      secondaryTechnique = candidate;
+      break;
+    }
+  }
+
+  return {
+    sceneState: params.sceneState,
+    cadenceGear: getCadenceForSceneState(params.sceneState),
+    primaryTechnique,
+    secondaryTechnique,
+    pacingMoodSuggestion: getPacingMoodSuggestion(params.sceneState),
+  };
+}
+
+/**
+ * Formatuje zwięzłą dyrektywę promptową Reżysera Sceny dla Gemini
+ */
+export function formatSceneDirective(
+  selection: SceneTechniqueSelection,
+  locale: Locale = 'pl'
+): string {
+  const isPl = locale === 'pl';
+  const stateLabel = isPl ? 'Stan Sceny' : 'Scene State';
+  const cadenceLabel = isPl ? 'Bieg Kadencji' : 'Cadence Gear';
+  const moodLabel = isPl ? 'Rytm Narracji' : 'Narrative Rhythm';
+  const mood = isPl
+    ? selection.pacingMoodSuggestion.pl
+    : selection.pacingMoodSuggestion.en;
+
+  const primaryName = isPl
+    ? selection.primaryTechnique.name.pl
+    : selection.primaryTechnique.name.en;
+  const primaryDir = getTechniqueDirective(
+    selection.primaryTechnique.id,
+    locale
+  );
+
+  let directiveStr = isPl
+    ? `[REŻYSER_SCENY: ${stateLabel}: ${selection.sceneState} | ${cadenceLabel}: ${selection.cadenceGear} | ${moodLabel}: ${mood}]\n` +
+      `[TECHNIKA_MG: ${primaryName}] ${primaryDir}`
+    : `[SCENE_DIRECTOR: ${stateLabel}: ${selection.sceneState} | ${cadenceLabel}: ${selection.cadenceGear} | ${moodLabel}: ${mood}]\n` +
+      `[GM_TECHNIQUE: ${primaryName}] ${primaryDir}`;
+
+  if (selection.secondaryTechnique) {
+    const secName = isPl
+      ? selection.secondaryTechnique.name.pl
+      : selection.secondaryTechnique.name.en;
+    const secDir = getTechniqueDirective(
+      selection.secondaryTechnique.id,
+      locale
+    );
+    directiveStr += isPl
+      ? `\n[TECHNIKA_WSPOMAGAJĄCA: ${secName}] ${secDir}`
+      : `\n[SUPPORTING_TECHNIQUE: ${secName}] ${secDir}`;
+  }
+
+  return directiveStr;
+}
