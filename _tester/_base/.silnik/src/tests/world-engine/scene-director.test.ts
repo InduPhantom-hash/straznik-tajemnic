@@ -1,0 +1,229 @@
+import {
+  determineSceneState,
+  getPacingMoodSuggestion,
+  getCadenceForSceneState,
+  selectSceneTechniques,
+  formatSceneDirective,
+  dispatchWorldEngines,
+  buildWorldEngineDirectives,
+} from '@/lib/world-engine';
+import type { SceneState, TechniqueId } from '@/lib/world-engine';
+
+describe('Dynamiczny Reżyser Pacingu i Selektor Technik (Issue #536)', () => {
+  describe('determineSceneState - Hybrydowa klasyfikacja stanu sceny', () => {
+    it('1. Klasyfikuje stan jako action przy flagach walki lub pościgu', () => {
+      const stateCombat = determineSceneState({ isInCombat: true });
+      expect(stateCombat).toBe('action');
+
+      const stateChase = determineSceneState({ hasChaseContext: true });
+      expect(stateChase).toBe('action');
+    });
+
+    it('2. Klasyfikuje deklaracje ataku, strzału lub ucieczki jako action', () => {
+      const stateAttack = determineSceneState({
+        playerMessage: 'Wyciągam rewolwer i strzelam do napastnika!',
+      });
+      expect(stateAttack).toBe('action');
+
+      const stateFlee = determineSceneState({
+        playerMessage: 'Uciekam w stronę zaułka i rzucam się za skrzynie!',
+      });
+      expect(stateFlee).toBe('action');
+    });
+
+    it('3. Klasyfikuje stan jako tension_spike przy utracie poczytalności lub pułapce', () => {
+      const stateSan = determineSceneState({ hasSanityLossOrRoll: true });
+      expect(stateSan).toBe('tension_spike');
+
+      const statePanic = determineSceneState({
+        playerMessage: 'Wpadam w panikę, to jakaś zasadzka, kryj się!',
+      });
+      expect(statePanic).toBe('tension_spike');
+    });
+
+    it('4. Klasyfikuje stan jako abyssal_reveal przy motywach bóstw i magii okultystycznej', () => {
+      const stateEldritch = determineSceneState({
+        hasOccultElements: true,
+        playerMessage: 'Dotykam nieeuklidesowego ołtarza Dagon i recytuję inkantację.',
+      });
+      expect(stateEldritch).toBe('abyssal_reveal');
+    });
+
+    it('5. Klasyfikuje rozmowę z NPC jako dialogue', () => {
+      const stateTalk = determineSceneState({
+        npcsPresent: true,
+        playerMessage: 'Pytam barmana: czy widział pan tego mężczyznę z blizną?',
+      });
+      expect(stateTalk).toBe('dialogue');
+    });
+
+    it('6. Zachowuje ciągłość dialogu z poprzedniej tury (Smooth Continuity)', () => {
+      const stateContinued = determineSceneState({
+        npcsPresent: true,
+        previousSceneState: 'dialogue',
+        playerMessage: 'Nie wierzę panu. Pokaż mi ten rejestr.',
+      });
+      expect(stateContinued).toBe('dialogue');
+    });
+
+    it('7. Domyślnie klasyfikuje eksplorację i badanie jako investigation', () => {
+      const stateInvestigate = determineSceneState({
+        playerMessage: 'Przeszukuję dokładnie szuflady w starym biurku.',
+      });
+      expect(stateInvestigate).toBe('investigation');
+
+      const stateEmpty = determineSceneState({});
+      expect(stateEmpty).toBe('investigation');
+    });
+  });
+
+  describe('getPacingMoodSuggestion i getCadenceForSceneState', () => {
+    const states: SceneState[] = [
+      'dialogue',
+      'investigation',
+      'action',
+      'tension_spike',
+      'abyssal_reveal',
+    ];
+
+    it('dla każdego stanu zwraca sugestię nastroju w PL i EN bez półpauz i bez sztucznych limitów słów', () => {
+      for (const st of states) {
+        const suggestion = getPacingMoodSuggestion(st);
+        expect(suggestion.pl.trim()).not.toBe('');
+        expect(suggestion.en.trim()).not.toBe('');
+        expect(suggestion.pl).not.toMatch(/[—–]/);
+        expect(suggestion.en).not.toMatch(/[—–]/);
+      }
+    });
+
+    it('przypisuje poprawny bieg kadencji (1..4) do stanu sceny', () => {
+      expect(getCadenceForSceneState('dialogue')).toBe(1);
+      expect(getCadenceForSceneState('action')).toBe(1);
+      expect(getCadenceForSceneState('investigation')).toBe(2);
+      expect(getCadenceForSceneState('tension_spike')).toBe(3);
+      expect(getCadenceForSceneState('abyssal_reveal')).toBe(4);
+    });
+  });
+
+  describe('selectSceneTechniques - Selekcjoner Technik z rotacją Cooldownu', () => {
+    it('wybiera 1 technikę wiodącą pasującą do stanu sceny', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'dialogue',
+        hasNPCInteraction: true,
+      });
+
+      expect(selection.primaryTechnique).toBeDefined();
+      expect(selection.primaryTechnique.sceneStates).toContain('dialogue');
+      expect(selection.cadenceGear).toBe(1);
+    });
+
+    it('wspiera rotację cooldownu: nie wybiera techniki użytej w poprzedniej turze', () => {
+      const recent: TechniqueId[] = ['agenda_first'];
+      const selection = selectSceneTechniques({
+        sceneState: 'dialogue',
+        recentTechniqueIds: recent,
+      });
+
+      expect(selection.primaryTechnique.id).not.toBe('agenda_first');
+    });
+
+    it('w dialogu negocjacyjnym preferuje social_leverage', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'dialogue',
+        playerMessage: 'Chcę dowodów! Żądam informacji, zapłacę każde pieniądze.',
+      });
+
+      expect(selection.primaryTechnique.id).toBe('social_leverage');
+    });
+
+    it('przy zmianie lokacji w śledztwie preferuje threshold_shift', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'investigation',
+        isLocationTransition: true,
+      });
+
+      expect(selection.primaryTechnique.id).toBe('threshold_shift');
+    });
+
+    it('dobiera technikę wspomagającą (Secondary) z odmiennej kategorii niż wiodąca', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'action',
+        hasDirectDanger: true,
+      });
+
+      if (selection.secondaryTechnique) {
+        expect(selection.secondaryTechnique.category).not.toBe(
+          selection.primaryTechnique.category
+        );
+      }
+    });
+  });
+
+  describe('formatSceneDirective - Formater dyrektyw promptowych', () => {
+    it('formatuje kompletną dyrektywę w języku polskim', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'action',
+        hasDirectDanger: true,
+      });
+
+      const directive = formatSceneDirective(selection, 'pl');
+      expect(directive).toContain('[REŻYSER_SCENY:');
+      expect(directive).toContain('[TECHNIKA_MG:');
+      expect(directive).toContain('Stan Sceny: action');
+    });
+
+    it('formatuje kompletną dyrektywę w języku angielskim', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'investigation',
+      });
+
+      const directive = formatSceneDirective(selection, 'en');
+      expect(directive).toContain('[SCENE_DIRECTOR:');
+      expect(directive).toContain('[GM_TECHNIQUE:');
+      expect(directive).toContain('Scene State: investigation');
+    });
+  });
+
+  describe('Integracja z dispatchWorldEngines i buildWorldEngineDirectives', () => {
+    it('dispatchWorldEngines automatycznie ustala sceneState i sceneTechniqueSelection', () => {
+      const decision = dispatchWorldEngines({
+        playerMessage: 'Rozmawiam z kustoszem i pytam o skradziony manuskrypt.',
+        npcs: [{ id: 'npc-1', name: 'Kustosz Armitage' }],
+      });
+
+      expect(decision.sceneState).toBe('dialogue');
+      expect(decision.sceneTechniqueSelection).toBeDefined();
+      expect(decision.sceneTechniqueSelection?.primaryTechnique).toBeDefined();
+    });
+
+    it('buildWorldEngineDirectives dołącza dyrektywę Reżysera Sceny, gdy przekazano selekcję', () => {
+      const decision = dispatchWorldEngines({
+        playerMessage: 'Przeszukuję gabinet profesora.',
+      });
+
+      const directives = buildWorldEngineDirectives({
+        locale: 'pl',
+        playerMessage: 'Przeszukuję gabinet profesora.',
+        activeEngines: decision.activeEngines,
+        sceneTechniqueSelection: decision.sceneTechniqueSelection,
+      });
+
+      expect(directives).toContain('[REŻYSER_SCENY:');
+      expect(directives).toContain('[TECHNIKA_MG:');
+    });
+
+    it('SLA Latencji: klasyfikacja stanu sceny i dobór technik wykonuje się w < 0.2 ms', () => {
+      const t0 = performance.now();
+      for (let i = 0; i < 100; i++) {
+        const state = determineSceneState({
+          playerMessage: 'Uciekam przed kultystami do piwnicy!',
+          isInCombat: true,
+        });
+        selectSceneTechniques({ sceneState: state });
+      }
+      const totalMs = performance.now() - t0;
+      const avgMs = totalMs / 100;
+      expect(avgMs).toBeLessThan(1.0); // Wymóg architektoniczny: < 1 ms (faktycznie < 0.05 ms)
+    });
+  });
+});

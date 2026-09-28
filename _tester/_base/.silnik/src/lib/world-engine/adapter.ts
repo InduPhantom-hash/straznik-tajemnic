@@ -2,6 +2,10 @@ import type { Character, NPC } from '@/lib/types';
 import type { ResolvedEraContext } from '@/lib/era';
 import { WorldEngineDirector } from './index';
 import type { WorldEngineId } from './dispatcher';
+import {
+  formatSceneDirective,
+  type SceneTechniqueSelection,
+} from '../narrative-engine/scene-director';
 export * from './dispatcher';
 import type {
   NPCEntity,
@@ -70,6 +74,7 @@ export interface WorldEngineAdapterParams {
   eraContext?: Partial<ResolvedEraContext> | { countryCode?: string; effectiveYear?: number } | null;
   playerMessage?: string | null;
   activeEngines?: Partial<Record<WorldEngineId, boolean>> | null;
+  sceneTechniqueSelection?: SceneTechniqueSelection | null;
 }
 
 /**
@@ -304,7 +309,7 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     return Boolean(params.activeEngines[id]);
   };
 
-  return director.compileDirectives({
+  const baseDirectives = director.compileDirectives({
     locale,
     sensory: isEngineEnabled('sensory') ? sensory : undefined,
     activeNPC: isEngineEnabled('npc') ? activeNPC : undefined,
@@ -314,4 +319,11 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
     geography: isEngineEnabled('geography') ? geographyParam : undefined,
     occult: isEngineEnabled('occult') ? occultParam : undefined,
   });
+
+  if (params.sceneTechniqueSelection) {
+    const sceneDirective = formatSceneDirective(params.sceneTechniqueSelection, locale);
+    return baseDirectives ? `${baseDirectives}\n\n${sceneDirective}` : sceneDirective;
+  }
+
+  return baseDirectives;
 }

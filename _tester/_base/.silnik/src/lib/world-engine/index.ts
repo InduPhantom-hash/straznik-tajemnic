@@ -179,4 +179,6 @@ export class WorldEngineDirector {
 }
 
 export * from './adapter';
-
+export * from '../narrative-engine/scene-director';
+export * from '../narrative-engine/techniques/types';
+export * from '../narrative-engine/techniques/playbook';

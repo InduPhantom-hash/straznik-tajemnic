@@ -1,5 +1,11 @@
 import { performance } from 'node:perf_hooks';
 import type { WorldEngineDirectives } from './types';
+import {
+  determineSceneState,
+  selectSceneTechniques,
+  type SceneTechniqueSelection,
+} from '../narrative-engine/scene-director';
+import type { SceneState, TechniqueId } from '../narrative-engine/techniques/types';
 
 export type WorldEngineId =
   | 'npc'
@@ -29,6 +35,8 @@ export interface DispatcherDecision {
   reasoning: string;
   source: 'micro_classifier' | 'fallback';
   allowedNamespaces?: string[];
+  sceneState?: SceneState;
+  sceneTechniqueSelection?: SceneTechniqueSelection;
 }
 
 export interface DispatcherNPC {
@@ -55,6 +63,13 @@ export interface DispatcherInput {
   puzzles?: DispatcherPuzzle[] | null;
   adventureThemes?: string[];
   hasOccultElements?: boolean;
+  turnIndex?: number;
+  previousSceneState?: SceneState | null;
+  recentTechniqueIds?: TechniqueId[];
+  isInCombat?: boolean;
+  hasChaseContext?: boolean;
+  hasSanityLossOrRoll?: boolean;
+  locationChanged?: boolean;
 }
 
 /**
@@ -336,6 +351,30 @@ export function dispatchWorldEngines(input: DispatcherInput): DispatcherDecision
     allowedNamespaces = ['sessions', 'adventures'];
   }
 
+  // === ISSUE #536: DYNAMICZNY REŻYSER PACINGU I SELEKTOR TECHNIK ===
+  const sceneState = determineSceneState({
+    playerMessage: input.playerMessage,
+    previousSceneState: input.previousSceneState,
+    isInCombat: input.isInCombat,
+    hasChaseContext: input.hasChaseContext,
+    hasSanityLossOrRoll: input.hasSanityLossOrRoll,
+    hasOccultElements: input.hasOccultElements,
+    npcsPresent: Boolean(input.npcs && input.npcs.length > 0),
+    currentLocation: input.currentLocation,
+    locationChanged: input.locationChanged,
+    turnIndex: input.turnIndex,
+  });
+
+  const sceneTechniqueSelection = selectSceneTechniques({
+    sceneState,
+    recentTechniqueIds: input.recentTechniqueIds,
+    playerMessage: input.playerMessage,
+    hasNPCInteraction: Boolean(input.npcs && input.npcs.length > 0 && activeEngines.npc),
+    hasDirectDanger: Boolean(input.isInCombat || input.hasChaseContext || input.hasSanityLossOrRoll),
+    isCosmicHorror: Boolean(input.hasOccultElements && activeEngines.occult),
+    isLocationTransition: Boolean(input.locationChanged),
+  });
+
   const activeEngineIds = ALL_WORLD_ENGINES.filter((id) => activeEngines[id]);
   const latencyMs = Math.round((performance.now() - t0) * 1000) / 1000;
 
@@ -348,5 +387,7 @@ export function dispatchWorldEngines(input: DispatcherInput): DispatcherDecision
     reasoning: `Active: ${activeEngineIds.join(', ')} (${latencyMs}ms)`,
     source: 'micro_classifier',
     allowedNamespaces,
+    sceneState,
+    sceneTechniqueSelection,
   };
 }
