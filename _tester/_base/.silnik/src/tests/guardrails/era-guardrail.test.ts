@@ -579,4 +579,39 @@ describe('Era Guardrail & Mechanical Fast-Gate (Issue #508)', () => {
       expect(result?.response).toContain('1925');
     });
   });
+
+  describe('9. Pętla Repro dla rzutów kośćmi (Issue #533)', () => {
+    it('NIE blokuje komunikatów z wynikami rzutów wirtualnych zawierających "sukces ekstremalny"', () => {
+      const rollMessage = `[🎯 Test: Spostrzegawczość (55%)]\nWynik: 7 (✨ SUKCES EKSTREMALNY)\nProgi: Zwykły ≤55 | Trudny ≤27 | Ekstremalny ≤11\nTest zwykły: ✅ ZDANY\n(Rzut wirtualny)`;
+      const result = evaluateEraGuardrail({
+        message: rollMessage,
+        character: mockCharacterWithGear,
+        locale: 'pl',
+      });
+      expect(result).toBeNull();
+    });
+
+    it('NIE blokuje komunikatów z wynikami rzutów fizycznych zawierających "sukces trudny"', () => {
+      const physicalRollMessage = `[🎯 Test: Walka Wręcz (Bijatyka) (45%)]\nWynik: 20 (Sukces trudny)\n(Rzut fizyczny)`;
+      const result = evaluateEraGuardrail({
+        message: physicalRollMessage,
+        character: mockCharacterWithGear,
+        locale: 'pl',
+      });
+      expect(result).toBeNull();
+    });
+
+    it('nadal poprawnie odpowiada na jawne pytanie gracza o sukces ekstremalny', () => {
+      const question = 'Co to jest sukces ekstremalny?';
+      const result = evaluateEraGuardrail({
+        message: question,
+        character: mockCharacterWithGear,
+        locale: 'pl',
+      });
+      expect(result).not.toBeNull();
+      expect(result?.blocked).toBe(true);
+      expect(result?.category).toBe('dice_rules');
+    });
+  });
 });
+
