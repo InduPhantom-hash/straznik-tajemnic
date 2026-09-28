@@ -36,6 +36,26 @@ describe('World Engine Dispatcher & Selective RAG Staging (Issue #506)', () => {
       expect(decision.recipientIds).toContain('npc-armitage');
     });
 
+    // 1a. Pytanie do NPC ze zdrobnieniem / wołaczem (Issue #546)
+    it('1a. Pytanie do NPC ze zdrobnieniem ("Waldek... jak z ziemi?"): aktywuje npc i dopasowuje recipientId', () => {
+      const decision = dispatchWorldEngines({
+        playerMessage: 'Waldek... jak z ziemi?',
+        npcs: [{ id: 'npc-waldek', name: 'Waldemar Kowalski' }],
+      });
+
+      expect(decision.activeEngines.npc).toBe(true);
+      expect(decision.recipientIds).toContain('npc-waldek');
+      expect(decision.sceneState).toBe('dialogue');
+
+      // Weryfikacja stłumienia sensoryki tła (sensoryScore = 0.25 zamiast 0.65)
+      const features = extractIntentFeatures({
+        playerMessage: 'Waldek... jak z ziemi?',
+        npcs: [{ id: 'npc-waldek', name: 'Waldemar Kowalski' }],
+      });
+      expect(features.social).toBeGreaterThanOrEqual(0.7);
+      expect(features.sensory).toBeLessThanOrEqual(0.3);
+    });
+
     // 2. Obserwacja zmysłowa
     it('2. Obserwacja zmysłowa: aktywuje sensory, deaktywuje geography, occult i npc', () => {
       const decision = dispatchWorldEngines({

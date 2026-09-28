@@ -138,19 +138,27 @@ export function buildWorldEngineDirectives(params: WorldEngineAdapterParams): st
   const locale = params.locale ?? 'pl';
   const currentLocation = params.currentLocation?.trim() || '';
 
+  const isDialogueScene = params.sceneTechniqueSelection?.sceneState === 'dialogue';
+
   // 1. SensoryEngine (02) - zawsze aktywne, mikrosensoryka
-  const isDesertedOrSpooky = /cmentarz|ruin|strych|piwnic|opuszcz|mgł|las|noc|krypt|cemetery|ruins|attic|abandoned|fog|crypt/.test(
+  const isDesertedOrSpooky = !isDialogueScene && /cmentarz|ruin|strych|piwnic|opuszcz|mgł|las|noc|krypt|cemetery|ruins|attic|abandoned|fog|crypt/.test(
     currentLocation.toLowerCase()
   );
 
   const sensory: SensoryContext = {
     primarySense: 'olfactory',
     secondarySense: 'auditory',
-    gritDetails: [
-      currentLocation
-        ? (locale === 'en' ? `Atmosphere and age of the place: ${currentLocation}` : `Ślady zużycia i atmosfera miejsca: ${currentLocation}`)
-        : (locale === 'en' ? 'Patina of time and period retro-grain' : 'Patyna czasu i retro-ziarno epoki'),
-    ],
+    gritDetails: isDialogueScene
+      ? [
+          locale === 'en'
+            ? 'Nervous micro-gestures, facial tension, and subtle physical reactions of the speaker'
+            : 'Subtelne mikrogesty, napięcie mimiki i fizyczna reakcja rozmówcy na słowa gracza',
+        ]
+      : [
+          currentLocation
+            ? (locale === 'en' ? `Atmosphere and age of the place: ${currentLocation}` : `Ślady zużycia i atmosfera miejsca: ${currentLocation}`)
+            : (locale === 'en' ? 'Patina of time and period retro-grain' : 'Patyna czasu i retro-ziarno epoki'),
+        ],
     voidVariable: isDesertedOrSpooky
       ? (locale === 'en' ? 'Unsettling silence or absence of natural human bustle' : 'Złowroga cisza lub brak zwyczajnego ludzkiego gwaru')
       : undefined,

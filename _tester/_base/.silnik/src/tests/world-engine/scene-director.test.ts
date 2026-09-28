@@ -57,6 +57,29 @@ describe('Dynamiczny Reżyser Pacingu i Selektor Technik (Issue #536)', () => {
       expect(stateTalk).toBe('dialogue');
     });
 
+    it('5a. Klasyfikuje pytania do NPC i wołacze (np. "Waldek... jak z ziemi?") jako dialogue (Issue #546)', () => {
+      const stateWaldek = determineSceneState({
+        npcsPresent: true,
+        npcs: [{ id: 'npc-waldek', name: 'Waldemar Kowalski' }],
+        playerMessage: 'Waldek... jak z ziemi?',
+      });
+      expect(stateWaldek).toBe('dialogue');
+
+      const stateWhoElse = determineSceneState({
+        npcsPresent: true,
+        playerMessage: 'Ktoś tam jeszcze był oprócz ciebie?',
+      });
+      expect(stateWhoElse).toBe('dialogue');
+    });
+
+    it('5b. Klasyfikuje kwestie w cudzysłowie w obecności NPC jako dialogue (Issue #546)', () => {
+      const stateQuote = determineSceneState({
+        npcsPresent: true,
+        playerMessage: '„Dokąd oni poszli?”',
+      });
+      expect(stateQuote).toBe('dialogue');
+    });
+
     it('6. Zachowuje ciągłość dialogu z poprzedniej tury (Smooth Continuity)', () => {
       const stateContinued = determineSceneState({
         npcsPresent: true,
@@ -181,6 +204,18 @@ describe('Dynamiczny Reżyser Pacingu i Selektor Technik (Issue #536)', () => {
       expect(directive).toContain('[SCENE_DIRECTOR:');
       expect(directive).toContain('[GM_TECHNIQUE:');
       expect(directive).toContain('Scene State: investigation');
+    });
+
+    it('w stanie dialogue dołącza dyrektywę ZASADA DIALOG-FIRST (PL i EN)', () => {
+      const selection = selectSceneTechniques({
+        sceneState: 'dialogue',
+      });
+
+      const directivePl = formatSceneDirective(selection, 'pl');
+      expect(directivePl).toContain('[ZASADA DIALOG-FIRST:');
+
+      const directiveEn = formatSceneDirective(selection, 'en');
+      expect(directiveEn).toContain('[DIALOG-FIRST RULE:');
     });
   });
 

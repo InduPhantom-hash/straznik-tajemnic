@@ -107,27 +107,57 @@ export function extractIntentFeatures(input: DispatcherInput): FeatureVector {
 
   // 1. Social / Dialog
   let socialScore = 0;
-  if (
+  const hasExplicitSocialVerb =
     /\b(mówi|mowie|rozmawia|pyta|szept|krzycz|zagad|odpowiada|tłumacz|tlumacz|błaga|blaga|negocj|przekon|grozi|panie|pani|dzień dobry|dzien dobry|cześć|czesc|witam|wypytuj|talk|speak|ask|whisper|shout|tell|interrogate|greet|inquire)[a-ząćęłńóśźż]*/i.test(
       rawMsg
-    )
-  ) {
+    );
+  if (hasExplicitSocialVerb) {
     socialScore += 0.8;
   }
-  // Sprawdź czy deklaracja wymienia któregoś ze znanych NPC
+
+  const hasQuestion = /[?？]/.test(rawMsg);
+  const hasDialogueFormatting =
+    /^[ \t]*["„»“”‘'-]/.test(rawMsg) ||
+    /["„»“”‘][^"”»“”’]+["”»“”’]/.test(rawMsg);
+  const isInvestigativeOnly =
+    /\b(szukam|badam|przeszukuj|oglądam|ogladam|czytam|otwieram|rozglądam|rozgladam|search|inspect|examine|read|open|look around)\b/i.test(
+      rawMsg
+    );
+
+  // Sprawdź czy deklaracja wymienia któregoś ze znanych NPC (uwzględniając rdzenie imion dla wołaczy/zdrobnień)
+  let mentionsNpc = false;
   if (input.npcs && input.npcs.length > 0) {
     for (const npc of input.npcs) {
       const npcNameParts = npc.name.toLowerCase().split(/\s+/).filter((p) => p.length >= 3);
-      const match = npcNameParts.some((part) => rawMsg.includes(part));
-      if (match) {
-        socialScore += 0.6;
+      const match = npcNameParts.some((part) => {
+        if (rawMsg.includes(part)) return true;
+        const stem = part.length >= 4 ? part.slice(0, 4) : part;
+        return stem.length >= 4 && rawMsg.includes(stem);
+      });
+      const aliasMatch = npc.aliases?.some((a) => rawMsg.includes(a.toLowerCase()));
+      if (match || aliasMatch) {
+        mentionsNpc = true;
+        socialScore += 0.7;
         break;
       }
+    }
+    if (!mentionsNpc && /\b(waldek|waldku|piotrek|piotrze|kasiu|kasia|doktorze|profesorze|januszu|janusz)\b/i.test(rawMsg)) {
+      mentionsNpc = true;
+      socialScore += 0.7;
+    }
+  }
+
+  // W obecności NPC: pytania lub formatowanie dialogowe podbijają intencję dialogu
+  if (input.npcs && input.npcs.length > 0) {
+    if (hasDialogueFormatting || (hasQuestion && !isInvestigativeOnly)) {
+      socialScore += 0.75;
     }
   }
 
   // 2. Sensory (Zmysły, atmosfera, cisza, chłód, ziarno)
-  let sensoryScore = 0.65; // stały bazowy priorytet atmosfery CoC 7e
+  // Issue #546: Gdy trwa dynamiczny dialog (socialScore >= 0.7), tłumimy stałą sensorykę tła do 0.25,
+  // zapobiegając dominacji 85-słownych opisów otoczenia przed odpowiedzią NPC.
+  let sensoryScore = socialScore >= 0.7 ? 0.25 : 0.65;
   if (
     /\b(wącha|wacha|słucha|slucha|dotyka|ogląda|oglada|czuje|zapach|smród|smrod|dźwięk|dzwiek|szelest|ciemno|zimno|chłód|chlod|mrok|oczy|wsłuchuj|wsluchuj|zamykam oczy|smell|hear|listen|touch|taste|scent|cold|dark|shadow)[a-ząćęłńóśźż]*/i.test(
       rawMsg
@@ -309,7 +339,11 @@ export function dispatchWorldEngines(input: DispatcherInput): DispatcherDecision
   if (input.npcs && input.npcs.length > 0) {
     for (const npc of input.npcs) {
       const parts = npc.name.toLowerCase().split(/\s+/).filter((p) => p.length >= 3);
-      const isMentioned = parts.some((p) => lowerMsg.includes(p));
+      const isMentioned = parts.some((p) => {
+        if (lowerMsg.includes(p)) return true;
+        const stem = p.length >= 4 ? p.slice(0, 4) : p;
+        return stem.length >= 4 && lowerMsg.includes(stem);
+      });
       const isAliasMatch = npc.aliases?.some((a) => lowerMsg.includes(a.toLowerCase()));
       if (isMentioned || isAliasMatch) {
         recipientIds.push(npc.id);
@@ -351,7 +385,7 @@ export function dispatchWorldEngines(input: DispatcherInput): DispatcherDecision
     allowedNamespaces = ['sessions', 'adventures'];
   }
 
-  // === ISSUE #536: DYNAMICZNY REŻYSER PACINGU I SELEKTOR TECHNIK ===
+  // === ISSUE #536 / ISSUE #546: DYNAMICZNY REŻYSER PACINGU I SELEKTOR TECHNIK ===
   const sceneState = determineSceneState({
     playerMessage: input.playerMessage,
     previousSceneState: input.previousSceneState,
@@ -360,6 +394,7 @@ export function dispatchWorldEngines(input: DispatcherInput): DispatcherDecision
     hasSanityLossOrRoll: input.hasSanityLossOrRoll,
     hasOccultElements: input.hasOccultElements,
     npcsPresent: Boolean(input.npcs && input.npcs.length > 0),
+    npcs: input.npcs ? input.npcs.map((n) => ({ id: n.id, name: n.name })) : undefined,
     currentLocation: input.currentLocation,
     locationChanged: input.locationChanged,
     turnIndex: input.turnIndex,
