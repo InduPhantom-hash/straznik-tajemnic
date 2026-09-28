@@ -11,6 +11,7 @@
  */
 
 import type { Character, NPC } from '../types';
+import type { NpcDossierEntry } from '../journal/dossier-types';
 
 export interface CharacterVisualProfile {
   id: string;
@@ -26,6 +27,7 @@ export interface CharacterVisualProfile {
   distinguishingMarks?: string; // blizny, okulary, laska, znamiona
   palette?: string; // dominujące kolory (np. ciemny tweed, zgaszony brąz)
   visualDnaPrompt: string; // skonsolidowany anchor do wstrzyknięcia do promptu
+  portraitUrl?: string; // zapisany portret wygenerowany dla postaci
 }
 
 export interface LocationVisualState {
@@ -46,9 +48,144 @@ export interface VisualBeliefGraphState {
   effectiveYear?: string;
 }
 
+export type VisualNPCInput =
+  | NPC
+  | NpcDossierEntry
+  | {
+      id?: string;
+      name: string;
+      occupation?: string;
+      description?: string;
+      appearance?: string;
+      firstImpression?: string;
+      physiologicalDetail?: string;
+      sociologicalStatus?: string;
+      disposition?: string;
+      relationshipStatus?: string;
+      avatarUrl?: string;
+      portraitUrl?: string;
+    };
+
 function sanitizeText(input?: string): string {
   if (!input) return '';
   return input.replace(/\[/g, '(').replace(/\]/g, ')').replace(/[\r\n]+/g, ' ').trim();
+}
+
+const TITLES_TO_STRIP = new Set([
+  'dr',
+  'dr.',
+  'doktor',
+  'prof',
+  'prof.',
+  'profesor',
+  'kapitan',
+  'kpt',
+  'kpt.',
+  'pan',
+  'pani',
+  'lord',
+  'lady',
+  'ojciec',
+  'brat',
+  'siostra',
+  'inspektor',
+  'detektyw',
+  'pastor',
+  'ks.',
+  'ksiądz',
+]);
+
+/**
+ * Wyodrębnia pierwsze imię postaci, pomijając honoryfikatywy i tytuły (np. "Dr Henry Armitage" -> "Henry").
+ */
+export function extractCleanFirstName(fullName: string): string {
+  if (!fullName) return '';
+  const tokens = fullName.trim().split(/\s+/);
+  for (const token of tokens) {
+    const cleanToken = token.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase();
+    if (cleanToken && !TITLES_TO_STRIP.has(cleanToken)) {
+      return token.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+    }
+  }
+  return tokens[0] ? tokens[0].replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '') : '';
+}
+
+/**
+ * Pobiera rdzeń imienia (pierwsze 4 znaki lowercase) do elastycznego dopasowania odmian i zdrobnień.
+ */
+export function extractStem(name: string): string {
+  const clean = extractCleanFirstName(name).toLowerCase();
+  return clean.length >= 4 ? clean.slice(0, 4) : '';
+}
+
+/**
+ * Wydobywa spójne cechy ubioru i rekwizytów z zawodu na potrzeby Visual DNA.
+ */
+export function deriveClothingFromOccupation(occupation?: string, era: string = '1920s'): string {
+  if (!occupation) return '';
+  const occ = occupation.toLowerCase();
+
+  if (/lekarz|psychiatr|chirurg|doktor|doctor|physician|medic|nurse|pielęgniark/i.test(occ)) {
+    return 'starched white clinical coat, waistcoat, formal leather shoes, pocket watch chain';
+  }
+  if (/policj|constable|szeryf|sheriff|officer|strażnik|detektyw|investigator|gumshoe/i.test(occ)) {
+    return 'tailored dark trench coat, woolen fedora, heavy brogues, concealed holster silhouette';
+  }
+  if (/profesor|scholar|naukowiec|historyk|antiquarian|bibliotekarz|librarian|kustosz|curator|archiwist/i.test(occ)) {
+    return 'tweed three-piece suit, round wire-rimmed spectacles, patterned necktie, wool cardigan';
+  }
+  if (/dozorca|janitor|caretaker|mechanik|mechanic|robotnik|laborer|driver|kierowca|ślusarz/i.test(occ)) {
+    return 'heavy canvas work jacket, durable dungarees, brass ring with keys, oil-stained leather work boots';
+  }
+  if (/marynarz|sailor|kapitan|szyp|fisherman|rybak|dockworker|stokowiec/i.test(occ)) {
+    return 'thick knit sea-captain woolen sweater, heavy peacoat, salt-worn dark trousers, sturdy sailor boots';
+  }
+  if (/dziedzic|dziedziczka|arystokrat|szlach|noble|heiress|bankier|banker|przemysłowiec|industrialist|lord|lady/i.test(occ)) {
+    return 'luxurious tailored bespoke garments, silk accents, pearl or gold accessories, refined high-society poise';
+  }
+  if (/ksiądz|pastor|kapłan|priest|clergyman|monk|zakonnik|minister/i.test(occ)) {
+    return 'austere black clerical cassock, crisp white collar, worn prayer book or crucifix in hand';
+  }
+  if (/artyst|malarz|painter|poet|pisarz|author|dziennikarz|journalist|reporter/i.test(occ)) {
+    return 'bohemian corduroy jacket, loose scarf, rumpled button-down shirt, ink-stained cuffs';
+  }
+  if (/gangster|mobster|złodziej|thief|przemytnik|smuggler|przestępc/i.test(occ)) {
+    return 'sharp double-breasted pinstripe suit, broad-brimmed fedora pulled low, polished dress shoes';
+  }
+  if (/kupiec|handlowiec|merchant|sklepikarz|shopkeeper|clerk|urzędnik/i.test(occ)) {
+    return 'pressed collar shirt, dark woolen vest, sleeve garters, sensible leather shoes';
+  }
+
+  return `period-appropriate ${era} attire suitable for a ${occupation}`;
+}
+
+/**
+ * Wydobywa postawę i wyraz twarzy z nastawienia postaci na potrzeby Visual DNA.
+ */
+export function deriveDemeanorFromDisposition(disposition?: string): string {
+  if (!disposition) return '';
+  const disp = disposition.toLowerCase();
+
+  if (/hostile|wrogi/i.test(disp)) {
+    return 'tense defensive posture, clenched jaw, sharp suspicious glare';
+  }
+  if (/suspicious|podejrzliwy/i.test(disp)) {
+    return 'guarded posture, watchful narrowed eyes, cautious body language';
+  }
+  if (/friendly|przyjazny/i.test(disp)) {
+    return 'open warm stance, gentle approachable expression, attentive gaze';
+  }
+  if (/neutral|neutralny/i.test(disp)) {
+    return 'calm measured demeanor, impassive poker face, reserved posture';
+  }
+  if (/fanatical|fanatyczn/i.test(disp)) {
+    return 'feverish unblinking stare, unnerving rigid posture, intense aura';
+  }
+  if (/fearful|terrified|przerażon|zastraszon/i.test(disp)) {
+    return 'trembling hands, pale anxious complexion, restless darting eyes';
+  }
+
+  return '';
 }
 
 /**
@@ -71,6 +208,11 @@ export function extractPlayerVisualProfile(char: Character, era: string = '1920s
     parts.push(`visible scars: ${sanitizeText(char.scars.slice(0, 2).join(', '))}`);
   }
 
+  const occClothing = deriveClothingFromOccupation(char.occupation, era);
+  if (occClothing) {
+    parts.push(occClothing);
+  }
+
   // Wstrzyknij stałe akcesoria lub ubiór z epoki
   parts.push(`period-accurate authentic ${era} attire`);
 
@@ -86,38 +228,87 @@ export function extractPlayerVisualProfile(char: Character, era: string = '1920s
     apparentEraStyle: era,
     distinguishingMarks: char.scars ? sanitizeText(char.scars.join(', ')) : undefined,
     visualDnaPrompt: visualDna,
+    portraitUrl: char.portraitUrl || undefined,
   };
 }
 
 /**
- * Buduje Visual DNA profilu NPC na podstawie encji NPC.
+ * Buduje Visual DNA profilu NPC na podstawie encji NPC lub Dossier.
+ * Jeśli brak jawnego opisu ubioru/wyglądu, wydobywa cechy z zawodu, nastawienia i epoki.
  */
-export function extractNPCVisualProfile(npc: NPC, era: string = '1920s'): CharacterVisualProfile {
+export function extractNPCVisualProfile(npc: VisualNPCInput, era: string = '1920s'): CharacterVisualProfile {
   const parts: string[] = [];
 
-  const desc = npc.description || '';
-  const appearance = npc.appearance || '';
-  const physiological = npc.physiologicalDetail || '';
+  const name = sanitizeText(npc.name);
+  const occ = sanitizeText(npc.occupation) || '';
+  const desc = 'description' in npc && npc.description ? sanitizeText(npc.description) : '';
+  const appearance = 'appearance' in npc && npc.appearance ? sanitizeText(npc.appearance) : '';
+  const physiological =
+    'physiologicalDetail' in npc && npc.physiologicalDetail ? sanitizeText(npc.physiologicalDetail) : '';
+  const firstImpression =
+    'firstImpression' in npc && npc.firstImpression ? sanitizeText(npc.firstImpression) : '';
+  const sociological =
+    'sociologicalStatus' in npc && npc.sociologicalStatus ? sanitizeText(npc.sociologicalStatus) : '';
+  const rawDisposition =
+    'disposition' in npc && npc.disposition
+      ? npc.disposition
+      : 'relationshipStatus' in npc
+        ? npc.relationshipStatus
+        : undefined;
 
-  parts.push(`${sanitizeText(npc.name)}, ${sanitizeText(npc.occupation) || 'person'}`);
+  parts.push(`${name}${occ ? `, ${occ}` : ', person'}`);
 
+  let hasExplicitLook = false;
   if (appearance.trim()) {
-    parts.push(sanitizeText(appearance.trim()));
-  } else if (physiological.trim()) {
-    parts.push(sanitizeText(physiological.trim()));
-  } else if (desc.trim()) {
-    parts.push(sanitizeText(desc.slice(0, 120).trim()));
+    parts.push(appearance.trim());
+    hasExplicitLook = true;
+  }
+  if (physiological.trim() && physiological !== appearance) {
+    parts.push(physiological.trim());
+    hasExplicitLook = true;
+  }
+  if (!hasExplicitLook && firstImpression.trim()) {
+    parts.push(firstImpression.trim());
+    hasExplicitLook = true;
+  }
+  if (!hasExplicitLook && desc.trim()) {
+    parts.push(desc.slice(0, 150).trim());
+    hasExplicitLook = true;
+  }
+
+  // Wzbogać profil kotwicami ubioru z zawodu
+  const occClothing = deriveClothingFromOccupation(occ, era);
+  if (occClothing) {
+    parts.push(occClothing);
+  }
+
+  // Wzbogać profil manieryzmem / nastawieniem
+  const dispDemeanor = deriveDemeanorFromDisposition(rawDisposition);
+  if (dispDemeanor) {
+    parts.push(dispDemeanor);
+  }
+
+  if (sociological.trim()) {
+    parts.push(sociological.trim());
   }
 
   parts.push(`authentic ${era} period clothing and demeanor`);
 
+  const visualDna = parts.join(', ');
+
+  const portraitUrl =
+    ('portraitUrl' in npc && npc.portraitUrl) ||
+    ('avatarUrl' in npc && npc.avatarUrl) ||
+    undefined;
+
   return {
     id: npc.id || npc.name,
-    name: sanitizeText(npc.name),
+    name,
     isPlayer: false,
-    occupation: npc.occupation,
+    occupation: occ || undefined,
     apparentEraStyle: era,
-    visualDnaPrompt: parts.join(', '),
+    visualDnaPrompt: visualDna,
+    portraitUrl,
   };
 }
 
@@ -146,20 +337,99 @@ export class VisualBeliefGraph {
 
   public registerPlayer(char: Character, era: string = '1920s'): void {
     const profile = extractPlayerVisualProfile(char, era);
-    this.state.characters[char.name.toLowerCase()] = profile;
+    const fullNameLower = char.name.toLowerCase().trim();
+    this.state.characters[fullNameLower] = profile;
     this.state.characters[char.id] = profile;
-  }
 
-  public registerNPC(npc: NPC, era: string = '1920s'): void {
-    const profile = extractNPCVisualProfile(npc, era);
-    this.state.characters[npc.name.toLowerCase()] = profile;
-    if (npc.id) {
-      this.state.characters[npc.id] = profile;
+    const firstName = extractCleanFirstName(char.name).toLowerCase();
+    if (firstName && firstName !== fullNameLower) {
+      this.state.characters[firstName] = profile;
+    }
+    const stem = extractStem(char.name);
+    if (stem.length >= 4 && !this.state.characters[stem]) {
+      this.state.characters[stem] = profile;
     }
   }
 
+  public registerNPC(npc: VisualNPCInput, era: string = '1920s'): void {
+    const profile = extractNPCVisualProfile(npc, era);
+    const fullNameLower = profile.name.toLowerCase().trim();
+    this.state.characters[fullNameLower] = profile;
+    if (profile.id) {
+      this.state.characters[profile.id] = profile;
+    }
+
+    const firstName = extractCleanFirstName(profile.name).toLowerCase();
+    if (firstName && firstName !== fullNameLower) {
+      this.state.characters[firstName] = profile;
+    }
+    const stem = extractStem(profile.name);
+    if (stem.length >= 4 && !this.state.characters[stem]) {
+      this.state.characters[stem] = profile;
+    }
+  }
+
+  public setPortrait(nameOrId: string, portraitUrl: string): boolean {
+    const profile = this.getCharacterProfile(nameOrId);
+    if (profile) {
+      profile.portraitUrl = portraitUrl;
+      return true;
+    }
+    return false;
+  }
+
   public getCharacterProfile(nameOrId: string): CharacterVisualProfile | undefined {
-    return this.state.characters[nameOrId.toLowerCase()] || this.state.characters[nameOrId];
+    if (!nameOrId || typeof nameOrId !== 'string') return undefined;
+    const rawKey = nameOrId.trim();
+    if (!rawKey) return undefined;
+    const lowerKey = rawKey.toLowerCase();
+
+    // 1. Exact match w mapie postaci (pełna nazwa, ID, zarejestrowane aliasy/stemy)
+    if (this.state.characters[lowerKey]) return this.state.characters[lowerKey];
+    if (this.state.characters[rawKey]) return this.state.characters[rawKey];
+
+    // Pobierz unikalne profile
+    const uniqueProfiles = Object.values(this.state.characters).filter(
+      (c, idx, arr) => arr.findIndex((x) => x.id === c.id || x.name.toLowerCase() === c.name.toLowerCase()) === idx
+    );
+
+    const cleanQuery = extractCleanFirstName(rawKey).toLowerCase();
+    const queryStem = extractStem(rawKey);
+
+    // Sprawdź czy queryStem istnieje bezpośrednio w zarejestrowanych kluczach
+    if (queryStem.length >= 4 && this.state.characters[queryStem]) {
+      return this.state.characters[queryStem];
+    }
+
+    // 2. Szukanie po pierwszym imieniu (exact clean first name)
+    if (cleanQuery) {
+      for (const profile of uniqueProfiles) {
+        const profFirstName = extractCleanFirstName(profile.name).toLowerCase();
+        if (profFirstName && profFirstName === cleanQuery) {
+          return profile;
+        }
+      }
+    }
+
+    // 3. Szukanie po podciągu (substring match w pełnym imieniu)
+    for (const profile of uniqueProfiles) {
+      const profLower = profile.name.toLowerCase();
+      if (profLower.includes(lowerKey) || (lowerKey.length >= 3 && profLower.split(/\s+/).some((w) => w.includes(lowerKey)))) {
+        return profile;
+      }
+    }
+
+    // 4. Szukanie po wspólnym rdzeniu imienia (stem >= 4 znaki)
+    if (queryStem.length >= 4) {
+      for (const profile of uniqueProfiles) {
+        const profStem = extractStem(profile.name);
+        if (profStem.length >= 4 && profStem === queryStem) {
+          return profile;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   public updateLocation(
@@ -202,11 +472,15 @@ export class VisualBeliefGraph {
     const lines: string[] = [];
 
     const activeChars = Object.values(this.state.characters).filter(
-      (c, idx, arr) => arr.findIndex((x) => x.name.toLowerCase() === c.name.toLowerCase()) === idx
+      (c, idx, arr) => arr.findIndex((x) => x.id === c.id || x.name.toLowerCase() === c.name.toLowerCase()) === idx
     );
 
     if (activeChars.length > 0) {
-      lines.push(isEn ? '### VISUAL BELIEF GRAPH (CHARACTER ANCHORS):' : '### VISUAL BELIEF GRAPH (KOTWICE WIZUALNE POSTACI):');
+      lines.push(
+        isEn
+          ? '### VISUAL BELIEF GRAPH (CHARACTER ANCHORS):'
+          : '### VISUAL BELIEF GRAPH (KOTWICE WIZUALNE POSTACI):'
+      );
       for (const char of activeChars.slice(0, 6)) {
         lines.push(`- **${char.name}**: ${char.visualDnaPrompt}`);
       }
@@ -215,7 +489,11 @@ export class VisualBeliefGraph {
     if (this.state.currentLocationName) {
       const loc = this.getLocation(this.state.currentLocationName);
       if (loc) {
-        lines.push(isEn ? '### VISUAL BELIEF GRAPH (CURRENT LOCATION STATE):' : '### VISUAL BELIEF GRAPH (STAN BIEŻĄCEJ LOKACJI):');
+        lines.push(
+          isEn
+            ? '### VISUAL BELIEF GRAPH (CURRENT LOCATION STATE):'
+            : '### VISUAL BELIEF GRAPH (STAN BIEŻĄCEJ LOKACJI):'
+        );
         let locDesc = `- **${loc.locationName}** (visits: ${loc.visitedCount})`;
         if (loc.lighting) locDesc += `, lighting: ${loc.lighting}`;
         if (loc.atmosphere) locDesc += `, atmosphere: ${loc.atmosphere}`;

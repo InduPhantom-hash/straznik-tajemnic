@@ -437,6 +437,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                     message={message}
                     activeCharacter={activeCharacter}
                     playerPortraitUrl={playerPortraitUrl}
+                    era={eraContext?.effectiveYear ? String(eraContext.effectiveYear) : (activeCharacter?.era || '1920s')}
                     isTTSEnabled={isTTSEnabled}
                     currentAudio={currentAudio}
                     toggleAudioPause={toggleAudioPause}

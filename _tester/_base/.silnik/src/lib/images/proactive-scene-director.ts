@@ -10,7 +10,8 @@
 
 import type { ImageRequest } from '../parsers/types';
 import { enrichImagePromptWithEraProps } from '../location-era-validator';
-import type { VisualBeliefGraph } from './visual-belief-graph';
+import type { VisualBeliefGraph, CharacterVisualProfile } from './visual-belief-graph';
+import { extractCleanFirstName, extractStem } from './visual-belief-graph';
 
 export interface SceneDirectorConfig {
   maxImagesPerMessage: number;
@@ -48,6 +49,78 @@ function scoreIllustrationPriority(req: ImageRequest): number {
     return 60;
   }
   return 40;
+}
+
+/**
+ * Wykrywa postacie (gracza lub zarejestrowanych NPC) biorące udział w scenie,
+ * sprawdzając parametry żądania oraz treść promptu.
+ */
+function findParticipatingCharacters(
+  prompt: string,
+  req: ImageRequest,
+  beliefGraph: VisualBeliefGraph
+): CharacterVisualProfile[] {
+  const matched: CharacterVisualProfile[] = [];
+  const seenIds = new Set<string>();
+
+  // 1. Jawny parametr nazwy postaci (jeśli podano)
+  const explicitName =
+    (req as { characterName?: string }).characterName || (req.type === 'scene' ? req.portraitName : undefined);
+  if (explicitName) {
+    const prof = beliefGraph.getCharacterProfile(explicitName);
+    if (prof && !seenIds.has(prof.id)) {
+      seenIds.add(prof.id);
+      matched.push(prof);
+    }
+  }
+
+  // 2. Analiza tekstu promptu pod kątem imion, zdrobnień, stemów lub obecności Badacza
+  const allProfiles = Object.values(beliefGraph.getState().characters).filter(
+    (c, idx, arr) => arr.findIndex((x) => x.id === c.id || x.name.toLowerCase() === c.name.toLowerCase()) === idx
+  );
+
+  const lowerPrompt = prompt.toLowerCase();
+
+  for (const prof of allProfiles) {
+    if (seenIds.has(prof.id)) continue;
+
+    const lowerName = prof.name.toLowerCase().trim();
+    if (lowerName && lowerPrompt.includes(lowerName)) {
+      seenIds.add(prof.id);
+      matched.push(prof);
+      continue;
+    }
+
+    const firstName = extractCleanFirstName(prof.name).toLowerCase();
+    if (firstName && firstName.length >= 3) {
+      const wordRegex = new RegExp(`\\b${firstName}\\b`, 'i');
+      if (wordRegex.test(lowerPrompt)) {
+        seenIds.add(prof.id);
+        matched.push(prof);
+        continue;
+      }
+    }
+
+    const stem = extractStem(prof.name);
+    if (stem.length >= 4) {
+      const stemRegex = new RegExp(`\\b${stem}\\w*`, 'i');
+      if (stemRegex.test(lowerPrompt)) {
+        seenIds.add(prof.id);
+        matched.push(prof);
+        continue;
+      }
+    }
+
+    if (prof.isPlayer) {
+      if (/\b(badacz|badaczka|badacze|investigator|investigators|protagonista|gracz)\b/i.test(lowerPrompt)) {
+        seenIds.add(prof.id);
+        matched.push(prof);
+        continue;
+      }
+    }
+  }
+
+  return matched;
 }
 
 /**
@@ -120,6 +193,18 @@ export function directSceneIllustrations(
     } else if (req.isMythos || req.type === 'monster' || req.type === 'vision') {
       role = 'mythos_horror';
       defaultAspectRatio = '16:9';
+    }
+
+    // Wstrzyknięcie kotwic Visual DNA postaci w kadrach sytuacyjnych (dramatic_scene)
+    if (role === 'dramatic_scene' && beliefGraph) {
+      const participating = findParticipatingCharacters(basePrompt, req, beliefGraph);
+      if (participating.length > 0) {
+        const dnaAnchors = participating
+          .slice(0, 2)
+          .map((p) => `${p.name} (${p.visualDnaPrompt})`)
+          .join('; ');
+        basePrompt = `${basePrompt}, visual consistency anchors: [${dnaAnchors}]`;
+      }
     }
 
     // Wzbogacenie o materialne rekwizyty epoki i oczyszczenie z anachronizmów

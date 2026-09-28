@@ -28,6 +28,7 @@ import { OpposedMagicCard } from './opposed-magic-card';
 import { AcquiredItemCard } from './acquired-item-card';
 import { DevelopmentPhaseCard } from './DevelopmentPhaseCard';
 import { cleanMarkdown } from '@/lib/utils';
+import { getEraImageFilter } from '@/lib/era-visual-style';
 import { ChaseCard } from './chase-card';
 import { CombatCard } from './combat-card';
 import { OpposedMeleeCard } from './opposed-melee-card';
@@ -51,6 +52,7 @@ interface MessageCardProps {
   /** Portret gracza dociągnięty przez useResolvedPortrait (fallback z IndexedDB
    *  gdy activeCharacter.portraitUrl pusty). Liczony raz w ChatWindow. */
   playerPortraitUrl?: string | null;
+  era?: string;
   isTTSEnabled: boolean;
   currentAudio: HTMLAudioElement | null;
   toggleAudioPause?: () => void;
@@ -98,6 +100,7 @@ export function MessageCard({
   message,
   activeCharacter,
   playerPortraitUrl,
+  era,
   isTTSEnabled,
   currentAudio,
   toggleAudioPause,
@@ -132,6 +135,7 @@ export function MessageCard({
   const t = useTranslations('MessageCard');
   const locale = useLocale();
   const intlLocale = locale === 'en' ? 'en-US' : 'pl-PL';
+  const currentEra = era || activeCharacter?.era || '1920s';
 
   return (
     <Card
@@ -254,7 +258,7 @@ export function MessageCard({
                             : 'h-auto max-h-[70vh] object-contain bg-black/30'
                       }`}
                       style={{
-                        filter: 'sepia(0.1) saturate(1.1)',
+                        filter: getEraImageFilter(currentEra),
                       }}
                       loading="lazy"
                       onClick={() =>

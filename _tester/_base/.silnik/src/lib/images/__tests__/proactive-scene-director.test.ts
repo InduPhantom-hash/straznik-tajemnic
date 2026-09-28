@@ -126,4 +126,54 @@ describe('ProactiveSceneDirector (DeepMind Proactive T2I)', () => {
     expect(result.shots[0].aspectRatio).toBe('16:9');
     expect(result.shots[1].aspectRatio).toBe('16:9');
   });
+
+  it('wstrzykuje kotwice Visual DNA obecnych postaci (gracz i NPC) do ujęć typu dramatic_scene', () => {
+    const beliefGraph = new VisualBeliefGraph();
+    beliefGraph.registerPlayer(
+      {
+        id: 'player-1',
+        name: 'Waldemar Kowalski',
+        age: 34,
+        gender: 'male',
+        occupation: 'Dziennikarz śledczy',
+        appearance: 'wysoki mężczyzna w prochowcu i z notesem',
+        scars: ['blizna na lewym policzku'],
+      } as any,
+      '1920s'
+    );
+
+    beliefGraph.registerNPC(
+      {
+        id: 'npc-eleonora',
+        name: 'Eleonora Vance',
+        occupation: 'Dziedziczka',
+        appearance: 'młoda arystokratka, blada cera, aksamitna suknia',
+        disposition: 'suspicious',
+      },
+      '1920s'
+    );
+
+    const rawRequests: ImageRequest[] = [
+      {
+        prompt: 'Waldemar i Eleonora analizują stary list w salonie przy kominku',
+        type: 'scene',
+      },
+    ];
+
+    const result = directSceneIllustrations(rawRequests, {
+      maxImagesPerMessage: 1,
+      imageFrequency: 'normal',
+      effectiveEraOrYear: '1920s',
+      beliefGraph,
+    });
+
+    expect(result.shots.length).toBe(1);
+    const sceneShot = result.shots[0];
+    expect(sceneShot.role).toBe('dramatic_scene');
+    expect(sceneShot.aspectRatio).toBe('16:9');
+    expect(sceneShot.enrichedPrompt).toContain('visual consistency anchors');
+    expect(sceneShot.enrichedPrompt).toContain('Waldemar Kowalski');
+    expect(sceneShot.enrichedPrompt).toContain('Eleonora Vance');
+  });
 });
+
