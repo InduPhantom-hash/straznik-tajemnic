@@ -62,6 +62,19 @@ describe('VisualBeliefGraph & Visual DNA', () => {
       expect(profile.visualDnaPrompt).toContain('open warm stance');
     });
 
+    it('wydobywa zawód z opisu (description) gdy brak jawnego pola occupation', () => {
+      const npc = {
+        name: 'Arthur Vance',
+        description: 'Bibliotekarz w Uniwersytecie Miskatonic, cichy i skupiony na starych księgach',
+      };
+
+      const profile = extractNPCVisualProfile(npc, '1920s');
+
+      expect(profile.occupation).toBe('bibliotekarz');
+      expect(profile.visualDnaPrompt).toContain('tweed three-piece suit');
+      expect(profile.visualDnaPrompt).toContain('round wire-rimmed spectacles');
+    });
+
     it('tworzy spójny profil Badacza z kotwicami ubioru i bliznami', () => {
       const char: Character = {
         id: 'player-1',
@@ -130,6 +143,28 @@ describe('VisualBeliefGraph & Visual DNA', () => {
       expect(graph.getCharacterProfile('Dr Henry Armitage')).toBeDefined();
       expect(graph.getCharacterProfile('Henry')).toBeDefined();
       expect(graph.getCharacterProfile('Armitage')).toBeDefined();
+      expect(graph.getCharacterProfile('Dr Armitage')).toBeDefined();
+    });
+
+    it('obsługuje tytuły grzecznościowe (Pan Kowalski, Profesor Kowalski) i odrzuca szum', () => {
+      graph.registerNPC(
+        {
+          id: 'npc-waldemar',
+          name: 'Waldemar Kowalski',
+          occupation: 'Dziennikarz śledczy',
+        },
+        '1920s'
+      );
+
+      // Tytuły honorowe i zwroty grzecznościowe
+      expect(graph.getCharacterProfile('Pan Kowalski')?.name).toBe('Waldemar Kowalski');
+      expect(graph.getCharacterProfile('Profesor Kowalski')?.name).toBe('Waldemar Kowalski');
+      expect(graph.getCharacterProfile('Redaktor Kowalski')?.name).toBe('Waldemar Kowalski');
+
+      // Odrzucenie szumu (krótkie podciągi nie powinny dopasowywać losowych profili)
+      expect(graph.getCharacterProfile('al')).toBeUndefined();
+      expect(graph.getCharacterProfile('w')).toBeUndefined();
+      expect(graph.getCharacterProfile('de')).toBeUndefined();
     });
 
     it('pozwala zapisać i pobrać wygenerowany portret przez setPortrait', () => {

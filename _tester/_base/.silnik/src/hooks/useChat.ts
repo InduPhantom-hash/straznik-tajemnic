@@ -688,8 +688,29 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           visualBeliefGraphRef.current.registerNPC(npc, era);
         }
       }
+      if (activeCharacter.journal) {
+        for (const entry of activeCharacter.journal) {
+          if (entry.type === 'npc' && entry.title) {
+            visualBeliefGraphRef.current.registerNPC(
+              {
+                id: entry.title.toLowerCase().trim(),
+                name: entry.title.trim(),
+                description: entry.content || '',
+              },
+              era
+            );
+          }
+        }
+      }
     }
-  }, [activeCharacter, adventureContext?.era, adventureContext?.eraLabel, adventureContext?.yearRange]);
+    if (characters && characters.length > 0) {
+      characters.forEach((c) => {
+        if (c.id !== activeCharacter?.id) {
+          visualBeliefGraphRef.current.registerPlayer(c, era);
+        }
+      });
+    }
+  }, [activeCharacter, characters, adventureContext?.era, adventureContext?.eraLabel, adventureContext?.yearRange]);
 
   const generateImages = useCallback(
     async (illustrations: ImageToGenerate[], messageId: string) => {
@@ -1412,6 +1433,59 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               adventureContext?.era ||
               '1920s';
 
+            // 1. Najpierw synchronizuj zdarzenia lokacji i nowo spotkanych NPC z parsedEvents
+            // do VisualBeliefGraph i stanu currentLocationRef, aby reżyser sceny (directSceneIllustrations)
+            // dysponował kompletnym grafem przekonań wizualnych na bieżącą turę.
+            const parsed = metadata.parsedEvents;
+            if (Array.isArray(parsed)) {
+              for (const e of parsed) {
+                if (e && typeof e === 'object') {
+                  const ev = e as { type?: string; title?: string; description?: string };
+                  if (ev.type === 'npc' && ev.title) {
+                    const rawName = ev.title.replace(/^Spotkano:\s*/i, '').trim();
+                    if (rawName) {
+                      visualBeliefGraphRef.current.registerNPC(
+                        {
+                          id: rawName.toLowerCase(),
+                          name: rawName,
+                          description: ev.description || '',
+                        },
+                        era
+                      );
+                    }
+                  } else if (ev.type === 'location' && ev.title) {
+                    const name = sanitizeLocationName(ev.title);
+                    if (name && !isVisualPromptLeak(name)) {
+                      visualBeliefGraphRef.current.updateLocation(name, {
+                        atmosphere: ev.description || undefined,
+                      });
+                    }
+                  }
+                }
+              }
+
+              const locEvent = [...parsed]
+                .reverse()
+                .find(
+                  (e) =>
+                    !!e &&
+                    typeof e === 'object' &&
+                    (e as { type?: string }).type === 'location'
+                ) as { title?: string; description?: string } | undefined;
+              const rawTitle = locEvent?.title;
+              if (typeof rawTitle === 'string' && rawTitle.trim()) {
+                const name = sanitizeLocationName(rawTitle);
+                if (name && !isVisualPromptLeak(name)) {
+                  currentLocationRef.current = name;
+                  setCurrentLocation(name);
+                  visualBeliefGraphRef.current.updateLocation(name, {
+                    atmosphere: locEvent?.description || undefined,
+                  });
+                }
+              }
+            }
+
+            // 2. Proaktywny reżyser kadrów i generowanie obrazów (z zaktualizowanym grafem)
             if (
               options.aiSettings?.imageGenerationEnabled !== false &&
               metadata.illustrations &&
@@ -1426,10 +1500,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   options.aiSettings?.replicateSettings?.imageFrequency
                 )
               );
-              // 2026-06-28: reset licznika obrazów przy zmianie sceny (lokacji).
-              // currentLocationRef lustruje najnowszy [LOKACJA:]; aktualizuje się PO tym
-              // bloku (parsedEvents niżej + extractLatestTagLocation), więc reset wchodzi
-              // o jedną turę po ruchu gracza - akceptowalne, nigdy nie blokuje gry.
+              // Reset licznika obrazów przy zmianie sceny (lokacji).
               const sceneKey = currentLocationRef.current;
               if (sceneKey !== lastTrackedSceneRef.current) {
                 lastTrackedSceneRef.current = sceneKey;
@@ -1497,59 +1568,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     aspectRatio: s.aspectRatio,
                   }));
                   generateImages(curatedImages, assistantMessageId);
-                }
-              }
-            }
-
-            // #5: fallback lokacji do pineski 📍 w headerze. AI często NIE emituje
-            // tekstowego [LOKACJA:], ale serwer i tak zwraca `parsedEvents` z
-            // wpisem type=location. Używamy go jako fallback; bogatszy tag tekstowy
-            // (jeśli był) nadpisze to niżej przez extractLatestTagLocation.
-            const parsed = metadata.parsedEvents;
-            if (Array.isArray(parsed)) {
-              for (const e of parsed) {
-                if (e && typeof e === 'object') {
-                  const ev = e as { type?: string; title?: string; description?: string };
-                  if (ev.type === 'npc' && ev.title) {
-                    const rawName = ev.title.replace(/^Spotkano:\s*/i, '').trim();
-                    if (rawName) {
-                      visualBeliefGraphRef.current.registerNPC(
-                        {
-                          id: rawName.toLowerCase(),
-                          name: rawName,
-                          description: ev.description || '',
-                        },
-                        era
-                      );
-                    }
-                  } else if (ev.type === 'location' && ev.title) {
-                    const name = sanitizeLocationName(ev.title);
-                    if (name && !isVisualPromptLeak(name)) {
-                      visualBeliefGraphRef.current.updateLocation(name, {
-                        atmosphere: ev.description || undefined,
-                      });
-                    }
-                  }
-                }
-              }
-
-              const locEvent = [...parsed]
-                .reverse()
-                .find(
-                  (e) =>
-                    !!e &&
-                    typeof e === 'object' &&
-                    (e as { type?: string }).type === 'location'
-                ) as { title?: string; description?: string } | undefined;
-              const rawTitle = locEvent?.title;
-              if (typeof rawTitle === 'string' && rawTitle.trim()) {
-                const name = sanitizeLocationName(rawTitle);
-                if (name && !isVisualPromptLeak(name)) {
-                  currentLocationRef.current = name;
-                  setCurrentLocation(name);
-                  visualBeliefGraphRef.current.updateLocation(name, {
-                    atmosphere: locEvent?.description || undefined,
-                  });
                 }
               }
             }
