@@ -61,6 +61,24 @@ describe('VisualBeliefGraph & Visual DNA', () => {
       expect(profile.visualDnaPrompt).toContain('tweed three-piece suit');
       expect(profile.visualDnaPrompt).toContain('open warm stance');
     });
+
+    it('tworzy spójny profil Badacza z kotwicami ubioru i bliznami', () => {
+      const char: Character = {
+        id: 'player-1',
+        name: 'Thomas Malone',
+        age: 38,
+        gender: 'male',
+        occupation: 'Detektyw',
+        appearance: 'zmęczony gliniarz',
+        scars: ['postrzał w ramię'],
+      } as unknown as Character;
+
+      const profile = extractPlayerVisualProfile(char, '1920s');
+      expect(profile.name).toBe('Thomas Malone');
+      expect(profile.visualDnaPrompt).toContain('38-year-old man, detektyw');
+      expect(profile.visualDnaPrompt).toContain('visible scars: postrzał w ramię');
+      expect(profile.visualDnaPrompt).toContain('authentic 1920s attire');
+    });
   });
 
   describe('VisualBeliefGraph registration & flexible matching', () => {

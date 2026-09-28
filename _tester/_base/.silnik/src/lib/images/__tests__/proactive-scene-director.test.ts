@@ -1,6 +1,7 @@
 import { directSceneIllustrations } from '../proactive-scene-director';
 import { VisualBeliefGraph } from '../visual-belief-graph';
 import type { ImageRequest } from '../../parsers/types';
+import type { Character } from '../../types';
 
 describe('ProactiveSceneDirector (DeepMind Proactive T2I)', () => {
   it('selekcjonuje i wzbogaca 1-3 zróżnicowane kadry w turze kulminacyjnej', () => {
@@ -138,7 +139,7 @@ describe('ProactiveSceneDirector (DeepMind Proactive T2I)', () => {
         occupation: 'Dziennikarz śledczy',
         appearance: 'wysoki mężczyzna w prochowcu i z notesem',
         scars: ['blizna na lewym policzku'],
-      } as any,
+      } as unknown as Character,
       '1920s'
     );
 
