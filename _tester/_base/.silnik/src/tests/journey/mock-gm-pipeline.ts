@@ -731,10 +731,7 @@ ${this.generateMeleeAttackTag({
         timestamp: m.timestamp,
       })),
       gameSettings: {
-        aiSettings: {
-          ...defaultAISettings,
-          language: 'pl',
-        },
+        aiSettings: defaultAISettings,
       },
       characters: this.characters,
       activeCharacterId: this.activeCharacterId,

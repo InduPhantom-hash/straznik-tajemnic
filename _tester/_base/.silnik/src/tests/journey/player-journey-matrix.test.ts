@@ -340,8 +340,9 @@ Potworny ogar z Tindalos wyłania się z kąta budynku i rzuca w pogoń!
         maneuver: { type: 'sprint', actorId: pipeline.getActiveCharacter().id },
       });
 
-      expect(playerLog.success).toBe(true);
-      expect(playerLog.actionName).toBe('Sprint');
+      expect(playerLog).not.toBeNull();
+      expect(playerLog!.success).toBe(true);
+      expect(playerLog!.actionName).toBe('Sprint');
       const player = nextState.participants.find((p) => p.isPlayer);
       expect(player?.segmentIndex).toBe(3);
     });
@@ -364,7 +365,8 @@ Potworny ogar z Tindalos wyłania się z kąta budynku i rzuca w pogoń!
         },
       });
 
-      expect(round1.playerLog.success).toBe(true);
+      expect(round1.playerLog).not.toBeNull();
+      expect(round1.playerLog!.success).toBe(true);
 
       // Nowa lokacja po ucieczce w boczny zaułek
       const sceneChangeResponse = `
@@ -389,7 +391,8 @@ Potworny ogar z Tindalos wyłania się z kąta budynku i rzuca w pogoń!
         maneuver: { type: 'sprint', actorId: pipeline.getActiveCharacter().id },
       });
 
-      expect(playerLog.success).toBe(true);
+      expect(playerLog).not.toBeNull();
+      expect(playerLog!.success).toBe(true);
       expect(pursuerLogs.length).toBeGreaterThanOrEqual(1);
       // Obie strony wyczerpały akcje w rundzie 1, silnik automatycznie przeszedł do rundy 2
       expect(nextState.round).toBe(2);
@@ -421,9 +424,10 @@ Potworny ogar z Tindalos wyłania się z kąta budynku i rzuca w pogoń!
         },
       });
 
-      expect(playerLog.success).toBe(false);
-      expect(playerLog.actionCost).toBeGreaterThanOrEqual(2); // 1 akcja za próbę + 1 kary
-      expect(playerLog.details).toContain('Porażka');
+      expect(playerLog).not.toBeNull();
+      expect(playerLog!.success).toBe(false);
+      expect(playerLog!.actionCost).toBeGreaterThanOrEqual(2); // 1 akcja za próbę + 1 kary
+      expect(playerLog!.details).toContain('Porażka');
     });
 
     it('3.6: Pomyślna ucieczka (Escape): udany manewr ukrycia się (hide) w bocznej uliczce kończy pościg', () => {
@@ -442,7 +446,8 @@ Potworny ogar z Tindalos wyłania się z kąta budynku i rzuca w pogoń!
         },
       });
 
-      expect(playerLog.success).toBe(true);
+      expect(playerLog).not.toBeNull();
+      expect(playerLog!.success).toBe(true);
       expect(nextState.status).toBe('escaped');
     });
   });
