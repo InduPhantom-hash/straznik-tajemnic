@@ -71,7 +71,7 @@ function sanitizeText(input?: string): string {
   return input.replace(/\[/g, '(').replace(/\]/g, ')').replace(/[\r\n]+/g, ' ').trim();
 }
 
-const TITLES_TO_STRIP = new Set([
+export const TITLES_TO_STRIP = new Set([
   'dr',
   'dr.',
   'doktor',
@@ -83,8 +83,23 @@ const TITLES_TO_STRIP = new Set([
   'kpt.',
   'pan',
   'pani',
+  'panna',
   'lord',
   'lady',
+  'sir',
+  'madam',
+  'madame',
+  'mr',
+  'mr.',
+  'mrs',
+  'mrs.',
+  'ms',
+  'ms.',
+  'miss',
+  'father',
+  'reverend',
+  'rev',
+  'rev.',
   'ojciec',
   'brat',
   'siostra',
@@ -93,7 +108,31 @@ const TITLES_TO_STRIP = new Set([
   'pastor',
   'ks.',
   'ksiądz',
+  'sergeant',
+  'sgt',
+  'sgt.',
+  'sierżant',
+  'komisarz',
+  'redaktor',
+  'mecenas',
+  'mec.',
+  'sędzia',
+  'hrabia',
+  'hrabina',
+  'baron',
 ]);
+
+/**
+ * Wyodrębnia czyste tokeny z pełnej nazwy lub zapytania, pomijając znaki interpunkcyjne i honoryfikatywy.
+ */
+export function extractCleanTokens(text: string): string[] {
+  if (!text) return [];
+  return text
+    .trim()
+    .split(/\s+/)
+    .map((t) => t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase())
+    .filter((t) => t.length > 0 && !TITLES_TO_STRIP.has(t));
+}
 
 /**
  * Wyodrębnia pierwsze imię postaci, pomijając honoryfikatywy i tytuły (np. "Dr Henry Armitage" -> "Henry").
@@ -256,7 +295,22 @@ export function extractNPCVisualProfile(npc: VisualNPCInput, era: string = '1920
         ? npc.relationshipStatus
         : undefined;
 
-  parts.push(`${name}${occ ? `, ${occ}` : ', person'}`);
+  let effectiveOcc = occ;
+  if (!effectiveOcc) {
+    const candidateText = `${desc} ${firstImpression} ${appearance}`.toLowerCase();
+    if (/lekarz|psychiatr|chirurg|doktor|doctor|physician|medic|nurse|pielęgniark/i.test(candidateText)) effectiveOcc = 'lekarz';
+    else if (/policj|constable|szeryf|sheriff|officer|strażnik|detektyw|investigator|gumshoe/i.test(candidateText)) effectiveOcc = 'detektyw';
+    else if (/profesor|scholar|naukowiec|historyk|antiquarian|bibliotekarz|librarian|kustosz|curator|archiwist/i.test(candidateText)) effectiveOcc = 'bibliotekarz';
+    else if (/dozorca|janitor|caretaker|mechanik|mechanic|robotnik|laborer|driver|kierowca|ślusarz/i.test(candidateText)) effectiveOcc = 'robotnik';
+    else if (/marynarz|sailor|kapitan|szyp|fisherman|rybak|dockworker|stokowiec/i.test(candidateText)) effectiveOcc = 'marynarz';
+    else if (/dziedzic|dziedziczka|arystokrat|szlach|noble|heiress|bankier|banker|przemysłowiec|industrialist|lord|lady/i.test(candidateText)) effectiveOcc = 'arystokrata';
+    else if (/ksiądz|pastor|kapłan|priest|clergyman|monk|zakonnik|minister/i.test(candidateText)) effectiveOcc = 'duchowny';
+    else if (/artyst|malarz|painter|poet|pisarz|author|dziennikarz|journalist|reporter/i.test(candidateText)) effectiveOcc = 'artysta / dziennikarz';
+    else if (/gangster|mobster|złodziej|thief|przemytnik|smuggler|przestępc/i.test(candidateText)) effectiveOcc = 'przestępca';
+    else if (/kupiec|handlowiec|merchant|sklepikarz|shopkeeper|clerk|urzędnik/i.test(candidateText)) effectiveOcc = 'urzędnik / kupiec';
+  }
+
+  parts.push(`${name}${effectiveOcc ? `, ${effectiveOcc}` : ', person'}`);
 
   let hasExplicitLook = false;
   if (appearance.trim()) {
@@ -277,7 +331,7 @@ export function extractNPCVisualProfile(npc: VisualNPCInput, era: string = '1920
   }
 
   // Wzbogać profil kotwicami ubioru z zawodu
-  const occClothing = deriveClothingFromOccupation(occ, era);
+  const occClothing = deriveClothingFromOccupation(effectiveOcc, era);
   if (occClothing) {
     parts.push(occClothing);
   }
@@ -305,7 +359,7 @@ export function extractNPCVisualProfile(npc: VisualNPCInput, era: string = '1920
     id: npc.id || npc.name,
     name,
     isPlayer: false,
-    occupation: occ || undefined,
+    occupation: effectiveOcc || undefined,
     apparentEraStyle: era,
     visualDnaPrompt: visualDna,
     portraitUrl,
@@ -393,15 +447,36 @@ export class VisualBeliefGraph {
       (c, idx, arr) => arr.findIndex((x) => x.id === c.id || x.name.toLowerCase() === c.name.toLowerCase()) === idx
     );
 
+    const queryTokens = extractCleanTokens(rawKey);
     const cleanQuery = extractCleanFirstName(rawKey).toLowerCase();
     const queryStem = extractStem(rawKey);
 
-    // Sprawdź czy queryStem istnieje bezpośrednio w zarejestrowanych kluczach
-    if (queryStem.length >= 4 && this.state.characters[queryStem]) {
+    // Sprawdź czy queryStem istnieje bezpośrednio w zarejestrowanych kluczach (gdy zapytanie to pojedyncze słowo / zdrobnienie)
+    if (queryTokens.length <= 1 && queryStem.length >= 4 && this.state.characters[queryStem]) {
       return this.state.characters[queryStem];
     }
 
-    // 2. Szukanie po pierwszym imieniu (exact clean first name)
+    // 2. Szukanie po tokenach imion/nazwisk (obsługuje tytuły np. "Pan Kowalski", "Dr Armitage", "Profesor Waldemar Kowalski")
+    if (queryTokens.length > 0) {
+      for (const profile of uniqueProfiles) {
+        const profTokens = extractCleanTokens(profile.name);
+        const allMatch = queryTokens.every((q) =>
+          profTokens.some((p) => {
+            if (p === q) return true;
+            if (p.length >= 4 && q.length >= 4) {
+              if (extractStem(p) === extractStem(q)) return true;
+              if (p.startsWith(q) || q.startsWith(p)) return true;
+            }
+            return false;
+          })
+        );
+        if (allMatch) {
+          return profile;
+        }
+      }
+    }
+
+    // 3. Szukanie po pierwszym imieniu (exact clean first name)
     if (cleanQuery) {
       for (const profile of uniqueProfiles) {
         const profFirstName = extractCleanFirstName(profile.name).toLowerCase();
@@ -411,15 +486,17 @@ export class VisualBeliefGraph {
       }
     }
 
-    // 3. Szukanie po podciągu (substring match w pełnym imieniu)
-    for (const profile of uniqueProfiles) {
-      const profLower = profile.name.toLowerCase();
-      if (profLower.includes(lowerKey) || (lowerKey.length >= 3 && profLower.split(/\s+/).some((w) => w.includes(lowerKey)))) {
-        return profile;
+    // 4. Szukanie po podciągu (substring match w pełnym imieniu - wymagane min. 3 znaki)
+    if (lowerKey.length >= 3) {
+      for (const profile of uniqueProfiles) {
+        const profLower = profile.name.toLowerCase();
+        if (profLower.includes(lowerKey)) {
+          return profile;
+        }
       }
     }
 
-    // 4. Szukanie po wspólnym rdzeniu imienia (stem >= 4 znaki)
+    // 5. Szukanie po wspólnym rdzeniu imienia (stem >= 4 znaki)
     if (queryStem.length >= 4) {
       for (const profile of uniqueProfiles) {
         const profStem = extractStem(profile.name);

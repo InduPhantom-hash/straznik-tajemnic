@@ -176,5 +176,47 @@ describe('ProactiveSceneDirector (DeepMind Proactive T2I)', () => {
     expect(sceneShot.enrichedPrompt).toContain('Waldemar Kowalski');
     expect(sceneShot.enrichedPrompt).toContain('Eleonora Vance');
   });
+
+  it('nie wstrzykuje fałszywych postaci na podstawie powszechnych polskich słów (stan, kamień)', () => {
+    const beliefGraph = new VisualBeliefGraph();
+    beliefGraph.registerNPC(
+      {
+        id: 'npc-stanislaw',
+        name: 'Stanisław Przybyszewski',
+        occupation: 'Pisarz',
+      },
+      '1920s'
+    );
+    beliefGraph.registerNPC(
+      {
+        id: 'npc-kamila',
+        name: 'Kamila Nowicka',
+        occupation: 'Lekarka',
+      },
+      '1920s'
+    );
+
+    // Prompt zawiera słowa "kamienna" i "stanie", ale postacie Stanisław i Kamila nie biorą udziału
+    const rawRequests: ImageRequest[] = [
+      {
+        prompt: 'Mroczna pusta biblioteka nocą, na podłodze leży kamienna tablica, a księgi są w opłakanym stanie.',
+        type: 'scene',
+      },
+    ];
+
+    const result = directSceneIllustrations(rawRequests, {
+      maxImagesPerMessage: 1,
+      imageFrequency: 'normal',
+      effectiveEraOrYear: '1920s',
+      beliefGraph,
+    });
+
+    expect(result.shots.length).toBe(1);
+    const shot = result.shots[0];
+    expect(shot.enrichedPrompt).not.toContain('Stanisław');
+    expect(shot.enrichedPrompt).not.toContain('Kamila');
+    expect(shot.enrichedPrompt).not.toContain('visual consistency anchors');
+  });
 });
+
 

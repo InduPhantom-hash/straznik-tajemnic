@@ -11,7 +11,7 @@
 import type { ImageRequest } from '../parsers/types';
 import { enrichImagePromptWithEraProps } from '../location-era-validator';
 import type { VisualBeliefGraph, CharacterVisualProfile } from './visual-belief-graph';
-import { extractCleanFirstName, extractStem } from './visual-belief-graph';
+import { extractCleanFirstName, extractStem, extractCleanTokens } from './visual-belief-graph';
 
 export interface SceneDirectorConfig {
   maxImagesPerMessage: number;
@@ -51,6 +51,27 @@ function scoreIllustrationPriority(req: ImageRequest): number {
   return 40;
 }
 
+const COMMON_WORD_STEMS = new Set([
+  'stan',
+  'kami',
+  'grze',
+  'bole',
+  'mari',
+  'roma',
+  'artu',
+  'zofi',
+  'wita',
+  'jasn',
+  'dobr',
+  'lesn',
+  'nowa',
+  'star',
+  'krol',
+  'ziem',
+  'biel',
+  'czar',
+]);
+
 /**
  * Wykrywa postacie (gracza lub zarejestrowanych NPC) biorące udział w scenie,
  * sprawdzając parametry żądania oraz treść promptu.
@@ -84,6 +105,7 @@ function findParticipatingCharacters(
   for (const prof of allProfiles) {
     if (seenIds.has(prof.id)) continue;
 
+    // A. Pełna nazwa (np. "Waldemar Kowalski", "Dr Henry Armitage")
     const lowerName = prof.name.toLowerCase().trim();
     if (lowerName && lowerPrompt.includes(lowerName)) {
       seenIds.add(prof.id);
@@ -91,28 +113,87 @@ function findParticipatingCharacters(
       continue;
     }
 
+    // B. Pierwsze imię z polską odmianą deklinacyjną (np. "Waldemar", "Waldemara", "Waldemarowi", "Eleonora", "Eleonorze")
     const firstName = extractCleanFirstName(prof.name).toLowerCase();
     if (firstName && firstName.length >= 3) {
-      const wordRegex = new RegExp(`\\b${firstName}\\b`, 'i');
-      if (wordRegex.test(lowerPrompt)) {
+      const fnBase = firstName.endsWith('a') ? firstName.slice(0, -1) : firstName;
+      const fnInflectRegex = new RegExp(
+        `(?<=^|[^\\p{L}\\p{N}])${fnBase}(?:a|owi|em|ie|e|y|u|ze|ą|ę)?(?=[^\\p{L}\\p{N}]|$)`,
+        'iu'
+      );
+      if (fnInflectRegex.test(prompt)) {
         seenIds.add(prof.id);
         matched.push(prof);
         continue;
       }
     }
 
+    // C. Nazwisko (np. "Kowalski", "Armitage", "Malone")
+    const cleanTokens = extractCleanTokens(prof.name);
+    if (cleanTokens.length > 1) {
+      const lastName = cleanTokens[cleanTokens.length - 1];
+      if (lastName.length >= 4 && !COMMON_WORD_STEMS.has(lastName.slice(0, 4))) {
+        const lnBase =
+          lastName.endsWith('ski') || lastName.endsWith('ska')
+            ? lastName.slice(0, -3)
+            : lastName.endsWith('i') || lastName.endsWith('a')
+              ? lastName.slice(0, -1)
+              : lastName;
+        const lnRegex = new RegExp(
+          `(?<=^|[^\\p{L}\\p{N}])${lnBase}(?:ski|ska|skiego|skiej|skiemu|skim|skich|skimi|a|owi|em|ie|e|y|u)?(?=[^\\p{L}\\p{N}]|$)`,
+          'iu'
+        );
+        if (lnRegex.test(prompt)) {
+          seenIds.add(prof.id);
+          matched.push(prof);
+          continue;
+        }
+      }
+    }
+
+    // D. Bezpieczne zdrobnienia i stemy (wykluczając powszechne słowa słownikowe 'stan', 'kami', itp.)
     const stem = extractStem(prof.name);
-    if (stem.length >= 4) {
-      const stemRegex = new RegExp(`\\b${stem}\\w*`, 'i');
-      if (stemRegex.test(lowerPrompt)) {
+    if (stem.length >= 4 && !COMMON_WORD_STEMS.has(stem)) {
+      const diminutiveRegex = new RegExp(
+        `(?<=^|[^\\p{L}\\p{N}])${stem}(?:ek|k[a-ząćęłńóśźż]*|[a-ząćęłńóśźż]{1,4})?(?=[^\\p{L}\\p{N}]|$)`,
+        'iu'
+      );
+      if (diminutiveRegex.test(prompt)) {
         seenIds.add(prof.id);
         matched.push(prof);
         continue;
       }
     }
 
+    // Specjalne kanoniczne zdrobnienia dla imion ze stemami kolidującymi (Stanisław -> Staszek, Grzegorz -> Grzesiek)
+    if (prof.name.toLowerCase().includes('stanisław')) {
+      if (
+        /(?<=^|[^\p{L}\p{N}])(staszek|staszka|staszkowi|staszkie|staszku|stasiek|stasiu)(?=[^\p{L}\p{N}]|$)/iu.test(
+          prompt
+        )
+      ) {
+        seenIds.add(prof.id);
+        matched.push(prof);
+        continue;
+      }
+    }
+    if (prof.name.toLowerCase().includes('grzegorz')) {
+      if (
+        /(?<=^|[^\p{L}\p{N}])(grzesiek|grześ|grzesiu|grzesia)(?=[^\p{L}\p{N}]|$)/iu.test(prompt)
+      ) {
+        seenIds.add(prof.id);
+        matched.push(prof);
+        continue;
+      }
+    }
+
+    // E. Obecność gracza w kadrze
     if (prof.isPlayer) {
-      if (/\b(badacz|badaczka|badacze|investigator|investigators|protagonista|gracz)\b/i.test(lowerPrompt)) {
+      if (
+        /(?<=^|[^\p{L}\p{N}])(badacz|badaczka|badacze|investigator|investigators|protagonista|gracz)(?=[^\p{L}\p{N}]|$)/iu.test(
+          prompt
+        )
+      ) {
         seenIds.add(prof.id);
         matched.push(prof);
         continue;
