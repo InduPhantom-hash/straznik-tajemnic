@@ -30,6 +30,7 @@ export interface SceneContext {
   hasSanityLossOrRoll?: boolean;
   hasOccultElements?: boolean;
   npcsPresent?: boolean;
+  npcs?: Array<{ id?: string; name: string }>;
   currentLocation?: string | null;
   locationChanged?: boolean;
   turnIndex?: number;
@@ -98,23 +99,49 @@ export function determineSceneState(context: SceneContext): SceneState {
     return 'abyssal_reveal';
   }
 
-  // 4. Dialog / interakcja z NPC
-  const isSocialIntent =
+  // 4. Dialog / interakcja z NPC (Issue #546: ulepszona detekcja pytań, cudzysłowów i wołaczy NPC)
+  const isExplicitSocialVerb =
     /\b(mówi|mowie|rozmawia|pyta|szept|krzycz|zagad|odpowiada|tłumacz|tlumacz|błaga|blaga|negocj|przekon|grozi|panie|pani|dzień dobry|dzien dobry|cześć|czesc|witam|wypytuj|talk|speak|ask|whisper|shout|tell|interrogate|greet|inquire)[a-ząćęłńóśźż]*/i.test(
       rawMsg
     );
 
-  if (context.npcsPresent && isSocialIntent) {
+  const hasQuestion = /[?？]/.test(rawMsg);
+  const hasDialogueFormatting =
+    /^[ \t]*["„»“”‘'-]/.test(rawMsg) ||
+    /["„»“”‘][^"”»“”’]+["”»“”’]/.test(rawMsg);
+
+  const isInvestigativeOnly =
+    /\b(szukam|badam|przeszukuj|oglądam|ogladam|czytam|otwieram|rozglądam|rozgladam|search|inspect|examine|read|open|look around)\b/i.test(
+      rawMsg
+    );
+
+  const mentionsNpcStem = (() => {
+    if (!context.npcsPresent) return false;
+    if (context.npcs && context.npcs.length > 0) {
+      return context.npcs.some((npc) => {
+        const parts = npc.name.toLowerCase().split(/\s+/).filter((p) => p.length >= 3);
+        return parts.some((p) => {
+          if (rawMsg.includes(p)) return true;
+          const stem = p.length >= 4 ? p.slice(0, 4) : p;
+          return stem.length >= 4 && rawMsg.includes(stem);
+        });
+      });
+    }
+    // Popularne polskie wołacze i zdrobnienia obecnych towarzyszy / postaci
+    return /\b(waldek|waldku|piotrek|piotrze|kasiu|kasia|doktorze|profesorze|januszu|janusz)\b/i.test(rawMsg);
+  })();
+
+  const isDialogueIntent =
+    isExplicitSocialVerb ||
+    (context.npcsPresent && (mentionsNpcStem || hasDialogueFormatting || (hasQuestion && !isInvestigativeOnly)));
+
+  if (context.npcsPresent && isDialogueIntent) {
     return 'dialogue';
   }
 
   // 5. Pamięć stanu z poprzedniej tury (Smooth Pacing Continuity)
   if (context.previousSceneState === 'dialogue' && context.npcsPresent) {
     // Jeśli gracz kontynuuje wypowiedź w obecności NPC bez deklaracji badania lub walki
-    const isInvestigativeOnly =
-      /\b(szukam|badam|przeszukuj|oglądam|ogladam|czytam|otwieram|search|inspect|examine|read|open)\b/i.test(
-        rawMsg
-      );
     if (!isInvestigativeOnly) {
       return 'dialogue';
     }
@@ -144,8 +171,8 @@ export function getPacingMoodSuggestion(state: SceneState): {
       };
     case 'dialogue':
       return {
-        pl: 'Nastrój dialogu: skupienie na intencji rozmówcy, tarciu społecznym i niewypowiedzianych sekretach NPC.',
-        en: 'Dialogue mood: focus on the speaker intent, social friction, and unspoken NPC secrets.',
+        pl: 'Nastrój dialogu (Zasada Dialog-First): natychmiastowa odpowiedź NPC na początku posta (max 1 zwięzły gest), skupienie na intencji rozmówcy i tarciu społecznym bez zbędnych wstępów sensorycznych.',
+        en: 'Dialogue mood (Dialog-First Rule): immediate NPC response at the beginning of the post (max 1 concise gesture), focus on speaker intent and social friction without redundant environmental sensory preambles.',
       };
     case 'tension_spike':
       return {
@@ -333,6 +360,13 @@ export function formatSceneDirective(
     directiveStr += isPl
       ? `\n[TECHNIKA_WSPOMAGAJĄCA: ${secName}] ${secDir}`
       : `\n[SUPPORTING_TECHNIQUE: ${secName}] ${secDir}`;
+  }
+
+  // Issue #546: Żelazna dyrektywa Dialog-First dla scen dialogowych
+  if (selection.sceneState === 'dialogue') {
+    directiveStr += isPl
+      ? '\n[ZASADA DIALOG-FIRST: Odpowiedź NPC musi paść NATYCHMIAST na początku Twojego posta (max 1 zwięzły mikrogest przed wypowiedzią). ZAKAZ otwierania tury od wieloakapitowych opisów zapachów, mebli, kurzu czy atmosfery pomieszczenia.]'
+      : '\n[DIALOG-FIRST RULE: The NPC response must appear IMMEDIATELY at the start of your post (max 1 concise micro-gesture before dialogue). FORBIDDEN: Opening the post with descriptive paragraphs about environmental smells, furniture, dust, or room atmosphere.]';
   }
 
   return directiveStr;
