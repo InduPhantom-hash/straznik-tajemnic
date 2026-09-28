@@ -17,7 +17,7 @@
  */
 
 import fs from 'fs';
-import type { Character, ActiveBoutOfMadness, Location } from '@/lib/types';
+import type { Character } from '@/lib/types';
 import { applyStatChangesToParty, type SanityEvent } from '@/lib/character/apply-stat-changes';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { extractSkillTests, extractMeleeAttackReferences, detectCombat } from '@/lib/parsers/mechanics-parser';
@@ -37,6 +37,8 @@ import {
   type ChaseManeuver,
   type ChaseParticipant,
   type ChaseHazard,
+  type ChaseSpeedRollOutcome,
+  type ChaseRoundLog,
 } from '@/lib/chase/chase-engine';
 import {
   resolveIntelligenceTest,
@@ -46,6 +48,8 @@ import {
   buildIdeaRollPrompt,
   type IdeaRollResult,
 } from '@/lib/journal/idea-roll-service';
+import type { MiceQuotientType } from '@/lib/journal/dossier-types';
+import { defaultAISettings } from '@/lib/ai-settings/defaults';
 import { FullGameSaveManager, type FullGameSave } from '@/lib/full-game-save-manager';
 import type { RollOutcome } from '@/lib/dice-utils';
 
@@ -497,8 +501,8 @@ export class MockGMPipeline {
     trackLength?: number;
     escapeDistanceThreshold?: number;
     hazardPositions?: Record<number, ChaseHazard>;
-    fleeingSpeedRoll?: any;
-    pursuerSpeedRolls?: any;
+    fleeingSpeedRoll?: ChaseSpeedRollOutcome | Record<string, ChaseSpeedRollOutcome>;
+    pursuerSpeedRolls?: Record<string, ChaseSpeedRollOutcome>;
   }): ChaseState {
     const active = this.getActiveCharacter();
     const fleeingInput = {
@@ -543,13 +547,13 @@ export class MockGMPipeline {
   public executeChaseRound(params: {
     maneuver: ChaseManeuver;
     pursuerHazardOutcomes?: Record<string, RollOutcome[]>;
-  }): { nextState: ChaseState; playerLog: any; pursuerLogs: any[] } {
+  }): { nextState: ChaseState; playerLog: ChaseRoundLog | null; pursuerLogs: ChaseRoundLog[] } {
     if (!this.chaseState) {
       throw new Error('No active chase state to execute maneuver');
     }
 
     let currentState = this.chaseState;
-    const allPursuerLogs: any[] = [];
+    const allPursuerLogs: ChaseRoundLog[] = [];
 
     // 1. Jeśli bieżącym aktywnym uczestnikiem jest ścigający (wyższy DEX niż badacz),
     // pozwól ścigającym z wyższym DEX wykonać ich akcje dopóki nie nadejdzie tura gracza
@@ -573,7 +577,7 @@ export class MockGMPipeline {
     }
 
     // 2. Jeśli pościg trwa, wykonaj manewr gracza
-    let playerLog: any = null;
+    let playerLog: ChaseRoundLog | null = null;
     if (currentState.status === 'ongoing') {
       const playerRes = executePlayerManeuver(currentState, params.maneuver);
       currentState = playerRes.nextState;
@@ -638,7 +642,12 @@ export class MockGMPipeline {
     characterId?: string;
     targetSubject?: { id: string; title: string; description?: string };
     fixedRoll?: number;
-    contextClues?: any[];
+    contextClues?: Array<{
+      title: string;
+      description?: string;
+      type?: string;
+      miceType?: MiceQuotientType;
+    }>;
   }): {
     result: IdeaRollResult;
     generatedResponse: string;
@@ -723,11 +732,9 @@ ${this.generateMeleeAttackTag({
       })),
       gameSettings: {
         aiSettings: {
-          model: 'mock-model',
-          temperature: 0.7,
-          narrativeStyle: 'classic',
+          ...defaultAISettings,
           language: 'pl',
-        } as any,
+        },
       },
       characters: this.characters,
       activeCharacterId: this.activeCharacterId,
