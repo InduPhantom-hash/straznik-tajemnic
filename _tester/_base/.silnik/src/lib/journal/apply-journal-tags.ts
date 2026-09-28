@@ -30,10 +30,109 @@ import {
   linkClueNpcLocation,
   type InvestigatorDossier,
   type NpcDossierEntry,
+  type NpcRelationshipStatus,
   type ClueEntry,
   type ClueProvenance,
   type LocationDossierEntry,
 } from '@/lib/journal/dossier-types';
+
+/**
+ * Normalizuje i ekstrahuje nastawienie / status relacji NPC.
+ * Obsługuje formaty:
+ * - [NPC: Janusz Nowak | podejrzliwy]
+ * - [NPC: Janusz Nowak | nastawienie=podejrzliwy]
+ * - [NPC: Janusz Nowak | disposition: suspicious]
+ * - [RELACJA: Janusz Nowak | wrogi]
+ */
+export function parseNpcDisposition(
+  raw: string
+): {
+  disposition?: 'friendly' | 'neutral' | 'suspicious' | 'hostile' | 'fanatical';
+  relationshipStatus?: NpcRelationshipStatus;
+} | null {
+  if (!raw) return null;
+  const s = raw.toLowerCase().trim();
+
+  // Sprawdź czy są tokeny klucz-wartość, np. disposition=suspicious, relacja=wroga, nastawienie: przyjazny
+  const kvMatch = s.match(/(?:disposition|nastawienie|relacja|relationship)\s*[:=]\s*([a-ząćęłńóśźż_]+)/i);
+  const targetStr = kvMatch ? kvMatch[1].trim() : s;
+
+  if (/\b(friendly|przyjazn[yae]|pomocn[yae]|zaufan[yae])\b/.test(targetStr)) {
+    return { disposition: 'friendly', relationshipStatus: 'friendly' };
+  }
+  if (/\b(hostile|wrog[ia]|agresywn[yae]|nieprzyjazn[yae])\b/.test(targetStr)) {
+    return { disposition: 'hostile', relationshipStatus: 'hostile' };
+  }
+  if (/\b(suspicious|podejrzliw[yae]|nieufn[yae]|ostrożn[yae]|ostrozn[yae])\b/.test(targetStr)) {
+    return { disposition: 'suspicious', relationshipStatus: 'suspicious' };
+  }
+  if (/\b(fanatical|fanatyczn[yae]|obłąkan[yae]|oblakan[yae]|oddany_kultu)\b/.test(targetStr)) {
+    return { disposition: 'fanatical', relationshipStatus: 'fanatical' };
+  }
+  if (/\b(neutral|neutraln[yae]|obojętn[yae]|obojetn[yae])\b/.test(targetStr)) {
+    return { disposition: 'neutral', relationshipStatus: 'neutral' };
+  }
+  if (/\b(deceased|martw[yae]|nieżyw[yae]|niezyw[yae]|zmarł[yae]|zmarl[yae])\b/.test(targetStr)) {
+    return { relationshipStatus: 'deceased' };
+  }
+
+  // Sprawdź w całym tekście jeśli kvMatch nic nie dało
+  if (kvMatch) {
+    if (/\b(friendly|przyjazn[yae]|pomocn[yae]|zaufan[yae])\b/.test(s)) {
+      return { disposition: 'friendly', relationshipStatus: 'friendly' };
+    }
+    if (/\b(hostile|wrog[ia]|agresywn[yae]|nieprzyjazn[yae])\b/.test(s)) {
+      return { disposition: 'hostile', relationshipStatus: 'hostile' };
+    }
+    if (/\b(suspicious|podejrzliw[yae]|nieufn[yae]|ostrożn[yae]|ostrozn[yae])\b/.test(s)) {
+      return { disposition: 'suspicious', relationshipStatus: 'suspicious' };
+    }
+    if (/\b(fanatical|fanatyczn[yae]|obłąkan[yae]|oblakan[yae])\b/.test(s)) {
+      return { disposition: 'fanatical', relationshipStatus: 'fanatical' };
+    }
+    if (/\b(neutral|neutraln[yae]|obojętn[yae]|obojetn[yae])\b/.test(s)) {
+      return { disposition: 'neutral', relationshipStatus: 'neutral' };
+    }
+    if (/\b(deceased|martw[yae]|nieżyw[yae]|niezyw[yae])\b/.test(s)) {
+      return { relationshipStatus: 'deceased' };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Ekstrahuje niestandardowe tagi NPC i relacji z tekstu (np. z formatu z kreską pionową | lub [RELACJA: ...]).
+ */
+export function extractExtraNpcTags(rawText: string): ExtractedNpcTag[] {
+  const extra: ExtractedNpcTag[] = [];
+
+  // 1. Tagi [NPC: Imię | Opis] z pionową kreską
+  const pipeNpcPattern = /\[NPC:(?:@([^:|\]\n]+?):)?\s*([^:|\]\n]+)\s*\|\s*([^\]]+)\]/gi;
+  let pMatch: RegExpExecArray | null;
+  while ((pMatch = pipeNpcPattern.exec(rawText)) !== null) {
+    const who = pMatch[1]?.trim();
+    const name = pMatch[2].trim();
+    const description = pMatch[3].trim();
+    if (name && description) {
+      extra.push({ name, description, who });
+    }
+  }
+
+  // 2. Tagi relacji i nastawienia np. [RELACJA: Janusz Nowak | podejrzliwy]
+  const dispPattern = /\[(?:DISPOSITION|NASTAWIENIE|RELACJA|RELATIONSHIP):\s*(?:@([^:|\]\n]+?):)?\s*([^|:\]\n]+)\s*[|:]\s*([^\]]+)\]/gi;
+  let dMatch: RegExpExecArray | null;
+  while ((dMatch = dispPattern.exec(rawText)) !== null) {
+    const who = dMatch[1]?.trim();
+    const name = dMatch[2].trim();
+    const description = dMatch[3].trim();
+    if (name && description) {
+      extra.push({ name, description, who });
+    }
+  }
+
+  return extra;
+}
 
 /**
  * Normalizuje kategorię przedmiotu z języka polskiego lub angielskiego do EquipmentCategory.
@@ -348,23 +447,45 @@ export function processCharacterJournalAndDossier(
       (n) => n.name.toLowerCase().trim() === lowerName
     );
 
+    const parsedDisp = parseNpcDisposition(npc.description);
+
     if (existingNpcIndex >= 0) {
       // NPC już istnieje: AKTUALIZUJEMY kartę w dossier bez tworzenia kolejnego wpisu w kronice
       const existing = dossier.npcs[existingNpcIndex];
       let npcUpdated = false;
 
+      // Aktualizacja nastawienia/relacji z tagu
+      if (parsedDisp?.disposition) {
+        if (existing.disposition !== parsedDisp.disposition) {
+          existing.disposition = parsedDisp.disposition;
+          existing.relationshipStatus = parsedDisp.relationshipStatus || (parsedDisp.disposition as NpcRelationshipStatus);
+          npcUpdated = true;
+        }
+      } else if (parsedDisp?.relationshipStatus) {
+        if (existing.relationshipStatus !== parsedDisp.relationshipStatus) {
+          existing.relationshipStatus = parsedDisp.relationshipStatus;
+          npcUpdated = true;
+        }
+      }
+
       if (!existing.firstImpression && npc.description) {
         existing.firstImpression = npc.description;
         npcUpdated = true;
       } else if (npc.description) {
-        // Dołącz nową informację, jeśli nie jest duplikatem
-        const snippet = npc.description.slice(0, 30).toLowerCase();
-        const currentKeyInfo = existing.keyInformation || '';
-        if (!currentKeyInfo.toLowerCase().includes(snippet)) {
-          existing.keyInformation = currentKeyInfo
-            ? `${currentKeyInfo}; ${npc.description}`
-            : npc.description;
-          npcUpdated = true;
+        // Dołącz nową informację, jeśli nie jest duplikatem ani czystym tokenem nastawienia
+        const isPureDisp =
+          parsedDisp &&
+          npc.description.trim().split('|').length === 1 &&
+          parseNpcDisposition(npc.description.trim()) !== null;
+        if (!isPureDisp) {
+          const snippet = npc.description.slice(0, 30).toLowerCase();
+          const currentKeyInfo = existing.keyInformation || '';
+          if (!currentKeyInfo.toLowerCase().includes(snippet)) {
+            existing.keyInformation = currentKeyInfo
+              ? `${currentKeyInfo}; ${npc.description}`
+              : npc.description;
+            npcUpdated = true;
+          }
         }
       }
 
@@ -402,7 +523,8 @@ export function processCharacterJournalAndDossier(
         physiologicalDetail,
         sociologicalStatus,
         psychologicalAgenda,
-        relationshipStatus: 'unknown',
+        relationshipStatus: parsedDisp?.relationshipStatus || 'unknown',
+        disposition: parsedDisp?.disposition,
         location: locationEntry ? locationEntry.title : undefined,
         locationId: locationEntry ? revealedEntityId('location', messageId, locationEntry.title) : undefined,
         timestamp: Date.now(),
@@ -1048,6 +1170,18 @@ export function appendJournalFromText(
 ): Character {
   const parsed = parseRevealedTags(rawText);
   const {journalTags:tags,npcTags,itemTags}=parsed;
+  const extraNpcs = extractExtraNpcTags(rawText);
+  for (const extra of extraNpcs) {
+    const exists = npcTags.some((n) => n.name.toLowerCase().trim() === extra.name.toLowerCase().trim());
+    if (!exists) {
+      npcTags.push(extra);
+    } else {
+      const found = npcTags.find((n) => n.name.toLowerCase().trim() === extra.name.toLowerCase().trim());
+      if (found && !found.description.includes(extra.description)) {
+        found.description += ` | ${extra.description}`;
+      }
+    }
+  }
   const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
   const sceneChange = extractSceneChangeTag(rawText);
   const sceneCard = extractSceneCardTag(rawText);
@@ -1096,6 +1230,18 @@ export function appendJournalToParty(
 ): { characters: Character[]; activeCharacter: Character; changed: boolean } {
   const parsed = parseRevealedTags(rawText);
   const {journalTags:tags,npcTags,itemTags}=parsed;
+  const extraNpcs = extractExtraNpcTags(rawText);
+  for (const extra of extraNpcs) {
+    const exists = npcTags.some((n) => n.name.toLowerCase().trim() === extra.name.toLowerCase().trim());
+    if (!exists) {
+      npcTags.push(extra);
+    } else {
+      const found = npcTags.find((n) => n.name.toLowerCase().trim() === extra.name.toLowerCase().trim());
+      if (found && !found.description.includes(extra.description)) {
+        found.description += ` | ${extra.description}`;
+      }
+    }
+  }
   const locationEntry = buildLocationEntryFromText(parsed.text, messageId);
   const sceneChange = extractSceneChangeTag(rawText);
   const sceneCard = extractSceneCardTag(rawText);

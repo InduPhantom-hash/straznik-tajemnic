@@ -17,13 +17,14 @@
  */
 
 import fs from 'fs';
-import type { Character } from '@/lib/types';
+import type { Character, GameTime, MoonPhase } from '@/lib/types';
 import { applyStatChangesToParty, type SanityEvent } from '@/lib/character/apply-stat-changes';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { extractSkillTests, extractMeleeAttackReferences, detectCombat } from '@/lib/parsers/mechanics-parser';
 import type { SkillTestData, MeleeAttackReference, CombatState } from '@/lib/parsers/types';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import { extractSceneChangeTag } from '@/lib/parsers/journal-parser';
+import { extractTimeUpdate } from '@/lib/parsers/time-parser';
 import {
   resolveMeleeEngagement,
   type DefenseChoice,
@@ -81,6 +82,7 @@ export interface TurnResult {
   };
   currentLocation: string;
   chaseState: ChaseState | null;
+  gameTime: GameTime;
 }
 
 export function createMockInvestigator(overrides: Partial<Character> = {}): Character {
@@ -147,6 +149,7 @@ export interface MockGMPipelineOptions {
   initialCharacter?: Character;
   initialCharacters?: Character[];
   initialLocation?: string;
+  initialGameTime?: GameTime;
 }
 
 export class MockGMPipeline {
@@ -157,6 +160,7 @@ export class MockGMPipeline {
   private chaseState: ChaseState | null = null;
   private turnCount = 0;
   private combatActive = false;
+  private gameTime: GameTime;
 
   private lastSkillTests: SkillTestData[] = [];
   private lastMeleeAttacks: MeleeAttackReference[] = [];
@@ -172,6 +176,15 @@ export class MockGMPipeline {
       this.activeCharacterId = defaultChar.id;
     }
     this.currentLocation = options.initialLocation || 'Arkham Sanitarium';
+    this.gameTime = options.initialGameTime
+      ? { ...options.initialGameTime }
+      : {
+          year: 1925,
+          month: 0, // Styczeń
+          day: 14,
+          hour: 10,
+          minute: 0,
+        };
   }
 
   public getActiveCharacter(): Character {
@@ -331,6 +344,15 @@ export class MockGMPipeline {
     );
     this.characters = journalChanges.characters;
 
+    // 7. Aktualizacja czasu gry z tagu [AKTUALNY CZAS: ...]
+    const timeUpdate = extractTimeUpdate(rawGmResponse);
+    if (timeUpdate) {
+      this.gameTime = {
+        ...this.gameTime,
+        ...timeUpdate,
+      };
+    }
+
     return {
       turn: this.turnCount,
       messageId,
@@ -343,11 +365,138 @@ export class MockGMPipeline {
       journalChanges,
       currentLocation: this.currentLocation,
       chaseState: this.chaseState,
+      gameTime: this.getGameTime(),
     };
   }
 
   public processAction(userAction: string, simulatedGMResponseText: string): TurnResult {
     return this.feedGMResponse(simulatedGMResponseText, userAction);
+  }
+
+  // =========================================================================
+  // ZARZĄDZANIE CZASEM GRY (GameTime, kalendarz, dzień/noc, fazy księżyca)
+  // =========================================================================
+
+  public getGameTime(): GameTime {
+    return { ...this.gameTime };
+  }
+
+  public setGameTime(time: Partial<GameTime>): void {
+    this.gameTime = { ...this.gameTime, ...time };
+  }
+
+  public advanceGameTime(minutes: number): void {
+    let { year, month, day, hour, minute } = this.gameTime;
+
+    minute += minutes;
+
+    while (minute >= 60) {
+      minute -= 60;
+      hour++;
+    }
+    while (minute < 0) {
+      minute += 60;
+      hour--;
+    }
+
+    while (hour >= 24) {
+      hour -= 24;
+      day++;
+    }
+    while (hour < 0) {
+      hour += 24;
+      day--;
+    }
+
+    const daysInMonth = (y: number, m: number) => {
+      const days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      const isLeapYear = (yearVal: number) =>
+        (yearVal % 4 === 0 && yearVal % 100 !== 0) || yearVal % 400 === 0;
+      if (m === 1 && isLeapYear(y)) return 29;
+      return days[m];
+    };
+
+    while (day > daysInMonth(year, month)) {
+      day -= daysInMonth(year, month);
+      month++;
+      if (month > 11) {
+        month = 0;
+        year++;
+      }
+    }
+    while (day < 1) {
+      month--;
+      if (month < 0) {
+        month = 11;
+        year--;
+      }
+      day += daysInMonth(year, month);
+    }
+
+    this.gameTime = { year, month, day, hour, minute };
+  }
+
+  public isNight(): boolean {
+    const { hour } = this.gameTime;
+    return hour < 6 || hour >= 21;
+  }
+
+  public getMoonPhase(): MoonPhase {
+    const { year, month, day } = this.gameTime;
+    const referenceDate = new Date(1920, 0, 6);
+    const targetDate = new Date(year, month, day);
+    const diffMs = targetDate.getTime() - referenceDate.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const lunarCycle = 29.53;
+    const dayInCycle = ((diffDays % lunarCycle) + lunarCycle) % lunarCycle;
+    const MOON_PHASES: MoonPhase[] = [
+      'new',
+      'waxing_crescent',
+      'first_quarter',
+      'waxing_gibbous',
+      'full',
+      'waning_gibbous',
+      'last_quarter',
+      'waning_crescent',
+    ];
+    const phaseIndex = Math.floor(dayInCycle / (lunarCycle / 8));
+    return MOON_PHASES[phaseIndex % 8];
+  }
+
+  public getDayOfWeek(): string {
+    const { year, month, day } = this.gameTime;
+    const DAYS_PL = [
+      'Niedziela',
+      'Poniedziałek',
+      'Wtorek',
+      'Środa',
+      'Czwartek',
+      'Piątek',
+      'Sobota',
+    ];
+    const date = new Date(year, month, day);
+    return DAYS_PL[date.getDay()];
+  }
+
+  public generateTimeTag(time?: Partial<GameTime>): string {
+    const target = time ? { ...this.gameTime, ...time } : this.gameTime;
+    const MONTHS_PL = [
+      'Stycznia',
+      'Lutego',
+      'Marca',
+      'Kwietnia',
+      'Maja',
+      'Czerwca',
+      'Lipca',
+      'Sierpnia',
+      'Września',
+      'Października',
+      'Listopada',
+      'Grudnia',
+    ];
+    const hourStr = target.hour.toString().padStart(2, '0');
+    const minStr = target.minute.toString().padStart(2, '0');
+    return `[AKTUALNY CZAS: ${target.day} ${MONTHS_PL[target.month]} ${target.year}, ${hourStr}:${minStr}]`;
   }
 
   // =========================================================================
