@@ -61,7 +61,8 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
       for (const tag of emotionTags) {
         const raw = `${tag} Mroczny cień wyłania się zza węgła.`;
         const stripped = stripMultilineArtifacts(raw);
-        expect(stripped).toContain(tag);
+        expect(stripped).not.toContain(tag);
+        expect(stripped).toContain('Mroczny cień wyłania się zza węgła.');
       }
     });
 
@@ -86,12 +87,12 @@ describe('Issue #79 - Silnik TTS, Kolejkowanie i Web Audio API', () => {
       expect(stripped).not.toContain('zgniłego mięsa');
     });
 
-    it('cleanResponseText zachowuje tag [whispers] i usuwa zamknięte sekrety MG', () => {
+    it('cleanResponseText oczyszcza tag [whispers] i usuwa zamknięte sekrety MG (Issue #544)', () => {
       const raw =
         '[whispers] Słyszysz cichy szmer za drzwiami. [SEKRETY_MG]To tylko szczur.[/SEKRETY_MG] Co robisz?';
       const cleaned = cleanResponseText(raw);
 
-      expect(cleaned).toContain('[whispers]');
+      expect(cleaned).not.toContain('[whispers]');
       expect(cleaned).toContain('Słyszysz cichy szmer za drzwiami.');
       expect(cleaned).toContain('Co robisz?');
       expect(cleaned).not.toContain('To tylko szczur');

@@ -285,6 +285,7 @@ export function createSseStream(opts: CreateSseStreamOpts): ReadableStream {
 
         controller.close();
       } catch (e) {
+        console.error('❌ [create-sse-stream] Błąd podczas strumieniowania SSE:', e);
         controller.error(e);
       } finally {
         endGeneration();

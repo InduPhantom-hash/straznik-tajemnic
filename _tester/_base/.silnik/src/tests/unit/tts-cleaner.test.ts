@@ -17,10 +17,10 @@ describe('text-cleaner (TTS)', () => {
     expect(cleaned).toBe('Zażółć gęślą jaźń! Próba dębu, kąt, ścieżka, źródło.');
   });
 
-  it('zachowuje dozwolone emocje audio Gemini TTS', () => {
+  it('usuwa emocje audio w nawiasach kwadratowych z tekstu czytanego przez Gemini TTS (Issue #544)', () => {
     const raw = '[whispers] Słyszysz niepokojący szept...';
     const cleaned = cleanResponseText(raw);
-    expect(cleaned).toBe('[whispers] Słyszysz niepokojący szept...');
+    expect(cleaned).toBe('Słyszysz niepokojący szept...');
   });
 
   it('usuwa multiline artifacts bez niszczenia nowych linii', () => {

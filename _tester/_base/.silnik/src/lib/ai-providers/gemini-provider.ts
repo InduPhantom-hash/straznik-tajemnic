@@ -300,20 +300,35 @@ export class GeminiChatProvider implements IChatProvider {
       } catch (err: unknown) {
         lastError = err;
         const errMsg = err instanceof Error ? err.message : String(err);
+        const isRateLimit =
+          errMsg.includes('429') ||
+          errMsg.includes('RESOURCE_EXHAUSTED') ||
+          errMsg.includes('quota') ||
+          errMsg.includes('Quota exceeded');
+
         const isUnavailable =
           errMsg.includes('404') ||
           errMsg.includes('not found') ||
           errMsg.includes('no longer available') ||
           errMsg.includes('503') ||
           errMsg.includes('high demand') ||
-          errMsg.includes('UNAVAILABLE');
+          errMsg.includes('UNAVAILABLE') ||
+          isRateLimit;
 
         if (!isUnavailable) {
           throw err;
         }
-        console.warn(
-          `⚠️ Model "${candidate}" niedostępny (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
-        );
+
+        if (isRateLimit) {
+          console.warn(
+            `⚠️ Model "${candidate}" zgłosił rate-limit 429 (${errMsg}). Oczekiwanie 1500ms i próba alternatywnego modelu w kaskadzie...`
+          );
+          await new Promise((r) => setTimeout(r, 1500));
+        } else {
+          console.warn(
+            `⚠️ Model "${candidate}" niedostępny (${errMsg}). Sprawdzam kolejny model w kaskadzie...`
+          );
+        }
       }
     }
 

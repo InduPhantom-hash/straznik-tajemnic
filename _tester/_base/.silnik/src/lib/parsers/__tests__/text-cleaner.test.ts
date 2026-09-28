@@ -4,6 +4,10 @@ import {
   cleanResponseText,
   stripAITags,
   stripMultilineArtifacts,
+  extractEmotionTag,
+  mapEmotionToAudioDirection,
+  extractEmotionAudioDirection,
+  extractAudioDirectionAndClean,
 } from '../text-cleaner';
 
 describe('Diegetic Prose Cleaner & Tag Sanitizer (SillyTavern Adaptation)', () => {
@@ -310,4 +314,48 @@ describe('Diegetic Prose Cleaner & Tag Sanitizer (SillyTavern Adaptation)', () =
       expect(output).toContain('- Weź ten klucz - rzekł starzec.');
     });
   });
+
+  describe('Issue #544: Gemini TTS emotion tags extraction and sanitization', () => {
+    it('poprawnie wyciąga tag nastroju i mapuje na dyrektywę audioDirection', () => {
+      const input = 'Waldemar: [whispers] „Nikogo, Piotr. Żywego ducha.”';
+      const mood = extractEmotionTag(input);
+      expect(mood).not.toBeNull();
+      expect(mood?.tag).toBe('whispers');
+      expect(mood?.audioDirection).toContain('whisper');
+
+      const tremblingMood = extractEmotionTag('[trembling] Co to było?!');
+      expect(tremblingMood?.tag).toBe('trembling');
+      expect(tremblingMood?.audioDirection).toContain('trembling');
+    });
+
+    it('cleanResponseText całkowicie usuwa [whispers] i [trembling] nie pozostawiając nawiasów', () => {
+      const input = 'Waldemar: [whispers] „Nikogo, Piotr. Żywego ducha.”';
+      const clean = cleanResponseText(input);
+      expect(clean).not.toContain('[whispers]');
+      expect(clean).not.toContain('[');
+      expect(clean).not.toContain(']');
+      expect(clean).toContain('Nikogo, Piotr. Żywego ducha.');
+    });
+
+    it('stripMultilineArtifacts wycina tagi emocji z tekstu dla lektora', () => {
+      const input = '[trembling] Boję się tego strychu... [whispers] Posłuchaj.';
+      const clean = stripMultilineArtifacts(input);
+      expect(clean).not.toContain('[trembling]');
+      expect(clean).not.toContain('[whispers]');
+      expect(clean).not.toContain('[');
+      expect(clean).not.toContain(']');
+      expect(clean).toContain('Boję się tego strychu');
+    });
+
+    it('extractAudioDirectionAndClean zwraca wyekstrahowany nastrój oraz w pełni oczyszczony tekst', () => {
+      const input = 'Waldemar: [whispers] „Tylko w komórkach lokatorskich...”';
+      const result = extractAudioDirectionAndClean(input);
+      expect(result.audioDirection).toContain('whisper');
+      expect(result.text).not.toContain('[whispers]');
+      expect(result.text).not.toContain('[');
+      expect(result.text).not.toContain(']');
+      expect(result.text).toContain('Tylko w komórkach lokatorskich...');
+    });
+  });
 });
+

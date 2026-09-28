@@ -8,6 +8,101 @@ const NESTED_TAG_BODY = '(?:[^\\[\\]]|\\[[^\\]]*\\])*';
 export const GEMINI_TTS_EMOTION_TAGS =
   'whispers|whispering|trembling|gasp|panicked|serious|curious|sarcastic|sarcastically|tired|crying|amazed|excited|mischievously|sighs|giggles|laughs|shouting|very fast|very slow';
 
+export interface ExtractedAudioMood {
+  tag: string;
+  audioDirection: string;
+}
+
+/**
+ * Mapuje tag emocji na instrukcję reżyserską dla Gemini TTS (Issue #544).
+ */
+export function mapEmotionToAudioDirection(emotion: string): string {
+  const normalized = emotion.toLowerCase().trim();
+  switch (normalized) {
+    case 'whispers':
+    case 'whispering':
+      return 'Read the following in a soft, urgent, and tense whisper:';
+    case 'trembling':
+      return 'Read the following in a terrified, trembling, and emotional voice:';
+    case 'gasp':
+      return 'Read the following in a gasping, breathless voice:';
+    case 'panicked':
+      return 'Read the following in a panicked, terrified, and breathless voice:';
+    case 'serious':
+      return 'Read the following in a grave, serious, and measured tone:';
+    case 'curious':
+      return 'Read the following in an inquisitive and curious tone:';
+    case 'sarcastic':
+    case 'sarcastically':
+      return 'Read the following in a dry, sarcastic, and cynical tone:';
+    case 'tired':
+      return 'Read the following in a weary, exhausted, and slow voice:';
+    case 'crying':
+      return 'Read the following in a tearful, weeping, and trembling voice:';
+    case 'amazed':
+      return 'Read the following in an amazed and awestruck tone:';
+    case 'excited':
+      return 'Read the following in an excited, high-energy tone:';
+    case 'mischievously':
+      return 'Read the following in a sly, mischievous tone:';
+    case 'sighs':
+      return 'Read the following with an audible, heavy sigh:';
+    case 'giggles':
+      return 'Read the following with a nervous giggle:';
+    case 'laughs':
+      return 'Read the following while laughing or chuckling:';
+    case 'shouting':
+      return 'Read the following shouting in a loud, urgent voice:';
+    case 'very fast':
+      return 'Read the following at a very fast, rushed, and panicked pace:';
+    case 'very slow':
+      return 'Read the following at a very slow, deliberate, and ominous pace:';
+    default:
+      return `Read the following in an expressive voice reflecting ${normalized}:`;
+  }
+}
+
+/**
+ * Wyciąga tag emocji/nastroju z tekstu (np. [whispers], [trembling])
+ * i mapuje go na dyrektywę audioDirection dla Gemini TTS (Issue #544).
+ */
+export function extractEmotionTag(text: string): ExtractedAudioMood | null {
+  if (!text) return null;
+  const match = text.match(new RegExp(`\\[(${GEMINI_TTS_EMOTION_TAGS})\\]`, 'i'));
+  if (!match) return null;
+  const tag = match[1].toLowerCase();
+  return {
+    tag,
+    audioDirection: mapEmotionToAudioDirection(tag),
+  };
+}
+
+/**
+ * Helper zwracający samą dyrektywę audioDirection wyekstrahowaną z tagów emocji (Issue #544).
+ */
+export function extractEmotionAudioDirection(text: string): string | undefined {
+  const extracted = extractEmotionTag(text);
+  return extracted ? extracted.audioDirection : undefined;
+}
+
+export const extractEmotionFromText = extractEmotionTag;
+export const extractMoodTagToAudioDirection = extractEmotionAudioDirection;
+
+/**
+ * Ekstrahuje tag nastroju do audioDirection i zwraca oczyszczony tekst (Issue #544).
+ */
+export function extractAudioDirectionAndClean(text: string): {
+  text: string;
+  audioDirection?: string;
+} {
+  const audioDirection = extractEmotionAudioDirection(text);
+  const clean = cleanResponseText(text);
+  return {
+    text: clean,
+    audioDirection,
+  };
+}
+
 /** Removes blocks that are never allowed to enter campaign memory. */
 export function stripHiddenMemoryContent(text: string): string {
   return text
@@ -223,8 +318,10 @@ export function cleanResponseText(text: string): string {
       .replace(/\[(?:SFX|DŹWIĘK|DZWIEK):[^\]]*\]/gi, '')
       .replace(/\[(?:AUDIO|NAGRANIE):[^\]]*\]/gi, '')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-      // Catch-all: dowolny [TAG...], z wyjątkiem oficjalnych tagów audio Gemini TTS ([whispers], [trembling] itp.)
-      .replace(new RegExp(`\\[(?!(?:${GEMINI_TTS_EMOTION_TAGS})\\])[^\\]]*\\]`, 'gi'), '')
+      // Catch-all: dowolny [TAG...] (w tym [whispers], [trembling]) wycinany przed syntezą TTS (Issue #544)
+      .replace(/\[[^\]]*\]/g, '')
+      // Usunięcie wszelkich pozostałych nawiasów kwadratowych z tekstu lektora
+      .replace(/[\[\]]/g, '')
       // Markdown removal
       .replace(/\*\*/g, '')
       .replace(/\*([^*]+?)\*/g, '$1')
@@ -278,9 +375,9 @@ export function stripMultilineArtifacts(text: string): string {
       // Pojedyncze tagi dyrektyw
       .replace(/\[\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING)[^\]]*\]/gi, '')
       .replace(/\[\s*\/\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING|DIRECTIVE|PRZYPOMNIENIE)[^\]]*\]/gi, '')
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-      // każdy [TAG:...], odporny na zagnieżdżony [...], z ochroną dozwolonych tagów emocji lektora
-      .replace(new RegExp(`\\[(?!(?:${GEMINI_TTS_EMOTION_TAGS})\\])${NESTED_TAG_BODY}\\]`, 'gi'), '')
+      // Każdy [TAG...], w tym tagi emocji lektora ([whispers], [trembling]), usuwany z tekstu TTS (Issue #544)
+      .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'gi'), '')
+      .replace(/[\[\]]/g, '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')
   ); // multiline JSON {"..."}
 }
