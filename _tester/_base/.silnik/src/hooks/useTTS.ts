@@ -73,6 +73,7 @@ export interface UseTTSReturn extends TTSState {
 import {
   cleanResponseText,
   stripMultilineArtifacts,
+  extractEmotionTag,
 } from '@/lib/parsers/text-cleaner';
 import { getApiKeyHeaders, isPureTextMode } from '@/lib/api-keys-service';
 
@@ -219,6 +220,26 @@ async function fetchTtsWithRetry(
 
       // Inny błąd HTTP (500/503): krótki backoff i ponów.
       if (response.ok === false) {
+        // Issue #544: Jeśli błąd dotyczy braku audio w odpowiedzi (text-instead-of-audio / isTtsNoAudio),
+        // nie wykonuj seryjnych ponowień klienta, które drenują limit 15 RPM.
+        let isNoAudioErr = false;
+        try {
+          const errData = await response.clone().json();
+          if (
+            errData?.details?.includes('inlineData') ||
+            errData?.details?.includes('text-instead-of-audio') ||
+            errData?.error?.includes('Brak danych audio')
+          ) {
+            isNoAudioErr = true;
+          }
+        } catch {
+          // ignore
+        }
+        if (isNoAudioErr) {
+          console.warn('⚠️ TTS: Gemini zwrócił brak inlineData audio. Pomijam retry (ochrona 15 RPM).');
+          return null;
+        }
+
         if (attempt < MAX_TTS_RETRIES) {
           await new Promise((r) => {
             let onAbort: (() => void) | undefined;
@@ -337,6 +358,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentPlayResolverRef = useRef<(() => void) | null>(null);
   const isFreeTierThrottledRef = useRef(false);
+  const throttledUntilRef = useRef<number>(0);
 
   const queueRef = useRef<string[]>([]);
   // Faza 2 sesji 147: queue trzyma `{text, voiceId?}` zamiast string.
@@ -573,6 +595,8 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
                       `⚠️ [TTS] Wykryto rate-limit 429 z Retry-After=${retryAfterSec}s > 10s. Aktywacja bezpiecznika 15 RPM (agregacja akapitowa).`
                     );
                     isFreeTierThrottledRef.current = true;
+                    throttledUntilRef.current =
+                      Date.now() + Math.max(retryAfterSec, 30) * 1000;
                   }
                 },
               }
@@ -993,10 +1017,23 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
 
           // Issue #172: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
           // znak nowej linii, linia dialogowa dotychczasowego NPC się skończyła.
+          // Issue #544: Cooldown dla dławienia 15 RPM (automatyczny powrót po upływie okna)
+          const isCurrentlyThrottled =
+            isFreeTierThrottledRef.current &&
+            Date.now() < throttledUntilRef.current;
+          if (
+            isFreeTierThrottledRef.current &&
+            Date.now() >= throttledUntilRef.current
+          ) {
+            isFreeTierThrottledRef.current = false;
+          }
+
+          // Issue #172: Jeśli pomiędzy poprzednim przetworzonym zdaniem a bieżącym nastąpił
+          // znak nowej linii, linia dialogowa dotychczasowego NPC się skończyła.
           const between = stripped.slice(prevSentenceEndRef.current, startIndex);
           if (between.includes('\n')) {
             activeNpcSpeakerRef.current = null;
-            if (isFreeTierThrottledRef.current) {
+            if (isCurrentlyThrottled) {
               closeRun();
             }
           }
@@ -1040,6 +1077,10 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           const isNarratorOnlyMode =
             isNarratorOnly || !!settingsForQueue.voiceSettings?.narratorOnly;
 
+          // Issue #544: Ekstrakcja nastroju/emocji z surowego tekstu przed czyszczeniem
+          const emotionMood = extractEmotionTag(raw);
+          const moodDirection = emotionMood?.audioDirection;
+
           if (markerMatch && !isNarratorOnlyMode) {
             const npcName = markerMatch[2].trim();
             activeNpcSpeakerRef.current = npcName;
@@ -1057,7 +1098,11 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               }
             );
             voiceId = dynamicVoice.voiceId;
-            audioDirection = dynamicVoice.audioDirection;
+            audioDirection = moodDirection
+              ? (dynamicVoice.audioDirection
+                  ? `${dynamicVoice.audioDirection} ${moodDirection}`
+                  : moodDirection)
+              : dynamicVoice.audioDirection;
             textForQueue = markerMatch[3].trim() || clean;
           } else if (activeNpcSpeakerRef.current && !isNarratorOnlyMode) {
             // Issue #172: Kontynuacja dialogu tej samej postaci w obrębie tej samej linii/akapitu
@@ -1076,13 +1121,17 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               }
             );
             voiceId = dynamicVoice.voiceId;
-            audioDirection = dynamicVoice.audioDirection;
+            audioDirection = moodDirection
+              ? (dynamicVoice.audioDirection
+                  ? `${dynamicVoice.audioDirection} ${moodDirection}`
+                  : moodDirection)
+              : dynamicVoice.audioDirection;
             textForQueue = clean;
           } else {
             // Kwestia Narratora (lub wymuszony tryb Audiobook / narratorOnly) - modulacja SAN i nastrojem
             voiceId = settingsForQueue.voiceSettings?.voiceId || 'Kore';
             textForQueue = markerMatch ? markerMatch[3].trim() || clean : clean;
-            audioDirection = buildAudioDirection({
+            const narratorBaseDirection = buildAudioDirection({
               isNpc: false,
               san,
               maxSan,
@@ -1090,6 +1139,15 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               recentSanLoss: currentSanLoss,
               sentenceText: textForQueue,
             });
+            audioDirection = moodDirection
+              ? `${narratorBaseDirection} ${moodDirection}`
+              : narratorBaseDirection;
+          }
+
+          // Issue #544: Upewnij się, że tekst do wysłania jest całkowicie oczyszczony z tagów i nawiasów
+          textForQueue = cleanResponseText(textForQueue).trim();
+          if (!textForQueue) {
+            continue;
           }
 
           // Zmiana mówcy lub zmiana dyrektywy zamyka bieżący run; ten sam voiceId + direction
@@ -1112,7 +1170,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
           // dzięki czemu worker TTS generuje kolejne zdania w tle podczas pisania tekstu przez AI.
           // Bezpiecznik 15 RPM (Decyzja 2A): przy dławieniu scalaj zdania w pełne akapity (zamykaj na \n)
           if (!flush) {
-            if (!isFreeTierThrottledRef.current) {
+            if (!isCurrentlyThrottled) {
               const currentRunLength = openRunRef.current.texts.join(' ').length;
               const threshold = !hasDispatchedFirstSegmentRef.current
                 ? EARLY_FIRST_SEGMENT_MIN_CHARS

@@ -48,7 +48,8 @@ const TRANSIENT_BACKOFF_MS = 500; // backoff 500 → 1000 ms
 // zamiast audio. Objawia się jako 400 "Model tried to generate text..." LUB jako
 // odpowiedź 200 bez inlineData. To błąd TREŚCIOWO przejściowy (kolejna próba zwykle
 // daje audio), więc ponawiamy do 3× - tak jak retry obrazu Gemini.
-const TEXT_RESPONSE_RETRY_MAX = 3;
+// Issue #544: ograniczenie do max 2 ponowień (zapobieganie kaskadzie wyczerpania 15 RPM)
+const TEXT_RESPONSE_RETRY_MAX = 2;
 
 // IND-236: wzorzec komunikatu Gemini gdy model TTS "próbuje pisać tekst" zamiast
 // generować audio. Łapie oba warianty Google ("Model tried to generate text..."
@@ -239,12 +240,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Issue #173: Normalizacja fonetyczna i wzbogacenie dyrektywy dla języka polskiego
+    // Issue #173 + #544: Normalizacja fonetyczna i wzbogacenie dyrektywy dla języka polskiego
     const effectiveLang = languageCode || DEFAULT_LANGUAGE_CODE;
     const isPolish = effectiveLang.toLowerCase().startsWith('pl');
+    const cleanText = text.replace(/\[[^\]]*\]/g, '').replace(/[\[\]]/g, '').trim();
     const normalizedText = isPolish
-      ? normalizePhoneticsForTts(text, 'pl')
-      : text;
+      ? normalizePhoneticsForTts(cleanText, 'pl')
+      : cleanText;
     const effectiveAudioDirection = isPolish
       ? enhanceAudioDirectionWithPhonetics(audioDirection || '', 'pl')
       : audioDirection;
