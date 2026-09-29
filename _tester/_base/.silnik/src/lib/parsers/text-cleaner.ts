@@ -162,8 +162,8 @@ export function sanitizeMechanicalTags(text: string): string {
     // Walka, obrona, pościgi, magia, tomy
     .replace(/\[\s*(?:WALKA|WALKA_ATAK|OBRONA_WALKA|ATAK_WALKA|COMBAT|ATAK_WRĘCZ|ATAK_WRECZ|MELEE_ATTACK|OPPOSED_MELEE|MELEE_DEFENSE|DIVE_FOR_COVER|RZUT_ZA_OSŁONĘ|RZUT_ZA_OSLONE|OBRONA|DEFENSE|POŚCIG|POSCIG|CHASE|ZAGROŻENIE|ZAGROZENIE|HAZARD|CZAR|SPELL|MAGIA|TOM|TOME|KSIĘGA|KSIEGA|STUDIUM|OBRONA_MAGIA|MAGIA_OBRONA|OPPOSED_MAGIC|MAGIA_SPONTANICZNA|SPONTANEOUS_MAGIC)\s*:[^\]]*\]/gi, '')
     .replace(/\[\s*(?:WYNIK_WALKI|COMBAT_RESULT|WYNIK_CZARU|SPELL_RESULT|WYNIK_OBRONY_MAGII|OPPOSED_MAGIC_RESULT|WYNIK_TOMU|TOME_RESULT|WYNIK_POŚCIGU|WYNIK_POSCIGU|CHASE_RESULT|WYNIK_ZAGROŻENIA|WYNIK_ZAGROZENIA|HAZARD_RESULT)\s*:[^\]]*\]/gi, '')
-    // GM thoughts, mood, narrative goal
-    .replace(new RegExp(`\\[\\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|NASTRÓJ|NASTROJ|MOOD|CEL_NARRACYJNY|NARRATIVE_GOAL)\\s*:${NESTED_TAG_BODY}\\]`, 'gi'), '')
+    // GM thoughts, mood, narrative goal, scene director, techniques, act report
+    .replace(new RegExp(`\\[\\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|NASTRÓJ|NASTROJ|MOOD|CEL_NARRACYJNY|NARRATIVE_GOAL|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\\s*:${NESTED_TAG_BODY}\\]`, 'gi'), '')
     // Depth Injection / Pacing / Author's Note tags (SillyTavern Adaptation - bloki multiline, bloki unclosed z liniami dyrektyw oraz tagi pojedyncze)
     .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\][\s\S]*?\[\s*\/\s*(?:PRZYPOMNIENIE DLA MG|PRZYPOMNIENIE|GM DIRECTIVE|DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PACING)[^\]]*\]/gi, '')
     .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\](?:\s*\n\s*(?:Atmosfera(?: sceny)?|Atmosphere|Cel narracyjny|Scene Goal|Pacing(?: i kadencja| & Cadence)?|Ton|Tone|Rygor CoC 7e RAW|CoC 7e RAW|RAW|BIEG|GEAR|Dynamic Cadence|Zmienna kadencja)\s*:[^\n]*)+/gi, '')
@@ -203,6 +203,14 @@ export function sanitizeDiegeticProse(
   cleaned = cleaned
     .replace(/^(?:MG|GM|AI|Assistant|Mistrz Gry|Game Master):\s*(?:Assistant:\s*)?/gim, '')
     .replace(/^Assistant:\s*/gim, '')
+    .trim();
+
+  // Issue #551: Usuwanie linii i nagłówków GM Protocol bez nawiasów lub z nawiasami (Anti-Leak)
+  cleaned = cleaned
+    .replace(
+      /^\s*\[?(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|DZIENNIK|JOURNAL|OBSERWACJA|OBSERVATION|SEKRETY_MG|KEEPER_SECRETS|RAPORT_AKTU|ACT_REPORT)\s*:[^\n]*/gim,
+      ''
+    )
     .trim();
 
   // Usuwanie bloków kodu i JSON
@@ -285,9 +293,18 @@ export function cleanResponseText(text: string): string {
         /\[(?:ILUSTRACJA|OBRAZ|GRAFIKA|RYSUNEK|ZDJĘCIE|SCENA|PORTRET|WIZUALIZACJA|IMAGE|PICTURE|ILLUSTRATION|SHOW|VISUALIZE|SCENE|PORTRAIT)[^\]]*\]/gi,
         ''
       )
-      .replace(new RegExp(`\\[MYŚLI_MG:${NESTED_TAG_BODY}\\]`, 'gi'), '')
-      .replace(new RegExp(`\\[NASTRÓJ:${NESTED_TAG_BODY}\\]`, 'gi'), '')
-      .replace(new RegExp(`\\[CEL_NARRACYJNY:${NESTED_TAG_BODY}\\]`, 'gi'), '')
+      // GM Protocol & dyrektywy sceny (zamknięte w nawiasach oraz warianty bez nawiasów)
+      .replace(
+        new RegExp(
+          `\\[\\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|NASTRÓJ|NASTROJ|MOOD|CEL_NARRACYJNY|NARRATIVE_GOAL|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\\s*:${NESTED_TAG_BODY}\\]`,
+          'gi'
+        ),
+        ''
+      )
+      .replace(
+        /^\s*\[?(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\s*:[^\n]*/gim,
+        ''
+      )
       .replace(/\[NPC:[^\]]*\]/gi, '')
       .replace(/\[(?:OBECNI_NPC|PRESENT_NPCS):[^\]]*\]/gi, '')
       .replace(/\[POSTAĆ:[^\]]*\]/gi, '')
@@ -366,6 +383,19 @@ export function stripMultilineArtifacts(text: string): string {
       // Niezamknięte bloki OBSERWACJA i SEKRETY_MG podczas streamingu (|$ na końcu)
       .replace(/\[(?:OBSERWACJA|OBSERVATION)\][\s\S]*$/gi, '')
       .replace(/\[(?:SEKRETY_MG|KEEPER_SECRETS)\][\s\S]*$/gi, '')
+      // Issue #551: Zamknięte i wieloliniowe tagi GM Protocol (myśli, cele, nastrój, reżyseria, techniki)
+      .replace(
+        new RegExp(
+          `\\[\\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\\s*:${NESTED_TAG_BODY}\\]`,
+          'gi'
+        ),
+        ''
+      )
+      // Issue #551: Niezamknięte tagi GM Protocol na końcu strumienia (brak domknięcia `]`)
+      .replace(
+        /\[\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)[^\]]*$/gi,
+        ''
+      )
       // Zamknięte bloki Depth Injection / Pacing Directive
       .replace(/\[\s*(?:PRZYPOMNIENIE DLA MG|GM DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA)[^\]]*\][\s\S]*?\[\s*\/\s*(?:PRZYPOMNIENIE DLA MG|PRZYPOMNIENIE|GM DIRECTIVE|DIRECTIVE|DYNAMIC SCENE|DYNAMIC SCENE & PACING INJECTION|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PACING)[^\]]*\]/gi, '')
       // Niezamknięte bloki z liniami dyrektyw (nie połykają dalszej narracji fabularnej)
@@ -375,9 +405,10 @@ export function stripMultilineArtifacts(text: string): string {
       // Pojedyncze tagi dyrektyw
       .replace(/\[\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING)[^\]]*\]/gi, '')
       .replace(/\[\s*\/\s*(?:DYNAMIC SCENE & PACING INJECTION|DYNAMIC SCENE|PACING INJECTION|AUTHOR'?S? NOTE|NOTATKA AUTORA|PRZYPOMNIENIE DLA MG|GM DIRECTIVE|PACING|DIRECTIVE|PRZYPOMNIENIE)[^\]]*\]/gi, '')
-      // Każdy [TAG...], w tym tagi emocji lektora ([whispers], [trembling]), usuwany z tekstu TTS (Issue #544)
+      // Każdy zamknięty [TAG...], w tym tagi emocji lektora ([whispers], [trembling]), usuwany z tekstu TTS (Issue #544)
       .replace(new RegExp(`\\[${NESTED_TAG_BODY}\\]`, 'gi'), '')
-      .replace(/[\[\]]/g, '')
+      // Issue #551: Ogólny bezpiecznik: dowolny niedomknięty tag techniczny [UPPERCASE... na końcu strumienia
+      .replace(/\[[A-ZŁŚŻŹĆŃ_]{2,}[^\]]*$/g, '')
       .replace(/\{\s*"[^"]*"[^}]{0,500}\}/g, '')
   ); // multiline JSON {"..."}
 }
