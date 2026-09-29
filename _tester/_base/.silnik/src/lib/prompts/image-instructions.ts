@@ -72,17 +72,17 @@ Zamiast tego skup się na plastycznych, literackich opisach zmysłowych w prozie
   const formatBlock = `
 ### JAK GENEROWAĆ (DEDYKOWANE TAGI FABULARNE):
 Użyj odpowiedniego, precyzyjnego tagu w tekście odpowiedzi (opis ZAWSZE w języku ANGIELSKIM):
-- Dla pierwszego wejścia do nowej, znaczącej lokacji (establishing shot): [LOKACJA: Nazwa Lokacji, detailed period-accurate exterior or interior description]
-- Dla portretu nowo poznanej, ważnej postaci (NPC): [PORTRET: Imię Postaci, detailed period-accurate portrait photography, facial features, clothes]
-- Dla kluczowego dowodu rzeczowego, księgi lub artefaktu: [PRZEDMIOT: Nazwa Przedmiotu, detailed archival object study, materials, inscriptions]
+- Dla pierwszego wejścia do nowej, znaczącej lokacji (establishing shot): [LOKACJA: Polska Nazwa Lokacji | detailed period-accurate exterior or interior description]
+- Dla portretu nowo poznanej, ważnej postaci (NPC): [PORTRET: Imię Postaci | detailed period-accurate portrait photography, facial features, clothes]
+- Dla kluczowego dowodu rzeczowego, księgi lub artefaktu: [PRZEDMIOT: Nazwa Przedmiotu | detailed archival object study, materials, inscriptions]
 - Dla bezpośredniego ujrzenia istoty Mythos lub potwora: [POTWÓR: Nazwa Istoty, horrific lovecraftian entity description, grotesque features, moody cinematic lighting]
 - Dla snów, halucynacji, ataków szaleństwa lub anomalii nadprzyrodzonych: [ZJAWISKO: surreal nightmare vision, impossible geometry, sanity loss phenomenon]
 - Dla dynamicznych scen akcji, pościgów lub kulminacji: [SCENA: dramatic action scene description in the chosen era]
 
 Przykłady użycia: 
-[LOKACJA: Miskatonic University Library, towering gothic bookshelves, dust motes dancing in shafts of pale sunlight, dark mahogany study tables]
-[PORTRET: Professor Henry Armitage, distinguished elderly scholar with silver spectacles, tweed vest, weary sharp eyes, realistic vintage photograph]
-[PRZEDMIOT: Necronomicon Fragment, decaying parchment with blasphemous arabesque calligraphy, faded ink, leather binding]
+[LOKACJA: Biblioteka Uniwersytetu Miskatonic | towering gothic bookshelves, dust motes dancing in shafts of pale sunlight, dark mahogany study tables]
+[PORTRET: Henry Armitage | distinguished elderly scholar with silver spectacles, tweed vest, weary sharp eyes, realistic vintage photograph]
+[PRZEDMIOT: Fragment Necronomiconu | decaying parchment with blasphemous arabesque calligraphy, faded ink, leather binding]
 [POTWÓR: Deep One, grotesque amphibious humanoid crawling onto wet docks, bulging unblinking eyes, scaly glistening skin, stormy ocean backdrop]
 [ZJAWISKO: non-euclidean angles twisting the asylum corridor, shadows stretching in impossible directions, eerie greenish luminescence]
 [SCENA: desperate chase through narrow cobblestone alley in torrential rain, shadows cast by gas lamps, vintage sedan speeding away]
@@ -90,7 +90,7 @@ Przykłady użycia:
 ZASADY SPÓJNOŚCI WIZUALNEJ I REALIZMU (VISUAL CONSISTENCY & REALISM):
 1. BADACZ GRACZA (PLAYER CHARACTER): Gdy ilustrujesz scenę z udziałem Badacza, ZAWSZE uwzględniaj w opisie jego dokładny profil fizyczny (wiek, płeć, fryzurę, ubiór, znaki szczególne, okulary) z sekcji ## PROFIL WIZUALNY BADACZA, aby postać wyglądała spójnie na wszystkich ilustracjach.
 2. POSTACIE (NPC - VISUAL DNA): Gdy ilustrujesz postać NPC (z listy ## AKTYWNE POSTACIE (NPC)), ZAWSZE zachowaj jej stałą matrycę cech fizycznych (wiek, rysy twarzy, zarost, fryzura, okulary, charakterystyczne blizny, fason i materiał ubioru). Wizerunki NIE MOGĄ się rozjeżdżać między scenami, a wygenerowany portret natychmiast definiuje oficjalny wygląd NPC w Dzienniku. Gracz musi od razu rozpoznać o kogo chodzi.
-3. LOKACJE (LOCATIONS): Tag [LOKACJA:] emituj TYLKO przy pierwszym wejściu do ważnego punktu orientacyjnego scenariusza. Kolejne sceny akcji w tym miejscu opisuj tagiem [SCENA:], aby ukazać aktualne wydarzenia zamiast powtarzać ujęcie statyczne.
+3. LOKACJE (LOCATIONS): Tag [LOKACJA: Polska Nazwa | English prompt] emituj TYLKO przy pierwszym wejściu do ważnego punktu orientacyjnego scenariusza. Polska nazwa przed kreską pionową | musi być zwięzła (2-4 słowa, np. 'Wylot Doliny Białego'), bez przecinków. Po kresce | umieść szczegółowy opis wizualny po angielsku. Kolejne sceny akcji w tym miejscu opisuj tagiem [SCENA:], aby ukazać aktualne wydarzenia zamiast powtarzać ujęcie statyczne.
 4. POGODA I ATMOSFERA (WEATHER): Uwzględniaj w opisie aktualne warunki atmosferyczne podane w sekcji **Aktualna Pogoda & Warunki**.
 5. STYL I REALIZM EPOKI (SLOW BURN): Ilustracje muszą być DOMYŚLNIE REALISTYCZNE i spójne z wybraną epoką przygody (Gaslight / Klasyczne lata 20. / PRL lata 70. / Lata 80. i 90. / Współczesność / Custom). Buduj grozę cieniem, oświetleniem, fakturami i architekturą. ABSOLUTNY ZAKAZ rutynowego wstawiania macek, gargulców i potworów w zwykłych scenach. Elementy nadprzyrodzone / mityczne wprowadzaj TYLKO w tagach [POTWÓR:] lub [ZJAWISKO:].
 6. ŚCISŁY ZAKAZ ANACHRONIZMÓW: Opisy w tagach muszą bezwzględnie odpowiadać epoce gry (brak nowoczesnych smartfonów, powerbanków i ekranów dotykowych przed 2007 r.). Skupiaj się na głównym temacie sceny (architektura, atmosfera, śledztwo, kluczowy ślad lub postać), a nie na losowych sprzętach codziennych, o ile nie biorą bezpośredniego udziału w akcji.
