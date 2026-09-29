@@ -32,8 +32,8 @@ Jeśli kontekst zawiera \`MECHANICS_CONTEXT.chase\`, traktuj go jako autorytatyw
 - \`[OBSERWACJA: @Imię | zmysły | subiektywne spostrzeżenie]\` - gdy przekazujesz indywidualne spostrzeżenie jednemu badaczowi w Hot Seat lub opis zniekształcony szaleństwem/fobią (Concordia pattern)
 - \`[NPC: (@Imię:) Imię: opis]\` - nowy/kluczowy NPC; emituj WYŁĄCZNIE przy pierwszym pojawieniu się postaci lub kluczowym zwrocie (podaj rysopis i fasadę; ukryte motywy w \`[MYŚLI_MG]\`, graczowi dopiero po teście Psychologii). W dialogach selekcję i prawo głosu mają wyłącznie postacie z \`[OBECNI_NPC]\`.
 - \`[LOKACJA: Nazwa: atmosfera]\` - w PIERWSZEJ turze (miejsce startu) ORAZ przy każdej zmianie miejsca; zapala pineskę 📍 w nagłówku. W Nazwie podawaj KONKRETNE miejsce (magazyn, biblioteka, pokój hotelowy), bez powtarzania regionu/miasta przygody.
-- \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot
-- \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - TYLKO gdy postać rzeczywiście przejęła rzecz; UI pokaże kartę potwierdzenia. Bez \`@Imię\` odbiorcą jest aktualna postać.
+- \`[PRZEDMIOT: Nazwa: znaczenie]\` - ważny przedmiot w otoczeniu; wpis wyłącznie do kroniki/sceny, NIGDY sam nie dodaje rzeczy do ekwipunku postaci (Issue #565).
+- \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | opis | zwykly]\` - emituj gdy gracz deklaruje zabranie przedmiotu LUB gdy przedmiot zostaje mu wręczony / zaoferowany w narracji; UI wyświetli interaktywną kartę z przyciskami [Zabierz do torby] i [Zostaw]. Bez \`@Imię\` odbiorcą jest aktualna postać.
 - \`[DZIENNIK:typ:tytuł]treść[/DZIENNIK]\` - typy: sprawa, npc, odkrycie, trop, lokacja, walka, poczytalnosc, rytual, smierc, zakladka, notatka. Dla poszlak (trop/odkrycie): ZAWSZE zwięzły 1-zdaniowy fakt do dossier. Proweniencja poszlaki: \`[DZIENNIK:trop:Tytuł]Treść faktu | źródło:obserwacja/zeznanie/dedukcja/handout | M|I|C|E | cel[/DZIENNIK]\` (obserwacja=własne zmysły, zeznanie=od NPC, dedukcja=wniosek/INT, handout=dokument/list). Dla sprawa: wprowadzenie i cel śledztwa. Dla notatka: prywatne zapiski. Dla NPC: aktualizacja karty w dossier bez powielania wpisów.
 - \`[ZMIANA_SCENY: Nowa Lokacja]\` - cięcie reżyserskie, opuszczenie lokacji, podróż lub przeskok czasowy; pieczętuje trwającą scenę w Dzienniku.
 - \`[KARTA_SCENY: Tytuł | Lokacja]...[/KARTA_SCENY]\` - podsumowanie zamkniętej sceny dla akt śledczych (osoby, co zdobyto [WYŁĄCZNIE przedmioty fabularne; zakaz pospolitych jak baterie/telefon/zapałki], ustalenia, cel/kolejny krok).
@@ -218,14 +218,14 @@ Format: \`[PRZEDMIOT: Nazwa: Opis i potencjalne znaczenie]\`
 Przykład:
 - \`[PRZEDMIOT: Dziennik dr. Westona: Skórzany notes z ostatnimi stronami wyrwanymi, pismo coraz bardziej chaotyczne.]\`
 
-#### 6-BIS. ZDOBYTY PRZEDMIOT (wyłącznie po faktycznym zabraniu)
-\`[PRZEDMIOT]\` opisuje lub indeksuje istotną rzecz i **nigdy sam nie zmienia ekwipunku**.
-Gdy badacz rzeczywiście bierze przedmiot, emituj dodatkowo dokładnie jeden tag:
+#### 6-BIS. ZDOBYTY PRZEDMIOT (karta znaleziska w UI - Issue #565)
+\`[PRZEDMIOT]\` opisuje lub indeksuje istotną rzecz w otoczeniu i **nigdy sam nie zmienia ekwipunku**.
+Żadna rzecz nie trafia do torby sama. Emituj tag \`[ZDOBYTY_PRZEDMIOT:]\`, gdy gracz deklaruje zabranie rzeczy LUB gdy przedmiot zostaje mu wręczony / zaoferowany w narracji (np. NPC wręcza klucz, przeszukanie biurka ujawnia pistolet). UI wyświetli graczowi kartę znaleziska z decyzją [Zabierz do torby] oraz [Zostaw].
 
 Format: \`[ZDOBYTY_PRZEDMIOT: @Imię | Nazwa | krótki opis fizyczny | zwykly]\`
 
 - \`@Imię\` jest opcjonalne w solo, ale obowiązkowe w duecie, gdy odbiorca nie jest oczywisty.
-- Nie emituj tagu dla rzeczy tylko zauważonych, obejrzanych lub pozostawionych na miejscu.
+- Nie emituj tagu dla rzeczy tylko zauważonych w tle, odległych lub niedostępnych.
 - Domyślnie zawsze używaj \`zwykly\`: horror sceny nie czyni zwykłego klucza, listu ani broni nadprzyrodzonymi.
 - \`nadprzyrodzony\` stosuj wyłącznie, gdy anomalna natura przedmiotu jest już jawnie potwierdzona przez narrację lub dane scenariusza.
 

@@ -4886,12 +4886,12 @@
     "appName": "Keeper of Secrets"
   },
   "AcquiredItemCard": {
-    "acceptedMessage": "Added to records: {itemName}",
-    "dismissedMessage": "Evidence dismissed: {itemName}",
-    "newEvidenceTitle": "New Evidence",
+    "acceptedMessage": "Added to bag: {itemName}",
+    "dismissedMessage": "Left behind: {itemName}",
+    "newEvidenceTitle": "New Discovery",
     "selectInvestigatorPlaceholder": "Select investigator...",
-    "addToRecordsButton": "Add to records",
-    "dismissButton": "Dismiss",
+    "addToRecordsButton": "Take to bag",
+    "dismissButton": "Leave",
     "itemAcquiredToast": "Item Acquired",
     "itemAcquiredDesc": "{itemName}"
   },
