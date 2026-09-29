@@ -1604,7 +1604,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                     }
                   } else if (ev.type === 'location' && ev.title) {
                     const name = sanitizeLocationName(ev.title);
-                    if (name && !isVisualPromptLeak(name)) {
+                    if (name && name.length <= 45 && !isVisualPromptLeak(name)) {
                       visualBeliefGraphRef.current.updateLocation(name, {
                         atmosphere: ev.description || undefined,
                       });
@@ -1624,7 +1624,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               const rawTitle = locEvent?.title;
               if (typeof rawTitle === 'string' && rawTitle.trim()) {
                 const name = sanitizeLocationName(rawTitle);
-                if (name && !isVisualPromptLeak(name)) {
+                if (name && name.length <= 45 && !isVisualPromptLeak(name)) {
                   currentLocationRef.current = name;
                   setCurrentLocation(name);
                   visualBeliefGraphRef.current.updateLocation(name, {
@@ -1946,7 +1946,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         // (currentLocationRef). Wpis dziennika typu `location` powstaje już w
         // appendJournalFromText - ten sam tor [LOKACJA:].
         const latestLocation = extractLatestTagLocation(fullText);
-        if (latestLocation) {
+        if (latestLocation && latestLocation.name.length <= 45 && !isVisualPromptLeak(latestLocation.name)) {
           currentLocationRef.current = latestLocation.name;
           setCurrentLocation(latestLocation.name);
           visualBeliefGraphRef.current.updateLocation(latestLocation.name, {

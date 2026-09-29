@@ -74,6 +74,24 @@ describe('media-parser: extractImages', () => {
         expect(result[0].prompt).toBe('Arkham Cemetery, foggy Victorian graveyard at dusk');
     });
 
+    it('should extract location image with pipe separator (Issue #570)', () => {
+        const text = 'Wchodzisz do sali. [LOKACJA: Biblioteka Miskatonic | towering gothic bookshelves, dusty tables] Cisza.';
+        const result = extractImages(text);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].type).toBe('location');
+        expect(result[0].locationName).toBe('Biblioteka Miskatonic');
+    });
+
+    it('should extract portrait and item with pipe separator', () => {
+        const text = '[PORTRET: Henry Armitage | elderly scholar with silver spectacles] [PRZEDMIOT: Złoty Dysk | ancient golden artifact]';
+        const result = extractImages(text);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].portraitName).toBe('Henry Armitage');
+        expect(result[1].itemName).toBe('Złoty Dysk');
+    });
+
     it('should extract item/artifact image with itemName', () => {
         const text = 'W skrytce leży artefakt. [PRZEDMIOT: Srebrny Klucz, ornate ancient silver key] Błyszczy w mroku.';
         const result = extractImages(text);
