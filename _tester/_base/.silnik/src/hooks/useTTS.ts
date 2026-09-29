@@ -899,10 +899,12 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
       // per-zdanie. Bloki nie są już rozcinane na fragmenty, więc nie przeżywają w audio.
       // `\n` zachowany → split jak dotąd → multi-voice marker @Imię: działa.
       let stripped = stripMultilineArtifacts(fullRawText);
+      // Issue #551: Odcięcie niedomkniętych bloków code fences, nawiasów tagów oraz nagłówków GM Protocol z końca strumienia
       stripped = stripped
         .replace(/```[^`]*$/g, '')
         .replace(/\[[^\]]*$/, '')
-        .replace(/\{[^}]*$/, '');
+        .replace(/\{[^}]*$/, '')
+        .replace(/(?:^|\n)\s*(?:MYŚLI_MG|MYSLI_MG|THOUGHTS|CEL_NARRACYJNY|NARRATIVE_GOAL|NASTRÓJ|NASTROJ|MOOD|REŻYSER_SCENY|SCENE_DIRECTOR|TECHNIKA_MG|MG_TECHNIQUE|RAPORT_AKTU|ACT_REPORT)\s*:[^\n]*$/gi, '');
 
       // IND-211: kolejkujemy w JEDNOSTKACH. MID/LOW → cały AKAPIT jednym wywołaniem
       // TTS - model widzi pełny kontekst akapitu, więc prozodia jest spójna.
@@ -1242,7 +1244,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
               earlySpokenCharsRef.current,
               lastSentenceEnd
             );
-            const cleanSpan = removeDidaskalia(newSpan).trim();
+            const cleanSpan = cleanResponseText(removeDidaskalia(newSpan)).trim();
             // Pierwszy segment musi mieć sensowną długość (próg), kolejne wczesne
             // segmenty domykają zdania bez limitu (płynna kontynuacja audio).
             const isFirstEarly = earlySpokenCharsRef.current === 0;
@@ -1276,7 +1278,7 @@ export function useTTS(locale: 'pl' | 'en' = 'pl'): UseTTSReturn {
             i === 0 && earlySpokenCharsRef.current > 0
               ? paragraphs[0].slice(earlySpokenCharsRef.current)
               : paragraphs[i];
-          const cleanParagraph = removeDidaskalia(rawParagraph).trim();
+          const cleanParagraph = cleanResponseText(removeDidaskalia(rawParagraph)).trim();
           let paraSfxId: string | undefined;
           const explicitParaSfxMatch = rawParagraph.match(/\[(?:SFX|DŹWIĘK|DZWIEK):\s*([a-zA-Z0-9_-]+)\]/i);
           if (explicitParaSfxMatch) {

@@ -70,6 +70,48 @@ describe('text-cleaner (TTS)', () => {
       '**Zasady testów i rzutów kośćmi (Call of Cthulhu 7e RAW):**\n\nWszystkie testy cech...';
     expect(cleanResponseText(rawRules)).toBe('');
   });
+
+  describe('Issue #551: Ochrona przed wyciekiem myśli MG i dyrektyw do TTS', () => {
+    it('Czerwona Pętla Repro: uważa niedomknięty tag [MYŚLI_MG: ... na końcu streamu za blok do odcięcia', () => {
+      const rawChunk =
+        '[MYŚLI_MG: Otwarcie śledztwa w Kowarach, styczeń 1996. Inżynier Marek Kamiński przybywa zweryfikować stan techniczny sztolni. Wprowadzam łącznika do sceny...';
+      const stripped = stripMultilineArtifacts(rawChunk);
+      // Nie może zawierać treści myśli MG ani zniekształconego tekstu bez nawiasu
+      expect(stripped).not.toContain('Otwarcie śledztwa');
+      expect(stripped).not.toContain('Marek Kamiński');
+      expect(stripped).not.toContain('Wprowadzam łącznika');
+      expect(stripped.trim()).toBe('');
+    });
+
+    it('Czerwona Pętla Repro: symulacja potoku TTS w useTTS nie przepuszcza niedomkniętego tagu [MYŚLI_MG', () => {
+      const rawChunk =
+        '[MYŚLI_MG: Otwarcie śledztwa w Kowarach, styczeń 1996. Inżynier Marek Kamiński przybywa';
+      let stripped = stripMultilineArtifacts(rawChunk);
+      stripped = stripped
+        .replace(/```[^`]*$/g, '')
+        .replace(/\[[^\]]*$/, '')
+        .replace(/\{[^}]*$/, '');
+      expect(stripped.trim()).toBe('');
+    });
+
+    it('usuwa zamknięte i wieloliniowe bloki [MYŚLI_MG: ...] oraz [CEL_NARRACYJNY: ...]', () => {
+      const raw =
+        '[MYŚLI_MG: Otwarcie śledztwa w Kowarach.\nInżynier przybywa.]\n[CEL_NARRACYJNY: Ugruntowanie realiów zimy.]\nCiemność spowija szosę do Kowar.';
+      const stripped = stripMultilineArtifacts(raw);
+      expect(stripped).not.toContain('Otwarcie śledztwa');
+      expect(stripped).not.toContain('Ugruntowanie realiów');
+      expect(stripped).toContain('Ciemność spowija szosę do Kowar.');
+    });
+
+    it('cleanResponseText wycina nagłówki MYŚLI_MG i dyrektyw nawet jeśli model pominie nawiasy kwadratowe', () => {
+      const rawNaked =
+        'MYŚLI_MG: Wprowadzam łącznika do sceny.\nMroźny wiatr uderza w twarz.';
+      const cleaned = cleanResponseText(rawNaked);
+      expect(cleaned).not.toContain('Wprowadzam łącznika');
+      expect(cleaned).not.toContain('MYŚLI_MG');
+      expect(cleaned).toContain('Mroźny wiatr uderza w twarz.');
+    });
+  });
 });
 
 import { resolveNpcVoice } from '@/lib/npc-voice-mapping';
