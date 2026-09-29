@@ -153,6 +153,7 @@ async function fetchWithRetry(
       return await fetchWithApiKeys(url, options);
     } catch (error) {
       lastError = error;
+      if (options?.signal?.aborted) throw error;
       // Ponawiamy tylko chwilowe błędy sieci; reszta (np. przerwany abort, bugi
       // kodu) leci od razu do callera.
       if (!isNetworkBlip(error) || attempt === retries) throw error;
@@ -411,6 +412,8 @@ export interface UseChatReturn {
   setCheatChaseModal: React.Dispatch<React.SetStateAction<boolean>>;
   activeChaseState: ChaseState | null;
   setActiveChaseState: React.Dispatch<React.SetStateAction<ChaseState | null>>;
+  /** Issue #571: Przerywa aktywne generowanie odpowiedzi AI (AbortController) i cofa ostatnią turę */
+  stopGeneration: () => void;
 }
 
 function resolveEquipmentVisualEra(context?: AdventureContext | null): string {
@@ -567,6 +570,40 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     strikeCount: 0,
     turnsSinceLastViolation: 0,
   });
+
+  // Issue #571: AbortController oraz śledzenie wiadomości bieżącej tury do bezpiecznego cofnięcia (Stop)
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const lastSentUserMessageRef = useRef<string | null>(null);
+  const currentAssistantMessageIdRef = useRef<string | null>(null);
+  const currentUserMessageIdRef = useRef<string | null>(null);
+
+  const stopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    if (stopCurrentAudio) {
+      stopCurrentAudio();
+    }
+
+    const assistantId = currentAssistantMessageIdRef.current;
+    const userId = currentUserMessageIdRef.current;
+    const userText = lastSentUserMessageRef.current;
+
+    if (assistantId || userId) {
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== assistantId && msg.id !== userId)
+      );
+    }
+    if (userText) {
+      setNewMessage(userText);
+    }
+
+    currentAssistantMessageIdRef.current = null;
+    currentUserMessageIdRef.current = null;
+    lastSentUserMessageRef.current = null;
+  }, [setNewMessage, stopCurrentAudio]);
 
   const messagesRef = useRef<Message[]>(messages);
   useEffect(() => {
@@ -1277,6 +1314,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
+      abortControllerRef.current?.abort();
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      lastSentUserMessageRef.current = message;
+      currentAssistantMessageIdRef.current = assistantMessageId;
+      currentUserMessageIdRef.current = userMessage.id;
+
       try {
         // Doktryna Czystego Emulatora BYOB - Dwuskładnikowy Bloker Sesji (Runtime Hard Guard)
         const hasKey = typeof hasRequiredKeys === 'function' ? hasRequiredKeys() : true;
@@ -1324,6 +1368,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: abortController.signal,
           body: JSON.stringify({
             message: outgoingApiMessage,
             messages: sanitizeHistoryForApi([...messages, userMessage]),
@@ -1957,8 +2002,24 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           );
         }
 
+        if (currentAssistantMessageIdRef.current === assistantMessageId) {
+          currentAssistantMessageIdRef.current = null;
+          currentUserMessageIdRef.current = null;
+          lastSentUserMessageRef.current = null;
+        }
+
         return true;
       } catch (error) {
+        const isAborted =
+          abortController.signal.aborted ||
+          (error instanceof DOMException && error.name === 'AbortError') ||
+          (error instanceof Error &&
+            (error.name === 'AbortError' || error.message.includes('aborted')));
+
+        if (isAborted) {
+          return false;
+        }
+
         console.error('Błąd:', error);
         trackEvent('ai_error', {
           endpoint: '/api/chat',
@@ -1996,6 +2057,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         );
         return false;
       } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
         setIsLoading(false);
       }
     },
@@ -2213,12 +2277,20 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // Kontynuacja NIE tworzy dymku gracza - instrukcja leci tylko w payloadzie.
       setMessages((prev) => [...prev, assistantMessage]);
 
+      abortControllerRef.current?.abort();
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      currentAssistantMessageIdRef.current = assistantMessageId;
+      currentUserMessageIdRef.current = null;
+      lastSentUserMessageRef.current = null;
+
       const markedTarget: Message = { ...target, continuationRequested: true };
 
       try {
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: abortController.signal,
           body: JSON.stringify({
             message:
               locale === 'en'
@@ -2283,11 +2355,22 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
         void fullText;
       } catch (error) {
-        console.error('Błąd kontynuacji narracji:', error);
+        const isAborted =
+          abortController.signal.aborted ||
+          (error instanceof DOMException && error.name === 'AbortError') ||
+          (error instanceof Error &&
+            (error.name === 'AbortError' || error.message.includes('aborted')));
+
+        if (!isAborted) {
+          console.error('Błąd kontynuacji narracji:', error);
+        }
         setMessages((prev) =>
           prev.filter((msg) => msg.id !== assistantMessageId)
         );
       } finally {
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
         continuationInFlightRef.current = false;
         setIsLoading(false);
       }
@@ -2618,5 +2701,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     setCheatChaseModal,
     activeChaseState,
     setActiveChaseState,
+    stopGeneration,
   };
 }

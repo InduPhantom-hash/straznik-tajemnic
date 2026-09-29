@@ -10,7 +10,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Loader2, Users, Check, Clock } from 'lucide-react';
+import { Send, BookOpen, Loader2, Users, Check, Clock, Square, CornerDownLeft } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import type { ResolvedEraContext, AnachronismDetection } from '@/lib/era';
 import { detectAnachronism } from '@/lib/era';
@@ -48,6 +48,8 @@ interface MessageInputProps {
   /** Składa bufor w turę i wysyła do MG ("Wyślij turę"). */
   onSendTurn?: () => void;
   isLoading?: boolean;
+  /** Issue #571: Przerywa generowanie odpowiedzi AI */
+  onStopGeneration?: () => void;
   // === Przełącznik graczy (przeniesiony z sidebaru) ===
   /** Przełącza aktywnego gracza Hot Seat (index w tablicy players). */
   onSwitchPlayer?: (playerIndex: number) => void;
@@ -77,6 +79,7 @@ export function MessageInput({
   isTurnReady = false,
   onSendTurn,
   isLoading = false,
+  onStopGeneration,
   onSwitchPlayer,
   onDisableHotSeat,
   hotSeatPlayers,
@@ -97,6 +100,27 @@ export function MessageInput({
   const [selectedCheatIndex, setSelectedCheatIndex] = useState(0);
   const [cheatSuggestions, setCheatSuggestions] = useState<CheatSuggestion[]>([]);
   const [showCheatPopup, setShowCheatPopup] = useState(false);
+  const [sendMode, setSendMode] = useState<'enter' | 'ctrl_enter'>('enter');
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('straznik_chat_send_mode');
+      if (saved === 'enter' || saved === 'ctrl_enter') {
+        setSendMode(saved);
+      }
+      const macRegex = /(Mac|iPhone|iPod|iPad)/i;
+      setIsMac(macRegex.test(navigator.userAgent || navigator.platform || ''));
+    }
+  }, []);
+
+  const toggleSendMode = () => {
+    const nextMode = sendMode === 'enter' ? 'ctrl_enter' : 'enter';
+    setSendMode(nextMode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('straznik_chat_send_mode', nextMode);
+    }
+  };
 
   // Autocomplete cheatów pod znak [
   useEffect(() => {
@@ -343,22 +367,42 @@ export function MessageInput({
               }
             }
 
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              setShowCheatPopup(false);
-              submitInput();
+            if (sendMode === 'ctrl_enter') {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                setShowCheatPopup(false);
+                submitInput();
+              }
+            } else {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                setShowCheatPopup(false);
+                submitInput();
+              }
             }
           }}
         />
         <div className="flex items-center gap-2 pb-0.5">
-          <Button
-            onClick={submitInput}
-            disabled={isSessionEnded || !newMessage.trim() || isLoading}
-            className="h-[52px] px-4"
-            title={duetActive ? 'Dodaj deklarację gracza' : 'Wyślij wiadomość'}
-          >
-            <Send className="w-4 h-4" />
-          </Button>
+          {isLoading && onStopGeneration ? (
+            <Button
+              type="button"
+              onClick={onStopGeneration}
+              data-testid="stop-generation-button"
+              className="h-[52px] px-4 bg-destructive hover:bg-destructive/90 text-destructive-foreground border border-destructive/60 shadow-[0_0_12px_rgba(239,68,68,0.3)] animate-in fade-in duration-150 cursor-pointer"
+              title={t('stopGeneration')}
+            >
+              <Square className="w-4 h-4 fill-current" />
+            </Button>
+          ) : (
+            <Button
+              onClick={submitInput}
+              disabled={isSessionEnded || !newMessage.trim() || isLoading}
+              className="h-[52px] px-4"
+              title={duetActive ? t('addDeclaration') : t('sendMessage')}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          )}
 
           {/* C4 (duet): wyślij zebrane deklaracje jako jedną turę do MG */}
           {duetActive && onSendTurn && !isSessionEnded && (
@@ -401,6 +445,32 @@ export function MessageInput({
           )}
         </div>
       </div>
+
+      {/* Pasek pomocniczy z przełącznikiem trybu wysyłania (Art Déco) */}
+      {!isSessionEnded && sessionEndStatus !== 'ended' && (
+        <div className="max-w-4xl mx-auto flex items-center justify-end pt-1 px-1">
+          <button
+            type="button"
+            data-testid="send-mode-toggle"
+            onClick={toggleSendMode}
+            className="inline-flex items-center gap-1.5 text-[11px] font-special-elite text-brass/70 hover:text-brass hover:border-brass/50 bg-black/20 hover:bg-brass/10 border border-brass/25 rounded px-2 py-0.5 transition-all cursor-pointer shadow-xs"
+            title={
+              sendMode === 'enter'
+                ? t('sendModeEnterTooltip')
+                : t('sendModeCtrlEnterTooltip')
+            }
+          >
+            <CornerDownLeft className="w-3 h-3 text-brass/75" />
+            <span>
+              {sendMode === 'enter'
+                ? t('sendModeEnterBadge')
+                : isMac
+                  ? t('sendModeCmdEnterBadge')
+                  : t('sendModeCtrlEnterBadge')}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

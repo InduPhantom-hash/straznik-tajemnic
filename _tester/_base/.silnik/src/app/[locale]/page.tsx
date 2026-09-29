@@ -1332,6 +1332,7 @@ export default function Home() {
           onSummarizeScene={handleSummarizeScene}
           isSummarizingScene={isSummarizingScene}
           isLoading={chat.isLoading}
+          onStopGeneration={chat.stopGeneration}
           isInitialBuffering={tts.isInitialBuffering}
           isDuet={chat.isDuet}
           pendingDeclarations={chat.pendingDeclarations}

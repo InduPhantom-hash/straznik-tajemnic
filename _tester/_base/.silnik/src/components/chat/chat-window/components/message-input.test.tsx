@@ -206,5 +206,84 @@ describe('MessageInput - detekcja anachronizmów i dymek Art Déco', () => {
       expect(onSendTurn).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('Issue #571: przycisk Zatrzymaj (Stop) i przełącznik skrótu wysyłania', () => {
+    it('wyświetla czerwony przycisk Stop gdy isLoading=true i wywołuje onStopGeneration po kliknięciu', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+      const onStopGeneration = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage=""
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={1}
+          isLoading={true}
+          onStopGeneration={onStopGeneration}
+        />
+      );
+
+      const stopBtn = screen.getByTestId('stop-generation-button');
+      expect(stopBtn).toBeInTheDocument();
+      expect(screen.queryByTitle(/Wyślij wiadomość/i)).not.toBeInTheDocument();
+
+      fireEvent.click(stopBtn);
+      expect(onStopGeneration).toHaveBeenCalledTimes(1);
+    });
+
+    it('wysyła wiadomość klawiszem Enter w trybie domyślnym', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage="Badam ślady na podłodze"
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={1}
+          isLoading={false}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox');
+      fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
+
+      expect(handleSendMessage).toHaveBeenCalledWith('Badam ślady na podłodze');
+      expect(setNewMessage).toHaveBeenCalledWith('');
+    });
+
+    it('pozwala przełączyć tryb wysyłania na Ctrl+Enter i zapisuje wybór w localStorage', () => {
+      const handleSendMessage = jest.fn();
+      const setNewMessage = jest.fn();
+
+      render(
+        <MessageInput
+          newMessage="Nowa wiadomość"
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
+          messagesCount={1}
+        />
+      );
+
+      const toggleBtn = screen.getByTestId('send-mode-toggle');
+      expect(toggleBtn).toBeInTheDocument();
+      expect(toggleBtn).toHaveTextContent('↵ Enter');
+
+      fireEvent.click(toggleBtn);
+      expect(localStorage.getItem('straznik_chat_send_mode')).toBe('ctrl_enter');
+      expect(toggleBtn).toHaveTextContent(/Ctrl\+↵|⌘\+↵/);
+
+      // W trybie ctrl_enter sam Enter nie wysyła wiadomości
+      const textarea = screen.getByRole('textbox');
+      fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false, ctrlKey: false, metaKey: false });
+      expect(handleSendMessage).not.toHaveBeenCalled();
+
+      // Ctrl+Enter wysyła wiadomość
+      fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
+      expect(handleSendMessage).toHaveBeenCalledWith('Nowa wiadomość');
+    });
+  });
 });
+
 

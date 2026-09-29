@@ -119,6 +119,8 @@ export interface ChatWindowProps {
 
   // Loading
   isLoading?: boolean;
+  /** Issue #571: Callback przerwania generowania odpowiedzi AI (Stop button) */
+  onStopGeneration?: () => void;
   isInitialBuffering?: boolean;
   isStarting?: boolean;
   startProgress?: number;
