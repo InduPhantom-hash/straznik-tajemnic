@@ -71,8 +71,9 @@ export async function parseSSEStream(
     try {
       const data = JSON.parse(line.slice(6));
 
-      if (data.type === 'text') {
-        fullText += data.content;
+      if (data.type === 'text' || typeof data.text === 'string') {
+        const textContent = (data.content ?? data.text ?? '') as string;
+        fullText += textContent;
         callbacks.onText?.(fullText);
       } else if (data.type === 'metadata') {
         callbacks.onMetadata?.(data as SSEMetadataEvent);
