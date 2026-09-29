@@ -47,6 +47,20 @@ function parseJsonArray(value: string): string[] {
   }
 }
 
+/**
+ * Normalizes and strips system directives (such as [KONIEC_SESJI:FINAL], [KONIEC_SESJI], [END_SESSION:FINAL])
+ * from message or entry text for ledger comparison and persistent storage (Issue #560).
+ */
+export function stripSystemDirectivesForLedger(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\[\s*(?:KONIEC_SESJI|END_SESSION)[^\]]*\]/gi, '')
+    .replace(/\[\s*(?:INSTRUKCJA|SYSTEM|DIRECTIVE|GM_DIRECTIVE|GM\s+DIRECTIVE)(?::|[\s_\-])[^\]]*\]/gi, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export class CampaignMemoryLedgerStore {
   private db: Database.Database;
   private ftsAvailable = true;
@@ -198,6 +212,7 @@ export class CampaignMemoryLedgerStore {
     this.db.prepare('INSERT OR IGNORE INTO memory_runs VALUES (?, ?)').run(entry.scope.playthroughId, entry.scope.campaignDefinitionId);
     const {entityId, status, recipients, sourceJournalEntryId, supersededBy, relatedEntityIds, provenance} = entry;
     const fact: MemoryFactMetadata = {entityId, status, recipients, sourceJournalEntryId, supersededBy, relatedEntityIds, provenance};
+    const storedText = entry.kind === 'conversation' ? (stripSystemDirectivesForLedger(entry.text) || entry.text) : entry.text;
     const insert = () => this.db.prepare(`
       INSERT OR IGNORE INTO memory_entries (
         id, playthrough_id, campaign_definition_id, adventure_id, memory_kind,
@@ -213,7 +228,7 @@ export class CampaignMemoryLedgerStore {
       entry.sessionId,
       entry.sequence,
       entry.role,
-      entry.text,
+      storedText,
       JSON.stringify(entry.tags),
       JSON.stringify(entry.sourceMessageIds),
       entry.revealedAt,
@@ -269,7 +284,9 @@ export class CampaignMemoryLedgerStore {
   }): number {
     return this.db.transaction(() => {
       this.assertScope(input.scope);
-      const hash = createHash('sha256').update(JSON.stringify([input.userText,input.assistantText])).digest('hex');
+      const cleanUserText = stripSystemDirectivesForLedger(input.userText) || input.userText;
+      const cleanAssistantText = stripSystemDirectivesForLedger(input.assistantText) || input.assistantText;
+      const hash = createHash('sha256').update(JSON.stringify([cleanUserText,cleanAssistantText])).digest('hex');
       const previous = this.db.prepare('SELECT content_hash FROM memory_turns WHERE playthrough_id = ? AND message_id = ?').get(input.scope.playthroughId,input.messageId) as {content_hash:string} | undefined;
       if (previous) {
         if (previous.content_hash !== hash) throw new Error('Memory turn content conflict');
@@ -291,14 +308,14 @@ export class CampaignMemoryLedgerStore {
         sequence: nextSequence,
         role: 'user',
         kind: 'conversation',
-        text: input.userText,
+        text: cleanUserText,
         tags: [],
         sourceMessageIds: [input.userMessageId ?? `${input.messageId}:user`],
         revealedAt,
         active: true,
         recipients: input.recipientIds,
       }];
-      if (input.assistantText.trim()) {
+      if (cleanAssistantText.trim()) {
         entries.push({
           id: `${prefix}:assistant`,
           scope: input.scope,
@@ -306,7 +323,7 @@ export class CampaignMemoryLedgerStore {
           sequence: nextSequence + entries.length,
           role: 'assistant',
           kind: 'conversation',
-          text: input.assistantText,
+          text: cleanAssistantText,
           tags: [],
           sourceMessageIds: [input.messageId],
           revealedAt,
@@ -475,15 +492,26 @@ export class CampaignMemoryLedgerStore {
         const message = byMessage.get(id);
         if (!message) continue;
         const text = message.role === 'assistant' ? extractRevealedTurn(message.content, message.id).narrative : message.content;
-        if (message.role !== entry.role || text.trim() !== entry.text.trim()) throw new Error('Save history conflicts with committed memory');
+        const normalizedMessageText = stripSystemDirectivesForLedger(text).trim();
+        const normalizedEntryText = stripSystemDirectivesForLedger(entry.text).trim();
+        if (message.role !== entry.role || normalizedMessageText !== normalizedEntryText) throw new Error('Save history conflicts with committed memory');
         cutoff = Math.max(cutoff,entry.sequence);
       }
     }
     // Include structured records from the selected turn, but never later turns.
     const selected = entries.filter(entry=>entry.sequence <= cutoff ||
       (entry.kind !== 'conversation' && (!entry.sourceMessageIds.length || entry.sourceMessageIds.some(id=>byMessage.has(id)))));
+    const cleanSelected = selected.map(entry => {
+      if (entry.kind === 'conversation') {
+        const cleanText = stripSystemDirectivesForLedger(entry.text);
+        if (cleanText && cleanText !== entry.text) {
+          return { ...entry, text: cleanText };
+        }
+      }
+      return entry;
+    });
     const checkpoint = this.getLatestCheckpoint(scope.playthroughId);
-    return {schemaVersion:1,scope,revision:Math.max(0,...selected.map(e=>e.sequence)),entries:selected,
+    return {schemaVersion:1,scope,revision:Math.max(0,...cleanSelected.map(e=>e.sequence)),entries:cleanSelected,
       checkpoints:checkpoint && checkpoint.sourceMessageIds.every(id=>byMessage.has(id)) ? [checkpoint] : []};
   }
 
@@ -623,7 +651,7 @@ export class CampaignMemoryLedgerStore {
       sequence: row.sequence_no,
       role: row.role,
       kind: row.memory_kind,
-      text: row.text,
+      text: row.memory_kind === 'conversation' ? (stripSystemDirectivesForLedger(row.text) || row.text) : row.text,
       tags: parseJsonArray(row.tags_json),
       sourceMessageIds: parseJsonArray(row.source_message_ids_json),
       revealedAt: row.revealed_at,
@@ -639,7 +667,7 @@ export class CampaignMemoryLedgerStore {
     return {
       ...JSON.parse(row.fact_json || '{}') as MemoryFactMetadata,
       id: row.id,
-      text: row.text,
+      text: row.memory_kind === 'conversation' ? (stripSystemDirectivesForLedger(row.text) || row.text) : row.text,
       score,
       kind: row.memory_kind,
       role: row.role,
