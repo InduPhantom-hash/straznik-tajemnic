@@ -4622,7 +4622,13 @@
     "pass": "Pasuję",
     "sendTurnTitle": "Złóż obie deklaracje w jedną turę i wyślij do Mistrza Gry",
     "sendTurn": "Wyślij turę",
-    "summarizeScene": "Podsumuj ostatnią scenę do dziennika"
+    "summarizeScene": "Podsumuj ostatnią scenę do dziennika",
+    "stopGeneration": "Zatrzymaj generowanie odpowiedzi Mistrza Gry",
+    "sendModeEnterBadge": "↵ Enter",
+    "sendModeCtrlEnterBadge": "Ctrl+↵ Wyślij",
+    "sendModeCmdEnterBadge": "⌘+↵ Wyślij",
+    "sendModeEnterTooltip": "Tryb wysyłania: Enter wysyła wiadomość, Shift+Enter tworzy nową linię (kliknij, aby zmienić)",
+    "sendModeCtrlEnterTooltip": "Tryb bezpieczny: Ctrl+Enter (lub ⌘+Enter) wysyła wiadomość, Enter tworzy nową linię (kliknij, aby zmienić)"
   },
   "Sidebar": {
     "appName": "Strażnik Tajemnic AI",

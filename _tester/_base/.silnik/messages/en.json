@@ -4622,7 +4622,13 @@
     "pass": "Pass",
     "sendTurnTitle": "Combine both declarations into one turn and send it to the Game Master",
     "sendTurn": "Send turn",
-    "summarizeScene": "Summarize the latest scene to the journal"
+    "summarizeScene": "Summarize the latest scene to the journal",
+    "stopGeneration": "Stop generating Game Master response",
+    "sendModeEnterBadge": "↵ Enter",
+    "sendModeCtrlEnterBadge": "Ctrl+↵ Send",
+    "sendModeCmdEnterBadge": "⌘+↵ Send",
+    "sendModeEnterTooltip": "Send mode: Enter sends message, Shift+Enter adds a new line (click to switch)",
+    "sendModeCtrlEnterTooltip": "Safe mode: Ctrl+Enter (or ⌘+Enter) sends message, Enter adds a new line (click to switch)"
   },
   "Sidebar": {
     "appName": "Guardian of Secrets AI",

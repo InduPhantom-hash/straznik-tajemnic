@@ -80,6 +80,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onSummarizeScene,
   isSummarizingScene = false,
   isLoading = false,
+  onStopGeneration,
   isInitialBuffering = false,
   isStarting = false,
   startProgress = 0,
@@ -514,6 +515,7 @@ export const ChatWindow: FC<ChatWindowProps> = ({
             isTurnReady={isTurnReady}
             onSendTurn={onSendTurn}
             isLoading={isLoading}
+            onStopGeneration={onStopGeneration}
             onSwitchPlayer={onSwitchPlayer}
             onDisableHotSeat={onDisableHotSeat}
             hotSeatPlayers={hotSeatConfig?.players?.map((p, i) => ({
