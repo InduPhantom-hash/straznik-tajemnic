@@ -37,6 +37,7 @@
     "navigation:check": "node scripts/generate-navigation-map.mjs --check",
     "navigation:guard": "node scripts/check-navigation-registry-change.mjs",
     "test:navigation": "npx playwright test tests/e2e/navigation-registry.spec.ts --project=chromium --workers=1",
+    "test:player-simulation": "npx playwright test tests/e2e/player-simulation.spec.ts --project=chromium",
     "smoke:secrets": "node --experimental-strip-types scripts/smoke-all-secrets.ts",
     "prepare": "node scripts/gen-adventure-catalog.mjs && (husky || true)",
     "gen:catalog": "node scripts/gen-adventure-catalog.mjs",
