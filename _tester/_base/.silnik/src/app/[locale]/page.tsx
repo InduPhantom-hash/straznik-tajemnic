@@ -1358,6 +1358,8 @@ export default function Home() {
           hotSeatConfig={hotSeat.config}
           isSessionEnded={chat.isSessionEnded}
           sessionEndStatus={chat.sessionEndStatus}
+          sessionSaveStatus={chat.sessionSaveStatus}
+          onRetrySessionSave={chat.retrySessionSave}
           onConfirmAcquiredItem={chat.confirmAcquiredItem}
           onDismissAcquiredItem={chat.dismissAcquiredItem}
           onCharacterUpdate={charMgmt.handleUpdateCharacter}

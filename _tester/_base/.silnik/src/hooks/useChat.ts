@@ -54,6 +54,10 @@ import {
   isPureTextMode,
 } from '@/lib/api-keys-service';
 import { timeManager } from '@/lib/time-manager';
+import {
+  generateSessionEndSaveName,
+  performFullGameSave,
+} from '@/lib/save/auto-save-service';
 import { parseSSEStream, createSseParseErrorHandler } from '@/lib/sse-parser';
 import { trackEvent } from '@/lib/posthog';
 import type { AISettings } from '@/lib/ai-settings/types';
@@ -380,6 +384,10 @@ export interface UseChatReturn {
   isSessionEnded: boolean;
   /** Dwuetapowy stan końca sesji (idle | awaiting_player_closure | ended) */
   sessionEndStatus: SessionEndStatus;
+  /** Stan autozapisu kroniki po zakończeniu sesji: 'idle' | 'saving' | 'saved' | 'error' */
+  sessionSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  /** Funkcja ponowienia autozapisu kroniki po błędzie */
+  retrySessionSave: () => Promise<void>;
   // Retro Cheats
   cheatCombatModal: {
     attackerName: string;
@@ -549,6 +557,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
   const [sessionEndStatus, setSessionEndStatus] =
     useState<SessionEndStatus>('idle');
+  const [sessionSaveStatus, setSessionSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle');
   const [lastImageTime, setLastImageTime] = useState(0);
 
   const activeChaseStateRef = useRef<ChaseState | null>(activeChaseState);
@@ -556,6 +567,21 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     strikeCount: 0,
     turnsSinceLastViolation: 0,
   });
+
+  const messagesRef = useRef<Message[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const activeCharacterRef = useRef<Character | null>(activeCharacter);
+  useEffect(() => {
+    activeCharacterRef.current = activeCharacter;
+  }, [activeCharacter]);
+
+  const charactersRef = useRef<Character[]>(characters);
+  useEffect(() => {
+    charactersRef.current = characters;
+  }, [characters]);
 
   useEffect(() => {
     activeChaseStateRef.current = activeChaseState;
@@ -574,12 +600,83 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     if (messages.length === 0) {
       setIsSessionEnded(false);
       setSessionEndStatus('idle');
+      setSessionSaveStatus('idle');
       guardrailStateRef.current = { strikeCount: 0, turnsSinceLastViolation: 0 };
       lastIllustratedLocationRef.current = '';
       lastTrackedSceneRef.current = '';
       sceneImageCountRef.current = 0;
     }
   }, [messages.length]);
+
+  const isSavingSessionRef = useRef<boolean>(false);
+  const executeSessionAutoSave = useCallback(
+    async (
+      messagesOverride?: Message[],
+      characterOverride?: Character | null,
+      charactersOverride?: Character[]
+    ) => {
+      if (isSavingSessionRef.current) return;
+      isSavingSessionRef.current = true;
+      setSessionSaveStatus('saving');
+      try {
+        const msgs =
+          messagesOverride ||
+          (messagesRef.current.length > 0 ? messagesRef.current : messages);
+        const activeChar =
+          characterOverride !== undefined
+            ? characterOverride
+            : (activeCharacter || activeCharacterRef.current);
+        const allChars =
+          charactersOverride ||
+          (characters.length > 0 ? characters : charactersRef.current);
+        const currentGameTime = timeManager?.getTime ? timeManager.getTime() : null;
+        const autoSaveName = generateSessionEndSaveName(
+          activeChar?.name,
+          currentGameTime
+        );
+
+        await performFullGameSave({
+          saveName: autoSaveName,
+          saveNotes: 'Autozapis po zakończeniu sesji',
+          saveImages: true,
+          saveSettings: true,
+          currentLocale: locale,
+          data: {
+            messages: msgs,
+            locale,
+            aiSettings: options.aiSettings,
+            equipmentVisualEra: resolveEquipmentVisualEra(adventureContext),
+            characters: allChars,
+            activeCharacterId: activeChar?.id,
+            hotSeatConfig: hotSeatConfig,
+            investigatorBoard: activeChar?.investigatorBoard,
+            pdfMemory: pdfMemory,
+            currentLocationId: currentLocationRef.current || undefined,
+          },
+        });
+        setSessionSaveStatus('saved');
+      } catch (err) {
+        console.error('Błąd automatycznego zapisu kroniki:', err);
+        setSessionSaveStatus('error');
+      } finally {
+        isSavingSessionRef.current = false;
+      }
+    },
+    [
+      locale,
+      options.aiSettings,
+      adventureContext,
+      hotSeatConfig,
+      pdfMemory,
+      activeCharacter,
+      characters,
+      messages,
+    ]
+  );
+
+  const retrySessionSave = useCallback(async () => {
+    await executeSessionAutoSave();
+  }, [executeSessionAutoSave]);
   // C4 (duet): bufor deklaracji per gracz (pusty w solo, zerowany po wysłaniu tury).
   const [pendingDeclarations, setPendingDeclarations] = useState<
     PendingDeclaration[]
@@ -1273,6 +1370,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
         let isGuardrailResponse = false;
         let streamedFullText = '';
+        let hasSessionEndConfirmation = false;
+        let lastFinishReason: string | undefined;
+        let lastCostData: unknown;
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
             let cleanText = stripMeleeAttackTags(text);
@@ -1282,6 +1382,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                 .trimEnd();
               setSessionEndStatus('ended');
               setIsSessionEnded(true);
+              setSessionSaveStatus('saving');
+              hasSessionEndConfirmation = true;
             }
             streamedFullText = cleanText;
             setMessages((prev) =>
@@ -1349,6 +1451,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             // finishReason z metadanych (MAX_TOKENS/STOP) trafia na wiadomość -
             // steruje przyciskiem "Kontynuuj narrację" i logiką urwanych scen.
             if (metadata.finishReason) {
+              lastFinishReason = String(metadata.finishReason);
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
@@ -1375,6 +1478,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
             // Metadane costData zapisz do wiadomości
             if (metadata.costData) {
+              lastCostData = metadata.costData;
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
@@ -1586,6 +1690,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         // surowej narracji MG do character.journal (modal sesji). fullText jest
         // surowy (tagi czyszczone dopiero w renderze), więc niesie [DZIENNIK:].
         // appendJournalFromText jest idempotentne (dedup po messageId).
+        let finalActiveChar = activeCharacter;
+        let finalCharacters = characters;
         if (activeCharacter) {
           const currentEra =
             adventureContext?.yearRange ||
@@ -1698,6 +1804,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           if (j.changed || s.changed || eq.changed) {
             setActiveCharacter(eq.activeCharacter);
             setCharacters(eq.characters);
+            finalActiveChar = eq.activeCharacter;
+            finalCharacters = eq.characters;
             if (typeof window !== 'undefined') {
               persistCharacters(eq.characters);
             }
@@ -1812,6 +1920,43 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             onSkillResults(skillResults);
           }
         }
+
+        if (
+          hasSessionEndConfirmation ||
+          fullText.includes('[KONIEC_SESJI:POTWIERDZENIE]')
+        ) {
+          setSessionEndStatus('ended');
+          setIsSessionEnded(true);
+          const finalAssistantMsg: Message = {
+            ...assistantMessage,
+            content: streamedFullText,
+            ...(lastFinishReason ? { finishReason: lastFinishReason } : {}),
+            ...(lastCostData ? { costData: lastCostData as any } : {}),
+            ...(acquiredItems.length > 0 ? { acquiredItems } : {}),
+            ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
+            ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),
+            ...(tomeStudyEvents.length > 0 ? { tomeStudyEvents } : {}),
+            ...(opposedMagicEvents.length > 0 ? { opposedMagicEvents } : {}),
+            ...(opposedMeleeEvents.length > 0 ? { opposedMeleeEvents } : {}),
+            ...(refereeVetoEvents.length > 0 ? { refereeVetoEvents } : {}),
+            ...(gameOverEvents.length > 0 ? { gameOverEvents } : {}),
+          };
+          const messagesToSave: Message[] = [
+            ...messages,
+            userMessage,
+            finalAssistantMsg,
+          ];
+          messagesRef.current = messagesToSave;
+          activeCharacterRef.current = finalActiveChar;
+          charactersRef.current = finalCharacters;
+
+          await executeSessionAutoSave(
+            messagesToSave,
+            finalActiveChar,
+            finalCharacters
+          );
+        }
+
         return true;
       } catch (error) {
         console.error('Błąd:', error);
@@ -2465,6 +2610,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     dismissAcquiredItem,
     isSessionEnded,
     sessionEndStatus,
+    sessionSaveStatus,
+    retrySessionSave,
     cheatCombatModal,
     setCheatCombatModal,
     cheatChaseModal,

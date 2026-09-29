@@ -570,3 +570,62 @@ describe('MessageCard - Bliskie starcie wręcz (CombatCard)', () => {
   });
 });
 
+describe('MessageCard - zakończenie sesji i autozapis (Issue #559)', () => {
+  const sessionEndMessage: Message = {
+    ...baseMessage,
+    id: 'session-end-msg',
+    content: 'Sesja została oficjalnie zakończona.\n[KONIEC_SESJI:POTWIERDZENIE]',
+  };
+
+  it('wyświetla wskaźnik zapisu, gdy sessionSaveStatus to saving', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="saving"
+      />
+    );
+
+    expect(
+      screen.getByText('Zapisywanie kroniki w archiwum...')
+    ).toBeInTheDocument();
+  });
+
+  it('wyświetla błąd zapisu z przyciskiem ponowienia, gdy sessionSaveStatus to error', () => {
+    const onRetry = jest.fn();
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="error"
+        onRetrySessionSave={onRetry}
+      />
+    );
+
+    expect(
+      screen.getByText('Nie udało się zapisać kroniki w archiwum.')
+    ).toBeInTheDocument();
+
+    const retryBtn = screen.getByRole('button', { name: /Spróbuj zapisać ponownie/i });
+    expect(retryBtn).toBeInTheDocument();
+
+    fireEvent.click(retryBtn);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('wyświetla potwierdzenie zapisu, gdy sessionSaveStatus to saved', () => {
+    render(
+      <MessageCard
+        {...baseProps}
+        message={sessionEndMessage}
+        sessionSaveStatus="saved"
+      />
+    );
+
+    expect(
+      screen.getByText('𓂀 KRONIKA ZAPISANA 𓂀')
+    ).toBeInTheDocument();
+  });
+});
+
+
