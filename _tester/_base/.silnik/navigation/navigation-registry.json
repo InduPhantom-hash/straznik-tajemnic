@@ -907,7 +907,16 @@
         "en": "Choose period engraving"
       },
       "component": "src/components/ui/character-wizard.tsx"
+    },
+    {
+      "source": "game",
+      "target": "game",
+      "label": {
+        "pl": "Ponów zapis kroniki po błędzie",
+        "en": "Retry chronicle save after error"
+      },
+      "component": "src/components/chat/chat-window/components/message-card.tsx"
     }
   ],
-  "lastUpdated": "2026-09-21T09:00:00.000Z"
+  "lastUpdated": "2026-09-29T17:45:00.000Z"
 }
