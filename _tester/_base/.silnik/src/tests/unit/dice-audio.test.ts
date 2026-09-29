@@ -4,13 +4,62 @@ import {
 } from '@/lib/dice-physics/dice-audio';
 import * as audioContextModule from '@/lib/audio/audio-context';
 
+interface MockAudioParam {
+  value: number;
+  setValueAtTime: jest.Mock;
+  linearRampToValueAtTime: jest.Mock;
+  exponentialRampToValueAtTime: jest.Mock;
+}
+
+interface MockNode {
+  connect: jest.Mock;
+  disconnect: jest.Mock;
+}
+
+interface MockOscillator extends MockNode {
+  type: string;
+  frequency: MockAudioParam;
+  start: jest.Mock;
+  stop: jest.Mock;
+  onended?: (() => void) | null;
+}
+
+interface MockGain extends MockNode {
+  gain: MockAudioParam;
+}
+
+interface MockFilter extends MockNode {
+  type: string;
+  frequency: MockAudioParam;
+  Q: MockAudioParam;
+  gain: MockAudioParam;
+}
+
+interface MockBufferSource extends MockNode {
+  buffer: AudioBuffer | null;
+  start: jest.Mock;
+  stop: jest.Mock;
+  onended?: (() => void) | null;
+}
+
 describe('dice-audio (Web Audio API procedural sound engine)', () => {
-  let mockAudioContext: any;
+  let mockAudioContext: {
+    currentTime: number;
+    sampleRate: number;
+    state: string;
+    resume: jest.Mock;
+    destination: { connect: jest.Mock };
+    createBuffer: jest.Mock;
+    createBufferSource: jest.Mock;
+    createGain: jest.Mock;
+    createBiquadFilter: jest.Mock;
+    createOscillator: jest.Mock;
+  };
   let createdNodes: {
-    oscillators: any[];
-    gains: any[];
-    filters: any[];
-    bufferSources: any[];
+    oscillators: MockOscillator[];
+    gains: MockGain[];
+    filters: MockFilter[];
+    bufferSources: MockBufferSource[];
   };
 
   beforeEach(() => {
@@ -21,7 +70,7 @@ describe('dice-audio (Web Audio API procedural sound engine)', () => {
       bufferSources: [],
     };
 
-    const createParam = (defaultValue = 0) => ({
+    const createParam = (defaultValue = 0): MockAudioParam => ({
       value: defaultValue,
       setValueAtTime: jest.fn(),
       linearRampToValueAtTime: jest.fn(),
@@ -41,20 +90,20 @@ describe('dice-audio (Web Audio API procedural sound engine)', () => {
         numberOfChannels: channels,
         getChannelData: jest.fn().mockReturnValue(new Float32Array(length)),
       })),
-      createBufferSource: jest.fn().mockImplementation(() => {
-        const node = {
+      createBufferSource: jest.fn().mockImplementation((): MockBufferSource => {
+        const node: MockBufferSource = {
           buffer: null,
           connect: jest.fn(),
           disconnect: jest.fn(),
           start: jest.fn(),
           stop: jest.fn(),
-          onended: null as any,
+          onended: null,
         };
         createdNodes.bufferSources.push(node);
         return node;
       }),
-      createGain: jest.fn().mockImplementation(() => {
-        const node = {
+      createGain: jest.fn().mockImplementation((): MockGain => {
+        const node: MockGain = {
           gain: createParam(1),
           connect: jest.fn(),
           disconnect: jest.fn(),
@@ -62,8 +111,8 @@ describe('dice-audio (Web Audio API procedural sound engine)', () => {
         createdNodes.gains.push(node);
         return node;
       }),
-      createBiquadFilter: jest.fn().mockImplementation(() => {
-        const node = {
+      createBiquadFilter: jest.fn().mockImplementation((): MockFilter => {
+        const node: MockFilter = {
           type: 'lowpass',
           frequency: createParam(350),
           Q: createParam(1),
@@ -74,22 +123,22 @@ describe('dice-audio (Web Audio API procedural sound engine)', () => {
         createdNodes.filters.push(node);
         return node;
       }),
-      createOscillator: jest.fn().mockImplementation(() => {
-        const node = {
+      createOscillator: jest.fn().mockImplementation((): MockOscillator => {
+        const node: MockOscillator = {
           type: 'sine',
           frequency: createParam(440),
           connect: jest.fn(),
           disconnect: jest.fn(),
           start: jest.fn(),
           stop: jest.fn(),
-          onended: null as any,
+          onended: null,
         };
         createdNodes.oscillators.push(node);
         return node;
       }),
     };
 
-    jest.spyOn(audioContextModule, 'getSharedAudioContext').mockReturnValue(mockAudioContext);
+    jest.spyOn(audioContextModule, 'getSharedAudioContext').mockReturnValue(mockAudioContext as unknown as AudioContext);
   });
 
   afterEach(() => {
