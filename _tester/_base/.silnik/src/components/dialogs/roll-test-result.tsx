@@ -138,6 +138,7 @@ export const RollTestResult: FC<RollTestResultProps> = ({
         breakdown={breakdown}
         bonusDice={test.bonusDice}
         luckSpent={roll?.luckSpent}
+        outcome={roll?.outcome}
       />
 
       {/* Werdykt po ustabilizowaniu rzutu */}
