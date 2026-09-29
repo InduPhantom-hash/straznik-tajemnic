@@ -17,7 +17,7 @@
  */
 
 import fs from 'fs';
-import type { Character, GameTime, MoonPhase } from '@/lib/types';
+import type { Character, GameTime, MoonPhase, EquipmentItem } from '@/lib/types';
 import { applyStatChangesToParty, type SanityEvent } from '@/lib/character/apply-stat-changes';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { extractSkillTests, extractMeleeAttackReferences, detectCombat } from '@/lib/parsers/mechanics-parser';
