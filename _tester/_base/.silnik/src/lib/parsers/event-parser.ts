@@ -83,7 +83,7 @@ export function extractLatestTagLocation(
       continue;
     }
 
-    let cleanName = sanitizeLocationName(rawTagContent);
+    const cleanName = sanitizeLocationName(rawTagContent);
     let desc = (match[2] || '').trim();
 
     // Jeśli nie było separatora : ani |, ale w rawTagContent był przecinek z opisem, wyciągnij opis
