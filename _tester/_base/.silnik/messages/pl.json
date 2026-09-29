@@ -4886,12 +4886,12 @@
     "appName": "Strażnik Tajemnic"
   },
   "AcquiredItemCard": {
-    "acceptedMessage": "Dopisano do akt: {itemName}",
-    "dismissedMessage": "Odrzucono dowód: {itemName}",
-    "newEvidenceTitle": "Nowy Dowód Rzeczowy",
+    "acceptedMessage": "Dodano do torby: {itemName}",
+    "dismissedMessage": "Zostawiono na miejscu: {itemName}",
+    "newEvidenceTitle": "Nowe Znalezisko",
     "selectInvestigatorPlaceholder": "Wybierz badacza...",
-    "addToRecordsButton": "Dopisz do akt",
-    "dismissButton": "Pomiń",
+    "addToRecordsButton": "Zabierz do torby",
+    "dismissButton": "Zostaw",
     "itemAcquiredToast": "Zdobyto przedmiot",
     "itemAcquiredDesc": "{itemName}"
   },

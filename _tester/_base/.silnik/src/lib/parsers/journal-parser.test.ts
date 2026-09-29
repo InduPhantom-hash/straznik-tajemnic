@@ -423,15 +423,11 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
       expect(clue?.status).toBe('confirmed');
       expect(clue?.description).toContain('Zapiski w języku łacińskim');
 
-      // Sprawdź fizyczny rekwizyt w ekwipunku postaci (Potrójny Byt Handoutu)
-      const eqItem = updated.equipment?.find((e) => e.name === 'Dziennik Corbitta');
-      expect(eqItem).toBeDefined();
-      expect(eqItem?.category).toBe('document');
-      expect(eqItem?.isReadable).toBe(true);
-      expect(eqItem?.readableContent).toContain('Zapiski w języku łacińskim');
+      // Zgodnie z Issue #565: dokument trafia do dossier i kroniki, ale NIE trafia samowolnie do ekwipunku
+      expect(updated.equipment ?? []).toHaveLength(0);
     });
 
-    it('appendJournalFromText dodaje również zwykłe przedmioty do ekwipunku i normalizuje kategorie', () => {
+    it('appendJournalFromText nie dodaje samowolnie przedmiotów do ekwipunku postaci (Issue #565)', () => {
       const baseChar: Character = {
         id: 'char_eq_test',
         name: 'Harvey Walters',
@@ -445,23 +441,13 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
         '[ITEM: Bilet kolejowy | dokument | Bilet na pociąg do Arkham]';
       const updated = appendJournalFromText(baseChar, raw, 'msg_eq_test');
 
-      expect(updated.equipment).toHaveLength(2);
-      const gun = updated.equipment?.find((e) => e.name === 'Rewolwer Colt');
-      expect(gun).toBeDefined();
-      expect(gun?.category).toBe('weapon');
-      expect(gun?.description).toBe('Niezawodny rewolwer kaliber .38');
-
-      const ticket = updated.equipment?.find((e) => e.name === 'Bilet kolejowy');
-      expect(ticket).toBeDefined();
-      expect(ticket?.category).toBe('document');
-      expect(ticket?.isReadable).toBe(true);
-
-      // Idempotencja: ponowne przetworzenie nie duplikuje przedmiotów
-      const updatedAgain = appendJournalFromText(updated, raw, 'msg_eq_test_retry');
-      expect(updatedAgain.equipment).toHaveLength(2);
+      // Żadna rzecz nie trafia do torby sama (Issue #565)
+      expect(updated.equipment ?? []).toHaveLength(0);
+      expect(updated.journal?.some((j) => j.title === 'Rewolwer Colt')).toBe(true);
+      expect(updated.journal?.some((j) => j.title === 'Bilet kolejowy')).toBe(true);
     });
 
-    it('appendJournalFromText tworzy fizyczny rekwizyt w ekwipunku również dla poszlak będących handoutami (Potrójny Byt)', () => {
+    it('appendJournalFromText dodaje handouty do dossier i kroniki, nie mutując ekwipunku (Issue #565)', () => {
       const baseChar: Character = {
         id: 'char_clue_handout_test',
         name: 'Edward Carnby',
@@ -482,19 +468,8 @@ describe('appendJournalFromText (Zero-Effort Ledger & Dossier Loop)', () => {
       expect(letterClue?.provenance).toBe('handout');
       expect(letterClue?.category).toBe('document');
 
-      // 2. Sprawdź fizyczne rekwizyty w ekwipunku postaci (Potrójny Byt Handoutu z tagów poszlak!)
-      expect(updated.equipment).toHaveLength(2);
-      const letterEq = updated.equipment?.find((e) => e.name === 'List od adwokata');
-      expect(letterEq).toBeDefined();
-      expect(letterEq?.category).toBe('document');
-      expect(letterEq?.isReadable).toBe(true);
-      expect(letterEq?.readableContent).toContain('proszę o pilny kontakt w sprawie spadku Corbitta');
-
-      const clippingEq = updated.equipment?.find((e) => e.name === 'Wycinek z Arkham Advertiser');
-      expect(clippingEq).toBeDefined();
-      expect(clippingEq?.category).toBe('document');
-      expect(clippingEq?.isReadable).toBe(true);
-      expect(clippingEq?.readableContent).toContain('tajemniczym pożarze w dokach');
+      // 2. Ekwipunek postaci MA POZOSTAĆ PUSTY (Issue #565 - brak samowolnego auto-lootu)
+      expect(updated.equipment ?? []).toHaveLength(0);
 
       // 3. Sprawdź zachowanie pełnej treści w kronice (Tier 2 Full Content)
       const journalLetter = updated.journal?.find((j) => j.title === 'List od adwokata');

@@ -51,6 +51,7 @@ describe('Mechanics Integration Audit - CoC 7e RAW (Issue #537)', () => {
       const firearmGmResponse = `
 W szufladzie biurka znajdujesz ciężki rewolwer z nabojami.
 [PRZEDMIOT: Rewolwer .38: Niezawodny rewolwer Smith & Wesson z bębenkiem na 6 naboi | broń]
+[ZDOBYTY_PRZEDMIOT: Rewolwer .38 | Niezawodny rewolwer Smith & Wesson z bębenkiem na 6 naboi | zwykly]
       `.trim();
 
       const turn = pipeline.feedGMResponse(firearmGmResponse);
@@ -87,6 +88,7 @@ W szufladzie biurka znajdujesz ciężki rewolwer z nabojami.
       const knifeGmResponse = `
 Na blacie kuchennym leży ostry, stalowy nóż kuchenny.
 [PRZEDMIOT: Nóż kuchenny: Zwykły, ostry nóż ze stali węglowej z drewnianą rękojeścią | broń]
+[ZDOBYTY_PRZEDMIOT: Nóż kuchenny | Zwykły, ostry nóż ze stali węglowej z drewnianą rękojeścią | zwykly]
       `.trim();
 
       pipeline.feedGMResponse(knifeGmResponse);
@@ -116,6 +118,7 @@ Na blacie kuchennym leży ostry, stalowy nóż kuchenny.
       const clubGmResponse = `
 Za drzwiami stoi masywna pałka dębowa.
 [PRZEDMIOT: Ciężka pałka: Dębowy kij ze śladami uderzeń | broń]
+[ZDOBYTY_PRZEDMIOT: Ciężka pałka | Dębowy kij ze śladami uderzeń | zwykly]
       `.trim();
 
       pipeline.feedGMResponse(clubGmResponse);
@@ -150,6 +153,7 @@ Za drzwiami stoi masywna pałka dębowa.
       const handoutGmResponse = `
 W skrytce za obrazem ukryto stary, pożółkły dokument.
 [PRZEDMIOT: List z Arkham Sanitarium: Tajna korespondencja dyrektora potwierdzająca nielegalne eksperymenty]
+[ZDOBYTY_PRZEDMIOT: List z Arkham Sanitarium | Tajna korespondencja dyrektora potwierdzająca nielegalne eksperymenty | zwykly]
       `.trim();
 
       const turn = pipeline.feedGMResponse(handoutGmResponse);
@@ -592,6 +596,7 @@ Jean-Paul uspokaja się po okazaniu dokumentów portowych.
 Wkraczasz do opuszczonej willi Blackwoodów.
 [LOKACJA: Kuchnia willi Blackwoodów: Zapomniane pomieszczenie z resztkami mebli]
 [PRZEDMIOT: Nóż kuchenny: Długi nóż rzeźnicki z ostrym ostrzem | broń]
+[ZDOBYTY_PRZEDMIOT: Nóż kuchenny | Długi nóż rzeźnicki z ostrym ostrzem | zwykly]
 [PRZEDMIOT: Dziennik lorda Blackwooda: Rękopis opisujący rytuał pełni księżyca]
 [AKTUALNY CZAS: 12 Listopada 1925, 15:30]
       `);
