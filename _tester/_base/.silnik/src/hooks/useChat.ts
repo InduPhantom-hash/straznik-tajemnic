@@ -1372,7 +1372,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         let streamedFullText = '';
         let hasSessionEndConfirmation = false;
         let lastFinishReason: string | undefined;
-        let lastCostData: unknown;
+        let lastCostData: Message['costData'];
         const fullText = await parseSSEStream(response, {
           onText: (text) => {
             let cleanText = stripMeleeAttackTags(text);
@@ -1931,7 +1931,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             ...assistantMessage,
             content: streamedFullText,
             ...(lastFinishReason ? { finishReason: lastFinishReason } : {}),
-            ...(lastCostData ? { costData: lastCostData as any } : {}),
+            ...(lastCostData ? { costData: lastCostData } : {}),
             ...(acquiredItems.length > 0 ? { acquiredItems } : {}),
             ...(hazardEvents.length > 0 ? { hazardEvents } : {}),
             ...(spellCastEvents.length > 0 ? { spellCastEvents } : {}),

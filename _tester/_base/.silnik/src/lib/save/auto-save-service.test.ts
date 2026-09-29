@@ -2,7 +2,7 @@ import {
   generateSessionEndSaveName,
   performFullGameSave,
 } from './auto-save-service';
-import type { Character } from '@/lib/types';
+import type { Character, HotSeatConfig } from '@/lib/types';
 
 describe('auto-save-service', () => {
   beforeEach(() => {
@@ -194,7 +194,7 @@ describe('auto-save-service', () => {
               { id: 'p2', name: 'Gracz 2', characterId: 'char-2' },
             ],
             currentPlayerIndex: 1,
-          } as any,
+          } as unknown as HotSeatConfig,
         },
       });
 

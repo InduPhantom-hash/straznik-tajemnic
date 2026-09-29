@@ -69,7 +69,7 @@ export function generateSessionEndSaveName(
 }
 
 export interface FullGameSaveDataInput {
-  messages: Array<any>;
+  messages: unknown[];
   locale?: 'pl' | 'en';
   aiSettings?: AISettings | null;
   equipmentVisualEra?: EquipmentVisualEra | string;
@@ -157,7 +157,8 @@ export async function performFullGameSave(
   const saveId = `save_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
   // 1. Zbierz base64 obrazy z historii
-  const imageRefs = collectSaveImages(data.messages || []);
+  const rawMessages = (data.messages || []) as unknown as Parameters<typeof collectSaveImages>[0];
+  const imageRefs = collectSaveImages(rawMessages);
 
   // 2. Upload best-effort (tylko gdy saveImages === true)
   const urlByName: Record<string, string | null> = {};
@@ -174,7 +175,7 @@ export async function performFullGameSave(
 
   // 3. Podmień base64 na URL-e plików + sanityzacja
   const messagesWithUrls = applySaveImageUrls(
-    data.messages || [],
+    rawMessages,
     imageRefs,
     urlByName
   );

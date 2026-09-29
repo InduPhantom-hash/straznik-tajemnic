@@ -4,10 +4,10 @@ import type { Character } from '@/lib/types';
 import { useChat } from './useChat';
 
 if (typeof global.TextEncoder === 'undefined') {
-  (global as any).TextEncoder = TextEncoder;
+  Object.defineProperty(global, 'TextEncoder', { value: TextEncoder });
 }
 if (typeof global.TextDecoder === 'undefined') {
-  (global as any).TextDecoder = TextDecoder;
+  Object.defineProperty(global, 'TextDecoder', { value: TextDecoder });
 }
 
 // Mock dependencies
@@ -214,7 +214,7 @@ describe('useChat - sessionEndStatus (LOG-01)', () => {
   });
 
   it('blokuje współbieżne ponawianie zapisu (mutex / lock zapobiega duplikatom)', async () => {
-    let resolveSave: (val: any) => void = () => {};
+    let resolveSave: (val: unknown) => void = () => {};
     let saveCallCount = 0;
 
     global.fetch = jest.fn((url: string | URL | Request) => {
