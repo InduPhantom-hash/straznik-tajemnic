@@ -13,7 +13,7 @@ import { SafeImage } from '@/components/ui/safe-image';
  * parent (orchestrator) zarządza state lightbox.
  */
 
-import { Dices, Pause, Play, Square } from 'lucide-react';
+import { Dices, Loader2, Pause, Play, RefreshCw, Square } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '../../../ui/button';
 import { Card, CardContent } from '../../../ui/card';
@@ -94,6 +94,8 @@ interface MessageCardProps {
   isDuet?: boolean;
   characters?: Character[];
   isDirectorMode?: boolean;
+  sessionSaveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  onRetrySessionSave?: () => void;
 }
 
 export function MessageCard({
@@ -131,6 +133,8 @@ export function MessageCard({
   isDuet = false,
   characters = [],
   isDirectorMode = false,
+  sessionSaveStatus = 'idle',
+  onRetrySessionSave,
 }: MessageCardProps) {
   const t = useTranslations('MessageCard');
   const locale = useLocale();
@@ -282,16 +286,53 @@ export function MessageCard({
                 />
                 {(message.content.includes('[KONIEC_SESJI:POTWIERDZENIE]') || (isSessionEnded && isLastMessage)) && (
                   <>
-                    <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
-                      <p className="font-semibold text-red-400 mb-1">{t('chronicleSavedTitle')}</p>
-                      <p className="italic">{t('chronicleSavedMessage')}</p>
-                    </div>
+                    {sessionSaveStatus === 'saving' && (
+                      <div className="mt-6 p-4 rounded-lg border border-amber-950/50 bg-amber-950/20 text-amber-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md flex items-center justify-center gap-2.5">
+                        <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                        <p className="italic">{t('chronicleSaving')}</p>
+                      </div>
+                    )}
 
-                    {activeCharacter && onCharacterUpdate && (
-                      <DevelopmentPhaseCard
-                        character={activeCharacter}
-                        onCharacterUpdate={onCharacterUpdate}
-                      />
+                    {sessionSaveStatus === 'error' && (
+                      <>
+                        <div className="mt-6 p-4 rounded-lg border border-red-800 bg-red-950/40 text-red-200/90 font-special-elite text-sm text-center tracking-wider shadow-md">
+                          <p className="font-semibold text-red-400 mb-3">{t('chronicleSaveError')}</p>
+                          {onRetrySessionSave && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={onRetrySessionSave}
+                              className="border-red-800 bg-red-950/60 hover:bg-red-900/60 text-red-200 hover:text-red-100 font-special-elite"
+                            >
+                              <RefreshCw className="w-3.5 h-3.5 mr-2" />
+                              {t('chronicleSaveRetry')}
+                            </Button>
+                          )}
+                        </div>
+
+                        {activeCharacter && onCharacterUpdate && (
+                          <DevelopmentPhaseCard
+                            character={activeCharacter}
+                            onCharacterUpdate={onCharacterUpdate}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {(sessionSaveStatus === 'saved' || sessionSaveStatus === 'idle') && (
+                      <>
+                        <div className="mt-6 p-4 rounded-lg border border-red-950 bg-red-950/20 text-red-200/90 font-special-elite text-sm text-center tracking-wider animate-pulse shadow-md">
+                          <p className="font-semibold text-red-400 mb-1">{t('chronicleSavedTitle')}</p>
+                          <p className="italic">{t('chronicleSavedMessage')}</p>
+                        </div>
+
+                        {activeCharacter && onCharacterUpdate && (
+                          <DevelopmentPhaseCard
+                            character={activeCharacter}
+                            onCharacterUpdate={onCharacterUpdate}
+                          />
+                        )}
+                      </>
                     )}
                   </>
                 )}

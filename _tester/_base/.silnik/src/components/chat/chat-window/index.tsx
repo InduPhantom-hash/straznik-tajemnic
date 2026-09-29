@@ -104,6 +104,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
   onDismissAcquiredItem,
   isSessionEnded,
   sessionEndStatus,
+  sessionSaveStatus,
+  onRetrySessionSave,
   onCharacterUpdate,
   onContinueNarration,
   cheatCombatModal,
@@ -453,6 +455,8 @@ export const ChatWindow: FC<ChatWindowProps> = ({
                     onConfirmAcquiredItem={onConfirmAcquiredItem}
                     onDismissAcquiredItem={onDismissAcquiredItem}
                     isSessionEnded={isSessionEnded}
+                    sessionSaveStatus={sessionSaveStatus}
+                    onRetrySessionSave={onRetrySessionSave}
                     isLastMessage={index === messages.length - 1}
                     onCharacterUpdate={onCharacterUpdate}
                     onSendHazardResult={handleSendMessage}

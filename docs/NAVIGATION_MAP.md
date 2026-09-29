@@ -111,6 +111,7 @@ graph TD
     beta_welcome_modal -->|Zgłoś uwagę lub błąd / Report Issue or Feedback| beta_feedback_modal
     game -->|Kres postaci i epilog / Investigator end and epilogue| game_over_card
     character_new -->|Wybierz rycinę z epoki / Choose period engraving| retro_portrait_gallery_modal
+    game -->|Ponów zapis kroniki po błędzie / Retry chronicle save after error| game
 ```
 
 ## Routy
@@ -186,6 +187,7 @@ graph TD
 | Status wersji Beta | Zgłoś uwagę lub błąd / Report Issue or Feedback | Zgłoś błąd / uwagę | `src/components/dialogs/BetaWelcomeModal.tsx` |
 | Aktywna sesja | Kres postaci i epilog / Investigator end and epilogue | Kres postaci i diegetyczny epilog (d100 Weird Fiction) | `src/components/chat/chat-window/components/game-over-card.tsx` |
 | Nowa postać | Wybierz rycinę z epoki / Choose period engraving | Kolekcja rycin noir z lat 20. | `src/components/ui/character-wizard.tsx` |
+| Aktywna sesja | Ponów zapis kroniki po błędzie / Retry chronicle save after error | Aktywna sesja | `src/components/chat/chat-window/components/message-card.tsx` |
 
 ## Zasady aktualizacji
 

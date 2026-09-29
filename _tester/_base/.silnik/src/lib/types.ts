@@ -189,6 +189,7 @@ export interface Message {
   chaseState?: ChaseState; // Pościg i tor przeszkód CoC 7e RAW [POŚCIG:...]
   pendingMeleeAttacks?: PendingMeleeAttack[];
   acquiredItems?: AcquiredItemProposal[];
+  costData?: Record<string, unknown>;
   cliffhanger?: {
     question: string;
     type: 'dramatic_question' | 'external_event' | 'dilemma';
