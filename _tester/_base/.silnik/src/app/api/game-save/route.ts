@@ -9,7 +9,7 @@ import { resolveUserId } from '@/lib/auth-user';
 import { generateTraceId, startTimer, logApiEvent } from '@/lib/telemetry';
 import { getWritableDataDir } from '@/lib/paths';
 import { isCampaignMemoryScope } from '@/core/memory/campaign-scope';
-import { getCampaignMemoryLedgerStore } from '@/core/memory/ledger-store';
+import { getCampaignMemoryLedgerStore, stripSystemDirectivesForLedger } from '@/core/memory/ledger-store';
 
 // WERSJA LOKALNA (zew-app-local): save'y gry trzymane na dysku zamiast w
 // Google Cloud Storage. Struktura: data/saves/{userId}/{saveId}/
@@ -192,6 +192,12 @@ export async function POST(request: NextRequest) {
     // The regular save endpoint always captures committed server memory.
     // File imports restore their embedded snapshot through /api/memory/restore.
     delete fullSave.memorySnapshot;
+    if (fullSave.messages) {
+      fullSave.messages = fullSave.messages.map((msg: FullGameSave['messages'][number]) => {
+        const clean = stripSystemDirectivesForLedger(msg.content);
+        return clean.trim().length > 0 && clean !== msg.content ? { ...msg, content: clean } : msg;
+      });
+    }
     if (fullSave.campaignMemory !== undefined) {
       if (!isCampaignMemoryScope(fullSave.campaignMemory)) {
         return NextResponse.json({ error: 'Nieprawidłowy zakres pamięci' }, { status: 400 });
@@ -461,6 +467,12 @@ export async function PUT(request: NextRequest) {
     // Metadata-only edits retain the saved point in time.
     if ('messages' in updateData || 'campaignMemory' in updateData) {
       delete updatedSave.memorySnapshot;
+      if (updatedSave.messages) {
+        updatedSave.messages = updatedSave.messages.map((msg: FullGameSave['messages'][number]) => {
+          const clean = stripSystemDirectivesForLedger(msg.content);
+          return clean.trim().length > 0 && clean !== msg.content ? { ...msg, content: clean } : msg;
+        });
+      }
       if (updatedSave.campaignMemory !== undefined) {
         if (!isCampaignMemoryScope(updatedSave.campaignMemory)) {
           return NextResponse.json({ error: 'Nieprawidłowy zakres pamięci' }, { status: 400 });

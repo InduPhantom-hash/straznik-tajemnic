@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import Database from 'better-sqlite3';
-import { CampaignMemoryLedgerStore } from './ledger-store';
+import { CampaignMemoryLedgerStore, stripSystemDirectivesForLedger } from './ledger-store';
 import type { CampaignMemoryScope } from './types';
 
 const scope: CampaignMemoryScope = {
@@ -201,5 +201,151 @@ describe('CampaignMemoryLedgerStore', () => {
     const rebuiltResults = store.search(scope, 'Carlyle');
     expect(rebuiltResults).toHaveLength(1);
     expect(rebuiltResults[0].source).toBe('fts');
+  });
+
+  describe('stripSystemDirectivesForLedger & Issue #560 session-end snapshot resilience', () => {
+    it('strips various system directives and normalizes whitespace', () => {
+      expect(stripSystemDirectivesForLedger('Wracam do pokoju.\n[KONIEC_SESJI:FINAL]')).toBe('Wracam do pokoju.');
+      expect(stripSystemDirectivesForLedger('Wracam do pokoju.\n[KONIEC_SESJI_FINAL]')).toBe('Wracam do pokoju.');
+      expect(stripSystemDirectivesForLedger('Wracam do pokoju.\n[KONIEC_SESJI:POTWIERDZENIE]')).toBe('Wracam do pokoju.');
+      expect(stripSystemDirectivesForLedger('[KONIEC_SESJI]')).toBe('');
+      expect(stripSystemDirectivesForLedger('Badam pokój.\n[END_SESSION:FINAL]')).toBe('Badam pokój.');
+      expect(stripSystemDirectivesForLedger('Badam pokój.\n[END_SESSION]')).toBe('Badam pokój.');
+      expect(stripSystemDirectivesForLedger('Finał.\n[INSTRUKCJA SPECJALNA - KONIEC SESJI (KROK 2 - FINAŁ)]')).toBe('Finał.');
+      expect(stripSystemDirectivesForLedger('Finał.\n[GM DIRECTIVE: wrap scene]')).toBe('Finał.');
+      expect(stripSystemDirectivesForLedger('Finał.\n[SYSTEM: wrap up]')).toBe('Finał.');
+      expect(stripSystemDirectivesForLedger('Odwiedzam [Biblioteka] i szukam [Dziennik].')).toBe('Odwiedzam [Biblioteka] i szukam [Dziennik].');
+      expect(stripSystemDirectivesForLedger('Badam [system] zabezpieczeń.')).toBe('Badam [system] zabezpieczeń.');
+      expect(stripSystemDirectivesForLedger('')).toBe('');
+    });
+
+    it('creates snapshot without conflict when recordConversationTurn received userText with [KONIEC_SESJI:FINAL]', () => {
+      store.recordConversationTurn({
+        scope,
+        sessionId: 'session-closure',
+        messageId: 'assistant-end',
+        userMessageId: 'user-end',
+        userText: 'Kończę śledztwo i palę dokumenty.\n[KONIEC_SESJI:FINAL]',
+        assistantText: 'Mrok pochłania gabinet. [KONIEC_SESJI:POTWIERDZENIE]',
+      });
+
+      // React message state contains clean player utterance
+      const snapshot = store.createSnapshot(scope, [
+        { id: 'user-end', role: 'user', content: 'Kończę śledztwo i palę dokumenty.' },
+        { id: 'assistant-end', role: 'assistant', content: 'Mrok pochłania gabinet. [KONIEC_SESJI:POTWIERDZENIE]' },
+      ]);
+
+      expect(snapshot.entries).toHaveLength(2);
+      const userEntry = snapshot.entries.find((e) => e.role === 'user');
+      expect(userEntry?.text).toBe('Kończę śledztwo i palę dokumenty.');
+      expect(userEntry?.text).not.toContain('[KONIEC_SESJI:FINAL]');
+
+      const assistantEntry = snapshot.entries.find((e) => e.role === 'assistant');
+      expect(assistantEntry?.text).toBe('Mrok pochłania gabinet.');
+      expect(assistantEntry?.text).not.toContain('[KONIEC_SESJI:POTWIERDZENIE]');
+    });
+
+    it('creates snapshot without conflict when legacy ledger entries contain system directives', () => {
+      // Direct insertion mimicking pre-fix legacy database with [KONIEC_SESJI:FINAL]
+      const db = new Database(filePath);
+      db.prepare(`
+        INSERT INTO memory_entries (
+          id, playthrough_id, campaign_definition_id, adventure_id, memory_kind,
+          session_id, sequence_no, role, text, tags_json, source_message_ids_json, revealed_at, active, fact_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        'legacy-user-entry', scope.playthroughId, scope.campaignDefinitionId, scope.adventureId,
+        'conversation', 'session-legacy', 1, 'user', 'Opuszczam Arkham.\n[KONIEC_SESJI:FINAL]',
+        '[]', JSON.stringify(['msg-user-1']), new Date().toISOString(), 1, '{}'
+      );
+      db.prepare(`
+        INSERT INTO memory_entries (
+          id, playthrough_id, campaign_definition_id, adventure_id, memory_kind,
+          session_id, sequence_no, role, text, tags_json, source_message_ids_json, revealed_at, active, fact_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        'legacy-assistant-entry', scope.playthroughId, scope.campaignDefinitionId, scope.adventureId,
+        'conversation', 'session-legacy', 2, 'assistant', 'Pociąg rusza w mgłę.',
+        '[]', JSON.stringify(['msg-ast-1']), new Date().toISOString(), 1, '{}'
+      );
+      db.close();
+
+      const snapshot = store.createSnapshot(scope, [
+        { id: 'msg-user-1', role: 'user', content: 'Opuszczam Arkham.' },
+        { id: 'msg-ast-1', role: 'assistant', content: 'Pociąg rusza w mgłę.' },
+      ]);
+
+      expect(snapshot.entries).toHaveLength(2);
+      const userEntry = snapshot.entries.find((e) => e.role === 'user');
+      expect(userEntry?.text).toBe('Opuszczam Arkham.');
+      expect(userEntry?.text).not.toContain('[KONIEC_SESJI:FINAL]');
+    });
+
+    it('creates snapshot without conflict when messages contain system directives', () => {
+      store.recordConversationTurn({
+        scope,
+        sessionId: 'session-closure',
+        messageId: 'ast-msg',
+        userMessageId: 'usr-msg',
+        userText: 'Wracam do hotelu.',
+        assistantText: 'Koniec przygody.',
+      });
+
+      // Message has directive attached
+      const snapshot = store.createSnapshot(scope, [
+        { id: 'usr-msg', role: 'user', content: 'Wracam do hotelu.\n[KONIEC_SESJI:FINAL]' },
+        { id: 'ast-msg', role: 'assistant', content: 'Koniec przygody.' },
+      ]);
+
+      expect(snapshot.entries).toHaveLength(2);
+      expect(snapshot.entries.find((e) => e.role === 'user')?.text).toBe('Wracam do hotelu.');
+    });
+
+    it('handles [KONIEC_SESJI] trigger turn without snapshot conflicts and retains non-empty text', () => {
+      store.recordConversationTurn({
+        scope,
+        sessionId: 'session-closure',
+        messageId: 'ast-closure',
+        userMessageId: 'usr-closure',
+        userText: '[KONIEC_SESJI]',
+        assistantText: 'Co robisz przed zakończeniem sesji?',
+      });
+
+      const snapshot = store.createSnapshot(scope, [
+        { id: 'usr-closure', role: 'user', content: '[KONIEC_SESJI]' },
+        { id: 'ast-closure', role: 'assistant', content: 'Co robisz przed zakończeniem sesji?' },
+      ]);
+
+      expect(snapshot.entries).toHaveLength(2);
+      const userEntry = snapshot.entries.find((e) => e.role === 'user');
+      expect(userEntry?.text).toBe('[KONIEC_SESJI]');
+    });
+
+    it('supports bidirectional idempotent turn recording when input text has directives on one call and clean on repeat', () => {
+      const turnWithDirective = {
+        scope,
+        sessionId: 'session-idempotency',
+        messageId: 'turn-closure',
+        userText: 'Poddaję się szaleństwu.\n[KONIEC_SESJI:FINAL]',
+        assistantText: 'Ciemność zwycięża. [KONIEC_SESJI:POTWIERDZENIE]',
+      };
+
+      expect(store.recordConversationTurn(turnWithDirective)).toBe(2);
+      // Repeating with clean text computes identical hash because cleanUserText and cleanAssistantText are used
+      const turnClean = {
+        ...turnWithDirective,
+        userText: 'Poddaję się szaleństwu.',
+        assistantText: 'Ciemność zwycięża.',
+      };
+      expect(store.recordConversationTurn(turnClean)).toBe(0);
+
+      // Verify stored entries in snapshot are clean
+      const snapshot = store.createSnapshot(scope, [
+        { id: 'turn-closure:user', role: 'user', content: 'Poddaję się szaleństwu.' },
+        { id: 'turn-closure', role: 'assistant', content: 'Ciemność zwycięża.' },
+      ]);
+      expect(snapshot.entries.find((e) => e.role === 'assistant')?.text).toBe('Ciemność zwycięża.');
+      expect(snapshot.entries.find((e) => e.role === 'user')?.text).toBe('Poddaję się szaleństwu.');
+    });
   });
 });
