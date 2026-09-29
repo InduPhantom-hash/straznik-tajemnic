@@ -21,6 +21,7 @@ import type { Character, GameTime, MoonPhase } from '@/lib/types';
 import { applyStatChangesToParty, type SanityEvent } from '@/lib/character/apply-stat-changes';
 import { appendJournalToParty } from '@/lib/journal/apply-journal-tags';
 import { extractSkillTests, extractMeleeAttackReferences, detectCombat } from '@/lib/parsers/mechanics-parser';
+import { extractAcquiredItemProposals, createAcquiredEquipmentSeed } from '@/lib/acquired-equipment';
 import type { SkillTestData, MeleeAttackReference, CombatState } from '@/lib/parsers/types';
 import { extractLatestTagLocation } from '@/lib/parsers/event-parser';
 import { extractSceneChangeTag } from '@/lib/parsers/journal-parser';
@@ -343,6 +344,30 @@ export class MockGMPipeline {
       messageId
     );
     this.characters = journalChanges.characters;
+
+    // 6-BIS. Obsługa zdobytych przedmiotów [ZDOBYTY_PRZEDMIOT:] (Issue #565)
+    const acquiredProposals = extractAcquiredItemProposals(rawGmResponse, messageId);
+    if (acquiredProposals.length > 0) {
+      for (const proposal of acquiredProposals) {
+        const targetChar = proposal.recipientName
+          ? this.characters.find(
+              (c) => c.name.toLowerCase().trim() === proposal.recipientName?.toLowerCase().trim()
+            ) || this.getActiveCharacter()
+          : this.getActiveCharacter();
+
+        const seed = createAcquiredEquipmentSeed(proposal);
+        const newEq: EquipmentItem = {
+          id: `eq_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          name: proposal.name,
+          description: proposal.description,
+          category: seed.category || 'personal',
+          condition: 'used',
+          source: 'found',
+          ...seed,
+        };
+        targetChar.equipment = [...(targetChar.equipment || []), newEq];
+      }
+    }
 
     // 7. Aktualizacja czasu gry z tagu [AKTUALNY CZAS: ...]
     const timeUpdate = extractTimeUpdate(rawGmResponse);

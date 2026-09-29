@@ -113,7 +113,14 @@ export function createAcquiredEquipmentSeed(
     name: proposal.name,
     description: proposal.description,
     visualTreatment: proposal.visualTreatment,
-    ...(category === 'document' ? { documentType: inferDocumentType(proposal) } : {}),
+    ...(category === 'document'
+      ? {
+          documentType: inferDocumentType(proposal),
+          isReadable: true,
+          readableContent: proposal.description,
+          readableContentStatus: 'ready' as const,
+        }
+      : {}),
     ...(isAudioMedia ? { audioUrl: proposal.audioUrl || undefined } : {}),
     ...(damageStr || skill || rangeStr
       ? {
