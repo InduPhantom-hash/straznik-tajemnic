@@ -13,7 +13,6 @@ jest.mock('next/server', () => ({
 
 import {
   GET,
-  classifyModelPingError,
   type GeminiHealth,
 } from '@/app/api/health/gemini/route';
 import { HeaderSection } from '@/components/settings/gemini-sections/header';
@@ -158,7 +157,7 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
     global.fetch = originalFetch;
   });
 
-  describe('classifyModelPingError & GET /api/health/gemini?model=...', () => {
+  describe('GET /api/health/gemini?model=...', () => {
     it('zwraca zielony stan available z czasem odpowiedzi latencyMs dla działającego modelu', async () => {
       mockGenerateContent.mockResolvedValue({ text: 'ok' });
 
@@ -199,13 +198,22 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
       expect(body.modelPing?.latencyMs).toBeNull();
     });
 
-    it('zwraca żółty stan overloaded (rate_limited) przy błędzie 429 RESOURCE_EXHAUSTED', () => {
-      const result = classifyModelPingError({
+    it('zwraca żółty stan overloaded (rate_limited) przy błędzie 429 RESOURCE_EXHAUSTED', async () => {
+      mockGenerateContent.mockRejectedValue({
         status: 429,
         message: '429 RESOURCE_EXHAUSTED: Quota exceeded',
       });
-      expect(result.state).toBe('overloaded');
-      expect(result.reason).toBe('rate_limited');
+
+      const req = makeNextRequest(
+        'http://localhost:3000/api/health/gemini?model=gemini-3.8-flash',
+        { 'X-Gemini-Api-Key': 'test-valid-key' }
+      );
+
+      const res = await GET(req);
+      const body = (await res.json()) as GeminiHealth;
+
+      expect(body.modelPing?.state).toBe('overloaded');
+      expect(body.modelPing?.reason).toBe('rate_limited');
     });
 
     it('zwraca czerwony stan unavailable (invalid_key) przy braku klucza lub błędzie 400/403', async () => {
@@ -224,13 +232,22 @@ describe('Issue #521 - Wskaźnik stanu i dostępności wybranego modelu Gemini',
       });
     });
 
-    it('zwraca czerwony stan unavailable (not_found) przy błędzie 404 dla wycofanego modelu', () => {
-      const result = classifyModelPingError({
+    it('zwraca czerwony stan unavailable (not_found) przy błędzie 404 dla wycofanego modelu', async () => {
+      mockGenerateContent.mockRejectedValue({
         status: 404,
         message: '404 NOT_FOUND: Model gemini-2.0-flash is not found',
       });
-      expect(result.state).toBe('unavailable');
-      expect(result.reason).toBe('not_found');
+
+      const req = makeNextRequest(
+        'http://localhost:3000/api/health/gemini?model=gemini-2.0-flash',
+        { 'X-Gemini-Api-Key': 'test-valid-key' }
+      );
+
+      const res = await GET(req);
+      const body = (await res.json()) as GeminiHealth;
+
+      expect(body.modelPing?.state).toBe('unavailable');
+      expect(body.modelPing?.reason).toBe('not_found');
     });
   });
 

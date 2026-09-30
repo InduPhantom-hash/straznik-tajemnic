@@ -93,7 +93,7 @@ function isInvalidKeyError(err: unknown): boolean {
  * - overloaded (żółty): 503 High Demand / UNAVAILABLE / 429 RESOURCE_EXHAUSTED
  * - unavailable (czerwony): zły klucz (400/403), brak modelu (404) lub błąd połączenia
  */
-export function classifyModelPingError(err: unknown): {
+function classifyModelPingError(err: unknown): {
   state: ModelPingState;
   reason: ModelPingReason;
   message?: string;
