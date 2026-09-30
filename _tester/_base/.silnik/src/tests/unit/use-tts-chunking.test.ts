@@ -416,6 +416,361 @@ describe('useTTS First-Chunk Streaming & Buffering', () => {
     isAvailableSpy.mockRestore();
     getTtsAudioSpy.mockRestore();
   });
+
+  it('Issue #561: łączy 2-3 zdania narracji ze słowami "mrok", "chłód", "dusi", "wstrzymujesz oddech" w jeden spójny run TTS bez szarpania tempa', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const paragraph =
+      '[NASTRÓJ: spokojny wieczór]\nWchodzisz do starego pokoju, gdzie panuje mrok i chłód. Wstrzymujesz oddech na palcach, a gęsty kurz niemal dusi cię w gardle. Na dębowym biurku leżą bezwładne zwłoki oraz otwarty rejestr.';
+
+    await act(async () => {
+      result.current.addToQueue(paragraph, 'msg-561-smooth', true);
+    });
+
+    // Wszystkie 3 zdania narracji mają ten sam wygładzony ton sceny i trafiają jako 1 wspólny run TTS
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(payload.voice).toBe('Kore');
+    expect(payload.text).toContain('Wchodzisz do starego pokoju');
+    expect(payload.text).toContain('Wstrzymujesz oddech na palcach');
+    expect(payload.text).toContain('Na dębowym biurku leżą bezwładne zwłoki');
+    expect(payload.audioDirection).not.toContain('paranoid whisper');
+  });
+
+  it('Issue #562: natychmiast resetuje głos NPC po znaku zamykającym cudzysłów (”, ", ») nawet gdy narracja jest w tej samej linii bez \\n', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Kwestia NPC (wielozdaniowa) oraz dalsza proza narratora w JEDNEJ linii bez \n
+    const sameLineScene =
+      'Walter Gilman: „Nie schodź tam! To czyste szaleństwo.” Nagle rozlega się zgrzyt klucza w zamku i ciężkie kroki na schodach.';
+
+    await act(async () => {
+      result.current.addToQueue(sameLineScene, 'msg-562-inline-1', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(npcPayload.voice).toBe('Puck');
+    expect(npcPayload.text).toBe('Nie schodź tam! To czyste szaleństwo.');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe(
+      'Nagle rozlega się zgrzyt klucza w zamku i ciężkie kroki na schodach.'
+    );
+  });
+
+  it('Issue #562: rozdziela głos NPC i narratora także gdy po zamknięciu cudzysłowu nie ma kropki przed narracją w tym samym zdaniu', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const inlineCommaScene =
+      'Walter Gilman: „Nie schodź tam”, po czym odwraca wzrok w stronę ciemnego okna.';
+
+    await act(async () => {
+      result.current.addToQueue(inlineCommaScene, 'msg-562-inline-comma', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(npcPayload.voice).toBe('Puck');
+    expect(npcPayload.text).toBe('Nie schodź tam');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe('po czym odwraca wzrok w stronę ciemnego okna.');
+  });
+
+  it('Issue #562: ekstrahuje polskie i angielskie tagi emocji ([szept], [panika]) do audioDirection i całkowicie wycina je z tekstu TTS', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const taggedMessage =
+      'Walter Gilman: [szept] „Ktoś stoi za drzwiami.”';
+
+    await act(async () => {
+      result.current.addToQueue(taggedMessage, 'msg-562-emotion', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+
+    expect(payload.voice).toBe('Puck');
+    expect(payload.text).toBe('Ktoś stoi za drzwiami.');
+    expect(payload.text).not.toContain('szept');
+    expect(payload.text).not.toContain('[');
+    expect(payload.audioDirection).toContain('whisper');
+  });
+
+  it('Issue #562: obsługuje cudzysłowy ASCII (") oraz francuskie («...») i izoluje tagi emocji między kwestią NPC a ogonem narratora', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const mixedQuoteScene =
+      'Walter Gilman: "Uważaj na schody! [szept] Ktoś tam stoi", [panika] po czym cofa się gwałtownie w cień.';
+
+    await act(async () => {
+      result.current.addToQueue(mixedQuoteScene, 'msg-562-ascii-quotes', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    const npcNormalPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const npcWhisperPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[2][1].body);
+
+    expect(npcNormalPayload.voice).toBe('Puck');
+    expect(npcNormalPayload.text).toBe('Uważaj na schody!');
+
+    expect(npcWhisperPayload.voice).toBe('Puck');
+    expect(npcWhisperPayload.text).toBe('Ktoś tam stoi');
+    expect(npcWhisperPayload.text).not.toContain('[');
+    expect(npcWhisperPayload.audioDirection).toContain('whisper');
+    expect(npcWhisperPayload.audioDirection).not.toContain('panicked');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe('po czym cofa się gwałtownie w cień.');
+    expect(narratorPayload.text).not.toContain('[');
+    expect(narratorPayload.audioDirection).toContain('panicked');
+  });
+
+  it('Issue #562: obsługuje cudzysłowy francuskie («...»), tag [SFX: ...] przed imieniem NPC oraz tag emocji bezpośrednio przed zamknięciem cudzysłowu bez duplikacji ogona narratora', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const sfxAndGuillemetScene =
+      '[SFX: door_slam] Walter Gilman: «Nie schodź tam! [szept]» Odwraca wzrok w stronę okna.';
+
+    await act(async () => {
+      result.current.addToQueue(sfxAndGuillemetScene, 'msg-562-sfx-guillemet', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(npcPayload.voice).toBe('Puck');
+    expect(npcPayload.text).toBe('Nie schodź tam!');
+    expect(npcPayload.text).not.toContain('door_slam');
+    expect(npcPayload.text).not.toContain('Walter Gilman');
+    expect(npcPayload.audioDirection).toContain('whisper');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe('Odwraca wzrok w stronę okna.');
+    expect(narratorPayload.audioDirection).not.toContain('whisper');
+  });
+
+  it('Issue #562: rozróżnia zakres tagu emocji przed otwarciem cudzysłowu NPC od tagu emocji po zamknięciu cudzysłowu dla narratora', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Wariant A: tag [szept] po zamknięciu cudzysłowu należy wyłącznie do ogona narratora
+    const tagAfterQuote =
+      'Walter Gilman: „Nie schodź tam!” [szept] Odwraca wzrok.';
+    await act(async () => {
+      result.current.addToQueue(tagAfterQuote, 'msg-562-tag-after-quote', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayloadA = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayloadA = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(npcPayloadA.voice).toBe('Puck');
+    expect(npcPayloadA.text).toBe('Nie schodź tam!');
+    expect(npcPayloadA.audioDirection).not.toContain('whisper');
+
+    expect(narratorPayloadA.voice).toBe('Kore');
+    expect(narratorPayloadA.text).toBe('Odwraca wzrok.');
+    expect(narratorPayloadA.audioDirection).toContain('whisper');
+
+    // Wariant B: tag [szept] przed cudzysłowem należy wyłącznie do kwestii NPC
+    const tagBeforeQuote =
+      'Walter Gilman: [szept] „Nie schodź tam!” Odwraca wzrok.';
+    await act(async () => {
+      result.current.addToQueue(tagBeforeQuote, 'msg-562-tag-before-quote', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(4);
+    const npcPayloadB = JSON.parse((global.fetch as jest.Mock).mock.calls[2][1].body);
+    const narratorPayloadB = JSON.parse((global.fetch as jest.Mock).mock.calls[3][1].body);
+
+    expect(npcPayloadB.voice).toBe('Puck');
+    expect(npcPayloadB.text).toBe('Nie schodź tam!');
+    expect(npcPayloadB.audioDirection).toContain('whisper');
+
+    expect(narratorPayloadB.voice).toBe('Kore');
+    expect(narratorPayloadB.text).toBe('Odwraca wzrok.');
+    expect(narratorPayloadB.audioDirection).not.toContain('whisper');
+  });
+
+  it('Issue #562: poprawnie przełącza głos z NPC na narratora przy strumieniowaniu (flush=false), gdy znak zamykający cudzysłów ” spływa dopiero w kolejnym chunku wraz z narracją', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Chunk 1: wypowiedź NPC ucięta dokładnie po kropce, ale przed znakiem zamykającym cudzysłów ”
+    const chunk1 = 'Walter Gilman: „Nie schodź tam! To czyste szaleństwo.';
+    await act(async () => {
+      result.current.addToQueue(chunk1, 'msg-562-stream-split-quote', false);
+    });
+
+    // Chunk 2: spływa znak zamykający cudzysłów ” oraz zdanie narratora w tej samej linii
+    const chunk2 = `${chunk1}” Nagle rozlega się zgrzyt klucza w zamku.`;
+    await act(async () => {
+      result.current.addToQueue(chunk2, 'msg-562-stream-split-quote', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(npcPayload.voice).toBe('Puck');
+    expect(npcPayload.text).toContain('Nie schodź tam!');
+    expect(npcPayload.text).toContain('To czyste szaleństwo.');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe('Nagle rozlega się zgrzyt klucza w zamku.');
+  });
+
+  it('Issue #561: aktywuje tryb action dla jawnego tagu [WALKA_ATAK: ...] oraz tryb whisper dla [SANITY: -1d10: ...] przed ich wycięciem przez stripMultilineArtifacts', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const combatTurn =
+      '[NASTRÓJ: tajemniczy]\n[WALKA_ATAK: @Badacz: napastnik=Kultysta]\nKultysta rzuca się z nożem! Ostrze błyszczy w ciemności.';
+    await act(async () => {
+      result.current.addToQueue(combatTurn, 'msg-561-combat-tag', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const combatPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(combatPayload.audioDirection).toContain('intense, thrilling cadence');
+    expect(combatPayload.text).toBe('Kultysta rzuca się z nożem! Ostrze błyszczy w ciemności.');
+
+    const sanityDiceTurn =
+      '[NASTRÓJ: tajemniczy]\n[SANITY: -1d10: manifestacja Przedwiecznego]\nZasłona rzeczywistości pęka na twoich oczach.';
+    await act(async () => {
+      result.current.addToQueue(sanityDiceTurn, 'msg-561-sanity-dice', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const sanityPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+    expect(sanityPayload.audioDirection).toContain('urgent, tense, and paranoid whisper');
+  });
+
+  it('Issue #562: zachowuje tag emocji przed zamknięciem cudzysłowu, gdy tag spływa rozcięty na granicy chunków SSE ([szep + t]”)', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    // Chunk 1: zdanie NPC przekraczające próg EARLY_FIRST_SEGMENT_MIN_CHARS, ucięte w połowie tagu [szep
+    const chunk1 =
+      'Walter Gilman: „Nie schodź tam, bo w ciemności czeka zguba! [szep';
+    await act(async () => {
+      result.current.addToQueue(chunk1, 'msg-562-split-tag-sse', false);
+    });
+
+    // Chunk 2: dokończenie tagu t]” oraz zdanie narratora w tej samej linii
+    const chunk2 = `${chunk1}t]” Odwraca wzrok w stronę okna.`;
+    await act(async () => {
+      result.current.addToQueue(chunk2, 'msg-562-split-tag-sse', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(npcPayload.voice).toBe('Puck');
+    expect(npcPayload.text).toBe('Nie schodź tam, bo w ciemności czeka zguba!');
+    expect(npcPayload.audioDirection).toContain('whisper');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe('Odwraca wzrok w stronę okna.');
+    expect(narratorPayload.audioDirection).not.toContain('whisper');
+  });
+
+  it('Issue #562: nie kradnie otwierającego cudzysłowu ASCII " ani tagu emocji kolejnego zdania (np. . [szept] "Kto tam jest?") i przenosi osobny wiersz [szept]\\n na następne zdanie', async () => {
+    const { result } = renderHook(() => useTTS('pl'));
+
+    act(() => {
+      result.current.setVoiceEnabled(true);
+      result.current.setIsTTSEnabled(true);
+    });
+
+    const asciiOpeningAfterTag =
+      'Detektyw patrzy w mrok. [szept] "Kto tam jest?"';
+    await act(async () => {
+      result.current.addToQueue(asciiOpeningAfterTag, 'msg-562-ascii-open-after-tag', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const firstSentencePayload = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    const secondSentencePayload = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+
+    expect(firstSentencePayload.text).toBe('Detektyw patrzy w mrok.');
+    expect(firstSentencePayload.audioDirection).not.toContain('whisper');
+
+    expect(secondSentencePayload.text).toBe('Kto tam jest?');
+    expect(secondSentencePayload.audioDirection).toContain('whisper');
+
+    // Osobny wiersz [szept]\n po zamknięciu kwestii NPC zasila kolejne zdanie narratora
+    const standaloneNewlineTag =
+      'Walter Gilman: „Nie schodź tam!” [szept]\nOdwraca wzrok w stronę okna.';
+    await act(async () => {
+      result.current.addToQueue(standaloneNewlineTag, 'msg-562-standalone-newline-tag', true);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(4);
+    const npcPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[2][1].body);
+    const narratorPayload = JSON.parse((global.fetch as jest.Mock).mock.calls[3][1].body);
+
+    expect(npcPayload.voice).toBe('Puck');
+    expect(npcPayload.text).toBe('Nie schodź tam!');
+    expect(npcPayload.audioDirection).not.toContain('whisper');
+
+    expect(narratorPayload.voice).toBe('Kore');
+    expect(narratorPayload.text).toBe('Odwraca wzrok w stronę okna.');
+    expect(narratorPayload.audioDirection).toContain('whisper');
+  });
 });
-
-
