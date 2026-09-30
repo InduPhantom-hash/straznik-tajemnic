@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SetStateAction, Dispatch } from 'react';
 import { useTranslations } from 'next-intl';
 import type { AISettings } from '@/lib/ai-settings';
@@ -33,10 +33,14 @@ export function HeaderSection({
   const g = settings.geminiSettings;
   const [modelPing, setModelPing] = useState<ModelPingResult | null>(null);
   const [pingLoading, setPingLoading] = useState(false);
+  const requestIdRef = useRef(0);
+  const hasMountedRef = useRef(false);
+  const prevModelRef = useRef(g.model);
 
   const checkModelAvailability = useCallback(
     async (modelId: string, apiKeyOverride?: string) => {
       if (!modelId) return;
+      const reqId = ++requestIdRef.current;
       setPingLoading(true);
       try {
         const headers: Record<string, string> = {
@@ -51,6 +55,7 @@ export function HeaderSection({
           { headers }
         );
         const data = (await res.json()) as GeminiHealth;
+        if (reqId !== requestIdRef.current) return;
         if (data.modelPing) {
           setModelPing(data.modelPing);
         } else {
@@ -62,6 +67,7 @@ export function HeaderSection({
           });
         }
       } catch {
+        if (reqId !== requestIdRef.current) return;
         setModelPing({
           model: modelId,
           state: 'unavailable',
@@ -69,14 +75,30 @@ export function HeaderSection({
           reason: 'error',
         });
       } finally {
-        setPingLoading(false);
+        if (reqId === requestIdRef.current) {
+          setPingLoading(false);
+        }
       }
     },
     []
   );
 
   useEffect(() => {
-    void checkModelAvailability(g.model, settings.geminiApiKey);
+    const isInitialMount = !hasMountedRef.current;
+    const isModelChange = prevModelRef.current !== g.model;
+    hasMountedRef.current = true;
+    prevModelRef.current = g.model;
+
+    if (isInitialMount || isModelChange) {
+      void checkModelAvailability(g.model, settings.geminiApiKey);
+      return;
+    }
+
+    // Debounce przy ręcznym wpisywaniu klucza API znak po znaku
+    const timerId = setTimeout(() => {
+      void checkModelAvailability(g.model, settings.geminiApiKey);
+    }, 250);
+    return () => clearTimeout(timerId);
   }, [g.model, settings.geminiApiKey, checkModelAvailability]);
 
   const dotClass = pingLoading

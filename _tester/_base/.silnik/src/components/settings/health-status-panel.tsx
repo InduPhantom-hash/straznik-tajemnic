@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '../ui/button';
 import { getApiKeyHeaders } from '@/lib/api-keys-service';
@@ -50,6 +50,7 @@ export function HealthStatusPanel({
   const [pricing, setPricing] = useState<PricingRefreshResponse | null>(null);
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingError, setPricingError] = useState<string | null>(null);
+  const checkRequestIdRef = useRef(0);
 
   useEffect(() => {
     if (selectedModel) {
@@ -99,6 +100,7 @@ export function HealthStatusPanel({
   };
 
   const runCheck = useCallback(async () => {
+    const reqId = ++checkRequestIdRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -109,8 +111,10 @@ export function HealthStatusPanel({
         headers: getApiKeyHeaders(),
       });
       const data = (await res.json()) as GeminiHealth;
+      if (reqId !== checkRequestIdRef.current) return;
       setHealth(data);
     } catch (err) {
+      if (reqId !== checkRequestIdRef.current) return;
       if (err instanceof Error && err.name === 'AbortError') {
         setError(t('healthTimeout'));
       } else {
@@ -118,7 +122,9 @@ export function HealthStatusPanel({
       }
       setHealth(null);
     } finally {
-      setLoading(false);
+      if (reqId === checkRequestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [activeModel, t]);
 
