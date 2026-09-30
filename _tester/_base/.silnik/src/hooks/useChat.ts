@@ -105,6 +105,11 @@ import {
   type CombatDefenseWeaponOption,
 } from '@/lib/combat/weapon-context';
 import { loadCampaignMemoryScope } from '@/core/memory/campaign-scope';
+import {
+  deriveSceneSensoryMemoryFromMessages,
+  extractMacroLocation,
+  isSameMacroLocation,
+} from '@/lib/world-engine';
 
 const MESSAGES_STORAGE_KEY = 'zew_chat_messages';
 const ACTIVE_CHASE_STORAGE_KEY = 'zew_active_chase_state';
@@ -642,6 +647,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       lastIllustratedLocationRef.current = '';
       lastTrackedSceneRef.current = '';
       sceneImageCountRef.current = 0;
+      turnsInCurrentLocationRef.current = 0;
+      visitedMacroLocationsRef.current = [];
     }
   }, [messages.length]);
 
@@ -723,6 +730,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   // wysłał ją do promptu (build-context.ts) BEZ wpisywania jej w tablicę zależności callbacka.
   const [currentLocation, setCurrentLocation] = useState('');
   const currentLocationRef = useRef('');
+  // Issue #563: Scene Sensory Memory & Dwupoziomowa Pamięć Strefowa
+  const turnsInCurrentLocationRef = useRef(0);
+  const visitedMacroLocationsRef = useRef<string[]>([]);
   // 2026-06-28: licznik obrazów per scena (scena = lokacja). Cap MAX_IMAGES_PER_SCENE
   // OGRANICZA serię obrazów w jednej lokacji; resetuje się przy zmianie lokacji.
   // `lastTrackedSceneRef` pamięta lokację, dla której liczymy, by wykryć zmianę sceny.
@@ -806,6 +816,27 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setCurrentLocation(loc);
     }
   }, [adventureContext?.location]);
+
+  // Issue #563: Odtwórz stan pamięci sensorycznej z historii messages (np. po F5, wczytaniu zapisu lub starcie przez useGameStart)
+  useEffect(() => {
+    if (
+      messages.length > 0 &&
+      turnsInCurrentLocationRef.current === 0 &&
+      visitedMacroLocationsRef.current.length === 0 &&
+      messages.some((m) => m.role === 'assistant' && m.content)
+    ) {
+      const derived = deriveSceneSensoryMemoryFromMessages(
+        messages,
+        currentLocationRef.current || adventureContext?.location
+      );
+      if (derived.currentLocation) {
+        currentLocationRef.current = derived.currentLocation;
+        setCurrentLocation(derived.currentLocation);
+      }
+      turnsInCurrentLocationRef.current = derived.turnsInCurrentLocation;
+      visitedMacroLocationsRef.current = derived.visitedMacroLocations;
+    }
+  }, [messages, adventureContext?.location]);
 
   // Visual Belief Graph: synchronizuj profil Badacza, NPC z Dossier i epokę
   useEffect(() => {
@@ -1363,6 +1394,26 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           return false;
         }
 
+        if (
+          turnsInCurrentLocationRef.current === 0 &&
+          visitedMacroLocationsRef.current.length === 0 &&
+          messages.some((m) => m.role === 'assistant' && m.content)
+        ) {
+          const derived = deriveSceneSensoryMemoryFromMessages(
+            messages,
+            currentLocationRef.current || adventureContext?.location
+          );
+          if (derived.currentLocation) {
+            currentLocationRef.current = derived.currentLocation;
+            setCurrentLocation(derived.currentLocation);
+          }
+          turnsInCurrentLocationRef.current = derived.turnsInCurrentLocation;
+          visitedMacroLocationsRef.current = derived.visitedMacroLocations;
+        }
+
+        const prevLocationBeforeTurn = currentLocationRef.current;
+        const hadVisitedAnyMacroBeforeTurn = visitedMacroLocationsRef.current.length > 0;
+
         const response = await fetchWithRetry('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1382,6 +1433,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
+            turnsInCurrentLocation: turnsInCurrentLocationRef.current,
+            visitedMacroLocations: visitedMacroLocationsRef.current,
             aiSettings: options.aiSettings,
             locale,
             hotSeatConfig: resolveHotSeatCharacterNames(
@@ -1943,13 +1996,45 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         // w headerze (currentLocation) i jest odsyłany do promptu w kolejnej turze
         // (currentLocationRef). Wpis dziennika typu `location` powstaje już w
         // appendJournalFromText - ten sam tor [LOKACJA:].
+        const pushMacroIfAbsent = (locName: string) => {
+          const macro = extractMacroLocation(locName);
+          if (
+            macro &&
+            !visitedMacroLocationsRef.current.some(
+              (existing) =>
+                existing.toLowerCase().trim() === macro.toLowerCase().trim() ||
+                isSameMacroLocation(existing, macro)
+            )
+          ) {
+            visitedMacroLocationsRef.current.push(macro);
+          }
+        };
+
         const latestLocation = extractLatestTagLocation(fullText);
         if (latestLocation && latestLocation.name.length <= 45 && !isVisualPromptLeak(latestLocation.name)) {
+          const prevLoc = prevLocationBeforeTurn.trim().toLowerCase();
+          const nextLoc = latestLocation.name.trim().toLowerCase();
+          if (!prevLoc || !hadVisitedAnyMacroBeforeTurn || prevLoc === nextLoc) {
+            turnsInCurrentLocationRef.current += 1;
+            pushMacroIfAbsent(latestLocation.name);
+          } else {
+            pushMacroIfAbsent(prevLocationBeforeTurn);
+            turnsInCurrentLocationRef.current = 0;
+            if (isSameMacroLocation(prevLocationBeforeTurn, latestLocation.name)) {
+              pushMacroIfAbsent(latestLocation.name);
+            }
+          }
           currentLocationRef.current = latestLocation.name;
           setCurrentLocation(latestLocation.name);
           visualBeliefGraphRef.current.updateLocation(latestLocation.name, {
             atmosphere: latestLocation.description || undefined,
           });
+        } else {
+          // Brak nowego tagu [LOKACJA:] - tura upłynęła w tej samej lokacji
+          turnsInCurrentLocationRef.current += 1;
+          if (currentLocationRef.current) {
+            pushMacroIfAbsent(currentLocationRef.current);
+          }
         }
 
         // IND-230: Faza Rozwoju CoC. Po pełnym streamie wyłuskaj wyniki testów
@@ -2301,6 +2386,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             memoryScope: loadCampaignMemoryScope(),
             gameTime: timeManager.getTime(),
             currentLocation: currentLocationRef.current,
+            turnsInCurrentLocation: turnsInCurrentLocationRef.current,
+            visitedMacroLocations: visitedMacroLocationsRef.current,
             aiSettings: options.aiSettings,
             locale,
             guardrailState: guardrailStateRef.current,
