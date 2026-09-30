@@ -1,10 +1,11 @@
 'use client';
 
-import type { FC } from 'react';
+import { useEffect, useRef, type FC } from 'react';
 import { useTranslations } from 'next-intl';
 import { Sparkles } from 'lucide-react';
 import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
 import { traceForD100Bonus } from '@/lib/dice-roll-trace';
+import { playDiceRevealSound } from '@/lib/dice-physics/dice-audio';
 
 export interface ArtDecoDiceBreakdown {
   tensResults: number[];
@@ -20,6 +21,8 @@ export interface ArtDecoDice3DProps {
   breakdown?: ArtDecoDiceBreakdown | null;
   bonusDice?: number;
   luckSpent?: number;
+  outcome?: string;
+  enableRevealSound?: boolean;
 }
 
 /**
@@ -38,6 +41,8 @@ export const ArtDecoDice3D: FC<ArtDecoDice3DProps> = ({
   breakdown,
   bonusDice = 0,
   luckSpent,
+  outcome,
+  enableRevealSound = true,
 }) => {
   const t = useTranslations('RollTestResult');
 
@@ -88,6 +93,23 @@ export const ArtDecoDice3D: FC<ArtDecoDice3DProps> = ({
     bonusDice,
     'roll-test'
   );
+
+  const prevPhaseRef = useRef(phase);
+  useEffect(() => {
+    if (prevPhaseRef.current === 'rolling' && phase === 'done') {
+      if (enableRevealSound) {
+        const resolvedOutcome =
+          outcome ||
+          (finalTotal === 1
+            ? 'critical'
+            : isRaw100 || finalTotal === 100
+              ? 'fumble'
+              : 'regular');
+        playDiceRevealSound(resolvedOutcome);
+      }
+    }
+    prevPhaseRef.current = phase;
+  }, [phase, outcome, finalTotal, isRaw100, enableRevealSound]);
 
   return (
     <div

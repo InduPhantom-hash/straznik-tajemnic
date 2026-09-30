@@ -53,6 +53,7 @@ import { Sparkles } from 'lucide-react';
 import { getSharedAudioContext } from '@/lib/audio/audio-context';
 import { PhysicalDiceScene } from '@/components/dice/physical-dice-scene';
 import { traceForD100, traceForD100Bonus, type DiceRollTrace } from '@/lib/dice-roll-trace';
+import { playDiceRevealSound } from '@/lib/dice-physics/dice-audio';
 
 // === INTERFACES ===
 
@@ -224,12 +225,17 @@ export const DiceDialog: FC<DiceDialogProps> = ({
   // === HANDLERS ===
 
   // Quick roll d100
-  const playTrace = (trace: DiceRollTrace) => {
+  const playTrace = (trace: DiceRollTrace, rollOutcome?: string) => {
     // Wynik oraz historia są zapisywane przed animacją. Zamknięcie tacki nie może
     // więc unieważnić wylosowanej wartości, a przycisk nie losuje drugi raz.
     setVisibleTrace(trace);
     setIsDiceAnimating(true);
-    window.setTimeout(() => setIsDiceAnimating(false), 720);
+    window.setTimeout(() => {
+      setIsDiceAnimating(false);
+      if (soundEnabled) {
+        playDiceRevealSound(rollOutcome);
+      }
+    }, 720);
   };
 
   const handleQuickD100 = () => {
@@ -249,9 +255,12 @@ export const DiceDialog: FC<DiceDialogProps> = ({
     };
 
     addRoll(roll);
-    playTrace(detailed
-      ? traceForD100Bonus(detailed.total, detailed.tensResults, detailed.unitsResult, bonusDice, 'dice-dialog')
-      : traceForD100(result, 'dice-dialog'));
+    playTrace(
+      detailed
+        ? traceForD100Bonus(detailed.total, detailed.tensResults, detailed.unitsResult, bonusDice, 'dice-dialog')
+        : traceForD100(result, 'dice-dialog'),
+      result === 1 ? 'critical' : result === 100 ? 'fumble' : 'regular'
+    );
     setBonusDice(0);
   };
 
@@ -274,9 +283,12 @@ export const DiceDialog: FC<DiceDialogProps> = ({
     );
 
     addRoll(roll);
-    playTrace(detailed
-      ? traceForD100Bonus(detailed.total, detailed.tensResults, detailed.unitsResult, bonusDice, 'dice-dialog-skill')
-      : traceForD100(result, 'dice-dialog-skill'));
+    playTrace(
+      detailed
+        ? traceForD100Bonus(detailed.total, detailed.tensResults, detailed.unitsResult, bonusDice, 'dice-dialog-skill')
+        : traceForD100(result, 'dice-dialog-skill'),
+      roll.outcome
+    );
     setBonusDice(0);
   };
 
