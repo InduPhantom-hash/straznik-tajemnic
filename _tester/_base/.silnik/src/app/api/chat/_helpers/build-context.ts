@@ -198,8 +198,9 @@ export function buildPlayerFinancesSection(
 
 /**
  * Buduje sekcję promptu ze stałym profilem wizualnym Badacza (Visual DNA).
- * Przekazuje AI wygląd, płeć, wiek, ubiór i cechy szczególne z karty,
- * aby generowane ilustracje i portrety zachowywały pełną spójność.
+ * Przekazuje AI wygląd, płeć, wiek, ubiór i cechy szczególne z karty WYŁĄCZNIE
+ * na potrzeby prozy narracyjnej i reakcji NPC w świecie gry, z twardym zakazem
+ * wplatania twarzy/sylwetki Badacza do tagów ilustracji (kadr FPP / Pure Camera POV).
  */
 export function buildPlayerVisualProfileSection(
   character: Character | null | undefined
@@ -230,12 +231,13 @@ export function buildPlayerVisualProfileSection(
   if (details.length === 0) return '';
 
   return (
-    `\n## PROFIL WIZUALNY BADACZA (VISUAL DNA)\n` +
+    `\n## PROFIL WIZUALNY BADACZA (VISUAL DNA - TYLKO DLA NARRACJI TEKSTOWEJ)\n` +
     `Badacz gracza to **${character.name}** o następującym stałym wyglądzie fizycznym:\n` +
     details.map((d) => `- ${d}`).join('\n') +
-    `\nReguła: Gdy generujesz tagi ilustracji ([SCENA:], [PORTRET:]) z udziałem Badacza, ` +
-    `ZAWSZE wplataj powyższe cechy fizyczne (wiek, sylwetka, ubranie z epoki) w angielski prompt, ` +
-    `aby postać wyglądała spójnie na wszystkich wygenerowanych grafikach.`
+    `\nReguła (BEZWZGLĘDNY ZAKAZ W OBRAZACH - CZYSTY KADR FPP): Powyższy profil fizyczny służy WYŁĄCZNIE do opisów w prozie narracyjnej i reakcji postaci niezależnych (NPC) na wygląd Badacza. ` +
+    `ABSOLUTNY ZAKAZ wplatania twarzy, sylwetki, dłoni ani ubioru Badacza do tagów obrazów ([SCENA:], [LOKACJA:], [PORTRET:], [PRZEDMIOT:], [POTWÓR:], [ZJAWISKO:])! ` +
+    `Wszystkie ilustracje scen i lokacji pokazują świat z oczu Badacza (Pure Subjective Camera POV - zero części ciała gracza w kadrze). ` +
+    `Tag [PORTRET:] jest zarezerwowany WYŁĄCZNIE dla napotkanych postaci niezależnych (NPC) - NIGDY nie generuj [PORTRET:] dla postaci gracza (${character.name}).`
   );
 }
 
@@ -911,14 +913,34 @@ export function buildAdditionalContext(
     );
   }
 
-  // Profil wizualny Badacza (Visual DNA) - by generowane ilustracje miały spójny wygląd
+  // Profil wizualny Badacza (Visual DNA) - wyłącznie dla narracji tekstowej i reakcji NPC (zakaz w obrazach FPP)
   if (playerVisualProfileSection) {
     additionalContext.push(playerVisualProfileSection);
   }
 
-  // Visual Belief Graph (DeepMind Proactive T2I) - kotwice postaci i stan lokacji
+  // Visual Belief Graph (DeepMind Proactive T2I) - kotwice postaci NPC i stan lokacji.
+  // Odfiltrowujemy postacie graczy (isPlayer: true), aby LLM nigdy nie wplatał
+  // angielskiego Visual DNA badacza do tagów obrazów ([SCENA:], [LOKACJA:], [PORTRET:]).
   if (opts.visualBeliefGraph) {
-    const beliefDirective = opts.visualBeliefGraph.toPromptDirective(opts.locale);
+    const state =
+      typeof opts.visualBeliefGraph.getState === 'function'
+        ? opts.visualBeliefGraph.getState()
+        : undefined;
+    let beliefDirective = '';
+    if (state) {
+      const npcOnlyCharacters = Object.fromEntries(
+        Object.entries(state.characters || {}).filter(
+          ([, profile]) => !profile.isPlayer
+        )
+      );
+      const npcOnlyGraph = new VisualBeliefGraph({
+        ...state,
+        characters: npcOnlyCharacters,
+      });
+      beliefDirective = npcOnlyGraph.toPromptDirective(opts.locale);
+    } else {
+      beliefDirective = opts.visualBeliefGraph.toPromptDirective(opts.locale);
+    }
     if (beliefDirective) {
       additionalContext.push(`\n${beliefDirective}`);
     }
