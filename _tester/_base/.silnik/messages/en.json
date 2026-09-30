@@ -8514,5 +8514,16 @@
     "lore_ruleCombatSummary": "Dynamic round-based scuffles resolved in Dexterity (DEX) order.",
     "lore_ruleCombatMechanics": "A defender chooses to Fight Back or Dodge. The higher success level wins. Ties in fighting back go to the attacker. Firearms cannot be countered in hand-to-hand without special conditions.",
     "lore_ruleCombatExample": "A cultist strikes with a dagger (Regular Success). The investigator Dodges (Hard Success), cleanly slipping past the blade."
+  },
+  "CombatDexRibbon": {
+    "title": "Combat (DEX Initiative)",
+    "round": "Round",
+    "majorWound": "Major Wound",
+    "dying": "Dying (0 HP)",
+    "madness": "Bout of Madness",
+    "activeTurn": "Active Turn",
+    "investigator": "Investigator",
+    "collapse": "Collapse",
+    "expand": "Show combatants"
   }
 }

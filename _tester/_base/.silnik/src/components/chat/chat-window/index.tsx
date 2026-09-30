@@ -31,6 +31,7 @@ import { LoadingIndicator } from './components/loading-indicator';
 import { MessageCard } from './components/message-card';
 import { MessageInput } from './components/message-input';
 import { TTSHardLoadingScreen } from './components/tts-hard-loading-screen';
+import { CombatDexRibbon } from '@/components/combat/CombatDexRibbon';
 import { getSkillValue } from '@/lib/types';
 import { resolveTestValue } from '@/lib/skill-test-resolver';
 
@@ -425,6 +426,13 @@ export const ChatWindow: FC<ChatWindowProps> = ({
         </div>
       ) : (
         <>
+          <CombatDexRibbon
+            combatActive={Boolean(pendingCombatAttack) || undefined}
+            messages={messages}
+            activeCharacter={activeCharacter}
+            characters={characters}
+            pendingCombatAttack={pendingCombatAttack}
+          />
           {/* Chat Messages */}
           <div className="relative flex-1 min-h-0">
             <ScrollArea

@@ -8514,5 +8514,16 @@
     "lore_ruleCombatSummary": "Dynamiczne starcia rozstrzygane w turach wg wartości Zręczności (DEX).",
     "lore_ruleCombatMechanics": "Obrońca może wybrać: Odpowiedź Atakiem (kontratak) lub Unik. Lepszy stopień sukcesu wygrywa starcie. Przy remisie w kontrataku wygrywa inicjator ataku. Broń palna nie pozwala na kontratak w zwarciu bez specjalnych okoliczności.",
     "lore_ruleCombatExample": "Kultysta atakuje sztyletem (Sukces Zwykły). Badacz decyduje się na Unik i wyrzuca Sukces Trudny – bez szwanku odskakuje w bok."
+  },
+  "CombatDexRibbon": {
+    "title": "Starcie (Inicjatywa DEX)",
+    "round": "Runda",
+    "majorWound": "Rana Ciężka",
+    "dying": "Agonia (0 HP)",
+    "madness": "Atak Szaleństwa",
+    "activeTurn": "Aktywna akcja",
+    "investigator": "Badacz",
+    "collapse": "Zwiń",
+    "expand": "Pokaż uczestników"
   }
 }
